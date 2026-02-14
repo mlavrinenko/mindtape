@@ -44,6 +44,7 @@
             typstyle
             nixd
             rust-analyzer
+            tokei
           ];
           buildInputs = with pkgs; [
             openssl
