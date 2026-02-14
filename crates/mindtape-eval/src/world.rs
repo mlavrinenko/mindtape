@@ -390,7 +390,7 @@ mod tests {
         std::fs::write(&typ_file, r#"#import "@unknown/pkg:1.0.0": foo"#).unwrap();
 
         let world = MindTapeWorld::new(&typ_file).unwrap();
-        let result = crate::eval::eval_file(&world);
+        let result = crate::eval_file(&world);
         assert!(result.is_err());
     }
 

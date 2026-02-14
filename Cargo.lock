@@ -1337,20 +1337,40 @@ checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
 name = "mindtape"
 version = "0.1.0"
 dependencies = [
- "comemo",
  "ignore",
+ "mindtape-eval",
+ "mindtape-store",
  "notify",
  "notify-debouncer-mini",
- "rusqlite",
  "serde",
- "sha2",
  "tempfile",
  "thiserror",
  "toml",
  "typst",
+]
+
+[[package]]
+name = "mindtape-eval"
+version = "0.1.0"
+dependencies = [
+ "comemo",
+ "tempfile",
+ "typst",
  "typst-eval",
  "typst-library",
  "typst-syntax",
+]
+
+[[package]]
+name = "mindtape-store"
+version = "0.1.0"
+dependencies = [
+ "mindtape-eval",
+ "rusqlite",
+ "sha2",
+ "tempfile",
+ "thiserror",
+ "typst",
 ]
 
 [[package]]

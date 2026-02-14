@@ -8,7 +8,7 @@ use sha2::{Digest, Sha256};
 use super::{
     FileBinding, PropertyKind, Store, StoreError, TaskFile, TaskProperty, TaskRecord,
 };
-use crate::eval::{self, EvalResult};
+use mindtape_eval::{self as eval, EvalResult};
 
 // ---------------------------------------------------------------------------
 // Hashing

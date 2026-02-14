@@ -1,0 +1,19 @@
+[package]
+name = "mindtape-store"
+version = "0.1.0"
+edition = "2021"
+description = "Store trait and SQLite backend for MindTape"
+license = "MIT"
+
+[dependencies]
+mindtape-eval = { path = "../mindtape-eval" }
+typst = "0.14"
+rusqlite = { version = "0.38", features = ["bundled"] }
+sha2 = "0.10"
+thiserror = "2"
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

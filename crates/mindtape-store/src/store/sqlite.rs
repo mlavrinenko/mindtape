@@ -386,7 +386,7 @@ impl Store for SqliteStore {
 #[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
     use super::*;
-    use crate::store::{FileBinding, PropertyKind, TaskFile, TaskFilter, TaskProperty, TaskRecord};
+    use super::super::{FileBinding, PropertyKind, TaskFile, TaskFilter, TaskProperty, TaskRecord};
 
     fn test_store() -> SqliteStore {
         SqliteStore::open_memory().unwrap()
@@ -841,11 +841,11 @@ mod tests {
 
     #[test]
     fn to_store_records_converts_tags_and_due() {
-        use crate::eval::{self, EvalResult};
+        use mindtape_eval::{EvalResult, Task};
         use typst::foundations::Datetime;
 
         let eval_result = EvalResult {
-            tasks: vec![eval::Task {
+            tasks: vec![Task {
                 title: "Test".to_string(),
                 done: false,
                 due: Some(Datetime::from_ymd(2026, 3, 1).unwrap()),

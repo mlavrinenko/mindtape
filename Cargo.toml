@@ -1,38 +1,9 @@
-[package]
-name = "mindtape"
-version = "0.1.0"
-edition = "2021"
-description = "A file-based task tracker using Typst files as the source of truth"
-license = "MIT"
-
-[lib]
-name = "mindtape"
-path = "src/lib.rs"
-
-[[bin]]
-name = "mindtape"
-path = "src/main.rs"
-
-[dependencies]
-typst = "0.14"
-typst-eval = "0.14"
-typst-library = "0.14"
-typst-syntax = "0.14"
-comemo = "0.5"
-rusqlite = { version = "0.38", features = ["bundled"] }
-sha2 = "0.10"
-thiserror = "2"
-notify = "7"
-notify-debouncer-mini = "0.5"
-ignore = "0.4"
-toml = "0.8"
-serde = { version = "1", features = ["derive"] }
-
-[dev-dependencies]
-tempfile = "3"
-
-[lints]
-workspace = true
+[workspace]
+members = [
+    "crates/mindtape-eval",
+    "crates/mindtape-store",
+]
+resolver = "2"
 
 [workspace.lints.rust]
 unsafe_code = "deny"
@@ -123,3 +94,35 @@ undocumented_unsafe_blocks = "deny"
 bool_to_int_with_if = "deny"
 manual_string_new = "deny"
 uninlined_format_args = "deny"
+
+[package]
+name = "mindtape"
+version = "0.1.0"
+edition = "2021"
+description = "A file-based task tracker using Typst files as the source of truth"
+license = "MIT"
+
+[lib]
+name = "mindtape"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mindtape"
+path = "src/main.rs"
+
+[dependencies]
+mindtape-eval = { path = "crates/mindtape-eval" }
+mindtape-store = { path = "crates/mindtape-store" }
+typst = "0.14"
+thiserror = "2"
+notify = "7"
+notify-debouncer-mini = "0.5"
+ignore = "0.4"
+toml = "0.8"
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

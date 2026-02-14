@@ -2,24 +2,24 @@
 
 # Run all checks (clippy + tests)
 check:
-    cargo clippy --all-targets -q
-    cargo test -q
+    cargo clippy --workspace --all-targets -q
+    cargo test --workspace -q
 
 # Run tests only
 test *ARGS:
-    cargo test -q {{ARGS}}
+    cargo test --workspace -q {{ARGS}}
 
 # Run clippy only
 clippy:
-    cargo clippy --all-targets -q
+    cargo clippy --workspace --all-targets -q
 
 # Build the project
 build:
-    cargo build -q
+    cargo build --workspace -q
 
 # Run coverage with tarpaulin
 cover:
-    cargo tarpaulin
+    cargo tarpaulin --workspace
 
 # Run shell integration tests
 itest: build
@@ -30,8 +30,8 @@ all: check itest
 
 # Format code
 fmt:
-    cargo fmt
+    cargo fmt --all
 
 # Format check (CI-friendly)
 fmt-check:
-    cargo fmt -- --check
+    cargo fmt --all -- --check
