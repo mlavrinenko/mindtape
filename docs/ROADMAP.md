@@ -161,16 +161,7 @@ folders, and keeps the index updated as files change.
 
 ## Milestone 3: Write-Back (Mutations via API)
 
-- [ ] `mindtape check <task-id>` — toggle task checkbox in `.typ` file
-- [ ] `mindtape set <task-id> --due <date>` — update task properties
+- [ ] `mindtape check <task-id>` — toggle task checkbox in `.typ` file. `task-id` can be written as mask like `*37f8` so that task-id which ends with `37f8` will be processed. id should be uuid so it will be too long for user to type it fully
+- [ ] `mindtape set <task-id> --due <date>` — update task properties. task-id here can be written as mask too
 - [ ] Safe file modification: parse -> modify AST -> write back (preserve formatting)
 - [ ] Conflict detection: file changed on disk since last index
-
----
-
-## Milestone 4: API Server
-
-- [ ] HTTP/REST API (axum) exposing query and mutation endpoints
-- [ ] WebSocket or SSE for live updates
-- [ ] API key / local auth for security
-- [ ] OpenAPI spec generation

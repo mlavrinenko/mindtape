@@ -50,6 +50,7 @@ Early development. See [docs/ROADMAP.md](docs/ROADMAP.md) for the plan.
 - Notifications (desktop, email)
 - Sync across machines (CRDTs, git-based)
 - `mindtape init` scaffolding for new projects
+- REST API
 - Web UI
 - Editor integrations (VS Code, Neovim)
 
