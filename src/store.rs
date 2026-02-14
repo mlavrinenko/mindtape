@@ -63,7 +63,7 @@ impl PropertyKind {
         }
     }
 
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn try_from_str(s: &str) -> Option<Self> {
         match s {
             "due" => Some(PropertyKind::Due),
             "tag" => Some(PropertyKind::Tag),
@@ -808,10 +808,10 @@ mod tests {
         let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
 
         let tasks1 = vec![make_record("Old", false, 0)];
-        store.upsert_tasks(file_id, &tasks1, &vec![vec![]]).unwrap();
+        store.upsert_tasks(file_id, &tasks1, &[vec![]]).unwrap();
 
         let tasks2 = vec![make_record("New A", false, 0), make_record("New B", false, 1)];
-        store.upsert_tasks(file_id, &tasks2, &vec![vec![], vec![]]).unwrap();
+        store.upsert_tasks(file_id, &tasks2, &[vec![], vec![]]).unwrap();
 
         let count: i32 = store
             .conn
@@ -883,10 +883,10 @@ mod tests {
         let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
 
         store
-            .upsert_bindings(file_id, &vec![make_binding("old", "string", "\"x\"")])
+            .upsert_bindings(file_id, &[make_binding("old", "string", "\"x\"")])
             .unwrap();
         store
-            .upsert_bindings(file_id, &vec![make_binding("new", "int", "42")])
+            .upsert_bindings(file_id, &[make_binding("new", "int", "42")])
             .unwrap();
 
         let name: String = store
@@ -911,7 +911,7 @@ mod tests {
         let props = vec![vec![make_tag_prop("x")]];
         store.upsert_tasks(file_id, &tasks, &props).unwrap();
         store
-            .upsert_bindings(file_id, &vec![make_binding("n", "int", "1")])
+            .upsert_bindings(file_id, &[make_binding("n", "int", "1")])
             .unwrap();
 
         store.remove_task_file(Path::new("t.typ")).unwrap();
@@ -1026,8 +1026,8 @@ mod tests {
         store
             .upsert_tasks(
                 file_id2,
-                &vec![make_record("Other", false, 0)],
-                &vec![vec![]],
+                &[make_record("Other", false, 0)],
+                &[vec![]],
             )
             .unwrap();
 
@@ -1148,10 +1148,10 @@ mod tests {
 
     #[test]
     fn property_kind_roundtrip() {
-        assert_eq!(PropertyKind::from_str("due"), Some(PropertyKind::Due));
-        assert_eq!(PropertyKind::from_str("tag"), Some(PropertyKind::Tag));
-        assert_eq!(PropertyKind::from_str("id"), Some(PropertyKind::Id));
-        assert_eq!(PropertyKind::from_str("unknown"), None);
+        assert_eq!(PropertyKind::try_from_str("due"), Some(PropertyKind::Due));
+        assert_eq!(PropertyKind::try_from_str("tag"), Some(PropertyKind::Tag));
+        assert_eq!(PropertyKind::try_from_str("id"), Some(PropertyKind::Id));
+        assert_eq!(PropertyKind::try_from_str("unknown"), None);
         assert_eq!(PropertyKind::Due.as_str(), "due");
         assert_eq!(PropertyKind::Tag.as_str(), "tag");
         assert_eq!(PropertyKind::Id.as_str(), "id");

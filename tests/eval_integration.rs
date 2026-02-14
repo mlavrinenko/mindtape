@@ -361,7 +361,7 @@ fn eval_full_extracts_none_binding() {
 fn eval_full_skips_array_binding() {
     // Arrays are not a supported binding type — should be skipped
     let result = eval_typ_full(r#"#let items = ("a", "b", "c")"#).unwrap();
-    assert!(result.bindings.iter().find(|b| b.0 == "items").is_none());
+    assert!(!result.bindings.iter().any(|b| b.0 == "items"));
 }
 
 #[test]

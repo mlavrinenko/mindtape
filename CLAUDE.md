@@ -28,6 +28,7 @@ metadata into a database, and exposes a CLI (later API) for querying.
 ## Agent Rules
 
 - Use `--quiet` / `-q` for `cargo build`, `cargo test`, `cargo tarpaulin`, etc. — only show errors/warnings and test results, not compilation progress
+- After any code changes, run `cargo clippy --all-targets -q` and fix all warnings before considering the task done
 - Avoid dumping large tool outputs into context; summarize or truncate when possible
 - At the end of a session with code/config changes, suggest a conventional commit message (e.g. `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`)
 - Save research findings (external crate APIs, googled solutions, version-specific quirks) to `docs/research/` as markdown files — one file per topic (e.g. `docs/research/notify-crate.md`). This preserves knowledge across sessions and avoids re-researching the same things.
