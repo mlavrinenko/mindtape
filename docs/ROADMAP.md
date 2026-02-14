@@ -114,11 +114,28 @@ folders, and keeps the index updated as files change.
 
 ## Milestone 2: Richer Queries + UX
 
-- [ ] Full-text search across task titles and `#let` binding values
-- [ ] `mindtape search "keyword"` command
-- [ ] Output formats: table (default), JSON, CSV
+### M2.1 — Search + Output Formats [COMPLETE]
+
+- [x] Full-text search across task titles and `#let` binding values
+- [x] `mindtape search "keyword"` command
+- [x] Output formats: table (default), JSON, CSV via `--format` flag
+- [x] `--json` kept as shorthand for `--format json`
+
+**Implementation notes**:
+- `Store::search()` method with LIKE-based matching (case-insensitive)
+- `BindingView` and `SearchResults` domain types
+- Schema v2 migration adds NOCASE indexes on `tasks.title` and `file_bindings.name`
+- `OutputFormat` enum replaces `bool json` across all query commands
+- CSV formatters for tasks, files, stats, and search results
+- 204 tests across workspace
+
+### M2.2 — Due Date Awareness + Agenda
+
 - [ ] Due date awareness: overdue tasks, upcoming tasks
 - [ ] `mindtape agenda` — tasks due today/this week
+
+### M2.3 — Cross-File References
+
 - [ ] Cross-file reference tracking (which files import which)
 
 ---

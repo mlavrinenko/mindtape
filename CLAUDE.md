@@ -140,12 +140,15 @@ mindtape (root)      (mindtape-eval, mindtape-store, typst, thiserror,
 
 ## Current Status
 
-MVP complete (M1.1-M1.5). Full read-only workflow end-to-end.
-181 tests across workspace. Next: Milestone 2 (Richer Queries + UX).
+MVP complete (M1.1-M1.5), M2.1 (search + output formats) complete.
+204 tests across workspace. Next: M2.2 (Due Date Awareness + Agenda).
 
 CLI commands:
 - `mindtape <file.typ> [--due] [-N]` — eval a single file
 - `mindtape watch [<path>] [--config <file>]` — watch and index folders
-- `mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH] [--json]`
-- `mindtape status [--db PATH] [--json]` — index stats
-- `mindtape files [--db PATH] [--json]` — list indexed files
+- `mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH] [--format table|json|csv]`
+- `mindtape search <keyword> [-N] [--db PATH] [--format table|json|csv]` — full-text search
+- `mindtape status [--db PATH] [--format table|json|csv]` — index stats
+- `mindtape files [--db PATH] [--format table|json|csv]` — list indexed files
+
+All query commands support `--json` as shorthand for `--format json`.
