@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use typst::foundations::Datetime;
 
 use crate::eval::Task;
-use crate::store::{FileView, IndexStats, SearchResults, TaskView};
+use crate::store::{AgendaView, FileView, IndexStats, SearchResults, TaskView};
 
 /// Output format for query commands.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -31,6 +31,7 @@ pub enum Command {
     Status(QueryArgs),
     Files(QueryArgs),
     Search(SearchArgs),
+    Agenda(AgendaArgs),
 }
 
 pub struct SearchArgs {
@@ -73,10 +74,21 @@ pub struct QueryArgs {
     pub format: OutputFormat,
 }
 
+#[derive(Default)]
+pub struct AgendaArgs {
+    pub show_overdue: bool,
+    pub show_today: bool,
+    pub show_week: bool,
+    pub limit: Option<usize>,
+    pub db: Option<PathBuf>,
+    pub format: OutputFormat,
+}
+
 const USAGE: &str = "\
 Usage: mindtape <file.typ> [--due] [-N]
        mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH] [--format table|json|csv]
        mindtape search <keyword> [-N] [--db PATH] [--format table|json|csv]
+       mindtape agenda [--overdue] [--today] [--week] [-N] [--db PATH] [--format table|json|csv]
        mindtape status [--db PATH] [--format table|json|csv]
        mindtape files [--db PATH] [--format table|json|csv]
        mindtape watch [<path>] [--config <file>]";
@@ -89,6 +101,7 @@ pub fn parse_args(args: &[String]) -> Result<Command, String> {
         Some("watch") => parse_watch_args(rest),
         Some("list") => parse_list_args(rest),
         Some("search") => parse_search_args(rest),
+        Some("agenda") => parse_agenda_args(rest),
         Some("status") => parse_query_args(rest).map(Command::Status),
         Some("files") => parse_query_args(rest).map(Command::Files),
         _ => parse_eval_args(args).map(Command::Eval),
@@ -280,6 +293,59 @@ fn parse_search_args(args: &[String]) -> Result<Command, String> {
     let query = query.ok_or_else(|| "search requires a keyword argument".to_string())?;
 
     Ok(Command::Search(SearchArgs { query, limit, db, format }))
+}
+
+fn parse_agenda_args(args: &[String]) -> Result<Command, String> {
+    let mut agenda = AgendaArgs::default();
+    let mut idx = 0;
+
+    while idx < args.len() {
+        let Some(arg) = args.get(idx) else {
+            break;
+        };
+        match arg.as_str() {
+            "--overdue" => {
+                agenda.show_overdue = true;
+            }
+            "--today" => {
+                agenda.show_today = true;
+            }
+            "--week" => {
+                agenda.show_week = true;
+            }
+            "--db" => {
+                idx += 1;
+                agenda.db = Some(PathBuf::from(
+                    args.get(idx).ok_or("--db requires a path")?,
+                ));
+            }
+            "--json" => {
+                agenda.format = OutputFormat::Json;
+            }
+            "--format" => {
+                idx += 1;
+                let val = args.get(idx).ok_or("--format requires a value (table, json, or csv)")?;
+                agenda.format = parse_format(val)?;
+            }
+            other => {
+                if let Some(num) = other.strip_prefix('-').and_then(|s| s.parse::<usize>().ok()) {
+                    agenda.limit = Some(num);
+                } else {
+                    return Err(format!("unknown agenda argument: {other}"));
+                }
+            }
+        }
+        idx += 1;
+    }
+
+    // If no specific sections requested, show all sections
+    if !agenda.show_overdue && !agenda.show_today && !agenda.show_week {
+        agenda.show_overdue = true;
+        agenda.show_today = true;
+        agenda.show_week = true;
+    }
+
+    Ok(Command::Agenda(agenda))
 }
 
 // ---------------------------------------------------------------------------
@@ -476,6 +542,81 @@ pub fn filter_and_sort(tasks: Vec<Task>, due_only: bool, limit: Option<usize>) -
     }
 
     tasks
+}
+
+#[must_use]
+pub fn format_agenda(agenda: &AgendaView, show_overdue: bool, show_today: bool, show_week: bool) -> String {
+    let mut output = String::new();
+
+    if show_overdue && !agenda.overdue.is_empty() {
+        output.push_str("# Overdue\n\n");
+        for task in &agenda.overdue {
+            output.push_str(&format!("  {}\n", format_task_view(task)));
+        }
+        output.push('\n');
+    }
+
+    if show_today && !agenda.today.is_empty() {
+        output.push_str("# Today\n\n");
+        for task in &agenda.today {
+            output.push_str(&format!("  {}\n", format_task_view(task)));
+        }
+        output.push('\n');
+    }
+
+    if show_week && !agenda.this_week.is_empty() {
+        output.push_str("# This Week\n\n");
+        for task in &agenda.this_week {
+            output.push_str(&format!("  {}\n", format_task_view(task)));
+        }
+        output.push('\n');
+    }
+
+    if output.is_empty() {
+        output.push_str("No tasks in agenda.\n");
+    }
+
+    output
+}
+
+#[must_use]
+pub fn format_agenda_csv(agenda: &AgendaView) -> String {
+    let mut csv = String::from("section,done,due,title,tags,file\n");
+
+    for task in &agenda.overdue {
+        csv.push_str(&format!(
+            "overdue,{},{},{},{},{}\n",
+            task.is_done,
+            task.due.as_deref().unwrap_or(""),
+            csv_escape(&task.title),
+            task.tags.join(";"),
+            task.file_path.display(),
+        ));
+    }
+
+    for task in &agenda.today {
+        csv.push_str(&format!(
+            "today,{},{},{},{},{}\n",
+            task.is_done,
+            task.due.as_deref().unwrap_or(""),
+            csv_escape(&task.title),
+            task.tags.join(";"),
+            task.file_path.display(),
+        ));
+    }
+
+    for task in &agenda.this_week {
+        csv.push_str(&format!(
+            "this_week,{},{},{},{},{}\n",
+            task.is_done,
+            task.due.as_deref().unwrap_or(""),
+            csv_escape(&task.title),
+            task.tags.join(";"),
+            task.file_path.display(),
+        ));
+    }
+
+    csv
 }
 
 #[must_use]
@@ -952,6 +1093,50 @@ mod tests {
     fn parse_search_missing_query() {
         let result = parse_args(&[s("search")]);
         assert!(result.is_err());
+    }
+
+    // --- parse_agenda_args ---
+
+    #[test]
+    fn parse_agenda_default() {
+        let cmd = parse_args(&[s("agenda")]).unwrap();
+        let Command::Agenda(args) = cmd else { panic!("expected Agenda") };
+        assert!(args.show_overdue);
+        assert!(args.show_today);
+        assert!(args.show_week);
+        assert_eq!(args.limit, None);
+        assert_eq!(args.db, None);
+        assert_eq!(args.format, OutputFormat::Table);
+    }
+
+    #[test]
+    fn parse_agenda_specific_sections() {
+        let cmd = parse_args(&[s("agenda"), s("--overdue"), s("--today")]).unwrap();
+        let Command::Agenda(args) = cmd else { panic!("expected Agenda") };
+        assert!(args.show_overdue);
+        assert!(args.show_today);
+        assert!(!args.show_week);
+    }
+
+    #[test]
+    fn parse_agenda_with_flags() {
+        let cmd = parse_args(&[
+            s("agenda"), s("--week"), s("-10"), s("--db"), s("a.db"), s("--format"), s("csv"),
+        ]).unwrap();
+        let Command::Agenda(args) = cmd else { panic!("expected Agenda") };
+        assert!(!args.show_overdue);
+        assert!(!args.show_today);
+        assert!(args.show_week);
+        assert_eq!(args.limit, Some(10));
+        assert_eq!(args.db, Some(PathBuf::from("a.db")));
+        assert_eq!(args.format, OutputFormat::Csv);
+    }
+
+    #[test]
+    fn parse_agenda_json_shorthand() {
+        let cmd = parse_args(&[s("agenda"), s("--json")]).unwrap();
+        let Command::Agenda(args) = cmd else { panic!("expected Agenda") };
+        assert_eq!(args.format, OutputFormat::Json);
     }
 
     // --- format_task_view ---

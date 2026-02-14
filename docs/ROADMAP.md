@@ -129,10 +129,18 @@ folders, and keeps the index updated as files change.
 - CSV formatters for tasks, files, stats, and search results
 - 204 tests across workspace
 
-### M2.2 — Due Date Awareness + Agenda
+### M2.2 — Due Date Awareness + Agenda [COMPLETE]
 
-- [ ] Due date awareness: overdue tasks, upcoming tasks
-- [ ] `mindtape agenda` — tasks due today/this week
+- [x] Due date awareness: overdue tasks, upcoming tasks
+- [x] `mindtape agenda` — tasks due today/this week
+
+**Implementation notes**:
+- `Store::query_agenda()` method returns `AgendaView` with overdue/today/this_week tasks
+- Overdue uses `<` (strictly before today), not `<=`
+- This week = today + 6 days (7 day window including today)
+- CLI supports `--overdue`, `--today`, `--week` flags (default: all sections)
+- All output formats supported: table, JSON, CSV
+- Added 3 store tests + 4 CLI tests (153 total tests)
 
 ### M2.3 — Cross-File References
 

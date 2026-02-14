@@ -177,6 +177,40 @@ impl SqliteStore {
         (sql, bind_values)
     }
 
+    fn fetch_task_views(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        params: &[&dyn rusqlite::ToSql],
+    ) -> Result<Vec<TaskView>, StoreError> {
+        let task_rows: Vec<(i64, String, bool, i32, String, Option<String>)> = stmt
+            .query_map(params, |row| {
+                Ok((
+                    row.get(0)?,
+                    row.get(1)?,
+                    row.get::<_, i32>(2)? != 0,
+                    row.get(3)?,
+                    row.get(4)?,
+                    row.get(5)?,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let mut tasks = Vec::with_capacity(task_rows.len());
+        for (task_id, title, is_done, position, file_path, file_title) in task_rows {
+            let (due, tags) = self.fetch_task_properties(task_id)?;
+            tasks.push(TaskView {
+                title,
+                is_done,
+                position,
+                file_path: PathBuf::from(file_path),
+                file_title,
+                due,
+                tags,
+            });
+        }
+        Ok(tasks)
+    }
+
     fn fetch_task_properties(
         &self,
         task_id: i64,
@@ -451,6 +485,67 @@ impl Store for SqliteStore {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(SearchResults { tasks, bindings })
+    }
+
+    fn query_agenda(&self, today: &str) -> Result<super::AgendaView, StoreError> {
+        // Calculate week end date (today + 6 days)
+        // SQLite date arithmetic: date(today, '+6 days')
+        let week_end_query = format!("date('{today}', '+6 days')");
+
+        // Overdue: has due date AND due < today (strictly before) AND NOT done
+        let mut overdue_stmt = self.conn.prepare(
+            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+             FROM tasks t
+             JOIN task_files tf ON t.task_file_id = tf.id
+             WHERE t.is_done = 0
+               AND EXISTS (
+                 SELECT 1 FROM task_properties tp
+                 WHERE tp.task_id = t.id
+                   AND tp.kind = 'due'
+                   AND tp.value < ?1
+               )
+             ORDER BY tf.relative_path, t.position",
+        )?;
+        let overdue = self.fetch_task_views(&mut overdue_stmt, params![today])?;
+
+        // Today: has due date AND due == today AND NOT done
+        let mut today_stmt = self.conn.prepare(
+            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+             FROM tasks t
+             JOIN task_files tf ON t.task_file_id = tf.id
+             WHERE t.is_done = 0
+               AND EXISTS (
+                 SELECT 1 FROM task_properties tp
+                 WHERE tp.task_id = t.id
+                   AND tp.kind = 'due'
+                   AND tp.value = ?1
+               )
+             ORDER BY tf.relative_path, t.position",
+        )?;
+        let today_tasks = self.fetch_task_views(&mut today_stmt, params![today])?;
+
+        // This week: has due date AND due > today AND due <= week_end AND NOT done
+        let mut week_stmt = self.conn.prepare(&format!(
+            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+             FROM tasks t
+             JOIN task_files tf ON t.task_file_id = tf.id
+             WHERE t.is_done = 0
+               AND EXISTS (
+                 SELECT 1 FROM task_properties tp
+                 WHERE tp.task_id = t.id
+                   AND tp.kind = 'due'
+                   AND tp.value > ?1
+                   AND tp.value <= {week_end_query}
+               )
+             ORDER BY tf.relative_path, t.position"
+        ))?;
+        let this_week = self.fetch_task_views(&mut week_stmt, params![today])?;
+
+        Ok(super::AgendaView {
+            overdue,
+            today: today_tasks,
+            this_week,
+        })
     }
 }
 
@@ -1163,5 +1258,68 @@ mod tests {
         seed_store(&mut store); // 3 tasks
         let results = store.search("", Some(2)).unwrap();
         assert_eq!(results.tasks.len(), 2);
+    }
+
+    // --- query_agenda ---
+
+    #[test]
+    fn query_agenda_overdue() {
+        let mut store = test_store();
+        let file_id = store
+            .upsert_task_file(&make_task_file("agenda.typ", "h1"))
+            .unwrap();
+        let tasks = vec![
+            make_record("Overdue task", false, 0),
+            make_record("Today task", false, 1),
+            make_record("Week task", false, 2),
+            make_record("Done overdue", true, 3),
+        ];
+        let props = vec![
+            vec![make_due_prop("2026-02-10")], // overdue (before 2026-02-14)
+            vec![make_due_prop("2026-02-14")], // today
+            vec![make_due_prop("2026-02-18")], // this week (14 + 4 days)
+            vec![make_due_prop("2026-02-10")], // overdue but done, should not appear
+        ];
+        store.upsert_tasks(file_id, &tasks, &props).unwrap();
+
+        let agenda = store.query_agenda("2026-02-14").unwrap();
+
+        assert_eq!(agenda.overdue.len(), 1);
+        assert_eq!(agenda.overdue[0].title, "Overdue task");
+        assert_eq!(agenda.today.len(), 1);
+        assert_eq!(agenda.today[0].title, "Today task");
+        assert_eq!(agenda.this_week.len(), 1);
+        assert_eq!(agenda.this_week[0].title, "Week task");
+    }
+
+    #[test]
+    fn query_agenda_empty() {
+        let store = test_store();
+        let agenda = store.query_agenda("2026-02-14").unwrap();
+        assert_eq!(agenda.overdue.len(), 0);
+        assert_eq!(agenda.today.len(), 0);
+        assert_eq!(agenda.this_week.len(), 0);
+    }
+
+    #[test]
+    fn query_agenda_week_boundary() {
+        let mut store = test_store();
+        let file_id = store
+            .upsert_task_file(&make_task_file("agenda.typ", "h1"))
+            .unwrap();
+        let tasks = vec![
+            make_record("Just in week", false, 0),
+            make_record("Just past week", false, 1),
+        ];
+        let props = vec![
+            vec![make_due_prop("2026-02-20")], // 14 + 6 days (last day of week)
+            vec![make_due_prop("2026-02-21")], // 14 + 7 days (past week)
+        ];
+        store.upsert_tasks(file_id, &tasks, &props).unwrap();
+
+        let agenda = store.query_agenda("2026-02-14").unwrap();
+
+        assert_eq!(agenda.this_week.len(), 1);
+        assert_eq!(agenda.this_week[0].title, "Just in week");
     }
 }

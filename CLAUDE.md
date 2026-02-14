@@ -141,14 +141,15 @@ mindtape (root)      (mindtape-eval, mindtape-store, typst, thiserror,
 
 ## Current Status
 
-MVP complete (M1.1-M1.5), M2.1 (search + output formats) complete.
-204 tests across workspace. Next: M2.2 (Due Date Awareness + Agenda).
+MVP complete (M1.1-M1.5), M2.1 (search + output formats) complete, M2.2 (agenda) complete.
+153 tests across workspace. Next: M2.3 (Cross-File References).
 
 CLI commands:
 - `mindtape <file.typ> [--due] [-N]` — eval a single file
 - `mindtape watch [<path>] [--config <file>]` — watch and index folders
 - `mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH] [--format table|json|csv]`
 - `mindtape search <keyword> [-N] [--db PATH] [--format table|json|csv]` — full-text search
+- `mindtape agenda [--overdue] [--today] [--week] [-N] [--db PATH] [--format table|json|csv]` — show overdue/today/week tasks
 - `mindtape status [--db PATH] [--format table|json|csv]` — index stats
 - `mindtape files [--db PATH] [--format table|json|csv]` — list indexed files
 

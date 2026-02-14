@@ -7,7 +7,7 @@ check:
 
 # Run tests only
 test *ARGS:
-    cargo test --workspace -q {{ARGS}}
+    cargo test --workspace {{ARGS}}
 
 # Run clippy only
 clippy:

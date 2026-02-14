@@ -146,6 +146,14 @@ pub struct SearchResults {
     pub bindings: Vec<BindingView>,
 }
 
+/// Agenda view showing tasks grouped by time horizon.
+#[derive(Debug, Clone, Serialize)]
+pub struct AgendaView {
+    pub overdue: Vec<TaskView>,
+    pub today: Vec<TaskView>,
+    pub this_week: Vec<TaskView>,
+}
+
 // ---------------------------------------------------------------------------
 // Errors
 // ---------------------------------------------------------------------------
@@ -244,4 +252,12 @@ pub trait Store {
     ///
     /// Returns `StoreError` if the database operation fails.
     fn search(&self, query: &str, limit: Option<usize>) -> Result<SearchResults, StoreError>;
+
+    /// Query agenda view: overdue, today, and this week tasks.
+    /// `today` should be an ISO date string (YYYY-MM-DD).
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
+    fn query_agenda(&self, today: &str) -> Result<AgendaView, StoreError>;
 }

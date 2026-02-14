@@ -24,6 +24,7 @@ fn main() {
         Command::Watch(args) => run_watch(&args),
         Command::List(args) => run_list(args),
         Command::Search(args) => run_search(&args),
+        Command::Agenda(args) => run_agenda(&args),
         Command::Status(args) => run_status(&args),
         Command::Files(args) => run_files(&args),
     }
@@ -172,6 +173,32 @@ fn run_search(args: &cli::SearchArgs) {
         OutputFormat::Json => print_json(&results),
         OutputFormat::Csv => print!("{}", cli::format_search_csv(&results)),
         OutputFormat::Table => print!("{}", cli::format_search_results(&results)),
+    }
+}
+
+fn run_agenda(args: &cli::AgendaArgs) {
+    let store = open_query_db(args.db.as_deref());
+
+    // Get today's date in ISO format
+    let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+
+    let agenda = match store.query_agenda(&today) {
+        Ok(agenda) => agenda,
+        Err(err) => {
+            eprintln!("Error querying agenda: {err}");
+            process::exit(1);
+        }
+    };
+
+    match args.format {
+        OutputFormat::Json => print_json(&agenda),
+        OutputFormat::Csv => print!("{}", cli::format_agenda_csv(&agenda)),
+        OutputFormat::Table => {
+            print!(
+                "{}",
+                cli::format_agenda(&agenda, args.show_overdue, args.show_today, args.show_week)
+            );
+        }
     }
 }
 
