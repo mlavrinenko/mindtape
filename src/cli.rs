@@ -38,8 +38,8 @@ fn parse_eval_args(args: &[String]) -> Result<EvalArgs, String> {
     for arg in args {
         if arg == "--due" {
             due = true;
-        } else if arg.starts_with('-') && arg[1..].parse::<usize>().is_ok() {
-            limit = Some(arg[1..].parse().unwrap());
+        } else if let Some(n) = arg.strip_prefix('-').and_then(|s| s.parse::<usize>().ok()) {
+            limit = Some(n);
         } else {
             file = Some(PathBuf::from(arg));
         }

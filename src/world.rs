@@ -120,7 +120,7 @@ impl typst::World for MindTapeWorld {
 
     fn source(&self, id: FileId) -> FileResult<Source> {
         {
-            let cache = self.sources.lock().unwrap();
+            let cache = self.sources.lock().expect("source cache poisoned");
             if let Some(source) = cache.get(&id) {
                 return Ok(source.clone());
             }
@@ -128,7 +128,7 @@ impl typst::World for MindTapeWorld {
 
         let source = self.load_source(id)?;
 
-        let mut cache = self.sources.lock().unwrap();
+        let mut cache = self.sources.lock().expect("source cache poisoned");
         cache.insert(id, source.clone());
         Ok(source)
     }

@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use mindtape::config::WatchEntry;
-use mindtape::store::{SqliteStore, Store, TaskFilter};
+use mindtape::store::SqliteStore;
 use mindtape::watcher::Watcher;
 
 /// Set up a temp project directory with lib/prelude.typ and .mindtapeignore.

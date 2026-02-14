@@ -89,52 +89,47 @@ This is a starting point. The schema will evolve as we implement.
                                                  +---------+
 ```
 
-### Current Module Layout
+### Module Layout
 
 ```
 src/
-  lib.rs        -- pub mod declarations (cli, eval, world)
+  lib.rs        -- pub mod declarations, crate-level clippy lints
   main.rs       -- thin CLI entry point (~20 lines)
-  cli.rs        -- arg parsing, task filtering/sorting, output formatting
+  cli.rs        -- Command enum (Eval/Watch), arg parsing, filtering, formatting
+  config.rs     -- TOML config loading, WatchEntry, tilde expansion
   eval.rs       -- Typst evaluation, content tree traversal, task extraction
+  store.rs      -- Store trait, SqliteStore, index_file(), domain types
+  watcher.rs    -- Watcher struct, initial_scan, handle_event, run (notify loop)
   world.rs      -- World trait impl, project root detection, date utility
 
 tests/
-  eval_integration.rs  -- end-to-end evaluation tests with temp .typ files
+  eval_integration.rs     -- end-to-end evaluation tests with temp .typ files
+  store_integration.rs    -- eval -> store pipeline tests
+  watcher_integration.rs  -- watcher scan + event handling tests
 
 lib/
-  prelude.typ   -- due(), id() functions using metadata()
+  prelude.typ   -- due(), id(), tag() functions using metadata()
+  typst.toml    -- package manifest for @mind-tape/mind-tape:0.1.0
 
 itest/
   basic.sh      -- shell integration test
   res/piano.typ -- test fixture
 ```
 
-### Future Module Layout (M1.3+)
-
-```
-src/
-  config/       -- config loading, watched folders, ignore rules
-  watcher/      -- folder watching via `notify`, debouncing
-  store/        -- database trait + SQLite implementation
-  query/        -- query builder / filter types
-  commands/     -- CLI command handlers (watch, list, status)
-```
-
 ### Anti-Corruption Layer (Store Trait)
 
 ```rust
-// Conceptual — not final API
-trait Store {
-    fn upsert_task_file(&self, file: &TaskFile) -> Result<()>;
-    fn upsert_tasks(&self, file_id: Id, tasks: &[Task]) -> Result<()>;
-    fn upsert_bindings(&self, file_id: Id, bindings: &[FileBinding]) -> Result<()>;
-    fn remove_task_file(&self, path: &Path) -> Result<()>;
-    fn query_tasks(&self, filter: &TaskFilter) -> Result<Vec<TaskView>>;
+pub trait Store {
+    fn upsert_task_file(&mut self, file: &TaskFile) -> Result<i64, StoreError>;
+    fn upsert_tasks(&mut self, file_id: i64, tasks: &[TaskRecord], props: &[Vec<TaskProperty>]) -> Result<(), StoreError>;
+    fn upsert_bindings(&mut self, file_id: i64, bindings: &[FileBinding]) -> Result<(), StoreError>;
+    fn remove_task_file(&mut self, path: &Path) -> Result<(), StoreError>;
+    fn query_tasks(&self, filter: &TaskFilter) -> Result<Vec<TaskView>, StoreError>;
+    fn get_file_hash(&self, path: &Path) -> Result<Option<String>, StoreError>;
 }
 ```
 
-SQLite first. DuckDB or others can implement the same trait later.
+SQLite first (`SqliteStore`). DuckDB or others can implement the same trait later.
 
 ## Typst Evaluation Details
 
@@ -227,15 +222,19 @@ Key observations:
 ```typ
 #let due(date) = metadata(("due", date))
 #let id(uuid) = metadata(("id", uuid))
+#let tag(name) = metadata(("tag", name))
 ```
 
 `metadata()` produces a `MetadataElem` with a `value: Value` field.
 The value is a Typst `Array`:
-- Index 0: `Str` — the kind (`"due"`, `"id"`)
+- Index 0: `Str` — the kind (`"due"`, `"id"`, `"tag"`)
 - Index 1: `Datetime` or `Str` — the actual value
 
-Currently imported via relative path (`#import "lib/prelude.typ": due`).
-Future: resolve via `@mind-tape` package namespace in the World.
+Imported via the `@mind-tape` package namespace, resolved by the World:
+
+```typ
+#import "@mind-tape/mind-tape:0.1.0": due, id, tag
+```
 
 ### Extraction Algorithm
 
@@ -272,8 +271,42 @@ recursive = true
 
 Ignore files: `.mindtapeignore` in any watched folder, gitignore-style patterns.
 
+## Folder Watcher (M1.4)
+
+### File Watching
+
+- `notify` 7.0 for filesystem events + `notify-debouncer-mini` 0.5 (300ms debounce)
+- Debouncer collapses event kinds to `Any`/`AnyContinuous` — use `path.exists()`
+  to distinguish modify (re-index) vs delete (remove from store)
+- `ignore` crate for `.mindtapeignore` support (gitignore-style patterns)
+
+### Watcher Architecture
+
+```
+Watcher {
+    store: SqliteStore,
+    entries: Vec<ResolvedEntry>,  // resolved watch paths from config
+}
+```
+
+- `initial_scan()`: walk directories via `ignore` crate, collect `.typ` files,
+  index each via `index_file()` (with SHA-256 hash-based skip)
+- `handle_event(path)`: re-index on modify, remove from store on delete
+- `run()`: blocking notify event loop on `mpsc` channel
+
+### Config Auto-Discovery
+
+Searches in order:
+1. `mind-tape.toml` in the current working directory
+2. `~/.config/mind-tape/config.toml`
+
+### Borrow Pattern
+
+The `Watcher` struct owns both the store and entry list. To avoid
+simultaneous `&self` + `&mut self` borrows, methods collect data from
+`&self.entries` into local variables first, then call `&mut self` methods.
+
 ## Open Questions
 
 - How to handle Typst package imports (`@preview/...`) — do we support them?
 - How to resolve cross-folder imports (file in folder A imports from folder B)?
-- Should `@mind-tape` be a real Typst package or resolved by the custom World?

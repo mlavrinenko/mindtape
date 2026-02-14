@@ -2,6 +2,8 @@
 name = "mindtape"
 version = "0.1.0"
 edition = "2021"
+description = "A file-based task tracker using Typst files as the source of truth"
+license = "MIT"
 
 [lib]
 name = "mindtape"
