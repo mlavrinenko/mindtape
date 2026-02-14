@@ -37,7 +37,8 @@ metadata into SQLite, and exposes a CLI for querying.
 - **After completing a task with code/config changes**:
   1. Update `docs/ROADMAP.md` if milestones changed
   2. Update `docs/DESIGN.md` if architecture changed
-  3. Suggest a conventional commit message (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`)
+  3. If implementing a REVIEW.md, update it with completion status and summary
+  4. Suggest a conventional commit message (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`)
 
 ## Architecture Principles
 
