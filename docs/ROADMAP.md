@@ -142,9 +142,20 @@ folders, and keeps the index updated as files change.
 - All output formats supported: table, JSON, CSV
 - Added 3 store tests + 4 CLI tests (153 total tests)
 
-### M2.3 — Cross-File References
+### M2.3 — Cross-File References [COMPLETE]
 
-- [ ] Cross-file reference tracking (which files import which)
+- [x] Track file dependencies during Typst evaluation
+- [x] Store cross-file references in database (schema v3)
+- [x] `mindtape deps` command to query dependencies
+- [x] `mindtape deps --file <path>` to show specific file dependencies
+
+**Implementation notes**:
+- `MindTapeWorld` tracks accessed files via `source()` and `file()` methods
+- `eval_file_full_with_deps()` extracts dependencies after evaluation
+- Schema v3 adds `file_references` table with CASCADE DELETE
+- `Store::upsert_file_references()`, `get_file_dependencies()`, `list_file_dependencies()`
+- CLI supports table/JSON/CSV output formats for dependency queries
+- 7 new tests covering reference tracking and queries (160 total tests)
 
 ---
 

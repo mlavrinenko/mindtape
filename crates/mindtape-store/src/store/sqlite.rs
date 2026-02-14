@@ -57,6 +57,17 @@ CREATE INDEX IF NOT EXISTS idx_tasks_title ON tasks(title COLLATE NOCASE);
 CREATE INDEX IF NOT EXISTS idx_bindings_name ON file_bindings(name COLLATE NOCASE);
 ";
 
+const SCHEMA_V3: &str = "
+CREATE TABLE IF NOT EXISTS file_references (
+    id            INTEGER PRIMARY KEY,
+    source_file_id INTEGER NOT NULL REFERENCES task_files(id) ON DELETE CASCADE,
+    target_path    TEXT    NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_refs_source ON file_references(source_file_id);
+CREATE INDEX IF NOT EXISTS idx_refs_target ON file_references(target_path);
+";
+
 // ---------------------------------------------------------------------------
 // SqliteStore
 // ---------------------------------------------------------------------------
@@ -108,6 +119,13 @@ impl SqliteStore {
             conn.execute_batch(SCHEMA_V2)
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
             conn.pragma_update(None, "user_version", 2)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+        }
+
+        if version < 3 {
+            conn.execute_batch(SCHEMA_V3)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+            conn.pragma_update(None, "user_version", 3)
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
         }
 
@@ -547,6 +565,130 @@ impl Store for SqliteStore {
             this_week,
         })
     }
+
+    fn upsert_file_references(
+        &mut self,
+        source_file_id: i64,
+        target_paths: &[PathBuf],
+    ) -> Result<(), StoreError> {
+        // Delete existing references for this source file.
+        self.conn.execute(
+            "DELETE FROM file_references WHERE source_file_id = ?1",
+            params![source_file_id],
+        )?;
+
+        // Insert new references.
+        let mut stmt = self.conn.prepare(
+            "INSERT INTO file_references (source_file_id, target_path) VALUES (?1, ?2)",
+        )?;
+        for target in target_paths {
+            stmt.execute(params![source_file_id, target.to_string_lossy().to_string()])?;
+        }
+
+        Ok(())
+    }
+
+    fn get_file_dependencies(&self, path: &Path) -> Result<Option<super::FileDependencies>, StoreError> {
+        // Get file info.
+        let file_info: Option<(PathBuf, Option<String>, i64)> = self.conn
+            .query_row(
+                "SELECT relative_path, title, id FROM task_files WHERE relative_path = ?1",
+                params![path.to_string_lossy().to_string()],
+                |row| Ok((
+                    PathBuf::from(row.get::<_, String>(0)?),
+                    row.get(1)?,
+                    row.get(2)?,
+                )),
+            )
+            .optional()?;
+
+        let Some((file_path, file_title, file_id)) = file_info else {
+            return Ok(None);
+        };
+
+        // Get outgoing references (files this file imports).
+        let mut imports_stmt = self.conn.prepare(
+            "SELECT target_path FROM file_references WHERE source_file_id = ?1 ORDER BY target_path",
+        )?;
+        let imports: Vec<PathBuf> = imports_stmt
+            .query_map(params![file_id], |row| {
+                Ok(PathBuf::from(row.get::<_, String>(0)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // Get incoming references (files that import this file).
+        let mut imported_by_stmt = self.conn.prepare(
+            "SELECT tf.relative_path
+             FROM file_references fr
+             JOIN task_files tf ON fr.source_file_id = tf.id
+             WHERE fr.target_path = ?1
+             ORDER BY tf.relative_path",
+        )?;
+        let imported_by: Vec<PathBuf> = imported_by_stmt
+            .query_map(params![file_path.to_string_lossy().to_string()], |row| {
+                Ok(PathBuf::from(row.get::<_, String>(0)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Some(super::FileDependencies {
+            file_path,
+            file_title,
+            imports,
+            imported_by,
+        }))
+    }
+
+    fn list_file_dependencies(&self) -> Result<Vec<super::FileDependencies>, StoreError> {
+        // Get all files.
+        let mut files_stmt = self.conn.prepare(
+            "SELECT id, relative_path, title FROM task_files ORDER BY relative_path",
+        )?;
+        let file_rows: Vec<(i64, PathBuf, Option<String>)> = files_stmt
+            .query_map([], |row| {
+                Ok((
+                    row.get(0)?,
+                    PathBuf::from(row.get::<_, String>(1)?),
+                    row.get(2)?,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let mut results = Vec::new();
+        for (file_id, file_path, file_title) in file_rows {
+            // Get imports for this file.
+            let mut imports_stmt = self.conn.prepare(
+                "SELECT target_path FROM file_references WHERE source_file_id = ?1 ORDER BY target_path",
+            )?;
+            let imports: Vec<PathBuf> = imports_stmt
+                .query_map(params![file_id], |row| {
+                    Ok(PathBuf::from(row.get::<_, String>(0)?))
+                })?
+                .collect::<Result<Vec<_>, _>>()?;
+
+            // Get files that import this file.
+            let mut imported_by_stmt = self.conn.prepare(
+                "SELECT tf.relative_path
+                 FROM file_references fr
+                 JOIN task_files tf ON fr.source_file_id = tf.id
+                 WHERE fr.target_path = ?1
+                 ORDER BY tf.relative_path",
+            )?;
+            let imported_by: Vec<PathBuf> = imported_by_stmt
+                .query_map(params![file_path.to_string_lossy().to_string()], |row| {
+                    Ok(PathBuf::from(row.get::<_, String>(0)?))
+                })?
+                .collect::<Result<Vec<_>, _>>()?;
+
+            results.push(super::FileDependencies {
+                file_path,
+                file_title,
+                imports,
+                imported_by,
+            });
+        }
+
+        Ok(results)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -621,12 +763,12 @@ mod tests {
         let count: i32 = store
             .conn
             .query_row(
-                "SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('task_files','tasks','task_properties','file_bindings')",
+                "SELECT count(*) FROM sqlite_master WHERE type='table' AND name IN ('task_files','tasks','task_properties','file_bindings','file_references')",
                 [],
                 |row| row.get(0),
             )
             .unwrap();
-        assert_eq!(count, 4);
+        assert_eq!(count, 5);
     }
 
     #[test]
@@ -644,7 +786,7 @@ mod tests {
             .conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 2);
+        assert_eq!(version, 3);
     }
 
     // --- upsert_task_file ---
@@ -1025,6 +1167,7 @@ mod tests {
             }],
             title: Some("Heading".to_string()),
             bindings: vec![("note".to_string(), "string".to_string(), "\"hi\"".to_string())],
+            dependencies: vec![],
         };
 
         let (tf, tasks, props, bindings) =
@@ -1321,5 +1464,149 @@ mod tests {
 
         assert_eq!(agenda.this_week.len(), 1);
         assert_eq!(agenda.this_week[0].title, "Just in week");
+    }
+
+    // --- file references ---
+
+    #[test]
+    fn upsert_file_references_basic() {
+        let mut store = test_store();
+        let file_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
+
+        let refs = vec![PathBuf::from("lib/utils.typ"), PathBuf::from("lib/helpers.typ")];
+        store.upsert_file_references(file_id, &refs).unwrap();
+
+        let count: i32 = store
+            .conn
+            .query_row(
+                "SELECT count(*) FROM file_references WHERE source_file_id = ?1",
+                params![file_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 2);
+    }
+
+    #[test]
+    fn upsert_file_references_replaces() {
+        let mut store = test_store();
+        let file_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
+
+        store.upsert_file_references(file_id, &[PathBuf::from("old.typ")]).unwrap();
+        store
+            .upsert_file_references(file_id, &[PathBuf::from("new1.typ"), PathBuf::from("new2.typ")])
+            .unwrap();
+
+        let count: i32 = store
+            .conn
+            .query_row(
+                "SELECT count(*) FROM file_references WHERE source_file_id = ?1",
+                params![file_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 2);
+
+        let has_old: bool = store
+            .conn
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM file_references WHERE source_file_id = ?1 AND target_path = 'old.typ')",
+                params![file_id],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert!(!has_old);
+    }
+
+    #[test]
+    fn get_file_dependencies_returns_none_for_unknown() {
+        let store = test_store();
+        let deps = store.get_file_dependencies(Path::new("unknown.typ")).unwrap();
+        assert!(deps.is_none());
+    }
+
+    #[test]
+    fn get_file_dependencies_returns_imports_and_imported_by() {
+        let mut store = test_store();
+
+        // Create files: main.typ imports lib/utils.typ
+        let main_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
+        let _utils_id = store.upsert_task_file(&make_task_file("lib/utils.typ", "h2")).unwrap();
+
+        store
+            .upsert_file_references(main_id, &[PathBuf::from("lib/utils.typ")])
+            .unwrap();
+
+        // Query main.typ dependencies
+        let main_deps = store
+            .get_file_dependencies(Path::new("main.typ"))
+            .unwrap()
+            .unwrap();
+        assert_eq!(main_deps.file_path, PathBuf::from("main.typ"));
+        assert_eq!(main_deps.imports.len(), 1);
+        assert_eq!(main_deps.imports[0], PathBuf::from("lib/utils.typ"));
+        assert_eq!(main_deps.imported_by.len(), 0);
+
+        // Query lib/utils.typ dependencies
+        let utils_deps = store
+            .get_file_dependencies(Path::new("lib/utils.typ"))
+            .unwrap()
+            .unwrap();
+        assert_eq!(utils_deps.file_path, PathBuf::from("lib/utils.typ"));
+        assert_eq!(utils_deps.imports.len(), 0);
+        assert_eq!(utils_deps.imported_by.len(), 1);
+        assert_eq!(utils_deps.imported_by[0], PathBuf::from("main.typ"));
+    }
+
+    #[test]
+    fn list_file_dependencies_all() {
+        let mut store = test_store();
+
+        let main_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
+        let utils_id = store.upsert_task_file(&make_task_file("lib/utils.typ", "h2")).unwrap();
+        let _helper_id = store.upsert_task_file(&make_task_file("lib/helper.typ", "h3")).unwrap();
+
+        store
+            .upsert_file_references(main_id, &[PathBuf::from("lib/utils.typ"), PathBuf::from("lib/helper.typ")])
+            .unwrap();
+        store
+            .upsert_file_references(utils_id, &[PathBuf::from("lib/helper.typ")])
+            .unwrap();
+
+        let all_deps = store.list_file_dependencies().unwrap();
+        assert_eq!(all_deps.len(), 3);
+
+        // main.typ: imports 2, imported by 0
+        let main = all_deps.iter().find(|d| d.file_path == Path::new("main.typ")).unwrap();
+        assert_eq!(main.imports.len(), 2);
+        assert_eq!(main.imported_by.len(), 0);
+
+        // lib/utils.typ: imports 1, imported by 1
+        let utils = all_deps.iter().find(|d| d.file_path == Path::new("lib/utils.typ")).unwrap();
+        assert_eq!(utils.imports.len(), 1);
+        assert_eq!(utils.imported_by.len(), 1);
+
+        // lib/helper.typ: imports 0, imported by 2
+        let helper = all_deps.iter().find(|d| d.file_path == Path::new("lib/helper.typ")).unwrap();
+        assert_eq!(helper.imports.len(), 0);
+        assert_eq!(helper.imported_by.len(), 2);
+    }
+
+    #[test]
+    fn file_references_cascade_on_file_delete() {
+        let mut store = test_store();
+        let file_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
+
+        store
+            .upsert_file_references(file_id, &[PathBuf::from("lib/utils.typ")])
+            .unwrap();
+
+        store.remove_task_file(Path::new("main.typ")).unwrap();
+
+        let count: i32 = store
+            .conn
+            .query_row("SELECT count(*) FROM file_references", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(count, 0);
     }
 }

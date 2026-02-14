@@ -207,7 +207,7 @@ impl Watcher {
     /// Index a single file using the existing store pipeline.
     fn index_one(&mut self, path: &Path, project_root: &Path) -> Result<bool, StoreError> {
         let world = MindTapeWorld::new(path)?;
-        store::index_file(&mut self.store, &world, path, project_root)
+        store::index_file_with_deps(&mut self.store, &world, path, project_root)
     }
 
     /// Find which resolved entry contains the given path.

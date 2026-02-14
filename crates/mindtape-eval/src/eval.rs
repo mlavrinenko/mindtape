@@ -62,6 +62,8 @@ pub struct EvalResult {
     pub title: Option<String>,
     /// Bindings as `(name, value_type, value_json)` tuples.
     pub bindings: Vec<(String, String, String)>,
+    /// File dependencies (relative paths from project root).
+    pub dependencies: Vec<std::path::PathBuf>,
 }
 
 /// Evaluate the world's main `.typ` file and return all tasks found in its
@@ -106,7 +108,63 @@ pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, EvalError> {
     let mut tasks = Vec::new();
     collect_tasks(&content, &mut tasks);
 
-    Ok(EvalResult { tasks, title, bindings })
+    Ok(EvalResult {
+        tasks,
+        title,
+        bindings,
+        dependencies: Vec::new(), // Generic World trait doesn't expose dependencies
+    })
+}
+
+/// Evaluate a `MindTapeWorld`'s main file and return tasks, title, bindings, and dependencies.
+///
+/// This variant works with concrete `MindTapeWorld` instances and can extract
+/// cross-file dependencies discovered during evaluation.
+///
+/// # Errors
+/// Returns `Err` if the source file cannot be read or Typst evaluation fails.
+pub fn eval_file_full_with_deps(
+    world: &crate::world::MindTapeWorld,
+) -> Result<EvalResult, EvalError> {
+    let source = world
+        .source(world.main())
+        .map_err(|err| EvalError::from_file_error(&err))?;
+
+    let mut sink = Sink::new();
+    let traced = Traced::default();
+    let route = Route::default();
+
+    // Cast to &dyn World for the track() method
+    let world_dyn: &dyn World = world;
+
+    let module: Module = typst_eval::eval(
+        &ROUTINES,
+        world_dyn.track(),
+        traced.track(),
+        sink.track_mut(),
+        route.track(),
+        &source,
+    )
+    .map_err(|err| EvalError::from_source_diagnostics(&err))?;
+
+    // Extract bindings BEFORE content() consumes the module.
+    let bindings = extract_bindings(module.scope());
+
+    let content: Content = module.content();
+
+    let title = extract_file_title(&content);
+
+    let mut tasks = Vec::new();
+    collect_tasks(&content, &mut tasks);
+
+    let dependencies = world.get_dependencies()?;
+
+    Ok(EvalResult {
+        tasks,
+        title,
+        bindings,
+        dependencies,
+    })
 }
 
 /// Recursively traverse `content` looking for `ListItem` nodes and

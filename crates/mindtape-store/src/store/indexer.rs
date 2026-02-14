@@ -106,6 +106,9 @@ pub fn to_store_records(
 /// Skips re-indexing if the file's content hash hasn't changed.
 /// Returns `Ok(true)` if the file was indexed, `Ok(false)` if skipped.
 ///
+/// This version works with generic `World` trait and does NOT track cross-file
+/// dependencies. Use `index_file_with_deps` for dependency tracking.
+///
 /// # Errors
 ///
 /// Returns `StoreError` if evaluation, hashing, or database operations fail.
@@ -134,6 +137,45 @@ pub fn index_file(
     let file_id = store.upsert_task_file(&task_file)?;
     store.upsert_tasks(file_id, &tasks, &props)?;
     store.upsert_bindings(file_id, &bindings)?;
+
+    Ok(true)
+}
+
+/// Index a single `.typ` file with dependency tracking.
+///
+/// This version works with `MindTapeWorld` and tracks cross-file references.
+/// Skips re-indexing if the file's content hash hasn't changed.
+/// Returns `Ok(true)` if the file was indexed, `Ok(false)` if skipped.
+///
+/// # Errors
+///
+/// Returns `StoreError` if evaluation, hashing, or database operations fail.
+pub fn index_file_with_deps(
+    store: &mut dyn Store,
+    world: &eval::world::MindTapeWorld,
+    file_path: &Path,
+    project_root: &Path,
+) -> Result<bool, StoreError> {
+    let relative = file_path
+        .strip_prefix(project_root)
+        .map_err(|e| StoreError::Path(e.to_string()))?;
+
+    let hash = hash_file(file_path).map_err(|e| StoreError::Io(e.to_string()))?;
+
+    if let Some(stored_hash) = store.get_file_hash(relative)? {
+        if stored_hash == hash {
+            return Ok(false);
+        }
+    }
+
+    let result = eval::eval_file_full_with_deps(world)?;
+
+    let (task_file, tasks, props, bindings) = to_store_records(&result, relative, &hash);
+
+    let file_id = store.upsert_task_file(&task_file)?;
+    store.upsert_tasks(file_id, &tasks, &props)?;
+    store.upsert_bindings(file_id, &bindings)?;
+    store.upsert_file_references(file_id, &result.dependencies)?;
 
     Ok(true)
 }

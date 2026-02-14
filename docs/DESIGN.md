@@ -310,7 +310,85 @@ The `Watcher` struct owns both the store and entry list. To avoid
 simultaneous `&self` + `&mut self` borrows, methods collect data from
 `&self.entries` into local variables first, then call `&mut self` methods.
 
+## Cross-File References (M2.3)
+
+MindTape tracks which files import which other files. This enables dependency analysis
+and intelligent re-indexing when shared files change.
+
+### How It Works
+
+During evaluation, `MindTapeWorld::source()` and `file()` methods record every file
+accessed (excluding the main file itself). These dependencies are extracted after
+evaluation and stored in the `file_references` table.
+
+```rust
+// In MindTapeWorld
+dependencies: Mutex<HashSet<FileId>>
+
+fn source(&self, id: FileId) -> FileResult<Source> {
+    self.record_dependency(id);  // Track access
+    // ... load and return source
+}
+```
+
+The `eval_file_full_with_deps()` function returns dependencies as relative paths from
+the project root:
+
+```rust
+pub fn eval_file_full_with_deps(
+    world: &MindTapeWorld,
+) -> Result<EvalResult, EvalError>
+// Returns: EvalResult { tasks, title, bindings, dependencies }
+```
+
+### Database Schema
+
+Schema v3 adds the `file_references` table:
+
+```sql
+CREATE TABLE file_references (
+    id            INTEGER PRIMARY KEY,
+    source_file_id INTEGER NOT NULL REFERENCES task_files(id) ON DELETE CASCADE,
+    target_path    TEXT    NOT NULL
+);
+```
+
+Indexes on `source_file_id` and `target_path` for efficient bidirectional queries.
+
+### Store API
+
+```rust
+trait Store {
+    fn upsert_file_references(&mut self, source_file_id: i64, target_paths: &[PathBuf]) -> Result<()>;
+    fn get_file_dependencies(&self, path: &Path) -> Result<Option<FileDependencies>>;
+    fn list_file_dependencies(&self) -> Result<Vec<FileDependencies>>;
+}
+
+struct FileDependencies {
+    file_path: PathBuf,
+    file_title: Option<String>,
+    imports: Vec<PathBuf>,       // Files this file depends on
+    imported_by: Vec<PathBuf>,   // Files that depend on this file
+}
+```
+
+### CLI
+
+```bash
+# List all files with dependency counts
+mindtape deps
+
+# Show specific file's dependencies
+mindtape deps --file main.typ
+
+# Output formats
+mindtape deps --format json
+mindtape deps --file lib/utils.typ --format csv
+```
+
 ## Open Questions
 
 - How to handle Typst package imports (`@preview/...`) — do we support them?
+  (Currently: external packages are not tracked as dependencies)
 - How to resolve cross-folder imports (file in folder A imports from folder B)?
+  (Currently: works via project root detection and relative path resolution)

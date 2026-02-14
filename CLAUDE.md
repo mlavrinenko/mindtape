@@ -141,8 +141,8 @@ mindtape (root)      (mindtape-eval, mindtape-store, typst, thiserror,
 
 ## Current Status
 
-MVP complete (M1.1-M1.5), M2.1 (search + output formats) complete, M2.2 (agenda) complete.
-153 tests across workspace. Next: M2.3 (Cross-File References).
+MVP complete (M1.1-M1.5), M2.1 (search + output formats) complete, M2.2 (agenda) complete, M2.3 (cross-file references) complete.
+160 tests across workspace. Schema v3 (file_references table). Next: M3 (Write-Back).
 
 CLI commands:
 - `mindtape <file.typ> [--due] [-N]` — eval a single file
@@ -152,5 +152,6 @@ CLI commands:
 - `mindtape agenda [--overdue] [--today] [--week] [-N] [--db PATH] [--format table|json|csv]` — show overdue/today/week tasks
 - `mindtape status [--db PATH] [--format table|json|csv]` — index stats
 - `mindtape files [--db PATH] [--format table|json|csv]` — list indexed files
+- `mindtape deps [--file PATH] [--db PATH] [--format table|json|csv]` — query file dependencies
 
 All query commands support `--json` as shorthand for `--format json`.

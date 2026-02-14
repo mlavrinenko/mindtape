@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use typst::foundations::Datetime;
 
 use crate::eval::Task;
-use crate::store::{AgendaView, FileView, IndexStats, SearchResults, TaskView};
+use crate::store::{AgendaView, FileDependencies, FileView, IndexStats, SearchResults, TaskView};
 
 /// Output format for query commands.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -32,6 +32,7 @@ pub enum Command {
     Files(QueryArgs),
     Search(SearchArgs),
     Agenda(AgendaArgs),
+    Deps(DepsArgs),
 }
 
 pub struct SearchArgs {
@@ -84,6 +85,12 @@ pub struct AgendaArgs {
     pub format: OutputFormat,
 }
 
+pub struct DepsArgs {
+    pub file: Option<PathBuf>,
+    pub db: Option<PathBuf>,
+    pub format: OutputFormat,
+}
+
 const USAGE: &str = "\
 Usage: mindtape <file.typ> [--due] [-N]
        mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH] [--format table|json|csv]
@@ -91,6 +98,7 @@ Usage: mindtape <file.typ> [--due] [-N]
        mindtape agenda [--overdue] [--today] [--week] [-N] [--db PATH] [--format table|json|csv]
        mindtape status [--db PATH] [--format table|json|csv]
        mindtape files [--db PATH] [--format table|json|csv]
+       mindtape deps [--file PATH] [--db PATH] [--format table|json|csv]
        mindtape watch [<path>] [--config <file>]";
 
 /// # Errors
@@ -104,6 +112,7 @@ pub fn parse_args(args: &[String]) -> Result<Command, String> {
         Some("agenda") => parse_agenda_args(rest),
         Some("status") => parse_query_args(rest).map(Command::Status),
         Some("files") => parse_query_args(rest).map(Command::Files),
+        Some("deps") => parse_deps_args(rest),
         _ => parse_eval_args(args).map(Command::Eval),
     }
 }
@@ -348,6 +357,45 @@ fn parse_agenda_args(args: &[String]) -> Result<Command, String> {
     Ok(Command::Agenda(agenda))
 }
 
+#[allow(clippy::indexing_slicing)]
+fn parse_deps_args(args: &[String]) -> Result<Command, String> {
+    let mut file: Option<PathBuf> = None;
+    let mut db: Option<PathBuf> = None;
+    let mut format = OutputFormat::default();
+    let mut idx = 0;
+
+    while idx < args.len() {
+        match args[idx].as_str() {
+            "--file" => {
+                idx += 1;
+                file = Some(PathBuf::from(
+                    args.get(idx).ok_or("--file requires a path")?,
+                ));
+            }
+            "--db" => {
+                idx += 1;
+                db = Some(PathBuf::from(
+                    args.get(idx).ok_or("--db requires a path")?,
+                ));
+            }
+            "--json" => {
+                format = OutputFormat::Json;
+            }
+            "--format" => {
+                idx += 1;
+                let val = args.get(idx).ok_or("--format requires a value (table, json, or csv)")?;
+                format = parse_format(val)?;
+            }
+            other => {
+                return Err(format!("unknown deps argument: {other}"));
+            }
+        }
+        idx += 1;
+    }
+
+    Ok(Command::Deps(DepsArgs { file, db, format }))
+}
+
 // ---------------------------------------------------------------------------
 // Formatting: store query results
 // ---------------------------------------------------------------------------
@@ -577,6 +625,105 @@ pub fn format_agenda(agenda: &AgendaView, show_overdue: bool, show_today: bool, 
     }
 
     output
+}
+
+#[must_use]
+pub fn format_deps(deps: &FileDependencies) -> String {
+    let mut output = String::new();
+
+    output.push_str(&format!("File: {}", deps.file_path.display()));
+    if let Some(title) = &deps.file_title {
+        output.push_str(&format!(" ({title})"));
+    }
+    output.push_str("\n\n");
+
+    if deps.imports.is_empty() && deps.imported_by.is_empty() {
+        output.push_str("  No dependencies.\n");
+    } else {
+        if !deps.imports.is_empty() {
+            output.push_str("Imports:\n");
+            for import in &deps.imports {
+                output.push_str(&format!("  - {}\n", import.display()));
+            }
+            if !deps.imported_by.is_empty() {
+                output.push('\n');
+            }
+        }
+
+        if !deps.imported_by.is_empty() {
+            output.push_str("Imported by:\n");
+            for imported_by in &deps.imported_by {
+                output.push_str(&format!("  - {}\n", imported_by.display()));
+            }
+        }
+    }
+
+    output
+}
+
+#[must_use]
+pub fn format_all_deps(all_deps: &[FileDependencies]) -> String {
+    if all_deps.is_empty() {
+        return "No files indexed.\n".to_string();
+    }
+
+    let mut output = String::new();
+    for deps in all_deps {
+        output.push_str(&format!("{}", deps.file_path.display()));
+        if let Some(title) = &deps.file_title {
+            output.push_str(&format!(" ({title})"));
+        }
+
+        if !deps.imports.is_empty() || !deps.imported_by.is_empty() {
+            output.push_str(&format!(
+                " — imports: {}, imported by: {}",
+                deps.imports.len(),
+                deps.imported_by.len()
+            ));
+        }
+        output.push('\n');
+    }
+    output
+}
+
+#[must_use]
+pub fn format_deps_csv(deps: &FileDependencies) -> String {
+    let mut csv = String::from("type,file,target\n");
+
+    for import in &deps.imports {
+        csv.push_str(&format!(
+            "imports,{},{}\n",
+            deps.file_path.display(),
+            import.display()
+        ));
+    }
+
+    for imported_by in &deps.imported_by {
+        csv.push_str(&format!(
+            "imported_by,{},{}\n",
+            deps.file_path.display(),
+            imported_by.display()
+        ));
+    }
+
+    csv
+}
+
+#[must_use]
+pub fn format_all_deps_csv(all_deps: &[FileDependencies]) -> String {
+    let mut csv = String::from("file,title,imports_count,imported_by_count\n");
+
+    for deps in all_deps {
+        csv.push_str(&format!(
+            "{},{},{},{}\n",
+            deps.file_path.display(),
+            deps.file_title.as_deref().unwrap_or(""),
+            deps.imports.len(),
+            deps.imported_by.len()
+        ));
+    }
+
+    csv
 }
 
 #[must_use]

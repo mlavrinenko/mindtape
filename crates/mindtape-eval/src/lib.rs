@@ -9,6 +9,6 @@ pub mod world;
 
 // Re-export eval's public API at crate root.
 pub use eval::{
-    collect_tasks, eval_file, eval_file_full, extract_bindings, extract_file_title, extract_task,
-    EvalError, EvalResult, Task,
+    collect_tasks, eval_file, eval_file_full, eval_file_full_with_deps, extract_bindings,
+    extract_file_title, extract_task, EvalError, EvalResult, Task,
 };

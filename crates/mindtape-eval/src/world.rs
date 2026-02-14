@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
@@ -16,6 +16,9 @@ use crate::EvalError;
 /// This world resolves files from the local filesystem relative to a
 /// project root directory. It caches loaded sources in memory and provides
 /// an empty font book (eval-only, no layout/render).
+///
+/// It also tracks cross-file dependencies: whenever a file is loaded during
+/// evaluation (via `source()` or `file()`), it records that dependency.
 pub struct MindTapeWorld {
     /// Project root directory. All virtual paths resolve against this.
     root: PathBuf,
@@ -27,6 +30,9 @@ pub struct MindTapeWorld {
     book: LazyHash<FontBook>,
     /// Cache of loaded sources, keyed by `FileId`.
     sources: Mutex<HashMap<FileId, Source>>,
+    /// Set of all file IDs accessed during evaluation (for dependency tracking).
+    /// Excludes the main file itself.
+    dependencies: Mutex<HashSet<FileId>>,
 }
 
 impl MindTapeWorld {
@@ -82,6 +88,7 @@ impl MindTapeWorld {
             library: LazyHash::new(Library::default()),
             book: LazyHash::new(FontBook::new()),
             sources: Mutex::new(HashMap::new()),
+            dependencies: Mutex::new(HashSet::new()),
         })
     }
 
@@ -108,6 +115,46 @@ impl MindTapeWorld {
         let text = std::fs::read_to_string(&path).map_err(|e| FileError::from_io(e, &path))?;
         Ok(Source::new(id, text))
     }
+
+    /// Record a file as a dependency (if it's not the main file).
+    fn record_dependency(&self, id: FileId) {
+        if id != self.main_id {
+            let mut deps = self.dependencies.lock().expect("dependencies lock poisoned");
+            deps.insert(id);
+        }
+    }
+
+    /// Get all file dependencies discovered during evaluation.
+    /// Returns relative paths (from project root) of files that were imported.
+    ///
+    /// # Errors
+    /// Returns `Err` if a dependency's path cannot be resolved.
+    ///
+    /// # Panics
+    /// Panics if the dependencies lock is poisoned (should never happen in normal operation).
+    pub fn get_dependencies(&self) -> Result<Vec<PathBuf>, EvalError> {
+        let deps = self.dependencies.lock().expect("dependencies lock poisoned");
+        let mut paths = Vec::new();
+        for id in deps.iter() {
+            let abs_path = self.resolve_path(*id)
+                .map_err(|e| EvalError::World(format!("failed to resolve dependency: {e}")))?;
+
+            let rel_path = abs_path
+                .strip_prefix(&self.root)
+                .map_err(|_| {
+                    EvalError::World(format!(
+                        "dependency {} is not under project root {}",
+                        abs_path.display(),
+                        self.root.display()
+                    ))
+                })?
+                .to_path_buf();
+
+            paths.push(rel_path);
+        }
+        paths.sort();
+        Ok(paths)
+    }
 }
 
 impl typst::World for MindTapeWorld {
@@ -124,6 +171,9 @@ impl typst::World for MindTapeWorld {
     }
 
     fn source(&self, id: FileId) -> FileResult<Source> {
+        // Record this file as a dependency (unless it's the main file).
+        self.record_dependency(id);
+
         {
             let cache = self.sources.lock().expect("source cache poisoned");
             if let Some(source) = cache.get(&id) {
@@ -139,6 +189,9 @@ impl typst::World for MindTapeWorld {
     }
 
     fn file(&self, id: FileId) -> FileResult<Bytes> {
+        // Record this file as a dependency (unless it's the main file).
+        self.record_dependency(id);
+
         let path = self.resolve_path(id)?;
         let data = std::fs::read(&path).map_err(|e| FileError::from_io(e, &path))?;
         Ok(Bytes::new(data))

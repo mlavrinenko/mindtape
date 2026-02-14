@@ -15,7 +15,7 @@ use serde::Serialize;
 use thiserror::Error;
 
 // Re-export submodules' public items at the `store` level.
-pub use indexer::{hash_file, index_file, to_store_records};
+pub use indexer::{hash_file, index_file, index_file_with_deps, to_store_records};
 pub use sqlite::SqliteStore;
 
 // ---------------------------------------------------------------------------
@@ -154,6 +154,25 @@ pub struct AgendaView {
     pub this_week: Vec<TaskView>,
 }
 
+/// A cross-file reference: one file importing/depending on another.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FileReference {
+    pub id: Option<i64>,
+    pub source_file_id: i64,
+    pub target_path: PathBuf,
+}
+
+/// A file with its incoming and outgoing dependencies.
+#[derive(Debug, Clone, Serialize)]
+pub struct FileDependencies {
+    pub file_path: PathBuf,
+    pub file_title: Option<String>,
+    /// Files that this file imports (dependencies).
+    pub imports: Vec<PathBuf>,
+    /// Files that import this file (dependents).
+    pub imported_by: Vec<PathBuf>,
+}
+
 // ---------------------------------------------------------------------------
 // Errors
 // ---------------------------------------------------------------------------
@@ -260,4 +279,29 @@ pub trait Store {
     ///
     /// Returns `StoreError` if the database operation fails.
     fn query_agenda(&self, today: &str) -> Result<AgendaView, StoreError>;
+
+    /// Replace all file references for a given source file.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
+    fn upsert_file_references(
+        &mut self,
+        source_file_id: i64,
+        target_paths: &[PathBuf],
+    ) -> Result<(), StoreError>;
+
+    /// Get dependency information for a specific file.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
+    fn get_file_dependencies(&self, path: &Path) -> Result<Option<FileDependencies>, StoreError>;
+
+    /// List all files with their dependency counts.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
+    fn list_file_dependencies(&self) -> Result<Vec<FileDependencies>, StoreError>;
 }

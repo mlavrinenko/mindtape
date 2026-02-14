@@ -27,6 +27,7 @@ fn main() {
         Command::Agenda(args) => run_agenda(&args),
         Command::Status(args) => run_status(&args),
         Command::Files(args) => run_files(&args),
+        Command::Deps(args) => run_deps(&args),
     }
 }
 
@@ -242,6 +243,46 @@ fn run_files(args: &cli::QueryArgs) {
             for file in &files {
                 println!("{}", cli::format_file_view(file));
             }
+        }
+    }
+}
+
+fn run_deps(args: &cli::DepsArgs) {
+    let store = open_query_db(args.db.as_deref());
+
+    if let Some(file) = &args.file {
+        // Show dependencies for a specific file
+        let deps = match store.get_file_dependencies(file) {
+            Ok(Some(deps)) => deps,
+            Ok(None) => {
+                eprintln!("Error: file not found in index: {}", file.display());
+                process::exit(1);
+            }
+            Err(err) => {
+                eprintln!("Error querying dependencies: {err}");
+                process::exit(1);
+            }
+        };
+
+        match args.format {
+            OutputFormat::Json => print_json(&deps),
+            OutputFormat::Csv => print!("{}", cli::format_deps_csv(&deps)),
+            OutputFormat::Table => print!("{}", cli::format_deps(&deps)),
+        }
+    } else {
+        // List all files with their dependency counts
+        let all_deps = match store.list_file_dependencies() {
+            Ok(all_deps) => all_deps,
+            Err(err) => {
+                eprintln!("Error listing dependencies: {err}");
+                process::exit(1);
+            }
+        };
+
+        match args.format {
+            OutputFormat::Json => print_json(&all_deps),
+            OutputFormat::Csv => print!("{}", cli::format_all_deps_csv(&all_deps)),
+            OutputFormat::Table => print!("{}", cli::format_all_deps(&all_deps)),
         }
     }
 }
