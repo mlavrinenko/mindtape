@@ -28,6 +28,7 @@ fn main() {
         Command::Status(args) => run_status(&args),
         Command::Files(args) => run_files(&args),
         Command::Deps(args) => run_deps(&args),
+        Command::Check(args) => run_check(&args),
     }
 }
 
@@ -285,6 +286,64 @@ fn run_deps(args: &cli::DepsArgs) {
             OutputFormat::Table => print!("{}", cli::format_all_deps(&all_deps)),
         }
     }
+}
+
+fn run_check(args: &cli::CheckArgs) {
+    let store = open_query_db(args.db.as_deref());
+
+    // Find the task by ID or masked pattern
+    let task = match store.find_task_by_id(&args.task_id) {
+        Ok(task) => task,
+        Err(err) => {
+            eprintln!("Error: {err}");
+            process::exit(1);
+        }
+    };
+
+    // Check for conflicts: verify file hasn't changed since last index
+    let current_hash = match mindtape::store::hash_file(&task.file_path) {
+        Ok(hash) => hash,
+        Err(err) => {
+            eprintln!("Error reading file {}: {err}", task.file_path.display());
+            process::exit(1);
+        }
+    };
+
+    if current_hash != task.file_hash {
+        eprintln!(
+            "Error: file {} has changed since last index",
+            task.file_path.display()
+        );
+        eprintln!("Run 'mindtape watch' to re-index, then try again.");
+        process::exit(1);
+    }
+
+    // Load and parse the file
+    let source = match mindtape::eval::load_source(&task.file_path) {
+        Ok(source) => source,
+        Err(err) => {
+            eprintln!("Error loading file: {err}");
+            process::exit(1);
+        }
+    };
+
+    // Toggle the checkbox
+    let new_content = match mindtape::eval::toggle_task_checkbox(&source, &task.task_id) {
+        Ok(content) => content,
+        Err(err) => {
+            eprintln!("Error toggling checkbox: {err}");
+            process::exit(1);
+        }
+    };
+
+    // Write back atomically
+    if let Err(err) = std::fs::write(&task.file_path, new_content) {
+        eprintln!("Error writing file: {err}");
+        process::exit(1);
+    }
+
+    let status = if task.is_done { "unchecked" } else { "checked" };
+    println!("Task {} {}: {}", task.task_id, status, task.task_title);
 }
 
 fn print_json(value: &impl serde::Serialize) {

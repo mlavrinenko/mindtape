@@ -689,6 +689,55 @@ impl Store for SqliteStore {
 
         Ok(results)
     }
+
+    fn find_task_by_id(&self, id_or_mask: &str) -> Result<super::TaskWithFile, super::StoreError> {
+        // Determine if this is an exact match or a masked pattern
+        let (query, param) = if let Some(suffix) = id_or_mask.strip_prefix('*') {
+            // Masked pattern: find tasks with ID ending in suffix
+            (
+                "SELECT tp.value, t.title, t.is_done, tf.relative_path, tf.eval_hash
+                 FROM task_properties tp
+                 JOIN tasks t ON tp.task_id = t.id
+                 JOIN task_files tf ON t.task_file_id = tf.id
+                 WHERE tp.kind = 'id' AND tp.value LIKE ?1",
+                format!("%{suffix}"),
+            )
+        } else {
+            // Exact match
+            (
+                "SELECT tp.value, t.title, t.is_done, tf.relative_path, tf.eval_hash
+                 FROM task_properties tp
+                 JOIN tasks t ON tp.task_id = t.id
+                 JOIN task_files tf ON t.task_file_id = tf.id
+                 WHERE tp.kind = 'id' AND tp.value = ?1",
+                id_or_mask.to_string(),
+            )
+        };
+
+        let mut stmt = self.conn.prepare(query)?;
+        let mut rows = stmt.query(params![param])?;
+
+        let mut results = Vec::new();
+        while let Some(row) = rows.next()? {
+            results.push(super::TaskWithFile {
+                task_id: row.get(0)?,
+                task_title: row.get(1)?,
+                is_done: row.get(2)?,
+                file_path: PathBuf::from(row.get::<_, String>(3)?),
+                file_hash: row.get(4)?,
+            });
+        }
+
+        match results.len() {
+            0 => Err(super::StoreError::Path(format!(
+                "task not found: {id_or_mask}"
+            ))),
+            1 => Ok(results.into_iter().next().expect("exactly one result")),
+            num_matches => Err(super::StoreError::Path(format!(
+                "ambiguous task ID pattern '{id_or_mask}': matched {num_matches} tasks"
+            ))),
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -696,7 +745,7 @@ impl Store for SqliteStore {
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
+#[allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::uninlined_format_args)]
 mod tests {
     use super::*;
     use super::super::{FileBinding, PropertyKind, TaskFile, TaskFilter, TaskProperty, TaskRecord};

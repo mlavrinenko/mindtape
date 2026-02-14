@@ -33,6 +33,7 @@ pub enum Command {
     Search(SearchArgs),
     Agenda(AgendaArgs),
     Deps(DepsArgs),
+    Check(CheckArgs),
 }
 
 pub struct SearchArgs {
@@ -91,6 +92,11 @@ pub struct DepsArgs {
     pub format: OutputFormat,
 }
 
+pub struct CheckArgs {
+    pub task_id: String,
+    pub db: Option<PathBuf>,
+}
+
 const USAGE: &str = "\
 Usage: mindtape <file.typ> [--due] [-N]
        mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH] [--format table|json|csv]
@@ -98,6 +104,7 @@ Usage: mindtape <file.typ> [--due] [-N]
        mindtape agenda [--overdue] [--today] [--week] [-N] [--db PATH] [--format table|json|csv]
        mindtape status [--db PATH] [--format table|json|csv]
        mindtape files [--db PATH] [--format table|json|csv]
+       mindtape check <task-id> [--db PATH]
        mindtape deps [--file PATH] [--db PATH] [--format table|json|csv]
        mindtape watch [<path>] [--config <file>]";
 
@@ -113,6 +120,7 @@ pub fn parse_args(args: &[String]) -> Result<Command, String> {
         Some("status") => parse_query_args(rest).map(Command::Status),
         Some("files") => parse_query_args(rest).map(Command::Files),
         Some("deps") => parse_deps_args(rest),
+        Some("check") => parse_check_args(rest),
         _ => parse_eval_args(args).map(Command::Eval),
     }
 }
@@ -394,6 +402,37 @@ fn parse_deps_args(args: &[String]) -> Result<Command, String> {
     }
 
     Ok(Command::Deps(DepsArgs { file, db, format }))
+}
+
+#[allow(clippy::indexing_slicing)]
+fn parse_check_args(args: &[String]) -> Result<Command, String> {
+    let mut task_id: Option<String> = None;
+    let mut db: Option<PathBuf> = None;
+    let mut idx = 0;
+
+    while idx < args.len() {
+        match args[idx].as_str() {
+            "--db" => {
+                idx += 1;
+                db = Some(PathBuf::from(
+                    args.get(idx).ok_or("--db requires a path")?,
+                ));
+            }
+            other if !other.starts_with('-') => {
+                if task_id.is_none() {
+                    task_id = Some(other.to_string());
+                } else {
+                    return Err(format!("unexpected argument: {other}"));
+                }
+            }
+            other => return Err(format!("unknown check argument: {other}")),
+        }
+        idx += 1;
+    }
+
+    let task_id = task_id.ok_or("check requires a task ID argument")?;
+
+    Ok(Command::Check(CheckArgs { task_id, db }))
 }
 
 // ---------------------------------------------------------------------------

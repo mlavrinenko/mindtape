@@ -173,6 +173,16 @@ pub struct FileDependencies {
     pub imported_by: Vec<PathBuf>,
 }
 
+/// A task with its file context, returned by `find_task_by_id()`.
+#[derive(Debug, Clone)]
+pub struct TaskWithFile {
+    pub task_id: String,
+    pub task_title: String,
+    pub is_done: bool,
+    pub file_path: PathBuf,
+    pub file_hash: String,
+}
+
 // ---------------------------------------------------------------------------
 // Errors
 // ---------------------------------------------------------------------------
@@ -304,4 +314,12 @@ pub trait Store {
     ///
     /// Returns `StoreError` if the database operation fails.
     fn list_file_dependencies(&self) -> Result<Vec<FileDependencies>, StoreError>;
+
+    /// Find a task by exact ID or masked ID pattern (e.g., "*37f8" matches IDs ending with "37f8").
+    /// Returns error if masked pattern matches 0 or 2+ tasks (ambiguous).
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails or the pattern is ambiguous.
+    fn find_task_by_id(&self, id_or_mask: &str) -> Result<TaskWithFile, StoreError>;
 }

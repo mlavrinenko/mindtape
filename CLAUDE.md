@@ -36,7 +36,10 @@ metadata into a database, and exposes a CLI (later API) for querying.
 - After any code changes, run `just check` (clippy + tests) and fix all warnings before considering the task done
 - Always improve the `Justfile` when you notice missing or useful recipes
 - Avoid dumping large tool outputs into context; summarize or truncate when possible
-- At the end of a session with code/config changes, suggest a conventional commit message (e.g. `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`)
+- **After completing a task with code/config changes**:
+  1. Update `docs/ROADMAP.md` to mark milestones/tasks as complete with implementation notes
+  2. Update `docs/DESIGN.md` if architecture or design patterns changed
+  3. Suggest a conventional commit message (e.g. `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`)
 - Save research findings (external crate APIs, googled solutions, version-specific quirks) to `docs/research/` as markdown files — one file per topic (e.g. `docs/research/notify-crate.md`). This preserves knowledge across sessions and avoids re-researching the same things.
 - When working on a single crate, read that crate's `CLAUDE.md` for focused context.
 
