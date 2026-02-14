@@ -52,7 +52,8 @@ tests/
   eval_integration.rs  -- end-to-end eval tests with temp .typ files
 
 lib/
-  prelude.typ   -- due(), id() functions using metadata()
+  prelude.typ   -- due(), id(), tag() functions using metadata()
+  typst.toml    -- package manifest for @mind-tape/mind-tape:0.1.0
 
 itest/
   basic.sh      -- shell integration test
@@ -68,11 +69,11 @@ itest/
 ## Task Format (Typst Convention)
 
 ```typ
-#import "lib/prelude.typ": due, id
+#import "@mind-tape/mind-tape:0.1.0": due, id, tag
 
 = Milestone Title
 
-- [ ] task text #due(datetime(...)) #id("uuid")
+- [ ] task text #due(datetime(...)) #id("uuid") #tag("category")
 - [x] completed task
 
 #let some_binding = "searchable value"
@@ -80,7 +81,7 @@ itest/
 
 - Headings = milestones / groups
 - Checklist items = tasks (parsed from `plain_text()`, not native Typst)
-- `#due()`, `#id()` = task properties (produce `MetadataElem` via `metadata()`)
+- `#due()`, `#id()`, `#tag()` = task properties (produce `MetadataElem` via `metadata()`)
 - `#let` bindings = file-level metadata, indexed for search
 
 ## Testing
@@ -92,7 +93,7 @@ itest/
 
 ## Current Status
 
-M1.1 complete. PoC evaluates `.typ` files, extracts tasks with due dates,
-filters/sorts/limits, prints formatted output. Code refactored into lib+bin
-crate with 35 tests and 77%+ coverage.
-Next: M1.2 (tag function, `@mind-tape` package resolution).
+M1.2 complete. `@mind-tape` package resolution works — `.typ` files use
+`#import "@mind-tape/mind-tape:0.1.0": due, tag, id`. Tag extraction added
+to `Task` struct. 43 tests, 80%+ coverage.
+Next: M1.3 (SQLite Store).

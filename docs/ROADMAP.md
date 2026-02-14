@@ -22,16 +22,25 @@ Goal: evaluate Typst files, index tasks into SQLite, query via CLI.
 - Checkboxes parsed from `plain_text()` since Typst has no native checkbox syntax
 - Code refactored into lib+bin crate with 77%+ test coverage (35 tests)
 
-### M1.2 — `@mind-tape` Functions (due, tag)
+### M1.2 — `@mind-tape` Functions (due, tag) [COMPLETE]
 
 - [x] Define `due()` as Typst function producing identifiable content (via `metadata()`)
-- [ ] Define `tag()` function
-- [ ] Register functions in custom World so `#import "@mind-tape": due, tag` resolves
-- [ ] Extract `due` and `tag` values from content tree after evaluation
-- [ ] Update examples to use `@mind-tape` imports
+- [x] Define `tag()` function
+- [x] Register functions in custom World so `#import "@mind-tape/mind-tape:0.1.0": due, tag` resolves
+- [x] Extract `due` and `tag` values from content tree after evaluation
+- [x] Update examples to use `@mind-tape` imports
 
 **Exit criteria**: parse `- [ ] task #due(datetime(...)) #tag("fun")` and extract
 due date + tag as structured Rust values.
+
+**Implementation notes**:
+- `lib/prelude.typ` now exports `due()`, `id()`, and `tag()` — all use `metadata()`
+- `lib/typst.toml` package manifest with `entrypoint = "prelude.typ"`
+- `MindTapeWorld::resolve_path()` intercepts `@mind-tape` package specs and
+  resolves against `{root}/lib/` directory
+- Import syntax: `#import "@mind-tape/mind-tape:0.1.0": due, tag, id`
+- `Task` struct now has `tags: Vec<String>` field
+- 43 tests (26 unit + 17 integration), 80.42% coverage
 
 ### M1.3 — SQLite Store
 

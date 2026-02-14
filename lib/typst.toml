@@ -1,0 +1,4 @@
+[package]
+name = "mind-tape"
+version = "0.1.0"
+entrypoint = "prelude.typ"

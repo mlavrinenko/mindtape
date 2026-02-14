@@ -1,4 +1,4 @@
-#import "../../lib/prelude.typ": due, id
+#import "@mind-tape/mind-tape:0.1.0": due, id
 
 = Piano
 

@@ -81,9 +81,19 @@ impl MindTapeWorld {
     }
 
     /// Resolve a `FileId` to an absolute filesystem path.
+    ///
+    /// For project-local files (`id.package()` is `None`), resolves against
+    /// the project root. For `@mind-tape` package files, resolves against
+    /// `{root}/lib/` so that the package manifest and entry point map to
+    /// `lib/typst.toml` and `lib/prelude.typ` respectively.
     fn resolve_path(&self, id: FileId) -> FileResult<PathBuf> {
+        let root = match id.package() {
+            Some(spec) if spec.namespace == "mind-tape" => self.root.join("lib"),
+            Some(_) => return Err(FileError::NotFound(id.vpath().as_rooted_path().into())),
+            None => self.root.clone(),
+        };
         id.vpath()
-            .resolve(&self.root)
+            .resolve(&root)
             .ok_or_else(|| FileError::AccessDenied)
     }
 

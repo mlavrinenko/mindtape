@@ -23,6 +23,7 @@ pub struct Task {
     pub title: String,
     pub done: bool,
     pub due: Option<Datetime>,
+    pub tags: Vec<String>,
 }
 
 /// Evaluate the world's main `.typ` file and return all tasks found in its
@@ -95,8 +96,9 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
     };
 
     // Walk the body content looking for MetadataElem nodes produced by
-    // `#due()` and `#id()`.
+    // `#due()`, `#id()`, and `#tag()`.
     let mut due: Option<Datetime> = None;
+    let mut tags: Vec<String> = Vec::new();
 
     let _ = body.traverse(&mut |node: Content| -> ControlFlow<()> {
         if let Some(meta) = node.to_packed::<MetadataElem>() {
@@ -104,11 +106,19 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
             if let Value::Array(arr) = value {
                 let slice = arr.as_slice();
                 if slice.len() == 2 {
-                    if let Value::Str(tag) = &slice[0] {
-                        if tag.as_str() == "due" {
-                            if let Value::Datetime(dt) = &slice[1] {
-                                due = Some(*dt);
+                    if let Value::Str(key) = &slice[0] {
+                        match key.as_str() {
+                            "due" => {
+                                if let Value::Datetime(dt) = &slice[1] {
+                                    due = Some(*dt);
+                                }
                             }
+                            "tag" => {
+                                if let Value::Str(name) = &slice[1] {
+                                    tags.push(name.to_string());
+                                }
+                            }
+                            _ => {}
                         }
                     }
                 }
@@ -117,5 +127,5 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
         ControlFlow::Continue(())
     });
 
-    Some(Task { title, done, due })
+    Some(Task { title, done, due, tags })
 }
