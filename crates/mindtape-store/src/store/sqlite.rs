@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use rusqlite::{params, Connection, OptionalExtension};
 
 use super::{
-    FileBinding, FileView, IndexStats, Store, StoreError, TaskFile, TaskFilter, TaskProperty,
-    TaskRecord, TaskView,
+    BindingView, FileBinding, FileView, IndexStats, SearchResults, Store, StoreError, TaskFile,
+    TaskFilter, TaskProperty, TaskRecord, TaskView,
 };
 
 // ---------------------------------------------------------------------------
@@ -50,6 +50,11 @@ CREATE INDEX IF NOT EXISTS idx_tasks_file ON tasks(task_file_id);
 CREATE INDEX IF NOT EXISTS idx_props_task ON task_properties(task_id);
 CREATE INDEX IF NOT EXISTS idx_props_kind ON task_properties(kind);
 CREATE INDEX IF NOT EXISTS idx_bindings_file ON file_bindings(task_file_id);
+";
+
+const SCHEMA_V2: &str = "
+CREATE INDEX IF NOT EXISTS idx_tasks_title ON tasks(title COLLATE NOCASE);
+CREATE INDEX IF NOT EXISTS idx_bindings_name ON file_bindings(name COLLATE NOCASE);
 ";
 
 // ---------------------------------------------------------------------------
@@ -96,6 +101,13 @@ impl SqliteStore {
             conn.execute_batch(SCHEMA_V1)
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
             conn.pragma_update(None, "user_version", 1)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+        }
+
+        if version < 2 {
+            conn.execute_batch(SCHEMA_V2)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+            conn.pragma_update(None, "user_version", 2)
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
         }
 
@@ -376,6 +388,70 @@ impl Store for SqliteStore {
             last_updated,
         })
     }
+
+    fn search(&self, query: &str, limit: Option<usize>) -> Result<SearchResults, StoreError> {
+        let limit_val = limit.unwrap_or(100) as i64;
+        let pattern = format!("%{query}%");
+
+        // Search task titles
+        let mut task_stmt = self.conn.prepare(
+            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+             FROM tasks t
+             JOIN task_files tf ON t.task_file_id = tf.id
+             WHERE t.title LIKE ?1 COLLATE NOCASE
+             ORDER BY tf.relative_path, t.position
+             LIMIT ?2",
+        )?;
+        let task_rows: Vec<(i64, String, bool, i32, String, Option<String>)> = task_stmt
+            .query_map(params![pattern, limit_val], |row| {
+                Ok((
+                    row.get(0)?,
+                    row.get(1)?,
+                    row.get::<_, i32>(2)? != 0,
+                    row.get(3)?,
+                    row.get(4)?,
+                    row.get(5)?,
+                ))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let mut tasks = Vec::with_capacity(task_rows.len());
+        for (task_id, title, is_done, position, file_path, file_title) in task_rows {
+            let (due, tags) = self.fetch_task_properties(task_id)?;
+            tasks.push(TaskView {
+                title,
+                is_done,
+                position,
+                file_path: PathBuf::from(file_path),
+                file_title,
+                due,
+                tags,
+            });
+        }
+
+        // Search bindings (name or value)
+        let mut binding_stmt = self.conn.prepare(
+            "SELECT fb.name, fb.value_json, tf.relative_path, tf.title
+             FROM file_bindings fb
+             JOIN task_files tf ON fb.task_file_id = tf.id
+             WHERE fb.name LIKE ?1 COLLATE NOCASE
+                OR fb.value_json LIKE ?1 COLLATE NOCASE
+             ORDER BY tf.relative_path, fb.name
+             LIMIT ?2",
+        )?;
+        let bindings: Vec<BindingView> = binding_stmt
+            .query_map(params![pattern, limit_val], |row| {
+                Ok(BindingView {
+                    name: row.get(0)?,
+                    value: row.get(1)?,
+                    file_path: PathBuf::from(row.get::<_, String>(2)?),
+                    file_title: row.get(3)?,
+                })
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(SearchResults { tasks, bindings })
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -473,7 +549,7 @@ mod tests {
             .conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 1);
+        assert_eq!(version, 2);
     }
 
     // --- upsert_task_file ---
@@ -1026,5 +1102,66 @@ mod tests {
         assert_eq!(stats.task_count, 4);
         assert_eq!(stats.done_count, 2);
         assert_eq!(stats.pending_count, 2);
+    }
+
+    // --- search ---
+
+    #[test]
+    fn search_by_task_title() {
+        let mut store = test_store();
+        seed_store(&mut store); // "Buy milk", "Done thing", "Urgent"
+        let results = store.search("milk", None).unwrap();
+        assert_eq!(results.tasks.len(), 1);
+        assert_eq!(results.tasks[0].title, "Buy milk");
+        assert!(results.bindings.is_empty());
+    }
+
+    #[test]
+    fn search_case_insensitive() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        let results = store.search("URGENT", None).unwrap();
+        assert_eq!(results.tasks.len(), 1);
+        assert_eq!(results.tasks[0].title, "Urgent");
+    }
+
+    #[test]
+    fn search_by_binding_name() {
+        let mut store = test_store();
+        let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
+        store.upsert_bindings(file_id, &[make_binding("author", "string", "\"Alice\"")]).unwrap();
+
+        let results = store.search("author", None).unwrap();
+        assert!(results.tasks.is_empty());
+        assert_eq!(results.bindings.len(), 1);
+        assert_eq!(results.bindings[0].name, "author");
+    }
+
+    #[test]
+    fn search_by_binding_value() {
+        let mut store = test_store();
+        let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
+        store.upsert_bindings(file_id, &[make_binding("author", "string", "\"Alice\"")]).unwrap();
+
+        let results = store.search("Alice", None).unwrap();
+        assert_eq!(results.bindings.len(), 1);
+        assert_eq!(results.bindings[0].value, "\"Alice\"");
+    }
+
+    #[test]
+    fn search_no_results() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        let results = store.search("nonexistent", None).unwrap();
+        assert!(results.tasks.is_empty());
+        assert!(results.bindings.is_empty());
+    }
+
+    #[test]
+    fn search_with_limit() {
+        let mut store = test_store();
+        seed_store(&mut store); // 3 tasks
+        let results = store.search("", Some(2)).unwrap();
+        assert_eq!(results.tasks.len(), 2);
     }
 }

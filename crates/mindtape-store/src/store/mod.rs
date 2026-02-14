@@ -130,6 +130,22 @@ pub struct IndexStats {
     pub last_updated: Option<String>,
 }
 
+/// A matched binding from search.
+#[derive(Debug, Clone, Serialize)]
+pub struct BindingView {
+    pub name: String,
+    pub value: String,
+    pub file_path: PathBuf,
+    pub file_title: Option<String>,
+}
+
+/// Combined full-text search results across tasks and bindings.
+#[derive(Debug, Clone, Serialize)]
+pub struct SearchResults {
+    pub tasks: Vec<TaskView>,
+    pub bindings: Vec<BindingView>,
+}
+
 // ---------------------------------------------------------------------------
 // Errors
 // ---------------------------------------------------------------------------
@@ -221,4 +237,11 @@ pub trait Store {
     ///
     /// Returns `StoreError` if the database operation fails.
     fn get_stats(&self) -> Result<IndexStats, StoreError>;
+
+    /// Full-text search across task titles and binding names/values.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
+    fn search(&self, query: &str, limit: Option<usize>) -> Result<SearchResults, StoreError>;
 }

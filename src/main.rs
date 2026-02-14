@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::process;
 
-use mindtape::cli::{self, Command};
+use mindtape::cli::{self, Command, OutputFormat};
 use mindtape::config;
 use mindtape::eval;
 use mindtape::store::{SqliteStore, Store, TaskFilter};
@@ -23,6 +23,7 @@ fn main() {
         Command::Eval(args) => run_eval(&args),
         Command::Watch(args) => run_watch(&args),
         Command::List(args) => run_list(args),
+        Command::Search(args) => run_search(&args),
         Command::Status(args) => run_status(&args),
         Command::Files(args) => run_files(&args),
     }
@@ -126,29 +127,51 @@ fn run_list(args: cli::ListArgs) {
         }
     };
 
-    if args.json {
-        print_json(&tasks);
-        return;
-    }
-
-    if tasks.is_empty() {
-        eprintln!("no tasks found");
-        return;
-    }
-
-    // Group by file
-    let mut current_file = String::new();
-    for task in &tasks {
-        let file_str = task.file_path.to_string_lossy();
-        if file_str != current_file {
-            if !current_file.is_empty() {
-                println!();
-            }
-            let header = task.file_title.as_deref().unwrap_or(&file_str);
-            println!("{header} ({file_str})");
-            current_file = file_str.to_string();
+    match args.format {
+        OutputFormat::Json => {
+            print_json(&tasks);
         }
-        println!("  {}", cli::format_task_view(task));
+        OutputFormat::Csv => {
+            print!("{}", cli::format_tasks_csv(&tasks));
+        }
+        OutputFormat::Table => {
+            if tasks.is_empty() {
+                eprintln!("no tasks found");
+                return;
+            }
+            // Group by file
+            let mut current_file = String::new();
+            for task in &tasks {
+                let file_str = task.file_path.to_string_lossy();
+                if file_str != current_file {
+                    if !current_file.is_empty() {
+                        println!();
+                    }
+                    let header = task.file_title.as_deref().unwrap_or(&file_str);
+                    println!("{header} ({file_str})");
+                    current_file = file_str.to_string();
+                }
+                println!("  {}", cli::format_task_view(task));
+            }
+        }
+    }
+}
+
+fn run_search(args: &cli::SearchArgs) {
+    let store = open_query_db(args.db.as_deref());
+
+    let results = match store.search(&args.query, args.limit) {
+        Ok(results) => results,
+        Err(err) => {
+            eprintln!("Error searching: {err}");
+            process::exit(1);
+        }
+    };
+
+    match args.format {
+        OutputFormat::Json => print_json(&results),
+        OutputFormat::Csv => print!("{}", cli::format_search_csv(&results)),
+        OutputFormat::Table => print!("{}", cli::format_search_results(&results)),
     }
 }
 
@@ -163,12 +186,11 @@ fn run_status(args: &cli::QueryArgs) {
         }
     };
 
-    if args.json {
-        print_json(&stats);
-        return;
+    match args.format {
+        OutputFormat::Json => print_json(&stats),
+        OutputFormat::Csv => print!("{}", cli::format_stats_csv(&stats)),
+        OutputFormat::Table => println!("{}", cli::format_stats(&stats)),
     }
-
-    println!("{}", cli::format_stats(&stats));
 }
 
 fn run_files(args: &cli::QueryArgs) {
@@ -182,18 +204,18 @@ fn run_files(args: &cli::QueryArgs) {
         }
     };
 
-    if args.json {
-        print_json(&files);
-        return;
-    }
-
-    if files.is_empty() {
-        eprintln!("no indexed files");
-        return;
-    }
-
-    for file in &files {
-        println!("{}", cli::format_file_view(file));
+    match args.format {
+        OutputFormat::Json => print_json(&files),
+        OutputFormat::Csv => print!("{}", cli::format_files_csv(&files)),
+        OutputFormat::Table => {
+            if files.is_empty() {
+                eprintln!("no indexed files");
+                return;
+            }
+            for file in &files {
+                println!("{}", cli::format_file_view(file));
+            }
+        }
     }
 }
 

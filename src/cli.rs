@@ -3,7 +3,25 @@ use std::path::PathBuf;
 use typst::foundations::Datetime;
 
 use crate::eval::Task;
-use crate::store::{FileView, IndexStats, TaskView};
+use crate::store::{FileView, IndexStats, SearchResults, TaskView};
+
+/// Output format for query commands.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub enum OutputFormat {
+    #[default]
+    Table,
+    Json,
+    Csv,
+}
+
+fn parse_format(value: &str) -> Result<OutputFormat, String> {
+    match value {
+        "table" => Ok(OutputFormat::Table),
+        "json" => Ok(OutputFormat::Json),
+        "csv" => Ok(OutputFormat::Csv),
+        _ => Err(format!("invalid --format value: {value} (use table, json, or csv)")),
+    }
+}
 
 /// Parsed CLI command.
 pub enum Command {
@@ -12,6 +30,14 @@ pub enum Command {
     List(ListArgs),
     Status(QueryArgs),
     Files(QueryArgs),
+    Search(SearchArgs),
+}
+
+pub struct SearchArgs {
+    pub query: String,
+    pub limit: Option<usize>,
+    pub db: Option<PathBuf>,
+    pub format: OutputFormat,
 }
 
 pub struct EvalArgs {
@@ -39,19 +65,20 @@ pub struct ListArgs {
     pub folder: Option<PathBuf>,
     pub limit: Option<usize>,
     pub db: Option<PathBuf>,
-    pub json: bool,
+    pub format: OutputFormat,
 }
 
 pub struct QueryArgs {
     pub db: Option<PathBuf>,
-    pub json: bool,
+    pub format: OutputFormat,
 }
 
 const USAGE: &str = "\
 Usage: mindtape <file.typ> [--due] [-N]
-       mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH]
-       mindtape status [--db PATH]
-       mindtape files [--db PATH]
+       mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH] [--format table|json|csv]
+       mindtape search <keyword> [-N] [--db PATH] [--format table|json|csv]
+       mindtape status [--db PATH] [--format table|json|csv]
+       mindtape files [--db PATH] [--format table|json|csv]
        mindtape watch [<path>] [--config <file>]";
 
 /// # Errors
@@ -61,6 +88,7 @@ pub fn parse_args(args: &[String]) -> Result<Command, String> {
     match args.first().map(String::as_str) {
         Some("watch") => parse_watch_args(rest),
         Some("list") => parse_list_args(rest),
+        Some("search") => parse_search_args(rest),
         Some("status") => parse_query_args(rest).map(Command::Status),
         Some("files") => parse_query_args(rest).map(Command::Files),
         _ => parse_eval_args(args).map(Command::Eval),
@@ -164,7 +192,12 @@ fn parse_list_args(args: &[String]) -> Result<Command, String> {
                 ));
             }
             "--json" => {
-                list.json = true;
+                list.format = OutputFormat::Json;
+            }
+            "--format" => {
+                idx += 1;
+                let val = args.get(idx).ok_or("--format requires a value (table, json, or csv)")?;
+                list.format = parse_format(val)?;
             }
             other => {
                 if let Some(n) = other.strip_prefix('-').and_then(|s| s.parse::<usize>().ok()) {
@@ -183,7 +216,7 @@ fn parse_list_args(args: &[String]) -> Result<Command, String> {
 #[allow(clippy::indexing_slicing)]
 fn parse_query_args(args: &[String]) -> Result<QueryArgs, String> {
     let mut db: Option<PathBuf> = None;
-    let mut json = false;
+    let mut format = OutputFormat::default();
     let mut idx = 0;
 
     while idx < args.len() {
@@ -193,14 +226,60 @@ fn parse_query_args(args: &[String]) -> Result<QueryArgs, String> {
                 args.get(idx).ok_or("--db requires a path")?,
             ));
         } else if args[idx] == "--json" {
-            json = true;
+            format = OutputFormat::Json;
+        } else if args[idx] == "--format" {
+            idx += 1;
+            let val = args.get(idx).ok_or("--format requires a value (table, json, or csv)")?;
+            format = parse_format(val)?;
         } else {
             return Err(format!("unknown argument: {}", args[idx]));
         }
         idx += 1;
     }
 
-    Ok(QueryArgs { db, json })
+    Ok(QueryArgs { db, format })
+}
+
+#[allow(clippy::indexing_slicing)]
+fn parse_search_args(args: &[String]) -> Result<Command, String> {
+    let mut query: Option<String> = None;
+    let mut limit = None;
+    let mut db = None;
+    let mut format = OutputFormat::default();
+    let mut idx = 0;
+
+    while idx < args.len() {
+        match args[idx].as_str() {
+            "--db" => {
+                idx += 1;
+                db = Some(PathBuf::from(
+                    args.get(idx).ok_or("--db requires a path")?,
+                ));
+            }
+            "--json" => {
+                format = OutputFormat::Json;
+            }
+            "--format" => {
+                idx += 1;
+                let val = args.get(idx).ok_or("--format requires a value (table, json, or csv)")?;
+                format = parse_format(val)?;
+            }
+            other => {
+                if let Some(num) = other.strip_prefix('-').and_then(|s| s.parse::<usize>().ok()) {
+                    limit = Some(num);
+                } else if query.is_none() {
+                    query = Some(other.to_string());
+                } else {
+                    return Err(format!("unknown search argument: {other}"));
+                }
+            }
+        }
+        idx += 1;
+    }
+
+    let query = query.ok_or_else(|| "search requires a keyword argument".to_string())?;
+
+    Ok(Command::Search(SearchArgs { query, limit, db, format }))
 }
 
 // ---------------------------------------------------------------------------
@@ -245,6 +324,132 @@ pub fn format_stats(stats: &IndexStats) -> String {
         lines.push(format!("updated: {ts}"));
     }
     lines.join("\n")
+}
+
+// ---------------------------------------------------------------------------
+// Formatting: CSV output
+// ---------------------------------------------------------------------------
+
+fn csv_escape(field: &str) -> String {
+    if field.contains(',') || field.contains('"') || field.contains('\n') {
+        format!("\"{}\"", field.replace('"', "\"\""))
+    } else {
+        field.to_string()
+    }
+}
+
+#[must_use]
+pub fn format_tasks_csv(tasks: &[TaskView]) -> String {
+    let mut out = String::from("status,due,title,file,tags\n");
+    for t in tasks {
+        let status = if t.is_done { "done" } else { "pending" };
+        let due = t.due.as_deref().unwrap_or("");
+        let tags = t.tags.join(";");
+        out.push_str(&format!(
+            "{},{},{},{},{}\n",
+            status,
+            due,
+            csv_escape(&t.title),
+            csv_escape(&t.file_path.to_string_lossy()),
+            csv_escape(&tags),
+        ));
+    }
+    out
+}
+
+#[must_use]
+pub fn format_files_csv(files: &[FileView]) -> String {
+    let mut out = String::from("path,title,tasks,updated_at\n");
+    for f in files {
+        let title = f.title.as_deref().unwrap_or("");
+        out.push_str(&format!(
+            "{},{},{},{}\n",
+            csv_escape(&f.relative_path.to_string_lossy()),
+            csv_escape(title),
+            f.task_count,
+            csv_escape(&f.updated_at),
+        ));
+    }
+    out
+}
+
+#[must_use]
+pub fn format_stats_csv(stats: &IndexStats) -> String {
+    let mut out = String::from("metric,value\n");
+    out.push_str(&format!("files,{}\n", stats.file_count));
+    out.push_str(&format!("tasks,{}\n", stats.task_count));
+    out.push_str(&format!("done,{}\n", stats.done_count));
+    out.push_str(&format!("pending,{}\n", stats.pending_count));
+    if let Some(ref ts) = stats.last_updated {
+        out.push_str(&format!("last_updated,{}\n", csv_escape(ts)));
+    }
+    out
+}
+
+// ---------------------------------------------------------------------------
+// Formatting: search results
+// ---------------------------------------------------------------------------
+
+#[must_use]
+pub fn format_search_results(results: &SearchResults) -> String {
+    let mut out = String::new();
+
+    if !results.tasks.is_empty() {
+        out.push_str(&format!("Tasks ({}):\n", results.tasks.len()));
+        let mut current_file = String::new();
+        for task in &results.tasks {
+            let file_str = task.file_path.to_string_lossy();
+            if file_str != current_file {
+                out.push_str(&format!("  {file_str}\n"));
+                current_file = file_str.to_string();
+            }
+            out.push_str(&format!("    {}\n", format_task_view(task)));
+        }
+    }
+
+    if !results.bindings.is_empty() {
+        if !results.tasks.is_empty() {
+            out.push('\n');
+        }
+        out.push_str(&format!("Bindings ({}):\n", results.bindings.len()));
+        for binding in &results.bindings {
+            out.push_str(&format!(
+                "  {} = {}  ({})\n",
+                binding.name,
+                binding.value,
+                binding.file_path.display(),
+            ));
+        }
+    }
+
+    if results.tasks.is_empty() && results.bindings.is_empty() {
+        out.push_str("no matches found\n");
+    }
+
+    out
+}
+
+#[must_use]
+pub fn format_search_csv(results: &SearchResults) -> String {
+    let mut out = String::from("type,name,value,file\n");
+    for task in &results.tasks {
+        let status = if task.is_done { "done" } else { "pending" };
+        out.push_str(&format!(
+            "task,{},{},{}\n",
+            csv_escape(&task.title),
+            status,
+            csv_escape(&task.file_path.to_string_lossy()),
+        ));
+    }
+    for binding in &results.bindings {
+        out.push_str(&format!(
+            "binding,{},{},{}\n",
+            csv_escape(&binding.name),
+            csv_escape(&binding.value),
+            csv_escape(&binding.file_path.to_string_lossy()),
+        ));
+    }
+    out
 }
 
 /// # Panics
@@ -647,28 +852,106 @@ mod tests {
     fn parse_list_with_json() {
         let cmd = parse_args(&[s("list"), s("--json")]).unwrap();
         let Command::List(args) = cmd else { panic!("expected List") };
-        assert!(args.json);
+        assert_eq!(args.format, OutputFormat::Json);
     }
 
     #[test]
     fn parse_list_without_json() {
         let cmd = parse_args(&[s("list")]).unwrap();
         let Command::List(args) = cmd else { panic!("expected List") };
-        assert!(!args.json);
+        assert_eq!(args.format, OutputFormat::Table);
+    }
+
+    #[test]
+    fn parse_list_format_csv() {
+        let cmd = parse_args(&[s("list"), s("--format"), s("csv")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.format, OutputFormat::Csv);
+    }
+
+    #[test]
+    fn parse_list_format_table() {
+        let cmd = parse_args(&[s("list"), s("--format"), s("table")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.format, OutputFormat::Table);
+    }
+
+    #[test]
+    fn parse_list_format_json() {
+        let cmd = parse_args(&[s("list"), s("--format"), s("json")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.format, OutputFormat::Json);
+    }
+
+    #[test]
+    fn parse_list_format_invalid() {
+        let result = parse_args(&[s("list"), s("--format"), s("xml")]);
+        assert!(result.is_err());
     }
 
     #[test]
     fn parse_status_with_json() {
         let cmd = parse_args(&[s("status"), s("--json")]).unwrap();
         let Command::Status(args) = cmd else { panic!("expected Status") };
-        assert!(args.json);
+        assert_eq!(args.format, OutputFormat::Json);
+    }
+
+    #[test]
+    fn parse_status_format_csv() {
+        let cmd = parse_args(&[s("status"), s("--format"), s("csv")]).unwrap();
+        let Command::Status(args) = cmd else { panic!("expected Status") };
+        assert_eq!(args.format, OutputFormat::Csv);
     }
 
     #[test]
     fn parse_files_with_json() {
         let cmd = parse_args(&[s("files"), s("--json")]).unwrap();
         let Command::Files(args) = cmd else { panic!("expected Files") };
-        assert!(args.json);
+        assert_eq!(args.format, OutputFormat::Json);
+    }
+
+    #[test]
+    fn parse_files_format_csv() {
+        let cmd = parse_args(&[s("files"), s("--format"), s("csv")]).unwrap();
+        let Command::Files(args) = cmd else { panic!("expected Files") };
+        assert_eq!(args.format, OutputFormat::Csv);
+    }
+
+    // --- parse_args: search ---
+
+    #[test]
+    fn parse_search_basic() {
+        let cmd = parse_args(&[s("search"), s("milk")]).unwrap();
+        let Command::Search(args) = cmd else { panic!("expected Search") };
+        assert_eq!(args.query, "milk");
+        assert_eq!(args.limit, None);
+        assert_eq!(args.db, None);
+        assert_eq!(args.format, OutputFormat::Table);
+    }
+
+    #[test]
+    fn parse_search_with_flags() {
+        let cmd = parse_args(&[
+            s("search"), s("task"), s("-5"), s("--db"), s("x.db"), s("--format"), s("json"),
+        ]).unwrap();
+        let Command::Search(args) = cmd else { panic!("expected Search") };
+        assert_eq!(args.query, "task");
+        assert_eq!(args.limit, Some(5));
+        assert_eq!(args.db, Some(PathBuf::from("x.db")));
+        assert_eq!(args.format, OutputFormat::Json);
+    }
+
+    #[test]
+    fn parse_search_json_shorthand() {
+        let cmd = parse_args(&[s("search"), s("q"), s("--json")]).unwrap();
+        let Command::Search(args) = cmd else { panic!("expected Search") };
+        assert_eq!(args.format, OutputFormat::Json);
+    }
+
+    #[test]
+    fn parse_search_missing_query() {
+        let result = parse_args(&[s("search")]);
+        assert!(result.is_err());
     }
 
     // --- format_task_view ---
@@ -768,5 +1051,84 @@ mod tests {
         let output = format_stats(&stats);
         assert!(output.contains("files:   0"));
         assert!(!output.contains("updated:"));
+    }
+
+    // --- CSV formatters ---
+
+    #[test]
+    fn format_tasks_csv_basic() {
+        let tasks = vec![TaskView {
+            title: "Buy milk".to_string(),
+            is_done: false,
+            position: 0,
+            file_path: PathBuf::from("todo.typ"),
+            file_title: None,
+            due: Some("2026-03-01".to_string()),
+            tags: vec!["shop".to_string()],
+        }];
+        let csv = format_tasks_csv(&tasks);
+        assert!(csv.starts_with("status,due,title,file,tags\n"));
+        assert!(csv.contains("pending,2026-03-01,Buy milk,todo.typ,shop\n"));
+    }
+
+    #[test]
+    fn format_tasks_csv_escapes_commas() {
+        let tasks = vec![TaskView {
+            title: "Buy eggs, milk".to_string(),
+            is_done: true,
+            position: 0,
+            file_path: PathBuf::from("t.typ"),
+            file_title: None,
+            due: None,
+            tags: vec![],
+        }];
+        let csv = format_tasks_csv(&tasks);
+        assert!(csv.contains("done,,\"Buy eggs, milk\",t.typ,\n"));
+    }
+
+    #[test]
+    fn format_files_csv_basic() {
+        let files = vec![FileView {
+            relative_path: PathBuf::from("notes/todo.typ"),
+            title: Some("My Tasks".to_string()),
+            task_count: 5,
+            updated_at: "2026-01-01".to_string(),
+        }];
+        let csv = format_files_csv(&files);
+        assert!(csv.starts_with("path,title,tasks,updated_at\n"));
+        assert!(csv.contains("notes/todo.typ,My Tasks,5,2026-01-01\n"));
+    }
+
+    #[test]
+    fn format_stats_csv_basic() {
+        let stats = IndexStats {
+            file_count: 3,
+            task_count: 10,
+            done_count: 4,
+            pending_count: 6,
+            last_updated: Some("2026-01-15".to_string()),
+        };
+        let csv = format_stats_csv(&stats);
+        assert!(csv.starts_with("metric,value\n"));
+        assert!(csv.contains("files,3\n"));
+        assert!(csv.contains("tasks,10\n"));
+        assert!(csv.contains("done,4\n"));
+        assert!(csv.contains("pending,6\n"));
+        assert!(csv.contains("last_updated,2026-01-15\n"));
+    }
+
+    #[test]
+    fn csv_escape_plain() {
+        assert_eq!(csv_escape("hello"), "hello");
+    }
+
+    #[test]
+    fn csv_escape_with_comma() {
+        assert_eq!(csv_escape("a,b"), "\"a,b\"");
+    }
+
+    #[test]
+    fn csv_escape_with_quotes() {
+        assert_eq!(csv_escape("say \"hi\""), "\"say \"\"hi\"\"\"");
     }
 }
