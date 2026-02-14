@@ -1,4 +1,4 @@
-use mindtape::eval::{eval_file, Task};
+use mindtape::eval::{eval_file, eval_file_full, Task};
 use mindtape::world::MindTapeWorld;
 use typst::foundations::Datetime;
 
@@ -43,6 +43,16 @@ fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, Strin
     std::fs::write(&file, source).unwrap();
     let world = MindTapeWorld::new(&file).map_err(|e| e.to_string())?;
     eval_file(&world)
+}
+
+/// Create a temp project dir with a `.typ` file, evaluate it, return full result.
+fn eval_typ_full(source: &str) -> Result<mindtape::eval::EvalResult, String> {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+    let file = dir.path().join("test.typ");
+    std::fs::write(&file, source).unwrap();
+    let world = MindTapeWorld::new(&file).map_err(|e| e.to_string())?;
+    eval_file_full(&world)
 }
 
 fn ymd(y: i32, m: u8, d: u8) -> Datetime {
@@ -242,4 +252,81 @@ fn eval_package_import_all_functions() {
     assert_eq!(tasks[0].title, "Full featured");
     assert_eq!(tasks[0].due, Some(ymd(2026, 12, 25)));
     assert_eq!(tasks[0].tags, vec!["holiday", "fun"]);
+}
+
+// --- eval_file_full: title extraction ---
+
+#[test]
+fn eval_full_extracts_title_from_heading() {
+    let result = eval_typ_full("= My Project\n\n- [ ] A task").unwrap();
+    assert_eq!(result.title, Some("My Project".to_string()));
+}
+
+#[test]
+fn eval_full_no_heading_returns_none_title() {
+    let result = eval_typ_full("- [ ] Just a task").unwrap();
+    assert_eq!(result.title, None);
+}
+
+#[test]
+fn eval_full_uses_first_heading_only() {
+    let result = eval_typ_full("= First\n\n= Second\n\n- [ ] task").unwrap();
+    assert_eq!(result.title, Some("First".to_string()));
+}
+
+// --- eval_file_full: bindings extraction ---
+
+#[test]
+fn eval_full_extracts_string_binding() {
+    let result = eval_typ_full(r#"#let note = "hello world""#).unwrap();
+    assert_eq!(result.bindings.len(), 1);
+    assert_eq!(result.bindings[0].0, "note");
+    assert_eq!(result.bindings[0].1, "string");
+    assert_eq!(result.bindings[0].2, "\"hello world\"");
+}
+
+#[test]
+fn eval_full_extracts_int_binding() {
+    let result = eval_typ_full("#let count = 42").unwrap();
+    let b = result.bindings.iter().find(|b| b.0 == "count").unwrap();
+    assert_eq!(b.1, "int");
+    assert_eq!(b.2, "42");
+}
+
+#[test]
+fn eval_full_extracts_bool_binding() {
+    let result = eval_typ_full("#let active = true").unwrap();
+    let b = result.bindings.iter().find(|b| b.0 == "active").unwrap();
+    assert_eq!(b.1, "bool");
+    assert_eq!(b.2, "true");
+}
+
+#[test]
+fn eval_full_skips_function_bindings() {
+    let result = eval_typ_full(r#"
+#let greet(name) = "hello " + name
+#let note = "data"
+"#).unwrap();
+    // Only `note` should appear, not `greet`
+    assert_eq!(result.bindings.len(), 1);
+    assert_eq!(result.bindings[0].0, "note");
+}
+
+// --- eval_file_full: position tracking ---
+
+#[test]
+fn eval_full_assigns_positions() {
+    let result = eval_typ_full("- [ ] First\n- [x] Second\n- [ ] Third").unwrap();
+    assert_eq!(result.tasks.len(), 3);
+    assert_eq!(result.tasks[0].position, 0);
+    assert_eq!(result.tasks[1].position, 1);
+    assert_eq!(result.tasks[2].position, 2);
+}
+
+#[test]
+fn eval_full_positions_skip_non_tasks() {
+    let result = eval_typ_full("- [ ] Task A\n- Not a task\n- [ ] Task B").unwrap();
+    assert_eq!(result.tasks.len(), 2);
+    assert_eq!(result.tasks[0].position, 0);
+    assert_eq!(result.tasks[1].position, 1);
 }

@@ -85,7 +85,7 @@ mod tests {
     }
 
     fn make_task(title: &str, done: bool, due: Option<Datetime>) -> Task {
-        Task { title: title.to_string(), done, due, tags: vec![] }
+        Task { title: title.to_string(), done, due, tags: vec![], position: 0 }
     }
 
     fn ymd(y: i32, m: u8, d: u8) -> Datetime {

@@ -15,7 +15,7 @@ use typst::foundations::{Content, Datetime, Module, Value};
 use typst::World;
 use typst::ROUTINES;
 use typst_library::introspection::MetadataElem;
-use typst_library::model::ListItem;
+use typst_library::model::{HeadingElem, ListItem};
 
 /// A task extracted from a Typst checklist item.
 #[derive(Debug, Clone, PartialEq)]
@@ -24,21 +24,30 @@ pub struct Task {
     pub done: bool,
     pub due: Option<Datetime>,
     pub tags: Vec<String>,
+    pub position: u32,
+}
+
+/// Full result from evaluating a `.typ` file.
+#[derive(Debug, Clone)]
+pub struct EvalResult {
+    pub tasks: Vec<Task>,
+    pub title: Option<String>,
+    /// Bindings as `(name, value_type, value_json)` tuples.
+    pub bindings: Vec<(String, String, String)>,
 }
 
 /// Evaluate the world's main `.typ` file and return all tasks found in its
 /// content tree.
-///
-/// A "task" is a `ListItem` whose `plain_text()` starts with a checkbox
-/// marker (`[ ] ` or `[x] `).  Due dates are extracted from `MetadataElem`
-/// nodes whose value is an `Array` of the form `("due", <datetime>)`.
 pub fn eval_file(world: &dyn World) -> Result<Vec<Task>, String> {
-    // 1. Obtain the main source from the world.
+    eval_file_full(world).map(|r| r.tasks)
+}
+
+/// Evaluate the world's main `.typ` file and return tasks, title, and bindings.
+pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, String> {
     let source = world
         .source(world.main())
         .map_err(|e: typst::diag::FileError| e.to_string())?;
 
-    // 2. Evaluate the source into a Module.
     let mut sink = Sink::new();
     let traced = Traced::default();
     let route = Route::default();
@@ -53,22 +62,28 @@ pub fn eval_file(world: &dyn World) -> Result<Vec<Task>, String> {
     )
     .map_err(|errors| format!("{:?}", errors))?;
 
-    // 3. Get the content tree (consumes the module).
+    // Extract bindings BEFORE content() consumes the module.
+    let bindings = extract_bindings(module.scope());
+
     let content: Content = module.content();
 
-    // 4. Walk the content tree collecting tasks.
+    let title = extract_file_title(&content);
+
     let mut tasks = Vec::new();
     collect_tasks(&content, &mut tasks);
 
-    Ok(tasks)
+    Ok(EvalResult { tasks, title, bindings })
 }
 
 /// Recursively traverse `content` looking for `ListItem` nodes and
-/// extract a `Task` from each one.
+/// extract a `Task` from each one, assigning 0-based positions.
 pub fn collect_tasks(content: &Content, tasks: &mut Vec<Task>) {
+    let mut position: u32 = 0;
     let _ = content.traverse(&mut |node: Content| -> ControlFlow<()> {
         if let Some(item) = node.to_packed::<ListItem>() {
-            if let Some(task) = extract_task(item) {
+            if let Some(mut task) = extract_task(item) {
+                task.position = position;
+                position += 1;
                 tasks.push(task);
             }
         }
@@ -127,5 +142,45 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
         ControlFlow::Continue(())
     });
 
-    Some(Task { title, done, due, tags })
+    Some(Task { title, done, due, tags, position: 0 })
+}
+
+/// Extract the title from the first heading in the content tree.
+pub fn extract_file_title(content: &Content) -> Option<String> {
+    let mut title = None;
+    let _ = content.traverse(&mut |node: Content| -> ControlFlow<()> {
+        if let Some(heading) = node.to_packed::<HeadingElem>() {
+            title = Some(heading.body.plain_text().trim().to_string());
+            return ControlFlow::Break(());
+        }
+        ControlFlow::Continue(())
+    });
+    title
+}
+
+/// Extract `#let` bindings from a module's scope as `(name, value_type, value_json)`.
+///
+/// Skips functions and other non-data values.
+pub fn extract_bindings(scope: &typst::foundations::Scope) -> Vec<(String, String, String)> {
+    let mut bindings = Vec::new();
+    for (name, binding) in scope.iter() {
+        let value = binding.read();
+        let (vtype, vjson) = match value {
+            Value::Str(s) => ("string", format!("\"{}\"", s.as_str())),
+            Value::Int(n) => ("int", n.to_string()),
+            Value::Float(f) => ("float", f.to_string()),
+            Value::Bool(b) => ("bool", b.to_string()),
+            Value::Datetime(dt) => ("date", format!(
+                "\"{:04}-{:02}-{:02}\"",
+                dt.year().unwrap_or(0),
+                dt.month().unwrap_or(0),
+                dt.day().unwrap_or(0),
+            )),
+            Value::None => ("none", "null".to_string()),
+            Value::Func(_) => continue,
+            _ => continue,
+        };
+        bindings.push((name.to_string(), vtype.to_string(), vjson));
+    }
+    bindings
 }
