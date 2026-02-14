@@ -60,7 +60,7 @@ pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, String> {
         route.track(),
         &source,
     )
-    .map_err(|errors| format!("{:?}", errors))?;
+    .map_err(|errors| format!("{errors:?}"))?;
 
     // Extract bindings BEFORE content() consumes the module.
     let bindings = extract_bindings(module.scope());

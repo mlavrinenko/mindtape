@@ -37,9 +37,12 @@
             rustc
             cargo
             cargo-tarpaulin openssl
+            clippy
             tinymist
             typst
             typstyle
+            nixd
+            rust-analyzer
           ];
           buildInputs = with pkgs; [
             openssl

@@ -419,11 +419,11 @@ impl Store for SqliteStore {
         sql.push_str(" ORDER BY tf.relative_path, t.position");
 
         if let Some(limit) = filter.limit {
-            sql.push_str(&format!(" LIMIT {}", limit));
+            sql.push_str(&format!(" LIMIT {limit}"));
         }
 
         let params_refs: Vec<&dyn rusqlite::types::ToSql> =
-            bind_values.iter().map(|b| b.as_ref()).collect();
+            bind_values.iter().map(Box::as_ref).collect();
 
         let mut stmt = self.conn.prepare(&sql)?;
         let rows: Vec<(i64, String, bool, i32, String, Option<String>)> = stmt
@@ -540,7 +540,7 @@ impl Store for SqliteStore {
 pub fn hash_file(path: &Path) -> Result<String, std::io::Error> {
     let bytes = std::fs::read(path)?;
     let hash = Sha256::digest(&bytes);
-    Ok(format!("{:x}", hash))
+    Ok(format!("{hash:x}"))
 }
 
 // ---------------------------------------------------------------------------
@@ -641,7 +641,7 @@ pub fn index_file(
         }
     }
 
-    let result = eval::eval_file_full(world).map_err(|e| StoreError::Eval(e))?;
+    let result = eval::eval_file_full(world).map_err(StoreError::Eval)?;
 
     let (task_file, tasks, props, bindings) = to_store_records(&result, relative, &hash);
 

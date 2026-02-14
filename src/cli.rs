@@ -52,7 +52,7 @@ Usage: mindtape <file.typ> [--due] [-N]
        mindtape watch [<path>] [--config <file>]";
 
 pub fn parse_args(args: &[String]) -> Result<Command, String> {
-    match args.first().map(|s| s.as_str()) {
+    match args.first().map(String::as_str) {
         Some("watch") => parse_watch_args(&args[1..]),
         Some("list") => parse_list_args(&args[1..]),
         Some("status") => parse_query_args(&args[1..]).map(Command::Status),
