@@ -127,7 +127,7 @@ pub fn index_file(
         }
     }
 
-    let result = eval::eval_file_full(world).map_err(StoreError::Eval)?;
+    let result = eval::eval_file_full(world)?;
 
     let (task_file, tasks, props, bindings) = to_store_records(&result, relative, &hash);
 

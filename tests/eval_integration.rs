@@ -1,22 +1,22 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use mindtape::eval::{eval_file, eval_file_full, Task};
+use mindtape::eval::{eval_file, eval_file_full, EvalError, EvalResult, Task};
 use mindtape::world::MindTapeWorld;
 use typst::foundations::Datetime;
 
 /// Create a temp project dir with a `.typ` file, evaluate it, return tasks.
-fn eval_typ(source: &str) -> Result<Vec<Task>, String> {
+fn eval_typ(source: &str) -> Result<Vec<Task>, EvalError> {
     let dir = tempfile::tempdir().unwrap();
     // Create a Cargo.toml marker so find_project_root stops here
     std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
     let file = dir.path().join("test.typ");
     std::fs::write(&file, source).unwrap();
-    let world = MindTapeWorld::new(&file).map_err(|e| e.clone())?;
+    let world = MindTapeWorld::new(&file)?;
     eval_file(&world)
 }
 
 /// Create a temp project with a prelude and a `.typ` file that imports it.
-fn eval_typ_with_prelude(prelude: &str, source: &str) -> Result<Vec<Task>, String> {
+fn eval_typ_with_prelude(prelude: &str, source: &str) -> Result<Vec<Task>, EvalError> {
     let dir = tempfile::tempdir().unwrap();
     std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
     let lib_dir = dir.path().join("lib");
@@ -24,13 +24,13 @@ fn eval_typ_with_prelude(prelude: &str, source: &str) -> Result<Vec<Task>, Strin
     std::fs::write(lib_dir.join("prelude.typ"), prelude).unwrap();
     let file = dir.path().join("test.typ");
     std::fs::write(&file, source).unwrap();
-    let world = MindTapeWorld::new(&file).map_err(|e| e.clone())?;
+    let world = MindTapeWorld::new(&file)?;
     eval_file(&world)
 }
 
 /// Create a temp project with `@mindtape` package (lib/typst.toml + lib/prelude.typ)
 /// and a `.typ` file that can use `#import "@mindtape/mindtape:0.1.0": ...`.
-fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, String> {
+fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, EvalError> {
     let dir = tempfile::tempdir().unwrap();
     std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
     let lib_dir = dir.path().join("lib");
@@ -43,17 +43,17 @@ fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, Strin
     .unwrap();
     let file = dir.path().join("test.typ");
     std::fs::write(&file, source).unwrap();
-    let world = MindTapeWorld::new(&file).map_err(|e| e.clone())?;
+    let world = MindTapeWorld::new(&file)?;
     eval_file(&world)
 }
 
 /// Create a temp project dir with a `.typ` file, evaluate it, return full result.
-fn eval_typ_full(source: &str) -> Result<mindtape::eval::EvalResult, String> {
+fn eval_typ_full(source: &str) -> Result<EvalResult, EvalError> {
     let dir = tempfile::tempdir().unwrap();
     std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
     let file = dir.path().join("test.typ");
     std::fs::write(&file, source).unwrap();
-    let world = MindTapeWorld::new(&file).map_err(|e| e.clone())?;
+    let world = MindTapeWorld::new(&file)?;
     eval_file_full(&world)
 }
 

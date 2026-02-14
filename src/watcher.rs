@@ -206,8 +206,7 @@ impl Watcher {
 
     /// Index a single file using the existing store pipeline.
     fn index_one(&mut self, path: &Path, project_root: &Path) -> Result<bool, StoreError> {
-        let world = MindTapeWorld::new(path)
-            .map_err(StoreError::Eval)?;
+        let world = MindTapeWorld::new(path)?;
         store::index_file(&mut self.store, &world, path, project_root)
     }
 

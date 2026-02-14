@@ -1355,6 +1355,7 @@ version = "0.1.0"
 dependencies = [
  "comemo",
  "tempfile",
+ "thiserror",
  "typst",
  "typst-eval",
  "typst-library",

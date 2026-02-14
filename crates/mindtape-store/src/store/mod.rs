@@ -10,6 +10,7 @@ mod sqlite;
 
 use std::path::{Path, PathBuf};
 
+use mindtape_eval::EvalError;
 use thiserror::Error;
 
 // Re-export submodules' public items at the `store` level.
@@ -147,7 +148,7 @@ pub enum StoreError {
     Io(String),
 
     #[error("eval error: {0}")]
-    Eval(String),
+    Eval(#[from] EvalError),
 }
 
 // ---------------------------------------------------------------------------

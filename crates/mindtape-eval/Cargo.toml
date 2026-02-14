@@ -11,6 +11,7 @@ typst-eval = "0.14"
 typst-library = "0.14"
 typst-syntax = "0.14"
 comemo = "0.5"
+thiserror = "2"
 
 [dev-dependencies]
 tempfile = "3"

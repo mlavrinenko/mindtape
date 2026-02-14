@@ -7,15 +7,43 @@
 //! elements produced by `#due()` and `#id()` calls are extracted from
 //! each item's body.
 
+use std::fmt;
 use std::ops::ControlFlow;
 
 use comemo::Track;
+use thiserror::Error;
 use typst::engine::{Route, Sink, Traced};
 use typst::foundations::{Content, Datetime, Module, Value};
 use typst::World;
 use typst::ROUTINES;
 use typst_library::introspection::MetadataElem;
 use typst_library::model::{HeadingElem, ListItem};
+
+/// Errors that can occur during Typst evaluation.
+#[derive(Debug, Error)]
+pub enum EvalError {
+    /// The source file could not be read.
+    #[error("file error: {0}")]
+    File(String),
+
+    /// Typst evaluation produced errors.
+    #[error("eval error: {0}")]
+    Eval(String),
+
+    /// The world could not be constructed.
+    #[error("{0}")]
+    World(String),
+}
+
+impl EvalError {
+    fn from_file_error(err: &typst::diag::FileError) -> Self {
+        Self::File(err.to_string())
+    }
+
+    fn from_source_diagnostics(errors: &impl fmt::Debug) -> Self {
+        Self::Eval(format!("{errors:?}"))
+    }
+}
 
 /// A task extracted from a Typst checklist item.
 #[derive(Debug, Clone, PartialEq)]
@@ -41,7 +69,7 @@ pub struct EvalResult {
 ///
 /// # Errors
 /// Returns `Err` if the source file cannot be read or Typst evaluation fails.
-pub fn eval_file(world: &dyn World) -> Result<Vec<Task>, String> {
+pub fn eval_file(world: &dyn World) -> Result<Vec<Task>, EvalError> {
     eval_file_full(world).map(|r| r.tasks)
 }
 
@@ -49,10 +77,10 @@ pub fn eval_file(world: &dyn World) -> Result<Vec<Task>, String> {
 ///
 /// # Errors
 /// Returns `Err` if the source file cannot be read or Typst evaluation fails.
-pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, String> {
+pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, EvalError> {
     let source = world
         .source(world.main())
-        .map_err(|e: typst::diag::FileError| e.to_string())?;
+        .map_err(|err| EvalError::from_file_error(&err))?;
 
     let mut sink = Sink::new();
     let traced = Traced::default();
@@ -66,7 +94,7 @@ pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, String> {
         route.track(),
         &source,
     )
-    .map_err(|errors| format!("{errors:?}"))?;
+    .map_err(|err| EvalError::from_source_diagnostics(&err))?;
 
     // Extract bindings BEFORE content() consumes the module.
     let bindings = extract_bindings(module.scope());

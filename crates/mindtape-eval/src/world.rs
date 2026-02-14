@@ -9,6 +9,8 @@ use typst::text::{Font, FontBook};
 use typst::utils::LazyHash;
 use typst::{Library, LibraryExt};
 
+use crate::EvalError;
+
 /// A minimal `World` implementation for evaluating `.typ` files.
 ///
 /// This world resolves files from the local filesystem relative to a
@@ -42,33 +44,33 @@ impl MindTapeWorld {
     ///
     /// # Errors
     /// Returns `Err` if the file path cannot be resolved or canonicalized.
-    pub fn new(file_path: &Path) -> Result<Self, String> {
+    pub fn new(file_path: &Path) -> Result<Self, EvalError> {
         let abs_path = if file_path.is_absolute() {
             file_path.to_path_buf()
         } else {
             std::env::current_dir()
-                .map_err(|e| format!("failed to get cwd: {e}"))?
+                .map_err(|e| EvalError::World(format!("failed to get cwd: {e}")))?
                 .join(file_path)
         };
 
         let abs_path = abs_path
             .canonicalize()
-            .map_err(|e| format!("failed to canonicalize {}: {e}", file_path.display()))?;
+            .map_err(|e| EvalError::World(format!("failed to canonicalize {}: {e}", file_path.display())))?;
 
         let file_dir = abs_path
             .parent()
-            .ok_or_else(|| format!("file has no parent directory: {}", abs_path.display()))?;
+            .ok_or_else(|| EvalError::World(format!("file has no parent directory: {}", abs_path.display())))?;
 
         let root = find_project_root(file_dir);
 
         let rel_path = abs_path
             .strip_prefix(&root)
             .map_err(|_| {
-                format!(
+                EvalError::World(format!(
                     "file {} is not under project root {}",
                     abs_path.display(),
                     root.display()
-                )
+                ))
             })?;
 
         let vpath = VirtualPath::new(rel_path);
