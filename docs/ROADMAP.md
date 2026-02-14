@@ -63,17 +63,29 @@ due date + tag as structured Rust values.
 - `thiserror` for structured `StoreError` variants
 - 97 tests (57 unit + 31 eval integration + 9 store integration), 90.93% coverage
 
-### M1.4 — Folder Watcher
+### M1.4 — Folder Watcher [COMPLETE]
 
-- [ ] Configuration file parsing (TOML: watched folders, db path)
-- [ ] `.mindtapeignore` support (gitignore-style patterns)
-- [ ] File watcher using `notify` crate with debouncing
-- [ ] On file change: re-evaluate + re-index
-- [ ] On file delete: remove from index
-- [ ] Initial full scan on startup
+- [x] Configuration file parsing (TOML: watched folders, db path)
+- [x] `.mindtapeignore` support (gitignore-style patterns)
+- [x] File watcher using `notify` crate with debouncing
+- [x] On file change: re-evaluate + re-index
+- [x] On file delete: remove from index
+- [x] Initial full scan on startup
 
-**Exit criteria**: `mind-tape watch` starts, indexes all `.typ` files in configured
+**Exit criteria**: `mindtape watch` starts, indexes all `.typ` files in configured
 folders, and keeps the index updated as files change.
+
+**Implementation notes**:
+- `src/config.rs`: TOML config loading with `serde` + `toml` crate
+- `src/watcher.rs`: `Watcher` struct with `initial_scan()`, `handle_event()`, `run()`
+- CLI extended with `Command` enum: `Eval` (backwards compat) + `Watch` subcommand
+- `mindtape watch [path]` for quick use, `mindtape watch --config <file>` for multi-folder
+- `notify-debouncer-mini` with 300ms debounce; `path.exists()` to distinguish modify vs delete
+- `ignore` crate for directory walking and `.mindtapeignore` pattern matching
+- Config auto-discovery: `mind-tape.toml` in cwd, then `~/.config/mind-tape/config.toml`
+- Default DB path: `~/.local/share/mind-tape/index.db`
+- Per-file `MindTapeWorld` creation reuses existing pattern from `index_file()`
+- 136 tests (90 unit + 31 eval integration + 9 store integration + 6 watcher integration), 79.48% coverage
 
 ### M1.5 — CLI Query Commands
 

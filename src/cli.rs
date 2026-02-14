@@ -4,13 +4,33 @@ use typst::foundations::Datetime;
 
 use crate::eval::Task;
 
-pub struct CliArgs {
+/// Parsed CLI command.
+pub enum Command {
+    Eval(EvalArgs),
+    Watch(WatchArgs),
+}
+
+pub struct EvalArgs {
     pub file: PathBuf,
     pub due: bool,
     pub limit: Option<usize>,
 }
 
-pub fn parse_args(args: &[String]) -> Result<CliArgs, String> {
+pub struct WatchArgs {
+    /// Directory to watch (quick mode, no config file needed).
+    pub path: Option<PathBuf>,
+    /// Explicit config file path.
+    pub config: Option<PathBuf>,
+}
+
+pub fn parse_args(args: &[String]) -> Result<Command, String> {
+    if args.first().map(|s| s.as_str()) == Some("watch") {
+        return parse_watch_args(&args[1..]);
+    }
+    parse_eval_args(args).map(Command::Eval)
+}
+
+fn parse_eval_args(args: &[String]) -> Result<EvalArgs, String> {
     let mut file: Option<PathBuf> = None;
     let mut due = false;
     let mut limit: Option<usize> = None;
@@ -25,9 +45,33 @@ pub fn parse_args(args: &[String]) -> Result<CliArgs, String> {
         }
     }
 
-    let file = file.ok_or_else(|| "Usage: mindtape <file.typ> [--due] [-N]".to_string())?;
+    let file = file.ok_or_else(|| "Usage: mindtape <file.typ> [--due] [-N]\n       mindtape watch [<path>] [--config <file>]".to_string())?;
 
-    Ok(CliArgs { file, due, limit })
+    Ok(EvalArgs { file, due, limit })
+}
+
+fn parse_watch_args(args: &[String]) -> Result<Command, String> {
+    let mut path: Option<PathBuf> = None;
+    let mut config: Option<PathBuf> = None;
+    let mut i = 0;
+
+    while i < args.len() {
+        if args[i] == "--config" {
+            i += 1;
+            config = Some(
+                args.get(i)
+                    .map(PathBuf::from)
+                    .ok_or_else(|| "--config requires a path argument".to_string())?,
+            );
+        } else if args[i].starts_with('-') {
+            return Err(format!("unknown watch flag: {}", args[i]));
+        } else {
+            path = Some(PathBuf::from(&args[i]));
+        }
+        i += 1;
+    }
+
+    Ok(Command::Watch(WatchArgs { path, config }))
 }
 
 pub fn filter_and_sort(tasks: Vec<Task>, due_only: bool, limit: Option<usize>) -> Vec<Task> {
@@ -92,11 +136,12 @@ mod tests {
         Datetime::from_ymd(y, m, d).unwrap()
     }
 
-    // --- parse_args ---
+    // --- parse_args: eval (backwards compat) ---
 
     #[test]
     fn parse_args_file_only() {
-        let args = parse_args(&[s("foo.typ")]).unwrap();
+        let cmd = parse_args(&[s("foo.typ")]).unwrap();
+        let Command::Eval(args) = cmd else { panic!("expected Eval") };
         assert_eq!(args.file, PathBuf::from("foo.typ"));
         assert!(!args.due);
         assert_eq!(args.limit, None);
@@ -104,19 +149,22 @@ mod tests {
 
     #[test]
     fn parse_args_with_due() {
-        let args = parse_args(&[s("f.typ"), s("--due")]).unwrap();
+        let cmd = parse_args(&[s("f.typ"), s("--due")]).unwrap();
+        let Command::Eval(args) = cmd else { panic!("expected Eval") };
         assert!(args.due);
     }
 
     #[test]
     fn parse_args_with_limit() {
-        let args = parse_args(&[s("f.typ"), s("-3")]).unwrap();
+        let cmd = parse_args(&[s("f.typ"), s("-3")]).unwrap();
+        let Command::Eval(args) = cmd else { panic!("expected Eval") };
         assert_eq!(args.limit, Some(3));
     }
 
     #[test]
     fn parse_args_all_flags() {
-        let args = parse_args(&[s("f.typ"), s("--due"), s("-5")]).unwrap();
+        let cmd = parse_args(&[s("f.typ"), s("--due"), s("-5")]).unwrap();
+        let Command::Eval(args) = cmd else { panic!("expected Eval") };
         assert_eq!(args.file, PathBuf::from("f.typ"));
         assert!(args.due);
         assert_eq!(args.limit, Some(5));
@@ -130,6 +178,43 @@ mod tests {
     #[test]
     fn parse_args_empty() {
         assert!(parse_args(&[]).is_err());
+    }
+
+    // --- parse_args: watch ---
+
+    #[test]
+    fn parse_watch_bare() {
+        let cmd = parse_args(&[s("watch")]).unwrap();
+        let Command::Watch(args) = cmd else { panic!("expected Watch") };
+        assert_eq!(args.path, None);
+        assert_eq!(args.config, None);
+    }
+
+    #[test]
+    fn parse_watch_with_path() {
+        let cmd = parse_args(&[s("watch"), s(".")]).unwrap();
+        let Command::Watch(args) = cmd else { panic!("expected Watch") };
+        assert_eq!(args.path, Some(PathBuf::from(".")));
+    }
+
+    #[test]
+    fn parse_watch_with_config() {
+        let cmd = parse_args(&[s("watch"), s("--config"), s("my.toml")]).unwrap();
+        let Command::Watch(args) = cmd else { panic!("expected Watch") };
+        assert_eq!(args.config, Some(PathBuf::from("my.toml")));
+        assert_eq!(args.path, None);
+    }
+
+    #[test]
+    fn parse_watch_config_missing_value() {
+        let result = parse_args(&[s("watch"), s("--config")]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_watch_unknown_flag() {
+        let result = parse_args(&[s("watch"), s("--verbose")]);
+        assert!(result.is_err());
     }
 
     // --- format_due ---

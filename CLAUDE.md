@@ -19,10 +19,11 @@ metadata into a database, and exposes a CLI (later API) for querying.
 - **Typst evaluation**: `typst`, `typst-eval`, `typst-library`, `typst-syntax`
 - **Comemo**: `comemo = "0.5"` (must match typst 0.14's version)
 - **Database**: SQLite via `rusqlite` (behind a `Store` trait for future swapability)
-- **File watching**: `notify` crate (planned)
+- **File watching**: `notify` + `notify-debouncer-mini` (300ms debounce)
+- **Ignore patterns**: `ignore` crate for `.mindtapeignore` (gitignore-style)
 - **CLI**: Manual arg parsing (not clap) for `-N` shorthand support
 - **Testing**: `cargo test` + `cargo tarpaulin` for coverage
-- **Config**: TOML (planned)
+- **Config**: `toml` + `serde` for TOML config files
 
 ## Agent Rules
 
@@ -42,16 +43,19 @@ metadata into a database, and exposes a CLI (later API) for querying.
 
 ```
 src/
-  lib.rs        -- pub mod declarations (cli, eval, store, world)
-  main.rs       -- thin CLI entry point
-  cli.rs        -- arg parsing, task filtering/sorting, output formatting
+  lib.rs        -- pub mod declarations (cli, config, eval, store, watcher, world)
+  main.rs       -- thin CLI entry point, routes eval/watch commands
+  cli.rs        -- Command enum, arg parsing, task filtering/sorting, formatting
+  config.rs     -- TOML config loading, WatchEntry, tilde expansion
   eval.rs       -- Task struct, eval_file(), content tree traversal
   store.rs      -- Store trait, SqliteStore, index_file(), domain types
+  watcher.rs    -- Watcher struct, initial_scan, handle_event, run (notify loop)
   world.rs      -- MindTapeWorld (World trait impl), project root detection
 
 tests/
-  eval_integration.rs   -- end-to-end eval tests with temp .typ files
-  store_integration.rs  -- eval -> store pipeline tests
+  eval_integration.rs     -- end-to-end eval tests with temp .typ files
+  store_integration.rs    -- eval -> store pipeline tests
+  watcher_integration.rs  -- watcher scan + event handling tests
 
 lib/
   prelude.typ   -- due(), id(), tag() functions using metadata()
@@ -89,14 +93,14 @@ itest/
 ## Testing
 
 - Run tests: `cargo test`
-- Coverage: `cargo tarpaulin` (target: 60%+, currently ~91%)
+- Coverage: `cargo tarpaulin` (target: 60%+, currently ~79%)
 - Shell integration test: `cd itest && PATH="../target/debug:$PATH" bash basic.sh`
 - See `docs/TESTING.md` for full guidelines
 
 ## Current Status
 
-M1.3 complete. SQLite `Store` trait and `SqliteStore` implementation with
-full eval -> extract -> store pipeline. Hash-based change detection for
-re-indexing. `TaskFilter` queries with tag, due, done, file path filters.
-97 tests, 91% coverage.
-Next: M1.4 (Folder Watcher).
+M1.4 complete. Folder watcher with TOML config, `.mindtapeignore` support,
+`notify`-based file watching with debouncing, initial scan, and event handling.
+CLI extended with `mindtape watch [path] [--config file]` subcommand.
+136 tests, 79% coverage.
+Next: M1.5 (CLI Query Commands).
