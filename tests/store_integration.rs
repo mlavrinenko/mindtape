@@ -1,0 +1,131 @@
+//! Integration tests: eval -> store pipeline.
+
+use mindtape::store::{index_file, SqliteStore, Store, TaskFilter};
+use mindtape::world::MindTapeWorld;
+
+/// Set up a temp project with a `.typ` file, a MindTapeWorld, and an in-memory store.
+/// Returns (store, world, file_path, project_root).
+fn setup(
+    source: &str,
+) -> (SqliteStore, MindTapeWorld, std::path::PathBuf, std::path::PathBuf) {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.keep();
+    std::fs::write(root.join("Cargo.toml"), "").unwrap();
+    let lib_dir = root.join("lib");
+    std::fs::create_dir(&lib_dir).unwrap();
+    std::fs::write(
+        lib_dir.join("prelude.typ"),
+        r#"
+#let due(date) = metadata(("due", date))
+#let id(uuid) = metadata(("id", uuid))
+#let tag(name) = metadata(("tag", name))
+"#,
+    )
+    .unwrap();
+    std::fs::write(
+        lib_dir.join("typst.toml"),
+        "[package]\nname = \"mind-tape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
+    )
+    .unwrap();
+    let file = root.join("test.typ");
+    std::fs::write(&file, source).unwrap();
+    let world = MindTapeWorld::new(&file).unwrap();
+    let store = SqliteStore::open_memory().unwrap();
+    (store, world, file, root)
+}
+
+#[test]
+fn index_file_stores_tasks() {
+    let (mut store, world, file, root) = setup(
+        r#"#import "@mind-tape/mind-tape:0.1.0": due, tag
+
+= Piano Practice
+
+- [ ] Learn scales #due(datetime(year: 2026, month: 3, day: 1)) #tag("music")
+- [x] Buy metronome
+- [ ] Practice arpeggios #tag("music") #tag("technique")
+"#,
+    );
+
+    let indexed = index_file(&mut store, &world, &file, &root).unwrap();
+    assert!(indexed);
+
+    let views = store.query_tasks(&TaskFilter::default()).unwrap();
+    assert_eq!(views.len(), 3);
+
+    assert_eq!(views[0].title, "Learn scales");
+    assert!(!views[0].is_done);
+    assert_eq!(views[0].due, Some("2026-03-01".to_string()));
+    assert_eq!(views[0].tags, vec!["music"]);
+    assert_eq!(views[0].file_title, Some("Piano Practice".to_string()));
+
+    assert_eq!(views[1].title, "Buy metronome");
+    assert!(views[1].is_done);
+
+    assert_eq!(views[2].title, "Practice arpeggios");
+    assert_eq!(views[2].tags, vec!["music", "technique"]);
+}
+
+#[test]
+fn index_file_skips_unchanged() {
+    let (mut store, world, file, root) = setup("- [ ] Task");
+
+    let first = index_file(&mut store, &world, &file, &root).unwrap();
+    assert!(first);
+
+    let second = index_file(&mut store, &world, &file, &root).unwrap();
+    assert!(!second); // hash unchanged, should skip
+}
+
+#[test]
+fn index_file_reindexes_on_change() {
+    let (mut store, world, file, root) = setup("- [ ] Old task");
+
+    index_file(&mut store, &world, &file, &root).unwrap();
+
+    // Modify the file
+    std::fs::write(&file, "- [ ] New task A\n- [ ] New task B").unwrap();
+    let world2 = MindTapeWorld::new(&file).unwrap();
+
+    let reindexed = index_file(&mut store, &world2, &file, &root).unwrap();
+    assert!(reindexed);
+
+    let views = store.query_tasks(&TaskFilter::default()).unwrap();
+    assert_eq!(views.len(), 2);
+    assert_eq!(views[0].title, "New task A");
+    assert_eq!(views[1].title, "New task B");
+}
+
+#[test]
+fn index_file_extracts_title() {
+    let (mut store, world, file, root) = setup("= My Project\n\n- [ ] Task");
+
+    index_file(&mut store, &world, &file, &root).unwrap();
+
+    let views = store.query_tasks(&TaskFilter::default()).unwrap();
+    assert_eq!(views[0].file_title, Some("My Project".to_string()));
+}
+
+#[test]
+fn index_file_query_by_tag() {
+    let (mut store, world, file, root) = setup(
+        r#"#import "@mind-tape/mind-tape:0.1.0": tag
+
+- [ ] Work task #tag("work")
+- [ ] Fun task #tag("fun")
+- [ ] Both #tag("work") #tag("fun")
+"#,
+    );
+
+    index_file(&mut store, &world, &file, &root).unwrap();
+
+    let work = store
+        .query_tasks(&TaskFilter {
+            tag: Some("work".to_string()),
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(work.len(), 2);
+    assert_eq!(work[0].title, "Work task");
+    assert_eq!(work[1].title, "Both");
+}
