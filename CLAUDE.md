@@ -8,6 +8,7 @@ metadata into a database, and exposes a CLI (later API) for querying.
 
 ## Key Docs
 
+- `README.md` — what it is, future plans, non-goals
 - `docs/DESIGN.md` — architecture, data model, Typst evaluation details
 - `docs/ROADMAP.md` — MVP milestones, future plans, non-goals
 - `docs/TESTING.md` — testing guidelines, coverage targets

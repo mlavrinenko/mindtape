@@ -38,3 +38,24 @@ Early development. See [docs/ROADMAP.md](docs/ROADMAP.md) for the plan.
 
 - [Design](docs/DESIGN.md) — architecture, data model, technical decisions
 - [Roadmap](docs/ROADMAP.md) — MVP scope, milestones, non-goals
+
+## Future / Ideas
+
+- TUI (ratatui)
+- DuckDB as alternative store backend
+- Typst package published to `@preview` for `due`, `tag`, etc.
+- Custom user-defined task properties
+- Recurring tasks
+- Task dependencies / blocking relationships
+- Notifications (desktop, email)
+- Sync across machines (CRDTs, git-based)
+- `mindtape init` scaffolding for new projects
+- Web UI
+- Editor integrations (VS Code, Neovim)
+
+## Non-Goals
+
+- MindTape is NOT a Typst renderer — we never produce PDFs or visual output
+- MindTape is NOT a general Typst IDE — use tinymist for that
+- MindTape does NOT replace Typst files — they are always the source of truth
+- MindTape does NOT require internet access for core functionality
