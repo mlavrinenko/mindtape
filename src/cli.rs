@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use typst::foundations::Datetime;
 
-use crate::eval::Task;
+use crate::eval::{format_date, Task};
 use crate::store::{AgendaView, FileDependencies, FileView, IndexStats, SearchResults, TaskView};
 
 /// Output format for query commands.
@@ -815,12 +815,7 @@ pub fn format_task(task: &Task) -> String {
 
 #[must_use]
 pub fn format_due(dt: &Datetime) -> String {
-    format!(
-        "{:04}-{:02}-{:02}",
-        dt.year().unwrap_or(0),
-        dt.month().unwrap_or(0),
-        dt.day().unwrap_or(0),
-    )
+    format_date(dt)
 }
 
 #[must_use]

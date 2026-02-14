@@ -8,7 +8,7 @@ use sha2::{Digest, Sha256};
 use super::{
     FileBinding, PropertyKind, Store, StoreError, TaskFile, TaskProperty, TaskRecord,
 };
-use mindtape_eval::{self as eval, EvalResult};
+use mindtape_eval::{self as eval, format_date, EvalResult};
 
 // ---------------------------------------------------------------------------
 // Hashing
@@ -62,12 +62,7 @@ pub fn to_store_records(
                 task_id: 0, // filled during insert
                 kind: PropertyKind::Due,
                 key: "due".to_string(),
-                value: format!(
-                    "{:04}-{:02}-{:02}",
-                    dt.year().unwrap_or(0),
-                    dt.month().unwrap_or(0),
-                    dt.day().unwrap_or(0),
-                ),
+                value: format_date(dt),
             });
         }
         for tag in &task.tags {

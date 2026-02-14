@@ -1,8 +1,10 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+mod common;
+
+use common::{setup_typst_project, ymd};
 use mindtape::eval::{eval_file, eval_file_full, EvalError, EvalResult, Task};
 use mindtape::world::MindTapeWorld;
-use typst::foundations::Datetime;
 
 /// Create a temp project dir with a `.typ` file, evaluate it, return tasks.
 fn eval_typ(source: &str) -> Result<Vec<Task>, EvalError> {
@@ -28,20 +30,11 @@ fn eval_typ_with_prelude(prelude: &str, source: &str) -> Result<Vec<Task>, EvalE
     eval_file(&world)
 }
 
-/// Create a temp project with `@mindtape` package (lib/typst.toml + lib/prelude.typ)
-/// and a `.typ` file that can use `#import "@mindtape/mindtape:0.1.0": ...`.
+/// Create a temp project with `@mindtape` package and evaluate.
 fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, EvalError> {
-    let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
-    let lib_dir = dir.path().join("lib");
-    std::fs::create_dir(&lib_dir).unwrap();
-    std::fs::write(lib_dir.join("prelude.typ"), prelude).unwrap();
-    std::fs::write(
-        lib_dir.join("typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
-    let file = dir.path().join("test.typ");
+    let root = setup_typst_project();
+    std::fs::write(root.join("lib").join("prelude.typ"), prelude).unwrap();
+    let file = root.join("test.typ");
     std::fs::write(&file, source).unwrap();
     let world = MindTapeWorld::new(&file)?;
     eval_file(&world)
@@ -55,10 +48,6 @@ fn eval_typ_full(source: &str) -> Result<EvalResult, EvalError> {
     std::fs::write(&file, source).unwrap();
     let world = MindTapeWorld::new(&file)?;
     eval_file_full(&world)
-}
-
-fn ymd(year: i32, month: u8, day: u8) -> Datetime {
-    Datetime::from_ymd(year, month, day).unwrap()
 }
 
 #[test]

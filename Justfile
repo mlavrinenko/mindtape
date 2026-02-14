@@ -7,7 +7,7 @@ check:
 
 # Run tests only
 test *ARGS:
-    cargo test --workspace {{ARGS}}
+    cargo test --workspace {{ ARGS }}
 
 # Run clippy only
 clippy:
@@ -35,3 +35,13 @@ fmt:
 # Format check (CI-friendly)
 fmt-check:
     cargo fmt --all -- --check
+
+# Count tests across workspace
+count-tests:
+    #!/usr/bin/env bash
+    cargo test --workspace 2>&1 | grep "test result:" | awk '{sum += $4} END {print sum " tests"}'
+
+# Show top 20 files by line count
+file-sizes:
+    #!/usr/bin/env bash
+    find . -type f \( -name '*.rs' -o -name '*.md' \) ! -path './target/*' -exec wc -l {} + | sort -rn | head -20

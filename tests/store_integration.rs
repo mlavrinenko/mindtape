@@ -1,6 +1,9 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 //! Integration tests: eval -> store pipeline.
 
+mod common;
+
+use common::setup_typst_project;
 use mindtape::store::{index_file, SqliteStore, Store, TaskFilter};
 use mindtape::world::MindTapeWorld;
 
@@ -9,25 +12,7 @@ use mindtape::world::MindTapeWorld;
 fn setup(
     source: &str,
 ) -> (SqliteStore, MindTapeWorld, std::path::PathBuf, std::path::PathBuf) {
-    let dir = tempfile::tempdir().unwrap();
-    let root = dir.keep();
-    std::fs::write(root.join("Cargo.toml"), "").unwrap();
-    let lib_dir = root.join("lib");
-    std::fs::create_dir(&lib_dir).unwrap();
-    std::fs::write(
-        lib_dir.join("prelude.typ"),
-        r#"
-#let due(date) = metadata(("due", date))
-#let id(uuid) = metadata(("id", uuid))
-#let tag(name) = metadata(("tag", name))
-"#,
-    )
-    .unwrap();
-    std::fs::write(
-        lib_dir.join("typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
+    let root = setup_typst_project();
     let file = root.join("test.typ");
     std::fs::write(&file, source).unwrap();
     let world = MindTapeWorld::new(&file).unwrap();
@@ -190,25 +175,7 @@ fn index_file_stores_bindings() {
 
 #[test]
 fn index_multiple_files() {
-    let dir = tempfile::tempdir().unwrap();
-    let root = dir.keep();
-    std::fs::write(root.join("Cargo.toml"), "").unwrap();
-    let lib_dir = root.join("lib");
-    std::fs::create_dir(&lib_dir).unwrap();
-    std::fs::write(
-        lib_dir.join("prelude.typ"),
-        r#"
-#let due(date) = metadata(("due", date))
-#let id(uuid) = metadata(("id", uuid))
-#let tag(name) = metadata(("tag", name))
-"#,
-    )
-    .unwrap();
-    std::fs::write(
-        lib_dir.join("typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
+    let root = setup_typst_project();
 
     let file_a = root.join("a.typ");
     std::fs::write(&file_a, "- [ ] Task from A").unwrap();

@@ -1,33 +1,18 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 //! Integration tests: query commands (`list_files`, `get_stats`, folder filter).
 
+mod common;
+
 use std::path::PathBuf;
 
+use common::setup_typst_project;
 use mindtape::store::{index_file, SqliteStore, Store, TaskFilter};
 use mindtape::world::MindTapeWorld;
 
 /// Set up a temp project with lib/ and return (store, `project_root`).
 /// Caller adds .typ files and indexes them.
 fn setup() -> (SqliteStore, PathBuf) {
-    let dir = tempfile::tempdir().unwrap();
-    let root = dir.keep();
-    std::fs::write(root.join("Cargo.toml"), "").unwrap();
-    let lib_dir = root.join("lib");
-    std::fs::create_dir(&lib_dir).unwrap();
-    std::fs::write(
-        lib_dir.join("prelude.typ"),
-        r#"
-#let due(date) = metadata(("due", date))
-#let id(uuid) = metadata(("id", uuid))
-#let tag(name) = metadata(("tag", name))
-"#,
-    )
-    .unwrap();
-    std::fs::write(
-        lib_dir.join("typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
+    let root = setup_typst_project();
     let store = SqliteStore::open_memory().unwrap();
     (store, root)
 }

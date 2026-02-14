@@ -229,6 +229,38 @@ impl SqliteStore {
         Ok(tasks)
     }
 
+    fn fetch_file_deps(
+        &self,
+        file_id: i64,
+        file_path: &Path,
+    ) -> Result<(Vec<PathBuf>, Vec<PathBuf>), StoreError> {
+        // Get outgoing references (files this file imports).
+        let mut imports_stmt = self.conn.prepare(
+            "SELECT target_path FROM file_references WHERE source_file_id = ?1 ORDER BY target_path",
+        )?;
+        let imports: Vec<PathBuf> = imports_stmt
+            .query_map(params![file_id], |row| {
+                Ok(PathBuf::from(row.get::<_, String>(0)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        // Get incoming references (files that import this file).
+        let mut imported_by_stmt = self.conn.prepare(
+            "SELECT tf.relative_path
+             FROM file_references fr
+             JOIN task_files tf ON fr.source_file_id = tf.id
+             WHERE fr.target_path = ?1
+             ORDER BY tf.relative_path",
+        )?;
+        let imported_by: Vec<PathBuf> = imported_by_stmt
+            .query_map(params![file_path.to_string_lossy().to_string()], |row| {
+                Ok(PathBuf::from(row.get::<_, String>(0)?))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok((imports, imported_by))
+    }
+
     fn fetch_task_properties(
         &self,
         task_id: i64,
@@ -352,35 +384,7 @@ impl Store for SqliteStore {
             bind_values.iter().map(Box::as_ref).collect();
 
         let mut stmt = self.conn.prepare(&sql)?;
-        let rows: Vec<(i64, String, bool, i32, String, Option<String>)> = stmt
-            .query_map(params_refs.as_slice(), |row| {
-                Ok((
-                    row.get(0)?,
-                    row.get(1)?,
-                    row.get::<_, i32>(2)? != 0,
-                    row.get(3)?,
-                    row.get(4)?,
-                    row.get(5)?,
-                ))
-            })?
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let mut views = Vec::with_capacity(rows.len());
-        for (task_id, title, is_done, position, file_path, file_title) in rows {
-            let (due, tags) = self.fetch_task_properties(task_id)?;
-
-            views.push(TaskView {
-                title,
-                is_done,
-                position,
-                file_path: PathBuf::from(file_path),
-                file_title,
-                due,
-                tags,
-            });
-        }
-
-        Ok(views)
+        self.fetch_task_views(&mut stmt, params_refs.as_slice())
     }
 
     fn get_file_hash(&self, path: &Path) -> Result<Option<String>, StoreError> {
@@ -454,32 +458,7 @@ impl Store for SqliteStore {
              ORDER BY tf.relative_path, t.position
              LIMIT ?2",
         )?;
-        let task_rows: Vec<(i64, String, bool, i32, String, Option<String>)> = task_stmt
-            .query_map(params![pattern, limit_val], |row| {
-                Ok((
-                    row.get(0)?,
-                    row.get(1)?,
-                    row.get::<_, i32>(2)? != 0,
-                    row.get(3)?,
-                    row.get(4)?,
-                    row.get(5)?,
-                ))
-            })?
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let mut tasks = Vec::with_capacity(task_rows.len());
-        for (task_id, title, is_done, position, file_path, file_title) in task_rows {
-            let (due, tags) = self.fetch_task_properties(task_id)?;
-            tasks.push(TaskView {
-                title,
-                is_done,
-                position,
-                file_path: PathBuf::from(file_path),
-                file_title,
-                due,
-                tags,
-            });
-        }
+        let tasks = self.fetch_task_views(&mut task_stmt, params![pattern, limit_val])?;
 
         // Search bindings (name or value)
         let mut binding_stmt = self.conn.prepare(
@@ -606,29 +585,7 @@ impl Store for SqliteStore {
             return Ok(None);
         };
 
-        // Get outgoing references (files this file imports).
-        let mut imports_stmt = self.conn.prepare(
-            "SELECT target_path FROM file_references WHERE source_file_id = ?1 ORDER BY target_path",
-        )?;
-        let imports: Vec<PathBuf> = imports_stmt
-            .query_map(params![file_id], |row| {
-                Ok(PathBuf::from(row.get::<_, String>(0)?))
-            })?
-            .collect::<Result<Vec<_>, _>>()?;
-
-        // Get incoming references (files that import this file).
-        let mut imported_by_stmt = self.conn.prepare(
-            "SELECT tf.relative_path
-             FROM file_references fr
-             JOIN task_files tf ON fr.source_file_id = tf.id
-             WHERE fr.target_path = ?1
-             ORDER BY tf.relative_path",
-        )?;
-        let imported_by: Vec<PathBuf> = imported_by_stmt
-            .query_map(params![file_path.to_string_lossy().to_string()], |row| {
-                Ok(PathBuf::from(row.get::<_, String>(0)?))
-            })?
-            .collect::<Result<Vec<_>, _>>()?;
+        let (imports, imported_by) = self.fetch_file_deps(file_id, &file_path)?;
 
         Ok(Some(super::FileDependencies {
             file_path,
@@ -655,29 +612,7 @@ impl Store for SqliteStore {
 
         let mut results = Vec::new();
         for (file_id, file_path, file_title) in file_rows {
-            // Get imports for this file.
-            let mut imports_stmt = self.conn.prepare(
-                "SELECT target_path FROM file_references WHERE source_file_id = ?1 ORDER BY target_path",
-            )?;
-            let imports: Vec<PathBuf> = imports_stmt
-                .query_map(params![file_id], |row| {
-                    Ok(PathBuf::from(row.get::<_, String>(0)?))
-                })?
-                .collect::<Result<Vec<_>, _>>()?;
-
-            // Get files that import this file.
-            let mut imported_by_stmt = self.conn.prepare(
-                "SELECT tf.relative_path
-                 FROM file_references fr
-                 JOIN task_files tf ON fr.source_file_id = tf.id
-                 WHERE fr.target_path = ?1
-                 ORDER BY tf.relative_path",
-            )?;
-            let imported_by: Vec<PathBuf> = imported_by_stmt
-                .query_map(params![file_path.to_string_lossy().to_string()], |row| {
-                    Ok(PathBuf::from(row.get::<_, String>(0)?))
-                })?
-                .collect::<Result<Vec<_>, _>>()?;
+            let (imports, imported_by) = self.fetch_file_deps(file_id, &file_path)?;
 
             results.push(super::FileDependencies {
                 file_path,

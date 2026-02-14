@@ -1,38 +1,18 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 //! Integration tests: watcher `initial_scan` + `handle_event` with real eval pipeline.
 
-use std::path::PathBuf;
+mod common;
 
+use common::setup_typst_project;
 use mindtape::config::WatchEntry;
 use mindtape::store::SqliteStore;
 use mindtape::watcher::Watcher;
 
-/// Set up a temp project directory with lib/prelude.typ and .mindtapeignore.
-fn setup_project() -> PathBuf {
-    let dir = tempfile::tempdir().unwrap();
-    let root = dir.keep();
-    std::fs::write(root.join("Cargo.toml"), "").unwrap();
-
-    let lib_dir = root.join("lib");
-    std::fs::create_dir(&lib_dir).unwrap();
-    std::fs::write(
-        lib_dir.join("prelude.typ"),
-        r#"
-#let due(date) = metadata(("due", date))
-#let id(uuid) = metadata(("id", uuid))
-#let tag(name) = metadata(("tag", name))
-"#,
-    )
-    .unwrap();
-    std::fs::write(
-        lib_dir.join("typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
-
+/// Set up a temp project directory with lib/ and .mindtapeignore.
+fn setup_project() -> std::path::PathBuf {
+    let root = setup_typst_project();
     // Ignore lib/ so prelude.typ isn't indexed as tasks.
     std::fs::write(root.join(".mindtapeignore"), "lib/\n").unwrap();
-
     root
 }
 

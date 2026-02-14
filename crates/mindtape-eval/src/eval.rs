@@ -251,6 +251,17 @@ pub fn extract_file_title(content: &Content) -> Option<String> {
     title
 }
 
+/// Format a `Datetime` as `YYYY-MM-DD`.
+#[must_use]
+pub fn format_date(dt: &Datetime) -> String {
+    format!(
+        "{:04}-{:02}-{:02}",
+        dt.year().unwrap_or(0),
+        dt.month().unwrap_or(0),
+        dt.day().unwrap_or(0),
+    )
+}
+
 /// Extract `#let` bindings from a module's scope as `(name, value_type, value_json)`.
 ///
 /// Skips functions and other non-data values.
@@ -263,12 +274,7 @@ pub fn extract_bindings(scope: &typst::foundations::Scope) -> Vec<(String, Strin
             Value::Int(int_val) => ("int", int_val.to_string()),
             Value::Float(float_val) => ("float", float_val.to_string()),
             Value::Bool(bool_val) => ("bool", bool_val.to_string()),
-            Value::Datetime(dt) => ("date", format!(
-                "\"{:04}-{:02}-{:02}\"",
-                dt.year().unwrap_or(0),
-                dt.month().unwrap_or(0),
-                dt.day().unwrap_or(0),
-            )),
+            Value::Datetime(dt) => ("date", format!("\"{}\"", format_date(dt))),
             Value::None => ("none", "null".to_string()),
             _ => continue,
         };
