@@ -314,4 +314,81 @@ mod tests {
         let s2 = world.source(main_id).unwrap();
         assert_eq!(s1.text(), s2.text());
     }
+
+    #[test]
+    fn world_new_with_absolute_path() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        let typ_file = dir.path().join("test.typ");
+        std::fs::write(&typ_file, "= Abs").unwrap();
+
+        // Pass the already-absolute path
+        let abs = typ_file.canonicalize().unwrap();
+        let world = MindTapeWorld::new(&abs).unwrap();
+        let source = world.source(world.main()).unwrap();
+        assert!(source.text().contains("Abs"));
+    }
+
+    #[test]
+    fn world_file_reads_bytes() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        let typ_file = dir.path().join("test.typ");
+        std::fs::write(&typ_file, "= Bytes Test").unwrap();
+
+        let world = MindTapeWorld::new(&typ_file).unwrap();
+        let bytes = world.file(world.main()).unwrap();
+        assert!(std::str::from_utf8(bytes.as_slice()).unwrap().contains("Bytes Test"));
+    }
+
+    #[test]
+    fn world_font_returns_none() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        let typ_file = dir.path().join("test.typ");
+        std::fs::write(&typ_file, "").unwrap();
+
+        let world = MindTapeWorld::new(&typ_file).unwrap();
+        assert!(world.font(0).is_none());
+    }
+
+    #[test]
+    fn world_today_returns_valid_date() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        let typ_file = dir.path().join("test.typ");
+        std::fs::write(&typ_file, "").unwrap();
+
+        let world = MindTapeWorld::new(&typ_file).unwrap();
+        let today = world.today(None);
+        assert!(today.is_some());
+        let dt = today.unwrap();
+        assert!(dt.year().unwrap() >= 2024);
+    }
+
+    #[test]
+    fn world_resolve_unknown_package_fails() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        let typ_file = dir.path().join("test.typ");
+        // Try to import from an unknown package — should fail during eval
+        std::fs::write(&typ_file, r#"#import "@unknown/pkg:1.0.0": foo"#).unwrap();
+
+        let world = MindTapeWorld::new(&typ_file).unwrap();
+        let result = crate::eval::eval_file(&world);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn world_source_nonexistent_file_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        let typ_file = dir.path().join("test.typ");
+        std::fs::write(&typ_file, "").unwrap();
+
+        let world = MindTapeWorld::new(&typ_file).unwrap();
+        // Create a FileId for a file that doesn't exist on disk
+        let missing_id = FileId::new(None, VirtualPath::new("nonexistent.typ"));
+        assert!(world.source(missing_id).is_err());
+    }
 }

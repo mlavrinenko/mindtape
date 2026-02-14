@@ -42,15 +42,26 @@ due date + tag as structured Rust values.
 - `Task` struct now has `tags: Vec<String>` field
 - 43 tests (26 unit + 17 integration), 80.42% coverage
 
-### M1.3 — SQLite Store
+### M1.3 — SQLite Store [COMPLETE]
 
-- [ ] Define domain types: `TaskFile`, `Task`, `TaskProperty`, `FileBinding`
-- [ ] Define `Store` trait (anti-corruption layer)
-- [ ] Implement SQLite backend with migrations
-- [ ] Index a single file: evaluate -> extract -> store
-- [ ] Re-index on change: detect file hash change, update accordingly
+- [x] Define domain types: `TaskFile`, `Task`, `TaskProperty`, `FileBinding`
+- [x] Define `Store` trait (anti-corruption layer)
+- [x] Implement SQLite backend with migrations
+- [x] Index a single file: evaluate -> extract -> store
+- [x] Re-index on change: detect file hash change, update accordingly
 
 **Exit criteria**: evaluate a `.typ` file and persist its tasks/bindings to SQLite.
+
+**Implementation notes**:
+- `Store` trait with `SqliteStore` impl in `src/store.rs`
+- Schema v1 with `task_files`, `tasks`, `task_properties`, `file_bindings` tables
+- `index_file()` orchestrates eval -> extract -> store pipeline with hash-based skip
+- `to_store_records()` converts `EvalResult` to store domain types
+- `TaskFilter` supports `done`, `tag`, `due_before`, `file_path`, `limit`
+- `TaskView` joins tasks with file context and properties for query results
+- SHA-256 content hashing for change detection (`hash_file()`)
+- `thiserror` for structured `StoreError` variants
+- 97 tests (57 unit + 31 eval integration + 9 store integration), 90.93% coverage
 
 ### M1.4 — Folder Watcher
 

@@ -330,3 +330,44 @@ fn eval_full_positions_skip_non_tasks() {
     assert_eq!(result.tasks[0].position, 0);
     assert_eq!(result.tasks[1].position, 1);
 }
+
+// --- eval_file_full: additional binding types ---
+
+#[test]
+fn eval_full_extracts_float_binding() {
+    let result = eval_typ_full("#let ratio = 3.14").unwrap();
+    let b = result.bindings.iter().find(|b| b.0 == "ratio").unwrap();
+    assert_eq!(b.1, "float");
+    assert_eq!(b.2, "3.14");
+}
+
+#[test]
+fn eval_full_extracts_datetime_binding() {
+    let result = eval_typ_full("#let deadline = datetime(year: 2026, month: 6, day: 15)").unwrap();
+    let b = result.bindings.iter().find(|b| b.0 == "deadline").unwrap();
+    assert_eq!(b.1, "date");
+    assert_eq!(b.2, "\"2026-06-15\"");
+}
+
+#[test]
+fn eval_full_extracts_none_binding() {
+    let result = eval_typ_full("#let maybe = none").unwrap();
+    let b = result.bindings.iter().find(|b| b.0 == "maybe").unwrap();
+    assert_eq!(b.1, "none");
+    assert_eq!(b.2, "null");
+}
+
+#[test]
+fn eval_full_skips_array_binding() {
+    // Arrays are not a supported binding type — should be skipped
+    let result = eval_typ_full(r#"#let items = ("a", "b", "c")"#).unwrap();
+    assert!(result.bindings.iter().find(|b| b.0 == "items").is_none());
+}
+
+#[test]
+fn eval_checked_task_uppercase_x() {
+    let tasks = eval_typ("- [X] Done with uppercase").unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert!(tasks[0].done);
+    assert_eq!(tasks[0].title, "Done with uppercase");
+}

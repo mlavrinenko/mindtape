@@ -18,7 +18,7 @@ metadata into a database, and exposes a CLI (later API) for querying.
 - **Build**: Nix flake (`flake.nix`) with `naersk`
 - **Typst evaluation**: `typst`, `typst-eval`, `typst-library`, `typst-syntax`
 - **Comemo**: `comemo = "0.5"` (must match typst 0.14's version)
-- **Database**: SQLite (planned, behind a `Store` trait for future swapability)
+- **Database**: SQLite via `rusqlite` (behind a `Store` trait for future swapability)
 - **File watching**: `notify` crate (planned)
 - **CLI**: Manual arg parsing (not clap) for `-N` shorthand support
 - **Testing**: `cargo test` + `cargo tarpaulin` for coverage
@@ -42,14 +42,16 @@ metadata into a database, and exposes a CLI (later API) for querying.
 
 ```
 src/
-  lib.rs        -- pub mod declarations (cli, eval, world)
+  lib.rs        -- pub mod declarations (cli, eval, store, world)
   main.rs       -- thin CLI entry point
   cli.rs        -- arg parsing, task filtering/sorting, output formatting
   eval.rs       -- Task struct, eval_file(), content tree traversal
+  store.rs      -- Store trait, SqliteStore, index_file(), domain types
   world.rs      -- MindTapeWorld (World trait impl), project root detection
 
 tests/
-  eval_integration.rs  -- end-to-end eval tests with temp .typ files
+  eval_integration.rs   -- end-to-end eval tests with temp .typ files
+  store_integration.rs  -- eval -> store pipeline tests
 
 lib/
   prelude.typ   -- due(), id(), tag() functions using metadata()
@@ -87,13 +89,14 @@ itest/
 ## Testing
 
 - Run tests: `cargo test`
-- Coverage: `cargo tarpaulin` (target: 60%+, currently ~78%)
+- Coverage: `cargo tarpaulin` (target: 60%+, currently ~91%)
 - Shell integration test: `cd itest && PATH="../target/debug:$PATH" bash basic.sh`
 - See `docs/TESTING.md` for full guidelines
 
 ## Current Status
 
-M1.2 complete. `@mind-tape` package resolution works — `.typ` files use
-`#import "@mind-tape/mind-tape:0.1.0": due, tag, id`. Tag extraction added
-to `Task` struct. 43 tests, 80%+ coverage.
-Next: M1.3 (SQLite Store).
+M1.3 complete. SQLite `Store` trait and `SqliteStore` implementation with
+full eval -> extract -> store pipeline. Hash-based change detection for
+re-indexing. `TaskFilter` queries with tag, due, done, file path filters.
+97 tests, 91% coverage.
+Next: M1.4 (Folder Watcher).
