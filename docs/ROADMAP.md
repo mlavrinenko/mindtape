@@ -141,16 +141,9 @@ folders, and keeps the index updated as files change.
 
 ---
 
-## Milestone 5: Frontends
-
-- [ ] TUI (ratatui)
-- [ ] Web UI
-- [ ] Editor integrations (VS Code, Neovim)
-
----
-
 ## Future / Ideas
 
+- TUI (ratatui)
 - DuckDB as alternative store backend
 - Typst package published to `@preview` for `due`, `tag`, etc.
 - Custom user-defined task properties
@@ -159,6 +152,8 @@ folders, and keeps the index updated as files change.
 - Notifications (desktop, email)
 - Sync across machines (CRDTs, git-based)
 - `mindtape init` scaffolding for new projects
+- [ ] Web UI
+- Editor integrations (VS Code, Neovim)
 
 ---
 
