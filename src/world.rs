@@ -39,6 +39,9 @@ impl MindTapeWorld {
     /// The main file's virtual path is computed relative to the discovered
     /// root so that relative imports (e.g. `../../lib/prelude.typ`) resolve
     /// correctly on disk.
+    ///
+    /// # Errors
+    /// Returns `Err` if the file path cannot be resolved or canonicalized.
     pub fn new(file_path: &Path) -> Result<Self, String> {
         let abs_path = if file_path.is_absolute() {
             file_path.to_path_buf()
@@ -193,22 +196,34 @@ pub fn chrono_free_today() -> (i32, u8, u8) {
     // Civil date from day count.
     // Algorithm from Howard Hinnant:
     // https://howardhinnant.github.io/date_algorithms.html#civil_from_days
-    let z = days + 719468;
-    let era = if z >= 0 { z } else { z - 146096 } / 146097;
-    let doe = (z - era * 146097) as u64; // day of era [0, 146096]
+    let shifted_days = days + 719468;
+    let era = if shifted_days >= 0 {
+        shifted_days
+    } else {
+        shifted_days - 146096
+    } / 146097;
+    let doe = (shifted_days - era * 146097).cast_unsigned(); // day of era [0, 146096]
     let yoe =
         (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365; // year of era [0, 399]
-    let y = (yoe as i64) + era * 400;
+    let year = (yoe as i64) + era * 400;
     let doy = doe - (365 * yoe + yoe / 4 - yoe / 100); // day of year [0, 365]
-    let mp = (5 * doy + 2) / 153; // [0, 11]
-    let d = doy - (153 * mp + 2) / 5 + 1; // day [1, 31]
-    let m = if mp < 10 { mp + 3 } else { mp - 9 }; // month [1, 12]
-    let y = if m <= 2 { y + 1 } else { y };
+    let month_pos = (5 * doy + 2) / 153; // [0, 11]
+    let day = doy - (153 * month_pos + 2) / 5 + 1; // day [1, 31]
+    let month = if month_pos < 10 {
+        month_pos + 3
+    } else {
+        month_pos - 9
+    }; // month [1, 12]
+    let year = if month <= 2 { year + 1 } else { year };
 
-    (y as i32, m as u8, d as u8)
+    #[allow(clippy::cast_possible_truncation)]
+    {
+        (year as i32, month as u8, day as u8)
+    }
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
     use super::*;
     use typst::World;
@@ -269,10 +284,10 @@ mod tests {
 
     #[test]
     fn chrono_free_today_valid_ranges() {
-        let (y, m, d) = chrono_free_today();
-        assert!(y >= 2024, "year should be recent: {y}");
-        assert!((1..=12).contains(&m), "month out of range: {m}");
-        assert!((1..=31).contains(&d), "day out of range: {d}");
+        let (year, month, day) = chrono_free_today();
+        assert!(year >= 2024, "year should be recent: {year}");
+        assert!((1..=12).contains(&month), "month out of range: {month}");
+        assert!((1..=31).contains(&day), "day out of range: {day}");
     }
 
     // --- MindTapeWorld ---

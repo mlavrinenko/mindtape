@@ -1,11 +1,12 @@
-//! Integration tests: query commands (list_files, get_stats, folder filter).
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
+//! Integration tests: query commands (`list_files`, `get_stats`, folder filter).
 
 use std::path::PathBuf;
 
 use mindtape::store::{index_file, SqliteStore, Store, TaskFilter};
 use mindtape::world::MindTapeWorld;
 
-/// Set up a temp project with lib/ and return (store, project_root).
+/// Set up a temp project with lib/ and return (store, `project_root`).
 /// Caller adds .typ files and indexes them.
 fn setup() -> (SqliteStore, PathBuf) {
     let dir = tempfile::tempdir().unwrap();

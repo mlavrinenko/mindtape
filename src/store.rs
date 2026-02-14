@@ -1,8 +1,8 @@
 //! SQLite-backed store for indexed tasks, properties, and bindings.
 //!
-//! Defines the `Store` trait (anti-corruption layer) and an `SqliteStore`
+//! Defines the `Store` trait (anti-corruption layer) and a [`SqliteStore`]
 //! implementation. The store layer uses plain Rust types — no typst
-//! dependencies — so future backends (DuckDB, etc.) can implement the
+//! dependencies — so future backends (`DuckDB`, etc.) can implement the
 //! same trait without pulling in the Typst crate ecosystem.
 
 use std::path::{Path, PathBuf};
@@ -27,7 +27,7 @@ pub struct TaskFile {
     pub updated_at: String,
 }
 
-/// A task extracted from a checklist item in a TaskFile.
+/// A task extracted from a checklist item in a `TaskFile`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct TaskRecord {
     pub id: Option<i64>,
@@ -63,8 +63,8 @@ impl PropertyKind {
         }
     }
 
-    pub fn try_from_str(s: &str) -> Option<Self> {
-        match s {
+    pub fn try_from_str(kind_str: &str) -> Option<Self> {
+        match kind_str {
             "due" => Some(PropertyKind::Due),
             "tag" => Some(PropertyKind::Tag),
             "id" => Some(PropertyKind::Id),
@@ -73,7 +73,7 @@ impl PropertyKind {
     }
 }
 
-/// A `#let` binding exported by a TaskFile's module scope.
+/// A `#let` binding exported by a `TaskFile`'s module scope.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FileBinding {
     pub id: Option<i64>,
@@ -153,9 +153,17 @@ pub enum StoreError {
 
 pub trait Store {
     /// Insert or update a task file record. Returns the file's row ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
     fn upsert_task_file(&mut self, file: &TaskFile) -> Result<i64, StoreError>;
 
     /// Replace all tasks and their properties for a given file.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
     fn upsert_tasks(
         &mut self,
         file_id: i64,
@@ -164,6 +172,10 @@ pub trait Store {
     ) -> Result<(), StoreError>;
 
     /// Replace all bindings for a given file.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
     fn upsert_bindings(
         &mut self,
         file_id: i64,
@@ -171,18 +183,38 @@ pub trait Store {
     ) -> Result<(), StoreError>;
 
     /// Remove a task file and all associated data (cascades).
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
     fn remove_task_file(&mut self, path: &Path) -> Result<(), StoreError>;
 
     /// Query tasks with optional filters.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
     fn query_tasks(&self, filter: &TaskFilter) -> Result<Vec<TaskView>, StoreError>;
 
-    /// Get the stored eval_hash for a file path, if it exists.
+    /// Get the stored `eval_hash` for a file path, if it exists.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
     fn get_file_hash(&self, path: &Path) -> Result<Option<String>, StoreError>;
 
     /// List all indexed files with task counts.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
     fn list_files(&self) -> Result<Vec<FileView>, StoreError>;
 
     /// Get aggregate index statistics.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
     fn get_stats(&self) -> Result<IndexStats, StoreError>;
 }
 
@@ -238,13 +270,21 @@ pub struct SqliteStore {
 }
 
 impl SqliteStore {
-    /// Open (or create) a SQLite database at the given path.
+    /// Open (or create) a `SQLite` database at the given path.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database cannot be opened or migrated.
     pub fn open(path: &Path) -> Result<Self, StoreError> {
         let conn = Connection::open(path)?;
         Self::init(conn)
     }
 
     /// Open an in-memory database (for tests).
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the in-memory database cannot be initialized.
     pub fn open_memory() -> Result<Self, StoreError> {
         let conn = Connection::open_in_memory()?;
         Self::init(conn)
@@ -269,6 +309,92 @@ impl SqliteStore {
         }
 
         Ok(())
+    }
+
+    fn build_task_query(
+        filter: &TaskFilter,
+    ) -> (String, Vec<Box<dyn rusqlite::types::ToSql>>) {
+        let mut sql = String::from(
+            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+             FROM tasks t
+             JOIN task_files tf ON t.task_file_id = tf.id",
+        );
+        let mut conditions: Vec<String> = Vec::new();
+        let mut bind_values: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
+
+        if let Some(done) = filter.done {
+            conditions.push(format!("t.is_done = ?{}", bind_values.len() + 1));
+            bind_values.push(Box::new(done as i32));
+        }
+
+        if let Some(ref tag) = filter.tag {
+            conditions.push(format!(
+                "EXISTS (SELECT 1 FROM task_properties tp WHERE tp.task_id = t.id AND tp.kind = 'tag' AND tp.value = ?{})",
+                bind_values.len() + 1
+            ));
+            bind_values.push(Box::new(tag.clone()));
+        }
+
+        if let Some(ref due_before) = filter.due_before {
+            conditions.push(format!(
+                "EXISTS (SELECT 1 FROM task_properties tp WHERE tp.task_id = t.id AND tp.kind = 'due' AND tp.value <= ?{})",
+                bind_values.len() + 1
+            ));
+            bind_values.push(Box::new(due_before.clone()));
+        }
+
+        if let Some(ref file_path) = filter.file_path {
+            conditions.push(format!(
+                "tf.relative_path = ?{}",
+                bind_values.len() + 1
+            ));
+            bind_values.push(Box::new(file_path.to_string_lossy().to_string()));
+        }
+
+        if let Some(ref folder) = filter.folder {
+            let prefix = folder.to_string_lossy().to_string();
+            conditions.push(format!(
+                "tf.relative_path LIKE ?{} || '%'",
+                bind_values.len() + 1
+            ));
+            bind_values.push(Box::new(prefix));
+        }
+
+        if !conditions.is_empty() {
+            sql.push_str(" WHERE ");
+            sql.push_str(&conditions.join(" AND "));
+        }
+
+        sql.push_str(" ORDER BY tf.relative_path, t.position");
+
+        if let Some(limit) = filter.limit {
+            sql.push_str(&format!(" LIMIT {limit}"));
+        }
+
+        (sql, bind_values)
+    }
+
+    fn fetch_task_properties(
+        &self,
+        task_id: i64,
+    ) -> Result<(Option<String>, Vec<String>), StoreError> {
+        let mut due = None;
+        let mut tags = Vec::new();
+        let mut stmt = self
+            .conn
+            .prepare_cached("SELECT kind, value FROM task_properties WHERE task_id = ?1")?;
+        let rows = stmt.query_map(params![task_id], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })?;
+        for prop in rows {
+            let (kind, value) = prop?;
+            match kind.as_str() {
+                "due" => due = Some(value),
+                "tag" => tags.push(value),
+                _ => {}
+            }
+        }
+        Ok((due, tags))
     }
 }
 
@@ -365,62 +491,7 @@ impl Store for SqliteStore {
     }
 
     fn query_tasks(&self, filter: &TaskFilter) -> Result<Vec<TaskView>, StoreError> {
-        let mut sql = String::from(
-            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
-             FROM tasks t
-             JOIN task_files tf ON t.task_file_id = tf.id",
-        );
-        let mut conditions: Vec<String> = Vec::new();
-        let mut bind_values: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
-
-        if let Some(done) = filter.done {
-            conditions.push(format!("t.is_done = ?{}", bind_values.len() + 1));
-            bind_values.push(Box::new(done as i32));
-        }
-
-        if let Some(ref tag) = filter.tag {
-            conditions.push(format!(
-                "EXISTS (SELECT 1 FROM task_properties tp WHERE tp.task_id = t.id AND tp.kind = 'tag' AND tp.value = ?{})",
-                bind_values.len() + 1
-            ));
-            bind_values.push(Box::new(tag.clone()));
-        }
-
-        if let Some(ref due_before) = filter.due_before {
-            conditions.push(format!(
-                "EXISTS (SELECT 1 FROM task_properties tp WHERE tp.task_id = t.id AND tp.kind = 'due' AND tp.value <= ?{})",
-                bind_values.len() + 1
-            ));
-            bind_values.push(Box::new(due_before.clone()));
-        }
-
-        if let Some(ref file_path) = filter.file_path {
-            conditions.push(format!(
-                "tf.relative_path = ?{}",
-                bind_values.len() + 1
-            ));
-            bind_values.push(Box::new(file_path.to_string_lossy().to_string()));
-        }
-
-        if let Some(ref folder) = filter.folder {
-            let prefix = folder.to_string_lossy().to_string();
-            conditions.push(format!(
-                "tf.relative_path LIKE ?{} || '%'",
-                bind_values.len() + 1
-            ));
-            bind_values.push(Box::new(prefix));
-        }
-
-        if !conditions.is_empty() {
-            sql.push_str(" WHERE ");
-            sql.push_str(&conditions.join(" AND "));
-        }
-
-        sql.push_str(" ORDER BY tf.relative_path, t.position");
-
-        if let Some(limit) = filter.limit {
-            sql.push_str(&format!(" LIMIT {limit}"));
-        }
+        let (sql, bind_values) = Self::build_task_query(filter);
 
         let params_refs: Vec<&dyn rusqlite::types::ToSql> =
             bind_values.iter().map(Box::as_ref).collect();
@@ -441,23 +512,7 @@ impl Store for SqliteStore {
 
         let mut views = Vec::with_capacity(rows.len());
         for (task_id, title, is_done, position, file_path, file_title) in rows {
-            let mut due = None;
-            let mut tags = Vec::new();
-
-            let mut prop_stmt = self.conn.prepare_cached(
-                "SELECT kind, value FROM task_properties WHERE task_id = ?1",
-            )?;
-            let prop_rows = prop_stmt.query_map(params![task_id], |row| {
-                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-            })?;
-            for prop in prop_rows {
-                let (kind, value) = prop?;
-                match kind.as_str() {
-                    "due" => due = Some(value),
-                    "tag" => tags.push(value),
-                    _ => {}
-                }
-            }
+            let (due, tags) = self.fetch_task_properties(task_id)?;
 
             views.push(TaskView {
                 title,
@@ -537,6 +592,10 @@ impl Store for SqliteStore {
 // ---------------------------------------------------------------------------
 
 /// Compute SHA-256 hash of a file's contents, returned as hex string.
+///
+/// # Errors
+///
+/// Returns an error if the file cannot be read.
 pub fn hash_file(path: &Path) -> Result<String, std::io::Error> {
     let bytes = std::fs::read(path)?;
     let hash = Sha256::digest(&bytes);
@@ -623,6 +682,10 @@ pub fn to_store_records(
 ///
 /// Skips re-indexing if the file's content hash hasn't changed.
 /// Returns `Ok(true)` if the file was indexed, `Ok(false)` if skipped.
+///
+/// # Errors
+///
+/// Returns `StoreError` if evaluation, hashing, or database operations fail.
 pub fn index_file(
     store: &mut dyn Store,
     world: &dyn typst::World,
@@ -657,6 +720,7 @@ pub fn index_file(
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
     use super::*;
 
@@ -1091,21 +1155,21 @@ mod tests {
     #[test]
     fn hash_file_deterministic() {
         let dir = tempfile::tempdir().unwrap();
-        let f = dir.path().join("test.txt");
-        std::fs::write(&f, "hello").unwrap();
-        let h1 = hash_file(&f).unwrap();
-        let h2 = hash_file(&f).unwrap();
+        let file = dir.path().join("test.txt");
+        std::fs::write(&file, "hello").unwrap();
+        let h1 = hash_file(&file).unwrap();
+        let h2 = hash_file(&file).unwrap();
         assert_eq!(h1, h2);
     }
 
     #[test]
     fn hash_file_changes_with_content() {
         let dir = tempfile::tempdir().unwrap();
-        let f = dir.path().join("test.txt");
-        std::fs::write(&f, "hello").unwrap();
-        let h1 = hash_file(&f).unwrap();
-        std::fs::write(&f, "world").unwrap();
-        let h2 = hash_file(&f).unwrap();
+        let file = dir.path().join("test.txt");
+        std::fs::write(&file, "hello").unwrap();
+        let h1 = hash_file(&file).unwrap();
+        std::fs::write(&file, "world").unwrap();
+        let h2 = hash_file(&file).unwrap();
         assert_ne!(h1, h2);
     }
 

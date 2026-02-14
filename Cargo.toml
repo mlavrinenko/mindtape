@@ -31,6 +31,13 @@ serde = { version = "1", features = ["derive"] }
 [dev-dependencies]
 tempfile = "3"
 
+[lints]
+workspace = true
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+unused_must_use = "deny"
+
 [workspace.lints.clippy]
 # --- Correctness & Safety ---
 out_of_bounds_indexing = "deny"
@@ -57,6 +64,13 @@ should_implement_trait = "deny"
 type_complexity = "deny"
 too_many_arguments = "deny"
 needless_lifetimes = "deny"
+needless_pass_by_value = "deny"
+cloned_instead_of_copied = "deny"
+flat_map_option = "deny"
+implicit_clone = "deny"
+inefficient_to_string = "deny"
+map_unwrap_or = "deny"
+manual_let_else = "deny"
 
 # --- Redundancy ---
 no_effect = "deny"
@@ -73,6 +87,7 @@ unused_unit = "deny"
 unused_self = "deny"
 deprecated_cfg_attr = "deny"
 unseparated_literal_suffix = "deny"
+search_is_some = "deny"
 
 # --- Pattern Matching ---
 single_match = "deny"
@@ -84,17 +99,20 @@ match_overlapping_arm = "deny"
 wildcard_imports = "deny"
 module_inception = "deny"
 upper_case_acronyms = "deny"
+enum_glob_use = "deny"
 
 # --- Documentation ---
 missing_errors_doc = "deny"
 missing_panics_doc = "deny"
 doc_markdown = "deny"
 
-# --- Pointers ---
+# --- Casts ---
 trivially_copy_pass_by_ref = "deny"
 ptr_as_ptr = "deny"
 ptr_cast_constness = "deny"
 ref_as_ptr = "deny"
+cast_possible_truncation = "warn"
+cast_sign_loss = "warn"
 
 # --- Style ---
 semicolon_if_nothing_returned = "deny"
@@ -102,3 +120,6 @@ redundant_else = "deny"
 redundant_closure_for_method_calls = "deny"
 match_same_arms = "deny"
 undocumented_unsafe_blocks = "deny"
+bool_to_int_with_if = "deny"
+manual_string_new = "deny"
+uninlined_format_args = "deny"

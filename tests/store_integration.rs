@@ -1,10 +1,11 @@
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 //! Integration tests: eval -> store pipeline.
 
 use mindtape::store::{index_file, SqliteStore, Store, TaskFilter};
 use mindtape::world::MindTapeWorld;
 
-/// Set up a temp project with a `.typ` file, a MindTapeWorld, and an in-memory store.
-/// Returns (store, world, file_path, project_root).
+/// Set up a temp project with a `.typ` file, a `MindTapeWorld`, and an in-memory store.
+/// Returns (store, world, `file_path`, `project_root`).
 fn setup(
     source: &str,
 ) -> (SqliteStore, MindTapeWorld, std::path::PathBuf, std::path::PathBuf) {

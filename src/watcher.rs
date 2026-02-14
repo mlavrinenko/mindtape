@@ -1,4 +1,4 @@
-//! File watcher for MindTape.
+//! File watcher for `MindTape`.
 //!
 //! Watches configured directories for `.typ` file changes, re-indexes
 //! modified files, and removes deleted files from the store.
@@ -58,13 +58,19 @@ impl Watcher {
     ///
     /// Resolves each entry's path to absolute, discovers the project root,
     /// and loads `.mindtapeignore` patterns.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WatchError::Other`] if a watch path cannot be resolved
+    /// (e.g. the directory does not exist), or [`WatchError::Io`] if
+    /// canonicalization fails.
     pub fn new(store: SqliteStore, entries: &[WatchEntry]) -> Result<Self, WatchError> {
         let mut resolved = Vec::with_capacity(entries.len());
         for entry in entries {
             let path = crate::config::expand_tilde(&entry.path);
-            let path = std::fs::canonicalize(&path).map_err(|e| {
+            let path = std::fs::canonicalize(&path).map_err(|err| {
                 WatchError::Other(format!(
-                    "cannot resolve watch path {}: {e}",
+                    "cannot resolve watch path {}: {err}",
                     entry.path
                 ))
             })?;
@@ -111,8 +117,8 @@ impl Watcher {
             match self.index_one(path, project_root) {
                 Ok(true) => result.indexed += 1,
                 Ok(false) => result.skipped += 1,
-                Err(e) => {
-                    eprintln!("error indexing {}: {e}", path.display());
+                Err(err) => {
+                    eprintln!("error indexing {}: {err}", path.display());
                     result.errors += 1;
                 }
             }
@@ -148,22 +154,26 @@ impl Watcher {
             match self.index_one(path, &project_root) {
                 Ok(true) => eprintln!("indexed {}", path.display()),
                 Ok(false) => {}
-                Err(e) => eprintln!("error indexing {}: {e}", path.display()),
+                Err(err) => eprintln!("error indexing {}: {err}", path.display()),
             }
         } else {
             // File was deleted — remove from store.
-            let rel = match path.strip_prefix(&project_root) {
-                Ok(r) => r,
-                Err(_) => return,
+            let Ok(rel) = path.strip_prefix(&project_root) else {
+                return;
             };
             match self.store.remove_task_file(rel) {
                 Ok(()) => eprintln!("removed {}", path.display()),
-                Err(e) => eprintln!("error removing {}: {e}", path.display()),
+                Err(err) => eprintln!("error removing {}: {err}", path.display()),
             }
         }
     }
 
     /// Start the file watcher event loop (blocks forever).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WatchError::Notify`] if the debouncer cannot be created
+    /// or a watched path cannot be registered.
     pub fn run(mut self) -> Result<(), WatchError> {
         let (tx, rx) = std::sync::mpsc::channel::<DebounceEventResult>();
         let mut debouncer = new_debouncer(Duration::from_millis(300), tx)?;
@@ -185,8 +195,8 @@ impl Watcher {
                         self.handle_event(&event.path);
                     }
                 }
-                Err(e) => {
-                    eprintln!("watch error: {e}");
+                Err(err) => {
+                    eprintln!("watch error: {err}");
                 }
             }
         }
@@ -203,7 +213,9 @@ impl Watcher {
 
     /// Find which resolved entry contains the given path.
     fn find_entry(&self, path: &Path) -> Option<&ResolvedEntry> {
-        self.entries.iter().find(|e| path.starts_with(&e.path))
+        self.entries
+            .iter()
+            .find(|entry| path.starts_with(&entry.path))
     }
 }
 
@@ -222,6 +234,7 @@ fn is_typ_file(path: &Path) -> bool {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
     use super::*;
     use crate::store::SqliteStore;
@@ -260,25 +273,25 @@ mod tests {
     #[test]
     fn is_typ_file_true_for_typ() {
         let dir = tempfile::tempdir().unwrap();
-        let f = dir.path().join("test.typ");
-        fs::write(&f, "").unwrap();
-        assert!(is_typ_file(&f));
+        let file = dir.path().join("test.typ");
+        fs::write(&file, "").unwrap();
+        assert!(is_typ_file(&file));
     }
 
     #[test]
     fn is_typ_file_false_for_other_ext() {
         let dir = tempfile::tempdir().unwrap();
-        let f = dir.path().join("test.rs");
-        fs::write(&f, "").unwrap();
-        assert!(!is_typ_file(&f));
+        let file = dir.path().join("test.rs");
+        fs::write(&file, "").unwrap();
+        assert!(!is_typ_file(&file));
     }
 
     #[test]
     fn is_typ_file_false_for_directory() {
         let dir = tempfile::tempdir().unwrap();
-        let d = dir.path().join("subdir.typ");
-        fs::create_dir(&d).unwrap();
-        assert!(!is_typ_file(&d));
+        let subdir = dir.path().join("subdir.typ");
+        fs::create_dir(&subdir).unwrap();
+        assert!(!is_typ_file(&subdir));
     }
 
     #[test]

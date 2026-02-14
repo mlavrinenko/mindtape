@@ -38,11 +38,17 @@ pub struct EvalResult {
 
 /// Evaluate the world's main `.typ` file and return all tasks found in its
 /// content tree.
+///
+/// # Errors
+/// Returns `Err` if the source file cannot be read or Typst evaluation fails.
 pub fn eval_file(world: &dyn World) -> Result<Vec<Task>, String> {
     eval_file_full(world).map(|r| r.tasks)
 }
 
 /// Evaluate the world's main `.typ` file and return tasks, title, and bindings.
+///
+/// # Errors
+/// Returns `Err` if the source file cannot be read or Typst evaluation fails.
 pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, String> {
     let source = world
         .source(world.main())
@@ -94,6 +100,7 @@ pub fn collect_tasks(content: &Content, tasks: &mut Vec<Task>) {
 /// Try to interpret a single `ListItem` as a task.
 ///
 /// Returns `None` if the item's text does not start with a checkbox marker.
+#[allow(clippy::indexing_slicing)]
 pub fn extract_task(item: &ListItem) -> Option<Task> {
     let body: &Content = &item.body;
     let text = body.plain_text();
@@ -166,10 +173,10 @@ pub fn extract_bindings(scope: &typst::foundations::Scope) -> Vec<(String, Strin
     for (name, binding) in scope.iter() {
         let value = binding.read();
         let (vtype, vjson) = match value {
-            Value::Str(s) => ("string", format!("\"{}\"", s.as_str())),
-            Value::Int(n) => ("int", n.to_string()),
-            Value::Float(f) => ("float", f.to_string()),
-            Value::Bool(b) => ("bool", b.to_string()),
+            Value::Str(str_val) => ("string", format!("\"{}\"", str_val.as_str())),
+            Value::Int(int_val) => ("int", int_val.to_string()),
+            Value::Float(float_val) => ("float", float_val.to_string()),
+            Value::Bool(bool_val) => ("bool", bool_val.to_string()),
             Value::Datetime(dt) => ("date", format!(
                 "\"{:04}-{:02}-{:02}\"",
                 dt.year().unwrap_or(0),
@@ -177,7 +184,6 @@ pub fn extract_bindings(scope: &typst::foundations::Scope) -> Vec<(String, Strin
                 dt.day().unwrap_or(0),
             )),
             Value::None => ("none", "null".to_string()),
-            Value::Func(_) => continue,
             _ => continue,
         };
         bindings.push((name.to_string(), vtype.to_string(), vjson));

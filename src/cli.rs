@@ -51,12 +51,15 @@ Usage: mindtape <file.typ> [--due] [-N]
        mindtape files [--db PATH]
        mindtape watch [<path>] [--config <file>]";
 
+/// # Errors
+/// Returns `Err` with a usage message if the arguments are invalid or incomplete.
 pub fn parse_args(args: &[String]) -> Result<Command, String> {
+    let rest = args.get(1..).unwrap_or(&[]);
     match args.first().map(String::as_str) {
-        Some("watch") => parse_watch_args(&args[1..]),
-        Some("list") => parse_list_args(&args[1..]),
-        Some("status") => parse_query_args(&args[1..]).map(Command::Status),
-        Some("files") => parse_query_args(&args[1..]).map(Command::Files),
+        Some("watch") => parse_watch_args(rest),
+        Some("list") => parse_list_args(rest),
+        Some("status") => parse_query_args(rest).map(Command::Status),
+        Some("files") => parse_query_args(rest).map(Command::Files),
         _ => parse_eval_args(args).map(Command::Eval),
     }
 }
@@ -81,30 +84,32 @@ fn parse_eval_args(args: &[String]) -> Result<EvalArgs, String> {
     Ok(EvalArgs { file, due, limit })
 }
 
+#[allow(clippy::indexing_slicing)]
 fn parse_watch_args(args: &[String]) -> Result<Command, String> {
     let mut path: Option<PathBuf> = None;
     let mut config: Option<PathBuf> = None;
-    let mut i = 0;
+    let mut idx = 0;
 
-    while i < args.len() {
-        if args[i] == "--config" {
-            i += 1;
+    while idx < args.len() {
+        if args[idx] == "--config" {
+            idx += 1;
             config = Some(
-                args.get(i)
+                args.get(idx)
                     .map(PathBuf::from)
                     .ok_or_else(|| "--config requires a path argument".to_string())?,
             );
-        } else if args[i].starts_with('-') {
-            return Err(format!("unknown watch flag: {}", args[i]));
+        } else if args[idx].starts_with('-') {
+            return Err(format!("unknown watch flag: {}", args[idx]));
         } else {
-            path = Some(PathBuf::from(&args[i]));
+            path = Some(PathBuf::from(&args[idx]));
         }
-        i += 1;
+        idx += 1;
     }
 
     Ok(Command::Watch(WatchArgs { path, config }))
 }
 
+#[allow(clippy::indexing_slicing)]
 fn parse_list_args(args: &[String]) -> Result<Command, String> {
     let mut list = ListArgs {
         done: None,
@@ -116,13 +121,13 @@ fn parse_list_args(args: &[String]) -> Result<Command, String> {
         limit: None,
         db: None,
     };
-    let mut i = 0;
+    let mut idx = 0;
 
-    while i < args.len() {
-        match args[i].as_str() {
+    while idx < args.len() {
+        match args[idx].as_str() {
             "--status" => {
-                i += 1;
-                let val = args.get(i).ok_or("--status requires a value (done, pending, all)")?;
+                idx += 1;
+                let val = args.get(idx).ok_or("--status requires a value (done, pending, all)")?;
                 match val.as_str() {
                     "done" => list.done = Some(true),
                     "pending" => list.done = Some(false),
@@ -131,37 +136,37 @@ fn parse_list_args(args: &[String]) -> Result<Command, String> {
                 }
             }
             "--tag" => {
-                i += 1;
+                idx += 1;
                 list.tag = Some(
-                    args.get(i)
+                    args.get(idx)
                         .ok_or("--tag requires a value")?
                         .clone(),
                 );
             }
             "--due-before" => {
-                i += 1;
+                idx += 1;
                 list.due_before = Some(
-                    args.get(i)
+                    args.get(idx)
                         .ok_or("--due-before requires a date (YYYY-MM-DD)")?
                         .clone(),
                 );
             }
             "--file" => {
-                i += 1;
+                idx += 1;
                 list.file = Some(PathBuf::from(
-                    args.get(i).ok_or("--file requires a path")?,
+                    args.get(idx).ok_or("--file requires a path")?,
                 ));
             }
             "--folder" => {
-                i += 1;
+                idx += 1;
                 list.folder = Some(PathBuf::from(
-                    args.get(i).ok_or("--folder requires a path")?,
+                    args.get(idx).ok_or("--folder requires a path")?,
                 ));
             }
             "--db" => {
-                i += 1;
+                idx += 1;
                 list.db = Some(PathBuf::from(
-                    args.get(i).ok_or("--db requires a path")?,
+                    args.get(idx).ok_or("--db requires a path")?,
                 ));
             }
             other => {
@@ -172,26 +177,27 @@ fn parse_list_args(args: &[String]) -> Result<Command, String> {
                 }
             }
         }
-        i += 1;
+        idx += 1;
     }
 
     Ok(Command::List(list))
 }
 
+#[allow(clippy::indexing_slicing)]
 fn parse_query_args(args: &[String]) -> Result<QueryArgs, String> {
     let mut db: Option<PathBuf> = None;
-    let mut i = 0;
+    let mut idx = 0;
 
-    while i < args.len() {
-        if args[i] == "--db" {
-            i += 1;
+    while idx < args.len() {
+        if args[idx] == "--db" {
+            idx += 1;
             db = Some(PathBuf::from(
-                args.get(i).ok_or("--db requires a path")?,
+                args.get(idx).ok_or("--db requires a path")?,
             ));
         } else {
-            return Err(format!("unknown argument: {}", args[i]));
+            return Err(format!("unknown argument: {}", args[idx]));
         }
-        i += 1;
+        idx += 1;
     }
 
     Ok(QueryArgs { db })
@@ -201,6 +207,7 @@ fn parse_query_args(args: &[String]) -> Result<QueryArgs, String> {
 // Formatting: store query results
 // ---------------------------------------------------------------------------
 
+#[must_use]
 pub fn format_task_view(task: &TaskView) -> String {
     let check = if task.is_done { "[x]" } else { "[ ]" };
     let due_part = task
@@ -216,6 +223,7 @@ pub fn format_task_view(task: &TaskView) -> String {
     format!("- {check}{due_part} {}{tag_part}", task.title)
 }
 
+#[must_use]
 pub fn format_file_view(file: &FileView) -> String {
     let title_part = file
         .title
@@ -227,6 +235,7 @@ pub fn format_file_view(file: &FileView) -> String {
     format!("{} ({count} {noun}){title_part}", file.relative_path.display())
 }
 
+#[must_use]
 pub fn format_stats(stats: &IndexStats) -> String {
     let mut lines = vec![
         format!("files:   {}", stats.file_count),
@@ -238,6 +247,9 @@ pub fn format_stats(stats: &IndexStats) -> String {
     lines.join("\n")
 }
 
+/// # Panics
+/// Panics if `due_only` is true and a retained task has a `None` due date.
+#[must_use]
 pub fn filter_and_sort(tasks: Vec<Task>, due_only: bool, limit: Option<usize>) -> Vec<Task> {
     // Filter out completed tasks
     let mut tasks: Vec<_> = tasks.into_iter().filter(|t| !t.done).collect();
@@ -245,6 +257,7 @@ pub fn filter_and_sort(tasks: Vec<Task>, due_only: bool, limit: Option<usize>) -
     // If due_only: keep only tasks with due dates, sort by due date ascending
     if due_only {
         tasks.retain(|t| t.due.is_some());
+        #[allow(clippy::unwrap_used)]
         tasks.sort_by(|a, b| {
             let a_due = a.due.as_ref().unwrap();
             let b_due = b.due.as_ref().unwrap();
@@ -260,6 +273,7 @@ pub fn filter_and_sort(tasks: Vec<Task>, due_only: bool, limit: Option<usize>) -
     tasks
 }
 
+#[must_use]
 pub fn format_task(task: &Task) -> String {
     match &task.due {
         Some(dt) => format!("- (due {}) {}", format_due(dt), task.title),
@@ -267,6 +281,7 @@ pub fn format_task(task: &Task) -> String {
     }
 }
 
+#[must_use]
 pub fn format_due(dt: &Datetime) -> String {
     format!(
         "{:04}-{:02}-{:02}",
@@ -276,6 +291,7 @@ pub fn format_due(dt: &Datetime) -> String {
     )
 }
 
+#[must_use]
 pub fn due_sort_key(dt: &Datetime) -> (i32, u8, u8) {
     (
         dt.year().unwrap_or(0),
@@ -285,6 +301,7 @@ pub fn due_sort_key(dt: &Datetime) -> (i32, u8, u8) {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
     use super::*;
 
@@ -296,8 +313,8 @@ mod tests {
         Task { title: title.to_string(), done, due, tags: vec![], position: 0 }
     }
 
-    fn ymd(y: i32, m: u8, d: u8) -> Datetime {
-        Datetime::from_ymd(y, m, d).unwrap()
+    fn ymd(year: i32, month: u8, day: u8) -> Datetime {
+        Datetime::from_ymd(year, month, day).unwrap()
     }
 
     // --- parse_args: eval (backwards compat) ---

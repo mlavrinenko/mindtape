@@ -1,4 +1,5 @@
-//! Integration tests: watcher initial_scan + handle_event with real eval pipeline.
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
+//! Integration tests: watcher `initial_scan` + `handle_event` with real eval pipeline.
 
 use std::path::PathBuf;
 

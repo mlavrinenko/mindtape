@@ -1,4 +1,4 @@
-//! Configuration file loading for MindTape.
+//! Configuration file loading for `MindTape`.
 //!
 //! Supports TOML configuration with watched folders and database path.
 //! Searches for `mindtape.toml` in the current directory, then
@@ -45,6 +45,9 @@ pub enum ConfigError {
 }
 
 /// Load and parse a TOML config file.
+///
+/// # Errors
+/// Returns `ConfigError` if the file cannot be read or contains invalid TOML.
 pub fn load_config(path: &Path) -> Result<Config, ConfigError> {
     let text = std::fs::read_to_string(path)?;
     let config: Config = toml::from_str(&text)?;
@@ -109,6 +112,7 @@ fn home_dir() -> Option<PathBuf> {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
     use super::*;
 

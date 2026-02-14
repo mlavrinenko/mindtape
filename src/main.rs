@@ -12,40 +12,40 @@ fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
 
     let command = match cli::parse_args(&args) {
-        Ok(c) => c,
-        Err(e) => {
-            eprintln!("{e}");
+        Ok(cmd) => cmd,
+        Err(err) => {
+            eprintln!("{err}");
             process::exit(1);
         }
     };
 
     match command {
-        Command::Eval(args) => run_eval(args),
-        Command::Watch(args) => run_watch(args),
+        Command::Eval(args) => run_eval(&args),
+        Command::Watch(args) => run_watch(&args),
         Command::List(args) => run_list(args),
-        Command::Status(args) => run_status(args),
-        Command::Files(args) => run_files(args),
+        Command::Status(args) => run_status(&args),
+        Command::Files(args) => run_files(&args),
     }
 }
 
-fn run_eval(args: cli::EvalArgs) {
+fn run_eval(args: &cli::EvalArgs) {
     if !args.file.exists() {
         eprintln!("Error: file not found: {}", args.file.display());
         process::exit(1);
     }
 
     let world = match world::MindTapeWorld::new(&args.file) {
-        Ok(w) => w,
-        Err(e) => {
-            eprintln!("Error creating world: {e}");
+        Ok(world) => world,
+        Err(err) => {
+            eprintln!("Error creating world: {err}");
             process::exit(1);
         }
     };
 
     let tasks = match eval::eval_file(&world) {
-        Ok(t) => t,
-        Err(e) => {
-            eprintln!("Error evaluating file: {e}");
+        Ok(result) => result,
+        Err(err) => {
+            eprintln!("Error evaluating file: {err}");
             process::exit(1);
         }
     };
@@ -57,8 +57,8 @@ fn run_eval(args: cli::EvalArgs) {
     }
 }
 
-fn run_watch(args: cli::WatchArgs) {
-    let cfg = load_watch_config(&args);
+fn run_watch(args: &cli::WatchArgs) {
+    let cfg = load_watch_config(args);
 
     if cfg.watch.is_empty() {
         eprintln!("Error: no watch paths configured");
@@ -78,17 +78,17 @@ fn run_watch(args: cli::WatchArgs) {
     }
 
     let store = match SqliteStore::open(&db_path) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("Error opening database: {e}");
+        Ok(store) => store,
+        Err(err) => {
+            eprintln!("Error opening database: {err}");
             process::exit(1);
         }
     };
 
     let mut watcher = match Watcher::new(store, &cfg.watch) {
-        Ok(w) => w,
-        Err(e) => {
-            eprintln!("Error setting up watcher: {e}");
+        Ok(watcher) => watcher,
+        Err(err) => {
+            eprintln!("Error setting up watcher: {err}");
             process::exit(1);
         }
     };
@@ -119,9 +119,9 @@ fn run_list(args: cli::ListArgs) {
     };
 
     let tasks = match store.query_tasks(&filter) {
-        Ok(t) => t,
-        Err(e) => {
-            eprintln!("Error querying tasks: {e}");
+        Ok(tasks) => tasks,
+        Err(err) => {
+            eprintln!("Error querying tasks: {err}");
             process::exit(1);
         }
     };
@@ -140,20 +140,20 @@ fn run_list(args: cli::ListArgs) {
                 println!();
             }
             let header = task.file_title.as_deref().unwrap_or(&file_str);
-            println!("{header} ({})", file_str);
+            println!("{header} ({file_str})");
             current_file = file_str.to_string();
         }
         println!("  {}", cli::format_task_view(task));
     }
 }
 
-fn run_status(args: cli::QueryArgs) {
+fn run_status(args: &cli::QueryArgs) {
     let store = open_query_db(args.db.as_deref());
 
     let stats = match store.get_stats() {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("Error querying stats: {e}");
+        Ok(stats) => stats,
+        Err(err) => {
+            eprintln!("Error querying stats: {err}");
             process::exit(1);
         }
     };
@@ -161,13 +161,13 @@ fn run_status(args: cli::QueryArgs) {
     println!("{}", cli::format_stats(&stats));
 }
 
-fn run_files(args: cli::QueryArgs) {
+fn run_files(args: &cli::QueryArgs) {
     let store = open_query_db(args.db.as_deref());
 
     let files = match store.list_files() {
-        Ok(f) => f,
-        Err(e) => {
-            eprintln!("Error listing files: {e}");
+        Ok(files) => files,
+        Err(err) => {
+            eprintln!("Error listing files: {err}");
             process::exit(1);
         }
     };
@@ -182,7 +182,7 @@ fn run_files(args: cli::QueryArgs) {
     }
 }
 
-/// Open the SQLite database for query commands.
+/// Open the `SQLite` database for query commands.
 ///
 /// Uses the explicit `--db` override if given, otherwise resolves from
 /// config auto-discovery or the default path.
@@ -206,9 +206,9 @@ fn open_query_db(db_override: Option<&Path>) -> SqliteStore {
     }
 
     match SqliteStore::open(&db_path) {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("Error opening database: {e}");
+        Ok(store) => store,
+        Err(err) => {
+            eprintln!("Error opening database: {err}");
             process::exit(1);
         }
     }
@@ -219,9 +219,9 @@ fn load_watch_config(args: &cli::WatchArgs) -> config::Config {
     // Explicit --config flag takes priority.
     if let Some(ref config_path) = args.config {
         match config::load_config(config_path) {
-            Ok(c) => return c,
-            Err(e) => {
-                eprintln!("Error loading config {}: {e}", config_path.display());
+            Ok(cfg) => return cfg,
+            Err(err) => {
+                eprintln!("Error loading config {}: {err}", config_path.display());
                 process::exit(1);
             }
         }
@@ -241,9 +241,9 @@ fn load_watch_config(args: &cli::WatchArgs) -> config::Config {
     // Try auto-discovery.
     if let Some(config_path) = config::find_config() {
         match config::load_config(&config_path) {
-            Ok(c) => return c,
-            Err(e) => {
-                eprintln!("Error loading config {}: {e}", config_path.display());
+            Ok(cfg) => return cfg,
+            Err(err) => {
+                eprintln!("Error loading config {}: {err}", config_path.display());
                 process::exit(1);
             }
         }

@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
+
 use mindtape::eval::{eval_file, eval_file_full, Task};
 use mindtape::world::MindTapeWorld;
 use typst::foundations::Datetime;
@@ -9,7 +11,7 @@ fn eval_typ(source: &str) -> Result<Vec<Task>, String> {
     std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
     let file = dir.path().join("test.typ");
     std::fs::write(&file, source).unwrap();
-    let world = MindTapeWorld::new(&file).map_err(|e| e.to_string())?;
+    let world = MindTapeWorld::new(&file).map_err(|e| e.clone())?;
     eval_file(&world)
 }
 
@@ -22,7 +24,7 @@ fn eval_typ_with_prelude(prelude: &str, source: &str) -> Result<Vec<Task>, Strin
     std::fs::write(lib_dir.join("prelude.typ"), prelude).unwrap();
     let file = dir.path().join("test.typ");
     std::fs::write(&file, source).unwrap();
-    let world = MindTapeWorld::new(&file).map_err(|e| e.to_string())?;
+    let world = MindTapeWorld::new(&file).map_err(|e| e.clone())?;
     eval_file(&world)
 }
 
@@ -41,7 +43,7 @@ fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, Strin
     .unwrap();
     let file = dir.path().join("test.typ");
     std::fs::write(&file, source).unwrap();
-    let world = MindTapeWorld::new(&file).map_err(|e| e.to_string())?;
+    let world = MindTapeWorld::new(&file).map_err(|e| e.clone())?;
     eval_file(&world)
 }
 
@@ -51,12 +53,12 @@ fn eval_typ_full(source: &str) -> Result<mindtape::eval::EvalResult, String> {
     std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
     let file = dir.path().join("test.typ");
     std::fs::write(&file, source).unwrap();
-    let world = MindTapeWorld::new(&file).map_err(|e| e.to_string())?;
+    let world = MindTapeWorld::new(&file).map_err(|e| e.clone())?;
     eval_file_full(&world)
 }
 
-fn ymd(y: i32, m: u8, d: u8) -> Datetime {
-    Datetime::from_ymd(y, m, d).unwrap()
+fn ymd(year: i32, month: u8, day: u8) -> Datetime {
+    Datetime::from_ymd(year, month, day).unwrap()
 }
 
 #[test]
@@ -288,17 +290,17 @@ fn eval_full_extracts_string_binding() {
 #[test]
 fn eval_full_extracts_int_binding() {
     let result = eval_typ_full("#let count = 42").unwrap();
-    let b = result.bindings.iter().find(|b| b.0 == "count").unwrap();
-    assert_eq!(b.1, "int");
-    assert_eq!(b.2, "42");
+    let binding = result.bindings.iter().find(|b| b.0 == "count").unwrap();
+    assert_eq!(binding.1, "int");
+    assert_eq!(binding.2, "42");
 }
 
 #[test]
 fn eval_full_extracts_bool_binding() {
     let result = eval_typ_full("#let active = true").unwrap();
-    let b = result.bindings.iter().find(|b| b.0 == "active").unwrap();
-    assert_eq!(b.1, "bool");
-    assert_eq!(b.2, "true");
+    let binding = result.bindings.iter().find(|b| b.0 == "active").unwrap();
+    assert_eq!(binding.1, "bool");
+    assert_eq!(binding.2, "true");
 }
 
 #[test]
@@ -336,25 +338,25 @@ fn eval_full_positions_skip_non_tasks() {
 #[test]
 fn eval_full_extracts_float_binding() {
     let result = eval_typ_full("#let ratio = 3.14").unwrap();
-    let b = result.bindings.iter().find(|b| b.0 == "ratio").unwrap();
-    assert_eq!(b.1, "float");
-    assert_eq!(b.2, "3.14");
+    let binding = result.bindings.iter().find(|b| b.0 == "ratio").unwrap();
+    assert_eq!(binding.1, "float");
+    assert_eq!(binding.2, "3.14");
 }
 
 #[test]
 fn eval_full_extracts_datetime_binding() {
     let result = eval_typ_full("#let deadline = datetime(year: 2026, month: 6, day: 15)").unwrap();
-    let b = result.bindings.iter().find(|b| b.0 == "deadline").unwrap();
-    assert_eq!(b.1, "date");
-    assert_eq!(b.2, "\"2026-06-15\"");
+    let binding = result.bindings.iter().find(|b| b.0 == "deadline").unwrap();
+    assert_eq!(binding.1, "date");
+    assert_eq!(binding.2, "\"2026-06-15\"");
 }
 
 #[test]
 fn eval_full_extracts_none_binding() {
     let result = eval_typ_full("#let maybe = none").unwrap();
-    let b = result.bindings.iter().find(|b| b.0 == "maybe").unwrap();
-    assert_eq!(b.1, "none");
-    assert_eq!(b.2, "null");
+    let binding = result.bindings.iter().find(|b| b.0 == "maybe").unwrap();
+    assert_eq!(binding.1, "none");
+    assert_eq!(binding.2, "null");
 }
 
 #[test]
