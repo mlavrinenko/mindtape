@@ -1343,6 +1343,7 @@ dependencies = [
  "notify",
  "notify-debouncer-mini",
  "serde",
+ "serde_json",
  "tempfile",
  "thiserror",
  "toml",
@@ -1368,6 +1369,7 @@ version = "0.1.0"
 dependencies = [
  "mindtape-eval",
  "rusqlite",
+ "serde",
  "sha2",
  "tempfile",
  "thiserror",

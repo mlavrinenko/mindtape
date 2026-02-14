@@ -11,6 +11,7 @@ mod sqlite;
 use std::path::{Path, PathBuf};
 
 use mindtape_eval::EvalError;
+use serde::Serialize;
 use thiserror::Error;
 
 // Re-export submodules' public items at the `store` level.
@@ -99,7 +100,7 @@ pub struct TaskFilter {
 }
 
 /// A task with its file context and properties, returned by queries.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct TaskView {
     pub title: String,
     pub is_done: bool,
@@ -111,7 +112,7 @@ pub struct TaskView {
 }
 
 /// Summary of an indexed file, returned by `list_files()`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct FileView {
     pub relative_path: PathBuf,
     pub title: Option<String>,
@@ -120,7 +121,7 @@ pub struct FileView {
 }
 
 /// Aggregate index statistics, returned by `get_stats()`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct IndexStats {
     pub file_count: i64,
     pub task_count: i64,

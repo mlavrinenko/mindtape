@@ -126,6 +126,11 @@ fn run_list(args: cli::ListArgs) {
         }
     };
 
+    if args.json {
+        print_json(&tasks);
+        return;
+    }
+
     if tasks.is_empty() {
         eprintln!("no tasks found");
         return;
@@ -158,6 +163,11 @@ fn run_status(args: &cli::QueryArgs) {
         }
     };
 
+    if args.json {
+        print_json(&stats);
+        return;
+    }
+
     println!("{}", cli::format_stats(&stats));
 }
 
@@ -172,6 +182,11 @@ fn run_files(args: &cli::QueryArgs) {
         }
     };
 
+    if args.json {
+        print_json(&files);
+        return;
+    }
+
     if files.is_empty() {
         eprintln!("no indexed files");
         return;
@@ -179,6 +194,16 @@ fn run_files(args: &cli::QueryArgs) {
 
     for file in &files {
         println!("{}", cli::format_file_view(file));
+    }
+}
+
+fn print_json(value: &impl serde::Serialize) {
+    match serde_json::to_string_pretty(value) {
+        Ok(json) => println!("{json}"),
+        Err(err) => {
+            eprintln!("Error serializing JSON: {err}");
+            process::exit(1);
+        }
     }
 }
 

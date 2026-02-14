@@ -27,6 +27,7 @@ pub struct WatchArgs {
     pub config: Option<PathBuf>,
 }
 
+#[derive(Default)]
 pub struct ListArgs {
     /// None = pending only (default), Some(true) = done, Some(false) = pending.
     /// Use `status_all` for showing everything.
@@ -38,10 +39,12 @@ pub struct ListArgs {
     pub folder: Option<PathBuf>,
     pub limit: Option<usize>,
     pub db: Option<PathBuf>,
+    pub json: bool,
 }
 
 pub struct QueryArgs {
     pub db: Option<PathBuf>,
+    pub json: bool,
 }
 
 const USAGE: &str = "\
@@ -111,16 +114,7 @@ fn parse_watch_args(args: &[String]) -> Result<Command, String> {
 
 #[allow(clippy::indexing_slicing)]
 fn parse_list_args(args: &[String]) -> Result<Command, String> {
-    let mut list = ListArgs {
-        done: None,
-        status_all: false,
-        tag: None,
-        due_before: None,
-        file: None,
-        folder: None,
-        limit: None,
-        db: None,
-    };
+    let mut list = ListArgs::default();
     let mut idx = 0;
 
     while idx < args.len() {
@@ -169,6 +163,9 @@ fn parse_list_args(args: &[String]) -> Result<Command, String> {
                     args.get(idx).ok_or("--db requires a path")?,
                 ));
             }
+            "--json" => {
+                list.json = true;
+            }
             other => {
                 if let Some(n) = other.strip_prefix('-').and_then(|s| s.parse::<usize>().ok()) {
                     list.limit = Some(n);
@@ -186,6 +183,7 @@ fn parse_list_args(args: &[String]) -> Result<Command, String> {
 #[allow(clippy::indexing_slicing)]
 fn parse_query_args(args: &[String]) -> Result<QueryArgs, String> {
     let mut db: Option<PathBuf> = None;
+    let mut json = false;
     let mut idx = 0;
 
     while idx < args.len() {
@@ -194,13 +192,15 @@ fn parse_query_args(args: &[String]) -> Result<QueryArgs, String> {
             db = Some(PathBuf::from(
                 args.get(idx).ok_or("--db requires a path")?,
             ));
+        } else if args[idx] == "--json" {
+            json = true;
         } else {
             return Err(format!("unknown argument: {}", args[idx]));
         }
         idx += 1;
     }
 
-    Ok(QueryArgs { db })
+    Ok(QueryArgs { db, json })
 }
 
 // ---------------------------------------------------------------------------
@@ -639,6 +639,36 @@ mod tests {
     fn parse_status_unknown_flag() {
         let result = parse_args(&[s("status"), s("--verbose")]);
         assert!(result.is_err());
+    }
+
+    // --- --json flag ---
+
+    #[test]
+    fn parse_list_with_json() {
+        let cmd = parse_args(&[s("list"), s("--json")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert!(args.json);
+    }
+
+    #[test]
+    fn parse_list_without_json() {
+        let cmd = parse_args(&[s("list")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert!(!args.json);
+    }
+
+    #[test]
+    fn parse_status_with_json() {
+        let cmd = parse_args(&[s("status"), s("--json")]).unwrap();
+        let Command::Status(args) = cmd else { panic!("expected Status") };
+        assert!(args.json);
+    }
+
+    #[test]
+    fn parse_files_with_json() {
+        let cmd = parse_args(&[s("files"), s("--json")]).unwrap();
+        let Command::Files(args) = cmd else { panic!("expected Files") };
+        assert!(args.json);
     }
 
     // --- format_task_view ---
