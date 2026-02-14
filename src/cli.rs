@@ -3,11 +3,15 @@ use std::path::PathBuf;
 use typst::foundations::Datetime;
 
 use crate::eval::Task;
+use crate::store::{FileView, IndexStats, TaskView};
 
 /// Parsed CLI command.
 pub enum Command {
     Eval(EvalArgs),
     Watch(WatchArgs),
+    List(ListArgs),
+    Status(QueryArgs),
+    Files(QueryArgs),
 }
 
 pub struct EvalArgs {
@@ -23,11 +27,38 @@ pub struct WatchArgs {
     pub config: Option<PathBuf>,
 }
 
+pub struct ListArgs {
+    /// None = pending only (default), Some(true) = done, Some(false) = pending.
+    /// Use `status_all` for showing everything.
+    pub done: Option<bool>,
+    pub status_all: bool,
+    pub tag: Option<String>,
+    pub due_before: Option<String>,
+    pub file: Option<PathBuf>,
+    pub folder: Option<PathBuf>,
+    pub limit: Option<usize>,
+    pub db: Option<PathBuf>,
+}
+
+pub struct QueryArgs {
+    pub db: Option<PathBuf>,
+}
+
+const USAGE: &str = "\
+Usage: mindtape <file.typ> [--due] [-N]
+       mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH]
+       mindtape status [--db PATH]
+       mindtape files [--db PATH]
+       mindtape watch [<path>] [--config <file>]";
+
 pub fn parse_args(args: &[String]) -> Result<Command, String> {
-    if args.first().map(|s| s.as_str()) == Some("watch") {
-        return parse_watch_args(&args[1..]);
+    match args.first().map(|s| s.as_str()) {
+        Some("watch") => parse_watch_args(&args[1..]),
+        Some("list") => parse_list_args(&args[1..]),
+        Some("status") => parse_query_args(&args[1..]).map(Command::Status),
+        Some("files") => parse_query_args(&args[1..]).map(Command::Files),
+        _ => parse_eval_args(args).map(Command::Eval),
     }
-    parse_eval_args(args).map(Command::Eval)
 }
 
 fn parse_eval_args(args: &[String]) -> Result<EvalArgs, String> {
@@ -45,7 +76,7 @@ fn parse_eval_args(args: &[String]) -> Result<EvalArgs, String> {
         }
     }
 
-    let file = file.ok_or_else(|| "Usage: mindtape <file.typ> [--due] [-N]\n       mindtape watch [<path>] [--config <file>]".to_string())?;
+    let file = file.ok_or_else(|| USAGE.to_string())?;
 
     Ok(EvalArgs { file, due, limit })
 }
@@ -72,6 +103,139 @@ fn parse_watch_args(args: &[String]) -> Result<Command, String> {
     }
 
     Ok(Command::Watch(WatchArgs { path, config }))
+}
+
+fn parse_list_args(args: &[String]) -> Result<Command, String> {
+    let mut list = ListArgs {
+        done: None,
+        status_all: false,
+        tag: None,
+        due_before: None,
+        file: None,
+        folder: None,
+        limit: None,
+        db: None,
+    };
+    let mut i = 0;
+
+    while i < args.len() {
+        match args[i].as_str() {
+            "--status" => {
+                i += 1;
+                let val = args.get(i).ok_or("--status requires a value (done, pending, all)")?;
+                match val.as_str() {
+                    "done" => list.done = Some(true),
+                    "pending" => list.done = Some(false),
+                    "all" => list.status_all = true,
+                    _ => return Err(format!("invalid --status value: {val} (use done, pending, or all)")),
+                }
+            }
+            "--tag" => {
+                i += 1;
+                list.tag = Some(
+                    args.get(i)
+                        .ok_or("--tag requires a value")?
+                        .clone(),
+                );
+            }
+            "--due-before" => {
+                i += 1;
+                list.due_before = Some(
+                    args.get(i)
+                        .ok_or("--due-before requires a date (YYYY-MM-DD)")?
+                        .clone(),
+                );
+            }
+            "--file" => {
+                i += 1;
+                list.file = Some(PathBuf::from(
+                    args.get(i).ok_or("--file requires a path")?,
+                ));
+            }
+            "--folder" => {
+                i += 1;
+                list.folder = Some(PathBuf::from(
+                    args.get(i).ok_or("--folder requires a path")?,
+                ));
+            }
+            "--db" => {
+                i += 1;
+                list.db = Some(PathBuf::from(
+                    args.get(i).ok_or("--db requires a path")?,
+                ));
+            }
+            other => {
+                if let Some(n) = other.strip_prefix('-').and_then(|s| s.parse::<usize>().ok()) {
+                    list.limit = Some(n);
+                } else {
+                    return Err(format!("unknown list argument: {other}"));
+                }
+            }
+        }
+        i += 1;
+    }
+
+    Ok(Command::List(list))
+}
+
+fn parse_query_args(args: &[String]) -> Result<QueryArgs, String> {
+    let mut db: Option<PathBuf> = None;
+    let mut i = 0;
+
+    while i < args.len() {
+        if args[i] == "--db" {
+            i += 1;
+            db = Some(PathBuf::from(
+                args.get(i).ok_or("--db requires a path")?,
+            ));
+        } else {
+            return Err(format!("unknown argument: {}", args[i]));
+        }
+        i += 1;
+    }
+
+    Ok(QueryArgs { db })
+}
+
+// ---------------------------------------------------------------------------
+// Formatting: store query results
+// ---------------------------------------------------------------------------
+
+pub fn format_task_view(task: &TaskView) -> String {
+    let check = if task.is_done { "[x]" } else { "[ ]" };
+    let due_part = task
+        .due
+        .as_ref()
+        .map(|d| format!(" (due {d})"))
+        .unwrap_or_default();
+    let tag_part = if task.tags.is_empty() {
+        String::new()
+    } else {
+        format!(" [{}]", task.tags.join(", "))
+    };
+    format!("- {check}{due_part} {}{tag_part}", task.title)
+}
+
+pub fn format_file_view(file: &FileView) -> String {
+    let title_part = file
+        .title
+        .as_ref()
+        .map(|t| format!("  {t}"))
+        .unwrap_or_default();
+    let count = file.task_count;
+    let noun = if count == 1 { "task" } else { "tasks" };
+    format!("{} ({count} {noun}){title_part}", file.relative_path.display())
+}
+
+pub fn format_stats(stats: &IndexStats) -> String {
+    let mut lines = vec![
+        format!("files:   {}", stats.file_count),
+        format!("tasks:   {} ({} pending, {} done)", stats.task_count, stats.pending_count, stats.done_count),
+    ];
+    if let Some(ref ts) = stats.last_updated {
+        lines.push(format!("updated: {ts}"));
+    }
+    lines.join("\n")
 }
 
 pub fn filter_and_sort(tasks: Vec<Task>, due_only: bool, limit: Option<usize>) -> Vec<Task> {
@@ -312,5 +476,250 @@ mod tests {
         ];
         let result = filter_and_sort(tasks, false, None);
         assert_eq!(result.len(), 2);
+    }
+
+    // --- parse_args: list ---
+
+    #[test]
+    fn parse_list_bare() {
+        let cmd = parse_args(&[s("list")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.done, None);
+        assert!(!args.status_all);
+        assert_eq!(args.tag, None);
+        assert_eq!(args.limit, None);
+        assert_eq!(args.db, None);
+    }
+
+    #[test]
+    fn parse_list_status_done() {
+        let cmd = parse_args(&[s("list"), s("--status"), s("done")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.done, Some(true));
+    }
+
+    #[test]
+    fn parse_list_status_pending() {
+        let cmd = parse_args(&[s("list"), s("--status"), s("pending")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.done, Some(false));
+    }
+
+    #[test]
+    fn parse_list_status_all() {
+        let cmd = parse_args(&[s("list"), s("--status"), s("all")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert!(args.status_all);
+    }
+
+    #[test]
+    fn parse_list_status_invalid() {
+        let result = parse_args(&[s("list"), s("--status"), s("xyz")]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_list_with_tag() {
+        let cmd = parse_args(&[s("list"), s("--tag"), s("work")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.tag, Some("work".to_string()));
+    }
+
+    #[test]
+    fn parse_list_with_due_before() {
+        let cmd = parse_args(&[s("list"), s("--due-before"), s("2026-03-01")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.due_before, Some("2026-03-01".to_string()));
+    }
+
+    #[test]
+    fn parse_list_with_file() {
+        let cmd = parse_args(&[s("list"), s("--file"), s("todo.typ")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.file, Some(PathBuf::from("todo.typ")));
+    }
+
+    #[test]
+    fn parse_list_with_folder() {
+        let cmd = parse_args(&[s("list"), s("--folder"), s("notes/")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.folder, Some(PathBuf::from("notes/")));
+    }
+
+    #[test]
+    fn parse_list_with_limit() {
+        let cmd = parse_args(&[s("list"), s("-5")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.limit, Some(5));
+    }
+
+    #[test]
+    fn parse_list_with_db() {
+        let cmd = parse_args(&[s("list"), s("--db"), s("/tmp/test.db")]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.db, Some(PathBuf::from("/tmp/test.db")));
+    }
+
+    #[test]
+    fn parse_list_all_flags() {
+        let cmd = parse_args(&[
+            s("list"), s("--status"), s("done"), s("--tag"), s("work"),
+            s("--due-before"), s("2026-03-01"), s("--file"), s("t.typ"),
+            s("-3"), s("--db"), s("x.db"),
+        ]).unwrap();
+        let Command::List(args) = cmd else { panic!("expected List") };
+        assert_eq!(args.done, Some(true));
+        assert_eq!(args.tag, Some("work".to_string()));
+        assert_eq!(args.due_before, Some("2026-03-01".to_string()));
+        assert_eq!(args.file, Some(PathBuf::from("t.typ")));
+        assert_eq!(args.limit, Some(3));
+        assert_eq!(args.db, Some(PathBuf::from("x.db")));
+    }
+
+    #[test]
+    fn parse_list_unknown_flag() {
+        let result = parse_args(&[s("list"), s("--verbose")]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn parse_list_missing_tag_value() {
+        let result = parse_args(&[s("list"), s("--tag")]);
+        assert!(result.is_err());
+    }
+
+    // --- parse_args: status / files ---
+
+    #[test]
+    fn parse_status_bare() {
+        let cmd = parse_args(&[s("status")]).unwrap();
+        let Command::Status(args) = cmd else { panic!("expected Status") };
+        assert_eq!(args.db, None);
+    }
+
+    #[test]
+    fn parse_status_with_db() {
+        let cmd = parse_args(&[s("status"), s("--db"), s("x.db")]).unwrap();
+        let Command::Status(args) = cmd else { panic!("expected Status") };
+        assert_eq!(args.db, Some(PathBuf::from("x.db")));
+    }
+
+    #[test]
+    fn parse_files_bare() {
+        let cmd = parse_args(&[s("files")]).unwrap();
+        let Command::Files(args) = cmd else { panic!("expected Files") };
+        assert_eq!(args.db, None);
+    }
+
+    #[test]
+    fn parse_files_with_db() {
+        let cmd = parse_args(&[s("files"), s("--db"), s("x.db")]).unwrap();
+        let Command::Files(args) = cmd else { panic!("expected Files") };
+        assert_eq!(args.db, Some(PathBuf::from("x.db")));
+    }
+
+    #[test]
+    fn parse_status_unknown_flag() {
+        let result = parse_args(&[s("status"), s("--verbose")]);
+        assert!(result.is_err());
+    }
+
+    // --- format_task_view ---
+
+    #[test]
+    fn format_task_view_pending_with_due() {
+        let task = TaskView {
+            title: "Buy milk".to_string(),
+            is_done: false,
+            position: 0,
+            file_path: PathBuf::from("todo.typ"),
+            file_title: None,
+            due: Some("2026-03-01".to_string()),
+            tags: vec![],
+        };
+        assert_eq!(format_task_view(&task), "- [ ] (due 2026-03-01) Buy milk");
+    }
+
+    #[test]
+    fn format_task_view_done_no_due() {
+        let task = TaskView {
+            title: "Done thing".to_string(),
+            is_done: true,
+            position: 0,
+            file_path: PathBuf::from("todo.typ"),
+            file_title: None,
+            due: None,
+            tags: vec![],
+        };
+        assert_eq!(format_task_view(&task), "- [x] Done thing");
+    }
+
+    #[test]
+    fn format_task_view_with_tags() {
+        let task = TaskView {
+            title: "Task".to_string(),
+            is_done: false,
+            position: 0,
+            file_path: PathBuf::from("t.typ"),
+            file_title: None,
+            due: None,
+            tags: vec!["work".to_string(), "urgent".to_string()],
+        };
+        assert_eq!(format_task_view(&task), "- [ ] Task [work, urgent]");
+    }
+
+    // --- format_file_view ---
+
+    #[test]
+    fn format_file_view_with_title() {
+        let file = FileView {
+            relative_path: PathBuf::from("notes/todo.typ"),
+            title: Some("My Tasks".to_string()),
+            task_count: 5,
+            updated_at: "2026-01-01".to_string(),
+        };
+        assert_eq!(format_file_view(&file), "notes/todo.typ (5 tasks)  My Tasks");
+    }
+
+    #[test]
+    fn format_file_view_no_title_singular() {
+        let file = FileView {
+            relative_path: PathBuf::from("t.typ"),
+            title: None,
+            task_count: 1,
+            updated_at: "2026-01-01".to_string(),
+        };
+        assert_eq!(format_file_view(&file), "t.typ (1 task)");
+    }
+
+    // --- format_stats ---
+
+    #[test]
+    fn format_stats_with_data() {
+        let stats = IndexStats {
+            file_count: 3,
+            task_count: 10,
+            done_count: 4,
+            pending_count: 6,
+            last_updated: Some("2026-01-15 12:00:00".to_string()),
+        };
+        let output = format_stats(&stats);
+        assert!(output.contains("files:   3"));
+        assert!(output.contains("tasks:   10 (6 pending, 4 done)"));
+        assert!(output.contains("updated: 2026-01-15 12:00:00"));
+    }
+
+    #[test]
+    fn format_stats_empty() {
+        let stats = IndexStats {
+            file_count: 0,
+            task_count: 0,
+            done_count: 0,
+            pending_count: 0,
+            last_updated: None,
+        };
+        let output = format_stats(&stats);
+        assert!(output.contains("files:   0"));
+        assert!(!output.contains("updated:"));
     }
 }

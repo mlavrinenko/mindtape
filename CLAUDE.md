@@ -45,7 +45,7 @@ metadata into a database, and exposes a CLI (later API) for querying.
 ```
 src/
   lib.rs        -- pub mod declarations (cli, config, eval, store, watcher, world)
-  main.rs       -- thin CLI entry point, routes eval/watch commands
+  main.rs       -- thin CLI entry point, routes eval/watch/list/status/files commands
   cli.rs        -- Command enum, arg parsing, task filtering/sorting, formatting
   config.rs     -- TOML config loading, WatchEntry, tilde expansion
   eval.rs       -- Task struct, eval_file(), content tree traversal
@@ -56,6 +56,7 @@ src/
 tests/
   eval_integration.rs     -- end-to-end eval tests with temp .typ files
   store_integration.rs    -- eval -> store pipeline tests
+  query_integration.rs    -- query command tests (list_files, get_stats, folder filter)
   watcher_integration.rs  -- watcher scan + event handling tests
 
 lib/
@@ -100,8 +101,12 @@ itest/
 
 ## Current Status
 
-M1.4 complete. Folder watcher with TOML config, `.mindtapeignore` support,
-`notify`-based file watching with debouncing, initial scan, and event handling.
-CLI extended with `mindtape watch [path] [--config file]` subcommand.
-136 tests, 79% coverage.
-Next: M1.5 (CLI Query Commands).
+MVP complete (M1.1–M1.5). Full read-only workflow: evaluate Typst files, index
+into SQLite, query via CLI. CLI commands:
+- `mindtape <file.typ> [--due] [-N]` — eval a single file
+- `mindtape watch [<path>] [--config <file>]` — watch and index folders
+- `mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH]`
+- `mindtape status [--db PATH]` — index stats
+- `mindtape files [--db PATH]` — list indexed files
+
+177 tests. Next: Milestone 2 (Richer Queries + UX).

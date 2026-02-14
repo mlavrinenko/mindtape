@@ -87,15 +87,28 @@ folders, and keeps the index updated as files change.
 - Per-file `MindTapeWorld` creation reuses existing pattern from `index_file()`
 - 136 tests (90 unit + 31 eval integration + 9 store integration + 6 watcher integration), 79.48% coverage
 
-### M1.5 — CLI Query Commands
+### M1.5 — CLI Query Commands [COMPLETE]
 
-- [ ] `mind-tape watch` — start the watcher daemon
-- [ ] `mind-tape list` — list all tasks (with filters: --status, --tag, --due-before, --folder)
-- [ ] `mind-tape list --file <path>` — list tasks from a specific file
-- [ ] `mind-tape status` — show index stats (files watched, total tasks, last sync)
-- [ ] `mind-tape files` — list indexed files
+- [x] `mindtape watch` — start the watcher daemon (done in M1.4)
+- [x] `mindtape list` — list all tasks (with filters: --status, --tag, --due-before, --folder)
+- [x] `mindtape list --file <path>` — list tasks from a specific file
+- [x] `mindtape status` — show index stats (files indexed, total tasks, last sync)
+- [x] `mindtape files` — list indexed files
 
 **Exit criteria**: full read-only workflow works end-to-end.
+
+**Implementation notes**:
+- Three new CLI commands: `list`, `status`, `files` — all query the SQLite index
+- `Store` trait extended with `list_files()` and `get_stats()` methods
+- `TaskFilter` extended with `folder` field for path prefix matching
+- New types: `FileView` (file + task count), `IndexStats` (aggregate counts)
+- All query commands support `--db <path>` override; default DB auto-discovered
+  from config or `~/.local/share/mind-tape/index.db`
+- `list` defaults to pending tasks only; `--status all` shows everything
+- `list` output grouped by file with indented tasks
+- Format: `- [x] (due DATE) title [tags]` for task views
+- 177 tests (124 unit + 31 eval integration + 7 query integration + 9 store integration + 6 watcher integration)
+- Integration test script (`itest/basic.sh`) expanded with 8 end-to-end query tests
 
 ---
 

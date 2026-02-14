@@ -90,6 +90,7 @@ pub struct TaskFilter {
     pub tag: Option<String>,
     pub due_before: Option<String>,
     pub file_path: Option<PathBuf>,
+    pub folder: Option<PathBuf>,
     pub limit: Option<usize>,
 }
 
@@ -103,6 +104,25 @@ pub struct TaskView {
     pub file_title: Option<String>,
     pub due: Option<String>,
     pub tags: Vec<String>,
+}
+
+/// Summary of an indexed file, returned by `list_files()`.
+#[derive(Debug, Clone)]
+pub struct FileView {
+    pub relative_path: PathBuf,
+    pub title: Option<String>,
+    pub task_count: i64,
+    pub updated_at: String,
+}
+
+/// Aggregate index statistics, returned by `get_stats()`.
+#[derive(Debug, Clone)]
+pub struct IndexStats {
+    pub file_count: i64,
+    pub task_count: i64,
+    pub done_count: i64,
+    pub pending_count: i64,
+    pub last_updated: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -158,6 +178,12 @@ pub trait Store {
 
     /// Get the stored eval_hash for a file path, if it exists.
     fn get_file_hash(&self, path: &Path) -> Result<Option<String>, StoreError>;
+
+    /// List all indexed files with task counts.
+    fn list_files(&self) -> Result<Vec<FileView>, StoreError>;
+
+    /// Get aggregate index statistics.
+    fn get_stats(&self) -> Result<IndexStats, StoreError>;
 }
 
 // ---------------------------------------------------------------------------
@@ -376,6 +402,15 @@ impl Store for SqliteStore {
             bind_values.push(Box::new(file_path.to_string_lossy().to_string()));
         }
 
+        if let Some(ref folder) = filter.folder {
+            let prefix = folder.to_string_lossy().to_string();
+            conditions.push(format!(
+                "tf.relative_path LIKE ?{} || '%'",
+                bind_values.len() + 1
+            ));
+            bind_values.push(Box::new(prefix));
+        }
+
         if !conditions.is_empty() {
             sql.push_str(" WHERE ");
             sql.push_str(&conditions.join(" AND "));
@@ -449,6 +484,51 @@ impl Store for SqliteStore {
             )
             .optional()?;
         Ok(hash)
+    }
+
+    fn list_files(&self) -> Result<Vec<FileView>, StoreError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT tf.relative_path, tf.title, tf.updated_at, COUNT(t.id)
+             FROM task_files tf
+             LEFT JOIN tasks t ON t.task_file_id = tf.id
+             GROUP BY tf.id
+             ORDER BY tf.relative_path",
+        )?;
+        let rows = stmt.query_map([], |row| {
+            Ok(FileView {
+                relative_path: PathBuf::from(row.get::<_, String>(0)?),
+                title: row.get(1)?,
+                updated_at: row.get(2)?,
+                task_count: row.get(3)?,
+            })
+        })?;
+        rows.collect::<Result<Vec<_>, _>>().map_err(StoreError::from)
+    }
+
+    fn get_stats(&self) -> Result<IndexStats, StoreError> {
+        let (file_count, task_count, done_count, last_updated): (
+            i64,
+            i64,
+            i64,
+            Option<String>,
+        ) = self.conn.query_row(
+            "SELECT
+                 COUNT(DISTINCT tf.id),
+                 COUNT(t.id),
+                 SUM(CASE WHEN t.is_done THEN 1 ELSE 0 END),
+                 MAX(tf.updated_at)
+             FROM task_files tf
+             LEFT JOIN tasks t ON t.task_file_id = tf.id",
+            [],
+            |row| Ok((row.get(0)?, row.get(1)?, row.get::<_, Option<i64>>(2)?.unwrap_or(0), row.get(3)?)),
+        )?;
+        Ok(IndexStats {
+            file_count,
+            task_count,
+            done_count,
+            pending_count: task_count - done_count,
+            last_updated,
+        })
     }
 }
 
@@ -1075,5 +1155,147 @@ mod tests {
         assert_eq!(PropertyKind::Due.as_str(), "due");
         assert_eq!(PropertyKind::Tag.as_str(), "tag");
         assert_eq!(PropertyKind::Id.as_str(), "id");
+    }
+
+    // --- query_tasks: folder filter ---
+
+    #[test]
+    fn query_filter_by_folder() {
+        let mut store = test_store();
+        let f1 = store
+            .upsert_task_file(&make_task_file("notes/todo.typ", "h1"))
+            .unwrap();
+        store
+            .upsert_tasks(f1, &[make_record("A", false, 0)], &[vec![]])
+            .unwrap();
+
+        let f2 = store
+            .upsert_task_file(&make_task_file("notes/work.typ", "h2"))
+            .unwrap();
+        store
+            .upsert_tasks(f2, &[make_record("B", false, 0)], &[vec![]])
+            .unwrap();
+
+        let f3 = store
+            .upsert_task_file(&make_task_file("other/misc.typ", "h3"))
+            .unwrap();
+        store
+            .upsert_tasks(f3, &[make_record("C", false, 0)], &[vec![]])
+            .unwrap();
+
+        let views = store
+            .query_tasks(&TaskFilter {
+                folder: Some(PathBuf::from("notes/")),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 2);
+        assert!(views.iter().all(|v| v.file_path.starts_with("notes/")));
+    }
+
+    #[test]
+    fn query_folder_no_match() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                folder: Some(PathBuf::from("nonexistent/")),
+                ..Default::default()
+            })
+            .unwrap();
+        assert!(views.is_empty());
+    }
+
+    // --- list_files ---
+
+    #[test]
+    fn list_files_empty() {
+        let store = test_store();
+        let files = store.list_files().unwrap();
+        assert!(files.is_empty());
+    }
+
+    #[test]
+    fn list_files_returns_all_with_counts() {
+        let mut store = test_store();
+        let f1 = store
+            .upsert_task_file(&make_task_file("a.typ", "h1"))
+            .unwrap();
+        store
+            .upsert_tasks(
+                f1,
+                &[make_record("T1", false, 0), make_record("T2", true, 1)],
+                &[vec![], vec![]],
+            )
+            .unwrap();
+
+        let f2 = store
+            .upsert_task_file(&make_task_file("b.typ", "h2"))
+            .unwrap();
+        store
+            .upsert_tasks(f2, &[make_record("T3", false, 0)], &[vec![]])
+            .unwrap();
+
+        let files = store.list_files().unwrap();
+        assert_eq!(files.len(), 2);
+        assert_eq!(files[0].relative_path, PathBuf::from("a.typ"));
+        assert_eq!(files[0].task_count, 2);
+        assert_eq!(files[0].title, Some("Test".to_string()));
+        assert_eq!(files[1].relative_path, PathBuf::from("b.typ"));
+        assert_eq!(files[1].task_count, 1);
+    }
+
+    #[test]
+    fn list_files_file_with_no_tasks() {
+        let mut store = test_store();
+        store
+            .upsert_task_file(&make_task_file("empty.typ", "h"))
+            .unwrap();
+        let files = store.list_files().unwrap();
+        assert_eq!(files.len(), 1);
+        assert_eq!(files[0].task_count, 0);
+    }
+
+    // --- get_stats ---
+
+    #[test]
+    fn get_stats_empty() {
+        let store = test_store();
+        let stats = store.get_stats().unwrap();
+        assert_eq!(stats.file_count, 0);
+        assert_eq!(stats.task_count, 0);
+        assert_eq!(stats.done_count, 0);
+        assert_eq!(stats.pending_count, 0);
+        assert!(stats.last_updated.is_none());
+    }
+
+    #[test]
+    fn get_stats_with_data() {
+        let mut store = test_store();
+        seed_store(&mut store); // 3 tasks: 2 pending, 1 done
+        let stats = store.get_stats().unwrap();
+        assert_eq!(stats.file_count, 1);
+        assert_eq!(stats.task_count, 3);
+        assert_eq!(stats.done_count, 1);
+        assert_eq!(stats.pending_count, 2);
+        assert!(stats.last_updated.is_some());
+    }
+
+    #[test]
+    fn get_stats_multiple_files() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        let f2 = store
+            .upsert_task_file(&make_task_file("other.typ", "h2"))
+            .unwrap();
+        store
+            .upsert_tasks(f2, &[make_record("Extra", true, 0)], &[vec![]])
+            .unwrap();
+
+        let stats = store.get_stats().unwrap();
+        assert_eq!(stats.file_count, 2);
+        assert_eq!(stats.task_count, 4);
+        assert_eq!(stats.done_count, 2);
+        assert_eq!(stats.pending_count, 2);
     }
 }
