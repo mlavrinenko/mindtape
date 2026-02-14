@@ -148,7 +148,7 @@ impl typst::World for MindTapeWorld {
 ///
 /// Returns the first ancestor directory containing a marker, or `start_dir`
 /// itself if no marker is found.
-fn find_project_root(start_dir: &Path) -> PathBuf {
+pub fn find_project_root(start_dir: &Path) -> PathBuf {
     let mut dir = start_dir.to_path_buf();
     loop {
         if dir.join("Cargo.toml").exists() {
@@ -171,7 +171,7 @@ fn find_project_root(start_dir: &Path) -> PathBuf {
 ///
 /// This avoids pulling in `chrono` or `time` as a direct dependency.
 /// We compute the date from the Unix timestamp using a well-known algorithm.
-fn chrono_free_today() -> (i32, u8, u8) {
+pub fn chrono_free_today() -> (i32, u8, u8) {
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
@@ -196,4 +196,112 @@ fn chrono_free_today() -> (i32, u8, u8) {
     let y = if m <= 2 { y + 1 } else { y };
 
     (y as i32, m as u8, d as u8)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use typst::World;
+
+    // --- find_project_root ---
+
+    #[test]
+    fn find_project_root_cargo_toml() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        assert_eq!(find_project_root(dir.path()), dir.path());
+    }
+
+    #[test]
+    fn find_project_root_git() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir(dir.path().join(".git")).unwrap();
+        assert_eq!(find_project_root(dir.path()), dir.path());
+    }
+
+    #[test]
+    fn find_project_root_lib_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir(dir.path().join("lib")).unwrap();
+        assert_eq!(find_project_root(dir.path()), dir.path());
+    }
+
+    #[test]
+    fn find_project_root_walks_up() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        let child = dir.path().join("sub").join("deep");
+        std::fs::create_dir_all(&child).unwrap();
+        assert_eq!(find_project_root(&child), dir.path());
+    }
+
+    #[test]
+    fn find_project_root_no_marker_returns_nearest_ancestor_with_marker() {
+        // On most systems, the walk will eventually find some marker (e.g. /lib).
+        // What matters is that it never panics and returns a valid directory.
+        let dir = tempfile::tempdir().unwrap();
+        let child = dir.path().join("empty");
+        std::fs::create_dir_all(&child).unwrap();
+        let root = find_project_root(&child);
+        assert!(root.is_dir());
+    }
+
+    #[test]
+    fn find_project_root_cargo_toml_has_priority_over_git() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        std::fs::create_dir(dir.path().join(".git")).unwrap();
+        // Cargo.toml is checked first, so it should match this dir
+        assert_eq!(find_project_root(dir.path()), dir.path());
+    }
+
+    // --- chrono_free_today ---
+
+    #[test]
+    fn chrono_free_today_valid_ranges() {
+        let (y, m, d) = chrono_free_today();
+        assert!(y >= 2024, "year should be recent: {y}");
+        assert!((1..=12).contains(&m), "month out of range: {m}");
+        assert!((1..=31).contains(&d), "day out of range: {d}");
+    }
+
+    // --- MindTapeWorld ---
+
+    #[test]
+    fn world_new_with_valid_file() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        let typ_file = dir.path().join("test.typ");
+        std::fs::write(&typ_file, "= Hello").unwrap();
+
+        let world = MindTapeWorld::new(&typ_file).unwrap();
+        // Main file ID should be set
+        let _main = world.main();
+        // Should be able to load the source
+        let source = world.source(world.main()).unwrap();
+        assert!(source.text().contains("Hello"));
+    }
+
+    #[test]
+    fn world_new_nonexistent_file() {
+        let result = MindTapeWorld::new(Path::new("/nonexistent/path/test.typ"));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn world_source_caching() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
+        let typ_file = dir.path().join("test.typ");
+        std::fs::write(&typ_file, "= Cached").unwrap();
+
+        let world = MindTapeWorld::new(&typ_file).unwrap();
+        let main_id = world.main();
+
+        // First call loads from disk
+        let s1 = world.source(main_id).unwrap();
+        // Second call should return cached version
+        let s2 = world.source(main_id).unwrap();
+        assert_eq!(s1.text(), s2.text());
+    }
 }

@@ -4,20 +4,29 @@
 
 Goal: evaluate Typst files, index tasks into SQLite, query via CLI.
 
-### M1.1 — Typst Evaluation Proof of Concept
+### M1.1 — Typst Evaluation Proof of Concept [COMPLETE]
 
-- [ ] Set up Rust project with `typst` crate dependencies
-- [ ] Implement minimal `World` trait (file loading, minimal fonts, no packages)
-- [ ] Evaluate a `.typ` file and print its scope bindings
-- [ ] Traverse content tree and extract headings + checklist items
-- [ ] Validate with `examples/hello.typ` — confirm we can read title, tasks, status binding
+- [x] Set up Rust project with `typst` crate dependencies
+- [x] Implement minimal `World` trait (file loading, minimal fonts, no packages)
+- [x] Evaluate a `.typ` file and extract its content tree
+- [x] Traverse content tree and extract checklist items as tasks
+- [x] Extract `due` metadata from `MetadataElem` nodes
+- [x] Implement CLI with `--due` filter and `-N` limit
+- [x] Validate with `itest/basic.sh` — confirms task extraction, sorting, formatting
 
-**Exit criteria**: given a `.typ` file path, print its tasks and `#let` bindings to stdout.
+**Implementation notes**:
+- `typst-kit` not needed for eval-only; `clap` replaced with manual arg parsing
+  for `-N` shorthand support
+- Task struct uses `typst::foundations::Datetime` directly (not NaiveDate)
+- `lib/prelude.typ` uses `metadata()` for property functions (not `@mind-tape` package)
+- Checkboxes parsed from `plain_text()` since Typst has no native checkbox syntax
+- Code refactored into lib+bin crate with 77%+ test coverage (35 tests)
 
 ### M1.2 — `@mind-tape` Functions (due, tag)
 
-- [ ] Define `due()` and `tag()` as Typst functions that produce identifiable content
-- [ ] Register them in the custom World so `#import "@mind-tape": due, tag` resolves
+- [x] Define `due()` as Typst function producing identifiable content (via `metadata()`)
+- [ ] Define `tag()` function
+- [ ] Register functions in custom World so `#import "@mind-tape": due, tag` resolves
 - [ ] Extract `due` and `tag` values from content tree after evaluation
 - [ ] Update examples to use `@mind-tape` imports
 

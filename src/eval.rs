@@ -18,7 +18,7 @@ use typst_library::introspection::MetadataElem;
 use typst_library::model::ListItem;
 
 /// A task extracted from a Typst checklist item.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Task {
     pub title: String,
     pub done: bool,
@@ -31,7 +31,7 @@ pub struct Task {
 /// A "task" is a `ListItem` whose `plain_text()` starts with a checkbox
 /// marker (`[ ] ` or `[x] `).  Due dates are extracted from `MetadataElem`
 /// nodes whose value is an `Array` of the form `("due", <datetime>)`.
-pub fn eval_file(world: &crate::world::MindTapeWorld) -> Result<Vec<Task>, String> {
+pub fn eval_file(world: &dyn World) -> Result<Vec<Task>, String> {
     // 1. Obtain the main source from the world.
     let source = world
         .source(world.main())
@@ -44,7 +44,7 @@ pub fn eval_file(world: &crate::world::MindTapeWorld) -> Result<Vec<Task>, Strin
 
     let module: Module = typst_eval::eval(
         &ROUTINES,
-        (world as &dyn World).track(),
+        world.track(),
         traced.track(),
         sink.track_mut(),
         route.track(),
@@ -64,7 +64,7 @@ pub fn eval_file(world: &crate::world::MindTapeWorld) -> Result<Vec<Task>, Strin
 
 /// Recursively traverse `content` looking for `ListItem` nodes and
 /// extract a `Task` from each one.
-fn collect_tasks(content: &Content, tasks: &mut Vec<Task>) {
+pub fn collect_tasks(content: &Content, tasks: &mut Vec<Task>) {
     let _ = content.traverse(&mut |node: Content| -> ControlFlow<()> {
         if let Some(item) = node.to_packed::<ListItem>() {
             if let Some(task) = extract_task(item) {
@@ -78,7 +78,7 @@ fn collect_tasks(content: &Content, tasks: &mut Vec<Task>) {
 /// Try to interpret a single `ListItem` as a task.
 ///
 /// Returns `None` if the item's text does not start with a checkbox marker.
-fn extract_task(item: &ListItem) -> Option<Task> {
+pub fn extract_task(item: &ListItem) -> Option<Task> {
     let body: &Content = &item.body;
     let text = body.plain_text();
 

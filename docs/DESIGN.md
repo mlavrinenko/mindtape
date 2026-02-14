@@ -30,11 +30,11 @@ A `.typ` file represents a **milestone** (or just a container). It can contain:
 Example:
 
 ```typ
-#import "@mind-tape": due, tag
+#import "lib/prelude.typ": due, id
 
 = Some Milestone
 
-- [ ] small task 1 #due(datetime(year: 2026, month: 2, day: 5)) #tag("fun")
+- [ ] small task 1 #due(datetime(year: 2026, month: 2, day: 5))
 - [x] small task 2
 
 #let note = "hello world"
@@ -86,43 +86,39 @@ This is a starting point. The schema will evolve as we implement.
                                                       v
                                                  +---------+
                                                  | CLI     |
-                                                 | (clap)  |
                                                  +---------+
 ```
 
-### Crate / Module Boundaries
-
-Single binary crate to start, with clear module separation:
+### Current Module Layout
 
 ```
 src/
-  main.rs              -- CLI entry point (clap)
-  lib.rs               -- re-exports for potential library use
+  lib.rs        -- pub mod declarations (cli, eval, world)
+  main.rs       -- thin CLI entry point (~20 lines)
+  cli.rs        -- arg parsing, task filtering/sorting, output formatting
+  eval.rs       -- Typst evaluation, content tree traversal, task extraction
+  world.rs      -- World trait impl, project root detection, date utility
 
-  config/
-    mod.rs             -- config loading, watched folders, ignore rules
+tests/
+  eval_integration.rs  -- end-to-end evaluation tests with temp .typ files
 
-  watcher/
-    mod.rs             -- folder watching via `notify`, debouncing, change events
+lib/
+  prelude.typ   -- due(), id() functions using metadata()
 
-  evaluator/
-    mod.rs             -- Typst World implementation, file evaluation
-    world.rs           -- World trait impl (source loading, fonts, packages)
-    extract.rs         -- extract tasks/bindings from Module/Content
+itest/
+  basic.sh      -- shell integration test
+  res/piano.typ -- test fixture
+```
 
-  store/
-    mod.rs             -- database trait (anti-corruption layer)
-    sqlite.rs          -- SQLite implementation
-    models.rs          -- domain types (TaskFile, Task, TaskProperty, FileBinding)
+### Future Module Layout (M1.3+)
 
-  query/
-    mod.rs             -- query builder / filter types
-
-  commands/
-    mod.rs             -- CLI command handlers
-    watch.rs           -- `mind-tape watch` (start watcher + indexer)
-    list.rs            -- `mind-tape list` (query tasks)
-    status.rs          -- `mind-tape status` (show index stats)
+```
+src/
+  config/       -- config loading, watched folders, ignore rules
+  watcher/      -- folder watching via `notify`, debouncing
+  store/        -- database trait + SQLite implementation
+  query/        -- query builder / filter types
+  commands/     -- CLI command handlers (watch, list, status)
 ```
 
 ### Anti-Corruption Layer (Store Trait)
@@ -135,44 +131,127 @@ trait Store {
     fn upsert_bindings(&self, file_id: Id, bindings: &[FileBinding]) -> Result<()>;
     fn remove_task_file(&self, path: &Path) -> Result<()>;
     fn query_tasks(&self, filter: &TaskFilter) -> Result<Vec<TaskView>>;
-    // ...
 }
 ```
 
 SQLite first. DuckDB or others can implement the same trait later.
 
-## Typst Evaluation Strategy
+## Typst Evaluation Details
 
-We use `typst-eval::eval()` to stop at the evaluation stage — no layout, no PDF rendering.
-This gives us a `Module` with:
+### Strategy
+
+We use `typst_eval::eval()` to stop at the evaluation stage — no layout, no
+PDF rendering. This gives us a `Module` with:
 
 - `module.scope()` — all `#let` bindings as typed `Value`s
 - `module.content()` — the full content tree to traverse
 
-Key crates: `typst`, `typst-eval`, `typst-library`, `typst-syntax`, `typst-kit`.
+### Eval API (v0.14)
+
+```rust
+typst_eval::eval(
+    routines: &Routines,         // typst::ROUTINES static
+    world: Tracked<dyn World>,   // world.track()
+    traced: Tracked<Traced>,     // Traced::default().track()
+    sink: TrackedMut<Sink>,      // sink.track_mut()
+    route: Tracked<Route>,       // Route::default().track()
+    source: &Source,
+) -> SourceResult<Module>
+```
+
+### Key Dependencies
+
+```toml
+typst = "0.14"
+typst-eval = "0.14"
+typst-library = "0.14"
+typst-syntax = "0.14"
+comemo = "0.5"   # must match typst 0.14's comemo version
+```
+
+`typst-kit` is NOT needed for eval-only. `clap` is not used — manual arg
+parsing supports the `-N` shorthand.
 
 ### World Implementation
 
-We need a custom `World` impl that:
+`MindTapeWorld` in `src/world.rs` implements `typst::World`:
 
-- Resolves the main file and relative imports within watched folders
-- Provides minimal font book (we don't render, but Typst requires it)
-- Handles `@mind-tape` package imports (our custom functions: `due`, `tag`, etc.)
+- `library()`: `Library::default()` wrapped in `LazyHash`
+- `book()`: Empty `FontBook::new()` (no fonts needed for eval-only)
+- `font()`: Returns `None` always
+- `main()`: `FileId` for the input file
+- `source(id)`: Read from disk, cache in `HashMap`
+- `file(id)`: Read raw bytes from disk
+- `today()`: Current date via `chrono_free_today()` (no chrono dependency)
 
-### The `@mind-tape` Package
+Project root is auto-detected by walking up from the file's directory looking
+for `Cargo.toml`, `lib/`, or `.git` markers.
 
-We provide a Typst package (or local import convention) that defines:
+### Checkbox Convention (Not Native Typst)
 
-- `#let due(date)` — attach a due date to a task
-- `#let tag(name)` — attach a tag to a task
-- Possibly more in the future (priority, assignee, etc.)
+Typst does NOT have built-in `- [ ]` / `- [x]` checklist syntax. In Typst:
+- `- item` creates a `ListItem` with a `body: Content` field
+- `[ ]` and `[x]` inside a list item are just text content
+- There is no `checked` state on `ListItem`
 
-These are Typst functions that produce **content elements** we can identify during
-content tree traversal after evaluation.
+We parse the checkbox pattern from `ListItem.body.plain_text()`:
+- `[ ] ` prefix = unchecked task
+- `[x] ` or `[X] ` prefix = checked task
 
-**Open question**: Should this be a real Typst package published to `@preview`,
-a local package, or resolved by MindTape's custom World? For MVP, a local approach
-(MindTape's World resolves `@mind-tape` to built-in definitions) is simplest.
+### Content Tree Structure
+
+There is NO `ListElem` wrapper in the content tree. `ListItem` nodes
+appear directly in a flat `SequenceElem`.
+
+Given `- [ ] Task text #due(datetime(...))`, the actual content tree is:
+
+```
+ListItem { body: SequenceElem [
+  Text([), SpaceElem, Text(]),   // "[ ]" split into parts
+  SpaceElem,
+  Text(Task text),
+  SpaceElem,
+  MetadataElem { value: ["due", Date(2026-05-01)] },
+  SpaceElem,                      // trailing whitespace
+]}
+```
+
+Key observations:
+- `plain_text()` concatenates all text: `"[ ] Task text  "` (with trailing spaces)
+- Must `trim()` the title after stripping the checkbox prefix
+- `MetadataElem` is in `typst_library::introspection`, NOT `typst_library::model`
+- Traverse for `ListItem` directly, NOT `ListElem`
+
+### Task Property Functions (`lib/prelude.typ`)
+
+```typ
+#let due(date) = metadata(("due", date))
+#let id(uuid) = metadata(("id", uuid))
+```
+
+`metadata()` produces a `MetadataElem` with a `value: Value` field.
+The value is a Typst `Array`:
+- Index 0: `Str` — the kind (`"due"`, `"id"`)
+- Index 1: `Datetime` or `Str` — the actual value
+
+Currently imported via relative path (`#import "lib/prelude.typ": due`).
+Future: resolve via `@mind-tape` package namespace in the World.
+
+### Extraction Algorithm
+
+For each `ListItem` found via `content.traverse()`:
+1. Get `body.plain_text()` — e.g. `"[ ] Task text  "`
+2. Parse checkbox: `strip_prefix("[x] ")` or `strip_prefix("[ ] ")`
+3. `trim()` remaining text to remove trailing whitespace
+4. Traverse body with `body.traverse()` for `MetadataElem` nodes
+5. For each MetadataElem, check if value is `Array` with `slice[0] == "due"`
+6. Extract `slice[1]` as `Value::Datetime`
+
+### Known Gotchas
+
+- `comemo::Track::track()` is on `dyn World`, not concrete types. When
+  `eval_file` takes `&dyn World`, `world.track()` works directly.
+- `comemo = "0.5"` must match typst 0.14's pinned version exactly.
 
 ## Configuration
 
@@ -197,8 +276,4 @@ Ignore files: `.mindtapeignore` in any watched folder, gitignore-style patterns.
 
 - How to handle Typst package imports (`@preview/...`) — do we support them?
 - How to resolve cross-folder imports (file in folder A imports from folder B)?
-- Exact content tree traversal strategy for extracting task properties from inline
-  function calls (need to prototype with real Typst evaluation to understand the
-  Content structure for `- [ ] text #due(...) #tag(...)`)
-- Should the `@mind-tape` functions produce special labeled content (using Typst's
-  `metadata()` + `label`) to make extraction easier via `typst query`?
+- Should `@mind-tape` be a real Typst package or resolved by the custom World?
