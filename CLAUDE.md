@@ -21,7 +21,7 @@ metadata into SQLite, and exposes a CLI for querying.
 - **Typst**: `typst`, `typst-eval`, `typst-library`, `typst-syntax` (0.14), `comemo` (0.5)
 - **Database**: SQLite via `rusqlite` (behind a `Store` trait)
 - **File watching**: `notify` 7.0 + `notify-debouncer-mini` 0.5
-- **CLI**: Manual arg parsing (not clap) for `-N` shorthand support
+- **CLI**: `clap` 4 (derive) with `-N` shorthand via arg preprocessor
 - **Serialization**: `serde` + `serde_json` for `--json` output
 - **Config**: `toml` + `serde` for TOML config files
 
@@ -66,7 +66,18 @@ crates/
     src/store/indexer.rs -- hash_file(), to_store_records(), index_file()
 
 src/                    -- root crate: CLI binary
-  cli.rs                -- Command enum, arg parsing, formatting, --json/--csv support
+  cli/
+    mod.rs              -- Cli (clap), Command enum, OutputFormat, QueryOpts, preprocess_args
+    format.rs           -- shared formatters: format_task_view, csv_escape, etc.
+    commands/
+      mod.rs            -- re-exports all command modules
+      eval.rs           -- filter_and_sort, format_task, due_sort_key
+      watch.rs          -- WatchArgs
+      list.rs           -- ListArgs, StatusFilter
+      search.rs         -- SearchArgs, format_search_results/csv
+      agenda.rs         -- AgendaArgs, format_agenda/csv
+      deps.rs           -- DepsArgs, format_deps/csv
+      check.rs          -- CheckArgs
   config.rs             -- TOML config loading, WatchEntry, tilde expansion
   watcher.rs            -- Watcher struct, initial_scan, handle_event, run
 

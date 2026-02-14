@@ -1,7 +1,9 @@
 use std::path::Path;
 use std::process;
 
-use mindtape::cli::{self, Command, OutputFormat};
+use clap::Parser;
+
+use mindtape::cli::{self, Cli, Command, OutputFormat, StatusArgs, FilesArgs};
 use mindtape::config;
 use mindtape::eval;
 use mindtape::store::{SqliteStore, Store, TaskFilter};
@@ -9,36 +11,37 @@ use mindtape::watcher::Watcher;
 use mindtape::world;
 
 fn main() {
-    let args: Vec<String> = std::env::args().skip(1).collect();
+    let raw_args: Vec<String> = std::env::args().collect();
+    let args = cli::preprocess_args(raw_args);
+    let cli = Cli::parse_from(args);
 
-    let command = match cli::parse_args(&args) {
-        Ok(cmd) => cmd,
-        Err(err) => {
-            eprintln!("{err}");
-            process::exit(1);
+    match cli.command {
+        Some(Command::Watch(args)) => run_watch(&args),
+        Some(Command::List(args)) => run_list(&args),
+        Some(Command::Search(args)) => run_search(&args),
+        Some(Command::Agenda(args)) => run_agenda(&args),
+        Some(Command::Status(args)) => run_status(&args),
+        Some(Command::Files(args)) => run_files(&args),
+        Some(Command::Deps(args)) => run_deps(&args),
+        Some(Command::Check(args)) => run_check(&args),
+        None => {
+            // Eval mode (backwards compat: `mindtape file.typ`)
+            let Some(file) = cli.file else {
+                let _ = Cli::parse_from(["mindtape", "--help"]);
+                process::exit(1);
+            };
+            run_eval(&file, cli.due, cli.limit);
         }
-    };
-
-    match command {
-        Command::Eval(args) => run_eval(&args),
-        Command::Watch(args) => run_watch(&args),
-        Command::List(args) => run_list(args),
-        Command::Search(args) => run_search(&args),
-        Command::Agenda(args) => run_agenda(&args),
-        Command::Status(args) => run_status(&args),
-        Command::Files(args) => run_files(&args),
-        Command::Deps(args) => run_deps(&args),
-        Command::Check(args) => run_check(&args),
     }
 }
 
-fn run_eval(args: &cli::EvalArgs) {
-    if !args.file.exists() {
-        eprintln!("Error: file not found: {}", args.file.display());
+fn run_eval(file: &Path, due: bool, limit: Option<usize>) {
+    if !file.exists() {
+        eprintln!("Error: file not found: {}", file.display());
         process::exit(1);
     }
 
-    let world = match world::MindTapeWorld::new(&args.file) {
+    let world = match world::MindTapeWorld::new(file) {
         Ok(world) => world,
         Err(err) => {
             eprintln!("Error creating world: {err}");
@@ -54,7 +57,7 @@ fn run_eval(args: &cli::EvalArgs) {
         }
     };
 
-    let tasks = cli::filter_and_sort(tasks, args.due, args.limit);
+    let tasks = cli::filter_and_sort(tasks, due, limit);
 
     for task in &tasks {
         println!("{}", cli::format_task(task));
@@ -109,16 +112,16 @@ fn run_watch(args: &cli::WatchArgs) {
     }
 }
 
-fn run_list(args: cli::ListArgs) {
-    let store = open_query_db(args.db.as_deref());
+fn run_list(args: &cli::ListArgs) {
+    let format = args.query.output_format();
+    let store = open_query_db(args.query.db.as_deref());
 
     let filter = TaskFilter {
-        // Default: show pending only. --status all overrides to show everything.
-        done: if args.status_all { None } else { args.done.or(Some(false)) },
-        tag: args.tag,
-        due_before: args.due_before,
-        file_path: args.file,
-        folder: args.folder,
+        done: args.done_filter(),
+        tag: args.tag.clone(),
+        due_before: args.due_before.clone(),
+        file_path: args.file.clone(),
+        folder: args.folder.clone(),
         limit: args.limit,
     };
 
@@ -130,7 +133,7 @@ fn run_list(args: cli::ListArgs) {
         }
     };
 
-    match args.format {
+    match format {
         OutputFormat::Json => {
             print_json(&tasks);
         }
@@ -142,7 +145,6 @@ fn run_list(args: cli::ListArgs) {
                 eprintln!("no tasks found");
                 return;
             }
-            // Group by file
             let mut current_file = String::new();
             for task in &tasks {
                 let file_str = task.file_path.to_string_lossy();
@@ -161,9 +163,10 @@ fn run_list(args: cli::ListArgs) {
 }
 
 fn run_search(args: &cli::SearchArgs) {
-    let store = open_query_db(args.db.as_deref());
+    let format = args.query.output_format();
+    let store = open_query_db(args.query.db.as_deref());
 
-    let results = match store.search(&args.query, args.limit) {
+    let results = match store.search(&args.keyword, args.limit) {
         Ok(results) => results,
         Err(err) => {
             eprintln!("Error searching: {err}");
@@ -171,7 +174,7 @@ fn run_search(args: &cli::SearchArgs) {
         }
     };
 
-    match args.format {
+    match format {
         OutputFormat::Json => print_json(&results),
         OutputFormat::Csv => print!("{}", cli::format_search_csv(&results)),
         OutputFormat::Table => print!("{}", cli::format_search_results(&results)),
@@ -179,9 +182,9 @@ fn run_search(args: &cli::SearchArgs) {
 }
 
 fn run_agenda(args: &cli::AgendaArgs) {
-    let store = open_query_db(args.db.as_deref());
+    let format = args.query.output_format();
+    let store = open_query_db(args.query.db.as_deref());
 
-    // Get today's date in ISO format
     let today = chrono::Local::now().format("%Y-%m-%d").to_string();
 
     let agenda = match store.query_agenda(&today) {
@@ -192,20 +195,26 @@ fn run_agenda(args: &cli::AgendaArgs) {
         }
     };
 
-    match args.format {
+    match format {
         OutputFormat::Json => print_json(&agenda),
         OutputFormat::Csv => print!("{}", cli::format_agenda_csv(&agenda)),
         OutputFormat::Table => {
             print!(
                 "{}",
-                cli::format_agenda(&agenda, args.show_overdue, args.show_today, args.show_week)
+                cli::format_agenda(
+                    &agenda,
+                    args.show_overdue(),
+                    args.show_today(),
+                    args.show_week(),
+                )
             );
         }
     }
 }
 
-fn run_status(args: &cli::QueryArgs) {
-    let store = open_query_db(args.db.as_deref());
+fn run_status(args: &StatusArgs) {
+    let format = args.query.output_format();
+    let store = open_query_db(args.query.db.as_deref());
 
     let stats = match store.get_stats() {
         Ok(stats) => stats,
@@ -215,15 +224,16 @@ fn run_status(args: &cli::QueryArgs) {
         }
     };
 
-    match args.format {
+    match format {
         OutputFormat::Json => print_json(&stats),
         OutputFormat::Csv => print!("{}", cli::format_stats_csv(&stats)),
         OutputFormat::Table => println!("{}", cli::format_stats(&stats)),
     }
 }
 
-fn run_files(args: &cli::QueryArgs) {
-    let store = open_query_db(args.db.as_deref());
+fn run_files(args: &FilesArgs) {
+    let format = args.query.output_format();
+    let store = open_query_db(args.query.db.as_deref());
 
     let files = match store.list_files() {
         Ok(files) => files,
@@ -233,7 +243,7 @@ fn run_files(args: &cli::QueryArgs) {
         }
     };
 
-    match args.format {
+    match format {
         OutputFormat::Json => print_json(&files),
         OutputFormat::Csv => print!("{}", cli::format_files_csv(&files)),
         OutputFormat::Table => {
@@ -249,10 +259,10 @@ fn run_files(args: &cli::QueryArgs) {
 }
 
 fn run_deps(args: &cli::DepsArgs) {
-    let store = open_query_db(args.db.as_deref());
+    let format = args.query.output_format();
+    let store = open_query_db(args.query.db.as_deref());
 
     if let Some(file) = &args.file {
-        // Show dependencies for a specific file
         let deps = match store.get_file_dependencies(file) {
             Ok(Some(deps)) => deps,
             Ok(None) => {
@@ -265,13 +275,12 @@ fn run_deps(args: &cli::DepsArgs) {
             }
         };
 
-        match args.format {
+        match format {
             OutputFormat::Json => print_json(&deps),
             OutputFormat::Csv => print!("{}", cli::format_deps_csv(&deps)),
             OutputFormat::Table => print!("{}", cli::format_deps(&deps)),
         }
     } else {
-        // List all files with their dependency counts
         let all_deps = match store.list_file_dependencies() {
             Ok(all_deps) => all_deps,
             Err(err) => {
@@ -280,7 +289,7 @@ fn run_deps(args: &cli::DepsArgs) {
             }
         };
 
-        match args.format {
+        match format {
             OutputFormat::Json => print_json(&all_deps),
             OutputFormat::Csv => print!("{}", cli::format_all_deps_csv(&all_deps)),
             OutputFormat::Table => print!("{}", cli::format_all_deps(&all_deps)),
@@ -291,7 +300,6 @@ fn run_deps(args: &cli::DepsArgs) {
 fn run_check(args: &cli::CheckArgs) {
     let store = open_query_db(args.db.as_deref());
 
-    // Find the task by ID or masked pattern
     let task = match store.find_task_by_id(&args.task_id) {
         Ok(task) => task,
         Err(err) => {
@@ -300,7 +308,6 @@ fn run_check(args: &cli::CheckArgs) {
         }
     };
 
-    // Check for conflicts: verify file hasn't changed since last index
     let current_hash = match mindtape::store::hash_file(&task.file_path) {
         Ok(hash) => hash,
         Err(err) => {
@@ -318,7 +325,6 @@ fn run_check(args: &cli::CheckArgs) {
         process::exit(1);
     }
 
-    // Load and parse the file
     let source = match mindtape::eval::load_source(&task.file_path) {
         Ok(source) => source,
         Err(err) => {
@@ -327,7 +333,6 @@ fn run_check(args: &cli::CheckArgs) {
         }
     };
 
-    // Toggle the checkbox
     let new_content = match mindtape::eval::toggle_task_checkbox(&source, &task.task_id) {
         Ok(content) => content,
         Err(err) => {
@@ -336,7 +341,6 @@ fn run_check(args: &cli::CheckArgs) {
         }
     };
 
-    // Write back atomically
     if let Err(err) = std::fs::write(&task.file_path, new_content) {
         eprintln!("Error writing file: {err}");
         process::exit(1);
@@ -390,7 +394,6 @@ fn open_query_db(db_override: Option<&Path>) -> SqliteStore {
 
 /// Build a Config from CLI args: --config file, path argument, or auto-discovery.
 fn load_watch_config(args: &cli::WatchArgs) -> config::Config {
-    // Explicit --config flag takes priority.
     if let Some(ref config_path) = args.config {
         match config::load_config(config_path) {
             Ok(cfg) => return cfg,
@@ -401,7 +404,6 @@ fn load_watch_config(args: &cli::WatchArgs) -> config::Config {
         }
     }
 
-    // If a path argument was given, build a minimal config from it.
     if let Some(ref path) = args.path {
         return config::Config {
             database: None,
@@ -412,7 +414,6 @@ fn load_watch_config(args: &cli::WatchArgs) -> config::Config {
         };
     }
 
-    // Try auto-discovery.
     if let Some(config_path) = config::find_config() {
         match config::load_config(&config_path) {
             Ok(cfg) => return cfg,
@@ -423,7 +424,6 @@ fn load_watch_config(args: &cli::WatchArgs) -> config::Config {
         }
     }
 
-    // Build config watching current directory.
     config::Config {
         database: None,
         watch: vec![config::WatchEntry {
