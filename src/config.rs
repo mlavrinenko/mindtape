@@ -1,8 +1,8 @@
 //! Configuration file loading for MindTape.
 //!
 //! Supports TOML configuration with watched folders and database path.
-//! Searches for `mind-tape.toml` in the current directory, then
-//! `~/.config/mind-tape/config.toml`.
+//! Searches for `mindtape.toml` in the current directory, then
+//! `~/.config/mindtape/config.toml`.
 
 use std::path::{Path, PathBuf};
 
@@ -54,16 +54,16 @@ pub fn load_config(path: &Path) -> Result<Config, ConfigError> {
 /// Search for a config file in standard locations.
 ///
 /// Checks (in order):
-/// 1. `mind-tape.toml` in the current working directory
-/// 2. `~/.config/mind-tape/config.toml`
+/// 1. `mindtape.toml` in the current working directory
+/// 2. `~/.config/mindtape/config.toml`
 pub fn find_config() -> Option<PathBuf> {
-    let cwd_config = PathBuf::from("mind-tape.toml");
+    let cwd_config = PathBuf::from("mindtape.toml");
     if cwd_config.exists() {
         return Some(cwd_config);
     }
 
     if let Some(home) = home_dir() {
-        let user_config = home.join(".config/mind-tape/config.toml");
+        let user_config = home.join(".config/mindtape/config.toml");
         if user_config.exists() {
             return Some(user_config);
         }
@@ -95,10 +95,10 @@ pub fn resolve_db_path(config: &Config) -> PathBuf {
     default_db_path()
 }
 
-/// Default database path: `~/.local/share/mind-tape/index.db`.
+/// Default database path: `~/.local/share/mindtape/index.db`.
 pub fn default_db_path() -> PathBuf {
     if let Some(home) = home_dir() {
-        home.join(".local/share/mind-tape/index.db")
+        home.join(".local/share/mindtape/index.db")
     } else {
         PathBuf::from("index.db")
     }
@@ -116,7 +116,7 @@ mod tests {
     fn parse_full_config() {
         let toml = r#"
 [database]
-path = "~/.local/share/mind-tape/index.db"
+path = "~/.local/share/mindtape/index.db"
 
 [[watch]]
 path = "~/notes"
@@ -134,7 +134,7 @@ recursive = false
         assert!(!config.watch[1].recursive);
         assert_eq!(
             config.database.as_ref().unwrap().path,
-            "~/.local/share/mind-tape/index.db"
+            "~/.local/share/mindtape/index.db"
         );
     }
 
@@ -192,7 +192,7 @@ path = "."
     #[test]
     fn load_config_from_file() {
         let dir = tempfile::tempdir().unwrap();
-        let config_path = dir.path().join("mind-tape.toml");
+        let config_path = dir.path().join("mindtape.toml");
         std::fs::write(
             &config_path,
             "[[watch]]\npath = \".\"\n",
@@ -226,6 +226,6 @@ path = "."
             watch: vec![],
         };
         let path = resolve_db_path(&config);
-        assert!(path.to_string_lossy().ends_with("mind-tape/index.db"));
+        assert!(path.to_string_lossy().ends_with("mindtape/index.db"));
     }
 }

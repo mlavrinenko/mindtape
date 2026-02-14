@@ -1,4 +1,4 @@
-#import "@mind-tape/mind-tape:0.1.0": due, id
+#import "@mindtape/mindtape:0.1.0": due, id
 
 = Piano
 

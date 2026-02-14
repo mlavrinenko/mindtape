@@ -24,7 +24,7 @@ fn setup(
     .unwrap();
     std::fs::write(
         lib_dir.join("typst.toml"),
-        "[package]\nname = \"mind-tape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
+        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
     )
     .unwrap();
     let file = root.join("test.typ");
@@ -37,7 +37,7 @@ fn setup(
 #[test]
 fn index_file_stores_tasks() {
     let (mut store, world, file, root) = setup(
-        r#"#import "@mind-tape/mind-tape:0.1.0": due, tag
+        r#"#import "@mindtape/mindtape:0.1.0": due, tag
 
 = Piano Practice
 
@@ -109,7 +109,7 @@ fn index_file_extracts_title() {
 #[test]
 fn index_file_query_by_tag() {
     let (mut store, world, file, root) = setup(
-        r#"#import "@mind-tape/mind-tape:0.1.0": tag
+        r#"#import "@mindtape/mindtape:0.1.0": tag
 
 - [ ] Work task #tag("work")
 - [ ] Fun task #tag("fun")
@@ -146,7 +146,7 @@ fn index_file_remove_then_query_is_empty() {
 #[test]
 fn index_file_query_combined_tag_and_done() {
     let (mut store, world, file, root) = setup(
-        r#"#import "@mind-tape/mind-tape:0.1.0": tag
+        r#"#import "@mindtape/mindtape:0.1.0": tag
 
 - [ ] Open work #tag("work")
 - [x] Done work #tag("work")
@@ -205,7 +205,7 @@ fn index_multiple_files() {
     .unwrap();
     std::fs::write(
         lib_dir.join("typst.toml"),
-        "[package]\nname = \"mind-tape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
+        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
     )
     .unwrap();
 

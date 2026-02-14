@@ -25,7 +25,7 @@ fn setup_project() -> PathBuf {
     .unwrap();
     std::fs::write(
         lib_dir.join("typst.toml"),
-        "[package]\nname = \"mind-tape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
+        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
     )
     .unwrap();
 
@@ -47,7 +47,7 @@ fn initial_scan_indexes_multiple_files() {
     let root = setup_project();
     std::fs::write(
         root.join("todo.typ"),
-        r#"#import "@mind-tape/mind-tape:0.1.0": due, tag
+        r#"#import "@mindtape/mindtape:0.1.0": due, tag
 
 = Todo
 
@@ -73,7 +73,7 @@ fn initial_scan_then_query_tasks() {
     let root = setup_project();
     std::fs::write(
         root.join("tasks.typ"),
-        r#"#import "@mind-tape/mind-tape:0.1.0": due, tag
+        r#"#import "@mindtape/mindtape:0.1.0": due, tag
 
 = My Tasks
 
@@ -107,7 +107,7 @@ fn handle_event_indexes_new_file_with_metadata() {
     let file = root.join("new.typ");
     std::fs::write(
         &file,
-        r#"#import "@mind-tape/mind-tape:0.1.0": due, tag
+        r#"#import "@mindtape/mindtape:0.1.0": due, tag
 
 = New File
 

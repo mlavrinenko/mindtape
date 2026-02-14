@@ -24,7 +24,7 @@ fn setup() -> (SqliteStore, PathBuf) {
     .unwrap();
     std::fs::write(
         lib_dir.join("typst.toml"),
-        "[package]\nname = \"mind-tape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
+        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
     )
     .unwrap();
     let store = SqliteStore::open_memory().unwrap();
@@ -146,7 +146,7 @@ fn list_done_tasks_by_tag() {
         &mut store,
         &root,
         "todo.typ",
-        r#"#import "@mind-tape/mind-tape:0.1.0": tag
+        r#"#import "@mindtape/mindtape:0.1.0": tag
 
 - [ ] Open work #tag("work")
 - [x] Done work #tag("work")

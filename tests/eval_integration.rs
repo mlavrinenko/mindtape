@@ -26,8 +26,8 @@ fn eval_typ_with_prelude(prelude: &str, source: &str) -> Result<Vec<Task>, Strin
     eval_file(&world)
 }
 
-/// Create a temp project with `@mind-tape` package (lib/typst.toml + lib/prelude.typ)
-/// and a `.typ` file that can use `#import "@mind-tape/mind-tape:0.1.0": ...`.
+/// Create a temp project with `@mindtape` package (lib/typst.toml + lib/prelude.typ)
+/// and a `.typ` file that can use `#import "@mindtape/mindtape:0.1.0": ...`.
 fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, String> {
     let dir = tempfile::tempdir().unwrap();
     std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
@@ -36,7 +36,7 @@ fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, Strin
     std::fs::write(lib_dir.join("prelude.typ"), prelude).unwrap();
     std::fs::write(
         lib_dir.join("typst.toml"),
-        "[package]\nname = \"mind-tape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
+        "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
     )
     .unwrap();
     let file = dir.path().join("test.typ");
@@ -201,7 +201,7 @@ fn eval_tag_via_prelude() {
     assert_eq!(tasks[0].tags, vec!["hobby"]);
 }
 
-// --- @mind-tape package imports ---
+// --- @mindtape package imports ---
 
 #[test]
 fn eval_package_import_due() {
@@ -210,7 +210,7 @@ fn eval_package_import_due() {
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;
-    let source = r#"#import "@mind-tape/mind-tape:0.1.0": due
+    let source = r#"#import "@mindtape/mindtape:0.1.0": due
 
 - [ ] Package task #due(datetime(year: 2026, month: 7, day: 4))
 "#;
@@ -227,7 +227,7 @@ fn eval_package_import_tag() {
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;
-    let source = r#"#import "@mind-tape/mind-tape:0.1.0": tag
+    let source = r#"#import "@mindtape/mindtape:0.1.0": tag
 
 - [ ] Package tagged #tag("priority")
 "#;
@@ -243,7 +243,7 @@ fn eval_package_import_all_functions() {
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;
-    let source = r#"#import "@mind-tape/mind-tape:0.1.0": due, tag
+    let source = r#"#import "@mindtape/mindtape:0.1.0": due, tag
 
 - [ ] Full featured #due(datetime(year: 2026, month: 12, day: 25)) #tag("holiday") #tag("fun")
 "#;

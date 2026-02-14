@@ -109,7 +109,7 @@ tests/
 
 lib/
   prelude.typ   -- due(), id(), tag() functions using metadata()
-  typst.toml    -- package manifest for @mind-tape/mind-tape:0.1.0
+  typst.toml    -- package manifest for @mindtape/mindtape:0.1.0
 
 itest/
   basic.sh      -- shell integration test
@@ -230,10 +230,10 @@ The value is a Typst `Array`:
 - Index 0: `Str` — the kind (`"due"`, `"id"`, `"tag"`)
 - Index 1: `Datetime` or `Str` — the actual value
 
-Imported via the `@mind-tape` package namespace, resolved by the World:
+Imported via the `@mindtape` package namespace, resolved by the World:
 
 ```typ
-#import "@mind-tape/mind-tape:0.1.0": due, id, tag
+#import "@mindtape/mindtape:0.1.0": due, id, tag
 ```
 
 ### Extraction Algorithm
@@ -255,10 +255,10 @@ For each `ListItem` found via `content.traverse()`:
 ## Configuration
 
 ```toml
-# ~/.config/mind-tape/config.toml (or mind-tape.toml in project root)
+# ~/.config/mindtape/config.toml (or mindtape.toml or ./.mindtape/config.toml in project root)
 
 [database]
-path = "~/.local/share/mind-tape/index.db"
+path = "~/.local/share/mindtape/index.db"
 
 [[watch]]
 path = "~/projects/myproject"
@@ -297,8 +297,8 @@ Watcher {
 ### Config Auto-Discovery
 
 Searches in order:
-1. `mind-tape.toml` in the current working directory
-2. `~/.config/mind-tape/config.toml`
+1. `mindtape.toml` in the current working directory
+2. `~/.config/mindtape/config.toml`
 
 ### Borrow Pattern
 

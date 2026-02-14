@@ -61,7 +61,7 @@ tests/
 
 lib/
   prelude.typ   -- due(), id(), tag() functions using metadata()
-  typst.toml    -- package manifest for @mind-tape/mind-tape:0.1.0
+  typst.toml    -- package manifest for @mindtape/mindtape:0.1.0
 
 itest/
   basic.sh      -- shell integration test
@@ -77,7 +77,7 @@ itest/
 ## Task Format (Typst Convention)
 
 ```typ
-#import "@mind-tape/mind-tape:0.1.0": due, id, tag
+#import "@mindtape/mindtape:0.1.0": due, id, tag
 
 = Milestone Title
 

@@ -234,7 +234,7 @@ mod tests {
         fs::create_dir_all(dir.path().join("lib")).unwrap();
         fs::write(
             dir.path().join("lib/typst.toml"),
-            "[package]\nname = \"mind-tape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
+            "[package]\nname = \"mindtape\"\nversion = \"0.1.0\"\nentrypoint = \"prelude.typ\"\n",
         )
         .unwrap();
         fs::write(
