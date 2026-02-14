@@ -89,31 +89,35 @@ This is a starting point. The schema will evolve as we implement.
                                                  +---------+
 ```
 
-### Module Layout
+### Workspace Layout
 
 ```
-src/
-  lib.rs        -- pub mod declarations, crate-level clippy lints
-  main.rs       -- thin CLI entry point (~20 lines)
-  cli.rs        -- Command enum (Eval/Watch), arg parsing, filtering, formatting
-  config.rs     -- TOML config loading, WatchEntry, tilde expansion
-  eval.rs       -- Typst evaluation, content tree traversal, task extraction
-  store.rs      -- Store trait, SqliteStore, index_file(), domain types
-  watcher.rs    -- Watcher struct, initial_scan, handle_event, run (notify loop)
-  world.rs      -- World trait impl, project root detection, date utility
+crates/
+  mindtape-eval/        -- Typst evaluation + task extraction
+    src/eval.rs          -- EvalError, Task, EvalResult, eval_file(), content traversal
+    src/world.rs         -- MindTapeWorld (World trait impl), project root detection
 
-tests/
-  eval_integration.rs     -- end-to-end evaluation tests with temp .typ files
-  store_integration.rs    -- eval -> store pipeline tests
-  watcher_integration.rs  -- watcher scan + event handling tests
+  mindtape-store/       -- Store trait + SQLite backend
+    src/store/mod.rs     -- domain types, Store trait, StoreError
+    src/store/sqlite.rs  -- SqliteStore impl, schema, migrations
+    src/store/indexer.rs -- hash_file(), to_store_records(), index_file()
+
+src/                    -- root crate: CLI binary
+  cli.rs                -- Command enum, arg parsing, formatting, --json support
+  config.rs             -- TOML config loading, WatchEntry, tilde expansion
+  watcher.rs            -- Watcher struct, initial_scan, handle_event, run
+  main.rs               -- thin CLI entry point, command routing
+
+tests/                  -- integration tests
+  eval_integration.rs, store_integration.rs, query_integration.rs, watcher_integration.rs
 
 lib/
-  prelude.typ   -- due(), id(), tag() functions using metadata()
-  typst.toml    -- package manifest for @mindtape/mindtape:0.1.0
+  prelude.typ           -- due(), id(), tag() functions using metadata()
+  typst.toml            -- package manifest for @mindtape/mindtape:0.1.0
 
 itest/
-  basic.sh      -- shell integration test
-  res/piano.typ -- test fixture
+  basic.sh              -- shell integration test (8 tests)
+  res/piano.typ         -- test fixture
 ```
 
 ### Anti-Corruption Layer (Store Trait)
@@ -169,7 +173,7 @@ parsing supports the `-N` shorthand.
 
 ### World Implementation
 
-`MindTapeWorld` in `src/world.rs` implements `typst::World`:
+`MindTapeWorld` in `crates/mindtape-eval/src/world.rs` implements `typst::World`:
 
 - `library()`: `Library::default()` wrapped in `LazyHash`
 - `book()`: Empty `FontBook::new()` (no fonts needed for eval-only)
