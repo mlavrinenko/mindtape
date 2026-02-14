@@ -38,6 +38,7 @@
             cargo
             cargo-tarpaulin openssl
             clippy
+            just
             tinymist
             typst
             typstyle

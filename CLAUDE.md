@@ -27,8 +27,10 @@ metadata into a database, and exposes a CLI (later API) for querying.
 
 ## Agent Rules
 
+- Use `just` recipes instead of raw cargo commands (see `Justfile` for available recipes)
 - Use `--quiet` / `-q` for `cargo build`, `cargo test`, `cargo tarpaulin`, etc. — only show errors/warnings and test results, not compilation progress
-- After any code changes, run `cargo clippy --all-targets -q` and fix all warnings before considering the task done
+- After any code changes, run `just check` (clippy + tests) and fix all warnings before considering the task done
+- Always improve the `Justfile` when you notice missing or useful recipes
 - Avoid dumping large tool outputs into context; summarize or truncate when possible
 - At the end of a session with code/config changes, suggest a conventional commit message (e.g. `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`)
 - Save research findings (external crate APIs, googled solutions, version-specific quirks) to `docs/research/` as markdown files — one file per topic (e.g. `docs/research/notify-crate.md`). This preserves knowledge across sessions and avoids re-researching the same things.
@@ -95,9 +97,11 @@ itest/
 
 ## Testing
 
-- Run tests: `cargo test`
-- Coverage: `cargo tarpaulin` (target: 60%+, currently ~79%)
-- Shell integration test: `cd itest && PATH="../target/debug:$PATH" bash basic.sh`
+- Run all checks: `just check` (clippy + tests)
+- Run tests only: `just test`
+- Coverage: `just cover` (target: 60%+, currently ~79%)
+- Shell integration test: `just itest`
+- Everything: `just all`
 - See `docs/TESTING.md` for full guidelines
 
 ## Current Status
