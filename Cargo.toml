@@ -126,6 +126,7 @@ clap = { version = "4", features = ["derive"] }
 csv = "1"
 shellexpand = "3"
 directories = "5"
+anyhow = "1"
 
 [dev-dependencies]
 tempfile = "3"
