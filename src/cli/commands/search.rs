@@ -1,10 +1,11 @@
+use anyhow::{Context, Result};
 use clap::Parser;
 use csv::Writer;
 
 use crate::cli::format::{csv_to_string, format_task_view};
-use crate::store::SearchResults;
-
-use crate::cli::QueryOpts;
+use crate::cli::util::{open_query_db, print_json};
+use crate::cli::{OutputFormat, QueryOpts};
+use crate::store::{SearchResults, Store};
 
 /// Search tasks and bindings.
 #[derive(Parser, Debug)]
@@ -18,6 +19,28 @@ pub struct SearchArgs {
 
     #[command(flatten)]
     pub query: QueryOpts,
+}
+
+impl SearchArgs {
+    /// Run the search command.
+    ///
+    /// # Errors
+    /// Returns error if database open or search fails, or if JSON/CSV formatting fails.
+    pub fn run(&self) -> Result<()> {
+        let format = self.query.output_format();
+        let store = open_query_db(self.query.db.as_deref())?;
+
+        let results = store
+            .search(&self.keyword, self.limit)
+            .context("failed to search")?;
+
+        match format {
+            OutputFormat::Json => print_json(&results)?,
+            OutputFormat::Csv => print!("{}", format_search_csv(&results)?),
+            OutputFormat::Table => print!("{}", format_search_results(&results)),
+        }
+        Ok(())
+    }
 }
 
 #[must_use]

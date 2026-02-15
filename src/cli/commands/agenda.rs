@@ -1,10 +1,11 @@
+use anyhow::{Context, Result};
 use clap::Parser;
 use csv::Writer;
 
 use crate::cli::format::{csv_to_string, format_task_view};
-use crate::store::AgendaView;
-
-use crate::cli::QueryOpts;
+use crate::cli::util::{open_query_db, print_json};
+use crate::cli::{OutputFormat, QueryOpts};
+use crate::store::{AgendaView, Store};
 
 /// Show agenda (overdue, today, this week).
 #[derive(Parser, Debug)]
@@ -50,6 +51,36 @@ impl AgendaArgs {
 
     fn show_all(&self) -> bool {
         !self.overdue && !self.today && !self.week
+    }
+
+    /// Run the agenda command.
+    ///
+    /// # Errors
+    /// Returns error if database open or query fails, or if JSON/CSV formatting fails.
+    pub fn run(&self) -> Result<()> {
+        let format = self.query.output_format();
+        let store = open_query_db(self.query.db.as_deref())?;
+
+        let today = chrono::Local::now().format("%Y-%m-%d").to_string();
+
+        let agenda = store.query_agenda(&today).context("failed to query agenda")?;
+
+        match format {
+            OutputFormat::Json => print_json(&agenda)?,
+            OutputFormat::Csv => print!("{}", format_agenda_csv(&agenda)?),
+            OutputFormat::Table => {
+                print!(
+                    "{}",
+                    format_agenda(
+                        &agenda,
+                        self.show_overdue(),
+                        self.show_today(),
+                        self.show_week(),
+                    )
+                );
+            }
+        }
+        Ok(())
     }
 }
 

@@ -1,5 +1,6 @@
 pub mod commands;
 pub mod format;
+pub mod util;
 
 use std::path::PathBuf;
 

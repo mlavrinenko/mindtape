@@ -1,11 +1,13 @@
 use std::path::PathBuf;
 
+use anyhow::{Context, Result};
 use clap::Parser;
 use csv::Writer;
 
 use crate::cli::format::csv_to_string;
-use crate::cli::QueryOpts;
-use crate::store::FileDependencies;
+use crate::cli::util::{open_query_db, print_json};
+use crate::cli::{OutputFormat, QueryOpts};
+use crate::store::{FileDependencies, Store};
 
 /// Show file dependencies.
 #[derive(Parser, Debug)]
@@ -16,6 +18,43 @@ pub struct DepsArgs {
 
     #[command(flatten)]
     pub query: QueryOpts,
+}
+
+impl DepsArgs {
+    /// Run the deps command.
+    ///
+    /// # Errors
+    /// Returns error if database open or query fails, or if JSON/CSV formatting fails.
+    pub fn run(&self) -> Result<()> {
+        let format = self.query.output_format();
+        let store = open_query_db(self.query.db.as_deref())?;
+
+        if let Some(file) = &self.file {
+            let deps = store
+                .get_file_dependencies(file)
+                .context("failed to query dependencies")?
+                .ok_or_else(|| {
+                    anyhow::anyhow!("file not found in index: {}", file.display())
+                })?;
+
+            match format {
+                OutputFormat::Json => print_json(&deps)?,
+                OutputFormat::Csv => print!("{}", format_deps_csv(&deps)?),
+                OutputFormat::Table => print!("{}", format_deps(&deps)),
+            }
+        } else {
+            let all_deps = store
+                .list_file_dependencies()
+                .context("failed to list dependencies")?;
+
+            match format {
+                OutputFormat::Json => print_json(&all_deps)?,
+                OutputFormat::Csv => print!("{}", format_all_deps_csv(&all_deps)?),
+                OutputFormat::Table => print!("{}", format_all_deps(&all_deps)),
+            }
+        }
+        Ok(())
+    }
 }
 
 #[must_use]

@@ -1,6 +1,33 @@
+use std::path::Path;
+
+use anyhow::{Context, Result, bail};
 use typst::foundations::Datetime;
 
-use crate::eval::{format_date, Task};
+use crate::eval::{self, format_date, Task};
+use crate::world;
+
+/// Run the eval command (backwards compat: `mindtape file.typ`).
+///
+/// # Errors
+/// Returns error if file doesn't exist, world creation fails, or evaluation fails.
+pub fn run(file: &Path, due: bool, limit: Option<usize>) -> Result<()> {
+    if !file.exists() {
+        bail!("file not found: {}", file.display());
+    }
+
+    let world = world::MindTapeWorld::new(file)
+        .with_context(|| format!("failed to create world for {}", file.display()))?;
+
+    let tasks = eval::eval_file(&world)
+        .with_context(|| format!("failed to evaluate {}", file.display()))?;
+
+    let tasks = filter_and_sort(tasks, due, limit);
+
+    for task in &tasks {
+        println!("{}", format_task(task));
+    }
+    Ok(())
+}
 
 /// # Panics
 /// Panics if `due_only` is true and a retained task has a `None` due date.
