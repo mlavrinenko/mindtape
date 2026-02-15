@@ -1,0 +1,8 @@
+[test_config]
+name = "mindtape"
+workspace = true
+skip-clean = true
+
+[report]
+fail-under = 70
+output-dir = "target/coverage"
