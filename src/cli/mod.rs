@@ -18,8 +18,8 @@ pub use commands::deps::{format_all_deps, format_all_deps_csv, format_deps, form
 pub use commands::eval::{due_sort_key, filter_and_sort, format_due, format_task};
 pub use commands::search::{format_search_csv, format_search_results};
 pub use format::{
-    csv_escape, format_file_view, format_files_csv, format_stats, format_stats_csv,
-    format_task_view, format_tasks_csv,
+    format_file_view, format_files_csv, format_stats, format_stats_csv, format_task_view,
+    format_tasks_csv,
 };
 
 /// Output format for query commands.

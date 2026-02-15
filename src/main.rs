@@ -137,9 +137,7 @@ fn run_list(args: &cli::ListArgs) {
         OutputFormat::Json => {
             print_json(&tasks);
         }
-        OutputFormat::Csv => {
-            print!("{}", cli::format_tasks_csv(&tasks));
-        }
+        OutputFormat::Csv => print_csv(cli::format_tasks_csv(&tasks)),
         OutputFormat::Table => {
             if tasks.is_empty() {
                 eprintln!("no tasks found");
@@ -176,7 +174,7 @@ fn run_search(args: &cli::SearchArgs) {
 
     match format {
         OutputFormat::Json => print_json(&results),
-        OutputFormat::Csv => print!("{}", cli::format_search_csv(&results)),
+        OutputFormat::Csv => print_csv(cli::format_search_csv(&results)),
         OutputFormat::Table => print!("{}", cli::format_search_results(&results)),
     }
 }
@@ -197,7 +195,7 @@ fn run_agenda(args: &cli::AgendaArgs) {
 
     match format {
         OutputFormat::Json => print_json(&agenda),
-        OutputFormat::Csv => print!("{}", cli::format_agenda_csv(&agenda)),
+        OutputFormat::Csv => print_csv(cli::format_agenda_csv(&agenda)),
         OutputFormat::Table => {
             print!(
                 "{}",
@@ -226,7 +224,7 @@ fn run_status(args: &StatusArgs) {
 
     match format {
         OutputFormat::Json => print_json(&stats),
-        OutputFormat::Csv => print!("{}", cli::format_stats_csv(&stats)),
+        OutputFormat::Csv => print_csv(cli::format_stats_csv(&stats)),
         OutputFormat::Table => println!("{}", cli::format_stats(&stats)),
     }
 }
@@ -245,7 +243,7 @@ fn run_files(args: &FilesArgs) {
 
     match format {
         OutputFormat::Json => print_json(&files),
-        OutputFormat::Csv => print!("{}", cli::format_files_csv(&files)),
+        OutputFormat::Csv => print_csv(cli::format_files_csv(&files)),
         OutputFormat::Table => {
             if files.is_empty() {
                 eprintln!("no indexed files");
@@ -277,7 +275,7 @@ fn run_deps(args: &cli::DepsArgs) {
 
         match format {
             OutputFormat::Json => print_json(&deps),
-            OutputFormat::Csv => print!("{}", cli::format_deps_csv(&deps)),
+            OutputFormat::Csv => print_csv(cli::format_deps_csv(&deps)),
             OutputFormat::Table => print!("{}", cli::format_deps(&deps)),
         }
     } else {
@@ -291,7 +289,7 @@ fn run_deps(args: &cli::DepsArgs) {
 
         match format {
             OutputFormat::Json => print_json(&all_deps),
-            OutputFormat::Csv => print!("{}", cli::format_all_deps_csv(&all_deps)),
+            OutputFormat::Csv => print_csv(cli::format_all_deps_csv(&all_deps)),
             OutputFormat::Table => print!("{}", cli::format_all_deps(&all_deps)),
         }
     }
@@ -348,6 +346,16 @@ fn run_check(args: &cli::CheckArgs) {
 
     let status = if task.is_done { "unchecked" } else { "checked" };
     println!("Task {} {}: {}", task.task_id, status, task.task_title);
+}
+
+fn print_csv(result: Result<String, csv::Error>) {
+    match result {
+        Ok(csv) => print!("{csv}"),
+        Err(err) => {
+            eprintln!("Error formatting CSV: {err}");
+            process::exit(1);
+        }
+    }
 }
 
 fn print_json(value: &impl serde::Serialize) {

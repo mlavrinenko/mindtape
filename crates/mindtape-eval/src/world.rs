@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
+use chrono::Datelike;
 use typst::diag::{FileError, FileResult};
 use typst::foundations::{Bytes, Datetime};
 use typst::syntax::{FileId, Source, VirtualPath};
@@ -202,8 +203,11 @@ impl typst::World for MindTapeWorld {
     }
 
     fn today(&self, _offset: Option<i64>) -> Option<Datetime> {
-        let now = chrono_free_today();
-        Datetime::from_ymd(now.0, now.1, now.2)
+        let now = chrono::Local::now();
+        #[allow(clippy::cast_possible_truncation)]
+        {
+            Datetime::from_ymd(now.year(), now.month() as u8, now.day() as u8)
+        }
     }
 }
 
@@ -232,48 +236,6 @@ pub fn find_project_root(start_dir: &Path) -> PathBuf {
             // Reached filesystem root without finding a marker.
             return start_dir.to_path_buf();
         }
-    }
-}
-
-/// Get today's date as (year, month, day) using only the standard library.
-///
-/// This avoids pulling in `chrono` or `time` as a direct dependency.
-/// We compute the date from the Unix timestamp using a well-known algorithm.
-pub fn chrono_free_today() -> (i32, u8, u8) {
-    let secs = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
-
-    // Days since Unix epoch (1970-01-01).
-    let days = (secs / 86400) as i64;
-
-    // Civil date from day count.
-    // Algorithm from Howard Hinnant:
-    // https://howardhinnant.github.io/date_algorithms.html#civil_from_days
-    let shifted_days = days + 719468;
-    let era = if shifted_days >= 0 {
-        shifted_days
-    } else {
-        shifted_days - 146096
-    } / 146097;
-    let doe = (shifted_days - era * 146097).cast_unsigned(); // day of era [0, 146096]
-    let yoe =
-        (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365; // year of era [0, 399]
-    let year = (yoe as i64) + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100); // day of year [0, 365]
-    let month_pos = (5 * doy + 2) / 153; // [0, 11]
-    let day = doy - (153 * month_pos + 2) / 5 + 1; // day [1, 31]
-    let month = if month_pos < 10 {
-        month_pos + 3
-    } else {
-        month_pos - 9
-    }; // month [1, 12]
-    let year = if month <= 2 { year + 1 } else { year };
-
-    #[allow(clippy::cast_possible_truncation)]
-    {
-        (year as i32, month as u8, day as u8)
     }
 }
 
@@ -333,16 +295,6 @@ mod tests {
         std::fs::create_dir(dir.path().join(".git")).unwrap();
         // Cargo.toml is checked first, so it should match this dir
         assert_eq!(find_project_root(dir.path()), dir.path());
-    }
-
-    // --- chrono_free_today ---
-
-    #[test]
-    fn chrono_free_today_valid_ranges() {
-        let (year, month, day) = chrono_free_today();
-        assert!(year >= 2024, "year should be recent: {year}");
-        assert!((1..=12).contains(&month), "month out of range: {month}");
-        assert!((1..=31).contains(&day), "day out of range: {day}");
     }
 
     // --- MindTapeWorld ---

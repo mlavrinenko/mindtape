@@ -1,4 +1,17 @@
 use crate::store::{FileView, IndexStats, TaskView};
+use csv::Writer;
+
+/// Finish a CSV writer and return its contents as a `String`.
+///
+/// # Errors
+/// Returns error if flushing or UTF-8 conversion fails.
+pub fn csv_to_string(wtr: Writer<Vec<u8>>) -> Result<String, csv::Error> {
+    let bytes = wtr
+        .into_inner()
+        .map_err(|e| csv::Error::from(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+    String::from_utf8(bytes)
+        .map_err(|e| csv::Error::from(std::io::Error::new(std::io::ErrorKind::InvalidData, e)))
+}
 
 #[must_use]
 pub fn format_task_view(task: &TaskView) -> String {
@@ -50,60 +63,62 @@ pub fn format_stats(stats: &IndexStats) -> String {
 // CSV output
 // ---------------------------------------------------------------------------
 
-pub fn csv_escape(field: &str) -> String {
-    if field.contains(',') || field.contains('"') || field.contains('\n') {
-        format!("\"{}\"", field.replace('"', "\"\""))
-    } else {
-        field.to_string()
-    }
-}
-
-#[must_use]
-pub fn format_tasks_csv(tasks: &[TaskView]) -> String {
-    let mut out = String::from("status,due,title,file,tags\n");
+/// Formats tasks as CSV
+///
+/// # Errors
+/// Returns error if CSV writing fails (unlikely with in-memory writer)
+pub fn format_tasks_csv(tasks: &[TaskView]) -> Result<String, csv::Error> {
+    let mut wtr = Writer::from_writer(vec![]);
+    wtr.write_record(["status", "due", "title", "file", "tags"])?;
     for t in tasks {
         let status = if t.is_done { "done" } else { "pending" };
         let due = t.due.as_deref().unwrap_or("");
         let tags = t.tags.join(";");
-        out.push_str(&format!(
-            "{},{},{},{},{}\n",
+        wtr.write_record(&[
             status,
             due,
-            csv_escape(&t.title),
-            csv_escape(&t.file_path.to_string_lossy()),
-            csv_escape(&tags),
-        ));
+            &t.title,
+            &t.file_path.to_string_lossy(),
+            &tags,
+        ])?;
     }
-    out
+    csv_to_string(wtr)
 }
 
-#[must_use]
-pub fn format_files_csv(files: &[FileView]) -> String {
-    let mut out = String::from("path,title,tasks,updated_at\n");
+/// Formats files as CSV
+///
+/// # Errors
+/// Returns error if CSV writing fails (unlikely with in-memory writer)
+pub fn format_files_csv(files: &[FileView]) -> Result<String, csv::Error> {
+    let mut wtr = Writer::from_writer(vec![]);
+    wtr.write_record(["path", "title", "tasks", "updated_at"])?;
     for f in files {
         let title = f.title.as_deref().unwrap_or("");
-        out.push_str(&format!(
-            "{},{},{},{}\n",
-            csv_escape(&f.relative_path.to_string_lossy()),
-            csv_escape(title),
-            f.task_count,
-            csv_escape(&f.updated_at),
-        ));
+        wtr.write_record(&[
+            &f.relative_path.to_string_lossy().to_string(),
+            title,
+            &f.task_count.to_string(),
+            &f.updated_at,
+        ])?;
     }
-    out
+    csv_to_string(wtr)
 }
 
-#[must_use]
-pub fn format_stats_csv(stats: &IndexStats) -> String {
-    let mut out = String::from("metric,value\n");
-    out.push_str(&format!("files,{}\n", stats.file_count));
-    out.push_str(&format!("tasks,{}\n", stats.task_count));
-    out.push_str(&format!("done,{}\n", stats.done_count));
-    out.push_str(&format!("pending,{}\n", stats.pending_count));
+/// Formats stats as CSV
+///
+/// # Errors
+/// Returns error if CSV writing fails (unlikely with in-memory writer)
+pub fn format_stats_csv(stats: &IndexStats) -> Result<String, csv::Error> {
+    let mut wtr = Writer::from_writer(vec![]);
+    wtr.write_record(["metric", "value"])?;
+    wtr.write_record(["files", &stats.file_count.to_string()])?;
+    wtr.write_record(["tasks", &stats.task_count.to_string()])?;
+    wtr.write_record(["done", &stats.done_count.to_string()])?;
+    wtr.write_record(["pending", &stats.pending_count.to_string()])?;
     if let Some(ref ts) = stats.last_updated {
-        out.push_str(&format!("last_updated,{}\n", csv_escape(ts)));
+        wtr.write_record(["last_updated", ts])?;
     }
-    out
+    csv_to_string(wtr)
 }
 
 #[cfg(test)]
@@ -228,7 +243,7 @@ mod tests {
             due: Some("2026-03-01".to_string()),
             tags: vec!["shop".to_string()],
         }];
-        let csv = format_tasks_csv(&tasks);
+        let csv = format_tasks_csv(&tasks).unwrap();
         assert!(csv.starts_with("status,due,title,file,tags\n"));
         assert!(csv.contains("pending,2026-03-01,Buy milk,todo.typ,shop\n"));
     }
@@ -244,7 +259,7 @@ mod tests {
             due: None,
             tags: vec![],
         }];
-        let csv = format_tasks_csv(&tasks);
+        let csv = format_tasks_csv(&tasks).unwrap();
         assert!(csv.contains("done,,\"Buy eggs, milk\",t.typ,\n"));
     }
 
@@ -256,7 +271,7 @@ mod tests {
             task_count: 5,
             updated_at: "2026-01-01".to_string(),
         }];
-        let csv = format_files_csv(&files);
+        let csv = format_files_csv(&files).unwrap();
         assert!(csv.starts_with("path,title,tasks,updated_at\n"));
         assert!(csv.contains("notes/todo.typ,My Tasks,5,2026-01-01\n"));
     }
@@ -270,27 +285,12 @@ mod tests {
             pending_count: 6,
             last_updated: Some("2026-01-15".to_string()),
         };
-        let csv = format_stats_csv(&stats);
+        let csv = format_stats_csv(&stats).unwrap();
         assert!(csv.starts_with("metric,value\n"));
         assert!(csv.contains("files,3\n"));
         assert!(csv.contains("tasks,10\n"));
         assert!(csv.contains("done,4\n"));
         assert!(csv.contains("pending,6\n"));
         assert!(csv.contains("last_updated,2026-01-15\n"));
-    }
-
-    #[test]
-    fn csv_escape_plain() {
-        assert_eq!(csv_escape("hello"), "hello");
-    }
-
-    #[test]
-    fn csv_escape_with_comma() {
-        assert_eq!(csv_escape("a,b"), "\"a,b\"");
-    }
-
-    #[test]
-    fn csv_escape_with_quotes() {
-        assert_eq!(csv_escape("say \"hi\""), "\"say \"\"hi\"\"\"");
     }
 }

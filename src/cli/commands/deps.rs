@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 
 use clap::Parser;
+use csv::Writer;
 
+use crate::cli::format::csv_to_string;
 use crate::cli::QueryOpts;
 use crate::store::FileDependencies;
 
@@ -75,42 +77,49 @@ pub fn format_all_deps(all_deps: &[FileDependencies]) -> String {
     output
 }
 
-#[must_use]
-pub fn format_deps_csv(deps: &FileDependencies) -> String {
-    let mut csv = String::from("type,file,target\n");
+/// Formats file dependencies as CSV
+///
+/// # Errors
+/// Returns error if CSV writing fails (unlikely with in-memory writer)
+pub fn format_deps_csv(deps: &FileDependencies) -> Result<String, csv::Error> {
+    let mut wtr = Writer::from_writer(vec![]);
+    wtr.write_record(["type", "file", "target"])?;
 
     for import in &deps.imports {
-        csv.push_str(&format!(
-            "imports,{},{}\n",
-            deps.file_path.display(),
-            import.display()
-        ));
+        wtr.write_record(&[
+            "imports",
+            &deps.file_path.to_string_lossy(),
+            &import.to_string_lossy(),
+        ])?;
     }
 
     for imported_by in &deps.imported_by {
-        csv.push_str(&format!(
-            "imported_by,{},{}\n",
-            deps.file_path.display(),
-            imported_by.display()
-        ));
+        wtr.write_record(&[
+            "imported_by",
+            &deps.file_path.to_string_lossy(),
+            &imported_by.to_string_lossy(),
+        ])?;
     }
 
-    csv
+    csv_to_string(wtr)
 }
 
-#[must_use]
-pub fn format_all_deps_csv(all_deps: &[FileDependencies]) -> String {
-    let mut csv = String::from("file,title,imports_count,imported_by_count\n");
+/// Formats all file dependencies as CSV
+///
+/// # Errors
+/// Returns error if CSV writing fails (unlikely with in-memory writer)
+pub fn format_all_deps_csv(all_deps: &[FileDependencies]) -> Result<String, csv::Error> {
+    let mut wtr = Writer::from_writer(vec![]);
+    wtr.write_record(["file", "title", "imports_count", "imported_by_count"])?;
 
     for deps in all_deps {
-        csv.push_str(&format!(
-            "{},{},{},{}\n",
-            deps.file_path.display(),
+        wtr.write_record(&[
+            &deps.file_path.to_string_lossy().to_string(),
             deps.file_title.as_deref().unwrap_or(""),
-            deps.imports.len(),
-            deps.imported_by.len()
-        ));
+            &deps.imports.len().to_string(),
+            &deps.imported_by.len().to_string(),
+        ])?;
     }
 
-    csv
+    csv_to_string(wtr)
 }

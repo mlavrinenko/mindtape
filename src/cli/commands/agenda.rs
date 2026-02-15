@@ -1,6 +1,7 @@
 use clap::Parser;
+use csv::Writer;
 
-use crate::cli::format::{csv_escape, format_task_view};
+use crate::cli::format::{csv_to_string, format_task_view};
 use crate::store::AgendaView;
 
 use crate::cli::QueryOpts;
@@ -92,42 +93,31 @@ pub fn format_agenda(
     output
 }
 
-#[must_use]
-pub fn format_agenda_csv(agenda: &AgendaView) -> String {
-    let mut csv = String::from("section,done,due,title,tags,file\n");
+/// Formats agenda as CSV
+///
+/// # Errors
+/// Returns error if CSV writing fails (unlikely with in-memory writer)
+pub fn format_agenda_csv(agenda: &AgendaView) -> Result<String, csv::Error> {
+    let mut wtr = Writer::from_writer(vec![]);
+    wtr.write_record(["section", "done", "due", "title", "tags", "file"])?;
 
-    for task in &agenda.overdue {
-        csv.push_str(&format!(
-            "overdue,{},{},{},{},{}\n",
-            task.is_done,
-            task.due.as_deref().unwrap_or(""),
-            csv_escape(&task.title),
-            task.tags.join(";"),
-            task.file_path.display(),
-        ));
+    let sections = [
+        ("overdue", agenda.overdue.as_slice()),
+        ("today", agenda.today.as_slice()),
+        ("this_week", agenda.this_week.as_slice()),
+    ];
+    for (label, tasks) in &sections {
+        for task in *tasks {
+            wtr.write_record(&[
+                *label,
+                &task.is_done.to_string(),
+                task.due.as_deref().unwrap_or(""),
+                &task.title,
+                &task.tags.join(";"),
+                &task.file_path.to_string_lossy(),
+            ])?;
+        }
     }
 
-    for task in &agenda.today {
-        csv.push_str(&format!(
-            "today,{},{},{},{},{}\n",
-            task.is_done,
-            task.due.as_deref().unwrap_or(""),
-            csv_escape(&task.title),
-            task.tags.join(";"),
-            task.file_path.display(),
-        ));
-    }
-
-    for task in &agenda.this_week {
-        csv.push_str(&format!(
-            "this_week,{},{},{},{},{}\n",
-            task.is_done,
-            task.due.as_deref().unwrap_or(""),
-            csv_escape(&task.title),
-            task.tags.join(";"),
-            task.file_path.display(),
-        ));
-    }
-
-    csv
+    csv_to_string(wtr)
 }

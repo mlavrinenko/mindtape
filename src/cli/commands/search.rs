@@ -1,7 +1,7 @@
 use clap::Parser;
+use csv::Writer;
 
-use crate::cli::format::csv_escape;
-use crate::cli::format::format_task_view;
+use crate::cli::format::{csv_to_string, format_task_view};
 use crate::store::SearchResults;
 
 use crate::cli::QueryOpts;
@@ -59,25 +59,29 @@ pub fn format_search_results(results: &SearchResults) -> String {
     out
 }
 
-#[must_use]
-pub fn format_search_csv(results: &SearchResults) -> String {
-    let mut out = String::from("type,name,value,file\n");
+/// Formats search results as CSV
+///
+/// # Errors
+/// Returns error if CSV writing fails (unlikely with in-memory writer)
+pub fn format_search_csv(results: &SearchResults) -> Result<String, csv::Error> {
+    let mut wtr = Writer::from_writer(vec![]);
+    wtr.write_record(["type", "name", "value", "file"])?;
     for task in &results.tasks {
         let status = if task.is_done { "done" } else { "pending" };
-        out.push_str(&format!(
-            "task,{},{},{}\n",
-            csv_escape(&task.title),
+        wtr.write_record(&[
+            "task",
+            &task.title,
             status,
-            csv_escape(&task.file_path.to_string_lossy()),
-        ));
+            &task.file_path.to_string_lossy(),
+        ])?;
     }
     for binding in &results.bindings {
-        out.push_str(&format!(
-            "binding,{},{},{}\n",
-            csv_escape(&binding.name),
-            csv_escape(&binding.value),
-            csv_escape(&binding.file_path.to_string_lossy()),
-        ));
+        wtr.write_record(&[
+            "binding",
+            &binding.name,
+            &binding.value,
+            &binding.file_path.to_string_lossy(),
+        ])?;
     }
-    out
+    csv_to_string(wtr)
 }

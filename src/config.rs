@@ -58,15 +58,15 @@ pub fn load_config(path: &Path) -> Result<Config, ConfigError> {
 ///
 /// Checks (in order):
 /// 1. `mindtape.toml` in the current working directory
-/// 2. `~/.config/mindtape/config.toml`
+/// 2. `~/.config/mindtape/config.toml` (XDG-compliant)
 pub fn find_config() -> Option<PathBuf> {
     let cwd_config = PathBuf::from("mindtape.toml");
     if cwd_config.exists() {
         return Some(cwd_config);
     }
 
-    if let Some(home) = home_dir() {
-        let user_config = home.join(".config/mindtape/config.toml");
+    if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "mindtape") {
+        let user_config = proj_dirs.config_dir().join("config.toml");
         if user_config.exists() {
             return Some(user_config);
         }
@@ -77,17 +77,8 @@ pub fn find_config() -> Option<PathBuf> {
 
 /// Expand a leading `~` to the user's home directory.
 pub fn expand_tilde(path: &str) -> PathBuf {
-    if let Some(rest) = path.strip_prefix("~/") {
-        if let Some(home) = home_dir() {
-            return home.join(rest);
-        }
-    }
-    if path == "~" {
-        if let Some(home) = home_dir() {
-            return home;
-        }
-    }
-    PathBuf::from(path)
+    let expanded = shellexpand::tilde(path);
+    PathBuf::from(expanded.as_ref())
 }
 
 /// Resolve the database path from config, with a default.
@@ -98,17 +89,13 @@ pub fn resolve_db_path(config: &Config) -> PathBuf {
     default_db_path()
 }
 
-/// Default database path: `~/.local/share/mindtape/index.db`.
+/// Default database path: `~/.local/share/mindtape/index.db` (XDG-compliant).
 pub fn default_db_path() -> PathBuf {
-    if let Some(home) = home_dir() {
-        home.join(".local/share/mindtape/index.db")
+    if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "mindtape") {
+        proj_dirs.data_dir().join("index.db")
     } else {
         PathBuf::from("index.db")
     }
-}
-
-fn home_dir() -> Option<PathBuf> {
-    std::env::var("HOME").ok().map(PathBuf::from)
 }
 
 #[cfg(test)]
