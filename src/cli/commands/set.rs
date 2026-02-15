@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::{Context, Result, bail};
 use clap::Parser;
 
-use crate::cli::util::{atomic_write, open_query_db};
+use crate::cli::util::{atomic_write, open_query_db, resolve_query_db_path};
 use crate::store::Store;
 
 /// Update task properties (due date, tags).
@@ -39,7 +39,8 @@ impl SetArgs {
     /// # Errors
     /// Returns error if database open, task lookup, file read, modification, or write fails.
     pub fn run(&self) -> Result<()> {
-        let store = open_query_db(self.db.as_deref())?;
+        let db_path = resolve_query_db_path(self.db.as_deref());
+        let store = open_query_db(&db_path)?;
 
         let task = store
             .find_task_by_id(&self.task_id)

@@ -1173,6 +1173,7 @@ mod tests {
                 done: false,
                 due: Some(Datetime::from_ymd(2026, 3, 1).unwrap()),
                 tags: vec!["work".to_string(), "urgent".to_string()],
+                id: Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string()),
                 position: 0,
             }],
             title: Some("Heading".to_string()),
@@ -1188,11 +1189,13 @@ mod tests {
         assert_eq!(tasks.len(), 1);
         assert_eq!(tasks[0].title, "Test");
         assert_eq!(props.len(), 1);
-        assert_eq!(props[0].len(), 3); // 1 due + 2 tags
-        assert_eq!(props[0][0].kind, PropertyKind::Due);
-        assert_eq!(props[0][0].value, "2026-03-01");
-        assert_eq!(props[0][1].kind, PropertyKind::Tag);
-        assert_eq!(props[0][1].value, "work");
+        assert_eq!(props[0].len(), 4); // 1 id + 1 due + 2 tags
+        assert_eq!(props[0][0].kind, PropertyKind::Id);
+        assert_eq!(props[0][0].value, "019c5b9b-7317-77b1-bf52-ce7a298cfcad");
+        assert_eq!(props[0][1].kind, PropertyKind::Due);
+        assert_eq!(props[0][1].value, "2026-03-01");
+        assert_eq!(props[0][2].kind, PropertyKind::Tag);
+        assert_eq!(props[0][2].value, "work");
         assert_eq!(bindings.len(), 1);
         assert_eq!(bindings[0].name, "note");
     }

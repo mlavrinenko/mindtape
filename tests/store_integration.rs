@@ -21,15 +21,15 @@ fn setup(
 }
 
 #[test]
-fn index_file_stores_tasks() {
+fn index_file_stores_tasks_with_id() {
     let (mut store, world, file, root) = setup(
-        r#"#import "@mindtape/mindtape:0.1.0": due, tag
+        r#"#import "@mindtape/mindtape:0.1.0": due, id, tag
 
 = Piano Practice
 
-- [ ] Learn scales #due(datetime(year: 2026, month: 3, day: 1)) #tag("music")
-- [x] Buy metronome
-- [ ] Practice arpeggios #tag("music") #tag("technique")
+- [ ] Learn scales #due(datetime(year: 2026, month: 3, day: 1)) #tag("music") #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [x] Buy metronome #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] Practice arpeggios #tag("music") #tag("technique") #id("019c5b98-d10a-7710-8679-bda520780ee9")
 "#,
     );
 
@@ -53,8 +53,47 @@ fn index_file_stores_tasks() {
 }
 
 #[test]
+fn index_file_skips_tasks_without_id() {
+    let (mut store, world, file, root) = setup(
+        r#"#import "@mindtape/mindtape:0.1.0": id
+
+- [ ] Has id #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] No id
+- [x] Also no id
+"#,
+    );
+
+    index_file(&mut store, &world, &file, &root).unwrap();
+
+    let views = store.query_tasks(&TaskFilter::default()).unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "Has id");
+}
+
+#[test]
+fn index_file_skips_tasks_with_invalid_id() {
+    let (mut store, world, file, root) = setup(
+        r#"#import "@mindtape/mindtape:0.1.0": id
+
+- [ ] Valid v7 #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Not a uuid #id("not-a-uuid")
+- [ ] UUIDv4 #id("550e8400-e29b-41d4-a716-446655440000")
+"#,
+    );
+
+    index_file(&mut store, &world, &file, &root).unwrap();
+
+    let views = store.query_tasks(&TaskFilter::default()).unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "Valid v7");
+}
+
+#[test]
 fn index_file_skips_unchanged() {
-    let (mut store, world, file, root) = setup("- [ ] Task");
+    let (mut store, world, file, root) = setup(
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Task #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")"#,
+    );
 
     let first = index_file(&mut store, &world, &file, &root).unwrap();
     assert!(first);
@@ -65,12 +104,21 @@ fn index_file_skips_unchanged() {
 
 #[test]
 fn index_file_reindexes_on_change() {
-    let (mut store, world, file, root) = setup("- [ ] Old task");
+    let (mut store, world, file, root) = setup(
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Old task #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")"#,
+    );
 
     index_file(&mut store, &world, &file, &root).unwrap();
 
     // Modify the file
-    std::fs::write(&file, "- [ ] New task A\n- [ ] New task B").unwrap();
+    std::fs::write(
+        &file,
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] New task A #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] New task B #id("019c5b98-d10a-7710-8679-bda520780ee9")"#,
+    )
+    .unwrap();
     let world2 = MindTapeWorld::new(&file).unwrap();
 
     let reindexed = index_file(&mut store, &world2, &file, &root).unwrap();
@@ -84,7 +132,12 @@ fn index_file_reindexes_on_change() {
 
 #[test]
 fn index_file_extracts_title() {
-    let (mut store, world, file, root) = setup("= My Project\n\n- [ ] Task");
+    let (mut store, world, file, root) = setup(
+        r#"#import "@mindtape/mindtape:0.1.0": id
+= My Project
+
+- [ ] Task #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")"#,
+    );
 
     index_file(&mut store, &world, &file, &root).unwrap();
 
@@ -95,11 +148,11 @@ fn index_file_extracts_title() {
 #[test]
 fn index_file_query_by_tag() {
     let (mut store, world, file, root) = setup(
-        r#"#import "@mindtape/mindtape:0.1.0": tag
+        r#"#import "@mindtape/mindtape:0.1.0": id, tag
 
-- [ ] Work task #tag("work")
-- [ ] Fun task #tag("fun")
-- [ ] Both #tag("work") #tag("fun")
+- [ ] Work task #tag("work") #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Fun task #tag("fun") #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] Both #tag("work") #tag("fun") #id("019c5b98-d10a-7710-8679-bda520780ee9")
 "#,
     );
 
@@ -118,7 +171,11 @@ fn index_file_query_by_tag() {
 
 #[test]
 fn index_file_remove_then_query_is_empty() {
-    let (mut store, world, file, root) = setup("- [ ] Task A\n- [ ] Task B");
+    let (mut store, world, file, root) = setup(
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Task A #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Task B #id("019c5b97-9239-7270-b7d7-2a50806912b3")"#,
+    );
 
     index_file(&mut store, &world, &file, &root).unwrap();
     assert_eq!(store.query_tasks(&TaskFilter::default()).unwrap().len(), 2);
@@ -132,11 +189,11 @@ fn index_file_remove_then_query_is_empty() {
 #[test]
 fn index_file_query_combined_tag_and_done() {
     let (mut store, world, file, root) = setup(
-        r#"#import "@mindtape/mindtape:0.1.0": tag
+        r#"#import "@mindtape/mindtape:0.1.0": id, tag
 
-- [ ] Open work #tag("work")
-- [x] Done work #tag("work")
-- [ ] Open fun #tag("fun")
+- [ ] Open work #tag("work") #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [x] Done work #tag("work") #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] Open fun #tag("fun") #id("019c5b98-d10a-7710-8679-bda520780ee9")
 "#,
     );
 
@@ -157,11 +214,11 @@ fn index_file_query_combined_tag_and_done() {
 #[test]
 fn index_file_stores_bindings() {
     let (mut store, world, file, root) = setup(
-        r#"
+        r#"#import "@mindtape/mindtape:0.1.0": id
 #let project = "MindTape"
 #let version = 2
 
-- [ ] A task
+- [ ] A task #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
 "#,
     );
 
@@ -178,9 +235,20 @@ fn index_multiple_files() {
     let root = setup_typst_project();
 
     let file_a = root.join("a.typ");
-    std::fs::write(&file_a, "- [ ] Task from A").unwrap();
+    std::fs::write(
+        &file_a,
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Task from A #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")"#,
+    )
+    .unwrap();
     let file_b = root.join("b.typ");
-    std::fs::write(&file_b, "- [ ] Task from B\n- [ ] Another from B").unwrap();
+    std::fs::write(
+        &file_b,
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Task from B #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] Another from B #id("019c5b98-d10a-7710-8679-bda520780ee9")"#,
+    )
+    .unwrap();
 
     let mut store = SqliteStore::open_memory().unwrap();
 

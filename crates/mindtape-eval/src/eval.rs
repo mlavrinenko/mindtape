@@ -53,6 +53,7 @@ pub struct Task {
     pub done: bool,
     pub due: Option<Datetime>,
     pub tags: Vec<String>,
+    pub id: Option<String>,
     pub position: u32,
 }
 
@@ -220,6 +221,7 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
     // `#due()`, `#id()`, and `#tag()`.
     let mut due: Option<Datetime> = None;
     let mut tags: Vec<String> = Vec::new();
+    let mut id: Option<String> = None;
 
     let _ = body.traverse(&mut |node: Content| -> ControlFlow<()> {
         if let Some(meta) = node.to_packed::<MetadataElem>() {
@@ -238,6 +240,11 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
                                     tags.push(name.to_string());
                                 }
                             }
+                            "id" => {
+                                if let Value::Str(s) = &slice[1] {
+                                    id = Some(s.to_string());
+                                }
+                            }
                             _ => {}
                         }
                 }
@@ -246,7 +253,7 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
         ControlFlow::Continue(())
     });
 
-    Some(Task { title, done, due, tags, position: 0 })
+    Some(Task { title, done, due, tags, id, position: 0 })
 }
 
 /// Extract the title from the first heading in the content tree.

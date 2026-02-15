@@ -3,7 +3,7 @@ use clap::Parser;
 use csv::Writer;
 
 use crate::cli::format::{csv_to_string, format_task_view};
-use crate::cli::util::{open_query_db, print_json};
+use crate::cli::util::{open_query_db, print_json, resolve_query_db_path};
 use crate::cli::{OutputFormat, QueryOpts};
 use crate::store::{SearchResults, Store};
 
@@ -28,7 +28,8 @@ impl SearchArgs {
     /// Returns error if database open or search fails, or if JSON/CSV formatting fails.
     pub fn run(&self) -> Result<()> {
         let format = self.query.output_format();
-        let store = open_query_db(self.query.db.as_deref())?;
+        let db_path = resolve_query_db_path(self.query.db.as_deref());
+        let store = open_query_db(&db_path)?;
 
         let results = store
             .search(&self.keyword, self.limit)

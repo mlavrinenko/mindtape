@@ -245,6 +245,29 @@ fn eval_package_import_all_functions() {
     assert_eq!(tasks[0].tags, vec!["holiday", "fun"]);
 }
 
+// --- id extraction ---
+
+#[test]
+fn eval_extracts_task_id() {
+    let prelude = r#"
+#let due(date) = metadata(("due", date))
+#let id(uuid) = metadata(("id", uuid))
+#let tag(name) = metadata(("tag", name))
+"#;
+    let source = r#"#import "@mindtape/mindtape:0.1.0": id
+
+- [ ] Task with id #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Task without id
+"#;
+    let tasks = eval_typ_with_package(prelude, source).unwrap();
+    assert_eq!(tasks.len(), 2);
+    assert_eq!(
+        tasks[0].id,
+        Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string())
+    );
+    assert_eq!(tasks[1].id, None);
+}
+
 // --- eval_file_full: title extraction ---
 
 #[test]

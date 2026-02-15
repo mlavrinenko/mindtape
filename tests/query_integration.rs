@@ -36,13 +36,21 @@ fn list_files_after_indexing() {
         &mut store,
         &root,
         "todo.typ",
-        "= My Tasks\n\n- [ ] Buy milk\n- [x] Done\n",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+
+= My Tasks
+
+- [ ] Buy milk #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [x] Done #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+"#,
     );
     add_and_index(
         &mut store,
         &root,
         "notes/work.typ",
-        "- [ ] Write report\n",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Write report #id("019c5b98-d10a-7710-8679-bda520780ee9")
+"#,
     );
 
     let files = store.list_files().unwrap();
@@ -63,13 +71,19 @@ fn stats_after_indexing() {
         &mut store,
         &root,
         "todo.typ",
-        "- [ ] Pending A\n- [x] Done B\n- [ ] Pending C\n",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Pending A #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [x] Done B #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] Pending C #id("019c5b98-d10a-7710-8679-bda520780ee9")
+"#,
     );
     add_and_index(
         &mut store,
         &root,
         "other.typ",
-        "- [x] Done D\n",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [x] Done D #id("019c5b99-a9a0-7853-8b1a-72ec1d8bda37")
+"#,
     );
 
     let stats = store.get_stats().unwrap();
@@ -89,19 +103,25 @@ fn query_tasks_by_folder() {
         &mut store,
         &root,
         "notes/todo.typ",
-        "- [ ] Note task\n",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Note task #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+"#,
     );
     add_and_index(
         &mut store,
         &root,
         "notes/deep/nested.typ",
-        "- [ ] Deep task\n",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Deep task #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+"#,
     );
     add_and_index(
         &mut store,
         &root,
         "other/misc.typ",
-        "- [ ] Other task\n",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Other task #id("019c5b98-d10a-7710-8679-bda520780ee9")
+"#,
     );
 
     let notes = store
@@ -132,11 +152,11 @@ fn list_done_tasks_by_tag() {
         &mut store,
         &root,
         "todo.typ",
-        r#"#import "@mindtape/mindtape:0.1.0": tag
+        r#"#import "@mindtape/mindtape:0.1.0": id, tag
 
-- [ ] Open work #tag("work")
-- [x] Done work #tag("work")
-- [x] Done fun #tag("fun")
+- [ ] Open work #tag("work") #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [x] Done work #tag("work") #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [x] Done fun #tag("fun") #id("019c5b98-d10a-7710-8679-bda520780ee9")
 "#,
     );
 
@@ -167,8 +187,22 @@ fn stats_empty_db() {
 #[test]
 fn list_files_after_removal() {
     let (mut store, root) = setup();
-    add_and_index(&mut store, &root, "a.typ", "- [ ] Task A\n");
-    add_and_index(&mut store, &root, "b.typ", "- [ ] Task B\n");
+    add_and_index(
+        &mut store,
+        &root,
+        "a.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Task A #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+"#,
+    );
+    add_and_index(
+        &mut store,
+        &root,
+        "b.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Task B #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+"#,
+    );
 
     assert_eq!(store.list_files().unwrap().len(), 2);
 
@@ -190,13 +224,18 @@ fn folder_and_status_combined() {
         &mut store,
         &root,
         "notes/todo.typ",
-        "- [ ] Open note\n- [x] Done note\n",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Open note #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [x] Done note #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+"#,
     );
     add_and_index(
         &mut store,
         &root,
         "other/misc.typ",
-        "- [ ] Open other\n",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Open other #id("019c5b98-d10a-7710-8679-bda520780ee9")
+"#,
     );
 
     let views = store

@@ -222,7 +222,11 @@ fn initial_scan_respects_mindtapeignore() {
 fn handle_event_indexes_new_file() {
     let (dir, dir_path) = setup_watch_dir();
     let typ_file = dir_path.join("new.typ");
-    fs::write(&typ_file, "- [ ] New task\n").unwrap();
+    fs::write(
+        &typ_file,
+        "#import \"@mindtape/mindtape:0.1.0\": id\n- [ ] New task #id(\"019c5b9b-7317-77b1-bf52-ce7a298cfcad\")\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let entries = vec![make_entry(&dir_path)];
@@ -242,7 +246,11 @@ fn handle_event_indexes_new_file() {
 fn handle_event_removes_deleted_file() {
     let (dir, dir_path) = setup_watch_dir();
     let typ_file = dir_path.join("del.typ");
-    fs::write(&typ_file, "- [ ] Will be deleted\n").unwrap();
+    fs::write(
+        &typ_file,
+        "#import \"@mindtape/mindtape:0.1.0\": id\n- [ ] Will be deleted #id(\"019c5b9b-7317-77b1-bf52-ce7a298cfcad\")\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let entries = vec![make_entry(&dir_path)];
@@ -350,7 +358,11 @@ fn initial_scan_respects_gitignore() {
 fn handle_event_picks_up_new_gitignore() {
     let (dir, dir_path) = setup_watch_dir();
     let typ_file = dir_path.join("notes.draft.typ");
-    fs::write(&typ_file, "- [ ] Draft task\n").unwrap();
+    fs::write(
+        &typ_file,
+        "#import \"@mindtape/mindtape:0.1.0\": id\n- [ ] Draft task #id(\"019c5b9b-7317-77b1-bf52-ce7a298cfcad\")\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let entries = vec![make_entry(&dir_path)];
@@ -370,7 +382,11 @@ fn handle_event_picks_up_new_gitignore() {
     // Trigger the file again — now it should be ignored.
     // (The file won't be re-indexed because the ignore check happens first.)
     // Touch the file to force a hash change.
-    fs::write(&typ_file, "- [ ] Draft task updated\n").unwrap();
+    fs::write(
+        &typ_file,
+        "#import \"@mindtape/mindtape:0.1.0\": id\n- [ ] Draft task updated #id(\"019c5b9b-7317-77b1-bf52-ce7a298cfcad\")\n",
+    )
+    .unwrap();
     watcher.handle_event(&typ_file);
 
     // The task from the first indexing should still be there,
@@ -388,7 +404,11 @@ fn handle_event_picks_up_new_gitignore() {
 fn handle_event_ignores_deleted_non_typ_file() {
     let (dir, dir_path) = setup_watch_dir();
     let typ_file = dir_path.join("todo.typ");
-    fs::write(&typ_file, "- [ ] A task\n").unwrap();
+    fs::write(
+        &typ_file,
+        "#import \"@mindtape/mindtape:0.1.0\": id\n- [ ] A task #id(\"019c5b9b-7317-77b1-bf52-ce7a298cfcad\")\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let entries = vec![make_entry(&dir_path)];

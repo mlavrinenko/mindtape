@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
 
 use crate::cli::format::{format_task_view, format_tasks_csv};
-use crate::cli::util::{open_query_db, print_json};
+use crate::cli::util::{open_query_db, print_json, resolve_query_db_path};
 use crate::cli::{OutputFormat, QueryOpts};
 use crate::store::{Store, TaskFilter};
 
@@ -66,7 +66,8 @@ impl ListArgs {
     /// Returns error if database open or query fails, or if JSON/CSV formatting fails.
     pub fn run(&self) -> Result<()> {
         let format = self.query.output_format();
-        let store = open_query_db(self.query.db.as_deref())?;
+        let db_path = resolve_query_db_path(self.query.db.as_deref());
+        let store = open_query_db(&db_path)?;
 
         let filter = TaskFilter {
             done: self.done_filter(),

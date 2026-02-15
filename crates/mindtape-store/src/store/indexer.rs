@@ -3,8 +3,9 @@
 
 use std::path::Path;
 
-use log::{debug, trace};
+use log::{debug, trace, warn};
 use sha2::{Digest, Sha256};
+use uuid::Uuid;
 
 use super::{
     FileBinding, PropertyKind, Store, StoreError, TaskFile, TaskProperty, TaskRecord,
@@ -27,10 +28,22 @@ pub fn hash_file(path: &Path) -> Result<String, std::io::Error> {
 }
 
 // ---------------------------------------------------------------------------
+// UUIDv7 validation
+// ---------------------------------------------------------------------------
+
+/// Check whether a string is a valid `UUIDv7`.
+fn is_valid_uuidv7(value: &str) -> bool {
+    Uuid::parse_str(value).is_ok_and(|u| u.get_version() == Some(uuid::Version::SortRand))
+}
+
+// ---------------------------------------------------------------------------
 // Conversion: eval types -> store types
 // ---------------------------------------------------------------------------
 
 /// Convert an `EvalResult` into store domain types.
+///
+/// Only tasks with a valid `UUIDv7` `#id()` are included. Tasks without an id
+/// are silently skipped; tasks with an invalid id produce a warning.
 pub fn to_store_records(
     result: &EvalResult,
     relative_path: &Path,
@@ -48,6 +61,21 @@ pub fn to_store_records(
     let mut all_props = Vec::new();
 
     for task in &result.tasks {
+        let task_id = match &task.id {
+            None => continue,
+            Some(val) => {
+                if !is_valid_uuidv7(val) {
+                    warn!(
+                        "{}: skipping task '{}': invalid UUIDv7 id '{val}'",
+                        relative_path.display(),
+                        task.title,
+                    );
+                    continue;
+                }
+                val
+            }
+        };
+
         task_records.push(TaskRecord {
             id: None,
             task_file_id: 0, // filled during insert
@@ -56,11 +84,17 @@ pub fn to_store_records(
             position: task.position as i32,
         });
 
-        let mut props = Vec::new();
+        let mut props = vec![TaskProperty {
+            id: None,
+            task_id: 0, // filled during insert
+            kind: PropertyKind::Id,
+            key: "id".to_string(),
+            value: task_id.clone(),
+        }];
         if let Some(dt) = &task.due {
             props.push(TaskProperty {
                 id: None,
-                task_id: 0, // filled during insert
+                task_id: 0,
                 kind: PropertyKind::Due,
                 key: "due".to_string(),
                 value: format_date(dt),
