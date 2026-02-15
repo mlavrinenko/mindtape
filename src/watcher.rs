@@ -141,11 +141,13 @@ impl Watcher {
             (entry.project_root.clone(), ignored)
         };
 
+        // Only care about .typ files in both branches.
+        if path.extension().is_none_or(|ext| ext != "typ") {
+            return;
+        }
+
         if path.exists() {
-            if !is_typ_file(path) {
-                return;
-            }
-            if is_ignored {
+            if !path.is_file() || is_ignored {
                 return;
             }
             match self.index_one(path, &project_root) {

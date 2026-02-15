@@ -385,6 +385,38 @@ fn handle_event_picks_up_new_gitignore() {
 }
 
 #[test]
+fn handle_event_ignores_deleted_non_typ_file() {
+    let (dir, dir_path) = setup_watch_dir();
+    let typ_file = dir_path.join("todo.typ");
+    fs::write(&typ_file, "- [ ] A task\n").unwrap();
+
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+
+    // Index the .typ file first.
+    watcher.handle_event(&typ_file);
+    let tasks = watcher
+        .store
+        .query_tasks(&crate::store::TaskFilter::default())
+        .unwrap();
+    assert_eq!(tasks.len(), 1);
+
+    // Simulate a deleted non-typ file (e.g. a temp PDF).
+    let pdf_tmp = dir_path.join("build/todo.pdf9wJeNG");
+    // File doesn't exist — simulating post-deletion event.
+    watcher.handle_event(&pdf_tmp);
+
+    // The .typ task should still be there, unaffected.
+    let tasks = watcher
+        .store
+        .query_tasks(&crate::store::TaskFilter::default())
+        .unwrap();
+    assert_eq!(tasks.len(), 1);
+    drop(dir);
+}
+
+#[test]
 fn handle_event_unknown_path_is_noop() {
     let (dir, dir_path) = setup_watch_dir();
     let store = SqliteStore::open_memory().unwrap();
