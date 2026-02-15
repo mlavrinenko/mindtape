@@ -11,6 +11,7 @@ use std::fmt;
 use std::ops::ControlFlow;
 
 use comemo::Track;
+use log::{debug, trace};
 use thiserror::Error;
 use typst::engine::{Route, Sink, Traced};
 use typst::foundations::{Content, Datetime, Module, Value};
@@ -84,6 +85,8 @@ pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, EvalError> {
         .source(world.main())
         .map_err(|err| EvalError::from_file_error(&err))?;
 
+    debug!("evaluating {}", source.id().vpath().as_rooted_path().display());
+
     let mut sink = Sink::new();
     let traced = Traced::default();
     let route = Route::default();
@@ -100,6 +103,7 @@ pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, EvalError> {
 
     // Extract bindings BEFORE content() consumes the module.
     let bindings = extract_bindings(module.scope());
+    trace!("extracted {} bindings", bindings.len());
 
     let content: Content = module.content();
 
@@ -107,6 +111,8 @@ pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, EvalError> {
 
     let mut tasks = Vec::new();
     collect_tasks(&content, &mut tasks);
+
+    debug!("found {} tasks, {} bindings", tasks.len(), bindings.len());
 
     Ok(EvalResult {
         tasks,
@@ -129,6 +135,8 @@ pub fn eval_file_full_with_deps(
     let source = world
         .source(world.main())
         .map_err(|err| EvalError::from_file_error(&err))?;
+
+    debug!("evaluating (with deps) {}", source.id().vpath().as_rooted_path().display());
 
     let mut sink = Sink::new();
     let traced = Traced::default();
@@ -158,6 +166,11 @@ pub fn eval_file_full_with_deps(
     collect_tasks(&content, &mut tasks);
 
     let dependencies = world.get_dependencies()?;
+
+    debug!(
+        "found {} tasks, {} bindings, {} deps",
+        tasks.len(), bindings.len(), dependencies.len()
+    );
 
     Ok(EvalResult {
         tasks,

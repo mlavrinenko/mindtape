@@ -24,6 +24,7 @@ metadata into SQLite, and exposes a CLI for querying.
 - **CLI**: `clap` 4 (derive) with `-N` shorthand via arg preprocessor
 - **Serialization**: `serde` + `serde_json` for `--json` output
 - **Config**: `toml` + `serde` for TOML config files
+- **Logging**: `log` 0.4 + `env_logger` 0.11 — `-v`/`-vv`/`-vvv` or `RUST_LOG`
 
 ## Agent Rules
 
@@ -131,7 +132,7 @@ Use `just count-tests` for current test count. See `docs/TESTING.md` for guideli
 - `mindtape check <task-id> [--db PATH]` — toggle task checkbox
 - `mindtape set <task-id> [--due DATE] [--no-due] [--add-tag TAG] [--remove-tag TAG] [--db PATH]`
 
-All query commands support `--json` as shorthand for `--format json`.
+All commands support `-v`/`--verbose` (global, repeatable) and `--json` as shorthand for `--format json`.
 
 ## Context Hygiene (Self-Maintenance)
 

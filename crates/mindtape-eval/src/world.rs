@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use chrono::Datelike;
+use log::{debug, trace};
 use typst::diag::{FileError, FileResult};
 use typst::foundations::{Bytes, Datetime};
 use typst::syntax::{FileId, Source, VirtualPath};
@@ -79,6 +80,9 @@ impl MindTapeWorld {
                     root.display()
                 ))
             })?;
+
+        debug!("project root: {}", root.display());
+        trace!("main file: {}", rel_path.display());
 
         let vpath = VirtualPath::new(rel_path);
         let main_id = FileId::new(None, vpath);
@@ -193,10 +197,12 @@ impl typst::World for MindTapeWorld {
         {
             let cache = self.sources.lock().expect("source cache poisoned");
             if let Some(source) = cache.get(&id) {
+                trace!("source cache hit: {}", id.vpath().as_rooted_path().display());
                 return Ok(source.clone());
             }
         }
 
+        trace!("loading source: {}", id.vpath().as_rooted_path().display());
         let source = self.load_source(id)?;
 
         let mut cache = self.sources.lock().expect("source cache poisoned");

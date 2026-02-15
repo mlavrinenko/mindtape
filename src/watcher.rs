@@ -8,6 +8,7 @@ use std::time::Duration;
 
 use ignore::gitignore::{Gitignore, GitignoreBuilder};
 use ignore::WalkBuilder;
+use log::{debug, info, warn};
 use notify::RecursiveMode;
 use notify_debouncer_mini::{new_debouncer, DebounceEventResult};
 use thiserror::Error;
@@ -118,7 +119,7 @@ impl Watcher {
                 Ok(true) => result.indexed += 1,
                 Ok(false) => result.skipped += 1,
                 Err(err) => {
-                    eprintln!("error indexing {}: {err}", path.display());
+                    warn!("error indexing {}: {err}", path.display());
                     result.errors += 1;
                 }
             }
@@ -152,9 +153,9 @@ impl Watcher {
                 return;
             }
             match self.index_one(path, &project_root) {
-                Ok(true) => eprintln!("indexed {}", path.display()),
-                Ok(false) => {}
-                Err(err) => eprintln!("error indexing {}: {err}", path.display()),
+                Ok(true) => info!("indexed {}", path.display()),
+                Ok(false) => debug!("unchanged {}", path.display()),
+                Err(err) => warn!("error indexing {}: {err}", path.display()),
             }
         } else {
             // File was deleted — remove from store.
@@ -162,8 +163,8 @@ impl Watcher {
                 return;
             };
             match self.store.remove_task_file(rel) {
-                Ok(()) => eprintln!("removed {}", path.display()),
-                Err(err) => eprintln!("error removing {}: {err}", path.display()),
+                Ok(()) => info!("removed {}", path.display()),
+                Err(err) => warn!("error removing {}: {err}", path.display()),
             }
         }
     }
@@ -185,7 +186,7 @@ impl Watcher {
                 RecursiveMode::NonRecursive
             };
             debouncer.watcher().watch(&entry.path, mode)?;
-            eprintln!("watching {}", entry.path.display());
+            info!("watching {}", entry.path.display());
         }
 
         for batch in rx {
@@ -196,7 +197,7 @@ impl Watcher {
                     }
                 }
                 Err(err) => {
-                    eprintln!("watch error: {err}");
+                    warn!("watch error: {err}");
                 }
             }
         }

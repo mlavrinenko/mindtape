@@ -77,6 +77,10 @@ pub struct Cli {
     /// Limit output to N items
     #[arg(short = 'n', long)]
     pub limit: Option<usize>,
+
+    /// Increase verbosity (-v info, -vv debug, -vvv trace)
+    #[arg(short = 'v', long, action = clap::ArgAction::Count, global = true)]
+    pub verbose: u8,
 }
 
 #[derive(Subcommand)]

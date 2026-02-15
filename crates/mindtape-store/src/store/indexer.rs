@@ -3,6 +3,7 @@
 
 use std::path::Path;
 
+use log::{debug, trace};
 use sha2::{Digest, Sha256};
 
 use super::{
@@ -121,10 +122,12 @@ pub fn index_file(
 
     if let Some(stored_hash) = store.get_file_hash(relative)? {
         if stored_hash == hash {
+            trace!("hash unchanged, skipping {}", relative.display());
             return Ok(false);
         }
     }
 
+    debug!("indexing {}", relative.display());
     let result = eval::eval_file_full(world)?;
 
     let (task_file, tasks, props, bindings) = to_store_records(&result, relative, &hash);
@@ -159,10 +162,12 @@ pub fn index_file_with_deps(
 
     if let Some(stored_hash) = store.get_file_hash(relative)? {
         if stored_hash == hash {
+            trace!("hash unchanged, skipping {}", relative.display());
             return Ok(false);
         }
     }
 
+    debug!("indexing (with deps) {}", relative.display());
     let result = eval::eval_file_full_with_deps(world)?;
 
     let (task_file, tasks, props, bindings) = to_store_records(&result, relative, &hash);

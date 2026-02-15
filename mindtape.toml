@@ -1,0 +1,7 @@
+[[watch]]
+path = "~/pad/notes/"
+recursive = true
+
+[[watch]]
+path = "~/pad/songs/"
+recursive = true

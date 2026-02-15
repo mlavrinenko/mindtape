@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
 use clap::Parser;
+use log::info;
 
 use crate::config::{self, Config, WatchEntry};
 use crate::store::SqliteStore;
@@ -45,7 +46,7 @@ impl WatchArgs {
             .context("failed to set up file watcher")?;
 
         let scan = watcher.initial_scan();
-        eprintln!(
+        info!(
             "initial scan: {} found, {} indexed, {} skipped, {} errors",
             scan.found, scan.indexed, scan.skipped, scan.errors,
         );

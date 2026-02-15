@@ -2,6 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
+use log::debug;
 use rusqlite::{params, Connection, OptionalExtension};
 
 use super::{
@@ -108,7 +109,10 @@ impl SqliteStore {
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .map_err(|e| StoreError::Migration(e.to_string()))?;
 
+        debug!("database schema version: {version}");
+
         if version < 1 {
+            debug!("migrating to schema v1");
             conn.execute_batch(SCHEMA_V1)
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
             conn.pragma_update(None, "user_version", 1)
@@ -116,6 +120,7 @@ impl SqliteStore {
         }
 
         if version < 2 {
+            debug!("migrating to schema v2");
             conn.execute_batch(SCHEMA_V2)
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
             conn.pragma_update(None, "user_version", 2)
@@ -123,6 +128,7 @@ impl SqliteStore {
         }
 
         if version < 3 {
+            debug!("migrating to schema v3");
             conn.execute_batch(SCHEMA_V3)
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
             conn.pragma_update(None, "user_version", 3)

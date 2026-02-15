@@ -1,5 +1,6 @@
 use anyhow::{Result, bail};
 use clap::Parser;
+use log::LevelFilter;
 
 use mindtape::cli::{self, Cli, Command};
 
@@ -7,6 +8,8 @@ fn main() -> Result<()> {
     let raw_args: Vec<String> = std::env::args().collect();
     let args = cli::preprocess_args(raw_args);
     let cli = Cli::parse_from(args);
+
+    init_logger(cli.verbose);
 
     match cli.command {
         Some(Command::Watch(args)) => args.run(),
@@ -26,4 +29,21 @@ fn main() -> Result<()> {
             cli::commands::eval::run(&file, cli.due, cli.limit)
         }
     }
+}
+
+/// Initialize `env_logger` based on the `-v` count.
+///
+/// `RUST_LOG` overrides the flag when set.
+fn init_logger(verbosity: u8) {
+    let level = match verbosity {
+        0 => LevelFilter::Warn,
+        1 => LevelFilter::Info,
+        2 => LevelFilter::Debug,
+        _ => LevelFilter::Trace,
+    };
+    env_logger::Builder::from_env(env_logger::Env::default())
+        .filter_level(level)
+        .format_target(false)
+        .format_timestamp(None)
+        .init();
 }
