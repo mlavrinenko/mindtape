@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
@@ -24,6 +25,7 @@ fn main() -> Result<()> {
         Some(Command::Files(args)) => run_files(&args),
         Some(Command::Deps(args)) => run_deps(&args),
         Some(Command::Check(args)) => run_check(&args),
+        Some(Command::Set(args)) => run_set(&args),
         None => {
             // Eval mode (backwards compat: `mindtape file.typ`)
             let Some(file) = cli.file else {
@@ -255,11 +257,74 @@ fn run_check(args: &cli::CheckArgs) -> Result<()> {
     let new_content = mindtape::eval::toggle_task_checkbox(&source, &task.task_id)
         .context("failed to toggle checkbox")?;
 
-    std::fs::write(&task.file_path, new_content)
+    atomic_write(&task.file_path, &new_content)
         .with_context(|| format!("failed to write file {}", task.file_path.display()))?;
 
     let status = if task.is_done { "unchecked" } else { "checked" };
     println!("Task {} {}: {}", task.task_id, status, task.task_title);
+    Ok(())
+}
+
+fn run_set(args: &cli::SetArgs) -> Result<()> {
+    let store = open_query_db(args.db.as_deref())?;
+
+    let task = store.find_task_by_id(&args.task_id)
+        .context("failed to find task")?;
+
+    let current_hash = mindtape::store::hash_file(&task.file_path)
+        .with_context(|| format!("failed to read file {}", task.file_path.display()))?;
+
+    if current_hash != task.file_hash {
+        bail!(
+            "file {} has changed since last index\nRun 'mindtape watch' to re-index, then try again.",
+            task.file_path.display()
+        );
+    }
+
+    let source = mindtape::eval::load_source(&task.file_path)
+        .with_context(|| format!("failed to load file {}", task.file_path.display()))?;
+
+    // Apply modifications sequentially. Each step re-parses because the source
+    // text changes after each modification.
+    let mut content = source.text().to_string();
+    let mut changes: Vec<String> = Vec::new();
+
+    if let Some(date_str) = &args.due {
+        let src = typst_syntax::Source::detached(&content);
+        content = mindtape::eval::set_task_due(&src, &task.task_id, date_str)
+            .context("failed to set due date")?;
+        changes.push(format!("due={date_str}"));
+    }
+
+    if args.no_due {
+        let src = typst_syntax::Source::detached(&content);
+        content = mindtape::eval::remove_task_due(&src, &task.task_id)
+            .context("failed to remove due date")?;
+        changes.push("due removed".to_string());
+    }
+
+    for tag in &args.add_tag {
+        let src = typst_syntax::Source::detached(&content);
+        content = mindtape::eval::add_task_tag(&src, &task.task_id, tag)
+            .context("failed to add tag")?;
+        changes.push(format!("+tag:{tag}"));
+    }
+
+    for tag in &args.remove_tag {
+        let src = typst_syntax::Source::detached(&content);
+        content = mindtape::eval::remove_task_tag(&src, &task.task_id, tag)
+            .context("failed to remove tag")?;
+        changes.push(format!("-tag:{tag}"));
+    }
+
+    if changes.is_empty() {
+        bail!("no changes specified (use --due, --no-due, --add-tag, or --remove-tag)");
+    }
+
+    atomic_write(&task.file_path, &content)
+        .with_context(|| format!("failed to write file {}", task.file_path.display()))?;
+
+    println!("Task {} updated: {}", task.task_id, changes.join(", "));
     Ok(())
 }
 
@@ -296,6 +361,18 @@ fn open_query_db(db_override: Option<&Path>) -> Result<SqliteStore> {
 
     SqliteStore::open(&db_path)
         .with_context(|| format!("failed to open database at {}", db_path.display()))
+}
+
+/// Write `content` to `target` atomically via a temp file + rename.
+fn atomic_write(target: &Path, content: &str) -> Result<()> {
+    let dir = target.parent().unwrap_or(Path::new("."));
+    let mut tmp = tempfile::NamedTempFile::new_in(dir)
+        .with_context(|| format!("failed to create temp file in {}", dir.display()))?;
+    tmp.write_all(content.as_bytes())
+        .context("failed to write temp file")?;
+    tmp.persist(target)
+        .with_context(|| format!("failed to persist temp file to {}", target.display()))?;
+    Ok(())
 }
 
 /// Build a Config from CLI args: --config file, path argument, or auto-discovery.

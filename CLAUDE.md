@@ -128,6 +128,7 @@ Use `just count-tests` for current test count. See `docs/TESTING.md` for guideli
 - `mindtape files [--db PATH] [--format table|json|csv]`
 - `mindtape deps [--file PATH] [--db PATH] [--format table|json|csv]`
 - `mindtape check <task-id> [--db PATH]` — toggle task checkbox
+- `mindtape set <task-id> [--due DATE] [--no-due] [--add-tag TAG] [--remove-tag TAG] [--db PATH]`
 
 All query commands support `--json` as shorthand for `--format json`.
 

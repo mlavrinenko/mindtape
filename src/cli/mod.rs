@@ -10,6 +10,7 @@ pub use commands::check::CheckArgs;
 pub use commands::deps::DepsArgs;
 pub use commands::list::ListArgs;
 pub use commands::search::SearchArgs;
+pub use commands::set::SetArgs;
 pub use commands::watch::WatchArgs;
 
 // Re-export per-command formatting so main.rs can use cli::format_* as before.
@@ -95,6 +96,8 @@ pub enum Command {
     Deps(DepsArgs),
     /// Toggle a task's checkbox
     Check(CheckArgs),
+    /// Update task properties (due date, tags)
+    Set(SetArgs),
 }
 
 /// Args for the `status` subcommand (query-only).
@@ -276,5 +279,55 @@ mod tests {
             panic!("expected Deps");
         };
         assert_eq!(args.file, Some(PathBuf::from("todo.typ")));
+    }
+
+    #[test]
+    fn parse_set_due() {
+        let cli = parse(&["mindtape", "set", "abc-123", "--due", "2026-03-15"]);
+        let Some(Command::Set(args)) = cli.command else {
+            panic!("expected Set");
+        };
+        assert_eq!(args.task_id, "abc-123");
+        assert_eq!(args.due, Some("2026-03-15".to_string()));
+        assert!(!args.no_due);
+    }
+
+    #[test]
+    fn parse_set_no_due() {
+        let cli = parse(&["mindtape", "set", "abc-123", "--no-due"]);
+        let Some(Command::Set(args)) = cli.command else {
+            panic!("expected Set");
+        };
+        assert!(args.no_due);
+        assert!(args.due.is_none());
+    }
+
+    #[test]
+    fn parse_set_tags() {
+        let cli = parse(&[
+            "mindtape", "set", "abc-123",
+            "--add-tag", "work", "--remove-tag", "old",
+        ]);
+        let Some(Command::Set(args)) = cli.command else {
+            panic!("expected Set");
+        };
+        assert_eq!(args.add_tag, vec!["work"]);
+        assert_eq!(args.remove_tag, vec!["old"]);
+    }
+
+    #[test]
+    fn parse_set_combined() {
+        let cli = parse(&[
+            "mindtape", "set", "*37f8",
+            "--due", "2026-04-01",
+            "--add-tag", "urgent",
+            "--add-tag", "work",
+        ]);
+        let Some(Command::Set(args)) = cli.command else {
+            panic!("expected Set");
+        };
+        assert_eq!(args.task_id, "*37f8");
+        assert_eq!(args.due, Some("2026-04-01".to_string()));
+        assert_eq!(args.add_tag, vec!["urgent", "work"]);
     }
 }

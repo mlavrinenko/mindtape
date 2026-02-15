@@ -1561,6 +1561,7 @@ dependencies = [
  "thiserror 2.0.18",
  "toml",
  "typst",
+ "typst-syntax",
 ]
 
 [[package]]

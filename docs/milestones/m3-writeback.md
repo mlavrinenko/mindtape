@@ -16,9 +16,21 @@
 - 8 new unit tests covering toggle, format preservation, error cases
 - 217 total tests passing (was 209 before M3.1)
 
-## M3.2 — Task Property Updates [PLANNED]
+## M3.2 — Task Property Updates [COMPLETE]
 
-- [ ] `mindtape set <task-id> --due <date>` — update task due date
-- [ ] `mindtape set <task-id> --tag <tag>` — add/remove tags
-- [ ] Support for multi-line task modification
-- [ ] Atomic writes using tempfile crate
+- [x] `mindtape set <task-id> --due <date>` — set/update task due date
+- [x] `mindtape set <task-id> --no-due` — remove task due date
+- [x] `mindtape set <task-id> --add-tag <tag>` — add a tag
+- [x] `mindtape set <task-id> --remove-tag <tag>` — remove a tag
+- [x] Combinable flags: `--due`, `--add-tag`, `--remove-tag` in one call
+- [x] Atomic writes using tempfile crate (applied to both `check` and `set`)
+
+**Implementation notes**:
+- Extended `write` module with `set_task_due`, `remove_task_due`, `add_task_tag`, `remove_task_tag`
+- Shared `modify_task_text` helper factors out find-task + reconstruct pattern
+- Text-level pattern matching (no regex): `find_due_span`, `find_tag_span`, `find_matching_paren`
+- Properties inserted before `#id(...)` to maintain conventional ordering
+- Date input: ISO `YYYY-MM-DD` → Typst `datetime(Y, M, D)` with validation
+- Space cleanup on removal: `trim_leading_space` avoids double spaces
+- Atomic writes via `tempfile::NamedTempFile` + `persist()` (both `check` and `set`)
+- 25 new unit tests + 4 CLI parse tests

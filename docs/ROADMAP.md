@@ -14,11 +14,9 @@
   - M2.2: Due Date Awareness + Agenda
   - M2.3: Cross-File References
 
-- **M3.1 — Task Checkbox Toggle**: Write-back with conflict detection ([details](milestones/m3-writeback.md))
-
-## In Progress
-
-- **M3.2 — Task Property Updates**: `mindtape set` for due dates and tags ([details](milestones/m3-writeback.md#m32--task-property-updates-planned))
+- **M3 — Write-Back**: Mutations via API ([details](milestones/m3-writeback.md))
+  - M3.1: Task Checkbox Toggle
+  - M3.2: Task Property Updates (`set` command, atomic writes)
 
 ## Future Ideas
 

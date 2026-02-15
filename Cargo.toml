@@ -114,6 +114,7 @@ path = "src/main.rs"
 mindtape-eval = { path = "crates/mindtape-eval" }
 mindtape-store = { path = "crates/mindtape-store" }
 typst = "0.14"
+typst-syntax = "0.14"
 thiserror = "2"
 notify = "7"
 notify-debouncer-mini = "0.5"
@@ -127,9 +128,9 @@ csv = "1"
 shellexpand = "3"
 directories = "5"
 anyhow = "1"
+tempfile = "3"
 
 [dev-dependencies]
-tempfile = "3"
 
 [lints]
 workspace = true
