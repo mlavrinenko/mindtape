@@ -6,31 +6,19 @@ use common::{setup_typst_project, ymd};
 use mindtape::eval::{eval_file, eval_file_full, EvalError, EvalResult, Task};
 use mindtape::world::MindTapeWorld;
 
-/// Create a temp project dir with a `.typ` file, evaluate it, return tasks.
+const IMPORT_LINE: &str = "#import \"@mindtape/mindtape:0.1.0\": due, id, tag\n";
+
+/// Create a temp project with the `@mindtape` package, prepend the standard
+/// import line, evaluate, and return tasks.
 fn eval_typ(source: &str) -> Result<Vec<Task>, EvalError> {
-    let dir = tempfile::tempdir().unwrap();
-    // Create a Cargo.toml marker so find_project_root stops here
-    std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
-    let file = dir.path().join("test.typ");
-    std::fs::write(&file, source).unwrap();
+    let root = setup_typst_project();
+    let file = root.join("test.typ");
+    std::fs::write(&file, format!("{IMPORT_LINE}{source}")).unwrap();
     let world = MindTapeWorld::new(&file)?;
     eval_file(&world)
 }
 
-/// Create a temp project with a prelude and a `.typ` file that imports it.
-fn eval_typ_with_prelude(prelude: &str, source: &str) -> Result<Vec<Task>, EvalError> {
-    let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
-    let lib_dir = dir.path().join("lib");
-    std::fs::create_dir(&lib_dir).unwrap();
-    std::fs::write(lib_dir.join("prelude.typ"), prelude).unwrap();
-    let file = dir.path().join("test.typ");
-    std::fs::write(&file, source).unwrap();
-    let world = MindTapeWorld::new(&file)?;
-    eval_file(&world)
-}
-
-/// Create a temp project with `@mindtape` package and evaluate.
+/// Create a temp project with custom prelude and evaluate.
 fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, EvalError> {
     let root = setup_typst_project();
     std::fs::write(root.join("lib").join("prelude.typ"), prelude).unwrap();
@@ -40,12 +28,12 @@ fn eval_typ_with_package(prelude: &str, source: &str) -> Result<Vec<Task>, EvalE
     eval_file(&world)
 }
 
-/// Create a temp project dir with a `.typ` file, evaluate it, return full result.
+/// Create a temp project with the `@mindtape` package, prepend the standard
+/// import line, evaluate, and return full result.
 fn eval_typ_full(source: &str) -> Result<EvalResult, EvalError> {
-    let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("Cargo.toml"), "").unwrap();
-    let file = dir.path().join("test.typ");
-    std::fs::write(&file, source).unwrap();
+    let root = setup_typst_project();
+    let file = root.join("test.typ");
+    std::fs::write(&file, format!("{IMPORT_LINE}{source}")).unwrap();
     let world = MindTapeWorld::new(&file)?;
     eval_file_full(&world)
 }
@@ -129,12 +117,15 @@ Some paragraph text.
 
 #[test]
 fn eval_task_with_prelude_import() {
-    let prelude = r#"#let due(date) = metadata(("due", date))"#;
-    let source = r#"#import "lib/prelude.typ": due
+    let prelude = r#"#let due(date) = metadata(("due", date))
+#let id(uuid) = metadata(("id", uuid))
+#let tag(name) = metadata(("tag", name))
+"#;
+    let source = r#"#import "@mindtape/mindtape:0.1.0": due
 
 - [ ] Learn piano #due(datetime(year: 2026, month: 4, day: 1))
 "#;
-    let tasks = eval_typ_with_prelude(prelude, source).unwrap();
+    let tasks = eval_typ_with_package(prelude, source).unwrap();
     assert_eq!(tasks.len(), 1);
     assert_eq!(tasks[0].title, "Learn piano");
     assert_eq!(tasks[0].due, Some(ymd(2026, 4, 1)));
@@ -182,12 +173,15 @@ fn eval_task_with_due_and_tags() {
 
 #[test]
 fn eval_tag_via_prelude() {
-    let prelude = r#"#let tag(name) = metadata(("tag", name))"#;
-    let source = r#"#import "lib/prelude.typ": tag
+    let prelude = r#"#let due(date) = metadata(("due", date))
+#let id(uuid) = metadata(("id", uuid))
+#let tag(name) = metadata(("tag", name))
+"#;
+    let source = r#"#import "@mindtape/mindtape:0.1.0": tag
 
 - [ ] Tagged task #tag("hobby")
 "#;
-    let tasks = eval_typ_with_prelude(prelude, source).unwrap();
+    let tasks = eval_typ_with_package(prelude, source).unwrap();
     assert_eq!(tasks.len(), 1);
     assert_eq!(tasks[0].tags, vec!["hobby"]);
 }
@@ -376,6 +370,18 @@ fn eval_full_skips_array_binding() {
     // Arrays are not a supported binding type — should be skipped
     let result = eval_typ_full(r#"#let items = ("a", "b", "c")"#).unwrap();
     assert!(!result.bindings.iter().any(|b| b.0 == "items"));
+}
+
+// --- NotMindtape error ---
+
+#[test]
+fn eval_file_without_import_returns_not_mindtape() {
+    let root = setup_typst_project();
+    let file = root.join("test.typ");
+    std::fs::write(&file, "- [ ] Plain task without import").unwrap();
+    let world = MindTapeWorld::new(&file).unwrap();
+    let err = eval_file(&world).unwrap_err();
+    assert!(matches!(err, EvalError::NotMindtape));
 }
 
 #[test]

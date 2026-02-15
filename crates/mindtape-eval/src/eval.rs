@@ -34,6 +34,10 @@ pub enum EvalError {
     /// The world could not be constructed.
     #[error("{0}")]
     World(String),
+
+    /// The file does not import a mindtape package.
+    #[error("file does not import mindtape package")]
+    NotMindtape,
 }
 
 impl EvalError {
@@ -86,6 +90,10 @@ pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, EvalError> {
         .source(world.main())
         .map_err(|err| EvalError::from_file_error(&err))?;
 
+    if !has_mindtape_import(source.text()) {
+        return Err(EvalError::NotMindtape);
+    }
+
     debug!("evaluating {}", source.id().vpath().as_rooted_path().display());
 
     let mut sink = Sink::new();
@@ -136,6 +144,10 @@ pub fn eval_file_full_with_deps(
     let source = world
         .source(world.main())
         .map_err(|err| EvalError::from_file_error(&err))?;
+
+    if !has_mindtape_import(source.text()) {
+        return Err(EvalError::NotMindtape);
+    }
 
     debug!("evaluating (with deps) {}", source.id().vpath().as_rooted_path().display());
 
@@ -299,4 +311,76 @@ pub fn extract_bindings(scope: &typst::foundations::Scope) -> Vec<(String, Strin
         bindings.push((name.to_string(), vtype.to_string(), vjson));
     }
     bindings
+}
+
+/// Check whether source text imports a mindtape package.
+///
+/// Returns `true` if the text contains an `#import` of any package whose
+/// name segment is `mindtape` (e.g. `@local/mindtape:…`, `@preview/mindtape:…`,
+/// `@mindtape/mindtape:…`).
+#[must_use]
+pub fn has_mindtape_import(text: &str) -> bool {
+    // Match patterns like `@namespace/mindtape:` where namespace is any word.
+    text.lines().any(|line| {
+        let trimmed = line.trim();
+        trimmed.starts_with("#import")
+            && trimmed.contains("/mindtape:")
+    })
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn has_import_local() {
+        assert!(has_mindtape_import(
+            r#"#import "@local/mindtape:0.1.0": due, tag, id"#
+        ));
+    }
+
+    #[test]
+    fn has_import_preview() {
+        assert!(has_mindtape_import(
+            r#"#import "@preview/mindtape:0.1.0": due, tag"#
+        ));
+    }
+
+    #[test]
+    fn has_import_project_namespace() {
+        assert!(has_mindtape_import(
+            r#"#import "@mindtape/mindtape:0.1.0": due, tag, id"#
+        ));
+    }
+
+    #[test]
+    fn has_import_with_surrounding_content() {
+        let text = "= My Tasks\n\n#import \"@local/mindtape:0.1.0\": due\n\n- [ ] do stuff";
+        assert!(has_mindtape_import(text));
+    }
+
+    #[test]
+    fn no_import_plain_typst() {
+        assert!(!has_mindtape_import("= Hello\n\n- [ ] a task\n"));
+    }
+
+    #[test]
+    fn no_import_other_package() {
+        assert!(!has_mindtape_import(
+            r#"#import "@preview/tablex:0.1.0": tablex"#
+        ));
+    }
+
+    #[test]
+    fn no_import_empty() {
+        assert!(!has_mindtape_import(""));
+    }
+
+    #[test]
+    fn has_import_indented() {
+        assert!(has_mindtape_import(
+            r#"  #import "@local/mindtape:0.1.0": due"#
+        ));
+    }
 }

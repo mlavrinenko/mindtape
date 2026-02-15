@@ -38,7 +38,11 @@ fn initial_scan_indexes_multiple_files() {
 "#,
     )
     .unwrap();
-    std::fs::write(root.join("work.typ"), "- [ ] Ship feature\n- [ ] Code review\n").unwrap();
+    std::fs::write(
+        root.join("work.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Ship feature\n- [ ] Code review\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let mut watcher = Watcher::new(store, &[make_entry(&root)]).unwrap();
@@ -109,14 +113,22 @@ fn handle_event_indexes_new_file_with_metadata() {
 fn handle_event_reindexes_modified_file() {
     let root = setup_project();
     let file = root.join("evolving.typ");
-    std::fs::write(&file, "- [ ] Original task\n").unwrap();
+    std::fs::write(
+        &file,
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Original task\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let mut watcher = Watcher::new(store, &[make_entry(&root)]).unwrap();
     watcher.handle_event(&file);
 
     // Modify the file.
-    std::fs::write(&file, "- [ ] Updated task\n- [ ] Second task\n").unwrap();
+    std::fs::write(
+        &file,
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Updated task\n- [ ] Second task\n",
+    )
+    .unwrap();
     watcher.handle_event(&file);
 
     // Scan should skip since we just indexed.
@@ -128,7 +140,11 @@ fn handle_event_reindexes_modified_file() {
 fn handle_event_delete_removes_from_index() {
     let root = setup_project();
     let file = root.join("temporary.typ");
-    std::fs::write(&file, "- [ ] Temp task\n").unwrap();
+    std::fs::write(
+        &file,
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Temp task\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let mut watcher = Watcher::new(store, &[make_entry(&root)]).unwrap();
@@ -148,7 +164,11 @@ fn subdirectory_files_are_indexed() {
     let root = setup_project();
     let subdir = root.join("projects/work");
     std::fs::create_dir_all(&subdir).unwrap();
-    std::fs::write(subdir.join("sprint.typ"), "- [ ] Sprint task\n").unwrap();
+    std::fs::write(
+        subdir.join("sprint.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Sprint task\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let mut watcher = Watcher::new(store, &[make_entry(&root)]).unwrap();

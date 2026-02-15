@@ -166,7 +166,11 @@ fn watcher_new_bad_path_errors() {
 #[test]
 fn initial_scan_indexes_typ_files() {
     let (dir, dir_path) = setup_watch_dir();
-    fs::write(dir_path.join("todo.typ"), "- [ ] Buy milk\n").unwrap();
+    fs::write(
+        dir_path.join("todo.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Buy milk\n",
+    )
+    .unwrap();
     fs::write(dir_path.join("notes.txt"), "not a typ file").unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
@@ -184,7 +188,11 @@ fn initial_scan_indexes_typ_files() {
 #[test]
 fn initial_scan_skips_unchanged() {
     let (dir, dir_path) = setup_watch_dir();
-    fs::write(dir_path.join("todo.typ"), "- [ ] Buy milk\n").unwrap();
+    fs::write(
+        dir_path.join("todo.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Buy milk\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let entries = vec![make_entry(&dir_path)];
@@ -204,8 +212,16 @@ fn initial_scan_respects_mindtapeignore() {
     let (dir, dir_path) = setup_watch_dir();
     // Overwrite the default .mindtapeignore to also ignore ignored.typ.
     fs::write(dir_path.join(".mindtapeignore"), "lib/\nignored.typ\n").unwrap();
-    fs::write(dir_path.join("todo.typ"), "- [ ] Task\n").unwrap();
-    fs::write(dir_path.join("ignored.typ"), "- [ ] Hidden\n").unwrap();
+    fs::write(
+        dir_path.join("todo.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Task\n",
+    )
+    .unwrap();
+    fs::write(
+        dir_path.join("ignored.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Hidden\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let entries = vec![make_entry(&dir_path)];
@@ -341,8 +357,16 @@ fn initial_scan_respects_gitignore() {
     // WalkBuilder needs a .git dir to recognize .gitignore files.
     fs::create_dir(dir_path.join(".git")).unwrap();
     fs::write(dir_path.join(".gitignore"), "*.draft.typ\n").unwrap();
-    fs::write(dir_path.join("todo.typ"), "- [ ] Task\n").unwrap();
-    fs::write(dir_path.join("notes.draft.typ"), "- [ ] Hidden\n").unwrap();
+    fs::write(
+        dir_path.join("todo.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Task\n",
+    )
+    .unwrap();
+    fs::write(
+        dir_path.join("notes.draft.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Hidden\n",
+    )
+    .unwrap();
 
     let store = SqliteStore::open_memory().unwrap();
     let entries = vec![make_entry(&dir_path)];
@@ -433,6 +457,29 @@ fn handle_event_ignores_deleted_non_typ_file() {
         .query_tasks(&crate::store::TaskFilter::default())
         .unwrap();
     assert_eq!(tasks.len(), 1);
+    drop(dir);
+}
+
+#[test]
+fn initial_scan_skips_non_mindtape_typ_files() {
+    let (dir, dir_path) = setup_watch_dir();
+    // File with mindtape import — should be indexed.
+    fs::write(
+        dir_path.join("tasks.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Real task\n",
+    )
+    .unwrap();
+    // File without mindtape import — should be skipped silently.
+    fs::write(dir_path.join("notes.typ"), "= Just notes\n\nSome text.\n").unwrap();
+
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+    let result = watcher.initial_scan();
+
+    assert_eq!(result.found, 2); // both .typ files found
+    assert_eq!(result.indexed, 1); // only the mindtape one indexed
+    assert_eq!(result.skipped, 1); // the other skipped (no import)
     drop(dir);
 }
 

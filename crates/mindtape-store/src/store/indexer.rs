@@ -3,14 +3,14 @@
 
 use std::path::Path;
 
-use log::{debug, trace, warn};
+use log::{trace, warn};
 use sha2::{Digest, Sha256};
 
 use super::{
     FileBinding, PropertyKind, Store, StoreError, TaskFile, TaskProperty, TaskRecord,
 };
 use crate::id;
-use mindtape_eval::{self as eval, format_date, EvalResult};
+use mindtape_eval::{self as eval, format_date, EvalError, EvalResult};
 
 // ---------------------------------------------------------------------------
 // Hashing
@@ -153,8 +153,13 @@ pub fn index_file(
         return Ok(false);
     }
 
-    debug!("indexing {}", relative.display());
-    let result = eval::eval_file_full(world)?;
+    let result = match eval::eval_file_full(world) {
+        Err(EvalError::NotMindtape) => {
+            trace!("no mindtape import, skipping {}", file_path.display());
+            return Ok(false);
+        }
+        other => other?,
+    };
 
     let (task_file, tasks, props, bindings) = to_store_records(&result, relative, &hash);
 
@@ -193,8 +198,13 @@ pub fn index_file_with_deps(
         return Ok(false);
     }
 
-    debug!("indexing (with deps) {}", relative.display());
-    let result = eval::eval_file_full_with_deps(world)?;
+    let result = match eval::eval_file_full_with_deps(world) {
+        Err(EvalError::NotMindtape) => {
+            trace!("no mindtape import, skipping {}", file_path.display());
+            return Ok(false);
+        }
+        other => other?,
+    };
 
     let (task_file, tasks, props, bindings) = to_store_records(&result, relative, &hash);
 
