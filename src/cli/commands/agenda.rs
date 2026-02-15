@@ -108,7 +108,7 @@ pub fn format_agenda_csv(agenda: &AgendaView) -> Result<String, csv::Error> {
     ];
     for (label, tasks) in &sections {
         for task in *tasks {
-            wtr.write_record(&[
+            wtr.write_record([
                 *label,
                 &task.is_done.to_string(),
                 task.due.as_deref().unwrap_or(""),

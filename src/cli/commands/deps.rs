@@ -86,7 +86,7 @@ pub fn format_deps_csv(deps: &FileDependencies) -> Result<String, csv::Error> {
     wtr.write_record(["type", "file", "target"])?;
 
     for import in &deps.imports {
-        wtr.write_record(&[
+        wtr.write_record([
             "imports",
             &deps.file_path.to_string_lossy(),
             &import.to_string_lossy(),
@@ -94,7 +94,7 @@ pub fn format_deps_csv(deps: &FileDependencies) -> Result<String, csv::Error> {
     }
 
     for imported_by in &deps.imported_by {
-        wtr.write_record(&[
+        wtr.write_record([
             "imported_by",
             &deps.file_path.to_string_lossy(),
             &imported_by.to_string_lossy(),
@@ -113,8 +113,8 @@ pub fn format_all_deps_csv(all_deps: &[FileDependencies]) -> Result<String, csv:
     wtr.write_record(["file", "title", "imports_count", "imported_by_count"])?;
 
     for deps in all_deps {
-        wtr.write_record(&[
-            &deps.file_path.to_string_lossy().to_string(),
+        wtr.write_record([
+            deps.file_path.to_string_lossy().as_ref(),
             deps.file_title.as_deref().unwrap_or(""),
             &deps.imports.len().to_string(),
             &deps.imported_by.len().to_string(),

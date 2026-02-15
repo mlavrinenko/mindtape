@@ -68,7 +68,7 @@ pub fn format_search_csv(results: &SearchResults) -> Result<String, csv::Error> 
     wtr.write_record(["type", "name", "value", "file"])?;
     for task in &results.tasks {
         let status = if task.is_done { "done" } else { "pending" };
-        wtr.write_record(&[
+        wtr.write_record([
             "task",
             &task.title,
             status,
@@ -76,7 +76,7 @@ pub fn format_search_csv(results: &SearchResults) -> Result<String, csv::Error> 
         ])?;
     }
     for binding in &results.bindings {
-        wtr.write_record(&[
+        wtr.write_record([
             "binding",
             &binding.name,
             &binding.value,

@@ -8,7 +8,7 @@ use csv::Writer;
 pub fn csv_to_string(wtr: Writer<Vec<u8>>) -> Result<String, csv::Error> {
     let bytes = wtr
         .into_inner()
-        .map_err(|e| csv::Error::from(std::io::Error::new(std::io::ErrorKind::Other, e)))?;
+        .map_err(|e| csv::Error::from(std::io::Error::other(e)))?;
     String::from_utf8(bytes)
         .map_err(|e| csv::Error::from(std::io::Error::new(std::io::ErrorKind::InvalidData, e)))
 }
@@ -74,7 +74,7 @@ pub fn format_tasks_csv(tasks: &[TaskView]) -> Result<String, csv::Error> {
         let status = if t.is_done { "done" } else { "pending" };
         let due = t.due.as_deref().unwrap_or("");
         let tags = t.tags.join(";");
-        wtr.write_record(&[
+        wtr.write_record([
             status,
             due,
             &t.title,
@@ -94,8 +94,8 @@ pub fn format_files_csv(files: &[FileView]) -> Result<String, csv::Error> {
     wtr.write_record(["path", "title", "tasks", "updated_at"])?;
     for f in files {
         let title = f.title.as_deref().unwrap_or("");
-        wtr.write_record(&[
-            &f.relative_path.to_string_lossy().to_string(),
+        wtr.write_record([
+            f.relative_path.to_string_lossy().as_ref(),
             title,
             &f.task_count.to_string(),
             &f.updated_at,
