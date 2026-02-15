@@ -46,7 +46,6 @@ struct ResolvedEntry {
     path: PathBuf,
     project_root: PathBuf,
     recursive: bool,
-    ignore: Gitignore,
 }
 
 pub struct Watcher {
@@ -76,12 +75,10 @@ impl Watcher {
                 ))
             })?;
             let project_root = world::find_project_root(&path);
-            let ignore = build_ignore(&path);
             resolved.push(ResolvedEntry {
                 path,
                 project_root,
                 recursive: entry.recursive,
-                ignore,
             });
         }
         Ok(Self {
@@ -100,7 +97,6 @@ impl Watcher {
         for entry in &self.entries {
             let walker = WalkBuilder::new(&entry.path)
                 .hidden(false)
-                .git_ignore(false)
                 .add_custom_ignore_filename(".mindtapeignore")
                 .build();
 
@@ -138,8 +134,8 @@ impl Watcher {
             let Some(entry) = self.find_entry(path) else {
                 return;
             };
-            let ignored = entry
-                .ignore
+            let ignore = build_ignore(&entry.path, path);
+            let ignored = ignore
                 .matched_path_or_any_parents(path, false)
                 .is_ignore();
             (entry.project_root.clone(), ignored)
@@ -243,14 +239,79 @@ impl Watcher {
     }
 }
 
-/// Build a `Gitignore` matcher from `.mindtapeignore` in the given directory.
-fn build_ignore(dir: &Path) -> Gitignore {
-    let ignore_path = dir.join(".mindtapeignore");
-    let mut builder = GitignoreBuilder::new(dir);
-    if ignore_path.exists() {
-        builder.add(&ignore_path);
+/// Build a `Gitignore` matcher for a file path, collecting ignore rules from
+/// the watch root down to the file's parent directory. Called on each event
+/// so that changes to ignore files are picked up without restarting.
+///
+/// Walks from `root` down to the file's parent, loading `.gitignore` and
+/// `.mindtapeignore` at each level (deeper files override shallower ones).
+/// Global gitignore has the lowest precedence.
+fn build_ignore(root: &Path, file: &Path) -> Gitignore {
+    let mut builder = GitignoreBuilder::new(root);
+
+    // Global gitignore (lowest precedence).
+    if let Some(global) = global_gitignore_path() {
+        if global.exists() {
+            builder.add(&global);
+        }
     }
+
+    // Collect directories from root down to the file's parent.
+    let target = file.parent().unwrap_or(root);
+    let mut dirs_to_check: Vec<&Path> = Vec::new();
+    let mut current = target;
+    loop {
+        dirs_to_check.push(current);
+        if current == root {
+            break;
+        }
+        match current.parent() {
+            Some(parent) if parent != current => current = parent,
+            _ => break,
+        }
+    }
+    // Reverse so we go from root (lower precedence) to deepest dir (higher).
+    dirs_to_check.reverse();
+
+    for dir in dirs_to_check {
+        let gitignore = dir.join(".gitignore");
+        if gitignore.exists() {
+            builder.add(&gitignore);
+        }
+        let mindtapeignore = dir.join(".mindtapeignore");
+        if mindtapeignore.exists() {
+            builder.add(&mindtapeignore);
+        }
+    }
+
     builder.build().unwrap_or_else(|_| Gitignore::empty())
+}
+
+/// Find the global gitignore file path.
+///
+/// Checks `git config --global core.excludesFile` first, then falls back
+/// to the XDG-compliant default (`$XDG_CONFIG_HOME/git/ignore` or
+/// `~/.config/git/ignore`).
+fn global_gitignore_path() -> Option<PathBuf> {
+    // Try git config first.
+    if let Ok(output) = std::process::Command::new("git")
+        .args(["config", "--global", "core.excludesFile"])
+        .output()
+    {
+        if output.status.success() {
+            let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !path.is_empty() {
+                return Some(crate::config::expand_tilde(&path));
+            }
+        }
+    }
+
+    // XDG fallback.
+    if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
+        return Some(PathBuf::from(xdg).join("git/ignore"));
+    }
+
+    directories::BaseDirs::new().map(|d| d.config_dir().join("git/ignore"))
 }
 
 fn is_typ_file(path: &Path) -> bool {
