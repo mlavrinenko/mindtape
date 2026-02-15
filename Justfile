@@ -45,3 +45,24 @@ count-tests:
 file-sizes:
     #!/usr/bin/env bash
     find . -type f \( -name '*.rs' -o -name '*.md' \) ! -path './target/*' -exec wc -l {} + | sort -rn | head -20
+
+# Install mindtape library globally for Typst (via symlink)
+install-lib:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    TARGET_DIR="$HOME/.local/share/typst/packages/local/mindtape"
+    mkdir -p "$TARGET_DIR"
+    ln -sfn "$(pwd)/lib" "$TARGET_DIR/0.1.0"
+    echo "✓ Installed mindtape library to $TARGET_DIR/0.1.0"
+    echo "  Use in Typst files: #import \"@local/mindtape:0.1.0\": due, id, tag"
+
+# Uninstall global mindtape library
+uninstall-lib:
+    #!/usr/bin/env bash
+    TARGET="$HOME/.local/share/typst/packages/local/mindtape/0.1.0"
+    if [ -L "$TARGET" ]; then
+        rm "$TARGET"
+        echo "✓ Removed $TARGET"
+    else
+        echo "! No symlink found at $TARGET"
+    fi

@@ -11,15 +11,33 @@ Unlike Markdown, Typst files can import each other, define typed variables, and 
 statically checked. This means your task data is structured, validated, and composable.
 
 ```typ
-#import "@mindtape": due, tag
+#import "@local/mindtape:0.1.0": due, tag, id
 
 = Sprint 12
 
-- [ ] implement auth #due(datetime(year: 2026, month: 3, day: 1)) #tag("backend")
-- [x] design mockups #tag("design")
+- [ ] implement auth #due(datetime(year: 2026, month: 3, day: 1)) #tag("backend") #id("auth-123")
+- [x] design mockups #tag("design") #id("design-456")
 - [ ] write tests
 
 #let note = "blocked on API spec from team B"
+```
+
+### Installing the MindTape Library
+
+To use `#import "@local/mindtape:0.1.0"` in your Typst files globally:
+
+```bash
+just install-lib
+```
+
+This creates a symlink at `~/.local/share/typst/packages/local/mindtape/0.1.0/` pointing
+to the `lib/` directory. The library works with both the Typst CLI (`typst compile`) and
+MindTape evaluation.
+
+To uninstall:
+
+```bash
+just uninstall-lib
 ```
 
 ## How It Works

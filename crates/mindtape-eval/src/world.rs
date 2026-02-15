@@ -99,9 +99,24 @@ impl MindTapeWorld {
     /// the project root. For `@mindtape` package files, resolves against
     /// `{root}/lib/` so that the package manifest and entry point map to
     /// `lib/typst.toml` and `lib/prelude.typ` respectively.
+    ///
+    /// For `@local/mindtape:VERSION` packages, resolves against
+    /// `~/.local/share/typst/packages/local/mindtape/VERSION/` (following
+    /// Typst's standard local package directory structure).
     fn resolve_path(&self, id: FileId) -> FileResult<PathBuf> {
         let root = match id.package() {
             Some(spec) if spec.namespace == "mindtape" => self.root.join("lib"),
+            Some(spec) if spec.namespace == "local" && spec.name == "mindtape" => {
+                // Resolve @local/mindtape:VERSION to ~/.local/share/typst/packages/local/mindtape/VERSION/
+                let mut path = dirs::data_local_dir()
+                    .ok_or_else(|| FileError::Other(Some("could not determine local data directory".into())))?;
+                path.push("typst");
+                path.push("packages");
+                path.push("local");
+                path.push(spec.name.as_str());
+                path.push(spec.version.to_string());
+                path
+            }
             Some(_) => return Err(FileError::NotFound(id.vpath().as_rooted_path().into())),
             None => self.root.clone(),
         };
