@@ -324,16 +324,14 @@ impl Store for SqliteStore {
                updated_at = datetime('now')",
             params![path_str.as_ref(), file.title, file.eval_hash],
         )?;
-        let id = self.conn.last_insert_rowid();
-        // ON CONFLICT UPDATE may not change last_insert_rowid; query to be sure.
-        if id == 0 {
-            let id: i64 = self.conn.query_row(
-                "SELECT id FROM task_files WHERE relative_path = ?1",
-                params![path_str.as_ref()],
-                |row| row.get(0),
-            )?;
-            return Ok(id);
-        }
+        // Always query by path: last_insert_rowid() is unreliable after
+        // ON CONFLICT DO UPDATE — it can return a stale rowid from a
+        // previous INSERT into a different table.
+        let id: i64 = self.conn.query_row(
+            "SELECT id FROM task_files WHERE relative_path = ?1",
+            params![path_str.as_ref()],
+            |row| row.get(0),
+        )?;
         Ok(id)
     }
 
