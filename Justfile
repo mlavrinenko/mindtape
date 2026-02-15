@@ -1,9 +1,10 @@
 # MindTape development recipes
 
-# Run all checks (clippy + tests)
+# Run all checks (clippy + tests + file size)
 check:
     cargo clippy --workspace --all-targets -q
     cargo test --workspace -q
+    just check-file-size
 
 # Run tests only
 test *ARGS:
@@ -45,6 +46,58 @@ count-tests:
 file-sizes:
     #!/usr/bin/env bash
     find . -type f \( -name '*.rs' -o -name '*.md' \) ! -path './target/*' -exec wc -l {} + | sort -rn | head -20
+
+# Check for oversized files (fails if any exceed limits)
+check-file-size:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Thresholds
+    RUST_LIMIT=500
+    MARKDOWN_LIMIT=200
+
+    # Exception list (relative to project root)
+    # sqlite.rs is schema-heavy, hard to split meaningfully
+    EXCEPTIONS=(
+        "crates/mindtape-store/src/store/sqlite.rs"
+    )
+
+    failed=0
+
+    # Check Rust files
+    while IFS= read -r file; do
+        lines=$(wc -l < "$file")
+        # Check if file is in exceptions
+        skip=0
+        for exception in "${EXCEPTIONS[@]}"; do
+            if [[ "$file" == "./$exception" ]]; then
+                skip=1
+                break
+            fi
+        done
+
+        if [[ $skip -eq 0 && $lines -gt $RUST_LIMIT ]]; then
+            echo "❌ $file: $lines lines (limit: $RUST_LIMIT)"
+            failed=1
+        fi
+    done < <(find . -type f -name '*.rs' ! -path './target/*')
+
+    # Check Markdown files (skip archive - it's historical)
+    while IFS= read -r file; do
+        lines=$(wc -l < "$file")
+        if [[ $lines -gt $MARKDOWN_LIMIT ]]; then
+            echo "❌ $file: $lines lines (limit: $MARKDOWN_LIMIT)"
+            failed=1
+        fi
+    done < <(find . -type f -name '*.md' ! -path './target/*' ! -path './archive/*')
+
+    if [[ $failed -eq 1 ]]; then
+        echo ""
+        echo "Some files exceed size limits. Consider refactoring."
+        exit 1
+    else
+        echo "✓ All files within size limits"
+    fi
 
 # Install mindtape library globally for Typst (via symlink)
 install-lib:

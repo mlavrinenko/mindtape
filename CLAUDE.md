@@ -29,11 +29,12 @@ metadata into SQLite, and exposes a CLI for querying.
 
 - Use `just` recipes instead of raw cargo commands (see `Justfile`)
 - Use `-q` for cargo commands — only show errors/warnings, not compilation progress
-- After any code changes, run `just check` (clippy + tests) and fix all warnings
+- After any code changes, run `just check` (clippy + tests + file size) and fix all warnings
 - Always improve the `Justfile` when you notice missing or useful recipes
 - Avoid dumping large tool outputs into context; summarize or truncate
 - When working on a single crate, read that crate's `CLAUDE.md` for focused context
 - Save research findings to `archive/research/` as markdown files
+- Keep files small: Rust ≤800 lines, Markdown ≤200 lines (enforced by `just check-file-size`)
 - **After completing a task with code/config changes**:
   1. Update `docs/ROADMAP.md` if milestones changed
   2. Update `docs/DESIGN.md` if architecture changed
