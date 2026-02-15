@@ -117,7 +117,6 @@ typst = "0.14"
 typst-syntax = "0.14"
 thiserror = "2"
 notify = "7"
-notify-debouncer-mini = "0.5"
 ignore = "0.4"
 toml = "0.8"
 serde = { version = "1", features = ["derive"] }
