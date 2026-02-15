@@ -662,14 +662,16 @@ impl Store for SqliteStore {
                 format!("%{suffix}"),
             )
         } else {
-            // Exact match
+            // Try normalizing base62 → canonical UUID before querying.
+            let canonical = crate::id::parse_task_id(id_or_mask)
+                .unwrap_or_else(|_| id_or_mask.to_string());
             (
                 "SELECT tp.value, t.title, t.is_done, tf.relative_path, tf.eval_hash
                  FROM task_properties tp
                  JOIN tasks t ON tp.task_id = t.id
                  JOIN task_files tf ON t.task_file_id = tf.id
                  WHERE tp.kind = 'id' AND tp.value = ?1",
-                id_or_mask.to_string(),
+                canonical,
             )
         };
 

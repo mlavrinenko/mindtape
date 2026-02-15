@@ -10,7 +10,8 @@ mindtape-eval = { path = "../mindtape-eval" }
 typst = "0.14"
 rusqlite = { version = "0.38", features = ["bundled"] }
 sha2 = "0.10"
-uuid = "1"
+uuid = { version = "1", features = ["v7"] }
+base62 = "2"
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 log = "0.4"

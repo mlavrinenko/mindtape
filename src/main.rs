@@ -21,6 +21,7 @@ fn main() -> Result<()> {
         Some(Command::Deps(args)) => args.run(),
         Some(Command::Check(args)) => args.run(),
         Some(Command::Set(args)) => args.run(),
+        Some(Command::Id(args)) => args.run(),
         None => {
             // Eval mode (backwards compat: `mindtape file.typ`)
             let Some(file) = cli.file else {

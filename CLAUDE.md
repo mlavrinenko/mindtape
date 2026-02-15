@@ -64,6 +64,7 @@ crates/
     src/write.rs         -- AST-based write-back (toggle checkboxes)
 
   mindtape-store/       -- Store trait + SQLite backend
+    src/id.rs            -- UUIDv7 generation, base62 encoding/decoding
     src/store/mod.rs     -- domain types, Store trait, StoreError
     src/store/sqlite.rs  -- SqliteStore impl, schema v3, migrations
     src/store/indexer.rs -- hash_file(), to_store_records(), index_file()
@@ -81,6 +82,7 @@ src/                    -- root crate: CLI binary
       agenda.rs         -- AgendaArgs, format_agenda/csv
       deps.rs           -- DepsArgs, format_deps/csv
       check.rs          -- CheckArgs
+      id.rs             -- IdArgs (generate/validate task IDs)
   config.rs             -- TOML config loading, WatchEntry, tilde expansion
   watcher.rs            -- Watcher struct, initial_scan, handle_event, run
 
@@ -132,6 +134,8 @@ Use `just count-tests` for current test count. See `docs/TESTING.md` for guideli
 - `mindtape deps [--file PATH] [--db PATH] [--format table|json|csv]`
 - `mindtape check <task-id> [--db PATH]` — toggle task checkbox
 - `mindtape set <task-id> [--due DATE] [--no-due] [--add-tag TAG] [--remove-tag TAG] [--db PATH]`
+- `mindtape id` — generate new UUIDv7 (base62 by default, `--raw` for hyphenated)
+- `mindtape id <ID>` — validate an ID (accepts UUIDv7 or base62)
 
 All commands support `-v`/`--verbose` (global, repeatable) and `--json` as shorthand for `--format json`.
 

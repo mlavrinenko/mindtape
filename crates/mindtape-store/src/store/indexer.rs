@@ -5,11 +5,11 @@ use std::path::Path;
 
 use log::{debug, trace, warn};
 use sha2::{Digest, Sha256};
-use uuid::Uuid;
 
 use super::{
     FileBinding, PropertyKind, Store, StoreError, TaskFile, TaskProperty, TaskRecord,
 };
+use crate::id;
 use mindtape_eval::{self as eval, format_date, EvalResult};
 
 // ---------------------------------------------------------------------------
@@ -27,14 +27,6 @@ pub fn hash_file(path: &Path) -> Result<String, std::io::Error> {
     Ok(format!("{hash:x}"))
 }
 
-// ---------------------------------------------------------------------------
-// UUIDv7 validation
-// ---------------------------------------------------------------------------
-
-/// Check whether a string is a valid `UUIDv7`.
-fn is_valid_uuidv7(value: &str) -> bool {
-    Uuid::parse_str(value).is_ok_and(|u| u.get_version() == Some(uuid::Version::SortRand))
-}
 
 // ---------------------------------------------------------------------------
 // Conversion: eval types -> store types
@@ -63,17 +55,17 @@ pub fn to_store_records(
     for task in &result.tasks {
         let task_id = match &task.id {
             None => continue,
-            Some(val) => {
-                if !is_valid_uuidv7(val) {
+            Some(val) => match id::parse_task_id(val) {
+                Ok(canonical) => canonical,
+                Err(err) => {
                     warn!(
-                        "{}: skipping task '{}': invalid UUIDv7 id '{val}'",
+                        "{}: skipping task '{}': {err}",
                         relative_path.display(),
                         task.title,
                     );
                     continue;
                 }
-                val
-            }
+            },
         };
 
         task_records.push(TaskRecord {

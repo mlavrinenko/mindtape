@@ -9,6 +9,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 pub use commands::agenda::AgendaArgs;
 pub use commands::check::CheckArgs;
 pub use commands::deps::DepsArgs;
+pub use commands::id::IdArgs;
 pub use commands::list::ListArgs;
 pub use commands::search::SearchArgs;
 pub use commands::set::SetArgs;
@@ -103,6 +104,8 @@ pub enum Command {
     Check(CheckArgs),
     /// Update task properties (due date, tags)
     Set(SetArgs),
+    /// Generate or validate a task ID
+    Id(IdArgs),
 }
 
 /// Args for the `status` subcommand (query-only).

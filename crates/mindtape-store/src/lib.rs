@@ -4,6 +4,7 @@
 //! types for persisting indexed tasks. The `SqliteStore` implements the
 //! trait using `rusqlite`.
 
+pub mod id;
 mod store;
 
 // Re-export everything at crate root.
