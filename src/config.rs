@@ -9,19 +9,19 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 use thiserror::Error;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct Config {
     pub database: Option<DatabaseConfig>,
     #[serde(default)]
     pub watch: Vec<WatchEntry>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Deserialize)]
 pub struct DatabaseConfig {
     pub path: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct WatchEntry {
     pub path: String,
     #[serde(default = "default_true")]

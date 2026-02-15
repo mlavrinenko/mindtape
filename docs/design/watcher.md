@@ -118,6 +118,18 @@ fn initial_scan(&mut self) -> Result<()> {
 }
 ```
 
+## Config Hot-Reload
+
+When started with a config file (`--config` or auto-discovered), the watcher
+monitors the config file for changes and dynamically updates watched paths.
+
+- Watches the config file's **parent directory** (not the file itself) so
+  atomic-save editors (vim/emacs: write-tmp + rename) are detected correctly
+- On config change: reloads TOML, diffs watch entries by canonical path,
+  calls `unwatch()`/`watch()` on the notify watcher, scans new directories
+- Parse errors are **non-fatal** — a warning is logged and old config is kept
+- Database path changes are logged but require a manual restart
+
 ## Error Handling
 
 Watcher continues on individual file errors (e.g., parse failures) but

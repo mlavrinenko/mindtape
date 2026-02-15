@@ -3,7 +3,7 @@
 //! Watches configured directories for `.typ` file changes, re-indexes
 //! modified files, and removes deleted files from the store.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -13,7 +13,7 @@ use log::{debug, info, trace, warn};
 use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher as NotifyWatcher};
 use thiserror::Error;
 
-use crate::config::WatchEntry;
+use crate::config::{self, WatchEntry};
 use crate::store::{self, SqliteStore, Store, StoreError};
 use crate::world::{self, MindTapeWorld};
 
@@ -67,19 +67,7 @@ impl Watcher {
     pub fn new(store: SqliteStore, entries: &[WatchEntry]) -> Result<Self, WatchError> {
         let mut resolved = Vec::with_capacity(entries.len());
         for entry in entries {
-            let path = crate::config::expand_tilde(&entry.path);
-            let path = std::fs::canonicalize(&path).map_err(|err| {
-                WatchError::Other(format!(
-                    "cannot resolve watch path {}: {err}",
-                    entry.path
-                ))
-            })?;
-            let project_root = world::find_project_root(&path);
-            resolved.push(ResolvedEntry {
-                path,
-                project_root,
-                recursive: entry.recursive,
-            });
+            resolved.push(resolve_entry(entry)?);
         }
         Ok(Self {
             store,
@@ -89,23 +77,31 @@ impl Watcher {
 
     /// Walk all watched directories and index every `.typ` file found.
     pub fn initial_scan(&mut self) -> ScanResult {
+        let pairs: Vec<_> = self
+            .entries
+            .iter()
+            .map(|e| (e.path.clone(), e.project_root.clone()))
+            .collect();
+        self.scan_entries(&pairs)
+    }
+
+    /// Scan specific directories and index their `.typ` files.
+    fn scan_entries(&mut self, entries: &[(PathBuf, PathBuf)]) -> ScanResult {
         let mut result = ScanResult::default();
 
-        // Collect files first to avoid borrowing self immutably (entries)
-        // and mutably (index_one) at the same time.
         let mut files: Vec<(PathBuf, PathBuf)> = Vec::new();
-        for entry in &self.entries {
-            let walker = WalkBuilder::new(&entry.path)
+        for (path, project_root) in entries {
+            let walker = WalkBuilder::new(path)
                 .hidden(false)
                 .add_custom_ignore_filename(".mindtapeignore")
                 .build();
 
             for dir_entry in walker.flatten() {
-                let path = dir_entry.into_path();
-                if !is_typ_file(&path) {
+                let file_path = dir_entry.into_path();
+                if !is_typ_file(&file_path) {
                     continue;
                 }
-                files.push((path, entry.project_root.clone()));
+                files.push((file_path, project_root.clone()));
             }
         }
 
@@ -167,7 +163,123 @@ impl Watcher {
         }
     }
 
+    /// Add a new watch entry if not already watched (dedup by canonical path).
+    ///
+    /// Returns `Some((path, project_root, recursive))` for the caller to
+    /// register with notify and scan, or `None` if already watched.
+    fn add_entry(
+        &mut self,
+        entry: &WatchEntry,
+    ) -> Result<Option<(PathBuf, PathBuf, bool)>, WatchError> {
+        let resolved = resolve_entry(entry)?;
+        if self.entries.iter().any(|e| e.path == resolved.path) {
+            return Ok(None);
+        }
+        let result = (
+            resolved.path.clone(),
+            resolved.project_root.clone(),
+            resolved.recursive,
+        );
+        self.entries.push(resolved);
+        Ok(Some(result))
+    }
+
+    /// Remove entries whose canonical path is not in `keep`.
+    /// Returns the paths that were removed (for `unwatch()` calls).
+    fn remove_entries_not_in(&mut self, keep: &HashSet<PathBuf>) -> Vec<PathBuf> {
+        let mut removed = Vec::new();
+        self.entries.retain(|e| {
+            if keep.contains(&e.path) {
+                true
+            } else {
+                removed.push(e.path.clone());
+                false
+            }
+        });
+        removed
+    }
+
+    /// Reload config and update watched paths dynamically.
+    ///
+    /// Parse errors are non-fatal: a warning is logged and the current
+    /// config is kept.
+    fn reload_config(
+        &mut self,
+        config_path: &Path,
+        notify_watcher: &mut RecommendedWatcher,
+    ) {
+        let new_config = match config::load_config(config_path) {
+            Ok(cfg) => cfg,
+            Err(err) => {
+                warn!("failed to reload config: {err}");
+                return;
+            }
+        };
+
+        // Resolve all new entries to canonical paths for diffing.
+        let mut new_canonical: HashSet<PathBuf> = HashSet::new();
+        for entry in &new_config.watch {
+            let path = config::expand_tilde(&entry.path);
+            if let Ok(canon) = std::fs::canonicalize(&path) {
+                new_canonical.insert(canon);
+            }
+        }
+
+        // Remove entries no longer in config.
+        let removed = self.remove_entries_not_in(&new_canonical);
+        for path in &removed {
+            if let Err(err) = notify_watcher.unwatch(path) {
+                warn!("failed to unwatch {}: {err}", path.display());
+            } else {
+                info!("unwatched {}", path.display());
+            }
+        }
+
+        // Add new entries.
+        let mut new_pairs = Vec::new();
+        for entry in &new_config.watch {
+            match self.add_entry(entry) {
+                Ok(Some((path, project_root, recursive))) => {
+                    let mode = if recursive {
+                        RecursiveMode::Recursive
+                    } else {
+                        RecursiveMode::NonRecursive
+                    };
+                    if let Err(err) = notify_watcher.watch(&path, mode) {
+                        warn!("failed to watch {}: {err}", path.display());
+                    } else {
+                        info!("watching {}", path.display());
+                        new_pairs.push((path, project_root));
+                    }
+                }
+                Ok(None) => {} // already watched
+                Err(err) => warn!("failed to resolve watch entry: {err}"),
+            }
+        }
+
+        // Scan newly added directories.
+        if !new_pairs.is_empty() {
+            let scan = self.scan_entries(&new_pairs);
+            info!(
+                "config reload scan: {} found, {} indexed, {} skipped, {} errors",
+                scan.found, scan.indexed, scan.skipped, scan.errors,
+            );
+        }
+
+        if !removed.is_empty() || !new_pairs.is_empty() {
+            info!(
+                "config reloaded: {} entries ({} added, {} removed)",
+                self.entries.len(),
+                new_pairs.len(),
+                removed.len(),
+            );
+        }
+    }
+
     /// Start the file watcher event loop (blocks forever).
+    ///
+    /// If `config_path` is provided, watches the config file for changes
+    /// and dynamically updates watched paths on config reload.
     ///
     /// Filters out `Access` events (e.g. file opens) to prevent infinite
     /// re-indexing loops caused by our own reads triggering inotify.
@@ -177,7 +289,7 @@ impl Watcher {
     ///
     /// Returns [`WatchError::Notify`] if the watcher cannot be created
     /// or a watched path cannot be registered.
-    pub fn run(mut self) -> Result<(), WatchError> {
+    pub fn run(mut self, config_path: Option<&Path>) -> Result<(), WatchError> {
         let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
         let mut watcher: RecommendedWatcher =
             NotifyWatcher::new(tx, notify::Config::default())?;
@@ -190,6 +302,15 @@ impl Watcher {
             };
             watcher.watch(&entry.path, mode)?;
             info!("watching {}", entry.path.display());
+        }
+
+        // Watch the config file's parent directory so atomic-save editors
+        // (write-tmp + rename) are detected correctly.
+        if let Some(cfg_path) = config_path
+            && let Some(parent) = cfg_path.parent()
+        {
+            watcher.watch(parent, RecursiveMode::NonRecursive)?;
+            info!("watching config {}", cfg_path.display());
         }
 
         let debounce = Duration::from_millis(300);
@@ -213,6 +334,16 @@ impl Watcher {
                             continue;
                         }
                         last_seen.insert(path.clone(), now);
+
+                        // Check if this is a config file change.
+                        if let Some(cfg_path) = config_path
+                            && path == cfg_path
+                        {
+                            info!("config file changed, reloading");
+                            self.reload_config(cfg_path, &mut watcher);
+                            continue;
+                        }
+
                         self.handle_event(&path);
                     }
                 }
@@ -239,6 +370,24 @@ impl Watcher {
             .iter()
             .find(|entry| path.starts_with(&entry.path))
     }
+}
+
+/// Resolve a single `WatchEntry` to a `ResolvedEntry` with canonical path
+/// and discovered project root.
+fn resolve_entry(entry: &WatchEntry) -> Result<ResolvedEntry, WatchError> {
+    let path = config::expand_tilde(&entry.path);
+    let path = std::fs::canonicalize(&path).map_err(|err| {
+        WatchError::Other(format!(
+            "cannot resolve watch path {}: {err}",
+            entry.path
+        ))
+    })?;
+    let project_root = world::find_project_root(&path);
+    Ok(ResolvedEntry {
+        path,
+        project_root,
+        recursive: entry.recursive,
+    })
 }
 
 /// Build a `Gitignore` matcher for a file path, collecting ignore rules from

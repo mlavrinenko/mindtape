@@ -25,7 +25,7 @@ impl WatchArgs {
     /// # Errors
     /// Returns error if config loading, database setup, or watcher initialization fails.
     pub fn run(&self) -> Result<()> {
-        let cfg = load_watch_config(self)?;
+        let (cfg, config_path) = load_watch_config(self)?;
 
         if cfg.watch.is_empty() {
             bail!("no watch paths configured\nUsage: mindtape watch <path>\n   or: mindtape watch --config <file>");
@@ -51,38 +51,54 @@ impl WatchArgs {
             scan.found, scan.indexed, scan.skipped, scan.errors,
         );
 
-        watcher.run().context("watcher error")?;
+        watcher.run(config_path.as_deref()).context("watcher error")?;
         Ok(())
     }
 }
 
 /// Build a Config from CLI args: --config file, path argument, or auto-discovery.
-fn load_watch_config(args: &WatchArgs) -> Result<Config> {
+///
+/// Returns the parsed config and the canonical path of the config file
+/// (if one was used). The path is `None` when a bare directory argument
+/// was given instead of a config file.
+fn load_watch_config(args: &WatchArgs) -> Result<(Config, Option<PathBuf>)> {
     if let Some(ref config_path) = args.config {
-        return config::load_config(config_path)
-            .with_context(|| format!("failed to load config from {}", config_path.display()));
+        let cfg = config::load_config(config_path)
+            .with_context(|| format!("failed to load config from {}", config_path.display()))?;
+        let canon = std::fs::canonicalize(config_path)
+            .with_context(|| format!("failed to resolve config path {}", config_path.display()))?;
+        return Ok((cfg, Some(canon)));
     }
 
     if let Some(ref path) = args.path {
-        return Ok(Config {
-            database: None,
-            watch: vec![WatchEntry {
-                path: path.to_string_lossy().to_string(),
-                recursive: true,
-            }],
-        });
+        return Ok((
+            Config {
+                database: None,
+                watch: vec![WatchEntry {
+                    path: path.to_string_lossy().to_string(),
+                    recursive: true,
+                }],
+            },
+            None,
+        ));
     }
 
     if let Some(config_path) = config::find_config() {
-        return config::load_config(&config_path)
-            .with_context(|| format!("failed to load config from {}", config_path.display()));
+        let cfg = config::load_config(&config_path)
+            .with_context(|| format!("failed to load config from {}", config_path.display()))?;
+        let canon = std::fs::canonicalize(&config_path)
+            .with_context(|| format!("failed to resolve config path {}", config_path.display()))?;
+        return Ok((cfg, Some(canon)));
     }
 
-    Ok(Config {
-        database: None,
-        watch: vec![WatchEntry {
-            path: ".".to_string(),
-            recursive: true,
-        }],
-    })
+    Ok((
+        Config {
+            database: None,
+            watch: vec![WatchEntry {
+                path: ".".to_string(),
+                recursive: true,
+            }],
+        },
+        None,
+    ))
 }

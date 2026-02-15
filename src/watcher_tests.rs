@@ -493,3 +493,258 @@ fn handle_event_unknown_path_is_noop() {
     watcher.handle_event(Path::new("/tmp/other/file.typ"));
     drop(dir);
 }
+
+// --- resolve_entry ---
+
+#[test]
+fn resolve_entry_valid_path() {
+    let dir = tempfile::tempdir().unwrap();
+    let entry = make_entry(dir.path());
+    let resolved = resolve_entry(&entry).unwrap();
+    assert!(resolved.path.is_absolute());
+    assert!(resolved.project_root.is_absolute());
+}
+
+#[test]
+fn resolve_entry_bad_path_errors() {
+    let entry = WatchEntry {
+        path: "/nonexistent/path".to_string(),
+        recursive: true,
+    };
+    assert!(resolve_entry(&entry).is_err());
+}
+
+// --- add_entry ---
+
+#[test]
+fn add_entry_new_path() {
+    let (dir, dir_path) = setup_watch_dir();
+    let sub = dir_path.join("sub");
+    fs::create_dir(&sub).unwrap();
+
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+    assert_eq!(watcher.entries.len(), 1);
+
+    let result = watcher.add_entry(&make_entry(&sub)).unwrap();
+    assert!(result.is_some()); // (path, project_root, recursive)
+    assert_eq!(watcher.entries.len(), 2);
+    drop(dir);
+}
+
+#[test]
+fn add_entry_duplicate_is_noop() {
+    let (dir, dir_path) = setup_watch_dir();
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+
+    let result = watcher.add_entry(&make_entry(&dir_path)).unwrap();
+    assert!(result.is_none());
+    assert_eq!(watcher.entries.len(), 1);
+    drop(dir);
+}
+
+// --- remove_entries_not_in ---
+
+#[test]
+fn remove_entries_not_in_removes_old() {
+    let (dir, dir_path) = setup_watch_dir();
+    let sub = dir_path.join("sub");
+    fs::create_dir(&sub).unwrap();
+
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path), make_entry(&sub)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+    assert_eq!(watcher.entries.len(), 2);
+
+    // Keep only the sub directory.
+    let canon_sub = fs::canonicalize(&sub).unwrap();
+    let keep: HashSet<PathBuf> = [canon_sub].into_iter().collect();
+    let removed = watcher.remove_entries_not_in(&keep);
+
+    assert_eq!(removed.len(), 1);
+    assert_eq!(watcher.entries.len(), 1);
+    assert_eq!(watcher.entries[0].path, fs::canonicalize(&sub).unwrap());
+    drop(dir);
+}
+
+#[test]
+fn remove_entries_not_in_keeps_matching() {
+    let (dir, dir_path) = setup_watch_dir();
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+
+    let canon = fs::canonicalize(&dir_path).unwrap();
+    let keep: HashSet<PathBuf> = [canon].into_iter().collect();
+    let removed = watcher.remove_entries_not_in(&keep);
+
+    assert!(removed.is_empty());
+    assert_eq!(watcher.entries.len(), 1);
+    drop(dir);
+}
+
+// --- scan_entries ---
+
+#[test]
+fn scan_entries_indexes_new_directory() {
+    let (dir, dir_path) = setup_watch_dir();
+    let sub = dir_path.join("sub");
+    fs::create_dir(&sub).unwrap();
+    fs::write(
+        sub.join("tasks.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": due\n- [ ] Sub task\n",
+    )
+    .unwrap();
+
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+
+    let canon_sub = fs::canonicalize(&sub).unwrap();
+    let project_root = watcher.entries[0].project_root.clone();
+    let result = watcher.scan_entries(&[(canon_sub, project_root)]);
+
+    assert_eq!(result.found, 1);
+    assert_eq!(result.indexed, 1);
+    drop(dir);
+}
+
+// --- reload_config ---
+
+#[test]
+fn reload_config_adds_new_entry() {
+    let (dir, dir_path) = setup_watch_dir();
+    let sub = dir_path.join("sub");
+    fs::create_dir(&sub).unwrap();
+    fs::write(
+        sub.join("tasks.typ"),
+        "#import \"@mindtape/mindtape:0.1.0\": id\n- [ ] Sub task #id(\"019c5b9b-7317-77b1-bf52-ce7a298cfcad\")\n",
+    )
+    .unwrap();
+
+    // Write initial config with just the root.
+    let config_path = dir_path.join("mindtape.toml");
+    fs::write(
+        &config_path,
+        format!("[[watch]]\npath = \"{}\"\n", dir_path.display()),
+    )
+    .unwrap();
+
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+    assert_eq!(watcher.entries.len(), 1);
+
+    // Update config to add the sub directory.
+    fs::write(
+        &config_path,
+        format!(
+            "[[watch]]\npath = \"{}\"\n\n[[watch]]\npath = \"{}\"\n",
+            dir_path.display(),
+            sub.display()
+        ),
+    )
+    .unwrap();
+
+    // Create a notify watcher (we won't use its events, just need it for API).
+    let (tx, _rx) = std::sync::mpsc::channel();
+    let mut notify_watcher: notify::RecommendedWatcher =
+        notify::Watcher::new(tx, notify::Config::default()).unwrap();
+    notify_watcher
+        .watch(&dir_path, notify::RecursiveMode::Recursive)
+        .unwrap();
+
+    watcher.reload_config(&config_path, &mut notify_watcher);
+
+    assert_eq!(watcher.entries.len(), 2);
+    // The sub directory's tasks should have been scanned.
+    let tasks = watcher
+        .store
+        .query_tasks(&crate::store::TaskFilter::default())
+        .unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].title, "Sub task");
+    drop(dir);
+}
+
+#[test]
+fn reload_config_removes_old_entry() {
+    let (dir, dir_path) = setup_watch_dir();
+    let sub = dir_path.join("sub");
+    fs::create_dir(&sub).unwrap();
+
+    // Start with both directories watched.
+    let config_path = dir_path.join("mindtape.toml");
+    fs::write(
+        &config_path,
+        format!(
+            "[[watch]]\npath = \"{}\"\n\n[[watch]]\npath = \"{}\"\n",
+            dir_path.display(),
+            sub.display()
+        ),
+    )
+    .unwrap();
+
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path), make_entry(&sub)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+    assert_eq!(watcher.entries.len(), 2);
+
+    // Update config to remove the sub directory.
+    fs::write(
+        &config_path,
+        format!("[[watch]]\npath = \"{}\"\n", dir_path.display()),
+    )
+    .unwrap();
+
+    let (tx, _rx) = std::sync::mpsc::channel();
+    let mut notify_watcher: notify::RecommendedWatcher =
+        notify::Watcher::new(tx, notify::Config::default()).unwrap();
+    notify_watcher
+        .watch(&dir_path, notify::RecursiveMode::Recursive)
+        .unwrap();
+    notify_watcher
+        .watch(&sub, notify::RecursiveMode::Recursive)
+        .unwrap();
+
+    watcher.reload_config(&config_path, &mut notify_watcher);
+
+    assert_eq!(watcher.entries.len(), 1);
+    assert_eq!(
+        watcher.entries[0].path,
+        fs::canonicalize(&dir_path).unwrap()
+    );
+    drop(dir);
+}
+
+#[test]
+fn reload_config_invalid_toml_is_nonfatal() {
+    let (dir, dir_path) = setup_watch_dir();
+    let config_path = dir_path.join("mindtape.toml");
+    fs::write(
+        &config_path,
+        format!("[[watch]]\npath = \"{}\"\n", dir_path.display()),
+    )
+    .unwrap();
+
+    let store = SqliteStore::open_memory().unwrap();
+    let entries = vec![make_entry(&dir_path)];
+    let mut watcher = Watcher::new(store, &entries).unwrap();
+
+    // Write garbage config.
+    fs::write(&config_path, "not valid [[[toml").unwrap();
+
+    let (tx, _rx) = std::sync::mpsc::channel();
+    let mut notify_watcher: notify::RecommendedWatcher =
+        notify::Watcher::new(tx, notify::Config::default()).unwrap();
+
+    // Should not panic or error — just log a warning.
+    watcher.reload_config(&config_path, &mut notify_watcher);
+
+    // Entries should be unchanged.
+    assert_eq!(watcher.entries.len(), 1);
+    drop(dir);
+}
