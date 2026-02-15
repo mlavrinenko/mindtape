@@ -124,12 +124,13 @@ pub struct FilesArgs {
 pub fn preprocess_args(raw: Vec<String>) -> Vec<String> {
     let mut out = Vec::with_capacity(raw.len() + 1);
     for arg in raw {
-        if let Some(rest) = arg.strip_prefix('-') {
-            if !rest.is_empty() && rest.chars().all(|c| c.is_ascii_digit()) {
-                out.push("-n".to_string());
-                out.push(rest.to_string());
-                continue;
-            }
+        if let Some(rest) = arg.strip_prefix('-')
+            && !rest.is_empty()
+            && rest.chars().all(|c| c.is_ascii_digit())
+        {
+            out.push("-n".to_string());
+            out.push(rest.to_string());
+            continue;
         }
         out.push(arg);
     }

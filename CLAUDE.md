@@ -31,6 +31,7 @@ metadata into SQLite, and exposes a CLI for querying.
 - Use `just` recipes instead of raw cargo commands (see `Justfile`)
 - Use `-q` for cargo commands — only show errors/warnings, not compilation progress
 - After any code changes, run `just check` (clippy + tests + file size) and fix all warnings
+- If clippy suggests `--fix`, use `cargo clippy --fix --workspace --all-targets` to auto-apply mechanical fixes
 - Always improve the `Justfile` when you notice missing or useful recipes
 - Avoid dumping large tool outputs into context; summarize or truncate
 - When working on a single crate, read that crate's `CLAUDE.md` for focused context

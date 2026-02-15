@@ -61,10 +61,10 @@ pub fn find_task_node<'a>(source: &'a Source, root: &LinkedNode<'a>, task_id: &s
             let text = &source.text()[range];
 
             // Look for #id("...") pattern
-            if let Some(id) = extract_id_from_text(text) {
-                if id == task_id {
-                    return Some(node.clone());
-                }
+            if let Some(id) = extract_id_from_text(text)
+                && id == task_id
+            {
+                return Some(node.clone());
             }
         }
         None

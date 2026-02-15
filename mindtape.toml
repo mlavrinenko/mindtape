@@ -1,7 +1,8 @@
 [[watch]]
 path = "~/pad/notes/"
-recursive = true
 
 [[watch]]
 path = "~/pad/songs/"
-recursive = true
+
+[[watch]]
+path = "~/pad/art-of-non-machine-translation-skill"

@@ -32,11 +32,11 @@ impl WatchArgs {
         }
 
         let db_path = config::resolve_db_path(&cfg);
-        if let Some(parent) = db_path.parent() {
-            if !parent.exists() {
-                std::fs::create_dir_all(parent)
-                    .with_context(|| format!("failed to create database directory {}", parent.display()))?;
-            }
+        if let Some(parent) = db_path.parent()
+            && !parent.exists()
+        {
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("failed to create database directory {}", parent.display()))?;
         }
 
         let store = SqliteStore::open(&db_path)

@@ -3,7 +3,7 @@ members = [
     "crates/mindtape-eval",
     "crates/mindtape-store",
 ]
-resolver = "2"
+resolver = "3"
 
 [workspace.lints.rust]
 unsafe_code = "deny"
@@ -98,7 +98,7 @@ uninlined_format_args = "deny"
 [package]
 name = "mindtape"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "A file-based task tracker using Typst files as the source of truth"
 license = "MIT"
 

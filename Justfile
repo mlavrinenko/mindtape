@@ -14,6 +14,10 @@ test *ARGS:
 clippy:
     cargo clippy --workspace --all-targets -q
 
+# Auto-fix clippy warnings
+clippy-fix:
+    cargo clippy --fix --workspace --all-targets
+
 # Build the project
 build:
     cargo build --workspace -q

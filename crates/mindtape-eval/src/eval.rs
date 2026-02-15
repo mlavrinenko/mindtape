@@ -185,12 +185,12 @@ pub fn eval_file_full_with_deps(
 pub fn collect_tasks(content: &Content, tasks: &mut Vec<Task>) {
     let mut position: u32 = 0;
     let _ = content.traverse(&mut |node: Content| -> ControlFlow<()> {
-        if let Some(item) = node.to_packed::<ListItem>() {
-            if let Some(mut task) = extract_task(item) {
-                task.position = position;
-                position += 1;
-                tasks.push(task);
-            }
+        if let Some(item) = node.to_packed::<ListItem>()
+            && let Some(mut task) = extract_task(item)
+        {
+            task.position = position;
+            position += 1;
+            tasks.push(task);
         }
         ControlFlow::Continue(())
     });
@@ -226,8 +226,7 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
             let value = meta.value.clone();
             if let Value::Array(arr) = value {
                 let slice = arr.as_slice();
-                if slice.len() == 2 {
-                    if let Value::Str(key) = &slice[0] {
+                if slice.len() == 2 && let Value::Str(key) = &slice[0] {
                         match key.as_str() {
                             "due" => {
                                 if let Value::Datetime(dt) = &slice[1] {
@@ -241,7 +240,6 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
                             }
                             _ => {}
                         }
-                    }
                 }
             }
         }

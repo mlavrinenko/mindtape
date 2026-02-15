@@ -120,11 +120,11 @@ pub fn index_file(
 
     let hash = hash_file(file_path).map_err(|e| StoreError::Io(e.to_string()))?;
 
-    if let Some(stored_hash) = store.get_file_hash(relative)? {
-        if stored_hash == hash {
-            trace!("hash unchanged, skipping {}", relative.display());
-            return Ok(false);
-        }
+    if let Some(stored_hash) = store.get_file_hash(relative)?
+        && stored_hash == hash
+    {
+        trace!("hash unchanged, skipping {}", relative.display());
+        return Ok(false);
     }
 
     debug!("indexing {}", relative.display());
@@ -160,11 +160,11 @@ pub fn index_file_with_deps(
 
     let hash = hash_file(file_path).map_err(|e| StoreError::Io(e.to_string()))?;
 
-    if let Some(stored_hash) = store.get_file_hash(relative)? {
-        if stored_hash == hash {
-            trace!("hash unchanged, skipping {}", relative.display());
-            return Ok(false);
-        }
+    if let Some(stored_hash) = store.get_file_hash(relative)?
+        && stored_hash == hash
+    {
+        trace!("hash unchanged, skipping {}", relative.display());
+        return Ok(false);
     }
 
     debug!("indexing (with deps) {}", relative.display());

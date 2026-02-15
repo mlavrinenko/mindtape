@@ -1,7 +1,7 @@
 [package]
 name = "mindtape-store"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "Store trait and SQLite backend for MindTape"
 license = "MIT"
 

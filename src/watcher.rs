@@ -206,11 +206,11 @@ impl Watcher {
                         if is_inside_dotgit(&path) {
                             continue;
                         }
-                        if let Some(&last) = last_seen.get(&path) {
-                            if now.duration_since(last) < debounce {
-                                trace!("debounced {}", path.display());
-                                continue;
-                            }
+                        if let Some(&last) = last_seen.get(&path)
+                            && now.duration_since(last) < debounce
+                        {
+                            trace!("debounced {}", path.display());
+                            continue;
                         }
                         last_seen.insert(path.clone(), now);
                         self.handle_event(&path);
@@ -252,10 +252,10 @@ fn build_ignore(root: &Path, file: &Path) -> Gitignore {
     let mut builder = GitignoreBuilder::new(root);
 
     // Global gitignore (lowest precedence).
-    if let Some(global) = global_gitignore_path() {
-        if global.exists() {
-            builder.add(&global);
-        }
+    if let Some(global) = global_gitignore_path()
+        && global.exists()
+    {
+        builder.add(&global);
     }
 
     // Collect directories from root down to the file's parent.
@@ -299,12 +299,11 @@ fn global_gitignore_path() -> Option<PathBuf> {
     if let Ok(output) = std::process::Command::new("git")
         .args(["config", "--global", "core.excludesFile"])
         .output()
+        && output.status.success()
     {
-        if output.status.success() {
-            let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            if !path.is_empty() {
-                return Some(crate::config::expand_tilde(&path));
-            }
+        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if !path.is_empty() {
+            return Some(crate::config::expand_tilde(&path));
         }
     }
 
