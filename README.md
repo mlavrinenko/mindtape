@@ -57,6 +57,10 @@ Early development. See [docs/ROADMAP.md](docs/ROADMAP.md) for the plan.
 - [Design](docs/DESIGN.md) — architecture, data model, technical decisions
 - [Roadmap](docs/ROADMAP.md) — MVP scope, milestones, non-goals
 
+## TODO
+
+- `mindtape project` - create project by template?
+
 ## Future / Ideas
 
 - TUI (ratatui)
