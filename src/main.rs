@@ -42,7 +42,10 @@ fn init_logger(verbosity: u8) {
         _ => LevelFilter::Trace,
     };
     env_logger::Builder::from_env(env_logger::Env::default())
-        .filter_level(level)
+        .filter_level(LevelFilter::Warn)
+        .filter_module("mindtape", level)
+        .filter_module("mindtape_eval", level)
+        .filter_module("mindtape_store", level)
         .format_target(false)
         .format_timestamp(None)
         .init();

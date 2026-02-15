@@ -201,11 +201,13 @@ impl Watcher {
             match result {
                 Ok(event) => {
                     if matches!(event.kind, EventKind::Access(_) | EventKind::Other) {
-                        trace!("ignoring non-content event: {event:?}");
                         continue;
                     }
                     let now = Instant::now();
                     for path in event.paths {
+                        if is_inside_dotgit(&path) {
+                            continue;
+                        }
                         if let Some(&last) = last_seen.get(&path) {
                             if now.duration_since(last) < debounce {
                                 trace!("debounced {}", path.display());
@@ -253,6 +255,12 @@ fn build_ignore(dir: &Path) -> Gitignore {
 
 fn is_typ_file(path: &Path) -> bool {
     path.extension().is_some_and(|ext| ext == "typ") && path.is_file()
+}
+
+/// Check if a path is inside a `.git` directory.
+fn is_inside_dotgit(path: &Path) -> bool {
+    path.components()
+        .any(|c| c.as_os_str() == ".git")
 }
 
 #[cfg(test)]

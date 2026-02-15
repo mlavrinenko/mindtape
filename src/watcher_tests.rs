@@ -61,6 +61,22 @@ fn is_typ_file_false_for_nonexistent() {
     assert!(!is_typ_file(Path::new("/nonexistent/file.typ")));
 }
 
+// --- is_inside_dotgit ---
+
+#[test]
+fn dotgit_path_is_detected() {
+    assert!(is_inside_dotgit(Path::new("/home/user/repo/.git/HEAD")));
+    assert!(is_inside_dotgit(Path::new("/repo/.git/refs/heads/main")));
+    assert!(is_inside_dotgit(Path::new("/repo/.git/objects/pack")));
+}
+
+#[test]
+fn non_dotgit_path_is_not_detected() {
+    assert!(!is_inside_dotgit(Path::new("/home/user/repo/src/main.rs")));
+    assert!(!is_inside_dotgit(Path::new("/home/user/.gitconfig")));
+    assert!(!is_inside_dotgit(Path::new("/repo/todo.typ")));
+}
+
 // --- build_ignore ---
 
 #[test]

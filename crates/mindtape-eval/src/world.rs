@@ -159,18 +159,16 @@ impl MindTapeWorld {
             let abs_path = self.resolve_path(*id)
                 .map_err(|e| EvalError::World(format!("failed to resolve dependency: {e}")))?;
 
-            let rel_path = abs_path
-                .strip_prefix(&self.root)
-                .map_err(|_| {
-                    EvalError::World(format!(
-                        "dependency {} is not under project root {}",
-                        abs_path.display(),
-                        self.root.display()
-                    ))
-                })?
-                .to_path_buf();
-
-            paths.push(rel_path);
+            // Skip external dependencies (e.g. @local/mindtape packages) —
+            // only track project-local files that might change.
+            if let Ok(rel_path) = abs_path.strip_prefix(&self.root) {
+                paths.push(rel_path.to_path_buf());
+            } else {
+                trace!(
+                    "skipping external dependency: {}",
+                    abs_path.display()
+                );
+            }
         }
         paths.sort();
         Ok(paths)
