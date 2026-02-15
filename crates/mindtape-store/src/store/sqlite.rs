@@ -69,9 +69,16 @@ CREATE INDEX IF NOT EXISTS idx_refs_source ON file_references(source_file_id);
 CREATE INDEX IF NOT EXISTS idx_refs_target ON file_references(target_path);
 ";
 
+const SCHEMA_V4: &str = "
+ALTER TABLE tasks ADD COLUMN milestone TEXT;
+";
+
 // ---------------------------------------------------------------------------
 // SqliteStore
 // ---------------------------------------------------------------------------
+
+/// Row tuple from a task query JOIN.
+type TaskRow = (i64, String, bool, i32, Option<String>, String, Option<String>);
 
 pub struct SqliteStore {
     conn: Connection,
@@ -135,6 +142,14 @@ impl SqliteStore {
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
         }
 
+        if version < 4 {
+            debug!("migrating to schema v4");
+            conn.execute_batch(SCHEMA_V4)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+            conn.pragma_update(None, "user_version", 4)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+        }
+
         Ok(())
     }
 
@@ -143,7 +158,7 @@ impl SqliteStore {
     /// Uses unnamed `?` placeholders for cleaner code - rusqlite binds them positionally.
     fn build_task_query(filter: &TaskFilter) -> (String, Vec<String>) {
         let mut sql = String::from(
-            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id",
         );
@@ -205,7 +220,7 @@ impl SqliteStore {
         params: &[&dyn rusqlite::ToSql],
     ) -> Result<Vec<TaskView>, StoreError> {
         // First, fetch all tasks
-        let task_rows: Vec<(i64, String, bool, i32, String, Option<String>)> = stmt
+        let task_rows: Vec<TaskRow> = stmt
             .query_map(params, |row| {
                 Ok((
                     row.get(0)?,
@@ -214,6 +229,7 @@ impl SqliteStore {
                     row.get(3)?,
                     row.get(4)?,
                     row.get(5)?,
+                    row.get(6)?,
                 ))
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -260,7 +276,7 @@ impl SqliteStore {
 
         // Now build TaskViews using the pre-fetched properties
         let mut tasks = Vec::with_capacity(task_rows.len());
-        for (task_id, title, is_done, position, file_path, file_title) in task_rows {
+        for (task_id, title, is_done, position, milestone, file_path, file_title) in task_rows {
             let (due, tags) = properties_map
                 .remove(&task_id)
                 .unwrap_or((None, Vec::new()));
@@ -273,6 +289,7 @@ impl SqliteStore {
                 file_title,
                 due,
                 tags,
+                milestone,
             });
         }
 
@@ -348,9 +365,9 @@ impl Store for SqliteStore {
 
         for (i, task) in tasks.iter().enumerate() {
             tx.execute(
-                "INSERT INTO tasks (task_file_id, title, is_done, position)
-                 VALUES (?1, ?2, ?3, ?4)",
-                params![file_id, task.title, task.is_done, task.position],
+                "INSERT INTO tasks (task_file_id, title, is_done, position, milestone)
+                 VALUES (?1, ?2, ?3, ?4, ?5)",
+                params![file_id, task.title, task.is_done, task.position, task.milestone],
             )?;
             let task_id = tx.last_insert_rowid();
 
@@ -475,7 +492,7 @@ impl Store for SqliteStore {
 
         // Search task titles
         let mut task_stmt = self.conn.prepare(
-            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id
              WHERE t.title LIKE ?1 COLLATE NOCASE
@@ -515,7 +532,7 @@ impl Store for SqliteStore {
 
         // Overdue: has due date AND due < today (strictly before) AND NOT done
         let mut overdue_stmt = self.conn.prepare(
-            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id
              WHERE t.is_done = 0
@@ -531,7 +548,7 @@ impl Store for SqliteStore {
 
         // Today: has due date AND due == today AND NOT done
         let mut today_stmt = self.conn.prepare(
-            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id
              WHERE t.is_done = 0
@@ -547,7 +564,7 @@ impl Store for SqliteStore {
 
         // This week: has due date AND due > today AND due <= week_end AND NOT done
         let mut week_stmt = self.conn.prepare(&format!(
-            "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id
              WHERE t.is_done = 0
@@ -732,6 +749,7 @@ mod tests {
             title: title.to_string(),
             is_done: done,
             position: pos,
+            milestone: None,
         }
     }
 
@@ -796,7 +814,7 @@ mod tests {
             .conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 3);
+        assert_eq!(version, 4);
     }
 
     // --- upsert_task_file ---
@@ -1175,6 +1193,7 @@ mod tests {
                 tags: vec!["work".to_string(), "urgent".to_string()],
                 id: Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string()),
                 position: 0,
+                milestone: Some("Heading".to_string()),
             }],
             title: Some("Heading".to_string()),
             bindings: vec![("note".to_string(), "string".to_string(), "\"hi\"".to_string())],

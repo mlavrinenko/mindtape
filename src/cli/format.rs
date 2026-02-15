@@ -29,6 +29,23 @@ pub fn format_task_view(task: &TaskView) -> String {
     format!("- {check}{due_part} {}{tag_part}", task.title)
 }
 
+/// Format a task for use as a tree leaf (no leading `- ` prefix).
+#[must_use]
+pub fn format_task_leaf(task: &TaskView) -> String {
+    let check = if task.is_done { "[x]" } else { "[ ]" };
+    let due_part = task
+        .due
+        .as_ref()
+        .map(|d| format!(" (due {d})"))
+        .unwrap_or_default();
+    let tag_part = if task.tags.is_empty() {
+        String::new()
+    } else {
+        format!(" [{}]", task.tags.join(", "))
+    };
+    format!("{check}{due_part} {}{tag_part}", task.title)
+}
+
 #[must_use]
 pub fn format_file_view(file: &FileView) -> String {
     let title_part = file
@@ -140,6 +157,7 @@ mod tests {
             file_title: None,
             due: Some("2026-03-01".to_string()),
             tags: vec![],
+            milestone: None,
         };
         assert_eq!(format_task_view(&task), "- [ ] (due 2026-03-01) Buy milk");
     }
@@ -154,6 +172,7 @@ mod tests {
             file_title: None,
             due: None,
             tags: vec![],
+            milestone: None,
         };
         assert_eq!(format_task_view(&task), "- [x] Done thing");
     }
@@ -168,6 +187,7 @@ mod tests {
             file_title: None,
             due: None,
             tags: vec!["work".to_string(), "urgent".to_string()],
+            milestone: None,
         };
         assert_eq!(format_task_view(&task), "- [ ] Task [work, urgent]");
     }
@@ -242,6 +262,7 @@ mod tests {
             file_title: None,
             due: Some("2026-03-01".to_string()),
             tags: vec!["shop".to_string()],
+            milestone: None,
         }];
         let csv = format_tasks_csv(&tasks).unwrap();
         assert!(csv.starts_with("status,due,title,file,tags\n"));
@@ -258,6 +279,7 @@ mod tests {
             file_title: None,
             due: None,
             tags: vec![],
+            milestone: None,
         }];
         let csv = format_tasks_csv(&tasks).unwrap();
         assert!(csv.contains("done,,\"Buy eggs, milk\",t.typ,\n"));

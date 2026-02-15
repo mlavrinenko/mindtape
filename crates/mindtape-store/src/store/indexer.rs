@@ -46,9 +46,8 @@ pub fn to_store_records(
         relative_path: relative_path.to_path_buf(),
         title: result.title.clone(),
         eval_hash: content_hash.to_string(),
-        updated_at: String::new(), // filled by SQLite default
+        updated_at: String::new(),
     };
-
     let mut task_records = Vec::new();
     let mut all_props = Vec::new();
 
@@ -74,14 +73,12 @@ pub fn to_store_records(
             title: task.title.clone(),
             is_done: task.done,
             position: task.position as i32,
+            milestone: task.milestone.clone(),
         });
 
         let mut props = vec![TaskProperty {
-            id: None,
-            task_id: 0, // filled during insert
-            kind: PropertyKind::Id,
-            key: "id".to_string(),
-            value: task_id.clone(),
+            id: None, task_id: 0, kind: PropertyKind::Id,
+            key: "id".to_string(), value: task_id.clone(),
         }];
         if let Some(dt) = &task.due {
             props.push(TaskProperty {

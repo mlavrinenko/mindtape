@@ -14,7 +14,7 @@ use comemo::Track;
 use log::{debug, trace};
 use thiserror::Error;
 use typst::engine::{Route, Sink, Traced};
-use typst::foundations::{Content, Datetime, Module, Value};
+use typst::foundations::{Content, Datetime, Module, StyleChain, Value};
 use typst::World;
 use typst::ROUTINES;
 use typst_library::introspection::MetadataElem;
@@ -59,6 +59,8 @@ pub struct Task {
     pub tags: Vec<String>,
     pub id: Option<String>,
     pub position: u32,
+    /// Heading path leading to this task (e.g. "Header 1 > Subheader 1.1").
+    pub milestone: Option<String>,
 }
 
 /// Full result from evaluating a `.typ` file.
@@ -195,13 +197,35 @@ pub fn eval_file_full_with_deps(
 
 /// Recursively traverse `content` looking for `ListItem` nodes and
 /// extract a `Task` from each one, assigning 0-based positions.
+///
+/// Tracks heading context so each task knows which headings precede it.
 pub fn collect_tasks(content: &Content, tasks: &mut Vec<Task>) {
     let mut position: u32 = 0;
+    // Stack of (depth, heading_text) tracking the current heading context.
+    let mut heading_stack: Vec<(usize, String)> = Vec::new();
+
     let _ = content.traverse(&mut |node: Content| -> ControlFlow<()> {
-        if let Some(item) = node.to_packed::<ListItem>()
+        if let Some(heading) = node.to_packed::<HeadingElem>() {
+            let depth = heading.depth.get(StyleChain::default()).get();
+            let text = heading.body.plain_text().trim().to_string();
+            // Pop headings at same or deeper level.
+            heading_stack.retain(|(d, _)| *d < depth);
+            heading_stack.push((depth, text));
+        } else if let Some(item) = node.to_packed::<ListItem>()
             && let Some(mut task) = extract_task(item)
         {
             task.position = position;
+            task.milestone = if heading_stack.is_empty() {
+                None
+            } else {
+                Some(
+                    heading_stack
+                        .iter()
+                        .map(|(_, t)| t.as_str())
+                        .collect::<Vec<_>>()
+                        .join(" > "),
+                )
+            };
             position += 1;
             tasks.push(task);
         }
@@ -265,7 +289,7 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
         ControlFlow::Continue(())
     });
 
-    Some(Task { title, done, due, tags, id, position: 0 })
+    Some(Task { title, done, due, tags, id, position: 0, milestone: None })
 }
 
 /// Extract the title from the first heading in the content tree.

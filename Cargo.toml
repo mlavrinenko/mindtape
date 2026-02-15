@@ -128,6 +128,7 @@ shellexpand = "3"
 directories = "5"
 anyhow = "1"
 tempfile = "3"
+termtree = "1"
 log = "0.4"
 env_logger = "0.11"
 

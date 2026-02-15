@@ -87,6 +87,7 @@ mod tests {
             tags: vec![],
             id: None,
             position: 0,
+            milestone: None,
         }
     }
 

@@ -40,6 +40,8 @@ pub struct TaskRecord {
     pub title: String,
     pub is_done: bool,
     pub position: i32,
+    /// Heading path (e.g. "Header 1 > Subheader 1.1").
+    pub milestone: Option<String>,
 }
 
 /// A property attached to a task.
@@ -109,6 +111,8 @@ pub struct TaskView {
     pub file_title: Option<String>,
     pub due: Option<String>,
     pub tags: Vec<String>,
+    /// Heading path (e.g. "Header 1 > Subheader 1.1").
+    pub milestone: Option<String>,
 }
 
 /// Summary of an indexed file, returned by `list_files()`.

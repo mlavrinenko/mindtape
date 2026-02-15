@@ -2,11 +2,12 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
+use termtree::Tree;
 
-use crate::cli::format::{format_task_view, format_tasks_csv};
+use crate::cli::format::{format_task_leaf, format_tasks_csv};
 use crate::cli::util::{open_query_db, print_json, resolve_query_db_path};
 use crate::cli::{OutputFormat, QueryOpts};
-use crate::store::{Store, TaskFilter};
+use crate::store::{Store, TaskFilter, TaskView};
 
 /// Filter for task status.
 #[derive(ValueEnum, Clone, Copy, Debug, PartialEq)]
@@ -90,21 +91,85 @@ impl ListArgs {
                     eprintln!("no tasks found");
                     return Ok(());
                 }
-                let mut current_file = String::new();
-                for task in &tasks {
-                    let file_str = task.file_path.to_string_lossy();
-                    if file_str != current_file {
-                        if !current_file.is_empty() {
-                            println!();
-                        }
-                        let header = task.file_title.as_deref().unwrap_or(&file_str);
-                        println!("{header} ({file_str})");
-                        current_file = file_str.to_string();
-                    }
-                    println!("  {}", format_task_view(task));
+                for tree in build_task_trees(&tasks) {
+                    print!("{tree}");
                 }
             }
         }
         Ok(())
     }
+}
+
+/// Build a list of trees from tasks, grouped by file then by milestone headings.
+fn build_task_trees(tasks: &[TaskView]) -> Vec<Tree<String>> {
+    let mut trees: Vec<Tree<String>> = Vec::new();
+    let mut current_file = String::new();
+    let mut file_tree: Option<Tree<String>> = None;
+
+    for task in tasks {
+        let file_str = task.file_path.to_string_lossy().to_string();
+
+        if file_str != current_file {
+            if let Some(tree) = file_tree.take() {
+                trees.push(tree);
+            }
+            file_tree = Some(Tree::new(file_str.clone()));
+            current_file = file_str;
+        }
+
+        let tree = file_tree.as_mut().expect("file_tree always set above");
+        let leaf = Tree::new(format_task_leaf(task));
+
+        let headings: Vec<&str> = task
+            .milestone
+            .as_deref()
+            .map(|m| m.split(" > ").collect())
+            .unwrap_or_default();
+
+        insert_into_heading_path(tree, &headings, leaf);
+    }
+
+    if let Some(tree) = file_tree {
+        trees.push(tree);
+    }
+
+    trees
+}
+
+/// Insert a task leaf into the correct position in the heading tree.
+///
+/// Walks the heading path, creating or reusing heading nodes as needed,
+/// then appends the leaf at the deepest level.
+#[allow(clippy::indexing_slicing)]
+fn insert_into_heading_path(
+    root: &mut Tree<String>,
+    headings: &[&str],
+    leaf: Tree<String>,
+) {
+    if headings.is_empty() {
+        root.push(leaf);
+        return;
+    }
+
+    let mut node = root;
+    for heading in headings {
+        let heading_str = (*heading).to_string();
+        // Find existing child with this heading name.
+        let pos = node
+            .leaves
+            .iter()
+            .position(|child| child.root == heading_str);
+
+        if let Some(idx) = pos {
+            // Safe: idx comes from position() on node.leaves
+            node = &mut node.leaves[idx];
+        } else {
+            node.push(Tree::new(heading_str));
+            // Safe: we just pushed, so last index is valid
+            let last = node.leaves.len() - 1;
+            node = &mut node.leaves[last];
+        }
+    }
+
+    node.push(leaf);
 }
