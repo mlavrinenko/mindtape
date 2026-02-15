@@ -8,7 +8,7 @@ use mindtape::store::{index_file, SqliteStore, Store, TaskFilter};
 use mindtape::world::MindTapeWorld;
 
 /// Set up a temp project with a `.typ` file, a `MindTapeWorld`, and an in-memory store.
-/// Returns (store, world, `file_path`, `project_root`).
+/// Returns (store, world, file path, project root).
 fn setup(
     source: &str,
 ) -> (SqliteStore, MindTapeWorld, std::path::PathBuf, std::path::PathBuf) {
@@ -33,7 +33,7 @@ fn index_file_stores_tasks_with_id() {
 "#,
     );
 
-    let indexed = index_file(&mut store, &world, &file, &root).unwrap();
+    let indexed = index_file(&mut store, &world, &file, Some(&root)).unwrap();
     assert!(indexed);
 
     let views = store.query_tasks(&TaskFilter::default()).unwrap();
@@ -63,7 +63,7 @@ fn index_file_skips_tasks_without_id() {
 "#,
     );
 
-    index_file(&mut store, &world, &file, &root).unwrap();
+    index_file(&mut store, &world, &file, Some(&root)).unwrap();
 
     let views = store.query_tasks(&TaskFilter::default()).unwrap();
     assert_eq!(views.len(), 1);
@@ -81,7 +81,7 @@ fn index_file_skips_tasks_with_invalid_id() {
 "#,
     );
 
-    index_file(&mut store, &world, &file, &root).unwrap();
+    index_file(&mut store, &world, &file, Some(&root)).unwrap();
 
     let views = store.query_tasks(&TaskFilter::default()).unwrap();
     assert_eq!(views.len(), 1);
@@ -95,10 +95,10 @@ fn index_file_skips_unchanged() {
 - [ ] Task #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")"#,
     );
 
-    let first = index_file(&mut store, &world, &file, &root).unwrap();
+    let first = index_file(&mut store, &world, &file, Some(&root)).unwrap();
     assert!(first);
 
-    let second = index_file(&mut store, &world, &file, &root).unwrap();
+    let second = index_file(&mut store, &world, &file, Some(&root)).unwrap();
     assert!(!second); // hash unchanged, should skip
 }
 
@@ -109,7 +109,7 @@ fn index_file_reindexes_on_change() {
 - [ ] Old task #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")"#,
     );
 
-    index_file(&mut store, &world, &file, &root).unwrap();
+    index_file(&mut store, &world, &file, Some(&root)).unwrap();
 
     // Modify the file
     std::fs::write(
@@ -121,7 +121,7 @@ fn index_file_reindexes_on_change() {
     .unwrap();
     let world2 = MindTapeWorld::new(&file).unwrap();
 
-    let reindexed = index_file(&mut store, &world2, &file, &root).unwrap();
+    let reindexed = index_file(&mut store, &world2, &file, Some(&root)).unwrap();
     assert!(reindexed);
 
     let views = store.query_tasks(&TaskFilter::default()).unwrap();
@@ -139,7 +139,7 @@ fn index_file_extracts_title() {
 - [ ] Task #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")"#,
     );
 
-    index_file(&mut store, &world, &file, &root).unwrap();
+    index_file(&mut store, &world, &file, Some(&root)).unwrap();
 
     let views = store.query_tasks(&TaskFilter::default()).unwrap();
     assert_eq!(views[0].file_title, Some("My Project".to_string()));
@@ -156,7 +156,7 @@ fn index_file_query_by_tag() {
 "#,
     );
 
-    index_file(&mut store, &world, &file, &root).unwrap();
+    index_file(&mut store, &world, &file, Some(&root)).unwrap();
 
     let work = store
         .query_tasks(&TaskFilter {
@@ -177,12 +177,11 @@ fn index_file_remove_then_query_is_empty() {
 - [ ] Task B #id("019c5b97-9239-7270-b7d7-2a50806912b3")"#,
     );
 
-    index_file(&mut store, &world, &file, &root).unwrap();
+    index_file(&mut store, &world, &file, Some(&root)).unwrap();
     assert_eq!(store.query_tasks(&TaskFilter::default()).unwrap().len(), 2);
 
-    // Remove the file from the index
-    let relative = file.strip_prefix(&root).unwrap();
-    store.remove_task_file(relative).unwrap();
+    // Remove the file from the index using absolute path.
+    store.remove_task_file(&file).unwrap();
     assert_eq!(store.query_tasks(&TaskFilter::default()).unwrap().len(), 0);
 }
 
@@ -197,7 +196,7 @@ fn index_file_query_combined_tag_and_done() {
 "#,
     );
 
-    index_file(&mut store, &world, &file, &root).unwrap();
+    index_file(&mut store, &world, &file, Some(&root)).unwrap();
 
     // Filter: tag=work AND not done
     let views = store
@@ -222,11 +221,10 @@ fn index_file_stores_bindings() {
 "#,
     );
 
-    index_file(&mut store, &world, &file, &root).unwrap();
+    index_file(&mut store, &world, &file, Some(&root)).unwrap();
 
-    // Verify bindings were stored by checking the file hash exists (bindings are stored)
-    let relative = file.strip_prefix(&root).unwrap();
-    let hash = store.get_file_hash(relative).unwrap();
+    // Verify bindings were stored by checking the file hash exists.
+    let hash = store.get_file_hash(&file).unwrap();
     assert!(hash.is_some());
 }
 
@@ -253,18 +251,18 @@ fn index_multiple_files() {
     let mut store = SqliteStore::open_memory().unwrap();
 
     let world_a = MindTapeWorld::new(&file_a).unwrap();
-    index_file(&mut store, &world_a, &file_a, &root).unwrap();
+    index_file(&mut store, &world_a, &file_a, Some(&root)).unwrap();
 
     let world_b = MindTapeWorld::new(&file_b).unwrap();
-    index_file(&mut store, &world_b, &file_b, &root).unwrap();
+    index_file(&mut store, &world_b, &file_b, Some(&root)).unwrap();
 
     let all = store.query_tasks(&TaskFilter::default()).unwrap();
     assert_eq!(all.len(), 3);
 
-    // Query by file
+    // Query by file (absolute path)
     let from_a = store
         .query_tasks(&TaskFilter {
-            file_path: Some(std::path::PathBuf::from("a.typ")),
+            file_path: Some(file_a),
             ..Default::default()
         })
         .unwrap();

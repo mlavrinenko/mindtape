@@ -502,7 +502,6 @@ fn resolve_entry_valid_path() {
     let entry = make_entry(dir.path());
     let resolved = resolve_entry(&entry).unwrap();
     assert!(resolved.path.is_absolute());
-    assert!(resolved.project_root.is_absolute());
 }
 
 #[test]
@@ -528,7 +527,7 @@ fn add_entry_new_path() {
     assert_eq!(watcher.entries.len(), 1);
 
     let result = watcher.add_entry(&make_entry(&sub)).unwrap();
-    assert!(result.is_some()); // (path, project_root, recursive)
+    assert!(result.is_some()); // (path, recursive)
     assert_eq!(watcher.entries.len(), 2);
     drop(dir);
 }
@@ -604,8 +603,7 @@ fn scan_entries_indexes_new_directory() {
     let mut watcher = Watcher::new(store, &entries).unwrap();
 
     let canon_sub = fs::canonicalize(&sub).unwrap();
-    let project_root = watcher.entries[0].project_root.clone();
-    let result = watcher.scan_entries(&[(canon_sub, project_root)]);
+    let result = watcher.scan_entries(&[canon_sub]);
 
     assert_eq!(result.found, 1);
     assert_eq!(result.indexed, 1);

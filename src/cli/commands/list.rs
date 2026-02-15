@@ -1,4 +1,5 @@
-use std::path::PathBuf;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
@@ -100,40 +101,102 @@ impl ListArgs {
     }
 }
 
-/// Build a list of trees from tasks, grouped by file then by milestone headings.
+/// Build a list of trees from tasks, merging shared directory prefixes.
+///
+/// Files sharing a watch-root (or root display name) are merged into
+/// one tree, with shared intermediate directories deduplicated.
+/// Headings and tasks are inserted under each file's label node.
+#[allow(clippy::indexing_slicing)]
 fn build_task_trees(tasks: &[TaskView]) -> Vec<Tree<String>> {
-    let mut trees: Vec<Tree<String>> = Vec::new();
-    let mut current_file = String::new();
-    let mut file_tree: Option<Tree<String>> = None;
+    let mut roots: Vec<Tree<String>> = Vec::new();
 
     for task in tasks {
-        let file_str = task.file_path.to_string_lossy().to_string();
-
-        if file_str != current_file {
-            if let Some(tree) = file_tree.take() {
-                trees.push(tree);
-            }
-            file_tree = Some(Tree::new(file_str.clone()));
-            current_file = file_str;
-        }
-
-        let tree = file_tree.as_mut().expect("file_tree always set above");
+        let segments = file_segments(&task.file_path, task.watch_root.as_deref());
         let leaf = Tree::new(format_task_leaf(task));
-
         let headings: Vec<&str> = task
             .milestone
             .as_deref()
             .map(|m| m.split(" > ").collect())
             .unwrap_or_default();
 
-        insert_into_heading_path(tree, &headings, leaf);
+        // Find or create a matching root tree.
+        let root_name = &segments[0];
+        let root_idx = roots
+            .iter()
+            .position(|r| r.root == *root_name)
+            .unwrap_or_else(|| {
+                roots.push(Tree::new(root_name.clone()));
+                roots.len() - 1
+            });
+        let root = &mut roots[root_idx];
+
+        // Walk / create intermediate directory + file-label nodes.
+        let file_node = ensure_path(root, &segments[1..]);
+        insert_into_heading_path(file_node, &headings, leaf);
     }
 
-    if let Some(tree) = file_tree {
-        trees.push(tree);
-    }
+    roots
+}
 
-    trees
+/// Compute the display segments for a file: root name, directories, file label.
+fn file_segments(file_path: &Path, watch_root: Option<&Path>) -> Vec<String> {
+    let abs_str = file_path.to_string_lossy();
+    let file_name = file_path
+        .file_name()
+        .unwrap_or(OsStr::new("?"))
+        .to_string_lossy();
+    let file_label = format!("{file_name} ({abs_str})");
+
+    let (root_name, dir_segments) = if let Some(root) = watch_root
+        && let Ok(rel) = file_path.strip_prefix(root)
+    {
+        let root_name = root
+            .file_name()
+            .unwrap_or(OsStr::new("?"))
+            .to_string_lossy()
+            .to_string();
+        let dirs: Vec<String> = rel
+            .parent()
+            .map(|p| {
+                p.components()
+                    .map(|c| c.as_os_str().to_string_lossy().to_string())
+                    .collect()
+            })
+            .unwrap_or_default();
+        (root_name, dirs)
+    } else {
+        let root_name = file_path
+            .parent()
+            .and_then(|p| p.file_name())
+            .unwrap_or(OsStr::new("?"))
+            .to_string_lossy()
+            .to_string();
+        (root_name, Vec::new())
+    };
+
+    let mut segs = Vec::with_capacity(1 + dir_segments.len() + 1);
+    segs.push(root_name);
+    segs.extend(dir_segments);
+    segs.push(file_label);
+    segs
+}
+
+/// Walk down a tree following `segments`, reusing existing children or creating new ones.
+///
+/// Returns a mutable reference to the deepest node (the file-label node).
+#[allow(clippy::indexing_slicing)]
+fn ensure_path<'a>(tree: &'a mut Tree<String>, segments: &[String]) -> &'a mut Tree<String> {
+    let mut node = tree;
+    for seg in segments {
+        let pos = node.leaves.iter().position(|child| child.root == *seg);
+        if let Some(idx) = pos {
+            node = &mut node.leaves[idx];
+        } else {
+            node.push(Tree::new(seg.clone()));
+            node = node.leaves.last_mut().expect("just pushed");
+        }
+    }
+    node
 }
 
 /// Insert a task leaf into the correct position in the heading tree.

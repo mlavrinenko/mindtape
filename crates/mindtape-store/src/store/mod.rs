@@ -26,7 +26,8 @@ pub use sqlite::SqliteStore;
 #[derive(Debug, Clone, PartialEq)]
 pub struct TaskFile {
     pub id: Option<i64>,
-    pub relative_path: PathBuf,
+    pub file_path: PathBuf,
+    pub watch_root: Option<PathBuf>,
     pub title: Option<String>,
     pub eval_hash: String,
     pub updated_at: String,
@@ -113,12 +114,15 @@ pub struct TaskView {
     pub tags: Vec<String>,
     /// Heading path (e.g. "Header 1 > Subheader 1.1").
     pub milestone: Option<String>,
+    /// Canonical watched folder path (for display context).
+    pub watch_root: Option<PathBuf>,
 }
 
 /// Summary of an indexed file, returned by `list_files()`.
 #[derive(Debug, Clone, Serialize)]
 pub struct FileView {
-    pub relative_path: PathBuf,
+    pub file_path: PathBuf,
+    pub watch_root: Option<PathBuf>,
     pub title: Option<String>,
     pub task_count: i64,
     pub updated_at: String,

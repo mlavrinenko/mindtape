@@ -15,7 +15,7 @@ use thiserror::Error;
 
 use crate::config::{self, WatchEntry};
 use crate::store::{self, SqliteStore, Store, StoreError};
-use crate::world::{self, MindTapeWorld};
+use crate::world::MindTapeWorld;
 
 #[derive(Debug, Error)]
 pub enum WatchError {
@@ -41,10 +41,9 @@ pub struct ScanResult {
     pub errors: usize,
 }
 
-/// Resolved watch entry with absolute path and project root.
+/// Resolved watch entry with absolute path.
 struct ResolvedEntry {
     path: PathBuf,
-    project_root: PathBuf,
     recursive: bool,
 }
 
@@ -77,21 +76,17 @@ impl Watcher {
 
     /// Walk all watched directories and index every `.typ` file found.
     pub fn initial_scan(&mut self) -> ScanResult {
-        let pairs: Vec<_> = self
-            .entries
-            .iter()
-            .map(|e| (e.path.clone(), e.project_root.clone()))
-            .collect();
-        self.scan_entries(&pairs)
+        let watch_roots: Vec<_> = self.entries.iter().map(|e| e.path.clone()).collect();
+        self.scan_entries(&watch_roots)
     }
 
     /// Scan specific directories and index their `.typ` files.
-    fn scan_entries(&mut self, entries: &[(PathBuf, PathBuf)]) -> ScanResult {
+    fn scan_entries(&mut self, watch_roots: &[PathBuf]) -> ScanResult {
         let mut result = ScanResult::default();
 
         let mut files: Vec<(PathBuf, PathBuf)> = Vec::new();
-        for (path, project_root) in entries {
-            let walker = WalkBuilder::new(path)
+        for watch_root in watch_roots {
+            let walker = WalkBuilder::new(watch_root)
                 .hidden(false)
                 .add_custom_ignore_filename(".mindtapeignore")
                 .build();
@@ -101,13 +96,13 @@ impl Watcher {
                 if !is_typ_file(&file_path) {
                     continue;
                 }
-                files.push((file_path, project_root.clone()));
+                files.push((file_path, watch_root.clone()));
             }
         }
 
         result.found = files.len();
-        for (path, project_root) in &files {
-            match self.index_one(path, project_root) {
+        for (path, watch_root) in &files {
+            match self.index_one(path, watch_root) {
                 Ok(true) => result.indexed += 1,
                 Ok(false) => result.skipped += 1,
                 Err(err) => {
@@ -126,7 +121,7 @@ impl Watcher {
     /// re-index it. If it no longer exists, remove it from the store.
     pub fn handle_event(&mut self, path: &Path) {
         // Extract what we need from the entry before any mutable borrows.
-        let (project_root, is_ignored) = {
+        let (watch_root, is_ignored) = {
             let Some(entry) = self.find_entry(path) else {
                 return;
             };
@@ -134,7 +129,7 @@ impl Watcher {
             let ignored = ignore
                 .matched_path_or_any_parents(path, false)
                 .is_ignore();
-            (entry.project_root.clone(), ignored)
+            (entry.path.clone(), ignored)
         };
 
         // Only care about .typ files in both branches.
@@ -146,17 +141,14 @@ impl Watcher {
             if !path.is_file() || is_ignored {
                 return;
             }
-            match self.index_one(path, &project_root) {
+            match self.index_one(path, &watch_root) {
                 Ok(true) => info!("indexed {}", path.display()),
                 Ok(false) => debug!("unchanged {}", path.display()),
                 Err(err) => warn!("error indexing {}: {err}", path.display()),
             }
         } else {
-            // File was deleted — remove from store.
-            let Ok(rel) = path.strip_prefix(&project_root) else {
-                return;
-            };
-            match self.store.remove_task_file(rel) {
+            // File was deleted — remove from store using absolute path.
+            match self.store.remove_task_file(path) {
                 Ok(()) => info!("removed {}", path.display()),
                 Err(err) => warn!("error removing {}: {err}", path.display()),
             }
@@ -165,21 +157,17 @@ impl Watcher {
 
     /// Add a new watch entry if not already watched (dedup by canonical path).
     ///
-    /// Returns `Some((path, project_root, recursive))` for the caller to
-    /// register with notify and scan, or `None` if already watched.
+    /// Returns `Some((path, recursive))` for the caller to register with
+    /// notify and scan, or `None` if already watched.
     fn add_entry(
         &mut self,
         entry: &WatchEntry,
-    ) -> Result<Option<(PathBuf, PathBuf, bool)>, WatchError> {
+    ) -> Result<Option<(PathBuf, bool)>, WatchError> {
         let resolved = resolve_entry(entry)?;
         if self.entries.iter().any(|e| e.path == resolved.path) {
             return Ok(None);
         }
-        let result = (
-            resolved.path.clone(),
-            resolved.project_root.clone(),
-            resolved.recursive,
-        );
+        let result = (resolved.path.clone(), resolved.recursive);
         self.entries.push(resolved);
         Ok(Some(result))
     }
@@ -236,10 +224,10 @@ impl Watcher {
         }
 
         // Add new entries.
-        let mut new_pairs = Vec::new();
+        let mut new_roots = Vec::new();
         for entry in &new_config.watch {
             match self.add_entry(entry) {
-                Ok(Some((path, project_root, recursive))) => {
+                Ok(Some((path, recursive))) => {
                     let mode = if recursive {
                         RecursiveMode::Recursive
                     } else {
@@ -249,7 +237,7 @@ impl Watcher {
                         warn!("failed to watch {}: {err}", path.display());
                     } else {
                         info!("watching {}", path.display());
-                        new_pairs.push((path, project_root));
+                        new_roots.push(path);
                     }
                 }
                 Ok(None) => {} // already watched
@@ -258,19 +246,19 @@ impl Watcher {
         }
 
         // Scan newly added directories.
-        if !new_pairs.is_empty() {
-            let scan = self.scan_entries(&new_pairs);
+        if !new_roots.is_empty() {
+            let scan = self.scan_entries(&new_roots);
             info!(
                 "config reload scan: {} found, {} indexed, {} skipped, {} errors",
                 scan.found, scan.indexed, scan.skipped, scan.errors,
             );
         }
 
-        if !removed.is_empty() || !new_pairs.is_empty() {
+        if !removed.is_empty() || !new_roots.is_empty() {
             info!(
                 "config reloaded: {} entries ({} added, {} removed)",
                 self.entries.len(),
-                new_pairs.len(),
+                new_roots.len(),
                 removed.len(),
             );
         }
@@ -359,9 +347,9 @@ impl Watcher {
     }
 
     /// Index a single file using the existing store pipeline.
-    fn index_one(&mut self, path: &Path, project_root: &Path) -> Result<bool, StoreError> {
+    fn index_one(&mut self, path: &Path, watch_root: &Path) -> Result<bool, StoreError> {
         let world = MindTapeWorld::new(path)?;
-        store::index_file_with_deps(&mut self.store, &world, path, project_root)
+        store::index_file_with_deps(&mut self.store, &world, path, Some(watch_root))
     }
 
     /// Find which resolved entry contains the given path.
@@ -382,10 +370,8 @@ fn resolve_entry(entry: &WatchEntry) -> Result<ResolvedEntry, WatchError> {
             entry.path
         ))
     })?;
-    let project_root = world::find_project_root(&path);
     Ok(ResolvedEntry {
         path,
-        project_root,
         recursive: entry.recursive,
     })
 }

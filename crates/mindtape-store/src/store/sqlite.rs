@@ -73,12 +73,17 @@ const SCHEMA_V4: &str = "
 ALTER TABLE tasks ADD COLUMN milestone TEXT;
 ";
 
+const SCHEMA_V5: &str = "
+ALTER TABLE task_files RENAME COLUMN relative_path TO file_path;
+ALTER TABLE task_files ADD COLUMN watch_root TEXT;
+";
+
 // ---------------------------------------------------------------------------
 // SqliteStore
 // ---------------------------------------------------------------------------
 
 /// Row tuple from a task query JOIN.
-type TaskRow = (i64, String, bool, i32, Option<String>, String, Option<String>);
+type TaskRow = (i64, String, bool, i32, Option<String>, String, Option<String>, Option<String>);
 
 pub struct SqliteStore {
     conn: Connection,
@@ -150,6 +155,14 @@ impl SqliteStore {
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
         }
 
+        if version < 5 {
+            debug!("migrating to schema v5");
+            conn.execute_batch(SCHEMA_V5)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+            conn.pragma_update(None, "user_version", 5)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+        }
+
         Ok(())
     }
 
@@ -158,7 +171,7 @@ impl SqliteStore {
     /// Uses unnamed `?` placeholders for cleaner code - rusqlite binds them positionally.
     fn build_task_query(filter: &TaskFilter) -> (String, Vec<String>) {
         let mut sql = String::from(
-            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.file_path, tf.title, tf.watch_root
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id",
         );
@@ -187,12 +200,12 @@ impl SqliteStore {
         }
 
         if let Some(ref file_path) = filter.file_path {
-            conditions.push("tf.relative_path = ?");
+            conditions.push("tf.file_path = ?");
             params.push(file_path.to_string_lossy().to_string());
         }
 
         if let Some(ref folder) = filter.folder {
-            conditions.push("tf.relative_path LIKE ? || '%'");
+            conditions.push("tf.file_path LIKE ? || '%'");
             params.push(folder.to_string_lossy().to_string());
         }
 
@@ -201,7 +214,7 @@ impl SqliteStore {
             sql.push_str(&conditions.join(" AND "));
         }
 
-        sql.push_str(" ORDER BY tf.relative_path, t.position");
+        sql.push_str(" ORDER BY tf.file_path, t.position");
 
         if let Some(limit) = filter.limit {
             sql.push_str(&format!(" LIMIT {limit}"));
@@ -230,6 +243,7 @@ impl SqliteStore {
                     row.get(4)?,
                     row.get(5)?,
                     row.get(6)?,
+                    row.get(7)?,
                 ))
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -276,7 +290,7 @@ impl SqliteStore {
 
         // Now build TaskViews using the pre-fetched properties
         let mut tasks = Vec::with_capacity(task_rows.len());
-        for (task_id, title, is_done, position, milestone, file_path, file_title) in task_rows {
+        for (task_id, title, is_done, position, milestone, file_path, file_title, watch_root) in task_rows {
             let (due, tags) = properties_map
                 .remove(&task_id)
                 .unwrap_or((None, Vec::new()));
@@ -290,6 +304,7 @@ impl SqliteStore {
                 due,
                 tags,
                 milestone,
+                watch_root: watch_root.map(PathBuf::from),
             });
         }
 
@@ -313,11 +328,11 @@ impl SqliteStore {
 
         // Get incoming references (files that import this file).
         let mut imported_by_stmt = self.conn.prepare(
-            "SELECT tf.relative_path
+            "SELECT tf.file_path
              FROM file_references fr
              JOIN task_files tf ON fr.source_file_id = tf.id
              WHERE fr.target_path = ?1
-             ORDER BY tf.relative_path",
+             ORDER BY tf.file_path",
         )?;
         let imported_by: Vec<PathBuf> = imported_by_stmt
             .query_map(params![file_path.to_string_lossy().to_string()], |row| {
@@ -331,21 +346,23 @@ impl SqliteStore {
 
 impl Store for SqliteStore {
     fn upsert_task_file(&mut self, file: &TaskFile) -> Result<i64, StoreError> {
-        let path_str = file.relative_path.to_string_lossy();
+        let path_str = file.file_path.to_string_lossy();
+        let watch_root_str = file.watch_root.as_ref().map(|p| p.to_string_lossy().to_string());
         self.conn.execute(
-            "INSERT INTO task_files (relative_path, title, eval_hash, updated_at)
-             VALUES (?1, ?2, ?3, datetime('now'))
-             ON CONFLICT(relative_path) DO UPDATE SET
+            "INSERT INTO task_files (file_path, watch_root, title, eval_hash, updated_at)
+             VALUES (?1, ?2, ?3, ?4, datetime('now'))
+             ON CONFLICT(file_path) DO UPDATE SET
+               watch_root = excluded.watch_root,
                title = excluded.title,
                eval_hash = excluded.eval_hash,
                updated_at = datetime('now')",
-            params![path_str.as_ref(), file.title, file.eval_hash],
+            params![path_str.as_ref(), watch_root_str, file.title, file.eval_hash],
         )?;
         // Always query by path: last_insert_rowid() is unreliable after
         // ON CONFLICT DO UPDATE — it can return a stale rowid from a
         // previous INSERT into a different table.
         let id: i64 = self.conn.query_row(
-            "SELECT id FROM task_files WHERE relative_path = ?1",
+            "SELECT id FROM task_files WHERE file_path = ?1",
             params![path_str.as_ref()],
             |row| row.get(0),
         )?;
@@ -413,7 +430,7 @@ impl Store for SqliteStore {
     fn remove_task_file(&mut self, path: &Path) -> Result<(), StoreError> {
         let path_str = path.to_string_lossy();
         self.conn.execute(
-            "DELETE FROM task_files WHERE relative_path = ?1",
+            "DELETE FROM task_files WHERE file_path = ?1",
             params![path_str.as_ref()],
         )?;
         Ok(())
@@ -433,7 +450,7 @@ impl Store for SqliteStore {
         let hash = self
             .conn
             .query_row(
-                "SELECT eval_hash FROM task_files WHERE relative_path = ?1",
+                "SELECT eval_hash FROM task_files WHERE file_path = ?1",
                 params![path_str.as_ref()],
                 |row| row.get(0),
             )
@@ -443,18 +460,19 @@ impl Store for SqliteStore {
 
     fn list_files(&self) -> Result<Vec<FileView>, StoreError> {
         let mut stmt = self.conn.prepare(
-            "SELECT tf.relative_path, tf.title, tf.updated_at, COUNT(t.id)
+            "SELECT tf.file_path, tf.watch_root, tf.title, tf.updated_at, COUNT(t.id)
              FROM task_files tf
              LEFT JOIN tasks t ON t.task_file_id = tf.id
              GROUP BY tf.id
-             ORDER BY tf.relative_path",
+             ORDER BY tf.file_path",
         )?;
         let rows = stmt.query_map([], |row| {
             Ok(FileView {
-                relative_path: PathBuf::from(row.get::<_, String>(0)?),
-                title: row.get(1)?,
-                updated_at: row.get(2)?,
-                task_count: row.get(3)?,
+                file_path: PathBuf::from(row.get::<_, String>(0)?),
+                watch_root: row.get::<_, Option<String>>(1)?.map(PathBuf::from),
+                title: row.get(2)?,
+                updated_at: row.get(3)?,
+                task_count: row.get(4)?,
             })
         })?;
         rows.collect::<Result<Vec<_>, _>>().map_err(StoreError::from)
@@ -492,23 +510,23 @@ impl Store for SqliteStore {
 
         // Search task titles
         let mut task_stmt = self.conn.prepare(
-            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.file_path, tf.title, tf.watch_root
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id
              WHERE t.title LIKE ?1 COLLATE NOCASE
-             ORDER BY tf.relative_path, t.position
+             ORDER BY tf.file_path, t.position
              LIMIT ?2",
         )?;
         let tasks = self.fetch_task_views(&mut task_stmt, params![pattern, limit_val])?;
 
         // Search bindings (name or value)
         let mut binding_stmt = self.conn.prepare(
-            "SELECT fb.name, fb.value_json, tf.relative_path, tf.title
+            "SELECT fb.name, fb.value_json, tf.file_path, tf.title
              FROM file_bindings fb
              JOIN task_files tf ON fb.task_file_id = tf.id
              WHERE fb.name LIKE ?1 COLLATE NOCASE
                 OR fb.value_json LIKE ?1 COLLATE NOCASE
-             ORDER BY tf.relative_path, fb.name
+             ORDER BY tf.file_path, fb.name
              LIMIT ?2",
         )?;
         let bindings: Vec<BindingView> = binding_stmt
@@ -532,7 +550,7 @@ impl Store for SqliteStore {
 
         // Overdue: has due date AND due < today (strictly before) AND NOT done
         let mut overdue_stmt = self.conn.prepare(
-            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.file_path, tf.title, tf.watch_root
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id
              WHERE t.is_done = 0
@@ -542,13 +560,13 @@ impl Store for SqliteStore {
                    AND tp.kind = 'due'
                    AND tp.value < ?1
                )
-             ORDER BY tf.relative_path, t.position",
+             ORDER BY tf.file_path, t.position",
         )?;
         let overdue = self.fetch_task_views(&mut overdue_stmt, params![today])?;
 
         // Today: has due date AND due == today AND NOT done
         let mut today_stmt = self.conn.prepare(
-            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.file_path, tf.title, tf.watch_root
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id
              WHERE t.is_done = 0
@@ -558,13 +576,13 @@ impl Store for SqliteStore {
                    AND tp.kind = 'due'
                    AND tp.value = ?1
                )
-             ORDER BY tf.relative_path, t.position",
+             ORDER BY tf.file_path, t.position",
         )?;
         let today_tasks = self.fetch_task_views(&mut today_stmt, params![today])?;
 
         // This week: has due date AND due > today AND due <= week_end AND NOT done
         let mut week_stmt = self.conn.prepare(&format!(
-            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.relative_path, tf.title
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.file_path, tf.title, tf.watch_root
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id
              WHERE t.is_done = 0
@@ -575,7 +593,7 @@ impl Store for SqliteStore {
                    AND tp.value > ?1
                    AND tp.value <= {week_end_query}
                )
-             ORDER BY tf.relative_path, t.position"
+             ORDER BY tf.file_path, t.position"
         ))?;
         let this_week = self.fetch_task_views(&mut week_stmt, params![today])?;
 
@@ -612,7 +630,7 @@ impl Store for SqliteStore {
         // Get file info.
         let file_info: Option<(PathBuf, Option<String>, i64)> = self.conn
             .query_row(
-                "SELECT relative_path, title, id FROM task_files WHERE relative_path = ?1",
+                "SELECT file_path, title, id FROM task_files WHERE file_path = ?1",
                 params![path.to_string_lossy().to_string()],
                 |row| Ok((
                     PathBuf::from(row.get::<_, String>(0)?),
@@ -639,7 +657,7 @@ impl Store for SqliteStore {
     fn list_file_dependencies(&self) -> Result<Vec<super::FileDependencies>, StoreError> {
         // Get all files.
         let mut files_stmt = self.conn.prepare(
-            "SELECT id, relative_path, title FROM task_files ORDER BY relative_path",
+            "SELECT id, file_path, title FROM task_files ORDER BY file_path",
         )?;
         let file_rows: Vec<(i64, PathBuf, Option<String>)> = files_stmt
             .query_map([], |row| {
@@ -671,7 +689,7 @@ impl Store for SqliteStore {
         let (query, param) = if let Some(suffix) = id_or_mask.strip_prefix('*') {
             // Masked pattern: find tasks with ID ending in suffix
             (
-                "SELECT tp.value, t.title, t.is_done, tf.relative_path, tf.eval_hash
+                "SELECT tp.value, t.title, t.is_done, tf.file_path, tf.eval_hash
                  FROM task_properties tp
                  JOIN tasks t ON tp.task_id = t.id
                  JOIN task_files tf ON t.task_file_id = tf.id
@@ -683,7 +701,7 @@ impl Store for SqliteStore {
             let canonical = crate::id::parse_task_id(id_or_mask)
                 .unwrap_or_else(|_| id_or_mask.to_string());
             (
-                "SELECT tp.value, t.title, t.is_done, tf.relative_path, tf.eval_hash
+                "SELECT tp.value, t.title, t.is_done, tf.file_path, tf.eval_hash
                  FROM task_properties tp
                  JOIN tasks t ON tp.task_id = t.id
                  JOIN task_files tf ON t.task_file_id = tf.id
@@ -735,7 +753,8 @@ mod tests {
     fn make_task_file(path: &str, hash: &str) -> TaskFile {
         TaskFile {
             id: None,
-            relative_path: PathBuf::from(path),
+            file_path: PathBuf::from(path),
+            watch_root: None,
             title: Some("Test".to_string()),
             eval_hash: hash.to_string(),
             updated_at: String::new(),
@@ -814,7 +833,7 @@ mod tests {
             .conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 4);
+        assert_eq!(version, 5);
     }
 
     // --- upsert_task_file ---
@@ -1201,9 +1220,9 @@ mod tests {
         };
 
         let (tf, tasks, props, bindings) =
-            super::super::to_store_records(&eval_result, Path::new("test.typ"), "hash");
+            super::super::to_store_records(&eval_result, Path::new("test.typ"), "hash", None);
 
-        assert_eq!(tf.relative_path, PathBuf::from("test.typ"));
+        assert_eq!(tf.file_path, PathBuf::from("test.typ"));
         assert_eq!(tf.title, Some("Heading".to_string()));
         assert_eq!(tasks.len(), 1);
         assert_eq!(tasks[0].title, "Test");
@@ -1313,10 +1332,10 @@ mod tests {
 
         let files = store.list_files().unwrap();
         assert_eq!(files.len(), 2);
-        assert_eq!(files[0].relative_path, PathBuf::from("a.typ"));
+        assert_eq!(files[0].file_path, PathBuf::from("a.typ"));
         assert_eq!(files[0].task_count, 2);
         assert_eq!(files[0].title, Some("Test".to_string()));
-        assert_eq!(files[1].relative_path, PathBuf::from("b.typ"));
+        assert_eq!(files[1].file_path, PathBuf::from("b.typ"));
         assert_eq!(files[1].task_count, 1);
     }
 

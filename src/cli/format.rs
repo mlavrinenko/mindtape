@@ -57,7 +57,7 @@ pub fn format_file_view(file: &FileView) -> String {
     let noun = if count == 1 { "task" } else { "tasks" };
     format!(
         "{} ({count} {noun}){title_part}",
-        file.relative_path.display()
+        file.file_path.display()
     )
 }
 
@@ -112,7 +112,7 @@ pub fn format_files_csv(files: &[FileView]) -> Result<String, csv::Error> {
     for f in files {
         let title = f.title.as_deref().unwrap_or("");
         wtr.write_record([
-            f.relative_path.to_string_lossy().as_ref(),
+            f.file_path.to_string_lossy().as_ref(),
             title,
             &f.task_count.to_string(),
             &f.updated_at,
@@ -158,6 +158,7 @@ mod tests {
             due: Some("2026-03-01".to_string()),
             tags: vec![],
             milestone: None,
+            watch_root: None,
         };
         assert_eq!(format_task_view(&task), "- [ ] (due 2026-03-01) Buy milk");
     }
@@ -173,6 +174,7 @@ mod tests {
             due: None,
             tags: vec![],
             milestone: None,
+            watch_root: None,
         };
         assert_eq!(format_task_view(&task), "- [x] Done thing");
     }
@@ -188,6 +190,7 @@ mod tests {
             due: None,
             tags: vec!["work".to_string(), "urgent".to_string()],
             milestone: None,
+            watch_root: None,
         };
         assert_eq!(format_task_view(&task), "- [ ] Task [work, urgent]");
     }
@@ -197,7 +200,8 @@ mod tests {
     #[test]
     fn format_file_view_with_title() {
         let file = FileView {
-            relative_path: PathBuf::from("notes/todo.typ"),
+            file_path: PathBuf::from("notes/todo.typ"),
+            watch_root: None,
             title: Some("My Tasks".to_string()),
             task_count: 5,
             updated_at: "2026-01-01".to_string(),
@@ -211,7 +215,8 @@ mod tests {
     #[test]
     fn format_file_view_no_title_singular() {
         let file = FileView {
-            relative_path: PathBuf::from("t.typ"),
+            file_path: PathBuf::from("t.typ"),
+            watch_root: None,
             title: None,
             task_count: 1,
             updated_at: "2026-01-01".to_string(),
@@ -263,6 +268,7 @@ mod tests {
             due: Some("2026-03-01".to_string()),
             tags: vec!["shop".to_string()],
             milestone: None,
+            watch_root: None,
         }];
         let csv = format_tasks_csv(&tasks).unwrap();
         assert!(csv.starts_with("status,due,title,file,tags\n"));
@@ -280,6 +286,7 @@ mod tests {
             due: None,
             tags: vec![],
             milestone: None,
+            watch_root: None,
         }];
         let csv = format_tasks_csv(&tasks).unwrap();
         assert!(csv.contains("done,,\"Buy eggs, milk\",t.typ,\n"));
@@ -288,7 +295,8 @@ mod tests {
     #[test]
     fn format_files_csv_basic() {
         let files = vec![FileView {
-            relative_path: PathBuf::from("notes/todo.typ"),
+            file_path: PathBuf::from("notes/todo.typ"),
+            watch_root: None,
             title: Some("My Tasks".to_string()),
             task_count: 5,
             updated_at: "2026-01-01".to_string(),

@@ -38,12 +38,14 @@ pub fn hash_file(path: &Path) -> Result<String, std::io::Error> {
 /// are silently skipped; tasks with an invalid id produce a warning.
 pub fn to_store_records(
     result: &EvalResult,
-    relative_path: &Path,
+    file_path: &Path,
     content_hash: &str,
+    watch_root: Option<&Path>,
 ) -> (TaskFile, Vec<TaskRecord>, Vec<Vec<TaskProperty>>, Vec<FileBinding>) {
     let task_file = TaskFile {
         id: None,
-        relative_path: relative_path.to_path_buf(),
+        file_path: file_path.to_path_buf(),
+        watch_root: watch_root.map(Path::to_path_buf),
         title: result.title.clone(),
         eval_hash: content_hash.to_string(),
         updated_at: String::new(),
@@ -59,7 +61,7 @@ pub fn to_store_records(
                 Err(err) => {
                     warn!(
                         "{}: skipping task '{}': {err}",
-                        relative_path.display(),
+                        file_path.display(),
                         task.title,
                     );
                     continue;
@@ -135,18 +137,14 @@ pub fn index_file(
     store: &mut dyn Store,
     world: &dyn typst::World,
     file_path: &Path,
-    project_root: &Path,
+    watch_root: Option<&Path>,
 ) -> Result<bool, StoreError> {
-    let relative = file_path
-        .strip_prefix(project_root)
-        .map_err(|e| StoreError::Path(e.to_string()))?;
-
     let hash = hash_file(file_path).map_err(|e| StoreError::Io(e.to_string()))?;
 
-    if let Some(stored_hash) = store.get_file_hash(relative)?
+    if let Some(stored_hash) = store.get_file_hash(file_path)?
         && stored_hash == hash
     {
-        trace!("hash unchanged, skipping {}", relative.display());
+        trace!("hash unchanged, skipping {}", file_path.display());
         return Ok(false);
     }
 
@@ -158,7 +156,8 @@ pub fn index_file(
         other => other?,
     };
 
-    let (task_file, tasks, props, bindings) = to_store_records(&result, relative, &hash);
+    let (task_file, tasks, props, bindings) =
+        to_store_records(&result, file_path, &hash, watch_root);
 
     let file_id = store.upsert_task_file(&task_file)?;
     store.upsert_tasks(file_id, &tasks, &props)?;
@@ -180,18 +179,14 @@ pub fn index_file_with_deps(
     store: &mut dyn Store,
     world: &eval::world::MindTapeWorld,
     file_path: &Path,
-    project_root: &Path,
+    watch_root: Option<&Path>,
 ) -> Result<bool, StoreError> {
-    let relative = file_path
-        .strip_prefix(project_root)
-        .map_err(|e| StoreError::Path(e.to_string()))?;
-
     let hash = hash_file(file_path).map_err(|e| StoreError::Io(e.to_string()))?;
 
-    if let Some(stored_hash) = store.get_file_hash(relative)?
+    if let Some(stored_hash) = store.get_file_hash(file_path)?
         && stored_hash == hash
     {
-        trace!("hash unchanged, skipping {}", relative.display());
+        trace!("hash unchanged, skipping {}", file_path.display());
         return Ok(false);
     }
 
@@ -203,7 +198,8 @@ pub fn index_file_with_deps(
         other => other?,
     };
 
-    let (task_file, tasks, props, bindings) = to_store_records(&result, relative, &hash);
+    let (task_file, tasks, props, bindings) =
+        to_store_records(&result, file_path, &hash, watch_root);
 
     let file_id = store.upsert_task_file(&task_file)?;
     store.upsert_tasks(file_id, &tasks, &props)?;

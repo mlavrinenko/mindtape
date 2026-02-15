@@ -9,7 +9,7 @@ use common::setup_typst_project;
 use mindtape::store::{index_file, SqliteStore, Store, TaskFilter};
 use mindtape::world::MindTapeWorld;
 
-/// Set up a temp project with lib/ and return (store, `project_root`).
+/// Set up a temp project with `lib/` and return (store, project root).
 /// Caller adds .typ files and indexes them.
 fn setup() -> (SqliteStore, PathBuf) {
     let root = setup_typst_project();
@@ -24,7 +24,7 @@ fn add_and_index(store: &mut SqliteStore, root: &std::path::Path, rel: &str, con
     }
     std::fs::write(&file, content).unwrap();
     let world = MindTapeWorld::new(&file).unwrap();
-    index_file(store, &world, &file, root).unwrap();
+    index_file(store, &world, &file, Some(root)).unwrap();
 }
 
 // --- list_files ---
@@ -55,9 +55,10 @@ fn list_files_after_indexing() {
 
     let files = store.list_files().unwrap();
     assert_eq!(files.len(), 2);
-    assert_eq!(files[0].relative_path, PathBuf::from("notes/work.typ"));
+    // Paths are now absolute.
+    assert_eq!(files[0].file_path, root.join("notes/work.typ"));
     assert_eq!(files[0].task_count, 1);
-    assert_eq!(files[1].relative_path, PathBuf::from("todo.typ"));
+    assert_eq!(files[1].file_path, root.join("todo.typ"));
     assert_eq!(files[1].task_count, 2);
     assert_eq!(files[1].title, Some("My Tasks".to_string()));
 }
@@ -124,18 +125,20 @@ fn query_tasks_by_folder() {
 "#,
     );
 
+    // Folder filter uses absolute path prefix.
+    let notes_folder = root.join("notes/");
     let notes = store
         .query_tasks(&TaskFilter {
-            folder: Some(PathBuf::from("notes/")),
+            folder: Some(notes_folder),
             ..Default::default()
         })
         .unwrap();
     assert_eq!(notes.len(), 2);
-    assert!(notes.iter().all(|t| t.file_path.starts_with("notes/")));
 
+    let other_folder = root.join("other/");
     let other = store
         .query_tasks(&TaskFilter {
-            folder: Some(PathBuf::from("other/")),
+            folder: Some(other_folder),
             ..Default::default()
         })
         .unwrap();
@@ -206,13 +209,12 @@ fn list_files_after_removal() {
 
     assert_eq!(store.list_files().unwrap().len(), 2);
 
-    store
-        .remove_task_file(std::path::Path::new("a.typ"))
-        .unwrap();
+    // Remove using absolute path.
+    store.remove_task_file(&root.join("a.typ")).unwrap();
 
     let files = store.list_files().unwrap();
     assert_eq!(files.len(), 1);
-    assert_eq!(files[0].relative_path, PathBuf::from("b.typ"));
+    assert_eq!(files[0].file_path, root.join("b.typ"));
 }
 
 // --- folder + done combined ---
@@ -238,9 +240,10 @@ fn folder_and_status_combined() {
 "#,
     );
 
+    let notes_folder = root.join("notes/");
     let views = store
         .query_tasks(&TaskFilter {
-            folder: Some(PathBuf::from("notes/")),
+            folder: Some(notes_folder),
             done: Some(false),
             ..Default::default()
         })
