@@ -23,7 +23,7 @@ cover:
 
 # Run shell integration tests
 itest: build
-    cd itest && PATH="../target/debug:$$PATH" bash basic.sh
+    cd itest && PATH="../target/debug:$PATH" sh basic.sh
 
 # Run everything (clippy + tests + itest)
 all: check itest
