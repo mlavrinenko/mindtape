@@ -132,53 +132,47 @@ impl SqliteStore {
         Ok(())
     }
 
-    fn build_task_query(
-        filter: &TaskFilter,
-    ) -> (String, Vec<Box<dyn rusqlite::types::ToSql>>) {
+    /// Build a dynamic task query with filters. Returns SQL string and parameter values.
+    ///
+    /// Uses unnamed `?` placeholders for cleaner code - rusqlite binds them positionally.
+    fn build_task_query(filter: &TaskFilter) -> (String, Vec<String>) {
         let mut sql = String::from(
             "SELECT t.id, t.title, t.is_done, t.position, tf.relative_path, tf.title
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id",
         );
-        let mut conditions: Vec<String> = Vec::new();
-        let mut bind_values: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
+        let mut conditions: Vec<&str> = Vec::new();
+        let mut params: Vec<String> = Vec::new();
 
         if let Some(done) = filter.done {
-            conditions.push(format!("t.is_done = ?{}", bind_values.len() + 1));
-            bind_values.push(Box::new(done as i32));
+            conditions.push("t.is_done = ?");
+            params.push((done as i32).to_string());
         }
 
         if let Some(ref tag) = filter.tag {
-            conditions.push(format!(
-                "EXISTS (SELECT 1 FROM task_properties tp WHERE tp.task_id = t.id AND tp.kind = 'tag' AND tp.value = ?{})",
-                bind_values.len() + 1
-            ));
-            bind_values.push(Box::new(tag.clone()));
+            conditions.push(
+                "EXISTS (SELECT 1 FROM task_properties tp \
+                 WHERE tp.task_id = t.id AND tp.kind = 'tag' AND tp.value = ?)",
+            );
+            params.push(tag.clone());
         }
 
         if let Some(ref due_before) = filter.due_before {
-            conditions.push(format!(
-                "EXISTS (SELECT 1 FROM task_properties tp WHERE tp.task_id = t.id AND tp.kind = 'due' AND tp.value <= ?{})",
-                bind_values.len() + 1
-            ));
-            bind_values.push(Box::new(due_before.clone()));
+            conditions.push(
+                "EXISTS (SELECT 1 FROM task_properties tp \
+                 WHERE tp.task_id = t.id AND tp.kind = 'due' AND tp.value <= ?)",
+            );
+            params.push(due_before.clone());
         }
 
         if let Some(ref file_path) = filter.file_path {
-            conditions.push(format!(
-                "tf.relative_path = ?{}",
-                bind_values.len() + 1
-            ));
-            bind_values.push(Box::new(file_path.to_string_lossy().to_string()));
+            conditions.push("tf.relative_path = ?");
+            params.push(file_path.to_string_lossy().to_string());
         }
 
         if let Some(ref folder) = filter.folder {
-            let prefix = folder.to_string_lossy().to_string();
-            conditions.push(format!(
-                "tf.relative_path LIKE ?{} || '%'",
-                bind_values.len() + 1
-            ));
-            bind_values.push(Box::new(prefix));
+            conditions.push("tf.relative_path LIKE ? || '%'");
+            params.push(folder.to_string_lossy().to_string());
         }
 
         if !conditions.is_empty() {
@@ -192,14 +186,19 @@ impl SqliteStore {
             sql.push_str(&format!(" LIMIT {limit}"));
         }
 
-        (sql, bind_values)
+        (sql, params)
     }
 
+    /// Fetch task views from a prepared statement.
+    ///
+    /// Eliminates N+1 queries by fetching all properties in a single query with LEFT JOIN,
+    /// then grouping them in memory by `task_id`.
     fn fetch_task_views(
         &self,
         stmt: &mut rusqlite::Statement,
         params: &[&dyn rusqlite::ToSql],
     ) -> Result<Vec<TaskView>, StoreError> {
+        // First, fetch all tasks
         let task_rows: Vec<(i64, String, bool, i32, String, Option<String>)> = stmt
             .query_map(params, |row| {
                 Ok((
@@ -213,9 +212,53 @@ impl SqliteStore {
             })?
             .collect::<Result<Vec<_>, _>>()?;
 
+        if task_rows.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Collect all task IDs to fetch properties in one query
+        let task_ids: Vec<i64> = task_rows.iter().map(|(id, ..)| *id).collect();
+
+        // Build a single query to fetch ALL properties for ALL tasks
+        // Using IN (?,?,?...) for batch fetching
+        let placeholders = task_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let props_sql = format!(
+            "SELECT task_id, kind, value FROM task_properties WHERE task_id IN ({placeholders}) ORDER BY task_id"
+        );
+
+        let mut props_stmt = self.conn.prepare(&props_sql)?;
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> =
+            task_ids.iter().map(|id| id as &dyn rusqlite::types::ToSql).collect();
+
+        // Fetch all properties and group by task_id in memory
+        use std::collections::HashMap;
+        let mut properties_map: HashMap<i64, (Option<String>, Vec<String>)> = HashMap::new();
+
+        let prop_rows = props_stmt.query_map(params_refs.as_slice(), |row| {
+            Ok((
+                row.get::<_, i64>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+            ))
+        })?;
+
+        for prop_result in prop_rows {
+            let (task_id, kind, value) = prop_result?;
+            let entry = properties_map.entry(task_id).or_insert((None, Vec::new()));
+            match kind.as_str() {
+                "due" => entry.0 = Some(value),
+                "tag" => entry.1.push(value),
+                _ => {}
+            }
+        }
+
+        // Now build TaskViews using the pre-fetched properties
         let mut tasks = Vec::with_capacity(task_rows.len());
         for (task_id, title, is_done, position, file_path, file_title) in task_rows {
-            let (due, tags) = self.fetch_task_properties(task_id)?;
+            let (due, tags) = properties_map
+                .remove(&task_id)
+                .unwrap_or((None, Vec::new()));
+
             tasks.push(TaskView {
                 title,
                 is_done,
@@ -226,6 +269,7 @@ impl SqliteStore {
                 tags,
             });
         }
+
         Ok(tasks)
     }
 
@@ -259,29 +303,6 @@ impl SqliteStore {
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok((imports, imported_by))
-    }
-
-    fn fetch_task_properties(
-        &self,
-        task_id: i64,
-    ) -> Result<(Option<String>, Vec<String>), StoreError> {
-        let mut due = None;
-        let mut tags = Vec::new();
-        let mut stmt = self
-            .conn
-            .prepare_cached("SELECT kind, value FROM task_properties WHERE task_id = ?1")?;
-        let rows = stmt.query_map(params![task_id], |row| {
-            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-        })?;
-        for prop in rows {
-            let (kind, value) = prop?;
-            match kind.as_str() {
-                "due" => due = Some(value),
-                "tag" => tags.push(value),
-                _ => {}
-            }
-        }
-        Ok((due, tags))
     }
 }
 
@@ -378,10 +399,9 @@ impl Store for SqliteStore {
     }
 
     fn query_tasks(&self, filter: &TaskFilter) -> Result<Vec<TaskView>, StoreError> {
-        let (sql, bind_values) = Self::build_task_query(filter);
-
+        let (sql, params) = Self::build_task_query(filter);
         let params_refs: Vec<&dyn rusqlite::types::ToSql> =
-            bind_values.iter().map(Box::as_ref).collect();
+            params.iter().map(|s| s as &dyn rusqlite::types::ToSql).collect();
 
         let mut stmt = self.conn.prepare(&sql)?;
         self.fetch_task_views(&mut stmt, params_refs.as_slice())
