@@ -145,16 +145,17 @@ fn file_segments(file_path: &Path, watch_root: Option<&Path>) -> Vec<String> {
         .file_name()
         .unwrap_or(OsStr::new("?"))
         .to_string_lossy();
-    let file_label = format!("{file_name} ({abs_str})");
+    let file_label = format!("`{file_name}` #link(\"{abs_str}\")");
 
     let (root_name, dir_segments) = if let Some(root) = watch_root
         && let Ok(rel) = file_path.strip_prefix(root)
     {
-        let root_name = root
-            .file_name()
-            .unwrap_or(OsStr::new("?"))
-            .to_string_lossy()
-            .to_string();
+        let root_name = format!(
+            "== {}",
+            root.file_name()
+                .unwrap_or(OsStr::new("?"))
+                .to_string_lossy()
+        );
         let dirs: Vec<String> = rel
             .parent()
             .map(|p| {
@@ -165,12 +166,14 @@ fn file_segments(file_path: &Path, watch_root: Option<&Path>) -> Vec<String> {
             .unwrap_or_default();
         (root_name, dirs)
     } else {
-        let root_name = file_path
-            .parent()
-            .and_then(|p| p.file_name())
-            .unwrap_or(OsStr::new("?"))
-            .to_string_lossy()
-            .to_string();
+        let root_name = format!(
+            "== {}",
+            file_path
+                .parent()
+                .and_then(|p| p.file_name())
+                .unwrap_or(OsStr::new("?"))
+                .to_string_lossy()
+        );
         (root_name, Vec::new())
     };
 
