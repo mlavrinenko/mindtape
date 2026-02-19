@@ -138,30 +138,6 @@ pub struct IndexStats {
     pub last_updated: Option<String>,
 }
 
-/// A matched binding from search.
-#[derive(Debug, Clone, Serialize)]
-pub struct BindingView {
-    pub name: String,
-    pub value: String,
-    pub file_path: PathBuf,
-    pub file_title: Option<String>,
-}
-
-/// Combined full-text search results across tasks and bindings.
-#[derive(Debug, Clone, Serialize)]
-pub struct SearchResults {
-    pub tasks: Vec<TaskView>,
-    pub bindings: Vec<BindingView>,
-}
-
-/// Agenda view showing tasks grouped by time horizon.
-#[derive(Debug, Clone, Serialize)]
-pub struct AgendaView {
-    pub overdue: Vec<TaskView>,
-    pub today: Vec<TaskView>,
-    pub this_week: Vec<TaskView>,
-}
-
 /// A cross-file reference: one file importing/depending on another.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FileReference {
@@ -282,21 +258,6 @@ pub trait Store {
     ///
     /// Returns `StoreError` if the database operation fails.
     fn get_stats(&self) -> Result<IndexStats, StoreError>;
-
-    /// Full-text search across task titles and binding names/values.
-    ///
-    /// # Errors
-    ///
-    /// Returns `StoreError` if the database operation fails.
-    fn search(&self, query: &str, limit: Option<usize>) -> Result<SearchResults, StoreError>;
-
-    /// Query agenda view: overdue, today, and this week tasks.
-    /// `today` should be an ISO date string (YYYY-MM-DD).
-    ///
-    /// # Errors
-    ///
-    /// Returns `StoreError` if the database operation fails.
-    fn query_agenda(&self, today: &str) -> Result<AgendaView, StoreError>;
 
     /// Replace all file references for a given source file.
     ///

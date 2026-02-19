@@ -78,8 +78,6 @@ src/                    -- root crate: CLI binary
       eval.rs           -- filter_and_sort, format_task, due_sort_key
       watch.rs          -- WatchArgs
       list.rs           -- ListArgs, StatusFilter
-      search.rs         -- SearchArgs, format_search_results/csv
-      agenda.rs         -- AgendaArgs, format_agenda/csv
       deps.rs           -- DepsArgs, format_deps/csv
       check.rs          -- CheckArgs
       id.rs             -- IdArgs (generate/validate task IDs)
@@ -127,8 +125,6 @@ Use `just count-tests` for current test count. See `docs/TESTING.md` for guideli
 - `mindtape <file.typ> [--due] [-N]` — eval a single file
 - `mindtape watch [<path>] [--config <file>]` — watch and index folders
 - `mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH] [--format table|json|csv]`
-- `mindtape search <keyword> [-N] [--db PATH] [--format table|json|csv]`
-- `mindtape agenda [--overdue] [--today] [--week] [-N] [--db PATH] [--format table|json|csv]`
 - `mindtape status [--db PATH] [--format table|json|csv]`
 - `mindtape files [--db PATH] [--format table|json|csv]`
 - `mindtape deps [--file PATH] [--db PATH] [--format table|json|csv]`

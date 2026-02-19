@@ -1,11 +1,9 @@
-pub mod agenda;
 pub mod check;
 pub mod deps;
 pub mod eval;
 pub mod files;
 pub mod id;
 pub mod list;
-pub mod search;
 pub mod set;
 pub mod status;
 pub mod watch;

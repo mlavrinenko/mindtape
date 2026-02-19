@@ -6,20 +6,16 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
-pub use commands::agenda::AgendaArgs;
 pub use commands::check::CheckArgs;
 pub use commands::deps::DepsArgs;
 pub use commands::id::IdArgs;
 pub use commands::list::ListArgs;
-pub use commands::search::SearchArgs;
 pub use commands::set::SetArgs;
 pub use commands::watch::WatchArgs;
 
 // Re-export per-command formatting so main.rs can use cli::format_* as before.
-pub use commands::agenda::{format_agenda, format_agenda_csv};
 pub use commands::deps::{format_all_deps, format_all_deps_csv, format_deps, format_deps_csv};
 pub use commands::eval::{due_sort_key, filter_and_sort, format_due, format_task};
-pub use commands::search::{format_search_csv, format_search_results};
 pub use format::{
     format_file_view, format_files_csv, format_stats, format_stats_csv, format_task_view,
     format_tasks_csv,
@@ -90,10 +86,6 @@ pub enum Command {
     Watch(WatchArgs),
     /// List tasks from the index
     List(ListArgs),
-    /// Search tasks and bindings
-    Search(SearchArgs),
-    /// Show agenda (overdue, today, this week)
-    Agenda(AgendaArgs),
     /// Show index statistics
     Status(StatusArgs),
     /// List indexed files
@@ -232,26 +224,6 @@ mod tests {
     fn parse_watch_bare() {
         let cli = parse(&["mindtape", "watch"]);
         assert!(matches!(cli.command, Some(Command::Watch(_))));
-    }
-
-    #[test]
-    fn parse_search_keyword() {
-        let cli = parse(&["mindtape", "search", "milk"]);
-        let Some(Command::Search(args)) = cli.command else {
-            panic!("expected Search");
-        };
-        assert_eq!(args.keyword, "milk");
-    }
-
-    #[test]
-    fn parse_agenda_sections() {
-        let cli = parse(&["mindtape", "agenda", "--overdue", "--today"]);
-        let Some(Command::Agenda(args)) = cli.command else {
-            panic!("expected Agenda");
-        };
-        assert!(args.overdue);
-        assert!(args.today);
-        assert!(!args.week);
     }
 
     #[test]

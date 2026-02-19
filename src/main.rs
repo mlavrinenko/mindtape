@@ -14,8 +14,6 @@ fn main() -> Result<()> {
     match cli.command {
         Some(Command::Watch(args)) => args.run(),
         Some(Command::List(args)) => args.run(),
-        Some(Command::Search(args)) => args.run(),
-        Some(Command::Agenda(args)) => args.run(),
         Some(Command::Status(args)) => args.run(),
         Some(Command::Files(args)) => args.run(),
         Some(Command::Deps(args)) => args.run(),

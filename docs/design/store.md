@@ -20,8 +20,6 @@ Core operations:
 - `get_file_hash` — retrieve stored hash for conflict detection
 - `list_files` — get all indexed files
 - `get_stats` — index statistics
-- `search` — full-text search across tasks and bindings
-- `query_agenda` — overdue/today/week task views
 - `get_file_dependencies` — dependency graph for a file
 - `list_file_dependencies` — all file dependencies
 
@@ -56,9 +54,6 @@ FileReferences (v3)
 - `TaskView` — denormalized task with file path, folder, properties
 - `FileView` — file metadata with task counts
 - `IndexStats` — aggregate statistics
-- `BindingView` — binding with file context
-- `SearchResults` — combined task + binding search results
-- `AgendaView` — tasks grouped by time bucket (overdue/today/week)
 - `FileDependencies` — bidirectional import graph
 
 All views derive `Serialize` for `--json` output.
@@ -121,22 +116,6 @@ See `crates/mindtape-store/src/store/sqlite.rs` for full implementation.
 - Transaction-based upserts for consistency
 - Efficient queries with prepared statements
 - Comprehensive unit tests (42 tests in sqlite.rs)
-
-### Search Implementation
-
-Full-text search uses `LIKE` queries across:
-- Task titles
-- Task property values
-- Binding names and values
-
-Case-insensitive, matches substrings.
-
-### Agenda Queries
-
-Time-based filtering:
-- **Overdue**: `due_date < today`
-- **Today**: `due_date = today`
-- **Week**: `due_date > today AND due_date <= today + 6 days`
 
 ## Error Handling
 
