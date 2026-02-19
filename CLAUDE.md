@@ -9,7 +9,6 @@ metadata into SQLite, and exposes a CLI for querying.
 ## Key Docs
 
 - `docs/DESIGN.md` — architecture, data model, design rationale
-- `docs/ROADMAP.md` — milestone index with links to details
 - `docs/TESTING.md` — testing guidelines
 - `crates/mindtape-eval/CLAUDE.md` — eval crate context
 - `crates/mindtape-store/CLAUDE.md` — store crate context
@@ -38,10 +37,9 @@ metadata into SQLite, and exposes a CLI for querying.
 - Save research findings to `archive/research/` as markdown files
 - Keep files small: Rust ≤500 lines, Markdown ≤200 lines (enforced by `just check-file-size`)
 - **After completing a task with code/config changes**:
-  1. Update `docs/ROADMAP.md` if milestones changed
-  2. Update `docs/DESIGN.md` if architecture changed
-  3. If implementing a REVIEW.md, update it with completion status and summary
-  4. Suggest a conventional commit message (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`)
+  1. Update `docs/DESIGN.md` if architecture changed
+  2. If implementing a REVIEW.md, update it with completion status and summary
+  3. Suggest a conventional commit message (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`)
 
 ## Architecture Principles
 
@@ -61,28 +59,34 @@ crates/
   mindtape-eval/        -- Typst evaluation + task extraction
     src/eval.rs          -- EvalError, Task, EvalResult, eval_file(), content traversal
     src/world.rs         -- MindTapeWorld (World trait impl), project root detection
-    src/write.rs         -- AST-based write-back (toggle checkboxes)
+    src/write.rs         -- AST-based write-back (toggle, due, tags)
+    src/write_tests.rs   -- separated tests for write.rs
 
   mindtape-store/       -- Store trait + SQLite backend
     src/id.rs            -- UUIDv7 generation, base62 encoding/decoding
-    src/store/mod.rs     -- domain types, Store trait, StoreError
-    src/store/sqlite.rs  -- SqliteStore impl, schema v3, migrations
+    src/store/mod.rs     -- domain types, Store trait (13 methods), StoreError
+    src/store/sqlite.rs  -- SqliteStore impl, schema v6, migrations
     src/store/indexer.rs -- hash_file(), to_store_records(), index_file()
 
 src/                    -- root crate: CLI binary
   cli/
     mod.rs              -- Cli (clap), Command enum, OutputFormat, QueryOpts, preprocess_args
     format.rs           -- shared formatters: format_task_view, csv_escape, etc.
+    util.rs             -- resolve_query_db_path, open_query_db, print_json, atomic_write
     commands/
       mod.rs            -- re-exports all command modules
       eval.rs           -- filter_and_sort, format_task, due_sort_key
-      watch.rs          -- WatchArgs
-      list.rs           -- ListArgs, StatusFilter
+      watch.rs          -- WatchArgs, load_watch_config
+      list.rs           -- ListArgs, StatusFilter, build_task_trees
       deps.rs           -- DepsArgs, format_deps/csv
-      check.rs          -- CheckArgs
+      check.rs          -- CheckArgs (toggle checkbox)
+      set.rs            -- SetArgs (due, tags)
       id.rs             -- IdArgs (generate/validate task IDs)
+      status.rs         -- StatusArgs::run()
+      files.rs          -- FilesArgs::run()
   config.rs             -- TOML config loading, WatchEntry, tilde expansion
   watcher.rs            -- Watcher struct, initial_scan, handle_event, run
+  watcher_tests.rs      -- 45+ watcher unit tests (separated module)
 
 tests/                  -- integration tests
   common.rs             -- shared setup (setup_typst_project, ymd)

@@ -10,18 +10,13 @@ enables future backends like DuckDB.
 
 See `crates/mindtape-store/src/store/mod.rs` for the trait definition and domain types.
 
-Core operations:
-- `upsert_task_file` — insert or update file metadata
-- `upsert_tasks` — insert or update tasks for a file
-- `upsert_bindings` — insert or update file-level bindings
-- `upsert_file_references` — track cross-file imports
-- `remove_task_file` — delete file and cascading data
-- `query_tasks` — filtered task queries
-- `get_file_hash` — retrieve stored hash for conflict detection
-- `list_files` — get all indexed files
-- `get_stats` — index statistics
-- `get_file_dependencies` — dependency graph for a file
-- `list_file_dependencies` — all file dependencies
+13 methods in 5 groups:
+
+- **File management**: `upsert_task_file`, `remove_task_file`, `get_file_hash`
+- **Data storage**: `upsert_tasks`, `upsert_bindings`
+- **Queries**: `query_tasks`, `list_files`, `get_stats`
+- **Dependencies**: `upsert_file_references`, `get_file_dependencies`, `list_file_dependencies`
+- **Task lookup**: `find_task_by_id` (UUID, base62, or `*suffix` mask)
 
 ## Core Entities
 
@@ -30,14 +25,11 @@ See `crates/mindtape-store/src/store/mod.rs` for full type definitions.
 ### Database Tables
 
 ```
-WatchedFolder
-  id, path, created_at
-
 TaskFile
-  id, watched_folder_id, relative_path, title, updated_at, eval_hash
+  id, file_path (absolute), watch_root, title, updated_at, eval_hash
 
 Task
-  id, task_file_id, title, is_done, position
+  id, task_file_id, title, is_done, position, milestone
 
 TaskProperty
   id, task_id, kind (due | tag | id | custom), key, value
@@ -45,8 +37,11 @@ TaskProperty
 FileBinding
   id, task_file_id, name, value_type, value_json
 
-FileReferences (v3)
+FileReferences
   id, source_file_id, target_path
+
+TasksFts (FTS5 virtual table)
+  title, milestone — auto-synced via triggers
 ```
 
 ### Domain Types
@@ -55,6 +50,7 @@ FileReferences (v3)
 - `FileView` — file metadata with task counts
 - `IndexStats` — aggregate statistics
 - `FileDependencies` — bidirectional import graph
+- `TaskWithFile` — task + file path for write-back lookup
 
 All views derive `Serialize` for `--json` output.
 
@@ -62,7 +58,7 @@ All views derive `Serialize` for `--json` output.
 
 See `crates/mindtape-store/src/store/sqlite.rs` for migrations and schema.
 
-Current version: **v3**
+Current version: **v6** (see crate CLAUDE.md for full migration history)
 
 Key constraints:
 - `PRAGMA foreign_keys = ON` for referential integrity

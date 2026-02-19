@@ -75,4 +75,3 @@ See `docs/design/watcher.md` for configuration details.
 
 - How to handle Typst package imports (`@preview/...`) — do we support them?
 - How to resolve cross-folder imports (file in folder A imports from folder B)?
-- Should we use `tempfile` for atomic writes in write-back operations?
