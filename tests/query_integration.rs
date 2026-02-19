@@ -166,7 +166,7 @@ fn list_done_tasks_by_tag() {
     let views = store
         .query_tasks(&TaskFilter {
             done: Some(true),
-            tag: Some("work".to_string()),
+            tags: vec!["work".to_string()],
             ..Default::default()
         })
         .unwrap();
@@ -250,4 +250,141 @@ fn folder_and_status_combined() {
         .unwrap();
     assert_eq!(views.len(), 1);
     assert_eq!(views[0].title, "Open note");
+}
+
+// --- FTS5 search & new filters (end-to-end) ---
+
+#[test]
+fn search_tasks_by_title() {
+    let (mut store, root) = setup();
+    add_and_index(
+        &mut store,
+        &root,
+        "todo.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+
+- [ ] Buy groceries #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Write documentation #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [x] Fix parser bug #id("019c5b98-d10a-7710-8679-bda520780ee9")
+"#,
+    );
+
+    let views = store
+        .query_tasks(&TaskFilter {
+            search: Some("groceries".to_string()),
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "Buy groceries");
+}
+
+#[test]
+fn search_tasks_by_milestone() {
+    let (mut store, root) = setup();
+    add_and_index(
+        &mut store,
+        &root,
+        "todo.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+
+= Sprint 3
+
+- [ ] Deploy service #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+
+= Backlog
+
+- [ ] Research options #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+"#,
+    );
+
+    let views = store
+        .query_tasks(&TaskFilter {
+            search: Some("sprint".to_string()),
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "Deploy service");
+}
+
+#[test]
+fn list_with_multiple_tags() {
+    let (mut store, root) = setup();
+    add_and_index(
+        &mut store,
+        &root,
+        "todo.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id, tag
+
+- [ ] Both tags #tag("work") #tag("urgent") #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Only work #tag("work") #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] Only urgent #tag("urgent") #id("019c5b98-d10a-7710-8679-bda520780ee9")
+"#,
+    );
+
+    let views = store
+        .query_tasks(&TaskFilter {
+            tags: vec!["work".to_string(), "urgent".to_string()],
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "Both tags");
+}
+
+#[test]
+fn list_with_due_range() {
+    let (mut store, root) = setup();
+    add_and_index(
+        &mut store,
+        &root,
+        "todo.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id, due
+
+- [ ] Early #due(datetime(year: 2026, month: 1, day: 15)) #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Middle #due(datetime(year: 2026, month: 3, day: 1)) #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] Late #due(datetime(year: 2026, month: 6, day: 1)) #id("019c5b98-d10a-7710-8679-bda520780ee9")
+"#,
+    );
+
+    let views = store
+        .query_tasks(&TaskFilter {
+            due_after: Some("2026-02-01".to_string()),
+            due_before: Some("2026-04-01".to_string()),
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "Middle");
+}
+
+#[test]
+fn list_with_milestone_filter() {
+    let (mut store, root) = setup();
+    add_and_index(
+        &mut store,
+        &root,
+        "todo.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+
+= Engineering
+== Backend
+
+- [ ] Fix API #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+
+= Design
+
+- [ ] Update mockups #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+"#,
+    );
+
+    let views = store
+        .query_tasks(&TaskFilter {
+            milestone: Some("Backend".to_string()),
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "Fix API");
 }

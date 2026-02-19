@@ -160,7 +160,7 @@ fn index_file_query_by_tag() {
 
     let work = store
         .query_tasks(&TaskFilter {
-            tag: Some("work".to_string()),
+            tags: vec!["work".to_string()],
             ..Default::default()
         })
         .unwrap();
@@ -201,7 +201,7 @@ fn index_file_query_combined_tag_and_done() {
     // Filter: tag=work AND not done
     let views = store
         .query_tasks(&TaskFilter {
-            tag: Some("work".to_string()),
+            tags: vec!["work".to_string()],
             done: Some(false),
             ..Default::default()
         })

@@ -92,11 +92,22 @@ pub struct FileBinding {
 }
 
 /// Filters for querying tasks.
+///
+/// All active filters combine with AND logic. Empty `tags` means no tag filter.
 #[derive(Debug, Default)]
 pub struct TaskFilter {
     pub done: Option<bool>,
-    pub tag: Option<String>,
+    /// Filter by tags (AND semantics: task must have all listed tags).
+    pub tags: Vec<String>,
     pub due_before: Option<String>,
+    /// Filter tasks due on or after this date (YYYY-MM-DD).
+    pub due_after: Option<String>,
+    /// Case-insensitive substring match on milestone path.
+    pub milestone: Option<String>,
+    /// Case-insensitive substring match on task title.
+    pub title_contains: Option<String>,
+    /// FTS5 full-text search query across titles and milestones.
+    pub search: Option<String>,
     pub file_path: Option<PathBuf>,
     pub folder: Option<PathBuf>,
     pub limit: Option<usize>,

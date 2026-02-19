@@ -78,6 +78,35 @@ ALTER TABLE task_files RENAME COLUMN relative_path TO file_path;
 ALTER TABLE task_files ADD COLUMN watch_root TEXT;
 ";
 
+const SCHEMA_V6: &str = "
+CREATE VIRTUAL TABLE IF NOT EXISTS tasks_fts USING fts5(
+    title,
+    milestone,
+    content='tasks',
+    content_rowid='id'
+);
+
+CREATE TRIGGER IF NOT EXISTS tasks_ai AFTER INSERT ON tasks BEGIN
+    INSERT INTO tasks_fts(rowid, title, milestone)
+    VALUES (new.id, new.title, new.milestone);
+END;
+
+CREATE TRIGGER IF NOT EXISTS tasks_ad AFTER DELETE ON tasks BEGIN
+    INSERT INTO tasks_fts(tasks_fts, rowid, title, milestone)
+    VALUES('delete', old.id, old.title, old.milestone);
+END;
+
+CREATE TRIGGER IF NOT EXISTS tasks_au AFTER UPDATE ON tasks BEGIN
+    INSERT INTO tasks_fts(tasks_fts, rowid, title, milestone)
+    VALUES('delete', old.id, old.title, old.milestone);
+    INSERT INTO tasks_fts(rowid, title, milestone)
+    VALUES (new.id, new.title, new.milestone);
+END;
+
+INSERT INTO tasks_fts(rowid, title, milestone)
+SELECT id, title, milestone FROM tasks;
+";
+
 // ---------------------------------------------------------------------------
 // SqliteStore
 // ---------------------------------------------------------------------------
@@ -163,6 +192,14 @@ impl SqliteStore {
                 .map_err(|e| StoreError::Migration(e.to_string()))?;
         }
 
+        if version < 6 {
+            debug!("migrating to schema v6 (FTS5)");
+            conn.execute_batch(SCHEMA_V6)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+            conn.pragma_update(None, "user_version", 6)
+                .map_err(|e| StoreError::Migration(e.to_string()))?;
+        }
+
         Ok(())
     }
 
@@ -171,22 +208,29 @@ impl SqliteStore {
     /// Uses unnamed `?` placeholders for cleaner code - rusqlite binds them positionally.
     fn build_task_query(filter: &TaskFilter) -> (String, Vec<String>) {
         let mut sql = String::from(
-            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, tf.file_path, tf.title, tf.watch_root
+            "SELECT t.id, t.title, t.is_done, t.position, t.milestone, \
+             tf.file_path, tf.title, tf.watch_root
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id",
         );
-        let mut conditions: Vec<&str> = Vec::new();
+
+        if filter.search.is_some() {
+            sql.push_str(" JOIN tasks_fts fts ON fts.rowid = t.id");
+        }
+
+        let mut conditions: Vec<String> = Vec::new();
         let mut params: Vec<String> = Vec::new();
 
         if let Some(done) = filter.done {
-            conditions.push("t.is_done = ?");
+            conditions.push("t.is_done = ?".to_string());
             params.push((done as i32).to_string());
         }
 
-        if let Some(ref tag) = filter.tag {
+        for tag in &filter.tags {
             conditions.push(
                 "EXISTS (SELECT 1 FROM task_properties tp \
-                 WHERE tp.task_id = t.id AND tp.kind = 'tag' AND tp.value = ?)",
+                 WHERE tp.task_id = t.id AND tp.kind = 'tag' AND tp.value = ?)"
+                    .to_string(),
             );
             params.push(tag.clone());
         }
@@ -194,18 +238,43 @@ impl SqliteStore {
         if let Some(ref due_before) = filter.due_before {
             conditions.push(
                 "EXISTS (SELECT 1 FROM task_properties tp \
-                 WHERE tp.task_id = t.id AND tp.kind = 'due' AND tp.value <= ?)",
+                 WHERE tp.task_id = t.id AND tp.kind = 'due' AND tp.value <= ?)"
+                    .to_string(),
             );
             params.push(due_before.clone());
         }
 
+        if let Some(ref due_after) = filter.due_after {
+            conditions.push(
+                "EXISTS (SELECT 1 FROM task_properties tp \
+                 WHERE tp.task_id = t.id AND tp.kind = 'due' AND tp.value >= ?)"
+                    .to_string(),
+            );
+            params.push(due_after.clone());
+        }
+
+        if let Some(ref milestone) = filter.milestone {
+            conditions.push("t.milestone LIKE '%' || ? || '%' COLLATE NOCASE".to_string());
+            params.push(milestone.clone());
+        }
+
+        if let Some(ref title) = filter.title_contains {
+            conditions.push("t.title LIKE '%' || ? || '%' COLLATE NOCASE".to_string());
+            params.push(title.clone());
+        }
+
+        if let Some(ref query) = filter.search {
+            conditions.push("tasks_fts MATCH ?".to_string());
+            params.push(query.clone());
+        }
+
         if let Some(ref file_path) = filter.file_path {
-            conditions.push("tf.file_path = ?");
+            conditions.push("tf.file_path = ?".to_string());
             params.push(file_path.to_string_lossy().to_string());
         }
 
         if let Some(ref folder) = filter.folder {
-            conditions.push("tf.file_path LIKE ? || '%'");
+            conditions.push("tf.file_path LIKE ? || '%'".to_string());
             params.push(folder.to_string_lossy().to_string());
         }
 
@@ -733,7 +802,7 @@ mod tests {
             .conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 5);
+        assert_eq!(version, 6);
     }
 
     // --- upsert_task_file ---
@@ -981,7 +1050,7 @@ mod tests {
         seed_store(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                tag: Some("work".to_string()),
+                tags: vec!["work".to_string()],
                 ..Default::default()
             })
             .unwrap();
@@ -1047,12 +1116,278 @@ mod tests {
         seed_store(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                tag: Some("work".to_string()),
+                tags: vec!["work".to_string()],
                 ..Default::default()
             })
             .unwrap();
         assert_eq!(views[0].due, Some("2026-01-15".to_string()));
         assert_eq!(views[0].tags, vec!["work"]);
+    }
+
+    // --- new filter & FTS5 tests ---
+
+    /// Richer seed data with milestones and multi-tag tasks for filter tests.
+    fn seed_store_rich(store: &mut SqliteStore) -> i64 {
+        let file_id = store
+            .upsert_task_file(&make_task_file("project.typ", "rich"))
+            .unwrap();
+        let mut tasks = vec![
+            make_record("Deploy service", false, 0),
+            make_record("Write report", false, 1),
+            make_record("Fix login bug", true, 2),
+            make_record("Plan sprint", false, 3),
+        ];
+        tasks[0].milestone = Some("Ops > Deployment".to_string());
+        tasks[1].milestone = Some("Docs".to_string());
+        tasks[2].milestone = Some("Engineering > Auth".to_string());
+        tasks[3].milestone = Some("Planning".to_string());
+
+        let props = vec![
+            vec![make_tag_prop("ops"), make_tag_prop("urgent"), make_due_prop("2026-02-15")],
+            vec![make_tag_prop("docs"), make_due_prop("2026-03-01")],
+            vec![make_tag_prop("ops"), make_due_prop("2026-01-10")],
+            vec![make_tag_prop("planning"), make_due_prop("2026-04-01")],
+        ];
+        store.upsert_tasks(file_id, &tasks, &props).unwrap();
+        file_id
+    }
+
+    #[test]
+    fn query_filter_by_due_after() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                due_after: Some("2026-02-01".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Buy milk");
+    }
+
+    #[test]
+    fn query_filter_by_due_range() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                due_after: Some("2026-02-01".to_string()),
+                due_before: Some("2026-03-15".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 2);
+        assert!(views.iter().any(|v| v.title == "Deploy service"));
+        assert!(views.iter().any(|v| v.title == "Write report"));
+    }
+
+    #[test]
+    fn query_filter_by_milestone() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                milestone: Some("Ops".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Deploy service");
+    }
+
+    #[test]
+    fn query_filter_by_milestone_case_insensitive() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                milestone: Some("engineering".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Fix login bug");
+    }
+
+    #[test]
+    fn query_filter_by_title_contains() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                title_contains: Some("report".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Write report");
+    }
+
+    #[test]
+    fn query_filter_multi_tag_and() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        // "Deploy service" has both "ops" and "urgent"
+        let views = store
+            .query_tasks(&TaskFilter {
+                tags: vec!["ops".to_string(), "urgent".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Deploy service");
+    }
+
+    #[test]
+    fn query_filter_multi_tag_single_match() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        // "ops" tag matches both "Deploy service" and "Fix login bug"
+        let views = store
+            .query_tasks(&TaskFilter {
+                tags: vec!["ops".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 2);
+    }
+
+    #[test]
+    fn search_by_title_fts() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                search: Some("deploy".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Deploy service");
+    }
+
+    #[test]
+    fn search_by_milestone_fts() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                search: Some("auth".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Fix login bug");
+    }
+
+    #[test]
+    fn search_combined_with_filters() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        // Search for "service" but only pending tasks with "ops" tag
+        let views = store
+            .query_tasks(&TaskFilter {
+                search: Some("service".to_string()),
+                done: Some(false),
+                tags: vec!["ops".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Deploy service");
+    }
+
+    #[test]
+    fn search_no_results() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                search: Some("nonexistent".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert!(views.is_empty());
+    }
+
+    #[test]
+    fn search_with_limit() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        // Search broadly, limit to 1
+        let views = store
+            .query_tasks(&TaskFilter {
+                search: Some("service OR report OR bug OR sprint".to_string()),
+                limit: Some(1),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+    }
+
+    #[test]
+    fn fts_sync_on_reindex() {
+        let mut store = test_store();
+        let file_id = store
+            .upsert_task_file(&make_task_file("t.typ", "h1"))
+            .unwrap();
+        store
+            .upsert_tasks(file_id, &[make_record("Old title", false, 0)], &[vec![]])
+            .unwrap();
+
+        // Search should find the old title
+        let views = store
+            .query_tasks(&TaskFilter {
+                search: Some("Old".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+
+        // Re-index with new title (upsert_tasks deletes then re-inserts)
+        store
+            .upsert_tasks(file_id, &[make_record("New title", false, 0)], &[vec![]])
+            .unwrap();
+
+        // Old title should not match
+        let views = store
+            .query_tasks(&TaskFilter {
+                search: Some("Old".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert!(views.is_empty());
+
+        // New title should match
+        let views = store
+            .query_tasks(&TaskFilter {
+                search: Some("New".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "New title");
+    }
+
+    #[test]
+    fn query_all_filters_combined() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        // Only "Deploy service" matches: pending + tag:ops + due range + milestone "Ops" + search
+        let views = store
+            .query_tasks(&TaskFilter {
+                done: Some(false),
+                tags: vec!["ops".to_string()],
+                due_after: Some("2026-02-01".to_string()),
+                due_before: Some("2026-03-01".to_string()),
+                milestone: Some("Deployment".to_string()),
+                search: Some("deploy".to_string()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Deploy service");
     }
 
     // --- get_file_hash ---

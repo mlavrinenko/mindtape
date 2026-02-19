@@ -25,13 +25,29 @@ pub struct ListArgs {
     #[arg(long, value_enum)]
     pub status: Option<StatusFilter>,
 
-    /// Filter by tag
+    /// Filter by tag (repeatable; AND logic — task must have all listed tags)
     #[arg(long)]
-    pub tag: Option<String>,
+    pub tag: Vec<String>,
 
     /// Filter tasks due before this date (YYYY-MM-DD)
     #[arg(long, value_name = "DATE")]
     pub due_before: Option<String>,
+
+    /// Filter tasks due on or after this date (YYYY-MM-DD)
+    #[arg(long, value_name = "DATE")]
+    pub due_after: Option<String>,
+
+    /// Filter by milestone / heading (case-insensitive substring match)
+    #[arg(long)]
+    pub milestone: Option<String>,
+
+    /// Filter by title (case-insensitive substring match)
+    #[arg(long)]
+    pub title: Option<String>,
+
+    /// Full-text search across task titles and milestones
+    #[arg(long)]
+    pub search: Option<String>,
 
     /// Filter by file path
     #[arg(long)]
@@ -73,8 +89,12 @@ impl ListArgs {
 
         let filter = TaskFilter {
             done: self.done_filter(),
-            tag: self.tag.clone(),
+            tags: self.tag.clone(),
             due_before: self.due_before.clone(),
+            due_after: self.due_after.clone(),
+            milestone: self.milestone.clone(),
+            title_contains: self.title.clone(),
+            search: self.search.clone(),
             file_path: self.file.clone(),
             folder: self.folder.clone(),
             limit: self.limit,
