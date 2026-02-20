@@ -130,7 +130,7 @@ Use `just count-tests` for current test count. See `docs/TESTING.md` for guideli
 
 - `mindtape <file.typ> [--due] [-N]` — eval a single file
 - `mindtape watch [<path>] [--config <file>]` — watch and index folders
-- `mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [-N] [--db PATH] [--format table|json|csv]`
+- `mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [--watch-root PATH] [-N] [--db PATH] [--format table|json|csv]`
 - `mindtape status [--db PATH] [--format table|json|csv]`
 - `mindtape files [--db PATH] [--format table|json|csv]`
 - `mindtape deps [--file PATH] [--db PATH] [--format table|json|csv]`

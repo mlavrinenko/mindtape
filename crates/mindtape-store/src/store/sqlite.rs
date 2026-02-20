@@ -62,6 +62,24 @@ impl SqliteStore {
             sql.push_str(" JOIN tasks_fts fts ON fts.rowid = t.id");
         }
 
+        let (conditions, params) = Self::build_filter_conditions(filter);
+
+        if !conditions.is_empty() {
+            sql.push_str(" WHERE ");
+            sql.push_str(&conditions.join(" AND "));
+        }
+
+        sql.push_str(" ORDER BY tf.file_path, t.position");
+
+        if let Some(limit) = filter.limit {
+            sql.push_str(&format!(" LIMIT {limit}"));
+        }
+
+        (sql, params)
+    }
+
+    /// Build WHERE conditions and parameters from a `TaskFilter`.
+    fn build_filter_conditions(filter: &TaskFilter) -> (Vec<String>, Vec<String>) {
         let mut conditions: Vec<String> = Vec::new();
         let mut params: Vec<String> = Vec::new();
 
@@ -122,18 +140,12 @@ impl SqliteStore {
             params.push(folder.to_string_lossy().to_string());
         }
 
-        if !conditions.is_empty() {
-            sql.push_str(" WHERE ");
-            sql.push_str(&conditions.join(" AND "));
+        if let Some(ref root) = filter.watch_root {
+            conditions.push("tf.watch_root = ?".to_string());
+            params.push(root.to_string_lossy().to_string());
         }
 
-        sql.push_str(" ORDER BY tf.file_path, t.position");
-
-        if let Some(limit) = filter.limit {
-            sql.push_str(&format!(" LIMIT {limit}"));
-        }
-
-        (sql, params)
+        (conditions, params)
     }
 
     /// Fetch task views from a prepared statement.

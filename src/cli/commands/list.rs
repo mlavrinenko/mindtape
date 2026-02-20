@@ -57,6 +57,10 @@ pub struct ListArgs {
     #[arg(long)]
     pub folder: Option<PathBuf>,
 
+    /// Filter by watch root path
+    #[arg(long)]
+    pub watch_root: Option<PathBuf>,
+
     /// Limit output to N items
     #[arg(short = 'n', long)]
     pub limit: Option<usize>,
@@ -97,6 +101,7 @@ impl ListArgs {
             search: self.search.clone(),
             file_path: self.file.clone(),
             folder: self.folder.clone(),
+            watch_root: self.watch_root.clone(),
             limit: self.limit,
         };
 

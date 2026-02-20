@@ -360,6 +360,66 @@ fn list_with_due_range() {
 }
 
 #[test]
+fn query_tasks_by_watch_root() {
+    let (mut store, root) = setup();
+
+    // Index files under the main root.
+    add_and_index(
+        &mut store,
+        &root,
+        "todo.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Root task #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+"#,
+    );
+
+    // Create a second "watch root" directory and index a file under it.
+    let root2 = root.join("second-root");
+    std::fs::create_dir_all(&root2).unwrap();
+    // Copy lib/ so the Typst import resolves.
+    let lib_dst = root2.join("lib");
+    std::fs::create_dir_all(&lib_dst).unwrap();
+    for entry in std::fs::read_dir(root.join("lib")).unwrap() {
+        let lib_entry = entry.unwrap();
+        std::fs::copy(lib_entry.path(), lib_dst.join(lib_entry.file_name())).unwrap();
+    }
+    let file2 = root2.join("tasks.typ");
+    std::fs::write(
+        &file2,
+        r#"#import "@mindtape/mindtape:0.1.0": id
+- [ ] Second root task #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+"#,
+    )
+    .unwrap();
+    let world2 = MindTapeWorld::new(&file2).unwrap();
+    index_file(&mut store, &world2, &file2, Some(&root2)).unwrap();
+
+    // Filter by the first watch root.
+    let first = store
+        .query_tasks(&TaskFilter {
+            watch_root: Some(root.clone()),
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(first.len(), 1);
+    assert_eq!(first[0].title, "Root task");
+
+    // Filter by the second watch root.
+    let second = store
+        .query_tasks(&TaskFilter {
+            watch_root: Some(root2),
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(second.len(), 1);
+    assert_eq!(second[0].title, "Second root task");
+
+    // No filter returns both.
+    let all = store.query_tasks(&TaskFilter::default()).unwrap();
+    assert_eq!(all.len(), 2);
+}
+
+#[test]
 fn list_with_milestone_filter() {
     let (mut store, root) = setup();
     add_and_index(

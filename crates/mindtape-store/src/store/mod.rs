@@ -111,6 +111,8 @@ pub struct TaskFilter {
     pub search: Option<String>,
     pub file_path: Option<PathBuf>,
     pub folder: Option<PathBuf>,
+    /// Filter by watch root (exact match on `task_files.watch_root`).
+    pub watch_root: Option<PathBuf>,
     pub limit: Option<usize>,
 }
 
