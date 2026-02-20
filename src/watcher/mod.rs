@@ -3,12 +3,13 @@
 //! Watches configured directories for `.typ` file changes, re-indexes
 //! modified files, and removes deleted files from the store.
 
+mod ignore;
+
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-use ignore::gitignore::{Gitignore, GitignoreBuilder};
-use ignore::WalkBuilder;
+use ::ignore::WalkBuilder;
 use log::{debug, info, trace, warn};
 use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher as NotifyWatcher};
 use thiserror::Error;
@@ -16,6 +17,8 @@ use thiserror::Error;
 use crate::config::{self, WatchEntry};
 use crate::store::{self, SqliteStore, Store, StoreError};
 use crate::world::MindTapeWorld;
+
+use self::ignore::build_ignore;
 
 #[derive(Debug, Error)]
 pub enum WatchError {
@@ -125,8 +128,8 @@ impl Watcher {
             let Some(entry) = self.find_entry(path) else {
                 return;
             };
-            let ignore = build_ignore(&entry.path, path);
-            let ignored = ignore
+            let ig = build_ignore(&entry.path, path);
+            let ignored = ig
                 .matched_path_or_any_parents(path, false)
                 .is_ignore();
             (entry.path.clone(), ignored)
@@ -376,80 +379,6 @@ fn resolve_entry(entry: &WatchEntry) -> Result<ResolvedEntry, WatchError> {
     })
 }
 
-/// Build a `Gitignore` matcher for a file path, collecting ignore rules from
-/// the watch root down to the file's parent directory. Called on each event
-/// so that changes to ignore files are picked up without restarting.
-///
-/// Walks from `root` down to the file's parent, loading `.gitignore` and
-/// `.mindtapeignore` at each level (deeper files override shallower ones).
-/// Global gitignore has the lowest precedence.
-fn build_ignore(root: &Path, file: &Path) -> Gitignore {
-    let mut builder = GitignoreBuilder::new(root);
-
-    // Global gitignore (lowest precedence).
-    if let Some(global) = global_gitignore_path()
-        && global.exists()
-    {
-        builder.add(&global);
-    }
-
-    // Collect directories from root down to the file's parent.
-    let target = file.parent().unwrap_or(root);
-    let mut dirs_to_check: Vec<&Path> = Vec::new();
-    let mut current = target;
-    loop {
-        dirs_to_check.push(current);
-        if current == root {
-            break;
-        }
-        match current.parent() {
-            Some(parent) if parent != current => current = parent,
-            _ => break,
-        }
-    }
-    // Reverse so we go from root (lower precedence) to deepest dir (higher).
-    dirs_to_check.reverse();
-
-    for dir in dirs_to_check {
-        let gitignore = dir.join(".gitignore");
-        if gitignore.exists() {
-            builder.add(&gitignore);
-        }
-        let mindtapeignore = dir.join(".mindtapeignore");
-        if mindtapeignore.exists() {
-            builder.add(&mindtapeignore);
-        }
-    }
-
-    builder.build().unwrap_or_else(|_| Gitignore::empty())
-}
-
-/// Find the global gitignore file path.
-///
-/// Checks `git config --global core.excludesFile` first, then falls back
-/// to the XDG-compliant default (`$XDG_CONFIG_HOME/git/ignore` or
-/// `~/.config/git/ignore`).
-fn global_gitignore_path() -> Option<PathBuf> {
-    // Try git config first.
-    if let Ok(output) = std::process::Command::new("git")
-        .args(["config", "--global", "core.excludesFile"])
-        .output()
-        && output.status.success()
-    {
-        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if !path.is_empty() {
-            return Some(crate::config::expand_tilde(&path));
-        }
-    }
-
-    // XDG fallback.
-    if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
-        return Some(PathBuf::from(xdg).join("git/ignore"));
-    }
-
-    directories::BaseDirs::new().map(|d| d.config_dir().join("git/ignore"))
-}
-
 fn is_typ_file(path: &Path) -> bool {
     path.extension().is_some_and(|ext| ext == "typ") && path.is_file()
 }
@@ -462,5 +391,4 @@ fn is_inside_dotgit(path: &Path) -> bool {
 
 #[cfg(test)]
 #[allow(clippy::unwrap_used, clippy::indexing_slicing)]
-#[path = "watcher_tests.rs"]
 mod tests;

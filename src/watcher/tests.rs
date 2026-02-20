@@ -1,4 +1,5 @@
 use super::*;
+use super::ignore::build_ignore;
 use crate::store::SqliteStore;
 use std::fs;
 

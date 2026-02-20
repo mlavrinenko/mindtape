@@ -62,10 +62,10 @@ check-file-size:
 
     # Exception list (relative to project root)
     # sqlite.rs is schema-heavy, hard to split meaningfully
-    # watcher_tests.rs has many integration-style scenarios
+    # watcher/tests.rs has many integration-style scenarios
     EXCEPTIONS=(
         "crates/mindtape-store/src/store/sqlite.rs"
-        "src/watcher_tests.rs"
+        "src/watcher/tests.rs"
     )
 
     failed=0

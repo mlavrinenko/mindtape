@@ -85,8 +85,10 @@ src/                    -- root crate: CLI binary
       status.rs         -- StatusArgs::run()
       files.rs          -- FilesArgs::run()
   config.rs             -- TOML config loading, WatchEntry, tilde expansion
-  watcher.rs            -- Watcher struct, initial_scan, handle_event, run
-  watcher_tests.rs      -- 45+ watcher unit tests (separated module)
+  watcher/
+    mod.rs              -- Watcher struct, initial_scan, handle_event, run
+    ignore.rs           -- build_ignore(), global_gitignore_path()
+    tests.rs            -- 45+ watcher unit tests
 
 tests/                  -- integration tests
   common.rs             -- shared setup (setup_typst_project, ymd)
