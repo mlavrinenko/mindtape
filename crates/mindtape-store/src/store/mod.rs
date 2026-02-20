@@ -6,6 +6,7 @@
 //! the Typst crate ecosystem.
 
 mod indexer;
+mod migrations;
 mod sqlite;
 
 use std::path::{Path, PathBuf};

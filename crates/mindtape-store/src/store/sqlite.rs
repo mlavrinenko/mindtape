@@ -2,110 +2,12 @@
 
 use std::path::{Path, PathBuf};
 
-use log::debug;
 use rusqlite::{params, Connection, OptionalExtension};
 
 use super::{
     FileBinding, FileView, IndexStats, Store, StoreError, TaskFile, TaskFilter, TaskProperty,
     TaskRecord, TaskView,
 };
-
-// ---------------------------------------------------------------------------
-// Schema
-// ---------------------------------------------------------------------------
-
-const SCHEMA_V1: &str = "
-CREATE TABLE IF NOT EXISTS task_files (
-    id            INTEGER PRIMARY KEY,
-    relative_path TEXT    NOT NULL UNIQUE,
-    title         TEXT,
-    eval_hash     TEXT    NOT NULL,
-    updated_at    TEXT    NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS tasks (
-    id            INTEGER PRIMARY KEY,
-    task_file_id  INTEGER NOT NULL REFERENCES task_files(id) ON DELETE CASCADE,
-    title         TEXT    NOT NULL,
-    is_done       INTEGER NOT NULL DEFAULT 0,
-    position      INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS task_properties (
-    id            INTEGER PRIMARY KEY,
-    task_id       INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-    kind          TEXT    NOT NULL,
-    key           TEXT    NOT NULL,
-    value         TEXT    NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS file_bindings (
-    id            INTEGER PRIMARY KEY,
-    task_file_id  INTEGER NOT NULL REFERENCES task_files(id) ON DELETE CASCADE,
-    name          TEXT    NOT NULL,
-    value_type    TEXT    NOT NULL,
-    value_json    TEXT    NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_tasks_file ON tasks(task_file_id);
-CREATE INDEX IF NOT EXISTS idx_props_task ON task_properties(task_id);
-CREATE INDEX IF NOT EXISTS idx_props_kind ON task_properties(kind);
-CREATE INDEX IF NOT EXISTS idx_bindings_file ON file_bindings(task_file_id);
-";
-
-const SCHEMA_V2: &str = "
-CREATE INDEX IF NOT EXISTS idx_tasks_title ON tasks(title COLLATE NOCASE);
-CREATE INDEX IF NOT EXISTS idx_bindings_name ON file_bindings(name COLLATE NOCASE);
-";
-
-const SCHEMA_V3: &str = "
-CREATE TABLE IF NOT EXISTS file_references (
-    id            INTEGER PRIMARY KEY,
-    source_file_id INTEGER NOT NULL REFERENCES task_files(id) ON DELETE CASCADE,
-    target_path    TEXT    NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_refs_source ON file_references(source_file_id);
-CREATE INDEX IF NOT EXISTS idx_refs_target ON file_references(target_path);
-";
-
-const SCHEMA_V4: &str = "
-ALTER TABLE tasks ADD COLUMN milestone TEXT;
-";
-
-const SCHEMA_V5: &str = "
-ALTER TABLE task_files RENAME COLUMN relative_path TO file_path;
-ALTER TABLE task_files ADD COLUMN watch_root TEXT;
-";
-
-const SCHEMA_V6: &str = "
-CREATE VIRTUAL TABLE IF NOT EXISTS tasks_fts USING fts5(
-    title,
-    milestone,
-    content='tasks',
-    content_rowid='id'
-);
-
-CREATE TRIGGER IF NOT EXISTS tasks_ai AFTER INSERT ON tasks BEGIN
-    INSERT INTO tasks_fts(rowid, title, milestone)
-    VALUES (new.id, new.title, new.milestone);
-END;
-
-CREATE TRIGGER IF NOT EXISTS tasks_ad AFTER DELETE ON tasks BEGIN
-    INSERT INTO tasks_fts(tasks_fts, rowid, title, milestone)
-    VALUES('delete', old.id, old.title, old.milestone);
-END;
-
-CREATE TRIGGER IF NOT EXISTS tasks_au AFTER UPDATE ON tasks BEGIN
-    INSERT INTO tasks_fts(tasks_fts, rowid, title, milestone)
-    VALUES('delete', old.id, old.title, old.milestone);
-    INSERT INTO tasks_fts(rowid, title, milestone)
-    VALUES (new.id, new.title, new.milestone);
-END;
-
-INSERT INTO tasks_fts(rowid, title, milestone)
-SELECT id, title, milestone FROM tasks;
-";
 
 // ---------------------------------------------------------------------------
 // SqliteStore
@@ -141,66 +43,8 @@ impl SqliteStore {
 
     fn init(conn: Connection) -> Result<Self, StoreError> {
         conn.execute_batch("PRAGMA foreign_keys = ON;")?;
-        Self::migrate(&conn)?;
+        super::migrations::apply_migrations(&conn)?;
         Ok(Self { conn })
-    }
-
-    fn migrate(conn: &Connection) -> Result<(), StoreError> {
-        let version: i32 = conn
-            .pragma_query_value(None, "user_version", |row| row.get(0))
-            .map_err(|e| StoreError::Migration(e.to_string()))?;
-
-        debug!("database schema version: {version}");
-
-        if version < 1 {
-            debug!("migrating to schema v1");
-            conn.execute_batch(SCHEMA_V1)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-            conn.pragma_update(None, "user_version", 1)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-        }
-
-        if version < 2 {
-            debug!("migrating to schema v2");
-            conn.execute_batch(SCHEMA_V2)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-            conn.pragma_update(None, "user_version", 2)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-        }
-
-        if version < 3 {
-            debug!("migrating to schema v3");
-            conn.execute_batch(SCHEMA_V3)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-            conn.pragma_update(None, "user_version", 3)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-        }
-
-        if version < 4 {
-            debug!("migrating to schema v4");
-            conn.execute_batch(SCHEMA_V4)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-            conn.pragma_update(None, "user_version", 4)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-        }
-
-        if version < 5 {
-            debug!("migrating to schema v5");
-            conn.execute_batch(SCHEMA_V5)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-            conn.pragma_update(None, "user_version", 5)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-        }
-
-        if version < 6 {
-            debug!("migrating to schema v6 (FTS5)");
-            conn.execute_batch(SCHEMA_V6)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-            conn.pragma_update(None, "user_version", 6)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-        }
-
-        Ok(())
     }
 
     /// Build a dynamic task query with filters. Returns SQL string and parameter values.
