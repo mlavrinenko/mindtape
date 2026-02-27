@@ -97,6 +97,9 @@ tests/                  -- integration tests
   query_integration.rs  -- query command tests
   watcher_integration.rs -- watcher scan + event handling tests
 
+nix/
+  module.nix            -- NixOS module (services.mindtape options + systemd unit)
+
 lib/prelude.typ         -- due(), id(), tag() functions using metadata()
 itest/basic.sh          -- shell integration tests
 ```

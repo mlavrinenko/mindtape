@@ -48,9 +48,26 @@ just uninstall-lib
 4. Tasks, properties, and bindings are indexed into SQLite
 5. Query with `mindtape list`, filter by status/tag/due date
 
-## Status
+## NixOS installation
 
-Early development. See [docs/ROADMAP.md](docs/ROADMAP.md) for the plan.
+```nix
+# inputs:
+mindtape.url = "path:/home/tank/projects/home/mindtape";
+mindtape.inputs.nixpkgs.follows = "nixpkgs";
+
+# modules list:
+mindtape.nixosModules.default
+
+# configuration:
+services.mindtape = {
+  enable = true;
+  user = "tank";    # run as your user instead of a system user
+  group = "users";
+  watchPaths = [
+    { path = "/home/tank/notes"; }
+  ];
+};
+```
 
 ## Docs
 

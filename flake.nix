@@ -10,6 +10,7 @@
 
   outputs =
     {
+      self,
       flake-utils,
       naersk,
       nixpkgs,
@@ -32,7 +33,7 @@
         };
 
         # For `nix develop`:
-        devShell = pkgs.mkShell {
+        devShells.default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
             rustc
             cargo
@@ -51,5 +52,10 @@
           ];
         };
       }
-    );
+    )
+    //
+    {
+      nixosModules.default = import ./nix/module.nix self;
+      nixosModules.mindtape = import ./nix/module.nix self;
+    };
 }

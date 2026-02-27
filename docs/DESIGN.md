@@ -71,6 +71,13 @@ recursive = true
 
 See `docs/design/watcher.md` for configuration details.
 
+## NixOS Module
+
+The flake exposes `nixosModules.default` (and `.mindtape`) for declarative service
+configuration. The module generates a TOML config in the Nix store and runs
+`mindtape watch --config <path>` as a systemd service with sandboxing
+(`ProtectHome=read-only`, `ProtectSystem=strict`). See `nix/module.nix`.
+
 ## Open Questions
 
 - How to handle Typst package imports (`@preview/...`) — do we support them?
