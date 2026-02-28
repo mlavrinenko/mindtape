@@ -59,7 +59,7 @@ See `docs/design/store.md` for full schema details.
 ## Configuration
 
 ```toml
-# ~/.config/mindtape/config.toml or mindtape.toml in project root
+# ~/.config/mindtape/config.toml
 
 [database]
 path = "~/.local/share/mindtape/index.db"

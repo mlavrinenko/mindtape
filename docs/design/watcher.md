@@ -60,7 +60,7 @@ See `src/config.rs` for TOML parsing and tilde expansion.
 ### Config Format
 
 ```toml
-# ~/.config/mindtape/config.toml (or mindtape.toml in project root)
+# ~/.config/mindtape/config.toml
 
 [database]
 path = "~/.local/share/mindtape/index.db"
@@ -76,11 +76,8 @@ recursive = true
 
 ### Config Auto-Discovery
 
-Searches in order:
-1. `mindtape.toml` in current working directory
-2. `~/.config/mindtape/config.toml`
-
-Returns error if neither exists.
+Checks `~/.config/mindtape/config.toml`.
+Falls back to watching the current directory if no config is found.
 
 ### Tilde Expansion
 

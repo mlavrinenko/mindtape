@@ -1,8 +1,7 @@
 //! Configuration file loading for `MindTape`.
 //!
 //! Supports TOML configuration with watched folders and database path.
-//! Searches for `mindtape.toml` in the current directory, then
-//! `~/.config/mindtape/config.toml`.
+//! Searches for `~/.config/mindtape/config.toml` (XDG-compliant).
 
 use std::path::{Path, PathBuf};
 
@@ -54,17 +53,10 @@ pub fn load_config(path: &Path) -> Result<Config, ConfigError> {
     Ok(config)
 }
 
-/// Search for a config file in standard locations.
+/// Search for a config file in the XDG config directory.
 ///
-/// Checks (in order):
-/// 1. `mindtape.toml` in the current working directory
-/// 2. `~/.config/mindtape/config.toml` (XDG-compliant)
+/// Checks `~/.config/mindtape/config.toml`.
 pub fn find_config() -> Option<PathBuf> {
-    let cwd_config = PathBuf::from("mindtape.toml");
-    if cwd_config.exists() {
-        return Some(cwd_config);
-    }
-
     if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "mindtape") {
         let user_config = proj_dirs.config_dir().join("config.toml");
         if user_config.exists() {
