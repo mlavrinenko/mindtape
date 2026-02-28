@@ -656,7 +656,7 @@ fn reload_config_adds_new_entry() {
         .watch(&dir_path, notify::RecursiveMode::Recursive)
         .unwrap();
 
-    watcher.reload_config(&config_path, &mut notify_watcher);
+    watcher.reload_config(&[config_path], &mut notify_watcher);
 
     assert_eq!(watcher.entries.len(), 2);
     // The sub directory's tasks should have been scanned.
@@ -709,7 +709,7 @@ fn reload_config_removes_old_entry() {
         .watch(&sub, notify::RecursiveMode::Recursive)
         .unwrap();
 
-    watcher.reload_config(&config_path, &mut notify_watcher);
+    watcher.reload_config(&[config_path], &mut notify_watcher);
 
     assert_eq!(watcher.entries.len(), 1);
     assert_eq!(
@@ -741,7 +741,7 @@ fn reload_config_invalid_toml_is_nonfatal() {
         notify::Watcher::new(tx, notify::Config::default()).unwrap();
 
     // Should not panic or error — just log a warning.
-    watcher.reload_config(&config_path, &mut notify_watcher);
+    watcher.reload_config(&[config_path], &mut notify_watcher);
 
     // Entries should be unchanged.
     assert_eq!(watcher.entries.len(), 1);

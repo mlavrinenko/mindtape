@@ -190,16 +190,16 @@ impl Watcher {
         removed
     }
 
-    /// Reload config and update watched paths dynamically.
+    /// Reload config from one or more files and update watched paths.
     ///
     /// Parse errors are non-fatal: a warning is logged and the current
     /// config is kept.
     fn reload_config(
         &mut self,
-        config_path: &Path,
+        config_paths: &[PathBuf],
         notify_watcher: &mut RecommendedWatcher,
     ) {
-        let new_config = match config::load_config(config_path) {
+        let new_config = match config::load_and_merge(config_paths) {
             Ok(cfg) => cfg,
             Err(err) => {
                 warn!("failed to reload config: {err}");
@@ -269,8 +269,8 @@ impl Watcher {
 
     /// Start the file watcher event loop (blocks forever).
     ///
-    /// If `config_path` is provided, watches the config file for changes
-    /// and dynamically updates watched paths on config reload.
+    /// Watches the given config files for changes and dynamically updates
+    /// watched paths on config reload.
     ///
     /// Filters out `Access` events (e.g. file opens) to prevent infinite
     /// re-indexing loops caused by our own reads triggering inotify.
@@ -280,7 +280,7 @@ impl Watcher {
     ///
     /// Returns [`WatchError::Notify`] if the watcher cannot be created
     /// or a watched path cannot be registered.
-    pub fn run(mut self, config_path: Option<&Path>) -> Result<(), WatchError> {
+    pub fn run(mut self, config_paths: &[PathBuf]) -> Result<(), WatchError> {
         let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
         let mut watcher: RecommendedWatcher =
             NotifyWatcher::new(tx, notify::Config::default())?;
@@ -295,13 +295,18 @@ impl Watcher {
             info!("watching {}", entry.path.display());
         }
 
-        // Watch the config file's parent directory so atomic-save editors
-        // (write-tmp + rename) are detected correctly.
-        if let Some(cfg_path) = config_path
-            && let Some(parent) = cfg_path.parent()
-        {
-            watcher.watch(parent, RecursiveMode::NonRecursive)?;
-            info!("watching config {}", cfg_path.display());
+        // Watch each config file's parent directory so atomic-save editors
+        // (write-tmp + rename) are detected correctly. Dedup parents to
+        // avoid double-watching.
+        let config_set: HashSet<&PathBuf> = config_paths.iter().collect();
+        let mut watched_parents: HashSet<PathBuf> = HashSet::new();
+        for cfg_path in config_paths {
+            if let Some(parent) = cfg_path.parent() {
+                if watched_parents.insert(parent.to_path_buf()) {
+                    watcher.watch(parent, RecursiveMode::NonRecursive)?;
+                }
+                info!("watching config {}", cfg_path.display());
+            }
         }
 
         let debounce = Duration::from_millis(300);
@@ -327,11 +332,9 @@ impl Watcher {
                         last_seen.insert(path.clone(), now);
 
                         // Check if this is a config file change.
-                        if let Some(cfg_path) = config_path
-                            && path == cfg_path
-                        {
+                        if config_set.contains(&path) {
                             info!("config file changed, reloading");
-                            self.reload_config(cfg_path, &mut watcher);
+                            self.reload_config(config_paths, &mut watcher);
                             continue;
                         }
 

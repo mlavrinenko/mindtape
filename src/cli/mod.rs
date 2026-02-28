@@ -227,6 +227,17 @@ mod tests {
     }
 
     #[test]
+    fn parse_watch_multiple_configs() {
+        let cli = parse(&[
+            "mindtape", "watch", "--config", "a.toml", "--config", "b.toml",
+        ]);
+        let Some(Command::Watch(args)) = cli.command else {
+            panic!("expected Watch");
+        };
+        assert_eq!(args.config, vec![PathBuf::from("a.toml"), PathBuf::from("b.toml")]);
+    }
+
+    #[test]
     fn parse_check_task_id() {
         let cli = parse(&["mindtape", "check", "abc-123"]);
         let Some(Command::Check(args)) = cli.command else {

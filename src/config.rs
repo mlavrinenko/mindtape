@@ -89,6 +89,36 @@ pub fn resolve_db_path(config: &Config) -> PathBuf {
     default_db_path()
 }
 
+/// Merge multiple configs into one.
+///
+/// Watch entries are concatenated in order. The first config that specifies
+/// a database path wins. An empty iterator returns an empty config.
+pub fn merge_configs(configs: impl IntoIterator<Item = Config>) -> Config {
+    let mut merged = Config {
+        database: None,
+        watch: Vec::new(),
+    };
+    for cfg in configs {
+        merged.watch.extend(cfg.watch);
+        if merged.database.is_none() {
+            merged.database = cfg.database;
+        }
+    }
+    merged
+}
+
+/// Load and merge multiple TOML config files.
+///
+/// # Errors
+/// Returns `ConfigError` if any file cannot be read or parsed.
+pub fn load_and_merge(paths: &[PathBuf]) -> Result<Config, ConfigError> {
+    let mut configs = Vec::with_capacity(paths.len());
+    for path in paths {
+        configs.push(load_config(path)?);
+    }
+    Ok(merge_configs(configs))
+}
+
 /// Default database path: `~/.local/share/mindtape/index.db` (XDG-compliant).
 pub fn default_db_path() -> PathBuf {
     if let Some(proj_dirs) = directories::ProjectDirs::from("", "", "mindtape") {
@@ -218,5 +248,72 @@ path = "."
         };
         let path = resolve_db_path(&config);
         assert!(path.to_string_lossy().ends_with("mindtape/index.db"));
+    }
+
+    #[test]
+    fn merge_configs_concatenates_watch_entries() {
+        let first = Config {
+            database: None,
+            watch: vec![WatchEntry { path: "~/a".into(), recursive: true }],
+        };
+        let second = Config {
+            database: None,
+            watch: vec![WatchEntry { path: "~/b".into(), recursive: false }],
+        };
+        let merged = merge_configs([first, second]);
+        assert_eq!(merged.watch.len(), 2);
+        assert_eq!(merged.watch[0].path, "~/a");
+        assert_eq!(merged.watch[1].path, "~/b");
+        assert!(merged.database.is_none());
+    }
+
+    #[test]
+    fn merge_configs_first_database_wins() {
+        let first = Config {
+            database: Some(DatabaseConfig { path: "/first.db".into() }),
+            watch: vec![],
+        };
+        let second = Config {
+            database: Some(DatabaseConfig { path: "/second.db".into() }),
+            watch: vec![],
+        };
+        let merged = merge_configs([first, second]);
+        assert_eq!(merged.database.unwrap().path, "/first.db");
+    }
+
+    #[test]
+    fn merge_configs_later_database_used_if_first_missing() {
+        let first = Config { database: None, watch: vec![] };
+        let second = Config {
+            database: Some(DatabaseConfig { path: "/second.db".into() }),
+            watch: vec![],
+        };
+        let merged = merge_configs([first, second]);
+        assert_eq!(merged.database.unwrap().path, "/second.db");
+    }
+
+    #[test]
+    fn merge_configs_empty_iterator() {
+        let merged = merge_configs(std::iter::empty());
+        assert!(merged.watch.is_empty());
+        assert!(merged.database.is_none());
+    }
+
+    #[test]
+    fn load_and_merge_multiple_files() {
+        let dir = tempfile::tempdir().unwrap();
+
+        let path_a = dir.path().join("a.toml");
+        std::fs::write(&path_a, "[database]\npath = \"/main.db\"\n\n[[watch]]\npath = \"/a\"\n").unwrap();
+
+        let path_b = dir.path().join("b.toml");
+        std::fs::write(&path_b, "[[watch]]\npath = \"/b\"\nrecursive = false\n").unwrap();
+
+        let merged = load_and_merge(&[path_a, path_b]).unwrap();
+        assert_eq!(merged.database.unwrap().path, "/main.db");
+        assert_eq!(merged.watch.len(), 2);
+        assert_eq!(merged.watch[0].path, "/a");
+        assert_eq!(merged.watch[1].path, "/b");
+        assert!(!merged.watch[1].recursive);
     }
 }

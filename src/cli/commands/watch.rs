@@ -14,9 +14,9 @@ pub struct WatchArgs {
     /// Directory to watch (quick mode, no config file needed)
     pub path: Option<PathBuf>,
 
-    /// Explicit config file path
+    /// Config file path (repeatable, entries are merged)
     #[arg(long)]
-    pub config: Option<PathBuf>,
+    pub config: Vec<PathBuf>,
 }
 
 impl WatchArgs {
@@ -25,7 +25,7 @@ impl WatchArgs {
     /// # Errors
     /// Returns error if config loading, database setup, or watcher initialization fails.
     pub fn run(&self) -> Result<()> {
-        let (cfg, config_path) = load_watch_config(self)?;
+        let (cfg, config_paths) = load_watch_config(self)?;
 
         if cfg.watch.is_empty() {
             bail!("no watch paths configured\nUsage: mindtape watch <path>\n   or: mindtape watch --config <file>");
@@ -51,23 +51,28 @@ impl WatchArgs {
             scan.found, scan.indexed, scan.skipped, scan.errors,
         );
 
-        watcher.run(config_path.as_deref()).context("watcher error")?;
+        watcher.run(&config_paths).context("watcher error")?;
         Ok(())
     }
 }
 
-/// Build a Config from CLI args: --config file, path argument, or auto-discovery.
+/// Build a Config from CLI args: --config file(s), path argument, or auto-discovery.
 ///
-/// Returns the parsed config and the canonical path of the config file
-/// (if one was used). The path is `None` when a bare directory argument
-/// was given instead of a config file.
-fn load_watch_config(args: &WatchArgs) -> Result<(Config, Option<PathBuf>)> {
-    if let Some(ref config_path) = args.config {
-        let cfg = config::load_config(config_path)
-            .with_context(|| format!("failed to load config from {}", config_path.display()))?;
-        let canon = std::fs::canonicalize(config_path)
-            .with_context(|| format!("failed to resolve config path {}", config_path.display()))?;
-        return Ok((cfg, Some(canon)));
+/// Returns the parsed config and the canonical paths of all config files
+/// used. The vec is empty when a bare directory argument was given instead
+/// of config files.
+fn load_watch_config(args: &WatchArgs) -> Result<(Config, Vec<PathBuf>)> {
+    if !args.config.is_empty() {
+        let mut canon_paths = Vec::with_capacity(args.config.len());
+        for p in &args.config {
+            canon_paths.push(
+                std::fs::canonicalize(p)
+                    .with_context(|| format!("failed to resolve config path {}", p.display()))?,
+            );
+        }
+        let cfg = config::load_and_merge(&canon_paths)
+            .with_context(|| "failed to load config files")?;
+        return Ok((cfg, canon_paths));
     }
 
     if let Some(ref path) = args.path {
@@ -79,7 +84,7 @@ fn load_watch_config(args: &WatchArgs) -> Result<(Config, Option<PathBuf>)> {
                     recursive: true,
                 }],
             },
-            None,
+            vec![],
         ));
     }
 
@@ -88,7 +93,7 @@ fn load_watch_config(args: &WatchArgs) -> Result<(Config, Option<PathBuf>)> {
             .with_context(|| format!("failed to load config from {}", config_path.display()))?;
         let canon = std::fs::canonicalize(&config_path)
             .with_context(|| format!("failed to resolve config path {}", config_path.display()))?;
-        return Ok((cfg, Some(canon)));
+        return Ok((cfg, vec![canon]));
     }
 
     Ok((
@@ -99,6 +104,6 @@ fn load_watch_config(args: &WatchArgs) -> Result<(Config, Option<PathBuf>)> {
                 recursive: true,
             }],
         },
-        None,
+        vec![],
     ))
 }

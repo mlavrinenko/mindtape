@@ -74,6 +74,18 @@ in
       description = "Group under which mindtape runs.";
     };
 
+    extraConfigPaths = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = ''
+        Additional TOML config files to merge after the generated config.
+        Watch entries from all files are combined; the first database path wins.
+        Useful for keeping user-specific watch paths outside of NixOS configuration
+        (e.g. "~/.config/mindtape.toml").
+      '';
+      example = lib.literalExpression ''[ "/home/user/.config/mindtape.toml" ]'';
+    };
+
     verbosity = lib.mkOption {
       type = lib.types.ints.between 0 3;
       default = 0;
@@ -104,6 +116,7 @@ in
         Type = "simple";
         ExecStart = lib.escapeShellArgs (
           [ "${cfg.package}/bin/mindtape" "watch" "--config" "${configFile}" ]
+          ++ lib.concatMap (p: [ "--config" p ]) cfg.extraConfigPaths
           ++ verbosityFlags
         );
         Restart = "on-failure";
@@ -127,6 +140,8 @@ in
         ReadWritePaths = [
           (builtins.dirOf cfg.databasePath)
         ];
+
+        ReadOnlyPaths = cfg.extraConfigPaths;
       };
     };
   };
