@@ -25,10 +25,10 @@ in
 
     enable = lib.mkEnableOption "mindtape, a file-based task tracker using Typst";
 
-    package = lib.mkPackageOption pkgs "mindtape" {
+    package = lib.mkOption {
+      type = lib.types.package;
       default = self.packages.${pkgs.system}.default;
-      defaultText = lib.literalExpression
-        "inputs.mindtape.packages.\${system}.default";
+      description = "The mindtape package to use.";
     };
 
     watchPaths = lib.mkOption {
