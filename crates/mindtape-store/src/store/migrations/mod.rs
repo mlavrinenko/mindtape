@@ -1,28 +1,20 @@
-//! Schema migrations, one file per version.
+//! Schema migrations.
+//!
+//! The database is a derived cache (Typst files are the source of truth).
+//! When the schema version doesn't match, we drop everything and recreate
+//! from scratch — the watcher will re-index on next startup.
 
-mod v1;
-mod v2;
-mod v3;
-mod v4;
-mod v5;
-mod v6;
+mod v7;
 
-use log::debug;
+use log::{debug, info};
 use rusqlite::Connection;
 
 use super::StoreError;
 
-/// Ordered list of migrations. Each entry is `(target_version, sql)`.
-const MIGRATIONS: &[(i32, &str)] = &[
-    (1, v1::SQL),
-    (2, v2::SQL),
-    (3, v3::SQL),
-    (4, v4::SQL),
-    (5, v5::SQL),
-    (6, v6::SQL),
-];
+/// Current schema version. Bump this when the schema changes.
+pub const CURRENT_SCHEMA_VERSION: i32 = 7;
 
-/// Apply all pending migrations to `conn`.
+/// Apply migrations: if the DB version doesn't match, drop and recreate.
 pub fn apply_migrations(conn: &Connection) -> Result<(), StoreError> {
     let version: i32 = conn
         .pragma_query_value(None, "user_version", |row| row.get(0))
@@ -30,15 +22,20 @@ pub fn apply_migrations(conn: &Connection) -> Result<(), StoreError> {
 
     debug!("database schema version: {version}");
 
-    for &(target, sql) in MIGRATIONS {
-        if version < target {
-            debug!("migrating to schema v{target}");
-            conn.execute_batch(sql)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-            conn.pragma_update(None, "user_version", target)
-                .map_err(|e| StoreError::Migration(e.to_string()))?;
-        }
+    if version == CURRENT_SCHEMA_VERSION {
+        return Ok(());
     }
+
+    if version != 0 {
+        info!(
+            "schema version {version} != {CURRENT_SCHEMA_VERSION}, recreating cache database"
+        );
+    }
+
+    conn.execute_batch(v7::SQL)
+        .map_err(|e| StoreError::Migration(e.to_string()))?;
+    conn.pragma_update(None, "user_version", CURRENT_SCHEMA_VERSION)
+        .map_err(|e| StoreError::Migration(e.to_string()))?;
 
     Ok(())
 }

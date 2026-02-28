@@ -44,6 +44,10 @@ pub struct TaskRecord {
     pub position: i32,
     /// Heading path (e.g. "Header 1 > Subheader 1.1").
     pub milestone: Option<String>,
+    /// Due date (YYYY-MM-DD), denormalized for efficient sorting/filtering.
+    pub due: Option<String>,
+    /// User-assigned task ID (`UUIDv7`), denormalized for efficient sorting/lookup.
+    pub task_id: Option<String>,
 }
 
 /// A property attached to a task.
@@ -92,6 +96,35 @@ pub struct FileBinding {
     pub value_json: String,
 }
 
+// ---------------------------------------------------------------------------
+// Sort types
+// ---------------------------------------------------------------------------
+
+/// Sortable fields for task queries.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SortField {
+    Due,
+    Id,
+    File,
+    Position,
+    Title,
+    Status,
+}
+
+/// Sort direction.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SortDir {
+    Asc,
+    Desc,
+}
+
+/// A single sort specification (field + direction).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SortSpec {
+    pub field: SortField,
+    pub dir: SortDir,
+}
+
 /// Filters for querying tasks.
 ///
 /// All active filters combine with AND logic. Empty `tags` means no tag filter.
@@ -114,6 +147,8 @@ pub struct TaskFilter {
     /// Filter by watch root (exact match on `task_files.watch_root`).
     pub watch_root: Option<PathBuf>,
     pub limit: Option<usize>,
+    /// Sort order. Empty means default (`file_path, position`).
+    pub sort: Vec<SortSpec>,
 }
 
 /// A task with its file context and properties, returned by queries.
@@ -125,6 +160,8 @@ pub struct TaskView {
     pub file_path: PathBuf,
     pub file_title: Option<String>,
     pub due: Option<String>,
+    /// User-assigned task ID (`UUIDv7`).
+    pub task_id: Option<String>,
     pub tags: Vec<String>,
     /// Heading path (e.g. "Header 1 > Subheader 1.1").
     pub milestone: Option<String>,

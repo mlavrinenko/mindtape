@@ -69,6 +69,8 @@ pub fn to_store_records(
             },
         };
 
+        let due_str = task.due.as_ref().map(format_date);
+
         task_records.push(TaskRecord {
             id: None,
             task_file_id: 0, // filled during insert
@@ -76,31 +78,11 @@ pub fn to_store_records(
             is_done: task.done,
             position: task.position as i32,
             milestone: task.milestone.clone(),
+            due: due_str.clone(),
+            task_id: Some(task_id.clone()),
         });
 
-        let mut props = vec![TaskProperty {
-            id: None, task_id: 0, kind: PropertyKind::Id,
-            key: "id".to_string(), value: task_id.clone(),
-        }];
-        if let Some(dt) = &task.due {
-            props.push(TaskProperty {
-                id: None,
-                task_id: 0,
-                kind: PropertyKind::Due,
-                key: "due".to_string(),
-                value: format_date(dt),
-            });
-        }
-        for tag in &task.tags {
-            props.push(TaskProperty {
-                id: None,
-                task_id: 0,
-                kind: PropertyKind::Tag,
-                key: "tag".to_string(),
-                value: tag.clone(),
-            });
-        }
-        all_props.push(props);
+        all_props.push(build_task_props(&task_id, due_str.as_deref(), &task.tags));
     }
 
     let bindings: Vec<FileBinding> = result
@@ -116,6 +98,27 @@ pub fn to_store_records(
         .collect();
 
     (task_file, task_records, all_props, bindings)
+}
+
+/// Build task properties (id, due, tags) for a single task.
+fn build_task_props(task_id: &str, due: Option<&str>, tags: &[String]) -> Vec<TaskProperty> {
+    let mut props = vec![TaskProperty {
+        id: None, task_id: 0, kind: PropertyKind::Id,
+        key: "id".to_string(), value: task_id.to_string(),
+    }];
+    if let Some(due_val) = due {
+        props.push(TaskProperty {
+            id: None, task_id: 0, kind: PropertyKind::Due,
+            key: "due".to_string(), value: due_val.to_string(),
+        });
+    }
+    for tag in tags {
+        props.push(TaskProperty {
+            id: None, task_id: 0, kind: PropertyKind::Tag,
+            key: "tag".to_string(), value: tag.clone(),
+        });
+    }
+    props
 }
 
 // ---------------------------------------------------------------------------

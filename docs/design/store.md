@@ -29,10 +29,10 @@ TaskFile
   id, file_path (absolute), watch_root, title, updated_at, eval_hash
 
 Task
-  id, task_file_id, title, is_done, position, milestone
+  id, task_file_id, title, is_done, position, milestone, due, task_id
 
 TaskProperty
-  id, task_id, kind (due | tag | id | custom), key, value
+  id, task_id, kind (tag | due | id), key, value
 
 FileBinding
   id, task_file_id, name, value_type, value_json
@@ -58,12 +58,17 @@ All views derive `Serialize` for `--json` output.
 
 See `crates/mindtape-store/src/store/sqlite.rs` for migrations and schema.
 
-Current version: **v6** (see crate CLAUDE.md for full migration history)
+Current version: **v7** — drop-and-recreate strategy (DB is a derived cache).
+
+`due` and `task_id` are denormalized onto the `tasks` table for efficient
+SQL-side sorting (`ORDER BY t.due ASC NULLS LAST`). Tags remain in
+`task_properties` (many-per-task). When the schema version doesn't match,
+the DB is dropped and recreated — the watcher re-indexes on next startup.
 
 Key constraints:
 - `PRAGMA foreign_keys = ON` for referential integrity
 - `CASCADE DELETE` on foreign keys for automatic cleanup
-- Indexes on query-critical columns (`file_path`, `target_path`, etc.)
+- Indexes on query-critical columns (`file_path`, `due`, `task_id`, etc.)
 
 ## Indexing Pipeline
 

@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use rusqlite::{params, Connection, OptionalExtension};
 
 use super::{
-    FileBinding, FileView, IndexStats, Store, StoreError, TaskFile, TaskFilter, TaskProperty,
-    TaskRecord, TaskView,
+    FileBinding, FileView, IndexStats, SortDir, SortField, Store, StoreError, TaskFile,
+    TaskFilter, TaskProperty, TaskRecord, TaskView,
 };
 
 // ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ use super::{
 // ---------------------------------------------------------------------------
 
 /// Row tuple from a task query JOIN.
-type TaskRow = (i64, String, bool, i32, Option<String>, String, Option<String>, Option<String>);
+type TaskRow = (i64, String, bool, i32, Option<String>, Option<String>, Option<String>, String, Option<String>, Option<String>);
 
 pub struct SqliteStore {
     conn: Connection,
@@ -53,7 +53,7 @@ impl SqliteStore {
     fn build_task_query(filter: &TaskFilter) -> (String, Vec<String>) {
         let mut sql = String::from(
             "SELECT t.id, t.title, t.is_done, t.position, t.milestone, \
-             tf.file_path, tf.title, tf.watch_root
+             t.due, t.task_id, tf.file_path, tf.title, tf.watch_root
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id",
         );
@@ -69,13 +69,41 @@ impl SqliteStore {
             sql.push_str(&conditions.join(" AND "));
         }
 
-        sql.push_str(" ORDER BY tf.file_path, t.position");
+        sql.push_str(" ORDER BY ");
+        if filter.sort.is_empty() {
+            sql.push_str("tf.file_path, t.position");
+        } else {
+            let clauses: Vec<String> = filter.sort.iter().copied().map(Self::sort_spec_to_sql).collect();
+            sql.push_str(&clauses.join(", "));
+        }
 
         if let Some(limit) = filter.limit {
             sql.push_str(&format!(" LIMIT {limit}"));
         }
 
         (sql, params)
+    }
+
+    /// Convert a `SortSpec` to a SQL ORDER BY clause fragment.
+    fn sort_spec_to_sql(spec: super::SortSpec) -> String {
+        let col = match spec.field {
+            SortField::Due => "t.due",
+            SortField::Id => "t.task_id",
+            SortField::File => "tf.file_path",
+            SortField::Position => "t.position",
+            SortField::Title => "t.title",
+            SortField::Status => "t.is_done",
+        };
+        let dir = match spec.dir {
+            SortDir::Asc => "ASC",
+            SortDir::Desc => "DESC",
+        };
+        // NULLS LAST so tasks without due/id sort to the end regardless of direction.
+        let nulls = match spec.field {
+            SortField::Due | SortField::Id => " NULLS LAST",
+            _ => "",
+        };
+        format!("{col} {dir}{nulls}")
     }
 
     /// Build WHERE conditions and parameters from a `TaskFilter`.
@@ -98,20 +126,12 @@ impl SqliteStore {
         }
 
         if let Some(ref due_before) = filter.due_before {
-            conditions.push(
-                "EXISTS (SELECT 1 FROM task_properties tp \
-                 WHERE tp.task_id = t.id AND tp.kind = 'due' AND tp.value <= ?)"
-                    .to_string(),
-            );
+            conditions.push("t.due IS NOT NULL AND t.due <= ?".to_string());
             params.push(due_before.clone());
         }
 
         if let Some(ref due_after) = filter.due_after {
-            conditions.push(
-                "EXISTS (SELECT 1 FROM task_properties tp \
-                 WHERE tp.task_id = t.id AND tp.kind = 'due' AND tp.value >= ?)"
-                    .to_string(),
-            );
+            conditions.push("t.due IS NOT NULL AND t.due >= ?".to_string());
             params.push(due_after.clone());
         }
 
@@ -150,14 +170,13 @@ impl SqliteStore {
 
     /// Fetch task views from a prepared statement.
     ///
-    /// Eliminates N+1 queries by fetching all properties in a single query with LEFT JOIN,
-    /// then grouping them in memory by `task_id`.
+    /// `due` and `task_id` come from denormalized columns on `tasks`.
+    /// Tags are batch-fetched from `task_properties` in a single query.
     fn fetch_task_views(
         &self,
         stmt: &mut rusqlite::Statement,
         params: &[&dyn rusqlite::ToSql],
     ) -> Result<Vec<TaskView>, StoreError> {
-        // First, fetch all tasks
         let task_rows: Vec<TaskRow> = stmt
             .query_map(params, |row| {
                 Ok((
@@ -169,6 +188,8 @@ impl SqliteStore {
                     row.get(5)?,
                     row.get(6)?,
                     row.get(7)?,
+                    row.get(8)?,
+                    row.get(9)?,
                 ))
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -177,49 +198,30 @@ impl SqliteStore {
             return Ok(Vec::new());
         }
 
-        // Collect all task IDs to fetch properties in one query
-        let task_ids: Vec<i64> = task_rows.iter().map(|(id, ..)| *id).collect();
-
-        // Build a single query to fetch ALL properties for ALL tasks
-        // Using IN (?,?,?...) for batch fetching
-        let placeholders = task_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
-        let props_sql = format!(
-            "SELECT task_id, kind, value FROM task_properties WHERE task_id IN ({placeholders}) ORDER BY task_id"
+        // Batch-fetch tags from task_properties.
+        let row_ids: Vec<i64> = task_rows.iter().map(|(id, ..)| *id).collect();
+        let placeholders = row_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
+        let tags_sql = format!(
+            "SELECT task_id, value FROM task_properties \
+             WHERE task_id IN ({placeholders}) AND kind = 'tag' ORDER BY task_id"
         );
+        let mut tags_stmt = self.conn.prepare(&tags_sql)?;
+        let id_refs: Vec<&dyn rusqlite::types::ToSql> =
+            row_ids.iter().map(|id| id as &dyn rusqlite::types::ToSql).collect();
 
-        let mut props_stmt = self.conn.prepare(&props_sql)?;
-        let params_refs: Vec<&dyn rusqlite::types::ToSql> =
-            task_ids.iter().map(|id| id as &dyn rusqlite::types::ToSql).collect();
-
-        // Fetch all properties and group by task_id in memory
         use std::collections::HashMap;
-        let mut properties_map: HashMap<i64, (Option<String>, Vec<String>)> = HashMap::new();
-
-        let prop_rows = props_stmt.query_map(params_refs.as_slice(), |row| {
-            Ok((
-                row.get::<_, i64>(0)?,
-                row.get::<_, String>(1)?,
-                row.get::<_, String>(2)?,
-            ))
+        let mut tags_map: HashMap<i64, Vec<String>> = HashMap::new();
+        let tag_rows = tags_stmt.query_map(id_refs.as_slice(), |row| {
+            Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?))
         })?;
-
-        for prop_result in prop_rows {
-            let (task_id, kind, value) = prop_result?;
-            let entry = properties_map.entry(task_id).or_insert((None, Vec::new()));
-            match kind.as_str() {
-                "due" => entry.0 = Some(value),
-                "tag" => entry.1.push(value),
-                _ => {}
-            }
+        for row in tag_rows {
+            let (task_id, value) = row?;
+            tags_map.entry(task_id).or_default().push(value);
         }
 
-        // Now build TaskViews using the pre-fetched properties
         let mut tasks = Vec::with_capacity(task_rows.len());
-        for (task_id, title, is_done, position, milestone, file_path, file_title, watch_root) in task_rows {
-            let (due, tags) = properties_map
-                .remove(&task_id)
-                .unwrap_or((None, Vec::new()));
-
+        for (row_id, title, is_done, position, milestone, due, task_id, file_path, file_title, watch_root) in task_rows {
+            let tags = tags_map.remove(&row_id).unwrap_or_default();
             tasks.push(TaskView {
                 title,
                 is_done,
@@ -227,6 +229,7 @@ impl SqliteStore {
                 file_path: PathBuf::from(file_path),
                 file_title,
                 due,
+                task_id,
                 tags,
                 milestone,
                 watch_root: watch_root.map(PathBuf::from),
@@ -307,9 +310,9 @@ impl Store for SqliteStore {
 
         for (i, task) in tasks.iter().enumerate() {
             tx.execute(
-                "INSERT INTO tasks (task_file_id, title, is_done, position, milestone)
-                 VALUES (?1, ?2, ?3, ?4, ?5)",
-                params![file_id, task.title, task.is_done, task.position, task.milestone],
+                "INSERT INTO tasks (task_file_id, title, is_done, position, milestone, due, task_id)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                params![file_id, task.title, task.is_done, task.position, task.milestone, task.due, task.task_id],
             )?;
             let task_id = tx.last_insert_rowid();
 
@@ -510,27 +513,22 @@ impl Store for SqliteStore {
     }
 
     fn find_task_by_id(&self, id_or_mask: &str) -> Result<super::TaskWithFile, super::StoreError> {
-        // Determine if this is an exact match or a masked pattern
         let (query, param) = if let Some(suffix) = id_or_mask.strip_prefix('*') {
-            // Masked pattern: find tasks with ID ending in suffix
             (
-                "SELECT tp.value, t.title, t.is_done, tf.file_path, tf.eval_hash
-                 FROM task_properties tp
-                 JOIN tasks t ON tp.task_id = t.id
+                "SELECT t.task_id, t.title, t.is_done, tf.file_path, tf.eval_hash
+                 FROM tasks t
                  JOIN task_files tf ON t.task_file_id = tf.id
-                 WHERE tp.kind = 'id' AND tp.value LIKE ?1",
+                 WHERE t.task_id LIKE ?1",
                 format!("%{suffix}"),
             )
         } else {
-            // Try normalizing base62 → canonical UUID before querying.
             let canonical = crate::id::parse_task_id(id_or_mask)
                 .unwrap_or_else(|_| id_or_mask.to_string());
             (
-                "SELECT tp.value, t.title, t.is_done, tf.file_path, tf.eval_hash
-                 FROM task_properties tp
-                 JOIN tasks t ON tp.task_id = t.id
+                "SELECT t.task_id, t.title, t.is_done, tf.file_path, tf.eval_hash
+                 FROM tasks t
                  JOIN task_files tf ON t.task_file_id = tf.id
-                 WHERE tp.kind = 'id' AND tp.value = ?1",
+                 WHERE t.task_id = ?1",
                 canonical,
             )
         };
@@ -594,6 +592,8 @@ mod tests {
             is_done: done,
             position: pos,
             milestone: None,
+            due: None,
+            task_id: None,
         }
     }
 
@@ -658,7 +658,7 @@ mod tests {
             .conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 6);
+        assert_eq!(version, 7);
     }
 
     // --- upsert_task_file ---
@@ -864,11 +864,13 @@ mod tests {
         let file_id = store
             .upsert_task_file(&make_task_file("todo.typ", "seed"))
             .unwrap();
-        let tasks = vec![
+        let mut tasks = vec![
             make_record("Buy milk", false, 0),
             make_record("Done thing", true, 1),
             make_record("Urgent", false, 2),
         ];
+        tasks[0].due = Some("2026-03-01".to_string());
+        tasks[2].due = Some("2026-01-15".to_string());
         let props = vec![
             vec![make_due_prop("2026-03-01")],
             vec![],
@@ -994,9 +996,13 @@ mod tests {
             make_record("Plan sprint", false, 3),
         ];
         tasks[0].milestone = Some("Ops > Deployment".to_string());
+        tasks[0].due = Some("2026-02-15".to_string());
         tasks[1].milestone = Some("Docs".to_string());
+        tasks[1].due = Some("2026-03-01".to_string());
         tasks[2].milestone = Some("Engineering > Auth".to_string());
+        tasks[2].due = Some("2026-01-10".to_string());
         tasks[3].milestone = Some("Planning".to_string());
+        tasks[3].due = Some("2026-04-01".to_string());
 
         let props = vec![
             vec![make_tag_prop("ops"), make_tag_prop("urgent"), make_due_prop("2026-02-15")],
@@ -1317,6 +1323,8 @@ mod tests {
         assert_eq!(tf.title, Some("Heading".to_string()));
         assert_eq!(tasks.len(), 1);
         assert_eq!(tasks[0].title, "Test");
+        assert_eq!(tasks[0].due, Some("2026-03-01".to_string()));
+        assert_eq!(tasks[0].task_id, Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string()));
         assert_eq!(props.len(), 1);
         assert_eq!(props[0].len(), 4); // 1 id + 1 due + 2 tags
         assert_eq!(props[0][0].kind, PropertyKind::Id);

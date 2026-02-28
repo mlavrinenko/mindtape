@@ -8,7 +8,7 @@ the same `Store` trait.
 
 - Define domain types for persisted data (TaskFile, TaskRecord, etc.)
 - Define the `Store` trait (anti-corruption layer)
-- Implement `SqliteStore` with schema migrations (currently v6)
+- Implement `SqliteStore` with schema v7 (drop-and-recreate on version mismatch)
 - Convert eval results to store records (`to_store_records`)
 - Orchestrate file indexing (`index_file`: eval -> hash -> store)
 - Generate and parse task IDs (UUIDv7, base62)
@@ -21,16 +21,18 @@ src/
   id.rs            -- UUIDv7 generation, base62 encoding, ID parsing/validation
   store/
     mod.rs         -- domain types, Store trait, StoreError
-    sqlite.rs      -- SqliteStore impl, schema v6, migrations, tests
+    sqlite.rs      -- SqliteStore impl, schema v7, tests
+    migrations/    -- v7.rs (single clean schema, drop-and-recreate)
     indexer.rs     -- hash_file(), to_store_records(), index_file(), index_file_with_deps()
 ```
 
 ## Key Types
 
 - `Store` trait — 13 methods (upsert, query, remove, stats, dependencies, find)
-- `SqliteStore` — SQLite implementation with schema v6
+- `SqliteStore` — SQLite implementation with schema v7
 - `TaskFile`, `TaskRecord`, `TaskProperty`, `PropertyKind`, `FileBinding` — domain types
-- `TaskFilter` — query filters (done, tag, due_before/after, search, file_path, folder, limit)
+- `TaskFilter` — query filters (done, tag, due_before/after, search, file_path, folder, limit, sort)
+- `SortField`, `SortDir`, `SortSpec` — sort specification types
 - `TaskView`, `FileView`, `IndexStats` — query result types
 - `FileDependencies`, `FileReference` — dependency graph types
 - `TaskWithFile` — task + file path for write-back lookup
@@ -44,14 +46,13 @@ src/
 - `upsert_file_references`, `get_file_dependencies`, `list_file_dependencies` — deps
 - `find_task_by_id` — lookup by UUID, base62, or `*suffix` mask
 
-## Schema History
+## Schema
 
-- v1: Core tables (task_files, tasks, task_properties, file_bindings)
-- v2: COLLATE NOCASE indexes
-- v3: file_references table for dependency tracking
-- v4: Added `milestone TEXT` column to tasks
-- v5: `relative_path` → `file_path` (absolute), added `watch_root TEXT`
-- v6: FTS5 virtual table `tasks_fts` (title, milestone) with auto-sync triggers
+v7 uses a drop-and-recreate strategy (DB is a derived cache). If the schema
+version doesn't match, the DB is dropped and recreated on startup.
+
+Key v7 changes: `due` and `task_id` denormalized onto `tasks` table for
+efficient SQL-side sorting/filtering. Tags remain in `task_properties`.
 
 ## Technical Notes
 

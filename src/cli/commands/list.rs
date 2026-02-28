@@ -8,7 +8,7 @@ use termtree::Tree;
 use crate::cli::format::{format_task_leaf, format_tasks_csv};
 use crate::cli::util::{open_query_db, print_json, resolve_query_db_path};
 use crate::cli::{OutputFormat, QueryOpts};
-use crate::store::{Store, TaskFilter, TaskView};
+use crate::store::{SortDir, SortField, SortSpec, Store, TaskFilter, TaskView};
 
 /// Filter for task status.
 #[derive(ValueEnum, Clone, Copy, Debug, PartialEq)]
@@ -65,8 +65,39 @@ pub struct ListArgs {
     #[arg(short = 'n', long)]
     pub limit: Option<usize>,
 
+    /// Sort order (repeatable, e.g. --sort=due:asc --sort=title:desc).
+    /// Fields: due, id, file, position (pos), title, status. Direction defaults to asc.
+    #[arg(long, value_parser = parse_sort_spec)]
+    pub sort: Vec<SortSpec>,
+
     #[command(flatten)]
     pub query: QueryOpts,
+}
+
+/// Parse a `field[:dir]` string into a `SortSpec`.
+fn parse_sort_spec(input: &str) -> Result<SortSpec, String> {
+    let (field_str, dir_str) = match input.split_once(':') {
+        Some((field_part, dir_part)) => (field_part, Some(dir_part)),
+        None => (input, None),
+    };
+
+    let field = match field_str {
+        "due" => SortField::Due,
+        "id" => SortField::Id,
+        "file" => SortField::File,
+        "position" | "pos" => SortField::Position,
+        "title" => SortField::Title,
+        "status" => SortField::Status,
+        _ => return Err(format!("unknown sort field: {field_str}")),
+    };
+
+    let dir = match dir_str {
+        Some("asc") | None => SortDir::Asc,
+        Some("desc") => SortDir::Desc,
+        Some(other) => return Err(format!("unknown sort direction: {other} (use asc or desc)")),
+    };
+
+    Ok(SortSpec { field, dir })
 }
 
 impl ListArgs {
@@ -103,6 +134,7 @@ impl ListArgs {
             folder: self.folder.clone(),
             watch_root: self.watch_root.clone(),
             limit: self.limit,
+            sort: self.sort.clone(),
         };
 
         let tasks = store
