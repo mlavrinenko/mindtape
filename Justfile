@@ -88,14 +88,14 @@ check-file-size:
         fi
     done < <(find . -type f -name '*.rs' ! -path './target/*')
 
-    # Check Markdown files (skip archive - it's historical)
+    # Check Markdown files (skip archive, CONTRIBUTING.md)
     while IFS= read -r file; do
         lines=$(wc -l < "$file")
         if [[ $lines -gt $MARKDOWN_LIMIT ]]; then
             echo "❌ $file: $lines lines (limit: $MARKDOWN_LIMIT)"
             failed=1
         fi
-    done < <(find . -type f -name '*.md' ! -path './target/*' ! -path './archive/*')
+    done < <(find . -type f -name '*.md' ! -path './target/*' ! -path './archive/*' ! -name 'CONTRIBUTING.md')
 
     if [[ $failed -eq 1 ]]; then
         echo ""

@@ -8,6 +8,7 @@ metadata into SQLite, and exposes a CLI for querying.
 
 ## Key Docs
 
+- `CONTRIBUTING.md` — **contribution guidelines (workflows, schema changes, commit style)**
 - `docs/DESIGN.md` — architecture, data model, design rationale
 - `docs/TESTING.md` — testing guidelines
 - `crates/mindtape-eval/CLAUDE.md` — eval crate context
@@ -27,19 +28,13 @@ metadata into SQLite, and exposes a CLI for querying.
 
 ## Agent Rules
 
+See `CONTRIBUTING.md` for full contribution guidelines (schema changes, commit style, testing).
+
+Quick rules:
 - Use `just` recipes instead of raw cargo commands (see `Justfile`)
-- Use `-q` for cargo commands — only show errors/warnings, not compilation progress
 - After any code changes, run `just check` (clippy + tests + file size) and fix all warnings
-- If clippy suggests `--fix`, use `cargo clippy --fix --workspace --all-targets` to auto-apply mechanical fixes
-- Always improve the `Justfile` when you notice missing or useful recipes
-- Avoid dumping large tool outputs into context; summarize or truncate
-- When working on a single crate, read that crate's `CLAUDE.md` for focused context
-- Save research findings to `archive/research/` as markdown files
 - Keep files small: Rust ≤500 lines, Markdown ≤200 lines (enforced by `just check-file-size`)
-- **After completing a task with code/config changes**:
-  1. Update `docs/DESIGN.md` if architecture changed
-  2. If implementing a REVIEW.md, update it with completion status and summary
-  3. Suggest a conventional commit message (`feat:`, `fix:`, `refactor:`, `chore:`, `docs:`)
+- **After completing a task**, update docs and suggest a conventional commit message
 
 ## Architecture Principles
 
@@ -64,9 +59,10 @@ crates/
 
   mindtape-store/       -- Store trait + SQLite backend
     src/id.rs            -- UUIDv7 generation, base62 encoding/decoding
-    src/store/mod.rs     -- domain types, Store trait (13 methods), StoreError
-    src/store/sqlite.rs  -- SqliteStore impl, schema v6, migrations
+    src/store/mod.rs     -- domain types, Store trait (13 methods), StoreError, SortSpec
+    src/store/sqlite.rs  -- SqliteStore impl, schema v7, ORDER BY generation
     src/store/indexer.rs -- hash_file(), to_store_records(), index_file()
+    src/store/migrations/v7.rs -- schema v7 (drop-and-recreate)
 
 src/                    -- root crate: CLI binary
   cli/
@@ -133,7 +129,8 @@ Use `just count-tests` for current test count. See `docs/TESTING.md` for guideli
 
 - `mindtape <file.typ> [--due] [-N]` — eval a single file
 - `mindtape watch [<path>] [--config <file>]` — watch and index folders
-- `mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--file PATH] [--folder PREFIX] [--watch-root PATH] [-N] [--db PATH] [--format table|json|csv]`
+- `mindtape list [--status done|pending|all] [--tag TAG] [--due-before DATE] [--sort FIELD[:DIR]]... [-N] [--db PATH] [--format table|json|csv]`
+  - Sort: `--sort=due:asc --sort=id:asc` (fields: due, id, file, position/pos, title, status; dir defaults to asc)
 - `mindtape status [--db PATH] [--format table|json|csv]`
 - `mindtape files [--db PATH] [--format table|json|csv]`
 - `mindtape deps [--file PATH] [--db PATH] [--format table|json|csv]`
