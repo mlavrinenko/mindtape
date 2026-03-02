@@ -10,11 +10,10 @@ and metadata into SQLite, and exposes a CLI for querying.
 
 ## Key Docs
 
-- `CONTRIBUTING.md` — workflow, commit style, quality standards
-- `docs/TESTING.md` — testing guidelines
+- `CONTRIBUTING.md` — workflow, commit style, testing, quality standards
 - `docs/design/` — architecture deep-dives (eval, store, watcher, writeback)
-- `crates/mindtape-eval/CLAUDE.md` — eval crate context
-- `crates/mindtape-store/CLAUDE.md` — store crate context
+- `crates/mindtape-eval/AGENT.md` — eval crate context
+- `crates/mindtape-store/AGENT.md` — store crate context
 
 ## Tech Stack
 
@@ -44,7 +43,7 @@ and metadata into SQLite, and exposes a CLI for querying.
 ## Task Format (Typst Convention)
 
 ```typ
-#import "@mindtape/mindtape:0.1.0": due, id, tag
+#import "@local/mindtape:0.1.0": due, id, tag
 
 = Milestone Title
 

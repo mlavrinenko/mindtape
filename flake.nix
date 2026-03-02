@@ -30,6 +30,7 @@
         # For `nix build` & `nix run`:
         packages.default = naersk'.buildPackage {
           src = ./.;
+          doCheck = true;
         };
 
         # For `nix develop`:

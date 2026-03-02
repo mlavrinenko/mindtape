@@ -8,7 +8,7 @@ cd mindtape
 nix develop
 
 just check    # clippy + tests + file size limits
-just all      # check + integration tests
+just all      # check + build
 ```
 
 ## Common Commands
@@ -20,7 +20,7 @@ just all      # check + integration tests
 | `just clippy` | Clippy only |
 | `just clippy-fix` | Auto-apply clippy suggestions |
 | `just build` | Build the project |
-| `just all` | Full suite (check + integration tests) |
+| `just all` | Full suite (check + build) |
 | `just fmt` | Format code |
 | `just cover` | Coverage report via cargo tarpaulin |
 | `just count-tests` | Count total tests across workspace |
@@ -32,7 +32,7 @@ Use `just` recipes instead of raw `cargo` — they handle flags and environment 
 ### File Size Limits (enforced by `just check-file-size`)
 
 - Rust files: **500 lines** max
-- Markdown files: **200 lines** max (excluding `archive/`)
+- Markdown files: **200 lines** max
 
 If a file exceeds the limit, refactor by extracting modules or splitting content.
 
@@ -40,10 +40,34 @@ If a file exceeds the limit, refactor by extracting modules or splitting content
 
 All warnings must be fixed. Run `just clippy-fix` for mechanical fixes.
 
-### Testing
+## Testing
 
-- Add tests for all new functionality
-- See [docs/TESTING.md](docs/TESTING.md) for guidelines
+Coverage target is configured in `tarpaulin.toml`.
+
+### Running Tests
+
+```bash
+just check          # clippy + all tests (preferred)
+just test           # tests only
+just cover          # coverage report via cargo tarpaulin
+just count-tests    # show current test count
+```
+
+### Test Organization
+
+**Unit tests** (`#[cfg(test)] mod tests` in source files) — test pure functions
+with no I/O where possible.
+
+**Integration tests** (`tests/` directory) — test the full pipeline end-to-end
+with temporary files and databases. Shared setup lives in `tests/common.rs`.
+
+### Writing Good Tests
+
+- Test behavior, not implementation details
+- Name tests descriptively: `test_<function>_<scenario>`
+- Test edge cases: empty input, missing fields, boundary values
+- Use `assert_eq!` for value comparisons (better failure messages)
+- Use shared helpers from `tests/common.rs` for integration tests
 
 ## Commit Messages
 

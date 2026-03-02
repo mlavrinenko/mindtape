@@ -106,10 +106,10 @@ The value is a Typst `Array`:
 - Index 0: `Str` — the kind (`"due"`, `"id"`, `"tag"`)
 - Index 1: `Datetime` or `Str` — the actual value
 
-Imported via the `@mindtape` package namespace, resolved by the World:
+Imported via the `@local/mindtape` package namespace, resolved by the World:
 
 ```typ
-#import "@mindtape/mindtape:0.1.0": due, id, tag
+#import "@local/mindtape:0.1.0": due, id, tag
 ```
 
 ## Extraction Algorithm

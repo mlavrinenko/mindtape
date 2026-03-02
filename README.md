@@ -65,7 +65,7 @@ just uninstall-lib  # remove the symlink
 ```bash
 # Evaluate a single file
 mindtape tasks.typ
-mindtape tasks.typ --due -5        # tasks with due dates, limit to 5
+mindtape tasks.typ --due -n 5      # tasks with due dates, limit to 5
 
 # Watch folders and build the index
 mindtape watch                     # uses ~/.config/mindtape/config.toml
@@ -105,7 +105,7 @@ recursive = true
 
 ## Docs
 
-- [Contributing](CONTRIBUTING.md) — development workflow, commit style
+- [Contributing](CONTRIBUTING.md) — development workflow, testing, commit style
 - [Design](docs/design/) — architecture deep-dives (eval, store, watcher, write-back)
 
 ## License

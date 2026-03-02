@@ -100,7 +100,9 @@ name = "mindtape"
 version = "0.1.0"
 edition = "2024"
 description = "A file-based task tracker using Typst files as the source of truth"
+repository = "https://github.com/mlavrinenko/mindtape"
 license = "MIT"
+keywords = ["typst", "task-tracker", "cli", "sqlite", "productivity"]
 
 [lib]
 name = "mindtape"
