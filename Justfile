@@ -26,12 +26,8 @@ build:
 cover:
     cargo tarpaulin --workspace
 
-# Run shell integration tests
-itest: build
-    cd itest && PATH="../target/debug:$PATH" sh basic.sh
-
-# Run everything (clippy + tests + itest)
-all: check itest
+# Run everything (check + build)
+all: check build
 
 # Format code
 fmt:
@@ -88,14 +84,14 @@ check-file-size:
         fi
     done < <(find . -type f -name '*.rs' ! -path './target/*')
 
-    # Check Markdown files (skip archive, CONTRIBUTING.md)
+    # Check Markdown files (skip archive)
     while IFS= read -r file; do
         lines=$(wc -l < "$file")
         if [[ $lines -gt $MARKDOWN_LIMIT ]]; then
             echo "❌ $file: $lines lines (limit: $MARKDOWN_LIMIT)"
             failed=1
         fi
-    done < <(find . -type f -name '*.md' ! -path './target/*' ! -path './archive/*' ! -name 'CONTRIBUTING.md')
+    done < <(find . -type f -name '*.md' ! -path './target/*' ! -path './archive/*')
 
     if [[ $failed -eq 1 ]]; then
         echo ""

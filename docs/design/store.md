@@ -118,6 +118,15 @@ See `crates/mindtape-store/src/store/sqlite.rs` for full implementation.
 - Efficient queries with prepared statements
 - Comprehensive unit tests (42 tests in sqlite.rs)
 
+## Schema Change Procedure
+
+1. Delete `crates/mindtape-store/src/store/migrations/v7.rs`
+2. Create `v8.rs` with your schema changes (copy v7.rs as starting point)
+3. Update `migrations/mod.rs`: change `mod v7` → `mod v8`, bump `CURRENT_SCHEMA_VERSION`, update `execute_batch` call
+4. Update test assertions in `sqlite.rs` (`assert_eq!(version, 8)`)
+5. Update version references in `crates/mindtape-store/CLAUDE.md`
+6. Run `just check`
+
 ## Error Handling
 
 See `crates/mindtape-store/src/store/mod.rs` for `StoreError` definition.

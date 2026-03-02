@@ -22,14 +22,10 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Check formatting
-        run: cargo fmt -- --check
+      - uses: extractions/setup-just@v2
 
-      - name: Clippy
-        run: cargo clippy -q -- -D warnings
+      - name: Format check
+        run: just fmt-check
 
-      - name: Build
-        run: cargo build -q
-
-      - name: Test
-        run: cargo test -q
+      - name: Clippy + tests + file size
+        run: just check

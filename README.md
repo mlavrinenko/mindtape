@@ -3,12 +3,12 @@
 A file-based task tracker powered by [Typst](https://typst.app/).
 
 Write `.typ` files to manage tasks across your projects. MindTape watches your folders,
-evaluates the Typst files, and indexes everything into a searchable database.
+evaluates the Typst files, and indexes everything into a searchable SQLite database.
 
 ## Why Typst?
 
 Unlike Markdown, Typst files can import each other, define typed variables, and be
-statically checked. This means your task data is structured, validated, and composable.
+statically checked. Your task data is structured, validated, and composable.
 
 ```typ
 #import "@local/mindtape:0.1.0": due, tag, id
@@ -18,50 +18,23 @@ statically checked. This means your task data is structured, validated, and comp
 - [ ] implement auth #due(datetime(year: 2026, month: 3, day: 1)) #tag("backend") #id("auth-123")
 - [x] design mockups #tag("design") #id("design-456")
 - [ ] write tests
-
-#let note = "blocked on API spec from team B"
 ```
 
-### Installing the MindTape Library
+## Installation
 
-To use `#import "@local/mindtape:0.1.0"` in your Typst files globally:
-
-```bash
-just install-lib
-```
-
-This creates a symlink at `~/.local/share/typst/packages/local/mindtape/0.1.0/` pointing
-to the `lib/` directory. The library works with both the Typst CLI (`typst compile`) and
-MindTape evaluation.
-
-To uninstall:
-
-```bash
-just uninstall-lib
-```
-
-## How It Works
-
-1. Configure folders to watch
-2. Run `mindtape watch`
-3. MindTape evaluates your `.typ` files using the Typst compiler
-4. Tasks, properties, and bindings are indexed into SQLite
-5. Query with `mindtape list`, filter by status/tag/due date
-
-## NixOS installation
+### Nix flake (NixOS / Home Manager)
 
 ```nix
-# inputs:
-mindtape.url = "path:/home/tank/projects/home/mindtape";
+# flake inputs:
+mindtape.url = "github:mlavrinenko/mindtape";
 mindtape.inputs.nixpkgs.follows = "nixpkgs";
 
-# modules list:
-mindtape.nixosModules.default
+# NixOS module:
+imports = [ mindtape.nixosModules.default ];
 
-# configuration:
 services.mindtape = {
   enable = true;
-  user = "tank";    # run as your user instead of a system user
+  user = "tank";
   group = "users";
   watchPaths = [
     { path = "/home/tank/notes"; }
@@ -69,33 +42,72 @@ services.mindtape = {
 };
 ```
 
+### From source
+
+```bash
+git clone https://github.com/mlavrinenko/mindtape.git
+cd mindtape
+nix develop   # or install Rust toolchain manually
+cargo build --release
+```
+
+### Typst library
+
+Install the MindTape prelude (`due()`, `id()`, `tag()`) for your Typst files:
+
+```bash
+just install-lib    # symlinks lib/ into ~/.local/share/typst/packages/local/mindtape/0.1.0/
+just uninstall-lib  # remove the symlink
+```
+
+## Usage
+
+```bash
+# Evaluate a single file
+mindtape tasks.typ
+mindtape tasks.typ --due -5        # tasks with due dates, limit to 5
+
+# Watch folders and build the index
+mindtape watch                     # uses ~/.config/mindtape/config.toml
+mindtape watch --config my.toml    # custom config
+
+# Query the index
+mindtape list                              # pending tasks
+mindtape list --status all --tag backend   # filter by status and tag
+mindtape list --due-before 2026-04-01      # due soon
+mindtape list --sort due:asc -10           # sorted, limit 10
+mindtape list --json                       # JSON output
+
+# Modify tasks (writes back to .typ files)
+mindtape check <task-id>                   # toggle checkbox
+mindtape set <task-id> --due 2026-04-01    # set due date
+mindtape set <task-id> --add-tag urgent    # add tag
+
+# Inspect
+mindtape status                    # index statistics
+mindtape files                     # indexed files
+mindtape deps                      # file dependency graph
+mindtape id                        # generate a new UUIDv7 task ID
+```
+
+## Configuration
+
+```toml
+# ~/.config/mindtape/config.toml
+
+[database]
+path = "~/.local/share/mindtape/index.db"
+
+[[watch]]
+path = "~/projects/myproject"
+recursive = true
+```
+
 ## Docs
 
-- [Design](docs/DESIGN.md) — architecture, data model, technical decisions
-- [Roadmap](docs/ROADMAP.md) — MVP scope, milestones, non-goals
+- [Contributing](CONTRIBUTING.md) — development workflow, commit style
+- [Design](docs/design/) — architecture deep-dives (eval, store, watcher, write-back)
 
-## TODO
+## License
 
-- `mindtape project` - create project by template?
-
-## Future / Ideas
-
-- TUI (ratatui)
-- DuckDB as alternative store backend
-- Typst package published to `@preview` for `due`, `tag`, etc.
-- Custom user-defined task properties
-- Recurring tasks
-- Task dependencies / blocking relationships
-- Notifications (desktop, email)
-- Sync across machines (CRDTs, git-based)
-- `mindtape init` scaffolding for new projects
-- REST API
-- Web UI
-- Editor integrations (VS Code, Neovim)
-
-## Non-Goals
-
-- MindTape is NOT a Typst renderer — we never produce PDFs or visual output
-- MindTape is NOT a general Typst IDE — use tinymist for that
-- MindTape does NOT replace Typst files — they are always the source of truth
-- MindTape does NOT require internet access for core functionality
+[MIT](LICENSE)
