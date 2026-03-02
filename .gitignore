@@ -1,5 +1,4 @@
 /.direnv
 /build
 /target
-!CLAUDE.md
 /template
