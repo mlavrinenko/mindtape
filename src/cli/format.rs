@@ -13,55 +13,52 @@ pub fn csv_to_string(wtr: Writer<Vec<u8>>) -> Result<String, csv::Error> {
         .map_err(|e| csv::Error::from(std::io::Error::new(std::io::ErrorKind::InvalidData, e)))
 }
 
+/// Format a task as a valid Typst list item with inline tags.
+///
+/// Output: `- [ ] Title #due(2026, 5, 15) #start(2026, 3, 1) #high #tag("t") #id("uuid")`
 #[must_use]
-pub fn format_task_view(task: &TaskView) -> String {
+pub fn format_task_typst(task: &TaskView) -> String {
     let check = if task.is_done { "[x]" } else { "[ ]" };
-    let due_part = task
-        .due
-        .as_ref()
-        .map(|d| format!(" (due {d})"))
-        .unwrap_or_default();
-    let start_part = task
-        .start
-        .as_ref()
-        .map(|d| format!(" (start {d})"))
-        .unwrap_or_default();
-    let rank_part = task
-        .rank
-        .map(|r| format!(" (rank {r})"))
-        .unwrap_or_default();
-    let tag_part = if task.tags.is_empty() {
-        String::new()
-    } else {
-        format!(" [{}]", task.tags.join(", "))
-    };
-    format!("- {check}{due_part}{start_part}{rank_part} {}{tag_part}", task.title)
+    let mut parts = vec![format!("- {check} {}", task.title)];
+    if let Some(ref date) = task.due
+        && let Some(call) = date_to_typst_call("due", date)
+    {
+        parts.push(call);
+    }
+    if let Some(ref date) = task.start
+        && let Some(call) = date_to_typst_call("start", date)
+    {
+        parts.push(call);
+    }
+    if let Some(r) = task.rank {
+        parts.push(rank_to_typst(r));
+    }
+    for tag in &task.tags {
+        parts.push(format!("#tag(\"{tag}\")"));
+    }
+    if let Some(ref id) = task.task_id {
+        parts.push(format!("#id(\"{id}\")"));
+    }
+    parts.join(" ")
 }
 
-/// Format a task for use as a tree leaf (no leading `- ` prefix).
-#[must_use]
-pub fn format_task_leaf(task: &TaskView) -> String {
-    let check = if task.is_done { "[x]" } else { "[ ]" };
-    let due_part = task
-        .due
-        .as_ref()
-        .map(|d| format!(" (due {d})"))
-        .unwrap_or_default();
-    let start_part = task
-        .start
-        .as_ref()
-        .map(|d| format!(" (start {d})"))
-        .unwrap_or_default();
-    let rank_part = task
-        .rank
-        .map(|r| format!(" (rank {r})"))
-        .unwrap_or_default();
-    let tag_part = if task.tags.is_empty() {
-        String::new()
-    } else {
-        format!(" [{}]", task.tags.join(", "))
-    };
-    format!("{check}{due_part}{start_part}{rank_part} {}{tag_part}", task.title)
+/// Convert a `YYYY-MM-DD` date string to `#func(Y, M, D)`.
+fn date_to_typst_call(func: &str, date: &str) -> Option<String> {
+    let parts: Vec<&str> = date.split('-').collect();
+    let year = parts.first()?.trim_start_matches('0');
+    let month = parts.get(1)?.trim_start_matches('0');
+    let day = parts.get(2)?.trim_start_matches('0');
+    Some(format!("#{func}({year}, {month}, {day})"))
+}
+
+/// Convert a numeric rank to its Typst representation.
+fn rank_to_typst(rank: i64) -> String {
+    match rank {
+        100 => "#high".to_string(),
+        50 => "#medium".to_string(),
+        10 => "#low".to_string(),
+        other => format!("#rank({other})"),
+    }
 }
 
 #[must_use]
@@ -166,87 +163,6 @@ mod tests {
     use std::path::PathBuf;
 
     use super::*;
-
-    // --- format_task_view ---
-
-    #[test]
-    fn format_task_view_pending_with_due() {
-        let task = TaskView {
-            title: "Buy milk".to_string(),
-            is_done: false,
-            position: 0,
-            file_path: PathBuf::from("todo.typ"),
-            file_title: None,
-            due: Some("2026-03-01".to_string()),
-            start: None,
-            rank: None,
-            task_id: None,
-            tags: vec![],
-            milestone: None,
-            watch_root: None,
-        };
-        assert_eq!(format_task_view(&task), "- [ ] (due 2026-03-01) Buy milk");
-    }
-
-    #[test]
-    fn format_task_view_done_no_due() {
-        let task = TaskView {
-            title: "Done thing".to_string(),
-            is_done: true,
-            position: 0,
-            file_path: PathBuf::from("todo.typ"),
-            file_title: None,
-            due: None,
-            start: None,
-            rank: None,
-            task_id: None,
-            tags: vec![],
-            milestone: None,
-            watch_root: None,
-        };
-        assert_eq!(format_task_view(&task), "- [x] Done thing");
-    }
-
-    #[test]
-    fn format_task_view_with_tags() {
-        let task = TaskView {
-            title: "Task".to_string(),
-            is_done: false,
-            position: 0,
-            file_path: PathBuf::from("t.typ"),
-            file_title: None,
-            due: None,
-            start: None,
-            rank: None,
-            task_id: None,
-            tags: vec!["work".to_string(), "urgent".to_string()],
-            milestone: None,
-            watch_root: None,
-        };
-        assert_eq!(format_task_view(&task), "- [ ] Task [work, urgent]");
-    }
-
-    #[test]
-    fn format_task_view_with_start_and_rank() {
-        let task = TaskView {
-            title: "Important task".to_string(),
-            is_done: false,
-            position: 0,
-            file_path: PathBuf::from("t.typ"),
-            file_title: None,
-            due: Some("2026-04-01".to_string()),
-            start: Some("2026-03-01".to_string()),
-            rank: Some(100),
-            task_id: None,
-            tags: vec![],
-            milestone: None,
-            watch_root: None,
-        };
-        assert_eq!(
-            format_task_view(&task),
-            "- [ ] (due 2026-04-01) (start 2026-03-01) (rank 100) Important task"
-        );
-    }
 
     // --- format_file_view ---
 
@@ -381,5 +297,113 @@ mod tests {
         assert!(csv.contains("done,4\n"));
         assert!(csv.contains("pending,6\n"));
         assert!(csv.contains("last_updated,2026-01-15\n"));
+    }
+
+    // --- format_task_typst ---
+
+    #[test]
+    fn typst_pending_with_due() {
+        let task = TaskView {
+            title: "Buy milk".to_string(),
+            is_done: false,
+            position: 0,
+            file_path: PathBuf::from("todo.typ"),
+            file_title: None,
+            due: Some("2026-03-01".to_string()),
+            start: None,
+            rank: None,
+            task_id: None,
+            tags: vec![],
+            milestone: None,
+            watch_root: None,
+        };
+        assert_eq!(format_task_typst(&task), "- [ ] Buy milk #due(2026, 3, 1)");
+    }
+
+    #[test]
+    fn typst_done_no_metadata() {
+        let task = TaskView {
+            title: "Done thing".to_string(),
+            is_done: true,
+            position: 0,
+            file_path: PathBuf::from("todo.typ"),
+            file_title: None,
+            due: None,
+            start: None,
+            rank: None,
+            task_id: None,
+            tags: vec![],
+            milestone: None,
+            watch_root: None,
+        };
+        assert_eq!(format_task_typst(&task), "- [x] Done thing");
+    }
+
+    #[test]
+    fn typst_rank_aliases() {
+        let make = |rank| TaskView {
+            title: "T".to_string(),
+            is_done: false,
+            position: 0,
+            file_path: PathBuf::from("t.typ"),
+            file_title: None,
+            due: None,
+            start: None,
+            rank: Some(rank),
+            task_id: None,
+            tags: vec![],
+            milestone: None,
+            watch_root: None,
+        };
+        assert_eq!(format_task_typst(&make(100)), "- [ ] T #high");
+        assert_eq!(format_task_typst(&make(50)), "- [ ] T #medium");
+        assert_eq!(format_task_typst(&make(10)), "- [ ] T #low");
+        assert_eq!(format_task_typst(&make(75)), "- [ ] T #rank(75)");
+    }
+
+    #[test]
+    fn typst_full_metadata() {
+        let task = TaskView {
+            title: "Full task".to_string(),
+            is_done: false,
+            position: 0,
+            file_path: PathBuf::from("t.typ"),
+            file_title: None,
+            due: Some("2026-04-01".to_string()),
+            start: Some("2026-03-01".to_string()),
+            rank: Some(100),
+            task_id: Some("abc-123".to_string()),
+            tags: vec!["work".to_string()],
+            milestone: None,
+            watch_root: None,
+        };
+        assert_eq!(
+            format_task_typst(&task),
+            "- [ ] Full task #due(2026, 4, 1) #start(2026, 3, 1) #high #tag(\"work\") #id(\"abc-123\")"
+        );
+    }
+
+    // --- date_to_typst_call ---
+
+    #[test]
+    fn date_to_typst_strips_leading_zeros() {
+        assert_eq!(
+            date_to_typst_call("due", "2026-05-09").unwrap(),
+            "#due(2026, 5, 9)"
+        );
+    }
+
+    #[test]
+    fn date_to_typst_no_leading_zeros() {
+        assert_eq!(
+            date_to_typst_call("start", "2026-12-25").unwrap(),
+            "#start(2026, 12, 25)"
+        );
+    }
+
+    #[test]
+    fn date_to_typst_invalid_returns_none() {
+        assert!(date_to_typst_call("due", "invalid").is_none());
+        assert!(date_to_typst_call("due", "2026-03").is_none());
     }
 }

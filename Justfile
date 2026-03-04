@@ -26,9 +26,6 @@ build:
 cover:
     cargo tarpaulin --workspace
 
-# Run everything (check + build)
-all: check build
-
 # Format code
 fmt:
     cargo fmt --all

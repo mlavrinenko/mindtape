@@ -17,7 +17,7 @@ pub use commands::watch::WatchArgs;
 pub use commands::deps::{format_all_deps, format_all_deps_csv, format_deps, format_deps_csv};
 pub use commands::eval::{due_sort_key, filter_and_sort, format_due, format_task};
 pub use format::{
-    format_file_view, format_files_csv, format_stats, format_stats_csv, format_task_view,
+    format_file_view, format_files_csv, format_stats, format_stats_csv, format_task_typst,
     format_tasks_csv,
 };
 

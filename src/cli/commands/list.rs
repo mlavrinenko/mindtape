@@ -3,9 +3,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
-use termtree::Tree;
 
-use crate::cli::format::{format_task_leaf, format_tasks_csv};
+use crate::cli::format::{format_task_typst, format_tasks_csv};
 use crate::cli::util::{open_query_db, print_json, resolve_query_db_path};
 use crate::cli::{OutputFormat, QueryOpts};
 use crate::store::{SortDir, SortField, SortSpec, Store, TaskFilter, TaskView};
@@ -171,70 +170,113 @@ impl ListArgs {
                     eprintln!("no tasks found");
                     return Ok(());
                 }
-                for tree in build_task_trees(&tasks) {
-                    print!("{tree}");
-                }
+                print!("{}", format_typst_list(&tasks));
             }
         }
         Ok(())
     }
 }
 
-/// Build a list of trees from tasks, merging shared directory prefixes.
-///
-/// Files sharing a watch-root (or root display name) are merged into
-/// one tree, with shared intermediate directories deduplicated.
-/// Headings and tasks are inserted under each file's label node.
-#[allow(clippy::indexing_slicing)]
-fn build_task_trees(tasks: &[TaskView]) -> Vec<Tree<String>> {
-    let mut roots: Vec<Tree<String>> = Vec::new();
+/// Format tasks as valid Typst markup grouped by project, file, and heading.
+fn format_typst_list(tasks: &[TaskView]) -> String {
+    let home = std::env::var("HOME").unwrap_or_default();
+    let mut out = String::new();
+    let mut has_output = false;
+
+    // Track current context to avoid re-emitting headings.
+    let mut cur_root = String::new();
+    let mut cur_dirs: Vec<String> = Vec::new();
+    let mut cur_file = PathBuf::new();
+    let mut cur_headings: Vec<String> = Vec::new();
 
     for task in tasks {
         let segments = file_segments(&task.file_path, task.watch_root.as_deref());
-        let leaf = Tree::new(format_task_leaf(task));
+        let root_name = &segments.root;
         let headings: Vec<&str> = task
             .milestone
             .as_deref()
             .map(|m| m.split(" > ").collect())
             .unwrap_or_default();
 
-        // Find or create a matching root tree.
-        let root_name = &segments[0];
-        let root_idx = roots
-            .iter()
-            .position(|r| r.root == *root_name)
-            .unwrap_or_else(|| {
-                roots.push(Tree::new(root_name.clone()));
-                roots.len() - 1
-            });
-        let root = &mut roots[root_idx];
+        // New root project — emit heading with blank line separator.
+        if cur_root != *root_name {
+            if has_output {
+                out.push('\n');
+            }
+            out.push_str(&format!("== {root_name}\n"));
+            cur_root.clone_from(root_name);
+            cur_dirs.clear();
+            cur_file = PathBuf::new();
+            cur_headings.clear();
+            has_output = true;
+        }
 
-        // Walk / create intermediate directory + file-label nodes.
-        let file_node = ensure_path(root, &segments[1..]);
-        insert_into_heading_path(file_node, &headings, leaf);
+        // New file within the same root.
+        if cur_file != task.file_path {
+            // Emit only new intermediate directory headings.
+            let dir_match = cur_dirs
+                .iter()
+                .zip(segments.dirs.iter())
+                .take_while(|(a, b)| a == b)
+                .count();
+            cur_dirs.truncate(dir_match);
+            for (i, dir) in segments.dirs.iter().enumerate().skip(dir_match) {
+                let heading_marks = "=".repeat(3 + i);
+                out.push_str(&format!("{heading_marks} {dir}\n"));
+                cur_dirs.push(dir.clone());
+            }
+
+            // Emit file heading.
+            let file_depth = 3 + segments.dirs.len();
+            let file_marks = "=".repeat(file_depth);
+            let short_path = shorten_home(&task.file_path, &home);
+            let file_name = task
+                .file_path
+                .file_name()
+                .unwrap_or(OsStr::new("?"))
+                .to_string_lossy();
+            out.push_str(&format!("{file_marks} `{file_name}` {short_path}\n"));
+            cur_file.clone_from(&task.file_path);
+            cur_headings.clear();
+        }
+
+        // Emit milestone headings that haven't been emitted yet.
+        let milestone_base = 3 + segments.dirs.len() + 1;
+        let heading_match = cur_headings
+            .iter()
+            .zip(headings.iter())
+            .take_while(|(a, b)| a.as_str() == **b)
+            .count();
+        cur_headings.truncate(heading_match);
+        for (i, heading) in headings.iter().enumerate().skip(heading_match) {
+            let heading_marks = "=".repeat(milestone_base + i);
+            out.push_str(&format!("{heading_marks} {heading}\n"));
+            cur_headings.push((*heading).to_string());
+        }
+
+        // Emit the task.
+        out.push_str(&format_task_typst(task));
+        out.push('\n');
     }
 
-    roots
+    out
 }
 
-/// Compute the display segments for a file: root name, directories, file label.
-fn file_segments(file_path: &Path, watch_root: Option<&Path>) -> Vec<String> {
-    let abs_str = file_path.to_string_lossy();
-    let file_name = file_path
-        .file_name()
-        .unwrap_or(OsStr::new("?"))
-        .to_string_lossy();
-    let file_label = format!("`{file_name}` #link(\"{abs_str}\")");
+struct FileSegments {
+    root: String,
+    dirs: Vec<String>,
+}
 
-    let (root_name, dir_segments) = if let Some(root) = watch_root
+/// Compute the display segments for a file: root name and intermediate directories.
+fn file_segments(file_path: &Path, watch_root: Option<&Path>) -> FileSegments {
+    if let Some(root) = watch_root
         && let Ok(rel) = file_path.strip_prefix(root)
     {
-        let root_name = format!(
-            "== {}",
-            root.file_name()
-                .unwrap_or(OsStr::new("?"))
-                .to_string_lossy()
-        );
+        let root_name = root
+            .file_name()
+            .unwrap_or(OsStr::new("?"))
+            .to_string_lossy()
+            .to_string();
         let dirs: Vec<String> = rel
             .parent()
             .map(|p| {
@@ -243,78 +285,24 @@ fn file_segments(file_path: &Path, watch_root: Option<&Path>) -> Vec<String> {
                     .collect()
             })
             .unwrap_or_default();
-        (root_name, dirs)
+        FileSegments { root: root_name, dirs }
     } else {
-        let root_name = format!(
-            "== {}",
-            file_path
-                .parent()
-                .and_then(|p| p.file_name())
-                .unwrap_or(OsStr::new("?"))
-                .to_string_lossy()
-        );
-        (root_name, Vec::new())
-    };
-
-    let mut segs = Vec::with_capacity(1 + dir_segments.len() + 1);
-    segs.push(root_name);
-    segs.extend(dir_segments);
-    segs.push(file_label);
-    segs
+        let root_name = file_path
+            .parent()
+            .and_then(|p| p.file_name())
+            .unwrap_or(OsStr::new("?"))
+            .to_string_lossy()
+            .to_string();
+        FileSegments { root: root_name, dirs: Vec::new() }
+    }
 }
 
-/// Walk down a tree following `segments`, reusing existing children or creating new ones.
-///
-/// Returns a mutable reference to the deepest node (the file-label node).
-#[allow(clippy::indexing_slicing)]
-fn ensure_path<'a>(tree: &'a mut Tree<String>, segments: &[String]) -> &'a mut Tree<String> {
-    let mut node = tree;
-    for seg in segments {
-        let pos = node.leaves.iter().position(|child| child.root == *seg);
-        if let Some(idx) = pos {
-            node = &mut node.leaves[idx];
-        } else {
-            node.push(Tree::new(seg.clone()));
-            node = node.leaves.last_mut().expect("just pushed");
-        }
+/// Replace `$HOME` prefix with `~` in a path for shorter display.
+fn shorten_home(path: &Path, home: &str) -> String {
+    let abs = path.to_string_lossy();
+    if !home.is_empty() && abs.starts_with(home) {
+        format!("~{}", &abs[home.len()..])
+    } else {
+        abs.to_string()
     }
-    node
-}
-
-/// Insert a task leaf into the correct position in the heading tree.
-///
-/// Walks the heading path, creating or reusing heading nodes as needed,
-/// then appends the leaf at the deepest level.
-#[allow(clippy::indexing_slicing)]
-fn insert_into_heading_path(
-    root: &mut Tree<String>,
-    headings: &[&str],
-    leaf: Tree<String>,
-) {
-    if headings.is_empty() {
-        root.push(leaf);
-        return;
-    }
-
-    let mut node = root;
-    for heading in headings {
-        let heading_str = (*heading).to_string();
-        // Find existing child with this heading name.
-        let pos = node
-            .leaves
-            .iter()
-            .position(|child| child.root == heading_str);
-
-        if let Some(idx) = pos {
-            // Safe: idx comes from position() on node.leaves
-            node = &mut node.leaves[idx];
-        } else {
-            node.push(Tree::new(heading_str));
-            // Safe: we just pushed, so last index is valid
-            let last = node.leaves.len() - 1;
-            node = &mut node.leaves[last];
-        }
-    }
-
-    node.push(leaf);
 }

@@ -4,7 +4,6 @@
 //! When the schema version doesn't match, we drop everything and recreate
 //! from scratch — the watcher will re-index on next startup.
 
-mod v7;
 mod v8;
 
 use log::{debug, info};

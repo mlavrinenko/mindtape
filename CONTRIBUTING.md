@@ -6,9 +6,9 @@
 git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape
 nix develop
-
-just check    # clippy + tests + file size limits
-just all      # check + build
+# then fix something
+# then make sure it's fine:
+just check
 ```
 
 ## Common Commands
@@ -20,7 +20,6 @@ just all      # check + build
 | `just clippy` | Clippy only |
 | `just clippy-fix` | Auto-apply clippy suggestions |
 | `just build` | Build the project |
-| `just all` | Full suite (check + build) |
 | `just fmt` | Format code |
 | `just cover` | Coverage report via cargo tarpaulin |
 | `just count-tests` | Count total tests across workspace |
