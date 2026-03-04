@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindTape — File-based task tracker powered by Typst</title>
+  <meta name="description" content="Write .typ files to manage tasks. MindTape watches, indexes, and queries them for you.">
+
+  <!-- Prism.js core (Tomorrow Night theme) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="prism-typst.js"></script>
+
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+
+  <style>
+    /* ── Reset ────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #1f1f1f;
+      --bg-surface: #111118;
+      --bg-card: #16161e;
+      --text: #c8ffc8;
+      --text-dim: #6a9a6a;
+      --neon-green: #39ff14;
+      --neon-cyan: #00fff7;
+      --neon-magenta: #ff00ff;
+      --neon-yellow: #ffff00;
+      --neon-orange: #ff6600;
+      --terminal-bg: #0d0d14;
+      --section-max: 960px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", "Courier New", monospace;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ASCII art background — inline SVG tile */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='190'%3E%3Cstyle%3Etext%7Bfont-family:monospace;font-size:13px;fill:%2339ff14;opacity:0.06%7D%3C/style%3E%3Ctext x='10' y='18'%3E~%5B0x4D%5D %23import - %5Bx%5D ::eval() ~%5B0xFF%5D %23due() - %5B %5D ::watch() ~%5B0x14%5D %23tag() - %5Bx%5D ::index()%3C/text%3E%3Ctext x='10' y='42'%3E::query - %5B %5D %23high ~%5B0x7C%5D ::store - %5Bx%5D %23medium ~%5B0x39%5D ::parse - %5B %5D %23low ~%5B0xA0%5D%3C/text%3E%3Ctext x='10' y='66'%3E%23id() ~%5B0xE0%5D - %5Bx%5D ::deps() %23start() ~%5B0x4D%5D - %5B %5D ::list() %23rank() ~%5B0xFF%5D ::set()%3C/text%3E%3Ctext x='50' y='94'%3E~%5B0x39%5D %23import - %5B %5D ::eval() ~%5B0xA0%5D %23due() - %5Bx%5D ::watch() ~%5B0x7C%5D %23tag() ::index()%3C/text%3E%3Ctext x='50' y='118'%3E::check - %5Bx%5D %23high ~%5B0x4D%5D ::store - %5B %5D %23medium ~%5B0xE0%5D ::parse - %5Bx%5D %23low%3C/text%3E%3Ctext x='50' y='142'%3E%23id() ~%5B0x14%5D - %5B %5D ::deps() %23start() ~%5B0xFF%5D - %5Bx%5D ::list() %23rank() ~%5B0x39%5D ::set()%3C/text%3E%3Ctext x='30' y='170'%3E~%5B0xE0%5D %23due() - %5Bx%5D ::watch() ~%5B0x4D%5D %23high - %5B %5D ::eval() ~%5B0x7C%5D %23tag() - %5Bx%5D ::check()%3C/text%3E%3C/svg%3E");
+      background-repeat: repeat;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    /* Scanline overlay */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 255, 20, 0.015) 2px,
+        rgba(0, 255, 20, 0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Ensure content sits above the ASCII background */
+    .hero, .desktop, .tape, .section, footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    code, pre { font-family: inherit; }
+
+    a { color: var(--neon-cyan); }
+    a:hover { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); }
+
+    /* ── Hero ─────────────────────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 3rem 1.5rem 2rem;
+      position: relative;
+    }
+
+    .hero-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-brand img {
+      width: 72px;
+      height: 72px;
+      filter: drop-shadow(0 0 12px var(--neon-magenta)) drop-shadow(0 0 24px rgba(255,0,255,0.3));
+    }
+
+    .hero-brand h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan), var(--neon-magenta));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: none;
+      filter: drop-shadow(0 0 20px rgba(57,255,20,0.4));
+    }
+
+    .hero-tagline {
+      font-size: 1.1rem;
+      color: var(--text-dim);
+      max-width: 640px;
+      margin: 0 auto 2.5rem;
+    }
+
+    .hero-tagline code {
+      color: var(--neon-yellow);
+      background: rgba(255,255,0,0.08);
+      padding: 0.1em 0.35em;
+      border-radius: 3px;
+    }
+
+    /* ── Window Chrome ────────────────────────────────────────── */
+    .desktop {
+      max-width: var(--section-max);
+      margin: 0 auto;
+      padding: 0 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .window {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #2a2a3a;
+      box-shadow:
+        0 0 20px rgba(57, 255, 20, 0.08),
+        0 4px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .window-bar {
+      background: #1a1a24;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      border-bottom: 1px solid #2a2a3a;
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .window-dots span {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-red { background: #ff5f57; box-shadow: 0 0 4px #ff5f57; }
+    .dot-yellow { background: #febc2e; box-shadow: 0 0 4px #febc2e; }
+    .dot-green { background: #28c840; box-shadow: 0 0 4px #28c840; }
+
+    .window-bar-title {
+      color: var(--neon-green);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 0.72rem;
+    }
+
+    /* ── File Manager ─────────────────────────────────────────── */
+    .fm-tabs {
+      display: flex;
+      background: #111118;
+      border-bottom: 1px solid #2a2a3a;
+      overflow-x: auto;
+    }
+
+    .fm-tab {
+      padding: 8px 20px;
+      font-size: 0.78rem;
+      font-family: inherit;
+      color: var(--text-dim);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .fm-tab:hover {
+      color: var(--neon-cyan);
+    }
+
+    .fm-tab.active {
+      color: var(--neon-green);
+      border-bottom-color: var(--neon-green);
+      text-shadow: 0 0 8px rgba(57,255,20,0.4);
+    }
+
+    .fm-panel {
+      display: none;
+      background: var(--terminal-bg);
+      padding: 16px 20px;
+      min-height: 200px;
+    }
+
+    .fm-panel.active {
+      display: block;
+    }
+
+    .fm-panel pre {
+      margin: 0;
+      background: transparent !important;
+      padding: 0 !important;
+    }
+
+    .fm-panel code {
+      font-size: 0.82rem !important;
+      background: transparent !important;
+    }
+
+    /* ── Terminal ──────────────────────────────────────────────── */
+    .term-body {
+      background: var(--terminal-bg);
+      color: var(--text);
+      padding: 16px 20px;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      min-height: 240px;
+      overflow-x: auto;
+    }
+
+    .term-body .prompt {
+      color: var(--neon-green);
+      text-shadow: 0 0 6px rgba(57,255,20,0.5);
+    }
+
+    .term-body .cmd {
+      color: #fff;
+    }
+
+    .term-body pre {
+      margin: 10px 0 0;
+      background: transparent !important;
+      padding: 0 !important;
+    }
+
+    .term-body code {
+      font-size: 0.82rem !important;
+      background: transparent !important;
+    }
+
+    /* ── Tape Separator ───────────────────────────────────────── */
+    .tape {
+      position: relative;
+      width: 100%;
+      height: 52px;
+      overflow: hidden;
+    }
+
+    .tape-strip {
+      position: absolute;
+      left: -3%;
+      right: -3%;
+      top: 50%;
+      transform: translateY(-50%) rotate(-0.7deg);
+      height: 38px;
+      background: linear-gradient(90deg,
+        rgba(57,255,20,0.25),
+        rgba(0,255,247,0.2),
+        rgba(255,0,255,0.2),
+        rgba(57,255,20,0.25)
+      );
+      border-top: 1px solid rgba(57,255,20,0.4);
+      border-bottom: 1px solid rgba(255,0,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3.5rem;
+      font-size: 1.2rem;
+      box-shadow:
+        0 0 15px rgba(57,255,20,0.15),
+        0 0 30px rgba(255,0,255,0.1);
+      backdrop-filter: blur(4px);
+    }
+
+    .tape:nth-of-type(even) .tape-strip {
+      transform: translateY(-50%) rotate(0.5deg);
+    }
+
+    .tape-strip::before,
+    .tape-strip::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+    }
+
+    .tape-strip::before {
+      top: 5px;
+      background: rgba(57,255,20,0.2);
+    }
+
+    .tape-strip::after {
+      bottom: 5px;
+      background: rgba(255,0,255,0.2);
+    }
+
+    /* ── Section ──────────────────────────────────────────────── */
+    .section {
+      max-width: var(--section-max);
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 12px rgba(57,255,20,0.3));
+    }
+
+    /* ── Cards ────────────────────────────────────────────────── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: 8px;
+      padding: 1.5rem;
+      border: 1px solid #2a2a3a;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 15px rgba(57,255,20,0.1);
+    }
+
+    .card-icon {
+      font-size: 1.8rem;
+      margin-bottom: 0.75rem;
+      color: var(--neon-cyan);
+      text-shadow: 0 0 8px rgba(0,255,247,0.4);
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.5rem;
+      color: var(--neon-green);
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    .card code {
+      color: var(--neon-yellow);
+      background: rgba(255,255,0,0.06);
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+      font-size: 0.88em;
+    }
+
+    /* ── Steps ────────────────────────────────────────────────── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2rem;
+      counter-reset: step;
+    }
+
+    .step {
+      text-align: center;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2px solid var(--neon-green);
+      color: var(--neon-green);
+      font-size: 1.4rem;
+      font-weight: 900;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 8px rgba(57,255,20,0.5);
+      box-shadow: 0 0 12px rgba(57,255,20,0.15);
+    }
+
+    .step h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      color: var(--neon-cyan);
+    }
+
+    .step code {
+      color: var(--neon-yellow);
+    }
+
+    .step p {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    /* ── Features ─────────────────────────────────────────────── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      background: var(--bg-card);
+      border-radius: 8px;
+      border: 1px solid #2a2a3a;
+    }
+
+    .feature-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .feature h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+      color: var(--neon-cyan);
+    }
+
+    .feature p {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+    }
+
+    /* ── Install ──────────────────────────────────────────────── */
+    .install-tabs {
+      display: flex;
+      gap: 0;
+    }
+
+    .install-tab {
+      padding: 0.6rem 1.5rem;
+      border: 1px solid #2a2a3a;
+      border-bottom: none;
+      background: var(--bg-card);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text-dim);
+      border-radius: 6px 6px 0 0;
+      transition: color 0.15s;
+    }
+
+    .install-tab:hover {
+      color: var(--neon-cyan);
+    }
+
+    .install-tab.active {
+      background: var(--terminal-bg);
+      color: var(--neon-green);
+      border-color: #2a2a3a;
+      border-bottom-color: var(--terminal-bg);
+    }
+
+    .install-panel {
+      display: none;
+      background: var(--terminal-bg);
+      border: 1px solid #2a2a3a;
+      border-top: none;
+      border-radius: 0 6px 6px 6px;
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .install-panel.active {
+      display: block;
+    }
+
+    .install-panel pre {
+      margin: 0;
+      background: transparent !important;
+      padding: 0 !important;
+    }
+
+    .install-panel code {
+      font-size: 0.82rem !important;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      border-top: 1px solid #1a1a24;
+    }
+
+    /* ── Glitch animation for title ───────────────────────────── */
+    @keyframes glitch {
+      0%, 100% { transform: translate(0); }
+      20% { transform: translate(-2px, 1px); }
+      40% { transform: translate(2px, -1px); }
+      60% { transform: translate(-1px, -1px); }
+      80% { transform: translate(1px, 2px); }
+    }
+
+    .hero-brand h1:hover {
+      animation: glitch 0.3s ease infinite;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .hero-brand h1 { font-size: 2.2rem; }
+      .section-title { font-size: 1.5rem; }
+      .fm-tab { padding: 6px 12px; font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<header class="hero">
+  <div class="hero-brand">
+    <img src="logo.svg" alt="MindTape logo">
+    <h1>MindTape</h1>
+  </div>
+  <p class="hero-tagline">
+    A file-based task tracker powered by Typst.
+    Your tasks live in structured, composable <code>.typ</code> files &mdash; not a proprietary database.
+  </p>
+</header>
+
+<!-- Fake Desktop -->
+<div class="desktop">
+
+  <!-- File Manager Window -->
+  <div class="window">
+    <div class="window-bar">
+      <div class="window-dots">
+        <span class="dot-red"></span>
+        <span class="dot-yellow"></span>
+        <span class="dot-green"></span>
+      </div>
+      <span class="window-bar-title">Files</span>
+    </div>
+    <div class="fm-tabs" id="fm-tabs">
+      <button class="fm-tab active" data-target="fm-api">api-gateway/tasks.typ</button>
+      <button class="fm-tab" data-target="fm-frontend">frontend-app/TODO.typ</button>
+      <button class="fm-tab" data-target="fm-infra">infra/deploy.typ</button>
+    </div>
+    <div id="fm-api" class="fm-panel active">
+      <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
+
+= Sprint 14
+
+- [ ] Design REST API schema #due(2026, 3, 15) #high #tag("backend")
+- [ ] Set up CI pipeline #due(2026, 3, 10) #medium #tag("devops")
+- [x] Write integration tests #tag("testing")
+- [ ] Review pull requests #low #tag("team")</code></pre>
+    </div>
+    <div id="fm-frontend" class="fm-panel">
+      <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
+
+= UI Polish
+
+- [ ] Migrate to new design system #high #tag("frontend") #due(2026, 3, 18)
+- [ ] Fix dark mode contrast issues #medium #tag("a11y")
+- [x] Add loading skeletons #tag("ux")
+- [ ] Update component library #due(2026, 3, 20) #medium #tag("frontend")</code></pre>
+    </div>
+    <div id="fm-infra" class="fm-panel">
+      <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
+
+= Deployment
+
+- [ ] Configure staging environment #high #tag("infra") #due(2026, 3, 12)
+- [ ] Write Terraform modules #medium #tag("iac")
+- [ ] Set up monitoring dashboards #low #tag("observability")
+- [x] Automate backup rotation #tag("ops")</code></pre>
+    </div>
+  </div>
+
+  <!-- Terminal Window -->
+  <div class="window">
+    <div class="window-bar" style="background:#0f0f18; border-bottom-color:#222233;">
+      <div class="window-dots">
+        <span class="dot-red"></span>
+        <span class="dot-yellow"></span>
+        <span class="dot-green"></span>
+      </div>
+      <span class="window-bar-title">Terminal</span>
+    </div>
+    <div class="term-body">
+      <span class="prompt">$</span> <span class="cmd">mindtape list</span>
+      <pre><code class="language-typst">== api-gateway
+=== `tasks.typ` ~/projects/api-gateway/tasks.typ
+==== Sprint 14
+- [ ] Design REST API schema #due(2026, 3, 15) #high #tag("backend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b01")
+- [ ] Set up CI pipeline #due(2026, 3, 10) #medium #tag("devops") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b02")
+- [x] Write integration tests #tag("testing") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b03")
+
+== frontend-app
+=== `TODO.typ` ~/projects/frontend-app/TODO.typ
+==== UI Polish
+- [ ] Migrate to new design system #high #tag("frontend") #due(2026, 3, 18) #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b04")
+- [ ] Fix dark mode contrast issues #medium #tag("a11y") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b05")
+
+== infra
+=== `deploy.typ` ~/projects/infra/deploy.typ
+==== Deployment
+- [ ] Configure staging environment #high #tag("infra") #due(2026, 3, 12) #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b06")
+- [ ] Write Terraform modules #medium #tag("iac") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b07")</code></pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TAPE                                                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="tape">
+  <div class="tape-strip">
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- WHY TYPST                                                     -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <h2 class="section-title">Why Typst?</h2>
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">{ }</div>
+      <h3>Structured</h3>
+      <p>
+        Typed variables, static checking, no ambiguity.
+        Your task data is validated at the source &mdash; not after the fact.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-icon">#</div>
+      <h3>Composable</h3>
+      <p>
+        Files import each other with <code>#import</code>.
+        Reuse task templates, share definitions, build on existing work.
+      </p>
+    </div>
+    <div class="card">
+      <div class="card-icon">.typ</div>
+      <h3>Human-readable</h3>
+      <p>
+        Plain text files you can read, diff, and version-control.
+        No lock-in, no binary blobs, no cloud dependency.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- TAPE -->
+<div class="tape">
+  <div class="tape-strip">
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- HOW IT WORKS                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <h2 class="section-title">How It Works</h2>
+  <div class="steps">
+    <div class="step">
+      <h3>Write <code>.typ</code> files</h3>
+      <p>Define tasks right where your project lives. Use tags, due dates, priorities &mdash; all in plain Typst.</p>
+    </div>
+    <div class="step">
+      <h3>MindTape watches &amp; indexes</h3>
+      <p>A background watcher evaluates your files and indexes everything into a fast SQLite database.</p>
+    </div>
+    <div class="step">
+      <h3>Query &amp; modify via CLI</h3>
+      <p>Filter by tag, date, rank. Output as table, JSON, CSV, or Typst. Check off tasks from the terminal.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TAPE -->
+<div class="tape">
+  <div class="tape-strip">
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- FEATURES                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <h2 class="section-title">Features</h2>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">&#x1F50D;</div>
+      <div>
+        <h3>Rich Filtering</h3>
+        <p>Filter by tags, due dates, start dates, rank, full-text search, file, or folder.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">&#x1F4CB;</div>
+      <div>
+        <h3>Multiple Formats</h3>
+        <p>Output tasks as a table, JSON, CSV, or valid Typst markup.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">&#x270F;&#xFE0F;</div>
+      <div>
+        <h3>Safe Write-back</h3>
+        <p>Modify tasks in-place. Formatting, comments, and indentation are preserved. Conflict detection included.</p>
+      </div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">&#x2744;&#xFE0F;</div>
+      <div>
+        <h3>NixOS Module</h3>
+        <p>Declarative setup as a systemd service with a Nix flake.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TAPE -->
+<div class="tape">
+  <div class="tape-strip">
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+    <span>&#x1F9E0;</span><span>&#x1F9E0;</span><span>&#x1F9E0;</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- INSTALLATION                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section class="section">
+  <h2 class="section-title">Installation</h2>
+
+  <div class="install-tabs">
+    <button class="install-tab active" data-target="tab-nix">Nix Flake</button>
+    <button class="install-tab" data-target="tab-source">From Source</button>
+  </div>
+
+  <div id="tab-nix" class="install-panel active">
+    <pre><code class="language-nix"># flake.nix inputs:
+mindtape.url = "github:mlavrinenko/mindtape";
+mindtape.inputs.nixpkgs.follows = "nixpkgs";
+
+# NixOS configuration:
+imports = [ mindtape.nixosModules.default ];
+
+services.mindtape = {
+  enable = true;
+  user = "youruser";
+  group = "users";
+  watchPaths = [
+    { path = "/home/youruser/projects"; }
+  ];
+};</code></pre>
+  </div>
+
+  <div id="tab-source" class="install-panel">
+    <pre><code class="language-bash">git clone https://github.com/mlavrinenko/mindtape.git
+cd mindtape
+cargo build --release
+# Install the Typst library
+just install-lib</code></pre>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<footer>
+  <p>
+    <a href="https://github.com/mlavrinenko/mindtape">GitHub</a>
+    &nbsp;&middot;&nbsp;
+    MIT License
+  </p>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- JS                                                            -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<script>
+/* Generic tab switcher — works for file manager tabs and install tabs */
+function initTabs(containerSelector, tabSelector, panelSelector) {
+  document.querySelectorAll(containerSelector).forEach(container => {
+    const tabs = container.querySelectorAll
+      ? container.parentElement.querySelectorAll(tabSelector)
+      : document.querySelectorAll(tabSelector);
+  });
+
+  document.querySelectorAll(tabSelector).forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.target;
+      if (!target) return;
+
+      /* Find sibling tabs — those sharing the same parent or tab group */
+      const parent = tab.parentElement;
+      parent.querySelectorAll(tabSelector.split(' ').pop()).forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      /* Toggle panels: hide all siblings, show target */
+      const panel = document.getElementById(target);
+      if (!panel) return;
+      const panelParent = panel.parentElement;
+      panelParent.querySelectorAll(':scope > ' + panelSelector.split(' ').pop()).forEach(p => p.classList.remove('active'));
+      panel.classList.add('active');
+
+      /* Re-highlight any un-highlighted code in newly visible panel */
+      panel.querySelectorAll('code:not(.prism-highlighted)').forEach(block => {
+        Prism.highlightElement(block);
+        block.classList.add('prism-highlighted');
+      });
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTabs('.fm-tabs', '.fm-tab', '.fm-panel');
+  initTabs('.install-tabs', '.install-tab', '.install-panel');
+});
+</script>
+
+</body>
+</html>

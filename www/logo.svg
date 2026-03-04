@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="tape-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#39ff14;stop-opacity:0.8"/>
+      <stop offset="50%" style="stop-color:#00fff7;stop-opacity:0.65"/>
+      <stop offset="100%" style="stop-color:#ff00ff;stop-opacity:0.8"/>
+    </linearGradient>
+    <linearGradient id="brain-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00fff7"/>
+      <stop offset="50%" style="stop-color:#39ff14"/>
+      <stop offset="100%" style="stop-color:#ff00ff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g transform="translate(100,105)" filter="url(#glow)">
+    <!-- Left hemisphere -->
+    <path d="M-8,-45 C-35,-48 -55,-30 -55,-8 C-55,5 -48,12 -42,16
+             C-50,22 -52,35 -42,45 C-32,55 -15,52 -8,45
+             C-12,38 -15,28 -10,20 C-18,15 -25,5 -22,-5
+             C-28,-12 -30,-25 -20,-35 C-15,-40 -10,-43 -8,-45Z"
+          fill="url(#brain-grad)" opacity="0.85"/>
+    <!-- Right hemisphere -->
+    <path d="M8,-45 C35,-48 55,-30 55,-8 C55,5 48,12 42,16
+             C50,22 52,35 42,45 C32,55 15,52 8,45
+             C12,38 15,28 10,20 C18,15 25,5 22,-5
+             C28,-12 30,-25 20,-35 C15,-40 10,-43 8,-45Z"
+          fill="url(#brain-grad)" opacity="0.85"/>
+
+    <!-- Brain folds - left -->
+    <path d="M-15,-30 C-25,-20 -35,-5 -30,10" stroke="#0a0a0f" stroke-width="2.5" fill="none" opacity="0.6"/>
+    <path d="M-20,-15 C-30,-5 -38,10 -28,25" stroke="#0a0a0f" stroke-width="2" fill="none" opacity="0.5"/>
+    <path d="M-12,5 C-22,15 -30,25 -22,38" stroke="#0a0a0f" stroke-width="2" fill="none" opacity="0.5"/>
+
+    <!-- Brain folds - right -->
+    <path d="M15,-30 C25,-20 35,-5 30,10" stroke="#0a0a0f" stroke-width="2.5" fill="none" opacity="0.6"/>
+    <path d="M20,-15 C30,-5 38,10 28,25" stroke="#0a0a0f" stroke-width="2" fill="none" opacity="0.5"/>
+    <path d="M12,5 C22,15 30,25 22,38" stroke="#0a0a0f" stroke-width="2" fill="none" opacity="0.5"/>
+
+    <!-- Center line -->
+    <path d="M0,-45 C-2,-20 2,15 0,48" stroke="#0a0a0f" stroke-width="2" fill="none" opacity="0.45"/>
+
+    <!-- Tape wrap 1 - diagonal across top -->
+    <rect x="-70" y="-28" width="140" height="18" rx="2"
+          fill="url(#tape-grad)" transform="rotate(-15)" opacity="0.75"/>
+    <line x1="-65" y1="-20" x2="65" y2="-20" stroke="rgba(10,10,15,0.4)" stroke-width="0.8" transform="rotate(-15)"/>
+    <line x1="-65" y1="-14" x2="65" y2="-14" stroke="rgba(10,10,15,0.4)" stroke-width="0.8" transform="rotate(-15)"/>
+
+    <!-- Tape wrap 2 - diagonal across bottom -->
+    <rect x="-70" y="10" width="140" height="18" rx="2"
+          fill="url(#tape-grad)" transform="rotate(12)" opacity="0.75"/>
+    <line x1="-65" y1="18" x2="65" y2="18" stroke="rgba(10,10,15,0.4)" stroke-width="0.8" transform="rotate(12)"/>
+    <line x1="-65" y1="24" x2="65" y2="24" stroke="rgba(10,10,15,0.4)" stroke-width="0.8" transform="rotate(12)"/>
+
+    <!-- Tape wrap 3 - vertical strip -->
+    <rect x="-9" y="-55" width="18" height="110" rx="2"
+          fill="url(#tape-grad)" opacity="0.6"/>
+    <line x1="-1" y1="-55" x2="-1" y2="55" stroke="rgba(10,10,15,0.35)" stroke-width="0.8"/>
+    <line x1="5" y1="-55" x2="5" y2="55" stroke="rgba(10,10,15,0.35)" stroke-width="0.8"/>
+  </g>
+</svg>
