@@ -269,3 +269,33 @@ fn index_multiple_files() {
     assert_eq!(from_a.len(), 1);
     assert_eq!(from_a[0].title, "Task from A");
 }
+
+#[test]
+fn index_file_stores_start_and_rank() {
+    let (mut store, world, file, root) = setup(
+        r#"#import "@mindtape/mindtape:0.1.0": due, start, id, tag, rank, high
+
+- [ ] High priority #start(2026, 3, 1) #due(2026, 4, 1) #high #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Custom rank #rank(75) #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] No rank or start #id("019c5b98-d10a-7710-8679-bda520780ee9")
+"#,
+    );
+
+    index_file(&mut store, &world, &file, Some(&root)).unwrap();
+
+    let views = store.query_tasks(&TaskFilter::default()).unwrap();
+    assert_eq!(views.len(), 3);
+
+    assert_eq!(views[0].title, "High priority");
+    assert_eq!(views[0].start, Some("2026-03-01".to_string()));
+    assert_eq!(views[0].due, Some("2026-04-01".to_string()));
+    assert_eq!(views[0].rank, Some(100));
+
+    assert_eq!(views[1].title, "Custom rank");
+    assert_eq!(views[1].start, None);
+    assert_eq!(views[1].rank, Some(75));
+
+    assert_eq!(views[2].title, "No rank or start");
+    assert_eq!(views[2].start, None);
+    assert_eq!(views[2].rank, None);
+}

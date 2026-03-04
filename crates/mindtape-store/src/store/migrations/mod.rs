@@ -5,6 +5,7 @@
 //! from scratch — the watcher will re-index on next startup.
 
 mod v7;
+mod v8;
 
 use log::{debug, info};
 use rusqlite::Connection;
@@ -12,7 +13,7 @@ use rusqlite::Connection;
 use super::StoreError;
 
 /// Current schema version. Bump this when the schema changes.
-pub const CURRENT_SCHEMA_VERSION: i32 = 7;
+pub const CURRENT_SCHEMA_VERSION: i32 = 8;
 
 /// Apply migrations: if the DB version doesn't match, drop and recreate.
 pub fn apply_migrations(conn: &Connection) -> Result<(), StoreError> {
@@ -32,7 +33,7 @@ pub fn apply_migrations(conn: &Connection) -> Result<(), StoreError> {
         );
     }
 
-    conn.execute_batch(v7::SQL)
+    conn.execute_batch(v8::SQL)
         .map_err(|e| StoreError::Migration(e.to_string()))?;
     conn.pragma_update(None, "user_version", CURRENT_SCHEMA_VERSION)
         .map_err(|e| StoreError::Migration(e.to_string()))?;

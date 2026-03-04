@@ -84,6 +84,8 @@ mod tests {
             title: title.to_string(),
             done,
             due,
+            start: None,
+            rank: None,
             tags: vec![],
             id: None,
             position: 0,

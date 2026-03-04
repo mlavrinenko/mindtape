@@ -70,6 +70,7 @@ pub fn to_store_records(
         };
 
         let due_str = task.due.as_ref().map(format_date);
+        let start_str = task.start.as_ref().map(format_date);
 
         task_records.push(TaskRecord {
             id: None,
@@ -79,10 +80,18 @@ pub fn to_store_records(
             position: task.position as i32,
             milestone: task.milestone.clone(),
             due: due_str.clone(),
+            start: start_str.clone(),
+            rank: task.rank,
             task_id: Some(task_id.clone()),
         });
 
-        all_props.push(build_task_props(&task_id, due_str.as_deref(), &task.tags));
+        all_props.push(build_task_props(
+            &task_id,
+            due_str.as_deref(),
+            start_str.as_deref(),
+            task.rank,
+            &task.tags,
+        ));
     }
 
     let bindings: Vec<FileBinding> = result
@@ -100,8 +109,14 @@ pub fn to_store_records(
     (task_file, task_records, all_props, bindings)
 }
 
-/// Build task properties (id, due, tags) for a single task.
-fn build_task_props(task_id: &str, due: Option<&str>, tags: &[String]) -> Vec<TaskProperty> {
+/// Build task properties (id, due, start, rank, tags) for a single task.
+fn build_task_props(
+    task_id: &str,
+    due: Option<&str>,
+    start: Option<&str>,
+    rank: Option<i64>,
+    tags: &[String],
+) -> Vec<TaskProperty> {
     let mut props = vec![TaskProperty {
         id: None, task_id: 0, kind: PropertyKind::Id,
         key: "id".to_string(), value: task_id.to_string(),
@@ -110,6 +125,18 @@ fn build_task_props(task_id: &str, due: Option<&str>, tags: &[String]) -> Vec<Ta
         props.push(TaskProperty {
             id: None, task_id: 0, kind: PropertyKind::Due,
             key: "due".to_string(), value: due_val.to_string(),
+        });
+    }
+    if let Some(start_val) = start {
+        props.push(TaskProperty {
+            id: None, task_id: 0, kind: PropertyKind::Start,
+            key: "start".to_string(), value: start_val.to_string(),
+        });
+    }
+    if let Some(rank_val) = rank {
+        props.push(TaskProperty {
+            id: None, task_id: 0, kind: PropertyKind::Rank,
+            key: "rank".to_string(), value: rank_val.to_string(),
         });
     }
     for tag in tags {

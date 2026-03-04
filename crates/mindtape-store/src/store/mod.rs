@@ -46,6 +46,10 @@ pub struct TaskRecord {
     pub milestone: Option<String>,
     /// Due date (YYYY-MM-DD), denormalized for efficient sorting/filtering.
     pub due: Option<String>,
+    /// Start date (YYYY-MM-DD), denormalized for efficient sorting/filtering.
+    pub start: Option<String>,
+    /// Rank (positive integer, higher = more important), denormalized.
+    pub rank: Option<i64>,
     /// User-assigned task ID (`UUIDv7`), denormalized for efficient sorting/lookup.
     pub task_id: Option<String>,
 }
@@ -63,6 +67,8 @@ pub struct TaskProperty {
 #[derive(Debug, Clone, PartialEq)]
 pub enum PropertyKind {
     Due,
+    Start,
+    Rank,
     Tag,
     Id,
 }
@@ -71,6 +77,8 @@ impl PropertyKind {
     pub fn as_str(&self) -> &'static str {
         match self {
             PropertyKind::Due => "due",
+            PropertyKind::Start => "start",
+            PropertyKind::Rank => "rank",
             PropertyKind::Tag => "tag",
             PropertyKind::Id => "id",
         }
@@ -79,6 +87,8 @@ impl PropertyKind {
     pub fn try_from_str(kind_str: &str) -> Option<Self> {
         match kind_str {
             "due" => Some(PropertyKind::Due),
+            "start" => Some(PropertyKind::Start),
+            "rank" => Some(PropertyKind::Rank),
             "tag" => Some(PropertyKind::Tag),
             "id" => Some(PropertyKind::Id),
             _ => None,
@@ -104,6 +114,8 @@ pub struct FileBinding {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SortField {
     Due,
+    Start,
+    Rank,
     Id,
     File,
     Position,
@@ -136,6 +148,14 @@ pub struct TaskFilter {
     pub due_before: Option<String>,
     /// Filter tasks due on or after this date (YYYY-MM-DD).
     pub due_after: Option<String>,
+    /// Filter tasks starting before this date (YYYY-MM-DD).
+    pub start_before: Option<String>,
+    /// Filter tasks starting on or after this date (YYYY-MM-DD).
+    pub start_after: Option<String>,
+    /// Filter tasks with rank >= this value.
+    pub rank_min: Option<i64>,
+    /// Filter tasks with rank <= this value.
+    pub rank_max: Option<i64>,
     /// Case-insensitive substring match on milestone path.
     pub milestone: Option<String>,
     /// Case-insensitive substring match on task title.
@@ -160,6 +180,8 @@ pub struct TaskView {
     pub file_path: PathBuf,
     pub file_title: Option<String>,
     pub due: Option<String>,
+    pub start: Option<String>,
+    pub rank: Option<i64>,
     /// User-assigned task ID (`UUIDv7`).
     pub task_id: Option<String>,
     pub tags: Vec<String>,

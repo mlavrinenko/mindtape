@@ -43,11 +43,13 @@ and metadata into SQLite, and exposes a CLI for querying.
 ## Task Format (Typst Convention)
 
 ```typ
-#import "@local/mindtape:0.1.0": due, id, tag
+#import "@local/mindtape:0.1.0": due, start, id, tag, rank, high, medium, low
 
 = Milestone Title
 
 - [ ] task text #due(2026, 3, 1) #id("uuid") #tag("category")
+- [ ] upcoming task #start(2026, 2, 1) #due(2026, 3, 1) #high #id("uuid2")
+- [ ] minor fix #low #id("uuid3")
 - [x] completed task
 ```
 

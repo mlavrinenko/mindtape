@@ -56,6 +56,8 @@ pub struct Task {
     pub title: String,
     pub done: bool,
     pub due: Option<Datetime>,
+    pub start: Option<Datetime>,
+    pub rank: Option<i64>,
     pub tags: Vec<String>,
     pub id: Option<String>,
     pub position: u32,
@@ -256,6 +258,8 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
     // Walk the body content looking for MetadataElem nodes produced by
     // `#due()`, `#id()`, and `#tag()`.
     let mut due: Option<Datetime> = None;
+    let mut start: Option<Datetime> = None;
+    let mut rank: Option<i64> = None;
     let mut tags: Vec<String> = Vec::new();
     let mut id: Option<String> = None;
 
@@ -269,6 +273,16 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
                             "due" => {
                                 if let Value::Datetime(dt) = &slice[1] {
                                     due = Some(*dt);
+                                }
+                            }
+                            "start" => {
+                                if let Value::Datetime(dt) = &slice[1] {
+                                    start = Some(*dt);
+                                }
+                            }
+                            "rank" => {
+                                if let Value::Int(n) = &slice[1] {
+                                    rank = Some(*n);
                                 }
                             }
                             "tag" => {
@@ -289,7 +303,7 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
         ControlFlow::Continue(())
     });
 
-    Some(Task { title, done, due, tags, id, position: 0, milestone: None })
+    Some(Task { title, done, due, start, rank, tags, id, position: 0, milestone: None })
 }
 
 /// Extract the title from the first heading in the content tree.

@@ -21,12 +21,21 @@ pub fn format_task_view(task: &TaskView) -> String {
         .as_ref()
         .map(|d| format!(" (due {d})"))
         .unwrap_or_default();
+    let start_part = task
+        .start
+        .as_ref()
+        .map(|d| format!(" (start {d})"))
+        .unwrap_or_default();
+    let rank_part = task
+        .rank
+        .map(|r| format!(" (rank {r})"))
+        .unwrap_or_default();
     let tag_part = if task.tags.is_empty() {
         String::new()
     } else {
         format!(" [{}]", task.tags.join(", "))
     };
-    format!("- {check}{due_part} {}{tag_part}", task.title)
+    format!("- {check}{due_part}{start_part}{rank_part} {}{tag_part}", task.title)
 }
 
 /// Format a task for use as a tree leaf (no leading `- ` prefix).
@@ -38,12 +47,21 @@ pub fn format_task_leaf(task: &TaskView) -> String {
         .as_ref()
         .map(|d| format!(" (due {d})"))
         .unwrap_or_default();
+    let start_part = task
+        .start
+        .as_ref()
+        .map(|d| format!(" (start {d})"))
+        .unwrap_or_default();
+    let rank_part = task
+        .rank
+        .map(|r| format!(" (rank {r})"))
+        .unwrap_or_default();
     let tag_part = if task.tags.is_empty() {
         String::new()
     } else {
         format!(" [{}]", task.tags.join(", "))
     };
-    format!("{check}{due_part} {}{tag_part}", task.title)
+    format!("{check}{due_part}{start_part}{rank_part} {}{tag_part}", task.title)
 }
 
 #[must_use]
@@ -86,14 +104,18 @@ pub fn format_stats(stats: &IndexStats) -> String {
 /// Returns error if CSV writing fails (unlikely with in-memory writer)
 pub fn format_tasks_csv(tasks: &[TaskView]) -> Result<String, csv::Error> {
     let mut wtr = Writer::from_writer(vec![]);
-    wtr.write_record(["status", "due", "title", "file", "tags"])?;
+    wtr.write_record(["status", "due", "start", "rank", "title", "file", "tags"])?;
     for t in tasks {
         let status = if t.is_done { "done" } else { "pending" };
         let due = t.due.as_deref().unwrap_or("");
+        let start = t.start.as_deref().unwrap_or("");
+        let rank_str = t.rank.map(|r| r.to_string()).unwrap_or_default();
         let tags = t.tags.join(";");
         wtr.write_record([
             status,
             due,
+            start,
+            &rank_str,
             &t.title,
             &t.file_path.to_string_lossy(),
             &tags,
@@ -156,6 +178,8 @@ mod tests {
             file_path: PathBuf::from("todo.typ"),
             file_title: None,
             due: Some("2026-03-01".to_string()),
+            start: None,
+            rank: None,
             task_id: None,
             tags: vec![],
             milestone: None,
@@ -173,6 +197,8 @@ mod tests {
             file_path: PathBuf::from("todo.typ"),
             file_title: None,
             due: None,
+            start: None,
+            rank: None,
             task_id: None,
             tags: vec![],
             milestone: None,
@@ -190,12 +216,36 @@ mod tests {
             file_path: PathBuf::from("t.typ"),
             file_title: None,
             due: None,
+            start: None,
+            rank: None,
             task_id: None,
             tags: vec!["work".to_string(), "urgent".to_string()],
             milestone: None,
             watch_root: None,
         };
         assert_eq!(format_task_view(&task), "- [ ] Task [work, urgent]");
+    }
+
+    #[test]
+    fn format_task_view_with_start_and_rank() {
+        let task = TaskView {
+            title: "Important task".to_string(),
+            is_done: false,
+            position: 0,
+            file_path: PathBuf::from("t.typ"),
+            file_title: None,
+            due: Some("2026-04-01".to_string()),
+            start: Some("2026-03-01".to_string()),
+            rank: Some(100),
+            task_id: None,
+            tags: vec![],
+            milestone: None,
+            watch_root: None,
+        };
+        assert_eq!(
+            format_task_view(&task),
+            "- [ ] (due 2026-04-01) (start 2026-03-01) (rank 100) Important task"
+        );
     }
 
     // --- format_file_view ---
@@ -269,14 +319,16 @@ mod tests {
             file_path: PathBuf::from("todo.typ"),
             file_title: None,
             due: Some("2026-03-01".to_string()),
+            start: None,
+            rank: None,
             task_id: None,
             tags: vec!["shop".to_string()],
             milestone: None,
             watch_root: None,
         }];
         let csv = format_tasks_csv(&tasks).unwrap();
-        assert!(csv.starts_with("status,due,title,file,tags\n"));
-        assert!(csv.contains("pending,2026-03-01,Buy milk,todo.typ,shop\n"));
+        assert!(csv.starts_with("status,due,start,rank,title,file,tags\n"));
+        assert!(csv.contains("pending,2026-03-01,,,Buy milk,todo.typ,shop\n"));
     }
 
     #[test]
@@ -288,13 +340,15 @@ mod tests {
             file_path: PathBuf::from("t.typ"),
             file_title: None,
             due: None,
+            start: None,
+            rank: None,
             task_id: None,
             tags: vec![],
             milestone: None,
             watch_root: None,
         }];
         let csv = format_tasks_csv(&tasks).unwrap();
-        assert!(csv.contains("done,,\"Buy eggs, milk\",t.typ,\n"));
+        assert!(csv.contains("done,,,,\"Buy eggs, milk\",t.typ,\n"));
     }
 
     #[test]

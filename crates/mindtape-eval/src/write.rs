@@ -204,6 +204,92 @@ pub fn set_task_due(source: &Source, task_id: &str, date_str: &str) -> Result<St
     })
 }
 
+/// Set or update the start date on a task.
+///
+/// If the task already has a `#start(...)` call, it is replaced.
+/// Otherwise a new one is inserted before `#id("...")`.
+///
+/// `date_str` must be in `YYYY-MM-DD` format.
+///
+/// # Errors
+/// Returns `Err` if the task is not found, the date is invalid, or the task
+/// has no `#id(...)` for insertion.
+pub fn set_task_start(source: &Source, task_id: &str, date_str: &str) -> Result<String, WriteError> {
+    let args = format_typst_date_args(date_str)?;
+    let replacement = format!("#start({args})");
+
+    modify_task_text(source, task_id, |text| {
+        if let Some((start, end)) = find_start_span(text) {
+            Ok(format!("{}{replacement}{}", &text[..start], &text[end..]))
+        } else if let Some(insert) = find_property_insert_point(text) {
+            Ok(format!("{}{replacement} {}", &text[..insert], &text[insert..]))
+        } else {
+            Err(WriteError::InvalidTask(
+                "task has no #id() — cannot determine insertion point".to_string(),
+            ))
+        }
+    })
+}
+
+/// Remove the start date from a task.
+///
+/// If the task has no `#start(...)`, this is a no-op that returns the source
+/// unchanged.
+///
+/// # Errors
+/// Returns `Err` if the task is not found.
+pub fn remove_task_start(source: &Source, task_id: &str) -> Result<String, WriteError> {
+    modify_task_text(source, task_id, |text| {
+        if let Some((start, end)) = find_start_span(text) {
+            let (start, end) = trim_leading_space(text, start, end);
+            Ok(format!("{}{}", &text[..start], &text[end..]))
+        } else {
+            Ok(text.to_string())
+        }
+    })
+}
+
+/// Set or update the rank on a task.
+///
+/// If the task already has a `#rank(...)` call (or alias like `#high`), it is replaced.
+/// Otherwise a new one is inserted before `#id("...")`.
+///
+/// # Errors
+/// Returns `Err` if the task is not found or has no `#id(...)` for insertion.
+pub fn set_task_rank(source: &Source, task_id: &str, rank: i64) -> Result<String, WriteError> {
+    let replacement = format!("#rank({rank})");
+
+    modify_task_text(source, task_id, |text| {
+        if let Some((start, end)) = find_rank_span(text) {
+            Ok(format!("{}{replacement}{}", &text[..start], &text[end..]))
+        } else if let Some(insert) = find_property_insert_point(text) {
+            Ok(format!("{}{replacement} {}", &text[..insert], &text[insert..]))
+        } else {
+            Err(WriteError::InvalidTask(
+                "task has no #id() — cannot determine insertion point".to_string(),
+            ))
+        }
+    })
+}
+
+/// Remove the rank from a task.
+///
+/// If the task has no `#rank(...)`, this is a no-op that returns the source
+/// unchanged.
+///
+/// # Errors
+/// Returns `Err` if the task is not found.
+pub fn remove_task_rank(source: &Source, task_id: &str) -> Result<String, WriteError> {
+    modify_task_text(source, task_id, |text| {
+        if let Some((start, end)) = find_rank_span(text) {
+            let (start, end) = trim_leading_space(text, start, end);
+            Ok(format!("{}{}", &text[..start], &text[end..]))
+        } else {
+            Ok(text.to_string())
+        }
+    })
+}
+
 /// Remove the due date from a task.
 ///
 /// If the task has no `#due(...)`, this is a no-op that returns the source
@@ -272,6 +358,22 @@ pub fn remove_task_tag(source: &Source, task_id: &str, tag: &str) -> Result<Stri
 /// Handles nested parentheses to correctly match the outer `#due(...)` call.
 fn find_due_span(text: &str) -> Option<(usize, usize)> {
     let prefix = "#due(";
+    let start = text.find(prefix)?;
+    let end = find_matching_paren(text, start + prefix.len() - 1)?;
+    Some((start, end + 1))
+}
+
+/// Find the byte span of `#start(...)` in `text`.
+fn find_start_span(text: &str) -> Option<(usize, usize)> {
+    let prefix = "#start(";
+    let start = text.find(prefix)?;
+    let end = find_matching_paren(text, start + prefix.len() - 1)?;
+    Some((start, end + 1))
+}
+
+/// Find the byte span of `#rank(...)` in `text`.
+fn find_rank_span(text: &str) -> Option<(usize, usize)> {
+    let prefix = "#rank(";
     let start = text.find(prefix)?;
     let end = find_matching_paren(text, start + prefix.len() - 1)?;
     Some((start, end + 1))

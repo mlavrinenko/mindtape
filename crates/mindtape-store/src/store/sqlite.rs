@@ -14,7 +14,7 @@ use super::{
 // ---------------------------------------------------------------------------
 
 /// Row tuple from a task query JOIN.
-type TaskRow = (i64, String, bool, i32, Option<String>, Option<String>, Option<String>, String, Option<String>, Option<String>);
+type TaskRow = (i64, String, bool, i32, Option<String>, Option<String>, Option<String>, Option<i64>, Option<String>, String, Option<String>, Option<String>);
 
 pub struct SqliteStore {
     conn: Connection,
@@ -53,7 +53,7 @@ impl SqliteStore {
     fn build_task_query(filter: &TaskFilter) -> (String, Vec<String>) {
         let mut sql = String::from(
             "SELECT t.id, t.title, t.is_done, t.position, t.milestone, \
-             t.due, t.task_id, tf.file_path, tf.title, tf.watch_root
+             t.due, t.start, t.rank, t.task_id, tf.file_path, tf.title, tf.watch_root
              FROM tasks t
              JOIN task_files tf ON t.task_file_id = tf.id",
         );
@@ -88,6 +88,8 @@ impl SqliteStore {
     fn sort_spec_to_sql(spec: super::SortSpec) -> String {
         let col = match spec.field {
             SortField::Due => "t.due",
+            SortField::Start => "t.start",
+            SortField::Rank => "t.rank",
             SortField::Id => "t.task_id",
             SortField::File => "tf.file_path",
             SortField::Position => "t.position",
@@ -98,9 +100,9 @@ impl SqliteStore {
             SortDir::Asc => "ASC",
             SortDir::Desc => "DESC",
         };
-        // NULLS LAST so tasks without due/id sort to the end regardless of direction.
+        // NULLS LAST so tasks without due/start/rank/id sort to the end regardless of direction.
         let nulls = match spec.field {
-            SortField::Due | SortField::Id => " NULLS LAST",
+            SortField::Due | SortField::Start | SortField::Rank | SortField::Id => " NULLS LAST",
             _ => "",
         };
         format!("{col} {dir}{nulls}")
@@ -133,6 +135,26 @@ impl SqliteStore {
         if let Some(ref due_after) = filter.due_after {
             conditions.push("t.due IS NOT NULL AND t.due >= ?".to_string());
             params.push(due_after.clone());
+        }
+
+        if let Some(ref start_before) = filter.start_before {
+            conditions.push("t.start IS NOT NULL AND t.start <= ?".to_string());
+            params.push(start_before.clone());
+        }
+
+        if let Some(ref start_after) = filter.start_after {
+            conditions.push("t.start IS NOT NULL AND t.start >= ?".to_string());
+            params.push(start_after.clone());
+        }
+
+        if let Some(rank_min) = filter.rank_min {
+            conditions.push("t.rank IS NOT NULL AND t.rank >= ?".to_string());
+            params.push(rank_min.to_string());
+        }
+
+        if let Some(rank_max) = filter.rank_max {
+            conditions.push("t.rank IS NOT NULL AND t.rank <= ?".to_string());
+            params.push(rank_max.to_string());
         }
 
         if let Some(ref milestone) = filter.milestone {
@@ -190,6 +212,8 @@ impl SqliteStore {
                     row.get(7)?,
                     row.get(8)?,
                     row.get(9)?,
+                    row.get(10)?,
+                    row.get(11)?,
                 ))
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -220,7 +244,7 @@ impl SqliteStore {
         }
 
         let mut tasks = Vec::with_capacity(task_rows.len());
-        for (row_id, title, is_done, position, milestone, due, task_id, file_path, file_title, watch_root) in task_rows {
+        for (row_id, title, is_done, position, milestone, due, start, rank, task_id, file_path, file_title, watch_root) in task_rows {
             let tags = tags_map.remove(&row_id).unwrap_or_default();
             tasks.push(TaskView {
                 title,
@@ -229,6 +253,8 @@ impl SqliteStore {
                 file_path: PathBuf::from(file_path),
                 file_title,
                 due,
+                start,
+                rank,
                 task_id,
                 tags,
                 milestone,
@@ -310,9 +336,9 @@ impl Store for SqliteStore {
 
         for (i, task) in tasks.iter().enumerate() {
             tx.execute(
-                "INSERT INTO tasks (task_file_id, title, is_done, position, milestone, due, task_id)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-                params![file_id, task.title, task.is_done, task.position, task.milestone, task.due, task.task_id],
+                "INSERT INTO tasks (task_file_id, title, is_done, position, milestone, due, start, rank, task_id)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                params![file_id, task.title, task.is_done, task.position, task.milestone, task.due, task.start, task.rank, task.task_id],
             )?;
             let task_id = tx.last_insert_rowid();
 
@@ -593,6 +619,8 @@ mod tests {
             position: pos,
             milestone: None,
             due: None,
+            start: None,
+            rank: None,
             task_id: None,
         }
     }
@@ -658,7 +686,7 @@ mod tests {
             .conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 7);
+        assert_eq!(version, 8);
     }
 
     // --- upsert_task_file ---
@@ -1306,6 +1334,8 @@ mod tests {
                 title: "Test".to_string(),
                 done: false,
                 due: Some(Datetime::from_ymd(2026, 3, 1).unwrap()),
+                start: None,
+                rank: None,
                 tags: vec!["work".to_string(), "urgent".to_string()],
                 id: Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string()),
                 position: 0,
@@ -1342,10 +1372,14 @@ mod tests {
     #[test]
     fn property_kind_roundtrip() {
         assert_eq!(PropertyKind::try_from_str("due"), Some(PropertyKind::Due));
+        assert_eq!(PropertyKind::try_from_str("start"), Some(PropertyKind::Start));
+        assert_eq!(PropertyKind::try_from_str("rank"), Some(PropertyKind::Rank));
         assert_eq!(PropertyKind::try_from_str("tag"), Some(PropertyKind::Tag));
         assert_eq!(PropertyKind::try_from_str("id"), Some(PropertyKind::Id));
         assert_eq!(PropertyKind::try_from_str("unknown"), None);
         assert_eq!(PropertyKind::Due.as_str(), "due");
+        assert_eq!(PropertyKind::Start.as_str(), "start");
+        assert_eq!(PropertyKind::Rank.as_str(), "rank");
         assert_eq!(PropertyKind::Tag.as_str(), "tag");
         assert_eq!(PropertyKind::Id.as_str(), "id");
     }

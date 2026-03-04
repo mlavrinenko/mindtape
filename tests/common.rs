@@ -12,8 +12,13 @@ use typst::foundations::Datetime;
 /// Standard prelude content matching `lib/prelude.typ`.
 pub const PRELUDE_CONTENT: &str = r#"
 #let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
+#let start(year, month, day) = metadata(("start", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
+#let rank(n) = metadata(("rank", n))
+#let high = rank(100)
+#let medium = rank(50)
+#let low = rank(10)
 "#;
 
 pub const TYPST_TOML_CONTENT: &str =

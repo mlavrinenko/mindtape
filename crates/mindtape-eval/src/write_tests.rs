@@ -311,6 +311,122 @@ fn test_remove_tag_preserves_due() {
     );
 }
 
+// --- start property ---
+
+#[test]
+fn test_find_start_span() {
+    let text = "- [ ] Task #start(2026, 3, 15) #id(\"t1\")";
+    let (start, end) = find_start_span(text).unwrap();
+    assert_eq!(&text[start..end], "#start(2026, 3, 15)");
+}
+
+#[test]
+fn test_find_start_span_none() {
+    let text = "- [ ] Task #id(\"t1\")";
+    assert!(find_start_span(text).is_none());
+}
+
+#[test]
+fn test_set_start_insert_new() {
+    let content = "- [ ] Task #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = set_task_start(&source, "task-1", "2026-03-15").unwrap();
+    assert_eq!(result, "- [ ] Task #start(2026, 3, 15) #id(\"task-1\")");
+}
+
+#[test]
+fn test_set_start_replace_existing() {
+    let content = "- [ ] Task #start(2026, 1, 1) #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = set_task_start(&source, "task-1", "2026-06-15").unwrap();
+    assert_eq!(result, "- [ ] Task #start(2026, 6, 15) #id(\"task-1\")");
+}
+
+#[test]
+fn test_remove_start() {
+    let content = "- [ ] Task #start(2026, 3, 15) #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = remove_task_start(&source, "task-1").unwrap();
+    assert_eq!(result, "- [ ] Task #id(\"task-1\")");
+}
+
+#[test]
+fn test_remove_start_not_present() {
+    let content = "- [ ] Task #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = remove_task_start(&source, "task-1").unwrap();
+    assert_eq!(result, content);
+}
+
+#[test]
+fn test_set_start_with_due() {
+    let content = "- [ ] Task #due(2026, 6, 1) #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = set_task_start(&source, "task-1", "2026-03-01").unwrap();
+    assert_eq!(
+        result,
+        "- [ ] Task #due(2026, 6, 1) #start(2026, 3, 1) #id(\"task-1\")"
+    );
+}
+
+// --- rank property ---
+
+#[test]
+fn test_find_rank_span() {
+    let text = "- [ ] Task #rank(50) #id(\"t1\")";
+    let (start, end) = find_rank_span(text).unwrap();
+    assert_eq!(&text[start..end], "#rank(50)");
+}
+
+#[test]
+fn test_find_rank_span_none() {
+    let text = "- [ ] Task #id(\"t1\")";
+    assert!(find_rank_span(text).is_none());
+}
+
+#[test]
+fn test_set_rank_insert_new() {
+    let content = "- [ ] Task #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = set_task_rank(&source, "task-1", 100).unwrap();
+    assert_eq!(result, "- [ ] Task #rank(100) #id(\"task-1\")");
+}
+
+#[test]
+fn test_set_rank_replace_existing() {
+    let content = "- [ ] Task #rank(50) #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = set_task_rank(&source, "task-1", 100).unwrap();
+    assert_eq!(result, "- [ ] Task #rank(100) #id(\"task-1\")");
+}
+
+#[test]
+fn test_remove_rank() {
+    let content = "- [ ] Task #rank(50) #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = remove_task_rank(&source, "task-1").unwrap();
+    assert_eq!(result, "- [ ] Task #id(\"task-1\")");
+}
+
+#[test]
+fn test_remove_rank_not_present() {
+    let content = "- [ ] Task #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = remove_task_rank(&source, "task-1").unwrap();
+    assert_eq!(result, content);
+}
+
+#[test]
+fn test_set_rank_with_due_and_tags() {
+    let content = "- [ ] Task #due(2026, 3, 15) #tag(\"work\") #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = set_task_rank(&source, "task-1", 75).unwrap();
+    assert_eq!(
+        result,
+        "- [ ] Task #due(2026, 3, 15) #tag(\"work\") #rank(75) #id(\"task-1\")"
+    );
+}
+
 // --- Combined operations ---
 
 #[test]

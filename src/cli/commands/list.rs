@@ -61,12 +61,28 @@ pub struct ListArgs {
     #[arg(long)]
     pub watch_root: Option<PathBuf>,
 
+    /// Filter tasks with start date before this date (YYYY-MM-DD)
+    #[arg(long, value_name = "DATE")]
+    pub start_before: Option<String>,
+
+    /// Filter tasks with start date on or after this date (YYYY-MM-DD)
+    #[arg(long, value_name = "DATE")]
+    pub start_after: Option<String>,
+
+    /// Filter tasks with rank >= this value
+    #[arg(long)]
+    pub rank_min: Option<i64>,
+
+    /// Filter tasks with rank <= this value
+    #[arg(long)]
+    pub rank_max: Option<i64>,
+
     /// Limit output to N items
     #[arg(short = 'n', long)]
     pub limit: Option<usize>,
 
     /// Sort order (repeatable, e.g. --sort=due:asc --sort=title:desc).
-    /// Fields: due, id, file, position (pos), title, status. Direction defaults to asc.
+    /// Fields: due, start, rank, id, file, position (pos), title, status. Direction defaults to asc.
     #[arg(long, value_parser = parse_sort_spec)]
     pub sort: Vec<SortSpec>,
 
@@ -83,6 +99,8 @@ fn parse_sort_spec(input: &str) -> Result<SortSpec, String> {
 
     let field = match field_str {
         "due" => SortField::Due,
+        "start" => SortField::Start,
+        "rank" => SortField::Rank,
         "id" => SortField::Id,
         "file" => SortField::File,
         "position" | "pos" => SortField::Position,
@@ -127,6 +145,10 @@ impl ListArgs {
             tags: self.tag.clone(),
             due_before: self.due_before.clone(),
             due_after: self.due_after.clone(),
+            start_before: self.start_before.clone(),
+            start_after: self.start_after.clone(),
+            rank_min: self.rank_min,
+            rank_max: self.rank_max,
             milestone: self.milestone.clone(),
             title_contains: self.title.clone(),
             search: self.search.clone(),

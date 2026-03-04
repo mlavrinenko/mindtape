@@ -6,7 +6,7 @@ use common::{setup_typst_project, ymd};
 use mindtape::eval::{eval_file, eval_file_full, EvalError, EvalResult, Task};
 use mindtape::world::MindTapeWorld;
 
-const IMPORT_LINE: &str = "#import \"@mindtape/mindtape:0.1.0\": due, id, tag\n";
+const IMPORT_LINE: &str = "#import \"@mindtape/mindtape:0.1.0\": due, start, id, tag, rank, high, medium, low\n";
 
 /// Create a temp project with the `@mindtape` package, prepend the standard
 /// import line, evaluate, and return tasks.
@@ -390,4 +390,84 @@ fn eval_checked_task_uppercase_x() {
     assert_eq!(tasks.len(), 1);
     assert!(tasks[0].done);
     assert_eq!(tasks[0].title, "Done with uppercase");
+}
+
+// --- start extraction ---
+
+#[test]
+fn eval_task_with_start_date() {
+    let tasks = eval_typ("- [ ] Future task #start(2026, 4, 1)").unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].title, "Future task");
+    assert_eq!(tasks[0].start, Some(ymd(2026, 4, 1)));
+}
+
+#[test]
+fn eval_task_with_start_and_due() {
+    let tasks = eval_typ("- [ ] Ranged task #start(2026, 3, 1) #due(2026, 4, 1)").unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].start, Some(ymd(2026, 3, 1)));
+    assert_eq!(tasks[0].due, Some(ymd(2026, 4, 1)));
+}
+
+#[test]
+fn eval_task_without_start_has_none() {
+    let tasks = eval_typ("- [ ] Plain task").unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].start, None);
+}
+
+// --- rank extraction ---
+
+#[test]
+fn eval_task_with_rank() {
+    let tasks = eval_typ("- [ ] Important #rank(75)").unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].rank, Some(75));
+}
+
+#[test]
+fn eval_task_with_high_alias() {
+    let tasks = eval_typ("- [ ] Critical #high").unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].rank, Some(100));
+}
+
+#[test]
+fn eval_task_with_medium_alias() {
+    let tasks = eval_typ("- [ ] Normal #medium").unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].rank, Some(50));
+}
+
+#[test]
+fn eval_task_with_low_alias() {
+    let tasks = eval_typ("- [ ] Minor #low").unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].rank, Some(10));
+}
+
+#[test]
+fn eval_task_without_rank_has_none() {
+    let tasks = eval_typ("- [ ] Unranked task").unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].rank, None);
+}
+
+#[test]
+fn eval_task_with_all_metadata() {
+    let tasks = eval_typ(
+        r#"- [ ] Full task #start(2026, 3, 1) #due(2026, 4, 1) #high #tag("work") #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")"#,
+    )
+    .unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].title, "Full task");
+    assert_eq!(tasks[0].start, Some(ymd(2026, 3, 1)));
+    assert_eq!(tasks[0].due, Some(ymd(2026, 4, 1)));
+    assert_eq!(tasks[0].rank, Some(100));
+    assert_eq!(tasks[0].tags, vec!["work"]);
+    assert_eq!(
+        tasks[0].id,
+        Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string())
+    );
 }

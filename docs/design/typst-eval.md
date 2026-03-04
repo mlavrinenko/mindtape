@@ -93,23 +93,30 @@ Key observations:
 
 See `lib/prelude.typ` for the implementation.
 
-Functions like `due()`, `id()`, `tag()` all use `metadata()`:
+Functions like `due()`, `start()`, `id()`, `tag()`, `rank()` all use `metadata()`:
 
 ```typ
 #let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
+#let start(year, month, day) = metadata(("start", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
+#let rank(n) = metadata(("rank", n))
+#let high = rank(100)
+#let medium = rank(50)
+#let low = rank(10)
 ```
 
 `metadata()` produces a `MetadataElem` with a `value: Value` field.
 The value is a Typst `Array`:
-- Index 0: `Str` — the kind (`"due"`, `"id"`, `"tag"`)
-- Index 1: `Datetime` or `Str` — the actual value
+- Index 0: `Str` — the kind (`"due"`, `"start"`, `"id"`, `"tag"`, `"rank"`)
+- Index 1: `Datetime`, `Str`, or `Int` — the actual value
+
+`high`, `medium`, `low` are `let` bindings (not functions), used as `#high` not `#high()`.
 
 Imported via the `@local/mindtape` package namespace, resolved by the World:
 
 ```typ
-#import "@local/mindtape:0.1.0": due, id, tag
+#import "@local/mindtape:0.1.0": due, start, id, tag, rank, high, medium, low
 ```
 
 ## Extraction Algorithm

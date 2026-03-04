@@ -85,7 +85,7 @@ pub enum Command {
     /// Watch and index folders
     Watch(WatchArgs),
     /// List tasks from the index
-    List(ListArgs),
+    List(Box<ListArgs>),
     /// Show index statistics
     Status(StatusArgs),
     /// List indexed files

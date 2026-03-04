@@ -17,6 +17,6 @@ pub use eval::{
 
 // Re-export write's public API at crate root.
 pub use write::{
-    add_task_tag, load_source, remove_task_due, remove_task_tag, set_task_due,
-    toggle_task_checkbox, WriteError,
+    add_task_tag, load_source, remove_task_due, remove_task_rank, remove_task_start,
+    remove_task_tag, set_task_due, set_task_rank, set_task_start, toggle_task_checkbox, WriteError,
 };
