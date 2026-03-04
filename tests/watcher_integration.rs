@@ -32,7 +32,7 @@ fn initial_scan_indexes_multiple_files() {
 
 = Todo
 
-- [ ] Buy milk #due(datetime(year: 2026, month: 3, day: 1))
+- [ ] Buy milk #due(2026, 3, 1)
 - [x] Clean house
 - [ ] Read book #tag("hobby")
 "#,
@@ -62,7 +62,7 @@ fn initial_scan_then_query_tasks() {
 
 = My Tasks
 
-- [ ] Important #due(datetime(year: 2026, month: 1, day: 15)) #tag("work")
+- [ ] Important #due(2026, 1, 15) #tag("work")
 - [ ] Less important #tag("personal")
 - [x] Already done
 "#,
@@ -96,7 +96,7 @@ fn handle_event_indexes_new_file_with_metadata() {
 
 = New File
 
-- [ ] First task #due(datetime(year: 2026, month: 6, day: 1)) #tag("new")
+- [ ] First task #due(2026, 6, 1) #tag("new")
 "#,
     )
     .unwrap();

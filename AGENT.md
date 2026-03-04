@@ -47,7 +47,7 @@ and metadata into SQLite, and exposes a CLI for querying.
 
 = Milestone Title
 
-- [ ] task text #due(datetime(...)) #id("uuid") #tag("category")
+- [ ] task text #due(2026, 3, 1) #id("uuid") #tag("category")
 - [x] completed task
 ```
 

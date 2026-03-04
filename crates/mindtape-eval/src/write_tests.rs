@@ -106,35 +106,35 @@ fn test_preserves_indentation() {
 // --- M3.2 helper tests ---
 
 #[test]
-fn test_format_typst_datetime() {
+fn test_format_typst_date_args() {
     assert_eq!(
-        format_typst_datetime("2026-03-15").unwrap(),
-        "datetime(2026, 3, 15)"
+        format_typst_date_args("2026-03-15").unwrap(),
+        "2026, 3, 15"
     );
 }
 
 #[test]
-fn test_format_typst_datetime_single_digit() {
+fn test_format_typst_date_args_single_digit() {
     assert_eq!(
-        format_typst_datetime("2026-1-5").unwrap(),
-        "datetime(2026, 1, 5)"
+        format_typst_date_args("2026-1-5").unwrap(),
+        "2026, 1, 5"
     );
 }
 
 #[test]
-fn test_format_typst_datetime_invalid() {
-    assert!(format_typst_datetime("not-a-date").is_err());
-    assert!(format_typst_datetime("2026-13-01").is_err());
-    assert!(format_typst_datetime("2026-01-32").is_err());
-    assert!(format_typst_datetime("2026-00-15").is_err());
-    assert!(format_typst_datetime("2026-01-00").is_err());
+fn test_format_typst_date_args_invalid() {
+    assert!(format_typst_date_args("not-a-date").is_err());
+    assert!(format_typst_date_args("2026-13-01").is_err());
+    assert!(format_typst_date_args("2026-01-32").is_err());
+    assert!(format_typst_date_args("2026-00-15").is_err());
+    assert!(format_typst_date_args("2026-01-00").is_err());
 }
 
 #[test]
 fn test_find_due_span() {
-    let text = "- [ ] Task #due(datetime(2026, 3, 15)) #id(\"t1\")";
+    let text = "- [ ] Task #due(2026, 3, 15) #id(\"t1\")";
     let (start, end) = find_due_span(text).unwrap();
-    assert_eq!(&text[start..end], "#due(datetime(2026, 3, 15))");
+    assert_eq!(&text[start..end], "#due(2026, 3, 15)");
 }
 
 #[test]
@@ -158,14 +158,14 @@ fn test_find_tag_span_wrong_name() {
 
 #[test]
 fn test_find_matching_paren() {
-    let text = "#due(datetime(2026, 3, 15))";
+    let text = "#due(2026, 3, 15)";
     // opening paren at index 4
-    assert_eq!(find_matching_paren(text, 4), Some(26));
+    assert_eq!(find_matching_paren(text, 4), Some(16));
 }
 
 #[test]
 fn test_find_matching_paren_unbalanced() {
-    let text = "#due(datetime(2026, 3, 15)";
+    let text = "#due(2026, 3, 15";
     assert_eq!(find_matching_paren(text, 4), None);
 }
 
@@ -178,18 +178,18 @@ fn test_set_due_insert_new() {
     let result = set_task_due(&source, "task-1", "2026-03-15").unwrap();
     assert_eq!(
         result,
-        "- [ ] Buy milk #due(datetime(2026, 3, 15)) #id(\"task-1\")"
+        "- [ ] Buy milk #due(2026, 3, 15) #id(\"task-1\")"
     );
 }
 
 #[test]
 fn test_set_due_replace_existing() {
-    let content = "- [ ] Buy milk #due(datetime(2026, 1, 1)) #id(\"task-1\")";
+    let content = "- [ ] Buy milk #due(2026, 1, 1) #id(\"task-1\")";
     let source = Source::detached(content);
     let result = set_task_due(&source, "task-1", "2026-03-15").unwrap();
     assert_eq!(
         result,
-        "- [ ] Buy milk #due(datetime(2026, 3, 15)) #id(\"task-1\")"
+        "- [ ] Buy milk #due(2026, 3, 15) #id(\"task-1\")"
     );
 }
 
@@ -200,7 +200,7 @@ fn test_set_due_with_tags() {
     let result = set_task_due(&source, "task-1", "2026-06-01").unwrap();
     assert_eq!(
         result,
-        "- [ ] Task #tag(\"work\") #due(datetime(2026, 6, 1)) #id(\"task-1\")"
+        "- [ ] Task #tag(\"work\") #due(2026, 6, 1) #id(\"task-1\")"
     );
 }
 
@@ -208,19 +208,19 @@ fn test_set_due_with_tags() {
 fn test_set_due_preserves_other_tasks() {
     let content = r#"
 - [ ] First #id("task-1")
-- [ ] Second #due(datetime(2026, 1, 1)) #id("task-2")
+- [ ] Second #due(2026, 1, 1) #id("task-2")
 "#;
     let source = Source::detached(content);
     let result = set_task_due(&source, "task-2", "2026-12-25").unwrap();
     assert!(result.contains("- [ ] First #id(\"task-1\")"));
-    assert!(result.contains("- [ ] Second #due(datetime(2026, 12, 25)) #id(\"task-2\")"));
+    assert!(result.contains("- [ ] Second #due(2026, 12, 25) #id(\"task-2\")"));
 }
 
 // --- M3.2 remove_task_due tests ---
 
 #[test]
 fn test_remove_due() {
-    let content = "- [ ] Task #due(datetime(2026, 3, 15)) #id(\"task-1\")";
+    let content = "- [ ] Task #due(2026, 3, 15) #id(\"task-1\")";
     let source = Source::detached(content);
     let result = remove_task_due(&source, "task-1").unwrap();
     assert_eq!(result, "- [ ] Task #id(\"task-1\")");
@@ -236,7 +236,7 @@ fn test_remove_due_not_present() {
 
 #[test]
 fn test_remove_due_preserves_tags() {
-    let content = "- [ ] Task #due(datetime(2026, 3, 15)) #tag(\"work\") #id(\"task-1\")";
+    let content = "- [ ] Task #due(2026, 3, 15) #tag(\"work\") #id(\"task-1\")";
     let source = Source::detached(content);
     let result = remove_task_due(&source, "task-1").unwrap();
     assert_eq!(result, "- [ ] Task #tag(\"work\") #id(\"task-1\")");
@@ -265,12 +265,12 @@ fn test_add_tag_with_existing() {
 
 #[test]
 fn test_add_tag_with_due() {
-    let content = "- [ ] Task #due(datetime(2026, 3, 15)) #id(\"task-1\")";
+    let content = "- [ ] Task #due(2026, 3, 15) #id(\"task-1\")";
     let source = Source::detached(content);
     let result = add_task_tag(&source, "task-1", "home").unwrap();
     assert_eq!(
         result,
-        "- [ ] Task #due(datetime(2026, 3, 15)) #tag(\"home\") #id(\"task-1\")"
+        "- [ ] Task #due(2026, 3, 15) #tag(\"home\") #id(\"task-1\")"
     );
 }
 
@@ -302,12 +302,12 @@ fn test_remove_tag_one_of_many() {
 
 #[test]
 fn test_remove_tag_preserves_due() {
-    let content = "- [ ] Task #due(datetime(2026, 3, 15)) #tag(\"work\") #id(\"task-1\")";
+    let content = "- [ ] Task #due(2026, 3, 15) #tag(\"work\") #id(\"task-1\")";
     let source = Source::detached(content);
     let result = remove_task_tag(&source, "task-1", "work").unwrap();
     assert_eq!(
         result,
-        "- [ ] Task #due(datetime(2026, 3, 15)) #id(\"task-1\")"
+        "- [ ] Task #due(2026, 3, 15) #id(\"task-1\")"
     );
 }
 

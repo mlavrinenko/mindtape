@@ -11,7 +11,7 @@ use typst::foundations::Datetime;
 
 /// Standard prelude content matching `lib/prelude.typ`.
 pub const PRELUDE_CONTENT: &str = r#"
-#let due(date) = metadata(("due", date))
+#let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;

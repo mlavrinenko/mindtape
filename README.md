@@ -15,7 +15,7 @@ statically checked. Your task data is structured, validated, and composable.
 
 = Sprint 12
 
-- [ ] implement auth #due(datetime(year: 2026, month: 3, day: 1)) #tag("backend") #id("auth-123")
+- [ ] implement auth #due(2026, 3, 1) #tag("backend") #id("auth-123")
 - [x] design mockups #tag("design") #id("design-456")
 - [ ] write tests
 ```

@@ -342,9 +342,9 @@ fn list_with_due_range() {
         "todo.typ",
         r#"#import "@mindtape/mindtape:0.1.0": id, due
 
-- [ ] Early #due(datetime(year: 2026, month: 1, day: 15)) #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
-- [ ] Middle #due(datetime(year: 2026, month: 3, day: 1)) #id("019c5b97-9239-7270-b7d7-2a50806912b3")
-- [ ] Late #due(datetime(year: 2026, month: 6, day: 1)) #id("019c5b98-d10a-7710-8679-bda520780ee9")
+- [ ] Early #due(2026, 1, 15) #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Middle #due(2026, 3, 1) #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] Late #due(2026, 6, 1) #id("019c5b98-d10a-7710-8679-bda520780ee9")
 "#,
     );
 

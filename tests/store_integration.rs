@@ -27,7 +27,7 @@ fn index_file_stores_tasks_with_id() {
 
 = Piano Practice
 
-- [ ] Learn scales #due(datetime(year: 2026, month: 3, day: 1)) #tag("music") #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Learn scales #due(2026, 3, 1) #tag("music") #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
 - [x] Buy metronome #id("019c5b97-9239-7270-b7d7-2a50806912b3")
 - [ ] Practice arpeggios #tag("music") #tag("technique") #id("019c5b98-d10a-7710-8679-bda520780ee9")
 "#,

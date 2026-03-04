@@ -70,7 +70,7 @@ We parse the checkbox pattern from `ListItem.body.plain_text()`:
 There is NO `ListElem` wrapper in the content tree. `ListItem` nodes
 appear directly in a flat `SequenceElem`.
 
-Given `- [ ] Task text #due(datetime(...))`, the actual content tree is:
+Given `- [ ] Task text #due(2026, 3, 1)`, the actual content tree is:
 
 ```
 ListItem { body: SequenceElem [
@@ -96,7 +96,7 @@ See `lib/prelude.typ` for the implementation.
 Functions like `due()`, `id()`, `tag()` all use `metadata()`:
 
 ```typ
-#let due(date) = metadata(("due", date))
+#let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 ```

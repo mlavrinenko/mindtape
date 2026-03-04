@@ -117,13 +117,13 @@ Some paragraph text.
 
 #[test]
 fn eval_task_with_prelude_import() {
-    let prelude = r#"#let due(date) = metadata(("due", date))
+    let prelude = r#"#let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;
     let source = r#"#import "@mindtape/mindtape:0.1.0": due
 
-- [ ] Learn piano #due(datetime(year: 2026, month: 4, day: 1))
+- [ ] Learn piano #due(2026, 4, 1)
 "#;
     let tasks = eval_typ_with_package(prelude, source).unwrap();
     assert_eq!(tasks.len(), 1);
@@ -173,7 +173,7 @@ fn eval_task_with_due_and_tags() {
 
 #[test]
 fn eval_tag_via_prelude() {
-    let prelude = r#"#let due(date) = metadata(("due", date))
+    let prelude = r#"#let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;
@@ -191,13 +191,13 @@ fn eval_tag_via_prelude() {
 #[test]
 fn eval_package_import_due() {
     let prelude = r#"
-#let due(date) = metadata(("due", date))
+#let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;
     let source = r#"#import "@mindtape/mindtape:0.1.0": due
 
-- [ ] Package task #due(datetime(year: 2026, month: 7, day: 4))
+- [ ] Package task #due(2026, 7, 4)
 "#;
     let tasks = eval_typ_with_package(prelude, source).unwrap();
     assert_eq!(tasks.len(), 1);
@@ -208,7 +208,7 @@ fn eval_package_import_due() {
 #[test]
 fn eval_package_import_tag() {
     let prelude = r#"
-#let due(date) = metadata(("due", date))
+#let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;
@@ -224,13 +224,13 @@ fn eval_package_import_tag() {
 #[test]
 fn eval_package_import_all_functions() {
     let prelude = r#"
-#let due(date) = metadata(("due", date))
+#let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;
     let source = r#"#import "@mindtape/mindtape:0.1.0": due, tag
 
-- [ ] Full featured #due(datetime(year: 2026, month: 12, day: 25)) #tag("holiday") #tag("fun")
+- [ ] Full featured #due(2026, 12, 25) #tag("holiday") #tag("fun")
 "#;
     let tasks = eval_typ_with_package(prelude, source).unwrap();
     assert_eq!(tasks.len(), 1);
@@ -244,7 +244,7 @@ fn eval_package_import_all_functions() {
 #[test]
 fn eval_extracts_task_id() {
     let prelude = r#"
-#let due(date) = metadata(("due", date))
+#let due(year, month, day) = metadata(("due", datetime(year: year, month: month, day: day)))
 #let id(uuid) = metadata(("id", uuid))
 #let tag(name) = metadata(("tag", name))
 "#;

@@ -177,7 +177,7 @@ fn modify_task_text(
 
 /// Set or update the due date on a task.
 ///
-/// If the task already has a `#due(datetime(...))` call, it is replaced.
+/// If the task already has a `#due(...)` call, it is replaced.
 /// Otherwise a new one is inserted before `#id("...")`.
 ///
 /// `date_str` must be in `YYYY-MM-DD` format.
@@ -186,8 +186,8 @@ fn modify_task_text(
 /// Returns `Err` if the task is not found, the date is invalid, or the task
 /// has no `#id(...)` for insertion.
 pub fn set_task_due(source: &Source, task_id: &str, date_str: &str) -> Result<String, WriteError> {
-    let dt = format_typst_datetime(date_str)?;
-    let replacement = format!("#due({dt})");
+    let args = format_typst_date_args(date_str)?;
+    let replacement = format!("#due({args})");
 
     modify_task_text(source, task_id, |text| {
         if let Some((start, end)) = find_due_span(text) {
@@ -267,7 +267,7 @@ pub fn remove_task_tag(source: &Source, task_id: &str, tag: &str) -> Result<Stri
 // Helpers for property span detection
 // ---------------------------------------------------------------------------
 
-/// Find the byte span of `#due(datetime(...))` in `text`.
+/// Find the byte span of `#due(...)` in `text`.
 ///
 /// Handles nested parentheses to correctly match the outer `#due(...)` call.
 fn find_due_span(text: &str) -> Option<(usize, usize)> {
@@ -324,12 +324,12 @@ fn find_matching_paren(text: &str, open: usize) -> Option<usize> {
     None
 }
 
-/// Parse an ISO date string (`YYYY-MM-DD`) and format it as a Typst
-/// `datetime(Y, M, D)` call.
+/// Parse an ISO date string (`YYYY-MM-DD`) and format it as Typst
+/// positional arguments `Y, M, D` (for use inside `#due(Y, M, D)`).
 ///
 /// # Errors
 /// Returns `Err(WriteError::InvalidDate)` if the string is malformed.
-fn format_typst_datetime(date_str: &str) -> Result<String, WriteError> {
+fn format_typst_date_args(date_str: &str) -> Result<String, WriteError> {
     let parts: Vec<&str> = date_str.split('-').collect();
     let [year_str, month_str, day_str] = parts.as_slice() else {
         return Err(WriteError::InvalidDate(format!(
@@ -358,7 +358,7 @@ fn format_typst_datetime(date_str: &str) -> Result<String, WriteError> {
         )));
     }
 
-    Ok(format!("datetime({year}, {month}, {day})"))
+    Ok(format!("{year}, {month}, {day}"))
 }
 
 #[cfg(test)]
