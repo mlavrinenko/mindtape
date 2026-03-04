@@ -589,36 +589,50 @@
       <button class="fm-tab active" data-target="fm-api">api-gateway/tasks.typ</button>
       <button class="fm-tab" data-target="fm-frontend">frontend-app/TODO.typ</button>
       <button class="fm-tab" data-target="fm-infra">infra/deploy.typ</button>
+      <button class="fm-tab" data-target="fm-infra-k8s">infra/k8s.typ</button>
     </div>
     <div id="fm-api" class="fm-panel active">
       <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
 
 = Sprint 14
 
-- [ ] Design REST API schema #due(2026, 3, 15) #high #tag("backend")
-- [ ] Set up CI pipeline #due(2026, 3, 10) #medium #tag("devops")
-- [x] Write integration tests #tag("testing")
-- [ ] Review pull requests #low #tag("team")</code></pre>
+- [ ] Design REST API schema #due(2026, 3, 15) #high #tag("backend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b01")
+  - [ ] Draft OpenAPI spec #medium #tag("backend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b08")
+  - [ ] Review with frontend team #low #tag("team") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b09")
+- [ ] Set up CI pipeline #due(2026, 3, 10) #medium #tag("devops") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b02")
+- [x] Write integration tests #tag("testing") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8bf1")
+- [ ] Review pull requests #low #tag("team") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b03")</code></pre>
     </div>
     <div id="fm-frontend" class="fm-panel">
       <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
 
 = UI Polish
 
-- [ ] Migrate to new design system #high #tag("frontend") #due(2026, 3, 18)
-- [ ] Fix dark mode contrast issues #medium #tag("a11y")
-- [x] Add loading skeletons #tag("ux")
-- [ ] Update component library #due(2026, 3, 20) #medium #tag("frontend")</code></pre>
+- [ ] Migrate to new design system #high #tag("frontend") #due(2026, 3, 18) #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b04")
+  - [ ] Audit existing components #medium #tag("frontend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0a")
+  - [x] Create migration checklist #tag("frontend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8bf2")
+- [ ] Fix dark mode contrast issues #medium #tag("a11y") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b05")
+- [x] Add loading skeletons #tag("ux") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8bf3")
+- [ ] Update component library #due(2026, 3, 20) #medium #tag("frontend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b06")</code></pre>
     </div>
     <div id="fm-infra" class="fm-panel">
       <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
 
 = Deployment
 
-- [ ] Configure staging environment #high #tag("infra") #due(2026, 3, 12)
-- [ ] Write Terraform modules #medium #tag("iac")
-- [ ] Set up monitoring dashboards #low #tag("observability")
-- [x] Automate backup rotation #tag("ops")</code></pre>
+- [ ] Configure staging environment #high #tag("infra") #due(2026, 3, 12) #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b07")
+- [ ] Write Terraform modules #medium #tag("iac") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0b")
+- [ ] Set up monitoring dashboards #low #tag("observability") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0c")
+- [x] Automate backup rotation #tag("ops") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8bf4")</code></pre>
+    </div>
+    <div id="fm-infra-k8s" class="fm-panel">
+      <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
+
+= Kubernetes
+
+- [ ] Define pod resource limits #high #tag("k8s") #due(2026, 3, 14) #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0d")
+- [ ] Set up horizontal autoscaling #medium #tag("k8s") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0e")
+- [x] Create namespace layout #tag("k8s") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8bf5")</code></pre>
     </div>
   </div>
 
@@ -638,20 +652,30 @@
 === `tasks.typ` ~/projects/api-gateway/tasks.typ
 ==== Sprint 14
 - [ ] Design REST API schema #due(2026, 3, 15) #high #tag("backend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b01")
+  - [ ] Draft OpenAPI spec #medium #tag("backend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b08")
+  - [ ] Review with frontend team #low #tag("team") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b09")
 - [ ] Set up CI pipeline #due(2026, 3, 10) #medium #tag("devops") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b02")
-- [x] Write integration tests #tag("testing") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b03")
+- [ ] Review pull requests #low #tag("team") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b03")
 
 == frontend-app
 === `TODO.typ` ~/projects/frontend-app/TODO.typ
 ==== UI Polish
 - [ ] Migrate to new design system #high #tag("frontend") #due(2026, 3, 18) #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b04")
+  - [ ] Audit existing components #medium #tag("frontend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0a")
 - [ ] Fix dark mode contrast issues #medium #tag("a11y") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b05")
+- [ ] Update component library #due(2026, 3, 20) #medium #tag("frontend") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b06")
 
 == infra
 === `deploy.typ` ~/projects/infra/deploy.typ
 ==== Deployment
-- [ ] Configure staging environment #high #tag("infra") #due(2026, 3, 12) #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b06")
-- [ ] Write Terraform modules #medium #tag("iac") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b07")</code></pre>
+- [ ] Configure staging environment #high #tag("infra") #due(2026, 3, 12) #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b07")
+- [ ] Write Terraform modules #medium #tag("iac") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0b")
+- [ ] Set up monitoring dashboards #low #tag("observability") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0c")
+
+=== `k8s.typ` ~/projects/infra/k8s.typ
+==== Kubernetes
+- [ ] Define pod resource limits #high #tag("k8s") #due(2026, 3, 14) #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0d")
+- [ ] Set up horizontal autoscaling #medium #tag("k8s") #id("019d2a4b-8c01-7e3a-b5d1-4f9a2e7c8b0e")</code></pre>
     </div>
   </div>
 
