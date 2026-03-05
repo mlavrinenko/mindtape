@@ -44,7 +44,7 @@ fn list_with_start_before() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            start_before: Some("2026-03-01".to_string()),
+            expr: Some("start <= \"2026-03-01\"".into()),
             ..Default::default()
         })
         .unwrap();
@@ -69,7 +69,7 @@ fn list_with_start_after() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            start_after: Some("2026-03-01".to_string()),
+            expr: Some("start >= \"2026-03-01\"".into()),
             ..Default::default()
         })
         .unwrap();
@@ -94,8 +94,7 @@ fn list_with_start_range() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            start_after: Some("2026-02-01".to_string()),
-            start_before: Some("2026-04-01".to_string()),
+            expr: Some("start >= \"2026-02-01\" && start <= \"2026-04-01\"".into()),
             ..Default::default()
         })
         .unwrap();
@@ -123,7 +122,7 @@ fn list_with_rank_min() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            rank_min: Some(50),
+            expr: Some("rank >= 50".into()),
             ..Default::default()
         })
         .unwrap();
@@ -150,7 +149,7 @@ fn list_with_rank_max() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            rank_max: Some(50),
+            expr: Some("rank <= 50".into()),
             ..Default::default()
         })
         .unwrap();
@@ -175,8 +174,7 @@ fn list_with_rank_range() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            rank_min: Some(25),
-            rank_max: Some(75),
+            expr: Some("rank >= 25 && rank <= 75".into()),
             ..Default::default()
         })
         .unwrap();
@@ -202,7 +200,7 @@ fn list_with_property_due() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            with: vec!["due".to_string()],
+            expr: Some("has(due)".into()),
             ..Default::default()
         })
         .unwrap();
@@ -227,7 +225,7 @@ fn list_with_property_rank() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            with: vec!["rank".to_string()],
+            expr: Some("has(rank)".into()),
             ..Default::default()
         })
         .unwrap();
@@ -255,7 +253,7 @@ fn list_with_property_due_and_rank() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            with: vec!["due".to_string(), "rank".to_string()],
+            expr: Some("has(due) && has(rank)".into()),
             ..Default::default()
         })
         .unwrap();
@@ -281,7 +279,7 @@ fn list_without_property_due() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            without: vec!["due".to_string()],
+            expr: Some("!has(due)".into()),
             ..Default::default()
         })
         .unwrap();
@@ -305,7 +303,7 @@ fn list_without_property_rank() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            without: vec!["rank".to_string()],
+            expr: Some("!has(rank)".into()),
             ..Default::default()
         })
         .unwrap();
@@ -332,8 +330,7 @@ fn list_with_and_without_combined() {
     // Has due but no rank
     let views = store
         .query_tasks(&TaskFilter {
-            with: vec!["due".to_string()],
-            without: vec!["rank".to_string()],
+            expr: Some("has(due) && !has(rank)".into()),
             ..Default::default()
         })
         .unwrap();

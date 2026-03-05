@@ -144,35 +144,9 @@ pub struct SortSpec {
 #[derive(Debug, Default)]
 pub struct TaskFilter {
     pub done: Option<bool>,
-    /// Filter by tags (AND semantics: task must have all listed tags).
-    pub tags: Vec<String>,
-    pub due_before: Option<String>,
-    /// Filter tasks due on or after this date (YYYY-MM-DD).
-    pub due_after: Option<String>,
-    /// Filter tasks starting before this date (YYYY-MM-DD).
-    pub start_before: Option<String>,
-    /// Filter tasks starting on or after this date (YYYY-MM-DD).
-    pub start_after: Option<String>,
-    /// Filter tasks with rank >= this value.
-    pub rank_min: Option<i64>,
-    /// Filter tasks with rank <= this value.
-    pub rank_max: Option<i64>,
-    /// Case-insensitive substring match on milestone path.
-    pub milestone: Option<String>,
-    /// Case-insensitive substring match on task title.
-    pub title_contains: Option<String>,
-    /// FTS5 full-text search query across titles and milestones.
-    pub search: Option<String>,
-    pub file_path: Option<PathBuf>,
     pub folder: Option<PathBuf>,
     /// Filter by watch root (exact match on `task_files.watch_root`).
     pub watch_root: Option<PathBuf>,
-    /// Presence filter: task must have these properties set (AND semantics).
-    /// Valid values: `"due"`, `"start"`, `"rank"`, `"tag"`, `"id"`.
-    pub with: Vec<String>,
-    /// Absence filter: task must NOT have these properties set (AND semantics).
-    /// Valid values: `"due"`, `"start"`, `"rank"`, `"tag"`, `"id"`.
-    pub without: Vec<String>,
     pub limit: Option<usize>,
     /// Sort order. Empty means default (`file_path, position`).
     pub sort: Vec<SortSpec>,

@@ -166,7 +166,7 @@ fn list_done_tasks_by_tag() {
     let views = store
         .query_tasks(&TaskFilter {
             done: Some(true),
-            tags: vec!["work".to_string()],
+            expr: Some("has_tag(\"work\")".into()),
             ..Default::default()
         })
         .unwrap();
@@ -271,7 +271,7 @@ fn search_tasks_by_title() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            search: Some("groceries".to_string()),
+            expr: Some("search(\"groceries\")".into()),
             ..Default::default()
         })
         .unwrap();
@@ -300,7 +300,7 @@ fn search_tasks_by_milestone() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            search: Some("sprint".to_string()),
+            expr: Some("search(\"sprint\")".into()),
             ..Default::default()
         })
         .unwrap();
@@ -325,7 +325,7 @@ fn list_with_multiple_tags() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            tags: vec!["work".to_string(), "urgent".to_string()],
+            expr: Some("has_tag(\"work\") && has_tag(\"urgent\")".into()),
             ..Default::default()
         })
         .unwrap();
@@ -350,8 +350,7 @@ fn list_with_due_range() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            due_after: Some("2026-02-01".to_string()),
-            due_before: Some("2026-04-01".to_string()),
+            expr: Some("due >= \"2026-02-01\" && due <= \"2026-04-01\"".into()),
             ..Default::default()
         })
         .unwrap();
@@ -441,7 +440,7 @@ fn list_with_milestone_filter() {
 
     let views = store
         .query_tasks(&TaskFilter {
-            milestone: Some("Backend".to_string()),
+            expr: Some("contains(milestone, \"Backend\")".into()),
             ..Default::default()
         })
         .unwrap();

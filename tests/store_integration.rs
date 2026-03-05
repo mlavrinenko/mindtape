@@ -160,7 +160,7 @@ fn index_file_query_by_tag() {
 
     let work = store
         .query_tasks(&TaskFilter {
-            tags: vec!["work".to_string()],
+            expr: Some("has_tag(\"work\")".into()),
             ..Default::default()
         })
         .unwrap();
@@ -201,8 +201,8 @@ fn index_file_query_combined_tag_and_done() {
     // Filter: tag=work AND not done
     let views = store
         .query_tasks(&TaskFilter {
-            tags: vec!["work".to_string()],
             done: Some(false),
+            expr: Some("has_tag(\"work\")".into()),
             ..Default::default()
         })
         .unwrap();
@@ -262,7 +262,7 @@ fn index_multiple_files() {
     // Query by file (absolute path)
     let from_a = store
         .query_tasks(&TaskFilter {
-            file_path: Some(file_a),
+            expr: Some(format!("file == \"{}\"", file_a.display())),
             ..Default::default()
         })
         .unwrap();

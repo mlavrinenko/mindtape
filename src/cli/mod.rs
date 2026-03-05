@@ -153,8 +153,8 @@ mod tests {
         let args = vec![
             "mindtape".to_string(),
             "list".to_string(),
-            "--tag".to_string(),
-            "work".to_string(),
+            "--status".to_string(),
+            "all".to_string(),
         ];
         let result = preprocess_args(args.clone());
         assert_eq!(result, args);

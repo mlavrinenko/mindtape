@@ -1,7 +1,7 @@
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
 
 use crate::cli::format::{format_task_typst, format_tasks_csv};
@@ -24,34 +24,6 @@ pub struct ListArgs {
     #[arg(long, value_enum)]
     pub status: Option<StatusFilter>,
 
-    /// Filter by tag (repeatable; AND logic — task must have all listed tags)
-    #[arg(long)]
-    pub tag: Vec<String>,
-
-    /// Filter tasks due before this date (YYYY-MM-DD)
-    #[arg(long, value_name = "DATE")]
-    pub due_before: Option<String>,
-
-    /// Filter tasks due on or after this date (YYYY-MM-DD)
-    #[arg(long, value_name = "DATE")]
-    pub due_after: Option<String>,
-
-    /// Filter by milestone / heading (case-insensitive substring match)
-    #[arg(long)]
-    pub milestone: Option<String>,
-
-    /// Filter by title (case-insensitive substring match)
-    #[arg(long)]
-    pub title: Option<String>,
-
-    /// Full-text search across task titles and milestones
-    #[arg(long)]
-    pub search: Option<String>,
-
-    /// Filter by file path
-    #[arg(long)]
-    pub file: Option<PathBuf>,
-
     /// Filter by folder prefix
     #[arg(long)]
     pub folder: Option<PathBuf>,
@@ -59,32 +31,6 @@ pub struct ListArgs {
     /// Filter by watch root path
     #[arg(long)]
     pub watch_root: Option<PathBuf>,
-
-    /// Filter tasks with start date before this date (YYYY-MM-DD)
-    #[arg(long, value_name = "DATE")]
-    pub start_before: Option<String>,
-
-    /// Filter tasks with start date on or after this date (YYYY-MM-DD)
-    #[arg(long, value_name = "DATE")]
-    pub start_after: Option<String>,
-
-    /// Filter tasks with rank >= this value
-    #[arg(long)]
-    pub rank_min: Option<i64>,
-
-    /// Filter tasks with rank <= this value
-    #[arg(long)]
-    pub rank_max: Option<i64>,
-
-    /// Filter by property presence (repeatable; AND logic — task must have all listed properties).
-    /// Valid properties: due, start, rank, tag, id.
-    #[arg(long, value_name = "PROPERTY")]
-    pub with: Vec<String>,
-
-    /// Filter by property absence (repeatable; AND logic — task must lack all listed properties).
-    /// Valid properties: due, start, rank, tag, id.
-    #[arg(long, value_name = "PROPERTY")]
-    pub without: Vec<String>,
 
     /// Limit output to N items
     #[arg(short = 'n', long)]
@@ -149,47 +95,14 @@ impl ListArgs {
     /// # Errors
     /// Returns error if database open or query fails, or if JSON/CSV formatting fails.
     pub fn run(&self) -> Result<()> {
-        const VALID_PROPS: &[&str] = &["due", "start", "rank", "tag", "id"];
-        for prop in &self.with {
-            if !VALID_PROPS.contains(&prop.as_str()) {
-                bail!(
-                    "unknown property \"{prop}\" for --with filter\n\
-                     valid properties: {}",
-                    VALID_PROPS.join(", ")
-                );
-            }
-        }
-        for prop in &self.without {
-            if !VALID_PROPS.contains(&prop.as_str()) {
-                bail!(
-                    "unknown property \"{prop}\" for --without filter\n\
-                     valid properties: {}",
-                    VALID_PROPS.join(", ")
-                );
-            }
-        }
-
         let format = self.query.output_format();
         let db_path = resolve_query_db_path(self.query.db.as_deref());
         let store = open_query_db(&db_path)?;
 
         let filter = TaskFilter {
             done: self.done_filter(),
-            tags: self.tag.clone(),
-            due_before: self.due_before.clone(),
-            due_after: self.due_after.clone(),
-            start_before: self.start_before.clone(),
-            start_after: self.start_after.clone(),
-            rank_min: self.rank_min,
-            rank_max: self.rank_max,
-            milestone: self.milestone.clone(),
-            title_contains: self.title.clone(),
-            search: self.search.clone(),
-            file_path: self.file.clone(),
             folder: self.folder.clone(),
             watch_root: self.watch_root.clone(),
-            with: self.with.clone(),
-            without: self.without.clone(),
             limit: self.limit,
             sort: self.sort.clone(),
             expr: self.filter.clone(),

@@ -70,8 +70,7 @@ impl SqliteStore {
              JOIN task_files tf ON t.task_file_id = tf.id",
         );
 
-        let needs_fts = filter.search.is_some()
-            || expr_fragment.as_ref().is_some_and(|f| f.needs_fts_join);
+        let needs_fts = expr_fragment.as_ref().is_some_and(|f| f.needs_fts_join);
         if needs_fts {
             sql.push_str(" JOIN tasks_fts fts ON fts.rowid = t.id");
         }
@@ -137,65 +136,6 @@ impl SqliteStore {
             params.push((done as i32).to_string());
         }
 
-        for tag in &filter.tags {
-            conditions.push(
-                "EXISTS (SELECT 1 FROM task_properties tp \
-                 WHERE tp.task_id = t.id AND tp.kind = 'mindtape.tag' AND tp.value = ?)"
-                    .to_string(),
-            );
-            params.push(tag.clone());
-        }
-
-        if let Some(ref due_before) = filter.due_before {
-            conditions.push("t.due IS NOT NULL AND t.due <= ?".to_string());
-            params.push(due_before.clone());
-        }
-
-        if let Some(ref due_after) = filter.due_after {
-            conditions.push("t.due IS NOT NULL AND t.due >= ?".to_string());
-            params.push(due_after.clone());
-        }
-
-        if let Some(ref start_before) = filter.start_before {
-            conditions.push("t.start IS NOT NULL AND t.start <= ?".to_string());
-            params.push(start_before.clone());
-        }
-
-        if let Some(ref start_after) = filter.start_after {
-            conditions.push("t.start IS NOT NULL AND t.start >= ?".to_string());
-            params.push(start_after.clone());
-        }
-
-        if let Some(rank_min) = filter.rank_min {
-            conditions.push("t.rank IS NOT NULL AND t.rank >= ?".to_string());
-            params.push(rank_min.to_string());
-        }
-
-        if let Some(rank_max) = filter.rank_max {
-            conditions.push("t.rank IS NOT NULL AND t.rank <= ?".to_string());
-            params.push(rank_max.to_string());
-        }
-
-        if let Some(ref milestone) = filter.milestone {
-            conditions.push("t.milestone LIKE '%' || ? || '%' COLLATE NOCASE".to_string());
-            params.push(milestone.clone());
-        }
-
-        if let Some(ref title) = filter.title_contains {
-            conditions.push("t.title LIKE '%' || ? || '%' COLLATE NOCASE".to_string());
-            params.push(title.clone());
-        }
-
-        if let Some(ref query) = filter.search {
-            conditions.push("tasks_fts MATCH ?".to_string());
-            params.push(query.clone());
-        }
-
-        if let Some(ref file_path) = filter.file_path {
-            conditions.push("tf.file_path = ?".to_string());
-            params.push(file_path.to_string_lossy().to_string());
-        }
-
         if let Some(ref folder) = filter.folder {
             conditions.push("tf.file_path LIKE ? || '%'".to_string());
             params.push(folder.to_string_lossy().to_string());
@@ -206,46 +146,7 @@ impl SqliteStore {
             params.push(root.to_string_lossy().to_string());
         }
 
-        Self::push_with_conditions(&filter.with, &mut conditions);
-        Self::push_without_conditions(&filter.without, &mut conditions);
-
         (conditions, params)
-    }
-
-    /// Append presence-filter (`--with`) conditions.
-    fn push_with_conditions(with: &[String], conditions: &mut Vec<String>) {
-        for prop in with {
-            match prop.as_str() {
-                "due" => conditions.push("t.due IS NOT NULL".to_string()),
-                "start" => conditions.push("t.start IS NOT NULL".to_string()),
-                "rank" => conditions.push("t.rank IS NOT NULL".to_string()),
-                "id" => conditions.push("t.task_id IS NOT NULL".to_string()),
-                "tag" => conditions.push(
-                    "EXISTS (SELECT 1 FROM task_properties tp \
-                     WHERE tp.task_id = t.id AND tp.kind = 'mindtape.tag')"
-                        .to_string(),
-                ),
-                _ => {} // Validation happens in the CLI layer
-            }
-        }
-    }
-
-    /// Append absence-filter (`--without`) conditions.
-    fn push_without_conditions(without: &[String], conditions: &mut Vec<String>) {
-        for prop in without {
-            match prop.as_str() {
-                "due" => conditions.push("t.due IS NULL".to_string()),
-                "start" => conditions.push("t.start IS NULL".to_string()),
-                "rank" => conditions.push("t.rank IS NULL".to_string()),
-                "id" => conditions.push("t.task_id IS NULL".to_string()),
-                "tag" => conditions.push(
-                    "NOT EXISTS (SELECT 1 FROM task_properties tp \
-                     WHERE tp.task_id = t.id AND tp.kind = 'mindtape.tag')"
-                        .to_string(),
-                ),
-                _ => {} // Validation happens in the CLI layer
-            }
-        }
     }
 
     /// Fetch task views from a prepared statement.
@@ -994,7 +895,7 @@ mod tests {
         seed_store(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                tags: vec!["work".to_string()],
+                expr: Some("has_tag(\"work\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1008,7 +909,7 @@ mod tests {
         seed_store(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                due_before: Some("2026-02-01".to_string()),
+                expr: Some("due <= \"2026-02-01\"".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1034,7 +935,7 @@ mod tests {
 
         let views = store
             .query_tasks(&TaskFilter {
-                file_path: Some(PathBuf::from("todo.typ")),
+                expr: Some("file == \"todo.typ\"".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1060,7 +961,7 @@ mod tests {
         seed_store(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                tags: vec!["work".to_string()],
+                expr: Some("has_tag(\"work\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1106,7 +1007,7 @@ mod tests {
         seed_store(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                due_after: Some("2026-02-01".to_string()),
+                expr: Some("due >= \"2026-02-01\"".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1120,8 +1021,7 @@ mod tests {
         seed_store_rich(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                due_after: Some("2026-02-01".to_string()),
-                due_before: Some("2026-03-15".to_string()),
+                expr: Some("due >= \"2026-02-01\" && due <= \"2026-03-15\"".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1136,7 +1036,7 @@ mod tests {
         seed_store_rich(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                milestone: Some("Ops".to_string()),
+                expr: Some("contains(milestone, \"Ops\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1150,7 +1050,7 @@ mod tests {
         seed_store_rich(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                milestone: Some("engineering".to_string()),
+                expr: Some("contains(milestone, \"engineering\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1164,7 +1064,7 @@ mod tests {
         seed_store_rich(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                title_contains: Some("report".to_string()),
+                expr: Some("contains(title, \"report\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1179,7 +1079,7 @@ mod tests {
         // "Deploy service" has both "ops" and "urgent"
         let views = store
             .query_tasks(&TaskFilter {
-                tags: vec!["ops".to_string(), "urgent".to_string()],
+                expr: Some("has_tag(\"ops\") && has_tag(\"urgent\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1194,7 +1094,7 @@ mod tests {
         // "ops" tag matches both "Deploy service" and "Fix login bug"
         let views = store
             .query_tasks(&TaskFilter {
-                tags: vec!["ops".to_string()],
+                expr: Some("has_tag(\"ops\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1207,7 +1107,7 @@ mod tests {
         seed_store_rich(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                search: Some("deploy".to_string()),
+                expr: Some("search(\"deploy\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1221,7 +1121,7 @@ mod tests {
         seed_store_rich(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                search: Some("auth".to_string()),
+                expr: Some("search(\"auth\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1236,9 +1136,8 @@ mod tests {
         // Search for "service" but only pending tasks with "ops" tag
         let views = store
             .query_tasks(&TaskFilter {
-                search: Some("service".to_string()),
                 done: Some(false),
-                tags: vec!["ops".to_string()],
+                expr: Some("search(\"service\") && has_tag(\"ops\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1252,7 +1151,7 @@ mod tests {
         seed_store_rich(&mut store);
         let views = store
             .query_tasks(&TaskFilter {
-                search: Some("nonexistent".to_string()),
+                expr: Some("search(\"nonexistent\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1266,7 +1165,7 @@ mod tests {
         // Search broadly, limit to 1
         let views = store
             .query_tasks(&TaskFilter {
-                search: Some("service OR report OR bug OR sprint".to_string()),
+                expr: Some("search(\"service OR report OR bug OR sprint\")".into()),
                 limit: Some(1),
                 ..Default::default()
             })
@@ -1287,7 +1186,7 @@ mod tests {
         // Search should find the old title
         let views = store
             .query_tasks(&TaskFilter {
-                search: Some("Old".to_string()),
+                expr: Some("search(\"Old\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1301,7 +1200,7 @@ mod tests {
         // Old title should not match
         let views = store
             .query_tasks(&TaskFilter {
-                search: Some("Old".to_string()),
+                expr: Some("search(\"Old\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1310,7 +1209,7 @@ mod tests {
         // New title should match
         let views = store
             .query_tasks(&TaskFilter {
-                search: Some("New".to_string()),
+                expr: Some("search(\"New\")".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1322,15 +1221,15 @@ mod tests {
     fn query_all_filters_combined() {
         let mut store = test_store();
         seed_store_rich(&mut store);
-        // Only "Deploy service" matches: pending + tag:ops + due range + milestone "Ops" + search
+        // Only "Deploy service" matches: pending + tag:ops + due range + milestone "Deployment" + search
         let views = store
             .query_tasks(&TaskFilter {
                 done: Some(false),
-                tags: vec!["ops".to_string()],
-                due_after: Some("2026-02-01".to_string()),
-                due_before: Some("2026-03-01".to_string()),
-                milestone: Some("Deployment".to_string()),
-                search: Some("deploy".to_string()),
+                expr: Some(
+                    "search(\"deploy\") && has_tag(\"ops\") && due >= \"2026-02-01\" \
+                     && due <= \"2026-03-01\" && contains(milestone, \"Deployment\")"
+                        .into(),
+                ),
                 ..Default::default()
             })
             .unwrap();
@@ -1338,7 +1237,7 @@ mod tests {
         assert_eq!(views[0].title, "Deploy service");
     }
 
-    // --- query_tasks: --with (presence) filter ---
+    // --- query_tasks: has() presence/absence filter via expr ---
 
     #[test]
     fn query_filter_with_due() {
@@ -1347,7 +1246,7 @@ mod tests {
         // "Buy milk" has due=2026-03-01, "Urgent" has due=2026-01-15, "Done thing" has no due
         let views = store
             .query_tasks(&TaskFilter {
-                with: vec!["due".to_string()],
+                expr: Some("has(due)".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1367,7 +1266,7 @@ mod tests {
         store.upsert_tasks(file_id, &[t1, t2], &[vec![], vec![]]).unwrap();
         let views = store
             .query_tasks(&TaskFilter {
-                with: vec!["rank".to_string()],
+                expr: Some("has(rank)".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1382,7 +1281,7 @@ mod tests {
         // Only "Urgent" has a tag
         let views = store
             .query_tasks(&TaskFilter {
-                with: vec!["tag".to_string()],
+                expr: Some("has(tag)".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1397,15 +1296,13 @@ mod tests {
         // Only "Urgent" has both due AND tag
         let views = store
             .query_tasks(&TaskFilter {
-                with: vec!["due".to_string(), "tag".to_string()],
+                expr: Some("has(due) && has(tag)".into()),
                 ..Default::default()
             })
             .unwrap();
         assert_eq!(views.len(), 1);
         assert_eq!(views[0].title, "Urgent");
     }
-
-    // --- query_tasks: --without (absence) filter ---
 
     #[test]
     fn query_filter_without_due() {
@@ -1414,7 +1311,7 @@ mod tests {
         // "Done thing" has no due
         let views = store
             .query_tasks(&TaskFilter {
-                without: vec!["due".to_string()],
+                expr: Some("!has(due)".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1429,7 +1326,7 @@ mod tests {
         // "Buy milk" and "Done thing" have no tag
         let views = store
             .query_tasks(&TaskFilter {
-                without: vec!["tag".to_string()],
+                expr: Some("!has(tag)".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1449,7 +1346,7 @@ mod tests {
         store.upsert_tasks(file_id, &[t1, t2], &[vec![], vec![]]).unwrap();
         let views = store
             .query_tasks(&TaskFilter {
-                without: vec!["rank".to_string()],
+                expr: Some("!has(rank)".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1464,7 +1361,7 @@ mod tests {
         // "Done thing" has neither due nor tag
         let views = store
             .query_tasks(&TaskFilter {
-                without: vec!["due".to_string(), "tag".to_string()],
+                expr: Some("!has(due) && !has(tag)".into()),
                 ..Default::default()
             })
             .unwrap();
@@ -1479,8 +1376,7 @@ mod tests {
         // "Buy milk" has due but no tag
         let views = store
             .query_tasks(&TaskFilter {
-                with: vec!["due".to_string()],
-                without: vec!["tag".to_string()],
+                expr: Some("has(due) && !has(tag)".into()),
                 ..Default::default()
             })
             .unwrap();
