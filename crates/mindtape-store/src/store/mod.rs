@@ -169,6 +169,9 @@ pub struct TaskFilter {
     /// Presence filter: task must have these properties set (AND semantics).
     /// Valid values: `"due"`, `"start"`, `"rank"`, `"tag"`, `"id"`.
     pub with: Vec<String>,
+    /// Absence filter: task must NOT have these properties set (AND semantics).
+    /// Valid values: `"due"`, `"start"`, `"rank"`, `"tag"`, `"id"`.
+    pub without: Vec<String>,
     pub limit: Option<usize>,
     /// Sort order. Empty means default (`file_path, position`).
     pub sort: Vec<SortSpec>,

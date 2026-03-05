@@ -188,6 +188,7 @@ impl SqliteStore {
         }
 
         Self::push_with_conditions(&filter.with, &mut conditions);
+        Self::push_without_conditions(&filter.without, &mut conditions);
 
         (conditions, params)
     }
@@ -202,6 +203,24 @@ impl SqliteStore {
                 "id" => conditions.push("t.task_id IS NOT NULL".to_string()),
                 "tag" => conditions.push(
                     "EXISTS (SELECT 1 FROM task_properties tp \
+                     WHERE tp.task_id = t.id AND tp.kind = 'mindtape.tag')"
+                        .to_string(),
+                ),
+                _ => {} // Validation happens in the CLI layer
+            }
+        }
+    }
+
+    /// Append absence-filter (`--without`) conditions.
+    fn push_without_conditions(without: &[String], conditions: &mut Vec<String>) {
+        for prop in without {
+            match prop.as_str() {
+                "due" => conditions.push("t.due IS NULL".to_string()),
+                "start" => conditions.push("t.start IS NULL".to_string()),
+                "rank" => conditions.push("t.rank IS NULL".to_string()),
+                "id" => conditions.push("t.task_id IS NULL".to_string()),
+                "tag" => conditions.push(
+                    "NOT EXISTS (SELECT 1 FROM task_properties tp \
                      WHERE tp.task_id = t.id AND tp.kind = 'mindtape.tag')"
                         .to_string(),
                 ),
@@ -1365,6 +1384,89 @@ mod tests {
             .unwrap();
         assert_eq!(views.len(), 1);
         assert_eq!(views[0].title, "Urgent");
+    }
+
+    // --- query_tasks: --without (absence) filter ---
+
+    #[test]
+    fn query_filter_without_due() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        // "Done thing" has no due
+        let views = store
+            .query_tasks(&TaskFilter {
+                without: vec!["due".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Done thing");
+    }
+
+    #[test]
+    fn query_filter_without_tag() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        // "Buy milk" and "Done thing" have no tag
+        let views = store
+            .query_tasks(&TaskFilter {
+                without: vec!["tag".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 2);
+        assert!(views.iter().all(|v| v.tags.is_empty()));
+    }
+
+    #[test]
+    fn query_filter_without_rank() {
+        let mut store = test_store();
+        let file_id = store
+            .upsert_task_file(&make_task_file("ranked.typ", "r1"))
+            .unwrap();
+        let mut t1 = make_record("Ranked", false, 0);
+        t1.rank = Some(75);
+        let t2 = make_record("Unranked", false, 1);
+        store.upsert_tasks(file_id, &[t1, t2], &[vec![], vec![]]).unwrap();
+        let views = store
+            .query_tasks(&TaskFilter {
+                without: vec!["rank".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Unranked");
+    }
+
+    #[test]
+    fn query_filter_without_multiple() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        // "Done thing" has neither due nor tag
+        let views = store
+            .query_tasks(&TaskFilter {
+                without: vec!["due".to_string(), "tag".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Done thing");
+    }
+
+    #[test]
+    fn query_filter_with_and_without_combined() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        // "Buy milk" has due but no tag
+        let views = store
+            .query_tasks(&TaskFilter {
+                with: vec!["due".to_string()],
+                without: vec!["tag".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Buy milk");
     }
 
     // --- get_file_hash ---

@@ -262,3 +262,81 @@ fn list_with_property_due_and_rank() {
     assert_eq!(views.len(), 1);
     assert_eq!(views[0].title, "Both");
 }
+
+// --- --without (absence) filters ---
+
+#[test]
+fn list_without_property_due() {
+    let (mut store, root) = setup();
+    add_and_index(
+        &mut store,
+        &root,
+        "todo.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id, due
+
+- [ ] Has due #due(2026, 3, 1) #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] No due #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+"#,
+    );
+
+    let views = store
+        .query_tasks(&TaskFilter {
+            without: vec!["due".to_string()],
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "No due");
+}
+
+#[test]
+fn list_without_property_rank() {
+    let (mut store, root) = setup();
+    add_and_index(
+        &mut store,
+        &root,
+        "todo.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id, high
+
+- [ ] Has rank #high #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] No rank #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+"#,
+    );
+
+    let views = store
+        .query_tasks(&TaskFilter {
+            without: vec!["rank".to_string()],
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "No rank");
+}
+
+#[test]
+fn list_with_and_without_combined() {
+    let (mut store, root) = setup();
+    add_and_index(
+        &mut store,
+        &root,
+        "todo.typ",
+        r#"#import "@mindtape/mindtape:0.1.0": id, due, high
+
+- [ ] Both #due(2026, 3, 1) #high #id("019c5b9b-7317-77b1-bf52-ce7a298cfcad")
+- [ ] Due only #due(2026, 4, 1) #id("019c5b97-9239-7270-b7d7-2a50806912b3")
+- [ ] Rank only #high #id("019c5b98-d10a-7710-8679-bda520780ee9")
+- [ ] Neither #id("019c5b99-a9a0-7853-8b1a-72ec1d8bda37")
+"#,
+    );
+
+    // Has due but no rank
+    let views = store
+        .query_tasks(&TaskFilter {
+            with: vec!["due".to_string()],
+            without: vec!["rank".to_string()],
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(views.len(), 1);
+    assert_eq!(views[0].title, "Due only");
+}

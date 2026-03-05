@@ -81,6 +81,11 @@ pub struct ListArgs {
     #[arg(long, value_name = "PROPERTY")]
     pub with: Vec<String>,
 
+    /// Filter by property absence (repeatable; AND logic — task must lack all listed properties).
+    /// Valid properties: due, start, rank, tag, id.
+    #[arg(long, value_name = "PROPERTY")]
+    pub without: Vec<String>,
+
     /// Limit output to N items
     #[arg(short = 'n', long)]
     pub limit: Option<usize>,
@@ -140,13 +145,22 @@ impl ListArgs {
     /// # Errors
     /// Returns error if database open or query fails, or if JSON/CSV formatting fails.
     pub fn run(&self) -> Result<()> {
-        const VALID_WITH: &[&str] = &["due", "start", "rank", "tag", "id"];
+        const VALID_PROPS: &[&str] = &["due", "start", "rank", "tag", "id"];
         for prop in &self.with {
-            if !VALID_WITH.contains(&prop.as_str()) {
+            if !VALID_PROPS.contains(&prop.as_str()) {
                 bail!(
                     "unknown property \"{prop}\" for --with filter\n\
                      valid properties: {}",
-                    VALID_WITH.join(", ")
+                    VALID_PROPS.join(", ")
+                );
+            }
+        }
+        for prop in &self.without {
+            if !VALID_PROPS.contains(&prop.as_str()) {
+                bail!(
+                    "unknown property \"{prop}\" for --without filter\n\
+                     valid properties: {}",
+                    VALID_PROPS.join(", ")
                 );
             }
         }
@@ -171,6 +185,7 @@ impl ListArgs {
             folder: self.folder.clone(),
             watch_root: self.watch_root.clone(),
             with: self.with.clone(),
+            without: self.without.clone(),
             limit: self.limit,
             sort: self.sort.clone(),
         };
