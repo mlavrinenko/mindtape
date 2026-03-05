@@ -76,21 +76,21 @@ pub enum PropertyKind {
 impl PropertyKind {
     pub fn as_str(&self) -> &'static str {
         match self {
-            PropertyKind::Due => "due",
-            PropertyKind::Start => "start",
-            PropertyKind::Rank => "rank",
-            PropertyKind::Tag => "tag",
-            PropertyKind::Id => "id",
+            PropertyKind::Due => "mindtape.due",
+            PropertyKind::Start => "mindtape.start",
+            PropertyKind::Rank => "mindtape.rank",
+            PropertyKind::Tag => "mindtape.tag",
+            PropertyKind::Id => "mindtape.id",
         }
     }
 
     pub fn try_from_str(kind_str: &str) -> Option<Self> {
         match kind_str {
-            "due" => Some(PropertyKind::Due),
-            "start" => Some(PropertyKind::Start),
-            "rank" => Some(PropertyKind::Rank),
-            "tag" => Some(PropertyKind::Tag),
-            "id" => Some(PropertyKind::Id),
+            "mindtape.due" => Some(PropertyKind::Due),
+            "mindtape.start" => Some(PropertyKind::Start),
+            "mindtape.rank" => Some(PropertyKind::Rank),
+            "mindtape.tag" => Some(PropertyKind::Tag),
+            "mindtape.id" => Some(PropertyKind::Id),
             _ => None,
         }
     }
@@ -166,6 +166,9 @@ pub struct TaskFilter {
     pub folder: Option<PathBuf>,
     /// Filter by watch root (exact match on `task_files.watch_root`).
     pub watch_root: Option<PathBuf>,
+    /// Presence filter: task must have these properties set (AND semantics).
+    /// Valid values: `"due"`, `"start"`, `"rank"`, `"tag"`, `"id"`.
+    pub with: Vec<String>,
     pub limit: Option<usize>,
     /// Sort order. Empty means default (`file_path, position`).
     pub sort: Vec<SortSpec>,

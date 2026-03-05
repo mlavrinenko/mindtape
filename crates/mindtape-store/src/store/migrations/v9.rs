@@ -1,5 +1,5 @@
 pub const SQL: &str = "
--- v8: add start and rank columns to tasks table.
+-- v9: namespace metadata keys with 'mindtape.' prefix.
 -- Since the DB is a derived cache, we drop everything and recreate.
 
 DROP TABLE IF EXISTS tasks_fts;

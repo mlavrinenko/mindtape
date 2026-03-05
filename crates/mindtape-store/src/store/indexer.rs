@@ -119,30 +119,30 @@ fn build_task_props(
 ) -> Vec<TaskProperty> {
     let mut props = vec![TaskProperty {
         id: None, task_id: 0, kind: PropertyKind::Id,
-        key: "id".to_string(), value: task_id.to_string(),
+        key: "mindtape.id".to_string(), value: task_id.to_string(),
     }];
     if let Some(due_val) = due {
         props.push(TaskProperty {
             id: None, task_id: 0, kind: PropertyKind::Due,
-            key: "due".to_string(), value: due_val.to_string(),
+            key: "mindtape.due".to_string(), value: due_val.to_string(),
         });
     }
     if let Some(start_val) = start {
         props.push(TaskProperty {
             id: None, task_id: 0, kind: PropertyKind::Start,
-            key: "start".to_string(), value: start_val.to_string(),
+            key: "mindtape.start".to_string(), value: start_val.to_string(),
         });
     }
     if let Some(rank_val) = rank {
         props.push(TaskProperty {
             id: None, task_id: 0, kind: PropertyKind::Rank,
-            key: "rank".to_string(), value: rank_val.to_string(),
+            key: "mindtape.rank".to_string(), value: rank_val.to_string(),
         });
     }
     for tag in tags {
         props.push(TaskProperty {
             id: None, task_id: 0, kind: PropertyKind::Tag,
-            key: "tag".to_string(), value: tag.clone(),
+            key: "mindtape.tag".to_string(), value: tag.clone(),
         });
     }
     props

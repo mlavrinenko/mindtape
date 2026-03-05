@@ -1,7 +1,7 @@
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use clap::{Parser, ValueEnum};
 
 use crate::cli::format::{format_task_typst, format_tasks_csv};
@@ -76,6 +76,11 @@ pub struct ListArgs {
     #[arg(long)]
     pub rank_max: Option<i64>,
 
+    /// Filter by property presence (repeatable; AND logic — task must have all listed properties).
+    /// Valid properties: due, start, rank, tag, id.
+    #[arg(long, value_name = "PROPERTY")]
+    pub with: Vec<String>,
+
     /// Limit output to N items
     #[arg(short = 'n', long)]
     pub limit: Option<usize>,
@@ -135,6 +140,17 @@ impl ListArgs {
     /// # Errors
     /// Returns error if database open or query fails, or if JSON/CSV formatting fails.
     pub fn run(&self) -> Result<()> {
+        const VALID_WITH: &[&str] = &["due", "start", "rank", "tag", "id"];
+        for prop in &self.with {
+            if !VALID_WITH.contains(&prop.as_str()) {
+                bail!(
+                    "unknown property \"{prop}\" for --with filter\n\
+                     valid properties: {}",
+                    VALID_WITH.join(", ")
+                );
+            }
+        }
+
         let format = self.query.output_format();
         let db_path = resolve_query_db_path(self.query.db.as_deref());
         let store = open_query_db(&db_path)?;
@@ -154,6 +170,7 @@ impl ListArgs {
             file_path: self.file.clone(),
             folder: self.folder.clone(),
             watch_root: self.watch_root.clone(),
+            with: self.with.clone(),
             limit: self.limit,
             sort: self.sort.clone(),
         };

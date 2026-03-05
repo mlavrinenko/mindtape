@@ -121,7 +121,7 @@ impl SqliteStore {
         for tag in &filter.tags {
             conditions.push(
                 "EXISTS (SELECT 1 FROM task_properties tp \
-                 WHERE tp.task_id = t.id AND tp.kind = 'tag' AND tp.value = ?)"
+                 WHERE tp.task_id = t.id AND tp.kind = 'mindtape.tag' AND tp.value = ?)"
                     .to_string(),
             );
             params.push(tag.clone());
@@ -187,7 +187,27 @@ impl SqliteStore {
             params.push(root.to_string_lossy().to_string());
         }
 
+        Self::push_with_conditions(&filter.with, &mut conditions);
+
         (conditions, params)
+    }
+
+    /// Append presence-filter (`--with`) conditions.
+    fn push_with_conditions(with: &[String], conditions: &mut Vec<String>) {
+        for prop in with {
+            match prop.as_str() {
+                "due" => conditions.push("t.due IS NOT NULL".to_string()),
+                "start" => conditions.push("t.start IS NOT NULL".to_string()),
+                "rank" => conditions.push("t.rank IS NOT NULL".to_string()),
+                "id" => conditions.push("t.task_id IS NOT NULL".to_string()),
+                "tag" => conditions.push(
+                    "EXISTS (SELECT 1 FROM task_properties tp \
+                     WHERE tp.task_id = t.id AND tp.kind = 'mindtape.tag')"
+                        .to_string(),
+                ),
+                _ => {} // Validation happens in the CLI layer
+            }
+        }
     }
 
     /// Fetch task views from a prepared statement.
@@ -227,7 +247,7 @@ impl SqliteStore {
         let placeholders = row_ids.iter().map(|_| "?").collect::<Vec<_>>().join(",");
         let tags_sql = format!(
             "SELECT task_id, value FROM task_properties \
-             WHERE task_id IN ({placeholders}) AND kind = 'tag' ORDER BY task_id"
+             WHERE task_id IN ({placeholders}) AND kind = 'mindtape.tag' ORDER BY task_id"
         );
         let mut tags_stmt = self.conn.prepare(&tags_sql)?;
         let id_refs: Vec<&dyn rusqlite::types::ToSql> =
@@ -630,7 +650,7 @@ mod tests {
             id: None,
             task_id: 0,
             kind: PropertyKind::Due,
-            key: "due".to_string(),
+            key: "mindtape.due".to_string(),
             value: value.to_string(),
         }
     }
@@ -640,7 +660,7 @@ mod tests {
             id: None,
             task_id: 0,
             kind: PropertyKind::Tag,
-            key: "tag".to_string(),
+            key: "mindtape.tag".to_string(),
             value: value.to_string(),
         }
     }
@@ -686,7 +706,7 @@ mod tests {
             .conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 8);
+        assert_eq!(version, 9);
     }
 
     // --- upsert_task_file ---
@@ -1280,6 +1300,73 @@ mod tests {
         assert_eq!(views[0].title, "Deploy service");
     }
 
+    // --- query_tasks: --with (presence) filter ---
+
+    #[test]
+    fn query_filter_with_due() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        // "Buy milk" has due=2026-03-01, "Urgent" has due=2026-01-15, "Done thing" has no due
+        let views = store
+            .query_tasks(&TaskFilter {
+                with: vec!["due".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 2);
+        assert!(views.iter().all(|v| v.due.is_some()));
+    }
+
+    #[test]
+    fn query_filter_with_rank() {
+        let mut store = test_store();
+        let file_id = store
+            .upsert_task_file(&make_task_file("ranked.typ", "r1"))
+            .unwrap();
+        let mut t1 = make_record("Ranked", false, 0);
+        t1.rank = Some(75);
+        let t2 = make_record("Unranked", false, 1);
+        store.upsert_tasks(file_id, &[t1, t2], &[vec![], vec![]]).unwrap();
+        let views = store
+            .query_tasks(&TaskFilter {
+                with: vec!["rank".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Ranked");
+    }
+
+    #[test]
+    fn query_filter_with_tag() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        // Only "Urgent" has a tag
+        let views = store
+            .query_tasks(&TaskFilter {
+                with: vec!["tag".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Urgent");
+    }
+
+    #[test]
+    fn query_filter_with_multiple() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        // Only "Urgent" has both due AND tag
+        let views = store
+            .query_tasks(&TaskFilter {
+                with: vec!["due".to_string(), "tag".to_string()],
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Urgent");
+    }
+
     // --- get_file_hash ---
 
     #[test]
@@ -1371,17 +1458,17 @@ mod tests {
 
     #[test]
     fn property_kind_roundtrip() {
-        assert_eq!(PropertyKind::try_from_str("due"), Some(PropertyKind::Due));
-        assert_eq!(PropertyKind::try_from_str("start"), Some(PropertyKind::Start));
-        assert_eq!(PropertyKind::try_from_str("rank"), Some(PropertyKind::Rank));
-        assert_eq!(PropertyKind::try_from_str("tag"), Some(PropertyKind::Tag));
-        assert_eq!(PropertyKind::try_from_str("id"), Some(PropertyKind::Id));
+        assert_eq!(PropertyKind::try_from_str("mindtape.due"), Some(PropertyKind::Due));
+        assert_eq!(PropertyKind::try_from_str("mindtape.start"), Some(PropertyKind::Start));
+        assert_eq!(PropertyKind::try_from_str("mindtape.rank"), Some(PropertyKind::Rank));
+        assert_eq!(PropertyKind::try_from_str("mindtape.tag"), Some(PropertyKind::Tag));
+        assert_eq!(PropertyKind::try_from_str("mindtape.id"), Some(PropertyKind::Id));
         assert_eq!(PropertyKind::try_from_str("unknown"), None);
-        assert_eq!(PropertyKind::Due.as_str(), "due");
-        assert_eq!(PropertyKind::Start.as_str(), "start");
-        assert_eq!(PropertyKind::Rank.as_str(), "rank");
-        assert_eq!(PropertyKind::Tag.as_str(), "tag");
-        assert_eq!(PropertyKind::Id.as_str(), "id");
+        assert_eq!(PropertyKind::Due.as_str(), "mindtape.due");
+        assert_eq!(PropertyKind::Start.as_str(), "mindtape.start");
+        assert_eq!(PropertyKind::Rank.as_str(), "mindtape.rank");
+        assert_eq!(PropertyKind::Tag.as_str(), "mindtape.tag");
+        assert_eq!(PropertyKind::Id.as_str(), "mindtape.id");
     }
 
     // --- query_tasks: folder filter ---

@@ -270,27 +270,27 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
                 let slice = arr.as_slice();
                 if slice.len() == 2 && let Value::Str(key) = &slice[0] {
                         match key.as_str() {
-                            "due" => {
+                            "mindtape.due" => {
                                 if let Value::Datetime(dt) = &slice[1] {
                                     due = Some(*dt);
                                 }
                             }
-                            "start" => {
+                            "mindtape.start" => {
                                 if let Value::Datetime(dt) = &slice[1] {
                                     start = Some(*dt);
                                 }
                             }
-                            "rank" => {
+                            "mindtape.rank" => {
                                 if let Value::Int(n) = &slice[1] {
                                     rank = Some(*n);
                                 }
                             }
-                            "tag" => {
+                            "mindtape.tag" => {
                                 if let Value::Str(name) = &slice[1] {
                                     tags.push(name.to_string());
                                 }
                             }
-                            "id" => {
+                            "mindtape.id" => {
                                 if let Value::Str(s) = &slice[1] {
                                     id = Some(s.to_string());
                                 }

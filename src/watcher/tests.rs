@@ -15,7 +15,7 @@ fn setup_watch_dir() -> (tempfile::TempDir, PathBuf) {
     .unwrap();
     fs::write(
         dir.path().join("lib/prelude.typ"),
-        "#let due(year, month, day) = metadata((\"due\", datetime(year: year, month: month, day: day)))\n#let start(year, month, day) = metadata((\"start\", datetime(year: year, month: month, day: day)))\n#let id(uuid) = metadata((\"id\", uuid))\n#let tag(name) = metadata((\"tag\", name))\n#let rank(n) = metadata((\"rank\", n))\n#let high = rank(100)\n#let medium = rank(50)\n#let low = rank(10)\n",
+        "#let due(year, month, day) = metadata((\"mindtape.due\", datetime(year: year, month: month, day: day)))\n#let start(year, month, day) = metadata((\"mindtape.start\", datetime(year: year, month: month, day: day)))\n#let id(uuid) = metadata((\"mindtape.id\", uuid))\n#let tag(name) = metadata((\"mindtape.tag\", name))\n#let rank(n) = metadata((\"mindtape.rank\", n))\n#let high = rank(100)\n#let medium = rank(50)\n#let low = rank(10)\n",
     )
     .unwrap();
     // Ignore lib/ so prelude.typ doesn't get indexed as a task file.
