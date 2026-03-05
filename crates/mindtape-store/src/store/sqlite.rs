@@ -49,8 +49,20 @@ impl SqliteStore {
 
     /// Build a dynamic task query with filters. Returns SQL string and parameter values.
     ///
-    /// Uses unnamed `?` placeholders for cleaner code - rusqlite binds them positionally.
-    fn build_task_query(filter: &TaskFilter) -> (String, Vec<String>) {
+    /// Uses unnamed `?` placeholders for cleaner code — rusqlite binds them positionally.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError::FilterExpr` if the `expr` filter is invalid.
+    fn build_task_query(filter: &TaskFilter) -> Result<(String, Vec<String>), super::StoreError> {
+        // Pre-translate the expression filter (if any) so we know whether a
+        // FTS JOIN is needed before we start building the SQL string.
+        let expr_fragment = filter
+            .expr
+            .as_ref()
+            .map(|e| super::filter_expr::translate_expr(e))
+            .transpose()?;
+
         let mut sql = String::from(
             "SELECT t.id, t.title, t.is_done, t.position, t.milestone, \
              t.due, t.start, t.rank, t.task_id, tf.file_path, tf.title, tf.watch_root
@@ -58,11 +70,18 @@ impl SqliteStore {
              JOIN task_files tf ON t.task_file_id = tf.id",
         );
 
-        if filter.search.is_some() {
+        let needs_fts = filter.search.is_some()
+            || expr_fragment.as_ref().is_some_and(|f| f.needs_fts_join);
+        if needs_fts {
             sql.push_str(" JOIN tasks_fts fts ON fts.rowid = t.id");
         }
 
-        let (conditions, params) = Self::build_filter_conditions(filter);
+        let (mut conditions, mut params) = Self::build_filter_conditions(filter);
+
+        if let Some(fragment) = expr_fragment {
+            conditions.push(fragment.condition);
+            params.extend(fragment.params);
+        }
 
         if !conditions.is_empty() {
             sql.push_str(" WHERE ");
@@ -81,7 +100,7 @@ impl SqliteStore {
             sql.push_str(&format!(" LIMIT {limit}"));
         }
 
-        (sql, params)
+        Ok((sql, params))
     }
 
     /// Convert a `SortSpec` to a SQL ORDER BY clause fragment.
@@ -430,7 +449,7 @@ impl Store for SqliteStore {
     }
 
     fn query_tasks(&self, filter: &TaskFilter) -> Result<Vec<TaskView>, StoreError> {
-        let (sql, params) = Self::build_task_query(filter);
+        let (sql, params) = Self::build_task_query(filter)?;
         let params_refs: Vec<&dyn rusqlite::types::ToSql> =
             params.iter().map(|s| s as &dyn rusqlite::types::ToSql).collect();
 
@@ -1857,5 +1876,106 @@ mod tests {
             .query_row("SELECT count(*) FROM file_references", [], |row| row.get(0))
             .unwrap();
         assert_eq!(count, 0);
+    }
+
+    // --- query_tasks: --filter expression ---
+
+    #[test]
+    fn query_expr_due_lt() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                expr: Some("due < \"2026-02-01\"".into()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Fix login bug");
+    }
+
+    #[test]
+    fn query_expr_or_logic() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                expr: Some("has_tag(\"docs\") || has_tag(\"planning\")".into()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 2);
+    }
+
+    #[test]
+    fn query_expr_combined_with_flags() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                done: Some(false),
+                expr: Some("has_tag(\"ops\")".into()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Deploy service");
+    }
+
+    #[test]
+    fn query_expr_search_fts() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                expr: Some("search(\"deploy\")".into()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 1);
+        assert_eq!(views[0].title, "Deploy service");
+    }
+
+    #[test]
+    fn query_expr_has_or_tag() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        // "Buy milk" has due, "Urgent" has tag — both should match
+        let views = store
+            .query_tasks(&TaskFilter {
+                done: Some(false),
+                expr: Some("has(due) || has(tag)".into()),
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(views.len(), 2);
+    }
+
+    #[test]
+    fn query_expr_complex() {
+        let mut store = test_store();
+        seed_store_rich(&mut store);
+        let views = store
+            .query_tasks(&TaskFilter {
+                expr: Some(
+                    "!done && (has_tag(\"ops\") || has_tag(\"planning\")) && due > \"2026-02-01\""
+                        .into(),
+                ),
+                ..Default::default()
+            })
+            .unwrap();
+        // "Deploy service" (ops, due 2026-02-15) and "Plan sprint" (planning, due 2026-04-01)
+        assert_eq!(views.len(), 2);
+    }
+
+    #[test]
+    fn query_expr_invalid_returns_error() {
+        let mut store = test_store();
+        seed_store(&mut store);
+        let result = store.query_tasks(&TaskFilter {
+            expr: Some("((( bad".into()),
+            ..Default::default()
+        });
+        assert!(result.is_err());
     }
 }

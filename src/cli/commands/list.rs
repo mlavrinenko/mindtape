@@ -95,6 +95,10 @@ pub struct ListArgs {
     #[arg(long, value_parser = parse_sort_spec)]
     pub sort: Vec<SortSpec>,
 
+    /// Filter expression (evalexpr syntax, e.g. `has(due) || has_tag("work")`)
+    #[arg(long, value_name = "EXPR")]
+    pub filter: Option<String>,
+
     #[command(flatten)]
     pub query: QueryOpts,
 }
@@ -188,6 +192,7 @@ impl ListArgs {
             without: self.without.clone(),
             limit: self.limit,
             sort: self.sort.clone(),
+            expr: self.filter.clone(),
         };
 
         let tasks = store

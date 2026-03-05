@@ -5,6 +5,7 @@
 //! backends (`DuckDB`, etc.) can implement the same trait without pulling in
 //! the Typst crate ecosystem.
 
+pub(crate) mod filter_expr;
 mod indexer;
 mod migrations;
 mod sqlite;
@@ -175,6 +176,8 @@ pub struct TaskFilter {
     pub limit: Option<usize>,
     /// Sort order. Empty means default (`file_path, position`).
     pub sort: Vec<SortSpec>,
+    /// Free-form filter expression (`evalexpr` syntax, translated to SQL).
+    pub expr: Option<String>,
 }
 
 /// A task with its file context and properties, returned by queries.
@@ -266,6 +269,9 @@ pub enum StoreError {
 
     #[error("eval error: {0}")]
     Eval(#[from] EvalError),
+
+    #[error("filter expression error: {0}")]
+    FilterExpr(#[from] filter_expr::FilterExprError),
 }
 
 // ---------------------------------------------------------------------------
