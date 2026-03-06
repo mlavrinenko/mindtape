@@ -194,7 +194,8 @@ fn format_typst_list(
             .unwrap_or_default();
 
         // New root project — emit heading with blank line separator.
-        if cur_root != *root_name {
+        let new_root = cur_root != *root_name;
+        if new_root {
             if path_headings {
                 if has_output {
                     out.push('\n');
@@ -211,6 +212,9 @@ fn format_typst_list(
 
         // New file within the same root.
         if cur_file != task.file_path {
+            if has_output && !(new_root && path_headings) {
+                out.push('\n');
+            }
             emit_dir_headings(
                 &mut out,
                 &segments.dirs,
@@ -218,32 +222,24 @@ fn format_typst_list(
                 heading_offset,
                 path_headings,
             );
-
-            // Emit file heading.
-            let file_depth = if path_headings {
+            let depth = if path_headings {
                 3 + heading_offset + segments.dirs.len()
             } else {
                 2 + heading_offset
             };
-            let file_marks = "=".repeat(file_depth);
-            let short_path = shorten_home(&task.file_path, &home);
-            let file_name = task
-                .file_path
-                .file_name()
-                .unwrap_or(OsStr::new("?"))
-                .to_string_lossy();
-            out.push_str(&format!("{file_marks} `{file_name}` {short_path}\n"));
+            emit_file_heading(&mut out, &task.file_path, &home, depth, path_headings);
             cur_file.clone_from(&task.file_path);
             cur_headings.clear();
+            has_output = true;
         }
 
         if milestone_headings {
-            let milestone_base = if path_headings {
-                3 + heading_offset + segments.dirs.len() + 1
+            let base = if path_headings {
+                4 + heading_offset + segments.dirs.len()
             } else {
                 3 + heading_offset
             };
-            emit_milestones(&mut out, &headings, &mut cur_headings, milestone_base);
+            emit_milestones(&mut out, &headings, &mut cur_headings, base);
         }
 
         // Emit the task.
@@ -252,6 +248,21 @@ fn format_typst_list(
     }
 
     out
+}
+
+/// Emit the file heading line.
+fn emit_file_heading(out: &mut String, path: &Path, home: &str, depth: usize, show_name: bool) {
+    let marks = "=".repeat(depth);
+    let short = shorten_home(path, home);
+    if show_name {
+        let name = path
+            .file_name()
+            .unwrap_or(OsStr::new("?"))
+            .to_string_lossy();
+        out.push_str(&format!("{marks} `{name}` {short}\n"));
+    } else {
+        out.push_str(&format!("{marks} {short}\n"));
+    }
 }
 
 /// Emit only new intermediate directory headings when path headings are enabled.
@@ -361,16 +372,10 @@ mod tests {
         )];
         let out_0 = format_typst_list(&tasks, 0, true, true);
         let out_2 = format_typst_list(&tasks, 2, true, true);
-
-        // With offset 0: root == (2), file === (3).
         assert!(out_0.contains("== myapp\n"));
         assert!(out_0.contains("=== "));
-
-        // With offset 2: root ==== (4), file ===== (5).
         assert!(out_2.contains("==== myapp\n"));
         assert!(out_2.contains("===== "));
-
-        // Offset output must not contain the unshifted (level-2) root heading.
         assert!(!out_2.starts_with("== "));
         assert!(!out_2.contains("\n== "));
     }
@@ -379,7 +384,6 @@ mod tests {
     fn heading_offset_zero_is_default() {
         let tasks = vec![make_task("Task", "/proj/a/todo.typ", Some("/proj/a"))];
         let out = format_typst_list(&tasks, 0, true, true);
-        // Root heading at level 2.
         assert!(out.starts_with("== a\n"));
     }
 
@@ -429,8 +433,9 @@ mod tests {
 
         let out = format_typst_list(&tasks, 0, false, false);
 
-        // File heading at base level (==).
-        assert!(out.contains("== `todo.typ`"));
+        // File heading at base level (==), path only (no backtick filename).
+        assert!(out.contains("== /proj/root/sub/todo.typ\n"));
+        assert!(!out.contains("`todo.typ`"));
         // No root or directory headings.
         assert!(!out.contains("== root\n"));
         assert!(!out.contains("=== sub\n"));
@@ -451,7 +456,7 @@ mod tests {
         // Root and directory headings present.
         assert!(out.contains("== root\n"));
         assert!(out.contains("=== sub\n"));
-        // File heading nested under dirs.
+        // File heading nested under dirs, with backtick filename.
         assert!(out.contains("==== `todo.typ`"));
         // No milestone headings.
         assert!(!out.contains("Sprint 1"));
@@ -469,12 +474,26 @@ mod tests {
 
         // No root heading.
         assert!(!out.contains("== app\n"));
-        // File heading at base level (==).
-        assert!(out.contains("== `todo.typ`"));
+        // File heading at base level (==), path only.
+        assert!(out.contains("== /proj/app/todo.typ\n"));
+        assert!(!out.contains("`todo.typ`"));
         // Milestone headings present, nested under file.
         assert!(out.contains("=== Sprint 1\n"));
         assert!(out.contains("==== Backend\n"));
         // Task is present.
         assert!(out.contains("Fix bug"));
+    }
+
+    #[test]
+    fn blank_line_between_files() {
+        let tasks = vec![
+            make_task("Task A", "/proj/root/a.typ", Some("/proj/root")),
+            make_task("Task B", "/proj/root/b.typ", Some("/proj/root")),
+        ];
+
+        let out = format_typst_list(&tasks, 0, false, false);
+
+        // Blank line separates the two file groups.
+        assert!(out.contains("Task A\n\n== /proj/root/b.typ\n"));
     }
 }
