@@ -45,6 +45,10 @@ pub struct ListArgs {
     #[arg(long, value_name = "EXPR")]
     pub filter: Option<String>,
 
+    /// Extra heading levels to add to all Typst output headings (for embedding)
+    #[arg(long, default_value_t = 0)]
+    pub heading_offset: usize,
+
     #[command(flatten)]
     pub query: QueryOpts,
 }
@@ -120,7 +124,7 @@ impl ListArgs {
                     eprintln!("no tasks found");
                     return Ok(());
                 }
-                print!("{}", format_typst_list(&tasks));
+                print!("{}", format_typst_list(&tasks, self.heading_offset));
             }
         }
         Ok(())
@@ -128,7 +132,7 @@ impl ListArgs {
 }
 
 /// Format tasks as valid Typst markup grouped by project, file, and heading.
-fn format_typst_list(tasks: &[TaskView]) -> String {
+fn format_typst_list(tasks: &[TaskView], heading_offset: usize) -> String {
     let home = std::env::var("HOME").unwrap_or_default();
     let mut out = String::new();
     let mut has_output = false;
@@ -153,7 +157,8 @@ fn format_typst_list(tasks: &[TaskView]) -> String {
             if has_output {
                 out.push('\n');
             }
-            out.push_str(&format!("== {root_name}\n"));
+            let root_marks = "=".repeat(2 + heading_offset);
+            out.push_str(&format!("{root_marks} {root_name}\n"));
             cur_root.clone_from(root_name);
             cur_dirs.clear();
             cur_file = PathBuf::new();
@@ -171,13 +176,13 @@ fn format_typst_list(tasks: &[TaskView]) -> String {
                 .count();
             cur_dirs.truncate(dir_match);
             for (i, dir) in segments.dirs.iter().enumerate().skip(dir_match) {
-                let heading_marks = "=".repeat(3 + i);
+                let heading_marks = "=".repeat(3 + heading_offset + i);
                 out.push_str(&format!("{heading_marks} {dir}\n"));
                 cur_dirs.push(dir.clone());
             }
 
             // Emit file heading.
-            let file_depth = 3 + segments.dirs.len();
+            let file_depth = 3 + heading_offset + segments.dirs.len();
             let file_marks = "=".repeat(file_depth);
             let short_path = shorten_home(&task.file_path, &home);
             let file_name = task
@@ -191,7 +196,7 @@ fn format_typst_list(tasks: &[TaskView]) -> String {
         }
 
         // Emit milestone headings that haven't been emitted yet.
-        let milestone_base = 3 + segments.dirs.len() + 1;
+        let milestone_base = 3 + heading_offset + segments.dirs.len() + 1;
         let heading_match = cur_headings
             .iter()
             .zip(headings.iter())
@@ -254,5 +259,94 @@ fn shorten_home(path: &Path, home: &str) -> String {
         format!("~{}", &abs[home.len()..])
     } else {
         abs.to_string()
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::*;
+    use crate::store::TaskView;
+
+    fn make_task(title: &str, file: &str, watch_root: Option<&str>) -> TaskView {
+        TaskView {
+            title: title.to_string(),
+            is_done: false,
+            position: 0,
+            file_path: PathBuf::from(file),
+            file_title: None,
+            due: None,
+            start: None,
+            rank: None,
+            tags: vec![],
+            task_id: None,
+            milestone: None,
+            watch_root: watch_root.map(PathBuf::from),
+        }
+    }
+
+    #[test]
+    fn heading_offset_shifts_all_levels() {
+        let tasks = vec![make_task("Buy milk", "/projects/myapp/todo.typ", Some("/projects/myapp"))];
+        let out_0 = format_typst_list(&tasks, 0);
+        let out_2 = format_typst_list(&tasks, 2);
+
+        // With offset 0: root == (2), file === (3).
+        assert!(out_0.contains("== myapp\n"));
+        assert!(out_0.contains("=== "));
+
+        // With offset 2: root ==== (4), file ===== (5).
+        assert!(out_2.contains("==== myapp\n"));
+        assert!(out_2.contains("===== "));
+
+        // Offset output must not contain the unshifted (level-2) root heading.
+        assert!(!out_2.starts_with("== "));
+        assert!(!out_2.contains("\n== "));
+    }
+
+    #[test]
+    fn heading_offset_zero_is_default() {
+        let tasks = vec![make_task("Task", "/proj/a/todo.typ", Some("/proj/a"))];
+        let out = format_typst_list(&tasks, 0);
+        // Root heading at level 2.
+        assert!(out.starts_with("== a\n"));
+    }
+
+    #[test]
+    fn heading_offset_applies_to_subdirs() {
+        let tasks = vec![make_task(
+            "Nested",
+            "/proj/root/sub/deep/todo.typ",
+            Some("/proj/root"),
+        )];
+        let out_0 = format_typst_list(&tasks, 0);
+        let out_1 = format_typst_list(&tasks, 1);
+
+        // offset 0: root == (2), dir "sub" === (3), dir "deep" ==== (4), file ===== (5).
+        assert!(out_0.contains("=== sub\n"));
+        assert!(out_0.contains("==== deep\n"));
+
+        // offset 1: root === (3), dir "sub" ==== (4), dir "deep" ===== (5), file ====== (6).
+        assert!(out_1.contains("=== root\n"));
+        assert!(out_1.contains("==== sub\n"));
+        assert!(out_1.contains("===== deep\n"));
+    }
+
+    #[test]
+    fn heading_offset_applies_to_milestones() {
+        let mut task = make_task("Fix bug", "/proj/app/todo.typ", Some("/proj/app"));
+        task.milestone = Some("Sprint 1 > Backend".to_string());
+        let tasks = vec![task];
+
+        let out_0 = format_typst_list(&tasks, 0);
+        let out_3 = format_typst_list(&tasks, 3);
+
+        // offset 0: milestone base = 3 + 0 + 1 = 4 (====), nested = 5 (=====).
+        assert!(out_0.contains("==== Sprint 1\n"));
+        assert!(out_0.contains("===== Backend\n"));
+
+        // offset 3: milestone base = 3 + 3 + 0 + 1 = 7 (=======), nested = 8 (========).
+        assert!(out_3.contains("======= Sprint 1\n"));
+        assert!(out_3.contains("======== Backend\n"));
     }
 }
