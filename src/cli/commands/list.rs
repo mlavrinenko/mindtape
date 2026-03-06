@@ -41,7 +41,7 @@ pub struct ListArgs {
     #[arg(long, value_parser = parse_sort_spec)]
     pub sort: Vec<SortSpec>,
 
-    /// Filter expression (evalexpr syntax, e.g. `has(due) || has_tag("work")`)
+    /// Filter expression (evalexpr syntax, e.g. `has(due) || miss(start)`)
     #[arg(long, value_name = "EXPR")]
     pub filter: Option<String>,
 

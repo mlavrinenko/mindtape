@@ -53,10 +53,8 @@ fn title_eq() {
 
 #[test]
 fn and_or_combined() {
-    let frag = translate_expr(
-        "due < \"2026-03-10\" && (has_tag(\"urgent\") || rank >= 5)",
-    )
-    .unwrap();
+    let frag =
+        translate_expr("due < \"2026-03-10\" && (has_tag(\"urgent\") || rank >= 5)").unwrap();
     assert!(frag.condition.contains("AND"));
     assert!(frag.condition.contains("OR"));
     assert!(!frag.needs_fts_join);
@@ -67,6 +65,26 @@ fn has_due() {
     let frag = translate_expr("has(due)").unwrap();
     assert_eq!(frag.condition, "t.due IS NOT NULL");
     assert!(frag.params.is_empty());
+}
+
+#[test]
+fn miss_due() {
+    let frag = translate_expr("miss(due)").unwrap();
+    assert_eq!(frag.condition, "t.due IS NULL");
+    assert!(frag.params.is_empty());
+}
+
+#[test]
+fn miss_tag() {
+    let frag = translate_expr("miss(tag)").unwrap();
+    assert!(frag.condition.contains("NOT EXISTS"));
+    assert!(frag.params.is_empty());
+}
+
+#[test]
+fn miss_unknown_prop_errors() {
+    let result = translate_expr("miss(foobar)");
+    assert!(result.is_err());
 }
 
 #[test]
@@ -102,10 +120,7 @@ fn contains_title() {
 
 #[test]
 fn complex_expression() {
-    let frag = translate_expr(
-        "!done && (has(due) || has_tag(\"work\")) && rank >= 3",
-    )
-    .unwrap();
+    let frag = translate_expr("!done && (has(due) || has_tag(\"work\")) && rank >= 3").unwrap();
     assert!(frag.condition.contains("NOT"));
     assert!(frag.condition.contains("AND"));
     assert!(frag.condition.contains("OR"));

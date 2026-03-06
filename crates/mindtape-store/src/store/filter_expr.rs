@@ -11,6 +11,7 @@
 //!
 //! **Functions:**
 //! - `has(field)` — presence check
+//! - `miss(field)` — absence check (equivalent to `!has(field)`)
 //! - `has_tag("name")` — specific tag
 //! - `search("query")` — FTS5 full-text search
 //! - `contains(field, "substr")` — case-insensitive substring
@@ -70,8 +71,12 @@ fn translate_node(node: &Node<DefaultNumericTypes>) -> Result<SqlFragment, Filte
         Operator::And => translate_binary(node, "AND"),
         Operator::Or => translate_binary(node, "OR"),
         Operator::Not => translate_not(node),
-        Operator::Eq | Operator::Neq | Operator::Lt | Operator::Gt
-        | Operator::Leq | Operator::Geq => translate_comparison(node),
+        Operator::Eq
+        | Operator::Neq
+        | Operator::Lt
+        | Operator::Gt
+        | Operator::Leq
+        | Operator::Geq => translate_comparison(node),
         Operator::VariableIdentifierRead { identifier } => translate_bare_variable(identifier),
         Operator::FunctionIdentifier { identifier } => translate_function(identifier, node),
         other => Err(FilterExprError::UnsupportedOperator(format!("{other:?}"))),
@@ -127,9 +132,7 @@ fn translate_not(node: &Node<DefaultNumericTypes>) -> Result<SqlFragment, Filter
 // Comparisons
 // ---------------------------------------------------------------------------
 
-fn translate_comparison(
-    node: &Node<DefaultNumericTypes>,
-) -> Result<SqlFragment, FilterExprError> {
+fn translate_comparison(node: &Node<DefaultNumericTypes>) -> Result<SqlFragment, FilterExprError> {
     match node.children() {
         [lhs, rhs] => build_comparison(node.operator(), lhs, rhs),
         _ => Err(FilterExprError::Invalid(
@@ -202,6 +205,7 @@ fn translate_function(
     let children = node.children();
     match name {
         "has" => translate_fn_has(children),
+        "miss" => translate_fn_miss(children),
         "has_tag" => translate_fn_has_tag(children),
         "search" => translate_fn_search(children),
         "contains" => translate_fn_contains(children),
@@ -228,6 +232,27 @@ fn translate_fn_has(
         )),
         other => Err(FilterExprError::UnknownField(format!(
             "has({other}): unknown property"
+        ))),
+    }
+}
+
+/// `miss(field)` — absence check (negation of `has`).
+fn translate_fn_miss(
+    children: &[Node<DefaultNumericTypes>],
+) -> Result<SqlFragment, FilterExprError> {
+    let arg = single_arg(children, "miss")?;
+    let field_name = extract_identifier(arg)?;
+    match field_name.as_str() {
+        "due" => Ok(sql_no_params("t.due IS NULL")),
+        "start" => Ok(sql_no_params("t.start IS NULL")),
+        "rank" => Ok(sql_no_params("t.rank IS NULL")),
+        "id" => Ok(sql_no_params("t.task_id IS NULL")),
+        "tag" => Ok(sql_no_params(
+            "NOT EXISTS (SELECT 1 FROM task_properties tp \
+             WHERE tp.task_id = t.id AND tp.kind = 'mindtape.tag')",
+        )),
+        other => Err(FilterExprError::UnknownField(format!(
+            "miss({other}): unknown property"
         ))),
     }
 }
@@ -319,7 +344,10 @@ fn is_nullable_field(name: &str) -> bool {
 }
 
 fn is_inequality(op: &Operator<DefaultNumericTypes>) -> bool {
-    matches!(op, Operator::Lt | Operator::Gt | Operator::Leq | Operator::Geq)
+    matches!(
+        op,
+        Operator::Lt | Operator::Gt | Operator::Leq | Operator::Geq
+    )
 }
 
 fn operator_to_sql(op: &Operator<DefaultNumericTypes>) -> Result<&'static str, FilterExprError> {
@@ -358,9 +386,7 @@ fn unwrap_root(node: &Node<DefaultNumericTypes>) -> &Node<DefaultNumericTypes> {
 }
 
 /// Extract a variable identifier from a node.
-fn extract_identifier(
-    node: &Node<DefaultNumericTypes>,
-) -> Result<String, FilterExprError> {
+fn extract_identifier(node: &Node<DefaultNumericTypes>) -> Result<String, FilterExprError> {
     let node = unwrap_root(node);
     match node.operator() {
         Operator::VariableIdentifierRead { identifier } => Ok(identifier.clone()),
@@ -371,9 +397,7 @@ fn extract_identifier(
 }
 
 /// Extract a literal value from a `Const` node as a string.
-fn extract_literal(
-    node: &Node<DefaultNumericTypes>,
-) -> Result<String, FilterExprError> {
+fn extract_literal(node: &Node<DefaultNumericTypes>) -> Result<String, FilterExprError> {
     let node = unwrap_root(node);
     match node.operator() {
         Operator::Const { value } => value_to_string(value),
