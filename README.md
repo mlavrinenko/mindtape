@@ -79,3 +79,7 @@ mindtape deps                          # file dependency graph
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Acknowledgements
+
+The logo uses a brain icon from [Lucide](https://lucide.dev) (ISC license).
