@@ -71,9 +71,42 @@ jobs:
           name: mindtape-${{ matrix.target }}
           path: mindtape-${{ matrix.target }}
 
+  publish:
+    name: Publish to crates.io
+    needs: check
+    runs-on: ubuntu-latest
+    environment: crates-io
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Publish mindtape-eval
+        run: cargo publish -p mindtape-eval
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io index
+        run: sleep 30
+
+      - name: Publish mindtape-store
+        run: cargo publish -p mindtape-store
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for crates.io index
+        run: sleep 30
+
+      - name: Publish mindtape
+        run: cargo publish -p mindtape
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
   release:
-    name: Create Release
-    needs: build
+    name: Create GitHub Release
+    needs: [build, publish]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

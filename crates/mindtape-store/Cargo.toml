@@ -5,7 +5,7 @@ edition = "2024"
 rust-version = "1.85"
 description = "Store trait and SQLite backend for MindTape"
 repository = "https://github.com/mlavrinenko/mindtape"
-license-file = "../../LICENSE"
+license = "MIT"
 readme = "README.md"
 
 [dependencies]

@@ -105,7 +105,7 @@ repository = "https://github.com/mlavrinenko/mindtape"
 license = "MIT"
 keywords = ["typst", "task-tracker", "cli", "sqlite", "productivity"]
 categories = ["command-line-utilities", "development-tools"]
-include = ["/src/", "/lib/", "/build.rs", "/LICENSE", "/README.md"]
+include = ["/src/", "/lib/", "/tests/", "/build.rs", "/LICENSE", "/README.md"]
 
 [lib]
 name = "mindtape"
