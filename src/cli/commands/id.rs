@@ -1,48 +1,58 @@
-use anyhow::{Result, bail};
-use clap::Parser;
+use anyhow::Result;
+use clap::{Parser, ValueEnum};
 
 use mindtape_store::id;
 
-/// Generate or validate a task ID.
+/// Generate, validate, or convert a task ID.
 ///
-/// With no arguments, generates a new `UUIDv7` in base62 format.
-/// With `--raw`, outputs the plain hyphenated `UUIDv7` instead.
-/// With a positional `<ID>`, validates that it is a valid task ID.
+/// With no arguments, generates a new base62-encoded `UUIDv7`.
+/// With `--from`, converts or validates the given ID.
+/// Use `--to` to choose the output format (default: base62).
 #[derive(Parser, Debug)]
 pub struct IdArgs {
-    /// ID to validate (`UUIDv7` or base62)
-    pub id: Option<String>,
-
-    /// Output plain hyphenated `UUIDv7` instead of base62
+    /// Input ID to validate or convert (`UUIDv7` or base62).
+    /// When omitted, a new ID is generated.
     #[arg(long)]
-    pub raw: bool,
+    pub from: Option<String>,
+
+    /// Output format
+    #[arg(long, value_enum, default_value_t = IdFormat::Base62)]
+    pub to: IdFormat,
+}
+
+/// Output format for task IDs.
+#[derive(Clone, Debug, ValueEnum)]
+pub enum IdFormat {
+    /// Base62-encoded compact form
+    Base62,
+    /// Hyphenated `UUIDv7`
+    #[value(name = "uuidv7")]
+    UuidV7,
 }
 
 impl IdArgs {
     /// Run the id command.
     ///
     /// # Errors
-    /// Returns error if a given ID fails validation.
+    /// Returns error if a given ID fails validation or conversion.
     pub fn run(&self) -> Result<()> {
-        if let Some(input) = &self.id {
-            // Validate mode
-            match id::parse_task_id(input) {
-                Ok(_) => Ok(()),
-                Err(err) => bail!("{err}"),
-            }
-        } else {
-            // Generate mode
-            let uuid = id::new_id();
-            if self.raw {
-                print!("{uuid}");
-            } else {
-                // Safety: encode_base62 only returns None for invalid UUIDs;
-                // new_id() always produces a valid one.
-                let b62 = id::encode_base62(&uuid).unwrap_or(uuid);
+        let canonical = match &self.from {
+            Some(input) => id::parse_task_id(input).map_err(|e| anyhow::anyhow!("{e}"))?,
+            None => id::new_id(),
+        };
+
+        match self.to {
+            IdFormat::Base62 => {
+                let b62 = id::encode_base62(&canonical)
+                    .ok_or_else(|| anyhow::anyhow!("failed to encode as base62"))?;
                 print!("{b62}");
             }
-            Ok(())
+            IdFormat::UuidV7 => {
+                print!("{canonical}");
+            }
         }
+
+        Ok(())
     }
 }
 
@@ -51,52 +61,89 @@ impl IdArgs {
 mod tests {
     use super::*;
 
-    #[test]
-    fn generate_produces_valid_id() {
-        let args = IdArgs { id: None, raw: false };
-        assert!(args.run().is_ok());
-    }
+    const SAMPLE_UUID: &str = "019c5b9b-7317-77b1-bf52-ce7a298cfcad";
+
+    // --- Generation ---
 
     #[test]
-    fn generate_raw_produces_valid_id() {
-        let args = IdArgs { id: None, raw: true };
-        assert!(args.run().is_ok());
-    }
-
-    #[test]
-    fn validate_accepts_uuid() {
+    fn generate_base62() {
         let args = IdArgs {
-            id: Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string()),
-            raw: false,
+            from: None,
+            to: IdFormat::Base62,
         };
         assert!(args.run().is_ok());
     }
 
     #[test]
-    fn validate_accepts_base62() {
-        let b62 = id::encode_base62("019c5b9b-7317-77b1-bf52-ce7a298cfcad").unwrap();
+    fn generate_uuidv7() {
         let args = IdArgs {
-            id: Some(b62),
-            raw: false,
+            from: None,
+            to: IdFormat::UuidV7,
+        };
+        assert!(args.run().is_ok());
+    }
+
+    // --- Validation (same-format round-trip) ---
+
+    #[test]
+    fn validate_uuid_to_uuidv7() {
+        let args = IdArgs {
+            from: Some(SAMPLE_UUID.to_string()),
+            to: IdFormat::UuidV7,
         };
         assert!(args.run().is_ok());
     }
 
     #[test]
-    fn validate_rejects_invalid() {
+    fn validate_base62_to_base62() {
+        let b62 = id::encode_base62(SAMPLE_UUID).unwrap();
         let args = IdArgs {
-            id: Some("not-valid".to_string()),
-            raw: false,
+            from: Some(b62),
+            to: IdFormat::Base62,
+        };
+        assert!(args.run().is_ok());
+    }
+
+    // --- Conversion ---
+
+    #[test]
+    fn convert_uuid_to_base62() {
+        let expected = id::encode_base62(SAMPLE_UUID).unwrap();
+        let args = IdArgs {
+            from: Some(SAMPLE_UUID.to_string()),
+            to: IdFormat::Base62,
+        };
+        assert!(args.run().is_ok());
+        assert_eq!(id::encode_base62(SAMPLE_UUID).unwrap(), expected);
+    }
+
+    #[test]
+    fn convert_base62_to_uuidv7() {
+        let b62 = id::encode_base62(SAMPLE_UUID).unwrap();
+        let args = IdArgs {
+            from: Some(b62),
+            to: IdFormat::UuidV7,
+        };
+        assert!(args.run().is_ok());
+    }
+
+    // --- Rejection ---
+
+    #[test]
+    fn rejects_invalid_input() {
+        let args = IdArgs {
+            from: Some("not-valid".to_string()),
+            to: IdFormat::Base62,
         };
         assert!(args.run().is_err());
     }
 
     #[test]
-    fn validate_rejects_uuidv4() {
+    fn rejects_uuidv4() {
         let v4 = uuid::Uuid::new_v4().to_string();
         let args = IdArgs {
-            id: Some(v4),
-            raw: false,
+            from: Some(v4),
+            to: IdFormat::Base62,
         };
         assert!(args.run().is_err());
     }
