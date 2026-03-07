@@ -19,10 +19,10 @@ statically checked — your task data is structured, validated, and composable.
 
 = Sprint 12
 
-- [ ] implement auth  #due(2026, 3, 1) #high #tag("backend") #id("01JNW73M")
-- [ ] research options #start(2026, 3, 15) #medium #tag("backend")
-- [x] design mockups   #tag("design")
-- [ ] write tests       #low
+- [ ] implement auth    #due(2026, 3, 1) #high #tag("backend") #id("32dnblUg0jnnz7W5aDP8u")
+- [ ] research options  #start(2026, 3, 15) #medium #tag("backend") #id("32dnbswR9aPa64qkE3nGt")
+- [x] design mockups    #tag("design") #id("32dnc36AAmSCBtDj4b4I8")
+- [ ] write tests       #low #id("32dncDBIf33gYSKoT45CF")
 ```
 
 ## Installation
