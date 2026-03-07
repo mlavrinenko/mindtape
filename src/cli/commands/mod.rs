@@ -3,6 +3,7 @@ pub mod deps;
 pub mod eval;
 pub mod files;
 pub mod id;
+pub mod init;
 pub mod list;
 pub mod set;
 pub mod status;

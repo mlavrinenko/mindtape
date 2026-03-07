@@ -57,8 +57,8 @@ cargo build --release
 Install the MindTape prelude (`due()`, `start()`, `id()`, `tag()`, `rank()`, `high`, `medium`, `low`) for your Typst files:
 
 ```bash
-just install-lib    # symlinks lib/ into ~/.local/share/typst/packages/local/mindtape/0.1.0/
-just uninstall-lib  # remove the symlink
+mindtape init          # writes lib to ~/.local/share/typst/packages/local/mindtape/0.1.0/
+mindtape init --force  # overwrite existing files
 ```
 
 ## Usage

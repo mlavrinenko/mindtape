@@ -9,6 +9,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 pub use commands::check::CheckArgs;
 pub use commands::deps::DepsArgs;
 pub use commands::id::IdArgs;
+pub use commands::init::InitArgs;
 pub use commands::list::ListArgs;
 pub use commands::set::SetArgs;
 pub use commands::watch::WatchArgs;
@@ -98,6 +99,8 @@ pub enum Command {
     Set(SetArgs),
     /// Generate or validate a task ID
     Id(IdArgs),
+    /// Install the Typst library for #import "@local/mindtape:0.1.0"
+    Init(InitArgs),
 }
 
 /// Args for the `status` subcommand (query-only).
@@ -139,11 +142,7 @@ mod tests {
 
     #[test]
     fn preprocess_rewrites_dash_number() {
-        let args = vec![
-            "mindtape".to_string(),
-            "list".to_string(),
-            "-5".to_string(),
-        ];
+        let args = vec!["mindtape".to_string(), "list".to_string(), "-5".to_string()];
         let result = preprocess_args(args);
         assert_eq!(result, vec!["mindtape", "list", "-n", "5"]);
     }
@@ -190,7 +189,10 @@ mod tests {
     // --- Clap parse smoke tests ---
 
     fn parse(args: &[&str]) -> Cli {
-        Cli::try_parse_from(preprocess_args(args.iter().map(ToString::to_string).collect())).unwrap()
+        Cli::try_parse_from(preprocess_args(
+            args.iter().map(ToString::to_string).collect(),
+        ))
+        .unwrap()
     }
 
     #[test]
@@ -234,7 +236,10 @@ mod tests {
         let Some(Command::Watch(args)) = cli.command else {
             panic!("expected Watch");
         };
-        assert_eq!(args.config, vec![PathBuf::from("a.toml"), PathBuf::from("b.toml")]);
+        assert_eq!(
+            args.config,
+            vec![PathBuf::from("a.toml"), PathBuf::from("b.toml")]
+        );
     }
 
     #[test]
@@ -297,8 +302,13 @@ mod tests {
     #[test]
     fn parse_set_tags() {
         let cli = parse(&[
-            "mindtape", "set", "abc-123",
-            "--add-tag", "work", "--remove-tag", "old",
+            "mindtape",
+            "set",
+            "abc-123",
+            "--add-tag",
+            "work",
+            "--remove-tag",
+            "old",
         ]);
         let Some(Command::Set(args)) = cli.command else {
             panic!("expected Set");
@@ -310,10 +320,15 @@ mod tests {
     #[test]
     fn parse_set_combined() {
         let cli = parse(&[
-            "mindtape", "set", "*37f8",
-            "--due", "2026-04-01",
-            "--add-tag", "urgent",
-            "--add-tag", "work",
+            "mindtape",
+            "set",
+            "*37f8",
+            "--due",
+            "2026-04-01",
+            "--add-tag",
+            "urgent",
+            "--add-tag",
+            "work",
         ]);
         let Some(Command::Set(args)) = cli.command else {
             panic!("expected Set");
