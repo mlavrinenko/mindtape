@@ -2,11 +2,14 @@
 name = "mindtape-store"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
 description = "Store trait and SQLite backend for MindTape"
-license = "MIT"
+repository = "https://github.com/mlavrinenko/mindtape"
+license-file = "../../LICENSE"
+readme = "README.md"
 
 [dependencies]
-mindtape-eval = { path = "../mindtape-eval" }
+mindtape-eval = { path = "../mindtape-eval", version = "0.1.0" }
 typst = "0.14"
 rusqlite = { version = "0.38", features = ["bundled"] }
 sha2 = "0.10"

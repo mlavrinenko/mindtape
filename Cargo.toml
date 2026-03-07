@@ -99,10 +99,13 @@ uninlined_format_args = "deny"
 name = "mindtape"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
 description = "A file-based task tracker using Typst files as the source of truth"
 repository = "https://github.com/mlavrinenko/mindtape"
 license = "MIT"
 keywords = ["typst", "task-tracker", "cli", "sqlite", "productivity"]
+categories = ["command-line-utilities", "development-tools"]
+include = ["/src/", "/lib/", "/build.rs", "/LICENSE", "/README.md"]
 
 [lib]
 name = "mindtape"
@@ -113,8 +116,8 @@ name = "mindtape"
 path = "src/main.rs"
 
 [dependencies]
-mindtape-eval = { path = "crates/mindtape-eval" }
-mindtape-store = { path = "crates/mindtape-store" }
+mindtape-eval = { path = "crates/mindtape-eval", version = "0.1.0" }
+mindtape-store = { path = "crates/mindtape-store", version = "0.1.0" }
 typst = "0.14"
 typst-syntax = "0.14"
 thiserror = "2"

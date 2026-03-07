@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="www/logo.svg" alt="MindTape" width="120" />
+  <img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/logo.svg" alt="MindTape" width="120" />
 </p>
 
 <h1 align="center">MindTape</h1>
