@@ -2,11 +2,11 @@
 
 use std::path::{Path, PathBuf};
 
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::{Connection, OptionalExtension, params};
 
 use super::{
-    FileBinding, FileView, IndexStats, SortDir, SortField, Store, StoreError, TaskFile,
-    TaskFilter, TaskProperty, TaskRecord, TaskView,
+    FileBinding, FileView, IndexStats, SortDir, SortField, Store, StoreError, TaskFile, TaskFilter,
+    TaskProperty, TaskRecord, TaskView,
 };
 
 // ---------------------------------------------------------------------------
@@ -14,7 +14,20 @@ use super::{
 // ---------------------------------------------------------------------------
 
 /// Row tuple from a task query JOIN.
-type TaskRow = (i64, String, bool, i32, Option<String>, Option<String>, Option<String>, Option<i64>, Option<String>, String, Option<String>, Option<String>);
+type TaskRow = (
+    i64,
+    String,
+    bool,
+    i32,
+    Option<String>,
+    Option<String>,
+    Option<String>,
+    Option<i64>,
+    Option<String>,
+    String,
+    Option<String>,
+    Option<String>,
+);
 
 pub struct SqliteStore {
     conn: Connection,
@@ -91,7 +104,12 @@ impl SqliteStore {
         if filter.sort.is_empty() {
             sql.push_str("tf.file_path, t.position");
         } else {
-            let clauses: Vec<String> = filter.sort.iter().copied().map(Self::sort_spec_to_sql).collect();
+            let clauses: Vec<String> = filter
+                .sort
+                .iter()
+                .copied()
+                .map(Self::sort_spec_to_sql)
+                .collect();
             sql.push_str(&clauses.join(", "));
         }
 
@@ -189,8 +207,10 @@ impl SqliteStore {
              WHERE task_id IN ({placeholders}) AND kind = 'mindtape.tag' ORDER BY task_id"
         );
         let mut tags_stmt = self.conn.prepare(&tags_sql)?;
-        let id_refs: Vec<&dyn rusqlite::types::ToSql> =
-            row_ids.iter().map(|id| id as &dyn rusqlite::types::ToSql).collect();
+        let id_refs: Vec<&dyn rusqlite::types::ToSql> = row_ids
+            .iter()
+            .map(|id| id as &dyn rusqlite::types::ToSql)
+            .collect();
 
         use std::collections::HashMap;
         let mut tags_map: HashMap<i64, Vec<String>> = HashMap::new();
@@ -203,7 +223,21 @@ impl SqliteStore {
         }
 
         let mut tasks = Vec::with_capacity(task_rows.len());
-        for (row_id, title, is_done, position, milestone, due, start, rank, task_id, file_path, file_title, watch_root) in task_rows {
+        for (
+            row_id,
+            title,
+            is_done,
+            position,
+            milestone,
+            due,
+            start,
+            rank,
+            task_id,
+            file_path,
+            file_title,
+            watch_root,
+        ) in task_rows
+        {
             let tags = tags_map.remove(&row_id).unwrap_or_default();
             tasks.push(TaskView {
                 title,
@@ -260,7 +294,10 @@ impl SqliteStore {
 impl Store for SqliteStore {
     fn upsert_task_file(&mut self, file: &TaskFile) -> Result<i64, StoreError> {
         let path_str = file.file_path.to_string_lossy();
-        let watch_root_str = file.watch_root.as_ref().map(|p| p.to_string_lossy().to_string());
+        let watch_root_str = file
+            .watch_root
+            .as_ref()
+            .map(|p| p.to_string_lossy().to_string());
         self.conn.execute(
             "INSERT INTO task_files (file_path, watch_root, title, eval_hash, updated_at)
              VALUES (?1, ?2, ?3, ?4, datetime('now'))
@@ -269,7 +306,12 @@ impl Store for SqliteStore {
                title = excluded.title,
                eval_hash = excluded.eval_hash,
                updated_at = datetime('now')",
-            params![path_str.as_ref(), watch_root_str, file.title, file.eval_hash],
+            params![
+                path_str.as_ref(),
+                watch_root_str,
+                file.title,
+                file.eval_hash
+            ],
         )?;
         // Always query by path: last_insert_rowid() is unreliable after
         // ON CONFLICT DO UPDATE — it can return a stale rowid from a
@@ -291,7 +333,10 @@ impl Store for SqliteStore {
         let tx = self.conn.transaction()?;
 
         // Delete existing tasks (cascade deletes properties too).
-        tx.execute("DELETE FROM tasks WHERE task_file_id = ?1", params![file_id])?;
+        tx.execute(
+            "DELETE FROM tasks WHERE task_file_id = ?1",
+            params![file_id],
+        )?;
 
         for (i, task) in tasks.iter().enumerate() {
             tx.execute(
@@ -351,8 +396,10 @@ impl Store for SqliteStore {
 
     fn query_tasks(&self, filter: &TaskFilter) -> Result<Vec<TaskView>, StoreError> {
         let (sql, params) = Self::build_task_query(filter)?;
-        let params_refs: Vec<&dyn rusqlite::types::ToSql> =
-            params.iter().map(|s| s as &dyn rusqlite::types::ToSql).collect();
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> = params
+            .iter()
+            .map(|s| s as &dyn rusqlite::types::ToSql)
+            .collect();
 
         let mut stmt = self.conn.prepare(&sql)?;
         self.fetch_task_views(&mut stmt, params_refs.as_slice())
@@ -388,26 +435,30 @@ impl Store for SqliteStore {
                 task_count: row.get(4)?,
             })
         })?;
-        rows.collect::<Result<Vec<_>, _>>().map_err(StoreError::from)
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(StoreError::from)
     }
 
     fn get_stats(&self) -> Result<IndexStats, StoreError> {
-        let (file_count, task_count, done_count, last_updated): (
-            i64,
-            i64,
-            i64,
-            Option<String>,
-        ) = self.conn.query_row(
-            "SELECT
+        let (file_count, task_count, done_count, last_updated): (i64, i64, i64, Option<String>) =
+            self.conn.query_row(
+                "SELECT
                  COUNT(DISTINCT tf.id),
                  COUNT(t.id),
                  SUM(CASE WHEN t.is_done THEN 1 ELSE 0 END),
                  MAX(tf.updated_at)
              FROM task_files tf
              LEFT JOIN tasks t ON t.task_file_id = tf.id",
-            [],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get::<_, Option<i64>>(2)?.unwrap_or(0), row.get(3)?)),
-        )?;
+                [],
+                |row| {
+                    Ok((
+                        row.get(0)?,
+                        row.get(1)?,
+                        row.get::<_, Option<i64>>(2)?.unwrap_or(0),
+                        row.get(3)?,
+                    ))
+                },
+            )?;
         Ok(IndexStats {
             file_count,
             task_count,
@@ -429,27 +480,36 @@ impl Store for SqliteStore {
         )?;
 
         // Insert new references.
-        let mut stmt = self.conn.prepare(
-            "INSERT INTO file_references (source_file_id, target_path) VALUES (?1, ?2)",
-        )?;
+        let mut stmt = self
+            .conn
+            .prepare("INSERT INTO file_references (source_file_id, target_path) VALUES (?1, ?2)")?;
         for target in target_paths {
-            stmt.execute(params![source_file_id, target.to_string_lossy().to_string()])?;
+            stmt.execute(params![
+                source_file_id,
+                target.to_string_lossy().to_string()
+            ])?;
         }
 
         Ok(())
     }
 
-    fn get_file_dependencies(&self, path: &Path) -> Result<Option<super::FileDependencies>, StoreError> {
+    fn get_file_dependencies(
+        &self,
+        path: &Path,
+    ) -> Result<Option<super::FileDependencies>, StoreError> {
         // Get file info.
-        let file_info: Option<(PathBuf, Option<String>, i64)> = self.conn
+        let file_info: Option<(PathBuf, Option<String>, i64)> = self
+            .conn
             .query_row(
                 "SELECT file_path, title, id FROM task_files WHERE file_path = ?1",
                 params![path.to_string_lossy().to_string()],
-                |row| Ok((
-                    PathBuf::from(row.get::<_, String>(0)?),
-                    row.get(1)?,
-                    row.get(2)?,
-                )),
+                |row| {
+                    Ok((
+                        PathBuf::from(row.get::<_, String>(0)?),
+                        row.get(1)?,
+                        row.get(2)?,
+                    ))
+                },
             )
             .optional()?;
 
@@ -469,9 +529,9 @@ impl Store for SqliteStore {
 
     fn list_file_dependencies(&self) -> Result<Vec<super::FileDependencies>, StoreError> {
         // Get all files.
-        let mut files_stmt = self.conn.prepare(
-            "SELECT id, file_path, title FROM task_files ORDER BY file_path",
-        )?;
+        let mut files_stmt = self
+            .conn
+            .prepare("SELECT id, file_path, title FROM task_files ORDER BY file_path")?;
         let file_rows: Vec<(i64, PathBuf, Option<String>)> = files_stmt
             .query_map([], |row| {
                 Ok((
@@ -507,8 +567,8 @@ impl Store for SqliteStore {
                 format!("%{suffix}"),
             )
         } else {
-            let canonical = crate::id::parse_task_id(id_or_mask)
-                .unwrap_or_else(|_| id_or_mask.to_string());
+            let canonical =
+                crate::id::parse_task_id(id_or_mask).unwrap_or_else(|_| id_or_mask.to_string());
             (
                 "SELECT t.task_id, t.title, t.is_done, tf.file_path, tf.eval_hash
                  FROM tasks t
@@ -549,10 +609,14 @@ impl Store for SqliteStore {
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used, clippy::indexing_slicing, clippy::uninlined_format_args)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::indexing_slicing,
+    clippy::uninlined_format_args
+)]
 mod tests {
-    use super::*;
     use super::super::{FileBinding, PropertyKind, TaskFile, TaskFilter, TaskProperty, TaskRecord};
+    use super::*;
 
     fn test_store() -> SqliteStore {
         SqliteStore::open_memory().unwrap()
@@ -685,9 +749,14 @@ mod tests {
     #[test]
     fn upsert_tasks_basic() {
         let mut store = test_store();
-        let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
+        let file_id = store
+            .upsert_task_file(&make_task_file("t.typ", "h"))
+            .unwrap();
 
-        let tasks = vec![make_record("Task A", false, 0), make_record("Task B", true, 1)];
+        let tasks = vec![
+            make_record("Task A", false, 0),
+            make_record("Task B", true, 1),
+        ];
         let props = vec![vec![], vec![]];
         store.upsert_tasks(file_id, &tasks, &props).unwrap();
 
@@ -705,13 +774,20 @@ mod tests {
     #[test]
     fn upsert_tasks_replaces_on_reindex() {
         let mut store = test_store();
-        let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
+        let file_id = store
+            .upsert_task_file(&make_task_file("t.typ", "h"))
+            .unwrap();
 
         let tasks1 = vec![make_record("Old", false, 0)];
         store.upsert_tasks(file_id, &tasks1, &[vec![]]).unwrap();
 
-        let tasks2 = vec![make_record("New A", false, 0), make_record("New B", false, 1)];
-        store.upsert_tasks(file_id, &tasks2, &[vec![], vec![]]).unwrap();
+        let tasks2 = vec![
+            make_record("New A", false, 0),
+            make_record("New B", false, 1),
+        ];
+        store
+            .upsert_tasks(file_id, &tasks2, &[vec![], vec![]])
+            .unwrap();
 
         let count: i32 = store
             .conn
@@ -737,7 +813,9 @@ mod tests {
     #[test]
     fn upsert_tasks_with_properties() {
         let mut store = test_store();
-        let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
+        let file_id = store
+            .upsert_task_file(&make_task_file("t.typ", "h"))
+            .unwrap();
 
         let tasks = vec![make_record("Task", false, 0)];
         let props = vec![vec![make_due_prop("2026-03-01"), make_tag_prop("work")]];
@@ -761,7 +839,9 @@ mod tests {
     #[test]
     fn upsert_bindings_basic() {
         let mut store = test_store();
-        let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
+        let file_id = store
+            .upsert_task_file(&make_task_file("t.typ", "h"))
+            .unwrap();
 
         let bindings = vec![make_binding("note", "string", "\"hello\"")];
         store.upsert_bindings(file_id, &bindings).unwrap();
@@ -780,7 +860,9 @@ mod tests {
     #[test]
     fn upsert_bindings_replaces_on_reindex() {
         let mut store = test_store();
-        let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
+        let file_id = store
+            .upsert_task_file(&make_task_file("t.typ", "h"))
+            .unwrap();
 
         store
             .upsert_bindings(file_id, &[make_binding("old", "string", "\"x\"")])
@@ -805,7 +887,9 @@ mod tests {
     #[test]
     fn remove_cascades_to_tasks_and_props() {
         let mut store = test_store();
-        let file_id = store.upsert_task_file(&make_task_file("t.typ", "h")).unwrap();
+        let file_id = store
+            .upsert_task_file(&make_task_file("t.typ", "h"))
+            .unwrap();
 
         let tasks = vec![make_record("T", false, 0)];
         let props = vec![vec![make_tag_prop("x")]];
@@ -926,11 +1010,7 @@ mod tests {
             .upsert_task_file(&make_task_file("other.typ", "h2"))
             .unwrap();
         store
-            .upsert_tasks(
-                file_id2,
-                &[make_record("Other", false, 0)],
-                &[vec![]],
-            )
+            .upsert_tasks(file_id2, &[make_record("Other", false, 0)], &[vec![]])
             .unwrap();
 
         let views = store
@@ -992,7 +1072,11 @@ mod tests {
         tasks[3].due = Some("2026-04-01".to_string());
 
         let props = vec![
-            vec![make_tag_prop("ops"), make_tag_prop("urgent"), make_due_prop("2026-02-15")],
+            vec![
+                make_tag_prop("ops"),
+                make_tag_prop("urgent"),
+                make_due_prop("2026-02-15"),
+            ],
             vec![make_tag_prop("docs"), make_due_prop("2026-03-01")],
             vec![make_tag_prop("ops"), make_due_prop("2026-01-10")],
             vec![make_tag_prop("planning"), make_due_prop("2026-04-01")],
@@ -1263,7 +1347,9 @@ mod tests {
         let mut t1 = make_record("Ranked", false, 0);
         t1.rank = Some(75);
         let t2 = make_record("Unranked", false, 1);
-        store.upsert_tasks(file_id, &[t1, t2], &[vec![], vec![]]).unwrap();
+        store
+            .upsert_tasks(file_id, &[t1, t2], &[vec![], vec![]])
+            .unwrap();
         let views = store
             .query_tasks(&TaskFilter {
                 expr: Some("has(rank)".into()),
@@ -1343,7 +1429,9 @@ mod tests {
         let mut t1 = make_record("Ranked", false, 0);
         t1.rank = Some(75);
         let t2 = make_record("Unranked", false, 1);
-        store.upsert_tasks(file_id, &[t1, t2], &[vec![], vec![]]).unwrap();
+        store
+            .upsert_tasks(file_id, &[t1, t2], &[vec![], vec![]])
+            .unwrap();
         let views = store
             .query_tasks(&TaskFilter {
                 expr: Some("!has(rank)".into()),
@@ -1446,7 +1534,11 @@ mod tests {
                 milestone: Some("Heading".to_string()),
             }],
             title: Some("Heading".to_string()),
-            bindings: vec![("note".to_string(), "string".to_string(), "\"hi\"".to_string())],
+            bindings: vec![(
+                "note".to_string(),
+                "string".to_string(),
+                "\"hi\"".to_string(),
+            )],
             dependencies: vec![],
         };
 
@@ -1458,7 +1550,10 @@ mod tests {
         assert_eq!(tasks.len(), 1);
         assert_eq!(tasks[0].title, "Test");
         assert_eq!(tasks[0].due, Some("2026-03-01".to_string()));
-        assert_eq!(tasks[0].task_id, Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string()));
+        assert_eq!(
+            tasks[0].task_id,
+            Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string())
+        );
         assert_eq!(props.len(), 1);
         assert_eq!(props[0].len(), 4); // 1 id + 1 due + 2 tags
         assert_eq!(props[0][0].kind, PropertyKind::Id);
@@ -1475,11 +1570,26 @@ mod tests {
 
     #[test]
     fn property_kind_roundtrip() {
-        assert_eq!(PropertyKind::try_from_str("mindtape.due"), Some(PropertyKind::Due));
-        assert_eq!(PropertyKind::try_from_str("mindtape.start"), Some(PropertyKind::Start));
-        assert_eq!(PropertyKind::try_from_str("mindtape.rank"), Some(PropertyKind::Rank));
-        assert_eq!(PropertyKind::try_from_str("mindtape.tag"), Some(PropertyKind::Tag));
-        assert_eq!(PropertyKind::try_from_str("mindtape.id"), Some(PropertyKind::Id));
+        assert_eq!(
+            PropertyKind::try_from_str("mindtape.due"),
+            Some(PropertyKind::Due)
+        );
+        assert_eq!(
+            PropertyKind::try_from_str("mindtape.start"),
+            Some(PropertyKind::Start)
+        );
+        assert_eq!(
+            PropertyKind::try_from_str("mindtape.rank"),
+            Some(PropertyKind::Rank)
+        );
+        assert_eq!(
+            PropertyKind::try_from_str("mindtape.tag"),
+            Some(PropertyKind::Tag)
+        );
+        assert_eq!(
+            PropertyKind::try_from_str("mindtape.id"),
+            Some(PropertyKind::Id)
+        );
         assert_eq!(PropertyKind::try_from_str("unknown"), None);
         assert_eq!(PropertyKind::Due.as_str(), "mindtape.due");
         assert_eq!(PropertyKind::Start.as_str(), "mindtape.start");
@@ -1635,9 +1745,14 @@ mod tests {
     #[test]
     fn upsert_file_references_basic() {
         let mut store = test_store();
-        let file_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
+        let file_id = store
+            .upsert_task_file(&make_task_file("main.typ", "h1"))
+            .unwrap();
 
-        let refs = vec![PathBuf::from("lib/utils.typ"), PathBuf::from("lib/helpers.typ")];
+        let refs = vec![
+            PathBuf::from("lib/utils.typ"),
+            PathBuf::from("lib/helpers.typ"),
+        ];
         store.upsert_file_references(file_id, &refs).unwrap();
 
         let count: i32 = store
@@ -1654,11 +1769,18 @@ mod tests {
     #[test]
     fn upsert_file_references_replaces() {
         let mut store = test_store();
-        let file_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
+        let file_id = store
+            .upsert_task_file(&make_task_file("main.typ", "h1"))
+            .unwrap();
 
-        store.upsert_file_references(file_id, &[PathBuf::from("old.typ")]).unwrap();
         store
-            .upsert_file_references(file_id, &[PathBuf::from("new1.typ"), PathBuf::from("new2.typ")])
+            .upsert_file_references(file_id, &[PathBuf::from("old.typ")])
+            .unwrap();
+        store
+            .upsert_file_references(
+                file_id,
+                &[PathBuf::from("new1.typ"), PathBuf::from("new2.typ")],
+            )
             .unwrap();
 
         let count: i32 = store
@@ -1685,7 +1807,9 @@ mod tests {
     #[test]
     fn get_file_dependencies_returns_none_for_unknown() {
         let store = test_store();
-        let deps = store.get_file_dependencies(Path::new("unknown.typ")).unwrap();
+        let deps = store
+            .get_file_dependencies(Path::new("unknown.typ"))
+            .unwrap();
         assert!(deps.is_none());
     }
 
@@ -1694,8 +1818,12 @@ mod tests {
         let mut store = test_store();
 
         // Create files: main.typ imports lib/utils.typ
-        let main_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
-        let _utils_id = store.upsert_task_file(&make_task_file("lib/utils.typ", "h2")).unwrap();
+        let main_id = store
+            .upsert_task_file(&make_task_file("main.typ", "h1"))
+            .unwrap();
+        let _utils_id = store
+            .upsert_task_file(&make_task_file("lib/utils.typ", "h2"))
+            .unwrap();
 
         store
             .upsert_file_references(main_id, &[PathBuf::from("lib/utils.typ")])
@@ -1726,12 +1854,24 @@ mod tests {
     fn list_file_dependencies_all() {
         let mut store = test_store();
 
-        let main_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
-        let utils_id = store.upsert_task_file(&make_task_file("lib/utils.typ", "h2")).unwrap();
-        let _helper_id = store.upsert_task_file(&make_task_file("lib/helper.typ", "h3")).unwrap();
+        let main_id = store
+            .upsert_task_file(&make_task_file("main.typ", "h1"))
+            .unwrap();
+        let utils_id = store
+            .upsert_task_file(&make_task_file("lib/utils.typ", "h2"))
+            .unwrap();
+        let _helper_id = store
+            .upsert_task_file(&make_task_file("lib/helper.typ", "h3"))
+            .unwrap();
 
         store
-            .upsert_file_references(main_id, &[PathBuf::from("lib/utils.typ"), PathBuf::from("lib/helper.typ")])
+            .upsert_file_references(
+                main_id,
+                &[
+                    PathBuf::from("lib/utils.typ"),
+                    PathBuf::from("lib/helper.typ"),
+                ],
+            )
             .unwrap();
         store
             .upsert_file_references(utils_id, &[PathBuf::from("lib/helper.typ")])
@@ -1741,17 +1881,26 @@ mod tests {
         assert_eq!(all_deps.len(), 3);
 
         // main.typ: imports 2, imported by 0
-        let main = all_deps.iter().find(|d| d.file_path == Path::new("main.typ")).unwrap();
+        let main = all_deps
+            .iter()
+            .find(|d| d.file_path == Path::new("main.typ"))
+            .unwrap();
         assert_eq!(main.imports.len(), 2);
         assert_eq!(main.imported_by.len(), 0);
 
         // lib/utils.typ: imports 1, imported by 1
-        let utils = all_deps.iter().find(|d| d.file_path == Path::new("lib/utils.typ")).unwrap();
+        let utils = all_deps
+            .iter()
+            .find(|d| d.file_path == Path::new("lib/utils.typ"))
+            .unwrap();
         assert_eq!(utils.imports.len(), 1);
         assert_eq!(utils.imported_by.len(), 1);
 
         // lib/helper.typ: imports 0, imported by 2
-        let helper = all_deps.iter().find(|d| d.file_path == Path::new("lib/helper.typ")).unwrap();
+        let helper = all_deps
+            .iter()
+            .find(|d| d.file_path == Path::new("lib/helper.typ"))
+            .unwrap();
         assert_eq!(helper.imports.len(), 0);
         assert_eq!(helper.imported_by.len(), 2);
     }
@@ -1759,7 +1908,9 @@ mod tests {
     #[test]
     fn file_references_cascade_on_file_delete() {
         let mut store = test_store();
-        let file_id = store.upsert_task_file(&make_task_file("main.typ", "h1")).unwrap();
+        let file_id = store
+            .upsert_task_file(&make_task_file("main.typ", "h1"))
+            .unwrap();
 
         store
             .upsert_file_references(file_id, &[PathBuf::from("lib/utils.typ")])

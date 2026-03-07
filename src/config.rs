@@ -206,11 +206,7 @@ path = "."
     fn load_config_from_file() {
         let dir = tempfile::tempdir().unwrap();
         let config_path = dir.path().join("mindtape.toml");
-        std::fs::write(
-            &config_path,
-            "[[watch]]\npath = \".\"\n",
-        )
-        .unwrap();
+        std::fs::write(&config_path, "[[watch]]\npath = \".\"\n").unwrap();
         let config = load_config(&config_path).unwrap();
         assert_eq!(config.watch.len(), 1);
     }
@@ -246,11 +242,17 @@ path = "."
     fn merge_configs_concatenates_watch_entries() {
         let first = Config {
             database: None,
-            watch: vec![WatchEntry { path: "~/a".into(), recursive: true }],
+            watch: vec![WatchEntry {
+                path: "~/a".into(),
+                recursive: true,
+            }],
         };
         let second = Config {
             database: None,
-            watch: vec![WatchEntry { path: "~/b".into(), recursive: false }],
+            watch: vec![WatchEntry {
+                path: "~/b".into(),
+                recursive: false,
+            }],
         };
         let merged = merge_configs([first, second]);
         assert_eq!(merged.watch.len(), 2);
@@ -262,11 +264,15 @@ path = "."
     #[test]
     fn merge_configs_first_database_wins() {
         let first = Config {
-            database: Some(DatabaseConfig { path: "/first.db".into() }),
+            database: Some(DatabaseConfig {
+                path: "/first.db".into(),
+            }),
             watch: vec![],
         };
         let second = Config {
-            database: Some(DatabaseConfig { path: "/second.db".into() }),
+            database: Some(DatabaseConfig {
+                path: "/second.db".into(),
+            }),
             watch: vec![],
         };
         let merged = merge_configs([first, second]);
@@ -275,9 +281,14 @@ path = "."
 
     #[test]
     fn merge_configs_later_database_used_if_first_missing() {
-        let first = Config { database: None, watch: vec![] };
+        let first = Config {
+            database: None,
+            watch: vec![],
+        };
         let second = Config {
-            database: Some(DatabaseConfig { path: "/second.db".into() }),
+            database: Some(DatabaseConfig {
+                path: "/second.db".into(),
+            }),
             watch: vec![],
         };
         let merged = merge_configs([first, second]);
@@ -296,7 +307,11 @@ path = "."
         let dir = tempfile::tempdir().unwrap();
 
         let path_a = dir.path().join("a.toml");
-        std::fs::write(&path_a, "[database]\npath = \"/main.db\"\n\n[[watch]]\npath = \"/a\"\n").unwrap();
+        std::fs::write(
+            &path_a,
+            "[database]\npath = \"/main.db\"\n\n[[watch]]\npath = \"/a\"\n",
+        )
+        .unwrap();
 
         let path_b = dir.path().join("b.toml");
         std::fs::write(&path_b, "[[watch]]\npath = \"/b\"\nrecursive = false\n").unwrap();

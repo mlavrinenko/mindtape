@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::{Context, Result, bail};
 use typst::foundations::Datetime;
 
-use crate::eval::{self, format_date, Task};
+use crate::eval::{self, Task, format_date};
 use crate::world;
 
 /// Run the eval command (backwards compat: `mindtape file.typ`).

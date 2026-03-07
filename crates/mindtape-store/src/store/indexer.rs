@@ -6,11 +6,9 @@ use std::path::Path;
 use log::{trace, warn};
 use sha2::{Digest, Sha256};
 
-use super::{
-    FileBinding, PropertyKind, Store, StoreError, TaskFile, TaskProperty, TaskRecord,
-};
+use super::{FileBinding, PropertyKind, Store, StoreError, TaskFile, TaskProperty, TaskRecord};
 use crate::id;
-use mindtape_eval::{self as eval, format_date, EvalError, EvalResult};
+use mindtape_eval::{self as eval, EvalError, EvalResult, format_date};
 
 // ---------------------------------------------------------------------------
 // Hashing
@@ -27,7 +25,6 @@ pub fn hash_file(path: &Path) -> Result<String, std::io::Error> {
     Ok(format!("{hash:x}"))
 }
 
-
 // ---------------------------------------------------------------------------
 // Conversion: eval types -> store types
 // ---------------------------------------------------------------------------
@@ -41,7 +38,12 @@ pub fn to_store_records(
     file_path: &Path,
     content_hash: &str,
     watch_root: Option<&Path>,
-) -> (TaskFile, Vec<TaskRecord>, Vec<Vec<TaskProperty>>, Vec<FileBinding>) {
+) -> (
+    TaskFile,
+    Vec<TaskRecord>,
+    Vec<Vec<TaskProperty>>,
+    Vec<FileBinding>,
+) {
     let task_file = TaskFile {
         id: None,
         file_path: file_path.to_path_buf(),
@@ -118,31 +120,46 @@ fn build_task_props(
     tags: &[String],
 ) -> Vec<TaskProperty> {
     let mut props = vec![TaskProperty {
-        id: None, task_id: 0, kind: PropertyKind::Id,
-        key: "mindtape.id".to_string(), value: task_id.to_string(),
+        id: None,
+        task_id: 0,
+        kind: PropertyKind::Id,
+        key: "mindtape.id".to_string(),
+        value: task_id.to_string(),
     }];
     if let Some(due_val) = due {
         props.push(TaskProperty {
-            id: None, task_id: 0, kind: PropertyKind::Due,
-            key: "mindtape.due".to_string(), value: due_val.to_string(),
+            id: None,
+            task_id: 0,
+            kind: PropertyKind::Due,
+            key: "mindtape.due".to_string(),
+            value: due_val.to_string(),
         });
     }
     if let Some(start_val) = start {
         props.push(TaskProperty {
-            id: None, task_id: 0, kind: PropertyKind::Start,
-            key: "mindtape.start".to_string(), value: start_val.to_string(),
+            id: None,
+            task_id: 0,
+            kind: PropertyKind::Start,
+            key: "mindtape.start".to_string(),
+            value: start_val.to_string(),
         });
     }
     if let Some(rank_val) = rank {
         props.push(TaskProperty {
-            id: None, task_id: 0, kind: PropertyKind::Rank,
-            key: "mindtape.rank".to_string(), value: rank_val.to_string(),
+            id: None,
+            task_id: 0,
+            kind: PropertyKind::Rank,
+            key: "mindtape.rank".to_string(),
+            value: rank_val.to_string(),
         });
     }
     for tag in tags {
         props.push(TaskProperty {
-            id: None, task_id: 0, kind: PropertyKind::Tag,
-            key: "mindtape.tag".to_string(), value: tag.clone(),
+            id: None,
+            task_id: 0,
+            kind: PropertyKind::Tag,
+            key: "mindtape.tag".to_string(),
+            value: tag.clone(),
         });
     }
     props

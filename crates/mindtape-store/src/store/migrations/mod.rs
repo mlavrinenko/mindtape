@@ -27,9 +27,7 @@ pub fn apply_migrations(conn: &Connection) -> Result<(), StoreError> {
     }
 
     if version != 0 {
-        info!(
-            "schema version {version} != {CURRENT_SCHEMA_VERSION}, recreating cache database"
-        );
+        info!("schema version {version} != {CURRENT_SCHEMA_VERSION}, recreating cache database");
     }
 
     conn.execute_batch(v9::SQL)

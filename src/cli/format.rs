@@ -70,10 +70,7 @@ pub fn format_file_view(file: &FileView) -> String {
         .unwrap_or_default();
     let count = file.task_count;
     let noun = if count == 1 { "task" } else { "tasks" };
-    format!(
-        "{} ({count} {noun}){title_part}",
-        file.file_path.display()
-    )
+    format!("{} ({count} {noun}){title_part}", file.file_path.display())
 }
 
 #[must_use]

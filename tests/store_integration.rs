@@ -4,14 +4,19 @@
 mod common;
 
 use common::setup_typst_project;
-use mindtape::store::{index_file, SqliteStore, Store, TaskFilter};
+use mindtape::store::{SqliteStore, Store, TaskFilter, index_file};
 use mindtape::world::MindTapeWorld;
 
 /// Set up a temp project with a `.typ` file, a `MindTapeWorld`, and an in-memory store.
 /// Returns (store, world, file path, project root).
 fn setup(
     source: &str,
-) -> (SqliteStore, MindTapeWorld, std::path::PathBuf, std::path::PathBuf) {
+) -> (
+    SqliteStore,
+    MindTapeWorld,
+    std::path::PathBuf,
+    std::path::PathBuf,
+) {
     let root = setup_typst_project();
     let file = root.join("test.typ");
     std::fs::write(&file, source).unwrap();

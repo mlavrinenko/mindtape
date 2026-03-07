@@ -28,22 +28,25 @@ impl WatchArgs {
         let (cfg, config_paths) = load_watch_config(self)?;
 
         if cfg.watch.is_empty() {
-            bail!("no watch paths configured\nUsage: mindtape watch <path>\n   or: mindtape watch --config <file>");
+            bail!(
+                "no watch paths configured\nUsage: mindtape watch <path>\n   or: mindtape watch --config <file>"
+            );
         }
 
         let db_path = config::resolve_db_path(&cfg);
         if let Some(parent) = db_path.parent()
             && !parent.exists()
         {
-            std::fs::create_dir_all(parent)
-                .with_context(|| format!("failed to create database directory {}", parent.display()))?;
+            std::fs::create_dir_all(parent).with_context(|| {
+                format!("failed to create database directory {}", parent.display())
+            })?;
         }
 
         let store = SqliteStore::open(&db_path)
             .with_context(|| format!("failed to open database at {}", db_path.display()))?;
 
-        let mut watcher = Watcher::new(store, &cfg.watch)
-            .context("failed to set up file watcher")?;
+        let mut watcher =
+            Watcher::new(store, &cfg.watch).context("failed to set up file watcher")?;
 
         let scan = watcher.initial_scan();
         info!(
@@ -70,8 +73,8 @@ fn load_watch_config(args: &WatchArgs) -> Result<(Config, Vec<PathBuf>)> {
                     .with_context(|| format!("failed to resolve config path {}", p.display()))?,
             );
         }
-        let cfg = config::load_and_merge(&canon_paths)
-            .with_context(|| "failed to load config files")?;
+        let cfg =
+            config::load_and_merge(&canon_paths).with_context(|| "failed to load config files")?;
         return Ok((cfg, canon_paths));
     }
 

@@ -61,25 +61,29 @@ impl MindTapeWorld {
                 .join(file_path)
         };
 
-        let abs_path = abs_path
-            .canonicalize()
-            .map_err(|e| EvalError::World(format!("failed to canonicalize {}: {e}", file_path.display())))?;
+        let abs_path = abs_path.canonicalize().map_err(|e| {
+            EvalError::World(format!(
+                "failed to canonicalize {}: {e}",
+                file_path.display()
+            ))
+        })?;
 
-        let file_dir = abs_path
-            .parent()
-            .ok_or_else(|| EvalError::World(format!("file has no parent directory: {}", abs_path.display())))?;
+        let file_dir = abs_path.parent().ok_or_else(|| {
+            EvalError::World(format!(
+                "file has no parent directory: {}",
+                abs_path.display()
+            ))
+        })?;
 
         let root = find_project_root(file_dir);
 
-        let rel_path = abs_path
-            .strip_prefix(&root)
-            .map_err(|_| {
-                EvalError::World(format!(
-                    "file {} is not under project root {}",
-                    abs_path.display(),
-                    root.display()
-                ))
-            })?;
+        let rel_path = abs_path.strip_prefix(&root).map_err(|_| {
+            EvalError::World(format!(
+                "file {} is not under project root {}",
+                abs_path.display(),
+                root.display()
+            ))
+        })?;
 
         debug!("project root: {}", root.display());
         trace!("main file: {}", rel_path.display());
@@ -112,8 +116,9 @@ impl MindTapeWorld {
             Some(spec) if spec.namespace == "mindtape" => self.root.join("lib"),
             Some(spec) if spec.namespace == "local" && spec.name == "mindtape" => {
                 // Resolve @local/mindtape:VERSION to ~/.local/share/typst/packages/local/mindtape/VERSION/
-                let mut path = dirs::data_local_dir()
-                    .ok_or_else(|| FileError::Other(Some("could not determine local data directory".into())))?;
+                let mut path = dirs::data_local_dir().ok_or_else(|| {
+                    FileError::Other(Some("could not determine local data directory".into()))
+                })?;
                 path.push("typst");
                 path.push("packages");
                 path.push("local");
@@ -139,7 +144,10 @@ impl MindTapeWorld {
     /// Record a file as a dependency (if it's not the main file).
     fn record_dependency(&self, id: FileId) {
         if id != self.main_id {
-            let mut deps = self.dependencies.lock().expect("dependencies lock poisoned");
+            let mut deps = self
+                .dependencies
+                .lock()
+                .expect("dependencies lock poisoned");
             deps.insert(id);
         }
     }
@@ -153,10 +161,14 @@ impl MindTapeWorld {
     /// # Panics
     /// Panics if the dependencies lock is poisoned (should never happen in normal operation).
     pub fn get_dependencies(&self) -> Result<Vec<PathBuf>, EvalError> {
-        let deps = self.dependencies.lock().expect("dependencies lock poisoned");
+        let deps = self
+            .dependencies
+            .lock()
+            .expect("dependencies lock poisoned");
         let mut paths = Vec::new();
         for id in deps.iter() {
-            let abs_path = self.resolve_path(*id)
+            let abs_path = self
+                .resolve_path(*id)
                 .map_err(|e| EvalError::World(format!("failed to resolve dependency: {e}")))?;
 
             // Skip external dependencies (e.g. @local/mindtape packages) —
@@ -164,16 +176,12 @@ impl MindTapeWorld {
             if let Ok(rel_path) = abs_path.strip_prefix(&self.root) {
                 paths.push(rel_path.to_path_buf());
             } else {
-                trace!(
-                    "skipping external dependency: {}",
-                    abs_path.display()
-                );
+                trace!("skipping external dependency: {}", abs_path.display());
             }
         }
         paths.sort();
         Ok(paths)
     }
-
 }
 
 impl typst::World for MindTapeWorld {
@@ -196,7 +204,10 @@ impl typst::World for MindTapeWorld {
         {
             let cache = self.sources.lock().expect("source cache poisoned");
             if let Some(source) = cache.get(&id) {
-                trace!("source cache hit: {}", id.vpath().as_rooted_path().display());
+                trace!(
+                    "source cache hit: {}",
+                    id.vpath().as_rooted_path().display()
+                );
                 return Ok(source.clone());
             }
         }
@@ -380,7 +391,11 @@ mod tests {
 
         let world = MindTapeWorld::new(&typ_file).unwrap();
         let bytes = world.file(world.main()).unwrap();
-        assert!(std::str::from_utf8(bytes.as_slice()).unwrap().contains("Bytes Test"));
+        assert!(
+            std::str::from_utf8(bytes.as_slice())
+                .unwrap()
+                .contains("Bytes Test")
+        );
     }
 
     #[test]

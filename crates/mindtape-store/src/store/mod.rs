@@ -277,11 +277,8 @@ pub trait Store {
     /// # Errors
     ///
     /// Returns `StoreError` if the database operation fails.
-    fn upsert_bindings(
-        &mut self,
-        file_id: i64,
-        bindings: &[FileBinding],
-    ) -> Result<(), StoreError>;
+    fn upsert_bindings(&mut self, file_id: i64, bindings: &[FileBinding])
+    -> Result<(), StoreError>;
 
     /// Remove a task file and all associated data (cascades).
     ///

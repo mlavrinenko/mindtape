@@ -13,10 +13,10 @@ use std::ops::ControlFlow;
 use comemo::Track;
 use log::{debug, trace};
 use thiserror::Error;
+use typst::ROUTINES;
+use typst::World;
 use typst::engine::{Route, Sink, Traced};
 use typst::foundations::{Content, Datetime, Module, StyleChain, Value};
-use typst::World;
-use typst::ROUTINES;
 use typst_library::introspection::MetadataElem;
 use typst_library::model::{HeadingElem, ListItem};
 
@@ -98,7 +98,10 @@ pub fn eval_file_full(world: &dyn World) -> Result<EvalResult, EvalError> {
         return Err(EvalError::NotMindtape);
     }
 
-    debug!("evaluating {}", source.id().vpath().as_rooted_path().display());
+    debug!(
+        "evaluating {}",
+        source.id().vpath().as_rooted_path().display()
+    );
 
     let mut sink = Sink::new();
     let traced = Traced::default();
@@ -153,7 +156,10 @@ pub fn eval_file_full_with_deps(
         return Err(EvalError::NotMindtape);
     }
 
-    debug!("evaluating (with deps) {}", source.id().vpath().as_rooted_path().display());
+    debug!(
+        "evaluating (with deps) {}",
+        source.id().vpath().as_rooted_path().display()
+    );
 
     let mut sink = Sink::new();
     let traced = Traced::default();
@@ -186,7 +192,9 @@ pub fn eval_file_full_with_deps(
 
     debug!(
         "found {} tasks, {} bindings, {} deps",
-        tasks.len(), bindings.len(), dependencies.len()
+        tasks.len(),
+        bindings.len(),
+        dependencies.len()
     );
 
     Ok(EvalResult {
@@ -244,7 +252,8 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
     let text = body.plain_text();
 
     // Parse checkbox prefix.
-    let (done, title) = if let Some(rest) = text.strip_prefix("[x] ")
+    let (done, title) = if let Some(rest) = text
+        .strip_prefix("[x] ")
         .or_else(|| text.strip_prefix("[X] "))
     {
         (true, rest.trim().to_string())
@@ -268,42 +277,54 @@ pub fn extract_task(item: &ListItem) -> Option<Task> {
             let value = meta.value.clone();
             if let Value::Array(arr) = value {
                 let slice = arr.as_slice();
-                if slice.len() == 2 && let Value::Str(key) = &slice[0] {
-                        match key.as_str() {
-                            "mindtape.due" => {
-                                if let Value::Datetime(dt) = &slice[1] {
-                                    due = Some(*dt);
-                                }
+                if slice.len() == 2
+                    && let Value::Str(key) = &slice[0]
+                {
+                    match key.as_str() {
+                        "mindtape.due" => {
+                            if let Value::Datetime(dt) = &slice[1] {
+                                due = Some(*dt);
                             }
-                            "mindtape.start" => {
-                                if let Value::Datetime(dt) = &slice[1] {
-                                    start = Some(*dt);
-                                }
-                            }
-                            "mindtape.rank" => {
-                                if let Value::Int(n) = &slice[1] {
-                                    rank = Some(*n);
-                                }
-                            }
-                            "mindtape.tag" => {
-                                if let Value::Str(name) = &slice[1] {
-                                    tags.push(name.to_string());
-                                }
-                            }
-                            "mindtape.id" => {
-                                if let Value::Str(s) = &slice[1] {
-                                    id = Some(s.to_string());
-                                }
-                            }
-                            _ => {}
                         }
+                        "mindtape.start" => {
+                            if let Value::Datetime(dt) = &slice[1] {
+                                start = Some(*dt);
+                            }
+                        }
+                        "mindtape.rank" => {
+                            if let Value::Int(n) = &slice[1] {
+                                rank = Some(*n);
+                            }
+                        }
+                        "mindtape.tag" => {
+                            if let Value::Str(name) = &slice[1] {
+                                tags.push(name.to_string());
+                            }
+                        }
+                        "mindtape.id" => {
+                            if let Value::Str(s) = &slice[1] {
+                                id = Some(s.to_string());
+                            }
+                        }
+                        _ => {}
+                    }
                 }
             }
         }
         ControlFlow::Continue(())
     });
 
-    Some(Task { title, done, due, start, rank, tags, id, position: 0, milestone: None })
+    Some(Task {
+        title,
+        done,
+        due,
+        start,
+        rank,
+        tags,
+        id,
+        position: 0,
+        milestone: None,
+    })
 }
 
 /// Extract the title from the first heading in the content tree.
@@ -361,8 +382,7 @@ pub fn has_mindtape_import(text: &str) -> bool {
     // Match patterns like `@namespace/mindtape:` where namespace is any word.
     text.lines().any(|line| {
         let trimmed = line.trim();
-        trimmed.starts_with("#import")
-            && trimmed.contains("/mindtape:")
+        trimmed.starts_with("#import") && trimmed.contains("/mindtape:")
     })
 }
 

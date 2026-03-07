@@ -3,10 +3,11 @@
 mod common;
 
 use common::{setup_typst_project, ymd};
-use mindtape::eval::{eval_file, eval_file_full, EvalError, EvalResult, Task};
+use mindtape::eval::{EvalError, EvalResult, Task, eval_file, eval_file_full};
 use mindtape::world::MindTapeWorld;
 
-const IMPORT_LINE: &str = "#import \"@mindtape/mindtape:0.1.0\": due, start, id, tag, rank, high, medium, low\n";
+const IMPORT_LINE: &str =
+    "#import \"@mindtape/mindtape:0.1.0\": due, start, id, tag, rank, high, medium, low\n";
 
 /// Create a temp project with the `@mindtape` package, prepend the standard
 /// import line, evaluate, and return tasks.
@@ -75,10 +76,7 @@ fn eval_plain_list_item_not_a_task() {
 
 #[test]
 fn eval_multiple_tasks() {
-    let tasks = eval_typ(
-        "- [ ] First\n- [x] Second\n- [ ] Third",
-    )
-    .unwrap();
+    let tasks = eval_typ("- [ ] First\n- [x] Second\n- [ ] Third").unwrap();
     assert_eq!(tasks.len(), 3);
     assert_eq!(tasks[0].title, "First");
     assert_eq!(tasks[1].title, "Second");
@@ -135,10 +133,7 @@ fn eval_task_with_prelude_import() {
 
 #[test]
 fn eval_task_with_single_tag() {
-    let tasks = eval_typ(
-        r#"- [ ] Urgent thing #metadata(("mindtape.tag", "urgent"))"#,
-    )
-    .unwrap();
+    let tasks = eval_typ(r#"- [ ] Urgent thing #metadata(("mindtape.tag", "urgent"))"#).unwrap();
     assert_eq!(tasks.len(), 1);
     assert_eq!(tasks[0].tags, vec!["urgent"]);
 }
@@ -311,10 +306,13 @@ fn eval_full_extracts_bool_binding() {
 
 #[test]
 fn eval_full_skips_function_bindings() {
-    let result = eval_typ_full(r#"
+    let result = eval_typ_full(
+        r#"
 #let greet(name) = "hello " + name
 #let note = "data"
-"#).unwrap();
+"#,
+    )
+    .unwrap();
     // Only `note` should appear, not `greet`
     assert_eq!(result.bindings.len(), 1);
     assert_eq!(result.bindings[0].0, "note");

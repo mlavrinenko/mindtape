@@ -6,7 +6,7 @@ mod common;
 use std::path::PathBuf;
 
 use common::setup_typst_project;
-use mindtape::store::{index_file, SqliteStore, Store, TaskFilter};
+use mindtape::store::{SqliteStore, Store, TaskFilter, index_file};
 use mindtape::world::MindTapeWorld;
 
 fn setup() -> (SqliteStore, PathBuf) {

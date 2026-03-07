@@ -64,8 +64,8 @@ impl SetArgs {
         }
         if self.no_due {
             let src = typst_syntax::Source::detached(&content);
-            content = crate::eval::remove_task_due(&src, task_id)
-                .context("failed to remove due date")?;
+            content =
+                crate::eval::remove_task_due(&src, task_id).context("failed to remove due date")?;
             changes.push("due removed".to_string());
         }
         if let Some(date_str) = &self.start {
@@ -88,20 +88,19 @@ impl SetArgs {
         }
         if self.no_rank {
             let src = typst_syntax::Source::detached(&content);
-            content = crate::eval::remove_task_rank(&src, task_id)
-                .context("failed to remove rank")?;
+            content =
+                crate::eval::remove_task_rank(&src, task_id).context("failed to remove rank")?;
             changes.push("rank removed".to_string());
         }
         for tag in &self.add_tag {
             let src = typst_syntax::Source::detached(&content);
-            content = crate::eval::add_task_tag(&src, task_id, tag)
-                .context("failed to add tag")?;
+            content = crate::eval::add_task_tag(&src, task_id, tag).context("failed to add tag")?;
             changes.push(format!("+tag:{tag}"));
         }
         for tag in &self.remove_tag {
             let src = typst_syntax::Source::detached(&content);
-            content = crate::eval::remove_task_tag(&src, task_id, tag)
-                .context("failed to remove tag")?;
+            content =
+                crate::eval::remove_task_tag(&src, task_id, tag).context("failed to remove tag")?;
             changes.push(format!("-tag:{tag}"));
         }
 
@@ -136,7 +135,9 @@ impl SetArgs {
         let (content, changes) = self.apply_mutations(source.text(), &task.task_id)?;
 
         if changes.is_empty() {
-            bail!("no changes specified (use --due, --no-due, --start, --no-start, --rank, --no-rank, --add-tag, or --remove-tag)");
+            bail!(
+                "no changes specified (use --due, --no-due, --start, --no-start, --rank, --no-rank, --add-tag, or --remove-tag)"
+            );
         }
 
         atomic_write(&task.file_path, &content)
