@@ -11,7 +11,7 @@ Unlike Markdown, Typst files can import each other, define typed variables, and 
 statically checked. Your task data is structured, validated, and composable.
 
 ```typ
-#import "@local/mindtape:0.1.0": due, start, tag, id, rank, high, medium, low
+#import "@local/mindtape:0.1.0": *
 
 = Sprint 12
 
