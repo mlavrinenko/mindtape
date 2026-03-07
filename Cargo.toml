@@ -135,5 +135,8 @@ env_logger = "0.11"
 [dev-dependencies]
 uuid = { version = "1", features = ["v4"] }
 
+[profile.release]
+strip = true
+
 [lints]
 workspace = true

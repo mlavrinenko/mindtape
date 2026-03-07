@@ -45,10 +45,10 @@ impl IdArgs {
             IdFormat::Base62 => {
                 let b62 = id::encode_base62(&canonical)
                     .ok_or_else(|| anyhow::anyhow!("failed to encode as base62"))?;
-                print!("{b62}");
+                println!("{b62}");
             }
             IdFormat::UuidV7 => {
-                print!("{canonical}");
+                println!("{canonical}");
             }
         }
 

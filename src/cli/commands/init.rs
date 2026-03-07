@@ -3,10 +3,12 @@ use std::fs;
 use anyhow::{Result, bail};
 use clap::Parser;
 
+use crate::TYPST_PACKAGE_VERSION;
+
 const PRELUDE_TYP: &str = include_str!("../../../lib/prelude.typ");
 const TYPST_TOML: &str = include_str!("../../../lib/typst.toml");
 
-/// Install the `MindTape` Typst library for `#import "@local/mindtape:0.1.0"`.
+/// Install the `MindTape` Typst library for `#import "@local/mindtape:VERSION"`.
 #[derive(Parser, Debug)]
 pub struct InitArgs {
     /// Overwrite existing library files
@@ -33,7 +35,7 @@ impl InitArgs {
         fs::write(target_dir.join("prelude.typ"), PRELUDE_TYP)?;
 
         eprintln!("Installed to {}", target_dir.display());
-        eprintln!("Use in Typst files: #import \"@local/mindtape:0.1.0\": *");
+        eprintln!("Use in Typst files: #import \"@local/mindtape:{TYPST_PACKAGE_VERSION}\": *");
         Ok(())
     }
 }
@@ -43,7 +45,9 @@ fn typst_package_dir() -> Result<std::path::PathBuf> {
 
     let base = std::env::var("XDG_DATA_HOME").unwrap_or_else(|_| format!("{home}/.local/share"));
 
-    let dir = std::path::PathBuf::from(base).join("typst/packages/local/mindtape/0.1.0");
+    let dir = std::path::PathBuf::from(base).join(format!(
+        "typst/packages/local/mindtape/{TYPST_PACKAGE_VERSION}"
+    ));
 
     if dir.components().count() < 4 {
         bail!("resolved package path looks too short: {}", dir.display());

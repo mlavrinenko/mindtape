@@ -52,7 +52,11 @@ pub fn load_source(path: &Path) -> Result<Source, WriteError> {
 ///
 /// # Errors
 /// Returns `None` if no matching task is found.
-pub fn find_task_node<'a>(source: &'a Source, root: &LinkedNode<'a>, task_id: &str) -> Option<LinkedNode<'a>> {
+pub fn find_task_node<'a>(
+    source: &'a Source,
+    root: &LinkedNode<'a>,
+    task_id: &str,
+) -> Option<LinkedNode<'a>> {
     // Walk the tree looking for ListItem nodes
     walk_tree(root, &mut |node| {
         if node.kind() == SyntaxKind::ListItem {
@@ -129,7 +133,9 @@ pub fn toggle_task_checkbox(source: &Source, task_id: &str) -> Result<String, Wr
     // Determine current checkbox state and compute replacement
     let (old_checkbox, new_checkbox) = if item_text.trim_start().starts_with("- [ ]") {
         ("- [ ]", "- [x]")
-    } else if item_text.trim_start().starts_with("- [x]") || item_text.trim_start().starts_with("- [X]") {
+    } else if item_text.trim_start().starts_with("- [x]")
+        || item_text.trim_start().starts_with("- [X]")
+    {
         // Handle both lowercase and uppercase X
         if item_text.trim_start().starts_with("- [x]") {
             ("- [x]", "- [ ]")
@@ -195,7 +201,11 @@ pub fn set_task_due(source: &Source, task_id: &str, date_str: &str) -> Result<St
             Ok(format!("{}{replacement}{}", &text[..start], &text[end..]))
         } else if let Some(insert) = find_property_insert_point(text) {
             // Insert before #id(...): "...text {replacement} #id(...)"
-            Ok(format!("{}{replacement} {}", &text[..insert], &text[insert..]))
+            Ok(format!(
+                "{}{replacement} {}",
+                &text[..insert],
+                &text[insert..]
+            ))
         } else {
             Err(WriteError::InvalidTask(
                 "task has no #id() — cannot determine insertion point".to_string(),
@@ -214,7 +224,11 @@ pub fn set_task_due(source: &Source, task_id: &str, date_str: &str) -> Result<St
 /// # Errors
 /// Returns `Err` if the task is not found, the date is invalid, or the task
 /// has no `#id(...)` for insertion.
-pub fn set_task_start(source: &Source, task_id: &str, date_str: &str) -> Result<String, WriteError> {
+pub fn set_task_start(
+    source: &Source,
+    task_id: &str,
+    date_str: &str,
+) -> Result<String, WriteError> {
     let args = format_typst_date_args(date_str)?;
     let replacement = format!("#start({args})");
 
@@ -222,7 +236,11 @@ pub fn set_task_start(source: &Source, task_id: &str, date_str: &str) -> Result<
         if let Some((start, end)) = find_start_span(text) {
             Ok(format!("{}{replacement}{}", &text[..start], &text[end..]))
         } else if let Some(insert) = find_property_insert_point(text) {
-            Ok(format!("{}{replacement} {}", &text[..insert], &text[insert..]))
+            Ok(format!(
+                "{}{replacement} {}",
+                &text[..insert],
+                &text[insert..]
+            ))
         } else {
             Err(WriteError::InvalidTask(
                 "task has no #id() — cannot determine insertion point".to_string(),
@@ -263,7 +281,11 @@ pub fn set_task_rank(source: &Source, task_id: &str, rank: i64) -> Result<String
         if let Some((start, end)) = find_rank_span(text) {
             Ok(format!("{}{replacement}{}", &text[..start], &text[end..]))
         } else if let Some(insert) = find_property_insert_point(text) {
-            Ok(format!("{}{replacement} {}", &text[..insert], &text[insert..]))
+            Ok(format!(
+                "{}{replacement} {}",
+                &text[..insert],
+                &text[insert..]
+            ))
         } else {
             Err(WriteError::InvalidTask(
                 "task has no #id() — cannot determine insertion point".to_string(),
@@ -353,30 +375,39 @@ pub fn remove_task_tag(source: &Source, task_id: &str, tag: &str) -> Result<Stri
 // Helpers for property span detection
 // ---------------------------------------------------------------------------
 
-/// Find the byte span of `#due(...)` in `text`.
-///
-/// Handles nested parentheses to correctly match the outer `#due(...)` call.
+/// Find the byte span of a `#func(...)` call in `text`.
+fn find_call_span(text: &str, prefix: &str) -> Option<(usize, usize)> {
+    let start = text.find(prefix)?;
+    let end = find_matching_paren(text, start + prefix.len() - 1)?;
+    Some((start, end + 1))
+}
+
 fn find_due_span(text: &str) -> Option<(usize, usize)> {
-    let prefix = "#due(";
-    let start = text.find(prefix)?;
-    let end = find_matching_paren(text, start + prefix.len() - 1)?;
-    Some((start, end + 1))
+    find_call_span(text, "#due(")
 }
-
-/// Find the byte span of `#start(...)` in `text`.
 fn find_start_span(text: &str) -> Option<(usize, usize)> {
-    let prefix = "#start(";
-    let start = text.find(prefix)?;
-    let end = find_matching_paren(text, start + prefix.len() - 1)?;
-    Some((start, end + 1))
+    find_call_span(text, "#start(")
 }
 
-/// Find the byte span of `#rank(...)` in `text`.
+/// Find the byte span of `#rank(...)`, `#high`, `#medium`, or `#low`.
+/// Aliases only match at a word boundary (avoids e.g. `#highlight`).
 fn find_rank_span(text: &str) -> Option<(usize, usize)> {
-    let prefix = "#rank(";
-    let start = text.find(prefix)?;
-    let end = find_matching_paren(text, start + prefix.len() - 1)?;
-    Some((start, end + 1))
+    if let Some(span) = find_call_span(text, "#rank(") {
+        return Some(span);
+    }
+    for alias in &["#high", "#medium", "#low"] {
+        if let Some(start) = text.find(alias) {
+            let end = start + alias.len();
+            if text
+                .as_bytes()
+                .get(end)
+                .is_none_or(|&b| b == b' ' || b == b'#')
+            {
+                return Some((start, end));
+            }
+        }
+    }
+    None
 }
 
 /// Find the byte span of `#tag("name")` for a specific tag value.

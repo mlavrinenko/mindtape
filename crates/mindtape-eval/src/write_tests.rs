@@ -107,18 +107,12 @@ fn test_preserves_indentation() {
 
 #[test]
 fn test_format_typst_date_args() {
-    assert_eq!(
-        format_typst_date_args("2026-03-15").unwrap(),
-        "2026, 3, 15"
-    );
+    assert_eq!(format_typst_date_args("2026-03-15").unwrap(), "2026, 3, 15");
 }
 
 #[test]
 fn test_format_typst_date_args_single_digit() {
-    assert_eq!(
-        format_typst_date_args("2026-1-5").unwrap(),
-        "2026, 1, 5"
-    );
+    assert_eq!(format_typst_date_args("2026-1-5").unwrap(), "2026, 1, 5");
 }
 
 #[test]
@@ -176,10 +170,7 @@ fn test_set_due_insert_new() {
     let content = "- [ ] Buy milk #id(\"task-1\")";
     let source = Source::detached(content);
     let result = set_task_due(&source, "task-1", "2026-03-15").unwrap();
-    assert_eq!(
-        result,
-        "- [ ] Buy milk #due(2026, 3, 15) #id(\"task-1\")"
-    );
+    assert_eq!(result, "- [ ] Buy milk #due(2026, 3, 15) #id(\"task-1\")");
 }
 
 #[test]
@@ -187,10 +178,7 @@ fn test_set_due_replace_existing() {
     let content = "- [ ] Buy milk #due(2026, 1, 1) #id(\"task-1\")";
     let source = Source::detached(content);
     let result = set_task_due(&source, "task-1", "2026-03-15").unwrap();
-    assert_eq!(
-        result,
-        "- [ ] Buy milk #due(2026, 3, 15) #id(\"task-1\")"
-    );
+    assert_eq!(result, "- [ ] Buy milk #due(2026, 3, 15) #id(\"task-1\")");
 }
 
 #[test]
@@ -305,10 +293,7 @@ fn test_remove_tag_preserves_due() {
     let content = "- [ ] Task #due(2026, 3, 15) #tag(\"work\") #id(\"task-1\")";
     let source = Source::detached(content);
     let result = remove_task_tag(&source, "task-1", "work").unwrap();
-    assert_eq!(
-        result,
-        "- [ ] Task #due(2026, 3, 15) #id(\"task-1\")"
-    );
+    assert_eq!(result, "- [ ] Task #due(2026, 3, 15) #id(\"task-1\")");
 }
 
 // --- start property ---
@@ -425,6 +410,68 @@ fn test_set_rank_with_due_and_tags() {
         result,
         "- [ ] Task #due(2026, 3, 15) #tag(\"work\") #rank(75) #id(\"task-1\")"
     );
+}
+
+// --- Rank alias tests ---
+
+#[test]
+fn test_find_rank_span_high_alias() {
+    let text = "- [ ] Task #high #id(\"t1\")";
+    let (start, end) = find_rank_span(text).unwrap();
+    assert_eq!(&text[start..end], "#high");
+}
+
+#[test]
+fn test_find_rank_span_medium_alias() {
+    let text = "- [ ] Task #medium #id(\"t1\")";
+    let (start, end) = find_rank_span(text).unwrap();
+    assert_eq!(&text[start..end], "#medium");
+}
+
+#[test]
+fn test_find_rank_span_low_alias() {
+    let text = "- [ ] Task #low #id(\"t1\")";
+    let (start, end) = find_rank_span(text).unwrap();
+    assert_eq!(&text[start..end], "#low");
+}
+
+#[test]
+fn test_find_rank_span_prefers_rank_over_alias() {
+    let text = "- [ ] Task #rank(75) #high #id(\"t1\")";
+    let (start, end) = find_rank_span(text).unwrap();
+    assert_eq!(&text[start..end], "#rank(75)");
+}
+
+#[test]
+fn test_set_rank_replaces_high_alias() {
+    let content = "- [ ] Task #high #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = set_task_rank(&source, "task-1", 50).unwrap();
+    assert_eq!(result, "- [ ] Task #rank(50) #id(\"task-1\")");
+}
+
+#[test]
+fn test_set_rank_replaces_low_alias() {
+    let content = "- [ ] Task #low #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = set_task_rank(&source, "task-1", 100).unwrap();
+    assert_eq!(result, "- [ ] Task #rank(100) #id(\"task-1\")");
+}
+
+#[test]
+fn test_remove_rank_removes_high_alias() {
+    let content = "- [ ] Task #high #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = remove_task_rank(&source, "task-1").unwrap();
+    assert_eq!(result, "- [ ] Task #id(\"task-1\")");
+}
+
+#[test]
+fn test_remove_rank_removes_medium_alias() {
+    let content = "- [ ] Task #medium #id(\"task-1\")";
+    let source = Source::detached(content);
+    let result = remove_task_rank(&source, "task-1").unwrap();
+    assert_eq!(result, "- [ ] Task #id(\"task-1\")");
 }
 
 // --- Combined operations ---

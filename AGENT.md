@@ -31,6 +31,15 @@ and metadata into SQLite, and exposes a CLI for querying.
 4. After completing a task, suggest a conventional commit message
 5. Follow patterns in `CONTRIBUTING.md` for new CLI commands and store methods
 
+## Version Management
+
+- **CLI version**: `Cargo.toml` `[package] version` — standard Cargo semver
+- **Typst library version**: `lib/typst.toml` `[package] version` — independent semver
+- `build.rs` reads the Typst library version from `lib/typst.toml` at compile time
+  and exposes it as `TYPST_PACKAGE_VERSION` (via `env!()` in `src/lib.rs`)
+- When bumping the Typst library version, also update import examples in
+  `README.md`, `www/index.html`, and `AGENT.md`
+
 ## Architecture Principles
 
 - Typst files are always the source of truth — the database is a derived index

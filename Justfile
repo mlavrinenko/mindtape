@@ -58,6 +58,7 @@ check-file-size:
     # watcher/tests.rs has many integration-style scenarios
     EXCEPTIONS=(
         "crates/mindtape-store/src/store/sqlite.rs"
+        "crates/mindtape-eval/src/write_tests.rs"
         "src/watcher/tests.rs"
     )
 
@@ -106,16 +107,18 @@ check-nix-example:
 install-lib:
     #!/usr/bin/env bash
     set -euo pipefail
+    VERSION=$(grep '^version' lib/typst.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
     TARGET_DIR="$HOME/.local/share/typst/packages/local/mindtape"
     mkdir -p "$TARGET_DIR"
-    ln -sfn "$(pwd)/lib" "$TARGET_DIR/0.1.0"
-    echo "✓ Installed mindtape library to $TARGET_DIR/0.1.0"
-    echo "  Use in Typst files: #import \"@local/mindtape:0.1.0\": due, id, tag"
+    ln -sfn "$(pwd)/lib" "$TARGET_DIR/$VERSION"
+    echo "✓ Installed mindtape library to $TARGET_DIR/$VERSION"
+    echo "  Use in Typst files: #import \"@local/mindtape:$VERSION\": due, id, tag"
 
 # Uninstall global mindtape library
 uninstall-lib:
     #!/usr/bin/env bash
-    TARGET="$HOME/.local/share/typst/packages/local/mindtape/0.1.0"
+    VERSION=$(grep '^version' lib/typst.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
+    TARGET="$HOME/.local/share/typst/packages/local/mindtape/$VERSION"
     if [ -L "$TARGET" ]; then
         rm "$TARGET"
         echo "✓ Removed $TARGET"

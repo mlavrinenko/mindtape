@@ -60,7 +60,11 @@ impl QueryOpts {
 }
 
 #[derive(Parser)]
-#[command(name = "mindtape", about = "File-based task tracker using Typst")]
+#[command(
+    name = "mindtape",
+    version,
+    about = "File-based task tracker using Typst"
+)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Command>,
@@ -99,7 +103,7 @@ pub enum Command {
     Set(SetArgs),
     /// Generate or validate a task ID
     Id(IdArgs),
-    /// Install the Typst library for #import "@local/mindtape:0.1.0"
+    /// Install the Typst library for local #import
     Init(InitArgs),
 }
 

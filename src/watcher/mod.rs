@@ -129,9 +129,7 @@ impl Watcher {
                 return;
             };
             let ig = build_ignore(&entry.path, path);
-            let ignored = ig
-                .matched_path_or_any_parents(path, false)
-                .is_ignore();
+            let ignored = ig.matched_path_or_any_parents(path, false).is_ignore();
             (entry.path.clone(), ignored)
         };
 
@@ -162,10 +160,7 @@ impl Watcher {
     ///
     /// Returns `Some((path, recursive))` for the caller to register with
     /// notify and scan, or `None` if already watched.
-    fn add_entry(
-        &mut self,
-        entry: &WatchEntry,
-    ) -> Result<Option<(PathBuf, bool)>, WatchError> {
+    fn add_entry(&mut self, entry: &WatchEntry) -> Result<Option<(PathBuf, bool)>, WatchError> {
         let resolved = resolve_entry(entry)?;
         if self.entries.iter().any(|e| e.path == resolved.path) {
             return Ok(None);
@@ -194,11 +189,7 @@ impl Watcher {
     ///
     /// Parse errors are non-fatal: a warning is logged and the current
     /// config is kept.
-    fn reload_config(
-        &mut self,
-        config_paths: &[PathBuf],
-        notify_watcher: &mut RecommendedWatcher,
-    ) {
+    fn reload_config(&mut self, config_paths: &[PathBuf], notify_watcher: &mut RecommendedWatcher) {
         let new_config = match config::load_and_merge(config_paths) {
             Ok(cfg) => cfg,
             Err(err) => {
@@ -282,8 +273,7 @@ impl Watcher {
     /// or a watched path cannot be registered.
     pub fn run(mut self, config_paths: &[PathBuf]) -> Result<(), WatchError> {
         let (tx, rx) = std::sync::mpsc::channel::<notify::Result<notify::Event>>();
-        let mut watcher: RecommendedWatcher =
-            NotifyWatcher::new(tx, notify::Config::default())?;
+        let mut watcher: RecommendedWatcher = NotifyWatcher::new(tx, notify::Config::default())?;
 
         for entry in &self.entries {
             let mode = if entry.recursive {
@@ -310,7 +300,9 @@ impl Watcher {
         }
 
         let debounce = Duration::from_millis(300);
+        let debounce_expiry = Duration::from_secs(60);
         let mut last_seen: HashMap<PathBuf, Instant> = HashMap::new();
+        let mut event_count: u64 = 0;
 
         for result in rx {
             match result {
@@ -319,6 +311,12 @@ impl Watcher {
                         continue;
                     }
                     let now = Instant::now();
+
+                    // Periodically prune stale debounce entries to bound memory.
+                    event_count += 1;
+                    if event_count.is_multiple_of(1000) {
+                        last_seen.retain(|_, &mut ts| now.duration_since(ts) < debounce_expiry);
+                    }
                     for path in event.paths {
                         if is_inside_dotgit(&path) {
                             continue;
@@ -371,10 +369,7 @@ impl Watcher {
 fn resolve_entry(entry: &WatchEntry) -> Result<ResolvedEntry, WatchError> {
     let path = config::expand_tilde(&entry.path);
     let path = std::fs::canonicalize(&path).map_err(|err| {
-        WatchError::Other(format!(
-            "cannot resolve watch path {}: {err}",
-            entry.path
-        ))
+        WatchError::Other(format!("cannot resolve watch path {}: {err}", entry.path))
     })?;
     Ok(ResolvedEntry {
         path,
@@ -388,8 +383,7 @@ fn is_typ_file(path: &Path) -> bool {
 
 /// Check if a path is inside a `.git` directory.
 fn is_inside_dotgit(path: &Path) -> bool {
-    path.components()
-        .any(|c| c.as_os_str() == ".git")
+    path.components().any(|c| c.as_os_str() == ".git")
 }
 
 #[cfg(test)]
