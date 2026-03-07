@@ -98,6 +98,10 @@ check-file-size:
         echo "✓ All files within size limits"
     fi
 
+# Validate that nix/install-example.nix parses correctly
+check-nix-example:
+    nix-instantiate --parse nix/install-example.nix > /dev/null
+
 # Install mindtape library globally for Typst (via symlink)
 install-lib:
     #!/usr/bin/env bash

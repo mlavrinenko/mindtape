@@ -104,5 +104,4 @@ See `src/cli/commands/list.rs` for a reference implementation.
 ### Schema Changes
 
 MindTape uses drop-and-recreate (the DB is a derived cache). See
-[docs/design/store.md](docs/design/store.md) for schema details and the
-migration procedure.
+`crates/mindtape-store/AGENT.md` for schema details and the migration procedure.

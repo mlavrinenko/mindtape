@@ -11,9 +11,8 @@ and metadata into SQLite, and exposes a CLI for querying.
 ## Key Docs
 
 - `CONTRIBUTING.md` — workflow, commit style, testing, quality standards
-- `docs/design/` — architecture deep-dives (eval, store, watcher, writeback)
-- `crates/mindtape-eval/AGENT.md` — eval crate context
-- `crates/mindtape-store/AGENT.md` — store crate context
+- `crates/mindtape-eval/AGENT.md` — eval crate architecture and technical notes
+- `crates/mindtape-store/AGENT.md` — store crate architecture and schema procedures
 
 ## Tech Stack
 

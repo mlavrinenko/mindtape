@@ -2,7 +2,23 @@
 
 Store trait and SQLite backend. Anti-corruption boundary for persistence.
 
-For architecture details see [docs/design/store.md](../../docs/design/store.md).
+## Store Trait
+
+13 methods in 5 groups:
+
+- **File management**: `upsert_task_file`, `remove_task_file`, `get_file_hash`
+- **Data storage**: `upsert_tasks`, `upsert_bindings`
+- **Queries**: `query_tasks`, `list_files`, `get_stats`
+- **Dependencies**: `upsert_file_references`, `get_file_dependencies`, `list_file_dependencies`
+- **Task lookup**: `find_task_by_id` (UUID, base62, or `*suffix` mask)
+
+## Schema Change Procedure
+
+1. Delete current migration (e.g. `migrations/v7.rs`)
+2. Create next version (copy as starting point)
+3. Update `migrations/mod.rs`: bump version, update `execute_batch` call
+4. Update test assertions in `sqlite.rs`
+5. Run `just check`
 
 ## Source Layout
 
