@@ -58,12 +58,12 @@ mindtape watch                     # uses ~/.config/mindtape/config.toml
 mindtape watch --config my.toml
 
 # Query the index
-mindtape list                                         # pending tasks
+mindtape list                                               # pending tasks
 mindtape list --status all --filter 'has_tag("backend")'
 mindtape list --filter 'has(due) && due < "2026-04-01"'
-mindtape list --filter 'search("auth")'               # full-text search
-mindtape list --sort rank:desc -n 10                   # top priority
-mindtape list --json                                   # JSON output
+mindtape list --filter 'search("auth")'                     # full-text search
+mindtape list --sort rank:desc -n 10                        # top priority
+mindtape list --json                                        # JSON output
 
 # Modify tasks (writes back to .typ files)
 mindtape check <id>                    # toggle checkbox
@@ -71,9 +71,11 @@ mindtape set <id> --due 2026-04-01     # set due date
 mindtape set <id> --add-tag urgent     # add tag
 
 # Inspect
-mindtape status                        # index statistics
-mindtape files                         # indexed files
-mindtape deps                          # file dependency graph
+mindtape inspect                       # all: stats, files, dependencies
+mindtape inspect --with status         # index statistics only
+mindtape inspect --with files          # indexed files only
+mindtape inspect --with deps           # file dependency graph
+mindtape inspect --with deps --file tasks.typ  # single-file deps
 ```
 
 ## Contributing

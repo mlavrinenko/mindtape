@@ -7,9 +7,9 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand, ValueEnum};
 
 pub use commands::check::CheckArgs;
-pub use commands::deps::DepsArgs;
 pub use commands::id::IdArgs;
 pub use commands::init::InitArgs;
+pub use commands::inspect::InspectArgs;
 pub use commands::list::ListArgs;
 pub use commands::set::SetArgs;
 pub use commands::watch::WatchArgs;
@@ -91,12 +91,8 @@ pub enum Command {
     Watch(WatchArgs),
     /// List tasks from the index
     List(Box<ListArgs>),
-    /// Show index statistics
-    Status(StatusArgs),
-    /// List indexed files
-    Files(FilesArgs),
-    /// Show file dependencies
-    Deps(DepsArgs),
+    /// Inspect the index: statistics, files, and dependencies
+    Inspect(InspectArgs),
     /// Toggle a task's checkbox
     Check(CheckArgs),
     /// Update task properties (due date, tags)
@@ -105,20 +101,6 @@ pub enum Command {
     Id(IdArgs),
     /// Install the Typst library for local #import
     Init(InitArgs),
-}
-
-/// Args for the `status` subcommand (query-only).
-#[derive(Parser, Debug)]
-pub struct StatusArgs {
-    #[command(flatten)]
-    pub query: QueryOpts,
-}
-
-/// Args for the `files` subcommand (query-only).
-#[derive(Parser, Debug)]
-pub struct FilesArgs {
-    #[command(flatten)]
-    pub query: QueryOpts,
 }
 
 /// Rewrite `-3` to `-n 3` so clap can parse the `-N` shorthand.
@@ -256,12 +238,42 @@ mod tests {
     }
 
     #[test]
-    fn parse_status_json() {
-        let cli = parse(&["mindtape", "status", "--json"]);
-        let Some(Command::Status(args)) = cli.command else {
-            panic!("expected Status");
+    fn parse_inspect_bare() {
+        let cli = parse(&["mindtape", "inspect"]);
+        let Some(Command::Inspect(args)) = cli.command else {
+            panic!("expected Inspect");
+        };
+        assert!(args.with.is_empty());
+        assert!(args.file.is_none());
+    }
+
+    #[test]
+    fn parse_inspect_json() {
+        let cli = parse(&["mindtape", "inspect", "--json"]);
+        let Some(Command::Inspect(args)) = cli.command else {
+            panic!("expected Inspect");
         };
         assert_eq!(args.query.output_format(), OutputFormat::Json);
+    }
+
+    #[test]
+    fn parse_inspect_with_status() {
+        let cli = parse(&["mindtape", "inspect", "--with", "status"]);
+        let Some(Command::Inspect(args)) = cli.command else {
+            panic!("expected Inspect");
+        };
+        assert_eq!(args.with.len(), 1);
+    }
+
+    #[test]
+    fn parse_inspect_with_file() {
+        let cli = parse(&[
+            "mindtape", "inspect", "--with", "deps", "--file", "todo.typ",
+        ]);
+        let Some(Command::Inspect(args)) = cli.command else {
+            panic!("expected Inspect");
+        };
+        assert_eq!(args.file, Some(PathBuf::from("todo.typ")));
     }
 
     #[test]
@@ -271,15 +283,6 @@ mod tests {
             panic!("expected List");
         };
         assert_eq!(args.limit, Some(5));
-    }
-
-    #[test]
-    fn parse_deps_with_file() {
-        let cli = parse(&["mindtape", "deps", "--file", "todo.typ"]);
-        let Some(Command::Deps(args)) = cli.command else {
-            panic!("expected Deps");
-        };
-        assert_eq!(args.file, Some(PathBuf::from("todo.typ")));
     }
 
     #[test]
