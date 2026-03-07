@@ -314,7 +314,7 @@ impl Watcher {
 
                     // Periodically prune stale debounce entries to bound memory.
                     event_count += 1;
-                    if event_count % 1000 == 0 {
+                    if event_count.is_multiple_of(1000) {
                         last_seen.retain(|_, &mut ts| now.duration_since(ts) < debounce_expiry);
                     }
                     for path in event.paths {

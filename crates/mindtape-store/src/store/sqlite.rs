@@ -222,8 +222,20 @@ impl SqliteStore {
             tags_map.entry(task_id).or_default().push(value);
         }
 
-        let mut tasks = Vec::with_capacity(task_rows.len());
-        for (
+        let tasks = task_rows
+            .into_iter()
+            .map(|row| Self::task_row_to_view(row, &mut tags_map))
+            .collect();
+
+        Ok(tasks)
+    }
+
+    /// Convert a single task row + its tags into a [`TaskView`].
+    fn task_row_to_view(
+        row: TaskRow,
+        tags_map: &mut std::collections::HashMap<i64, Vec<String>>,
+    ) -> TaskView {
+        let (
             row_id,
             title,
             is_done,
@@ -236,26 +248,22 @@ impl SqliteStore {
             file_path,
             file_title,
             watch_root,
-        ) in task_rows
-        {
-            let tags = tags_map.remove(&row_id).unwrap_or_default();
-            tasks.push(TaskView {
-                title,
-                is_done,
-                position,
-                file_path: PathBuf::from(file_path),
-                file_title,
-                due,
-                start,
-                rank,
-                task_id,
-                tags,
-                milestone,
-                watch_root: watch_root.map(PathBuf::from),
-            });
+        ) = row;
+        let tags = tags_map.remove(&row_id).unwrap_or_default();
+        TaskView {
+            title,
+            is_done,
+            position,
+            file_path: PathBuf::from(file_path),
+            file_title,
+            due,
+            start,
+            rank,
+            task_id,
+            tags,
+            milestone,
+            watch_root: watch_root.map(PathBuf::from),
         }
-
-        Ok(tasks)
     }
 
     fn fetch_file_deps(
