@@ -78,9 +78,14 @@ impl Watcher {
     }
 
     /// Walk all watched directories and index every `.typ` file found.
+    ///
+    /// After indexing, prunes store records (task files and file errors)
+    /// whose files no longer exist on disk.
     pub fn initial_scan(&mut self) -> ScanResult {
         let watch_roots: Vec<_> = self.entries.iter().map(|e| e.path.clone()).collect();
-        self.scan_entries(&watch_roots)
+        let result = self.scan_entries(&watch_roots);
+        self.prune_deleted();
+        result
     }
 
     /// Scan specific directories and index their `.typ` files.
@@ -351,6 +356,32 @@ impl Watcher {
         // Keep watcher alive for the duration of the loop.
         drop(watcher);
         Ok(())
+    }
+
+    /// Remove store records whose files no longer exist on disk.
+    fn prune_deleted(&mut self) {
+        if let Ok(files) = self.store.list_files() {
+            for f in files {
+                if !f.file_path.exists() {
+                    if let Err(err) = self.store.remove_task_file(&f.file_path) {
+                        warn!("error pruning task file {}: {err}", f.file_path.display());
+                    } else {
+                        info!("pruned {}", f.file_path.display());
+                    }
+                }
+            }
+        }
+        if let Ok(errors) = self.store.list_file_errors() {
+            for e in errors {
+                if !e.file_path.exists() {
+                    if let Err(err) = self.store.remove_file_error(&e.file_path) {
+                        warn!("error pruning file error {}: {err}", e.file_path.display());
+                    } else {
+                        info!("pruned error for {}", e.file_path.display());
+                    }
+                }
+            }
+        }
     }
 
     /// Index a single file using the existing store pipeline.
