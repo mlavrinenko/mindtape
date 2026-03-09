@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
 
 use crate::cli::format::{format_task_typst, format_tasks_csv};
-use crate::cli::util::{open_query_db, print_json, resolve_query_db_path};
+use crate::cli::util::{open_query_db, print_json, resolve_query_db_path, shorten_home};
 use crate::cli::{OutputFormat, QueryOpts};
 use crate::store::{SortDir, SortField, SortSpec, Store, TaskFilter, TaskView};
 
@@ -127,7 +127,7 @@ impl ListArgs {
         match format {
             OutputFormat::Json => print_json(&tasks)?,
             OutputFormat::Csv => print!("{}", format_tasks_csv(&tasks)?),
-            OutputFormat::Table => {
+            OutputFormat::Table | OutputFormat::Typst => {
                 if tasks.is_empty() {
                     eprintln!("no tasks found");
                     return Ok(());
@@ -327,16 +327,6 @@ fn file_segments(file_path: &Path, watch_root: Option<&Path>) -> FileSegments {
             root: root_name,
             dirs: Vec::new(),
         }
-    }
-}
-
-/// Replace `$HOME` prefix with `~` in a path for shorter display.
-fn shorten_home(path: &Path, home: &str) -> String {
-    let abs = path.to_string_lossy();
-    if !home.is_empty() && abs.starts_with(home) {
-        format!("~{}", &abs[home.len()..])
-    } else {
-        abs.to_string()
     }
 }
 

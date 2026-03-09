@@ -1,13 +1,14 @@
 use csv::Writer;
 
 use crate::cli::format::csv_to_string;
+use crate::cli::util::shorten_home;
 use crate::store::FileDependencies;
 
 #[must_use]
-pub fn format_deps(deps: &FileDependencies) -> String {
+pub fn format_deps(deps: &FileDependencies, home: &str) -> String {
     let mut output = String::new();
 
-    output.push_str(&format!("File: {}", deps.file_path.display()));
+    output.push_str(&format!("File: {}", shorten_home(&deps.file_path, home)));
     if let Some(title) = &deps.file_title {
         output.push_str(&format!(" ({title})"));
     }
@@ -19,7 +20,7 @@ pub fn format_deps(deps: &FileDependencies) -> String {
         if !deps.imports.is_empty() {
             output.push_str("Imports:\n");
             for import in &deps.imports {
-                output.push_str(&format!("  - {}\n", import.display()));
+                output.push_str(&format!("  - {}\n", shorten_home(import, home)));
             }
             if !deps.imported_by.is_empty() {
                 output.push('\n');
@@ -29,36 +30,11 @@ pub fn format_deps(deps: &FileDependencies) -> String {
         if !deps.imported_by.is_empty() {
             output.push_str("Imported by:\n");
             for imported_by in &deps.imported_by {
-                output.push_str(&format!("  - {}\n", imported_by.display()));
+                output.push_str(&format!("  - {}\n", shorten_home(imported_by, home)));
             }
         }
     }
 
-    output
-}
-
-#[must_use]
-pub fn format_all_deps(all_deps: &[FileDependencies]) -> String {
-    if all_deps.is_empty() {
-        return "No files indexed.\n".to_string();
-    }
-
-    let mut output = String::new();
-    for deps in all_deps {
-        output.push_str(&format!("{}", deps.file_path.display()));
-        if let Some(title) = &deps.file_title {
-            output.push_str(&format!(" ({title})"));
-        }
-
-        if !deps.imports.is_empty() || !deps.imported_by.is_empty() {
-            output.push_str(&format!(
-                " — imports: {}, imported by: {}",
-                deps.imports.len(),
-                deps.imported_by.len()
-            ));
-        }
-        output.push('\n');
-    }
     output
 }
 

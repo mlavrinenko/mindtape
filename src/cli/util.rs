@@ -50,6 +50,29 @@ pub fn print_json(value: &impl serde::Serialize) -> Result<()> {
     Ok(())
 }
 
+/// Replace `$HOME` prefix with `~` for shorter display paths.
+#[must_use]
+pub fn shorten_home(path: &Path, home: &str) -> String {
+    let abs = path.to_string_lossy();
+    if !home.is_empty() && abs.starts_with(home) {
+        format!("~{}", &abs[home.len()..])
+    } else {
+        abs.to_string()
+    }
+}
+
+/// Return the current user's home directory as a string (empty if unavailable).
+#[must_use]
+pub fn home_dir() -> String {
+    std::env::var("HOME").unwrap_or_default()
+}
+
+/// Shorten a `PathBuf` display for human-readable output.
+#[must_use]
+pub fn short_path(path: &Path) -> String {
+    shorten_home(path, &home_dir())
+}
+
 /// Write `content` to `target` atomically via a temp file + rename.
 ///
 /// # Errors

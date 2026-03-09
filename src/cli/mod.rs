@@ -15,11 +15,10 @@ pub use commands::set::SetArgs;
 pub use commands::watch::WatchArgs;
 
 // Re-export per-command formatting so main.rs can use cli::format_* as before.
-pub use commands::deps::{format_all_deps, format_all_deps_csv, format_deps, format_deps_csv};
+pub use commands::deps::{format_all_deps_csv, format_deps, format_deps_csv};
 pub use commands::eval::{due_sort_key, filter_and_sort, format_due, format_task};
 pub use format::{
-    format_file_view, format_files_csv, format_stats, format_stats_csv, format_task_typst,
-    format_tasks_csv,
+    format_files_csv, format_stats, format_stats_csv, format_task_typst, format_tasks_csv,
 };
 
 /// Output format for query commands.
@@ -29,6 +28,7 @@ pub enum OutputFormat {
     Table,
     Json,
     Csv,
+    Typst,
 }
 
 /// Shared query options flattened into commands that query the database.

@@ -62,18 +62,6 @@ fn rank_to_typst(rank: i64) -> String {
 }
 
 #[must_use]
-pub fn format_file_view(file: &FileView) -> String {
-    let title_part = file
-        .title
-        .as_ref()
-        .map(|t| format!("  {t}"))
-        .unwrap_or_default();
-    let count = file.task_count;
-    let noun = if count == 1 { "task" } else { "tasks" };
-    format!("{} ({count} {noun}){title_part}", file.file_path.display())
-}
-
-#[must_use]
 pub fn format_stats(stats: &IndexStats) -> String {
     let mut lines = vec![
         format!("files:   {}", stats.file_count),
@@ -158,11 +146,6 @@ pub fn format_stats_csv(stats: &IndexStats) -> Result<String, csv::Error> {
 // File error output
 // ---------------------------------------------------------------------------
 
-#[must_use]
-pub fn format_file_error(err: &FileError) -> String {
-    format!("{}\n  {}", err.file_path.display(), err.error)
-}
-
 /// Formats file errors as CSV
 ///
 /// # Errors
@@ -192,35 +175,6 @@ mod tests {
     use std::path::PathBuf;
 
     use super::*;
-
-    // --- format_file_view ---
-
-    #[test]
-    fn format_file_view_with_title() {
-        let file = FileView {
-            file_path: PathBuf::from("notes/todo.typ"),
-            watch_root: None,
-            title: Some("My Tasks".to_string()),
-            task_count: 5,
-            updated_at: "2026-01-01".to_string(),
-        };
-        assert_eq!(
-            format_file_view(&file),
-            "notes/todo.typ (5 tasks)  My Tasks"
-        );
-    }
-
-    #[test]
-    fn format_file_view_no_title_singular() {
-        let file = FileView {
-            file_path: PathBuf::from("t.typ"),
-            watch_root: None,
-            title: None,
-            task_count: 1,
-            updated_at: "2026-01-01".to_string(),
-        };
-        assert_eq!(format_file_view(&file), "t.typ (1 task)");
-    }
 
     // --- format_stats ---
 
@@ -434,21 +388,6 @@ mod tests {
     fn date_to_typst_invalid_returns_none() {
         assert!(date_to_typst_call("due", "invalid").is_none());
         assert!(date_to_typst_call("due", "2026-03").is_none());
-    }
-
-    // --- format_file_error ---
-
-    #[test]
-    fn format_file_error_basic() {
-        let err = FileError {
-            file_path: PathBuf::from("/proj/broken.typ"),
-            watch_root: Some(PathBuf::from("/proj")),
-            error: "eval error: undefined variable".to_string(),
-            updated_at: "2026-03-01".to_string(),
-        };
-        let out = format_file_error(&err);
-        assert!(out.contains("/proj/broken.typ"));
-        assert!(out.contains("eval error: undefined variable"));
     }
 
     #[test]
