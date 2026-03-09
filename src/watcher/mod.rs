@@ -153,6 +153,9 @@ impl Watcher {
                 Ok(()) => info!("removed {}", path.display()),
                 Err(err) => warn!("error removing {}: {err}", path.display()),
             }
+            if let Err(err) = self.store.remove_file_error(path) {
+                warn!("error removing file error for {}: {err}", path.display());
+            }
         }
     }
 

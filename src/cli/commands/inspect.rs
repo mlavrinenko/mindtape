@@ -4,10 +4,13 @@ use anyhow::{Context, Result};
 use clap::{Parser, ValueEnum};
 use serde::Serialize;
 
-use crate::cli::format::{format_file_view, format_files_csv, format_stats, format_stats_csv};
+use crate::cli::format::{
+    format_file_error, format_file_errors_csv, format_file_view, format_files_csv, format_stats,
+    format_stats_csv,
+};
 use crate::cli::util::{open_query_db, print_json, resolve_query_db_path};
 use crate::cli::{OutputFormat, QueryOpts};
-use crate::store::{FileDependencies, FileView, IndexStats, Store};
+use crate::store::{FileDependencies, FileError, FileView, IndexStats, Store};
 
 use super::deps::{format_all_deps, format_all_deps_csv, format_deps, format_deps_csv};
 
@@ -17,6 +20,7 @@ pub enum Section {
     Status,
     Files,
     Deps,
+    Errors,
 }
 
 /// Inspect the index: statistics, files, and dependencies.
@@ -50,6 +54,8 @@ struct InspectJson {
     files: Option<Vec<FileView>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     deps: Option<DepsOutput>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    errors: Option<Vec<FileError>>,
 }
 
 impl InspectArgs {
@@ -74,19 +80,28 @@ impl InspectArgs {
             .wants(Section::Deps)
             .then(|| self.query_deps(&store))
             .transpose()?;
+        let errors = self
+            .wants(Section::Errors)
+            .then(|| {
+                store
+                    .list_file_errors()
+                    .context("failed to list file errors")
+            })
+            .transpose()?;
 
         match format {
             OutputFormat::Json => print_json(&InspectJson {
                 status: stats,
                 files,
                 deps,
+                errors,
             }),
-            OutputFormat::Csv => print_sections(&stats, &files, &deps, SectionFmt::Csv),
+            OutputFormat::Csv => print_sections(&stats, &files, &deps, &errors, SectionFmt::Csv),
             OutputFormat::Table => {
                 if stats.is_some() {
                     eprintln!("Database: {}", db_path.display());
                 }
-                print_sections(&stats, &files, &deps, SectionFmt::Table)
+                print_sections(&stats, &files, &deps, &errors, SectionFmt::Table)
             }
         }
     }
@@ -121,6 +136,7 @@ fn print_sections(
     stats: &Option<IndexStats>,
     files: &Option<Vec<FileView>>,
     deps: &Option<DepsOutput>,
+    errors: &Option<Vec<FileError>>,
     fmt: SectionFmt,
 ) -> Result<()> {
     let mut parts: Vec<(&str, String)> = Vec::new();
@@ -148,6 +164,16 @@ fn print_sections(
                 };
                 parts.push(("Dependencies", body));
             }
+            if let Some(errs) = errors {
+                let body = if errs.is_empty() {
+                    "no errors\n".to_string()
+                } else {
+                    errs.iter()
+                        .map(|e| format!("{}\n", format_file_error(e)))
+                        .collect()
+                };
+                parts.push(("Errors", body));
+            }
         }
         SectionFmt::Csv => {
             if let Some(st) = stats {
@@ -162,6 +188,9 @@ fn print_sections(
                     DepsOutput::All(all) => format_all_deps_csv(all)?,
                 };
                 parts.push(("deps", csv));
+            }
+            if let Some(errs) = errors {
+                parts.push(("errors", format_file_errors_csv(errs)?));
             }
         }
     }

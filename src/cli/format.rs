@@ -1,4 +1,4 @@
-use crate::store::{FileView, IndexStats, TaskView};
+use crate::store::{FileError, FileView, IndexStats, TaskView};
 use csv::Writer;
 
 /// Finish a CSV writer and return its contents as a `String`.
@@ -150,6 +150,38 @@ pub fn format_stats_csv(stats: &IndexStats) -> Result<String, csv::Error> {
     wtr.write_record(["pending", &stats.pending_count.to_string()])?;
     if let Some(ref ts) = stats.last_updated {
         wtr.write_record(["last_updated", ts])?;
+    }
+    csv_to_string(wtr)
+}
+
+// ---------------------------------------------------------------------------
+// File error output
+// ---------------------------------------------------------------------------
+
+#[must_use]
+pub fn format_file_error(err: &FileError) -> String {
+    format!("{}\n  {}", err.file_path.display(), err.error)
+}
+
+/// Formats file errors as CSV
+///
+/// # Errors
+/// Returns error if CSV writing fails (unlikely with in-memory writer)
+pub fn format_file_errors_csv(errors: &[FileError]) -> Result<String, csv::Error> {
+    let mut wtr = Writer::from_writer(vec![]);
+    wtr.write_record(["path", "watch_root", "error", "updated_at"])?;
+    for e in errors {
+        let watch_root = e
+            .watch_root
+            .as_ref()
+            .map(|p| p.to_string_lossy().to_string())
+            .unwrap_or_default();
+        wtr.write_record([
+            e.file_path.to_string_lossy().as_ref(),
+            &watch_root,
+            &e.error,
+            &e.updated_at,
+        ])?;
     }
     csv_to_string(wtr)
 }
@@ -402,5 +434,33 @@ mod tests {
     fn date_to_typst_invalid_returns_none() {
         assert!(date_to_typst_call("due", "invalid").is_none());
         assert!(date_to_typst_call("due", "2026-03").is_none());
+    }
+
+    // --- format_file_error ---
+
+    #[test]
+    fn format_file_error_basic() {
+        let err = FileError {
+            file_path: PathBuf::from("/proj/broken.typ"),
+            watch_root: Some(PathBuf::from("/proj")),
+            error: "eval error: undefined variable".to_string(),
+            updated_at: "2026-03-01".to_string(),
+        };
+        let out = format_file_error(&err);
+        assert!(out.contains("/proj/broken.typ"));
+        assert!(out.contains("eval error: undefined variable"));
+    }
+
+    #[test]
+    fn format_file_errors_csv_basic() {
+        let errors = vec![FileError {
+            file_path: PathBuf::from("/a.typ"),
+            watch_root: None,
+            error: "eval error: x".to_string(),
+            updated_at: "2026-03-01".to_string(),
+        }];
+        let csv = format_file_errors_csv(&errors).unwrap();
+        assert!(csv.starts_with("path,watch_root,error,updated_at\n"));
+        assert!(csv.contains("/a.typ,,eval error: x,2026-03-01\n"));
     }
 }

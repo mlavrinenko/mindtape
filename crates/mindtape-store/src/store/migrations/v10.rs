@@ -1,5 +1,5 @@
 pub const SQL: &str = "
--- v9: namespace metadata keys with 'mindtape.' prefix.
+-- v10: add file_errors table for tracking indexing failures.
 -- Since the DB is a derived cache, we drop everything and recreate.
 
 DROP TABLE IF EXISTS tasks_fts;
@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS file_bindings;
 DROP TABLE IF EXISTS task_properties;
 DROP TABLE IF EXISTS tasks;
 DROP TABLE IF EXISTS task_files;
+DROP TABLE IF EXISTS file_errors;
 
 CREATE TABLE task_files (
     id            INTEGER PRIMARY KEY,
@@ -51,6 +52,14 @@ CREATE TABLE file_references (
     id             INTEGER PRIMARY KEY,
     source_file_id INTEGER NOT NULL REFERENCES task_files(id) ON DELETE CASCADE,
     target_path    TEXT    NOT NULL
+);
+
+CREATE TABLE file_errors (
+    id         INTEGER PRIMARY KEY,
+    file_path  TEXT    NOT NULL UNIQUE,
+    watch_root TEXT,
+    error      TEXT    NOT NULL,
+    updated_at TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
 -- Indexes

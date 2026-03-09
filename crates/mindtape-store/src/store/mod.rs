@@ -202,6 +202,15 @@ pub struct FileReference {
     pub target_path: PathBuf,
 }
 
+/// A file that failed to index, with the error message.
+#[derive(Debug, Clone, Serialize)]
+pub struct FileError {
+    pub file_path: PathBuf,
+    pub watch_root: Option<PathBuf>,
+    pub error: String,
+    pub updated_at: String,
+}
+
 /// A file with its incoming and outgoing dependencies.
 #[derive(Debug, Clone, Serialize)]
 pub struct FileDependencies {
@@ -347,4 +356,30 @@ pub trait Store {
     ///
     /// Returns `StoreError` if the database operation fails or the pattern is ambiguous.
     fn find_task_by_id(&self, id_or_mask: &str) -> Result<TaskWithFile, StoreError>;
+
+    /// Record an indexing error for a file (insert or update).
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
+    fn upsert_file_error(
+        &mut self,
+        path: &Path,
+        watch_root: Option<&Path>,
+        error: &str,
+    ) -> Result<(), StoreError>;
+
+    /// Remove a previously recorded file error.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
+    fn remove_file_error(&mut self, path: &Path) -> Result<(), StoreError>;
+
+    /// List all recorded file errors.
+    ///
+    /// # Errors
+    ///
+    /// Returns `StoreError` if the database operation fails.
+    fn list_file_errors(&self) -> Result<Vec<FileError>, StoreError>;
 }

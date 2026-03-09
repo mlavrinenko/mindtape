@@ -9,8 +9,8 @@ mod store;
 
 // Re-export everything at crate root.
 pub use store::{
-    FileBinding, FileDependencies, FileReference, FileView, IndexStats, PropertyKind, SortDir,
-    SortField, SortSpec, SqliteStore, Store, StoreError, TaskFile, TaskFilter, TaskProperty,
-    TaskRecord, TaskView, filter_expr::FilterExprError, hash_file, index_file,
+    FileBinding, FileDependencies, FileError, FileReference, FileView, IndexStats, PropertyKind,
+    SortDir, SortField, SortSpec, SqliteStore, Store, StoreError, TaskFile, TaskFilter,
+    TaskProperty, TaskRecord, TaskView, filter_expr::FilterExprError, hash_file, index_file,
     index_file_with_deps, to_store_records,
 };

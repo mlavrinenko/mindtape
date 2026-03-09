@@ -610,6 +610,52 @@ impl Store for SqliteStore {
             ))),
         }
     }
+
+    fn upsert_file_error(
+        &mut self,
+        path: &Path,
+        watch_root: Option<&Path>,
+        error: &str,
+    ) -> Result<(), StoreError> {
+        let path_str = path.to_string_lossy();
+        let watch_root_str = watch_root.map(|p| p.to_string_lossy().to_string());
+        self.conn.execute(
+            "INSERT INTO file_errors (file_path, watch_root, error, updated_at)
+             VALUES (?1, ?2, ?3, datetime('now'))
+             ON CONFLICT(file_path) DO UPDATE SET
+               watch_root = excluded.watch_root,
+               error = excluded.error,
+               updated_at = datetime('now')",
+            params![path_str.as_ref(), watch_root_str, error],
+        )?;
+        Ok(())
+    }
+
+    fn remove_file_error(&mut self, path: &Path) -> Result<(), StoreError> {
+        let path_str = path.to_string_lossy();
+        self.conn.execute(
+            "DELETE FROM file_errors WHERE file_path = ?1",
+            params![path_str.as_ref()],
+        )?;
+        Ok(())
+    }
+
+    fn list_file_errors(&self) -> Result<Vec<super::FileError>, StoreError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT file_path, watch_root, error, updated_at
+             FROM file_errors ORDER BY file_path",
+        )?;
+        let rows = stmt.query_map([], |row| {
+            Ok(super::FileError {
+                file_path: PathBuf::from(row.get::<_, String>(0)?),
+                watch_root: row.get::<_, Option<String>>(1)?.map(PathBuf::from),
+                error: row.get(2)?,
+                updated_at: row.get(3)?,
+            })
+        })?;
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(StoreError::from)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -717,7 +763,7 @@ mod tests {
             .conn
             .pragma_query_value(None, "user_version", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 9);
+        assert_eq!(version, 10);
     }
 
     // --- upsert_task_file ---
@@ -2032,5 +2078,62 @@ mod tests {
             ..Default::default()
         });
         assert!(result.is_err());
+    }
+
+    // --- file errors ---
+
+    #[test]
+    fn upsert_file_error_insert_and_list() {
+        let mut store = test_store();
+        store
+            .upsert_file_error(
+                Path::new("/a.typ"),
+                Some(Path::new("/root")),
+                "eval error: x",
+            )
+            .unwrap();
+        let errors = store.list_file_errors().unwrap();
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].file_path, PathBuf::from("/a.typ"));
+        assert_eq!(errors[0].watch_root, Some(PathBuf::from("/root")));
+        assert_eq!(errors[0].error, "eval error: x");
+    }
+
+    #[test]
+    fn upsert_file_error_updates_on_same_path() {
+        let mut store = test_store();
+        store
+            .upsert_file_error(Path::new("/a.typ"), None, "first error")
+            .unwrap();
+        store
+            .upsert_file_error(Path::new("/a.typ"), None, "second error")
+            .unwrap();
+        let errors = store.list_file_errors().unwrap();
+        assert_eq!(errors.len(), 1);
+        assert_eq!(errors[0].error, "second error");
+    }
+
+    #[test]
+    fn remove_file_error_deletes() {
+        let mut store = test_store();
+        store
+            .upsert_file_error(Path::new("/a.typ"), None, "err")
+            .unwrap();
+        store.remove_file_error(Path::new("/a.typ")).unwrap();
+        let errors = store.list_file_errors().unwrap();
+        assert!(errors.is_empty());
+    }
+
+    #[test]
+    fn remove_file_error_nonexistent_is_noop() {
+        let mut store = test_store();
+        store.remove_file_error(Path::new("/nope.typ")).unwrap();
+    }
+
+    #[test]
+    fn list_file_errors_empty() {
+        let store = test_store();
+        let errors = store.list_file_errors().unwrap();
+        assert!(errors.is_empty());
     }
 }

@@ -186,7 +186,14 @@ pub fn index_file(
     file_path: &Path,
     watch_root: Option<&Path>,
 ) -> Result<bool, StoreError> {
-    let hash = hash_file(file_path).map_err(|e| StoreError::Io(e.to_string()))?;
+    let hash = match hash_file(file_path) {
+        Ok(hash) => hash,
+        Err(io_err) => {
+            let err = StoreError::Io(io_err.to_string());
+            let _ = store.upsert_file_error(file_path, watch_root, &err.to_string());
+            return Err(err);
+        }
+    };
 
     if let Some(stored_hash) = store.get_file_hash(file_path)?
         && stored_hash == hash
@@ -198,9 +205,14 @@ pub fn index_file(
     let result = match eval::eval_file_full(world) {
         Err(EvalError::NotMindtape) => {
             trace!("no mindtape import, skipping {}", file_path.display());
+            store.remove_file_error(file_path)?;
             return Ok(false);
         }
-        other => other?,
+        Err(eval_err) => {
+            let _ = store.upsert_file_error(file_path, watch_root, &eval_err.to_string());
+            return Err(eval_err.into());
+        }
+        Ok(result) => result,
     };
 
     let (task_file, tasks, props, bindings) =
@@ -209,6 +221,7 @@ pub fn index_file(
     let file_id = store.upsert_task_file(&task_file)?;
     store.upsert_tasks(file_id, &tasks, &props)?;
     store.upsert_bindings(file_id, &bindings)?;
+    store.remove_file_error(file_path)?;
 
     Ok(true)
 }
@@ -228,7 +241,14 @@ pub fn index_file_with_deps(
     file_path: &Path,
     watch_root: Option<&Path>,
 ) -> Result<bool, StoreError> {
-    let hash = hash_file(file_path).map_err(|e| StoreError::Io(e.to_string()))?;
+    let hash = match hash_file(file_path) {
+        Ok(hash) => hash,
+        Err(io_err) => {
+            let err = StoreError::Io(io_err.to_string());
+            let _ = store.upsert_file_error(file_path, watch_root, &err.to_string());
+            return Err(err);
+        }
+    };
 
     if let Some(stored_hash) = store.get_file_hash(file_path)?
         && stored_hash == hash
@@ -240,9 +260,14 @@ pub fn index_file_with_deps(
     let result = match eval::eval_file_full_with_deps(world) {
         Err(EvalError::NotMindtape) => {
             trace!("no mindtape import, skipping {}", file_path.display());
+            store.remove_file_error(file_path)?;
             return Ok(false);
         }
-        other => other?,
+        Err(eval_err) => {
+            let _ = store.upsert_file_error(file_path, watch_root, &eval_err.to_string());
+            return Err(eval_err.into());
+        }
+        Ok(result) => result,
     };
 
     let (task_file, tasks, props, bindings) =
@@ -252,6 +277,7 @@ pub fn index_file_with_deps(
     store.upsert_tasks(file_id, &tasks, &props)?;
     store.upsert_bindings(file_id, &bindings)?;
     store.upsert_file_references(file_id, &result.dependencies)?;
+    store.remove_file_error(file_path)?;
 
     Ok(true)
 }
