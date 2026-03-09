@@ -469,3 +469,28 @@ fn eval_task_with_all_metadata() {
         Some("019c5b9b-7317-77b1-bf52-ce7a298cfcad".to_string())
     );
 }
+
+#[test]
+fn eval_sub_items_do_not_bleed_into_parent_title() {
+    let tasks = eval_typ(
+        r#"- [ ] Parent task #id("019c7703-3ca3-71f2-acd1-37b18aacdeec")
+  - Sub-item one
+  - Sub-item two"#,
+    )
+    .unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].title, "Parent task");
+}
+
+#[test]
+fn eval_nested_task_sub_items_are_separate() {
+    let tasks = eval_typ(
+        r#"- [ ] Parent #id("019c7703-3ca3-71f2-acd1-37b18aacdeec")
+  - [ ] Child task #id("019c9609-ba1f-7da0-a1d5-d02a67a6310a")
+  - Plain sub-item"#,
+    )
+    .unwrap();
+    assert_eq!(tasks.len(), 2);
+    assert_eq!(tasks[0].title, "Parent");
+    assert_eq!(tasks[1].title, "Child task");
+}

@@ -17,6 +17,7 @@ use typst::ROUTINES;
 use typst::World;
 use typst::engine::{Route, Sink, Traced};
 use typst::foundations::{Content, Datetime, Module, StyleChain, Value};
+use typst_library::foundations::SequenceElem;
 use typst_library::introspection::MetadataElem;
 use typst_library::model::{HeadingElem, ListItem};
 
@@ -243,13 +244,31 @@ pub fn collect_tasks(content: &Content, tasks: &mut Vec<Task>) {
     });
 }
 
+/// Extract plain text from content, excluding any nested `ListItem` children.
+///
+/// When a list item has sub-items, `plain_text()` would include their text too.
+/// This function skips nested `ListItem` nodes so we get only the item's own text.
+fn plain_text_shallow(content: &Content) -> String {
+    if let Some(seq) = content.to_packed::<SequenceElem>() {
+        let mut text = String::new();
+        for child in &seq.children {
+            if child.to_packed::<ListItem>().is_none() {
+                text.push_str(&child.plain_text());
+            }
+        }
+        text
+    } else {
+        content.plain_text().into()
+    }
+}
+
 /// Try to interpret a single `ListItem` as a task.
 ///
 /// Returns `None` if the item's text does not start with a checkbox marker.
 #[allow(clippy::indexing_slicing)]
 pub fn extract_task(item: &ListItem) -> Option<Task> {
     let body: &Content = &item.body;
-    let text = body.plain_text();
+    let text = plain_text_shallow(body);
 
     // Parse checkbox prefix.
     let (done, title) = if let Some(rest) = text
