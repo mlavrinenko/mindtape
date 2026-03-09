@@ -199,6 +199,9 @@ pub fn index_file(
         && stored_hash == hash
     {
         trace!("hash unchanged, skipping {}", file_path.display());
+        // The hash is only stored on successful indexing, so any lingering
+        // error record is stale (e.g. from a reverted edit). Clean it up.
+        store.remove_file_error(file_path)?;
         return Ok(false);
     }
 
@@ -254,6 +257,9 @@ pub fn index_file_with_deps(
         && stored_hash == hash
     {
         trace!("hash unchanged, skipping {}", file_path.display());
+        // The hash is only stored on successful indexing, so any lingering
+        // error record is stale (e.g. from a reverted edit). Clean it up.
+        store.remove_file_error(file_path)?;
         return Ok(false);
     }
 
