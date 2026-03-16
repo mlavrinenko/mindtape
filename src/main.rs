@@ -15,6 +15,7 @@ fn main() -> Result<()> {
         Some(Command::Watch(args)) => args.run(),
         Some(Command::List(args)) => args.run(),
         Some(Command::Inspect(args)) => args.run(),
+        Some(Command::Agenda(args)) => args.run(),
         Some(Command::Check(args)) => args.run(),
         Some(Command::Set(args)) => args.run(),
         Some(Command::Id(args)) => args.run(),

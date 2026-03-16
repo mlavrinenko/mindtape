@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
+pub use commands::agenda::AgendaArgs;
 pub use commands::check::CheckArgs;
 pub use commands::id::IdArgs;
 pub use commands::init::InitArgs;
@@ -93,6 +94,8 @@ pub enum Command {
     List(Box<ListArgs>),
     /// Inspect the index: statistics, files, and dependencies
     Inspect(InspectArgs),
+    /// Generate a Typst agenda from configured sections
+    Agenda(AgendaArgs),
     /// Toggle a task's checkbox
     Check(CheckArgs),
     /// Update task properties (due date, tags)

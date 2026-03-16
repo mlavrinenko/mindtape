@@ -13,6 +13,33 @@ pub struct Config {
     pub database: Option<DatabaseConfig>,
     #[serde(default)]
     pub watch: Vec<WatchEntry>,
+    #[serde(default)]
+    pub agenda: Vec<AgendaSection>,
+}
+
+/// A single section in the `agenda` output.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct AgendaSection {
+    pub name: String,
+    /// Section kind: `"errors"` for file indexing errors, `"tasks"` (default) for task queries.
+    #[serde(default = "default_tasks")]
+    pub kind: String,
+    /// Filter expression (evalexpr syntax, same as `list --filter`).
+    pub filter: Option<String>,
+    /// Sort specs (e.g. `["due:asc", "rank:desc"]`).
+    #[serde(default)]
+    pub sort: Vec<String>,
+    /// Status filter: `"pending"` (default), `"done"`, or `"all"`.
+    pub status: Option<String>,
+    /// Limit output to N items.
+    pub limit: Option<usize>,
+    /// Deduplicate tasks across sections (default: true).
+    /// When true, tasks shown in earlier sections are excluded from this one.
+    pub deduplicate: Option<bool>,
+}
+
+fn default_tasks() -> String {
+    "tasks".to_string()
 }
 
 #[derive(Debug, PartialEq, Eq, Deserialize)]
@@ -89,9 +116,11 @@ pub fn merge_configs(configs: impl IntoIterator<Item = Config>) -> Config {
     let mut merged = Config {
         database: None,
         watch: Vec::new(),
+        agenda: Vec::new(),
     };
     for cfg in configs {
         merged.watch.extend(cfg.watch);
+        merged.agenda.extend(cfg.agenda);
         if merged.database.is_none() {
             merged.database = cfg.database;
         }
@@ -224,6 +253,7 @@ path = "."
                 path: "/custom/path.db".to_string(),
             }),
             watch: vec![],
+            agenda: vec![],
         };
         assert_eq!(resolve_db_path(&config), PathBuf::from("/custom/path.db"));
     }
@@ -233,6 +263,7 @@ path = "."
         let config = Config {
             database: None,
             watch: vec![],
+            agenda: vec![],
         };
         let path = resolve_db_path(&config);
         assert!(path.to_string_lossy().ends_with("mindtape/index.db"));
@@ -246,6 +277,7 @@ path = "."
                 path: "~/a".into(),
                 recursive: true,
             }],
+            agenda: vec![],
         };
         let second = Config {
             database: None,
@@ -253,6 +285,7 @@ path = "."
                 path: "~/b".into(),
                 recursive: false,
             }],
+            agenda: vec![],
         };
         let merged = merge_configs([first, second]);
         assert_eq!(merged.watch.len(), 2);
@@ -268,12 +301,14 @@ path = "."
                 path: "/first.db".into(),
             }),
             watch: vec![],
+            agenda: vec![],
         };
         let second = Config {
             database: Some(DatabaseConfig {
                 path: "/second.db".into(),
             }),
             watch: vec![],
+            agenda: vec![],
         };
         let merged = merge_configs([first, second]);
         assert_eq!(merged.database.unwrap().path, "/first.db");
@@ -284,12 +319,14 @@ path = "."
         let first = Config {
             database: None,
             watch: vec![],
+            agenda: vec![],
         };
         let second = Config {
             database: Some(DatabaseConfig {
                 path: "/second.db".into(),
             }),
             watch: vec![],
+            agenda: vec![],
         };
         let merged = merge_configs([first, second]);
         assert_eq!(merged.database.unwrap().path, "/second.db");

@@ -2,6 +2,7 @@ use std::fs;
 
 fn main() {
     println!("cargo::rerun-if-changed=lib/typst.toml");
+    println!("cargo::rerun-if-changed=lib/default-agenda.toml");
 
     let toml = fs::read_to_string("lib/typst.toml").expect("failed to read lib/typst.toml");
 

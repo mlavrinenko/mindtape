@@ -1,0 +1,29 @@
+[[agenda]]
+name = "Errors"
+kind = "errors"
+
+[[agenda]]
+name = "Overdue"
+filter = 'has(due) && due < "$today"'
+sort = ["due:asc"]
+
+[[agenda]]
+name = "Due Today"
+filter = 'has(due) && due == "$today"'
+sort = ["rank:desc"]
+
+[[agenda]]
+name = "Upcoming"
+filter = "has(due)"
+sort = ["due:asc"]
+limit = 20
+
+[[agenda]]
+name = "High Priority"
+filter = "rank >= 100"
+sort = ["rank:desc"]
+
+[[agenda]]
+name = "Recent"
+sort = ["file:desc", "position:asc"]
+limit = 20
