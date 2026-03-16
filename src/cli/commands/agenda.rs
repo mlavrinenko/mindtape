@@ -100,8 +100,7 @@ impl AgendaArgs {
 
     fn load_config(&self) -> Result<config::Config> {
         if !self.config.is_empty() {
-            return config::load_and_merge(&self.config)
-                .context("failed to load config files");
+            return config::load_and_merge(&self.config).context("failed to load config files");
         }
         if let Some(path) = config::find_config() {
             return config::load_config(&path)

@@ -40,6 +40,7 @@
             cargo
             cargo-tarpaulin openssl
             clippy
+            rustfmt
             just
             tinymist
             typst
