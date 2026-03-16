@@ -58,6 +58,7 @@ check-file-size:
     # watcher/tests.rs has many integration-style scenarios
     EXCEPTIONS=(
         "crates/mindtape-store/src/store/sqlite.rs"
+        "crates/mindtape-store/src/store/sqlite_tests.rs"
         "crates/mindtape-eval/src/write_tests.rs"
         "src/watcher/tests.rs"
     )

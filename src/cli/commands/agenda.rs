@@ -24,10 +24,22 @@ pub struct AgendaArgs {
 }
 
 /// Identity key for cross-section deduplication.
-type TaskKey = (PathBuf, i32);
+///
+/// Prefers `task_id` (`UUIDv7`) when present — this correctly deduplicates the same
+/// logical task imported across multiple files.  Falls back to `(file_path, position)`
+/// for tasks without an explicit ID.
+#[derive(Clone, PartialEq, Eq, Hash)]
+enum TaskKey {
+    Id(String),
+    Position(PathBuf, i32),
+}
 
 fn task_key(task: &TaskView) -> TaskKey {
-    (task.file_path.clone(), task.position)
+    if let Some(ref id) = task.task_id {
+        TaskKey::Id(id.clone())
+    } else {
+        TaskKey::Position(task.file_path.clone(), task.position)
+    }
 }
 
 impl AgendaArgs {
