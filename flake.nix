@@ -25,11 +25,14 @@
 
         naersk' = pkgs.callPackage naersk { };
 
+        cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+        version = cargoToml.workspace.package.version;
       in
       {
         # For `nix build` & `nix run`:
         packages.default = naersk'.buildPackage {
           src = ./.;
+          inherit version;
           doCheck = true;
         };
 
