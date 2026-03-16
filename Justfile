@@ -100,6 +100,36 @@ check-file-size:
         echo "✓ All files within size limits"
     fi
 
+# Release a new version: bumps workspace version, commits, tags, and pushes
+release VERSION:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Validate semver format
+    if ! echo "{{ VERSION }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+        echo "❌ Invalid version format: {{ VERSION }} (expected: X.Y.Z)"
+        exit 1
+    fi
+
+    CURRENT=$(grep -m1 '^version' Cargo.toml | sed 's/.*"\(.*\)"/\1/')
+    echo "Bumping $CURRENT → {{ VERSION }}"
+
+    # Update workspace version
+    sed -i '0,/^version = ".*"/s//version = "{{ VERSION }}"/' Cargo.toml
+
+    # Update inter-crate dependency versions
+    sed -i 's/\(mindtape-eval = { path = "[^"]*", version = \)"[^"]*"/\1"{{ VERSION }}"/' Cargo.toml crates/mindtape-store/Cargo.toml
+    sed -i 's/\(mindtape-store = { path = "[^"]*", version = \)"[^"]*"/\1"{{ VERSION }}"/' Cargo.toml
+
+    # Verify it compiles
+    cargo check --workspace -q
+
+    git add -A
+    git commit -m "chore: bump version to {{ VERSION }}"
+    git tag "v{{ VERSION }}"
+    echo "✓ Created commit and tag v{{ VERSION }}"
+    echo "  Run 'git push && git push --tags' to trigger the release workflow"
+
 # Validate that nix/install-example.nix parses correctly
 check-nix-example:
     nix-instantiate --parse nix/install-example.nix > /dev/null

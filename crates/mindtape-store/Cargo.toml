@@ -1,6 +1,6 @@
 [package]
 name = "mindtape-store"
-version = "0.1.0"
+version.workspace = true
 edition = "2024"
 rust-version = "1.89"
 description = "Store trait and SQLite backend for MindTape"
@@ -9,7 +9,7 @@ license = "MIT"
 readme = "README.md"
 
 [dependencies]
-mindtape-eval = { path = "../mindtape-eval", version = "0.1.0" }
+mindtape-eval = { path = "../mindtape-eval", version = "0.2.0" }
 typst = "0.14"
 rusqlite = { version = "0.38", features = ["bundled"] }
 sha2 = "0.10"

@@ -5,6 +5,9 @@ members = [
 ]
 resolver = "3"
 
+[workspace.package]
+version = "0.2.0"
+
 [workspace.lints.rust]
 unsafe_code = "deny"
 unused_must_use = "deny"
@@ -97,7 +100,7 @@ uninlined_format_args = "deny"
 
 [package]
 name = "mindtape"
-version = "0.1.0"
+version.workspace = true
 edition = "2024"
 rust-version = "1.89"
 description = "A file-based task tracker using Typst files as the source of truth"
@@ -116,8 +119,8 @@ name = "mindtape"
 path = "src/main.rs"
 
 [dependencies]
-mindtape-eval = { path = "crates/mindtape-eval", version = "0.1.0" }
-mindtape-store = { path = "crates/mindtape-store", version = "0.1.0" }
+mindtape-eval = { path = "crates/mindtape-eval", version = "0.2.0" }
+mindtape-store = { path = "crates/mindtape-store", version = "0.2.0" }
 typst = "0.14"
 typst-syntax = "0.14"
 thiserror = "2"

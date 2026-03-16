@@ -8,8 +8,25 @@ permissions:
   contents: write
 
 jobs:
+  version-check:
+    name: Verify tag matches Cargo.toml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check version consistency
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          CARGO="$(grep -m1 '^version' Cargo.toml | sed 's/.*"\(.*\)"/\1/')"
+          if [ "$TAG" != "$CARGO" ]; then
+            echo "::error::Tag v${TAG} does not match workspace version ${CARGO} in Cargo.toml"
+            exit 1
+          fi
+          echo "✓ Tag v${TAG} matches Cargo.toml version ${CARGO}"
+
   check:
     name: Check
+    needs: version-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +68,9 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
+
+      - name: Ensure target is installed
+        run: rustup target add ${{ matrix.target }}
 
       - name: Install cross-compilation tools
         if: matrix.target == 'aarch64-unknown-linux-gnu'
