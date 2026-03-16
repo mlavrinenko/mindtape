@@ -13,6 +13,7 @@ and metadata into SQLite, and exposes a CLI for querying.
 - `CONTRIBUTING.md` — workflow, commit style, testing, quality standards
 - `crates/mindtape-eval/AGENT.md` — eval crate architecture and technical notes
 - `crates/mindtape-store/AGENT.md` — store crate architecture and schema procedures
+- `docs/decisions/` — Architecture Decision Records (ADRs)
 
 ## Tech Stack
 
@@ -30,6 +31,11 @@ and metadata into SQLite, and exposes a CLI for querying.
 3. Keep files small: Rust ≤500 lines, Markdown ≤200 lines (enforced by `just check-file-size`)
 4. After completing a task, suggest a conventional commit message
 5. Follow patterns in `CONTRIBUTING.md` for new CLI commands and store methods
+6. When making an architectural or tooling decision, record it in `docs/decisions/`
+   as an ADR using the next sequential number (e.g. `002-topic.md`). Each ADR
+   must include: Status, Date, Context (the problem and why it matters),
+   Decision (what we chose and why), Consequences (trade-offs and follow-up),
+   and Deprecation Criteria (when this ADR can be safely dropped)
 
 ## Version Management
 
