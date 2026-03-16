@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
@@ -42,6 +42,13 @@ fn task_key(task: &TaskView) -> TaskKey {
     }
 }
 
+/// Accumulates output and deduplication state across agenda sections.
+struct AgendaState {
+    out: String,
+    seen: HashSet<TaskKey>,
+    files: BTreeSet<PathBuf>,
+}
+
 impl AgendaArgs {
     /// Run the agenda command.
     ///
@@ -64,27 +71,30 @@ impl AgendaArgs {
         let home = home_dir();
         let today = today_str();
 
-        let mut out = String::new();
-        out.push_str(&format!(
+        let mut state = AgendaState {
+            out: String::new(),
+            seen: HashSet::new(),
+            files: BTreeSet::new(),
+        };
+        state.out.push_str(&format!(
             "#import \"@local/mindtape:{}\": *\n",
             crate::TYPST_PACKAGE_VERSION
         ));
 
-        let mut seen: HashSet<TaskKey> = HashSet::new();
-
         for section in &sections {
-            out.push('\n');
-            out.push_str(&format!("== {}\n", section.name));
-            out.push('\n');
+            state.out.push('\n');
+            state.out.push_str(&format!("== {}\n", section.name));
+            state.out.push('\n');
 
             match section.kind.as_str() {
-                "errors" => render_errors(&store, &home, &mut out)?,
-                "tasks" => render_tasks(&store, section, &today, &mut seen, &mut out)?,
+                "errors" => render_errors(&store, &home, &mut state.out)?,
+                "tasks" => render_tasks(&store, section, &today, &mut state)?,
+                "files" => render_files(&state.files, &home, &mut state.out),
                 other => bail!("unknown agenda section kind: {other:?}"),
             }
         }
 
-        print!("{out}");
+        print!("{}", state.out);
         Ok(())
     }
 
@@ -141,12 +151,22 @@ fn render_errors(store: &impl Store, home: &str, out: &mut String) -> Result<()>
     Ok(())
 }
 
+fn render_files(files: &BTreeSet<PathBuf>, home: &str, out: &mut String) {
+    if files.is_empty() {
+        out.push_str("No files.\n");
+    } else {
+        for path in files {
+            let short = shorten_home(path, home);
+            out.push_str(&format!("- `{short}`\n"));
+        }
+    }
+}
+
 fn render_tasks(
     store: &impl Store,
     section: &AgendaSection,
     today: &str,
-    seen: &mut HashSet<TaskKey>,
-    out: &mut String,
+    state: &mut AgendaState,
 ) -> Result<()> {
     let done = match section.status.as_deref() {
         Some("done") => Some(true),
@@ -179,18 +199,19 @@ fn render_tasks(
     let mut count = 0;
     for task in &tasks {
         let key = task_key(task);
-        if dedup && seen.contains(&key) {
+        if dedup && state.seen.contains(&key) {
             continue;
         }
-        out.push_str(&format_task_typst(task));
-        out.push('\n');
+        state.out.push_str(&format_task_typst(task));
+        state.out.push('\n');
+        state.files.insert(task.file_path.clone());
         if dedup {
-            seen.insert(key);
+            state.seen.insert(key);
         }
         count += 1;
     }
     if count == 0 {
-        out.push_str("No tasks.\n");
+        state.out.push_str("No tasks.\n");
     }
     Ok(())
 }
@@ -250,6 +271,9 @@ mod tests {
         assert!(!sections.is_empty());
         assert_eq!(sections[0].name, "Errors");
         assert_eq!(sections[0].kind, "errors");
+        let last = sections.last().unwrap();
+        assert_eq!(last.name, "File Index");
+        assert_eq!(last.kind, "files");
     }
 
     #[test]
