@@ -1,33 +1,36 @@
-[[agenda]]
+[agenda]
+filter = 'miss(start) || start <= "$today"'
+
+[[agenda.sections]]
 name = "Errors"
 kind = "errors"
 
-[[agenda]]
+[[agenda.sections]]
 name = "Overdue"
 filter = 'has(due) && due < "$today"'
 sort = ["due:asc"]
 
-[[agenda]]
+[[agenda.sections]]
 name = "Due Today"
 filter = 'has(due) && due == "$today"'
 sort = ["rank:desc"]
 
-[[agenda]]
+[[agenda.sections]]
 name = "Upcoming"
 filter = "has(due)"
 sort = ["due:asc"]
 limit = 20
 
-[[agenda]]
+[[agenda.sections]]
 name = "High Priority"
 filter = "rank >= 100"
 sort = ["rank:desc"]
 
-[[agenda]]
+[[agenda.sections]]
 name = "Recent"
 sort = ["file:desc", "position:asc"]
 limit = 20
 
-[[agenda]]
+[[agenda.sections]]
 name = "File Index"
 kind = "files"

@@ -6,7 +6,7 @@ use clap::Parser;
 
 use crate::cli::format::format_task_typst;
 use crate::cli::util::{home_dir, open_query_db, resolve_query_db_path, shorten_home};
-use crate::config::{self, AgendaSection};
+use crate::config::{self, AgendaConfig, AgendaSection};
 use crate::store::{SortDir, SortField, SortSpec, Store, TaskFilter, TaskView};
 
 const DEFAULT_AGENDA_TOML: &str = include_str!("../../../lib/default-agenda.toml");
@@ -56,10 +56,9 @@ impl AgendaArgs {
     /// Returns error if config loading, database open, or query fails.
     pub fn run(&self) -> Result<()> {
         let cfg = self.load_config()?;
-        let sections = if cfg.agenda.is_empty() {
-            default_agenda()?
-        } else {
-            cfg.agenda
+        let agenda = match cfg.agenda {
+            Some(ag) if !ag.sections.is_empty() => ag,
+            _ => default_agenda()?,
         };
 
         let db_path = if let Some(ref p) = self.db {
@@ -71,6 +70,8 @@ impl AgendaArgs {
         let home = home_dir();
         let today = today_str();
 
+        let global_filter = expand_filter(agenda.filter.as_deref(), &today);
+
         let mut state = AgendaState {
             out: String::new(),
             seen: HashSet::new(),
@@ -81,14 +82,16 @@ impl AgendaArgs {
             crate::TYPST_PACKAGE_VERSION
         ));
 
-        for section in &sections {
+        for section in &agenda.sections {
             state.out.push('\n');
             state.out.push_str(&format!("== {}\n", section.name));
             state.out.push('\n');
 
             match section.kind.as_str() {
                 "errors" => render_errors(&store, &home, &mut state.out)?,
-                "tasks" => render_tasks(&store, section, &today, &mut state)?,
+                "tasks" => {
+                    render_tasks(&store, section, &today, global_filter.as_deref(), &mut state)?;
+                }
                 "files" => render_files(&state.files, &home, &mut state.out),
                 other => bail!("unknown agenda section kind: {other:?}"),
             }
@@ -109,15 +112,16 @@ impl AgendaArgs {
         Ok(config::Config {
             database: None,
             watch: vec![],
-            agenda: vec![],
+            agenda: None,
         })
     }
 }
 
-fn default_agenda() -> Result<Vec<AgendaSection>> {
+fn default_agenda() -> Result<AgendaConfig> {
     let cfg: config::Config =
         toml::from_str(DEFAULT_AGENDA_TOML).context("failed to parse default agenda")?;
-    Ok(cfg.agenda)
+    cfg.agenda
+        .ok_or_else(|| anyhow::anyhow!("default agenda has no [agenda] section"))
 }
 
 fn today_str() -> String {
@@ -161,10 +165,20 @@ fn render_files(files: &BTreeSet<PathBuf>, home: &str, out: &mut String) {
     }
 }
 
+/// Combine global and section filters with `&&`.
+fn combine_filters(global: Option<&str>, section: Option<String>) -> Option<String> {
+    match (global, section) {
+        (Some(g), Some(s)) => Some(format!("({g}) && ({s})")),
+        (Some(g), None) => Some(g.to_string()),
+        (None, s) => s,
+    }
+}
+
 fn render_tasks(
     store: &impl Store,
     section: &AgendaSection,
     today: &str,
+    global_filter: Option<&str>,
     state: &mut AgendaState,
 ) -> Result<()> {
     let done = match section.status.as_deref() {
@@ -181,13 +195,14 @@ fn render_tasks(
         .collect::<Result<Vec<_>, _>>()
         .map_err(|e| anyhow::anyhow!("invalid sort spec in agenda config: {e}"))?;
 
+    let section_expr = expand_filter(section.filter.as_deref(), today);
     let filter = TaskFilter {
         done,
         folder: None,
         watch_root: None,
         limit: section.limit,
         sort,
-        expr: expand_filter(section.filter.as_deref(), today),
+        expr: combine_filters(global_filter, section_expr),
     };
 
     let tasks = store
@@ -266,13 +281,37 @@ mod tests {
 
     #[test]
     fn default_agenda_parses() {
-        let sections = default_agenda().unwrap();
-        assert!(!sections.is_empty());
-        assert_eq!(sections[0].name, "Errors");
-        assert_eq!(sections[0].kind, "errors");
-        let last = sections.last().unwrap();
+        let agenda = default_agenda().unwrap();
+        assert!(!agenda.sections.is_empty());
+        assert!(agenda.filter.is_some());
+        assert_eq!(agenda.sections[0].name, "Errors");
+        assert_eq!(agenda.sections[0].kind, "errors");
+        let last = agenda.sections.last().unwrap();
         assert_eq!(last.name, "File Index");
         assert_eq!(last.kind, "files");
+    }
+
+    #[test]
+    fn combine_filters_both() {
+        let result = combine_filters(Some("a"), Some("b".to_string()));
+        assert_eq!(result.unwrap(), "(a) && (b)");
+    }
+
+    #[test]
+    fn combine_filters_global_only() {
+        let result = combine_filters(Some("a"), None);
+        assert_eq!(result.unwrap(), "a");
+    }
+
+    #[test]
+    fn combine_filters_section_only() {
+        let result = combine_filters(None, Some("b".to_string()));
+        assert_eq!(result.unwrap(), "b");
+    }
+
+    #[test]
+    fn combine_filters_neither() {
+        assert!(combine_filters(None, None).is_none());
     }
 
     #[test]

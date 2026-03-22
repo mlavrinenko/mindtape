@@ -19,7 +19,7 @@ pub fn resolve_query_db_path(db_override: Option<&Path>) -> std::path::PathBuf {
             .unwrap_or(config::Config {
                 database: None,
                 watch: vec![],
-                agenda: vec![],
+                agenda: None,
             });
         config::resolve_db_path(&cfg)
     }

@@ -86,7 +86,7 @@ fn load_watch_config(args: &WatchArgs) -> Result<(Config, Vec<PathBuf>)> {
                     path: path.to_string_lossy().to_string(),
                     recursive: true,
                 }],
-                agenda: vec![],
+                agenda: None,
             },
             vec![],
         ));
@@ -107,7 +107,7 @@ fn load_watch_config(args: &WatchArgs) -> Result<(Config, Vec<PathBuf>)> {
                 path: ".".to_string(),
                 recursive: true,
             }],
-            agenda: vec![],
+            agenda: None,
         },
         vec![],
     ))

@@ -13,8 +13,16 @@ pub struct Config {
     pub database: Option<DatabaseConfig>,
     #[serde(default)]
     pub watch: Vec<WatchEntry>,
+    pub agenda: Option<AgendaConfig>,
+}
+
+/// Top-level agenda configuration.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct AgendaConfig {
+    /// Global filter applied to all task sections (AND-ed with each section's filter).
+    pub filter: Option<String>,
     #[serde(default)]
-    pub agenda: Vec<AgendaSection>,
+    pub sections: Vec<AgendaSection>,
 }
 
 /// A single section in the `agenda` output.
@@ -116,11 +124,20 @@ pub fn merge_configs(configs: impl IntoIterator<Item = Config>) -> Config {
     let mut merged = Config {
         database: None,
         watch: Vec::new(),
-        agenda: Vec::new(),
+        agenda: None,
     };
     for cfg in configs {
         merged.watch.extend(cfg.watch);
-        merged.agenda.extend(cfg.agenda);
+        if let Some(ag) = cfg.agenda {
+            let dest = merged.agenda.get_or_insert_with(|| AgendaConfig {
+                filter: None,
+                sections: Vec::new(),
+            });
+            dest.sections.extend(ag.sections);
+            if dest.filter.is_none() {
+                dest.filter = ag.filter;
+            }
+        }
         if merged.database.is_none() {
             merged.database = cfg.database;
         }
@@ -253,7 +270,7 @@ path = "."
                 path: "/custom/path.db".to_string(),
             }),
             watch: vec![],
-            agenda: vec![],
+            agenda: None,
         };
         assert_eq!(resolve_db_path(&config), PathBuf::from("/custom/path.db"));
     }
@@ -263,7 +280,7 @@ path = "."
         let config = Config {
             database: None,
             watch: vec![],
-            agenda: vec![],
+            agenda: None,
         };
         let path = resolve_db_path(&config);
         assert!(path.to_string_lossy().ends_with("mindtape/index.db"));
@@ -277,7 +294,7 @@ path = "."
                 path: "~/a".into(),
                 recursive: true,
             }],
-            agenda: vec![],
+            agenda: None,
         };
         let second = Config {
             database: None,
@@ -285,7 +302,7 @@ path = "."
                 path: "~/b".into(),
                 recursive: false,
             }],
-            agenda: vec![],
+            agenda: None,
         };
         let merged = merge_configs([first, second]);
         assert_eq!(merged.watch.len(), 2);
@@ -301,14 +318,14 @@ path = "."
                 path: "/first.db".into(),
             }),
             watch: vec![],
-            agenda: vec![],
+            agenda: None,
         };
         let second = Config {
             database: Some(DatabaseConfig {
                 path: "/second.db".into(),
             }),
             watch: vec![],
-            agenda: vec![],
+            agenda: None,
         };
         let merged = merge_configs([first, second]);
         assert_eq!(merged.database.unwrap().path, "/first.db");
@@ -319,14 +336,14 @@ path = "."
         let first = Config {
             database: None,
             watch: vec![],
-            agenda: vec![],
+            agenda: None,
         };
         let second = Config {
             database: Some(DatabaseConfig {
                 path: "/second.db".into(),
             }),
             watch: vec![],
-            agenda: vec![],
+            agenda: None,
         };
         let merged = merge_configs([first, second]);
         assert_eq!(merged.database.unwrap().path, "/second.db");
