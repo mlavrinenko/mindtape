@@ -6,7 +6,7 @@ members = [
 resolver = "3"
 
 [workspace.package]
-version = "0.2.0"
+version = "0.3.0"
 
 [workspace.lints.rust]
 unsafe_code = "deny"
@@ -119,8 +119,8 @@ name = "mindtape"
 path = "src/main.rs"
 
 [dependencies]
-mindtape-eval = { path = "crates/mindtape-eval", version = "0.2.0" }
-mindtape-store = { path = "crates/mindtape-store", version = "0.2.0" }
+mindtape-eval = { path = "crates/mindtape-eval", version = "0.3.0" }
+mindtape-store = { path = "crates/mindtape-store", version = "0.3.0" }
 typst = "0.14"
 typst-syntax = "0.14"
 thiserror = "2"

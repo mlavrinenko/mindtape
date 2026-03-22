@@ -9,7 +9,7 @@ license = "MIT"
 readme = "README.md"
 
 [dependencies]
-mindtape-eval = { path = "../mindtape-eval", version = "0.2.0" }
+mindtape-eval = { path = "../mindtape-eval", version = "0.3.0" }
 typst = "0.14"
 rusqlite = { version = "0.38", features = ["bundled"] }
 sha2 = "0.10"
