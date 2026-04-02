@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, HashSet};
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result, bail};
@@ -46,7 +46,6 @@ fn task_key(task: &TaskView) -> TaskKey {
 struct AgendaState {
     out: String,
     seen: HashSet<TaskKey>,
-    files: BTreeSet<PathBuf>,
 }
 
 impl AgendaArgs {
@@ -76,7 +75,6 @@ impl AgendaArgs {
         let mut state = AgendaState {
             out: String::new(),
             seen: HashSet::new(),
-            files: BTreeSet::new(),
         };
         state.out.push_str(&format!(
             "#import \"@local/mindtape:{}\": *\n",
@@ -101,10 +99,10 @@ impl AgendaArgs {
                     section,
                     &today,
                     global_filter.as_deref(),
+                    &home,
                     &mut state,
                     &mut section_out,
                 )?,
-                "files" => render_files(&state.files, &home, &mut section_out),
                 other => bail!("unknown agenda section kind: {other:?}"),
             };
 
@@ -187,20 +185,6 @@ fn render_errors(store: &impl Store, home: &str, out: &mut String) -> Result<boo
     }
 }
 
-/// Render files section. Returns `true` if the section is empty.
-fn render_files(files: &BTreeSet<PathBuf>, home: &str, out: &mut String) -> bool {
-    if files.is_empty() {
-        out.push_str("No files.\n");
-        true
-    } else {
-        for path in files {
-            let short = shorten_home(path, home);
-            out.push_str(&format!("- `{short}`\n"));
-        }
-        false
-    }
-}
-
 /// Combine global and section filters with `&&`.
 fn combine_filters(global: Option<&str>, section: Option<String>) -> Option<String> {
     match (global, section) {
@@ -217,6 +201,7 @@ fn render_tasks(
     section: &AgendaSection,
     today: &str,
     global_filter: Option<&str>,
+    home: &str,
     state: &mut AgendaState,
     out: &mut String,
 ) -> Result<bool> {
@@ -256,8 +241,14 @@ fn render_tasks(
             continue;
         }
         out.push_str(&format_task_typst(task));
+        let file_label = shorten_home(&task.file_path, home);
+        let path_display = if file_label.contains(' ') {
+            format!(" // \"{file_label}\"")
+        } else {
+            format!(" // {file_label}")
+        };
+        out.push_str(&path_display);
         out.push('\n');
-        state.files.insert(task.file_path.clone());
         if dedup {
             state.seen.insert(key);
         }
@@ -326,8 +317,8 @@ mod tests {
         assert_eq!(agenda.sections[0].name, "Errors");
         assert_eq!(agenda.sections[0].kind, "errors");
         let last = agenda.sections.last().unwrap();
-        assert_eq!(last.name, "File Index");
-        assert_eq!(last.kind, "files");
+        assert_eq!(last.name, "Recent");
+        assert_eq!(last.kind, "tasks");
     }
 
     #[test]

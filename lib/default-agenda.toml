@@ -33,7 +33,3 @@ sort = ["rank:desc"]
 name = "Recent"
 sort = ["file:desc", "position:asc"]
 limit = 20
-
-[[agenda.sections]]
-name = "File Index"
-kind = "files"
