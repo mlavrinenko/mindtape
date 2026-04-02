@@ -71,6 +71,7 @@ impl AgendaArgs {
         let today = today_str();
 
         let global_filter = expand_filter(agenda.filter.as_deref(), &today);
+        let global_on_empty = agenda.on_empty.as_deref().unwrap_or("show");
 
         let mut state = AgendaState {
             out: String::new(),
@@ -83,17 +84,47 @@ impl AgendaArgs {
         ));
 
         for section in &agenda.sections {
+            let on_empty = section
+                .on_empty
+                .as_deref()
+                .unwrap_or(global_on_empty);
+            let empty_msg = section
+                .empty_message
+                .as_deref()
+                .or(agenda.empty_message.as_deref());
+
+            let mut section_out = String::new();
+            let is_empty = match section.kind.as_str() {
+                "errors" => render_errors(&store, &home, &mut section_out)?,
+                "tasks" => render_tasks(
+                    &store,
+                    section,
+                    &today,
+                    global_filter.as_deref(),
+                    &mut state,
+                    &mut section_out,
+                )?,
+                "files" => render_files(&state.files, &home, &mut section_out),
+                other => bail!("unknown agenda section kind: {other:?}"),
+            };
+
+            if is_empty && on_empty == "hide" {
+                continue;
+            }
+
             state.out.push('\n');
             state.out.push_str(&format!("== {}\n", section.name));
             state.out.push('\n');
 
-            match section.kind.as_str() {
-                "errors" => render_errors(&store, &home, &mut state.out)?,
-                "tasks" => {
-                    render_tasks(&store, section, &today, global_filter.as_deref(), &mut state)?;
+            if is_empty {
+                if let Some(msg) = empty_msg {
+                    state.out.push_str(msg);
+                    state.out.push('\n');
+                } else {
+                    state.out.push_str(&section_out);
                 }
-                "files" => render_files(&state.files, &home, &mut state.out),
-                other => bail!("unknown agenda section kind: {other:?}"),
+            } else {
+                state.out.push_str(&section_out);
             }
         }
 
@@ -139,48 +170,56 @@ fn expand_filter(filter: Option<&str>, today: &str) -> Option<String> {
     filter.map(|f| f.replace("$today", today))
 }
 
-fn render_errors(store: &impl Store, home: &str, out: &mut String) -> Result<()> {
+/// Render errors section. Returns `true` if the section is empty.
+fn render_errors(store: &impl Store, home: &str, out: &mut String) -> Result<bool> {
     let errors = store
         .list_file_errors()
         .context("failed to list file errors")?;
     if errors.is_empty() {
         out.push_str("No errors.\n");
+        Ok(true)
     } else {
         for e in &errors {
             let path = shorten_home(&e.file_path, home);
             out.push_str(&format!("- `{path}`\n  ```\n  {}\n  ```\n", e.error));
         }
+        Ok(false)
     }
-    Ok(())
 }
 
-fn render_files(files: &BTreeSet<PathBuf>, home: &str, out: &mut String) {
+/// Render files section. Returns `true` if the section is empty.
+fn render_files(files: &BTreeSet<PathBuf>, home: &str, out: &mut String) -> bool {
     if files.is_empty() {
         out.push_str("No files.\n");
+        true
     } else {
         for path in files {
             let short = shorten_home(path, home);
             out.push_str(&format!("- `{short}`\n"));
         }
+        false
     }
 }
 
 /// Combine global and section filters with `&&`.
 fn combine_filters(global: Option<&str>, section: Option<String>) -> Option<String> {
     match (global, section) {
-        (Some(g), Some(s)) => Some(format!("({g}) && ({s})")),
-        (Some(g), None) => Some(g.to_string()),
-        (None, s) => s,
+        (Some(gf), Some(sf)) => Some(format!("({gf}) && ({sf})")),
+        (Some(gf), None) => Some(gf.to_string()),
+        (None, sf) => sf,
     }
 }
 
+/// Render tasks section. Returns `true` if the section is empty.
+#[allow(clippy::too_many_arguments)]
 fn render_tasks(
     store: &impl Store,
     section: &AgendaSection,
     today: &str,
     global_filter: Option<&str>,
     state: &mut AgendaState,
-) -> Result<()> {
+    out: &mut String,
+) -> Result<bool> {
     let done = match section.status.as_deref() {
         Some("done") => Some(true),
         Some("all") => None,
@@ -216,8 +255,8 @@ fn render_tasks(
         if dedup && state.seen.contains(&key) {
             continue;
         }
-        state.out.push_str(&format_task_typst(task));
-        state.out.push('\n');
+        out.push_str(&format_task_typst(task));
+        out.push('\n');
         state.files.insert(task.file_path.clone());
         if dedup {
             state.seen.insert(key);
@@ -225,9 +264,9 @@ fn render_tasks(
         count += 1;
     }
     if count == 0 {
-        state.out.push_str("No tasks.\n");
+        out.push_str("No tasks.\n");
     }
-    Ok(())
+    Ok(count == 0)
 }
 
 fn parse_sort_spec(input: &str) -> Result<SortSpec, String> {

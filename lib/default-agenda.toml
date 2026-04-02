@@ -1,5 +1,6 @@
 [agenda]
 filter = 'miss(start) || start <= "$today"'
+on_empty = "hide"
 
 [[agenda.sections]]
 name = "Errors"
@@ -9,6 +10,8 @@ kind = "errors"
 name = "Overdue"
 filter = 'has(due) && due < "$today"'
 sort = ["due:asc"]
+on_empty = "show"
+empty_message = "Nothing's here, you're great!"
 
 [[agenda.sections]]
 name = "Due Today"

@@ -21,6 +21,10 @@ pub struct Config {
 pub struct AgendaConfig {
     /// Global filter applied to all task sections (AND-ed with each section's filter).
     pub filter: Option<String>,
+    /// Default empty-section behaviour: `"show"` (default) or `"hide"`.
+    pub on_empty: Option<String>,
+    /// Default message shown when a section has no content.
+    pub empty_message: Option<String>,
     #[serde(default)]
     pub sections: Vec<AgendaSection>,
 }
@@ -44,6 +48,10 @@ pub struct AgendaSection {
     /// Deduplicate tasks across sections (default: true).
     /// When true, tasks shown in earlier sections are excluded from this one.
     pub deduplicate: Option<bool>,
+    /// Empty-section behaviour: `"show"` or `"hide"`. Overrides the agenda-level default.
+    pub on_empty: Option<String>,
+    /// Custom message when section is empty. Overrides the agenda-level default.
+    pub empty_message: Option<String>,
 }
 
 fn default_tasks() -> String {
@@ -131,11 +139,19 @@ pub fn merge_configs(configs: impl IntoIterator<Item = Config>) -> Config {
         if let Some(ag) = cfg.agenda {
             let dest = merged.agenda.get_or_insert_with(|| AgendaConfig {
                 filter: None,
+                on_empty: None,
+                empty_message: None,
                 sections: Vec::new(),
             });
             dest.sections.extend(ag.sections);
             if dest.filter.is_none() {
                 dest.filter = ag.filter;
+            }
+            if dest.on_empty.is_none() {
+                dest.on_empty = ag.on_empty;
+            }
+            if dest.empty_message.is_none() {
+                dest.empty_message = ag.empty_message;
             }
         }
         if merged.database.is_none() {
