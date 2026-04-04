@@ -235,19 +235,22 @@ fn render_tasks(
 
     let dedup = section.deduplicate.unwrap_or(true);
     let mut count = 0;
+    let mut last_file: Option<PathBuf> = None;
     for task in &tasks {
         let key = task_key(task);
         if dedup && state.seen.contains(&key) {
             continue;
         }
+        if last_file.as_ref() != Some(&task.file_path) {
+            let file_label = shorten_home(&task.file_path, home);
+            if file_label.contains(' ') {
+                out.push_str(&format!("// \"{file_label}\"\n"));
+            } else {
+                out.push_str(&format!("// {file_label}\n"));
+            }
+            last_file = Some(task.file_path.clone());
+        }
         out.push_str(&format_task_typst(task));
-        let file_label = shorten_home(&task.file_path, home);
-        let path_display = if file_label.contains(' ') {
-            format!(" // \"{file_label}\"")
-        } else {
-            format!(" // {file_label}")
-        };
-        out.push_str(&path_display);
         out.push('\n');
         if dedup {
             state.seen.insert(key);

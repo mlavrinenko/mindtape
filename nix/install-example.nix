@@ -14,10 +14,10 @@
 
   services.mindtape = {
     enable = true;
-    user = "tank";
+    user = "alpha";
     group = "users";
     watchPaths = [
-      { path = "/home/tank/notes"; }
+      { path = "/home/user/notes"; }
     ];
   };
 }
