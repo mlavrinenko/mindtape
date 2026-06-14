@@ -1,3 +1,5 @@
 /.direnv
 /build
 /target
+# Reference clones for research (typst, tinymist, mephistypsteles, ...)
+/var
