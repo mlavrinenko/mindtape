@@ -1,0 +1,26 @@
+# .mindtape/config.toml — per-project MindTape configuration.
+# White-listed: MindTape constrains only what is declared here. Omit a section
+# to accept the defaults and the prelude's full status shortcut set.
+
+[tasks]
+# Directories (relative to this file's project root) holding one task per file.
+roots = ["tasks"]
+
+[tasks.status]
+# Legal status names, in lifecycle order. Omit to accept any name.
+values = ["proposed", "accepted", "wip", "done", "cancelled", "failed"]
+# Subset that ends a task; required fields are not enforced once terminal.
+terminal = ["done", "cancelled", "failed"]
+
+# Configurable core fields. `required` is true | false | "non-terminal".
+[tasks.fields.priority]
+values = ["low", "normal", "high"]
+required = "non-terminal"
+
+[tasks.fields.estimate-hours]
+type = "number"
+min = 0
+
+[query]
+# Filter applied by `mindtape list` when the caller passes none.
+default_filter = "status != \"done\""

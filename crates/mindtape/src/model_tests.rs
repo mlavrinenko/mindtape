@@ -1,0 +1,102 @@
+#![allow(clippy::unwrap_used)]
+
+use std::collections::BTreeMap;
+
+use typst_harvest::HVal;
+
+use super::{Status, Task, normalize_link};
+
+fn dict(pairs: Vec<(&str, HVal)>) -> HVal {
+    HVal::Dict(
+        pairs
+            .into_iter()
+            .map(|(key, value)| (key.to_owned(), value))
+            .collect::<BTreeMap<_, _>>(),
+    )
+}
+
+#[test]
+fn from_marker_reads_core_fields() {
+    let status = dict(vec![
+        ("name", HVal::Str("wip".to_owned())),
+        ("date", HVal::Date("2026-06-14".to_owned())),
+        ("note", HVal::Null),
+    ]);
+    let fields = dict(vec![
+        ("title", HVal::Str("Build".to_owned())),
+        ("status", status),
+        ("priority", HVal::Str("high".to_owned())),
+        ("estimate-hours", HVal::Int(8)),
+        (
+            "relates-to",
+            HVal::Array(vec![HVal::Str("other.task-260101.typ".to_owned())]),
+        ),
+        ("tags", HVal::Array(vec![HVal::Str("backend".to_owned())])),
+    ]);
+    let marker = dict(vec![
+        ("marker", HVal::Str("mindtape.task".to_owned())),
+        ("fields", fields),
+        (
+            "extras",
+            dict(vec![("x-speconaut", HVal::Str("opaque".to_owned()))]),
+        ),
+    ]);
+
+    let task = Task::from_marker("build".to_owned(), "tasks/build.typ".into(), &marker);
+    assert_eq!(task.id, "build");
+    assert_eq!(task.title, "Build");
+    assert_eq!(task.status.as_ref().unwrap().name, "wip");
+    assert_eq!(
+        task.status.as_ref().unwrap().date.as_deref(),
+        Some("2026-06-14")
+    );
+    assert_eq!(task.priority.as_deref(), Some("high"));
+    assert_eq!(task.estimate_hours, Some(8.0));
+    assert_eq!(task.relates_to, vec!["other.task-260101".to_owned()]);
+    assert_eq!(task.tags, vec!["backend".to_owned()]);
+    assert!(task.extras.contains_key("x-speconaut"));
+}
+
+#[test]
+fn from_marker_tolerates_missing_fields() {
+    let marker = dict(vec![("marker", HVal::Str("mindtape.task".to_owned()))]);
+    let task = Task::from_marker("x".to_owned(), "x.typ".into(), &marker);
+    assert_eq!(task.title, "");
+    assert!(task.status.is_none());
+    assert!(task.tags.is_empty());
+}
+
+#[test]
+fn normalize_link_strips_path_and_extension() {
+    assert_eq!(
+        normalize_link("../tasks/foo.task-260101.typ"),
+        "foo.task-260101"
+    );
+    assert_eq!(normalize_link("bar"), "bar");
+}
+
+#[test]
+fn is_terminal_matches_set() {
+    let task = Task {
+        id: "t".to_owned(),
+        file: "t.typ".into(),
+        title: String::new(),
+        status: Some(Status {
+            name: "done".to_owned(),
+            date: None,
+            note: None,
+        }),
+        priority: None,
+        grade: None,
+        kind: None,
+        estimate_hours: None,
+        depends_on: Vec::new(),
+        relates_to: Vec::new(),
+        tags: Vec::new(),
+        due: None,
+        start: None,
+        extras: BTreeMap::new(),
+    };
+    assert!(task.is_terminal(&["done".to_owned()]));
+    assert!(!task.is_terminal(&["cancelled".to_owned()]));
+}

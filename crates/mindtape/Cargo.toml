@@ -1,0 +1,23 @@
+[package]
+name = "mindtape"
+description = "A file-based task tracker using per-file Typst artifacts as the source of truth"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords = ["typst", "task-tracker", "productivity"]
+categories = ["development-tools"]
+
+[dependencies]
+typst-harvest = { path = "../typst-harvest", version = "0.4.0" }
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+thiserror = "2"
+evalexpr = "12"
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

@@ -1,0 +1,104 @@
+#![allow(clippy::unwrap_used)]
+
+use std::collections::BTreeMap;
+
+use super::Filter;
+use crate::model::{Status, Task};
+
+fn sample() -> Task {
+    Task {
+        id: "add-auth".to_owned(),
+        file: "tasks/add-auth.typ".into(),
+        title: "Add Auth".to_owned(),
+        status: Some(Status {
+            name: "wip".to_owned(),
+            date: Some("2026-06-14".to_owned()),
+            note: None,
+        }),
+        priority: Some("high".to_owned()),
+        grade: Some("senior".to_owned()),
+        kind: Some("feature".to_owned()),
+        estimate_hours: Some(8.0),
+        depends_on: Vec::new(),
+        relates_to: vec!["other".to_owned()],
+        tags: vec!["backend".to_owned()],
+        due: Some("2026-07-01".to_owned()),
+        start: None,
+        extras: BTreeMap::new(),
+    }
+}
+
+fn hit(expr: &str, task: &Task) -> bool {
+    Filter::parse(expr).unwrap().matches(task).unwrap()
+}
+
+#[test]
+fn equality_and_inequality() {
+    let task = sample();
+    assert!(hit("status == \"wip\"", &task));
+    assert!(!hit("status == \"done\"", &task));
+    assert!(hit("status != \"done\"", &task));
+    assert!(hit("priority == \"high\"", &task));
+}
+
+#[test]
+fn numeric_comparison() {
+    let task = sample();
+    assert!(hit("estimate_hours > 4", &task));
+    assert!(hit("estimate_hours >= 8", &task));
+    assert!(!hit("estimate_hours < 4", &task));
+}
+
+#[test]
+fn date_string_comparison() {
+    let task = sample();
+    assert!(hit("due < \"2026-08-01\"", &task));
+    assert!(!hit("due > \"2026-08-01\"", &task));
+}
+
+#[test]
+fn presence_functions() {
+    let task = sample();
+    assert!(hit("has(due)", &task));
+    assert!(hit("miss(start)", &task));
+    assert!(!hit("has(start)", &task));
+    assert!(hit("has(tags)", &task));
+    assert!(hit("has(relates_to)", &task));
+}
+
+#[test]
+fn tag_and_text_functions() {
+    let task = sample();
+    assert!(hit("has_tag(\"backend\")", &task));
+    assert!(!hit("has_tag(\"frontend\")", &task));
+    assert!(hit("contains(title, \"auth\")", &task)); // case-insensitive
+    assert!(hit("search(\"AUTH\")", &task));
+}
+
+#[test]
+fn boolean_combinators() {
+    let task = sample();
+    assert!(hit("priority == \"high\" && status != \"done\"", &task));
+    assert!(hit("status == \"done\" || has_tag(\"backend\")", &task));
+    assert!(hit("!has(start)", &task));
+}
+
+#[test]
+fn missing_field_inequality_is_true() {
+    let mut task = sample();
+    task.status = None;
+    assert!(hit("status != \"done\"", &task));
+    assert!(!hit("status == \"done\"", &task));
+}
+
+#[test]
+fn unknown_field_errors() {
+    let task = sample();
+    let result = Filter::parse("bogus == \"x\"").unwrap().matches(&task);
+    assert!(result.is_err());
+}
+
+#[test]
+fn parse_error_surfaces() {
+    assert!(Filter::parse("(status == \"x\"").is_err());
+}
