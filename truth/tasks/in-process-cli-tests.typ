@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Add in-process CLI tests to harden coverage",
-  status: proposed(2026, 6, 14),
+  status: done(2026, 6, 14),
   priority: "normal",
   estimate-hours: 4,
   tags: ("tests", "cli"),
