@@ -7,7 +7,7 @@ groups:
       crates/mindtape/src/lib.rs: 34fbceae2c4ca340143ee6cdd9d67c9a5e420099aee6cdd4a937408b5cb79c38
     dependents:
       README.md: b5ec9a8badf4c1974d4f60251fe36eb9439e39726fc814e97354d88f45637746
-      www/index.html: f523191dff4f1d2b30b6da5bd1aeda56effd695ccfbbd8d04521e7cbafa72f59
+      www/index.html: b77f980253b2b658c6f8219c01769c6f9ba3150977d04e45aa01217b5e855d35
   dev-docs:
     source:
       Justfile: eb2e62e59a607034ce037734922ef3370dc4cde4d499ca8d57bee1ca96e9bbd1
