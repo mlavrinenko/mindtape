@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`typst-cst` crate** — package-agnostic parse-plane structure extraction:
+  the heading tree (depth, text, source span) parsed via `typst-syntax`, with no
+  eval, World, or IO. A consumer-blind substrate for gating document structure.
+
 ## [0.4.0] - 2026-06-14
 
 Per-file rewrite. See `docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md`.

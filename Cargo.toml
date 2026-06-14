@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/typst-harvest",
+    "crates/typst-cst",
     "crates/mindtape",
     "crates/mindtape-cli",
 ]

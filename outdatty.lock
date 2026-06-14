@@ -13,16 +13,16 @@ groups:
       Justfile: eb2e62e59a607034ce037734922ef3370dc4cde4d499ca8d57bee1ca96e9bbd1
       flake.nix: d317e85c14f3c5fedaa0fa9904d9a4d70ce2a5870f8202f4b3976633d33651f1
     dependents:
-      AGENT.md: 92176ca02a0cc85b372ef1a221ed6c3631f34792906149c8375c279eddba62f5
-      CONTRIBUTING.md: 67922f16fc35eab6f68bffc07a4660b2b54f951f0c85ee59111d9f78d31be539
+      AGENT.md: 17a2859b3985f511c62f053b2e88f1ef7ffe85866ae5fc9002c4e4288b0faa61
+      CONTRIBUTING.md: 532737c21055c017228ac0731bd6bd9f27b5c11c42fffc1a8b5ec975362a7d67
   prelude-docs:
     source:
       lib/prelude.typ: c014e6f35779d7766b402d5cab7829c45bde95cea653de03577e95f5a130cafe
     dependents:
-      AGENT.md: 92176ca02a0cc85b372ef1a221ed6c3631f34792906149c8375c279eddba62f5
+      AGENT.md: 17a2859b3985f511c62f053b2e88f1ef7ffe85866ae5fc9002c4e4288b0faa61
       README.md: b5ec9a8badf4c1974d4f60251fe36eb9439e39726fc814e97354d88f45637746
   release-notes:
     source:
-      Cargo.toml: 5a46f4ef127866f384115e975440a81fd7d2274992d6efbc1260ff3b38d59cb4
+      Cargo.toml: 158e897b0a63de168183b3081e810a947fcd2935fa99fb209ad38897b982b2f2
     dependents:
-      CHANGELOG.md: 53e29f7bd3e2b610e4a7bed102c94259e2d756af5629dd0bd9ec14649a75a4be
+      CHANGELOG.md: 670b8781aa3581e382199cf9a113653dfd724f590dc22ecec485f9ea8d01a92a
