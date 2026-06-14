@@ -7,13 +7,17 @@ on:
 permissions:
   contents: write
 
+# Rustup-based jobs run cargo without the dev shell, so disable the sccache
+# rustc-wrapper that .cargo/config.toml sets for local/Nix builds.
+env:
+  RUSTC_WRAPPER: ""
+
 jobs:
   version-check:
-    name: Verify tag matches Cargo.toml
+    name: Verify tag matches workspace version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Check version consistency
         run: |
           TAG="${GITHUB_REF_NAME#v}"
@@ -22,7 +26,7 @@ jobs:
             echo "::error::Tag v${TAG} does not match workspace version ${CARGO} in Cargo.toml"
             exit 1
           fi
-          echo "✓ Tag v${TAG} matches Cargo.toml version ${CARGO}"
+          echo "Tag v${TAG} matches workspace version ${CARGO}"
 
   check:
     name: Check
@@ -30,17 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-
-      - uses: Swatinem/rust-cache@v2
-
-      - uses: extractions/setup-just@v2
-
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
       - name: Check
-        run: just check
+        run: nix develop --command just check
 
   build:
     name: Build (${{ matrix.target }})
@@ -57,35 +53,24 @@ jobs:
             os: macos-latest
           - target: aarch64-apple-darwin
             os: macos-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ matrix.target }}
-
-      - name: Ensure target is installed
-        run: rustup target add ${{ matrix.target }}
-
       - name: Install cross-compilation tools
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
-
       - name: Build release binary
-        run: cargo build --release --target ${{ matrix.target }}
-
+        run: cargo build --release --target ${{ matrix.target }} -p mindtape-cli
       - name: Rename binary
-        run: |
-          cp target/${{ matrix.target }}/release/mindtape mindtape-${{ matrix.target }}
-
+        run: cp target/${{ matrix.target }}/release/mindtape mindtape-${{ matrix.target }}
       - uses: actions/upload-artifact@v4
         with:
           name: mindtape-${{ matrix.target }}
@@ -93,34 +78,26 @@ jobs:
 
   publish:
     name: Publish to crates.io
-    needs: check
+    needs: build
     runs-on: ubuntu-latest
     environment: crates-io
     steps:
       - uses: actions/checkout@v4
-
       - uses: dtolnay/rust-toolchain@stable
-
       - uses: Swatinem/rust-cache@v2
-
-      - name: Publish mindtape-eval
-        run: cargo publish -p mindtape-eval
+      # Publish in dependency order; pause for the crates.io index to settle.
+      - name: Publish typst-harvest
+        run: cargo publish -p typst-harvest --locked
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-      - name: Wait for crates.io index
-        run: sleep 30
-
-      - name: Publish mindtape-store
-        run: cargo publish -p mindtape-store
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-      - name: Wait for crates.io index
-        run: sleep 30
-
+      - run: sleep 30
       - name: Publish mindtape
-        run: cargo publish -p mindtape
+        run: cargo publish -p mindtape --locked
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - run: sleep 30
+      - name: Publish mindtape-cli
+        run: cargo publish -p mindtape-cli --locked
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -132,7 +109,6 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

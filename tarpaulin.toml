@@ -1,8 +1,11 @@
 [test_config]
-name = "mindtape"
 workspace = true
 skip-clean = true
+exclude-files = ["crates/mindtape-cli/src/main.rs"]
 
 [report]
 fail-under = 70
 output-dir = "target/coverage"
+# Stdout keeps the local summary; Lcov writes target/coverage/lcov.info for
+# `just crap` (CRAP metric gate) to consume.
+out = ["Stdout", "Lcov"]

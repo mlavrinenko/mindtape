@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mlavrinenko/outdatty/main/schema/outdatty.schema.json
+
+# Declares which dependents must be re-confirmed when a source changes. After
+# editing a source, review the dependents and run `just outdatty-update` to
+# record the new state; `just outdatty-check` (part of `just check`) fails until
+# you do.
+groups:
+  # The CLI surface (commands, flags, behaviour) is documented by hand.
+  - name: cli-docs
+    source:
+      - crates/mindtape-cli/src/cli.rs
+      - crates/mindtape/src/lib.rs
+    dependents:
+      - README.md
+      - www/index.html
+
+  # A package change (version, dependencies, metadata) should land in the changelog.
+  - name: release-notes
+    source:
+      - Cargo.toml
+    dependents:
+      - CHANGELOG.md
+
+  # The Typst task DSL is mirrored in the docs and the CLI's embedded copy.
+  - name: prelude-docs
+    source:
+      - lib/prelude.typ
+    dependents:
+      - README.md
+      - AGENT.md
+
+  # Dev tooling and contributor conventions track the files that define them.
+  - name: dev-docs
+    source:
+      - flake.nix
+      - Justfile
+    dependents:
+      - CONTRIBUTING.md
+      - AGENT.md

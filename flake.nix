@@ -1,6 +1,18 @@
 {
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
+    ejectest = {
+      url = "github:mlavrinenko/ejectest";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    linecop = {
+      url = "github:mlavrinenko/linecop";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    outdatty = {
+      url = "github:mlavrinenko/outdatty";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     naersk = {
       url = "github:nix-community/naersk";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -10,8 +22,10 @@
 
   outputs =
     {
-      self,
+      ejectest,
       flake-utils,
+      linecop,
+      outdatty,
       naersk,
       nixpkgs,
       ...
@@ -19,9 +33,7 @@
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = (import nixpkgs) {
-          inherit system;
-        };
+        pkgs = (import nixpkgs) { inherit system; };
 
         naersk' = pkgs.callPackage naersk { };
 
@@ -29,38 +41,38 @@
         version = cargoToml.workspace.package.version;
       in
       {
-        # For `nix build` & `nix run`:
+        # For `nix build` & `nix run` (produces the `mindtape` binary):
         packages.default = naersk'.buildPackage {
           src = ./.;
           inherit version;
-          doCheck = true;
+          doCheck = false;
         };
 
         # For `nix develop`:
         devShells.default = pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [
-            rustc
-            cargo
-            cargo-tarpaulin openssl
-            clippy
-            rustfmt
-            just
-            tinymist
-            typst
-            typstyle
-            nixd
-            rust-analyzer
-            tokei
-          ];
-          buildInputs = with pkgs; [
-            openssl
-          ];
+          nativeBuildInputs =
+            [
+              ejectest.packages.${system}.default
+              linecop.packages.${system}.default
+              outdatty.packages.${system}.default
+            ]
+            ++ (with pkgs; [
+              rustc
+              cargo
+              cargo-machete
+              cargo-tarpaulin
+              clippy
+              rustfmt
+              just
+              moreutils
+              nixd
+              rust-analyzer
+              sccache
+              typst
+              typstyle
+            ]);
+          buildInputs = with pkgs; [ openssl ];
         };
       }
-    )
-    //
-    {
-      nixosModules.default = import ./nix/module.nix self;
-      nixosModules.mindtape = import ./nix/module.nix self;
-    };
+    );
 }
