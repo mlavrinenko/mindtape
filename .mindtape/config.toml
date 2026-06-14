@@ -22,7 +22,7 @@ min = 0
 
 [tasks.tags]
 # Area labels for the backlog. Empty would accept any tag.
-allowed = ["substrate", "speconaut", "cli", "tests", "www", "docs", "tooling"]
+allowed = ["substrate", "speconaut", "cli", "tests", "www", "docs", "tooling", "gating"]
 
 [query]
 # `mindtape list` hides finished work unless `--all` is passed.
