@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-06-14
+
+Per-file rewrite. See `docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md`.
+
+### Added
+
+- **Per-file task model** — one task per file via `#show: task.with(...)`, with
+  a `(name, date, note)` status, configurable enum/number core fields, task
+  links, tags, and an `x-<ns>` extension seam for downstream tools
+- **`typst-harvest` crate** — a package-agnostic, eval-only Typst World plus
+  labelled-metadata-marker harvesting; a reusable substrate for file-based tools
+- **`.mindtape/config.toml`** — per-project status lifecycle, enum/number field
+  constraints (required-unless-terminal, bounds), tag allow-list, default filter
+- **`mindtape check`** — config-driven validation incl. link resolution
+- **`mindtape init`** — installs the Typst library and scaffolds project config
+- Dev tooling: parallel `just check`, sccache, cargo-machete, linecop, outdatty
+
+### Changed
+
+- Split into a three-crate workspace: `typst-harvest`, `mindtape` (library),
+  `mindtape-cli` (binary). The filter language now runs over live-evaluated
+  tasks instead of SQL
+- Typst library bumped to 0.2.0 (new task DSL; breaking)
+
+### Removed
+
+- The `watch` daemon, the SQLite index, the `mindtape-store` crate,
+  eval-hash skipping, the global cross-project agenda, inline checkbox markers
+  and `#id()` identity, and the NixOS service module
+
 ## [0.3.0] - 2026-03-23
 
 ### Added

@@ -2,73 +2,81 @@
 
 ## What is this?
 
-A file-based task tracker that uses Typst (`.typ`) files as the source of truth.
-Watches folders, evaluates Typst files via the compiler crates, indexes tasks
-and metadata into SQLite, and exposes a CLI for querying.
+A daemon-free, file-based task tracker. Tasks are one-per-file Typst artifacts
+(`#show: task.with(...)`). MindTape live-evaluates the configured roots on every
+command via the Typst compiler crates — no watch daemon, no SQLite, no global
+index. Identity is the filename stem.
 
-**Repository**: https://github.com/mlavrinenko/mindtape
+Repository: https://github.com/mlavrinenko/mindtape
 
 ## Key Docs
 
-- `CONTRIBUTING.md` — workflow, commit style, testing, quality standards
-- `crates/mindtape-eval/AGENT.md` — eval crate architecture and technical notes
-- `crates/mindtape-store/AGENT.md` — store crate architecture and schema procedures
-- `docs/decisions/` — Architecture Decision Records (ADRs)
+- `CONTRIBUTING.md` — workflow, commit style, testing, quality gates
+- `docs/decisions/` — Architecture Decision Records (ADRs); 002 is the rewrite
+- `docs/redesign/` — the redesign brief and DSL shape probe (historical)
+- `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
+
+## Workspace
+
+Three crates (`cargo` workspace, virtual root manifest):
+
+- `crates/typst-harvest` — package-agnostic eval-only Typst World + metadata
+  marker harvesting. Destined to become its own repository; keep it
+  consumer-blind (it knows nothing about tasks).
+- `crates/mindtape` — domain library: config, task model, filter language,
+  validation, project loader. Other tools (e.g. speconaut) depend on this.
+- `crates/mindtape-cli` — the thin `mindtape` binary (clap).
 
 ## Tech Stack
 
-- **Language**: Rust (workspace: `mindtape-eval` <- `mindtape-store` <- `mindtape`)
-- **Build**: Nix flake + `just` task runner
-- **Typst**: `typst`, `typst-eval`, `typst-library`, `typst-syntax` (0.14), `comemo` (0.5)
-- **Database**: SQLite via `rusqlite` (behind a `Store` trait)
-- **CLI**: `clap` 4 (derive), `serde_json` for `--json` output
-- **Logging**: `log` 0.4 + `env_logger` 0.11
+- Rust (edition 2024, pinned `rust-toolchain.toml`)
+- Typst 0.14 eval-only (`typst-eval`); never layout or render
+- `evalexpr` 12 as a parser for the filter language (walked, not evaluated by it)
+- `clap` 4 CLI; `serde`/`toml` config; `comfy-table`/`serde_json`/`csv` output
+- Nix flake + `just`; dev tools: sccache, cargo-machete, linecop, outdatty,
+  ejectest, cargo-tarpaulin
 
 ## Agent Rules
 
-1. Use `just` recipes instead of raw cargo commands (see `Justfile`)
-2. After any code changes, run `just check` and fix all warnings
-3. Keep files small: Rust ≤500 lines, Markdown ≤200 lines (enforced by `just check-file-size`)
-4. After completing a task, suggest a conventional commit message
-5. Follow patterns in `CONTRIBUTING.md` for new CLI commands and store methods
-6. When making an architectural or tooling decision, record it in `docs/decisions/`
-   as an ADR using the next sequential number (e.g. `002-topic.md`). Each ADR
-   must include: Status, Date, Context (the problem and why it matters),
-   Decision (what we chose and why), Consequences (trade-offs and follow-up),
-   and Deprecation Criteria (when this ADR can be safely dropped)
+1. Use `just` recipes, not raw cargo (see `Justfile`). `just check` before done.
+2. After code changes, `just check` must pass (fmt, clippy `-D warnings`, tests,
+   machete, file-size, outdatty drift). Apply `cargo fmt` first.
+3. File size: Rust ≤500 lines, Markdown ≤200 (enforced by `linecop`). Split up
+   front; `just fix-check` ejects oversized inline tests via `ejectest`.
+4. When `outdatty` reports drift, update the listed dependents, then
+   `just outdatty-update` and commit `outdatty.lock`.
+5. Record architectural/tooling decisions as an ADR in `docs/decisions/` using
+   the next number. Include Status, Date, Context, Decision, Consequences,
+   Deprecation Criteria.
+6. Commits: Conventional Commits; footer `Refs: docs/decisions/00N-<slug>.md`
+   (or the driving task). Match prior commit language.
+
+## Task DSL (lib/prelude.typ)
+
+```typ
+#import "@local/mindtape:0.2.0": *
+#show: task.with(
+  title: "Title",
+  status: wip(2026, 6, 14),         // (name, date, note) dict
+  priority: "high",                  // configurable enum
+  estimate-hours: 8,
+  depends-on: (link("other.typ"),),  // task↔task links by file stem
+  tags: ("backend",),
+  x-speconaut: ...,                  // opaque extension slot (x-<ns>)
+)
+```
+
+The prelude enforces structure only (one task, the `x-<ns>` discipline). The
+Rust layer enforces config-driven enums / required-unless-terminal / bounds /
+link resolution. Consumers validate their own `x-<ns>` fields.
 
 ## Version Management
 
-- **CLI version**: `Cargo.toml` `[package] version` — standard Cargo semver
-- **Typst library version**: `lib/typst.toml` `[package] version` — independent semver
-- `build.rs` reads the Typst library version from `lib/typst.toml` at compile time
-  and exposes it as `TYPST_PACKAGE_VERSION` (via `env!()` in `src/lib.rs`)
-- When bumping the Typst library version, also update import examples in
-  `README.md`, `www/index.html`, and `AGENT.md`
-
-## Architecture Principles
-
-- Typst files are always the source of truth — the database is a derived index
-- Evaluation-only: we use `typst_eval::eval()`, never layout or render
-- Anti-corruption layer: `Store` trait abstracts the database
-- Workspace with focused crates; root crate is the CLI binary
-- All pure logic is testable; main.rs is a thin CLI wrapper
-
-## Task Format (Typst Convention)
-
-```typ
-#import "@local/mindtape:0.1.0": due, start, id, tag, rank, high, medium, low
-
-= Milestone Title
-
-- [ ] task text #due(2026, 3, 1) #id("uuid") #tag("category")
-- [ ] upcoming task #start(2026, 2, 1) #due(2026, 3, 1) #high #id("uuid2")
-- [ ] minor fix #low #id("uuid3")
-- [x] completed task
-```
+- Workspace crates: `Cargo.toml` `[workspace.package] version` (semver)
+- Typst library: `lib/typst.toml` `version` (independent). On bump, update the
+  `TYPST_PKG_VERSION` const in `crates/mindtape-cli/src/init.rs` and the import
+  examples in `README.md`, `www/index.html`, and this file.
 
 ## Context Hygiene
 
-- Keep CLAUDE.md under 200 lines — it's auto-loaded every session
-- Don't duplicate content across docs — reference instead
-- Archive completed research to `archive/research/`
+- Keep agent-facing docs under 200 lines; reference instead of duplicating.

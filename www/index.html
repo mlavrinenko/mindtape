@@ -592,7 +592,7 @@
       <button class="fm-tab" data-target="fm-infra-k8s">infra/k8s.typ</button>
     </div>
     <div id="fm-api" class="fm-panel active">
-      <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
+      <pre><code class="language-typst">#import "@local/mindtape:0.2.0": *
 
 = Sprint 14
 
@@ -604,7 +604,7 @@
 - [ ] Review pull requests #low #tag("team") #id("32dlnBwdncY9gNmZ1lJ7L")</code></pre>
     </div>
     <div id="fm-frontend" class="fm-panel">
-      <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
+      <pre><code class="language-typst">#import "@local/mindtape:0.2.0": *
 
 = UI Polish
 
@@ -616,7 +616,7 @@
 - [ ] Update component library #due(2026, 3, 20) #medium #tag("frontend") #id("32dlnDoRTcl7LNcUjI4xF")</code></pre>
     </div>
     <div id="fm-infra" class="fm-panel">
-      <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
+      <pre><code class="language-typst">#import "@local/mindtape:0.2.0": *
 
 = Deployment
 
@@ -626,7 +626,7 @@
 - [x] Automate backup rotation #tag("ops") #id("32dlous4FQvFeZhp6iLz2")</code></pre>
     </div>
     <div id="fm-infra-k8s" class="fm-panel">
-      <pre><code class="language-typst">#import "@local/mindtape:0.1.0": *
+      <pre><code class="language-typst">#import "@local/mindtape:0.2.0": *
 
 = Kubernetes
 
@@ -696,12 +696,12 @@
       <p>Define tasks right where your project lives. Use tags, due dates, priorities &mdash; all in plain Typst.</p>
     </div>
     <div class="step">
-      <h3>MindTape watches &amp; indexes</h3>
-      <p>A background watcher evaluates your files and indexes everything into a fast SQLite database.</p>
+      <h3>MindTape evaluates live</h3>
+      <p>No daemon, no database. Each command re-evaluates your task files with the Typst compiler, project-wise.</p>
     </div>
     <div class="step">
-      <h3>Query &amp; modify via CLI</h3>
-      <p>Filter by tag, date, rank. Output as table, JSON, CSV, or Typst. Check off tasks from the terminal.</p>
+      <h3>Query &amp; validate via CLI</h3>
+      <p>Filter with an expression language. Output as table, JSON, or CSV. Validate every task against your project config.</p>
     </div>
   </div>
 </section>
@@ -787,8 +787,8 @@
     <div class="feature">
       <div class="feature-icon">&#x2744;&#xFE0F;</div>
       <div>
-        <h3>NixOS Module</h3>
-        <p>Declarative setup as a systemd service with a Nix flake.</p>
+        <h3>Reproducible</h3>
+        <p>A Nix flake pins the whole toolchain; CI and your shell run the exact same checks.</p>
       </div>
     </div>
   </div>
@@ -815,21 +815,11 @@
   </div>
 
   <div id="tab-nix" class="install-panel active">
-    <pre><code class="language-nix"># flake.nix inputs:
-mindtape.url = "github:mlavrinenko/mindtape";
-mindtape.inputs.nixpkgs.follows = "nixpkgs";
+    <pre><code class="language-bash"># Run straight from the flake:
+nix run github:mlavrinenko/mindtape -- --help
 
-# NixOS configuration:
-imports = [ mindtape.nixosModules.default ];
-
-services.mindtape = {
-  enable = true;
-  user = "youruser";
-  group = "users";
-  watchPaths = [
-    { path = "/home/youruser/projects"; }
-  ];
-};</code></pre>
+# Or enter the dev shell to hack on it:
+nix develop github:mlavrinenko/mindtape</code></pre>
   </div>
 
   <div id="tab-source" class="install-panel">

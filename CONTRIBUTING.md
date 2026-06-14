@@ -5,103 +5,75 @@
 ```bash
 git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape
-nix develop
-# then fix something
-# then make sure it's fine:
-just check
+nix develop          # dev shell with the full toolchain
+just check           # run before every commit
 ```
 
-## Common Commands
+Use `just` recipes instead of raw `cargo` — they carry the right flags and
+environment. `just` (no args) lists them.
 
-| Command | Purpose |
-|---------|---------|
-| `just check` | Clippy + tests + file size check (run before committing) |
-| `just test` | Run tests only |
-| `just clippy` | Clippy only |
-| `just clippy-fix` | Auto-apply clippy suggestions |
-| `just build` | Build the project |
-| `just fmt` | Format code |
-| `just cover` | Coverage report via cargo tarpaulin |
-| `just count-tests` | Count total tests across workspace |
+## Code Style
 
-Use `just` recipes instead of raw `cargo` — they handle flags and environment setup.
+All clippy lints are `deny` (workspace `Cargo.toml`); the project will not build
+with violations. Key restrictions:
 
-## Code Quality
+- No `unwrap()`/`expect()` outside tests — use `?` with `anyhow`/`thiserror`
+- No `todo!()`/`unimplemented!()`/`unreachable!()`/`unsafe`/wildcard imports
+- Functions: ≤70 lines, ≤5 args, cognitive complexity ≤20
 
-### File Size Limits (enforced by `just check-file-size`)
+## Error Handling
 
-- Rust files: **500 lines** max
-- Markdown files: **200 lines** max
-
-If a file exceeds the limit, refactor by extracting modules or splitting content.
-
-### Clippy
-
-All warnings must be fixed. Run `just clippy-fix` for mechanical fixes.
+- `anyhow::Result` for application code (the CLI)
+- `thiserror::Error` for library error types callers match on
+  (`HarvestError`, `ConfigError`, `FilterError`)
+- Keep `main.rs` a thin entry point; logic lives in library modules
 
 ## Testing
 
-Coverage target is configured in `tarpaulin.toml`.
+- Unit tests inline in `#[cfg(test)] mod tests` (or a sibling `_tests.rs` via
+  `#[path]`) next to the code they exercise.
+- As a file nears the linecop limit, `just fix-check` ejects its inline tests
+  into a `_tests.rs` sibling with [ejectest](https://github.com/mlavrinenko/ejectest).
+- Run `just test`; count with `just count-tests`.
 
-### Running Tests
+## Quality Gates (run by `just check`)
 
-```bash
-just check          # clippy + all tests (preferred)
-just test           # tests only
-just cover          # coverage report via cargo tarpaulin
-just count-tests    # show current test count
-```
+| Gate | Tool |
+|------|------|
+| Format | `cargo fmt --check` |
+| Lints | `cargo clippy --all-targets -D warnings` |
+| Tests | `cargo test --workspace` |
+| Unused deps | `cargo machete` |
+| File size | `linecop` (Rust 500, Markdown 200) |
+| Doc drift | `outdatty check` |
 
-### Test Organization
+Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-tarpaulin`.
+`main.rs` is excluded — keep it thin.
 
-**Unit tests** (`#[cfg(test)] mod tests` in source files) — test pure functions
-with no I/O where possible.
+## Dependency Drift (outdatty)
 
-**Integration tests** (`tests/` directory) — test the full pipeline end-to-end
-with temporary files and databases. Shared setup lives in `tests/common.rs`.
-
-### Writing Good Tests
-
-- Test behavior, not implementation details
-- Name tests descriptively: `test_<function>_<scenario>`
-- Test edge cases: empty input, missing fields, boundary values
-- Use `assert_eq!` for value comparisons (better failure messages)
-- Use shared helpers from `tests/common.rs` for integration tests
+[`outdatty.yaml`](outdatty.yaml) couples source files to the dependents that must
+stay in sync (e.g. the CLI surface to `README.md`). After editing a source,
+review the listed dependents, update them, then run `just outdatty-update` to
+record the new state into `outdatty.lock` and commit it.
 
 ## Commit Messages
 
-[Conventional Commits](https://www.conventionalcommits.org/):
+[Conventional Commits](https://www.conventionalcommits.org/). Match the language
+of prior commits. Footer with a task reference:
 
 ```
-feat: add --sort support to list command
-fix: handle missing task IDs in write-back
-refactor: extract property-building helper
-docs: update store design doc
+feat(filter): evaluate expressions over live tasks
+
+Refs: docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md
 ```
 
-Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`
+Use `Refs:` to point at the driving ADR (`docs/decisions/00N-<slug>.md`) or task.
 
 ## Extending MindTape
 
-### CLI Commands
-
-New commands go in `src/cli/commands/<name>.rs`:
-
-1. Define an args struct with `#[derive(Parser)]`
-2. Add a `run(&self) -> Result<()>` method
-3. Add the command to `Command` enum in `src/cli/mod.rs`
-4. Match the command in `main.rs`
-
-See `src/cli/commands/list.rs` for a reference implementation.
-
-### Store Methods
-
-1. Add domain types to `crates/mindtape-store/src/store/mod.rs`
-2. Add method to the `Store` trait
-3. Implement in `SqliteStore` (`sqlite.rs`)
-4. Add tests, export types from `lib.rs`
-
-### Schema Changes
-
-MindTape uses drop-and-recreate (the DB is a derived cache). See
-`crates/mindtape-store/AGENT.md` for schema details and the migration procedure.
+- New CLI command: add `crates/mindtape-cli/src/<name>.rs` with an `Args` struct
+  and a `run` fn; wire it into `cli.rs`. See `list.rs` for reference.
+- New domain capability: add to `crates/mindtape` and re-export from its
+  `lib.rs`. Keep `typst-harvest` consumer-blind — no task concepts there.
+- Architectural/tooling decisions: record an ADR in `docs/decisions/`.

@@ -1,0 +1,43 @@
+# .mindtape/config.toml — per-project MindTape configuration (redesign prototype).
+# White-listed: MindTape reacts only to what is declared here, never by pattern.
+# Omit a section to accept MindTape's defaults. A speconaut repo ships this file
+# too; speconaut reads it rather than mixing task config into .speconaut/config.toml.
+
+[tasks]
+# Directories (relative to repo root) holding one-task-per-file artifacts.
+roots = ["tasks"]
+
+[tasks.status]
+# Legal status names, in lifecycle order. Omit the whole section to accept the
+# bundled defaults and every shortcut constructor the prelude exports.
+values   = ["proposed", "accepted", "wip", "done", "cancelled", "failed"]
+# Subset that ends a task. Required fields are not enforced on terminal tasks.
+terminal = ["done", "cancelled", "failed"]
+
+# Configurable enum / scalar core fields. Omit a field to leave it unconstrained.
+# `required`: true | false | "non-terminal" (enforced only while not terminal).
+[tasks.fields.priority]
+values   = ["low", "normal", "medium", "high"]
+required = "non-terminal"
+
+[tasks.fields.grade]
+values   = ["junior", "middle", "senior"]
+required = "non-terminal"
+
+[tasks.fields.kind]
+values   = ["feature", "refactoring"]
+default  = "feature"
+required = false
+
+[tasks.fields.estimate-hours]
+type     = "number"
+min      = 0
+required = "non-terminal"
+
+[tasks.tags]
+# Optional allow-list. Omit or leave empty to accept any tag.
+allowed = []
+
+[query]
+# Default filter applied by `mindtape list` when the caller passes none.
+default_filter = "status != \"done\""
