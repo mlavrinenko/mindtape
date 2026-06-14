@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Redesign www task examples for the per-file model",
-  status: proposed(2026, 6, 14),
+  status: done(2026, 6, 14),
   priority: "normal",
   tags: ("www", "docs"),
 )
