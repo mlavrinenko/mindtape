@@ -1,0 +1,29 @@
+# .mindtape/config.toml — MindTape tracking itself (dogfood).
+# White-listed: MindTape constrains only what is declared here. Omit a section
+# to accept the defaults and the prelude's full status shortcut set.
+
+[tasks]
+# MindTape's own backlog lives here, one task per file.
+roots = ["truth/tasks"]
+
+[tasks.status]
+# Legal status names, in lifecycle order.
+values = ["proposed", "accepted", "wip", "done", "cancelled", "failed"]
+# Subset that ends a task; required fields are not enforced once terminal.
+terminal = ["done", "cancelled", "failed"]
+
+[tasks.fields.priority]
+values = ["low", "normal", "high"]
+required = "non-terminal"
+
+[tasks.fields.estimate-hours]
+type = "number"
+min = 0
+
+[tasks.tags]
+# Area labels for the backlog. Empty would accept any tag.
+allowed = ["substrate", "speconaut", "cli", "tests", "www", "docs", "tooling"]
+
+[query]
+# `mindtape list` hides finished work unless `--all` is passed.
+default_filter = "status != \"done\""

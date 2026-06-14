@@ -65,10 +65,13 @@ of prior commits. Footer with a task reference:
 ```
 feat(filter): evaluate expressions over live tasks
 
-Refs: docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md
+Refs: truth/tasks/<stem>.typ
 ```
 
-Use `Refs:` to point at the driving ADR (`docs/decisions/00N-<slug>.md`) or task.
+MindTape tracks its own backlog as per-file task artifacts under `truth/tasks/`
+(MindTape dogfooding itself — see `.mindtape/config.toml`). Point `Refs:` at the
+driving task file (`truth/tasks/<stem>.typ`); for an architectural or tooling
+decision, reference the ADR instead (`docs/decisions/00N-<slug>.md`).
 
 ## Extending MindTape
 

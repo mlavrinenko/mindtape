@@ -15,6 +15,8 @@ Repository: https://github.com/mlavrinenko/mindtape
 - `docs/decisions/` — Architecture Decision Records (ADRs); 002 is the rewrite
 - `docs/redesign/` — the redesign brief and DSL shape probe (historical)
 - `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
+- `truth/tasks/` — MindTape's own backlog as per-file task artifacts (dogfood);
+  `mindtape list` / `mindtape check` run against it via the in-tree `lib/`
 
 ## Workspace
 
@@ -48,8 +50,9 @@ Three crates (`cargo` workspace, virtual root manifest):
 5. Record architectural/tooling decisions as an ADR in `docs/decisions/` using
    the next number. Include Status, Date, Context, Decision, Consequences,
    Deprecation Criteria.
-6. Commits: Conventional Commits; footer `Refs: docs/decisions/00N-<slug>.md`
-   (or the driving task). Match prior commit language.
+6. Commits: Conventional Commits; footer `Refs: truth/tasks/<stem>.typ` (the
+   driving task) or `docs/decisions/00N-<slug>.md` for an architectural decision.
+   Match prior commit language.
 
 ## Task DSL (lib/prelude.typ)
 

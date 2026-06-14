@@ -7,7 +7,7 @@
 //   - enforces the extension discipline: any non-core slot must be `x-<ns>`
 // The Rust layer, driven by `.mindtape/config.toml`, owns the rest:
 //   - allowed enum values (status / priority / grade / kind), required-unless-terminal
-//   - identity (filename stem), the filter language, in-place mutation
+//   - identity (filename stem), the filter language
 // Keeping the prelude config-free means the same package serves every project.
 
 // Task↔task link. The value is the target task's file stem (or relative path);
