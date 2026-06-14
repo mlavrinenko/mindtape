@@ -31,3 +31,27 @@ pub fn warn_errors(outcome: &LoadOutcome) {
         eprintln!("warning: {}: {}", error.file.display(), error.message);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use mindtape::{LoadError, LoadOutcome};
+
+    use super::warn_errors;
+
+    #[test]
+    fn warn_errors_is_silent_when_no_errors() {
+        warn_errors(&LoadOutcome::default());
+    }
+
+    #[test]
+    fn warn_errors_does_not_panic_with_errors() {
+        let outcome = LoadOutcome {
+            tasks: vec![],
+            errors: vec![LoadError {
+                file: "broken.typ".into(),
+                message: "eval failed".to_owned(),
+            }],
+        };
+        warn_errors(&outcome);
+    }
+}

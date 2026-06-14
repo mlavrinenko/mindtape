@@ -10,7 +10,10 @@ use crate::util;
 /// # Errors
 /// Returns an error (non-zero exit) if any task is invalid or failed to load.
 pub fn run() -> Result<()> {
-    let project = util::open()?;
+    run_with(&util::open()?)
+}
+
+pub(crate) fn run_with(project: &util::Project) -> Result<()> {
     util::warn_errors(&project.outcome);
 
     let violations = validate(&project.outcome.tasks, &project.config);
@@ -31,3 +34,7 @@ pub fn run() -> Result<()> {
         violations.len()
     )
 }
+
+#[cfg(test)]
+#[path = "check_tests.rs"]
+mod tests;

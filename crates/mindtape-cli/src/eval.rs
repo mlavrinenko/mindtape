@@ -49,7 +49,7 @@ pub fn run(args: &EvalArgs) -> Result<()> {
     Ok(())
 }
 
-fn build_world(file: &Path) -> Result<HarvestWorld> {
+pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     if !file.is_file() {
         bail!("no such file: {}", file.display());
     }
@@ -61,3 +61,7 @@ fn build_world(file: &Path) -> Result<HarvestWorld> {
         world
     })
 }
+
+#[cfg(test)]
+#[path = "eval_tests.rs"]
+mod tests;

@@ -40,7 +40,10 @@ pub struct ListArgs {
 /// # Errors
 /// Returns an error if the project cannot be opened or the filter/sort is invalid.
 pub fn run(args: &ListArgs) -> Result<()> {
-    let project = util::open()?;
+    run_with(args, util::open()?)
+}
+
+pub(crate) fn run_with(args: &ListArgs, project: util::Project) -> Result<()> {
     util::warn_errors(&project.outcome);
 
     let filter = build_filter(args, &project.config)?;
@@ -158,10 +161,12 @@ fn cmp_opt_num(left: Option<f64>, right: Option<f64>) -> Ordering {
 mod tests {
     use std::cmp::Ordering;
     use std::collections::BTreeMap;
+    use std::path::Path;
 
-    use mindtape::Task;
+    use mindtape::{Config, Task, load_project};
 
-    use super::{cmp_opt_num, compare, parse_spec, sort_tasks, validate_field};
+    use super::{ListArgs, cmp_opt_num, compare, parse_spec, run_with, sort_tasks, validate_field};
+    use crate::output::OutputFormat;
 
     fn task(id: &str, priority: &str, estimate: Option<f64>) -> Task {
         Task {
@@ -214,5 +219,101 @@ mod tests {
         let low = task("a", "x", Some(2.0));
         let high = task("b", "x", Some(5.0));
         assert_eq!(compare(&low, &high, "estimate_hours"), Ordering::Less);
+    }
+
+    const TASK: &str = "#metadata((
+  marker: \"mindtape.task\",
+  fields: (
+    title: \"Task X\",
+    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
+    priority: \"high\",
+  ),
+  extras: (:),
+))
+";
+
+    fn make_project(dir: &Path, files: &[(&str, &str)]) -> crate::util::Project {
+        std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+        std::fs::create_dir_all(dir.join("tasks")).unwrap();
+        for (name, body) in files {
+            std::fs::write(dir.join("tasks").join(name), body).unwrap();
+        }
+        let config = Config::default();
+        let outcome = load_project(dir, &config);
+        crate::util::Project { config, outcome }
+    }
+
+    fn default_args() -> ListArgs {
+        ListArgs {
+            filter: None,
+            all: true,
+            format: OutputFormat::Table,
+            json: false,
+            limit: None,
+            sort: vec![],
+        }
+    }
+
+    #[test]
+    fn run_with_table_format_succeeds() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = make_project(dir.path(), &[("x.typ", TASK)]);
+        assert!(run_with(&default_args(), project).is_ok());
+    }
+
+    #[test]
+    fn run_with_json_flag_succeeds() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = make_project(dir.path(), &[("x.typ", TASK)]);
+        let args = ListArgs {
+            json: true,
+            ..default_args()
+        };
+        assert!(run_with(&args, project).is_ok());
+    }
+
+    #[test]
+    fn run_with_csv_format_succeeds() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = make_project(dir.path(), &[("x.typ", TASK)]);
+        let args = ListArgs {
+            format: OutputFormat::Csv,
+            ..default_args()
+        };
+        assert!(run_with(&args, project).is_ok());
+    }
+
+    #[test]
+    fn run_with_limit_truncates() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
+        let args = ListArgs {
+            limit: Some(1),
+            ..default_args()
+        };
+        assert!(run_with(&args, project).is_ok());
+    }
+
+    #[test]
+    fn run_with_invalid_filter_returns_err() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = make_project(dir.path(), &[("x.typ", TASK)]);
+        let args = ListArgs {
+            filter: Some("!!bad!!".to_owned()),
+            all: false,
+            ..default_args()
+        };
+        assert!(run_with(&args, project).is_err());
+    }
+
+    #[test]
+    fn run_with_invalid_sort_returns_err() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = make_project(dir.path(), &[("x.typ", TASK)]);
+        let args = ListArgs {
+            sort: vec!["no_such_field".to_owned()],
+            ..default_args()
+        };
+        assert!(run_with(&args, project).is_err());
     }
 }

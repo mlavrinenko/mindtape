@@ -29,7 +29,7 @@ pub fn run(args: &InitArgs) -> Result<()> {
     if !args.no_lib {
         install_lib()?;
     }
-    scaffold_config(args.force)?;
+    scaffold_config(Path::new("."), args.force)?;
     Ok(())
 }
 
@@ -58,8 +58,8 @@ fn package_dir() -> Result<PathBuf> {
     Ok(path)
 }
 
-fn scaffold_config(force: bool) -> Result<()> {
-    let dir = Path::new(".mindtape");
+pub(crate) fn scaffold_config(root: &Path, force: bool) -> Result<()> {
+    let dir = root.join(".mindtape");
     let config = dir.join("config.toml");
     if config.exists() && !force {
         println!(
@@ -68,9 +68,13 @@ fn scaffold_config(force: bool) -> Result<()> {
         );
         return Ok(());
     }
-    std::fs::create_dir_all(dir).with_context(|| format!("create {}", dir.display()))?;
+    std::fs::create_dir_all(&dir).with_context(|| format!("create {}", dir.display()))?;
     std::fs::write(&config, DEFAULT_CONFIG)
         .with_context(|| format!("write {}", config.display()))?;
     println!("wrote {}", config.display());
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "init_tests.rs"]
+mod tests;
