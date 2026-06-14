@@ -73,6 +73,9 @@ MindTape tracks its own backlog as per-file task artifacts under `truth/tasks/`
 driving task file (`truth/tasks/<stem>.typ`); for an architectural or tooling
 decision, reference the ADR instead (`docs/decisions/00N-<slug>.md`).
 
+Commits that file or edit task artifacts themselves (and the backlog config in
+`.mindtape/config.toml`) carry no `Refs:` footer — a task commit refs nothing.
+
 ## Extending MindTape
 
 - New CLI command: add `crates/mindtape-cli/src/<name>.rs` with an `Args` struct

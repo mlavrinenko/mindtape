@@ -52,7 +52,9 @@ Three crates (`cargo` workspace, virtual root manifest):
    Deprecation Criteria.
 6. Commits: Conventional Commits; footer `Refs: truth/tasks/<stem>.typ` (the
    driving task) or `docs/decisions/00N-<slug>.md` for an architectural decision.
-   Match prior commit language.
+   Exception: commits that file or edit task artifacts themselves (and the
+   backlog config in `.mindtape/config.toml`) carry no `Refs:` footer — a task
+   commit refs nothing. Match prior commit language.
 
 ## Task DSL (lib/prelude.typ)
 
