@@ -27,7 +27,8 @@ Per-file rewrite. See `docs/decisions/002-per-file-rewrite-and-speconaut-converg
 - **`.mindtape/config.toml`** — per-project status lifecycle, enum/number field
   constraints (required-unless-terminal, bounds), tag allow-list, default filter
 - **`mindtape check`** — config-driven validation incl. link resolution
-- **`mindtape init`** — installs the Typst library and scaffolds project config
+- **`mindtape install-lib`** — installs the Typst library (once per machine)
+- **`mindtape init`** — scaffolds project config (once per project)
 - Dev tooling: parallel `just check`, sccache, cargo-machete, linecop, outdatty
 
 ### Changed

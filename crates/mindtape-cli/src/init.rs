@@ -1,10 +1,10 @@
-//! `mindtape init` — install the Typst library and scaffold project config.
+//! `mindtape init` / `mindtape install-lib` — project scaffold and library install.
 
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-/// The Typst package version installed by `init`. Mirrors `lib/typst.toml`.
+/// The Typst package version installed by `install-lib`. Mirrors `lib/typst.toml`.
 const TYPST_PKG_VERSION: &str = "0.2.0";
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
 const DEFAULT_CONFIG: &str = include_str!("default-config.toml");
@@ -12,28 +12,28 @@ const DEFAULT_CONFIG: &str = include_str!("default-config.toml");
 /// Arguments for `init`.
 #[derive(Debug, clap::Args)]
 pub struct InitArgs {
-    /// Skip installing the Typst library (only scaffold config).
-    #[arg(long)]
-    pub no_lib: bool,
-
     /// Overwrite an existing `.mindtape/config.toml`.
     #[arg(long)]
     pub force: bool,
 }
 
-/// Run the `init` command.
+/// Run the `init` command — scaffold `.mindtape/config.toml` in the current directory.
 ///
 /// # Errors
-/// Returns an error if the library or config cannot be written.
+/// Returns an error if the config cannot be written.
 pub fn run(args: &InitArgs) -> Result<()> {
-    if !args.no_lib {
-        install_lib()?;
-    }
-    scaffold_config(Path::new("."), args.force)?;
-    Ok(())
+    scaffold_config(Path::new("."), args.force)
 }
 
-fn install_lib() -> Result<()> {
+/// Run the `install-lib` command — install `@local/mindtape` into the Typst packages dir.
+///
+/// # Errors
+/// Returns an error if the library cannot be written.
+pub fn run_install_lib() -> Result<()> {
+    install_lib()
+}
+
+pub(crate) fn install_lib() -> Result<()> {
     let dir = package_dir()?;
     std::fs::create_dir_all(&dir).with_context(|| format!("create {}", dir.display()))?;
     let manifest = format!(
@@ -48,7 +48,7 @@ fn install_lib() -> Result<()> {
     Ok(())
 }
 
-fn package_dir() -> Result<PathBuf> {
+pub(crate) fn package_dir() -> Result<PathBuf> {
     let mut path = dirs::data_local_dir().context("determine local data directory")?;
     path.push("typst");
     path.push("packages");

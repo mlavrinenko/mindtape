@@ -45,12 +45,12 @@ nix develop                 # dev shell with the full toolchain
 cargo build --release       # produces target/release/mindtape
 ```
 
-Install the Typst prelude so `#import "@local/mindtape:0.2.0"` resolves, and
-scaffold a project:
+Install the Typst prelude so `#import "@local/mindtape:0.2.0"` resolves (once
+per machine), then scaffold a project (once per project):
 
 ```bash
-mindtape init               # installs the lib + writes .mindtape/config.toml
-mindtape init --no-lib      # only scaffold config (lib already installed)
+mindtape install-lib        # installs @local/mindtape into Typst packages dir
+mindtape init               # writes .mindtape/config.toml in the current dir
 ```
 
 ## Usage

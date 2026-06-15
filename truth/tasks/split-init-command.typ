@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Split init into install-lib and init",
-  status: wip(2026, 6, 16),
+  status: done(2026, 6, 16),
   priority: "normal",
   estimate-hours: 2,
   tags: ("cli", "ux"),

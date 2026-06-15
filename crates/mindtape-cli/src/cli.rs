@@ -24,8 +24,10 @@ enum Command {
     List(list::ListArgs),
     /// Validate tasks against the project configuration.
     Check,
-    /// Install the Typst library and scaffold `.mindtape/config.toml`.
+    /// Scaffold `.mindtape/config.toml` in the current directory.
     Init(init::InitArgs),
+    /// Install `@local/mindtape` into the user-local Typst packages directory.
+    InstallLib,
     /// Evaluate a single task file and print it.
     Eval(eval::EvalArgs),
 }
@@ -40,6 +42,7 @@ impl Cli {
             Command::List(args) => list::run(&args),
             Command::Check => check::run(),
             Command::Init(args) => init::run(&args),
+            Command::InstallLib => init::run_install_lib(),
             Command::Eval(args) => eval::run(&args),
         }
     }

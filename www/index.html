@@ -842,7 +842,9 @@ nix develop github:mlavrinenko/mindtape</code></pre>
     <pre><code class="language-bash">git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape
 cargo build --release
-# Install the Typst library
+# Install the Typst library (once per machine)
+./target/release/mindtape install-lib
+# Scaffold a project (once per project)
 ./target/release/mindtape init</code></pre>
   </div>
 </section>
