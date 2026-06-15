@@ -5,7 +5,7 @@
   status: done(2026, 6, 16),
   priority: "normal",
   estimate-hours: 2,
-  tags: ("cli", "ux"),
+  tags: ("cli",),
 )
 
 == Summary

@@ -96,6 +96,20 @@ uninstall-lib:
     TARGET="$HOME/.local/share/typst/packages/local/mindtape/$VERSION"
     [ -L "$TARGET" ] && rm "$TARGET" && echo "removed $TARGET" || echo "no symlink at $TARGET"
 
+# Install git hooks (pre-commit runs `mindtape check`)
+install-hooks:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    hook=.git/hooks/pre-commit
+    mkdir -p .git/hooks
+    cat > "$hook" <<'HOOK'
+    #!/usr/bin/env bash
+    set -eo pipefail
+    exec direnv exec "$(git rev-parse --show-toplevel)" cargo run -q -- check
+    HOOK
+    chmod +x "$hook"
+    echo "installed $hook"
+
 # Tag a release and push (usage: just release 0.4.0)
 release VERSION:
     #!/usr/bin/env bash

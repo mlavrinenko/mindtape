@@ -72,6 +72,9 @@
               typstyle
             ]);
           buildInputs = with pkgs; [ openssl ];
+          shellHook = ''
+            just install-hooks
+          '';
         };
       }
     );
