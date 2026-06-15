@@ -5,9 +5,19 @@
 //! `depends-on`/`relates-to` target must name a loaded task).
 
 use std::collections::HashSet;
+use std::path::PathBuf;
 
 use crate::config::{Config, FieldConfig, Requirement};
 use crate::model::Task;
+
+/// Source location for a violation that points to a specific line.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Location {
+    /// File path relative to the project root.
+    pub file: PathBuf,
+    /// One-based line number.
+    pub line: usize,
+}
 
 /// A single validation failure.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -18,6 +28,8 @@ pub struct Violation {
     pub field: String,
     /// Human-readable message.
     pub message: String,
+    /// Source location when the violation points to a specific heading line.
+    pub location: Option<Location>,
 }
 
 /// Validate every task against `config`, returning all violations.
@@ -42,6 +54,7 @@ fn push(out: &mut Vec<Violation>, task: &Task, field: &str, message: String) {
         task_id: task.id.clone(),
         field: field.to_owned(),
         message,
+        location: None,
     });
 }
 

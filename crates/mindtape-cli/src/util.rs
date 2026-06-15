@@ -1,10 +1,14 @@
 //! Shared project discovery for the CLI commands.
 
+use std::path::PathBuf;
+
 use anyhow::{Context, Result};
 use mindtape::{Config, LoadOutcome, config_path, find_root, load_config, load_project};
 
-/// A discovered, loaded project: its config and load outcome.
+/// A discovered, loaded project: its root, config and load outcome.
 pub struct Project {
+    /// Absolute path to the project root (the directory containing `.mindtape/`).
+    pub root: PathBuf,
     /// Loaded configuration.
     pub config: Config,
     /// Tasks and per-file load errors.
@@ -22,7 +26,11 @@ pub fn open() -> Result<Project> {
     let config =
         load_config(&root).with_context(|| format!("load {}", config_path(&root).display()))?;
     let outcome = load_project(&root, &config);
-    Ok(Project { config, outcome })
+    Ok(Project {
+        root,
+        config,
+        outcome,
+    })
 }
 
 /// Print per-file load errors to stderr as warnings.

@@ -240,7 +240,11 @@ mod tests {
         }
         let config = Config::default();
         let outcome = load_project(dir, &config);
-        crate::util::Project { config, outcome }
+        crate::util::Project {
+            root: dir.to_path_buf(),
+            config,
+            outcome,
+        }
     }
 
     fn default_args() -> ListArgs {

@@ -10,15 +10,17 @@
 
 pub mod config;
 pub mod filter;
+pub mod gate;
 pub mod loader;
 pub mod model;
 pub mod validate;
 
 pub use config::{Config, ConfigError, config_path, load_config, parse_config};
 pub use filter::{Filter, FilterError};
+pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use loader::{LoadError, LoadOutcome, find_root, load_project};
 pub use model::{Status, Task, normalize_link};
-pub use validate::{Violation, validate};
+pub use validate::{Location, Violation, validate};
 
 /// Retain the tasks matching `filter`; `None` keeps them all.
 ///

@@ -32,6 +32,8 @@ pub struct TasksConfig {
     pub fields: BTreeMap<String, FieldConfig>,
     /// Tag allow-list.
     pub tags: TagsConfig,
+    /// Body-shape constraints (heading gating).
+    pub body: TaskBodyConfig,
 }
 
 impl Default for TasksConfig {
@@ -41,6 +43,7 @@ impl Default for TasksConfig {
             status: StatusConfig::default(),
             fields: BTreeMap::new(),
             tags: TagsConfig::default(),
+            body: TaskBodyConfig::default(),
         }
     }
 }
@@ -172,6 +175,122 @@ pub fn load_config(root: &Path) -> Result<Config, ConfigError> {
 #[must_use]
 pub fn config_path(root: &Path) -> PathBuf {
     root.join(".mindtape").join("config.toml")
+}
+
+/// `[tasks.body]` — body-shape constraints.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct TaskBodyConfig {
+    /// Section-heading gating rules.
+    pub headers: HeadersConfig,
+}
+
+/// `[tasks.body.headers]` — heading-presence rules.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct HeadersConfig {
+    /// Ordered list of heading gating rules.
+    pub rules: Vec<HeaderRuleConfig>,
+}
+
+/// One entry in `[[tasks.body.headers.rules]]`.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+pub struct HeaderRuleConfig {
+    /// Path through the heading tree to the target headings.
+    pub path: Vec<HeaderPathSegment>,
+    /// Whether the target headings must exist or must not.
+    pub action: HeaderAction,
+    /// Optional filter expression gating this rule to matching tasks only.
+    pub when: Option<String>,
+    /// Override for the default violation message.
+    pub message: Option<String>,
+}
+
+/// One step in a heading path.
+///
+/// - A bare TOML string is an exact, case-sensitive, direct-child match.
+/// - `{ match = "regex" }` is a regex match; `recursive = true` finds any descendant.
+#[derive(Debug, Clone, PartialEq)]
+pub enum HeaderPathSegment {
+    /// Exact heading text, direct-child position.
+    Exact(String),
+    /// Regex heading text pattern.
+    Pattern {
+        /// Rust regex pattern matched against heading text.
+        pattern: String,
+        /// Search any descendant (`true`) or only direct children (`false`, default).
+        recursive: bool,
+    },
+}
+
+/// Whether matched headings must exist or must not exist.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HeaderAction {
+    /// The path must match at least one heading.
+    Require,
+    /// The path must match no headings.
+    Forbid,
+}
+
+impl<'de> Deserialize<'de> for HeaderPathSegment {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        struct SegVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for SegVisitor {
+            type Value = HeaderPathSegment;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str("a string or `{ match = \"...\", recursive = bool }`")
+            }
+
+            fn visit_str<E: serde::de::Error>(self, value: &str) -> Result<Self::Value, E> {
+                Ok(HeaderPathSegment::Exact(value.to_owned()))
+            }
+
+            fn visit_map<M: serde::de::MapAccess<'de>>(
+                self,
+                mut map: M,
+            ) -> Result<Self::Value, M::Error> {
+                let mut pattern: Option<String> = None;
+                let mut recursive = false;
+                while let Some(key) = map.next_key::<String>()? {
+                    match key.as_str() {
+                        "match" => pattern = Some(map.next_value()?),
+                        "recursive" => recursive = map.next_value()?,
+                        other => {
+                            return Err(serde::de::Error::unknown_field(
+                                other,
+                                &["match", "recursive"],
+                            ));
+                        }
+                    }
+                }
+                let pattern = pattern.ok_or_else(|| serde::de::Error::missing_field("match"))?;
+                Ok(HeaderPathSegment::Pattern { pattern, recursive })
+            }
+        }
+
+        deserializer.deserialize_any(SegVisitor)
+    }
+}
+
+impl<'de> Deserialize<'de> for HeaderAction {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let text = String::deserialize(deserializer)?;
+        match text.as_str() {
+            "require" => Ok(Self::Require),
+            "forbid" => Ok(Self::Forbid),
+            other => Err(serde::de::Error::custom(format!(
+                "invalid action `{other}`; expected `require` or `forbid`"
+            ))),
+        }
+    }
 }
 
 #[cfg(test)]
