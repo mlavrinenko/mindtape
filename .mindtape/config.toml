@@ -24,6 +24,11 @@ min = 0
 # Area labels for the backlog. Empty would accept any tag.
 allowed = ["substrate", "speconaut", "cli", "tests", "www", "docs", "tooling", "gating"]
 
+[[tasks.body.headers.rules]]
+path    = ["Summary"]
+action  = "require"
+message = "every task must have a Summary section"
+
 [query]
 # `mindtape list` hides finished work unless `--all` is passed.
 default_filter = "status != \"done\""
