@@ -73,7 +73,7 @@
             ]);
           buildInputs = with pkgs; [ openssl ];
           shellHook = ''
-            just install-hooks
+            just install-hooks > /dev/null 2>&1
           '';
         };
       }
