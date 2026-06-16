@@ -1515,7 +1515,9 @@ dependencies = [
  "mindtape",
  "predicates",
  "serde_json",
+ "swhid-mint",
  "tempfile",
+ "typst-edit",
  "typst-harvest",
 ]
 

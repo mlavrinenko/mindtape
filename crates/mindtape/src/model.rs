@@ -87,6 +87,15 @@ impl Task {
     }
 }
 
+/// Whether a link target is a history pointer (a SWHID tombstone) rather than a
+/// task↔task edge. `cleanup` rewrites a removed task's inbound links into these;
+/// they name no loaded task, so the model never surfaces them as graph edges and
+/// validation never resolves them.
+#[must_use]
+pub fn is_history_pointer(target: &str) -> bool {
+    target.starts_with("swh:")
+}
+
 /// Normalize a link target (a stem or path like `foo.task-260101.typ`) to the
 /// file-stem identity used for resolution.
 #[must_use]
@@ -144,6 +153,7 @@ fn parse_links(value: Option<&HVal>) -> Vec<String> {
             items
                 .iter()
                 .filter_map(HVal::as_str)
+                .filter(|target| !is_history_pointer(target))
                 .map(normalize_link)
                 .collect()
         })

@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use typst_harvest::HVal;
 
-use super::{Status, Task, normalize_link};
+use super::{Status, Task, is_history_pointer, normalize_link};
 
 fn dict(pairs: Vec<(&str, HVal)>) -> HVal {
     HVal::Dict(
@@ -73,6 +73,32 @@ fn normalize_link_strips_path_and_extension() {
         "foo.task-260101"
     );
     assert_eq!(normalize_link("bar"), "bar");
+}
+
+#[test]
+fn history_pointer_links_are_not_graph_edges() {
+    // A SWHID tombstone in `depends-on` is a history pointer, not a task edge:
+    // it must drop out of the normalized link list so validation never tries to
+    // resolve it against a loaded task.
+    let fields = dict(vec![(
+        "depends-on",
+        HVal::Array(vec![
+            HVal::Str(
+                "swh:1:rev:0123456789abcdef0123456789abcdef01234567;path=tasks/gone.typ".to_owned(),
+            ),
+            HVal::Str("live.typ".to_owned()),
+        ]),
+    )]);
+    let marker = dict(vec![
+        ("marker", HVal::Str("mindtape.task".to_owned())),
+        ("fields", fields),
+    ]);
+    let task = Task::from_marker("t".to_owned(), "t.typ".into(), &marker);
+    assert_eq!(task.depends_on, vec!["live".to_owned()]);
+    assert!(is_history_pointer(
+        "swh:1:rev:0123456789abcdef0123456789abcdef01234567;path=tasks/gone.typ"
+    ));
+    assert!(!is_history_pointer("tasks/gone.typ"));
 }
 
 #[test]

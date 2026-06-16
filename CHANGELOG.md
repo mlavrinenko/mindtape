@@ -22,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   backend feature (shells out to the `git` binary, no libgit2) that mints a
   revision-plus-path id for a tracked file and resolves one back. The tombstone
   substrate for `mindtape cleanup`.
+- **`mindtape cleanup`** — retire terminal-status tasks in a single git commit:
+  deletes each terminal task file and rewrites every surviving `link("<stem>.typ")`
+  that pointed at it into an SWHID tombstone `link("swh:1:rev:<commit>;path=<path>")`.
+  Refuses a dirty working tree and is atomic — every mint and rewrite is planned
+  in memory before a byte is written, so a wrong-shaped file or an unrecoverable
+  commit aborts with no changes. `swh:` link targets are treated as history
+  pointers by the loader/validator (not task graph edges).
 
 ## [0.4.0] - 2026-06-14
 
