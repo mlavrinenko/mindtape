@@ -13,9 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the heading tree (depth, text, source span) parsed via `typst-syntax`, with no
   eval, World, or IO. A consumer-blind substrate for gating document structure.
 - **`typst-edit` crate** — consumer-blind in-place Typst source editing:
-  parse-plane span queries (`find_link_targets`) plus an atomic, non-overlapping
-  changeset (`apply`) over `typst-syntax`, no eval/World/IO. Foundation for
-  `mindtape cleanup` link rewriting (see
+  parse-plane span queries plus an atomic, non-overlapping changeset (`apply`)
+  over `typst-syntax`, no eval/World/IO. `find_calls(source, name)` locates any
+  function call with its positional/named argument value spans and trailing
+  `[…]` content block (`find_link_targets` is the thin link-only case); `line_of`
+  maps an offset to a 1-based line. Foundation for `mindtape cleanup` link
+  rewriting and the speconaut scanner collapse (see
   `docs/decisions/003-swhid-cleanup-tombstones-and-shared-edit-substrate.md`).
 - **`swhid-mint` crate** — mint and resolve Software Heritage identifiers
   (SWHID, ISO/IEC 18670:2025). VCS-agnostic core (`render`/`parse`) plus a `git`
