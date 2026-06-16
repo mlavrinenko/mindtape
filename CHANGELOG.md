@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`typst-cst` crate** — package-agnostic parse-plane structure extraction:
   the heading tree (depth, text, source span) parsed via `typst-syntax`, with no
   eval, World, or IO. A consumer-blind substrate for gating document structure.
+- **`typst-edit` crate** — consumer-blind in-place Typst source editing:
+  parse-plane span queries (`find_link_targets`) plus an atomic, non-overlapping
+  changeset (`apply`) over `typst-syntax`, no eval/World/IO. Foundation for
+  `mindtape cleanup` link rewriting (see
+  `docs/decisions/003-swhid-cleanup-tombstones-and-shared-edit-substrate.md`).
+- **`swhid-mint` crate** — mint and resolve Software Heritage identifiers
+  (SWHID, ISO/IEC 18670:2025). VCS-agnostic core (`render`/`parse`) plus a `git`
+  backend feature (shells out to the `git` binary, no libgit2) that mints a
+  revision-plus-path id for a tracked file and resolves one back. The tombstone
+  substrate for `mindtape cleanup`.
 
 ## [0.4.0] - 2026-06-14
 

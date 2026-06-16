@@ -2312,6 +2312,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "swhid-mint"
+version = "0.4.0"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
 name = "syn"
 version = "2.0.115"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2593,6 +2600,14 @@ checksum = "5613cb719a6222fe9b74027c3625d107767ec187bff26b8fc931cf58942c834f"
 
 [[package]]
 name = "typst-cst"
+version = "0.4.0"
+dependencies = [
+ "serde",
+ "typst-syntax",
+]
+
+[[package]]
+name = "typst-edit"
 version = "0.4.0"
 dependencies = [
  "serde",

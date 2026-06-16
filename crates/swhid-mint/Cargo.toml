@@ -1,0 +1,22 @@
+[package]
+name = "swhid-mint"
+description = "Mint and resolve Software Heritage identifiers (SWHID, ISO/IEC 18670:2025). The core is VCS-agnostic; deriving an id from a working tree sits behind a backend feature (`git` today, shells out to the git binary)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords = ["swhid", "software-heritage", "git", "identifier", "content-addressing"]
+categories = ["development-tools"]
+
+[features]
+default = ["git"]
+# Backend: derive/resolve SWHIDs against a local git repo via the `git` binary.
+# Adds no dependencies — git computes sha1_git, we only prefix the kind.
+git = []
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true
