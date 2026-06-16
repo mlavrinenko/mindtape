@@ -27,7 +27,7 @@ groups:
       - lib/prelude.typ
     dependents:
       - README.md
-      - AGENT.md
+      - AGENTS.md
 
   # Dev tooling and contributor conventions track the files that define them.
   - name: dev-docs
@@ -36,4 +36,4 @@ groups:
       - Justfile
     dependents:
       - CONTRIBUTING.md
-      - AGENT.md
+      - AGENTS.md

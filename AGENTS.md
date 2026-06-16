@@ -88,3 +88,22 @@ link resolution. Consumers validate their own `x-<ns>` fields.
 ## Context Hygiene
 
 - Keep agent-facing docs under 200 lines; reference instead of duplicating.
+
+## Temporary — active only on branch `redesign/per-file-rewrite`
+
+Remove this whole section when this branch merges to `main`.
+
+- Convergence directive: design `crates/mindtape` and its consumer-blind siblings
+  (`typst-harvest`, `typst-cst`, and a planned `typst-edit`) so speconaut can delete
+  its generic code and depend on them. Any generic capability speconaut hand-rolls —
+  Typst-source span location, slot/link rewriting, git tombstone resolution — is a
+  candidate to host here.
+- In-flight: `mindtape cleanup` (remove terminal-status tasks; rewrite links to
+  deleted tasks into a git tombstone). speconaut already ships this as `cleanup` +
+  `git-ref(path, commit)`; reuse that proven shape. SWHID is under challenge — do not
+  pull the `swhid` crate without an ADR.
+- Research workflow: spawn mid-tier sub-agents for codebase sweeps, but read the cited
+  key files yourself to validate before deciding. speconaut reference points:
+  `src/commands/{cleanup_cmd,cleanup_refs,cleanup_git_refs,link_scanner,git_ref_scanner}.rs`,
+  `src/commands/{typ_source,specs_stage_rewrite}.rs`, `src/git.rs`,
+  `src/engine/dsl_links.rs`.
