@@ -53,8 +53,14 @@ check` passes; tests cover non-overlapping multi-edit apply, overlap and
 out-of-bounds rejection, char-boundary safety, and link-target location including
 links inside raw blocks.
 
-== Status note (2026-06-16)
+== Status note (2026-06-17)
 
-The changeset core and the `link("…")` locator landed under this task; named- and
-positional-argument span queries remain. Drive remaining work and the
-`mindtape cleanup` wiring from `var/handoff-swhid-cleanup-substrate.md` (untracked).
+The changeset core and the `link("…")` locator landed; `mindtape cleanup` ships on
+them. Remaining work, now scoped against speconaut's actual scanners (validated by
+reading `typ_source.rs`, `git_ref_scanner.rs`, `link_scanner.rs`,
+`specs_stage_rewrite.rs`): a generic `find_calls(source, name)` returning each
+call's positional + named argument value spans and its trailing `[…]` body range,
+plus a `line_of(source, offset)` helper. That one query subsumes speconaut's
+raw-mask byte scanning (`compute_raw_mask`, `slot_value_span`, manual paren/quote
+walking are deleted, not ported — parsing skips raw blocks for free). Drive the
+shape and the speconaut adoption from `var/handoff-swhid-cleanup-substrate.md`.
