@@ -25,14 +25,16 @@ target string, so `[Label]` survives untouched. No new DSL function is needed.
 
 == Behaviour
 
-- Refuse on a dirty working tree; resolve tombstones before deleting (the working
-  blob must still exist to verify recoverability).
+- Refuse on a dirty working tree (real run only); resolve tombstones before
+  deleting (the working blob must still exist to verify recoverability).
 - Atomic: plan every file edit and mint every tombstone up front; if any affected
   file is wrong-shaped or any commit cannot be resolved, abort with no writes.
-- Single commit: file deletions and link rewrites land together.
-- Link model change: `swh:` targets are history pointers — the loader/validator
-  (`crates/mindtape/src/model.rs` `normalize_link`/`parse_links`, plus `validate`)
-  must skip stem-normalization and existence checks for them and allow a label.
+- No commit: deletions and link rewrites are applied in place; the user reviews
+  the diff and commits. `--dry-run` previews the plan and writes nothing (and
+  skips the dirty-tree guard).
+- Link model change: `swh:` targets are history pointers — the loader
+  (`crates/mindtape/src/model.rs` `parse_links` via `is_history_pointer`) drops
+  them from the normalized edge lists, so `validate` never resolves them.
 
 == Acceptance
 
