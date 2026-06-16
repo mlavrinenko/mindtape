@@ -24,6 +24,9 @@ pub struct CleanupArgs {
     /// Skip the interactive confirmation prompt.
     #[arg(short = 'y', long)]
     pub yes: bool,
+    /// Print the plan without deleting or rewriting anything.
+    #[arg(long)]
+    pub dry_run: bool,
 }
 
 /// A file the plan will delete: its absolute path and root-relative display path.
@@ -58,10 +61,15 @@ impl Plan {
 
 /// Run the `cleanup` command.
 ///
+/// Applies the plan in place (deletes terminal task files, rewrites inbound
+/// links) but does not commit — the user reviews the diff and commits. Refuses a
+/// dirty working tree on a real run so the cleanup is the only change to review;
+/// `--dry-run` previews the plan and skips that guard.
+///
 /// # Errors
-/// Returns an error (non-zero exit) on a dirty working tree, a task file that
-/// is not recoverable from git, a wrong-shaped surviving file, a declined
-/// prompt, or any git failure.
+/// Returns an error (non-zero exit) on a dirty working tree, a task file that is
+/// not recoverable from git, a wrong-shaped surviving file, a declined prompt, or
+/// any git failure.
 pub fn run(args: &CleanupArgs) -> Result<()> {
     let project = util::open()?;
     util::warn_errors(&project.outcome);
@@ -74,9 +82,9 @@ pub fn run(args: &CleanupArgs) -> Result<()> {
         .canonicalize()
         .context("resolve git toplevel")?;
 
-    if !git::is_clean(&root)? {
+    if !args.dry_run && !git::is_clean(&root)? {
         bail!(
-            "working tree has uncommitted changes; cleanup is destructive — commit or stash first"
+            "working tree has uncommitted changes; cleanup rewrites files in place — commit or stash first"
         );
     }
 
@@ -92,14 +100,18 @@ pub fn run(args: &CleanupArgs) -> Result<()> {
         return Ok(());
     }
 
+    if args.dry_run {
+        report_plan(&plan);
+        println!("dry run: nothing written");
+        return Ok(());
+    }
+
     if !args.yes && !confirm(&plan)? {
         bail!("aborted by user");
     }
 
     apply(&plan)?;
-    let commit = git::commit_all(&root, &commit_message(&plan))?;
-
-    report(&plan, &commit);
+    report_applied(&plan);
     Ok(())
 }
 
@@ -206,20 +218,6 @@ fn apply(plan: &Plan) -> Result<()> {
     Ok(())
 }
 
-fn commit_message(plan: &Plan) -> String {
-    let mut body = String::from("chore(tasks): cleanup retire terminal tasks\n\nDeletes:\n");
-    for deletion in &plan.deletions {
-        body.push_str(&format!("  - {}\n", deletion.rel.display()));
-    }
-    if !plan.rewrites.is_empty() {
-        body.push_str("\nRewrote inbound links in:\n");
-        for rewrite in &plan.rewrites {
-            body.push_str(&format!("  - {}\n", rewrite.rel.display()));
-        }
-    }
-    body
-}
-
 fn confirm(plan: &Plan) -> Result<bool> {
     use std::io::Write;
     let mut stderr = std::io::stderr();
@@ -242,7 +240,26 @@ fn confirm(plan: &Plan) -> Result<bool> {
     Ok(answer == "y" || answer == "yes")
 }
 
-fn report(plan: &Plan, commit: &str) {
+/// Print what the plan would do (used by `--dry-run`).
+fn report_plan(plan: &Plan) {
+    println!("would delete {} task(s):", plan.deletions.len());
+    for deletion in &plan.deletions {
+        println!("  - {}", deletion.rel.display());
+    }
+    if !plan.rewrites.is_empty() {
+        let links: usize = plan.rewrites.iter().map(|r| r.links).sum();
+        println!(
+            "would rewrite {links} link(s) in {} file(s):",
+            plan.rewrites.len()
+        );
+        for rewrite in &plan.rewrites {
+            println!("  - {}", rewrite.rel.display());
+        }
+    }
+}
+
+/// Print what the plan just did, and remind the user to review and commit.
+fn report_applied(plan: &Plan) {
     println!("deleted {} task(s):", plan.deletions.len());
     for deletion in &plan.deletions {
         println!("  - {}", deletion.rel.display());
@@ -251,7 +268,7 @@ fn report(plan: &Plan, commit: &str) {
         let links: usize = plan.rewrites.iter().map(|r| r.links).sum();
         println!("rewrote {links} link(s) in {} file(s)", plan.rewrites.len());
     }
-    println!("committed {commit}");
+    println!("review the changes and commit when satisfied");
 }
 
 #[cfg(test)]

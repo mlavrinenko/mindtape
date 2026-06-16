@@ -6,7 +6,7 @@ use std::process::Command;
 
 use mindtape::{Status, Task};
 
-use super::{Plan, plan};
+use super::{Plan, apply, plan};
 use crate::git;
 
 /// Run `git -C dir args`, asserting success.
@@ -84,6 +84,23 @@ fn plan_tombstones_removed_and_rewrites_survivor() {
     assert!(rewrite.contents.contains("swh:1:rev:"));
     assert!(rewrite.contents.contains("path=gone.typ"));
     assert!(!rewrite.contents.contains("link(\"gone.typ\")"));
+}
+
+#[test]
+fn apply_writes_and_deletes_without_committing() {
+    let (_dir, root) = repo_with(&[("gone.typ", "gone\n"), ("live.typ", SURVIVOR)]);
+    let tasks = vec![
+        task("gone", "gone.typ", Some("done")),
+        task("live", "live.typ", None),
+    ];
+    let plan = plan(&tasks, &["done".to_owned()], &root, &root).unwrap();
+    apply(&plan).unwrap();
+
+    assert!(!root.join("gone.typ").exists());
+    let live = std::fs::read_to_string(root.join("live.typ")).unwrap();
+    assert!(live.contains("swh:1:rev:"));
+    // cleanup must not commit: the tree is left dirty for the user to review.
+    assert!(!git::is_clean(&root).unwrap());
 }
 
 #[test]

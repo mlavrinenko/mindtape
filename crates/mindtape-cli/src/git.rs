@@ -1,10 +1,11 @@
-//! Minimal git plumbing for `cleanup`: the working-tree guard and the
-//! single-commit checkpoint. Shells out to the `git` binary (no libgit2).
+//! Minimal git plumbing for `cleanup`: locate the repository root and guard
+//! against a dirty working tree. Shells out to the `git` binary (no libgit2).
 //!
 //! SWHID minting and resolution live in [`swhid_mint::git`]; this module owns
-//! only the orchestration-level commands (`status`, `add`, `commit`,
-//! `rev-parse`) that `swhid-mint` deliberately does not. A future shared git
-//! crate could absorb both, but the two concerns stay separate for now.
+//! only the orchestration-level commands (`rev-parse`, `status`) that
+//! `swhid-mint` deliberately does not. `cleanup` does not commit — the user
+//! reviews the diff and commits. A future shared git crate could absorb both,
+//! but the two concerns stay separate for now.
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -46,36 +47,4 @@ pub fn toplevel(start: &Path) -> Result<PathBuf> {
 /// Fails when `git status` cannot run.
 pub fn is_clean(root: &Path) -> Result<bool> {
     Ok(capture(root, ["status", "--porcelain"])?.is_empty())
-}
-
-/// Stage everything and create one commit; return the new commit hash.
-///
-/// # Errors
-/// Fails when any of `git add`, `git commit`, or `git rev-parse` fails.
-pub fn commit_all(root: &Path, message: &str) -> Result<String> {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(["add", "-A"])
-        .output()
-        .context("run git add -A")?;
-    if !out.status.success() {
-        bail!(
-            "git add failed: {}",
-            String::from_utf8_lossy(&out.stderr).trim()
-        );
-    }
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(["commit", "-q", "-m", message])
-        .output()
-        .context("run git commit")?;
-    if !out.status.success() {
-        bail!(
-            "git commit failed: {}",
-            String::from_utf8_lossy(&out.stderr).trim()
-        );
-    }
-    capture(root, ["rev-parse", "HEAD"])
 }
