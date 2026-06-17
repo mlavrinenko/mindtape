@@ -50,6 +50,10 @@ with violations. Key restrictions:
 Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-tarpaulin`.
 `main.rs` is excluded — keep it thin.
 
+`just nix-build` verifies that `nix build` succeeds in a clean sandbox (no dev
+shell, no sccache). Run it when touching `flake.nix` or `.cargo/config.toml`; it
+is called automatically by `just release`.
+
 ## Dependency Drift (outdatty)
 
 [`outdatty.yaml`](outdatty.yaml) couples source files to the dependents that must
