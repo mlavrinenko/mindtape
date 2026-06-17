@@ -136,3 +136,20 @@ fn is_clean_tracks_working_tree() {
     std::fs::write(root.join("a.typ"), "changed\n").unwrap();
     assert!(!git::is_clean(&root).unwrap());
 }
+
+#[test]
+fn is_clean_counts_untracked_files() {
+    // Matches `git status --porcelain` breadth: an untracked file is dirty.
+    let (_dir, root) = repo_with(&[("a.typ", "a\n")]);
+    assert!(git::is_clean(&root).unwrap());
+    std::fs::write(root.join("new.typ"), "new\n").unwrap();
+    assert!(!git::is_clean(&root).unwrap());
+}
+
+#[test]
+fn toplevel_finds_work_tree_from_subdir() {
+    let (_dir, root) = repo_with(&[("a.typ", "a\n")]);
+    let sub = root.join("nested");
+    std::fs::create_dir_all(&sub).unwrap();
+    assert_eq!(git::toplevel(&sub).unwrap().canonicalize().unwrap(), root);
+}

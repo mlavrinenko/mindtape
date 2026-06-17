@@ -1,6 +1,6 @@
 [package]
 name = "swhid-mint"
-description = "Mint and resolve Software Heritage identifiers (SWHID, ISO/IEC 18670:2025). The core is VCS-agnostic; deriving an id from a working tree sits behind a backend feature (`git` today, shells out to the git binary)"
+description = "Mint and resolve Software Heritage identifiers (SWHID, ISO/IEC 18670:2025). The core is VCS-agnostic; deriving an id from a working tree sits behind a backend feature (`git` today, via the gix crate)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -11,9 +11,16 @@ categories = ["development-tools"]
 
 [features]
 default = ["git"]
-# Backend: derive/resolve SWHIDs against a local git repo via the `git` binary.
-# Adds no dependencies — git computes sha1_git, we only prefix the kind.
-git = []
+# Backend: derive/resolve SWHIDs against a local git repo via the `gix`
+# (gitoxide) crate. sha1_git == git's own object id, so gix computes ids
+# natively — no subprocess, no porcelain parsing.
+git = ["dep:gix"]
+
+[dependencies]
+gix = { version = "0.84", default-features = false, features = [
+  "revision",
+  "sha1",
+], optional = true }
 
 [dev-dependencies]
 tempfile = "3"

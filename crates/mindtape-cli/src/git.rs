@@ -1,50 +1,47 @@
 //! Minimal git plumbing for `cleanup`: locate the repository root and guard
-//! against a dirty working tree. Shells out to the `git` binary (no libgit2).
+//! against a dirty working tree, via the `gix` (gitoxide) crate — a real git
+//! object model, no subprocess.
 //!
 //! SWHID minting and resolution live in [`swhid_mint::git`]; this module owns
-//! only the orchestration-level commands (`rev-parse`, `status`) that
-//! `swhid-mint` deliberately does not. `cleanup` does not commit — the user
-//! reviews the diff and commits. A future shared git crate could absorb both,
-//! but the two concerns stay separate for now.
+//! only the orchestration-level queries (repository discovery, worktree status)
+//! that `swhid-mint` deliberately does not. `cleanup` does not commit — the user
+//! reviews the diff and commits.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result};
+use gix::bstr::BString;
 
-/// Run `git -C <root> <args>` and return trimmed stdout, failing on non-zero.
-fn capture<const N: usize>(root: &Path, args: [&str; N]) -> Result<String> {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(args)
-        .output()
-        .with_context(|| format!("run git {}", args.join(" ")))?;
-    if !out.status.success() {
-        bail!(
-            "git {} failed: {}",
-            args.join(" "),
-            String::from_utf8_lossy(&out.stderr).trim()
-        );
-    }
-    Ok(String::from_utf8_lossy(&out.stdout).trim().to_owned())
-}
-
-/// Absolute path to the repository root containing `start`.
+/// Absolute path to the repository root (work tree) containing `start`.
 ///
 /// # Errors
-/// Fails when `start` is not inside a git work tree.
+/// Fails when `start` is not inside a git work tree (e.g. a bare repository).
 pub fn toplevel(start: &Path) -> Result<PathBuf> {
-    Ok(PathBuf::from(capture(
-        start,
-        ["rev-parse", "--show-toplevel"],
-    )?))
+    let repo = gix::discover(start).context("discover git repository")?;
+    repo.workdir()
+        .map(Path::to_path_buf)
+        .context("repository has no work tree")
 }
 
-/// Whether the working tree at `root` has no uncommitted changes.
+/// Whether the working tree at `root` has no uncommitted changes — tracked
+/// modifications, staged changes, or untracked files (matching the breadth of
+/// `git status --porcelain`).
 ///
 /// # Errors
-/// Fails when `git status` cannot run.
+/// Fails when the repository cannot be opened or the status walk fails.
 pub fn is_clean(root: &Path) -> Result<bool> {
-    Ok(capture(root, ["status", "--porcelain"])?.is_empty())
+    let repo = gix::discover(root).context("discover git repository")?;
+    let mut iter = repo
+        .status(gix::progress::Discard)
+        .context("start status")?
+        .untracked_files(gix::status::UntrackedFiles::Files)
+        .into_iter(Vec::<BString>::new())
+        .context("iterate status")?;
+    match iter.next() {
+        Some(item) => {
+            item.context("status item")?;
+            Ok(false)
+        }
+        None => Ok(true),
+    }
 }

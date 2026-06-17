@@ -3,8 +3,7 @@
 //! The core — [`Swhid`], [`Swhid::render`], [`Swhid::parse`] — is VCS-agnostic: a
 //! SWHID is `swh:1:<kind>:<hash>` with optional qualifiers. Deriving an id from a
 //! working tree, or checking one still resolves, is a VCS-backed operation behind
-//! a backend feature: [`git`] today (shells out to the `git` binary), other VCS
-//! later.
+//! a backend feature: [`git`] today (via the `gix` crate), other VCS later.
 //!
 //! Why hand-rolled, not the `swhid` crate: for content/directory/revision the
 //! SWHID hash is `sha1_git` — identical to git's own blob/tree/commit SHA-1 — so a
