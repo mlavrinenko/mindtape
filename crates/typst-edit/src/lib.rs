@@ -175,6 +175,12 @@ pub struct Call {
     pub args: Vec<Arg>,
     /// Trailing `[…]` content block, when present.
     pub body: Option<Body>,
+    /// True when this is a markup `#name(...)` call (hash-prefixed); false for a
+    /// call in code/expression context (a metadata-slot `link("…")`, an array
+    /// element, a show-rule argument). Lets a consumer keep prose-only semantics
+    /// — `#link` in body text vs. `link()` inside the task DSL — without a
+    /// textual hash scan.
+    pub markup: bool,
 }
 
 /// One argument of a [`Call`].
@@ -260,11 +266,15 @@ fn call_at(src: &str, call: &LinkedNode, name: &str) -> Option<Call> {
     }
     let args_node = call.children().find(|c| c.kind() == SyntaxKind::Args)?;
     let (args, body) = collect_args(src, &args_node);
+    let markup = call
+        .prev_sibling()
+        .is_some_and(|sib| sib.kind() == SyntaxKind::Hash);
     Some(Call {
         name: name.to_owned(),
         range: call.range(),
         args,
         body,
+        markup,
     })
 }
 

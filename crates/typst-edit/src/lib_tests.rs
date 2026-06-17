@@ -137,6 +137,24 @@ fn migrate_git_ref_to_swh_link_preserving_label() {
 }
 
 #[test]
+fn find_calls_flags_markup_hash_calls_vs_code_context() {
+    // Prose `#link` is a markup call; a `link()` inside the task DSL (a
+    // metadata slot's array) is a code-context call. Both parse as calls; only
+    // the markup form is hash-prefixed.
+    let src = "#show: task.with(depends-on: (link(\"q.typ\"),))\nbody #link(\"p.typ\")[L]";
+    let calls = find_calls(src, "link");
+    assert_eq!(calls.len(), 2);
+    let code = calls
+        .iter()
+        .find(|c| c.positional(0).unwrap().value == "q.typ");
+    let prose = calls
+        .iter()
+        .find(|c| c.positional(0).unwrap().value == "p.typ");
+    assert!(!code.unwrap().markup);
+    assert!(prose.unwrap().markup);
+}
+
+#[test]
 fn find_calls_ignores_calls_in_raw_blocks() {
     let src = "```\n#git-ref(\"x\", \"y\")\n```";
     assert!(find_calls(src, "git-ref").is_empty());
