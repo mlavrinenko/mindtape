@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "typst-edit: parse-plane in-place Typst source editor",
-  status: proposed(2026, 6, 16),
+  status: done(2026, 6, 17),
   priority: "high",
   estimate-hours: 10,
   relates-to: (

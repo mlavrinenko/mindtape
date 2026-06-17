@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "mindtape cleanup: retire terminal tasks, rewrite links to SWHID",
-  status: proposed(2026, 6, 16),
+  status: done(2026, 6, 17),
   priority: "normal",
   estimate-hours: 6,
   depends-on: (
