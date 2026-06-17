@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Adopt gix as the git substrate (drop shell-out git)",
-  status: proposed(2026, 6, 17),
+  status: done(2026, 6, 17),
   priority: "normal",
   estimate-hours: 8,
   relates-to: (

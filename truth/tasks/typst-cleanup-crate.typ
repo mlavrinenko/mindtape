@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "typst-cleanup: consumer-blind artifact-retirement orchestration",
-  status: proposed(2026, 6, 17),
+  status: done(2026, 6, 17),
   priority: "high",
   estimate-hours: 12,
   relates-to: (
