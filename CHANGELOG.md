@@ -21,10 +21,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rewriting and the speconaut scanner collapse (see
   `docs/decisions/003-swhid-cleanup-tombstones-and-shared-edit-substrate.md`).
 - **`swhid-mint` crate** — mint and resolve Software Heritage identifiers
-  (SWHID, ISO/IEC 18670:2025). VCS-agnostic core (`render`/`parse`) plus a `git`
-  backend feature (shells out to the `git` binary, no libgit2) that mints a
-  revision-plus-path id for a tracked file and resolves one back. The tombstone
-  substrate for `mindtape cleanup`.
+  (SWHID, ISO/IEC 18670:2025). VCS-agnostic core (`render`/`parse`/`is_swhid_url`)
+  plus a `git` backend feature (via the `gix` crate, no subprocess, no libgit2)
+  that mints a revision-plus-path id for a tracked file and resolves one back. The
+  tombstone substrate for `mindtape cleanup`.
+- **`typst-cleanup` crate** — consumer-blind orchestration for retiring Typst
+  artifacts: dirty-tree guard, per-file SWHID tombstone minting, and atomic
+  inbound-`link()` rewriting, planned in memory before any write. The consumer
+  supplies eligibility, link identity, and tombstone policy via a `Policy` trait.
+  `mindtape cleanup` rides it; speconaut adopts it under a separate task. See
+  `docs/decisions/004-gix-git-substrate.md` for the git substrate.
 - **`mindtape cleanup`** — retire terminal-status tasks: deletes each terminal
   task file and rewrites every surviving `link("<stem>.typ")` that pointed at it
   into an SWHID tombstone `link("swh:1:rev:<commit>;path=<path>")`. Does not

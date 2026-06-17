@@ -2476,14 +2476,12 @@ dependencies = [
  "csv",
  "dirs",
  "env_logger",
- "gix",
  "log",
  "mindtape",
  "predicates",
  "serde_json",
- "swhid-mint",
  "tempfile",
- "typst-edit",
+ "typst-cleanup",
  "typst-harvest",
 ]
 
@@ -3625,6 +3623,16 @@ name = "typst-assets"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5613cb719a6222fe9b74027c3625d107767ec187bff26b8fc931cf58942c834f"
+
+[[package]]
+name = "typst-cleanup"
+version = "0.4.0"
+dependencies = [
+ "gix",
+ "swhid-mint",
+ "tempfile",
+ "typst-edit",
+]
 
 [[package]]
 name = "typst-cst"

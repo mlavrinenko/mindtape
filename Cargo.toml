@@ -3,6 +3,7 @@ members = [
     "crates/typst-harvest",
     "crates/typst-cst",
     "crates/typst-edit",
+    "crates/typst-cleanup",
     "crates/swhid-mint",
     "crates/mindtape",
     "crates/mindtape-cli",

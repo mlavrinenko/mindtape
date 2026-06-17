@@ -1,20 +1,22 @@
 //! `mindtape cleanup` — retire terminal-status tasks and rewrite inbound links
-//! into SWHID tombstones, atomically, in a single git commit.
+//! into SWHID tombstones, atomically. A thin consumer of the consumer-blind
+//! [`typst_cleanup`] crate, which owns the shared skeleton (dirty-tree guard,
+//! tombstone minting, atomic link rewriting). This module supplies the project
+//! policy — terminal-status eligibility, file-stem link identity — and the
+//! task-worded presentation.
 //!
-//! Thin orchestration over two consumer-blind crates: [`swhid_mint`] mints a
-//! `swh:1:rev:<commit>;path=<path>` history pointer for each removed file (and
-//! enforces the working-blob-is-recoverable invariant), and [`typst_edit`]
-//! locates and splices the `link("…")` targets in surviving files.
-//!
-//! Atomic by construction: every mint and every file rewrite is computed in
-//! memory first ([`plan`]); not a byte is written until the whole plan succeeds.
-//! A wrong-shaped file or an unresolvable commit aborts the run with no changes.
+//! Atomic by construction: [`typst_cleanup::plan`] computes every mint and
+//! rewrite in memory; not a byte is written until [`apply`] runs on a complete
+//! plan. `cleanup` does not commit — the user reviews the diff and commits.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
 use mindtape::{Task, is_history_pointer, normalize_link};
+use typst_cleanup::{Artifact, Swhid};
+// Re-exported so `cleanup`'s presentation and tests refer to one plan type.
+pub use typst_cleanup::{Plan, apply};
 
 use crate::{git, util};
 
@@ -29,33 +31,21 @@ pub struct CleanupArgs {
     pub dry_run: bool,
 }
 
-/// A file the plan will delete: its absolute path and root-relative display path.
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Deletion {
-    abs: PathBuf,
-    rel: PathBuf,
-}
+/// The cleanup policy: a `link()` URL names a task by file stem, unless it is
+/// already a SWHID history pointer. The tombstone is the bare quoted SWHID.
+struct TaskLinks;
 
-/// A surviving file the plan will rewrite, with its already-spliced contents.
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct Rewrite {
-    abs: PathBuf,
-    rel: PathBuf,
-    contents: String,
-    /// How many links were retargeted in this file.
-    links: usize,
-}
+impl typst_cleanup::Policy for TaskLinks {
+    fn link_identity(&self, url: &str) -> Option<String> {
+        if is_history_pointer(url) {
+            None
+        } else {
+            Some(normalize_link(url))
+        }
+    }
 
-/// The full, computed-in-memory cleanup. Empty when nothing is terminal.
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
-struct Plan {
-    deletions: Vec<Deletion>,
-    rewrites: Vec<Rewrite>,
-}
-
-impl Plan {
-    fn is_empty(&self) -> bool {
-        self.deletions.is_empty()
+    fn tombstone(&self, _retired: &Artifact, swhid: &Swhid) -> String {
+        format!("\"{}\"", swhid.render())
     }
 }
 
@@ -115,107 +105,30 @@ pub fn run(args: &CleanupArgs) -> Result<()> {
     Ok(())
 }
 
-/// Compute the whole cleanup without touching disk.
-///
-/// Mints a tombstone for every terminal task (failing the run if any file is
-/// untracked or its working bytes diverge from git) and splices every surviving
-/// file's inbound links onto those tombstones. Returns an empty plan when no
-/// task is terminal.
+/// Compute the cleanup plan over `tasks`: partition terminal tasks (to retire)
+/// from survivors (to scan) and delegate to [`typst_cleanup::plan`].
 ///
 /// # Errors
-/// Propagates mint failures, file reads, and [`typst_edit`] rejections.
+/// Propagates [`typst_cleanup`] failures: a file outside the repository, an
+/// unrecoverable tombstone mint, a survivor read, or a rejected splice.
 fn plan(tasks: &[Task], terminal: &[String], root: &Path, git_root: &Path) -> Result<Plan> {
-    let mut tombstones: std::collections::HashMap<String, String> =
-        std::collections::HashMap::new();
-    let mut deletions = Vec::new();
-
-    let removed: Vec<&Task> = tasks.iter().filter(|t| t.is_terminal(terminal)).collect();
-    if removed.is_empty() {
-        return Ok(Plan::default());
-    }
-
-    for task in &removed {
-        let abs = root.join(&task.file);
-        let git_rel = abs
-            .strip_prefix(git_root)
-            .with_context(|| format!("{} is outside the git repository", abs.display()))?;
-        let git_rel = git_rel.to_string_lossy();
-        let id = swhid_mint::git::mint_rev_path(git_root, &git_rel)
-            .with_context(|| format!("mint tombstone for {}", task.file.display()))?;
-        tombstones.insert(task.id.clone(), format!("\"{}\"", id.render()));
-        deletions.push(Deletion {
-            abs,
+    let mut eligible = Vec::new();
+    let mut survivors = Vec::new();
+    for task in tasks {
+        let artifact = Artifact {
+            abs: root.join(&task.file),
             rel: task.file.clone(),
-        });
-    }
-
-    let surviving = tasks.iter().filter(|t| !t.is_terminal(terminal));
-    let mut rewrites = Vec::new();
-    for task in surviving {
-        if let Some(rewrite) = plan_rewrite(task, root, &tombstones)? {
-            rewrites.push(rewrite);
+            id: task.id.clone(),
+        };
+        if task.is_terminal(terminal) {
+            eligible.push(artifact);
+        } else {
+            survivors.push(artifact);
         }
     }
-
-    deletions.sort_by(|a, b| a.rel.cmp(&b.rel));
-    rewrites.sort_by(|a, b| a.rel.cmp(&b.rel));
-    Ok(Plan {
-        deletions,
-        rewrites,
-    })
-}
-
-/// Build the rewrite for one surviving file, or `None` if it links to no removed
-/// task. Reads the source, locates every `link("…")`, and retargets those whose
-/// stem names a removed task — leaving existing history pointers untouched.
-fn plan_rewrite(
-    task: &Task,
-    root: &Path,
-    tombstones: &std::collections::HashMap<String, String>,
-) -> Result<Option<Rewrite>> {
-    let abs = root.join(&task.file);
-    let source =
-        std::fs::read_to_string(&abs).with_context(|| format!("read {}", abs.display()))?;
-
-    let mut edits = Vec::new();
-    for target in typst_edit::find_link_targets(&source) {
-        if is_history_pointer(&target.url) {
-            continue;
-        }
-        if let Some(tombstone) = tombstones.get(&normalize_link(&target.url)) {
-            edits.push(typst_edit::Edit::new(
-                target.range.clone(),
-                tombstone.clone(),
-            ));
-        }
-    }
-    if edits.is_empty() {
-        return Ok(None);
-    }
-
-    let links = edits.len();
-    let contents = typst_edit::apply(&source, edits)
-        .with_context(|| format!("rewrite links in {}", task.file.display()))?;
-    Ok(Some(Rewrite {
-        abs,
-        rel: task.file.clone(),
-        contents,
-        links,
-    }))
-}
-
-/// Write every rewrite, then delete every removed file. Called only after a
-/// complete, validated [`Plan`].
-fn apply(plan: &Plan) -> Result<()> {
-    for rewrite in &plan.rewrites {
-        std::fs::write(&rewrite.abs, &rewrite.contents)
-            .with_context(|| format!("write {}", rewrite.rel.display()))?;
-    }
-    for deletion in &plan.deletions {
-        std::fs::remove_file(&deletion.abs)
-            .with_context(|| format!("delete {}", deletion.rel.display()))?;
-    }
-    Ok(())
+    Ok(typst_cleanup::plan(
+        &eligible, &survivors, git_root, &TaskLinks,
+    )?)
 }
 
 fn confirm(plan: &Plan) -> Result<bool> {
