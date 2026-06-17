@@ -25,6 +25,14 @@ outdatty-check:
 outdatty-update:
     outdatty update
 
+# Prove `nix build` succeeds in a clean sandbox (no dev shell, no sccache).
+# Catches a committed .cargo/config.toml — or any dev-only setting — leaking
+# into the package build and breaking downstream flake consumers. Stage first:
+# flakes filter source to git-tracked files, and naersk needs the current tree.
+nix-build:
+    git add -A
+    nix build .#default
+
 # Run tests only
 test *ARGS:
     cargo test --workspace {{ ARGS }}
@@ -120,5 +128,6 @@ release VERSION:
         exit 1
     fi
     just check
+    just nix-build
     git tag -a "v{{ VERSION }}" -m "v{{ VERSION }}"
     git push origin "v{{ VERSION }}"

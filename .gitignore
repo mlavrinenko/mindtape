@@ -1,5 +1,7 @@
 /.direnv
 /build
 /target
+/.cargo/
+/result
 # Reference clones for research (typst, tinymist, mephistypsteles, ...)
 /var
