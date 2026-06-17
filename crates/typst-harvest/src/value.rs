@@ -7,6 +7,7 @@
 use std::collections::BTreeMap;
 
 use typst::foundations::{Datetime, Repr, Value};
+use typst_library::model::{Destination, LinkElem, LinkTarget};
 
 /// A harvested value: the Typst-agnostic projection of a `metadata()` payload.
 #[derive(Debug, Clone, PartialEq)]
@@ -118,7 +119,26 @@ pub fn convert(value: &Value) -> HVal {
                 .map(|(key, val)| (key.as_str().to_owned(), convert(val)))
                 .collect(),
         ),
-        other => HVal::Str(other.repr().as_str().to_owned()),
+        other => link_dest(other).unwrap_or_else(|| HVal::Str(other.repr().as_str().to_owned())),
+    }
+}
+
+/// Project a standard Typst `link("…")` element to its URL destination string.
+///
+/// Authors express cross-references (and task↔task edges) with the builtin
+/// `link`, which the prelude must not shadow. A link with a URL destination
+/// carries the bare target, so harvest it as that string rather than the
+/// element's repr. Label / page-position destinations and every other value
+/// fall through to the repr in [`convert`]. This is consumer-blind: it knows
+/// nothing of tasks, only how to read a Typst link.
+fn link_dest(value: &Value) -> Option<HVal> {
+    let Value::Content(content) = value else {
+        return None;
+    };
+    let link = content.to_packed::<LinkElem>()?;
+    match &link.dest {
+        LinkTarget::Dest(Destination::Url(url)) => Some(HVal::Str(url.as_str().to_owned())),
+        _ => None,
     }
 }
 

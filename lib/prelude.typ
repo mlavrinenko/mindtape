@@ -10,14 +10,6 @@
 //   - identity (filename stem), the filter language
 // Keeping the prelude config-free means the same package serves every project.
 
-// Task↔task link. The value is the target task's file stem (or relative path);
-// identity is the filename stem, so renames break links loud when MindTape
-// resolves them against the loaded task set.
-#let link(target) = target
-
-// A reference to a git-tracked file at a specific revision.
-#let git-ref(path, hash) = (path: path, hash: hash)
-
 // Status is a plain (name, date, note) dict. The project's config decides which
 // names are legal; the prelude ships shortcut constructors for a broad common
 // set so an unconfigured project still gets ergonomic status calls.

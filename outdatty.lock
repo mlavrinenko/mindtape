@@ -13,13 +13,13 @@ groups:
       Justfile: 7a0fb86e5d212af82072a32eeb9575c551168c76e850bd11f352b27369fcbea5
       flake.nix: c7583e19368e397ef47758b83e02b437ddfbd34318cbf23220398ccb3c030b8f
     dependents:
-      AGENTS.md: 90a48070a53061cc2c93f69ecd32b03f0d83919f965d2e526414cb977d8181c8
+      AGENTS.md: cce6e467cf4043da73351b92671c9ec0f889f72d986f82f87e8ddb88d8cc265d
       CONTRIBUTING.md: 6d628c2a7717c7010be7e9a338debbd6c1a171f737b16c85e297c1c4492b7d11
   prelude-docs:
     source:
-      lib/prelude.typ: c014e6f35779d7766b402d5cab7829c45bde95cea653de03577e95f5a130cafe
+      lib/prelude.typ: a773e21f3683d73ce86e1127be1a552fa3899983a700f7a4f2349389331e06ea
     dependents:
-      AGENTS.md: 90a48070a53061cc2c93f69ecd32b03f0d83919f965d2e526414cb977d8181c8
+      AGENTS.md: cce6e467cf4043da73351b92671c9ec0f889f72d986f82f87e8ddb88d8cc265d
       README.md: 43ce9e6581f7151885eb7e3968d2137a04187cab47863321651177a34dc127e7
   release-notes:
     source:

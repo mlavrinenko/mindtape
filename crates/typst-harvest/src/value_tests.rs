@@ -2,9 +2,22 @@
 
 use std::collections::BTreeMap;
 
-use typst::foundations::{Datetime, Value};
+use typst::foundations::{Datetime, NativeElement, Value};
+use typst_library::model::{LinkElem, Url};
 
 use super::{HVal, convert, format_date};
+
+#[test]
+fn projects_standard_link_to_its_destination() {
+    // `link("stem.typ")` is the standard Typst hyperlink element; harvest reads
+    // its URL destination, not the rendered element's repr.
+    let url = Url::new("converge-speconaut.typ").unwrap();
+    let link = Value::Content(LinkElem::from_url(url).pack());
+    assert_eq!(
+        convert(&link),
+        HVal::Str("converge-speconaut.typ".to_owned())
+    );
+}
 
 #[test]
 fn converts_scalars() {
