@@ -108,6 +108,15 @@ impl Swhid {
     }
 }
 
+/// Cheap shape check: does `url` use the SWHID scheme (`swh:1:`)? A prefix test,
+/// not a full parse — callers use it to tell a SWHID tombstone URL apart from a
+/// file path or an http link without paying for [`Swhid::parse`]. Co-located with
+/// the parser that owns the scheme.
+#[must_use]
+pub fn is_swhid_url(url: &str) -> bool {
+    url.starts_with("swh:1:")
+}
+
 fn is_sha1_git(hash: &str) -> bool {
     hash.len() == 40
         && hash

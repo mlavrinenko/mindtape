@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{Kind, Swhid};
+use super::{Kind, Swhid, is_swhid_url};
 
 const ZERO: &str = "0000000000000000000000000000000000000000";
 
@@ -49,4 +49,13 @@ fn ignores_unknown_qualifiers_keeps_path() {
     let text = format!("swh:1:rev:{ZERO};origin=x;path=p.typ;lines=1");
     let id = Swhid::parse(&text).expect("parse");
     assert_eq!(id.path.as_deref(), Some("p.typ"));
+}
+
+#[test]
+fn recognizes_swhid_url() {
+    assert!(is_swhid_url(&format!(
+        "swh:1:rev:{ZERO};path=tasks/gone.typ"
+    )));
+    assert!(!is_swhid_url("file.typ"));
+    assert!(!is_swhid_url("https://example.com/swh:1:rev:x"));
 }
