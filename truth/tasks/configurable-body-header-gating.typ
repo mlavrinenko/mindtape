@@ -7,7 +7,7 @@
   estimate-hours: 4,
   depends-on: (
     link("artifact-gate-rule-engine.typ"),
-    link("typst-cst-structure-extraction.typ"),
+    link("swh:1:rev:8069f3182b74520070fcfeb584a5626df6db1203;path=truth/tasks/typst-cst-structure-extraction.typ"),
   ),
   relates-to: (link("converge-speconaut.typ"),),
   tags: ("gating", "cli"),
