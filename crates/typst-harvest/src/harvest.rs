@@ -7,6 +7,7 @@ use comemo::Track;
 use typst::diag::SourceDiagnostic;
 use typst::engine::{Route, Sink, Traced};
 use typst::foundations::{Content, Module};
+use typst::syntax::Span;
 use typst::{ROUTINES, World};
 use typst_library::introspection::MetadataElem;
 
@@ -14,11 +15,28 @@ use crate::HarvestError;
 use crate::value::{HVal, convert};
 use crate::world::HarvestWorld;
 
+/// Where a marker was emitted: a tree-relative (or package-qualified) path and a
+/// 1-based line number.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Location {
+    /// Source path. Tree-relative for a project file, or `{pkg-spec}/{vpath}`
+    /// for a file imported from an `@local/<name>:<version>` package, so the
+    /// identity is stable across consuming trees.
+    pub path: String,
+    /// 1-based line of the marker's emitting call.
+    pub line: usize,
+}
+
 /// One harvested `metadata()` payload, projected to an [`HVal`].
 #[derive(Debug, Clone, PartialEq)]
 pub struct Marker {
     /// The metadata value.
     pub value: HVal,
+    /// The label attached to the marker (`#metadata(..) <name>`), if any. Tools
+    /// that namespace by label (rather than by a dict key) filter on this.
+    pub label: Option<String>,
+    /// Source location of the emitting call, when resolvable.
+    pub location: Option<Location>,
 }
 
 /// The result of harvesting a file: its markers and project-local dependencies.
@@ -31,11 +49,19 @@ pub struct Harvest {
 }
 
 impl Harvest {
-    /// Markers whose `marker` key equals `name` (the namespacing convention).
+    /// Markers whose `marker` key equals `name` (the dict-key namespacing
+    /// convention).
     pub fn with_marker<'a>(&'a self, name: &'a str) -> impl Iterator<Item = &'a Marker> {
         self.markers
             .iter()
             .filter(move |marker| marker.value.get("marker").and_then(HVal::as_str) == Some(name))
+    }
+
+    /// Markers carrying the label `name` (the `<name>` namespacing convention).
+    pub fn with_label<'a>(&'a self, name: &'a str) -> impl Iterator<Item = &'a Marker> {
+        self.markers
+            .iter()
+            .filter(move |marker| marker.label.as_deref() == Some(name))
     }
 }
 
@@ -65,7 +91,7 @@ pub fn harvest(world: &HarvestWorld) -> Result<Harvest, HarvestError> {
 
     let content: Content = module.content();
     let mut markers = Vec::new();
-    collect_markers(&content, &mut markers);
+    collect_markers(world, &content, &mut markers);
     let dependencies = world.dependencies()?;
     Ok(Harvest {
         markers,
@@ -73,15 +99,36 @@ pub fn harvest(world: &HarvestWorld) -> Result<Harvest, HarvestError> {
     })
 }
 
-fn collect_markers(content: &Content, out: &mut Vec<Marker>) {
+fn collect_markers(world: &HarvestWorld, content: &Content, out: &mut Vec<Marker>) {
     let _ = content.traverse(&mut |node: Content| -> ControlFlow<()> {
         if let Some(meta) = node.to_packed::<MetadataElem>() {
             out.push(Marker {
                 value: convert(&meta.value),
+                label: node
+                    .label()
+                    .map(|label| label.resolve().as_str().to_owned()),
+                location: span_to_location(node.span(), world),
             });
         }
         ControlFlow::Continue(())
     });
+}
+
+/// Resolve a Typst [`Span`] to a [`Location`]: path plus 1-based line. Files
+/// imported from an `@local/<name>:<version>` package are qualified with the
+/// package spec so their identity is stable across consuming trees.
+fn span_to_location(span: Span, world: &HarvestWorld) -> Option<Location> {
+    let file_id = span.id()?;
+    let source = world.source(file_id).ok()?;
+    let range = source.range(span)?;
+    let line = source.lines().byte_to_line(range.start)? + 1;
+    let vpath = source.id().vpath().as_rooted_path().display().to_string();
+    let vpath = vpath.strip_prefix('/').unwrap_or(&vpath);
+    let path = match source.id().package() {
+        Some(spec) => format!("{spec}/{vpath}"),
+        None => vpath.to_owned(),
+    };
+    Some(Location { path, line })
 }
 
 fn format_diagnostics(diags: &[SourceDiagnostic]) -> String {

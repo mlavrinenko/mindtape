@@ -21,7 +21,7 @@ mod harvest;
 pub mod value;
 pub mod world;
 
-pub use harvest::{Harvest, Marker, harvest};
+pub use harvest::{Harvest, Location, Marker, harvest};
 pub use value::{HVal, convert, format_date};
 pub use world::{HarvestWorld, find_project_root};
 

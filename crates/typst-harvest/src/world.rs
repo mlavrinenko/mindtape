@@ -12,7 +12,7 @@ use std::sync::Mutex;
 
 use chrono::Datelike;
 use typst::diag::{FileError, FileResult};
-use typst::foundations::{Bytes, Datetime};
+use typst::foundations::{Bytes, Datetime, Scope};
 use typst::syntax::{FileId, Source, VirtualPath};
 use typst::text::{Font, FontBook};
 use typst::utils::LazyHash;
@@ -30,6 +30,10 @@ pub struct HarvestWorld {
     dependencies: Mutex<HashSet<FileId>>,
     /// Package name → absolute lib directory, for in-repo package development.
     local_overrides: HashMap<String, PathBuf>,
+    /// File id → in-memory source text, consulted before any disk read. Lets a
+    /// caller back a package entry point (or any file) with a synthesised source
+    /// instead of an on-disk one — e.g. a generated DSL re-export module.
+    source_overrides: HashMap<FileId, String>,
 }
 
 impl HarvestWorld {
@@ -64,6 +68,31 @@ impl HarvestWorld {
         self
     }
 
+    /// Back `id` with an in-memory `source`, consulted before any disk read.
+    ///
+    /// Use this to inject a synthesised module — e.g. a package entry point that
+    /// re-exports natively-bound DSL functions — so the file never needs to exist
+    /// on disk. The package manifest (`typst.toml`) is still read from disk to
+    /// learn the entry point, so pair this with [`Self::with_local_package`] when
+    /// overriding a package's entry source.
+    #[must_use]
+    pub fn with_source_override(mut self, id: FileId, source: impl Into<String>) -> Self {
+        self.source_overrides.insert(id, source.into());
+        self
+    }
+
+    /// Merge `scope`'s bindings into the evaluation library's global scope, so
+    /// the document can call host-native functions (a DSL bound in Rust) without
+    /// importing them. Later bindings win over the defaults.
+    #[must_use]
+    pub fn with_globals(mut self, scope: &Scope) -> Self {
+        let global = self.library.global.scope_mut();
+        for (name, binding) in scope.iter() {
+            global.bind(name.clone(), binding.clone());
+        }
+        self
+    }
+
     fn assemble(abs: &Path, root: PathBuf) -> Result<Self, HarvestError> {
         let rel = abs.strip_prefix(&root).map_err(|_| {
             HarvestError::World(format!(
@@ -81,6 +110,7 @@ impl HarvestWorld {
             sources: Mutex::new(HashMap::new()),
             dependencies: Mutex::new(HashSet::new()),
             local_overrides: HashMap::new(),
+            source_overrides: HashMap::new(),
         })
     }
 
@@ -167,8 +197,12 @@ impl typst::World for HarvestWorld {
         {
             return Ok(source.clone());
         }
-        let path = self.resolve_path(id)?;
-        let text = std::fs::read_to_string(&path).map_err(|err| FileError::from_io(err, &path))?;
+        let text = if let Some(synthetic) = self.source_overrides.get(&id) {
+            synthetic.clone()
+        } else {
+            let path = self.resolve_path(id)?;
+            std::fs::read_to_string(&path).map_err(|err| FileError::from_io(err, &path))?
+        };
         let source = Source::new(id, text);
         if let Ok(mut cache) = self.sources.lock() {
             cache.insert(id, source.clone());
