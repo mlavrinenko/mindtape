@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use typst::foundations::{Datetime, NativeElement, Value};
 use typst_library::model::{LinkElem, Url};
+use typst_library::text::TextElem;
 
 use super::{HVal, convert, format_date};
 
@@ -17,6 +18,14 @@ fn projects_standard_link_to_its_destination() {
         convert(&link),
         HVal::Str("converge-speconaut.typ".to_owned())
     );
+}
+
+#[test]
+fn projects_content_to_its_plain_text() {
+    // A trailing `[note]` block reaches harvest as content; project it to the
+    // concatenated text, not the element's repr.
+    let note = Value::Content(TextElem::new("shim gone".into()).pack());
+    assert_eq!(convert(&note), HVal::Str("shim gone".to_owned()));
 }
 
 #[test]

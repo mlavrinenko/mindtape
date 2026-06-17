@@ -17,9 +17,9 @@ groups:
       CONTRIBUTING.md: 6d628c2a7717c7010be7e9a338debbd6c1a171f737b16c85e297c1c4492b7d11
   prelude-docs:
     source:
-      lib/prelude.typ: a773e21f3683d73ce86e1127be1a552fa3899983a700f7a4f2349389331e06ea
+      lib/prelude.typ: ef7e1a3f9f90aafc9a6965a5a624cb69ae3fede07cec2f0caeaa311f569672bf
     dependents:
-      AGENTS.md: cce6e467cf4043da73351b92671c9ec0f889f72d986f82f87e8ddb88d8cc265d
+      AGENTS.md: 6f964dd67b0490120bdfb3823ab3d42c13cd8ccd72547fc3379e504c6b63032a
       README.md: 43ce9e6581f7151885eb7e3968d2137a04187cab47863321651177a34dc127e7
   release-notes:
     source:

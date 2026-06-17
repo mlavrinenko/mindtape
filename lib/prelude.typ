@@ -18,7 +18,8 @@
   date: datetime(year: year, month: month, day: day),
   note: note,
 )
-#let _mk(name) = (y, m, d, note: none) => status(name, y, m, d, note: note)
+// The optional note rides in as a trailing content block: `done(y, m, d)[note]`.
+#let _mk(name) = (y, m, d, ..note) => status(name, y, m, d, note: note.pos().at(0, default: none))
 #let draft = _mk("draft")
 #let proposed = _mk("proposed")
 #let accepted = _mk("accepted")

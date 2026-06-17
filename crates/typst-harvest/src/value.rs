@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use typst::foundations::{Datetime, Repr, Value};
+use typst::foundations::{Content, Datetime, Repr, Value};
 use typst_library::model::{Destination, LinkElem, LinkTarget};
 
 /// A harvested value: the Typst-agnostic projection of a `metadata()` payload.
@@ -119,27 +119,29 @@ pub fn convert(value: &Value) -> HVal {
                 .map(|(key, val)| (key.as_str().to_owned(), convert(val)))
                 .collect(),
         ),
-        other => link_dest(other).unwrap_or_else(|| HVal::Str(other.repr().as_str().to_owned())),
+        Value::Content(content) => content_str(content),
+        other => HVal::Str(other.repr().as_str().to_owned()),
     }
 }
 
-/// Project a standard Typst `link("…")` element to its URL destination string.
+/// Project a content value to a plain string.
 ///
-/// Authors express cross-references (and task↔task edges) with the builtin
-/// `link`, which the prelude must not shadow. A link with a URL destination
-/// carries the bare target, so harvest it as that string rather than the
-/// element's repr. Label / page-position destinations and every other value
-/// fall through to the repr in [`convert`]. This is consumer-blind: it knows
-/// nothing of tasks, only how to read a Typst link.
-fn link_dest(value: &Value) -> Option<HVal> {
-    let Value::Content(content) = value else {
-        return None;
-    };
-    let link = content.to_packed::<LinkElem>()?;
-    match &link.dest {
-        LinkTarget::Dest(Destination::Url(url)) => Some(HVal::Str(url.as_str().to_owned())),
-        _ => None,
+/// Two consumer-blind rules, knowing nothing of tasks:
+///   - A standard `link("…")` with a URL destination carries the bare target
+///     (how authors express cross-references and task↔task edges, since the
+///     prelude must not shadow the builtin `link`); harvest its destination.
+///   - Any other content (a trailing `[note]` block, a title, …) projects to
+///     its concatenated plain text.
+///
+/// Label / page-position link destinations have no string target, so they fall
+/// through to the plain-text rule.
+fn content_str(content: &Content) -> HVal {
+    if let Some(link) = content.to_packed::<LinkElem>()
+        && let LinkTarget::Dest(Destination::Url(url)) = &link.dest
+    {
+        return HVal::Str(url.as_str().to_owned());
     }
+    HVal::Str(content.plain_text().as_str().to_owned())
 }
 
 #[cfg(test)]
