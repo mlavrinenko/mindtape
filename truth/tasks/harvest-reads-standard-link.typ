@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Harvest reads task links via the standard Typst link()",
-  status: done(2026, 6, 18, note: "typst-harvest projects link() dest; custom shim gone"),
+  status: done(2026, 6, 18)[typst-harvest projects link() dest; custom shim gone],
   priority: "normal",
   estimate-hours: 1,
   relates-to: (link("converge-speconaut.typ"),),
