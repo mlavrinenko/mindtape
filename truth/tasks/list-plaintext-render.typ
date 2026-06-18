@@ -5,7 +5,8 @@
   status: proposed(2026, 6, 19),
   priority: "normal",
   estimate: (hours: 4),
-  relates-to: (link("tty-render-discipline.typ"), link("list-handle-ordinal-check.typ")),
+  depends-on: (link("tty-render-discipline.typ"),),
+  relates-to: (link("field-display.typ"), link("list-handle-ordinal-check.typ")),
   tags: ("cli",),
 )
 
