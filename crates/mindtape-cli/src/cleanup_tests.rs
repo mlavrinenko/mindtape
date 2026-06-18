@@ -53,7 +53,7 @@ fn task(id: &str, file: &str, status: Option<&str>) -> Task {
         priority: None,
         grade: None,
         kind: None,
-        estimate_hours: None,
+        estimate: BTreeMap::new(),
         depends_on: Vec::new(),
         relates_to: Vec::new(),
         tags: Vec::new(),

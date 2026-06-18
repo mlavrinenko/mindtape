@@ -5,8 +5,9 @@
 //!
 //! # Syntax
 //!
-//! Fields: `status`, `priority`, `grade`, `kind`, `title`, `id`, `due`,
-//! `start`, `estimate_hours`, `file`.
+//! Comparable fields: `status`, `priority`, `grade`, `kind`, `title`, `id`,
+//! `due`, `start`, `file`. The opaque `estimate` dict supports presence only
+//! (`has(estimate)` / `miss(estimate)`), not comparison.
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
@@ -41,9 +42,9 @@ pub enum FilterError {
     Invalid(String),
 }
 
-/// A resolved field value during evaluation.
+/// A resolved field value during evaluation. Every comparable field is a
+/// string (dates compare lexicographically, which is ISO-correct).
 enum FieldValue {
-    Num(f64),
     Str(String),
     Missing,
 }
@@ -122,10 +123,6 @@ fn comparison(node: &Node<DefaultNumericTypes>, task: &Task) -> Result<bool, Fil
 fn compare(op: &Operator<DefaultNumericTypes>, value: &FieldValue, literal: &str) -> bool {
     match value {
         FieldValue::Missing => matches!(op, Operator::Neq),
-        FieldValue::Num(num) => match literal.parse::<f64>() {
-            Ok(other) => compare_ordering(op, num.partial_cmp(&other)),
-            Err(_) => matches!(op, Operator::Neq),
-        },
         FieldValue::Str(text) => compare_ordering(op, Some(text.as_str().cmp(literal))),
     }
 }
@@ -182,6 +179,7 @@ fn present(task: &Task, name: &str) -> Result<bool, FilterError> {
         "tags" => Ok(!task.tags.is_empty()),
         "depends_on" => Ok(!task.depends_on.is_empty()),
         "relates_to" => Ok(!task.relates_to.is_empty()),
+        "estimate" => Ok(!task.estimate.is_empty()),
         other => Ok(!matches!(field_value(task, other)?, FieldValue::Missing)),
     }
 }
@@ -189,7 +187,6 @@ fn present(task: &Task, name: &str) -> Result<bool, FilterError> {
 fn contains_ci(value: &FieldValue, needle: &str) -> bool {
     let haystack = match value {
         FieldValue::Str(text) => text.clone(),
-        FieldValue::Num(num) => num.to_string(),
         FieldValue::Missing => return false,
     };
     haystack.to_lowercase().contains(&needle.to_lowercase())
@@ -205,9 +202,6 @@ fn field_value(task: &Task, name: &str) -> Result<FieldValue, FilterError> {
         "id" => FieldValue::Str(task.id.clone()),
         "due" => opt_str(task.due.clone()),
         "start" => opt_str(task.start.clone()),
-        "estimate_hours" => task
-            .estimate_hours
-            .map_or(FieldValue::Missing, FieldValue::Num),
         "file" => FieldValue::Str(task.file.display().to_string()),
         other => return Err(FilterError::UnknownField(other.to_owned())),
     };

@@ -22,7 +22,7 @@ filename stem, so links between tasks break loudly when a file is renamed.
   title: "Implement authentication",
   status: wip(2026, 6, 14),
   priority: "high",
-  estimate-hours: 8,
+  estimate: (days: 1,),
   tags: ("backend",),
   relates-to: (link("write-docs.typ"),),
 )
@@ -31,10 +31,11 @@ filename stem, so links between tasks break loudly when a file is renamed.
 Wire up the login flow.
 ```
 
-Everything scalar or enum — `status`, `priority`, `grade`, `kind`,
-`estimate-hours`, dates, tags, and task links — is a generic core field
-constrained by `.mindtape/config.toml`. Tools that build on MindTape add their
-own fields through the `x-<ns>` extension seam, which MindTape carries opaquely.
+Everything scalar or enum — `status`, `priority`, `grade`, `kind`, `estimate`
+(an opaque `unit -> quantity` dict with a per-project unit allow-list), dates,
+tags, and task links — is a generic core field constrained by
+`.mindtape/config.toml`. Tools that build on MindTape add their own fields
+through the `x-<ns>` extension seam, which MindTape carries opaquely.
 
 ## Installation
 
@@ -90,9 +91,11 @@ terminal = ["done", "cancelled", "failed"]
 values   = ["low", "normal", "high"]
 required = "non-terminal"          # true | false | "non-terminal"
 
-[tasks.fields.estimate-hours]
-type = "number"
-min  = 0
+# Allowed estimate units (free labels; never converted or compared). An estimate
+# is a unit dict, e.g. `estimate: (days: 5, hours: 5)` or `estimate: (points: 8)`.
+# Omit this section to accept any unit.
+[tasks.estimate]
+units = ["minutes", "hours", "days", "weeks"]
 
 [query]
 default_filter = "status != \"done\""
@@ -100,10 +103,11 @@ default_filter = "status != \"done\""
 
 ### Filter language
 
-Fields: `status`, `priority`, `grade`, `kind`, `title`, `id`, `due`, `start`,
-`estimate_hours`, `file`. Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`,
-`||`, `!`, parentheses. Functions: `has(field)`, `miss(field)`,
-`has_tag("name")`, `contains(field, "substr")`, `search("query")`.
+Comparable fields: `status`, `priority`, `grade`, `kind`, `title`, `id`, `due`,
+`start`, `file`. Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`,
+parentheses. Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
+`contains(field, "substr")`, `search("query")`. The opaque `estimate` dict
+supports presence only (`has(estimate)`), not comparison.
 
 ## Architecture
 

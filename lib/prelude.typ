@@ -34,7 +34,7 @@
 
 // Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
 #let _core-slots = (
-  "title", "status", "priority", "grade", "kind", "estimate-hours",
+  "title", "status", "priority", "grade", "kind", "estimate",
   "depends-on", "relates-to", "tags", "due", "start", "id",
 )
 
@@ -60,7 +60,7 @@
         priority: m.at("priority", default: none),
         grade: m.at("grade", default: none),
         kind: m.at("kind", default: none),
-        estimate-hours: m.at("estimate-hours", default: none),
+        estimate: m.at("estimate", default: (:)),
         depends-on: m.at("depends-on", default: ()),
         relates-to: m.at("relates-to", default: ()),
         tags: m.at("tags", default: ()),

@@ -84,11 +84,7 @@ pub fn task_to_json(task: &Task) -> Value {
     map.insert("priority".to_owned(), opt(task.priority.as_deref()));
     map.insert("grade".to_owned(), opt(task.grade.as_deref()));
     map.insert("kind".to_owned(), opt(task.kind.as_deref()));
-    map.insert(
-        "estimate_hours".to_owned(),
-        task.estimate_hours
-            .map_or(Value::Null, |hours| json!(hours)),
-    );
+    map.insert("estimate".to_owned(), json!(task.estimate));
     map.insert("depends_on".to_owned(), json!(task.depends_on));
     map.insert("relates_to".to_owned(), json!(task.relates_to));
     map.insert("tags".to_owned(), json!(task.tags));
@@ -156,7 +152,7 @@ mod tests {
             priority: Some("high".to_owned()),
             grade: None,
             kind: None,
-            estimate_hours: Some(8.0),
+            estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
             depends_on: Vec::new(),
             relates_to: Vec::new(),
             tags: vec!["x".to_owned()],
@@ -180,7 +176,7 @@ mod tests {
         let value: serde_json::Value = serde_json::from_str(&out).unwrap();
         assert_eq!(value[0]["id"], "t1");
         assert_eq!(value[0]["status"]["name"], "wip");
-        assert_eq!(value[0]["estimate_hours"], 8.0);
+        assert_eq!(value[0]["estimate"]["hours"], 8.0);
     }
 
     #[test]

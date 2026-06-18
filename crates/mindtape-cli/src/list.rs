@@ -103,17 +103,8 @@ fn parse_spec(spec: &str) -> (&str, bool) {
 }
 
 fn validate_field(field: &str) -> Result<()> {
-    const FIELDS: [&str; 10] = [
-        "id",
-        "title",
-        "status",
-        "priority",
-        "grade",
-        "kind",
-        "due",
-        "start",
-        "estimate_hours",
-        "file",
+    const FIELDS: [&str; 9] = [
+        "id", "title", "status", "priority", "grade", "kind", "due", "start", "file",
     ];
     if FIELDS.contains(&field) {
         Ok(())
@@ -123,9 +114,6 @@ fn validate_field(field: &str) -> Result<()> {
 }
 
 fn compare(left: &Task, right: &Task, field: &str) -> Ordering {
-    if field == "estimate_hours" {
-        return cmp_opt_num(left.estimate_hours, right.estimate_hours);
-    }
     string_key(left, field).cmp(&string_key(right, field))
 }
 
@@ -147,28 +135,18 @@ fn string_key(task: &Task, field: &str) -> String {
     }
 }
 
-fn cmp_opt_num(left: Option<f64>, right: Option<f64>) -> Ordering {
-    match (left, right) {
-        (Some(left), Some(right)) => left.partial_cmp(&right).unwrap_or(Ordering::Equal),
-        (Some(_), None) => Ordering::Less,
-        (None, Some(_)) => Ordering::Greater,
-        (None, None) => Ordering::Equal,
-    }
-}
-
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use std::cmp::Ordering;
     use std::collections::BTreeMap;
     use std::path::Path;
 
     use mindtape::{Config, Task, load_project};
 
-    use super::{ListArgs, cmp_opt_num, compare, parse_spec, run_with, sort_tasks, validate_field};
+    use super::{ListArgs, parse_spec, run_with, sort_tasks, validate_field};
     use crate::output::OutputFormat;
 
-    fn task(id: &str, priority: &str, estimate: Option<f64>) -> Task {
+    fn task(id: &str, priority: &str) -> Task {
         Task {
             id: id.to_owned(),
             file: format!("tasks/{id}.typ").into(),
@@ -177,7 +155,7 @@ mod tests {
             priority: Some(priority.to_owned()),
             grade: None,
             kind: None,
-            estimate_hours: estimate,
+            estimate: BTreeMap::new(),
             depends_on: Vec::new(),
             relates_to: Vec::new(),
             tags: Vec::new(),
@@ -202,23 +180,9 @@ mod tests {
 
     #[test]
     fn sort_orders_ascending() {
-        let mut tasks = vec![task("b", "low", None), task("a", "high", None)];
+        let mut tasks = vec![task("b", "low"), task("a", "high")];
         sort_tasks(&mut tasks, &["priority:asc".to_owned()]).unwrap();
         assert_eq!(tasks.first().unwrap().priority.as_deref(), Some("high"));
-    }
-
-    #[test]
-    fn cmp_opt_num_sorts_none_last() {
-        assert_eq!(cmp_opt_num(Some(1.0), None), Ordering::Less);
-        assert_eq!(cmp_opt_num(None, Some(1.0)), Ordering::Greater);
-        assert_eq!(cmp_opt_num(Some(1.0), Some(2.0)), Ordering::Less);
-    }
-
-    #[test]
-    fn compare_by_estimate_hours() {
-        let low = task("a", "x", Some(2.0));
-        let high = task("b", "x", Some(5.0));
-        assert_eq!(compare(&low, &high, "estimate_hours"), Ordering::Less);
     }
 
     const TASK: &str = "#metadata((

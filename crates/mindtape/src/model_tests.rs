@@ -26,7 +26,10 @@ fn from_marker_reads_core_fields() {
         ("title", HVal::Str("Build".to_owned())),
         ("status", status),
         ("priority", HVal::Str("high".to_owned())),
-        ("estimate-hours", HVal::Int(8)),
+        (
+            "estimate",
+            dict(vec![("days", HVal::Int(5)), ("hours", HVal::Int(5))]),
+        ),
         (
             "relates-to",
             HVal::Array(vec![HVal::Str("other.task-260101.typ".to_owned())]),
@@ -51,7 +54,8 @@ fn from_marker_reads_core_fields() {
         Some("2026-06-14")
     );
     assert_eq!(task.priority.as_deref(), Some("high"));
-    assert_eq!(task.estimate_hours, Some(8.0));
+    assert_eq!(task.estimate.get("days"), Some(&5.0));
+    assert_eq!(task.estimate.get("hours"), Some(&5.0));
     assert_eq!(task.relates_to, vec!["other.task-260101".to_owned()]);
     assert_eq!(task.tags, vec!["backend".to_owned()]);
     assert!(task.extras.contains_key("x-speconaut"));
@@ -115,7 +119,7 @@ fn is_terminal_matches_set() {
         priority: None,
         grade: None,
         kind: None,
-        estimate_hours: None,
+        estimate: BTreeMap::new(),
         depends_on: Vec::new(),
         relates_to: Vec::new(),
         tags: Vec::new(),

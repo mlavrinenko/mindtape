@@ -27,9 +27,11 @@ pub struct TasksConfig {
     pub roots: Vec<String>,
     /// Status lifecycle.
     pub status: StatusConfig,
-    /// Constraints for the configurable core fields, keyed by Typst slot name
-    /// (`priority`, `grade`, `kind`, `estimate-hours`).
+    /// Constraints for the configurable enum core fields, keyed by Typst slot
+    /// name (`priority`, `grade`, `kind`).
     pub fields: BTreeMap<String, FieldConfig>,
+    /// Estimate units allow-list.
+    pub estimate: EstimateConfig,
     /// Tag allow-list.
     pub tags: TagsConfig,
     /// Body-shape constraints (heading gating).
@@ -42,10 +44,25 @@ impl Default for TasksConfig {
             roots: vec!["tasks".to_owned()],
             status: StatusConfig::default(),
             fields: BTreeMap::new(),
+            estimate: EstimateConfig::default(),
             tags: TagsConfig::default(),
             body: TaskBodyConfig::default(),
         }
     }
+}
+
+/// `[tasks.estimate]` — the estimate units allow-list.
+///
+/// An estimate is an opaque `unit -> quantity` dict (e.g. `(days: 5, hours: 5)`
+/// or `(points: 8)`). Units are free labels, not converted or compared; the
+/// config only constrains which unit names are legal. Empty = any unit.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct EstimateConfig {
+    /// Allowed unit names. Empty = any unit.
+    pub units: Vec<String>,
+    /// Whether an estimate must be set.
+    pub required: Requirement,
 }
 
 /// `[tasks.status]` — legal status names and the terminal subset.
@@ -65,13 +82,6 @@ pub struct StatusConfig {
 pub struct FieldConfig {
     /// Allowed enum values. Empty = any.
     pub values: Vec<String>,
-    /// Field type; `"number"` enables `min`/`max` bounds.
-    #[serde(rename = "type")]
-    pub kind: Option<String>,
-    /// Inclusive lower bound for numeric fields.
-    pub min: Option<f64>,
-    /// Inclusive upper bound for numeric fields.
-    pub max: Option<f64>,
     /// Default value (informational; not auto-applied during load).
     pub default: Option<String>,
     /// Whether the field must be set.

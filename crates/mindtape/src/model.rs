@@ -33,8 +33,9 @@ pub struct Task {
     pub grade: Option<String>,
     /// Kind enum value.
     pub kind: Option<String>,
-    /// Estimated hours.
-    pub estimate_hours: Option<f64>,
+    /// Estimate as an opaque `unit -> quantity` map (e.g. `{days: 5, hours: 5}`
+    /// or `{points: 8}`). Units are free labels; never converted or compared.
+    pub estimate: BTreeMap<String, f64>,
     /// Task ids this task depends on (normalized stems).
     pub depends_on: Vec<String>,
     /// Task ids this task relates to (normalized stems).
@@ -68,7 +69,7 @@ impl Task {
             priority: field_str(fields, "priority"),
             grade: field_str(fields, "grade"),
             kind: field_str(fields, "kind"),
-            estimate_hours: field(fields, "estimate-hours").and_then(HVal::as_f64),
+            estimate: parse_num_map(field(fields, "estimate")),
             depends_on: parse_links(field(fields, "depends-on")),
             relates_to: parse_links(field(fields, "relates-to")),
             tags: parse_str_array(field(fields, "tags")),
@@ -133,6 +134,17 @@ fn parse_status(value: Option<&HVal>) -> Option<Status> {
             .and_then(HVal::as_str)
             .map(ToOwned::to_owned),
     })
+}
+
+fn parse_num_map(value: Option<&HVal>) -> BTreeMap<String, f64> {
+    value
+        .and_then(HVal::as_dict)
+        .map(|dict| {
+            dict.iter()
+                .filter_map(|(key, val)| val.as_f64().map(|num| (key.clone(), num)))
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 fn parse_str_array(value: Option<&HVal>) -> Vec<String> {

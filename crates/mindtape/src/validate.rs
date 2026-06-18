@@ -1,13 +1,13 @@
 //! Config-driven validation of loaded tasks.
 //!
-//! Enforces the declared status lifecycle, enum/number field constraints,
-//! required-unless-terminal, the tag allow-list, and link resolution (a
-//! `depends-on`/`relates-to` target must name a loaded task).
+//! Enforces the declared status lifecycle, enum field constraints, the estimate
+//! unit allow-list, required-unless-terminal, the tag allow-list, and link
+//! resolution (a `depends-on`/`relates-to` target must name a loaded task).
 
 use std::collections::HashSet;
 use std::path::PathBuf;
 
-use crate::config::{Config, FieldConfig, Requirement};
+use crate::config::{Config, EstimateConfig, FieldConfig, Requirement};
 use crate::model::Task;
 
 /// Source location for a violation that points to a specific line.
@@ -41,8 +41,9 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         let terminal = task.is_terminal(&config.tasks.status.terminal);
         check_status(task, config, &mut out);
         for (name, field) in &config.tasks.fields {
-            check_field(task, name, field, terminal, &mut out);
+            check_enum_field(task, name, field, terminal, &mut out);
         }
+        check_estimate(task, &config.tasks.estimate, terminal, &mut out);
         check_tags(task, config, &mut out);
         check_links(task, &ids, &mut out);
     }
@@ -75,20 +76,6 @@ fn check_status(task: &Task, config: &Config, out: &mut Vec<Violation>) {
     }
 }
 
-fn check_field(
-    task: &Task,
-    name: &str,
-    field: &FieldConfig,
-    terminal: bool,
-    out: &mut Vec<Violation>,
-) {
-    if name == "estimate-hours" {
-        check_number_field(task, name, field, terminal, out);
-    } else {
-        check_enum_field(task, name, field, terminal, out);
-    }
-}
-
 fn check_enum_field(
     task: &Task,
     name: &str,
@@ -118,28 +105,30 @@ fn check_enum_field(
     }
 }
 
-fn check_number_field(
-    task: &Task,
-    name: &str,
-    field: &FieldConfig,
-    terminal: bool,
-    out: &mut Vec<Violation>,
-) {
-    let Some(value) = task.estimate_hours else {
-        if is_required(field.required, terminal) {
-            push(out, task, name, "required field is missing".to_owned());
+fn check_estimate(task: &Task, config: &EstimateConfig, terminal: bool, out: &mut Vec<Violation>) {
+    if task.estimate.is_empty() {
+        if is_required(config.required, terminal) {
+            push(
+                out,
+                task,
+                "estimate",
+                "required field is missing".to_owned(),
+            );
         }
         return;
-    };
-    if let Some(min) = field.min
-        && value < min
-    {
-        push(out, task, name, format!("{value} is below minimum {min}"));
     }
-    if let Some(max) = field.max
-        && value > max
-    {
-        push(out, task, name, format!("{value} is above maximum {max}"));
+    if config.units.is_empty() {
+        return;
+    }
+    for unit in task.estimate.keys() {
+        if !config.units.contains(unit) {
+            push(
+                out,
+                task,
+                "estimate",
+                format!("`{unit}` is not an allowed estimate unit"),
+            );
+        }
     }
 }
 

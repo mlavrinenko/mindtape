@@ -67,7 +67,7 @@ Four crates (`cargo` workspace, virtual root manifest):
   title: "Title",
   status: wip(2026, 6, 14)[note],    // (name, date, note); note is a trailing block
   priority: "high",                  // configurable enum
-  estimate-hours: 8,
+  estimate: (days: 1, hours: 2),     // opaque unit dict; allowed units per project
   depends-on: (link("other.typ"),),  // task↔task links by file stem
   tags: ("backend",),
   x-speconaut: ...,                  // opaque extension slot (x-<ns>)

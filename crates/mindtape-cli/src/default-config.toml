@@ -17,9 +17,11 @@ terminal = ["done", "cancelled", "failed"]
 values = ["low", "normal", "high"]
 required = "non-terminal"
 
-[tasks.fields.estimate-hours]
-type = "number"
-min = 0
+# Allowed estimate units. An estimate is an opaque unit dict, e.g.
+# `estimate: (days: 5, hours: 5)` or `estimate: (points: 8)`. Units are free
+# labels — never converted or compared. Omit this section to accept any unit.
+[tasks.estimate]
+units = ["minutes", "hours", "days", "weeks"]
 
 [query]
 # Filter applied by `mindtape list` when the caller passes none.

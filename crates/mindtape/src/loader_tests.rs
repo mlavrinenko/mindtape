@@ -48,6 +48,27 @@ fn loads_tasks_and_skips_non_tasks() {
 }
 
 #[test]
+fn loads_multi_unit_estimate_verbatim() {
+    let dir = setup();
+    write(
+        dir.path(),
+        "tasks/est.typ",
+        "#metadata((
+  marker: \"mindtape.task\",
+  fields: (title: \"E\", estimate: (days: 1, hours: 2)),
+  extras: (:),
+))
+",
+    );
+
+    // Units are opaque labels: stored as-is, never converted.
+    let outcome = load_project(dir.path(), &Config::default());
+    let task = outcome.tasks.first().unwrap();
+    assert_eq!(task.estimate.get("days"), Some(&1.0));
+    assert_eq!(task.estimate.get("hours"), Some(&2.0));
+}
+
+#[test]
 fn records_eval_errors() {
     let dir = setup();
     write(

@@ -18,7 +18,7 @@ fn sample() -> Task {
         priority: Some("high".to_owned()),
         grade: Some("senior".to_owned()),
         kind: Some("feature".to_owned()),
-        estimate_hours: Some(8.0),
+        estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
         depends_on: Vec::new(),
         relates_to: vec!["other".to_owned()],
         tags: vec!["backend".to_owned()],
@@ -42,11 +42,17 @@ fn equality_and_inequality() {
 }
 
 #[test]
-fn numeric_comparison() {
+fn estimate_is_presence_only() {
     let task = sample();
-    assert!(hit("estimate_hours > 4", &task));
-    assert!(hit("estimate_hours >= 8", &task));
-    assert!(!hit("estimate_hours < 4", &task));
+    assert!(hit("has(estimate)", &task));
+    assert!(!hit("miss(estimate)", &task));
+    // The opaque estimate dict has no scalar; comparison is rejected.
+    assert!(
+        Filter::parse("estimate > 4")
+            .unwrap()
+            .matches(&task)
+            .is_err()
+    );
 }
 
 #[test]

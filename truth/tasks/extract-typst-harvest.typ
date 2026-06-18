@@ -4,7 +4,7 @@
   title: "Extract typst-harvest into its own repository",
   status: proposed(2026, 6, 14),
   priority: "normal",
-  estimate-hours: 6,
+  estimate: (hours: 6),
   relates-to: (link("converge-speconaut.typ"),),
   tags: ("substrate",),
 )

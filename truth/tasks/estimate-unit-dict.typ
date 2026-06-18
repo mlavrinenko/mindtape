@@ -2,50 +2,51 @@
 
 #show: task.with(
   title: "Estimate as a unit dict with per-project units",
-  status: wip(2026, 6, 18)[shape change estimate-hours -> estimate dict; units carry factors],
+  status: done(2026, 6, 18)[estimate is an opaque unit dict; units are a per-project allow-list, no normalization],
   priority: "normal",
-  estimate-hours: 4,
+  estimate: (hours: 4),
   tags: ("substrate", "cli"),
 )
 
 == Summary
 
 Replace the scalar `estimate-hours: 1` with a unit dict `estimate: (hours: 1,)`.
-Multi-unit estimates (`estimate: (days: 5, hours: 5)`) are allowed when the
-project permits those units. A bare unit dict is not comparable, so each unit
-carries a conversion factor to a common base; the project owns those factors.
-MindTape ships sane defaults so an unconfigured project still normalizes and
-validates.
+Multi-unit estimates (`estimate: (days: 5, hours: 5)`) and non-time units
+(`estimate: (points: 8)`) are allowed when the project permits those unit names.
+Units are opaque free labels: never converted, summed, or compared. The project
+owns which unit names are legal; the shipped scaffold lists sane defaults.
 
 == Decision
 
 The prelude stays consumer-blind: it renames the core slot to `estimate` and
 emits the dict verbatim, validating nothing about units. The Rust layer owns
-unit policy via a dedicated `[tasks.estimate]` config table:
+the unit allow-list via a dedicated `[tasks.estimate]` config table:
 
 ```toml
 [tasks.estimate]
-units = { hours = 1, days = 8, weeks = 40 }  # value = size in base units
+units = ["minutes", "hours", "days", "weeks"]  # free labels; omit = any unit
 required = "non-terminal"
-min = 0
 ```
 
-The base unit is the one whose factor is 1 (hours by default). The loader
-normalizes an estimate to a single scalar `estimate_total = Σ qty × factor` in
-base units and stores it alongside the raw unit map. Validation flags unknown
-units, enforces `min`/`max` on the total, and honors required-unless-terminal.
-Filter and sort expose `estimate` as that normalized total; JSON output emits
-the raw `estimate` object plus `estimate_total`.
+No normalization: an estimate is stored as its raw `unit -> quantity` map.
+Validation flags units outside the allow-list and honors required-unless-terminal.
+There is one source of truth for the default units — the scaffolded
+`default-config.toml`; the in-code default is empty (any unit), matching the
+white-list philosophy that an omitted section is unconstrained. Filter/sort drop
+numeric estimate support (a mixed-unit dict has no scalar); `has(estimate)` /
+`miss(estimate)` cover presence. JSON output emits the raw `estimate` object.
 
 == Scope
 
 - `lib/prelude.typ`: core slot `estimate-hours` -> `estimate`; emit the dict.
-- `crates/mindtape`: `config` gains `[tasks.estimate]` (units/required/min/max,
-  default unit table); `model` carries `estimate: BTreeMap<String, f64>` and
-  `estimate_total: Option<f64>`; `loader` normalizes via config; `validate`
-  checks units/bounds/required; `filter` field `estimate_hours` -> `estimate`.
-- `crates/mindtape-cli`: `output` emits `estimate` + `estimate_total`; `list`
-  sort field rename; `default-config.toml` ships `[tasks.estimate]`.
+- `crates/mindtape`: `config` gains `[tasks.estimate]` (units allow-list +
+  required; empty default); `model` carries `estimate: BTreeMap<String, f64>`;
+  `validate` checks the unit allow-list + required; `filter` makes `estimate`
+  presence-only and drops the now-unused numeric `FieldValue` variant.
+- `crates/mindtape-cli`: `output` emits the raw `estimate` object; `list` drops
+  `estimate` as a sort field; `default-config.toml` ships `[tasks.estimate]`.
+- Prune `FieldConfig` `type`/`min`/`max` (dead since estimate left the generic
+  number-field path).
 - Migrate every `truth/tasks/*.typ` and the doc examples (README, www) to the
   new shape. `docs/redesign/*` is frozen history; leave it.
-- Regression tests across config parse, normalization, validation, filter.
+- Regression tests across config parse, validation, filter presence.

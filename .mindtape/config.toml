@@ -16,9 +16,8 @@ terminal = ["done", "cancelled", "failed"]
 values = ["low", "normal", "high"]
 required = "non-terminal"
 
-[tasks.fields.estimate-hours]
-type = "number"
-min = 0
+[tasks.estimate]
+units = ["minutes", "hours", "days", "weeks"]
 
 [tasks.tags]
 # Area labels for the backlog. Empty would accept any tag.

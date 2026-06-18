@@ -4,7 +4,7 @@
   title: "Status note authored as a trailing content block",
   status: done(2026, 6, 18)[prelude takes trailing note; harvest projects content to plain text],
   priority: "normal",
-  estimate-hours: 1,
+  estimate: (hours: 1),
   relates-to: (link("harvest-reads-standard-link.typ"),),
   tags: ("substrate",),
 )

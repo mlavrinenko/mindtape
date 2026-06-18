@@ -17,10 +17,8 @@ terminal = ["done"]
 values = ["low", "high"]
 required = "non-terminal"
 
-[tasks.fields.estimate-hours]
-type = "number"
-min = 1
-max = 40
+[tasks.estimate]
+units = ["hours", "days"]
 
 [tasks.tags]
 allowed = ["backend"]
@@ -42,7 +40,7 @@ fn task(id: &str, status: &str) -> Task {
         priority: Some("high".to_owned()),
         grade: None,
         kind: None,
-        estimate_hours: Some(8.0),
+        estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
         depends_on: Vec::new(),
         relates_to: Vec::new(),
         tags: Vec::new(),
@@ -81,11 +79,15 @@ fn terminal_task_skips_required() {
 }
 
 #[test]
-fn flags_out_of_bounds_estimate() {
+fn flags_unknown_estimate_unit() {
     let mut item = task("a", "wip");
-    item.estimate_hours = Some(100.0);
+    item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
     let violations = validate(&[item], &config());
-    assert!(violations.iter().any(|v| v.field == "estimate-hours"));
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "estimate" && v.message.contains("fortnights"))
+    );
 }
 
 #[test]

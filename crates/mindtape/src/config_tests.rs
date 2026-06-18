@@ -7,6 +7,8 @@ fn defaults_when_empty() {
     let config = parse_config("").unwrap();
     assert_eq!(config.tasks.roots, vec!["tasks".to_owned()]);
     assert!(config.tasks.status.values.is_empty());
+    // White-list philosophy: an omitted estimate section accepts any unit.
+    assert!(config.tasks.estimate.units.is_empty());
     assert!(config.query.default_filter.is_none());
 }
 
@@ -28,9 +30,8 @@ required = "non-terminal"
 default = "feature"
 required = false
 
-[tasks.fields.estimate-hours]
-type = "number"
-min = 0
+[tasks.estimate]
+units = ["hours", "days"]
 
 [tasks.tags]
 allowed = ["a", "b"]
@@ -50,9 +51,8 @@ default_filter = "status != \"done\""
     assert_eq!(kind.required, Requirement::No);
     assert_eq!(kind.default.as_deref(), Some("feature"));
 
-    let estimate = config.tasks.fields.get("estimate-hours").unwrap();
-    assert_eq!(estimate.kind.as_deref(), Some("number"));
-    assert_eq!(estimate.min, Some(0.0));
+    let estimate = &config.tasks.estimate;
+    assert_eq!(estimate.units, vec!["hours".to_owned(), "days".to_owned()]);
 
     assert_eq!(
         config.tasks.tags.allowed,

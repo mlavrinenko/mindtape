@@ -4,7 +4,7 @@
   title: "Configurable body-header gating in check",
   status: proposed(2026, 6, 14),
   priority: "normal",
-  estimate-hours: 4,
+  estimate: (hours: 4),
   depends-on: (
     link("artifact-gate-rule-engine.typ"),
     link("swh:1:rev:8069f3182b74520070fcfeb584a5626df6db1203;path=truth/tasks/typst-cst-structure-extraction.typ"),
