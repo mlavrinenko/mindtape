@@ -43,6 +43,8 @@ fn task(id: &str, status: &str) -> Task {
         estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
         depends_on: Vec::new(),
         relates_to: Vec::new(),
+        supersedes: Vec::new(),
+        duplicates: Vec::new(),
         tags: Vec::new(),
         due: None,
         start: None,
@@ -104,6 +106,33 @@ fn flags_unresolved_link() {
     item.depends_on = vec!["missing".to_owned()];
     let violations = validate(&[item], &config());
     assert!(violations.iter().any(|v| v.field == "depends-on"));
+}
+
+#[test]
+fn flags_unresolved_supersedes() {
+    let mut item = task("a", "wip");
+    item.supersedes = vec!["gone".to_owned()];
+    let violations = validate(&[item], &config());
+    assert!(violations.iter().any(|v| v.field == "supersedes"));
+}
+
+#[test]
+fn flags_unresolved_duplicates() {
+    let mut item = task("a", "wip");
+    item.duplicates = vec!["ghost".to_owned()];
+    let violations = validate(&[item], &config());
+    assert!(violations.iter().any(|v| v.field == "duplicates"));
+}
+
+#[test]
+fn resolves_supersedes_and_duplicates() {
+    let mut first = task("a", "wip");
+    first.supersedes = vec!["b".to_owned()];
+    first.duplicates = vec!["b".to_owned()];
+    let tasks = vec![first, task("b", "wip")];
+    let violations = validate(&tasks, &config());
+    assert!(!violations.iter().any(|v| v.field == "supersedes"));
+    assert!(!violations.iter().any(|v| v.field == "duplicates"));
 }
 
 #[test]

@@ -19,6 +19,8 @@ fn bare_task(id: &str) -> Task {
         estimate: BTreeMap::new(),
         depends_on: Vec::new(),
         relates_to: Vec::new(),
+        supersedes: Vec::new(),
+        duplicates: Vec::new(),
         tags: Vec::new(),
         due: None,
         start: None,

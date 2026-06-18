@@ -35,7 +35,7 @@
 // Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
 #let _core-slots = (
   "title", "status", "priority", "grade", "kind", "estimate",
-  "depends-on", "relates-to", "tags", "due", "start", "id",
+  "depends-on", "relates-to", "supersedes", "duplicates", "tags", "due", "start", "id",
 )
 
 #let task(body, ..meta) = {
@@ -63,6 +63,8 @@
         estimate: m.at("estimate", default: (:)),
         depends-on: m.at("depends-on", default: ()),
         relates-to: m.at("relates-to", default: ()),
+        supersedes: m.at("supersedes", default: ()),
+        duplicates: m.at("duplicates", default: ()),
         tags: m.at("tags", default: ()),
         due: m.at("due", default: none),
         start: m.at("start", default: none),

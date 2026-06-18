@@ -87,6 +87,8 @@ pub fn task_to_json(task: &Task) -> Value {
     map.insert("estimate".to_owned(), json!(task.estimate));
     map.insert("depends_on".to_owned(), json!(task.depends_on));
     map.insert("relates_to".to_owned(), json!(task.relates_to));
+    map.insert("supersedes".to_owned(), json!(task.supersedes));
+    map.insert("duplicates".to_owned(), json!(task.duplicates));
     map.insert("tags".to_owned(), json!(task.tags));
     map.insert("due".to_owned(), opt(task.due.as_deref()));
     map.insert("start".to_owned(), opt(task.start.as_deref()));
@@ -155,6 +157,8 @@ mod tests {
             estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
             depends_on: Vec::new(),
             relates_to: Vec::new(),
+            supersedes: Vec::new(),
+            duplicates: Vec::new(),
             tags: vec!["x".to_owned()],
             due: None,
             start: None,

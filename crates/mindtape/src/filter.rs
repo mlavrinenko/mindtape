@@ -179,6 +179,8 @@ fn present(task: &Task, name: &str) -> Result<bool, FilterError> {
         "tags" => Ok(!task.tags.is_empty()),
         "depends_on" => Ok(!task.depends_on.is_empty()),
         "relates_to" => Ok(!task.relates_to.is_empty()),
+        "supersedes" => Ok(!task.supersedes.is_empty()),
+        "duplicates" => Ok(!task.duplicates.is_empty()),
         "estimate" => Ok(!task.estimate.is_empty()),
         other => Ok(!matches!(field_value(task, other)?, FieldValue::Missing)),
     }

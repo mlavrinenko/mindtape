@@ -106,6 +106,27 @@ fn history_pointer_links_are_not_graph_edges() {
 }
 
 #[test]
+fn from_marker_reads_supersedes_and_duplicates() {
+    let fields = dict(vec![
+        (
+            "supersedes",
+            HVal::Array(vec![HVal::Str("old-task.typ".to_owned())]),
+        ),
+        (
+            "duplicates",
+            HVal::Array(vec![HVal::Str("twin.typ".to_owned())]),
+        ),
+    ]);
+    let marker = dict(vec![
+        ("marker", HVal::Str("mindtape.task".to_owned())),
+        ("fields", fields),
+    ]);
+    let task = Task::from_marker("t".to_owned(), "t.typ".into(), &marker);
+    assert_eq!(task.supersedes, vec!["old-task".to_owned()]);
+    assert_eq!(task.duplicates, vec!["twin".to_owned()]);
+}
+
+#[test]
 fn is_terminal_matches_set() {
     let task = Task {
         id: "t".to_owned(),
@@ -122,6 +143,8 @@ fn is_terminal_matches_set() {
         estimate: BTreeMap::new(),
         depends_on: Vec::new(),
         relates_to: Vec::new(),
+        supersedes: Vec::new(),
+        duplicates: Vec::new(),
         tags: Vec::new(),
         due: None,
         start: None,

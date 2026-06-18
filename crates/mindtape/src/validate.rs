@@ -148,6 +148,8 @@ fn check_links(task: &Task, ids: &HashSet<&str>, out: &mut Vec<Violation>) {
     for (field, links) in [
         ("depends-on", &task.depends_on),
         ("relates-to", &task.relates_to),
+        ("supersedes", &task.supersedes),
+        ("duplicates", &task.duplicates),
     ] {
         for target in links {
             if !ids.contains(target.as_str()) {

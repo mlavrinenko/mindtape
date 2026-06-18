@@ -103,3 +103,4 @@ Remove this whole section when this branch merges to `main`.
   `src/commands/{cleanup_cmd,cleanup_refs,cleanup_git_refs,link_scanner,git_ref_scanner}.rs`,
   `src/commands/{typ_source,specs_stage_rewrite}.rs`, `src/git.rs`,
   `src/engine/dsl_links.rs`.
+- 0.2 is on pre-release stage. Don't bump Typst lib or other packages versions.

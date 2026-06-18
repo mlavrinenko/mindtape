@@ -21,6 +21,8 @@ fn sample() -> Task {
         estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
         depends_on: Vec::new(),
         relates_to: vec!["other".to_owned()],
+        supersedes: Vec::new(),
+        duplicates: Vec::new(),
         tags: vec!["backend".to_owned()],
         due: Some("2026-07-01".to_owned()),
         start: None,

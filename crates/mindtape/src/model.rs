@@ -40,6 +40,10 @@ pub struct Task {
     pub depends_on: Vec<String>,
     /// Task ids this task relates to (normalized stems).
     pub relates_to: Vec<String>,
+    /// Task ids this task supersedes (normalized stems).
+    pub supersedes: Vec<String>,
+    /// Task ids this task duplicates (normalized stems).
+    pub duplicates: Vec<String>,
     /// Tags.
     pub tags: Vec<String>,
     /// Due date, `YYYY-MM-DD`.
@@ -72,6 +76,8 @@ impl Task {
             estimate: parse_num_map(field(fields, "estimate")),
             depends_on: parse_links(field(fields, "depends-on")),
             relates_to: parse_links(field(fields, "relates-to")),
+            supersedes: parse_links(field(fields, "supersedes")),
+            duplicates: parse_links(field(fields, "duplicates")),
             tags: parse_str_array(field(fields, "tags")),
             due: field_str(fields, "due"),
             start: field_str(fields, "start"),
