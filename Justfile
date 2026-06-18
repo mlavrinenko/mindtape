@@ -94,6 +94,9 @@ install-lib:
     VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)
     TARGET="$HOME/.local/share/typst/packages/local/mindtape"
     mkdir -p "$TARGET"
+    # Drop any prior install first: `ln -sfn` into an existing *directory*
+    # places the link inside it, leaving a stale copy that tinymist reads.
+    rm -rf "$TARGET/$VERSION"
     ln -sfn "$(pwd)/lib" "$TARGET/$VERSION"
     echo "linked lib -> $TARGET/$VERSION (use @local/mindtape:$VERSION)"
 
