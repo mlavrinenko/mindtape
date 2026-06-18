@@ -7,6 +7,7 @@
   estimate: (hours: 2),
   relates-to: (link("convergence-boundary-adr.typ"),),
   tags: ("substrate",),
+  reviewed: on(2026, 6, 18),
 )
 
 == Summary
