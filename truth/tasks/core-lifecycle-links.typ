@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Add supersedes and duplicates as core task links",
-  status: proposed(2026, 6, 18),
+  status: done(2026, 6, 18),
   priority: "normal",
   estimate: (hours: 3),
   depends-on: (link("convergence-boundary-adr.typ"),),
@@ -26,9 +26,3 @@ and `relates-to` (soft).
 - Config: no new enum; they are link lists. Broken-link resolution applies.
 - Gated by the convergence ADR's core-vs-extras decision — land only the fields
   the ADR promotes.
-
-== Notes
-
-Marker shape changes, so bump `lib/typst.toml`, update the `TYPST_PKG_VERSION`
-const in `crates/mindtape-cli/src/init.rs`, and the import examples in
-`README.md`, `www/index.html`, and `CLAUDE.md`.
