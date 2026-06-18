@@ -4,7 +4,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use log::LevelFilter;
 
-use crate::{check, cleanup, eval, init, list};
+use crate::{check, cleanup, eval, init, list, review};
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
 #[derive(Parser)]
@@ -32,6 +32,8 @@ enum Command {
     Eval(eval::EvalArgs),
     /// Retire terminal-status tasks, rewriting inbound links to SWHID tombstones.
     Cleanup(cleanup::CleanupArgs),
+    /// Stamp `reviewed:` with today's date on a task.
+    Review(review::ReviewArgs),
 }
 
 impl Cli {
@@ -47,6 +49,7 @@ impl Cli {
             Command::InstallLib => init::run_install_lib(),
             Command::Eval(args) => eval::run(&args),
             Command::Cleanup(args) => cleanup::run(&args),
+            Command::Review(args) => review::run(&args),
         }
     }
 }

@@ -24,6 +24,7 @@ fn bare_task(id: &str) -> Task {
         tags: Vec::new(),
         due: None,
         start: None,
+        reviewed: None,
         extras: BTreeMap::new(),
     }
 }

@@ -61,6 +61,7 @@ fn task(id: &str, file: &str, status: Option<&str>) -> Task {
         tags: Vec::new(),
         due: None,
         start: None,
+        reviewed: None,
         extras: BTreeMap::new(),
     }
 }

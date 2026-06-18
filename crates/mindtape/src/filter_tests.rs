@@ -26,6 +26,7 @@ fn sample() -> Task {
         tags: vec!["backend".to_owned()],
         due: Some("2026-07-01".to_owned()),
         start: None,
+        reviewed: None,
         extras: BTreeMap::new(),
     }
 }
@@ -109,4 +110,49 @@ fn unknown_field_errors() {
 #[test]
 fn parse_error_surfaces() {
     assert!(Filter::parse("(status == \"x\"").is_err());
+}
+
+#[test]
+fn reviewed_field_comparable() {
+    let mut task = sample();
+    task.reviewed = Some("2026-01-01".to_owned());
+    assert!(hit("reviewed < \"2026-06-01\"", &task));
+    assert!(!hit("reviewed > \"2026-06-01\"", &task));
+    assert!(hit("has(reviewed)", &task));
+    assert!(!hit("miss(reviewed)", &task));
+}
+
+#[test]
+fn stale_without_reviewed_uses_status_date() {
+    let mut task = sample();
+    // Use a clearly old status date so the test is not time-sensitive.
+    if let Some(ref mut s) = task.status {
+        s.date = Some("2020-01-01".to_owned());
+    }
+    assert!(hit("stale(1)", &task));
+}
+
+#[test]
+fn stale_with_recent_reviewed_is_not_stale() {
+    let mut task = sample();
+    task.reviewed = Some(crate::date::today_iso());
+    assert!(!hit("stale(1)", &task));
+}
+
+#[test]
+fn stale_with_old_reviewed_is_stale() {
+    let mut task = sample();
+    task.reviewed = Some("2020-01-01".to_owned());
+    assert!(hit("stale(1)", &task));
+}
+
+#[test]
+fn stale_bad_arg_errors() {
+    let task = sample();
+    assert!(
+        Filter::parse("stale(not_a_number)")
+            .unwrap()
+            .matches(&task)
+            .is_err()
+    );
 }

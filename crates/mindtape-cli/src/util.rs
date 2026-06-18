@@ -1,9 +1,9 @@
 //! Shared project discovery for the CLI commands.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use mindtape::{Config, LoadOutcome, config_path, find_root, load_config, load_project};
+use mindtape::{Config, LoadOutcome, Task, config_path, find_root, load_config, load_project};
 
 /// A discovered, loaded project: its root, config and load outcome.
 pub struct Project {
@@ -31,6 +31,46 @@ pub fn open() -> Result<Project> {
         config,
         outcome,
     })
+}
+
+/// Resolve a task reference to a loaded `Task` and its absolute path.
+///
+/// Accepts a slug (bare file stem), a relative path (resolved against CWD),
+/// or an absolute path. Errors if the reference doesn't match any loaded task.
+///
+/// # Errors
+/// Returns an error if the path cannot be resolved or no task matches.
+pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
+    let path = Path::new(id);
+    let is_path = path.is_absolute() || id.contains('/') || id.ends_with(".typ");
+    if is_path {
+        let abs = if path.is_absolute() {
+            path.to_path_buf()
+        } else {
+            std::env::current_dir()
+                .context("determine current directory")?
+                .join(id)
+        };
+        let abs = abs
+            .canonicalize()
+            .with_context(|| format!("resolve {}", abs.display()))?;
+        let task = project
+            .outcome
+            .tasks
+            .iter()
+            .find(|t| project.root.join(&t.file).canonicalize().ok().as_deref() == Some(&abs))
+            .with_context(|| format!("no task at {}", abs.display()))?;
+        return Ok((task.clone(), abs));
+    }
+    let stem = id.strip_suffix(".typ").unwrap_or(id);
+    let task = project
+        .outcome
+        .tasks
+        .iter()
+        .find(|t| t.id == stem)
+        .with_context(|| format!("no task with id {stem:?}"))?;
+    let abs = project.root.join(&task.file);
+    Ok((task.clone(), abs))
 }
 
 /// Print per-file load errors to stderr as warnings.

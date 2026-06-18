@@ -148,6 +148,7 @@ fn is_terminal_matches_set() {
         tags: Vec::new(),
         due: None,
         start: None,
+        reviewed: None,
         extras: BTreeMap::new(),
     };
     assert!(task.is_terminal(&["done".to_owned()]));

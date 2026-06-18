@@ -163,6 +163,7 @@ mod tests {
             tags: Vec::new(),
             due: None,
             start: None,
+            reviewed: None,
             extras: BTreeMap::new(),
         }
     }

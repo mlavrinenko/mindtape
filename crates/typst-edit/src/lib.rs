@@ -245,6 +245,20 @@ pub fn find_calls(source: &str, name: &str) -> Vec<Call> {
     out
 }
 
+/// Locate every `obj.method(…)` call in `source`, in document order.
+///
+/// Matches only calls whose callee is a field access of the form `obj.method`,
+/// where both the target identifier and field name match exactly. Returns the
+/// same [`Call`] structure as [`find_calls`]; `Call::name` is `"obj.method"`.
+#[must_use]
+pub fn find_method_calls(source: &str, obj: &str, method: &str) -> Vec<Call> {
+    let parsed = Source::detached(source);
+    let root = LinkedNode::new(parsed.root());
+    let mut out = Vec::new();
+    collect_method_calls(source, &root, obj, method, &mut out);
+    out
+}
+
 fn collect_calls(src: &str, node: &LinkedNode, name: &str, out: &mut Vec<Call>) {
     if node.kind() == SyntaxKind::FuncCall
         && let Some(call) = call_at(src, node, name)
@@ -254,6 +268,50 @@ fn collect_calls(src: &str, node: &LinkedNode, name: &str, out: &mut Vec<Call>) 
     for child in node.children() {
         collect_calls(src, &child, name, out);
     }
+}
+
+fn collect_method_calls(
+    src: &str,
+    node: &LinkedNode,
+    obj: &str,
+    method: &str,
+    out: &mut Vec<Call>,
+) {
+    if node.kind() == SyntaxKind::FuncCall
+        && let Some(call) = method_call_at(src, node, obj, method)
+    {
+        out.push(call);
+    }
+    for child in node.children() {
+        collect_method_calls(src, &child, obj, method, out);
+    }
+}
+
+fn method_call_at(src: &str, call: &LinkedNode, obj: &str, method: &str) -> Option<Call> {
+    let typed = call.get().cast::<ast::FuncCall>()?;
+    let ast::Expr::FieldAccess(access) = typed.callee() else {
+        return None;
+    };
+    let ast::Expr::Ident(target) = access.target() else {
+        return None;
+    };
+    if target.as_str() != obj || access.field().as_str() != method {
+        return None;
+    }
+    let args_node = call
+        .children()
+        .find(|child| child.kind() == SyntaxKind::Args)?;
+    let (args, body) = collect_args(src, &args_node);
+    let markup = call
+        .prev_sibling()
+        .is_some_and(|sib| sib.kind() == SyntaxKind::Hash);
+    Some(Call {
+        name: format!("{obj}.{method}"),
+        range: call.range(),
+        args,
+        body,
+        markup,
+    })
 }
 
 fn call_at(src: &str, call: &LinkedNode, name: &str) -> Option<Call> {

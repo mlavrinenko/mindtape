@@ -9,6 +9,7 @@
 //! depend on it directly.
 
 pub mod config;
+mod date;
 pub mod filter;
 pub mod gate;
 pub mod loader;
@@ -16,6 +17,7 @@ pub mod model;
 pub mod validate;
 
 pub use config::{Config, ConfigError, config_path, load_config, parse_config};
+pub use date::{days_ago_iso, today_iso, today_ymd};
 pub use filter::{Filter, FilterError};
 pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use loader::{LoadError, LoadOutcome, find_root, load_project};

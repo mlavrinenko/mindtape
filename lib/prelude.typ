@@ -32,10 +32,14 @@
 #let cancelled = _mk("cancelled")
 #let failed = _mk("failed")
 
+// Generic date shortcut: `on(2026, 6, 18)` instead of `datetime(year: …, …)`.
+// Serves every date slot uniformly (due, start, reviewed, …).
+#let on(y, m, d) = datetime(year: y, month: m, day: d)
+
 // Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
 #let _core-slots = (
   "title", "status", "priority", "grade", "kind", "estimate",
-  "depends-on", "relates-to", "supersedes", "duplicates", "tags", "due", "start", "id",
+  "depends-on", "relates-to", "supersedes", "duplicates", "tags", "due", "start", "reviewed", "id",
 )
 
 #let task(body, ..meta) = {
@@ -68,6 +72,7 @@
         tags: m.at("tags", default: ()),
         due: m.at("due", default: none),
         start: m.at("start", default: none),
+        reviewed: m.at("reviewed", default: none),
         id: m.at("id", default: none),
       ),
       extras: extras,

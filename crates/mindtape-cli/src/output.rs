@@ -92,6 +92,7 @@ pub fn task_to_json(task: &Task) -> Value {
     map.insert("tags".to_owned(), json!(task.tags));
     map.insert("due".to_owned(), opt(task.due.as_deref()));
     map.insert("start".to_owned(), opt(task.start.as_deref()));
+    map.insert("reviewed".to_owned(), opt(task.reviewed.as_deref()));
     let extras = task
         .extras
         .iter()
@@ -162,6 +163,7 @@ mod tests {
             tags: vec!["x".to_owned()],
             due: None,
             start: None,
+            reviewed: None,
             extras: BTreeMap::new(),
         }
     }

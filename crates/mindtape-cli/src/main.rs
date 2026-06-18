@@ -8,6 +8,7 @@ mod git;
 mod init;
 mod list;
 mod output;
+mod review;
 mod util;
 
 use anyhow::Result;

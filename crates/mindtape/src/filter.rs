@@ -6,13 +6,13 @@
 //! # Syntax
 //!
 //! Comparable fields: `status`, `priority`, `grade`, `kind`, `title`, `id`,
-//! `due`, `start`, `file`. The opaque `estimate` dict supports presence only
-//! (`has(estimate)` / `miss(estimate)`), not comparison.
+//! `due`, `start`, `reviewed`, `file`. The opaque `estimate` dict supports
+//! presence only (`has(estimate)` / `miss(estimate)`), not comparison.
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
 //! Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
-//! `contains(field, "substr")`, `search("query")`.
+//! `contains(field, "substr")`, `search("query")`, `stale(N)`.
 
 use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
@@ -170,6 +170,15 @@ fn function(
             Ok(task.title.to_lowercase().contains(&needle)
                 || task.id.to_lowercase().contains(&needle))
         }
+        "stale" => {
+            let count_str = single_literal(children, "stale")?;
+            let count: u64 = count_str.parse().map_err(|_| {
+                FilterError::Invalid(format!(
+                    "stale() expects a non-negative integer, got {count_str:?}"
+                ))
+            })?;
+            Ok(is_stale(task, count))
+        }
         other => Err(FilterError::Invalid(format!("unknown function: {other}"))),
     }
 }
@@ -183,6 +192,17 @@ fn present(task: &Task, name: &str) -> Result<bool, FilterError> {
         "duplicates" => Ok(!task.duplicates.is_empty()),
         "estimate" => Ok(!task.estimate.is_empty()),
         other => Ok(!matches!(field_value(task, other)?, FieldValue::Missing)),
+    }
+}
+
+fn is_stale(task: &Task, days: u64) -> bool {
+    let threshold = crate::date::days_ago_iso(days);
+    if let Some(rev) = &task.reviewed {
+        rev.as_str() < threshold.as_str()
+    } else if let Some(ref_date) = task.status.as_ref().and_then(|s| s.date.as_deref()) {
+        ref_date < threshold.as_str()
+    } else {
+        true
     }
 }
 
@@ -204,6 +224,7 @@ fn field_value(task: &Task, name: &str) -> Result<FieldValue, FilterError> {
         "id" => FieldValue::Str(task.id.clone()),
         "due" => opt_str(task.due.clone()),
         "start" => opt_str(task.start.clone()),
+        "reviewed" => opt_str(task.reviewed.clone()),
         "file" => FieldValue::Str(task.file.display().to_string()),
         other => return Err(FilterError::UnknownField(other.to_owned())),
     };

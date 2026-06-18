@@ -50,6 +50,8 @@ pub struct Task {
     pub due: Option<String>,
     /// Start date, `YYYY-MM-DD`.
     pub start: Option<String>,
+    /// Last re-affirmation date, `YYYY-MM-DD`.
+    pub reviewed: Option<String>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     pub extras: BTreeMap<String, HVal>,
 }
@@ -81,6 +83,7 @@ impl Task {
             tags: parse_str_array(field(fields, "tags")),
             due: field_str(fields, "due"),
             start: field_str(fields, "start"),
+            reviewed: field_str(fields, "reviewed"),
             extras,
         }
     }

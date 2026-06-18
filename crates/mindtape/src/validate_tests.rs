@@ -48,6 +48,7 @@ fn task(id: &str, status: &str) -> Task {
         tags: Vec::new(),
         due: None,
         start: None,
+        reviewed: None,
         extras: BTreeMap::new(),
     }
 }
