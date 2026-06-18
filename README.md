@@ -125,6 +125,8 @@ A three-crate workspace:
 - `mindtape` — the domain library: config, the task item model, the filter
   language, and config-driven validation.
 - `mindtape-cli` — the thin `mindtape` command-line binary.
+- `typst-cst` — Parse-plane structure extraction for Typst — heading tree with source spans, no eval, no World, no IO.
+- `typst-edit` — In-place editing for Typst source — parse-plane span queries and an atomic, non-overlapping changeset over typst-syntax; no eval, no World, no IO.
 
 ## Contributing
 
