@@ -64,7 +64,11 @@ mindtape list 'has_tag("backend")'           # filter expression
 mindtape list 'status != "done" && priority == "high"'
 mindtape list 'has(due) && due < "2026-08-01"'
 mindtape list 'search("auth")' --json        # JSON output
+mindtape list 'stale(30)'                     # unreviewed for over 30 days
 mindtape list --sort priority:asc -n 10      # sort + limit
+
+# Re-affirm a task as still relevant (stamps reviewed: with today's date)
+mindtape review implement-auth               # by slug, relative, or absolute path
 
 # Validate every task against the project config
 mindtape check                               # enum / required / bounds / links
@@ -104,10 +108,12 @@ default_filter = "status != \"done\""
 ### Filter language
 
 Comparable fields: `status`, `priority`, `grade`, `kind`, `title`, `id`, `due`,
-`start`, `file`. Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`,
-parentheses. Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
-`contains(field, "substr")`, `search("query")`. The opaque `estimate` dict
-supports presence only (`has(estimate)`), not comparison.
+`start`, `reviewed`, `file`. Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`,
+`||`, `!`, parentheses. Functions: `has(field)`, `miss(field)`,
+`has_tag("name")`, `contains(field, "substr")`, `search("query")`, `stale(N)`
+(re-affirmed — or, lacking `reviewed`, last status-changed — more than N days
+ago). The opaque `estimate` dict supports presence only (`has(estimate)`), not
+comparison.
 
 ## Architecture
 
