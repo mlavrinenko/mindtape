@@ -5,7 +5,7 @@
   status: proposed(2026, 6, 19),
   priority: "normal",
   estimate: (days: 2),
-  depends-on: (link("numeric-priority-scale.typ"), link("priority-bands.typ")),
+  depends-on: (link("numeric-priority-scale.typ"),),
   tags: ("substrate", "cli"),
 )
 
