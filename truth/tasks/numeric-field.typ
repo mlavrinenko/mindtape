@@ -5,7 +5,7 @@
   status: proposed(2026, 6, 19),
   priority: "high",
   estimate: (days: 1),
-  depends-on: (link("field-legend-glyphs.typ"),),
+  depends-on: (link("field-display.typ"),),
   tags: ("substrate", "cli"),
 )
 
@@ -28,7 +28,7 @@ so neither has to depend on the other.
   - anchors — sparse labelled points; a value between anchors inherits the nearest
     lower anchor's glyph + colour, label derived as `lower-label + "+"×offset`
     (require an anchor at `min`; values below all anchors derive upward with `−`).
-- Display through the `Field` trait from field-legend-glyphs. DSL label sugar maps
+- Display through the `Field` trait from field-display. DSL label sugar maps
   an anchor label (and a band's representative value) back to a number.
 
 == Boundary
