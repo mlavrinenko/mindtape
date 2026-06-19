@@ -29,7 +29,7 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
 
     let (task, abs) = util::resolve_task(&project, &args.id)?;
 
-    if task.is_terminal(&project.config.tasks.status.terminal) {
+    if task.is_terminal(&project.config.tasks.status.terminal()) {
         bail!(
             "task {:?} ({}) has a terminal status; cannot review",
             args.id,

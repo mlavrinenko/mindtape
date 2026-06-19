@@ -80,7 +80,7 @@ pub fn run(args: &CleanupArgs) -> Result<()> {
 
     let plan = plan(
         &project.outcome.tasks,
-        &project.config.tasks.status.terminal,
+        &project.config.tasks.status.terminal(),
         &root,
         &git_root,
     )?;

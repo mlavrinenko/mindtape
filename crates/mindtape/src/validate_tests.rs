@@ -9,9 +9,13 @@ use crate::model::{Status, Task};
 fn config() -> crate::config::Config {
     parse_config(
         r#"
-[tasks.status]
-values = ["proposed", "wip", "done"]
-terminal = ["done"]
+[[tasks.status]]
+value = "proposed"
+[[tasks.status]]
+value = "wip"
+[[tasks.status]]
+value = "done"
+terminal = true
 
 [tasks.fields.priority]
 values = ["low", "high"]

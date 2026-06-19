@@ -6,11 +6,40 @@
 # MindTape's own backlog lives here, one task per file.
 roots = ["truth/tasks"]
 
-[tasks.status]
-# Legal status names, in lifecycle order.
-values = ["proposed", "accepted", "wip", "done", "cancelled", "failed"]
-# Subset that ends a task; required fields are not enforced once terminal.
-terminal = ["done", "cancelled", "failed"]
+# Status legend: legal values in lifecycle order, each with an optional glyph and
+# colour. `terminal = true` ends a task (required fields relax once terminal).
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+
+[[tasks.status]]
+value = "accepted"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+
+[[tasks.status]]
+value = "failed"
+glyph = "❌"
+color = "red"
+terminal = true
 
 [tasks.fields.priority]
 values = ["low", "normal", "high"]

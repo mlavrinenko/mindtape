@@ -46,8 +46,9 @@ pub fn effective_project_code(config: &Config, root: &std::path::Path) -> String
 pub struct TasksConfig {
     /// Directories (relative to the project root) holding one task per file.
     pub roots: Vec<String>,
-    /// Status lifecycle.
-    pub status: StatusConfig,
+    /// Status legend: legal values in lifecycle order, plus per-value display
+    /// (glyph, colour, label) and the `terminal` flag.
+    pub status: Legend,
     /// Constraints for the configurable enum core fields, keyed by Typst slot
     /// name (`priority`, `grade`, `kind`).
     pub fields: BTreeMap<String, FieldConfig>,
@@ -65,7 +66,7 @@ impl Default for TasksConfig {
     fn default() -> Self {
         Self {
             roots: vec!["tasks".to_owned()],
-            status: StatusConfig::default(),
+            status: Legend::default(),
             fields: BTreeMap::new(),
             estimate: EstimateConfig::default(),
             tags: TagsConfig::default(),
@@ -126,15 +127,64 @@ pub struct EstimateConfig {
     pub required: Requirement,
 }
 
-/// `[tasks.status]` — legal status names and the terminal subset.
+/// `[[tasks.status]]` — the status legend: an ordered, displayable vocabulary.
+///
+/// Each entry binds a value to optional display attributes (glyph, colour,
+/// label) plus the `terminal` flag. The legend defines the legal values, their
+/// lifecycle order, and how each renders. Empty = unconstrained. The same
+/// primitive will serve other discrete enum fields (kind, tags) as they gain
+/// display.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[serde(transparent)]
+pub struct Legend {
+    /// Ordered entries, in lifecycle / display order.
+    pub entries: Vec<LegendEntry>,
+}
+
+/// One `[[tasks.status]]` entry: a value plus its display attributes.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default)]
-pub struct StatusConfig {
-    /// Legal status names, in lifecycle order. Empty = unconstrained.
-    pub values: Vec<String>,
-    /// Subset of `values` that ends a task; required fields are not enforced
-    /// once a task is terminal.
-    pub terminal: Vec<String>,
+pub struct LegendEntry {
+    /// The value this entry describes (e.g. a status name).
+    pub value: String,
+    /// Optional decorative glyph (emoji or ASCII).
+    pub glyph: Option<String>,
+    /// Optional colour: a named ANSI colour or `#RRGGBB`.
+    pub color: Option<String>,
+    /// Optional display label; falls back to `value`.
+    pub label: Option<String>,
+    /// Whether this value ends a task; required fields relax once terminal.
+    pub terminal: bool,
+}
+
+impl Legend {
+    /// Whether the legend constrains nothing (no entries).
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+
+    /// Whether `value` is a legal entry.
+    #[must_use]
+    pub fn contains(&self, value: &str) -> bool {
+        self.entries.iter().any(|entry| entry.value == value)
+    }
+
+    /// The entry describing `value`, if any.
+    #[must_use]
+    pub fn entry(&self, value: &str) -> Option<&LegendEntry> {
+        self.entries.iter().find(|entry| entry.value == value)
+    }
+
+    /// The values flagged `terminal`.
+    #[must_use]
+    pub fn terminal(&self) -> Vec<String> {
+        self.entries
+            .iter()
+            .filter(|entry| entry.terminal)
+            .map(|entry| entry.value.clone())
+            .collect()
+    }
 }
 
 /// `[tasks.fields.<name>]` — constraints for one configurable core field.

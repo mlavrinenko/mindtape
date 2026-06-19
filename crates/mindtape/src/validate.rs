@@ -40,8 +40,9 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let files: HashSet<&Path> = tasks.iter().map(|task| task.file.as_path()).collect();
     let mut out = Vec::new();
     check_id_uniqueness(tasks, &mut out);
+    let terminal_values = config.tasks.status.terminal();
     for task in tasks {
-        let terminal = task.is_terminal(&config.tasks.status.terminal);
+        let terminal = task.is_terminal(&terminal_values);
         check_id_format(task, config, &mut out);
         check_status(task, config, &mut out);
         for (name, field) in &config.tasks.fields {
@@ -114,13 +115,13 @@ fn push(out: &mut Vec<Violation>, task: &Task, field: &str, message: String) {
 }
 
 fn check_status(task: &Task, config: &Config, out: &mut Vec<Violation>) {
-    let values = &config.tasks.status.values;
-    if values.is_empty() {
+    let legend = &config.tasks.status;
+    if legend.is_empty() {
         return;
     }
     match &task.status {
         None => push(out, task, "status", "missing required status".to_owned()),
-        Some(status) if !values.contains(&status.name) => push(
+        Some(status) if !legend.contains(&status.name) => push(
             out,
             task,
             "status",

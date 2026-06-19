@@ -74,7 +74,7 @@ fn load_error_returns_err() {
 fn validation_violation_returns_err() {
     let dir = tempfile::tempdir().unwrap();
     let config = parse_config(
-        "[tasks.status]\nvalues = [\"wip\", \"done\"]\n[tasks.fields.priority]\nrequired = true",
+        "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n[tasks.fields.priority]\nrequired = true",
     )
     .unwrap();
     // Task has no priority field; config requires it.

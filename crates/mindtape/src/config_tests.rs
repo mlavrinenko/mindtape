@@ -6,7 +6,7 @@ use super::{HeaderAction, HeaderPathSegment, Requirement, parse_config};
 fn defaults_when_empty() {
     let config = parse_config("").unwrap();
     assert_eq!(config.tasks.roots, vec!["tasks".to_owned()]);
-    assert!(config.tasks.status.values.is_empty());
+    assert!(config.tasks.status.is_empty());
     // White-list philosophy: an omitted estimate section accepts any unit.
     assert!(config.tasks.estimate.units.is_empty());
     assert!(config.query.default_filter.is_none());
@@ -18,9 +18,13 @@ fn parses_full_config() {
 [tasks]
 roots = ["truth/tasks"]
 
-[tasks.status]
-values = ["proposed", "wip", "done"]
-terminal = ["done"]
+[[tasks.status]]
+value = "proposed"
+[[tasks.status]]
+value = "wip"
+[[tasks.status]]
+value = "done"
+terminal = true
 
 [tasks.fields.priority]
 values = ["low", "high"]
@@ -41,7 +45,7 @@ default_filter = "status != \"done\""
 "#;
     let config = parse_config(text).unwrap();
     assert_eq!(config.tasks.roots, vec!["truth/tasks".to_owned()]);
-    assert_eq!(config.tasks.status.terminal, vec!["done".to_owned()]);
+    assert_eq!(config.tasks.status.terminal(), vec!["done".to_owned()]);
 
     let priority = config.tasks.fields.get("priority").unwrap();
     assert_eq!(priority.required, Requirement::NonTerminal);
