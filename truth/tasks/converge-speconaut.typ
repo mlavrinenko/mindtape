@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Converge task tracking with speconaut",
   status: proposed(2026, 6, 14),
-  priority: 5,
+  priority: ice(impact: 8, confidence: 0.8, ease: 9),
   depends-on: (link("convergence-boundary-adr.typ"),),
   relates-to: (
     link("absorb-task-graph-into-lib.typ"),

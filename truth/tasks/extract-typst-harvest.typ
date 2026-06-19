@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Extract typst-harvest into its own repository",
   status: proposed(2026, 6, 14),
-  priority: 5,
+  priority: ice(impact: 8, confidence: 0.8, ease: 9),
   estimate: (hours: 6),
   relates-to: (link("converge-speconaut.typ"),),
   tags: ("substrate",),

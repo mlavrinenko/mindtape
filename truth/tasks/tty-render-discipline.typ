@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Central TTY, colour, and width rendering discipline",
   status: done(2026, 6, 19),
-  priority: 5,
+  priority: ice(impact: 8, confidence: 0.8, ease: 9),
   estimate: (hours: 3),
   tags: ("cli", "tooling"),
 )

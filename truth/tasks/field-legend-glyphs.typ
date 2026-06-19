@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Legend: discrete enum field display",
   status: done(2026, 6, 19),
-  priority: 5,
+  priority: ice(impact: 8, confidence: 0.8, ease: 9),
   estimate: (hours: 4),
   depends-on: (link("field-display.typ"),),
   tags: ("substrate", "cli"),

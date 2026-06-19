@@ -3,7 +3,7 @@
 #show: task.with(
   title: "List handles: ordinal plus stable check-letter",
   status: done(2026, 6, 19),
-  priority: 5,
+  priority: ice(impact: 8, confidence: 0.8, ease: 9),
   estimate: (hours: 4),
   relates-to: (link("task-identity.typ"), link("list-plaintext-render.typ")),
   tags: ("cli",),

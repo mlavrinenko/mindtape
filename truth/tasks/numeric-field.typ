@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Numeric field primitive: scale, classification, display",
   status: done(2026, 6, 19),
-  priority: 8,
+  priority: ice(impact: 10, confidence: 0.9, ease: 10),
   estimate: (days: 1),
   depends-on: (link("field-display.typ"),),
   tags: ("substrate", "cli"),

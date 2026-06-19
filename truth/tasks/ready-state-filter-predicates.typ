@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Idea: ready-state predicates in the filter language",
   status: proposed(2026, 6, 18),
-  priority: 2,
+  priority: ice(impact: 5, confidence: 0.5, ease: 8),
   estimate: (hours: 3),
   relates-to: (link("absorb-task-graph-into-lib.typ"),),
   tags: ("cli",),

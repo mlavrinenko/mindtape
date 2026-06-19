@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Generic artifact-gate rule engine",
   status: proposed(2026, 6, 14),
-  priority: 5,
+  priority: ice(impact: 8, confidence: 0.8, ease: 9),
   estimate: (hours: 10),
   depends-on: (link("swh:1:rev:8069f3182b74520070fcfeb584a5626df6db1203;path=truth/tasks/typst-cst-structure-extraction.typ"),),
   relates-to: (

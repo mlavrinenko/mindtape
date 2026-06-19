@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Reviewed re-affirmation date",
   status: done(2026, 6, 18),
-  priority: 2,
+  priority: ice(impact: 5, confidence: 0.5, ease: 8),
   estimate: (hours: 2),
   relates-to: (link("convergence-boundary-adr.typ"),),
   tags: ("substrate",),

@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Field display: the Field trait and generic cell rendering",
   status: done(2026, 6, 19),
-  priority: 8,
+  priority: ice(impact: 10, confidence: 0.9, ease: 10),
   estimate: (hours: 4),
   depends-on: (link("tty-render-discipline.typ"),),
   tags: ("substrate", "cli"),

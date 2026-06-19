@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Project code config slot",
   status: done(2026, 6, 19),
-  priority: 2,
+  priority: ice(impact: 5, confidence: 0.5, ease: 8),
   estimate: (hours: 1),
   tags: ("substrate",),
 )

@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Default sort by configured order, not alphabetical",
   status: done(2026, 6, 19),
-  priority: 5,
+  priority: ice(impact: 8, confidence: 0.8, ease: 9),
   estimate: (hours: 2),
   relates-to: (link("numeric-priority-scale.typ"), link("list-handle-ordinal-check.typ")),
   tags: ("cli",),

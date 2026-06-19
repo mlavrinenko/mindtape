@@ -41,12 +41,18 @@ glyph = "❌"
 color = "red"
 terminal = true
 
-# Priority: a number on a 0..9 scale, classified into labelled bands.
+# Priority: an ICE score on a 0..9 scale, classified into labelled bands.
+# `framework = "ice"` computes the score from `priority: ice(impact, confidence,
+# ease)` inputs (the built-in ICE definition ships in the baked-in config layer).
+# `allow-manual = false` is strict: every task must score through the framework,
+# no hand-set integers.
 [tasks.priority]
 kind = "int"
 min = 0
 max = 9
 required = "non-terminal"
+framework = "ice"
+allow-manual = false
 [[tasks.priority.bands]]
 label = "low"
 min = 0

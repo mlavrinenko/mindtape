@@ -2,8 +2,8 @@
 
 #show: task.with(
   title: "Priority frameworks: scalar and categorical, config-defined",
-  status: wip(2026, 6, 19),
-  priority: 5,
+  status: done(2026, 6, 20),
+  priority: ice(impact: 8, confidence: 0.8, ease: 9),
   estimate: (days: 2),
   depends-on: (link("numeric-priority-scale.typ"),),
   tags: ("substrate", "cli"),
