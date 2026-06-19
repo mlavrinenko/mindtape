@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "List handles: ordinal plus stable check-letter",
-  status: proposed(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: "normal",
   estimate: (hours: 4),
   relates-to: (link("task-identity.typ"), link("list-plaintext-render.typ")),
