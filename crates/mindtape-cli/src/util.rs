@@ -2,8 +2,12 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
-use mindtape::{Config, LoadOutcome, Task, config_path, find_root, load_config, load_project};
+use anyhow::{Context, Result, bail};
+use mindtape::{
+    Config, Filter, LoadOutcome, Task, config_path, find_root, load_config, load_project, select,
+};
+
+use crate::handle::{DEFAULT_CHECK_LEN, check_chars, parse_handle};
 
 /// A discovered, loaded project: its root, config and load outcome.
 pub struct Project {
@@ -35,8 +39,17 @@ pub fn open() -> Result<Project> {
 
 /// Resolve a task reference to a loaded `Task` and its absolute path.
 ///
-/// Accepts a slug (bare file stem), a relative path (resolved against CWD),
-/// or an absolute path. Errors if the reference doesn't match any loaded task.
+/// Accepts:
+/// - A handle (`<ordinal><check>`, e.g. `"5d"`): resolves against the **default
+///   view** (configured default filter, no extra sort — exactly what bare
+///   `mindtape list` shows).  The ordinal is 1-based.  The check letter must
+///   match the task's stable id hash; a mismatch means the list has drifted and
+///   the error names the current handle and title at that ordinal.
+/// - A slug (bare file stem, e.g. `"implement-auth"`).
+/// - A relative path (resolved against CWD).
+/// - An absolute path.
+///
+/// Errors if the reference doesn't match any loaded task.
 ///
 /// # Errors
 /// Returns an error if the path cannot be resolved or no task matches.
@@ -62,6 +75,12 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
             .with_context(|| format!("no task at {}", abs.display()))?;
         return Ok((task.clone(), abs));
     }
+
+    // Try handle resolution first: `<digits><letters>` with no `/` or `.`.
+    if let Some((ordinal, check)) = parse_handle(id) {
+        return resolve_by_handle(project, ordinal, check);
+    }
+
     let stem = id.strip_suffix(".typ").unwrap_or(id);
     let task = project
         .outcome
@@ -69,6 +88,50 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
         .iter()
         .find(|t| t.id == stem)
         .with_context(|| format!("no task with id {stem:?}"))?;
+    let abs = project.root.join(&task.file);
+    Ok((task.clone(), abs))
+}
+
+/// Build the default list view: apply the configured default filter, no extra
+/// sort.  This replicates what bare `mindtape list` shows.
+fn default_view(project: &Project) -> Result<Vec<Task>> {
+    let filter = project
+        .config
+        .query
+        .default_filter
+        .as_deref()
+        .map(Filter::parse)
+        .transpose()?;
+    let tasks = select(project.outcome.tasks.clone(), filter.as_ref())?;
+    Ok(tasks)
+}
+
+/// Resolve a task by `ordinal` (1-based) and `check` string against the default
+/// view.  Errors if ordinal is out of range or the check does not match.
+fn resolve_by_handle(project: &Project, ordinal: usize, check: &str) -> Result<(Task, PathBuf)> {
+    let tasks = default_view(project)?;
+    let total = tasks.len();
+
+    let index = ordinal
+        .checked_sub(1)
+        .filter(|&i| i < total)
+        .with_context(|| {
+            format!("handle ordinal {ordinal} out of range (default view has {total} tasks)")
+        })?;
+
+    let task = tasks
+        .get(index)
+        .with_context(|| format!("handle ordinal {ordinal} out of range"))?;
+    let expected_check = check_chars(&task.id, DEFAULT_CHECK_LEN);
+    if check != expected_check {
+        let current_handle = format!("{ordinal}{expected_check}");
+        bail!(
+            "handle check mismatch: you passed {ordinal}{check} but that position is now \
+             {current_handle} ({title:?}); the default list view may have changed",
+            title = task.title,
+        );
+    }
+
     let abs = project.root.join(&task.file);
     Ok((task.clone(), abs))
 }
@@ -81,10 +144,15 @@ pub fn warn_errors(outcome: &LoadOutcome) {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)]
 mod tests {
-    use mindtape::{LoadError, LoadOutcome};
+    use std::collections::BTreeMap;
+    use std::path::Path;
 
-    use super::warn_errors;
+    use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
+
+    use super::{Project, resolve_task, warn_errors};
+    use crate::handle::{DEFAULT_CHECK_LEN, check_chars};
 
     #[test]
     fn warn_errors_is_silent_when_no_errors() {
@@ -101,5 +169,121 @@ mod tests {
             }],
         };
         warn_errors(&outcome);
+    }
+
+    // Minimal task for unit tests — no file on disk needed for pure logic tests.
+    fn stub_task(id: &str, title: &str) -> Task {
+        Task {
+            id: id.to_owned(),
+            file: format!("tasks/{id}.typ").into(),
+            title: title.to_owned(),
+            status: None,
+            priority: None,
+            grade: None,
+            kind: None,
+            estimate: BTreeMap::new(),
+            depends_on: Vec::new(),
+            relates_to: Vec::new(),
+            supersedes: Vec::new(),
+            duplicates: Vec::new(),
+            tags: Vec::new(),
+            due: None,
+            start: None,
+            reviewed: None,
+            extras: BTreeMap::new(),
+        }
+    }
+
+    const TASK_SRC: &str = "#metadata((
+  marker: \"mindtape.task\",
+  fields: (
+    title: \"Task X\",
+    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
+    priority: \"high\",
+  ),
+  extras: (:),
+))
+";
+
+    fn make_project_with_tasks(dir: &Path, task_ids: &[&str]) -> Project {
+        std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+        std::fs::create_dir_all(dir.join("tasks")).unwrap();
+        for id in task_ids {
+            std::fs::write(dir.join("tasks").join(format!("{id}.typ")), TASK_SRC).unwrap();
+        }
+        let config = Config::default();
+        let outcome = load_project(dir, &config);
+        Project {
+            root: dir.to_path_buf(),
+            config,
+            outcome,
+        }
+    }
+
+    fn stub_project(tasks: Vec<Task>) -> Project {
+        let outcome = LoadOutcome {
+            tasks,
+            errors: vec![],
+        };
+        Project {
+            root: ".".into(),
+            config: Config::default(),
+            outcome,
+        }
+    }
+
+    #[test]
+    fn resolve_by_slug_succeeds() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = make_project_with_tasks(dir.path(), &["alpha"]);
+        let (task, _) = resolve_task(&project, "alpha").unwrap();
+        assert_eq!(task.id, "alpha");
+    }
+
+    #[test]
+    fn resolve_handle_correct_check_succeeds() {
+        let task_a = stub_task("alpha", "Alpha Task");
+        let task_b = stub_task("beta", "Beta Task");
+        let project = stub_project(vec![task_a.clone(), task_b.clone()]);
+
+        // Build the correct check char for ordinal 2 (beta).
+        let check = check_chars("beta", DEFAULT_CHECK_LEN);
+        let handle = format!("2{check}");
+        let (resolved, _) = resolve_task(&project, &handle).unwrap();
+        assert_eq!(resolved.id, "beta");
+    }
+
+    #[test]
+    fn resolve_handle_wrong_check_errors_with_current_handle() {
+        let task_a = stub_task("alpha", "Alpha Task");
+        let project = stub_project(vec![task_a]);
+
+        // Compute correct check then use a wrong one.
+        let correct = check_chars("alpha", DEFAULT_CHECK_LEN);
+        // Pick a letter that is definitely wrong.
+        let wrong_char = if correct == "a" { 'b' } else { 'a' };
+        let bad_handle = format!("1{wrong_char}");
+
+        let err = resolve_task(&project, &bad_handle).unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("check mismatch"),
+            "error should mention mismatch: {msg}"
+        );
+        assert!(
+            msg.contains("Alpha Task"),
+            "error should name the title: {msg}"
+        );
+    }
+
+    #[test]
+    fn resolve_handle_out_of_range_errors() {
+        let task_a = stub_task("alpha", "Alpha Task");
+        let project = stub_project(vec![task_a]);
+        let err = resolve_task(&project, "9z").unwrap_err();
+        assert!(
+            err.to_string().contains("out of range"),
+            "error should say out of range: {err}"
+        );
     }
 }
