@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Central TTY, colour, and width rendering discipline",
-  status: proposed(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: "normal",
   estimate: (hours: 3),
   tags: ("cli", "tooling"),
