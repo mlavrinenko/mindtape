@@ -78,6 +78,18 @@ mindtape eval tasks/implement-auth.typ
 mindtape eval tasks/implement-auth.typ --json
 ```
 
+### Global flags
+
+```
+--color <auto|always|never>   Colour output (default: auto).
+                              auto — colour only when stdout is a TTY and
+                                     NO_COLOR is not set.
+                              always — force ANSI colour sequences.
+                              never  — suppress all colour.
+                              See https://no-color.org/ for the NO_COLOR spec.
+-v / --verbose                Increase verbosity (-v info, -vv debug, -vvv trace).
+```
+
 ### Configuration
 
 `.mindtape/config.toml` white-lists what MindTape constrains; omit a section to
