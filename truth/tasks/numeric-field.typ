@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Numeric field primitive: scale, classification, display",
-  status: wip(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: 8,
   estimate: (days: 1),
   depends-on: (link("field-display.typ"),),

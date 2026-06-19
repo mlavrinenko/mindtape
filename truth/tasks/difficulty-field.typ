@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Difficulty as a numeric-field instance, replacing grade",
-  status: wip(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: 5,
   estimate: (hours: 4),
   depends-on: (link("numeric-field.typ"),),

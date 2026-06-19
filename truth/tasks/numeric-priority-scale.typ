@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Priority as a numeric-field instance",
-  status: wip(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: 5,
   estimate: (hours: 4),
   depends-on: (link("numeric-field.typ"),),

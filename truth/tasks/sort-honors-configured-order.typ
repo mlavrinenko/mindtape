@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Default sort by configured order, not alphabetical",
-  status: wip(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: 5,
   estimate: (hours: 2),
   relates-to: (link("numeric-priority-scale.typ"), link("list-handle-ordinal-check.typ")),
