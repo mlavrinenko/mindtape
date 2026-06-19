@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Priority frameworks: scalar and categorical, config-defined",
-  status: proposed(2026, 6, 19),
+  status: wip(2026, 6, 19),
   priority: 5,
   estimate: (days: 2),
   depends-on: (link("numeric-priority-scale.typ"),),
