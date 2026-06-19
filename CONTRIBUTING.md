@@ -74,8 +74,9 @@ Refs: truth/tasks/<stem>.typ
 
 MindTape tracks its own backlog as per-file task artifacts under `truth/tasks/`
 (MindTape dogfooding itself — see `.mindtape/config.toml`). Point `Refs:` at the
-driving task file (`truth/tasks/<stem>.typ`); for an architectural or tooling
-decision, reference the ADR instead (`docs/decisions/00N-<slug>.md`).
+driving task file (`truth/tasks/<stem>.typ`). Architectural and tooling decisions
+are tracked as task artifacts too; the ADR process is retired (`docs/decisions/`
+is frozen history).
 
 Commits that file or edit task artifacts themselves (and the backlog config in
 `.mindtape/config.toml`) carry no `Refs:` footer — a task commit refs nothing.
@@ -86,4 +87,5 @@ Commits that file or edit task artifacts themselves (and the backlog config in
   and a `run` fn; wire it into `cli.rs`. See `list.rs` for reference.
 - New domain capability: add to `crates/mindtape` and re-export from its
   `lib.rs`. Keep `typst-harvest` consumer-blind — no task concepts there.
-- Architectural/tooling decisions: record an ADR in `docs/decisions/`.
+- Architectural/tooling decisions: file a task under `truth/tasks/` (the ADR
+  process is retired).

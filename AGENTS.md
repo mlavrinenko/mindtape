@@ -12,7 +12,8 @@ Repository: https://github.com/mlavrinenko/mindtape
 ## Key Docs
 
 - `CONTRIBUTING.md` — workflow, commit style, testing, quality gates
-- `docs/decisions/` — Architecture Decision Records (ADRs); 002 is the rewrite
+- `docs/decisions/` — retired ADRs, kept as frozen history; decisions now live
+  as task artifacts under `truth/tasks/`
 - `docs/redesign/` — the redesign brief and DSL shape probe (historical)
 - `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
 - `truth/tasks/` — MindTape's own backlog as per-file task artifacts (dogfood);
@@ -50,14 +51,12 @@ Four crates (`cargo` workspace, virtual root manifest):
    front; `just fix-check` ejects oversized inline tests via `ejectest`.
 4. When `outdatty` reports drift, update the listed dependents, then
    `just outdatty-update` and commit `outdatty.lock`.
-5. Record architectural/tooling decisions as an ADR in `docs/decisions/` using
-   the next number. Include Status, Date, Context, Decision, Consequences,
-   Deprecation Criteria.
+5. Record architectural/tooling decisions as task artifacts under `truth/tasks/`,
+   not as ADRs. The ADR process is retired; `docs/decisions/` is frozen history.
 6. Commits: Conventional Commits; footer `Refs: truth/tasks/<stem>.typ` (the
-   driving task) or `docs/decisions/00N-<slug>.md` for an architectural decision.
-   Exception: commits that file or edit task artifacts themselves (and the
-   backlog config in `.mindtape/config.toml`) carry no `Refs:` footer — a task
-   commit refs nothing. Match prior commit language.
+   driving task). Exception: commits that file or edit task artifacts themselves
+   (and the backlog config in `.mindtape/config.toml`) carry no `Refs:` footer —
+   a task commit refs nothing. Match prior commit language.
 
 ## Task DSL (lib/prelude.typ)
 
