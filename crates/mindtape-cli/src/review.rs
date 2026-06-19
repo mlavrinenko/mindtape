@@ -30,12 +30,16 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
     let (task, abs) = util::resolve_task(&project, &args.id)?;
 
     if task.is_terminal(&project.config.tasks.status.terminal) {
-        bail!("task {:?} has a terminal status; cannot review", args.id);
+        bail!(
+            "task {:?} ({}) has a terminal status; cannot review",
+            args.id,
+            task.title
+        );
     }
 
     let today = today_iso();
     if task.reviewed.as_deref() == Some(today.as_str()) {
-        println!("already reviewed today ({})", args.id);
+        println!("already reviewed today ({} — {})", args.id, task.title);
         return Ok(());
     }
 
@@ -49,7 +53,10 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
         apply(&source, vec![edit]).with_context(|| format!("apply edit to {}", abs.display()))?;
 
     std::fs::write(&abs, updated).with_context(|| format!("write {}", abs.display()))?;
-    println!("reviewed: {} stamped on {}", args.id, today);
+    println!(
+        "reviewed: {} ({}) stamped on {}",
+        args.id, task.title, today
+    );
     Ok(())
 }
 

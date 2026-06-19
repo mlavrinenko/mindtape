@@ -7,6 +7,8 @@ use mindtape::Task;
 use serde_json::{Map, Value, json};
 use typst_harvest::HVal;
 
+use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
+
 /// Output format for `list` and `eval`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
 pub enum OutputFormat {
@@ -40,9 +42,10 @@ pub fn render(tasks: &[Task], format: OutputFormat) -> Result<String> {
 fn render_table(tasks: &[Task]) -> String {
     let mut table = Table::new();
     table.load_preset(UTF8_FULL);
-    table.set_header(["ID", "STATUS", "PRIORITY", "DUE", "TITLE"]);
-    for task in tasks {
+    table.set_header(["#", "ID", "STATUS", "PRIORITY", "DUE", "TITLE"]);
+    for (handle, task) in make_handles(tasks, DEFAULT_CHECK_LEN) {
         table.add_row([
+            handle,
             task.id.clone(),
             status_name(task),
             task.priority.clone().unwrap_or_default(),
@@ -174,6 +177,25 @@ mod tests {
         assert!(out.contains("t1"));
         assert!(out.contains("Build"));
         assert!(out.contains("wip"));
+    }
+
+    #[test]
+    fn table_has_handle_column() {
+        let out = render(&[sample()], OutputFormat::Table).unwrap();
+        // The header row must have "#" and the first task is ordinal 1.
+        assert!(out.contains('#'));
+        assert!(out.contains("1"));
+    }
+
+    #[test]
+    fn json_does_not_contain_handle() {
+        let out = render(&[sample()], OutputFormat::Json).unwrap();
+        assert!(
+            !out.contains("\"handle\""),
+            "handle must not appear in JSON"
+        );
+        // id is still present
+        assert!(out.contains("\"id\""));
     }
 
     #[test]

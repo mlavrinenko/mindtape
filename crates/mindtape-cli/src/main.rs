@@ -5,6 +5,7 @@ mod cleanup;
 mod cli;
 mod eval;
 mod git;
+mod handle;
 mod init;
 mod list;
 mod output;
