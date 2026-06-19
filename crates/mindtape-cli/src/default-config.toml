@@ -44,6 +44,13 @@ terminal = true
 # Priority: a number on a scale, classified into labelled bands. `kind` is
 # `int` | `real`; bands tile [min, max] (int: inclusive and contiguous).
 # `required` is true | false | "non-terminal".
+#
+# To compute the score from a framework instead of a hand-set int, set
+# `framework` to a built-in (ice/rice/wsjf/eisenhower/moscow) — tasks then write
+# `priority: ice(impact: 8, confidence: 0.9, ease: 7)`. `allow-manual = false`
+# forbids raw ints. Define or override one under `[tasks.priority.frameworks.<name>]`.
+#   framework = "ice"
+#   allow-manual = true
 [tasks.priority]
 kind = "int"
 min = 0

@@ -26,7 +26,7 @@ pub(crate) fn run_with(project: &util::Project) -> Result<()> {
             let abs = project.root.join(&task.file);
             let source =
                 std::fs::read_to_string(&abs).with_context(|| format!("read {}", abs.display()))?;
-            violations.extend(check_headers(task, &source, &header_rules));
+            violations.extend(check_headers(task, &source, &header_rules, &project.config));
         }
     }
 

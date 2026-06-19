@@ -45,7 +45,26 @@ impl Field for Priority {
     }
 
     fn cell_spec(value: &str, config: &Config) -> CellSpec {
-        numeric_cell(value, &config.tasks.priority)
+        numeric_cell(value, &config.tasks.priority.field)
+    }
+}
+
+/// Resolve a task's priority value to a display cell, honouring an active
+/// framework (scalar score → bands, or a categorical cell). Bypasses the
+/// string round-trip so framework inputs survive.
+#[must_use]
+pub fn priority_cell_spec(value: &NumValue, config: &Config) -> CellSpec {
+    match config.tasks.priority.cell(value) {
+        Some(cell) => CellSpec {
+            text: cell.label,
+            glyph: cell.glyph,
+            color: cell.color.as_deref().and_then(parse_color),
+        },
+        None => CellSpec {
+            text: value.as_display(),
+            glyph: None,
+            color: None,
+        },
     }
 }
 

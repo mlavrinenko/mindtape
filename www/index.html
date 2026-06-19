@@ -597,7 +597,7 @@
 #show: task.with(
   title: "Design REST API schema",
   status: wip(2026, 3, 8),
-  priority: 8,
+  priority: ice(impact: 9, confidence: 0.8, ease: 6),
   estimate: (hours: 12),
   tags: ("backend",),
   due: datetime(year: 2026, month: 3, day: 15),
@@ -711,7 +711,7 @@ Stand up an isolated staging stack that mirrors production topology.</code></pre
   <div class="steps">
     <div class="step">
       <h3>Write <code>.typ</code> files</h3>
-      <p>One task per file via <code>#show: task.with(...)</code>. Status, priority, tags, dates &mdash; all plain Typst, right where your project lives.</p>
+      <p>One task per file via <code>#show: task.with(...)</code>. Status, priority (a raw int or a scoring framework like <code>ice(...)</code>), tags, dates &mdash; all plain Typst, right where your project lives.</p>
     </div>
     <div class="step">
       <h3>MindTape evaluates live</h3>

@@ -19,6 +19,7 @@
 use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
 
+use crate::config::{Config, PriorityConfig};
 use crate::model::Task;
 use crate::numeric::{NumValue, format_num};
 
@@ -65,25 +66,30 @@ impl Filter {
         Ok(Self { tree })
     }
 
-    /// Whether `task` satisfies the filter.
+    /// Whether `task` satisfies the filter, resolving framework scores against
+    /// `config`.
     ///
     /// # Errors
     /// Returns [`FilterError`] on an unknown field or unsupported operator.
-    pub fn matches(&self, task: &Task) -> Result<bool, FilterError> {
-        eval_bool(&self.tree, task)
+    pub fn matches(&self, task: &Task, config: &Config) -> Result<bool, FilterError> {
+        eval_bool(&self.tree, task, config)
     }
 }
 
-fn eval_bool(node: &Node<DefaultNumericTypes>, task: &Task) -> Result<bool, FilterError> {
+fn eval_bool(
+    node: &Node<DefaultNumericTypes>,
+    task: &Task,
+    config: &Config,
+) -> Result<bool, FilterError> {
     match node.operator() {
         Operator::RootNode => match node.children() {
-            [child] => eval_bool(child, task),
+            [child] => eval_bool(child, task, config),
             _ => Err(FilterError::Invalid("root needs one child".to_owned())),
         },
-        Operator::And => binary(node, task, |left, right| left && right),
-        Operator::Or => binary(node, task, |left, right| left || right),
+        Operator::And => binary(node, task, config, |left, right| left && right),
+        Operator::Or => binary(node, task, config, |left, right| left || right),
         Operator::Not => match node.children() {
-            [child] => Ok(!eval_bool(child, task)?),
+            [child] => Ok(!eval_bool(child, task, config)?),
             _ => Err(FilterError::Invalid("`!` needs one operand".to_owned())),
         },
         Operator::Eq
@@ -91,8 +97,8 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, task: &Task) -> Result<bool, Filt
         | Operator::Lt
         | Operator::Gt
         | Operator::Leq
-        | Operator::Geq => comparison(node, task),
-        Operator::FunctionIdentifier { identifier } => function(identifier, node, task),
+        | Operator::Geq => comparison(node, task, config),
+        Operator::FunctionIdentifier { identifier } => function(identifier, node, task, config),
         Operator::VariableIdentifierRead { identifier } => Err(FilterError::Invalid(format!(
             "bare field `{identifier}` is not boolean; use a comparison or function"
         ))),
@@ -103,17 +109,25 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, task: &Task) -> Result<bool, Filt
 fn binary(
     node: &Node<DefaultNumericTypes>,
     task: &Task,
+    config: &Config,
     combine: impl Fn(bool, bool) -> bool,
 ) -> Result<bool, FilterError> {
     match node.children() {
-        [left, right] => Ok(combine(eval_bool(left, task)?, eval_bool(right, task)?)),
+        [left, right] => Ok(combine(
+            eval_bool(left, task, config)?,
+            eval_bool(right, task, config)?,
+        )),
         _ => Err(FilterError::Invalid(
             "binary op needs two operands".to_owned(),
         )),
     }
 }
 
-fn comparison(node: &Node<DefaultNumericTypes>, task: &Task) -> Result<bool, FilterError> {
+fn comparison(
+    node: &Node<DefaultNumericTypes>,
+    task: &Task,
+    config: &Config,
+) -> Result<bool, FilterError> {
     let [lhs, rhs] = node.children() else {
         return Err(FilterError::Invalid(
             "comparison needs two operands".to_owned(),
@@ -121,7 +135,7 @@ fn comparison(node: &Node<DefaultNumericTypes>, task: &Task) -> Result<bool, Fil
     };
     let field = extract_identifier(lhs)?;
     let literal = extract_literal(rhs)?;
-    let value = field_value(task, &field)?;
+    let value = field_value(task, &field, config)?;
     Ok(compare(node.operator(), &value, &literal))
 }
 
@@ -159,11 +173,16 @@ fn function(
     name: &str,
     node: &Node<DefaultNumericTypes>,
     task: &Task,
+    config: &Config,
 ) -> Result<bool, FilterError> {
     let children = node.children();
     match name {
-        "has" => Ok(present(task, &single_identifier(children, "has")?)?),
-        "miss" => Ok(!present(task, &single_identifier(children, "miss")?)?),
+        "has" => Ok(present(task, &single_identifier(children, "has")?, config)?),
+        "miss" => Ok(!present(
+            task,
+            &single_identifier(children, "miss")?,
+            config,
+        )?),
         "has_tag" => {
             let tag = single_literal(children, "has_tag")?;
             Ok(task.tags.iter().any(|owned| owned == &tag))
@@ -172,7 +191,7 @@ fn function(
             let (field, needle) = two_args(children, "contains")?;
             let name = extract_identifier(field)?;
             let needle = extract_literal(needle)?;
-            Ok(contains_ci(&field_value(task, &name)?, &needle))
+            Ok(contains_ci(&field_value(task, &name, config)?, &needle))
         }
         "search" => {
             let needle = single_literal(children, "search")?.to_lowercase();
@@ -192,7 +211,7 @@ fn function(
     }
 }
 
-fn present(task: &Task, name: &str) -> Result<bool, FilterError> {
+fn present(task: &Task, name: &str, config: &Config) -> Result<bool, FilterError> {
     match name {
         "tags" => Ok(!task.tags.is_empty()),
         "depends_on" => Ok(!task.depends_on.is_empty()),
@@ -200,7 +219,10 @@ fn present(task: &Task, name: &str) -> Result<bool, FilterError> {
         "supersedes" => Ok(!task.supersedes.is_empty()),
         "duplicates" => Ok(!task.duplicates.is_empty()),
         "estimate" => Ok(!task.estimate.is_empty()),
-        other => Ok(!matches!(field_value(task, other)?, FieldValue::Missing)),
+        other => Ok(!matches!(
+            field_value(task, other, config)?,
+            FieldValue::Missing
+        )),
     }
 }
 
@@ -224,11 +246,11 @@ fn contains_ci(value: &FieldValue, needle: &str) -> bool {
     haystack.to_lowercase().contains(&needle.to_lowercase())
 }
 
-fn field_value(task: &Task, name: &str) -> Result<FieldValue, FilterError> {
+fn field_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, FilterError> {
     let value = match name {
         "status" => opt_str(task.status.as_ref().map(|status| status.name.clone())),
-        "priority" => num_field(task.priority.as_ref()),
-        "difficulty" => num_field(task.difficulty.as_ref()),
+        "priority" => num_field(task.priority.as_ref(), Some(&config.tasks.priority)),
+        "difficulty" => num_field(task.difficulty.as_ref(), None),
         "kind" => opt_str(task.kind.clone()),
         "title" => FieldValue::Str(task.title.clone()),
         "id" => FieldValue::Str(task.id.clone()),
@@ -246,11 +268,15 @@ fn opt_str(value: Option<String>) -> FieldValue {
 }
 
 /// A numeric field as a comparable value: a raw number compares numerically; a
-/// label falls back to a string compare (filters have no config to resolve it).
-fn num_field(value: Option<&NumValue>) -> FieldValue {
+/// label falls back to a string compare; a framework value resolves its score
+/// through `priority` (numeric) when given the priority config.
+fn num_field(value: Option<&NumValue>, priority: Option<&PriorityConfig>) -> FieldValue {
     match value {
         Some(NumValue::Num(num)) => FieldValue::Num(*num),
         Some(NumValue::Label(label)) => FieldValue::Str(label.clone()),
+        Some(framework @ NumValue::Framework { .. }) => priority
+            .and_then(|config| config.resolve(framework))
+            .map_or(FieldValue::Missing, FieldValue::Num),
         None => FieldValue::Missing,
     }
 }

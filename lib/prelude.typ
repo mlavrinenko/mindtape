@@ -37,6 +37,25 @@
 // Serves every date slot uniformly (due, start, reviewed, …).
 #let on(y, m, d) = datetime(year: y, month: m, day: d)
 
+// Priority framework packagers. These are pure sugar: they only shape a
+// `(framework, inputs)` dict for the Rust layer to score — no math, bounds, or
+// classification live here (those are config + Rust concerns). `framework` is
+// the generic escape hatch; the named helpers fix one built-in's input shape.
+#let framework(name, ..inputs) = (framework: name, inputs: inputs.named())
+#let ice(impact: none, confidence: none, ease: none) = framework(
+  "ice", impact: impact, confidence: confidence, ease: ease,
+)
+#let rice(reach: none, impact: none, confidence: none, effort: none) = framework(
+  "rice", reach: reach, impact: impact, confidence: confidence, effort: effort,
+)
+#let wsjf(cost_of_delay: none, job_size: none) = framework(
+  "wsjf", cost_of_delay: cost_of_delay, job_size: job_size,
+)
+#let eisenhower(urgent: false, important: false) = framework(
+  "eisenhower", urgent: urgent, important: important,
+)
+#let moscow(level) = framework("moscow", level: level)
+
 // Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
 #let _core-slots = (
   "title", "status", "priority", "difficulty", "kind", "estimate",

@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use typst_harvest::HVal;
 
-use crate::numeric::NumValue;
+use crate::numeric::{InputValue, NumValue};
 
 /// A task's status: a lifecycle name plus when it was set and an optional note.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -199,13 +199,41 @@ fn parse_status(value: Option<&HVal>) -> Option<Status> {
 }
 
 /// Project a marker field into a numeric-field value: a number becomes
-/// [`NumValue::Num`], a string a [`NumValue::Label`]; anything else is absent.
+/// [`NumValue::Num`], a framework dict (`(framework: …, inputs: …)`) a
+/// [`NumValue::Framework`], a string a [`NumValue::Label`]; else absent.
 fn parse_num_value(value: Option<&HVal>) -> Option<NumValue> {
     let value = value?;
     if let Some(num) = value.as_f64() {
-        Some(NumValue::Num(num))
-    } else {
-        value.as_str().map(|text| NumValue::Label(text.to_owned()))
+        return Some(NumValue::Num(num));
+    }
+    if let Some(dict) = value.as_dict() {
+        let name = dict.get("framework").and_then(HVal::as_str)?;
+        return Some(NumValue::Framework {
+            name: name.to_owned(),
+            inputs: parse_inputs(dict.get("inputs")),
+        });
+    }
+    value.as_str().map(|text| NumValue::Label(text.to_owned()))
+}
+
+/// Project the `inputs` dict of a framework value into typed input values.
+fn parse_inputs(value: Option<&HVal>) -> BTreeMap<String, InputValue> {
+    value
+        .and_then(HVal::as_dict)
+        .map(|dict| {
+            dict.iter()
+                .filter_map(|(key, val)| input_value(val).map(|iv| (key.clone(), iv)))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn input_value(value: &HVal) -> Option<InputValue> {
+    match value {
+        HVal::Bool(flag) => Some(InputValue::Bool(*flag)),
+        HVal::Int(_) | HVal::Float(_) => value.as_f64().map(InputValue::Num),
+        HVal::Str(text) => Some(InputValue::Text(text.clone())),
+        _ => None,
     }
 }
 

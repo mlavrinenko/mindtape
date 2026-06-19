@@ -48,7 +48,7 @@ pub(crate) fn run_with(args: &ListArgs, project: util::Project) -> Result<()> {
     util::warn_errors(&project.outcome);
 
     let filter = build_filter(args, &project.config)?;
-    let mut tasks = select(project.outcome.tasks, filter.as_ref())?;
+    let mut tasks = select(project.outcome.tasks, filter.as_ref(), &project.config)?;
     sort_tasks(&mut tasks, &args.sort, &project.config)?;
     if let Some(limit) = args.limit {
         tasks.truncate(limit);

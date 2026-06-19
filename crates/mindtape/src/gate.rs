@@ -8,7 +8,7 @@ use regex::Regex;
 use thiserror::Error;
 use typst_cst::{HeadingNode, parse_headings, tree};
 
-use crate::config::{HeaderAction, HeaderPathSegment, HeaderRuleConfig};
+use crate::config::{Config, HeaderAction, HeaderPathSegment, HeaderRuleConfig};
 use crate::filter::{Filter, FilterError};
 use crate::model::Task;
 use crate::validate::{Location, Violation};
@@ -60,9 +60,14 @@ pub fn compile_rules(rules: &[HeaderRuleConfig]) -> Result<Vec<CompiledRule>, Ga
 /// `require` violations carry no location; `forbid` violations carry the location
 /// of the offending heading.
 #[must_use]
-pub fn check_headers(task: &Task, source: &str, rules: &[CompiledRule]) -> Vec<Violation> {
+pub fn check_headers(
+    task: &Task,
+    source: &str,
+    rules: &[CompiledRule],
+    config: &Config,
+) -> Vec<Violation> {
     let nodes = tree(parse_headings(source));
-    check_with_nodes(task, &nodes, rules)
+    check_with_nodes(task, &nodes, rules, config)
 }
 
 fn compile_rule(rule: &HeaderRuleConfig) -> Result<CompiledRule, GateError> {
@@ -96,16 +101,27 @@ fn compile_segment(seg: &HeaderPathSegment) -> Result<CompiledSegment, GateError
     })
 }
 
-fn check_with_nodes(task: &Task, roots: &[HeadingNode], rules: &[CompiledRule]) -> Vec<Violation> {
+fn check_with_nodes(
+    task: &Task,
+    roots: &[HeadingNode],
+    rules: &[CompiledRule],
+    config: &Config,
+) -> Vec<Violation> {
     let mut out = Vec::new();
     for rule in rules {
-        apply_rule(task, roots, rule, &mut out);
+        apply_rule(task, roots, rule, config, &mut out);
     }
     out
 }
 
-fn apply_rule(task: &Task, roots: &[HeadingNode], rule: &CompiledRule, out: &mut Vec<Violation>) {
-    if !rule_applies(rule, task) {
+fn apply_rule(
+    task: &Task,
+    roots: &[HeadingNode],
+    rule: &CompiledRule,
+    config: &Config,
+    out: &mut Vec<Violation>,
+) {
+    if !rule_applies(rule, task, config) {
         return;
     }
     let matched = find_path_matches(roots, &rule.path);
@@ -123,11 +139,11 @@ fn apply_rule(task: &Task, roots: &[HeadingNode], rule: &CompiledRule, out: &mut
     }
 }
 
-fn rule_applies(rule: &CompiledRule, task: &Task) -> bool {
+fn rule_applies(rule: &CompiledRule, task: &Task, config: &Config) -> bool {
     let Some(filter) = &rule.when else {
         return true;
     };
-    filter.matches(task).unwrap_or(false)
+    filter.matches(task, config).unwrap_or(false)
 }
 
 fn require_violation(task: &Task, rule: &CompiledRule) -> Violation {

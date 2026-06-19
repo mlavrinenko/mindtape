@@ -10,7 +10,7 @@ use mindtape::{Config, Task};
 
 use super::color::{Painter, is_color_active};
 use super::field::{CellSpec, DensityMode, Field, cell_content, content_width, render_cell};
-use super::fields::{Priority as PriorityField, Status as StatusField};
+use super::fields::{Status as StatusField, priority_cell_spec};
 use super::glyph::GlyphMode;
 use super::width::{display_width, pad_to_width, truncate_to_width};
 use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
@@ -89,8 +89,8 @@ fn status_cell(task: &Task, config: &Config) -> CellSpec {
 }
 
 fn priority_cell(task: &Task, config: &Config) -> CellSpec {
-    match PriorityField::values(task).first() {
-        Some(value) => PriorityField::cell_spec(value, config),
+    match &task.priority {
+        Some(value) => priority_cell_spec(value, config),
         None => plain(String::new()),
     }
 }

@@ -3,7 +3,7 @@
 use anyhow::Result;
 use mindtape::Task;
 use mindtape::config::Config;
-use mindtape::numeric::NumValue;
+use mindtape::numeric::{NumValue, format_num};
 use serde_json::{Map, Value, json};
 use typst_harvest::HVal;
 
@@ -32,24 +32,27 @@ fn status_name(task: &Task) -> String {
 pub fn render(tasks: &[Task], format: OutputFormat, config: &Config) -> Result<String> {
     match format {
         OutputFormat::Table => Ok(crate::render::table::render(tasks, config)),
-        OutputFormat::Json => render_json(tasks),
-        OutputFormat::Csv => render_csv(tasks),
+        OutputFormat::Json => render_json(tasks, config),
+        OutputFormat::Csv => render_csv(tasks, config),
     }
 }
 
-fn render_json(tasks: &[Task]) -> Result<String> {
-    let array: Vec<Value> = tasks.iter().map(task_to_json).collect();
+fn render_json(tasks: &[Task], config: &Config) -> Result<String> {
+    let array: Vec<Value> = tasks
+        .iter()
+        .map(|task| task_to_json(task, config))
+        .collect();
     Ok(serde_json::to_string_pretty(&Value::Array(array))?)
 }
 
-fn render_csv(tasks: &[Task]) -> Result<String> {
+fn render_csv(tasks: &[Task], config: &Config) -> Result<String> {
     let mut writer = csv::Writer::from_writer(Vec::new());
     writer.write_record(["id", "status", "priority", "due", "title"])?;
     for task in tasks {
         writer.write_record([
             task.id.as_str(),
             &status_name(task),
-            &num_display(task.priority.as_ref()),
+            &priority_display(task.priority.as_ref(), config),
             task.due.as_deref().unwrap_or_default(),
             task.title.as_str(),
         ])?;
@@ -58,14 +61,18 @@ fn render_csv(tasks: &[Task]) -> Result<String> {
     Ok(String::from_utf8_lossy(&bytes).into_owned())
 }
 
-/// Project one task to a JSON object.
-pub fn task_to_json(task: &Task) -> Value {
+/// Project one task to a JSON object. `config` resolves framework-scored
+/// priorities to their numeric score.
+pub fn task_to_json(task: &Task, config: &Config) -> Value {
     let mut map = Map::new();
     map.insert("id".to_owned(), json!(task.id));
     map.insert("file".to_owned(), json!(task.file.display().to_string()));
     map.insert("title".to_owned(), json!(task.title));
     map.insert("status".to_owned(), status_to_json(task));
-    map.insert("priority".to_owned(), num_to_json(task.priority.as_ref()));
+    map.insert(
+        "priority".to_owned(),
+        priority_to_json(task.priority.as_ref(), config),
+    );
     map.insert(
         "difficulty".to_owned(),
         num_to_json(task.difficulty.as_ref()),
@@ -105,17 +112,42 @@ fn opt(value: Option<&str>) -> Value {
 }
 
 /// JSON for a numeric-field value: a number stays numeric, a label is a string.
+/// A framework value is unreachable here (priority routes through
+/// [`priority_to_json`]); it falls back to its name.
 fn num_to_json(value: Option<&NumValue>) -> Value {
     match value {
         Some(NumValue::Num(num)) => json!(num),
         Some(NumValue::Label(label)) => json!(label),
+        Some(framework @ NumValue::Framework { .. }) => json!(framework.as_display()),
         None => Value::Null,
     }
 }
 
-/// The plain display string for a numeric-field value (empty when absent).
-fn num_display(value: Option<&NumValue>) -> String {
-    value.map(NumValue::as_display).unwrap_or_default()
+/// JSON for a priority value: a framework value resolves to its numeric score
+/// (null when unresolvable, e.g. outside a project); else as a numeric field.
+fn priority_to_json(value: Option<&NumValue>, config: &Config) -> Value {
+    match value {
+        Some(framework @ NumValue::Framework { .. }) => config
+            .tasks
+            .priority
+            .resolve(framework)
+            .map_or(Value::Null, |score| json!(score)),
+        other => num_to_json(other),
+    }
+}
+
+/// The plain display string for a priority value: a framework value resolves to
+/// its numeric score; else the numeric-field display (empty when absent).
+fn priority_display(value: Option<&NumValue>, config: &Config) -> String {
+    match value {
+        Some(framework @ NumValue::Framework { .. }) => config
+            .tasks
+            .priority
+            .resolve(framework)
+            .map(format_num)
+            .unwrap_or_default(),
+        other => other.map(NumValue::as_display).unwrap_or_default(),
+    }
 }
 
 fn hval_to_json(value: &HVal) -> Value {
@@ -221,7 +253,7 @@ mod tests {
             "x-ns".to_owned(),
             HVal::Array(vec![HVal::Int(1), HVal::Str("a".to_owned())]),
         );
-        let json = task_to_json(&task);
+        let json = task_to_json(&task, &Config::default());
         assert_eq!(json["extras"]["x-ns"][0], 1);
         assert_eq!(json["extras"]["x-ns"][1], "a");
     }

@@ -104,7 +104,11 @@ fn default_view(project: &Project) -> Result<Vec<Task>> {
         .as_deref()
         .map(Filter::parse)
         .transpose()?;
-    let mut tasks = select(project.outcome.tasks.clone(), filter.as_ref())?;
+    let mut tasks = select(
+        project.outcome.tasks.clone(),
+        filter.as_ref(),
+        &project.config,
+    )?;
     default_order(&mut tasks, &project.config);
     Ok(tasks)
 }

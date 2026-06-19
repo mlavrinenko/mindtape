@@ -65,7 +65,7 @@ Four crates (`cargo` workspace, virtual root manifest):
 #show: task.with(
   title: "Title",
   status: wip(2026, 6, 14)[note],    // (name, date, note); note is a trailing block
-  priority: 8,                       // number on a config scale (bands); difficulty too
+  priority: ice(impact: 8, confidence: 0.7, ease: 6), // or a raw int; difficulty too
   estimate: (days: 1, hours: 2),     // opaque unit dict; allowed units per project
   depends-on: (link("other.typ"),),  // task↔task links by file stem
   tags: ("backend",),
@@ -73,10 +73,17 @@ Four crates (`cargo` workspace, virtual root manifest):
 )
 ```
 
+Priority can be a raw int on the scale or a framework call: thin packagers
+`ice/rice/wsjf/eisenhower/moscow` (and the generic `framework(name, ..inputs)`)
+shape a `(framework, inputs)` dict — no math in Typst. Config picks the active
+`[tasks.priority] framework`; the Rust layer scores it (evalexpr), bands or
+categorises the result, and keeps it on the scale.
+
 The prelude enforces structure only (one task, the `x-<ns>` discipline). The
 Rust layer enforces the status legend, numeric priority/difficulty scales and
-classification, the kind enum, required-unless-terminal, bounds, and link
-resolution. Consumers validate their own `x-<ns>` fields.
+classification, priority frameworks (scoring + in-bounds-by-construction), the
+kind enum, required-unless-terminal, bounds, and link resolution. Consumers
+validate their own `x-<ns>` fields.
 
 ## Version Management
 

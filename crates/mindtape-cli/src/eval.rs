@@ -39,7 +39,10 @@ pub fn run(args: &EvalArgs) -> Result<()> {
     let task = Task::from_marker(id, args.file.clone(), &marker.value);
 
     if args.json {
-        println!("{}", serde_json::to_string_pretty(&task_to_json(&task))?);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&task_to_json(&task, &mindtape::Config::default()))?
+        );
     } else {
         println!(
             "{}",

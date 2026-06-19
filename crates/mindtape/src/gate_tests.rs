@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::config::{HeaderAction, HeaderPathSegment, HeaderRuleConfig};
+use crate::config::{Config, HeaderAction, HeaderPathSegment, HeaderRuleConfig};
 use crate::model::Task;
 
 use super::{GateError, check_headers, compile_rules};
@@ -95,14 +95,22 @@ fn compile_rejects_invalid_when() {
 fn require_present_heading_is_clean() {
     let task = bare_task("a");
     let rules = compile_rules(&[require("Summary")]).unwrap();
-    assert!(check_headers(&task, "= Summary\n\nsome text\n", &rules).is_empty());
+    assert!(
+        check_headers(
+            &task,
+            "= Summary\n\nsome text\n",
+            &rules,
+            &Config::default()
+        )
+        .is_empty()
+    );
 }
 
 #[test]
 fn require_absent_heading_is_violation() {
     let task = bare_task("a");
     let rules = compile_rules(&[require("Summary")]).unwrap();
-    let violations = check_headers(&task, "= Introduction\n", &rules);
+    let violations = check_headers(&task, "= Introduction\n", &rules, &Config::default());
     assert_eq!(violations.len(), 1);
     assert_eq!(violations[0].field, "body.headers");
     assert!(violations[0].location.is_none());
@@ -112,14 +120,14 @@ fn require_absent_heading_is_violation() {
 fn forbid_absent_heading_is_clean() {
     let task = bare_task("a");
     let rules = compile_rules(&[forbid("Phase")]).unwrap();
-    assert!(check_headers(&task, "= Summary\n", &rules).is_empty());
+    assert!(check_headers(&task, "= Summary\n", &rules, &Config::default()).is_empty());
 }
 
 #[test]
 fn forbid_present_heading_carries_location() {
     let task = bare_task("a");
     let rules = compile_rules(&[forbid("Phase")]).unwrap();
-    let violations = check_headers(&task, "= Phase\n", &rules);
+    let violations = check_headers(&task, "= Phase\n", &rules, &Config::default());
     assert_eq!(violations.len(), 1);
     let loc = violations[0].location.as_ref().unwrap();
     assert_eq!(loc.line, 1);
@@ -136,7 +144,7 @@ fn when_skips_non_matching_task() {
     };
     let rules = compile_rules(&[rule]).unwrap();
     // heading absent but `when` does not match → no violation
-    assert!(check_headers(&task, "= Introduction\n", &rules).is_empty());
+    assert!(check_headers(&task, "= Introduction\n", &rules, &Config::default()).is_empty());
 }
 
 #[test]
@@ -150,7 +158,10 @@ fn when_applies_to_matching_task() {
         message: None,
     };
     let rules = compile_rules(&[rule]).unwrap();
-    assert_eq!(check_headers(&task, "= Introduction\n", &rules).len(), 1);
+    assert_eq!(
+        check_headers(&task, "= Introduction\n", &rules, &Config::default()).len(),
+        1
+    );
 }
 
 #[test]
@@ -169,7 +180,12 @@ fn multi_segment_path_direct_child() {
         message: None,
     };
     let rules = compile_rules(&[rule]).unwrap();
-    let violations = check_headers(&task, "= Approach\n== Phase 1\n== Other\n", &rules);
+    let violations = check_headers(
+        &task,
+        "= Approach\n== Phase 1\n== Other\n",
+        &rules,
+        &Config::default(),
+    );
     assert_eq!(violations.len(), 1);
     assert!(violations[0].message.contains("Phase 1"));
 }
@@ -190,7 +206,12 @@ fn recursive_segment_finds_deep_descendants() {
         message: None,
     };
     let rules = compile_rules(&[rule]).unwrap();
-    let violations = check_headers(&task, "= Approach\n== Design\n=== Phase 1\n", &rules);
+    let violations = check_headers(
+        &task,
+        "= Approach\n== Design\n=== Phase 1\n",
+        &rules,
+        &Config::default(),
+    );
     assert_eq!(violations.len(), 1);
 }
 
@@ -211,7 +232,15 @@ fn direct_child_does_not_reach_deep_descendants() {
     };
     let rules = compile_rules(&[rule]).unwrap();
     // "Phase 1" is at depth 3 under Approach (not a direct child)
-    assert!(check_headers(&task, "= Approach\n== Design\n=== Phase 1\n", &rules).is_empty());
+    assert!(
+        check_headers(
+            &task,
+            "= Approach\n== Design\n=== Phase 1\n",
+            &rules,
+            &Config::default()
+        )
+        .is_empty()
+    );
 }
 
 #[test]
@@ -224,7 +253,7 @@ fn custom_message_is_used() {
         message: Some("must have Summary".to_owned()),
     };
     let rules = compile_rules(&[rule]).unwrap();
-    let violations = check_headers(&task, "= Introduction\n", &rules);
+    let violations = check_headers(&task, "= Introduction\n", &rules, &Config::default());
     assert_eq!(violations[0].message, "must have Summary");
 }
 
@@ -232,5 +261,5 @@ fn custom_message_is_used() {
 fn no_rules_no_violations() {
     let task = bare_task("a");
     let rules = compile_rules(&[]).unwrap();
-    assert!(check_headers(&task, "= Summary\n", &rules).is_empty());
+    assert!(check_headers(&task, "= Summary\n", &rules, &Config::default()).is_empty());
 }

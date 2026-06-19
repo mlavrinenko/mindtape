@@ -230,8 +230,11 @@ min = 5
 max = 9
 "#;
     let config = parse_config(text).unwrap();
-    assert_eq!(config.tasks.priority.bands.len(), 2);
-    assert_eq!(config.tasks.priority.required, Requirement::NonTerminal);
+    assert_eq!(config.tasks.priority.field.bands.len(), 2);
+    assert_eq!(
+        config.tasks.priority.field.required,
+        Requirement::NonTerminal
+    );
     assert!(config.validate().is_ok());
 }
 

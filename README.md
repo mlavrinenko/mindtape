@@ -21,7 +21,7 @@ filename stem, so links between tasks break loudly when a file is renamed.
 #show: task.with(
   title: "Implement authentication",
   status: wip(2026, 6, 14),
-  priority: 8,
+  priority: ice(impact: 8, confidence: 0.9, ease: 7),
   estimate: (days: 1,),
   tags: ("backend",),
   relates-to: (link("write-docs.typ"),),
@@ -114,11 +114,18 @@ terminal = true
 
 # Priority: a number on a scale, classified into labelled bands. `required` is
 # true | false | "non-terminal". Difficulty is the sibling, classified by anchors.
+# `framework` (optional) computes the score from typed inputs instead of a hand-
+# set int: built-ins ice/rice/wsjf/eisenhower/moscow ship baked-in; a task then
+# writes `priority: ice(impact: 8, confidence: 0.9, ease: 7)`. `allow-manual =
+# false` is strict (no raw ints). A framework's range is checked to fit the scale
+# at config load. Define or override one under `[tasks.priority.frameworks.<name>]`.
 [tasks.priority]
 kind = "int"                       # int | real
 min  = 0
 max  = 9
 required = "non-terminal"
+framework = "ice"                  # optional; omit for hand-set integers
+allow-manual = false               # strict: every task scores through the framework
 [[tasks.priority.bands]]
 label = "high"
 min   = 7

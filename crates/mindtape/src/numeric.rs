@@ -18,36 +18,64 @@
 //! Exactly one style is active: declaring both is a config error.
 
 use std::cmp::Ordering;
+use std::collections::BTreeMap;
 
 use serde::Deserialize;
 
 use crate::config::Requirement;
 
-/// A numeric-field value as written in the DSL: a point on the scale, or a
-/// classification label to be resolved against the field's bands/anchors.
+/// One typed input value supplied to a priority framework (e.g. ICE's `impact`).
+///
+/// Carries the value as the prelude packager shaped it; the framework's declared
+/// input types drive how it feeds the score formula or category predicate.
+#[derive(Debug, Clone, PartialEq)]
+pub enum InputValue {
+    /// A numeric input (fed to the evalexpr context as a float).
+    Num(f64),
+    /// A boolean input (e.g. Eisenhower's `urgent`).
+    Bool(bool),
+    /// A string input (e.g. `MoSCoW`'s `level`).
+    Text(String),
+}
+
+/// A numeric-field value as written in the DSL: a point on the scale, a
+/// classification label, or a priority framework dict carrying its inputs.
 #[derive(Debug, Clone, PartialEq)]
 pub enum NumValue {
     /// A raw number on the scale (e.g. `priority: 4`).
     Num(f64),
     /// A band or anchor label (e.g. `difficulty: "senior"`).
     Label(String),
+    /// A framework invocation (e.g. `priority: ice(impact: 8, ...)`): the
+    /// framework name plus its named inputs. The score is resolved against the
+    /// configured framework registry, never by the numeric field alone.
+    Framework {
+        /// Framework name, matched against the configured registry.
+        name: String,
+        /// Named inputs as shaped by the prelude packager.
+        inputs: BTreeMap<String, InputValue>,
+    },
 }
 
 impl NumValue {
     /// Parse a string form back into a value: a parseable number becomes
-    /// [`NumValue::Num`], anything else a [`NumValue::Label`].
+    /// [`NumValue::Num`], anything else a [`NumValue::Label`]. Framework values
+    /// never round-trip through a string and are resolved with config instead.
     #[must_use]
     pub fn parse(text: &str) -> Self {
         text.parse::<f64>()
             .map_or_else(|_| Self::Label(text.to_owned()), Self::Num)
     }
 
-    /// The plain display string: a whole number renders without a fraction.
+    /// The plain display string: a whole number renders without a fraction. A
+    /// framework value falls back to its name (the score needs config to
+    /// resolve; callers with config use [`crate::config::PriorityConfig`]).
     #[must_use]
     pub fn as_display(&self) -> String {
         match self {
             Self::Num(num) => format_num(*num),
             Self::Label(label) => label.clone(),
+            Self::Framework { name, .. } => name.clone(),
         }
     }
 }
@@ -157,6 +185,9 @@ impl NumericField {
         match value {
             NumValue::Num(num) => Some(*num),
             NumValue::Label(label) => self.label_value(label),
+            // A framework score needs the framework registry; the numeric field
+            // alone cannot resolve it. `PriorityConfig::resolve` handles this.
+            NumValue::Framework { .. } => None,
         }
     }
 

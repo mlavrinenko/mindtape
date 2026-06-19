@@ -3,8 +3,10 @@
 use std::collections::BTreeMap;
 
 use super::Filter;
+use crate::config::Config;
 use crate::model::{Status, Task};
-use crate::numeric::NumValue;
+use crate::numeric::{InputValue, NumValue};
+use crate::parse_config;
 
 fn sample() -> Task {
     Task {
@@ -33,7 +35,10 @@ fn sample() -> Task {
 }
 
 fn hit(expr: &str, task: &Task) -> bool {
-    Filter::parse(expr).unwrap().matches(task).unwrap()
+    Filter::parse(expr)
+        .unwrap()
+        .matches(task, &Config::default())
+        .unwrap()
 }
 
 #[test]
@@ -64,7 +69,7 @@ fn estimate_is_presence_only() {
     assert!(
         Filter::parse("estimate > 4")
             .unwrap()
-            .matches(&task)
+            .matches(&task, &Config::default())
             .is_err()
     );
 }
@@ -114,7 +119,9 @@ fn missing_field_inequality_is_true() {
 #[test]
 fn unknown_field_errors() {
     let task = sample();
-    let result = Filter::parse("bogus == \"x\"").unwrap().matches(&task);
+    let result = Filter::parse("bogus == \"x\"")
+        .unwrap()
+        .matches(&task, &Config::default());
     assert!(result.is_err());
 }
 
@@ -163,7 +170,34 @@ fn stale_bad_arg_errors() {
     assert!(
         Filter::parse("stale(not_a_number)")
             .unwrap()
-            .matches(&task)
+            .matches(&task, &Config::default())
             .is_err()
+    );
+}
+
+#[test]
+fn framework_priority_compares_by_resolved_score() {
+    let config = parse_config("[tasks.priority]\nframework = \"ice\"\n").unwrap();
+    let mut task = sample();
+    task.priority = Some(NumValue::Framework {
+        name: "ice".to_owned(),
+        inputs: BTreeMap::from([
+            ("impact".to_owned(), InputValue::Num(10.0)),
+            ("confidence".to_owned(), InputValue::Num(0.9)),
+            ("ease".to_owned(), InputValue::Num(10.0)),
+        ]),
+    });
+    // ICE score is 8: high comparisons hold, low ones don't.
+    assert!(
+        Filter::parse("priority >= 7")
+            .unwrap()
+            .matches(&task, &config)
+            .unwrap()
+    );
+    assert!(
+        !Filter::parse("priority < 5")
+            .unwrap()
+            .matches(&task, &config)
+            .unwrap()
     );
 }

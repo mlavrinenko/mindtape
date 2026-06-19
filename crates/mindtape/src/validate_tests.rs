@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use super::validate;
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
-use crate::numeric::NumValue;
+use crate::numeric::{InputValue, NumValue};
 
 fn config() -> crate::config::Config {
     parse_config(
@@ -317,4 +317,94 @@ fn uuid_v7_config_accepts_valid_v7() {
     t.priority = None;
     let violations = validate(&[t], &cfg);
     assert!(!violations.iter().any(|v| v.field == "id"));
+}
+
+/// A config with ICE active in strict mode (no manual integers).
+fn strict_ice_config() -> Config {
+    parse_config(
+        "[[tasks.status]]\nvalue = \"wip\"\n\
+         [tasks.priority]\nmin = 0\nmax = 9\nframework = \"ice\"\nallow-manual = false\n",
+    )
+    .unwrap()
+}
+
+fn ice_priority(impact: f64, confidence: f64, ease: f64) -> NumValue {
+    NumValue::Framework {
+        name: "ice".to_owned(),
+        inputs: BTreeMap::from([
+            ("impact".to_owned(), InputValue::Num(impact)),
+            ("confidence".to_owned(), InputValue::Num(confidence)),
+            ("ease".to_owned(), InputValue::Num(ease)),
+        ]),
+    }
+}
+
+#[test]
+fn framework_priority_validates_clean() {
+    let mut item = task("a", "wip");
+    item.priority = Some(ice_priority(10.0, 0.9, 10.0));
+    let violations = validate(&[item], &strict_ice_config());
+    assert!(
+        !violations.iter().any(|v| v.field == "priority"),
+        "valid ICE inputs should pass, got: {violations:?}"
+    );
+}
+
+#[test]
+fn strict_mode_rejects_manual_integer() {
+    let mut item = task("a", "wip");
+    item.priority = Some(NumValue::Num(7.0));
+    let violations = validate(&[item], &strict_ice_config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "priority" && v.message.contains("strict")),
+        "strict mode should reject a manual int, got: {violations:?}"
+    );
+}
+
+#[test]
+fn rejects_inactive_framework() {
+    let mut item = task("a", "wip");
+    item.priority = Some(NumValue::Framework {
+        name: "rice".to_owned(),
+        inputs: BTreeMap::new(),
+    });
+    let violations = validate(&[item], &strict_ice_config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "priority" && v.message.contains("not the active framework")),
+        "a non-active framework should be flagged, got: {violations:?}"
+    );
+}
+
+#[test]
+fn flags_out_of_bounds_framework_input() {
+    let mut item = task("a", "wip");
+    // impact 99 exceeds the declared 1..10 bound.
+    item.priority = Some(ice_priority(99.0, 0.5, 5.0));
+    let violations = validate(&[item], &strict_ice_config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "priority" && v.message.contains("impact")),
+        "out-of-bounds input should be flagged, got: {violations:?}"
+    );
+}
+
+#[test]
+fn lenient_mode_accepts_manual_integer() {
+    let cfg = parse_config(
+        "[[tasks.status]]\nvalue = \"wip\"\n\
+         [tasks.priority]\nmin = 0\nmax = 9\nframework = \"ice\"\nallow-manual = true\n",
+    )
+    .unwrap();
+    let mut item = task("a", "wip");
+    item.priority = Some(NumValue::Num(7.0));
+    let violations = validate(&[item], &cfg);
+    assert!(
+        !violations.iter().any(|v| v.field == "priority"),
+        "lenient mode should accept a manual int, got: {violations:?}"
+    );
 }

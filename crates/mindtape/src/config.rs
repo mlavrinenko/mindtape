@@ -9,6 +9,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Deserializer};
 use thiserror::Error;
 
+use crate::framework::{Framework, merge_builtin_frameworks};
 use crate::numeric::NumericField;
 
 /// Top-level project configuration.
@@ -51,8 +52,9 @@ pub struct TasksConfig {
     /// Status legend: legal values in lifecycle order, plus per-value display
     /// (glyph, colour, label) and the `terminal` flag.
     pub status: Legend,
-    /// Priority as a numeric-field instance (scale + band classification).
-    pub priority: NumericField,
+    /// Priority as a numeric-field instance (scale + band classification),
+    /// optionally driven by a configured scoring framework.
+    pub priority: PriorityConfig,
     /// Difficulty as a numeric-field instance (scale + anchor classification).
     pub difficulty: NumericField,
     /// Constraints for the remaining configurable enum core fields, keyed by
@@ -73,13 +75,47 @@ impl Default for TasksConfig {
         Self {
             roots: vec!["tasks".to_owned()],
             status: Legend::default(),
-            priority: NumericField::default(),
+            priority: PriorityConfig::default(),
             difficulty: NumericField::default(),
             fields: BTreeMap::new(),
             estimate: EstimateConfig::default(),
             tags: TagsConfig::default(),
             body: TaskBodyConfig::default(),
             id: IdConfig::default(),
+        }
+    }
+}
+
+/// `[tasks.priority]` — the priority numeric field plus its scoring frameworks.
+///
+/// Flattens a [`NumericField`] (scale + band classification, shared with
+/// difficulty) and layers framework selection on top. When `framework` names an
+/// active framework, a task's priority is computed from that framework's inputs
+/// instead of a hand-set integer; `allow_manual` decides whether a raw integer
+/// is still accepted as an escape hatch. The `frameworks` registry holds the
+/// baked-in built-ins deep-merged with any user `[tasks.priority.frameworks.*]`.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct PriorityConfig {
+    /// Scale and band classification (shared numeric-field machinery).
+    #[serde(flatten)]
+    pub field: NumericField,
+    /// Active framework name, matched against `frameworks`. `None` = raw numeric.
+    pub framework: Option<String>,
+    /// Whether a raw integer is accepted while a framework is active.
+    #[serde(rename = "allow-manual")]
+    pub allow_manual: bool,
+    /// Framework registry: built-ins deep-merged with user definitions.
+    pub frameworks: BTreeMap<String, Framework>,
+}
+
+impl Default for PriorityConfig {
+    fn default() -> Self {
+        Self {
+            field: NumericField::default(),
+            framework: None,
+            allow_manual: true,
+            frameworks: BTreeMap::new(),
         }
     }
 }
@@ -302,10 +338,16 @@ impl Config {
 
 /// Parse a config from a TOML string.
 ///
+/// Built-in priority frameworks are deep-merged into
+/// `[tasks.priority.frameworks]` before typed deserialization, so a user config
+/// can activate (and selectively override) a built-in without redeclaring it.
+///
 /// # Errors
 /// Returns [`ConfigError::Parse`] if the TOML is invalid.
 pub fn parse_config(text: &str) -> Result<Config, ConfigError> {
-    Ok(toml::from_str(text)?)
+    let mut doc: toml::Table = toml::from_str(text)?;
+    merge_builtin_frameworks(&mut doc);
+    Ok(toml::Value::Table(doc).try_into()?)
 }
 
 /// Load and parse `<root>/.mindtape/config.toml`, or the defaults if absent.

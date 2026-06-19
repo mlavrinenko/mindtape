@@ -4,14 +4,14 @@
 //! unit allow-list, required-unless-terminal, the tag allow-list, and link
 //! resolution (a `depends-on`/`relates-to` target must name a loaded task).
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use uuid::Uuid;
 
-use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, Requirement};
+use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, PriorityConfig, Requirement};
 use crate::model::{Task, resolve_link_path};
-use crate::numeric::{NumValue, NumericField, format_num};
+use crate::numeric::{InputValue, NumValue, NumericField, format_num};
 
 /// Source location for a violation that points to a specific line.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -49,13 +49,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         for (name, field) in &config.tasks.fields {
             check_enum_field(task, name, field, terminal, &mut out);
         }
-        out.extend(check_numeric(
-            task,
-            "priority",
-            &task.priority,
-            &config.tasks.priority,
-            terminal,
-        ));
+        out.extend(check_priority(task, &config.tasks.priority, terminal));
         out.extend(check_numeric(
             task,
             "difficulty",
@@ -190,6 +184,16 @@ fn check_numeric(
         return is_required(config.required, terminal)
             .then(|| violation(task, name, "required field is missing".to_owned()));
     };
+    check_in_scale(task, name, value, config)
+}
+
+/// Resolve a value and check it lands on the scale. Returns at most one violation.
+fn check_in_scale(
+    task: &Task,
+    name: &str,
+    value: &NumValue,
+    config: &NumericField,
+) -> Option<Violation> {
     match config.resolve(value) {
         None => Some(violation(
             task,
@@ -208,6 +212,94 @@ fn check_numeric(
         )),
         Some(_) => None,
     }
+}
+
+/// Validate a task's priority: required-unless-terminal, then either a framework
+/// invocation (active, known, valid inputs, in-scale score) or a manual value
+/// (allowed only when no framework is strict). Returns at most one violation.
+fn check_priority(task: &Task, config: &PriorityConfig, terminal: bool) -> Option<Violation> {
+    let Some(value) = &task.priority else {
+        return is_required(config.field.required, terminal)
+            .then(|| violation(task, "priority", "required field is missing".to_owned()));
+    };
+    match value {
+        NumValue::Framework { name, inputs } => check_framework(task, config, name, inputs),
+        NumValue::Num(_) | NumValue::Label(_) => check_manual_priority(task, config, value),
+    }
+}
+
+fn check_framework(
+    task: &Task,
+    config: &PriorityConfig,
+    name: &str,
+    inputs: &BTreeMap<String, InputValue>,
+) -> Option<Violation> {
+    match config.framework.as_deref() {
+        None => {
+            return Some(violation(
+                task,
+                "priority",
+                format!("framework `{name}` used but no priority framework is configured"),
+            ));
+        }
+        Some(active) if active != name => {
+            return Some(violation(
+                task,
+                "priority",
+                format!("framework `{name}` is not the active framework `{active}`"),
+            ));
+        }
+        Some(_) => {}
+    }
+    let Some(framework) = config.frameworks.get(name) else {
+        return Some(violation(
+            task,
+            "priority",
+            format!("unknown framework `{name}`"),
+        ));
+    };
+    if let Some(problem) = framework.check_input_values(inputs).into_iter().next() {
+        return Some(violation(task, "priority", problem));
+    }
+    match framework.score_of(inputs) {
+        Err(message) => Some(violation(task, "priority", message)),
+        Ok(score) => score_in_scale(task, config, score),
+    }
+}
+
+fn score_in_scale(task: &Task, config: &PriorityConfig, score: f64) -> Option<Violation> {
+    (score < config.field.min || score > config.field.max).then(|| {
+        violation(
+            task,
+            "priority",
+            format!(
+                "{} is outside the priority scale {}..{}",
+                format_num(score),
+                format_num(config.field.min),
+                format_num(config.field.max),
+            ),
+        )
+    })
+}
+
+fn check_manual_priority(
+    task: &Task,
+    config: &PriorityConfig,
+    value: &NumValue,
+) -> Option<Violation> {
+    if let Some(active) = &config.framework
+        && !config.allow_manual
+    {
+        return Some(violation(
+            task,
+            "priority",
+            format!(
+                "`{}` is a manual priority but framework `{active}` is strict (allow-manual = false)",
+                value.as_display()
+            ),
+        ));
+    }
+    check_in_scale(task, "priority", value, &config.field)
 }
 
 fn check_estimate(task: &Task, config: &EstimateConfig, terminal: bool, out: &mut Vec<Violation>) {
