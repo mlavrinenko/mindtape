@@ -4,6 +4,7 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use log::LevelFilter;
 
+use crate::render::color::ColorChoice;
 use crate::{check, cleanup, eval, init, list, review};
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -16,6 +17,14 @@ pub struct Cli {
     /// Increase verbosity (-v info, -vv debug, -vvv trace).
     #[arg(short = 'v', long, action = clap::ArgAction::Count, global = true)]
     pub verbose: u8,
+
+    /// Colour output: auto (default), always, or never.
+    ///
+    /// `auto` enables colour only when stdout is a TTY and `NO_COLOR` is
+    /// unset. `always` forces colour regardless of TTY or `NO_COLOR`.
+    /// `never` suppresses all ANSI colour sequences.
+    #[arg(long, value_name = "WHEN", default_value_t, global = true)]
+    pub color: ColorChoice,
 }
 
 #[derive(Subcommand)]
@@ -70,4 +79,31 @@ pub fn init_logger(verbosity: u8) {
         .format_target(false)
         .format_timestamp(None)
         .init();
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use clap::Parser;
+
+    use super::Cli;
+    use crate::render::color::ColorChoice;
+
+    #[test]
+    fn color_flag_before_subcommand() {
+        let cli = Cli::try_parse_from(["mindtape", "--color", "always", "check"]).unwrap();
+        assert_eq!(cli.color, ColorChoice::Always);
+    }
+
+    #[test]
+    fn color_flag_after_subcommand() {
+        let cli = Cli::try_parse_from(["mindtape", "check", "--color", "never"]).unwrap();
+        assert_eq!(cli.color, ColorChoice::Never);
+    }
+
+    #[test]
+    fn color_default_is_auto() {
+        let cli = Cli::try_parse_from(["mindtape", "check"]).unwrap();
+        assert_eq!(cli.color, ColorChoice::Auto);
+    }
 }

@@ -2469,6 +2469,7 @@ dependencies = [
 name = "mindtape-cli"
 version = "0.4.0"
 dependencies = [
+ "anstyle",
  "anyhow",
  "assert_cmd",
  "clap",
@@ -2484,6 +2485,7 @@ dependencies = [
  "typst-cleanup",
  "typst-edit",
  "typst-harvest",
+ "unicode-width",
 ]
 
 [[package]]
