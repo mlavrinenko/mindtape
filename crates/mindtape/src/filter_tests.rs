@@ -20,7 +20,7 @@ fn sample() -> Task {
         kind: Some("feature".to_owned()),
         estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
         depends_on: Vec::new(),
-        relates_to: vec!["other".to_owned()],
+        relates_to: vec!["other.typ".to_owned()],
         supersedes: Vec::new(),
         duplicates: Vec::new(),
         tags: vec!["backend".to_owned()],
