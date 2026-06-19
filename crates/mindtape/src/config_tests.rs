@@ -159,3 +159,63 @@ fn header_rules_default_to_empty() {
     let config = parse_config("").unwrap();
     assert!(config.tasks.body.headers.rules.is_empty());
 }
+
+#[test]
+fn project_code_parses() {
+    let config = parse_config("[project]\ncode = \"MT\"\n").unwrap();
+    assert_eq!(config.project.code.as_deref(), Some("MT"));
+}
+
+#[test]
+fn project_code_defaults_to_none() {
+    let config = parse_config("").unwrap();
+    assert!(config.project.code.is_none());
+}
+
+#[test]
+fn id_format_defaults_to_string() {
+    use super::IdFormat;
+    let config = parse_config("").unwrap();
+    assert_eq!(config.tasks.id.format, IdFormat::String);
+}
+
+#[test]
+fn id_format_parses_uuid_v4() {
+    use super::IdFormat;
+    let config = parse_config("[tasks.id]\nformat = \"uuid-v4\"\n").unwrap();
+    assert_eq!(config.tasks.id.format, IdFormat::UuidV4);
+}
+
+#[test]
+fn id_format_parses_uuid_v7() {
+    use super::IdFormat;
+    let config = parse_config("[tasks.id]\nformat = \"uuid-v7\"\n").unwrap();
+    assert_eq!(config.tasks.id.format, IdFormat::UuidV7);
+}
+
+#[test]
+fn id_format_rejects_unknown() {
+    assert!(parse_config("[tasks.id]\nformat = \"base62\"\n").is_err());
+}
+
+#[test]
+fn effective_project_code_uses_configured_code() {
+    use super::effective_project_code;
+    use std::path::Path;
+    let config = parse_config("[project]\ncode = \"MT\"\n").unwrap();
+    assert_eq!(
+        effective_project_code(&config, Path::new("/some/other-name")),
+        "MT"
+    );
+}
+
+#[test]
+fn effective_project_code_falls_back_to_dir_name() {
+    use super::effective_project_code;
+    use std::path::Path;
+    let config = parse_config("").unwrap();
+    assert_eq!(
+        effective_project_code(&config, Path::new("/home/user/mindtape")),
+        "mindtape"
+    );
+}

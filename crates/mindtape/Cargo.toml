@@ -18,6 +18,7 @@ toml = "0.8"
 thiserror = "2"
 evalexpr = "12"
 regex = "1"
+uuid = { version = "1", features = ["v4", "v7"] }
 
 [dev-dependencies]
 tempfile = "3"

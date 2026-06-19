@@ -98,3 +98,66 @@ fn find_root_returns_none_without_marker() {
     let dir = tempfile::tempdir().unwrap();
     assert!(find_root(dir.path()).is_none());
 }
+
+#[test]
+fn explicit_id_wins_over_stem() {
+    let dir = setup();
+    write(
+        dir.path(),
+        "tasks/build.typ",
+        "#metadata((
+  marker: \"mindtape.task\",
+  fields: (title: \"Build\", id: \"custom\"),
+  extras: (:),
+))
+",
+    );
+
+    let outcome = load_project(dir.path(), &Config::default());
+    assert_eq!(outcome.errors, Vec::new());
+    let task = outcome.tasks.first().unwrap();
+    assert_eq!(task.id, "custom", "explicit id: should win over stem");
+}
+
+#[test]
+fn stem_used_when_id_absent() {
+    let dir = setup();
+    write(dir.path(), "tasks/my-task.typ", TASK_BODY);
+
+    let outcome = load_project(dir.path(), &Config::default());
+    let task = outcome.tasks.first().unwrap();
+    assert_eq!(task.id, "my-task");
+}
+
+#[test]
+fn duplicate_ids_produce_uniqueness_violation() {
+    let dir = setup();
+    // Two files, one with explicit id matching the other's stem.
+    write(
+        dir.path(),
+        "tasks/alpha.typ",
+        "#metadata((
+  marker: \"mindtape.task\",
+  fields: (title: \"Alpha\", id: \"shared\"),
+  extras: (:),
+))
+",
+    );
+    write(
+        dir.path(),
+        "tasks/shared.typ",
+        "#metadata((
+  marker: \"mindtape.task\",
+  fields: (title: \"Shared\"),
+  extras: (:),
+))
+",
+    );
+
+    let outcome = load_project(dir.path(), &Config::default());
+    let violations = crate::validate::validate(&outcome.tasks, &Config::default());
+    assert!(
+        violations.iter().any(|v| v.field == "id"),
+        "expected uniqueness violation on duplicate id"
+    );
+}

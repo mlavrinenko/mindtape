@@ -127,6 +127,36 @@ fn from_marker_reads_supersedes_and_duplicates() {
 }
 
 #[test]
+fn explicit_id_field_wins_over_stem() {
+    let fields = dict(vec![
+        ("title", HVal::Str("Task".to_owned())),
+        ("id", HVal::Str("custom".to_owned())),
+    ]);
+    let marker = dict(vec![
+        ("marker", HVal::Str("mindtape.task".to_owned())),
+        ("fields", fields),
+        ("extras", dict(vec![])),
+    ]);
+    let task = Task::from_marker("stem".to_owned(), "tasks/stem.typ".into(), &marker);
+    assert_eq!(task.id, "custom");
+}
+
+#[test]
+fn empty_id_field_falls_back_to_stem() {
+    let fields = dict(vec![
+        ("title", HVal::Str("Task".to_owned())),
+        ("id", HVal::Str(String::new())),
+    ]);
+    let marker = dict(vec![
+        ("marker", HVal::Str("mindtape.task".to_owned())),
+        ("fields", fields),
+        ("extras", dict(vec![])),
+    ]);
+    let task = Task::from_marker("stem".to_owned(), "tasks/stem.typ".into(), &marker);
+    assert_eq!(task.id, "stem");
+}
+
+#[test]
 fn is_terminal_matches_set() {
     let task = Task {
         id: "t".to_owned(),

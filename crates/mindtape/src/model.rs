@@ -59,14 +59,19 @@ pub struct Task {
 impl Task {
     /// Build a task from its file stem, relative path, and a `mindtape.task`
     /// marker value (the `(marker, fields, extras)` dict).
+    ///
+    /// An explicit non-empty `id:` in `fields` wins; otherwise the `stem` is
+    /// used as the identity.
     #[must_use]
-    pub fn from_marker(id: String, file: PathBuf, marker: &HVal) -> Self {
+    pub fn from_marker(stem: String, file: PathBuf, marker: &HVal) -> Self {
         let fields = marker.get("fields");
         let extras = marker
             .get("extras")
             .and_then(HVal::as_dict)
             .cloned()
             .unwrap_or_default();
+        let explicit_id = field_str(fields, "id").filter(|s| !s.is_empty());
+        let id = explicit_id.unwrap_or(stem);
         Self {
             id,
             file,

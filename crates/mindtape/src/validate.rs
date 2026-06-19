@@ -4,10 +4,12 @@
 //! unit allow-list, required-unless-terminal, the tag allow-list, and link
 //! resolution (a `depends-on`/`relates-to` target must name a loaded task).
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
-use crate::config::{Config, EstimateConfig, FieldConfig, Requirement};
+use uuid::Uuid;
+
+use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, Requirement};
 use crate::model::Task;
 
 /// Source location for a violation that points to a specific line.
@@ -37,8 +39,10 @@ pub struct Violation {
 pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let ids: HashSet<&str> = tasks.iter().map(|task| task.id.as_str()).collect();
     let mut out = Vec::new();
+    check_id_uniqueness(tasks, &mut out);
     for task in tasks {
         let terminal = task.is_terminal(&config.tasks.status.terminal);
+        check_id_format(task, config, &mut out);
         check_status(task, config, &mut out);
         for (name, field) in &config.tasks.fields {
             check_enum_field(task, name, field, terminal, &mut out);
@@ -48,6 +52,56 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         check_links(task, &ids, &mut out);
     }
     out
+}
+
+fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
+    let mut seen: HashMap<&str, &Task> = HashMap::new();
+    for task in tasks {
+        if let Some(first) = seen.get(task.id.as_str()) {
+            out.push(Violation {
+                task_id: task.id.clone(),
+                field: "id".to_owned(),
+                message: format!(
+                    "duplicate id `{}`; first seen in `{}`",
+                    task.id,
+                    first.file.display()
+                ),
+                location: None,
+            });
+        } else {
+            seen.insert(&task.id, task);
+        }
+    }
+}
+
+fn check_id_format(task: &Task, config: &Config, out: &mut Vec<Violation>) {
+    let format = config.tasks.id.format;
+    if format == IdFormat::String {
+        return;
+    }
+    match Uuid::parse_str(&task.id) {
+        Err(_) => push(
+            out,
+            task,
+            "id",
+            format!("id `{}` is not a valid UUID", task.id),
+        ),
+        Ok(uuid) => match format {
+            IdFormat::UuidV4 if uuid.get_version_num() != 4 => push(
+                out,
+                task,
+                "id",
+                format!("id `{}` must be a UUID v4", task.id),
+            ),
+            IdFormat::UuidV7 if uuid.get_version_num() != 7 => push(
+                out,
+                task,
+                "id",
+                format!("id `{}` must be a UUID v7", task.id),
+            ),
+            _ => {}
+        },
+    }
 }
 
 fn push(out: &mut Vec<Violation>, task: &Task, field: &str, message: String) {

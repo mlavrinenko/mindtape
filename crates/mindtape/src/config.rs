@@ -13,10 +13,31 @@ use thiserror::Error;
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default)]
 pub struct Config {
+    /// Project-level settings (code, etc.).
+    pub project: ProjectConfig,
     /// Task discovery, status lifecycle, and field constraints.
     pub tasks: TasksConfig,
     /// Query defaults.
     pub query: QueryConfig,
+}
+
+/// `[project]` — project-level settings.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct ProjectConfig {
+    /// Short project qualifier. Falls back to the root directory name when absent.
+    pub code: Option<String>,
+}
+
+/// Resolve the effective project code: configured `code` or the root dir name.
+#[must_use]
+pub fn effective_project_code(config: &Config, root: &std::path::Path) -> String {
+    if let Some(code) = &config.project.code {
+        return code.clone();
+    }
+    root.file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default()
 }
 
 /// `[tasks]` — where tasks live and how they are constrained.
@@ -36,6 +57,8 @@ pub struct TasksConfig {
     pub tags: TagsConfig,
     /// Body-shape constraints (heading gating).
     pub body: TaskBodyConfig,
+    /// Task id format.
+    pub id: IdConfig,
 }
 
 impl Default for TasksConfig {
@@ -47,6 +70,44 @@ impl Default for TasksConfig {
             estimate: EstimateConfig::default(),
             tags: TagsConfig::default(),
             body: TaskBodyConfig::default(),
+            id: IdConfig::default(),
+        }
+    }
+}
+
+/// `[tasks.id]` — task identity format constraint.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct IdConfig {
+    /// Format requirement for an explicit `id:`. Default accepts any non-empty string.
+    pub format: IdFormat,
+}
+
+/// Format requirement for a task `id:` field.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum IdFormat {
+    /// Any non-empty string (the default).
+    #[default]
+    String,
+    /// A UUID v4 (random).
+    UuidV4,
+    /// A UUID v7 (time-ordered).
+    UuidV7,
+}
+
+impl<'de> Deserialize<'de> for IdFormat {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let text = String::deserialize(deserializer)?;
+        match text.as_str() {
+            "string" => Ok(Self::String),
+            "uuid-v4" => Ok(Self::UuidV4),
+            "uuid-v7" => Ok(Self::UuidV7),
+            other => Err(serde::de::Error::custom(format!(
+                "invalid id format `{other}`; expected `string`, `uuid-v4`, or `uuid-v7`"
+            ))),
         }
     }
 }
