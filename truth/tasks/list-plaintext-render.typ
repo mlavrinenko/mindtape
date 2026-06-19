@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Plain, copy-friendly list output",
-  status: proposed(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: "normal",
   estimate: (hours: 4),
   depends-on: (link("tty-render-discipline.typ"),),
