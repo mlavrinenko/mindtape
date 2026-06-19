@@ -115,6 +115,18 @@ fn fit_to_width(content: &str, width: usize) -> String {
     }
 }
 
+/// The plain (unstyled) string a cell renders to, before width fitting.
+#[must_use]
+pub fn cell_content(spec: &CellSpec, glyph_mode: GlyphMode, density: DensityMode) -> String {
+    build_content(spec, glyph_mode, density)
+}
+
+/// Display width of a cell's content, for column sizing.
+#[must_use]
+pub fn content_width(spec: &CellSpec, glyph_mode: GlyphMode, density: DensityMode) -> usize {
+    display_width(&build_content(spec, glyph_mode, density))
+}
+
 // --- Field trait -------------------------------------------------------------
 
 /// The seam every displayable task field renders through.

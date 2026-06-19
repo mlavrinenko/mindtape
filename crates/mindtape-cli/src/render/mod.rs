@@ -19,6 +19,8 @@
 
 pub mod color;
 pub mod field;
+pub mod fields;
 pub mod glyph;
 pub mod sep;
+pub mod table;
 pub mod width;

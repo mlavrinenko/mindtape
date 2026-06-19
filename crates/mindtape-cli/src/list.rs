@@ -58,7 +58,7 @@ pub(crate) fn run_with(args: &ListArgs, project: util::Project) -> Result<()> {
     } else {
         args.format
     };
-    println!("{}", render(&tasks, format)?);
+    println!("{}", render(&tasks, format, &project.config)?);
     Ok(())
 }
 

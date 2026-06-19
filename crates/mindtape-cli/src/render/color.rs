@@ -4,7 +4,7 @@ use std::fmt;
 use std::io::IsTerminal;
 use std::sync::OnceLock;
 
-use anstyle::{AnsiColor, Color, Reset, Style};
+use anstyle::{AnsiColor, Color, Reset, RgbColor, Style};
 
 /// The user's colour preference, mirroring `--color <auto|always|never>`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, clap::ValueEnum)]
@@ -106,10 +106,54 @@ impl Painter {
     }
 }
 
+/// Parse a colour spec — a named ANSI colour or `#RRGGBB` — into a foreground
+/// [`Style`]. Returns `None` for an unrecognised name or malformed hex.
+#[must_use]
+pub fn parse_color(spec: &str) -> Option<Style> {
+    let color = match spec.strip_prefix('#') {
+        Some(hex) => parse_hex(hex)?,
+        None => Color::Ansi(parse_named(spec)?),
+    };
+    Some(Style::new().fg_color(Some(color)))
+}
+
+fn parse_named(name: &str) -> Option<AnsiColor> {
+    let color = match name.to_ascii_lowercase().as_str() {
+        "black" => AnsiColor::Black,
+        "red" => AnsiColor::Red,
+        "green" => AnsiColor::Green,
+        "yellow" => AnsiColor::Yellow,
+        "blue" => AnsiColor::Blue,
+        "magenta" => AnsiColor::Magenta,
+        "cyan" => AnsiColor::Cyan,
+        "white" => AnsiColor::White,
+        "bright-black" | "gray" | "grey" => AnsiColor::BrightBlack,
+        "bright-red" => AnsiColor::BrightRed,
+        "bright-green" => AnsiColor::BrightGreen,
+        "bright-yellow" => AnsiColor::BrightYellow,
+        "bright-blue" => AnsiColor::BrightBlue,
+        "bright-magenta" => AnsiColor::BrightMagenta,
+        "bright-cyan" => AnsiColor::BrightCyan,
+        "bright-white" => AnsiColor::BrightWhite,
+        _ => return None,
+    };
+    Some(color)
+}
+
+fn parse_hex(hex: &str) -> Option<Color> {
+    if hex.len() != 6 {
+        return None;
+    }
+    let red = u8::from_str_radix(hex.get(0..2)?, 16).ok()?;
+    let green = u8::from_str_radix(hex.get(2..4)?, 16).ok()?;
+    let blue = u8::from_str_radix(hex.get(4..6)?, 16).ok()?;
+    Some(Color::Rgb(RgbColor(red, green, blue)))
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::{ColorChoice, Painter, color_enabled, no_color_set};
+    use super::{ColorChoice, Painter, color_enabled, no_color_set, parse_color};
 
     #[test]
     fn always_enables_regardless_of_env() {
@@ -152,5 +196,22 @@ mod tests {
         let out = painter.fg("hello", anstyle::AnsiColor::Red);
         assert!(out.contains("hello"));
         assert!(out.contains('\x1b'), "expected ANSI escape in output");
+    }
+
+    #[test]
+    fn parse_named_colour() {
+        assert!(parse_color("green").is_some());
+        assert!(parse_color("bright-black").is_some());
+    }
+
+    #[test]
+    fn parse_hex_colour() {
+        assert!(parse_color("#e5c07b").is_some());
+    }
+
+    #[test]
+    fn parse_rejects_garbage() {
+        assert!(parse_color("not-a-colour").is_none());
+        assert!(parse_color("#zz").is_none());
     }
 }

@@ -43,7 +43,11 @@ pub fn run(args: &EvalArgs) -> Result<()> {
     } else {
         println!(
             "{}",
-            render(std::slice::from_ref(&task), OutputFormat::Table)?
+            render(
+                std::slice::from_ref(&task),
+                OutputFormat::Table,
+                &mindtape::Config::default()
+            )?
         );
     }
     Ok(())

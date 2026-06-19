@@ -1,13 +1,10 @@
 //! Rendering tasks as a table, JSON, or CSV.
 
 use anyhow::Result;
-use comfy_table::Table;
-use comfy_table::presets::UTF8_FULL;
 use mindtape::Task;
+use mindtape::config::Config;
 use serde_json::{Map, Value, json};
 use typst_harvest::HVal;
-
-use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
 
 /// Output format for `list` and `eval`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
@@ -31,29 +28,12 @@ fn status_name(task: &Task) -> String {
 ///
 /// # Errors
 /// Returns an error if JSON or CSV serialization fails.
-pub fn render(tasks: &[Task], format: OutputFormat) -> Result<String> {
+pub fn render(tasks: &[Task], format: OutputFormat, config: &Config) -> Result<String> {
     match format {
-        OutputFormat::Table => Ok(render_table(tasks)),
+        OutputFormat::Table => Ok(crate::render::table::render(tasks, config)),
         OutputFormat::Json => render_json(tasks),
         OutputFormat::Csv => render_csv(tasks),
     }
-}
-
-fn render_table(tasks: &[Task]) -> String {
-    let mut table = Table::new();
-    table.load_preset(UTF8_FULL);
-    table.set_header(["#", "ID", "STATUS", "PRIORITY", "DUE", "TITLE"]);
-    for (handle, task) in make_handles(tasks, DEFAULT_CHECK_LEN) {
-        table.add_row([
-            handle,
-            task.id.clone(),
-            status_name(task),
-            task.priority.clone().unwrap_or_default(),
-            task.due.clone().unwrap_or_default(),
-            task.title.clone(),
-        ]);
-    }
-    table.to_string()
 }
 
 fn render_json(tasks: &[Task]) -> Result<String> {
@@ -143,6 +123,8 @@ mod tests {
 
     use mindtape::{Status, Task};
 
+    use mindtape::Config;
+
     use super::{HVal, OutputFormat, render, task_to_json};
 
     fn sample() -> Task {
@@ -173,15 +155,14 @@ mod tests {
 
     #[test]
     fn table_contains_fields() {
-        let out = render(&[sample()], OutputFormat::Table).unwrap();
-        assert!(out.contains("t1"));
+        let out = render(&[sample()], OutputFormat::Table, &Config::default()).unwrap();
         assert!(out.contains("Build"));
         assert!(out.contains("wip"));
     }
 
     #[test]
     fn table_has_handle_column() {
-        let out = render(&[sample()], OutputFormat::Table).unwrap();
+        let out = render(&[sample()], OutputFormat::Table, &Config::default()).unwrap();
         // The header row must have "#" and the first task is ordinal 1.
         assert!(out.contains('#'));
         assert!(out.contains("1"));
@@ -189,7 +170,7 @@ mod tests {
 
     #[test]
     fn json_does_not_contain_handle() {
-        let out = render(&[sample()], OutputFormat::Json).unwrap();
+        let out = render(&[sample()], OutputFormat::Json, &Config::default()).unwrap();
         assert!(
             !out.contains("\"handle\""),
             "handle must not appear in JSON"
@@ -200,7 +181,7 @@ mod tests {
 
     #[test]
     fn json_exposes_core_fields() {
-        let out = render(&[sample()], OutputFormat::Json).unwrap();
+        let out = render(&[sample()], OutputFormat::Json, &Config::default()).unwrap();
         let value: serde_json::Value = serde_json::from_str(&out).unwrap();
         assert_eq!(value[0]["id"], "t1");
         assert_eq!(value[0]["status"]["name"], "wip");
@@ -209,7 +190,7 @@ mod tests {
 
     #[test]
     fn csv_has_header_and_row() {
-        let out = render(&[sample()], OutputFormat::Csv).unwrap();
+        let out = render(&[sample()], OutputFormat::Csv, &Config::default()).unwrap();
         assert!(out.contains("id,status,priority,due,title"));
         assert!(out.contains("t1,wip,high,,Build"));
     }
