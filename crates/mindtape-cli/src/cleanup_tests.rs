@@ -51,7 +51,7 @@ fn task(id: &str, file: &str, status: Option<&str>) -> Task {
             note: None,
         }),
         priority: None,
-        grade: None,
+        difficulty: None,
         kind: None,
         estimate: BTreeMap::new(),
         depends_on: Vec::new(),

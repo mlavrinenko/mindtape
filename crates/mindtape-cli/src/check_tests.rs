@@ -11,7 +11,7 @@ const TASK: &str = "#metadata((
   fields: (
     title: \"Task X\",
     status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: \"high\",
+    priority: 8,
   ),
   extras: (:),
 ))
@@ -74,7 +74,7 @@ fn load_error_returns_err() {
 fn validation_violation_returns_err() {
     let dir = tempfile::tempdir().unwrap();
     let config = parse_config(
-        "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n[tasks.fields.priority]\nrequired = true",
+        "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n[tasks.priority]\nrequired = true",
     )
     .unwrap();
     // Task has no priority field; config requires it.
@@ -106,7 +106,7 @@ const TASK_WITH_SUMMARY: &str = "#metadata((
   fields: (
     title: \"Task X\",
     status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: \"high\",
+    priority: 8,
   ),
   extras: (:),
 ))

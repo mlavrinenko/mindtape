@@ -41,10 +41,60 @@ glyph = "❌"
 color = "red"
 terminal = true
 
-# Configurable core fields. `required` is true | false | "non-terminal".
-[tasks.fields.priority]
-values = ["low", "normal", "high"]
+# Priority: a number on a scale, classified into labelled bands. `kind` is
+# `int` | `real`; bands tile [min, max] (int: inclusive and contiguous).
+# `required` is true | false | "non-terminal".
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
 required = "non-terminal"
+[[tasks.priority.bands]]
+label = "low"
+min = 0
+max = 2
+glyph = "🟢"
+color = "green"
+[[tasks.priority.bands]]
+label = "normal"
+min = 3
+max = 6
+glyph = "🟡"
+color = "yellow"
+[[tasks.priority.bands]]
+label = "high"
+min = 7
+max = 9
+glyph = "🔴"
+color = "red"
+
+# Difficulty: a number on a scale, classified by sparse labelled anchors. A
+# value between anchors derives `lower-label + "+"`; an anchor at `min` is
+# required. The difficulty→model-tier mapping is a consumer (speconaut) policy.
+[tasks.difficulty]
+kind = "int"
+min = 0
+max = 9
+[[tasks.difficulty.anchors]]
+value = 0
+label = "junior"
+glyph = "🟢"
+color = "green"
+[[tasks.difficulty.anchors]]
+value = 3
+label = "mid"
+glyph = "🔵"
+color = "cyan"
+[[tasks.difficulty.anchors]]
+value = 6
+label = "senior"
+glyph = "🟡"
+color = "yellow"
+[[tasks.difficulty.anchors]]
+value = 9
+label = "staff"
+glyph = "🔴"
+color = "red"
 
 # Allowed estimate units. An estimate is an opaque unit dict, e.g.
 # `estimate: (days: 5, hours: 5)` or `estimate: (points: 8)`. Units are free

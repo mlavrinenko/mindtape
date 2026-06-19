@@ -5,9 +5,11 @@
 //!
 //! # Syntax
 //!
-//! Comparable fields: `status`, `priority`, `grade`, `kind`, `title`, `id`,
-//! `due`, `start`, `reviewed`, `file`. The opaque `estimate` dict supports
-//! presence only (`has(estimate)` / `miss(estimate)`), not comparison.
+//! Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`,
+//! `id`, `due`, `start`, `reviewed`, `file`. `priority` and `difficulty` are
+//! numeric, so they compare numerically against a number literal (e.g.
+//! `priority >= 7`). The opaque `estimate` dict supports presence only
+//! (`has(estimate)` / `miss(estimate)`), not comparison.
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
@@ -18,6 +20,7 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
 
 use crate::model::Task;
+use crate::numeric::{NumValue, format_num};
 
 /// A parsed, reusable filter expression.
 #[derive(Debug, Clone)]
@@ -42,10 +45,12 @@ pub enum FilterError {
     Invalid(String),
 }
 
-/// A resolved field value during evaluation. Every comparable field is a
-/// string (dates compare lexicographically, which is ISO-correct).
+/// A resolved field value during evaluation. String fields compare
+/// lexicographically (ISO-correct for dates); numeric fields compare as numbers
+/// against a numeric literal and fall back to their display string otherwise.
 enum FieldValue {
     Str(String),
+    Num(f64),
     Missing,
 }
 
@@ -124,6 +129,10 @@ fn compare(op: &Operator<DefaultNumericTypes>, value: &FieldValue, literal: &str
     match value {
         FieldValue::Missing => matches!(op, Operator::Neq),
         FieldValue::Str(text) => compare_ordering(op, Some(text.as_str().cmp(literal))),
+        FieldValue::Num(num) => match literal.parse::<f64>() {
+            Ok(rhs) => compare_ordering(op, num.partial_cmp(&rhs)),
+            Err(_) => compare_ordering(op, Some(format_num(*num).as_str().cmp(literal))),
+        },
     }
 }
 
@@ -209,6 +218,7 @@ fn is_stale(task: &Task, days: u64) -> bool {
 fn contains_ci(value: &FieldValue, needle: &str) -> bool {
     let haystack = match value {
         FieldValue::Str(text) => text.clone(),
+        FieldValue::Num(num) => format_num(*num),
         FieldValue::Missing => return false,
     };
     haystack.to_lowercase().contains(&needle.to_lowercase())
@@ -217,8 +227,8 @@ fn contains_ci(value: &FieldValue, needle: &str) -> bool {
 fn field_value(task: &Task, name: &str) -> Result<FieldValue, FilterError> {
     let value = match name {
         "status" => opt_str(task.status.as_ref().map(|status| status.name.clone())),
-        "priority" => opt_str(task.priority.clone()),
-        "grade" => opt_str(task.grade.clone()),
+        "priority" => num_field(task.priority.as_ref()),
+        "difficulty" => num_field(task.difficulty.as_ref()),
         "kind" => opt_str(task.kind.clone()),
         "title" => FieldValue::Str(task.title.clone()),
         "id" => FieldValue::Str(task.id.clone()),
@@ -233,6 +243,16 @@ fn field_value(task: &Task, name: &str) -> Result<FieldValue, FilterError> {
 
 fn opt_str(value: Option<String>) -> FieldValue {
     value.map_or(FieldValue::Missing, FieldValue::Str)
+}
+
+/// A numeric field as a comparable value: a raw number compares numerically; a
+/// label falls back to a string compare (filters have no config to resolve it).
+fn num_field(value: Option<&NumValue>) -> FieldValue {
+    match value {
+        Some(NumValue::Num(num)) => FieldValue::Num(*num),
+        Some(NumValue::Label(label)) => FieldValue::Str(label.clone()),
+        None => FieldValue::Missing,
+    }
 }
 
 // --- AST helpers (ported from the SQL translator) ---

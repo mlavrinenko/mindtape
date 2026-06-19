@@ -3,6 +3,7 @@
 use anyhow::Result;
 use mindtape::Task;
 use mindtape::config::Config;
+use mindtape::numeric::NumValue;
 use serde_json::{Map, Value, json};
 use typst_harvest::HVal;
 
@@ -48,7 +49,7 @@ fn render_csv(tasks: &[Task]) -> Result<String> {
         writer.write_record([
             task.id.as_str(),
             &status_name(task),
-            task.priority.as_deref().unwrap_or_default(),
+            &num_display(task.priority.as_ref()),
             task.due.as_deref().unwrap_or_default(),
             task.title.as_str(),
         ])?;
@@ -64,8 +65,11 @@ pub fn task_to_json(task: &Task) -> Value {
     map.insert("file".to_owned(), json!(task.file.display().to_string()));
     map.insert("title".to_owned(), json!(task.title));
     map.insert("status".to_owned(), status_to_json(task));
-    map.insert("priority".to_owned(), opt(task.priority.as_deref()));
-    map.insert("grade".to_owned(), opt(task.grade.as_deref()));
+    map.insert("priority".to_owned(), num_to_json(task.priority.as_ref()));
+    map.insert(
+        "difficulty".to_owned(),
+        num_to_json(task.difficulty.as_ref()),
+    );
     map.insert("kind".to_owned(), opt(task.kind.as_deref()));
     map.insert("estimate".to_owned(), json!(task.estimate));
     map.insert("depends_on".to_owned(), json!(task.depends_on));
@@ -100,6 +104,20 @@ fn opt(value: Option<&str>) -> Value {
     value.map_or(Value::Null, |text| json!(text))
 }
 
+/// JSON for a numeric-field value: a number stays numeric, a label is a string.
+fn num_to_json(value: Option<&NumValue>) -> Value {
+    match value {
+        Some(NumValue::Num(num)) => json!(num),
+        Some(NumValue::Label(label)) => json!(label),
+        None => Value::Null,
+    }
+}
+
+/// The plain display string for a numeric-field value (empty when absent).
+fn num_display(value: Option<&NumValue>) -> String {
+    value.map(NumValue::as_display).unwrap_or_default()
+}
+
 fn hval_to_json(value: &HVal) -> Value {
     match value {
         HVal::Null => Value::Null,
@@ -121,6 +139,7 @@ fn hval_to_json(value: &HVal) -> Value {
 mod tests {
     use std::collections::BTreeMap;
 
+    use mindtape::numeric::NumValue;
     use mindtape::{Status, Task};
 
     use mindtape::Config;
@@ -137,8 +156,8 @@ mod tests {
                 date: Some("2026-06-14".to_owned()),
                 note: None,
             }),
-            priority: Some("high".to_owned()),
-            grade: None,
+            priority: Some(NumValue::Num(8.0)),
+            difficulty: None,
             kind: None,
             estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
             depends_on: Vec::new(),
@@ -192,7 +211,7 @@ mod tests {
     fn csv_has_header_and_row() {
         let out = render(&[sample()], OutputFormat::Csv, &Config::default()).unwrap();
         assert!(out.contains("id,status,priority,due,title"));
-        assert!(out.contains("t1,wip,high,,Build"));
+        assert!(out.contains("t1,wip,8,,Build"));
     }
 
     #[test]

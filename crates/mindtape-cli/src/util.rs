@@ -4,7 +4,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use mindtape::{
-    Config, Filter, LoadOutcome, Task, config_path, find_root, load_config, load_project, select,
+    Config, Filter, LoadOutcome, Task, config_path, default_order, find_root, load_config,
+    load_project, select,
 };
 
 use crate::handle::{DEFAULT_CHECK_LEN, check_chars, parse_handle};
@@ -92,8 +93,9 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
     Ok((task.clone(), abs))
 }
 
-/// Build the default list view: apply the configured default filter, no extra
-/// sort.  This replicates what bare `mindtape list` shows.
+/// Build the default list view: apply the configured default filter, then the
+/// shared default order.  This replicates exactly what bare `mindtape list`
+/// shows, so handle ordinals resolve to the same tasks the user reads off it.
 fn default_view(project: &Project) -> Result<Vec<Task>> {
     let filter = project
         .config
@@ -102,7 +104,8 @@ fn default_view(project: &Project) -> Result<Vec<Task>> {
         .as_deref()
         .map(Filter::parse)
         .transpose()?;
-    let tasks = select(project.outcome.tasks.clone(), filter.as_ref())?;
+    let mut tasks = select(project.outcome.tasks.clone(), filter.as_ref())?;
+    default_order(&mut tasks, &project.config);
     Ok(tasks)
 }
 
@@ -179,7 +182,7 @@ mod tests {
             title: title.to_owned(),
             status: None,
             priority: None,
-            grade: None,
+            difficulty: None,
             kind: None,
             estimate: BTreeMap::new(),
             depends_on: Vec::new(),
@@ -199,7 +202,7 @@ mod tests {
   fields: (
     title: \"Task X\",
     status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: \"high\",
+    priority: 8,
   ),
   extras: (:),
 ))

@@ -306,7 +306,7 @@ fn stub_task() -> Task {
         title: "My task".to_owned(),
         status: None,
         priority: None,
-        grade: None,
+        difficulty: None,
         kind: None,
         estimate: Default::default(),
         depends_on: vec![],

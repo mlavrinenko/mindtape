@@ -7,7 +7,7 @@ const TASK: &str = "#metadata((
   fields: (
     title: \"Task X\",
     status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: \"high\",
+    priority: 8,
   ),
   extras: (:),
 ))

@@ -4,13 +4,14 @@ use std::path::Path;
 
 use super::{find_root, load_project};
 use crate::config::Config;
+use crate::numeric::NumValue;
 
 const TASK_BODY: &str = "#metadata((
   marker: \"mindtape.task\",
   fields: (
     title: \"Build\",
     status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: \"high\",
+    priority: 8,
   ),
   extras: (:),
 ))
@@ -44,7 +45,7 @@ fn loads_tasks_and_skips_non_tasks() {
     assert_eq!(task.id, "build");
     assert_eq!(task.title, "Build");
     assert_eq!(task.status.as_ref().unwrap().name, "wip");
-    assert_eq!(task.priority.as_deref(), Some("high"));
+    assert_eq!(task.priority, Some(NumValue::Num(8.0)));
 }
 
 #[test]

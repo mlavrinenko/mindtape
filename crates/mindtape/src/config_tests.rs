@@ -214,6 +214,47 @@ fn effective_project_code_uses_configured_code() {
 }
 
 #[test]
+fn parses_numeric_priority_with_bands() {
+    let text = r#"
+[tasks.priority]
+min = 0
+max = 9
+required = "non-terminal"
+[[tasks.priority.bands]]
+label = "low"
+min = 0
+max = 4
+[[tasks.priority.bands]]
+label = "high"
+min = 5
+max = 9
+"#;
+    let config = parse_config(text).unwrap();
+    assert_eq!(config.tasks.priority.bands.len(), 2);
+    assert_eq!(config.tasks.priority.required, Requirement::NonTerminal);
+    assert!(config.validate().is_ok());
+}
+
+#[test]
+fn validate_rejects_band_coverage_gap() {
+    let text = r#"
+[tasks.priority]
+min = 0
+max = 9
+[[tasks.priority.bands]]
+label = "low"
+min = 0
+max = 2
+[[tasks.priority.bands]]
+label = "high"
+min = 5
+max = 9
+"#;
+    let config = parse_config(text).unwrap();
+    assert!(config.validate().is_err());
+}
+
+#[test]
 fn effective_project_code_falls_back_to_dir_name() {
     use super::effective_project_code;
     use std::path::Path;

@@ -14,7 +14,7 @@ fn bare_task(id: &str) -> Task {
         title: id.to_owned(),
         status: None,
         priority: None,
-        grade: None,
+        difficulty: None,
         kind: None,
         estimate: BTreeMap::new(),
         depends_on: Vec::new(),

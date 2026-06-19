@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use typst_harvest::HVal;
 
 use super::{Status, Task, is_history_pointer, normalize_link, resolve_link_path};
+use crate::numeric::NumValue;
 
 fn dict(pairs: Vec<(&str, HVal)>) -> HVal {
     HVal::Dict(
@@ -25,7 +26,8 @@ fn from_marker_reads_core_fields() {
     let fields = dict(vec![
         ("title", HVal::Str("Build".to_owned())),
         ("status", status),
-        ("priority", HVal::Str("high".to_owned())),
+        ("priority", HVal::Int(8)),
+        ("difficulty", HVal::Str("senior".to_owned())),
         (
             "estimate",
             dict(vec![("days", HVal::Int(5)), ("hours", HVal::Int(5))]),
@@ -53,7 +55,8 @@ fn from_marker_reads_core_fields() {
         task.status.as_ref().unwrap().date.as_deref(),
         Some("2026-06-14")
     );
-    assert_eq!(task.priority.as_deref(), Some("high"));
+    assert_eq!(task.priority, Some(NumValue::Num(8.0)));
+    assert_eq!(task.difficulty, Some(NumValue::Label("senior".to_owned())));
     assert_eq!(task.estimate.get("days"), Some(&5.0));
     assert_eq!(task.estimate.get("hours"), Some(&5.0));
     assert_eq!(task.relates_to, vec!["other.task-260101.typ".to_owned()]);
@@ -168,7 +171,7 @@ fn is_terminal_matches_set() {
             note: None,
         }),
         priority: None,
-        grade: None,
+        difficulty: None,
         kind: None,
         estimate: BTreeMap::new(),
         depends_on: Vec::new(),

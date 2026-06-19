@@ -1,12 +1,15 @@
-//! `Field` implementations for legend-backed discrete fields.
+//! `Field` implementations for the displayable task fields.
 //!
-//! Provides [`Status`]; `kind` and `tags` adopt the same `legend_cell` pattern
+//! Legend-backed discrete fields ([`Status`]) resolve through the status
+//! legend; numeric fields ([`Priority`], [`Difficulty`]) resolve through their
+//! [`NumericField`] classification. `kind` and `tags` adopt the legend pattern
 //! when they gain display columns.
 
 use std::borrow::Cow;
 
 use mindtape::Task;
 use mindtape::config::{Config, Legend};
+use mindtape::numeric::{NumValue, NumericField};
 
 use super::color::parse_color;
 use super::field::{CellSpec, Field};
@@ -27,6 +30,62 @@ impl Field for Status {
 
     fn cell_spec(value: &str, config: &Config) -> CellSpec {
         legend_cell(value, &config.tasks.status)
+    }
+}
+
+/// The `priority` field, displayed through its `[tasks.priority]` band
+/// classification.
+pub struct Priority;
+
+impl Field for Priority {
+    const NAME: &'static str = "PRIORITY";
+
+    fn values(task: &Task) -> Vec<Cow<'_, str>> {
+        numeric_values(task.priority.as_ref())
+    }
+
+    fn cell_spec(value: &str, config: &Config) -> CellSpec {
+        numeric_cell(value, &config.tasks.priority)
+    }
+}
+
+/// The `difficulty` field, displayed through its `[tasks.difficulty]` anchor
+/// classification.
+pub struct Difficulty;
+
+impl Field for Difficulty {
+    const NAME: &'static str = "DIFFICULTY";
+
+    fn values(task: &Task) -> Vec<Cow<'_, str>> {
+        numeric_values(task.difficulty.as_ref())
+    }
+
+    fn cell_spec(value: &str, config: &Config) -> CellSpec {
+        numeric_cell(value, &config.tasks.difficulty)
+    }
+}
+
+fn numeric_values(value: Option<&NumValue>) -> Vec<Cow<'_, str>> {
+    value
+        .map(|value| Cow::Owned(value.as_display()))
+        .into_iter()
+        .collect()
+}
+
+/// Resolve and classify `value` against a numeric `field` into a display cell.
+fn numeric_cell(value: &str, field: &NumericField) -> CellSpec {
+    let parsed = NumValue::parse(value);
+    match field.cell(&parsed) {
+        Some(cell) => CellSpec {
+            text: cell.label,
+            glyph: cell.glyph,
+            color: cell.color.as_deref().and_then(parse_color),
+        },
+        None => CellSpec {
+            text: parsed.as_display(),
+            glyph: None,
+            color: None,
+        },
     }
 }
 
@@ -51,8 +110,29 @@ fn legend_cell(value: &str, legend: &Legend) -> CellSpec {
 mod tests {
     use mindtape::config::parse_config;
 
-    use super::Status;
+    use super::{Difficulty, Priority, Status};
     use crate::render::field::Field;
+
+    const PRIORITY_CONFIG: &str = "[tasks.priority]\nmin = 0\nmax = 9\n[[tasks.priority.bands]]\nlabel = \"low\"\nmin = 0\nmax = 4\nglyph = \"🟢\"\ncolor = \"green\"\n[[tasks.priority.bands]]\nlabel = \"high\"\nmin = 5\nmax = 9\nglyph = \"🔴\"\ncolor = \"red\"\n";
+
+    const DIFFICULTY_CONFIG: &str = "[tasks.difficulty]\nmin = 0\nmax = 9\n[[tasks.difficulty.anchors]]\nvalue = 0\nlabel = \"junior\"\nglyph = \"🟢\"\ncolor = \"green\"\n[[tasks.difficulty.anchors]]\nvalue = 6\nlabel = \"senior\"\nglyph = \"🟡\"\ncolor = \"yellow\"\n";
+
+    #[test]
+    fn priority_cell_uses_band_glyph_and_label() {
+        let config = parse_config(PRIORITY_CONFIG).unwrap();
+        let cell = Priority::cell_spec("8", &config);
+        assert_eq!(cell.text, "high");
+        assert_eq!(cell.glyph.as_deref(), Some("🔴"));
+        assert!(cell.color.is_some());
+    }
+
+    #[test]
+    fn difficulty_cell_derives_between_anchors() {
+        let config = parse_config(DIFFICULTY_CONFIG).unwrap();
+        let cell = Difficulty::cell_spec("7", &config);
+        assert_eq!(cell.text, "senior+");
+        assert_eq!(cell.glyph.as_deref(), Some("🟡"));
+    }
 
     #[test]
     fn status_cell_uses_legend_glyph_and_label() {

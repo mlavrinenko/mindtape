@@ -597,7 +597,7 @@
 #show: task.with(
   title: "Design REST API schema",
   status: wip(2026, 3, 8),
-  priority: "high",
+  priority: 8,
   estimate: (hours: 12),
   tags: ("backend",),
   due: datetime(year: 2026, month: 3, day: 15),
@@ -613,7 +613,7 @@ Lock the resource model and error envelope before the client teams build on it.<
 #show: task.with(
   title: "Draft OpenAPI spec",
   status: proposed(2026, 3, 9),
-  priority: "medium",
+  priority: 5,
   estimate: (hours: 6),
   tags: ("backend",),
   depends-on: (link("design-rest-api.typ"),),
@@ -628,7 +628,7 @@ Generate the spec from the agreed schema and publish it for review.</code></pre>
 #show: task.with(
   title: "Migrate to new design system",
   status: accepted(2026, 3, 10),
-  priority: "high",
+  priority: 8,
   estimate: (days: 2),
   tags: ("frontend",),
   due: datetime(year: 2026, month: 3, day: 18),
@@ -643,7 +643,7 @@ Swap the component library and reconcile dark-mode contrast tokens.</code></pre>
 #show: task.with(
   title: "Configure staging environment",
   status: proposed(2026, 3, 11),
-  priority: "high",
+  priority: 8,
   estimate: (days: 1),
   tags: ("infra",),
   due: datetime(year: 2026, month: 3, day: 12),

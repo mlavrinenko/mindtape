@@ -10,7 +10,7 @@ use mindtape::{Config, Task};
 
 use super::color::{Painter, is_color_active};
 use super::field::{CellSpec, DensityMode, Field, cell_content, content_width, render_cell};
-use super::fields::Status as StatusField;
+use super::fields::{Priority as PriorityField, Status as StatusField};
 use super::glyph::GlyphMode;
 use super::width::{display_width, pad_to_width, truncate_to_width};
 use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
@@ -74,7 +74,7 @@ fn build_rows(tasks: &[Task], config: &Config) -> Vec<Row> {
         .map(|(handle, task)| Row {
             handle: plain(handle),
             status: status_cell(task, config),
-            priority: plain(task.priority.clone().unwrap_or_default()),
+            priority: priority_cell(task, config),
             due: plain(task.due.clone().unwrap_or_default()),
             title: plain(task.title.clone()),
         })
@@ -84,6 +84,13 @@ fn build_rows(tasks: &[Task], config: &Config) -> Vec<Row> {
 fn status_cell(task: &Task, config: &Config) -> CellSpec {
     match StatusField::values(task).first() {
         Some(name) => StatusField::cell_spec(name, config),
+        None => plain(String::new()),
+    }
+}
+
+fn priority_cell(task: &Task, config: &Config) -> CellSpec {
+    match PriorityField::values(task).first() {
+        Some(value) => PriorityField::cell_spec(value, config),
         None => plain(String::new()),
     }
 }
@@ -187,6 +194,7 @@ fn render_title(spec: &CellSpec, glyph_mode: GlyphMode, painter: Painter, width:
 mod tests {
     use std::collections::BTreeMap;
 
+    use mindtape::numeric::NumValue;
     use mindtape::{Config, Status, Task};
 
     use super::render;
@@ -201,8 +209,8 @@ mod tests {
                 date: None,
                 note: None,
             }),
-            priority: Some("normal".to_owned()),
-            grade: None,
+            priority: Some(NumValue::Num(5.0)),
+            difficulty: None,
             kind: None,
             estimate: BTreeMap::new(),
             depends_on: Vec::new(),

@@ -65,7 +65,7 @@ Four crates (`cargo` workspace, virtual root manifest):
 #show: task.with(
   title: "Title",
   status: wip(2026, 6, 14)[note],    // (name, date, note); note is a trailing block
-  priority: "high",                  // configurable enum
+  priority: 8,                       // number on a config scale (bands); difficulty too
   estimate: (days: 1, hours: 2),     // opaque unit dict; allowed units per project
   depends-on: (link("other.typ"),),  // task↔task links by file stem
   tags: ("backend",),
@@ -74,8 +74,9 @@ Four crates (`cargo` workspace, virtual root manifest):
 ```
 
 The prelude enforces structure only (one task, the `x-<ns>` discipline). The
-Rust layer enforces config-driven enums / required-unless-terminal / bounds /
-link resolution. Consumers validate their own `x-<ns>` fields.
+Rust layer enforces the status legend, numeric priority/difficulty scales and
+classification, the kind enum, required-unless-terminal, bounds, and link
+resolution. Consumers validate their own `x-<ns>` fields.
 
 ## Version Management
 

@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 
 use typst_harvest::HVal;
 
+use crate::numeric::NumValue;
+
 /// A task's status: a lifecycle name plus when it was set and an optional note.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Status {
@@ -28,10 +30,11 @@ pub struct Task {
     pub title: String,
     /// Lifecycle status.
     pub status: Option<Status>,
-    /// Priority enum value.
-    pub priority: Option<String>,
-    /// Grade enum value.
-    pub grade: Option<String>,
+    /// Priority as a numeric-field value (a point on the scale or a band label).
+    pub priority: Option<NumValue>,
+    /// Difficulty as a numeric-field value (a point on the scale or an anchor
+    /// label).
+    pub difficulty: Option<NumValue>,
     /// Kind enum value.
     pub kind: Option<String>,
     /// Estimate as an opaque `unit -> quantity` map (e.g. `{days: 5, hours: 5}`
@@ -80,8 +83,8 @@ impl Task {
             file,
             title: field_str(fields, "title").unwrap_or_default(),
             status: parse_status(field(fields, "status")),
-            priority: field_str(fields, "priority"),
-            grade: field_str(fields, "grade"),
+            priority: parse_num_value(field(fields, "priority")),
+            difficulty: parse_num_value(field(fields, "difficulty")),
             kind: field_str(fields, "kind"),
             estimate: parse_num_map(field(fields, "estimate")),
             depends_on: parse_links(field(fields, "depends-on")),
@@ -193,6 +196,17 @@ fn parse_status(value: Option<&HVal>) -> Option<Status> {
             .and_then(HVal::as_str)
             .map(ToOwned::to_owned),
     })
+}
+
+/// Project a marker field into a numeric-field value: a number becomes
+/// [`NumValue::Num`], a string a [`NumValue::Label`]; anything else is absent.
+fn parse_num_value(value: Option<&HVal>) -> Option<NumValue> {
+    let value = value?;
+    if let Some(num) = value.as_f64() {
+        Some(NumValue::Num(num))
+    } else {
+        value.as_str().map(|text| NumValue::Label(text.to_owned()))
+    }
 }
 
 fn parse_num_map(value: Option<&HVal>) -> BTreeMap<String, f64> {

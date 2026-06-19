@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 
 use super::Filter;
 use crate::model::{Status, Task};
+use crate::numeric::NumValue;
 
 fn sample() -> Task {
     Task {
@@ -15,8 +16,8 @@ fn sample() -> Task {
             date: Some("2026-06-14".to_owned()),
             note: None,
         }),
-        priority: Some("high".to_owned()),
-        grade: Some("senior".to_owned()),
+        priority: Some(NumValue::Num(8.0)),
+        difficulty: Some(NumValue::Num(6.0)),
         kind: Some("feature".to_owned()),
         estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
         depends_on: Vec::new(),
@@ -41,7 +42,17 @@ fn equality_and_inequality() {
     assert!(hit("status == \"wip\"", &task));
     assert!(!hit("status == \"done\"", &task));
     assert!(hit("status != \"done\"", &task));
-    assert!(hit("priority == \"high\"", &task));
+    assert!(hit("priority == 8", &task));
+}
+
+#[test]
+fn numeric_fields_compare_as_numbers() {
+    let task = sample();
+    assert!(hit("priority > 5", &task));
+    assert!(!hit("priority < 8", &task));
+    assert!(hit("priority >= 8", &task));
+    assert!(hit("difficulty == 6", &task));
+    assert!(hit("difficulty <= 6", &task));
 }
 
 #[test]
@@ -87,7 +98,7 @@ fn tag_and_text_functions() {
 #[test]
 fn boolean_combinators() {
     let task = sample();
-    assert!(hit("priority == \"high\" && status != \"done\"", &task));
+    assert!(hit("priority >= 7 && status != \"done\"", &task));
     assert!(hit("status == \"done\" || has_tag(\"backend\")", &task));
     assert!(hit("!has(start)", &task));
 }

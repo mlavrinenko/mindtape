@@ -9,6 +9,8 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Deserializer};
 use thiserror::Error;
 
+use crate::numeric::NumericField;
+
 /// Top-level project configuration.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default)]
@@ -49,8 +51,12 @@ pub struct TasksConfig {
     /// Status legend: legal values in lifecycle order, plus per-value display
     /// (glyph, colour, label) and the `terminal` flag.
     pub status: Legend,
-    /// Constraints for the configurable enum core fields, keyed by Typst slot
-    /// name (`priority`, `grade`, `kind`).
+    /// Priority as a numeric-field instance (scale + band classification).
+    pub priority: NumericField,
+    /// Difficulty as a numeric-field instance (scale + anchor classification).
+    pub difficulty: NumericField,
+    /// Constraints for the remaining configurable enum core fields, keyed by
+    /// Typst slot name (`kind`).
     pub fields: BTreeMap<String, FieldConfig>,
     /// Estimate units allow-list.
     pub estimate: EstimateConfig,
@@ -67,6 +73,8 @@ impl Default for TasksConfig {
         Self {
             roots: vec!["tasks".to_owned()],
             status: Legend::default(),
+            priority: NumericField::default(),
+            difficulty: NumericField::default(),
             fields: BTreeMap::new(),
             estimate: EstimateConfig::default(),
             tags: TagsConfig::default(),
@@ -270,6 +278,26 @@ pub enum ConfigError {
     /// The config file contained invalid TOML.
     #[error("parse error: {0}")]
     Parse(#[from] toml::de::Error),
+    /// The config parsed but failed a semantic check (e.g. band coverage).
+    #[error("invalid config: {0}")]
+    Invalid(String),
+}
+
+impl Config {
+    /// Run semantic checks that go beyond TOML shape (numeric scale and
+    /// classification coverage). Returns one joined message per problem.
+    ///
+    /// # Errors
+    /// Returns the collected problems when the numeric fields are inconsistent.
+    pub fn validate(&self) -> Result<(), String> {
+        let mut problems = self.tasks.priority.validate("priority");
+        problems.extend(self.tasks.difficulty.validate("difficulty"));
+        if problems.is_empty() {
+            Ok(())
+        } else {
+            Err(problems.join("; "))
+        }
+    }
 }
 
 /// Parse a config from a TOML string.
@@ -289,7 +317,9 @@ pub fn load_config(root: &Path) -> Result<Config, ConfigError> {
     if !path.exists() {
         return Ok(Config::default());
     }
-    parse_config(&std::fs::read_to_string(&path)?)
+    let config = parse_config(&std::fs::read_to_string(&path)?)?;
+    config.validate().map_err(ConfigError::Invalid)?;
+    Ok(config)
 }
 
 /// The conventional config path for a project root.

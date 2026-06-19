@@ -21,7 +21,7 @@ filename stem, so links between tasks break loudly when a file is renamed.
 #show: task.with(
   title: "Implement authentication",
   status: wip(2026, 6, 14),
-  priority: "high",
+  priority: 8,
   estimate: (days: 1,),
   tags: ("backend",),
   relates-to: (link("write-docs.typ"),),
@@ -31,11 +31,12 @@ filename stem, so links between tasks break loudly when a file is renamed.
 Wire up the login flow.
 ```
 
-Everything scalar or enum — `status`, `priority`, `grade`, `kind`, `estimate`
-(an opaque `unit -> quantity` dict with a per-project unit allow-list), dates,
-tags, and task links — is a generic core field constrained by
-`.mindtape/config.toml`. Tools that build on MindTape add their own fields
-through the `x-<ns>` extension seam, which MindTape carries opaquely.
+Everything scalar or enum — the `status` legend, the numeric `priority` and
+`difficulty` scales, `kind`, `estimate` (an opaque `unit -> quantity` dict with
+a per-project unit allow-list), dates, tags, and task links — is a generic core
+field constrained by `.mindtape/config.toml`. Tools that build on MindTape add
+their own fields through the `x-<ns>` extension seam, which MindTape carries
+opaquely.
 
 ## Installation
 
@@ -61,7 +62,7 @@ mindtape init               # writes .mindtape/config.toml in the current dir
 mindtape list
 mindtape list --all                          # ignore the default filter
 mindtape list 'has_tag("backend")'           # filter expression
-mindtape list 'status != "done" && priority == "high"'
+mindtape list 'status != "done" && priority >= 7'
 mindtape list 'has(due) && due < "2026-08-01"'
 mindtape list 'search("auth")' --json        # JSON output
 mindtape list 'stale(30)'                     # unreviewed for over 30 days
@@ -99,13 +100,31 @@ leave it unconstrained.
 [tasks]
 roots = ["tasks"]
 
-[tasks.status]
-values   = ["proposed", "accepted", "wip", "done", "cancelled", "failed"]
-terminal = ["done", "cancelled", "failed"]
+# Status legend: legal values in lifecycle order, each with an optional glyph
+# and colour. `terminal = true` ends a task (required fields relax once terminal).
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
 
-[tasks.fields.priority]
-values   = ["low", "normal", "high"]
-required = "non-terminal"          # true | false | "non-terminal"
+# Priority: a number on a scale, classified into labelled bands. `required` is
+# true | false | "non-terminal". Difficulty is the sibling, classified by anchors.
+[tasks.priority]
+kind = "int"                       # int | real
+min  = 0
+max  = 9
+required = "non-terminal"
+[[tasks.priority.bands]]
+label = "high"
+min   = 7
+max   = 9
+glyph = "🔴"
+color = "red"
 
 # Allowed estimate units (free labels; never converted or compared). An estimate
 # is a unit dict, e.g. `estimate: (days: 5, hours: 5)` or `estimate: (points: 8)`.
@@ -119,9 +138,10 @@ default_filter = "status != \"done\""
 
 ### Filter language
 
-Comparable fields: `status`, `priority`, `grade`, `kind`, `title`, `id`, `due`,
-`start`, `reviewed`, `file`. Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`,
-`||`, `!`, parentheses. Functions: `has(field)`, `miss(field)`,
+Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
+`due`, `start`, `reviewed`, `file`. `priority` and `difficulty` compare
+numerically against a number (e.g. `priority >= 7`). Operators: `==`, `!=`, `<`,
+`>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses. Functions: `has(field)`, `miss(field)`,
 `has_tag("name")`, `contains(field, "substr")`, `search("query")`, `stale(N)`
 (re-affirmed — or, lacking `reviewed`, last status-changed — more than N days
 ago). The opaque `estimate` dict supports presence only (`has(estimate)`), not

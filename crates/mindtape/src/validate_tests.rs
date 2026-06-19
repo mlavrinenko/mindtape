@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use super::validate;
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
+use crate::numeric::NumValue;
 
 fn config() -> crate::config::Config {
     parse_config(
@@ -17,9 +18,18 @@ value = "wip"
 value = "done"
 terminal = true
 
-[tasks.fields.priority]
-values = ["low", "high"]
+[tasks.priority]
+min = 0
+max = 9
 required = "non-terminal"
+[[tasks.priority.bands]]
+label = "low"
+min = 0
+max = 4
+[[tasks.priority.bands]]
+label = "high"
+min = 5
+max = 9
 
 [tasks.estimate]
 units = ["hours", "days"]
@@ -41,8 +51,8 @@ fn task(id: &str, status: &str) -> Task {
             date: None,
             note: None,
         }),
-        priority: Some("high".to_owned()),
-        grade: None,
+        priority: Some(NumValue::Num(8.0)),
+        difficulty: None,
         kind: None,
         estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
         depends_on: Vec::new(),
@@ -83,6 +93,19 @@ fn terminal_task_skips_required() {
     let mut item = task("a", "done");
     item.priority = None;
     assert!(validate(&[item], &config()).is_empty());
+}
+
+#[test]
+fn flags_priority_out_of_scale() {
+    let mut item = task("a", "wip");
+    item.priority = Some(NumValue::Num(42.0));
+    let violations = validate(&[item], &config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "priority" && v.message.contains("outside")),
+        "out-of-scale priority should be flagged, got: {violations:?}"
+    );
 }
 
 #[test]

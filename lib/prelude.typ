@@ -6,7 +6,8 @@
 //   - emits one labelled metadata marker the Rust layer collects
 //   - enforces the extension discipline: any non-core slot must be `x-<ns>`
 // The Rust layer, driven by `.mindtape/config.toml`, owns the rest:
-//   - allowed enum values (status / priority / grade / kind), required-unless-terminal
+//   - the status legend, the numeric priority/difficulty scales, the kind enum,
+//     required-unless-terminal
 //   - identity (filename stem), the filter language
 // Keeping the prelude config-free means the same package serves every project.
 
@@ -38,7 +39,7 @@
 
 // Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
 #let _core-slots = (
-  "title", "status", "priority", "grade", "kind", "estimate",
+  "title", "status", "priority", "difficulty", "kind", "estimate",
   "depends-on", "relates-to", "supersedes", "duplicates", "tags", "due", "start", "reviewed", "id",
 )
 
@@ -62,7 +63,7 @@
         title: m.at("title", default: ""),
         status: m.at("status", default: none),
         priority: m.at("priority", default: none),
-        grade: m.at("grade", default: none),
+        difficulty: m.at("difficulty", default: none),
         kind: m.at("kind", default: none),
         estimate: m.at("estimate", default: (:)),
         depends-on: m.at("depends-on", default: ()),

@@ -11,6 +11,7 @@ use uuid::Uuid;
 
 use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, Requirement};
 use crate::model::{Task, resolve_link_path};
+use crate::numeric::{NumValue, NumericField, format_num};
 
 /// Source location for a violation that points to a specific line.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -48,6 +49,20 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         for (name, field) in &config.tasks.fields {
             check_enum_field(task, name, field, terminal, &mut out);
         }
+        out.extend(check_numeric(
+            task,
+            "priority",
+            &task.priority,
+            &config.tasks.priority,
+            terminal,
+        ));
+        out.extend(check_numeric(
+            task,
+            "difficulty",
+            &task.difficulty,
+            &config.tasks.difficulty,
+            terminal,
+        ));
         check_estimate(task, &config.tasks.estimate, terminal, &mut out);
         check_tags(task, config, &mut out);
         check_links(task, &files, &mut out);
@@ -106,12 +121,16 @@ fn check_id_format(task: &Task, config: &Config, out: &mut Vec<Violation>) {
 }
 
 fn push(out: &mut Vec<Violation>, task: &Task, field: &str, message: String) {
-    out.push(Violation {
+    out.push(violation(task, field, message));
+}
+
+fn violation(task: &Task, field: &str, message: String) -> Violation {
+    Violation {
         task_id: task.id.clone(),
         field: field.to_owned(),
         message,
         location: None,
-    });
+    }
 }
 
 fn check_status(task: &Task, config: &Config, out: &mut Vec<Violation>) {
@@ -139,8 +158,6 @@ fn check_enum_field(
     out: &mut Vec<Violation>,
 ) {
     let value = match name {
-        "priority" => task.priority.as_deref(),
-        "grade" => task.grade.as_deref(),
         "kind" => task.kind.as_deref(),
         _ => return,
     };
@@ -157,6 +174,39 @@ fn check_enum_field(
             );
         }
         _ => {}
+    }
+}
+
+/// Validate a numeric-field value: required-unless-terminal, a known label, and
+/// in-scale bounds. Returns at most one violation.
+fn check_numeric(
+    task: &Task,
+    name: &str,
+    value: &Option<NumValue>,
+    config: &NumericField,
+    terminal: bool,
+) -> Option<Violation> {
+    let Some(value) = value else {
+        return is_required(config.required, terminal)
+            .then(|| violation(task, name, "required field is missing".to_owned()));
+    };
+    match config.resolve(value) {
+        None => Some(violation(
+            task,
+            name,
+            format!("`{}` is not a known {name} value", value.as_display()),
+        )),
+        Some(point) if point < config.min || point > config.max => Some(violation(
+            task,
+            name,
+            format!(
+                "{} is outside the {name} scale {}..{}",
+                format_num(point),
+                format_num(config.min),
+                format_num(config.max),
+            ),
+        )),
+        Some(_) => None,
     }
 }
 
