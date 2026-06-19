@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Project code config slot",
-  status: proposed(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: "low",
   estimate: (hours: 1),
   tags: ("substrate",),
