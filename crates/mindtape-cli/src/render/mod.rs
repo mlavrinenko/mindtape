@@ -11,12 +11,14 @@
 //! - [`glyph`] — emoji vs. ASCII vs. no-glyph mode, with TTY-aware resolution.
 //! - [`width`] — Unicode display-width-aware truncation and padding helpers.
 //! - [`sep`] — stable separator policy for machine-readable output.
+//! - [`field`] — `Field` trait and generic cell rendering seam.
 //!
 //! The submodules expose infrastructure that will be consumed by command modules
 //! as each command is migrated; `dead_code` is not suppressed here — see
 //! the `#[allow(dead_code)]` on the `mod render` declaration in `main.rs`.
 
 pub mod color;
+pub mod field;
 pub mod glyph;
 pub mod sep;
 pub mod width;
