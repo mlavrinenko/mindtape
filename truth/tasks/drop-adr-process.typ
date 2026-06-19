@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Drop the ADR process; track decisions as tasks",
-  status: proposed(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: "low",
   estimate: (hours: 2),
   tags: ("docs", "tooling"),
