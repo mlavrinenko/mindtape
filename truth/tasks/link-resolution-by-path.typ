@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Resolve task links by file path, not id-stem",
-  status: proposed(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: "normal",
   estimate: (hours: 3),
   depends-on: (link("task-identity.typ"),),
