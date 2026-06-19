@@ -5,12 +5,12 @@
 //! resolution (a `depends-on`/`relates-to` target must name a loaded task).
 
 use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use uuid::Uuid;
 
 use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, Requirement};
-use crate::model::Task;
+use crate::model::{Task, resolve_link_path};
 
 /// Source location for a violation that points to a specific line.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -37,7 +37,7 @@ pub struct Violation {
 /// Validate every task against `config`, returning all violations.
 #[must_use]
 pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
-    let ids: HashSet<&str> = tasks.iter().map(|task| task.id.as_str()).collect();
+    let files: HashSet<&Path> = tasks.iter().map(|task| task.file.as_path()).collect();
     let mut out = Vec::new();
     check_id_uniqueness(tasks, &mut out);
     for task in tasks {
@@ -49,7 +49,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         }
         check_estimate(task, &config.tasks.estimate, terminal, &mut out);
         check_tags(task, config, &mut out);
-        check_links(task, &ids, &mut out);
+        check_links(task, &files, &mut out);
     }
     out
 }
@@ -198,7 +198,7 @@ fn check_tags(task: &Task, config: &Config, out: &mut Vec<Violation>) {
     }
 }
 
-fn check_links(task: &Task, ids: &HashSet<&str>, out: &mut Vec<Violation>) {
+fn check_links(task: &Task, files: &HashSet<&Path>, out: &mut Vec<Violation>) {
     for (field, links) in [
         ("depends-on", &task.depends_on),
         ("relates-to", &task.relates_to),
@@ -206,12 +206,19 @@ fn check_links(task: &Task, ids: &HashSet<&str>, out: &mut Vec<Violation>) {
         ("duplicates", &task.duplicates),
     ] {
         for target in links {
-            if !ids.contains(target.as_str()) {
+            let resolved = resolve_link_path(&task.file, target);
+            let found = resolved.as_deref().is_some_and(|p| files.contains(p));
+            if !found {
+                let display = resolved
+                    .as_deref()
+                    .unwrap_or(Path::new(target))
+                    .display()
+                    .to_string();
                 push(
                     out,
                     task,
                     field,
-                    format!("link target `{target}` not found"),
+                    format!("link target `{display}` not found"),
                 );
             }
         }

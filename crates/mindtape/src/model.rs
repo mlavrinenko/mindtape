@@ -19,7 +19,8 @@ pub struct Status {
 /// One task: the portable item model harvested from a per-file artifact.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Task {
-    /// Identity: the file stem (e.g. `implement-auth`).
+    /// Identity: defaults to the file stem; overridden by an explicit `id:`
+    /// field in the task marker.
     pub id: String,
     /// Path to the source file, relative to the project root.
     pub file: PathBuf,
@@ -36,13 +37,15 @@ pub struct Task {
     /// Estimate as an opaque `unit -> quantity` map (e.g. `{days: 5, hours: 5}`
     /// or `{points: 8}`). Units are free labels; never converted or compared.
     pub estimate: BTreeMap<String, f64>,
-    /// Task ids this task depends on (normalized stems).
+    /// Raw link targets from `depends-on` (paths as written in the DSL, e.g.
+    /// `"other.typ"` or `"../sub/task.typ"`). Resolved to file paths at
+    /// validation time; history-pointer entries are excluded.
     pub depends_on: Vec<String>,
-    /// Task ids this task relates to (normalized stems).
+    /// Raw link targets from `relates-to`. See [`depends_on`](Self::depends_on).
     pub relates_to: Vec<String>,
-    /// Task ids this task supersedes (normalized stems).
+    /// Raw link targets from `supersedes`. See [`depends_on`](Self::depends_on).
     pub supersedes: Vec<String>,
-    /// Task ids this task duplicates (normalized stems).
+    /// Raw link targets from `duplicates`. See [`depends_on`](Self::depends_on).
     pub duplicates: Vec<String>,
     /// Tags.
     pub tags: Vec<String>,
@@ -113,13 +116,55 @@ pub fn is_history_pointer(target: &str) -> bool {
 }
 
 /// Normalize a link target (a stem or path like `foo.task-260101.typ`) to the
-/// file-stem identity used for resolution.
+/// file-stem identity used by the `cleanup` command for matching against task
+/// identities. Not used for link resolution in validation; see
+/// [`resolve_link_path`] for path-based resolution.
 #[must_use]
 pub fn normalize_link(target: &str) -> String {
     Path::new(target).file_stem().map_or_else(
         || target.to_owned(),
         |stem| stem.to_string_lossy().into_owned(),
     )
+}
+
+/// Resolve a raw link `target` (as written in the Typst DSL, e.g. `"other.typ"`
+/// or `"../sub/task.typ"`) relative to the directory of the linking task's
+/// `task_file` (relative to project root). Returns a normalised path relative to
+/// the project root, with `..` components collapsed without touching the
+/// filesystem.
+///
+/// Returns `None` if the resulting path escapes the project root (too many `..`).
+#[must_use]
+pub fn resolve_link_path(task_file: &Path, target: &str) -> Option<PathBuf> {
+    // Start from the directory of the linking task.
+    let base = task_file.parent().unwrap_or(Path::new(""));
+    // Build a component list and push each component of base, then target.
+    let mut components: Vec<&str> = Vec::new();
+    for c in base.components() {
+        match c {
+            std::path::Component::Normal(s) => {
+                components.push(s.to_str()?);
+            }
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                components.pop()?; // None means escapes root
+            }
+            _ => return None, // absolute or prefix — unexpected
+        }
+    }
+    for c in Path::new(target).components() {
+        match c {
+            std::path::Component::Normal(s) => {
+                components.push(s.to_str()?);
+            }
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                components.pop()?; // None means escapes root
+            }
+            _ => return None, // absolute or prefix — unexpected
+        }
+    }
+    Some(components.iter().collect())
 }
 
 fn field<'a>(fields: Option<&'a HVal>, key: &str) -> Option<&'a HVal> {
@@ -181,7 +226,7 @@ fn parse_links(value: Option<&HVal>) -> Vec<String> {
                 .iter()
                 .filter_map(HVal::as_str)
                 .filter(|target| !is_history_pointer(target))
-                .map(normalize_link)
+                .map(ToOwned::to_owned)
                 .collect()
         })
         .unwrap_or_default()

@@ -104,7 +104,7 @@ fn flags_disallowed_tag() {
 #[test]
 fn flags_unresolved_link() {
     let mut item = task("a", "wip");
-    item.depends_on = vec!["missing".to_owned()];
+    item.depends_on = vec!["missing.typ".to_owned()];
     let violations = validate(&[item], &config());
     assert!(violations.iter().any(|v| v.field == "depends-on"));
 }
@@ -112,7 +112,7 @@ fn flags_unresolved_link() {
 #[test]
 fn flags_unresolved_supersedes() {
     let mut item = task("a", "wip");
-    item.supersedes = vec!["gone".to_owned()];
+    item.supersedes = vec!["gone.typ".to_owned()];
     let violations = validate(&[item], &config());
     assert!(violations.iter().any(|v| v.field == "supersedes"));
 }
@@ -120,7 +120,7 @@ fn flags_unresolved_supersedes() {
 #[test]
 fn flags_unresolved_duplicates() {
     let mut item = task("a", "wip");
-    item.duplicates = vec!["ghost".to_owned()];
+    item.duplicates = vec!["ghost.typ".to_owned()];
     let violations = validate(&[item], &config());
     assert!(violations.iter().any(|v| v.field == "duplicates"));
 }
@@ -128,8 +128,9 @@ fn flags_unresolved_duplicates() {
 #[test]
 fn resolves_supersedes_and_duplicates() {
     let mut first = task("a", "wip");
-    first.supersedes = vec!["b".to_owned()];
-    first.duplicates = vec!["b".to_owned()];
+    // sibling file: tasks/b.typ — resolvable from tasks/a.typ as "b.typ"
+    first.supersedes = vec!["b.typ".to_owned()];
+    first.duplicates = vec!["b.typ".to_owned()];
     let tasks = vec![first, task("b", "wip")];
     let violations = validate(&tasks, &config());
     assert!(!violations.iter().any(|v| v.field == "supersedes"));
@@ -139,12 +140,80 @@ fn resolves_supersedes_and_duplicates() {
 #[test]
 fn resolves_existing_link() {
     let mut first = task("a", "wip");
-    first.relates_to = vec!["b".to_owned()];
+    // sibling file: tasks/b.typ — resolvable from tasks/a.typ as "b.typ"
+    first.relates_to = vec!["b.typ".to_owned()];
     let tasks = vec![first, task("b", "wip")];
     assert!(
         !validate(&tasks, &config())
             .iter()
             .any(|v| v.field == "relates-to")
+    );
+}
+
+#[test]
+fn broken_link_violation_names_resolved_path() {
+    let mut item = task("a", "wip");
+    item.depends_on = vec!["nonexistent.typ".to_owned()];
+    let violations = validate(&[item], &config());
+    let v = violations
+        .iter()
+        .find(|v| v.field == "depends-on")
+        .expect("expected a depends-on violation");
+    assert!(
+        v.message.contains("tasks/nonexistent.typ"),
+        "violation message should name resolved path, got: {}",
+        v.message
+    );
+}
+
+#[test]
+fn link_across_nested_directories_resolves() {
+    // Task a lives at sub/a.typ; task b lives at other/b.typ.
+    // From sub/a.typ, "b.typ" in other/ is reached via "../other/b.typ".
+    let mut a = task("a", "wip");
+    a.file = "sub/a.typ".into();
+    a.depends_on = vec!["../other/b.typ".to_owned()];
+
+    let mut b = task("b", "wip");
+    b.file = "other/b.typ".into();
+
+    let tasks = vec![a, b];
+    let violations = validate(&tasks, &config());
+    assert!(
+        !violations.iter().any(|v| v.field == "depends-on"),
+        "cross-directory link should resolve, got: {violations:?}"
+    );
+}
+
+#[test]
+fn explicit_id_task_still_reachable_by_path() {
+    // A task whose id differs from its stem is still found as a link target
+    // because resolution is now path-based, not id-based.
+    let mut target = task("stem", "wip");
+    target.id = "custom-uuid-style-id".to_owned();
+    target.file = "tasks/stem.typ".into();
+
+    let mut linker = task("linker", "wip");
+    linker.file = "tasks/linker.typ".into();
+    linker.depends_on = vec!["stem.typ".to_owned()];
+
+    let tasks = vec![linker, target];
+    let violations = validate(&tasks, &config());
+    assert!(
+        !violations.iter().any(|v| v.field == "depends-on"),
+        "task with explicit id should still resolve by file path, got: {violations:?}"
+    );
+}
+
+#[test]
+fn broken_link_across_nested_directories_flagged() {
+    let mut item = task("a", "wip");
+    item.file = "sub/a.typ".into();
+    item.depends_on = vec!["../missing/nowhere.typ".to_owned()];
+    let violations = validate(&[item], &config());
+    assert!(
+        violations.iter().any(|v| v.field == "depends-on"),
+        "non-existent cross-directory link should be flagged"
     );
 }
 
