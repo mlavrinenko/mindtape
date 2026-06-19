@@ -2,8 +2,8 @@
 
 #show: task.with(
   title: "Numeric field primitive: scale, classification, display",
-  status: proposed(2026, 6, 19),
-  priority: "high",
+  status: wip(2026, 6, 19),
+  priority: 8,
   estimate: (days: 1),
   depends-on: (link("field-display.typ"),),
   tags: ("substrate", "cli"),

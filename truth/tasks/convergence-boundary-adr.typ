@@ -3,7 +3,7 @@
 #show: task.with(
   title: "ADR: mindtape <-> speconaut task-layer convergence boundary",
   status: done(2026, 6, 18),
-  priority: "high",
+  priority: 8,
   estimate: (hours: 2),
   tags: ("docs", "speconaut"),
 )

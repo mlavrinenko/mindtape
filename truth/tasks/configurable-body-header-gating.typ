@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Configurable body-header gating in check",
   status: proposed(2026, 6, 14),
-  priority: "normal",
+  priority: 5,
   estimate: (hours: 4),
   depends-on: (
     link("artifact-gate-rule-engine.typ"),

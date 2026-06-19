@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Absorb generic task-graph logic into the mindtape library",
   status: proposed(2026, 6, 18),
-  priority: "normal",
+  priority: 5,
   estimate: (hours: 6),
   depends-on: (link("convergence-boundary-adr.typ"),),
   tags: ("substrate", "cli"),

@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Plain, copy-friendly list output",
   status: done(2026, 6, 19),
-  priority: "normal",
+  priority: 5,
   estimate: (hours: 4),
   depends-on: (link("tty-render-discipline.typ"),),
   relates-to: (link("field-display.typ"), link("list-handle-ordinal-check.typ")),

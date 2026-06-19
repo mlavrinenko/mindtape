@@ -3,7 +3,7 @@
 #show: task.with(
   title: "Add supersedes and duplicates as core task links",
   status: done(2026, 6, 18),
-  priority: "normal",
+  priority: 5,
   estimate: (hours: 3),
   depends-on: (link("convergence-boundary-adr.typ"),),
   tags: ("substrate",),

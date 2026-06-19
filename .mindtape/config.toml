@@ -41,9 +41,30 @@ glyph = "❌"
 color = "red"
 terminal = true
 
-[tasks.fields.priority]
-values = ["low", "normal", "high"]
+# Priority: a number on a 0..9 scale, classified into labelled bands.
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
 required = "non-terminal"
+[[tasks.priority.bands]]
+label = "low"
+min = 0
+max = 2
+glyph = "🟢"
+color = "green"
+[[tasks.priority.bands]]
+label = "normal"
+min = 3
+max = 6
+glyph = "🟡"
+color = "yellow"
+[[tasks.priority.bands]]
+label = "high"
+min = 7
+max = 9
+glyph = "🔴"
+color = "red"
 
 [tasks.estimate]
 units = ["minutes", "hours", "days", "weeks"]
