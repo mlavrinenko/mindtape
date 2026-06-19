@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Task identity: explicit id, uniqueness, configurable format",
-  status: proposed(2026, 6, 19),
+  status: done(2026, 6, 19),
   priority: "high",
   estimate: (days: 1),
   relates-to: (link("link-resolution-by-path.typ"), link("list-handle-ordinal-check.typ")),
