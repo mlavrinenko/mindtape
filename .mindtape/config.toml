@@ -3,8 +3,13 @@
 # to accept the defaults and the prelude's full status shortcut set.
 
 [tasks]
-# MindTape's own backlog lives here, one task per file.
-roots = ["truth/tasks"]
+# MindTape's own backlog lives here, one task per file. The `mt` root name is
+# emitted as a derived tag on every task (the tree is flat today, so no folder
+# tags yet); nest tasks into folders and the folder names join in.
+[[tasks.roots]]
+path = "truth/tasks"
+name = "mt"
+derive-tags = true
 
 # Status legend: legal values in lifecycle order, each with an optional glyph and
 # colour. `terminal = true` ends a task (required fields relax once terminal).
@@ -77,7 +82,7 @@ units = ["minutes", "hours", "days", "weeks"]
 
 [tasks.tags]
 # Area labels for the backlog. Empty would accept any tag.
-allowed = ["substrate", "speconaut", "cli", "tests", "www", "docs", "tooling", "gating"]
+allowed = ["mt", "substrate", "speconaut", "cli", "tests", "www", "docs", "tooling", "gating"]
 
 # Every task carries exactly one Summary section, and it precedes Scope.
 [[tasks.body.headers.rules]]
