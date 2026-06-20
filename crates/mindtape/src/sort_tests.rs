@@ -2,7 +2,10 @@
 
 use std::collections::BTreeMap;
 
-use super::{default_order, default_order_with, priority_value, status_index};
+use super::{
+    default_order, default_order_with, priority_value, sort_by_specs, status_index,
+    validate_sort_spec,
+};
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
 use crate::numeric::NumValue;
@@ -124,4 +127,85 @@ fn default_order_floats_ready_above_blocked() {
     default_order_with(&mut tasks, &cfg, &readiness);
     let ids: Vec<&str> = tasks.iter().map(|t| t.id.as_str()).collect();
     assert_eq!(ids, vec!["ready-wip", "blocked-proposed"]);
+}
+
+#[test]
+fn validate_sort_spec_accepts_all_fields() {
+    for &field in super::SORT_FIELDS.iter() {
+        assert!(
+            validate_sort_spec(field).is_ok(),
+            "expected {field} to be valid"
+        );
+        assert!(validate_sort_spec(&format!("{field}:asc")).is_ok());
+        assert!(validate_sort_spec(&format!("{field}:desc")).is_ok());
+    }
+}
+
+#[test]
+fn validate_sort_spec_rejects_unknown_field() {
+    assert!(validate_sort_spec("no_such_field").is_err());
+    assert!(validate_sort_spec("no_such_field:desc").is_err());
+}
+
+#[test]
+fn sort_by_specs_orders_by_id_ascending() {
+    let cfg = config();
+    let mut tasks = vec![
+        task("z-task", "wip", 5.0, None),
+        task("a-task", "wip", 5.0, None),
+    ];
+    sort_by_specs(
+        &mut tasks,
+        &["id".to_owned()],
+        &cfg,
+        &crate::ready::Readiness::empty(),
+    )
+    .unwrap();
+    assert_eq!(tasks.first().unwrap().id, "a-task");
+}
+
+#[test]
+fn sort_by_specs_rejects_unknown_field() {
+    let cfg = config();
+    let mut tasks = vec![task("a", "wip", 5.0, None)];
+    assert!(
+        sort_by_specs(
+            &mut tasks,
+            &["bogus".to_owned()],
+            &cfg,
+            &crate::ready::Readiness::empty()
+        )
+        .is_err()
+    );
+}
+
+#[test]
+fn default_order_with_honours_config_default_sort() {
+    let cfg = parse_config(
+        r#"
+[[tasks.status]]
+value = "proposed"
+[[tasks.status]]
+value = "wip"
+[[tasks.status]]
+value = "done"
+terminal = true
+
+[tasks.priority]
+min = 0
+max = 9
+
+[query]
+default_sort = ["id"]
+"#,
+    )
+    .unwrap();
+    // When default_sort = ["id"], tasks sort by id ascending — overriding the
+    // built-in priority-first chain.
+    let mut tasks = vec![
+        task("z-task", "wip", 9.0, None),
+        task("a-task", "wip", 1.0, None),
+    ];
+    default_order_with(&mut tasks, &cfg, &crate::ready::Readiness::empty());
+    assert_eq!(tasks.first().unwrap().id, "a-task");
 }

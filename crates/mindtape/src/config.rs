@@ -257,6 +257,10 @@ pub struct TagsConfig {
 pub struct QueryConfig {
     /// Filter applied by `list` when the caller passes none.
     pub default_filter: Option<String>,
+    /// Default sort chain for `list` when the caller passes no `--sort`.
+    /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
+    /// Validated at config load. When absent the shipped built-in chain applies.
+    pub default_sort: Vec<String>,
 }
 
 /// Whether a field is required: `false`, `true`, or `"non-terminal"`.
@@ -328,6 +332,11 @@ impl Config {
     pub fn validate(&self) -> Result<(), String> {
         let mut problems = self.tasks.priority.validate("priority");
         problems.extend(self.tasks.difficulty.validate("difficulty"));
+        for spec in &self.query.default_sort {
+            if let Err(msg) = crate::sort::validate_sort_spec(spec) {
+                problems.push(format!("query.default_sort: {msg}"));
+            }
+        }
         if problems.is_empty() {
             Ok(())
         } else {

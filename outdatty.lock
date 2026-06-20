@@ -4,7 +4,7 @@ groups:
   cli-docs:
     source:
       crates/mindtape-cli/src/cli.rs: e57164e62e4f4f3735a83efb7c26f001f6aab2623a8acdb24cf070d5bdb32bb0
-      crates/mindtape/src/lib.rs: e81cc58a3d90053452c11afd88cd12def8d2aac1f1370b91766c37e271b1c87d
+      crates/mindtape/src/lib.rs: e51d71e34506a338d0c2ead4ca22d181bbf2ff20ad06d33cee7e7bd6ea4dda73
     dependents:
       README.md: 1d9e8eb1a19d1735ab9cde186359fe0d89a680feb64bbe7947c79453a600cccb
       www/index.html: e6008815abdf85fbfc84c79b32ef270db9303c86e253e57b10fa979f4d8c7b89

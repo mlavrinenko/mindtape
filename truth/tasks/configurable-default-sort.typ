@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Configurable default list sort",
-  status: proposed(2026, 6, 20),
+  status: done(2026, 6, 20),
   priority: ice(impact: 5, confidence: 0.6, ease: 7),
   estimate: (hours: 3),
   relates-to: (link("ready-state-filter-predicates.typ"),),

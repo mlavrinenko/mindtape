@@ -267,3 +267,39 @@ fn effective_project_code_falls_back_to_dir_name() {
         "mindtape"
     );
 }
+
+#[test]
+fn default_sort_absent_means_empty() {
+    let config = parse_config("").unwrap();
+    assert!(config.query.default_sort.is_empty());
+}
+
+#[test]
+fn default_sort_parses_and_validates_known_fields() {
+    let config = parse_config(
+        r#"
+[query]
+default_sort = ["ready", "priority:desc", "due:asc", "id"]
+"#,
+    )
+    .unwrap();
+    assert_eq!(
+        config.query.default_sort,
+        vec!["ready", "priority:desc", "due:asc", "id"]
+    );
+}
+
+#[test]
+fn default_sort_rejects_unknown_field_on_validate() {
+    let config = parse_config(
+        r#"
+[query]
+default_sort = ["no_such_field"]
+"#,
+    )
+    .unwrap();
+    assert!(
+        config.validate().is_err(),
+        "expected validation error for unknown sort field"
+    );
+}

@@ -30,7 +30,7 @@ pub use loader::{LoadError, LoadOutcome, find_root, load_project};
 pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind};
 pub use ready::{Readiness, ReadyState};
-pub use sort::{default_order, default_order_with};
+pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use validate::{Location, Violation, validate};
 
 /// Retain the tasks matching `filter`; `None` keeps them all. `config` resolves

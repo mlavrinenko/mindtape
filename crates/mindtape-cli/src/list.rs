@@ -1,9 +1,7 @@
 //! `mindtape list` — query tasks under the configured roots.
 
-use std::cmp::Ordering;
-
-use anyhow::{Result, bail};
-use mindtape::sort::{default_order_with, priority_value, ready_rank, status_index};
+use anyhow::{Result, anyhow};
+use mindtape::sort::{default_order_with, sort_by_specs};
 use mindtape::{Config, Filter, Readiness, Task, select};
 
 use crate::output::{OutputFormat, render};
@@ -92,106 +90,14 @@ fn sort_tasks(
     config: &Config,
     readiness: &Readiness,
 ) -> Result<()> {
-    // No explicit spec: fall back to the shared default order (the same order
-    // handle resolution uses, so list ordinals stay stable).
     if specs.is_empty() {
+        // default_order_with honours config.query.default_sort when set, then
+        // falls back to the built-in chain. Handle resolution uses the same
+        // call, so list ordinals stay in lock-step with what `list` prints.
         default_order_with(tasks, config, readiness);
         return Ok(());
     }
-    // Apply least-significant spec first so a stable sort yields the intended
-    // precedence (first spec wins ties last).
-    for spec in specs.iter().rev() {
-        let (field, descending) = parse_spec(spec);
-        validate_field(field)?;
-        tasks.sort_by(|left, right| {
-            let ordering = compare(left, right, field, config, readiness);
-            if descending {
-                ordering.reverse()
-            } else {
-                ordering
-            }
-        });
-    }
-    Ok(())
-}
-
-fn parse_spec(spec: &str) -> (&str, bool) {
-    match spec.split_once(':') {
-        Some((field, "desc")) => (field, true),
-        Some((field, _)) => (field, false),
-        None => (spec, false),
-    }
-}
-
-fn validate_field(field: &str) -> Result<()> {
-    const FIELDS: [&str; 10] = [
-        "id",
-        "title",
-        "status",
-        "priority",
-        "difficulty",
-        "kind",
-        "due",
-        "start",
-        "file",
-        "ready",
-    ];
-    if FIELDS.contains(&field) {
-        Ok(())
-    } else {
-        bail!("unknown sort field: {field}")
-    }
-}
-
-/// Compare two tasks on `field`: status by its lifecycle index, readiness by its
-/// rank (ready first), priority and difficulty numerically, everything else
-/// lexicographically.
-fn compare(
-    left: &Task,
-    right: &Task,
-    field: &str,
-    config: &Config,
-    readiness: &Readiness,
-) -> Ordering {
-    match field {
-        "status" => status_index(left, config).cmp(&status_index(right, config)),
-        "ready" => ready_rank(left, readiness).cmp(&ready_rank(right, readiness)),
-        "priority" => cmp_num(priority_value(left, config), priority_value(right, config)),
-        "difficulty" => cmp_num(
-            difficulty_value(left, config),
-            difficulty_value(right, config),
-        ),
-        _ => string_key(left, field).cmp(&string_key(right, field)),
-    }
-}
-
-/// A task's difficulty resolved to a number on its scale, if set and resolvable.
-fn difficulty_value(task: &Task, config: &Config) -> Option<f64> {
-    task.difficulty
-        .as_ref()
-        .and_then(|value| config.tasks.difficulty.resolve(value))
-}
-
-/// Compare numbers ascending; a missing value sorts last.
-fn cmp_num(left: Option<f64>, right: Option<f64>) -> Ordering {
-    match (left, right) {
-        (Some(low), Some(high)) => low.partial_cmp(&high).unwrap_or(Ordering::Equal),
-        (Some(_), None) => Ordering::Less,
-        (None, Some(_)) => Ordering::Greater,
-        (None, None) => Ordering::Equal,
-    }
-}
-
-fn string_key(task: &Task, field: &str) -> String {
-    match field {
-        "id" => task.id.clone(),
-        "title" => task.title.clone(),
-        "kind" => task.kind.clone().unwrap_or_default(),
-        "due" => task.due.clone().unwrap_or_default(),
-        "start" => task.start.clone().unwrap_or_default(),
-        "file" => task.file.display().to_string(),
-        _ => String::new(),
-    }
+    sort_by_specs(tasks, specs, config, readiness).map_err(|e| anyhow!("{e}"))
 }
 
 #[cfg(test)]
@@ -203,7 +109,9 @@ mod tests {
     use mindtape::numeric::NumValue;
     use mindtape::{Config, Readiness, Task, load_project};
 
-    use super::{ListArgs, parse_spec, run_with, sort_tasks, validate_field};
+    use mindtape::sort::sort_by_specs;
+
+    use super::{ListArgs, run_with};
     use crate::output::OutputFormat;
 
     fn task(id: &str, priority: f64) -> Task {
@@ -229,24 +137,11 @@ mod tests {
     }
 
     #[test]
-    fn parse_spec_handles_direction() {
-        assert_eq!(parse_spec("due:desc"), ("due", true));
-        assert_eq!(parse_spec("due:asc"), ("due", false));
-        assert_eq!(parse_spec("due"), ("due", false));
-    }
-
-    #[test]
-    fn validate_field_known_and_unknown() {
-        assert!(validate_field("priority").is_ok());
-        assert!(validate_field("bogus").is_err());
-    }
-
-    #[test]
-    fn sort_orders_priority_numerically() {
-        // Ascending priority: the lower number comes first. Lexicographically
-        // "8" < "2" is false, so this only passes with numeric ordering.
+    fn sort_by_specs_orders_priority_numerically() {
+        // Ascending: lower number first. Lexicographic "8" < "2" is false,
+        // so this only passes with numeric ordering.
         let mut tasks = vec![task("b", 8.0), task("a", 2.0)];
-        sort_tasks(
+        sort_by_specs(
             &mut tasks,
             &["priority:asc".to_owned()],
             &Config::default(),
@@ -254,6 +149,20 @@ mod tests {
         )
         .unwrap();
         assert_eq!(tasks.first().unwrap().id, "a");
+    }
+
+    #[test]
+    fn sort_by_specs_rejects_unknown_field() {
+        let mut tasks = vec![task("a", 1.0)];
+        assert!(
+            sort_by_specs(
+                &mut tasks,
+                &["no_such_field".to_owned()],
+                &Config::default(),
+                &Readiness::empty(),
+            )
+            .is_err()
+        );
     }
 
     const TASK: &str = "#metadata((
