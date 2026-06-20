@@ -2,10 +2,12 @@
 
 #show: task.with(
   title: "Generic artifact-gate rule engine",
-  status: wip(2026, 6, 20)[
-    Core structural engine extracted as the `artifact-gate` crate; `check` rides
-    it. The fact/`when` seam is externalized to consumers and the open questions
-    are deferred — see Landed (v1).
+  status: done(2026, 6, 20)[
+    Core structural engine shipped as the `artifact-gate` crate; `check` rides
+    it. v1 (require/forbid path rules) plus the three deferred capabilities —
+    `unique` cardinality, document ordering, and closed-world allowlists — all
+    landed and dogfooded. The fact/`when` seam stays externalized to consumers
+    (engine pure over structure + rules). See Landed.
   ],
   priority: ice(impact: 8, confidence: 0.8, ease: 9),
   estimate: (hours: 10),
@@ -48,20 +50,33 @@ Typst or task concepts.
   (`run_rules(structure, facts, rules) -> diagnostics`).
 - No MindTape/speconaut domain types in the core crate.
 
-== Landed (v1)
+== Landed
 
 The reusable core shipped as `crates/artifact-gate`, consumer-blind (no Typst,
 task model, or domain concepts — deps are `regex` + `thiserror` only):
 
 - `Node { kind, text, line, children }` is the abstract structure tree; `Matcher`
-  (exact | regex, direct-child | recursive), `Action` (require | forbid),
-  `Severity`, `Rule`, `Diagnostic`, and `run_rules(roots, rules) -> diagnostics`
-  are the public surface. The path-matching that lived in MindTape's `gate.rs` now
-  lives here; `gate.rs` adapts the `typst-cst` heading tree into `Node`s and maps
-  `Diagnostic` back to its `Violation`. `mindtape check` behaviour and public API
-  are unchanged.
+  (exact | regex, direct-child | recursive), `Severity`, `Diagnostic`, and
+  `run_rules(roots, rules) -> diagnostics` are the public surface. A `Rule` is
+  diagnostic metadata (`id` / `severity` / `message`) plus a `Check`:
+  - `Check::Path { path, action }` — `Action` is `Require` | `Forbid` | `Unique`.
+  - `Check::Order { first, second }` — every `first` match must precede every
+    `second` match by line; order-only (a missing side is not a violation).
+  - `Check::Allow { scope, allowed }` — closed-world: under `scope`'s children
+    (or the roots when `None`), only `allowed` matchers are permitted.
+  Constructors `Rule::path` / `Rule::order` / `Rule::allow`; builders
+  `with_id` / `with_message` / `with_severity`. The path-matching that lived in
+  MindTape's `gate.rs` now lives here; `gate.rs` adapts the `typst-cst` heading
+  tree into `Node`s and maps `Diagnostic` back to its `Violation`. `mindtape
+  check`'s public API is unchanged.
 
-Decisions baked in (flag on review):
+MindTape dogfoods all three shapes through `[[tasks.body.headers.rules]]`
+(`action = require|forbid|unique|order|allowlist`, each action using its own
+fields — `path` for cardinality, `before`+`after` for order, `scope`+`allowed`
+for allowlist; mismatched fields fail loud at config load). The backlog runs a
+`unique Summary` and an `order Summary before Scope` rule.
+
+Decisions baked in:
 
 - Fact/`when` seam externalized, not engine-owned. The engine is pure over
   (structure, rules) and knows nothing about facts. Each consumer keeps its own
@@ -72,19 +87,20 @@ Decisions baked in (flag on review):
   convergence boundary — shared structure-matching, per-consumer facts. A
   fact-provider entry point for a standalone config-driven engine is the planned
   extension, not a v1 need.
-- Open-world require/forbid only for v1. `kind` is carried on `Node` but not yet a
-  match dimension; cardinality (`unique`), ordering, and the closed-world
-  allowlist are deferred as follow-ups — land them when a consumer (speconaut's
-  Decision artifact) actually needs them, rather than guess the shape now.
-
-== Open questions
-
-Decide before v1 — retrofitting these is painful:
-
-- Closed-world allowlist (only these headers permitted, everything else
-  rejected) vs the open-world forbid+require model. speconaut's Decision
-  artifact (Context / Choice / Consequences only) smells closed-world.
-- Cardinality (`action = unique`, exactly-one).
-- Ordering (Summary must precede Scope).
+- Both worlds shipped, consumer picks. Closed-world (`allowlist`) and open-world
+  (`require`/`forbid`) coexist; a ruleset mixes them freely. Closed-world is a
+  real primitive, not sugar — Rust `regex` has no negative lookahead, so `forbid`
+  cannot express "anything not in `{A, B, C}`". speconaut's Decision artifact
+  (Context / Choice / Consequences only) is the closed-world consumer.
+- Ordering is strict and order-only: `max(first lines) < min(second lines)`, so
+  interleaving is flagged; neither side is required to exist (pair with `require`
+  or `unique` for presence). Diagnostic points at the earliest offending `second`.
+- `unique` = exactly one: absent emits the require diagnostic (line none); each
+  duplicate past the earliest is flagged at its own line.
+- `kind` is carried on `Node` but still not a match dimension — text-based
+  matching only, deferred until a consumer needs cross-kind rules.
+- Fact/`when` seam stays externalized (engine pure over structure + rules); a
+  fact-provider entry point for a standalone config-driven engine is still the
+  planned extension, not built.
 
 Follow-up to `docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md`.
