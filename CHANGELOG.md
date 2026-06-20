@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`typst-cst` crate** — package-agnostic parse-plane structure extraction:
   the heading tree (depth, text, source span) parsed via `typst-syntax`, with no
   eval, World, or IO. A consumer-blind substrate for gating document structure.
+- **`artifact-gate` crate** — plane-agnostic structural rule engine: match a
+  generic node tree against require/forbid path rules (exact or regex segments,
+  direct-child or recursive) and emit diagnostics. Consumer-blind — no Typst,
+  task model, or domain concepts. `mindtape check`'s body-header gating rides it
+  over the `typst-cst` heading tree; speconaut can reuse it for its own artifact
+  structure rules.
 - **`typst-edit` crate** — consumer-blind in-place Typst source editing:
   parse-plane span queries plus an atomic, non-overlapping changeset (`apply`)
   over `typst-syntax`, no eval/World/IO. `find_calls(source, name)` locates any

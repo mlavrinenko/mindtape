@@ -5,6 +5,7 @@ members = [
     "crates/typst-edit",
     "crates/typst-cleanup",
     "crates/swhid-mint",
+    "crates/artifact-gate",
     "crates/mindtape",
     "crates/mindtape-cli",
 ]

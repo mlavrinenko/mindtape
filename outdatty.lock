@@ -23,6 +23,6 @@ groups:
       README.md: 84cdeb8b2c36e7f2a76dca113dade5f45b754c1048ba115251ce26064719d675
   release-notes:
     source:
-      Cargo.toml: 6a67ffb73954d4a80e48065f8549801c60d4a90b433b7c8271479ffb2b29f301
+      Cargo.toml: 42cfdfc44f0eeb0fe5aca2df342147713ba35e945147ae858bd338c24877b43c
     dependents:
-      CHANGELOG.md: 8d430e8d3db18f1a0086b221c1d0ecae87630453f093caf1b84ffc1bb951b5f0
+      CHANGELOG.md: 47e3d25900da1f627ed9be1d2129abca8e2a382405633f7e7a43d1a9681e84d2

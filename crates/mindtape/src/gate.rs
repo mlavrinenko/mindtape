@@ -4,7 +4,6 @@
 //! Compile them once with [`compile_rules`], then call [`check_headers`] once per
 //! task's source text.
 
-use regex::Regex;
 use thiserror::Error;
 use typst_cst::{HeadingNode, parse_headings, tree};
 
@@ -13,17 +12,11 @@ use crate::filter::{Filter, FilterError};
 use crate::model::Task;
 use crate::validate::{Location, Violation};
 
-/// A compiled, ready-to-run header rule (pre-parsed filter, pre-compiled regex).
+/// A compiled, ready-to-run header rule (pre-parsed filter, pre-compiled regex,
+/// pre-baked diagnostic message).
 pub struct CompiledRule {
-    path: Vec<CompiledSegment>,
-    action: HeaderAction,
+    engine_rule: artifact_gate::Rule,
     when: Option<Filter>,
-    message: Option<String>,
-}
-
-enum CompiledSegment {
-    Exact(String),
-    Pattern { re: Box<Regex>, recursive: bool },
 }
 
 /// Errors from compiling header rules.
@@ -66,7 +59,7 @@ pub fn check_headers(
     rules: &[CompiledRule],
     config: &Config,
 ) -> Vec<Violation> {
-    let nodes = tree(parse_headings(source));
+    let nodes = heading_nodes_to_gate(tree(parse_headings(source)));
     check_with_nodes(task, &nodes, rules, config)
 }
 
@@ -79,31 +72,50 @@ fn compile_rule(rule: &HeaderRuleConfig) -> Result<CompiledRule, GateError> {
         .iter()
         .map(compile_segment)
         .collect::<Result<_, _>>()?;
+    let action = match rule.action {
+        HeaderAction::Require => artifact_gate::Action::Require,
+        HeaderAction::Forbid => artifact_gate::Action::Forbid,
+    };
+    let mut engine_rule = artifact_gate::Rule::new(path, action).map_err(|err| match err {
+        artifact_gate::RuleError::EmptyPath => GateError::EmptyPath,
+        artifact_gate::RuleError::Regex { pattern, error } => GateError::Regex { pattern, error },
+    })?;
+    if let Some(message) = &rule.message {
+        engine_rule = engine_rule.with_message(message.clone());
+    }
     let when = rule.when.as_deref().map(Filter::parse).transpose()?;
-    Ok(CompiledRule {
-        path,
-        action: rule.action.clone(),
-        when,
-        message: rule.message.clone(),
-    })
+    Ok(CompiledRule { engine_rule, when })
 }
 
-fn compile_segment(seg: &HeaderPathSegment) -> Result<CompiledSegment, GateError> {
-    Ok(match seg {
-        HeaderPathSegment::Exact(text) => CompiledSegment::Exact(text.clone()),
-        HeaderPathSegment::Pattern { pattern, recursive } => CompiledSegment::Pattern {
-            re: Box::new(Regex::new(pattern).map_err(|err| GateError::Regex {
-                pattern: pattern.clone(),
-                error: err.to_string(),
-            })?),
-            recursive: *recursive,
-        },
-    })
+fn compile_segment(seg: &HeaderPathSegment) -> Result<artifact_gate::Matcher, GateError> {
+    match seg {
+        HeaderPathSegment::Exact(text) => Ok(artifact_gate::Matcher::exact(text.clone())),
+        HeaderPathSegment::Pattern { pattern, recursive } => {
+            artifact_gate::Matcher::pattern(pattern, *recursive).map_err(|err| match err {
+                artifact_gate::RuleError::EmptyPath => GateError::EmptyPath,
+                artifact_gate::RuleError::Regex { pattern: p, error } => {
+                    GateError::Regex { pattern: p, error }
+                }
+            })
+        }
+    }
+}
+
+fn heading_nodes_to_gate(nodes: Vec<HeadingNode>) -> Vec<artifact_gate::Node> {
+    nodes
+        .into_iter()
+        .map(|n| artifact_gate::Node {
+            kind: "heading".to_owned(),
+            text: n.heading.text,
+            line: n.heading.line,
+            children: heading_nodes_to_gate(n.children),
+        })
+        .collect()
 }
 
 fn check_with_nodes(
     task: &Task,
-    roots: &[HeadingNode],
+    roots: &[artifact_gate::Node],
     rules: &[CompiledRule],
     config: &Config,
 ) -> Vec<Violation> {
@@ -116,7 +128,7 @@ fn check_with_nodes(
 
 fn apply_rule(
     task: &Task,
-    roots: &[HeadingNode],
+    roots: &[artifact_gate::Node],
     rule: &CompiledRule,
     config: &Config,
     out: &mut Vec<Violation>,
@@ -124,18 +136,22 @@ fn apply_rule(
     if !rule_applies(rule, task, config) {
         return;
     }
-    let matched = find_path_matches(roots, &rule.path);
-    match rule.action {
-        HeaderAction::Require => {
-            if matched.is_empty() {
-                out.push(require_violation(task, rule));
-            }
-        }
-        HeaderAction::Forbid => {
-            for (text, line) in matched {
-                out.push(forbid_violation(task, rule, &text, line));
-            }
-        }
+    let diagnostics = artifact_gate::run_rules(roots, std::slice::from_ref(&rule.engine_rule));
+    for diag in diagnostics {
+        out.push(diagnostic_to_violation(task, diag));
+    }
+}
+
+fn diagnostic_to_violation(task: &Task, diag: artifact_gate::Diagnostic) -> Violation {
+    let location = diag.line.map(|line| Location {
+        file: task.file.clone(),
+        line,
+    });
+    Violation {
+        task_id: task.id.clone(),
+        field: "body.headers".to_owned(),
+        message: diag.message,
+        location,
     }
 }
 
@@ -144,113 +160,6 @@ fn rule_applies(rule: &CompiledRule, task: &Task, config: &Config) -> bool {
         return true;
     };
     filter.matches(task, config).unwrap_or(false)
-}
-
-fn require_violation(task: &Task, rule: &CompiledRule) -> Violation {
-    let message = rule
-        .message
-        .clone()
-        .unwrap_or_else(|| format!("required heading not found: {}", describe_path(&rule.path)));
-    Violation {
-        task_id: task.id.clone(),
-        field: "body.headers".to_owned(),
-        message,
-        location: None,
-    }
-}
-
-fn forbid_violation(task: &Task, rule: &CompiledRule, text: &str, line: usize) -> Violation {
-    let message = rule
-        .message
-        .clone()
-        .unwrap_or_else(|| format!("forbidden heading '{text}'"));
-    Violation {
-        task_id: task.id.clone(),
-        field: "body.headers".to_owned(),
-        message,
-        location: Some(Location {
-            file: task.file.clone(),
-            line,
-        }),
-    }
-}
-
-fn find_path_matches(roots: &[HeadingNode], path: &[CompiledSegment]) -> Vec<(String, usize)> {
-    let Some((first, rest)) = path.split_first() else {
-        return vec![];
-    };
-    match_in(roots, first, rest)
-}
-
-fn match_in(
-    scope: &[HeadingNode],
-    seg: &CompiledSegment,
-    rest: &[CompiledSegment],
-) -> Vec<(String, usize)> {
-    let mut results = Vec::new();
-    let search: Vec<&HeadingNode> = if is_recursive(seg) {
-        all_descendants(scope)
-    } else {
-        scope.iter().collect()
-    };
-    for entry in search {
-        if seg_matches(seg, &entry.heading.text) {
-            collect_match(entry, rest, &mut results);
-        }
-    }
-    results
-}
-
-fn collect_match(entry: &HeadingNode, rest: &[CompiledSegment], out: &mut Vec<(String, usize)>) {
-    if rest.is_empty() {
-        out.push((entry.heading.text.clone(), entry.heading.line));
-    } else {
-        out.extend(find_path_matches(&entry.children, rest));
-    }
-}
-
-fn all_descendants(scope: &[HeadingNode]) -> Vec<&HeadingNode> {
-    let mut found = Vec::new();
-    for entry in scope {
-        found.push(entry);
-        found.extend(all_descendants(&entry.children));
-    }
-    found
-}
-
-fn seg_matches(seg: &CompiledSegment, text: &str) -> bool {
-    match seg {
-        CompiledSegment::Exact(expected) => expected == text,
-        CompiledSegment::Pattern { re, .. } => re.is_match(text),
-    }
-}
-
-fn is_recursive(seg: &CompiledSegment) -> bool {
-    match seg {
-        CompiledSegment::Exact(_) => false,
-        CompiledSegment::Pattern { recursive, .. } => *recursive,
-    }
-}
-
-fn describe_path(path: &[CompiledSegment]) -> String {
-    path.iter()
-        .map(describe_seg)
-        .collect::<Vec<_>>()
-        .join(" > ")
-}
-
-fn describe_seg(seg: &CompiledSegment) -> String {
-    match seg {
-        CompiledSegment::Exact(text) => format!("'{text}'"),
-        CompiledSegment::Pattern {
-            re,
-            recursive: true,
-        } => format!("/{}/..", re.as_str()),
-        CompiledSegment::Pattern {
-            re,
-            recursive: false,
-        } => format!("/{}/", re.as_str()),
-    }
 }
 
 #[cfg(test)]
