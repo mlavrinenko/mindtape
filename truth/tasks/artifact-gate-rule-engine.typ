@@ -13,7 +13,7 @@
   estimate: (hours: 10),
   depends-on: (link("swh:1:rev:8069f3182b74520070fcfeb584a5626df6db1203;path=truth/tasks/typst-cst-structure-extraction.typ"),),
   relates-to: (
-    link("extract-typst-harvest.typ"),
+    link("swh:1:rev:f4d7b80eda0be8df86149c81b6d149a5df8a6dc6;path=truth/tasks/extract-typst-harvest.typ"),
     link("converge-speconaut.typ"),
   ),
   tags: ("substrate", "gating"),

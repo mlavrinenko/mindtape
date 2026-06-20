@@ -7,7 +7,7 @@
   depends-on: (link("convergence-boundary-adr.typ"),),
   relates-to: (
     link("absorb-task-graph-into-lib.typ"),
-    link("extract-typst-harvest.typ"),
+    link("swh:1:rev:f4d7b80eda0be8df86149c81b6d149a5df8a6dc6;path=truth/tasks/extract-typst-harvest.typ"),
   ),
   tags: ("speconaut",),
 )
