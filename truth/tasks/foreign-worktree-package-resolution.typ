@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Resolve @local/mindtape correctly in a foreign worktree",
-  status: proposed(2026, 6, 20),
+  status: done(2026, 6, 21)[Name-gated the in-tree lib override and added the typst.local-packages config seam; regression tests cover both.],
   priority: ice(impact: 9, confidence: 0.9, ease: 8),
   relates-to: (link("converge-speconaut.typ"),),
   tags: ("substrate", "speconaut"),

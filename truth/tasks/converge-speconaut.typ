@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Ready MindTape to host speconaut's task layer",
-  status: proposed(2026, 6, 20),
+  status: done(2026, 6, 21)[Both MindTape-side fixes landed; the library is ready for speconaut to depend on. The speconaut migration is tracked in the speconaut repo.],
   priority: ice(impact: 8, confidence: 0.8, ease: 8),
   relates-to: (
     link("foreign-worktree-package-resolution.typ"),

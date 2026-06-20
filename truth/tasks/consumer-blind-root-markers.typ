@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Drop the .mindtape root marker from typst-harvest",
-  status: proposed(2026, 6, 20),
+  status: done(2026, 6, 21)[Dropped the .mindtape marker from typst-harvest find_project_root; tests now mark roots generically.],
   priority: ice(impact: 6, confidence: 0.9, ease: 9),
   relates-to: (link("converge-speconaut.typ"),),
   tags: ("substrate",),
