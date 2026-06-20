@@ -61,7 +61,7 @@ fn status_index_follows_legend_order() {
 }
 
 #[test]
-fn default_order_sorts_status_then_priority_desc() {
+fn default_order_sorts_priority_desc_then_status() {
     let cfg = config();
     let mut tasks = vec![
         task("low-wip", "wip", 2.0, None),
@@ -70,8 +70,22 @@ fn default_order_sorts_status_then_priority_desc() {
     ];
     default_order(&mut tasks, &cfg);
     let ids: Vec<&str> = tasks.iter().map(|t| t.id.as_str()).collect();
-    // proposed (index 0) leads; within wip, priority 8 before 2.
-    assert_eq!(ids, vec!["any-proposed", "high-wip", "low-wip"]);
+    // Priority leads after readiness: 8, then 2, then 1 — the lower-priority
+    // proposed task trails despite leading the lifecycle.
+    assert_eq!(ids, vec!["high-wip", "low-wip", "any-proposed"]);
+}
+
+#[test]
+fn default_order_breaks_priority_ties_by_status() {
+    let cfg = config();
+    // Equal priority: the lifecycle index breaks the tie (proposed before wip).
+    let mut tasks = vec![
+        task("the-wip", "wip", 5.0, None),
+        task("the-proposed", "proposed", 5.0, None),
+    ];
+    default_order(&mut tasks, &cfg);
+    let ids: Vec<&str> = tasks.iter().map(|t| t.id.as_str()).collect();
+    assert_eq!(ids, vec!["the-proposed", "the-wip"]);
 }
 
 #[test]

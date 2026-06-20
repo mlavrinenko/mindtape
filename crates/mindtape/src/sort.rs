@@ -19,10 +19,14 @@ pub fn default_order(tasks: &mut [Task], config: &Config) {
 }
 
 /// Sort `tasks` into the default order: ready work first (ready, then blocked,
-/// then settled per `readiness`), then status lifecycle (the configured
-/// `[[tasks.status]]` index), then priority descending, then due ascending, with
-/// the id as a stable final tiebreak. `readiness` must be computed over the full
-/// loaded set (see [`Readiness::compute`]).
+/// then settled per `readiness`), then priority descending — so every ready
+/// task is ranked by priority — then the status lifecycle (the configured
+/// `[[tasks.status]]` index) and due ascending as tiebreaks, with the id as a
+/// stable final tiebreak. `readiness` must be computed over the full loaded set
+/// (see [`Readiness::compute`]).
+///
+/// This is the shipped default chain (`ready` → `priority` → `status` → `due` →
+/// `id`); making it project-configurable is tracked separately.
 pub fn default_order_with(tasks: &mut [Task], config: &Config, readiness: &Readiness) {
     tasks.sort_by(|left, right| compare_default(left, right, config, readiness));
 }
@@ -30,8 +34,8 @@ pub fn default_order_with(tasks: &mut [Task], config: &Config, readiness: &Readi
 fn compare_default(left: &Task, right: &Task, config: &Config, readiness: &Readiness) -> Ordering {
     ready_rank(left, readiness)
         .cmp(&ready_rank(right, readiness))
-        .then_with(|| status_index(left, config).cmp(&status_index(right, config)))
         .then_with(|| priority_desc(left, right, config))
+        .then_with(|| status_index(left, config).cmp(&status_index(right, config)))
         .then_with(|| due_asc(left, right))
         .then_with(|| left.id.cmp(&right.id))
 }
