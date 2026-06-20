@@ -665,7 +665,7 @@ Stand up an isolated staging stack that mirrors production topology.</code></pre
       <span class="window-bar-title">Terminal</span>
     </div>
     <div class="term-body">
-      <span class="prompt">$</span> <span class="cmd">mindtape list</span>
+      <span class="prompt">$</span> <span class="cmd">mindtape ls</span>
       <pre><code>┌───────────────────────┬──────────┬──────────┬────────────┬───────────────────────────────┐
 │ ID                    ┆ STATUS   ┆ PRIORITY ┆ DUE        ┆ TITLE                         │
 ╞═══════════════════════╪══════════╪══════════╪════════════╪═══════════════════════════════╡
@@ -679,7 +679,7 @@ Stand up an isolated staging stack that mirrors production topology.</code></pre
 └───────────────────────┴──────────┴──────────┴────────────┴───────────────────────────────┘</code></pre>
       <span class="prompt">$</span> <span class="cmd">mindtape --color never list --json | jq .</span>
       <pre><code># --color &lt;auto|always|never&gt; controls ANSI output (respects NO_COLOR)</code></pre>
-      <span class="prompt">$</span> <span class="cmd">mindtape list 'has_tag("backend")'</span>
+      <span class="prompt">$</span> <span class="cmd">mindtape ls 'has_tag("backend")'</span>
       <pre><code>┌────────────────────┬──────────┬──────────┬────────────┬────────────────────────┐
 │ ID                 ┆ STATUS   ┆ PRIORITY ┆ DUE        ┆ TITLE                  │
 ╞════════════════════╪══════════╪══════════╪════════════╪════════════════════════╡

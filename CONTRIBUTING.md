@@ -85,7 +85,7 @@ Commits that file or edit task artifacts themselves (and the backlog config in
 ## Extending MindTape
 
 - New CLI command: add `crates/mindtape-cli/src/<name>.rs` with an `Args` struct
-  and a `run` fn; wire it into `cli.rs`. See `list.rs` for reference.
+  and a `run` fn; wire it into `cli.rs`. See `ls.rs` for reference.
 - New domain capability: add to `crates/mindtape` and re-export from its
   `lib.rs`. Keep `typst-harvest` consumer-blind — no task concepts there.
 - Architectural/tooling decisions: file a task under `truth/tasks/` (the ADR

@@ -17,7 +17,7 @@ Repository: https://github.com/mlavrinenko/mindtape
 - `docs/redesign/` — the redesign brief and DSL shape probe (historical)
 - `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
 - `truth/tasks/` — MindTape's own backlog as per-file task artifacts (dogfood);
-  `mindtape list` / `mindtape check` run against it via the in-tree `lib/`
+  `mindtape ls` / `mindtape check` run against it via the in-tree `lib/`
 
 ## Workspace
 

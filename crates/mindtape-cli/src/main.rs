@@ -6,7 +6,7 @@ mod eval;
 mod git;
 mod handle;
 mod init;
-mod list;
+mod ls;
 mod output;
 // Infrastructure for future command migration; not every item is wired yet.
 #[allow(dead_code)]

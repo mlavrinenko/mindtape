@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand};
 use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
-use crate::{check, eval, init, list, review, rm};
+use crate::{check, eval, init, ls, review, rm};
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
 #[derive(Parser)]
@@ -30,7 +30,7 @@ pub struct Cli {
 #[derive(Subcommand)]
 enum Command {
     /// List tasks under the configured roots, applying a filter.
-    List(list::ListArgs),
+    Ls(ls::LsArgs),
     /// Validate tasks against the project configuration.
     Check,
     /// Scaffold `.mindtape/config.toml` in the current directory.
@@ -53,7 +53,7 @@ impl Cli {
     /// Propagates the command's failure.
     pub fn run(self) -> Result<()> {
         match self.command {
-            Command::List(args) => list::run(&args),
+            Command::Ls(args) => ls::run(&args),
             Command::Check => check::run(),
             Command::Init(args) => init::run(&args),
             Command::InstallLib => init::run_install_lib(),

@@ -59,16 +59,16 @@ mindtape init               # writes .mindtape/config.toml in the current dir
 
 ```bash
 # List tasks under the configured roots (applies query.default_filter)
-mindtape list
-mindtape list --all                          # ignore the default filter
-mindtape list 'has_tag("backend")'           # filter expression
-mindtape list 'status != "done" && priority >= 7'
-mindtape list 'has(due) && due < "2026-08-01"'
-mindtape list 'search("auth")' --json        # JSON output
-mindtape list 'stale(30)'                     # unreviewed for over 30 days
-mindtape list ready                           # deps all done — startable now
-mindtape list 'blocked && priority >= 7'      # high-priority work that is stuck
-mindtape list --sort priority:asc -n 10      # sort + limit
+mindtape ls
+mindtape ls --all                          # ignore the default filter
+mindtape ls 'has_tag("backend")'           # filter expression
+mindtape ls 'status != "done" && priority >= 7'
+mindtape ls 'has(due) && due < "2026-08-01"'
+mindtape ls 'search("auth")' --json        # JSON output
+mindtape ls 'stale(30)'                     # unreviewed for over 30 days
+mindtape ls ready                           # deps all done — startable now
+mindtape ls 'blocked && priority >= 7'      # high-priority work that is stuck
+mindtape ls --sort priority:asc -n 10      # sort + limit
 
 # Re-affirm a task as still relevant (stamps reviewed: with today's date)
 mindtape review implement-auth               # by slug, relative, or absolute path

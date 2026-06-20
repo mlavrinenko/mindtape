@@ -1,4 +1,4 @@
-//! `mindtape list` — query tasks under the configured roots.
+//! `mindtape ls` — query tasks under the configured roots.
 
 use anyhow::{Result, anyhow};
 use mindtape::sort::{default_order_with, sort_by_specs};
@@ -7,9 +7,9 @@ use mindtape::{Config, Filter, Readiness, Task, select};
 use crate::output::{OutputFormat, render};
 use crate::util;
 
-/// Arguments for `list`.
+/// Arguments for `ls`.
 #[derive(Debug, clap::Args)]
-pub struct ListArgs {
+pub struct LsArgs {
     /// Filter expression (defaults to the project's `query.default_filter`).
     pub filter: Option<String>,
 
@@ -34,15 +34,15 @@ pub struct ListArgs {
     pub sort: Vec<String>,
 }
 
-/// Run the `list` command.
+/// Run the `ls` command.
 ///
 /// # Errors
 /// Returns an error if the project cannot be opened or the filter/sort is invalid.
-pub fn run(args: &ListArgs) -> Result<()> {
+pub fn run(args: &LsArgs) -> Result<()> {
     run_with(args, util::open()?)
 }
 
-pub(crate) fn run_with(args: &ListArgs, project: util::Project) -> Result<()> {
+pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
     util::warn_errors(&project.outcome);
 
     // Readiness over the full set, before the filter narrows it (a terminal
@@ -70,7 +70,7 @@ pub(crate) fn run_with(args: &ListArgs, project: util::Project) -> Result<()> {
     Ok(())
 }
 
-fn build_filter(args: &ListArgs, config: &Config) -> Result<Option<Filter>> {
+fn build_filter(args: &LsArgs, config: &Config) -> Result<Option<Filter>> {
     let expr = if let Some(expr) = &args.filter {
         Some(expr.clone())
     } else if args.all {
@@ -93,7 +93,7 @@ fn sort_tasks(
     if specs.is_empty() {
         // default_order_with honours config.query.default_sort when set, then
         // falls back to the built-in chain. Handle resolution uses the same
-        // call, so list ordinals stay in lock-step with what `list` prints.
+        // call, so ls ordinals stay in lock-step with what `ls` prints.
         default_order_with(tasks, config, readiness);
         return Ok(());
     }
@@ -111,7 +111,7 @@ mod tests {
 
     use mindtape::sort::sort_by_specs;
 
-    use super::{ListArgs, run_with};
+    use super::{LsArgs, run_with};
     use crate::output::OutputFormat;
 
     fn task(id: &str, priority: f64) -> Task {
@@ -153,8 +153,8 @@ mod tests {
         crate::test_util::make_project(dir, files, Config::default())
     }
 
-    fn default_args() -> ListArgs {
-        ListArgs {
+    fn default_args() -> LsArgs {
+        LsArgs {
             filter: None,
             all: true,
             format: OutputFormat::Table,
@@ -175,7 +175,7 @@ mod tests {
     fn run_with_json_flag_succeeds() {
         let dir = tempfile::tempdir().unwrap();
         let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let args = ListArgs {
+        let args = LsArgs {
             json: true,
             ..default_args()
         };
@@ -186,7 +186,7 @@ mod tests {
     fn run_with_csv_format_succeeds() {
         let dir = tempfile::tempdir().unwrap();
         let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let args = ListArgs {
+        let args = LsArgs {
             format: OutputFormat::Csv,
             ..default_args()
         };
@@ -197,7 +197,7 @@ mod tests {
     fn run_with_limit_truncates() {
         let dir = tempfile::tempdir().unwrap();
         let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
-        let args = ListArgs {
+        let args = LsArgs {
             limit: Some(1),
             ..default_args()
         };
@@ -208,7 +208,7 @@ mod tests {
     fn run_with_invalid_filter_returns_err() {
         let dir = tempfile::tempdir().unwrap();
         let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let args = ListArgs {
+        let args = LsArgs {
             filter: Some("!!bad!!".to_owned()),
             all: false,
             ..default_args()
@@ -220,7 +220,7 @@ mod tests {
     fn run_with_invalid_sort_returns_err() {
         let dir = tempfile::tempdir().unwrap();
         let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let args = ListArgs {
+        let args = LsArgs {
             sort: vec!["no_such_field".to_owned()],
             ..default_args()
         };
