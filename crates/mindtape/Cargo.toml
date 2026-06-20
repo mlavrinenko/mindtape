@@ -16,6 +16,7 @@ test-support = []
 [dependencies]
 typst-harvest = { path = "../typst-harvest", version = "0.4.0" }
 typst-cst = { path = "../typst-cst", version = "0.4.0" }
+typst-edit = { path = "../typst-edit", version = "0.4.0" }
 artifact-gate = { path = "../artifact-gate", version = "0.4.0" }
 swhid-mint = { path = "../swhid-mint", version = "0.4.0", default-features = false }
 serde = { version = "1", features = ["derive"] }

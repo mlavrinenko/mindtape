@@ -24,6 +24,27 @@ pub struct Config {
     pub query: QueryConfig,
     /// `rm` (task removal) defaults.
     pub rm: RmConfig,
+    /// `add` (task creation) template discovery.
+    pub templates: TemplatesConfig,
+}
+
+/// `[templates]` — where `mindtape add` finds task templates.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct TemplatesConfig {
+    /// Dirs (relative to the project root) holding `*.typ` task templates.
+    pub dirs: Vec<String>,
+    /// Template stem `mindtape add` uses when none is named.
+    pub default: String,
+}
+
+impl Default for TemplatesConfig {
+    fn default() -> Self {
+        Self {
+            dirs: vec![".mindtape/templates".to_owned()],
+            default: "task".to_owned(),
+        }
+    }
 }
 
 /// `[project]` — project-level settings.
@@ -140,6 +161,19 @@ pub enum IdFormat {
     UuidV4,
     /// A UUID v7 (time-ordered).
     UuidV7,
+}
+
+impl IdFormat {
+    /// Generate a fresh id in this format, or `None` when identity is the file
+    /// stem (the `String` format carries no generator).
+    #[must_use]
+    pub fn generate(self) -> Option<String> {
+        match self {
+            Self::String => None,
+            Self::UuidV4 => Some(uuid::Uuid::new_v4().to_string()),
+            Self::UuidV7 => Some(uuid::Uuid::now_v7().to_string()),
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for IdFormat {

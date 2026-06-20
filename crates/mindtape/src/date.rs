@@ -30,6 +30,19 @@ pub fn days_ago_iso(count: u64) -> String {
     format!("{year:04}-{month:02}-{day:02}")
 }
 
+/// Parse a `YYYY-MM-DD` string into `(year, month, day)`; `None` if malformed.
+#[must_use]
+pub fn parse_ymd(date: &str) -> Option<(i32, u8, u8)> {
+    let mut parts = date.split('-');
+    let year: i32 = parts.next()?.parse().ok()?;
+    let month: u8 = parts.next()?.parse().ok()?;
+    let day: u8 = parts.next()?.parse().ok()?;
+    if parts.next().is_some() {
+        return None;
+    }
+    Some((year, month, day))
+}
+
 /// Convert days since Unix epoch (1970-01-01) to Gregorian `(year, month, day)`.
 ///
 /// Uses Howard Hinnant's civil calendar algorithm.

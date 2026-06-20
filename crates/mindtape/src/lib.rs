@@ -21,12 +21,15 @@ pub mod model;
 pub mod numeric;
 pub mod ready;
 pub mod sort;
+pub mod template;
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
 pub mod validate;
 
-pub use config::{Config, ConfigError, PriorityConfig, config_path, load_config, parse_config};
-pub use date::{days_ago_iso, today_iso, today_ymd};
+pub use config::{
+    Config, ConfigError, PriorityConfig, TemplatesConfig, config_path, load_config, parse_config,
+};
+pub use date::{days_ago_iso, parse_ymd, today_iso, today_ymd};
 pub use filter::{Filter, FilterError};
 pub use framework::{Category, Framework, Input, InputKind};
 pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
@@ -36,6 +39,7 @@ pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind};
 pub use ready::{Readiness, ReadyState};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
+pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill};
 pub use validate::{Location, Violation, validate};
 
 /// Retain the tasks matching `filter`; `None` keeps them all. `config` resolves

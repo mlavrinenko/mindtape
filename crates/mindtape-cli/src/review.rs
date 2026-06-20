@@ -6,9 +6,10 @@
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
-use mindtape::today_iso;
-use typst_edit::{Edit, apply, find_method_calls};
+use mindtape::{parse_ymd, today_iso};
+use typst_edit::{Edit, apply};
 
+use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util;
 
 /// Arguments for `mindtape review`.
@@ -64,52 +65,10 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
 ///
 /// `today` must be a `YYYY-MM-DD` string; it is parsed to produce the `on(…)` call.
 fn build_edit(source: &str, today: &str) -> Result<Edit> {
-    let calls = find_method_calls(source, "task", "with");
-    let call = calls
-        .first()
-        .context("no task.with(…) call found in source")?;
-
+    let call = task_with(source)?;
     let (year, month, day) = parse_ymd(today).with_context(|| format!("invalid date {today:?}"))?;
     let value_text = format!("on({year}, {month}, {day})");
-
-    if let Some(reviewed_arg) = call.named("reviewed") {
-        return Ok(Edit::new(reviewed_arg.value_range.clone(), value_text));
-    }
-
-    let indent = detect_indent(source, call);
-    let insertion = format!("{indent}reviewed: {value_text},\n");
-    let close_paren = call
-        .range
-        .end
-        .checked_sub(1)
-        .context("call range is empty")?;
-    Ok(Edit::new(close_paren..close_paren, insertion))
-}
-
-fn parse_ymd(date: &str) -> Option<(i32, u8, u8)> {
-    let mut parts = date.split('-');
-    let year: i32 = parts.next()?.parse().ok()?;
-    let month: u8 = parts.next()?.parse().ok()?;
-    let day: u8 = parts.next()?.parse().ok()?;
-    if parts.next().is_some() {
-        return None;
-    }
-    Some((year, month, day))
-}
-
-fn detect_indent(source: &str, call: &typst_edit::Call) -> String {
-    call.args.first().map_or_else(
-        || "  ".to_owned(),
-        |arg| {
-            let line_begin = source[..arg.value_range.start]
-                .rfind('\n')
-                .map_or(0, |pos| pos + 1);
-            source[line_begin..]
-                .chars()
-                .take_while(|ch| *ch == ' ' || *ch == '\t')
-                .collect()
-        },
-    )
+    upsert_named_arg(source, &call, "reviewed", &value_text)
 }
 
 #[cfg(test)]

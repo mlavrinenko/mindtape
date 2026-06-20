@@ -1,5 +1,7 @@
 //! `MindTape` CLI entry point: parse arguments, init logging, dispatch.
 
+mod add;
+mod add_values;
 mod check;
 mod cli;
 mod eval;
@@ -13,6 +15,7 @@ mod output;
 mod render;
 mod review;
 mod rm;
+mod task_edit;
 #[cfg(test)]
 mod test_util;
 mod util;

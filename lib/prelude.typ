@@ -56,6 +56,15 @@
 )
 #let moscow(level) = framework("moscow", level: level)
 
+// Template authoring helper. `mindtape add` discovers `slot(...)` calls on the
+// parse plane and replaces each with a filled literal, so a filed task holds
+// plain values and never calls `slot`. At eval time a slot returns its `default`,
+// keeping a template a previewable, valid task. `kind` drives how `add` renders a
+// filled value ("string", "int", "float", "bool", "date", "list", "text",
+// "choice"); `prompt`/`required`/`choices` steer the fill UI. Args must be
+// literals — `add` reads them without evaluating the template.
+#let slot(name, default: none, kind: "string", prompt: none, required: true, choices: none) = default
+
 // Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
 #let _core-slots = (
   "title", "status", "priority", "difficulty", "kind", "estimate",

@@ -87,6 +87,18 @@ classification, priority frameworks (scoring + in-bounds-by-construction), the
 kind enum, required-unless-terminal, bounds, and link resolution. Consumers
 validate their own `x-<ns>` fields.
 
+### Templates (`mindtape add`)
+
+`mindtape add [template]` files a new task from a Typst template — a task whose
+authored values are `slot(name, kind: …, default: …, prompt: …)` calls. `add`
+discovers each slot on the parse plane (`typst-edit`, no eval), fills it from
+`-f values.json` / `--set k=v` / the slot default, injects the add-owned
+`status` (initial legend value, dated today) and `id`, then writes
+`<root>/<stem>.typ` and validates it. `--describe[=json]` dumps the slot schema;
+`--print` previews; `--into .` targets the first root. Templates live under
+`[templates] dirs`; a built-in `task` is the fallback. Filled tasks hold plain
+literals — no `slot` call survives.
+
 ## Version Management
 
 - Workspace crates: `Cargo.toml` `[workspace.package] version` (semver)
