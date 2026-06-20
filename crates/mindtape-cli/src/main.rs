@@ -1,7 +1,6 @@
 //! `MindTape` CLI entry point: parse arguments, init logging, dispatch.
 
 mod check;
-mod cleanup;
 mod cli;
 mod eval;
 mod git;
@@ -13,6 +12,7 @@ mod output;
 #[allow(dead_code)]
 mod render;
 mod review;
+mod rm;
 mod util;
 
 use anyhow::Result;

@@ -22,6 +22,8 @@ pub struct Config {
     pub tasks: TasksConfig,
     /// Query defaults.
     pub query: QueryConfig,
+    /// `rm` (task removal) defaults.
+    pub rm: RmConfig,
 }
 
 /// `[project]` — project-level settings.
@@ -261,6 +263,25 @@ pub struct QueryConfig {
     /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
     /// Validated at config load. When absent the shipped built-in chain applies.
     pub default_sort: Vec<String>,
+}
+
+/// `[rm]` — defaults for the `rm` task-removal command.
+#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct RmConfig {
+    /// Filter selecting which tasks a bare `mindtape rm` (no target) retires.
+    /// Built-in default `"terminal"`: sweep every terminal-status task, matching
+    /// the legacy `cleanup` behaviour. An explicit ref or filter argument
+    /// overrides it.
+    pub default_filter: Option<String>,
+}
+
+impl Default for RmConfig {
+    fn default() -> Self {
+        Self {
+            default_filter: Some("terminal".to_owned()),
+        }
+    }
 }
 
 /// Whether a field is required: `false`, `true`, or `"non-terminal"`.

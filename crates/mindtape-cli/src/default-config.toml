@@ -112,3 +112,8 @@ units = ["minutes", "hours", "days", "weeks"]
 [query]
 # Filter applied by `mindtape list` when the caller passes none.
 default_filter = "status != \"done\""
+
+[rm]
+# Tasks a bare `mindtape rm` (no ref/filter argument) retires. Default sweeps
+# every terminal-status task. An explicit ref or filter argument overrides it.
+default_filter = "terminal"

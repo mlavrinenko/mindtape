@@ -253,3 +253,29 @@ fn ready_and_blocked_predicates() {
     assert!(hit("ready && priority >= 7", &ready));
     assert!(hit("!ready", &blocked));
 }
+
+#[test]
+fn terminal_predicate() {
+    let cfg = parse_config(
+        "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
+    )
+    .unwrap();
+
+    let mut done = sample();
+    done.status = Some(Status {
+        name: "done".to_owned(),
+        date: None,
+        note: None,
+    });
+    let wip = sample(); // status "wip" — not terminal
+
+    let hit = |expr: &str, task: &Task| Filter::parse(expr).unwrap().matches(task, &cfg).unwrap();
+
+    // Bare and call forms agree.
+    assert!(hit("terminal", &done));
+    assert!(hit("terminal()", &done));
+    assert!(!hit("terminal", &wip));
+    assert!(hit("!terminal", &wip));
+    // Composes with comparisons.
+    assert!(hit("terminal && priority >= 7", &done));
+}

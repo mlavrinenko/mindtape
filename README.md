@@ -79,6 +79,12 @@ mindtape check                               # enum / required / bounds / links 
 # Evaluate a single task file and print it
 mindtape eval tasks/implement-auth.typ
 mindtape eval tasks/implement-auth.typ --json
+
+# Retire tasks: mint a swh:1:rev tombstone, rewrite inbound link()s, do not commit
+mindtape rm                                  # [rm] default_filter (built-in: terminal)
+mindtape rm implement-auth                   # by ref: slug, path, or list handle (1v)
+mindtape rm 'status == "cancelled"'          # by filter — every match
+mindtape rm terminal --dry-run               # preview without writing
 ```
 
 ### Global flags
@@ -157,7 +163,9 @@ ago). The opaque `estimate` dict supports presence only (`has(estimate)`), not
 comparison. Dependency predicates `ready` and `blocked` (bare or as `ready()` /
 `blocked()`) classify a task by its `depends-on` targets: ready when every direct
 dependency is terminal, blocked otherwise. `list` floats ready work to the top by
-default and shows a `READY` column when any task is blocked.
+default and shows a `READY` column when any task is blocked. The `terminal`
+predicate (bare or `terminal()`) matches a task in a terminal status; it is the
+built-in `[rm] default_filter`.
 
 ## Architecture
 

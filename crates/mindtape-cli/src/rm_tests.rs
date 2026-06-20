@@ -1,13 +1,19 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use mindtape::{Status, Task};
+use mindtape::{Config, LoadOutcome, Readiness, Status, Task, parse_config};
 
-use super::{Plan, apply, plan};
+use super::{Plan, apply, plan, select_targets};
 use crate::git;
+use crate::util::Project;
+
+/// Build an eligible id set from string slices.
+fn ids(values: &[&str]) -> HashSet<String> {
+    values.iter().map(|v| (*v).to_owned()).collect()
+}
 
 /// Run `git -C dir args`, asserting success.
 fn git_run(dir: &Path, args: &[&str]) {
@@ -77,7 +83,7 @@ fn plan_tombstones_removed_and_rewrites_survivor() {
         task("live", "live.typ", None),
     ];
 
-    let plan = plan(&tasks, &["done".to_owned()], &root, &root).unwrap();
+    let plan = plan(&tasks, &ids(&["gone"]), &root, &root).unwrap();
 
     assert_eq!(plan.deletions.len(), 1);
     assert_eq!(plan.deletions[0].rel, PathBuf::from("gone.typ"));
@@ -96,22 +102,36 @@ fn apply_writes_and_deletes_without_committing() {
         task("gone", "gone.typ", Some("done")),
         task("live", "live.typ", None),
     ];
-    let plan = plan(&tasks, &["done".to_owned()], &root, &root).unwrap();
+    let plan = plan(&tasks, &ids(&["gone"]), &root, &root).unwrap();
     apply(&plan).unwrap();
 
     assert!(!root.join("gone.typ").exists());
     let live = std::fs::read_to_string(root.join("live.typ")).unwrap();
     assert!(live.contains("swh:1:rev:"));
-    // cleanup must not commit: the tree is left dirty for the user to review.
+    // rm must not commit: the tree is left dirty for the user to review.
     assert!(!git::is_clean(&root).unwrap());
 }
 
 #[test]
-fn empty_plan_when_nothing_terminal() {
+fn empty_plan_when_nothing_eligible() {
     let (_dir, root) = repo_with(&[("live.typ", SURVIVOR)]);
     let tasks = vec![task("live", "live.typ", Some("wip"))];
-    let plan = plan(&tasks, &["done".to_owned()], &root, &root).unwrap();
+    let plan = plan(&tasks, &HashSet::new(), &root, &root).unwrap();
     assert_eq!(plan, Plan::default());
+}
+
+#[test]
+fn explicit_id_retires_non_terminal_task() {
+    // A non-terminal task named in the eligible set is still retired — `rm`
+    // bypasses the terminal gate when a target is given.
+    let (_dir, root) = repo_with(&[("gone.typ", "gone\n"), ("live.typ", SURVIVOR)]);
+    let tasks = vec![
+        task("gone", "gone.typ", Some("wip")),
+        task("live", "live.typ", None),
+    ];
+    let plan = plan(&tasks, &ids(&["gone"]), &root, &root).unwrap();
+    assert_eq!(plan.deletions.len(), 1);
+    assert_eq!(plan.deletions[0].rel, PathBuf::from("gone.typ"));
 }
 
 #[test]
@@ -126,7 +146,7 @@ fn plan_aborts_when_a_removed_task_is_untracked() {
         task("orphan", "orphan.typ", Some("done")),
     ];
 
-    let result = plan(&tasks, &["done".to_owned()], &root, &root);
+    let result = plan(&tasks, &ids(&["gone", "orphan"]), &root, &root);
     assert!(result.is_err());
     assert!(root.join("gone.typ").exists());
     assert!(root.join("orphan.typ").exists());
@@ -155,4 +175,81 @@ fn toplevel_finds_work_tree_from_subdir() {
     let sub = root.join("nested");
     std::fs::create_dir_all(&sub).unwrap();
     assert_eq!(git::toplevel(&sub).unwrap().canonicalize().unwrap(), root);
+}
+
+/// An in-memory project — no disk needed for slug/filter selection logic.
+fn stub_project(config: Config, tasks: Vec<Task>) -> Project {
+    Project {
+        root: PathBuf::from("."),
+        config,
+        outcome: LoadOutcome {
+            tasks,
+            errors: vec![],
+        },
+    }
+}
+
+fn readiness_of(project: &Project) -> Readiness {
+    Readiness::compute(&project.outcome.tasks, &project.config)
+}
+
+#[test]
+fn select_targets_ref_bypasses_status() {
+    // A slug reference selects exactly that task, even though it is non-terminal.
+    let project = stub_project(
+        Config::default(),
+        vec![
+            task("gone", "tasks/gone.typ", Some("wip")),
+            task("live", "tasks/live.typ", Some("wip")),
+        ],
+    );
+    let got = select_targets(&project, Some("gone"), &readiness_of(&project)).unwrap();
+    assert_eq!(got, ids(&["gone"]));
+}
+
+#[test]
+fn select_targets_filter_selects_every_match() {
+    let project = stub_project(
+        Config::default(),
+        vec![
+            task("a", "tasks/a.typ", Some("done")),
+            task("b", "tasks/b.typ", Some("wip")),
+            task("c", "tasks/c.typ", Some("done")),
+        ],
+    );
+    let got = select_targets(
+        &project,
+        Some("status == \"done\""),
+        &readiness_of(&project),
+    )
+    .unwrap();
+    assert_eq!(got, ids(&["a", "c"]));
+}
+
+#[test]
+fn select_targets_default_filter_is_terminal() {
+    // No target -> the built-in `terminal` default filter sweeps terminal tasks.
+    let config = parse_config(
+        "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
+    )
+    .unwrap();
+    let project = stub_project(
+        config,
+        vec![
+            task("a", "tasks/a.typ", Some("done")),
+            task("b", "tasks/b.typ", Some("wip")),
+        ],
+    );
+    let got = select_targets(&project, None, &readiness_of(&project)).unwrap();
+    assert_eq!(got, ids(&["a"]));
+}
+
+#[test]
+fn select_targets_unresolvable_token_errors() {
+    // Not a slug and not a valid boolean filter -> error, not a silent empty set.
+    let project = stub_project(
+        Config::default(),
+        vec![task("a", "tasks/a.typ", Some("wip"))],
+    );
+    assert!(select_targets(&project, Some("nope"), &readiness_of(&project)).is_err());
 }

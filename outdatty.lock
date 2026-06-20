@@ -3,10 +3,10 @@ algorithm: blake3
 groups:
   cli-docs:
     source:
-      crates/mindtape-cli/src/cli.rs: e57164e62e4f4f3735a83efb7c26f001f6aab2623a8acdb24cf070d5bdb32bb0
+      crates/mindtape-cli/src/cli.rs: 20196bb6f33a4d2662ec0d81a4304e003703056f515e2daa757ce0d8c6249b5c
       crates/mindtape/src/lib.rs: 53c438ab187ec1d0d4d8f530426b63f7637edc4a8adb58d5351060d2b4800560
     dependents:
-      README.md: 84cdeb8b2c36e7f2a76dca113dade5f45b754c1048ba115251ce26064719d675
+      README.md: ba9157d40e44f36e5a13399ce683be9bff18ef016abd77c7759f99733377b1bb
       www/index.html: aee866d32f35e59ea44316078131c27c099e73fdd05c0ad7889e1339a53948d7
   dev-docs:
     source:
@@ -20,7 +20,7 @@ groups:
       lib/prelude.typ: 17a464efc629113a6f3b6025c1a92d6243eec3ac98c4d7ba9ae2fb4cc8f36a50
     dependents:
       AGENTS.md: 57aaeb886a88eeac4b62aaf9e2f67e52adc4942cc006b1d561430cb2c396c0f6
-      README.md: 84cdeb8b2c36e7f2a76dca113dade5f45b754c1048ba115251ce26064719d675
+      README.md: ba9157d40e44f36e5a13399ce683be9bff18ef016abd77c7759f99733377b1bb
   release-notes:
     source:
       Cargo.toml: 42cfdfc44f0eeb0fe5aca2df342147713ba35e945147ae858bd338c24877b43c

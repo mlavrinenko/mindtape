@@ -18,7 +18,9 @@
 //!
 //! Dependency-aware predicates `ready` and `blocked` answer "what can I start
 //! now" over the whole loaded set (see [`Readiness`]). They take no argument and
-//! may be written bare (`ready`) or as a call (`ready()`).
+//! may be written bare (`ready`) or as a call (`ready()`). The `terminal`
+//! predicate (likewise bare or `terminal()`) matches a task whose status is
+//! flagged terminal in config.
 
 use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
@@ -123,17 +125,25 @@ fn eval_bool(
         Operator::FunctionIdentifier { identifier } => {
             function(identifier, node, task, config, readiness)
         }
-        Operator::VariableIdentifierRead { identifier } => nullary(identifier, task, readiness),
+        Operator::VariableIdentifierRead { identifier } => {
+            nullary(identifier, task, config, readiness)
+        }
         other => Err(FilterError::Unsupported(format!("{other:?}"))),
     }
 }
 
-/// A bare identifier in boolean position: the dependency predicates `ready` /
-/// `blocked` are valid; any other field is a type error (use a comparison).
-fn nullary(identifier: &str, task: &Task, readiness: &Readiness) -> Result<bool, FilterError> {
+/// A bare identifier in boolean position: the predicates `ready` / `blocked` /
+/// `terminal` are valid; any other field is a type error (use a comparison).
+fn nullary(
+    identifier: &str,
+    task: &Task,
+    config: &Config,
+    readiness: &Readiness,
+) -> Result<bool, FilterError> {
     match identifier {
         "ready" => Ok(readiness.is_ready(task)),
         "blocked" => Ok(readiness.is_blocked(task)),
+        "terminal" => Ok(task.is_terminal(&config.tasks.status.terminal())),
         other => Err(FilterError::Invalid(format!(
             "bare field `{other}` is not boolean; use a comparison or function"
         ))),
@@ -215,6 +225,7 @@ fn function(
     match name {
         "ready" => Ok(readiness.is_ready(task)),
         "blocked" => Ok(readiness.is_blocked(task)),
+        "terminal" => Ok(task.is_terminal(&config.tasks.status.terminal())),
         "has" => Ok(present(task, &single_identifier(children, "has")?, config)?),
         "miss" => Ok(!present(
             task,
