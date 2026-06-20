@@ -78,7 +78,7 @@ fn output_stem_errors_without_name_or_title() {
 fn dest_default_is_first_root() {
     let dir = tempfile::tempdir().unwrap();
     let mut config = Config::default();
-    config.tasks.roots = vec!["truth/tasks".to_owned()];
+    config.tasks.roots = vec![mindtape::RootSpec::Short("truth/tasks".to_owned())];
     let project = Project {
         root: dir.path().to_path_buf(),
         config,

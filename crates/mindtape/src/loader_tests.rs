@@ -5,6 +5,7 @@ use std::path::Path;
 use super::{find_root, load_project};
 use crate::config::Config;
 use crate::numeric::NumValue;
+use crate::parse_config;
 
 const TASK_BODY: &str = "#metadata((
   marker: \"mindtape.task\",
@@ -85,6 +86,72 @@ fn records_eval_errors() {
         outcome.errors.first().unwrap().file,
         Path::new("tasks/broken.typ")
     );
+}
+
+#[test]
+fn injects_folder_derived_tags() {
+    let dir = setup();
+    std::fs::create_dir_all(dir.path().join("tasks/backend/auth")).unwrap();
+    write(dir.path(), "tasks/backend/auth/login.typ", TASK_BODY);
+    write(dir.path(), "tasks/top.typ", TASK_BODY);
+
+    let config = parse_config(
+        r#"
+[[tasks.roots]]
+path = "tasks"
+name = "mt"
+derive-tags = true
+
+[tasks.derive-tags]
+collect = ["segments", "breadcrumbs"]
+"#,
+    )
+    .unwrap();
+    let outcome = load_project(dir.path(), &config);
+
+    let nested = outcome.tasks.iter().find(|t| t.id == "login").unwrap();
+    assert_eq!(
+        nested.derived_tags,
+        vec![
+            "mt".to_owned(),
+            "backend".to_owned(),
+            "auth".to_owned(),
+            "backend:auth".to_owned(),
+        ]
+    );
+    // Authored tags stay untouched; derived live separately.
+    assert!(nested.tags.is_empty());
+
+    let top = outcome.tasks.iter().find(|t| t.id == "top").unwrap();
+    assert_eq!(top.derived_tags, vec!["mt".to_owned()]);
+}
+
+#[test]
+fn glob_gates_which_files_derive() {
+    let dir = setup();
+    std::fs::create_dir_all(dir.path().join("tasks/backend")).unwrap();
+    std::fs::create_dir_all(dir.path().join("tasks/frontend")).unwrap();
+    write(dir.path(), "tasks/backend/a.typ", TASK_BODY);
+    write(dir.path(), "tasks/frontend/b.typ", TASK_BODY);
+
+    let config = parse_config(
+        r#"
+[[tasks.roots]]
+path = "tasks"
+name = "mt"
+derive-tags = "backend/**"
+"#,
+    )
+    .unwrap();
+    let outcome = load_project(dir.path(), &config);
+
+    let inside = outcome.tasks.iter().find(|t| t.id == "a").unwrap();
+    assert_eq!(
+        inside.derived_tags,
+        vec!["mt".to_owned(), "backend".to_owned()]
+    );
+    let outside = outcome.tasks.iter().find(|t| t.id == "b").unwrap();
+    assert!(outside.derived_tags.is_empty());
 }
 
 #[test]

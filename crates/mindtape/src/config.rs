@@ -12,6 +12,8 @@ use thiserror::Error;
 use crate::framework::{Framework, merge_builtin_frameworks};
 use crate::numeric::NumericField;
 
+pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
+
 /// Top-level project configuration.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default)]
@@ -71,7 +73,10 @@ pub fn effective_project_code(config: &Config, root: &std::path::Path) -> String
 #[serde(default)]
 pub struct TasksConfig {
     /// Directories (relative to the project root) holding one task per file.
-    pub roots: Vec<String>,
+    pub roots: Vec<RootSpec>,
+    /// Project-wide folder-derived-tag policy.
+    #[serde(rename = "derive-tags")]
+    pub derive_tags: DeriveConfig,
     /// Status legend: legal values in lifecycle order, plus per-value display
     /// (glyph, colour, label) and the `terminal` flag.
     pub status: Legend,
@@ -96,7 +101,8 @@ pub struct TasksConfig {
 impl Default for TasksConfig {
     fn default() -> Self {
         Self {
-            roots: vec!["tasks".to_owned()],
+            roots: vec![RootSpec::Short("tasks".to_owned())],
+            derive_tags: DeriveConfig::default(),
             status: Legend::default(),
             priority: PriorityConfig::default(),
             difficulty: NumericField::default(),
@@ -387,6 +393,7 @@ impl Config {
     pub fn validate(&self) -> Result<(), String> {
         let mut problems = self.tasks.priority.validate("priority");
         problems.extend(self.tasks.difficulty.validate("difficulty"));
+        problems.extend(crate::derive::validate_root_globs(self));
         for spec in &self.query.default_sort {
             if let Err(msg) = crate::sort::validate_sort_spec(spec) {
                 problems.push(format!("query.default_sort: {msg}"));

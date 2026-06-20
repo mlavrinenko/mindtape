@@ -169,7 +169,7 @@ fn dest_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
             .tasks
             .roots
             .first()
-            .map_or(".", String::as_str);
+            .map_or(".", mindtape::RootSpec::path);
         return Ok(project.root.join(first));
     }
     let path = Path::new(into);
@@ -190,7 +190,7 @@ fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
     let inside = project.config.tasks.roots.iter().any(|root| {
         project
             .root
-            .join(root)
+            .join(root.path())
             .canonicalize()
             .is_ok_and(|abs| dest_abs.starts_with(abs))
     });

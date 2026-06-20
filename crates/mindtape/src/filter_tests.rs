@@ -27,6 +27,7 @@ fn sample() -> Task {
         supersedes: Vec::new(),
         duplicates: Vec::new(),
         tags: vec!["backend".to_owned()],
+        derived_tags: Vec::new(),
         due: Some("2026-07-01".to_owned()),
         start: None,
         reviewed: None,

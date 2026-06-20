@@ -50,8 +50,11 @@ pub struct Task {
     pub supersedes: Vec<String>,
     /// Raw link targets from `duplicates`. See [`depends_on`](Self::depends_on).
     pub duplicates: Vec<String>,
-    /// Tags.
+    /// Authored tags, exactly as written in the file.
     pub tags: Vec<String>,
+    /// Folder-derived virtual tags, injected at load by [`crate::derive`]. Never
+    /// written to the file; empty unless the task's root enables derivation.
+    pub derived_tags: Vec<String>,
     /// Due date, `YYYY-MM-DD`.
     pub due: Option<String>,
     /// Start date, `YYYY-MM-DD`.
@@ -92,11 +95,24 @@ impl Task {
             supersedes: parse_links(field(fields, "supersedes")),
             duplicates: parse_links(field(fields, "duplicates")),
             tags: parse_str_array(field(fields, "tags")),
+            derived_tags: Vec::new(),
             due: field_str(fields, "due"),
             start: field_str(fields, "start"),
             reviewed: field_str(fields, "reviewed"),
             extras,
         }
+    }
+
+    /// Authored and derived tags, deduped (authored first, then derived).
+    #[must_use]
+    pub fn all_tags(&self) -> Vec<String> {
+        let mut out = self.tags.clone();
+        for tag in &self.derived_tags {
+            if !out.contains(tag) {
+                out.push(tag.clone());
+            }
+        }
+        out
     }
 
     /// Whether this task's status is in the given terminal set.

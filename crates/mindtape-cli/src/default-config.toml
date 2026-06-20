@@ -4,7 +4,24 @@
 
 [tasks]
 # Directories (relative to this file's project root) holding one task per file.
+# Shorthand `roots = ["tasks"]`, or the table form for a display name and
+# folder-derived tags:
+#   [[tasks.roots]]
+#   path = "tasks"
+#   name = "mt"            # tag emitted for the root (defaults to the last segment)
+#   derive-tags = true     # true | false | "glob" | ["glob", …] (gates which files)
 roots = ["tasks"]
+
+# Folder-derived tags: tasks inherit tags from their location under a root, so
+# nested trees need no hand-wired tags. Off by default; enable per root above or
+# project-wide here. Derived tags are virtual (never written) and validated
+# against `[tasks.tags] allowed` like authored ones.
+#   [tasks.derive-tags]
+#   enabled = true                        # default for roots that set no derive-tags
+#   collect = ["segments", "breadcrumbs"] # backend, auth / backend, backend:auth
+#   separator = ":"                       # breadcrumb join char
+#   slugify = true                        # normalise folder names to tag form
+#   breadcrumb-root = false               # fold root name into the chain (mt:backend)
 
 # Status legend: legal values in lifecycle order, each with an optional glyph and
 # colour. `terminal = true` ends a task (required fields relax once terminal).

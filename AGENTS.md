@@ -99,6 +99,17 @@ discovers each slot on the parse plane (`typst-edit`, no eval), fills it from
 `[templates] dirs`; a built-in `task` is the fallback. Filled tasks hold plain
 literals — no `slot` call survives.
 
+### Derived tags (`[tasks.derive-tags]`, `crates/mindtape/src/derive.rs`)
+
+Tasks inherit virtual tags from their location under a root: the root name (the
+table-form `[[tasks.roots]] name`, else the path's last segment) plus folder
+segments. `collect` picks `segments` (`backend`, `auth`) and/or `breadcrumbs`
+(`backend`, `backend:auth`); per-root `derive-tags` (bool/glob/list) gates which
+files derive. Tags are virtual (never written), live on `Task.derived_tags`
+(authored `tags` stay pristine; `Task::all_tags` unions them for filters), and
+are validated against `[tasks.tags] allowed` strictly. `derive.rs` is pure and
+consumer-blind enough for speconaut to converge onto.
+
 ## Version Management
 
 - Workspace crates: `Cargo.toml` `[workspace.package] version` (semver)

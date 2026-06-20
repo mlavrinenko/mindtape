@@ -28,6 +28,7 @@ pub fn bare_task(id: &str) -> Task {
         supersedes: Vec::new(),
         duplicates: Vec::new(),
         tags: Vec::new(),
+        derived_tags: Vec::new(),
         due: None,
         start: None,
         reviewed: None,

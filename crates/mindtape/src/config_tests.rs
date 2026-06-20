@@ -1,11 +1,14 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::{HeaderAction, HeaderPathSegment, Requirement, parse_config};
+use super::{HeaderAction, HeaderPathSegment, Requirement, RootSpec, parse_config};
 
 #[test]
 fn defaults_when_empty() {
     let config = parse_config("").unwrap();
-    assert_eq!(config.tasks.roots, vec!["tasks".to_owned()]);
+    assert_eq!(
+        config.tasks.roots,
+        vec![RootSpec::Short("tasks".to_owned())]
+    );
     assert!(config.tasks.status.is_empty());
     // White-list philosophy: an omitted estimate section accepts any unit.
     assert!(config.tasks.estimate.units.is_empty());
@@ -44,7 +47,10 @@ allowed = ["a", "b"]
 default_filter = "status != \"done\""
 "#;
     let config = parse_config(text).unwrap();
-    assert_eq!(config.tasks.roots, vec!["truth/tasks".to_owned()]);
+    assert_eq!(
+        config.tasks.roots,
+        vec![RootSpec::Short("truth/tasks".to_owned())]
+    );
     assert_eq!(config.tasks.status.terminal(), vec!["done".to_owned()]);
 
     let priority = config.tasks.fields.get("priority").unwrap();

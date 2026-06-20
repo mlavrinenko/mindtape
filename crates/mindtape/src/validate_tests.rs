@@ -130,6 +130,18 @@ fn flags_disallowed_tag() {
 }
 
 #[test]
+fn flags_disallowed_derived_tag() {
+    let mut item = task("a", "wip");
+    item.derived_tags = vec!["marketing".to_owned()];
+    let violations = validate(&[item], &config());
+    let hit = violations
+        .iter()
+        .find(|v| v.field == "tags")
+        .expect("derived tag outside the allow-list must be flagged");
+    assert!(hit.message.contains("derived from folder"));
+}
+
+#[test]
 fn flags_unresolved_link() {
     let mut item = task("a", "wip");
     item.depends_on = vec!["missing.typ".to_owned()];

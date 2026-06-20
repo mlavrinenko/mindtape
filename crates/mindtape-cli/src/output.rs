@@ -90,6 +90,7 @@ pub fn task_to_json(task: &Task, config: &Config) -> Value {
     map.insert("supersedes".to_owned(), json!(task.supersedes));
     map.insert("duplicates".to_owned(), json!(task.duplicates));
     map.insert("tags".to_owned(), json!(task.tags));
+    map.insert("derived_tags".to_owned(), json!(task.derived_tags));
     map.insert("due".to_owned(), opt(task.due.as_deref()));
     map.insert("start".to_owned(), opt(task.start.as_deref()));
     map.insert("reviewed".to_owned(), opt(task.reviewed.as_deref()));

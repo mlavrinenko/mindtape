@@ -1,10 +1,9 @@
 #![allow(clippy::unwrap_used)]
 
-use std::collections::BTreeMap;
-
 use super::{Readiness, ReadyState};
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
+use crate::test_support::bare_task;
 
 fn config() -> Config {
     parse_config(
@@ -20,29 +19,14 @@ terminal = true
 }
 
 fn task(id: &str, status: &str, deps: &[&str]) -> Task {
-    Task {
-        id: id.to_owned(),
-        file: format!("tasks/{id}.typ").into(),
-        title: id.to_owned(),
-        status: Some(Status {
-            name: status.to_owned(),
-            date: None,
-            note: None,
-        }),
-        priority: None,
-        difficulty: None,
-        kind: None,
-        estimate: BTreeMap::new(),
-        depends_on: deps.iter().map(|d| (*d).to_owned()).collect(),
-        relates_to: Vec::new(),
-        supersedes: Vec::new(),
-        duplicates: Vec::new(),
-        tags: Vec::new(),
-        due: None,
-        start: None,
-        reviewed: None,
-        extras: BTreeMap::new(),
-    }
+    let mut task = bare_task(id);
+    task.status = Some(Status {
+        name: status.to_owned(),
+        date: None,
+        note: None,
+    });
+    task.depends_on = deps.iter().map(|d| (*d).to_owned()).collect();
+    task
 }
 
 #[test]

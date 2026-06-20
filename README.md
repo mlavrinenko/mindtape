@@ -114,6 +114,9 @@ leave it unconstrained.
 ```toml
 [tasks]
 roots = ["tasks"]
+# Table-form roots add a display name and folder-derived tags (`[[tasks.roots]]`
+# with `name` + `derive-tags`, plus a project-wide `[tasks.derive-tags]` policy):
+# nested tasks inherit tags from their folders. See default-config.toml.
 
 # Status legend: legal values in lifecycle order, each with an optional glyph
 # and colour. `terminal = true` ends a task (required fields relax once terminal).

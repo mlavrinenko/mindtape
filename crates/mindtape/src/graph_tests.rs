@@ -1,30 +1,13 @@
 #![allow(clippy::unwrap_used)]
 
-use std::collections::BTreeMap;
-
 use super::{Cycle, toposort};
 use crate::model::Task;
+use crate::test_support::bare_task;
 
 fn task(id: &str, deps: &[&str]) -> Task {
-    Task {
-        id: id.to_owned(),
-        file: format!("tasks/{id}.typ").into(),
-        title: id.to_owned(),
-        status: None,
-        priority: None,
-        difficulty: None,
-        kind: None,
-        estimate: BTreeMap::new(),
-        depends_on: deps.iter().map(|dep| format!("{dep}.typ")).collect(),
-        relates_to: Vec::new(),
-        supersedes: Vec::new(),
-        duplicates: Vec::new(),
-        tags: Vec::new(),
-        due: None,
-        start: None,
-        reviewed: None,
-        extras: BTreeMap::new(),
-    }
+    let mut task = bare_task(id);
+    task.depends_on = deps.iter().map(|dep| format!("{dep}.typ")).collect();
+    task
 }
 
 /// Position of `id` in the toposorted order.

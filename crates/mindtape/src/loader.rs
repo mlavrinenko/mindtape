@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use typst_harvest::{HVal, HarvestWorld, harvest};
 
 use crate::config::Config;
+use crate::derive::RootDeriver;
 use crate::model::Task;
 
 /// A per-file failure encountered while loading the project.
@@ -44,20 +45,35 @@ pub fn find_root(start: &Path) -> Option<PathBuf> {
 pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     let lib_override = lib_dir(root);
     let mut outcome = LoadOutcome::default();
-    for rel_root in &config.tasks.roots {
-        let dir = root.join(rel_root);
+    for spec in &config.tasks.roots {
+        let dir = root.join(spec.path());
+        let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
         let mut files = Vec::new();
         collect_typ_files(&dir, &mut files);
         files.sort();
         for file in files {
-            load_file(root, &file, lib_override.as_deref(), &mut outcome);
+            let rel_within = file.strip_prefix(&dir).unwrap_or(&file);
+            let folder_tags = deriver.tags_for(rel_within);
+            load_file(
+                root,
+                &file,
+                lib_override.as_deref(),
+                folder_tags,
+                &mut outcome,
+            );
         }
     }
     outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
     outcome
 }
 
-fn load_file(root: &Path, file: &Path, lib_override: Option<&Path>, outcome: &mut LoadOutcome) {
+fn load_file(
+    root: &Path,
+    file: &Path,
+    lib_override: Option<&Path>,
+    derived: Vec<String>,
+    outcome: &mut LoadOutcome,
+) {
     let rel = file.strip_prefix(root).unwrap_or(file).to_path_buf();
     let world = match build_world(file, root, lib_override) {
         Ok(world) => world,
@@ -70,9 +86,9 @@ fn load_file(root: &Path, file: &Path, lib_override: Option<&Path>, outcome: &mu
         Ok(result) => {
             if let Some(marker) = result.with_marker("mindtape.task").next() {
                 let id = file_stem(file);
-                outcome
-                    .tasks
-                    .push(Task::from_marker(id, rel, &marker.value));
+                let mut task = Task::from_marker(id, rel, &marker.value);
+                task.derived_tags = derived;
+                outcome.tasks.push(task);
             }
         }
         Err(err) => outcome.errors.push(LoadError {

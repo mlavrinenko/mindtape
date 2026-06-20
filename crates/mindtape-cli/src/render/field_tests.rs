@@ -306,6 +306,7 @@ fn stub_task() -> Task {
         supersedes: vec![],
         duplicates: vec![],
         tags: vec![],
+        derived_tags: vec![],
         due: None,
         start: None,
         reviewed: None,

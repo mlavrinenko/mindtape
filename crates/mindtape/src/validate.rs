@@ -355,6 +355,16 @@ fn check_tags(task: &Task, config: &Config, out: &mut Vec<Violation>) {
             push(out, task, "tags", format!("`{tag}` is not an allowed tag"));
         }
     }
+    for tag in &task.derived_tags {
+        if !allowed.contains(tag) {
+            push(
+                out,
+                task,
+                "tags",
+                format!("`{tag}` derived from folder is not an allowed tag"),
+            );
+        }
+    }
 }
 
 fn check_links(task: &Task, files: &HashSet<&Path>, out: &mut Vec<Violation>) {

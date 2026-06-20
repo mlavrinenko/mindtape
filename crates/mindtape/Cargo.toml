@@ -20,6 +20,7 @@ typst-edit = { path = "../typst-edit", version = "0.4.0" }
 artifact-gate = { path = "../artifact-gate", version = "0.4.0" }
 swhid-mint = { path = "../swhid-mint", version = "0.4.0", default-features = false }
 serde = { version = "1", features = ["derive"] }
+globset = "0.4"
 toml = "0.8"
 thiserror = "2"
 evalexpr = "12"

@@ -234,7 +234,11 @@ fn function(
         )?),
         "has_tag" => {
             let tag = single_literal(children, "has_tag")?;
-            Ok(task.tags.iter().any(|owned| owned == &tag))
+            Ok(task
+                .tags
+                .iter()
+                .chain(&task.derived_tags)
+                .any(|owned| owned == &tag))
         }
         "contains" => {
             let (field, needle) = two_args(children, "contains")?;
@@ -262,7 +266,7 @@ fn function(
 
 fn present(task: &Task, name: &str, config: &Config) -> Result<bool, FilterError> {
     match name {
-        "tags" => Ok(!task.tags.is_empty()),
+        "tags" => Ok(!task.tags.is_empty() || !task.derived_tags.is_empty()),
         "depends_on" => Ok(!task.depends_on.is_empty()),
         "relates_to" => Ok(!task.relates_to.is_empty()),
         "supersedes" => Ok(!task.supersedes.is_empty()),

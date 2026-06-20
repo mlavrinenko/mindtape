@@ -10,7 +10,9 @@
 
 mod body_headers;
 pub mod config;
+mod config_roots;
 mod date;
+pub mod derive;
 pub mod filter;
 pub mod framework;
 mod framework_eval;
@@ -27,9 +29,11 @@ pub mod test_support;
 pub mod validate;
 
 pub use config::{
-    Config, ConfigError, PriorityConfig, TemplatesConfig, config_path, load_config, parse_config,
+    Collector, Config, ConfigError, DeriveConfig, DeriveTags, PriorityConfig, RootConfig, RootSpec,
+    TemplatesConfig, config_path, load_config, parse_config,
 };
 pub use date::{days_ago_iso, parse_ymd, today_iso, today_ymd};
+pub use derive::RootDeriver;
 pub use filter::{Filter, FilterError};
 pub use framework::{Category, Framework, Input, InputKind};
 pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
