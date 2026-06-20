@@ -6,9 +6,10 @@ use std::process::Command;
 
 use mindtape::{Config, LoadOutcome, Readiness, Status, Task, parse_config};
 
-use super::{Plan, apply, plan, select_targets};
+use super::{Plan, apply, check_eligible_files, plan, select_targets};
 use crate::git;
 use crate::util::Project;
+use typst_cleanup::is_clean;
 
 /// Build an eligible id set from string slices.
 fn ids(values: &[&str]) -> HashSet<String> {
@@ -109,7 +110,7 @@ fn apply_writes_and_deletes_without_committing() {
     let live = std::fs::read_to_string(root.join("live.typ")).unwrap();
     assert!(live.contains("swh:1:rev:"));
     // rm must not commit: the tree is left dirty for the user to review.
-    assert!(!git::is_clean(&root).unwrap());
+    assert!(!is_clean(&root).unwrap());
 }
 
 #[test]
@@ -155,18 +156,18 @@ fn plan_aborts_when_a_removed_task_is_untracked() {
 #[test]
 fn is_clean_tracks_working_tree() {
     let (_dir, root) = repo_with(&[("a.typ", "a\n")]);
-    assert!(git::is_clean(&root).unwrap());
+    assert!(is_clean(&root).unwrap());
     std::fs::write(root.join("a.typ"), "changed\n").unwrap();
-    assert!(!git::is_clean(&root).unwrap());
+    assert!(!is_clean(&root).unwrap());
 }
 
 #[test]
 fn is_clean_counts_untracked_files() {
     // Matches `git status --porcelain` breadth: an untracked file is dirty.
     let (_dir, root) = repo_with(&[("a.typ", "a\n")]);
-    assert!(git::is_clean(&root).unwrap());
+    assert!(is_clean(&root).unwrap());
     std::fs::write(root.join("new.typ"), "new\n").unwrap();
-    assert!(!git::is_clean(&root).unwrap());
+    assert!(!is_clean(&root).unwrap());
 }
 
 #[test]
@@ -175,6 +176,63 @@ fn toplevel_finds_work_tree_from_subdir() {
     let sub = root.join("nested");
     std::fs::create_dir_all(&sub).unwrap();
     assert_eq!(git::toplevel(&sub).unwrap().canonicalize().unwrap(), root);
+}
+
+#[test]
+fn preflight_passes_with_unrelated_dirty_file() {
+    // An unrelated file is modified; the eligible task is clean.
+    // The pre-flight must not block: only the task files themselves matter.
+    let (_dir, root) = repo_with(&[("gone.typ", "gone\n"), ("notes.txt", "draft\n")]);
+    // Dirty an unrelated file.
+    std::fs::write(root.join("notes.txt"), "changed draft\n").unwrap();
+    let tasks = vec![task("gone", "gone.typ", Some("done"))];
+    let result = check_eligible_files(&tasks, &ids(&["gone"]), &root, &root);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn preflight_blocks_dirty_eligible_task() {
+    let (_dir, root) = repo_with(&[("gone.typ", "gone\n")]);
+    std::fs::write(root.join("gone.typ"), "changed\n").unwrap();
+    let tasks = vec![task("gone", "gone.typ", Some("done"))];
+    let err = check_eligible_files(&tasks, &ids(&["gone"]), &root, &root).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("gone"), "slug missing from error: {msg}");
+    assert!(
+        msg.contains("uncommitted"),
+        "reason missing from error: {msg}"
+    );
+}
+
+#[test]
+fn preflight_blocks_untracked_eligible_task() {
+    // Seed with a dummy committed file so git has at least one commit.
+    let (_dir, root) = repo_with(&[("seed.txt", "seed\n")]);
+    std::fs::write(root.join("orphan.typ"), "orphan\n").unwrap();
+    let tasks = vec![task("orphan", "orphan.typ", Some("done"))];
+    let err = check_eligible_files(&tasks, &ids(&["orphan"]), &root, &root).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("orphan"), "slug missing from error: {msg}");
+    assert!(
+        msg.contains("not tracked"),
+        "reason missing from error: {msg}"
+    );
+}
+
+#[test]
+fn preflight_reports_all_offenders_at_once() {
+    // Two tasks with problems: both must appear in the single error, not just the first.
+    let (_dir, root) = repo_with(&[("a.typ", "a\n")]);
+    std::fs::write(root.join("a.typ"), "changed\n").unwrap();
+    std::fs::write(root.join("b.typ"), "b\n").unwrap(); // untracked
+    let tasks = vec![
+        task("a", "a.typ", Some("done")),
+        task("b", "b.typ", Some("done")),
+    ];
+    let err = check_eligible_files(&tasks, &ids(&["a", "b"]), &root, &root).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains('a'), "task a missing: {msg}");
+    assert!(msg.contains('b'), "task b missing: {msg}");
 }
 
 /// An in-memory project — no disk needed for slug/filter selection logic.

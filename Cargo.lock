@@ -2440,6 +2440,7 @@ dependencies = [
  "mindtape",
  "predicates",
  "serde_json",
+ "swhid-mint",
  "tempfile",
  "terminal_size",
  "typst-cleanup",

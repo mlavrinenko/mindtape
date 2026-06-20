@@ -15,7 +15,7 @@
 //! plan. `rm` does not commit — the user reviews the diff and commits.
 
 use std::collections::HashSet;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
@@ -63,12 +63,13 @@ impl typst_cleanup::Policy for TaskLinks {
 /// Run the `rm` command.
 ///
 /// Applies the plan in place (deletes the selected task files, rewrites inbound
-/// links) but does not commit — the user reviews the diff and commits. Refuses a
-/// dirty working tree on a real run so the removal is the only change to review;
-/// `--dry-run` previews the plan and skips that guard.
+/// links) but does not commit — the user reviews the diff and commits. On a real
+/// run (not `--dry-run`), refuses early if any selected task file is not
+/// committed-clean; all offenders are listed at once so the user can fix them in
+/// one step.
 ///
 /// # Errors
-/// Returns an error (non-zero exit) on a dirty working tree, an unresolvable
+/// Returns an error (non-zero exit) on an uncommitted task file, an unresolvable
 /// target, an invalid filter, a task file that is not recoverable from git, a
 /// wrong-shaped surviving file, a declined prompt, or any git failure.
 pub fn run(args: &RmArgs) -> Result<()> {
@@ -93,10 +94,8 @@ pub fn run(args: &RmArgs) -> Result<()> {
         .canonicalize()
         .context("resolve git toplevel")?;
 
-    if !args.dry_run && !git::is_clean(&root)? {
-        bail!(
-            "working tree has uncommitted changes; rm rewrites files in place — commit or stash first"
-        );
+    if !args.dry_run {
+        check_eligible_files(&project.outcome.tasks, &eligible, &root, &git_root)?;
     }
 
     let plan = plan(&project.outcome.tasks, &eligible, &root, &git_root)?;
@@ -190,6 +189,65 @@ fn plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path, git_root: &Path
     Ok(typst_cleanup::plan(
         &retire, &survivors, git_root, &TaskLinks,
     )?)
+}
+
+/// Check every eligible task file individually: each must be committed and
+/// unmodified so `swhid_mint` can pin its tombstone to the last-touch commit.
+/// Collects all failures before returning so the user sees every offender in
+/// one shot rather than fixing and retrying one at a time.
+///
+/// # Errors
+/// All offending tasks in a single message with per-task reason and action.
+fn check_eligible_files(
+    tasks: &[Task],
+    eligible: &HashSet<String>,
+    root: &Path,
+    git_root: &Path,
+) -> Result<()> {
+    let mut problems: Vec<(String, PathBuf, String)> = Vec::new();
+    for task in tasks {
+        if !eligible.contains(&task.id) {
+            continue;
+        }
+        let abs = root.join(&task.file);
+        let git_rel = if let Ok(rel) = abs.strip_prefix(git_root) {
+            rel.to_string_lossy().into_owned()
+        } else {
+            problems.push((
+                task.id.clone(),
+                task.file.clone(),
+                "outside git repository".into(),
+            ));
+            continue;
+        };
+        let reason = match swhid_mint::git::mint_rev_path(git_root, &git_rel) {
+            Ok(_) => continue,
+            Err(swhid_mint::git::Error::NotTracked(_)) => "not tracked by git".into(),
+            Err(swhid_mint::git::Error::Dirty(_)) => "has uncommitted changes".into(),
+            Err(swhid_mint::git::Error::Git(msg)) => format!("git error: {msg}"),
+        };
+        problems.push((task.id.clone(), task.file.clone(), reason));
+    }
+    if problems.is_empty() {
+        return Ok(());
+    }
+    if let Some((id, file, reason)) = (problems.len() == 1).then(|| problems.first()).flatten() {
+        bail!(
+            "cannot remove {id}: {} {reason}\ncommit the file first (tombstone pins the last-touch commit)",
+            file.display()
+        );
+    }
+    let lines: Vec<String> = problems
+        .iter()
+        .map(|(id, file, reason): &(String, PathBuf, String)| {
+            format!("  {id}  {}  {reason}", file.display())
+        })
+        .collect();
+    bail!(
+        "cannot remove {} tasks — commit their files first (tombstones pin last-touch commits):\n{}",
+        problems.len(),
+        lines.join("\n")
+    );
 }
 
 fn confirm(plan: &Plan) -> Result<bool> {
