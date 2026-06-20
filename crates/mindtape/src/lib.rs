@@ -29,8 +29,8 @@ pub mod test_support;
 pub mod validate;
 
 pub use config::{
-    Collector, Config, ConfigError, DeriveConfig, DeriveTags, PriorityConfig, RootConfig, RootSpec,
-    TemplatesConfig, config_path, load_config, parse_config,
+    Collector, Config, ConfigError, DeriveConfig, DeriveTags, LocalPackage, PriorityConfig,
+    RootConfig, RootSpec, TemplatesConfig, TypstConfig, config_path, load_config, parse_config,
 };
 pub use date::{days_ago_iso, parse_ymd, today_iso, today_ymd};
 pub use derive::RootDeriver;

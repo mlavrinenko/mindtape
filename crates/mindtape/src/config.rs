@@ -28,6 +28,31 @@ pub struct Config {
     pub rm: RmConfig,
     /// `add` (task creation) template discovery.
     pub templates: TemplatesConfig,
+    /// Typst evaluation settings (local-package overrides).
+    pub typst: TypstConfig,
+}
+
+/// `[typst]` — Typst evaluation settings.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct TypstConfig {
+    /// Extra `@local/<name>` package overrides, each resolved from an in-tree
+    /// path so a worktree resolves a foreign package without a global install.
+    /// `MindTape`'s own `@local/mindtape` is auto-registered when `<root>/lib` is
+    /// the `mindtape` package; this seam covers any other package (e.g. a
+    /// consumer's own lib referenced by an `x-<ns>` extras helper).
+    #[serde(rename = "local-packages")]
+    pub local_packages: Vec<LocalPackage>,
+}
+
+/// `[[typst.local-packages]]` — one `@local/<name>` → in-tree path override.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[serde(default)]
+pub struct LocalPackage {
+    /// The `@local/<name>` package name.
+    pub name: String,
+    /// Lib directory holding the package's `typst.toml`, relative to the root.
+    pub path: String,
 }
 
 /// `[templates]` — where `mindtape add` finds task templates.

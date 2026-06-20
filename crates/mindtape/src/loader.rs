@@ -43,7 +43,7 @@ pub fn find_root(start: &Path) -> Option<PathBuf> {
 /// Load every task under the configured roots, live-evaluating each file.
 #[must_use]
 pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
-    let lib_override = lib_dir(root);
+    let overrides = package_overrides(root, config);
     let mut outcome = LoadOutcome::default();
     for spec in &config.tasks.roots {
         let dir = root.join(spec.path());
@@ -54,13 +54,7 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
         for file in files {
             let rel_within = file.strip_prefix(&dir).unwrap_or(&file);
             let folder_tags = deriver.tags_for(rel_within);
-            load_file(
-                root,
-                &file,
-                lib_override.as_deref(),
-                folder_tags,
-                &mut outcome,
-            );
+            load_file(root, &file, &overrides, folder_tags, &mut outcome);
         }
     }
     outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
@@ -70,12 +64,12 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
 fn load_file(
     root: &Path,
     file: &Path,
-    lib_override: Option<&Path>,
+    overrides: &[(String, PathBuf)],
     derived: Vec<String>,
     outcome: &mut LoadOutcome,
 ) {
     let rel = file.strip_prefix(root).unwrap_or(file).to_path_buf();
-    let world = match build_world(file, root, lib_override) {
+    let world = match build_world(file, root, overrides) {
         Ok(world) => world,
         Err(message) => {
             outcome.errors.push(LoadError { file: rel, message });
@@ -101,18 +95,38 @@ fn load_file(
 fn build_world(
     file: &Path,
     root: &Path,
-    lib_override: Option<&Path>,
+    overrides: &[(String, PathBuf)],
 ) -> Result<HarvestWorld, String> {
-    let world = HarvestWorld::with_root(file, root).map_err(|err| err.to_string())?;
-    Ok(match lib_override {
-        Some(lib) => world.with_local_package("mindtape", lib.to_path_buf()),
-        None => world,
-    })
+    let mut world = HarvestWorld::with_root(file, root).map_err(|err| err.to_string())?;
+    for (name, dir) in overrides {
+        world = world.with_local_package(name, dir.clone());
+    }
+    Ok(world)
 }
 
-fn lib_dir(root: &Path) -> Option<PathBuf> {
+/// The `@local/<name>` → in-tree lib overrides for this project: `MindTape`'s own
+/// package when `<root>/lib` is the `mindtape` package, plus every configured
+/// `[[typst.local-packages]]` entry (which wins on a name clash). Resolving by
+/// the `lib/` manifest name — not its mere presence — keeps `mindtape` from
+/// hijacking a foreign worktree whose `lib/` is some other package.
+fn package_overrides(root: &Path, config: &Config) -> Vec<(String, PathBuf)> {
+    let mut overrides = Vec::new();
+    if let Some(lib) = mindtape_lib_dir(root) {
+        overrides.push(("mindtape".to_owned(), lib));
+    }
+    for pkg in &config.typst.local_packages {
+        overrides.push((pkg.name.clone(), root.join(&pkg.path)));
+    }
+    overrides
+}
+
+/// `<root>/lib` only when its `typst.toml` declares `name = "mindtape"`.
+fn mindtape_lib_dir(root: &Path) -> Option<PathBuf> {
     let lib = root.join("lib");
-    lib.join("typst.toml").is_file().then_some(lib)
+    let text = std::fs::read_to_string(lib.join("typst.toml")).ok()?;
+    let doc: toml::Table = toml::from_str(&text).ok()?;
+    let name = doc.get("package")?.get("name")?.as_str()?;
+    (name == "mindtape").then_some(lib)
 }
 
 fn file_stem(file: &Path) -> String {

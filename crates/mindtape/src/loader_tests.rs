@@ -154,6 +154,86 @@ derive-tags = "backend/**"
     assert!(outside.derived_tags.is_empty());
 }
 
+/// A minimal `task` prelude stub: emits the `mindtape.task` marker so a harvested
+/// file projects to a task without pulling the full in-tree prelude.
+const PRELUDE_STUB: &str = "#let task(body, ..meta) = {\n  [#metadata((marker: \"mindtape.task\", fields: (title: meta.named().at(\"title\", default: \"\")), extras: (:))) <mindtape>]\n  body\n}\n";
+
+fn write_pkg(root: &Path, dir_rel: &str, name: &str, version: &str, entry: &str) {
+    let pkg = root.join(dir_rel);
+    std::fs::create_dir_all(&pkg).unwrap();
+    std::fs::write(
+        pkg.join("typst.toml"),
+        format!(
+            "[package]\nname = \"{name}\"\nversion = \"{version}\"\nentrypoint = \"lib.typ\"\n"
+        ),
+    )
+    .unwrap();
+    std::fs::write(pkg.join("lib.typ"), entry).unwrap();
+}
+
+// A bogus version no install would ship, so resolution depends only on the
+// in-tree override — these stay hermetic regardless of any installed package.
+#[test]
+fn in_tree_lib_registered_when_named_mindtape() {
+    let dir = setup();
+    write_pkg(dir.path(), "lib", "mindtape", "99.99.99", PRELUDE_STUB);
+    write(
+        dir.path(),
+        "tasks/t.typ",
+        "#import \"@local/mindtape:99.99.99\": *\n#show: task.with(title: \"Hi\")\n= Body\n",
+    );
+    let outcome = load_project(dir.path(), &Config::default());
+    assert_eq!(outcome.errors, Vec::new());
+    assert_eq!(outcome.tasks.len(), 1);
+    assert_eq!(outcome.tasks.first().unwrap().title, "Hi");
+}
+
+#[test]
+fn foreign_lib_not_hijacked_as_mindtape() {
+    // `<root>/lib` is some other package: the `mindtape` override must NOT fire,
+    // so `@local/mindtape` is unresolved (no install here) and the file errors
+    // rather than silently loading against the foreign lib.
+    let dir = setup();
+    write_pkg(dir.path(), "lib", "other", "99.99.99", PRELUDE_STUB);
+    write(
+        dir.path(),
+        "tasks/t.typ",
+        "#import \"@local/mindtape:99.99.99\": *\n#show: task.with(title: \"Hi\")\n= Body\n",
+    );
+    let outcome = load_project(dir.path(), &Config::default());
+    assert!(
+        outcome.tasks.is_empty(),
+        "foreign lib must not resolve as the mindtape package"
+    );
+    assert_eq!(outcome.errors.len(), 1);
+}
+
+#[test]
+fn config_registers_extra_local_package() {
+    // A configured [[typst.local-packages]] entry resolves a foreign @local
+    // package from an in-tree path without a global install.
+    let dir = setup();
+    write_pkg(
+        dir.path(),
+        "vendor/helper",
+        "helper",
+        "0.1.0",
+        "#let mk(t) = [#metadata((marker: \"mindtape.task\", fields: (title: t), extras: (:))) <mindtape>]\n",
+    );
+    write(
+        dir.path(),
+        "tasks/t.typ",
+        "#import \"@local/helper:0.1.0\": *\n#mk(\"Hi\")\n",
+    );
+    let config =
+        parse_config("[[typst.local-packages]]\nname = \"helper\"\npath = \"vendor/helper\"\n")
+            .unwrap();
+    let outcome = load_project(dir.path(), &config);
+    assert_eq!(outcome.errors, Vec::new());
+    assert_eq!(outcome.tasks.len(), 1);
+    assert_eq!(outcome.tasks.first().unwrap().title, "Hi");
+}
+
 #[test]
 fn find_root_locates_mindtape_dir() {
     let dir = setup();
