@@ -101,35 +101,11 @@ fn fnv1a(s: &str) -> u32 {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use std::collections::BTreeMap;
-
-    use mindtape::Task;
+    use mindtape::test_support::bare_task;
 
     use super::{
         DEFAULT_CHECK_LEN, check_char, check_chars, handle_for, make_handles, parse_handle,
     };
-
-    fn task(id: &str) -> Task {
-        Task {
-            id: id.to_owned(),
-            file: format!("tasks/{id}.typ").into(),
-            title: id.to_owned(),
-            status: None,
-            priority: None,
-            difficulty: None,
-            kind: None,
-            estimate: BTreeMap::new(),
-            depends_on: Vec::new(),
-            relates_to: Vec::new(),
-            supersedes: Vec::new(),
-            duplicates: Vec::new(),
-            tags: Vec::new(),
-            due: None,
-            start: None,
-            reviewed: None,
-            extras: BTreeMap::new(),
-        }
-    }
 
     // Stable reference values — if FNV-1a impl changes these will catch it.
     #[test]
@@ -159,7 +135,7 @@ mod tests {
 
     #[test]
     fn check_char_independent_of_ordinal() {
-        let t = task("stable-id");
+        let t = bare_task("stable-id");
         let h1 = handle_for(&t, 1, DEFAULT_CHECK_LEN);
         let h2 = handle_for(&t, 99, DEFAULT_CHECK_LEN);
         // Ordinal differs but check letter is the same.
@@ -168,7 +144,7 @@ mod tests {
 
     #[test]
     fn make_handles_ordinals_are_one_based() {
-        let tasks = vec![task("a"), task("b"), task("c")];
+        let tasks = vec![bare_task("a"), bare_task("b"), bare_task("c")];
         let handles = make_handles(&tasks, DEFAULT_CHECK_LEN);
         assert_eq!(handles.len(), 3);
         for (i, (handle, _)) in handles.iter().enumerate() {

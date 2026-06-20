@@ -141,33 +141,30 @@ pub fn normalize_link(target: &str) -> String {
 pub fn resolve_link_path(task_file: &Path, target: &str) -> Option<PathBuf> {
     // Start from the directory of the linking task.
     let base = task_file.parent().unwrap_or(Path::new(""));
-    // Build a component list and push each component of base, then target.
+    // Build a component list from base, then append target's components.
     let mut components: Vec<&str> = Vec::new();
-    for c in base.components() {
-        match c {
-            std::path::Component::Normal(s) => {
-                components.push(s.to_str()?);
-            }
-            std::path::Component::CurDir => {}
-            std::path::Component::ParentDir => {
-                components.pop()?; // None means escapes root
-            }
-            _ => return None, // absolute or prefix — unexpected
-        }
-    }
-    for c in Path::new(target).components() {
-        match c {
-            std::path::Component::Normal(s) => {
-                components.push(s.to_str()?);
-            }
-            std::path::Component::CurDir => {}
-            std::path::Component::ParentDir => {
-                components.pop()?; // None means escapes root
-            }
-            _ => return None, // absolute or prefix — unexpected
-        }
-    }
+    push_components(&mut components, base)?;
+    push_components(&mut components, Path::new(target))?;
     Some(components.iter().collect())
+}
+
+/// Append `path`'s components to `out`, collapsing `.` and `..` against the
+/// accumulated list. Returns `None` if a `..` pops past the root or a component
+/// is absolute/non-UTF-8 — the same escape semantics as [`resolve_link_path`].
+fn push_components<'a>(out: &mut Vec<&'a str>, path: &'a Path) -> Option<()> {
+    for c in path.components() {
+        match c {
+            std::path::Component::Normal(s) => {
+                out.push(s.to_str()?);
+            }
+            std::path::Component::CurDir => {}
+            std::path::Component::ParentDir => {
+                out.pop()?; // None means escapes root
+            }
+            _ => return None, // absolute or prefix — unexpected
+        }
+    }
+    Some(())
 }
 
 fn field<'a>(fields: Option<&'a HVal>, key: &str) -> Option<&'a HVal> {

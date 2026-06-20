@@ -1,10 +1,9 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use swhid_mint::Swhid;
-use tempfile::TempDir;
+use swhid_mint::test_support::repo_with;
 
 use super::{Artifact, Plan, Policy, apply, is_clean, plan, toplevel};
 
@@ -22,33 +21,6 @@ impl Policy for Stems {
     fn tombstone(&self, _retired: &Artifact, swhid: &Swhid) -> String {
         format!("\"{}\"", swhid.render())
     }
-}
-
-fn git(root: &Path, args: &[&str]) {
-    let status = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(args)
-        .env("GIT_AUTHOR_NAME", "t")
-        .env("GIT_AUTHOR_EMAIL", "t@example.com")
-        .env("GIT_COMMITTER_NAME", "t")
-        .env("GIT_COMMITTER_EMAIL", "t@example.com")
-        .status()
-        .unwrap();
-    assert!(status.success(), "git {args:?}");
-}
-
-/// Temp repo with `files` written and committed in one commit.
-fn repo_with(files: &[(&str, &str)]) -> (TempDir, PathBuf) {
-    let dir = tempfile::tempdir().unwrap();
-    let root = dir.path().canonicalize().unwrap();
-    git(&root, &["init", "-q", "-b", "main"]);
-    for (rel, contents) in files {
-        std::fs::write(root.join(rel), contents).unwrap();
-    }
-    git(&root, &["add", "-A"]);
-    git(&root, &["commit", "-q", "-m", "seed"]);
-    (dir, root)
 }
 
 fn artifact(root: &Path, rel: &str) -> Artifact {

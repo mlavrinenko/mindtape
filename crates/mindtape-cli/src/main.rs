@@ -13,6 +13,8 @@ mod output;
 mod render;
 mod review;
 mod rm;
+#[cfg(test)]
+mod test_util;
 mod util;
 
 use anyhow::Result;

@@ -46,7 +46,9 @@ Four crates (`cargo` workspace, virtual root manifest):
 
 1. Use `just` recipes, not raw cargo (see `Justfile`). `just check` before done.
 2. After code changes, `just check` must pass (fmt, clippy `-D warnings`, tests,
-   machete, file-size, outdatty drift). Apply `cargo fmt` first.
+   machete, file-size, copy-paste, outdatty drift). Apply `cargo fmt` first.
+   Copy-paste: `just check-dry` (jscpd) fails on any duplicated Rust block ≥70
+   tokens — fix by extracting a shared helper, never by shuffling tokens.
 3. File size: Rust ≤500 lines, Markdown ≤200 (enforced by `linecop`). Split up
    front; `just fix-check` ejects oversized inline tests via `ejectest`.
 4. When `outdatty` reports drift, update the listed dependents, then

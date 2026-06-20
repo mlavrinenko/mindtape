@@ -15,12 +15,15 @@ default = ["git"]
 # (gitoxide) crate. sha1_git == git's own object id, so gix computes ids
 # natively — no subprocess, no porcelain parsing.
 git = ["dep:gix"]
+# Shared git fixtures (`test_support`) for sibling crates' and the CLI's tests.
+test-support = ["dep:tempfile"]
 
 [dependencies]
 gix = { version = "0.84", default-features = false, features = [
   "revision",
   "sha1",
 ], optional = true }
+tempfile = { version = "3", optional = true }
 
 [dev-dependencies]
 tempfile = "3"

@@ -103,11 +103,11 @@ fn sort_tasks(
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use std::collections::BTreeMap;
     use std::path::Path;
 
     use mindtape::numeric::NumValue;
-    use mindtape::{Config, Readiness, Task, load_project};
+    use mindtape::test_support::{TASK_SRC as TASK, bare_task};
+    use mindtape::{Config, Readiness, Task};
 
     use mindtape::sort::sort_by_specs;
 
@@ -115,25 +115,9 @@ mod tests {
     use crate::output::OutputFormat;
 
     fn task(id: &str, priority: f64) -> Task {
-        Task {
-            id: id.to_owned(),
-            file: format!("tasks/{id}.typ").into(),
-            title: id.to_owned(),
-            status: None,
-            priority: Some(NumValue::Num(priority)),
-            difficulty: None,
-            kind: None,
-            estimate: BTreeMap::new(),
-            depends_on: Vec::new(),
-            relates_to: Vec::new(),
-            supersedes: Vec::new(),
-            duplicates: Vec::new(),
-            tags: Vec::new(),
-            due: None,
-            start: None,
-            reviewed: None,
-            extras: BTreeMap::new(),
-        }
+        let mut t = bare_task(id);
+        t.priority = Some(NumValue::Num(priority));
+        t
     }
 
     #[test]
@@ -165,30 +149,8 @@ mod tests {
         );
     }
 
-    const TASK: &str = "#metadata((
-  marker: \"mindtape.task\",
-  fields: (
-    title: \"Task X\",
-    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: 8,
-  ),
-  extras: (:),
-))
-";
-
     fn make_project(dir: &Path, files: &[(&str, &str)]) -> crate::util::Project {
-        std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-        std::fs::create_dir_all(dir.join("tasks")).unwrap();
-        for (name, body) in files {
-            std::fs::write(dir.join("tasks").join(name), body).unwrap();
-        }
-        let config = Config::default();
-        let outcome = load_project(dir, &config);
-        crate::util::Project {
-            root: dir.to_path_buf(),
-            config,
-            outcome,
-        }
+        crate::test_util::make_project(dir, files, Config::default())
     }
 
     fn default_args() -> ListArgs {

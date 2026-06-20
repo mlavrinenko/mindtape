@@ -9,6 +9,10 @@ license.workspace = true
 keywords = ["typst", "task-tracker", "productivity"]
 categories = ["development-tools"]
 
+[features]
+# Expose shared task fixtures (`test_support`) to dependent crates' tests.
+test-support = []
+
 [dependencies]
 typst-harvest = { path = "../typst-harvest", version = "0.4.0" }
 typst-cst = { path = "../typst-cst", version = "0.4.0" }

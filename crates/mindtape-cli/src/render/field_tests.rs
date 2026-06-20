@@ -39,6 +39,29 @@ fn spec_with_color(text: &str) -> CellSpec {
     }
 }
 
+/// Render `input` into a width-4 column (no glyphs) and assert it fits, ends
+/// with the ellipsis, and preserves `first_char` (a double-width char) whole.
+fn assert_truncates_to_fit(input: &str, first_char: &str) {
+    let spec = spec_text_only(input);
+    let out = render_cell(
+        &spec,
+        GlyphMode::None,
+        DensityMode::Full,
+        Painter::new(false),
+        4,
+    );
+    let w = display_width(&out);
+    assert!(w <= 4, "output must fit column width; got {w}");
+    assert!(
+        out.ends_with('…'),
+        "truncated output must end with ellipsis"
+    );
+    assert!(
+        out.starts_with(first_char),
+        "first char must be preserved whole"
+    );
+}
+
 // --- Color tests ---
 
 #[test]
@@ -171,45 +194,14 @@ fn double_width_emoji_truncated_correctly() {
     // "🔨" is 2 display cells. "🔨🔨X" = 5 cells.
     // Column 4 → budget 3 → fits first 🔨 (2) but not second (4 > 3) → "🔨…" (3 cells).
     // Width is ≤ 4 and the result ends with the ellipsis with no broken grapheme.
-    let spec = spec_text_only("🔨🔨X");
-    let out = render_cell(
-        &spec,
-        GlyphMode::None,
-        DensityMode::Full,
-        Painter::new(false),
-        4,
-    );
-    let w = display_width(&out);
-    assert!(w <= 4, "output must fit column width; got {w}");
-    assert!(
-        out.ends_with('…'),
-        "truncated output must end with ellipsis"
-    );
-    assert!(out.starts_with("🔨"), "first emoji must be preserved whole");
+    assert_truncates_to_fit("🔨🔨X", "🔨");
 }
 
 #[test]
 fn double_width_cjk_truncated_correctly() {
     // "世界X" = 5 cells. Column 4 → budget 3 → fits "世" (2), "界" won't (4>3) → "世…" (3).
     // The whole double-width char is dropped rather than split; width ≤ 4.
-    let spec = spec_text_only("世界X");
-    let out = render_cell(
-        &spec,
-        GlyphMode::None,
-        DensityMode::Full,
-        Painter::new(false),
-        4,
-    );
-    let w = display_width(&out);
-    assert!(w <= 4, "output must fit column width; got {w}");
-    assert!(
-        out.ends_with('…'),
-        "truncated output must end with ellipsis"
-    );
-    assert!(
-        out.starts_with("世"),
-        "first CJK char must be preserved whole"
-    );
+    assert_truncates_to_fit("世界X", "世");
 }
 
 #[test]

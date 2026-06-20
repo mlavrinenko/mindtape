@@ -6,6 +6,7 @@ use super::validate;
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
 use crate::numeric::{InputValue, NumValue};
+use crate::test_support::bare_task;
 
 fn config() -> crate::config::Config {
     parse_config(
@@ -42,29 +43,15 @@ allowed = ["backend"]
 }
 
 fn task(id: &str, status: &str) -> Task {
-    Task {
-        id: id.to_owned(),
-        file: format!("tasks/{id}.typ").into(),
-        title: id.to_owned(),
-        status: Some(Status {
-            name: status.to_owned(),
-            date: None,
-            note: None,
-        }),
-        priority: Some(NumValue::Num(8.0)),
-        difficulty: None,
-        kind: None,
-        estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
-        depends_on: Vec::new(),
-        relates_to: Vec::new(),
-        supersedes: Vec::new(),
-        duplicates: Vec::new(),
-        tags: Vec::new(),
-        due: None,
-        start: None,
-        reviewed: None,
-        extras: BTreeMap::new(),
-    }
+    let mut t = bare_task(id);
+    t.status = Some(Status {
+        name: status.to_owned(),
+        date: None,
+        note: None,
+    });
+    t.priority = Some(NumValue::Num(8.0));
+    t.estimate = BTreeMap::from([("hours".to_owned(), 8.0)]);
+    t
 }
 
 #[test]

@@ -1,33 +1,9 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use std::collections::BTreeMap;
-
 use crate::config::{Config, HeaderAction, HeaderPathSegment, HeaderRuleConfig};
-use crate::model::Task;
+use crate::test_support::bare_task;
 
 use super::{GateError, check_headers, compile_rules};
-
-fn bare_task(id: &str) -> Task {
-    Task {
-        id: id.to_owned(),
-        file: format!("tasks/{id}.typ").into(),
-        title: id.to_owned(),
-        status: None,
-        priority: None,
-        difficulty: None,
-        kind: None,
-        estimate: BTreeMap::new(),
-        depends_on: Vec::new(),
-        relates_to: Vec::new(),
-        supersedes: Vec::new(),
-        duplicates: Vec::new(),
-        tags: Vec::new(),
-        due: None,
-        start: None,
-        reviewed: None,
-        extras: BTreeMap::new(),
-    }
-}
 
 fn ex(text: &str) -> HeaderPathSegment {
     HeaderPathSegment::Exact(text.to_owned())

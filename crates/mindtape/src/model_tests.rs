@@ -6,6 +6,7 @@ use typst_harvest::HVal;
 
 use super::{Status, Task, is_history_pointer, normalize_link, resolve_link_path};
 use crate::numeric::NumValue;
+use crate::test_support::bare_task;
 
 fn dict(pairs: Vec<(&str, HVal)>) -> HVal {
     HVal::Dict(
@@ -129,61 +130,38 @@ fn from_marker_reads_supersedes_and_duplicates() {
     assert_eq!(task.duplicates, vec!["twin.typ".to_owned()]);
 }
 
-#[test]
-fn explicit_id_field_wins_over_stem() {
+/// Build a task from a marker whose `id:` field is `id` (the stem is `"stem"`).
+fn task_from_id_field(id: &str) -> Task {
     let fields = dict(vec![
         ("title", HVal::Str("Task".to_owned())),
-        ("id", HVal::Str("custom".to_owned())),
+        ("id", HVal::Str(id.to_owned())),
     ]);
     let marker = dict(vec![
         ("marker", HVal::Str("mindtape.task".to_owned())),
         ("fields", fields),
         ("extras", dict(vec![])),
     ]);
-    let task = Task::from_marker("stem".to_owned(), "tasks/stem.typ".into(), &marker);
-    assert_eq!(task.id, "custom");
+    Task::from_marker("stem".to_owned(), "tasks/stem.typ".into(), &marker)
+}
+
+#[test]
+fn explicit_id_field_wins_over_stem() {
+    assert_eq!(task_from_id_field("custom").id, "custom");
 }
 
 #[test]
 fn empty_id_field_falls_back_to_stem() {
-    let fields = dict(vec![
-        ("title", HVal::Str("Task".to_owned())),
-        ("id", HVal::Str(String::new())),
-    ]);
-    let marker = dict(vec![
-        ("marker", HVal::Str("mindtape.task".to_owned())),
-        ("fields", fields),
-        ("extras", dict(vec![])),
-    ]);
-    let task = Task::from_marker("stem".to_owned(), "tasks/stem.typ".into(), &marker);
-    assert_eq!(task.id, "stem");
+    assert_eq!(task_from_id_field("").id, "stem");
 }
 
 #[test]
 fn is_terminal_matches_set() {
-    let task = Task {
-        id: "t".to_owned(),
-        file: "t.typ".into(),
-        title: String::new(),
-        status: Some(Status {
-            name: "done".to_owned(),
-            date: None,
-            note: None,
-        }),
-        priority: None,
-        difficulty: None,
-        kind: None,
-        estimate: BTreeMap::new(),
-        depends_on: Vec::new(),
-        relates_to: Vec::new(),
-        supersedes: Vec::new(),
-        duplicates: Vec::new(),
-        tags: Vec::new(),
-        due: None,
-        start: None,
-        reviewed: None,
-        extras: BTreeMap::new(),
-    };
+    let mut task = bare_task("t");
+    task.status = Some(Status {
+        name: "done".to_owned(),
+        date: None,
+        note: None,
+    });
     assert!(task.is_terminal(&["done".to_owned()]));
     assert!(!task.is_terminal(&["cancelled".to_owned()]));
 }

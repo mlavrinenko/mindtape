@@ -158,9 +158,9 @@ pub fn warn_errors(outcome: &LoadOutcome) {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use std::collections::BTreeMap;
     use std::path::Path;
 
+    use mindtape::test_support::{TASK_SRC, bare_task};
     use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
     use super::{Project, resolve_task, warn_errors};
@@ -185,37 +185,10 @@ mod tests {
 
     // Minimal task for unit tests — no file on disk needed for pure logic tests.
     fn stub_task(id: &str, title: &str) -> Task {
-        Task {
-            id: id.to_owned(),
-            file: format!("tasks/{id}.typ").into(),
-            title: title.to_owned(),
-            status: None,
-            priority: None,
-            difficulty: None,
-            kind: None,
-            estimate: BTreeMap::new(),
-            depends_on: Vec::new(),
-            relates_to: Vec::new(),
-            supersedes: Vec::new(),
-            duplicates: Vec::new(),
-            tags: Vec::new(),
-            due: None,
-            start: None,
-            reviewed: None,
-            extras: BTreeMap::new(),
-        }
+        let mut t = bare_task(id);
+        t.title = title.to_owned();
+        t
     }
-
-    const TASK_SRC: &str = "#metadata((
-  marker: \"mindtape.task\",
-  fields: (
-    title: \"Task X\",
-    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: 8,
-  ),
-  extras: (:),
-))
-";
 
     fn make_project_with_tasks(dir: &Path, task_ids: &[&str]) -> Project {
         std::fs::create_dir_all(dir.join(".mindtape")).unwrap();

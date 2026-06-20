@@ -178,6 +178,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use mindtape::numeric::NumValue;
+    use mindtape::test_support::bare_task;
     use mindtape::{Status, Task};
 
     use mindtape::{Config, Readiness};
@@ -185,29 +186,17 @@ mod tests {
     use super::{HVal, OutputFormat, render, task_to_json};
 
     fn sample() -> Task {
-        Task {
-            id: "t1".to_owned(),
-            file: "tasks/t1.typ".into(),
-            title: "Build".to_owned(),
-            status: Some(Status {
-                name: "wip".to_owned(),
-                date: Some("2026-06-14".to_owned()),
-                note: None,
-            }),
-            priority: Some(NumValue::Num(8.0)),
-            difficulty: None,
-            kind: None,
-            estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
-            depends_on: Vec::new(),
-            relates_to: Vec::new(),
-            supersedes: Vec::new(),
-            duplicates: Vec::new(),
-            tags: vec!["x".to_owned()],
-            due: None,
-            start: None,
-            reviewed: None,
-            extras: BTreeMap::new(),
-        }
+        let mut t = bare_task("t1");
+        t.title = "Build".to_owned();
+        t.status = Some(Status {
+            name: "wip".to_owned(),
+            date: Some("2026-06-14".to_owned()),
+            note: None,
+        });
+        t.priority = Some(NumValue::Num(8.0));
+        t.estimate = BTreeMap::from([("hours".to_owned(), 8.0)]);
+        t.tags = vec!["x".to_owned()];
+        t
     }
 
     #[test]

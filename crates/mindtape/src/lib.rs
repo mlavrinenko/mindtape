@@ -21,6 +21,8 @@ pub mod model;
 pub mod numeric;
 pub mod ready;
 pub mod sort;
+#[cfg(any(test, feature = "test-support"))]
+pub mod test_support;
 pub mod validate;
 
 pub use config::{Config, ConfigError, PriorityConfig, config_path, load_config, parse_config};

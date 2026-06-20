@@ -1,7 +1,5 @@
 #![allow(clippy::unwrap_used)]
 
-use std::collections::BTreeMap;
-
 use super::{
     default_order, default_order_with, priority_value, sort_by_specs, status_index,
     validate_sort_spec,
@@ -9,6 +7,7 @@ use super::{
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
 use crate::numeric::NumValue;
+use crate::test_support::bare_task;
 
 fn config() -> Config {
     parse_config(
@@ -30,29 +29,15 @@ max = 9
 }
 
 fn task(id: &str, status: &str, priority: f64, due: Option<&str>) -> Task {
-    Task {
-        id: id.to_owned(),
-        file: format!("tasks/{id}.typ").into(),
-        title: id.to_owned(),
-        status: Some(Status {
-            name: status.to_owned(),
-            date: None,
-            note: None,
-        }),
-        priority: Some(NumValue::Num(priority)),
-        difficulty: None,
-        kind: None,
-        estimate: BTreeMap::new(),
-        depends_on: Vec::new(),
-        relates_to: Vec::new(),
-        supersedes: Vec::new(),
-        duplicates: Vec::new(),
-        tags: Vec::new(),
-        due: due.map(ToOwned::to_owned),
-        start: None,
-        reviewed: None,
-        extras: BTreeMap::new(),
-    }
+    let mut t = bare_task(id);
+    t.status = Some(Status {
+        name: status.to_owned(),
+        date: None,
+        note: None,
+    });
+    t.priority = Some(NumValue::Num(priority));
+    t.due = due.map(ToOwned::to_owned);
+    t
 }
 
 #[test]

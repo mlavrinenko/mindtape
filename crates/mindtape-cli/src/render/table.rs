@@ -243,37 +243,22 @@ fn render_title(spec: &CellSpec, glyph_mode: GlyphMode, painter: Painter, width:
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use std::collections::BTreeMap;
-
     use mindtape::numeric::NumValue;
+    use mindtape::test_support::bare_task;
     use mindtape::{Config, Readiness, Status, Task};
 
     use super::render;
 
     fn task(id: &str, title: &str, status: &str) -> Task {
-        Task {
-            id: id.to_owned(),
-            file: format!("tasks/{id}.typ").into(),
-            title: title.to_owned(),
-            status: Some(Status {
-                name: status.to_owned(),
-                date: None,
-                note: None,
-            }),
-            priority: Some(NumValue::Num(5.0)),
-            difficulty: None,
-            kind: None,
-            estimate: BTreeMap::new(),
-            depends_on: Vec::new(),
-            relates_to: Vec::new(),
-            supersedes: Vec::new(),
-            duplicates: Vec::new(),
-            tags: Vec::new(),
-            due: None,
-            start: None,
-            reviewed: None,
-            extras: BTreeMap::new(),
-        }
+        let mut t = bare_task(id);
+        t.title = title.to_owned();
+        t.status = Some(Status {
+            name: status.to_owned(),
+            date: None,
+            note: None,
+        });
+        t.priority = Some(NumValue::Num(5.0));
+        t
     }
 
     #[test]

@@ -2,48 +2,17 @@
 
 use std::path::Path;
 
-use mindtape::{Config, LoadOutcome, load_project, parse_config};
+use mindtape::test_support::TASK_SRC as TASK;
+use mindtape::{Config, LoadOutcome, parse_config};
 
 use crate::util;
 
-const TASK: &str = "#metadata((
-  marker: \"mindtape.task\",
-  fields: (
-    title: \"Task X\",
-    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
-    priority: 8,
-  ),
-  extras: (:),
-))
-";
-
 fn make_project(dir: &Path, files: &[(&str, &str)]) -> util::Project {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::create_dir_all(dir.join("tasks")).unwrap();
-    for (name, body) in files {
-        std::fs::write(dir.join("tasks").join(name), body).unwrap();
-    }
-    let config = Config::default();
-    let outcome = load_project(dir, &config);
-    util::Project {
-        root: dir.to_path_buf(),
-        config,
-        outcome,
-    }
+    crate::test_util::make_project(dir, files, Config::default())
 }
 
 fn make_project_with_config(dir: &Path, files: &[(&str, &str)], config: Config) -> util::Project {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::create_dir_all(dir.join("tasks")).unwrap();
-    for (name, body) in files {
-        std::fs::write(dir.join("tasks").join(name), body).unwrap();
-    }
-    let outcome = load_project(dir, &config);
-    util::Project {
-        root: dir.to_path_buf(),
-        config,
-        outcome,
-    }
+    crate::test_util::make_project(dir, files, config)
 }
 
 #[test]

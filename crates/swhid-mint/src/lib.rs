@@ -24,6 +24,9 @@
 #[cfg(feature = "git")]
 pub mod git;
 
+#[cfg(any(test, feature = "test-support"))]
+pub mod test_support;
+
 /// The object a SWHID names. v1 hashes are `sha1_git`, identical to git's own
 /// blob/tree/commit SHA-1 for content/directory/revision.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

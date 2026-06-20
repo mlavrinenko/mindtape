@@ -45,6 +45,7 @@ with violations. Key restrictions:
 | Tests | `cargo test --workspace` |
 | Unused deps | `cargo machete` |
 | File size | `linecop` (Rust 500, Markdown 200) |
+| Copy-paste | `jscpd` (`just check-dry`) — fails on any duplicated Rust block ≥70 tokens; fix by extracting a shared helper |
 | Doc drift | `outdatty check` |
 
 Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-tarpaulin`.

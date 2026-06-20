@@ -272,16 +272,26 @@ fn confirm(plan: &Plan) -> Result<bool> {
     Ok(answer == "y" || answer == "yes")
 }
 
-/// Print what the plan would do (used by `--dry-run`).
-fn report_plan(plan: &Plan) {
-    println!("would delete {} task(s):", plan.deletions.len());
+/// List each deletion in `plan` as an indented bullet on stdout.
+fn print_deletions(plan: &Plan) {
     for deletion in &plan.deletions {
         println!("  - {}", deletion.rel.display());
     }
+}
+
+/// Total inbound links rewritten across `plan`'s rewrites.
+fn rewrite_link_count(plan: &Plan) -> usize {
+    plan.rewrites.iter().map(|r| r.links).sum()
+}
+
+/// Print what the plan would do (used by `--dry-run`).
+fn report_plan(plan: &Plan) {
+    println!("would delete {} task(s):", plan.deletions.len());
+    print_deletions(plan);
     if !plan.rewrites.is_empty() {
-        let links: usize = plan.rewrites.iter().map(|r| r.links).sum();
         println!(
-            "would rewrite {links} link(s) in {} file(s):",
+            "would rewrite {} link(s) in {} file(s):",
+            rewrite_link_count(plan),
             plan.rewrites.len()
         );
         for rewrite in &plan.rewrites {
@@ -293,12 +303,13 @@ fn report_plan(plan: &Plan) {
 /// Print what the plan just did, and remind the user to review and commit.
 fn report_applied(plan: &Plan) {
     println!("deleted {} task(s):", plan.deletions.len());
-    for deletion in &plan.deletions {
-        println!("  - {}", deletion.rel.display());
-    }
+    print_deletions(plan);
     if !plan.rewrites.is_empty() {
-        let links: usize = plan.rewrites.iter().map(|r| r.links).sum();
-        println!("rewrote {links} link(s) in {} file(s)", plan.rewrites.len());
+        println!(
+            "rewrote {} link(s) in {} file(s)",
+            rewrite_link_count(plan),
+            plan.rewrites.len()
+        );
     }
     println!("review the changes and commit when satisfied");
 }

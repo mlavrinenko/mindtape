@@ -1,32 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use std::path::Path;
-use std::process::Command;
-
-use tempfile::TempDir;
-
 use super::{Error, mint_content, mint_rev_path, resolves};
 use crate::Kind;
-
-fn git(root: &Path, args: &[&str]) {
-    let status = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(args)
-        .env("GIT_AUTHOR_NAME", "t")
-        .env("GIT_AUTHOR_EMAIL", "t@example.com")
-        .env("GIT_COMMITTER_NAME", "t")
-        .env("GIT_COMMITTER_EMAIL", "t@example.com")
-        .status()
-        .expect("run git");
-    assert!(status.success(), "git {args:?}");
-}
-
-fn repo() -> TempDir {
-    let dir = tempfile::tempdir().expect("tempdir");
-    git(dir.path(), &["init", "-q", "-b", "main"]);
-    dir
-}
+use crate::test_support::{git, repo};
 
 #[test]
 fn mints_and_resolves_rev_path() {
