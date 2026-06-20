@@ -201,3 +201,55 @@ fn framework_priority_compares_by_resolved_score() {
             .unwrap()
     );
 }
+
+#[test]
+fn ready_and_blocked_predicates() {
+    use crate::ready::Readiness;
+
+    let cfg = parse_config(
+        "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
+    )
+    .unwrap();
+
+    let mut dep = sample();
+    dep.id = "dep".to_owned();
+    dep.file = "tasks/dep.typ".into();
+    dep.status = Some(Status {
+        name: "done".to_owned(),
+        date: None,
+        note: None,
+    });
+
+    let mut ready = sample();
+    ready.id = "r".to_owned();
+    ready.file = "tasks/r.typ".into();
+    ready.depends_on = vec!["dep.typ".to_owned()]; // terminal dep -> ready
+
+    let mut blocked = sample();
+    blocked.id = "b".to_owned();
+    blocked.file = "tasks/b.typ".into();
+    blocked.depends_on = vec!["missing.typ".to_owned()]; // dangling -> blocked
+
+    let tasks = vec![dep.clone(), ready.clone(), blocked.clone()];
+    let readiness = Readiness::compute(&tasks, &cfg);
+    let hit = |expr: &str, task: &Task| {
+        Filter::parse(expr)
+            .unwrap()
+            .matches_with(task, &cfg, &readiness)
+            .unwrap()
+    };
+
+    // Bare and call forms agree.
+    assert!(hit("ready", &ready));
+    assert!(hit("ready()", &ready));
+    assert!(!hit("ready", &blocked));
+    assert!(hit("blocked", &blocked));
+    assert!(hit("blocked()", &blocked));
+    assert!(!hit("blocked", &ready));
+    // Terminal task is neither.
+    assert!(!hit("ready", &dep));
+    assert!(!hit("blocked", &dep));
+    // Composes with other predicates (sample priority is 8).
+    assert!(hit("ready && priority >= 7", &ready));
+    assert!(hit("!ready", &blocked));
+}

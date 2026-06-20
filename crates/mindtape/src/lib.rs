@@ -17,6 +17,7 @@ pub mod gate;
 pub mod loader;
 pub mod model;
 pub mod numeric;
+pub mod ready;
 pub mod sort;
 pub mod validate;
 
@@ -28,11 +29,14 @@ pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use loader::{LoadError, LoadOutcome, find_root, load_project};
 pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind};
-pub use sort::default_order;
+pub use ready::{Readiness, ReadyState};
+pub use sort::{default_order, default_order_with};
 pub use validate::{Location, Violation, validate};
 
 /// Retain the tasks matching `filter`; `None` keeps them all. `config` resolves
-/// framework-scored priorities for numeric comparisons.
+/// framework-scored priorities for numeric comparisons; `readiness` answers the
+/// `ready` / `blocked` predicates and must be computed over the full set before
+/// any narrowing (pass [`Readiness::empty`] when no set context applies).
 ///
 /// # Errors
 /// Returns [`FilterError`] if the filter references an unknown field.
@@ -40,13 +44,14 @@ pub fn select(
     tasks: Vec<Task>,
     filter: Option<&Filter>,
     config: &Config,
+    readiness: &Readiness,
 ) -> Result<Vec<Task>, FilterError> {
     let Some(filter) = filter else {
         return Ok(tasks);
     };
     let mut kept = Vec::new();
     for task in tasks {
-        if filter.matches(&task, config)? {
+        if filter.matches_with(&task, config, readiness)? {
             kept.push(task);
         }
     }

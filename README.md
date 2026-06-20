@@ -66,6 +66,8 @@ mindtape list 'status != "done" && priority >= 7'
 mindtape list 'has(due) && due < "2026-08-01"'
 mindtape list 'search("auth")' --json        # JSON output
 mindtape list 'stale(30)'                     # unreviewed for over 30 days
+mindtape list ready                           # deps all done — startable now
+mindtape list 'blocked && priority >= 7'      # high-priority work that is stuck
 mindtape list --sort priority:asc -n 10      # sort + limit
 
 # Re-affirm a task as still relevant (stamps reviewed: with today's date)
@@ -152,7 +154,10 @@ numerically against a number (e.g. `priority >= 7`). Operators: `==`, `!=`, `<`,
 `has_tag("name")`, `contains(field, "substr")`, `search("query")`, `stale(N)`
 (re-affirmed — or, lacking `reviewed`, last status-changed — more than N days
 ago). The opaque `estimate` dict supports presence only (`has(estimate)`), not
-comparison.
+comparison. Dependency predicates `ready` and `blocked` (bare or as `ready()` /
+`blocked()`) classify a task by its `depends-on` targets: ready when every direct
+dependency is terminal, blocked otherwise. `list` floats ready work to the top by
+default and shows a `READY` column when any task is blocked.
 
 ## Architecture
 

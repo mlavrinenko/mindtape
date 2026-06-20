@@ -15,6 +15,10 @@
 //!
 //! Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
 //! `contains(field, "substr")`, `search("query")`, `stale(N)`.
+//!
+//! Dependency-aware predicates `ready` and `blocked` answer "what can I start
+//! now" over the whole loaded set (see [`Readiness`]). They take no argument and
+//! may be written bare (`ready`) or as a call (`ready()`).
 
 use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
@@ -22,6 +26,7 @@ use thiserror::Error;
 use crate::config::{Config, PriorityConfig};
 use crate::model::Task;
 use crate::numeric::{NumValue, format_num};
+use crate::ready::Readiness;
 
 /// A parsed, reusable filter expression.
 #[derive(Debug, Clone)]
@@ -67,12 +72,28 @@ impl Filter {
     }
 
     /// Whether `task` satisfies the filter, resolving framework scores against
-    /// `config`.
+    /// `config`. The `ready` / `blocked` predicates are unavailable here (no
+    /// task-set context); use [`matches_with`](Self::matches_with) for those.
     ///
     /// # Errors
     /// Returns [`FilterError`] on an unknown field or unsupported operator.
     pub fn matches(&self, task: &Task, config: &Config) -> Result<bool, FilterError> {
-        eval_bool(&self.tree, task, config)
+        self.matches_with(task, config, &Readiness::empty())
+    }
+
+    /// Whether `task` satisfies the filter, with `readiness` answering the
+    /// `ready` / `blocked` predicates. `readiness` must be computed over the full
+    /// loaded set (see [`Readiness::compute`]).
+    ///
+    /// # Errors
+    /// Returns [`FilterError`] on an unknown field or unsupported operator.
+    pub fn matches_with(
+        &self,
+        task: &Task,
+        config: &Config,
+        readiness: &Readiness,
+    ) -> Result<bool, FilterError> {
+        eval_bool(&self.tree, task, config, readiness)
     }
 }
 
@@ -80,16 +101,17 @@ fn eval_bool(
     node: &Node<DefaultNumericTypes>,
     task: &Task,
     config: &Config,
+    readiness: &Readiness,
 ) -> Result<bool, FilterError> {
     match node.operator() {
         Operator::RootNode => match node.children() {
-            [child] => eval_bool(child, task, config),
+            [child] => eval_bool(child, task, config, readiness),
             _ => Err(FilterError::Invalid("root needs one child".to_owned())),
         },
-        Operator::And => binary(node, task, config, |left, right| left && right),
-        Operator::Or => binary(node, task, config, |left, right| left || right),
+        Operator::And => binary(node, task, config, readiness, |left, right| left && right),
+        Operator::Or => binary(node, task, config, readiness, |left, right| left || right),
         Operator::Not => match node.children() {
-            [child] => Ok(!eval_bool(child, task, config)?),
+            [child] => Ok(!eval_bool(child, task, config, readiness)?),
             _ => Err(FilterError::Invalid("`!` needs one operand".to_owned())),
         },
         Operator::Eq
@@ -98,11 +120,23 @@ fn eval_bool(
         | Operator::Gt
         | Operator::Leq
         | Operator::Geq => comparison(node, task, config),
-        Operator::FunctionIdentifier { identifier } => function(identifier, node, task, config),
-        Operator::VariableIdentifierRead { identifier } => Err(FilterError::Invalid(format!(
-            "bare field `{identifier}` is not boolean; use a comparison or function"
-        ))),
+        Operator::FunctionIdentifier { identifier } => {
+            function(identifier, node, task, config, readiness)
+        }
+        Operator::VariableIdentifierRead { identifier } => nullary(identifier, task, readiness),
         other => Err(FilterError::Unsupported(format!("{other:?}"))),
+    }
+}
+
+/// A bare identifier in boolean position: the dependency predicates `ready` /
+/// `blocked` are valid; any other field is a type error (use a comparison).
+fn nullary(identifier: &str, task: &Task, readiness: &Readiness) -> Result<bool, FilterError> {
+    match identifier {
+        "ready" => Ok(readiness.is_ready(task)),
+        "blocked" => Ok(readiness.is_blocked(task)),
+        other => Err(FilterError::Invalid(format!(
+            "bare field `{other}` is not boolean; use a comparison or function"
+        ))),
     }
 }
 
@@ -110,12 +144,13 @@ fn binary(
     node: &Node<DefaultNumericTypes>,
     task: &Task,
     config: &Config,
+    readiness: &Readiness,
     combine: impl Fn(bool, bool) -> bool,
 ) -> Result<bool, FilterError> {
     match node.children() {
         [left, right] => Ok(combine(
-            eval_bool(left, task, config)?,
-            eval_bool(right, task, config)?,
+            eval_bool(left, task, config, readiness)?,
+            eval_bool(right, task, config, readiness)?,
         )),
         _ => Err(FilterError::Invalid(
             "binary op needs two operands".to_owned(),
@@ -174,9 +209,12 @@ fn function(
     node: &Node<DefaultNumericTypes>,
     task: &Task,
     config: &Config,
+    readiness: &Readiness,
 ) -> Result<bool, FilterError> {
     let children = node.children();
     match name {
+        "ready" => Ok(readiness.is_ready(task)),
+        "blocked" => Ok(readiness.is_blocked(task)),
         "has" => Ok(present(task, &single_identifier(children, "has")?, config)?),
         "miss" => Ok(!present(
             task,

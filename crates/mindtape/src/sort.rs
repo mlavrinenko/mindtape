@@ -10,20 +10,41 @@ use std::cmp::Ordering;
 
 use crate::config::Config;
 use crate::model::Task;
+use crate::ready::{Readiness, ReadyState};
 
-/// Sort `tasks` into the default order: status lifecycle (the configured
-/// `[[tasks.status]]` index), then priority descending, then due ascending,
-/// with the id as a stable final tiebreak.
+/// Sort `tasks` into the default order with no readiness signal (every task
+/// settled). See [`default_order_with`].
 pub fn default_order(tasks: &mut [Task], config: &Config) {
-    tasks.sort_by(|left, right| compare_default(left, right, config));
+    default_order_with(tasks, config, &Readiness::empty());
 }
 
-fn compare_default(left: &Task, right: &Task, config: &Config) -> Ordering {
-    status_index(left, config)
-        .cmp(&status_index(right, config))
+/// Sort `tasks` into the default order: ready work first (ready, then blocked,
+/// then settled per `readiness`), then status lifecycle (the configured
+/// `[[tasks.status]]` index), then priority descending, then due ascending, with
+/// the id as a stable final tiebreak. `readiness` must be computed over the full
+/// loaded set (see [`Readiness::compute`]).
+pub fn default_order_with(tasks: &mut [Task], config: &Config, readiness: &Readiness) {
+    tasks.sort_by(|left, right| compare_default(left, right, config, readiness));
+}
+
+fn compare_default(left: &Task, right: &Task, config: &Config, readiness: &Readiness) -> Ordering {
+    ready_rank(left, readiness)
+        .cmp(&ready_rank(right, readiness))
+        .then_with(|| status_index(left, config).cmp(&status_index(right, config)))
         .then_with(|| priority_desc(left, right, config))
         .then_with(|| due_asc(left, right))
         .then_with(|| left.id.cmp(&right.id))
+}
+
+/// Sort rank for a task's readiness: ready (0) before blocked (1) before settled
+/// (2), so actionable work floats to the top of the default view.
+#[must_use]
+pub fn ready_rank(task: &Task, readiness: &Readiness) -> u8 {
+    match readiness.state(task) {
+        ReadyState::Ready => 0,
+        ReadyState::Blocked => 1,
+        ReadyState::Settled => 2,
+    }
 }
 
 /// Position of a task's status in the configured lifecycle; unknown or missing

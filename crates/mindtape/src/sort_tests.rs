@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use super::{default_order, priority_value, status_index};
+use super::{default_order, default_order_with, priority_value, status_index};
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
 use crate::numeric::NumValue;
@@ -92,4 +92,22 @@ fn priority_value_resolves_through_config() {
     let cfg = config();
     let item = task("a", "wip", 7.0, None);
     assert_eq!(priority_value(&item, &cfg), Some(7.0));
+}
+
+#[test]
+fn default_order_floats_ready_above_blocked() {
+    use crate::ready::Readiness;
+
+    let cfg = config(); // proposed(0), wip(1), done(2)
+    // A blocked task earlier in the lifecycle vs a ready task later in it: the
+    // readiness band leads, so the ready task sorts first despite its status.
+    let mut blocked = task("blocked-proposed", "proposed", 8.0, None);
+    blocked.depends_on = vec!["missing.typ".to_owned()];
+    let ready = task("ready-wip", "wip", 1.0, None);
+
+    let mut tasks = vec![blocked, ready];
+    let readiness = Readiness::compute(&tasks, &cfg);
+    default_order_with(&mut tasks, &cfg, &readiness);
+    let ids: Vec<&str> = tasks.iter().map(|t| t.id.as_str()).collect();
+    assert_eq!(ids, vec!["ready-wip", "blocked-proposed"]);
 }

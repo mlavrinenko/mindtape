@@ -3,8 +3,8 @@
 use std::cmp::Ordering;
 
 use anyhow::{Result, bail};
-use mindtape::sort::{default_order, priority_value, status_index};
-use mindtape::{Config, Filter, Task, select};
+use mindtape::sort::{default_order_with, priority_value, ready_rank, status_index};
+use mindtape::{Config, Filter, Readiness, Task, select};
 
 use crate::output::{OutputFormat, render};
 use crate::util;
@@ -47,9 +47,18 @@ pub fn run(args: &ListArgs) -> Result<()> {
 pub(crate) fn run_with(args: &ListArgs, project: util::Project) -> Result<()> {
     util::warn_errors(&project.outcome);
 
+    // Readiness over the full set, before the filter narrows it (a terminal
+    // dependency hidden by the default filter must still count as satisfied).
+    // Shared by the filter, the sort, and the rendered column.
+    let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let filter = build_filter(args, &project.config)?;
-    let mut tasks = select(project.outcome.tasks, filter.as_ref(), &project.config)?;
-    sort_tasks(&mut tasks, &args.sort, &project.config)?;
+    let mut tasks = select(
+        project.outcome.tasks,
+        filter.as_ref(),
+        &project.config,
+        &readiness,
+    )?;
+    sort_tasks(&mut tasks, &args.sort, &project.config, &readiness)?;
     if let Some(limit) = args.limit {
         tasks.truncate(limit);
     }
@@ -59,7 +68,7 @@ pub(crate) fn run_with(args: &ListArgs, project: util::Project) -> Result<()> {
     } else {
         args.format
     };
-    println!("{}", render(&tasks, format, &project.config)?);
+    println!("{}", render(&tasks, format, &project.config, &readiness)?);
     Ok(())
 }
 
@@ -77,11 +86,16 @@ fn build_filter(args: &ListArgs, config: &Config) -> Result<Option<Filter>> {
     }
 }
 
-fn sort_tasks(tasks: &mut [Task], specs: &[String], config: &Config) -> Result<()> {
+fn sort_tasks(
+    tasks: &mut [Task],
+    specs: &[String],
+    config: &Config,
+    readiness: &Readiness,
+) -> Result<()> {
     // No explicit spec: fall back to the shared default order (the same order
     // handle resolution uses, so list ordinals stay stable).
     if specs.is_empty() {
-        default_order(tasks, config);
+        default_order_with(tasks, config, readiness);
         return Ok(());
     }
     // Apply least-significant spec first so a stable sort yields the intended
@@ -90,7 +104,7 @@ fn sort_tasks(tasks: &mut [Task], specs: &[String], config: &Config) -> Result<(
         let (field, descending) = parse_spec(spec);
         validate_field(field)?;
         tasks.sort_by(|left, right| {
-            let ordering = compare(left, right, field, config);
+            let ordering = compare(left, right, field, config, readiness);
             if descending {
                 ordering.reverse()
             } else {
@@ -110,7 +124,7 @@ fn parse_spec(spec: &str) -> (&str, bool) {
 }
 
 fn validate_field(field: &str) -> Result<()> {
-    const FIELDS: [&str; 9] = [
+    const FIELDS: [&str; 10] = [
         "id",
         "title",
         "status",
@@ -120,6 +134,7 @@ fn validate_field(field: &str) -> Result<()> {
         "due",
         "start",
         "file",
+        "ready",
     ];
     if FIELDS.contains(&field) {
         Ok(())
@@ -128,11 +143,19 @@ fn validate_field(field: &str) -> Result<()> {
     }
 }
 
-/// Compare two tasks on `field`: status by its lifecycle index, priority and
-/// difficulty numerically, everything else lexicographically.
-fn compare(left: &Task, right: &Task, field: &str, config: &Config) -> Ordering {
+/// Compare two tasks on `field`: status by its lifecycle index, readiness by its
+/// rank (ready first), priority and difficulty numerically, everything else
+/// lexicographically.
+fn compare(
+    left: &Task,
+    right: &Task,
+    field: &str,
+    config: &Config,
+    readiness: &Readiness,
+) -> Ordering {
     match field {
         "status" => status_index(left, config).cmp(&status_index(right, config)),
+        "ready" => ready_rank(left, readiness).cmp(&ready_rank(right, readiness)),
         "priority" => cmp_num(priority_value(left, config), priority_value(right, config)),
         "difficulty" => cmp_num(
             difficulty_value(left, config),
@@ -178,7 +201,7 @@ mod tests {
     use std::path::Path;
 
     use mindtape::numeric::NumValue;
-    use mindtape::{Config, Task, load_project};
+    use mindtape::{Config, Readiness, Task, load_project};
 
     use super::{ListArgs, parse_spec, run_with, sort_tasks, validate_field};
     use crate::output::OutputFormat;
@@ -223,7 +246,13 @@ mod tests {
         // Ascending priority: the lower number comes first. Lexicographically
         // "8" < "2" is false, so this only passes with numeric ordering.
         let mut tasks = vec![task("b", 8.0), task("a", 2.0)];
-        sort_tasks(&mut tasks, &["priority:asc".to_owned()], &Config::default()).unwrap();
+        sort_tasks(
+            &mut tasks,
+            &["priority:asc".to_owned()],
+            &Config::default(),
+            &Readiness::empty(),
+        )
+        .unwrap();
         assert_eq!(tasks.first().unwrap().id, "a");
     }
 

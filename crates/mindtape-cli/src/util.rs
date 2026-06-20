@@ -4,8 +4,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use mindtape::{
-    Config, Filter, LoadOutcome, Task, config_path, default_order, find_root, load_config,
-    load_project, select,
+    Config, Filter, LoadOutcome, Readiness, Task, config_path, default_order_with, find_root,
+    load_config, load_project, select,
 };
 
 use crate::handle::{DEFAULT_CHECK_LEN, check_chars, parse_handle};
@@ -104,12 +104,17 @@ fn default_view(project: &Project) -> Result<Vec<Task>> {
         .as_deref()
         .map(Filter::parse)
         .transpose()?;
+    // Readiness over the full set, before the filter narrows the view, so a
+    // dependency hidden by the default filter still counts. Shared by select and
+    // ordering so the handle view matches what `list` prints exactly.
+    let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let mut tasks = select(
         project.outcome.tasks.clone(),
         filter.as_ref(),
         &project.config,
+        &readiness,
     )?;
-    default_order(&mut tasks, &project.config);
+    default_order_with(&mut tasks, &project.config, &readiness);
     Ok(tasks)
 }
 

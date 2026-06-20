@@ -49,7 +49,8 @@ pub fn run(args: &EvalArgs) -> Result<()> {
             render(
                 std::slice::from_ref(&task),
                 OutputFormat::Table,
-                &mindtape::Config::default()
+                &mindtape::Config::default(),
+                &mindtape::Readiness::empty(),
             )?
         );
     }

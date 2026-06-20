@@ -6,9 +6,9 @@
 
 use std::io::IsTerminal;
 
-use mindtape::{Config, Task};
+use mindtape::{Config, Readiness, ReadyState, Task};
 
-use super::color::{Painter, is_color_active};
+use super::color::{Painter, is_color_active, parse_color};
 use super::field::{CellSpec, DensityMode, Field, cell_content, content_width, render_cell};
 use super::fields::{Status as StatusField, priority_cell_spec};
 use super::glyph::GlyphMode;
@@ -22,6 +22,7 @@ const TITLE_MIN: usize = 16;
 struct Row {
     handle: CellSpec,
     status: CellSpec,
+    ready: CellSpec,
     priority: CellSpec,
     due: CellSpec,
     title: CellSpec,
@@ -31,18 +32,22 @@ struct Row {
 struct Widths {
     handle: usize,
     status: usize,
+    ready: usize,
     priority: usize,
     due: usize,
     title: usize,
 }
 
-/// Render `tasks` as a borderless, space-aligned table.
+/// Render `tasks` as a borderless, space-aligned table. The dependency-readiness
+/// column appears only when some task is blocked, so a backlog with no contested
+/// dependencies stays uncluttered.
 #[must_use]
-pub fn render(tasks: &[Task], config: &Config) -> String {
+pub fn render(tasks: &[Task], config: &Config, readiness: &Readiness) -> String {
     let glyph_mode = glyph_mode();
     let painter = Painter::new(is_color_active());
-    let rows = build_rows(tasks, config);
-    let cols = widths(&rows, glyph_mode);
+    let show_ready = tasks.iter().any(|task| readiness.is_blocked(task));
+    let rows = build_rows(tasks, config, readiness);
+    let cols = widths(&rows, glyph_mode, show_ready);
     let mut out = String::new();
     push_header(&mut out, &cols);
     for row in &rows {
@@ -68,17 +73,36 @@ fn plain(text: String) -> CellSpec {
     }
 }
 
-fn build_rows(tasks: &[Task], config: &Config) -> Vec<Row> {
+fn build_rows(tasks: &[Task], config: &Config, readiness: &Readiness) -> Vec<Row> {
     make_handles(tasks, DEFAULT_CHECK_LEN)
         .into_iter()
         .map(|(handle, task)| Row {
             handle: plain(handle),
             status: status_cell(task, config),
+            ready: ready_cell(readiness.state(task)),
             priority: priority_cell(task, config),
             due: plain(task.due.clone().unwrap_or_default()),
             title: plain(task.title.clone()),
         })
         .collect()
+}
+
+/// A readiness cell: a glyph and short label, coloured green (ready) or red
+/// (blocked). Settled (terminal) tasks render blank.
+fn ready_cell(state: ReadyState) -> CellSpec {
+    match state {
+        ReadyState::Ready => CellSpec {
+            text: "ready".to_owned(),
+            glyph: Some("▶".to_owned()),
+            color: parse_color("green"),
+        },
+        ReadyState::Blocked => CellSpec {
+            text: "blocked".to_owned(),
+            glyph: Some("🔒".to_owned()),
+            color: parse_color("red"),
+        },
+        ReadyState::Settled => plain(String::new()),
+    }
 }
 
 fn status_cell(task: &Task, config: &Config) -> CellSpec {
@@ -95,7 +119,7 @@ fn priority_cell(task: &Task, config: &Config) -> CellSpec {
     }
 }
 
-fn widths(rows: &[Row], glyph_mode: GlyphMode) -> Widths {
+fn widths(rows: &[Row], glyph_mode: GlyphMode, show_ready: bool) -> Widths {
     let full = DensityMode::Full;
     let handle = col_width(
         "#",
@@ -107,6 +131,15 @@ fn widths(rows: &[Row], glyph_mode: GlyphMode) -> Widths {
         rows.iter()
             .map(|row| content_width(&row.status, glyph_mode, full)),
     );
+    let ready = if show_ready {
+        col_width(
+            "READY",
+            rows.iter()
+                .map(|row| content_width(&row.ready, glyph_mode, full)),
+        )
+    } else {
+        0
+    };
     let priority = col_width(
         "PRIORITY",
         rows.iter()
@@ -117,10 +150,13 @@ fn widths(rows: &[Row], glyph_mode: GlyphMode) -> Widths {
         rows.iter()
             .map(|row| content_width(&row.due, glyph_mode, full)),
     );
-    let title = title_width(rows, handle + status + priority + due);
+    // Gaps before the title column: one per preceding column boundary.
+    let gaps = if show_ready { 5 } else { 4 };
+    let title = title_width(rows, handle + status + ready + priority + due, gaps);
     Widths {
         handle,
         status,
+        ready,
         priority,
         due,
         title,
@@ -131,7 +167,7 @@ fn col_width(header: &str, cells: impl Iterator<Item = usize>) -> usize {
     cells.fold(display_width(header), usize::max)
 }
 
-fn title_width(rows: &[Row], others: usize) -> usize {
+fn title_width(rows: &[Row], others: usize, gaps: usize) -> usize {
     let natural = col_width(
         "TITLE",
         rows.iter()
@@ -139,7 +175,7 @@ fn title_width(rows: &[Row], others: usize) -> usize {
     );
     match terminal_width() {
         Some(term) => {
-            let avail = term.saturating_sub(others + GAP.len() * 4);
+            let avail = term.saturating_sub(others + GAP.len() * gaps);
             natural.min(avail).max(TITLE_MIN)
         }
         None => natural,
@@ -151,26 +187,41 @@ fn terminal_width() -> Option<usize> {
 }
 
 fn push_header(out: &mut String, cols: &Widths) {
-    let cells = [
+    let mut cells = vec![
         pad_to_width("#", cols.handle),
         pad_to_width("STATUS", cols.status),
-        pad_to_width("PRIORITY", cols.priority),
-        pad_to_width("DUE", cols.due),
-        "TITLE".to_owned(),
     ];
+    if cols.ready != 0 {
+        cells.push(pad_to_width("READY", cols.ready));
+    }
+    cells.push(pad_to_width("PRIORITY", cols.priority));
+    cells.push(pad_to_width("DUE", cols.due));
+    cells.push("TITLE".to_owned());
     out.push_str(&cells.join(GAP));
     out.push('\n');
 }
 
 fn push_row(out: &mut String, row: &Row, cols: &Widths, glyph_mode: GlyphMode, painter: Painter) {
     let full = DensityMode::Full;
-    let cells = [
+    let mut cells = vec![
         render_cell(&row.handle, glyph_mode, full, painter, cols.handle),
         render_cell(&row.status, glyph_mode, full, painter, cols.status),
-        render_cell(&row.priority, glyph_mode, full, painter, cols.priority),
-        render_cell(&row.due, glyph_mode, full, painter, cols.due),
-        render_title(&row.title, glyph_mode, painter, cols.title),
     ];
+    // A zero-width readiness column means it was gated off (no blocked task).
+    if cols.ready != 0 {
+        cells.push(render_cell(
+            &row.ready, glyph_mode, full, painter, cols.ready,
+        ));
+    }
+    cells.push(render_cell(
+        &row.priority,
+        glyph_mode,
+        full,
+        painter,
+        cols.priority,
+    ));
+    cells.push(render_cell(&row.due, glyph_mode, full, painter, cols.due));
+    cells.push(render_title(&row.title, glyph_mode, painter, cols.title));
     out.push_str(&cells.join(GAP));
     out.push('\n');
 }
@@ -195,7 +246,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use mindtape::numeric::NumValue;
-    use mindtape::{Config, Status, Task};
+    use mindtape::{Config, Readiness, Status, Task};
 
     use super::render;
 
@@ -230,13 +281,18 @@ mod tests {
         let out = render(
             &[task("a", "A", "wip"), task("b", "B", "done")],
             &Config::default(),
+            &Readiness::empty(),
         );
         assert_eq!(out.lines().count(), 3);
     }
 
     #[test]
     fn no_box_drawing_chars() {
-        let out = render(&[task("a", "A", "wip")], &Config::default());
+        let out = render(
+            &[task("a", "A", "wip")],
+            &Config::default(),
+            &Readiness::empty(),
+        );
         for ch in ['│', '┆', '─', '┌', '└', '╞'] {
             assert!(!out.contains(ch), "unexpected box char {ch:?}");
         }
@@ -244,10 +300,35 @@ mod tests {
 
     #[test]
     fn header_and_content_present() {
-        let out = render(&[task("auth", "Rewrite auth", "wip")], &Config::default());
+        let out = render(
+            &[task("auth", "Rewrite auth", "wip")],
+            &Config::default(),
+            &Readiness::empty(),
+        );
         assert!(out.contains("TITLE"));
         assert!(out.contains("Rewrite auth"));
         assert!(out.contains("wip"));
         assert!(out.lines().next().unwrap().contains('#'));
+    }
+
+    #[test]
+    fn readiness_column_appears_only_when_blocked() {
+        // No blocked task: column stays hidden.
+        let clean = render(
+            &[task("a", "A", "wip")],
+            &Config::default(),
+            &Readiness::empty(),
+        );
+        assert!(!clean.contains("READY"));
+
+        // `b` depends on the non-terminal `a`, so `b` is blocked and the column
+        // appears with its label (glyphs are off in the test's non-TTY output).
+        let mut blocked = task("b", "B", "wip");
+        blocked.depends_on = vec!["a.typ".to_owned()];
+        let tasks = vec![task("a", "A", "wip"), blocked];
+        let readiness = Readiness::compute(&tasks, &Config::default());
+        let out = render(&tasks, &Config::default(), &readiness);
+        assert!(out.contains("READY"));
+        assert!(out.contains("blocked"));
     }
 }
