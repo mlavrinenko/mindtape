@@ -4,9 +4,9 @@
   title: "Converge task tracking with speconaut",
   status: proposed(2026, 6, 14),
   priority: ice(impact: 8, confidence: 0.8, ease: 9),
-  depends-on: (link("convergence-boundary-adr.typ"),),
+  depends-on: (link("swh:1:rev:f4d7b80eda0be8df86149c81b6d149a5df8a6dc6;path=truth/tasks/convergence-boundary-adr.typ"),),
   relates-to: (
-    link("absorb-task-graph-into-lib.typ"),
+    link("swh:1:rev:eb4c212ca620f40b2748c64fa8cd45ef917fad2d;path=truth/tasks/absorb-task-graph-into-lib.typ"),
     link("swh:1:rev:f4d7b80eda0be8df86149c81b6d149a5df8a6dc6;path=truth/tasks/extract-typst-harvest.typ"),
   ),
   tags: ("speconaut",),
