@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "derived tags from folder structure",
-  status: wip(2026, 6, 20),
+  status: done(2026, 6, 20),
   priority: ice(impact: 7, confidence: 0.8, ease: 5),
   tags: ("substrate", "cli"),
 )

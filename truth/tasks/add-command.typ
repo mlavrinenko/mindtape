@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "add command with Typst slot templates",
-  status: proposed(2026, 6, 20),
+  status: done(2026, 6, 20),
   priority: ice(impact: 7, confidence: 0.8, ease: 6),
   tags: ("cli", "substrate"),
 )
