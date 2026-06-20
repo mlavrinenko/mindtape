@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Drop broad dirty-tree gate from rm; add per-file pre-flight",
-  status: wip(2026, 6, 20),
+  status: done(2026, 6, 20),
   priority: ice(impact: 4, confidence: 0.9, ease: 7),
   estimate: (hours: 2),
   depends-on: (link("rm-targeted-removal.typ"),),
