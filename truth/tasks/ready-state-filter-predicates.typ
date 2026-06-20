@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Ready-state predicates in the filter language",
-  status: accepted(2026, 6, 20),
+  status: done(2026, 6, 20),
   priority: ice(impact: 5, confidence: 0.5, ease: 8),
   estimate: (hours: 4),
   relates-to: (link("absorb-task-graph-into-lib.typ"),),
