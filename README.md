@@ -74,7 +74,7 @@ mindtape list --sort priority:asc -n 10      # sort + limit
 mindtape review implement-auth               # by slug, relative, or absolute path
 
 # Validate every task against the project config
-mindtape check                               # enum / required / bounds / links
+mindtape check                               # enum / required / bounds / links / cycles
 
 # Evaluate a single task file and print it
 mindtape eval tasks/implement-auth.typ

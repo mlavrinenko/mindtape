@@ -10,11 +10,12 @@
 //! History-pointer targets (SWHID tombstones) are already absent from
 //! [`Task::depends_on`], so a dependency retired by `cleanup` stops blocking.
 
-use std::collections::{HashMap, HashSet};
-use std::path::{Path, PathBuf};
+use std::collections::HashSet;
+use std::path::PathBuf;
 
 use crate::config::Config;
-use crate::model::{Task, resolve_link_path};
+use crate::graph::DepIndex;
+use crate::model::Task;
 
 /// A task's readiness, derived from its direct `depends-on` targets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,20 +54,17 @@ impl Readiness {
     #[must_use]
     pub fn compute(tasks: &[Task], config: &Config) -> Self {
         let terminal = config.tasks.status.terminal();
-        // Index the set by file path so resolved dependency links can be looked
-        // up. History-pointer targets are already absent from `depends_on`.
-        let by_path: HashMap<&Path, &Task> = tasks
-            .iter()
-            .map(|task| (task.file.as_path(), task))
-            .collect();
+        // Resolve dependency links against the shared graph index. History-pointer
+        // targets are already absent from `depends_on`.
+        let index = DepIndex::build(tasks);
         let mut out = Self::default();
         for task in tasks {
             if task.is_terminal(&terminal) {
                 continue; // settled — neither ready nor blocked
             }
             let ready = task.depends_on.iter().all(|target| {
-                resolve_link_path(&task.file, target)
-                    .and_then(|path| by_path.get(path.as_path()).copied())
+                index
+                    .resolve(task, target)
                     .is_some_and(|dep| dep.is_terminal(&terminal))
             });
             if ready {

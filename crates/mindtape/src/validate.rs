@@ -10,6 +10,7 @@ use std::path::{Path, PathBuf};
 use uuid::Uuid;
 
 use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, PriorityConfig, Requirement};
+use crate::graph::toposort;
 use crate::model::{Task, resolve_link_path};
 use crate::numeric::{InputValue, NumValue, NumericField, format_num};
 
@@ -61,7 +62,22 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         check_tags(task, config, &mut out);
         check_links(task, &files, &mut out);
     }
+    check_cycle(tasks, &mut out);
     out
+}
+
+/// Flag a dependency cycle over the whole set: a `depends-on` loop has no valid
+/// order, so the toposort fails loud. Attributed to the first task on the loop;
+/// the message names the full chain.
+fn check_cycle(tasks: &[Task], out: &mut Vec<Violation>) {
+    if let Err(cycle) = toposort(tasks) {
+        out.push(Violation {
+            task_id: cycle.members.first().cloned().unwrap_or_default(),
+            field: "depends-on".to_owned(),
+            message: format!("dependency cycle: {cycle}"),
+            location: None,
+        });
+    }
 }
 
 fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {

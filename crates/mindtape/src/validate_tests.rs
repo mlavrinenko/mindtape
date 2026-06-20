@@ -81,6 +81,20 @@ fn flags_unknown_status() {
 }
 
 #[test]
+fn flags_dependency_cycle() {
+    let mut a = task("a", "wip");
+    let mut b = task("b", "wip");
+    a.depends_on = vec!["b.typ".to_owned()];
+    b.depends_on = vec!["a.typ".to_owned()];
+    let violations = validate(&[a, b], &config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "depends-on" && v.message.contains("cycle"))
+    );
+}
+
+#[test]
 fn flags_missing_required_priority_when_active() {
     let mut item = task("a", "wip");
     item.priority = None;

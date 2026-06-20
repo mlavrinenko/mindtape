@@ -4,10 +4,10 @@ groups:
   cli-docs:
     source:
       crates/mindtape-cli/src/cli.rs: e57164e62e4f4f3735a83efb7c26f001f6aab2623a8acdb24cf070d5bdb32bb0
-      crates/mindtape/src/lib.rs: e51d71e34506a338d0c2ead4ca22d181bbf2ff20ad06d33cee7e7bd6ea4dda73
+      crates/mindtape/src/lib.rs: 7140ea629e9c48da5278545143cf78342a3fb0472b5cad9ab60bc6a4b80ba320
     dependents:
-      README.md: 1d9e8eb1a19d1735ab9cde186359fe0d89a680feb64bbe7947c79453a600cccb
-      www/index.html: e6008815abdf85fbfc84c79b32ef270db9303c86e253e57b10fa979f4d8c7b89
+      README.md: 84cdeb8b2c36e7f2a76dca113dade5f45b754c1048ba115251ce26064719d675
+      www/index.html: aee866d32f35e59ea44316078131c27c099e73fdd05c0ad7889e1339a53948d7
   dev-docs:
     source:
       Justfile: 1073f1902c6581d70eaabb4cfa7fc21fa8252bbd2689fa297f0ef652ab949280
@@ -20,7 +20,7 @@ groups:
       lib/prelude.typ: 17a464efc629113a6f3b6025c1a92d6243eec3ac98c4d7ba9ae2fb4cc8f36a50
     dependents:
       AGENTS.md: 57aaeb886a88eeac4b62aaf9e2f67e52adc4942cc006b1d561430cb2c396c0f6
-      README.md: 1d9e8eb1a19d1735ab9cde186359fe0d89a680feb64bbe7947c79453a600cccb
+      README.md: 84cdeb8b2c36e7f2a76dca113dade5f45b754c1048ba115251ce26064719d675
   release-notes:
     source:
       Cargo.toml: 6a67ffb73954d4a80e48065f8549801c60d4a90b433b7c8271479ffb2b29f301
