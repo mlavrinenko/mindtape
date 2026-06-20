@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Absorb generic task-graph logic into the mindtape library",
-  status: proposed(2026, 6, 18),
+  status: done(2026, 6, 20),
   priority: ice(impact: 8, confidence: 0.8, ease: 9),
   estimate: (hours: 3),
   depends-on: (link("convergence-boundary-adr.typ"),),
