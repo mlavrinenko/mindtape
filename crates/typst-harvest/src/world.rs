@@ -38,7 +38,8 @@ pub struct HarvestWorld {
 
 impl HarvestWorld {
     /// Build a world for `file_path`, auto-detecting the project root by walking
-    /// up for a `.mindtape/` dir, `Cargo.toml`, `lib/`, or `.git` marker.
+    /// up for a generic `Cargo.toml`, `lib/`, or `.git` marker. A tool with its
+    /// own root convention should use [`Self::with_root`] instead.
     ///
     /// # Errors
     /// Returns an error if the path cannot be resolved or canonicalized.
@@ -255,16 +256,15 @@ fn parent_dir(abs: &Path) -> Result<&Path, HarvestError> {
         .ok_or_else(|| HarvestError::World(format!("no parent dir: {}", abs.display())))
 }
 
-/// Walk up from `start` for a project-root marker, in priority order:
-/// `.mindtape/`, `Cargo.toml`, `lib/`, `.git`. Falls back to `start`.
+/// Walk up from `start` for a generic project-root marker, in priority order:
+/// `Cargo.toml`, `lib/`, `.git`. Falls back to `start`. Consumer-blind: a tool
+/// with its own root convention (e.g. a dotdir) should locate the root itself
+/// and pass it to [`HarvestWorld::with_root`].
 #[must_use]
 pub fn find_project_root(start: &Path) -> PathBuf {
     let mut dir = start.to_path_buf();
     loop {
-        if dir.join(".mindtape").is_dir()
-            || dir.join("Cargo.toml").is_file()
-            || dir.join("lib").is_dir()
-            || dir.join(".git").exists()
+        if dir.join("Cargo.toml").is_file() || dir.join("lib").is_dir() || dir.join(".git").exists()
         {
             return dir;
         }

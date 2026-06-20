@@ -5,7 +5,7 @@ use super::super::{HarvestWorld, harvest};
 
 fn project(file_body: &str) -> (tempfile::TempDir, std::path::PathBuf) {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::create_dir(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(dir.path().join("Cargo.toml"), "[package]").unwrap();
     let file = dir.path().join("task.typ");
     std::fs::write(&file, file_body).unwrap();
     (dir, file)

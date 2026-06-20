@@ -7,9 +7,9 @@ use typst::World;
 use super::{HarvestWorld, find_project_root};
 
 #[test]
-fn root_marker_priority() {
+fn root_marker_at_start() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::create_dir(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(dir.path().join("Cargo.toml"), "[package]").unwrap();
     assert_eq!(find_project_root(dir.path()), dir.path());
 }
 
@@ -25,7 +25,7 @@ fn root_walks_up_to_git() {
 #[test]
 fn new_reads_main_source() {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::create_dir(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(dir.path().join("Cargo.toml"), "[package]").unwrap();
     let file = dir.path().join("task.typ");
     std::fs::write(&file, "= Hello").unwrap();
 
