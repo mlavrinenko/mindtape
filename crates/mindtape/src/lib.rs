@@ -8,6 +8,7 @@
 //! The CLI is a thin wrapper over this crate; other tools (e.g. speconaut) can
 //! depend on it directly.
 
+mod body_headers;
 pub mod config;
 mod date;
 pub mod filter;

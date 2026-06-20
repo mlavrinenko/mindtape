@@ -1,7 +1,16 @@
 //! Plane-agnostic structural rule engine.
 //!
-//! Matches a generic node tree against require/forbid path rules and emits
-//! diagnostics. Consumer-blind: no Typst, no task model, no domain concepts.
+//! Matches a generic node tree against structural rules and emits diagnostics.
+//! Consumer-blind: no Typst, no task model, no domain concepts.
+//!
+//! Three rule shapes ([`Check`]):
+//!
+//! - [`Check::Path`] — cardinality of a path's matches ([`Action::Require`] /
+//!   [`Action::Forbid`] / [`Action::Unique`]).
+//! - [`Check::Order`] — `first` matches must all precede `second` matches in
+//!   document (line) order.
+//! - [`Check::Allow`] — closed-world: under a scope (or the roots), only the
+//!   `allowed` matchers are permitted; anything else is flagged.
 //!
 //! # Example
 //!
@@ -14,10 +23,12 @@
 //!     line: 1,
 //!     children: vec![],
 //! }];
-//! let rule = Rule::new(vec![Matcher::exact("Summary")], Action::Require)
+//! let rule = Rule::path(vec![Matcher::exact("Summary")], Action::Require)
 //!     .expect("non-empty path");
 //! assert!(run_rules(&roots, &[rule]).is_empty());
 //! ```
+
+mod eval;
 
 use thiserror::Error;
 
@@ -95,13 +106,45 @@ impl Matcher {
     }
 }
 
-/// Whether matched nodes must exist or must not.
+/// Cardinality demanded of a [`Check::Path`] rule's matches.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Action {
     /// The path must match at least one node.
     Require,
     /// The path must match no nodes.
     Forbid,
+    /// The path must match exactly one node.
+    Unique,
+}
+
+/// The structural predicate a [`Rule`] enforces.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Check {
+    /// Cardinality constraint on the matches of a single path.
+    Path {
+        /// Path of matchers through the tree.
+        path: Vec<Matcher>,
+        /// Required cardinality of the matches.
+        action: Action,
+    },
+    /// Document-order constraint: every `first` match must precede every
+    /// `second` match (by line). Order-only — neither side is required to exist.
+    Order {
+        /// Path whose matches must come first.
+        first: Vec<Matcher>,
+        /// Path whose matches must come after.
+        second: Vec<Matcher>,
+    },
+    /// Closed-world constraint. Within `scope`'s matched nodes' direct children
+    /// (or the roots when `scope` is `None`), only nodes matching one of
+    /// `allowed` are permitted; any other node is flagged.
+    Allow {
+        /// Optional path selecting the scopes whose children are constrained;
+        /// `None` constrains the root nodes.
+        scope: Option<Vec<Matcher>>,
+        /// Matchers naming the permitted child nodes.
+        allowed: Vec<Matcher>,
+    },
 }
 
 /// Diagnostic severity level.
@@ -114,38 +157,67 @@ pub enum Severity {
     Warning,
 }
 
-/// A compiled, ready-to-run structural rule.
+/// A compiled, ready-to-run structural rule: a [`Check`] plus diagnostic metadata.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Rule {
     /// Optional identifier for correlating diagnostics back to the rule.
     pub id: Option<String>,
-    /// Path of matchers through the tree.
-    pub path: Vec<Matcher>,
-    /// Whether matching nodes must exist or must not.
-    pub action: Action,
     /// Diagnostic severity emitted when the rule triggers.
     pub severity: Severity,
     /// Override for the default diagnostic message.
     pub message: Option<String>,
+    /// The structural predicate this rule enforces.
+    pub check: Check,
 }
 
 impl Rule {
-    /// Build a rule from a path and action.
+    /// Build a cardinality rule from a path and action.
     ///
     /// # Errors
     ///
     /// Returns [`RuleError::EmptyPath`] if `path` is empty.
-    pub fn new(path: Vec<Matcher>, action: Action) -> Result<Self, RuleError> {
+    pub fn path(path: Vec<Matcher>, action: Action) -> Result<Self, RuleError> {
         if path.is_empty() {
             return Err(RuleError::EmptyPath);
         }
-        Ok(Self {
+        Ok(Self::from_check(Check::Path { path, action }))
+    }
+
+    /// Build an ordering rule: `first` matches must precede `second` matches.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RuleError::EmptyPath`] if either path is empty.
+    pub fn order(first: Vec<Matcher>, second: Vec<Matcher>) -> Result<Self, RuleError> {
+        if first.is_empty() || second.is_empty() {
+            return Err(RuleError::EmptyPath);
+        }
+        Ok(Self::from_check(Check::Order { first, second }))
+    }
+
+    /// Build a closed-world allowlist rule.
+    ///
+    /// `scope` of `None` constrains the root nodes; `Some(path)` constrains the
+    /// direct children of every node the path matches.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RuleError::EmptyPath`] if `allowed` is empty, or if `scope` is
+    /// `Some` and empty.
+    pub fn allow(scope: Option<Vec<Matcher>>, allowed: Vec<Matcher>) -> Result<Self, RuleError> {
+        if allowed.is_empty() || scope.as_ref().is_some_and(Vec::is_empty) {
+            return Err(RuleError::EmptyPath);
+        }
+        Ok(Self::from_check(Check::Allow { scope, allowed }))
+    }
+
+    fn from_check(check: Check) -> Self {
+        Self {
             id: None,
-            path,
-            action,
             severity: Severity::default(),
             message: None,
-        })
+            check,
+        }
     }
 
     /// Set a human-readable message override.
@@ -186,7 +258,7 @@ pub struct Diagnostic {
 /// Errors from constructing rules or matchers.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum RuleError {
-    /// A rule carries an empty path.
+    /// A rule carries an empty matcher path.
     #[error("rule path must not be empty")]
     EmptyPath,
     /// A regex pattern failed to compile.
@@ -201,124 +273,20 @@ pub enum RuleError {
 
 /// Evaluate `rules` against `roots`, returning all triggered diagnostics.
 ///
-/// For `Require` rules: emits one diagnostic (line = `None`) when no node
-/// matches the full path. For `Forbid` rules: emits one diagnostic per matched
-/// node, with the node's line number.
+/// - [`Check::Path`] with [`Action::Require`]: one diagnostic (line `None`) when
+///   no node matches. [`Action::Forbid`]: one per matched node, with its line.
+///   [`Action::Unique`]: a missing diagnostic when absent, else one per
+///   duplicate (the second and later matches), each at its line.
+/// - [`Check::Order`]: one diagnostic (at the earliest offending `second` line)
+///   when both sides are present and out of order.
+/// - [`Check::Allow`]: one diagnostic per disallowed node, at its line.
 #[must_use]
 pub fn run_rules(roots: &[Node], rules: &[Rule]) -> Vec<Diagnostic> {
     let mut out = Vec::new();
     for rule in rules {
-        apply_rule(roots, rule, &mut out);
+        eval::apply_rule(roots, rule, &mut out);
     }
     out
-}
-
-fn apply_rule(roots: &[Node], rule: &Rule, out: &mut Vec<Diagnostic>) {
-    let matched = find_path_matches(roots, &rule.path);
-    match rule.action {
-        Action::Require => {
-            if matched.is_empty() {
-                out.push(Diagnostic {
-                    rule_id: rule.id.clone(),
-                    severity: rule.severity,
-                    line: None,
-                    message: rule.message.clone().unwrap_or_else(|| {
-                        format!("required path not found: {}", describe_path(&rule.path))
-                    }),
-                });
-            }
-        }
-        Action::Forbid => {
-            for (text, line) in matched {
-                out.push(Diagnostic {
-                    rule_id: rule.id.clone(),
-                    severity: rule.severity,
-                    line: Some(line),
-                    message: rule
-                        .message
-                        .clone()
-                        .unwrap_or_else(|| format!("forbidden: {text}")),
-                });
-            }
-        }
-    }
-}
-
-fn find_path_matches(roots: &[Node], path: &[Matcher]) -> Vec<(String, usize)> {
-    let Some((first, rest)) = path.split_first() else {
-        return vec![];
-    };
-    match_in(roots, first, rest)
-}
-
-fn match_in(scope: &[Node], seg: &Matcher, rest: &[Matcher]) -> Vec<(String, usize)> {
-    let mut results = Vec::new();
-    if is_recursive(seg) {
-        for entry in all_descendants(scope) {
-            if seg_matches(seg, &entry.text) {
-                collect_match(entry, rest, &mut results);
-            }
-        }
-    } else {
-        for entry in scope {
-            if seg_matches(seg, &entry.text) {
-                collect_match(entry, rest, &mut results);
-            }
-        }
-    }
-    results
-}
-
-fn collect_match(entry: &Node, rest: &[Matcher], out: &mut Vec<(String, usize)>) {
-    if rest.is_empty() {
-        out.push((entry.text.clone(), entry.line));
-    } else {
-        out.extend(find_path_matches(&entry.children, rest));
-    }
-}
-
-fn all_descendants(scope: &[Node]) -> Vec<&Node> {
-    let mut found = Vec::new();
-    for entry in scope {
-        found.push(entry);
-        found.extend(all_descendants(&entry.children));
-    }
-    found
-}
-
-fn seg_matches(seg: &Matcher, text: &str) -> bool {
-    match seg {
-        Matcher::Exact(expected) => expected == text,
-        Matcher::Pattern { re, .. } => re.is_match(text),
-    }
-}
-
-fn is_recursive(seg: &Matcher) -> bool {
-    match seg {
-        Matcher::Exact(_) => false,
-        Matcher::Pattern { recursive, .. } => *recursive,
-    }
-}
-
-fn describe_path(path: &[Matcher]) -> String {
-    path.iter()
-        .map(describe_seg)
-        .collect::<Vec<_>>()
-        .join(" > ")
-}
-
-fn describe_seg(seg: &Matcher) -> String {
-    match seg {
-        Matcher::Exact(text) => format!("'{text}'"),
-        Matcher::Pattern {
-            re,
-            recursive: true,
-        } => format!("/{}/..", re.as_str()),
-        Matcher::Pattern {
-            re,
-            recursive: false,
-        } => format!("/{}/", re.as_str()),
-    }
 }
 
 #[cfg(test)]

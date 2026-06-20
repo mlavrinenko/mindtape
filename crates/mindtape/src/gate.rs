@@ -14,6 +14,7 @@ use crate::validate::{Location, Violation};
 
 /// A compiled, ready-to-run header rule (pre-parsed filter, pre-compiled regex,
 /// pre-baked diagnostic message).
+#[derive(Debug)]
 pub struct CompiledRule {
     engine_rule: artifact_gate::Rule,
     when: Option<Filter>,
@@ -36,6 +37,14 @@ pub enum GateError {
     /// A rule carries an empty path.
     #[error("rule path must not be empty")]
     EmptyPath,
+    /// A rule names a field that its action does not accept.
+    #[error("action `{action}` does not accept field(s): {fields}")]
+    UnexpectedFields {
+        /// The rule's action.
+        action: String,
+        /// Comma-joined names of the offending fields.
+        fields: String,
+    },
 }
 
 /// Compile header rules, pre-parsing `when` expressions and compiling regex segments.
@@ -64,22 +73,54 @@ pub fn check_headers(
 }
 
 fn compile_rule(rule: &HeaderRuleConfig) -> Result<CompiledRule, GateError> {
-    if rule.path.is_empty() {
-        return Err(GateError::EmptyPath);
-    }
-    let path = rule
-        .path
-        .iter()
-        .map(compile_segment)
-        .collect::<Result<_, _>>()?;
-    let action = match rule.action {
-        HeaderAction::Require => artifact_gate::Action::Require,
-        HeaderAction::Forbid => artifact_gate::Action::Forbid,
+    let mut engine_rule = match rule.action {
+        HeaderAction::Require | HeaderAction::Forbid | HeaderAction::Unique => {
+            ensure_empty(
+                "require/forbid/unique",
+                &[
+                    ("before", &rule.before),
+                    ("after", &rule.after),
+                    ("scope", &rule.scope),
+                    ("allowed", &rule.allowed),
+                ],
+            )?;
+            let action = match rule.action {
+                HeaderAction::Require => artifact_gate::Action::Require,
+                HeaderAction::Forbid => artifact_gate::Action::Forbid,
+                _ => artifact_gate::Action::Unique,
+            };
+            artifact_gate::Rule::path(compile_path(&rule.path)?, action).map_err(map_rule_error)?
+        }
+        HeaderAction::Order => {
+            ensure_empty(
+                "order",
+                &[
+                    ("path", &rule.path),
+                    ("scope", &rule.scope),
+                    ("allowed", &rule.allowed),
+                ],
+            )?;
+            artifact_gate::Rule::order(compile_path(&rule.before)?, compile_path(&rule.after)?)
+                .map_err(map_rule_error)?
+        }
+        HeaderAction::Allowlist => {
+            ensure_empty(
+                "allowlist",
+                &[
+                    ("path", &rule.path),
+                    ("before", &rule.before),
+                    ("after", &rule.after),
+                ],
+            )?;
+            let scope = if rule.scope.is_empty() {
+                None
+            } else {
+                Some(compile_path(&rule.scope)?)
+            };
+            artifact_gate::Rule::allow(scope, compile_path(&rule.allowed)?)
+                .map_err(map_rule_error)?
+        }
     };
-    let mut engine_rule = artifact_gate::Rule::new(path, action).map_err(|err| match err {
-        artifact_gate::RuleError::EmptyPath => GateError::EmptyPath,
-        artifact_gate::RuleError::Regex { pattern, error } => GateError::Regex { pattern, error },
-    })?;
     if let Some(message) = &rule.message {
         engine_rule = engine_rule.with_message(message.clone());
     }
@@ -87,16 +128,38 @@ fn compile_rule(rule: &HeaderRuleConfig) -> Result<CompiledRule, GateError> {
     Ok(CompiledRule { engine_rule, when })
 }
 
+fn compile_path(segments: &[HeaderPathSegment]) -> Result<Vec<artifact_gate::Matcher>, GateError> {
+    segments.iter().map(compile_segment).collect()
+}
+
+fn ensure_empty(action: &str, fields: &[(&str, &Vec<HeaderPathSegment>)]) -> Result<(), GateError> {
+    let bad: Vec<&str> = fields
+        .iter()
+        .filter(|(_, segs)| !segs.is_empty())
+        .map(|(name, _)| *name)
+        .collect();
+    if bad.is_empty() {
+        Ok(())
+    } else {
+        Err(GateError::UnexpectedFields {
+            action: action.to_owned(),
+            fields: bad.join(", "),
+        })
+    }
+}
+
+fn map_rule_error(err: artifact_gate::RuleError) -> GateError {
+    match err {
+        artifact_gate::RuleError::EmptyPath => GateError::EmptyPath,
+        artifact_gate::RuleError::Regex { pattern, error } => GateError::Regex { pattern, error },
+    }
+}
+
 fn compile_segment(seg: &HeaderPathSegment) -> Result<artifact_gate::Matcher, GateError> {
     match seg {
         HeaderPathSegment::Exact(text) => Ok(artifact_gate::Matcher::exact(text.clone())),
         HeaderPathSegment::Pattern { pattern, recursive } => {
-            artifact_gate::Matcher::pattern(pattern, *recursive).map_err(|err| match err {
-                artifact_gate::RuleError::EmptyPath => GateError::EmptyPath,
-                artifact_gate::RuleError::Regex { pattern: p, error } => {
-                    GateError::Regex { pattern: p, error }
-                }
-            })
+            artifact_gate::Matcher::pattern(pattern, *recursive).map_err(map_rule_error)
         }
     }
 }
