@@ -15,6 +15,7 @@ check:
         "chronic cargo test --workspace -q" \
         "chronic just machete" \
         "chronic just check-file-size" \
+        "chronic just check-dry" \
         "chronic just outdatty-check"
 
 # Fail if a source changed without its dependents being re-confirmed
@@ -86,6 +87,19 @@ eject PCT='90':
 # Check for oversized files (fails if any exceed limits)
 check-file-size:
     linecop
+
+# Copy-paste gate: fail on any duplicated Rust block across the crates
+check-dry:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    # jscpd (the Rust port, packaged in flake.nix) fails on any duplicated
+    # block of >=70 tokens, naming both spans. Scans all Rust under crates/.
+    # Fix a finding by extracting a shared helper — never by shuffling tokens
+    # until the detector loses the scent.
+    #
+    # `--exit-code 1` is spelled with its value: bare `--exit-code` would
+    # swallow the following path argument as its optional code.
+    jscpd --no-tips -k 70 -f rust --exit-code 1 crates
 
 # Install the mindtape Typst library for local #import (dev symlink)
 install-lib:

@@ -18,6 +18,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # Dedicated, newer nixpkgs pin used only to compile the jscpd copy-paste
+    # detector (below). jscpd 5.0.5's bundled Cargo.lock pins oxc 0.133.0,
+    # which needs rustc >= 1.93; the workspace deliberately stays on the
+    # rustc 1.92 of `nixpkgs` (rust-toolchain.toml). Isolating the tool's
+    # compiler here keeps that MSRV pin intact. Rev proven by speconaut.
+    nixpkgs-jscpd.url = "github:NixOS/nixpkgs/e80236013dc8b77aa49ca90e7a12d86f5d8d64c9";
   };
 
   outputs =
@@ -28,6 +34,7 @@
       outdatty,
       naersk,
       nixpkgs,
+      nixpkgs-jscpd,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -39,6 +46,28 @@
 
         cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
         version = cargoToml.workspace.package.version;
+
+        # jscpd (Rust copy/paste detector, gates `just check-dry`) isn't in
+        # nixpkgs yet; build the published crate from crates.io so the dev
+        # shell stays self-contained. naersk does the vendoring —
+        # nixpkgs' fetch-cargo-vendor is UA-blocked by crates.io's
+        # data-access policy — and `singleStep` skips naersk's dummy-src
+        # deps build, which fails to parse this crate's manifest.
+        #
+        # Built against `nixpkgs-jscpd` (rustc >= 1.93), not the workspace
+        # `nixpkgs` (rustc 1.92): jscpd's locked oxc 0.133.0 raises the MSRV
+        # past 1.92. Keeping its own pkgs leaves the project toolchain pin
+        # (rust-toolchain.toml = 1.92.0) untouched.
+        pkgsJscpd = import nixpkgs-jscpd { inherit system; };
+        naerskJscpd = pkgsJscpd.callPackage naersk { };
+        jscpd = naerskJscpd.buildPackage {
+          src = pkgsJscpd.fetchCrate {
+            pname = "jscpd";
+            version = "5.0.5";
+            hash = "sha256-U0unnpWU8gxudX+YVuvE+uBk6hkNWiMjJxXDBAGzqiA=";
+          };
+          singleStep = true;
+        };
       in
       {
         # For `nix build` & `nix run` (produces the `mindtape` binary):
@@ -57,6 +86,7 @@
           RUSTC_WRAPPER = "sccache";
           nativeBuildInputs =
             [
+              jscpd
               ejectest.packages.${system}.default
               linecop.packages.${system}.default
               outdatty.packages.${system}.default
