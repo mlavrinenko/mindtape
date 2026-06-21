@@ -19,7 +19,7 @@ pub struct Status {
 }
 
 /// One task: the portable item model harvested from a per-file artifact.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct Task {
     /// Identity: defaults to the file stem; overridden by an explicit `id:`
     /// field in the task marker.
