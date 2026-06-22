@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Render the status shortcut form in `mindtape add`",
-  status: proposed(2026, 6, 23),
+  status: done(2026, 6, 23),
   priority: ice(impact: 4, confidence: 0.9, ease: 9),
   relates-to: (
     link("add-template-opt-title-arg.typ"),

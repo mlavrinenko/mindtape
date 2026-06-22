@@ -40,13 +40,38 @@ fn bare_args() -> AddArgs {
 #[test]
 fn injects_default_status_proposed() {
     let out = inject_header(HEADER, &Config::default(), None).unwrap();
-    assert!(out.contains("status: status(\"proposed\","), "{out}");
+    assert!(out.contains("status: proposed("), "{out}");
+    assert!(!out.contains("status(\"proposed\""), "{out}");
 }
 
 #[test]
 fn status_override_wins() {
     let out = inject_header(HEADER, &Config::default(), Some("wip")).unwrap();
-    assert!(out.contains("status: status(\"wip\","), "{out}");
+    assert!(out.contains("status: wip("), "{out}");
+}
+
+#[test]
+fn custom_status_falls_back_to_verbose_form() {
+    // A name the prelude ships no shortcut for keeps the `status("…", …)` form.
+    let out = inject_header(HEADER, &Config::default(), Some("icebox")).unwrap();
+    assert!(out.contains("status: status(\"icebox\","), "{out}");
+}
+
+#[test]
+fn shortcuts_match_prelude() {
+    // Every `_mk("…")` binding in the prelude must appear in STATUS_SHORTCUTS and
+    // vice versa, so the shortcut rendering never names a function the prelude
+    // lacks (nor misses one it ships).
+    let from_prelude: std::collections::BTreeSet<&str> = PRELUDE
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("#let "))
+        .filter_map(|rest| rest.split_once("= _mk(\""))
+        .filter_map(|(_, tail)| tail.split_once("\")"))
+        .map(|(name, _)| name)
+        .collect();
+    let from_const: std::collections::BTreeSet<&str> =
+        super::STATUS_SHORTCUTS.iter().copied().collect();
+    assert_eq!(from_const, from_prelude);
 }
 
 #[test]
@@ -150,10 +175,7 @@ fn end_to_end_files_and_validates_a_task() {
 
     let written = std::fs::read_to_string(dir.path().join("tasks/wire-add.typ")).unwrap();
     assert!(written.contains("title: \"Wire add\""), "{written}");
-    assert!(
-        written.contains("status: status(\"proposed\","),
-        "{written}"
-    );
+    assert!(written.contains("status: proposed("), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task passes `check`.
