@@ -236,14 +236,15 @@ fn describe_json(specs: &[SlotSpec]) -> Result<String> {
     serde_json::to_string_pretty(&rows).context("serialize slot description")
 }
 
-/// Slugify `text` into a filename stem: lowercase ASCII alphanumerics, other
-/// runs collapsed to single `-`, trimmed.
+/// Slugify `text` into a filename stem: lowercase Unicode alphanumerics
+/// (Cyrillic, CJK, accented Latin all kept), other runs collapsed to single
+/// `-`, trimmed.
 #[must_use]
 pub fn slug(text: &str) -> String {
     let mut out = String::new();
     let mut pending_dash = false;
     for ch in text.chars() {
-        if ch.is_ascii_alphanumeric() {
+        if ch.is_alphanumeric() {
             if pending_dash && !out.is_empty() {
                 out.push('-');
             }

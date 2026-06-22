@@ -14,7 +14,10 @@ use super::{
 fn slug_lowercases_and_collapses() {
     assert_eq!(slug("Wire the Add Command!"), "wire-the-add-command");
     assert_eq!(slug("  spaced  out  "), "spaced-out");
-    assert_eq!(slug("Café 99"), "caf-99");
+    // Unicode alphanumerics are kept and lowercased, not dropped.
+    assert_eq!(slug("Café 99"), "café-99");
+    assert_eq!(slug("помыть посуду"), "помыть-посуду");
+    assert_eq!(slug("施工 任务"), "施工-任务");
 }
 
 #[test]
