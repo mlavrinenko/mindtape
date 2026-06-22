@@ -14,6 +14,7 @@ use mindtape::{
 };
 use typst_edit::apply;
 
+use crate::add_interactive;
 use crate::add_values::{
     DescribeFormat, collect_values, describe, list_templates, resolve_template, slug,
 };
@@ -21,6 +22,8 @@ use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util;
 
 /// Arguments for `mindtape add`.
+// A clap flag struct: each `--flag` is an independent boolean toggle.
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Args)]
 pub struct AddArgs {
     /// Template stem (default: the configured `[templates] default`).
@@ -45,6 +48,10 @@ pub struct AddArgs {
     /// Initial status name; default is the first non-terminal legend value.
     #[arg(long, value_name = "NAME")]
     pub status: Option<String>,
+
+    /// Open an editor to fill the template's slots (requires a terminal).
+    #[arg(long)]
+    pub edit: bool,
 
     /// Print the template's slot schema instead of filing. `--describe=json` for
     /// machine output.
@@ -92,7 +99,11 @@ pub fn run(args: &AddArgs) -> Result<()> {
         return Ok(());
     }
 
-    let values = collect_values(&args.values, &args.set)?;
+    let mut values = collect_values(&args.values, &args.set)?;
+    let specs = discover_slots(&source);
+    if add_interactive::should_open(args.edit, &config.add, &specs, &values)? {
+        values = add_interactive::run(&config.add, &specs, &values)?;
+    }
     let filled = fill(&source, &values).map_err(|err| anyhow!(err.to_string()))?;
     let filled = inject_header(&filled, config, args.status.as_deref())?;
 

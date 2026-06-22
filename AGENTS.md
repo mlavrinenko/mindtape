@@ -99,6 +99,11 @@ discovers each slot on the parse plane (`typst-edit`, no eval), fills it from
 `[templates] dirs`; a built-in `task` is the fallback. Filled tasks hold plain
 literals — no `slot` call survives.
 
+`--edit` (or `[add] interactive`) opens an editor on a commented YAML scaffold of
+the slots (block scalars for `text` slots), then parses the saved buffer back
+into the same fill values; editor resolves `[add] editor` → `$VISUAL` → `$EDITOR`
+→ `vi`, and the editor only opens with a TTY (`crates/mindtape-cli/src/add_interactive.rs`).
+
 ### Derived tags (`[tasks.derive-tags]`, `crates/mindtape/src/derive.rs`)
 
 Tasks inherit virtual tags from their location under a root: the root name (the

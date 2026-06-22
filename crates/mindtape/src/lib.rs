@@ -10,6 +10,7 @@
 
 mod body_headers;
 pub mod config;
+mod config_add;
 mod config_roots;
 mod date;
 pub mod derive;
@@ -29,8 +30,9 @@ pub mod test_support;
 pub mod validate;
 
 pub use config::{
-    Collector, Config, ConfigError, DeriveConfig, DeriveTags, LocalPackage, PriorityConfig,
-    RootConfig, RootSpec, TemplatesConfig, TypstConfig, config_path, load_config, parse_config,
+    AddConfig, Collector, Config, ConfigError, DeriveConfig, DeriveTags, InteractiveMode,
+    LocalPackage, PriorityConfig, RootConfig, RootSpec, TemplatesConfig, TypstConfig, config_path,
+    load_config, parse_config,
 };
 pub use date::{days_ago_iso, parse_ymd, today_iso, today_ymd};
 pub use derive::RootDeriver;

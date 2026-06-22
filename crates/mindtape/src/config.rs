@@ -12,6 +12,7 @@ use thiserror::Error;
 use crate::framework::{Framework, merge_builtin_frameworks};
 use crate::numeric::NumericField;
 
+pub use crate::config_add::{AddConfig, InteractiveMode};
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
 
 /// Top-level project configuration.
@@ -28,6 +29,8 @@ pub struct Config {
     pub rm: RmConfig,
     /// `add` (task creation) template discovery.
     pub templates: TemplatesConfig,
+    /// `add` interactive-fill settings (editor, when it opens).
+    pub add: AddConfig,
     /// Typst evaluation settings (local-package overrides).
     pub typst: TypstConfig,
 }

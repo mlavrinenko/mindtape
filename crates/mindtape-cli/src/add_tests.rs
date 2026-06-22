@@ -28,6 +28,7 @@ fn bare_args() -> AddArgs {
         into: ".".to_owned(),
         name: None,
         status: None,
+        edit: false,
         describe: None,
         list: false,
         print: false,
