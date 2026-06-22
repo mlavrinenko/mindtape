@@ -5,6 +5,7 @@
 //! into `task.with(…)`, then writes (or prints) the result and validates it.
 
 use std::collections::BTreeMap;
+use std::io::{IsTerminal, Read};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow, bail};
@@ -16,7 +17,7 @@ use typst_edit::apply;
 
 use crate::add_interactive;
 use crate::add_values::{
-    DescribeFormat, collect_values, describe, list_templates, resolve_template, slug,
+    DescribeFormat, collect_values, describe, list_templates, resolve_template, slug, stdin_title,
 };
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util;
@@ -102,6 +103,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
 
     let mut values = collect_values(&args.values, &args.set)?;
     let specs = discover_slots(&source);
+    fill_title_from_stdin(&mut values, args)?;
     if add_interactive::should_open(args.edit, &config.add, &specs, &values)? {
         values = add_interactive::run(&config.add, &specs, &values)?;
     }
@@ -180,6 +182,26 @@ fn initial_status(config: &Config) -> Option<String> {
         .iter()
         .find(|entry| !entry.terminal)
         .map(|entry| entry.value.clone())
+}
+
+/// Read a piped title from stdin into the `title` slot. Gated to the
+/// non-interactive pipe case: a TTY (no pipe) would block, and `-f -` already
+/// claims stdin as JSON. A higher-precedence `title` (`--set`/`-f`/env) wins.
+fn fill_title_from_stdin(values: &mut BTreeMap<String, RawValue>, args: &AddArgs) -> Result<()> {
+    if values.contains_key("title")
+        || std::io::stdin().is_terminal()
+        || args.values.iter().any(|source| source == "-")
+    {
+        return Ok(());
+    }
+    let mut raw = String::new();
+    std::io::stdin()
+        .read_to_string(&mut raw)
+        .context("read title from stdin")?;
+    if let Some(title) = stdin_title(&raw) {
+        values.insert("title".to_owned(), RawValue::Str(title));
+    }
+    Ok(())
 }
 
 fn output_stem(args: &AddArgs, values: &BTreeMap<String, RawValue>) -> Result<String> {

@@ -5,6 +5,7 @@ use mindtape::{Config, RawValue, discover_slots};
 
 use super::{
     BUILTIN_TASK, DescribeFormat, collect_values, describe, list_templates, resolve_template, slug,
+    stdin_title,
 };
 
 #[test]
@@ -12,6 +13,15 @@ fn slug_lowercases_and_collapses() {
     assert_eq!(slug("Wire the Add Command!"), "wire-the-add-command");
     assert_eq!(slug("  spaced  out  "), "spaced-out");
     assert_eq!(slug("Café 99"), "caf-99");
+}
+
+#[test]
+fn stdin_title_takes_first_nonblank_line() {
+    assert_eq!(stdin_title("hello world\n"), Some("hello world".to_owned()));
+    assert_eq!(stdin_title("  spaced  \n"), Some("spaced".to_owned()));
+    assert_eq!(stdin_title("\n\nfirst\nsecond\n"), Some("first".to_owned()));
+    assert_eq!(stdin_title(""), None);
+    assert_eq!(stdin_title("   \n\t\n"), None);
 }
 
 #[test]

@@ -123,6 +123,17 @@ fn read_source(source: &str) -> Result<String> {
     std::fs::read_to_string(source).with_context(|| format!("read values from {source}"))
 }
 
+/// Extract a task title from raw stdin text: the first non-blank line, trimmed.
+/// A title is single-line, so trailing lines are ignored. Returns `None` when
+/// the input holds no non-blank line.
+#[must_use]
+pub fn stdin_title(raw: &str) -> Option<String> {
+    raw.lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty())
+        .map(ToOwned::to_owned)
+}
+
 fn json_to_raw(value: &serde_json::Value) -> Result<Option<RawValue>> {
     let raw = match value {
         serde_json::Value::Null => return Ok(None),
