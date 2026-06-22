@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Make `mindtape add` template an option, title a positional",
-  status: proposed(2026, 6, 23),
+  status: done(2026, 6, 23),
   priority: ice(impact: 6, confidence: 0.8, ease: 8),
   relates-to: (
     link("add-title-from-stdin.typ"),

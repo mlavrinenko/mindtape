@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Receive task title from stdin in `mindtape add`",
-  status: proposed(2026, 6, 22),
+  status: done(2026, 6, 22),
   priority: ice(impact: 5, confidence: 0.8, ease: 8),
   relates-to: (
     link("add-slots-from-env.typ"),
