@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Interactive editor fill for `mindtape add`",
-  status: wip(2026, 6, 22)[Implementing the editor-buffer fill. Decisions settled: YAML buffer (block scalars for `text` slots, parsed back via the maintained `serde_yaml_ng` fork), TTY-gated trigger, editor ladder config `[add] editor` → `$VISUAL` → `$EDITOR` → `vi`.],
+  status: wip(2026, 6, 22)[Editor-buffer fill shipped (YAML, block scalars for `text` slots, parsed back via `serde_yaml_ng`, TTY-gated, editor ladder `[add] editor` → `$VISUAL` → `$EDITOR` → `vi`). Scaffold refinement pass: barebones built-in template (just a required `title` slot), config-required core fields spliced in as slots so they surface even with a barebones template, scaffold tail trimmed (jump-to-end lands on the last fillable line), and a customizable `[add] header` (custom text auto comment-prefixed, `""` disables).],
   priority: ice(impact: 6, confidence: 0.7, ease: 6),
   tags: ("cli",),
 )
@@ -56,6 +56,20 @@ JSON/format-free per the convergence directive — no library churn.
   (TOML → `serde_json::Value` reuses the existing `json_to_raw`, or a small
   `toml_to_raw` mirror). Feed the existing `fill` → `inject_header` → write →
   `verify` path unchanged.
+
+- Scaffold shape (refinement). The built-in template is barebones — a single
+  required `title` slot, no `Summary`/`Scope` body. Core fields the project
+  config requires (priority, difficulty, kind, estimate) are spliced into
+  `task.with(…)` as `slot(...)` calls before discovery
+  (`mindtape::required_core_slots`, `crates/mindtape/src/add_slots.rs`), so a
+  required field still surfaces in the scaffold, `--describe`, and the written
+  task. Strict-framework priority (no scalar form) is not spliced.
+
+- Buffer ergonomics. The scaffold tail carries no trailing blank line and empty
+  scalar entries end `key: ` (trailing space), so an editor's jump-to-end lands
+  on the last fillable value position. The instruction header is customizable via
+  `[add] header`: custom text (auto comment-prefixed to stay valid YAML) or `""`
+  to drop the header entirely; absent keeps the built-in instructions.
 
 - Validation loop (nice-to-have, phase 2). After the editor closes, run fill +
   validate; on failure re-open the buffer with the error annotated as a comment
