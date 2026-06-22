@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Interactive editor fill for `mindtape add`",
-  status: wip(2026, 6, 22)[Editor-buffer fill shipped (YAML, block scalars for `text` slots, parsed back via `serde_yaml_ng`, TTY-gated, editor ladder `[add] editor` → `$VISUAL` → `$EDITOR` → `vi`). Scaffold refinement pass: barebones built-in template (just a required `title` slot), config-required core fields spliced in as slots so they surface even with a barebones template, scaffold tail trimmed (jump-to-end lands on the last fillable line), and a customizable `[add] header` (custom text auto comment-prefixed, `""` disables).],
+  status: done(2026, 6, 22),
   priority: ice(impact: 6, confidence: 0.7, ease: 6),
   tags: ("cli",),
 )

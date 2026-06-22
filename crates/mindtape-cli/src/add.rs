@@ -92,6 +92,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
         .clone()
         .unwrap_or_else(|| config.templates.default.clone());
     let source = resolve_template(config, &project.root, &template_name)?;
+    let source = inject_required_slots(&source, config)?;
 
     if let Some(format) = &args.describe {
         let specs = discover_slots(&source);
@@ -127,6 +128,27 @@ pub fn run(args: &AddArgs) -> Result<()> {
         verify(&project.root, &file)?;
     }
     Ok(())
+}
+
+/// Splice `slot(...)` calls for config-required core fields the template omits,
+/// so they surface in the fill scaffold, `--describe`, and the written task. A
+/// field already set by the template (literal or slot) is left untouched.
+fn inject_required_slots(source: &str, config: &Config) -> Result<String> {
+    let needed = mindtape::required_core_slots(config);
+    if needed.is_empty() {
+        return Ok(source.to_owned());
+    }
+    let call = task_with(source)?;
+    let mut edits = Vec::new();
+    for slot in &needed {
+        if call.named(slot.field).is_none() {
+            edits.push(upsert_named_arg(source, &call, slot.field, &slot.call)?);
+        }
+    }
+    if edits.is_empty() {
+        return Ok(source.to_owned());
+    }
+    apply(source, edits).map_err(|err| anyhow!(err.to_string()))
 }
 
 /// Inject the add-owned `status` (and `id` when the config generates one) into

@@ -118,15 +118,7 @@ fn end_to_end_files_and_validates_a_task() {
     assert_cmd::Command::cargo_bin("mindtape")
         .unwrap()
         .current_dir(dir.path())
-        .args([
-            "add",
-            "--name",
-            "wire-add",
-            "--set",
-            "title=Wire add",
-            "--set",
-            "summary=A body.",
-        ])
+        .args(["add", "--name", "wire-add", "--set", "title=Wire add"])
         .assert()
         .success();
 
@@ -147,13 +139,11 @@ fn end_to_end_files_and_validates_a_task() {
         .success();
 }
 
-#[test]
-fn describe_json_emits_slot_schema() {
-    let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
+/// Slot names from `add --describe=json` run in `dir`.
+fn describe_slot_names(dir: &Path) -> Vec<String> {
     let output = assert_cmd::Command::cargo_bin("mindtape")
         .unwrap()
-        .current_dir(dir.path())
+        .current_dir(dir)
         .args(["add", "--describe=json"])
         .assert()
         .success()
@@ -161,13 +151,67 @@ fn describe_json_emits_slot_schema() {
         .stdout
         .clone();
     let parsed: serde_json::Value = serde_json::from_slice(&output).unwrap();
-    assert!(
-        parsed
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|row| { row.get("name").and_then(serde_json::Value::as_str) == Some("title") })
-    );
+    parsed
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|row| row.get("name").and_then(serde_json::Value::as_str))
+        .map(ToOwned::to_owned)
+        .collect()
+}
+
+#[test]
+fn describe_json_emits_slot_schema() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    assert!(describe_slot_names(dir.path()).iter().any(|n| n == "title"));
+}
+
+/// A config whose `[tasks.priority]` is required: the barebones template omits
+/// priority, so `add` must splice it in.
+const PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
+     [tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n";
+
+#[test]
+fn injects_config_required_priority_slot() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    std::fs::write(
+        dir.path().join(".mindtape/config.toml"),
+        PRIORITY_REQUIRED_CONFIG,
+    )
+    .unwrap();
+
+    // `--describe` surfaces the spliced-in priority slot.
+    let names = describe_slot_names(dir.path());
+    assert!(names.iter().any(|n| n == "priority"), "{names:?}");
+
+    // Filling it writes a valid task.
+    assert_cmd::Command::cargo_bin("mindtape")
+        .unwrap()
+        .current_dir(dir.path())
+        .args([
+            "add",
+            "--name",
+            "with-pri",
+            "--set",
+            "title=T",
+            "--set",
+            "priority=7",
+        ])
+        .assert()
+        .success();
+    let written = std::fs::read_to_string(dir.path().join("tasks/with-pri.typ")).unwrap();
+    assert!(written.contains("priority: 7"), "{written}");
+    assert!(!written.contains("slot("), "slots must be gone: {written}");
+
+    // Omitting a config-required field is the existing missing-slot hard error.
+    assert_cmd::Command::cargo_bin("mindtape")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["add", "--name", "no-pri", "--set", "title=T"])
+        .assert()
+        .failure();
 }
 
 #[test]

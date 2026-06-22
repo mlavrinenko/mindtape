@@ -11,12 +11,10 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 use mindtape::{AddConfig, InteractiveMode, RawValue, SlotKind, SlotSpec};
 
-const SCAFFOLD_HEADER: &str = "\
+const DEFAULT_HEADER: &str = "\
 # mindtape add — fill the values below, then save and quit.
 # '#' lines are ignored. Leave a value empty to use its default (or to skip it).
-# 'text' slots use a YAML block scalar (|-); keep the two-space indentation.
-
-";
+# 'text' slots use a YAML block scalar (|-); keep the two-space indentation.";
 
 /// Decide whether `add` should open the interactive editor.
 ///
@@ -63,7 +61,7 @@ pub fn run(
     specs: &[SlotSpec],
     seed: &BTreeMap<String, RawValue>,
 ) -> Result<BTreeMap<String, RawValue>> {
-    let buffer = scaffold(specs, seed);
+    let buffer = scaffold(config, specs, seed);
     let command = editor_command(config.editor.as_deref());
     let edited = open_in_editor(&command, &buffer)?;
     parse_buffer(&edited)
@@ -115,15 +113,61 @@ fn open_in_editor(command: &str, initial: &str) -> Result<String> {
     std::fs::read_to_string(&path).context("read edited buffer")
 }
 
-/// Render the YAML scaffold: a comment block plus one entry per slot.
-fn scaffold(specs: &[SlotSpec], seed: &BTreeMap<String, RawValue>) -> String {
-    let mut out = String::from(SCAFFOLD_HEADER);
-    for spec in specs {
-        push_comment(&mut out, spec);
-        push_entry(&mut out, spec, seed.get(&spec.name));
-        out.push('\n');
+/// Render the YAML scaffold: the (optional) header plus one entry per slot,
+/// blocks separated by a blank line. The tail carries no trailing newline so the
+/// editor's jump-to-end lands on the last fillable line.
+fn scaffold(config: &AddConfig, specs: &[SlotSpec], seed: &BTreeMap<String, RawValue>) -> String {
+    let mut out = String::new();
+    let header = header_text(config);
+    if !header.is_empty() {
+        out.push_str(&header);
+        out.push_str("\n\n");
+    }
+    let blocks: Vec<String> = specs
+        .iter()
+        .map(|spec| entry_block(spec, seed.get(&spec.name)))
+        .collect();
+    out.push_str(&blocks.join("\n"));
+    while out.ends_with('\n') {
+        out.pop();
     }
     out
+}
+
+/// One slot's comment + value entry, ending with a newline.
+fn entry_block(spec: &SlotSpec, seed: Option<&RawValue>) -> String {
+    let mut block = String::new();
+    push_comment(&mut block, spec);
+    push_entry(&mut block, spec, seed);
+    block
+}
+
+/// Resolve the scaffold header: built-in default when unset, empty when the
+/// config disables it, else the custom text comment-prefixed.
+fn header_text(config: &AddConfig) -> String {
+    match config.header.as_deref() {
+        None => DEFAULT_HEADER.to_owned(),
+        Some(custom) => commentify(custom),
+    }
+}
+
+/// Comment-prefix each non-empty line of a custom header so it stays valid YAML;
+/// an all-blank header yields the empty string (no header).
+fn commentify(text: &str) -> String {
+    let body = text.trim_end_matches('\n');
+    if body.trim().is_empty() {
+        return String::new();
+    }
+    body.lines()
+        .map(|line| {
+            if line.is_empty() || line.trim_start().starts_with('#') {
+                line.to_owned()
+            } else {
+                format!("# {line}")
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
 }
 
 fn push_comment(out: &mut String, spec: &SlotSpec) {
@@ -157,7 +201,9 @@ fn push_entry(out: &mut String, spec: &SlotSpec, seed: Option<&RawValue>) {
         Some(Entry::Scalar(text)) => out.push_str(&format!("{}: {text}\n", spec.name)),
         Some(Entry::Block(body)) => push_block(out, &spec.name, &body),
         Some(Entry::List(items)) => push_list(out, &spec.name, &items),
-        None => out.push_str(&format!("{}:\n", spec.name)),
+        // Trailing space leaves the cursor at the value position (and pre-places
+        // the `: ` YAML mappings require) when the editor jumps to the tail.
+        None => out.push_str(&format!("{}: \n", spec.name)),
     }
 }
 

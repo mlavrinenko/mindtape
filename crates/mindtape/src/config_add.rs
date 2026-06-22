@@ -15,6 +15,10 @@ pub struct AddConfig {
     pub editor: Option<String>,
     /// When the interactive editor opens.
     pub interactive: InteractiveMode,
+    /// Scaffold header override. Absent uses the built-in instructions; an empty
+    /// (or all-blank) string disables the header; any other text replaces it,
+    /// comment-prefixed so it stays valid YAML.
+    pub header: Option<String>,
 }
 
 /// When `mindtape add` opens the interactive editor.

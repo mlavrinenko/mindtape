@@ -135,6 +135,16 @@ default_filter = "status != \"done\""
 # every terminal-status task. An explicit ref or filter argument overrides it.
 default_filter = "terminal"
 
+# [add] — interactive editor fill for `mindtape add --edit`.
+# `editor` overrides the ladder ($VISUAL → $EDITOR → vi). `interactive` is
+# `auto` (open when a required slot is unfilled) | `always` | `never`. `header`
+# overrides the scaffold's instruction block: set your own text (auto
+# comment-prefixed), or "" to drop the header entirely.
+#   [add]
+#   editor = "nvim"
+#   interactive = "auto"
+#   header = "Fill the task below."
+
 # [typst] — Typst package resolution.
 # `@local/mindtape` resolves automatically: from `<root>/lib` when that directory
 # is the mindtape package (in-tree development), otherwise from the installed

@@ -70,23 +70,18 @@ fn describe_json_lists_builtin_slots() {
         .iter()
         .filter_map(|row| row.get("name").and_then(serde_json::Value::as_str))
         .collect();
-    assert!(names.contains(&"title"));
-    assert!(names.contains(&"priority"));
-    assert!(names.contains(&"summary"));
+    // The built-in template is barebones: a single required `title` slot. Other
+    // core fields surface only when the project config requires them.
+    assert_eq!(names, vec!["title"]);
 }
 
 #[test]
 fn describe_text_marks_required() {
     let specs = discover_slots(BUILTIN_TASK);
     let text = describe(&specs, DescribeFormat::Text).unwrap();
-    assert!(text.contains("title"));
     assert!(
         text.lines()
             .any(|line| line.contains("title") && line.contains("required"))
-    );
-    assert!(
-        text.lines()
-            .any(|line| line.contains("priority") && line.contains("optional"))
     );
 }
 

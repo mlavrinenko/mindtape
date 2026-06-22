@@ -96,13 +96,25 @@ discovers each slot on the parse plane (`typst-edit`, no eval), fills it from
 `status` (initial legend value, dated today) and `id`, then writes
 `<root>/<stem>.typ` and validates it. `--describe[=json]` dumps the slot schema;
 `--print` previews; `--into .` targets the first root. Templates live under
-`[templates] dirs`; a built-in `task` is the fallback. Filled tasks hold plain
-literals — no `slot` call survives.
+`[templates] dirs`; the built-in `task` fallback is barebones (one required
+`title` slot). Filled tasks hold plain literals — no `slot` call survives.
+
+Config-required core fields the chosen template omits are spliced in as slots
+before discovery (`mindtape::required_core_slots`, `crates/mindtape/src/add_slots.rs`):
+a required `priority`/`difficulty` → `int` slot, required `kind` → `choice` (its
+allowed values), required `estimate` → `text` slot for the unit dict. So a
+required field always surfaces in the scaffold, `--describe`, and the written
+task even with the barebones template. Strict-framework priority (`framework` +
+`allow-manual = false`) has no scalar form and is not spliced — declare it in a
+template.
 
 `--edit` (or `[add] interactive`) opens an editor on a commented YAML scaffold of
 the slots (block scalars for `text` slots), then parses the saved buffer back
 into the same fill values; editor resolves `[add] editor` → `$VISUAL` → `$EDITOR`
 → `vi`, and the editor only opens with a TTY (`crates/mindtape-cli/src/add_interactive.rs`).
+The scaffold tail carries no trailing blank (jump-to-end lands on the last
+fillable line). `[add] header` overrides the instruction block: custom text (auto
+comment-prefixed) or `""` to drop it.
 
 ### Derived tags (`[tasks.derive-tags]`, `crates/mindtape/src/derive.rs`)
 

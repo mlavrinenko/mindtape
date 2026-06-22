@@ -26,7 +26,7 @@ fn specs() -> Vec<mindtape::SlotSpec> {
 
 #[test]
 fn scaffold_emits_one_entry_per_slot_with_comments() {
-    let buffer = scaffold(&specs(), &BTreeMap::new());
+    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
     // Prompt and kind annotations.
     assert!(
         buffer.contains("# Task title [string, required]"),
@@ -39,9 +39,46 @@ fn scaffold_emits_one_entry_per_slot_with_comments() {
     // Default shown for the optional int slot.
     assert!(buffer.contains("# default: 5"), "{buffer}");
     assert!(buffer.contains("priority: 5"), "{buffer}");
-    // Required title left blank; text slot gets a block scalar.
-    assert!(buffer.contains("title:\n"), "{buffer}");
+    // Required title left blank (trailing space at the value position); text
+    // slot gets a block scalar.
+    assert!(buffer.contains("title: \n"), "{buffer}");
     assert!(buffer.contains("summary: |-"), "{buffer}");
+}
+
+#[test]
+fn scaffold_tail_is_fillable_with_no_trailing_blank() {
+    let specs = discover_slots("#show: task.with(title: slot(\"title\"))");
+    let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());
+    assert!(!buffer.ends_with('\n'), "no trailing newline: {buffer:?}");
+    assert!(
+        buffer.ends_with("title: "),
+        "ends at value position: {buffer:?}"
+    );
+}
+
+#[test]
+fn scaffold_custom_header_is_comment_prefixed() {
+    let config = AddConfig {
+        header: Some("My note\nSecond line".to_owned()),
+        ..Default::default()
+    };
+    let specs = discover_slots("#show: task.with(title: slot(\"title\"))");
+    let buffer = scaffold(&config, &specs, &BTreeMap::new());
+    assert!(
+        buffer.starts_with("# My note\n# Second line\n\n# "),
+        "{buffer}"
+    );
+}
+
+#[test]
+fn scaffold_empty_header_disables_it() {
+    let config = AddConfig {
+        header: Some(String::new()),
+        ..Default::default()
+    };
+    let specs = discover_slots("#show: task.with(title: slot(\"title\"))");
+    let buffer = scaffold(&config, &specs, &BTreeMap::new());
+    assert!(buffer.starts_with("# title ["), "no header block: {buffer}");
 }
 
 #[test]
@@ -49,7 +86,7 @@ fn scaffold_prefills_from_seed() {
     let mut seed = BTreeMap::new();
     seed.insert("title".to_owned(), RawValue::Str("Hello".to_owned()));
     seed.insert("priority".to_owned(), RawValue::Int(8));
-    let buffer = scaffold(&specs(), &seed);
+    let buffer = scaffold(&AddConfig::default(), &specs(), &seed);
     assert!(buffer.contains("title: \"Hello\""), "{buffer}");
     assert!(buffer.contains("priority: 8"), "{buffer}");
 }
@@ -100,7 +137,7 @@ fn round_trip_scaffold_then_parse() {
         "tags".to_owned(),
         RawValue::List(vec!["a".to_owned(), "b".to_owned()]),
     );
-    let buffer = scaffold(&specs(), &seed);
+    let buffer = scaffold(&AddConfig::default(), &specs(), &seed);
     let values = parse_buffer(&buffer).unwrap();
     assert_eq!(values["title"], RawValue::Str("Round trip".to_owned()));
     assert_eq!(values["priority"], RawValue::Int(5)); // default pre-fill survives
@@ -142,8 +179,8 @@ fn open_in_editor_runs_command_and_reads_back() {
 #[test]
 fn never_mode_without_force_stays_closed() {
     let config = AddConfig {
-        editor: None,
         interactive: InteractiveMode::Never,
+        ..Default::default()
     };
     // No terminal in tests; should_open must not error and must stay false.
     assert!(!should_open(false, &config, &specs(), &BTreeMap::new()).unwrap());
@@ -152,8 +189,8 @@ fn never_mode_without_force_stays_closed() {
 #[test]
 fn always_mode_errors_without_tty() {
     let config = AddConfig {
-        editor: None,
         interactive: InteractiveMode::Always,
+        ..Default::default()
     };
     // Tests run without a controlling terminal, so this must error rather than hang.
     assert!(should_open(false, &config, &specs(), &BTreeMap::new()).is_err());

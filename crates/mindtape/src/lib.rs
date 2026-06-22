@@ -8,6 +8,7 @@
 //! The CLI is a thin wrapper over this crate; other tools (e.g. speconaut) can
 //! depend on it directly.
 
+pub mod add_slots;
 mod body_headers;
 pub mod config;
 mod config_add;
@@ -29,6 +30,7 @@ pub mod template;
 pub mod test_support;
 pub mod validate;
 
+pub use add_slots::{RequiredSlot, required_core_slots};
 pub use config::{
     AddConfig, Collector, Config, ConfigError, DeriveConfig, DeriveTags, InteractiveMode,
     LocalPackage, PriorityConfig, RootConfig, RootSpec, TemplatesConfig, TypstConfig, config_path,
