@@ -1,11 +1,13 @@
 //! Tests for `add` value sources and template helpers.
 #![allow(clippy::unwrap_used)]
 
+use std::collections::BTreeMap;
+
 use mindtape::{Config, RawValue, discover_slots};
 
 use super::{
-    BUILTIN_TASK, DescribeFormat, collect_values, describe, list_templates, resolve_template, slug,
-    stdin_title,
+    BUILTIN_TASK, DescribeFormat, collect_values, describe, env_var_name, layer_env,
+    list_templates, resolve_template, slug, stdin_title,
 };
 
 #[test]
@@ -22,6 +24,39 @@ fn stdin_title_takes_first_nonblank_line() {
     assert_eq!(stdin_title("\n\nfirst\nsecond\n"), Some("first".to_owned()));
     assert_eq!(stdin_title(""), None);
     assert_eq!(stdin_title("   \n\t\n"), None);
+}
+
+#[test]
+fn env_var_name_uppercases_and_underscores() {
+    assert_eq!(env_var_name("title"), "MINDTAPE_ADD_TITLE");
+    assert_eq!(env_var_name("depends-on"), "MINDTAPE_ADD_DEPENDS_ON");
+}
+
+#[test]
+fn layer_env_fills_unset_skips_seeded_and_blank() {
+    let specs = discover_slots(BUILTIN_TASK); // the barebones template: one `title` slot
+    let lookup = |key: &str| (key == "MINDTAPE_ADD_TITLE").then(|| "From Env".to_owned());
+
+    let mut values = BTreeMap::new();
+    layer_env(&mut values, &specs, lookup);
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("From Env".to_owned()))
+    );
+
+    // A value already set by --set/-f is never overwritten by env.
+    let mut seeded = BTreeMap::new();
+    seeded.insert("title".to_owned(), RawValue::Str("Explicit".to_owned()));
+    layer_env(&mut seeded, &specs, lookup);
+    assert_eq!(
+        seeded.get("title"),
+        Some(&RawValue::Str("Explicit".to_owned()))
+    );
+
+    // A blank env value sets nothing.
+    let mut blank = BTreeMap::new();
+    layer_env(&mut blank, &specs, |_| Some("   ".to_owned()));
+    assert!(blank.is_empty());
 }
 
 #[test]

@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Fill `mindtape add` slots from MINDTAPE_ADD_* env vars",
-  status: proposed(2026, 6, 22),
+  status: done(2026, 6, 23),
   priority: ice(impact: 4, confidence: 0.7, ease: 7),
   relates-to: (
     link("add-title-from-stdin.typ"),

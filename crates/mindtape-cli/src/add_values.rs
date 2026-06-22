@@ -134,6 +134,35 @@ pub fn stdin_title(raw: &str) -> Option<String> {
         .map(ToOwned::to_owned)
 }
 
+/// The environment variable that fills slot `name`: `MINDTAPE_ADD_` plus the
+/// upper-cased name with `-` turned into `_` (so `depends-on` reads
+/// `MINDTAPE_ADD_DEPENDS_ON`).
+#[must_use]
+pub fn env_var_name(slot: &str) -> String {
+    format!("MINDTAPE_ADD_{}", slot.to_uppercase().replace('-', "_"))
+}
+
+/// Fill each slot left unset by `--set`/`-f` from its `MINDTAPE_ADD_*` variable
+/// via `lookup`. Values are strings (coerced to the slot kind by `fill`, like
+/// `--set`); blank values are skipped. Reading per discovered slot keeps the
+/// mapping unambiguous and ignores unknown env keys.
+pub fn layer_env(
+    values: &mut BTreeMap<String, RawValue>,
+    specs: &[SlotSpec],
+    lookup: impl Fn(&str) -> Option<String>,
+) {
+    for spec in specs {
+        if values.contains_key(&spec.name) {
+            continue;
+        }
+        if let Some(value) = lookup(&env_var_name(&spec.name))
+            && !value.trim().is_empty()
+        {
+            values.insert(spec.name.clone(), RawValue::Str(value));
+        }
+    }
+}
+
 fn json_to_raw(value: &serde_json::Value) -> Result<Option<RawValue>> {
     let raw = match value {
         serde_json::Value::Null => return Ok(None),

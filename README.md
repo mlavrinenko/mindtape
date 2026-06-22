@@ -59,11 +59,10 @@ mindtape init               # writes .mindtape/config.toml in the current dir
 
 ```bash
 # File a new task from a Typst slot template (fills slots, injects status + id)
-mindtape add --describe                       # show the template's slot schema
-mindtape add --describe=json                  # same, as JSON (for agents)
+mindtape add --describe                       # slot schema (--describe=json for agents)
 mindtape add --set title="Wire OAuth" --set priority=7      # raw --set values
 echo '{"title":"Wire OAuth","priority":7}' | mindtape add -f -   # JSON values
-echo "Wire OAuth" | mindtape add              # piped stdin becomes the title
+echo "Wire OAuth" | mindtape add              # piped stdin → title (or MINDTAPE_ADD_<SLOT> env)
 mindtape add --edit                           # fill the slots in your editor (YAML buffer)
 mindtape add bug --into . --name oauth-bug    # named template, first root, explicit stem
 
