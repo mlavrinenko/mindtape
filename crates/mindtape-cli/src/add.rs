@@ -28,7 +28,12 @@ use crate::util;
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Args)]
 pub struct AddArgs {
+    /// Task title words, joined with spaces to seed the `title` slot.
+    #[arg(value_name = "TITLE")]
+    pub title: Vec<String>,
+
     /// Template stem (default: the configured `[templates] default`).
+    #[arg(long = "template", short = 't', value_name = "TEMPLATE")]
     pub template: Option<String>,
 
     /// JSON values file (repeatable, merged left-to-right; `-` reads stdin).
@@ -104,6 +109,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
 
     let mut values = collect_values(&args.values, &args.set)?;
     let specs = discover_slots(&source);
+    fill_title_from_args(&mut values, args);
     layer_env(&mut values, &specs, |key| std::env::var(key).ok());
     fill_title_from_stdin(&mut values, args)?;
     if add_interactive::should_open(args.edit, &config.add, &specs, &values)? {
@@ -184,6 +190,18 @@ fn initial_status(config: &Config) -> Option<String> {
         .iter()
         .find(|entry| !entry.terminal)
         .map(|entry| entry.value.clone())
+}
+
+/// Seed the `title` slot from the positional `TITLE` words, joined with spaces.
+/// A higher-precedence `title` (`-f`/`--set`) wins; blank input sets nothing.
+fn fill_title_from_args(values: &mut BTreeMap<String, RawValue>, args: &AddArgs) {
+    if values.contains_key("title") || args.title.is_empty() {
+        return;
+    }
+    let title = args.title.join(" ");
+    if !title.trim().is_empty() {
+        values.insert("title".to_owned(), RawValue::Str(title));
+    }
 }
 
 /// Read a piped title from stdin into the `title` slot. Gated to the

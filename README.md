@@ -62,9 +62,9 @@ mindtape init               # writes .mindtape/config.toml in the current dir
 mindtape add --describe                       # slot schema (--describe=json for agents)
 mindtape add --set title="Wire OAuth" --set priority=7      # raw --set values
 echo '{"title":"Wire OAuth","priority":7}' | mindtape add -f -   # JSON values
-echo "Wire OAuth" | mindtape add              # piped stdin → title (or MINDTAPE_ADD_<SLOT> env)
+mindtape add cleanup kitchen                  # positional title → cleanup-kitchen.typ (or pipe stdin / MINDTAPE_ADD_<SLOT> env)
 mindtape add --edit                           # fill the slots in your editor (YAML buffer)
-mindtape add bug --into . --name oauth-bug    # named template, first root, explicit stem
+mindtape add -t bug --into . --name oauth-bug # named template, first root, explicit stem
 
 # List tasks under the configured roots (applies query.default_filter)
 mindtape ls

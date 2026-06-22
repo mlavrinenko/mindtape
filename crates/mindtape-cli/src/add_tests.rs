@@ -6,7 +6,7 @@ use std::path::Path;
 
 use mindtape::{Config, RawValue};
 
-use super::{AddArgs, dest_dir, initial_status, inject_header, output_stem};
+use super::{AddArgs, dest_dir, fill_title_from_args, initial_status, inject_header, output_stem};
 use crate::util::Project;
 
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
@@ -22,6 +22,7 @@ const HEADER: &str = r#"#import "@local/mindtape:0.2.0": *
 
 fn bare_args() -> AddArgs {
     AddArgs {
+        title: vec![],
         template: None,
         values: vec![],
         set: vec![],
@@ -68,6 +69,31 @@ fn output_stem_prefers_name_then_title_slug() {
     let mut values = BTreeMap::new();
     values.insert("title".to_owned(), RawValue::Str("My New Task".to_owned()));
     assert_eq!(output_stem(&args, &values).unwrap(), "my-new-task");
+}
+
+#[test]
+fn title_arg_joins_words_when_unset() {
+    let mut args = bare_args();
+    args.title = vec!["cleanup".to_owned(), "kitchen".to_owned()];
+    let mut values = BTreeMap::new();
+    fill_title_from_args(&mut values, &args);
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("cleanup kitchen".to_owned()))
+    );
+}
+
+#[test]
+fn title_arg_yields_to_higher_precedence_title() {
+    let mut args = bare_args();
+    args.title = vec!["positional".to_owned()];
+    let mut values = BTreeMap::new();
+    values.insert("title".to_owned(), RawValue::Str("explicit".to_owned()));
+    fill_title_from_args(&mut values, &args);
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("explicit".to_owned()))
+    );
 }
 
 #[test]
@@ -137,6 +163,23 @@ fn end_to_end_files_and_validates_a_task() {
         .arg("check")
         .assert()
         .success();
+}
+
+#[test]
+fn end_to_end_files_from_positional_title() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+
+    assert_cmd::Command::cargo_bin("mindtape")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["add", "cleanup", "kitchen"])
+        .assert()
+        .success();
+
+    let written = std::fs::read_to_string(dir.path().join("tasks/cleanup-kitchen.typ")).unwrap();
+    assert!(written.contains("title: \"cleanup kitchen\""), "{written}");
+    assert!(!written.contains("slot("), "slots must be gone: {written}");
 }
 
 /// Slot names from `add --describe=json` run in `dir`.

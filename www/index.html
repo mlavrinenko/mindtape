@@ -667,7 +667,9 @@ Stand up an isolated staging stack that mirrors production topology.</code></pre
     <div class="term-body">
       <span class="prompt">$</span> <span class="cmd">mindtape add --set title="Wire OAuth" --set priority=7</span>
       <pre><code># fills a Typst slot template, injects status + id, validates
-# (or `mindtape add --edit` to fill the slots in your editor)
+# (or `mindtape add cleanup kitchen` for a title-only task,
+#  `mindtape add -t bug` for a named template,
+#  `mindtape add --edit` to fill the slots in your editor)
 wrote tasks/wire-oauth.typ</code></pre>
       <span class="prompt">$</span> <span class="cmd">mindtape ls</span>
       <pre><code>┌───────────────────────┬──────────┬──────────┬────────────┬───────────────────────────────┐

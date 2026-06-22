@@ -89,13 +89,15 @@ validate their own `x-<ns>` fields.
 
 ### Templates (`mindtape add`)
 
-`mindtape add [template]` files a new task from a Typst template — a task whose
-authored values are `slot(name, kind: …, default: …, prompt: …)` calls. `add`
-discovers each slot on the parse plane (`typst-edit`, no eval), fills it from
-`-f values.json` / `--set k=v` / the slot default, injects the add-owned
-`status` (initial legend value, dated today) and `id`, then writes
-`<root>/<stem>.typ` and validates it. `--describe[=json]` dumps the slot schema;
-`--print` previews; `--into .` targets the first root. Templates live under
+`mindtape add [TITLE…] [-t template]` files a new task from a Typst template — a
+task whose authored values are `slot(name, kind: …, default: …, prompt: …)` calls.
+The positional words join into the `title` slot (`add cleanup kitchen` →
+`cleanup-kitchen.typ`); `-t/--template` picks the template (default `[templates]
+default`). `add` discovers each slot on the parse plane (`typst-edit`, no eval),
+fills it from `-f values.json` / `--set k=v` / the positional title / the slot
+default, injects the add-owned `status` (initial legend value, dated today) and
+`id`, then writes `<root>/<stem>.typ` and validates it. `--describe[=json]` dumps
+the slot schema; `--print` previews; `--into .` targets the first root. Templates live under
 `[templates] dirs`; the built-in `task` fallback is barebones (one required
 `title` slot). Filled tasks hold plain literals — no `slot` call survives.
 
