@@ -180,7 +180,7 @@ terminal = true
 min = 0
 max = 9
 
-[query]
+[ls]
 default_sort = ["id"]
 "#,
     )

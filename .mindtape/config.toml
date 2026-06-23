@@ -96,6 +96,5 @@ before = ["Summary"]
 after  = ["Scope"]
 message = "Summary must precede Scope"
 
-[query]
-# `mindtape list` hides finished work unless `--all` is passed.
-default_filter = "status != \"done\""
+[ls]
+default_filter = "!terminal && (miss(start) || start <= now())"

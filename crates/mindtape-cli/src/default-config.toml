@@ -126,9 +126,9 @@ color = "red"
 [tasks.estimate]
 units = ["minutes", "hours", "days", "weeks"]
 
-[query]
-# Filter applied by `mindtape list` when the caller passes none.
-default_filter = "status != \"done\""
+[ls]
+# Filter applied by `mindtape ls` when the caller passes none.
+default_filter = "!terminal && (miss(start) || start <= now())"
 
 [rm]
 # Tasks a bare `mindtape rm` (no ref/filter argument) retires. Default sweeps

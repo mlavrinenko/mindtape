@@ -23,8 +23,8 @@ pub struct Config {
     pub project: ProjectConfig,
     /// Task discovery, status lifecycle, and field constraints.
     pub tasks: TasksConfig,
-    /// Query defaults.
-    pub query: QueryConfig,
+    /// `mindtape ls` defaults.
+    pub ls: LsConfig,
     /// `rm` (task removal) defaults.
     pub rm: RmConfig,
     /// `add` (task creation) template discovery.
@@ -321,13 +321,13 @@ pub struct TagsConfig {
     pub allowed: Vec<String>,
 }
 
-/// `[query]` — query defaults.
+/// `[ls]` — `mindtape ls` defaults.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default)]
-pub struct QueryConfig {
-    /// Filter applied by `list` when the caller passes none.
+pub struct LsConfig {
+    /// Filter applied by `mindtape ls` when the caller passes none.
     pub default_filter: Option<String>,
-    /// Default sort chain for `list` when the caller passes no `--sort`.
+    /// Default sort chain for `mindtape ls` when the caller passes no `--sort`.
     /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
     /// Validated at config load. When absent the shipped built-in chain applies.
     pub default_sort: Vec<String>,
@@ -422,9 +422,9 @@ impl Config {
         let mut problems = self.tasks.priority.validate("priority");
         problems.extend(self.tasks.difficulty.validate("difficulty"));
         problems.extend(crate::derive::validate_root_globs(self));
-        for spec in &self.query.default_sort {
+        for spec in &self.ls.default_sort {
             if let Err(msg) = crate::sort::validate_sort_spec(spec) {
-                problems.push(format!("query.default_sort: {msg}"));
+                problems.push(format!("ls.default_sort: {msg}"));
             }
         }
         if problems.is_empty() {

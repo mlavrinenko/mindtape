@@ -99,7 +99,7 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
 fn default_view(project: &Project) -> Result<Vec<Task>> {
     let filter = project
         .config
-        .query
+        .ls
         .default_filter
         .as_deref()
         .map(Filter::parse)

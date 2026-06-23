@@ -138,9 +138,9 @@ pub fn default_order(tasks: &mut [Task], config: &Config) {
 /// `readiness` must be computed over the full loaded set (see
 /// [`Readiness::compute`]); pass [`Readiness::empty`] when no set context applies.
 pub fn default_order_with(tasks: &mut [Task], config: &Config, readiness: &Readiness) {
-    if !config.query.default_sort.is_empty() {
+    if !config.ls.default_sort.is_empty() {
         // Validated at config load — errors here are unreachable.
-        let _ = sort_by_specs(tasks, &config.query.default_sort, config, readiness);
+        let _ = sort_by_specs(tasks, &config.ls.default_sort, config, readiness);
         return;
     }
     tasks.sort_by(|left, right| compare_default(left, right, config, readiness));

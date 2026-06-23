@@ -12,7 +12,7 @@ fn defaults_when_empty() {
     assert!(config.tasks.status.is_empty());
     // White-list philosophy: an omitted estimate section accepts any unit.
     assert!(config.tasks.estimate.units.is_empty());
-    assert!(config.query.default_filter.is_none());
+    assert!(config.ls.default_filter.is_none());
 }
 
 #[test]
@@ -43,7 +43,7 @@ units = ["hours", "days"]
 [tasks.tags]
 allowed = ["a", "b"]
 
-[query]
+[ls]
 default_filter = "status != \"done\""
 "#;
     let config = parse_config(text).unwrap();
@@ -69,7 +69,7 @@ default_filter = "status != \"done\""
         vec!["a".to_owned(), "b".to_owned()]
     );
     assert_eq!(
-        config.query.default_filter.as_deref(),
+        config.ls.default_filter.as_deref(),
         Some("status != \"done\"")
     );
 }
@@ -277,20 +277,20 @@ fn effective_project_code_falls_back_to_dir_name() {
 #[test]
 fn default_sort_absent_means_empty() {
     let config = parse_config("").unwrap();
-    assert!(config.query.default_sort.is_empty());
+    assert!(config.ls.default_sort.is_empty());
 }
 
 #[test]
 fn default_sort_parses_and_validates_known_fields() {
     let config = parse_config(
         r#"
-[query]
+[ls]
 default_sort = ["ready", "priority:desc", "due:asc", "id"]
 "#,
     )
     .unwrap();
     assert_eq!(
-        config.query.default_sort,
+        config.ls.default_sort,
         vec!["ready", "priority:desc", "due:asc", "id"]
     );
 }
@@ -299,7 +299,7 @@ default_sort = ["ready", "priority:desc", "due:asc", "id"]
 fn default_sort_rejects_unknown_field_on_validate() {
     let config = parse_config(
         r#"
-[query]
+[ls]
 default_sort = ["no_such_field"]
 "#,
     )

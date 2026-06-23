@@ -38,6 +38,6 @@ required = "non-terminal"
 # Optional allow-list. Omit or leave empty to accept any tag.
 allowed = []
 
-[query]
-# Default filter applied by `mindtape list` when the caller passes none.
-default_filter = "status != \"done\""
+[ls]
+# Default filter applied by `mindtape ls` when the caller passes none.
+default_filter = "!terminal && (miss(start) || start <= now())"

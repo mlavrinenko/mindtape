@@ -76,7 +76,7 @@ fn build_filter(args: &LsArgs, config: &Config) -> Result<Option<Filter>> {
     } else if args.all {
         None
     } else {
-        config.query.default_filter.clone()
+        config.ls.default_filter.clone()
     };
     match expr {
         Some(expr) => Ok(Some(Filter::parse(&expr)?)),
