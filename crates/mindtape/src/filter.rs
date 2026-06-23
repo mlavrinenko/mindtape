@@ -16,6 +16,9 @@
 //! Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
 //! `contains(field, "substr")`, `search("query")`, `stale(N)`.
 //!
+//! `now()` evaluates to today's ISO date string (`YYYY-MM-DD`) and may appear
+//! on the right-hand side of a comparison: `start <= now()`, `due < now()`.
+//!
 //! Dependency-aware predicates `ready` and `blocked` answer "what can I start
 //! now" over the whole loaded set (see [`Readiness`]). They take no argument and
 //! may be written bare (`ready`) or as a call (`ready()`). The `terminal`
@@ -179,7 +182,7 @@ fn comparison(
         ));
     };
     let field = extract_identifier(lhs)?;
-    let literal = extract_literal(rhs)?;
+    let literal = eval_rhs(rhs)?;
     let value = field_value(task, &field, config)?;
     Ok(compare(node.operator(), &value, &literal))
 }
@@ -366,6 +369,20 @@ fn extract_literal(node: &Node<DefaultNumericTypes>) -> Result<String, FilterErr
             "expected a literal, got {other:?}"
         ))),
     }
+}
+
+/// Right-hand side of a comparison: either a literal or `now()`.
+fn eval_rhs(node: &Node<DefaultNumericTypes>) -> Result<String, FilterError> {
+    let node = unwrap_root(node);
+    if let Operator::FunctionIdentifier { identifier } = node.operator() {
+        return match identifier.as_str() {
+            "now" => Ok(crate::date::today_iso()),
+            other => Err(FilterError::Invalid(format!(
+                "function `{other}` cannot be used as a comparison value; only `now()` is allowed here"
+            ))),
+        };
+    }
+    extract_literal(node)
 }
 
 fn literal_to_string(value: &Value<DefaultNumericTypes>) -> Result<String, FilterError> {

@@ -280,3 +280,26 @@ fn terminal_predicate() {
     // Composes with comparisons.
     assert!(hit("terminal && priority >= 7", &done));
 }
+
+#[test]
+fn now_in_comparison() {
+    // Use fixed dates far in the past / future so the test never flips.
+    let mut past = sample();
+    past.start = Some("2020-01-01".to_owned());
+
+    let mut future = sample();
+    future.start = Some("2099-12-31".to_owned());
+
+    // start <= now() matches a past date, not a far-future date.
+    assert!(hit("start <= now()", &past));
+    assert!(!hit("start <= now()", &future));
+
+    // now() also works with other comparison operators.
+    assert!(hit("start < now()", &past));
+    assert!(hit("start != now()", &future));
+
+    // Intended default-filter shape: no-start tasks are always shown.
+    assert!(hit("miss(start) || start <= now()", &past));
+    assert!(!hit("miss(start) || start <= now()", &future));
+    assert!(hit("miss(start) || start <= now()", &sample())); // start is None
+}
