@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mindtape ls --interactive` (`-i`)** — an interactive picker over the `ls`
+  list: type a task's `#`-column ordinal to highlight it (reverse-video, prefix
+  match), `Enter` opens the first highlighted task in the editor (`go`),
+  `Ctrl+Enter` opens every listed task, `Space` re-evaluates the project, and
+  `q` / `Ctrl+C` leaves. Table-only and TTY-only. Backed by `crossterm`, which
+  negotiates the terminal keyboard-enhancement protocol so `Ctrl+Enter` /
+  `Ctrl+Backspace` carry their modifier where supported (`Del` is the always-
+  reliable clear).
 - **`typst-cst` crate** — package-agnostic parse-plane structure extraction:
   the heading tree (depth, text, source span) parsed via `typst-syntax`, with no
   eval, World, or IO. A consumer-blind substrate for gating document structure.

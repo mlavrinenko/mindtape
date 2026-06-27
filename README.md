@@ -80,6 +80,7 @@ mindtape review implement-auth               # by slug, relative, or absolute pa
 
 # Open a task in your editor ([go] editor → $VISUAL → $EDITOR; {task} → path)
 mindtape go 1b                               # by handle, slug, or path
+mindtape ls -i                               # interactive: type the # to pick, Enter opens it (go), q quits
 
 # Set a task's status dated today; each legend value is also a shortcut verb
 mindtape flip done implement-auth            # canonical; or `mindtape done 1b 2c` (== flip done)
@@ -132,12 +133,11 @@ color = "green"
 terminal = true
 
 # Priority: a number on a scale, classified into labelled bands. `required` is
-# true | false | "non-terminal". Difficulty is the sibling, classified by anchors.
-# `framework` (optional) computes the score from typed inputs instead of a hand-
-# set int: built-ins ice/rice/wsjf/eisenhower/moscow ship baked-in; a task then
-# writes `priority: ice(impact: 8, confidence: 0.9, ease: 7)`. `allow-manual =
-# false` is strict (no raw ints). A framework's range is checked to fit the scale
-# at config load. Define or override one under `[tasks.priority.frameworks.<name>]`.
+# true | false | "non-terminal"; difficulty is the sibling. `framework` (optional)
+# scores typed inputs instead of a hand-set int — built-ins ice/rice/wsjf/
+# eisenhower/moscow ship baked-in (`priority: ice(impact: 8, confidence: 0.9,
+# ease: 7)`); `allow-manual = false` forbids raw ints. Override one under
+# `[tasks.priority.frameworks.<name>]`.
 [tasks.priority]
 kind = "int"                       # int | real
 min  = 0
@@ -180,16 +180,16 @@ built-in `[rm] default-filter`.
 
 ## Architecture
 
-A three-crate workspace:
+A workspace of focused crates — the domain library plus consumer-blind Typst
+substrates reusable by any file-based tool:
 
-- `typst-harvest` — a package-agnostic, eval-only Typst World plus
-  labelled-metadata-marker harvesting. A reusable substrate for any file-based
-  tool that uses Typst as a data medium.
-- `mindtape` — the domain library: config, the task item model, the filter
-  language, and config-driven validation.
-- `mindtape-cli` — the thin `mindtape` command-line binary.
-- `typst-cst` — Parse-plane structure extraction for Typst — heading tree with source spans, no eval, no World, no IO.
-- `typst-edit` — In-place editing for Typst source — parse-plane span queries and an atomic, non-overlapping changeset over typst-syntax; no eval, no World, no IO.
+- `mindtape` — the domain library: config, the task model, the filter language,
+  and config-driven validation. `mindtape-cli` is the thin `mindtape` binary.
+- `typst-harvest` — eval-only Typst World plus labelled-metadata-marker
+  harvesting (Typst as a data medium).
+- `typst-cst` / `typst-edit` — parse-plane structure extraction (heading tree
+  with spans) and in-place source editing (span queries + atomic changeset); no
+  eval, World, or IO.
 
 ## Contributing
 
