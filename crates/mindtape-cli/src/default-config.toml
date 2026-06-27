@@ -140,13 +140,20 @@ default-filter = "!terminal && (miss(start) || start <= now())"
 # Default (unset) renders ISO YYYY-MM-DD.
 # Example: date-format = "DD.MM.YYYY"  →  27.06.2026
 
-# Per-column display. Column names: "#", "status", "ready", "priority", "due",
-# "title". `visibility` is auto | visible | hidden:
+# Column order and selection. Names: "#", "status", "ready", "priority", "due",
+# "title". Unset = the built-in order. When set, it both selects and orders:
+# only the listed columns render, in this sequence.
+#   columns-order = ["#", "status", "priority", "due", "title"]
+
+# Per-column display. `visibility` is auto | visible | hidden:
 #   auto    — render only when the column carries something (the default). An
 #             all-empty PRIORITY / DUE / STATUS drops; READY shows only when a
 #             task is blocked. This is why empty columns vanish out of the box.
 #   visible — always render, even when every cell is blank.
 #   hidden  — never render, even when populated.
+# Precedence: columns-order picks the set + order; visibility then decides
+# whether each listed column actually renders. A column absent from
+# columns-order never renders even with visibility = "visible".
 #   [ls.columns.priority]
 #   visibility = "visible"
 

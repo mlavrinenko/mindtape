@@ -356,3 +356,19 @@ visibility = "hidden"
     );
 }
 
+#[test]
+fn ls_columns_order_validates_and_rejects_unknown() {
+    let ok = parse_config("[ls]\ncolumns-order = [\"title\", \"status\"]\n").unwrap();
+    assert!(ok.validate().is_ok());
+    let bad = parse_config("[ls]\ncolumns-order = [\"title\", \"bogus\"]\n").unwrap();
+    assert!(bad.validate().is_err(), "unknown column name must fail");
+}
+
+#[test]
+fn ls_columns_order_rejects_duplicate() {
+    let config = parse_config("[ls]\ncolumns-order = [\"status\", \"status\"]\n").unwrap();
+    assert!(
+        config.validate().is_err(),
+        "duplicate column name must fail"
+    );
+}

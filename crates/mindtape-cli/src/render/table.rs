@@ -50,14 +50,24 @@ fn glyph_mode() -> GlyphMode {
     }
 }
 
-/// The built-in column order, filtered to the columns that resolve visible for
-/// this task list.
+/// The render order (built-in or `[ls] columns-order`), filtered to the columns
+/// that resolve visible for this task list.
 fn resolve_columns(
     config: &Config,
     handles: &[(String, &Task)],
     readiness: &Readiness,
 ) -> Vec<ColumnId> {
-    ORDER
+    let order: Vec<ColumnId> = if config.ls.columns_order.is_empty() {
+        ORDER.to_vec()
+    } else {
+        config
+            .ls
+            .columns_order
+            .iter()
+            .filter_map(|key| ColumnId::from_key(key))
+            .collect()
+    };
+    order
         .into_iter()
         .filter(|col| {
             let significant = col.auto_significant(handles, config, readiness);
@@ -330,6 +340,19 @@ mod tests {
             !out.contains("wip"),
             "hidden column's cells must not render"
         );
+    }
+
+    #[test]
+    fn columns_order_selects_and_orders() {
+        let mut config = Config::default();
+        config.ls.columns_order = vec!["title".to_owned(), "status".to_owned()];
+        let out = render(&[task("a", "Hello", "wip")], &config, &Readiness::empty());
+        let header = out.lines().next().unwrap();
+        let title_at = header.find("TITLE").unwrap();
+        let status_at = header.find("STATUS").unwrap();
+        assert!(title_at < status_at, "columns-order must reorder");
+        assert!(!header.contains('#'), "unlisted handle column excluded");
+        assert!(!header.contains("PRIORITY"), "unlisted column excluded");
     }
 
     #[test]
