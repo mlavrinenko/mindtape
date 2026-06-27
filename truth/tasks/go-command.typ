@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "`go` command — open a task in the configured editor by handle",
-  status: wip(2026, 6, 28),
+  status: done(2026, 6, 28),
   priority: ice(impact: 6, confidence: 0.8, ease: 7),
   tags: ("cli",),
 )
