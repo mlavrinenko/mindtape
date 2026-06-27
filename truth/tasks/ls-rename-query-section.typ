@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Rename `[query]` config section to `[ls]`",
-  status: proposed(2026, 6, 23),
+  status: done(2026, 6, 23),
   priority: ice(impact: 5, confidence: 0.95, ease: 8),
   depends-on: (link("filter-now-date-function.typ"),),
   tags: ("cli",),

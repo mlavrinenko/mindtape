@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Add `now()` to the filter language",
-  status: proposed(2026, 6, 23),
+  status: done(2026, 6, 23),
   priority: ice(impact: 6, confidence: 0.95, ease: 9),
   tags: ("tooling",),
 )
