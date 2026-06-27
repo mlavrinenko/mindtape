@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Configurable global date display format",
-  status: proposed(2026, 6, 27),
+  status: done(2026, 6, 27),
   priority: ice(impact: 5, confidence: 0.85, ease: 6),
   tags: ("cli",),
 )

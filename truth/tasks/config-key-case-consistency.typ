@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Unify config key case on kebab-case",
-  status: accepted(2026, 6, 27),
+  status: done(2026, 6, 27),
   priority: ice(impact: 4, confidence: 0.95, ease: 8),
   tags: ("cli",),
 )

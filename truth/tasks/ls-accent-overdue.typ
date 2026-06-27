@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Accent overdue tasks in `ls`",
-  status: proposed(2026, 6, 27),
+  status: done(2026, 6, 27),
   priority: ice(impact: 6, confidence: 0.9, ease: 7),
   tags: ("cli",),
 )
