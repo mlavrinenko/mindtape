@@ -8,7 +8,7 @@ use serde::Deserialize;
 
 /// `[add]` — interactive editor fill settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct AddConfig {
     /// Editor command override. Falls back to `$VISUAL`, then `$EDITOR`, then a
     /// built-in default. May carry arguments (split on whitespace).

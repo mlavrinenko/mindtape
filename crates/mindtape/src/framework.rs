@@ -29,7 +29,7 @@ const BUILTIN_FRAMEWORKS: &str = include_str!("frameworks.toml");
 /// One framework definition: typed inputs plus either a scalar score formula or
 /// a categorical classification.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct Framework {
     /// Declared inputs, keyed by name (the names used in formulas/predicates).
     pub inputs: BTreeMap<String, Input>,
@@ -42,7 +42,7 @@ pub struct Framework {
 
 /// One declared input: its type and bounds (numbers) or allowed values (enums).
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct Input {
     /// Input type.
     #[serde(rename = "type")]
@@ -70,7 +70,7 @@ pub enum InputKind {
 
 /// One categorical bucket: a predicate plus its representative score and display.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct Category {
     /// evalexpr predicate over the inputs selecting this category.
     pub when: String,

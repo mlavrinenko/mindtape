@@ -107,7 +107,7 @@ pub enum ScaleKind {
 
 /// One contiguous labelled range in a band classification.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct Band {
     /// Display label.
     pub label: String,
@@ -123,7 +123,7 @@ pub struct Band {
 
 /// One labelled point in an anchor classification.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct Anchor {
     /// The point on the scale this label names.
     pub value: f64,
@@ -148,7 +148,7 @@ pub struct NumCell {
 
 /// A numeric scalar field: scale plus one classification style.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct NumericField {
     /// Whether the scale is integer or real.
     pub kind: ScaleKind,

@@ -23,7 +23,7 @@ pub enum RootSpec {
 
 /// The table form of a task root.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default, rename_all = "kebab-case")]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RootConfig {
     /// Directory (relative to the project root) holding one task per file.
     pub path: String,
@@ -49,7 +49,7 @@ pub enum DeriveTags {
 
 /// `[tasks.derive-tags]` — project-wide folder-derived-tag policy.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(default, rename_all = "kebab-case")]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct DeriveConfig {
     /// Default derivation switch for roots that set no `derive-tags` of their own.
     pub enabled: bool,

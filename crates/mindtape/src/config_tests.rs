@@ -296,6 +296,21 @@ default-sort = ["ready", "priority:desc", "due:asc", "id"]
 }
 
 #[test]
+fn rejects_unknown_top_level_section() {
+    assert!(parse_config("[typo-section]\nfoo = 1\n").is_err());
+}
+
+#[test]
+fn rejects_unknown_ls_key() {
+    assert!(parse_config("[ls]\ndefult-filter = \"!terminal\"\n").is_err());
+}
+
+#[test]
+fn rejects_unknown_status_entry_key() {
+    assert!(parse_config("[[tasks.status]]\nvalue = \"wip\"\nbadkey = true\n").is_err());
+}
+
+#[test]
 fn default_sort_rejects_unknown_field_on_validate() {
     let config = parse_config(
         r#"

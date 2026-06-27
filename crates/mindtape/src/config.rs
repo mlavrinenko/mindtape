@@ -17,7 +17,7 @@ pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, R
 
 /// Top-level project configuration.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct Config {
     /// Project-level settings (code, etc.).
     pub project: ProjectConfig,
@@ -37,7 +37,7 @@ pub struct Config {
 
 /// `[typst]` — Typst evaluation settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default, rename_all = "kebab-case")]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TypstConfig {
     /// Extra `@local/<name>` package overrides, each resolved from an in-tree
     /// path so a worktree resolves a foreign package without a global install.
@@ -49,7 +49,7 @@ pub struct TypstConfig {
 
 /// `[[typst.local-packages]]` — one `@local/<name>` → in-tree path override.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct LocalPackage {
     /// The `@local/<name>` package name.
     pub name: String,
@@ -59,7 +59,7 @@ pub struct LocalPackage {
 
 /// `[templates]` — where `mindtape add` finds task templates.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct TemplatesConfig {
     /// Dirs (relative to the project root) holding `*.typ` task templates.
     pub dirs: Vec<String>,
@@ -78,7 +78,7 @@ impl Default for TemplatesConfig {
 
 /// `[project]` — project-level settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct ProjectConfig {
     /// Short project qualifier. Falls back to the root directory name when absent.
     pub code: Option<String>,
@@ -97,7 +97,7 @@ pub fn effective_project_code(config: &Config, root: &std::path::Path) -> String
 
 /// `[tasks]` — where tasks live and how they are constrained.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(default, rename_all = "kebab-case")]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TasksConfig {
     /// Directories (relative to the project root) holding one task per file.
     pub roots: Vec<RootSpec>,
@@ -176,7 +176,7 @@ impl Default for PriorityConfig {
 
 /// `[tasks.id]` — task identity format constraint.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct IdConfig {
     /// Format requirement for an explicit `id:`. Default accepts any non-empty string.
     pub format: IdFormat,
@@ -230,7 +230,7 @@ impl<'de> Deserialize<'de> for IdFormat {
 /// or `(points: 8)`). Units are free labels, not converted or compared; the
 /// config only constrains which unit names are legal. Empty = any unit.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct EstimateConfig {
     /// Allowed unit names. Empty = any unit.
     pub units: Vec<String>,
@@ -254,7 +254,7 @@ pub struct Legend {
 
 /// One `[[tasks.status]]` entry: a value plus its display attributes.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct LegendEntry {
     /// The value this entry describes (e.g. a status name).
     pub value: String,
@@ -300,7 +300,7 @@ impl Legend {
 
 /// `[tasks.fields.<name>]` — constraints for one configurable core field.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct FieldConfig {
     /// Allowed enum values. Empty = any.
     pub values: Vec<String>,
@@ -312,7 +312,7 @@ pub struct FieldConfig {
 
 /// `[tasks.tags]` — optional tag allow-list.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct TagsConfig {
     /// Allowed tag names. Empty = any.
     pub allowed: Vec<String>,
@@ -320,7 +320,7 @@ pub struct TagsConfig {
 
 /// `[ls]` — `mindtape ls` defaults.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default, rename_all = "kebab-case")]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsConfig {
     /// Filter applied by `mindtape ls` when the caller passes none.
     pub default_filter: Option<String>,
@@ -339,7 +339,7 @@ pub struct LsConfig {
 
 /// `[rm]` — defaults for the `rm` task-removal command.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(default, rename_all = "kebab-case")]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RmConfig {
     /// Filter selecting which tasks a bare `mindtape rm` (no target) retires.
     /// Built-in default `"terminal"`: sweep every terminal-status task, matching
@@ -475,7 +475,7 @@ pub fn config_path(root: &Path) -> PathBuf {
 
 /// `[tasks.body]` — body-shape constraints.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct TaskBodyConfig {
     /// Section-heading gating rules.
     pub headers: HeadersConfig,
