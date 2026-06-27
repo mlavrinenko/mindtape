@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "`flip` command + per-status shortcut verbs (`done t1 t2`)",
-  status: proposed(2026, 6, 27),
+  status: done(2026, 6, 27),
   priority: ice(impact: 7, confidence: 0.8, ease: 6),
   tags: ("cli",),
 )
