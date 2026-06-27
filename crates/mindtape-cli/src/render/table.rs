@@ -6,11 +6,11 @@
 
 use std::io::IsTerminal;
 
-use mindtape::{Config, Readiness, ReadyState, Task, format_iso, today_iso};
+use mindtape::{Config, Readiness, Task};
 
-use super::color::{Painter, is_color_active, parse_color};
-use super::field::{CellSpec, DensityMode, Field, cell_content, content_width, render_cell};
-use super::fields::{Status as StatusField, priority_cell_spec};
+use super::color::{Painter, is_color_active};
+use super::columns::{ColumnId, ORDER};
+use super::field::{CellSpec, DensityMode, cell_content, content_width, render_cell};
 use super::glyph::GlyphMode;
 use super::width::{display_width, pad_to_width, truncate_to_width};
 use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
@@ -18,42 +18,27 @@ use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
 const GAP: &str = "  ";
 const TITLE_MIN: usize = 16;
 
-/// The rendered cells of one task row.
-struct Row {
-    handle: CellSpec,
-    status: CellSpec,
-    ready: CellSpec,
-    priority: CellSpec,
-    due: CellSpec,
-    title: CellSpec,
+/// A resolved visible column: its id, per-row cells, and display width.
+struct Column {
+    id: ColumnId,
+    cells: Vec<CellSpec>,
+    width: usize,
 }
 
-/// Per-column display widths.
-struct Widths {
-    handle: usize,
-    status: usize,
-    ready: usize,
-    priority: usize,
-    due: usize,
-    title: usize,
-}
-
-/// Render `tasks` as a borderless, space-aligned table. The dependency-readiness
-/// column appears only when some task is blocked, so a backlog with no contested
-/// dependencies stays uncluttered.
+/// Render `tasks` as a borderless, space-aligned table.
+///
+/// The column set, order, and visibility come from `[ls.columns]` /
+/// `[ls] columns-order`. Under the default `auto` visibility a column is
+/// dropped when it carries nothing — so a backlog with no priorities, no due
+/// dates, or no contested dependencies stays uncluttered.
 #[must_use]
 pub fn render(tasks: &[Task], config: &Config, readiness: &Readiness) -> String {
     let glyph_mode = glyph_mode();
     let painter = Painter::new(is_color_active());
-    let show_ready = tasks.iter().any(|task| readiness.is_blocked(task));
-    let rows = build_rows(tasks, config, readiness);
-    let cols = widths(&rows, glyph_mode, show_ready);
-    let mut out = String::new();
-    push_header(&mut out, &cols);
-    for row in &rows {
-        push_row(&mut out, row, &cols, glyph_mode, painter);
-    }
-    out
+    let handles: Vec<(String, &Task)> = make_handles(tasks, DEFAULT_CHECK_LEN);
+    let visible = resolve_columns(config, &handles, readiness);
+    let columns = build_columns(&visible, &handles, config, readiness, glyph_mode);
+    render_grid(&columns, glyph_mode, painter)
 }
 
 /// Emoji on a TTY; no glyphs when piped (keeps pipe output plain).
@@ -65,144 +50,73 @@ fn glyph_mode() -> GlyphMode {
     }
 }
 
-fn plain(text: String) -> CellSpec {
-    CellSpec {
-        text,
-        glyph: None,
-        color: None,
-    }
-}
-
-fn build_rows(tasks: &[Task], config: &Config, readiness: &Readiness) -> Vec<Row> {
-    make_handles(tasks, DEFAULT_CHECK_LEN)
+/// The built-in column order, filtered to the columns that resolve visible for
+/// this task list.
+fn resolve_columns(
+    config: &Config,
+    handles: &[(String, &Task)],
+    readiness: &Readiness,
+) -> Vec<ColumnId> {
+    ORDER
         .into_iter()
-        .map(|(handle, task)| Row {
-            handle: plain(handle),
-            status: status_cell(task, config),
-            ready: ready_cell(readiness.state(task)),
-            priority: priority_cell(task, config),
-            due: due_cell(task, config),
-            title: plain(task.title.clone()),
+        .filter(|col| {
+            let significant = col.auto_significant(handles, config, readiness);
+            col.visible(config, significant)
         })
         .collect()
 }
 
-/// A readiness cell: a glyph and short label, coloured green (ready) or red
-/// (blocked). Settled (terminal) tasks render blank.
-fn ready_cell(state: ReadyState) -> CellSpec {
-    match state {
-        ReadyState::Ready => CellSpec {
-            text: "ready".to_owned(),
-            glyph: Some("▶".to_owned()),
-            color: parse_color("green"),
-        },
-        ReadyState::Blocked => CellSpec {
-            text: "blocked".to_owned(),
-            glyph: Some("🔒".to_owned()),
-            color: parse_color("red"),
-        },
-        ReadyState::Settled => plain(String::new()),
-    }
-}
-
-fn status_cell(task: &Task, config: &Config) -> CellSpec {
-    match StatusField::values(task).first() {
-        Some(name) => StatusField::cell_spec(name, config),
-        None => plain(String::new()),
-    }
-}
-
-fn priority_cell(task: &Task, config: &Config) -> CellSpec {
-    match &task.priority {
-        Some(value) => priority_cell_spec(value, config),
-        None => plain(String::new()),
-    }
-}
-
-/// Due cell: red when the task is overdue (past due, non-terminal), else plain.
-///
-/// The overdue check compares the raw ISO value; only the displayed text is
-/// reformatted via the configured `date_format` (or the default `YYYY-MM-DD`).
-fn due_cell(task: &Task, config: &Config) -> CellSpec {
-    let raw = task.due.as_deref().unwrap_or_default();
-    let overdue = task
-        .due
-        .as_deref()
-        .is_some_and(|due| due < today_iso().as_str())
-        && !task.is_terminal(&config.tasks.status.terminal());
-    let fmt = config.ls.date_format.as_deref().unwrap_or("YYYY-MM-DD");
-    let text = if raw.is_empty() {
-        String::new()
-    } else {
-        format_iso(raw, fmt)
-    };
-    CellSpec {
-        text,
-        glyph: None,
-        color: if overdue { parse_color("red") } else { None },
-    }
-}
-
-fn widths(rows: &[Row], glyph_mode: GlyphMode, show_ready: bool) -> Widths {
+/// Build each visible column's cells and width. The flex column (`title`)
+/// absorbs the remaining terminal width; the rest size to their content.
+fn build_columns(
+    visible: &[ColumnId],
+    handles: &[(String, &Task)],
+    config: &Config,
+    readiness: &Readiness,
+    glyph_mode: GlyphMode,
+) -> Vec<Column> {
     let full = DensityMode::Full;
-    let handle = col_width(
-        "#",
-        rows.iter()
-            .map(|row| content_width(&row.handle, glyph_mode, full)),
-    );
-    let status = col_width(
-        "STATUS",
-        rows.iter()
-            .map(|row| content_width(&row.status, glyph_mode, full)),
-    );
-    let ready = if show_ready {
-        col_width(
-            "READY",
-            rows.iter()
-                .map(|row| content_width(&row.ready, glyph_mode, full)),
-        )
-    } else {
-        0
-    };
-    let priority = col_width(
-        "PRIORITY",
-        rows.iter()
-            .map(|row| content_width(&row.priority, glyph_mode, full)),
-    );
-    let due = col_width(
-        "DUE",
-        rows.iter()
-            .map(|row| content_width(&row.due, glyph_mode, full)),
-    );
-    // Gaps before the title column: one per preceding column boundary.
-    let gaps = if show_ready { 5 } else { 4 };
-    let title = title_width(rows, handle + status + ready + priority + due, gaps);
-    Widths {
-        handle,
-        status,
-        ready,
-        priority,
-        due,
-        title,
-    }
+    let mut columns: Vec<Column> = visible
+        .iter()
+        .map(|&id| {
+            let cells: Vec<CellSpec> = handles
+                .iter()
+                .map(|(handle, task)| id.cell(handle, task, config, readiness))
+                .collect();
+            let width = col_width(
+                id.header(),
+                cells
+                    .iter()
+                    .map(|cell| content_width(cell, glyph_mode, full)),
+            );
+            Column { id, cells, width }
+        })
+        .collect();
+    apply_flex(&mut columns);
+    columns
 }
 
 fn col_width(header: &str, cells: impl Iterator<Item = usize>) -> usize {
     cells.fold(display_width(header), usize::max)
 }
 
-fn title_width(rows: &[Row], others: usize, gaps: usize) -> usize {
-    let natural = col_width(
-        "TITLE",
-        rows.iter()
-            .map(|row| content_width(&row.title, GlyphMode::None, DensityMode::Full)),
-    );
-    match terminal_width() {
-        Some(term) => {
-            let avail = term.saturating_sub(others + GAP.len() * gaps);
-            natural.min(avail).max(TITLE_MIN)
-        }
-        None => natural,
+/// Shrink the flex column (`title`) to the remaining terminal width: total
+/// minus every other column and the inter-column gaps, clamped to
+/// `[TITLE_MIN, natural]`. No flex column or no known terminal width: leave
+/// natural widths untouched.
+fn apply_flex(columns: &mut [Column]) {
+    let Some(term) = terminal_width() else {
+        return;
+    };
+    let others: usize = columns
+        .iter()
+        .filter(|col| !col.id.is_flex())
+        .map(|col| col.width)
+        .sum();
+    let gaps = columns.len().saturating_sub(1);
+    if let Some(col) = columns.iter_mut().find(|col| col.id.is_flex()) {
+        let avail = term.saturating_sub(others + GAP.len() * gaps);
+        col.width = col.width.min(avail).max(TITLE_MIN);
     }
 }
 
@@ -210,48 +124,56 @@ fn terminal_width() -> Option<usize> {
     terminal_size::terminal_size().map(|(width, _)| width.0 as usize)
 }
 
-fn push_header(out: &mut String, cols: &Widths) {
-    let mut cells = vec![
-        pad_to_width("#", cols.handle),
-        pad_to_width("STATUS", cols.status),
-    ];
-    if cols.ready != 0 {
-        cells.push(pad_to_width("READY", cols.ready));
+/// Lay out the header and one line per task. Every column is padded to its
+/// width except the last, which is truncated-not-padded so no trailing run
+/// survives (keeps output greppable / paste-friendly).
+fn render_grid(columns: &[Column], glyph_mode: GlyphMode, painter: Painter) -> String {
+    if columns.is_empty() {
+        return String::new();
     }
-    cells.push(pad_to_width("PRIORITY", cols.priority));
-    cells.push(pad_to_width("DUE", cols.due));
-    cells.push("TITLE".to_owned());
-    out.push_str(&cells.join(GAP));
+    let last = columns.len().saturating_sub(1);
+    let mut out = String::new();
+    let header: Vec<String> = columns
+        .iter()
+        .enumerate()
+        .map(|(idx, col)| {
+            if idx == last {
+                col.id.header().to_owned()
+            } else {
+                pad_to_width(col.id.header(), col.width)
+            }
+        })
+        .collect();
+    out.push_str(&header.join(GAP));
     out.push('\n');
+    let rows = columns.first().map_or(0, |col| col.cells.len());
+    for row in 0..rows {
+        let cells: Vec<String> = columns
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, col)| {
+                col.cells.get(row).map(|cell| {
+                    if idx == last {
+                        render_unpadded(cell, glyph_mode, painter, col.width)
+                    } else {
+                        render_cell(cell, glyph_mode, DensityMode::Full, painter, col.width)
+                    }
+                })
+            })
+            .collect();
+        out.push_str(&cells.join(GAP));
+        out.push('\n');
+    }
+    out
 }
 
-fn push_row(out: &mut String, row: &Row, cols: &Widths, glyph_mode: GlyphMode, painter: Painter) {
-    let full = DensityMode::Full;
-    let mut cells = vec![
-        render_cell(&row.handle, glyph_mode, full, painter, cols.handle),
-        render_cell(&row.status, glyph_mode, full, painter, cols.status),
-    ];
-    // A zero-width readiness column means it was gated off (no blocked task).
-    if cols.ready != 0 {
-        cells.push(render_cell(
-            &row.ready, glyph_mode, full, painter, cols.ready,
-        ));
-    }
-    cells.push(render_cell(
-        &row.priority,
-        glyph_mode,
-        full,
-        painter,
-        cols.priority,
-    ));
-    cells.push(render_cell(&row.due, glyph_mode, full, painter, cols.due));
-    cells.push(render_title(&row.title, glyph_mode, painter, cols.title));
-    out.push_str(&cells.join(GAP));
-    out.push('\n');
-}
-
-/// Title is the last column: truncate to width but do not pad (no trailing run).
-fn render_title(spec: &CellSpec, glyph_mode: GlyphMode, painter: Painter, width: usize) -> String {
+/// The last column: truncate to width but do not pad (no trailing run).
+fn render_unpadded(
+    spec: &CellSpec,
+    glyph_mode: GlyphMode,
+    painter: Painter,
+    width: usize,
+) -> String {
     let content = cell_content(spec, glyph_mode, DensityMode::Full);
     let fitted = if display_width(&content) > width {
         truncate_to_width(&content, width)
@@ -270,9 +192,19 @@ mod tests {
     use mindtape::config::{Legend, LegendEntry};
     use mindtape::numeric::NumValue;
     use mindtape::test_support::bare_task;
-    use mindtape::{Config, Readiness, Status, Task};
+    use mindtape::{ColumnConfig, Config, Readiness, Status, Task, Visibility};
 
-    use super::{due_cell, render};
+    use super::super::columns::due_cell;
+    use super::render;
+
+    fn with_column(key: &str, visibility: Visibility) -> Config {
+        let mut config = Config::default();
+        config
+            .ls
+            .columns
+            .insert(key.to_owned(), ColumnConfig { visibility });
+        config
+    }
 
     fn task(id: &str, title: &str, status: &str) -> Task {
         let mut t = bare_task(id);
@@ -361,6 +293,43 @@ mod tests {
         let out = render(&tasks, &Config::default(), &readiness);
         assert!(out.contains("READY"));
         assert!(out.contains("blocked"));
+    }
+
+    #[test]
+    fn empty_columns_hidden_by_default() {
+        // A task with status but no priority and no due date: PRIORITY and DUE
+        // carry nothing, so `auto` drops them; STATUS and TITLE stay.
+        let mut t = task("a", "A", "wip");
+        t.priority = None;
+        let out = render(&[t], &Config::default(), &Readiness::empty());
+        let header = out.lines().next().unwrap();
+        assert!(!header.contains("PRIORITY"), "empty PRIORITY must hide");
+        assert!(!header.contains("DUE"), "empty DUE must hide");
+        assert!(header.contains("STATUS"));
+        assert!(header.contains("TITLE"));
+    }
+
+    #[test]
+    fn visibility_visible_forces_blank_column() {
+        let mut t = task("a", "A", "wip");
+        t.priority = None;
+        let config = with_column("priority", Visibility::Visible);
+        let out = render(&[t], &config, &Readiness::empty());
+        assert!(
+            out.lines().next().unwrap().contains("PRIORITY"),
+            "visible must render even when blank"
+        );
+    }
+
+    #[test]
+    fn visibility_hidden_drops_populated_column() {
+        let config = with_column("status", Visibility::Hidden);
+        let out = render(&[task("a", "A", "wip")], &config, &Readiness::empty());
+        assert!(!out.contains("STATUS"), "hidden column must not render");
+        assert!(
+            !out.contains("wip"),
+            "hidden column's cells must not render"
+        );
     }
 
     #[test]

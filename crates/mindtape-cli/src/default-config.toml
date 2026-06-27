@@ -140,6 +140,16 @@ default-filter = "!terminal && (miss(start) || start <= now())"
 # Default (unset) renders ISO YYYY-MM-DD.
 # Example: date-format = "DD.MM.YYYY"  →  27.06.2026
 
+# Per-column display. Column names: "#", "status", "ready", "priority", "due",
+# "title". `visibility` is auto | visible | hidden:
+#   auto    — render only when the column carries something (the default). An
+#             all-empty PRIORITY / DUE / STATUS drops; READY shows only when a
+#             task is blocked. This is why empty columns vanish out of the box.
+#   visible — always render, even when every cell is blank.
+#   hidden  — never render, even when populated.
+#   [ls.columns.priority]
+#   visibility = "visible"
+
 [rm]
 # Tasks a bare `mindtape rm` (no ref/filter argument) retires. Default sweeps
 # every terminal-status task. An explicit ref or filter argument overrides it.

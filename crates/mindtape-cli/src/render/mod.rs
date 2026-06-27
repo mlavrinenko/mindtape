@@ -18,6 +18,7 @@
 //! the `#[allow(dead_code)]` on the `mod render` declaration in `main.rs`.
 
 pub mod color;
+pub mod columns;
 pub mod field;
 pub mod fields;
 pub mod glyph;

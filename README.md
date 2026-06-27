@@ -174,7 +174,7 @@ ago). The opaque `estimate` dict supports presence only (`has(estimate)`), not
 comparison. Dependency predicates `ready` and `blocked` (bare or as `ready()` /
 `blocked()`) classify a task by its `depends-on` targets: ready when every direct
 dependency is terminal, blocked otherwise. `list` floats ready work to the top by
-default and shows a `READY` column when any task is blocked. The `terminal`
+default. Empty columns auto-hide; `[ls.columns]` visibility overrides that. The `terminal`
 predicate (bare or `terminal()`) matches a task in a terminal status; it is the
 built-in `[rm] default-filter`.
 

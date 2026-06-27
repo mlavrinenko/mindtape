@@ -324,3 +324,35 @@ default-sort = ["no_such_field"]
         "expected validation error for unknown sort field"
     );
 }
+
+#[test]
+fn ls_columns_parses_visibility() {
+    let config = parse_config(
+        r#"
+[ls.columns.priority]
+visibility = "visible"
+"#,
+    )
+    .unwrap();
+    assert_eq!(
+        config.ls.columns["priority"].visibility,
+        crate::Visibility::Visible
+    );
+    assert!(config.validate().is_ok());
+}
+
+#[test]
+fn ls_columns_rejects_unknown_column_on_validate() {
+    let config = parse_config(
+        r#"
+[ls.columns.nope]
+visibility = "hidden"
+"#,
+    )
+    .unwrap();
+    assert!(
+        config.validate().is_err(),
+        "expected validation error for unknown column key"
+    );
+}
+

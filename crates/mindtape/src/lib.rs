@@ -12,6 +12,7 @@ pub mod add_slots;
 mod body_headers;
 pub mod config;
 mod config_add;
+mod config_ls;
 mod config_roots;
 mod date;
 pub mod derive;
@@ -32,9 +33,9 @@ pub mod validate;
 
 pub use add_slots::{RequiredSlot, required_core_slots};
 pub use config::{
-    AddConfig, Collector, Config, ConfigError, DeriveConfig, DeriveTags, InteractiveMode,
-    LocalPackage, PriorityConfig, RootConfig, RootSpec, TemplatesConfig, TypstConfig, config_path,
-    load_config, parse_config,
+    AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags,
+    InteractiveMode, LS_COLUMNS, LocalPackage, PriorityConfig, RootConfig, RootSpec,
+    TemplatesConfig, TypstConfig, Visibility, config_path, load_config, parse_config,
 };
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use derive::RootDeriver;

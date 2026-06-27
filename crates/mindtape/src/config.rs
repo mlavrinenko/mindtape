@@ -13,6 +13,7 @@ use crate::framework::{Framework, merge_builtin_frameworks};
 use crate::numeric::NumericField;
 
 pub use crate::config_add::{AddConfig, InteractiveMode};
+pub use crate::config_ls::{ColumnConfig, LS_COLUMNS, LsConfig, Visibility, validate_ls_columns};
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
 
 /// Top-level project configuration.
@@ -318,25 +319,6 @@ pub struct TagsConfig {
     pub allowed: Vec<String>,
 }
 
-/// `[ls]` — `mindtape ls` defaults.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
-pub struct LsConfig {
-    /// Filter applied by `mindtape ls` when the caller passes none.
-    pub default_filter: Option<String>,
-    /// Default sort chain for `mindtape ls` when the caller passes no `--sort`.
-    /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
-    /// Validated at config load. When absent the shipped built-in chain applies.
-    pub default_sort: Vec<String>,
-    /// Global date display format applied to every rendered date column.
-    /// Tokens (longest-match-first): `YYYY` 4-digit year, `YY` 2-digit year,
-    /// `MMMM` full month name, `MMM` abbreviated month, `MM` zero-padded month,
-    /// `M` bare month, `DD` zero-padded day, `D` bare day.
-    /// Non-token characters pass through literally.
-    /// Default `None` renders ISO `YYYY-MM-DD`.
-    pub date_format: Option<String>,
-}
-
 /// `[rm]` — defaults for the `rm` task-removal command.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
@@ -431,6 +413,7 @@ impl Config {
                 problems.push(format!("ls.default-sort: {msg}"));
             }
         }
+        problems.extend(validate_ls_columns(&self.ls));
         if problems.is_empty() {
             Ok(())
         } else {
