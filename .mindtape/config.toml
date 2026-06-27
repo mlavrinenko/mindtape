@@ -97,4 +97,4 @@ after  = ["Scope"]
 message = "Summary must precede Scope"
 
 [ls]
-default_filter = "!terminal && (miss(start) || start <= now())"
+default-filter = "!terminal && (miss(start) || start <= now())"

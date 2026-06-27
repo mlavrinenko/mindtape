@@ -66,7 +66,7 @@ mindtape add cleanup kitchen                  # positional title → cleanup-kit
 mindtape add --edit                           # fill the slots in your editor (YAML buffer)
 mindtape add -t bug --name oauth-bug --to auth # named template, explicit stem, nested under <root>/auth/
 
-# List tasks under the configured roots (applies query.default_filter)
+# List tasks under the configured roots (applies ls.default-filter)
 mindtape ls
 mindtape ls --all                          # ignore the default filter
 mindtape ls 'has_tag("backend")'           # filter expression
@@ -89,7 +89,7 @@ mindtape eval tasks/implement-auth.typ
 mindtape eval tasks/implement-auth.typ --json
 
 # Retire tasks: mint a swh:1:rev tombstone, rewrite inbound link()s, do not commit
-mindtape rm                                  # [rm] default_filter (built-in: terminal)
+mindtape rm                                  # [rm] default-filter (built-in: terminal)
 mindtape rm implement-auth                   # by ref: slug, path, or list handle (1v)
 mindtape rm 'status == "cancelled"'          # by filter — every match
 mindtape rm terminal --dry-run               # preview without writing
@@ -158,8 +158,8 @@ color = "red"
 [tasks.estimate]
 units = ["minutes", "hours", "days", "weeks"]
 
-[query]
-default_filter = "status != \"done\""
+[ls]
+default-filter = "status != \"done\""
 ```
 
 ### Filter language
@@ -176,7 +176,7 @@ comparison. Dependency predicates `ready` and `blocked` (bare or as `ready()` /
 dependency is terminal, blocked otherwise. `list` floats ready work to the top by
 default and shows a `READY` column when any task is blocked. The `terminal`
 predicate (bare or `terminal()`) matches a task in a terminal status; it is the
-built-in `[rm] default_filter`.
+built-in `[rm] default-filter`.
 
 ## Architecture
 

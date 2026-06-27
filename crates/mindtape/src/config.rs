@@ -37,14 +37,13 @@ pub struct Config {
 
 /// `[typst]` — Typst evaluation settings.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct TypstConfig {
     /// Extra `@local/<name>` package overrides, each resolved from an in-tree
     /// path so a worktree resolves a foreign package without a global install.
     /// `MindTape`'s own `@local/mindtape` is auto-registered when `<root>/lib` is
     /// the `mindtape` package; this seam covers any other package (e.g. a
     /// consumer's own lib referenced by an `x-<ns>` extras helper).
-    #[serde(rename = "local-packages")]
     pub local_packages: Vec<LocalPackage>,
 }
 
@@ -98,12 +97,11 @@ pub fn effective_project_code(config: &Config, root: &std::path::Path) -> String
 
 /// `[tasks]` — where tasks live and how they are constrained.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct TasksConfig {
     /// Directories (relative to the project root) holding one task per file.
     pub roots: Vec<RootSpec>,
     /// Project-wide folder-derived-tag policy.
-    #[serde(rename = "derive-tags")]
     pub derive_tags: DeriveConfig,
     /// Status legend: legal values in lifecycle order, plus per-value display
     /// (glyph, colour, label) and the `terminal` flag.
@@ -152,7 +150,7 @@ impl Default for TasksConfig {
 /// is still accepted as an escape hatch. The `frameworks` registry holds the
 /// baked-in built-ins deep-merged with any user `[tasks.priority.frameworks.*]`.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct PriorityConfig {
     /// Scale and band classification (shared numeric-field machinery).
     #[serde(flatten)]
@@ -160,7 +158,6 @@ pub struct PriorityConfig {
     /// Active framework name, matched against `frameworks`. `None` = raw numeric.
     pub framework: Option<String>,
     /// Whether a raw integer is accepted while a framework is active.
-    #[serde(rename = "allow-manual")]
     pub allow_manual: bool,
     /// Framework registry: built-ins deep-merged with user definitions.
     pub frameworks: BTreeMap<String, Framework>,
@@ -323,7 +320,7 @@ pub struct TagsConfig {
 
 /// `[ls]` — `mindtape ls` defaults.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct LsConfig {
     /// Filter applied by `mindtape ls` when the caller passes none.
     pub default_filter: Option<String>,
@@ -337,13 +334,12 @@ pub struct LsConfig {
     /// `M` bare month, `DD` zero-padded day, `D` bare day.
     /// Non-token characters pass through literally.
     /// Default `None` renders ISO `YYYY-MM-DD`.
-    #[serde(rename = "date-format")]
     pub date_format: Option<String>,
 }
 
 /// `[rm]` — defaults for the `rm` task-removal command.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct RmConfig {
     /// Filter selecting which tasks a bare `mindtape rm` (no target) retires.
     /// Built-in default `"terminal"`: sweep every terminal-status task, matching
@@ -432,7 +428,7 @@ impl Config {
         problems.extend(crate::derive::validate_root_globs(self));
         for spec in &self.ls.default_sort {
             if let Err(msg) = crate::sort::validate_sort_spec(spec) {
-                problems.push(format!("ls.default_sort: {msg}"));
+                problems.push(format!("ls.default-sort: {msg}"));
             }
         }
         if problems.is_empty() {

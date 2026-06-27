@@ -23,14 +23,13 @@ pub enum RootSpec {
 
 /// The table form of a task root.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct RootConfig {
     /// Directory (relative to the project root) holding one task per file.
     pub path: String,
     /// Tag emitted for the root itself. Defaults to the path's last segment.
     pub name: Option<String>,
     /// Per-root derivation switch. `None` inherits `[tasks.derive-tags] enabled`.
-    #[serde(rename = "derive-tags")]
     pub derive_tags: Option<DeriveTags>,
 }
 
@@ -50,7 +49,7 @@ pub enum DeriveTags {
 
 /// `[tasks.derive-tags]` — project-wide folder-derived-tag policy.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(default)]
+#[serde(default, rename_all = "kebab-case")]
 pub struct DeriveConfig {
     /// Default derivation switch for roots that set no `derive-tags` of their own.
     pub enabled: bool,
@@ -61,7 +60,6 @@ pub struct DeriveConfig {
     /// Normalise folder names to tag form.
     pub slugify: bool,
     /// Fold the root name into the breadcrumb chain (`mt`, `mt:backend`, …).
-    #[serde(rename = "breadcrumb-root")]
     pub breadcrumb_root: bool,
 }
 

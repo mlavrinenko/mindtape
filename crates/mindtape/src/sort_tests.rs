@@ -181,7 +181,7 @@ min = 0
 max = 9
 
 [ls]
-default_sort = ["id"]
+default-sort = ["id"]
 "#,
     )
     .unwrap();

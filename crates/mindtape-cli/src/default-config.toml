@@ -128,7 +128,7 @@ units = ["minutes", "hours", "days", "weeks"]
 
 [ls]
 # Filter applied by `mindtape ls` when the caller passes none.
-default_filter = "!terminal && (miss(start) || start <= now())"
+default-filter = "!terminal && (miss(start) || start <= now())"
 
 # Global date display format applied to every rendered date column.
 # Tokens (longest-match-first):
@@ -143,7 +143,7 @@ default_filter = "!terminal && (miss(start) || start <= now())"
 [rm]
 # Tasks a bare `mindtape rm` (no ref/filter argument) retires. Default sweeps
 # every terminal-status task. An explicit ref or filter argument overrides it.
-default_filter = "terminal"
+default-filter = "terminal"
 
 # [add] — interactive editor fill for `mindtape add --edit`.
 # `editor` overrides the ladder ($VISUAL → $EDITOR → vi). `interactive` is

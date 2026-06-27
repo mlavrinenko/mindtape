@@ -44,7 +44,7 @@ units = ["hours", "days"]
 allowed = ["a", "b"]
 
 [ls]
-default_filter = "status != \"done\""
+default-filter = "status != \"done\""
 "#;
     let config = parse_config(text).unwrap();
     assert_eq!(
@@ -285,7 +285,7 @@ fn default_sort_parses_and_validates_known_fields() {
     let config = parse_config(
         r#"
 [ls]
-default_sort = ["ready", "priority:desc", "due:asc", "id"]
+default-sort = ["ready", "priority:desc", "due:asc", "id"]
 "#,
     )
     .unwrap();
@@ -300,7 +300,7 @@ fn default_sort_rejects_unknown_field_on_validate() {
     let config = parse_config(
         r#"
 [ls]
-default_sort = ["no_such_field"]
+default-sort = ["no_such_field"]
 "#,
     )
     .unwrap();

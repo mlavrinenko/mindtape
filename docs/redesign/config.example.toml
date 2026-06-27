@@ -40,4 +40,4 @@ allowed = []
 
 [ls]
 # Default filter applied by `mindtape ls` when the caller passes none.
-default_filter = "!terminal && (miss(start) || start <= now())"
+default-filter = "!terminal && (miss(start) || start <= now())"
