@@ -1,6 +1,6 @@
-//! Date helpers using only `std`: today's date and relative thresholds for the
-//! staleness predicate. No external crates; UTC only (close enough for
-//! backlog-rot detection).
+//! Date helpers using only `std`: today's date, relative thresholds for the
+//! staleness predicate, and a configurable display formatter. No external
+//! crates; UTC only (close enough for backlog-rot detection).
 
 /// Today's date as `YYYY-MM-DD` (UTC).
 #[must_use]
@@ -43,6 +43,99 @@ pub fn parse_ymd(date: &str) -> Option<(i32, u8, u8)> {
     Some((year, month, day))
 }
 
+/// Format a `YYYY-MM-DD` ISO date string using a display format template.
+///
+/// Tokens are substituted longest-first so that e.g. `MMMM` is not consumed
+/// by `MM`. Unrecognised characters pass through literally.
+///
+/// | Token | Output |
+/// |-------|--------|
+/// | `YYYY` | 4-digit year |
+/// | `YY`   | 2-digit year (last two digits) |
+/// | `MMMM` | full month name (January … December) |
+/// | `MMM`  | abbreviated month (Jan … Dec) |
+/// | `MM`   | zero-padded month (01 … 12) |
+/// | `M`    | bare month (1 … 12) |
+/// | `DD`   | zero-padded day (01 … 31) |
+/// | `D`    | bare day (1 … 31) |
+///
+/// Returns the input string unchanged when it cannot be parsed as `YYYY-MM-DD`.
+#[must_use]
+pub fn format_iso(iso: &str, fmt: &str) -> String {
+    let Some((year, month, day)) = parse_ymd(iso) else {
+        return iso.to_owned();
+    };
+    let mut out = String::with_capacity(fmt.len());
+    let mut rest = fmt;
+    while !rest.is_empty() {
+        if let Some(tail) = rest.strip_prefix("YYYY") {
+            out.push_str(&format!("{year:04}"));
+            rest = tail;
+        } else if let Some(tail) = rest.strip_prefix("YY") {
+            out.push_str(&format!("{:02}", year.unsigned_abs() % 100));
+            rest = tail;
+        } else if let Some(tail) = rest.strip_prefix("MMMM") {
+            out.push_str(month_name_full(month));
+            rest = tail;
+        } else if let Some(tail) = rest.strip_prefix("MMM") {
+            out.push_str(month_name_abbr(month));
+            rest = tail;
+        } else if let Some(tail) = rest.strip_prefix("MM") {
+            out.push_str(&format!("{month:02}"));
+            rest = tail;
+        } else if let Some(tail) = rest.strip_prefix('M') {
+            out.push_str(&format!("{month}"));
+            rest = tail;
+        } else if let Some(tail) = rest.strip_prefix("DD") {
+            out.push_str(&format!("{day:02}"));
+            rest = tail;
+        } else if let Some(tail) = rest.strip_prefix('D') {
+            out.push_str(&format!("{day}"));
+            rest = tail;
+        } else {
+            let mut chars = rest.chars();
+            if let Some(ch) = chars.next() {
+                out.push(ch);
+                rest = chars.as_str();
+            }
+        }
+    }
+    out
+}
+
+const MONTH_NAMES_FULL: [&str; 12] = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+];
+
+const MONTH_NAMES_ABBR: [&str; 12] = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+fn month_name_full(month: u8) -> &'static str {
+    MONTH_NAMES_FULL
+        .get(usize::from(month).saturating_sub(1))
+        .copied()
+        .unwrap_or("???")
+}
+
+fn month_name_abbr(month: u8) -> &'static str {
+    MONTH_NAMES_ABBR
+        .get(usize::from(month).saturating_sub(1))
+        .copied()
+        .unwrap_or("???")
+}
+
 /// Convert days since Unix epoch (1970-01-01) to Gregorian `(year, month, day)`.
 ///
 /// Uses Howard Hinnant's civil calendar algorithm.
@@ -77,7 +170,7 @@ fn epoch_days_to_ymd(epoch_days: u64) -> (i32, u8, u8) {
 
 #[cfg(test)]
 mod tests {
-    use super::{days_ago_iso, epoch_days_to_ymd, today_iso, today_ymd};
+    use super::{days_ago_iso, epoch_days_to_ymd, format_iso, today_iso, today_ymd};
 
     #[test]
     fn epoch_zero_is_1970_01_01() {
@@ -121,5 +214,46 @@ mod tests {
     fn days_ago_saturates_at_epoch() {
         // Far in the past: should not panic
         let _ = days_ago_iso(u64::MAX);
+    }
+
+    #[test]
+    fn format_iso_default_reproduces_iso() {
+        assert_eq!(format_iso("2026-06-27", "YYYY-MM-DD"), "2026-06-27");
+    }
+
+    #[test]
+    fn format_iso_reordered_dd_mm_yyyy() {
+        assert_eq!(format_iso("2026-06-27", "DD.MM.YYYY"), "27.06.2026");
+    }
+
+    #[test]
+    fn format_iso_abbreviated_month() {
+        assert_eq!(format_iso("2026-06-27", "DD MMM YYYY"), "27 Jun 2026");
+    }
+
+    #[test]
+    fn format_iso_full_month_name() {
+        assert_eq!(format_iso("2026-06-27", "MMMM DD, YYYY"), "June 27, 2026");
+    }
+
+    #[test]
+    fn format_iso_two_digit_year() {
+        assert_eq!(format_iso("2026-06-27", "DD/MM/YY"), "27/06/26");
+    }
+
+    #[test]
+    fn format_iso_bare_month_and_day() {
+        assert_eq!(format_iso("2026-06-07", "M/D/YYYY"), "6/7/2026");
+    }
+
+    #[test]
+    fn format_iso_invalid_input_passes_through() {
+        assert_eq!(format_iso("not-a-date", "DD.MM.YYYY"), "not-a-date");
+    }
+
+    #[test]
+    fn format_iso_mmmm_not_eaten_by_mm() {
+        // MMMM must match before MM
+        assert_eq!(format_iso("2026-01-15", "MMMM"), "January");
     }
 }

@@ -130,6 +130,16 @@ units = ["minutes", "hours", "days", "weeks"]
 # Filter applied by `mindtape ls` when the caller passes none.
 default_filter = "!terminal && (miss(start) || start <= now())"
 
+# Global date display format applied to every rendered date column.
+# Tokens (longest-match-first):
+#   YYYY  — 4-digit year         YY    — 2-digit year
+#   MMMM  — full month name      MMM   — abbreviated month (Jan … Dec)
+#   MM    — zero-padded month    M     — bare month
+#   DD    — zero-padded day      D     — bare day
+# Non-token characters pass through literally.
+# Default (unset) renders ISO YYYY-MM-DD.
+# Example: date-format = "DD.MM.YYYY"  →  27.06.2026
+
 [rm]
 # Tasks a bare `mindtape rm` (no ref/filter argument) retires. Default sweeps
 # every terminal-status task. An explicit ref or filter argument overrides it.

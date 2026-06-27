@@ -36,7 +36,7 @@ pub use config::{
     LocalPackage, PriorityConfig, RootConfig, RootSpec, TemplatesConfig, TypstConfig, config_path,
     load_config, parse_config,
 };
-pub use date::{days_ago_iso, parse_ymd, today_iso, today_ymd};
+pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use derive::RootDeriver;
 pub use filter::{Filter, FilterError};
 pub use framework::{Category, Framework, Input, InputKind};

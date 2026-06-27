@@ -6,7 +6,7 @@
 
 use std::io::IsTerminal;
 
-use mindtape::{Config, Readiness, ReadyState, Task, today_iso};
+use mindtape::{Config, Readiness, ReadyState, Task, format_iso, today_iso};
 
 use super::color::{Painter, is_color_active, parse_color};
 use super::field::{CellSpec, DensityMode, Field, cell_content, content_width, render_cell};
@@ -120,13 +120,22 @@ fn priority_cell(task: &Task, config: &Config) -> CellSpec {
 }
 
 /// Due cell: red when the task is overdue (past due, non-terminal), else plain.
+///
+/// The overdue check compares the raw ISO value; only the displayed text is
+/// reformatted via the configured `date_format` (or the default `YYYY-MM-DD`).
 fn due_cell(task: &Task, config: &Config) -> CellSpec {
-    let text = task.due.clone().unwrap_or_default();
+    let raw = task.due.as_deref().unwrap_or_default();
     let overdue = task
         .due
         .as_deref()
         .is_some_and(|due| due < today_iso().as_str())
         && !task.is_terminal(&config.tasks.status.terminal());
+    let fmt = config.ls.date_format.as_deref().unwrap_or("YYYY-MM-DD");
+    let text = if raw.is_empty() {
+        String::new()
+    } else {
+        format_iso(raw, fmt)
+    };
     CellSpec {
         text,
         glyph: None,
@@ -376,5 +385,31 @@ mod tests {
         let config = config_with_terminal(&["done"]);
         let cell = due_cell(&task, &config);
         assert!(cell.color.is_none(), "future due must not be accented");
+    }
+
+    #[test]
+    fn due_cell_applies_date_format() {
+        let task = task_with_due("t", "wip", "2026-06-27");
+        let mut config = config_with_terminal(&["done"]);
+        config.ls.date_format = Some("DD.MM.YYYY".to_owned());
+        let cell = due_cell(&task, &config);
+        assert_eq!(
+            cell.text, "27.06.2026",
+            "date format must rewrite displayed text"
+        );
+    }
+
+    #[test]
+    fn due_cell_overdue_formatted_text_still_red() {
+        // Formatting must not interfere with the overdue colour.
+        let task = task_with_due("t", "wip", "2020-01-01");
+        let mut config = config_with_terminal(&["done"]);
+        config.ls.date_format = Some("DD.MM.YYYY".to_owned());
+        let cell = due_cell(&task, &config);
+        assert!(
+            cell.color.is_some(),
+            "overdue must still be red after formatting"
+        );
+        assert_eq!(cell.text, "01.01.2020");
     }
 }

@@ -331,6 +331,14 @@ pub struct LsConfig {
     /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
     /// Validated at config load. When absent the shipped built-in chain applies.
     pub default_sort: Vec<String>,
+    /// Global date display format applied to every rendered date column.
+    /// Tokens (longest-match-first): `YYYY` 4-digit year, `YY` 2-digit year,
+    /// `MMMM` full month name, `MMM` abbreviated month, `MM` zero-padded month,
+    /// `M` bare month, `DD` zero-padded day, `D` bare day.
+    /// Non-token characters pass through literally.
+    /// Default `None` renders ISO `YYYY-MM-DD`.
+    #[serde(rename = "date-format")]
+    pub date_format: Option<String>,
 }
 
 /// `[rm]` — defaults for the `rm` task-removal command.

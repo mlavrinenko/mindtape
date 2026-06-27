@@ -4,10 +4,10 @@ groups:
   cli-docs:
     source:
       crates/mindtape-cli/src/cli.rs: b4e7fafa7c560662f7ea447b618d7c4be413f04e42a456349167583599f68cf5
-      crates/mindtape/src/lib.rs: d4fcef69459ddfc6b52b91a6350a42190031a6953cca4079322ff6378b1589cc
+      crates/mindtape/src/lib.rs: bedda9b42544dc32815f270bcb77262cd1f3894e8eb1053610722fe308386db4
     dependents:
-      README.md: e2856aaa6a3f8e3f158bf01c0805a4d375661b8deefed9c65bf4b37f1ef73b24
-      www/index.html: 5c806200f4b79505390b9495ce3d1f1baacb6929947c1b88fdf277b85e41820c
+      README.md: 124c1573277aace9bc7cc664906a11a73b9eddbec35f16df775409e094a68a0e
+      www/index.html: c6966f09e9543e0a1d6fb7ad0a201d3ad13b560d1f0649b6e6411cbe811f01a5
   dev-docs:
     source:
       Justfile: 1fcb3aab3a227129e5c1d2d8630636eefda4d957f6ad77f9fb59f42ad714a85e
