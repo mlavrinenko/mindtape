@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Configurable `ls` column order",
-  status: wip(2026, 6, 27),
+  status: done(2026, 6, 27),
   priority: ice(impact: 5, confidence: 0.8, ease: 6),
   tags: ("cli",),
   depends-on: (link("ls-hide-empty-columns.typ"),),

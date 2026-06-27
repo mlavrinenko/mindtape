@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Hide empty `ls` columns, per-column configurable",
-  status: wip(2026, 6, 27),
+  status: done(2026, 6, 27),
   priority: ice(impact: 6, confidence: 0.85, ease: 5),
   tags: ("cli",),
 )
