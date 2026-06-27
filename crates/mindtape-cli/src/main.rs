@@ -6,6 +6,7 @@ mod add_values;
 mod check;
 mod cli;
 mod eval;
+mod flip;
 mod git;
 mod go;
 mod handle;

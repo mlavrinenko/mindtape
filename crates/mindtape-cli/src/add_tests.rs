@@ -59,23 +59,6 @@ fn custom_status_falls_back_to_verbose_form() {
 }
 
 #[test]
-fn shortcuts_match_prelude() {
-    // Every `_mk("…")` binding in the prelude must appear in STATUS_SHORTCUTS and
-    // vice versa, so the shortcut rendering never names a function the prelude
-    // lacks (nor misses one it ships).
-    let from_prelude: std::collections::BTreeSet<&str> = PRELUDE
-        .lines()
-        .filter_map(|line| line.trim().strip_prefix("#let "))
-        .filter_map(|rest| rest.split_once("= _mk(\""))
-        .filter_map(|(_, tail)| tail.split_once("\")"))
-        .map(|(name, _)| name)
-        .collect();
-    let from_const: std::collections::BTreeSet<&str> =
-        super::STATUS_SHORTCUTS.iter().copied().collect();
-    assert_eq!(from_const, from_prelude);
-}
-
-#[test]
 fn initial_status_is_first_non_terminal() {
     let config: Config = mindtape::parse_config(
         "[[tasks.status]]\nvalue = \"done\"\nterminal = true\n\

@@ -3,26 +3,26 @@ algorithm: blake3
 groups:
   cli-docs:
     source:
-      crates/mindtape-cli/src/cli.rs: 0467555acb5e79abab2588b8e8b931c59704e8c380bf390158877cc0ebe73c37
-      crates/mindtape/src/lib.rs: fddd5849f3c0ed71084ed7eac702027992e5e82fa67f027ec57b92de3063567c
+      crates/mindtape-cli/src/cli.rs: 204b7f13b8219216c69b040e58f5cfa4cf66ded5691081d41ed2a5330e30d3ea
+      crates/mindtape/src/lib.rs: 47c29553eeceea3806478d62f4ba4564cd4c21dca9b57d663f67eb547a4e1aea
     dependents:
-      README.md: a3335066c1dc71f36141de0e99fb1911df02f7a33bbd33d1c6165bc1b960ca99
-      www/index.html: c6966f09e9543e0a1d6fb7ad0a201d3ad13b560d1f0649b6e6411cbe811f01a5
+      README.md: 7f2bfa07f647728578553a596b1e62a5dbdf264e4763f3dbf2d6a156e650a471
+      www/index.html: a9a8cd1d43cf628e98f01a9ccbb356013496eda9e2322a501cf463de2cbf2ceb
   dev-docs:
     source:
       Justfile: 1fcb3aab3a227129e5c1d2d8630636eefda4d957f6ad77f9fb59f42ad714a85e
       flake.nix: 617b52bd3aef43b6c7b99e4cfcd95e6a7432c2d917a132078cf257bb7f44d791
     dependents:
-      AGENTS.md: d82263f78079ad427021d3ada0b5ef28ede96bb62781c3197babc70d1f3b2723
+      AGENTS.md: f913f27de7cf859ea7e883c483e7396233bd60a0e2536914c50051ada938ecc3
       CONTRIBUTING.md: 938b7e8d881b1bb6e53e9be52bce3bf0d8e07bb4102345195d6094d3c877ef08
   prelude-docs:
     source:
       lib/prelude.typ: a05602f82e42eecce1a52859b47a08202ca0ae30201b253ea88d32ebd3a95a19
     dependents:
-      AGENTS.md: d82263f78079ad427021d3ada0b5ef28ede96bb62781c3197babc70d1f3b2723
-      README.md: e2856aaa6a3f8e3f158bf01c0805a4d375661b8deefed9c65bf4b37f1ef73b24
+      AGENTS.md: f913f27de7cf859ea7e883c483e7396233bd60a0e2536914c50051ada938ecc3
+      README.md: 7f2bfa07f647728578553a596b1e62a5dbdf264e4763f3dbf2d6a156e650a471
   release-notes:
     source:
       Cargo.toml: 42cfdfc44f0eeb0fe5aca2df342147713ba35e945147ae858bd338c24877b43c
     dependents:
-      CHANGELOG.md: 17500c60a6d11f6d54e85c03d3d00606036c72d6dd621802695ff04f4b0e0138
+      CHANGELOG.md: 41b7f0ed65c2c5d2898740a682b006595ad1ecd13a8bcb76a729491bcadac7b6

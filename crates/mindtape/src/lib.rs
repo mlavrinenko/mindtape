@@ -27,6 +27,7 @@ pub mod model;
 pub mod numeric;
 pub mod ready;
 pub mod sort;
+pub mod status_value;
 pub mod template;
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
@@ -49,6 +50,7 @@ pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind};
 pub use ready::{Readiness, ReadyState};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
+pub use status_value::{STATUS_SHORTCUTS, status_value};
 pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill};
 pub use validate::{Location, Violation, validate};
 

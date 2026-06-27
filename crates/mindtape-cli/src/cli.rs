@@ -1,11 +1,11 @@
 //! Command-line surface: argument parsing and dispatch.
 
 use anyhow::Result;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
-use crate::{add, check, eval, go, init, ls, review, rm};
+use crate::{add, check, eval, flip, go, init, ls, review, rm};
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
 #[derive(Parser)]
@@ -48,6 +48,19 @@ enum Command {
     Rm(rm::RmArgs),
     /// Stamp `reviewed:` with today's date on a task.
     Review(review::ReviewArgs),
+    /// Set a task's status (`flip <status> <task>...`); each legend value is a verb.
+    ///
+    /// Stamps `<status>` dated today onto each task; `<status>` must be a
+    /// configured legend value. Every legend value also works as a top-level
+    /// shortcut verb — `mindtape done 1b 2c` == `mindtape flip done 1b 2c` —
+    /// generated from the legend, so they do not show in `--help`; run
+    /// `mindtape flip --list` to see them. Built-in subcommands win on a name
+    /// clash. Targets are resolved before any write, then valid edits apply and
+    /// any resolution or validation problem is reported (the rest still land).
+    Flip(flip::FlipArgs),
+    /// Per-status shortcut verb (`<status> <task>...`), dispatched to `flip`.
+    #[command(external_subcommand)]
+    Status(Vec<String>),
 }
 
 impl Cli {
@@ -66,8 +79,18 @@ impl Cli {
             Command::Go(args) => go::run(&args),
             Command::Rm(args) => rm::run(&args),
             Command::Review(args) => review::run(&args),
+            Command::Flip(args) => flip::run(&args),
+            Command::Status(argv) => flip::run_external(&argv),
         }
     }
+}
+
+/// Built-in subcommand names, for detecting legend values that shadow them.
+pub fn builtin_subcommand_names() -> Vec<String> {
+    Cli::command()
+        .get_subcommands()
+        .map(|cmd| cmd.get_name().to_owned())
+        .collect()
 }
 
 /// Initialize logging from the `-v` count; `RUST_LOG` overrides.

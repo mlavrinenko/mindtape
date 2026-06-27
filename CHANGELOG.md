@@ -25,21 +25,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   over `typst-syntax`, no eval/World/IO. `find_calls(source, name)` locates any
   function call with its positional/named argument value spans and trailing
   `[…]` content block (`find_link_targets` is the thin link-only case); `line_of`
-  maps an offset to a 1-based line. Foundation for `mindtape cleanup` link
+  maps an offset to a 1-based line. Foundation for `mindtape rm` link
   rewriting and the speconaut scanner collapse (see
   `docs/decisions/003-swhid-cleanup-tombstones-and-shared-edit-substrate.md`).
 - **`swhid-mint` crate** — mint and resolve Software Heritage identifiers
   (SWHID, ISO/IEC 18670:2025). VCS-agnostic core (`render`/`parse`/`is_swhid_url`)
   plus a `git` backend feature (via the `gix` crate, no subprocess, no libgit2)
   that mints a revision-plus-path id for a tracked file and resolves one back. The
-  tombstone substrate for `mindtape cleanup`.
+  tombstone substrate for `mindtape rm`.
 - **`typst-cleanup` crate** — consumer-blind orchestration for retiring Typst
   artifacts: dirty-tree guard, per-file SWHID tombstone minting, and atomic
   inbound-`link()` rewriting, planned in memory before any write. The consumer
   supplies eligibility, link identity, and tombstone policy via a `Policy` trait.
-  `mindtape cleanup` rides it; speconaut adopts it under a separate task. See
+  `mindtape rm` rides it; speconaut adopts it under a separate task. See
   `docs/decisions/004-gix-git-substrate.md` for the git substrate.
-- **`mindtape cleanup`** — retire terminal-status tasks: deletes each terminal
+- **`mindtape rm`** — retire terminal-status tasks: deletes each terminal
   task file and rewrites every surviving `link("<stem>.typ")` that pointed at it
   into an SWHID tombstone `link("swh:1:rev:<commit>;path=<path>")`. Does not
   commit — the user reviews the diff and commits. Refuses a dirty working tree on
@@ -47,6 +47,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and rewrite is planned in memory before a byte is written, so a wrong-shaped
   file or an unrecoverable commit aborts with no changes. `swh:` link targets are
   treated as history pointers by the loader/validator (not task graph edges).
+- **`mindtape flip`** — set a task's status without opening the file:
+  `flip <status> <task>...` stamps `<status>` dated today onto each target (the
+  same shortcut/verbose rendering `add` uses, via `mindtape::status_value`).
+  Every configured legend value also works as a top-level shortcut verb —
+  `mindtape done 1b 2c` == `mindtape flip done 1b 2c` — generated from the legend
+  (built-in subcommands win on a clash; a shadowing value is warned about);
+  `mindtape flip --list` prints them. `-m/--note` sets the status note. Targets
+  are resolved before any write (a status change reorders the default view), then
+  valid edits apply and any resolution or post-edit validation problem is
+  reported without rolling back the rest.
+- **`mindtape go`** — open a task in the configured editor by handle, slug, or
+  path (`[go] editor` → `$VISUAL` → `$EDITOR`; a `{task}` token expands to the
+  resolved path, else the path is appended).
+- **`mindtape review`** — stamp `reviewed:` with today's date on a non-terminal
+  task; idempotent within the same day.
 
 ## [0.4.0] - 2026-06-14
 

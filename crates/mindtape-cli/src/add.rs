@@ -11,7 +11,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, anyhow, bail};
 use clap::Args;
 use mindtape::{
-    Config, RawValue, discover_slots, fill, load_config, load_project, today_ymd, validate,
+    Config, RawValue, discover_slots, fill, load_config, load_project, status_value, today_ymd,
+    validate,
 };
 use typst_edit::apply;
 
@@ -166,25 +167,6 @@ fn inject_required_slots(source: &str, config: &Config) -> Result<String> {
     apply(source, edits).map_err(|err| anyhow!(err.to_string()))
 }
 
-/// Status names the prelude (`lib/prelude.typ`) ships as shortcut constructors.
-/// A legend value in this set renders as the ergonomic `name(y, m, d)`; any other
-/// name (a project's custom status) falls back to `status("name", y, m, d)`. Keep
-/// in sync with the `_mk(…)` bindings in the prelude; `shortcuts_match_prelude`
-/// guards the drift.
-const STATUS_SHORTCUTS: &[&str] = &[
-    "draft",
-    "proposed",
-    "accepted",
-    "todo",
-    "wip",
-    "doing",
-    "blocked",
-    "in-review",
-    "done",
-    "cancelled",
-    "failed",
-];
-
 /// Inject the add-owned `status` (and `id` when the config generates one) into
 /// `task.with(…)`.
 fn inject_header(source: &str, config: &Config, status_override: Option<&str>) -> Result<String> {
@@ -195,13 +177,8 @@ fn inject_header(source: &str, config: &Config, status_override: Option<&str>) -
         .map(ToOwned::to_owned)
         .or_else(|| initial_status(config))
         .unwrap_or_else(|| "proposed".to_owned());
-    let (year, month, day) = today_ymd();
-    let status_value = if STATUS_SHORTCUTS.contains(&status_name.as_str()) {
-        format!("{status_name}({year}, {month}, {day})")
-    } else {
-        format!("status(\"{status_name}\", {year}, {month}, {day})")
-    };
-    edits.push(upsert_named_arg(source, &call, "status", &status_value)?);
+    let value = status_value(&status_name, today_ymd(), None);
+    edits.push(upsert_named_arg(source, &call, "status", &value)?);
 
     if let Some(id) = config.tasks.id.format.generate() {
         edits.push(upsert_named_arg(source, &call, "id", &format!("\"{id}\""))?);

@@ -70,12 +70,9 @@ mindtape add -t bug --name oauth-bug --to auth # named template, explicit stem, 
 mindtape ls
 mindtape ls --all                          # ignore the default filter
 mindtape ls 'has_tag("backend")'           # filter expression
-mindtape ls 'status != "done" && priority >= 7'
-mindtape ls 'has(due) && due < "2026-08-01"'
-mindtape ls 'search("auth")' --json        # JSON output
+mindtape ls 'status != "done" && priority >= 7' --json   # filter + JSON output
 mindtape ls 'stale(30)'                     # unreviewed for over 30 days
 mindtape ls ready                           # deps all done — startable now
-mindtape ls 'blocked && priority >= 7'      # high-priority work that is stuck
 mindtape ls --sort priority:asc -n 10      # sort + limit
 
 # Re-affirm a task as still relevant (stamps reviewed: with today's date)
@@ -84,12 +81,15 @@ mindtape review implement-auth               # by slug, relative, or absolute pa
 # Open a task in your editor ([go] editor → $VISUAL → $EDITOR; {task} → path)
 mindtape go 1b                               # by handle, slug, or path
 
+# Set a task's status dated today; each legend value is also a shortcut verb
+mindtape flip done implement-auth            # canonical; or `mindtape done 1b 2c` (== flip done)
+mindtape flip blocked 1b 2c -m "note"        # batch + note; `mindtape flip --list` shows the verbs
+
 # Validate every task against the project config
 mindtape check                               # enum / required / bounds / links / cycles
 
-# Evaluate a single task file and print it
+# Evaluate a single task file and print it (--json for machine output)
 mindtape eval tasks/implement-auth.typ
-mindtape eval tasks/implement-auth.typ --json
 
 # Retire tasks: mint a swh:1:rev tombstone, rewrite inbound link()s, do not commit
 mindtape rm                                  # [rm] default-filter (built-in: terminal)
