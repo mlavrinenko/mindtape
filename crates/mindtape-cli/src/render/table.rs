@@ -6,7 +6,7 @@
 
 use std::io::IsTerminal;
 
-use mindtape::{Config, Readiness, ReadyState, Task};
+use mindtape::{Config, Readiness, ReadyState, Task, today_iso};
 
 use super::color::{Painter, is_color_active, parse_color};
 use super::field::{CellSpec, DensityMode, Field, cell_content, content_width, render_cell};
@@ -81,7 +81,7 @@ fn build_rows(tasks: &[Task], config: &Config, readiness: &Readiness) -> Vec<Row
             status: status_cell(task, config),
             ready: ready_cell(readiness.state(task)),
             priority: priority_cell(task, config),
-            due: plain(task.due.clone().unwrap_or_default()),
+            due: due_cell(task, config),
             title: plain(task.title.clone()),
         })
         .collect()
@@ -116,6 +116,21 @@ fn priority_cell(task: &Task, config: &Config) -> CellSpec {
     match &task.priority {
         Some(value) => priority_cell_spec(value, config),
         None => plain(String::new()),
+    }
+}
+
+/// Due cell: red when the task is overdue (past due, non-terminal), else plain.
+fn due_cell(task: &Task, config: &Config) -> CellSpec {
+    let text = task.due.clone().unwrap_or_default();
+    let overdue = task
+        .due
+        .as_deref()
+        .is_some_and(|due| due < today_iso().as_str())
+        && !task.is_terminal(&config.tasks.status.terminal());
+    CellSpec {
+        text,
+        glyph: None,
+        color: if overdue { parse_color("red") } else { None },
     }
 }
 
@@ -243,11 +258,12 @@ fn render_title(spec: &CellSpec, glyph_mode: GlyphMode, painter: Painter, width:
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
+    use mindtape::config::{Legend, LegendEntry};
     use mindtape::numeric::NumValue;
     use mindtape::test_support::bare_task;
     use mindtape::{Config, Readiness, Status, Task};
 
-    use super::render;
+    use super::{due_cell, render};
 
     fn task(id: &str, title: &str, status: &str) -> Task {
         let mut t = bare_task(id);
@@ -259,6 +275,27 @@ mod tests {
         });
         t.priority = Some(NumValue::Num(5.0));
         t
+    }
+
+    fn task_with_due(id: &str, status: &str, due: &str) -> Task {
+        let mut t = task(id, id, status);
+        t.due = Some(due.to_owned());
+        t
+    }
+
+    fn config_with_terminal(terminal_statuses: &[&str]) -> Config {
+        let mut config = Config::default();
+        config.tasks.status = Legend {
+            entries: terminal_statuses
+                .iter()
+                .map(|name| LegendEntry {
+                    value: (*name).to_owned(),
+                    terminal: true,
+                    ..LegendEntry::default()
+                })
+                .collect(),
+        };
+        config
     }
 
     #[test]
@@ -315,5 +352,29 @@ mod tests {
         let out = render(&tasks, &Config::default(), &readiness);
         assert!(out.contains("READY"));
         assert!(out.contains("blocked"));
+    }
+
+    #[test]
+    fn due_cell_overdue_non_terminal_is_red() {
+        let task = task_with_due("t", "wip", "2020-01-01");
+        let config = config_with_terminal(&["done"]);
+        let cell = due_cell(&task, &config);
+        assert!(cell.color.is_some(), "expected red color for overdue task");
+    }
+
+    #[test]
+    fn due_cell_overdue_terminal_is_plain() {
+        let task = task_with_due("t", "done", "2020-01-01");
+        let config = config_with_terminal(&["done"]);
+        let cell = due_cell(&task, &config);
+        assert!(cell.color.is_none(), "terminal task must not be accented");
+    }
+
+    #[test]
+    fn due_cell_future_due_is_plain() {
+        let task = task_with_due("t", "wip", "2999-12-31");
+        let config = config_with_terminal(&["done"]);
+        let cell = due_cell(&task, &config);
+        assert!(cell.color.is_none(), "future due must not be accented");
     }
 }
