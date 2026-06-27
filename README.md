@@ -81,6 +81,9 @@ mindtape ls --sort priority:asc -n 10      # sort + limit
 # Re-affirm a task as still relevant (stamps reviewed: with today's date)
 mindtape review implement-auth               # by slug, relative, or absolute path
 
+# Open a task in your editor ([go] editor → $VISUAL → $EDITOR; {task} → path)
+mindtape go 1b                               # by handle, slug, or path
+
 # Validate every task against the project config
 mindtape check                               # enum / required / bounds / links / cycles
 
@@ -98,12 +101,9 @@ mindtape rm terminal --dry-run               # preview without writing
 ### Global flags
 
 ```
---color <auto|always|never>   Colour output (default: auto).
-                              auto — colour only when stdout is a TTY and
-                                     NO_COLOR is not set.
-                              always — force ANSI colour sequences.
-                              never  — suppress all colour.
-                              See https://no-color.org/ for the NO_COLOR spec.
+--color <auto|always|never>   Colour output (default auto: colour when stdout is
+                              a TTY and NO_COLOR unset). always forces; never
+                              suppresses. NO_COLOR spec: https://no-color.org/
 -v / --verbose                Increase verbosity (-v info, -vv debug, -vvv trace).
 ```
 

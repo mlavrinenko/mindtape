@@ -3,10 +3,10 @@ algorithm: blake3
 groups:
   cli-docs:
     source:
-      crates/mindtape-cli/src/cli.rs: b4e7fafa7c560662f7ea447b618d7c4be413f04e42a456349167583599f68cf5
-      crates/mindtape/src/lib.rs: 85645a4c3656f765b2569d061a3b3704f4ee30470899f2e80ac023fd2b84505e
+      crates/mindtape-cli/src/cli.rs: 0467555acb5e79abab2588b8e8b931c59704e8c380bf390158877cc0ebe73c37
+      crates/mindtape/src/lib.rs: fddd5849f3c0ed71084ed7eac702027992e5e82fa67f027ec57b92de3063567c
     dependents:
-      README.md: 828e3e081445c2b708f81f691318b2812f7c81a70a471cca938aa7e6cec336d3
+      README.md: a3335066c1dc71f36141de0e99fb1911df02f7a33bbd33d1c6165bc1b960ca99
       www/index.html: c6966f09e9543e0a1d6fb7ad0a201d3ad13b560d1f0649b6e6411cbe811f01a5
   dev-docs:
     source:

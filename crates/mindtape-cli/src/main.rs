@@ -7,6 +7,7 @@ mod check;
 mod cli;
 mod eval;
 mod git;
+mod go;
 mod handle;
 mod init;
 mod ls;

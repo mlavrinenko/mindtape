@@ -172,6 +172,13 @@ default-filter = "terminal"
 #   interactive = "auto"
 #   header = "Fill the task below."
 
+# [go] — editor `mindtape go <task>` opens a task file in.
+# A `{task}` token is replaced with the resolved path; without it the path is
+# appended. Resolution: `[go] editor` → $VISUAL → $EDITOR, then error (no `vi`
+# floor).
+#   [go]
+#   editor = "zeditor {task}"
+
 # [typst] — Typst package resolution.
 # `@local/mindtape` resolves automatically: from `<root>/lib` when that directory
 # is the mindtape package (in-tree development), otherwise from the installed

@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand};
 use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
-use crate::{add, check, eval, init, ls, review, rm};
+use crate::{add, check, eval, go, init, ls, review, rm};
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
 #[derive(Parser)]
@@ -41,6 +41,8 @@ enum Command {
     InstallLib,
     /// Evaluate a single task file and print it.
     Eval(eval::EvalArgs),
+    /// Open a task in the configured editor (`[go] editor`).
+    Go(go::GoArgs),
     /// Retire tasks (by ref, filter, or the default), rewriting inbound links to
     /// SWHID tombstones.
     Rm(rm::RmArgs),
@@ -61,6 +63,7 @@ impl Cli {
             Command::Init(args) => init::run(&args),
             Command::InstallLib => init::run_install_lib(),
             Command::Eval(args) => eval::run(&args),
+            Command::Go(args) => go::run(&args),
             Command::Rm(args) => rm::run(&args),
             Command::Review(args) => review::run(&args),
         }
