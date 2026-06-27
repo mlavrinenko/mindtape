@@ -6,6 +6,7 @@
 
 use std::io::IsTerminal;
 
+use anstyle::{Effects, Style};
 use mindtape::{Config, Readiness, Task};
 
 use super::color::{Painter, is_color_active};
@@ -33,12 +34,53 @@ struct Column {
 /// dates, or no contested dependencies stays uncluttered.
 #[must_use]
 pub fn render(tasks: &[Task], config: &Config, readiness: &Readiness) -> String {
+    render_inner(tasks, config, readiness, &[])
+}
+
+/// Render `tasks` with the interactive `#`-column highlight applied.
+///
+/// `highlighted[i]` marks whether the handle cell of display row `i` renders
+/// reverse-video; a shorter slice leaves the remaining rows un-highlighted. The
+/// invert effect rides the table's painter, so `--color never` drops it.
+#[must_use]
+pub fn render_highlighted(
+    tasks: &[Task],
+    config: &Config,
+    readiness: &Readiness,
+    highlighted: &[bool],
+) -> String {
+    render_inner(tasks, config, readiness, highlighted)
+}
+
+fn render_inner(
+    tasks: &[Task],
+    config: &Config,
+    readiness: &Readiness,
+    highlighted: &[bool],
+) -> String {
     let glyph_mode = glyph_mode();
     let painter = Painter::new(is_color_active());
     let handles: Vec<(String, &Task)> = make_handles(tasks, DEFAULT_CHECK_LEN);
     let visible = resolve_columns(config, &handles, readiness);
-    let columns = build_columns(&visible, &handles, config, readiness, glyph_mode);
+    let mut columns = build_columns(&visible, &handles, config, readiness, glyph_mode);
+    apply_highlight(&mut columns, highlighted);
     render_grid(&columns, glyph_mode, painter)
+}
+
+/// Paint the `#` column's cells reverse-video for the highlighted rows. A no-op
+/// when no row is flagged or the handle column is not visible.
+fn apply_highlight(columns: &mut [Column], highlighted: &[bool]) {
+    if highlighted.iter().all(|on| !on) {
+        return;
+    }
+    let invert = Style::new().effects(Effects::INVERT);
+    if let Some(col) = columns.iter_mut().find(|col| col.id == ColumnId::Handle) {
+        for (cell, on) in col.cells.iter_mut().zip(highlighted) {
+            if *on {
+                cell.color = Some(invert);
+            }
+        }
+    }
 }
 
 /// Emoji on a TTY; no glyphs when piped (keeps pipe output plain).
@@ -205,7 +247,7 @@ mod tests {
     use mindtape::{ColumnConfig, Config, Readiness, Status, Task, Visibility};
 
     use super::super::columns::due_cell;
-    use super::render;
+    use super::{render, render_highlighted};
 
     fn with_column(key: &str, visibility: Visibility) -> Config {
         let mut config = Config::default();
@@ -255,6 +297,31 @@ mod tests {
             &[task("a", "A", "wip"), task("b", "B", "done")],
             &Config::default(),
             &Readiness::empty(),
+        );
+        assert_eq!(out.lines().count(), 3);
+    }
+
+    #[test]
+    fn highlight_empty_mask_equals_plain() {
+        // No row flagged: the highlighted render is byte-identical to the plain
+        // one (the `#` column is untouched).
+        let tasks = [task("a", "A", "wip"), task("b", "B", "wip")];
+        let config = Config::default();
+        let plain = render(&tasks, &config, &Readiness::empty());
+        let highlighted = render_highlighted(&tasks, &config, &Readiness::empty(), &[false, false]);
+        assert_eq!(plain, highlighted);
+    }
+
+    #[test]
+    fn highlight_preserves_shape() {
+        // Flagging a row keeps the header + one-line-per-task layout intact
+        // (colour is off in tests, so the invert effect itself is not emitted).
+        let tasks = [task("a", "A", "wip"), task("b", "B", "wip")];
+        let out = render_highlighted(
+            &tasks,
+            &Config::default(),
+            &Readiness::empty(),
+            &[true, false],
         );
         assert_eq!(out.lines().count(), 3);
     }

@@ -6,10 +6,12 @@
 //! `[go] editor` → `$VISUAL` → `$EDITOR`, then error — no `vi` floor, so a GUI
 //! user is told to configure `[go] editor` rather than dropped into `vi`.
 
+use std::path::Path;
 use std::process::Command;
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
+use mindtape::Config;
 
 use crate::util;
 
@@ -34,9 +36,33 @@ pub fn run(args: &GoArgs) -> Result<()> {
 
     let (task, abs) = util::resolve_task(&project, &args.id)?;
 
-    let template = editor_command(project.config.go.editor.as_deref())?;
-    let path = abs.to_string_lossy();
-    let parts = build_argv(&template, &path)?;
+    let template = resolve_editor(&project.config)?;
+    spawn_editor(&template, &abs)?;
+    println!("opened {} ({})", args.id, task.title);
+    Ok(())
+}
+
+/// Resolve the editor command template for a project: `[go] editor`, then
+/// `$VISUAL`, then `$EDITOR`.
+///
+/// # Errors
+/// Returns an error naming `[go] editor` when none of the three is set.
+pub(crate) fn resolve_editor(config: &Config) -> Result<String> {
+    editor_command(config.go.editor.as_deref())
+}
+
+/// Spawn the editor on `path` and wait for it to exit.
+///
+/// The `template` is split into an argv with `{task}` substituted (or `path`
+/// appended when absent). Blocks until the editor returns so a terminal editor
+/// holds the foreground; a GUI editor that forks returns immediately.
+///
+/// # Errors
+/// Returns an error if the command is empty, the spawn fails, or the editor
+/// exits without success.
+pub(crate) fn spawn_editor(template: &str, path: &Path) -> Result<()> {
+    let path = path.to_string_lossy();
+    let parts = build_argv(template, &path)?;
     let (program, rest) = parts.split_first().context("empty editor command")?;
 
     let status = Command::new(program)
@@ -46,7 +72,6 @@ pub fn run(args: &GoArgs) -> Result<()> {
     if !status.success() {
         bail!("editor {template:?} exited without success");
     }
-    println!("opened {} ({})", args.id, task.title);
     Ok(())
 }
 

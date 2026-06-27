@@ -32,6 +32,11 @@ pub struct LsArgs {
     /// Sort spec(s), e.g. `--sort due:asc --sort priority:desc`.
     #[arg(long)]
     pub sort: Vec<String>,
+
+    /// Hold the terminal in a key loop: type the `#` ordinal to highlight a task,
+    /// Enter opens it in the editor (`go`). Table-only; requires a TTY.
+    #[arg(short = 'i', long, conflicts_with = "json")]
+    pub interactive: bool,
 }
 
 /// Run the `ls` command.
@@ -44,10 +49,32 @@ pub fn run(args: &LsArgs) -> Result<()> {
 
 pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
     util::warn_errors(&project.outcome);
+    if args.interactive {
+        return crate::ls_interactive::run(args, project);
+    }
+    let config = project.config.clone();
+    let (tasks, readiness) = select_view(args, project)?;
 
-    // Readiness over the full set, before the filter narrows it (a terminal
-    // dependency hidden by the default filter must still count as satisfied).
-    // Shared by the filter, the sort, and the rendered column.
+    let format = if args.json {
+        OutputFormat::Json
+    } else {
+        args.format
+    };
+    println!("{}", render(&tasks, format, &config, &readiness)?);
+    Ok(())
+}
+
+/// Compute the displayed view: apply the filter, select, sort, and truncate.
+///
+/// Consumes `project.outcome.tasks`. Readiness is computed over the full set —
+/// before the filter narrows it — so a terminal dependency hidden by the default
+/// filter still counts as satisfied; it is shared by the filter, the sort, and
+/// the rendered column. Both the one-shot render and the interactive loop call
+/// this so their lists (and thus the `#` ordinals) match exactly.
+///
+/// # Errors
+/// Returns an error if the filter or sort spec is invalid.
+pub(crate) fn select_view(args: &LsArgs, project: util::Project) -> Result<(Vec<Task>, Readiness)> {
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let filter = build_filter(args, &project.config)?;
     let mut tasks = select(
@@ -60,14 +87,7 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
     if let Some(limit) = args.limit {
         tasks.truncate(limit);
     }
-
-    let format = if args.json {
-        OutputFormat::Json
-    } else {
-        args.format
-    };
-    println!("{}", render(&tasks, format, &project.config, &readiness)?);
-    Ok(())
+    Ok((tasks, readiness))
 }
 
 fn build_filter(args: &LsArgs, config: &Config) -> Result<Option<Filter>> {
@@ -161,6 +181,7 @@ mod tests {
             json: false,
             limit: None,
             sort: vec![],
+            interactive: false,
         }
     }
 

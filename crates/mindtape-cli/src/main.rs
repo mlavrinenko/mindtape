@@ -12,6 +12,7 @@ mod go;
 mod handle;
 mod init;
 mod ls;
+mod ls_interactive;
 mod output;
 // Infrastructure for future command migration; not every item is wired yet.
 #[allow(dead_code)]
