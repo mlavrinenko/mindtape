@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "`mindtape ls --interactive` — pick-by-ordinal, open in editor",
-  status: wip(2026, 6, 28),
+  status: done(2026, 6, 27),
   priority: ice(impact: 6, confidence: 0.7, ease: 5),
   tags: ("cli",),
 )
