@@ -64,7 +64,7 @@ mindtape add --set title="Wire OAuth" --set priority=7      # raw --set values
 echo '{"title":"Wire OAuth","priority":7}' | mindtape add -f -   # JSON values
 mindtape add cleanup kitchen                  # positional title → cleanup-kitchen.typ (or pipe stdin / MINDTAPE_ADD_<SLOT> env)
 mindtape add --edit                           # fill the slots in your editor (YAML buffer)
-mindtape add -t bug --into . --name oauth-bug # named template, first root, explicit stem
+mindtape add -t bug --name oauth-bug --to auth # named template, explicit stem, nested under <root>/auth/
 
 # List tasks under the configured roots (applies query.default_filter)
 mindtape ls

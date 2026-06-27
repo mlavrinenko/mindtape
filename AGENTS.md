@@ -97,7 +97,8 @@ default`). `add` discovers each slot on the parse plane (`typst-edit`, no eval),
 fills it from `-f values.json` / `--set k=v` / the positional title / the slot
 default, injects the add-owned `status` (initial legend value, dated today) and
 `id`, then writes `<root>/<stem>.typ` and validates it. `--describe[=json]` dumps
-the slot schema; `--print` previews; `--into .` targets the first root. Templates live under
+the slot schema; `--print` previews; `--into .` targets the first root; `--to
+<subdir>` nests under it (`--to shopping` → `<root>/shopping/`). Templates live under
 `[templates] dirs`; the built-in `task` fallback is barebones (one required
 `title` slot). Filled tasks hold plain literals — no `slot` call survives.
 

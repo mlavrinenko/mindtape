@@ -48,6 +48,11 @@ pub struct AddArgs {
     #[arg(long, value_name = "DIR", default_value = ".")]
     pub into: String,
 
+    /// Subfolder under the destination root to nest the task into (folder-derived
+    /// tags). Relative to `--into`; `--to shopping` → `<root>/shopping`.
+    #[arg(long = "to", value_name = "SUBDIR")]
+    pub to: Option<String>,
+
     /// Output filename stem; default is a slug of the title value.
     #[arg(long, value_name = "STEM")]
     pub name: Option<String>,
@@ -124,7 +129,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     }
 
     let stem = output_stem(args, &values)?;
-    let dest = dest_dir(&args.into, &project)?;
+    let dest = dest_dir(&args.into, args.to.as_deref(), &project)?;
     let file = dest.join(format!("{stem}.typ"));
     if file.exists() {
         bail!("task {stem:?} already exists at {}", file.display());
@@ -260,7 +265,22 @@ fn output_stem(args: &AddArgs, values: &BTreeMap<String, RawValue>) -> Result<St
     bail!("need --name or a 'title' value to name the task file")
 }
 
-fn dest_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
+fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) -> Result<PathBuf> {
+    let base = base_dir(into, project)?;
+    let Some(sub) = to else {
+        return Ok(base);
+    };
+    let sub = Path::new(sub);
+    if sub.is_absolute() {
+        bail!("--to expects a subfolder relative to the destination root, got absolute {sub:?}");
+    }
+    Ok(base.join(sub))
+}
+
+/// Resolve the destination base directory from `--into`: `.` (default) is the
+/// first configured root; an absolute path is taken as-is; a relative path
+/// resolves against the current directory.
+fn base_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
     if into == "." {
         let first = project
             .config

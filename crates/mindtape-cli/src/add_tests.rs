@@ -27,6 +27,7 @@ fn bare_args() -> AddArgs {
         values: vec![],
         set: vec![],
         into: ".".to_owned(),
+        to: None,
         name: None,
         status: None,
         edit: false,
@@ -126,20 +127,47 @@ fn output_stem_errors_without_name_or_title() {
     assert!(output_stem(&bare_args(), &BTreeMap::new()).is_err());
 }
 
+/// A `Project` rooted at `dir` whose single configured root is `root`.
+fn project_with_root(dir: &Path, root: &str) -> Project {
+    let mut config = Config::default();
+    config.tasks.roots = vec![mindtape::RootSpec::Short(root.to_owned())];
+    Project {
+        root: dir.to_path_buf(),
+        config,
+        outcome: mindtape::LoadOutcome::default(),
+    }
+}
+
 #[test]
 fn dest_default_is_first_root() {
     let dir = tempfile::tempdir().unwrap();
-    let mut config = Config::default();
-    config.tasks.roots = vec![mindtape::RootSpec::Short("truth/tasks".to_owned())];
-    let project = Project {
-        root: dir.path().to_path_buf(),
-        config,
-        outcome: mindtape::LoadOutcome::default(),
-    };
+    let project = project_with_root(dir.path(), "truth/tasks");
     assert_eq!(
-        dest_dir(".", &project).unwrap(),
+        dest_dir(".", None, &project).unwrap(),
         dir.path().join("truth/tasks")
     );
+}
+
+#[test]
+fn dest_to_nests_subfolder_under_root() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = project_with_root(dir.path(), "truth/tasks");
+    assert_eq!(
+        dest_dir(".", Some("shopping"), &project).unwrap(),
+        dir.path().join("truth/tasks/shopping")
+    );
+    // Nested subpaths are allowed.
+    assert_eq!(
+        dest_dir(".", Some("shopping/weekly"), &project).unwrap(),
+        dir.path().join("truth/tasks/shopping/weekly")
+    );
+}
+
+#[test]
+fn dest_to_rejects_absolute_subfolder() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = project_with_root(dir.path(), "tasks");
+    assert!(dest_dir(".", Some("/etc"), &project).is_err());
 }
 
 /// Scaffold a temp project that can evaluate `@local/mindtape` via the in-tree
@@ -202,6 +230,22 @@ fn end_to_end_files_from_positional_title() {
     let written = std::fs::read_to_string(dir.path().join("tasks/cleanup-kitchen.typ")).unwrap();
     assert!(written.contains("title: \"cleanup kitchen\""), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
+}
+
+#[test]
+fn end_to_end_nests_into_subfolder() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+
+    assert_cmd::Command::cargo_bin("mindtape")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["add", "--to", "shopping", "Potatoes"])
+        .assert()
+        .success();
+
+    let written = std::fs::read_to_string(dir.path().join("tasks/shopping/potatoes.typ")).unwrap();
+    assert!(written.contains("title: \"Potatoes\""), "{written}");
 }
 
 /// Slot names from `add --describe=json` run in `dir`.
