@@ -1,0 +1,44 @@
+{
+  "skill_name": "mindtape",
+  "evals": [
+    {
+      "id": 0,
+      "name": "ready-priority-triage",
+      "prompt": "I've got some time this afternoon — what should I work on next? Show me what's actually ready to start, most important first.",
+      "expected_output": "Agent runs `mt ls` with a ready filter sorted by priority desc, returns the 3 ready tasks (Fix login redirect bug, Add dark mode toggle, Refactor auth middleware) in that order, and excludes the blocked Write onboarding docs. No files mutated.",
+      "files": [],
+      "assertions": [
+        {"text": "Used the `mt ls` command (drove the CLI rather than hand-reading task files)"},
+        {"text": "Excluded the blocked task 'Write onboarding docs' from the recommendation"},
+        {"text": "Presented ready tasks ordered by priority descending: Fix login redirect bug (8), Add dark mode toggle (7), Refactor auth middleware (6)"},
+        {"text": "Did not mutate any task files (sandbox tasks identical to template)"}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "file-new-task",
+      "prompt": "We keep getting flaky failures on the Windows CI runner. Add a task to look into it.",
+      "expected_output": "Agent runs `mt add` to create a new task file under tasks/ about the Windows CI flake; the task validates (`mt check` passes); the 5 existing tasks are untouched.",
+      "files": [],
+      "assertions": [
+        {"text": "Used `mt add` to create the task (did not hand-author a .typ file from scratch)"},
+        {"text": "A new task file exists under tasks/ whose title/slug is about the Windows CI flake"},
+        {"text": "The project still validates: `mt check` reports all tasks valid (6 total)"},
+        {"text": "The 5 original task files are unchanged"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "mark-task-done",
+      "prompt": "I just shipped the login redirect fix. Mark that task as done.",
+      "expected_output": "Agent identifies fix-login-bug.typ, uses `mt flip done` (or the `mt done` verb) to set its status to done; no other task changes status.",
+      "files": [],
+      "assertions": [
+        {"text": "Identified the correct task (Fix login redirect bug / fix-login-bug)"},
+        {"text": "Used the CLI to change status (`mt flip done` or `mt done`), not a hand edit of the status line"},
+        {"text": "fix-login-bug.typ status is now `done`"},
+        {"text": "No other task's status was changed (only fix-login-bug moved)"}
+      ]
+    }
+  ]
+}

@@ -13,6 +13,7 @@ groups:
     dependents:
       - README.md
       - www/index.html
+      - skills/mindtape/SKILL.md
 
   # A package change (version, dependencies, metadata) should land in the changelog.
   - name: release-notes
@@ -28,9 +29,10 @@ groups:
     dependents:
       - README.md
       - AGENTS.md
+      - skills/mindtape/SKILL.md
 
   # The binary / invocation name is documented and emitted by these sources.
-  # Any rename (or new subcommand example) must land in all five dependents.
+  # Any rename (or new subcommand example) must land in every dependent.
   - name: cli-name
     source:
       - crates/mindtape-cli/Cargo.toml
@@ -42,6 +44,7 @@ groups:
       - CONTRIBUTING.md
       - AGENTS.md
       - CHANGELOG.md
+      - skills/mindtape/SKILL.md
 
   # Dev tooling and contributor conventions track the files that define them.
   - name: dev-docs
