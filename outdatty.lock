@@ -3,26 +3,37 @@ algorithm: blake3
 groups:
   cli-docs:
     source:
-      crates/mindtape-cli/src/cli.rs: 204b7f13b8219216c69b040e58f5cfa4cf66ded5691081d41ed2a5330e30d3ea
+      crates/mindtape-cli/src/cli.rs: 7ed4f46ca09b0f8eee7e4bb929b5169c6151903768d000e94493d2d61e7f4423
       crates/mindtape/src/lib.rs: 47c29553eeceea3806478d62f4ba4564cd4c21dca9b57d663f67eb547a4e1aea
     dependents:
-      README.md: 7f2bfa07f647728578553a596b1e62a5dbdf264e4763f3dbf2d6a156e650a471
-      www/index.html: a9a8cd1d43cf628e98f01a9ccbb356013496eda9e2322a501cf463de2cbf2ceb
+      README.md: 6ce4b0a447647e799dce8c23ec208d7885cc5c0f7272967c2e4d262b7c02893f
+      www/index.html: d22c3feea483a6dffac3245f84cef3abd707f5582c93d49bb69034a62d73d13e
+  cli-name:
+    source:
+      crates/mindtape-cli/Cargo.toml: deed46acd847c114c3e19a71746c3f35f037fbdd074488a1259ac4ef25be2260
+      crates/mindtape-cli/src/cli.rs: 7ed4f46ca09b0f8eee7e4bb929b5169c6151903768d000e94493d2d61e7f4423
+      crates/mindtape-cli/src/default-config.toml: 658ebffbaf0cbca8917276ba51fb6303d3b8b853dc71be3fb6f9e17598507aed
+    dependents:
+      AGENTS.md: bf929926c76a4fc2fa763b3c4cd67f3db476b783e972170016371f02ba6e4459
+      CHANGELOG.md: 4a9b26b701df6cbaec5903433d4813d33d046d64f7466b04718313cbdc1be12f
+      CONTRIBUTING.md: 938b7e8d881b1bb6e53e9be52bce3bf0d8e07bb4102345195d6094d3c877ef08
+      README.md: 6ce4b0a447647e799dce8c23ec208d7885cc5c0f7272967c2e4d262b7c02893f
+      www/index.html: d22c3feea483a6dffac3245f84cef3abd707f5582c93d49bb69034a62d73d13e
   dev-docs:
     source:
-      Justfile: 1fcb3aab3a227129e5c1d2d8630636eefda4d957f6ad77f9fb59f42ad714a85e
-      flake.nix: 617b52bd3aef43b6c7b99e4cfcd95e6a7432c2d917a132078cf257bb7f44d791
+      Justfile: b97e191fce32420fc0e59815b44c78447ce4cf9c09fb9d335a394354d23e538d
+      flake.nix: 5503f0fc70b50ce67672403871607d4fbf488e1d0cbd1ef129c8528f5aff808e
     dependents:
-      AGENTS.md: f913f27de7cf859ea7e883c483e7396233bd60a0e2536914c50051ada938ecc3
+      AGENTS.md: bf929926c76a4fc2fa763b3c4cd67f3db476b783e972170016371f02ba6e4459
       CONTRIBUTING.md: 938b7e8d881b1bb6e53e9be52bce3bf0d8e07bb4102345195d6094d3c877ef08
   prelude-docs:
     source:
       lib/prelude.typ: a05602f82e42eecce1a52859b47a08202ca0ae30201b253ea88d32ebd3a95a19
     dependents:
-      AGENTS.md: f913f27de7cf859ea7e883c483e7396233bd60a0e2536914c50051ada938ecc3
-      README.md: 7f2bfa07f647728578553a596b1e62a5dbdf264e4763f3dbf2d6a156e650a471
+      AGENTS.md: bf929926c76a4fc2fa763b3c4cd67f3db476b783e972170016371f02ba6e4459
+      README.md: 6ce4b0a447647e799dce8c23ec208d7885cc5c0f7272967c2e4d262b7c02893f
   release-notes:
     source:
       Cargo.toml: 42cfdfc44f0eeb0fe5aca2df342147713ba35e945147ae858bd338c24877b43c
     dependents:
-      CHANGELOG.md: 41b7f0ed65c2c5d2898740a682b006595ad1ecd13a8bcb76a729491bcadac7b6
+      CHANGELOG.md: 4a9b26b701df6cbaec5903433d4813d33d046d64f7466b04718313cbdc1be12f

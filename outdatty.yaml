@@ -29,6 +29,20 @@ groups:
       - README.md
       - AGENTS.md
 
+  # The binary / invocation name is documented and emitted by these sources.
+  # Any rename (or new subcommand example) must land in all five dependents.
+  - name: cli-name
+    source:
+      - crates/mindtape-cli/Cargo.toml
+      - crates/mindtape-cli/src/cli.rs
+      - crates/mindtape-cli/src/default-config.toml
+    dependents:
+      - README.md
+      - www/index.html
+      - CONTRIBUTING.md
+      - AGENTS.md
+      - CHANGELOG.md
+
   # Dev tooling and contributor conventions track the files that define them.
   - name: dev-docs
     source:
