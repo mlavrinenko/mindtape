@@ -32,6 +32,10 @@ with violations. Key restrictions:
 
 - Unit tests inline in `#[cfg(test)] mod tests` (or a sibling `_tests.rs` via
   `#[path]`) next to the code they exercise.
+- Tests that shell out to the `mt` binary (`assert_cmd::cargo_bin`) belong in
+  `tests/` (integration tests), not inline: Cargo builds the binary and exports
+  `CARGO_BIN_EXE_mt` before integration tests, a guarantee `--lib` unit tests
+  lack.
 - As a file nears the linecop limit, `just fix-check` ejects its inline tests
   into a `_tests.rs` sibling with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run `just test`; count with `just count-tests`.

@@ -1,4 +1,4 @@
-//! `mindtape ls --interactive` — a terminal picker over the `ls` list.
+//! `mt ls --interactive` — a terminal picker over the `ls` list.
 //!
 //! Renders the same table `ls` prints, then holds the terminal in a raw-mode key
 //! loop on an alternate screen. Typing the `#`-column ordinal highlights a task

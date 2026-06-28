@@ -1,11 +1,11 @@
-//! `[go]` config: the editor `mindtape go` opens a task file in.
+//! `[go]` config: the editor `mt go` opens a task file in.
 //!
 //! Shape only — the spawn machinery (placeholder substitution, resolution
 //! ladder) lives in the CLI, keeping the library format- and process-blind.
 
 use serde::Deserialize;
 
-/// `[go]` — settings for `mindtape go`.
+/// `[go]` — settings for `mt go`.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]
 pub struct GoConfig {

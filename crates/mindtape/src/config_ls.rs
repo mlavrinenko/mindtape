@@ -1,4 +1,4 @@
-//! `[ls]` config: `mindtape ls` rendering defaults.
+//! `[ls]` config: `mt ls` rendering defaults.
 //!
 //! Filter / sort defaults, the global date format, and per-column display
 //! settings (visibility, order). The column-name vocabulary ([`LS_COLUMNS`])
@@ -9,18 +9,18 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::Deserialize;
 
-/// Canonical `mindtape ls` column names, in built-in render order. The single
+/// Canonical `mt ls` column names, in built-in render order. The single
 /// validated vocabulary shared by `[ls.columns]` and `[ls] columns-order` (and
 /// any consumer): `#` is the handle column, `title` the flex column.
 pub const LS_COLUMNS: [&str; 6] = ["#", "status", "ready", "priority", "due", "title"];
 
-/// `[ls]` — `mindtape ls` defaults.
+/// `[ls]` — `mt ls` defaults.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsConfig {
-    /// Filter applied by `mindtape ls` when the caller passes none.
+    /// Filter applied by `mt ls` when the caller passes none.
     pub default_filter: Option<String>,
-    /// Default sort chain for `mindtape ls` when the caller passes no `--sort`.
+    /// Default sort chain for `mt ls` when the caller passes no `--sort`.
     /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
     /// Validated at config load. When absent the shipped built-in chain applies.
     pub default_sort: Vec<String>,

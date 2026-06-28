@@ -1,6 +1,6 @@
 //! Synthetic `slot(...)` calls for config-required core fields.
 //!
-//! `mindtape add` files tasks from a template, but a project's config may require
+//! `mt add` files tasks from a template, but a project's config may require
 //! core fields (priority, difficulty, kind, estimate) the chosen template never
 //! declares. This module derives the `slot(...)` calls those fields need so a CLI
 //! can splice them into `task.with(…)` — surfacing them in the fill scaffold and

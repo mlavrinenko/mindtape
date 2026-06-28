@@ -1,4 +1,4 @@
-//! `mindtape rm` — retire tasks and rewrite inbound links into SWHID tombstones,
+//! `mt rm` — retire tasks and rewrite inbound links into SWHID tombstones,
 //! atomically. A thin consumer of the consumer-blind [`typst_cleanup`] crate,
 //! which owns the shared skeleton (dirty-tree guard, tombstone minting, atomic
 //! link rewriting). This module supplies the project policy — which tasks to
@@ -26,7 +26,7 @@ pub use typst_cleanup::{Plan, apply};
 
 use crate::{git, util};
 
-/// Arguments for `mindtape rm`.
+/// Arguments for `mt rm`.
 #[derive(Args)]
 pub struct RmArgs {
     /// Task to retire: a reference (slug, relative/absolute path, or a `list`

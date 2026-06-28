@@ -15,8 +15,8 @@ groups:
       crates/mindtape-cli/src/default-config.toml: 658ebffbaf0cbca8917276ba51fb6303d3b8b853dc71be3fb6f9e17598507aed
     dependents:
       AGENTS.md: bf929926c76a4fc2fa763b3c4cd67f3db476b783e972170016371f02ba6e4459
-      CHANGELOG.md: 4a9b26b701df6cbaec5903433d4813d33d046d64f7466b04718313cbdc1be12f
-      CONTRIBUTING.md: 938b7e8d881b1bb6e53e9be52bce3bf0d8e07bb4102345195d6094d3c877ef08
+      CHANGELOG.md: 030136a1f388e49503c3480d3937459aad5e9a0f6061b8c8bbddfbb521ac9222
+      CONTRIBUTING.md: 80f7e2f9d31f4997c0e0a518a961e520e325bba6802a8f46169325082393173b
       README.md: 6ce4b0a447647e799dce8c23ec208d7885cc5c0f7272967c2e4d262b7c02893f
       www/index.html: d22c3feea483a6dffac3245f84cef3abd707f5582c93d49bb69034a62d73d13e
   dev-docs:
@@ -25,10 +25,10 @@ groups:
       flake.nix: 5503f0fc70b50ce67672403871607d4fbf488e1d0cbd1ef129c8528f5aff808e
     dependents:
       AGENTS.md: bf929926c76a4fc2fa763b3c4cd67f3db476b783e972170016371f02ba6e4459
-      CONTRIBUTING.md: 938b7e8d881b1bb6e53e9be52bce3bf0d8e07bb4102345195d6094d3c877ef08
+      CONTRIBUTING.md: 80f7e2f9d31f4997c0e0a518a961e520e325bba6802a8f46169325082393173b
   prelude-docs:
     source:
-      lib/prelude.typ: a05602f82e42eecce1a52859b47a08202ca0ae30201b253ea88d32ebd3a95a19
+      lib/prelude.typ: ef8b9f9043508b0546a4d8600e4b352d16981574dca00b0dd27f90a8af2d8573
     dependents:
       AGENTS.md: bf929926c76a4fc2fa763b3c4cd67f3db476b783e972170016371f02ba6e4459
       README.md: 6ce4b0a447647e799dce8c23ec208d7885cc5c0f7272967c2e4d262b7c02893f
@@ -36,4 +36,4 @@ groups:
     source:
       Cargo.toml: 42cfdfc44f0eeb0fe5aca2df342147713ba35e945147ae858bd338c24877b43c
     dependents:
-      CHANGELOG.md: 4a9b26b701df6cbaec5903433d4813d33d046d64f7466b04718313cbdc1be12f
+      CHANGELOG.md: 030136a1f388e49503c3480d3937459aad5e9a0f6061b8c8bbddfbb521ac9222

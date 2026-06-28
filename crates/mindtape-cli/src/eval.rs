@@ -1,4 +1,4 @@
-//! `mindtape eval` — evaluate a single task file and print it.
+//! `mt eval` — evaluate a single task file and print it.
 
 use std::path::{Path, PathBuf};
 

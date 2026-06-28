@@ -25,7 +25,7 @@ pub struct Config {
     pub project: ProjectConfig,
     /// Task discovery, status lifecycle, and field constraints.
     pub tasks: TasksConfig,
-    /// `mindtape ls` defaults.
+    /// `mt ls` defaults.
     pub ls: LsConfig,
     /// `rm` (task removal) defaults.
     pub rm: RmConfig,
@@ -61,13 +61,13 @@ pub struct LocalPackage {
     pub path: String,
 }
 
-/// `[templates]` — where `mindtape add` finds task templates.
+/// `[templates]` — where `mt add` finds task templates.
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]
 pub struct TemplatesConfig {
     /// Dirs (relative to the project root) holding `*.typ` task templates.
     pub dirs: Vec<String>,
-    /// Template stem `mindtape add` uses when none is named.
+    /// Template stem `mt add` uses when none is named.
     pub default: String,
 }
 
@@ -326,7 +326,7 @@ pub struct TagsConfig {
 #[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RmConfig {
-    /// Filter selecting which tasks a bare `mindtape rm` (no target) retires.
+    /// Filter selecting which tasks a bare `mt rm` (no target) retires.
     /// Built-in default `"terminal"`: sweep every terminal-status task, matching
     /// the legacy `cleanup` behaviour. An explicit ref or filter argument
     /// overrides it.

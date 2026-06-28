@@ -1,4 +1,4 @@
-//! Interactive editor fill for `mindtape add`.
+//! Interactive editor fill for `mt add`.
 //!
 //! Builds a commented YAML scaffold from a template's discovered slots, opens it
 //! in the user's editor, and parses the saved buffer back into fill values. The
@@ -12,7 +12,7 @@ use anyhow::{Context, Result, bail};
 use mindtape::{AddConfig, InteractiveMode, RawValue, SlotKind, SlotSpec};
 
 const DEFAULT_HEADER: &str = "\
-# mindtape add — fill the values below, then save and quit.
+# mt add — fill the values below, then save and quit.
 # '#' lines are ignored. Leave a value empty to use its default (or to skip it).
 # 'text' slots use a YAML block scalar (|-); keep the two-space indentation.";
 

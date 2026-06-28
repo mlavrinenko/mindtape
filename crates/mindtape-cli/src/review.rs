@@ -1,4 +1,4 @@
-//! `mindtape review <id>` — stamp `reviewed:` with today's date.
+//! `mt review <id>` — stamp `reviewed:` with today's date.
 //!
 //! Resolves the task by slug, relative path, or absolute path; refuses terminal
 //! statuses; writes the `reviewed:` slot via [`typst_edit`], idempotent on the
@@ -12,7 +12,7 @@ use typst_edit::{Edit, apply};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util;
 
-/// Arguments for `mindtape review`.
+/// Arguments for `mt review`.
 #[derive(Args)]
 pub struct ReviewArgs {
     /// Task to stamp: slug, relative path, or absolute path.

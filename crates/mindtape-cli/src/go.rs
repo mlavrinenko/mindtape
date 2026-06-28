@@ -1,4 +1,4 @@
-//! `mindtape go <task>` — open a task file in the configured editor.
+//! `mt go <task>` — open a task file in the configured editor.
 //!
 //! Resolves the task by handle (`1b`), slug, relative, or absolute path, then
 //! spawns the `[go] editor` command. A `{task}` token in the command is replaced
@@ -18,7 +18,7 @@ use crate::util;
 /// Token in a `[go] editor` command replaced with the resolved task path.
 const TASK_TOKEN: &str = "{task}";
 
-/// Arguments for `mindtape go`.
+/// Arguments for `mt go`.
 #[derive(Args)]
 pub struct GoArgs {
     /// Task to open: handle (`1b`), slug, relative path, or absolute path.

@@ -43,7 +43,7 @@ pub fn open() -> Result<Project> {
 /// Accepts:
 /// - A handle (`<ordinal><check>`, e.g. `"5d"`): resolves against the **default
 ///   view** (configured default filter, no extra sort — exactly what bare
-///   `mindtape ls` shows).  The ordinal is 1-based.  The check letter must
+///   `mt ls` shows).  The ordinal is 1-based.  The check letter must
 ///   match the task's stable id hash; a mismatch means the list has drifted and
 ///   the error names the current handle and title at that ordinal.
 /// - A slug (bare file stem, e.g. `"implement-auth"`).
@@ -94,7 +94,7 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
 }
 
 /// Build the default list view: apply the configured default filter, then the
-/// shared default order.  This replicates exactly what bare `mindtape ls`
+/// shared default order.  This replicates exactly what bare `mt ls`
 /// shows, so handle ordinals resolve to the same tasks the user reads off it.
 fn default_view(project: &Project) -> Result<Vec<Task>> {
     let filter = project

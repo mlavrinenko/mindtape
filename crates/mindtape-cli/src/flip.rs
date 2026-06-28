@@ -1,4 +1,4 @@
-//! `mindtape flip <status> <task>...` — stamp a new status onto tasks.
+//! `mt flip <status> <task>...` — stamp a new status onto tasks.
 //!
 //! Mutates each task's `status:` to `<status>` dated today, the same shape
 //! `add` stamps the initial status (shortcut `name(y, m, d)` for a prelude name,
@@ -6,9 +6,9 @@
 //! [`mindtape::status_value`]). The status must be a configured legend value.
 //!
 //! Every legend value also doubles as a top-level shortcut verb dispatched here:
-//! `mindtape done 1b 2c` == `mindtape flip done 1b 2c` (see [`run_external`]).
+//! `mt done 1b 2c` == `mt flip done 1b 2c` (see [`run_external`]).
 //! Built-in subcommands win on a name clash; a shadowing legend value is warned
-//! about. `mindtape flip --list` prints the available shortcut verbs.
+//! about. `mt flip --list` prints the available shortcut verbs.
 //!
 //! Batch semantics mirror `rm`: every target is resolved before any file is
 //! written (a status change reorders the default view, so handles are resolved
@@ -27,7 +27,7 @@ use typst_edit::apply;
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util::{self, Project};
 
-/// Arguments for `mindtape flip`.
+/// Arguments for `mt flip`.
 #[derive(Args)]
 pub struct FlipArgs {
     /// Status to stamp: a configured legend value. Omit only with `--list`.
@@ -80,8 +80,8 @@ pub fn run_external(external: &[String]) -> Result<()> {
     let legend = &project.config.tasks.status;
     if !legend.contains(verb) {
         bail!(
-            "unknown command {verb:?}; run `mindtape --help` for commands or \
-             `mindtape flip --list` for status shortcut verbs"
+            "unknown command {verb:?}; run `mt --help` for commands or \
+             `mt flip --list` for status shortcut verbs"
         );
     }
     let parsed = Shortcut::try_parse_from(external).map_err(|err| anyhow::anyhow!("{err}"))?;
@@ -100,7 +100,7 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
 
     let status = args.status.as_deref().context("status is required")?;
     if args.tasks.is_empty() {
-        bail!("no tasks given; usage: mindtape flip <status> <task>...");
+        bail!("no tasks given; usage: mt flip <status> <task>...");
     }
     let legend = &project.config.tasks.status;
     if !legend.is_empty() && !legend.contains(status) {
@@ -231,8 +231,8 @@ fn warn_shadowed_verbs(config: &Config) {
     for entry in &config.tasks.status.entries {
         if builtins.contains(&entry.value) {
             eprintln!(
-                "warning: status {value:?} shadows the `mindtape {value}` subcommand; its \
-                 shortcut verb won't dispatch — use `mindtape flip {value} …`",
+                "warning: status {value:?} shadows the `mt {value}` subcommand; its \
+                 shortcut verb won't dispatch — use `mt flip {value} …`",
                 value = entry.value
             );
         }
@@ -244,11 +244,11 @@ fn list_verbs(config: &Config) {
     let legend = &config.tasks.status;
     if legend.is_empty() {
         println!("no status legend configured; per-status shortcut verbs are unavailable");
-        println!("(add [[tasks.status]] entries to enable `mindtape <status> <task>...`)");
+        println!("(add [[tasks.status]] entries to enable `mt <status> <task>...`)");
         return;
     }
     println!(
-        "per-status shortcut verbs (`mindtape <status> <task>...` == `mindtape flip <status> <task>...`):"
+        "per-status shortcut verbs (`mt <status> <task>...` == `mt flip <status> <task>...`):"
     );
     for entry in &legend.entries {
         match &entry.glyph {

@@ -1,4 +1,4 @@
-//! `mindtape init` / `mindtape install-lib` — project scaffold and library install.
+//! `mt init` / `mt install-lib` — project scaffold and library install.
 
 use std::path::{Path, PathBuf};
 

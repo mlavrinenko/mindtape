@@ -1,4 +1,4 @@
-//! `mindtape check` — validate tasks against the project configuration.
+//! `mt check` — validate tasks against the project configuration.
 
 use anyhow::{Context, Result, bail};
 use mindtape::{Violation, check_headers, compile_rules, validate};

@@ -1,4 +1,4 @@
-//! `[add]` config: the interactive editor fill for `mindtape add`.
+//! `[add]` config: the interactive editor fill for `mt add`.
 //!
 //! Shapes when the editor opens and which one to spawn. The fill machinery
 //! itself (scaffold, parse-back) lives in the CLI; this module is config shape
@@ -21,7 +21,7 @@ pub struct AddConfig {
     pub header: Option<String>,
 }
 
-/// When `mindtape add` opens the interactive editor.
+/// When `mt add` opens the interactive editor.
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum InteractiveMode {

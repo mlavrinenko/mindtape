@@ -1,4 +1,4 @@
-//! `mindtape add` — file a new task from a Typst slot template.
+//! `mt add` — file a new task from a Typst slot template.
 //!
 //! Resolves a template, fills its `slot(...)` calls from JSON/`--set` values via
 //! the parse-plane engine in [`mindtape`], injects the add-owned `status`/`id`
@@ -24,7 +24,7 @@ use crate::add_values::{
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util;
 
-/// Arguments for `mindtape add`.
+/// Arguments for `mt add`.
 // A clap flag struct: each `--flag` is an independent boolean toggle.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Args)]

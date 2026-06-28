@@ -1,4 +1,4 @@
-//! `mindtape ls` — query tasks under the configured roots.
+//! `mt ls` — query tasks under the configured roots.
 
 use anyhow::{Result, anyhow};
 use mindtape::sort::{default_order_with, sort_by_specs};
