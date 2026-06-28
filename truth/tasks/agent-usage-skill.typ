@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Agent skill — drive `mt` for basic task work",
-  status: wip(2026, 6, 28)[minimal version landed; grow per-iteration before publish],
+  status: done(2026, 6, 28)[minimal version landed; grow per-iteration before publish],
   priority: ice(impact: 5, confidence: 0.8, ease: 7),
   tags: ("cli", "docs"),
 )
