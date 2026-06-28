@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Rename CLI binary `mindtape` → `mt`; close outdatty's bin-name gap",
-  status: proposed(2026, 6, 28),
+  status: done(2026, 6, 28),
   priority: ice(impact: 6, confidence: 0.8, ease: 6),
   tags: ("cli", "tooling", "docs"),
 )
