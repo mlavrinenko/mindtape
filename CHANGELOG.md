@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Binary renamed `mindtape` → `mt`** — the installed executable is now `mt`;
+  invocations become `mt ls`, `mt check`, `mt add`, etc. Crate names
+  (`mindtape`, `mindtape-cli`), the `@local/mindtape` Typst package, the
+  `.mindtape/` config directory, and the `MINDTAPE_ADD_*` env prefix are
+  unchanged.
+
 ### Added
 
 - **`mindtape ls --interactive` (`-i`)** — an interactive picker over the `ls`

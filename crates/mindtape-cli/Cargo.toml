@@ -10,7 +10,7 @@ keywords = ["typst", "task-tracker", "cli", "productivity"]
 categories = ["command-line-utilities"]
 
 [[bin]]
-name = "mindtape"
+name = "mt"
 path = "src/main.rs"
 
 [dependencies]

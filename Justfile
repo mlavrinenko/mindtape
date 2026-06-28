@@ -121,7 +121,7 @@ uninstall-lib:
     TARGET="$HOME/.local/share/typst/packages/local/mindtape/$VERSION"
     [ -L "$TARGET" ] && rm "$TARGET" && echo "removed $TARGET" || echo "no symlink at $TARGET"
 
-# Install git hooks (pre-commit runs `mindtape check`)
+# Install git hooks (pre-commit runs `mt check`)
 install-hooks:
     #!/usr/bin/env bash
     set -eo pipefail

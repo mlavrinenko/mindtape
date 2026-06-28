@@ -127,7 +127,7 @@ color = "red"
 units = ["minutes", "hours", "days", "weeks"]
 
 [ls]
-# Filter applied by `mindtape ls` when the caller passes none.
+# Filter applied by `mt ls` when the caller passes none.
 default-filter = "!terminal && (miss(start) || start <= now())"
 
 # Global date display format applied to every rendered date column.
@@ -158,11 +158,11 @@ default-filter = "!terminal && (miss(start) || start <= now())"
 #   visibility = "visible"
 
 [rm]
-# Tasks a bare `mindtape rm` (no ref/filter argument) retires. Default sweeps
+# Tasks a bare `mt rm` (no ref/filter argument) retires. Default sweeps
 # every terminal-status task. An explicit ref or filter argument overrides it.
 default-filter = "terminal"
 
-# [add] — interactive editor fill for `mindtape add --edit`.
+# [add] — interactive editor fill for `mt add --edit`.
 # `editor` overrides the ladder ($VISUAL → $EDITOR → vi). `interactive` is
 # `auto` (open when a required slot is unfilled) | `always` | `never`. `header`
 # overrides the scaffold's instruction block: set your own text (auto
@@ -172,7 +172,7 @@ default-filter = "terminal"
 #   interactive = "auto"
 #   header = "Fill the task below."
 
-# [go] — editor `mindtape go <task>` opens a task file in.
+# [go] — editor `mt go <task>` opens a task file in.
 # A `{task}` token is replaced with the resolved path; without it the path is
 # appended. Resolution: `[go] editor` → $VISUAL → $EDITOR, then error (no `vi`
 # floor).
@@ -182,9 +182,9 @@ default-filter = "terminal"
 # [typst] — Typst package resolution.
 # `@local/mindtape` resolves automatically: from `<root>/lib` when that directory
 # is the mindtape package (in-tree development), otherwise from the installed
-# local-package store (run `mindtape install-lib` once to put it there). To use
+# local-package store (run `mt install-lib` once to put it there). To use
 # MindTape inside another tool's worktree whose `lib/` is a different package,
-# install mindtape into the store, or register extra `@local/<name>` packages
+# install the mindtape Typst package into the store, or register extra `@local/<name>` packages
 # from an in-tree path so a task file can import a helper without a global
 # install:
 #   [[typst.local-packages]]

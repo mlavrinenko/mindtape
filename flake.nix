@@ -70,7 +70,7 @@
         };
       in
       {
-        # For `nix build` & `nix run` (produces the `mindtape` binary):
+        # For `nix build` & `nix run` (produces the `mt` binary):
         packages.default = naersk'.buildPackage {
           src = ./.;
           inherit version;

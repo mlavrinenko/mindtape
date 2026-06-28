@@ -9,7 +9,7 @@ use crate::{add, check, eval, flip, go, init, ls, review, rm};
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
 #[derive(Parser)]
-#[command(name = "mindtape", version, about)]
+#[command(name = "mt", version, about)]
 pub struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -52,9 +52,9 @@ enum Command {
     ///
     /// Stamps `<status>` dated today onto each task; `<status>` must be a
     /// configured legend value. Every legend value also works as a top-level
-    /// shortcut verb — `mindtape done 1b 2c` == `mindtape flip done 1b 2c` —
+    /// shortcut verb — `mt done 1b 2c` == `mt flip done 1b 2c` —
     /// generated from the legend, so they do not show in `--help`; run
-    /// `mindtape flip --list` to see them. Built-in subcommands win on a name
+    /// `mt flip --list` to see them. Built-in subcommands win on a name
     /// clash. Targets are resolved before any write, then valid edits apply and
     /// any resolution or validation problem is reported (the rest still land).
     Flip(flip::FlipArgs),
@@ -121,19 +121,19 @@ mod tests {
 
     #[test]
     fn color_flag_before_subcommand() {
-        let cli = Cli::try_parse_from(["mindtape", "--color", "always", "check"]).unwrap();
+        let cli = Cli::try_parse_from(["mt", "--color", "always", "check"]).unwrap();
         assert_eq!(cli.color, ColorChoice::Always);
     }
 
     #[test]
     fn color_flag_after_subcommand() {
-        let cli = Cli::try_parse_from(["mindtape", "check", "--color", "never"]).unwrap();
+        let cli = Cli::try_parse_from(["mt", "check", "--color", "never"]).unwrap();
         assert_eq!(cli.color, ColorChoice::Never);
     }
 
     #[test]
     fn color_default_is_auto() {
-        let cli = Cli::try_parse_from(["mindtape", "check"]).unwrap();
+        let cli = Cli::try_parse_from(["mt", "check"]).unwrap();
         assert_eq!(cli.color, ColorChoice::Auto);
     }
 }

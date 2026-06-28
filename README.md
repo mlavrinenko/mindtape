@@ -44,59 +44,59 @@ opaquely.
 git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape
 nix develop                 # dev shell with the full toolchain
-cargo build --release       # produces target/release/mindtape
+cargo build --release       # produces target/release/mt
 ```
 
 Install the Typst prelude so `#import "@local/mindtape:0.2.0"` resolves (once
 per machine), then scaffold a project (once per project):
 
 ```bash
-mindtape install-lib        # installs @local/mindtape into Typst packages dir
-mindtape init               # writes .mindtape/config.toml in the current dir
+mt install-lib        # installs @local/mindtape into Typst packages dir
+mt init               # writes .mindtape/config.toml in the current dir
 ```
 
 ## Usage
 
 ```bash
 # File a new task from a Typst slot template (fills slots, injects status + id)
-mindtape add --describe                       # slot schema (--describe=json for agents)
-mindtape add --set title="Wire OAuth" --set priority=7      # raw --set values
-echo '{"title":"Wire OAuth","priority":7}' | mindtape add -f -   # JSON values
-mindtape add cleanup kitchen                  # positional title → cleanup-kitchen.typ (or pipe stdin / MINDTAPE_ADD_<SLOT> env)
-mindtape add --edit                           # fill the slots in your editor (YAML buffer)
-mindtape add -t bug --name oauth-bug --to auth # named template, explicit stem, nested under <root>/auth/
+mt add --describe                       # slot schema (--describe=json for agents)
+mt add --set title="Wire OAuth" --set priority=7      # raw --set values
+echo '{"title":"Wire OAuth","priority":7}' | mt add -f -   # JSON values
+mt add cleanup kitchen                  # positional title → cleanup-kitchen.typ (or pipe stdin / MINDTAPE_ADD_<SLOT> env)
+mt add --edit                           # fill the slots in your editor (YAML buffer)
+mt add -t bug --name oauth-bug --to auth # named template, explicit stem, nested under <root>/auth/
 
 # List tasks under the configured roots (applies ls.default-filter)
-mindtape ls
-mindtape ls --all                          # ignore the default filter
-mindtape ls 'has_tag("backend")'           # filter expression
-mindtape ls 'status != "done" && priority >= 7' --json   # filter + JSON output
-mindtape ls 'stale(30)'                     # unreviewed for over 30 days
-mindtape ls ready                           # deps all done — startable now
-mindtape ls --sort priority:asc -n 10      # sort + limit
+mt ls
+mt ls --all                          # ignore the default filter
+mt ls 'has_tag("backend")'           # filter expression
+mt ls 'status != "done" && priority >= 7' --json   # filter + JSON output
+mt ls 'stale(30)'                     # unreviewed for over 30 days
+mt ls ready                           # deps all done — startable now
+mt ls --sort priority:asc -n 10      # sort + limit
 
 # Re-affirm a task as still relevant (stamps reviewed: with today's date)
-mindtape review implement-auth               # by slug, relative, or absolute path
+mt review implement-auth               # by slug, relative, or absolute path
 
 # Open a task in your editor ([go] editor → $VISUAL → $EDITOR; {task} → path)
-mindtape go 1b                               # by handle, slug, or path
-mindtape ls -i                               # interactive: type the # to pick, Enter opens it (go), q quits
+mt go 1b                               # by handle, slug, or path
+mt ls -i                               # interactive: type the # to pick, Enter opens it (go), q quits
 
 # Set a task's status dated today; each legend value is also a shortcut verb
-mindtape flip done implement-auth            # canonical; or `mindtape done 1b 2c` (== flip done)
-mindtape flip blocked 1b 2c -m "note"        # batch + note; `mindtape flip --list` shows the verbs
+mt flip done implement-auth            # canonical; or `mt done 1b 2c` (== flip done)
+mt flip blocked 1b 2c -m "note"        # batch + note; `mt flip --list` shows the verbs
 
 # Validate every task against the project config
-mindtape check                               # enum / required / bounds / links / cycles
+mt check                               # enum / required / bounds / links / cycles
 
 # Evaluate a single task file and print it (--json for machine output)
-mindtape eval tasks/implement-auth.typ
+mt eval tasks/implement-auth.typ
 
 # Retire tasks: mint a swh:1:rev tombstone, rewrite inbound link()s, do not commit
-mindtape rm                                  # [rm] default-filter (built-in: terminal)
-mindtape rm implement-auth                   # by ref: slug, path, or list handle (1v)
-mindtape rm 'status == "cancelled"'          # by filter — every match
-mindtape rm terminal --dry-run               # preview without writing
+mt rm                                  # [rm] default-filter (built-in: terminal)
+mt rm implement-auth                   # by ref: slug, path, or list handle (1v)
+mt rm 'status == "cancelled"'          # by filter — every match
+mt rm terminal --dry-run               # preview without writing
 ```
 
 ### Global flags
@@ -184,7 +184,7 @@ A workspace of focused crates — the domain library plus consumer-blind Typst
 substrates reusable by any file-based tool:
 
 - `mindtape` — the domain library: config, the task model, the filter language,
-  and config-driven validation. `mindtape-cli` is the thin `mindtape` binary.
+  and config-driven validation. `mindtape-cli` is the thin `mt` binary.
 - `typst-harvest` — eval-only Typst World plus labelled-metadata-marker
   harvesting (Typst as a data medium).
 - `typst-cst` / `typst-edit` — parse-plane structure extraction (heading tree

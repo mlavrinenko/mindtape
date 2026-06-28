@@ -17,7 +17,7 @@ Repository: https://github.com/mlavrinenko/mindtape
 - `docs/redesign/` — the redesign brief and DSL shape probe (historical)
 - `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
 - `truth/tasks/` — MindTape's own backlog as per-file task artifacts (dogfood);
-  `mindtape ls` / `mindtape check` run against it via the in-tree `lib/`
+  `mt ls` / `mt check` run against it via the in-tree `lib/`
 
 ## Workspace
 
@@ -31,7 +31,7 @@ Four crates (`cargo` workspace, virtual root manifest):
   IO. Consumer-blind sibling to `typst-harvest`.
 - `crates/mindtape` — domain library: config, task model, filter language,
   validation, project loader. Other tools (e.g. speconaut) depend on this.
-- `crates/mindtape-cli` — the thin `mindtape` binary (clap).
+- `crates/mindtape-cli` — the thin `mt` binary (clap).
 
 ## Tech Stack
 
@@ -87,9 +87,9 @@ classification, priority frameworks (scoring + in-bounds-by-construction), the
 kind enum, required-unless-terminal, bounds, and link resolution. Consumers
 validate their own `x-<ns>` fields.
 
-### Templates (`mindtape add`)
+### Templates (`mt add`)
 
-`mindtape add [TITLE…] [-t template]` files a new task from a Typst template — a
+`mt add [TITLE…] [-t template]` files a new task from a Typst template — a
 task whose authored values are `slot(name, kind: …, default: …, prompt: …)` calls.
 The positional words join into the `title` slot (`add cleanup kitchen` →
 `cleanup-kitchen.typ`); `-t/--template` picks the template (default `[templates]

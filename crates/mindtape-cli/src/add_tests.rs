@@ -177,7 +177,7 @@ fn end_to_end_files_and_validates_a_task() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
 
-    assert_cmd::Command::cargo_bin("mindtape")
+    assert_cmd::Command::cargo_bin("mt")
         .unwrap()
         .current_dir(dir.path())
         .args(["add", "--name", "wire-add", "--set", "title=Wire add"])
@@ -190,7 +190,7 @@ fn end_to_end_files_and_validates_a_task() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task passes `check`.
-    assert_cmd::Command::cargo_bin("mindtape")
+    assert_cmd::Command::cargo_bin("mt")
         .unwrap()
         .current_dir(dir.path())
         .arg("check")
@@ -203,7 +203,7 @@ fn end_to_end_files_from_positional_title() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
 
-    assert_cmd::Command::cargo_bin("mindtape")
+    assert_cmd::Command::cargo_bin("mt")
         .unwrap()
         .current_dir(dir.path())
         .args(["add", "cleanup", "kitchen"])
@@ -220,7 +220,7 @@ fn end_to_end_nests_into_subfolder() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
 
-    assert_cmd::Command::cargo_bin("mindtape")
+    assert_cmd::Command::cargo_bin("mt")
         .unwrap()
         .current_dir(dir.path())
         .args(["add", "--to", "shopping", "Potatoes"])
@@ -233,7 +233,7 @@ fn end_to_end_nests_into_subfolder() {
 
 /// Slot names from `add --describe=json` run in `dir`.
 fn describe_slot_names(dir: &Path) -> Vec<String> {
-    let output = assert_cmd::Command::cargo_bin("mindtape")
+    let output = assert_cmd::Command::cargo_bin("mt")
         .unwrap()
         .current_dir(dir)
         .args(["add", "--describe=json"])
@@ -279,7 +279,7 @@ fn injects_config_required_priority_slot() {
     assert!(names.iter().any(|n| n == "priority"), "{names:?}");
 
     // Filling it writes a valid task.
-    assert_cmd::Command::cargo_bin("mindtape")
+    assert_cmd::Command::cargo_bin("mt")
         .unwrap()
         .current_dir(dir.path())
         .args([
@@ -298,7 +298,7 @@ fn injects_config_required_priority_slot() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // Omitting a config-required field is the existing missing-slot hard error.
-    assert_cmd::Command::cargo_bin("mindtape")
+    assert_cmd::Command::cargo_bin("mt")
         .unwrap()
         .current_dir(dir.path())
         .args(["add", "--name", "no-pri", "--set", "title=T"])
@@ -311,7 +311,7 @@ fn collision_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
     std::fs::write(dir.path().join("tasks/dup.typ"), "existing").unwrap();
-    assert_cmd::Command::cargo_bin("mindtape")
+    assert_cmd::Command::cargo_bin("mt")
         .unwrap()
         .current_dir(dir.path())
         .args(["add", "--name", "dup", "--set", "title=Dup"])
