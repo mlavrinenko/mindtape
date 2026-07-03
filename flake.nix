@@ -79,11 +79,8 @@
 
         # For `nix develop`:
         devShells.default = pkgs.mkShell {
-          # sccache as the rustc wrapper is a dev-shell-only speedup. Kept here
-          # (not in a committed .cargo/config.toml) so it never leaks into the
-          # `nix build` sandbox, where sccache is absent and cargo would fail
-          # trying to exec it. Loaded via direnv (`use flake`).
-          RUSTC_WRAPPER = "sccache";
+          # RUSTC_WRAPPER comes from the host session (global kache); the dev
+          # shell inherits it and it never reaches the `nix build` sandbox.
           nativeBuildInputs =
             [
               jscpd
@@ -102,7 +99,6 @@
               moreutils
               nixd
               rust-analyzer
-              sccache
               typst
               typstyle
             ]);
