@@ -24,7 +24,7 @@ groups:
   dev-docs:
     source:
       Justfile: b97e191fce32420fc0e59815b44c78447ce4cf9c09fb9d335a394354d23e538d
-      flake.nix: 5503f0fc70b50ce67672403871607d4fbf488e1d0cbd1ef129c8528f5aff808e
+      flake.nix: 4a838f72eb7c794dd2a501059b6ef8163eb506ebbb8493f9de52853f81d8b85d
     dependents:
       AGENTS.md: bf929926c76a4fc2fa763b3c4cd67f3db476b783e972170016371f02ba6e4459
       CONTRIBUTING.md: 80f7e2f9d31f4997c0e0a518a961e520e325bba6802a8f46169325082393173b
