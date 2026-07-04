@@ -5,7 +5,7 @@ use clap::{CommandFactory, Parser, Subcommand};
 use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
-use crate::{add, check, eval, flip, go, init, ls, review, rm};
+use crate::{add, check, config_cmd, eval, flip, go, init, ls, review, rm};
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
 #[derive(Parser)]
@@ -35,6 +35,8 @@ enum Command {
     Ls(ls::LsArgs),
     /// Validate tasks against the project configuration.
     Check,
+    /// Inspect the effective merged configuration (`show` is the default action).
+    Config(config_cmd::ConfigArgs),
     /// Scaffold `.mindtape/config.toml` in the current directory.
     Init(init::InitArgs),
     /// Install `@local/mindtape` into the user-local Typst packages directory.
@@ -73,6 +75,7 @@ impl Cli {
             Command::Add(args) => add::run(&args),
             Command::Ls(args) => ls::run(&args),
             Command::Check => check::run(),
+            Command::Config(args) => config_cmd::run(&args),
             Command::Init(args) => init::run(&args),
             Command::InstallLib => init::run_install_lib(),
             Command::Eval(args) => eval::run(&args),

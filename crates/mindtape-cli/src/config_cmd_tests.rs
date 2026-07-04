@@ -1,0 +1,105 @@
+#![allow(clippy::unwrap_used)]
+
+use mindtape::{Config, load_config, load_config_layered, parse_config};
+
+use super::{render_effective, render_origin};
+
+/// A fresh tempdir with `.mindtape/` already created (so `find_root` and the
+/// layer discovery walk see a project), optionally holding a `config.toml`.
+fn bare_project() -> tempfile::TempDir {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    dir
+}
+
+#[test]
+fn effective_config_round_trips_through_parse_config() {
+    let dir = bare_project();
+    std::fs::write(
+        dir.path().join(".mindtape").join("config.toml"),
+        "[project]\ncode = \"demo\"\n",
+    )
+    .unwrap();
+
+    let text = render_effective(dir.path(), false).unwrap();
+    let reparsed = parse_config(&text).unwrap();
+    let original = load_config(dir.path()).unwrap();
+    assert_eq!(reparsed, original);
+    assert_eq!(reparsed.project.code.as_deref(), Some("demo"));
+}
+
+#[test]
+fn effective_config_json_round_trips_to_same_shape_as_toml() {
+    let dir = bare_project();
+    let toml_text = render_effective(dir.path(), false).unwrap();
+    let json_text = render_effective(dir.path(), true).unwrap();
+
+    let from_toml = parse_config(&toml_text).unwrap();
+    let json_value: serde_json::Value = serde_json::from_str(&json_text).unwrap();
+    // Round the JSON value back through a TOML table so the same typed
+    // `Config` deserialization applies to both encodings.
+    let table: toml::Table = serde_json::from_value(json_value).unwrap();
+    let from_json: Config = toml::Value::Table(table).try_into().unwrap();
+    assert_eq!(from_toml, from_json);
+}
+
+#[test]
+fn bare_project_show_reflects_the_embedded_floor() {
+    let dir = bare_project();
+    let text = render_effective(dir.path(), false).unwrap();
+    let config = parse_config(&text).unwrap();
+
+    // The floor ships a non-empty legend with at least one terminal value.
+    assert!(!config.tasks.status.entries.is_empty());
+    assert!(config.tasks.status.entries.iter().any(|e| e.terminal));
+}
+
+#[test]
+fn origin_lists_exactly_the_layers_load_config_layered_returns() {
+    let dir = bare_project();
+    std::fs::write(
+        dir.path().join(".mindtape").join("config.toml"),
+        "[project]\ncode = \"demo\"\n",
+    )
+    .unwrap();
+
+    let (_config, sources) = load_config_layered(dir.path()).unwrap();
+    let text = render_origin(dir.path()).unwrap();
+    let lines: Vec<&str> = text.lines().collect();
+    assert_eq!(lines.len(), sources.len());
+
+    for (line, source) in lines.iter().zip(sources.iter()) {
+        match source {
+            mindtape::LayerSource::Embedded => assert!(line.starts_with("embedded:")),
+            mindtape::LayerSource::Xdg(path) => {
+                assert!(line.starts_with("xdg:"));
+                assert!(line.contains(&path.display().to_string()));
+            }
+            mindtape::LayerSource::Dir(path) => {
+                assert!(line.starts_with("dir:"));
+                assert!(line.contains(&path.display().to_string()));
+            }
+            mindtape::LayerSource::Project(path) => {
+                assert!(line.starts_with("project:"));
+                assert!(line.contains(&path.display().to_string()));
+            }
+        }
+    }
+}
+
+#[test]
+fn origin_marks_the_project_layer_as_existing() {
+    let dir = bare_project();
+    std::fs::write(
+        dir.path().join(".mindtape").join("config.toml"),
+        "[project]\ncode = \"demo\"\n",
+    )
+    .unwrap();
+
+    let text = render_origin(dir.path()).unwrap();
+    let project_line = text
+        .lines()
+        .find(|line| line.starts_with("project:"))
+        .expect("a project layer must be present");
+    assert!(project_line.contains("(exists)"));
+}

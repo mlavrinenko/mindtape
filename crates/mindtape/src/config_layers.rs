@@ -138,15 +138,34 @@ pub fn merge_layers(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
     Ok(base)
 }
 
-/// [`merge_layers`], then splice in the built-in priority frameworks,
-/// deserialize, and run semantic validation — the shared tail with
-/// [`crate::config::parse_config`].
-fn build_config(layers: &[Layer]) -> Result<Config, ConfigError> {
+/// [`merge_layers`], then splice in the built-in priority frameworks — the
+/// merged document shared by [`build_config`] and [`merged_config_table`].
+fn merge_doc(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
     let mut doc = merge_layers(layers)?;
     merge_builtin_frameworks(&mut doc);
+    Ok(doc)
+}
+
+/// [`merge_doc`], then deserialize and run semantic validation — the shared
+/// tail with [`crate::config::parse_config`].
+fn build_config(layers: &[Layer]) -> Result<Config, ConfigError> {
+    let doc = merge_doc(layers)?;
     let config: Config = toml::Value::Table(doc).try_into()?;
     config.validate().map_err(ConfigError::Invalid)?;
     Ok(config)
+}
+
+/// Assemble the merged TOML document for `root` — every discovered layer
+/// folded together with [`merge_layers`], plus the spliced-in built-in
+/// priority frameworks — without deserializing into a typed [`Config`] or
+/// running semantic validation. Backs `mt config show`: the emitted document
+/// re-parses through [`crate::config::parse_config`] to an equal [`Config`].
+///
+/// # Errors
+/// Returns [`ConfigError::Parse`] if any layer's text is not valid TOML.
+pub fn merged_config_table(root: &Path) -> Result<toml::Table, ConfigError> {
+    let layers = discover_layers(root, dirs::home_dir().as_deref());
+    merge_doc(&layers)
 }
 
 /// Assemble the full layered config for `root`: discover every layer, merge

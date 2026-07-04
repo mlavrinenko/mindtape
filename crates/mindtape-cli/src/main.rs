@@ -5,6 +5,7 @@ mod add_interactive;
 mod add_values;
 mod check;
 mod cli;
+mod config_cmd;
 mod eval;
 mod flip;
 mod git;

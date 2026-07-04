@@ -40,9 +40,10 @@ pub use add_slots::{RequiredSlot, required_core_slots};
 pub use config::{
     AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags, GoConfig,
     InteractiveMode, LS_COLUMNS, LocalPackage, PriorityConfig, ReadyConfig, RootConfig, RootSpec,
-    TemplatesConfig, TypstConfig, Visibility, config_path, load_config, parse_config,
+    TemplatesConfig, TypstConfig, Visibility, config_path, embedded_defaults, load_config,
+    parse_config,
 };
-pub use config_layers::{LayerSource, load_config_layered};
+pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use derive::RootDeriver;
 pub use filter::{Filter, FilterError};

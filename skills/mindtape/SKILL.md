@@ -49,6 +49,7 @@ Most work is: find a task → read it → change its status → validate.
 | Change status | `mt flip <status> <task…>` or the status verb |
 | Validate all tasks | `mt check` |
 | Retire a task | `mt rm <task>` |
+| Inspect the effective config | `mt config show` (`--origin`, `--defaults`) |
 
 `<task>` / `<id>` accepts a filename stem, a relative/absolute path, or a handle
 ordinal from the last `mt ls` (the `#` column, e.g. `1b`).

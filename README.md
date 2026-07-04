@@ -91,6 +91,12 @@ mt flip blocked 1b 2c -m "note"        # batch + note; `mt flip --list` shows th
 # Validate every task against the project config
 mt check                               # enum / required / bounds / links / cycles
 
+# Inspect the effective merged config (embedded floor + XDG + dir + project)
+mt config show                         # effective config, as valid re-parseable TOML
+mt config show --origin                # which layers contributed, and from where
+mt config show --defaults              # just the embedded floor, verbatim
+mt config show --json                  # effective config as JSON
+
 # Evaluate a single task file and print it (--json for machine output)
 mt eval tasks/implement-auth.typ
 
@@ -116,6 +122,15 @@ mt rm terminal --dry-run               # preview without writing
 inherit the floor's sane defaults (status legend, priority/difficulty scales,
 filters), declare it to override, or set it empty (e.g. `status = []`) to leave
 that aspect unconstrained.
+
+The floor is the lowest of four layers, deep-merged in precedence order:
+the embedded floor, then XDG global defaults (`~/.config/mindtape/defaults.toml`),
+then every `.mindtape/defaults.toml` found walking up from the project root
+(farthest ancestor first, so the nearest wins), then the project's own
+`.mindtape/config.toml` (highest precedence). Run `mt config show` to print the
+effective result of that merge as valid TOML, `mt config show --origin` to see
+which layers contributed and where each was read from, or `mt config show
+--defaults` to print just the embedded floor.
 
 ```toml
 [tasks]

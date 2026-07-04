@@ -36,6 +36,14 @@ pub use crate::config_status::{Legend, LegendEntry};
 /// lowest layer in [`crate::config_layers`]'s multi-file assembly.
 pub(crate) const EMBEDDED_DEFAULTS: &str = include_str!("defaults.toml");
 
+/// The embedded default floor's raw TOML text, verbatim. Backs
+/// `mt config show --defaults`, so a user seeding an XDG or project override
+/// sees the shipped baseline exactly as compiled in, not a re-serialised copy.
+#[must_use]
+pub fn embedded_defaults() -> &'static str {
+    EMBEDDED_DEFAULTS
+}
+
 /// Top-level project configuration.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]

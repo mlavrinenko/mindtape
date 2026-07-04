@@ -2534,6 +2534,7 @@ dependencies = [
  "swhid-mint",
  "tempfile",
  "terminal_size",
+ "toml",
  "typst-cleanup",
  "typst-edit",
  "typst-harvest",
