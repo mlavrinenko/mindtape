@@ -4,7 +4,7 @@
 use std::path::Path;
 
 use clap::Parser;
-use mindtape::{Config, parse_config};
+use mindtape::parse_config;
 
 use super::{FlipArgs, Shortcut, run_with, status_edit};
 use crate::util::Project;
@@ -17,20 +17,23 @@ const ALPHA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 const BETA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Beta\",\n  status: blocked(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n";
 
-fn legend_config() -> Config {
-    parse_config(
-        "[[tasks.status]]\nvalue = \"wip\"\n\
-         [[tasks.status]]\nvalue = \"blocked\"\n\
-         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
-    )
-    .unwrap()
-}
+/// A legend declaring `blocked` (not part of the embedded floor's status
+/// legend), so it must be written to disk, not just held in memory: `run_with`
+/// revalidates by reloading config from `.mindtape/config.toml` after a flip.
+const LEGEND_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
+     [[tasks.status]]\nvalue = \"blocked\"\n\
+     [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
 
 /// Project rooted at `dir` with an in-tree `lib/` mindtape package override (so
-/// `@local/mindtape` resolves without a global install) and `files` under `tasks/`.
-/// The lib is written before [`crate::test_util::make_project`] loads, so the
-/// real prelude resolves the task `task.with(…)` sources.
-fn setup(dir: &Path, files: &[(&str, &str)], config: Config) -> Project {
+/// `@local/mindtape` resolves without a global install), a real
+/// `.mindtape/config.toml` holding `config_text`, and `files` under `tasks/`.
+/// The config is written to disk (not just parsed in memory) because
+/// `run_with`'s post-flip revalidation reloads it from `.mindtape/config.toml`;
+/// without a matching file, that reload would see the embedded floor's legend
+/// instead of `config_text`'s. The lib is written before
+/// [`crate::test_util::make_project`] loads, so the real prelude resolves the
+/// task `task.with(…)` sources.
+fn setup(dir: &Path, files: &[(&str, &str)], config_text: &str) -> Project {
     let lib = dir.join("lib");
     std::fs::create_dir_all(&lib).unwrap();
     std::fs::write(
@@ -39,6 +42,9 @@ fn setup(dir: &Path, files: &[(&str, &str)], config: Config) -> Project {
     )
     .unwrap();
     std::fs::write(lib.join("prelude.typ"), PRELUDE).unwrap();
+    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+    std::fs::write(dir.join(".mindtape/config.toml"), config_text).unwrap();
+    let config = parse_config(config_text).unwrap();
     crate::test_util::make_project(dir, files, config)
 }
 
@@ -58,7 +64,7 @@ fn read(dir: &Path, name: &str) -> String {
 #[test]
 fn flips_status_by_slug() {
     let dir = tempfile::tempdir().unwrap();
-    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], legend_config());
+    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], LEGEND_CONFIG);
     assert_eq!(project.outcome.tasks.len(), 1, "fixture must load");
 
     run_with(&project, &flip_args("done", &["alpha"])).unwrap();
@@ -68,7 +74,7 @@ fn flips_status_by_slug() {
 #[test]
 fn unknown_status_errors() {
     let dir = tempfile::tempdir().unwrap();
-    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], legend_config());
+    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], LEGEND_CONFIG);
     assert!(run_with(&project, &flip_args("nope", &["alpha"])).is_err());
 }
 
@@ -78,7 +84,7 @@ fn batch_applies_valid_and_reports_unresolved() {
     let project = setup(
         dir.path(),
         &[("alpha.typ", ALPHA), ("beta.typ", BETA)],
-        legend_config(),
+        LEGEND_CONFIG,
     );
     // One good slug, one nonexistent: the good one still flips, overall Err.
     let result = run_with(&project, &flip_args("done", &["alpha", "ghost"]));
@@ -89,7 +95,7 @@ fn batch_applies_valid_and_reports_unresolved() {
 #[test]
 fn restamp_keeps_same_status() {
     let dir = tempfile::tempdir().unwrap();
-    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], legend_config());
+    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], LEGEND_CONFIG);
     run_with(&project, &flip_args("wip", &["alpha"])).unwrap();
     assert!(read(dir.path(), "alpha.typ").contains("status: wip("));
 }
@@ -97,7 +103,7 @@ fn restamp_keeps_same_status() {
 #[test]
 fn list_verbs_succeeds() {
     let dir = tempfile::tempdir().unwrap();
-    let project = setup(dir.path(), &[], legend_config());
+    let project = setup(dir.path(), &[], LEGEND_CONFIG);
     let mut args = flip_args("done", &[]);
     args.status = None;
     args.list = true;
@@ -107,7 +113,7 @@ fn list_verbs_succeeds() {
 #[test]
 fn note_flag_writes_content_block() {
     let dir = tempfile::tempdir().unwrap();
-    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], legend_config());
+    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], LEGEND_CONFIG);
     let mut args = flip_args("blocked", &["alpha"]);
     args.note = Some("waiting on review".to_owned());
     run_with(&project, &args).unwrap();

@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::{HeaderAction, HeaderPathSegment, Requirement, RootSpec, parse_config};
+use super::{HeaderAction, HeaderPathSegment, Requirement, RootSpec, load_config, parse_config};
 
 #[test]
 fn defaults_when_empty() {
@@ -9,10 +9,47 @@ fn defaults_when_empty() {
         config.tasks.roots,
         vec![RootSpec::Short("tasks".to_owned())]
     );
-    assert!(config.tasks.status.is_empty());
+    // The embedded floor supplies the six-value legend; `done`/`cancelled`/
+    // `failed` are terminal, in legend order (the omitted-legend bug this
+    // floor fixes: `Legend::default()` alone is empty).
+    assert_eq!(
+        config.tasks.status.terminal(),
+        vec![
+            "done".to_owned(),
+            "cancelled".to_owned(),
+            "failed".to_owned()
+        ]
+    );
     // White-list philosophy: an omitted estimate section accepts any unit.
     assert!(config.tasks.estimate.units.is_empty());
-    assert!(config.ls.default_filter.is_none());
+    // `[ls] default-filter` is also part of the floor.
+    assert_eq!(
+        config.ls.default_filter.as_deref(),
+        Some("!terminal && (miss(start) || start <= now())")
+    );
+}
+
+#[test]
+fn explicit_status_legend_replaces_the_floor() {
+    // Array-replace, not merge: the user's one-entry legend fully wins.
+    let config = parse_config("[[tasks.status]]\nvalue = \"only\"\n").unwrap();
+    assert_eq!(config.tasks.status.entries.len(), 1);
+    assert_eq!(config.tasks.status.entries[0].value, "only");
+    assert!(config.tasks.status.terminal().is_empty());
+}
+
+#[test]
+fn empty_status_legend_clears_the_floor() {
+    let config = parse_config("[tasks]\nstatus = []\n").unwrap();
+    assert!(config.tasks.status.is_empty());
+}
+
+#[test]
+fn load_config_on_missing_file_matches_parse_config_empty() {
+    let dir = tempfile::tempdir().unwrap();
+    let loaded = load_config(dir.path()).unwrap();
+    let parsed = parse_config("").unwrap();
+    assert_eq!(loaded, parsed);
 }
 
 #[test]

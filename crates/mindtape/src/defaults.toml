@@ -1,0 +1,117 @@
+# crates/mindtape/src/defaults.toml — the embedded config floor.
+#
+# Deep-merged UNDER the user's `.mindtape/config.toml` before typed
+# deserialisation (`parse_config` in `config.rs`): the user's values win
+# field-by-field (tables merge key-by-key; arrays and scalars replace
+# wholesale). This generalises the built-in priority-frameworks merge
+# (`merge_builtin_frameworks` in `framework.rs`) from one sub-table to the
+# whole config document.
+#
+# Semantic shift: omitting a section here now means "inherit this floor," not
+# "unconstrained." A project explicitly unconstrains a floored section by
+# setting it empty — `status = []`, `[tasks.priority] bands = []` — which the
+# array-replace merge honours.
+#
+# Sections intentionally absent here — and so still unconstrained when the
+# user config also omits them — are the free-vocabulary allow-lists:
+# `[tasks.estimate] units`, `[tasks.tags] allowed`, `[tasks.body.headers]`,
+# `[tasks.derive-tags]`.
+
+[tasks]
+roots = ["tasks"]
+
+# Status legend: legal values in lifecycle order. `terminal = true` ends a
+# task (required-unless-terminal fields relax, bare `mt rm` sweeps it, `mt ls`
+# hides it from the overdue accent).
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+
+[[tasks.status]]
+value = "accepted"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+
+[[tasks.status]]
+value = "failed"
+glyph = "❌"
+color = "red"
+terminal = true
+
+# Priority: a number on a scale, classified into labelled bands.
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
+[[tasks.priority.bands]]
+label = "low"
+min = 0
+max = 2
+glyph = "🟢"
+color = "green"
+[[tasks.priority.bands]]
+label = "normal"
+min = 3
+max = 6
+glyph = "🟡"
+color = "yellow"
+[[tasks.priority.bands]]
+label = "high"
+min = 7
+max = 9
+glyph = "🔴"
+color = "red"
+
+# Difficulty: a number on a scale, classified by sparse labelled anchors.
+[tasks.difficulty]
+kind = "int"
+min = 0
+max = 9
+[[tasks.difficulty.anchors]]
+value = 0
+label = "junior"
+glyph = "🟢"
+color = "green"
+[[tasks.difficulty.anchors]]
+value = 3
+label = "mid"
+glyph = "🔵"
+color = "cyan"
+[[tasks.difficulty.anchors]]
+value = 6
+label = "senior"
+glyph = "🟡"
+color = "yellow"
+[[tasks.difficulty.anchors]]
+value = 9
+label = "staff"
+glyph = "🔴"
+color = "red"
+
+[templates]
+dirs = [".mindtape/templates"]
+default = "task"
+
+[rm]
+default-filter = "terminal"
+
+[ls]
+default-filter = "!terminal && (miss(start) || start <= now())"

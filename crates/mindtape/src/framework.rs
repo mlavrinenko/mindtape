@@ -21,6 +21,7 @@ use serde::Deserialize;
 
 use crate::config::PriorityConfig;
 use crate::framework_eval::{eval_predicate, eval_score, parse_check, score_interval};
+use crate::merge::deep_merge;
 use crate::numeric::{InputValue, NumCell, NumValue, format_num};
 
 /// The baked-in framework definitions, parsed from the bundled TOML.
@@ -435,26 +436,6 @@ pub(crate) fn merge_builtin_frameworks(doc: &mut toml::Table) {
         deep_merge(&mut merged, toml::Value::Table(user));
     }
     set_frameworks(doc, merged);
-}
-
-fn deep_merge(base: &mut toml::Value, overlay: toml::Value) {
-    match overlay {
-        toml::Value::Table(over) => {
-            let toml::Value::Table(base) = base else {
-                *base = toml::Value::Table(over);
-                return;
-            };
-            for (key, value) in over {
-                match base.get_mut(&key) {
-                    Some(existing) => deep_merge(existing, value),
-                    None => {
-                        base.insert(key, value);
-                    }
-                }
-            }
-        }
-        other => *base = other,
-    }
 }
 
 fn take_frameworks(doc: &mut toml::Table) -> Option<toml::Table> {

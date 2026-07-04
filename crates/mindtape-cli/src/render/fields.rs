@@ -167,9 +167,11 @@ mod tests {
 
     #[test]
     fn unknown_status_is_plain() {
+        // The embedded floor's legend doesn't recognise this value (unlike
+        // "wip", now floored), so it renders plain.
         let config = parse_config("").unwrap();
-        let cell = Status::cell_spec("wip", &config);
-        assert_eq!(cell.text, "wip");
+        let cell = Status::cell_spec("not-a-real-status", &config);
+        assert_eq!(cell.text, "not-a-real-status");
         assert!(cell.glyph.is_none());
         assert!(cell.color.is_none());
     }

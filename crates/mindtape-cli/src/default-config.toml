@@ -1,6 +1,11 @@
 # .mindtape/config.toml — per-project MindTape configuration.
-# White-listed: MindTape constrains only what is declared here. Omit a section
-# to accept the defaults and the prelude's full status shortcut set.
+# White-listed: MindTape constrains only what is declared here. A handful of
+# sections (this scaffold's status legend, priority/difficulty scale, roots,
+# templates, rm/ls defaults) carry an embedded floor: omitting one inherits it
+# rather than going unconstrained. Set it explicitly empty (`status = []`,
+# `[tasks.priority] bands = []`) to unconstrain it instead. Every other
+# section (estimate units, tags, body headers, derive-tags) stays
+# unconstrained when omitted, as before.
 
 [tasks]
 # Directories (relative to this file's project root) holding one task per file.

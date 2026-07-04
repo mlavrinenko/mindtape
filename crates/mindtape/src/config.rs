@@ -1,7 +1,14 @@
 //! `.mindtape/config.toml` loading and the configurable task schema.
 //!
-//! The config is a white-list: `MindTape` constrains only what is declared here.
-//! Omit a section to leave that aspect unconstrained.
+//! The config is a white-list: `MindTape` constrains only what is declared here
+//! (directly or through the embedded floor, `defaults.toml`). A handful of
+//! sections carry an opinionated shipped default — the status legend, the
+//! priority/difficulty scale and classification, `roots`, `[templates]`,
+//! `[rm]`/`[ls]` default filters — and omitting one of those inherits the
+//! floor rather than going unconstrained. Set it explicitly empty (`status =
+//! []`, `[tasks.priority] bands = []`) to unconstrain it instead. Every other
+//! section (estimate units, tag allow-list, body headers, derive-tags) stays
+//! unconstrained when omitted, as before.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -10,12 +17,21 @@ use serde::{Deserialize, Deserializer};
 use thiserror::Error;
 
 use crate::framework::{Framework, merge_builtin_frameworks};
+use crate::merge::deep_merge_tables;
 use crate::numeric::NumericField;
 
 pub use crate::config_add::{AddConfig, InteractiveMode};
 pub use crate::config_go::GoConfig;
 pub use crate::config_ls::{ColumnConfig, LS_COLUMNS, LsConfig, Visibility, validate_ls_columns};
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
+pub use crate::config_status::{Legend, LegendEntry};
+
+/// The embedded config floor: canonical default values for the sections that
+/// carry an opinionated shipped default (status legend, priority/difficulty
+/// scale and classification, roots, templates, `rm`/`ls` defaults). Deep-merged
+/// as the base under the user's config before typed deserialization — see
+/// [`parse_config`]. Mirrors `BUILTIN_FRAMEWORKS` (`framework.rs`).
+const EMBEDDED_DEFAULTS: &str = include_str!("defaults.toml");
 
 /// Top-level project configuration.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
@@ -71,6 +87,10 @@ pub struct TemplatesConfig {
     pub default: String,
 }
 
+// Left opinionated rather than collapsed to empty, for the same reason as
+// `TasksConfig::default`'s `roots`: widely relied on by direct `Config::default()`
+// test fixtures (e.g. template resolution/listing tests), and its value already
+// agrees with the embedded floor (`defaults.toml`).
 impl Default for TemplatesConfig {
     fn default() -> Self {
         Self {
@@ -128,6 +148,12 @@ pub struct TasksConfig {
     pub id: IdConfig,
 }
 
+// `roots` intentionally stays the opinionated `["tasks"]` rather than collapsing
+// to empty: `Config::default()` is called directly (bypassing `parse_config`)
+// by a wide swath of test fixtures across the workspace that assume a "tasks"
+// root exists. Its value already agrees with the embedded floor
+// (`defaults.toml`), so the duplication is harmless — `parse_config` never
+// observes this impl (the floor always supplies `roots` first).
 impl Default for TasksConfig {
     fn default() -> Self {
         Self {
@@ -242,66 +268,6 @@ pub struct EstimateConfig {
     pub required: Requirement,
 }
 
-/// `[[tasks.status]]` — the status legend: an ordered, displayable vocabulary.
-///
-/// Each entry binds a value to optional display attributes (glyph, colour,
-/// label) plus the `terminal` flag. The legend defines the legal values, their
-/// lifecycle order, and how each renders. Empty = unconstrained. The same
-/// primitive will serve other discrete enum fields (kind, tags) as they gain
-/// display.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(transparent)]
-pub struct Legend {
-    /// Ordered entries, in lifecycle / display order.
-    pub entries: Vec<LegendEntry>,
-}
-
-/// One `[[tasks.status]]` entry: a value plus its display attributes.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
-#[serde(default, deny_unknown_fields)]
-pub struct LegendEntry {
-    /// The value this entry describes (e.g. a status name).
-    pub value: String,
-    /// Optional decorative glyph (emoji or ASCII).
-    pub glyph: Option<String>,
-    /// Optional colour: a named ANSI colour or `#RRGGBB`.
-    pub color: Option<String>,
-    /// Optional display label; falls back to `value`.
-    pub label: Option<String>,
-    /// Whether this value ends a task; required fields relax once terminal.
-    pub terminal: bool,
-}
-
-impl Legend {
-    /// Whether the legend constrains nothing (no entries).
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.entries.is_empty()
-    }
-
-    /// Whether `value` is a legal entry.
-    #[must_use]
-    pub fn contains(&self, value: &str) -> bool {
-        self.entries.iter().any(|entry| entry.value == value)
-    }
-
-    /// The entry describing `value`, if any.
-    #[must_use]
-    pub fn entry(&self, value: &str) -> Option<&LegendEntry> {
-        self.entries.iter().find(|entry| entry.value == value)
-    }
-
-    /// The values flagged `terminal`.
-    #[must_use]
-    pub fn terminal(&self) -> Vec<String> {
-        self.entries
-            .iter()
-            .filter(|entry| entry.terminal)
-            .map(|entry| entry.value.clone())
-            .collect()
-    }
-}
-
 /// `[tasks.fields.<name>]` — constraints for one configurable core field.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]
@@ -323,7 +289,11 @@ pub struct TagsConfig {
 }
 
 /// `[rm]` — defaults for the `rm` task-removal command.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+///
+/// `Default` is the truly-empty state (`None`, no sweep filter); the shipped
+/// `"terminal"` default lives in the embedded floor ([`EMBEDDED_DEFAULTS`]) and
+/// only applies through [`parse_config`].
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RmConfig {
     /// Filter selecting which tasks a bare `mt rm` (no target) retires.
@@ -331,14 +301,6 @@ pub struct RmConfig {
     /// the legacy `cleanup` behaviour. An explicit ref or filter argument
     /// overrides it.
     pub default_filter: Option<String>,
-}
-
-impl Default for RmConfig {
-    fn default() -> Self {
-        Self {
-            default_filter: Some("terminal".to_owned()),
-        }
-    }
 }
 
 /// Whether a field is required: `false`, `true`, or `"non-terminal"`.
@@ -427,26 +389,35 @@ impl Config {
 
 /// Parse a config from a TOML string.
 ///
-/// Built-in priority frameworks are deep-merged into
-/// `[tasks.priority.frameworks]` before typed deserialization, so a user config
-/// can activate (and selectively override) a built-in without redeclaring it.
+/// The embedded floor ([`EMBEDDED_DEFAULTS`]) is deep-merged as the base, the
+/// user's text as the overlay (tables merge field-by-field; a user section
+/// wins wholesale over the floor's for arrays and scalars — an explicit
+/// `status = []` unconstrains a floored section rather than being ignored).
+/// Built-in priority frameworks are then deep-merged into
+/// `[tasks.priority.frameworks]`, so a user config can activate (and
+/// selectively override) a built-in without redeclaring it. Order matters:
+/// floor, then user, then frameworks.
 ///
 /// # Errors
-/// Returns [`ConfigError::Parse`] if the TOML is invalid.
+/// Returns [`ConfigError::Parse`] if the TOML is invalid (the user's text, or,
+/// were it ever malformed, the embedded floor itself).
 pub fn parse_config(text: &str) -> Result<Config, ConfigError> {
-    let mut doc: toml::Table = toml::from_str(text)?;
+    let mut doc: toml::Table = toml::from_str(EMBEDDED_DEFAULTS)?;
+    let overlay: toml::Table = toml::from_str(text)?;
+    deep_merge_tables(&mut doc, overlay);
     merge_builtin_frameworks(&mut doc);
     Ok(toml::Value::Table(doc).try_into()?)
 }
 
-/// Load and parse `<root>/.mindtape/config.toml`, or the defaults if absent.
+/// Load and parse `<root>/.mindtape/config.toml`, or the embedded floor
+/// ([`EMBEDDED_DEFAULTS`]) alone if absent.
 ///
 /// # Errors
 /// Returns [`ConfigError`] if the file exists but cannot be read or parsed.
 pub fn load_config(root: &Path) -> Result<Config, ConfigError> {
     let path = config_path(root);
     if !path.exists() {
-        return Ok(Config::default());
+        return parse_config("");
     }
     let config = parse_config(&std::fs::read_to_string(&path)?)?;
     config.validate().map_err(ConfigError::Invalid)?;

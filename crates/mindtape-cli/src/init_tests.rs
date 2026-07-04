@@ -43,3 +43,21 @@ fn scaffold_overwrites_with_force() {
         std::fs::read_to_string(dir.path().join(".mindtape").join("config.toml")).unwrap();
     assert_ne!(content, "# old");
 }
+
+/// Regression: the generic `mt init` scaffold still parses and validates
+/// through the embedded-floor `parse_config`, unchanged.
+#[test]
+fn default_config_parses_and_validates() {
+    let config = mindtape::parse_config(super::DEFAULT_CONFIG).unwrap();
+    config.validate().unwrap();
+}
+
+/// Regression: `MindTape`'s own dogfood config (which fully overrides the
+/// status legend and priority scale) still parses and validates through the
+/// embedded-floor `parse_config`, unchanged.
+#[test]
+fn dogfood_config_parses_and_validates() {
+    const DOGFOOD: &str = include_str!("../../../.mindtape/config.toml");
+    let config = mindtape::parse_config(DOGFOOD).unwrap();
+    config.validate().unwrap();
+}
