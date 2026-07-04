@@ -7,7 +7,7 @@
 
 use std::path::Path;
 
-const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+mod support;
 
 /// Scaffold a temp project that can evaluate `@local/mindtape` via the in-tree
 /// lib override the loader honours.
@@ -18,14 +18,7 @@ fn scaffold(dir: &Path) {
         "[tasks]\nroots = [\"tasks\"]\n",
     )
     .unwrap();
-    std::fs::create_dir_all(dir.join("lib")).unwrap();
-    std::fs::write(dir.join("lib/prelude.typ"), PRELUDE).unwrap();
-    std::fs::write(
-        dir.join("lib/typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
-    std::fs::create_dir_all(dir.join("tasks")).unwrap();
+    support::install_lib(dir);
 }
 
 #[test]

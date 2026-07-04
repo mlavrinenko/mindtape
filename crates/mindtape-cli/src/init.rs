@@ -7,7 +7,11 @@ use anyhow::{Context, Result};
 /// The Typst package version installed by `install-lib`. Mirrors `lib/typst.toml`.
 const TYPST_PKG_VERSION: &str = "0.2.0";
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
-const DEFAULT_CONFIG: &str = include_str!("default-config.toml");
+/// The fully-expanded, heavily-commented starter config (`--full`).
+const FULL_CONFIG: &str = include_str!("default-config.toml");
+/// The default minimal scaffold: just `[tasks] roots` plus a pointer to the
+/// embedded floor. Everything else inherits unless overridden.
+const SLIM_CONFIG: &str = include_str!("slim-config.toml");
 
 /// Arguments for `init`.
 #[derive(Debug, clap::Args)]
@@ -15,6 +19,11 @@ pub struct InitArgs {
     /// Overwrite an existing `.mindtape/config.toml`.
     #[arg(long)]
     pub force: bool,
+
+    /// Write the fully-expanded, commented starter config instead of the
+    /// slim default scaffold.
+    #[arg(long)]
+    pub full: bool,
 }
 
 /// Run the `init` command — scaffold `.mindtape/config.toml` in the current directory.
@@ -22,7 +31,8 @@ pub struct InitArgs {
 /// # Errors
 /// Returns an error if the config cannot be written.
 pub fn run(args: &InitArgs) -> Result<()> {
-    scaffold_config(Path::new("."), args.force)
+    let template = if args.full { FULL_CONFIG } else { SLIM_CONFIG };
+    scaffold_config(Path::new("."), args.force, template)
 }
 
 /// Run the `install-lib` command — install `@local/mindtape` into the Typst packages dir.
@@ -58,7 +68,7 @@ pub(crate) fn package_dir() -> Result<PathBuf> {
     Ok(path)
 }
 
-pub(crate) fn scaffold_config(root: &Path, force: bool) -> Result<()> {
+pub(crate) fn scaffold_config(root: &Path, force: bool, template: &str) -> Result<()> {
     let dir = root.join(".mindtape");
     let config = dir.join("config.toml");
     if config.exists() && !force {
@@ -69,8 +79,7 @@ pub(crate) fn scaffold_config(root: &Path, force: bool) -> Result<()> {
         return Ok(());
     }
     std::fs::create_dir_all(&dir).with_context(|| format!("create {}", dir.display()))?;
-    std::fs::write(&config, DEFAULT_CONFIG)
-        .with_context(|| format!("write {}", config.display()))?;
+    std::fs::write(&config, template).with_context(|| format!("write {}", config.display()))?;
     println!("wrote {}", config.display());
     Ok(())
 }
