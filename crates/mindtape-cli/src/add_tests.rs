@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use mindtape::{Config, RawValue};
+use mindtape::{Config, RawValue, SlotSpec};
 
 use super::{AddArgs, dest_dir, fill_title_from_args, initial_status, inject_header, output_stem};
 use crate::util::Project;
@@ -81,12 +81,20 @@ fn output_stem_prefers_name_then_title_slug() {
     assert_eq!(output_stem(&args, &values).unwrap(), "my-new-task");
 }
 
+/// A minimal `tags` list slot, as a real template would discover it.
+fn tags_slot() -> SlotSpec {
+    mindtape::discover_slots(r#"#f(tags: slot("tags", kind: "list"))"#)
+        .into_iter()
+        .next()
+        .unwrap()
+}
+
 #[test]
 fn title_arg_joins_words_when_unset() {
     let mut args = bare_args();
     args.title = vec!["cleanup".to_owned(), "kitchen".to_owned()];
     let mut values = BTreeMap::new();
-    fill_title_from_args(&mut values, &args);
+    fill_title_from_args(&mut values, &args, &[]);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("cleanup kitchen".to_owned()))
@@ -99,10 +107,66 @@ fn title_arg_yields_to_higher_precedence_title() {
     args.title = vec!["positional".to_owned()];
     let mut values = BTreeMap::new();
     values.insert("title".to_owned(), RawValue::Str("explicit".to_owned()));
-    fill_title_from_args(&mut values, &args);
+    fill_title_from_args(&mut values, &args, &[]);
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("explicit".to_owned()))
+    );
+}
+
+#[test]
+fn plus_tag_words_move_to_tags_when_slot_present() {
+    let mut args = bare_args();
+    args.title = vec![
+        "fix".to_owned(),
+        "login".to_owned(),
+        "+backend".to_owned(),
+        "+auth".to_owned(),
+    ];
+    let mut values = BTreeMap::new();
+    fill_title_from_args(&mut values, &args, &[tags_slot()]);
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("fix login".to_owned()))
+    );
+    assert_eq!(
+        values.get("tags"),
+        Some(&RawValue::List(vec![
+            "backend".to_owned(),
+            "auth".to_owned()
+        ]))
+    );
+}
+
+#[test]
+fn plus_tag_words_stay_in_title_without_tags_slot() {
+    let mut args = bare_args();
+    args.title = vec!["fix".to_owned(), "+backend".to_owned()];
+    let mut values = BTreeMap::new();
+    fill_title_from_args(&mut values, &args, &[]);
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("fix +backend".to_owned()))
+    );
+    assert!(!values.contains_key("tags"));
+}
+
+#[test]
+fn plus_tag_sugar_appends_to_existing_tags() {
+    let mut args = bare_args();
+    args.title = vec!["fix".to_owned(), "+auth".to_owned()];
+    let mut values = BTreeMap::new();
+    values.insert(
+        "tags".to_owned(),
+        RawValue::List(vec!["backend".to_owned()]),
+    );
+    fill_title_from_args(&mut values, &args, &[tags_slot()]);
+    assert_eq!(
+        values.get("tags"),
+        Some(&RawValue::List(vec![
+            "backend".to_owned(),
+            "auth".to_owned()
+        ]))
     );
 }
 

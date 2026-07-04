@@ -111,6 +111,16 @@ task even with the barebones template. Strict-framework priority (`framework` +
 `allow-manual = false`) has no scalar form and is not spliced — declare it in a
 template.
 
+A `list`-kind slot needs `--set name[]=value` (repeatable; accumulates) — a bare
+`--set name=value` errors, since a single string is never silently treated as a
+one-item list. `+word` positional args are tag sugar: peeled into the `tags`
+slot (if the template declares one) instead of joining the title, e.g. `add fix
+login +backend +auth`. Structured fields (e.g. ICE priority) have no CLI path
+syntax; expose each leaf as its own slot inside the framework call instead
+(`priority: ice(impact: slot("impact", kind: "int"), …)`, as in
+`.mindtape/templates/task.typ`) — `discover_slots` walks nested calls, so a
+flat `--set impact=8` fills it.
+
 `--edit` (or `[add] interactive`) opens an editor on a commented YAML scaffold of
 the slots (block scalars for `text` slots), then parses the saved buffer back
 into the same fill values; editor resolves `[add] editor` → `$VISUAL` → `$EDITOR`

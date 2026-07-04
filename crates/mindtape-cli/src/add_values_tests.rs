@@ -81,6 +81,43 @@ fn collect_set_overrides_json() {
 }
 
 #[test]
+fn collect_set_brackets_accumulate_into_list() {
+    let values = collect_values(
+        &[],
+        &[
+            "tags[]=a".to_owned(),
+            "tags[]=b".to_owned(),
+            "tags[]=b,c".to_owned(),
+        ],
+    )
+    .unwrap();
+    assert_eq!(
+        values.get("tags"),
+        Some(&RawValue::List(vec![
+            "a".to_owned(),
+            "b".to_owned(),
+            "b,c".to_owned(), // a literal comma in a value is never split
+        ]))
+    );
+}
+
+#[test]
+fn collect_set_brackets_append_to_json_list() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("v.json");
+    std::fs::write(&path, r#"{"tags":["a"]}"#).unwrap();
+    let values = collect_values(
+        &[path.to_string_lossy().into_owned()],
+        &["tags[]=b".to_owned()],
+    )
+    .unwrap();
+    assert_eq!(
+        values.get("tags"),
+        Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
+    );
+}
+
+#[test]
 fn collect_reads_json_array_as_list() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("v.json");

@@ -110,6 +110,11 @@ Inspect slots first only when filing into an unfamiliar custom template:
 `mt add --describe -t <template>` (or `mt add --list` to see what exists). For the
 built-in default template, go straight to `mt add <title>`.
 
+Multiple tags: `+word` positional args are sugar for the `tags` slot, e.g.
+`mt add fix login +backend +auth`; or repeat `--set tags[]=backend --set
+tags[]=auth`. A bare `--set tags=backend,auth` is one literal tag, not two — a
+`list` slot always needs `[]=` (or `-f values.json` with a JSON array).
+
 ## Changing status — `mt flip` and status verbs
 
 `mt flip <status> <task…>` stamps a new status, dated today. The status must be a

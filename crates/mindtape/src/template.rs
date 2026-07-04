@@ -163,6 +163,15 @@ impl fmt::Display for FillError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Missing(names) => write!(f, "missing required slot(s): {}", names.join(", ")),
+            Self::Type {
+                slot,
+                want: SlotKind::List,
+                got,
+            } => write!(
+                f,
+                "slot {slot:?} expects a list; use --set {slot}[]=value (repeatable) or \
+                 -f/--values with a JSON array, got {got}"
+            ),
             Self::Type { slot, want, got } => {
                 write!(f, "slot {slot:?} expects {}, got {got}", want.as_str())
             }
@@ -402,7 +411,6 @@ fn coerce_bool(spec: &SlotSpec, value: &RawValue) -> Result<bool, FillError> {
 fn coerce_list(spec: &SlotSpec, value: &RawValue) -> Result<Vec<String>, FillError> {
     match value {
         RawValue::List(items) => Ok(items.clone()),
-        RawValue::Str(text) => Ok(vec![text.clone()]),
         _ => Err(type_error(spec, value)),
     }
 }

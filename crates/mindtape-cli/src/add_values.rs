@@ -107,9 +107,27 @@ pub fn collect_values(values: &[String], sets: &[String]) -> Result<BTreeMap<Str
         let (key, value) = set
             .split_once('=')
             .with_context(|| format!("--set must be key=value, got {set:?}"))?;
-        out.insert(key.to_owned(), RawValue::Str(value.to_owned()));
+        match key.strip_suffix("[]") {
+            Some(name) => append_list_value(&mut out, name, value.to_owned()),
+            None => {
+                out.insert(key.to_owned(), RawValue::Str(value.to_owned()));
+            }
+        }
     }
     Ok(out)
+}
+
+/// Append `item` to slot `name`'s list value (the `--set name[]=item`/`+tag`
+/// shape), creating the list on first use. A slot already set to a non-list
+/// value is replaced outright — the last shape written wins.
+pub fn append_list_value(values: &mut BTreeMap<String, RawValue>, name: &str, item: String) {
+    match values
+        .entry(name.to_owned())
+        .or_insert_with(|| RawValue::List(Vec::new()))
+    {
+        RawValue::List(items) => items.push(item),
+        slot => *slot = RawValue::List(vec![item]),
+    }
 }
 
 fn read_source(source: &str) -> Result<String> {

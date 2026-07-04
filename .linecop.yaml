@@ -5,7 +5,7 @@ limits:
 # README is the one user-facing doc that grows a line per command; give it
 # headroom while agent-facing Markdown stays under the 200 hygiene ceiling.
 overrides:
-  - pattern: "README.md"
+  - pattern: "**/README.md"
     limit: 250
 
 count_mode: total

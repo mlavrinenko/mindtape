@@ -61,8 +61,10 @@ mt init               # writes .mindtape/config.toml in the current dir
 # File a new task from a Typst slot template (fills slots, injects status + id)
 mt add --describe                       # slot schema (--describe=json for agents)
 mt add --set title="Wire OAuth" --set priority=7      # raw --set values
+mt add --set tags[]=backend --set tags[]=auth  # repeat key[]= to append to a list slot
 echo '{"title":"Wire OAuth","priority":7}' | mt add -f -   # JSON values
 mt add cleanup kitchen                  # positional title → cleanup-kitchen.typ (or pipe stdin / MINDTAPE_ADD_<SLOT> env)
+mt add fix login +backend +auth         # +tag words move into a tags slot, if the template has one
 mt add --edit                           # fill the slots in your editor (YAML buffer)
 mt add -t bug --name oauth-bug --to auth # named template, explicit stem, nested under <root>/auth/
 

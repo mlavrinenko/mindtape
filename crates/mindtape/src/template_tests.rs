@@ -133,6 +133,23 @@ fn empty_list_renders_unit() {
 }
 
 #[test]
+fn bare_string_into_list_slot_errors_with_brackets_hint() {
+    let err = fill_wrapped(
+        r#"tags: slot("tags", kind: "list")"#,
+        &[("tags", RawValue::Str("a,b,c".to_owned()))],
+    )
+    .unwrap_err();
+    assert!(matches!(
+        err,
+        FillError::Type {
+            want: SlotKind::List,
+            ..
+        }
+    ));
+    assert!(err.to_string().contains("tags[]="), "{err}");
+}
+
+#[test]
 fn choice_outside_set_errors() {
     let err = fill_wrapped(
         r#"k: slot("k", kind: "choice", choices: ("bug", "feat"))"#,
