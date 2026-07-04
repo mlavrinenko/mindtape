@@ -6,7 +6,7 @@ groups:
       crates/mindtape-cli/src/cli.rs: 7ed4f46ca09b0f8eee7e4bb929b5169c6151903768d000e94493d2d61e7f4423
       crates/mindtape/src/lib.rs: a948b140abb58de23e6b530e77512d39e6c4689426f1cf861102cdfd18c4a91c
     dependents:
-      README.md: c9d680a4ac4f206f1a917238b32b19799b18ecae88c9441a773b7184ef1e7d1d
+      README.md: 606b65f91933b2a2c741b1141dc2c0444107fa5a630738e439119172a09b8fbb
       skills/mindtape/SKILL.md: 2d16362baefe582ef291fea6dd8d60e6320faca26d5b0c3aaa86df94e37a5e82
       www/index.html: d22c3feea483a6dffac3245f84cef3abd707f5582c93d49bb69034a62d73d13e
   cli-name:
@@ -18,7 +18,7 @@ groups:
       AGENTS.md: fae7ab41285f67456357c05d89cb3f71f67916cb2654f0384627aaf1fd929828
       CHANGELOG.md: 030136a1f388e49503c3480d3937459aad5e9a0f6061b8c8bbddfbb521ac9222
       CONTRIBUTING.md: 80f7e2f9d31f4997c0e0a518a961e520e325bba6802a8f46169325082393173b
-      README.md: c9d680a4ac4f206f1a917238b32b19799b18ecae88c9441a773b7184ef1e7d1d
+      README.md: 606b65f91933b2a2c741b1141dc2c0444107fa5a630738e439119172a09b8fbb
       skills/mindtape/SKILL.md: 2d16362baefe582ef291fea6dd8d60e6320faca26d5b0c3aaa86df94e37a5e82
       www/index.html: d22c3feea483a6dffac3245f84cef3abd707f5582c93d49bb69034a62d73d13e
   dev-docs:
@@ -33,7 +33,7 @@ groups:
       lib/prelude.typ: ef8b9f9043508b0546a4d8600e4b352d16981574dca00b0dd27f90a8af2d8573
     dependents:
       AGENTS.md: fae7ab41285f67456357c05d89cb3f71f67916cb2654f0384627aaf1fd929828
-      README.md: c9d680a4ac4f206f1a917238b32b19799b18ecae88c9441a773b7184ef1e7d1d
+      README.md: 606b65f91933b2a2c741b1141dc2c0444107fa5a630738e439119172a09b8fbb
       skills/mindtape/SKILL.md: 2d16362baefe582ef291fea6dd8d60e6320faca26d5b0c3aaa86df94e37a5e82
   release-notes:
     source:

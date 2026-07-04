@@ -112,8 +112,10 @@ mt rm terminal --dry-run               # preview without writing
 
 ### Configuration
 
-`.mindtape/config.toml` white-lists what MindTape constrains; omit a section to
-leave it unconstrained.
+`.mindtape/config.toml` overlays a shipped defaults floor: omit a section to
+inherit the floor's sane defaults (status legend, priority/difficulty scales,
+filters), declare it to override, or set it empty (e.g. `status = []`) to leave
+that aspect unconstrained.
 
 ```toml
 [tasks]
