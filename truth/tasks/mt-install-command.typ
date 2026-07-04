@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "`mt install` — set up the user environment (lib + XDG defaults)",
-  status: proposed(2026, 7, 4),
+  status: wip(2026, 7, 4),
   priority: ice(impact: 6, confidence: 0.8, ease: 6),
   tags: ("cli",),
   depends-on: (
