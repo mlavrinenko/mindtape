@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Slim `mt init` scaffold with `--full` opt-in, now that defaults are floored",
-  status: proposed(2026, 7, 4),
+  status: wip(2026, 7, 4),
   priority: ice(impact: 5, confidence: 0.75, ease: 6),
   tags: ("cli",),
   depends-on: (link("config-embedded-defaults.typ"),),

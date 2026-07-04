@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Layered defaults discovery: walk-up `defaults.toml` + XDG under the project config",
-  status: proposed(2026, 7, 4),
+  status: wip(2026, 7, 4),
   priority: ice(impact: 7, confidence: 0.75, ease: 5),
   tags: ("substrate",),
   depends-on: (link("config-embedded-defaults.typ"),),
