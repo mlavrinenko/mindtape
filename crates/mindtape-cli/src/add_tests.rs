@@ -41,9 +41,21 @@ fn bare_args() -> AddArgs {
 
 #[test]
 fn injects_default_status_proposed() {
-    let out = inject_header(HEADER, &Config::default(), None).unwrap();
+    // The embedded floor's legend leads with `proposed`; the initial status is
+    // derived from it, not a hardcoded literal.
+    let config = mindtape::parse_config("").unwrap();
+    let out = inject_header(HEADER, &config, None).unwrap();
     assert!(out.contains("status: proposed("), "{out}");
     assert!(!out.contains("status(\"proposed\""), "{out}");
+}
+
+#[test]
+fn leaves_status_unfilled_when_legend_is_empty() {
+    // A project that clears the legend (`status = []`) gets no invented
+    // `"proposed"` — the status arg is left out entirely, and `mt check` will
+    // report the real "missing required status" problem.
+    let out = inject_header(HEADER, &Config::default(), None).unwrap();
+    assert!(!out.contains("status:"), "{out}");
 }
 
 #[test]

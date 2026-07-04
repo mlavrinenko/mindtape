@@ -230,6 +230,43 @@ fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
         .success();
 }
 
+/// A config whose legend has no `"proposed"` entry at all — the initial
+/// status `add` stamps must be derived from this legend, not a hardcoded
+/// literal that would fail `check`.
+const CUSTOM_LEGEND_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
+     [[tasks.status]]\nvalue = \"todo\"\n\
+     [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
+
+#[test]
+fn derives_initial_status_from_a_custom_legend() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    std::fs::write(
+        dir.path().join(".mindtape/config.toml"),
+        CUSTOM_LEGEND_CONFIG,
+    )
+    .unwrap();
+
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["add", "--name", "custom-legend", "--set", "title=T"])
+        .assert()
+        .success();
+
+    let written = std::fs::read_to_string(dir.path().join("tasks/custom-legend.typ")).unwrap();
+    assert!(written.contains("status: todo("), "{written}");
+    assert!(!written.contains("proposed"), "{written}");
+
+    // The filed task passes `check` even though the legend has no `proposed`.
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .arg("check")
+        .assert()
+        .success();
+}
+
 #[test]
 fn collision_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();

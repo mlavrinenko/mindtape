@@ -176,10 +176,11 @@ fn inject_header(source: &str, config: &Config, status_override: Option<&str>) -
 
     let status_name = status_override
         .map(ToOwned::to_owned)
-        .or_else(|| initial_status(config))
-        .unwrap_or_else(|| "proposed".to_owned());
-    let value = status_value(&status_name, today_ymd(), None);
-    edits.push(upsert_named_arg(source, &call, "status", &value)?);
+        .or_else(|| initial_status(config));
+    if let Some(status_name) = status_name {
+        let value = status_value(&status_name, today_ymd(), None);
+        edits.push(upsert_named_arg(source, &call, "status", &value)?);
+    }
 
     if let Some(id) = config.tasks.id.format.generate() {
         edits.push(upsert_named_arg(source, &call, "id", &format!("\"{id}\""))?);
@@ -188,13 +189,17 @@ fn inject_header(source: &str, config: &Config, status_override: Option<&str>) -
     apply(source, edits).map_err(|err| anyhow!(err.to_string()))
 }
 
+/// The status name to stamp on a freshly filed task: the legend's own initial
+/// (first non-terminal) value, falling back to the legend's first entry when
+/// every entry happens to be terminal. `None` only when the legend is
+/// genuinely empty (a project that cleared it with `status = []`) — the
+/// caller must then leave the status slot unfilled and let validation report
+/// the real problem, rather than inventing a value.
 fn initial_status(config: &Config) -> Option<String> {
-    config
-        .tasks
-        .status
-        .entries
-        .iter()
-        .find(|entry| !entry.terminal)
+    let legend = &config.tasks.status;
+    legend
+        .initial()
+        .or_else(|| legend.entries.first())
         .map(|entry| entry.value.clone())
 }
 

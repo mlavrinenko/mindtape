@@ -64,4 +64,17 @@ impl Legend {
             .map(|entry| entry.value.clone())
             .collect()
     }
+
+    /// The natural starting status for a freshly filed task: the first entry
+    /// in lifecycle order with `terminal == false`. `None` when every entry is
+    /// terminal (unusual) or the legend is empty (a project that cleared it
+    /// with `status = []`) — callers must not invent a value in that case.
+    #[must_use]
+    pub fn initial(&self) -> Option<&LegendEntry> {
+        self.entries.iter().find(|entry| !entry.terminal)
+    }
 }
+
+#[cfg(test)]
+#[path = "config_status_tests.rs"]
+mod tests;
