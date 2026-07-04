@@ -133,6 +133,40 @@ fn bands_with_a_gap_are_rejected() {
 }
 
 #[test]
+fn real_scale_with_floor_shaped_int_bands_hints_at_the_fix() {
+    let mut field = int_bands();
+    field.kind = ScaleKind::Real;
+    let problems = field.validate("priority");
+    assert!(
+        problems
+            .iter()
+            .any(|m| m.contains("not contiguous") && m.contains("bands = []")),
+        "{problems:?}"
+    );
+}
+
+#[test]
+fn real_scale_with_a_genuine_gap_has_no_floor_hint() {
+    let mut field = int_bands();
+    field.kind = ScaleKind::Real;
+    field.bands = vec![band("low", 0.0, 1.0), band("high", 5.0, 9.0)];
+    let problems = field.validate("priority");
+    assert!(
+        problems.iter().any(|m| m.contains("not contiguous")),
+        "{problems:?}"
+    );
+    assert!(
+        problems.iter().all(|m| !m.contains("bands = []")),
+        "{problems:?}"
+    );
+}
+
+#[test]
+fn int_scale_with_floor_shaped_bands_is_still_valid() {
+    assert!(int_bands().validate("priority").is_empty());
+}
+
+#[test]
 fn bands_not_covering_scale_are_rejected() {
     let mut field = int_bands();
     field.bands = vec![band("low", 0.0, 2.0), band("normal", 3.0, 6.0)];

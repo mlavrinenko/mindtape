@@ -327,10 +327,23 @@ impl NumericField {
             if let [lower, upper] = pair
                 && upper.min != lower.max + step
             {
-                out.push(format!(
+                let mut message = format!(
                     "{field}: bands `{}` and `{}` are not contiguous",
                     lower.label, upper.label
-                ));
+                );
+                // Classic integer tiling (`prev.max + 1 == next.min`) under a
+                // real scale is the shape of the embedded floor's int bands
+                // surviving a `kind = real` override, not a genuine real gap —
+                // point the user at the fix instead of leaving them to guess.
+                if self.kind == ScaleKind::Real && upper.min == lower.max + 1.0 {
+                    message.push_str(
+                        "; these bands tile an integer scale but `kind = real`; \
+                         if they are inherited from the defaults floor, set \
+                         `bands = []` to clear them or define bands that tile \
+                         your real scale.",
+                    );
+                }
+                out.push(message);
             }
         }
     }
