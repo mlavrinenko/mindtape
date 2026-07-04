@@ -182,8 +182,12 @@ fn injects_config_required_priority_slot() {
 /// A config whose `[tasks.priority]` is real-scaled and required: the
 /// barebones template omits priority, so `add` must splice in a `real`-kind
 /// slot, not the `int` it would wrongly emit for an int-scaled field.
+///
+/// `bands = []` clears the embedded floor's int-contiguous bands (0-2/3-6/7-9),
+/// which are non-contiguous under real semantics; a real-scale project either
+/// defines real bands or drops them.
 const REAL_PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
-     [tasks.priority]\nkind = \"real\"\nmin = 0\nmax = 9\nrequired = true\n";
+     [tasks.priority]\nkind = \"real\"\nmin = 0\nmax = 9\nrequired = true\nbands = []\n";
 
 #[test]
 fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
