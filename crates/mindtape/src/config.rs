@@ -30,8 +30,9 @@ pub use crate::config_status::{Legend, LegendEntry};
 /// carry an opinionated shipped default (status legend, priority/difficulty
 /// scale and classification, roots, templates, `rm`/`ls` defaults). Deep-merged
 /// as the base under the user's config before typed deserialization — see
-/// [`parse_config`]. Mirrors `BUILTIN_FRAMEWORKS` (`framework.rs`).
-const EMBEDDED_DEFAULTS: &str = include_str!("defaults.toml");
+/// [`parse_config`]. Mirrors `BUILTIN_FRAMEWORKS` (`framework.rs`). Also the
+/// lowest layer in [`crate::config_layers`]'s multi-file assembly.
+pub(crate) const EMBEDDED_DEFAULTS: &str = include_str!("defaults.toml");
 
 /// Top-level project configuration.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
@@ -409,19 +410,18 @@ pub fn parse_config(text: &str) -> Result<Config, ConfigError> {
     Ok(toml::Value::Table(doc).try_into()?)
 }
 
-/// Load and parse `<root>/.mindtape/config.toml`, or the embedded floor
-/// ([`EMBEDDED_DEFAULTS`]) alone if absent.
+/// Load the effective config for `root`: the embedded floor, the XDG global
+/// defaults, every ancestor `.mindtape/defaults.toml`, and the project's own
+/// `.mindtape/config.toml`, deep-merged in that precedence order. The `.0` of
+/// [`crate::config_layers::load_config_layered`], which also returns each
+/// layer's provenance (for `mt config show --origin`); see that module for the
+/// full assembly.
 ///
 /// # Errors
-/// Returns [`ConfigError`] if the file exists but cannot be read or parsed.
+/// Returns [`ConfigError`] if a layer exists but cannot be read or parsed, or
+/// the merged config fails semantic validation.
 pub fn load_config(root: &Path) -> Result<Config, ConfigError> {
-    let path = config_path(root);
-    if !path.exists() {
-        return parse_config("");
-    }
-    let config = parse_config(&std::fs::read_to_string(&path)?)?;
-    config.validate().map_err(ConfigError::Invalid)?;
-    Ok(config)
+    crate::config_layers::load_config_layered(root).map(|(config, _sources)| config)
 }
 
 /// The conventional config path for a project root.

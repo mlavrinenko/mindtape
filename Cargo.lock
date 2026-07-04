@@ -2500,6 +2500,7 @@ name = "mindtape"
 version = "0.4.0"
 dependencies = [
  "artifact-gate",
+ "dirs",
  "evalexpr",
  "globset",
  "serde",

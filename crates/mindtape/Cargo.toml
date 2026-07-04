@@ -25,6 +25,7 @@ toml = "0.8"
 thiserror = "2"
 evalexpr = "12"
 uuid = { version = "1", features = ["v4", "v7"] }
+dirs = "5"
 
 [dev-dependencies]
 tempfile = "3"

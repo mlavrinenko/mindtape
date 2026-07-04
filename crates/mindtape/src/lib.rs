@@ -13,6 +13,7 @@ mod body_headers;
 pub mod config;
 mod config_add;
 mod config_go;
+mod config_layers;
 mod config_ls;
 mod config_roots;
 mod config_status;
@@ -41,6 +42,7 @@ pub use config::{
     InteractiveMode, LS_COLUMNS, LocalPackage, PriorityConfig, RootConfig, RootSpec,
     TemplatesConfig, TypstConfig, Visibility, config_path, load_config, parse_config,
 };
+pub use config_layers::{LayerSource, load_config_layered};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use derive::RootDeriver;
 pub use filter::{Filter, FilterError};

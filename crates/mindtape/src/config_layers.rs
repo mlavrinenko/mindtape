@@ -1,0 +1,168 @@
+//! Multi-file config layer discovery and merge: the assembly around
+//! [`crate::config::parse_config`]'s embedded-floor-plus-one-string core.
+//!
+//! Precedence, lowest to highest:
+//! 1. The compiled-in embedded floor (`config.rs`'s `EMBEDDED_DEFAULTS`).
+//! 2. XDG global defaults: `dirs::config_dir()/mindtape/defaults.toml`.
+//! 3. Every `.mindtape/defaults.toml` found walking up from the project root,
+//!    farthest ancestor first, so the nearest one wins.
+//! 4. The project's own `<root>/.mindtape/config.toml`.
+//!
+//! IO (locating and reading files, [`discover_layers`]) is kept separate from
+//! the pure fold ([`merge_layers`]) so the merge order is testable without
+//! touching a filesystem.
+
+use std::collections::HashSet;
+use std::path::{Path, PathBuf};
+
+use crate::config::{Config, ConfigError, EMBEDDED_DEFAULTS, config_path};
+use crate::framework::merge_builtin_frameworks;
+use crate::merge::deep_merge_tables;
+
+/// One config text layer plus where it came from.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Layer {
+    /// Where this layer's text was read from (or [`LayerSource::Embedded`]).
+    pub source: LayerSource,
+    /// Raw TOML text, not yet parsed.
+    pub text: String,
+}
+
+/// Provenance for one merged-in config layer. Backs `mt config show --origin`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum LayerSource {
+    /// The compiled-in default floor.
+    Embedded,
+    /// `dirs::config_dir()/mindtape/defaults.toml`.
+    Xdg(PathBuf),
+    /// One ancestor's `.mindtape/defaults.toml`, found walking up from root.
+    Dir(PathBuf),
+    /// The project's own `.mindtape/config.toml`.
+    Project(PathBuf),
+}
+
+/// Locate every config layer that applies to `root`, in precedence order
+/// (lowest first). Reads the real XDG global config dir
+/// (`dirs::config_dir()`); see [`load_config_layered`] for the entry point
+/// that also supplies the real home directory.
+///
+/// `home` bounds the ancestor walk-up (never ascended past); pass
+/// `dirs::home_dir()` in production, an injected path in tests.
+#[must_use]
+pub fn discover_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
+    discover_layers_with_xdg(root, home, dirs::config_dir().as_deref())
+}
+
+/// [`discover_layers`] with the XDG global config dir injected, so tests can
+/// point it at a tempdir instead of depending on the real environment.
+fn discover_layers_with_xdg(
+    root: &Path,
+    home: Option<&Path>,
+    xdg_config_dir: Option<&Path>,
+) -> Vec<Layer> {
+    let mut layers = vec![Layer {
+        source: LayerSource::Embedded,
+        text: EMBEDDED_DEFAULTS.to_owned(),
+    }];
+    layers.extend(xdg_layer(xdg_config_dir));
+    layers.extend(dir_layers(root, home));
+    layers.extend(project_layer(root));
+    layers
+}
+
+/// The XDG global defaults layer, if `dirs::config_dir()` resolved and
+/// `mindtape/defaults.toml` exists under it.
+fn xdg_layer(xdg_config_dir: Option<&Path>) -> Option<Layer> {
+    let path = xdg_config_dir?.join("mindtape").join("defaults.toml");
+    let text = std::fs::read_to_string(&path).ok()?;
+    Some(Layer {
+        source: LayerSource::Xdg(path),
+        text,
+    })
+}
+
+/// The project's own `.mindtape/config.toml`, if it exists.
+fn project_layer(root: &Path) -> Option<Layer> {
+    let path = config_path(root);
+    let text = std::fs::read_to_string(&path).ok()?;
+    Some(Layer {
+        source: LayerSource::Project(path),
+        text,
+    })
+}
+
+/// Every ancestor `.mindtape/defaults.toml` from `root` up to (and including)
+/// `home`, or the filesystem root when `root` is not under `home`. Returned
+/// farthest-ancestor first, so the nearest overlays last (wins). Paths are
+/// canonicalised before comparison and de-duplication, so a symlinked home (or
+/// a symlink loop in the ancestry) does not double-count a layer.
+fn dir_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
+    let canonical_home = home.and_then(|h| h.canonicalize().ok());
+    let mut dir = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    let mut seen = HashSet::new();
+    let mut found = Vec::new();
+    loop {
+        if !seen.insert(dir.clone()) {
+            break;
+        }
+        let candidate = dir.join(".mindtape").join("defaults.toml");
+        if let Ok(text) = std::fs::read_to_string(&candidate) {
+            found.push(Layer {
+                source: LayerSource::Dir(candidate),
+                text,
+            });
+        }
+        if canonical_home.as_deref() == Some(dir.as_path()) {
+            break;
+        }
+        match dir.parent() {
+            Some(parent) => dir = parent.to_path_buf(),
+            None => break,
+        }
+    }
+    found.reverse();
+    found
+}
+
+/// Fold layers into one TOML document in the order given (later overrides
+/// earlier), with [`deep_merge_tables`]. Pure — no IO.
+///
+/// # Errors
+/// Returns [`ConfigError::Parse`] if any layer's text is not valid TOML.
+pub fn merge_layers(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
+    let mut base = toml::Table::new();
+    for layer in layers {
+        let overlay: toml::Table = toml::from_str(&layer.text)?;
+        deep_merge_tables(&mut base, overlay);
+    }
+    Ok(base)
+}
+
+/// [`merge_layers`], then splice in the built-in priority frameworks,
+/// deserialize, and run semantic validation — the shared tail with
+/// [`crate::config::parse_config`].
+fn build_config(layers: &[Layer]) -> Result<Config, ConfigError> {
+    let mut doc = merge_layers(layers)?;
+    merge_builtin_frameworks(&mut doc);
+    let config: Config = toml::Value::Table(doc).try_into()?;
+    config.validate().map_err(ConfigError::Invalid)?;
+    Ok(config)
+}
+
+/// Assemble the full layered config for `root`: discover every layer, merge
+/// them, and build the typed [`Config`]. Returns the layer provenance
+/// alongside the config, for `mt config show --origin`.
+///
+/// # Errors
+/// Returns [`ConfigError`] if any layer fails to parse, the merged document
+/// fails to deserialize, or semantic validation fails.
+pub fn load_config_layered(root: &Path) -> Result<(Config, Vec<LayerSource>), ConfigError> {
+    let layers = discover_layers(root, dirs::home_dir().as_deref());
+    let sources = layers.iter().map(|layer| layer.source.clone()).collect();
+    let config = build_config(&layers)?;
+    Ok((config, sources))
+}
+
+#[cfg(test)]
+#[path = "config_layers_tests.rs"]
+mod tests;
