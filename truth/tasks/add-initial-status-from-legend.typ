@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "`mt add` initial status: derive from the merged legend, not the literal `\"proposed\"`",
-  status: wip(2026, 7, 4),
+  status: done(2026, 7, 4),
   priority: ice(impact: 5, confidence: 0.8, ease: 7),
   tags: ("cli",),
   depends-on: (link("config-embedded-defaults.typ"),),

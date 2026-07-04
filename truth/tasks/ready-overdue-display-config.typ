@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Config seam for the READY column and overdue accent (glyph / colour / label)",
-  status: wip(2026, 7, 4),
+  status: done(2026, 7, 4),
   priority: ice(impact: 4, confidence: 0.7, ease: 5),
   tags: ("cli",),
   depends-on: (link("config-embedded-defaults.typ"),),
