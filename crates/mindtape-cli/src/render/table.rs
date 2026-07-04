@@ -10,7 +10,7 @@ use anstyle::{Effects, Style};
 use mindtape::{Config, Readiness, Task};
 
 use super::color::{Painter, is_color_active};
-use super::columns::{ColumnId, ORDER};
+use super::columns::{ColumnId, resolve_order};
 use super::field::{CellSpec, DensityMode, cell_content, content_width, render_cell};
 use super::glyph::GlyphMode;
 use super::width::{display_width, pad_to_width, truncate_to_width};
@@ -61,7 +61,7 @@ fn render_inner(
     let glyph_mode = glyph_mode();
     let painter = Painter::new(is_color_active());
     let handles: Vec<(String, &Task)> = make_handles(tasks, DEFAULT_CHECK_LEN);
-    let visible = resolve_columns(config, &handles, readiness);
+    let visible = resolve_order(config, &handles, readiness);
     let mut columns = build_columns(&visible, &handles, config, readiness, glyph_mode);
     apply_highlight(&mut columns, highlighted);
     render_grid(&columns, glyph_mode, painter)
@@ -90,32 +90,6 @@ fn glyph_mode() -> GlyphMode {
     } else {
         GlyphMode::None
     }
-}
-
-/// The render order (built-in or `[ls] columns-order`), filtered to the columns
-/// that resolve visible for this task list.
-fn resolve_columns(
-    config: &Config,
-    handles: &[(String, &Task)],
-    readiness: &Readiness,
-) -> Vec<ColumnId> {
-    let order: Vec<ColumnId> = if config.ls.columns_order.is_empty() {
-        ORDER.to_vec()
-    } else {
-        config
-            .ls
-            .columns_order
-            .iter()
-            .filter_map(|key| ColumnId::from_key(key))
-            .collect()
-    };
-    order
-        .into_iter()
-        .filter(|col| {
-            let significant = col.auto_significant(handles, config, readiness);
-            col.visible(config, significant)
-        })
-        .collect()
 }
 
 /// Build each visible column's cells and width. The flex column (`title`)

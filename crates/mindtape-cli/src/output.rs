@@ -3,9 +3,12 @@
 use anyhow::Result;
 use mindtape::config::Config;
 use mindtape::numeric::{NumValue, format_num};
-use mindtape::{Readiness, Task};
+use mindtape::{Readiness, ReadyState, Task};
 use serde_json::{Map, Value, json};
 use typst_harvest::HVal;
+
+use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
+use crate::render::columns::{ColumnId, resolve_order};
 
 /// Output format for `list` and `eval`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
@@ -39,7 +42,7 @@ pub fn render(
     match format {
         OutputFormat::Table => Ok(crate::render::table::render(tasks, config, readiness)),
         OutputFormat::Json => render_json(tasks, config),
-        OutputFormat::Csv => render_csv(tasks, config),
+        OutputFormat::Csv => render_csv(tasks, config, readiness),
     }
 }
 
@@ -51,20 +54,77 @@ fn render_json(tasks: &[Task], config: &Config) -> Result<String> {
     Ok(serde_json::to_string_pretty(&Value::Array(array))?)
 }
 
-fn render_csv(tasks: &[Task], config: &Config) -> Result<String> {
+/// Render CSV over the same resolved column set/order the table renderer
+/// uses ([`resolve_order`]: `[ls] columns-order` + per-column `Visibility`
+/// against [`mindtape::LS_COLUMNS`]), so `--format csv` and the default table
+/// never disagree on which columns appear or in what sequence.
+///
+/// Column *mapping decision*: CSV column values are the plain/raw field
+/// (e.g. the status legend's raw name, the numeric priority score) rather
+/// than the table's coloured/labelled cell text — matching CSV's prior
+/// behaviour and staying friendly to non-interactive consumers. The one
+/// deliberate divergence is the `#` column: the table's handle
+/// (`<ordinal><check>`) is ephemeral per render, so CSV emits the task's
+/// stable `id` under an `id` header instead.
+///
+/// Fields with no [`mindtape::LS_COLUMNS`] entry — `kind`, `estimate`, `tags`,
+/// derived tags, and any `x-<ns>` extra — have no column to drive from and so
+/// are not represented here, same as the table. `--format json` is the
+/// escape hatch: it always emits every field.
+fn render_csv(tasks: &[Task], config: &Config, readiness: &Readiness) -> Result<String> {
+    let handles = make_handles(tasks, DEFAULT_CHECK_LEN);
+    let columns = resolve_order(config, &handles, readiness);
     let mut writer = csv::Writer::from_writer(Vec::new());
-    writer.write_record(["id", "status", "priority", "due", "title"])?;
-    for task in tasks {
-        writer.write_record([
-            task.id.as_str(),
-            &status_name(task),
-            &priority_display(task.priority.as_ref(), config),
-            task.due.as_deref().unwrap_or_default(),
-            task.title.as_str(),
-        ])?;
+    writer.write_record(columns.iter().copied().map(csv_header))?;
+    for (_, task) in &handles {
+        let row: Vec<String> = columns
+            .iter()
+            .map(|&id| csv_value(id, task, config, readiness))
+            .collect();
+        writer.write_record(row)?;
     }
     let bytes = writer.into_inner()?;
     Ok(String::from_utf8_lossy(&bytes).into_owned())
+}
+
+/// CSV header text for a resolved column. Diverges from [`ColumnId::header`]
+/// only for `Handle`: `id` describes the CSV cell's content (the task's
+/// stable id), where the table's `#` describes an ephemeral ordinal.
+fn csv_header(id: ColumnId) -> &'static str {
+    match id {
+        ColumnId::Handle => "id",
+        ColumnId::Status => "status",
+        ColumnId::Ready => "ready",
+        ColumnId::Priority => "priority",
+        ColumnId::Due => "due",
+        ColumnId::Title => "title",
+    }
+}
+
+/// CSV cell text for a resolved column: the plain/raw field value (see the
+/// mapping decision on [`render_csv`]), not the table's styled [`CellSpec`].
+///
+/// [`CellSpec`]: crate::render::field::CellSpec
+fn csv_value(id: ColumnId, task: &Task, config: &Config, readiness: &Readiness) -> String {
+    match id {
+        ColumnId::Handle => task.id.clone(),
+        ColumnId::Status => status_name(task),
+        ColumnId::Ready => ready_text(readiness.state(task)).to_owned(),
+        ColumnId::Priority => priority_display(task.priority.as_ref(), config),
+        ColumnId::Due => task.due.clone().unwrap_or_default(),
+        ColumnId::Title => task.title.clone(),
+    }
+}
+
+/// Plain readiness text for a CSV cell: settled tasks render blank, matching
+/// the table's `ready` column significance (hidden unless something is
+/// blocked).
+fn ready_text(state: ReadyState) -> &'static str {
+    match state {
+        ReadyState::Ready => "ready",
+        ReadyState::Blocked => "blocked",
+        ReadyState::Settled => "",
+    }
 }
 
 /// Project one task to a JSON object. `config` resolves framework-scored
@@ -197,6 +257,9 @@ mod tests {
         t.priority = Some(NumValue::Num(8.0));
         t.estimate = BTreeMap::from([("hours".to_owned(), 8.0)]);
         t.tags = vec!["x".to_owned()];
+        // Populated so `due` stays significant under the default `auto`
+        // column visibility — several csv tests below assert on its presence.
+        t.due = Some("2026-07-01".to_owned());
         t
     }
 
@@ -269,7 +332,59 @@ mod tests {
         )
         .unwrap();
         assert!(out.contains("id,status,priority,due,title"));
-        assert!(out.contains("t1,wip,8,,Build"));
+        assert!(out.contains("t1,wip,8,2026-07-01,Build"));
+    }
+
+    #[test]
+    fn csv_columns_order_selects_and_orders() {
+        // A custom `[ls] columns-order` must drive CSV exactly like the table
+        // renderer: only the listed columns, in the given sequence.
+        let mut config = Config::default();
+        config.ls.columns_order = vec!["title".to_owned(), "status".to_owned()];
+        let out = render(&[sample()], OutputFormat::Csv, &config, &Readiness::empty()).unwrap();
+        let mut lines = out.lines();
+        assert_eq!(lines.next().unwrap(), "title,status");
+        assert_eq!(lines.next().unwrap(), "Build,wip");
+    }
+
+    #[test]
+    fn csv_includes_ready_when_blocked() {
+        // `ready` is one of `LS_COLUMNS`: like the table, CSV must surface it
+        // once a task is contested, not just the historical fixed 5 columns.
+        let mut blocked = sample();
+        blocked.id = "t2".to_owned();
+        blocked.file = "tasks/t2.typ".into();
+        blocked.depends_on = vec!["missing.typ".to_owned()];
+        let tasks = vec![sample(), blocked];
+        let readiness = Readiness::compute(&tasks, &Config::default());
+        let out = render(&tasks, OutputFormat::Csv, &Config::default(), &readiness).unwrap();
+        assert_eq!(
+            out.lines().next().unwrap(),
+            "id,status,ready,priority,due,title"
+        );
+        assert!(out.contains("t2,wip,blocked,8,2026-07-01,Build"));
+    }
+
+    #[test]
+    fn csv_omits_fields_without_ls_column() {
+        // `kind`, `estimate`, `tags`, and `x-<ns>` extras have no `LS_COLUMNS`
+        // entry, so — like the table — CSV does not represent them; only
+        // `--format json` exposes every field. This pins the documented
+        // limitation from `render_csv`'s doc comment as a regression guard.
+        let mut task = sample();
+        task.kind = Some("bug-report".to_owned());
+        let out = render(
+            &[task],
+            OutputFormat::Csv,
+            &Config::default(),
+            &Readiness::empty(),
+        )
+        .unwrap();
+        assert_eq!(out.lines().next().unwrap(), "id,status,priority,due,title");
+        assert!(
+            !out.contains("bug-report"),
+            "kind has no ls column and must not leak into csv"
+        );
     }
 
     #[test]

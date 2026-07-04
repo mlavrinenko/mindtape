@@ -130,6 +130,36 @@ impl ColumnId {
     }
 }
 
+/// The render order (built-in or `[ls] columns-order`), filtered to the
+/// columns that resolve visible for this task list.
+///
+/// Shared by every `ls` renderer (`table`, `csv`) so they agree on which
+/// columns render and in what order — only their per-cell formatting differs.
+#[must_use]
+pub fn resolve_order(
+    config: &Config,
+    handles: &[(String, &Task)],
+    readiness: &Readiness,
+) -> Vec<ColumnId> {
+    let order: Vec<ColumnId> = if config.ls.columns_order.is_empty() {
+        ORDER.to_vec()
+    } else {
+        config
+            .ls
+            .columns_order
+            .iter()
+            .filter_map(|key| ColumnId::from_key(key))
+            .collect()
+    };
+    order
+        .into_iter()
+        .filter(|col| {
+            let significant = col.auto_significant(handles, config, readiness);
+            col.visible(config, significant)
+        })
+        .collect()
+}
+
 fn plain(text: String) -> CellSpec {
     CellSpec {
         text,
