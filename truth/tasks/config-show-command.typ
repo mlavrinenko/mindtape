@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "`mt config show` — print the effective merged config and its layer sources",
-  status: wip(2026, 7, 4),
+  status: done(2026, 7, 4),
   priority: ice(impact: 5, confidence: 0.8, ease: 6),
   tags: ("cli",),
   depends-on: (
