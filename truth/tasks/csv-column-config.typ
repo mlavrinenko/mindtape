@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "CSV output honours `[ls.columns]` / `columns-order` like the table renderer",
-  status: proposed(2026, 7, 4),
+  status: wip(2026, 7, 4),
   priority: ice(impact: 3, confidence: 0.7, ease: 6),
   tags: ("cli",),
 )
