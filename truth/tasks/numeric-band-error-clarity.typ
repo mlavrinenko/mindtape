@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Clearer error when floor-inherited int bands collide with a real scale",
-  status: proposed(2026, 7, 5),
+  status: wip(2026, 7, 4),
   priority: ice(impact: 4, confidence: 0.75, ease: 7),
   tags: ("substrate",),
   depends-on: (link("config-embedded-defaults.typ"),),
