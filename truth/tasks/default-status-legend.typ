@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Default terminal legend when `[[tasks.status]]` is omitted",
-  status: proposed(2026, 6, 27),
+  status: cancelled(2026, 7, 4)[superseded by config-embedded-defaults (option A)],
   priority: ice(impact: 6, confidence: 0.7, ease: 5),
   tags: ("gating",),
 )
