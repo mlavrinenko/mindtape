@@ -8,6 +8,7 @@
 //! pure over [`Config`], no IO, no source editing.
 
 use crate::config::{Config, FieldConfig, Requirement};
+use crate::numeric::ScaleKind;
 
 /// A core field the config requires, expressed as a `slot(...)` call to set as a
 /// `task.with(…)` argument when the chosen template omits that field.
@@ -41,7 +42,10 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
     if required(tasks.difficulty.required) {
         out.push(RequiredSlot {
             field: "difficulty",
-            call: r#"slot("difficulty", kind: "int", prompt: "difficulty")"#.to_owned(),
+            call: format!(
+                r#"slot("difficulty", kind: "{}", prompt: "difficulty")"#,
+                scale_kind_str(tasks.difficulty.kind)
+            ),
         });
     }
     if let Some(field) = tasks.fields.get("kind")
@@ -70,7 +74,20 @@ fn priority_slot(config: &Config) -> Option<String> {
     if priority.framework.is_some() && !priority.allow_manual {
         return None;
     }
-    Some(r#"slot("priority", kind: "int", prompt: "priority")"#.to_owned())
+    Some(format!(
+        r#"slot("priority", kind: "{}", prompt: "priority")"#,
+        scale_kind_str(priority.field.kind)
+    ))
+}
+
+/// The DSL spelling of a numeric field's scale, mirroring `ScaleKind`'s own
+/// config spelling (`int`/`real`) so a slot's kind faithfully reports the
+/// field's declared scale, not a generic template value kind.
+fn scale_kind_str(kind: ScaleKind) -> &'static str {
+    match kind {
+        ScaleKind::Int => "int",
+        ScaleKind::Real => "real",
+    }
 }
 
 fn kind_slot(field: &FieldConfig) -> String {

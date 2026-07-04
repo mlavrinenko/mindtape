@@ -36,6 +36,26 @@ fn priority_required_yields_int_slot() {
 }
 
 #[test]
+fn priority_required_yields_real_slot_for_real_kind() {
+    let config =
+        parse_config("[tasks.priority]\nkind = \"real\"\nmin = 0\nmax = 9\nrequired = true\n")
+            .unwrap();
+    let slot = single(&config);
+    assert_eq!(slot.field, "priority");
+    assert!(slot.call.contains("kind: \"real\""), "{}", slot.call);
+}
+
+#[test]
+fn difficulty_required_yields_real_slot_for_real_kind() {
+    let config =
+        parse_config("[tasks.difficulty]\nkind = \"real\"\nmin = 0\nmax = 9\nrequired = true\n")
+            .unwrap();
+    let slot = single(&config);
+    assert_eq!(slot.field, "difficulty");
+    assert!(slot.call.contains("kind: \"real\""), "{}", slot.call);
+}
+
+#[test]
 fn non_terminal_requirement_counts_as_required() {
     let config = parse_config(
         "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = \"non-terminal\"\n",

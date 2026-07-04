@@ -26,6 +26,11 @@ pub enum SlotKind {
     Int,
     /// A float, e.g. `0.7`.
     Float,
+    /// A real-scale number, e.g. `2.5`. Renders identically to [`Self::Float`];
+    /// kept as its own variant so a numeric field's `ScaleKind` (spelled
+    /// `int`/`real` in config) round-trips faithfully through a synthetic
+    /// slot's kind, rather than reporting the generic `float` spelling.
+    Real,
     /// A boolean, `true` or `false`.
     Bool,
     /// A `YYYY-MM-DD` date, rendered as `on(Y, M, D)`.
@@ -46,6 +51,7 @@ impl SlotKind {
             Self::String => "string",
             Self::Int => "int",
             Self::Float => "float",
+            Self::Real => "real",
             Self::Bool => "bool",
             Self::Date => "date",
             Self::List => "list",
@@ -59,6 +65,7 @@ impl SlotKind {
             "string" => Self::String,
             "int" => Self::Int,
             "float" => Self::Float,
+            "real" => Self::Real,
             "bool" => Self::Bool,
             "date" => Self::Date,
             "list" => Self::List,
@@ -328,7 +335,7 @@ fn render(spec: &SlotSpec, value: &RawValue) -> Result<String, FillError> {
         SlotKind::Text => coerce_str(spec, value),
         SlotKind::Choice => render_choice(spec, value),
         SlotKind::Int => Ok(coerce_int(spec, value)?.to_string()),
-        SlotKind::Float => Ok(render_float(coerce_float(spec, value)?)),
+        SlotKind::Float | SlotKind::Real => Ok(render_float(coerce_float(spec, value)?)),
         SlotKind::Bool => Ok(coerce_bool(spec, value)?.to_string()),
         SlotKind::Date => render_date(spec, &coerce_str(spec, value)?),
         SlotKind::List => Ok(render_list(&coerce_list(spec, value)?)),

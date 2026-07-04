@@ -93,6 +93,44 @@ fn float_keeps_decimal_for_integral() {
 }
 
 #[test]
+fn discovers_real_kind() {
+    let specs = discover_slots(&wrap(r#"x: slot("a", kind: "real")"#));
+    assert_eq!(specs.first().unwrap().kind, SlotKind::Real);
+}
+
+#[test]
+fn fills_real_without_truncation() {
+    let out = fill_wrapped(
+        r#"priority: slot("priority", kind: "real")"#,
+        &[("priority", RawValue::Float(2.5))],
+    )
+    .unwrap();
+    assert_eq!(out, wrap("priority: 2.5"));
+}
+
+#[test]
+fn fills_real_from_string_value_without_truncation() {
+    // `--set priority=2.5` always arrives as a string; a real-kind slot must
+    // coerce it to a float, not fail the way an `int`-kind slot would.
+    let out = fill_wrapped(
+        r#"priority: slot("priority", kind: "real")"#,
+        &[("priority", RawValue::Str("2.5".to_owned()))],
+    )
+    .unwrap();
+    assert_eq!(out, wrap("priority: 2.5"));
+}
+
+#[test]
+fn real_keeps_decimal_for_integral() {
+    let out = fill_wrapped(
+        r#"priority: slot("priority", kind: "real")"#,
+        &[("priority", RawValue::Float(8.0))],
+    )
+    .unwrap();
+    assert_eq!(out, wrap("priority: 8.0"));
+}
+
+#[test]
 fn fills_date_as_on_call() {
     let out = fill_wrapped(
         r#"due: slot("due", kind: "date")"#,

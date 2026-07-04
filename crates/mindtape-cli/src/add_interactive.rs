@@ -240,7 +240,9 @@ fn default_entry(spec: &SlotSpec) -> Option<Entry> {
         return Some(Entry::Scalar(quote(text)));
     }
     match spec.kind {
-        SlotKind::Int | SlotKind::Float | SlotKind::Bool => spec.default.clone().map(Entry::Scalar),
+        SlotKind::Int | SlotKind::Float | SlotKind::Real | SlotKind::Bool => {
+            spec.default.clone().map(Entry::Scalar)
+        }
         _ => None,
     }
 }

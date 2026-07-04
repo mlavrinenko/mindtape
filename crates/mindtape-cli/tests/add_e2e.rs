@@ -87,8 +87,8 @@ fn end_to_end_nests_into_subfolder() {
     assert!(written.contains("title: \"Potatoes\""), "{written}");
 }
 
-/// Slot names from `add --describe=json` run in `dir`.
-fn describe_slot_names(dir: &Path) -> Vec<String> {
+/// Parsed `add --describe=json` schema rows run in `dir`.
+fn describe_slots(dir: &Path) -> serde_json::Value {
     let output = assert_cmd::Command::cargo_bin("mt")
         .unwrap()
         .current_dir(dir)
@@ -98,14 +98,31 @@ fn describe_slot_names(dir: &Path) -> Vec<String> {
         .get_output()
         .stdout
         .clone();
-    let parsed: serde_json::Value = serde_json::from_slice(&output).unwrap();
-    parsed
+    serde_json::from_slice(&output).unwrap()
+}
+
+/// Slot names from `add --describe=json` run in `dir`.
+fn describe_slot_names(dir: &Path) -> Vec<String> {
+    describe_slots(dir)
         .as_array()
         .unwrap()
         .iter()
         .filter_map(|row| row.get("name").and_then(serde_json::Value::as_str))
         .map(ToOwned::to_owned)
         .collect()
+}
+
+/// The `kind` reported for slot `name` in `add --describe=json` run in `dir`.
+fn describe_slot_kind(dir: &Path, name: &str) -> String {
+    describe_slots(dir)
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row.get("name").and_then(serde_json::Value::as_str) == Some(name))
+        .and_then(|row| row.get("kind"))
+        .and_then(serde_json::Value::as_str)
+        .unwrap()
+        .to_owned()
 }
 
 #[test]
@@ -160,6 +177,53 @@ fn injects_config_required_priority_slot() {
         .args(["add", "--name", "no-pri", "--set", "title=T"])
         .assert()
         .failure();
+}
+
+/// A config whose `[tasks.priority]` is real-scaled and required: the
+/// barebones template omits priority, so `add` must splice in a `real`-kind
+/// slot, not the `int` it would wrongly emit for an int-scaled field.
+const REAL_PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
+     [tasks.priority]\nkind = \"real\"\nmin = 0\nmax = 9\nrequired = true\n";
+
+#[test]
+fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    std::fs::write(
+        dir.path().join(".mindtape/config.toml"),
+        REAL_PRIORITY_REQUIRED_CONFIG,
+    )
+    .unwrap();
+
+    // `--describe=json` reports the spliced-in priority slot as `real`.
+    assert_eq!(describe_slot_kind(dir.path(), "priority"), "real");
+
+    // Filling it with a decimal writes a float literal without truncation.
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args([
+            "add",
+            "--name",
+            "with-real-pri",
+            "--set",
+            "title=T",
+            "--set",
+            "priority=2.5",
+        ])
+        .assert()
+        .success();
+    let written = std::fs::read_to_string(dir.path().join("tasks/with-real-pri.typ")).unwrap();
+    assert!(written.contains("priority: 2.5"), "{written}");
+    assert!(!written.contains("slot("), "slots must be gone: {written}");
+
+    // The filed task with a real priority value passes `check`.
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .arg("check")
+        .assert()
+        .success();
 }
 
 #[test]
