@@ -115,3 +115,13 @@ default-filter = "terminal"
 
 [ls]
 default-filter = "!terminal && (miss(start) || start <= now())"
+overdue-color = "red"
+
+# READY-column display: glyph / colour / label for each state.
+[ls.ready]
+ready-glyph = "▶"
+ready-color = "green"
+ready-label = "ready"
+blocked-glyph = "🔒"
+blocked-color = "red"
+blocked-label = "blocked"

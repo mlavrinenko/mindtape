@@ -39,6 +39,37 @@ pub struct LsConfig {
     /// When set, it both selects and orders: only the listed columns render, in
     /// the given sequence. Validated against [`LS_COLUMNS`] at config load.
     pub columns_order: Vec<String>,
+    /// READY-column display: glyph / colour / label for the ready and blocked
+    /// states. Defaulted from the embedded floor (`defaults.toml`), so unset
+    /// behaviour is unchanged; see [`ReadyConfig`].
+    pub ready: ReadyConfig,
+    /// Colour for the overdue due-date accent (`due_cell`). Defaulted `"red"`
+    /// from the embedded floor.
+    pub overdue_color: Option<String>,
+}
+
+/// `[ls.ready]` — the READY column's per-state display (glyph, colour, label).
+///
+/// One block covering both `ready` and `blocked` states (rather than nesting
+/// under `[ls.columns.ready]`, which only carries generic `visibility`):
+/// `blocked` needs display attributes `ColumnConfig` has no room for. Every
+/// field is optional so an omitted key falls back to the embedded floor's
+/// value (or, absent even that, the renderer's own literal fallback).
+#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
+pub struct ReadyConfig {
+    /// Glyph shown for a ready (unblocked, non-terminal) task.
+    pub ready_glyph: Option<String>,
+    /// Colour for the ready state: a named ANSI colour or `#RRGGBB`.
+    pub ready_color: Option<String>,
+    /// Display label for the ready state.
+    pub ready_label: Option<String>,
+    /// Glyph shown for a blocked task.
+    pub blocked_glyph: Option<String>,
+    /// Colour for the blocked state: a named ANSI colour or `#RRGGBB`.
+    pub blocked_color: Option<String>,
+    /// Display label for the blocked state.
+    pub blocked_label: Option<String>,
 }
 
 /// `[ls.columns.<name>]` — one column's display settings.

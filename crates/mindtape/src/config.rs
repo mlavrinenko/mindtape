@@ -22,7 +22,9 @@ use crate::numeric::NumericField;
 
 pub use crate::config_add::{AddConfig, InteractiveMode};
 pub use crate::config_go::GoConfig;
-pub use crate::config_ls::{ColumnConfig, LS_COLUMNS, LsConfig, Visibility, validate_ls_columns};
+pub use crate::config_ls::{
+    ColumnConfig, LS_COLUMNS, LsConfig, ReadyConfig, Visibility, validate_ls_columns,
+};
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
 pub use crate::config_status::{Legend, LegendEntry};
 

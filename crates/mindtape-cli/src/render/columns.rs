@@ -87,7 +87,7 @@ impl ColumnId {
         match self {
             ColumnId::Handle => plain(handle.to_owned()),
             ColumnId::Status => status_cell(task, config),
-            ColumnId::Ready => ready_cell(readiness.state(task)),
+            ColumnId::Ready => ready_cell(readiness.state(task), config),
             ColumnId::Priority => priority_cell(task, config),
             ColumnId::Due => due_cell(task, config),
             ColumnId::Title => plain(task.title.clone()),
@@ -168,19 +168,33 @@ fn plain(text: String) -> CellSpec {
     }
 }
 
-/// A readiness cell: a glyph and short label, coloured green (ready) or red
-/// (blocked). Settled (terminal) tasks render blank.
-fn ready_cell(state: ReadyState) -> CellSpec {
+/// A readiness cell: a glyph and short label, coloured per `[ls.ready]`
+/// (green/ready, red/blocked by embedded-floor default). Settled (terminal)
+/// tasks render blank.
+#[must_use]
+pub fn ready_cell(state: ReadyState, config: &Config) -> CellSpec {
+    let ready = &config.ls.ready;
     match state {
         ReadyState::Ready => CellSpec {
-            text: "ready".to_owned(),
-            glyph: Some("▶".to_owned()),
-            color: parse_color("green"),
+            text: ready
+                .ready_label
+                .clone()
+                .unwrap_or_else(|| "ready".to_owned()),
+            glyph: Some(ready.ready_glyph.clone().unwrap_or_else(|| "▶".to_owned())),
+            color: parse_color(ready.ready_color.as_deref().unwrap_or("green")),
         },
         ReadyState::Blocked => CellSpec {
-            text: "blocked".to_owned(),
-            glyph: Some("🔒".to_owned()),
-            color: parse_color("red"),
+            text: ready
+                .blocked_label
+                .clone()
+                .unwrap_or_else(|| "blocked".to_owned()),
+            glyph: Some(
+                ready
+                    .blocked_glyph
+                    .clone()
+                    .unwrap_or_else(|| "🔒".to_owned()),
+            ),
+            color: parse_color(ready.blocked_color.as_deref().unwrap_or("red")),
         },
         ReadyState::Settled => plain(String::new()),
     }
@@ -200,7 +214,8 @@ fn priority_cell(task: &Task, config: &Config) -> CellSpec {
     }
 }
 
-/// Due cell: red when the task is overdue (past due, non-terminal), else plain.
+/// Due cell: accented with `[ls] overdue-color` (red by embedded-floor
+/// default) when the task is overdue (past due, non-terminal), else plain.
 ///
 /// The overdue check compares the raw ISO value; only the displayed text is
 /// reformatted via the configured `date_format` (or the default `YYYY-MM-DD`).
@@ -218,9 +233,14 @@ pub fn due_cell(task: &Task, config: &Config) -> CellSpec {
     } else {
         format_iso(raw, fmt)
     };
+    let overdue_color = config.ls.overdue_color.as_deref().unwrap_or("red");
     CellSpec {
         text,
         glyph: None,
-        color: if overdue { parse_color("red") } else { None },
+        color: if overdue {
+            parse_color(overdue_color)
+        } else {
+            None
+        },
     }
 }
