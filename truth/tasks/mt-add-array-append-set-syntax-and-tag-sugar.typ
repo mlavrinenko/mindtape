@@ -8,7 +8,7 @@
     ease: 6,
   ),
   tags: ("cli", "docs",),
-  status: proposed(2026, 7, 4),
+  status: done(2026, 7, 4)[shipped: key\[\]= array-append, +tag sugar, nested-slot docs],
 )
 
 == Summary
