@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Synthetic add slots honour `ScaleKind::Real` instead of always `kind: \"int\"`",
-  status: wip(2026, 7, 4),
+  status: done(2026, 7, 4),
   priority: ice(impact: 3, confidence: 0.8, ease: 8),
   tags: ("substrate",),
 )
