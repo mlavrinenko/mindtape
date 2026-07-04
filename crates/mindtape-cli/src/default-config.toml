@@ -187,7 +187,7 @@ default-filter = "terminal"
 # [typst] — Typst package resolution.
 # `@local/mindtape` resolves automatically: from `<root>/lib` when that directory
 # is the mindtape package (in-tree development), otherwise from the installed
-# local-package store (run `mt install-lib` once to put it there). To use
+# local-package store (run `mt install` once to put it there). To use
 # MindTape inside another tool's worktree whose `lib/` is a different package,
 # install the mindtape Typst package into the store, or register extra `@local/<name>` packages
 # from an in-tree path so a task file can import a helper without a global

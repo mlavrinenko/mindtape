@@ -12,6 +12,7 @@ mod git;
 mod go;
 mod handle;
 mod init;
+mod install;
 mod ls;
 mod ls_interactive;
 mod output;

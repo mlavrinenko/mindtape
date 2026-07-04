@@ -858,8 +858,8 @@ nix develop github:mlavrinenko/mindtape</code></pre>
     <pre><code class="language-bash">git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape
 cargo build --release
-# Install the Typst library (once per machine)
-./target/release/mt install-lib
+# Set up the user environment: Typst library + XDG global defaults (once per machine)
+./target/release/mt install
 # Scaffold a project (once per project)
 ./target/release/mt init</code></pre>
   </div>

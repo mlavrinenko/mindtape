@@ -5,7 +5,7 @@ use clap::{CommandFactory, Parser, Subcommand};
 use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
-use crate::{add, check, config_cmd, eval, flip, go, init, ls, review, rm};
+use crate::{add, check, config_cmd, eval, flip, go, init, install, ls, review, rm};
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
 #[derive(Parser)]
@@ -39,7 +39,17 @@ enum Command {
     Config(config_cmd::ConfigArgs),
     /// Scaffold `.mindtape/config.toml` in the current directory.
     Init(init::InitArgs),
+    /// Set up the user environment: the `@local/mindtape` Typst package and
+    /// the XDG global `defaults.toml` app-config layer.
+    ///
+    /// Performs both by default; `--no-lib`/`--no-defaults` skip either half.
+    Install(install::InstallArgs),
     /// Install `@local/mindtape` into the user-local Typst packages directory.
+    ///
+    /// Deprecated: superseded by `mt install`, which does this too and also
+    /// seeds the XDG global defaults. Equivalent to `mt install --no-defaults`;
+    /// kept hidden as an alias for existing docs and muscle memory.
+    #[command(hide = true)]
     InstallLib,
     /// Evaluate a single task file and print it.
     Eval(eval::EvalArgs),
@@ -77,6 +87,7 @@ impl Cli {
             Command::Check => check::run(),
             Command::Config(args) => config_cmd::run(&args),
             Command::Init(args) => init::run(&args),
+            Command::Install(args) => install::run(&args),
             Command::InstallLib => init::run_install_lib(),
             Command::Eval(args) => eval::run(&args),
             Command::Go(args) => go::run(&args),

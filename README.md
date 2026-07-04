@@ -47,13 +47,17 @@ nix develop                 # dev shell with the full toolchain
 cargo build --release       # produces target/release/mt
 ```
 
-Install the Typst prelude so `#import "@local/mindtape:0.2.0"` resolves (once
-per machine), then scaffold a project (once per project):
+Set up the user environment (once per machine) — installs the Typst prelude so
+`#import "@local/mindtape:0.2.0"` resolves and seeds the XDG global app config —
+then scaffold a project (once per project):
 
 ```bash
-mt install-lib        # installs @local/mindtape into Typst packages dir
+mt install            # installs @local/mindtape + seeds ~/.config/mindtape/defaults.toml
 mt init               # writes .mindtape/config.toml in the current dir
 ```
+
+`mt install-lib` is a deprecated alias for the lib-only half
+(`mt install --no-defaults`); prefer `mt install`.
 
 ## Usage
 
