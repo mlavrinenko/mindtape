@@ -2,9 +2,10 @@
 
 #show: task.with(
   title: "Repoint mindtape to the published substrate crates and unblock 0.2.0",
-  status: proposed(2026, 7, 5)[
-    The gate: 0.2.0 does not ship until the substrate crates are published and
-    mindtape depends on the crates.io versions, not path deps.
+  status: wip(2026, 7, 5)[
+    All seven substrate crates are live on crates.io at 0.1.0. Repointing mindtape
+    + mindtape-cli to the published versions and dropping the in-tree crates.
+    Worktree agent dispatched.
   ],
   priority: ice(impact: 9, confidence: 0.7, ease: 5),
   tags: ("substrate", "tooling", "docs"),
