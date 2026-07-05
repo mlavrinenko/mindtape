@@ -2,8 +2,12 @@
 
 #show: task.with(
   title: "Extract artifact-gate to its own repo (~/projects/home/artifact-gate) and publish",
-  status: wip(2026, 7, 5)[
-    Plane-agnostic, no typst, no internal deps — extractable immediately.
+  status: done(2026, 7, 5)[
+    Repo ready at ~/projects/home/artifact-gate (commit aa1f38e), verified:
+    lib-only, `just check` + nix build green, cover 98.5%, crap 0-over,
+    `cargo publish --dry-run` clean. Owner to push + publish. Caveat: cratemplate
+    release.yml has a binary-build matrix that fails on tag for a lib-only crate
+    (publish job itself is fine) — tracked in cratemplate-release-yml-lib-mode.
   ],
   priority: ice(impact: 6, confidence: 0.8, ease: 7),
   tags: ("substrate", "tooling", "gating"),

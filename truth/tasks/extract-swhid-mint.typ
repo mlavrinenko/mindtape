@@ -2,9 +2,11 @@
 
 #show: task.with(
   title: "Extract swhid-mint to its own repo (~/projects/home/swhid-mint) and publish",
-  status: wip(2026, 7, 5)[
-    No typst, no internal deps — extractable immediately, in parallel with the
-    0.15 bump. A good first move to shake out the cratemplate process.
+  status: done(2026, 7, 5)[
+    Repo ready at ~/projects/home/swhid-mint (commit 7a4c125), verified: lib-only,
+    features preserved, `just check` + nix build green, cover 75.4%, crap 0-over,
+    `cargo publish --dry-run` clean. Owner to push + publish. Same release.yml
+    lib-mode caveat as the rest — see cratemplate-release-yml-lib-mode.
   ],
   priority: ice(impact: 7, confidence: 0.8, ease: 7),
   tags: ("substrate", "tooling"),
