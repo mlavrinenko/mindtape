@@ -34,6 +34,11 @@ Two fronts:
   (`crate-kind = lib|bin`) with conditional includes is the clean fix. This is the
   generalising lesson — the extraction agents each had to hand-strip the bin
   scaffolding and rewrite the docs.
+- cratemplate coverage is feature-blind: `just cover`/`just crap` don't pass
+  `--all-features`, so a crate with optional-feature code (e.g. typst-world's
+  `render`) silently under-measures gated lines (typst-world read 48% until the
+  agent switched the recipe to `--all-features`, then 82%). Fix the template's
+  cover/crap recipes and the CI coverage job to run `--all-features`.
 
 == Tests
 

@@ -2,9 +2,13 @@
 
 #show: task.with(
   title: "Extract typst-world to its own repo (~/projects/home/typst-world) and publish",
-  status: wip(2026, 7, 5)[
-    Convergence merged (fe9d55a) — the crate now lives at crates/typst-world with
-    default = [] (eval-only) and a render feature. Extracting. Name free (404).
+  status: done(2026, 7, 5)[
+    Repo ready at ~/projects/home/typst-world (commit d828db4), verified: lib-only,
+    default = [] eval-only / render feature, `just check` + render-feature
+    clippy/tests + nix build green, feature split confirmed (no render deps by
+    default), cover 82.4%, `cargo publish --dry-run` clean. The agent also closed a
+    real gap — jmav's provider seam was untested — adding provider_tests (20->32
+    tests). Owner to push + publish. Same release.yml lib-mode caveat.
   ],
   priority: ice(impact: 9, confidence: 0.7, ease: 5),
   tags: ("substrate", "tooling"),
