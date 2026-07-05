@@ -2,9 +2,13 @@
 
 #show: task.with(
   title: "Extract typst-edit to its own repo (~/projects/home/typst-edit) and publish",
-  status: wip(2026, 7, 5)[
-    Leaf typst crate; wait for the 0.15 bump. Highest-value substrate crate — no
-    external equivalent does source rewriting.
+  status: done(2026, 7, 5)[
+    Repo ready at ~/projects/home/typst-edit (commit d3a7c6b), verified: lib-only,
+    typst-syntax 0.15 + serde, `just check` + nix build + doctest green, cover
+    89.4%, `cargo publish --dry-run` clean. Owner to push + publish. One clippy fix
+    under the newer template toolchain (unnecessary_sort_by -> sort_by_key), so the
+    extracted copy leads mindtape's (pinned 1.89, lint dormant). Same release.yml
+    lib-mode caveat.
   ],
   priority: ice(impact: 8, confidence: 0.8, ease: 7),
   tags: ("substrate", "tooling"),
