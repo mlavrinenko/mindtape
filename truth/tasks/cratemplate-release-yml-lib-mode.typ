@@ -2,7 +2,11 @@
 
 #show: task.with(
   title: "Trim release CI for lib-only extracted crates (cratemplate binary-matrix)",
-  status: done(2026, 7, 5)[
+  status: wip(2026, 7, 5)[
+    REOPENED: a fresh crate_kind=lib generation still fails `just check` on
+    outdatty-check — outdatty.yaml (verbatim) hard-codes src/main.rs in its
+    cli-docs group. Finishing the lib-mode so a generated lib crate is green out of
+    the box. Prior work stands:
     cratemplate fe157d3: crate_kind (lib|bin) placeholder + conditionals, a
     lib release-lib.yml (guard+check+publish, no binary matrix), bin-only deps
     gated (log stays shared), cover --all-features; validated bin (just validate)
