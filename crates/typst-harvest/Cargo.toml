@@ -1,6 +1,6 @@
 [package]
 name = "typst-harvest"
-description = "Eval-only Typst World plus labelled-metadata-marker harvesting — a substrate for file-based tools that use Typst as a data medium"
+description = "Labelled-metadata-marker harvesting over an eval-only Typst World — a thin layer on typst-world for file-based tools that use Typst as a data medium"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,12 +10,11 @@ keywords = ["typst", "metadata", "extraction", "eval"]
 categories = ["development-tools"]
 
 [dependencies]
+typst-world = { path = "../typst-world", version = "0.4.0" }
 typst = "0.15"
 typst-eval = "0.15"
 typst-library = "0.15"
 comemo = "0.5"
-chrono = { version = "0.4", default-features = false, features = ["clock"] }
-dirs = "5"
 thiserror = "2"
 
 [dev-dependencies]

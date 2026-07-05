@@ -1,0 +1,32 @@
+[package]
+name = "typst-world"
+description = "Configurable eval-only typst::World over a file-provider trait, plus a Typst-free value tree — a substrate for tools that use Typst as a data medium"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords = ["typst", "world", "eval", "provider"]
+categories = ["development-tools"]
+
+[dependencies]
+typst = "0.15"
+typst-library = "0.15"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+dirs = "5"
+thiserror = "2"
+comemo = { version = "0.5", optional = true }
+typst-layout = { version = "0.15", optional = true }
+typst-render = { version = "0.15", optional = true }
+typst-svg = { version = "0.15", optional = true }
+typst-assets = { version = "0.15", features = ["fonts"], optional = true }
+
+[features]
+default = []
+render = ["dep:comemo", "dep:typst-layout", "dep:typst-render", "dep:typst-svg", "dep:typst-assets"]
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

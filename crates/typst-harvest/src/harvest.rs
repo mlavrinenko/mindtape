@@ -4,16 +4,14 @@ use std::ops::ControlFlow;
 use std::path::PathBuf;
 
 use comemo::Track;
-use typst::diag::SourceDiagnostic;
 use typst::engine::{Route, Sink, Traced};
 use typst::foundations::{Content, Module};
 use typst::syntax::{Span, VirtualRoot};
-use typst::{World, WorldExt};
+use typst::{World as _, WorldExt as _};
 use typst_library::introspection::MetadataElem;
+use typst_world::{HVal, World, convert, format_diagnostics};
 
 use crate::HarvestError;
-use crate::value::{HVal, convert};
-use crate::world::HarvestWorld;
 
 /// Where a marker was emitted: a tree-relative (or package-qualified) path and a
 /// 1-based line number.
@@ -69,8 +67,8 @@ impl Harvest {
 ///
 /// # Errors
 /// Returns an error if the source cannot be read or Typst evaluation fails.
-pub fn harvest(world: &HarvestWorld) -> Result<Harvest, HarvestError> {
-    let world_dyn: &dyn World = world;
+pub fn harvest(world: &World) -> Result<Harvest, HarvestError> {
+    let world_dyn: &dyn typst::World = world;
     let source = world
         .source(world.main())
         .map_err(|err| HarvestError::File(err.to_string()))?;
@@ -99,7 +97,7 @@ pub fn harvest(world: &HarvestWorld) -> Result<Harvest, HarvestError> {
     })
 }
 
-fn collect_markers(world: &HarvestWorld, content: &Content, out: &mut Vec<Marker>) {
+fn collect_markers(world: &World, content: &Content, out: &mut Vec<Marker>) {
     let _ = content.traverse(&mut |node: Content| -> ControlFlow<()> {
         if let Some(meta) = node.to_packed::<MetadataElem>() {
             out.push(Marker {
@@ -117,7 +115,7 @@ fn collect_markers(world: &HarvestWorld, content: &Content, out: &mut Vec<Marker
 /// Resolve a Typst [`Span`] to a [`Location`]: path plus 1-based line. Files
 /// imported from an `@local/<name>:<version>` package are qualified with the
 /// package spec so their identity is stable across consuming trees.
-fn span_to_location(span: Span, world: &HarvestWorld) -> Option<Location> {
+fn span_to_location(span: Span, world: &World) -> Option<Location> {
     let file_id = span.id()?;
     let source = world.source(file_id).ok()?;
     let range = world.range(span)?;
@@ -129,17 +127,6 @@ fn span_to_location(span: Span, world: &HarvestWorld) -> Option<Location> {
         VirtualRoot::Project => vpath.to_owned(),
     };
     Some(Location { path, line })
-}
-
-fn format_diagnostics(diags: &[SourceDiagnostic]) -> String {
-    if diags.is_empty() {
-        return "unknown evaluation error".to_owned();
-    }
-    diags
-        .iter()
-        .map(|diag| diag.message.as_str().to_owned())
-        .collect::<Vec<_>>()
-        .join("; ")
 }
 
 #[cfg(test)]

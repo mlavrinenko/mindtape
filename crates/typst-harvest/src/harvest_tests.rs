@@ -1,7 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::super::value::HVal;
-use super::super::{HarvestWorld, harvest};
+use super::super::{HVal, HarvestWorld, harvest};
 
 fn project(file_body: &str) -> (tempfile::TempDir, std::path::PathBuf) {
     let dir = tempfile::tempdir().unwrap();

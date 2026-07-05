@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "crates/typst-world",
     "crates/typst-harvest",
     "crates/typst-cst",
     "crates/typst-edit",

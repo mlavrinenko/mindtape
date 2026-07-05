@@ -1,9 +1,10 @@
-//! Eval-only Typst World plus labelled-metadata-marker harvesting.
+//! Labelled-metadata-marker harvesting over an eval-only Typst World.
 //!
-//! A package-agnostic substrate for file-based tools that use Typst documents
-//! as a structured data medium. It evaluates a `.typ` file with
-//! [`typst_eval::eval`] (never layout or render) and collects the `metadata()`
-//! markers it emits, projected to a Typst-free [`HVal`] tree.
+//! A thin layer on the [`typst_world`] crate, which owns the eval-only
+//! [`typst::World`] and the Typst-free [`HVal`] value tree. This crate adds the
+//! harvesting step: it evaluates a `.typ` file with [`typst_eval::eval`] (never
+//! layout or render) and collects the `metadata()` markers it emits, projected
+//! to the [`HVal`] tree.
 //!
 //! ```no_run
 //! use typst_harvest::{HarvestWorld, harvest};
@@ -18,12 +19,9 @@
 //! ```
 
 mod harvest;
-pub mod value;
-pub mod world;
 
 pub use harvest::{Harvest, Location, Marker, harvest};
-pub use value::{HVal, convert, format_date};
-pub use world::{HarvestWorld, find_project_root};
+pub use typst_world::{HVal, World as HarvestWorld, convert, find_project_root, format_date};
 
 /// Errors raised while harvesting a Typst file.
 #[derive(Debug, thiserror::Error)]
@@ -39,4 +37,14 @@ pub enum HarvestError {
     /// The world could not be constructed or queried.
     #[error("{0}")]
     World(String),
+}
+
+impl From<typst_world::WorldError> for HarvestError {
+    fn from(err: typst_world::WorldError) -> Self {
+        match err {
+            typst_world::WorldError::File(msg) => Self::File(msg),
+            typst_world::WorldError::Eval(msg) => Self::Eval(msg),
+            typst_world::WorldError::World(msg) => Self::World(msg),
+        }
+    }
 }
