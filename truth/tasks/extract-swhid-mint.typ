@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Extract swhid-mint to its own repo (~/projects/home/swhid-mint) and publish",
-  status: proposed(2026, 7, 5)[
+  status: wip(2026, 7, 5)[
     No typst, no internal deps — extractable immediately, in parallel with the
     0.15 bump. A good first move to shake out the cratemplate process.
   ],

@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Extract artifact-gate to its own repo (~/projects/home/artifact-gate) and publish",
-  status: proposed(2026, 7, 5)[
+  status: wip(2026, 7, 5)[
     Plane-agnostic, no typst, no internal deps — extractable immediately.
   ],
   priority: ice(impact: 6, confidence: 0.8, ease: 7),

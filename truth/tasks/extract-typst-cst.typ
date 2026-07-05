@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Extract typst-cst to its own repo (~/projects/home/typst-cst) and publish",
-  status: proposed(2026, 7, 5)[Leaf typst crate; wait for the 0.15 bump.],
+  status: wip(2026, 7, 5)[Leaf typst crate; 0.15 bump done — extracting.],
   priority: ice(impact: 6, confidence: 0.8, ease: 7),
   tags: ("substrate", "tooling"),
   depends-on: (link("typst-015-bump.typ"),),

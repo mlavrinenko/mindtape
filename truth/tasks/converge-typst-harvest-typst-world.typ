@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Converge typst-harvest and jmav typst-world into one shared World crate",
-  status: proposed(2026, 7, 5)[
+  status: wip(2026, 7, 5)[
     The fork was the accident: typst-world was meant to be a dependency of
     typst-harvest (extracted World layer), not a copy of it. Restore that.
   ],

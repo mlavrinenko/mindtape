@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Extract typst-edit to its own repo (~/projects/home/typst-edit) and publish",
-  status: proposed(2026, 7, 5)[
+  status: wip(2026, 7, 5)[
     Leaf typst crate; wait for the 0.15 bump. Highest-value substrate crate — no
     external equivalent does source rewriting.
   ],
