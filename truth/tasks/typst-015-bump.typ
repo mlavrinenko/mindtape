@@ -2,10 +2,11 @@
 
 #show: task.with(
   title: "Bump the mindtape workspace from typst 0.14 to 0.15",
-  status: wip(2026, 7, 5)[
-    Foundational: unblocks convergence and the substrate extraction. Supersedes
-    the CLAUDE.md branch directive "don't bump typst" — the owner approved 0.15.
-    Worktree agent dispatched on branch agent/typst-015-bump.
+  status: done(2026, 7, 5)[
+    Merged (afbd631). Verified in the main checkout: `just check` exit 0 on 0.15,
+    623 tests, `just nix-build` green, `mt` output byte-identical to the 0.14
+    baseline, no leaked deps (no typst-kit/openssl). One extra API fix beyond the
+    crib: `SyntaxNode::text()` -> `leaf_text()` in typst-syntax 0.15.
   ],
   priority: ice(impact: 9, confidence: 0.8, ease: 5),
   tags: ("substrate", "tooling"),
