@@ -2,9 +2,16 @@
 
 #show: task.with(
   title: "Trim release CI for lib-only extracted crates (cratemplate binary-matrix)",
-  status: wip(2026, 7, 5)[
-    Surfaced by the extraction wave. Fixing cratemplate at source + retrofitting
-    the five extracted repos so they tag/publish cleanly. Agent dispatched.
+  status: done(2026, 7, 5)[
+    cratemplate fe157d3: crate_kind (lib|bin) placeholder + conditionals, a
+    lib release-lib.yml (guard+check+publish, no binary matrix), bin-only deps
+    gated (log stays shared), cover --all-features; validated bin (just validate)
+    and a lib probe. Five repos retrofitted with the lib workflow + doc fixes,
+    each verified guard/check/publish only, gates green: swhid-mint 4cd931c,
+    artifact-gate e623c71, typst-cst 21375ca, typst-edit c5b498c, typst-world
+    3867a7d. Nothing pushed (owner publishes). Two template bugs fixed en route:
+    hyphenated placeholder fails evalexpr conditionals (use underscore); log is
+    used by the template lib so it can't be bin-only.
   ],
   priority: ice(impact: 6, confidence: 0.8, ease: 7),
   tags: ("tooling", "gating"),
