@@ -12,8 +12,8 @@ use std::sync::Mutex;
 
 use chrono::Datelike;
 use typst::diag::{FileError, FileResult};
-use typst::foundations::{Bytes, Datetime, Scope};
-use typst::syntax::{FileId, Source, VirtualPath};
+use typst::foundations::{Bytes, Datetime, Duration, Scope};
+use typst::syntax::{FileId, RootedPath, Source, VirtualPath, VirtualRoot};
 use typst::text::{Font, FontBook};
 use typst::utils::LazyHash;
 use typst::{Library, LibraryExt};
@@ -102,7 +102,12 @@ impl HarvestWorld {
                 root.display()
             ))
         })?;
-        let main_id = FileId::new(None, VirtualPath::new(rel));
+        let rel = rel
+            .to_str()
+            .ok_or_else(|| HarvestError::World(format!("non-utf8 path: {}", rel.display())))?;
+        let vpath = VirtualPath::new(rel)
+            .map_err(|err| HarvestError::World(format!("bad virtual path {rel:?}: {err}")))?;
+        let main_id = FileId::new(RootedPath::new(VirtualRoot::Project, vpath));
         Ok(Self {
             root,
             main_id,
@@ -122,11 +127,13 @@ impl HarvestWorld {
     }
 
     fn resolve_path(&self, id: FileId) -> FileResult<PathBuf> {
-        let base = match id.package() {
-            Some(spec) => self.resolve_package(spec)?,
-            None => self.root.clone(),
+        let base = match id.root() {
+            VirtualRoot::Package(spec) => self.resolve_package(spec)?,
+            VirtualRoot::Project => self.root.clone(),
         };
-        id.vpath().resolve(&base).ok_or(FileError::AccessDenied)
+        id.vpath()
+            .realize(&base)
+            .map_err(|_| FileError::AccessDenied)
     }
 
     fn resolve_package(&self, spec: &typst::syntax::package::PackageSpec) -> FileResult<PathBuf> {
@@ -222,7 +229,7 @@ impl typst::World for HarvestWorld {
         None
     }
 
-    fn today(&self, _offset: Option<i64>) -> Option<Datetime> {
+    fn today(&self, _offset: Option<Duration>) -> Option<Datetime> {
         let now = chrono::Local::now();
         Datetime::from_ymd(
             now.year(),

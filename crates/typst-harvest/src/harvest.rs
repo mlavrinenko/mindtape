@@ -7,8 +7,8 @@ use comemo::Track;
 use typst::diag::SourceDiagnostic;
 use typst::engine::{Route, Sink, Traced};
 use typst::foundations::{Content, Module};
-use typst::syntax::Span;
-use typst::{ROUTINES, World};
+use typst::syntax::{Span, VirtualRoot};
+use typst::{World, WorldExt};
 use typst_library::introspection::MetadataElem;
 
 use crate::HarvestError;
@@ -80,8 +80,8 @@ pub fn harvest(world: &HarvestWorld) -> Result<Harvest, HarvestError> {
     let route = Route::default();
 
     let module: Module = typst_eval::eval(
-        &ROUTINES,
         world_dyn.track(),
+        world.library(),
         traced.track(),
         sink.track_mut(),
         route.track(),
@@ -120,13 +120,13 @@ fn collect_markers(world: &HarvestWorld, content: &Content, out: &mut Vec<Marker
 fn span_to_location(span: Span, world: &HarvestWorld) -> Option<Location> {
     let file_id = span.id()?;
     let source = world.source(file_id).ok()?;
-    let range = source.range(span)?;
+    let range = world.range(span)?;
     let line = source.lines().byte_to_line(range.start)? + 1;
-    let vpath = source.id().vpath().as_rooted_path().display().to_string();
-    let vpath = vpath.strip_prefix('/').unwrap_or(&vpath);
-    let path = match source.id().package() {
-        Some(spec) => format!("{spec}/{vpath}"),
-        None => vpath.to_owned(),
+    let vpath = file_id.vpath().get_with_slash();
+    let vpath = vpath.strip_prefix('/').unwrap_or(vpath);
+    let path = match file_id.root() {
+        VirtualRoot::Package(spec) => format!("{spec}/{vpath}"),
+        VirtualRoot::Project => vpath.to_owned(),
     };
     Some(Location { path, line })
 }

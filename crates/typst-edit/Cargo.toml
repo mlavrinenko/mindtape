@@ -10,7 +10,7 @@ keywords = ["typst", "edit", "rewrite", "spans", "source"]
 categories = ["development-tools"]
 
 [dependencies]
-typst-syntax = "0.14"
+typst-syntax = "0.15"
 serde = { version = "1", features = ["derive"], optional = true }
 
 [features]

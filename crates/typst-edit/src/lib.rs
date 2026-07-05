@@ -374,7 +374,7 @@ fn named_arg(src: &str, node: &LinkedNode) -> Option<Arg> {
         .iter()
         .find(|c| c.kind() == SyntaxKind::Ident)?
         .get()
-        .text()
+        .leaf_text()
         .to_string();
     let value = children
         .get(colon + 1..)?

@@ -80,7 +80,7 @@ fn globals_inject_host_native_bindings() {
 #[test]
 fn source_override_backs_a_package_entry() {
     use typst::syntax::package::{PackageSpec, PackageVersion};
-    use typst::syntax::{FileId, VirtualPath};
+    use typst::syntax::{FileId, RootedPath, VirtualPath, VirtualRoot};
 
     let dir = tempfile::tempdir().unwrap();
     std::fs::create_dir(dir.path().join(".mindtape")).unwrap();
@@ -107,7 +107,8 @@ fn source_override_backs_a_package_entry() {
             patch: 0,
         },
     };
-    let entry = FileId::new(Some(spec), VirtualPath::new("lib.typ"));
+    let vpath = VirtualPath::new("lib.typ").unwrap();
+    let entry = FileId::new(RootedPath::new(VirtualRoot::Package(spec), vpath));
 
     let world = HarvestWorld::new(&file)
         .unwrap()
