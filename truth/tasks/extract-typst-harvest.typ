@@ -2,9 +2,9 @@
 
 #show: task.with(
   title: "Extract typst-harvest to its own repo (~/projects/home/typst-harvest) and publish",
-  status: proposed(2026, 7, 5)[
-    Thin post-convergence (harvest on top of typst-world). Publish AFTER
-    typst-world is on crates.io. Name confirmed free (404 as of 2026-07-05).
+  status: wip(2026, 7, 5)[
+    typst-world 0.1.0 is live on crates.io — dry-run against it is clean now.
+    Extracting via the fixed cratemplate (crate_kind=lib). Agent dispatched.
   ],
   priority: ice(impact: 7, confidence: 0.7, ease: 6),
   tags: ("substrate", "tooling"),

@@ -2,8 +2,9 @@
 
 #show: task.with(
   title: "Extract typst-cleanup to its own repo (~/projects/home/typst-cleanup) and publish",
-  status: proposed(2026, 7, 5)[
-    Depends on swhid-mint + typst-edit being published first (they are its deps).
+  status: wip(2026, 7, 5)[
+    swhid-mint 0.1.0 + typst-edit 0.1.0 are live on crates.io — dry-run is clean
+    now. Extracting via the fixed cratemplate (crate_kind=lib). Agent dispatched.
   ],
   priority: ice(impact: 6, confidence: 0.7, ease: 6),
   tags: ("substrate", "tooling"),
