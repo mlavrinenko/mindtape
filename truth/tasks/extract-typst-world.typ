@@ -2,9 +2,9 @@
 
 #show: task.with(
   title: "Extract typst-world to its own repo (~/projects/home/typst-world) and publish",
-  status: proposed(2026, 7, 5)[
-    The shared World crate. Extract AFTER convergence has settled its shape.
-    crates.io name confirmed free (404 as of 2026-07-05).
+  status: wip(2026, 7, 5)[
+    Convergence merged (fe9d55a) — the crate now lives at crates/typst-world with
+    default = [] (eval-only) and a render feature. Extracting. Name free (404).
   ],
   priority: ice(impact: 9, confidence: 0.7, ease: 5),
   tags: ("substrate", "tooling"),

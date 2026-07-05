@@ -2,9 +2,12 @@
 
 #show: task.with(
   title: "Converge typst-harvest and jmav typst-world into one shared World crate",
-  status: wip(2026, 7, 5)[
-    The fork was the accident: typst-world was meant to be a dependency of
-    typst-harvest (extracted World layer), not a copy of it. Restore that.
+  status: done(2026, 7, 5)[
+    Merged (fe9d55a). typst-world crate created (World + provider + value +
+    render feature, default eval-only); typst-harvest thinned to harvest() on top,
+    re-exporting HVal/World-as-HarvestWorld/convert/find_project_root/format_date so
+    consumers are untouched. Verified: `just check` exit 0, render tests pass, mt
+    output byte-identical. jmav adoption notes captured in the agent report.
   ],
   priority: ice(impact: 9, confidence: 0.6, ease: 3),
   tags: ("substrate", "tooling"),
