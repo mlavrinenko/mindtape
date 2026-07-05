@@ -2,9 +2,10 @@
 
 #show: task.with(
   title: "Bump the mindtape workspace from typst 0.14 to 0.15",
-  status: proposed(2026, 7, 5)[
+  status: wip(2026, 7, 5)[
     Foundational: unblocks convergence and the substrate extraction. Supersedes
     the CLAUDE.md branch directive "don't bump typst" — the owner approved 0.15.
+    Worktree agent dispatched on branch agent/typst-015-bump.
   ],
   priority: ice(impact: 9, confidence: 0.8, ease: 5),
   tags: ("substrate", "tooling"),
