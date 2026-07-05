@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`typst-harvest` split over a new `typst-world` crate** — the eval-only
+  `typst::World` (file-provider seam, `@local` package resolution, dependency
+  tracking) and the Typst-free `HVal` value tree now live in `typst-world`;
+  `typst-harvest` is a thin layer that adds only `metadata()` marker harvesting
+  on top. Internal reshape: no CLI-visible or behavior change. Render support in
+  `typst-world` sits behind an off-by-default `render` feature, so eval-only
+  consumers pull no layout/render/font dependencies.
 - **Binary renamed `mindtape` → `mt`** — the installed executable is now `mt`;
   invocations become `mt ls`, `mt check`, `mt add`, etc. Crate names
   (`mindtape`, `mindtape-cli`), the `@local/mindtape` Typst package, the

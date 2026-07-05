@@ -16,7 +16,7 @@ groups:
       crates/mindtape-cli/src/default-config.toml: b49facbe0a532a8276c90fcc62beb698ab02531101debdca73ae5de1eec9fe69
     dependents:
       AGENTS.md: fae7ab41285f67456357c05d89cb3f71f67916cb2654f0384627aaf1fd929828
-      CHANGELOG.md: 030136a1f388e49503c3480d3937459aad5e9a0f6061b8c8bbddfbb521ac9222
+      CHANGELOG.md: 1dcc6d2864ca175b8bcfccad2a228d7749a06bef38bd3bab4b4639f50b586c20
       CONTRIBUTING.md: 80f7e2f9d31f4997c0e0a518a961e520e325bba6802a8f46169325082393173b
       README.md: e9a21360d033696c6375658c06ae36bae768c09e29e7f1bd95369f100ffc0dd5
       skills/mindtape/SKILL.md: 07c2b81d79142dfae3102eb4e3a137ed125ab572325c0ad19f4eaaaf0f10135c
@@ -37,6 +37,6 @@ groups:
       skills/mindtape/SKILL.md: 07c2b81d79142dfae3102eb4e3a137ed125ab572325c0ad19f4eaaaf0f10135c
   release-notes:
     source:
-      Cargo.toml: 42cfdfc44f0eeb0fe5aca2df342147713ba35e945147ae858bd338c24877b43c
+      Cargo.toml: 828271fd129c4716728e7f841bb221896334e2261a31eb8bf71ecfa86ece09c9
     dependents:
-      CHANGELOG.md: 030136a1f388e49503c3480d3937459aad5e9a0f6061b8c8bbddfbb521ac9222
+      CHANGELOG.md: 1dcc6d2864ca175b8bcfccad2a228d7749a06bef38bd3bab4b4639f50b586c20
