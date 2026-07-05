@@ -2,9 +2,12 @@
 
 #show: task.with(
   title: "Extract typst-cleanup to its own repo (~/projects/home/typst-cleanup) and publish",
-  status: wip(2026, 7, 5)[
-    swhid-mint 0.1.0 + typst-edit 0.1.0 are live on crates.io — dry-run is clean
-    now. Extracting via the fixed cratemplate (crate_kind=lib). Agent dispatched.
+  status: done(2026, 7, 5)[
+    Repo ready at ~/projects/home/typst-cleanup (commit 35dd171), verified:
+    lib-only, deps swhid-mint 0.1.0 + typst-edit 0.1.0 (from crates.io) + gix,
+    release-lib.yml is guard/check/publish only, `just check` + nix build green,
+    cover 94.9%, `cargo publish --dry-run` clean against the published deps. Owner
+    to push + publish.
   ],
   priority: ice(impact: 6, confidence: 0.7, ease: 6),
   tags: ("substrate", "tooling"),
