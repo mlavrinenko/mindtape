@@ -2,7 +2,12 @@
 
 #show: task.with(
   title: "Extract typst-cst to its own repo (~/projects/home/typst-cst) and publish",
-  status: wip(2026, 7, 5)[Leaf typst crate; 0.15 bump done — extracting.],
+  status: done(2026, 7, 5)[
+    Repo ready at ~/projects/home/typst-cst (commit 7ccb315), verified: lib-only,
+    typst-syntax 0.15 + serde feature, `just check` + nix build + doctest green,
+    cover 92.9%, `cargo publish --dry-run` clean. Owner to push + publish. Same
+    release.yml lib-mode caveat — see cratemplate-release-yml-lib-mode.
+  ],
   priority: ice(impact: 6, confidence: 0.8, ease: 7),
   tags: ("substrate", "tooling"),
   depends-on: (link("typst-015-bump.typ"),),
