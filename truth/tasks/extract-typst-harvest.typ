@@ -2,9 +2,12 @@
 
 #show: task.with(
   title: "Extract typst-harvest to its own repo (~/projects/home/typst-harvest) and publish",
-  status: wip(2026, 7, 5)[
-    typst-world 0.1.0 is live on crates.io — dry-run against it is clean now.
-    Extracting via the fixed cratemplate (crate_kind=lib). Agent dispatched.
+  status: done(2026, 7, 5)[
+    Repo ready at ~/projects/home/typst-harvest (commit 400ace7), verified:
+    lib-only, deps typst-world 0.1.0 (from crates.io) + typst 0.15 + comemo,
+    release-lib.yml is guard/check/publish only, `just check` + nix build green,
+    cover 98.3%, `cargo publish --dry-run` resolved typst-world 0.1.0 clean. Owner
+    to push + publish.
   ],
   priority: ice(impact: 7, confidence: 0.7, ease: 6),
   tags: ("substrate", "tooling"),
