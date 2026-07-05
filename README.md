@@ -203,15 +203,15 @@ built-in `[rm] default-filter`.
 
 ## Architecture
 
-A workspace of focused crates — the domain library plus consumer-blind Typst
-substrates reusable by any file-based tool:
+A two-crate `cargo` workspace — the domain library plus its thin CLI — built
+on consumer-blind Typst substrates reusable by any file-based tool:
 
 - `mindtape` — the domain library: config, the task model, the filter language,
   and config-driven validation. `mindtape-cli` is the thin `mt` binary.
-- `typst-harvest` — eval-only Typst World plus labelled-metadata-marker
+- `typst-harvest` (crates.io) — eval-only Typst World plus labelled-metadata-marker
   harvesting (Typst as a data medium).
-- `typst-cst` / `typst-edit` — parse-plane structure extraction (heading tree
-  with spans) and in-place source editing (span queries + atomic changeset); no
+- `typst-cst` / `typst-edit` (crates.io) — parse-plane structure extraction (heading
+  tree with spans) and in-place source editing (span queries + atomic changeset); no
   eval, World, or IO.
 
 ## Contributing

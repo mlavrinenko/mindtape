@@ -21,17 +21,19 @@ Repository: https://github.com/mlavrinenko/mindtape
 
 ## Workspace
 
-Four crates (`cargo` workspace, virtual root manifest):
+Two crates (`cargo` workspace, virtual root manifest):
 
-- `crates/typst-harvest` — package-agnostic eval-only Typst World + metadata
-  marker harvesting. Destined to become its own repository; keep it
-  consumer-blind (it knows nothing about tasks).
-- `crates/typst-cst` — package-agnostic parse-plane structure extraction
-  (heading tree with source spans) over `typst-syntax`; no eval, no World, no
-  IO. Consumer-blind sibling to `typst-harvest`.
 - `crates/mindtape` — domain library: config, task model, filter language,
   validation, project loader. Other tools (e.g. speconaut) depend on this.
 - `crates/mindtape-cli` — the thin `mt` binary (clap).
+
+The former in-tree substrate crates (`typst-world`, `typst-harvest`,
+`typst-cst`, `typst-edit`, `typst-cleanup`, `swhid-mint`, `artifact-gate`) are
+published to crates.io at `0.1.0` and consumed as regular registry
+dependencies — package-agnostic Typst World/eval, parse-plane structure
+extraction, slot/link rewriting, git-aware cleanup, SWHID minting, and
+artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
+`mindtape` does not depend on it directly.
 
 ## Tech Stack
 

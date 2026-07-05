@@ -135,7 +135,7 @@ install-hooks:
     chmod +x "$hook"
     echo "installed $hook"
 
-# Tag a release and push (usage: just release 0.4.0)
+# Tag a release and push (usage: just release 0.2.0)
 release VERSION:
     #!/usr/bin/env bash
     set -eo pipefail

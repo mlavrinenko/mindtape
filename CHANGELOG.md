@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Repointed onto published crates.io substrate** — the seven extracted
+  crates (`typst-world`, `typst-harvest`, `typst-cst`, `typst-edit`,
+  `typst-cleanup`, `swhid-mint`, `artifact-gate`) are now `crates.io`
+  deps (`0.1.0`), not in-tree path crates; workspace is down to `mindtape`
+  + `mindtape-cli`. No CLI-visible change. Version reset to `0.2.0`.
 - **`typst-harvest` split over a new `typst-world` crate** — the eval-only
   `typst::World` (file-provider seam, `@local` package resolution, dependency
   tracking) and the Typst-free `HVal` value tree now live in `typst-world`;

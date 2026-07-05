@@ -129,7 +129,9 @@ checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
 name = "artifact-gate"
-version = "0.4.0"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "457a6c61c52946d2ba644b638eb9699a122c55f627bb66d09585220a8aaba9d2"
 dependencies = [
  "regex",
  "thiserror 2.0.18",
@@ -2495,7 +2497,7 @@ dependencies = [
 
 [[package]]
 name = "mindtape"
-version = "0.4.0"
+version = "0.2.0"
 dependencies = [
  "artifact-gate",
  "dirs",
@@ -2514,7 +2516,7 @@ dependencies = [
 
 [[package]]
 name = "mindtape-cli"
-version = "0.4.0"
+version = "0.2.0"
 dependencies = [
  "anstyle",
  "anyhow",
@@ -2786,15 +2788,6 @@ name = "pin-project-lite"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
-
-[[package]]
-name = "pixglyph"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47945e80a49d08350e4a007ac4294c6498d23956c18ea5e6ff480dc93d31643c"
-dependencies = [
- "ttf-parser",
-]
 
 [[package]]
 name = "plist"
@@ -3095,32 +3088,6 @@ name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
-
-[[package]]
-name = "resvg"
-version = "0.47.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9be183ad6a216aa96f33e4c8033b0988b8b3ea6fd2359d19af5bac4643fd8e81"
-dependencies = [
- "gif",
- "image-webp",
- "log",
- "pico-args",
- "rgb",
- "svgtypes",
- "tiny-skia",
- "usvg",
- "zune-jpeg",
-]
-
-[[package]]
-name = "rgb"
-version = "0.8.53"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47b34b781b31e5d73e9fbc8689c70551fd1ade9a19e3e28cfec8580a79290cc4"
-dependencies = [
- "bytemuck",
-]
 
 [[package]]
 name = "roman-numerals-rs"
@@ -3510,7 +3477,9 @@ dependencies = [
 
 [[package]]
 name = "swhid-mint"
-version = "0.4.0"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "083e4c74eabf06429c2c29e0f81f621ab6ca800a866c93ac2f4c449e014e0f94"
 dependencies = [
  "gix",
  "tempfile",
@@ -3665,21 +3634,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tiny-skia"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47ffee5eaaf5527f630fb0e356b90ebdec84d5d18d937c5e440350f88c5a91ea"
-dependencies = [
- "arrayref",
- "arrayvec",
- "bytemuck",
- "cfg-if",
- "log",
- "png",
- "tiny-skia-path",
-]
-
-[[package]]
 name = "tiny-skia-path"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3821,27 +3775,30 @@ dependencies = [
 
 [[package]]
 name = "typst-cleanup"
-version = "0.4.0"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5eac2f33f12658469dc731dfa931fe85cf0cbd5e19673d913291b4e3d460cdeb"
 dependencies = [
  "gix",
  "swhid-mint",
- "tempfile",
  "typst-edit",
 ]
 
 [[package]]
 name = "typst-cst"
-version = "0.4.0"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05120960d7c80b47a9e134d8a1a801c87059650409aa8b126545565054fc9d85"
 dependencies = [
- "serde",
  "typst-syntax",
 ]
 
 [[package]]
 name = "typst-edit"
-version = "0.4.0"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3b8205f534169f7314593922d260774a9d327b13e22ee8fc8d3356e7e938a07"
 dependencies = [
- "serde",
  "typst-syntax",
 ]
 
@@ -3867,10 +3824,11 @@ dependencies = [
 
 [[package]]
 name = "typst-harvest"
-version = "0.4.0"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9179f731cfe9cc368ea211c41d5c918e041721a7c01af669618f608a4077d36b"
 dependencies = [
  "comemo",
- "tempfile",
  "thiserror 2.0.18",
  "typst",
  "typst-eval",
@@ -4036,29 +3994,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "typst-render"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "040ab6e56e91099963ef69dd9f0d284adda66c066b742f1866a20b8295ebb2e3"
-dependencies = [
- "bytemuck",
- "comemo",
- "hayro",
- "image",
- "libm",
- "pixglyph",
- "resvg",
- "tiny-skia",
- "ttf-parser",
- "typst-assets",
- "typst-layout",
- "typst-library",
- "typst-macros",
- "typst-timing",
- "typst-utils",
-]
-
-[[package]]
 name = "typst-svg"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4135,19 +4070,15 @@ dependencies = [
 
 [[package]]
 name = "typst-world"
-version = "0.4.0"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a26682b1f6a65c67c4c7dc72951569af08787abb935310514f9a85869ababbaf"
 dependencies = [
  "chrono",
- "comemo",
  "dirs",
- "tempfile",
  "thiserror 2.0.18",
  "typst",
- "typst-assets",
- "typst-layout",
  "typst-library",
- "typst-render",
- "typst-svg",
 ]
 
 [[package]]
