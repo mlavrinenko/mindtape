@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Repoint mindtape to the published substrate crates and unblock 0.2.0",
-  status: wip(2026, 7, 5)[
+  status: done(2026, 7, 5)[
     Repoint merged (f73a0a4) and verified in the main checkout: crates/ is just
     mindtape + mindtape-cli, workspace version 0.2.0, all six direct deps resolve
     from crates.io 0.1.0 (typst-world transitive via typst-harvest), `just check`

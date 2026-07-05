@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Pre-release 0.2.0: resolve the `crates/` strategy before tagging",
-  status: proposed(2026, 7, 5)[
+  status: done(2026, 7, 5)[
     Analysis done; awaiting a go/no-go on the recommended path (Option A).
   ],
   priority: ice(impact: 9, confidence: 0.7, ease: 4),
