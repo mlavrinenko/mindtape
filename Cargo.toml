@@ -1,19 +1,12 @@
 [workspace]
 members = [
-    "crates/typst-world",
-    "crates/typst-harvest",
-    "crates/typst-cst",
-    "crates/typst-edit",
-    "crates/typst-cleanup",
-    "crates/swhid-mint",
-    "crates/artifact-gate",
     "crates/mindtape",
     "crates/mindtape-cli",
 ]
 resolver = "3"
 
 [workspace.package]
-version = "0.4.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.89"
 repository = "https://github.com/mlavrinenko/mindtape"

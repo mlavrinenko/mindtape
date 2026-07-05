@@ -6,37 +6,37 @@ groups:
       crates/mindtape-cli/src/cli.rs: 3ee42c2f5b4ba6d5b39e403110fe61b21ece812d2bd4e5b0a5eaf2ae05a83876
       crates/mindtape/src/lib.rs: d6974d0a5bfcd468bbb1b55556b86cdd571ea534f6ab0c46068893f020d1d44a
     dependents:
-      README.md: e9a21360d033696c6375658c06ae36bae768c09e29e7f1bd95369f100ffc0dd5
+      README.md: b15a8676e6164f6235cb2d60fe77bec40000a4c438a7559cbbe5946e6ff58925
       skills/mindtape/SKILL.md: 07c2b81d79142dfae3102eb4e3a137ed125ab572325c0ad19f4eaaaf0f10135c
       www/index.html: a17b43fb81d4d5e4ab6e0e493103bfc1b51d6722f8820675a4d1cbf0494504d5
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: 54752a53c5543b261947ec588862cc8d2ca3e2a00d0ef5489f7347d02d9e3679
+      crates/mindtape-cli/Cargo.toml: 24528808c4c68bb49fa704fc2ef34d5aa5ae430c434476c11d5ccdb6ca602313
       crates/mindtape-cli/src/cli.rs: 3ee42c2f5b4ba6d5b39e403110fe61b21ece812d2bd4e5b0a5eaf2ae05a83876
       crates/mindtape-cli/src/default-config.toml: b49facbe0a532a8276c90fcc62beb698ab02531101debdca73ae5de1eec9fe69
     dependents:
-      AGENTS.md: fae7ab41285f67456357c05d89cb3f71f67916cb2654f0384627aaf1fd929828
-      CHANGELOG.md: 1dcc6d2864ca175b8bcfccad2a228d7749a06bef38bd3bab4b4639f50b586c20
+      AGENTS.md: d007f9887f13bb694a36a2115e1733f5c60a3869215148b5397051931ede374e
+      CHANGELOG.md: c8e11c0b49bddc65314a2555727c40229cc39c0dbe3e7f4a6854f60c32c8e7eb
       CONTRIBUTING.md: 80f7e2f9d31f4997c0e0a518a961e520e325bba6802a8f46169325082393173b
-      README.md: e9a21360d033696c6375658c06ae36bae768c09e29e7f1bd95369f100ffc0dd5
+      README.md: b15a8676e6164f6235cb2d60fe77bec40000a4c438a7559cbbe5946e6ff58925
       skills/mindtape/SKILL.md: 07c2b81d79142dfae3102eb4e3a137ed125ab572325c0ad19f4eaaaf0f10135c
       www/index.html: a17b43fb81d4d5e4ab6e0e493103bfc1b51d6722f8820675a4d1cbf0494504d5
   dev-docs:
     source:
-      Justfile: b97e191fce32420fc0e59815b44c78447ce4cf9c09fb9d335a394354d23e538d
+      Justfile: 121f9d1f3745956e4af1559433892a0e0138bf89f2af38aaf983be05b56f7c2f
       flake.nix: 4a838f72eb7c794dd2a501059b6ef8163eb506ebbb8493f9de52853f81d8b85d
     dependents:
-      AGENTS.md: fae7ab41285f67456357c05d89cb3f71f67916cb2654f0384627aaf1fd929828
+      AGENTS.md: d007f9887f13bb694a36a2115e1733f5c60a3869215148b5397051931ede374e
       CONTRIBUTING.md: 80f7e2f9d31f4997c0e0a518a961e520e325bba6802a8f46169325082393173b
   prelude-docs:
     source:
       lib/prelude.typ: ef8b9f9043508b0546a4d8600e4b352d16981574dca00b0dd27f90a8af2d8573
     dependents:
-      AGENTS.md: fae7ab41285f67456357c05d89cb3f71f67916cb2654f0384627aaf1fd929828
-      README.md: e9a21360d033696c6375658c06ae36bae768c09e29e7f1bd95369f100ffc0dd5
+      AGENTS.md: d007f9887f13bb694a36a2115e1733f5c60a3869215148b5397051931ede374e
+      README.md: b15a8676e6164f6235cb2d60fe77bec40000a4c438a7559cbbe5946e6ff58925
       skills/mindtape/SKILL.md: 07c2b81d79142dfae3102eb4e3a137ed125ab572325c0ad19f4eaaaf0f10135c
   release-notes:
     source:
-      Cargo.toml: 828271fd129c4716728e7f841bb221896334e2261a31eb8bf71ecfa86ece09c9
+      Cargo.toml: 4f384d987761930af1e70ef18d010c06c8ab403040f6b90484e8bc979e909117
     dependents:
-      CHANGELOG.md: 1dcc6d2864ca175b8bcfccad2a228d7749a06bef38bd3bab4b4639f50b586c20
+      CHANGELOG.md: c8e11c0b49bddc65314a2555727c40229cc39c0dbe3e7f4a6854f60c32c8e7eb
