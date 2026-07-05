@@ -2,8 +2,9 @@
 
 #show: task.with(
   title: "Trim release CI for lib-only extracted crates (cratemplate binary-matrix)",
-  status: proposed(2026, 7, 5)[
-    Surfaced by the extraction wave: two agents independently flagged it.
+  status: wip(2026, 7, 5)[
+    Surfaced by the extraction wave. Fixing cratemplate at source + retrofitting
+    the five extracted repos so they tag/publish cleanly. Agent dispatched.
   ],
   priority: ice(impact: 6, confidence: 0.8, ease: 7),
   tags: ("tooling", "gating"),
