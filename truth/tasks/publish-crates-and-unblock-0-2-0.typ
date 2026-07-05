@@ -3,9 +3,12 @@
 #show: task.with(
   title: "Repoint mindtape to the published substrate crates and unblock 0.2.0",
   status: wip(2026, 7, 5)[
-    All seven substrate crates are live on crates.io at 0.1.0. Repointing mindtape
-    + mindtape-cli to the published versions and dropping the in-tree crates.
-    Worktree agent dispatched.
+    Repoint merged (f73a0a4) and verified in the main checkout: crates/ is just
+    mindtape + mindtape-cli, workspace version 0.2.0, all six direct deps resolve
+    from crates.io 0.1.0 (typst-world transitive via typst-harvest), `just check`
+    + `just nix-build` + `mt check` (29 valid) all green. Only the release act
+    remains: `just release 0.2.0` (tags + pushes) — awaiting owner go. Flip to done
+    when tagged.
   ],
   priority: ice(impact: 9, confidence: 0.7, ease: 5),
   tags: ("substrate", "tooling", "docs"),
