@@ -3477,9 +3477,9 @@ dependencies = [
 
 [[package]]
 name = "swhid-mint"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "083e4c74eabf06429c2c29e0f81f621ab6ca800a866c93ac2f4c449e014e0f94"
+checksum = "443c74ae4f82018c15817232e4231ef277def5fd32a69b36d9c67b2697e091fd"
 dependencies = [
  "gix",
  "tempfile",

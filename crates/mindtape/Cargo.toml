@@ -18,7 +18,7 @@ typst-harvest = "0.1.0"
 typst-cst = "0.1.0"
 typst-edit = "0.1.0"
 artifact-gate = "0.1.0"
-swhid-mint = { version = "0.1.0", default-features = false }
+swhid-mint = { version = "0.1.1", default-features = false }
 serde = { version = "1", features = ["derive"] }
 globset = "0.4"
 toml = "0.8"

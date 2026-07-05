@@ -17,7 +17,7 @@ path = "src/main.rs"
 mindtape = { path = "../mindtape" }
 typst-harvest = "0.1.0"
 typst-cleanup = "0.1.0"
-swhid-mint = "0.1.0"
+swhid-mint = "0.1.1"
 typst-edit = "0.1.0"
 clap = { version = "4", features = ["derive"] }
 anyhow = "1"
@@ -36,7 +36,7 @@ unicode-width = "0.2"
 
 [dev-dependencies]
 mindtape = { path = "../mindtape", features = ["test-support"] }
-swhid-mint = { version = "0.1.0", features = ["test-support"] }
+swhid-mint = { version = "0.1.1", features = ["test-support"] }
 assert_cmd = "2"
 predicates = "3"
 tempfile = "3"
