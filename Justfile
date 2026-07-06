@@ -16,7 +16,8 @@ check:
         "chronic just machete" \
         "chronic just check-file-size" \
         "chronic just check-dry" \
-        "chronic just outdatty-check"
+        "chronic just outdatty-check" \
+        "chronic just docs-check"
 
 # Fail if a source changed without its dependents being re-confirmed
 outdatty-check:
@@ -29,6 +30,7 @@ outdatty-update:
 # Prove `nix build` succeeds in a clean sandbox (no dev shell, no sccache).
 # Catches a committed .cargo/config.toml — or any dev-only setting — leaking
 # into the package build and breaking downstream flake consumers. Stage first:
+
 # flakes filter source to git-tracked files, and naersk needs the current tree.
 nix-build:
     git add -A
