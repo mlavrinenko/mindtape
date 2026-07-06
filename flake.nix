@@ -7,6 +7,8 @@
     };
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     qahq.url = "github:mlavrinenko/qahq";
+    # Typst-native static site generator that builds the docs under www/.
+    tola.url = "github:tola-rs/tola-ssg/v0.7.1";
   };
 
   outputs =
@@ -15,6 +17,7 @@
       naersk,
       nixpkgs,
       qahq,
+      tola,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -45,6 +48,7 @@
               qahq.packages.${system}.ejectest
               qahq.packages.${system}.linecop
               qahq.packages.${system}.outdatty
+              tola.packages.${system}.default
             ]
             ++ (with pkgs; [
               rustc

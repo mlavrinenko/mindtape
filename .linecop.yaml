@@ -13,5 +13,4 @@ count_mode: total
 exclude_dirs:
   - target
   - archive
-  - docs
   - var

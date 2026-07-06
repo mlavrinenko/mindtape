@@ -1,11 +1,15 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/logo.svg" alt="MindTape" width="120" />
+  <img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg" alt="MindTape" width="120" />
 </p>
 
 <h1 align="center">MindTape</h1>
 
 <p align="center">
   A <a href="LICENSE">MIT</a>-licensed, daemon-free file-based task tracker powered by <a href="https://typst.app/">Typst</a>.
+</p>
+
+<p align="center">
+  <a href="https://mlavrinenko.github.io/mindtape/">Documentation</a>
 </p>
 
 ---

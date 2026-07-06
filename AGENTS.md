@@ -42,7 +42,7 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
 - `evalexpr` 12 as a parser for the filter language (walked, not evaluated by it)
 - `clap` 4 CLI; `serde`/`toml` config; `comfy-table`/`serde_json`/`csv` output
 - Nix flake + `just`; dev tools: sccache, cargo-machete, linecop, outdatty,
-  ejectest, cargo-tarpaulin
+  ejectest, cargo-tarpaulin, tola (Typst-native SSG for the `www/` docs)
 
 ## Agent Rules
 
@@ -146,8 +146,10 @@ consumer-blind enough for speconaut to converge onto.
 
 - Workspace crates: `Cargo.toml` `[workspace.package] version` (semver)
 - Typst library: `lib/typst.toml` `version` (independent). On bump, update the
-  `TYPST_PKG_VERSION` const in `crates/mindtape-cli/src/init.rs` and the import
-  examples in `README.md`, `www/index.html`, and this file.
+  `TYPST_PKG_VERSION` const in `crates/mindtape-cli/src/init.rs`, the
+  `PKG_VERSION` const in `www/utils/site.typ` (the docs render every `#import`
+  example from it), and the import examples in `README.md` and this file. The
+  `typst-pkg-version` outdatty group guards these.
 
 ## Context Hygiene
 

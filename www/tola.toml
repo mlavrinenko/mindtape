@@ -1,0 +1,49 @@
+# Tola configuration (v0.7.1) — MindTape documentation site.
+# Authored in Typst; dogfoods the medium MindTape tasks are written in.
+
+[site.info]
+title = "MindTape"
+author = "Maxim Lavrinenko"
+description = "A daemon-free, file-based task tracker powered by Typst. One task per .typ file, live-evaluated on every command."
+# GitHub Pages project page: the URL path ("/mindtape") is the build prefix.
+url = "https://mlavrinenko.github.io/mindtape"
+language = "en"
+copyright = "MIT"
+
+[site.seo]
+auto_og = false
+
+[site.seo.feed]
+enable = false
+
+[site.seo.sitemap]
+enable = true
+path = "sitemap.xml"
+
+[site.header]
+no_fouc = true
+styles = []
+scripts = []
+elements = []
+
+[build.assets]
+nested = ["assets"]
+flatten = []
+
+[build.hooks.css]
+enable = false
+
+[serve]
+interface = "127.0.0.1"
+port = 5277
+watch = true
+# Serve under the same /mindtape prefix the build uses, so local links resolve.
+respect_prefix = true
+
+[validate.pages]
+enable = true
+level = "error"
+
+[validate.assets]
+enable = true
+level = "error"

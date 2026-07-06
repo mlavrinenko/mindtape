@@ -6,37 +6,49 @@ groups:
       crates/mindtape-cli/src/cli.rs: 3ee42c2f5b4ba6d5b39e403110fe61b21ece812d2bd4e5b0a5eaf2ae05a83876
       crates/mindtape/src/lib.rs: d6974d0a5bfcd468bbb1b55556b86cdd571ea534f6ab0c46068893f020d1d44a
     dependents:
-      README.md: b15a8676e6164f6235cb2d60fe77bec40000a4c438a7559cbbe5946e6ff58925
+      README.md: 91397010234c22696b5ead2e2e451a565745a8e9738e1eed57e4c760e204ddea
       skills/mindtape/SKILL.md: 07c2b81d79142dfae3102eb4e3a137ed125ab572325c0ad19f4eaaaf0f10135c
-      www/index.html: a17b43fb81d4d5e4ab6e0e493103bfc1b51d6722f8820675a4d1cbf0494504d5
+      www/content/cli.typ: 8138136bce3e6ccb70e215ac2a53c556f55040f034877aac70047aebcaf4ada1
+      www/content/filters.typ: af05dcac1531379a516387382bf604963496113f0754e6bd75161772c4cc2f2b
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: 24528808c4c68bb49fa704fc2ef34d5aa5ae430c434476c11d5ccdb6ca602313
+      crates/mindtape-cli/Cargo.toml: 570f68bad5189cb6e2e3549ad7a37b68dcbf36e79c5301461e47f9f1ac7967b3
       crates/mindtape-cli/src/cli.rs: 3ee42c2f5b4ba6d5b39e403110fe61b21ece812d2bd4e5b0a5eaf2ae05a83876
       crates/mindtape-cli/src/default-config.toml: b49facbe0a532a8276c90fcc62beb698ab02531101debdca73ae5de1eec9fe69
     dependents:
-      AGENTS.md: d007f9887f13bb694a36a2115e1733f5c60a3869215148b5397051931ede374e
+      AGENTS.md: 5db5304cb3248fca9bfbc4a25d8363b5f9d0f6ee260b5ffbd8a63953a432f8c5
       CHANGELOG.md: c8e11c0b49bddc65314a2555727c40229cc39c0dbe3e7f4a6854f60c32c8e7eb
       CONTRIBUTING.md: 80f7e2f9d31f4997c0e0a518a961e520e325bba6802a8f46169325082393173b
-      README.md: b15a8676e6164f6235cb2d60fe77bec40000a4c438a7559cbbe5946e6ff58925
+      README.md: 91397010234c22696b5ead2e2e451a565745a8e9738e1eed57e4c760e204ddea
       skills/mindtape/SKILL.md: 07c2b81d79142dfae3102eb4e3a137ed125ab572325c0ad19f4eaaaf0f10135c
-      www/index.html: a17b43fb81d4d5e4ab6e0e493103bfc1b51d6722f8820675a4d1cbf0494504d5
+      www/content/cli.typ: 8138136bce3e6ccb70e215ac2a53c556f55040f034877aac70047aebcaf4ada1
+      www/content/index.typ: 46d74bcc72c78a177366ec62a5979c9b2f8fc29c454367da9a4b34d6535bae0e
+      www/content/quickstart.typ: 26cf06ea1574c712746baea7e2e6ac34dbc4ef56b9e5522f5117d1e77ae144a9
   dev-docs:
     source:
-      Justfile: 121f9d1f3745956e4af1559433892a0e0138bf89f2af38aaf983be05b56f7c2f
-      flake.nix: 4a838f72eb7c794dd2a501059b6ef8163eb506ebbb8493f9de52853f81d8b85d
+      Justfile: f1f765bb0edd952e88febaf7be85f7d6ef60e4f4f758ea422dbcf1f5f39798e1
+      flake.nix: a160fb5a45be5ca9f3a093174241fc5f82be3c70ed697de52803716cfbe9470f
     dependents:
-      AGENTS.md: d007f9887f13bb694a36a2115e1733f5c60a3869215148b5397051931ede374e
+      AGENTS.md: 5db5304cb3248fca9bfbc4a25d8363b5f9d0f6ee260b5ffbd8a63953a432f8c5
       CONTRIBUTING.md: 80f7e2f9d31f4997c0e0a518a961e520e325bba6802a8f46169325082393173b
   prelude-docs:
     source:
       lib/prelude.typ: ef8b9f9043508b0546a4d8600e4b352d16981574dca00b0dd27f90a8af2d8573
     dependents:
-      AGENTS.md: d007f9887f13bb694a36a2115e1733f5c60a3869215148b5397051931ede374e
-      README.md: b15a8676e6164f6235cb2d60fe77bec40000a4c438a7559cbbe5946e6ff58925
+      AGENTS.md: 5db5304cb3248fca9bfbc4a25d8363b5f9d0f6ee260b5ffbd8a63953a432f8c5
+      README.md: 91397010234c22696b5ead2e2e451a565745a8e9738e1eed57e4c760e204ddea
       skills/mindtape/SKILL.md: 07c2b81d79142dfae3102eb4e3a137ed125ab572325c0ad19f4eaaaf0f10135c
+      www/content/dsl.typ: 5951ba7423a67edac7ea359258c0769233e419a4822f462b6df013f5c49fe635
   release-notes:
     source:
       Cargo.toml: 4f384d987761930af1e70ef18d010c06c8ab403040f6b90484e8bc979e909117
     dependents:
       CHANGELOG.md: c8e11c0b49bddc65314a2555727c40229cc39c0dbe3e7f4a6854f60c32c8e7eb
+  typst-pkg-version:
+    source:
+      lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5
+    dependents:
+      AGENTS.md: 5db5304cb3248fca9bfbc4a25d8363b5f9d0f6ee260b5ffbd8a63953a432f8c5
+      README.md: 91397010234c22696b5ead2e2e451a565745a8e9738e1eed57e4c760e204ddea
+      crates/mindtape-cli/src/init.rs: f8a6a47a154530214cb7783e80bf16c9a912b778e2961c1e21d18b65b6169fed
+      www/utils/site.typ: 2b3c9684a3271749e1353a7a5ef9e7d502820d9db42a7f29c71d2eb006595da7

@@ -34,6 +34,18 @@ nix-build:
     git add -A
     nix build .#default
 
+# Build the documentation site (www/ -> www/public/mindtape) with tola
+docs-build:
+    cd www && tola build
+
+# Serve the docs locally with hot reload
+docs-serve:
+    cd www && tola serve
+
+# Build the docs and validate every internal link + asset
+docs-check:
+    cd www && tola build && tola validate
+
 # Run tests only
 test *ARGS:
     cargo test --workspace {{ ARGS }}

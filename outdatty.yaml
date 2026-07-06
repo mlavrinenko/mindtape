@@ -5,14 +5,16 @@
 # record the new state; `just outdatty-check` (part of `just check`) fails until
 # you do.
 groups:
-  # The CLI surface (commands, flags, behaviour) is documented by hand.
+  # The CLI surface (commands, flags, behaviour) is documented by hand, in the
+  # README and the docs-site reference pages.
   - name: cli-docs
     source:
       - crates/mindtape-cli/src/cli.rs
       - crates/mindtape/src/lib.rs
     dependents:
       - README.md
-      - www/index.html
+      - www/content/cli.typ
+      - www/content/filters.typ
       - skills/mindtape/SKILL.md
 
   # A package change (version, dependencies, metadata) should land in the changelog.
@@ -29,7 +31,20 @@ groups:
     dependents:
       - README.md
       - AGENTS.md
+      - www/content/dsl.typ
       - skills/mindtape/SKILL.md
+
+  # The Typst library version appears in every #import example and the CLI's
+  # embedded constant. Bump lib/typst.toml and these must follow (the docs read
+  # it from one place — www/utils/site.typ PKG_VERSION).
+  - name: typst-pkg-version
+    source:
+      - lib/typst.toml
+    dependents:
+      - crates/mindtape-cli/src/init.rs
+      - README.md
+      - AGENTS.md
+      - www/utils/site.typ
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.
@@ -40,7 +55,9 @@ groups:
       - crates/mindtape-cli/src/default-config.toml
     dependents:
       - README.md
-      - www/index.html
+      - www/content/index.typ
+      - www/content/quickstart.typ
+      - www/content/cli.typ
       - CONTRIBUTING.md
       - AGENTS.md
       - CHANGELOG.md
