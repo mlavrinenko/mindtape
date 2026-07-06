@@ -16,7 +16,7 @@ state is plain files, output is structured, and every command is deterministic.
 Every read command speaks JSON:
 
 ```sh
-mt ls --json          # tasks as JSON (also --csv)
+mt ls --json          # tasks as JSON (--format csv for CSV)
 mt eval <file> --json # one task file, evaluated
 mt config show --json # the effective config
 mt add --describe=json # the slot schema for the active template

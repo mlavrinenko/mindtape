@@ -35,7 +35,8 @@ output).
 mt ls --all                     # ignore the default filter
 mt ls 'has_tag("backend")'      # filter expression
 mt ls ready --sort priority:asc -n 10   # predicate + sort + limit
-mt ls --json                    # JSON output (also --csv)
+mt ls --json                    # --json is shorthand for --format json
+mt ls --format csv              # table (default), json, or csv
 mt ls -i                        # interactive: type a #, Enter opens it
 ```
 
@@ -68,7 +69,7 @@ ok: 3 task(s) valid")
 `mt config show` prints the effective merged config as re-parseable TOML:
 
 ```sh
-mt config show --origin     # which layer contributed each value, and from where
+mt config show --origin     # which config layers contributed, and from where
 mt config show --defaults   # just the embedded floor
 mt config show --json       # effective config as JSON
 ```
@@ -97,7 +98,7 @@ form). See #link(u("/quickstart/"))[Quickstart].
   table.header([Flag], [Effect]),
   [`--color <auto\|always\|never>`], [Colour output. `auto` (default) colours when stdout is a TTY and `NO_COLOR` is unset.],
   [`-v` / `-vv` / `-vvv`], [Increase verbosity: info, debug, trace.],
-  [`--json` / `--csv`], [Machine-readable output where a command supports it.],
+  [`--format <table\|json\|csv>`], [Output format where a command supports it; `--json` is shorthand for `--format json`.],
 )
 
 #callout("note")[

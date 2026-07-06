@@ -11,10 +11,13 @@ groups:
     source:
       - crates/mindtape-cli/src/cli.rs
       - crates/mindtape/src/lib.rs
+      - crates/mindtape/src/defaults.toml
+      - crates/mindtape-cli/src/default-config.toml
     dependents:
       - README.md
       - www/content/cli.typ
       - www/content/filters.typ
+      - www/content/config.typ
       - skills/mindtape/SKILL.md
 
   # A package change (version, dependencies, metadata) should land in the changelog.

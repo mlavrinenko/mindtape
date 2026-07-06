@@ -26,7 +26,7 @@ Inspect the result:
 
 ```sh
 mt config show            # effective config as re-parseable TOML
-mt config show --origin   # which layer contributed each value, and from where
+mt config show --origin   # which config layers contributed, and from where
 mt config show --defaults # just the embedded floor
 mt config show --json     # effective config as JSON
 ```
@@ -79,8 +79,8 @@ default-filter = "status != \"done\""
 ```
 
 #terminal("$ mt config show --origin
-# [tasks.priority] max = 9        ← embedded floor
-# [ls] default-filter            ← .mindtape/config.toml")
+embedded: <built-in>
+project: .mindtape/config.toml (exists)")
 
 #callout("note")[
   `mt init` writes a slim scaffold that inherits the floor; `mt init --full`

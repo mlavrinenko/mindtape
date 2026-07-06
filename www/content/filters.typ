@@ -66,8 +66,9 @@ mt ls -n 10                    # limit to 10
 
 = Default filters
 
-`mt ls` applies `[ls] default-filter` (shipped as `status != "done"`) unless you
-pass `--all`. `mt rm` applies `[rm] default-filter` (`terminal`). Both live in
+`mt ls` applies `[ls] default-filter` unless you pass `--all`. The shipped default
+is `!terminal && (miss(start) || start <= now())` — open work whose start date, if
+any, has arrived. `mt rm` applies `[rm] default-filter` (`terminal`). Both live in
 #link(u("/config/"))[Configuration].
 
 #callout("note")[
