@@ -64,10 +64,12 @@
   let home = meta.at("home", default: false)
 
   html.elem("header", attrs: (class: "site-header"), {
-    _brand
-    html.elem("div", attrs: (class: "header-right"), {
-      html.elem("a", attrs: (href: REPO, class: "header-link"), [GitHub])
-      _toggle
+    html.elem("div", attrs: (class: "header-inner"), {
+      _brand
+      html.elem("div", attrs: (class: "header-right"), {
+        html.elem("a", attrs: (href: REPO, class: "header-link"), [GitHub])
+        _toggle
+      })
     })
   })
 

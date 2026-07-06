@@ -24,6 +24,7 @@
 
   --max: 46rem;
   --sidebar: 15rem;
+  --shell-max: 74rem;
 
   --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -62,14 +63,20 @@ a:hover { color: var(--accent-strong); }
   position: sticky;
   top: 0;
   z-index: 20;
+  /* Full-bleed bar; inner content aligns to the shell column below. */
+  padding: 0.7rem 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(150%) blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.7rem clamp(1rem, 4vw, 2rem);
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: saturate(150%) blur(10px);
-  border-bottom: 1px solid var(--border);
+  max-width: var(--shell-max);
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem);
 }
 .site-header p { display: contents; }
 
@@ -101,7 +108,7 @@ a:hover { color: var(--accent-strong); }
   display: grid;
   grid-template-columns: var(--sidebar) minmax(0, 1fr);
   gap: clamp(1.5rem, 4vw, 3.5rem);
-  max-width: 74rem;
+  max-width: var(--shell-max);
   margin: 0 auto;
   padding: 0 clamp(1rem, 4vw, 2rem);
 }
@@ -155,6 +162,10 @@ blockquote {
 /* Inline + block code (Typst-highlighted listings on light paper) --------- */
 code {
   font-family: var(--font-mono); font-size: 0.86em;
+  /* Code surfaces stay on light "paper" in both themes (see --code-bg), so pin
+     the text to the dark code foreground — otherwise inline chips inherit the
+     light --fg in dark mode and vanish against the light chip. */
+  color: var(--code-fg);
   background: var(--code-bg); border: 1px solid var(--code-border);
   padding: 0.08em 0.36em; border-radius: 5px;
 }
