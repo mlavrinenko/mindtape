@@ -1,60 +1,171 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout
-#import "../utils/site.typ": u
+#import "../utils/site.typ": u, REPO
 
 #show: page.with(
   title: "Comparison",
   active: "/comparison/",
-  summary: "Where MindTape sits among file-based and CLI task trackers, and when another tool is the better fit.",
+  summary: "How MindTape compares, feature by feature, to the other local file-and-CLI task trackers — and when one of them is the better fit.",
 )
 
-MindTape is not trying to replace every task tracker. It occupies a specific
-niche: #strong[typed tasks, one per file, versioned with the code, validated by
-config, with no daemon]. This page is an honest map of the neighbourhood.
+// Canonical landing page / repo for each neighbour, reused in the bullet list
+// and the matrix header. Verified live (curl -sI) before use.
+#let dstask-url = "https://github.com/naggie/dstask"
+#let taskwarrior-url = "https://taskwarrior.org"
+#let todotxt-url = "http://todotxt.org"
+#let orgmode-url = "https://orgmode.org"
+#let git-bug-url = "https://github.com/git-bug/git-bug"
 
-= At a glance
+MindTape is not out to replace every task tracker. It sits in a narrow niche:
+#strong[typed tasks, one per file, versioned with the code, validated by config,
+no daemon]. This page compares it, feature by feature, against the other local
+file-and-CLI trackers — the real neighbours. Hosted services (GitHub Issues,
+Jira, Linear) are a different category: daemon-plus-database SaaS with no in-repo
+file artifact, and out of scope here.
 
-#table(
-  columns: (auto, auto, auto),
-  table.header([Tool], [Storage], [Shape of a task]),
-  [MindTape], [One `.typ` file per task, in your repo], [Typed Typst, config-validated],
-  [Taskwarrior], [One central database], [Attributes + UDAs, rich reports],
-  [todo.txt], [One shared text file], [A single formatted line],
-  [Org-mode], [Emacs `.org` files], [Headline + properties, prose-first],
-  [dstask], [One file per task, git-backed], [Markdown-ish front matter],
-  [GitHub Issues], [Hosted service], [Web form, collaborative],
-)
+= The neighbourhood
 
-= When MindTape fits
+- #strong[#link(u("/"))[MindTape]] — one typed Typst file per task, config-validated, in your repo.
+- #strong[#link(dstask-url)[dstask]] — the closest cousin: one YAML file per task, synced through
+  git, from a single Go binary.
+- #strong[#link(taskwarrior-url)[Taskwarrior]] — the incumbent CLI engine: a central store with urgency
+  scoring, recurrence, and user-defined attributes.
+- #strong[#link(todotxt-url)[todo.txt]] — the minimalist standard: one plain-text file, one line per
+  task, no schema.
+- #strong[#link(orgmode-url)[Org-mode]] — Emacs outline files that double as a live agenda and a
+  typeset-exportable document.
+- #strong[#link(git-bug-url)[git-bug]] — issues stored inside git objects, offline-first and
+  distributed.
 
-- You want tasks to live #strong[in the repo], reviewed and versioned with the
-  code they describe.
-- You want tasks that are #strong[typed and validated] — enum statuses, bounded
-  scales, resolvable links, checked in CI.
-- You want to #strong[compose] tasks: `#import` shared Typst libraries, compute
-  values, reuse templates.
-- You want the same file to be a queryable row #strong[and] a typeset document.
-- You want a #strong[local, offline, daemon-free] tool that AI agents can drive.
+All six are daemon-free and run locally, so that alone separates none of them.
+The table below digs into how each one stores, types, links, and renders a task.
+
+= Feature by feature
+
+Cells are terse on purpose; the prose after the table carries the nuance. The
+matrix scrolls sideways on narrow screens.
+
+#html.elem("div", attrs: (class: "matrix"), table(
+  columns: 7,
+  align: left,
+  table.header(
+    [Dimension],
+    [#link(u("/"))[MindTape]], [#link(dstask-url)[dstask]], [#link(taskwarrior-url)[Taskwarrior]],
+    [#link(todotxt-url)[todo.txt]], [#link(orgmode-url)[Org-mode]], [#link(git-bug-url)[git-bug]],
+  ),
+
+  [#link(u("/concepts/"))[Storage granularity]],
+  [One file / task], [One file / task], [Central store],
+  [One shared file], [Many per `.org` file], [Git objects],
+
+  [#link(u("/dsl/"))[On-disk format]],
+  [Typst `.typ`], [YAML `.yml`], [SQLite DB],
+  [Plain-text line], [Outline text], [Git blobs on refs],
+
+  [#link(u("/concepts/"))[In the working tree, reviewed with your code]],
+  [Yes, by design], [No — its own git repo], [No — `~/.task` store],
+  [Possible], [Yes], [In git, not the tree],
+
+  [#link(u("/config/"))[Typed schema + config validation]],
+  [Config-enforced, `mt check`], [Light, fixed], [Typed attrs + UDAs],
+  [None], [Soft], [Minimal],
+
+  [#link(u("/config/"))[Status model]],
+  [Config legend (enum + dates)], [Fixed set], [Fixed enum],
+  [`x ` prefix], [User-defined keywords], [open / closed],
+
+  [#link(u("/priority/"))[Priority model]],
+  [Int scale or scored framework], [`P0`–`P3`], [H/M/L + urgency score],
+  [`(A)`–`(Z)`], [`#A`/`#B`/`#C`], [None],
+
+  [#link(u("/concepts/"))[Task identity]],
+  [Filename stem], [UUID], [UUID],
+  [Line position], [Headline / `:ID:`], [Content hash],
+
+  [#link(u("/filters/"))[Dependencies / blocking]],
+  [Yes — typed links], [Yes], [Yes — `depends`],
+  [No], [Yes — `ORDERED` / org-depend], [No],
+
+  [#link(u("/filters/"))[Query + machine output]],
+  [Filter DSL; JSON, CSV], [CLI filters; text only], [Filter DSL; JSON],
+  [grep-style; text only], [agenda / org-ql; many exports], [filters; JSON],
+
+  [#link(u("/templates/"))[Templates / scaffolds]],
+  [Slot templates], [Copy-a-task template], [Recurrence, UDAs, reports],
+  [Addons only], [`org-capture` templates], [No],
+
+  [Recurring tasks],
+  [No], [No], [Yes],
+  [Addons only], [Yes], [No],
+
+  [#link(REPO + "/blob/main/truth/tasks/render-task-files-as-typeset-documents.typ")[Typeset-document face]],
+  [Planned — 0.2 emits marker + raw body], [No], [No],
+  [No], [Yes — PDF today], [No],
+
+  [#link(u("/quickstart/"))[Toolchain footprint]],
+  [`mt` binary + Typst], [Single Go binary + git], [Single binary],
+  [Bash script only], [Emacs], [Go binary + git],
+
+  [#link(REPO)[Maturity + license (mid-2026)]],
+  [Pre-1.0, unreleased; MIT], [~1.2k★, stable; MIT], [~5.9k★, active; MIT],
+  [~6.1k★ + huge ecosystem; GPL-3], [ships with Emacs, ~20y; GPL-3], [~9.9k★, active; GPL-3],
+))
+
+= Where MindTape leads
+
+- #strong[Tasks in the code tree.] A task is a file in your working tree,
+  reviewed and merged in the same PR as the code it describes. Only Org-mode also
+  lives in the tree comfortably — and it is a general editor format, not a
+  per-project tracker with a schema.
+- #strong[Typed and validated.] One #link(u("/config/"))[config] enforces the
+  status legend, bounded priority and difficulty scales, the `kind` enum, an
+  estimate unit allow-list, and link resolution — all checked by `mt check` in
+  CI. Only Taskwarrior's UDAs come close, and without the validation gate.
+- #strong[Scored priority frameworks.] ICE, RICE, WSJF, Eisenhower, and MoSCoW
+  score typed inputs and band the result onto the scale
+  (#link(u("/priority/"))[details]). Nothing else in this table computes priority
+  from structured inputs.
+- #strong[Composable source.] The file is real Typst: `#import` a shared library,
+  compute values, reuse templates. A todo.txt line or a YAML record cannot.
+
+= Where the others win
+
+- #strong[Maturity and ecosystem.] Every competitor is released and
+  battle-tested; MindTape is pre-1.0 and unreleased. Taskwarrior and todo.txt
+  carry decades of tooling, integrations, and mobile apps.
+- #strong[Zero toolchain.] todo.txt is one text file plus a shell script — no
+  binary, no compiler. MindTape needs the `mt` binary and a Typst toolchain.
+- #strong[Recurrence.] Taskwarrior and Org-mode do genuine repeating tasks;
+  MindTape has none yet.
+- #strong[A shipping typeset render.] Org-mode exports polished PDFs today.
+  MindTape's rendered card is still a planned task — `typst compile` on a task
+  currently emits its metadata marker plus the raw body, not the full document.
 
 = When another tool fits better
 
-- #strong[Taskwarrior] — you want a mature, central personal tracker with deep
-  reports, recurrence, and a huge extension ecosystem, and you do not need tasks
+- #strong[dstask] — you want the one-file-per-task, git-backed spirit with a
+  batteries-included single binary and no schema to set up, and you are happy
+  keeping tasks in their own auto-committed repo rather than the code tree.
+- #strong[Taskwarrior] — you want the most powerful mature CLI engine: urgency
+  scoring, recurrence, UDAs, a deep filter language — and you do not need tasks
   in-repo.
-- #strong[todo.txt] — you want the absolute minimum: one line, one file, zero
-  schema.
-- #strong[Org-mode] — you live in Emacs and want tasks woven into prose, agendas,
-  and literate documents.
-- #strong[GitHub Issues / Jira] — you need hosted, multi-user collaboration with
-  notifications and a web UI.
+- #strong[todo.txt] — you want the absolute minimum: one portable text file, zero
+  schema, supported by dozens of apps on every platform.
+- #strong[Org-mode] — you live in Emacs and want tasks embedded in prose that
+  exports to typeset PDF today, with cross-file agendas and capture templates.
+- #strong[git-bug] — you want issues that travel inside the git repo itself,
+  offline-first and distributed, bridging to GitHub or GitLab.
 
 = The closest cousin
 
-dstask shares the most DNA — one file per task, git as the store. MindTape differs
-in that a task is #strong[Typst], not front matter: it is typed and composable, the
-project #link(u("/config/"))[config] drives validation, and #link(u("/priority/"))[priority
-frameworks] score typed inputs. The trade is a Typst toolchain versus plain
-Markdown.
+dstask shares the most DNA: one file per task, git as the store, a single-binary
+CLI. The differences are the trade. A MindTape task is #strong[typed Typst
+validated by project config]; a dstask task is a YAML record with a light fixed
+schema. MindTape tasks live #strong[in your code tree], reviewed in the same PR;
+dstask keeps them in its own git repo it auto-commits for you. MindTape
+#link(u("/priority/"))[scores priority frameworks]; dstask ranks `P0`–`P3`. The
+cost of all that structure is a Typst toolchain versus a single static binary —
+and dstask, being released and mature, is simpler to install today.
 
 #callout("note")[
   Pick the tool that matches how you work. If tasks-as-code, in-repo, and typed is

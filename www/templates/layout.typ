@@ -5,6 +5,65 @@
 // Set data-theme before first paint (no flash), then a global toggle.
 #let _theme-script = "(function(){var d=document.documentElement;var t=localStorage.getItem('theme');if(t){d.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){d.setAttribute('data-theme','dark')}}());function toggleTheme(){var d=document.documentElement;var n=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',n);localStorage.setItem('theme',n)}"
 
+// Floating <thead> clone for wide tables like the comparison matrix. Plain
+// CSS `position: sticky` on `thead th` can't work there: the `.matrix`
+// wrapper is a horizontal scroll container (`overflow-x: auto`), and that
+// clips block-axis sticky positioning for its descendants. No-op on pages
+// without a `.matrix table thead` (guarded up front). This script tag sits
+// in <head> (before <body> is parsed), so the setup runs on DOMContentLoaded
+// rather than immediately.
+#let _matrix-float-head-script = "document.addEventListener('DOMContentLoaded',function(){
+var thead=document.querySelector('.matrix table thead');
+if(!thead)return;
+var wrapper=document.querySelector('.matrix');
+var table=wrapper.querySelector('table');
+var header=document.querySelector('.site-header');
+var floatWrap=document.createElement('div');
+floatWrap.className='matrix-float-head';
+var floatTable=document.createElement('table');
+var floatThead=thead.cloneNode(true);
+floatTable.appendChild(floatThead);
+floatWrap.appendChild(floatTable);
+document.body.appendChild(floatWrap);
+var liveCells=thead.querySelectorAll('th');
+var cloneCells=floatThead.querySelectorAll('th');
+function sizeCols(){
+var wrapRect=wrapper.getBoundingClientRect();
+floatWrap.style.left=wrapRect.left+'px';
+floatWrap.style.width=wrapRect.width+'px';
+floatTable.style.width=table.getBoundingClientRect().width+'px';
+for(var i=0;i<liveCells.length;i++){
+cloneCells[i].style.width=liveCells[i].getBoundingClientRect().width+'px';
+}
+}
+var ticking=false;
+function update(){
+ticking=false;
+var headerH=header?header.getBoundingClientRect().height:0;
+var tableRect=table.getBoundingClientRect();
+var theadH=thead.getBoundingClientRect().height;
+var show=tableRect.top<headerH&&tableRect.bottom>headerH+theadH;
+if(show){
+sizeCols();
+floatWrap.style.top=headerH+'px';
+floatWrap.style.display='block';
+floatTable.style.transform='translateX(-'+wrapper.scrollLeft+'px)';
+}else{
+floatWrap.style.display='none';
+}
+}
+function onScroll(){
+if(!ticking){
+ticking=true;
+requestAnimationFrame(update);
+}
+}
+window.addEventListener('scroll',onScroll,{passive:true});
+window.addEventListener('resize',onScroll);
+wrapper.addEventListener('scroll',onScroll,{passive:true});
+update();
+});"
+
 #let make-head(m) = {
   html.elem("meta", attrs: (charset: "utf-8"))
   html.elem("meta", attrs: (name: "viewport", content: "width=device-width, initial-scale=1"))
@@ -23,6 +82,7 @@
   html.elem("link", attrs: (rel: "stylesheet", href: "/assets/styles/main.css"))
   html.elem("link", attrs: (rel: "stylesheet", href: "/assets/styles/components.css"))
   html.script(_theme-script)
+  html.script(_matrix-float-head-script)
 }
 
 #let _brand = html.elem(

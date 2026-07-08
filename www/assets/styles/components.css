@@ -105,5 +105,45 @@ main th, main td { border: 1px solid var(--border); padding: 0.42rem 0.62rem; te
 main thead th { background: var(--bg-soft); font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.02em; }
 main td code { font-size: 0.82em; }
 
+/* Wide comparison matrix: too many columns for the 46rem text column, so it
+   scrolls sideways instead of squishing, and the row-label column sticks. */
+.matrix { overflow-x: auto; margin: 0 0 1.3rem; }
+.matrix table { min-width: 46rem; margin: 0; font-size: 0.82rem; }
+.matrix th, .matrix td { padding: 0.38rem 0.55rem; }
+.matrix tbody th, .matrix tbody td:first-child {
+  position: sticky; left: 0; z-index: 1; background: var(--bg);
+  font-weight: 600; font-family: var(--font-mono); font-size: 0.74rem;
+}
+.matrix thead th:first-child { position: sticky; left: 0; z-index: 2; }
+
+/* Floating header clone for the comparison matrix -------------------------
+   `.matrix` is a horizontal scroll container, which stops a plain CSS
+   `position: sticky` on `thead th` from working for vertical scroll (a
+   scroll-container ancestor clips block-axis sticky). A small script in
+   layout.typ (_matrix-float-head-script) clones the <thead> into this
+   fixed-position element once the table has scrolled past the site header,
+   sizing its cells to match the live header and re-syncing horizontal
+   offset with the wrapper's scrollLeft. Hidden by default; toggled via
+   inline `display` from the script. Styling mirrors `main thead th` /
+   `.matrix th` so the clone is indistinguishable from the real header. */
+.matrix-float-head {
+  position: fixed;
+  overflow: hidden;
+  z-index: 15;
+  display: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-soft);
+}
+.matrix-float-head table { border-collapse: collapse; margin: 0; }
+.matrix-float-head th {
+  border: 1px solid var(--border);
+  padding: 0.38rem 0.55rem;
+  text-align: left;
+  background: var(--bg-soft);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
 /* Lede paragraph under an h1 --------------------------------------------- */
 .lede { font-size: 1.12rem; color: var(--muted); margin-bottom: 1.6rem; }
