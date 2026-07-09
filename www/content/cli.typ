@@ -22,9 +22,9 @@ output).
 
 = Listing
 
-`mt ls [filter]` lists tasks under the configured roots, applying
-`[ls] default-filter` unless you pass `--all`. It accepts a
-#link(u("/filters/"))[filter expression], sorts, and limits:
+`mt ls [filter]` lists tasks under the configured roots. Omitting the filter
+applies `[ls] default-filter`; an empty filter (`mt ls ''`) lists everything.
+It accepts a #link(u("/filters/"))[filter expression], sorts, and limits:
 
 #terminal("$ mt ls
 #   STATUS    READY    PRIORITY  DUE         TITLE
@@ -32,15 +32,48 @@ output).
 2g  proposed  blocked  normal                Write onboarding docs")
 
 ```sh
-mt ls --all                     # ignore the default filter
+mt ls ''                        # empty filter — lists everything
 mt ls 'has_tag("backend")'      # filter expression
 mt ls ready --sort priority:asc -n 10   # predicate + sort + limit
+mt ls @broken                   # named view — filter + sort + columns
+mt ls --columns status,title    # one-off column override
 mt ls --json                    # --json is shorthand for --format json
 mt ls --format csv              # table (default), json, or csv
 mt ls -i                        # interactive: type a #, Enter opens it
 ```
 
-Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`.
+Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`, or
+override for one run with `--columns`.
+
+= Views
+
+Named views bundle a filter with an optional sort and column set under
+`[views.<name>]` — see #link(u("/config/"))[Config] for the table shape.
+Reference one with an `@name` sigil:
+
+- `mt ls @broken` — bundle mode: applies the view's filter, sort, and columns
+  together. A facet flag overrides just that facet: `mt ls @broken --sort
+  @summer` keeps `broken`'s filter and columns but takes `summer`'s sort.
+- `@name` inside a larger #link(u("/filters/"))[filter expression]
+  (`mt ls '@summer && !@broken'`) is the filter facet only — sugar for
+  `in_view("name")` — and composes with `&&` / `||` / `!` like any predicate.
+  Sort and columns are ignored in that position.
+- `--sort @view` splices that view's sort chain (repeatable, composes with
+  plain `--sort` specs); `--columns @view` takes its column set.
+
+`mt views` lists the named views; `mt views <name>` shows one view's resolved
+definition; `--json` on either for scripting.
+
+#terminal("$ mt views
+broken  blocked && stale(30)
+summer  has_tag(\"summer\") && !terminal  [sort, columns]")
+
+```sh
+mt ls @summer                        # bundle mode
+mt ls '@summer && !@broken'          # filter facet only
+mt ls @broken --sort @summer         # broken's filter+columns, summer's sort
+mt views summer                      # inspect one view
+```
 
 = Status
 

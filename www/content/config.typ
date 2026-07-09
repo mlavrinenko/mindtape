@@ -42,6 +42,7 @@ mt config show --json     # effective config as JSON
   [`[tasks.estimate]`], [Allowed estimate `units` (free labels, never converted).],
   [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
   [`[ls]`, `[rm]`], [Default filters, columns, and ordering. See #link(u("/filters/"))[Filter language].],
+  [`[views.<name>]`], [Named filter + sort + columns bundles, referenced with `@name`. See #link(u("/filters/"))[Filter language].],
   [`[templates]`], [Template `dirs` and the `default` template. See #link(u("/templates/"))[Templates & slots].],
   [`[add]`, `[go]`], [Editor, interactive mode, and header for `mt add` / `mt go`.],
 )
@@ -112,3 +113,31 @@ a status-less task are exempt; `mt flip --force` overrides. `mt check` flags a
 task whose status is unreachable from the initial state under the graph — a
 snapshot reachability check, not a full path audit (a `status` carries no
 history).
+
+= Named views
+
+`[views.<name>]` bundles a filter with an optional sort and column set so
+`mt ls` can reference it by name instead of repeating the expression:
+
+```toml
+[views.broken]
+filter = 'blocked && stale(30)'
+
+[views.summer]
+filter = 'has_tag("summer") && !terminal'
+sort = ["priority:desc", "due:asc"]
+columns = ["#", "status", "priority", "title"]
+description = "Summer push"
+```
+
+`filter` is required; `sort` (a list of `--sort`-grammar specs) and `columns`
+(a subset of the `mt ls` column names — `#`, `status`, `ready`, `priority`,
+`due`, `title`) are optional, as is a free-text `description`. Reference a
+view with `@name`: bare `@name` applies filter, sort, and columns together;
+`@name` inside a larger expression is filter-only, equivalent to
+`in_view("name")` — see #link(u("/filters/"))[Filter language] for the
+predicate and #link(u("/cli/"))[CLI reference] for `mt ls` / `mt views`.
+
+Views are validated at config load: each `filter` must parse, `sort` and
+`columns` entries must be legal, every view reference must resolve, and the
+reference graph must be acyclic — a cycle is a config error.

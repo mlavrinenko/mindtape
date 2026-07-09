@@ -27,6 +27,7 @@ pub use crate::config_ls::{
 };
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
 pub use crate::config_status::{Legend, LegendEntry};
+pub use crate::config_views::{ViewSpec, validate_views};
 
 /// The embedded config floor: canonical default values for the sections that
 /// carry an opinionated shipped default (status legend, priority/difficulty
@@ -64,6 +65,8 @@ pub struct Config {
     pub go: GoConfig,
     /// Typst evaluation settings (local-package overrides).
     pub typst: TypstConfig,
+    /// Named query bundles (`[views.<name>]`), referenced by `@name`.
+    pub views: BTreeMap<String, ViewSpec>,
 }
 
 /// `[typst]` — Typst evaluation settings.
@@ -391,6 +394,7 @@ impl Config {
             }
         }
         problems.extend(validate_ls_columns(&self.ls));
+        problems.extend(validate_views(&self.views));
         if problems.is_empty() {
             Ok(())
         } else {

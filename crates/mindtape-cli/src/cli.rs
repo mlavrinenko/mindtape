@@ -5,7 +5,7 @@ use clap::{CommandFactory, Parser, Subcommand};
 use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
-use crate::{add, check, config_cmd, eval, flip, go, init, install, ls, review, rm};
+use crate::{add, check, config_cmd, eval, flip, go, init, install, ls, review, rm, views};
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
 #[derive(Parser)]
@@ -33,6 +33,8 @@ enum Command {
     Add(add::AddArgs),
     /// List tasks under the configured roots, applying a filter.
     Ls(ls::LsArgs),
+    /// List or inspect named views (`[views]`).
+    Views(views::ViewsArgs),
     /// Validate tasks against the project configuration.
     Check,
     /// Inspect the effective merged configuration (`show` is the default action).
@@ -84,6 +86,7 @@ impl Cli {
         match self.command {
             Command::Add(args) => add::run(&args),
             Command::Ls(args) => ls::run(&args),
+            Command::Views(args) => views::run(&args),
             Command::Check => check::run(),
             Command::Config(args) => config_cmd::run(&args),
             Command::Init(args) => init::run(&args),

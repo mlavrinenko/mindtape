@@ -14,7 +14,9 @@
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
 //! Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
-//! `contains(field, "substr")`, `search("query")`, `stale(N)`.
+//! `contains(field, "substr")`, `search("query")`, `stale(N)`,
+//! `in_view("name")` (also written `@name`, which desugars to it): matches when
+//! the named view's filter matches.
 //!
 //! `now()` evaluates to today's ISO date string (`YYYY-MM-DD`) and may appear
 //! on the right-hand side of a comparison: `start <= now()`, `due < now()`.
@@ -29,14 +31,22 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
 
 use crate::config::{Config, PriorityConfig};
+use crate::filter_views::{collect_view_refs, desugar_view_refs};
 use crate::model::Task;
 use crate::numeric::{NumValue, format_num};
 use crate::ready::Readiness;
 
-/// A parsed, reusable filter expression.
+/// Maximum `in_view` nesting depth evaluated before bailing. Config load rejects
+/// cyclic view references ([`crate::config_views::validate_views`]), so this only
+/// guards an unvalidated config (e.g. a hand-built test one) against a stack
+/// overflow.
+const MAX_VIEW_DEPTH: usize = 64;
+
+/// A parsed, reusable filter expression. `None` is the match-all filter (an
+/// empty or whitespace-only expression, e.g. `mt ls ''`).
 #[derive(Debug, Clone)]
 pub struct Filter {
-    tree: Node<DefaultNumericTypes>,
+    tree: Option<Node<DefaultNumericTypes>>,
 }
 
 /// Errors from parsing or evaluating a filter expression.
@@ -51,6 +61,9 @@ pub enum FilterError {
     /// A field name the filter language does not know.
     #[error("unknown field in filter: {0}")]
     UnknownField(String),
+    /// An `in_view` / `@` reference naming no declared view.
+    #[error("unknown view in filter: {0}")]
+    UnknownView(String),
     /// A structurally invalid expression.
     #[error("invalid filter: {0}")]
     Invalid(String),
@@ -66,14 +79,31 @@ enum FieldValue {
 }
 
 impl Filter {
-    /// Parse a filter expression.
+    /// Parse a filter expression. `@name` view sugar is desugared to
+    /// `in_view("name")` first; an empty or whitespace-only expression is the
+    /// match-all filter.
     ///
     /// # Errors
     /// Returns [`FilterError::Parse`] on a syntax error.
     pub fn parse(expr: &str) -> Result<Self, FilterError> {
-        let tree = build_operator_tree::<DefaultNumericTypes>(expr)
+        let desugared = desugar_view_refs(expr);
+        if desugared.trim().is_empty() {
+            return Ok(Self { tree: None });
+        }
+        let tree = build_operator_tree::<DefaultNumericTypes>(&desugared)
             .map_err(|err| FilterError::Parse(err.to_string()))?;
-        Ok(Self { tree })
+        Ok(Self { tree: Some(tree) })
+    }
+
+    /// The view names this filter references through `in_view` / `@`, in
+    /// traversal order (may contain duplicates). Empty for the match-all filter.
+    #[must_use]
+    pub fn view_refs(&self) -> Vec<String> {
+        let mut out = Vec::new();
+        if let Some(tree) = &self.tree {
+            collect_view_refs(tree, &mut out);
+        }
+        out
     }
 
     /// Whether `task` satisfies the filter, resolving framework scores against
@@ -98,25 +128,53 @@ impl Filter {
         config: &Config,
         readiness: &Readiness,
     ) -> Result<bool, FilterError> {
-        eval_bool(&self.tree, task, config, readiness)
+        match &self.tree {
+            None => Ok(true),
+            Some(tree) => eval_bool(
+                tree,
+                &Ctx {
+                    task,
+                    config,
+                    readiness,
+                    depth: 0,
+                },
+            ),
+        }
     }
 }
 
-fn eval_bool(
-    node: &Node<DefaultNumericTypes>,
-    task: &Task,
-    config: &Config,
-    readiness: &Readiness,
-) -> Result<bool, FilterError> {
+/// Shared context threaded through the filter walk: the task under test, the
+/// config (framework scores, terminal set, view lookup), the readiness oracle
+/// (`ready` / `blocked`), and the current `in_view` recursion depth.
+struct Ctx<'a> {
+    task: &'a Task,
+    config: &'a Config,
+    readiness: &'a Readiness,
+    depth: usize,
+}
+
+impl<'a> Ctx<'a> {
+    /// The same context one `in_view` level deeper.
+    fn deeper(&self) -> Ctx<'a> {
+        Ctx {
+            task: self.task,
+            config: self.config,
+            readiness: self.readiness,
+            depth: self.depth + 1,
+        }
+    }
+}
+
+fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     match node.operator() {
         Operator::RootNode => match node.children() {
-            [child] => eval_bool(child, task, config, readiness),
+            [child] => eval_bool(child, ctx),
             _ => Err(FilterError::Invalid("root needs one child".to_owned())),
         },
-        Operator::And => binary(node, task, config, readiness, |left, right| left && right),
-        Operator::Or => binary(node, task, config, readiness, |left, right| left || right),
+        Operator::And => binary(node, ctx, |left, right| left && right),
+        Operator::Or => binary(node, ctx, |left, right| left || right),
         Operator::Not => match node.children() {
-            [child] => Ok(!eval_bool(child, task, config, readiness)?),
+            [child] => Ok(!eval_bool(child, ctx)?),
             _ => Err(FilterError::Invalid("`!` needs one operand".to_owned())),
         },
         Operator::Eq
@@ -124,29 +182,20 @@ fn eval_bool(
         | Operator::Lt
         | Operator::Gt
         | Operator::Leq
-        | Operator::Geq => comparison(node, task, config),
-        Operator::FunctionIdentifier { identifier } => {
-            function(identifier, node, task, config, readiness)
-        }
-        Operator::VariableIdentifierRead { identifier } => {
-            nullary(identifier, task, config, readiness)
-        }
+        | Operator::Geq => comparison(node, ctx),
+        Operator::FunctionIdentifier { identifier } => function(identifier, node, ctx),
+        Operator::VariableIdentifierRead { identifier } => nullary(identifier, ctx),
         other => Err(FilterError::Unsupported(format!("{other:?}"))),
     }
 }
 
 /// A bare identifier in boolean position: the predicates `ready` / `blocked` /
 /// `terminal` are valid; any other field is a type error (use a comparison).
-fn nullary(
-    identifier: &str,
-    task: &Task,
-    config: &Config,
-    readiness: &Readiness,
-) -> Result<bool, FilterError> {
+fn nullary(identifier: &str, ctx: &Ctx) -> Result<bool, FilterError> {
     match identifier {
-        "ready" => Ok(readiness.is_ready(task)),
-        "blocked" => Ok(readiness.is_blocked(task)),
-        "terminal" => Ok(task.is_terminal(&config.tasks.status.terminal())),
+        "ready" => Ok(ctx.readiness.is_ready(ctx.task)),
+        "blocked" => Ok(ctx.readiness.is_blocked(ctx.task)),
+        "terminal" => Ok(ctx.task.is_terminal(&ctx.config.tasks.status.terminal())),
         other => Err(FilterError::Invalid(format!(
             "bare field `{other}` is not boolean; use a comparison or function"
         ))),
@@ -155,27 +204,18 @@ fn nullary(
 
 fn binary(
     node: &Node<DefaultNumericTypes>,
-    task: &Task,
-    config: &Config,
-    readiness: &Readiness,
+    ctx: &Ctx,
     combine: impl Fn(bool, bool) -> bool,
 ) -> Result<bool, FilterError> {
     match node.children() {
-        [left, right] => Ok(combine(
-            eval_bool(left, task, config, readiness)?,
-            eval_bool(right, task, config, readiness)?,
-        )),
+        [left, right] => Ok(combine(eval_bool(left, ctx)?, eval_bool(right, ctx)?)),
         _ => Err(FilterError::Invalid(
             "binary op needs two operands".to_owned(),
         )),
     }
 }
 
-fn comparison(
-    node: &Node<DefaultNumericTypes>,
-    task: &Task,
-    config: &Config,
-) -> Result<bool, FilterError> {
+fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     let [lhs, rhs] = node.children() else {
         return Err(FilterError::Invalid(
             "comparison needs two operands".to_owned(),
@@ -183,7 +223,7 @@ fn comparison(
     };
     let field = extract_identifier(lhs)?;
     let literal = eval_rhs(rhs)?;
-    let value = field_value(task, &field, config)?;
+    let value = field_value(ctx.task, &field, ctx.config)?;
     Ok(compare(node.operator(), &value, &literal))
 }
 
@@ -217,18 +257,14 @@ fn compare_ordering(
     }
 }
 
-fn function(
-    name: &str,
-    node: &Node<DefaultNumericTypes>,
-    task: &Task,
-    config: &Config,
-    readiness: &Readiness,
-) -> Result<bool, FilterError> {
+fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     let children = node.children();
+    let (task, config) = (ctx.task, ctx.config);
     match name {
-        "ready" => Ok(readiness.is_ready(task)),
-        "blocked" => Ok(readiness.is_blocked(task)),
+        "ready" => Ok(ctx.readiness.is_ready(task)),
+        "blocked" => Ok(ctx.readiness.is_blocked(task)),
         "terminal" => Ok(task.is_terminal(&config.tasks.status.terminal())),
+        "in_view" => in_view(&single_literal(children, "in_view")?, ctx),
         "has" => Ok(present(task, &single_identifier(children, "has")?, config)?),
         "miss" => Ok(!present(
             task,
@@ -264,6 +300,26 @@ fn function(
             Ok(is_stale(task, count))
         }
         other => Err(FilterError::Invalid(format!("unknown function: {other}"))),
+    }
+}
+
+/// `in_view("name")`: does the task match the named view's filter? Resolves the
+/// view from config, then evaluates its (desugared) filter recursively. The
+/// depth in `ctx` guards against a cycle in an unvalidated config.
+fn in_view(name: &str, ctx: &Ctx) -> Result<bool, FilterError> {
+    if ctx.depth >= MAX_VIEW_DEPTH {
+        return Err(FilterError::Invalid(format!(
+            "view reference nested too deep at {name:?} (cycle?)"
+        )));
+    }
+    let spec = ctx
+        .config
+        .views
+        .get(name)
+        .ok_or_else(|| FilterError::UnknownView(name.to_owned()))?;
+    match &Filter::parse(&spec.filter)?.tree {
+        None => Ok(true),
+        Some(tree) => eval_bool(tree, &ctx.deeper()),
     }
 }
 
@@ -357,7 +413,7 @@ fn extract_identifier(node: &Node<DefaultNumericTypes>) -> Result<String, Filter
     }
 }
 
-fn extract_literal(node: &Node<DefaultNumericTypes>) -> Result<String, FilterError> {
+pub(crate) fn extract_literal(node: &Node<DefaultNumericTypes>) -> Result<String, FilterError> {
     let node = unwrap_root(node);
     match node.operator() {
         Operator::Const { value } => literal_to_string(value),

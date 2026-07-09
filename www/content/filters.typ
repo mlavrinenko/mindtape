@@ -40,7 +40,14 @@ mt ls 'kind == "bug" && (priority >= 7 || has_tag("urgent"))'
   [`contains(field, "substr")`], [Substring match on a field.],
   [`search("query")`], [Full-text search across the task.],
   [`stale(N)`], [Not re-affirmed (or, lacking `reviewed`, last status-changed) for more than N days.],
+  [`in_view("name")`], [The named #link(u("/config/"))[view]'s filter matches. `@name` is sugar for it.],
 )
+
+`@name` composes like any predicate:
+
+```sh
+mt ls '@backend && !@blocked'   # in the backend view, minus blocked
+```
 
 = Dependency predicates
 
@@ -66,9 +73,10 @@ mt ls -n 10                    # limit to 10
 
 = Default filters
 
-`mt ls` applies `[ls] default-filter` unless you pass `--all`. The shipped default
-is `!terminal && (miss(start) || start <= now())` — open work whose start date, if
-any, has arrived. `mt rm` applies `[rm] default-filter` (`terminal`). Both live in
+Omitting the filter applies `[ls] default-filter`; an empty filter (`''`)
+matches everything. The shipped default is `!terminal && (miss(start) ||
+start <= now())` — open work whose start date, if any, has arrived. `mt rm`
+applies `[rm] default-filter` (`terminal`). Both live in
 #link(u("/config/"))[Configuration].
 
 #callout("note")[

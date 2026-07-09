@@ -25,6 +25,7 @@ mod task_edit;
 #[cfg(test)]
 mod test_util;
 mod util;
+mod views;
 
 use anyhow::Result;
 use clap::Parser;

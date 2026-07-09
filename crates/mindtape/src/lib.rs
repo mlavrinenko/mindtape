@@ -17,9 +17,11 @@ mod config_layers;
 mod config_ls;
 mod config_roots;
 mod config_status;
+mod config_views;
 mod date;
 pub mod derive;
 pub mod filter;
+mod filter_views;
 pub mod framework;
 mod framework_eval;
 pub mod gate;
@@ -40,8 +42,8 @@ pub use add_slots::{RequiredSlot, required_core_slots};
 pub use config::{
     AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags, GoConfig,
     InteractiveMode, LS_COLUMNS, LocalPackage, PriorityConfig, ReadyConfig, RootConfig, RootSpec,
-    TemplatesConfig, TypstConfig, Visibility, config_path, embedded_defaults, load_config,
-    parse_config,
+    TemplatesConfig, TypstConfig, ViewSpec, Visibility, config_path, embedded_defaults,
+    load_config, parse_config, validate_views,
 };
 pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};

@@ -78,12 +78,16 @@ mt add -t bug --name oauth-bug --to auth # named template, explicit stem, nested
 
 # List tasks under the configured roots (applies ls.default-filter)
 mt ls
-mt ls --all                          # ignore the default filter
+mt ls ''                             # empty filter → everything (there is no --all)
 mt ls 'has_tag("backend")'           # filter expression
 mt ls 'status != "done" && priority >= 7' --json   # filter + JSON output
 mt ls 'stale(30)'                     # unreviewed for over 30 days
 mt ls ready                           # deps all done — startable now
 mt ls --sort priority:asc -n 10      # sort + limit
+mt ls @broken                         # a named view: its filter + sort + columns
+mt ls '@summer && !@broken'           # compose views by @name inside a filter
+mt ls --columns status,title          # choose columns for this run
+mt views                              # list named views (mt views <name> to inspect)
 
 # Re-affirm a task as still relevant (stamps reviewed: with today's date)
 mt review implement-auth               # by slug, relative, or absolute path

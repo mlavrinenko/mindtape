@@ -40,8 +40,9 @@ Most work is: find a task → read it → change its status → validate.
 | Goal | Command |
 |------|---------|
 | List active tasks | `mt ls` |
-| List everything (incl. terminal) | `mt ls --all` |
+| List everything | `mt ls ''` (empty filter; there is no `--all`) |
 | Filter | `mt ls '<filter>'` (see below) |
+| Apply a named view | `mt ls @<view>`; `mt views` lists them |
 | Machine-readable list | `mt ls --json` |
 | Read one task | `mt eval <file>` or `mt eval <file> --json` |
 | Open a task in `$EDITOR` | `mt go <id>` |
@@ -65,7 +66,8 @@ already given to you.
 
 Bare `mt ls` applies the project's default filter (usually: active, startable
 tasks) and prints a table with handle ordinals, status, priority, due date, and
-title. Add `--all` to drop the default filter.
+title. Pass an empty filter (`mt ls ''`) to drop the default and list everything;
+there is no `--all`.
 
 Pass a filter expression as the positional argument. Fields:
 `status priority difficulty kind title id due start reviewed file`.
@@ -79,6 +81,11 @@ Operators: `== != < > <= >= && || !` and parentheses. Helpers:
 - `terminal` — status is a configured terminal state
 - `stale(N)` — untouched for more than N days
 - `now()` — today's ISO date, e.g. `due < now()`
+- `in_view("name")` (also `@name`) — matches a named view's filter
+
+Named views are `[views.<name>]` bundles (a filter plus optional sort/columns).
+A bare `@name` argument applies all three facets; `@name` inside a bigger filter
+is the filter facet only. `--columns <cols|@view>` picks columns for one run.
 
 Examples:
 
@@ -87,6 +94,8 @@ mt ls 'status == "wip"'
 mt ls 'ready && priority > 5'
 mt ls 'has_tag("backend") && !terminal'
 mt ls 'due <= now()' --sort priority:desc
+mt ls @broken                        # a named view (filter + sort + columns)
+mt ls '@backend && !@blocked'        # compose views by @name
 ```
 
 For another program to consume, use `mt ls --json` (or `--format csv`).

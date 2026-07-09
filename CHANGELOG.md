@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Named views** — declare reusable query bundles as `[views.<name>]` tables
+  (a `filter` plus optional `sort`, `columns`, `description`). Reference one with
+  an `@name` sigil: a bare `mt ls @broken` applies the view's filter, sort, and
+  columns; `@name` inside a filter (`mt ls '@summer && !@broken'`) is the filter
+  facet only, equal to the new `in_view("name")` predicate. New `mt ls --columns`
+  picks columns for a run (`@view` for a view's set) and `--sort @view` splices a
+  view's sort chain. New `mt views` lists and inspects views (`--json`). Views
+  are validated at config load: filters parse, columns are legal, references
+  resolve, and the reference graph is acyclic.
+
+### Removed
+
+- **`mt ls --all`** — pass an empty filter (`mt ls ''`) to drop the default and
+  list everything. Omitting the filter still applies `[ls] default-filter`.
+
 ### Changed
 
 - **Repointed onto published crates.io substrate** — the seven extracted
