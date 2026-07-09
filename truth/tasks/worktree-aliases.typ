@@ -9,7 +9,7 @@
   ),
   tags: ("cli",),
   depends-on: (link("worktree-selection-from-anywhere.typ"),),
-  status: wip(2026, 7, 9),
+  status: done(2026, 7, 9),
 )
 
 == Summary
