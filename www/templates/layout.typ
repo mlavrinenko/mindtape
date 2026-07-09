@@ -5,6 +5,16 @@
 // Set data-theme before first paint (no flash), then a global toggle.
 #let _theme-script = "(function(){var d=document.documentElement;var t=localStorage.getItem('theme');if(t){d.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){d.setAttribute('data-theme','dark')}}());function toggleTheme(){var d=document.documentElement;var n=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',n);localStorage.setItem('theme',n)}"
 
+// Bootstrap Pagefind's search UI. The bundle (UI JS/CSS + index) is generated
+// post-build by `pagefind --site public/mindtape` (Justfile docs-build) into
+// /mindtape/pagefind/, which is invisible to `tola build`/`validate`. Injecting
+// the stylesheet + script at runtime (rather than static <link>/<script>) keeps
+// tola's asset validator — which only knows build-time assets — from failing on
+// them. Once the script loads, mount PagefindUI into the sidebar #search box
+// (waiting for the DOM if the async script wins the race). Search is a
+// production-build feature; `tola serve` has no index.
+#let _search-init = "(function(){var p='" + u("/pagefind/") + "';" + "var l=document.createElement('link');l.rel='stylesheet';l.href=p+'pagefind-ui.css';document.head.appendChild(l);" + "var s=document.createElement('script');s.src=p+'pagefind-ui.js';s.onload=function(){var init=function(){new PagefindUI({element:'#search',showSubResults:true,showImages:false,bundlePath:p});};if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}};document.head.appendChild(s);}());"
+
 // Floating <thead> clone for wide tables like the comparison matrix. Plain
 // CSS `position: sticky` on `thead th` can't work there: the `.matrix`
 // wrapper is a horizontal scroll container (`overflow-x: auto`), and that
@@ -83,6 +93,7 @@ update();
   html.elem("link", attrs: (rel: "stylesheet", href: "/assets/styles/components.css"))
   html.script(_theme-script)
   html.script(_matrix-float-head-script)
+  html.script(_search-init)
 }
 
 #let _brand = html.elem(
@@ -102,6 +113,8 @@ update();
 )
 
 #let _sidebar(active) = html.elem("aside", attrs: (class: "sidebar"), {
+  // Pagefind mounts its input + results here; empty until the script runs.
+  html.elem("div", attrs: (class: "search", id: "search"))
   html.elem("nav", attrs: ("aria-label": "Documentation"), {
     for group in NAV {
       html.elem("div", attrs: (class: "nav-group"), {
@@ -135,7 +148,9 @@ update();
 
   html.elem("div", attrs: (class: "shell"), {
     _sidebar(active)
-    html.elem("main", attrs: (class: if home { "home" } else { "" }), {
+    // data-pagefind-body scopes the search index to page content only, so the
+    // header, sidebar nav, and footer never leak into results.
+    html.elem("main", attrs: (class: if home { "home" } else { "" }, "data-pagefind-body": ""), {
       if title != none and not home { html.elem("h1")[#title] }
       body
     })

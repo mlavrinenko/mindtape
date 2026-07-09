@@ -145,5 +145,25 @@ main td code { font-size: 0.82em; }
   letter-spacing: 0.02em;
 }
 
+/* Search (Pagefind UI) ----------------------------------------------------
+   Pagefind ships its own pagefind-ui.css; these custom properties re-skin it to
+   the site tokens. Since the values reference the theme variables, dark mode is
+   inherited for free. The widget mounts into the sidebar #search box. */
+.search {
+  --pagefind-ui-scale: 0.72;
+  --pagefind-ui-primary: var(--accent);
+  --pagefind-ui-text: var(--fg);
+  --pagefind-ui-background: var(--bg);
+  --pagefind-ui-border: var(--border);
+  --pagefind-ui-tag: var(--bg-soft);
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-border-radius: 8px;
+  --pagefind-ui-font: var(--font-mono);
+  margin-bottom: 1.6rem;
+}
+/* The results list can outgrow the narrow sidebar; cap it and let it scroll. */
+.search .pagefind-ui__results-area { max-height: 60vh; overflow-y: auto; }
+.search .pagefind-ui__result-title { font-family: var(--font-serif); }
+
 /* Lede paragraph under an h1 --------------------------------------------- */
 .lede { font-size: 1.12rem; color: var(--muted); margin-bottom: 1.6rem; }

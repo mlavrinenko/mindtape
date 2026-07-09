@@ -60,6 +60,7 @@
               just
               moreutils
               nixd
+              pagefind
               rust-analyzer
               typst
               typstyle

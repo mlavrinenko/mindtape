@@ -36,17 +36,19 @@ nix-build:
     git add -A
     nix build .#default
 
-# Build the documentation site (www/ -> www/public/mindtape) with tola
+# Build the documentation site (www/ -> www/public/mindtape) with tola, then
+# index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/)
 docs-build:
-    cd www && tola build
+    cd www && tola build && pagefind --site public/mindtape --silent
 
-# Serve the docs locally with hot reload
+# Serve the docs locally with hot reload (no search index — build for that)
 docs-serve:
     cd www && tola serve
 
-# Build the docs and validate every internal link + asset
+# Build the docs, index with Pagefind, then validate internal links + assets.
+# Pagefind runs before validate so the /pagefind/ bundle exists on disk.
 docs-check:
-    cd www && tola build && tola validate
+    cd www && tola build && pagefind --site public/mindtape --silent && tola validate
 
 # Run tests only
 test *ARGS:
