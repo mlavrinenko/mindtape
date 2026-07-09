@@ -13,26 +13,36 @@ derive-tags = true
 
 # Status legend: legal values in lifecycle order, each with an optional glyph and
 # colour. `terminal = true` ends a task (required fields relax once terminal).
+# `to` declares the allowed next statuses — the transition graph. Once any entry
+# carries `to`, `mt flip` gates every move to a listed edge (a same-status
+# re-stamp and an unset→any first stamp stay exempt; `--force` overrides), and
+# `mt check` flags a task sitting in a status unreachable from `proposed`. The
+# terminal `done`/`failed` states declare reopen edges back to `wip`; `cancelled`
+# is a sink (revive it with `--force`).
 [[tasks.status]]
 value = "proposed"
 glyph = "💡"
 color = "blue"
+to = ["accepted", "wip", "cancelled"]
 
 [[tasks.status]]
 value = "accepted"
 glyph = "📋"
 color = "cyan"
+to = ["wip", "cancelled"]
 
 [[tasks.status]]
 value = "wip"
 glyph = "🔨"
 color = "yellow"
+to = ["done", "failed", "accepted"]
 
 [[tasks.status]]
 value = "done"
 glyph = "✅"
 color = "green"
 terminal = true
+to = ["wip", "cancelled", "failed"]
 
 [[tasks.status]]
 value = "cancelled"
@@ -45,6 +55,7 @@ value = "failed"
 glyph = "❌"
 color = "red"
 terminal = true
+to = ["wip"]
 
 # Priority: an ICE score on a 0..9 scale, classified into labelled bands.
 # `framework = "ice"` computes the score from `priority: ice(impact, confidence,
