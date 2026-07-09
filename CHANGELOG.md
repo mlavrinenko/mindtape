@@ -16,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   through the single discovery entry point, so `ls`, `add`, `check`, `flip`,
   `go`, `rm`, and `config` all honour it.
 
+- **Worktree aliases** — name worktrees in an app-scoped
+  `~/.config/mindtape/worktrees.toml` and select one with a leading `@name`:
+  `mt @sn ls` expands to `mt -w <path> ls`. Entries are tried in order — an alias
+  (`name` + `path`) matches by name; a `base` directory matches `@<token>` when
+  `<base>/<token>` is a project, so one `base` covers a whole tree of worktrees.
+  `~` expands to home; `mt worktrees` lists the configured entries. Only the
+  leading argument is sugar, so the `@view` filter sigil is unaffected.
+
 - **Named views** — declare reusable query bundles as `[views.<name>]` tables
   (a `filter` plus optional `sort`, `columns`, `description`). Reference one with
   an `@name` sigil: a bare `mt ls @broken` applies the view's filter, sort, and

@@ -128,6 +128,9 @@ mt rm terminal --dry-run               # preview without writing
                               walking up from the cwd. Relative paths resolve
                               against the cwd. Falls back to $MINDTAPE_WORKTREE;
                               the flag wins.
+@name <cmd>                   Leading shortcut for -w: `mt @sn ls` selects the
+                              worktree named in ~/.config/mindtape/worktrees.toml
+                              (`mt worktrees` lists them).
 --color <auto|always|never>   Colour output (default auto: colour when stdout is
                               a TTY and NO_COLOR unset). always forces; never
                               suppresses. NO_COLOR spec: https://no-color.org/

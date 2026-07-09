@@ -134,6 +134,7 @@ form). See #link(u("/quickstart/"))[Quickstart].
   columns: 2,
   table.header([Flag], [Effect]),
   [`-w` / `--worktree <path>`], [Operate on the MindTape project at `<path>` (must hold a `.mindtape/`) instead of discovering one by walking up from the cwd. Relative paths resolve against the cwd. Falls back to `$MINDTAPE_WORKTREE`; the flag wins.],
+  [`@name <cmd>`], [Leading shortcut for `-w`: `mt @sn ls` selects the worktree named in `~/.config/mindtape/worktrees.toml`. Only the first argument is sugar, so the `@view` filter sigil is unaffected. See #link(u("/agents/"))[Run from anywhere]; `mt worktrees` lists configured entries.],
   [`--color <auto\|always\|never>`], [Colour output. `auto` (default) colours when stdout is a TTY and `NO_COLOR` is unset.],
   [`-v` / `-vv` / `-vvv`], [Increase verbosity: info, debug, trace.],
   [`--format <table\|json\|csv>`], [Output format where a command supports it; `--json` is shorthand for `--format json`.],

@@ -37,6 +37,7 @@ pub mod template;
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
 pub mod validate;
+pub mod worktrees;
 
 pub use add_slots::{RequiredSlot, required_core_slots};
 pub use config::{
@@ -60,6 +61,7 @@ pub use sort::{default_order, default_order_with, difficulty_value, sort_by_spec
 pub use status_value::{STATUS_SHORTCUTS, status_value};
 pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill};
 pub use validate::{Location, Violation, validate};
+pub use worktrees::{WorktreeEntry, WorktreeError, WorktreeRegistry};
 
 /// Retain the tasks matching `filter`; `None` keeps them all. `config` resolves
 /// framework-scored priorities for numeric comparisons; `readiness` answers the

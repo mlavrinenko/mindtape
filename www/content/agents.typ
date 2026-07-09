@@ -78,6 +78,29 @@ mt -w ~/code/app check
 MINDTAPE_WORKTREE=~/code/app mt ls
 ```
 
+To skip the full path, name worktrees once in the app-scoped
+`~/.config/mindtape/worktrees.toml` and select one with a leading `@name`, which
+expands to `-w <path>` before dispatch. An alias binds a name to a path; a `base`
+maps `@<name>` to `<base>/<name>` when that is a project, so one `base` covers a
+whole tree of checkouts. Entries are tried top-to-bottom, first match wins; `~`
+expands to home. `mt worktrees` lists them. Only the leading argument is sugar,
+so the `@view` filter sigil (`mt ls @broken`) is unaffected.
+
+```toml
+# ~/.config/mindtape/worktrees.toml
+[[worktrees]]
+name = "sn"                       # mt @sn ls → ~/projects/home/speconaut
+path = "~/projects/home/speconaut"
+
+[[worktrees]]
+base = "~/projects/home"          # mt @app ls → ~/projects/home/app (if a project)
+```
+
+```sh
+mt @sn check
+mt @app ls
+```
+
 = State is just files
 
 An agent edits a task by writing the `.typ` file — there is no daemon to notify

@@ -26,12 +26,16 @@ mod task_edit;
 mod test_util;
 mod util;
 mod views;
+mod worktrees;
 
 use anyhow::Result;
 use clap::Parser;
 
 fn main() -> Result<()> {
-    let cli = cli::Cli::parse();
+    // Rewrite a leading `@name` into `-w <path>` before clap sees the argv, so
+    // the worktree sugar reuses the existing override plumbing.
+    let argv = worktrees::desugar_argv(std::env::args_os().collect())?;
+    let cli = cli::Cli::parse_from(argv);
     cli::init_logger(cli.verbose);
     // Resolve the worktree override once (flag over $MINDTAPE_WORKTREE) so every
     // command's discovery entry point honours it uniformly.
