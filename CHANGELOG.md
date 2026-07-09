@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Worktree override** — a global `-w/--worktree <path>` flag (and
+  `$MINDTAPE_WORKTREE` fallback; the flag wins) points `mt` at a chosen project
+  instead of discovering one by walking up from the cwd. The path must hold a
+  `.mindtape/`; relative paths resolve against the cwd. Every command routes
+  through the single discovery entry point, so `ls`, `add`, `check`, `flip`,
+  `go`, `rm`, and `config` all honour it.
+
 - **Named views** — declare reusable query bundles as `[views.<name>]` tables
   (a `filter` plus optional `sort`, `columns`, `description`). Reference one with
   an `@name` sigil: a bare `mt ls @broken` applies the view's filter, sort, and

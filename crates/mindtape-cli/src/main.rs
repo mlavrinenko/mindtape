@@ -33,6 +33,9 @@ use clap::Parser;
 fn main() -> Result<()> {
     let cli = cli::Cli::parse();
     cli::init_logger(cli.verbose);
+    // Resolve the worktree override once (flag over $MINDTAPE_WORKTREE) so every
+    // command's discovery entry point honours it uniformly.
+    util::init_worktree(cli.worktree.clone());
     // Resolve colour once here; commands may query this via `color_enabled`.
     // The value is stored in a thread-local so the rest of the binary can
     // read it without threading the choice through every call-site.

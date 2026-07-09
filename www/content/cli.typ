@@ -133,6 +133,7 @@ form). See #link(u("/quickstart/"))[Quickstart].
 #table(
   columns: 2,
   table.header([Flag], [Effect]),
+  [`-w` / `--worktree <path>`], [Operate on the MindTape project at `<path>` (must hold a `.mindtape/`) instead of discovering one by walking up from the cwd. Relative paths resolve against the cwd. Falls back to `$MINDTAPE_WORKTREE`; the flag wins.],
   [`--color <auto\|always\|never>`], [Colour output. `auto` (default) colours when stdout is a TTY and `NO_COLOR` is unset.],
   [`-v` / `-vv` / `-vvv`], [Increase verbosity: info, debug, trace.],
   [`--format <table\|json\|csv>`], [Output format where a command supports it; `--json` is shorthand for `--format json`.],

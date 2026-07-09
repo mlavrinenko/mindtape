@@ -31,7 +31,9 @@ adjusting a field the CLI does not manage.
 It is if `.mindtape/config.toml` exists at the repo root. That file declares the
 task roots and the rules (status legend, priority scale, tags). When unsure where
 tasks live, read it. Run `mt` from the directory holding `.mindtape/` (or any
-descendant); it walks up to find the config.
+descendant); it walks up to find the config. To drive a project from outside its
+tree, point every command at it with `-w/--worktree <path>` (or
+`$MINDTAPE_WORKTREE`; the flag wins) — no `cd` needed.
 
 ## The basic loop
 

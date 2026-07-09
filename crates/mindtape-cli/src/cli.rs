@@ -1,5 +1,7 @@
 //! Command-line surface: argument parsing and dispatch.
 
+use std::path::PathBuf;
+
 use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
 use log::LevelFilter;
@@ -13,6 +15,15 @@ use crate::{add, check, config_cmd, eval, flip, go, init, install, ls, review, r
 pub struct Cli {
     #[command(subcommand)]
     command: Command,
+
+    /// Operate on the `MindTape` project at `<PATH>` instead of discovering one
+    /// by walking up from the current directory.
+    ///
+    /// The path must contain a `.mindtape/` directory. Relative paths resolve
+    /// against the current directory. Falls back to `$MINDTAPE_WORKTREE` when
+    /// unset; the flag wins over the env var.
+    #[arg(short = 'w', long, value_name = "PATH", global = true)]
+    pub worktree: Option<PathBuf>,
 
     /// Increase verbosity (-v info, -vv debug, -vvv trace).
     #[arg(short = 'v', long, action = clap::ArgAction::Count, global = true)]

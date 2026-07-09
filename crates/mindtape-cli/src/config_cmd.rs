@@ -9,7 +9,9 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use mindtape::{LayerSource, config_path, embedded_defaults, find_root, load_config_layered};
+use mindtape::{LayerSource, config_path, embedded_defaults, load_config_layered};
+
+use crate::util;
 
 /// Arguments for `config`.
 #[derive(Debug, clap::Args)]
@@ -56,9 +58,7 @@ pub fn run(args: &ConfigArgs) -> Result<()> {
         println!("{}", embedded_defaults().trim_end());
         return Ok(());
     }
-    let cwd = std::env::current_dir().context("determine current directory")?;
-    let root =
-        find_root(&cwd).context("not inside a MindTape project (no .mindtape/ directory found)")?;
+    let root = util::resolve_root()?;
     let text = if show_args.origin {
         render_origin(&root)?
     } else {

@@ -1,6 +1,8 @@
 //! Shared project discovery for the CLI commands.
 
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 use anyhow::{Context, Result, bail};
 use mindtape::{
@@ -20,14 +22,73 @@ pub struct Project {
     pub outcome: LoadOutcome,
 }
 
-/// Find the project from the current directory and load all its tasks.
+/// Process-global worktree override, resolved once from the `-w`/`--worktree`
+/// flag and `$MINDTAPE_WORKTREE`. `None` means "discover by walking up".
+static WORKTREE: OnceLock<Option<PathBuf>> = OnceLock::new();
+
+/// Resolve and cache the worktree override for this process.
+///
+/// `flag` is the `-w`/`--worktree` value; the flag wins over the
+/// `MINDTAPE_WORKTREE` environment variable, which is the fallback. Call once
+/// from `main`; later calls are ignored.
+pub fn init_worktree(flag: Option<PathBuf>) {
+    let _ = WORKTREE.set(pick_override(flag, std::env::var_os("MINDTAPE_WORKTREE")));
+}
+
+/// Pick the effective worktree override: the flag if present, else a non-empty
+/// `MINDTAPE_WORKTREE` value. An empty env var counts as unset.
+fn pick_override(flag: Option<PathBuf>, env: Option<OsString>) -> Option<PathBuf> {
+    flag.or_else(|| env.filter(|value| !value.is_empty()).map(PathBuf::from))
+}
+
+/// The cached override, or `None` if [`init_worktree`] never ran (e.g. tests).
+fn worktree_override() -> Option<PathBuf> {
+    WORKTREE.get().cloned().flatten()
+}
+
+/// Resolve the project root, honouring the worktree override when set.
+///
+/// With no override, walks up from the current directory for a `.mindtape/`
+/// ancestor. With an override, resolves it against the current directory
+/// (absolute paths as-is) and requires a `.mindtape/` directory there.
 ///
 /// # Errors
-/// Returns an error if no `.mindtape/` ancestor exists or the config is invalid.
-pub fn open() -> Result<Project> {
+/// Returns an error if the current directory is unreadable, no project is
+/// found, or the override path lacks a `.mindtape/` directory.
+pub fn resolve_root() -> Result<PathBuf> {
     let cwd = std::env::current_dir().context("determine current directory")?;
-    let root =
-        find_root(&cwd).context("not inside a MindTape project (no .mindtape/ directory found)")?;
+    resolve_root_with(&cwd, worktree_override().as_deref())
+}
+
+/// Root-resolution core, with `cwd` and the override passed explicitly so the
+/// logic is testable without touching process-global state.
+fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf> {
+    let Some(path) = override_path else {
+        return find_root(cwd)
+            .context("not inside a MindTape project (no .mindtape/ directory found)");
+    };
+    let base = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        cwd.join(path)
+    };
+    if !base.join(".mindtape").is_dir() {
+        bail!(
+            "worktree {} is not a MindTape project (no .mindtape/ directory)",
+            base.display()
+        );
+    }
+    base.canonicalize()
+        .with_context(|| format!("resolve worktree {}", base.display()))
+}
+
+/// Find the project from the current directory (or the worktree override) and
+/// load all its tasks.
+///
+/// # Errors
+/// Returns an error if no `.mindtape/` project is found or the config is invalid.
+pub fn open() -> Result<Project> {
+    let root = resolve_root()?;
     let config =
         load_config(&root).with_context(|| format!("load {}", config_path(&root).display()))?;
     let outcome = load_project(&root, &config);
@@ -163,7 +224,7 @@ mod tests {
     use mindtape::test_support::{TASK_SRC, bare_task};
     use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
-    use super::{Project, resolve_task, warn_errors};
+    use super::{Project, pick_override, resolve_root_with, resolve_task, warn_errors};
     use crate::handle::{DEFAULT_CHECK_LEN, check_chars};
 
     #[test]
@@ -259,6 +320,63 @@ mod tests {
             msg.contains("Alpha Task"),
             "error should name the title: {msg}"
         );
+    }
+
+    #[test]
+    fn pick_override_flag_wins_over_env() {
+        let picked = pick_override(Some("/flag/path".into()), Some("/env/path".into()));
+        assert_eq!(picked, Some(std::path::PathBuf::from("/flag/path")));
+    }
+
+    #[test]
+    fn pick_override_falls_back_to_env() {
+        let picked = pick_override(None, Some("/env/path".into()));
+        assert_eq!(picked, Some(std::path::PathBuf::from("/env/path")));
+    }
+
+    #[test]
+    fn pick_override_empty_env_is_unset() {
+        assert_eq!(pick_override(None, Some(String::new().into())), None);
+        assert_eq!(pick_override(None, None), None);
+    }
+
+    #[test]
+    fn resolve_root_override_targets_named_worktree() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+        // cwd is elsewhere; the absolute override still selects the worktree.
+        let cwd = tempfile::tempdir().unwrap();
+        let root = resolve_root_with(cwd.path(), Some(dir.path())).unwrap();
+        assert_eq!(root, dir.path().canonicalize().unwrap());
+    }
+
+    #[test]
+    fn resolve_root_override_relative_resolves_against_cwd() {
+        let cwd = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(cwd.path().join("wt").join(".mindtape")).unwrap();
+        let root = resolve_root_with(cwd.path(), Some(Path::new("wt"))).unwrap();
+        assert_eq!(root, cwd.path().join("wt").canonicalize().unwrap());
+    }
+
+    #[test]
+    fn resolve_root_override_without_marker_errors() {
+        let dir = tempfile::tempdir().unwrap();
+        let err = resolve_root_with(dir.path(), Some(dir.path())).unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("no .mindtape/ directory"),
+            "error should name the missing marker: {msg}"
+        );
+    }
+
+    #[test]
+    fn resolve_root_no_override_walks_up() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+        let child = dir.path().join("a").join("b");
+        std::fs::create_dir_all(&child).unwrap();
+        let root = resolve_root_with(&child, None).unwrap();
+        assert_eq!(root, dir.path());
     }
 
     #[test]

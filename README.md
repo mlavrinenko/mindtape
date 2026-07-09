@@ -123,6 +123,11 @@ mt rm terminal --dry-run               # preview without writing
 ### Global flags
 
 ```
+-w / --worktree <path>        Operate on the MindTape project at <path> (must
+                              hold a .mindtape/) instead of discovering one by
+                              walking up from the cwd. Relative paths resolve
+                              against the cwd. Falls back to $MINDTAPE_WORKTREE;
+                              the flag wins.
 --color <auto|always|never>   Colour output (default auto: colour when stdout is
                               a TTY and NO_COLOR unset). always forces; never
                               suppresses. NO_COLOR spec: https://no-color.org/

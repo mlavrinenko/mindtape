@@ -65,6 +65,19 @@ parseable output in a non-TTY:
 design-schema: priority: out of bounds (max 9)
 Error: 1 violation(s), 0 load error(s)")
 
+= Run from anywhere
+
+An agent driving `mt` from outside the project tree points it at a worktree with
+`-w/--worktree <path>` (or `$MINDTAPE_WORKTREE`; the flag wins). The path must
+hold a `.mindtape/`; relative paths resolve against the cwd. Every command —
+`ls`, `add`, `check`, `flip`, `go`, `rm`, `config` — honours it uniformly, so no
+`cd` into the checkout is needed.
+
+```sh
+mt -w ~/code/app check
+MINDTAPE_WORKTREE=~/code/app mt ls
+```
+
 = State is just files
 
 An agent edits a task by writing the `.typ` file — there is no daemon to notify
