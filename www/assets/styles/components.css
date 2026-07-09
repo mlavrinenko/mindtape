@@ -146,11 +146,15 @@ main td code { font-size: 0.82em; }
 }
 
 /* Search (Pagefind UI) ----------------------------------------------------
-   Pagefind ships its own pagefind-ui.css; these custom properties re-skin it to
-   the site tokens. Since the values reference the theme variables, dark mode is
-   inherited for free. The widget mounts into the sidebar #search box. */
-.search {
-  --pagefind-ui-scale: 0.72;
+   A header-mounted search input whose results render as a floating popup.
+   Pagefind ships pagefind-ui.css; the --pagefind-ui-* custom properties re-skin
+   it to the site tokens (dark mode inherited, since they reference theme vars).
+   Overrides are keyed off the #search id so they outrank pagefind's own scoped
+   `.pagefind-ui__*` class rules regardless of stylesheet load order — the UI CSS
+   is injected at runtime, after this file. --pagefind-ui-scale governs the popup
+   result sizing; the input is sized independently to fit the header bar. */
+#search {
+  --pagefind-ui-scale: 0.75;
   --pagefind-ui-primary: var(--accent);
   --pagefind-ui-text: var(--fg);
   --pagefind-ui-background: var(--bg);
@@ -159,11 +163,39 @@ main td code { font-size: 0.82em; }
   --pagefind-ui-border-width: 1px;
   --pagefind-ui-border-radius: 8px;
   --pagefind-ui-font: var(--font-mono);
-  margin-bottom: 1.6rem;
+  position: relative;
+  width: clamp(8rem, 24vw, 15rem);
 }
-/* The results list can outgrow the narrow sidebar; cap it and let it scroll. */
-.search .pagefind-ui__results-area { max-height: 60vh; overflow-y: auto; }
-.search .pagefind-ui__result-title { font-family: var(--font-serif); }
+/* Compact input to the header height (independent of --pagefind-ui-scale). */
+#search .pagefind-ui__search-input {
+  height: 34px; font-size: 0.85rem; font-weight: 500;
+  padding: 0 1.9rem 0 2rem;
+}
+#search .pagefind-ui__form:before { width: 14px; height: 14px; top: 10px; left: 10px; }
+#search .pagefind-ui__search-clear { height: 28px; top: 3px; right: 3px; font-size: 0.68rem; padding: 0 0.5rem; }
+
+/* Results drawer -> popup anchored under the input, hidden until it has a query
+   (pagefind toggles pagefind-ui__hidden) and dismissable (search--closed). */
+#search .pagefind-ui__drawer {
+  position: absolute; top: calc(100% + 0.55rem); right: 0;
+  width: min(30rem, 92vw); max-height: min(70vh, 30rem); overflow-y: auto;
+  padding: 0.2rem 1.1rem 0.9rem;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+  font-family: var(--font-serif); z-index: 40;
+}
+#search.search--closed .pagefind-ui__drawer { display: none; }
+#search .pagefind-ui__results-area { margin-top: 0; }
+#search .pagefind-ui__message { padding: 0.6rem 0; height: auto; }
+#search .pagefind-ui__result { padding: 0.7rem 0; }
+/* pagefind resets <mark> to the browser-default yellow; tint it to the accent. */
+#search mark { background: var(--accent-wash); color: inherit; border-radius: 3px; padding: 0 1px; font-weight: 600; }
+#search .pagefind-ui__search-input::placeholder { opacity: 0.55; }
+/* On phones the header wraps; search drops to its own full-width row. */
+@media (max-width: 40rem) {
+  .header-inner { flex-wrap: wrap; row-gap: 0.55rem; }
+  #search { order: 3; width: 100%; }
+}
 
 /* Lede paragraph under an h1 --------------------------------------------- */
 .lede { font-size: 1.12rem; color: var(--muted); margin-bottom: 1.6rem; }

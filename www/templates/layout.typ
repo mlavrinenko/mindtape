@@ -10,10 +10,12 @@
 // /mindtape/pagefind/, which is invisible to `tola build`/`validate`. Injecting
 // the stylesheet + script at runtime (rather than static <link>/<script>) keeps
 // tola's asset validator — which only knows build-time assets — from failing on
-// them. Once the script loads, mount PagefindUI into the sidebar #search box
-// (waiting for the DOM if the async script wins the race). Search is a
-// production-build feature; `tola serve` has no index.
-#let _search-init = "(function(){var p='" + u("/pagefind/") + "';" + "var l=document.createElement('link');l.rel='stylesheet';l.href=p+'pagefind-ui.css';document.head.appendChild(l);" + "var s=document.createElement('script');s.src=p+'pagefind-ui.js';s.onload=function(){var init=function(){new PagefindUI({element:'#search',showSubResults:true,showImages:false,bundlePath:p});};if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}};document.head.appendChild(s);}());"
+// them. Once the script loads, mount PagefindUI into the header #search box
+// (waiting for the DOM if the async script wins the race), then make the
+// results drawer behave like a popup: dismiss on outside-click / Escape via a
+// `search--closed` class the CSS honours, and re-open when the input regains
+// focus. Search is a production-build feature; `tola serve` has no index.
+#let _search-init = "(function(){var p='" + u("/pagefind/") + "';" + "var l=document.createElement('link');l.rel='stylesheet';l.href=p+'pagefind-ui.css';document.head.appendChild(l);" + "var s=document.createElement('script');s.src=p+'pagefind-ui.js';s.onload=function(){var init=function(){" + "new PagefindUI({element:'#search',showSubResults:true,showImages:false,bundlePath:p});" + "var box=document.getElementById('search');if(!box)return;" + "document.addEventListener('click',function(e){if(!box.contains(e.target)){box.classList.add('search--closed');}});" + "box.addEventListener('focusin',function(){box.classList.remove('search--closed');});" + "document.addEventListener('keydown',function(e){if(e.key==='Escape'){box.classList.add('search--closed');box.blur&&box.blur();}});" + "};if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}};document.head.appendChild(s);}());"
 
 // Floating <thead> clone for wide tables like the comparison matrix. Plain
 // CSS `position: sticky` on `thead th` can't work there: the `.matrix`
@@ -113,8 +115,6 @@ update();
 )
 
 #let _sidebar(active) = html.elem("aside", attrs: (class: "sidebar"), {
-  // Pagefind mounts its input + results here; empty until the script runs.
-  html.elem("div", attrs: (class: "search", id: "search"))
   html.elem("nav", attrs: ("aria-label": "Documentation"), {
     for group in NAV {
       html.elem("div", attrs: (class: "nav-group"), {
@@ -139,6 +139,8 @@ update();
   html.elem("header", attrs: (class: "site-header"), {
     html.elem("div", attrs: (class: "header-inner"), {
       _brand
+      // Pagefind mounts its input here; the results drawer floats as a popup.
+      html.elem("div", attrs: (class: "search", id: "search"))
       html.elem("div", attrs: (class: "header-right"), {
         html.elem("a", attrs: (href: REPO, class: "header-link"), [GitHub])
         _toggle
