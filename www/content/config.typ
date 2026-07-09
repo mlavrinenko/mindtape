@@ -37,7 +37,7 @@ mt config show --json     # effective config as JSON
   columns: 2,
   table.header([Section], [Purpose]),
   [`[tasks] roots`], [Directories holding tasks. Table-form `[[tasks.roots]]` adds a display name and folder-tag policy — see #link(u("/derived-tags/"))[Derived tags].],
-  [`[[tasks.status]]`], [The status legend, in lifecycle order: `value`, optional `glyph` / `color`, and `terminal`.],
+  [`[[tasks.status]]`], [The status legend, in lifecycle order: `value`, optional `glyph` / `color`, `terminal`, and optional `to` transition edges.],
   [`[tasks.priority]`, `[tasks.difficulty]`], [Numeric scales, bands, and frameworks. See #link(u("/priority/"))[Priority].],
   [`[tasks.estimate]`], [Allowed estimate `units` (free labels, never converted).],
   [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
@@ -86,3 +86,29 @@ project: .mindtape/config.toml (exists)")
   `mt init` writes a slim scaffold that inherits the floor; `mt init --full`
   writes every section, spelled out and commented.
 ]
+
+= Status transitions
+
+Add a `to` list to a status entry to declare which statuses may follow it — the
+legend becomes a state machine instead of a flat enum. It is opt-in: with no `to`
+on any entry the legend stays any-to-any, exactly as before.
+
+```toml
+[[tasks.status]]
+value = "proposed"
+to = ["accepted", "wip", "cancelled"]
+[[tasks.status]]
+value = "wip"
+to = ["done", "failed", "accepted"]
+[[tasks.status]]
+value = "done"
+terminal = true
+to = ["wip"]              # a reopen edge; omit `to` to make a state a sink
+```
+
+Once any entry declares `to`, `mt flip` rejects a move that is not a listed edge
+and prints the allowed next states. A same-status re-stamp and the first stamp on
+a status-less task are exempt; `mt flip --force` overrides. `mt check` flags a
+task whose status is unreachable from the initial state under the graph — a
+snapshot reachability check, not a full path audit (a `status` carries no
+history).

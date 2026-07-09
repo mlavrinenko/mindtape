@@ -53,10 +53,14 @@ flipped wire-oauth-login (Wire OAuth login): wip → done")
 ```sh
 mt flip blocked 1b 2c -m "waiting on infra"   # batch + note
 mt flip --list                                # show the verbs
+mt flip done 1b --force                       # bypass the transition graph
 mt review <ref>                               # stamp reviewed: with today's date
 ```
 
-Tasks are referenced by slug, list handle (`1b`), or path.
+When the legend declares `to` transition edges (see #link(u("/config/"))[Config]),
+`mt flip` rejects a move that is not an allowed edge and lists the valid next
+states; `--force` overrides. Tasks are referenced by slug, list handle (`1b`), or
+path.
 
 = Validate and inspect config
 

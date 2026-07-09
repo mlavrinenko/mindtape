@@ -45,6 +45,10 @@ pub struct FlipArgs {
     /// List the per-status shortcut verbs (the configured legend) and exit.
     #[arg(long)]
     pub list: bool,
+
+    /// Bypass the declared status-transition graph (corrections escape hatch).
+    #[arg(long)]
+    pub force: bool,
 }
 
 /// Parser wrapper for the shortcut-verb path: the raw external argv
@@ -125,6 +129,12 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
     let mut touched_ids = HashSet::new();
     let mut touched_files = HashSet::new();
     for (spec, task, abs) in &resolved {
+        if !args.force
+            && let Err(msg) = check_transition(legend, task.status.as_ref(), status)
+        {
+            problems.push(format!("{spec}: {msg}"));
+            continue;
+        }
         match flip_one(task, abs, status, ymd, args.note.as_deref()) {
             Ok(restamp) => {
                 touched_ids.insert(task.id.clone());
@@ -146,6 +156,41 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
         eprintln!("warning: {problem}");
     }
     bail!("{} task(s) had problems", problems.len())
+}
+
+/// Guard one flip against the declared transition graph. `Ok(())` when the move
+/// is legal or unconstrained; `Err(message)` names the illegal edge and the
+/// allowed next states.
+///
+/// Semantics (all opt-in behind [`Legend::transitions_declared`]):
+/// - no graph declared → unconstrained, always `Ok`;
+/// - unset current status → exempt, the graph governs status-to-status only;
+/// - same-status re-stamp (`from == to`) → always allowed;
+/// - otherwise the edge must be in the current status's `to` list.
+fn check_transition(
+    legend: &Legend,
+    from: Option<&mindtape::Status>,
+    to: &str,
+) -> std::result::Result<(), String> {
+    if !legend.transitions_declared() {
+        return Ok(());
+    }
+    let Some(from) = from else {
+        return Ok(());
+    };
+    if from.name == to || legend.can_transition(&from.name, to) {
+        return Ok(());
+    }
+    let allowed = legend.allowed_next(&from.name);
+    let listing = if allowed.is_empty() {
+        format!("`{}` is terminal here (no declared transitions)", from.name)
+    } else {
+        format!("allowed from `{}`: {}", from.name, allowed.join(", "))
+    };
+    Err(format!(
+        "illegal transition `{}` → `{to}`; {listing} (use --force to override)",
+        from.name
+    ))
 }
 
 /// Rewrite one task's `status:` to `status` dated `ymd`. Returns whether this was

@@ -409,3 +409,28 @@ fn ls_columns_order_rejects_duplicate() {
         "duplicate column name must fail"
     );
 }
+
+#[test]
+fn status_transitions_reject_unknown_endpoint() {
+    let config = parse_config(
+        "[[tasks.status]]\nvalue = \"proposed\"\nto = [\"wip\", \"typo\"]\n\
+         [[tasks.status]]\nvalue = \"wip\"\n",
+    )
+    .unwrap();
+    let err = config.validate().unwrap_err();
+    assert!(
+        err.contains("typo"),
+        "unknown transition endpoint must fail: {err}"
+    );
+}
+
+#[test]
+fn status_transitions_sound_graph_validates() {
+    let config = parse_config(
+        "[[tasks.status]]\nvalue = \"proposed\"\nto = [\"wip\"]\n\
+         [[tasks.status]]\nvalue = \"wip\"\nto = [\"done\"]\n\
+         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
+    )
+    .unwrap();
+    assert!(config.validate().is_ok());
+}

@@ -3,6 +3,8 @@
 //! Split out of `config.rs` to keep that file under the size gate; re-exported
 //! at `crate::config::{Legend, LegendEntry}`.
 
+use std::collections::{HashSet, VecDeque};
+
 use serde::Deserialize;
 
 /// The status legend: an ordered, displayable vocabulary.
@@ -34,6 +36,12 @@ pub struct LegendEntry {
     pub label: Option<String>,
     /// Whether this value ends a task; required fields relax once terminal.
     pub terminal: bool,
+    /// Allowed next statuses when leaving this one — the outgoing edges of the
+    /// transition graph. Empty on every entry keeps the legend any-to-any
+    /// (unconstrained). Once any entry declares `to`, transitions are enforced
+    /// and an empty `to` marks a sink: nothing out but a same-status re-stamp.
+    /// A reopen edge is just a terminal (or any) state naming its target here.
+    pub to: Vec<String>,
 }
 
 impl Legend {
@@ -72,6 +80,74 @@ impl Legend {
     #[must_use]
     pub fn initial(&self) -> Option<&LegendEntry> {
         self.entries.iter().find(|entry| !entry.terminal)
+    }
+
+    /// Whether the transition graph is active: at least one entry declares a
+    /// `to` list. False means unconstrained (any-to-any), exactly as before the
+    /// feature existed — so an absent graph never gates a flip.
+    #[must_use]
+    pub fn transitions_declared(&self) -> bool {
+        self.entries.iter().any(|entry| !entry.to.is_empty())
+    }
+
+    /// Whether `from → to` is a legal edge. Only meaningful when
+    /// [`transitions_declared`](Self::transitions_declared); a same-status
+    /// re-stamp (`from == to`) is always legal and handled by the caller.
+    #[must_use]
+    pub fn can_transition(&self, from: &str, to: &str) -> bool {
+        self.entry(from)
+            .is_some_and(|entry| entry.to.iter().any(|next| next == to))
+    }
+
+    /// The allowed next statuses when leaving `from`, in declared order. Empty
+    /// slice for an unknown status or a declared sink.
+    #[must_use]
+    pub fn allowed_next(&self, from: &str) -> &[String] {
+        self.entry(from).map_or(&[], |entry| &entry.to)
+    }
+
+    /// The statuses reachable from the initial state by walking `to` edges
+    /// (the initial state included). Used to flag structurally dead states: a
+    /// task whose current status is outside this set can only have arrived by a
+    /// hand-edit or under a since-changed graph. Empty when there is no initial
+    /// state (every entry terminal, or the legend cleared).
+    #[must_use]
+    pub fn reachable(&self) -> HashSet<String> {
+        let mut seen = HashSet::new();
+        let Some(start) = self.initial() else {
+            return seen;
+        };
+        let mut queue = VecDeque::from([start.value.clone()]);
+        while let Some(value) = queue.pop_front() {
+            if !seen.insert(value.clone()) {
+                continue;
+            }
+            for next in self.allowed_next(&value) {
+                if !seen.contains(next) {
+                    queue.push_back(next.clone());
+                }
+            }
+        }
+        seen
+    }
+
+    /// Well-formedness problems in the declared graph: any `to` endpoint that is
+    /// not itself a legend value. One message per bad edge; empty when the graph
+    /// is sound (or absent).
+    #[must_use]
+    pub fn transition_problems(&self) -> Vec<String> {
+        let mut problems = Vec::new();
+        for entry in &self.entries {
+            for next in &entry.to {
+                if !self.contains(next) {
+                    problems.push(format!(
+                        "status.transitions: `{}` -> `{next}`: `{next}` is not a configured status",
+                        entry.value
+                    ));
+                }
+            }
+        }
+        problems
     }
 }
 

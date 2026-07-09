@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Status transitions** — a status entry may declare `to = [...]`, the allowed
+  next statuses, turning the flat legend into a state machine. Opt-in: with no
+  `to` on any entry the legend stays any-to-any as before. Once declared,
+  `mt flip` rejects a move that is not a listed edge (printing the allowed next
+  states; `--force` overrides), and `mt check` flags a task whose status is
+  unreachable from the initial one under the graph. A same-status re-stamp and
+  the first stamp on a status-less task are always exempt.
 - **`mt ls --interactive` (`-i`)** — an interactive picker over the `ls`
   list: type a task's `#`-column ordinal to highlight it (reverse-video, prefix
   match), `Enter` opens the first highlighted task in the editor (`go`),

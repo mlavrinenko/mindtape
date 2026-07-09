@@ -6,7 +6,7 @@ use std::path::Path;
 use clap::Parser;
 use mindtape::parse_config;
 
-use super::{FlipArgs, Shortcut, run_with, status_edit};
+use super::{FlipArgs, Shortcut, check_transition, run_with, status_edit};
 use crate::util::Project;
 
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
@@ -54,8 +54,15 @@ fn flip_args(status: &str, tasks: &[&str]) -> FlipArgs {
         tasks: tasks.iter().map(|s| (*s).to_owned()).collect(),
         note: None,
         list: false,
+        force: false,
     }
 }
+
+/// A legend with a transition graph: wip → {blocked, done}, blocked → wip, and
+/// terminal done reopening to wip. `initial` is wip; every value is reachable.
+const TRANSITION_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\nto = [\"blocked\", \"done\"]\n\
+     [[tasks.status]]\nvalue = \"blocked\"\nto = [\"wip\"]\n\
+     [[tasks.status]]\nvalue = \"done\"\nterminal = true\nto = [\"wip\"]\n";
 
 fn read(dir: &Path, name: &str) -> String {
     std::fs::read_to_string(dir.join("tasks").join(name)).unwrap()
@@ -156,4 +163,93 @@ fn shortcut_parses_note_flag() {
     assert_eq!(parsed.args.status.as_deref(), Some("wip"));
     assert_eq!(parsed.args.note.as_deref(), Some("on it"));
     assert_eq!(parsed.args.tasks, vec!["1b"]);
+}
+
+// --- transition graph -----------------------------------------------------
+
+fn status(name: &str) -> mindtape::Status {
+    mindtape::Status {
+        name: name.to_owned(),
+        date: None,
+        note: None,
+    }
+}
+
+#[test]
+fn transition_unconstrained_allows_any_move() {
+    // LEGEND_CONFIG declares no `to`, so the graph is inactive: any edge passes.
+    let legend = parse_config(LEGEND_CONFIG).unwrap().tasks.status;
+    assert!(check_transition(&legend, Some(&status("wip")), "done").is_ok());
+}
+
+#[test]
+fn transition_legal_edge_ok() {
+    let legend = parse_config(TRANSITION_CONFIG).unwrap().tasks.status;
+    assert!(check_transition(&legend, Some(&status("wip")), "done").is_ok());
+    assert!(check_transition(&legend, Some(&status("done")), "wip").is_ok()); // reopen
+}
+
+#[test]
+fn transition_illegal_edge_err() {
+    let legend = parse_config(TRANSITION_CONFIG).unwrap().tasks.status;
+    // blocked → done is not an edge (blocked only reopens to wip).
+    let err = check_transition(&legend, Some(&status("blocked")), "done").unwrap_err();
+    assert!(err.contains("illegal transition"), "{err}");
+    assert!(err.contains("allowed from `blocked`: wip"), "{err}");
+}
+
+#[test]
+fn transition_self_restamp_always_allowed() {
+    let legend = parse_config(TRANSITION_CONFIG).unwrap().tasks.status;
+    // wip → wip, even though wip is not in its own `to` list.
+    assert!(check_transition(&legend, Some(&status("wip")), "wip").is_ok());
+}
+
+#[test]
+fn transition_unset_status_is_exempt() {
+    let legend = parse_config(TRANSITION_CONFIG).unwrap().tasks.status;
+    assert!(check_transition(&legend, None, "done").is_ok());
+}
+
+#[test]
+fn transition_sink_message_names_terminal() {
+    // A legend where done is a strict sink (no `to`), so leaving it is illegal.
+    let cfg = "[[tasks.status]]\nvalue = \"wip\"\nto = [\"done\"]\n\
+        [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
+    let legend = parse_config(cfg).unwrap().tasks.status;
+    let err = check_transition(&legend, Some(&status("done")), "wip").unwrap_err();
+    assert!(err.contains("terminal here"), "{err}");
+}
+
+#[test]
+fn flip_rejects_illegal_transition_and_keeps_file() {
+    let dir = tempfile::tempdir().unwrap();
+    // BETA is `blocked`; blocked → done is not a declared edge.
+    let project = setup(dir.path(), &[("beta.typ", BETA)], TRANSITION_CONFIG);
+    assert_eq!(project.outcome.tasks.len(), 1, "fixture must load");
+    let result = run_with(&project, &flip_args("done", &["beta"]));
+    assert!(result.is_err(), "illegal transition must surface");
+    assert!(
+        read(dir.path(), "beta.typ").contains("status: blocked("),
+        "file must be left untouched"
+    );
+}
+
+#[test]
+fn flip_allows_legal_transition() {
+    let dir = tempfile::tempdir().unwrap();
+    // BETA is `blocked`; blocked → wip is a declared reopen edge.
+    let project = setup(dir.path(), &[("beta.typ", BETA)], TRANSITION_CONFIG);
+    run_with(&project, &flip_args("wip", &["beta"])).unwrap();
+    assert!(read(dir.path(), "beta.typ").contains("status: wip("));
+}
+
+#[test]
+fn flip_force_bypasses_the_graph() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[("beta.typ", BETA)], TRANSITION_CONFIG);
+    let mut args = flip_args("done", &["beta"]);
+    args.force = true;
+    run_with(&project, &args).unwrap();
+    assert!(read(dir.path(), "beta.typ").contains("status: done("));
 }

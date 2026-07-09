@@ -30,6 +30,12 @@ roots = ["tasks"]
 
 # Status legend: legal values in lifecycle order, each with an optional glyph and
 # colour. `terminal = true` ends a task (required fields relax once terminal).
+# Add `to = ["accepted", "cancelled"]` to a status to declare its allowed next
+# statuses — the transition graph. Once any entry carries `to`, `mt flip` gates
+# every move to a listed edge (same-status re-stamp and the first stamp on a
+# status-less task stay exempt; `--force` overrides) and `mt check` flags a task
+# whose status is unreachable from the initial one. Omitted here to keep this
+# starter any-to-any.
 [[tasks.status]]
 value = "proposed"
 glyph = "💡"

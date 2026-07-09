@@ -67,6 +67,65 @@ fn flags_unknown_status() {
     assert!(violations.iter().any(|v| v.field == "status"));
 }
 
+/// Config with a transition graph: proposed → wip → done, plus `blocked` as an
+/// orphan state (no incoming edge, so unreachable from the initial `proposed`).
+fn transition_config() -> crate::config::Config {
+    parse_config(
+        r#"
+[[tasks.status]]
+value = "proposed"
+to = ["wip"]
+[[tasks.status]]
+value = "wip"
+to = ["done"]
+[[tasks.status]]
+value = "blocked"
+[[tasks.status]]
+value = "done"
+terminal = true
+
+[tasks.priority]
+min = 0
+max = 9
+required = "non-terminal"
+[[tasks.priority.bands]]
+label = "low"
+min = 0
+max = 4
+[[tasks.priority.bands]]
+label = "high"
+min = 5
+max = 9
+"#,
+    )
+    .unwrap()
+}
+
+#[test]
+fn flags_unreachable_status_under_transitions() {
+    let tasks = vec![task("a", "blocked")];
+    let violations = validate(&tasks, &transition_config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "status" && v.message.contains("unreachable")),
+        "orphan status should be flagged, got: {violations:?}"
+    );
+}
+
+#[test]
+fn reachable_status_under_transitions_is_clean() {
+    let tasks = vec![task("a", "wip")];
+    assert!(validate(&tasks, &transition_config()).is_empty());
+}
+
+#[test]
+fn unconstrained_legend_skips_reachability() {
+    // The base config declares no `to`, so no status is ever unreachable.
+    let tasks = vec![task("a", "wip")];
+    assert!(validate(&tasks, &config()).is_empty());
+}
+
 #[test]
 fn flags_dependency_cycle() {
     let mut a = task("a", "wip");

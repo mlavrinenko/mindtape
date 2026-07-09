@@ -125,12 +125,15 @@ value from the project's legend. Every legend value is also a shortcut verb, so
 The legend is project-defined; if unsure a status exists, check `mt flip --list`,
 but when the target is obvious (user says "mark it done" and `done` is in the
 legend) just run it. Use the command, not a hand edit of the `status:` line — it
-stamps today's date and validates the transition.
+stamps today's date and validates the transition. If the legend declares `to`
+transition edges, `mt flip` rejects a disallowed move and lists the valid next
+states; pass `--force` to override (a same-status re-stamp is always allowed).
 
 ```sh
 mt flip --list                 # show the legend and its verbs
 mt wip 1b -m "started"         # if `wip` is a legend value
 mt flip blocked 2c 3a          # set several at once
+mt flip done 1b --force        # bypass the transition graph
 ```
 
 ## Validating — `mt check`

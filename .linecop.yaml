@@ -2,11 +2,15 @@ limits:
   Rust: 500
   Markdown: 200
 
-# README is the one user-facing doc that grows a line per command; give it
-# headroom while agent-facing Markdown stays under the 200 hygiene ceiling.
+# README and CHANGELOG are the user-facing docs that grow a line per command /
+# change; give them headroom while agent-facing Markdown stays under the 200
+# hygiene ceiling. The changelog is append-only (all under [Unreleased] pre-1.0)
+# and gets archived on release, so a hard cap only fights normal growth.
 overrides:
   - pattern: "**/README.md"
     limit: 250
+  - pattern: "**/CHANGELOG.md"
+    limit: 300
 
 count_mode: total
 

@@ -383,6 +383,7 @@ impl Config {
     pub fn validate(&self) -> Result<(), String> {
         let mut problems = self.tasks.priority.validate("priority");
         problems.extend(self.tasks.difficulty.validate("difficulty"));
+        problems.extend(self.tasks.status.transition_problems());
         problems.extend(crate::derive::validate_root_globs(self));
         for spec in &self.ls.default_sort {
             if let Err(msg) = crate::sort::validate_sort_spec(spec) {

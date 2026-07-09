@@ -95,6 +95,7 @@ mt ls -i                               # interactive: type the # to pick, Enter 
 # Set a task's status dated today; each legend value is also a shortcut verb
 mt flip done implement-auth            # canonical; or `mt done 1b 2c` (== flip done)
 mt flip blocked 1b 2c -m "note"        # batch + note; `mt flip --list` shows the verbs
+mt flip done 1b --force                # bypass the legend's `to` transition graph, if declared
 
 # Validate every task against the project config
 mt check                               # enum / required / bounds / links / cycles

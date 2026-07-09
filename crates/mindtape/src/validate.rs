@@ -156,7 +156,32 @@ fn check_status(task: &Task, config: &Config, out: &mut Vec<Violation>) {
             "status",
             format!("`{}` is not a configured status", status.name),
         ),
-        Some(_) => {}
+        Some(status) => check_status_reachable(task, legend, &status.name, out),
+    }
+}
+
+/// Flag a task sitting in a status no legal path reaches from the initial state.
+/// Only a reachability check — the snapshot carries no history, so this cannot
+/// prove the task walked a legal path, only that its current state is not a
+/// structurally dead one (a hand-edit into an orphan, or a since-changed graph).
+/// No-op when the graph is absent (any-to-any) or has no initial state.
+fn check_status_reachable(
+    task: &Task,
+    legend: &crate::config::Legend,
+    name: &str,
+    out: &mut Vec<Violation>,
+) {
+    if !legend.transitions_declared() {
+        return;
+    }
+    let reachable = legend.reachable();
+    if !reachable.is_empty() && !reachable.contains(name) {
+        push(
+            out,
+            task,
+            "status",
+            format!("`{name}` is unreachable under the declared status transitions"),
+        );
     }
 }
 
