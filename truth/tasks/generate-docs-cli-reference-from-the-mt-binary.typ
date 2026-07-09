@@ -8,6 +8,7 @@
     ease: 4,
   ),
   tags: (),
+  relates-to: (link("render-task-files-as-typeset-documents.typ"),),
   status: proposed(2026, 7, 6),
 )
 

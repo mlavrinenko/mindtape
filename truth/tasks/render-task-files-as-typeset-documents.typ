@@ -8,6 +8,7 @@
     ease: 4,
   ),
   tags: (),
+  relates-to: (link("generate-docs-cli-reference-from-the-mt-binary.typ"),),
   status: proposed(2026, 7, 6),
 )
 
