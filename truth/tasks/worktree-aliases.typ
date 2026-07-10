@@ -8,7 +8,7 @@
     ease: 6,
   ),
   tags: ("cli",),
-  depends-on: (link("worktree-selection-from-anywhere.typ"),),
+  links: depends-on("worktree-selection-from-anywhere.typ"),
   status: done(2026, 7, 9),
 )
 
