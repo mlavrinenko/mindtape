@@ -87,6 +87,19 @@ is frozen history).
 Commits that file or edit task artifacts themselves (and the backlog config in
 `.mindtape/config.toml`) carry no `Refs:` footer — a task commit refs nothing.
 
+## Command Semantics (read/write separation)
+
+MindTape follows a strict read/write split (CQRS). Read commands never mutate
+the working tree; only explicit write commands do.
+
+- Read (pure): `ls`, `check`, `show`, `export`, `config` queries — leave the tree
+  byte-identical (enforced by test).
+- Write (explicit): `add`, `recur`, `done`, `flip`, `rm`, `init`.
+
+Recurrence never materializes as a side effect of a read. An instance is spawned
+or refreshed only by an explicit `mt recur`; `mt done` closes a task and never
+creates or advances anything.
+
 ## Extending MindTape
 
 - New CLI command: add `crates/mindtape-cli/src/<name>.rs` with an `Args` struct
