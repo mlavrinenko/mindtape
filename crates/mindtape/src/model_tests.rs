@@ -74,6 +74,30 @@ fn from_marker_reads_core_fields() {
 }
 
 #[test]
+fn from_marker_reads_recur_field() {
+    let rule = dict(vec![
+        ("kind", HVal::Str("period".to_owned())),
+        ("unit", HVal::Str("weeks".to_owned())),
+        ("value", HVal::Int(1)),
+        ("on", HVal::Null),
+    ]);
+    let recur = dict(vec![
+        ("rule", rule),
+        ("anchor", HVal::Null),
+        ("until", HVal::Null),
+        ("count", HVal::Null),
+        ("materialize", HVal::Null),
+    ]);
+    let fields = dict(vec![("recur", recur)]);
+    let marker = dict(vec![
+        ("marker", HVal::Str("mindtape.task".to_owned())),
+        ("fields", fields),
+    ]);
+    let task = Task::from_marker("chore".to_owned(), "chore.typ".into(), &marker);
+    assert!(task.recur.is_some());
+}
+
+#[test]
 fn from_marker_tolerates_missing_fields() {
     let marker = dict(vec![("marker", HVal::Str("mindtape.task".to_owned()))]);
     let task = Task::from_marker("x".to_owned(), "x.typ".into(), &marker);

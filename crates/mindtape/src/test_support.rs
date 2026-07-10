@@ -30,6 +30,7 @@ pub fn bare_task(id: &str) -> Task {
         due: None,
         start: None,
         reviewed: None,
+        recur: None,
         extras: BTreeMap::new(),
     }
 }

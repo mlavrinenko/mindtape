@@ -57,6 +57,9 @@ pub struct Task {
     pub start: Option<String>,
     /// Last re-affirmation date, `YYYY-MM-DD`.
     pub reviewed: Option<String>,
+    /// Recurrence rule + policy (`every()`/`rrule()`), when the task recurs.
+    /// Advanced only by an explicit `mt recur` — see [`crate::recur`].
+    pub recur: Option<crate::recur::Recur>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     pub extras: BTreeMap<String, HVal>,
 }
@@ -92,6 +95,7 @@ impl Task {
             due: field_str(fields, "due"),
             start: field_str(fields, "start"),
             reviewed: field_str(fields, "reviewed"),
+            recur: crate::recur::parse_recur(field(fields, "recur")),
             extras,
         }
     }

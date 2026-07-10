@@ -29,6 +29,7 @@ fn sample() -> Task {
         due: Some("2026-07-01".to_owned()),
         start: None,
         reviewed: None,
+        recur: None,
         extras: BTreeMap::new(),
     }
 }

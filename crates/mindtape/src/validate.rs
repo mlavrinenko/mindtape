@@ -59,6 +59,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         ));
         check_estimate(task, &config.tasks.estimate, terminal, &mut out);
         check_tags(task, config, &mut out);
+        crate::validate_recur::check_all(task, config, &mut out);
     }
     crate::validate_links::check_all(tasks, config, &mut out);
     out
@@ -114,7 +115,7 @@ fn check_id_format(task: &Task, config: &Config, out: &mut Vec<Violation>) {
     }
 }
 
-fn push(out: &mut Vec<Violation>, task: &Task, field: &str, message: String) {
+pub(crate) fn push(out: &mut Vec<Violation>, task: &Task, field: &str, message: String) {
     out.push(violation(task, field, message));
 }
 

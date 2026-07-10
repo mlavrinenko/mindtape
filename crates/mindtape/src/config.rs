@@ -164,6 +164,8 @@ pub struct TasksConfig {
     pub naming: crate::naming::NamingConfig,
     /// Typed relation edge (`links:`) kind registry.
     pub links: crate::link::LinksConfig,
+    /// Recurring-tasks feature gate and policy floor (`mt recur`).
+    pub recur: crate::recur::RecurConfig,
 }
 
 // `roots` intentionally stays the opinionated `["tasks"]` rather than collapsing
@@ -187,6 +189,7 @@ impl Default for TasksConfig {
             id: IdConfig::default(),
             naming: crate::naming::NamingConfig::default(),
             links: crate::link::LinksConfig::default(),
+            recur: crate::recur::RecurConfig::default(),
         }
     }
 }
