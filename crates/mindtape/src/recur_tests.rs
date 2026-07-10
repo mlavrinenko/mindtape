@@ -191,7 +191,7 @@ fn check_policy_rejects_weekday_set_on_non_weekly_unit() {
 }
 
 #[test]
-fn check_policy_rejects_rrule_when_feature_off() {
+fn check_policy_rejects_rrule_when_config_flag_off() {
     let r = recur(Rule::Rrule {
         raw: "FREQ=DAILY".to_owned(),
     });
@@ -199,6 +199,25 @@ fn check_policy_rejects_rrule_when_feature_off() {
     assert!(problems.iter().any(|p| p.contains("rrule")));
 }
 
+// The cargo-feature-absent and cargo-feature-present paths through
+// `check_rrule_rule` are mutually exclusive at compile time — `cfg(feature =
+// "rrule")` picks which of the next two tests exists in a given build.
+
+#[cfg(not(feature = "rrule"))]
+#[test]
+fn check_policy_rejects_rrule_when_cargo_feature_absent() {
+    let r = recur(Rule::Rrule {
+        raw: "FREQ=DAILY".to_owned(),
+    });
+    let config = RecurConfig {
+        rrule: true,
+        ..RecurConfig::default()
+    };
+    let problems = check_policy(&r, &config);
+    assert!(problems.iter().any(|p| p.contains("cargo feature")));
+}
+
+#[cfg(feature = "rrule")]
 #[test]
 fn check_policy_allows_rrule_when_feature_on() {
     let r = recur(Rule::Rrule {
@@ -209,6 +228,50 @@ fn check_policy_allows_rrule_when_feature_on() {
         ..RecurConfig::default()
     };
     assert!(check_policy(&r, &config).is_empty());
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn check_policy_rejects_rrule_with_completion_anchor() {
+    let mut r = recur(Rule::Rrule {
+        raw: "FREQ=DAILY".to_owned(),
+    });
+    r.anchor = Some("completion".to_owned());
+    let config = RecurConfig {
+        rrule: true,
+        ..RecurConfig::default()
+    };
+    let problems = check_policy(&r, &config);
+    assert!(problems.iter().any(|p| p.contains("date-anchored only")));
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn check_policy_allows_rrule_with_explicit_due_anchor() {
+    let mut r = recur(Rule::Rrule {
+        raw: "FREQ=DAILY".to_owned(),
+    });
+    r.anchor = Some("due".to_owned());
+    let config = RecurConfig {
+        rrule: true,
+        ..RecurConfig::default()
+    };
+    assert!(check_policy(&r, &config).is_empty());
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn check_policy_rejects_malformed_rrule_quoting_it() {
+    let r = recur(Rule::Rrule {
+        raw: "FREQ=NOPE".to_owned(),
+    });
+    let config = RecurConfig {
+        rrule: true,
+        ..RecurConfig::default()
+    };
+    let problems = check_policy(&r, &config);
+    assert!(problems.iter().any(|p| p.contains("invalid rrule")));
+    assert!(problems.iter().any(|p| p.contains("\"FREQ=NOPE\"")));
 }
 
 #[test]

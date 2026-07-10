@@ -11,10 +11,12 @@
 //! `truth/tasks/recurring-tasks.typ` and `truth/tasks/command-semantics-cqrs.typ`.
 //!
 //! `rrule(...)` shares the same dict shape (a [`Rule::Rrule`] variant carrying
-//! the raw rule string) so a later wave can slot its expansion engine in
-//! behind [`crate::recur_dates::next_date`] without touching the marker
-//! shape, config, or CLI surface. This wave parses and gates it
-//! (`[tasks.recur] rrule`) but does not expand it.
+//! the raw rule string), gated by `[tasks.recur] rrule` and the `rrule`
+//! cargo feature (`crates/mindtape/src/recur_rrule.rs`) — see
+//! `truth/tasks/rrule-escape-hatch.typ`. `check_policy` grammar-checks the
+//! raw string at parse time (feature on) and rejects `anchor: "completion"`
+//! on it (date-anchored only); the expansion itself is
+//! [`crate::recur_dates::advance_once`]'s concern.
 
 use serde::Deserialize;
 use typst_harvest::HVal;
@@ -116,8 +118,10 @@ pub struct RecurConfig {
     pub default_anchor: String,
     /// Materialize model used when a task's `recur` omits one.
     pub materialize: String,
-    /// Whether the `rrule(...)` escape hatch is accepted. Off by default: the
-    /// expansion engine is a later wave, so this wave only parses and gates it.
+    /// Whether the `rrule(...)` escape hatch is accepted. Off by default;
+    /// also requires the crate to be built with the `rrule` cargo feature
+    /// (`crates/mindtape/src/recur_rrule.rs`) — either gate missing rejects
+    /// an authored `rrule(...)` with a precise message.
     pub rrule: bool,
     /// Runaway cap: `mt recur --advance N` refuses `N` above this.
     pub max_advance: u32,
@@ -243,13 +247,13 @@ pub fn check_policy(recur: &Recur, config: &RecurConfig) -> Vec<String> {
         out.push("recurrence is disabled ([tasks.recur] enabled = false)".to_owned());
         return out;
     }
-    check_rule(&recur.rule, config, &mut out);
+    check_rule(&recur.rule, recur.anchor.as_deref(), config, &mut out);
     check_choice(recur.anchor.as_deref(), &config.anchors, "anchor", &mut out);
     check_materialize(recur.materialize.as_deref(), &mut out);
     out
 }
 
-fn check_rule(rule: &Rule, config: &RecurConfig, out: &mut Vec<String>) {
+fn check_rule(rule: &Rule, anchor: Option<&str>, config: &RecurConfig, out: &mut Vec<String>) {
     match rule {
         Rule::Period { unit, weekdays, .. } => {
             check_choice(Some(unit.as_str()), &config.units, "period unit", out);
@@ -257,12 +261,46 @@ fn check_rule(rule: &Rule, config: &RecurConfig, out: &mut Vec<String>) {
                 out.push("an `on:` weekday set requires a weeks() period".to_owned());
             }
         }
-        Rule::Rrule { .. } if !config.rrule => {
-            out.push("rrule(...) is disabled ([tasks.recur] rrule = false)".to_owned());
-        }
-        Rule::Rrule { .. } => {}
+        Rule::Rrule { raw } => check_rrule_rule(raw, anchor, config, out),
     }
 }
+
+/// The `rrule(...)` gates, in order: the config flag, the compiled-in cargo
+/// feature, the date-anchored-only restriction (RFC 5545 has no
+/// completion-relative primitive — `truth/tasks/rrule-escape-hatch.typ`),
+/// then the rule's own grammar (parse-time, behind the feature).
+fn check_rrule_rule(raw: &str, anchor: Option<&str>, config: &RecurConfig, out: &mut Vec<String>) {
+    if !config.rrule {
+        out.push("rrule(...) is disabled ([tasks.recur] rrule = false)".to_owned());
+        return;
+    }
+    if !cfg!(feature = "rrule") {
+        out.push(
+            "rrule(...) requires mindtape to be built with the `rrule` cargo feature (not \
+             compiled into this binary)"
+                .to_owned(),
+        );
+        return;
+    }
+    if anchor == Some("completion") {
+        out.push(
+            "rrule(...) is date-anchored only: `anchor: \"completion\"` is not supported (RFC \
+             5545 has no completion-relative primitive); omit `anchor` or use `anchor: \"due\"`"
+                .to_owned(),
+        );
+    }
+    check_rrule_syntax(raw, out);
+}
+
+#[cfg(feature = "rrule")]
+fn check_rrule_syntax(raw: &str, out: &mut Vec<String>) {
+    if let Err(message) = crate::recur_rrule::validate_rule(raw) {
+        out.push(message);
+    }
+}
+
+#[cfg(not(feature = "rrule"))]
+fn check_rrule_syntax(_raw: &str, _out: &mut Vec<String>) {}
 
 fn check_choice(value: Option<&str>, allowed: &[String], label: &str, out: &mut Vec<String>) {
     let Some(value) = value else { return };

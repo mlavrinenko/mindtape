@@ -128,7 +128,7 @@ units = ["days", "weeks", "months", "years"]
 anchors = ["completion", "due"]
 default-anchor = "completion"               # used when a task's recur omits anchor
 materialize = "spawn"                       # used when a task's recur omits materialize
-rrule = false                               # the rrule(...) escape hatch; expansion is a later feature
+rrule = false                               # the rrule(...) escape hatch
 max-advance = 52                            # runaway cap for `mt recur --advance N`
 ```
 
@@ -136,6 +136,13 @@ Every field defaults to the value shown, so an unconfigured project already
 supports `recur:` out of the box; set `enabled = false` to turn the feature off
 project-wide, or narrow `units` / `anchors` to the cadences a project wants to
 support.
+
+`rrule = true` alone is not enough: the `rrule("FREQ=...")` escape hatch also
+needs `mindtape`/`mt` built with the `rrule` cargo feature (off by default —
+it pulls in `chrono-tz` + `regex`, so only a project that actually authors an
+`rrule(...)` pays for them). Either gate missing rejects the task with a
+precise message; `mt check` additionally grammar-checks the raw rule string
+at parse time. See #link(u("/dsl/"))[Task DSL]'s "Recurring tasks" section.
 
 = Named views
 

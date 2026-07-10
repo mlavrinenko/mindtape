@@ -15,11 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dict; no date math in the prelude — `[tasks.recur]` validates it and
   `mindtape::recur_dates` computes the next occurrence (chrono period
   arithmetic; month/year-end clamped). `rrule("FREQ=...")` shares the same
-  shape as the escape hatch, gated behind `[tasks.recur] rrule` (parsed, not
-  yet expanded — a later wave). `mt recur X` is the only writer, never a side
-  effect of a read (`mt ls`/`mt check` are unaffected, enforced by test): the
-  default `spawn` materialize writes the next instance as a new file (stem
-  minted by `[tasks.naming]`, or the built-in `{slug}-{date}` fallback) with
+  shape as the escape hatch, gated behind `[tasks.recur] rrule` (parsed;
+  expansion is a separate `rrule` cargo feature — see below). `mt recur X` is
+  the only writer, never a side effect of a read (`mt ls`/`mt check` are
+  unaffected, enforced by test): the default `spawn` materialize writes the
+  next instance as a new file (stem minted by `[tasks.naming]`, or the
+  built-in `{slug}-{date}` fallback) with
   a `recurred-from` edge back to its predecessor, refusing a second spawn
   unless `--force`; `mutate` refreshes the same file in place. `anchor:
   "completion"` (default) always advances from today; `anchor: "due"` catches
@@ -28,6 +29,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `[tasks.recur] max-advance`; `--skip` advances the anchor/`count` without
   materializing anything. `mt done` stays a pure close on a recurring task —
   it never strips `recur` — and prints a notice pointing at `mt recur`.
+
+- **`rrule(...)` expansion engine** — the `rrule("FREQ=MONTHLY;BYDAY=1MO")`
+  escape hatch (see above) now expands, for the calendar-complex cadences
+  `every()` cannot express: first Monday of the month (`BYDAY=1MO`), last day
+  of the month (`BYMONTHDAY=-1`), every weekday (`BYDAY=MO,TU,WE,TH,FR`), and
+  the rest of RFC 5545. Wrapped by a new `rrule` cargo feature (off by
+  default) over the `rrule` crate; the common `every()` path stays free of
+  its `chrono-tz` + `regex` dependencies unless a project actually authors an
+  `rrule(...)`. `rrule(...)` is date-anchored only — it implies `anchor:
+  "due"` and rejects `anchor: "completion"` (RFC 5545 has no
+  completion-relative primitive); DTSTART is seeded from the task's `due` and
+  the next occurrence is the rule's first instance strictly after it,
+  bounded by the crate's own iteration cap so a pathological rule errors
+  instead of hanging. `mt check` grammar-checks the raw rule string at parse
+  time and quotes the offending rule in a malformed one's error.
 
 - **Worktree override** — a global `-w/--worktree <path>` flag (and
   `$MINDTAPE_WORKTREE` fallback; the flag wins) points `mt` at a chosen project

@@ -12,12 +12,22 @@ categories = ["development-tools"]
 [features]
 # Expose shared task fixtures (`test_support`) to dependent crates' tests.
 test-support = []
+# The `rrule(...)` escape hatch's expansion engine (RFC 5545 recurrence rules
+# via the `rrule` crate). Off by default: `every()` covers the common
+# cadences with plain chrono arithmetic, and only a project that actually
+# authors an `rrule(...)` pulls in chrono-tz + regex. See
+# `truth/tasks/rrule-escape-hatch.typ`.
+rrule = ["dep:rrule"]
 
 [dependencies]
 # `default-features = false` + `std` only: NaiveDate/Months/Days arithmetic,
 # no `clock` (that pulls in reading the OS timezone/`Local::now()`) — every
 # recur date computation takes its reference date from the caller.
 chrono = { version = "0.4", default-features = false, features = ["std"] }
+# The `rrule(...)` escape hatch's expander, behind the `rrule` feature (see
+# `crates/mindtape/src/recur_rrule.rs`). Pulls in chrono-tz + regex, so it
+# stays optional rather than a plain dependency.
+rrule = { version = "0.14", optional = true }
 typst-harvest = "0.1.0"
 typst-cst = "0.1.0"
 typst-edit = "0.1.0"

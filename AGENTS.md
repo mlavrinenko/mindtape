@@ -108,8 +108,9 @@ validate their own `x-<ns>` fields.
 
 `recur: every(weeks: 1, on: (mon, wed, fri), anchor: "due", until: on(2027, 1,
 1), count: 10, materialize: "spawn")` shapes `(rule, anchor, until, count,
-materialize)` — no date math in Typst; `rrule("FREQ=...")` shares the shape
-(gated by `[tasks.recur] rrule`, not yet expanded). `mt recur X` is the only
+materialize)` — no date math in Typst; `rrule("FREQ=...")` shares the shape,
+expanded by the `rrule` cargo feature (gated by `[tasks.recur] rrule`;
+date-anchored only, rejects `anchor: "completion"`). `mt recur X` is the only
 writer: `spawn` (default) writes the next instance as a new file with a
 `recurred-from(X)` edge; `mutate` refreshes the same file in place.
 `--dry-run` / `--advance N` / `--skip` / `--force`. `mt done` never advances a

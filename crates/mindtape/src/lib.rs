@@ -36,6 +36,8 @@ pub mod numeric;
 pub mod ready;
 pub mod recur;
 pub mod recur_dates;
+#[cfg(feature = "rrule")]
+mod recur_rrule;
 pub mod sort;
 pub mod status_value;
 pub mod template;
