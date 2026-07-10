@@ -19,6 +19,14 @@ check:
         "chronic just outdatty-check" \
         "chronic just docs-check"
 
+# Check the `rrule(...)` escape hatch's expansion engine: `just check` builds
+# `mindtape` with default features, so it never compiles or runs this code
+# (see crates/mindtape/src/recur_rrule.rs). Reproduces what CI runs for it.
+check-rrule:
+    cargo fmt --all -- --check
+    cargo clippy -p mindtape --features rrule --all-targets -q -- -D warnings
+    cargo test -p mindtape --features rrule -q
+
 # Fail if a source changed without its dependents being re-confirmed
 outdatty-check:
     outdatty check --format quiet

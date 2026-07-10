@@ -105,11 +105,25 @@ recur: every(
 ```
 
 `rrule("FREQ=MONTHLY;BYDAY=1MO")` shapes the same policy dict for an escape
-hatch; expansion is a later feature, gated behind `[tasks.recur] rrule` (see
-#link(u("/config/"))[Configuration]) until it ships. A task never advances
-itself — only an explicit `mt recur` spawns or mutates the next occurrence
-(see #link(u("/cli/"))[CLI reference]); `mt done` on a recurring task is a
-pure close and never touches `recur`.
+hatch — calendar-complex cadences `every()` cannot express: "first Monday of
+the month" (`FREQ=MONTHLY;BYDAY=1MO`), "last day of month"
+(`BYMONTHDAY=-1`), "every weekday" (`BYDAY=MO,TU,WE,TH,FR`). It is expanded
+by the `rrule` crate (github.com/fmeringdal/rust-rrule), behind mindtape's own
+`rrule` cargo feature *and* `[tasks.recur] rrule` (see
+#link(u("/config/"))[Configuration]) — either gate missing rejects an
+authored `rrule(...)` with a precise message, and the common `every()` path
+stays free of the extra dependencies (`chrono-tz`, `regex`) either way.
+
+`rrule(...)` is date-anchored only: it implies `anchor: "due"` and rejects
+`anchor: "completion"` outright (RFC 5545 has no completion-relative
+primitive). DTSTART is seeded from the task's `due`; the next occurrence is
+the rule's first instance strictly after it. `mt check` validates the raw
+string at parse time and rejects a malformed one, quoting it in the error
+(e.g. `invalid rrule "FREQ=NOPE": ...`).
+
+A task never advances itself — only an explicit `mt recur` spawns or mutates
+the next occurrence (see #link(u("/cli/"))[CLI reference]); `mt done` on a
+recurring task is a pure close and never touches `recur`.
 
 = What enforces what
 
