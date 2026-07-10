@@ -12,11 +12,13 @@ use thiserror::Error;
 use crate::recur::{PeriodUnit, Recur, RecurConfig, Rule};
 
 /// Why next-date computation could not produce a date.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+#[derive(Debug, Clone, PartialEq, Eq, Error)]
 pub enum RecurError {
-    /// `rrule(...)` expansion is a later wave; this wave parses and gates the
-    /// rule but cannot compute its next date.
-    #[error("rrule(...) expansion is not implemented yet (planned for a later wave)")]
+    /// `rrule(...)` expansion requires the crate to be built with the
+    /// `rrule` cargo feature; this build was not (the config/feature gate in
+    /// [`crate::recur::check_policy`] should have already rejected the task
+    /// before this is ever reached).
+    #[error("rrule(...) expansion requires mindtape to be built with the `rrule` cargo feature")]
     RruleNotImplemented,
     /// Chrono arithmetic ran out of range (a date past `NaiveDate::MAX`).
     #[error("date arithmetic overflowed")]
@@ -25,12 +27,29 @@ pub enum RecurError {
     /// for a non-empty set, but the scan is bounded rather than infinite.
     #[error("no weekday in the `on:` set was reachable within a week")]
     NoMatchingWeekday,
+    /// The `rrule` crate could not produce a next occurrence: a malformed
+    /// rule (should already be caught by `mt check`'s parse-time gate), a
+    /// pathological rule that hits the crate's iteration bound, or the
+    /// rule's own embedded `COUNT=`/`UNTIL=` ending the series. Carries the
+    /// crate's own message; only constructed behind the `rrule` feature.
+    #[error("{0}")]
+    RruleExpansion(String),
 }
 
 /// The anchor `recur` resolves to: its own explicit anchor, or the project's
 /// `[tasks.recur] default-anchor` when omitted.
+///
+/// `rrule(...)` is date-anchored only (RFC 5545 has no completion-relative
+/// primitive — see `truth/tasks/rrule-escape-hatch.typ`): an omitted anchor
+/// always resolves to `"due"` for it, even when the project's
+/// `default-anchor` is `"completion"`. [`crate::recur::check_policy`] rejects
+/// an *explicit* `anchor: "completion"` on an `rrule(...)` task outright, so
+/// the only values reaching this function for one are `None` or `"due"`.
 #[must_use]
 pub fn effective_anchor<'a>(recur: &'a Recur, config: &'a RecurConfig) -> &'a str {
+    if matches!(recur.rule, Rule::Rrule { .. }) {
+        return "due";
+    }
     recur
         .anchor
         .as_deref()
@@ -85,8 +104,23 @@ pub fn advance_once(rule: &Rule, from: NaiveDate) -> Result<NaiveDate, RecurErro
     match rule {
         Rule::Period { weekdays, .. } if !weekdays.is_empty() => next_weekday_after(from, weekdays),
         Rule::Period { unit, value, .. } => add_period(from, *unit, *value),
-        Rule::Rrule { .. } => Err(RecurError::RruleNotImplemented),
+        Rule::Rrule { raw } => advance_rrule(raw, from),
     }
+}
+
+/// The `rrule(...)` step: the rule's first occurrence strictly after `from`,
+/// via [`crate::recur_rrule::next_after`] when the `rrule` feature is
+/// compiled in; a fixed error otherwise (the config/feature gate in
+/// [`crate::recur::check_policy`] should have already rejected the task
+/// before `mt recur` ever reaches this).
+#[cfg(feature = "rrule")]
+fn advance_rrule(raw: &str, from: NaiveDate) -> Result<NaiveDate, RecurError> {
+    crate::recur_rrule::next_after(raw, from)
+}
+
+#[cfg(not(feature = "rrule"))]
+fn advance_rrule(_raw: &str, _from: NaiveDate) -> Result<NaiveDate, RecurError> {
+    Err(RecurError::RruleNotImplemented)
 }
 
 /// Add one `unit`-`value` period to `from`, clamping month/year-end overflow

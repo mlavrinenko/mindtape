@@ -86,8 +86,9 @@ fn weekday_set_wraps_into_next_week() {
     assert_eq!(next, date(2026, 6, 8));
 }
 
+#[cfg(not(feature = "rrule"))]
 #[test]
-fn rrule_rule_is_not_implemented() {
+fn rrule_rule_is_not_implemented_without_the_cargo_feature() {
     let rule = Rule::Rrule {
         raw: "FREQ=DAILY".to_owned(),
     };
@@ -95,6 +96,81 @@ fn rrule_rule_is_not_implemented() {
         advance_once(&rule, date(2026, 6, 1)),
         Err(RecurError::RruleNotImplemented)
     );
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn rrule_rule_advances_via_the_expansion_engine() {
+    let rule = Rule::Rrule {
+        raw: "FREQ=DAILY".to_owned(),
+    };
+    let next = advance_once(&rule, date(2026, 6, 1)).unwrap();
+    assert_eq!(next, date(2026, 6, 2));
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn rrule_effective_anchor_is_always_due_even_with_completion_default() {
+    let rule = Rule::Rrule {
+        raw: "FREQ=DAILY".to_owned(),
+    };
+    let r = recur(rule, None, None, None);
+    // The project default is `"completion"`; `rrule(...)` still resolves to
+    // `"due"` — RFC 5545 has no completion-relative primitive.
+    assert_eq!(effective_anchor(&r, &RecurConfig::default()), "due");
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn rrule_first_monday_of_the_month() {
+    let rule = Rule::Rrule {
+        raw: "FREQ=MONTHLY;BYDAY=1MO".to_owned(),
+    };
+    let next = advance_once(&rule, date(2026, 6, 15)).unwrap();
+    assert_eq!(next, date(2026, 7, 6));
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn rrule_last_day_of_the_month() {
+    let rule = Rule::Rrule {
+        raw: "FREQ=MONTHLY;BYMONTHDAY=-1".to_owned(),
+    };
+    let next = advance_once(&rule, date(2026, 1, 31)).unwrap();
+    assert_eq!(next, date(2026, 2, 28));
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn rrule_every_weekday_skips_the_weekend() {
+    let rule = Rule::Rrule {
+        raw: "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR".to_owned(),
+    };
+    // 2026-06-05 is a Friday.
+    let next = advance_once(&rule, date(2026, 6, 5)).unwrap();
+    assert_eq!(next, date(2026, 6, 8));
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn rrule_past_until_ends_the_series() {
+    let rule = Rule::Rrule {
+        raw: "FREQ=DAILY".to_owned(),
+    };
+    let r = recur(rule, None, Some("2026-06-05"), None);
+    assert!(!past_until(&r, date(2026, 6, 5)));
+    assert!(past_until(&r, date(2026, 6, 6)));
+}
+
+#[cfg(feature = "rrule")]
+#[test]
+fn rrule_count_reaches_exhaustion_like_any_other_rule() {
+    let rule = Rule::Rrule {
+        raw: "FREQ=DAILY".to_owned(),
+    };
+    let r = recur(rule, None, None, Some(1));
+    assert!(!exhausted(&r));
+    assert_eq!(carry_count(&r), Some(0));
 }
 
 #[test]
