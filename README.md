@@ -198,6 +198,12 @@ color = "red"
 [tasks.estimate]
 units = ["minutes", "hours", "days", "weeks"]
 
+# Stem naming: how `mt add` (and later `mt recur`) mint a new task's filename.
+# Unset ⇒ bare slug (today's behaviour). Macros: {slug} {date} {date:FMT}
+# {yy} {mm} {dd} {n} {n:0N}; never renames an existing file.
+[tasks.naming]
+stem = "{slug}.task-{yy}{mm}{dd}"
+
 [ls]
 default-filter = "status != \"done\""
 ```

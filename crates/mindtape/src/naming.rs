@@ -1,13 +1,23 @@
 //! Task stem naming: the `[tasks.naming]` template and the shared minter.
 //!
-//! Scaffold for the configurable-task-stem-naming task. The pure macro expander
-//! (`{slug}`, `{date}`/`{date:FMT}`, `{yy}`/`{mm}`/`{dd}`, `{n}`/`{n:0N}`) and
-//! the collision disambiguation land under that task. One shared minter here is
-//! called by both the `mt add` write path and (later) the `mt recur` spawn path,
-//! so the two never diverge. No clock reads inside the expander — the caller
-//! passes the reference date.
+//! [`mint_stem`] is a pure macro expander: no clock reads, no filesystem
+//! access. Both `mt add` (today's date, occurrence `0`) and the later `mt
+//! recur` spawn path (an occurrence's anchor date, its index) build a
+//! [`MintContext`] and call the same function, so the two paths can never
+//! diverge. Filesystem collision handling ([`disambiguate`]) is a separate,
+//! equally pure function — callers inject an `exists` predicate rather than
+//! this module touching disk itself. The split: `mint_stem` renders a
+//! template into a candidate stem; `disambiguate` decides, against the real
+//! (or faked) destination directory, whether that candidate is safe to use.
 
+use thiserror::Error;
+
+use crate::date::format_iso;
 use serde::Deserialize;
+
+/// The bare-slug template: today's behaviour when `[tasks.naming] stem` is
+/// unset.
+pub const DEFAULT_STEM_TEMPLATE: &str = "{slug}";
 
 /// `[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
@@ -16,3 +26,139 @@ pub struct NamingConfig {
     /// Stem template with macros. Unset ⇒ bare `{slug}` (today's behaviour).
     pub stem: Option<String>,
 }
+
+impl NamingConfig {
+    /// The template to mint with: the configured `stem`, or
+    /// [`DEFAULT_STEM_TEMPLATE`] when unset.
+    #[must_use]
+    pub fn template(&self) -> &str {
+        self.stem.as_deref().unwrap_or(DEFAULT_STEM_TEMPLATE)
+    }
+}
+
+/// Inputs to [`mint_stem`], supplied entirely by the caller — the expander
+/// itself never reads a clock or a counter. `mt add` passes today's date and
+/// occurrence `0`; `mt recur` spawn passes the occurrence's anchor date and
+/// its index.
+#[derive(Debug, Clone, Copy)]
+pub struct MintContext<'a> {
+    /// The task's slug (from its title): the `{slug}` macro.
+    pub slug: &'a str,
+    /// Reference date `(year, month, day)`: `{date}`, `{date:FMT}`, `{yy}`,
+    /// `{mm}`, `{dd}`.
+    pub date: (i32, u8, u8),
+    /// Occurrence index: `{n}`, `{n:0N}`.
+    pub occurrence: u32,
+}
+
+/// A malformed `[tasks.naming] stem` template.
+#[derive(Debug, Error)]
+pub enum NamingError {
+    /// A `{` was never closed with a matching `}`.
+    #[error("unterminated macro (missing '}}') in stem template")]
+    UnterminatedMacro,
+    /// `{name}` is not a macro this expander knows.
+    #[error("unknown stem template macro {{{0}}}")]
+    UnknownMacro(String),
+    /// `{n:ARG}`'s `ARG` is not a valid zero-pad width.
+    #[error("invalid zero-pad width {0:?} in {{n:...}}")]
+    InvalidWidth(String),
+}
+
+/// Expand `template`'s macros against `ctx`. Pure: no clock, no filesystem.
+///
+/// Supported macros: `{slug}`, `{date}` (ISO `YYYY-MM-DD`), `{date:FMT}`
+/// (formatted via [`format_iso`]'s token grammar), `{yy}` / `{mm}` / `{dd}`,
+/// `{n}` (bare occurrence index) and `{n:0N}` (zero-padded to width `N`).
+/// `{kind}` is reserved for a future convergence extension (speconaut's
+/// artifact-kind classifier) — recognised but not yet resolvable from
+/// [`MintContext`], so it passes through literally rather than erroring or
+/// silently vanishing.
+///
+/// # Errors
+/// Returns [`NamingError`] for an unterminated `{`, an unknown macro name, or
+/// a non-numeric `{n:...}` width.
+pub fn mint_stem(template: &str, ctx: &MintContext<'_>) -> Result<String, NamingError> {
+    let mut out = String::with_capacity(template.len());
+    let mut chars = template.chars();
+    while let Some(ch) = chars.next() {
+        if ch != '{' {
+            out.push(ch);
+            continue;
+        }
+        let inner = read_macro(&mut chars)?;
+        out.push_str(&expand_macro(&inner, ctx)?);
+    }
+    Ok(out)
+}
+
+/// Consume `chars` up to (and including) the closing `}`, returning the
+/// content in between. Errors if the input ends first.
+fn read_macro(chars: &mut std::str::Chars<'_>) -> Result<String, NamingError> {
+    let mut inner = String::new();
+    for ch in chars.by_ref() {
+        if ch == '}' {
+            return Ok(inner);
+        }
+        inner.push(ch);
+    }
+    Err(NamingError::UnterminatedMacro)
+}
+
+fn expand_macro(inner: &str, ctx: &MintContext<'_>) -> Result<String, NamingError> {
+    let (name, arg) = inner
+        .split_once(':')
+        .map_or((inner, None), |(n, a)| (n, Some(a)));
+    let (year, month, day) = ctx.date;
+    let iso = format!("{year:04}-{month:02}-{day:02}");
+    match name {
+        "slug" => Ok(ctx.slug.to_owned()),
+        "date" => Ok(match arg {
+            None => iso,
+            Some(fmt) => format_iso(&iso, fmt),
+        }),
+        "yy" => Ok(format_iso(&iso, "YY")),
+        "mm" => Ok(format_iso(&iso, "MM")),
+        "dd" => Ok(format_iso(&iso, "DD")),
+        "n" => expand_occurrence(ctx.occurrence, arg),
+        // Reserved convergence hook: recognised, not yet resolvable from
+        // `MintContext` — pass through literally so an authored `{kind}` is
+        // visibly unresolved rather than silently dropped.
+        "kind" => Ok(format!("{{{inner}}}")),
+        other => Err(NamingError::UnknownMacro(other.to_owned())),
+    }
+}
+
+fn expand_occurrence(occurrence: u32, arg: Option<&str>) -> Result<String, NamingError> {
+    let Some(width_arg) = arg else {
+        return Ok(occurrence.to_string());
+    };
+    let width: usize = width_arg
+        .parse()
+        .map_err(|_| NamingError::InvalidWidth(width_arg.to_owned()))?;
+    Ok(format!("{occurrence:0width$}"))
+}
+
+/// Disambiguate `stem` against an `exists` predicate: appends an incrementing
+/// `-{n}` (`stem`, `stem-2`, `stem-3`, …) until a candidate reports as free.
+/// Never returns a stem `exists` reports as taken. Fs-free — callers pass a
+/// closure over the real filesystem (the `add` destination dir) or a fake set
+/// in tests.
+#[must_use]
+pub fn disambiguate(stem: &str, exists: impl Fn(&str) -> bool) -> String {
+    if !exists(stem) {
+        return stem.to_owned();
+    }
+    let mut n = 2_u32;
+    loop {
+        let candidate = format!("{stem}-{n}");
+        if !exists(&candidate) {
+            return candidate;
+        }
+        n += 1;
+    }
+}
+
+#[cfg(test)]
+#[path = "naming_tests.rs"]
+mod tests;
