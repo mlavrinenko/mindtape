@@ -1,0 +1,151 @@
+#![allow(clippy::unwrap_used)]
+
+use super::{DEFAULT_STEM_TEMPLATE, MintContext, disambiguate, mint_stem};
+
+fn ctx<'a>(slug: &'a str, date: (i32, u8, u8), occurrence: u32) -> MintContext<'a> {
+    MintContext {
+        slug,
+        date,
+        occurrence,
+    }
+}
+
+#[test]
+fn default_template_is_bare_slug() {
+    assert_eq!(DEFAULT_STEM_TEMPLATE, "{slug}");
+    let out = mint_stem(
+        DEFAULT_STEM_TEMPLATE,
+        &ctx("cleanup-kitchen", (2026, 7, 10), 0),
+    )
+    .unwrap();
+    assert_eq!(out, "cleanup-kitchen");
+}
+
+#[test]
+fn speconaut_style_template() {
+    let template = "{slug}.task-{yy}{mm}{dd}";
+    let out = mint_stem(template, &ctx("ship-it", (2026, 7, 9), 0)).unwrap();
+    assert_eq!(out, "ship-it.task-260709");
+}
+
+#[test]
+fn date_macro_is_iso() {
+    let out = mint_stem("{slug}-{date}", &ctx("foo", (2026, 1, 5), 0)).unwrap();
+    assert_eq!(out, "foo-2026-01-05");
+}
+
+#[test]
+fn date_macro_with_format() {
+    let out = mint_stem("{date:DD.MM.YYYY}", &ctx("foo", (2026, 7, 9), 0)).unwrap();
+    assert_eq!(out, "09.07.2026");
+}
+
+#[test]
+fn yy_mm_dd_macros() {
+    let out = mint_stem("{yy}/{mm}/{dd}", &ctx("foo", (2026, 3, 4), 0)).unwrap();
+    assert_eq!(out, "26/03/04");
+}
+
+#[test]
+fn bare_occurrence_macro() {
+    let out = mint_stem("{slug}-{n}", &ctx("foo", (2026, 7, 10), 3)).unwrap();
+    assert_eq!(out, "foo-3");
+}
+
+#[test]
+fn zero_padded_occurrence_macro() {
+    let out = mint_stem("{slug}-{n:03}", &ctx("foo", (2026, 7, 10), 5)).unwrap();
+    assert_eq!(out, "foo-005");
+}
+
+#[test]
+fn zero_padded_occurrence_wider_than_value() {
+    let out = mint_stem("{n:02}", &ctx("foo", (2026, 7, 10), 123)).unwrap();
+    // Width is a floor, never a truncation: the value always survives whole.
+    assert_eq!(out, "123");
+}
+
+#[test]
+fn kind_macro_is_a_reserved_passthrough() {
+    let out = mint_stem("{slug}-{kind}", &ctx("foo", (2026, 7, 10), 0)).unwrap();
+    assert_eq!(out, "foo-{kind}");
+}
+
+#[test]
+fn unknown_macro_errors() {
+    let err = mint_stem("{nope}", &ctx("foo", (2026, 7, 10), 0)).unwrap_err();
+    assert_eq!(err.to_string(), "unknown stem template macro {nope}");
+}
+
+#[test]
+fn unterminated_macro_errors() {
+    let err = mint_stem("{slug", &ctx("foo", (2026, 7, 10), 0)).unwrap_err();
+    assert_eq!(
+        err.to_string(),
+        "unterminated macro (missing '}') in stem template"
+    );
+}
+
+#[test]
+fn invalid_occurrence_width_errors() {
+    let err = mint_stem("{n:abc}", &ctx("foo", (2026, 7, 10), 0)).unwrap_err();
+    assert_eq!(err.to_string(), "invalid zero-pad width \"abc\" in {n:...}");
+}
+
+#[test]
+fn literal_braces_pass_through_untouched_text() {
+    let out = mint_stem("shopping/{slug}", &ctx("milk", (2026, 7, 10), 0)).unwrap();
+    assert_eq!(out, "shopping/milk");
+}
+
+// -- disambiguate: fs-free collision guard -----------------------------------
+
+#[test]
+fn disambiguate_keeps_free_stem() {
+    let out = disambiguate("foo", |_| false);
+    assert_eq!(out, "foo");
+}
+
+#[test]
+fn disambiguate_appends_dash_two_on_first_collision() {
+    let out = disambiguate("foo", |candidate| candidate == "foo");
+    assert_eq!(out, "foo-2");
+}
+
+#[test]
+fn disambiguate_walks_past_multiple_collisions() {
+    let taken = ["foo", "foo-2", "foo-3"];
+    let out = disambiguate("foo", |candidate| taken.contains(&candidate));
+    assert_eq!(out, "foo-4");
+}
+
+#[test]
+fn disambiguate_never_returns_a_taken_stem() {
+    let out = disambiguate("foo", |candidate| candidate != "foo-5");
+    assert_eq!(out, "foo-5");
+}
+
+// -- reuse shape: a simulated `mt recur` spawn -------------------------------
+//
+// `mt recur` (a later wave) mints occurrence stems by building its own
+// `MintContext` with the occurrence's anchor date and index — never today's
+// clock. This proves the expander is deterministic and clock-free: the same
+// template plus the same (caller-supplied) date/occurrence always renders the
+// same stem, regardless of when the test runs.
+
+#[test]
+fn recur_style_spawn_is_deterministic_given_explicit_date_and_index() {
+    let template = "{slug}-{date}-{n:02}";
+    let anchor = (2026, 7, 6); // the occurrence's anchor date, not "today"
+    let first = mint_stem(template, &ctx("standup", anchor, 1)).unwrap();
+    let second = mint_stem(template, &ctx("standup", anchor, 1)).unwrap();
+    assert_eq!(first, second);
+    assert_eq!(first, "standup-2026-07-06-01");
+}
+
+#[test]
+fn recur_fallback_shape_slug_dash_date() {
+    // The built-in fallback recur uses when naming is unset: `{slug}-{date}`.
+    let out = mint_stem("{slug}-{date}", &ctx("standup", (2026, 7, 13), 4)).unwrap();
+    assert_eq!(out, "standup-2026-07-13");
+}

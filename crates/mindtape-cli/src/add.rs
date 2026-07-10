@@ -11,8 +11,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, anyhow, bail};
 use clap::Args;
 use mindtape::{
-    Config, RawValue, SlotSpec, discover_slots, fill, load_config, load_project, status_value,
-    today_ymd, validate,
+    Config, RawValue, SlotSpec, discover_slots, fill, load_config, load_project, naming,
+    status_value, today_ymd, validate,
 };
 use typst_edit::apply;
 
@@ -130,8 +130,8 @@ pub fn run(args: &AddArgs) -> Result<()> {
         return Ok(());
     }
 
-    let stem = output_stem(args, &values)?;
     let dest = dest_dir(&args.into, args.to.as_deref(), &project)?;
+    let stem = output_stem(args, &values, config, &dest)?;
     let file = dest.join(format!("{stem}.typ"));
     if file.exists() {
         bail!("task {stem:?} already exists at {}", file.display());
@@ -269,10 +269,39 @@ fn fill_title_from_stdin(values: &mut BTreeMap<String, RawValue>, args: &AddArgs
     Ok(())
 }
 
-fn output_stem(args: &AddArgs, values: &BTreeMap<String, RawValue>) -> Result<String> {
+/// Compute the new task's filename stem: an explicit `--name` wins outright
+/// (literal, never templated or disambiguated — an explicit request is
+/// trusted as-is). Otherwise the title's slug feeds the configured
+/// `[tasks.naming] stem` template (today's date; the pure expander never
+/// reads a clock — see [`mindtape::naming`]); unset naming keeps today's bare
+/// behaviour untouched. A templated stem is then disambiguated against `dest`
+/// so a rendered collision never overwrites an existing file.
+fn output_stem(
+    args: &AddArgs,
+    values: &BTreeMap<String, RawValue>,
+    config: &Config,
+    dest: &Path,
+) -> Result<String> {
     if let Some(name) = &args.name {
         return Ok(name.clone());
     }
+    let slug_value = title_slug(values)?;
+    let Some(template) = config.tasks.naming.stem.as_deref() else {
+        return Ok(slug_value);
+    };
+    let ctx = naming::MintContext {
+        slug: &slug_value,
+        date: today_ymd(),
+        occurrence: 0,
+    };
+    let stem = naming::mint_stem(template, &ctx).map_err(|err| anyhow!(err.to_string()))?;
+    Ok(naming::disambiguate(&stem, |candidate| {
+        dest.join(format!("{candidate}.typ")).exists()
+    }))
+}
+
+/// The title's slug, or an error when there is nothing to name the file from.
+fn title_slug(values: &BTreeMap<String, RawValue>) -> Result<String> {
     if let Some(RawValue::Str(title)) = values.get("title") {
         let stem = slug(title);
         if !stem.is_empty() {
