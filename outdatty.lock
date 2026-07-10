@@ -6,7 +6,7 @@ groups:
       crates/mindtape-cli/src/cli.rs: e40cb5726e1e6b647c8e39478ed7711598292d46b83cb7774fcdf8d4d49d9592
       crates/mindtape-cli/src/default-config.toml: 7b4a5ff6d033701cafc71967ef55b927ce3af13712db979215759300fddc3e3f
       crates/mindtape/src/defaults.toml: b36e99614fd3d7cb56c8365bb93461289ccdb8a7f0e698b14c33237f0b452fd0
-      crates/mindtape/src/lib.rs: 70a8539ea5ab2342156919e2f0a5910581472b2c1da2fa2fc7e010069dd657cb
+      crates/mindtape/src/lib.rs: 32e40b4ae8f197089ae958d001187fb0df5ac6f6ed41e992044493a55f196191
     dependents:
       README.md: 9b116b958957bd8bd92eec74916fd6c6aceb9868047daccbdae979314d11afde
       skills/mindtape/SKILL.md: cc96eae64f0d9122b8b8899bd83c09f50323f13125ff80e500ebc4bb17f4e9f9

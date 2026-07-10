@@ -160,6 +160,10 @@ pub struct TasksConfig {
     pub body: TaskBodyConfig,
     /// Task id format.
     pub id: IdConfig,
+    /// Task stem naming template (`mt add`/`mt recur` minting).
+    pub naming: crate::naming::NamingConfig,
+    /// Typed relation edge (`links:`) kind registry.
+    pub links: crate::link::LinksConfig,
 }
 
 // `roots` intentionally stays the opinionated `["tasks"]` rather than collapsing
@@ -181,6 +185,8 @@ impl Default for TasksConfig {
             tags: TagsConfig::default(),
             body: TaskBodyConfig::default(),
             id: IdConfig::default(),
+            naming: crate::naming::NamingConfig::default(),
+            links: crate::link::LinksConfig::default(),
         }
     }
 }
