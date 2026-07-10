@@ -80,6 +80,53 @@
 #let duplicates(..args) = edge("duplicates", ..args)
 #let related(..args) = edge("related", ..args)
 
+// Weekday constants for `every(..., on: (...))`'s weekday set — plain string
+// labels; the Rust layer maps them to real weekdays, no date math here.
+#let mon = "mon"
+#let tue = "tue"
+#let wed = "wed"
+#let thu = "thu"
+#let fri = "fri"
+#let sat = "sat"
+#let sun = "sun"
+
+// Recurrence. A task advances to its next occurrence only via `mt recur`,
+// never as a side effect of a read (see command-semantics-cqrs). `every()`
+// shapes one period unit (days/weeks/months/years) — optionally narrowed to a
+// weekday set via `on:` — plus the policy riding along with it: `anchor`
+// ("completion", the default, or "due"), the series stop conditions
+// `until`/`count`, and `materialize` ("spawn"/"mutate"). No math lives here,
+// same discipline as the priority frameworks: an omitted policy arg stays
+// `none` and the Rust layer resolves it from `[tasks.recur]`, validates the
+// rule, and computes the next date.
+#let every(
+  days: none, weeks: none, months: none, years: none,
+  on: none,
+  anchor: none, until: none, count: none, materialize: none,
+) = {
+  let units = (
+    (days, "days"), (weeks, "weeks"), (months, "months"), (years, "years"),
+  ).filter(u => u.at(0) != none)
+  assert(
+    units.len() == 1,
+    message: "every() takes exactly one of days/weeks/months/years",
+  )
+  let (value, unit) = units.at(0)
+  (
+    rule: (kind: "period", unit: unit, value: value, on: on),
+    anchor: anchor, until: until, count: count, materialize: materialize,
+  )
+}
+
+// The rrule escape hatch (its own task, rrule-escape-hatch): shapes the SAME
+// policy dict, a raw rule string standing in for the period. Expansion is a
+// later feature; until then the Rust layer parses and gates this rule kind
+// behind `[tasks.recur] rrule` rather than computing a next date from it.
+#let rrule(rule, anchor: none, until: none, count: none, materialize: none) = (
+  rule: (kind: "rrule", raw: rule),
+  anchor: anchor, until: until, count: count, materialize: materialize,
+)
+
 // Template authoring helper. `mt add` discovers `slot(...)` calls on the
 // parse plane and replaces each with a filled literal, so a filed task holds
 // plain values and never calls `slot`. At eval time a slot returns its `default`,
@@ -92,7 +139,7 @@
 // Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
 #let _core-slots = (
   "title", "status", "priority", "difficulty", "kind", "estimate",
-  "links", "tags", "due", "start", "reviewed", "id",
+  "links", "tags", "due", "start", "reviewed", "id", "recur",
 )
 
 // ── Typeset render ────────────────────────────────────────────────────────────
@@ -201,6 +248,50 @@
     parts.push(_scalar(val) + " " + u)
   }
   parts.join(", ")
+}
+
+// The rule half of `_fmt-recur`: a period (with its optional weekday set) or
+// an `rrule(...)` raw string. Defined first: Typst `#let` bindings capture
+// the scope at definition time (no hoisting), so `_fmt-recur` below must be
+// able to see this name already bound when IT is defined, not just when
+// called.
+#let _fmt-recur-rule(rule) = {
+  let kind = rule.at("kind", default: none)
+  if kind == "rrule" {
+    let raw = rule.at("raw", default: none)
+    return if type(raw) == str { "rrule: " + raw } else { none }
+  }
+  if kind != "period" { return none }
+  let unit = rule.at("unit", default: none)
+  let value = rule.at("value", default: none)
+  let core = if type(value) == int and type(unit) == str {
+    "every " + _scalar(value) + " " + (if value == 1 { unit.slice(0, -1) } else { unit })
+  } else { none }
+  let on = rule.at("on", default: none)
+  if type(on) == array and on.len() > 0 {
+    let days = on.join(", ")
+    if core == none { "on " + days } else { core + " on " + days }
+  } else { core }
+}
+
+// Recurrence as compact text (`every 1 week`, `every 3 days on mon, wed, fri`,
+// `rrule: FREQ=MONTHLY;BYDAY=1MO`), plus `anchor …`/`until …`/`count …` when
+// set. `none` when `recur` is unset or malformed — the rendered card skips
+// the row entirely rather than showing a blank one.
+#let _fmt-recur(r) = {
+  if type(r) != dictionary { return none }
+  let rule = r.at("rule", default: none)
+  if type(rule) != dictionary { return none }
+  let base = _fmt-recur-rule(rule)
+  if base == none { return none }
+  let anchor = r.at("anchor", default: none)
+  let until = r.at("until", default: none)
+  let count = r.at("count", default: none)
+  let parts = (base,)
+  if type(anchor) == str { parts.push("anchor " + anchor) }
+  if type(until) == datetime { parts.push("until " + until.display("[year]-[month]-[day]")) }
+  if type(count) == int { parts.push("count " + str(count)) }
+  parts.join(" · ")
 }
 
 // A datetime → `YYYY-MM-DD`; a bare string passes through; none stays none.
@@ -312,6 +403,7 @@
       ("due", _fmt-date(m.at("due", default: none))),
       ("start", _fmt-date(m.at("start", default: none))),
       ("reviewed", _fmt-date(m.at("reviewed", default: none))),
+      ("recur", _fmt-recur(m.at("recur", default: none))),
     )
       + link-rows
       + (
@@ -357,6 +449,7 @@
         due: m.at("due", default: none),
         start: m.at("start", default: none),
         reviewed: m.at("reviewed", default: none),
+        recur: m.at("recur", default: none),
         id: m.at("id", default: none),
       ),
       extras: extras,

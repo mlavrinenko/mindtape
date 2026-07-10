@@ -43,6 +43,31 @@ impl<'a> DepIndex<'a> {
     }
 }
 
+/// The loaded task, if any, that `from`'s `kind` edge resolves to (forward
+/// direction) — e.g. a `recurred-from` edge's predecessor.
+#[must_use]
+pub fn resolve_edge<'a>(tasks: &'a [Task], from: &Task, kind: &str) -> Option<&'a Task> {
+    let index = DepIndex::build(tasks);
+    from.link_targets(kind)
+        .find_map(|target| index.resolve(from, target))
+}
+
+/// The loaded task, if any, whose `kind` edge resolves to `target` — the
+/// reverse direction of [`resolve_edge`]. `mt recur`'s double-spawn guard uses
+/// this: a spawned successor's `recurred-from` edge names its predecessor, so
+/// the predecessor's successor is found by searching for the referrer.
+#[must_use]
+pub fn find_referrer<'a>(tasks: &'a [Task], target: &Task, kind: &str) -> Option<&'a Task> {
+    let index = DepIndex::build(tasks);
+    tasks.iter().find(|candidate| {
+        candidate.link_targets(kind).any(|link_target| {
+            index
+                .resolve(candidate, link_target)
+                .is_some_and(|resolved| resolved.file == target.file)
+        })
+    })
+}
+
 /// A dependency cycle: the tasks on a `depends-on` loop, by id, in the order the
 /// walk entered them. The loop closes from the last member back to the first;
 /// [`Display`](fmt::Display) renders it as `a → b → c → a`.

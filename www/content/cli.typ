@@ -95,6 +95,30 @@ When the legend declares `to` transition edges (see #link(u("/config/"))[Config]
 states; `--force` overrides. Tasks are referenced by slug, list handle (`1b`), or
 path.
 
+= Recurring tasks
+
+A task with a `recur:` field (see #link(u("/dsl/"))[Task DSL]) advances only
+via `mt recur` — never as a side effect of a read (`mt ls`/`mt check` spawn or
+mutate nothing). Materialize is per-task (`spawn`, the default, or `mutate`;
+`[tasks.recur] materialize` sets the project default):
+
+```sh
+mt recur water-plants              # spawn a new file, or refresh in place
+mt recur water-plants --dry-run    # preview without writing
+mt recur water-plants --advance 4  # pre-materialize 4 future spawns (spawn only)
+mt recur water-plants --skip       # advance the anchor/count, materialize nothing
+mt recur water-plants --force      # spawn again even if a successor already exists
+```
+
+`spawn` writes the next occurrence as a new file — its stem minted by
+`[tasks.naming]` (or the built-in `{slug}-{date}` fallback), linked back to its
+predecessor with a `recurred-from` edge — and refuses a second spawn unless
+`--force`. `mutate` resets the same file's status and dates in place instead;
+one stem forever, the audit trail is git history. Either way `mt done` on a
+recurring task stays a pure close — it never strips `recur` — and prints a
+notice: a `spawn` series points back at `mt recur`, a `mutate` series notes
+that closing ends it.
+
 = Validate and inspect config
 
 `mt check` validates every task: enum values, required fields, numeric bounds,

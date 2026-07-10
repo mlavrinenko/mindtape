@@ -8,7 +8,7 @@ use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
 use crate::{
-    add, check, config_cmd, eval, flip, go, init, install, ls, review, rm, views, worktrees,
+    add, check, config_cmd, eval, flip, go, init, install, ls, recur, review, rm, views, worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -87,6 +87,17 @@ enum Command {
     /// clash. Targets are resolved before any write, then valid edits apply and
     /// any resolution or validation problem is reported (the rest still land).
     Flip(flip::FlipArgs),
+    /// Advance a recurring task to its next occurrence — the only command
+    /// that spawns or mutates a recurrence (see `[tasks.recur]`).
+    ///
+    /// Dispatches on the task's effective `materialize`: `spawn` (the
+    /// default) writes the next instance as a new file and links it back via
+    /// `recurred-from`; `mutate` refreshes the same file in place. `--dry-run`
+    /// previews without writing; `--advance N` pre-materializes N future
+    /// spawns without closing the current instance; `--skip` advances the
+    /// anchor/`count` without materializing anything. `mt done` never
+    /// advances a recurrence — it stays a pure close.
+    Recur(recur::RecurArgs),
     /// Per-status shortcut verb (`<status> <task>...`), dispatched to `flip`.
     #[command(external_subcommand)]
     Status(Vec<String>),
@@ -113,6 +124,7 @@ impl Cli {
             Command::Rm(args) => rm::run(&args),
             Command::Review(args) => review::run(&args),
             Command::Flip(args) => flip::run(&args),
+            Command::Recur(args) => recur::run(&args),
             Command::Status(argv) => flip::run_external(&argv),
         }
     }

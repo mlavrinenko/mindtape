@@ -17,6 +17,9 @@ const ALPHA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 const BETA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Beta\",\n  status: blocked(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n";
 
+const GAMMA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+#show: task.with(\n  title: \"Water plants\",\n  status: wip(2026, 6, 1),\n  recur: every(weeks: 1),\n)\n\n== Summary\n\nBody.\n";
+
 /// A legend declaring `blocked` (not part of the embedded floor's status
 /// legend), so it must be written to disk, not just held in memory: `run_with`
 /// revalidates by reloading config from `.mindtape/config.toml` after a flip.
@@ -242,6 +245,18 @@ fn flip_allows_legal_transition() {
     let project = setup(dir.path(), &[("beta.typ", BETA)], TRANSITION_CONFIG);
     run_with(&project, &flip_args("wip", &["beta"])).unwrap();
     assert!(read(dir.path(), "beta.typ").contains("status: wip("));
+}
+
+#[test]
+fn flip_to_terminal_preserves_recur_field() {
+    // `mt done` on a recurring task stays a pure close: it never strips
+    // `recur`, so `mt recur` stays callable on the now-done task.
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[("gamma.typ", GAMMA)], LEGEND_CONFIG);
+    run_with(&project, &flip_args("done", &["gamma"])).unwrap();
+    let out = read(dir.path(), "gamma.typ");
+    assert!(out.contains("status: done("));
+    assert!(out.contains("recur: every(weeks: 1)"));
 }
 
 #[test]

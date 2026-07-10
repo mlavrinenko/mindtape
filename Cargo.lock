@@ -2500,6 +2500,7 @@ name = "mindtape"
 version = "0.2.0"
 dependencies = [
  "artifact-gate",
+ "chrono",
  "dirs",
  "evalexpr",
  "globset",
@@ -2521,6 +2522,7 @@ dependencies = [
  "anstyle",
  "anyhow",
  "assert_cmd",
+ "chrono",
  "clap",
  "crossterm",
  "csv",

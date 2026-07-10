@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{Cycle, toposort, toposort_kind};
+use super::{Cycle, find_referrer, resolve_edge, toposort, toposort_kind};
 use crate::model::Task;
 use crate::test_support::{bare_task, link_edge};
 
@@ -132,4 +132,36 @@ fn toposort_kind_detects_parent_cycle_independent_of_depends_on() {
     let cycle = toposort_kind(&[a, b], "parent").unwrap_err();
     assert!(cycle.members.contains(&"a".to_owned()));
     assert!(cycle.members.contains(&"b".to_owned()));
+}
+
+#[test]
+fn resolve_edge_finds_the_forward_target() {
+    let tasks = [
+        task_kind("spawn-2", "recurred-from", &["spawn-1"]),
+        bare_task("spawn-1"),
+    ];
+    let resolved = resolve_edge(&tasks, &tasks[0], "recurred-from").unwrap();
+    assert_eq!(resolved.id, "spawn-1");
+}
+
+#[test]
+fn resolve_edge_none_when_no_edge_of_kind() {
+    let tasks = [bare_task("a"), bare_task("b")];
+    assert!(resolve_edge(&tasks, &tasks[0], "recurred-from").is_none());
+}
+
+#[test]
+fn find_referrer_finds_the_successor() {
+    let tasks = [
+        bare_task("original"),
+        task_kind("spawn-1", "recurred-from", &["original"]),
+    ];
+    let successor = find_referrer(&tasks, &tasks[0], "recurred-from").unwrap();
+    assert_eq!(successor.id, "spawn-1");
+}
+
+#[test]
+fn find_referrer_none_without_a_successor() {
+    let tasks = [bare_task("original")];
+    assert!(find_referrer(&tasks, &tasks[0], "recurred-from").is_none());
 }

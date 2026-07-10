@@ -104,6 +104,17 @@ classification, priority frameworks (scoring + in-bounds-by-construction), the
 kind enum, required-unless-terminal, bounds, and link resolution. Consumers
 validate their own `x-<ns>` fields.
 
+### Recurring tasks (`recur`, `mt recur`)
+
+`recur: every(weeks: 1, on: (mon, wed, fri), anchor: "due", until: on(2027, 1,
+1), count: 10, materialize: "spawn")` shapes `(rule, anchor, until, count,
+materialize)` — no date math in Typst; `rrule("FREQ=...")` shares the shape
+(gated by `[tasks.recur] rrule`, not yet expanded). `mt recur X` is the only
+writer: `spawn` (default) writes the next instance as a new file with a
+`recurred-from(X)` edge; `mutate` refreshes the same file in place.
+`--dry-run` / `--advance N` / `--skip` / `--force`. `mt done` never advances a
+recurrence — pure close, per command-semantics-cqrs.
+
 ### Templates (`mt add`)
 
 `mt add [TITLE…] [-t template]` files a new task from a Typst template — a

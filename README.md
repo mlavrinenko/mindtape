@@ -51,17 +51,15 @@ nix develop                 # dev shell with the full toolchain
 cargo build --release       # produces target/release/mt
 ```
 
-Set up the user environment (once per machine) — installs the Typst prelude so
-`#import "@local/mindtape:0.2.0"` resolves and seeds the XDG global app config —
-then scaffold a project (once per project):
+Set up the user environment once per machine (installs the Typst prelude,
+seeds the XDG global app config), then scaffold a project (once per project):
 
 ```bash
 mt install            # installs @local/mindtape + seeds ~/.config/mindtape/defaults.toml
 mt init               # writes .mindtape/config.toml in the current dir
 ```
 
-`mt install-lib` is a deprecated alias for the lib-only half
-(`mt install --no-defaults`); prefer `mt install`.
+`mt install-lib` is a deprecated alias for `mt install --no-defaults`.
 
 ## Usage
 
@@ -100,6 +98,10 @@ mt ls -i                               # interactive: type the # to pick, Enter 
 mt flip done implement-auth            # canonical; or `mt done 1b 2c` (== flip done)
 mt flip blocked 1b 2c -m "note"        # batch + note; `mt flip --list` shows the verbs
 mt flip done 1b --force                # bypass the legend's `to` transition graph, if declared
+
+# Advance a recurring task (recur: every(...)) to its next occurrence
+mt recur water-plants                  # spawn (default) a new file, or mutate in place
+mt recur water-plants --dry-run        # preview without writing
 
 # Validate every task against the project config
 mt check                               # enum / required / bounds / links / cycles
@@ -198,7 +200,7 @@ color = "red"
 [tasks.estimate]
 units = ["minutes", "hours", "days", "weeks"]
 
-# Stem naming: how `mt add` (and later `mt recur`) mint a new task's filename.
+# Stem naming: how `mt add` and `mt recur` mint a new task's filename.
 # Unset ⇒ bare slug (today's behaviour). Macros: {slug} {date} {date:FMT}
 # {yy} {mm} {dd} {n} {n:0N}; never renames an existing file.
 [tasks.naming]
