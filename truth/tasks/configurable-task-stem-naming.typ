@@ -8,7 +8,7 @@
     ease: 5,
   ),
   tags: (),
-  status: proposed(2026, 7, 10),
+  status: wip(2026, 7, 10),
 )
 
 == Summary
