@@ -7,7 +7,7 @@ use super::{
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
 use crate::numeric::NumValue;
-use crate::test_support::bare_task;
+use crate::test_support::{bare_task, dep_edge};
 
 fn config() -> Config {
     parse_config(
@@ -104,7 +104,7 @@ fn default_order_floats_ready_above_blocked() {
     // A blocked task earlier in the lifecycle vs a ready task later in it: the
     // readiness band leads, so the ready task sorts first despite its status.
     let mut blocked = task("blocked-proposed", "proposed", 8.0, None);
-    blocked.depends_on = vec!["missing.typ".to_owned()];
+    blocked.links = vec![dep_edge("missing.typ")];
     let ready = task("ready-wip", "wip", 1.0, None);
 
     let mut tasks = vec![blocked, ready];

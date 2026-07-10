@@ -2,7 +2,7 @@
 
 use mindtape::config::{Legend, LegendEntry};
 use mindtape::numeric::NumValue;
-use mindtape::test_support::bare_task;
+use mindtape::test_support::{bare_task, dep_edge};
 use mindtape::{
     ColumnConfig, Config, Readiness, ReadyState, Status, Task, Visibility, parse_config,
 };
@@ -126,7 +126,7 @@ fn readiness_column_appears_only_when_blocked() {
     // `b` depends on the non-terminal `a`, so `b` is blocked and the column
     // appears with its label (glyphs are off in the test's non-TTY output).
     let mut blocked = task("b", "B", "wip");
-    blocked.depends_on = vec!["a.typ".to_owned()];
+    blocked.links = vec![dep_edge("a.typ")];
     let tasks = vec![task("a", "A", "wip"), blocked];
     let readiness = Readiness::compute(&tasks, &Config::default());
     let out = render(&tasks, &Config::default(), &readiness);

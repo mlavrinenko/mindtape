@@ -14,8 +14,10 @@
 == Summary
 
 `mt graph` emits the task dependency graph as DOT or Mermaid. MindTape already
-models typed links (`depends-on`, `relates-to`, `supersedes`, `duplicates`) and
-computes ready/blocked from them (`crates/mindtape/src/graph.rs`); this exposes
+models typed edges (`links:` — `depends-on`, `parent`, `recurred-from`,
+`supersedes`, `duplicates`, `related`, plus any project-declared custom kind)
+and computes ready/blocked from the `depends-on` ones
+(`crates/mindtape/src/graph.rs`); this exposes
 that structure as a view. On brand with "one source, many views": a read-only
 projection of the same typed source, no new data and no new store — the thing a
 central-DB tracker cannot hand you as a plain diffable artifact.

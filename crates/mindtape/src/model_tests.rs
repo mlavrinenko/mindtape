@@ -1,4 +1,4 @@
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::collections::BTreeMap;
 
@@ -34,8 +34,12 @@ fn from_marker_reads_core_fields() {
             dict(vec![("days", HVal::Int(5)), ("hours", HVal::Int(5))]),
         ),
         (
-            "relates-to",
-            HVal::Array(vec![HVal::Str("other.task-260101.typ".to_owned())]),
+            "links",
+            HVal::Array(vec![dict(vec![
+                ("task", HVal::Str("other.task-260101.typ".to_owned())),
+                ("kind", HVal::Str("related".to_owned())),
+                ("note", HVal::Str("carried over".to_owned())),
+            ])]),
         ),
         ("tags", HVal::Array(vec![HVal::Str("backend".to_owned())])),
     ]);
@@ -60,7 +64,11 @@ fn from_marker_reads_core_fields() {
     assert_eq!(task.difficulty, Some(NumValue::Label("senior".to_owned())));
     assert_eq!(task.estimate.get("days"), Some(&5.0));
     assert_eq!(task.estimate.get("hours"), Some(&5.0));
-    assert_eq!(task.relates_to, vec!["other.task-260101.typ".to_owned()]);
+    assert_eq!(
+        task.link_targets("related").collect::<Vec<_>>(),
+        vec!["other.task-260101.typ"]
+    );
+    assert_eq!(task.links[0].note.as_deref(), Some("carried over"));
     assert_eq!(task.tags, vec!["backend".to_owned()]);
     assert!(task.extras.contains_key("x-speconaut"));
 }
@@ -83,26 +91,43 @@ fn normalize_link_strips_path_and_extension() {
     assert_eq!(normalize_link("bar"), "bar");
 }
 
-#[test]
-fn history_pointer_links_are_not_graph_edges() {
-    // A SWHID tombstone in `depends-on` is a history pointer, not a task edge:
-    // it must drop out of the normalized link list so validation never tries to
-    // resolve it against a loaded task.
-    let fields = dict(vec![(
-        "depends-on",
-        HVal::Array(vec![
-            HVal::Str(
-                "swh:1:rev:0123456789abcdef0123456789abcdef01234567;path=tasks/gone.typ".to_owned(),
-            ),
-            HVal::Str("live.typ".to_owned()),
-        ]),
-    )]);
+/// A `links:` edge dict, mirroring the prelude helper shape (`task`, `kind`,
+/// optional `note`).
+fn edge_val(task: &str, kind: &str) -> HVal {
+    dict(vec![
+        ("task", HVal::Str(task.to_owned())),
+        ("kind", HVal::Str(kind.to_owned())),
+        ("note", HVal::Null),
+    ])
+}
+
+/// Build a task, at `t.typ`, from a bare `links:` array — the shared
+/// marker-wrapping boilerplate every `links` parsing test needs.
+fn task_with_links(links: Vec<HVal>) -> Task {
+    let fields = dict(vec![("links", HVal::Array(links))]);
     let marker = dict(vec![
         ("marker", HVal::Str("mindtape.task".to_owned())),
         ("fields", fields),
     ]);
-    let task = Task::from_marker("t".to_owned(), "t.typ".into(), &marker);
-    assert_eq!(task.depends_on, vec!["live.typ".to_owned()]);
+    Task::from_marker("t".to_owned(), "t.typ".into(), &marker)
+}
+
+#[test]
+fn history_pointer_links_are_not_graph_edges() {
+    // A SWHID tombstone in a `depends-on` edge is a history pointer, not a
+    // task edge: it must drop out of `links` so validation never tries to
+    // resolve it against a loaded task.
+    let task = task_with_links(vec![
+        edge_val(
+            "swh:1:rev:0123456789abcdef0123456789abcdef01234567;path=tasks/gone.typ",
+            "depends-on",
+        ),
+        edge_val("live.typ", "depends-on"),
+    ]);
+    assert_eq!(
+        task.link_targets("depends-on").collect::<Vec<_>>(),
+        vec!["live.typ"]
+    );
     assert!(is_history_pointer(
         "swh:1:rev:0123456789abcdef0123456789abcdef01234567;path=tasks/gone.typ"
     ));
@@ -111,23 +136,28 @@ fn history_pointer_links_are_not_graph_edges() {
 
 #[test]
 fn from_marker_reads_supersedes_and_duplicates() {
-    let fields = dict(vec![
-        (
-            "supersedes",
-            HVal::Array(vec![HVal::Str("old-task.typ".to_owned())]),
-        ),
-        (
-            "duplicates",
-            HVal::Array(vec![HVal::Str("twin.typ".to_owned())]),
-        ),
+    let task = task_with_links(vec![
+        edge_val("old-task.typ", "supersedes"),
+        edge_val("twin.typ", "duplicates"),
     ]);
-    let marker = dict(vec![
-        ("marker", HVal::Str("mindtape.task".to_owned())),
-        ("fields", fields),
-    ]);
-    let task = Task::from_marker("t".to_owned(), "t.typ".into(), &marker);
-    assert_eq!(task.supersedes, vec!["old-task.typ".to_owned()]);
-    assert_eq!(task.duplicates, vec!["twin.typ".to_owned()]);
+    assert_eq!(
+        task.link_targets("supersedes").collect::<Vec<_>>(),
+        vec!["old-task.typ"]
+    );
+    assert_eq!(
+        task.link_targets("duplicates").collect::<Vec<_>>(),
+        vec!["twin.typ"]
+    );
+}
+
+#[test]
+fn from_marker_reads_bare_string_link_as_unknown_kind() {
+    // No helper used: the harvested value is a bare string, not a dict. It
+    // must still surface (not be silently dropped) so validation can flag it.
+    let task = task_with_links(vec![HVal::Str("bare.typ".to_owned())]);
+    assert_eq!(task.links.len(), 1);
+    assert_eq!(task.links[0].task, "bare.typ");
+    assert_eq!(task.links[0].kind, "");
 }
 
 /// Build a task from a marker whose `id:` field is `id` (the stem is `"stem"`).
@@ -197,20 +227,12 @@ fn resolve_link_path_escapes_root_returns_none() {
 #[test]
 fn parse_links_stores_raw_paths() {
     // parse_links must NOT normalize; raw target strings are preserved
-    let fields = dict(vec![(
-        "depends-on",
-        HVal::Array(vec![
-            HVal::Str("sibling.typ".to_owned()),
-            HVal::Str("../up/task.typ".to_owned()),
-        ]),
-    )]);
-    let marker = dict(vec![
-        ("marker", HVal::Str("mindtape.task".to_owned())),
-        ("fields", fields),
+    let task = task_with_links(vec![
+        edge_val("sibling.typ", "depends-on"),
+        edge_val("../up/task.typ", "depends-on"),
     ]);
-    let task = Task::from_marker("t".to_owned(), "sub/t.typ".into(), &marker);
     assert_eq!(
-        task.depends_on,
-        vec!["sibling.typ".to_owned(), "../up/task.typ".to_owned()]
+        task.link_targets("depends-on").collect::<Vec<_>>(),
+        vec!["sibling.typ", "../up/task.typ"]
     );
 }

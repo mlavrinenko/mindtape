@@ -6,6 +6,7 @@
 
 use std::collections::BTreeMap;
 
+use crate::link::Link;
 use crate::model::Task;
 
 /// A task with the given id and every other field at its empty/`None` default.
@@ -23,16 +24,40 @@ pub fn bare_task(id: &str) -> Task {
         difficulty: None,
         kind: None,
         estimate: BTreeMap::new(),
-        depends_on: Vec::new(),
-        relates_to: Vec::new(),
-        supersedes: Vec::new(),
-        duplicates: Vec::new(),
+        links: Vec::new(),
         tags: Vec::new(),
         derived_tags: Vec::new(),
         due: None,
         start: None,
         reviewed: None,
         extras: BTreeMap::new(),
+    }
+}
+
+/// A `links:` edge of `kind` to `target`, with no note — the common shape test
+/// fixtures need for readiness/cycle/resolution scenarios.
+#[must_use]
+pub fn link_edge(target: &str, kind: &str) -> Link {
+    Link {
+        task: target.to_owned(),
+        kind: kind.to_owned(),
+        note: None,
+    }
+}
+
+/// A `depends-on` edge to `target` — the most common edge kind in fixtures.
+#[must_use]
+pub fn dep_edge(target: &str) -> Link {
+    link_edge(target, "depends-on")
+}
+
+/// A `links:` edge of `kind` to `target` carrying `note` (e.g. the `related`
+/// escape hatch, which requires one).
+#[must_use]
+pub fn noted_edge(target: &str, kind: &str, note: &str) -> Link {
+    Link {
+        note: Some(note.to_owned()),
+        ..link_edge(target, kind)
     }
 }
 

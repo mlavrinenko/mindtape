@@ -3,7 +3,7 @@
 use super::{Readiness, ReadyState};
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
-use crate::test_support::bare_task;
+use crate::test_support::{bare_task, dep_edge};
 
 fn config() -> Config {
     parse_config(
@@ -25,7 +25,7 @@ fn task(id: &str, status: &str, deps: &[&str]) -> Task {
         date: None,
         note: None,
     });
-    task.depends_on = deps.iter().map(|d| (*d).to_owned()).collect();
+    task.links = deps.iter().map(|d| dep_edge(d)).collect();
     task
 }
 
@@ -78,4 +78,51 @@ fn empty_readiness_settles_everything() {
     let tasks = [task("a", "wip", &[])];
     let ready = Readiness::empty();
     assert_eq!(ready.state(&tasks[0]), ReadyState::Settled);
+}
+
+#[test]
+fn related_edges_never_gate_readiness() {
+    // `related` is not flagged blocking, unlike `depends-on`: an unresolved
+    // `related` target must not block a task that has no open dependency.
+    use crate::test_support::link_edge;
+
+    let mut a = bare_task("a");
+    a.status = Some(Status {
+        name: "wip".to_owned(),
+        date: None,
+        note: None,
+    });
+    a.links = vec![link_edge("missing.typ", "related")];
+    let tasks = [a];
+    let ready = Readiness::compute(&tasks, &config());
+    assert_eq!(ready.state(&tasks[0]), ReadyState::Ready);
+}
+
+#[test]
+fn custom_blocking_kind_gates_readiness() {
+    // A project can opt a custom kind into gating readiness via
+    // `[[tasks.links.kinds]] blocking = true`; a task with an unresolved
+    // custom-kind edge is blocked, just like an unresolved `depends-on`.
+    use crate::link::{LinkKind, NoteRule};
+    use crate::test_support::link_edge;
+
+    let mut cfg = config();
+    cfg.tasks.links.kinds = vec![LinkKind {
+        name: "needs".to_owned(),
+        max: None,
+        note: NoteRule::Optional,
+        blocking: true,
+        acyclic: false,
+    }];
+
+    let mut a = bare_task("a");
+    a.status = Some(Status {
+        name: "wip".to_owned(),
+        date: None,
+        note: None,
+    });
+    a.links = vec![link_edge("missing.typ", "needs")];
+    let tasks = [a];
+    let ready = Readiness::compute(&tasks, &cfg);
+    assert_eq!(ready.state(&tasks[0]), ReadyState::Blocked);
 }

@@ -1,12 +1,19 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{Cycle, toposort};
+use super::{Cycle, toposort, toposort_kind};
 use crate::model::Task;
-use crate::test_support::bare_task;
+use crate::test_support::{bare_task, link_edge};
 
 fn task(id: &str, deps: &[&str]) -> Task {
+    task_kind(id, "depends-on", deps)
+}
+
+fn task_kind(id: &str, kind: &str, deps: &[&str]) -> Task {
     let mut task = bare_task(id);
-    task.depends_on = deps.iter().map(|dep| format!("{dep}.typ")).collect();
+    task.links = deps
+        .iter()
+        .map(|dep| link_edge(&format!("{dep}.typ"), kind))
+        .collect();
     task
 }
 
@@ -91,4 +98,38 @@ fn cycle_display_closes_loop() {
         members: vec!["a".to_owned(), "b".to_owned()],
     };
     assert_eq!(cycle.to_string(), "a \u{2192} b \u{2192} a");
+}
+
+#[test]
+fn toposort_kind_walks_only_the_named_kind() {
+    // `a` has both a `depends-on` and a `parent` edge to `b`; toposort_kind
+    // over "parent" must ignore the depends-on edge entirely.
+    let mut a = bare_task("a");
+    a.links = vec![
+        link_edge("b.typ", "depends-on"),
+        link_edge("b.typ", "parent"),
+    ];
+    let b = bare_task("b");
+    let tasks = [a, b];
+    let order = toposort_kind(&tasks, "parent").unwrap();
+    assert_eq!(order.len(), 2);
+    assert!(pos(&order, "b") < pos(&order, "a"));
+}
+
+#[test]
+fn toposort_kind_detects_parent_cycle_independent_of_depends_on() {
+    // a -> b -> a via `parent`, while `depends-on` is acyclic (a -> b only):
+    // the parent cycle must surface even though depends-on does not.
+    let mut a = bare_task("a");
+    a.links = vec![
+        link_edge("b.typ", "depends-on"),
+        link_edge("b.typ", "parent"),
+    ];
+    let mut b = bare_task("b");
+    b.links = vec![link_edge("a.typ", "parent")];
+
+    assert!(toposort_kind(&[a.clone(), b.clone()], "depends-on").is_ok());
+    let cycle = toposort_kind(&[a, b], "parent").unwrap_err();
+    assert!(cycle.members.contains(&"a".to_owned()));
+    assert!(cycle.members.contains(&"b".to_owned()));
 }

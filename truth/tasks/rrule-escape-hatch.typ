@@ -8,7 +8,7 @@
     ease: 5,
   ),
   tags: (),
-  depends-on: (link("recurring-tasks.typ"),),
+  links: depends-on("recurring-tasks.typ"),
   status: proposed(2026, 7, 10),
 )
 

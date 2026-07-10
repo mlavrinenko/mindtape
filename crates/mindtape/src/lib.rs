@@ -21,6 +21,7 @@ mod config_views;
 mod date;
 pub mod derive;
 pub mod filter;
+mod filter_links;
 mod filter_views;
 pub mod framework;
 mod framework_eval;
@@ -39,6 +40,7 @@ pub mod template;
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
 pub mod validate;
+mod validate_links;
 pub mod worktrees;
 
 pub use add_slots::{RequiredSlot, required_core_slots};

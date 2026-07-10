@@ -1,17 +1,17 @@
 //! Config-driven validation of loaded tasks.
 //!
 //! Enforces the declared status lifecycle, enum field constraints, the estimate
-//! unit allow-list, required-unless-terminal, the tag allow-list, and link
-//! resolution (a `depends-on`/`relates-to` target must name a loaded task).
+//! unit allow-list, required-unless-terminal, the tag allow-list, and the
+//! typed `links:` edges (resolution, cardinality, notes, cycles — see
+//! [`crate::validate_links`]).
 
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::path::{Path, PathBuf};
+use std::collections::{BTreeMap, HashMap};
+use std::path::PathBuf;
 
 use uuid::Uuid;
 
 use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, PriorityConfig, Requirement};
-use crate::graph::toposort;
-use crate::model::{Task, resolve_link_path};
+use crate::model::Task;
 use crate::numeric::{InputValue, NumValue, NumericField, format_num};
 
 /// Source location for a violation that points to a specific line.
@@ -39,7 +39,6 @@ pub struct Violation {
 /// Validate every task against `config`, returning all violations.
 #[must_use]
 pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
-    let files: HashSet<&Path> = tasks.iter().map(|task| task.file.as_path()).collect();
     let mut out = Vec::new();
     check_id_uniqueness(tasks, &mut out);
     let terminal_values = config.tasks.status.terminal();
@@ -60,24 +59,9 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         ));
         check_estimate(task, &config.tasks.estimate, terminal, &mut out);
         check_tags(task, config, &mut out);
-        check_links(task, &files, &mut out);
     }
-    check_cycle(tasks, &mut out);
+    crate::validate_links::check_all(tasks, config, &mut out);
     out
-}
-
-/// Flag a dependency cycle over the whole set: a `depends-on` loop has no valid
-/// order, so the toposort fails loud. Attributed to the first task on the loop;
-/// the message names the full chain.
-fn check_cycle(tasks: &[Task], out: &mut Vec<Violation>) {
-    if let Err(cycle) = toposort(tasks) {
-        out.push(Violation {
-            task_id: cycle.members.first().cloned().unwrap_or_default(),
-            field: "depends-on".to_owned(),
-            message: format!("dependency cycle: {cycle}"),
-            location: None,
-        });
-    }
 }
 
 fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
@@ -388,33 +372,6 @@ fn check_tags(task: &Task, config: &Config, out: &mut Vec<Violation>) {
                 "tags",
                 format!("`{tag}` derived from folder is not an allowed tag"),
             );
-        }
-    }
-}
-
-fn check_links(task: &Task, files: &HashSet<&Path>, out: &mut Vec<Violation>) {
-    for (field, links) in [
-        ("depends-on", &task.depends_on),
-        ("relates-to", &task.relates_to),
-        ("supersedes", &task.supersedes),
-        ("duplicates", &task.duplicates),
-    ] {
-        for target in links {
-            let resolved = resolve_link_path(&task.file, target);
-            let found = resolved.as_deref().is_some_and(|p| files.contains(p));
-            if !found {
-                let display = resolved
-                    .as_deref()
-                    .unwrap_or(Path::new(target))
-                    .display()
-                    .to_string();
-                push(
-                    out,
-                    task,
-                    field,
-                    format!("link target `{display}` not found"),
-                );
-            }
         }
     }
 }

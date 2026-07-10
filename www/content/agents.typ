@@ -32,7 +32,7 @@ A task in `mt ls --json`:
   "priority": 8.0,
   "due": "2026-07-20",
   "tags": ["backend", "auth"],
-  "depends_on": [],
+  "links": [],
   "derived_tags": [],
   "extras": {},
   "file": "tasks/wire-oauth.typ"
