@@ -9,7 +9,7 @@
   ),
   tags: (),
   links: depends-on("typed-relation-edges.typ", "configurable-task-stem-naming.typ"),
-  status: wip(2026, 7, 10),
+  status: done(2026, 7, 10),
 )
 
 == Summary
