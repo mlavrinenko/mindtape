@@ -6,7 +6,7 @@ use super::validate;
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
 use crate::numeric::{InputValue, NumValue};
-use crate::test_support::bare_task;
+use crate::test_support::{bare_task, dep_edge, link_edge, noted_edge};
 
 fn config() -> crate::config::Config {
     parse_config(
@@ -130,8 +130,8 @@ fn unconstrained_legend_skips_reachability() {
 fn flags_dependency_cycle() {
     let mut a = task("a", "wip");
     let mut b = task("b", "wip");
-    a.depends_on = vec!["b.typ".to_owned()];
-    b.depends_on = vec!["a.typ".to_owned()];
+    a.links = vec![dep_edge("b.typ")];
+    b.links = vec![dep_edge("a.typ")];
     let violations = validate(&[a, b], &config());
     assert!(
         violations
@@ -203,7 +203,7 @@ fn flags_disallowed_derived_tag() {
 #[test]
 fn flags_unresolved_link() {
     let mut item = task("a", "wip");
-    item.depends_on = vec!["missing.typ".to_owned()];
+    item.links = vec![dep_edge("missing.typ")];
     let violations = validate(&[item], &config());
     assert!(violations.iter().any(|v| v.field == "depends-on"));
 }
@@ -211,7 +211,7 @@ fn flags_unresolved_link() {
 #[test]
 fn flags_unresolved_supersedes() {
     let mut item = task("a", "wip");
-    item.supersedes = vec!["gone.typ".to_owned()];
+    item.links = vec![link_edge("gone.typ", "supersedes")];
     let violations = validate(&[item], &config());
     assert!(violations.iter().any(|v| v.field == "supersedes"));
 }
@@ -219,7 +219,7 @@ fn flags_unresolved_supersedes() {
 #[test]
 fn flags_unresolved_duplicates() {
     let mut item = task("a", "wip");
-    item.duplicates = vec!["ghost.typ".to_owned()];
+    item.links = vec![link_edge("ghost.typ", "duplicates")];
     let violations = validate(&[item], &config());
     assert!(violations.iter().any(|v| v.field == "duplicates"));
 }
@@ -228,8 +228,10 @@ fn flags_unresolved_duplicates() {
 fn resolves_supersedes_and_duplicates() {
     let mut first = task("a", "wip");
     // sibling file: tasks/b.typ — resolvable from tasks/a.typ as "b.typ"
-    first.supersedes = vec!["b.typ".to_owned()];
-    first.duplicates = vec!["b.typ".to_owned()];
+    first.links = vec![
+        link_edge("b.typ", "supersedes"),
+        link_edge("b.typ", "duplicates"),
+    ];
     let tasks = vec![first, task("b", "wip")];
     let violations = validate(&tasks, &config());
     assert!(!violations.iter().any(|v| v.field == "supersedes"));
@@ -240,19 +242,19 @@ fn resolves_supersedes_and_duplicates() {
 fn resolves_existing_link() {
     let mut first = task("a", "wip");
     // sibling file: tasks/b.typ — resolvable from tasks/a.typ as "b.typ"
-    first.relates_to = vec!["b.typ".to_owned()];
+    first.links = vec![noted_edge("b.typ", "related", "why")];
     let tasks = vec![first, task("b", "wip")];
     assert!(
         !validate(&tasks, &config())
             .iter()
-            .any(|v| v.field == "relates-to")
+            .any(|v| v.field == "related")
     );
 }
 
 #[test]
 fn broken_link_violation_names_resolved_path() {
     let mut item = task("a", "wip");
-    item.depends_on = vec!["nonexistent.typ".to_owned()];
+    item.links = vec![dep_edge("nonexistent.typ")];
     let violations = validate(&[item], &config());
     let v = violations
         .iter()
@@ -271,7 +273,7 @@ fn link_across_nested_directories_resolves() {
     // From sub/a.typ, "b.typ" in other/ is reached via "../other/b.typ".
     let mut a = task("a", "wip");
     a.file = "sub/a.typ".into();
-    a.depends_on = vec!["../other/b.typ".to_owned()];
+    a.links = vec![dep_edge("../other/b.typ")];
 
     let mut b = task("b", "wip");
     b.file = "other/b.typ".into();
@@ -294,7 +296,7 @@ fn explicit_id_task_still_reachable_by_path() {
 
     let mut linker = task("linker", "wip");
     linker.file = "tasks/linker.typ".into();
-    linker.depends_on = vec!["stem.typ".to_owned()];
+    linker.links = vec![dep_edge("stem.typ")];
 
     let tasks = vec![linker, target];
     let violations = validate(&tasks, &config());
@@ -308,7 +310,7 @@ fn explicit_id_task_still_reachable_by_path() {
 fn broken_link_across_nested_directories_flagged() {
     let mut item = task("a", "wip");
     item.file = "sub/a.typ".into();
-    item.depends_on = vec!["../missing/nowhere.typ".to_owned()];
+    item.links = vec![dep_edge("../missing/nowhere.typ")];
     let violations = validate(&[item], &config());
     assert!(
         violations.iter().any(|v| v.field == "depends-on"),

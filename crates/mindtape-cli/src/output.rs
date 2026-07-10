@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use mindtape::config::Config;
+use mindtape::link::Link;
 use mindtape::numeric::{NumValue, format_num};
 use mindtape::{Readiness, ReadyState, Task};
 use serde_json::{Map, Value, json};
@@ -145,10 +146,10 @@ pub fn task_to_json(task: &Task, config: &Config) -> Value {
     );
     map.insert("kind".to_owned(), opt(task.kind.as_deref()));
     map.insert("estimate".to_owned(), json!(task.estimate));
-    map.insert("depends_on".to_owned(), json!(task.depends_on));
-    map.insert("relates_to".to_owned(), json!(task.relates_to));
-    map.insert("supersedes".to_owned(), json!(task.supersedes));
-    map.insert("duplicates".to_owned(), json!(task.duplicates));
+    map.insert(
+        "links".to_owned(),
+        Value::Array(task.links.iter().map(link_to_json).collect()),
+    );
     map.insert("tags".to_owned(), json!(task.tags));
     map.insert("derived_tags".to_owned(), json!(task.derived_tags));
     map.insert("due".to_owned(), opt(task.due.as_deref()));
@@ -161,6 +162,16 @@ pub fn task_to_json(task: &Task, config: &Config) -> Value {
         .collect();
     map.insert("extras".to_owned(), Value::Object(extras));
     Value::Object(map)
+}
+
+/// One `links:` edge as `{task, kind, note}` — the JSON shape for `mt ls
+/// --format json` / `mt eval --json`.
+fn link_to_json(link: &Link) -> Value {
+    json!({
+        "task": link.task,
+        "kind": link.kind,
+        "note": link.note,
+    })
 }
 
 fn status_to_json(task: &Task) -> Value {
@@ -354,7 +365,7 @@ mod tests {
         let mut blocked = sample();
         blocked.id = "t2".to_owned();
         blocked.file = "tasks/t2.typ".into();
-        blocked.depends_on = vec!["missing.typ".to_owned()];
+        blocked.links = vec![mindtape::test_support::dep_edge("missing.typ")];
         let tasks = vec![sample(), blocked];
         let readiness = Readiness::compute(&tasks, &Config::default());
         let out = render(&tasks, OutputFormat::Csv, &Config::default(), &readiness).unwrap();
@@ -397,5 +408,17 @@ mod tests {
         let json = task_to_json(&task, &Config::default());
         assert_eq!(json["extras"]["x-ns"][0], 1);
         assert_eq!(json["extras"]["x-ns"][1], "a");
+    }
+
+    #[test]
+    fn json_exposes_links_as_task_kind_note() {
+        let mut task = sample();
+        task.links = vec![mindtape::test_support::noted_edge(
+            "epic.typ", "related", "why",
+        )];
+        let json = task_to_json(&task, &Config::default());
+        assert_eq!(json["links"][0]["task"], "epic.typ");
+        assert_eq!(json["links"][0]["kind"], "related");
+        assert_eq!(json["links"][0]["note"], "why");
     }
 }

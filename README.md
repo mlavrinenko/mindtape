@@ -28,7 +28,7 @@ filename stem, so links between tasks break loudly when a file is renamed.
   priority: ice(impact: 8, confidence: 0.9, ease: 7),
   estimate: (days: 1,),
   tags: ("backend",),
-  relates-to: (link("write-docs.typ"),),
+  links: related("write-docs.typ")[same feature],
 )
 
 == Summary
@@ -210,13 +210,15 @@ numerically against a number (e.g. `priority >= 7`). Operators: `==`, `!=`, `<`,
 `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses. Functions: `has(field)`, `miss(field)`,
 `has_tag("name")`, `contains(field, "substr")`, `search("query")`, `stale(N)`
 (re-affirmed — or, lacking `reviewed`, last status-changed — more than N days
-ago). The opaque `estimate` dict supports presence only (`has(estimate)`), not
-comparison. Dependency predicates `ready` and `blocked` (bare or as `ready()` /
-`blocked()`) classify a task by its `depends-on` targets: ready when every direct
-dependency is terminal, blocked otherwise. `list` floats ready work to the top by
-default. Empty columns auto-hide; `[ls.columns]` / `columns-order` tune it. The `terminal`
-predicate (bare or `terminal()`) matches a task in a terminal status; it is the
-built-in `[rm] default-filter`.
+ago), `links("kind")` (the task carries a `links:` edge of that kind — built-in
+or a project's custom `[[tasks.links.kinds]]`). The opaque `estimate` dict
+supports presence only (`has(estimate)`), not comparison. Dependency predicates
+`ready` and `blocked` (bare or as `ready()` / `blocked()`) classify a task by
+its `depends-on` edges: ready when every direct dependency is terminal, blocked
+otherwise. `list` floats ready work to the top by default. Empty columns
+auto-hide; `[ls.columns]` / `columns-order` tune it. The `terminal` predicate
+(bare or `terminal()`) matches a task in a terminal status; it is the built-in
+`[rm] default-filter`.
 
 ## Architecture
 

@@ -40,6 +40,7 @@ mt ls 'kind == "bug" && (priority >= 7 || has_tag("urgent"))'
   [`contains(field, "substr")`], [Substring match on a field.],
   [`search("query")`], [Full-text search across the task.],
   [`stale(N)`], [Not re-affirmed (or, lacking `reviewed`, last status-changed) for more than N days.],
+  [`links("kind")`], [The task carries a #link(u("/dsl/"))[`links:`] edge of that kind — built-in or a project's custom kind.],
   [`in_view("name")`], [The named #link(u("/config/"))[view]'s filter matches. `@name` is sugar for it.],
 )
 

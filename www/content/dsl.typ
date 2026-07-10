@@ -21,8 +21,7 @@ with the version-synced import:
   due: datetime(year: 2026, month: 7, day: 20),
   start: datetime(year: 2026, month: 7, day: 8),
   tags: (\"backend\", \"auth\"),
-  depends-on: (link(\"design-schema.typ\"),),
-  relates-to: (link(\"write-docs.typ\"),),
+  links: depends-on(\"design-schema.typ\") + related(\"write-docs.typ\")[docs companion],
   x-speconaut: (spec: \"auth/login\"),
 )
 
@@ -42,8 +41,7 @@ The body is free-form Typst below the metadata.")
   [`kind`], [A config-defined enum value (e.g. `"feature"`, `"bug"`).],
   [`due`, `start`], [Dates via `datetime(year: …, month: …, day: …)`.],
   [`tags`], [A tuple of strings: `("backend", "auth")`.],
-  [`depends-on`], [Task links whose targets gate readiness. See #link(u("/filters/"))[ready / blocked].],
-  [`relates-to`, `supersedes`, `duplicates`], [Non-gating task links, same `link("stem.typ")` form.],
+  [`links`], [Typed edges to other tasks — a sum of helper calls, e.g. `depends-on("a.typ") + related("b.typ")[why]`. See below.],
   [`x-<ns>`], [Opaque extension slot for tools built on MindTape. Carried untouched; the consumer validates it.],
 )
 
@@ -63,15 +61,29 @@ The default legend and its glyphs live in #link(u("/config/"))[Configuration].
 
 = Task links
 
-Links reference another task by its filename stem, wrapped in `link()`:
+One field, `links:`, holds every typed edge to another task. Each built-in
+helper — `depends-on`, `parent`, `recurred-from`, `supersedes`, `duplicates`,
+`related` — is variadic over plain filename-stem strings (never wrapped in
+`link()`), and returns the edge array `links:` expects directly:
 
 ```typ
-depends-on: (link("design-schema.typ"),),
-relates-to: (link("write-docs.typ"), link("audit.typ")),
+links: depends-on("design-schema.typ", "audit.typ"),
 ```
 
-Because identity is the filename, a moved or deleted target breaks the link —
-`mt check` reports the dangling reference and any dependency cycle.
+A trailing content block is the note, uniform with `status`; combine several
+kinds with `+`:
+
+```typ
+links: depends-on("design-schema.typ") + related("write-docs.typ")[docs companion],
+```
+
+`related`'s note is required — the escape hatch for "connected, but not a
+dependency" needs a reason. `edge(kind, ..targets)[note]` builds an edge of any
+project-declared custom kind (`[[tasks.links.kinds]]`); `depends-on` and
+`parent` are the only kinds checked for cycles, and only `depends-on` gates
+readiness by default. Because identity is the filename, a moved or deleted
+target breaks the link — `mt check` reports the dangling reference and any
+cycle.
 
 = What enforces what
 

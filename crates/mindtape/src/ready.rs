@@ -1,20 +1,24 @@
 //! Dependency readiness: a one-hop, status-only classification of a task set.
 //!
-//! A task is *ready* when it is non-terminal and every direct `depends-on`
-//! target is terminal — it can be started now. It is *blocked* when some direct
-//! target is non-terminal or names no loaded task. Terminal tasks are *settled*
-//! (neither). The check is one hop, not transitive: a still-open grandparent
-//! keeps the parent non-terminal, which keeps this task blocked anyway, so no
-//! toposort is needed and dependency cycles cannot hang the classification.
+//! A task is *ready* when it is non-terminal and every direct blocking-kind
+//! edge target is terminal — it can be started now. `depends-on` is the only
+//! built-in kind flagged blocking (see [`crate::link::blocking_kinds`]); a
+//! project's custom `[[tasks.links.kinds]]` can opt another kind in. It is
+//! *blocked* when some direct target is non-terminal or names no loaded task.
+//! Terminal tasks are *settled* (neither). The check is one hop, not
+//! transitive: a still-open grandparent keeps the parent non-terminal, which
+//! keeps this task blocked anyway, so no toposort is needed and dependency
+//! cycles cannot hang the classification.
 //!
 //! History-pointer targets (SWHID tombstones) are already absent from
-//! [`Task::depends_on`], so a dependency retired by `cleanup` stops blocking.
+//! [`Task::links`], so a dependency retired by `cleanup` stops blocking.
 
 use std::collections::HashSet;
 use std::path::PathBuf;
 
 use crate::config::Config;
 use crate::graph::DepIndex;
+use crate::link::blocking_kinds;
 use crate::model::Task;
 
 /// A task's readiness, derived from its direct `depends-on` targets.
@@ -49,23 +53,26 @@ impl Readiness {
         Self::default()
     }
 
-    /// Classify every task in `tasks` by its direct `depends-on` targets, using
-    /// `config`'s terminal status set.
+    /// Classify every task in `tasks` by its direct blocking-kind edge targets,
+    /// using `config`'s terminal status set and link-kind registry.
     #[must_use]
     pub fn compute(tasks: &[Task], config: &Config) -> Self {
         let terminal = config.tasks.status.terminal();
         // Resolve dependency links against the shared graph index. History-pointer
-        // targets are already absent from `depends_on`.
+        // targets are already absent from `links`.
         let index = DepIndex::build(tasks);
+        let kinds = blocking_kinds(&config.tasks.links);
         let mut out = Self::default();
         for task in tasks {
             if task.is_terminal(&terminal) {
                 continue; // settled — neither ready nor blocked
             }
-            let ready = task.depends_on.iter().all(|target| {
-                index
-                    .resolve(task, target)
-                    .is_some_and(|dep| dep.is_terminal(&terminal))
+            let ready = kinds.iter().all(|&kind| {
+                task.link_targets(kind).all(|target| {
+                    index
+                        .resolve(task, target)
+                        .is_some_and(|dep| dep.is_terminal(&terminal))
+                })
             });
             if ready {
                 out.ready.insert(task.file.clone());

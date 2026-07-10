@@ -40,16 +40,12 @@ pub struct Task {
     /// Estimate as an opaque `unit -> quantity` map (e.g. `{days: 5, hours: 5}`
     /// or `{points: 8}`). Units are free labels; never converted or compared.
     pub estimate: BTreeMap<String, f64>,
-    /// Raw link targets from `depends-on` (paths as written in the DSL, e.g.
-    /// `"other.typ"` or `"../sub/task.typ"`). Resolved to file paths at
-    /// validation time; history-pointer entries are excluded.
-    pub depends_on: Vec<String>,
-    /// Raw link targets from `relates-to`. See [`depends_on`](Self::depends_on).
-    pub relates_to: Vec<String>,
-    /// Raw link targets from `supersedes`. See [`depends_on`](Self::depends_on).
-    pub supersedes: Vec<String>,
-    /// Raw link targets from `duplicates`. See [`depends_on`](Self::depends_on).
-    pub duplicates: Vec<String>,
+    /// Typed relation edges from `links:` (task↔task dependency, hierarchy,
+    /// and cross-reference edges), each carrying a kind and optional note.
+    /// Targets are raw paths as written in the DSL (e.g. `"other.typ"` or
+    /// `"../sub/task.typ"`), resolved to file paths at validation time;
+    /// history-pointer entries are excluded. See [`crate::link::parse_links`].
+    pub links: Vec<crate::link::Link>,
     /// Authored tags, exactly as written in the file.
     pub tags: Vec<String>,
     /// Folder-derived virtual tags, injected at load by [`crate::derive`]. Never
@@ -90,10 +86,7 @@ impl Task {
             difficulty: parse_num_value(field(fields, "difficulty")),
             kind: field_str(fields, "kind"),
             estimate: parse_num_map(field(fields, "estimate")),
-            depends_on: parse_links(field(fields, "depends-on")),
-            relates_to: parse_links(field(fields, "relates-to")),
-            supersedes: parse_links(field(fields, "supersedes")),
-            duplicates: parse_links(field(fields, "duplicates")),
+            links: crate::link::parse_links(field(fields, "links")),
             tags: parse_str_array(field(fields, "tags")),
             derived_tags: Vec::new(),
             due: field_str(fields, "due"),
@@ -121,6 +114,16 @@ impl Task {
         self.status
             .as_ref()
             .is_some_and(|status| terminal.iter().any(|name| name == &status.name))
+    }
+
+    /// Raw targets of `links:` edges of the given `kind` (e.g. `"depends-on"`,
+    /// `"parent"`), in authored order. The shared read path for readiness, the
+    /// dependency graph, and the filter language's `links(kind)` predicate.
+    pub fn link_targets<'a>(&'a self, kind: &'a str) -> impl Iterator<Item = &'a str> + 'a {
+        self.links
+            .iter()
+            .filter(move |link| link.kind == kind)
+            .map(|link| link.task.as_str())
     }
 }
 
@@ -268,20 +271,6 @@ fn parse_str_array(value: Option<&HVal>) -> Vec<String> {
             items
                 .iter()
                 .filter_map(|item| item.as_str().map(ToOwned::to_owned))
-                .collect()
-        })
-        .unwrap_or_default()
-}
-
-fn parse_links(value: Option<&HVal>) -> Vec<String> {
-    value
-        .and_then(HVal::as_array)
-        .map(|items| {
-            items
-                .iter()
-                .filter_map(HVal::as_str)
-                .filter(|target| !is_history_pointer(target))
-                .map(ToOwned::to_owned)
                 .collect()
         })
         .unwrap_or_default()

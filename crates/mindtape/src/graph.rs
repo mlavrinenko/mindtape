@@ -75,11 +75,21 @@ impl fmt::Display for Cycle {
 /// # Errors
 /// Returns a [`Cycle`] when the dependency graph contains a loop.
 pub fn toposort(tasks: &[Task]) -> Result<Vec<&Task>, Cycle> {
+    toposort_kind(tasks, "depends-on")
+}
+
+/// Topologically order `tasks` over edges of one `kind` only (e.g. `parent`,
+/// or a custom kind flagged acyclic). Otherwise identical to [`toposort`],
+/// which is this specialised to `"depends-on"`.
+///
+/// # Errors
+/// Returns a [`Cycle`] when that kind's edges contain a loop.
+pub fn toposort_kind<'a>(tasks: &'a [Task], kind: &str) -> Result<Vec<&'a Task>, Cycle> {
     let index = DepIndex::build(tasks);
     let mut walk = Walk::new(tasks.len());
     for task in tasks {
         if !walk.seen(task) {
-            walk.visit(task, &index)?;
+            walk.visit(task, &index, kind)?;
         }
     }
     Ok(walk.order)
@@ -113,20 +123,20 @@ impl<'a> Walk<'a> {
         self.mark.contains_key(task.file.as_path())
     }
 
-    /// Visit `task`, recursing into its resolved dependencies first so it lands
-    /// in `order` after all of them. Errors with the loop when a dependency is
-    /// already on the active path.
-    fn visit(&mut self, task: &'a Task, index: &DepIndex<'a>) -> Result<(), Cycle> {
+    /// Visit `task`, recursing into its resolved edges of `kind` first so it
+    /// lands in `order` after all of them. Errors with the loop when an edge
+    /// target is already on the active path.
+    fn visit(&mut self, task: &'a Task, index: &DepIndex<'a>, kind: &str) -> Result<(), Cycle> {
         self.mark.insert(task.file.as_path(), Mark::OnPath);
         self.path.push(task);
-        for target in &task.depends_on {
+        for target in task.link_targets(kind) {
             let Some(dep) = index.resolve(task, target) else {
                 continue;
             };
             match self.mark.get(dep.file.as_path()) {
                 Some(Mark::Done) => {}
                 Some(Mark::OnPath) => return Err(self.cycle_to(dep)),
-                None => self.visit(dep, index)?,
+                None => self.visit(dep, index, kind)?,
             }
         }
         self.path.pop();

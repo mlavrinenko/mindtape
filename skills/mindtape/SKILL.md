@@ -167,7 +167,7 @@ A task file is Typst. Edit the fields inside `task.with(...)`:
   difficulty: 3,
   kind: "bug",                  // enum from config
   estimate: (hours: 4),         // opaque unit dict
-  depends-on: (link("other-task.typ"),),  // links by file stem
+  links: depends-on("other-task.typ"),  // typed edges by file stem
   tags: ("backend",),
   due: on(2026, 7, 1),          // ISO date, or omit
 )

@@ -15,8 +15,12 @@
 //!
 //! Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
 //! `contains(field, "substr")`, `search("query")`, `stale(N)`,
-//! `in_view("name")` (also written `@name`, which desugars to it): matches when
-//! the named view's filter matches.
+//! `links("kind")` (does the task carry a `links:` edge of that kind — built-in
+//! or a project's custom `[[tasks.links.kinds]]`), `in_view("name")` (also
+//! written `@name`, which desugars to it): matches when the named view's
+//! filter matches. `has(depends_on)` / `has(supersedes)` / `has(duplicates)`
+//! are legacy sugar for `links("depends-on")` etc — see
+//! [`crate::filter_links::sugar_kind`].
 //!
 //! `now()` evaluates to today's ISO date string (`YYYY-MM-DD`) and may appear
 //! on the right-hand side of a comparison: `start <= now()`, `due < now()`.
@@ -279,6 +283,10 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
                 .chain(&task.derived_tags)
                 .any(|owned| owned == &tag))
         }
+        "links" => {
+            let kind = single_literal(children, "links")?;
+            Ok(crate::filter_links::has_kind(task, &kind))
+        }
         "contains" => {
             let (field, needle) = two_args(children, "contains")?;
             let name = extract_identifier(field)?;
@@ -324,12 +332,11 @@ fn in_view(name: &str, ctx: &Ctx) -> Result<bool, FilterError> {
 }
 
 fn present(task: &Task, name: &str, config: &Config) -> Result<bool, FilterError> {
+    if let Some(kind) = crate::filter_links::sugar_kind(name) {
+        return Ok(crate::filter_links::has_kind(task, kind));
+    }
     match name {
         "tags" => Ok(!task.tags.is_empty() || !task.derived_tags.is_empty()),
-        "depends_on" => Ok(!task.depends_on.is_empty()),
-        "relates_to" => Ok(!task.relates_to.is_empty()),
-        "supersedes" => Ok(!task.supersedes.is_empty()),
-        "duplicates" => Ok(!task.duplicates.is_empty()),
         "estimate" => Ok(!task.estimate.is_empty()),
         other => Ok(!matches!(
             field_value(task, other, config)?,

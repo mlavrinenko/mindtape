@@ -72,7 +72,7 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
   status: wip(2026, 6, 14)[note],    // (name, date, note); note is a trailing block
   priority: ice(impact: 8, confidence: 0.7, ease: 6), // or a raw int; difficulty too
   estimate: (days: 1, hours: 2),     // opaque unit dict; allowed units per project
-  depends-on: (link("other.typ"),),  // task↔task links by file stem
+  links: depends-on("other.typ"),    // typed edges by file stem; see below
   tags: ("backend",),
   x-speconaut: ...,                  // opaque extension slot (x-<ns>)
 )
@@ -83,6 +83,20 @@ Priority can be a raw int on the scale or a framework call: thin packagers
 shape a `(framework, inputs)` dict — no math in Typst. Config picks the active
 `[tasks.priority] framework`; the Rust layer scores it (evalexpr), bands or
 categorises the result, and keeps it on the scale.
+
+### Typed relation edges (`links:`)
+
+One field, `links:`, replaces the old `depends-on`/`relates-to`/`supersedes`/
+`duplicates` fields. Each built-in helper (`depends-on`, `parent`,
+`recurred-from`, `supersedes`, `duplicates`, `related`) is variadic over plain
+stem strings — `depends-on("a.typ", "b.typ")` yields two edges — and a
+trailing content block is the note, uniform with status: `related("epic.typ")[why]`.
+Combine kinds with `+`: `links: depends-on("a.typ") + related("b.typ")[why]`.
+`edge(kind, ..targets)[note]` builds an edge of any project-declared custom
+kind (`[[tasks.links.kinds]]`). Helpers take plain strings, never `link(...)`.
+Per-kind rules the Rust layer enforces: `depends-on` (∞, blocks readiness,
+acyclic), `parent` (max 1, acyclic), `recurred-from` (max 1), `supersedes`/
+`duplicates` (∞), `related` (∞, note required — the escape hatch).
 
 The prelude enforces structure only (one task, the `x-<ns>` discipline). The
 Rust layer enforces the status legend, numeric priority/difficulty scales and

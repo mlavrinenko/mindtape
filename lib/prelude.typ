@@ -56,6 +56,30 @@
 )
 #let moscow(level) = framework("moscow", level: level)
 
+// Typed relation edges. Each helper packages one or more plain stem-string
+// targets into edges of a fixed kind — `depends-on("a.typ", "b.typ")` yields
+// two edges — and the whole call already IS the flat array `links:` expects
+// (no wrapping tuple needed); combine several kinds with `+`:
+// `links: depends-on("a.typ") + related("b.typ")[why]`. A trailing content
+// block is the note, uniform with the status `_mk` idiom. Helpers take plain
+// strings, never `link(...)`: the Rust layer resolves the string directly,
+// and the render re-wraps it in `link()` for a clickable PDF. `edge` is the
+// generic escape hatch for a project's config-declared custom kind; the six
+// named helpers below are pure sugar over it.
+#let edge(kind, ..args) = {
+  let pos = args.pos()
+  let notes = pos.filter(p => type(p) == content)
+  let targets = pos.filter(p => type(p) != content)
+  let note = if notes.len() > 0 { notes.at(0) } else { none }
+  targets.map(t => (task: t, kind: kind, note: note))
+}
+#let depends-on(..args) = edge("depends-on", ..args)
+#let parent(..args) = edge("parent", ..args)
+#let recurred-from(..args) = edge("recurred-from", ..args)
+#let supersedes(..args) = edge("supersedes", ..args)
+#let duplicates(..args) = edge("duplicates", ..args)
+#let related(..args) = edge("related", ..args)
+
 // Template authoring helper. `mt add` discovers `slot(...)` calls on the
 // parse plane and replaces each with a filled literal, so a filed task holds
 // plain values and never calls `slot`. At eval time a slot returns its `default`,
@@ -68,7 +92,7 @@
 // Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
 #let _core-slots = (
   "title", "status", "priority", "difficulty", "kind", "estimate",
-  "depends-on", "relates-to", "supersedes", "duplicates", "tags", "due", "start", "reviewed", "id",
+  "links", "tags", "due", "start", "reviewed", "id",
 )
 
 // ── Typeset render ────────────────────────────────────────────────────────────
@@ -190,17 +214,37 @@
   if base.ends-with(".typ") { base.slice(0, -4) } else { base }
 }
 
-// A link array (depends-on and the other edges) → comma-joined clickable stems.
-// Each entry is a builtin `link("stem.typ")`; harvest reads its URL, so here we
-// pull the same `dest` and render the stem, staying clickable in the PDF.
-#let _links(arr) = {
-  if type(arr) != array or arr.len() == 0 { return none }
-  let chips = ()
-  for lnk in arr {
-    let dest = if type(lnk) == content { lnk.at("dest", default: none) } else { none }
-    if type(dest) == str { chips.push(link(dest, raw(_stem(dest)))) } else { chips.push(lnk) }
+// One edge dict → a clickable stem chip (re-wraps the plain `task` string in
+// `link()`, since the marker now carries the string directly — see `edge`).
+// `none` for a malformed entry (no string `task`); the Rust layer flags those.
+#let _edge-chip(e) = {
+  let dest = if type(e) == dictionary { e.at("task", default: none) } else { none }
+  if type(dest) == str { link(dest, raw(_stem(dest))) } else { none }
+}
+
+// Comma-joined chips for one kind's edges.
+#let _edges-row(edges) = {
+  if type(edges) != array or edges.len() == 0 { return none }
+  edges.map(_edge-chip).filter(c => c != none).join(", ")
+}
+
+// Group the flat `links` array by kind, first-seen order, as (kind, edges)
+// pairs — a malformed entry (no string `kind`, e.g. a bare-string edge with no
+// helper) is dropped here; the Rust layer validates and reports those.
+#let _links-by-kind(arr) = {
+  if type(arr) != array or arr.len() == 0 { return () }
+  let order = ()
+  let groups = (:)
+  for e in arr {
+    let k = if type(e) == dictionary { e.at("kind", default: none) } else { none }
+    if type(k) != str or k == "" { continue }
+    if k not in groups {
+      groups.insert(k, ())
+      order.push(k)
+    }
+    groups.insert(k, groups.at(k) + (e,))
   }
-  chips.join(", ")
+  order.map(k => (k, groups.at(k)))
 }
 
 // A tag chip, and the authored tags as a wrapping row of chips.
@@ -254,19 +298,25 @@
   let note = if status == none { none } else { status.at("note", default: none) }
   if note != none { block(below: 0.6em, text(fill: _muted, style: "italic", note)) }
 
+  // Link rows are dynamic: one row per kind present in `links`, grouped, in
+  // first-seen order — not a fixed depends-on/relates-to/supersedes/duplicates
+  // set, since a project can add its own kinds.
+  let link-rows = _links-by-kind(m.at("links", default: ())).map(pair => (pair.at(0), _edges-row(pair.at(1))))
+
   let rows = (
-    ("status", _status-detail(status)),
-    ("priority", _priority-detail(m.at("priority", default: none))),
-    ("difficulty", _num-field(m.at("difficulty", default: none))),
-    ("estimate", _fmt-estimate(m.at("estimate", default: (:)))),
-    ("due", _fmt-date(m.at("due", default: none))),
-    ("start", _fmt-date(m.at("start", default: none))),
-    ("reviewed", _fmt-date(m.at("reviewed", default: none))),
-    ("depends-on", _links(m.at("depends-on", default: ()))),
-    ("relates-to", _links(m.at("relates-to", default: ()))),
-    ("supersedes", _links(m.at("supersedes", default: ()))),
-    ("duplicates", _links(m.at("duplicates", default: ()))),
-    ("id", if type(m.at("id", default: none)) == str and m.at("id", default: "") != "" { raw(m.id) } else { none }),
+    (
+      ("status", _status-detail(status)),
+      ("priority", _priority-detail(m.at("priority", default: none))),
+      ("difficulty", _num-field(m.at("difficulty", default: none))),
+      ("estimate", _fmt-estimate(m.at("estimate", default: (:)))),
+      ("due", _fmt-date(m.at("due", default: none))),
+      ("start", _fmt-date(m.at("start", default: none))),
+      ("reviewed", _fmt-date(m.at("reviewed", default: none))),
+    )
+      + link-rows
+      + (
+        ("id", if type(m.at("id", default: none)) == str and m.at("id", default: "") != "" { raw(m.id) } else { none }),
+      )
   ).filter(row => row.at(1) != none)
   let meta = _meta(rows)
   if meta != none { block(below: 0.7em, meta) }
@@ -302,10 +352,7 @@
         difficulty: m.at("difficulty", default: none),
         kind: m.at("kind", default: none),
         estimate: m.at("estimate", default: (:)),
-        depends-on: m.at("depends-on", default: ()),
-        relates-to: m.at("relates-to", default: ()),
-        supersedes: m.at("supersedes", default: ()),
-        duplicates: m.at("duplicates", default: ()),
+        links: m.at("links", default: ()),
         tags: m.at("tags", default: ()),
         due: m.at("due", default: none),
         start: m.at("start", default: none),

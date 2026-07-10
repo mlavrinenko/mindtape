@@ -7,6 +7,7 @@ use crate::config::Config;
 use crate::model::{Status, Task};
 use crate::numeric::{InputValue, NumValue};
 use crate::parse_config;
+use crate::test_support::noted_edge;
 
 fn sample() -> Task {
     Task {
@@ -22,10 +23,7 @@ fn sample() -> Task {
         difficulty: Some(NumValue::Num(6.0)),
         kind: Some("feature".to_owned()),
         estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
-        depends_on: Vec::new(),
-        relates_to: vec!["other.typ".to_owned()],
-        supersedes: Vec::new(),
-        duplicates: Vec::new(),
+        links: vec![noted_edge("other.typ", "related", "context")],
         tags: vec!["backend".to_owned()],
         derived_tags: Vec::new(),
         due: Some("2026-07-01".to_owned()),
@@ -89,7 +87,27 @@ fn presence_functions() {
     assert!(hit("miss(start)", &task));
     assert!(!hit("has(start)", &task));
     assert!(hit("has(tags)", &task));
-    assert!(hit("has(relates_to)", &task));
+}
+
+#[test]
+fn links_predicate_checks_kind_presence() {
+    let task = sample();
+    assert!(hit("links(\"related\")", &task));
+    assert!(!hit("links(\"depends-on\")", &task));
+}
+
+#[test]
+fn legacy_field_names_sugar_to_links_kind() {
+    let mut task = sample();
+    task.links = vec![
+        crate::test_support::dep_edge("dep.typ"),
+        crate::test_support::link_edge("old.typ", "supersedes"),
+        crate::test_support::link_edge("twin.typ", "duplicates"),
+    ];
+    assert!(hit("has(depends_on)", &task));
+    assert!(hit("has(supersedes)", &task));
+    assert!(hit("has(duplicates)", &task));
+    assert!(!hit("miss(depends_on)", &task));
 }
 
 #[test]
@@ -224,12 +242,12 @@ fn ready_and_blocked_predicates() {
     let mut ready = sample();
     ready.id = "r".to_owned();
     ready.file = "tasks/r.typ".into();
-    ready.depends_on = vec!["dep.typ".to_owned()]; // terminal dep -> ready
+    ready.links = vec![crate::test_support::dep_edge("dep.typ")]; // terminal dep -> ready
 
     let mut blocked = sample();
     blocked.id = "b".to_owned();
     blocked.file = "tasks/b.typ".into();
-    blocked.depends_on = vec!["missing.typ".to_owned()]; // dangling -> blocked
+    blocked.links = vec![crate::test_support::dep_edge("missing.typ")]; // dangling -> blocked
 
     let tasks = vec![dep.clone(), ready.clone(), blocked.clone()];
     let readiness = Readiness::compute(&tasks, &cfg);

@@ -1,4 +1,4 @@
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::path::Path;
 
@@ -206,6 +206,39 @@ fn foreign_lib_not_hijacked_as_mindtape() {
         "foreign lib must not resolve as the mindtape package"
     );
     assert_eq!(outcome.errors.len(), 1);
+}
+
+/// The real, in-tree prelude (not `PRELUDE_STUB`): proves the migrated
+/// `links:` DSL — variadic helpers, the trailing-note idiom, and combining
+/// several kinds with `+` — round-trips through the actual harvester, not just
+/// hand-built `HVal` fixtures.
+const REAL_PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+
+#[test]
+fn real_prelude_parses_typed_links_end_to_end() {
+    let dir = setup();
+    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", REAL_PRELUDE);
+    write(
+        dir.path(),
+        "tasks/t.typ",
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(\n  \
+           title: \"T\",\n  \
+           links: depends-on(\"a.typ\", \"b.typ\") + related(\"c.typ\")[why],\n\
+         )\n",
+    );
+
+    let outcome = load_project(dir.path(), &Config::default());
+    assert_eq!(outcome.errors, Vec::new());
+    let task = outcome.tasks.first().unwrap();
+
+    let deps: Vec<&str> = task.link_targets("depends-on").collect();
+    assert_eq!(deps, vec!["a.typ", "b.typ"]);
+
+    let related: Vec<_> = task.links.iter().filter(|l| l.kind == "related").collect();
+    assert_eq!(related.len(), 1);
+    assert_eq!(related[0].task, "c.typ");
+    assert_eq!(related[0].note.as_deref(), Some("why"));
 }
 
 #[test]
