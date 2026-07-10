@@ -42,6 +42,7 @@ The body is free-form Typst below the metadata.")
   [`due`, `start`], [Dates via `datetime(year: …, month: …, day: …)`.],
   [`tags`], [A tuple of strings: `("backend", "auth")`.],
   [`links`], [Typed edges to other tasks — a sum of helper calls, e.g. `depends-on("a.typ") + related("b.typ")[why]`. See below.],
+  [`recur`], [A recurrence rule + policy: `every(weeks: 1)`. See below.],
   [`x-<ns>`], [Opaque extension slot for tools built on MindTape. Carried untouched; the consumer validates it.],
 )
 
@@ -84,6 +85,31 @@ project-declared custom kind (`[[tasks.links.kinds]]`); `depends-on` and
 readiness by default. Because identity is the filename, a moved or deleted
 target breaks the link — `mt check` reports the dangling reference and any
 cycle.
+
+= Recurring tasks
+
+`every()` shapes one period unit — no date math in Typst, the same discipline
+as the priority frameworks — plus the policy that rides along with it:
+
+```typ
+recur: every(weeks: 1)
+recur: every(days: 3)
+recur: every(weeks: 1, on: (mon, wed, fri))
+recur: every(
+  weeks: 1,
+  anchor: "completion",   // "completion" (default) or "due"
+  until: on(2027, 1, 1),  // series end
+  count: 10,              // remaining occurrences
+  materialize: "spawn",   // "spawn" (default) or "mutate"
+)
+```
+
+`rrule("FREQ=MONTHLY;BYDAY=1MO")` shapes the same policy dict for an escape
+hatch; expansion is a later feature, gated behind `[tasks.recur] rrule` (see
+#link(u("/config/"))[Configuration]) until it ships. A task never advances
+itself — only an explicit `mt recur` spawns or mutates the next occurrence
+(see #link(u("/cli/"))[CLI reference]); `mt done` on a recurring task is a
+pure close and never touches `recur`.
 
 = What enforces what
 

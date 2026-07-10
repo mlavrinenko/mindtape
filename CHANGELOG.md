@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Recurring tasks (`recur`, `mt recur`)** — a task's `recur: every(weeks: 1,
+  on: (mon, wed, fri), anchor: "due", until: on(2027, 1, 1), count: 10,
+  materialize: "spawn")` shapes a `(rule, anchor, until, count, materialize)`
+  dict; no date math in the prelude — `[tasks.recur]` validates it and
+  `mindtape::recur_dates` computes the next occurrence (chrono period
+  arithmetic; month/year-end clamped). `rrule("FREQ=...")` shares the same
+  shape as the escape hatch, gated behind `[tasks.recur] rrule` (parsed, not
+  yet expanded — a later wave). `mt recur X` is the only writer, never a side
+  effect of a read (`mt ls`/`mt check` are unaffected, enforced by test): the
+  default `spawn` materialize writes the next instance as a new file (stem
+  minted by `[tasks.naming]`, or the built-in `{slug}-{date}` fallback) with
+  a `recurred-from` edge back to its predecessor, refusing a second spawn
+  unless `--force`; `mutate` refreshes the same file in place. `anchor:
+  "completion"` (default) always advances from today; `anchor: "due"` catches
+  up from the stale due date until strictly after today. `--dry-run` previews
+  without writing; `--advance N` pre-materializes N future spawns bounded by
+  `[tasks.recur] max-advance`; `--skip` advances the anchor/`count` without
+  materializing anything. `mt done` stays a pure close on a recurring task —
+  it never strips `recur` — and prints a notice pointing at `mt recur`.
+
 - **Worktree override** — a global `-w/--worktree <path>` flag (and
   `$MINDTAPE_WORKTREE` fallback; the flag wins) points `mt` at a chosen project
   instead of discovering one by walking up from the cwd. The path must hold a

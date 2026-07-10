@@ -50,6 +50,7 @@ Most work is: find a task → read it → change its status → validate.
 | Open a task in `$EDITOR` | `mt go <id>` |
 | File a new task | `mt add <title…>` (see below) |
 | Change status | `mt flip <status> <task…>` or the status verb |
+| Advance a recurring task | `mt recur <task>` (spawn a new file or refresh in place) |
 | Validate all tasks | `mt check` |
 | Retire a task | `mt rm <task>` |
 | Inspect the effective config | `mt config show` (`--origin`, `--defaults`) |
@@ -193,8 +194,6 @@ file. `mt check` after edits surfaces most problems. For full flag sets, prefer
 
 ## Improving this skill (internal note)
 
-This skill is intentionally minimal and grown step by step. If you hit something
-this skill does not cover, or guidance here led you astray, surface a concrete
-suggestion to improve this file (what was missing, what command/flag you needed,
-the exact error) so the next run goes better. (Internal-only note for now; remove
-on publish.)
+This skill is intentionally minimal and grown step by step. If it does not cover
+something, or led you astray, name what was missing (command, flag, or the exact
+error) so the next run goes better. (Internal-only note; remove on publish.)

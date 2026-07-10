@@ -40,6 +40,7 @@ mt config show --json     # effective config as JSON
   [`[[tasks.status]]`], [The status legend, in lifecycle order: `value`, optional `glyph` / `color`, `terminal`, and optional `to` transition edges.],
   [`[tasks.priority]`, `[tasks.difficulty]`], [Numeric scales, bands, and frameworks. See #link(u("/priority/"))[Priority].],
   [`[tasks.estimate]`], [Allowed estimate `units` (free labels, never converted).],
+  [`[tasks.recur]`], [Recurring-tasks policy floor: `enabled`, allowed `units` / `anchors`, `default-anchor`, `materialize`, the `rrule` feature flag, `max-advance`. See below.],
   [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
   [`[ls]`, `[rm]`], [Default filters, columns, and ordering. See #link(u("/filters/"))[Filter language].],
   [`[views.<name>]`], [Named filter + sort + columns bundles, referenced with `@name`. See #link(u("/filters/"))[Filter language].],
@@ -113,6 +114,28 @@ a status-less task are exempt; `mt flip --force` overrides. `mt check` flags a
 task whose status is unreachable from the initial state under the graph — a
 snapshot reachability check, not a full path audit (a `status` carries no
 history).
+
+= Recurring tasks
+
+`[tasks.recur]` is the policy floor a task's `recur:` field (see
+#link(u("/dsl/"))[Task DSL]) validates against and `mt recur` (see
+#link(u("/cli/"))[CLI reference]) resolves defaults from:
+
+```toml
+[tasks.recur]
+enabled = true                              # false rejects any authored recur field
+units = ["days", "weeks", "months", "years"]
+anchors = ["completion", "due"]
+default-anchor = "completion"               # used when a task's recur omits anchor
+materialize = "spawn"                       # used when a task's recur omits materialize
+rrule = false                               # the rrule(...) escape hatch; expansion is a later feature
+max-advance = 52                            # runaway cap for `mt recur --advance N`
+```
+
+Every field defaults to the value shown, so an unconfigured project already
+supports `recur:` out of the box; set `enabled = false` to turn the feature off
+project-wide, or narrow `units` / `anchors` to the cadences a project wants to
+support.
 
 = Named views
 
