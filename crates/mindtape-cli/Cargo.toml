@@ -15,6 +15,11 @@ path = "src/main.rs"
 
 [dependencies]
 mindtape = { path = "../mindtape" }
+# Same minimal shape as mindtape's own dependency: `recur.rs`/`recur_edit.rs`
+# build `on(y, m, d)` Typst source and shift `start`/`due` with `NaiveDate`
+# arithmetic directly (no clock reads — the reference date always comes from
+# `mindtape::today_ymd()`/the task's own fields).
+chrono = { version = "0.4", default-features = false, features = ["std"] }
 typst-harvest = "0.1.0"
 typst-cleanup = "0.1.0"
 swhid-mint = "0.1.1"

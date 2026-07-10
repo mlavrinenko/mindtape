@@ -14,21 +14,26 @@ use std::path::Path;
 
 mod support;
 
-/// Scaffold a temp project (`.mindtape/config.toml` + the in-tree lib
-/// override) and file two link-free tasks into it via `mt add`.
+/// Scaffold a temp project's `.mindtape/config.toml` + the in-tree lib
+/// override — the shared prologue every fixture below starts from.
+fn scaffold(dir: &Path) {
+    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+    std::fs::write(
+        dir.join(".mindtape/config.toml"),
+        "[tasks]\nroots = [\"tasks\"]\n",
+    )
+    .unwrap();
+    support::install_lib(dir);
+}
+
+/// File two link-free tasks into a scaffolded project via `mt add`.
 ///
 /// No task holds a `depends-on`/`relates-to`/`supersedes`/`duplicates`/`links`
 /// field: a parallel task is reworking the link DSL on the same base commit,
 /// so these fixtures stay decoupled from it.
 fn build_fixture() -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
-    support::install_lib(dir.path());
+    scaffold(dir.path());
 
     for (name, title) in [("alpha", "Alpha task"), ("beta", "Beta task")] {
         assert_cmd::Command::cargo_bin("mt")
@@ -40,6 +45,39 @@ fn build_fixture() -> tempfile::TempDir {
     }
 
     dir
+}
+
+/// A fixture holding one recurring task (`recur: every(weeks: 1)`), proving a
+/// read command spawns/advances nothing even when a recurrence is present —
+/// the CQRS invariant `truth/tasks/recurring-tasks.typ` depends on: `mt recur`
+/// is the only recurrence writer, so `mt ls`/`mt check` must leave a
+/// recurring task's tree exactly as untouched as any other.
+fn build_recurring_fixture() -> tempfile::TempDir {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    std::fs::write(
+        dir.path().join("tasks/water-plants.typ"),
+        "#import \"@local/mindtape:0.2.0\": *\n\n\
+         #show: task.with(\n  \
+         title: \"Water plants\",\n  \
+         status: wip(2026, 6, 1),\n  \
+         recur: every(weeks: 1),\n\
+         )\n",
+    )
+    .unwrap();
+    dir
+}
+
+#[test]
+fn ls_over_a_recurring_task_spawns_nothing() {
+    let dir = build_recurring_fixture();
+    assert_read_untouched(dir.path(), &["ls"]);
+}
+
+#[test]
+fn check_over_a_recurring_task_spawns_nothing() {
+    let dir = build_recurring_fixture();
+    assert_read_untouched(dir.path(), &["check"]);
 }
 
 /// Hash every file under `dir` by relative path and byte content into a

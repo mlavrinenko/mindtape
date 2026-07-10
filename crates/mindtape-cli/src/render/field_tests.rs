@@ -307,6 +307,7 @@ fn stub_task() -> Task {
         due: None,
         start: None,
         reviewed: None,
+        recur: None,
         extras: Default::default(),
     }
 }

@@ -16,6 +16,8 @@ mod install;
 mod ls;
 mod ls_interactive;
 mod output;
+mod recur;
+mod recur_edit;
 // Infrastructure for future command migration; not every item is wired yet.
 #[allow(dead_code)]
 mod render;

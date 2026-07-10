@@ -140,6 +140,7 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
                 touched_ids.insert(task.id.clone());
                 touched_files.insert(task.file.clone());
                 report_flip(spec, &task.title, task.status.as_ref(), status, restamp);
+                notice_recur(task, status, legend, &project.config.tasks.recur);
             }
             Err(err) => problems.push(format!("{spec}: {err:#}")),
         }
@@ -236,6 +237,34 @@ fn report_flip(
     } else {
         let from = from.map_or("(unset)", |s| s.name.as_str());
         println!("flipped {spec} ({title}): {from} → {status}");
+    }
+}
+
+/// After a successful flip to a terminal status, notice a recurring task
+/// rather than staying silent: `mt done` stays a pure close — it never
+/// strips `recur` or advances anything (see
+/// `truth/tasks/command-semantics-cqrs.typ`) — but a `spawn` series still has
+/// a next occurrence to materialize, so point at `mt recur`; a `mutate`
+/// series has no further file to advance, so note that this closes it.
+fn notice_recur(
+    task: &mindtape::Task,
+    status: &str,
+    legend: &Legend,
+    recur_config: &mindtape::recur::RecurConfig,
+) {
+    let Some(recur) = &task.recur else { return };
+    if !legend.terminal().iter().any(|t| t == status) {
+        return;
+    }
+    match mindtape::recur_dates::effective_materialize(recur, recur_config) {
+        "mutate" => println!(
+            "{:?} is recurring (mutate) — closing this ends the series",
+            task.id
+        ),
+        _ => println!(
+            "{:?} is recurring — run `mt recur {}` to advance",
+            task.id, task.id
+        ),
     }
 }
 

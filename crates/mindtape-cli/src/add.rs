@@ -10,10 +10,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow, bail};
 use clap::Args;
-use mindtape::{
-    Config, RawValue, SlotSpec, discover_slots, fill, load_config, load_project, naming,
-    status_value, today_ymd, validate,
-};
+use mindtape::{Config, RawValue, SlotSpec, discover_slots, fill, naming, status_value, today_ymd};
 use typst_edit::apply;
 
 use crate::add_interactive;
@@ -21,7 +18,7 @@ use crate::add_values::{
     DescribeFormat, append_list_value, collect_values, describe, layer_env, list_templates,
     resolve_template, slug, stdin_title,
 };
-use crate::task_edit::{task_with, upsert_named_arg};
+use crate::task_edit::{initial_status, task_with, upsert_named_arg};
 use crate::util;
 
 /// Arguments for `mt add`.
@@ -142,7 +139,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     println!("wrote {}", file.display());
 
     if !args.no_verify {
-        verify(&project.root, &file)?;
+        crate::task_edit::verify_written(&project.root, &file)?;
     }
     Ok(())
 }
@@ -187,20 +184,6 @@ fn inject_header(source: &str, config: &Config, status_override: Option<&str>) -
     }
 
     apply(source, edits).map_err(|err| anyhow!(err.to_string()))
-}
-
-/// The status name to stamp on a freshly filed task: the legend's own initial
-/// (first non-terminal) value, falling back to the legend's first entry when
-/// every entry happens to be terminal. `None` only when the legend is
-/// genuinely empty (a project that cleared it with `status = []`) — the
-/// caller must then leave the status slot unfilled and let validation report
-/// the real problem, rather than inventing a value.
-fn initial_status(config: &Config) -> Option<String> {
-    let legend = &config.tasks.status;
-    legend
-        .initial()
-        .or_else(|| legend.entries.first())
-        .map(|entry| entry.value.clone())
 }
 
 /// Seed the `title` slot from the positional `TITLE` words, joined with spaces.
@@ -364,39 +347,6 @@ fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
             dest.display()
         );
     }
-}
-
-/// Reload the project and report any load error or validation violation that
-/// touches the newly written file.
-fn verify(root: &Path, file: &Path) -> Result<()> {
-    let config = load_config(root)?;
-    let outcome = load_project(root, &config);
-    let rel = file.strip_prefix(root).unwrap_or(file);
-
-    if let Some(error) = outcome.errors.iter().find(|err| err.file == rel) {
-        bail!("written task failed to load: {}", error.message);
-    }
-    let Some(task) = outcome.tasks.iter().find(|task| task.file == rel) else {
-        bail!(
-            "written task at {} did not harvest a task marker",
-            rel.display()
-        );
-    };
-
-    let issues: Vec<_> = validate(&outcome.tasks, &config)
-        .into_iter()
-        .filter(|violation| violation.task_id == task.id)
-        .collect();
-    if issues.is_empty() {
-        return Ok(());
-    }
-    for violation in &issues {
-        eprintln!(
-            "warning: {}: {}: {}",
-            task.id, violation.field, violation.message
-        );
-    }
-    bail!("{} validation issue(s) in {}", issues.len(), rel.display())
 }
 
 #[cfg(test)]
