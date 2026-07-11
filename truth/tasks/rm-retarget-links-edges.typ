@@ -8,7 +8,7 @@
     ease: 4,
   ),
   tags: (),
-  status: proposed(2026, 7, 10),
+  status: done(2026, 7, 11)[rm scans links: helper edges; retargets every kind to tombstone],
 )
 
 == Summary
