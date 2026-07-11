@@ -1,8 +1,13 @@
 //! `mt rm` — retire tasks and rewrite inbound links into SWHID tombstones,
-//! atomically. A thin consumer of the consumer-blind [`typst_cleanup`] crate,
-//! which owns the shared skeleton (dirty-tree guard, tombstone minting, atomic
-//! link rewriting). This module supplies the project policy — which tasks to
-//! retire, file-stem link identity — and the task-worded presentation.
+//! atomically. Builds on the consumer-blind [`typst_cleanup`] pieces — the
+//! [`Plan`] shape, tombstone [`Policy`], and atomic [`apply`] — plus
+//! `swhid_mint` for minting and `typst_edit` for the splice. It owns the
+//! survivor scan itself ([`plan_rewrite`]) because inbound edges are authored as
+//! `links:` helper calls over plain stem strings (`depends-on("x.typ")`), never
+//! `link(...)`, so [`mindtape::link_target_spans`] — not the crate's `link()`-only
+//! scanner — is what locates them. This module also supplies the project policy
+//! (which tasks to retire, file-stem link identity) and the task-worded
+//! presentation.
 //!
 //! Selection: the optional `target` is either a task reference (slug, path, or a
 //! `list` handle like `1v`) or a filter expression. A reference resolves a single
@@ -10,17 +15,20 @@
 //! the configured `[rm] default_filter` applies (built-in `terminal`: sweep every
 //! terminal-status task).
 //!
-//! Atomic by construction: [`typst_cleanup::plan`] computes every mint and
+//! Atomic by construction: [`plan`] mints every tombstone and computes every
 //! rewrite in memory; not a byte is written until [`apply`] runs on a complete
 //! plan. `rm` does not commit — the user reviews the diff and commits.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result, anyhow, bail};
 use clap::Args;
-use mindtape::{Filter, Readiness, Task, is_history_pointer, normalize_link, select};
-use typst_cleanup::{Artifact, Swhid};
+use mindtape::{
+    Filter, Readiness, Task, is_history_pointer, link_target_spans, normalize_link, select,
+};
+use typst_cleanup::{Artifact, Deletion, Policy, Rewrite, Swhid};
+use typst_edit::Edit;
 // Re-exported so `rm`'s presentation and tests refer to one plan type.
 pub use typst_cleanup::{Plan, apply};
 
@@ -42,8 +50,9 @@ pub struct RmArgs {
     pub dry_run: bool,
 }
 
-/// The removal policy: a `link()` URL names a task by file stem, unless it is
-/// already a SWHID history pointer. The tombstone is the bare quoted SWHID.
+/// The removal policy: a link target (a `links:` edge string or a `link()` URL)
+/// names a task by file stem, unless it is already a SWHID history pointer. The
+/// tombstone is the bare quoted SWHID.
 struct TaskLinks;
 
 impl typst_cleanup::Policy for TaskLinks {
@@ -165,14 +174,22 @@ fn filter_tasks(
     )?)
 }
 
-/// Compute the removal plan over `tasks`: partition the `eligible` ids (to
-/// retire) from survivors (to scan) and delegate to [`typst_cleanup::plan`].
+/// Compute the removal plan over `tasks`: mint a tombstone for every `eligible`
+/// task, then rewrite every survivor's inbound edges onto those tombstones.
+///
+/// Mirrors `typst_cleanup::plan`'s skeleton (mint-per-retired, scan-per-survivor,
+/// sort) but drives the survivor scan through [`plan_rewrite`], which reads the
+/// `links:` helper edges the crate's `link()`-only scanner cannot see. Nothing is
+/// written — the returned [`Plan`] is applied later by [`apply`].
 ///
 /// # Errors
-/// Propagates [`typst_cleanup`] failures: a file outside the repository, an
-/// unrecoverable tombstone mint, a survivor read, or a rejected splice.
+/// A file outside the repository, an unrecoverable tombstone mint (untracked,
+/// dirty, or a git failure — this is where a dirty eligible file aborts a
+/// `--dry-run`), a survivor read, or a rejected splice.
 fn plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path, git_root: &Path) -> Result<Plan> {
-    let mut retire = Vec::new();
+    let policy = TaskLinks;
+    let mut tombstones: HashMap<String, String> = HashMap::new();
+    let mut deletions = Vec::new();
     let mut survivors = Vec::new();
     for task in tasks {
         let artifact = Artifact {
@@ -181,14 +198,82 @@ fn plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path, git_root: &Path
             id: task.id.clone(),
         };
         if eligible.contains(&task.id) {
-            retire.push(artifact);
+            let swhid = mint_tombstone(&artifact, git_root)?;
+            tombstones.insert(task.id.clone(), policy.tombstone(&artifact, &swhid));
+            deletions.push(Deletion {
+                abs: artifact.abs,
+                rel: artifact.rel,
+            });
         } else {
             survivors.push(artifact);
         }
     }
-    Ok(typst_cleanup::plan(
-        &retire, &survivors, git_root, &TaskLinks,
-    )?)
+
+    let mut rewrites = Vec::new();
+    for art in &survivors {
+        if let Some(rewrite) = plan_rewrite(art, &policy, &tombstones)? {
+            rewrites.push(rewrite);
+        }
+    }
+
+    deletions.sort_by(|a, b| a.rel.cmp(&b.rel));
+    rewrites.sort_by(|a, b| a.rel.cmp(&b.rel));
+    Ok(Plan {
+        deletions,
+        rewrites,
+    })
+}
+
+/// Mint the SWHID history pointer for one retired task, pinned to its last-touch
+/// commit. Fails the whole run (before any write) when the file is untracked,
+/// dirty, or lies outside the repository — the guard that keeps a tombstone from
+/// pointing at bytes that were never committed.
+fn mint_tombstone(art: &Artifact, git_root: &Path) -> Result<Swhid> {
+    let git_rel = art
+        .abs
+        .strip_prefix(git_root)
+        .map_err(|_| anyhow!("{} is outside the git repository", art.abs.display()))?
+        .to_string_lossy();
+    swhid_mint::git::mint_rev_path(git_root, &git_rel)
+        .map_err(|err| anyhow!("mint tombstone for {}: {err}", art.rel.display()))
+}
+
+/// Build the rewrite for one survivor, or `None` when it names no retired task.
+/// Reads the source, locates every string target — `link("…")` calls and every
+/// `links:` edge helper, via [`link_target_spans`] — and retargets those the
+/// policy resolves to a retired identity, leaving every other reference intact.
+///
+/// # Errors
+/// A survivor read failure, or a rejected splice (overlapping or out-of-bounds
+/// spans — the parse plane makes these unreachable in practice).
+fn plan_rewrite(
+    art: &Artifact,
+    policy: &TaskLinks,
+    tombstones: &HashMap<String, String>,
+) -> Result<Option<Rewrite>> {
+    let source =
+        std::fs::read_to_string(&art.abs).with_context(|| format!("read {}", art.rel.display()))?;
+    let mut edits = Vec::new();
+    for target in link_target_spans(&source) {
+        let Some(id) = policy.link_identity(&target.raw) else {
+            continue;
+        };
+        if let Some(replacement) = tombstones.get(&id) {
+            edits.push(Edit::new(target.range.clone(), replacement.clone()));
+        }
+    }
+    if edits.is_empty() {
+        return Ok(None);
+    }
+    let links = edits.len();
+    let contents = typst_edit::apply(&source, edits)
+        .map_err(|err| anyhow!("rewrite links in {}: {err}", art.rel.display()))?;
+    Ok(Some(Rewrite {
+        abs: art.abs.clone(),
+        rel: art.rel.clone(),
+        contents,
+        links,
+    }))
 }
 
 /// Check every eligible task file individually: each must be committed and

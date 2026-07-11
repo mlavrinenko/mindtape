@@ -115,7 +115,7 @@ mt config show --json                  # effective config as JSON
 # Evaluate a single task file and print it (--json for machine output)
 mt eval tasks/implement-auth.typ
 
-# Retire tasks: mint a swh:1:rev tombstone, rewrite inbound link()s, do not commit
+# Retire tasks: mint a swh:1:rev tombstone, retarget inbound links: edges, do not commit
 mt rm                                  # [rm] default-filter (built-in: terminal)
 mt rm implement-auth                   # by ref: slug, path, or list handle (1v)
 mt rm 'status == "cancelled"'          # by filter — every match

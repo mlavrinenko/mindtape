@@ -37,12 +37,37 @@ fn gone_and_live(gone_status: &str) -> Vec<Task> {
     ]
 }
 
-const SURVIVOR: &str = "#import \"@local/mindtape:0.2.0\": *\n\
-#show: task.with(\n  title: \"Live\",\n  depends-on: (link(\"gone.typ\"),),\n)\n\n== Summary\n\nBody.\n";
+/// A survivor whose `links:` field carries `edges` (a raw helper-call
+/// expression), wrapped in the task marker shape `mt rm` scans.
+fn survivor(edges: &str) -> String {
+    format!(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+#show: task.with(\n  title: \"Live\",\n  links: {edges},\n)\n\n== Summary\n\nBody.\n"
+    )
+}
+
+/// The `depends-on` survivor used across the base cases: one inbound edge to
+/// `gone`, authored as a helper call over a plain stem string (never `link(...)`)
+/// — the shape the crate's `link()`-only scanner cannot see.
+fn depends_survivor() -> String {
+    survivor("depends-on(\"gone.typ\")")
+}
+
+/// Assert `rewrite` retargeted exactly `links` inbound edge(s) onto `gone`'s
+/// SWHID tombstone, and that no un-rewritten reference to `gone.typ` remains.
+fn assert_tombstoned(rewrite: &typst_cleanup::Rewrite, links: usize) {
+    assert_eq!(rewrite.links, links);
+    assert!(rewrite.contents.contains("swh:1:rev:"));
+    assert!(rewrite.contents.contains("path=gone.typ"));
+    assert!(!rewrite.contents.contains("\"gone.typ\""));
+}
 
 #[test]
 fn plan_tombstones_removed_and_rewrites_survivor() {
-    let (_dir, root) = repo_with(&[("gone.typ", "gone body\n"), ("live.typ", SURVIVOR)]);
+    let (_dir, root) = repo_with(&[
+        ("gone.typ", "gone body\n"),
+        ("live.typ", &depends_survivor()),
+    ]);
     let tasks = gone_and_live("done");
 
     let plan = plan(&tasks, &ids(&["gone"]), &root, &root).unwrap();
@@ -50,16 +75,38 @@ fn plan_tombstones_removed_and_rewrites_survivor() {
     assert_eq!(plan.deletions.len(), 1);
     assert_eq!(plan.deletions[0].rel, PathBuf::from("gone.typ"));
     assert_eq!(plan.rewrites.len(), 1);
+    assert_tombstoned(&plan.rewrites[0], 1);
+}
+
+#[test]
+fn plan_rewrites_related_and_custom_kind_edges() {
+    // A survivor with three inbound edges to `gone` — `depends-on`, the
+    // note-bearing `related` escape hatch, and a custom kind via `edge(...)` —
+    // has every one retargeted, and the `edge` kind string is left untouched.
+    let (_dir, root) = repo_with(&[
+        ("gone.typ", "gone\n"),
+        (
+            "live.typ",
+            &survivor(
+                "depends-on(\"gone.typ\") + related(\"gone.typ\")[why] + edge(\"blocks\", \"gone.typ\")",
+            ),
+        ),
+    ]);
+    let tasks = gone_and_live("done");
+
+    let plan = plan(&tasks, &ids(&["gone"]), &root, &root).unwrap();
+
+    assert_eq!(plan.rewrites.len(), 1);
     let rewrite = &plan.rewrites[0];
-    assert_eq!(rewrite.links, 1);
-    assert!(rewrite.contents.contains("swh:1:rev:"));
-    assert!(rewrite.contents.contains("path=gone.typ"));
-    assert!(!rewrite.contents.contains("link(\"gone.typ\")"));
+    assert_tombstoned(rewrite, 3);
+    // The note and the custom kind name survive the retarget verbatim.
+    assert!(rewrite.contents.contains("[why]"));
+    assert!(rewrite.contents.contains("edge(\"blocks\", "));
 }
 
 #[test]
 fn apply_writes_and_deletes_without_committing() {
-    let (_dir, root) = repo_with(&[("gone.typ", "gone\n"), ("live.typ", SURVIVOR)]);
+    let (_dir, root) = repo_with(&[("gone.typ", "gone\n"), ("live.typ", &depends_survivor())]);
     let tasks = gone_and_live("done");
     let plan = plan(&tasks, &ids(&["gone"]), &root, &root).unwrap();
     apply(&plan).unwrap();
@@ -73,7 +120,7 @@ fn apply_writes_and_deletes_without_committing() {
 
 #[test]
 fn empty_plan_when_nothing_eligible() {
-    let (_dir, root) = repo_with(&[("live.typ", SURVIVOR)]);
+    let (_dir, root) = repo_with(&[("live.typ", &depends_survivor())]);
     let tasks = vec![task("live", "live.typ", Some("wip"))];
     let plan = plan(&tasks, &HashSet::new(), &root, &root).unwrap();
     assert_eq!(plan, Plan::default());
@@ -83,7 +130,7 @@ fn empty_plan_when_nothing_eligible() {
 fn explicit_id_retires_non_terminal_task() {
     // A non-terminal task named in the eligible set is still retired — `rm`
     // bypasses the terminal gate when a target is given.
-    let (_dir, root) = repo_with(&[("gone.typ", "gone\n"), ("live.typ", SURVIVOR)]);
+    let (_dir, root) = repo_with(&[("gone.typ", "gone\n"), ("live.typ", &depends_survivor())]);
     let tasks = gone_and_live("wip");
     let plan = plan(&tasks, &ids(&["gone"]), &root, &root).unwrap();
     assert_eq!(plan.deletions.len(), 1);

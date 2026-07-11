@@ -137,8 +137,9 @@ mt config show --json       # effective config as JSON
 
 = Retire
 
-`mt rm` retires tasks: it mints a `swh:1:rev` tombstone, rewrites inbound
-`link()`s, and does not commit. Its built-in default filter is `terminal`.
+`mt rm` retires tasks: it mints a `swh:1:rev` tombstone, retargets every inbound
+`links:` edge (any kind) onto it, and does not commit. Its built-in default
+filter is `terminal`.
 
 ```sh
 mt rm implement-auth              # by ref
