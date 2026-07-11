@@ -42,7 +42,14 @@ fn scaffold(dir: &Path, files: &[(&str, &str)]) {
 
 fn mt(dir: &Path) -> assert_cmd::Command {
     let mut cmd = assert_cmd::Command::cargo_bin("mt").unwrap();
-    cmd.current_dir(dir);
+    cmd.current_dir(dir)
+        // These tests want the real wall clock: clear any ambient pin so a dev
+        // shell that exports `$SOURCE_DATE_EPOCH` for its own build
+        // reproducibility (Nix's flake dev shells commonly do) doesn't leak
+        // into "today" here — see `date_pin_e2e.rs` for the tests that
+        // exercise the pin itself.
+        .env_remove("MINDTAPE_NOW")
+        .env_remove("SOURCE_DATE_EPOCH");
     cmd
 }
 

@@ -19,6 +19,7 @@ mod config_roots;
 mod config_status;
 mod config_views;
 mod date;
+mod date_pin;
 pub mod derive;
 pub mod filter;
 mod filter_links;
@@ -58,6 +59,7 @@ pub use config::{
 };
 pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
+pub use date_pin::{DateOverrideError, init_pinned_today};
 pub use derive::RootDeriver;
 pub use filter::{Filter, FilterError};
 pub use framework::{Category, Framework, Input, InputKind};

@@ -1,6 +1,14 @@
 //! Date helpers using only `std`: today's date, relative thresholds for the
 //! staleness predicate, and a configurable display formatter. No external
 //! crates; UTC only (close enough for backlog-rot detection).
+//!
+//! "Today" is pinnable for reproducible output (see
+//! `truth/tasks/pinnable-clock-for-reproducible-output.typ`):
+//! [`crate::init_pinned_today`] (re-exported at the crate root, backed by
+//! `crate::date_pin`) resolves `$MINDTAPE_NOW` / `$SOURCE_DATE_EPOCH` once per
+//! process (precedence order) and caches the result; `today_epoch_days`,
+//! below, is the single point every helper here reads through — no other
+//! function in this module touches the clock directly.
 
 /// Today's date as `YYYY-MM-DD` (UTC).
 #[must_use]
@@ -12,22 +20,28 @@ pub fn today_iso() -> String {
 /// Today's date as `(year, month, day)` (UTC).
 #[must_use]
 pub fn today_ymd() -> (i32, u8, u8) {
-    let secs = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs();
-    epoch_days_to_ymd(secs / 86400)
+    epoch_days_to_ymd(today_epoch_days())
 }
 
 /// The date `count` days before today as `YYYY-MM-DD` (UTC).
 #[must_use]
 pub fn days_ago_iso(count: u64) -> String {
-    let secs = std::time::SystemTime::now()
+    let (year, month, day) = epoch_days_to_ymd(today_epoch_days().saturating_sub(count));
+    format!("{year:04}-{month:02}-{day:02}")
+}
+
+/// Today, as days since the Unix epoch: the process's pinned override if
+/// [`crate::date_pin::init_pinned_today`] resolved one, else the system
+/// clock. The only place in this module that reads a clock.
+fn today_epoch_days() -> u64 {
+    if let Some(days) = crate::date_pin::pinned_epoch_days() {
+        return days;
+    }
+    std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
-        .as_secs();
-    let (year, month, day) = epoch_days_to_ymd((secs / 86400).saturating_sub(count));
-    format!("{year:04}-{month:02}-{day:02}")
+        .as_secs()
+        / 86_400
 }
 
 /// Parse a `YYYY-MM-DD` string into `(year, month, day)`; `None` if malformed.
@@ -168,9 +182,27 @@ fn epoch_days_to_ymd(epoch_days: u64) -> (i32, u8, u8) {
     (i32::try_from(full_year).unwrap_or(2000), month, day)
 }
 
+/// Convert Gregorian `(year, month, day)` to days since the Unix epoch
+/// (1970-01-01). The inverse of [`epoch_days_to_ymd`] (same Howard Hinnant
+/// civil calendar algorithm and source). Negative for a date before
+/// 1970-01-01; [`crate::date_pin`] clamps that to epoch 0 rather than
+/// wrapping, since nothing in this domain predates it.
+pub(crate) fn days_from_civil(year: i32, month: u8, day: u8) -> i64 {
+    let y = i64::from(year) - i64::from(month <= 2);
+    let era = if y >= 0 { y } else { y - 399 } / 400;
+    let year_of_era = u64::try_from(y - era * 400).unwrap_or(0); // [0, 399]
+    let m = u64::from(month);
+    let shifted_month = if m > 2 { m - 3 } else { m + 9 };
+    let day_of_year = (153 * shifted_month + 2) / 5 + u64::from(day) - 1; // [0, 365]
+    let day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
+    era * 146_097 + i64::try_from(day_of_era).unwrap_or(0) - 719_468
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{days_ago_iso, epoch_days_to_ymd, format_iso, today_iso, today_ymd};
+    use super::{
+        days_ago_iso, days_from_civil, epoch_days_to_ymd, format_iso, today_iso, today_ymd,
+    };
 
     #[test]
     fn epoch_zero_is_1970_01_01() {
@@ -181,6 +213,17 @@ mod tests {
     fn known_date_2026_06_18() {
         // 2026-06-18 = day 20622 since Unix epoch
         assert_eq!(epoch_days_to_ymd(20_622), (2026, 6, 18));
+    }
+
+    #[test]
+    fn days_from_civil_is_the_inverse_of_epoch_days_to_ymd() {
+        assert_eq!(days_from_civil(1970, 1, 1), 0);
+        assert_eq!(days_from_civil(2026, 6, 18), 20_622);
+    }
+
+    #[test]
+    fn days_from_civil_before_epoch_is_negative() {
+        assert!(days_from_civil(1969, 12, 31) < 0);
     }
 
     #[test]

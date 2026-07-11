@@ -171,3 +171,14 @@ predicate and #link(u("/cli/"))[CLI reference] for `mt ls` / `mt views`.
 Views are validated at config load: each `filter` must parse, `sort` and
 `columns` entries must be legal, every view reference must resolve, and the
 reference graph must be acyclic — a cycle is a config error.
+
+= Environment variables
+
+Besides `-w`/`--worktree` (or `$MINDTAPE_WORKTREE`, see #link(u("/agents/"))[For
+AI agents]), `mt` honours `$MINDTAPE_NOW` for a pinnable "today": every date
+`mt` stamps or reads — status dates, `now()`/`stale()` in filters, `mt recur`
+advances — resolves once per process, in precedence order: `$MINDTAPE_NOW`
+(`YYYY-MM-DD` or an RFC 3339 timestamp; only the date part is used), then
+`$SOURCE_DATE_EPOCH` (epoch seconds, the reproducible-builds standard), then
+the system clock (UTC). A malformed value is a hard error naming the variable
+— never a silent fall-through.
