@@ -22,14 +22,14 @@ groups:
       AGENTS.md: e256ede591229c69a26a094f9171e811db7dbe5fef320f6b19935a874c054f17
       CHANGELOG.md: e53816b0d71c53678166ef9aa14d4a8c4104b06e558ea836224a74944d128c42
       CONTRIBUTING.md: b3500c40e16687b07f86a9fe5ff193483ebe06d1a659b7f02799325d938e2c02
-      README.md: 8964e54cd525aa2f0e6038491d6be79e00c678e4dd9e0e16d5af063bfe5289ba
+      README.md: 2a50fa26cceaf89912f6270e036c136958033b478e88a4fab3fb0424ab7b2907
       skills/mindtape/SKILL.md: 4e318226bd1052acd528afeaad334d3fd896294b47a23e9b77d7140c1bd95bac
-      www/content/cli.typ: d924da981dbf3e6abc307bab2e6cf920919b9fe40bf32502daa2e1a124727025
+      www/content/cli.typ: f6d7275b16941f9c7d77818ed7581a7a511a15fc3c616e08677fdbf7fc664b24
       www/content/index.typ: 46d74bcc72c78a177366ec62a5979c9b2f8fc29c454367da9a4b34d6535bae0e
       www/content/quickstart.typ: 26cf06ea1574c712746baea7e2e6ac34dbc4ef56b9e5522f5117d1e77ae144a9
   dev-docs:
     source:
-      Justfile: e3a14084998b2d6cdcda98d06c6e4dc46d1ac542a97a26b0577aa88c9edb476f
+      Justfile: 17f190fb56833eda86294bb3bb9d4c9f993e5c71933a33c91e13bdbd5d7cd85d
       flake.nix: b13da6c4ae40e18082ec9a2e2c959f503501eb3521a4c79d266777bdcfd3dfdb
     dependents:
       AGENTS.md: e256ede591229c69a26a094f9171e811db7dbe5fef320f6b19935a874c054f17
@@ -39,7 +39,7 @@ groups:
       lib/prelude.typ: b569239a93e4e3527ab20e0801d294217e2492458ba231dae0f1927885324c5b
     dependents:
       AGENTS.md: e256ede591229c69a26a094f9171e811db7dbe5fef320f6b19935a874c054f17
-      README.md: 8964e54cd525aa2f0e6038491d6be79e00c678e4dd9e0e16d5af063bfe5289ba
+      README.md: 2a50fa26cceaf89912f6270e036c136958033b478e88a4fab3fb0424ab7b2907
       skills/mindtape/SKILL.md: 4e318226bd1052acd528afeaad334d3fd896294b47a23e9b77d7140c1bd95bac
       www/content/dsl.typ: cd48dba39dfd0ee34a9110a1132e6a8851b29a2c644392bb449e15a2fccaa6d3
   release-notes:
@@ -52,6 +52,20 @@ groups:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5
     dependents:
       AGENTS.md: e256ede591229c69a26a094f9171e811db7dbe5fef320f6b19935a874c054f17
-      README.md: 8964e54cd525aa2f0e6038491d6be79e00c678e4dd9e0e16d5af063bfe5289ba
+      README.md: 2a50fa26cceaf89912f6270e036c136958033b478e88a4fab3fb0424ab7b2907
       crates/mindtape-cli/src/init.rs: f8a6a47a154530214cb7783e80bf16c9a912b778e2961c1e21d18b65b6169fed
+      examples/learn-piano/.mindtape/templates/task.typ: 4ad252834d7839c4281199e23b3feb0b958d7e60190d7e0a5d58bcfd57fa9f19
+      examples/learn-piano/tasks/repertoire/abandoned-rondo-alla-turca.typ: bfd6f7c36788072c03386e3fe94fc3782210c88b7f7466754c3ef785a0b60c00
+      examples/learn-piano/tasks/repertoire/clair-de-lune-practice.typ: 47d866ce3b96d642faa1d73a0df38ad3bccfcb45c2378e6285fc4f34e234f93d
+      examples/learn-piano/tasks/repertoire/fur-elise-polish.typ: ddf5b677a91a14fcbe42946c0a67ae8e34e04f790a626a4d1dcbcf0cc16ec415
+      examples/learn-piano/tasks/repertoire/jazz-standard-autumn-leaves.typ: a28d1413ecd4b12f3106eb0f86c0d06622918a58d99fa7a6112b22ce2e712049
+      examples/learn-piano/tasks/technique/arpeggios-all-inversions.typ: 49dac152242cb9c58f46340caf1a0dd31a512daebbc17863ff0d4c4f7c908c59
+      examples/learn-piano/tasks/technique/hanon-warmup-daily.typ: 9939c7838f96dab6bd09d4c504db66f90b39a5c47f34d5484b78e4b291de7ff6
+      examples/learn-piano/tasks/technique/major-scales-two-octaves.typ: 2a92157aeb5ef5a9e9b8c5d4753eaf84177d86ad0f1db5d4a5c2c0ddaa6f5436
+      examples/learn-piano/tasks/technique/minor-scales-two-octaves.typ: e859b6f26032f5cd05dfec82fa751cbac8bf89a8a3fd3a8e2f57a58d15fb4c7e
+      examples/learn-piano/tasks/technique/sight-reading-grade-3.typ: 2953e70d3cabd5bce44d4081d7456b4aa2dda0b26a6b9842dd615f556e319e41
+      examples/learn-piano/tasks/theory/chord-progression-analysis.typ: d093369345ffd712af47776fd29e78548dc446916c6c3de645fa788b91e6d791
+      examples/learn-piano/tasks/theory/circle-of-fifths-drill.typ: d973b37bc835cec282b9e1cd97c3096a599af7facfb86755ca032b060c47216f
+      examples/learn-piano/tasks/theory/interval-recognition-ear-training.typ: 01d3e82d07e4f2bd01bf05ddb877c7090e070e3e77d78b7ba9e2f4d863ca5912
+      examples/learn-piano/tasks/theory/sight-singing-solfege.typ: 00dd76872d47fbf308af4858ced66c978e27cee0ec57d36f1c6cf6f08a3f943e
       www/utils/site.typ: 2b3c9684a3271749e1353a7a5ef9e7d502820d9db42a7f29c71d2eb006595da7
