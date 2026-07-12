@@ -8,7 +8,7 @@
     ease: 4,
   ),
   tags: ("cli",),
-  status: proposed(2026, 7, 8),
+  status: done(2026, 7, 12),
 )
 
 == Summary
@@ -78,3 +78,11 @@ Children (each one session; depends-on encodes the wave order):
 - `mt ls --json | mt import` round-trips the backlog (field-level + body).
 - `task export | jq -f contrib/jq/taskwarrior.jq | mt import` files valid tasks.
 - No new runtime dependency in the binary; jq stays a dev/test + docs concern.
+
+== Follow-ups
+
+Delivered in full; the marquee round-trip and both jq adapters pass. Two minor
+import-robustness edges surfaced in wave 4 and were deferred with documented
+workarounds (not blockers): strict `CanonicalTask` deserialize (all non-`Option`
+keys required) and `emit_status` dropping a dateless status. Both are captured in
+`harden-mt-import-partial-records.typ`.
