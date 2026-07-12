@@ -3821,9 +3821,9 @@ dependencies = [
 
 [[package]]
 name = "typst-cleanup"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5eac2f33f12658469dc731dfa931fe85cf0cbd5e19673d913291b4e3d460cdeb"
+checksum = "ba2cef245ebbe7f6279c807de8b363fd534d4dafe288331923af0d714d7a5d83"
 dependencies = [
  "gix",
  "swhid-mint",
