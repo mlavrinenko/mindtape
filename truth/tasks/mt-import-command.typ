@@ -10,7 +10,7 @@
   tags: ("cli",),
   links: parent("import-tasks-from-other-trackers.typ")
     + depends-on("task-to-typ-emitter.typ", "canonical-json-to-task-mapping.typ"),
-  status: proposed(2026, 7, 13),
+  status: wip(2026, 7, 12),
 )
 
 == Summary
