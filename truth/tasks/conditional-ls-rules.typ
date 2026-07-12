@@ -9,7 +9,7 @@
   ),
   tags: ("cli",),
   links: depends-on("default-view-for-ls.typ"),
-  status: wip(2026, 7, 12)[implement [[ls.rules]] + condition language],
+  status: done(2026, 7, 12)[shipped [[ls.rules]] + condition language + JSON envelope],
 )
 
 == Summary
