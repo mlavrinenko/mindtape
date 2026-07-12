@@ -18,13 +18,9 @@
 .btn.ghost { background: transparent; color: var(--accent); }
 .btn.ghost:hover { background: var(--accent-wash); color: var(--accent-strong); }
 
-/* Three faces: source + card on top, the wide terminal spanning below. Real
-   code and `mt ls` output need room, so the terminal gets full width. */
 .faces {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
-  grid-template-areas: "source card" "terminal terminal";
-  gap: 1rem; margin: 0.5rem 0;
+  grid-template-areas: "terminal" "source" "card";
 }
 .face-source { grid-area: source; }
 .face-card { grid-area: card; }
@@ -32,6 +28,7 @@
 .face {
   display: flex; flex-direction: column; overflow: hidden;
   border: 1px solid var(--border); border-radius: 12px; background: var(--bg);
+  margin: 0 0 20px;
 }
 .face figcaption {
   font-family: var(--font-mono); font-size: 0.66rem; text-transform: uppercase;
@@ -47,7 +44,7 @@
    SVG, inlined as a data-uri <img>); scale it to the column. */
 .face-card .face-body { padding: 1rem; align-items: flex-start; }
 .face-card .face-body > img { width: 100%; height: auto; display: block; }
-.faces-note { text-align: center; color: var(--muted); font-size: 0.92rem; font-style: italic; margin: 1.1rem 0 0; }
+.faces-note { text-align: center; color: var(--muted); font-size: 0.92rem; font-style: italic; }
 
 @media (max-width: 44rem) {
   .faces { grid-template-columns: 1fr; grid-template-areas: "source" "terminal" "card"; }

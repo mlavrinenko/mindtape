@@ -105,8 +105,8 @@
     })
   })
   html.elem("div", attrs: (class: "faces"), {
-    face("source", "source · fur-elise-polish.typ", raw(_hero-source, lang: "typ", block: true))
     face("terminal", "terminal · mt ls", terminal-ansi(read("../generated/ls.ansi")))
+    face("source", "source · fur-elise-polish.typ", raw(_hero-source, lang: "typ", block: true))
     // Read the SVG bytes rather than `image("…path…")`: the card is build-time
     // content inlined as a data-uri, not a served asset, so a path literal would
     // trip tola's asset-link validator (generated/ is never copied to public/).
