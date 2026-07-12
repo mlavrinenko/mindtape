@@ -12,17 +12,17 @@ A task file imports the prelude and applies `task.with`. Here is the full shape,
 with the version-synced import:
 
 #mt-import("#show: task.with(
-  title: \"Wire OAuth login\",
-  status: wip(2026, 7, 6)[behind a feature flag],
+  title: \"Für Elise — polish for recital\",
+  status: wip(2026, 7, 6)[C-section run still rushes],
   priority: ice(impact: 8, confidence: 0.9, ease: 6),
   difficulty: 4,
   estimate: (days: 1, hours: 2),
-  kind: \"feature\",
+  kind: \"practice\",
   due: datetime(year: 2026, month: 7, day: 20),
   start: datetime(year: 2026, month: 7, day: 8),
-  tags: (\"backend\", \"auth\"),
-  links: depends-on(\"design-schema.typ\") + related(\"write-docs.typ\")[docs companion],
-  x-speconaut: (spec: \"auth/login\"),
+  tags: (\"classical\", \"recital\"),
+  links: depends-on(\"major-scales-two-octaves.typ\") + related(\"clair-de-lune-practice.typ\")[same recital],
+  x-metronome: (target-bpm: 120),
 )
 
 == Summary

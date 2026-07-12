@@ -22,22 +22,10 @@ mt config show --json # the effective config
 mt add --describe=json # the slot schema for the active template
 ```
 
-A task in `mt ls --json`:
+A task in `mt ls --json` (the hero's Für Elise task, captured verbatim from the
+`learn-piano` example):
 
-```json
-{
-  "id": "wire-oauth",
-  "title": "Wire OAuth login",
-  "status": { "name": "wip", "date": "2026-07-06", "note": null },
-  "priority": 8.0,
-  "due": "2026-07-20",
-  "tags": ["backend", "auth"],
-  "links": [],
-  "derived_tags": [],
-  "extras": {},
-  "file": "tasks/wire-oauth.typ"
-}
-```
+#raw(read("../generated/ls-task.json"), lang: "json", block: true)
 
 `extras` carries the `x-<ns>` extension fields verbatim, so a tool built on
 MindTape reads its own data back out without MindTape interpreting it.
@@ -49,7 +37,7 @@ and defaults — so an agent can construct a valid `mt add` call, or a JSON payl
 without guessing:
 
 ```sh
-echo '{"title":"Wire OAuth","priority":8}' | mt add -f -
+echo '{"title":"Practice arpeggios","priority":8}' | mt add -f -
 ```
 
 Fill values also come from `--set k=v` and from `MINDTAPE_ADD_<SLOT>` environment

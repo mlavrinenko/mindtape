@@ -37,9 +37,9 @@ Values come from several sources, highest priority first: `--set`, a JSON file
 (`-f`), the positional title, then the slot default.
 
 ```sh
-mt add --set title="Wire OAuth" --set impact=8        # explicit values
+mt add --set title="Practice arpeggios" --set impact=8 # explicit values
 mt add cleanup kitchen                                # positional → title slot
-echo '{"title":"Wire OAuth","impact":8}' | mt add -f - # JSON on stdin
+echo '{"title":"Practice arpeggios","impact":8}' | mt add -f - # JSON on stdin
 mt add fix login +backend +auth                       # +word → tags slot
 mt add --edit                                         # fill in your editor
 ```

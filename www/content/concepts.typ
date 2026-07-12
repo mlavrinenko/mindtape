@@ -38,7 +38,8 @@ config. The state on disk is the only state.
 
 = Identity is the filename
 
-A task's id is its filename stem: `tasks/wire-oauth.typ` is `wire-oauth`. Links
+A task's id is its filename stem: `tasks/repertoire/fur-elise-polish.typ` is
+`fur-elise-polish` (the stem, not the path). Links
 between tasks reference that stem through `link("other.typ")`. Rename or move a
 file and inbound links stop resolving — `mt check` reports it loudly rather than
 silently rotting. Identity you can see in the file tree, not a hidden UUID.
