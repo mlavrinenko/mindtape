@@ -9,7 +9,7 @@
   ),
   tags: ("docs",),
   links: depends-on("generate-docs-cli-reference-from-the-mt-binary.typ"),
-  status: proposed(2026, 7, 11),
+  status: done(2026, 7, 12),
 )
 
 == Summary
