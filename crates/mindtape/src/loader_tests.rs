@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use super::{find_root, load_project};
+use super::{body_after_marker, find_root, load_project};
 use crate::config::Config;
 use crate::numeric::NumValue;
 use crate::parse_config;
@@ -341,4 +341,21 @@ fn duplicate_ids_produce_uniqueness_violation() {
         violations.iter().any(|v| v.field == "id"),
         "expected uniqueness violation on duplicate id"
     );
+}
+
+#[test]
+fn body_after_marker_captures_trimmed_prose_tail() {
+    let src = "#import \"@local/mindtape:0.2.0\": *\n\n\
+        #show: task.with(\n  title: \"T\",\n)\n\n\
+        == Summary\n\nFirst line.\n\nSecond line.\n";
+    assert_eq!(
+        body_after_marker(src),
+        "== Summary\n\nFirst line.\n\nSecond line."
+    );
+}
+
+#[test]
+fn body_after_marker_empty_without_body_or_marker() {
+    assert_eq!(body_after_marker("#show: task.with(title: \"T\")\n"), "");
+    assert_eq!(body_after_marker("no marker here\n"), "");
 }

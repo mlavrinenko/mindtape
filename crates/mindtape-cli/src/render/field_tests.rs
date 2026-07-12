@@ -309,6 +309,7 @@ fn stub_task() -> Task {
         reviewed: None,
         recur: None,
         extras: Default::default(),
+        body: String::new(),
     }
 }
 

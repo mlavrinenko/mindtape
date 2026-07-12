@@ -62,6 +62,12 @@ pub struct Task {
     pub recur: Option<crate::recur::Recur>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     pub extras: BTreeMap<String, HVal>,
+    /// Raw Typst source after the `#show: task.with(…)` marker — the prose body
+    /// (`== Summary`, notes), verbatim and whitespace-trimmed. Populated by the
+    /// loader from the file source; empty when constructed without a loader (e.g.
+    /// [`Task::from_marker`], which sees no source). The emitter appends it back
+    /// verbatim, so a `mt ls --json | mt import` round-trip preserves the body.
+    pub body: String,
 }
 
 impl Task {
@@ -97,6 +103,7 @@ impl Task {
             reviewed: field_str(fields, "reviewed"),
             recur: crate::recur::parse_recur(field(fields, "recur")),
             extras,
+            body: String::new(),
         }
     }
 

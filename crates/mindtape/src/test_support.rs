@@ -32,6 +32,7 @@ pub fn bare_task(id: &str) -> Task {
         reviewed: None,
         recur: None,
         extras: BTreeMap::new(),
+        body: String::new(),
     }
 }
 

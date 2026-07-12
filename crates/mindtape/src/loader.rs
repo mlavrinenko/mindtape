@@ -82,6 +82,7 @@ fn load_file(
                 let id = file_stem(file);
                 let mut task = Task::from_marker(id, rel, &marker.value);
                 task.derived_tags = derived;
+                task.body = read_body(file);
                 outcome.tasks.push(task);
             }
         }
@@ -132,6 +133,32 @@ fn mindtape_lib_dir(root: &Path) -> Option<PathBuf> {
 fn file_stem(file: &Path) -> String {
     file.file_stem()
         .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned())
+}
+
+/// The prose body of `file`: the raw source after the `#show: task.with(…)`
+/// marker, whitespace-trimmed. Empty when the file is unreadable (the harvest
+/// already succeeded here, so this is only defensive) or holds no `task.with`
+/// call. Sourced from disk rather than the harvest so the emitter can append it
+/// back verbatim for a stable `ls --json | import` round-trip.
+fn read_body(file: &Path) -> String {
+    std::fs::read_to_string(file)
+        .map(|source| body_after_marker(&source))
+        .unwrap_or_default()
+}
+
+/// The source after the first `task.with(…)` call's closing paren, trimmed.
+/// Parse-plane only (no eval): [`typst_edit::find_method_calls`] locates the
+/// call and `Call::range` spans it through the closing `)`, so the tail is the
+/// authored body. Trimming drops the blank line the emitter re-adds between the
+/// marker and the body, keeping the round-trip stable.
+fn body_after_marker(source: &str) -> String {
+    typst_edit::find_method_calls(source, "task", "with")
+        .into_iter()
+        .next()
+        .and_then(|call| source.get(call.range.end..))
+        .unwrap_or_default()
+        .trim()
+        .to_owned()
 }
 
 fn collect_typ_files(dir: &Path, out: &mut Vec<PathBuf>) {
