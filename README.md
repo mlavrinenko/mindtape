@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://mlavrinenko.github.io/mindtape/">Documentation</a>
+  <a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/import-export/">Import &amp; export</a> (there is no <code>mt export</code> — see why)
 </p>
 
 ---

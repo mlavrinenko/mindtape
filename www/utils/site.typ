@@ -45,6 +45,8 @@
       (label: "Filter language", href: "/filters/"),
       (label: "Priority", href: "/priority/"),
       (label: "Configuration", href: "/config/"),
+      (label: "Canonical schema", href: "/schema/"),
+      (label: "Import & export", href: "/import-export/"),
     ),
   ),
   (
