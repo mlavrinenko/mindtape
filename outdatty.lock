@@ -30,9 +30,9 @@ groups:
   dev-docs:
     source:
       Justfile: 0379d26d6dd0f1edc37cf263342c4b547babecc9fc1d02ce697c181648fbfa58
-      flake.nix: b13da6c4ae40e18082ec9a2e2c959f503501eb3521a4c79d266777bdcfd3dfdb
+      flake.nix: 393bbe55152e0f2f4f991e73fa72ecbeedd7e1d82e43295599330df0ad4b239e
     dependents:
-      AGENTS.md: e256ede591229c69a26a094f9171e811db7dbe5fef320f6b19935a874c054f17
+      AGENTS.md: 2f35d7214eb7cf181057c9b677321ac7ca281c94a8145d8caaf61a42ede62e91
       CONTRIBUTING.md: 0ed03d1b1b8bc41b9b51bbb7566384e27bc32a3350b885d17c03acb05c6c92ee
   prelude-docs:
     source:

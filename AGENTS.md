@@ -42,7 +42,7 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
 - `evalexpr` 12 as a parser for the filter language (walked, not evaluated by it)
 - `clap` 4 CLI; `serde`/`toml` config; `comfy-table`/`serde_json`/`csv` output
 - Nix flake + `just`; dev tools: sccache, cargo-machete, linecop, outdatty,
-  ejectest, cargo-tarpaulin, tola (Typst-native SSG for the `www/` docs) +
+  ejectest, cargo-tarpaulin, jq (test/docs only: `contrib/jq/` import adapters), tola (Typst-native SSG for the `www/` docs) +
   pagefind (post-build client-side search index over the built HTML)
 
 ## Agent Rules
