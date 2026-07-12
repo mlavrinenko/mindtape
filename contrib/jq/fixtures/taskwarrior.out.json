@@ -1,0 +1,85 @@
+[
+  {
+    "id": "",
+    "file": "",
+    "title": "Fix the login timeout bug",
+    "status": { "name": "todo", "date": "2026-06-03", "note": null },
+    "priority": 8,
+    "difficulty": null,
+    "kind": null,
+    "estimate": {},
+    "links": [],
+    "tags": ["work.backend", "backend", "bug"],
+    "derived_tags": [],
+    "due": "2026-07-15",
+    "start": null,
+    "reviewed": null,
+    "body": "== Summary\n\nFix the login timeout bug",
+    "extras": {
+      "x-tw": {
+        "uuid": "3f3c1b0a-6b1e-4b8a-9b0a-1e2f3a4b5c6d",
+        "id": 1,
+        "urgency": 9.44,
+        "status": "pending",
+        "annotations": [],
+        "depends": null
+      }
+    }
+  },
+  {
+    "id": "",
+    "file": "",
+    "title": "Renew domain registration",
+    "status": { "name": "done", "date": "2026-06-10", "note": null },
+    "priority": 5,
+    "difficulty": null,
+    "kind": null,
+    "estimate": {},
+    "links": [],
+    "tags": ["admin"],
+    "derived_tags": [],
+    "due": null,
+    "start": null,
+    "reviewed": null,
+    "body": "== Summary\n\nRenew domain registration",
+    "extras": {
+      "x-tw": {
+        "uuid": "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d",
+        "id": 2,
+        "urgency": 4.2,
+        "status": "completed",
+        "annotations": [
+          { "entry": "20260605T100000Z", "description": "Paid via card ending 4242" }
+        ],
+        "depends": null
+      }
+    }
+  },
+  {
+    "id": "",
+    "file": "",
+    "title": "Investigate flaky CI job (duplicate of #2 filed elsewhere)",
+    "status": { "name": "cancelled", "date": "2026-04-25", "note": null },
+    "priority": null,
+    "difficulty": null,
+    "kind": null,
+    "estimate": {},
+    "links": [],
+    "tags": ["eng", "ci"],
+    "derived_tags": [],
+    "due": null,
+    "start": null,
+    "reviewed": null,
+    "body": "== Summary\n\nInvestigate flaky CI job (duplicate of \\#2 filed elsewhere)",
+    "extras": {
+      "x-tw": {
+        "uuid": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+        "id": 3,
+        "urgency": 1.1,
+        "status": "deleted",
+        "annotations": [],
+        "depends": null
+      }
+    }
+  }
+]

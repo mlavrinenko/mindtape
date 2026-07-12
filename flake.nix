@@ -57,6 +57,7 @@
               cargo-tarpaulin
               clippy
               rustfmt
+              jq
               just
               moreutils
               nixd

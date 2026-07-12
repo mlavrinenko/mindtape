@@ -1,0 +1,43 @@
+[
+  {
+    "id": 1,
+    "description": "Fix the login timeout bug",
+    "entry": "20260601T090000Z",
+    "modified": "20260603T140000Z",
+    "status": "pending",
+    "uuid": "3f3c1b0a-6b1e-4b8a-9b0a-1e2f3a4b5c6d",
+    "urgency": 9.44,
+    "priority": "H",
+    "project": "work.backend",
+    "tags": ["backend", "bug"],
+    "due": "20260715T000000Z"
+  },
+  {
+    "id": 2,
+    "description": "Renew domain registration",
+    "entry": "20260501T080000Z",
+    "modified": "20260610T120000Z",
+    "end": "20260610T120000Z",
+    "status": "completed",
+    "uuid": "9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d",
+    "urgency": 4.2,
+    "priority": "M",
+    "project": "admin",
+    "tags": [],
+    "annotations": [
+      { "entry": "20260605T100000Z", "description": "Paid via card ending 4242" }
+    ]
+  },
+  {
+    "id": 3,
+    "description": "Investigate flaky CI job (duplicate of #2 filed elsewhere)",
+    "entry": "20260420T080000Z",
+    "modified": "20260425T090000Z",
+    "end": "20260425T090000Z",
+    "status": "deleted",
+    "uuid": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+    "urgency": 1.1,
+    "project": "eng",
+    "tags": ["ci"]
+  }
+]

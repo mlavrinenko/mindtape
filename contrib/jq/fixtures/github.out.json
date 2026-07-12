@@ -1,0 +1,74 @@
+[
+  {
+    "id": "",
+    "file": "",
+    "title": "Login page throws 500 on empty password",
+    "status": { "name": "todo", "date": "2026-06-01", "note": null },
+    "priority": null,
+    "difficulty": null,
+    "kind": null,
+    "estimate": {},
+    "links": [],
+    "tags": ["bug", "backend"],
+    "derived_tags": [],
+    "due": null,
+    "start": "2026-06-01",
+    "reviewed": null,
+    "body": "\\#\\# Repro\n\n1. Go to /login\n2. Submit empty password\n\nExpect a validation message, get a 500.",
+    "extras": {
+      "x-gh": {
+        "number": 101,
+        "url": "https://github.com/acme/widget/issues/101",
+        "assignees": ["octocat"]
+      }
+    }
+  },
+  {
+    "id": "",
+    "file": "",
+    "title": "Add dark mode toggle",
+    "status": { "name": "done", "date": "2026-04-12", "note": null },
+    "priority": null,
+    "difficulty": null,
+    "kind": null,
+    "estimate": {},
+    "links": [],
+    "tags": ["enhancement"],
+    "derived_tags": [],
+    "due": null,
+    "start": "2026-04-12",
+    "reviewed": null,
+    "body": "",
+    "extras": {
+      "x-gh": {
+        "number": 87,
+        "url": "https://github.com/acme/widget/issues/87",
+        "assignees": []
+      }
+    }
+  },
+  {
+    "id": "",
+    "file": "",
+    "title": "Investigate memory leak in worker pool",
+    "status": { "name": "todo", "date": "2026-01-20", "note": null },
+    "priority": null,
+    "difficulty": null,
+    "kind": null,
+    "estimate": {},
+    "links": [],
+    "tags": [],
+    "derived_tags": [],
+    "due": null,
+    "start": "2026-01-20",
+    "reviewed": null,
+    "body": "Seen in production after ~48h uptime. Heap grows unbounded.",
+    "extras": {
+      "x-gh": {
+        "number": 5,
+        "url": "https://github.com/acme/widget/issues/5",
+        "assignees": ["grace", "lin"]
+      }
+    }
+  }
+]

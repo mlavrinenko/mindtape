@@ -1,0 +1,35 @@
+[
+  {
+    "number": 101,
+    "title": "Login page throws 500 on empty password",
+    "body": "## Repro\n\n1. Go to /login\n2. Submit empty password\n\nExpect a validation message, get a 500.",
+    "state": "OPEN",
+    "labels": [
+      { "id": "L1", "name": "bug", "color": "d73a4a" },
+      { "id": "L2", "name": "backend", "color": "1d76db" }
+    ],
+    "assignees": [{ "login": "octocat" }],
+    "createdAt": "2026-06-01T09:15:00Z",
+    "url": "https://github.com/acme/widget/issues/101"
+  },
+  {
+    "number": 87,
+    "title": "Add dark mode toggle",
+    "body": "",
+    "state": "CLOSED",
+    "labels": [{ "id": "L3", "name": "enhancement", "color": "a2eeef" }],
+    "assignees": [],
+    "createdAt": "2026-04-12T16:40:00Z",
+    "url": "https://github.com/acme/widget/issues/87"
+  },
+  {
+    "number": 5,
+    "title": "Investigate memory leak in worker pool",
+    "body": "Seen in production after ~48h uptime. Heap grows unbounded.",
+    "state": "OPEN",
+    "labels": [],
+    "assignees": [{ "login": "grace" }, { "login": "lin" }],
+    "createdAt": "2026-01-20T08:00:00Z",
+    "url": "https://github.com/acme/widget/issues/5"
+  }
+]

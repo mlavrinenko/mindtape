@@ -26,6 +26,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   outside the allow-list. No `--from`/`--via` source selector — a foreign
   tracker's export becomes canonical JSON via a `jq` adapter, upstream of the
   pipe. "`mt add` without a template, from a full record."
+- **`contrib/jq/{taskwarrior,github}.jq`** — source adapters mapping
+  `task export`'s JSON and `gh issue list --json
+  number,title,body,state,labels,assignees,createdAt,url`'s JSON onto the
+  canonical task-JSON schema `mt import` consumes. Pure structural jq, no
+  Rust and no `config.toml` read (`mt import` owns the per-project policy
+  map): status maps onto neutral names shared by both sources (`pending`/
+  `open` -> `todo`, `completed`/`closed` -> `done`, `deleted` -> `cancelled`),
+  Taskwarrior's H/M/L priority maps onto MindTape's default 0..9 scale
+  (8/5/2), tags come from `project`+`tags` or issue `labels`, and
+  uuid/urgency/annotations/issue-number/url/assignees carry through
+  losslessly as `x-tw`/`x-gh` extras. Both escape a literal `#` (and `\`)
+  before splicing source text into the raw-Typst `body` field, since an
+  unescaped `#` would open Typst code mode and fail to compile. `jq` is now
+  a flake devShell dependency; fixtures and goldens live under
+  `contrib/jq/fixtures/`.
 - **`mt graph [filter]`** — emit the task dependency graph as Graphviz DOT
   (default) or Mermaid (`--format mermaid`). Nodes are tasks labelled by title
   and status and filled by readiness (ready/blocked/terminal); edges are the
