@@ -107,5 +107,6 @@ before = ["Summary"]
 after  = ["Scope"]
 message = "Summary must precede Scope"
 
-[ls]
-default-filter = "!terminal && (miss(start) || start <= now())"
+# The default `mt ls` listing is inherited from the embedded floor's
+# `[views.default]` view (same filter as the retired `[ls] default-filter`).
+# Redeclare `[views.default]` here to add a sort/columns bundle.
