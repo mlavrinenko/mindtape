@@ -24,7 +24,7 @@ drift from what `mt` actually is.
 // vanish from this page.
 #let cli = json("../generated/cli.json")
 #let cli-groups = (
-  ("Files", ("add", "go", "eval")),
+  ("Files", ("add", "import", "go", "eval")),
   ("Listing", ("ls",)),
   ("Graph", ("graph",)),
   ("Views", ("views",)),
