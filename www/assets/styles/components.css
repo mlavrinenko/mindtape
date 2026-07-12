@@ -39,53 +39,32 @@
   padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border); background: var(--bg-soft);
 }
 .face-body { flex: 1; display: flex; min-width: 0; }
-.face-body > pre, .face-body > .terminal, .face-body > .task-card {
+.face-body > pre, .face-body > .terminal, .face-body > img {
   margin: 0; border: none; border-radius: 0; flex: 1; box-shadow: none; min-width: 0;
 }
 .face-source .face-body pre { font-size: 0.7rem; }
-.face-card .face-body { padding: 1rem; }
+/* The typeset face is a genuinely compiled task card (fur-elise-polish.typ →
+   SVG, inlined as a data-uri <img>); scale it to the column. */
+.face-card .face-body { padding: 1rem; align-items: flex-start; }
+.face-card .face-body > img { width: 100%; height: auto; display: block; }
 .faces-note { text-align: center; color: var(--muted); font-size: 0.92rem; font-style: italic; margin: 1.1rem 0 0; }
 
 @media (max-width: 44rem) {
   .faces { grid-template-columns: 1fr; grid-template-areas: "source" "terminal" "card"; }
 }
 
-/* Terminal panel (plain, CSS-coloured, dark in both themes) ---------------- */
+/* Terminal panel (dark in both themes). Plain transcripts render as selectable
+   `pre` text; the colour-bearing `mt ls` family renders through terminal-ansi
+   as an html.frame'd inline <svg> (ANSI colour survives HTML export only via a
+   frame), scaled responsively to the panel. */
 .terminal { background: var(--term-bg); width: 100%; }
 .terminal pre {
   background: transparent; color: var(--term-fg); border: none; border-radius: 0;
   margin: 0; box-shadow: none; font-size: 0.78rem; padding: 0.9rem 1rem;
 }
 .terminal code { background: none; border: none; color: inherit; }
-
-/* Typeset task card ------------------------------------------------------- */
-.task-card { display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--font-serif); }
-.task-card p { display: contents; }
-.tc-head { display: flex; gap: 0.4rem; }
-.tc-title { font-size: 1.15rem; margin: 0.1rem 0 0; line-height: 1.2; }
-.tc-summary { color: var(--muted); font-size: 0.92rem; margin: 0; }
-.tc-meta { margin: 0.2rem 0 0; font-size: 0.82rem; font-family: var(--font-mono); }
-.tc-meta > div { display: flex; gap: 0.6rem; }
-.tc-meta dt { color: var(--muted); min-width: 4.6rem; }
-.tc-meta dd { margin: 0; }
-.tc-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.3rem; }
-
-/* Pills + tags ------------------------------------------------------------ */
-.pill {
-  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
-  padding: 0.1rem 0.5rem; border-radius: 999px; letter-spacing: 0.02em;
-  background: var(--accent-wash); color: var(--accent-strong);
-}
-.status-wip { background: rgba(224, 164, 0, 0.16); color: #a97b00; }
-[data-theme="dark"] .status-wip { color: #e6b93a; }
-.band-high { background: rgba(200, 60, 60, 0.15); color: #b3453f; }
-[data-theme="dark"] .band-high { color: #ec8f88; }
-
-.tag {
-  font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted);
-  background: var(--bg-soft); border: 1px solid var(--border);
-  padding: 0.05rem 0.42rem; border-radius: 6px;
-}
+.terminal-svg { line-height: 0; }
+.terminal-svg svg { display: block; max-width: 100%; height: auto !important; }
 
 /* Callouts ---------------------------------------------------------------- */
 .callout {

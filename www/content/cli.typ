@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, callout
+#import "../utils/ui.typ": terminal, terminal-ansi, callout
 #import "../utils/site.typ": u
 
 #show: page.with(
@@ -43,7 +43,7 @@ output):
 applies `[ls] default-filter`; an empty filter (`mt ls ''`) lists everything.
 It accepts a #link(u("/filters/"))[filter expression], sorts, and limits:
 
-#terminal(read("../generated/ls.txt"))
+#terminal-ansi(read("../generated/ls.ansi"))
 
 ```sh
 mt ls ''                        # empty filter — lists everything

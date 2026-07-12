@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, callout
+#import "../utils/ui.typ": terminal, terminal-ansi, callout
 #import "../utils/site.typ": u
 
 #show: page.with(
@@ -11,7 +11,7 @@
 `mt ls` and `mt rm` take a filter expression — a boolean query over task fields.
 Here, every task not yet in a terminal status:
 
-#terminal(read("../generated/ls-open.txt"))
+#terminal-ansi(read("../generated/ls-open.ansi"))
 
 = Fields
 

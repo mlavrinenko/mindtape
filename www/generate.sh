@@ -60,6 +60,21 @@ gen_read describe  add --describe
 gen_read flip-list flip --list
 gen_read eval      eval "$FIX/tasks/repertoire/fur-elise-polish.typ"
 
+# The colour-bearing transcripts (the `mt ls` family) captured a SECOND time
+# WITH ANSI, for the terminal-ansi html.frame render path (www/utils/ui.typ);
+# the plain .txt above stays for the selectable-text terminals. `mt check` on a
+# valid fixture and `views` emit no colour, so only `ls*` gets an .ansi.
+gen_color() { local slug="$1"; shift; "$MT" -w "$FIX" --color always "$@" >"$OUT/$slug.ansi"; }
+gen_color ls       ls
+gen_color ls-open  ls 'status != "done"'
+
+# A single task object for the for-agents page's `mt ls --json` example. The
+# `ls` path scores priority and derives folder tags (unlike single-file `eval`,
+# which leaves both empty); jq slices the one-element array to an object, so the
+# page shows a complete, binary-sourced task instead of a hand-typed one.
+"$MT" -w "$FIX" --color never ls 'id == "fur-elise-polish"' --json \
+  | jq '.[0]' >"$OUT/ls-task.json"
+
 # config show --origin prints the project's config path absolute (canonicalized
 # root). Normalize the fixture prefix to a project-relative path so the docs are
 # machine-independent and reproducible; the rest is verbatim.
@@ -69,6 +84,19 @@ gen_read eval      eval "$FIX/tasks/repertoire/fur-elise-polish.typ"
 # The hero "source" face reads a real fixture task verbatim. Copy it under
 # generated/ so it lives inside the Typst build root (read() can't escape it).
 cp "$FIX/tasks/repertoire/fur-elise-polish.typ" "$OUT/hero-source.typ"
+
+# The hero "typeset" face is that SAME task, genuinely compiled by the `task`
+# show rule (lib/prelude.typ) — not hand-built HTML. Typst HTML export inlines
+# the SVG as a self-contained data-uri `<img>`, so nothing lands in public/.
+# Resolve @local/mindtape via a throwaway local-package path symlinked at lib/,
+# so this never depends on `just install-lib` being run first.
+PKGS="$(mktemp -d)"
+LIBVER="$(sed -n 's/^version = "\(.*\)"/\1/p' "$REPO/lib/typst.toml" | head -1)"
+mkdir -p "$PKGS/local/mindtape"
+ln -s "$REPO/lib" "$PKGS/local/mindtape/$LIBVER"
+typst compile --package-path "$PKGS" \
+  "$FIX/tasks/repertoire/fur-elise-polish.typ" "$OUT/hero-card.svg"
+rm -rf "$PKGS"
 
 # The fixture's `mt add` template, verbatim — the docs' "A template" example, so
 # it matches the `add --describe` slot schema captured above. Same root reason.

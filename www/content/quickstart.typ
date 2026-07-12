@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, callout
+#import "../utils/ui.typ": terminal, terminal-ansi, callout
 #import "../utils/site.typ": u, REPO
 
 #show: page.with(
@@ -69,11 +69,11 @@ More ways to file — positional titles, editor mode, named templates — are on
 mt ls
 ```
 
-#terminal(read("../generated/ls.txt"))
+#terminal-ansi(read("../generated/ls.ansi"))
 
 Pass a filter expression to narrow it down — here, everything not yet terminal:
 
-#terminal(read("../generated/ls-open.txt"))
+#terminal-ansi(read("../generated/ls-open.ansi"))
 
 Empty columns hide themselves. The full #link(u("/filters/"))[filter language]
 covers tags, dates, dependency state, and full-text search.
