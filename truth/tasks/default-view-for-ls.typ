@@ -9,7 +9,7 @@
   ),
   tags: ("cli",),
   links: depends-on("named-views-and-contexts.typ"),
-  status: wip(2026, 7, 12)[replace default-filter with a default-view],
+  status: done(2026, 7, 12)[replace default-filter with a default-view],
 )
 
 == Summary
