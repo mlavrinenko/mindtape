@@ -16,7 +16,7 @@
       the typeset-card face is that task's job; both build on the same
       typeset-render face
     ],
-  status: wip(2026, 7, 12),
+  status: done(2026, 7, 12),
 )
 
 == Summary
