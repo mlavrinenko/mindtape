@@ -36,24 +36,10 @@
   html.elem("div", attrs: (class: "tc-tags"), { tag("backend"); tag("auth") })
 })
 
-#let _hero-source = "#import \"" + PKG + "\": *
-
-#show: task.with(
-  title: \"Wire OAuth login\",
-  status: wip(2026, 7, 6),
-  priority: 8,
-  estimate: (days: 1),
-  tags: (\"backend\", \"auth\"),
-  due: datetime(year: 2026, month: 7, day: 20),
-)
-
-== Summary
-Add the login flow behind the feature flag."
-
-#let _hero-terminal = "$ mt ls
-#   STATUS    READY    PRIORITY  DUE         TITLE
-1e  wip       ready    high      2026-07-20  Wire OAuth login
-2g  proposed  blocked  normal                Write onboarding docs"
+// Hero faces are read from the live fixture and captures under generated/ (see
+// www/generate.sh), so the source card and terminal never drift from a real
+// task file / real `mt ls` output.
+#let _hero-source = read("../generated/hero-source.typ")
 
 #let face(kind, caption, body) = html.elem("figure", attrs: (class: "face face-" + kind), {
   html.elem("figcaption", [#caption])
@@ -73,8 +59,8 @@ Add the login flow behind the feature flag."
     })
   })
   html.elem("div", attrs: (class: "faces"), {
-    face("source", "source · wire-oauth.typ", raw(_hero-source, lang: "typ", block: true))
-    face("terminal", "terminal · mt ls", terminal(_hero-terminal))
+    face("source", "source · fur-elise-polish.typ", raw(_hero-source, lang: "typ", block: true))
+    face("terminal", "terminal · mt ls", terminal(read("../generated/ls.txt")))
     face("card", "typeset · rendered", task-card)
   })
   html.elem("p", attrs: (class: "faces-note"))[

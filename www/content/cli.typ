@@ -9,16 +9,33 @@
 )
 
 `mt` is the whole surface. Commands are quiet by default and return honest exit
-codes.
+codes. Every transcript and help block below is captured from the binary at
+build time against the #link(u("/quickstart/"))[learn-piano example], so nothing
+here can drift from what `mt` actually prints.
+
+#terminal(read("../generated/version.txt"))
+
+`mt --help` lists the commands and the global flags every one accepts (`-w`,
+`--color`, `-v`, `--format`):
+
+#terminal(read("../generated/help.txt"))
 
 = Files
 
 `mt add` files a new task from a template — positional titles, `--set`, JSON, or
 editor mode. Full detail on #link(u("/templates/"))[Templates & slots].
 
+#terminal(read("../generated/help-add.txt"))
+
 `mt go <ref>` opens a task in your editor (`[go] editor` → `$VISUAL` → `$EDITOR`).
 `mt eval <file>` evaluates a single task file and prints it (`--json` for machine
-output).
+output):
+
+#terminal(read("../generated/eval.txt"))
+
+#terminal(read("../generated/help-go.txt"))
+
+#terminal(read("../generated/help-eval.txt"))
 
 = Listing
 
@@ -26,16 +43,13 @@ output).
 applies `[ls] default-filter`; an empty filter (`mt ls ''`) lists everything.
 It accepts a #link(u("/filters/"))[filter expression], sorts, and limits:
 
-#terminal("$ mt ls
-#   STATUS    READY    PRIORITY  DUE         TITLE
-1e  wip       ready    high      2026-07-20  Wire OAuth login
-2g  proposed  blocked  normal                Write onboarding docs")
+#terminal(read("../generated/ls.txt"))
 
 ```sh
 mt ls ''                        # empty filter — lists everything
-mt ls 'has_tag("backend")'      # filter expression
+mt ls 'has_tag("classical")'    # filter expression
 mt ls ready --sort priority:asc -n 10   # predicate + sort + limit
-mt ls @broken                   # named view — filter + sort + columns
+mt ls @stuck                    # named view — filter + sort + columns
 mt ls --columns status,title    # one-off column override
 mt ls --json                    # --json is shorthand for --format json
 mt ls --format csv              # table (default), json, or csv
@@ -45,17 +59,19 @@ mt ls -i                        # interactive: type a #, Enter opens it
 Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`, or
 override for one run with `--columns`.
 
+#terminal(read("../generated/help-ls.txt"))
+
 = Views
 
 Named views bundle a filter with an optional sort and column set under
 `[views.<name>]` — see #link(u("/config/"))[Config] for the table shape.
 Reference one with an `@name` sigil:
 
-- `mt ls @broken` — bundle mode: applies the view's filter, sort, and columns
-  together. A facet flag overrides just that facet: `mt ls @broken --sort
-  @summer` keeps `broken`'s filter and columns but takes `summer`'s sort.
+- `mt ls @stuck` — bundle mode: applies the view's filter, sort, and columns
+  together. A facet flag overrides just that facet: `mt ls @stuck --sort
+  @this-week` keeps `stuck`'s filter and columns but takes `this-week`'s sort.
 - `@name` inside a larger #link(u("/filters/"))[filter expression]
-  (`mt ls '@summer && !@broken'`) is the filter facet only — sugar for
+  (`mt ls '@this-week && !@stuck'`) is the filter facet only — sugar for
   `in_view("name")` — and composes with `&&` / `||` / `!` like any predicate.
   Sort and columns are ignored in that position.
 - `--sort @view` splices that view's sort chain (repeatable, composes with
@@ -64,24 +80,16 @@ Reference one with an `@name` sigil:
 `mt views` lists the named views; `mt views <name>` shows one view's resolved
 definition; `--json` on either for scripting.
 
-#terminal("$ mt views
-broken  blocked && stale(30)
-summer  has_tag(\"summer\") && !terminal  [sort, columns]")
+#terminal(read("../generated/views.txt"))
 
-```sh
-mt ls @summer                        # bundle mode
-mt ls '@summer && !@broken'          # filter facet only
-mt ls @broken --sort @summer         # broken's filter+columns, summer's sort
-mt views summer                      # inspect one view
-```
+#terminal(read("../generated/help-views.txt"))
 
 = Status
 
 `mt flip <status> <refs…>` sets a status dated today. Every legend value is also
 a shortcut verb, and flips batch:
 
-#terminal("$ mt done wire-oauth-login
-flipped wire-oauth-login (Wire OAuth login): wip → done")
+#terminal(read("../generated/done.txt"))
 
 ```sh
 mt flip blocked 1b 2c -m "waiting on infra"   # batch + note
@@ -93,7 +101,11 @@ mt review <ref>                               # stamp reviewed: with today's dat
 When the legend declares `to` transition edges (see #link(u("/config/"))[Config]),
 `mt flip` rejects a move that is not an allowed edge and lists the valid next
 states; `--force` overrides. Tasks are referenced by slug, list handle (`1b`), or
-path.
+path. `mt flip --list` prints the shortcut verbs generated from the legend:
+
+#terminal(read("../generated/flip-list.txt"))
+
+#terminal(read("../generated/help-flip.txt"))
 
 = Recurring tasks
 
@@ -103,11 +115,11 @@ mutate nothing). Materialize is per-task (`spawn`, the default, or `mutate`;
 `[tasks.recur] materialize` sets the project default):
 
 ```sh
-mt recur water-plants              # spawn a new file, or refresh in place
-mt recur water-plants --dry-run    # preview without writing
-mt recur water-plants --advance 4  # pre-materialize 4 future spawns (spawn only)
-mt recur water-plants --skip       # advance the anchor/count, materialize nothing
-mt recur water-plants --force      # spawn again even if a successor already exists
+mt recur hanon-warmup-daily              # spawn a new file, or refresh in place
+mt recur hanon-warmup-daily --dry-run    # preview without writing
+mt recur hanon-warmup-daily --advance 4  # pre-materialize 4 future spawns (spawn only)
+mt recur hanon-warmup-daily --skip       # advance the anchor/count, materialize nothing
+mt recur hanon-warmup-daily --force      # spawn again even if a successor already exists
 ```
 
 `spawn` writes the next occurrence as a new file — its stem minted by
@@ -119,21 +131,31 @@ recurring task stays a pure close — it never strips `recur` — and prints a
 notice: a `spawn` series points back at `mt recur`, a `mutate` series notes
 that closing ends it.
 
+#terminal(read("../generated/help-recur.txt"))
+
 = Validate and inspect config
 
 `mt check` validates every task: enum values, required fields, numeric bounds,
-link resolution, and dependency cycles.
+link resolution, and dependency cycles. It exits non-zero and names each
+violation when one exists — drop it in CI or a pre-commit hook.
 
-#terminal("$ mt check
-ok: 3 task(s) valid")
+#terminal(read("../generated/check.txt"))
 
-`mt config show` prints the effective merged config as re-parseable TOML:
+#terminal(read("../generated/help-check.txt"))
+
+`mt config show` prints the effective merged config as re-parseable TOML;
+`--origin` lists which layers contributed, and from where:
+
+#terminal(read("../generated/config-origin.txt"))
 
 ```sh
+mt config show              # effective config as re-parseable TOML
 mt config show --origin     # which config layers contributed, and from where
 mt config show --defaults   # just the embedded floor
 mt config show --json       # effective config as JSON
 ```
+
+#terminal(read("../generated/help-config.txt"))
 
 = Retire
 
@@ -142,28 +164,25 @@ mt config show --json       # effective config as JSON
 filter is `terminal`.
 
 ```sh
-mt rm implement-auth              # by ref
+mt rm abandoned-rondo-alla-turca  # by ref
 mt rm 'status == "cancelled"'     # by filter — every match
 mt rm terminal --dry-run          # preview without writing
 ```
+
+#terminal(read("../generated/help-rm.txt"))
 
 = Setup
 
 `mt install` installs the `@local/mindtape` prelude and seeds the XDG global
 defaults. `mt init` writes `.mindtape/config.toml` (`--full` for the expanded
-form). See #link(u("/quickstart/"))[Quickstart].
+form). See #link(u("/quickstart/"))[Quickstart]. `mt worktrees` lists the
+`@name` worktree aliases (see #link(u("/agents/"))[Run from anywhere]).
 
-= Global flags
+#terminal(read("../generated/help-init.txt"))
 
-#table(
-  columns: 2,
-  table.header([Flag], [Effect]),
-  [`-w` / `--worktree <path>`], [Operate on the MindTape project at `<path>` (must hold a `.mindtape/`) instead of discovering one by walking up from the cwd. Relative paths resolve against the cwd. Falls back to `$MINDTAPE_WORKTREE`; the flag wins.],
-  [`@name <cmd>`], [Leading shortcut for `-w`: `mt @sn ls` selects the worktree named in `~/.config/mindtape/worktrees.toml`. Only the first argument is sugar, so the `@view` filter sigil is unaffected. See #link(u("/agents/"))[Run from anywhere]; `mt worktrees` lists configured entries.],
-  [`--color <auto\|always\|never>`], [Colour output. `auto` (default) colours when stdout is a TTY and `NO_COLOR` is unset.],
-  [`-v` / `-vv` / `-vvv`], [Increase verbosity: info, debug, trace.],
-  [`--format <table\|json\|csv>`], [Output format where a command supports it; `--json` is shorthand for `--format json`.],
-)
+#terminal(read("../generated/help-install.txt"))
+
+#terminal(read("../generated/help-worktrees.txt"))
 
 #callout("note")[
   Scripting or driving `mt` from an agent? #link(u("/agents/"))[For AI agents]

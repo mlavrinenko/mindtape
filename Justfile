@@ -50,18 +50,25 @@ nix-build:
     git add -A
     nix build .#default
 
+# Capture live `mt` output for the docs (www/generated/*.txt), so the site's
+# CLI reference, help, version, and transcripts cannot drift from the binary.
+# Builds `mt` release, runs it against examples/learn-piano at a pinned clock.
+docs-gen:
+    bash www/generate.sh
+
 # Build the documentation site (www/ -> www/public/mindtape) with tola, then
-# index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/)
-docs-build:
+# index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/).
+# docs-gen runs first so the injected transcripts reflect the current binary.
+docs-build: docs-gen
     cd www && tola build && pagefind --site public/mindtape --silent
 
 # Serve the docs locally with hot reload (no search index — build for that)
-docs-serve:
+docs-serve: docs-gen
     cd www && tola serve
 
 # Build the docs, index with Pagefind, then validate internal links + assets.
 # Pagefind runs before validate so the /pagefind/ bundle exists on disk.
-docs-check:
+docs-check: docs-gen
     cd www && tola build && pagefind --site public/mindtape --silent && tola validate
 
 # Run tests only

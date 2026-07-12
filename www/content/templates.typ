@@ -16,22 +16,10 @@ written file holds plain literals; no `slot` call survives.
 = A template
 
 Templates live under `[templates] dirs` (default `.mindtape/templates`). A slot
-declares a name, a kind, and an optional default or prompt:
+declares a name, a kind, and an optional default or prompt. This is the example
+project's template:
 
-```typ
-#show: task.with(
-  title: slot("title", prompt: "Task title"),
-  priority: ice(
-    impact: slot("impact", kind: "int", default: 5),
-    confidence: slot("confidence", kind: "float", default: 0.8),
-    ease: slot("ease", kind: "int", default: 5),
-  ),
-  tags: slot("tags", kind: "list", default: ()),
-)
-
-== Summary
-#slot("summary", kind: "text", prompt: "One-paragraph summary")
-```
+#raw(read("../generated/template.typ"), lang: "typ", block: true)
 
 Slots nest: `discover_slots` walks into `ice(…)`, so each leaf becomes its own
 fillable field. Structured fields have no CLI path syntax — expose each leaf as
@@ -41,13 +29,7 @@ a slot instead.
 
 `--describe` prints the schema (`--describe=json` for machine use):
 
-#terminal("$ mt add --describe
-title       string  required  # Task title
-impact      int     optional  = 5
-confidence  float   optional  = 0.8
-ease        int     optional  = 5
-tags        list    optional  = ()
-summary     text    required  # One-paragraph summary")
+#terminal(read("../generated/describe.txt"))
 
 = Fill the slots
 

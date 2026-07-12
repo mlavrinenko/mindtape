@@ -51,7 +51,7 @@ with violations. Key restrictions:
 | File size | `linecop` (Rust 500, Markdown 200) |
 | Copy-paste | `jscpd` (`just check-dry`) — fails on any duplicated Rust block ≥70 tokens; fix by extracting a shared helper |
 | Doc drift | `outdatty check` |
-| Docs site | `just docs-check` — `tola build`, then `pagefind` indexes the built HTML for client-side search, then `tola validate` checks links + assets |
+| Docs site | `just docs-check` — `docs-gen` first captures live `mt` output (`www/generate.sh`), then `tola build`, then `pagefind` indexes the built HTML for client-side search, then `tola validate` checks links + assets |
 
 Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-tarpaulin`.
 `main.rs` is excluded — keep it thin.
