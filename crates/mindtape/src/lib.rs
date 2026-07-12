@@ -10,6 +10,7 @@
 
 pub mod add_slots;
 mod body_headers;
+pub mod condition;
 pub mod config;
 mod config_add;
 mod config_go;
@@ -21,12 +22,14 @@ mod config_views;
 mod date;
 mod date_pin;
 pub mod derive;
+mod expr;
 pub mod filter;
 mod filter_links;
 mod filter_views;
 pub mod framework;
 mod framework_eval;
 pub mod gate;
+pub mod git;
 pub mod graph;
 pub mod link;
 pub mod link_scan;
@@ -51,11 +54,12 @@ mod validate_recur;
 pub mod worktrees;
 
 pub use add_slots::{RequiredSlot, required_core_slots};
+pub use condition::{Condition, ConditionEnv, ConditionError};
 pub use config::{
-    AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags, GoConfig,
-    InteractiveMode, LS_COLUMNS, LocalPackage, PriorityConfig, ReadyConfig, RootConfig, RootSpec,
-    TemplatesConfig, TypstConfig, ViewSpec, Visibility, config_path, embedded_defaults,
-    load_config, parse_config, validate_views,
+    AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags, Facet,
+    GoConfig, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule, PriorityConfig,
+    ReadyConfig, RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec, Visibility,
+    config_path, embedded_defaults, load_config, parse_config, parse_import_view, validate_views,
 };
 pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
@@ -64,6 +68,7 @@ pub use derive::RootDeriver;
 pub use filter::{Filter, FilterError};
 pub use framework::{Category, Framework, Input, InputKind};
 pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
+pub use git::current_branch;
 pub use graph::{Cycle, find_referrer, resolve_edge, toposort};
 pub use link_scan::{TargetSpan, link_target_spans};
 pub use loader::{LoadError, LoadOutcome, find_root, load_project};

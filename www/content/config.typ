@@ -44,6 +44,7 @@ mt config show --json     # effective config as JSON
   [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
   [`[ls]`, `[rm]`], [Default filters, columns, and ordering. See #link(u("/filters/"))[Filter language].],
   [`[views.<name>]`], [Named filter + sort + columns bundles, referenced with `@name`. See #link(u("/filters/"))[Filter language].],
+  [`[[ls.rules]]`], [Ordered auto-activation rules for bare `mt ls`. See below and #link(u("/cli/"))[CLI reference].],
   [`[templates]`], [Template `dirs` and the `default` template. See #link(u("/templates/"))[Templates & slots].],
   [`[add]`, `[go]`], [Editor, interactive mode, and header for `mt add` / `mt go`.],
 )
@@ -171,6 +172,40 @@ predicate and #link(u("/cli/"))[CLI reference] for `mt ls` / `mt views`.
 Views are validated at config load: each `filter` must parse, `sort` and
 `columns` entries must be legal, every view reference must resolve, and the
 reference graph must be acyclic — a cycle is a config error.
+
+= Conditional `ls` rules
+
+`[[ls.rules]]` makes bare `mt ls` adapt to ambient project state: the first
+entry (top to bottom) whose `condition` holds — or that omits `condition`
+entirely — wins.
+
+```toml
+[[ls.rules]]
+name = "release"                              # optional; shown in the trailer / JSON
+condition = 'on_branch("release/*")'          # filter-syntax over env predicates; absent = always
+import-views = ["inbox", "release(sort)"]     # compose left-to-right, per-facet last-wins
+filter = '!terminal && due <= "2026-08-01"'   # optional manual override (highest precedence)
+```
+
+- `name` — shown in the trailer and JSON; falls back to the `condition` text
+  when unset.
+- `condition` — a #link(u("/cli/"))[condition-language] expression over
+  `on_branch`/`env`/`weekday`/`now`; absent matches always.
+- `import-views` — ordered `"view"` (all facets) or `"view(facet, ...)"` (a
+  subset of `filter`/`sort`/`columns`) entries, composed left to right with
+  per-facet last-wins.
+- `filter`/`sort`/`columns` — manual overrides, highest precedence; same
+  grammar as `[views]`.
+
+Per facet, precedence is manual > the last `import-views` entry that provides
+it > the built-in default. A matched rule does not inherit `default-view` as a
+base layer — it composes everything it uses. No rule matching falls back to
+`default-view` exactly as before bare `mt ls` had rules at all.
+
+Rules are validated at config load: `condition` must parse and reference only
+environment predicates (a task field name is a load-time error), each
+`import-views` entry must resolve to a declared view with legal facet
+selectors, and a manual override must be valid — same checks as `[views]`.
 
 = Environment variables
 

@@ -51,6 +51,7 @@ pub fn run(args: &EvalArgs) -> Result<()> {
                 OutputFormat::Table,
                 &mindtape::Config::default(),
                 &mindtape::Readiness::empty(),
+                None,
             )?
         );
     }

@@ -73,12 +73,17 @@ mt ls -n 10                    # limit to 10
 
 = Default filters
 
-Omitting the filter applies the default view — `[ls] default-view` by name, else
-the `[views.default]` view; an empty filter (`''`) matches everything. The shipped
-default view filters `!terminal && (miss(start) || start <= now())` — open work
-whose start date, if any, has arrived. Being a view (not a bare filter) it can
-carry sort and columns too. `mt rm` applies `[rm] default-filter` (`terminal`).
-Both live in #link(u("/config/"))[Configuration].
+Omitting the filter first tries the project's ordered
+#link(u("/cli/"))[`[[ls.rules]]`] — auto-activation rules keyed off a separate,
+environment-only mini-language (`on_branch(...)`, `env(...)`, `weekday()`,
+`now()` — no task fields; same operators and parser as this page's filters).
+No rule matching falls back to the default view — `[ls] default-view` by name,
+else the `[views.default]` view; an empty filter (`''`) skips all of that and
+matches everything. The shipped default view filters `!terminal &&
+(miss(start) || start <= now())` — open work whose start date, if any, has
+arrived. Being a view (not a bare filter) it can carry sort and columns too.
+`mt rm` applies `[rm] default-filter` (`terminal`). All three live in
+#link(u("/config/"))[Configuration].
 
 #callout("note")[
   Filters are parsed, not evaluated as code — the expression syntax is fixed.

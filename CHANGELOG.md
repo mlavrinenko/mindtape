@@ -79,6 +79,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   view's sort chain. New `mt views` lists and inspects views (`--json`). Views
   are validated at config load: filters parse, columns are legal, references
   resolve, and the reference graph is acyclic.
+- **Conditional `ls` rules (`[[ls.rules]]`)** — bare `mt ls` adapts to ambient
+  state: the first entry whose `condition` holds wins, composing `import-views`
+  (last-wins) plus a manual override, else `default-view`. New env-only
+  condition language: `on_branch(glob)`, `env(name)`, `weekday()`, `now()`.
 
 ### Removed
 
@@ -88,6 +92,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`mt ls --json` envelope (breaking)** — now `{"tasks": [...], "applied":
+  {"rule": ..., "facets": {...}}}`, not a bare array; update a `jq '.[...]'`
+  consumer to `jq '.tasks[...]'`.
 - **`[ls] default-filter` → `default-view`** — the default `mt ls` listing is now
   a view, not a bare filter, so it carries sort and columns too, not only a
   filter. Omitting the filter resolves `[ls] default-view` (a view name), else the

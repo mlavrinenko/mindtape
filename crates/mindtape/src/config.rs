@@ -23,7 +23,8 @@ use crate::numeric::NumericField;
 pub use crate::config_add::{AddConfig, InteractiveMode};
 pub use crate::config_go::GoConfig;
 pub use crate::config_ls::{
-    ColumnConfig, LS_COLUMNS, LsConfig, ReadyConfig, Visibility, validate_ls_columns,
+    ColumnConfig, Facet, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig, Visibility,
+    parse_import_view, validate_ls_columns, validate_ls_rules,
 };
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
 pub use crate::config_status::{Legend, LegendEntry};
@@ -404,6 +405,7 @@ impl Config {
         }
         problems.extend(validate_ls_columns(&self.ls));
         problems.extend(validate_views(&self.views));
+        problems.extend(validate_ls_rules(&self.ls.rules, &self.views));
         if let Some(name) = &self.ls.default_view
             && !self.views.contains_key(name)
         {

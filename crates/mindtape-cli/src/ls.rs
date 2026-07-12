@@ -1,10 +1,13 @@
 //! `mt ls` — query tasks under the configured roots.
 
+use anstyle::{Effects, Style};
 use anyhow::{Result, anyhow};
 use mindtape::sort::{default_order_with, sort_by_specs};
-use mindtape::{Config, Filter, LS_COLUMNS, Readiness, Task, ViewSpec, select};
+use mindtape::{Config, Filter, Readiness, Task, select};
 
+use crate::ls_rules::{self, Applied};
 use crate::output::{OutputFormat, render};
+use crate::render::color::{Painter, is_color_active};
 use crate::util;
 
 /// Arguments for `ls`.
@@ -57,158 +60,78 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
     if args.interactive {
         return crate::ls_interactive::run(args, project);
     }
-    let mut config = project.config.clone();
-    if let Some(cols) = effective_columns(args, &config)? {
-        config.ls.columns_order = cols;
-    }
-    let (tasks, readiness) = select_view(args, project)?;
+    let (tasks, readiness, applied, config) = resolve_and_select(args, project)?;
 
     let format = if args.json {
         OutputFormat::Json
     } else {
         args.format
     };
-    println!("{}", render(&tasks, format, &config, &readiness)?);
+    println!(
+        "{}",
+        render(&tasks, format, &config, &readiness, Some(&applied))?
+    );
+    if matches!(format, OutputFormat::Table)
+        && let Some(line) = ls_rules::trailer(&applied)
+    {
+        let painter = Painter::new(is_color_active());
+        println!(
+            "{}",
+            painter.paint(&line, Style::new().effects(Effects::DIMMED))
+        );
+    }
     Ok(())
 }
 
-/// Compute the displayed view: apply the filter, select, sort, and truncate.
-///
-/// Consumes `project.outcome.tasks`. Readiness is computed over the full set —
-/// before the filter narrows it — so a terminal dependency hidden by the default
-/// filter still counts as satisfied; it is shared by the filter, the sort, and
-/// the rendered column. Both the one-shot render and the interactive loop call
-/// this so their lists (and thus the `#` ordinals) match exactly.
+/// Resolve the effective bundle ([`ls_rules::resolve`]), apply it, select and
+/// sort the tasks, and truncate. Consumes `project.outcome.tasks`. Readiness
+/// is computed over the full set — before the filter narrows it — so a
+/// terminal dependency hidden by the effective filter still counts as
+/// satisfied; it is shared by the filter, the sort, and the rendered column.
+/// Both the one-shot render and the interactive loop build on this (via
+/// [`select_view`]), so their lists (and thus the `#` ordinals) match exactly.
 ///
 /// # Errors
-/// Returns an error if the filter or sort spec is invalid.
-pub(crate) fn select_view(args: &LsArgs, project: util::Project) -> Result<(Vec<Task>, Readiness)> {
+/// Returns an error if the resolved filter or sort spec is invalid.
+fn resolve_and_select(
+    args: &LsArgs,
+    project: util::Project,
+) -> Result<(Vec<Task>, Readiness, Applied, Config)> {
+    let (bundle, applied) = ls_rules::resolve(&project, args)?;
+    let mut config = project.config.clone();
+    if !bundle.columns.is_empty() {
+        config.ls.columns_order = bundle.columns.clone();
+    }
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
-    let filter = build_filter(args, &project.config)?;
+    let filter = Filter::parse(&bundle.filter)?;
     let mut tasks = select(
         project.outcome.tasks,
-        filter.as_ref(),
+        Some(&filter),
         &project.config,
         &readiness,
     )?;
-    let sort = effective_sort(args, &project.config)?;
-    sort_tasks(&mut tasks, &sort, &project.config, &readiness)?;
+    sort_tasks(&mut tasks, &bundle.sort, &project.config, &readiness)?;
     if let Some(limit) = args.limit {
         tasks.truncate(limit);
     }
+    Ok((tasks, readiness, applied, config))
+}
+
+/// Compute the displayed view: [`resolve_and_select`], keeping only the task
+/// list and readiness. The interactive loop ([`crate::ls_interactive`]) calls
+/// this so it matches the one-shot render exactly.
+///
+/// # Errors
+/// Returns an error if the resolved filter or sort spec is invalid.
+pub(crate) fn select_view(args: &LsArgs, project: util::Project) -> Result<(Vec<Task>, Readiness)> {
+    let (tasks, readiness, _applied, _config) = resolve_and_select(args, project)?;
     Ok((tasks, readiness))
 }
 
-/// Resolve the filter to apply. An explicit expression (including empty, which
-/// is match-all, and a bare `@view`) is used verbatim; an omitted filter takes
-/// the default view's filter (or match-all when no default view resolves).
-fn build_filter(args: &LsArgs, config: &Config) -> Result<Option<Filter>> {
-    let expr = match &args.filter {
-        Some(expr) => Some(expr.clone()),
-        None => bundle_view(args, config)?.map(|view| view.filter.clone()),
-    };
-    match expr {
-        Some(expr) => Ok(Some(Filter::parse(&expr)?)),
-        None => Ok(None),
-    }
-}
-
-/// The view that drives this run as a bundle (filter + sort + columns), if any.
-/// A bare `@name` filter argument names it; an omitted filter falls back to the
-/// project's default view ([`Config::ls_default_view`]). `None` for a compound
-/// expression, an empty filter, or when no default view resolves. Errors when a
-/// bare `@name` names no declared view.
-fn bundle_view<'a>(args: &LsArgs, config: &'a Config) -> Result<Option<&'a ViewSpec>> {
-    let Some(filter) = &args.filter else {
-        return Ok(config.ls_default_view());
-    };
-    let Some(name) = bare_view_ref(filter) else {
-        return Ok(None);
-    };
-    let spec = config
-        .views
-        .get(name)
-        .ok_or_else(|| anyhow!("unknown view: {name}"))?;
-    Ok(Some(spec))
-}
-
-/// A filter argument that is exactly one `@name` token (bundle mode), yielding
-/// the bare name; `None` for a compound expression.
-fn bare_view_ref(filter: &str) -> Option<&str> {
-    let name = filter.trim().strip_prefix('@')?;
-    let ok = !name.is_empty()
-        && name
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-');
-    ok.then_some(name)
-}
-
-/// The sort chain to apply: explicit `--sort` wins, else a bundle view's sort,
-/// else empty (the default order). Any `@view` spec is spliced to that view's
-/// sort chain.
-fn effective_sort(args: &LsArgs, config: &Config) -> Result<Vec<String>> {
-    let base = if !args.sort.is_empty() {
-        args.sort.clone()
-    } else if let Some(view) = bundle_view(args, config)? {
-        view.sort.clone()
-    } else {
-        Vec::new()
-    };
-    let mut out = Vec::with_capacity(base.len());
-    for spec in &base {
-        if let Some(name) = spec.strip_prefix('@') {
-            let view = config
-                .views
-                .get(name)
-                .ok_or_else(|| anyhow!("unknown view: {name}"))?;
-            out.extend(view.sort.iter().cloned());
-        } else {
-            out.push(spec.clone());
-        }
-    }
-    Ok(out)
-}
-
-/// The column override to apply: explicit `--columns` wins, else a bundle view's
-/// columns, else `None` (keep `[ls] columns-order`).
-fn effective_columns(args: &LsArgs, config: &Config) -> Result<Option<Vec<String>>> {
-    if let Some(spec) = &args.columns {
-        return Ok(Some(resolve_columns(spec, config)?));
-    }
-    match bundle_view(args, config)? {
-        Some(view) if !view.columns.is_empty() => Ok(Some(view.columns.clone())),
-        _ => Ok(None),
-    }
-}
-
-/// Resolve a `--columns` spec (a comma list of column names, or `@view`) to a
-/// validated list of `[ls]` column names.
-fn resolve_columns(spec: &str, config: &Config) -> Result<Vec<String>> {
-    let names: Vec<String> = if let Some(name) = spec.strip_prefix('@') {
-        let view = config
-            .views
-            .get(name)
-            .ok_or_else(|| anyhow!("unknown view: {name}"))?;
-        view.columns.clone()
-    } else {
-        spec.split(',')
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-            .map(str::to_owned)
-            .collect()
-    };
-    for name in &names {
-        if !LS_COLUMNS.contains(&name.as_str()) {
-            return Err(anyhow!(
-                "unknown column `{name}`, expected one of {}",
-                LS_COLUMNS.join(", ")
-            ));
-        }
-    }
-    Ok(names)
-}
-
-fn sort_tasks(
+/// Apply `specs` (empty means the built-in default order); shared by the
+/// `ls` render path and [`crate::util`]'s handle-ordinal resolution, so both
+/// order tasks identically for any given resolved bundle.
+pub(crate) fn sort_tasks(
     tasks: &mut [Task],
     specs: &[String],
     config: &Config,

@@ -15,6 +15,7 @@ mod init;
 mod install;
 mod ls;
 mod ls_interactive;
+mod ls_rules;
 mod output;
 mod recur;
 mod recur_edit;

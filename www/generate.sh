@@ -83,10 +83,16 @@ gen_color ls-open  ls 'status != "done"'
 
 # A single task object for the for-agents page's `mt ls --json` example. The
 # `ls` path scores priority and derives folder tags (unlike single-file `eval`,
-# which leaves both empty); jq slices the one-element array to an object, so the
-# page shows a complete, binary-sourced task instead of a hand-typed one.
+# which leaves both empty); jq slices the envelope's `tasks` array to an
+# object, so the page shows a complete, binary-sourced task instead of a
+# hand-typed one. `mt ls --json`'s top-level shape is the `{tasks, applied}`
+# envelope (`truth/tasks/conditional-ls-rules.typ`), captured separately below.
 "$MT" -w "$FIX" --color never ls 'id == "fur-elise-polish"' --json \
-  | jq '.[0]' >"$OUT/ls-task.json"
+  | jq '.tasks[0]' >"$OUT/ls-task.json"
+
+# The full `mt ls --json` envelope (bare listing — [[ls.rules]] +
+# default-view attribution) for the for-agents page.
+gen_read ls-json ls --json
 
 # config show --origin prints the project's config path absolute (canonicalized
 # root). Normalize the fixture prefix to a project-relative path so the docs are

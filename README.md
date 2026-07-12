@@ -74,7 +74,7 @@ mt add fix login +backend +auth         # +tag words move into a tags slot, if t
 mt add --edit                           # fill the slots in your editor (YAML buffer)
 mt add -t bug --name oauth-bug --to auth # named template, explicit stem, nested under <root>/auth/
 
-# List tasks under the configured roots (applies the default view)
+# List tasks (first matching [[ls.rules]], else the default view)
 mt ls
 mt ls ''                             # empty filter → everything (there is no --all)
 mt ls 'has_tag("backend")'           # filter expression
@@ -158,9 +158,8 @@ which layers contributed and where each was read from, or `mt config show
 ```toml
 [tasks]
 roots = ["tasks"]
-# Table-form roots add a display name and folder-derived tags (`[[tasks.roots]]`
-# with `name` + `derive-tags`, plus a project-wide `[tasks.derive-tags]` policy):
-# nested tasks inherit tags from their folders. See default-config.toml.
+# Table-form roots (`[[tasks.roots]]` with `name` + `derive-tags`) add a
+# display name and folder-derived tags. See default-config.toml.
 
 # Status legend: legal values in lifecycle order, each with an optional glyph
 # and colour. `terminal = true` ends a task (required fields relax once terminal).
@@ -175,11 +174,10 @@ color = "green"
 terminal = true
 
 # Priority: a number on a scale, classified into labelled bands. `required` is
-# true | false | "non-terminal"; difficulty is the sibling. `framework` (optional)
-# scores typed inputs instead of a hand-set int — built-ins ice/rice/wsjf/
-# eisenhower/moscow ship baked-in (`priority: ice(impact: 8, confidence: 0.9,
-# ease: 7)`); `allow-manual = false` forbids raw ints. Override one under
-# `[tasks.priority.frameworks.<name>]`.
+# true | false | "non-terminal"; difficulty is the sibling. `framework`
+# (optional) scores typed inputs instead of a hand-set int — built-ins
+# ice/rice/wsjf/eisenhower/moscow ship baked-in; `allow-manual = false` forbids
+# raw ints. Override one under `[tasks.priority.frameworks.<name>]`.
 [tasks.priority]
 kind = "int"                       # int | real
 min  = 0
@@ -194,39 +192,41 @@ max   = 9
 glyph = "🔴"
 color = "red"
 
-# Allowed estimate units (free labels; never converted or compared). An estimate
-# is a unit dict, e.g. `estimate: (days: 5, hours: 5)` or `estimate: (points: 8)`.
-# Omit this section to accept any unit.
+# Allowed estimate units (free labels; never converted or compared), e.g.
+# `estimate: (days: 5, hours: 5)`. Omit this section to accept any unit.
 [tasks.estimate]
 units = ["minutes", "hours", "days", "weeks"]
 
-# Stem naming: how `mt add` and `mt recur` mint a new task's filename.
-# Unset ⇒ bare slug (today's behaviour). Macros: {slug} {date} {date:FMT}
-# {yy} {mm} {dd} {n} {n:0N}; never renames an existing file.
+# Stem naming for `mt add`/`mt recur`. Unset ⇒ bare slug. Macros: {slug} {date}
+# {date:FMT} {yy} {mm} {dd} {n} {n:0N}; never renames an existing file.
 [tasks.naming]
 stem = "{slug}.task-{yy}{mm}{dd}"
 
 [views.default]  # the default `mt ls` listing; `[ls] default-view` repoints it
 filter = "status != \"done\""
+
+# Auto-activation for bare `mt ls`: first `condition` match composes
+# `import-views` + a manual override; no match falls back to `[views.default]`.
+[[ls.rules]]
+condition = 'on_branch("release/*")'
+import-views = ["default", "release(sort)"]
 ```
 
 ### Filter language
 
 Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
-`due`, `start`, `reviewed`, `file`. `priority` and `difficulty` compare
-numerically against a number (e.g. `priority >= 7`). Operators: `==`, `!=`, `<`,
-`>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses. Functions: `has(field)`, `miss(field)`,
-`has_tag("name")`, `contains(field, "substr")`, `search("query")`, `stale(N)`
-(re-affirmed — or, lacking `reviewed`, last status-changed — more than N days
-ago), `links("kind")` (the task carries a `links:` edge of that kind — built-in
-or a project's custom `[[tasks.links.kinds]]`). The opaque `estimate` dict
-supports presence only (`has(estimate)`), not comparison. Dependency predicates
-`ready` and `blocked` (bare or as `ready()` / `blocked()`) classify a task by
-its `depends-on` edges: ready when every direct dependency is terminal, blocked
-otherwise. `list` floats ready work to the top by default. Empty columns
-auto-hide; `[ls.columns]` / `columns-order` tune it. The `terminal` predicate
-(bare or `terminal()`) matches a task in a terminal status; it is the built-in
-`[rm] default-filter`.
+`due`, `start`, `reviewed`, `file` (`priority`/`difficulty` compare numerically,
+e.g. `priority >= 7`). Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`,
+`!`, parentheses. Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
+`contains(field, "substr")`, `search("query")`, `stale(N)` (unreviewed — or,
+lacking `reviewed`, no status change — for over N days), `links("kind")` (a
+`links:` edge of that kind — built-in or a project's `[[tasks.links.kinds]]`).
+Dependency predicates `ready` / `blocked` classify a task by its `depends-on`
+edges; `list` floats ready work to the top by default. The `terminal`
+predicate matches a terminal-status task; it is the built-in `[rm]
+default-filter`. `[[ls.rules]] condition` is a separate, environment-only
+mini-language (`on_branch(glob)` / `env(name)` / `weekday()` / `now()`, no
+task fields) driving bare `mt ls`'s auto-activation — see the docs site.
 
 ## Architecture
 

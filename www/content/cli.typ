@@ -40,9 +40,11 @@ output):
 = Listing
 
 `mt ls [filter]` lists tasks under the configured roots. Omitting the filter
-applies the default view (`[ls] default-view`, else `[views.default]`); an empty
-filter (`mt ls ''`) lists everything.
-It accepts a #link(u("/filters/"))[filter expression], sorts, and limits:
+(and any `@view`) first tries the project's `[[ls.rules]]` — see Conditional
+rules, below — then falls back to the default view (`[ls] default-view`, else
+`[views.default]`); an empty filter (`mt ls ''`) skips both and lists
+everything. It accepts a #link(u("/filters/"))[filter expression], sorts, and
+limits:
 
 #terminal-ansi(read("../generated/ls.ansi"))
 
@@ -61,6 +63,44 @@ Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`, or
 override for one run with `--columns`.
 
 #terminal(read("../generated/help-ls.txt"))
+
+= Conditional rules
+
+Ordered `[[ls.rules]]` entries let bare `mt ls` adapt to ambient project state
+— see #link(u("/config/"))[Config] for the table shape. The first entry whose
+`condition` holds (or that omits `condition` entirely) wins; it composes its
+filter, sort, and columns from `import-views` (left to right, per-facet
+last-wins) plus an optional manual override (highest precedence). No match
+falls back to the default view exactly as before. The dim line under the
+table names which source won each facet:
+
+#terminal(read("../generated/ls.txt"))
+
+`condition` is a separate mini-language over ambient environment facts, not
+task fields — the same operators and parser as
+#link(u("/filters/"))[filters], evaluated against a different domain:
+
+#table(
+  columns: 2,
+  table.header([Predicate], [Matches]),
+  [`on_branch("glob")`], [The current git branch (`.git/HEAD`), glob-matched. `false` off a git repo or on a detached `HEAD`.],
+  [`env("NAME")`], [The named environment variable (`""` when unset).],
+  [`weekday()`], [Today's ISO weekday, `1` (Monday) through `7` (Sunday).],
+  [`now()`], [Today's ISO date — same as the filter-language `now()`.],
+)
+
+A comparison takes a value or a literal on either side (`weekday() >= 6`,
+`"review" == env("MODE")`) — more general than filter expressions, which only
+ever compare a field on the left. A task field name in a condition is a
+load-time config error, since the condition grammar has no fields at all.
+
+```toml
+[[ls.rules]]
+name = "release"                              # shown in the trailer / JSON
+condition = 'on_branch("release/*")'          # absent = always matches
+import-views = ["inbox", "release(sort)"]     # "view" = all facets, "view(f, ...)" a subset
+filter = '!terminal && due <= "2026-08-01"'   # optional manual override, highest precedence
+```
 
 = Views
 

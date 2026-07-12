@@ -51,8 +51,11 @@ fn ls_ids(dir: &Path, filter: &str, env: &[(&str, &str)]) -> Vec<String> {
     }
     let output = cmd.assert().success().get_output().stdout.clone();
     let parsed: serde_json::Value = serde_json::from_slice(&output).unwrap();
+    // `mt ls --json` wraps the task array in an `{"tasks": [...], "applied":
+    // {...}}` envelope (`truth/tasks/conditional-ls-rules.typ`).
     parsed
-        .as_array()
+        .get("tasks")
+        .and_then(serde_json::Value::as_array)
         .unwrap()
         .iter()
         .filter_map(|task| task.get("id").and_then(serde_json::Value::as_str))

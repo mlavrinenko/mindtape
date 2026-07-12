@@ -67,10 +67,12 @@ already given to you.
 
 ## Finding tasks — `mt ls`
 
-Bare `mt ls` applies the project's default view (`[ls] default-view`, else the
-`[views.default]` view; usually: active, startable tasks) and prints a table with
-handle ordinals, status, priority, due date, and title. Pass an empty filter
-(`mt ls ''`) to drop the default and list everything; there is no `--all`.
+Bare `mt ls` first tries the project's `[[ls.rules]]` (ordered auto-activation
+rules keyed off branch/env/weekday/date — see the config), then falls back to
+the default view (`[ls] default-view`, else `[views.default]`; usually: active,
+startable tasks), printing a table with handle ordinals, status, priority, due
+date, and title, plus a dim `applied: ...` line naming which source won. Pass
+an empty filter (`mt ls ''`) to drop all of that and list everything (no `--all`).
 
 Pass a filter expression as the positional argument. Fields:
 `status priority difficulty kind title id due start reviewed file`.
@@ -86,9 +88,9 @@ Operators: `== != < > <= >= && || !` and parentheses. Helpers:
 - `now()` — today's ISO date, e.g. `due < now()`
 - `in_view("name")` (also `@name`) — matches a named view's filter
 
-Named views are `[views.<name>]` bundles (a filter plus optional sort/columns).
-A bare `@name` argument applies all three facets; `@name` inside a bigger filter
-is the filter facet only. `--columns <cols|@view>` picks columns for one run.
+Named views are `[views.<name>]` bundles (filter + optional sort/columns); a
+bare `@name` applies all three facets, `@name` inside a bigger filter is the
+filter facet only. `--columns <cols|@view>` picks columns for one run.
 
 Examples:
 
@@ -107,10 +109,9 @@ For another program to consume, use `mt ls --json` (or `--format csv`).
 
 `mt add <title words>` files a new task from a template. The positional words
 become the title and the filename slug (`mt add fix login bug` →
-`fix-login-bug.typ`). It writes under the first configured root and validates the
-result. For a plain task that single command is enough — no discovery step, and
-never hand-write the `.typ`: `mt add` injects the status and id, slugs the
-filename, and validates for you. Common flags:
+`fix-login-bug.typ`). It writes under the first configured root and validates
+the result — never hand-write the `.typ`: `mt add` injects the status and id,
+slugs the filename, and validates for you. Common flags:
 
 - `-t <template>` — pick a template (default from config)
 - `--to <subdir>` — nest under a folder of the root (drives derived tags)
@@ -181,8 +182,8 @@ Body is normal Typst markup, free for context, checklists, etc.
 Rules to respect:
 - One task per file; the filename stem is the identity. Renaming a file breaks
   inbound `link()`s — prefer `mt rm` to retire, or update links and `mt check`.
-- Status values, kinds, priority scale, and allowed tags are all defined in
-  `.mindtape/config.toml`. Read it before inventing values.
+- Status, kind, priority scale, and tags are all defined in
+  `.mindtape/config.toml` — read it before inventing values.
 - Custom/extension fields must be namespaced `x-<ns>` (e.g. `x-speconaut: ...`).
 - After any hand edit, run `mt check`.
 

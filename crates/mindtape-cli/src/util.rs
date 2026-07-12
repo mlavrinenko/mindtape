@@ -4,11 +4,10 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use anyhow::{Context, Result, anyhow, bail};
-use mindtape::sort::sort_by_specs;
+use anyhow::{Context, Result, bail};
 use mindtape::{
-    Config, Filter, LoadOutcome, Readiness, Task, config_path, default_order_with, find_root,
-    load_config, load_project, select,
+    Config, Filter, LoadOutcome, Readiness, Task, config_path, find_root, load_config,
+    load_project, select,
 };
 
 use crate::handle::{DEFAULT_CHECK_LEN, check_chars, parse_handle};
@@ -155,30 +154,27 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
     Ok((task.clone(), abs))
 }
 
-/// Build the default list view: apply the default view's filter, then its sort
-/// (or the shared default order when it declares none). This replicates exactly
-/// what bare `mt ls` shows — same default view, same filter and sort — so handle
-/// ordinals resolve to the same tasks the user reads off it.
+/// Build the default list view: [`crate::ls_rules::resolve_bare`]'s bundle
+/// (the first matching `[[ls.rules]]` entry, else the default view, else
+/// match-all), filtered then sorted the same way `ls.rs` does. This
+/// replicates exactly what bare `mt ls` shows — same resolution, same filter
+/// and sort — so handle ordinals resolve to the same tasks the user reads
+/// off it. Columns play no part; they don't affect which tasks appear or in
+/// what order.
 fn default_view(project: &Project) -> Result<Vec<Task>> {
-    let view = project.config.ls_default_view();
-    let filter = view.map(|v| Filter::parse(&v.filter)).transpose()?;
+    let (bundle, _applied) = crate::ls_rules::resolve_bare(project)?;
+    let filter = Filter::parse(&bundle.filter)?;
     // Readiness over the full set, before the filter narrows the view, so a
     // dependency hidden by the default filter still counts. Shared by select and
     // ordering so the handle view matches what `list` prints exactly.
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let mut tasks = select(
         project.outcome.tasks.clone(),
-        filter.as_ref(),
+        Some(&filter),
         &project.config,
         &readiness,
     )?;
-    match view.map(|v| v.sort.as_slice()) {
-        Some(specs) if !specs.is_empty() => {
-            sort_by_specs(&mut tasks, specs, &project.config, &readiness)
-                .map_err(|e| anyhow!("{e}"))?;
-        }
-        _ => default_order_with(&mut tasks, &project.config, &readiness),
-    }
+    crate::ls::sort_tasks(&mut tasks, &bundle.sort, &project.config, &readiness)?;
     Ok(tasks)
 }
 

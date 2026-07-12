@@ -30,6 +30,13 @@ A task in `mt ls --json` (the hero's Für Elise task, captured verbatim from the
 `extras` carries the `x-<ns>` extension fields verbatim, so a tool built on
 MindTape reads its own data back out without MindTape interpreting it.
 
+`mt ls --json`'s top-level shape is `{"tasks": [...], "applied": {...}}`, not a
+bare array — `applied` names which #link(u("/cli/"))[`[[ls.rules]]`] entry (if
+any) drove the listing and which source won each facet, so an agent can tell a
+conditional listing from a plain one without re-deriving it:
+
+#terminal(read("../generated/ls-json.txt"))
+
 = Describe before you fill
 
 `mt add --describe=json` returns the slot schema — names, kinds, required flags,

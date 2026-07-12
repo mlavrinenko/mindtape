@@ -122,3 +122,15 @@ filter = '!terminal && has(due) && due >= "2026-07-06" && due <= "2026-07-13"'
 sort = ["due:asc"]
 columns = ["#", "status", "priority", "due", "title"]
 description = "Practice queue due this week"
+
+# Auto-activation for bare `mt ls`: on a practice weekday, lead with this
+# week's due queue (sort + columns imported from `this-week`) but relax its
+# filter to every open task, not just this week's due ones. On a weekend (no
+# rule's condition holds) bare `mt ls` falls through to `[views.default]`
+# unchanged. `condition` also reaches `on_branch("release/*")` / `env("CI")`
+# for a git-branch- or CI-driven listing — see the docs site.
+[[ls.rules]]
+name = "weekday-session"
+condition = "weekday() <= 5"
+import-views = ["this-week(sort, columns)"]
+filter = "!terminal"

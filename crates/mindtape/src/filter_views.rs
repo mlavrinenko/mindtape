@@ -11,7 +11,7 @@
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
-use crate::filter::extract_literal;
+use crate::expr::extract_literal;
 
 /// Rewrite `@name` to `in_view("name")`, leaving `@` inside string literals
 /// untouched. `name` is `[A-Za-z0-9_-]+`; a bare `@` (not followed by a name

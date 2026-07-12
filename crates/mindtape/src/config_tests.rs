@@ -132,6 +132,43 @@ fn ls_default_view_unknown_errors_on_validate() {
 }
 
 #[test]
+fn valid_ls_rules_pass_validate() {
+    let config = parse_config(
+        "[views.inbox]\nfilter = 'status != \"done\"'\n\
+         [[ls.rules]]\nname = \"release\"\n\
+         condition = 'on_branch(\"release/*\")'\n\
+         import-views = [\"inbox\"]\n",
+    )
+    .unwrap();
+    assert!(config.validate().is_ok());
+}
+
+#[test]
+fn ls_rules_task_field_condition_errors_on_validate() {
+    let config = parse_config("[[ls.rules]]\ncondition = \"priority > 5\"\n").unwrap();
+    let err = config.validate().unwrap_err();
+    assert!(err.contains("ls.rules[0].condition"), "{err}");
+    assert!(err.contains("not available in a condition"), "{err}");
+}
+
+#[test]
+fn ls_rules_import_views_still_catch_a_view_cycle() {
+    // A rule importing one side of a view cycle must not mask the existing
+    // (unextended) `config_views` cycle check: rules can only ever be a sink
+    // in the reference graph (nothing can `import-views`/`@`-reference a rule
+    // back), so they cannot themselves complete a cycle, but the underlying
+    // views-only cycle must still surface.
+    let config = parse_config(
+        "[views.a]\nfilter = '@b'\n\
+         [views.b]\nfilter = '@a'\n\
+         [[ls.rules]]\nimport-views = [\"a\"]\n",
+    )
+    .unwrap();
+    let err = config.validate().unwrap_err();
+    assert!(err.contains("reference cycle"), "{err}");
+}
+
+#[test]
 fn required_accepts_bool() {
     let config = parse_config("[tasks.fields.priority]\nrequired = true\n").unwrap();
     assert_eq!(

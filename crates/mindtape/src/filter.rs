@@ -31,10 +31,13 @@
 //! predicate (likewise bare or `terminal()`) matches a task whose status is
 //! flagged terminal in config.
 
-use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
+use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
 use thiserror::Error;
 
 use crate::config::{Config, PriorityConfig};
+use crate::expr::{
+    compare_ordering, extract_identifier, extract_literal, resolve_now_or_literal, unwrap_root,
+};
 use crate::filter_views::{collect_view_refs, desugar_view_refs};
 use crate::model::Task;
 use crate::numeric::{NumValue, format_num};
@@ -225,8 +228,8 @@ fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, Filte
             "comparison needs two operands".to_owned(),
         ));
     };
-    let field = extract_identifier(lhs)?;
-    let literal = eval_rhs(rhs)?;
+    let field = extract_identifier(lhs).map_err(FilterError::Invalid)?;
+    let literal = resolve_now_or_literal(rhs).map_err(FilterError::Invalid)?;
     let value = field_value(ctx.task, &field, ctx.config)?;
     Ok(compare(node.operator(), &value, &literal))
 }
@@ -239,25 +242,6 @@ fn compare(op: &Operator<DefaultNumericTypes>, value: &FieldValue, literal: &str
             Ok(rhs) => compare_ordering(op, num.partial_cmp(&rhs)),
             Err(_) => compare_ordering(op, Some(format_num(*num).as_str().cmp(literal))),
         },
-    }
-}
-
-fn compare_ordering(
-    op: &Operator<DefaultNumericTypes>,
-    ordering: Option<std::cmp::Ordering>,
-) -> bool {
-    use std::cmp::Ordering::{Equal, Greater, Less};
-    let Some(ordering) = ordering else {
-        return matches!(op, Operator::Neq);
-    };
-    match op {
-        Operator::Eq => ordering == Equal,
-        Operator::Neq => ordering != Equal,
-        Operator::Lt => ordering == Less,
-        Operator::Gt => ordering == Greater,
-        Operator::Leq => ordering != Greater,
-        Operator::Geq => ordering != Less,
-        _ => false,
     }
 }
 
@@ -289,8 +273,8 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
         }
         "contains" => {
             let (field, needle) = two_args(children, "contains")?;
-            let name = extract_identifier(field)?;
-            let needle = extract_literal(needle)?;
+            let name = extract_identifier(field).map_err(FilterError::Invalid)?;
+            let needle = extract_literal(needle).map_err(FilterError::Invalid)?;
             Ok(contains_ci(&field_value(task, &name, config)?, &needle))
         }
         "search" => {
@@ -400,70 +384,15 @@ fn num_field(value: Option<&NumValue>, priority: Option<&PriorityConfig>) -> Fie
     }
 }
 
-// --- AST helpers (ported from the SQL translator) ---
-
-fn unwrap_root(node: &Node<DefaultNumericTypes>) -> &Node<DefaultNumericTypes> {
-    if let Operator::RootNode = node.operator()
-        && let [child] = node.children()
-    {
-        return unwrap_root(child);
-    }
-    node
-}
-
-fn extract_identifier(node: &Node<DefaultNumericTypes>) -> Result<String, FilterError> {
-    match unwrap_root(node).operator() {
-        Operator::VariableIdentifierRead { identifier } => Ok(identifier.clone()),
-        other => Err(FilterError::Invalid(format!(
-            "expected a field, got {other:?}"
-        ))),
-    }
-}
-
-pub(crate) fn extract_literal(node: &Node<DefaultNumericTypes>) -> Result<String, FilterError> {
-    let node = unwrap_root(node);
-    match node.operator() {
-        Operator::Const { value } => literal_to_string(value),
-        Operator::Neg => match node.children() {
-            [child] => Ok(format!("-{}", extract_literal(child)?)),
-            _ => Err(FilterError::Invalid("malformed negation".to_owned())),
-        },
-        other => Err(FilterError::Invalid(format!(
-            "expected a literal, got {other:?}"
-        ))),
-    }
-}
-
-/// Right-hand side of a comparison: either a literal or `now()`.
-fn eval_rhs(node: &Node<DefaultNumericTypes>) -> Result<String, FilterError> {
-    let node = unwrap_root(node);
-    if let Operator::FunctionIdentifier { identifier } = node.operator() {
-        return match identifier.as_str() {
-            "now" => Ok(crate::date::today_iso()),
-            other => Err(FilterError::Invalid(format!(
-                "function `{other}` cannot be used as a comparison value; only `now()` is allowed here"
-            ))),
-        };
-    }
-    extract_literal(node)
-}
-
-fn literal_to_string(value: &Value<DefaultNumericTypes>) -> Result<String, FilterError> {
-    match value {
-        Value::String(text) => Ok(text.clone()),
-        Value::Int(num) => Ok(num.to_string()),
-        Value::Float(num) => Ok(num.to_string()),
-        Value::Boolean(flag) => Ok(if *flag { "true" } else { "false" }.to_owned()),
-        _ => Err(FilterError::Invalid("unsupported literal".to_owned())),
-    }
-}
+// --- AST helpers (ported from the SQL translator; shared walk primitives now
+// live in `crate::expr`, consumed by both this module and `condition.rs`) ---
 
 fn single_identifier(
     children: &[Node<DefaultNumericTypes>],
     name: &str,
 ) -> Result<String, FilterError> {
     match children {
-        [arg] => extract_identifier(arg),
+        [arg] => extract_identifier(arg).map_err(FilterError::Invalid),
         _ => Err(FilterError::Invalid(format!("{name}() needs one argument"))),
     }
 }
@@ -473,7 +402,7 @@ fn single_literal(
     name: &str,
 ) -> Result<String, FilterError> {
     match children {
-        [arg] => extract_literal(arg),
+        [arg] => extract_literal(arg).map_err(FilterError::Invalid),
         _ => Err(FilterError::Invalid(format!("{name}() needs one argument"))),
     }
 }
