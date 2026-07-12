@@ -10,7 +10,7 @@
   tags: ("docs", "www"),
   links: parent("import-tasks-from-other-trackers.typ")
     + depends-on("mt-import-command.typ"),
-  status: proposed(2026, 7, 13),
+  status: wip(2026, 7, 12),
 )
 
 == Summary
