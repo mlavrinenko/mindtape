@@ -8,7 +8,7 @@
     ease: 6,
   ),
   tags: (),
-  status: wip(2026, 7, 11),
+  status: done(2026, 7, 12),
 )
 
 == Summary
@@ -21,16 +21,18 @@ and deterministic tests need a pinnable "today". Add an env-driven override.
 
 == Behaviour
 
-- Resolve "today" once per process, in precedence order: `MINDTAPE_NOW`, then
-  `SOURCE_DATE_EPOCH`, then the system clock (UTC).
+- Resolve "today" once per process from `MINDTAPE_NOW`, else the system clock
+  (UTC).
 - `MINDTAPE_NOW` accepts `YYYY-MM-DD` or an RFC3339 timestamp; the UTC date
   component is used, any time component parsed and dropped. The domain is
   date-only (UTC, day-granular) — nothing sub-day exists — so time is
   accepted-and-truncated for forward-compat, never rejected.
-- `SOURCE_DATE_EPOCH` is epoch seconds → UTC date (the reproducible-builds
-  standard).
-- A malformed `MINDTAPE_NOW` / `SOURCE_DATE_EPOCH` is a hard error naming the
-  offending variable and value; never silently fall through to the system clock.
+- A malformed `MINDTAPE_NOW` is a hard error naming the variable and value;
+  never silently fall through to the system clock.
+- `SOURCE_DATE_EPOCH` is deliberately NOT honoured: `mt`'s "today" is an
+  operational query concept, not a build-artifact timestamp, and Nix dev/CI
+  shells export `SOURCE_DATE_EPOCH=315532800` (1980-01-01) — honouring it would
+  time-travel every `mt ls` there. Reproducible output pins `MINDTAPE_NOW`.
 
 == Surface
 
@@ -47,9 +49,9 @@ and deterministic tests need a pinnable "today". Add an env-driven override.
 
 == Scope
 
-- env resolution (`MINDTAPE_NOW` / `SOURCE_DATE_EPOCH`) with precedence + errors.
+- env resolution (`MINDTAPE_NOW`) with errors.
 - route `today_ymd` / `today_iso` / `days_ago_iso` and the stamping paths
   through the single resolved value.
 - doc the env var on agents + config pages.
 - regression tests: pinned date drives `now()` / `stale` / ready; RFC3339
-  truncation; `SOURCE_DATE_EPOCH`; malformed → error; unset → system clock.
+  truncation; malformed → error; unset → system clock.
