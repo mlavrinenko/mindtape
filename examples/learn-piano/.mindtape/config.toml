@@ -1,0 +1,121 @@
+# examples/learn-piano/.mindtape/config.toml — a self-contained piano-practice
+# tracker. Real fixture (not a toy): showcases the full config surface and
+# doubles as the input the docs generator runs `mt` against. Modeled on the
+# repo's own .mindtape/config.toml.
+
+[tasks]
+[[tasks.roots]]
+path = "tasks"
+name = "piano"
+derive-tags = true
+
+# Folder-derived tags: technique/repertoire/theory fold in as both flat
+# segment tags (`technique`) and breadcrumbs (same string at this one-level
+# depth, deduped) — see derive-tags.
+[tasks.derive-tags]
+collect = ["segments", "breadcrumbs"]
+
+# Status legend: legal values in lifecycle order. `to` declares the allowed
+# next statuses, so `mt flip` gates every move to a listed edge (`--force`
+# overrides) and `mt check` flags a status unreachable from `proposed`.
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+to = ["accepted", "wip", "cancelled"]
+
+[[tasks.status]]
+value = "accepted"
+glyph = "📋"
+color = "cyan"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+to = ["done", "blocked", "failed", "cancelled"]
+
+[[tasks.status]]
+value = "blocked"
+glyph = "⛔"
+color = "red"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+to = ["wip"]
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+
+[[tasks.status]]
+value = "failed"
+glyph = "❌"
+color = "red"
+terminal = true
+to = ["wip"]
+
+# Priority: an ICE score on a 0..9 scale. `impact` = how much a drill advances
+# your playing, `confidence` = how reliable the method is, `ease` = how little
+# effort it takes to drill. `allow-manual = false` is strict — every task
+# scores through the framework, no hand-set ints.
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
+required = "non-terminal"
+framework = "ice"
+allow-manual = false
+[[tasks.priority.bands]]
+label = "green"
+min = 0
+max = 2
+glyph = "🟢"
+color = "green"
+[[tasks.priority.bands]]
+label = "amber"
+min = 3
+max = 6
+glyph = "🟡"
+color = "yellow"
+[[tasks.priority.bands]]
+label = "red"
+min = 7
+max = 9
+glyph = "🔴"
+color = "red"
+
+[tasks.estimate]
+units = ["minutes", "hours", "days", "weeks"]
+
+[tasks.tags]
+# Authored practice-area tags plus every derived root/folder tag
+# (piano/technique/repertoire/theory) — strict allow-list.
+allowed = [
+  "warmup", "daily", "scales", "arpeggios", "sight-reading", "classical",
+  "recital", "jazz", "theory-drill", "ear-training",
+  "piano", "technique", "repertoire", "theory",
+]
+
+[ls]
+default-filter = "!terminal && (miss(start) || start <= now())"
+
+# Named views: `mt views` lists them, `mt ls @name` applies filter+sort+columns.
+[views.stuck]
+filter = "blocked && stale(30)"
+sort = ["priority:desc", "due:asc"]
+columns = ["#", "status", "ready", "priority", "due", "title"]
+description = "Blocked and not reviewed in 30 days"
+
+[views.this-week]
+filter = '!terminal && has(due) && due >= "2026-07-06" && due <= "2026-07-13"'
+sort = ["due:asc"]
+columns = ["#", "status", "priority", "due", "title"]
+description = "Practice queue due this week"

@@ -48,6 +48,20 @@ groups:
       - README.md
       - AGENTS.md
       - www/utils/site.typ
+      - examples/learn-piano/.mindtape/templates/task.typ
+      - examples/learn-piano/tasks/technique/hanon-warmup-daily.typ
+      - examples/learn-piano/tasks/technique/major-scales-two-octaves.typ
+      - examples/learn-piano/tasks/technique/minor-scales-two-octaves.typ
+      - examples/learn-piano/tasks/technique/arpeggios-all-inversions.typ
+      - examples/learn-piano/tasks/technique/sight-reading-grade-3.typ
+      - examples/learn-piano/tasks/repertoire/fur-elise-polish.typ
+      - examples/learn-piano/tasks/repertoire/clair-de-lune-practice.typ
+      - examples/learn-piano/tasks/repertoire/jazz-standard-autumn-leaves.typ
+      - examples/learn-piano/tasks/repertoire/abandoned-rondo-alla-turca.typ
+      - examples/learn-piano/tasks/theory/circle-of-fifths-drill.typ
+      - examples/learn-piano/tasks/theory/interval-recognition-ear-training.typ
+      - examples/learn-piano/tasks/theory/chord-progression-analysis.typ
+      - examples/learn-piano/tasks/theory/sight-singing-solfege.typ
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.

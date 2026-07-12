@@ -17,7 +17,13 @@ check:
         "chronic just check-file-size" \
         "chronic just check-dry" \
         "chronic just outdatty-check" \
+        "chronic just check-examples" \
         "chronic just docs-check"
+
+# Validate the learn-piano example project (examples/learn-piano/) against
+# itself, so the fixture the docs generator runs `mt` against can never rot.
+check-examples:
+    cargo run -p mindtape-cli -q -- -w examples/learn-piano check
 
 # Check the `rrule(...)` escape hatch's expansion engine: `just check` builds
 # `mindtape` with default features, so it never compiles or runs this code
