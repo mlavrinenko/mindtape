@@ -8,8 +8,8 @@ use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
 use crate::{
-    add, check, cli_dump, config_cmd, eval, flip, go, graph, init, install, ls, recur, review, rm,
-    views, worktrees,
+    add, check, cli_dump, config_cmd, eval, flip, go, graph, import, init, install, ls, recur,
+    review, rm, views, worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -45,6 +45,10 @@ pub struct Cli {
 enum Command {
     /// File a new task from a Typst slot template.
     Add(add::AddArgs),
+    /// Import canonical task-JSON (a file arg or stdin `-`) as native `.typ`
+    /// tasks: map onto this project's config policy, emit, validate the whole
+    /// batch, and report. See `mt ls --json` for the schema this reads.
+    Import(import::ImportArgs),
     /// List tasks under the configured roots, applying a filter.
     Ls(ls::LsArgs),
     /// Emit the task dependency graph as DOT or Mermaid, scoped by a filter.
@@ -118,6 +122,7 @@ impl Cli {
     pub fn run(self) -> Result<()> {
         match self.command {
             Command::Add(args) => add::run(&args),
+            Command::Import(args) => import::run(&args),
             Command::Ls(args) => ls::run(&args),
             Command::Graph(args) => graph::run(&args),
             Command::Views(args) => views::run(&args),

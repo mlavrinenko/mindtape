@@ -294,7 +294,7 @@ fn title_slug(values: &BTreeMap<String, RawValue>) -> Result<String> {
     bail!("need --name or a 'title' value to name the task file")
 }
 
-fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) -> Result<PathBuf> {
+pub(crate) fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) -> Result<PathBuf> {
     let base = base_dir(into, project)?;
     let Some(sub) = to else {
         return Ok(base);
@@ -309,7 +309,7 @@ fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) -> Result<Pat
 /// Resolve the destination base directory from `--into`: `.` (default) is the
 /// first configured root; an absolute path is taken as-is; a relative path
 /// resolves against the current directory.
-fn base_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
+pub(crate) fn base_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
     if into == "." {
         let first = project
             .config
@@ -330,7 +330,7 @@ fn base_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
 
 /// Warn when `dest` lands outside every configured root, since recursive loading
 /// only sees files under a root.
-fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
+pub(crate) fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
     let Ok(dest_abs) = dest.canonicalize() else {
         return;
     };

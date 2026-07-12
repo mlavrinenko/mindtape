@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt import [FILE|-]`** — import canonical task-JSON (a file arg or stdin
+  `-`; the bare array `mt ls --json` emits by default, or its `{"tasks": [...]}`
+  envelope) as native `.typ` tasks. Maps each record onto the project's config
+  policy (`mindtape::map_canonical`: status legend, priority/difficulty scale,
+  `kind` enum, tag allow-list, the `x-<ns>` extras discipline), mints a
+  destination stem from the title (`mindtape::stem_for_title`, disambiguated
+  `-2`/`-3`/... on collision), emits it (`mindtape::emit_task`), then writes
+  the whole batch before reloading and validating the destination as one set —
+  so records that link to each other resolve. A record that fails validation
+  is reported and removed, never left half-written; `--dry-run` stages into a
+  temp mirror of the project instead of touching the real destination.
+  `--into`/`--to` mirror `mt add`'s destination resolution; `--status` defaults
+  a missing status, `--map OLD=NEW` renames a foreign status before legend
+  validation, `--drop-unmapped` drops (instead of keeping and reporting) a tag
+  outside the allow-list. No `--from`/`--via` source selector — a foreign
+  tracker's export becomes canonical JSON via a `jq` adapter, upstream of the
+  pipe. "`mt add` without a template, from a full record."
 - **`mt graph [filter]`** — emit the task dependency graph as Graphviz DOT
   (default) or Mermaid (`--format mermaid`). Nodes are tasks labelled by title
   and status and filled by readiness (ready/blocked/terminal); edges are the

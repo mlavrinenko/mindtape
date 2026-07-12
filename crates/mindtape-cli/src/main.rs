@@ -14,6 +14,7 @@ mod go;
 mod graph;
 mod graph_render;
 mod handle;
+mod import;
 mod init;
 mod install;
 mod ls;
