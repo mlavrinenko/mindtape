@@ -49,18 +49,14 @@ gen_read() {
   "$MT" -w "$FIX" --color never "$@" >"$OUT/$slug.txt"
 }
 
-# Per-subcommand help (project-independent) → OUT/help-<cmd>.txt (verbatim).
-gen_help() {
-  local cmd="$1"
-  "$MT" "$cmd" --help >"$OUT/help-$cmd.txt"
-}
-
-# --- version + global/per-command help (verbatim) -------------------------
+# --- version + structured command tree ------------------------------------
 "$MT" --version >"$OUT/version.txt"
-"$MT" --help >"$OUT/help.txt"
-for cmd in add ls views flip check config rm init install eval go review worktrees recur; do
-  gen_help "$cmd"
-done
+# The command tree as JSON (clap reflection via the hidden `_cli`). cli.typ
+# renders it into the styled CLI reference — grouped commands and flag tables,
+# not a verbatim `--help` dump. The `#[derive(Parser)]` structs are the single
+# source, so the reference cannot restate or drift from a flag fact; the
+# reference-only prose and worked examples live in www/utils/cli-notes.typ.
+"$MT" _cli --json >"$OUT/cli.json"
 
 # --- read commands against the fixture (verbatim) -------------------------
 gen_read ls        ls

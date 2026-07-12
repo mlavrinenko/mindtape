@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, terminal-ansi, callout
+#import "../utils/ui.typ": terminal, callout
 #import "../utils/site.typ": u
+#import "../utils/cli-ref.typ": cli-gate, cli-group, render-globals
 
 #show: page.with(
   title: "CLI reference",
@@ -9,33 +10,40 @@
 )
 
 `mt` is the whole surface. Commands are quiet by default and return honest exit
-codes. Every transcript and help block below is captured from the binary at
-build time against the #link(u("/quickstart/"))[learn-piano example], so nothing
-here can drift from what `mt` actually prints.
+codes. Every command, flag, and sample transcript below is generated from the
+binary at build time — the command tree by reflecting `mt`'s own clap
+definition (#link(u("/agents/"))[`mt _cli --json`]), the transcripts by running
+against the #link(u("/quickstart/"))[learn-piano example] — so nothing here can
+drift from what `mt` actually is.
 
 #terminal(read("../generated/version.txt"))
 
-`mt --help` lists the commands and the global flags every one accepts (`-w`,
-`--color`, `-v`, `--format`):
+// The command tree, reflected from the binary. cli-notes.typ enriches it with
+// reference-only prose and examples; cli-gate asserts every command is grouped
+// and every note attaches to a live node — a new subcommand cannot silently
+// vanish from this page.
+#let cli = json("../generated/cli.json")
+#let cli-groups = (
+  ("Files", ("add", "go", "eval")),
+  ("Listing", ("ls",)),
+  ("Views", ("views",)),
+  ("Status", ("flip", "review")),
+  ("Recurring tasks", ("recur",)),
+  ("Validate & inspect config", ("check", "config")),
+  ("Retire", ("rm",)),
+  ("Setup", ("init", "install", "worktrees")),
+)
+#cli-gate(cli, cli-groups)
 
-#terminal(read("../generated/help.txt"))
+Every command accepts the same global flags:
+
+#render-globals(cli)
 
 = Files
 
-`mt add` files a new task from a template — positional titles, `--set`, JSON, or
-editor mode. Full detail on #link(u("/templates/"))[Templates & slots].
+File a new task, open one in your editor, or evaluate a single file.
 
-#terminal(read("../generated/help-add.txt"))
-
-`mt go <ref>` opens a task in your editor (`[go] editor` → `$VISUAL` → `$EDITOR`).
-`mt eval <file>` evaluates a single task file and prints it (`--json` for machine
-output):
-
-#terminal(read("../generated/eval.txt"))
-
-#terminal(read("../generated/help-go.txt"))
-
-#terminal(read("../generated/help-eval.txt"))
+#cli-group(cli, cli-groups, "Files")
 
 = Listing
 
@@ -44,25 +52,12 @@ output):
 rules, below — then falls back to the default view (`[ls] default-view`, else
 `[views.default]`); an empty filter (`mt ls ''`) skips both and lists
 everything. It accepts a #link(u("/filters/"))[filter expression], sorts, and
-limits:
+limits.
 
-#terminal-ansi(read("../generated/ls.ansi"))
-
-```sh
-mt ls ''                        # empty filter — lists everything
-mt ls 'has_tag("classical")'    # filter expression
-mt ls ready --sort priority:asc -n 10   # predicate + sort + limit
-mt ls @stuck                    # named view — filter + sort + columns
-mt ls --columns status,title    # one-off column override
-mt ls --json                    # --json is shorthand for --format json
-mt ls --format csv              # table (default), json, or csv
-mt ls -i                        # interactive: type a #, Enter opens it
-```
+#cli-group(cli, cli-groups, "Listing")
 
 Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`, or
 override for one run with `--columns`.
-
-#terminal(read("../generated/help-ls.txt"))
 
 = Conditional rules
 
@@ -121,47 +116,27 @@ Reference one with an `@name` sigil:
 `mt views` lists the named views; `mt views <name>` shows one view's resolved
 definition; `--json` on either for scripting.
 
-#terminal(read("../generated/views.txt"))
-
-#terminal(read("../generated/help-views.txt"))
+#cli-group(cli, cli-groups, "Views")
 
 = Status
 
 `mt flip <status> <refs…>` sets a status dated today. Every legend value is also
-a shortcut verb, and flips batch:
+a shortcut verb, and flips batch. When the legend declares `to` transition edges
+(see #link(u("/config/"))[Config]), `mt flip` rejects a move that is not an
+allowed edge and lists the valid next states; `--force` overrides. Tasks are
+referenced by slug, list handle (`1b`), or path. `mt flip --list` prints the
+shortcut verbs generated from the legend.
 
-#terminal(read("../generated/done.txt"))
-
-```sh
-mt flip blocked 1b 2c -m "waiting on infra"   # batch + note
-mt flip --list                                # show the verbs
-mt flip done 1b --force                       # bypass the transition graph
-mt review <ref>                               # stamp reviewed: with today's date
-```
-
-When the legend declares `to` transition edges (see #link(u("/config/"))[Config]),
-`mt flip` rejects a move that is not an allowed edge and lists the valid next
-states; `--force` overrides. Tasks are referenced by slug, list handle (`1b`), or
-path. `mt flip --list` prints the shortcut verbs generated from the legend:
-
-#terminal(read("../generated/flip-list.txt"))
-
-#terminal(read("../generated/help-flip.txt"))
+#cli-group(cli, cli-groups, "Status")
 
 = Recurring tasks
 
 A task with a `recur:` field (see #link(u("/dsl/"))[Task DSL]) advances only
 via `mt recur` — never as a side effect of a read (`mt ls`/`mt check` spawn or
 mutate nothing). Materialize is per-task (`spawn`, the default, or `mutate`;
-`[tasks.recur] materialize` sets the project default):
+`[tasks.recur] materialize` sets the project default).
 
-```sh
-mt recur hanon-warmup-daily              # spawn a new file, or refresh in place
-mt recur hanon-warmup-daily --dry-run    # preview without writing
-mt recur hanon-warmup-daily --advance 4  # pre-materialize 4 future spawns (spawn only)
-mt recur hanon-warmup-daily --skip       # advance the anchor/count, materialize nothing
-mt recur hanon-warmup-daily --force      # spawn again even if a successor already exists
-```
+#cli-group(cli, cli-groups, "Recurring tasks")
 
 `spawn` writes the next occurrence as a new file — its stem minted by
 `[tasks.naming]` (or the built-in `{slug}-{date}` fallback), linked back to its
@@ -172,31 +147,15 @@ recurring task stays a pure close — it never strips `recur` — and prints a
 notice: a `spawn` series points back at `mt recur`, a `mutate` series notes
 that closing ends it.
 
-#terminal(read("../generated/help-recur.txt"))
-
 = Validate and inspect config
 
 `mt check` validates every task: enum values, required fields, numeric bounds,
 link resolution, and dependency cycles. It exits non-zero and names each
-violation when one exists — drop it in CI or a pre-commit hook.
+violation when one exists — drop it in CI or a pre-commit hook. `mt config show`
+prints the effective merged config as re-parseable TOML; `--origin` lists which
+layers contributed, and from where.
 
-#terminal(read("../generated/check.txt"))
-
-#terminal(read("../generated/help-check.txt"))
-
-`mt config show` prints the effective merged config as re-parseable TOML;
-`--origin` lists which layers contributed, and from where:
-
-#terminal(read("../generated/config-origin.txt"))
-
-```sh
-mt config show              # effective config as re-parseable TOML
-mt config show --origin     # which config layers contributed, and from where
-mt config show --defaults   # just the embedded floor
-mt config show --json       # effective config as JSON
-```
-
-#terminal(read("../generated/help-config.txt"))
+#cli-group(cli, cli-groups, "Validate & inspect config")
 
 = Retire
 
@@ -204,13 +163,7 @@ mt config show --json       # effective config as JSON
 `links:` edge (any kind) onto it, and does not commit. Its built-in default
 filter is `terminal`.
 
-```sh
-mt rm abandoned-rondo-alla-turca  # by ref
-mt rm 'status == "cancelled"'     # by filter — every match
-mt rm terminal --dry-run          # preview without writing
-```
-
-#terminal(read("../generated/help-rm.txt"))
+#cli-group(cli, cli-groups, "Retire")
 
 = Setup
 
@@ -219,11 +172,7 @@ defaults. `mt init` writes `.mindtape/config.toml` (`--full` for the expanded
 form). See #link(u("/quickstart/"))[Quickstart]. `mt worktrees` lists the
 `@name` worktree aliases (see #link(u("/agents/"))[Run from anywhere]).
 
-#terminal(read("../generated/help-init.txt"))
-
-#terminal(read("../generated/help-install.txt"))
-
-#terminal(read("../generated/help-worktrees.txt"))
+#cli-group(cli, cli-groups, "Setup")
 
 #callout("note")[
   Scripting or driving `mt` from an agent? #link(u("/agents/"))[For AI agents]

@@ -8,7 +8,8 @@ use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
 use crate::{
-    add, check, config_cmd, eval, flip, go, init, install, ls, recur, review, rm, views, worktrees,
+    add, check, cli_dump, config_cmd, eval, flip, go, init, install, ls, recur, review, rm, views,
+    worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -98,6 +99,10 @@ enum Command {
     /// anchor/`count` without materializing anything. `mt done` never
     /// advances a recurrence — it stays a pure close.
     Recur(recur::RecurArgs),
+    /// Dump the command tree as JSON for the docs generator (hidden;
+    /// reflects `Cli::command()`, so the rendered CLI reference cannot drift).
+    #[command(name = "_cli", hide = true)]
+    CliDump(cli_dump::CliDumpArgs),
     /// Per-status shortcut verb (`<status> <task>...`), dispatched to `flip`.
     #[command(external_subcommand)]
     Status(Vec<String>),
@@ -125,6 +130,7 @@ impl Cli {
             Command::Review(args) => review::run(&args),
             Command::Flip(args) => flip::run(&args),
             Command::Recur(args) => recur::run(&args),
+            Command::CliDump(args) => cli_dump::run(&args),
             Command::Status(argv) => flip::run_external(&argv),
         }
     }

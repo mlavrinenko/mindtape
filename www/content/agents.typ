@@ -20,7 +20,12 @@ mt ls --json          # tasks as JSON (--format csv for CSV)
 mt eval <file> --json # one task file, evaluated
 mt config show --json # the effective config
 mt add --describe=json # the slot schema for the active template
+mt _cli --json        # the command tree — names, flags, defaults, enums
 ```
+
+`mt _cli --json` reflects `mt`'s own clap definition into a stable JSON tree
+(this site's #link(u("/cli/"))[CLI reference] renders from it), so a tool can
+discover every command, flag, default, and enum value without scraping `--help`.
 
 A task in `mt ls --json` (the hero's Für Elise task, captured verbatim from the
 `learn-piano` example):
