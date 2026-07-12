@@ -9,7 +9,7 @@
   ),
   tags: ("docs",),
   links: depends-on("generate-docs-cli-reference-from-the-mt-binary.typ"),
-  status: proposed(2026, 7, 11),
+  status: wip(2026, 7, 12),
 )
 
 == Summary
@@ -20,19 +20,32 @@ captures ANSI and converts it to HTML, and `terminal()` renders the spans. The
 two-seam change is only possible because generate-docs routes every capture
 through the generator and every render through `terminal(read(...))`.
 
+== Constraint (discovered)
+
+The original two-seam plan (ANSI → HTML `<span>`, injected raw) is not
+possible: tola / Typst HTML export exposes no raw-HTML-string escape hatch
+(`html.elem` escapes its text), and `text(fill: …)` colours are dropped in HTML
+export. The one colour-carrying path is `html.frame(content)`, which renders
+native Typst content to inline `<svg>`. The terminal panel background is
+theme-invariant (`--term-bg` has no dark override), so baked SVG colours read
+correctly under both site themes — no CSS-variable colour mapping needed. Cost:
+the transcript renders as an image, so the OUTPUT is not text-selectable (the
+copyable commands stay real text in the sibling `sh` code blocks).
+
 == Approach
 
-- Generator: capture with `--color always`, convert ANSI → HTML spans (an
-  `ansi-to-html` crate or `aha`), write `www/generated/<slug>.html` (or annotate
-  the `.txt`).
-- `terminal()` (`www/utils/ui.typ`): gain an ANSI/HTML-aware path that renders
-  the spans as raw HTML in the terminal panel; map ANSI colours to CSS variables
-  so light/dark themes both work.
-- No content-page edits — they already call `terminal(read(...))`.
+- Generator (`www/generate.sh`): capture the colour-bearing transcripts a second
+  time with `--color always` → `www/generated/<slug>.ansi` (raw SGR bytes).
+- `terminal()` (`www/utils/ui.typ`): an ANSI-aware path parses the SGR runs in
+  Typst, builds a monospace block of `text(fill: …)` coloured runs (One-Dark
+  palette, readable on the dark panel; SGR reset → `--term-fg`), and wraps it in
+  `html.frame(…)` so it serializes to inline SVG inside the `.terminal` div.
+- No content-page rewrites of the transcript source — pages keep calling the
+  `terminal` helper; only the helper and its capture change.
 
 == Scope
 
-- generator colour capture + ANSI → HTML conversion.
-- `terminal()` span rendering + theme-aware CSS colour mapping.
-- verify a sampling (`mt ls` bands, `mt check` ok/fail) renders coloured in both
-  light and dark.
+- generator `--color always` capture for the colour-bearing transcripts.
+- `terminal()` ANSI parse → `text(fill:)` runs → `html.frame` SVG render.
+- verify `mt ls` bands and `mt check` render coloured, and the panel reads in
+  both light and dark.
