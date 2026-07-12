@@ -1,0 +1,151 @@
+//! `priority:`/`difficulty:` policy mapping: reverse the canonical schema's
+//! framework/scalar shape into [`NumValue`], then report scale and
+//! strict-framework problems via the same pure checks `validate.rs` uses
+//! ([`crate::framework::Framework::check_input_values`],
+//! [`crate::config::PriorityConfig::resolve`], [`NumericField::resolve`]).
+
+use std::collections::BTreeMap;
+
+use serde_json::Value;
+
+use crate::canonical::{CanonicalNum, CanonicalPriority};
+use crate::config::{Config, PriorityConfig};
+use crate::numeric::{InputValue, NumValue, NumericField, format_num};
+
+use super::report::ReportEntry;
+
+/// Reverse a canonical `priority` into its authored [`NumValue`] form,
+/// reporting strict-framework and scale violations. `score` is read-side only
+/// and ignored (see the module doc's "Priority parity" section in
+/// `canonical.rs`).
+pub(crate) fn map_priority(
+    canonical: Option<&CanonicalPriority>,
+    config: &Config,
+    out: &mut Vec<ReportEntry>,
+) -> Option<NumValue> {
+    let priority_cfg = &config.tasks.priority;
+    let value = match canonical? {
+        CanonicalPriority::Num(num) => NumValue::Num(*num),
+        CanonicalPriority::Label(label) => NumValue::Label(label.clone()),
+        CanonicalPriority::Framework {
+            framework, inputs, ..
+        } => NumValue::Framework {
+            name: framework.clone(),
+            inputs: convert_inputs(inputs, out),
+        },
+    };
+    check_priority(&value, priority_cfg, out);
+    Some(value)
+}
+
+/// Reverse a canonical `difficulty` into its authored [`NumValue`] form
+/// (never a framework — the canonical schema never authors one, see
+/// `canonical.rs::num_to_canonical`), reporting scale violations.
+pub(crate) fn map_difficulty(
+    canonical: Option<&CanonicalNum>,
+    config: &Config,
+    out: &mut Vec<ReportEntry>,
+) -> Option<NumValue> {
+    let value = match canonical? {
+        CanonicalNum::Num(num) => NumValue::Num(*num),
+        CanonicalNum::Label(label) => NumValue::Label(label.clone()),
+    };
+    check_scale(&value, "difficulty", &config.tasks.difficulty, out);
+    Some(value)
+}
+
+fn convert_inputs(
+    inputs: &BTreeMap<String, Value>,
+    out: &mut Vec<ReportEntry>,
+) -> BTreeMap<String, InputValue> {
+    let mut converted = BTreeMap::new();
+    for (key, value) in inputs {
+        match json_to_input_value(value) {
+            Some(input) => {
+                converted.insert(key.clone(), input);
+            }
+            None => out.push(ReportEntry::violated(
+                "priority",
+                format!("input `{key}` has an unsupported JSON type; dropped"),
+            )),
+        }
+    }
+    converted
+}
+
+fn json_to_input_value(value: &Value) -> Option<InputValue> {
+    match value {
+        Value::Number(_) => value.as_f64().map(InputValue::Num),
+        Value::Bool(flag) => Some(InputValue::Bool(*flag)),
+        Value::String(text) => Some(InputValue::Text(text.clone())),
+        Value::Null | Value::Array(_) | Value::Object(_) => None,
+    }
+}
+
+fn check_priority(value: &NumValue, config: &PriorityConfig, out: &mut Vec<ReportEntry>) {
+    match value {
+        NumValue::Framework { name, inputs } => check_framework(value, name, inputs, config, out),
+        NumValue::Num(_) | NumValue::Label(_) => check_manual(value, config, out),
+    }
+}
+
+fn check_framework(
+    value: &NumValue,
+    name: &str,
+    inputs: &BTreeMap<String, InputValue>,
+    config: &PriorityConfig,
+    out: &mut Vec<ReportEntry>,
+) {
+    match config.frameworks.get(name) {
+        None => out.push(ReportEntry::violated(
+            "priority",
+            format!("unknown priority framework `{name}`"),
+        )),
+        Some(framework) => {
+            for problem in framework.check_input_values(inputs) {
+                out.push(ReportEntry::violated("priority", problem));
+            }
+        }
+    }
+    if let Some(score) = config.resolve(value) {
+        push_if_out_of_scale(score, "priority", &config.field, out);
+    }
+}
+
+fn check_manual(value: &NumValue, config: &PriorityConfig, out: &mut Vec<ReportEntry>) {
+    if config.framework.is_some() && !config.allow_manual {
+        out.push(ReportEntry::violated(
+            "priority",
+            format!(
+                "`{}` is a manual priority but the project requires its active framework",
+                value.as_display()
+            ),
+        ));
+        return;
+    }
+    check_scale(value, "priority", &config.field, out);
+}
+
+fn check_scale(value: &NumValue, field: &str, scale: &NumericField, out: &mut Vec<ReportEntry>) {
+    match scale.resolve(value) {
+        None => out.push(ReportEntry::violated(
+            field,
+            format!("`{}` is not a known {field} value", value.as_display()),
+        )),
+        Some(point) => push_if_out_of_scale(point, field, scale, out),
+    }
+}
+
+fn push_if_out_of_scale(point: f64, field: &str, scale: &NumericField, out: &mut Vec<ReportEntry>) {
+    if point < scale.min || point > scale.max {
+        out.push(ReportEntry::violated(
+            field,
+            format!(
+                "{} is outside the {field} scale {}..{}",
+                format_num(point),
+                format_num(scale.min),
+                format_num(scale.max),
+            ),
+        ));
+    }
+}

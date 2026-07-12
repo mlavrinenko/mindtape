@@ -33,6 +33,7 @@ mod framework_eval;
 pub mod gate;
 pub mod git;
 pub mod graph;
+pub mod import_map;
 pub mod link;
 pub mod link_scan;
 pub mod loader;
@@ -74,6 +75,10 @@ pub use framework::{Category, Framework, Input, InputKind};
 pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use git::current_branch;
 pub use graph::{Cycle, Edge, edges, find_referrer, resolve_edge, toposort};
+pub use import_map::{
+    EntryKind, ImportReport, MapOptions, Mapped, ReportEntry, map_canonical, slug_from_title,
+    stem_for_title,
+};
 pub use link_scan::{TargetSpan, link_target_spans};
 pub use loader::{LoadError, LoadOutcome, find_root, load_project};
 pub use model::{Status, Task, is_history_pointer, normalize_link};
