@@ -13,6 +13,19 @@
 # post-processing; the transcript content is otherwise the binary's stdout.
 #
 # `just docs-gen` invokes this; docs-build / docs-serve / docs-check run it first.
+#
+# Docs SSG gotchas (tola), learned building this generator:
+#   - Build-time images (the hero-card SVG, the terminal-ansi html.frame renders)
+#     live only under generated/, never copied to public/. `tola validate`
+#     statically flags an `image("<path>")` string literal as a broken link when
+#     the target isn't a copied asset, so the pages inline these via
+#     `image(read(path, encoding: none), format: "svg")` — validate ignores byte
+#     reads (as it does the `.txt`/`.json` reads) and the inline is identical.
+#     Keep any new build-time image on the read() path, not a bare `image(path)`.
+#   - `tola serve` caches its file index at startup: a brand-new generated/ file
+#     is not found by an already-running serve (pre-existing files read fine).
+#     Restart serve (`just docs-serve`) after adding a capture here; `tola build`
+#     (the gate path) always re-scans and is unaffected.
 set -eo pipefail
 
 # The fixed docs clock. The learn-piano fixture's dates are authored around it.
