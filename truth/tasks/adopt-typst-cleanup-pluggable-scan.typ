@@ -8,7 +8,7 @@
     ease: 6,
   ),
   tags: ("substrate", "cli",),
-  status: proposed(2026, 7, 12),
+  status: done(2026, 7, 12)[rewired onto typst\_cleanup::plan via Policy::scan; local skeleton deleted],
 )
 
 == Summary
