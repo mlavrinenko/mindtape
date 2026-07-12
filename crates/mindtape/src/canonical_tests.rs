@@ -1,22 +1,10 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
-use std::collections::BTreeMap;
 
 use crate::config::{Config, parse_config};
-use crate::numeric::{InputValue, NumValue};
-use crate::test_support::bare_task;
+use crate::numeric::NumValue;
+use crate::test_support::{bare_task, ice_priority};
 
 use super::CanonicalTask;
-
-fn ice_priority(impact: f64, confidence: f64, ease: f64) -> NumValue {
-    NumValue::Framework {
-        name: "ice".to_owned(),
-        inputs: BTreeMap::from([
-            ("impact".to_owned(), InputValue::Num(impact)),
-            ("confidence".to_owned(), InputValue::Num(confidence)),
-            ("ease".to_owned(), InputValue::Num(ease)),
-        ]),
-    }
-}
 
 #[test]
 fn framework_priority_serializes_with_framework_inputs_and_score() {

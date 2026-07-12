@@ -37,14 +37,7 @@ const LEGEND_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
 /// [`crate::test_util::make_project`] loads, so the real prelude resolves the
 /// task `task.with(…)` sources.
 fn setup(dir: &Path, files: &[(&str, &str)], config_text: &str) -> Project {
-    let lib = dir.join("lib");
-    std::fs::create_dir_all(&lib).unwrap();
-    std::fs::write(
-        lib.join("typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
-    std::fs::write(lib.join("prelude.typ"), PRELUDE).unwrap();
+    mindtape::test_support::write_lib_package(dir, PRELUDE);
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
     std::fs::write(dir.join(".mindtape/config.toml"), config_text).unwrap();
     let config = parse_config(config_text).unwrap();

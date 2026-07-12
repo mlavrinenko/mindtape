@@ -44,14 +44,7 @@ const STUB: &str = "#import \"@local/mindtape:0.2.0\": *\n\n#show: task.with(\n 
 /// load the project. Mirrors `crates/mindtape-cli/src/flip_tests.rs::setup`,
 /// minus the CLI's `test_util::make_project` (unavailable from this crate).
 fn setup(dir: &Path, config_text: &str, files: &[(String, String)]) -> LoadOutcome {
-    let lib = dir.join("lib");
-    std::fs::create_dir_all(&lib).unwrap();
-    std::fs::write(
-        lib.join("typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
-    std::fs::write(lib.join("prelude.typ"), PRELUDE).unwrap();
+    crate::test_support::write_lib_package(dir, PRELUDE);
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
     std::fs::write(dir.join(".mindtape/config.toml"), config_text).unwrap();
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
@@ -154,17 +147,17 @@ fn round_trips_multi_kind_links_with_notes() {
     task.status = Some(status("wip", "2026-06-01"));
     task.links = vec![
         Link {
-            task: "alpha".to_owned(),
+            task: "alpha.typ".to_owned(),
             kind: "depends-on".to_owned(),
             note: None,
         },
         Link {
-            task: "beta".to_owned(),
+            task: "beta.typ".to_owned(),
             kind: "depends-on".to_owned(),
             note: Some("after the migration".to_owned()),
         },
         Link {
-            task: "gamma".to_owned(),
+            task: "gamma.typ".to_owned(),
             kind: "related".to_owned(),
             note: Some("see also [prior] work \\ notes".to_owned()),
         },
@@ -177,7 +170,7 @@ fn round_trips_custom_link_kind() {
     let mut task = bare_task("custom-link-kind");
     task.status = Some(status("wip", "2026-06-01"));
     task.links = vec![Link {
-        task: "delta".to_owned(),
+        task: "delta.typ".to_owned(),
         kind: "blocks".to_owned(),
         note: Some("waiting on delta".to_owned()),
     }];
@@ -232,7 +225,7 @@ fn round_trips_extras_scalars_and_nested() {
 fn round_trips_status_with_note() {
     let mut task = bare_task("status-note");
     task.status = Some(Status {
-        name: "blocked".to_owned(),
+        name: "wip".to_owned(),
         date: Some("2026-06-05".to_owned()),
         note: Some("waiting on * review".to_owned()),
     });

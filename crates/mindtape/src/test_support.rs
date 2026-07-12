@@ -5,9 +5,11 @@
 //! available to `#[cfg(test)]` code directly.
 
 use std::collections::BTreeMap;
+use std::path::Path;
 
 use crate::link::Link;
 use crate::model::Task;
+use crate::numeric::{InputValue, NumValue};
 
 /// A task with the given id and every other field at its empty/`None` default.
 ///
@@ -34,6 +36,42 @@ pub fn bare_task(id: &str) -> Task {
         extras: BTreeMap::new(),
         body: String::new(),
     }
+}
+
+/// An `ice` framework priority with the given inputs — the shared fixture for
+/// framework-priority scenarios (schema serialization, validation).
+#[must_use]
+pub fn ice_priority(impact: f64, confidence: f64, ease: f64) -> NumValue {
+    NumValue::Framework {
+        name: "ice".to_owned(),
+        inputs: BTreeMap::from([
+            ("impact".to_owned(), InputValue::Num(impact)),
+            ("confidence".to_owned(), InputValue::Num(confidence)),
+            ("ease".to_owned(), InputValue::Num(ease)),
+        ]),
+    }
+}
+
+/// Write an in-tree `lib/` mindtape package override under `dir` (its
+/// `typst.toml` plus `prelude.typ` from `prelude`), so `@local/mindtape:0.2.0`
+/// resolves in a temp project without a global install. Callers pass the real
+/// prelude via `include_str!("../../../lib/prelude.typ")`. Shared by the emitter
+/// round-trip tests and the CLI flip tests.
+///
+/// # Panics
+/// Panics if writing the package files under `dir` fails — a test-only helper,
+/// so an IO failure against a fresh tempdir is a test-harness bug, not a case
+/// to recover from.
+#[allow(clippy::unwrap_used)]
+pub fn write_lib_package(dir: &Path, prelude: &str) {
+    let lib = dir.join("lib");
+    std::fs::create_dir_all(&lib).unwrap();
+    std::fs::write(
+        lib.join("typst.toml"),
+        "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
+    )
+    .unwrap();
+    std::fs::write(lib.join("prelude.typ"), prelude).unwrap();
 }
 
 /// A `links:` edge of `kind` to `target`, with no note — the common shape test
