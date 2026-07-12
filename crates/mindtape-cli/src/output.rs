@@ -2,11 +2,9 @@
 
 use anyhow::Result;
 use mindtape::config::Config;
-use mindtape::link::Link;
 use mindtape::numeric::{NumValue, format_num};
-use mindtape::{Readiness, ReadyState, Task};
-use serde_json::{Map, Value, json};
-use typst_harvest::HVal;
+use mindtape::{CanonicalTask, Readiness, ReadyState, Task};
+use serde_json::{Value, json};
 
 use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
 use crate::ls_rules::Applied;
@@ -154,90 +152,12 @@ fn ready_text(state: ReadyState) -> &'static str {
     }
 }
 
-/// Project one task to a JSON object. `config` resolves framework-scored
-/// priorities to their numeric score.
+/// Project one task to a JSON object via the canonical schema
+/// ([`CanonicalTask`]) — the single shape shared with `mt import`. `config`
+/// resolves a framework priority's read-side score.
 pub fn task_to_json(task: &Task, config: &Config) -> Value {
-    let mut map = Map::new();
-    map.insert("id".to_owned(), json!(task.id));
-    map.insert("file".to_owned(), json!(task.file.display().to_string()));
-    map.insert("title".to_owned(), json!(task.title));
-    map.insert("status".to_owned(), status_to_json(task));
-    map.insert(
-        "priority".to_owned(),
-        priority_to_json(task.priority.as_ref(), config),
-    );
-    map.insert(
-        "difficulty".to_owned(),
-        num_to_json(task.difficulty.as_ref()),
-    );
-    map.insert("kind".to_owned(), opt(task.kind.as_deref()));
-    map.insert("estimate".to_owned(), json!(task.estimate));
-    map.insert(
-        "links".to_owned(),
-        Value::Array(task.links.iter().map(link_to_json).collect()),
-    );
-    map.insert("tags".to_owned(), json!(task.tags));
-    map.insert("derived_tags".to_owned(), json!(task.derived_tags));
-    map.insert("due".to_owned(), opt(task.due.as_deref()));
-    map.insert("start".to_owned(), opt(task.start.as_deref()));
-    map.insert("reviewed".to_owned(), opt(task.reviewed.as_deref()));
-    let extras = task
-        .extras
-        .iter()
-        .map(|(key, value)| (key.clone(), hval_to_json(value)))
-        .collect();
-    map.insert("extras".to_owned(), Value::Object(extras));
-    Value::Object(map)
-}
-
-/// One `links:` edge as `{task, kind, note}` — the JSON shape for `mt ls
-/// --format json` / `mt eval --json`.
-fn link_to_json(link: &Link) -> Value {
-    json!({
-        "task": link.task,
-        "kind": link.kind,
-        "note": link.note,
-    })
-}
-
-fn status_to_json(task: &Task) -> Value {
-    match &task.status {
-        None => Value::Null,
-        Some(status) => json!({
-            "name": status.name,
-            "date": status.date,
-            "note": status.note,
-        }),
-    }
-}
-
-fn opt(value: Option<&str>) -> Value {
-    value.map_or(Value::Null, |text| json!(text))
-}
-
-/// JSON for a numeric-field value: a number stays numeric, a label is a string.
-/// A framework value is unreachable here (priority routes through
-/// [`priority_to_json`]); it falls back to its name.
-fn num_to_json(value: Option<&NumValue>) -> Value {
-    match value {
-        Some(NumValue::Num(num)) => json!(num),
-        Some(NumValue::Label(label)) => json!(label),
-        Some(framework @ NumValue::Framework { .. }) => json!(framework.as_display()),
-        None => Value::Null,
-    }
-}
-
-/// JSON for a priority value: a framework value resolves to its numeric score
-/// (null when unresolvable, e.g. outside a project); else as a numeric field.
-fn priority_to_json(value: Option<&NumValue>, config: &Config) -> Value {
-    match value {
-        Some(framework @ NumValue::Framework { .. }) => config
-            .tasks
-            .priority
-            .resolve(framework)
-            .map_or(Value::Null, |score| json!(score)),
-        other => num_to_json(other),
-    }
+    let canonical = CanonicalTask::from_task(task, config);
+    serde_json::to_value(canonical).unwrap_or(Value::Null)
 }
 
 /// The plain display string for a priority value: a framework value resolves to
@@ -251,22 +171,6 @@ fn priority_display(value: Option<&NumValue>, config: &Config) -> String {
             .map(format_num)
             .unwrap_or_default(),
         other => other.map(NumValue::as_display).unwrap_or_default(),
-    }
-}
-
-fn hval_to_json(value: &HVal) -> Value {
-    match value {
-        HVal::Null => Value::Null,
-        HVal::Bool(flag) => json!(flag),
-        HVal::Int(num) => json!(num),
-        HVal::Float(num) => json!(num),
-        HVal::Str(text) | HVal::Date(text) => json!(text),
-        HVal::Array(items) => Value::Array(items.iter().map(hval_to_json).collect()),
-        HVal::Dict(map) => Value::Object(
-            map.iter()
-                .map(|(key, val)| (key.clone(), hval_to_json(val)))
-                .collect(),
-        ),
     }
 }
 

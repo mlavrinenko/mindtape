@@ -4,10 +4,11 @@ use std::collections::BTreeMap;
 use mindtape::numeric::NumValue;
 use mindtape::test_support::bare_task;
 use mindtape::{Status, Task};
+use typst_harvest::HVal;
 
 use mindtape::{Config, Readiness};
 
-use super::{Applied, HVal, OutputFormat, render, task_to_json};
+use super::{Applied, OutputFormat, render, task_to_json};
 
 fn sample() -> Task {
     let mut t = bare_task("t1");

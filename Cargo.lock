@@ -2518,6 +2518,7 @@ dependencies = [
  "globset",
  "rrule",
  "serde",
+ "serde_json",
  "swhid-mint",
  "tempfile",
  "thiserror 2.0.18",
