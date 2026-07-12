@@ -71,7 +71,7 @@ matrix scrolls sideways on narrow screens.
   [None], [Soft], [Minimal],
 
   [#link(u("/config/"))[Status model]],
-  [Config legend (enum + dates)], [Fixed set], [Fixed enum],
+  [Config legend (enum + dates + transitions)], [Fixed set], [Fixed enum],
   [`x ` prefix], [User-defined keywords], [open / closed],
 
   [#link(u("/priority/"))[Priority model]],
@@ -94,12 +94,12 @@ matrix scrolls sideways on narrow screens.
   [Slot templates], [Copy-a-task template], [Recurrence, UDAs, reports],
   [Addons only], [`org-capture` templates], [No],
 
-  [Recurring tasks],
-  [No], [No], [Yes],
+  [#link(u("/dsl/"))[Recurring tasks]],
+  [Yes — `mt recur`], [No], [Yes],
   [Addons only], [Yes], [No],
 
-  [#link(REPO + "/blob/main/truth/tasks/render-task-files-as-typeset-documents.typ")[Typeset-document face]],
-  [Planned — 0.2 emits marker + raw body], [No], [No],
+  [#link(REPO + "/blob/main/lib/prelude.typ")[Typeset-document face]],
+  [Yes — `task` show rule], [No], [No],
   [No], [Yes — PDF today], [No],
 
   [#link(u("/quickstart/"))[Toolchain footprint]],
@@ -135,11 +135,10 @@ matrix scrolls sideways on narrow screens.
   carry decades of tooling, integrations, and mobile apps.
 - #strong[Zero toolchain.] todo.txt is one text file plus a shell script — no
   binary, no compiler. MindTape needs the `mt` binary and a Typst toolchain.
-- #strong[Recurrence.] Taskwarrior and Org-mode do genuine repeating tasks;
-  MindTape has none yet.
-- #strong[A shipping typeset render.] Org-mode exports polished PDFs today.
-  MindTape's rendered card is still a planned task — `typst compile` on a task
-  currently emits its metadata marker plus the raw body, not the full document.
+- #strong[Rich document export.] Org-mode exports whole outlines to polished PDF,
+  HTML, and LaTeX with decades of theming. MindTape's `task` show rule typesets a
+  single task as an index card today — real, but one card, not a multi-task report
+  or a multi-backend document pipeline.
 
 = When another tool fits better
 
