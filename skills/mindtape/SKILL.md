@@ -67,10 +67,10 @@ already given to you.
 
 ## Finding tasks — `mt ls`
 
-Bare `mt ls` applies the project's default filter (usually: active, startable
-tasks) and prints a table with handle ordinals, status, priority, due date, and
-title. Pass an empty filter (`mt ls ''`) to drop the default and list everything;
-there is no `--all`.
+Bare `mt ls` applies the project's default view (`[ls] default-view`, else the
+`[views.default]` view; usually: active, startable tasks) and prints a table with
+handle ordinals, status, priority, due date, and title. Pass an empty filter
+(`mt ls ''`) to drop the default and list everything; there is no `--all`.
 
 Pass a filter expression as the positional argument. Fields:
 `status priority difficulty kind title id due start reviewed file`.

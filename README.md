@@ -74,7 +74,7 @@ mt add fix login +backend +auth         # +tag words move into a tags slot, if t
 mt add --edit                           # fill the slots in your editor (YAML buffer)
 mt add -t bug --name oauth-bug --to auth # named template, explicit stem, nested under <root>/auth/
 
-# List tasks under the configured roots (applies ls.default-filter)
+# List tasks under the configured roots (applies the default view)
 mt ls
 mt ls ''                             # empty filter → everything (there is no --all)
 mt ls 'has_tag("backend")'           # filter expression
@@ -206,8 +206,8 @@ units = ["minutes", "hours", "days", "weeks"]
 [tasks.naming]
 stem = "{slug}.task-{yy}{mm}{dd}"
 
-[ls]
-default-filter = "status != \"done\""
+[views.default]  # the default `mt ls` listing; `[ls] default-view` repoints it
+filter = "status != \"done\""
 ```
 
 ### Filter language

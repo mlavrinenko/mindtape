@@ -404,11 +404,27 @@ impl Config {
         }
         problems.extend(validate_ls_columns(&self.ls));
         problems.extend(validate_views(&self.views));
+        if let Some(name) = &self.ls.default_view
+            && !self.views.contains_key(name)
+        {
+            problems.push(format!("ls.default-view: unknown view `{name}`"));
+        }
         if problems.is_empty() {
             Ok(())
         } else {
             Err(problems.join("; "))
         }
+    }
+
+    /// The view that drives the default `mt ls` listing when the caller passes
+    /// no filter: `[ls] default-view` by name if set, else the implicit
+    /// `[views.default]` view, else `None` (match-all). `Some` here supplies the
+    /// default listing's filter, sort, and columns as a bundle. Validated at
+    /// load, so a set `default-view` name always resolves.
+    #[must_use]
+    pub fn ls_default_view(&self) -> Option<&ViewSpec> {
+        let name = self.ls.default_view.as_deref().unwrap_or("default");
+        self.views.get(name)
     }
 }
 

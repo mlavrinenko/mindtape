@@ -73,11 +73,12 @@ mt ls -n 10                    # limit to 10
 
 = Default filters
 
-Omitting the filter applies `[ls] default-filter`; an empty filter (`''`)
-matches everything. The shipped default is `!terminal && (miss(start) ||
-start <= now())` — open work whose start date, if any, has arrived. `mt rm`
-applies `[rm] default-filter` (`terminal`). Both live in
-#link(u("/config/"))[Configuration].
+Omitting the filter applies the default view — `[ls] default-view` by name, else
+the `[views.default]` view; an empty filter (`''`) matches everything. The shipped
+default view filters `!terminal && (miss(start) || start <= now())` — open work
+whose start date, if any, has arrived. Being a view (not a bare filter) it can
+carry sort and columns too. `mt rm` applies `[rm] default-filter` (`terminal`).
+Both live in #link(u("/config/"))[Configuration].
 
 #callout("note")[
   Filters are parsed, not evaluated as code — the expression syntax is fixed.

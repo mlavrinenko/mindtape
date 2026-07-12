@@ -4,7 +4,8 @@ use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result, anyhow, bail};
+use mindtape::sort::sort_by_specs;
 use mindtape::{
     Config, Filter, LoadOutcome, Readiness, Task, config_path, default_order_with, find_root,
     load_config, load_project, select,
@@ -154,17 +155,13 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
     Ok((task.clone(), abs))
 }
 
-/// Build the default list view: apply the configured default filter, then the
-/// shared default order.  This replicates exactly what bare `mt ls`
-/// shows, so handle ordinals resolve to the same tasks the user reads off it.
+/// Build the default list view: apply the default view's filter, then its sort
+/// (or the shared default order when it declares none). This replicates exactly
+/// what bare `mt ls` shows — same default view, same filter and sort — so handle
+/// ordinals resolve to the same tasks the user reads off it.
 fn default_view(project: &Project) -> Result<Vec<Task>> {
-    let filter = project
-        .config
-        .ls
-        .default_filter
-        .as_deref()
-        .map(Filter::parse)
-        .transpose()?;
+    let view = project.config.ls_default_view();
+    let filter = view.map(|v| Filter::parse(&v.filter)).transpose()?;
     // Readiness over the full set, before the filter narrows the view, so a
     // dependency hidden by the default filter still counts. Shared by select and
     // ordering so the handle view matches what `list` prints exactly.
@@ -175,7 +172,13 @@ fn default_view(project: &Project) -> Result<Vec<Task>> {
         &project.config,
         &readiness,
     )?;
-    default_order_with(&mut tasks, &project.config, &readiness);
+    match view.map(|v| v.sort.as_slice()) {
+        Some(specs) if !specs.is_empty() => {
+            sort_by_specs(&mut tasks, specs, &project.config, &readiness)
+                .map_err(|e| anyhow!("{e}"))?;
+        }
+        _ => default_order_with(&mut tasks, &project.config, &readiness),
+    }
     Ok(tasks)
 }
 

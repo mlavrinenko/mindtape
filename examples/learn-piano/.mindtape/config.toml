@@ -104,8 +104,11 @@ allowed = [
   "piano", "technique", "repertoire", "theory",
 ]
 
-[ls]
-default-filter = "!terminal && (miss(start) || start <= now())"
+# The default `mt ls` listing (used when the caller passes no filter): a view,
+# so it can carry sort and columns too, not just a filter. `[ls] default-view`
+# points the default at another view by name.
+[views.default]
+filter = "!terminal && (miss(start) || start <= now())"
 
 # Named views: `mt views` lists them, `mt ls @name` applies filter+sort+columns.
 [views.stuck]

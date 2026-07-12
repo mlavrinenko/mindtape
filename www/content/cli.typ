@@ -40,7 +40,8 @@ output):
 = Listing
 
 `mt ls [filter]` lists tasks under the configured roots. Omitting the filter
-applies `[ls] default-filter`; an empty filter (`mt ls ''`) lists everything.
+applies the default view (`[ls] default-view`, else `[views.default]`); an empty
+filter (`mt ls ''`) lists everything.
 It accepts a #link(u("/filters/"))[filter expression], sorts, and limits:
 
 #terminal-ansi(read("../generated/ls.ansi"))

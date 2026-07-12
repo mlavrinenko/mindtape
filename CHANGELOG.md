@@ -83,10 +83,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - **`mt ls --all`** — pass an empty filter (`mt ls ''`) to drop the default and
-  list everything. Omitting the filter still applies `[ls] default-filter`.
+  list everything. Omitting the filter applies the default view.
+- **`[ls] default-filter`** — replaced by `default-view` (see Changed).
 
 ### Changed
 
+- **`[ls] default-filter` → `default-view`** — the default `mt ls` listing is now
+  a view, not a bare filter, so it carries sort and columns too, not only a
+  filter. Omitting the filter resolves `[ls] default-view` (a view name), else the
+  implicit `[views.default]` view, else match-all. The embedded floor ships
+  `[views.default]` with the previous default filter, so bare `mt ls` is unchanged
+  out of the box; redeclare `[views.default]` (or set `default-view`) to add a
+  sort/columns bundle. `[ls] default-filter` is removed.
 - **Repointed onto published crates.io substrate** — the seven extracted
   crates (`typst-world`, `typst-harvest`, `typst-cst`, `typst-edit`,
   `typst-cleanup`, `swhid-mint`, `artifact-gate`) are now `crates.io`

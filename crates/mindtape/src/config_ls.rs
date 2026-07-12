@@ -18,8 +18,13 @@ pub const LS_COLUMNS: [&str; 6] = ["#", "status", "ready", "priority", "due", "t
 #[derive(Debug, Clone, Default, Deserialize, PartialEq)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsConfig {
-    /// Filter applied by `mt ls` when the caller passes none.
-    pub default_filter: Option<String>,
+    /// Name of the view driving the default `mt ls` listing when the caller
+    /// passes no filter. Resolved by [`crate::Config::ls_default_view`]:
+    /// `[ls] default-view` if set, else the `[views.default]` view if declared,
+    /// else match-all. Validated at config load. Supersedes the old
+    /// `default-filter`, so the default listing carries the view's sort and
+    /// columns too, not just a filter.
+    pub default_view: Option<String>,
     /// Default sort chain for `mt ls` when the caller passes no `--sort`.
     /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
     /// Validated at config load. When absent the shipped built-in chain applies.

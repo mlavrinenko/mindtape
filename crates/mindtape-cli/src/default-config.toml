@@ -137,9 +137,17 @@ color = "red"
 [tasks.estimate]
 units = ["minutes", "hours", "days", "weeks"]
 
+# The default `mt ls` listing (used when the caller passes no filter). A view,
+# not a bare filter, so it can also carry sort and columns. `[ls] default-view`
+# picks one by name; the `[views.default]` view below is the implicit fallback.
+[views.default]
+filter = "!terminal && (miss(start) || start <= now())"
+# sort = ["priority:desc", "due:asc"]
+# columns = ["#", "status", "priority", "due", "title"]
+
 [ls]
-# Filter applied by `mt ls` when the caller passes none.
-default-filter = "!terminal && (miss(start) || start <= now())"
+# Point the default listing at a named view instead of `[views.default]`:
+# default-view = "next"
 
 # Global date display format applied to every rendered date column.
 # Tokens (longest-match-first):

@@ -113,8 +113,13 @@ default = "task"
 [rm]
 default-filter = "terminal"
 
+# The default `mt ls` listing. Every project inherits this `default` view unless
+# it declares its own `[views.default]` or points `[ls] default-view` elsewhere;
+# unlike the retired `[ls] default-filter` it can also carry sort and columns.
+[views.default]
+filter = "!terminal && (miss(start) || start <= now())"
+
 [ls]
-default-filter = "!terminal && (miss(start) || start <= now())"
 overdue-color = "red"
 
 # READY-column display: glyph / colour / label for each state.

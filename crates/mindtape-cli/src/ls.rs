@@ -10,9 +10,10 @@ use crate::util;
 /// Arguments for `ls`.
 #[derive(Debug, clap::Args)]
 pub struct LsArgs {
-    /// Filter expression. Omitted uses the project's `[ls] default-filter`;
-    /// an empty string (`''`) lists everything; a bare `@view` applies that
-    /// view's filter, sort, and columns.
+    /// Filter expression. Omitted applies the project's default view (`[ls]`
+    /// `default-view`, else `[views.default]`, else match-all); an empty string
+    /// (`''`) lists everything; a bare `@view` applies that view's filter, sort,
+    /// and columns.
     pub filter: Option<String>,
 
     /// Output format.
@@ -98,13 +99,13 @@ pub(crate) fn select_view(args: &LsArgs, project: util::Project) -> Result<(Vec<
     Ok((tasks, readiness))
 }
 
-/// Resolve the filter to apply. Omitted uses `[ls] default-filter`; an explicit
-/// expression (including empty, which is match-all, and a bare `@view`) is used
-/// verbatim.
+/// Resolve the filter to apply. An explicit expression (including empty, which
+/// is match-all, and a bare `@view`) is used verbatim; an omitted filter takes
+/// the default view's filter (or match-all when no default view resolves).
 fn build_filter(args: &LsArgs, config: &Config) -> Result<Option<Filter>> {
     let expr = match &args.filter {
         Some(expr) => Some(expr.clone()),
-        None => config.ls.default_filter.clone(),
+        None => bundle_view(args, config)?.map(|view| view.filter.clone()),
     };
     match expr {
         Some(expr) => Ok(Some(Filter::parse(&expr)?)),
@@ -112,12 +113,14 @@ fn build_filter(args: &LsArgs, config: &Config) -> Result<Option<Filter>> {
     }
 }
 
-/// The view a bare `@name` filter argument names (bundle mode), if any. `None`
-/// when the filter is absent or is a compound expression rather than a lone
-/// view reference. Errors when the named view does not exist.
+/// The view that drives this run as a bundle (filter + sort + columns), if any.
+/// A bare `@name` filter argument names it; an omitted filter falls back to the
+/// project's default view ([`Config::ls_default_view`]). `None` for a compound
+/// expression, an empty filter, or when no default view resolves. Errors when a
+/// bare `@name` names no declared view.
 fn bundle_view<'a>(args: &LsArgs, config: &'a Config) -> Result<Option<&'a ViewSpec>> {
     let Some(filter) = &args.filter else {
-        return Ok(None);
+        return Ok(config.ls_default_view());
     };
     let Some(name) = bare_view_ref(filter) else {
         return Ok(None);
@@ -430,5 +433,30 @@ mod tests {
             ..default_args()
         };
         assert!(run_with(&args, view_project(dir.path())).is_ok());
+    }
+
+    #[test]
+    fn default_view_drives_bare_listing() {
+        // A `[views.default]` view supplies the filter for a bare `mt ls`.
+        // TASK is `wip` (non-terminal), so a `terminal` default view hides it.
+        let dir = tempfile::tempdir().unwrap();
+        let config = mindtape::parse_config("[views.default]\nfilter = 'terminal'\n").unwrap();
+        let project = crate::test_util::make_project(dir.path(), &[("x.typ", TASK)], config);
+        let (tasks, _) = super::select_view(&default_args(), project).unwrap();
+        assert!(tasks.is_empty());
+    }
+
+    #[test]
+    fn explicit_empty_filter_bypasses_default_view() {
+        // `mt ls ''` is match-all: the default view is ignored entirely.
+        let dir = tempfile::tempdir().unwrap();
+        let config = mindtape::parse_config("[views.default]\nfilter = 'terminal'\n").unwrap();
+        let project = crate::test_util::make_project(dir.path(), &[("x.typ", TASK)], config);
+        let args = LsArgs {
+            filter: Some(String::new()),
+            ..default_args()
+        };
+        let (tasks, _) = super::select_view(&args, project).unwrap();
+        assert_eq!(tasks.len(), 1);
     }
 }

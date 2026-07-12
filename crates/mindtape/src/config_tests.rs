@@ -22,9 +22,9 @@ fn defaults_when_empty() {
     );
     // White-list philosophy: an omitted estimate section accepts any unit.
     assert!(config.tasks.estimate.units.is_empty());
-    // `[ls] default-filter` is also part of the floor.
+    // The default `mt ls` listing is the floor's `[views.default]` view.
     assert_eq!(
-        config.ls.default_filter.as_deref(),
+        config.ls_default_view().map(|view| view.filter.as_str()),
         Some("!terminal && (miss(start) || start <= now())")
     );
 }
@@ -80,8 +80,8 @@ units = ["hours", "days"]
 [tasks.tags]
 allowed = ["a", "b"]
 
-[ls]
-default-filter = "status != \"done\""
+[views.default]
+filter = "status != \"done\""
 "#;
     let config = parse_config(text).unwrap();
     assert_eq!(
@@ -106,9 +106,29 @@ default-filter = "status != \"done\""
         vec!["a".to_owned(), "b".to_owned()]
     );
     assert_eq!(
-        config.ls.default_filter.as_deref(),
+        config.ls_default_view().map(|view| view.filter.as_str()),
         Some("status != \"done\"")
     );
+}
+
+#[test]
+fn ls_default_view_names_a_declared_view() {
+    let config =
+        parse_config("[ls]\ndefault-view = \"hot\"\n[views.hot]\nfilter = 'priority > 5'\n")
+            .unwrap();
+    assert_eq!(
+        config.ls_default_view().map(|view| view.filter.as_str()),
+        Some("priority > 5")
+    );
+    assert!(config.validate().is_ok());
+}
+
+#[test]
+fn ls_default_view_unknown_errors_on_validate() {
+    // The floor supplies `[views.default]`, but not `ghost`.
+    let config = parse_config("[ls]\ndefault-view = \"ghost\"\n").unwrap();
+    let err = config.validate().unwrap_err();
+    assert!(err.contains("ls.default-view"), "{err}");
 }
 
 #[test]

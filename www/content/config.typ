@@ -76,8 +76,10 @@ required = "non-terminal"
 [tasks.estimate]
 units = ["minutes", "hours", "days", "weeks"]
 
-[ls]
-default-filter = "status != \"done\""
+# The default `mt ls` listing: a view, so it can carry sort and columns too.
+# `[ls] default-view = "name"` points it elsewhere; `default` is the fallback.
+[views.default]
+filter = "status != \"done\""
 ```
 
 #terminal(read("../generated/config-origin.txt"))
