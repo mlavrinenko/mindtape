@@ -10,7 +10,7 @@
   tags: ("tooling",),
   links: parent("import-tasks-from-other-trackers.typ")
     + depends-on("canonical-task-json-schema.typ", "mt-import-command.typ"),
-  status: wip(2026, 7, 12),
+  status: done(2026, 7, 12),
 )
 
 == Summary
