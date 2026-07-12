@@ -80,9 +80,7 @@ units = ["minutes", "hours", "days", "weeks"]
 default-filter = "status != \"done\""
 ```
 
-#terminal("$ mt config show --origin
-embedded: <built-in>
-project: .mindtape/config.toml (exists)")
+#terminal(read("../generated/config-origin.txt"))
 
 #callout("note")[
   `mt init` writes a slim scaffold that inherits the floor; `mt init --full`

@@ -58,12 +58,10 @@ variables, so a task can be filed with no interactive prompt.
 = Honest exit codes and quiet output
 
 `mt check` exits non-zero on any violation and names each one — drop it in CI or a
-pre-commit hook. Pass `--color never` (or rely on `NO_COLOR`) for clean,
-parseable output in a non-TTY:
+pre-commit hook. On a clean project it exits 0. Pass `--color never` (or rely on
+`NO_COLOR`) for clean, parseable output in a non-TTY:
 
-#terminal("$ mt --color never check
-design-schema: priority: out of bounds (max 9)
-Error: 1 violation(s), 0 load error(s)")
+#terminal(read("../generated/check.txt"))
 
 = Run from anywhere
 

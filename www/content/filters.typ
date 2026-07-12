@@ -9,10 +9,9 @@
 )
 
 `mt ls` and `mt rm` take a filter expression — a boolean query over task fields.
+Here, every task not yet in a terminal status:
 
-#terminal("$ mt ls 'status != \"done\" && priority >= 7'
-#   STATUS  PRIORITY  DUE         TITLE
-1e  wip     high      2026-07-20  Wire OAuth login")
+#terminal(read("../generated/ls-open.txt"))
 
 = Fields
 

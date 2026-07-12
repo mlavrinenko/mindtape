@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, callout, mt-import
+#import "../utils/ui.typ": terminal, callout
 #import "../utils/site.typ": u, REPO
 
 #show: page.with(
@@ -45,25 +45,20 @@ See #link(u("/config/"))[Configuration] for the layering.
 = File your first task
 
 `mt add` fills a Typst template, injects the status and id, and validates the
-result:
+result. The example's template scores priority through `ice(…)`, so each leaf is
+its own `--set` — no hand-set priority int:
 
 ```sh
-mt add --set title="Wire OAuth login" --set priority=8
+mt add --set title="Practice pedaling technique" \
+  --set summary="Half-pedal control on sustained chords." \
+  --set impact=6 --set ease=5
 ```
 
-#terminal("$ mt add --set title=\"Wire OAuth login\" --set priority=8
-wrote tasks/wire-oauth-login.typ")
+#terminal(read("../generated/add.txt"))
 
 The written file is plain Typst — no template machinery survives:
 
-#mt-import("#show: task.with(
-  title: \"Wire OAuth login\",
-  priority: 8,
-  status: proposed(2026, 7, 6),
-)
-
-== Summary
-")
+#raw(read("../generated/add-written.typ"), lang: "typ", block: true)
 
 More ways to file — positional titles, editor mode, named templates — are on
 #link(u("/templates/"))[Templates & slots].
@@ -74,16 +69,11 @@ More ways to file — positional titles, editor mode, named templates — are on
 mt ls
 ```
 
-#terminal("$ mt ls
-#   STATUS    READY    PRIORITY  DUE         TITLE
-1e  wip       ready    high      2026-07-20  Wire OAuth login
-2g  proposed  blocked  normal                Write onboarding docs")
+#terminal(read("../generated/ls.txt"))
 
-Pass a filter expression to narrow it down:
+Pass a filter expression to narrow it down — here, everything not yet terminal:
 
-#terminal("$ mt ls 'status != \"done\" && priority >= 7'
-#   STATUS  PRIORITY  DUE         TITLE
-1e  wip     high      2026-07-20  Wire OAuth login")
+#terminal(read("../generated/ls-open.txt"))
 
 Empty columns hide themselves. The full #link(u("/filters/"))[filter language]
 covers tags, dates, dependency state, and full-text search.
@@ -93,8 +83,7 @@ covers tags, dates, dependency state, and full-text search.
 Every status in the legend is also a verb. Set one, dated today, without opening
 the file:
 
-#terminal("$ mt done wire-oauth-login
-flipped wire-oauth-login (Wire OAuth login): wip → done")
+#terminal(read("../generated/done.txt"))
 
 `mt done x` is shorthand for `mt flip done x`. See #link(u("/cli/"))[the CLI
 reference] for the full command set.
@@ -105,8 +94,7 @@ reference] for the full command set.
 mt check
 ```
 
-#terminal("$ mt check
-ok: 3 task(s) valid")
+#terminal(read("../generated/check.txt"))
 
 `mt check` verifies every task against the project config: enum values, required
 fields, numeric bounds, link resolution, and dependency cycles. Wire it into a
