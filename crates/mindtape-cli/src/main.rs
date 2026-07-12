@@ -46,8 +46,8 @@ fn main() -> Result<()> {
     // The value is stored in a thread-local so the rest of the binary can
     // read it without threading the choice through every call-site.
     init_color(cli.color);
-    // Resolve the pinned-clock override ($MINDTAPE_NOW, then $SOURCE_DATE_EPOCH)
-    // once, before any command reads a date: every `mindtape::date` helper and
+    // Resolve the pinned-clock override ($MINDTAPE_NOW) once, before any
+    // command reads a date: every `mindtape::date` helper and
     // the today-stamping paths (add/flip/review/recur) read the same cached
     // value. A malformed override fails fast here rather than silently
     // falling back to the system clock.

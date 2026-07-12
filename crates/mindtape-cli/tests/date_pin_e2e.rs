@@ -1,5 +1,5 @@
-//! End-to-end tests for the pinnable clock (`$MINDTAPE_NOW` /
-//! `$SOURCE_DATE_EPOCH`, see `truth/tasks/pinnable-clock-for-reproducible-output.typ`).
+//! End-to-end tests for the pinnable clock (`$MINDTAPE_NOW`, see
+//! `truth/tasks/pinnable-clock-for-reproducible-output.typ`).
 //!
 //! These shell out to the compiled `mt` binary (like `recur_e2e.rs`) rather
 //! than calling `mindtape::date` directly: the override is resolved once into
@@ -101,32 +101,6 @@ fn mindtape_now_drives_the_stale_filter() {
 }
 
 #[test]
-fn source_date_epoch_drives_now_when_mindtape_now_is_unset() {
-    let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
-
-    // 2026-07-11 00:00:00 UTC, in epoch seconds (day 20645 * 86400).
-    let epoch = (20_645_i64 * 86_400).to_string();
-    let ids = ls_ids(dir.path(), "due < now()", &[("SOURCE_DATE_EPOCH", &epoch)]);
-    assert_eq!(ids, vec!["wire-oauth"]);
-}
-
-#[test]
-fn mindtape_now_wins_over_source_date_epoch() {
-    let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
-
-    // SOURCE_DATE_EPOCH alone (day 0, 1970) would leave the task not-yet-due;
-    // MINDTAPE_NOW must win and make it overdue.
-    let ids = ls_ids(
-        dir.path(),
-        "due < now()",
-        &[("MINDTAPE_NOW", "2026-07-11"), ("SOURCE_DATE_EPOCH", "0")],
-    );
-    assert_eq!(ids, vec!["wire-oauth"]);
-}
-
-#[test]
 fn malformed_mindtape_now_is_a_hard_error_naming_the_variable() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
@@ -142,28 +116,12 @@ fn malformed_mindtape_now_is_a_hard_error_naming_the_variable() {
 }
 
 #[test]
-fn malformed_source_date_epoch_is_a_hard_error_naming_the_variable() {
-    let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
-
-    let output = mt(dir.path())
-        .env("SOURCE_DATE_EPOCH", "not-a-number")
-        .arg("ls")
-        .assert()
-        .failure();
-    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
-    assert!(stderr.contains("SOURCE_DATE_EPOCH"), "{stderr}");
-    assert!(stderr.contains("not-a-number"), "{stderr}");
-}
-
-#[test]
 fn unset_falls_back_to_the_system_clock() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
 
     mt(dir.path())
         .env_remove("MINDTAPE_NOW")
-        .env_remove("SOURCE_DATE_EPOCH")
         .arg("ls")
         .assert()
         .success();

@@ -5,10 +5,9 @@
 //! "Today" is pinnable for reproducible output (see
 //! `truth/tasks/pinnable-clock-for-reproducible-output.typ`):
 //! [`crate::init_pinned_today`] (re-exported at the crate root, backed by
-//! `crate::date_pin`) resolves `$MINDTAPE_NOW` / `$SOURCE_DATE_EPOCH` once per
-//! process (precedence order) and caches the result; `today_epoch_days`,
-//! below, is the single point every helper here reads through — no other
-//! function in this module touches the clock directly.
+//! `crate::date_pin`) resolves `$MINDTAPE_NOW` once per process and caches the
+//! result; `today_epoch_days`, below, is the single point every helper here
+//! reads through — no other function in this module touches the clock directly.
 
 /// Today's date as `YYYY-MM-DD` (UTC).
 #[must_use]

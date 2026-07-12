@@ -105,18 +105,16 @@ mt @app ls
 
 Every date `mt` stamps or reads — `status`/`reviewed` dates, `now()` and
 `stale()` in filters, the overdue marker, `mt recur` advances — resolves
-"today" once per process: `$MINDTAPE_NOW` (`YYYY-MM-DD` or an RFC 3339
-timestamp; the date part is used) wins, then `$SOURCE_DATE_EPOCH` (the
-reproducible-builds standard, epoch seconds), then the system clock (UTC).
-Pin it for deterministic output — docs generation, golden-file tests, a CI
-snapshot:
+"today" once per process from `$MINDTAPE_NOW` (`YYYY-MM-DD` or an RFC 3339
+timestamp; the date part is used), else the system clock (UTC). Pin it for
+deterministic output — docs generation, golden-file tests, a CI snapshot:
 
 ```sh
 MINDTAPE_NOW=2026-07-11 mt ls --json
 ```
 
-A malformed value in either variable is a hard error naming the offending
-variable, never a silent fall-through to the system clock.
+A malformed `$MINDTAPE_NOW` is a hard error naming the variable, never a silent
+fall-through to the system clock.
 
 = State is just files
 

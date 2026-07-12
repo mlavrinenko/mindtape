@@ -45,6 +45,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of hanging. `mt check` grammar-checks the raw rule string at parse
   time and quotes the offending rule in a malformed one's error.
 
+- **Pinnable "today" (`$MINDTAPE_NOW`)** — every date `mt` stamps or reads —
+  status/`reviewed` dates, `now()`/`stale()` in filters, the overdue marker,
+  `mt recur` advances — resolves "today" once per process from `$MINDTAPE_NOW`
+  (a `YYYY-MM-DD` date or an RFC 3339 timestamp; the date part is used), else
+  the system clock (UTC). Pin it for deterministic output — docs generation,
+  golden-file tests, a CI snapshot. A malformed value is a hard error naming the
+  variable, never a silent fall-through. `$SOURCE_DATE_EPOCH` is deliberately
+  not honoured: `mt`'s "today" is an operational query concept, not a
+  build-artifact timestamp (Nix dev/CI shells set it to 1980-01-01).
+
 - **Worktree override** — a global `-w/--worktree <path>` flag (and
   `$MINDTAPE_WORKTREE` fallback; the flag wins) points `mt` at a chosen project
   instead of discovering one by walking up from the cwd. The path must hold a
