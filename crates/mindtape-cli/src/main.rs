@@ -11,6 +11,8 @@ mod eval;
 mod flip;
 mod git;
 mod go;
+mod graph;
+mod graph_render;
 mod handle;
 mod init;
 mod install;

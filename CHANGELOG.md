@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt graph [filter]`** — emit the task dependency graph as Graphviz DOT
+  (default) or Mermaid (`--format mermaid`). Nodes are tasks labelled by title
+  and status and filled by readiness (ready/blocked/terminal); edges are the
+  typed `links:` relations, styled per kind. An optional filter scopes the
+  induced subgraph (edges to out-of-scope tasks drop) and `--no-terminal` prunes
+  closed tasks. A read-only projection reusing the same graph model that
+  computes ready/blocked (`mindtape::edges`) — no new store, a diffable view of
+  the same source.
 - **Recurring tasks (`recur`, `mt recur`)** — a task's `recur: every(weeks: 1,
   on: (mon, wed, fri), anchor: "due", until: on(2027, 1, 1), count: 10,
   materialize: "spawn")` shapes a `(rule, anchor, until, count, materialize)`

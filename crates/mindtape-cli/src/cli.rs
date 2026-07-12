@@ -8,8 +8,8 @@ use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
 use crate::{
-    add, check, cli_dump, config_cmd, eval, flip, go, init, install, ls, recur, review, rm, views,
-    worktrees,
+    add, check, cli_dump, config_cmd, eval, flip, go, graph, init, install, ls, recur, review, rm,
+    views, worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -47,6 +47,8 @@ enum Command {
     Add(add::AddArgs),
     /// List tasks under the configured roots, applying a filter.
     Ls(ls::LsArgs),
+    /// Emit the task dependency graph as DOT or Mermaid, scoped by a filter.
+    Graph(graph::GraphArgs),
     /// List or inspect named views (`[views]`).
     Views(views::ViewsArgs),
     /// List worktree aliases (`@name` sugar; `~/.config/mindtape/worktrees.toml`).
@@ -117,6 +119,7 @@ impl Cli {
         match self.command {
             Command::Add(args) => add::run(&args),
             Command::Ls(args) => ls::run(&args),
+            Command::Graph(args) => graph::run(&args),
             Command::Views(args) => views::run(&args),
             Command::Worktrees(args) => worktrees::run(&args),
             Command::Check => check::run(),

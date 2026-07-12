@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{Cycle, find_referrer, resolve_edge, toposort, toposort_kind};
+use super::{Cycle, edges, find_referrer, resolve_edge, toposort, toposort_kind};
 use crate::model::Task;
 use crate::test_support::{bare_task, link_edge};
 
@@ -164,4 +164,29 @@ fn find_referrer_finds_the_successor() {
 fn find_referrer_none_without_a_successor() {
     let tasks = [bare_task("original")];
     assert!(find_referrer(&tasks, &tasks[0], "recurred-from").is_none());
+}
+
+#[test]
+fn edges_resolves_every_kind_in_authored_order() {
+    let mut a = bare_task("a");
+    a.links = vec![
+        link_edge("b.typ", "depends-on"),
+        link_edge("c.typ", "parent"),
+    ];
+    let tasks = [a, bare_task("b"), bare_task("c")];
+    let edges = edges(&tasks);
+    let seen: Vec<(&str, &str, &str)> = edges
+        .iter()
+        .map(|e| (e.from.id.as_str(), e.to.id.as_str(), e.kind))
+        .collect();
+    assert_eq!(seen, [("a", "b", "depends-on"), ("a", "c", "parent")]);
+}
+
+#[test]
+fn edges_drops_targets_outside_the_set() {
+    // `b` is not in the passed slice, so a's edge to it is not induced.
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("b.typ", "depends-on")];
+    let tasks = [a];
+    assert!(edges(&tasks).is_empty());
 }

@@ -46,6 +46,7 @@ Most work is: find a task → read it → change its status → validate.
 | Filter | `mt ls '<filter>'` (see below) |
 | Apply a named view | `mt ls @<view>`; `mt views` lists them |
 | Machine-readable list | `mt ls --json` |
+| Dependency graph | `mt graph` (DOT; `--format mermaid`, `--no-terminal`) |
 | Read one task | `mt eval <file>` or `mt eval <file> --json` |
 | Open a task in `$EDITOR` | `mt go <id>` |
 | File a new task | `mt add <title…>` (see below) |
@@ -62,8 +63,7 @@ The common flags are listed below, so reach for `mt <cmd> --help` only when a
 command errors or you need a flag this skill does not cover — not as a warm-up.
 The legend, kinds, priority scale, and tags are per-project; when you must pick
 among project-defined values, read `.mindtape/config.toml` (or `mt flip --list`
-for statuses) instead of guessing — but skip that lookup when the value is
-already given to you.
+for statuses) instead of guessing — skip that lookup when the value is given.
 
 ## Finding tasks — `mt ls`
 

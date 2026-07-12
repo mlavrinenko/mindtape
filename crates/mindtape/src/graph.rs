@@ -68,6 +68,45 @@ pub fn find_referrer<'a>(tasks: &'a [Task], target: &Task, kind: &str) -> Option
     })
 }
 
+/// A resolved typed edge between two loaded tasks: the source, the target it
+/// resolves to, and the edge's kind and note. Built by [`edges`].
+#[derive(Debug, Clone, Copy)]
+pub struct Edge<'a> {
+    /// The linking task (edge tail).
+    pub from: &'a Task,
+    /// The task the link resolves to (edge head).
+    pub to: &'a Task,
+    /// The edge kind, e.g. `depends-on`, `parent`, a custom kind.
+    pub kind: &'a str,
+    /// The edge's free-form note, if any.
+    pub note: Option<&'a str>,
+}
+
+/// Every `links:` edge in `tasks` that resolves to another loaded task, in
+/// authored order per source. A target that names no in-set task (dangling,
+/// escaping the set, or filtered out) yields no edge — the same resolution
+/// [`toposort`] and [`crate::ready`] use, so a graph view never re-implements
+/// link resolution. Pass a filtered slice to project the induced subgraph:
+/// edges to tasks outside it vanish.
+#[must_use]
+pub fn edges<'a>(tasks: &'a [Task]) -> Vec<Edge<'a>> {
+    let index = DepIndex::build(tasks);
+    let mut out = Vec::new();
+    for task in tasks {
+        for link in &task.links {
+            if let Some(to) = index.resolve(task, &link.task) {
+                out.push(Edge {
+                    from: task,
+                    to,
+                    kind: &link.kind,
+                    note: link.note.as_deref(),
+                });
+            }
+        }
+    }
+    out
+}
+
 /// A dependency cycle: the tasks on a `depends-on` loop, by id, in the order the
 /// walk entered them. The loop closes from the last member back to the first;
 /// [`Display`](fmt::Display) renders it as `a → b → c → a`.

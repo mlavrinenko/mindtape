@@ -69,7 +69,7 @@ pub use filter::{Filter, FilterError};
 pub use framework::{Category, Framework, Input, InputKind};
 pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use git::current_branch;
-pub use graph::{Cycle, find_referrer, resolve_edge, toposort};
+pub use graph::{Cycle, Edge, edges, find_referrer, resolve_edge, toposort};
 pub use link_scan::{TargetSpan, link_target_spans};
 pub use loader::{LoadError, LoadOutcome, find_root, load_project};
 pub use model::{Status, Task, is_history_pointer, normalize_link};

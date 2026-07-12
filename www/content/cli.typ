@@ -26,6 +26,7 @@ drift from what `mt` actually is.
 #let cli-groups = (
   ("Files", ("add", "go", "eval")),
   ("Listing", ("ls",)),
+  ("Graph", ("graph",)),
   ("Views", ("views",)),
   ("Status", ("flip", "review")),
   ("Recurring tasks", ("recur",)),
@@ -96,6 +97,19 @@ condition = 'on_branch("release/*")'          # absent = always matches
 import-views = ["inbox", "release(sort)"]     # "view" = all facets, "view(f, ...)" a subset
 filter = '!terminal && due <= "2026-08-01"'   # optional manual override, highest precedence
 ```
+
+= Graph
+
+`mt graph [filter]` emits the task dependency graph — the typed `links:` edges —
+as Graphviz DOT (default) or Mermaid (`--format mermaid`). Nodes are tasks
+labelled by title and status and filled by readiness (ready, blocked, terminal);
+edges are styled per relation kind. The optional
+#link(u("/filters/"))[filter expression] scopes the subgraph — edges to tasks
+outside it drop — and `--no-terminal` prunes closed tasks. It reuses the same
+graph model that computes ready/blocked, so it is a pure read: a diffable view
+of the same source, no new store.
+
+#cli-group(cli, cli-groups, "Graph")
 
 = Views
 
