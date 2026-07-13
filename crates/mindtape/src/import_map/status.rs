@@ -49,9 +49,16 @@ pub(crate) fn map_status(
             format!("`{name}` is not a configured status"),
         ));
     }
+    let date = status.date.clone().or_else(|| {
+        out.push(ReportEntry::defaulted(
+            "status.date",
+            "no status date supplied; defaulted to today",
+        ));
+        Some(today_iso())
+    });
     Some(Status {
         name,
-        date: status.date.clone(),
+        date,
         note: status.note.clone(),
     })
 }

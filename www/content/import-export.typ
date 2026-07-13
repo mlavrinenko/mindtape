@@ -102,13 +102,11 @@ verbatim in the title (`--status proposed` assumes the shipped default legend
 Adapt the regexes to whatever subset of the format your file actually uses —
 it is a starting recipe, not a spec.
 
-#callout("warn")[
-  `CanonicalTask`'s JSON deserializer requires every non-`Option` field's key to
-  be present, even the computed ones — `id`, `file`, `estimate`, `links`,
-  `derived_tags`, `body`, `extras` must all appear (empty/placeholder values are
-  fine). `mt import` recomputes `id` from the title and ignores `file`
-  entirely, but a record missing the key outright fails to parse. The recipe
-  above seeds all of them; `contrib/jq/*.jq` do the same.
+#callout("note")[
+  Computed and empty fields (`id`, `file`, `estimate`, `links`,
+  `derived_tags`, `body`, `extras`) can be omitted from a canonical record;
+  absent keys default to empty values. `mt import` recomputes `id` from the
+  title and ignores `file` and `derived_tags` entirely.
 ]
 
 #callout("note")[

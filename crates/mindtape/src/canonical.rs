@@ -66,8 +66,10 @@ pub const SCHEMA_VERSION: u32 = 1;
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct CanonicalTask {
     /// Stable identity: the file stem, or an explicit authored `id:`.
+    #[serde(default)]
     pub id: String,
     /// Path to the source file, relative to the project root.
+    #[serde(default)]
     pub file: String,
     /// Human-readable title.
     pub title: String,
@@ -81,12 +83,16 @@ pub struct CanonicalTask {
     /// Kind enum value.
     pub kind: Option<String>,
     /// Opaque `unit -> quantity` estimate map.
+    #[serde(default)]
     pub estimate: BTreeMap<String, f64>,
     /// Typed `links:` edges.
+    #[serde(default)]
     pub links: Vec<CanonicalLink>,
     /// Authored tags, exactly as written in the file.
+    #[serde(default)]
     pub tags: Vec<String>,
     /// Folder-derived virtual tags (read-only; never authored).
+    #[serde(default)]
     pub derived_tags: Vec<String>,
     /// Due date, `YYYY-MM-DD`.
     pub due: Option<String>,
@@ -95,8 +101,10 @@ pub struct CanonicalTask {
     /// Last re-affirmation date, `YYYY-MM-DD`.
     pub reviewed: Option<String>,
     /// Raw Typst source after the `#show: task.with(...)` marker.
+    #[serde(default)]
     pub body: String,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
+    #[serde(default)]
     pub extras: BTreeMap<String, Value>,
 }
 

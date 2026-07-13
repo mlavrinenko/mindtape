@@ -9,9 +9,9 @@
 #   gh issue list --json number,title,body,state,labels,assignees,createdAt,url \
 #     | jq -f contrib/jq/github.jq | mt import
 #
-# Every field CanonicalTask declares must be present in the output (even when
-# null/empty — the schema has no `#[serde(default)]`), so every branch below
-# emits its key even when the source has nothing to offer it.
+# Computed and empty fields (`id`, `file`, `derived_tags`, …) default when
+# omitted — the branches below still emit every key for readability, but a
+# missing key no longer causes a parse failure.
 #
 # Mapping decisions:
 #
@@ -25,15 +25,13 @@
 #   being guessed at — `mt import`'s report surfaces it as an out-of-legend
 #   violation instead of silently mis-filing it.
 # - status date: falls back to `createdAt` (the only timestamp the requested
-#   `--json` field set carries — no `closedAt`/`updatedAt`). MindTape's own
-#   emitter drops the whole `status:` field when no date is set
-#   (`crates/mindtape/src/emit.rs`'s `emit_status`: "a status with no date
-#   has nothing to render, guaranteeing one is the caller's job"), so a
-#   status-less record would fail `mt check`'s "missing required status"
-#   outright. `createdAt` is an acknowledged approximation — it is also
-#   `start` below, so a closed issue reads as if it closed the moment it
-#   opened. Add `closedAt` to the `gh issue list --json` flags and this jq
-#   program for a real "status changed on" date.
+#   `--json` field set carries — no `closedAt`/`updatedAt`). `mt import`'s
+#   mapper stamps today's date on a name-only status, so omitting the date
+#   is safe, but `createdAt` is supplied here for accuracy.
+#   `createdAt` is an acknowledged approximation — it is also `start`
+#   below, so a closed issue reads as if it closed the moment it opened. Add
+#   `closedAt` to the `gh issue list --json` flags and this jq program for a
+#   real "status changed on" date.
 # - title/body: pass through verbatim. Unlike Taskwarrior's one-line
 #   `description`, a GitHub issue body is normally already prose, so no
 #   Summary-heading synthesis happens here — `mt import`'s own body-header

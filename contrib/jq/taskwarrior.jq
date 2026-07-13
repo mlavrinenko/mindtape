@@ -8,9 +8,9 @@
 # Usage:
 #   task export | jq -f contrib/jq/taskwarrior.jq | mt import
 #
-# Every field CanonicalTask declares must be present in the output (even when
-# null/empty — the schema has no `#[serde(default)]`), so every branch below
-# emits its key even when the source has nothing to offer it.
+# Computed and empty fields (`id`, `file`, `derived_tags`, …) default when
+# omitted — the branches below still emit every key for readability, but a
+# missing key no longer causes a parse failure.
 #
 # Mapping decisions:
 #

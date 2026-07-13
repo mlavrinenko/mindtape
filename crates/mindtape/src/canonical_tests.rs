@@ -81,3 +81,19 @@ fn round_trips_a_scalar_priority_task() {
     let round_tripped: CanonicalTask = serde_json::from_value(value).unwrap();
     assert_eq!(ct, round_tripped);
 }
+
+#[test]
+fn minimal_title_only_record_deserializes() {
+    let json = serde_json::json!({"title": "Fix login"});
+    let task: CanonicalTask = serde_json::from_value(json).unwrap();
+    assert_eq!(task.title, "Fix login");
+    assert!(task.id.is_empty());
+    assert!(task.file.is_empty());
+    assert!(task.estimate.is_empty());
+    assert!(task.links.is_empty());
+    assert!(task.tags.is_empty());
+    assert!(task.derived_tags.is_empty());
+    assert!(task.body.is_empty());
+    assert!(task.extras.is_empty());
+    assert!(task.status.is_none());
+}

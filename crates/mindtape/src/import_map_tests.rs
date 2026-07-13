@@ -173,6 +173,27 @@ fn missing_status_defaults_to_initial_legend_value() {
 }
 
 #[test]
+fn status_without_date_stamps_today() {
+    let mut c = canonical("x");
+    c.status = Some(CanonicalStatus {
+        name: "proposed".to_owned(),
+        date: None,
+        note: None,
+    });
+    let mapped = map_canonical(&c, &config(), &MapOptions::default());
+    let status = mapped.task.status.expect("status present");
+    assert_eq!(status.name, "proposed");
+    assert!(status.date.is_some());
+    assert!(
+        mapped
+            .report
+            .entries
+            .iter()
+            .any(|e| e.field == "status.date" && e.kind == EntryKind::Defaulted)
+    );
+}
+
+#[test]
 fn out_of_legend_status_is_reported_not_silently_accepted() {
     let mut c = canonical("x");
     c.status = Some(CanonicalStatus {
