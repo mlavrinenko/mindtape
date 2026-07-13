@@ -1,6 +1,8 @@
 #![allow(clippy::unwrap_used)]
 
-use mindtape::{Config, load_config, load_config_layered, parse_config};
+use std::path::PathBuf;
+
+use mindtape::{Config, LayerSource, load_config, load_config_layered, parse_config};
 
 use super::{render_effective, render_origin};
 
@@ -102,4 +104,17 @@ fn origin_marks_the_project_layer_as_existing() {
         .find(|line| line.starts_with("project:"))
         .expect("a project layer must be present");
     assert!(project_line.contains("(exists)"));
+}
+
+#[test]
+fn describe_source_covers_xdg_and_dir() {
+    use super::describe_source;
+
+    let xdg = describe_source(&LayerSource::Xdg(PathBuf::from("/tmp/x.toml")));
+    assert!(xdg.starts_with("xdg:"));
+    assert!(xdg.contains("(missing)"));
+
+    let dir = describe_source(&LayerSource::Dir(PathBuf::from("/tmp/d.toml")));
+    assert!(dir.starts_with("dir:"));
+    assert!(dir.contains("(missing)"));
 }

@@ -485,3 +485,7 @@ pub use crate::body_headers::{HeaderAction, HeaderPathSegment, HeaderRuleConfig,
 #[cfg(test)]
 #[path = "config_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "config_tests_id.rs"]
+mod tests_id;

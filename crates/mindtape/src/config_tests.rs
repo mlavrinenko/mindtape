@@ -277,32 +277,6 @@ fn project_code_defaults_to_none() {
 }
 
 #[test]
-fn id_format_defaults_to_string() {
-    use super::IdFormat;
-    let config = parse_config("").unwrap();
-    assert_eq!(config.tasks.id.format, IdFormat::String);
-}
-
-#[test]
-fn id_format_parses_uuid_v4() {
-    use super::IdFormat;
-    let config = parse_config("[tasks.id]\nformat = \"uuid-v4\"\n").unwrap();
-    assert_eq!(config.tasks.id.format, IdFormat::UuidV4);
-}
-
-#[test]
-fn id_format_parses_uuid_v7() {
-    use super::IdFormat;
-    let config = parse_config("[tasks.id]\nformat = \"uuid-v7\"\n").unwrap();
-    assert_eq!(config.tasks.id.format, IdFormat::UuidV7);
-}
-
-#[test]
-fn id_format_rejects_unknown() {
-    assert!(parse_config("[tasks.id]\nformat = \"base62\"\n").is_err());
-}
-
-#[test]
 fn effective_project_code_uses_configured_code() {
     use super::effective_project_code;
     use std::path::Path;
