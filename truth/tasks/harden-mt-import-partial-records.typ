@@ -10,7 +10,7 @@
   tags: ("cli",),
   links: related("canonical-task-json-schema.typ")[schema deserialize gaps]
     + related("task-to-typ-emitter.typ")[dateless-status emission],
-  status: proposed(2026, 7, 13),
+  status: done(2026, 7, 13),
 )
 
 == Summary
