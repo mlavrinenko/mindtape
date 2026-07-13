@@ -116,7 +116,8 @@ pub fn run(args: &AddArgs) -> Result<()> {
     fill_title_from_args(&mut values, args, &specs);
     layer_env(&mut values, &specs, |key| std::env::var(key).ok());
     fill_title_from_stdin(&mut values, args)?;
-    if add_interactive::should_open(args.edit, &config.add, &specs, &values)? {
+    let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
+    if add_interactive::should_open(args.edit, &config.add, &specs, &values, tty)? {
         values = add_interactive::run(&config.add, &specs, &values)?;
     }
     let filled = fill(&source, &values).map_err(|err| anyhow!(err.to_string()))?;

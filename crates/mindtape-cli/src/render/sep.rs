@@ -25,12 +25,11 @@ pub const CSV: Separators = Separators {
     record: '\n',
 };
 
-/// Returns `true` if output is going to a machine consumer (not a TTY) and
-/// structured separators are therefore preferred over decorative ones.
+/// Returns `true` if output is going to a machine consumer (stdout is not a
+/// TTY) and structured separators are therefore preferred over decorative ones.
 #[must_use]
-pub fn is_machine_output() -> bool {
-    use std::io::IsTerminal;
-    !std::io::stdout().is_terminal()
+pub fn is_machine_output(stdout_is_tty: bool) -> bool {
+    !stdout_is_tty
 }
 
 #[cfg(test)]
@@ -61,8 +60,12 @@ mod tests {
     }
 
     #[test]
-    fn is_machine_output_true_in_tests() {
-        // Test processes run without a real TTY, so stdout is not a terminal.
-        assert!(is_machine_output());
+    fn is_machine_output_non_tty_is_true() {
+        assert!(is_machine_output(false));
+    }
+
+    #[test]
+    fn is_machine_output_tty_is_false() {
+        assert!(!is_machine_output(true));
     }
 }

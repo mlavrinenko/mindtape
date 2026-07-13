@@ -1,7 +1,5 @@
 //! Glyph mode: choose between emoji, ASCII, or no decorative glyphs.
 
-use std::io::IsTerminal;
-
 /// The set of glyph styles the renderer can emit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, clap::ValueEnum)]
 pub enum GlyphMode {
@@ -16,13 +14,13 @@ pub enum GlyphMode {
 
 /// Resolve the glyph mode appropriate for the current output channel.
 ///
-/// When `preferred` is `Emoji` but stdout is not a TTY, the resolver
+/// When `preferred` is `Emoji` but `stdout_is_tty` is false, the resolver
 /// degrades to `Ascii` to keep pipe/file output clean.
 #[must_use]
-pub fn resolve_glyph_mode(preferred: GlyphMode) -> GlyphMode {
+pub fn resolve_glyph_mode(preferred: GlyphMode, stdout_is_tty: bool) -> GlyphMode {
     match preferred {
         GlyphMode::Emoji => {
-            if std::io::stdout().is_terminal() {
+            if stdout_is_tty {
                 GlyphMode::Emoji
             } else {
                 GlyphMode::Ascii
@@ -38,18 +36,23 @@ mod tests {
 
     #[test]
     fn ascii_and_none_pass_through() {
-        assert_eq!(resolve_glyph_mode(GlyphMode::Ascii), GlyphMode::Ascii);
-        assert_eq!(resolve_glyph_mode(GlyphMode::None), GlyphMode::None);
+        assert_eq!(
+            resolve_glyph_mode(GlyphMode::Ascii, false),
+            GlyphMode::Ascii
+        );
+        assert_eq!(resolve_glyph_mode(GlyphMode::None, false), GlyphMode::None);
     }
 
     #[test]
     fn emoji_degrades_to_ascii_in_non_tty() {
-        // Test processes run without a TTY.
-        let resolved = resolve_glyph_mode(GlyphMode::Emoji);
         assert_eq!(
-            resolved,
-            GlyphMode::Ascii,
-            "emoji should degrade to ASCII when stdout is not a TTY"
+            resolve_glyph_mode(GlyphMode::Emoji, false),
+            GlyphMode::Ascii
         );
+    }
+
+    #[test]
+    fn emoji_kept_in_tty() {
+        assert_eq!(resolve_glyph_mode(GlyphMode::Emoji, true), GlyphMode::Emoji);
     }
 }

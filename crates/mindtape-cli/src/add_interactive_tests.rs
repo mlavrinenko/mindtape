@@ -183,7 +183,7 @@ fn never_mode_without_force_stays_closed() {
         ..Default::default()
     };
     // No terminal in tests; should_open must not error and must stay false.
-    assert!(!should_open(false, &config, &specs(), &BTreeMap::new()).unwrap());
+    assert!(!should_open(false, &config, &specs(), &BTreeMap::new(), false).unwrap());
 }
 
 #[test]
@@ -192,6 +192,14 @@ fn always_mode_errors_without_tty() {
         interactive: InteractiveMode::Always,
         ..Default::default()
     };
-    // Tests run without a controlling terminal, so this must error rather than hang.
-    assert!(should_open(false, &config, &specs(), &BTreeMap::new()).is_err());
+    assert!(should_open(false, &config, &specs(), &BTreeMap::new(), false).is_err());
+}
+
+#[test]
+fn always_mode_succeeds_with_tty() {
+    let config = AddConfig {
+        interactive: InteractiveMode::Always,
+        ..Default::default()
+    };
+    assert!(should_open(false, &config, &specs(), &BTreeMap::new(), true).unwrap());
 }

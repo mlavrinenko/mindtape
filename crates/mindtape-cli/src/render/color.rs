@@ -35,11 +35,11 @@ impl fmt::Display for ColorChoice {
 /// 2. `never` → colour off.
 /// 3. `auto` → colour on iff stdout is a TTY **and** `NO_COLOR` is unset.
 #[must_use]
-pub fn color_enabled(choice: ColorChoice) -> bool {
+pub fn color_enabled(choice: ColorChoice, stdout_is_tty: bool) -> bool {
     match choice {
         ColorChoice::Always => true,
         ColorChoice::Never => false,
-        ColorChoice::Auto => std::io::stdout().is_terminal() && !no_color_set(),
+        ColorChoice::Auto => stdout_is_tty && !no_color_set(),
     }
 }
 
@@ -60,7 +60,8 @@ static COLOR_ENABLED: OnceLock<bool> = OnceLock::new();
 /// Must be called exactly once (from `main`). Subsequent calls from the same
 /// process read the cached value without re-checking the TTY or environment.
 pub fn init(choice: ColorChoice) {
-    let _ = COLOR_ENABLED.get_or_init(|| color_enabled(choice));
+    let stdout_is_tty = std::io::stdout().is_terminal();
+    let _ = COLOR_ENABLED.get_or_init(|| color_enabled(choice, stdout_is_tty));
 }
 
 /// Returns whether colour output is active for this process.
@@ -157,30 +158,29 @@ mod tests {
 
     #[test]
     fn always_enables_regardless_of_env() {
-        // NO_COLOR may or may not be set in test env; Always ignores it.
-        let enabled = color_enabled(ColorChoice::Always);
-        assert!(enabled);
+        assert!(color_enabled(ColorChoice::Always, false));
+        assert!(color_enabled(ColorChoice::Always, true));
     }
 
     #[test]
     fn never_disables_regardless_of_env() {
-        let enabled = color_enabled(ColorChoice::Never);
-        assert!(!enabled);
+        assert!(!color_enabled(ColorChoice::Never, false));
+        assert!(!color_enabled(ColorChoice::Never, true));
     }
 
     #[test]
     fn auto_respects_no_color() {
-        // In a test process stdout is never a TTY, so Auto → false already,
-        // but we verify NO_COLOR logic by forcing NO_COLOR in a controlled way.
-        // We can only read the env here; the unit test for no_color_set is below.
-        let _ = no_color_set(); // just assert it doesn't panic
+        let _ = no_color_set();
     }
 
     #[test]
     fn auto_non_tty_returns_false() {
-        // Test processes are never attached to a real TTY.
-        let enabled = color_enabled(ColorChoice::Auto);
-        assert!(!enabled, "expected false in non-TTY test environment");
+        assert!(!color_enabled(ColorChoice::Auto, false));
+    }
+
+    #[test]
+    fn auto_tty_returns_true() {
+        assert!(color_enabled(ColorChoice::Auto, true));
     }
 
     #[test]

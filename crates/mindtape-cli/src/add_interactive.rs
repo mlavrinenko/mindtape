@@ -5,7 +5,7 @@
 //! `mindtape` library stays format-blind; this glue lives in the CLI.
 
 use std::collections::BTreeMap;
-use std::io::{IsTerminal, Write};
+use std::io::Write;
 use std::process::Command;
 
 use anyhow::{Context, Result, bail};
@@ -22,19 +22,21 @@ const DEFAULT_HEADER: &str = "\
 /// missing-slot trigger, but still requires a terminal. The non-interactive path
 /// returns `false`.
 ///
+/// `tty` should be `std::io::stdin().is_terminal() && std::io::stdout().is_terminal()`.
+///
 /// # Errors
 /// Returns an error when an editor is demanded (`--edit`, or `interactive` set to
-/// `always`) but stdin/stdout is not a terminal.
+/// `always`) but `tty` is false.
 pub fn should_open(
     force: bool,
     config: &AddConfig,
     specs: &[SlotSpec],
     seed: &BTreeMap<String, RawValue>,
+    tty: bool,
 ) -> Result<bool> {
     if config.interactive == InteractiveMode::Never && !force {
         return Ok(false);
     }
-    let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
     if force || config.interactive == InteractiveMode::Always {
         if !tty {
             bail!("interactive add needs a terminal; pass values with -f/--set instead");
