@@ -1,3 +1,4 @@
+#:schema ../schema/config.schema.json
 # .mindtape/config.toml — MindTape tracking itself (dogfood).
 # White-listed: MindTape constrains only what is declared here. Omit a section
 # to accept the defaults and the prelude's full status shortcut set.
