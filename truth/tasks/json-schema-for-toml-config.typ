@@ -8,7 +8,7 @@
     ease: 4,
   ),
   tags: ("cli", "tooling",),
-  status: proposed(2026, 7, 15),
+  status: done(2026, 7, 15)[shipped: schemars-derived schema, mt install writes it, mt init adds \#:schema directive; drift + validation gates],
 )
 
 == Summary
