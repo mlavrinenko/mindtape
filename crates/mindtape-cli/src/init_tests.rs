@@ -1,6 +1,16 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{FULL_CONFIG, SLIM_CONFIG, scaffold_config};
+use super::{FULL_CONFIG, InitArgs, SLIM_CONFIG, scaffold_config, with_schema_directive};
+
+/// Build `InitArgs` for the directive-only paths (force/full irrelevant here).
+fn init_args(schema: Option<&str>, no_schema: bool) -> InitArgs {
+    InitArgs {
+        force: false,
+        full: false,
+        schema: schema.map(str::to_owned),
+        no_schema,
+    }
+}
 
 /// An existing `.mindtape/config.toml` survives `scaffold_config` without
 /// `force`, regardless of which template would otherwise be written.
@@ -81,6 +91,39 @@ fn full_config_parses_and_validates() {
 #[test]
 fn slim_config_parses_and_validates() {
     let config = mindtape::parse_config(SLIM_CONFIG).unwrap();
+    config.validate().unwrap();
+}
+
+/// `--schema URL|PATH` writes the given value as the first-line `#:schema`
+/// directive, leaving the template body intact below it.
+#[test]
+fn schema_directive_uses_explicit_value() {
+    let out = with_schema_directive(
+        SLIM_CONFIG,
+        &init_args(Some("https://x/config.schema.json"), false),
+    )
+    .unwrap();
+    assert!(
+        out.starts_with("#:schema https://x/config.schema.json\n"),
+        "{out}"
+    );
+    assert!(out.ends_with(SLIM_CONFIG));
+}
+
+/// `--no-schema` leaves the scaffold untouched (no directive prepended).
+#[test]
+fn no_schema_omits_directive() {
+    let out = with_schema_directive(SLIM_CONFIG, &init_args(None, true)).unwrap();
+    assert_eq!(out, SLIM_CONFIG);
+}
+
+/// A directive-carrying scaffold still parses and validates — `#:schema` is a
+/// TOML comment, ignored by the config loader.
+#[test]
+fn directive_scaffold_still_parses() {
+    let out =
+        with_schema_directive(SLIM_CONFIG, &init_args(Some("config.schema.json"), false)).unwrap();
+    let config = mindtape::parse_config(&out).unwrap();
     config.validate().unwrap();
 }
 

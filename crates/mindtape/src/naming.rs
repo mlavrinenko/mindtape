@@ -20,7 +20,7 @@ use serde::Deserialize;
 pub const DEFAULT_STEM_TEMPLATE: &str = "{slug}";
 
 /// `[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct NamingConfig {
     /// Stem template with macros. Unset ⇒ bare `{slug}` (today's behaviour).

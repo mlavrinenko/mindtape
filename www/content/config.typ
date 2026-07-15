@@ -207,6 +207,26 @@ environment predicates (a task field name is a load-time error), each
 `import-views` entry must resolve to a declared view with legal facet
 selectors, and a manual override must be valid — same checks as `[views]`.
 
+= Editor schema
+
+`mt install` writes a JSON Schema for `.mindtape/config.toml` next to the app
+config (`~/.config/mindtape/config.schema.json`), generated from the config
+types so it never drifts. `mt init` scaffolds a config whose first line is a
+`#:schema` comment directive pointing at it:
+
+```toml
+#:schema file:///home/you/.config/mindtape/config.schema.json
+[tasks]
+roots = ["tasks"]
+```
+
+A schema-aware TOML editor (tombi, Taplo) reads the directive to offer
+completion, hover docs, and validation while you edit. `mt init --schema
+URL|PATH` sets a different target — e.g. the published URL for a portable,
+checked-in config, or a path relative to the config file — and `--no-schema`
+(on `init` or `install`) opts out. The directive is a plain TOML comment, so
+`mt` itself ignores it.
+
 = Environment variables
 
 Besides `-w`/`--worktree` (or `$MINDTAPE_WORKTREE`, see #link(u("/agents/"))[For

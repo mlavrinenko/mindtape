@@ -12,7 +12,7 @@ use serde::Deserialize;
 /// One `[[tasks.roots]]` entry: a bare path string, or a table with a display
 /// name and per-root derivation rule. Both spellings coexist; `roots =
 /// ["tasks"]` and `[[tasks.roots]]` deserialize to the same `Vec<RootSpec>`.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum RootSpec {
     /// Path shorthand, e.g. `"tasks"`.
@@ -22,7 +22,7 @@ pub enum RootSpec {
 }
 
 /// The table form of a task root.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RootConfig {
     /// Directory (relative to the project root) holding one task per file.
@@ -36,7 +36,7 @@ pub struct RootConfig {
 /// Per-root derivation switch: a bool, a single file glob, or a list of globs.
 /// A glob gates which files under the root get derivation (matched against the
 /// path relative to the root). `true`/`false` enable or disable wholesale.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum DeriveTags {
     /// Enable or disable for every file under the root.
@@ -48,7 +48,7 @@ pub enum DeriveTags {
 }
 
 /// `[tasks.derive-tags]` — project-wide folder-derived-tag policy.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct DeriveConfig {
     /// Default derivation switch for roots that set no `derive-tags` of their own.
@@ -76,7 +76,7 @@ impl Default for DeriveConfig {
 }
 
 /// A folder-derived-tag collector strategy.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum Collector {
     /// Each folder name as an independent flat tag (`backend`, `auth`).

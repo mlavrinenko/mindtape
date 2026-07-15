@@ -55,11 +55,11 @@ Set up the user environment once per machine (installs the Typst prelude,
 seeds the XDG global app config), then scaffold a project (once per project):
 
 ```bash
-mt install            # installs @local/mindtape + seeds ~/.config/mindtape/defaults.toml
-mt init               # writes .mindtape/config.toml in the current dir
+mt install            # @local/mindtape + ~/.config/mindtape/{defaults.toml,config.schema.json}
+mt init               # writes .mindtape/config.toml (with a #:schema directive) here
 ```
 
-`mt install-lib` is a deprecated alias for `mt install --no-defaults`.
+`mt install` also writes a JSON Schema next to the app config; `mt init` adds a first-line `#:schema` directive targeting it so a schema-aware TOML editor (tombi, Taplo) assists filling values (`--schema URL|PATH` retargets, `--no-schema` opts out). `mt install-lib` ≙ `mt install --no-defaults --no-schema`.
 
 ## Usage
 

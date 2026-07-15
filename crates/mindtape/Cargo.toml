@@ -35,6 +35,10 @@ artifact-gate = "0.1.0"
 swhid-mint = { version = "0.1.1", default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Derives the JSON Schema for `.mindtape/config.toml` straight off the config
+# structs (single source of truth), so `mt install`/`mt init` can ship an
+# editor-assist schema that never drifts from the types. Emits draft 2020-12.
+schemars = "1"
 globset = "0.4"
 toml = "0.8"
 thiserror = "2"

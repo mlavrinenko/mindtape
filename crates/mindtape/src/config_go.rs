@@ -6,7 +6,7 @@
 use serde::Deserialize;
 
 /// `[go]` — settings for `mt go`.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct GoConfig {
     /// Editor command. A `{task}` token is replaced with the resolved file path;

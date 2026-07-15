@@ -95,7 +95,7 @@ pub fn format_num(num: f64) -> String {
 }
 
 /// Whether the scale carries integers or reals.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum ScaleKind {
     /// Whole numbers; bands are inclusive and contiguous.
@@ -106,7 +106,7 @@ pub enum ScaleKind {
 }
 
 /// One contiguous labelled range in a band classification.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Band {
     /// Display label.
@@ -122,7 +122,7 @@ pub struct Band {
 }
 
 /// One labelled point in an anchor classification.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Anchor {
     /// The point on the scale this label names.
@@ -155,7 +155,7 @@ pub struct NumCell {
 /// with no classification declared. Its scale already agrees with the
 /// embedded floor's (`crate::config::EMBEDDED_DEFAULTS`), which additionally
 /// supplies the bands/anchors through `parse_config`.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct NumericField {
     /// Whether the scale is integer or real.

@@ -1,0 +1,1353 @@
+{
+  "$defs": {
+    "AddConfig": {
+      "additionalProperties": false,
+      "description": "`[add]` — interactive editor fill settings.",
+      "properties": {
+        "editor": {
+          "default": null,
+          "description": "Editor command override. Falls back to `$VISUAL`, then `$EDITOR`, then a\nbuilt-in default. May carry arguments (split on whitespace).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "header": {
+          "default": null,
+          "description": "Scaffold header override. Absent uses the built-in instructions; an empty\n(or all-blank) string disables the header; any other text replaces it,\ncomment-prefixed so it stays valid YAML.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "interactive": {
+          "$ref": "#/$defs/InteractiveMode",
+          "description": "When the interactive editor opens."
+        }
+      },
+      "type": "object"
+    },
+    "Anchor": {
+      "additionalProperties": false,
+      "description": "One labelled point in an anchor classification.",
+      "properties": {
+        "color": {
+          "default": null,
+          "description": "Optional colour: a named ANSI colour or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "glyph": {
+          "default": null,
+          "description": "Optional decorative glyph.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "default": "",
+          "description": "Display label.",
+          "type": "string"
+        },
+        "value": {
+          "default": 0.0,
+          "description": "The point on the scale this label names.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "Band": {
+      "additionalProperties": false,
+      "description": "One contiguous labelled range in a band classification.",
+      "properties": {
+        "color": {
+          "default": null,
+          "description": "Optional colour: a named ANSI colour or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "glyph": {
+          "default": null,
+          "description": "Optional decorative glyph.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "default": "",
+          "description": "Display label.",
+          "type": "string"
+        },
+        "max": {
+          "default": 0.0,
+          "description": "Upper bound (inclusive for int and the last real band; else exclusive).",
+          "format": "double",
+          "type": "number"
+        },
+        "min": {
+          "default": 0.0,
+          "description": "Inclusive lower bound.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "Category": {
+      "additionalProperties": false,
+      "description": "One categorical bucket: a predicate plus its representative score and display.",
+      "properties": {
+        "color": {
+          "default": null,
+          "description": "Optional colour: a named ANSI colour or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "glyph": {
+          "default": null,
+          "description": "Optional decorative glyph.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "default": null,
+          "description": "Display label; falls back to empty when absent.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "score": {
+          "default": 0.0,
+          "description": "Representative score on the scale (drives banding and sort).",
+          "format": "double",
+          "type": "number"
+        },
+        "when": {
+          "default": "",
+          "description": "evalexpr predicate over the inputs selecting this category.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Collector": {
+      "description": "A folder-derived-tag collector strategy.",
+      "oneOf": [
+        {
+          "const": "segments",
+          "description": "Each folder name as an independent flat tag (`backend`, `auth`).",
+          "type": "string"
+        },
+        {
+          "const": "breadcrumbs",
+          "description": "Cumulative path prefixes joined by the separator (`backend`,\n`backend:auth`).",
+          "type": "string"
+        }
+      ]
+    },
+    "ColumnConfig": {
+      "additionalProperties": false,
+      "description": "`[ls.columns.<name>]` — one column's display settings.",
+      "properties": {
+        "visibility": {
+          "$ref": "#/$defs/Visibility",
+          "description": "Whether the column renders. `Auto` hides it when it carries nothing\nsignificant; `Visible` always renders it; `Hidden` never does."
+        }
+      },
+      "type": "object"
+    },
+    "DeriveConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.derive-tags]` — project-wide folder-derived-tag policy.",
+      "properties": {
+        "breadcrumb-root": {
+          "default": false,
+          "description": "Fold the root name into the breadcrumb chain (`mt`, `mt:backend`, …).",
+          "type": "boolean"
+        },
+        "collect": {
+          "description": "Active collectors; both may run at once (union, dedupe).",
+          "items": {
+            "$ref": "#/$defs/Collector"
+          },
+          "type": "array"
+        },
+        "enabled": {
+          "default": false,
+          "description": "Default derivation switch for roots that set no `derive-tags` of their own.",
+          "type": "boolean"
+        },
+        "separator": {
+          "default": ":",
+          "description": "Breadcrumb join separator.",
+          "type": "string"
+        },
+        "slugify": {
+          "default": true,
+          "description": "Normalise folder names to tag form.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "DeriveTags": {
+      "anyOf": [
+        {
+          "description": "Enable or disable for every file under the root.",
+          "type": "boolean"
+        },
+        {
+          "description": "Enable only for files matching this glob.",
+          "type": "string"
+        },
+        {
+          "description": "Enable only for files matching any of these globs.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      ],
+      "description": "Per-root derivation switch: a bool, a single file glob, or a list of globs.\nA glob gates which files under the root get derivation (matched against the\npath relative to the root). `true`/`false` enable or disable wholesale."
+    },
+    "EstimateConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.estimate]` — the estimate units allow-list.\n\nAn estimate is an opaque `unit -> quantity` dict (e.g. `(days: 5, hours: 5)`\nor `(points: 8)`). Units are free labels, not converted or compared; the\nconfig only constrains which unit names are legal. Empty = any unit.",
+      "properties": {
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether an estimate must be set."
+        },
+        "units": {
+          "default": [],
+          "description": "Allowed unit names. Empty = any unit.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "FieldConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.fields.<name>]` — constraints for one configurable core field.",
+      "properties": {
+        "default": {
+          "default": null,
+          "description": "Default value (informational; not auto-applied during load).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether the field must be set."
+        },
+        "values": {
+          "default": [],
+          "description": "Allowed enum values. Empty = any.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "Framework": {
+      "additionalProperties": false,
+      "description": "One framework definition: typed inputs plus either a scalar score formula or\na categorical classification.",
+      "properties": {
+        "category": {
+          "description": "Categorical classification. Mutually exclusive with `score`.",
+          "items": {
+            "$ref": "#/$defs/Category"
+          },
+          "type": "array"
+        },
+        "inputs": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Input"
+          },
+          "description": "Declared inputs, keyed by name (the names used in formulas/predicates).",
+          "type": "object"
+        },
+        "score": {
+          "default": null,
+          "description": "Scalar score formula (evalexpr). Mutually exclusive with `categories`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "GoConfig": {
+      "additionalProperties": false,
+      "description": "`[go]` — settings for `mt go`.",
+      "properties": {
+        "editor": {
+          "default": null,
+          "description": "Editor command. A `{task}` token is replaced with the resolved file path;\nwithout it the path is appended. Falls back to `$VISUAL`, then `$EDITOR`;\n`go` errors when none is set (no `vi` floor — see the `go` command docs).\nMay carry arguments (split on whitespace).",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "HeaderAction": {
+      "description": "The shape of a body-header rule.",
+      "enum": [
+        "require",
+        "forbid",
+        "unique",
+        "order",
+        "allowlist"
+      ],
+      "type": "string"
+    },
+    "HeaderPathSegment": {
+      "description": "One step in a heading path: an exact string (direct-child match) or `{ match = \"regex\", recursive = bool }`.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "match": {
+              "description": "Rust regex matched against heading text.",
+              "type": "string"
+            },
+            "recursive": {
+              "description": "Match any descendant (true) or only direct children (false).",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "match"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "HeaderRuleConfig": {
+      "additionalProperties": false,
+      "description": "One entry in `[[tasks.body.headers.rules]]`.\n\n`action` selects the rule shape and which fields apply:\n- `require` / `forbid` / `unique` — cardinality over `path`.\n- `order` — `before` headings must precede `after` headings.\n- `allowlist` — closed-world: under `scope` (or top-level when omitted), only\n  `allowed` headings are permitted.",
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/HeaderAction",
+          "description": "Whether the target headings must exist, must not, or must be unique, or\nwhether this is an `order`/`allowlist` rule."
+        },
+        "after": {
+          "description": "Path whose headings must come after (`order`).",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "allowed": {
+          "description": "The permitted headings (`allowlist`).",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "before": {
+          "description": "Path whose headings must come first (`order`).",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "message": {
+          "description": "Override for the default violation message.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "Path through the heading tree (cardinality actions).",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "scope": {
+          "description": "Path selecting scopes whose children are constrained (`allowlist`);\nomit to constrain top-level headings.",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "when": {
+          "description": "Optional filter expression gating this rule to matching tasks only.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "action"
+      ],
+      "type": "object"
+    },
+    "HeadersConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.body.headers]` — heading-presence rules.",
+      "properties": {
+        "rules": {
+          "description": "Ordered list of heading gating rules.",
+          "items": {
+            "$ref": "#/$defs/HeaderRuleConfig"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "IdConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.id]` — task identity format constraint.",
+      "properties": {
+        "format": {
+          "$ref": "#/$defs/IdFormat",
+          "description": "Format requirement for an explicit `id:`. Default accepts any non-empty string."
+        }
+      },
+      "type": "object"
+    },
+    "IdFormat": {
+      "description": "Format requirement for an explicit task `id:` field.",
+      "enum": [
+        "string",
+        "uuid-v4",
+        "uuid-v7"
+      ],
+      "type": "string"
+    },
+    "Input": {
+      "additionalProperties": false,
+      "description": "One declared input: its type and bounds (numbers) or allowed values (enums).",
+      "properties": {
+        "max": {
+          "default": null,
+          "description": "Inclusive upper bound (number inputs).",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "min": {
+          "default": null,
+          "description": "Inclusive lower bound (number inputs).",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "type": {
+          "$ref": "#/$defs/InputKind",
+          "description": "Input type."
+        },
+        "values": {
+          "default": [],
+          "description": "Allowed values (enum inputs).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "InputKind": {
+      "description": "The type of a framework input.",
+      "oneOf": [
+        {
+          "const": "number",
+          "description": "A bounded number.",
+          "type": "string"
+        },
+        {
+          "const": "bool",
+          "description": "A boolean.",
+          "type": "string"
+        },
+        {
+          "const": "enum",
+          "description": "A string from a fixed set of values.",
+          "type": "string"
+        }
+      ]
+    },
+    "InteractiveMode": {
+      "description": "When `mt add` opens the interactive editor.",
+      "oneOf": [
+        {
+          "const": "auto",
+          "description": "Open in a terminal when a required slot is still unfilled (default).",
+          "type": "string"
+        },
+        {
+          "const": "always",
+          "description": "Always open in a terminal; error when stdin/stdout is not a TTY.",
+          "type": "string"
+        },
+        {
+          "const": "never",
+          "description": "Never open; behave as the non-interactive pipeline.",
+          "type": "string"
+        }
+      ]
+    },
+    "Legend": {
+      "description": "The status legend: an ordered, displayable vocabulary.\n\nEach entry binds a value to optional display attributes (glyph, colour,\nlabel) plus the `terminal` flag. The legend defines the legal values, their\nlifecycle order, and how each renders. Empty = unconstrained (though an\nomitted `[[tasks.status]]` section inherits the embedded floor's six-value\nlegend through `parse_config` — see `crate::config`). The same primitive\nwill serve other discrete enum fields (kind, tags) as they gain display.",
+      "items": {
+        "$ref": "#/$defs/LegendEntry"
+      },
+      "type": "array"
+    },
+    "LegendEntry": {
+      "additionalProperties": false,
+      "description": "One `[[tasks.status]]` entry: a value plus its display attributes.",
+      "properties": {
+        "color": {
+          "default": null,
+          "description": "Optional colour: a named ANSI colour or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "glyph": {
+          "default": null,
+          "description": "Optional decorative glyph (emoji or ASCII).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "label": {
+          "default": null,
+          "description": "Optional display label; falls back to `value`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "terminal": {
+          "default": false,
+          "description": "Whether this value ends a task; required fields relax once terminal.",
+          "type": "boolean"
+        },
+        "to": {
+          "default": [],
+          "description": "Allowed next statuses when leaving this one — the outgoing edges of the\ntransition graph. Empty on every entry keeps the legend any-to-any\n(unconstrained). Once any entry declares `to`, transitions are enforced\nand an empty `to` marks a sink: nothing out but a same-status re-stamp.\nA reopen edge is just a terminal (or any) state naming its target here.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "value": {
+          "default": "",
+          "description": "The value this entry describes (e.g. a status name).",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "LinkKind": {
+      "additionalProperties": false,
+      "description": "`[[tasks.links.kinds]]` — one project/consumer-declared custom edge kind.",
+      "properties": {
+        "acyclic": {
+          "default": false,
+          "description": "Whether edges of this kind must stay acyclic.",
+          "type": "boolean"
+        },
+        "blocking": {
+          "default": false,
+          "description": "Whether edges of this kind gate readiness.",
+          "type": "boolean"
+        },
+        "max": {
+          "default": null,
+          "description": "Cardinality cap; `None` = unbounded.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "name": {
+          "default": "",
+          "description": "Kind name, matched against an edge's `kind`.",
+          "type": "string"
+        },
+        "note": {
+          "$ref": "#/$defs/NoteRule",
+          "description": "Note requirement for edges of this kind."
+        }
+      },
+      "type": "object"
+    },
+    "LinksConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.links]` — the typed-edge kind registry.",
+      "properties": {
+        "kinds": {
+          "description": "User-declared custom edge kinds, layered over the immutable built-ins.",
+          "items": {
+            "$ref": "#/$defs/LinkKind"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "LocalPackage": {
+      "additionalProperties": false,
+      "description": "`[[typst.local-packages]]` — one `@local/<name>` → in-tree path override.",
+      "properties": {
+        "name": {
+          "default": "",
+          "description": "The `@local/<name>` package name.",
+          "type": "string"
+        },
+        "path": {
+          "default": "",
+          "description": "Lib directory holding the package's `typst.toml`, relative to the root.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "LsConfig": {
+      "additionalProperties": false,
+      "description": "`[ls]` — `mt ls` defaults.",
+      "properties": {
+        "columns": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ColumnConfig"
+          },
+          "description": "Per-column display settings, keyed by a [`LS_COLUMNS`] name. A map value\n(not a scalar) so future column knobs extend [`ColumnConfig`] without a\nbreaking shape change. Unlisted columns take the defaults.",
+          "type": "object"
+        },
+        "columns-order": {
+          "default": [],
+          "description": "Explicit column order. Empty means the built-in [`LS_COLUMNS`] order.\nWhen set, it both selects and orders: only the listed columns render, in\nthe given sequence. Validated against [`LS_COLUMNS`] at config load.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "date-format": {
+          "default": null,
+          "description": "Global date display format applied to every rendered date column.\nTokens (longest-match-first): `YYYY` 4-digit year, `YY` 2-digit year,\n`MMMM` full month name, `MMM` abbreviated month, `MM` zero-padded month,\n`M` bare month, `DD` zero-padded day, `D` bare day.\nNon-token characters pass through literally.\nDefault `None` renders ISO `YYYY-MM-DD`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "default-sort": {
+          "default": [],
+          "description": "Default sort chain for `mt ls` when the caller passes no `--sort`.\nSame spec grammar as `--sort`: `\"field\"` or `\"field:asc\"` / `\"field:desc\"`.\nValidated at config load. When absent the shipped built-in chain applies.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "default-view": {
+          "default": null,
+          "description": "Name of the view driving the default `mt ls` listing when the caller\npasses no filter. Resolved by [`crate::Config::ls_default_view`]:\n`[ls] default-view` if set, else the `[views.default]` view if declared,\nelse match-all. Validated at config load. Supersedes the old\n`default-filter`, so the default listing carries the view's sort and\ncolumns too, not just a filter.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "overdue-color": {
+          "default": null,
+          "description": "Colour for the overdue due-date accent (`due_cell`). Defaulted `\"red\"`\nfrom the embedded floor.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ready": {
+          "$ref": "#/$defs/ReadyConfig",
+          "description": "READY-column display: glyph / colour / label for the ready and blocked\nstates. Defaulted from the embedded floor (`defaults.toml`), so unset\nbehaviour is unchanged; see [`ReadyConfig`]."
+        },
+        "rules": {
+          "description": "Ordered auto-activation rules for bare `mt ls` (no CLI filter, no\n`@view`): the first entry whose `condition` holds (or is absent) wins.\nSee [`LsRule`] and `truth/tasks/conditional-ls-rules.typ`.",
+          "items": {
+            "$ref": "#/$defs/LsRule"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "LsRule": {
+      "additionalProperties": false,
+      "description": "One `[[ls.rules]]` entry.\n\nThe first rule (top to bottom) whose `condition` holds — or that omits\n`condition` entirely — drives the default `mt ls` listing. Its effective\nfacets are `import-views` composed left-to-right (per-facet last-wins),\nthen any manual `filter` / `sort` / `columns` override (highest\nprecedence). All fields are optional; a rule with none of them still\nmatches (by an absent `condition`) but contributes no facets.",
+      "properties": {
+        "columns": {
+          "default": [],
+          "description": "Manual columns override — highest precedence for the columns facet.\nSubset of [`LS_COLUMNS`]; an entry may splice `@view`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "condition": {
+          "default": null,
+          "description": "Condition-grammar expression over environment predicates\n([`crate::condition`]) — `on_branch`, `env`, `weekday`, `now`. Absent\nmatches always.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "filter": {
+          "default": null,
+          "description": "Manual filter override — highest precedence for the filter facet.\nSame grammar as `[views]`; may use `@view` / `in_view`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "import-views": {
+          "default": [],
+          "description": "Ordered `import-views` entries, composed left-to-right (per-facet\nlast-wins). Each is `\"view\"` (all three facets) or\n`\"view(facet, ...)\"` (a subset of `filter` / `sort` / `columns`); see\n[`parse_import_view`].",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "default": null,
+          "description": "Shown in the trailer and the JSON envelope's `applied.rule`; falls\nback to the condition text when unset.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sort": {
+          "default": [],
+          "description": "Manual sort override — highest precedence for the sort facet. Same\nspec grammar as `--sort`; an entry may splice `@view`.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "NamingConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem.",
+      "properties": {
+        "stem": {
+          "default": null,
+          "description": "Stem template with macros. Unset ⇒ bare `{slug}` (today's behaviour).",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "NoteRule": {
+      "description": "Note requirement for an edge kind.",
+      "oneOf": [
+        {
+          "const": "required",
+          "description": "A non-empty note is mandatory (the `related` escape hatch).",
+          "type": "string"
+        },
+        {
+          "const": "optional",
+          "description": "A note is allowed but not required (the default).",
+          "type": "string"
+        },
+        {
+          "const": "forbidden",
+          "description": "A note is rejected.",
+          "type": "string"
+        }
+      ]
+    },
+    "NumericField": {
+      "additionalProperties": false,
+      "description": "A numeric scalar field: scale plus one classification style.\n\nLeft opinionated (a usable `0..9` scale, no bands/anchors) rather than\ncollapsed to a degenerate `0..0`: `Config::default()` is called directly\n(bypassing `parse_config`) by CLI test fixtures that carry an in-range\nmanual priority/difficulty value and rely on `check_in_scale` accepting it\nwith no classification declared. Its scale already agrees with the\nembedded floor's (`crate::config::EMBEDDED_DEFAULTS`), which additionally\nsupplies the bands/anchors through `parse_config`.",
+      "properties": {
+        "anchors": {
+          "description": "Anchor classification (mutually exclusive with `bands`).",
+          "items": {
+            "$ref": "#/$defs/Anchor"
+          },
+          "type": "array"
+        },
+        "bands": {
+          "description": "Band classification (mutually exclusive with `anchors`).",
+          "items": {
+            "$ref": "#/$defs/Band"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/ScaleKind",
+          "description": "Whether the scale is integer or real."
+        },
+        "max": {
+          "default": 9.0,
+          "description": "Inclusive scale maximum.",
+          "format": "double",
+          "type": "number"
+        },
+        "min": {
+          "default": 0.0,
+          "description": "Inclusive scale minimum.",
+          "format": "double",
+          "type": "number"
+        },
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether the field must be set."
+        }
+      },
+      "type": "object"
+    },
+    "PriorityConfig": {
+      "description": "`[tasks.priority]` — the priority numeric field plus its scoring frameworks.\n\nFlattens a [`NumericField`] (scale + band classification, shared with\ndifficulty) and layers framework selection on top. When `framework` names an\nactive framework, a task's priority is computed from that framework's inputs\ninstead of a hand-set integer; `allow_manual` decides whether a raw integer\nis still accepted as an escape hatch. The `frameworks` registry holds the\nbaked-in built-ins deep-merged with any user `[tasks.priority.frameworks.*]`.",
+      "properties": {
+        "allow-manual": {
+          "default": true,
+          "description": "Whether a raw integer is accepted while a framework is active.",
+          "type": "boolean"
+        },
+        "anchors": {
+          "description": "Anchor classification (mutually exclusive with `bands`).",
+          "items": {
+            "$ref": "#/$defs/Anchor"
+          },
+          "type": "array"
+        },
+        "bands": {
+          "description": "Band classification (mutually exclusive with `anchors`).",
+          "items": {
+            "$ref": "#/$defs/Band"
+          },
+          "type": "array"
+        },
+        "framework": {
+          "default": null,
+          "description": "Active framework name, matched against `frameworks`. `None` = raw numeric.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "frameworks": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Framework"
+          },
+          "description": "Framework registry: built-ins deep-merged with user definitions.",
+          "type": "object"
+        },
+        "kind": {
+          "$ref": "#/$defs/ScaleKind",
+          "description": "Whether the scale is integer or real."
+        },
+        "max": {
+          "default": 9.0,
+          "description": "Inclusive scale maximum.",
+          "format": "double",
+          "type": "number"
+        },
+        "min": {
+          "default": 0.0,
+          "description": "Inclusive scale minimum.",
+          "format": "double",
+          "type": "number"
+        },
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether the field must be set."
+        }
+      },
+      "type": "object"
+    },
+    "ProjectConfig": {
+      "additionalProperties": false,
+      "description": "`[project]` — project-level settings.",
+      "properties": {
+        "code": {
+          "default": null,
+          "description": "Short project qualifier. Falls back to the root directory name when absent.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "ReadyConfig": {
+      "additionalProperties": false,
+      "description": "`[ls.ready]` — the READY column's per-state display (glyph, colour, label).\n\nOne block covering both `ready` and `blocked` states (rather than nesting\nunder `[ls.columns.ready]`, which only carries generic `visibility`):\n`blocked` needs display attributes `ColumnConfig` has no room for. Every\nfield is optional so an omitted key falls back to the embedded floor's\nvalue (or, absent even that, the renderer's own literal fallback).",
+      "properties": {
+        "blocked-color": {
+          "default": null,
+          "description": "Colour for the blocked state: a named ANSI colour or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "blocked-glyph": {
+          "default": null,
+          "description": "Glyph shown for a blocked task.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "blocked-label": {
+          "default": null,
+          "description": "Display label for the blocked state.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ready-color": {
+          "default": null,
+          "description": "Colour for the ready state: a named ANSI colour or `#RRGGBB`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ready-glyph": {
+          "default": null,
+          "description": "Glyph shown for a ready (unblocked, non-terminal) task.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ready-label": {
+          "default": null,
+          "description": "Display label for the ready state.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "RecurConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.recur]` — the recurring-tasks feature gate and policy floor.",
+      "properties": {
+        "anchors": {
+          "default": [
+            "completion",
+            "due"
+          ],
+          "description": "Allowed anchors. Empty = any.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "default-anchor": {
+          "default": "completion",
+          "description": "Anchor used when a task's `recur` omits one.",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "description": "Whether the recurrence feature is enabled. `false` rejects any\nauthored `recur` field outright, at both `mt check` and `mt recur`.",
+          "type": "boolean"
+        },
+        "materialize": {
+          "default": "spawn",
+          "description": "Materialize model used when a task's `recur` omits one.",
+          "type": "string"
+        },
+        "max-advance": {
+          "default": 52,
+          "description": "Runaway cap: `mt recur --advance N` refuses `N` above this.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rrule": {
+          "default": false,
+          "description": "Whether the `rrule(...)` escape hatch is accepted. Off by default;\nalso requires the crate to be built with the `rrule` cargo feature\n(`crates/mindtape/src/recur_rrule.rs`) — either gate missing rejects\nan authored `rrule(...)` with a precise message.",
+          "type": "boolean"
+        },
+        "units": {
+          "default": [
+            "days",
+            "weeks",
+            "months",
+            "years"
+          ],
+          "description": "Allowed period units. Empty = any.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "Requirement": {
+      "description": "Whether a field is required: `false` (never), `true` (always), or `\"non-terminal\"` (required only until the task reaches a terminal status).",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "enum": [
+            "non-terminal"
+          ],
+          "type": "string"
+        }
+      ]
+    },
+    "RmConfig": {
+      "additionalProperties": false,
+      "description": "`[rm]` — defaults for the `rm` task-removal command.\n\n`Default` is the truly-empty state (`None`, no sweep filter); the shipped\n`\"terminal\"` default lives in the embedded floor ([`EMBEDDED_DEFAULTS`]) and\nonly applies through [`parse_config`].",
+      "properties": {
+        "default-filter": {
+          "default": null,
+          "description": "Filter selecting which tasks a bare `mt rm` (no target) retires.\nBuilt-in default `\"terminal\"`: sweep every terminal-status task, matching\nthe legacy `cleanup` behaviour. An explicit ref or filter argument\noverrides it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "RootConfig": {
+      "additionalProperties": false,
+      "description": "The table form of a task root.",
+      "properties": {
+        "derive-tags": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DeriveTags"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Per-root derivation switch. `None` inherits `[tasks.derive-tags] enabled`."
+        },
+        "name": {
+          "default": null,
+          "description": "Tag emitted for the root itself. Defaults to the path's last segment.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "default": "",
+          "description": "Directory (relative to the project root) holding one task per file.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "RootSpec": {
+      "anyOf": [
+        {
+          "description": "Path shorthand, e.g. `\"tasks\"`.",
+          "type": "string"
+        },
+        {
+          "$ref": "#/$defs/RootConfig",
+          "description": "Full form: `{ path, name, derive-tags }`."
+        }
+      ],
+      "description": "One `[[tasks.roots]]` entry: a bare path string, or a table with a display\nname and per-root derivation rule. Both spellings coexist; `roots =\n[\"tasks\"]` and `[[tasks.roots]]` deserialize to the same `Vec<RootSpec>`."
+    },
+    "ScaleKind": {
+      "description": "Whether the scale carries integers or reals.",
+      "oneOf": [
+        {
+          "const": "int",
+          "description": "Whole numbers; bands are inclusive and contiguous.",
+          "type": "string"
+        },
+        {
+          "const": "real",
+          "description": "Real numbers; bands are half-open, the last one closed.",
+          "type": "string"
+        }
+      ]
+    },
+    "TagsConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.tags]` — optional tag allow-list.",
+      "properties": {
+        "allowed": {
+          "default": [],
+          "description": "Allowed tag names. Empty = any.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "TaskBodyConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.body]` — body-shape constraints.",
+      "properties": {
+        "headers": {
+          "$ref": "#/$defs/HeadersConfig",
+          "description": "Section-heading gating rules."
+        }
+      },
+      "type": "object"
+    },
+    "TasksConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks]` — where tasks live and how they are constrained.",
+      "properties": {
+        "body": {
+          "$ref": "#/$defs/TaskBodyConfig",
+          "description": "Body-shape constraints (heading gating)."
+        },
+        "derive-tags": {
+          "$ref": "#/$defs/DeriveConfig",
+          "description": "Project-wide folder-derived-tag policy."
+        },
+        "difficulty": {
+          "$ref": "#/$defs/NumericField",
+          "description": "Difficulty as a numeric-field instance (scale + anchor classification)."
+        },
+        "estimate": {
+          "$ref": "#/$defs/EstimateConfig",
+          "description": "Estimate units allow-list."
+        },
+        "fields": {
+          "additionalProperties": {
+            "$ref": "#/$defs/FieldConfig"
+          },
+          "description": "Constraints for the remaining configurable enum core fields, keyed by\nTypst slot name (`kind`).",
+          "type": "object"
+        },
+        "id": {
+          "$ref": "#/$defs/IdConfig",
+          "description": "Task id format."
+        },
+        "links": {
+          "$ref": "#/$defs/LinksConfig",
+          "description": "Typed relation edge (`links:`) kind registry."
+        },
+        "naming": {
+          "$ref": "#/$defs/NamingConfig",
+          "description": "Task stem naming template (`mt add`/`mt recur` minting)."
+        },
+        "priority": {
+          "$ref": "#/$defs/PriorityConfig",
+          "description": "Priority as a numeric-field instance (scale + band classification),\noptionally driven by a configured scoring framework."
+        },
+        "recur": {
+          "$ref": "#/$defs/RecurConfig",
+          "description": "Recurring-tasks feature gate and policy floor (`mt recur`)."
+        },
+        "roots": {
+          "description": "Directories (relative to the project root) holding one task per file.",
+          "items": {
+            "$ref": "#/$defs/RootSpec"
+          },
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/Legend",
+          "description": "Status legend: legal values in lifecycle order, plus per-value display\n(glyph, colour, label) and the `terminal` flag."
+        },
+        "tags": {
+          "$ref": "#/$defs/TagsConfig",
+          "description": "Tag allow-list."
+        }
+      },
+      "type": "object"
+    },
+    "TemplatesConfig": {
+      "additionalProperties": false,
+      "description": "`[templates]` — where `mt add` finds task templates.",
+      "properties": {
+        "default": {
+          "default": "task",
+          "description": "Template stem `mt add` uses when none is named.",
+          "type": "string"
+        },
+        "dirs": {
+          "default": [
+            ".mindtape/templates"
+          ],
+          "description": "Dirs (relative to the project root) holding `*.typ` task templates.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "TypstConfig": {
+      "additionalProperties": false,
+      "description": "`[typst]` — Typst evaluation settings.",
+      "properties": {
+        "local-packages": {
+          "description": "Extra `@local/<name>` package overrides, each resolved from an in-tree\npath so a worktree resolves a foreign package without a global install.\n`MindTape`'s own `@local/mindtape` is auto-registered when `<root>/lib` is\nthe `mindtape` package; this seam covers any other package (e.g. a\nconsumer's own lib referenced by an `x-<ns>` extras helper).",
+          "items": {
+            "$ref": "#/$defs/LocalPackage"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "ViewSpec": {
+      "additionalProperties": false,
+      "description": "`[views.<name>]` — one named query bundle.",
+      "properties": {
+        "columns": {
+          "default": [],
+          "description": "Column set applied when this view drives columns (bundle mode or\n`--columns @name`). Subset of [`LS_COLUMNS`]; empty means the default set.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "description": {
+          "default": null,
+          "description": "Human description, shown by `mt views`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "filter": {
+          "default": "",
+          "description": "Filter expression (the filter facet). May reference other views via\n`in_view(\"other\")` or the `@other` sugar. Empty means match-all.",
+          "type": "string"
+        },
+        "sort": {
+          "default": [],
+          "description": "Sort chain applied when this view drives sort (bundle mode or\n`--sort @name`). Same spec grammar as `--sort`; empty means the default\norder.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "Visibility": {
+      "description": "A column's visibility policy.",
+      "oneOf": [
+        {
+          "const": "auto",
+          "description": "Render only when the column is significant (non-empty / contested).",
+          "type": "string"
+        },
+        {
+          "const": "visible",
+          "description": "Always render, even when every cell is blank.",
+          "type": "string"
+        },
+        {
+          "const": "hidden",
+          "description": "Never render, even when populated.",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/config.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Schema for `.mindtape/config.toml`, MindTape's per-project configuration. MindTape is a white-list: every section is optional and inherits the shipped floor when omitted.",
+  "properties": {
+    "add": {
+      "$ref": "#/$defs/AddConfig",
+      "description": "`add` interactive-fill settings (editor, when it opens)."
+    },
+    "go": {
+      "$ref": "#/$defs/GoConfig",
+      "description": "`go` (open in editor) settings."
+    },
+    "ls": {
+      "$ref": "#/$defs/LsConfig",
+      "description": "`mt ls` defaults."
+    },
+    "project": {
+      "$ref": "#/$defs/ProjectConfig",
+      "description": "Project-level settings (code, etc.)."
+    },
+    "rm": {
+      "$ref": "#/$defs/RmConfig",
+      "description": "`rm` (task removal) defaults."
+    },
+    "tasks": {
+      "$ref": "#/$defs/TasksConfig",
+      "description": "Task discovery, status lifecycle, and field constraints."
+    },
+    "templates": {
+      "$ref": "#/$defs/TemplatesConfig",
+      "description": "`add` (task creation) template discovery."
+    },
+    "typst": {
+      "$ref": "#/$defs/TypstConfig",
+      "description": "Typst evaluation settings (local-package overrides)."
+    },
+    "views": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ViewSpec"
+      },
+      "default": {},
+      "description": "Named query bundles (`[views.<name>]`), referenced by `@name`.",
+      "type": "object"
+    }
+  },
+  "title": "MindTape project configuration",
+  "type": "object"
+}

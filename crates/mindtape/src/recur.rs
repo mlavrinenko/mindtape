@@ -104,7 +104,7 @@ impl PeriodUnit {
 }
 
 /// `[tasks.recur]` — the recurring-tasks feature gate and policy floor.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RecurConfig {
     /// Whether the recurrence feature is enabled. `false` rejects any

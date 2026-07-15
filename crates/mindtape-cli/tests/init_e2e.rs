@@ -51,6 +51,8 @@ fn init_slim_scaffold_supports_add_ls_check() {
         .success();
 
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    // First line is the schema-association directive (default: the installed schema).
+    assert!(config.starts_with("#:schema "), "{config}");
     assert!(config.contains("roots = [\"tasks\"]"), "{config}");
     // Slim: no status legend or priority bands spelled out — those come from
     // the embedded floor.
@@ -58,6 +60,45 @@ fn init_slim_scaffold_supports_add_ls_check() {
     assert!(!config.contains("[tasks.priority]"), "{config}");
 
     add_then_ls_and_check(dir.path(), "wire-init", &[]);
+}
+
+/// `--schema URL` writes that exact value as the first-line `#:schema`
+/// directive, and the scaffold still supports the add/ls/check cycle.
+#[test]
+fn init_schema_override_writes_directive() {
+    let dir = tempfile::tempdir().unwrap();
+    support::install_lib(dir.path());
+
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["init", "--schema", "https://example.com/config.schema.json"])
+        .assert()
+        .success();
+
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    assert!(
+        config.starts_with("#:schema https://example.com/config.schema.json\n"),
+        "{config}"
+    );
+    add_then_ls_and_check(dir.path(), "wire-schema", &[]);
+}
+
+/// `--no-schema` omits the directive entirely.
+#[test]
+fn init_no_schema_omits_directive() {
+    let dir = tempfile::tempdir().unwrap();
+    support::install_lib(dir.path());
+
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["init", "--no-schema"])
+        .assert()
+        .success();
+
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    assert!(!config.contains("#:schema"), "{config}");
 }
 
 /// `mt init --full` writes the fully-expanded, opinionated starter config,

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **JSON Schema for `.mindtape/config.toml`** — generated from the config
+  structs (`mindtape::config_schema_json`, draft 2020-12), so it never drifts
+  from the accepted shape and its field docs come from the type doc comments.
+  `mt install` now also writes it beside the app config
+  (`~/.config/mindtape/config.schema.json`; skip with `--no-schema`), and
+  `mt init` scaffolds a config whose first line is a `#:schema` comment
+  directive pointing at it, so a schema-aware TOML editor (tombi, Taplo) assists
+  filling values. `mt init --schema URL|PATH` retargets the directive (e.g. the
+  published URL for a portable, checked-in config); `--no-schema` opts out.
+  `mt install-lib` is now equivalent to `mt install --no-defaults --no-schema`.
 - **`mt import [FILE|-]`** — import canonical task-JSON (a file arg or stdin
   `-`; the bare array `mt ls --json` emits by default, or its `{"tasks": [...]}`
   envelope) as native `.typ` tasks. Maps each record onto the project's config

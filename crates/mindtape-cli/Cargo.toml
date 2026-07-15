@@ -50,6 +50,9 @@ swhid-mint = { version = "0.1.1", features = ["test-support"] }
 assert_cmd = "2"
 predicates = "3"
 tempfile = "3"
+# Validates the shipped configs against the generated JSON Schema (draft
+# 2020-12 aware) in tests/config_schema_validate.rs.
+jsonschema = "0.47"
 
 [lints]
 workspace = true

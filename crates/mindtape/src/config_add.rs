@@ -7,7 +7,7 @@
 use serde::Deserialize;
 
 /// `[add]` — interactive editor fill settings.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct AddConfig {
     /// Editor command override. Falls back to `$VISUAL`, then `$EDITOR`, then a
@@ -22,7 +22,7 @@ pub struct AddConfig {
 }
 
 /// When `mt add` opens the interactive editor.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum InteractiveMode {
     /// Open in a terminal when a required slot is still unfilled (default).

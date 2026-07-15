@@ -18,7 +18,7 @@ use crate::sort::validate_sort_spec;
 pub const LS_COLUMNS: [&str; 6] = ["#", "status", "ready", "priority", "due", "title"];
 
 /// `[ls]` — `mt ls` defaults.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsConfig {
     /// Name of the view driving the default `mt ls` listing when the caller
@@ -68,7 +68,7 @@ pub struct LsConfig {
 /// then any manual `filter` / `sort` / `columns` override (highest
 /// precedence). All fields are optional; a rule with none of them still
 /// matches (by an absent `condition`) but contributes no facets.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsRule {
     /// Shown in the trailer and the JSON envelope's `applied.rule`; falls
@@ -297,7 +297,7 @@ fn validate_view_spliced(
 /// `blocked` needs display attributes `ColumnConfig` has no room for. Every
 /// field is optional so an omitted key falls back to the embedded floor's
 /// value (or, absent even that, the renderer's own literal fallback).
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ReadyConfig {
     /// Glyph shown for a ready (unblocked, non-terminal) task.
@@ -315,7 +315,7 @@ pub struct ReadyConfig {
 }
 
 /// `[ls.columns.<name>]` — one column's display settings.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ColumnConfig {
     /// Whether the column renders. `Auto` hides it when it carries nothing
@@ -324,7 +324,7 @@ pub struct ColumnConfig {
 }
 
 /// A column's visibility policy.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum Visibility {
     /// Render only when the column is significant (non-empty / contested).

@@ -213,7 +213,7 @@ pub fn acyclic_kinds(config: &LinksConfig) -> Vec<&str> {
 }
 
 /// `[tasks.links]` — the typed-edge kind registry.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LinksConfig {
     /// User-declared custom edge kinds, layered over the immutable built-ins.
@@ -221,7 +221,7 @@ pub struct LinksConfig {
 }
 
 /// `[[tasks.links.kinds]]` — one project/consumer-declared custom edge kind.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LinkKind {
     /// Kind name, matched against an edge's `kind`.
@@ -249,7 +249,7 @@ impl Default for LinkKind {
 }
 
 /// Note requirement for an edge kind.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum NoteRule {
     /// A non-empty note is mandatory (the `related` escape hatch).

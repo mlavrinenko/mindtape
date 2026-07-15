@@ -47,7 +47,7 @@ pub fn embedded_defaults() -> &'static str {
 }
 
 /// Top-level project configuration.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
     /// Project-level settings (code, etc.).
@@ -71,7 +71,7 @@ pub struct Config {
 }
 
 /// `[typst]` — Typst evaluation settings.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TypstConfig {
     /// Extra `@local/<name>` package overrides, each resolved from an in-tree
@@ -83,7 +83,7 @@ pub struct TypstConfig {
 }
 
 /// `[[typst.local-packages]]` — one `@local/<name>` → in-tree path override.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct LocalPackage {
     /// The `@local/<name>` package name.
@@ -93,7 +93,7 @@ pub struct LocalPackage {
 }
 
 /// `[templates]` — where `mt add` finds task templates.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TemplatesConfig {
     /// Dirs (relative to the project root) holding `*.typ` task templates.
@@ -116,7 +116,7 @@ impl Default for TemplatesConfig {
 }
 
 /// `[project]` — project-level settings.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct ProjectConfig {
     /// Short project qualifier. Falls back to the root directory name when absent.
@@ -135,7 +135,7 @@ pub fn effective_project_code(config: &Config, root: &std::path::Path) -> String
 }
 
 /// `[tasks]` — where tasks live and how they are constrained.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TasksConfig {
     /// Directories (relative to the project root) holding one task per file.
@@ -203,7 +203,7 @@ impl Default for TasksConfig {
 /// instead of a hand-set integer; `allow_manual` decides whether a raw integer
 /// is still accepted as an escape hatch. The `frameworks` registry holds the
 /// baked-in built-ins deep-merged with any user `[tasks.priority.frameworks.*]`.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct PriorityConfig {
     /// Scale and band classification (shared numeric-field machinery).
@@ -229,7 +229,7 @@ impl Default for PriorityConfig {
 }
 
 /// `[tasks.id]` — task identity format constraint.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct IdConfig {
     /// Format requirement for an explicit `id:`. Default accepts any non-empty string.
@@ -283,7 +283,7 @@ impl<'de> Deserialize<'de> for IdFormat {
 /// An estimate is an opaque `unit -> quantity` dict (e.g. `(days: 5, hours: 5)`
 /// or `(points: 8)`). Units are free labels, not converted or compared; the
 /// config only constrains which unit names are legal. Empty = any unit.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct EstimateConfig {
     /// Allowed unit names. Empty = any unit.
@@ -293,7 +293,7 @@ pub struct EstimateConfig {
 }
 
 /// `[tasks.fields.<name>]` — constraints for one configurable core field.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FieldConfig {
     /// Allowed enum values. Empty = any.
@@ -305,7 +305,7 @@ pub struct FieldConfig {
 }
 
 /// `[tasks.tags]` — optional tag allow-list.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TagsConfig {
     /// Allowed tag names. Empty = any.
@@ -317,7 +317,7 @@ pub struct TagsConfig {
 /// `Default` is the truly-empty state (`None`, no sweep filter); the shipped
 /// `"terminal"` default lives in the embedded floor ([`EMBEDDED_DEFAULTS`]) and
 /// only applies through [`parse_config`].
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RmConfig {
     /// Filter selecting which tasks a bare `mt rm` (no target) retires.
@@ -473,7 +473,7 @@ pub fn config_path(root: &Path) -> PathBuf {
 }
 
 /// `[tasks.body]` — body-shape constraints.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TaskBodyConfig {
     /// Section-heading gating rules.

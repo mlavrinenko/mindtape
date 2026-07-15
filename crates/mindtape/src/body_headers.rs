@@ -4,7 +4,7 @@
 use serde::{Deserialize, Deserializer};
 
 /// `[tasks.body.headers]` — heading-presence rules.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct HeadersConfig {
     /// Ordered list of heading gating rules.
@@ -18,7 +18,7 @@ pub struct HeadersConfig {
 /// - `order` — `before` headings must precede `after` headings.
 /// - `allowlist` — closed-world: under `scope` (or top-level when omitted), only
 ///   `allowed` headings are permitted.
-#[derive(Debug, Clone, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct HeaderRuleConfig {
     /// Whether the target headings must exist, must not, or must be unique, or

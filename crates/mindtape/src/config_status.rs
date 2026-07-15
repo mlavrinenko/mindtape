@@ -15,7 +15,7 @@ use serde::Deserialize;
 /// omitted `[[tasks.status]]` section inherits the embedded floor's six-value
 /// legend through `parse_config` — see `crate::config`). The same primitive
 /// will serve other discrete enum fields (kind, tags) as they gain display.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(transparent)]
 pub struct Legend {
     /// Ordered entries, in lifecycle / display order.
@@ -23,7 +23,7 @@ pub struct Legend {
 }
 
 /// One `[[tasks.status]]` entry: a value plus its display attributes.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct LegendEntry {
     /// The value this entry describes (e.g. a status name).

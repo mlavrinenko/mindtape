@@ -15,7 +15,7 @@ use crate::filter::Filter;
 use crate::sort::validate_sort_spec;
 
 /// `[views.<name>]` — one named query bundle.
-#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ViewSpec {
     /// Filter expression (the filter facet). May reference other views via

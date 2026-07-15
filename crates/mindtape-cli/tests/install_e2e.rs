@@ -21,6 +21,10 @@ fn defaults_path(home: &Path) -> PathBuf {
     home.join("config/mindtape/defaults.toml")
 }
 
+fn schema_path(home: &Path) -> PathBuf {
+    home.join("config/mindtape/config.schema.json")
+}
+
 fn lib_typst_toml(home: &Path) -> PathBuf {
     home.join("data/typst/packages/local/mindtape/0.2.0/typst.toml")
 }
@@ -38,39 +42,78 @@ fn seed_existing_defaults(home: &Path) -> PathBuf {
     path
 }
 
-/// Bare `mt install` writes both the Typst package files and the XDG global
-/// `defaults.toml`.
+/// Bare `mt install` writes the Typst package files, the XDG global
+/// `defaults.toml`, and the JSON Schema.
 #[test]
-fn install_writes_lib_and_defaults() {
+fn install_writes_lib_defaults_and_schema() {
     let home = tempfile::tempdir().unwrap();
     run_install(home.path(), &["install"]).success();
 
     assert!(lib_typst_toml(home.path()).exists());
     assert!(lib_prelude(home.path()).exists());
     assert!(defaults_path(home.path()).exists());
+    assert!(schema_path(home.path()).exists());
 
     let content = std::fs::read_to_string(defaults_path(home.path())).unwrap();
     assert_eq!(content, mindtape::embedded_defaults());
+    let schema = std::fs::read_to_string(schema_path(home.path())).unwrap();
+    assert_eq!(schema, mindtape::config_schema_json());
 }
 
-/// `--no-lib` writes only the XDG defaults, skipping the Typst package.
+/// `--no-lib` writes the XDG defaults and schema, skipping the Typst package.
 #[test]
-fn no_lib_writes_only_defaults() {
+fn no_lib_skips_only_the_package() {
     let home = tempfile::tempdir().unwrap();
     run_install(home.path(), &["install", "--no-lib"]).success();
 
     assert!(defaults_path(home.path()).exists());
+    assert!(schema_path(home.path()).exists());
     assert!(!lib_typst_toml(home.path()).exists());
 }
 
-/// `--no-defaults` writes only the Typst package, skipping the XDG defaults.
+/// `--no-defaults` writes the Typst package and schema, skipping the defaults.
 #[test]
-fn no_defaults_writes_only_lib() {
+fn no_defaults_skips_only_the_defaults() {
     let home = tempfile::tempdir().unwrap();
     run_install(home.path(), &["install", "--no-defaults"]).success();
 
     assert!(lib_typst_toml(home.path()).exists());
+    assert!(schema_path(home.path()).exists());
     assert!(!defaults_path(home.path()).exists());
+}
+
+/// `--no-schema` writes the lib and defaults but skips the JSON Schema.
+#[test]
+fn no_schema_skips_only_the_schema() {
+    let home = tempfile::tempdir().unwrap();
+    run_install(home.path(), &["install", "--no-schema"]).success();
+
+    assert!(lib_typst_toml(home.path()).exists());
+    assert!(defaults_path(home.path()).exists());
+    assert!(!schema_path(home.path()).exists());
+}
+
+/// An existing `config.schema.json` survives a bare `mt install`, and `--force`
+/// rewrites it.
+#[test]
+fn schema_force_interplay() {
+    let home = tempfile::tempdir().unwrap();
+    let path = schema_path(home.path());
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::write(&path, "{}").unwrap();
+
+    run_install(home.path(), &["install", "--no-lib", "--no-defaults"]).success();
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), "{}");
+
+    run_install(
+        home.path(),
+        &["install", "--no-lib", "--no-defaults", "--force"],
+    )
+    .success();
+    assert_eq!(
+        std::fs::read_to_string(&path).unwrap(),
+        mindtape::config_schema_json()
+    );
 }
 
 /// An existing XDG `defaults.toml` survives a bare `mt install`.
@@ -118,6 +161,7 @@ fn install_lib_alias_installs_lib_only() {
     assert!(lib_typst_toml(home.path()).exists());
     assert!(lib_prelude(home.path()).exists());
     assert!(!defaults_path(home.path()).exists());
+    assert!(!schema_path(home.path()).exists());
 }
 
 /// `install-lib` is hidden from `--help` (deprecated in favour of `install`).

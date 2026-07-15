@@ -1,4 +1,10 @@
 //! `mt init` / `mt install-lib` — project scaffold and library install.
+//!
+//! The scaffold's first line is a `#:schema` comment directive so a
+//! schema-aware TOML editor (tombi, Taplo) assists filling `.mindtape/
+//! config.toml`. It points, by default, at the schema `mt install` writes under
+//! the XDG config dir; `--schema URL|PATH` overrides it (e.g. the published
+//! URL for a portable, checked-in config), `--no-schema` drops it.
 
 use std::path::{Path, PathBuf};
 
@@ -24,6 +30,16 @@ pub struct InitArgs {
     /// slim default scaffold.
     #[arg(long)]
     pub full: bool,
+
+    /// Value for the top `#:schema` directive: a URL, or a path relative to the
+    /// config file. Defaults to a `file://` URL for the schema `mt install`
+    /// writes under the XDG config dir.
+    #[arg(long, value_name = "URL|PATH")]
+    pub schema: Option<String>,
+
+    /// Omit the `#:schema` comment directive from the scaffold.
+    #[arg(long)]
+    pub no_schema: bool,
 }
 
 /// Run the `init` command — scaffold `.mindtape/config.toml` in the current directory.
@@ -32,7 +48,32 @@ pub struct InitArgs {
 /// Returns an error if the config cannot be written.
 pub fn run(args: &InitArgs) -> Result<()> {
     let template = if args.full { FULL_CONFIG } else { SLIM_CONFIG };
-    scaffold_config(Path::new("."), args.force, template)
+    let text = with_schema_directive(template, args)?;
+    scaffold_config(Path::new("."), args.force, &text)
+}
+
+/// Prepend the `#:schema` comment directive to the scaffold, unless
+/// `--no-schema`. The value is `--schema` when given, else a `file://` URL to
+/// the schema `mt install` writes under the XDG config dir; that file may not
+/// exist yet, so a hint nudges the user to run `mt install`.
+fn with_schema_directive(template: &str, args: &InitArgs) -> Result<String> {
+    if args.no_schema {
+        return Ok(template.to_owned());
+    }
+    let value = if let Some(value) = &args.schema {
+        value.clone()
+    } else {
+        let path = crate::install::xdg_schema_path()?;
+        if !path.exists() {
+            println!(
+                "note: schema not installed at {} yet — run `mt install` (the \
+                 `#:schema` directive points there)",
+                path.display()
+            );
+        }
+        format!("file://{}", path.display())
+    };
+    Ok(format!("#:schema {value}\n{template}"))
 }
 
 /// Run the `install-lib` command — install `@local/mindtape` into the Typst packages dir.

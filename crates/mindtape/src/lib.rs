@@ -18,6 +18,7 @@ mod config_go;
 mod config_layers;
 mod config_ls;
 mod config_roots;
+mod config_schema;
 mod config_status;
 mod config_views;
 mod date;
@@ -66,6 +67,7 @@ pub use config::{
     config_path, embedded_defaults, load_config, parse_config, parse_import_view, validate_views,
 };
 pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
+pub use config_schema::{SCHEMA_URL, config_schema_json};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use date_pin::{DateOverrideError, init_pinned_today};
 pub use derive::RootDeriver;
