@@ -60,6 +60,13 @@ limits.
 Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`, or
 override for one run with `--columns`.
 
+`mt ls -i` (`--interactive`) holds the terminal in a key loop over the listed
+table instead of printing once: type a task's `#`-column ordinal to highlight it
+(prefix match), `Enter` opens the first highlighted task in the editor (via
+#link(u("/cli/"))[`go`]), `Ctrl+Enter` opens every listed task, `Space`
+re-evaluates the project, and `q` / `Ctrl+C` leaves. Table output only, and it
+needs a TTY.
+
 = Conditional rules
 
 Ordered `[[ls.rules]]` entries let bare `mt ls` adapt to ambient project state
