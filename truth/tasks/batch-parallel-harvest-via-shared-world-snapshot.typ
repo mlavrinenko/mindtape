@@ -8,7 +8,7 @@
     ease: 4,
   ),
   tags: ("mt", "substrate",),
-  status: proposed(2026, 7, 16),
+  status: wip(2026, 7, 16)[benchmark harness landed (examples/large, just bench); implementing batch\_harvest next],
 )
 
 == Summary
