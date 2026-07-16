@@ -57,6 +57,7 @@
               cargo-tarpaulin
               clippy
               rustfmt
+              hyperfine
               jq
               just
               moreutils

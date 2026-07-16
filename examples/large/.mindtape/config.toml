@@ -1,0 +1,88 @@
+# examples/large/.mindtape/config.toml — a self-contained benchmark fixture.
+# Deliberately simpler than examples/learn-piano: one flat root, the full
+# status legend, strict ICE priority, no body-shape rules. Generated tasks
+# live under tasks/ (gitignored; see examples/large/generate.sh) and this
+# config is what `mt -w examples/large ls|check` runs against.
+
+[tasks]
+[[tasks.roots]]
+path = "tasks"
+name = "big"
+derive-tags = true
+
+# Status legend: legal values in lifecycle order. `to` declares the allowed
+# next statuses, so `mt flip` gates every move to a listed edge (`--force`
+# overrides) and `mt check` flags a status unreachable from `proposed`.
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+to = ["accepted", "wip", "cancelled"]
+
+[[tasks.status]]
+value = "accepted"
+glyph = "📋"
+color = "cyan"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+to = ["done", "failed", "cancelled"]
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+to = ["wip"]
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+
+[[tasks.status]]
+value = "failed"
+glyph = "❌"
+color = "red"
+terminal = true
+to = ["wip"]
+
+# Priority: strict ICE on a 0..9 scale. `allow-manual = false` — every task
+# scores through the framework, no hand-set ints.
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
+required = "non-terminal"
+framework = "ice"
+allow-manual = false
+[[tasks.priority.bands]]
+label = "green"
+min = 0
+max = 2
+glyph = "🟢"
+color = "green"
+[[tasks.priority.bands]]
+label = "amber"
+min = 3
+max = 6
+glyph = "🟡"
+color = "yellow"
+[[tasks.priority.bands]]
+label = "red"
+min = 7
+max = 9
+glyph = "🔴"
+color = "red"
+
+[tasks.estimate]
+units = ["minutes", "hours", "days", "weeks"]
+
+[tasks.tags]
+# "bench" is authored on every generated task; "big" is the derive-tags root
+# tag emitted on every task under the "big" root — both must be allow-listed.
+allowed = ["bench", "big"]

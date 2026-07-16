@@ -8,3 +8,6 @@
 # Skill eval scratch (sandboxes, run transcripts, generated benchmark/HTML);
 # regenerable via skill-creator. The skill itself + evals/ are tracked.
 /skills/*-workspace
+# Generated benchmark fixture tasks (examples/large/generate.sh); the config
+# and generator stay tracked, the N generated task files do not.
+/examples/large/tasks/

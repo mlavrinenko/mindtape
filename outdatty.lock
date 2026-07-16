@@ -10,7 +10,7 @@ groups:
     dependents:
       README.md: eb1dc787de1b2ed5226c92439c24531626ad881d325cc030867671b8a89778cb
       skills/mindtape/SKILL.md: 6a37274dee246bea7bc1dfc3e532859883f1c6d319125d512876c1333d20632c
-      www/content/cli.typ: faed5ac66aa11847091483c46c66c5261bc1de2959730eb7c46243251851b693
+      www/content/cli.typ: 152be2f21241fdef1ff908c11832f8af5b0aaa493ed283d99351c0109faaa9f3
       www/content/config.typ: 1c2f2fe1d1d16dde46c40384a310cda420258c3dfbb35eba4ae55e817c2f016c
       www/content/filters.typ: 88eb6c98b46859fec42783a5d2d20d92b85c77e54bbb61fadf668640124dae9e
   cli-name:
@@ -19,26 +19,26 @@ groups:
       crates/mindtape-cli/src/cli.rs: 436cc2b71449c1795c9c49aeee33cf0ee79c7532172571fe8bab1a73b7a2c125
       crates/mindtape-cli/src/default-config.toml: 4def0f2f266a9b28ee5c890291aad2f45b70ee6378ad0a11d2a6f8956417134b
     dependents:
-      AGENTS.md: 2f35d7214eb7cf181057c9b677321ac7ca281c94a8145d8caaf61a42ede62e91
+      AGENTS.md: bf0ef385836548a3b41aad6bc433072b18aa082b2970b7247e7b5642fa9411b1
       CHANGELOG.md: f0777ac0a3c5a9a1ad4ea187e5bcb3de69cbc22f1826793ba327b53d9eff3f27
       CONTRIBUTING.md: 0ed03d1b1b8bc41b9b51bbb7566384e27bc32a3350b885d17c03acb05c6c92ee
       README.md: eb1dc787de1b2ed5226c92439c24531626ad881d325cc030867671b8a89778cb
       skills/mindtape/SKILL.md: 6a37274dee246bea7bc1dfc3e532859883f1c6d319125d512876c1333d20632c
-      www/content/cli.typ: faed5ac66aa11847091483c46c66c5261bc1de2959730eb7c46243251851b693
+      www/content/cli.typ: 152be2f21241fdef1ff908c11832f8af5b0aaa493ed283d99351c0109faaa9f3
       www/content/index.typ: 46d74bcc72c78a177366ec62a5979c9b2f8fc29c454367da9a4b34d6535bae0e
       www/content/quickstart.typ: 46647e6c869764c927f878333af941c4e3cfcc0ec4a8c467dca5d2a1b5f0be35
   dev-docs:
     source:
-      Justfile: 0379d26d6dd0f1edc37cf263342c4b547babecc9fc1d02ce697c181648fbfa58
-      flake.nix: 393bbe55152e0f2f4f991e73fa72ecbeedd7e1d82e43295599330df0ad4b239e
+      Justfile: a4f017c75451953a85d525e3eccc3cd34202d15efd8f8cf180a1ff53ca8c8169
+      flake.nix: ca091139b752c5540b02a7a6dd88cc87e06c621dc0d84eab1def26a65ac8bc89
     dependents:
-      AGENTS.md: 2f35d7214eb7cf181057c9b677321ac7ca281c94a8145d8caaf61a42ede62e91
+      AGENTS.md: bf0ef385836548a3b41aad6bc433072b18aa082b2970b7247e7b5642fa9411b1
       CONTRIBUTING.md: 0ed03d1b1b8bc41b9b51bbb7566384e27bc32a3350b885d17c03acb05c6c92ee
   prelude-docs:
     source:
       lib/prelude.typ: b569239a93e4e3527ab20e0801d294217e2492458ba231dae0f1927885324c5b
     dependents:
-      AGENTS.md: 2f35d7214eb7cf181057c9b677321ac7ca281c94a8145d8caaf61a42ede62e91
+      AGENTS.md: bf0ef385836548a3b41aad6bc433072b18aa082b2970b7247e7b5642fa9411b1
       README.md: eb1dc787de1b2ed5226c92439c24531626ad881d325cc030867671b8a89778cb
       skills/mindtape/SKILL.md: 6a37274dee246bea7bc1dfc3e532859883f1c6d319125d512876c1333d20632c
       www/content/dsl.typ: 8e41ae297daf92c44d2a963698dbc3ded977f75e87e6c5e36a5e35977bad8786
@@ -51,7 +51,7 @@ groups:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5
     dependents:
-      AGENTS.md: 2f35d7214eb7cf181057c9b677321ac7ca281c94a8145d8caaf61a42ede62e91
+      AGENTS.md: bf0ef385836548a3b41aad6bc433072b18aa082b2970b7247e7b5642fa9411b1
       README.md: eb1dc787de1b2ed5226c92439c24531626ad881d325cc030867671b8a89778cb
       crates/mindtape-cli/src/init.rs: 2916fcb5c21e422ec5cb5dfdd4777bff5ff06b9fff549f138cf1888341ba2378
       examples/learn-piano/.mindtape/templates/task.typ: 4ad252834d7839c4281199e23b3feb0b958d7e60190d7e0a5d58bcfd57fa9f19

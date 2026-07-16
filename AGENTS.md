@@ -43,7 +43,8 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
 - `clap` 4 CLI; `serde`/`toml` config; `comfy-table`/`serde_json`/`csv` output
 - Nix flake + `just`; dev tools: sccache, cargo-machete, linecop, outdatty,
   ejectest, cargo-tarpaulin, jq (test/docs only: `contrib/jq/` import adapters), tola (Typst-native SSG for the `www/` docs) +
-  pagefind (post-build client-side search index over the built HTML)
+  pagefind (post-build client-side search index over the built HTML) +
+  hyperfine (`just bench` timing against the `examples/large/` generated fixture)
 
 ## Agent Rules
 

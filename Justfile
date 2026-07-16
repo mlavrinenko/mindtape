@@ -25,6 +25,22 @@ check:
 check-examples:
     cargo run -p mindtape-cli -q -- -w examples/learn-piano check
 
+# (Re)generate the examples/large/ benchmark fixture: N deterministic task
+# files under examples/large/tasks/ (gitignored). Default N=2000.
+gen-bench N='2000':
+    examples/large/generate.sh {{ N }}
+
+# Benchmark `mt ls` and `mt check` against a large generated task set (N
+# files, default 2000): build the release binary, regenerate the fixture,
+# then time both commands with hyperfine at a pinned clock (MINDTAPE_NOW).
+bench N='2000':
+    direnv exec . cargo build --release -p mindtape-cli
+    examples/large/generate.sh {{ N }}
+    export MINDTAPE_NOW=2026-07-16 && direnv exec . hyperfine \
+        --warmup 1 --runs 3 \
+        --command-name "mt ls ({{ N }} tasks)" "./target/release/mt -w examples/large ls" \
+        --command-name "mt check ({{ N }} tasks)" "./target/release/mt -w examples/large check"
+
 # Check the `rrule(...)` escape hatch's expansion engine: `just check` builds
 # `mindtape` with default features, so it never compiles or runs this code
 # (see crates/mindtape/src/recur_rrule.rs). Reproduces what CI runs for it.
