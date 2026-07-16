@@ -29,7 +29,7 @@ use crate::config::Config;
 use crate::link::Link;
 use crate::model::Task;
 
-pub use extras::json_to_hval;
+pub use crate::canonical::json_to_hval;
 pub use report::{EntryKind, ImportReport, MapOptions, ReportEntry};
 pub use stem::{slug_from_title, stem_for_title};
 

@@ -133,6 +133,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   state: the first entry whose `condition` holds wins, composing `import-views`
   (last-wins) plus a manual override, else `default-view`. New env-only
   condition language: `on_branch(glob)`, `env(name)`, `weekday()`, `now()`.
+- **Persistent content-hash task cache** — warm `mt ls`/`mt check` over a
+  mostly-static backlog now read each unchanged task's harvested marker from a
+  git-ignored `.mindtape/cache/` instead of re-evaluating it through Typst; only
+  edited or new files re-eval (stacking with the parallel batch harvester on
+  that cold path). Entries are keyed by the file's content hash under a build
+  key (cache format + `mt` version + config + prelude/`lib` contents), so any of
+  those changing busts the whole cache; a stale, corrupt, or wrong-format entry
+  falls back to a live eval, never a wrong task. The cache is scratch — reads
+  populate it without violating the read/write (CQRS) invariant, which now
+  guards the authored tree only. Set `MINDTAPE_NO_CACHE=1` to bypass it.
 
 ### Removed
 

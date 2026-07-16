@@ -3,6 +3,10 @@
 /target
 /.cargo/
 /result
+# Persistent per-file harvest cache (crates/mindtape/src/cache.rs). Git-ignored
+# scratch, rebuilt on demand; each cache dir also self-ignores via an inner
+# `.gitignore`, so example projects under examples/ stay clean too.
+/.mindtape/cache/
 # Reference clones for research (typst, tinymist, mephistypsteles, ...)
 /var
 # Skill eval scratch (sandboxes, run transcripts, generated benchmark/HTML);

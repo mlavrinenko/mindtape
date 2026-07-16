@@ -8,6 +8,15 @@ use crate::config::Config;
 use crate::derive::RootDeriver;
 use crate::model::Task;
 
+// The persistent task cache is a loader implementation detail with no public
+// API, so it lives as a private submodule here rather than on the crate's
+// documented `lib.rs` surface. `#[path]` keeps the file flat alongside
+// `loader.rs`, matching the sibling `*_tests.rs` convention.
+#[path = "cache.rs"]
+mod cache;
+
+use cache::{Cached, TaskCache};
+
 /// A per-file failure encountered while loading the project.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LoadError {
@@ -48,28 +57,101 @@ struct LoadItem {
     folder_tags: Vec<String>,
 }
 
-/// Load every task under the configured roots, live-evaluating each file.
+/// A cache miss to harvest: the item, the source already read for hashing (so a
+/// hit and a miss both build the body without a second read), and the content
+/// hash to key its fresh entry under. `hash` is `None` for an unreadable file —
+/// the harvest surfaces the error and nothing is cached.
+struct Miss<'a> {
+    item: &'a LoadItem,
+    source: String,
+    hash: Option<String>,
+}
+
+/// Load every task under the configured roots.
 ///
-/// Files are harvested in parallel ([`batch_harvest`]) over one shared
-/// [`SourceSnapshot`], so a common `@local` prelude is parsed once for the whole
-/// backlog rather than re-parsed per file, and evaluation fans out across cores.
+/// The warm path stats and content-hashes each file and serves unchanged files
+/// straight from the on-disk [`TaskCache`], skipping Typst evaluation entirely.
+/// Only the cache misses (new or edited files) are live-evaluated, in parallel
+/// ([`batch_harvest`]) over one shared [`SourceSnapshot`] — so a common `@local`
+/// prelude is parsed once and evaluation fans out across cores.
 #[must_use]
 pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     let overrides = package_overrides(root, config);
     let items = collect_items(root, config);
+    let cache = TaskCache::open(root, config, &overrides);
+
+    let mut outcome = LoadOutcome::default();
+    let misses = split_hits(&items, &cache, &mut outcome);
+    harvest_misses(&misses, root, &overrides, &cache, &mut outcome);
+
+    outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
+    outcome
+}
+
+/// Serve every cache hit into `outcome` and return the misses to harvest. Each
+/// file is read once here: its bytes key the cache, and its source builds the
+/// task body on a hit (no second read).
+fn split_hits<'a>(
+    items: &'a [LoadItem],
+    cache: &TaskCache,
+    outcome: &mut LoadOutcome,
+) -> Vec<Miss<'a>> {
+    let mut misses = Vec::new();
+    for item in items {
+        let source = std::fs::read_to_string(&item.file).ok();
+        let hash = source
+            .as_deref()
+            .map(|src| TaskCache::content_hash(src.as_bytes()));
+        match hash.as_deref().and_then(|key| cache.get(key)) {
+            Some(Cached::Marker(marker)) => {
+                let body = source.as_deref().unwrap_or_default();
+                outcome.tasks.push(assemble_task(item, &marker, body));
+            }
+            Some(Cached::NoMarker) => {}
+            None => misses.push(Miss {
+                item,
+                source: source.unwrap_or_default(),
+                hash,
+            }),
+        }
+    }
+    misses
+}
+
+/// Harvest the cache misses in parallel over one shared snapshot, record each
+/// into `outcome`, and cache every clean outcome. Harvest errors are recorded
+/// but never cached — the file is re-tried next run.
+fn harvest_misses(
+    misses: &[Miss],
+    root: &Path,
+    overrides: &[(String, PathBuf)],
+    cache: &TaskCache,
+    outcome: &mut LoadOutcome,
+) {
+    if misses.is_empty() {
+        return;
+    }
     let snapshot = SourceSnapshot::new();
-    let results = batch_harvest(&items, |item| {
-        build_world(&item.file, root, &overrides)
+    let results = batch_harvest(misses, |miss| {
+        build_world(&miss.item.file, root, overrides)
             .map_err(HarvestError::World)
             .map(|world| world.with_shared_sources(&snapshot))
     });
-
-    let mut outcome = LoadOutcome::default();
-    for (item, result) in items.iter().zip(results) {
-        record_result(item, result, &mut outcome);
+    for (miss, result) in misses.iter().zip(results) {
+        record_miss(miss, result, cache, outcome);
     }
-    outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
-    outcome
+}
+
+/// Build a [`Task`] from a harvested marker and the file's source: identity from
+/// the stem (an explicit `id:` still wins), folder-derived tags injected, and
+/// the prose body sliced from the source. The one path both a cache hit and a
+/// fresh harvest funnel through, so they cannot diverge.
+fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
+    let id = file_stem(&item.file);
+    let mut task = Task::from_marker(id, item.rel.clone(), marker);
+    task.derived_tags = item.folder_tags.clone();
+    task.body = body_after_marker(source);
+    task
 }
 
 /// Every `.typ` file under the configured roots, paired with its
@@ -96,25 +178,33 @@ fn collect_items(root: &Path, config: &Config) -> Vec<LoadItem> {
     items
 }
 
-/// Fold one harvested file into `outcome`: a `mindtape.task` marker becomes a
-/// [`Task`]; a build or eval failure becomes a [`LoadError`] in that file's slot.
-fn record_result(
-    item: &LoadItem,
+/// Fold one harvested miss into `outcome` and update the cache. A clean harvest
+/// caches its outcome (a `mindtape.task` marker, or its confirmed absence) and,
+/// when a marker is present, assembles the [`Task`]; a build or eval failure
+/// becomes a [`LoadError`] and is never cached.
+fn record_miss(
+    miss: &Miss,
     result: Result<Harvest, HarvestError>,
+    cache: &TaskCache,
     outcome: &mut LoadOutcome,
 ) {
     match result {
         Ok(harvested) => {
-            if let Some(marker) = harvested.with_marker("mindtape.task").next() {
-                let id = file_stem(&item.file);
-                let mut task = Task::from_marker(id, item.rel.clone(), &marker.value);
-                task.derived_tags = item.folder_tags.clone();
-                task.body = read_body(&item.file);
-                outcome.tasks.push(task);
+            let marker = harvested
+                .with_marker("mindtape.task")
+                .next()
+                .map(|found| &found.value);
+            if let Some(hash) = &miss.hash {
+                cache.put(hash, marker);
+            }
+            if let Some(marker) = marker {
+                outcome
+                    .tasks
+                    .push(assemble_task(miss.item, marker, &miss.source));
             }
         }
         Err(err) => outcome.errors.push(LoadError {
-            file: item.rel.clone(),
+            file: miss.item.rel.clone(),
             message: err.to_string(),
         }),
     }
@@ -160,17 +250,6 @@ fn mindtape_lib_dir(root: &Path) -> Option<PathBuf> {
 fn file_stem(file: &Path) -> String {
     file.file_stem()
         .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned())
-}
-
-/// The prose body of `file`: the raw source after the `#show: task.with(…)`
-/// marker, whitespace-trimmed. Empty when the file is unreadable (the harvest
-/// already succeeded here, so this is only defensive) or holds no `task.with`
-/// call. Sourced from disk rather than the harvest so the emitter can append it
-/// back verbatim for a stable `ls --json | import` round-trip.
-fn read_body(file: &Path) -> String {
-    std::fs::read_to_string(file)
-        .map(|source| body_after_marker(&source))
-        .unwrap_or_default()
 }
 
 /// The source after the first `task.with(…)` call's closing paren, trimmed.

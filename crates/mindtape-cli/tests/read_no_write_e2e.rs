@@ -97,11 +97,20 @@ fn hash_tree(dir: &Path) -> u64 {
 }
 
 /// Recursively collect `(path relative to root, file bytes)` pairs under `dir`.
+///
+/// The git-ignored `.mindtape/cache/` scratch is skipped: it is derived, not
+/// authored, state — a read command populates it by design (the persistent
+/// content-hash harvest cache), the way a build populates `target/`. The CQRS
+/// invariant this test guards is that reads leave the *authored* tree
+/// byte-identical, not that they touch no disk at all.
 fn collect_files(root: &Path, dir: &Path, out: &mut Vec<(String, Vec<u8>)>) {
     for entry in std::fs::read_dir(dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
         if path.is_dir() {
+            if path.ends_with(".mindtape/cache") {
+                continue;
+            }
             collect_files(root, &path, out);
         } else {
             let rel = path

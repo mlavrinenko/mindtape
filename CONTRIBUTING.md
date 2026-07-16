@@ -100,6 +100,11 @@ Recurrence never materializes as a side effect of a read. An instance is spawned
 or refreshed only by an explicit `mt recur`; `mt done` closes a task and never
 creates or advances anything.
 
+"Byte-identical" is the *authored* tree — task files and config. A read may
+populate the git-ignored `.mindtape/cache/` scratch (the persistent content-hash
+harvest cache); that derived artifact is never authored state, the way `target/`
+is not, so it is exempt from the invariant.
+
 ## Extending MindTape
 
 - New CLI command: add `crates/mindtape-cli/src/<name>.rs` with an `Args` struct

@@ -271,6 +271,33 @@ pub fn hval_to_json(value: &HVal) -> Value {
     }
 }
 
+/// Convert one JSON value into a harvested [`HVal`] — the inverse of
+/// [`hval_to_json`]. A JSON number becomes [`HVal::Int`] when it fits an `i64`
+/// (matching how [`hval_to_json`] renders an `HVal::Int`), else [`HVal::Float`].
+/// A JSON string always becomes [`HVal::Str`] — the `HVal::Date`/`HVal::Str`
+/// distinction is already lost on the forward projection (`hval_to_json` maps
+/// both to a bare JSON string), so this is the only sound reverse; the emitter
+/// renders both variants identically anyway (`emit::format::hval_to_typ`).
+/// Shared by `mt import`'s extras passthrough (`import_map::map_extras`) and the
+/// persistent harvest cache (`loader::cache`).
+#[must_use]
+pub fn json_to_hval(value: &Value) -> HVal {
+    match value {
+        Value::Null => HVal::Null,
+        Value::Bool(flag) => HVal::Bool(*flag),
+        Value::Number(num) => num
+            .as_i64()
+            .map_or_else(|| HVal::Float(num.as_f64().unwrap_or_default()), HVal::Int),
+        Value::String(text) => HVal::Str(text.clone()),
+        Value::Array(items) => HVal::Array(items.iter().map(json_to_hval).collect()),
+        Value::Object(map) => HVal::Dict(
+            map.iter()
+                .map(|(key, val)| (key.clone(), json_to_hval(val)))
+                .collect(),
+        ),
+    }
+}
+
 #[cfg(test)]
 #[path = "canonical_tests.rs"]
 mod tests;
