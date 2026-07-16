@@ -28,7 +28,7 @@ chrono = { version = "0.4", default-features = false, features = ["std"] }
 # `crates/mindtape/src/recur_rrule.rs`). Pulls in chrono-tz + regex, so it
 # stays optional rather than a plain dependency.
 rrule = { version = "0.14", optional = true }
-typst-harvest = "0.1.0"
+typst-harvest = "0.2.0"
 typst-cst = "0.1.0"
 typst-edit = "0.1.0"
 artifact-gate = "0.1.0"

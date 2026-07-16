@@ -15,7 +15,7 @@ groups:
       www/content/filters.typ: 88eb6c98b46859fec42783a5d2d20d92b85c77e54bbb61fadf668640124dae9e
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: b6e08d800bf2f795af9675d6db5f73a330f1012fe69e87b207e108a66eebf2c9
+      crates/mindtape-cli/Cargo.toml: 5bcbe4377a1394cb2c09c21298297cdff11eed1bee7e970164440b14010be72a
       crates/mindtape-cli/src/cli.rs: 436cc2b71449c1795c9c49aeee33cf0ee79c7532172571fe8bab1a73b7a2c125
       crates/mindtape-cli/src/default-config.toml: 4def0f2f266a9b28ee5c890291aad2f45b70ee6378ad0a11d2a6f8956417134b
     dependents:

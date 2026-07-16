@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use typst_harvest::{HVal, HarvestWorld, harvest};
+use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, batch_harvest};
 
 use crate::config::Config;
 use crate::derive::RootDeriver;
@@ -40,11 +40,42 @@ pub fn find_root(start: &Path) -> Option<PathBuf> {
     }
 }
 
+/// One task file to harvest: its path, project-relative path, and the tags its
+/// folder location derives.
+struct LoadItem {
+    file: PathBuf,
+    rel: PathBuf,
+    folder_tags: Vec<String>,
+}
+
 /// Load every task under the configured roots, live-evaluating each file.
+///
+/// Files are harvested in parallel ([`batch_harvest`]) over one shared
+/// [`SourceSnapshot`], so a common `@local` prelude is parsed once for the whole
+/// backlog rather than re-parsed per file, and evaluation fans out across cores.
 #[must_use]
 pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     let overrides = package_overrides(root, config);
+    let items = collect_items(root, config);
+    let snapshot = SourceSnapshot::new();
+    let results = batch_harvest(&items, |item| {
+        build_world(&item.file, root, &overrides)
+            .map_err(HarvestError::World)
+            .map(|world| world.with_shared_sources(&snapshot))
+    });
+
     let mut outcome = LoadOutcome::default();
+    for (item, result) in items.iter().zip(results) {
+        record_result(item, result, &mut outcome);
+    }
+    outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
+    outcome
+}
+
+/// Every `.typ` file under the configured roots, paired with its
+/// project-relative path and the tags its folder location derives.
+fn collect_items(root: &Path, config: &Config) -> Vec<LoadItem> {
+    let mut items = Vec::new();
     for spec in &config.tasks.roots {
         let dir = root.join(spec.path());
         let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
@@ -54,40 +85,36 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
         for file in files {
             let rel_within = file.strip_prefix(&dir).unwrap_or(&file);
             let folder_tags = deriver.tags_for(rel_within);
-            load_file(root, &file, &overrides, folder_tags, &mut outcome);
+            let rel = file.strip_prefix(root).unwrap_or(&file).to_path_buf();
+            items.push(LoadItem {
+                file,
+                rel,
+                folder_tags,
+            });
         }
     }
-    outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
-    outcome
+    items
 }
 
-fn load_file(
-    root: &Path,
-    file: &Path,
-    overrides: &[(String, PathBuf)],
-    derived: Vec<String>,
+/// Fold one harvested file into `outcome`: a `mindtape.task` marker becomes a
+/// [`Task`]; a build or eval failure becomes a [`LoadError`] in that file's slot.
+fn record_result(
+    item: &LoadItem,
+    result: Result<Harvest, HarvestError>,
     outcome: &mut LoadOutcome,
 ) {
-    let rel = file.strip_prefix(root).unwrap_or(file).to_path_buf();
-    let world = match build_world(file, root, overrides) {
-        Ok(world) => world,
-        Err(message) => {
-            outcome.errors.push(LoadError { file: rel, message });
-            return;
-        }
-    };
-    match harvest(&world) {
-        Ok(result) => {
-            if let Some(marker) = result.with_marker("mindtape.task").next() {
-                let id = file_stem(file);
-                let mut task = Task::from_marker(id, rel, &marker.value);
-                task.derived_tags = derived;
-                task.body = read_body(file);
+    match result {
+        Ok(harvested) => {
+            if let Some(marker) = harvested.with_marker("mindtape.task").next() {
+                let id = file_stem(&item.file);
+                let mut task = Task::from_marker(id, item.rel.clone(), &marker.value);
+                task.derived_tags = item.folder_tags.clone();
+                task.body = read_body(&item.file);
                 outcome.tasks.push(task);
             }
         }
         Err(err) => outcome.errors.push(LoadError {
-            file: rel,
+            file: item.rel.clone(),
             message: err.to_string(),
         }),
     }

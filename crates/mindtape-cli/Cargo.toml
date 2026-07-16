@@ -25,7 +25,7 @@ mindtape = { path = "../mindtape" }
 # arithmetic directly (no clock reads — the reference date always comes from
 # `mindtape::today_ymd()`/the task's own fields).
 chrono = { version = "0.4", default-features = false, features = ["std"] }
-typst-harvest = "0.1.0"
+typst-harvest = "0.2.0"
 typst-cleanup = "0.2.0"
 swhid-mint = "0.1.1"
 typst-edit = "0.1.0"
