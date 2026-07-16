@@ -8,7 +8,7 @@
     ease: 4,
   ),
   tags: ("mt", "cli",),
-  status: proposed(2026, 7, 16),
+  status: done(2026, 7, 17),
 )
 
 == Summary
