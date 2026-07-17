@@ -7,8 +7,8 @@
     confidence: 0.8,
     ease: 6,
   ),
-  tags: ("cli", "tooling",),
-  status: wip(2026, 7, 17)[implementing typstyle-core formatting at write boundaries],
+  tags: ("cli", "tooling"),
+  status: done(2026, 7, 17)[wired at all write boundaries],
 )
 
 == Summary
