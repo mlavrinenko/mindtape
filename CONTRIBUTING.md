@@ -39,6 +39,12 @@ with violations. Key restrictions:
 - As a file nears the linecop limit, `just fix-check` ejects its inline tests
   into a `_tests.rs` sibling with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run `just test`; count with `just count-tests`.
+- Mutation testing (`just mutants`, `cargo-mutants`) proves whether tests pin
+  behavior, not just execute it. Not a `just check` gate — full workspace sweep
+  is multi-hour. Run it scoped when refactoring a module: `just mutants -f
+  crates/mindtape/src/date.rs`. Triage each survivor into a real gap (write a
+  regression test) or an equivalent mutant (leave it, note why). Use `just crap`
+  to pick where a pass pays off. `main.rs` is out of scope (thin entry point).
 
 ## Quality Gates (run by `just check`)
 

@@ -55,6 +55,7 @@
               cargo
               cargo-machete
               cargo-tarpaulin
+              cargo-mutants
               clippy
               rustfmt
               hyperfine
