@@ -116,3 +116,7 @@ pub fn select(
     }
     Ok(kept)
 }
+
+#[cfg(test)]
+#[path = "lib_tests.rs"]
+mod tests;
