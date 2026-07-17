@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **typstyle-clean writes (`[format]`)** — `mt` now runs typstyle over the Typst
+  source it writes (`add`, `flip`, `review`, `recur`, `import`), so surgical
+  edits and slot fills land in one canonical shape instead of leaving drift like
+  stray body indentation. Uses `typstyle-core` as a library — in-process,
+  deterministic, idempotent (a clean file is unchanged beyond the edited span),
+  and error-tolerant (malformed source passes through) — pinning the
+  `typst-syntax` version already resolved via `typst-harvest`, so no second
+  `typst` enters the tree. `[format] enabled = false` opts out, keeping writes as
+  raw byte splices for minimal diffs.
 - **JSON Schema for `.mindtape/config.toml`** — generated from the config
   structs (`mindtape::config_schema_json`, draft 2020-12), so it never drifts
   from the accepted shape and its field docs come from the type doc comments.

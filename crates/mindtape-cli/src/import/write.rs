@@ -48,7 +48,7 @@ pub(crate) fn land(
     staged: Vec<StagedTask>,
 ) -> Result<Vec<TaskOutcome>> {
     std::fs::create_dir_all(dest).with_context(|| format!("create {}", dest.display()))?;
-    let written = write_all(dest, &staged)?;
+    let written = write_all(&project.config, dest, &staged)?;
     crate::add::warn_if_outside_roots(project, dest);
 
     let problems = check_written(&project.root, &written)?;
@@ -87,16 +87,20 @@ pub(crate) fn preview(
     std::fs::create_dir_all(&mirrored_dest)
         .with_context(|| format!("create {}", mirrored_dest.display()))?;
 
-    let written = write_all(&mirrored_dest, &staged)?;
+    let written = write_all(&project.config, &mirrored_dest, &staged)?;
     let problems = check_written(tmp.path(), &written)?;
     Ok(pair_outcomes(staged, problems))
 }
 
-fn write_all(dest: &Path, staged: &[StagedTask]) -> Result<Vec<(String, PathBuf)>> {
+fn write_all(
+    config: &mindtape::Config,
+    dest: &Path,
+    staged: &[StagedTask],
+) -> Result<Vec<(String, PathBuf)>> {
     let mut written = Vec::with_capacity(staged.len());
     for task in staged {
         let path = dest.join(format!("{}.typ", task.stem));
-        std::fs::write(&path, &task.source).with_context(|| format!("write {}", path.display()))?;
+        crate::util::write_task(config, &path, task.source.clone())?;
         written.push((task.stem.clone(), path));
     }
     Ok(written)

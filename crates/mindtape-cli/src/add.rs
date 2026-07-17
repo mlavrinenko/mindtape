@@ -122,6 +122,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     }
     let filled = fill(&source, &values).map_err(|err| anyhow!(err.to_string()))?;
     let filled = inject_header(&filled, config, args.status.as_deref())?;
+    let filled = util::canonical_source(config, filled);
 
     if args.print {
         print!("{filled}");

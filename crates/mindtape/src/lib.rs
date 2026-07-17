@@ -14,6 +14,7 @@ pub mod canonical;
 pub mod condition;
 pub mod config;
 mod config_add;
+mod config_format;
 mod config_go;
 mod config_layers;
 mod config_ls;
@@ -29,6 +30,7 @@ mod expr;
 pub mod filter;
 mod filter_links;
 mod filter_views;
+pub mod format;
 pub mod framework;
 mod framework_eval;
 pub mod gate;
@@ -62,9 +64,10 @@ pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use condition::{Condition, ConditionEnv, ConditionError};
 pub use config::{
     AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags, Facet,
-    GoConfig, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule, PriorityConfig,
-    ReadyConfig, RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec, Visibility,
-    config_path, embedded_defaults, load_config, parse_config, parse_import_view, validate_views,
+    FormatConfig, GoConfig, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule,
+    PriorityConfig, ReadyConfig, RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec,
+    Visibility, config_path, embedded_defaults, load_config, parse_config, parse_import_view,
+    validate_views,
 };
 pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
 pub use config_schema::{SCHEMA_URL, config_schema_json};
@@ -73,6 +76,7 @@ pub use date_pin::{DateOverrideError, init_pinned_today};
 pub use derive::RootDeriver;
 pub use emit::emit_task;
 pub use filter::{Filter, FilterError};
+pub use format::format_typst;
 pub use framework::{Category, Framework, Input, InputKind};
 pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use git::current_branch;

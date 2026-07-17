@@ -135,8 +135,9 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
             problems.push(format!("{spec}: {msg}"));
             continue;
         }
-        match flip_one(task, abs, status, ymd, args.note.as_deref()) {
-            Ok(restamp) => {
+        let restamp = task.status.as_ref().is_some_and(|s| s.name == status);
+        match flip_one(&project.config, abs, status, ymd, args.note.as_deref()) {
+            Ok(()) => {
                 touched_ids.insert(task.id.clone());
                 touched_files.insert(task.file.clone());
                 report_flip(spec, &task.title, task.status.as_ref(), status, restamp);
@@ -194,20 +195,20 @@ fn check_transition(
     ))
 }
 
-/// Rewrite one task's `status:` to `status` dated `ymd`. Returns whether this was
-/// a re-stamp (the task already carried `status`).
+/// Rewrite the task at `abs`: stamp `status` dated `ymd` (with optional `note`),
+/// then canonicalize and write per `config`. The re-stamp determination (did the
+/// task already carry `status`) is the caller's, computed before the write.
 fn flip_one(
-    task: &mindtape::Task,
+    config: &Config,
     abs: &Path,
     status: &str,
     ymd: (i32, u8, u8),
     note: Option<&str>,
-) -> Result<bool> {
+) -> Result<()> {
     let source = std::fs::read_to_string(abs).with_context(|| format!("read {}", abs.display()))?;
     let updated = status_edit(&source, status, ymd, note)
         .with_context(|| format!("rewrite status in {}", abs.display()))?;
-    std::fs::write(abs, updated).with_context(|| format!("write {}", abs.display()))?;
-    Ok(task.status.as_ref().is_some_and(|s| s.name == status))
+    util::write_task(config, abs, updated)
 }
 
 /// Rewrite the `status:` argument of the first `task.with(…)` in `source` to

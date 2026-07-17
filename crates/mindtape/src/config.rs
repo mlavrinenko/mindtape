@@ -21,6 +21,7 @@ use crate::merge::deep_merge_tables;
 use crate::numeric::NumericField;
 
 pub use crate::config_add::{AddConfig, InteractiveMode};
+pub use crate::config_format::FormatConfig;
 pub use crate::config_go::GoConfig;
 pub use crate::config_ls::{
     ColumnConfig, Facet, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig, Visibility,
@@ -66,6 +67,8 @@ pub struct Config {
     pub go: GoConfig,
     /// Typst evaluation settings (local-package overrides).
     pub typst: TypstConfig,
+    /// Whether `mt` reformats the Typst source it writes (`[format]`).
+    pub format: FormatConfig,
     /// Named query bundles (`[views.<name>]`), referenced by `@name`.
     pub views: BTreeMap<String, ViewSpec>,
 }

@@ -269,6 +269,18 @@
       },
       "type": "object"
     },
+    "FormatConfig": {
+      "additionalProperties": false,
+      "description": "`[format]` — how `mt` canonicalizes task source before writing it.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Run typstyle over the Typst source `mt` writes (`add`, `flip`, `review`,\n`recur`, `import`), so surgical edits and slot fills land in one canonical\nshape. `true` by default; set `false` to keep writes as raw byte splices\n(minimal diffs, at the cost of drift like stray body indentation).",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
     "Framework": {
       "additionalProperties": false,
       "description": "One framework definition: typed inputs plus either a scalar score formula or\na categorical classification.",
@@ -1310,6 +1322,10 @@
     "add": {
       "$ref": "#/$defs/AddConfig",
       "description": "`add` interactive-fill settings (editor, when it opens)."
+    },
+    "format": {
+      "$ref": "#/$defs/FormatConfig",
+      "description": "Whether `mt` reformats the Typst source it writes (`[format]`)."
     },
     "go": {
       "$ref": "#/$defs/GoConfig",

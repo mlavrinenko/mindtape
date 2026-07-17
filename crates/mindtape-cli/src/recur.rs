@@ -236,7 +236,7 @@ fn do_spawn(
         );
         return Ok(());
     }
-    std::fs::write(&file, &new_source).with_context(|| format!("write {}", file.display()))?;
+    util::write_task(&project.config, &file, new_source)?;
     println!(
         "spawned {} (due {})",
         file.display(),
@@ -307,7 +307,7 @@ fn do_mutate(
         );
         return Ok(());
     }
-    std::fs::write(abs, new_source).with_context(|| format!("write {}", abs.display()))?;
+    util::write_task(&project.config, abs, new_source)?;
     println!(
         "refreshed {} (due {})",
         abs.display(),
@@ -336,7 +336,7 @@ fn do_skip(project: &Project, task: &Task, abs: &Path, recur: &Recur, dry_run: b
         );
         return Ok(());
     }
-    std::fs::write(abs, new_source).with_context(|| format!("write {}", abs.display()))?;
+    util::write_task(&project.config, abs, new_source)?;
     println!(
         "skipped to due {} ({})",
         recur_dates::format_iso(next),
@@ -457,7 +457,7 @@ fn write_advance_chain(
                 recur_dates::format_iso(*next)
             );
         } else {
-            std::fs::write(file, source).with_context(|| format!("write {}", file.display()))?;
+            util::write_task(&project.config, file, source.clone())?;
             println!(
                 "spawned {} (due {})",
                 file.display(),

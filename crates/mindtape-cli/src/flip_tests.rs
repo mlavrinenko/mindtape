@@ -74,6 +74,57 @@ fn flips_status_by_slug() {
     assert!(read(dir.path(), "alpha.typ").contains("status: done("));
 }
 
+/// A task body carrying deep leading indentation (the `mt add`/surgical-edit
+/// drift) is canonicalized on flip when `[format]` is enabled (the default).
+#[test]
+fn flip_formats_body_drift_by_default() {
+    let dir = tempfile::tempdir().unwrap();
+    let drift = format!(
+        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  \
+         title: \"Drifty\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\n{}drift line\n",
+        " ".repeat(40)
+    );
+    let project = setup(dir.path(), &[("drifty.typ", &drift)], LEGEND_CONFIG);
+
+    run_with(&project, &flip_args("done", &["drifty"])).unwrap();
+
+    let body = read(dir.path(), "drifty.typ");
+    assert!(
+        body.contains("status: done("),
+        "status not flipped: {body:?}"
+    );
+    assert!(
+        body.contains("\ndrift line\n"),
+        "body indentation not canonicalized: {body:?}"
+    );
+}
+
+/// With `[format] enabled = false` the flip is a raw byte splice: the status
+/// changes but the body's drift is left exactly as authored.
+#[test]
+fn flip_preserves_drift_when_format_disabled() {
+    let dir = tempfile::tempdir().unwrap();
+    let indent = " ".repeat(40);
+    let drift = format!(
+        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  \
+         title: \"Drifty\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\n{indent}drift line\n"
+    );
+    let config = format!("{LEGEND_CONFIG}[format]\nenabled = false\n");
+    let project = setup(dir.path(), &[("drifty.typ", &drift)], &config);
+
+    run_with(&project, &flip_args("done", &["drifty"])).unwrap();
+
+    let body = read(dir.path(), "drifty.typ");
+    assert!(
+        body.contains("status: done("),
+        "status not flipped: {body:?}"
+    );
+    assert!(
+        body.contains(&format!("{indent}drift line")),
+        "drift should survive with formatting off: {body:?}"
+    );
+}
+
 #[test]
 fn unknown_status_errors() {
     let dir = tempfile::tempdir().unwrap();

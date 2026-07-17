@@ -31,6 +31,11 @@ rrule = { version = "0.14", optional = true }
 typst-harvest = "0.2.0"
 typst-cst = "0.1.0"
 typst-edit = "0.1.0"
+# Normalize the Typst source `mt` writes to typstyle's canonical form
+# (`crates/mindtape/src/format.rs`). The library crate, not the CLI: in-process,
+# deterministic, idempotent. Pins `typst-syntax` 0.15 — the exact version
+# `typst-harvest` already resolves — so it adds no second `typst` crate.
+typstyle-core = "0.15.0"
 artifact-gate = "0.1.0"
 swhid-mint = { version = "0.1.1", default-features = false }
 serde = { version = "1", features = ["derive"] }

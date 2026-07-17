@@ -53,7 +53,7 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
     let updated =
         apply(&source, vec![edit]).with_context(|| format!("apply edit to {}", abs.display()))?;
 
-    std::fs::write(&abs, updated).with_context(|| format!("write {}", abs.display()))?;
+    util::write_task(&project.config, &abs, updated)?;
     println!(
         "reviewed: {} ({}) stamped on {}",
         args.id, task.title, today

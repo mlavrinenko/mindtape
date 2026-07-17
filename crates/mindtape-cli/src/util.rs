@@ -215,6 +215,29 @@ pub fn warn_errors(outcome: &LoadOutcome) {
     }
 }
 
+/// Canonicalize task source before it lands on disk or stdout. Runs typstyle
+/// (idempotent, so a clean file is unchanged beyond the edited span) when
+/// `[format] enabled` — the default — else passes the surgical edit through
+/// verbatim. Every `mt` write path funnels through here so a fill or injected
+/// argument never leaves non-canonical whitespace behind.
+#[must_use]
+pub fn canonical_source(config: &Config, source: String) -> String {
+    if config.format.enabled {
+        mindtape::format_typst(&source)
+    } else {
+        source
+    }
+}
+
+/// [`canonical_source`], then write the result to `path`.
+///
+/// # Errors
+/// Returns an error when the file cannot be written.
+pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
+    std::fs::write(path, canonical_source(config, source))
+        .with_context(|| format!("write {}", path.display()))
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {

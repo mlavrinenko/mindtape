@@ -39,6 +39,7 @@ fn schema_has_expected_root() {
         "add",
         "go",
         "typst",
+        "format",
         "views",
     ] {
         assert!(
