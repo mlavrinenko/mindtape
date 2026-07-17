@@ -4,7 +4,7 @@ use crate::config::{Config, parse_config};
 use crate::numeric::NumValue;
 use crate::test_support::{bare_task, ice_priority};
 
-use super::CanonicalTask;
+use super::{CanonicalNum, CanonicalTask};
 
 #[test]
 fn framework_priority_serializes_with_framework_inputs_and_score() {
@@ -96,4 +96,21 @@ fn minimal_title_only_record_deserializes() {
     assert!(task.body.is_empty());
     assert!(task.extras.is_empty());
     assert!(task.status.is_none());
+}
+
+#[test]
+fn difficulty_projects_into_canonical_output() {
+    // num_to_canonical must carry the authored difficulty through; a stub that
+    // dropped it (returning None) would leave `difficulty` null. The round-trip
+    // tests miss this — both sides collapse to None symmetrically.
+    let config = Config::default();
+    let mut task = bare_task("t1");
+    task.difficulty = Some(NumValue::Label("senior".to_owned()));
+    let ct = CanonicalTask::from_task(&task, &config);
+    assert_eq!(
+        ct.difficulty,
+        Some(CanonicalNum::Label("senior".to_owned()))
+    );
+    let value = serde_json::to_value(&ct).unwrap();
+    assert_eq!(value["difficulty"], "senior");
 }
