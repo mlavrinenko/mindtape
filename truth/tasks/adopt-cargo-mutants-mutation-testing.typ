@@ -46,14 +46,44 @@ were real edge-branch gaps, not noise.
   band `min > max`, band `min == max` (the `>` vs `>=` boundary), anchor
   out-of-range, point-below-lowest-anchor derivation. Re-run confirms the only
   survivor is the equivalent mutant at `numeric.rs:256`.
+- `cargo-mutants` wired into `flake.nix` devShell (nixpkgs unstable 26.2.0);
+  no global install. `just mutants` resolves project-locally.
+- Documented as a manual/scoped workflow in CONTRIBUTING.md (Testing) and the
+  AGENTS.md dev-tools list; explicitly not a `just check` gate.
+
+== Adoption plan (recommended)
+
+CI story: no workspace-wide nightly sweep (multi-hour, low ROI, and the CLI
+files carry `unviable`/timeout noise that makes a green bar hard to hold). Keep
+manual scoped `just mutants -f <file>` as the primary discipline. If any CI is
+added, make it a per-PR `cargo mutants --in-diff` advisory (non-blocking)
+check first — fast, scoped to touched lines — and only promote it to a gate
+after the equivalent-mutant floor is stable.
+
+`mutants.toml`: create only when the first CI check lands, not before. It needs
+(a) exclude `crates/mindtape-cli/src/main.rs` (mirror the `just crap` exclusion,
+same thin-entry-point rationale) and (b) a regex exclusion for each catalogued
+equivalent mutant (`numeric.rs:256` and any found later) so a gate has a clean
+floor and does not need constant re-triage.
+
+CRAP relationship: not redundant. `just crap` (cheap complexity+undercoverage
+proxy) is the prioritisation signal for *where* a mutants pass pays off; mutants
+(expensive) proves whether the tests there actually pin behaviour. Pick the next
+file to sweep off the CRAP report, not blind.
+
+Rollout scope: burn down the pure-domain top files only, in this order —
+`date.rs` (169), `template.rs` (89), `framework.rs` (87), `filter.rs` (79),
+`validate.rs` (73). All pure logic, no CLI glue noise, highest signal per
+minute. Declare adoption done after these five (plus `numeric.rs`, done). Defer
+the CLI files (`add_interactive`, `ls_rules`, cli `recur`) — e2e-heavy, noisier,
+lower ROI. Per file: scoped run → triage each survivor into real-gap (regression
+test) vs equivalent (catalogue it) vs timeout (bump `--minimum-test-timeout`) →
+re-run to confirm → next file.
 
 == Pending
 
-- Wire `cargo-mutants` into `flake.nix` devShell. Deferred: cache.nixos.org was
-  unreachable at trial time, so it was installed via `cargo install --locked`
-  against the project's pinned toolchain instead; the cache reachability issue
-  is being addressed separately at the dotfiles level. Once wired, note the
-  tool in CONTRIBUTING.md if a mutation-testing workflow is documented there.
-- Decide the CI story (nightly full sweep vs per-PR `--in-diff`). If gated, add
-  a `mutants.toml` excluding the `numeric.rs:256` equivalent mutant so the gate
-  has a clean floor.
+- Confirm the CI decision above before writing any CI config or `mutants.toml`.
+- Execute the rollout: `date.rs` first, then the rest of the five. Each pass is
+  a separate ~11–25 min scoped run — never foreground a full-workspace sweep.
+- Maintain an equivalent-mutant catalogue as files are swept (seed:
+  `numeric.rs:256`), for the eventual `mutants.toml` floor.
