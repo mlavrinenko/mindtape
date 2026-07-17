@@ -259,6 +259,18 @@ fn rejects_pattern_segment_without_match_key() {
 }
 
 #[test]
+fn header_segment_type_error_names_expected_shape() {
+    // A path segment that is neither a string nor a table trips the SegVisitor
+    // `expecting` message; the surfaced error must name the accepted shapes.
+    let text = "[[tasks.body.headers.rules]]\npath = [42]\naction = \"require\"\n";
+    let err = parse_config(text).unwrap_err().to_string();
+    assert!(
+        err.contains("a string or"),
+        "expected segment-shape hint, got: {err}"
+    );
+}
+
+#[test]
 fn header_rules_default_to_empty() {
     let config = parse_config("").unwrap();
     assert!(config.tasks.body.headers.rules.is_empty());
