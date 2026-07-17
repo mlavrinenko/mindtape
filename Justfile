@@ -111,6 +111,15 @@ cover:
 crap:
     cargo crap --lcov target/coverage/lcov.info --workspace --exclude 'crates/mindtape-cli/src/main.rs' --threshold 30 --fail-above
 
+# Mutation test: inject small bugs (flip `<`→`<=`, blank a body, negate a guard)
+# and check a test catches each. A surviving `MISSED` mutant is a real assertion
+# gap — a line covered but not pinned. Full workspace is slow (2400+ mutants,
+# ~hours); scope it to the module you're about to refactor:
+#   just mutants -f crates/mindtape/src/date.rs
+# `--minimum-test-timeout` avoids false TIMEOUTs when parallel builds slow a run.
+mutants *ARGS:
+    cargo mutants --minimum-test-timeout 60 {{ ARGS }}
+
 # Format code
 fmt:
     cargo fmt --all

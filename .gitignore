@@ -3,6 +3,9 @@
 /target
 /.cargo/
 /result
+# cargo-mutants scratch (mutant build dirs + reports); regenerable via `just mutants`
+/mutants.out
+/mutants.out.old
 # Persistent per-file harvest cache (crates/mindtape/src/cache.rs). Git-ignored
 # scratch, rebuilt on demand; each cache dir also self-ignores via an inner
 # `.gitignore`, so example projects under examples/ stay clean too.

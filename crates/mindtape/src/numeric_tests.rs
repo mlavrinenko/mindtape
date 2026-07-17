@@ -198,3 +198,53 @@ fn anchors_without_one_at_min_are_rejected() {
         "{problems:?}"
     );
 }
+
+#[test]
+fn band_with_min_above_max_is_rejected() {
+    let mut field = int_bands();
+    // A single band spanning the whole scale but with min/max inverted.
+    field.bands = vec![band("backwards", 9.0, 0.0)];
+    let problems = field.validate("priority");
+    assert!(
+        problems.iter().any(|m| m.contains("min above max")),
+        "{problems:?}"
+    );
+}
+
+#[test]
+fn single_point_band_is_not_flagged_as_inverted() {
+    let mut field = int_bands();
+    // A degenerate but legal band where min == max: `>` tolerates it, so the
+    // "min above max" message must not fire (pins the boundary against `>=`).
+    field.bands = vec![band("point", 5.0, 5.0)];
+    let problems = field.validate("priority");
+    assert!(
+        problems.iter().all(|m| !m.contains("min above max")),
+        "{problems:?}"
+    );
+}
+
+#[test]
+fn anchor_out_of_range_is_rejected() {
+    let mut field = anchors();
+    // Keep the required min anchor, add one above the scale max (9).
+    field.anchors = vec![anchor(0.0, "junior"), anchor(12.0, "beyond")];
+    let problems = field.validate("difficulty");
+    assert!(
+        problems
+            .iter()
+            .any(|m| m.contains("beyond") && m.contains("out of range")),
+        "{problems:?}"
+    );
+}
+
+#[test]
+fn point_below_lowest_anchor_derives_downward() {
+    let mut field = anchors();
+    // Lowest anchor at 3 so an in-scale point (1) sits below every anchor and
+    // derives downward with the U+2212 minus, one per step of distance.
+    field.anchors = vec![anchor(3.0, "mid"), anchor(6.0, "senior")];
+    let cell = field.classify(1.0).unwrap();
+    assert_eq!(cell.label, "mid\u{2212}\u{2212}");
+    assert_eq!(cell.glyph.as_deref(), Some("[mid]"));
+}
