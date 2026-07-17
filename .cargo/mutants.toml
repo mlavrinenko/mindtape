@@ -1,0 +1,21 @@
+# cargo-mutants config. Mutation testing is a manual/scoped dev aid driven by
+# `just mutants` (see CONTRIBUTING.md "Testing"), never a `just check` gate.
+
+# Thin entry point; excluded like the CRAP gate (`just crap`) excludes it.
+exclude_globs = ["**/main.rs"]
+
+# Provably-equivalent mutants: unkillable by construction, excluded so a swept
+# file can reach a clean (zero-survivor) result and stop re-appearing in the
+# loop. Keep each line paired with the reason it cannot be killed.
+exclude_re = [
+  # numeric.rs classify_anchor: `<` vs `<=` sits after an exact-match
+  # short-circuit, so both operators give identical behaviour.
+  "replace < with <= in NumericField::classify_anchor",
+]
+
+# Match `just check`: the mindtape suite runs with the rrule feature on, so
+# rrule-gated code is actually exercised (and the baseline matches CI).
+additional_cargo_args = ["--features", "rrule"]
+
+# Avoid false TIMEOUTs when parallel builds slow a mutant's test run.
+minimum_test_timeout = 60

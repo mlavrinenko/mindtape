@@ -40,11 +40,17 @@ with violations. Key restrictions:
   into a `_tests.rs` sibling with [ejectest](https://github.com/mlavrinenko/ejectest).
 - Run `just test`; count with `just count-tests`.
 - Mutation testing (`just mutants`, `cargo-mutants`) proves whether tests pin
-  behavior, not just execute it. Not a `just check` gate — full workspace sweep
-  is multi-hour. Run it scoped when refactoring a module: `just mutants -f
-  crates/mindtape/src/date.rs`. Triage each survivor into a real gap (write a
-  regression test) or an equivalent mutant (leave it, note why). Use `just crap`
-  to pick where a pass pays off. `main.rs` is out of scope (thin entry point).
+  behavior, not just execute it. A surviving `MISSED` mutant is a real assertion
+  gap. Not a `just check` gate — a full sweep is multi-hour. `just mutants` runs
+  one bounded loop step: the next file whose source/tests changed since it was
+  last swept clean, then reports how many remain; repeat across sessions until
+  each is clean. `-f <file>` forces one file. `cargo-mutants --iterate` skips
+  already-caught mutants so re-runs stay cheap (heuristic — re-run without it to
+  trust a final result). Triage each survivor into a real gap (write a
+  regression test) or an equivalent mutant (add it to `.cargo/mutants.toml`
+  `exclude_re` with its reason). `.cargo/mutants.toml` also holds the excluded
+  files (`main.rs`) and the `rrule` feature; `just crap` picks where a pass pays
+  off. The swept ledger and `mutants.out` are git-ignored and ephemeral.
 
 ## Quality Gates (run by `just check`)
 

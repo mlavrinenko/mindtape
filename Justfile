@@ -111,14 +111,60 @@ cover:
 crap:
     cargo crap --lcov target/coverage/lcov.info --workspace --exclude 'crates/mindtape-cli/src/main.rs' --threshold 30 --fail-above
 
-# Mutation test: inject small bugs (flip `<`→`<=`, blank a body, negate a guard)
-# and check a test catches each. A surviving `MISSED` mutant is a real assertion
-# gap — a line covered but not pinned. Full workspace is slow (2400+ mutants,
-# ~hours); scope it to the module you're about to refactor:
-#   just mutants -f crates/mindtape/src/date.rs
-# `--minimum-test-timeout` avoids false TIMEOUTs when parallel builds slow a run.
+# Mutation-testing loop — a dev aid, never a `just check` gate (see
+# CONTRIBUTING.md "Testing"). A surviving `MISSED` mutant is a real assertion
+# gap: a line covered but not pinned. No args: run the next suitable file whose
+# source or tests changed since it was last swept clean, then report how many
+# files remain — repeat until each is clean, one bounded run at a time. `-f
+# <file>` forces one file; any other args pass through to cargo-mutants.
+# `--iterate` skips mutants already caught in prior runs, so re-runs stay cheap.
+# File set, excludes (main.rs + equivalent mutants) and the rrule feature come
+# from .cargo/mutants.toml. The swept ledger and mutants.out are git-ignored and
+# ephemeral; heuristic by design — re-run without --iterate to trust a result.
 mutants *ARGS:
-    cargo mutants --minimum-test-timeout 60 {{ ARGS }}
+    #!/usr/bin/env bash
+    set -eo pipefail
+    ledger=".mutants-ledger"
+    # Explicit args (e.g. `-f FILE`) run straight through, still iterating.
+    if [ -n "{{ ARGS }}" ]; then
+        exec cargo mutants --iterate {{ ARGS }}
+    fi
+    # A file's swept key hashes the file plus its `_tests.rs` sibling (the tight
+    # per-file kill-set); editing either re-stales just that file.
+    keyof() {
+        local f="$1" sib="${1%.rs}_tests.rs" args=("$1")
+        [ -f "$sib" ] && args+=("$sib")
+        git hash-object "${args[@]}" | sha1sum | cut -d' ' -f1
+    }
+    mapfile -t files < <(cargo mutants --list-files 2>/dev/null)
+    if [ "${#files[@]}" -eq 0 ]; then
+        echo "mutants: no target files (is cargo-mutants on PATH?)" >&2
+        exit 1
+    fi
+    next=""
+    remaining=0
+    for f in "${files[@]}"; do
+        rec=$(awk -F'\t' -v f="$f" '$2==f{print $1}' "$ledger" 2>/dev/null || true)
+        if [ "$rec" = "$(keyof "$f")" ]; then continue; fi
+        remaining=$((remaining + 1))
+        if [ -z "$next" ]; then next="$f"; fi
+    done
+    if [ -z "$next" ]; then
+        echo "mutants: all ${#files[@]} suitable files swept clean."
+        exit 0
+    fi
+    echo "mutants: $remaining/${#files[@]} files need a pass — running $next"
+    if cargo mutants --iterate -f "$next"; then
+        tmp=$(mktemp)
+        awk -F'\t' -v f="$next" '$2!=f' "$ledger" 2>/dev/null > "$tmp" || true
+        printf '%s\t%s\n' "$(keyof "$next")" "$next" >> "$tmp"
+        mv "$tmp" "$ledger"
+        echo "mutants: $next clean — $((remaining - 1)) file(s) remain."
+    else
+        echo "mutants: $next has survivors (mutants.out/missed.txt) — add"
+        echo "         regression tests to kill them, then re-run 'just mutants'."
+        exit 1
+    fi
 
 # Format code
 fmt:
