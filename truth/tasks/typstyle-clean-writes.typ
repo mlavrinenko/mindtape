@@ -8,7 +8,7 @@
     ease: 6,
   ),
   tags: ("cli", "tooling",),
-  status: proposed(2026, 7, 17),
+  status: wip(2026, 7, 17)[implementing typstyle-core formatting at write boundaries],
 )
 
 == Summary
