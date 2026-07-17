@@ -50,8 +50,8 @@ sessions until every file is clean.
 Why not mmz: mmz gives file-level content-hash skip, but a per-file rule per
 target hand-listed in `.mmz/config.yaml` drifts from the tree. `--iterate` plus
 `--list-files` covers the incremental need natively with zero per-file wiring.
-The general mmz gap (glob-fanned per-file rules) is filed separately as
-`mmz-per-file-command-cache`.
+The general mmz gap (glob-fanned per-file rules) is filed in mmz's own backlog
+(`per-file-command-cache`), which now runs on MindTape.
 
 == Done in this pass
 
