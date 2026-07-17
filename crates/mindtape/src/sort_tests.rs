@@ -23,9 +23,25 @@ terminal = true
 [tasks.priority]
 min = 0
 max = 9
+
+[tasks.difficulty]
+min = 0
+max = 9
 "#,
     )
     .unwrap()
+}
+
+/// Ids after sorting `tasks` by a single `field` spec (no readiness signal).
+fn ids_by(mut tasks: Vec<Task>, field: &str, cfg: &Config) -> Vec<String> {
+    sort_by_specs(
+        &mut tasks,
+        &[field.to_owned()],
+        cfg,
+        &crate::ready::Readiness::empty(),
+    )
+    .unwrap();
+    tasks.iter().map(|t| t.id.clone()).collect()
 }
 
 fn task(id: &str, status: &str, priority: f64, due: Option<&str>) -> Task {
@@ -193,4 +209,118 @@ default-sort = ["id"]
     ];
     default_order_with(&mut tasks, &cfg, &crate::ready::Readiness::empty());
     assert_eq!(tasks.first().unwrap().id, "a-task");
+}
+
+// Per-field `--sort` comparators: each `compare_field` / `sort_string_key` arm
+// must route to its own key. Input order is the inverse of the expected sorted
+// order, so dropping an arm (which collapses to an equal/empty key and leaves
+// the input order) fails the assertion.
+
+#[test]
+fn sort_by_specs_orders_by_status_lifecycle() {
+    let cfg = config();
+    let tasks = vec![
+        task("s-done", "done", 5.0, None),
+        task("s-proposed", "proposed", 5.0, None),
+    ];
+    assert_eq!(ids_by(tasks, "status", &cfg), vec!["s-proposed", "s-done"]);
+}
+
+#[test]
+fn sort_by_specs_orders_by_priority_ascending() {
+    let cfg = config();
+    let tasks = vec![
+        task("p-high", "wip", 8.0, None),
+        task("p-low", "wip", 2.0, None),
+    ];
+    assert_eq!(ids_by(tasks, "priority", &cfg), vec!["p-low", "p-high"]);
+}
+
+#[test]
+fn sort_by_specs_orders_by_difficulty_ascending() {
+    let cfg = config();
+    // Distinct resolved difficulties, input hard-first: a constant or absent
+    // `difficulty_value` would leave the input order and fail this.
+    let mut hard = bare_task("d-hard");
+    hard.difficulty = Some(NumValue::Num(8.0));
+    let mut easy = bare_task("d-easy");
+    easy.difficulty = Some(NumValue::Num(2.0));
+    assert_eq!(
+        ids_by(vec![hard, easy], "difficulty", &cfg),
+        vec!["d-easy", "d-hard"]
+    );
+}
+
+#[test]
+fn sort_by_specs_orders_by_ready_band() {
+    use crate::ready::Readiness;
+    let cfg = config();
+    let mut blocked = task("r-blocked", "wip", 5.0, None);
+    blocked.links = vec![dep_edge("missing.typ")];
+    let ready = task("r-ready", "wip", 5.0, None);
+    let mut tasks = vec![blocked, ready];
+    let readiness = Readiness::compute(&tasks, &cfg);
+    sort_by_specs(&mut tasks, &["ready".to_owned()], &cfg, &readiness).unwrap();
+    let ids: Vec<&str> = tasks.iter().map(|t| t.id.as_str()).collect();
+    assert_eq!(ids, vec!["r-ready", "r-blocked"]);
+}
+
+#[test]
+fn sort_by_specs_orders_by_title() {
+    let cfg = config();
+    let mut banana = bare_task("t-banana");
+    banana.title = "banana".to_owned();
+    let mut apple = bare_task("t-apple");
+    apple.title = "apple".to_owned();
+    assert_eq!(
+        ids_by(vec![banana, apple], "title", &cfg),
+        vec!["t-apple", "t-banana"]
+    );
+}
+
+#[test]
+fn sort_by_specs_orders_by_kind() {
+    let cfg = config();
+    let mut chore = bare_task("k-task");
+    chore.kind = Some("task".to_owned());
+    let mut bug = bare_task("k-bug");
+    bug.kind = Some("bug".to_owned());
+    assert_eq!(
+        ids_by(vec![chore, bug], "kind", &cfg),
+        vec!["k-bug", "k-task"]
+    );
+}
+
+#[test]
+fn sort_by_specs_orders_by_due_ascending() {
+    let cfg = config();
+    let mut late = bare_task("due-late");
+    late.due = Some("2026-09-01".to_owned());
+    let mut early = bare_task("due-early");
+    early.due = Some("2026-07-01".to_owned());
+    assert_eq!(
+        ids_by(vec![late, early], "due", &cfg),
+        vec!["due-early", "due-late"]
+    );
+}
+
+#[test]
+fn sort_by_specs_orders_by_start_ascending() {
+    let cfg = config();
+    let mut late = bare_task("start-late");
+    late.start = Some("2026-09-01".to_owned());
+    let mut early = bare_task("start-early");
+    early.start = Some("2026-07-01".to_owned());
+    assert_eq!(
+        ids_by(vec![late, early], "start", &cfg),
+        vec!["start-early", "start-late"]
+    );
+}
+
+#[test]
+fn sort_by_specs_orders_by_file_path() {
+    let cfg = config();
+    // bare_task sets file = tasks/{id}.typ; input reverses file order.
+    let tasks = vec![bare_task("f-b"), bare_task("f-a")];
+    assert_eq!(ids_by(tasks, "file", &cfg), vec!["f-a", "f-b"]);
 }
