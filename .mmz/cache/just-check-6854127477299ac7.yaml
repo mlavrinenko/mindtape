@@ -1,6 +1,0 @@
-format: 1
-algorithm: blake3
-command: just check
-input_digest: 15e9280737f246b30a4ee16603911bf9da70b38f7aa474a2f3703cf4922c1060
-status: ok
-ran_at: 1784756704

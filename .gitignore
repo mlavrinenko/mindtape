@@ -21,3 +21,6 @@
 # Generated benchmark fixture tasks (examples/large/generate.sh); the config
 # and generator stay tracked, the N generated task files do not.
 /examples/large/tasks/
+
+# mmz freshness records: machine-local, like target/.
+.mmz/cache/
