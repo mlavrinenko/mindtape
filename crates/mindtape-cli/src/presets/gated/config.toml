@@ -221,6 +221,21 @@ actions = [{ list = "@wip", title = "Already in flight — finish these first:" 
 #
 # `mt done --force` overrides a failing gate and records the override in the
 # status note — an escape hatch that leaves a trace.
+#
+# MAKE THE GATE CHEAP. Pointing `run` straight at `just check` works, but a full
+# build inside `mt flip` is slow, fires at the least convenient moment, and
+# teaches an agent to reach for `--force` — which defeats the gate. Prefer
+# ASSERTING the check already passed against this worktree over running it:
+#
+#   run = "mmz --is-fresh -- just check"
+#
+# `mmz` (a memoized command runner, github:mlavrinenko/mmz) exits 0 only when
+# `just check` last passed with its declared inputs unchanged, and never runs
+# the wrapped command itself. It is one option, not a requirement — `run` is a
+# plain command, so any equivalent freshness check does. Whatever you use, scope
+# its inputs to exclude the task files themselves: `mt flip` writes the artifact
+# it is gating, so a rule keyed on the whole tree goes stale the instant a status
+# is stamped and the gate can never pass.
 [[on.flip]]
 when = 'into("done")'
 actions = [

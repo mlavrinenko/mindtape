@@ -155,3 +155,27 @@ message = "Summary must precede Scope"
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view (same filter as the retired `[ls] default-filter`).
 # Redeclare `[views.default]` here to add a sort/columns bundle.
+
+# Closing a task asserts the gate already ran against this worktree, rather
+# than running it here. `mmz --is-fresh` exits 0 only when `just check` last
+# passed with these inputs unchanged; it never runs the wrapped command itself.
+#
+# Why assert instead of run: a gate that invokes `just check` inside `mt flip`
+# is slow, fires at the least convenient moment, and teaches an agent to reach
+# for `--force`. Asserting a prior pass is cheap, and it is the machine-checkable
+# predicate the review actually wants — proof of a passing build, not a claim.
+#
+# `mmz` is one thing this command can be, not a requirement: `run` is a plain
+# command, so a project without mmz points it at anything else. The rule and its
+# scopes live in .mmz/config.yaml, which deliberately excludes truth/tasks/ —
+# `mt flip` writes the task file it is gating and would otherwise bust its own
+# rule mid-command.
+#
+# The terminal statuses are listed rather than derived: `when` sees the task as
+# it stands BEFORE the write, so a bare `terminal` would test the status being
+# left, not the one being entered.
+[[on.flip]]
+when = 'into("done") || into("cancelled") || into("failed")'
+actions = [
+  { run = "mmz --is-fresh -- just check", gate = true, message = "the checks have not passed against this worktree — run `mmz just check`, then flip again (`--force` waives it and records the waiver in the note)" },
+]

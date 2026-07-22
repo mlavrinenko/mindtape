@@ -1,0 +1,67 @@
+# .mmz/config.yaml — memoized freshness for MindTape's own close gate.
+#
+# `mt flip` into a terminal status runs `mmz --is-fresh -- just check`, which
+# asserts the gate already passed against this worktree rather than running it
+# again. A gate that re-runs `just check` inside `mt flip` is bad ergonomics —
+# slow, at the least convenient moment, and an agent learns to reach for
+# `--force`. Asserting a prior pass is cheap and is the predicate the review
+# actually wants: proof of a passing build, not a claim of one.
+#
+# Record a pass by running the gate through mmz: `mmz just check`.
+#
+# NOTE ON SCOPE. `truth/tasks/**` is deliberately absent. `mt flip` writes the
+# task file it is gating, so a rule keyed on the whole tree would go stale the
+# moment a status is stamped and the gate could never pass. Nothing in
+# `just check` reads `truth/tasks/` anyway — the backlog is validated by the
+# pre-commit hook (`cargo run -- check`), not by the gate.
+
+scopes:
+  # Everything cargo test / clippy / machete / the file-size and copy-paste
+  # gates read: sources, manifests, and the toolchain pins (rust-toolchain plus
+  # the flake.lock that actually selects rustc in the dev shell).
+  rust:
+    - "crates/**/*.rs"
+    - "Cargo.toml"
+    - "Cargo.lock"
+    - "rust-toolchain.toml"
+    - "rustfmt.toml"
+    - "clippy.toml"
+    - "flake.nix"
+    - "flake.lock"
+
+  # Config and schema the tests assert against, plus the Typst prelude every
+  # task file imports.
+  policy:
+    - ".mindtape/config.toml"
+    - ".mindtape/templates/**"
+    - "schema/**"
+    - "lib/**"
+
+  # `just check-examples` validates this fixture project against itself.
+  examples:
+    - "examples/learn-piano/**"
+
+  # `just docs-check` builds the tola site and validates its links and assets;
+  # `just outdatty-check` compares these against outdatty.lock.
+  docs:
+    - "www/**"
+    - "README.md"
+    - "CONTRIBUTING.md"
+    - "AGENTS.md"
+    - "CHANGELOG.md"
+    - "skills/**"
+    - "contrib/**"
+
+  # The gate definitions themselves: change a limit and the previous pass no
+  # longer proves anything.
+  gates:
+    - "Justfile"
+    - ".linecop.yaml"
+    - "outdatty.yaml"
+    - "outdatty.lock"
+
+on_hit: "mmz: skipped {cache:command} (inputs unchanged)"
+
+commands:
+  - name: just check
+    inputs: [rust, policy, examples, docs, gates]

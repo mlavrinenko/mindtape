@@ -5,6 +5,10 @@
       url = "github:nix-community/naersk";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Memoized command runner. `mt flip` into a terminal status gates on
+    # `mmz --is-fresh -- just check`, which asserts the gate already passed
+    # against this worktree instead of running it again.
+    mmz.url = "github:mlavrinenko/mmz";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     qahq.url = "github:mlavrinenko/qahq";
     # Typst-native static site generator that builds the docs under www/.
@@ -14,6 +18,7 @@
   outputs =
     {
       flake-utils,
+      mmz,
       naersk,
       nixpkgs,
       qahq,
@@ -68,6 +73,7 @@
           nativeBuildInputs =
             [
               cargo-crap
+              mmz.packages.${system}.default
               qahq.packages.${system}.jscpd
               qahq.packages.${system}.ejectest
               qahq.packages.${system}.linecop

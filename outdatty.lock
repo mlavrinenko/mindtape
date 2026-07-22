@@ -5,7 +5,7 @@ groups:
     source:
       crates/mindtape-cli/src/cli.rs: 9fa568660822e84be57d8048bfb2569562ffb1581917d51786880df17fcfd89c
       crates/mindtape-cli/src/presets/flow/config.toml: c2b468eb55f69ce994b238e150f424e101755ce45bc099cf24b45e389e5bf506
-      crates/mindtape-cli/src/presets/gated/config.toml: 460966b6178e8546e7cd5771852e369f89d516167a05ca84704787a4ebf310c2
+      crates/mindtape-cli/src/presets/gated/config.toml: 542ed81c65b6509746df4d8870429acf4b76578a0765df080e66eccd3217079b
       crates/mindtape-cli/src/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
@@ -33,7 +33,7 @@ groups:
   dev-docs:
     source:
       Justfile: f8a4a5800686b253dbae611345f7e2ae877f1a0da19fa156b2d27516d886f239
-      flake.nix: a09c30660804f22a40639d64d19b49ab6f8ebf1c9a16e5ec932f29b75ddaa017
+      flake.nix: 6e059db5d0acad9401ef6c6386dba33a74796a14d5c7627c38b81713fd0297c4
     dependents:
       AGENTS.md: dfe2b86dc0a31aebd196bf240164ecc58b5ad8e3056142007d83fe21f2ee8e13
       CONTRIBUTING.md: f0d73d6f092da0f153217a3c6079c29904646266530655f1f451d28c5a2e51fc
