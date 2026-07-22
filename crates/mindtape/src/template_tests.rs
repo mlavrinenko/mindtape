@@ -255,3 +255,91 @@ fn multiple_slots_in_nested_calls() {
     .unwrap();
     assert_eq!(out, wrap("priority: ice(impact: 8, ease: 6)"));
 }
+
+#[test]
+fn slotkind_as_str_returns_correct_spelling() {
+    // Catches mutants that replace the as_str match with "" or "xyzzy".
+    assert_eq!(SlotKind::String.as_str(), "string");
+    assert_eq!(SlotKind::Int.as_str(), "int");
+    assert_eq!(SlotKind::Float.as_str(), "float");
+    assert_eq!(SlotKind::Real.as_str(), "real");
+    assert_eq!(SlotKind::Bool.as_str(), "bool");
+    assert_eq!(SlotKind::Date.as_str(), "date");
+    assert_eq!(SlotKind::List.as_str(), "list");
+    assert_eq!(SlotKind::Text.as_str(), "text");
+    assert_eq!(SlotKind::Choice.as_str(), "choice");
+}
+
+#[test]
+fn slotkind_parse_string_returns_string() {
+    // Catches deletion of the "string" arm in SlotKind::parse.
+    assert_eq!(SlotKind::parse("string"), Some(SlotKind::String));
+}
+
+#[test]
+fn slotkind_parse_bool_returns_bool() {
+    // Catches deletion of the "bool" arm in SlotKind::parse.
+    assert_eq!(SlotKind::parse("bool"), Some(SlotKind::Bool));
+}
+
+#[test]
+fn rawvalue_type_name_returns_correct_name() {
+    // Catches mutants that replace the type_name match with "" or "xyzzy".
+    assert_eq!(RawValue::Str("x".into()).type_name(), "string");
+    assert_eq!(RawValue::Int(0).type_name(), "int");
+    assert_eq!(RawValue::Float(0.0).type_name(), "float");
+    assert_eq!(RawValue::Bool(true).type_name(), "bool");
+    assert_eq!(RawValue::List(vec![]).type_name(), "list");
+}
+
+#[test]
+fn fills_int_from_string_value() {
+    // Catches deletion of the RawValue::Str arm in coerce_int.
+    let out = fill_wrapped(
+        r#"a: slot("a", kind: "int")"#,
+        &[("a", RawValue::Str("42".to_owned()))],
+    )
+    .unwrap();
+    assert_eq!(out, wrap("a: 42"));
+}
+
+#[test]
+fn fills_float_from_int_value() {
+    // Catches deletion of the RawValue::Int arm in coerce_float.
+    let out = fill_wrapped(r#"b: slot("b", kind: "float")"#, &[("b", RawValue::Int(7))]).unwrap();
+    assert_eq!(out, wrap("b: 7.0"));
+}
+
+#[test]
+fn fills_bool_false_from_string_false() {
+    // Catches mutant replacing coerce_bool body with Ok(true).
+    let out = fill_wrapped(
+        r#"flag: slot("flag", kind: "bool")"#,
+        &[("flag", RawValue::Str("false".to_owned()))],
+    )
+    .unwrap();
+    assert_eq!(out, wrap("flag: false"));
+}
+
+#[test]
+fn fills_bool_true_from_string_true() {
+    // Catches mutant replacing coerce_bool body with Ok(false) AND deletion of
+    // the RawValue::Str arm (both cause the test to fail).
+    let out = fill_wrapped(
+        r#"flag: slot("flag", kind: "bool")"#,
+        &[("flag", RawValue::Str("true".to_owned()))],
+    )
+    .unwrap();
+    assert_eq!(out, wrap("flag: true"));
+}
+
+#[test]
+fn fills_bool_from_bool_value() {
+    // Catches deletion of the RawValue::Bool(flag) arm in coerce_bool.
+    let out = fill_wrapped(
+        r#"flag: slot("flag", kind: "bool")"#,
+        &[("flag", RawValue::Bool(true))],
+    )
+    .unwrap();
+    assert_eq!(out, wrap("flag: true"));
+}

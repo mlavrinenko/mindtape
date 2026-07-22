@@ -43,12 +43,42 @@ fn mindtape_now_extra_date_segments_are_malformed() {
     assert!(resolve(Some("2026-06-18-01")).is_err());
 }
 
+// --- The process-global cache --------------------------------------------
+//
+// `init_pinned_today` sets a `OnceLock` once per process, so neither its
+// caching nor `pinned_epoch_days`'s read of the cache can be asserted from a
+// test that shares this binary's process with the rest of the suite. The two
+// tests below split the two halves: the first asserts the uninitialised
+// reading in the parent process (which never calls `init_pinned_today`), the
+// second re-execs the binary for its own name so the child owns a fresh lock.
+//
+// `crates/mindtape-cli/tests/date_pin_e2e.rs` covers the same ground over the
+// real `mt` binary, but it cannot stand in for this one: cargo-mutants tests
+// only the package holding the mutant (no `--test-workspace`), so a mutant in
+// `date_pin.rs` is never run against the CLI crate's e2e suite.
+
 #[test]
 fn pinned_epoch_days_is_none_before_init_runs() {
-    // `init_pinned_today` is process-global and single-set (real tests exercise
-    // it out-of-process, over the compiled `mt` binary — see
-    // crates/mindtape-cli/tests/date_pin_e2e.rs — precisely to avoid a shared
-    // OnceLock racing across this binary's test threads). Absent that call,
-    // the cache reads as "no override", matching the pre-pin behaviour.
     assert_eq!(pinned_epoch_days(), None);
+}
+
+#[test]
+fn init_pinned_today_caches_env_value() {
+    let Ok(pin) = std::env::var("MINDTAPE_NOW") else {
+        let out = std::process::Command::new(std::env::current_exe().unwrap())
+            .env("MINDTAPE_NOW", "2026-06-18")
+            .args(["init_pinned_today_caches_env_value", "--nocapture"])
+            .output()
+            .expect("failed to spawn child test process");
+        assert!(
+            out.status.success(),
+            "child failed:\nstdout:\n{}\nstderr:\n{}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr),
+        );
+        return;
+    };
+    assert_eq!(pin, "2026-06-18");
+    init_pinned_today().unwrap();
+    assert_eq!(pinned_epoch_days(), Some(20_622));
 }

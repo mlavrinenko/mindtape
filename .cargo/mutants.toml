@@ -1,16 +1,33 @@
 # cargo-mutants config. Mutation testing is a manual/scoped dev aid driven by
 # `just mutants` (see CONTRIBUTING.md "Testing"), never a `just check` gate.
 
-# Thin entry point; excluded like the CRAP gate (`just crap`) excludes it.
-exclude_globs = ["**/main.rs"]
+# main.rs: thin entry point, excluded like the CRAP gate (`just crap`) excludes
+# it. recur_rrule_off.rs: the whole file is the `#[cfg(not(feature = "rrule"))]`
+# stub, compiled out by the sweep's own feature set (see additional_cargo_args)
+# — every mutant in it is dead code no test can reach.
+exclude_globs = ["**/main.rs", "**/recur_rrule_off.rs"]
 
 # Provably-equivalent mutants: unkillable by construction, excluded so a swept
 # file can reach a clean (zero-survivor) result and stop re-appearing in the
 # loop. Keep each line paired with the reason it cannot be killed.
 exclude_re = [
-  # numeric.rs classify_anchor: `<` vs `<=` sits after an exact-match
-  # short-circuit, so both operators give identical behaviour.
-  "replace < with <= in NumericField::classify_anchor",
+  # ready.rs empty() is literally `Self::default()`, so replacing the body with
+  # Default::default() is the same call — no test can tell them apart.
+  #
+  # Deleting `empty()` in favour of `Default::default()` would remove this entry
+  # outright, and that was considered and rejected: it is a documented public
+  # constructor ("every query returns false, every task is settled") used at 35
+  # call sites across both crates, and `mindtape` is a library other tools
+  # depend on, so dropping it is a breaking change for a consumer. Trading a
+  # named constructor and a consumer's API for one honest exclusion is a bad
+  # deal — a provably-equivalent mutant with a written reason is exactly what
+  # this list is for.
+  "replace Readiness::empty -> Self with Default::default()",
+  # config_views.rs dfs DONE arm: the black-node check is pure memoisation. A
+  # node only reaches DONE once its whole subtree came back cycle-free, so
+  # re-walking it can only return None again — deleting the arm changes the
+  # running time (exponential), never the answer.
+  "delete match arm DONE in dfs",
 ]
 
 # Match `just check`: the mindtape suite runs with the rrule feature on, so
@@ -19,3 +36,7 @@ additional_cargo_args = ["--features", "rrule"]
 
 # Avoid false TIMEOUTs when parallel builds slow a mutant's test run.
 minimum_test_timeout = 60
+
+# Build every mutant under the debuginfo-free `mutants` profile (Cargo.toml).
+# Benchmarked ~20% faster per mutant; picked up by every `cargo mutants` call.
+profile = "mutants"

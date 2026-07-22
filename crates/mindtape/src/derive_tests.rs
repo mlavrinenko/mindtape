@@ -1,8 +1,9 @@
 use std::path::Path;
 
-use crate::config::{Collector, DeriveConfig, RootConfig, RootSpec};
+use crate::config::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
+use crate::config::{Config, TasksConfig};
 
-use super::RootDeriver;
+use super::{RootDeriver, validate_root_globs};
 
 fn cfg(collect: Vec<Collector>) -> DeriveConfig {
     DeriveConfig {
@@ -145,4 +146,57 @@ fn per_root_false_overrides_global_enable() {
     });
     let deriver = RootDeriver::new(&spec, &global);
     assert!(deriver.tags_for(Path::new("backend/x.typ")).is_empty());
+}
+
+#[test]
+fn slugify_avoids_leading_dash() {
+    let global = cfg(vec![Collector::Segments]);
+    let deriver = RootDeriver::new(&root("mt"), &global);
+    assert_eq!(
+        deriver.tags_for(Path::new("@hello/x.typ")),
+        vec!["mt".to_owned(), "hello".to_owned()]
+    );
+}
+
+#[test]
+fn validate_root_globs_reports_invalid_single_glob() {
+    let config = Config {
+        tasks: TasksConfig {
+            roots: vec![RootSpec::Full(RootConfig {
+                path: "tasks".to_owned(),
+                name: None,
+                derive_tags: Some(DeriveTags::Glob("[invalid".to_owned())),
+            })],
+            ..TasksConfig::default()
+        },
+        ..Config::default()
+    };
+    let problems = validate_root_globs(&config);
+    assert!(
+        !problems.is_empty(),
+        "expected invalid single glob to be reported"
+    );
+}
+
+#[test]
+fn validate_root_globs_reports_invalid_globs_list() {
+    let config = Config {
+        tasks: TasksConfig {
+            roots: vec![RootSpec::Full(RootConfig {
+                path: "tasks".to_owned(),
+                name: None,
+                derive_tags: Some(DeriveTags::Globs(vec![
+                    "valid".to_owned(),
+                    "[invalid".to_owned(),
+                ])),
+            })],
+            ..TasksConfig::default()
+        },
+        ..Config::default()
+    };
+    let problems = validate_root_globs(&config);
+    assert!(
+        !problems.is_empty(),
+        "expected invalid glob in Globs list to be reported"
+    );
 }

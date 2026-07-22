@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use mindtape::test_support::{bare_task, link_edge, noted_edge};
+use mindtape::test_support::{TASK_SRC, bare_task, link_edge, noted_edge};
 use mindtape::{LoadOutcome, Status, Task};
 
 use super::{GraphArgs, build};
@@ -55,6 +55,10 @@ fn dot_renders_an_edge_per_relation_kind() {
     let out = build(&args(GraphFormat::Dot, None, false), stub_project(tasks)).unwrap();
     assert!(out.contains("digraph mindtape"));
     assert!(out.contains("\"a\" -> \"b\" [label=\"depends-on\", style=solid"));
+    assert!(
+        out.contains("#c0392b"),
+        "depends-on edge must use red colour"
+    );
     assert!(out.contains("\"a\" -> \"c\" [label=\"parent\", style=bold"));
     assert!(out.contains("\"a\" -> \"d\" [label=\"related\", style=dashed"));
     assert!(out.contains("label=\"Alpha [wip]\""));
@@ -132,8 +136,155 @@ fn mermaid_renders_nodes_edges_and_classes() {
 }
 
 #[test]
+fn dot_renders_recurred_from_edge() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("b.typ", "recurred-from")];
+    let out = build(
+        &args(GraphFormat::Dot, None, false),
+        stub_project(vec![
+            with_status(a, "wip"),
+            with_status(bare_task("b"), "done"),
+        ]),
+    )
+    .unwrap();
+    assert!(out.contains("recurred-from"));
+    assert!(out.contains("dotted"));
+    assert!(out.contains("#7d3c98"));
+}
+
+#[test]
+fn dot_renders_supersedes_edge() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("b.typ", "supersedes")];
+    let out = build(
+        &args(GraphFormat::Dot, None, false),
+        stub_project(vec![
+            with_status(a, "wip"),
+            with_status(bare_task("b"), "done"),
+        ]),
+    )
+    .unwrap();
+    assert!(out.contains("supersedes"));
+    assert!(out.contains("dashed"));
+    assert!(out.contains("#b9770e"));
+}
+
+#[test]
+fn dot_renders_duplicates_edge() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("b.typ", "duplicates")];
+    let out = build(
+        &args(GraphFormat::Dot, None, false),
+        stub_project(vec![
+            with_status(a, "wip"),
+            with_status(bare_task("b"), "done"),
+        ]),
+    )
+    .unwrap();
+    assert!(out.contains("duplicates"));
+    assert!(out.contains("dashed"));
+    assert!(out.contains("#7f8c8d"));
+}
+
+#[test]
+fn mermaid_renders_recurred_edge() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("b.typ", "recurred-from")];
+    let out = build(
+        &args(GraphFormat::Mermaid, None, false),
+        stub_project(vec![
+            with_status(a, "wip"),
+            with_status(bare_task("b"), "done"),
+        ]),
+    )
+    .unwrap();
+    assert!(out.contains("-.->"));
+}
+
+#[test]
+fn mermaid_renders_parent_edge() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("b.typ", "parent")];
+    let out = build(
+        &args(GraphFormat::Mermaid, None, false),
+        stub_project(vec![
+            with_status(a, "wip"),
+            with_status(bare_task("b"), "done"),
+        ]),
+    )
+    .unwrap();
+    assert!(out.contains("==>"));
+}
+
+#[test]
+fn mermaid_renders_related_edge() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("b.typ", "related")];
+    let out = build(
+        &args(GraphFormat::Mermaid, None, false),
+        stub_project(vec![
+            with_status(a, "wip"),
+            with_status(bare_task("b"), "done"),
+        ]),
+    )
+    .unwrap();
+    assert!(out.contains("-.->"));
+}
+
+#[test]
 fn invalid_filter_errors() {
     let project = stub_project(vec![bare_task("a")]);
     let result = build(&args(GraphFormat::Dot, Some("!!bad!!"), false), project);
     assert!(result.is_err());
+}
+
+/// `run` must load a project from disk and print graph output. A body replaced
+/// with `Ok(())` would exit 0 without output, caught by the stdout assertion.
+#[test]
+fn run_prints_graph_from_disk() {
+    if std::env::var("_MT_GRAPH_RUN").is_err() {
+        let dir = tempfile::tempdir().unwrap();
+        // Scaffold project manually (must exist before run() calls open()).
+        std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+        std::fs::write(
+            dir.path().join(".mindtape/config.toml"),
+            "[tasks]\nroots = [\"tasks\"]\n",
+        )
+        .unwrap();
+        std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
+        std::fs::write(dir.path().join("tasks/a.typ"), TASK_SRC).unwrap();
+        // Need lib override for HarvestWorld evaluation.
+        std::fs::create_dir_all(dir.path().join("lib")).unwrap();
+        std::fs::write(
+            dir.path().join("lib/typst.toml"),
+            "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.path().join("lib/prelude.typ"),
+            include_str!("../../../lib/prelude.typ"),
+        )
+        .unwrap();
+
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .current_dir(dir.path())
+            .env("_MT_GRAPH_RUN", "1")
+            .args(["run_prints_graph_from_disk", "--nocapture"])
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            stdout.contains("digraph mindtape"),
+            "run() should print graph output"
+        );
+        return;
+    }
+    // Child: call run() from cwd (the temp project).
+    let args = GraphArgs {
+        filter: None,
+        format: GraphFormat::Dot,
+        no_terminal: false,
+    };
+    assert!(super::run(&args).is_ok());
 }

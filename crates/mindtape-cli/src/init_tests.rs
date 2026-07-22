@@ -127,9 +127,47 @@ fn directive_scaffold_still_parses() {
     config.validate().unwrap();
 }
 
-/// Regression: `MindTape`'s own dogfood config (which fully overrides the
-/// status legend and priority scale) still parses and validates through the
-/// embedded-floor `parse_config`, unchanged.
+/// Verify that `with_schema_directive` without `--schema` or `--no-schema`
+/// prints a note when the XDG schema path does not exist.
+///
+/// The `!` deletion mutant reverses the existence check: the real code prints
+/// when the path is missing; the mutant prints when it exists. The self-spawn
+/// subprocess captures what `println!` writes to stdout so the parent can
+/// verify the note is present (real) or absent (mutant fails the assertion).
+///
+/// The child gets an empty `XDG_CONFIG_HOME`, so "the schema is missing" is a
+/// fact about the fixture rather than about the developer's machine: without
+/// it, `dirs::config_dir()` resolves to the real `~/.config` and this test
+/// fails for anyone who has run `mt install --schema`.
+#[test]
+fn with_schema_directive_prints_note_when_schema_missing() {
+    if std::env::var("_MT_INIT_DELEGATE").is_err() {
+        // Parent: spawn self, capture stdout, verify note is present.
+        let xdg = tempfile::tempdir().unwrap();
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .env("_MT_INIT_DELEGATE", "1")
+            .env("XDG_CONFIG_HOME", xdg.path())
+            .args([
+                "with_schema_directive_prints_note_when_schema_missing",
+                "--nocapture",
+            ])
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            stdout.contains("schema not installed"),
+            "should print a note when the XDG schema path is missing"
+        );
+        return;
+    }
+    // Child: call with_schema_directive without --schema or --no-schema.
+    // The function calls xdg_schema_path(), checks its existence, and
+    // prints a note if the path is missing.
+    let out = super::with_schema_directive(SLIM_CONFIG, &init_args(None, false)).unwrap();
+    assert!(out.starts_with("#:schema file://"));
+}
+
 #[test]
 fn dogfood_config_parses_and_validates() {
     const DOGFOOD: &str = include_str!("../../../.mindtape/config.toml");

@@ -76,3 +76,18 @@ fn typ_dict(map: &BTreeMap<String, HVal>) -> String {
         .collect();
     format!("({})", parts.join(", "))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn typ_str_escapes_backslash() {
+        assert_eq!(typ_str(r"a\b"), r#""a\\b""#);
+    }
+
+    #[test]
+    fn typ_float_finite_non_whole_uses_to_string() {
+        assert_eq!(typ_float(1.23), "1.23");
+    }
+}

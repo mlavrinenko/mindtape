@@ -118,7 +118,7 @@ fn build_columns(
             Column { id, cells, width }
         })
         .collect();
-    apply_flex(&mut columns);
+    apply_flex(&mut columns, terminal_width());
     columns
 }
 
@@ -130,10 +130,16 @@ fn col_width(header: &str, cells: impl Iterator<Item = usize>) -> usize {
 /// minus every other column and the inter-column gaps, clamped to
 /// `[TITLE_MIN, natural]`. No flex column or no known terminal width: leave
 /// natural widths untouched.
-fn apply_flex(columns: &mut [Column]) {
-    let Some(term) = terminal_width() else {
+fn apply_flex(columns: &mut [Column], term: Option<usize>) {
+    let Some(term) = term else {
         return;
     };
+    flex_columns(columns, term);
+}
+
+/// The core flex computation, split from [`apply_flex`] so it is testable
+/// without mocking the terminal.
+fn flex_columns(columns: &mut [Column], term: usize) {
     let others: usize = columns
         .iter()
         .filter(|col| !col.id.is_flex())
@@ -201,11 +207,7 @@ fn render_unpadded(
     width: usize,
 ) -> String {
     let content = cell_content(spec, glyph_mode, DensityMode::Full);
-    let fitted = if display_width(&content) > width {
-        truncate_to_width(&content, width)
-    } else {
-        content
-    };
+    let fitted = truncate_to_width(&content, width);
     match spec.color {
         Some(style) => painter.paint(&fitted, style),
         None => fitted,
@@ -215,3 +217,9 @@ fn render_unpadded(
 #[cfg(test)]
 #[path = "table_tests.rs"]
 mod tests;
+#[cfg(test)]
+#[path = "table_tests_layout.rs"]
+mod tests_layout;
+#[cfg(test)]
+#[path = "table_tests_ready.rs"]
+mod tests_ready;

@@ -142,7 +142,7 @@ fn check_written(root: &Path, written: &[(String, PathBuf)]) -> Result<Vec<(Stri
         .collect())
 }
 
-fn problems_for(
+pub(crate) fn problems_for(
     root: &Path,
     path: &Path,
     outcome: &mindtape::LoadOutcome,
@@ -166,7 +166,7 @@ fn problems_for(
 /// and every existing file under the configured task roots into `dst` — the
 /// peers a dry-run validate pass needs so cross-links to pre-existing tasks
 /// resolve.
-fn mirror_project(project: &Project, dst: &Path) -> Result<()> {
+pub(crate) fn mirror_project(project: &Project, dst: &Path) -> Result<()> {
     copy_dir(&project.root.join(".mindtape"), &dst.join(".mindtape"))?;
     let lib = project.root.join("lib");
     if lib.is_dir() {
@@ -181,7 +181,7 @@ fn mirror_project(project: &Project, dst: &Path) -> Result<()> {
     Ok(())
 }
 
-fn copy_dir(src: &Path, dst: &Path) -> Result<()> {
+pub(crate) fn copy_dir(src: &Path, dst: &Path) -> Result<()> {
     std::fs::create_dir_all(dst).with_context(|| format!("create {}", dst.display()))?;
     for entry in std::fs::read_dir(src).with_context(|| format!("read {}", src.display()))? {
         let entry = entry.context("read directory entry")?;

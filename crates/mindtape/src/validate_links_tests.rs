@@ -258,3 +258,39 @@ fn strict_config_still_declares_all_builtins() {
     let violations = check(&[a, b], &config);
     assert!(violations.iter().any(|v| v.field == "related"));
 }
+
+#[test]
+fn forbidden_kind_without_note_is_clean() {
+    let config = config_with_custom_kind(LinkKind {
+        name: "no-notes-allowed".to_owned(),
+        max: None,
+        note: NoteRule::Forbidden,
+        blocking: false,
+        acyclic: false,
+    });
+    let mut a = bare_task("a");
+    a.links = vec![edge("b.typ", "no-notes-allowed")];
+    let b = bare_task("b");
+    let violations = check(&[a, b], &config);
+    assert!(!violations.iter().any(|v| v.field == "no-notes-allowed"));
+}
+
+#[test]
+fn forbidden_kind_with_note_is_flagged() {
+    let config = config_with_custom_kind(LinkKind {
+        name: "no-notes-allowed".to_owned(),
+        max: None,
+        note: NoteRule::Forbidden,
+        blocking: false,
+        acyclic: false,
+    });
+    let mut a = bare_task("a");
+    a.links = vec![noted("b.typ", "no-notes-allowed", "some note")];
+    let b = bare_task("b");
+    let violations = check(&[a, b], &config);
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "no-notes-allowed" && v.message.contains("must not carry a note"))
+    );
+}

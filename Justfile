@@ -103,68 +103,56 @@ clippy-fix:
 build *args:
     cargo build --workspace -q {{ args }}
 
-# Run coverage with tarpaulin (also writes target/coverage/lcov.info)
+# Run coverage with cargo-llvm-cov (also writes target/coverage/lcov.info).
+# llvm-cov, unlike tarpaulin, merges the profraw of child processes, so the
+# subprocess-based CLI e2e tests actually attribute to the code they exercise.
+# Instrument once (--no-report), then render both reports from that profdata.
+# main.rs is excluded — keep it thin (`just crap` excludes it too); so is any
+# registry checkout, which llvm-cov's own dep filter misses when CARGO_HOME is
+# relocated (a local kache), so local and CI report the same set.
 cover:
-    cargo tarpaulin --workspace --skip-clean
+    #!/usr/bin/env bash
+    set -eo pipefail
+    ignore='crates/mindtape-cli/src/main\.rs|/registry/src/'
+    mkdir -p target/coverage
+    cargo llvm-cov --workspace --no-report
+    cargo llvm-cov report --ignore-filename-regex "$ignore" \
+        --lcov --output-path target/coverage/lcov.info
+    cargo llvm-cov report --ignore-filename-regex "$ignore" --fail-under-lines 90
 
 # Gate complex, undertested functions via CRAP metric. Needs lcov from `just cover`.
 crap:
     cargo crap --lcov target/coverage/lcov.info --workspace --exclude 'crates/mindtape-cli/src/main.rs' --threshold 30 --fail-above
 
-# Mutation-testing loop — a dev aid, never a `just check` gate (see
-# CONTRIBUTING.md "Testing"). A surviving `MISSED` mutant is a real assertion
-# gap: a line covered but not pinned. No args: run the next suitable file whose
-# source or tests changed since it was last swept clean, then report how many
-# files remain — repeat until each is clean, one bounded run at a time. `-f
-# <file>` forces one file; any other args pass through to cargo-mutants.
-# `--iterate` skips mutants already caught in prior runs, so re-runs stay cheap.
-# File set, excludes (main.rs + equivalent mutants) and the rrule feature come
-# from .cargo/mutants.toml. The swept ledger and mutants.out are git-ignored and
-# ephemeral; heuristic by design — re-run without --iterate to trust a result.
+# Pre-PR mutation check — the daily driver (see CONTRIBUTING.md "Testing").
+# Sweeps only mutants touched by this branch's diff against main, so it needs
+# no state file (nothing to invalidate) and covers new files for free (every
+# line of a new file is "touched"). A surviving `MISSED` mutant is a real
+# assertion gap: a line covered but not pinned. Speed knobs (benchmarked
+# ~3.5x over the naive run): CARGO_MUTANTS_JOBS=3 parallel jobs and the mold
+# linker via RUSTFLAGS — both overridable; drop jobs to 2 if parallel load
+# provokes false TIMEOUTs. Extra args pass through to cargo-mutants.
+mutants-diff *ARGS:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    export CARGO_MUTANTS_JOBS="${CARGO_MUTANTS_JOBS:-3}"
+    export RUSTFLAGS="${RUSTFLAGS:-} -Clink-arg=-fuse-ld=mold"
+    diff_file=$(mktemp)
+    trap 'rm -f "$diff_file"' EXIT
+    git diff "$(git merge-base main HEAD)" > "$diff_file"
+    cargo mutants --in-diff "$diff_file" {{ ARGS }}
+
+# Deliberate full-file sweep — a dev aid, never a `just check` gate (see
+# CONTRIBUTING.md "Testing"). `-f <file>` forces one file; any other args pass
+# through to cargo-mutants untouched. File set, excludes (main.rs + equivalent
+# mutants), the rrule feature and the debuginfo-free `mutants` profile come
+# from .cargo/mutants.toml. Same speed knobs as `mutants-diff`.
 mutants *ARGS:
     #!/usr/bin/env bash
     set -eo pipefail
-    ledger=".mutants-ledger"
-    # Explicit args (e.g. `-f FILE`) run straight through, still iterating.
-    if [ -n "{{ ARGS }}" ]; then
-        exec cargo mutants --iterate {{ ARGS }}
-    fi
-    # A file's swept key hashes the file plus its `_tests.rs` sibling (the tight
-    # per-file kill-set); editing either re-stales just that file.
-    keyof() {
-        local f="$1" sib="${1%.rs}_tests.rs" args=("$1")
-        [ -f "$sib" ] && args+=("$sib")
-        git hash-object "${args[@]}" | sha1sum | cut -d' ' -f1
-    }
-    mapfile -t files < <(cargo mutants --list-files 2>/dev/null)
-    if [ "${#files[@]}" -eq 0 ]; then
-        echo "mutants: no target files (is cargo-mutants on PATH?)" >&2
-        exit 1
-    fi
-    next=""
-    remaining=0
-    for f in "${files[@]}"; do
-        rec=$(awk -F'\t' -v f="$f" '$2==f{print $1}' "$ledger" 2>/dev/null || true)
-        if [ "$rec" = "$(keyof "$f")" ]; then continue; fi
-        remaining=$((remaining + 1))
-        if [ -z "$next" ]; then next="$f"; fi
-    done
-    if [ -z "$next" ]; then
-        echo "mutants: all ${#files[@]} suitable files swept clean."
-        exit 0
-    fi
-    echo "mutants: $remaining/${#files[@]} files need a pass — running $next"
-    if cargo mutants --iterate -f "$next"; then
-        tmp=$(mktemp)
-        awk -F'\t' -v f="$next" '$2!=f' "$ledger" 2>/dev/null > "$tmp" || true
-        printf '%s\t%s\n' "$(keyof "$next")" "$next" >> "$tmp"
-        mv "$tmp" "$ledger"
-        echo "mutants: $next clean — $((remaining - 1)) file(s) remain."
-    else
-        echo "mutants: $next has survivors (mutants.out/missed.txt) — add"
-        echo "         regression tests to kill them, then re-run 'just mutants'."
-        exit 1
-    fi
+    export CARGO_MUTANTS_JOBS="${CARGO_MUTANTS_JOBS:-3}"
+    export RUSTFLAGS="${RUSTFLAGS:-} -Clink-arg=-fuse-ld=mold"
+    cargo mutants {{ ARGS }}
 
 # Format code
 fmt:

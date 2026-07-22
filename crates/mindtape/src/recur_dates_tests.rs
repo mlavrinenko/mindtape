@@ -200,6 +200,31 @@ fn due_anchor_catches_up_past_today() {
 }
 
 #[test]
+fn due_anchor_steps_past_a_step_that_lands_exactly_on_today() {
+    // 2026-06-11 + 1 week is today itself. "Strictly after today" means the
+    // catch-up keeps going: an occurrence dated today is already due.
+    let r = recur(period(PeriodUnit::Weeks, 1), Some("due"), None, None);
+    let config = RecurConfig::default();
+    let today = date(2026, 6, 18);
+    let next = next_date(&r, &config, today, Some(date(2026, 6, 11))).unwrap();
+    assert_eq!(next, date(2026, 6, 25));
+}
+
+#[test]
+fn due_anchor_catch_up_is_bounded_when_the_rule_never_advances() {
+    // `every(days: 0)` stands still, so the catch-up can never reach today.
+    // It must give up with an error rather than spin forever.
+    let r = recur(period(PeriodUnit::Days, 0), Some("due"), None, None);
+    let config = RecurConfig::default();
+    let today = date(2026, 6, 18);
+    let err = next_date(&r, &config, today, Some(date(2026, 1, 1))).unwrap_err();
+    assert!(
+        matches!(err, RecurError::CatchUpExhausted(ref from) if from == "2026-01-01"),
+        "got: {err:?}"
+    );
+}
+
+#[test]
 fn due_anchor_without_a_due_falls_back_to_today() {
     let r = recur(period(PeriodUnit::Weeks, 1), Some("due"), None, None);
     let config = RecurConfig::default();

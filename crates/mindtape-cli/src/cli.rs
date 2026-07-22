@@ -152,14 +152,20 @@ pub fn builtin_subcommand_names() -> Vec<String> {
         .collect()
 }
 
-/// Initialize logging from the `-v` count; `RUST_LOG` overrides.
-pub fn init_logger(verbosity: u8) {
-    let level = match verbosity {
+/// Resolve a `-v` count to its log level.
+#[must_use]
+pub fn verbosity_level(verbosity: u8) -> LevelFilter {
+    match verbosity {
         0 => LevelFilter::Warn,
         1 => LevelFilter::Info,
         2 => LevelFilter::Debug,
         _ => LevelFilter::Trace,
-    };
+    }
+}
+
+/// Initialize logging from the `-v` count; `RUST_LOG` overrides.
+pub fn init_logger(verbosity: u8) {
+    let level = verbosity_level(verbosity);
     env_logger::Builder::from_env(env_logger::Env::default())
         .filter_level(LevelFilter::Warn)
         .filter_module("mindtape", level)
@@ -174,8 +180,9 @@ pub fn init_logger(verbosity: u8) {
 #[allow(clippy::unwrap_used)]
 mod tests {
     use clap::Parser;
+    use log::LevelFilter;
 
-    use super::Cli;
+    use super::{Cli, builtin_subcommand_names, init_logger, verbosity_level};
     use crate::render::color::ColorChoice;
 
     #[test]
@@ -194,5 +201,57 @@ mod tests {
     fn color_default_is_auto() {
         let cli = Cli::try_parse_from(["mt", "check"]).unwrap();
         assert_eq!(cli.color, ColorChoice::Auto);
+    }
+
+    /// `check` is a built-in, which also proves the list is non-empty — a
+    /// separate emptiness test asserted strictly less than this one.
+    #[test]
+    fn builtin_names_contains_check() {
+        let names = builtin_subcommand_names();
+        assert!(
+            names.contains(&"check".to_owned()),
+            "check must be in builtins: {names:?}"
+        );
+    }
+
+    /// The whole `-v` ladder, including both ends of the saturating `_ =>` arm.
+    #[test]
+    fn verbosity_ladder_maps_each_count_to_its_level() {
+        let cases = [
+            (0, LevelFilter::Warn),
+            (1, LevelFilter::Info),
+            (2, LevelFilter::Debug),
+            (3, LevelFilter::Trace),
+            (255, LevelFilter::Trace),
+        ];
+        for (count, expected) in cases {
+            assert_eq!(verbosity_level(count), expected, "-v x{count}");
+        }
+    }
+
+    // `init_logger` installs the `log` crate's process-global logger exactly
+    // once, so its only observable effect — the global max level — needs a
+    // fresh process to assert. Re-exec the test binary for this one test name.
+
+    const CHILD: &str = "_MT_CLI_CHILD";
+
+    #[test]
+    fn init_logger_raises_global_max_level() {
+        if std::env::var(CHILD).is_err() {
+            let out = crate::test_util::run_self_test("init_logger_raises_global_max_level", CHILD);
+            crate::test_util::assert_child_ok(&out);
+            return;
+        }
+        assert_eq!(
+            log::max_level(),
+            LevelFilter::Off,
+            "no logger installed before init_logger"
+        );
+        init_logger(2);
+        assert_eq!(
+            log::max_level(),
+            LevelFilter::Debug,
+            "-vv must install the logger at Debug"
+        );
     }
 }

@@ -27,7 +27,7 @@ const CONFIG_TEXT: &str = "[tasks.priority]\nframework = \"ice\"\n\
 /// A project rooted at `dir` with the in-tree `lib/` override, a real
 /// `.mindtape/config.toml` (`land`/`preview` reload it from disk), and an
 /// empty `tasks/` root — the import destination.
-fn setup_dest(dir: &Path) -> Project {
+pub(super) fn setup_dest(dir: &Path) -> Project {
     write_lib_package(dir, PRELUDE);
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
     std::fs::write(dir.join(".mindtape/config.toml"), CONFIG_TEXT).unwrap();
@@ -35,7 +35,7 @@ fn setup_dest(dir: &Path) -> Project {
     crate::test_util::make_project(dir, &[], config)
 }
 
-fn bare_args() -> ImportArgs {
+pub(super) fn bare_args() -> ImportArgs {
     ImportArgs {
         input: "-".to_owned(),
         into: ".".to_owned(),
@@ -90,7 +90,7 @@ fn link_sort_key(link: &Link) -> (String, String, Option<String>) {
     (link.kind.clone(), link.task.clone(), link.note.clone())
 }
 
-fn to_canonical(tasks: &[Task], config: &Config) -> String {
+pub(super) fn to_canonical(tasks: &[Task], config: &Config) -> String {
     let canonical: Vec<CanonicalTask> = tasks
         .iter()
         .map(|task| CanonicalTask::from_task(task, config))
@@ -266,28 +266,4 @@ fn colliding_titles_disambiguate_with_a_numeric_suffix() {
     assert!(outcomes.iter().all(|outcome| outcome.filed));
     assert!(dir.path().join("tasks/duplicate.typ").exists());
     assert!(dir.path().join("tasks/duplicate-2.typ").exists());
-}
-
-#[test]
-fn read_source_reads_a_real_file() {
-    let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().join("in.json");
-    std::fs::write(&path, "[]").unwrap();
-    let raw = super::input::read_source(path.to_str().unwrap()).unwrap();
-    assert_eq!(raw, "[]");
-}
-
-#[test]
-fn parse_records_accepts_bare_array_and_envelope() {
-    let array = super::input::parse_records("[]").unwrap();
-    assert!(array.is_empty());
-
-    let envelope = super::input::parse_records(r#"{"tasks": [], "applied": null}"#).unwrap();
-    assert!(envelope.is_empty());
-}
-
-#[test]
-fn parse_records_rejects_neither_shape() {
-    let err = super::input::parse_records(r#"{"nope": []}"#).unwrap_err();
-    assert!(err.to_string().contains("tasks"), "{err}");
 }

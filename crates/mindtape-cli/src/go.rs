@@ -80,13 +80,23 @@ pub(crate) fn spawn_editor(template: &str, path: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error naming `[go] editor` when none of the three is set.
 fn editor_command(configured: Option<&str>) -> Result<String> {
+    editor_from(configured, |var| std::env::var(var).ok())
+}
+
+/// [`editor_command`] with the environment injected, so each branch — blank
+/// config falling through, a blank env value being skipped, nothing set at all
+/// — is reachable from a test without touching the process environment.
+fn editor_from(
+    configured: Option<&str>,
+    lookup: impl Fn(&str) -> Option<String>,
+) -> Result<String> {
     if let Some(cmd) = configured
         && !cmd.trim().is_empty()
     {
         return Ok(cmd.trim().to_owned());
     }
     for var in ["VISUAL", "EDITOR"] {
-        if let Ok(value) = std::env::var(var)
+        if let Some(value) = lookup(var)
             && !value.trim().is_empty()
         {
             return Ok(value);
@@ -125,7 +135,8 @@ fn build_argv(template: &str, path: &str) -> Result<Vec<String>> {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::{build_argv, editor_command};
+
+    use super::{build_argv, editor_command, editor_from};
 
     #[test]
     fn substitutes_task_token() {
@@ -170,12 +181,91 @@ mod tests {
         );
     }
 
+    /// An environment with nothing set, for the cases that must not depend on
+    /// whatever the developer happens to export.
+    fn no_env(_: &str) -> Option<String> {
+        None
+    }
+
+    /// A blank `[go] editor` is not a configured value: it falls through to the
+    /// environment, and with nothing there it is an error naming the setting.
+    /// The three tests this replaces each wrapped their assertion in an `if`
+    /// over the ambient `$VISUAL`/`$EDITOR`, so on the wrong machine they
+    /// asserted nothing at all.
     #[test]
-    fn blank_configured_falls_through_to_error() {
-        // No reliance on ambient $VISUAL/$EDITOR: a blank override plus the
-        // common CI env (both unset) yields the configuration error.
-        if std::env::var_os("VISUAL").is_none() && std::env::var_os("EDITOR").is_none() {
-            assert!(editor_command(Some("  ")).is_err());
+    fn blank_config_and_empty_env_is_an_error() {
+        for blank in ["", "  "] {
+            let err = editor_from(Some(blank), no_env).unwrap_err().to_string();
+            assert!(
+                err.contains("[go] editor"),
+                "the error must name the setting to fix: {err}"
+            );
         }
+    }
+
+    /// `editor_command` with a valid non-blank config returns the command.
+    /// The `delete !` mutant would NOT take the `&& !is_empty` branch and would
+    /// fall through to env vars.
+    #[test]
+    fn editor_command_uses_configured_value() {
+        assert_eq!(
+            editor_command(Some("unlikely-editor")).unwrap(),
+            "unlikely-editor"
+        );
+    }
+
+    /// With no configured value the environment supplies the editor, and
+    /// `$VISUAL` wins over `$EDITOR` — the precedence that decides which of a
+    /// developer's two editors actually opens.
+    #[test]
+    fn visual_wins_over_editor() {
+        let both = |var: &str| Some(format!("{var}-editor").to_lowercase());
+        assert_eq!(editor_from(None, both).unwrap(), "visual-editor");
+    }
+
+    /// A blank `$VISUAL` is skipped rather than returned, so `$EDITOR` still
+    /// gets its turn. Under the `delete !` mutant on the env check, the blank
+    /// would be accepted and returned verbatim.
+    #[test]
+    fn blank_visual_falls_through_to_editor() {
+        let lookup = |var: &str| match var {
+            "VISUAL" => Some("   ".to_owned()),
+            _ => Some("nano".to_owned()),
+        };
+        assert_eq!(editor_from(None, lookup).unwrap(), "nano");
+    }
+
+    /// `resolve_editor` passes through the configured editor value.
+    /// A return replaced with `String::new()` would fail the `== "vim"` assertion.
+    #[test]
+    fn resolve_editor_returns_configured_cmd() {
+        let mut config = mindtape::Config::default();
+        config.go.editor = Some("vim".to_owned());
+        assert_eq!(super::resolve_editor(&config).unwrap(), "vim");
+    }
+
+    /// A task path under a tempdir. `spawn_editor` only ever passes it to the
+    /// editor as an argument, but a shared literal like `/tmp/x` is a path
+    /// another process on the machine can own, so give each test its own.
+    fn task_path(dir: &tempfile::TempDir) -> std::path::PathBuf {
+        dir.path().join("task.typ")
+    }
+
+    /// `spawn_editor` with a broken template (empty program) returns an error.
+    /// A body replaced with `Ok(())` would succeed silently.
+    #[test]
+    fn spawn_editor_errors_on_empty_template() {
+        let dir = tempfile::tempdir().unwrap();
+        assert!(super::spawn_editor("   ", &task_path(&dir)).is_err());
+    }
+
+    /// `spawn_editor` with a valid command succeeds. The `delete !` mutant
+    /// would invert the success check, making a successful editor `bail!`.
+    #[test]
+    fn spawn_editor_succeeds_with_true() {
+        // `true` always exits 0; spawn_editor should return Ok.
+        // The `delete !` mutant would check `if true` and bail.
+        let dir = tempfile::tempdir().unwrap();
+        super::spawn_editor("true", &task_path(&dir)).unwrap();
     }
 }

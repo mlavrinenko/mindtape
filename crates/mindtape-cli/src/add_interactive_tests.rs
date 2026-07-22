@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 
 use mindtape::{AddConfig, InteractiveMode, RawValue, discover_slots};
 
-use super::{editor_command, open_in_editor, parse_buffer, scaffold, should_open};
+use super::{editor_command, open_in_editor, parse_buffer, run, scaffold, should_open};
 
 const TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 
@@ -165,6 +165,46 @@ fn fallback_editor() -> String {
     resolved
 }
 
+// ── editor_command: a blank override falls through, it is not accepted ──
+
+#[test]
+fn editor_command_env_var_not_empty_used() {
+    const CHILD: &str = "_MT_EDITOR_CMD_CHILD";
+    if std::env::var(CHILD).is_ok() {
+        // Child: report the result of editor_command(None) via stderr so
+        // the test harness (which writes to stdout) does not interfere.
+        let result = editor_command(None);
+        eprintln!("__MT_EDITOR={result}");
+        return;
+    }
+    // Parent: spawn a child with VISUAL set and EDITOR removed so the
+    // env-var path is deterministic.
+    let exe = std::env::current_exe().unwrap();
+    let output = std::process::Command::new(&exe)
+        .env(CHILD, "1")
+        .env("VISUAL", "custom-editor")
+        .env_remove("EDITOR")
+        .arg("editor_command_env_var_not_empty_used")
+        .arg("--nocapture")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "child failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    // Parse the sentinel line from stderr (the harness writes nothing to it).
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let sentinel = stderr
+        .lines()
+        .find(|l| l.starts_with("__MT_EDITOR="))
+        .unwrap_or_else(|| panic!("missing sentinel in stderr:\n{stderr}"));
+    let child_result = sentinel.strip_prefix("__MT_EDITOR=").unwrap();
+    // Real: `!is_empty` is true → returns "custom-editor".
+    // Mutant (no !): `is_empty` is false → skips → falls to "vi".
+    assert_eq!(child_result, "custom-editor");
+}
+
 #[test]
 fn open_in_editor_runs_command_and_reads_back() {
     let dir = tempfile::tempdir().unwrap();
@@ -202,4 +242,152 @@ fn always_mode_succeeds_with_tty() {
         ..Default::default()
     };
     assert!(should_open(false, &config, &specs(), &BTreeMap::new(), true).unwrap());
+}
+
+// ── should_open: the negation that keeps a non-tty from opening an editor ──
+
+#[test]
+fn force_and_never_with_tty_opens() {
+    let config = AddConfig {
+        interactive: InteractiveMode::Never,
+        ..Default::default()
+    };
+    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    // force=true + Never + tty=true: real Ok(true).  Mutant (no !): Ok(false).
+    assert!(should_open(true, &config, &specs, &BTreeMap::new(), true).unwrap());
+}
+
+// ── should_open / has_unfilled_required: the conjunctions deciding whether
+//    a scaffold is worth opening, and the negation guarding each ──
+
+#[test]
+fn auto_mode_all_filled_stays_closed() {
+    let config = AddConfig::default();
+    let mut seed = BTreeMap::new();
+    seed.insert("x".to_owned(), RawValue::Str("v".to_owned()));
+    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    // Seed fills the only required slot; real should_open = false.
+    // Any of the four mutants makes should_open return true.
+    assert!(!should_open(false, &config, &specs, &seed, true).unwrap());
+}
+
+// ── has_unfilled_required: a filled scaffold reports nothing outstanding ──
+
+#[test]
+fn auto_mode_unfilled_opens() {
+    let config = AddConfig::default();
+    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    // No seed — has unfilled required; real should_open = true.
+    // Mutant (return false) makes should_open = false.
+    assert!(should_open(false, &config, &specs, &BTreeMap::new(), true).unwrap());
+}
+
+// ── has_unfilled_required: required AND unfilled, not either alone ──
+
+#[test]
+fn non_required_slot_not_unfilled() {
+    let config = AddConfig::default();
+    let specs = discover_slots("#show: task.with(x: slot(\"x\", required: false))");
+    // spec not-required, no default, no seed → real has_unfilled_required = false.
+    // Mutant: false || (true && true) = true → should_open = true.
+    assert!(!should_open(false, &config, &specs, &BTreeMap::new(), true).unwrap());
+}
+
+// ── run: the edited buffer's values reach the caller ──
+
+#[test]
+fn run_parses_editor_output() {
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("editor.sh");
+    std::fs::write(&script, "cat > \"$1\" << 'EOF'\nx: \"ParsedTitle\"\nEOF\n").unwrap();
+    let config = AddConfig {
+        editor: Some(format!("bash {}", script.display())),
+        ..Default::default()
+    };
+    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    let values = run(&config, &specs, &BTreeMap::new()).unwrap();
+    assert_eq!(values["x"], RawValue::Str("ParsedTitle".to_owned()));
+}
+
+// ── commentify: either condition alone triggers the comment prefix ──
+
+#[test]
+fn custom_header_comment_lines_kept() {
+    let config = AddConfig {
+        header: Some("# Already a comment\nReal text".to_owned()),
+        ..Default::default()
+    };
+    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    let buffer = scaffold(&config, &specs, &BTreeMap::new());
+    // Real: `# Already a comment` kept as-is (starts with # → kept).
+    // Mutant: `false && true` → adds `# ` prefix → `# # Already a comment`.
+    assert!(buffer.starts_with("# Already a comment"), "{buffer}");
+}
+
+// ── push_comment: both conditions must hold before a comment is pushed ──
+
+#[test]
+fn non_required_slot_label_is_optional() {
+    let specs = discover_slots("#show: task.with(x: slot(\"x\", required: false))");
+    let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());
+    // spec.required=false, default.is_none()=true → real: "optional", mutant: "required"
+    assert!(buffer.contains("[string, optional]"), "{buffer}");
+}
+
+// ── seed_entry: the guard selecting the block-scalar form ──
+
+#[test]
+fn text_slot_seed_renders_as_block() {
+    let mut seed = BTreeMap::new();
+    seed.insert("x".to_owned(), RawValue::Str("hello\nworld".to_owned()));
+    let specs = discover_slots("#show: task.with(x: slot(\"x\", kind: \"text\"))");
+    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    // Real: Entry::Block renders `|-`.  Mutant (guard→false) renders quoted scalar.
+    assert!(
+        buffer.contains("|-"),
+        "text seed produces block scalar: {buffer}"
+    );
+    // Mutant would render `x: "hello\nworld"`, which contains the substring
+    // `"hello\nworld"` — the block scalar does not.
+    assert!(
+        !buffer.contains(r#""hello\nworld""#),
+        "text seed must not be rendered as quoted scalar: {buffer}"
+    );
+}
+
+// ── quote: every character that must be escaped, one case each ──
+
+#[test]
+fn quote_special_chars_roundtrip() {
+    let mut seed = BTreeMap::new();
+    // A string containing all four special chars: ", \, newline, tab.
+    seed.insert("x".to_owned(), RawValue::Str("a\"b\\c\nd\te".to_owned()));
+    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    let values = parse_buffer(&buffer).unwrap();
+    assert_eq!(values["x"], RawValue::Str("a\"b\\c\nd\te".to_owned()));
+}
+
+// ── quote: a tab is escaped, not passed through ──
+
+#[test]
+fn quote_escapes_tab_to_backslash_t() {
+    let mut seed = BTreeMap::new();
+    seed.insert("x".to_owned(), RawValue::Str("a\tb".to_owned()));
+    let specs = discover_slots("#show: task.with(x: slot(\"x\"))");
+    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    // Real: '\t' → push_str("\\t") → buffer contains `\t` (two chars).
+    // Mutant (arm deleted): '\t' → push(ch) → literal tab (0x09), no `\t`.
+    assert!(
+        buffer.contains(r"\t"),
+        "tab must be YAML-escaped as \\t: {buffer:?}"
+    );
+}
+
+// ── parse_buffer: an explicit null parses to the unset value ──
+
+#[test]
+fn parse_buffer_null_returns_empty() {
+    let values = parse_buffer("~").unwrap();
+    assert!(values.is_empty());
 }

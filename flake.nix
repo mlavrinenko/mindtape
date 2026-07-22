@@ -29,6 +29,29 @@
 
         cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
         version = cargoToml.workspace.package.version;
+
+        # nixpkgs' rustc ships no `llvm-tools-preview` component, so
+        # cargo-llvm-cov cannot find llvm-cov/llvm-profdata in the sysroot.
+        # Point it at a standalone LLVM of the SAME major as rustc's (1.92 →
+        # LLVM 21) — a mismatched llvm-profdata rejects the profraw format.
+        llvm = pkgs.llvmPackages_21.llvm;
+
+        # cargo-crap (the CRAP-metric gate behind `just crap`) is not in
+        # nixpkgs. Build it from the crates.io tarball with naersk `singleStep`
+        # — crates.io' data-access policy 403s the UA that nixpkgs'
+        # `fetch-cargo-vendor` sends, so `buildRustPackage` cannot compute a
+        # vendor hash; naersk vendors through cargo itself and sidesteps it.
+        cargo-crap = naersk'.buildPackage {
+          pname = "cargo-crap";
+          version = "0.3.1";
+          src = pkgs.fetchCrate {
+            pname = "cargo-crap";
+            version = "0.3.1";
+            hash = "sha256-3qvyS5+7kQgmfk8Sl+29VJq+u+aECoh6n9A/9i0fRyY=";
+          };
+          singleStep = true;
+          doCheck = false;
+        };
       in
       {
         # For `nix build` & `nix run` (produces the `mt` binary):
@@ -44,6 +67,7 @@
           # shell inherits it and it never reaches the `nix build` sandbox.
           nativeBuildInputs =
             [
+              cargo-crap
               qahq.packages.${system}.jscpd
               qahq.packages.${system}.ejectest
               qahq.packages.${system}.linecop
@@ -54,10 +78,11 @@
               rustc
               cargo
               cargo-machete
-              cargo-tarpaulin
+              cargo-llvm-cov
               cargo-mutants
               clippy
               rustfmt
+              mold
               hyperfine
               jq
               just
@@ -67,9 +92,12 @@
               rust-analyzer
               typst
               typstyle
+              util-linux
             ]);
           buildInputs = with pkgs; [ openssl ];
           shellHook = ''
+            export LLVM_COV=${llvm}/bin/llvm-cov
+            export LLVM_PROFDATA=${llvm}/bin/llvm-profdata
             just install-hooks > /dev/null 2>&1
           '';
         };

@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use super::{write_defaults, write_schema};
+use super::{write_defaults, write_schema, xdg_schema_path};
 
 /// A file installer under test: `(dir, force) -> Result`.
 type Writer = fn(&Path, bool) -> anyhow::Result<()>;
@@ -96,6 +96,14 @@ fn write_schema_overwrites_with_force() {
         write_schema,
         &mindtape::config_schema_json(),
     );
+}
+
+/// `xdg_schema_path` returns a path ending with `config.schema.json`,
+/// not a `Default::default()` (empty) `PathBuf`.
+#[test]
+fn xdg_schema_path_ends_with_config_schema_json() {
+    let path = xdg_schema_path().unwrap();
+    assert!(path.ends_with("config.schema.json"));
 }
 
 /// Regression: the seeded floor text parses and validates on its own — the

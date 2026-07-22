@@ -382,3 +382,84 @@ fn view_refs_collects_referenced_names() {
     refs.sort();
     assert_eq!(refs, vec!["a", "b", "c"]);
 }
+
+// --- Boundary regression tests ---
+
+#[test]
+fn cyclic_view_hits_depth_limit() {
+    // Guards against deeper() using `*` instead of `+` (depth never
+    // increments, so the cycle guard never triggers).
+    let cfg = parse_config("[views.cycle]\nfilter = '@cycle'\n").unwrap();
+    let task = sample();
+    let err = Filter::parse("@cycle")
+        .unwrap()
+        .matches(&task, &cfg)
+        .unwrap_err();
+    assert!(
+        matches!(&err, super::FilterError::Invalid(msg) if msg.contains("nested too deep")),
+        "{err:?}"
+    );
+}
+
+#[test]
+fn search_matches_title_or_id() {
+    // Guards against `||` → `&&` in the search function.
+    let mut task = sample();
+    task.id = "mod-001".to_owned();
+    task.title = "Auth Module".to_owned();
+    // "auth" in title, not in id — `||` gives true, `&&` gives false.
+    assert!(hit("search(\"auth\")", &task));
+}
+
+#[test]
+fn has_tags_distinguishes_each_negation() {
+    // Guards against deletion of `!` in `present` for tags.
+    // The expression is `!task.tags.is_empty() || !task.derived_tags.is_empty()`.
+    let mut task = sample();
+    // Non-empty tags, empty derived → true (catches first `!` deleted)
+    task.tags = vec!["backend".to_owned()];
+    task.derived_tags = Vec::new();
+    assert!(hit("has(tags)", &task));
+    // Empty tags, non-empty derived → true (catches second `!` deleted)
+    task.tags = Vec::new();
+    task.derived_tags = vec!["frontend".to_owned()];
+    assert!(hit("has(tags)", &task));
+    // Both empty → false (catches either `!` deleted)
+    task.tags = Vec::new();
+    task.derived_tags = Vec::new();
+    assert!(!hit("has(tags)", &task));
+}
+
+#[test]
+fn stale_with_reviewed_at_exact_threshold_is_not_stale() {
+    // Guards against `<` → `<=` in the reviewed branch of `is_stale`.
+    // When reviewed equals days_ago_iso(days), real `<` returns false but
+    // mutant `<=` returns true.
+    let mut task = sample();
+    task.reviewed = Some(crate::date::days_ago_iso(1));
+    assert!(!hit("stale(1)", &task));
+}
+
+#[test]
+fn stale_with_status_at_exact_threshold_is_not_stale() {
+    // Guards against `<` → `<=` in the status-date branch of `is_stale`.
+    let mut task = sample();
+    task.reviewed = None;
+    if let Some(ref mut s) = task.status {
+        s.date = Some(crate::date::days_ago_iso(1));
+    }
+    assert!(!hit("stale(1)", &task));
+}
+
+#[test]
+fn contains_does_not_match_absent_substring() {
+    // Guards against `contains_ci` returning `true` unconditionally.
+    let task = sample();
+    assert!(!hit("contains(title, \"xyz\")", &task));
+}
+
+// The rare arms of the `function` dispatcher live in a child module so they
+// share `sample()` / `hit()` without duplicating them (and keep this file
+// under the linecop limit).
+#[path = "filter_dispatch_tests.rs"]
+mod dispatch;

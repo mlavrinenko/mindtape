@@ -6,9 +6,14 @@ use super::validate;
 use crate::config::{Config, parse_config};
 use crate::model::{Status, Task};
 use crate::numeric::NumValue;
-use crate::test_support::{bare_task, dep_edge, ice_priority, link_edge, noted_edge};
+use crate::test_support::{bare_task, dep_edge, link_edge, noted_edge};
 
-fn config() -> crate::config::Config {
+/// Status legend and priority/estimate/tags scale shared by every test in this
+/// file. Field-specific validation (id format, enum fields, priority
+/// frameworks, numeric scales) lives in `validate_tests_fields.rs`; this file
+/// covers status reachability, the typed `links:` edges, and id uniqueness —
+/// concerns that span more than one task or sit outside a single field.
+pub(super) fn config() -> crate::config::Config {
     parse_config(
         r#"
 [[tasks.status]]
@@ -42,7 +47,7 @@ allowed = ["backend"]
     .unwrap()
 }
 
-fn task(id: &str, status: &str) -> Task {
+pub(super) fn task(id: &str, status: &str) -> Task {
     let mut t = bare_task(id);
     t.status = Some(Status {
         name: status.to_owned(),
@@ -138,66 +143,6 @@ fn flags_dependency_cycle() {
             .iter()
             .any(|v| v.field == "depends-on" && v.message.contains("cycle"))
     );
-}
-
-#[test]
-fn flags_missing_required_priority_when_active() {
-    let mut item = task("a", "wip");
-    item.priority = None;
-    let violations = validate(&[item], &config());
-    assert!(violations.iter().any(|v| v.field == "priority"));
-}
-
-#[test]
-fn terminal_task_skips_required() {
-    let mut item = task("a", "done");
-    item.priority = None;
-    assert!(validate(&[item], &config()).is_empty());
-}
-
-#[test]
-fn flags_priority_out_of_scale() {
-    let mut item = task("a", "wip");
-    item.priority = Some(NumValue::Num(42.0));
-    let violations = validate(&[item], &config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("outside")),
-        "out-of-scale priority should be flagged, got: {violations:?}"
-    );
-}
-
-#[test]
-fn flags_unknown_estimate_unit() {
-    let mut item = task("a", "wip");
-    item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
-    let violations = validate(&[item], &config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "estimate" && v.message.contains("fortnights"))
-    );
-}
-
-#[test]
-fn flags_disallowed_tag() {
-    let mut item = task("a", "wip");
-    item.tags = vec!["frontend".to_owned()];
-    let violations = validate(&[item], &config());
-    assert!(violations.iter().any(|v| v.field == "tags"));
-}
-
-#[test]
-fn flags_disallowed_derived_tag() {
-    let mut item = task("a", "wip");
-    item.derived_tags = vec!["marketing".to_owned()];
-    let violations = validate(&[item], &config());
-    let hit = violations
-        .iter()
-        .find(|v| v.field == "tags")
-        .expect("derived tag outside the allow-list must be flagged");
-    assert!(hit.message.contains("derived from folder"));
 }
 
 #[test]
@@ -337,137 +282,5 @@ fn no_uniqueness_violation_for_distinct_ids() {
         !validate(&tasks, &Config::default())
             .iter()
             .any(|v| v.field == "id")
-    );
-}
-
-#[test]
-fn default_config_accepts_plain_string_id() {
-    let mut t = task("my-task", "wip");
-    t.priority = None; // remove priority so the only check is id
-    // default config has no priority constraints
-    let violations = validate(&[t], &Config::default());
-    assert!(!violations.iter().any(|v| v.field == "id"));
-}
-
-#[test]
-fn uuid_v4_config_accepts_valid_v4() {
-    let cfg = parse_config("[tasks.id]\nformat = \"uuid-v4\"\n").unwrap();
-    let mut t = task("550e8400-e29b-41d4-a716-446655440000", "wip");
-    t.priority = None;
-    let violations = validate(&[t], &cfg);
-    assert!(!violations.iter().any(|v| v.field == "id"));
-}
-
-#[test]
-fn uuid_v4_config_rejects_non_v4() {
-    let cfg = parse_config("[tasks.id]\nformat = \"uuid-v4\"\n").unwrap();
-    // This is a v7 UUID
-    let mut t = task("018f4e2a-0000-7000-8000-000000000000", "wip");
-    t.priority = None;
-    let violations = validate(&[t], &cfg);
-    assert!(
-        violations.iter().any(|v| v.field == "id"),
-        "v7 id should be rejected by uuid-v4 format"
-    );
-}
-
-#[test]
-fn uuid_v4_config_rejects_non_uuid_string() {
-    let cfg = parse_config("[tasks.id]\nformat = \"uuid-v4\"\n").unwrap();
-    let mut t = task("my-plain-task", "wip");
-    t.priority = None;
-    let violations = validate(&[t], &cfg);
-    assert!(
-        violations.iter().any(|v| v.field == "id"),
-        "plain string rejected by uuid-v4 format"
-    );
-}
-
-#[test]
-fn uuid_v7_config_accepts_valid_v7() {
-    let cfg = parse_config("[tasks.id]\nformat = \"uuid-v7\"\n").unwrap();
-    // UUID v7: version nibble = 7
-    let mut t = task("018f4e2a-0000-7000-8000-000000000000", "wip");
-    t.priority = None;
-    let violations = validate(&[t], &cfg);
-    assert!(!violations.iter().any(|v| v.field == "id"));
-}
-
-/// A config with ICE active in strict mode (no manual integers).
-fn strict_ice_config() -> Config {
-    parse_config(
-        "[[tasks.status]]\nvalue = \"wip\"\n\
-         [tasks.priority]\nmin = 0\nmax = 9\nframework = \"ice\"\nallow-manual = false\n",
-    )
-    .unwrap()
-}
-
-#[test]
-fn framework_priority_validates_clean() {
-    let mut item = task("a", "wip");
-    item.priority = Some(ice_priority(10.0, 0.9, 10.0));
-    let violations = validate(&[item], &strict_ice_config());
-    assert!(
-        !violations.iter().any(|v| v.field == "priority"),
-        "valid ICE inputs should pass, got: {violations:?}"
-    );
-}
-
-#[test]
-fn strict_mode_rejects_manual_integer() {
-    let mut item = task("a", "wip");
-    item.priority = Some(NumValue::Num(7.0));
-    let violations = validate(&[item], &strict_ice_config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("strict")),
-        "strict mode should reject a manual int, got: {violations:?}"
-    );
-}
-
-#[test]
-fn rejects_inactive_framework() {
-    let mut item = task("a", "wip");
-    item.priority = Some(NumValue::Framework {
-        name: "rice".to_owned(),
-        inputs: BTreeMap::new(),
-    });
-    let violations = validate(&[item], &strict_ice_config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("not the active framework")),
-        "a non-active framework should be flagged, got: {violations:?}"
-    );
-}
-
-#[test]
-fn flags_out_of_bounds_framework_input() {
-    let mut item = task("a", "wip");
-    // impact 99 exceeds the declared 1..10 bound.
-    item.priority = Some(ice_priority(99.0, 0.5, 5.0));
-    let violations = validate(&[item], &strict_ice_config());
-    assert!(
-        violations
-            .iter()
-            .any(|v| v.field == "priority" && v.message.contains("impact")),
-        "out-of-bounds input should be flagged, got: {violations:?}"
-    );
-}
-
-#[test]
-fn lenient_mode_accepts_manual_integer() {
-    let cfg = parse_config(
-        "[[tasks.status]]\nvalue = \"wip\"\n\
-         [tasks.priority]\nmin = 0\nmax = 9\nframework = \"ice\"\nallow-manual = true\n",
-    )
-    .unwrap();
-    let mut item = task("a", "wip");
-    item.priority = Some(NumValue::Num(7.0));
-    let violations = validate(&[item], &cfg);
-    assert!(
-        !violations.iter().any(|v| v.field == "priority"),
-        "lenient mode should accept a manual int, got: {violations:?}"
     );
 }

@@ -188,6 +188,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`mindtape`, `mindtape-cli`), the `@local/mindtape` Typst package, the
   `.mindtape/` config directory, and the `MINDTAPE_ADD_*` env prefix are
   unchanged.
+- **`mindtape::naming::disambiguate` returns a `Result` (breaking)** — stem
+  collision disambiguation (used by `mt add`, `mt import`, `mt recur` spawn)
+  now returns `Result<String, NamingError>` instead of looping forever
+  against an `exists` predicate that never reports a free stem. Past
+  `MAX_DISAMBIGUATE_ATTEMPTS` (10,000) numeric suffixes it returns the new
+  `NamingError::Exhausted(stem, ceiling)` instead of hanging; callers surface
+  it as an ordinary command error. Breaking change to a public library API —
+  the crate is still on its 0.2 pre-release line.
+- **`mt recur`'s due-anchor catch-up no longer hangs** —
+  `mindtape::recur_dates::next_date`'s catch-up loop (advancing a stale `due`
+  forward by the rule until strictly after today) is now bounded by
+  `MAX_CATCH_UP_STEPS` (10,000 steps) and returns the new
+  `RecurError::CatchUpExhausted(due)` instead of spinning forever when the
+  rule never advances (e.g. `every(days: 0)`) or an expansion engine keeps
+  returning its own reference date. Previously `mt recur` would hang in that
+  case.
+- **Recur/date internal cleanup** — the `rrule` cargo feature's off-state now
+  lives in one stub module (`recur_rrule_off.rs`, selected by `#[path]`)
+  rather than `#[cfg]` twin functions inside `recur.rs`/`recur_dates.rs`, so
+  every function in those two files compiles under any feature set;
+  `epoch_days_to_ymd` also dropped an unreachable negative-`shifted` branch of
+  Hinnant's civil-from-days algorithm (the input is `u64`, so it is always
+  `>= 719_468`). Both are dead-code/coverage hygiene, no behaviour change.
 
 ### Added
 

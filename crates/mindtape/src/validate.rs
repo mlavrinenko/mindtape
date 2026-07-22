@@ -388,3 +388,7 @@ fn is_required(requirement: Requirement, terminal: bool) -> bool {
 #[cfg(test)]
 #[path = "validate_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "validate_tests_fields.rs"]
+mod tests_fields;

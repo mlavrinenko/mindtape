@@ -106,6 +106,124 @@ fn header_require_rule_fails_when_heading_absent() {
     assert!(super::run_with(&project).is_err());
 }
 
+const BODY_NO_PRIORITY: &str = "#metadata((
+  marker: \"mindtape.task\",
+  fields: (title: \"Y\", status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none)),
+  extras: (:),
+))
+";
+
+/// Scaffold a real project directory with a config that requires priority,
+/// a `lib/` override for `@local/mindtape`, and one task file without priority.
+/// The caller provides the TOML string for the config.
+fn scaffold_violation_project(dir: &Path, toml: &str) {
+    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+    std::fs::write(dir.join(".mindtape/config.toml"), toml).unwrap();
+    std::fs::create_dir_all(dir.join("tasks")).unwrap();
+    std::fs::write(dir.join("tasks/y.typ"), BODY_NO_PRIORITY).unwrap();
+    // Install a local lib override so HarvestWorld can evaluate #metadata().
+    std::fs::create_dir_all(dir.join("lib")).unwrap();
+    std::fs::write(
+        dir.join("lib/typst.toml"),
+        "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.join("lib/prelude.typ"),
+        include_str!("../../../lib/prelude.typ"),
+    )
+    .unwrap();
+}
+
+fn violation_config() -> Config {
+    parse_config(
+        "\
+[[tasks.status]]
+value = \"wip\"
+[[tasks.status]]
+value = \"done\"
+terminal = true
+[tasks.priority]
+required = true
+",
+    )
+    .unwrap()
+}
+
+#[test]
+fn run_with_prints_violation_and_fails() {
+    if std::env::var("_MT_CHECK_RUN").is_err() {
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .env("_MT_CHECK_RUN", "1")
+            .args(["run_with_prints_violation_and_fails", "--nocapture"])
+            .output()
+            .unwrap();
+        // Child exits 0 because its assertion passes (violation is detected).
+        // What matters: stdout must contain violation details. A print_violation
+        // replaced with () would print nothing, so the assertion fails.
+        assert!(output.status.success(), "child should pass its assertion");
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            stdout.contains("priority"),
+            "run_with should print violation details"
+        );
+        return;
+    }
+    // Child: recreate the violation project and call run_with.
+    let dir = tempfile::tempdir().unwrap();
+    let project = make_project_with_config(
+        dir.path(),
+        &[("y.typ", BODY_NO_PRIORITY)],
+        violation_config(),
+    );
+    assert!(super::run_with(&project).is_err());
+}
+
+/// Verify that `run()` loads the project from disk and validates it.
+/// A `run` replaced with `Ok(())` would exit 0 even with violations.
+const VIOLATION_TOML: &str = "\
+[tasks]
+roots = [\"tasks\"]
+
+[[tasks.status]]
+value = \"wip\"
+[[tasks.status]]
+value = \"done\"
+terminal = true
+[tasks.priority]
+required = true
+";
+
+#[test]
+fn run_validates_from_disk() {
+    if std::env::var("_MT_CHECK_RUN_FROM_DISK").is_err() {
+        let dir = tempfile::tempdir().unwrap();
+        scaffold_violation_project(dir.path(), VIOLATION_TOML);
+
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .current_dir(dir.path())
+            .env("_MT_CHECK_RUN_FROM_DISK", "1")
+            .args(["run_validates_from_disk", "--nocapture"])
+            .output()
+            .unwrap();
+        // run() should fail on an invalid project. If replaced with Ok(()),
+        // it would exit 0.
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            output.status.success(),
+            "child should pass its assertion (violation detected)"
+        );
+        assert!(
+            stdout.contains("priority"),
+            "run() should report priority violation"
+        );
+        return;
+    }
+    // Child: call run() from cwd (which is the temp project).
+    let result = super::run();
+    assert!(result.is_err(), "run() should fail on missing priority");
+}
+
 #[test]
 fn invalid_header_rule_regex_fails_with_config_error() {
     let dir = tempfile::tempdir().unwrap();

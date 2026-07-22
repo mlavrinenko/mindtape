@@ -52,7 +52,6 @@ const MANUAL: &str = "manual";
 impl Applied {
     fn match_all() -> Self {
         Self {
-            rule: None,
             filter_from: MATCH_ALL.to_owned(),
             sort_from: MATCH_ALL.to_owned(),
             columns_from: MATCH_ALL.to_owned(),

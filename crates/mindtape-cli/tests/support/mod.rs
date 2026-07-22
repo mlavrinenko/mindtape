@@ -2,8 +2,9 @@
 //!
 //! Not a test target itself: cargo only auto-discovers `.rs` files directly
 //! under `tests/`, so this module only compiles into a binary that `mod
-//! support;`s it.
-#![allow(clippy::unwrap_used)]
+//! support;`s it — and each such binary sees the helpers it does not call as
+//! dead code, hence the module-wide allow.
+#![allow(clippy::unwrap_used, dead_code)]
 
 use std::path::Path;
 
@@ -20,4 +21,34 @@ pub fn install_lib(dir: &Path) {
     )
     .unwrap();
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
+}
+
+/// A throwaway project — lib override, `[tasks] roots = ["tasks"]`, and one
+/// `wip` task titled `title` — for tests that only need something to list.
+pub fn project_with_task(title: &str) -> tempfile::TempDir {
+    let dir = tempfile::tempdir().unwrap();
+    install_lib(dir.path());
+    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(
+        dir.path().join(".mindtape/config.toml"),
+        "[tasks]\nroots = [\"tasks\"]\n",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.path().join("tasks/test.typ"),
+        format!(
+            r#"#metadata((
+  marker: "mindtape.task",
+  fields: (
+    title: "{title}",
+    status: (name: "wip", date: datetime(year: 2026, month: 6, day: 1), note: none),
+    priority: 5,
+  ),
+  extras: (:),
+))
+"#
+        ),
+    )
+    .unwrap();
+    dir
 }

@@ -154,7 +154,9 @@ fn parse_hex(hex: &str) -> Option<Color> {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::{ColorChoice, Painter, color_enabled, no_color_set, parse_color};
+    use anstyle::{Color, RgbColor};
+
+    use super::{ColorChoice, Painter, color_enabled, init, is_color_active, parse_color};
 
     #[test]
     fn always_enables_regardless_of_env() {
@@ -168,9 +170,23 @@ mod tests {
         assert!(!color_enabled(ColorChoice::Never, true));
     }
 
+    // `init` sets a process-global `OnceLock` exactly once. Asserting "unset
+    // before init" is only true in a fresh process, so this re-execs the test
+    // binary for just this test name rather than sharing global state with
+    // every other test in the binary.
+
+    const CHILD: &str = "_MT_COLOR_CHILD";
+
     #[test]
-    fn auto_respects_no_color() {
-        let _ = no_color_set();
+    fn init_then_is_color_active() {
+        if std::env::var(CHILD).is_err() {
+            let out = crate::test_util::run_self_test("init_then_is_color_active", CHILD);
+            crate::test_util::assert_child_ok(&out);
+            return;
+        }
+        assert!(!is_color_active(), "must be false before init");
+        init(ColorChoice::Always);
+        assert!(is_color_active(), "must be true after init(Always)");
     }
 
     #[test]
@@ -198,15 +214,56 @@ mod tests {
         assert!(out.contains('\x1b'), "expected ANSI escape in output");
     }
 
+    /// Every name the legend accepts, mapped to the colour it must produce.
+    /// Asserting `is_some()` per name (as twelve separate tests used to) never
+    /// pinned the mapping: a mutant routing "cyan" to `AnsiColor::Red` survived
+    /// all of them, because the result was still `Some`.
     #[test]
-    fn parse_named_colour() {
-        assert!(parse_color("green").is_some());
-        assert!(parse_color("bright-black").is_some());
+    fn parse_named_maps_each_name_to_its_colour() {
+        use anstyle::AnsiColor::{
+            Black, Blue, BrightBlack, BrightBlue, BrightCyan, BrightGreen, BrightMagenta,
+            BrightRed, BrightWhite, BrightYellow, Cyan, Green, Magenta, Red, White, Yellow,
+        };
+        let cases = [
+            ("black", Black),
+            ("red", Red),
+            ("green", Green),
+            ("yellow", Yellow),
+            ("blue", Blue),
+            ("magenta", Magenta),
+            ("cyan", Cyan),
+            ("white", White),
+            ("bright-black", BrightBlack),
+            ("gray", BrightBlack),
+            ("grey", BrightBlack),
+            ("bright-red", BrightRed),
+            ("bright-green", BrightGreen),
+            ("bright-yellow", BrightYellow),
+            ("bright-blue", BrightBlue),
+            ("bright-magenta", BrightMagenta),
+            ("bright-cyan", BrightCyan),
+            ("bright-white", BrightWhite),
+        ];
+        for (name, expected) in cases {
+            assert_eq!(
+                parse_color(name).and_then(anstyle::Style::get_fg_color),
+                Some(Color::Ansi(expected)),
+                "{name} must parse to {expected:?}"
+            );
+        }
     }
 
+    /// Names are case-insensitive, and a hex spec maps to its exact RGB triple.
     #[test]
-    fn parse_hex_colour() {
-        assert!(parse_color("#e5c07b").is_some());
+    fn parse_color_accepts_uppercase_and_hex() {
+        assert_eq!(
+            parse_color("CYAN").and_then(anstyle::Style::get_fg_color),
+            Some(Color::Ansi(anstyle::AnsiColor::Cyan))
+        );
+        assert_eq!(
+            parse_color("#e5c07b").and_then(anstyle::Style::get_fg_color),
+            Some(Color::Rgb(RgbColor(0xe5, 0xc0, 0x7b)))
+        );
     }
 
     #[test]

@@ -158,7 +158,7 @@ mod tests {
 
     use mindtape::sort::sort_by_specs;
 
-    use super::{LsArgs, run_with};
+    use super::{LsArgs, resolve_and_select, run_with};
     use crate::output::OutputFormat;
 
     fn task(id: &str, priority: f64) -> Task {
@@ -367,6 +367,18 @@ mod tests {
         let project = crate::test_util::make_project(dir.path(), &[("x.typ", TASK)], config);
         let (tasks, _) = super::select_view(&default_args(), project).unwrap();
         assert!(tasks.is_empty());
+    }
+
+    #[test]
+    fn resolve_and_select_applies_view_columns() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = view_project(dir.path());
+        let args = LsArgs {
+            filter: Some("@hot".to_owned()),
+            ..default_args()
+        };
+        let (_, _, _, config_out) = resolve_and_select(&args, project).unwrap();
+        assert_eq!(config_out.ls.columns_order, vec!["status", "title"]);
     }
 
     #[test]

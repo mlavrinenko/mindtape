@@ -187,9 +187,10 @@ fn mint_stem(
     };
     let stem =
         mindtape::naming::mint_stem(template, &ctx).map_err(|err| anyhow!(err.to_string()))?;
-    Ok(mindtape::naming::disambiguate(&stem, |candidate| {
+    mindtape::naming::disambiguate(&stem, |candidate| {
         dest.join(format!("{candidate}.typ")).exists()
-    }))
+    })
+    .map_err(|err| anyhow!(err.to_string()))
 }
 
 fn stem_of(path: &Path) -> String {

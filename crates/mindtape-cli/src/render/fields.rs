@@ -125,9 +125,11 @@ fn legend_cell(value: &str, legend: &Legend) -> CellSpec {
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used)]
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
 mod tests {
     use mindtape::config::parse_config;
+    use mindtape::numeric::NumValue;
+    use mindtape::test_support::bare_task;
 
     use super::{Difficulty, Priority, Status};
     use crate::render::field::Field;
@@ -174,5 +176,37 @@ mod tests {
         assert_eq!(cell.text, "not-a-real-status");
         assert!(cell.glyph.is_none());
         assert!(cell.color.is_none());
+    }
+
+    #[test]
+    fn priority_values_returns_numeric_display_for_set_priority() {
+        let mut task = bare_task("t");
+        task.priority = Some(NumValue::Num(8.0));
+        let vals = Priority::values(&task);
+        assert_eq!(vals.len(), 1);
+        assert_eq!(vals[0].as_ref(), "8");
+    }
+
+    #[test]
+    fn priority_values_empty_when_unset() {
+        let task = bare_task("t");
+        let vals = Priority::values(&task);
+        assert!(vals.is_empty());
+    }
+
+    #[test]
+    fn difficulty_values_returns_numeric_display_for_set_difficulty() {
+        let mut task = bare_task("t");
+        task.difficulty = Some(NumValue::Num(6.0));
+        let vals = Difficulty::values(&task);
+        assert_eq!(vals.len(), 1);
+        assert_eq!(vals[0].as_ref(), "6");
+    }
+
+    #[test]
+    fn difficulty_values_empty_when_unset() {
+        let task = bare_task("t");
+        let vals = Difficulty::values(&task);
+        assert!(vals.is_empty());
     }
 }

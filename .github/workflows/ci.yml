@@ -57,3 +57,8 @@ jobs:
 
       - name: Coverage (fails under threshold)
         run: nix develop --command just cover
+
+      # Reads target/coverage/lcov.info written by the step above, so it must
+      # follow it in the same job.
+      - name: CRAP metric (fails above threshold)
+        run: nix develop --command just crap

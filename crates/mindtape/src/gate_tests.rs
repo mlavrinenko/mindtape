@@ -119,6 +119,13 @@ fn require_absent_heading_is_violation() {
 }
 
 #[test]
+fn require_allows_duplicates() {
+    let task = bare_task("a");
+    let rules = compile_rules(&[require("Summary")]).unwrap();
+    assert!(check_headers(&task, "= Summary\n= Summary\n", &rules, &Config::default()).is_empty());
+}
+
+#[test]
 fn forbid_absent_heading_is_clean() {
     let task = bare_task("a");
     let rules = compile_rules(&[forbid("Phase")]).unwrap();

@@ -27,6 +27,12 @@ pub enum RecurError {
     /// for a non-empty set, but the scan is bounded rather than infinite.
     #[error("no weekday in the `on:` set was reachable within a week")]
     NoMatchingWeekday,
+    /// [`next_date`]'s due-anchor catch-up hit its step ceiling without
+    /// reaching a date after today. Carries the `due` it started from. Means
+    /// either a rule that does not move forward (`every(days: 0)`) or a `due`
+    /// implausibly far in the past — the loop is bounded rather than infinite.
+    #[error("recurrence did not reach today within {MAX_CATCH_UP_STEPS} steps from {0}")]
+    CatchUpExhausted(String),
     /// The `rrule` crate could not produce a next occurrence: a malformed
     /// rule (should already be caught by `mt check`'s parse-time gate), a
     /// pathological rule that hits the crate's iteration bound, or the
@@ -66,6 +72,11 @@ pub fn effective_materialize<'a>(recur: &'a Recur, config: &'a RecurConfig) -> &
         .unwrap_or(config.materialize.as_str())
 }
 
+/// Ceiling on [`next_date`]'s due-anchor catch-up. Bounds the loop against a
+/// rule that never advances; `10_000` steps is a daily task some 27 years stale,
+/// far past any plausible backlog.
+const MAX_CATCH_UP_STEPS: usize = 10_000;
+
 /// Compute the single next occurrence date.
 ///
 /// `anchor: "due"` catches up: advance by the rule from `due` (falling back
@@ -73,6 +84,9 @@ pub fn effective_materialize<'a>(recur: &'a Recur, config: &'a RecurConfig) -> &
 /// completion never yields an already-overdue occurrence (Org `++`). Any
 /// other anchor (`"completion"`, the default) advances once from `today` —
 /// always in the future, so it needs no catch-up loop.
+///
+/// The catch-up is bounded by [`MAX_CATCH_UP_STEPS`]: a rule that stands still
+/// (`every(days: 0)`) is [`RecurError::CatchUpExhausted`], not a hang.
 ///
 /// # Errors
 /// See [`RecurError`].
@@ -83,12 +97,16 @@ pub fn next_date(
     due: Option<NaiveDate>,
 ) -> Result<NaiveDate, RecurError> {
     if effective_anchor(recur, config) == "due" {
-        let start = due.unwrap_or(today);
-        let mut candidate = advance_once(&recur.rule, start)?;
-        while candidate <= today {
+        let mut candidate = due.unwrap_or(today);
+        for _ in 0..MAX_CATCH_UP_STEPS {
             candidate = advance_once(&recur.rule, candidate)?;
+            if candidate > today {
+                return Ok(candidate);
+            }
         }
-        Ok(candidate)
+        Err(RecurError::CatchUpExhausted(format_iso(
+            due.unwrap_or(today),
+        )))
     } else {
         advance_once(&recur.rule, today)
     }
@@ -108,19 +126,12 @@ pub fn advance_once(rule: &Rule, from: NaiveDate) -> Result<NaiveDate, RecurErro
     }
 }
 
-/// The `rrule(...)` step: the rule's first occurrence strictly after `from`,
-/// via [`crate::recur_rrule::next_after`] when the `rrule` feature is
-/// compiled in; a fixed error otherwise (the config/feature gate in
-/// [`crate::recur::check_policy`] should have already rejected the task
-/// before `mt recur` ever reaches this).
-#[cfg(feature = "rrule")]
+/// The `rrule(...)` step: the rule's first occurrence strictly after `from`.
+/// `crate::recur_rrule` is the real engine with the `rrule` feature on and a
+/// fixed-error stub without it (`recur_rrule_off.rs`), so this stays one
+/// always-compiled function either way.
 fn advance_rrule(raw: &str, from: NaiveDate) -> Result<NaiveDate, RecurError> {
     crate::recur_rrule::next_after(raw, from)
-}
-
-#[cfg(not(feature = "rrule"))]
-fn advance_rrule(_raw: &str, _from: NaiveDate) -> Result<NaiveDate, RecurError> {
-    Err(RecurError::RruleNotImplemented)
 }
 
 /// Add one `unit`-`value` period to `from`, clamping month/year-end overflow

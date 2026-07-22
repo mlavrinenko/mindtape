@@ -38,19 +38,38 @@ with violations. Key restrictions:
   lack.
 - As a file nears the linecop limit, `just fix-check` ejects its inline tests
   into a `_tests.rs` sibling with [ejectest](https://github.com/mlavrinenko/ejectest).
+- `tests/interactive_e2e.rs` drives `mt ls --interactive` under a real PTY via
+  `script(1)` (util-linux, in the flake devShell) — it needs a TTY to exercise
+  the `guard` checks and `event_loop`/`draw`.
 - Run `just test`; count with `just count-tests`.
-- Mutation testing (`just mutants`, `cargo-mutants`) proves whether tests pin
-  behavior, not just execute it. A surviving `MISSED` mutant is a real assertion
-  gap. Not a `just check` gate — a full sweep is multi-hour. `just mutants` runs
-  one bounded loop step: the next file whose source/tests changed since it was
-  last swept clean, then reports how many remain; repeat across sessions until
-  each is clean. `-f <file>` forces one file. `cargo-mutants --iterate` skips
-  already-caught mutants so re-runs stay cheap (heuristic — re-run without it to
-  trust a final result). Triage each survivor into a real gap (write a
-  regression test) or an equivalent mutant (add it to `.cargo/mutants.toml`
-  `exclude_re` with its reason). `.cargo/mutants.toml` also holds the excluded
-  files (`main.rs`) and the `rrule` feature; `just crap` picks where a pass pays
-  off. The swept ledger and `mutants.out` are git-ignored and ephemeral.
+- Mutation testing (`cargo-mutants`) proves whether tests pin behavior, not
+  just execute it. A surviving `MISSED` mutant is a real assertion gap. Not a
+  `just check` gate — deliberately no CI job either (see below). Two commands:
+  `just mutants-diff` sweeps only mutants touched by this branch's diff against
+  `main` — the pre-PR check, minutes not hours, no state file, and it covers
+  new files for free (every line of a new file counts as touched). `just
+  mutants -f <file>` forces a deliberate full-file sweep. Triage each survivor
+  into a real gap (write a regression test) or an equivalent mutant (add it to
+  `.cargo/mutants.toml` `exclude_re` with its reason). `.cargo/mutants.toml`
+  also holds the excluded files (`main.rs`, `recur_rrule_off.rs`) and the
+  `rrule` feature; `just crap` picks where a pass pays off.
+- A `TIMEOUT` verdict is not a verdict in either direction — under parallel
+  load it can hide a real pass or a real survivor, so a final-verdict sweep
+  runs at `CARGO_MUTANTS_JOBS=2` or lower with an extended timeout, not the
+  default parallelism. When a `TIMEOUT` is reproducible, it found a real
+  unbounded loop (`MAX_CATCH_UP_STEPS` in `recur_dates.rs`,
+  `MAX_DISAMBIGUATE_ATTEMPTS` in `naming.rs`) — bound it, and always by a `for`
+  over a fixed range, never by the counter a mutant can freeze (`while n <=
+  CEILING` still hangs once the mutant stops incrementing `n`). A survivor
+  inside `#[cfg(not(feature = …))]` code is unreachable under the sweep's own
+  feature set — move the twin into its own file and `exclude_globs` it
+  (`recur_rrule_off.rs`) so the live side stays one always-compiled function.
+- No CI mutation job, on purpose: every mutant re-runs a suite that includes
+  subprocess and PTY e2e tests, and `TIMEOUT` verdicts are untrustworthy under
+  parallel load — exactly the environment a shared runner is. An advisory
+  check with unreliable verdicts trains people to ignore it, and a cold build
+  on two runner cores turns "advisory" into the slowest job in the pipeline.
+  Run `just mutants-diff` locally instead, where a timeout means something.
 
 ## Quality Gates (run by `just check`)
 
@@ -65,8 +84,26 @@ with violations. Key restrictions:
 | Doc drift | `outdatty check` |
 | Docs site | `just docs-check` — `docs-gen` first captures live `mt` output (`www/generate.sh`), then `tola build`, then `pagefind` indexes the built HTML for client-side search, then `tola validate` checks links + assets |
 
-Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-tarpaulin`.
+Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-llvm-cov`,
+which merges each process's profraw — so the subprocess-based e2e tests credit
+the command code they exercise (tarpaulin, which it replaced, could not see past
+`exec` and read every command entry point as dead). The recipe writes
+`target/coverage/lcov.info` for `just crap` and fails under 90% lines.
 `main.rs` is excluded — keep it thin.
+
+`just crap` runs right after it, in the same CI job and over the same
+`lcov.info`: the CRAP metric (`CC² × uncovered³ + CC`) fails above 30, flagging
+functions that are both complex and undertested. cargo-crap is not in nixpkgs,
+so `flake.nix` builds it from the crates.io tarball with naersk `singleStep`
+(crates.io 403s the user agent nixpkgs' `fetch-cargo-vendor` sends, so
+`buildRustPackage` cannot compute a vendor hash). A flat dispatcher sits near
+the limit by construction — `filter.rs` `function` scores 28 at full coverage —
+so adding an arm there means covering it in the same change.
+
+Since nixpkgs' `rustc` ships no `llvm-tools-preview`, the dev shell exports
+`LLVM_COV`/`LLVM_PROFDATA` from `llvmPackages_21` — the same LLVM major as
+`rustc` 1.92. Bumping the toolchain across an LLVM major means bumping that
+`llvmPackages_*` in `flake.nix` too, or `llvm-profdata` rejects the profraw.
 
 `just nix-build` verifies that `nix build` succeeds in a clean sandbox (no dev
 shell, no sccache). Run it when touching `flake.nix` or `.cargo/config.toml`; it

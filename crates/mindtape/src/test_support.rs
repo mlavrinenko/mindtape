@@ -113,3 +113,33 @@ pub const TASK_SRC: &str = "#metadata((
   extras: (:),
 ))
 ";
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The helper's contract: `@local/mindtape` resolves from the written
+    /// directory, and the prelude lands verbatim. The manifest is asserted by
+    /// the fields a Typst package resolver actually reads, not byte-for-byte —
+    /// a test helper's exact formatting is not a behaviour worth pinning.
+    #[test]
+    fn write_lib_package_writes_a_resolvable_package() {
+        let dir = tempfile::tempdir().expect("tempdir creation must succeed");
+        let prelude = "#let task(body, ..meta) = body\n";
+        write_lib_package(dir.path(), prelude);
+
+        let manifest = std::fs::read_to_string(dir.path().join("lib").join("typst.toml"))
+            .expect("typst.toml must be readable");
+        for field in [
+            "name = \"mindtape\"",
+            "entrypoint = \"prelude.typ\"",
+            "[package]",
+        ] {
+            assert!(manifest.contains(field), "manifest must declare {field}");
+        }
+
+        let written = std::fs::read_to_string(dir.path().join("lib").join("prelude.typ"))
+            .expect("prelude.typ must be readable");
+        assert_eq!(written, prelude, "the prelude must land verbatim");
+    }
+}

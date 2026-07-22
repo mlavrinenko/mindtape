@@ -115,6 +115,22 @@ fn parse_recur_non_dict_value_is_none() {
     assert_eq!(parse_recur(Some(&HVal::Str("nope".to_owned()))), None);
 }
 
+#[test]
+fn parse_weekday_roundtrip_all() {
+    use chrono::Weekday::{Fri, Mon, Sat, Sun, Thu, Tue, Wed};
+    for (name, expected) in [
+        ("mon", Mon),
+        ("tue", Tue),
+        ("wed", Wed),
+        ("thu", Thu),
+        ("fri", Fri),
+        ("sat", Sat),
+        ("sun", Sun),
+    ] {
+        assert_eq!(parse_weekday(name), Some(expected));
+    }
+}
+
 fn recur(rule: Rule) -> Recur {
     Recur {
         rule,

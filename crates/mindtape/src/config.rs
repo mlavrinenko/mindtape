@@ -492,3 +492,11 @@ mod tests;
 #[cfg(test)]
 #[path = "config_tests_id.rs"]
 mod tests_id;
+
+#[cfg(test)]
+#[path = "config_tests_headers.rs"]
+mod tests_headers;
+
+#[cfg(test)]
+#[path = "config_tests_ls.rs"]
+mod tests_ls;

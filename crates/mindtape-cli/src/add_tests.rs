@@ -1,11 +1,16 @@
-//! Unit tests for the `add` command's pure helpers.
+//! Unit tests for the `add` command's pure helpers: status/header injection,
+//! title and tag construction, output-stem naming, dest-dir resolution, and
+//! the outside-roots warning.
 //!
 //! Binary-invoking end-to-end tests live in `tests/add_e2e.rs` (integration
-//! tests), where Cargo guarantees the `mt` binary is built first.
+//! tests), where Cargo guarantees the `mt` binary is built first. Every test
+//! that needs its own process — a controllable stdin, cwd, or captured
+//! stderr — lives in the sibling `add_tests_subprocess` module; nothing in
+//! this file spawns a child.
 #![allow(clippy::unwrap_used)]
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use mindtape::{Config, RawValue, SlotSpec};
 
@@ -191,6 +196,19 @@ fn plus_tag_sugar_appends_to_existing_tags() {
 }
 
 #[test]
+fn bare_plus_stays_in_title_when_tags_slot_present() {
+    let mut args = bare_args();
+    args.title = vec!["fix".to_owned(), "+".to_owned(), "login".to_owned()];
+    let mut values = BTreeMap::new();
+    fill_title_from_args(&mut values, &args, &[tags_slot()]);
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("fix + login".to_owned())),
+    );
+    assert!(!values.contains_key("tags"));
+}
+
+#[test]
 fn output_stem_errors_without_name_or_title() {
     let config = Config::default();
     assert!(output_stem(&bare_args(), &BTreeMap::new(), &config, Path::new(".")).is_err());
@@ -284,3 +302,7 @@ fn dest_to_rejects_absolute_subfolder() {
     let project = project_with_root(dir.path(), "tasks");
     assert!(dest_dir(".", Some("/etc"), &project).is_err());
 }
+
+/// A project rooted at `dir` with its `tasks` root created on disk — the
+#[path = "add_tests_subprocess.rs"]
+mod subprocess;

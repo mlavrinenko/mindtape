@@ -292,15 +292,14 @@ fn check_rrule_rule(raw: &str, anchor: Option<&str>, config: &RecurConfig, out: 
     check_rrule_syntax(raw, out);
 }
 
-#[cfg(feature = "rrule")]
+/// Grammar-check the raw rule. `crate::recur_rrule` is the real engine with
+/// the `rrule` feature on and an always-`Ok` stub without it, so this stays
+/// one always-compiled function either way.
 fn check_rrule_syntax(raw: &str, out: &mut Vec<String>) {
     if let Err(message) = crate::recur_rrule::validate_rule(raw) {
         out.push(message);
     }
 }
-
-#[cfg(not(feature = "rrule"))]
-fn check_rrule_syntax(_raw: &str, _out: &mut Vec<String>) {}
 
 fn check_choice(value: Option<&str>, allowed: &[String], label: &str, out: &mut Vec<String>) {
     let Some(value) = value else { return };

@@ -280,9 +280,10 @@ fn output_stem(
         occurrence: 0,
     };
     let stem = naming::mint_stem(template, &ctx).map_err(|err| anyhow!(err.to_string()))?;
-    Ok(naming::disambiguate(&stem, |candidate| {
+    naming::disambiguate(&stem, |candidate| {
         dest.join(format!("{candidate}.typ")).exists()
-    }))
+    })
+    .map_err(|err| anyhow!(err.to_string()))
 }
 
 /// The title's slug, or an error when there is nothing to name the file from.

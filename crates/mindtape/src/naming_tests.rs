@@ -1,6 +1,9 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{DEFAULT_STEM_TEMPLATE, MintContext, disambiguate, mint_stem};
+use super::{
+    DEFAULT_STEM_TEMPLATE, MAX_DISAMBIGUATE_ATTEMPTS, MintContext, NamingConfig, disambiguate,
+    mint_stem,
+};
 
 fn ctx<'a>(slug: &'a str, date: (i32, u8, u8), occurrence: u32) -> MintContext<'a> {
     MintContext {
@@ -19,6 +22,21 @@ fn default_template_is_bare_slug() {
     )
     .unwrap();
     assert_eq!(out, "cleanup-kitchen");
+}
+
+#[test]
+fn template_default_returns_default_stem_template() {
+    let cfg = NamingConfig::default();
+    assert_eq!(cfg.template(), DEFAULT_STEM_TEMPLATE);
+    assert_eq!(cfg.template(), "{slug}");
+}
+
+#[test]
+fn template_configured_returns_stem() {
+    let cfg = NamingConfig {
+        stem: Some("{slug}-{date}".into()),
+    };
+    assert_eq!(cfg.template(), "{slug}-{date}");
 }
 
 #[test]
@@ -102,27 +120,51 @@ fn literal_braces_pass_through_untouched_text() {
 
 #[test]
 fn disambiguate_keeps_free_stem() {
-    let out = disambiguate("foo", |_| false);
+    let out = disambiguate("foo", |_| false).unwrap();
     assert_eq!(out, "foo");
 }
 
 #[test]
 fn disambiguate_appends_dash_two_on_first_collision() {
-    let out = disambiguate("foo", |candidate| candidate == "foo");
+    let out = disambiguate("foo", |candidate| candidate == "foo").unwrap();
     assert_eq!(out, "foo-2");
+}
+
+/// The suffix search must skip candidates that are themselves taken, not stop
+/// at the first one it builds: "foo" and "foo-2" taken means "foo-3".
+#[test]
+fn disambiguate_skips_a_taken_suffix() {
+    let out = disambiguate("foo", |candidate| {
+        candidate == "foo" || candidate == "foo-2"
+    })
+    .unwrap();
+    assert_eq!(out, "foo-3");
 }
 
 #[test]
 fn disambiguate_walks_past_multiple_collisions() {
     let taken = ["foo", "foo-2", "foo-3"];
-    let out = disambiguate("foo", |candidate| taken.contains(&candidate));
+    let out = disambiguate("foo", |candidate| taken.contains(&candidate)).unwrap();
     assert_eq!(out, "foo-4");
 }
 
 #[test]
 fn disambiguate_never_returns_a_taken_stem() {
-    let out = disambiguate("foo", |candidate| candidate != "foo-5");
+    let out = disambiguate("foo", |candidate| candidate != "foo-5").unwrap();
     assert_eq!(out, "foo-5");
+}
+
+#[test]
+fn disambiguate_exhausts_ceiling_when_every_candidate_is_taken() {
+    // A predicate that reports every candidate as taken must not loop
+    // forever (the `n += 1` -> `n *= 1` mutant froze `n` at 2 and spun until
+    // the whole suite timed out) and must not return a stem `exists` reports
+    // as taken — it must error once the numeric-suffix ceiling is exhausted.
+    let err = disambiguate("foo", |_| true).unwrap_err();
+    assert_eq!(
+        err.to_string(),
+        format!("exhausted {MAX_DISAMBIGUATE_ATTEMPTS} disambiguation attempts for stem \"foo\"")
+    );
 }
 
 // -- reuse shape: a simulated `mt recur` spawn -------------------------------

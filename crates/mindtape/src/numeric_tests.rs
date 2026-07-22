@@ -239,6 +239,28 @@ fn anchor_out_of_range_is_rejected() {
 }
 
 #[test]
+fn duplicate_anchor_exact_match_takes_the_first() {
+    let mut field = anchors();
+    field.anchors = vec![
+        anchor(3.0, "mid-a"),
+        anchor(3.0, "mid-b"),
+        anchor(6.0, "senior"),
+    ];
+    assert_eq!(field.classify(3.0).unwrap().label, "mid-a");
+}
+
+#[test]
+fn duplicate_anchor_lower_neighbour_takes_the_last() {
+    let mut field = anchors();
+    field.anchors = vec![
+        anchor(2.0, "low-a"),
+        anchor(2.0, "low-b"),
+        anchor(6.0, "senior"),
+    ];
+    assert_eq!(field.classify(3.0).unwrap().label, "low-b+");
+}
+
+#[test]
 fn point_below_lowest_anchor_derives_downward() {
     let mut field = anchors();
     // Lowest anchor at 3 so an in-scale point (1) sits below every anchor and

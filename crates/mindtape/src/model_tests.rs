@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use typst_harvest::HVal;
 
 use super::{Status, Task, is_history_pointer, normalize_link, resolve_link_path};
-use crate::numeric::NumValue;
+use crate::numeric::{InputValue, NumValue};
 use crate::test_support::bare_task;
 
 fn dict(pairs: Vec<(&str, HVal)>) -> HVal {
@@ -259,4 +259,64 @@ fn parse_links_stores_raw_paths() {
         task.link_targets("depends-on").collect::<Vec<_>>(),
         vec!["sibling.typ", "../up/task.typ"]
     );
+}
+
+#[test]
+fn all_tags_includes_authored_then_derived_no_duplicates() {
+    let mut task = bare_task("t");
+    task.tags = vec!["backend".into(), "db".into()];
+    // "backend" also appears in derived_tags — must not duplicate
+    task.derived_tags = vec!["auth".into(), "backend".into()];
+    assert_eq!(task.all_tags(), vec!["backend", "db", "auth"]);
+}
+
+/// A `Task` loaded from a marker whose `priority` field is `priority` — the
+/// shared setup for the framework-priority `from_marker` tests below.
+fn task_with_priority(priority: HVal) -> Task {
+    let fields = dict(vec![("priority", priority)]);
+    let marker = dict(vec![
+        ("marker", HVal::Str("mindtape.task".into())),
+        ("fields", fields),
+    ]);
+    Task::from_marker("t".into(), "t.typ".into(), &marker)
+}
+
+/// Unwraps `task.priority` as a framework priority, panicking with the same
+/// message the inlined `let else` used to give when it wasn't one.
+fn expect_framework_priority(task: Task) -> (String, BTreeMap<String, InputValue>) {
+    let NumValue::Framework { name, inputs } = task.priority.unwrap() else {
+        panic!("expected framework priority");
+    };
+    (name, inputs)
+}
+
+#[test]
+fn from_marker_reads_framework_priority_with_bool_inputs() {
+    let priority = dict(vec![
+        ("framework", HVal::Str("eisenhower".into())),
+        (
+            "inputs",
+            dict(vec![
+                ("urgent", HVal::Bool(true)),
+                ("important", HVal::Bool(false)),
+            ]),
+        ),
+    ]);
+    let task = task_with_priority(priority);
+    let (name, inputs) = expect_framework_priority(task);
+    assert_eq!(name, "eisenhower");
+    assert_eq!(inputs.get("urgent"), Some(&InputValue::Bool(true)));
+    assert_eq!(inputs.get("important"), Some(&InputValue::Bool(false)));
+}
+
+#[test]
+fn from_marker_reads_framework_priority_with_text_input() {
+    let priority = dict(vec![
+        ("framework", HVal::Str("moscow".into())),
+        ("inputs", dict(vec![("level", HVal::Str("must".into()))])),
+    ]);
+    let task = task_with_priority(priority);
+    let (name, inputs) = expect_framework_priority(task);
+    assert_eq!(name, "moscow");
+    assert_eq!(inputs.get("level"), Some(&InputValue::Text("must".into())));
 }

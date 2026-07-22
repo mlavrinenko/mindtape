@@ -2,7 +2,9 @@
 
 use std::path::PathBuf;
 
-use super::{Layer, LayerSource, build_config, discover_layers_with_xdg, merge_layers};
+use super::{
+    Layer, LayerSource, build_config, discover_layers_with_xdg, merge_layers, merged_config_table,
+};
 use crate::config::parse_config;
 
 fn layer(source: LayerSource, text: &str) -> Layer {
@@ -223,4 +225,25 @@ fn no_files_anywhere_matches_parse_config_empty() {
     let config = build_config(&layers).unwrap();
     let expected = parse_config("").unwrap();
     assert_eq!(config, expected);
+}
+
+#[test]
+fn merged_config_table_returns_content_from_project_layer() {
+    let tmp = tempfile::tempdir().unwrap();
+    let project = tmp.path().join("project");
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        "[mct_marker]\nfound = true\n",
+    )
+    .unwrap();
+
+    let table = merged_config_table(&project).unwrap();
+    assert!(
+        table
+            .get("mct_marker")
+            .and_then(|t| t.get("found"))
+            .and_then(toml::Value::as_bool)
+            == Some(true)
+    );
 }

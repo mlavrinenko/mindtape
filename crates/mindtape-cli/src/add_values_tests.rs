@@ -1,5 +1,5 @@
 //! Tests for `add` value sources and template helpers.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::collections::BTreeMap;
 
@@ -158,6 +158,38 @@ fn describe_json_lists_builtin_slots() {
     // The built-in template is barebones: a single required `title` slot. Other
     // core fields surface only when the project config requires them.
     assert_eq!(names, vec!["title"]);
+}
+
+/// An optional slot with no default is labeled "optional", not "required" —
+/// distinguishes the `&&` operator from `||`.
+#[test]
+fn describe_text_marks_optional_correctly() {
+    use mindtape::SlotKind;
+
+    let specs = [mindtape::SlotSpec {
+        name: "my-slot".into(),
+        kind: SlotKind::Text,
+        required: false,
+        default: None,
+        prompt: None,
+        choices: None,
+        default_string: None,
+        markup: false,
+        range: 0..0,
+    }];
+    let text = super::describe(&specs, super::DescribeFormat::Text).unwrap();
+    let lines: Vec<&str> = text.lines().collect();
+    assert_eq!(lines.len(), 1);
+    assert!(
+        lines[0].contains("optional"),
+        "non-required slot with no default should be 'optional', got: {}",
+        lines[0]
+    );
+    // Sanity: it should NOT say "required".
+    assert!(
+        !lines[0].contains("required"),
+        "non-required slot must not be labeled 'required'"
+    );
 }
 
 #[test]

@@ -106,6 +106,44 @@ fn origin_marks_the_project_layer_as_existing() {
     assert!(project_line.contains("(exists)"));
 }
 
+/// Verify that `run()` with `--defaults` emits the embedded floor to stdout.
+///
+/// Uses a self-spawn subprocess so the parent can capture what the child prints
+/// (println! goes to the child's stdout). A `run()` whose body is replaced with
+/// `Ok(())` would print nothing, so the `!is_empty()` assertion fails and the
+/// mutated test is caught.
+#[test]
+fn run_defaults_prints_embedded_floor() {
+    if std::env::var("_MT_CONFIG_DELEGATE").is_err() {
+        // Parent: spawn self, capture output, verify it's non-empty.
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .env("_MT_CONFIG_DELEGATE", "1")
+            .args(["run_defaults_prints_embedded_floor", "--nocapture"])
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            !stdout.is_empty(),
+            "run() with --defaults must print to stdout"
+        );
+        assert!(
+            stdout.contains("[tasks]"),
+            "output should contain config TOML"
+        );
+        return;
+    }
+    // Child: call run() with --defaults.
+    let args = super::ConfigArgs {
+        action: Some(super::ConfigAction::Show(super::ShowArgs {
+            origin: false,
+            defaults: true,
+            json: false,
+        })),
+    };
+    super::run(&args).unwrap();
+}
+
 #[test]
 fn describe_source_covers_xdg_and_dir() {
     use super::describe_source;

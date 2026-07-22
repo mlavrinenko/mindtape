@@ -17,6 +17,12 @@ strip = true
 lto = true
 codegen-units = 1
 
+# Fast profile for cargo-mutants (`--profile mutants`): drop debuginfo to cut
+# per-mutant compile + link time. Never used by normal builds.
+[profile.mutants]
+inherits = "dev"
+debug = false
+
 [workspace.lints.rust]
 unsafe_code = "deny"
 unused_must_use = "deny"

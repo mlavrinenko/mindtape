@@ -36,8 +36,17 @@ fn today_epoch_days() -> u64 {
     if let Some(days) = crate::date_pin::pinned_epoch_days() {
         return days;
     }
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
+    epoch_days_at(std::time::SystemTime::now())
+}
+
+/// Days since the Unix epoch containing `at`, truncating towards the epoch.
+///
+/// Split out of [`today_epoch_days`] so the conversion can be asserted against
+/// a single captured `SystemTime`: a test that reads the clock once inside the
+/// conversion and once outside races a UTC-midnight rollover between the two
+/// reads, and fails on whichever side of midnight it lands.
+fn epoch_days_at(at: std::time::SystemTime) -> u64 {
+    at.duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs()
         / 86_400
@@ -151,15 +160,13 @@ fn month_name_abbr(month: u8) -> &'static str {
 
 /// Convert days since Unix epoch (1970-01-01) to Gregorian `(year, month, day)`.
 ///
-/// Uses Howard Hinnant's civil calendar algorithm.
+/// Uses Howard Hinnant's civil calendar algorithm, minus its negative-`shifted`
+/// branch: `epoch_days` is unsigned, so `shifted` is at least `719_468` and the
+/// era division never needs the round-towards-negative-infinity correction.
 /// <https://howardhinnant.github.io/date_algorithms.html>
 fn epoch_days_to_ymd(epoch_days: u64) -> (i32, u8, u8) {
     let shifted = i64::try_from(epoch_days).unwrap_or(0) + 719_468;
-    let era = if shifted >= 0 {
-        shifted
-    } else {
-        shifted - 146_096
-    } / 146_097;
+    let era = shifted / 146_097;
     let day_in_era = u64::try_from(shifted - era * 146_097).unwrap_or(0);
     let year_in_era =
         (day_in_era - day_in_era / 1460 + day_in_era / 36524 - day_in_era / 146_096) / 365;
@@ -200,8 +207,43 @@ pub(crate) fn days_from_civil(year: i32, month: u8, day: u8) -> i64 {
 #[cfg(test)]
 mod tests {
     use super::{
-        days_ago_iso, days_from_civil, epoch_days_to_ymd, format_iso, today_iso, today_ymd,
+        days_ago_iso, days_from_civil, epoch_days_at, epoch_days_to_ymd, format_iso,
+        today_epoch_days, today_iso, today_ymd,
     };
+
+    /// The seconds-to-days conversion must land in the one-day window
+    /// containing its sample. One `SystemTime` is captured and used for both
+    /// sides, so there is no midnight rollover to race.
+    #[test]
+    fn epoch_days_at_brackets_its_own_sample() {
+        let now = std::time::SystemTime::now();
+        let secs = now
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("system clock is after the Unix epoch")
+            .as_secs();
+        let days = epoch_days_at(now);
+        assert!(
+            days * 86_400 <= secs && secs < (days + 1) * 86_400,
+            "epoch_days_at() = {days} does not bracket its sample ({secs}s)"
+        );
+    }
+
+    /// The clock fallback: no `MINDTAPE_NOW` pin is set in this process (the
+    /// pin is exercised out-of-process — see `date_pin_tests.rs` and
+    /// `crates/mindtape-cli/tests/date_pin_e2e.rs`), so `today_epoch_days`
+    /// must report the system clock. Bracketing it between two samples taken
+    /// around the call is rollover-safe: if midnight falls inside the window,
+    /// the answer is still one of the two ends.
+    #[test]
+    fn today_epoch_days_falls_back_to_the_system_clock() {
+        let before = epoch_days_at(std::time::SystemTime::now());
+        let days = today_epoch_days();
+        let after = epoch_days_at(std::time::SystemTime::now());
+        assert!(
+            (before..=after).contains(&days),
+            "today_epoch_days() = {days} outside the sampled window {before}..={after}"
+        );
+    }
 
     #[test]
     fn epoch_zero_is_1970_01_01() {
@@ -297,5 +339,34 @@ mod tests {
     fn format_iso_mmmm_not_eaten_by_mm() {
         // MMMM must match before MM
         assert_eq!(format_iso("2026-01-15", "MMMM"), "January");
+    }
+
+    #[test]
+    fn epoch_days_to_ymd_last_day_of_era() {
+        // day_in_era = 146096 exercises -day_in_era/146096 (col 62 -/+)
+        // and month_idx = 11 (col 173 - vs /).
+        assert_eq!(epoch_days_to_ymd(11_016), (2000, 2, 29));
+    }
+
+    #[test]
+    fn epoch_days_to_ymd_era_boundary_operators() {
+        // day_in_era = 36524 exercises +day_in_era/36524 (col 41 +/- and +/*)
+        // and -day_in_era/146096 rewritten as / (col 62 - vs /) — the
+        // mutated operator changes year_in_era from 100 to 99.
+        assert_eq!(epoch_days_to_ymd(47_541), (2100, 3, 1));
+    }
+
+    #[test]
+    fn days_from_civil_before_year_1() {
+        // Exercises the y < 0 branch in era calculation (col 191 - vs +, - vs /).
+        assert_eq!(days_from_civil(0, 1, 1), -719_528);
+    }
+
+    #[test]
+    fn days_from_civil_february() {
+        // Month = 2 exercises the m > 2 vs m >= 2 boundary (col 194).
+        // The >= mutant misroutes month=2 into the m - 3 arm, producing
+        // u64 underflow (panic or wrapped garbage).
+        assert_eq!(days_from_civil(1970, 2, 1), 31);
     }
 }

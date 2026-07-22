@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use super::{
-    Cached, TaskCache, build_key, ensure_ignored, is_build_key, json_to_hval, prune_stale,
+    Cached, TaskCache, build_key, disabled, ensure_ignored, is_build_key, json_to_hval, prune_stale,
 };
 use crate::canonical::hval_to_json;
 use crate::config::Config;
@@ -181,5 +181,47 @@ fn json_hval_roundtrip_collapses_date_to_string() {
     assert_eq!(
         json_to_hval(&hval_to_json(&dated)),
         HVal::Str("2026-01-02".to_owned())
+    );
+}
+
+#[test]
+fn disabled_checks_env_var_semantics() {
+    // Self-dual pattern: children spawned below run the env-var assertions.
+    if std::env::var_os("MINDTAPE_DISABLED_CHILD").is_some() {
+        let val = std::env::var_os("MINDTAPE_NO_CACHE");
+        match val.as_deref().and_then(|v| v.to_str()) {
+            Some("1") => assert!(disabled()),
+            Some("") => assert!(!disabled()),
+            _ => panic!("unexpected MINDTAPE_NO_CACHE value: {val:?}"),
+        }
+        return;
+    }
+
+    let binary = std::env::current_exe().unwrap();
+
+    let out = std::process::Command::new(&binary)
+        .env("MINDTAPE_NO_CACHE", "1")
+        .env("MINDTAPE_DISABLED_CHILD", "1")
+        .arg("disabled_checks_env_var_semantics")
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "nonempty child:\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr),
+    );
+
+    let out = std::process::Command::new(&binary)
+        .env("MINDTAPE_NO_CACHE", "")
+        .env("MINDTAPE_DISABLED_CHILD", "1")
+        .arg("disabled_checks_env_var_semantics")
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "empty child:\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr),
     );
 }

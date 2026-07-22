@@ -93,6 +93,10 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
     bail!("{} validation issue(s) in {}", issues.len(), rel.display())
 }
 
+#[cfg(test)]
+#[path = "task_edit_tests.rs"]
+mod tests;
+
 fn detect_indent(source: &str, call: &Call) -> String {
     call.args.first().map_or_else(
         || "  ".to_owned(),

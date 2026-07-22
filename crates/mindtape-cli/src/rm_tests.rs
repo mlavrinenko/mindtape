@@ -1,4 +1,4 @@
-#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
+#![allow(clippy::unwrap_used, clippy::indexing_slicing, unsafe_code)]
 
 use std::collections::HashSet;
 use std::path::PathBuf;
@@ -7,10 +7,10 @@ use mindtape::test_support::bare_task;
 use mindtape::{Config, LoadOutcome, Readiness, Status, Task, parse_config};
 use swhid_mint::test_support::repo_with;
 
-use super::{Plan, apply, check_eligible_files, plan, select_targets};
+use super::{Plan, apply, check_eligible_files, plan, rewrite_link_count, select_targets};
 use crate::git;
 use crate::util::Project;
-use typst_cleanup::is_clean;
+use typst_cleanup::{Rewrite, is_clean};
 
 /// Build an eligible id set from string slices.
 fn ids(values: &[&str]) -> HashSet<String> {
@@ -192,6 +192,17 @@ fn preflight_blocks_dirty_eligible_task() {
         msg.contains("uncommitted"),
         "reason missing from error: {msg}"
     );
+    // Distinguishes survivor: `==` → `!=`:
+    // single-offender format uses `cannot remove {id}:` and singular
+    // "the file", not the plural "their files" in the multi-offender path.
+    assert!(
+        msg.contains("cannot remove gone:"),
+        "single-offender format expected, got: {msg}"
+    );
+    assert!(
+        !msg.contains("commit their files first"),
+        "single-offender must not use plural path, got: {msg}"
+    );
 }
 
 #[test]
@@ -223,6 +234,29 @@ fn preflight_reports_all_offenders_at_once() {
     let msg = err.to_string();
     assert!(msg.contains('a'), "task a missing: {msg}");
     assert!(msg.contains('b'), "task b missing: {msg}");
+}
+
+#[test]
+fn rewrite_link_count_sums_all_rewrites() {
+    // Catches survivors: `-> usize` replaced with `0` or `1`.
+    let plan = Plan {
+        rewrites: vec![
+            Rewrite {
+                rel: PathBuf::from("a.typ"),
+                links: 3,
+                contents: String::new(),
+                abs: PathBuf::from("/a.typ"),
+            },
+            Rewrite {
+                rel: PathBuf::from("b.typ"),
+                links: 5,
+                contents: String::new(),
+                abs: PathBuf::from("/b.typ"),
+            },
+        ],
+        deletions: vec![],
+    };
+    assert_eq!(rewrite_link_count(&plan), 8);
 }
 
 /// An in-memory project — no disk needed for slug/filter selection logic.
@@ -301,3 +335,6 @@ fn select_targets_unresolvable_token_errors() {
     );
     assert!(select_targets(&project, Some("nope"), &readiness_of(&project)).is_err());
 }
+
+#[path = "rm_cli_tests.rs"]
+mod rm_cli_tests;

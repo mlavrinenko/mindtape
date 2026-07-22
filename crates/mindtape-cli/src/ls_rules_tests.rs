@@ -5,7 +5,7 @@ use std::path::Path;
 use mindtape::parse_config;
 use mindtape::test_support::TASK_SRC;
 
-use super::{Applied, resolve, resolve_bare, trailer};
+use super::{Applied, MATCH_ALL, resolve, resolve_bare, trailer};
 use crate::ls::LsArgs;
 use crate::test_util::make_project;
 
@@ -320,4 +320,157 @@ fn trailer_is_none_when_trivial() {
     };
     assert!(applied.is_trivial());
     assert_eq!(trailer(&applied).as_deref(), None);
+}
+
+// ---------------------------------------------------------------------------
+// Regression tests for cargo-mutants survivors in ls_rules.rs
+// ---------------------------------------------------------------------------
+
+// Pins delete rule from Self in Applied::match_all.
+//   PROVABLY EQUIVALENT: ..Self::default() already supplies rule: None.
+//   No test needed.
+
+#[test]
+fn is_trivial_false_when_rule_is_some_but_sort_columns_match_all() {
+    // Kills mutant at second && → || in is_trivial.
+    // Real:   rule.is_some() && filter_from != match-all && sort_from == match-all && ..
+    //         → false
+    // Mutant: (rule.is_none() && filter_from==match-all) || (sort_from==match-all && ..)
+    //         → true
+    let applied = Applied {
+        rule: Some("x".to_owned()),
+        filter_from: "manual".to_owned(),
+        sort_from: MATCH_ALL.to_owned(),
+        columns_from: MATCH_ALL.to_owned(),
+        ..Applied::default()
+    };
+    assert!(!applied.is_trivial());
+}
+
+#[test]
+fn is_trivial_false_when_filter_from_not_match_all() {
+    // Kills mutant at first && → || in is_trivial.
+    // Real:   rule.is_none() && filter_from != match-all && …
+    //         → false
+    // Mutant: rule.is_none() || (filter_from==match-all && sort_from==match-all && …)
+    //         → true
+    let applied = Applied {
+        rule: None,
+        filter_from: "manual".to_owned(),
+        sort_from: MATCH_ALL.to_owned(),
+        columns_from: MATCH_ALL.to_owned(),
+        ..Applied::default()
+    };
+    assert!(!applied.is_trivial());
+}
+
+#[test]
+fn explicit_filter_sets_filter_value_in_applied() {
+    // Kills mutant at delete filter_value from Applied in explicit_bundle.
+    // Real:   applied.filter_value == expr
+    // Mutant: applied.filter_value == ""  (falls through to ..Applied::match_all())
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[[ls.rules]]
+filter = "priority > 1"
+"#,
+    );
+    let (_bundle, applied) = resolve(&project, &args(Some("priority > 9"))).unwrap();
+    assert_eq!(applied.filter_value, "priority > 9");
+}
+
+#[test]
+fn bare_at_sign_is_manual_filter_not_view_ref() {
+    // Kills mutant at && → || in bare_view_ref.
+    // "@" has empty name after @, so bare_view_ref returns None in real code.
+    // Mutant makes it return Some(""), which then errors looking up view "".
+    let dir = tempfile::tempdir().unwrap();
+    let project = project_with_config(dir.path(), mindtape::Config::default());
+    let (bundle, applied) = resolve(&project, &args(Some("@"))).unwrap();
+    assert_eq!(bundle.filter, "@");
+    assert_eq!(applied.filter_from, "manual");
+}
+
+#[test]
+fn view_ref_with_underscore_is_valid() {
+    // Kills mutant at second || → && in bare_view_ref.
+    // "_" is a valid view-name character. Mutant: c.is_ascii_alphanumeric() || (c=='_' && c=='-')
+    // → only alphanumeric passes, so "@foo_bar" is misrecognised as manual.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[views.foo_bar]
+filter = "priority > 5"
+"#,
+    );
+    let (bundle, _applied) = resolve(&project, &args(Some("@foo_bar"))).unwrap();
+    assert_eq!(bundle.filter, "priority > 5");
+}
+
+#[test]
+fn view_ref_with_hyphen_is_valid() {
+    // Kills mutant at == → != in bare_view_ref.
+    // "-" is a valid view-name char under ==; under != it is rejected.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[views.my-view]
+filter = "priority > 5"
+"#,
+    );
+    let (bundle, _applied) = resolve(&project, &args(Some("@my-view"))).unwrap();
+    assert_eq!(bundle.filter, "priority > 5");
+}
+
+#[test]
+fn import_sort_from_empty_sort_view_preserves_earlier_sort() {
+    // Kills mutant at !view.sort.is_empty() → true.
+    // Real: guard fails → no overwrite → sort stays ["due:asc"].
+    // Mutant: guard always true → overwrites with [] → sort empty.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[views.a]
+sort = ["due:asc"]
+
+[views.b]
+filter = "done"
+
+[[ls.rules]]
+import-views = ["a", "b(sort)"]
+"#,
+    );
+    let (bundle, _applied) = resolve_bare(&project).unwrap();
+    assert_eq!(bundle.sort, vec!["due:asc".to_owned()]);
+}
+
+#[test]
+fn import_columns_from_empty_columns_view_preserves_earlier_columns() {
+    // Kills mutant at !view.columns.is_empty() → true.
+    // Real: guard fails → no overwrite → columns stay ["status", "title"].
+    // Mutant: guard always true → overwrites with [] → columns empty.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[views.a]
+columns = ["status", "title"]
+
+[views.b]
+filter = "done"
+
+[[ls.rules]]
+import-views = ["a", "b(columns)"]
+"#,
+    );
+    let (bundle, _applied) = resolve_bare(&project).unwrap();
+    assert_eq!(
+        bundle.columns,
+        vec!["status".to_owned(), "title".to_owned()]
+    );
 }

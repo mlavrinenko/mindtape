@@ -30,8 +30,14 @@ pub struct CliDumpArgs {
 /// # Errors
 /// Propagates a JSON serialization failure (not expected for this fixed shape).
 pub fn run(_args: &CliDumpArgs) -> Result<()> {
-    println!("{}", serde_json::to_string_pretty(&dump(&Cli::command()))?);
+    println!("{}", dump_json()?);
     Ok(())
+}
+
+/// Build the pretty-printed JSON command tree. Split out from [`run`] so it is
+/// testable without printing to stdout.
+fn dump_json() -> Result<String> {
+    serde_json::to_string_pretty(&dump(&Cli::command())).map_err(Into::into)
 }
 
 /// The top-level document: about, version, the once-captured globals, and the
@@ -252,5 +258,39 @@ mod tests {
         let t = tree();
         let subs = arr(command(&t, "config"), "subcommands");
         assert!(subs.iter().any(|c| field(c, "name") == "show"));
+    }
+
+    #[test]
+    fn value_name_returns_some_for_positional() {
+        let cmd = Cli::command();
+        let ls = cmd.find_subcommand("ls").unwrap();
+        let filter = ls.get_arguments().find(|a| a.get_id() == "filter").unwrap();
+        assert_eq!(value_name(filter), Some("FILTER".to_owned()));
+    }
+
+    #[test]
+    fn opt_str_maps_to_string() {
+        let styled = clap::builder::StyledStr::from("hello");
+        assert_eq!(opt_str(Some(&styled)), Some("hello".to_owned()));
+    }
+
+    #[test]
+    fn opt_str_none_when_input_none() {
+        let none: Option<&clap::builder::StyledStr> = None;
+        assert_eq!(opt_str(none), None);
+    }
+
+    #[test]
+    fn dump_json_is_valid() {
+        let json = dump_json().unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert!(parsed.get("schema").is_some());
+    }
+
+    #[test]
+    fn dump_json_contains_bin_name() {
+        let json = dump_json().unwrap();
+        let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(parsed.get("bin").and_then(Value::as_str), Some("mt"));
     }
 }

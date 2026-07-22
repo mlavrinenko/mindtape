@@ -241,12 +241,15 @@ pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use std::path::Path;
+    use std::path::{Path, PathBuf};
 
     use mindtape::test_support::{TASK_SRC, bare_task};
     use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
-    use super::{Project, pick_override, resolve_root_with, resolve_task, warn_errors};
+    use super::{
+        Project, init_worktree, pick_override, resolve_root_with, resolve_task, warn_errors,
+        worktree_override,
+    };
     use crate::handle::{DEFAULT_CHECK_LEN, check_chars};
 
     #[test]
@@ -405,10 +408,85 @@ mod tests {
     fn resolve_handle_out_of_range_errors() {
         let task_a = stub_task("alpha", "Alpha Task");
         let project = stub_project(vec![task_a]);
-        let err = resolve_task(&project, "9z").unwrap_err();
+        // Ordinal 2 with total 1: index = 1, which is exactly total.
+        // With < total (real): 1 < 1 = false → error includes "(default view has 1 tasks)"
+        // With <= total: 1 <= 1 = true → passes filter → .get(1) = None → error WITHOUT total
+        let err = resolve_task(&project, "2a").unwrap_err();
         assert!(
-            err.to_string().contains("out of range"),
-            "error should say out of range: {err}"
+            err.to_string().contains("default view has 1 tasks"),
+            "error should include the total task count: {err}"
         );
+    }
+
+    // --- Subprocess tests (process-global `OnceLock` isolation) -----------
+    //
+    // `init_worktree` sets a process-global `WORKTREE` exactly once, and
+    // `warn_errors` writes to the process's stderr. Both are only observable
+    // from a fresh process, so each test below re-execs the test binary for a
+    // single test name (`test_util::run_self_test`); the parent checks the
+    // child's exit status and, where relevant, its captured stderr.
+
+    const CHILD: &str = "_MT_UTIL_CHILD";
+
+    #[test]
+    fn init_worktree_sets_override_once() {
+        if std::env::var(CHILD).is_err() {
+            let out = crate::test_util::run_self_test("init_worktree_sets_override_once", CHILD);
+            crate::test_util::assert_child_ok(&out);
+            return;
+        }
+        assert_eq!(worktree_override(), None, "must be None before init");
+        init_worktree(Some(PathBuf::from("/test/path")));
+        assert_eq!(
+            worktree_override(),
+            Some(PathBuf::from("/test/path")),
+            "must be set after init"
+        );
+    }
+
+    #[test]
+    fn warn_errors_prints_to_stderr() {
+        if std::env::var(CHILD).is_err() {
+            let out = crate::test_util::run_self_test("warn_errors_prints_to_stderr", CHILD);
+            crate::test_util::assert_child_ok(&out);
+            let stderr = String::from_utf8_lossy(&out.stderr);
+            assert!(
+                stderr.contains("warning: broken.typ: eval failed"),
+                "missing warning line: {stderr}"
+            );
+            return;
+        }
+        let outcome = LoadOutcome {
+            tasks: vec![],
+            errors: vec![LoadError {
+                file: "broken.typ".into(),
+                message: "eval failed".to_owned(),
+            }],
+        };
+        warn_errors(&outcome);
+    }
+
+    #[test]
+    fn resolve_path_with_slash_is_path_not_slug() {
+        let project = stub_project(vec![stub_task("alpha", "Alpha Task")]);
+        // "a/b" contains / but not .typ → path resolution (real) vs slug (mutant ||→&&)
+        let err = resolve_task(&project, "a/b").unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("resolve"),
+            "path with / must be resolved as path, not slug: {msg}"
+        );
+    }
+
+    #[test]
+    fn resolve_absolute_path_eq_not_neq() {
+        let dir = tempfile::tempdir().unwrap();
+        let project = make_project_with_tasks(dir.path(), &["alpha"]);
+        let abs = dir.path().join("tasks/alpha.typ");
+        std::fs::write(&abs, mindtape::test_support::TASK_SRC).unwrap();
+        let abs = abs.canonicalize().unwrap();
+        let (task, path) = resolve_task(&project, abs.to_str().unwrap()).unwrap();
+        assert_eq!(task.id, "alpha");
+        assert_eq!(path, abs);
     }
 }

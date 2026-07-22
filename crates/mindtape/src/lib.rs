@@ -49,6 +49,12 @@ pub mod recur;
 pub mod recur_dates;
 #[cfg(feature = "rrule")]
 mod recur_rrule;
+// Without the feature, the same module name resolves to a stub with the same
+// surface — so every caller stays one always-compiled function, with no
+// `#[cfg]` twin that a mutation sweep can only ever see as dead code.
+#[cfg(not(feature = "rrule"))]
+#[path = "recur_rrule_off.rs"]
+mod recur_rrule;
 pub mod sort;
 pub mod status_value;
 pub mod template;

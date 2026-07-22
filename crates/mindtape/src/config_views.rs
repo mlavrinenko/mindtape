@@ -101,11 +101,7 @@ fn dfs(
     match state.get(node).copied().unwrap_or(UNSEEN) {
         DONE => return None,
         ACTIVE => {
-            let mut cycle = stack
-                .iter()
-                .position(|n| n == node)
-                .and_then(|i| stack.get(i..))
-                .map_or_else(|| stack.clone(), <[String]>::to_vec);
+            let mut cycle: Vec<String> = stack.iter().skip_while(|n| *n != node).cloned().collect();
             cycle.push(node.to_owned());
             return Some(cycle);
         }

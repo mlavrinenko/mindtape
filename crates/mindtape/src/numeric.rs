@@ -250,10 +250,21 @@ impl NumericField {
                 .partial_cmp(&right.value)
                 .unwrap_or(Ordering::Equal)
         });
-        if let Some(exact) = anchors.iter().find(|anchor| anchor.value == point) {
+        // Anchors are sorted ascending, so `partition_point` locates the first
+        // anchor whose value is not below `point` in one comparison: that
+        // anchor is the exact hit when its value equals `point` (the first of
+        // any duplicates, since ties keep their stable sort order), and the
+        // element right before it is the nearest lower neighbour (the last of
+        // any duplicates at that lower value, for the same reason).
+        let idx = anchors.partition_point(|anchor| anchor.value < point);
+        if let Some(exact) = anchors
+            .get(idx)
+            .copied()
+            .filter(|anchor| anchor.value == point)
+        {
             return anchor_cell(exact, exact.label.clone());
         }
-        if let Some(lower) = anchors.iter().rev().find(|anchor| anchor.value < point) {
+        if let Some(lower) = idx.checked_sub(1).and_then(|i| anchors.get(i)).copied() {
             let label = derive_label(&lower.label, '+', point - lower.value);
             return anchor_cell(lower, label);
         }

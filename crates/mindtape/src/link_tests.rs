@@ -161,3 +161,31 @@ fn custom_kind_can_opt_into_blocking_and_acyclic() {
     assert!(blocking_kinds(&config).contains(&"gates"));
     assert!(acyclic_kinds(&config).contains(&"gates"));
 }
+
+#[test]
+fn custom_kind_not_blocking_excluded_from_blocking_kinds() {
+    let config = LinksConfig {
+        kinds: vec![LinkKind {
+            name: "gates".to_owned(),
+            max: None,
+            note: NoteRule::Optional,
+            blocking: false,
+            acyclic: false,
+        }],
+    };
+    assert_eq!(blocking_kinds(&config), vec!["depends-on"]);
+}
+
+#[test]
+fn custom_kind_not_acyclic_excluded_from_acyclic_kinds() {
+    let config = LinksConfig {
+        kinds: vec![LinkKind {
+            name: "gates".to_owned(),
+            max: None,
+            note: NoteRule::Optional,
+            blocking: false,
+            acyclic: false,
+        }],
+    };
+    assert_eq!(acyclic_kinds(&config), vec!["depends-on", "parent"]);
+}

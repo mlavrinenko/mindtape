@@ -149,3 +149,53 @@ fn push_if_out_of_scale(point: f64, field: &str, scale: &NumericField, out: &mut
         ));
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::canonical::{CanonicalNum, CanonicalPriority};
+    use crate::config::{Config, PriorityConfig, TasksConfig};
+    use crate::numeric::NumValue;
+
+    #[test]
+    fn no_framework_with_disallowed_manual_is_clean() {
+        let config = Config {
+            tasks: TasksConfig {
+                priority: PriorityConfig {
+                    framework: None,
+                    allow_manual: false,
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut out = Vec::new();
+        let result = super::map_priority(Some(&CanonicalPriority::Num(5.0)), &config, &mut out);
+        assert_eq!(result, Some(NumValue::Num(5.0)));
+        assert!(out.is_empty(), "expected no report entries, got {out:?}",);
+    }
+
+    #[test]
+    fn difficulty_at_min_is_in_scale() {
+        let config = Config::default();
+        let mut out = Vec::new();
+        let result = super::map_difficulty(Some(&CanonicalNum::Num(0.0)), &config, &mut out);
+        assert_eq!(result, Some(NumValue::Num(0.0)));
+        assert!(
+            out.is_empty(),
+            "expected no report entries for difficulty at min, got {out:?}",
+        );
+    }
+
+    #[test]
+    fn difficulty_at_max_is_in_scale() {
+        let config = Config::default();
+        let mut out = Vec::new();
+        let result = super::map_difficulty(Some(&CanonicalNum::Num(9.0)), &config, &mut out);
+        assert_eq!(result, Some(NumValue::Num(9.0)));
+        assert!(
+            out.is_empty(),
+            "expected no report entries for difficulty at max, got {out:?}",
+        );
+    }
+}

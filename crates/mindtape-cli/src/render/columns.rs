@@ -244,3 +244,105 @@ pub fn due_cell(task: &Task, config: &Config) -> CellSpec {
         },
     }
 }
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use mindtape::config::Config;
+    use mindtape::numeric::NumValue;
+    use mindtape::test_support::bare_task;
+    use mindtape::{Readiness, today_iso};
+
+    use super::*;
+
+    fn rows<'a>(data: &[(&'a str, &'a Task)]) -> Vec<(String, &'a Task)> {
+        data.iter().map(|(h, t)| (h.to_string(), *t)).collect()
+    }
+
+    #[test]
+    fn title_is_flex() {
+        assert!(ColumnId::Title.is_flex());
+    }
+
+    #[test]
+    fn handle_is_not_flex() {
+        assert!(!ColumnId::Handle.is_flex());
+    }
+
+    #[test]
+    fn status_is_not_flex() {
+        assert!(!ColumnId::Status.is_flex());
+    }
+
+    #[test]
+    fn handle_always_significant() {
+        assert!(ColumnId::Handle.auto_significant(&[], &Config::default(), &Readiness::default()));
+    }
+
+    #[test]
+    fn title_always_significant() {
+        assert!(ColumnId::Title.auto_significant(&[], &Config::default(), &Readiness::default()));
+    }
+
+    #[test]
+    fn ready_not_significant_for_uncontested() {
+        let task = bare_task("t");
+        let config = Config::default();
+        let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
+        assert!(
+            !ColumnId::Ready.auto_significant(&rows(&[("1c", &task)]), &config, &readiness),
+            "ready column must not be significant when no task is blocked"
+        );
+    }
+
+    #[test]
+    fn priority_significant_when_set() {
+        let mut task = bare_task("t");
+        task.priority = Some(NumValue::Num(5.0));
+        let config = Config::default();
+        let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
+        assert!(
+            ColumnId::Priority.auto_significant(&rows(&[("1c", &task)]), &config, &readiness),
+            "priority column must be significant when at least one task has a value"
+        );
+    }
+
+    #[test]
+    fn priority_not_significant_when_unset() {
+        let task = bare_task("t");
+        let config = Config::default();
+        let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
+        assert!(
+            !ColumnId::Priority.auto_significant(&rows(&[("1c", &task)]), &config, &readiness),
+            "priority column must not be significant when no task has a value"
+        );
+    }
+
+    #[test]
+    fn due_today_is_not_overdue() {
+        let mut task = bare_task("t");
+        task.due = Some(today_iso());
+        let config = Config::default();
+        let cell = due_cell(&task, &config);
+        assert!(
+            cell.color.is_none(),
+            "due today must not be rendered as overdue"
+        );
+    }
+
+    #[test]
+    fn due_yesterday_is_overdue() {
+        let mut task = bare_task("t");
+        // Actually yesterday, not a hardcoded date two decades back: the
+        // boundary this pins is `due < today`, and only a date adjacent to
+        // today exercises it. `days_ago_iso` reads the same pinnable clock
+        // `due_cell` compares against, so the pair cannot drift apart.
+        task.due = Some(mindtape::days_ago_iso(1));
+        let config = Config::default();
+        let cell = due_cell(&task, &config);
+        assert!(
+            cell.color.is_some(),
+            "due in the past must be rendered as overdue"
+        );
+    }
+}

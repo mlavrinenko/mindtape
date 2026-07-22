@@ -116,3 +116,28 @@ fn mutual_cycle_reported() {
     let problems = validate_views(&views);
     assert!(problems.iter().any(|p| p.contains("cycle")), "{problems:?}");
 }
+
+#[test]
+fn cycle_exact_message_distinguishes_position_predicate() {
+    // Guards against mutant: replace == with != in dfs .
+    // That swap changes which slice of the DFS stack is extracted as the cycle
+    // body. For a 2-node cycle a↔b the real code produces "a → b → a" while
+    // the mutant produces "b → a" (first non-matching position).
+    let views = map(vec![("a", view("@b")), ("b", view("@a"))]);
+    let problems = validate_views(&views);
+    let msg = problems.iter().find(|p| p.contains("cycle")).unwrap();
+    assert_eq!(msg, "views: reference cycle a → b → a");
+}
+
+#[test]
+fn three_node_cycle_exact_message() {
+    // Same mutant guard for longer cycles.
+    let views = map(vec![
+        ("a", view("@b")),
+        ("b", view("@c")),
+        ("c", view("@a")),
+    ]);
+    let problems = validate_views(&views);
+    let msg = problems.iter().find(|p| p.contains("cycle")).unwrap();
+    assert_eq!(msg, "views: reference cycle a → b → c → a");
+}

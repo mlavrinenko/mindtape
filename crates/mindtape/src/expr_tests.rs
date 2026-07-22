@@ -27,6 +27,12 @@ fn extract_literal_reads_string() {
 }
 
 #[test]
+fn extract_literal_reads_float() {
+    let node = tree("3.14");
+    assert_eq!(extract_literal(&node).unwrap(), "3.14");
+}
+
+#[test]
 fn extract_literal_reads_negative_number() {
     let node = tree("-5");
     assert_eq!(extract_literal(&node).unwrap(), "-5");

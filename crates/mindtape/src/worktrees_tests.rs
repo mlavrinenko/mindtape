@@ -139,6 +139,58 @@ fn duplicate_alias_errors() {
 }
 
 #[test]
+fn non_empty_registry_is_not_empty() {
+    let reg = WorktreeRegistry::parse(
+        r#"
+        [[worktrees]]
+        name = "sn"
+        path = "/p"
+        "#,
+    )
+    .unwrap();
+    // Mutant: replace body with `true` → fails here.
+    assert!(!reg.is_empty());
+}
+
+#[test]
+fn alias_names_returns_names_in_order() {
+    let reg = WorktreeRegistry::parse(
+        r#"
+        [[worktrees]]
+        name = "a"
+        path = "/pa"
+
+        [[worktrees]]
+        base = "/b"
+
+        [[worktrees]]
+        name = "c"
+        path = "/pc"
+        "#,
+    )
+    .unwrap();
+    // Mutant: replace body with `vec![]` → fails here.
+    assert_eq!(reg.alias_names(), vec!["a", "c"]);
+}
+
+#[test]
+fn alias_with_whitespace_name_errors() {
+    let err = WorktreeRegistry::parse(
+        r#"
+        [[worktrees]]
+        name = "   "
+        path = "/p"
+        "#,
+    )
+    .unwrap_err();
+    // Mutant: replace guard with `true` → accepts whitespace name.
+    assert!(
+        matches!(err, WorktreeError::Entry { ref message, .. } if message.contains("`name` is empty")),
+        "unexpected error"
+    );
+}
+
+#[test]
 fn resolve_alias_returns_expanded_path_regardless_of_project() {
     let reg = WorktreeRegistry::parse(
         r#"

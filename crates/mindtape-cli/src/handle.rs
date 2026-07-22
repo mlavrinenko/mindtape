@@ -134,6 +134,22 @@ mod tests {
     }
 
     #[test]
+    fn check_chars_second_letter_differs() {
+        // Each letter consumes a different slice of the hash: the loop divides
+        // by 26 between letters, so the second letter is drawn from the next
+        // base-26 digit. Were the division a modulo instead, every letter would
+        // repeat the first. Asserting the exact pair also pins the alphabet.
+        let pair = check_chars("a", 2);
+        assert_eq!(pair, "op");
+        let mut letters = pair.chars();
+        assert_ne!(
+            letters.next(),
+            letters.next(),
+            "consecutive letters must come from different hash digits"
+        );
+    }
+
+    #[test]
     fn check_char_independent_of_ordinal() {
         let t = bare_task("stable-id");
         let h1 = handle_for(&t, 1, DEFAULT_CHECK_LEN);

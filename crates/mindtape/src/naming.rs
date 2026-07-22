@@ -63,6 +63,10 @@ pub enum NamingError {
     /// `{n:ARG}`'s `ARG` is not a valid zero-pad width.
     #[error("invalid zero-pad width {0:?} in {{n:...}}")]
     InvalidWidth(String),
+    /// [`disambiguate`] exhausted its numeric-suffix ceiling without finding a
+    /// free stem.
+    #[error("exhausted {1} disambiguation attempts for stem {0:?}")]
+    Exhausted(String, u32),
 }
 
 /// Expand `template`'s macros against `ctx`. Pure: no clock, no filesystem.
@@ -96,7 +100,7 @@ pub fn mint_stem(template: &str, ctx: &MintContext<'_>) -> Result<String, Naming
 /// content in between. Errors if the input ends first.
 fn read_macro(chars: &mut std::str::Chars<'_>) -> Result<String, NamingError> {
     let mut inner = String::new();
-    for ch in chars.by_ref() {
+    for ch in chars {
         if ch == '}' {
             return Ok(inner);
         }
@@ -139,24 +143,39 @@ fn expand_occurrence(occurrence: u32, arg: Option<&str>) -> Result<String, Namin
     Ok(format!("{occurrence:0width$}"))
 }
 
+/// Ceiling on numeric suffixes [`disambiguate`] will try before giving up.
+/// `10_000` covers a daily recurring task disambiguating against a full
+/// destination directory for roughly 27 years — comfortably past any
+/// realistic collision run — while still bounding the search against a
+/// pathological or buggy `exists` predicate.
+const MAX_DISAMBIGUATE_ATTEMPTS: u32 = 10_000;
+
 /// Disambiguate `stem` against an `exists` predicate: appends an incrementing
 /// `-{n}` (`stem`, `stem-2`, `stem-3`, …) until a candidate reports as free.
 /// Never returns a stem `exists` reports as taken. Fs-free — callers pass a
 /// closure over the real filesystem (the `add` destination dir) or a fake set
 /// in tests.
-#[must_use]
-pub fn disambiguate(stem: &str, exists: impl Fn(&str) -> bool) -> String {
+///
+/// # Errors
+/// Returns [`NamingError::Exhausted`] after [`MAX_DISAMBIGUATE_ATTEMPTS`]
+/// numeric suffixes are all reported taken, rather than looping forever or
+/// returning a stem `exists` reports as taken.
+pub fn disambiguate(stem: &str, exists: impl Fn(&str) -> bool) -> Result<String, NamingError> {
     if !exists(stem) {
-        return stem.to_owned();
+        return Ok(stem.to_owned());
     }
-    let mut n = 2_u32;
-    loop {
+    // A `for` over a fixed range, not a hand-incremented counter: the bound
+    // then holds however the loop body behaves.
+    for n in 2..=MAX_DISAMBIGUATE_ATTEMPTS {
         let candidate = format!("{stem}-{n}");
         if !exists(&candidate) {
-            return candidate;
+            return Ok(candidate);
         }
-        n += 1;
     }
+    Err(NamingError::Exhausted(
+        stem.to_owned(),
+        MAX_DISAMBIGUATE_ATTEMPTS,
+    ))
 }
 
 #[cfg(test)]

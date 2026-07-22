@@ -53,6 +53,14 @@ fn escaped_quote_inside_string_does_not_end_it() {
 }
 
 #[test]
+fn string_end_before_view_ref() {
+    // A closing `"` must restore the scanning context so that a following @ref
+    // is desugared.  The mutant "ch != '\\'" eats the closing quote as an
+    // "escaped" char, keeping in_str=true and suppressing the desugar.
+    assert_eq!(desugar_view_refs("\"a\"@b"), "\"a\"in_view(\"b\")");
+}
+
+#[test]
 fn empty_and_plain_expressions_unchanged() {
     assert_eq!(desugar_view_refs(""), "");
     assert_eq!(

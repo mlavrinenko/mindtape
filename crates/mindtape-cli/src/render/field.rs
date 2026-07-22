@@ -107,12 +107,17 @@ fn build_content(spec: &CellSpec, glyph_mode: GlyphMode, density: DensityMode) -
 }
 
 /// Truncate-or-pad `content` to exactly `width` display cells.
+///
+/// Order matters here: `pad_to_width` runs first and short-circuits unchanged
+/// on already-oversized content (its own `current >= width` early return), so
+/// oversized content reaches `truncate_to_width` untouched; undersized content
+/// gets padded up to exactly `width`, at which point `truncate_to_width`'s own
+/// `display_width(s) <= max_width` early return makes it a no-op. The reverse
+/// order would re-pad a truncated result that fell short of `width` (a
+/// double-width char dropped whole at the boundary can leave the ellipsis
+/// short of the target), silently changing the truncated output.
 fn fit_to_width(content: &str, width: usize) -> String {
-    if display_width(content) > width {
-        truncate_to_width(content, width)
-    } else {
-        pad_to_width(content, width)
-    }
+    truncate_to_width(&pad_to_width(content, width), width)
 }
 
 /// The plain (unstyled) string a cell renders to, before width fitting.

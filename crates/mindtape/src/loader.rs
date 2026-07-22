@@ -293,3 +293,7 @@ pub fn first_task_marker(markers: &[typst_harvest::Marker]) -> Option<&HVal> {
 #[cfg(test)]
 #[path = "loader_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "loader_tests_cache.rs"]
+mod tests_cache;

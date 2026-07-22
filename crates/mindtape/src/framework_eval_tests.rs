@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use super::{eval_predicate, eval_score, score_interval};
+use super::{eval_predicate, eval_score, parse_check, score_interval};
 use crate::framework::{Input, InputKind};
 use crate::numeric::InputValue;
 
@@ -92,4 +92,61 @@ fn score_interval_rejects_unbounded_input() {
     let inputs = BTreeMap::from([("a".to_owned(), number(1.0, 10.0))]);
     // `b` is undeclared -> unbounded -> rejected.
     assert!(score_interval("a + b", &inputs).is_err());
+}
+
+#[test]
+fn parse_check_rejects_invalid_syntax() {
+    assert!(parse_check("(").is_err());
+}
+
+#[test]
+fn score_interval_handles_negation() {
+    let inputs = BTreeMap::from([("a".to_owned(), number(1.0, 10.0))]);
+    let iv = score_interval("-a", &inputs).unwrap();
+    assert_eq!(iv.lo, -10.0);
+    assert_eq!(iv.hi, -1.0);
+}
+
+#[test]
+fn score_interval_handles_addition() {
+    let inputs = BTreeMap::from([
+        ("a".to_owned(), number(1.0, 10.0)),
+        ("b".to_owned(), number(1.0, 5.0)),
+    ]);
+    let iv = score_interval("a + b", &inputs).unwrap();
+    assert_eq!(iv.lo, 2.0);
+    assert_eq!(iv.hi, 15.0);
+}
+
+#[test]
+fn score_interval_handles_subtraction() {
+    let inputs = BTreeMap::from([
+        ("a".to_owned(), number(1.0, 10.0)),
+        ("b".to_owned(), number(1.0, 5.0)),
+    ]);
+    let iv = score_interval("a - b", &inputs).unwrap();
+    assert_eq!(iv.lo, -4.0);
+    assert_eq!(iv.hi, 9.0);
+}
+
+#[test]
+fn score_interval_handles_multiplication() {
+    let inputs = BTreeMap::from([
+        ("a".to_owned(), number(0.25, 0.5)),
+        ("b".to_owned(), number(4.0, 8.0)),
+    ]);
+    let iv = score_interval("a * b", &inputs).unwrap();
+    assert_eq!(iv.lo, 1.0);
+    assert_eq!(iv.hi, 4.0);
+}
+
+#[test]
+fn score_interval_arithmetic_division() {
+    let inputs = BTreeMap::from([
+        ("a".to_owned(), number(2.0, 8.0)),
+        ("b".to_owned(), number(2.0, 4.0)),
+    ]);
+    let iv = score_interval("a / b", &inputs).unwrap();
+    assert_eq!(iv.lo, 0.5);
+    assert_eq!(iv.hi, 4.0);
 }

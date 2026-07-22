@@ -98,3 +98,40 @@ impl ImportReport {
             .any(|entry| entry.kind == EntryKind::Violated)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_clean_true_when_empty() {
+        let r = ImportReport::default();
+        assert!(r.is_clean());
+    }
+
+    #[test]
+    fn is_clean_false_when_entries() {
+        let r = ImportReport {
+            entries: vec![ReportEntry {
+                field: "status".into(),
+                kind: EntryKind::Mapped,
+                message: "x->y".into(),
+            }],
+            carried_extras: vec![],
+        };
+        assert!(!r.is_clean());
+    }
+
+    #[test]
+    fn has_violations_true_when_violated_present() {
+        let r = ImportReport {
+            entries: vec![ReportEntry {
+                field: "status".into(),
+                kind: EntryKind::Violated,
+                message: "bad status".into(),
+            }],
+            carried_extras: vec![],
+        };
+        assert!(r.has_violations());
+    }
+}

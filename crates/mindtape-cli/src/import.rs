@@ -182,15 +182,17 @@ fn default_status(record: &mut CanonicalTask, status: Option<&str>) {
 ///
 /// # Errors
 /// Returns an error when `title` slugifies to nothing (no `--name`-equivalent
-/// escape hatch exists for import — the title is the only naming source) or
-/// the configured `[tasks.naming] stem` template is malformed.
+/// escape hatch exists for import — the title is the only naming source), the
+/// configured `[tasks.naming] stem` template is malformed, or disambiguation
+/// exhausts its numeric-suffix ceiling.
 fn stem_for(title: &str, config: &Config, existing: &mut HashSet<String>) -> Result<String> {
     if mindtape::slug_from_title(title).is_empty() {
         bail!("empty title; nothing to name the task file from");
     }
     let candidate = mindtape::stem_for_title(title, config, mindtape::today_ymd())
         .map_err(|err| anyhow!(err.to_string()))?;
-    let stem = mindtape::naming::disambiguate(&candidate, |c| existing.contains(c));
+    let stem = mindtape::naming::disambiguate(&candidate, |c| existing.contains(c))
+        .map_err(|err| anyhow!(err.to_string()))?;
     existing.insert(stem.clone());
     Ok(stem)
 }
@@ -262,3 +264,7 @@ fn entry_kind_label(kind: EntryKind) -> &'static str {
 #[cfg(test)]
 #[path = "import_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "import_tests_helpers.rs"]
+mod tests_helpers;

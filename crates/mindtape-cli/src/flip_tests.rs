@@ -11,21 +11,32 @@ use crate::util::Project;
 
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
 
-const ALPHA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+pub(super) const ALPHA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Alpha\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n";
 
 const BETA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Beta\",\n  status: blocked(2026, 6, 1),\n)\n\n== Summary\n\nBody.\n";
 
-const GAMMA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+pub(super) const GAMMA: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Water plants\",\n  status: wip(2026, 6, 1),\n  recur: every(weeks: 1),\n)\n\n== Summary\n\nBody.\n";
+
+pub(super) const STATELESS: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+#show: task.with(\n  title: \"Stateless\",\n)\n\n== Summary\n\nBody.\n";
 
 /// A legend declaring `blocked` (not part of the embedded floor's status
 /// legend), so it must be written to disk, not just held in memory: `run_with`
 /// revalidates by reloading config from `.mindtape/config.toml` after a flip.
-const LEGEND_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
+pub(super) const LEGEND_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
      [[tasks.status]]\nvalue = \"blocked\"\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
+
+/// A legend with a transition graph where `blocked` is declared but
+/// unreachable from the initial state (`wip` → `done` only), so flipping a task
+/// to it must be caught by `run_with`'s post-flip revalidation.
+pub(super) const REACHABLE_CONFIG: &str = "\
+[[tasks.status]]\nvalue = \"wip\"\nto = [\"done\"]\n\
+[[tasks.status]]\nvalue = \"done\"\nterminal = true\n\
+[[tasks.status]]\nvalue = \"blocked\"\n";
 
 /// Project rooted at `dir` with an in-tree `lib/` mindtape package override (so
 /// `@local/mindtape` resolves without a global install), a real
@@ -33,18 +44,12 @@ const LEGEND_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\n\
 /// The config is written to disk (not just parsed in memory) because
 /// `run_with`'s post-flip revalidation reloads it from `.mindtape/config.toml`;
 /// without a matching file, that reload would see the embedded floor's legend
-/// instead of `config_text`'s. The lib is written before
-/// [`crate::test_util::make_project`] loads, so the real prelude resolves the
-/// task `task.with(…)` sources.
-fn setup(dir: &Path, files: &[(&str, &str)], config_text: &str) -> Project {
-    mindtape::test_support::write_lib_package(dir, PRELUDE);
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), config_text).unwrap();
-    let config = parse_config(config_text).unwrap();
-    crate::test_util::make_project(dir, files, config)
+/// instead of `config_text`'s.
+pub(super) fn setup(dir: &Path, files: &[(&str, &str)], config_text: &str) -> Project {
+    crate::test_util::make_project_with_lib(dir, PRELUDE, files, config_text)
 }
 
-fn flip_args(status: &str, tasks: &[&str]) -> FlipArgs {
+pub(super) fn flip_args(status: &str, tasks: &[&str]) -> FlipArgs {
     FlipArgs {
         status: Some(status.to_owned()),
         tasks: tasks.iter().map(|s| (*s).to_owned()).collect(),
@@ -60,7 +65,7 @@ const TRANSITION_CONFIG: &str = "[[tasks.status]]\nvalue = \"wip\"\nto = [\"bloc
      [[tasks.status]]\nvalue = \"blocked\"\nto = [\"wip\"]\n\
      [[tasks.status]]\nvalue = \"done\"\nterminal = true\nto = [\"wip\"]\n";
 
-fn read(dir: &Path, name: &str) -> String {
+pub(super) fn read(dir: &Path, name: &str) -> String {
     std::fs::read_to_string(dir.join("tasks").join(name)).unwrap()
 }
 
@@ -311,4 +316,39 @@ fn flip_force_bypasses_the_graph() {
     args.force = true;
     run_with(&project, &args).unwrap();
     assert!(read(dir.path(), "beta.typ").contains("status: done("));
+}
+
+#[test]
+fn unknown_status_does_not_touch_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let before = ALPHA.to_owned();
+    let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
+    assert!(run_with(&project, &flip_args("nope", &["a"])).is_err());
+    assert_eq!(before, read(dir.path(), "a.typ"));
+}
+
+/// The post-flip revalidation reloads the project and reports violations on the
+/// touched task. The returned error only carries the count; the violation text
+/// itself goes to stderr, so `flip_tests_output.rs` asserts that half.
+#[test]
+fn revalidate_catches_unreachable_status() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[("s.typ", STATELESS)], REACHABLE_CONFIG);
+    let err = run_with(&project, &flip_args("blocked", &["s"]))
+        .unwrap_err()
+        .to_string();
+    assert!(
+        err.contains("1 task(s) had problems"),
+        "expected the revalidation failure count: {err}"
+    );
+}
+
+#[test]
+fn verbs_csv_includes_legend_values_in_error() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
+    let msg = run_with(&project, &flip_args("nonexistent", &["a"]))
+        .unwrap_err()
+        .to_string();
+    assert!(msg.contains("wip") && msg.contains("blocked"));
 }
