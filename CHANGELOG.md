@@ -153,6 +153,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   populate it without violating the read/write (CQRS) invariant, which now
   guards the authored tree only. Set `MINDTAPE_NO_CACHE=1` to bypass it.
 
+### Fixed
+
+- **`mt add` escapes text slot fills into Typst markup** — a text slot carrying
+  ordinary prose used to land in markup verbatim, so a value containing `*`, `_`,
+  `$`, `#`, `[`, `]`, `<` or `@` produced a task file that failed to load the
+  instant it was written (an asterisk opened strong emphasis and the task died
+  with `unclosed delimiter`). Every fill source now routes through the same
+  escaper status notes already used — `--set`, `-f`, the positional title, the
+  `MINDTAPE_ADD_*` env vars and the `--edit` YAML buffer — while numeric, choice
+  and date slots stay unescaped, being literals rather than markup. A write that
+  still fails verification now says the file was kept on disk, instead of
+  reporting `wrote <path>` and leaving a broken artifact behind unmentioned.
+
 ### Removed
 
 - **`mt ls --all`** — pass an empty filter (`mt ls ''`) to drop the default and
