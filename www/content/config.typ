@@ -44,6 +44,7 @@ mt config show --json     # effective config as JSON
   [`[tasks.naming]`], [`stem` template for the filename `mt add` / `mt recur` mint. Unset ⇒ bare slug. See below.],
   [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
   [`[[tasks.limits]]`], [Work-in-progress caps: how many tasks may match a `filter` at once. Reported by `mt check`. See below.],
+  [`[tasks.comments]`], [Review-comment `policy` (`allow` / `warn` / `forbid`) over a task's whole source file, plus an `allow-pattern` escape hatch. See below.],
   [`[[tasks.links.kinds]]`], [Project-declared edge kinds layered over the built-ins: cardinality, note rule, readiness/cycle flags, and the `validate` target shape. See below.],
   [`[ls]`, `[rm]`], [Default filters, columns, and ordering. See #link(u("/filters/"))[Filter language].],
   [`[views.<name>]`], [Named filter + sort + columns bundles, referenced with `@name`. See #link(u("/filters/"))[Filter language].],
@@ -304,6 +305,31 @@ set:
 error: 2 task(s) match `status == "wip" && kind != "umbrella"`, max 1 — close the open leaf before starting another
   - rewrite-loader
   - split-config
+```
+
+= Review comments
+
+`[tasks.comments]` polices leftover review notes left in a task's whole source
+file — a `//` dropped inside `task.with(...)` is caught exactly like one in the
+body:
+
+```toml
+[tasks.comments]
+policy = "forbid"
+allow-pattern = "^TODO:"
+```
+
+`policy` is `"allow"` (the default, unconstrained), `"warn"` (reported, `mt
+check` still succeeds), or `"forbid"` (reported, and `mt check` fails).
+Detection runs on the parse plane, so a `//` inside a string literal or a raw
+block is never flagged. `allow-pattern` is an optional regex, matched against
+a comment's stripped inner text, that exempts a deliberate form while still
+catching stray notes.
+
+A violation reports the file, the line, and the comment text:
+
+```
+truth/tasks/example.typ:12: comments: line comment: "no, use in_view() instead"
 ```
 
 = Named views

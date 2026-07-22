@@ -14,6 +14,7 @@ pub mod canonical;
 pub mod condition;
 pub mod config;
 mod config_add;
+pub mod config_comments;
 mod config_format;
 mod config_go;
 mod config_layers;
@@ -78,6 +79,7 @@ pub use config::{
     Visibility, config_path, embedded_defaults, load_config, parse_config, parse_import_view,
     validate_views,
 };
+pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
 pub use config_limits::{LimitBreach, LimitError, LimitSeverity, LimitSpec, check_limits};
 pub use config_schema::{SCHEMA_URL, config_schema_json};

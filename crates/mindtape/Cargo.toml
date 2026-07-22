@@ -29,7 +29,7 @@ chrono = { version = "0.4", default-features = false, features = ["std"] }
 # stays optional rather than a plain dependency.
 rrule = { version = "0.14", optional = true }
 typst-harvest = "0.2.0"
-typst-cst = "0.1.0"
+typst-cst = "0.2.0"
 typst-edit = "0.1.0"
 # Normalize the Typst source `mt` writes to typstyle's canonical form
 # (`crates/mindtape/src/format.rs`). The library crate, not the CLI: in-process,

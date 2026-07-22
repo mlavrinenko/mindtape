@@ -341,3 +341,78 @@ fn invalid_header_rule_regex_fails_with_config_error() {
     let project = make_project_with_config(dir.path(), &[("a.typ", TASK)], config);
     assert!(super::run_with(&project).is_err());
 }
+
+// --- `[tasks.comments]` review-comment policy ----------------------------
+//
+// Parse-plane precision (a `//` inside a string literal or a raw block is not
+// a comment) is pinned in `typst_cst`'s own tests and again over
+// `mindtape::check_comments` in `config_comments_tests.rs`. What matters at
+// this layer is the command's contract: which policy fails `mt check`, and
+// that a violation surfaces the file, the line, and the comment text.
+
+/// `TASK` with a trailing line comment dropped after the `task.with(...)`-style
+/// `#metadata(...)` call — the whole file, not only the body.
+const TASK_WITH_COMMENT: &str = "#metadata((
+  marker: \"mindtape.task\",
+  fields: (
+    title: \"Task X\",
+    status: (name: \"wip\", date: datetime(year: 2026, month: 6, day: 1), note: none),
+    priority: 8,
+  ),
+  extras: (:),
+))
+// no, use in_view() instead
+";
+
+fn comments_project(dir: &Path, files: &[(&str, &str)], policy: &str) -> util::Project {
+    let toml = format!("[tasks.comments]\npolicy = \"{policy}\"\n");
+    make_project_with_config(dir, files, parse_config(&toml).unwrap())
+}
+
+#[test]
+fn default_policy_allow_ignores_a_comment() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = make_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)]);
+    assert!(super::run_with(&project).is_ok());
+}
+
+#[test]
+fn forbid_policy_passes_a_file_with_no_comments() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = comments_project(dir.path(), &[("a.typ", TASK)], "forbid");
+    assert!(super::run_with(&project).is_ok());
+}
+
+#[test]
+fn warn_policy_does_not_fail_the_command() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = comments_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)], "warn");
+    assert!(super::run_with(&project).is_ok());
+}
+
+const COMMENTS_CHILD: &str = "_MT_CHECK_COMMENTS_CHILD";
+
+/// `forbid` fails the command, and the printed violation names the file, the
+/// line, and the comment text — asserted from a child process, since the
+/// parent's test harness owns stdout.
+#[test]
+fn forbid_policy_fails_and_reports_file_line_and_text() {
+    if std::env::var(COMMENTS_CHILD).is_err() {
+        let out = crate::test_util::run_self_test(
+            "forbid_policy_fails_and_reports_file_line_and_text",
+            COMMENTS_CHILD,
+        );
+        crate::test_util::assert_child_ok(&out);
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        for expected in ["a.typ:10", "comments", "no, use in_view() instead"] {
+            assert!(
+                stdout.contains(expected),
+                "missing {expected:?} in: {stdout}"
+            );
+        }
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let project = comments_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)], "forbid");
+    assert!(super::run_with(&project).is_err());
+}

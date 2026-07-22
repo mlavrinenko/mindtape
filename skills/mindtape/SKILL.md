@@ -153,8 +153,8 @@ mt flip done 1b --force        # bypass the transition graph
 
 `mt check` evaluates every task against the project config: status/kind enums,
 required fields, numeric bounds, link resolution and dependency cycles, tag
-allow-list, body-header rules, and `[[tasks.limits]]` work-in-progress caps (a
-breach names the cap and every task in the set). A clean run means all is valid.
+allow-list, body-header rules, `[[tasks.limits]]` work-in-progress caps, and
+`[tasks.comments]` review-comment policy. A clean run means all is valid.
 
 ## Authoring or editing a task file by hand
 

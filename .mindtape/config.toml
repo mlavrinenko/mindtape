@@ -96,6 +96,12 @@ units = ["minutes", "hours", "days", "weeks"]
 # Area labels for the backlog. Empty would accept any tag.
 allowed = ["mt", "substrate", "speconaut", "cli", "tests", "www", "docs", "tooling", "gating"]
 
+# A review comment left in a task file is a conversation, not content: a human
+# annotates, an agent reframes the task and removes the note. Forbidding it
+# stops the conversation silently becoming the artifact.
+[tasks.comments]
+policy = "forbid"
+
 # Every task carries exactly one Summary section, and it precedes Scope.
 [[tasks.body.headers.rules]]
 path    = ["Summary"]

@@ -174,6 +174,8 @@ pub struct TasksConfig {
     /// Work-in-progress caps: how many tasks may match a filter at once
     /// (`[[tasks.limits]]`, enforced by `mt check`).
     pub limits: Vec<crate::config_limits::LimitSpec>,
+    /// Review-comment policy over a task's whole source file (`mt check`).
+    pub comments: crate::config_comments::CommentsConfig,
 }
 
 // `roots` intentionally stays the opinionated `["tasks"]` rather than collapsing
@@ -199,6 +201,7 @@ impl Default for TasksConfig {
             links: crate::link::LinksConfig::default(),
             recur: crate::recur::RecurConfig::default(),
             limits: Vec::new(),
+            comments: crate::config_comments::CommentsConfig::default(),
         }
     }
 }
@@ -370,6 +373,7 @@ impl Config {
         problems.extend(crate::config_required::validate_requirements(self));
         problems.extend(crate::config_links_validate::validate_link_kinds(self));
         problems.extend(crate::config_limits::validate_limits(self));
+        problems.extend(crate::config_comments::validate_comments(self));
         problems.extend(validate_ls_rules(&self.ls.rules, &self.views));
         if let Some(name) = &self.ls.default_view
             && !self.views.contains_key(name)

@@ -4733,9 +4733,9 @@ dependencies = [
 
 [[package]]
 name = "typst-cst"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05120960d7c80b47a9e134d8a1a801c87059650409aa8b126545565054fc9d85"
+checksum = "5cb3eaa76ab014a27a182766e5589d60a54fdeb5adf62e8ec79f832d6aaa83df"
 dependencies = [
  "typst-syntax",
 ]

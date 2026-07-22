@@ -169,6 +169,45 @@
       },
       "type": "object"
     },
+    "CommentsConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.comments]` — review-comment policy over a task's whole source file.",
+      "properties": {
+        "allow-pattern": {
+          "default": null,
+          "description": "Regex permitting a deliberate comment form — matched against the\ncomment's stripped, trimmed inner text — even under `warn`/`forbid`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "policy": {
+          "$ref": "#/$defs/CommentsPolicy",
+          "description": "Whether a comment is unconstrained, reported, or fails `mt check`."
+        }
+      },
+      "type": "object"
+    },
+    "CommentsPolicy": {
+      "description": "How `mt check` treats a comment found in a task's source.",
+      "oneOf": [
+        {
+          "const": "allow",
+          "description": "Comments are unconstrained. The default.",
+          "type": "string"
+        },
+        {
+          "const": "warn",
+          "description": "A comment is reported but `mt check` still succeeds.",
+          "type": "string"
+        },
+        {
+          "const": "forbid",
+          "description": "A comment is reported and fails `mt check`.",
+          "type": "string"
+        }
+      ]
+    },
     "DeriveConfig": {
       "additionalProperties": false,
       "description": "`[tasks.derive-tags]` — project-wide folder-derived-tag policy.",
@@ -1259,6 +1298,10 @@
         "body": {
           "$ref": "#/$defs/TaskBodyConfig",
           "description": "Body-shape constraints (heading gating)."
+        },
+        "comments": {
+          "$ref": "#/$defs/CommentsConfig",
+          "description": "Review-comment policy over a task's whole source file (`mt check`)."
         },
         "derive-tags": {
           "$ref": "#/$defs/DeriveConfig",

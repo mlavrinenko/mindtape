@@ -1,7 +1,9 @@
 //! `mt check` — validate tasks against the project configuration.
 
 use anyhow::{Context, Result, bail};
-use mindtape::{LimitBreach, Violation, check_headers, check_limits, compile_rules, validate};
+use mindtape::{
+    LimitBreach, Violation, check_comments, check_headers, check_limits, compile_rules, validate,
+};
 
 use crate::util;
 
@@ -28,6 +30,16 @@ pub(crate) fn run_with(project: &util::Project) -> Result<()> {
                 std::fs::read_to_string(&abs).with_context(|| format!("read {}", abs.display()))?;
             violations.extend(check_headers(task, &source, &header_rules, &project.config));
         }
+    }
+
+    // `[tasks.comments]`: `forbid` joins the per-task violations below (and so
+    // fails the command); `warn`/`allow` print (if anything) without failing.
+    let comment_violations = check_comments(&project.outcome.tasks, &project.config, &project.root)
+        .context("scan tasks.comments")?;
+    if project.config.tasks.comments.policy.blocks() {
+        violations.extend(comment_violations);
+    } else {
+        comment_violations.iter().for_each(print_violation);
     }
 
     for violation in &violations {

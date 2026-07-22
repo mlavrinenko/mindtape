@@ -4,7 +4,7 @@
 # is earned — the thresholds come from measured agent failure data, not taste.
 # A disciplined human team gets the same benefit, usually at lower strictness.
 #
-# Three mechanisms, each aimed at a documented failure mode.
+# Four mechanisms, each aimed at a documented failure mode.
 #
 # Required spec sections. Across agent-authored pull requests, the ticket
 # properties that moved merge rates were narrow and specific: being
@@ -31,6 +31,13 @@
 # a note is the one thing an agent will always fill plausibly, so requiring one
 # on every transition buys filler, not evidence; the review gate above is the
 # real check there.
+#
+# No review comments left in the file. A human reading agent-authored work
+# leaves `// no, use X instead` inline; the agent is meant to reframe the task
+# and remove the note. Without a gate that conversation silently becomes the
+# artifact — the objection survives into git and the next reader cannot tell a
+# live one from a settled one. `policy = "forbid"` makes leaving it behind fail
+# `mt check` instead of a convention nobody enforces.
 #
 # What this preset cannot do yet: it cannot verify a completion claim. A status
 # is a stamp, not proof, and MindTape has no way to know who flipped it. Until
@@ -107,6 +114,10 @@ note = "required"
 # required here only where the answer is knowable in advance.
 [tasks.priority]
 required = false
+
+# A leftover review comment fails the command; see the fourth mechanism above.
+[tasks.comments]
+policy = "forbid"
 
 # The required spec sections, all gated to non-terminal tasks.
 
