@@ -1,7 +1,10 @@
 //! `mt check` — validate tasks against the project configuration.
 
 use anyhow::{Context, Result, bail};
-use mindtape::{LimitBreach, Violation, check_headers, check_limits, compile_rules, validate};
+use mindtape::{
+    LimitBreach, Violation, check_estimate_drift, check_headers, check_limits, compile_rules,
+    validate,
+};
 
 use crate::util;
 
@@ -47,6 +50,8 @@ pub(crate) fn run_with(project: &util::Project) -> Result<()> {
         .filter(|breach| breach.severity.is_error())
         .count();
 
+    report_drift(project);
+
     let load_errors = project.outcome.errors.len();
     if violations.is_empty() && load_errors == 0 && over_limit == 0 {
         println!("ok: {} task(s) valid", project.outcome.tasks.len());
@@ -56,6 +61,27 @@ pub(crate) fn run_with(project: &util::Project) -> Result<()> {
         "{} violation(s), {load_errors} load error(s), {over_limit} limit breach(es)",
         violations.len()
     )
+}
+
+/// Report how far the git working tree has drifted past the file budget the
+/// in-flight tasks declare.
+///
+/// Never touches the exit status. An unforeseen file is normal and the answer is
+/// a rescope, not a failed command — so a breach only warns, and even an
+/// unusable `[tasks.estimate.drift] in-flight` filter reports as a warning
+/// rather than turning a read command into a failure.
+fn report_drift(project: &util::Project) {
+    match check_estimate_drift(&project.outcome.tasks, &project.config, &project.root) {
+        Err(err) => println!("warning: tasks.estimate.drift.in-flight: {err}"),
+        Ok(warnings) => {
+            for warning in &warnings {
+                println!("warning: {warning}");
+                if warning.tasks.len() > 1 {
+                    println!("  in flight: {}", warning.tasks.join(", "));
+                }
+            }
+        }
+    }
 }
 
 /// Report one breached `[[tasks.limits]]` entry: the count, the cap, the advice,

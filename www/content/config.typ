@@ -39,7 +39,7 @@ mt config show --json     # effective config as JSON
   [`[tasks] roots`], [Directories holding tasks. Table-form `[[tasks.roots]]` adds a display name and folder-tag policy — see #link(u("/derived-tags/"))[Derived tags].],
   [`[[tasks.status]]`], [The status legend, in lifecycle order: `value`, optional `glyph` / `color`, `terminal`, optional `to` transition edges, and optional `note` (`required` / `optional` / `forbidden`).],
   [`[tasks.priority]`, `[tasks.difficulty]`], [Numeric scales, bands, and frameworks. See #link(u("/priority/"))[Priority].],
-  [`[tasks.estimate]`], [Allowed estimate `units` (free labels, never converted).],
+  [`[tasks.estimate]`], [Allowed estimate `units` (free labels, never converted), per-unit `max` / `min` bounds, and the working-tree `drift` check. See below.],
   [`[tasks.recur]`], [Recurring-tasks policy floor: `enabled`, allowed `units` / `anchors`, `default-anchor`, `materialize`, the `rrule` feature flag, `max-advance`. See below.],
   [`[tasks.naming]`], [`stem` template for the filename `mt add` / `mt recur` mint. Unset ⇒ bare slug. See below.],
   [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
@@ -305,6 +305,61 @@ error: 2 task(s) match `status == "wip" && kind != "umbrella"`, max 1 — close 
   - rewrite-loader
   - split-config
 ```
+
+= Estimate bounds and working-tree drift
+
+An estimate is an opaque `unit -> quantity` dict, and `units` is the allow-list
+of legal unit names. Two per-unit tables bound the quantities:
+
+```toml
+[tasks.estimate]
+units = ["files"]
+
+[tasks.estimate.max]
+files = 5
+
+[tasks.estimate.min]
+files = 1
+```
+
+Outside the range is a *validation error*, not a warning: an oversized task must
+be split before the work starts, not after. Terminal tasks are exempt — a
+finished task cannot be split any more.
+
+A file count is the estimate `mt check` can actually verify. `[tasks.estimate.drift]`
+compares the git working tree against the budget the in-flight tasks declare and
+warns — never fails — when the tree has outgrown it:
+
+```toml
+[tasks.estimate.drift]
+unit          = "files"              # estimate unit read as the file budget
+in-flight     = 'status == "wip"'    # which tasks the diff is attributed to
+line-multiple = 200                  # secondary line ceiling per declared file; 0 disables
+message       = "rescope before going further"   # replaces the default advice
+```
+
+The working tree carries one diff and nothing in it says which file belongs to
+which task, so attribution is by count. One task in flight: compare against its
+budget and name it. Several: compare against the sum, and say the figure is a
+total.
+
+```
+warning: working tree touches 14 file(s), over the 2 declared by `alpha` — split the remaining work into a new task and finish the part in hand
+warning: working tree touches 16 file(s), over the 6 declared in total by 3 in-flight tasks — split the remaining work into a new task and finish the part in hand
+  in flight: alpha, beta, gamma
+```
+
+The message is the whole intervention, so the default names the action rather
+than restating the breach. The line total is a secondary soft signal at a
+generous multiple of the declared file count, never a budget of its own — line
+counts are distorted by generated files, lockfiles and formatting passes.
+
+#callout("note")[
+  The check is inert until an in-flight task declares an estimate in `unit`, and
+  reads the tree strictly read-only (`git --no-optional-locks … status
+  --porcelain`). Outside a git repository, or with git unavailable, it says
+  nothing at all — it never guesses, and never fails the command.
+]
 
 = Named views
 

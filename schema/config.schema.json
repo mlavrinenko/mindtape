@@ -223,10 +223,64 @@
       ],
       "description": "Per-root derivation switch: a bool, a single file glob, or a list of globs.\nA glob gates which files under the root get derivation (matched against the\npath relative to the root). `true`/`false` enable or disable wholesale."
     },
+    "DriftConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.estimate.drift]` — how `mt check` compares the working tree against\nthe budget the in-flight tasks declare.\n\nInert until some in-flight task actually declares an estimate in `unit`, so\na project that never uses a file budget never sees the check.",
+      "properties": {
+        "in-flight": {
+          "default": "status == \"wip\"",
+          "description": "Filter expression naming the tasks in flight. The working tree carries\none diff and nothing in it says which file belongs to which task, so this\nis what attribution rests on. Default `status == \"wip\"`.",
+          "type": "string"
+        },
+        "line-multiple": {
+          "default": 200,
+          "description": "Lines allowed per declared file before the secondary soft line warning.\n`0` disables it. Default 200.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "message": {
+          "default": null,
+          "description": "Replaces the default advice in a drift report.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "unit": {
+          "default": "files",
+          "description": "Estimate unit read as the file budget. Default `files`.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "EstimateConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.estimate]` — the estimate units allow-list.\n\nAn estimate is an opaque `unit -> quantity` dict (e.g. `(days: 5, hours: 5)`\nor `(points: 8)`). Units are free labels, not converted or compared; the\nconfig only constrains which unit names are legal. Empty = any unit.",
+      "description": "`[tasks.estimate]` — estimate units, bounds, and drift policy.",
       "properties": {
+        "drift": {
+          "$ref": "#/$defs/DriftConfig",
+          "description": "Working-tree drift policy for `mt check`."
+        },
+        "max": {
+          "additionalProperties": {
+            "format": "double",
+            "type": "number"
+          },
+          "default": {},
+          "description": "Per-unit upper bounds (`[tasks.estimate.max] files = 5`). A unit with no\nentry is unbounded above.",
+          "type": "object"
+        },
+        "min": {
+          "additionalProperties": {
+            "format": "double",
+            "type": "number"
+          },
+          "default": {},
+          "description": "Per-unit lower bounds (`[tasks.estimate.min] files = 1`). A unit with no\nentry is unbounded below.",
+          "type": "object"
+        },
         "required": {
           "$ref": "#/$defs/Requirement",
           "description": "Whether an estimate must be set."

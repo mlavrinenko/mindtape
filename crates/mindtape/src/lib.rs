@@ -14,6 +14,7 @@ pub mod canonical;
 pub mod condition;
 pub mod config;
 mod config_add;
+mod config_estimate;
 mod config_format;
 mod config_go;
 mod config_layers;
@@ -29,6 +30,7 @@ mod date;
 mod date_pin;
 pub mod derive;
 pub mod emit;
+pub mod estimate_drift;
 mod expr;
 pub mod filter;
 mod filter_links;
@@ -72,11 +74,11 @@ pub use add_slots::{RequiredSlot, required_core_slots};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use condition::{Condition, ConditionEnv, ConditionError};
 pub use config::{
-    AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags, Facet,
-    FormatConfig, GoConfig, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule,
-    PriorityConfig, ReadyConfig, RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec,
-    Visibility, config_path, embedded_defaults, load_config, parse_config, parse_import_view,
-    validate_views,
+    AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags, DriftConfig,
+    EstimateConfig, Facet, FormatConfig, GoConfig, ImportView, InteractiveMode, LS_COLUMNS,
+    LocalPackage, LsRule, PriorityConfig, ReadyConfig, RootConfig, RootSpec, TemplatesConfig,
+    TypstConfig, ViewSpec, Visibility, config_path, embedded_defaults, load_config, parse_config,
+    parse_import_view, validate_views,
 };
 pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
 pub use config_limits::{LimitBreach, LimitError, LimitSeverity, LimitSpec, check_limits};
@@ -85,6 +87,9 @@ pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use date_pin::{DateOverrideError, init_pinned_today};
 pub use derive::RootDeriver;
 pub use emit::emit_task;
+pub use estimate_drift::{
+    ChangeSet, DriftKind, DriftWarning, InFlightBudget, check_estimate_drift, working_tree_changes,
+};
 pub use filter::{Filter, FilterError};
 pub use format::format_typst;
 pub use framework::{Category, Framework, Input, InputKind};
