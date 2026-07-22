@@ -12,7 +12,7 @@
     2026,
     7,
     22,
-  )[implementing preset resolution, the four built-in shapes and the matrix test],
+  )[presets, resolution, template bundling, the e2e matrix and docs have landed; the wizard, mt preset save, the \[overlay\] key and the compose-time array conflict error are still open],
 )
 
 == Summary
