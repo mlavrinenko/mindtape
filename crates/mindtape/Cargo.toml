@@ -49,6 +49,11 @@ sha1 = "0.10"
 # editor-assist schema that never drifts from the types. Emits draft 2020-12.
 schemars = "1"
 globset = "0.4"
+# The `regex` link-target validator's engine (`[[tasks.links.kinds]] validate =
+# "regex"`, `crates/mindtape/src/config_links_validate.rs`). Already in the tree
+# via `artifact-gate`'s header matchers, so this is a direct edge on a crate
+# that is compiled either way.
+regex = "1"
 toml = "0.8"
 thiserror = "2"
 evalexpr = "12"

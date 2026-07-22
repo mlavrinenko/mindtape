@@ -103,16 +103,14 @@ fn custom_blocking_kind_gates_readiness() {
     // A project can opt a custom kind into gating readiness via
     // `[[tasks.links.kinds]] blocking = true`; a task with an unresolved
     // custom-kind edge is blocked, just like an unresolved `depends-on`.
-    use crate::link::{LinkKind, NoteRule};
+    use crate::link::LinkKind;
     use crate::test_support::link_edge;
 
     let mut cfg = config();
     cfg.tasks.links.kinds = vec![LinkKind {
         name: "needs".to_owned(),
-        max: None,
-        note: NoteRule::Optional,
         blocking: true,
-        acyclic: false,
+        ..LinkKind::default()
     }];
 
     let mut a = bare_task("a");

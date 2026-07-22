@@ -3,51 +3,87 @@
 //! enforcement, unknown-kind rejection, and cycle detection over every
 //! acyclic-flagged kind (`depends-on` and `parent` ship flagged this way; see
 //! [`crate::link::acyclic_kinds`]).
+//!
+//! A kind whose `[[tasks.links.kinds]] validate` is not `local-task-path`
+//! points outside the backlog (a commit, a pull request, a build). Its targets
+//! are checked for *shape* by [`crate::config_links_validate`] instead of being
+//! resolved against the task set, and they take no part in cardinality or
+//! cycles — `acyclic_kinds` already drops them. The note rule still applies, so
+//! such a kind can demand a reason like any other.
 
 use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use crate::config::Config;
+use crate::config_links_validate::Validators;
 use crate::graph::toposort_kind;
-use crate::link::{Link, acyclic_kinds, resolve_kind};
+use crate::link::{Link, LinksConfig, acyclic_kinds, kind_targets_tasks, resolve_kind};
 use crate::model::{Task, resolve_link_path};
 use crate::validate::Violation;
 
 /// Validate every task's `links:` edges against `config`, appending violations
-/// to `out`: resolution and per-kind cardinality/note rules run per task;
-/// cycle detection runs once over the whole set, per acyclic-flagged kind.
+/// to `out`: resolution (or target-shape validation) and per-kind
+/// cardinality/note rules run per task; cycle detection runs once over the
+/// whole set, per acyclic-flagged kind.
 pub(crate) fn check_all(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
     let files: HashSet<&Path> = tasks.iter().map(|task| task.file.as_path()).collect();
+    let validators = Validators::build(&config.tasks.links);
     for task in tasks {
-        check_task(task, &files, config, out);
+        check_task(task, &files, config, &validators, out);
     }
     for kind in acyclic_kinds(&config.tasks.links) {
         check_cycle(tasks, kind, out);
     }
 }
 
-/// Validate one task's edges: resolution against `files`, unknown-kind
+/// Validate one task's edges: resolution against `files` (or target-shape
+/// validation, for a kind that points outside the backlog), unknown-kind
 /// rejection, the note rule, and (once all edges are seen) cardinality.
-fn check_task(task: &Task, files: &HashSet<&Path>, config: &Config, out: &mut Vec<Violation>) {
+fn check_task(
+    task: &Task,
+    files: &HashSet<&Path>,
+    config: &Config,
+    validators: &Validators,
+    out: &mut Vec<Violation>,
+) {
+    let links = &config.tasks.links;
     let mut per_kind: HashMap<&str, u32> = HashMap::new();
     for link in &task.links {
-        check_resolution(task, link, files, out);
-        match resolve_kind(&link.kind, &config.tasks.links) {
+        let to_task = kind_targets_tasks(&link.kind, links);
+        if to_task {
+            check_resolution(task, link, files, out);
+        } else if let Some(message) = validators.problem(&link.kind, &link.task) {
+            push(out, task, kind_field(link), message);
+        }
+        match resolve_kind(&link.kind, links) {
             None => push(out, task, kind_field(link), unknown_kind_message(link)),
             Some(rule) => {
-                *per_kind.entry(link.kind.as_str()).or_insert(0) += 1;
+                if to_task {
+                    *per_kind.entry(link.kind.as_str()).or_insert(0) += 1;
+                }
                 check_note_rule(task, link, rule.note, out);
             }
         }
     }
+    check_cardinality(task, &per_kind, links, out);
+}
+
+/// Flag every kind whose edge count on `task` exceeds its cardinality cap.
+/// Only kinds that target tasks reach here — a cap counts task-graph edges.
+fn check_cardinality(
+    task: &Task,
+    per_kind: &HashMap<&str, u32>,
+    links: &LinksConfig,
+    out: &mut Vec<Violation>,
+) {
     for (kind, count) in per_kind {
-        if let Some(max) = resolve_kind(kind, &config.tasks.links).and_then(|rule| rule.max)
-            && count > max
+        if let Some(max) = resolve_kind(kind, links).and_then(|rule| rule.max)
+            && *count > max
         {
             push(
                 out,
                 task,
-                kind.to_owned(),
+                (*kind).to_owned(),
                 format!("`{kind}` allows at most {max} edge(s), found {count}"),
             );
         }

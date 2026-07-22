@@ -44,6 +44,7 @@ mt config show --json     # effective config as JSON
   [`[tasks.naming]`], [`stem` template for the filename `mt add` / `mt recur` mint. Unset ⇒ bare slug. See below.],
   [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
   [`[[tasks.limits]]`], [Work-in-progress caps: how many tasks may match a `filter` at once. Reported by `mt check`. See below.],
+  [`[[tasks.links.kinds]]`], [Project-declared edge kinds layered over the built-ins: cardinality, note rule, readiness/cycle flags, and the `validate` target shape. See below.],
   [`[ls]`, `[rm]`], [Default filters, columns, and ordering. See #link(u("/filters/"))[Filter language].],
   [`[views.<name>]`], [Named filter + sort + columns bundles, referenced with `@name`. See #link(u("/filters/"))[Filter language].],
   [`[[ls.rules]]`], [Ordered auto-activation rules for bare `mt ls`. See below and #link(u("/cli/"))[CLI reference].],
@@ -168,6 +169,48 @@ statuses no other check covers (`blocked`, `failed`, a reopen); leave `done`
 to a review gate instead. `forbidden` is enforced for a link kind's note but
 not for a status entry's — `mt check` never rejects a status note for being
 present.
+
+= Link kinds
+
+`[[tasks.links.kinds]]` layers project-declared edge kinds over the six built-ins
+(see #link(u("/dsl/"))[Task DSL]). Each kind sets its cardinality cap (`max`),
+note requirement (`note`), whether it gates readiness (`blocking`) or must stay
+acyclic (`acyclic`) — and `validate`, the shape its targets take:
+
+```toml
+[[tasks.links.kinds]]
+name = "discharged-by"
+validate = "url"          # the PR or build that closed the task
+note = "optional"
+
+[[tasks.links.kinds]]
+name = "landed-as"
+validate = "git-sha"      # hex, 7–64 chars: abbreviated SHA-1 → full SHA-256
+
+[[tasks.links.kinds]]
+name = "ticket"
+validate = "regex"        # needs the sibling pattern below
+regex = "^ACME-[0-9]+$"
+```
+
+#table(
+  columns: 2,
+  table.header([`validate`], [Accepts]),
+  [`local-task-path`], [A filename stem resolved against the loaded tasks — the default, and today's behaviour for every kind that omits the key.],
+  [`url`], [An RFC 3986 URI: a scheme, then only URI-legal characters.],
+  [`git-sha`], [A hexadecimal git object name, 7 to 64 characters.],
+  [`uuid`], [A UUID.],
+  [`regex`], [Whatever the kind's sibling `regex = "..."` matches. The pattern is required — a `regex` kind without one fails config validation rather than accepting everything.],
+  [`any`], [Any non-empty string — the deliberate opt-out.],
+)
+
+Anything but `local-task-path` declares the kind's targets to be artifacts
+outside the backlog, and the graph semantics follow from that one field: such an
+edge is never resolved to a stem, never counted against a cardinality cap, never
+part of a cycle, and never blocks readiness — `blocking` and `acyclic` are
+ignored on it. A malformed target is a `mt check` violation naming the kind, the
+validator, and the value. `mt ls` never follows one, and `mt graph` draws it as
+its own dashed leaf node rather than a task.
 
 = Stem naming
 

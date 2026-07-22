@@ -18,6 +18,7 @@ mod config_format;
 mod config_go;
 mod config_layers;
 pub mod config_limits;
+mod config_links_validate;
 mod config_ls;
 mod config_required;
 mod config_roots;

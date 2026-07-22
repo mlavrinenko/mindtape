@@ -19,6 +19,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fails the command for projects wanting a hard stop. Rests on the filter
   language's missing-field rule (an absent field is unequal to every literal), so
   a `kind == "x"` / `kind != "x"` pair partitions the whole backlog.
+- **External artifact links (`[[tasks.links.kinds]] validate`)** — a link kind
+  can now point outside the backlog: the commit, pull request or build that
+  discharges a task. `validate` defaults to `local-task-path` (exactly today's
+  behaviour, so every existing config is unchanged); the other bundled
+  validators are `url` (RFC 3986), `git-sha` (hex, 7–64 chars — abbreviated
+  SHA-1 through full SHA-256), `uuid`, `regex` (with a required sibling
+  `regex = "..."` pattern; its absence is a config error) and `any`. Graph
+  semantics follow from that one field rather than a second flag: a kind whose
+  `validate` is not `local-task-path` is excluded from stem resolution,
+  cardinality, cycle detection and readiness (`blocking`/`acyclic` are ignored
+  on it), while note rules still apply. A malformed target is a `mt check`
+  violation naming the kind, the validator and the value; `mt ls` never follows
+  one, and `mt graph` renders it as its own dashed leaf node instead of
+  traversing it.
 - **typstyle-clean writes (`[format]`)** — `mt` now runs typstyle over the Typst
   source it writes (`add`, `flip`, `review`, `recur`, `import`), so surgical
   edits and slot fills land in one canonical shape instead of leaving drift like

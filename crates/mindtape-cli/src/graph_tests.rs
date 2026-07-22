@@ -19,14 +19,28 @@ fn with_status(mut task: Task, name: &str) -> Task {
 fn stub_project(tasks: Vec<Task>) -> Project {
     // `parse_config("")` supplies the embedded legend floor, so `done` counts as
     // terminal (a bare `Config::default()` has an empty legend).
+    project_with(tasks, "")
+}
+
+/// A stub project whose config is `config_toml` layered over the floor.
+fn project_with(tasks: Vec<Task>, config_toml: &str) -> Project {
     Project {
         root: ".".into(),
-        config: mindtape::parse_config("").unwrap(),
+        config: mindtape::parse_config(config_toml).unwrap(),
         outcome: LoadOutcome {
             tasks,
             errors: vec![],
         },
     }
+}
+
+/// A project declaring one kind that points outside the backlog, validated by
+/// `validate` (`url`, `any`, …).
+fn external_project(tasks: Vec<Task>, validate: &str) -> Project {
+    project_with(
+        tasks,
+        &format!("[[tasks.links.kinds]]\nname = \"discharged-by\"\nvalidate = \"{validate}\"\n"),
+    )
 }
 
 fn args(format: GraphFormat, filter: Option<&str>, no_terminal: bool) -> GraphArgs {
@@ -229,6 +243,91 @@ fn mermaid_renders_related_edge() {
     )
     .unwrap();
     assert!(out.contains("-.->"));
+}
+
+/// A target outside the backlog renders as its own distinctly-styled leaf —
+/// never a task node, and never on the readiness palette.
+#[test]
+fn dot_renders_an_external_target_as_a_distinct_node() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("https://example.com/pr/7", "discharged-by")];
+    let out = build(
+        &args(GraphFormat::Dot, None, false),
+        external_project(vec![with_status(a, "wip")], "url"),
+    )
+    .unwrap();
+    assert!(
+        out.contains(
+            "\"external:https://example.com/pr/7\" [label=\"https://example.com/pr/7\", shape=note"
+        ),
+        "external node must render distinctly: {out}"
+    );
+    assert!(out.contains("#fdf3d0"), "external fill: {out}");
+    assert!(
+        out.contains("\"a\" -> \"external:https://example.com/pr/7\" [label=\"discharged-by\""),
+        "{out}"
+    );
+}
+
+/// The exclusion follows the `validate` axis, not the target string: a target
+/// that happens to spell a loaded task's stem is still never traversed.
+#[test]
+fn external_kind_is_never_traversed_even_when_it_spells_a_stem() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("b.typ", "discharged-by")];
+    let tasks = vec![with_status(a, "wip"), with_status(bare_task("b"), "wip")];
+    let out = build(
+        &args(GraphFormat::Dot, None, false),
+        external_project(tasks, "any"),
+    )
+    .unwrap();
+    assert!(
+        !out.contains("\"a\" -> \"b\""),
+        "an external edge is not a task-graph edge: {out}"
+    );
+    assert!(out.contains("\"a\" -> \"external:b.typ\""), "{out}");
+    // `a` has no task-graph dependency, so it reads ready, not blocked.
+    assert!(
+        out.contains("\"a\" [label=\"a [wip]\", fillcolor=\"#d5f5e3\"]"),
+        "{out}"
+    );
+}
+
+#[test]
+fn mermaid_renders_external_targets_in_their_own_class() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("https://example.com/pr/7", "discharged-by")];
+    let out = build(
+        &args(GraphFormat::Mermaid, None, false),
+        external_project(vec![with_status(a, "wip")], "url"),
+    )
+    .unwrap();
+    assert!(
+        out.contains("x0([\"https://example.com/pr/7\"]):::external"),
+        "{out}"
+    );
+    assert!(out.contains("n0 -.->|discharged-by| x0"), "{out}");
+    assert!(out.contains("classDef external"), "{out}");
+}
+
+/// Two tasks pointing at the same artifact share one node.
+#[test]
+fn repeated_external_target_renders_once() {
+    let mut a = bare_task("a");
+    a.links = vec![link_edge("https://example.com/pr/7", "discharged-by")];
+    let mut b = bare_task("b");
+    b.links = vec![link_edge("https://example.com/pr/7", "discharged-by")];
+    let out = build(
+        &args(GraphFormat::Dot, None, false),
+        external_project(vec![with_status(a, "wip"), with_status(b, "wip")], "url"),
+    )
+    .unwrap();
+    assert_eq!(
+        out.matches("[label=\"https://example.com/pr/7\", shape=note")
+            .count(),
+        1,
+        "{out}"
+    );
 }
 
 #[test]
