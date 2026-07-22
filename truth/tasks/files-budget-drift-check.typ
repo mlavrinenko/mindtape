@@ -32,3 +32,9 @@ The intent is not to punish an underestimate. It is to stop an agent tinkering o
 - v1 compares counts only. The intended path list stays prose under the required Files heading, enforced by a body-header rule; machine-comparing declared paths against the diff needs prose parsing and is out of scope.
 - MindTape adopts it on its own backlog: `units = ["files"]`, a cap, and a required estimate. Sequencing is mandatory — ship the feature, backfill every existing task, only then make it required, or the whole backlog fails validation at once.
 - Tests: under, at and over the cap; below `min`; the drift warning fires and stays a warning; one task in flight names it; several in flight report a total; a terminal task is exempt.
+
+== Notes
+
+Closed on the feature and on the first half of the adoption: `units = ["files"]` and the `max`/`min` caps are on this repository's config. The `required` flip is not, and was split into `adopt-a-files-estimate-on-the-open-backlog.typ`.
+
+The reason is the sequencing this task's own Scope calls mandatory. Requiring an estimate needs every open task to declare a files budget first, and that backfill is a judgment call per task rather than a mechanical edit — exactly the work that wants its own artifact instead of being smuggled into this one. Setting `required` without it would fail the whole backlog at once.
