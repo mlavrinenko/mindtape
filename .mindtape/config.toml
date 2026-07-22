@@ -179,3 +179,25 @@ when = 'into("done") || into("cancelled") || into("failed")'
 actions = [
   { run = "mmz --is-fresh -- just check", gate = true, message = "the checks have not passed against this worktree — run `mmz just check`, then flip again (`--force` waives it and records the waiver in the note)" },
 ]
+
+# Work-in-progress caps. One umbrella and one leaf, no more. An umbrella
+# coordinates a milestone and may legitimately stay open across sessions; a leaf
+# may not, and a session ending on an open leaf is the failure these exist to
+# stop. `severity = "error"` because the intended response is to finish or split
+# the open work, not to note the breach and carry on.
+#
+# No status name is hardcoded in Rust — a limit is just a filter. The second
+# filter catches every task carrying no `kind` at all, since an absent field is
+# unequal to every literal in the filter language, so the pair partitions the
+# whole backlog by construction.
+[[tasks.limits]]
+filter = 'status == "wip" && kind == "umbrella"'
+max = 1
+severity = "error"
+message = "close or split the open umbrella before opening another"
+
+[[tasks.limits]]
+filter = 'status == "wip" && kind != "umbrella"'
+max = 1
+severity = "error"
+message = "finish the open task, or split off what is done and close that, before starting another"
