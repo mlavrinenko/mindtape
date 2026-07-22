@@ -9,7 +9,7 @@
   ),
   difficulty: 2,
   tags: ("docs", "www"),
-  status: wip(2026, 7, 22),
+  status: done(2026, 7, 22),
 )
 
 == Summary
