@@ -41,6 +41,7 @@ mt config show --json     # effective config as JSON
   [`[tasks.priority]`, `[tasks.difficulty]`], [Numeric scales, bands, and frameworks. See #link(u("/priority/"))[Priority].],
   [`[tasks.estimate]`], [Allowed estimate `units` (free labels, never converted).],
   [`[tasks.recur]`], [Recurring-tasks policy floor: `enabled`, allowed `units` / `anchors`, `default-anchor`, `materialize`, the `rrule` feature flag, `max-advance`. See below.],
+  [`[tasks.naming]`], [`stem` template for the filename `mt add` / `mt recur` mint. Unset ⇒ bare slug. See below.],
   [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
   [`[ls]`, `[rm]`], [Default filters, columns, and ordering. See #link(u("/filters/"))[Filter language].],
   [`[views.<name>]`], [Named filter + sort + columns bundles, referenced with `@name`. See #link(u("/filters/"))[Filter language].],
@@ -118,6 +119,30 @@ a status-less task are exempt; `mt flip --force` overrides. `mt check` flags a
 task whose status is unreachable from the initial state under the graph — a
 snapshot reachability check, not a full path audit (a `status` carries no
 history).
+
+= Stem naming
+
+`[tasks.naming]` templates the filename #link(u("/cli/"))[`mt add`] and
+`mt recur` spawns mint for a new task. Unset, a new task gets a bare slug
+(`wire-oauth.typ`):
+
+```toml
+[tasks.naming]
+stem = "{slug}.task-{yy}{mm}{dd}"
+```
+
+#table(
+  columns: 2,
+  table.header([Macro], [Expands to]),
+  [`{slug}`], [The title, slugified — the whole template when unset.],
+  [`{date}`], [Today's (or the recurrence anchor's) date, ISO `YYYY-MM-DD`.],
+  [`{date:FMT}`], [The same date in a custom format token grammar.],
+  [`{yy}` / `{mm}` / `{dd}`], [Two-digit year / month / day.],
+  [`{n}` / `{n:0N}`], [The recurrence occurrence index; bare or zero-padded to `N` digits.],
+)
+
+A minted stem never overwrites an existing file: on a collision `mt` appends
+`-2`, `-3`, … until a free name turns up.
 
 = Recurring tasks
 
