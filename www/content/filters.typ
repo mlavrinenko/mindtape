@@ -56,6 +56,12 @@ with `miss(field)`.
 mt ls '@backend && !@blocked'   # in the backend view, minus blocked
 ```
 
+One predicate exists only where a transition does: `into("status")`, in a
+#link(u("/config/"))[`[[on.flip]]`] hook's `when`, matches the status being
+stamped, while the rest of the expression reads the task as it stands before the
+write. Everything else on this page composes with it —
+`into("done") && !has_tag("chore")` is an ordinary filter with one extra term.
+
 = Dependency predicates
 
 `ready` and `blocked` classify a task by its `depends-on` targets: ready when

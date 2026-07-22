@@ -65,7 +65,8 @@ mt ls --columns status,title    # one-off override of [ls] columns-order
     examples: ```sh
 mt flip blocked 1b 2c -m "waiting on infra"   # batch + note
 mt flip --list                                # show the shortcut verbs
-mt flip done 1b --force                       # bypass the transition graph
+mt flip done 1b --force                       # bypass the graph, waive a gate
+mt flip wip 1b --quiet                        # no [[on.flip]] show/list output
 ```,
   ),
   "review": (

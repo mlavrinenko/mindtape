@@ -56,6 +56,7 @@ pub(super) fn flip_args(status: &str, tasks: &[&str]) -> FlipArgs {
         note: None,
         list: false,
         force: false,
+        quiet: false,
     }
 }
 

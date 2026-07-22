@@ -72,6 +72,8 @@ pub struct Config {
     pub format: FormatConfig,
     /// Named query bundles (`[views.<name>]`), referenced by `@name`.
     pub views: BTreeMap<String, ViewSpec>,
+    /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
+    pub on: crate::config_hooks::OnConfig,
 }
 
 /// `[typst]` — Typst evaluation settings.
@@ -370,6 +372,7 @@ impl Config {
         problems.extend(crate::config_required::validate_requirements(self));
         problems.extend(crate::config_links_validate::validate_link_kinds(self));
         problems.extend(crate::config_limits::validate_limits(self));
+        problems.extend(crate::config_hooks::validate_flip_hooks(self));
         problems.extend(validate_ls_rules(&self.ls.rules, &self.views));
         if let Some(name) = &self.ls.default_view
             && !self.views.contains_key(name)

@@ -22,18 +22,17 @@ roots. You drive it through the `mt` binary.
 Core rule: drive the `mt` CLI; do not hand-edit task files to list, file, or
 re-status them. `mt` stamps dates, slugs filenames, injects required fields,
 resolves and rewrites links, and validates against the project config — hand
-edits skip all of that and quietly produce invalid or inconsistent tasks. Edit a
-`.typ` by hand only for what no command covers: rewording the body, fixing a typo,
-adjusting a field the CLI does not manage.
+edits skip all of that and quietly produce invalid tasks. Edit a `.typ` by hand
+only for what no command covers: rewording the body, fixing a typo, adjusting a
+field the CLI does not manage.
 
 ## Is this a MindTape project?
 
-It is if `.mindtape/config.toml` exists at the repo root. That file declares the
-task roots and the rules (status legend, priority scale, tags). When unsure where
-tasks live, read it. Run `mt` from the directory holding `.mindtape/` (or any
-descendant); it walks up to find the config. To drive a project from outside its
-tree, point it with `-w/--worktree <path>` (or `$MINDTAPE_WORKTREE`, or a
-`@name` from `~/.config/mindtape/worktrees.toml`; `mt worktrees` lists them).
+It is if `.mindtape/config.toml` exists at the repo root — it declares the task
+roots and the rules (status legend, priority scale, tags). Run `mt` from the
+directory holding `.mindtape/`, or any descendant. To drive a project from
+outside its tree: `-w/--worktree <path>`, `$MINDTAPE_WORKTREE`, or a `@name`
+from `~/.config/mindtape/worktrees.toml` (`mt worktrees` lists them).
 
 ## The basic loop
 
@@ -59,11 +58,10 @@ Most work is: find a task → read it → change its status → validate.
 `<task>` / `<id>` accepts a filename stem, a relative/absolute path, or a handle
 ordinal from the last `mt ls` (the `#` column, e.g. `1b`).
 
-The common flags are listed below, so reach for `mt <cmd> --help` only when a
-command errors or you need a flag this skill does not cover — not as a warm-up.
-The legend, kinds, priority scale, and tags are per-project; when you must pick
-among project-defined values, read `.mindtape/config.toml` (or `mt flip --list`
-for statuses) instead of guessing — skip that lookup when the value is given.
+Common flags are listed below, so reach for `mt <cmd> --help` only when a command
+errors or you need a flag this skill lacks — not as a warm-up. The legend, kinds,
+priority scale, and tags are per-project: when you must pick among them, read
+`.mindtape/config.toml` (or `mt flip --list`) instead of guessing.
 
 ## Finding tasks — `mt ls`
 
@@ -120,9 +118,8 @@ slugs the filename, and validates for you. Common flags:
 - `--describe` — show the template's fillable slots
 - `--list` — list available templates
 
-Inspect slots first only when filing into an unfamiliar custom template:
-`mt add --describe -t <template>` (or `mt add --list` to see what exists). For the
-built-in default template, go straight to `mt add <title>`.
+For an unfamiliar custom template, `mt add --describe -t <template>` shows its
+slots and `mt add --list` what exists; otherwise go straight to `mt add <title>`.
 
 Multiple tags: `+word` positional args are sugar for the `tags` slot, e.g.
 `mt add fix login +backend +auth`; or repeat `--set tags[]=backend --set
@@ -136,17 +133,21 @@ value from the project's legend. Every legend value is also a shortcut verb, so
 `mt done 1b` ≡ `mt flip done 1b`. Add `-m "note"` to attach a note.
 
 The legend is project-defined; if unsure a status exists, check `mt flip --list`,
-but when the target is obvious (user says "mark it done" and `done` is in the
-legend) just run it. Use the command, not a hand edit of the `status:` line — it
-stamps today's date and validates the transition. If the legend declares `to`
-transition edges, `mt flip` rejects a disallowed move and lists the valid next
-states; pass `--force` to override (a same-status re-stamp is always allowed).
+but when the target is obvious just run it. Use the command, not a hand edit of
+the `status:` line — it stamps today's date and validates the transition. If the
+legend declares `to` edges, `mt flip` rejects a disallowed move and lists the
+valid next states; `--force` overrides (a same-status re-stamp is always fine).
+
+A project may bind actions to a flip (`[[on.flip]]`): printing the open task set
+on the way into work, or a gate command that refuses a close until it passes.
+`mt flip` is the only command that runs them — reads never do. A refusal prints
+the command's output; `--force` waives it and records the waiver in the note.
 
 ```sh
 mt flip --list                 # show the legend and its verbs
 mt wip 1b -m "started"         # if `wip` is a legend value
 mt flip blocked 2c 3a          # set several at once
-mt flip done 1b --force        # bypass the transition graph
+mt flip done 1b --force        # bypass the graph, or waive a failing gate
 ```
 
 ## Validating — `mt check`
@@ -182,16 +183,15 @@ Body is normal Typst markup, free for context, checklists, etc.
 Rules to respect:
 - One task per file; the filename stem is the identity. Renaming a file breaks
   inbound `link()`s — prefer `mt rm` to retire, or update links and `mt check`.
-- Status, kind, priority scale, and tags are all defined in
-  `.mindtape/config.toml` — read it before inventing values.
+- Status, kind, priority scale, and tags are defined in `.mindtape/config.toml`
+  — read it before inventing values.
 - Custom/extension fields must be namespaced `x-<ns>` (e.g. `x-speconaut: ...`).
 - After any hand edit, run `mt check`.
 
 ## When the tool fights you
 
 If a command errors, read the message — it usually names the offending field or
-file. `mt check` after edits surfaces most problems. For full flag sets, prefer
-`mt <cmd> --help` over guessing.
+file. For full flag sets, prefer `mt <cmd> --help` over guessing.
 
 ## Improving this skill (internal note)
 

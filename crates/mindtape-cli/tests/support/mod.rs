@@ -105,6 +105,18 @@ pub fn install_lib(dir: &Path) {
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
 }
 
+/// A throwaway project directory: the in-tree `@local/mindtape` package
+/// override plus an empty `tasks/` root ([`install_lib`]), and `config` written
+/// to `.mindtape/config.toml`. The shared prologue for every e2e test that
+/// needs a real project with a config of its own.
+pub fn scaffold_project(config: &str) -> tempfile::TempDir {
+    let dir = tempfile::tempdir().unwrap();
+    install_lib(dir.path());
+    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
+    dir
+}
+
 /// A throwaway project — lib override, `[tasks] roots = ["tasks"]`, and one
 /// `wip` task titled `title` — for tests that only need something to list.
 pub fn project_with_task(title: &str) -> tempfile::TempDir {
