@@ -86,6 +86,15 @@ readiness by default. Because identity is the filename, a moved or deleted
 target breaks the link — `mt check` reports the dangling reference and any
 cycle.
 
+A custom kind can point *outside* the backlog instead — the commit, pull request
+or build that discharges the task — by declaring a `validate` other than the
+default `local-task-path` (see #link(u("/config/"))[Configuration]). Its targets
+are checked for shape, never resolved to a stem, and never join the task graph:
+
+```typ
+links: edge("discharged-by", "https://github.com/acme/app/pull/42"),
+```
+
 = Recurring tasks
 
 `every()` shapes one period unit — no date math in Typst, the same discipline

@@ -597,12 +597,12 @@
       "properties": {
         "acyclic": {
           "default": false,
-          "description": "Whether edges of this kind must stay acyclic.",
+          "description": "Whether edges of this kind must stay acyclic. Ignored unless `validate`\nis `local-task-path` — there is no cycle without a task-graph edge.",
           "type": "boolean"
         },
         "blocking": {
           "default": false,
-          "description": "Whether edges of this kind gate readiness.",
+          "description": "Whether edges of this kind gate readiness. Ignored unless `validate` is\n`local-task-path` — a target outside the backlog is not a task to wait on.",
           "type": "boolean"
         },
         "max": {
@@ -623,6 +623,18 @@
         "note": {
           "$ref": "#/$defs/NoteRule",
           "description": "Note requirement for edges of this kind."
+        },
+        "regex": {
+          "default": null,
+          "description": "Pattern for `validate = \"regex\"`: required for that validator, and\nrejected for every other one. A missing or uncompilable pattern is a\nconfig error, never a silently permissive kind.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "validate": {
+          "$ref": "#/$defs/TargetValidator",
+          "description": "What shape this kind's targets take. Defaults to `local-task-path`,\nwhich is exactly the historical behaviour (a stem resolved against the\nloaded tasks); any other value declares the targets to be artifacts\noutside the backlog — a commit, a pull request, a build."
         }
       },
       "type": "object"
@@ -1141,6 +1153,41 @@
         }
       },
       "type": "object"
+    },
+    "TargetValidator": {
+      "description": "What shape a link kind's targets take — the `validate` key of\n`[[tasks.links.kinds]]`.",
+      "oneOf": [
+        {
+          "const": "local-task-path",
+          "description": "A filename stem resolved against the loaded task set (the default, and\nthe only validator whose edges join the task graph).",
+          "type": "string"
+        },
+        {
+          "const": "url",
+          "description": "An RFC 3986 URI: a scheme, then only URI-legal characters.",
+          "type": "string"
+        },
+        {
+          "const": "git-sha",
+          "description": "A hexadecimal git object name, 7 to 64 characters — abbreviated SHA-1\nthrough full SHA-256.",
+          "type": "string"
+        },
+        {
+          "const": "uuid",
+          "description": "A UUID, in any of the forms the `uuid` crate parses.",
+          "type": "string"
+        },
+        {
+          "const": "regex",
+          "description": "A project-supplied pattern, taken from the kind's sibling `regex` key.",
+          "type": "string"
+        },
+        {
+          "const": "any",
+          "description": "Anything non-empty — the deliberate opt-out.",
+          "type": "string"
+        }
+      ]
     },
     "TaskBodyConfig": {
       "additionalProperties": false,

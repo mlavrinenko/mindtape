@@ -5,9 +5,23 @@ use std::collections::BTreeMap;
 use typst_harvest::HVal;
 
 use super::{
-    LinkKind, LinksConfig, NoteRule, acyclic_kinds, blocking_kinds, is_builtin_kind, parse_links,
-    resolve_kind,
+    LinkKind, LinksConfig, NoteRule, TargetValidator, acyclic_kinds, blocking_kinds,
+    is_builtin_kind, kind_targets_tasks, parse_links, resolve_kind,
 };
+
+/// A custom kind carrying only its name — every other field at its default
+/// (unbounded, optional note, non-blocking, acyclic off, `local-task-path`).
+fn custom(name: &str) -> LinkKind {
+    LinkKind {
+        name: name.to_owned(),
+        ..LinkKind::default()
+    }
+}
+
+/// A links config holding exactly `kinds`.
+fn with_kinds(kinds: Vec<LinkKind>) -> LinksConfig {
+    LinksConfig { kinds }
+}
 
 fn dict(pairs: Vec<(&str, HVal)>) -> HVal {
     HVal::Dict(
@@ -101,15 +115,7 @@ fn resolve_kind_unknown_is_none() {
 
 #[test]
 fn resolve_kind_finds_custom_config_kind() {
-    let config = LinksConfig {
-        kinds: vec![LinkKind {
-            name: "blocks-release".to_owned(),
-            max: None,
-            note: NoteRule::Optional,
-            blocking: false,
-            acyclic: false,
-        }],
-    };
+    let config = with_kinds(vec![custom("blocks-release")]);
     let rule = resolve_kind("blocks-release", &config).expect("custom kind resolves");
     assert_eq!(rule.max, None);
     assert!(!is_builtin_kind("blocks-release"));
@@ -119,15 +125,7 @@ fn resolve_kind_finds_custom_config_kind() {
 fn builtin_cannot_be_shadowed_by_config() {
     // A config entry named after a built-in never wins: the built-in's rule
     // (cardinality 1 for `parent`) always resolves.
-    let config = LinksConfig {
-        kinds: vec![LinkKind {
-            name: "parent".to_owned(),
-            max: None,
-            note: NoteRule::Optional,
-            blocking: false,
-            acyclic: false,
-        }],
-    };
+    let config = with_kinds(vec![custom("parent")]);
     let rule = resolve_kind("parent", &config).unwrap();
     assert_eq!(rule.max, Some(1));
 }
@@ -149,43 +147,68 @@ fn acyclic_kinds_default_is_depends_on_and_parent() {
 
 #[test]
 fn custom_kind_can_opt_into_blocking_and_acyclic() {
-    let config = LinksConfig {
-        kinds: vec![LinkKind {
-            name: "gates".to_owned(),
-            max: None,
-            note: NoteRule::Optional,
-            blocking: true,
-            acyclic: true,
-        }],
-    };
+    let config = with_kinds(vec![LinkKind {
+        blocking: true,
+        acyclic: true,
+        ..custom("gates")
+    }]);
     assert!(blocking_kinds(&config).contains(&"gates"));
     assert!(acyclic_kinds(&config).contains(&"gates"));
 }
 
 #[test]
 fn custom_kind_not_blocking_excluded_from_blocking_kinds() {
-    let config = LinksConfig {
-        kinds: vec![LinkKind {
-            name: "gates".to_owned(),
-            max: None,
-            note: NoteRule::Optional,
-            blocking: false,
-            acyclic: false,
-        }],
-    };
+    let config = with_kinds(vec![custom("gates")]);
     assert_eq!(blocking_kinds(&config), vec!["depends-on"]);
 }
 
 #[test]
 fn custom_kind_not_acyclic_excluded_from_acyclic_kinds() {
-    let config = LinksConfig {
-        kinds: vec![LinkKind {
-            name: "gates".to_owned(),
-            max: None,
-            note: NoteRule::Optional,
-            blocking: false,
-            acyclic: false,
-        }],
-    };
+    let config = with_kinds(vec![custom("gates")]);
     assert_eq!(acyclic_kinds(&config), vec!["depends-on", "parent"]);
+}
+
+/// A kind pointing outside the backlog takes no part in the task graph, even
+/// when it opts into `blocking`/`acyclic`: those flags describe task↔task
+/// edges, and this kind has none.
+#[test]
+fn external_kind_never_blocks_or_gates_cycles() {
+    let config = with_kinds(vec![LinkKind {
+        blocking: true,
+        acyclic: true,
+        validate: TargetValidator::Url,
+        ..custom("discharged-by")
+    }]);
+    assert_eq!(blocking_kinds(&config), vec!["depends-on"]);
+    assert_eq!(acyclic_kinds(&config), vec!["depends-on", "parent"]);
+}
+
+#[test]
+fn kind_targets_tasks_reads_the_validate_axis() {
+    let config = with_kinds(vec![
+        custom("local"),
+        LinkKind {
+            validate: TargetValidator::GitSha,
+            ..custom("commit")
+        },
+    ]);
+    // Built-ins are fixed at `local-task-path`; an unknown kind is treated as
+    // one so it still reports unresolved rather than skipping resolution.
+    assert!(kind_targets_tasks("depends-on", &config));
+    assert!(kind_targets_tasks("bogus", &config));
+    assert!(kind_targets_tasks("local", &config));
+    assert!(!kind_targets_tasks("commit", &config));
+}
+
+/// The default `validate` is `local-task-path`, so a config written before the
+/// field existed keeps every kind in the task graph.
+#[test]
+fn custom_kind_defaults_to_local_task_path() {
+    assert_eq!(
+        LinkKind::default().validate,
+        TargetValidator::LocalTaskPath,
+        "an omitted `validate` must keep today's behaviour"
+    );
+    assert!(LinkKind::default().validate.targets_tasks());
+    assert_eq!(LinkKind::default().note, NoteRule::Optional);
 }

@@ -5,11 +5,18 @@
 //! resolves their `links:` into the induced edge set (no re-implemented link
 //! resolution), and [`crate::graph_render`] serialises it. Readiness styles
 //! nodes ready/blocked/terminal.
+//!
+//! Edges of a kind that points outside the backlog (`[[tasks.links.kinds]]
+//! validate` other than `local-task-path`) are split off before rendering: they
+//! never join the traversed task graph, even when a target string happens to
+//! spell a loaded task's stem. They render as their own leaf nodes instead —
+//! see [`crate::graph_render::ExternalTarget`].
 
 use anyhow::Result;
-use mindtape::{Filter, Readiness, edges, select};
+use mindtape::link::kind_targets_tasks;
+use mindtape::{Config, Filter, Readiness, Task, edges, select};
 
-use crate::graph_render::{GraphFormat, render_dot, render_mermaid};
+use crate::graph_render::{ExternalTarget, GraphFormat, render_dot, render_mermaid};
 use crate::util;
 
 /// Arguments for `graph`.
@@ -67,11 +74,32 @@ fn build(args: &GraphArgs, project: util::Project) -> Result<String> {
         tasks.retain(|task| !task.is_terminal(&terminal));
     }
     mindtape::default_order_with(&mut tasks, config, &readiness);
-    let edges = edges(&tasks);
+    let mut graph_edges = edges(&tasks);
+    graph_edges.retain(|edge| kind_targets_tasks(edge.kind, &config.tasks.links));
+    let external = external_targets(&tasks, config);
     Ok(match args.format {
-        GraphFormat::Dot => render_dot(&tasks, &edges, &readiness),
-        GraphFormat::Mermaid => render_mermaid(&tasks, &edges, &readiness),
+        GraphFormat::Dot => render_dot(&tasks, &graph_edges, &external, &readiness),
+        GraphFormat::Mermaid => render_mermaid(&tasks, &graph_edges, &external, &readiness),
     })
+}
+
+/// Every `links:` edge in `tasks` whose kind points outside the backlog, in
+/// authored order per task. These are never resolved against the task set — the
+/// target is carried through verbatim for the renderer to show as a leaf.
+fn external_targets<'a>(tasks: &'a [Task], config: &Config) -> Vec<ExternalTarget<'a>> {
+    let mut out = Vec::new();
+    for task in tasks {
+        for link in &task.links {
+            if !kind_targets_tasks(&link.kind, &config.tasks.links) {
+                out.push(ExternalTarget {
+                    from: task,
+                    kind: &link.kind,
+                    target: &link.task,
+                });
+            }
+        }
+    }
+    out
 }
 
 #[cfg(test)]

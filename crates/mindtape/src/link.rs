@@ -15,6 +15,8 @@ use serde::Deserialize;
 
 use typst_harvest::HVal;
 
+pub use crate::config_links_validate::TargetValidator;
+
 /// One typed relation edge: a target task, its kind, and an optional note.
 ///
 /// Produced by [`parse_links`] from the `links:` marker field; a bare string
@@ -176,8 +178,28 @@ pub fn resolve_kind(name: &str, config: &LinksConfig) -> Option<KindRule> {
         })
 }
 
+/// Whether `name`'s targets are local task files — the axis
+/// `[[tasks.links.kinds]] validate` sets. Built-ins always are (their validator
+/// is fixed at `local-task-path`), and an unknown kind is treated as one so it
+/// still reports as unresolved-and-unknown rather than silently skipping
+/// resolution. Anything else names an artifact outside the backlog, so it takes
+/// no part in stem resolution, cardinality, cycle detection, or readiness.
+#[must_use]
+pub fn kind_targets_tasks(name: &str, config: &LinksConfig) -> bool {
+    if is_builtin_kind(name) {
+        return true;
+    }
+    config
+        .kinds
+        .iter()
+        .find(|kind| kind.name == name)
+        .is_none_or(|kind| kind.validate.targets_tasks())
+}
+
 /// Kind names (built-in ∪ config) whose [`KindRule`] satisfies `pick`, built-ins
-/// first, each name at most once.
+/// first, each name at most once. A custom kind whose targets are not local
+/// tasks never matches: `blocking`/`acyclic` are statements about the task
+/// graph, and such a kind's edges are not in it.
 fn kinds_matching(config: &LinksConfig, pick: impl Fn(&KindRule) -> bool) -> Vec<&str> {
     let mut kinds: Vec<&str> = BUILTIN_KINDS
         .iter()
@@ -191,7 +213,8 @@ fn kinds_matching(config: &LinksConfig, pick: impl Fn(&KindRule) -> bool) -> Vec
             blocking: custom.blocking,
             acyclic: custom.acyclic,
         };
-        if pick(&rule) && !kinds.contains(&custom.name.as_str()) {
+        if custom.validate.targets_tasks() && pick(&rule) && !kinds.contains(&custom.name.as_str())
+        {
             kinds.push(custom.name.as_str());
         }
     }
@@ -230,10 +253,21 @@ pub struct LinkKind {
     pub max: Option<u32>,
     /// Note requirement for edges of this kind.
     pub note: NoteRule,
-    /// Whether edges of this kind gate readiness.
+    /// Whether edges of this kind gate readiness. Ignored unless `validate` is
+    /// `local-task-path` — a target outside the backlog is not a task to wait on.
     pub blocking: bool,
-    /// Whether edges of this kind must stay acyclic.
+    /// Whether edges of this kind must stay acyclic. Ignored unless `validate`
+    /// is `local-task-path` — there is no cycle without a task-graph edge.
     pub acyclic: bool,
+    /// What shape this kind's targets take. Defaults to `local-task-path`,
+    /// which is exactly the historical behaviour (a stem resolved against the
+    /// loaded tasks); any other value declares the targets to be artifacts
+    /// outside the backlog — a commit, a pull request, a build.
+    pub validate: TargetValidator,
+    /// Pattern for `validate = "regex"`: required for that validator, and
+    /// rejected for every other one. A missing or uncompilable pattern is a
+    /// config error, never a silently permissive kind.
+    pub regex: Option<String>,
 }
 
 impl Default for LinkKind {
@@ -244,6 +278,8 @@ impl Default for LinkKind {
             note: NoteRule::Optional,
             blocking: false,
             acyclic: false,
+            validate: TargetValidator::LocalTaskPath,
+            regex: None,
         }
     }
 }

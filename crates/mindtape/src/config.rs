@@ -364,6 +364,7 @@ impl Config {
         problems.extend(validate_ls_columns(&self.ls));
         problems.extend(validate_views(&self.views));
         problems.extend(crate::config_required::validate_requirements(self));
+        problems.extend(crate::config_links_validate::validate_link_kinds(self));
         problems.extend(validate_ls_rules(&self.ls.rules, &self.views));
         if let Some(name) = &self.ls.default_view
             && !self.views.contains_key(name)
