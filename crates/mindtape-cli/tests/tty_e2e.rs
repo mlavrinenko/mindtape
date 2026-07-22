@@ -106,3 +106,59 @@ fn interactive_add_refuses_when_only_stdout_is_a_tty() {
         "the refused add must not have written a task"
     );
 }
+
+/// Install a stand-in `$EDITOR` under `dir` that discards the scaffold and
+/// writes `body` in its place, then returns its path. The heredoc delimiter is
+/// quoted so the shell expands nothing — `$x$` must reach the buffer intact.
+fn fake_editor(dir: &Path, body: &str) -> String {
+    let path = dir.join("fake-editor.sh");
+    std::fs::write(
+        &path,
+        format!("#!/bin/sh\ncat > \"$1\" <<'MT_EOF'\n{body}\nMT_EOF\n"),
+    )
+    .unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    path.to_string_lossy().into_owned()
+}
+
+/// `--edit` is the second way caller text reaches Typst markup: the values come
+/// back from a saved YAML buffer, not from `--set`. Escaping is applied to the
+/// merged fill map, downstream of both, and this pins that — an escaper wired
+/// into the `--set` parser alone would pass every other test and lose here.
+///
+/// Needs a pty because `add` only opens an editor when both streams are
+/// terminals, which is also why this lives beside the other terminal-only cases.
+#[test]
+fn interactive_add_escapes_markup_from_the_saved_buffer() {
+    let dir = support::project_with_slot_template();
+    let hazards = support::MARKUP_HAZARDS;
+    let editor = fake_editor(
+        dir.path(),
+        &format!("title: \"{hazards}\"\nwhy: |-\n  {hazards}\n"),
+    );
+
+    let out = pty_output(
+        dir.path(),
+        "add --name edited --edit",
+        200,
+        &[("EDITOR", editor.as_str()), ("VISUAL", "")],
+    );
+    assert!(
+        out.contains("wrote"),
+        "the edited add must file a task: {out}"
+    );
+
+    let written = std::fs::read_to_string(dir.path().join("tasks/edited.typ")).unwrap();
+    assert!(
+        written.contains(r"create-\*star\* \_u\_ \$x\$ \#h \[b\] \<a> >g \@at"),
+        "the buffer's text slot must be escaped: {written}"
+    );
+
+    let task = support::task_json(dir.path(), "edited");
+    assert_eq!(support::at(&task, "/title").as_str(), Some(hazards));
+    assert_eq!(support::at(&task, "/links/0/note").as_str(), Some(hazards));
+}

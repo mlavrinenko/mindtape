@@ -97,7 +97,7 @@ pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind};
 pub use ready::{Readiness, ReadyState};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
-pub use status_value::{STATUS_SHORTCUTS, status_value};
+pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
 pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill};
 pub use validate::{Location, Violation, validate};
 pub use worktrees::{WorktreeEntry, WorktreeError, WorktreeRegistry};

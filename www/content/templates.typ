@@ -50,6 +50,10 @@ mt add --edit                                         # fill in your editor
   template declares one, instead of joining the title.
 - #strong[List slots] need `--set name[]=value`, repeatable to append. A bare
   `--set name=value` for a list errors — one string is never silently a list.
+- #strong[Text slots are escaped] into Typst markup, whichever source the value
+  came from. Prose containing `*`, `_`, `$`, `#`, `[`, `]`, `<` or `@` stays
+  literal instead of opening emphasis or evaluating away. Numeric, choice and
+  date slots are literals and are left alone.
 
 = Placement and preview
 

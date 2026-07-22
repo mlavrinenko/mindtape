@@ -10,7 +10,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow, bail};
 use clap::Args;
-use mindtape::{Config, RawValue, SlotSpec, discover_slots, fill, naming, status_value, today_ymd};
+use mindtape::{
+    Config, RawValue, SlotKind, SlotSpec, discover_slots, escape_markup, fill, naming,
+    status_value, today_ymd,
+};
 use typst_edit::apply;
 
 use crate::add_interactive;
@@ -120,7 +123,8 @@ pub fn run(args: &AddArgs) -> Result<()> {
     if add_interactive::should_open(args.edit, &config.add, &specs, &values, tty)? {
         values = add_interactive::run(&config.add, &specs, &values)?;
     }
-    let filled = fill(&source, &values).map_err(|err| anyhow!(err.to_string()))?;
+    let filled =
+        fill(&source, &markup_safe(&values, &specs)).map_err(|err| anyhow!(err.to_string()))?;
     let filled = inject_header(&filled, config, args.status.as_deref())?;
     let filled = util::canonical_source(config, filled);
 
@@ -141,9 +145,48 @@ pub fn run(args: &AddArgs) -> Result<()> {
     println!("wrote {}", file.display());
 
     if !args.no_verify {
-        crate::task_edit::verify_written(&project.root, &file)?;
+        crate::task_edit::verify_written(&project.root, &file).with_context(|| kept_note(&file))?;
     }
     Ok(())
+}
+
+/// Escape every fill value that lands in Typst markup, leaving the rest alone.
+///
+/// Only a `text` slot splices its value verbatim into the document (see
+/// [`mindtape::SlotKind::Text`]); every other kind renders as a self-delimiting
+/// literal — a quoted string, a number, a `("a",)` list, an `on(y, m, d)` call —
+/// where the escaping backslashes would be data, not syntax, and would read back
+/// as themselves. So the decision is per kind, and escaping is applied here,
+/// downstream of every value source: `-f`/`--set`, the positional title, the
+/// `MINDTAPE_ADD_*` environment, and the `--edit` buffer all converge on this map.
+///
+/// The escaped copy feeds [`fill`] only; the caller keeps the authored values so
+/// the filename slug is minted from the text the user actually typed.
+fn markup_safe(
+    values: &BTreeMap<String, RawValue>,
+    specs: &[SlotSpec],
+) -> BTreeMap<String, RawValue> {
+    let mut out = values.clone();
+    for spec in specs.iter().filter(|spec| spec.kind == SlotKind::Text) {
+        if let Some(RawValue::Str(text)) = out.get_mut(&spec.name) {
+            *text = escape_markup(text);
+        }
+    }
+    out
+}
+
+/// What a failed post-write verification says about the file already on disk.
+///
+/// `add` writes before it verifies, so a rejected task is a real file by the
+/// time the error surfaces. It is kept rather than removed — a `--edit` buffer
+/// can hold minutes of typing, and silently deleting it to tidy up an error
+/// message is the worse trade — but "wrote X" followed by a bare error read as
+/// if `add` had cleaned up after itself. It never did; now it says so.
+fn kept_note(file: &Path) -> String {
+    format!(
+        "{} was kept on disk exactly as written; fix or delete it before the next command",
+        file.display()
+    )
 }
 
 /// Splice `slot(...)` calls for config-required core fields the template omits,

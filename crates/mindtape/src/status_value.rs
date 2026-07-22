@@ -6,6 +6,12 @@
 //! other name falls back to the generic `status("name", y, m, d)`. Centralising
 //! the rule here keeps `add` and `flip` from each carrying a copy (the jscpd
 //! copy-paste gate) and means the shortcut set lives in one place.
+//!
+//! [`escape_markup`] is the project's single Typst-markup escaper. It started
+//! here for status notes, but every writer that splices caller text into a
+//! content block faces the same hazard (`mt add`'s `text` slots), so it is
+//! public and shared rather than copied — a second escaper would be a second
+//! place for the hazard set to drift.
 
 /// Status names the prelude (`lib/prelude.typ`) ships as shortcut constructors.
 /// A legend value in this set renders as the ergonomic `name(y, m, d)`; any other
@@ -38,22 +44,34 @@ pub fn status_value(name: &str, ymd: (i32, u8, u8), note: Option<&str>) -> Strin
     if STATUS_SHORTCUTS.contains(&name) {
         let mut out = format!("{name}({year}, {month}, {day})");
         if let Some(note) = note {
-            out.push_str(&format!("[{}]", escape_content(note)));
+            out.push_str(&format!("[{}]", escape_markup(note)));
         }
         out
     } else if let Some(note) = note {
         format!(
             "status(\"{name}\", {year}, {month}, {day}, note: [{}])",
-            escape_content(note)
+            escape_markup(note)
         )
     } else {
         format!("status(\"{name}\", {year}, {month}, {day})")
     }
 }
 
-/// Escape the Typst markup characters that would break a `[…]` content block so a
-/// note reads literally. Backslash first, then the structural/markup leaders.
-fn escape_content(text: &str) -> String {
+/// Escape the Typst markup characters that would break a `[…]` content block so
+/// `text` reads back literally. Backslash first, then the structural/markup
+/// leaders: the delimiters that open a block (`[`, `]`), the code/math/emphasis
+/// leaders (`#`, `$`, `*`, `_`, `` ` ``), and the two sigils that swallow the
+/// word after them (`@` reference, `<` label). A closing `>` needs no escape —
+/// it is only special after a `<` that is now escaped — but it survives the
+/// round trip either way.
+///
+/// Every writer that splices caller text into markup must route through this:
+/// `status`/`flip` notes and `add`'s `text` slots today. Unescaped, ordinary
+/// prose either fails to load (`create-*star*` opens an unclosed strong) or,
+/// worse, loads with the markup silently applied — `<a>` and `@at` evaluate to
+/// a label and a reference and vanish from the value read back.
+#[must_use]
+pub fn escape_markup(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
     for ch in text.chars() {
         if matches!(
