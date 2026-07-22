@@ -173,6 +173,38 @@ pub fn check_limits(tasks: &[Task], config: &Config) -> Result<Vec<LimitBreach>,
     Ok(breaches)
 }
 
+/// Check every `[[tasks.limits]]` filter at config load, returning one message
+/// per unusable entry, prefixed with its dotted TOML path.
+///
+/// Parses each expression and dry-runs it against a probe task, exactly as
+/// `required` and `[views]` are checked — a malformed limit is one config error
+/// at load, not a surprise at the far end of a `mt check` run.
+pub(crate) fn validate_limits(config: &Config) -> Vec<String> {
+    let probe = Task::default();
+    config
+        .tasks
+        .limits
+        .iter()
+        .enumerate()
+        .filter_map(|(index, limit)| {
+            limit_problem(&limit.filter, &probe, config)
+                .map(|problem| format!("tasks.limits[{index}].filter: {problem}"))
+        })
+        .collect()
+}
+
+/// What makes one limit's filter unusable, if anything: a syntax error, or a
+/// structural problem the probe dry-run surfaces (an unknown field or view).
+fn limit_problem(source: &str, probe: &Task, config: &Config) -> Option<String> {
+    match Filter::parse(source) {
+        Err(err) => Some(err.to_string()),
+        Ok(filter) => filter
+            .matches(probe, config)
+            .err()
+            .map(|err| err.to_string()),
+    }
+}
+
 /// Ids of the tasks matching one limit's filter, in load order.
 fn matching_ids(
     limit: &LimitSpec,

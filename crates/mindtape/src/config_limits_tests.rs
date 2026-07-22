@@ -202,6 +202,30 @@ max = 1
     assert!(msg.contains("nonesuch"), "{msg}");
 }
 
+/// A malformed limit filter is one config error at load, the same treatment
+/// `required` and `[views]` get — not a surprise at the end of a `mt check`.
+#[test]
+fn a_malformed_limit_filter_fails_at_config_load() {
+    let err = Config::default().validate().err();
+    assert!(err.is_none(), "the empty config must validate: {err:?}");
+
+    let unknown_field = config("[[tasks.limits]]\nfilter = 'nonesuch == \"x\"'\nmax = 1\n");
+    let msg = unknown_field.validate().unwrap_err();
+    assert!(msg.contains("tasks.limits[0].filter"), "{msg}");
+    assert!(msg.contains("nonesuch"), "{msg}");
+
+    let syntax = config("[[tasks.limits]]\nfilter = 'status == '\nmax = 1\n");
+    let msg = syntax.validate().unwrap_err();
+    assert!(msg.contains("tasks.limits[0].filter"), "{msg}");
+
+    let unknown_view = config("[[tasks.limits]]\nfilter = '@nosuchview'\nmax = 1\n");
+    let msg = unknown_view.validate().unwrap_err();
+    assert!(msg.contains("tasks.limits[0].filter"), "{msg}");
+
+    let good = config(WIP_MAX_ONE);
+    assert!(good.validate().is_ok(), "a valid limit must not be flagged");
+}
+
 /// `max` is required rather than defaulted: a missing cap must not silently
 /// read as zero (which would forbid the matched set outright).
 #[test]
