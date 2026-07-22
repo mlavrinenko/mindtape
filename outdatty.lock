@@ -5,7 +5,7 @@ groups:
     source:
       crates/mindtape-cli/src/cli.rs: 9fa568660822e84be57d8048bfb2569562ffb1581917d51786880df17fcfd89c
       crates/mindtape-cli/src/presets/flow/config.toml: c2b468eb55f69ce994b238e150f424e101755ce45bc099cf24b45e389e5bf506
-      crates/mindtape-cli/src/presets/gated/config.toml: de5a20c39789ac6c5f5b3d1f327415a890ee1d6b3461f3776f6cde18b56a298c
+      crates/mindtape-cli/src/presets/gated/config.toml: 460966b6178e8546e7cd5771852e369f89d516167a05ca84704787a4ebf310c2
       crates/mindtape-cli/src/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
@@ -15,7 +15,7 @@ groups:
       www/content/cli.typ: 5ca37c3f27ecb78db06ade3ef2a451b02387fcc97f6cf9b8bb964e02e618b32d
       www/content/config.typ: ee0602bdee50b23df1b7f1f483ccc3429a9d77851d7933dd782e6e4722775cef
       www/content/filters.typ: 0756642c6fcf1a997f3cb7386bb4a3ca6eb766e003bcc5465c1ae69fcc89eb92
-      www/content/quickstart.typ: 522e49a5350f5d5d7c5679e064eeff9e65b9380cd69915a9ee84835e47ac060a
+      www/content/quickstart.typ: 8e8c615901a3056b4285c846d6670f215ae57f2d31381c375f32ad48d6eadbf9
       www/utils/cli-notes.typ: 4e55b2ab311f489d466413989e3d27ca7f80ca633e12c142f7d8f52cdfdaf483
   cli-name:
     source:
@@ -29,7 +29,7 @@ groups:
       skills/mindtape/SKILL.md: 1dc755b67df6c57d88a5804376816964513cd50592d9ab490adf647f766a5c99
       www/content/cli.typ: 5ca37c3f27ecb78db06ade3ef2a451b02387fcc97f6cf9b8bb964e02e618b32d
       www/content/index.typ: 46d74bcc72c78a177366ec62a5979c9b2f8fc29c454367da9a4b34d6535bae0e
-      www/content/quickstart.typ: 522e49a5350f5d5d7c5679e064eeff9e65b9380cd69915a9ee84835e47ac060a
+      www/content/quickstart.typ: 8e8c615901a3056b4285c846d6670f215ae57f2d31381c375f32ad48d6eadbf9
   dev-docs:
     source:
       Justfile: f8a4a5800686b253dbae611345f7e2ae877f1a0da19fa156b2d27516d886f239

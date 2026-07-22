@@ -116,6 +116,27 @@ note = "required"
 [tasks.priority]
 required = false
 
+# Difficulty is the exception, because it is the routing question: which model
+# tier and reasoning effort this task wants, decided before anyone starts it.
+# That is knowable in advance, unlike a priority score. Keep the number free of
+# any vendor or model name — mapping it onto a model is the reader's policy.
+#
+# Score JUDGMENT REQUIRED, not size. A rubric both a human and an agent apply
+# the same way is the difference between a routing signal and a decorative
+# number; without one, a difficulty is just another invented value.
+#
+#   0-2  mechanical — the change is fully specified; no decision is left open.
+#   3-5  local judgment — one module, one obvious approach, tests fall out of it.
+#   6-8  cross-cutting design — several defensible approaches, and picking one
+#        constrains later work.
+#   9    the approach itself is the open question.
+#
+# Left optional here so the preset stays usable on an existing backlog. Set
+# `required = "!terminal"` once every open task carries one — flipping it first
+# fails the whole backlog at once.
+[tasks.difficulty]
+required = false
+
 # A leftover review comment fails the command; see the fourth mechanism above.
 [tasks.comments]
 policy = "forbid"

@@ -89,6 +89,28 @@ max = 9
 glyph = "🔴"
 color = "red"
 
+# Difficulty says which model tier and reasoning effort a task wants, before
+# anyone starts it. The scale and its junior/mid/senior/staff anchors come from
+# the embedded floor; only the rubric and `required` are set here. No vendor or
+# model name belongs in an artifact — mapping a number onto a model is the
+# reader's policy, which is what the field was designed for.
+#
+# Score JUDGMENT REQUIRED, not size. A prediction is what an agent fills
+# plausibly rather than truthfully, and a written rubric both a human and an
+# agent apply the same way is the difference between a routing signal and a
+# decorative number.
+#
+#   0-2  mechanical — the change is fully specified; no decision is left open.
+#   3-5  local judgment — one module, one obvious approach, tests fall out of it.
+#   6-8  cross-cutting design — several defensible approaches, and picking one
+#        constrains later work.
+#   9    the approach itself is the open question.
+#
+# `!terminal` mirrors priority: a closed task is exempt, so finishing work never
+# means backfilling a prediction nobody will route on.
+[tasks.difficulty]
+required = "!terminal"
+
 # A task estimates how many FILES it means to touch — not how long it will take.
 # A duration is a guess a model will happily invent; a file count is plannable up
 # front, is the same information good file guidance already carries, and is

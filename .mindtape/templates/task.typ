@@ -7,6 +7,7 @@
     confidence: slot("confidence", kind: "float", default: 0.8),
     ease: slot("ease", kind: "int", default: 5),
   ),
+  difficulty: slot("difficulty", kind: "int", default: 3),
   tags: slot("tags", kind: "list", default: ()),
 )
 
