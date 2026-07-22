@@ -73,6 +73,7 @@ echo '{"title":"Wire OAuth","priority":7}' | mt add -f -   # JSON values
 mt add cleanup kitchen                  # positional title → cleanup-kitchen.typ (or pipe stdin / MINDTAPE_ADD_<SLOT> env)
 mt add fix login +backend +auth         # +tag words move into a tags slot, if the template has one
 mt add --edit                           # fill the slots in your editor (YAML buffer)
+mt add --set summary='ship *now* @lead' # text slots are escaped — prose with * _ $ # [ ] < @ stays literal
 mt add -t bug --name oauth-bug --to auth # named template, explicit stem, nested under <root>/auth/
 
 # List tasks (first matching [[ls.rules]], else the default view)

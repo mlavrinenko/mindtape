@@ -1,6 +1,6 @@
 //! Unit tests for the `add` command's pure helpers: status/header injection,
-//! title and tag construction, output-stem naming, dest-dir resolution, and
-//! the outside-roots warning.
+//! title and tag construction, per-kind markup escaping, output-stem naming,
+//! dest-dir resolution, and the outside-roots warning.
 //!
 //! Binary-invoking end-to-end tests live in `tests/add_e2e.rs` (integration
 //! tests), where Cargo guarantees the `mt` binary is built first. Every test
@@ -14,7 +14,10 @@ use std::path::{Path, PathBuf};
 
 use mindtape::{Config, RawValue, SlotSpec};
 
-use super::{AddArgs, dest_dir, fill_title_from_args, initial_status, inject_header, output_stem};
+use super::{
+    AddArgs, dest_dir, fill_title_from_args, initial_status, inject_header, markup_safe,
+    output_stem,
+};
 use crate::util::Project;
 
 const HEADER: &str = r#"#import "@local/mindtape:0.2.0": *
@@ -304,5 +307,50 @@ fn dest_to_rejects_absolute_subfolder() {
 }
 
 /// A project rooted at `dir` with its `tasks` root created on disk — the
+/// One slot per kind that can carry caller text, discovered the way a real
+/// template's would be.
+const KIND_SLOTS: &str = r#"#f(
+  title: slot("title"),
+  weight: slot("weight", kind: "int"),
+  ratio: slot("ratio", kind: "float"),
+  pick: slot("pick", kind: "choice", choices: ("a",)),
+  tags: slot("tags", kind: "list"),
+  body: slot("body", kind: "text"),
+)"#;
+
+/// Ordinary prose that happens to hold every Typst markup leader.
+const HAZARDS: &str = "create-*star* _u_ $x$ #h [b] <a> >g @at";
+
+/// [`HAZARDS`] as it must appear inside a content block.
+const HAZARDS_ESCAPED: &str = r"create-\*star\* \_u\_ \$x\$ \#h \[b\] \<a> >g \@at";
+
+/// Escaping is a per-kind decision, and getting it wrong is a bug in either
+/// direction: an unescaped `text` slot lets Typst reinterpret the value, and an
+/// escaped literal kind writes the backslashes into the value itself.
+#[test]
+fn markup_safe_escapes_text_slots_and_nothing_else() {
+    let specs = mindtape::discover_slots(KIND_SLOTS);
+    let mut values = BTreeMap::new();
+    for spec in &specs {
+        values.insert(spec.name.clone(), RawValue::Str(HAZARDS.to_owned()));
+    }
+
+    let out = markup_safe(&values, &specs);
+
+    assert_eq!(
+        out.get("body"),
+        Some(&RawValue::Str(HAZARDS_ESCAPED.to_owned())),
+        "a text slot splices into markup verbatim, so it must be escaped"
+    );
+    for name in ["title", "weight", "ratio", "pick", "tags"] {
+        assert_eq!(
+            out.get(name),
+            Some(&RawValue::Str(HAZARDS.to_owned())),
+            "{name} renders as a self-delimiting literal; escaping it would turn \
+             the backslashes into data"
+        );
+    }
+}
+
 #[path = "add_tests_subprocess.rs"]
 mod subprocess;
