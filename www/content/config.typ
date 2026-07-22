@@ -43,6 +43,7 @@ mt config show --json     # effective config as JSON
   [`[tasks.recur]`], [Recurring-tasks policy floor: `enabled`, allowed `units` / `anchors`, `default-anchor`, `materialize`, the `rrule` feature flag, `max-advance`. See below.],
   [`[tasks.naming]`], [`stem` template for the filename `mt add` / `mt recur` mint. Unset ⇒ bare slug. See below.],
   [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
+  [`[[tasks.limits]]`], [Work-in-progress caps: how many tasks may match a `filter` at once. Reported by `mt check`. See below.],
   [`[ls]`, `[rm]`], [Default filters, columns, and ordering. See #link(u("/filters/"))[Filter language].],
   [`[views.<name>]`], [Named filter + sort + columns bundles, referenced with `@name`. See #link(u("/filters/"))[Filter language].],
   [`[[ls.rules]]`], [Ordered auto-activation rules for bare `mt ls`. See below and #link(u("/cli/"))[CLI reference].],
@@ -196,6 +197,47 @@ it pulls in `chrono-tz` + `regex`, so only a project that actually authors an
 `rrule(...)` pays for them). Either gate missing rejects the task with a
 precise message; `mt check` additionally grammar-checks the raw rule string
 at parse time. See #link(u("/dsl/"))[Task DSL]'s "Recurring tasks" section.
+
+= Work-in-progress limits
+
+`[[tasks.limits]]` caps how many tasks may sit in a matched set at once, and
+`mt check` reports a breach. Bounded work-in-progress is what stops a session
+ending on an open leaf task.
+
+```toml
+[[tasks.limits]]
+filter = 'status == "wip" && kind == "umbrella"'
+max = 1
+severity = "error"
+
+[[tasks.limits]]
+filter = 'status == "wip" && kind != "umbrella"'
+max = 1
+message = "close the open leaf before starting another"
+severity = "error"
+```
+
+`filter` and `max` are required; `message` replaces the default advice and
+`severity` is `"warn"` (the default) or `"error"`. Warning is the default
+because a breach is a state of the backlog rather than a malformed artifact —
+it clears by finishing work, not by editing a file. `"error"` fails `mt check`,
+which is what a project wanting a hard stop (a pre-commit hook, CI) uses.
+
+No status name is built in: the capped set is a
+#link(u("/filters/"))[filter expression], so the same primitive caps a status,
+a named view (`filter = '@stuck'`), a priority band or a `kind`. A missing
+field is unequal to every literal, so the pair above partitions the whole
+backlog — a task carrying no `kind` counts against the second limit by
+construction.
+
+A breach prints the count, the cap, the advice, and every task in the matched
+set:
+
+```
+error: 2 task(s) match `status == "wip" && kind != "umbrella"`, max 1 — close the open leaf before starting another
+  - rewrite-loader
+  - split-config
+```
 
 = Named views
 

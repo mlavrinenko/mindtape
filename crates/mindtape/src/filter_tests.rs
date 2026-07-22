@@ -451,6 +451,31 @@ fn stale_with_status_at_exact_threshold_is_not_stale() {
     assert!(!hit("stale(1)", &task));
 }
 
+/// The missing-field comparison rule `compare` implements and `[[tasks.limits]]`
+/// rests on: an absent field is unequal to every literal and orders against
+/// none. `kind != "umbrella"` must therefore count a task carrying no `kind`,
+/// so a `kind == "x"` / `kind != "x"` limit pair covers the whole set.
+#[test]
+fn missing_field_is_unequal_to_every_literal() {
+    let mut task = sample();
+    task.kind = None;
+    assert!(hit("kind != \"umbrella\"", &task), "`!=` holds when absent");
+    assert!(!hit("kind == \"umbrella\"", &task));
+    assert!(!hit("kind < \"umbrella\"", &task));
+    assert!(!hit("kind > \"umbrella\"", &task));
+    assert!(!hit("kind <= \"umbrella\"", &task));
+    assert!(!hit("kind >= \"umbrella\"", &task));
+    // Field-agnostic: the same holds for every optional field, string or
+    // numeric (an unresolved priority is `Missing`, not zero).
+    task.due = None;
+    task.status = None;
+    task.priority = None;
+    assert!(hit("due != \"2026-01-01\"", &task));
+    assert!(hit("status != \"wip\"", &task));
+    assert!(hit("priority != 8", &task));
+    assert!(!hit("priority >= 0", &task));
+}
+
 #[test]
 fn contains_does_not_match_absent_substring() {
     // Guards against `contains_ci` returning `true` unconditionally.

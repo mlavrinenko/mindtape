@@ -29,6 +29,13 @@ to group.
 mt ls 'kind == "bug" && (priority >= 7 || has_tag("urgent"))'
 ```
 
+A field the task does not carry is unequal to every literal and orders against
+none: `kind != "bug"` matches a task with no `kind` at all, while `kind == "bug"`,
+`kind < "bug"` and the rest stay false. A `field == "x"` / `field != "x"` pair
+therefore partitions the whole backlog with no third case — the property
+#link(u("/config/"))[work-in-progress limits] rest on. Select absence explicitly
+with `miss(field)`.
+
 = Functions
 
 #table(

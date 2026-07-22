@@ -171,6 +171,9 @@ pub struct TasksConfig {
     pub links: crate::link::LinksConfig,
     /// Recurring-tasks feature gate and policy floor (`mt recur`).
     pub recur: crate::recur::RecurConfig,
+    /// Work-in-progress caps: how many tasks may match a filter at once
+    /// (`[[tasks.limits]]`, enforced by `mt check`).
+    pub limits: Vec<crate::config_limits::LimitSpec>,
 }
 
 // `roots` intentionally stays the opinionated `["tasks"]` rather than collapsing
@@ -195,6 +198,7 @@ impl Default for TasksConfig {
             naming: crate::naming::NamingConfig::default(),
             links: crate::link::LinksConfig::default(),
             recur: crate::recur::RecurConfig::default(),
+            limits: Vec::new(),
         }
     }
 }

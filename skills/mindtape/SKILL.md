@@ -152,9 +152,9 @@ mt flip done 1b --force        # bypass the transition graph
 ## Validating — `mt check`
 
 `mt check` evaluates every task against the project config: status/kind enums,
-required fields, numeric bounds on priority/difficulty, link resolution and
-dependency cycles, tag allow-list, and body-header rules. Run it after editing
-task files by hand. A clean run means the backlog is valid.
+required fields, numeric bounds, link resolution and dependency cycles, tag
+allow-list, body-header rules, and `[[tasks.limits]]` work-in-progress caps (a
+breach names the cap and every task in the set). A clean run means all is valid.
 
 ## Authoring or editing a task file by hand
 
