@@ -20,6 +20,6 @@ Let a project require a written note on a status stamp, per status value. Today 
 - Add `note` (NoteRule) to LegendEntry, defaulting to Optional so every existing config is unchanged.
 - Enforce in validate: a task whose current status value declares note = required and carries a blank/absent note is a validation error naming the field.
 - Gate `mt flip` on it: refuse a transition into a note-required status without a note, and point at the flag that supplies one.
-- Decide whether the rule is per-entry only or also settable once for the whole legend.
+- Per-entry only; no legend-wide switch. A legend-wide setting would demand a note on every transition, and a note is the one thing an agent will always fill plausibly, so blanket notes buy filler and false assurance. Per-entry lets a preset demand justification exactly where no machine check exists — blocked, failed, cancelled, and reopen edges — and stay silent on done, where a gate command is the correct check.
 - Surface in the JSON schema and `mt init --annotate` commentary.
 - Tests: required-note status rejects a blank note, accepts a filled one, forbidden/optional unchanged, and flip refuses then accepts.

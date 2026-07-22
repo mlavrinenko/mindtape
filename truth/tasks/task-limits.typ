@@ -20,6 +20,6 @@ Let a project cap how many tasks may sit in a given state at once, and have `mt 
 - New `[[tasks.limits]]` table: `filter` (the existing filter language, so the matched set is arbitrary — a status, a view, a priority band), `max` (int), optional `message`. No status name appears in Rust.
 - Accept `view = "name"` as an alternative to `filter`, reusing view resolution.
 - `mt check` evaluates each limit over the loaded set and reports a breach naming the limit, the count, the cap, and the offending tasks.
-- Decide severity: warning by default, or a `severity` key per limit. A breach is a state of the backlog, not a malformed task, so it should not fail the same way a validation error does.
-- Consider surfacing the same counts in `mt ls` (a header line) so a breach is visible without a separate command.
+- Always a warning, and no per-limit severity key. A breach is a state of the backlog, not a malformed artifact: it is cleared by finishing work, not by editing a file, so failing a commit hook over it would block the only action that fixes it.
+- Scope is `mt check` only. Surfacing counts in `mt ls` is a separate display concern and is deliberately excluded here.
 - Tests: under, at, and over the cap; a limit whose filter matches nothing; two limits at once; a project whose in-flight status is not named `wip`.
