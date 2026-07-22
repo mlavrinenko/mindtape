@@ -135,6 +135,10 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
             problems.push(format!("{spec}: {msg}"));
             continue;
         }
+        if let Err(msg) = check_note_required(legend, status, args.note.as_deref()) {
+            problems.push(format!("{spec}: {msg}"));
+            continue;
+        }
         let restamp = task.status.as_ref().is_some_and(|s| s.name == status);
         match flip_one(&project.config, abs, status, ymd, args.note.as_deref()) {
             Ok(()) => {
@@ -193,6 +197,26 @@ fn check_transition(
         "illegal transition `{}` → `{to}`; {listing} (use --force to override)",
         from.name
     ))
+}
+
+/// Guard one flip against the target status's note requirement (`note =
+/// "required"` on its `[[tasks.status]]` entry — see
+/// `mindtape::config::LegendEntry::note_required`, the same `NoteRule`
+/// primitive typed `links:` edges use). `Ok(())` when the target carries no
+/// requirement, or a non-blank note was supplied; `Err(message)` names the
+/// status and points at the flag that supplies one.
+fn check_note_required(
+    legend: &Legend,
+    to: &str,
+    note: Option<&str>,
+) -> std::result::Result<(), String> {
+    let required = legend
+        .entry(to)
+        .is_some_and(mindtape::config::LegendEntry::note_required);
+    if !required || note.map(str::trim).is_some_and(|n| !n.is_empty()) {
+        return Ok(());
+    }
+    Err(format!("`{to}` requires a note; supply one with -m/--note"))
 }
 
 /// Rewrite the task at `abs`: stamp `status` dated `ymd` (with optional `note`),

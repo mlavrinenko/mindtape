@@ -4,7 +4,7 @@
 # is earned — the thresholds come from measured agent failure data, not taste.
 # A disciplined human team gets the same benefit, usually at lower strictness.
 #
-# Two mechanisms, each aimed at a documented failure mode.
+# Three mechanisms, each aimed at a documented failure mode.
 #
 # Required spec sections. Across agent-authored pull requests, the ticket
 # properties that moved merge rates were narrow and specific: being
@@ -21,6 +21,16 @@
 # agent pull requests was not a code defect at all — it was nobody reviewing
 # them. Making `done` unreachable from `wip` puts that review in the graph
 # instead of in a convention.
+#
+# A note required on `blocked`, `failed`, and `cancelled`. An unexplained flip
+# to `done` is not the only failure mode — an unexplained flip away from work
+# is another, and it is the one no gate command can catch, because nothing runs
+# once a task stops. `[[tasks.status]] note = "required"` demands a written
+# reason exactly on those three: why it stalled, what broke, why it was
+# dropped. `done` is deliberately left at the default (`note = "optional"`) —
+# a note is the one thing an agent will always fill plausibly, so requiring one
+# on every transition buys filler, not evidence; the review gate above is the
+# real check there.
 #
 # What this preset cannot do yet: it cannot verify a completion claim. A status
 # is a stamp, not proof, and MindTape has no way to know who flipped it. Until
@@ -67,6 +77,7 @@ value = "blocked"
 glyph = "🔒"
 color = "red"
 to = ["wip", "cancelled", "failed"]
+note = "required"
 
 [[tasks.status]]
 value = "done"
@@ -80,6 +91,7 @@ value = "cancelled"
 glyph = "🚫"
 color = "magenta"
 terminal = true
+note = "required"
 
 [[tasks.status]]
 value = "failed"
@@ -87,6 +99,7 @@ glyph = "❌"
 color = "red"
 terminal = true
 to = ["wip"]
+note = "required"
 
 # Priority stays a plain optional integer, and no framework is configured.
 # Requiring a score would buy a number the agent invented to satisfy the field:

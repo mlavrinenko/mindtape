@@ -37,7 +37,7 @@ mt config show --json     # effective config as JSON
   columns: 2,
   table.header([Section], [Purpose]),
   [`[tasks] roots`], [Directories holding tasks. Table-form `[[tasks.roots]]` adds a display name and folder-tag policy — see #link(u("/derived-tags/"))[Derived tags].],
-  [`[[tasks.status]]`], [The status legend, in lifecycle order: `value`, optional `glyph` / `color`, `terminal`, and optional `to` transition edges.],
+  [`[[tasks.status]]`], [The status legend, in lifecycle order: `value`, optional `glyph` / `color`, `terminal`, optional `to` transition edges, and optional `note` (`required` / `optional` / `forbidden`).],
   [`[tasks.priority]`, `[tasks.difficulty]`], [Numeric scales, bands, and frameworks. See #link(u("/priority/"))[Priority].],
   [`[tasks.estimate]`], [Allowed estimate `units` (free labels, never converted).],
   [`[tasks.recur]`], [Recurring-tasks policy floor: `enabled`, allowed `units` / `anchors`, `default-anchor`, `materialize`, the `rrule` feature flag, `max-advance`. See below.],
@@ -144,6 +144,30 @@ a status-less task are exempt; `mt flip --force` overrides. `mt check` flags a
 task whose status is unreachable from the initial state under the graph — a
 snapshot reachability check, not a full path audit (a `status` carries no
 history).
+
+= Status notes
+
+Add `note = "required"` to a status entry to demand a written note on every
+transition into it — the same `required` / `optional` / `forbidden` rule typed
+`links:` edges already use for a kind's note (the built-in `related` kind
+defaults to `required`). Unset, an entry stays `optional`, exactly as before
+the field existed:
+
+```toml
+[[tasks.status]]
+value = "blocked"
+note = "required"   # `mt flip blocked task -m "why"` — omit -m and it is refused
+```
+
+`mt flip` refuses a move into a `required` entry without `-m/--note`, naming the
+status and the flag; `mt check` flags a task already sitting there with a
+blank or absent note. The rule is per entry, not legend-wide, on purpose: a
+blanket requirement on every transition — including `done` — buys a note an
+agent will always fill plausibly, not a justification. Reserve it for the
+statuses no other check covers (`blocked`, `failed`, a reopen); leave `done`
+to a review gate instead. `forbidden` is enforced for a link kind's note but
+not for a status entry's — `mt check` never rejects a status note for being
+present.
 
 = Stem naming
 

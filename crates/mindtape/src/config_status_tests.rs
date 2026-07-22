@@ -2,6 +2,7 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{Legend, LegendEntry};
+use crate::link::NoteRule;
 
 fn entry(value: &str, terminal: bool) -> LegendEntry {
     LegendEntry {
@@ -153,4 +154,20 @@ fn transition_problems_flags_an_unknown_endpoint() {
 fn transition_problems_empty_for_a_sound_graph() {
     assert!(lifecycle().transition_problems().is_empty());
     assert!(Legend::default().transition_problems().is_empty());
+}
+
+#[test]
+fn note_defaults_to_optional() {
+    assert_eq!(LegendEntry::default().note, NoteRule::Optional);
+    assert!(!LegendEntry::default().note_required());
+}
+
+#[test]
+fn note_required_true_only_for_the_required_variant() {
+    let mut e = entry("blocked", false);
+    assert!(!e.note_required());
+    e.note = NoteRule::Forbidden;
+    assert!(!e.note_required());
+    e.note = NoteRule::Required;
+    assert!(e.note_required());
 }

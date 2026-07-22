@@ -7,6 +7,8 @@ use std::collections::{HashSet, VecDeque};
 
 use serde::Deserialize;
 
+use crate::link::NoteRule;
+
 /// The status legend: an ordered, displayable vocabulary.
 ///
 /// Each entry binds a value to optional display attributes (glyph, colour,
@@ -42,6 +44,25 @@ pub struct LegendEntry {
     /// and an empty `to` marks a sink: nothing out but a same-status re-stamp.
     /// A reopen edge is just a terminal (or any) state naming its target here.
     pub to: Vec<String>,
+    /// Note requirement for a task landing in this status: reuses [`NoteRule`]
+    /// unmodified from the typed `links:` edge kind rule
+    /// (`crate::link::LinkKind::note`) rather than defining a second type.
+    /// Defaults to `Optional`, so an existing config with no `note` field is
+    /// unchanged. Per-entry, not legend-wide: a preset can demand a note
+    /// exactly where no machine check exists (`blocked`, `failed`, a reopen)
+    /// and stay silent on `done`, where a gate command is the real check —
+    /// see `truth/tasks/status-note-rule.typ`.
+    pub note: NoteRule,
+}
+
+impl LegendEntry {
+    /// Whether this entry's [`NoteRule`] is `Required` — the only variant
+    /// enforced for a status (unlike a link kind, a status never rejects a
+    /// present note, so `Forbidden` is not checked here).
+    #[must_use]
+    pub fn note_required(&self) -> bool {
+        self.note == NoteRule::Required
+    }
 }
 
 impl Legend {

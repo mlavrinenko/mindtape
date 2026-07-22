@@ -144,9 +144,11 @@ definition; `--json` on either for scripting.
 `mt flip <status> <refs…>` sets a status dated today. Every legend value is also
 a shortcut verb, and flips batch. When the legend declares `to` transition edges
 (see #link(u("/config/"))[Config]), `mt flip` rejects a move that is not an
-allowed edge and lists the valid next states; `--force` overrides. Tasks are
-referenced by slug, list handle (`1b`), or path. `mt flip --list` prints the
-shortcut verbs generated from the legend.
+allowed edge and lists the valid next states; `--force` overrides. When a
+target entry declares `note = "required"`, `mt flip` refuses the move without
+`-m/--note` — no `--force` escape for this one. Tasks are referenced by slug,
+list handle (`1b`), or path. `mt flip --list` prints the shortcut verbs
+generated from the legend.
 
 #cli-group(cli, cli-groups, "Status")
 
