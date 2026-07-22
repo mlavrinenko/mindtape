@@ -9,7 +9,7 @@
   ),
   difficulty: 4,
   tags: ("substrate", "cli"),
-  status: proposed(2026, 7, 22),
+  status: wip(2026, 7, 22),
 )
 
 == Summary
