@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/import-export/">Import &amp; export</a> (there is no <code>mt export</code> — see why)
+  <a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/quickstart/">Quickstart</a> · <a href="https://mlavrinenko.github.io/mindtape/import-export/">Import &amp; export</a> (there is no <code>mt export</code> — see why)
 </p>
 
 ---
@@ -35,12 +35,12 @@ filename stem, so links between tasks break loudly when a file is renamed.
 Wire up the login flow.
 ```
 
-Everything scalar or enum — the `status` legend, the numeric `priority` and
-`difficulty` scales, `kind`, `estimate` (an opaque `unit -> quantity` dict with
-a per-project unit allow-list), dates, tags, and task links — is a generic core
-field constrained by `.mindtape/config.toml`. Tools that build on MindTape add
-their own fields through the `x-<ns>` extension seam, which MindTape carries
-opaquely.
+Everything scalar or enum is a generic core field constrained by
+`.mindtape/config.toml`; tools built on MindTape add their own data through
+the `x-<ns>` extension seam, carried through opaquely. See
+[Concepts](https://mlavrinenko.github.io/mindtape/concepts/) for the full
+model and [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) for every
+field a task can declare.
 
 ## Installation
 
@@ -58,171 +58,41 @@ mt install            # @local/mindtape + ~/.config/mindtape/{defaults.toml,conf
 mt init               # writes .mindtape/config.toml (with a #:schema directive) here
 ```
 
-`mt init` writes a named preset (`--list-presets`): `todone`, `flow` (a lifecycle with enforced transitions; the default), `personal` (inbox, hide-until dates, weekly review), `gated` (required spec sections and a review state `done` cannot skip — for work handed to an AI agent). `--annotate` keeps the preset's comments; user presets under `~/.config/mindtape/presets` shadow the built-ins by name.
-
-`mt install` also writes a JSON Schema next to the app config; `mt init` adds a first-line `#:schema` directive targeting it so a schema-aware TOML editor (tombi, Taplo) assists filling values (`--schema URL|PATH` retargets, `--no-schema` opts out). `mt install-lib` ≙ `mt install --no-defaults --no-schema`.
+`mt init --list-presets` shows the named starter shapes (`flow`, a lifecycle
+with enforced transitions, is the default); `--annotate` keeps a preset's
+explanatory comments. See
+[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) for what
+each preset is for and
+[Configuration](https://mlavrinenko.github.io/mindtape/config/) for the
+four-layer merge `mt install`/`mt init` write into, and the JSON Schema
+`mt install` generates for editor completion.
 
 ## Usage
 
+One task, start to finish — file it, list it, close it, validate the project:
+
 ```bash
-# File a new task from a Typst slot template (fills slots, injects status + id)
-mt add --describe                       # slot schema (--describe=json for agents)
-mt add --set title="Wire OAuth" --set priority=7      # raw --set values
-mt add --set tags[]=backend --set tags[]=auth  # repeat key[]= to append to a list slot
-echo '{"title":"Wire OAuth","priority":7}' | mt add -f -   # JSON values
-mt add cleanup kitchen                  # positional title → cleanup-kitchen.typ (or pipe stdin / MINDTAPE_ADD_<SLOT> env)
-mt add fix login +backend +auth         # +tag words move into a tags slot, if the template has one
-mt add --edit                           # fill the slots in your editor (YAML buffer)
-mt add -t bug --name oauth-bug --to auth # named template, explicit stem, nested under <root>/auth/
-
-# List tasks (first matching [[ls.rules]], else the default view)
-mt ls
-mt ls ''                             # empty filter → everything (there is no --all)
-mt ls 'has_tag("backend")'           # filter expression
-mt ls 'status != "done" && priority >= 7' --json   # filter + JSON output
-mt ls 'stale(30)'                     # unreviewed for over 30 days
-mt ls ready                           # deps all done — startable now
-mt ls --sort priority:asc -n 10      # sort + limit
-mt ls @broken                         # a named view: its filter + sort + columns
-mt ls '@summer && !@broken'           # compose views by @name inside a filter
-mt ls --columns status,title          # choose columns for this run
-mt views                              # list named views (mt views <name> to inspect)
-
-# Re-affirm a task as still relevant (stamps reviewed: with today's date)
-mt review implement-auth               # by slug, relative, or absolute path
-
-# Open a task in your editor ([go] editor → $VISUAL → $EDITOR; {task} → path)
-mt go 1b                               # by handle, slug, or path
-mt ls -i                               # interactive: type the # to pick, Enter opens it (go), q quits
-
-# Set a task's status dated today; each legend value is also a shortcut verb
-mt flip done implement-auth            # canonical; or `mt done 1b 2c` (== flip done)
-mt flip blocked 1b 2c -m "note"        # batch + note; `mt flip --list` shows the verbs
-mt flip done 1b --force                # bypass the legend's `to` transition graph, if declared
-
-# Advance a recurring task (recur: every(...)) to its next occurrence
-mt recur water-plants                  # spawn (default) a new file, or mutate in place
-mt recur water-plants --dry-run        # preview without writing
-
-# Validate every task against the project config
-mt check                               # enum / required / bounds / links / cycles
-
-# Inspect the effective merged config (embedded floor + XDG + dir + project)
-mt config show                         # effective config, as valid re-parseable TOML
-mt config show --origin                # which layers contributed, and from where
-mt config show --defaults              # just the embedded floor, verbatim
-mt config show --json                  # effective config as JSON
-
-# Evaluate a single task file and print it (--json for machine output)
-mt eval tasks/implement-auth.typ
-
-# Retire tasks: mint a swh:1:rev tombstone, retarget inbound links: edges, do not commit
-mt rm                                  # [rm] default-filter (built-in: terminal)
-mt rm implement-auth                   # by ref: slug, path, or list handle (1v)
-mt rm 'status == "cancelled"'          # by filter — every match
-mt rm terminal --dry-run               # preview without writing
+mt add --set title="Wire OAuth" --set priority=7   # file a task from the default template
+mt ls 'status != "done" && priority >= 7'          # query it with a filter expression
+mt flip done wire-oauth                            # set its status, dated today
+mt check                                           # validate the whole project
 ```
 
-### Global flags
+That is a sliver of the surface. The docs site has the rest:
 
-```
--w / --worktree <path>        Operate on the MindTape project at <path> (must
-                              hold a .mindtape/) instead of discovering one by
-                              walking up from the cwd. Relative paths resolve
-                              against the cwd. Falls back to $MINDTAPE_WORKTREE;
-                              the flag wins.
-@name <cmd>                   Leading shortcut for -w: `mt @sn ls` selects the
-                              worktree named in ~/.config/mindtape/worktrees.toml
-                              (`mt worktrees` lists them).
---color <auto|always|never>   Colour output (default auto: colour when stdout is
-                              a TTY and NO_COLOR unset). always forces; never
-                              suppresses. NO_COLOR spec: https://no-color.org/
--v / --verbose                Increase verbosity (-v info, -vv debug, -vvv trace).
-```
-
-### Configuration
-
-`.mindtape/config.toml` overlays a shipped defaults floor: omit a section to
-inherit the floor's sane defaults (status legend, priority/difficulty scales,
-filters), declare it to override, or set it empty (e.g. `status = []`) to leave
-that aspect unconstrained.
-
-The floor is the lowest of four layers, deep-merged in precedence order: the embedded floor, then XDG global defaults (`~/.config/mindtape/defaults.toml`), then every `.mindtape/defaults.toml` found walking up from the project root (farthest ancestor first, so the nearest wins), then the project's own `.mindtape/config.toml` (highest precedence). Run `mt config show` to print the effective result of that merge as valid TOML, `mt config show --origin` to see which layers contributed and where each was read from, or `mt config show --defaults` to print just the embedded floor.
-
-Only the project's own config travels with the repository: anyone who clones it gets the embedded floor plus that file, and nothing from your machine. So a preset is what makes a project self-contained — it stamps a shape into `.mindtape/config.toml` rather than leaving it in a layer only you have.
-
-```toml
-[tasks]
-roots = ["tasks"]
-# Table-form roots (`[[tasks.roots]]` with `name` + `derive-tags`) add a
-# display name and folder-derived tags. See `mt init --preset flow --annotate`.
-
-# Status legend: legal values in lifecycle order, each with an optional glyph
-# and colour. `terminal = true` ends a task (required fields relax once terminal).
-[[tasks.status]]
-value = "wip"
-glyph = "🔨"
-color = "yellow"
-[[tasks.status]]
-value = "done"
-glyph = "✅"
-color = "green"
-terminal = true
-
-# Priority: a number on a scale, classified into labelled bands. `required` is
-# true | false | "non-terminal"; difficulty is the sibling. `framework`
-# (optional) scores typed inputs instead of a hand-set int — built-ins
-# ice/rice/wsjf/eisenhower/moscow ship baked-in; `allow-manual = false` forbids
-# raw ints. Override one under `[tasks.priority.frameworks.<name>]`.
-[tasks.priority]
-kind = "int"                       # int | real
-min  = 0
-max  = 9
-required = "non-terminal"
-framework = "ice"                  # optional; omit for hand-set integers
-allow-manual = false               # strict: every task scores through the framework
-[[tasks.priority.bands]]
-label = "high"
-min   = 7
-max   = 9
-glyph = "🔴"
-color = "red"
-
-# Allowed estimate units (free labels; never converted or compared), e.g.
-# `estimate: (days: 5, hours: 5)`. Omit this section to accept any unit.
-[tasks.estimate]
-units = ["minutes", "hours", "days", "weeks"]
-
-# Stem naming for `mt add`/`mt recur`. Unset ⇒ bare slug. Macros: {slug} {date}
-# {date:FMT} {yy} {mm} {dd} {n} {n:0N}; never renames an existing file.
-[tasks.naming]
-stem = "{slug}.task-{yy}{mm}{dd}"
-
-[views.default]  # the default `mt ls` listing; `[ls] default-view` repoints it
-filter = "status != \"done\""
-
-# Auto-activation for bare `mt ls`: first `condition` match composes
-# `import-views` + a manual override; no match falls back to `[views.default]`.
-[[ls.rules]]
-condition = 'on_branch("release/*")'
-import-views = ["default", "release(sort)"]
-```
-
-### Filter language
-
-Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
-`due`, `start`, `reviewed`, `file` (`priority`/`difficulty` compare numerically,
-e.g. `priority >= 7`). Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`,
-`!`, parentheses. Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
-`contains(field, "substr")`, `search("query")`, `stale(N)` (unreviewed — or,
-lacking `reviewed`, no status change — for over N days), `links("kind")` (a
-`links:` edge of that kind — built-in or a project's `[[tasks.links.kinds]]`).
-Dependency predicates `ready` / `blocked` classify a task by its `depends-on`
-edges; `list` floats ready work to the top by default. The `terminal`
-predicate matches a terminal-status task; it is the built-in `[rm]
-default-filter`. `[[ls.rules]] condition` is a separate, environment-only
-mini-language (`on_branch(glob)` / `env(name)` / `weekday()` / `now()`, no
-task fields) driving bare `mt ls`'s auto-activation — see the docs site.
+- [CLI reference](https://mlavrinenko.github.io/mindtape/cli/) — every `mt`
+  command and global flag (`-w`/`--worktree`, `@name` worktree aliases,
+  `--color`, `-v`), grouped.
+- [Filter language](https://mlavrinenko.github.io/mindtape/filters/) — the
+  fields, operators, and functions `mt ls` / `mt rm` accept.
+- [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) —
+  every way `mt add` can fill a task from a Typst template.
+- [Configuration](https://mlavrinenko.github.io/mindtape/config/) — the
+  four-layer config merge, every `.mindtape/config.toml` section, and stem
+  naming for minted filenames.
+- [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) —
+  structured JSON, slot schemas, and driving `mt` from outside the project
+  tree.
 
 ## Architecture
 

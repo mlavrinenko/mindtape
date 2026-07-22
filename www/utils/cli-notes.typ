@@ -24,6 +24,13 @@ mt add --describe                   # dump the template's slot schema
 ```,
   ),
   "eval": (outputs: ("eval",)),
+  "go": (
+    prose: [Resolves `id` to a path, then spawns `[go] editor` (falling back to
+      `$VISUAL`, then `$EDITOR`; no `vi` floor — a GUI user is told to configure
+      `[go] editor` rather than dropped into one). A `{task}` token in the
+      configured command is replaced with the resolved path; without one the
+      path is appended.],
+  ),
 
   // ── Listing ─────────────────────────────────────────────────────────────────
   "ls": (
@@ -97,5 +104,13 @@ mt rm abandoned-rondo-alla-turca  # by ref
 mt rm 'status == "cancelled"'     # by filter — every match
 mt rm terminal --dry-run          # preview without writing
 ```,
+  ),
+
+  // ── Setup ───────────────────────────────────────────────────────────────────
+  "install": (
+    prose: [`--no-lib` / `--no-defaults` / `--no-schema` skip any one install;
+      `--force` overwrites an existing XDG `defaults.toml` / schema. The hidden
+      `mt install-lib` is a deprecated alias for `mt install --no-defaults
+      --no-schema` — lib only, kept for existing docs and muscle memory.],
   ),
 )

@@ -6,7 +6,10 @@
 # you do.
 groups:
   # The CLI surface (commands, flags, behaviour) is documented by hand, in the
-  # README and the docs-site reference pages.
+  # docs-site reference pages. README.md only carries a thin, illustrative
+  # command teaser (tracked by the coarser cli-name group below), not this
+  # group's depth — the reference material that made it a dependent here moved
+  # to these pages (readme-to-www).
   - name: cli-docs
     source:
       - crates/mindtape-cli/src/cli.rs
@@ -17,11 +20,11 @@ groups:
       - crates/mindtape-cli/src/presets/personal/config.toml
       - crates/mindtape-cli/src/presets/gated/config.toml
     dependents:
-      - README.md
       - www/content/cli.typ
       - www/content/filters.typ
       - www/content/config.typ
       - www/content/quickstart.typ
+      - www/utils/cli-notes.typ
       - skills/mindtape/SKILL.md
 
   # A package change (version, dependencies, metadata) should land in the changelog.
