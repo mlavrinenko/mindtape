@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Work-in-progress limits (`[[tasks.limits]]`)** — cap how many tasks may sit
+  in a matched set at once and have `mt check` report a breach with the cap, the
+  count and every task in the set. A limit is a `filter` plus a `max`, so no
+  status name is hardcoded: the same primitive caps a status, a named view
+  (`@stuck`), a priority band or a `kind`. Optional `message` replaces the
+  default advice; `severity` is `"warn"` (default — a breach is a state of the
+  backlog, cleared by finishing work, not by editing a file) or `"error"`, which
+  fails the command for projects wanting a hard stop. Rests on the filter
+  language's missing-field rule (an absent field is unequal to every literal), so
+  a `kind == "x"` / `kind != "x"` pair partitions the whole backlog.
 - **typstyle-clean writes (`[format]`)** — `mt` now runs typstyle over the Typst
   source it writes (`add`, `flip`, `review`, `recur`, `import`), so surgical
   edits and slot fills land in one canonical shape instead of leaving drift like

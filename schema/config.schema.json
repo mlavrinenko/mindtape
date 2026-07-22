@@ -591,6 +591,54 @@
       },
       "type": "object"
     },
+    "LimitSeverity": {
+      "description": "How a breached limit reports.",
+      "oneOf": [
+        {
+          "const": "warn",
+          "description": "Print the breach; `mt check` still succeeds. The default.",
+          "type": "string"
+        },
+        {
+          "const": "error",
+          "description": "Print the breach and fail `mt check`.",
+          "type": "string"
+        }
+      ]
+    },
+    "LimitSpec": {
+      "additionalProperties": false,
+      "description": "`[[tasks.limits]]` — one cap on a filter-matched set of tasks.\n\n`filter` and `max` are required: a limit with no cap is not a limit, and\ndefaulting a missing `max` to zero would silently forbid the set outright.",
+      "properties": {
+        "filter": {
+          "description": "Filter expression selecting the capped set. The `mt ls` filter language,\nso `@name` / `in_view(\"name\")` caps a named view and no second spelling\nof \"which tasks\" is needed.",
+          "type": "string"
+        },
+        "max": {
+          "description": "How many matching tasks are allowed at once; a greater count is a breach.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "message": {
+          "default": null,
+          "description": "Replaces the default advice in the breach report.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "$ref": "#/$defs/LimitSeverity",
+          "description": "Whether a breach fails `mt check` or only warns. Default `warn`."
+        }
+      },
+      "required": [
+        "filter",
+        "max"
+      ],
+      "type": "object"
+    },
     "LinkKind": {
       "additionalProperties": false,
       "description": "`[[tasks.links.kinds]]` — one project/consumer-declared custom edge kind.",
@@ -1183,6 +1231,13 @@
         "id": {
           "$ref": "#/$defs/IdConfig",
           "description": "Task id format."
+        },
+        "limits": {
+          "description": "Work-in-progress caps: how many tasks may match a filter at once\n(`[[tasks.limits]]`, enforced by `mt check`).",
+          "items": {
+            "$ref": "#/$defs/LimitSpec"
+          },
+          "type": "array"
         },
         "links": {
           "$ref": "#/$defs/LinksConfig",

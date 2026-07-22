@@ -17,6 +17,7 @@ mod config_add;
 mod config_format;
 mod config_go;
 mod config_layers;
+pub mod config_limits;
 mod config_ls;
 mod config_required;
 mod config_roots;
@@ -77,6 +78,7 @@ pub use config::{
     validate_views,
 };
 pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
+pub use config_limits::{LimitBreach, LimitError, LimitSeverity, LimitSpec, check_limits};
 pub use config_schema::{SCHEMA_URL, config_schema_json};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use date_pin::{DateOverrideError, init_pinned_today};

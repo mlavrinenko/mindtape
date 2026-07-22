@@ -234,6 +234,17 @@ fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, Filte
     Ok(compare(node.operator(), &value, &literal))
 }
 
+/// Compare one resolved field value against a literal.
+///
+/// Missing-field rule: a field the task does not carry is unequal to every
+/// literal and orders against none — `!=` holds, `==` / `<` / `>` / `<=` / `>=`
+/// are all false. So `kind != "umbrella"` matches a task with no `kind` at all,
+/// and the pair `kind == "umbrella"` / `kind != "umbrella"` partitions the whole
+/// set with no third case. `[[tasks.limits]]`
+/// ([`crate::config_limits`]) rests on that: one limit over each half of such a
+/// pair caps every task by construction, including the ones leaving the field
+/// unset. Pinned by `missing_field_is_unequal_to_every_literal` in
+/// `filter_tests.rs` — do not relax it without revisiting that rule.
 fn compare(op: &Operator<DefaultNumericTypes>, value: &FieldValue, literal: &str) -> bool {
     match value {
         FieldValue::Missing => matches!(op, Operator::Neq),

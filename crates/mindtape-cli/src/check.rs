@@ -1,7 +1,7 @@
 //! `mt check` — validate tasks against the project configuration.
 
 use anyhow::{Context, Result, bail};
-use mindtape::{Violation, check_headers, compile_rules, validate};
+use mindtape::{LimitBreach, Violation, check_headers, check_limits, compile_rules, validate};
 
 use crate::util;
 
@@ -34,15 +34,37 @@ pub(crate) fn run_with(project: &util::Project) -> Result<()> {
         print_violation(violation);
     }
 
+    // Work-in-progress caps: a state of the backlog rather than a malformed
+    // artifact, so a breach reports separately from the per-task violations and
+    // only fails the command at `severity = "error"`.
+    let breaches = check_limits(&project.outcome.tasks, &project.config)
+        .context("invalid tasks.limits in config")?;
+    for breach in &breaches {
+        print_breach(breach);
+    }
+    let over_limit = breaches
+        .iter()
+        .filter(|breach| breach.severity.is_error())
+        .count();
+
     let load_errors = project.outcome.errors.len();
-    if violations.is_empty() && load_errors == 0 {
+    if violations.is_empty() && load_errors == 0 && over_limit == 0 {
         println!("ok: {} task(s) valid", project.outcome.tasks.len());
         return Ok(());
     }
     bail!(
-        "{} violation(s), {load_errors} load error(s)",
+        "{} violation(s), {load_errors} load error(s), {over_limit} limit breach(es)",
         violations.len()
     )
+}
+
+/// Report one breached `[[tasks.limits]]` entry: the count, the cap, the advice,
+/// then the tasks that make up the matched set.
+fn print_breach(breach: &LimitBreach) {
+    println!("{}: {breach}", breach.severity.label());
+    for id in &breach.tasks {
+        println!("  - {id}");
+    }
 }
 
 fn print_violation(violation: &Violation) {
