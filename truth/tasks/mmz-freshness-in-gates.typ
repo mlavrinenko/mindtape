@@ -29,3 +29,19 @@ This is harness configuration, not a MindTape feature. `[[on.flip]]` stays tool-
 - Decide what counts as the meaningful worktree slice for the rule. Task artifacts under `truth/tasks` change on every flip, so a rule keyed on the whole tree would go stale the moment a status is stamped and the gate would never pass.
 - Document the pattern in the `gated` preset's annotated comments as the recommended way to make a close gate cheap, naming `mmz` as one option rather than a requirement.
 - Tests: this one is manual and says so. The behaviour under test is another tool's cache, and a unit test asserting `mmz` semantics would test the mock, not the tool.
+
+== Notes
+
+Hand-verification of `mmz --is-fresh` done 2026-07-22 against `mmz` 0.4.0, in a scratch project with one scope and one rule. All six probes behave:
+
+- never run yet — exits 1, reports `is never (never run)`
+- after a successful wrapped run — exits 0
+- runs nothing itself — the wrapped command's side effect was deleted and did not reappear
+- after editing a file in the scope — exits 1, reports `is stale (inputs changed since it last passed)`
+- after adding a new file matching the scope glob — exits 1, same reason
+- after a wrapped run that exited non-zero — exits 1, reports `is failed (last run failed)`, so a red build is never cached as fresh
+
+So the gate can be trusted. Two consequences for the rule that this task writes:
+
+- The scope must exclude `truth/tasks/**`, because `mt flip` writes the task file it is gating and would bust its own rule mid-command. Key the rule on the code and config that `just check` actually reads.
+- Freshness is per rule name, matched on the command, so `run = "mmz --is-fresh -- just check"` asserts the `just check` rule specifically. The repository needs its own `.mmz/config.yaml` declaring that rule before the gate means anything.
