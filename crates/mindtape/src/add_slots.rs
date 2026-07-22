@@ -7,7 +7,7 @@
 //! the `--describe` schema, and writing them into the final task. Consumer-blind:
 //! pure over [`Config`], no IO, no source editing.
 
-use crate::config::{Config, FieldConfig, Requirement};
+use crate::config::{Config, FieldConfig};
 use crate::numeric::ScaleKind;
 
 /// A core field the config requires, expressed as a `slot(...)` call to set as a
@@ -23,15 +23,17 @@ pub struct RequiredSlot {
 /// The required core-field slots a config demands at task-creation time, in a
 /// stable order (`priority`, `difficulty`, `kind`, `estimate`).
 ///
-/// A field counts as required when its requirement is `Always` or `NonTerminal`
-/// (a freshly added task is non-terminal). Priority driven by a strict framework
+/// A field counts as required unless its requirement is `false`: a filter
+/// expression (`"!terminal"`, `"kind == \"bug\""`) is taken as possibly required,
+/// since the task being scaffolded does not exist yet — better to surface the
+/// slot and let `mt check` settle it. Priority driven by a strict framework
 /// (`framework` set, `allow-manual = false`) has no scalar form and is omitted —
 /// such a project must declare the framework call in its template.
 #[must_use]
 pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
     let tasks = &config.tasks;
     let mut out = Vec::new();
-    if required(tasks.priority.field.required)
+    if tasks.priority.field.required.may_apply()
         && let Some(call) = priority_slot(config)
     {
         out.push(RequiredSlot {
@@ -39,7 +41,7 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
             call,
         });
     }
-    if required(tasks.difficulty.required) {
+    if tasks.difficulty.required.may_apply() {
         out.push(RequiredSlot {
             field: "difficulty",
             call: format!(
@@ -49,24 +51,20 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
         });
     }
     if let Some(field) = tasks.fields.get("kind")
-        && required(field.required)
+        && field.required.may_apply()
     {
         out.push(RequiredSlot {
             field: "kind",
             call: kind_slot(field),
         });
     }
-    if required(tasks.estimate.required) {
+    if tasks.estimate.required.may_apply() {
         out.push(RequiredSlot {
             field: "estimate",
             call: estimate_slot(config),
         });
     }
     out
-}
-
-fn required(requirement: Requirement) -> bool {
-    !matches!(requirement, Requirement::No)
 }
 
 fn priority_slot(config: &Config) -> Option<String> {

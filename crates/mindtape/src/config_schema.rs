@@ -82,11 +82,12 @@ impl JsonSchema for Requirement {
     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
             "description": "Whether a field is required: `false` (never), `true` \
-                (always), or `\"non-terminal\"` (required only until the task reaches \
-                a terminal status).",
+                (always), or a filter expression matching exactly the tasks that must \
+                carry it (e.g. `\"!terminal\"` — required until the task reaches a \
+                terminal status).",
             "oneOf": [
                 { "type": "boolean" },
-                { "type": "string", "enum": ["non-terminal"] }
+                { "type": "string" }
             ]
         })
     }

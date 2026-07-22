@@ -57,7 +57,7 @@ status: wip(2026, 7, 6)[behind a feature flag]
 status: done(2026, 7, 20)
 ```
 
-A terminal status (like `done`) relaxes fields marked `required = "non-terminal"`.
+A terminal status (like `done`) relaxes fields marked `required = "!terminal"`.
 The default legend and its glyphs live in #link(u("/config/"))[Configuration].
 
 = Task links

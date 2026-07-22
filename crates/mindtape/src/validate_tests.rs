@@ -27,7 +27,7 @@ terminal = true
 [tasks.priority]
 min = 0
 max = 9
-required = "non-terminal"
+required = "!terminal"
 [[tasks.priority.bands]]
 label = "low"
 min = 0
@@ -92,7 +92,7 @@ terminal = true
 [tasks.priority]
 min = 0
 max = 9
-required = "non-terminal"
+required = "!terminal"
 [[tasks.priority.bands]]
 label = "low"
 min = 0

@@ -1043,15 +1043,12 @@
       "type": "object"
     },
     "Requirement": {
-      "description": "Whether a field is required: `false` (never), `true` (always), or `\"non-terminal\"` (required only until the task reaches a terminal status).",
+      "description": "Whether a field is required: `false` (never), `true` (always), or a filter expression matching exactly the tasks that must carry it (e.g. `\"!terminal\"` — required until the task reaches a terminal status).",
       "oneOf": [
         {
           "type": "boolean"
         },
         {
-          "enum": [
-            "non-terminal"
-          ],
           "type": "string"
         }
       ]

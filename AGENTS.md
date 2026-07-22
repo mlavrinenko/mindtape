@@ -102,8 +102,8 @@ acyclic), `parent` (max 1, acyclic), `recurred-from` (max 1), `supersedes`/
 The prelude enforces structure only (one task, the `x-<ns>` discipline). The
 Rust layer enforces the status legend, numeric priority/difficulty scales and
 classification, priority frameworks (scoring + in-bounds-by-construction), the
-kind enum, required-unless-terminal, bounds, and link resolution. Consumers
-validate their own `x-<ns>` fields.
+kind enum, the `required` rules (a filter expression per field), bounds, and
+link resolution. Consumers validate their own `x-<ns>` fields.
 
 ### Recurring tasks (`recur`, `mt recur`)
 

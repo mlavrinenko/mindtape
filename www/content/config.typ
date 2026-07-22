@@ -74,7 +74,7 @@ terminal = true
 kind = "int"
 min  = 0
 max  = 9
-required = "non-terminal"
+required = "!terminal"
 
 [tasks.estimate]
 units = ["minutes", "hours", "days", "weeks"]
@@ -92,6 +92,30 @@ filter = "status != \"done\""
   `--annotate` keeps that preset's explanatory comments. The two are
   independent: `--preset` picks what the config says, `--annotate` picks whether
   it says why.
+]
+
+= Required fields
+
+`required` gates `[tasks.priority]`, `[tasks.difficulty]`, `[tasks.estimate]` and
+each `[tasks.fields.<name>]`. It takes `true`, `false`, or a
+#link(u("/filters/"))[filter expression] — the field is required for exactly the
+tasks that expression matches, evaluated per task by `mt check`:
+
+```toml
+[tasks.priority]
+required = "!terminal"        # until the task reaches a terminal status
+
+[tasks.estimate]
+required = "kind == \"bug\""  # only for bugs
+
+[tasks.fields.kind]
+required = "@active"          # only inside the `active` view
+```
+
+#callout("note")[
+  `required = "non-terminal"` is retired. Write `"!terminal"`, which means the
+  same thing in the filter language. A malformed expression fails when the config
+  loads, naming the field — not once per task.
 ]
 
 = Status transitions

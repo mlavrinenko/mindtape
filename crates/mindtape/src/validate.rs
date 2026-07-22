@@ -1,8 +1,9 @@
 //! Config-driven validation of loaded tasks.
 //!
 //! Enforces the declared status lifecycle, enum field constraints, the estimate
-//! unit allow-list, required-unless-terminal, the tag allow-list, and the
-//! typed `links:` edges (resolution, cardinality, notes, cycles — see
+//! unit allow-list, the `required` rules (a filter expression per field, see
+//! [`crate::config_required`]), the tag allow-list, and the typed `links:`
+//! edges (resolution, cardinality, notes, cycles — see
 //! [`crate::validate_links`]).
 
 use std::collections::{BTreeMap, HashMap};
@@ -10,7 +11,7 @@ use std::path::PathBuf;
 
 use uuid::Uuid;
 
-use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, PriorityConfig, Requirement};
+use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, PriorityConfig, RequiredRules};
 use crate::model::Task;
 use crate::numeric::{InputValue, NumValue, NumericField, format_num};
 
@@ -41,23 +42,37 @@ pub struct Violation {
 pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let mut out = Vec::new();
     check_id_uniqueness(tasks, &mut out);
-    let terminal_values = config.tasks.status.terminal();
+    let required = RequiredRules::compile(config);
     for task in tasks {
-        let terminal = task.is_terminal(&terminal_values);
         check_id_format(task, config, &mut out);
         check_status(task, config, &mut out);
         for (name, field) in &config.tasks.fields {
-            check_enum_field(task, name, field, terminal, &mut out);
+            check_enum_field(
+                task,
+                name,
+                field,
+                required.field(name, task, config),
+                &mut out,
+            );
         }
-        out.extend(check_priority(task, &config.tasks.priority, terminal));
+        out.extend(check_priority(
+            task,
+            &config.tasks.priority,
+            required.priority(task, config),
+        ));
         out.extend(check_numeric(
             task,
             "difficulty",
             &task.difficulty,
             &config.tasks.difficulty,
-            terminal,
+            required.difficulty(task, config),
         ));
-        check_estimate(task, &config.tasks.estimate, terminal, &mut out);
+        check_estimate(
+            task,
+            &config.tasks.estimate,
+            required.estimate(task, config),
+            &mut out,
+        );
         check_tags(task, config, &mut out);
         crate::validate_recur::check_all(task, config, &mut out);
     }
@@ -174,7 +189,7 @@ fn check_enum_field(
     task: &Task,
     name: &str,
     field: &FieldConfig,
-    terminal: bool,
+    required: bool,
     out: &mut Vec<Violation>,
 ) {
     let value = match name {
@@ -182,7 +197,7 @@ fn check_enum_field(
         _ => return,
     };
     match value {
-        None if is_required(field.required, terminal) => {
+        None if required => {
             push(out, task, name, "required field is missing".to_owned());
         }
         Some(value) if !field.values.is_empty() && !field.values.iter().any(|v| v == value) => {
@@ -197,18 +212,17 @@ fn check_enum_field(
     }
 }
 
-/// Validate a numeric-field value: required-unless-terminal, a known label, and
+/// Validate a numeric-field value: presence when `required`, a known label, and
 /// in-scale bounds. Returns at most one violation.
 fn check_numeric(
     task: &Task,
     name: &str,
     value: &Option<NumValue>,
     config: &NumericField,
-    terminal: bool,
+    required: bool,
 ) -> Option<Violation> {
     let Some(value) = value else {
-        return is_required(config.required, terminal)
-            .then(|| violation(task, name, "required field is missing".to_owned()));
+        return required.then(|| violation(task, name, "required field is missing".to_owned()));
     };
     check_in_scale(task, name, value, config)
 }
@@ -240,12 +254,12 @@ fn check_in_scale(
     }
 }
 
-/// Validate a task's priority: required-unless-terminal, then either a framework
+/// Validate a task's priority: presence when `required`, then either a framework
 /// invocation (active, known, valid inputs, in-scale score) or a manual value
 /// (allowed only when no framework is strict). Returns at most one violation.
-fn check_priority(task: &Task, config: &PriorityConfig, terminal: bool) -> Option<Violation> {
+fn check_priority(task: &Task, config: &PriorityConfig, required: bool) -> Option<Violation> {
     let Some(value) = &task.priority else {
-        return is_required(config.field.required, terminal)
+        return required
             .then(|| violation(task, "priority", "required field is missing".to_owned()));
     };
     match value {
@@ -328,9 +342,9 @@ fn check_manual_priority(
     check_in_scale(task, "priority", value, &config.field)
 }
 
-fn check_estimate(task: &Task, config: &EstimateConfig, terminal: bool, out: &mut Vec<Violation>) {
+fn check_estimate(task: &Task, config: &EstimateConfig, required: bool, out: &mut Vec<Violation>) {
     if task.estimate.is_empty() {
-        if is_required(config.required, terminal) {
+        if required {
             push(
                 out,
                 task,
@@ -374,14 +388,6 @@ fn check_tags(task: &Task, config: &Config, out: &mut Vec<Violation>) {
                 format!("`{tag}` derived from folder is not an allowed tag"),
             );
         }
-    }
-}
-
-fn is_required(requirement: Requirement, terminal: bool) -> bool {
-    match requirement {
-        Requirement::No => false,
-        Requirement::Always => true,
-        Requirement::NonTerminal => !terminal,
     }
 }
 

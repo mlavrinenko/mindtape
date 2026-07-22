@@ -85,6 +85,10 @@ arrived. Being a view (not a bare filter) it can carry sort and columns too.
 `mt rm` applies `[rm] default-filter` (`terminal`). All three live in
 #link(u("/config/"))[Configuration].
 
+The same language also decides which tasks must carry a field: `[tasks.priority]
+required = "!terminal"` (and its siblings) is a filter, evaluated per task by
+`mt check` — see #link(u("/config/"))[Required fields].
+
 #callout("note")[
   Filters are parsed, not evaluated as code — the expression syntax is fixed.
   There is no arbitrary function call surface to worry about.

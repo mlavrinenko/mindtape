@@ -161,6 +161,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`required` is a filter expression (breaking)** — `[tasks.priority] required`
+  (and its `difficulty` / `estimate` / `[tasks.fields.<name>]` siblings) still
+  takes `true` and `false`, but the third form is now any filter expression
+  instead of the one-off `"non-terminal"` enum value: the field is required for
+  exactly the tasks it matches (`"kind == \"bug\""`, `"@active"`). Rename
+  `"non-terminal"` to `"!terminal"` — identical meaning, and no alias is kept, so
+  the old spelling fails at config load with the replacement named. A malformed
+  expression is one config error at load, not one violation per task.
 - **`mt ls --json` envelope (breaking)** — now `{"tasks": [...], "applied":
   {"rule": ..., "facets": {...}}}`, not a bare array; update a `jq '.[...]'`
   consumer to `jq '.tasks[...]'`.
