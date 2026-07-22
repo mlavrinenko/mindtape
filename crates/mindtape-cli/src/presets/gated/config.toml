@@ -39,11 +39,12 @@
 # live one from a settled one. `policy = "forbid"` makes leaving it behind fail
 # `mt check` instead of a convention nobody enforces.
 #
-# What this preset cannot do yet: it cannot verify a completion claim. A status
-# is a stamp, not proof, and MindTape has no way to know who flipped it. Until
-# `[[tasks.gates]]` lands, pair this with a commit hook or CI check that refuses
-# a `done` stamp without a passing build. Treating the state machine alone as
-# enforcement reproduces the exact failure it is meant to catch.
+# A machine check before a task may close. A status is a stamp, not proof, and
+# the state machine alone cannot verify a completion claim — a written
+# justification cannot police the thing that writes it, because a model asked to
+# justify a claim predicts a plausible ending rather than checking reality. An
+# external predicate can. The `[[on.flip]]` gate at the bottom of this file is
+# where you point MindTape at yours.
 
 [tasks]
 [[tasks.roots]]
@@ -171,3 +172,36 @@ description = "In flight — keep this list at one"
 filter = "status == \"needs-review\""
 sort = ["priority:desc"]
 description = "Waiting on human review before it can close"
+
+# Flip hooks: what happens when a task changes status. `mt flip` is the only
+# command that runs these — `mt check`, `mt ls` and every other read execute
+# nothing, so `mt check` stays safe inside an editor or a commit hook.
+#
+# Trust boundary: a command below is exactly as trusted as a Justfile recipe or
+# a git hook. It comes from this repository's own config and runs with your full
+# authority, from the project root. Nothing sandboxes it, and nothing pretends
+# to. Read a project's config before running `mt flip` under it.
+
+# On the way into work, print what is already in flight, so an agent picking up
+# a task sees the open set rather than assuming it is alone. Nothing is
+# materialised: tasks are files in git, so `mt ls` at the flipping commit
+# reconstructs this list exactly.
+[[on.flip]]
+when = 'into("wip")'
+actions = [{ list = "@wip", title = "Already in flight — finish these first:" }]
+
+# On the way into `done`, an external check. The shipped one is the floor, not
+# the ceiling: it refuses a task whose body still carries this preset's TODO
+# placeholders, because a task nobody ever specified is a task nobody can have
+# finished. Replace the command with the one that actually proves your work —
+# `just check`, `cargo test`, your CI script. It receives $MINDTAPE_TASK_FILE,
+# $MINDTAPE_TASK_STEM and $MINDTAPE_TASK_STATUS, so a script can inspect the
+# artifact being closed.
+#
+# `mt done --force` overrides a failing gate and records the override in the
+# status note — an escape hatch that leaves a trace.
+[[on.flip]]
+when = 'into("done")'
+actions = [
+  { run = '! grep -q "TODO:" "$MINDTAPE_TASK_FILE"', gate = true, message = "this task still carries the template's TODO placeholders — fill them in, or point this gate at the check that really proves the work" },
+]

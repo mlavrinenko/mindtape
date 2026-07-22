@@ -362,6 +362,77 @@
       },
       "type": "object"
     },
+    "FlipAction": {
+      "additionalProperties": false,
+      "description": "One action of a `[[on.flip]]` entry.\n\nThe three kinds share one flat TOML shape, discriminated by which of `show`\n/ `list` / `run` is set — exactly one must be. [`FlipAction::kind`] resolves\nit into [`ActionKind`], which is what callers dispatch on; the flat struct\nexists so a typo lands as a named config error rather than serde's opaque\n\"data did not match any variant\".",
+      "properties": {
+        "gate": {
+          "default": false,
+          "description": "Whether a non-zero exit from `run` refuses the flip. `run`-only.",
+          "type": "boolean"
+        },
+        "list": {
+          "default": null,
+          "description": "`{ list = \"filter or @view\" }` — print the matching tasks.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "message": {
+          "default": null,
+          "description": "Explanation printed when a `run` command exits non-zero.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run": {
+          "default": null,
+          "description": "`{ run = \"command\" }` — execute a command through `sh -c`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "show": {
+          "default": null,
+          "description": "`{ show = \"text\" }` — print a message.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "default": null,
+          "description": "Heading printed above a `list`'s table.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "FlipHook": {
+      "additionalProperties": false,
+      "description": "One `[[on.flip]]` entry: which transitions it fires on, and what it does.",
+      "properties": {
+        "actions": {
+          "description": "Actions to run, in declaration order.",
+          "items": {
+            "$ref": "#/$defs/FlipAction"
+          },
+          "type": "array"
+        },
+        "when": {
+          "default": "",
+          "description": "Filter over the task being flipped, plus `into(\"status\")` for the status\nbeing stamped. Empty fires on every flip.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "FormatConfig": {
       "additionalProperties": false,
       "description": "`[format]` — how `mt` canonicalizes task source before writing it.",
@@ -1011,6 +1082,20 @@
       },
       "type": "object"
     },
+    "OnConfig": {
+      "additionalProperties": false,
+      "description": "`[on]` — hooks keyed by the event that fires them.",
+      "properties": {
+        "flip": {
+          "description": "`[[on.flip]]` entries, in declaration order.",
+          "items": {
+            "$ref": "#/$defs/FlipHook"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
     "PriorityConfig": {
       "description": "`[tasks.priority]` — the priority numeric field plus its scoring frameworks.\n\nFlattens a [`NumericField`] (scale + band classification, shared with\ndifficulty) and layers framework selection on top. When `framework` names an\nactive framework, a task's priority is computed from that framework's inputs\ninstead of a hand-set integer; `allow_manual` decides whether a raw integer\nis still accepted as an escape hatch. The `frameworks` registry holds the\nbaked-in built-ins deep-merged with any user `[tasks.priority.frameworks.*]`.",
       "properties": {
@@ -1534,6 +1619,10 @@
     "ls": {
       "$ref": "#/$defs/LsConfig",
       "description": "`mt ls` defaults."
+    },
+    "on": {
+      "$ref": "#/$defs/OnConfig",
+      "description": "Status-transition hooks (`[[on.flip]]`), run only by `mt flip`."
     },
     "project": {
       "$ref": "#/$defs/ProjectConfig",

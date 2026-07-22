@@ -48,6 +48,7 @@ mt config show --json     # effective config as JSON
   [`[[tasks.links.kinds]]`], [Project-declared edge kinds layered over the built-ins: cardinality, note rule, readiness/cycle flags, and the `validate` target shape. See below.],
   [`[ls]`, `[rm]`], [Default filters, columns, and ordering. See #link(u("/filters/"))[Filter language].],
   [`[views.<name>]`], [Named filter + sort + columns bundles, referenced with `@name`. See #link(u("/filters/"))[Filter language].],
+  [`[[on.flip]]`], [Actions bound to a status change: print a message, print a task list, or run a command that may refuse the flip. Only `mt flip` runs them. See below.],
   [`[[ls.rules]]`], [Ordered auto-activation rules for bare `mt ls`. See below and #link(u("/cli/"))[CLI reference].],
   [`[templates]`], [Template `dirs` and the `default` template. See #link(u("/templates/"))[Templates & slots].],
   [`[add]`, `[go]`], [Editor, interactive mode, and header for `mt add` / `mt go`.],
@@ -386,6 +387,71 @@ counts are distorted by generated files, lockfiles and formatting passes.
   --porcelain`). Outside a git repository, or with git unavailable, it says
   nothing at all — it never guesses, and never fails the command.
 ]
+
+= Flip hooks
+
+`[[on.flip]]` binds actions to a task changing status. One table, three action
+kinds, and the project decides what fires where:
+
+```toml
+[[on.flip]]
+when = 'into("wip")'
+actions = [{ list = "@wip", title = "Already in flight:" }]
+
+[[on.flip]]
+when = 'into("done") && !has_tag("chore")'
+actions = [
+  { show = "closing — the checklist is in CONTRIBUTING.md" },
+  { run = "just check", gate = true, message = "the suite has to pass first" },
+]
+```
+
+`when` is a #link(u("/filters/"))[filter expression] over the task *as it stands
+before the write* — so `status == "wip"` names the status being left — plus the
+`into("name")` predicate for the status being stamped. An action runs only on a
+transition its `when` matches. An empty `when` fires on every flip.
+
+Each action declares exactly one kind:
+
+#table(
+  columns: 2,
+  table.header([Action], [Effect]),
+  [`{ show = "text" }`], [Print `text`.],
+  [`{ list = "filter or @view", title = "..." }`], [Print the matching tasks as a table under `title`. A bare `@view` also picks up that view's sort. This is how an agent starting work sees what else is in flight — with no materialised index and nothing written to disk.],
+  [`{ run = "cmd", gate = false, message = "..." }`], [Execute `cmd`. With `gate = true` a non-zero exit *refuses the flip*, prints the command's output, and stops: nothing is written for that task and the actions after it do not run. Without `gate` the output is informational. `message` replaces the default advice on failure.],
+)
+
+Actions run in declaration order. `--force` waives a failing gate and records
+the waiver in the status note (`forced past failing gate: "just check"`), so an
+override is still legible afterwards. A gate command runs from the project root
+with the transition in its environment:
+
+#table(
+  columns: 2,
+  table.header([Variable], [Value]),
+  [`MINDTAPE_TASK_FILE`], [Absolute path of the task file being flipped.],
+  [`MINDTAPE_TASK_STEM`], [The task's identity (its file stem, unless `id:` overrides).],
+  [`MINDTAPE_TASK_STATUS`], [The status being stamped.],
+)
+
+`show` and `list` output is suppressed under `--quiet` and whenever stdout is
+not a terminal, so a scripted flip stays clean. Gates still run, and a failing
+one still prints its output — that is the evidence the refusal rests on.
+
+#callout("warn")[
+  *Trust boundary.* An `[[on.flip]]` command is exactly as trusted as a
+  `Justfile` recipe or a git hook: it comes from the repository's own config and
+  runs through `sh -c` with your full authority, from the project root. Nothing
+  sandboxes it. Read a project's config before running `mt flip` under it, the
+  same way you read a `Makefile` before running `make`.
+]
+
+Only `mt flip` runs actions. `mt check`, `mt ls` and every other read command
+execute nothing — a read that shells out is a surprise, and `mt check` is what
+runs inside editors and commit hooks. A malformed hook (an unparseable `when`,
+an `into(...)` naming no configured status, an action with no kind) is a config
+error at load, so it fails every command equally rather than surprising the
+first flip that reaches it.
 
 = Named views
 

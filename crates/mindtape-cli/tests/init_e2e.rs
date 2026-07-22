@@ -37,14 +37,35 @@ fn init_preset(preset: &str) -> tempfile::TempDir {
     dir
 }
 
-/// Every built-in preset, with a valid walk from the status `mt add` stamps
-/// through to a terminal one. The path is spelled out rather than derived so
-/// that a preset whose declared `to` edges do not actually connect fails here.
-const PRESET_PATHS: &[(&str, &[&str])] = &[
-    ("todone", &["done"]),
-    ("flow", &["wip", "done"]),
-    ("personal", &["next", "done"]),
-    ("gated", &["accepted", "wip", "needs-review", "done"]),
+/// Every built-in preset: the walk from the status `mt add` stamps through to a
+/// terminal one, plus the `--set` fills that walk needs. The path is spelled out
+/// rather than derived so that a preset whose declared `to` edges do not
+/// actually connect fails here.
+///
+/// `gated` gates `done` on the task carrying no leftover TODO placeholders, so
+/// its walk fills the template's slots the way an author would — the walk then
+/// proves the preset's own gate passes for a task that was actually specified.
+const PRESET_PATHS: &[(&str, &[&str], &[&str])] = &[
+    ("todone", &["done"], &[]),
+    ("flow", &["wip", "done"], &[]),
+    ("personal", &["next", "done"], &[]),
+    (
+        "gated",
+        &["accepted", "wip", "needs-review", "done"],
+        &GATED_FILLS,
+    ),
+];
+
+/// Slot fills that leave a `gated` task free of the template's placeholders.
+const GATED_FILLS: [&str; 8] = [
+    "--set",
+    "summary=- the thing that is wrong",
+    "--set",
+    "acceptance=- a condition someone else can check",
+    "--set",
+    "non-goals=- everything else",
+    "--set",
+    "files=- src/lib.rs",
 ];
 
 /// The gate that makes a first run trustworthy: for every built-in preset,
@@ -56,9 +77,9 @@ const PRESET_PATHS: &[(&str, &[&str])] = &[
 /// very first `mt add`, which is the worst possible moment to discover it.
 #[test]
 fn every_preset_supports_add_check_and_a_full_walk() {
-    for (preset, path) in PRESET_PATHS {
+    for (preset, path, fills) in PRESET_PATHS {
         let dir = init_preset(preset);
-        add_then_ls_and_check(dir.path(), "wire-preset", &[]);
+        add_then_ls_and_check(dir.path(), "wire-preset", fills);
         for status in *path {
             mt(dir.path(), &["flip", status, "wire-preset"]);
             mt(dir.path(), &["check"]);
@@ -146,6 +167,30 @@ fn gated_preset_blocks_done_straight_from_wip() {
         .failure();
 }
 
+/// The `gated` preset's shipped `[[on.flip]]` gate is real: a task still
+/// carrying the template's TODO placeholders cannot reach `done`, and `--force`
+/// is the way past — which then records itself in the status note.
+#[test]
+fn gated_preset_gates_done_on_an_unfilled_task() {
+    let dir = init_preset("gated");
+    mt(dir.path(), &["add", "--name", "hollow", "--set", "title=T"]);
+    for status in ["accepted", "wip", "needs-review"] {
+        mt(dir.path(), &["flip", status, "hollow"]);
+    }
+
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["flip", "done", "hollow"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("TODO placeholders"));
+
+    mt(dir.path(), &["flip", "done", "hollow", "--force"]);
+    let task = std::fs::read_to_string(dir.path().join("tasks/hollow.typ")).unwrap();
+    assert!(task.contains("forced past failing gate"), "{task}");
+}
+
 /// An unknown preset name fails and lists what exists, rather than reaching for
 /// a path or the network.
 #[test]
@@ -174,7 +219,7 @@ fn list_presets_writes_nothing() {
         .stdout
         .clone();
     let stdout = String::from_utf8_lossy(&output);
-    for (preset, _) in PRESET_PATHS {
+    for (preset, _, _) in PRESET_PATHS {
         assert!(stdout.contains(preset), "{stdout}");
     }
     assert!(!dir.path().join(".mindtape/config.toml").exists());
@@ -215,10 +260,7 @@ fn init_no_schema_omits_directive() {
 /// leave a project whose config and templates disagree.
 #[test]
 fn force_interplay_unchanged() {
-    let dir = tempfile::tempdir().unwrap();
-    support::install_lib(dir.path());
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), "# existing").unwrap();
+    let dir = support::scaffold_project("# existing");
 
     mt(dir.path(), &["init", "--preset", "gated"]);
     assert_eq!(

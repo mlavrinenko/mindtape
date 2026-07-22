@@ -47,8 +47,9 @@ edit. Four ship:
   person or a small team.
 / #raw("personal"): life admin — capture to an inbox, hide-until dates, a weekly
   review view, folders as contexts.
-/ #raw("gated"): for work handed to an AI agent — required spec sections, and a
-  review state that `done` cannot skip.
+/ #raw("gated"): for work handed to an AI agent — required spec sections, a
+  review state that `done` cannot skip, and a `[[on.flip]]` gate command that
+  must pass before a task may close.
 
 `--annotate` keeps the preset's explanatory comments in the written file. User
 presets live in `~/.config/mindtape/presets` and shadow the built-ins by name.

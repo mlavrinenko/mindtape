@@ -150,6 +150,12 @@ target entry declares `note = "required"`, `mt flip` refuses the move without
 list handle (`1b`), or path. `mt flip --list` prints the shortcut verbs
 generated from the legend.
 
+`mt flip` is also the only command that runs a project's
+#link(u("/config/"))[`[[on.flip]]` hooks] — printing a message or a task list,
+or running a command that may refuse the flip. `--quiet` suppresses the printed
+ones (gates still run); `--force` waives a failing gate and records the waiver
+in the status note. No read command executes anything.
+
 #cli-group(cli, cli-groups, "Status")
 
 = Recurring tasks

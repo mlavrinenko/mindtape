@@ -14,8 +14,14 @@
 //! written (a status change reorders the default view, so handles are resolved
 //! up front), then the valid edits are applied and any resolution or post-edit
 //! validation problem is reported without rolling the rest back.
+//!
+//! `flip` is also the one command that runs the project's `[[on.flip]]` actions
+//! ([`crate::flip_hooks`]). They run per target, after the transition and
+//! note-requirement guards and before the write, so a refusing gate leaves that
+//! task's file untouched.
 
 use std::collections::HashSet;
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, anyhow, bail};
@@ -24,6 +30,7 @@ use mindtape::config::Legend;
 use mindtape::{Config, load_config, load_project, status_value, today_ymd, validate};
 use typst_edit::apply;
 
+use crate::flip_hooks::{Hooks, Transition, note_with_overrides};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util::{self, Project};
 
@@ -46,9 +53,16 @@ pub struct FlipArgs {
     #[arg(long)]
     pub list: bool,
 
-    /// Bypass the declared status-transition graph (corrections escape hatch).
+    /// Bypass the declared status-transition graph, and waive a failing
+    /// `[[on.flip]]` gate (corrections escape hatch). A waived gate is recorded
+    /// in the status note.
     #[arg(long)]
     pub force: bool,
+
+    /// Suppress `[[on.flip]]` `show` / `list` output, so a scripted flip stays
+    /// clean. Gates still run; a failing one still prints its output.
+    #[arg(short = 'q', long)]
+    pub quiet: bool,
 }
 
 /// Parser wrapper for the shortcut-verb path: the raw external argv
@@ -125,29 +139,22 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
         }
     }
 
-    let ymd = today_ymd();
+    let batch = Batch {
+        project,
+        args,
+        status,
+        hooks: &Hooks::new(project, !args.quiet && std::io::stdout().is_terminal()),
+        ymd: today_ymd(),
+    };
     let mut touched_ids = HashSet::new();
     let mut touched_files = HashSet::new();
     for (spec, task, abs) in &resolved {
-        if !args.force
-            && let Err(msg) = check_transition(legend, task.status.as_ref(), status)
-        {
-            problems.push(format!("{spec}: {msg}"));
-            continue;
-        }
-        if let Err(msg) = check_note_required(legend, status, args.note.as_deref()) {
-            problems.push(format!("{spec}: {msg}"));
-            continue;
-        }
-        let restamp = task.status.as_ref().is_some_and(|s| s.name == status);
-        match flip_one(&project.config, abs, status, ymd, args.note.as_deref()) {
+        match flip_target(&batch, spec, task, abs) {
             Ok(()) => {
                 touched_ids.insert(task.id.clone());
                 touched_files.insert(task.file.clone());
-                report_flip(spec, &task.title, task.status.as_ref(), status, restamp);
-                notice_recur(task, status, legend, &project.config.tasks.recur);
             }
-            Err(err) => problems.push(format!("{spec}: {err:#}")),
+            Err(problem) => problems.push(format!("{spec}: {problem}")),
         }
     }
 
@@ -217,6 +224,66 @@ fn check_note_required(
         return Ok(());
     }
     Err(format!("`{to}` requires a note; supply one with -m/--note"))
+}
+
+/// The parts of a `flip` run that every target in the batch shares.
+struct Batch<'a> {
+    project: &'a Project,
+    args: &'a FlipArgs,
+    /// The status being stamped.
+    status: &'a str,
+    /// The project's `[[on.flip]]` runner.
+    hooks: &'a Hooks<'a>,
+    /// Today, resolved once so a batch cannot straddle midnight.
+    ymd: (i32, u8, u8),
+}
+
+/// Guard, hook and write one target. `Ok(())` when the flip landed;
+/// `Err(message)` says why it did not — the batch reports it and moves on, so a
+/// refused target leaves its own file untouched without rolling back the rest.
+///
+/// Order matters: the transition graph and the note requirement are cheap,
+/// local checks, so they run before any configured command does.
+fn flip_target(
+    batch: &Batch<'_>,
+    spec: &str,
+    task: &mindtape::Task,
+    abs: &Path,
+) -> std::result::Result<(), String> {
+    let (args, status) = (batch.args, batch.status);
+    let legend = &batch.project.config.tasks.status;
+    if !args.force {
+        check_transition(legend, task.status.as_ref(), status)?;
+    }
+    check_note_required(legend, status, args.note.as_deref())?;
+    let outcome = batch
+        .hooks
+        .run(
+            &Transition {
+                task,
+                path: abs,
+                target: status,
+                force: args.force,
+            },
+            &mut std::io::stdout(),
+        )
+        .map_err(|err| format!("{err:#}"))?;
+    if let Some(refusal) = outcome.refusal {
+        return Err(refusal);
+    }
+    let note = note_with_overrides(args.note.as_deref(), &outcome.forced);
+    let restamp = task.status.as_ref().is_some_and(|s| s.name == status);
+    flip_one(
+        &batch.project.config,
+        abs,
+        status,
+        batch.ymd,
+        note.as_deref(),
+    )
+    .map_err(|err| format!("{err:#}"))?;
+    report_flip(spec, &task.title, task.status.as_ref(), status, restamp);
+    notice_recur(task, status, legend, &batch.project.config.tasks.recur);
+    Ok(())
 }
 
 /// Rewrite the task at `abs`: stamp `status` dated `ymd` (with optional `note`),

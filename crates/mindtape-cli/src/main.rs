@@ -9,6 +9,8 @@ mod cli_dump;
 mod config_cmd;
 mod eval;
 mod flip;
+mod flip_hooks;
+mod flip_hooks_cmd;
 mod git;
 mod go;
 mod graph;

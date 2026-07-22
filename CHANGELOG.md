@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Flip hooks (`[[on.flip]]`)** — one mechanism for "when a task changes status,
+  do something". Each entry pairs a `when` — a filter expression over the task as
+  it stands before the write, plus an `into("status")` predicate for the status
+  being stamped — with an ordered list of actions: `{ show = "text" }` prints a
+  message, `{ list = "filter or @view", title = "..." }` prints the matching
+  tasks (how an agent starting work sees what else is in flight, with no
+  materialised index), and `{ run = "cmd", gate = true, message = "..." }`
+  executes a command whose non-zero exit refuses the flip, prints its output, and
+  stops: nothing is written for that task and later actions do not run. `--force`
+  waives a failing gate and records the waiver in the status note, so an override
+  stays legible. Gate commands run from the project root with
+  `MINDTAPE_TASK_FILE`, `MINDTAPE_TASK_STEM` and `MINDTAPE_TASK_STATUS` in the
+  environment. `show` and `list` fall silent under `mt flip --quiet` or when
+  stdout is not a terminal; gates still run. Only `mt flip` runs actions —
+  `mt check`, `mt ls` and every other read command execute nothing, since a read
+  that shells out is a surprise in the editors and commit hooks `mt check` runs
+  inside. The trust boundary is a `Justfile`'s or a git hook's: the command comes
+  from the in-repo config and is not sandboxed. The `gated` preset ships both
+  shapes — the open set on the way into `wip`, and a gate on the way into `done`.
 - **Work-in-progress limits (`[[tasks.limits]]`)** — cap how many tasks may sit
   in a matched set at once and have `mt check` report a breach with the cap, the
   count and every task in the set. A limit is a `filter` plus a `max`, so no

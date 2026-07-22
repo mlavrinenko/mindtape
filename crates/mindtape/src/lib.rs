@@ -18,6 +18,7 @@ pub mod config_comments;
 mod config_estimate;
 mod config_format;
 mod config_go;
+pub mod config_hooks;
 mod config_layers;
 pub mod config_limits;
 mod config_links_validate;
