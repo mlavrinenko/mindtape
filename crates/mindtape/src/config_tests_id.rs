@@ -55,7 +55,15 @@ fn requirement_accepts_string_true_false() {
     );
 }
 
+/// A string that is neither `"true"`/`"false"` nor a usable filter expression
+/// parses (it is a filter expression by shape) and fails config validation,
+/// naming the field — one config error instead of one violation per task.
 #[test]
-fn requirement_rejects_invalid_string() {
-    assert!(parse_config("[tasks.fields.priority]\nrequired = \"maybe\"\n").is_err());
+fn requirement_rejects_an_unusable_expression_at_validation() {
+    let config = parse_config("[tasks.fields.priority]\nrequired = \"maybe\"\n").unwrap();
+    let problems = config.validate().unwrap_err();
+    assert!(
+        problems.contains("tasks.fields.priority.required"),
+        "the offending field must be named: {problems}"
+    );
 }

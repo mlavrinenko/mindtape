@@ -67,7 +67,7 @@ to = ["wip"]
 kind = "int"
 min = 0
 max = 9
-required = "non-terminal"
+required = "!terminal"
 framework = "ice"
 allow-manual = false
 [[tasks.priority.bands]]

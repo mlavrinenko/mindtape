@@ -68,7 +68,7 @@ terminal = true
 
 [tasks.fields.priority]
 values = ["low", "high"]
-required = "non-terminal"
+required = "!terminal"
 
 [tasks.fields.kind]
 default = "feature"
@@ -91,7 +91,7 @@ filter = "status != \"done\""
     assert_eq!(config.tasks.status.terminal(), vec!["done".to_owned()]);
 
     let priority = config.tasks.fields.get("priority").unwrap();
-    assert_eq!(priority.required, Requirement::NonTerminal);
+    assert_eq!(priority.required, Requirement::Expr("!terminal".to_owned()));
     assert_eq!(priority.values, vec!["low".to_owned(), "high".to_owned()]);
 
     let kind = config.tasks.fields.get("kind").unwrap();
@@ -160,7 +160,7 @@ fn parses_numeric_priority_with_bands() {
 [tasks.priority]
 min = 0
 max = 9
-required = "non-terminal"
+required = "!terminal"
 [[tasks.priority.bands]]
 label = "low"
 min = 0
@@ -174,7 +174,7 @@ max = 9
     assert_eq!(config.tasks.priority.field.bands.len(), 2);
     assert_eq!(
         config.tasks.priority.field.required,
-        Requirement::NonTerminal
+        Requirement::Expr("!terminal".to_owned())
     );
     assert!(config.validate().is_ok());
 }
@@ -261,7 +261,7 @@ fn embedded_defaults_matches_compiled_floor() {
 fn requirement_deserialize_error_mentions_expected_types() {
     let err = parse_config("[tasks.fields.priority]\nrequired = 42\n").unwrap_err();
     assert!(
-        err.to_string().contains("a boolean or the string"),
+        err.to_string().contains("a boolean or a filter expression"),
         "catches expecting-noop mutant"
     );
 }

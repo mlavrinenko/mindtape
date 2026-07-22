@@ -223,7 +223,7 @@ fn kind_config() -> Config {
         FieldConfig {
             values: vec!["bug".into(), "feature".into()],
             default: None,
-            required: Requirement::NonTerminal,
+            required: Requirement::Expr("!terminal".to_owned()),
         },
     );
     cfg

@@ -19,7 +19,7 @@ by hand, or let a #strong[framework] score typed inputs into that number.
 kind = "int"            # int | real
 min  = 0
 max  = 9
-required = "non-terminal"   # true | false | "non-terminal"
+required = "!terminal"  # true | false | a filter expression
 
 [[tasks.priority.bands]]
 label = "high"

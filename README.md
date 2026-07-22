@@ -170,7 +170,7 @@ color = "green"
 terminal = true
 
 # Priority: a number on a scale, classified into labelled bands. `required` is
-# true | false | "non-terminal"; difficulty is the sibling. `framework`
+# true | false | a filter expression; difficulty is the sibling. `framework`
 # (optional) scores typed inputs instead of a hand-set int — built-ins
 # ice/rice/wsjf/eisenhower/moscow ship baked-in; `allow-manual = false` forbids
 # raw ints. Override one under `[tasks.priority.frameworks.<name>]`.
@@ -178,7 +178,7 @@ terminal = true
 kind = "int"                       # int | real
 min  = 0
 max  = 9
-required = "non-terminal"
+required = "!terminal"
 framework = "ice"                  # optional; omit for hand-set integers
 allow-manual = false               # strict: every task scores through the framework
 [[tasks.priority.bands]]

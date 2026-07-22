@@ -27,6 +27,7 @@ pub use crate::config_ls::{
     ColumnConfig, Facet, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig, Visibility,
     parse_import_view, validate_ls_columns, validate_ls_rules,
 };
+pub use crate::config_required::{RequiredRules, Requirement, RequirementRule};
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};
 pub use crate::config_status::{Legend, LegendEntry};
 pub use crate::config_views::{ViewSpec, validate_views};
@@ -330,52 +331,6 @@ pub struct RmConfig {
     pub default_filter: Option<String>,
 }
 
-/// Whether a field is required: `false`, `true`, or `"non-terminal"`.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub enum Requirement {
-    /// Never required.
-    #[default]
-    No,
-    /// Always required.
-    Always,
-    /// Required only while the task is not terminal.
-    NonTerminal,
-}
-
-impl<'de> Deserialize<'de> for Requirement {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        struct ReqVisitor;
-        impl serde::de::Visitor<'_> for ReqVisitor {
-            type Value = Requirement;
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                formatter.write_str("a boolean or the string \"non-terminal\"")
-            }
-            fn visit_bool<E>(self, value: bool) -> Result<Requirement, E> {
-                Ok(if value {
-                    Requirement::Always
-                } else {
-                    Requirement::No
-                })
-            }
-            fn visit_str<E>(self, value: &str) -> Result<Requirement, E>
-            where
-                E: serde::de::Error,
-            {
-                match value {
-                    "non-terminal" => Ok(Requirement::NonTerminal),
-                    "true" => Ok(Requirement::Always),
-                    "false" => Ok(Requirement::No),
-                    other => Err(E::custom(format!("invalid `required` value: {other}"))),
-                }
-            }
-        }
-        deserializer.deserialize_any(ReqVisitor)
-    }
-}
-
 /// Errors from loading or locating a config file.
 #[derive(Debug, Error)]
 pub enum ConfigError {
@@ -408,6 +363,7 @@ impl Config {
         }
         problems.extend(validate_ls_columns(&self.ls));
         problems.extend(validate_views(&self.views));
+        problems.extend(crate::config_required::validate_requirements(self));
         problems.extend(validate_ls_rules(&self.ls.rules, &self.views));
         if let Some(name) = &self.ls.default_view
             && !self.views.contains_key(name)

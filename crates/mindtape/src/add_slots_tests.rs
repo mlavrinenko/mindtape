@@ -58,7 +58,7 @@ fn difficulty_required_yields_real_slot_for_real_kind() {
 #[test]
 fn non_terminal_requirement_counts_as_required() {
     let config = parse_config(
-        "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = \"non-terminal\"\n",
+        "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = \"!terminal\"\n",
     )
     .unwrap();
     assert_eq!(fields(&config), vec!["priority"]);
