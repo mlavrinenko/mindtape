@@ -570,6 +570,10 @@
             "null"
           ]
         },
+        "note": {
+          "$ref": "#/$defs/NoteRule",
+          "description": "Note requirement for a task landing in this status: reuses [`NoteRule`]\nunmodified from the typed `links:` edge kind rule\n(`crate::link::LinkKind::note`) rather than defining a second type.\nDefaults to `Optional`, so an existing config with no `note` field is\nunchanged. Per-entry, not legend-wide: a preset can demand a note\nexactly where no machine check exists (`blocked`, `failed`, a reopen)\nand stay silent on `done`, where a gate command is the real check —\nsee `truth/tasks/status-note-rule.typ`."
+        },
         "terminal": {
           "default": false,
           "description": "Whether this value ends a task; required fields relax once terminal.",

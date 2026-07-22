@@ -11,8 +11,10 @@ use std::path::PathBuf;
 
 use uuid::Uuid;
 
-use crate::config::{Config, EstimateConfig, FieldConfig, IdFormat, PriorityConfig, RequiredRules};
-use crate::model::Task;
+use crate::config::{
+    Config, EstimateConfig, FieldConfig, IdFormat, Legend, PriorityConfig, RequiredRules,
+};
+use crate::model::{Status, Task};
 use crate::numeric::{InputValue, NumValue, NumericField, format_num};
 
 /// Source location for a violation that points to a specific line.
@@ -156,7 +158,29 @@ fn check_status(task: &Task, config: &Config, out: &mut Vec<Violation>) {
             "status",
             format!("`{}` is not a configured status", status.name),
         ),
-        Some(status) => check_status_reachable(task, legend, &status.name, out),
+        Some(status) => {
+            check_status_reachable(task, legend, &status.name, out);
+            check_status_note(task, legend, status, out);
+        }
+    }
+}
+
+/// Flag a task sitting in a status whose legend entry declares `note =
+/// "required"` (see [`crate::config::LegendEntry::note_required`], the same
+/// [`crate::link::NoteRule`] primitive typed `links:` edges use) but whose
+/// status carries no note, or only a blank one.
+fn check_status_note(task: &Task, legend: &Legend, status: &Status, out: &mut Vec<Violation>) {
+    let Some(entry) = legend.entry(&status.name) else {
+        return;
+    };
+    let blank = status.note.as_deref().unwrap_or("").trim().is_empty();
+    if entry.note_required() && blank {
+        push(
+            out,
+            task,
+            "status",
+            format!("`{}` requires a note", status.name),
+        );
     }
 }
 

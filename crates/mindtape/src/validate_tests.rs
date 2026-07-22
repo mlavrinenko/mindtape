@@ -131,6 +131,89 @@ fn unconstrained_legend_skips_reachability() {
     assert!(validate(&tasks, &config()).is_empty());
 }
 
+/// `blocked` declares `note = "required"`; `cancelled` declares `note =
+/// "forbidden"`; `wip`/`done` are left at the `Optional` default.
+fn note_required_config() -> crate::config::Config {
+    parse_config(
+        r#"
+[[tasks.status]]
+value = "wip"
+[[tasks.status]]
+value = "blocked"
+note = "required"
+[[tasks.status]]
+value = "cancelled"
+terminal = true
+note = "forbidden"
+[[tasks.status]]
+value = "done"
+terminal = true
+"#,
+    )
+    .unwrap()
+}
+
+#[test]
+fn required_note_status_rejects_a_blank_note() {
+    let mut item = task("a", "blocked");
+    item.status.as_mut().unwrap().note = None;
+    let violations = validate(&[item], &note_required_config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "status" && v.message.contains("requires a note")),
+        "expected a required-note violation, got: {violations:?}"
+    );
+}
+
+#[test]
+fn required_note_status_rejects_a_whitespace_only_note() {
+    let mut item = task("a", "blocked");
+    item.status.as_mut().unwrap().note = Some("   ".to_owned());
+    let violations = validate(&[item], &note_required_config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "status" && v.message.contains("requires a note"))
+    );
+}
+
+#[test]
+fn required_note_status_accepts_a_filled_note() {
+    let mut item = task("a", "blocked");
+    item.status.as_mut().unwrap().note = Some("waiting on upstream".to_owned());
+    assert!(validate(&[item], &note_required_config()).is_empty());
+}
+
+/// A status left at the default `Optional` note rule never flags a note
+/// violation, whether or not a note is present.
+#[test]
+fn optional_note_rule_is_unchanged() {
+    let mut noted = task("a", "wip");
+    noted.status.as_mut().unwrap().note = Some("fyi".to_owned());
+    let bare = task("b", "wip");
+    let violations = validate(&[noted, bare], &note_required_config());
+    assert!(violations.iter().all(|v| v.field != "status"));
+}
+
+/// A terminal status left at the default note rule is likewise unaffected.
+#[test]
+fn terminal_status_without_note_requirement_is_unchanged() {
+    let tasks = vec![task("a", "done")];
+    assert!(validate(&tasks, &note_required_config()).is_empty());
+}
+
+/// `note = "forbidden"` is not enforced for a status (unlike a link kind):
+/// a task landing there validates clean whether or not it carries a note.
+#[test]
+fn forbidden_note_rule_is_unchanged_for_a_status() {
+    let mut noted = task("a", "cancelled");
+    noted.status.as_mut().unwrap().note = Some("closing this out".to_owned());
+    let bare = task("b", "cancelled");
+    let violations = validate(&[noted, bare], &note_required_config());
+    assert!(violations.iter().all(|v| v.field != "status"));
+}
+
 #[test]
 fn flags_dependency_cycle() {
     let mut a = task("a", "wip");
