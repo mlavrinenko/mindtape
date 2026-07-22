@@ -9,7 +9,7 @@
   ),
   difficulty: 6,
   tags: ("cli", "gating"),
-  status: proposed(2026, 7, 22),
+  status: wip(2026, 7, 22),
   links: depends-on("required-as-filter-expression.typ"),
 )
 
