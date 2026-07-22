@@ -1,0 +1,55 @@
+# .mindtape/config.toml — the `flow` preset.
+#
+# A lifecycle with enforced transitions, for work that gets picked up, worked,
+# and closed. Suits one person or a small team equally — nothing here assumes
+# either.
+#
+# Once any status declares `to`, `mt flip` gates every move to a listed edge
+# (a same-status re-stamp and the first stamp on a status-less task stay
+# exempt; `--force` overrides) and `mt check` flags a task sitting in a state
+# unreachable from the first one.
+
+[tasks]
+# Folder-derived tags: a task at tasks/backend/auth/rotate-keys.typ picks up
+# `backend` and `auth` with no hand-wiring. Derived tags are virtual — they are
+# never written into the file, and authored `tags` stay untouched.
+[[tasks.roots]]
+path = "tasks"
+derive-tags = true
+
+[tasks.derive-tags]
+enabled = true
+collect = ["segments"]
+
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+to = ["blocked", "done", "cancelled"]
+
+# Blocked is not terminal: the work is still live, it just cannot proceed.
+[[tasks.status]]
+value = "blocked"
+glyph = "🔒"
+color = "red"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+to = ["wip"]
+
+# A sink: nothing leaves `cancelled` without `--force`.
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true

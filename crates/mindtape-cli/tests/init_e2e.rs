@@ -9,57 +9,175 @@ use std::path::Path;
 
 mod support;
 
+/// Run `mt` in `dir` and assert it succeeds.
+fn mt(dir: &Path, args: &[&str]) {
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir)
+        .args(args)
+        .assert()
+        .success();
+}
+
 /// File a task in `dir` via `mt add --name <name> --set title=T <extra_set…>`,
 /// then assert `mt ls` and `mt check` both succeed against it.
 fn add_then_ls_and_check(dir: &Path, name: &str, extra_set: &[&str]) {
     let mut args = vec!["add", "--name", name, "--set", "title=T"];
     args.extend_from_slice(extra_set);
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir)
-        .args(&args)
-        .assert()
-        .success();
-
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir)
-        .arg("ls")
-        .assert()
-        .success();
-
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir)
-        .arg("check")
-        .assert()
-        .success();
+    mt(dir, &args);
+    mt(dir, &["ls"]);
+    mt(dir, &["check"]);
 }
 
-/// `mt init` writes the slim scaffold, which parses and validates through the
-/// embedded floor and supports a real `mt add` / `mt ls` / `mt check` cycle.
-#[test]
-fn init_slim_scaffold_supports_add_ls_check() {
+/// A scaffolded project for `preset`, with the Typst package installed.
+fn init_preset(preset: &str) -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
     support::install_lib(dir.path());
+    mt(dir.path(), &["init", "--preset", preset]);
+    dir
+}
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .arg("init")
-        .assert()
-        .success();
+/// Every built-in preset, with a valid walk from the status `mt add` stamps
+/// through to a terminal one. The path is spelled out rather than derived so
+/// that a preset whose declared `to` edges do not actually connect fails here.
+const PRESET_PATHS: &[(&str, &[&str])] = &[
+    ("todone", &["done"]),
+    ("flow", &["wip", "done"]),
+    ("personal", &["next", "done"]),
+    ("gated", &["accepted", "wip", "needs-review", "done"]),
+];
+
+/// The gate that makes a first run trustworthy: for every built-in preset,
+/// scaffold, file a task with nothing but a title, and walk it to a terminal
+/// status — validating at each step.
+///
+/// This is what catches a preset that requires something its own template does
+/// not produce. Such a project scaffolds cleanly and then fails on the user's
+/// very first `mt add`, which is the worst possible moment to discover it.
+#[test]
+fn every_preset_supports_add_check_and_a_full_walk() {
+    for (preset, path) in PRESET_PATHS {
+        let dir = init_preset(preset);
+        add_then_ls_and_check(dir.path(), "wire-preset", &[]);
+        for status in *path {
+            mt(dir.path(), &["flip", status, "wire-preset"]);
+            mt(dir.path(), &["check"]);
+        }
+    }
+}
+
+/// `mt init` with no `--preset` writes the default shape, and the written file
+/// carries the schema directive and a real status legend.
+#[test]
+fn init_default_preset_supports_add_ls_check() {
+    let dir = tempfile::tempdir().unwrap();
+    support::install_lib(dir.path());
+    mt(dir.path(), &["init"]);
 
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
     // First line is the schema-association directive (default: the installed schema).
     assert!(config.starts_with("#:schema "), "{config}");
-    assert!(config.contains("roots = [\"tasks\"]"), "{config}");
-    // Slim: no status legend or priority bands spelled out — those come from
-    // the embedded floor.
-    assert!(!config.contains("[[tasks.status]]"), "{config}");
-    assert!(!config.contains("[tasks.priority]"), "{config}");
+    assert!(config.contains("[[tasks.status]]"), "{config}");
 
     add_then_ls_and_check(dir.path(), "wire-init", &[]);
+}
+
+/// The default rendering is quiet: apart from the schema directive, which is
+/// prepended after stripping, no comment lines survive.
+#[test]
+fn default_rendering_carries_no_commentary() {
+    let dir = init_preset("flow");
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    let comments: Vec<&str> = config
+        .lines()
+        .skip(1)
+        .filter(|line| line.trim_start().starts_with('#'))
+        .collect();
+    assert!(comments.is_empty(), "{comments:?}");
+}
+
+/// `--annotate` keeps the reasoning, and the annotated file still works. The
+/// two flags are independent: one picks the shape, the other the commentary.
+#[test]
+fn annotate_keeps_commentary_and_still_works() {
+    let dir = tempfile::tempdir().unwrap();
+    support::install_lib(dir.path());
+    mt(dir.path(), &["init", "--preset", "todone", "--annotate"]);
+
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    assert!(config.contains("The smallest shape"), "{config}");
+    assert!(
+        config.contains("[[tasks.status]]"),
+        "annotation must not change the content: {config}"
+    );
+    add_then_ls_and_check(dir.path(), "wire-annotated", &[]);
+}
+
+/// A preset that constrains task bodies also installs the template producing
+/// them, so the scaffolded project's first `mt add` satisfies its own config.
+#[test]
+fn gated_preset_installs_its_template() {
+    let dir = init_preset("gated");
+    let template = dir.path().join(".mindtape/templates/task.typ");
+    assert!(template.exists(), "gated must ship its task template");
+
+    mt(dir.path(), &["add", "--name", "spec", "--set", "title=T"]);
+    let task = std::fs::read_to_string(dir.path().join("tasks/spec.typ")).unwrap();
+    for heading in ["Summary", "Acceptance criteria", "Non-goals", "Files"] {
+        assert!(task.contains(heading), "missing {heading}:\n{task}");
+    }
+    mt(dir.path(), &["check"]);
+}
+
+/// The `gated` review gate is real: `done` is unreachable directly from `wip`,
+/// so a run of work cannot close itself.
+#[test]
+fn gated_preset_blocks_done_straight_from_wip() {
+    let dir = init_preset("gated");
+    mt(dir.path(), &["add", "--name", "guard", "--set", "title=T"]);
+    mt(dir.path(), &["flip", "accepted", "guard"]);
+    mt(dir.path(), &["flip", "wip", "guard"]);
+
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["flip", "done", "guard"])
+        .assert()
+        .failure();
+}
+
+/// An unknown preset name fails and lists what exists, rather than reaching for
+/// a path or the network.
+#[test]
+fn unknown_preset_fails_without_writing() {
+    let dir = tempfile::tempdir().unwrap();
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["init", "--preset", "nope"])
+        .assert()
+        .failure();
+    assert!(!dir.path().join(".mindtape/config.toml").exists());
+}
+
+/// `--list-presets` names every built-in and writes nothing.
+#[test]
+fn list_presets_writes_nothing() {
+    let dir = tempfile::tempdir().unwrap();
+    let output = assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["init", "--list-presets"])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let stdout = String::from_utf8_lossy(&output);
+    for (preset, _) in PRESET_PATHS {
+        assert!(stdout.contains(preset), "{stdout}");
+    }
+    assert!(!dir.path().join(".mindtape/config.toml").exists());
 }
 
 /// `--schema URL` writes that exact value as the first-line `#:schema`
@@ -68,13 +186,10 @@ fn init_slim_scaffold_supports_add_ls_check() {
 fn init_schema_override_writes_directive() {
     let dir = tempfile::tempdir().unwrap();
     support::install_lib(dir.path());
-
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .args(["init", "--schema", "https://example.com/config.schema.json"])
-        .assert()
-        .success();
+    mt(
+        dir.path(),
+        &["init", "--schema", "https://example.com/config.schema.json"],
+    );
 
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
     assert!(
@@ -89,42 +204,15 @@ fn init_schema_override_writes_directive() {
 fn init_no_schema_omits_directive() {
     let dir = tempfile::tempdir().unwrap();
     support::install_lib(dir.path());
-
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .args(["init", "--no-schema"])
-        .assert()
-        .success();
+    mt(dir.path(), &["init", "--no-schema"]);
 
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
     assert!(!config.contains("#:schema"), "{config}");
 }
 
-/// `mt init --full` writes the fully-expanded, opinionated starter config,
-/// which also parses and validates and supports the same cycle.
-#[test]
-fn init_full_scaffold_supports_add_ls_check() {
-    let dir = tempfile::tempdir().unwrap();
-    support::install_lib(dir.path());
-
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .args(["init", "--full"])
-        .assert()
-        .success();
-
-    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
-    assert!(config.contains("[[tasks.status]]"), "{config}");
-    assert!(config.contains("[tasks.priority]"), "{config}");
-
-    // The full config's priority is required for non-terminal tasks.
-    add_then_ls_and_check(dir.path(), "wire-init-full", &["--set", "priority=5"]);
-}
-
-/// `--force` interplay is unchanged: without it, an existing config survives
-/// `init`; with it, `init` overwrites regardless of `--full`.
+/// Without `--force` an existing config survives; with it, `init` overwrites.
+/// A skipped write installs no templates either — a half-applied preset would
+/// leave a project whose config and templates disagree.
 #[test]
 fn force_interplay_unchanged() {
     let dir = tempfile::tempdir().unwrap();
@@ -132,23 +220,18 @@ fn force_interplay_unchanged() {
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
     std::fs::write(dir.path().join(".mindtape/config.toml"), "# existing").unwrap();
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .arg("init")
-        .assert()
-        .success();
+    mt(dir.path(), &["init", "--preset", "gated"]);
     assert_eq!(
         std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap(),
         "# existing"
     );
+    assert!(
+        !dir.path().join(".mindtape/templates/task.typ").exists(),
+        "a skipped scaffold must not install templates"
+    );
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .args(["init", "--full", "--force"])
-        .assert()
-        .success();
+    mt(dir.path(), &["init", "--preset", "gated", "--force"]);
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
-    assert!(config.contains("[[tasks.status]]"), "{config}");
+    assert!(config.contains("needs-review"), "{config}");
+    assert!(dir.path().join(".mindtape/templates/task.typ").exists());
 }

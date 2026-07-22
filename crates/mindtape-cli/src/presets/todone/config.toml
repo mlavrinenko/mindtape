@@ -1,0 +1,29 @@
+# .mindtape/config.toml — the `todone` preset.
+#
+# The smallest shape that still tracks anything: a task is open, or it is
+# finished. Nothing else is constrained, so whatever priority, tag or estimate
+# you write is accepted as authored.
+#
+# Reach for `mt init --preset flow` when two states stop being enough.
+
+[tasks]
+# Directories (relative to this file's project root) holding one task per file.
+roots = ["tasks"]
+
+# Two states. `terminal = true` ends a task: required fields relax, a bare
+# `mt rm` sweeps it, and the default listing stops showing it.
+[[tasks.status]]
+value = "todo"
+glyph = "○"
+color = "blue"
+
+[[tasks.status]]
+value = "done"
+glyph = "●"
+color = "green"
+terminal = true
+
+# No priority bands. A priority is still accepted and still sorts; it just
+# renders as a bare number instead of a coloured band label.
+[tasks.priority]
+bands = []

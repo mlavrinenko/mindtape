@@ -8,7 +8,11 @@
     ease: 3,
   ),
   tags: (),
-  status: proposed(2026, 7, 22),
+  status: wip(
+    2026,
+    7,
+    22,
+  )[implementing preset resolution, the four built-in shapes and the matrix test],
 )
 
 == Summary

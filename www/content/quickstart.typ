@@ -35,11 +35,23 @@ mt install        # installs @local/mindtape + ~/.config/mindtape/defaults.toml
 Then scaffold a project, once per repository:
 
 ```sh
-mt init           # writes .mindtape/config.toml in the current directory
+mt init                  # writes .mindtape/config.toml in the current directory
+mt init --list-presets   # the other starter shapes
 ```
 
-`mt init --full` writes a fully-expanded config with every section spelled out;
-the bare `mt init` writes a slim scaffold that inherits the shipped defaults.
+A preset is a starter shape, not a straitjacket — the written file is yours to
+edit. Four ship:
+
+/ #raw("todone"): open or finished, nothing else constrained.
+/ #raw("flow"): a lifecycle with enforced transitions (the default). Suits one
+  person or a small team.
+/ #raw("personal"): life admin — capture to an inbox, hide-until dates, a weekly
+  review view, folders as contexts.
+/ #raw("gated"): for work handed to an AI agent — required spec sections, and a
+  review state that `done` cannot skip.
+
+`--annotate` keeps the preset's explanatory comments in the written file. User
+presets live in `~/.config/mindtape/presets` and shadow the built-ins by name.
 See #link(u("/config/"))[Configuration] for the layering.
 
 = File your first task

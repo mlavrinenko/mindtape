@@ -51,13 +51,14 @@ nix develop                 # dev shell with the full toolchain
 cargo build --release       # produces target/release/mt
 ```
 
-Set up the user environment once per machine (installs the Typst prelude,
-seeds the XDG global app config), then scaffold a project (once per project):
+Set up the user environment once per machine (installs the Typst prelude, seeds the XDG global app config), then scaffold a project (once per project):
 
 ```bash
 mt install            # @local/mindtape + ~/.config/mindtape/{defaults.toml,config.schema.json}
 mt init               # writes .mindtape/config.toml (with a #:schema directive) here
 ```
+
+`mt init` writes a named preset (`--list-presets`): `todone`, `flow` (a lifecycle with enforced transitions; the default), `personal` (inbox, hide-until dates, weekly review), `gated` (required spec sections and a review state `done` cannot skip — for work handed to an AI agent). `--annotate` keeps the preset's comments; user presets under `~/.config/mindtape/presets` shadow the built-ins by name.
 
 `mt install` also writes a JSON Schema next to the app config; `mt init` adds a first-line `#:schema` directive targeting it so a schema-aware TOML editor (tombi, Taplo) assists filling values (`--schema URL|PATH` retargets, `--no-schema` opts out). `mt install-lib` ≙ `mt install --no-defaults --no-schema`.
 
@@ -146,20 +147,15 @@ inherit the floor's sane defaults (status legend, priority/difficulty scales,
 filters), declare it to override, or set it empty (e.g. `status = []`) to leave
 that aspect unconstrained.
 
-The floor is the lowest of four layers, deep-merged in precedence order:
-the embedded floor, then XDG global defaults (`~/.config/mindtape/defaults.toml`),
-then every `.mindtape/defaults.toml` found walking up from the project root
-(farthest ancestor first, so the nearest wins), then the project's own
-`.mindtape/config.toml` (highest precedence). Run `mt config show` to print the
-effective result of that merge as valid TOML, `mt config show --origin` to see
-which layers contributed and where each was read from, or `mt config show
---defaults` to print just the embedded floor.
+The floor is the lowest of four layers, deep-merged in precedence order: the embedded floor, then XDG global defaults (`~/.config/mindtape/defaults.toml`), then every `.mindtape/defaults.toml` found walking up from the project root (farthest ancestor first, so the nearest wins), then the project's own `.mindtape/config.toml` (highest precedence). Run `mt config show` to print the effective result of that merge as valid TOML, `mt config show --origin` to see which layers contributed and where each was read from, or `mt config show --defaults` to print just the embedded floor.
+
+Only the project's own config travels with the repository: anyone who clones it gets the embedded floor plus that file, and nothing from your machine. So a preset is what makes a project self-contained — it stamps a shape into `.mindtape/config.toml` rather than leaving it in a layer only you have.
 
 ```toml
 [tasks]
 roots = ["tasks"]
 # Table-form roots (`[[tasks.roots]]` with `name` + `derive-tags`) add a
-# display name and folder-derived tags. See default-config.toml.
+# display name and folder-derived tags. See `mt init --preset flow --annotate`.
 
 # Status legend: legal values in lifecycle order, each with an optional glyph
 # and colour. `terminal = true` ends a task (required fields relax once terminal).

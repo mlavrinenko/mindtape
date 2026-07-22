@@ -12,12 +12,16 @@ groups:
       - crates/mindtape-cli/src/cli.rs
       - crates/mindtape/src/lib.rs
       - crates/mindtape/src/defaults.toml
-      - crates/mindtape-cli/src/default-config.toml
+      - crates/mindtape-cli/src/presets/todone/config.toml
+      - crates/mindtape-cli/src/presets/flow/config.toml
+      - crates/mindtape-cli/src/presets/personal/config.toml
+      - crates/mindtape-cli/src/presets/gated/config.toml
     dependents:
       - README.md
       - www/content/cli.typ
       - www/content/filters.typ
       - www/content/config.typ
+      - www/content/quickstart.typ
       - skills/mindtape/SKILL.md
 
   # A package change (version, dependencies, metadata) should land in the changelog.
@@ -45,6 +49,7 @@ groups:
       - lib/typst.toml
     dependents:
       - crates/mindtape-cli/src/init.rs
+      - crates/mindtape-cli/src/presets/gated/templates/task.typ
       - README.md
       - AGENTS.md
       - www/utils/site.typ
@@ -69,7 +74,6 @@ groups:
     source:
       - crates/mindtape-cli/Cargo.toml
       - crates/mindtape-cli/src/cli.rs
-      - crates/mindtape-cli/src/default-config.toml
     dependents:
       - README.md
       - www/content/index.typ

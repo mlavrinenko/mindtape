@@ -1,0 +1,94 @@
+# .mindtape/config.toml — the `personal` preset.
+#
+# Shaped for life admin rather than code: capture first, decide later, and keep
+# the working list short.
+#
+# Two ideas do most of the work here.
+#
+# First, two kinds of date. `due` is a real deadline. `start` is "hide this
+# until" — the default listing filters on `miss(start) || start <= now()`, so a
+# task with a future `start` stays out of sight until its day arrives. Keeping
+# them separate is what stops everything drifting into a permanent overdue pile
+# that you learn to ignore.
+#
+# Second, folders are contexts. Put a task under tasks/errands/ or tasks/home/
+# and it carries that tag without you typing one.
+
+[tasks]
+[[tasks.roots]]
+path = "tasks"
+derive-tags = true
+
+[tasks.derive-tags]
+enabled = true
+collect = ["segments"]
+
+# Capture goes to `inbox` and stays there until you decide what it is — that
+# decision is the only thing standing between a list and a pile.
+[[tasks.status]]
+value = "inbox"
+glyph = "📥"
+color = "blue"
+to = ["next", "waiting", "someday", "dropped"]
+
+# `next` means genuinely actionable now. If it is not, it belongs elsewhere.
+[[tasks.status]]
+value = "next"
+glyph = "▶"
+color = "yellow"
+to = ["waiting", "someday", "done", "dropped"]
+
+# Parked on someone else. Not your move, but still yours to chase.
+[[tasks.status]]
+value = "waiting"
+glyph = "⏳"
+color = "cyan"
+to = ["next", "done", "dropped"]
+
+# Not now, not never. Reviewed periodically, not worked.
+[[tasks.status]]
+value = "someday"
+glyph = "🌙"
+color = "magenta"
+to = ["next", "dropped"]
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+to = ["next"]
+
+[[tasks.status]]
+value = "dropped"
+glyph = "🚫"
+color = "red"
+terminal = true
+
+# Priority is optional here on purpose. For personal work the date fields carry
+# the scheduling and a number on top of them mostly goes stale.
+[tasks.priority]
+bands = []
+
+# A recurring chore usually wants `anchor: "completion"` in the task itself —
+# `recur: every(weeks: 2, anchor: "completion")` — so that skipping a week
+# shifts the next instance instead of stacking up several overdue copies.
+
+# `mt ls @next` shows what is actually actionable today.
+[views.next]
+filter = "status == \"next\" && (miss(start) || start <= now())"
+sort = ["due:asc"]
+description = "Actionable now: `next` items whose start date has arrived"
+
+# `mt ls @waiting` is the chase list.
+[views.waiting]
+filter = "status == \"waiting\""
+sort = ["due:asc"]
+description = "Parked on someone else"
+
+# `mt ls @review` is the weekly review. `stale(21)` counts days since the task
+# was last reviewed (`mt review`), falling back to its last status change — so
+# this surfaces whatever you have not looked at in three weeks.
+[views.review]
+filter = "!terminal && stale(21)"
+description = "Untouched for three weeks — decide, reschedule, or drop"

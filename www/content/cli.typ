@@ -190,7 +190,8 @@ filter is `terminal`.
 
 `mt install` installs the `@local/mindtape` prelude, seeds the XDG global
 defaults, and writes the config JSON Schema (`config.schema.json`) beside them.
-`mt init` writes `.mindtape/config.toml` (`--full` for the expanded form) with a
+`mt init` writes `.mindtape/config.toml` from a named preset (`--preset NAME`,
+`--list-presets`; `--annotate` keeps the reasoning) with a
 first-line `#:schema` comment directive pointing at that schema, so a
 schema-aware TOML editor (tombi, Taplo) assists filling values; `--schema
 URL|PATH` retargets it and `--no-schema` (on either command) opts out. See

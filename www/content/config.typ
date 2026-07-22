@@ -87,8 +87,10 @@ filter = "status != \"done\""
 #terminal(read("../generated/config-origin.txt"))
 
 #callout("note")[
-  `mt init` writes a slim scaffold that inherits the floor; `mt init --full`
-  writes every section, spelled out and commented.
+  `mt init` writes one of the named presets (`--list-presets` shows them), and
+  `--annotate` keeps that preset's explanatory comments. The two are
+  independent: `--preset` picks what the config says, `--annotate` picks whether
+  it says why.
 ]
 
 = Status transitions

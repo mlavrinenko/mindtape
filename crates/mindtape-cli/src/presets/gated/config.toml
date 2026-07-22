@@ -1,0 +1,149 @@
+# .mindtape/config.toml — the `gated` preset.
+#
+# For work handed to an AI coding agent. Strict, but only where the strictness
+# is earned — the thresholds come from measured agent failure data, not taste.
+# A disciplined human team gets the same benefit, usually at lower strictness.
+#
+# Two mechanisms, each aimed at a documented failure mode.
+#
+# Required spec sections. Across agent-authored pull requests, the ticket
+# properties that moved merge rates were narrow and specific: being
+# self-contained, being well-scoped, and stating expected behaviour. Piling on
+# more context did not help. So this preset requires four sections and nothing
+# else — the ones with evidence, gated to non-terminal tasks so a closed task
+# is not held to a spec it has outgrown.
+#
+# A review state `done` cannot skip. Agents report success they have not
+# achieved, and they do not catch it themselves; in one study of real sessions,
+# inaccurate self-reporting was roughly a fifth of all misalignment episodes and
+# the overwhelming majority of corrections came from a human pushing back, not
+# from the agent noticing. Meanwhile the largest single category of rejected
+# agent pull requests was not a code defect at all — it was nobody reviewing
+# them. Making `done` unreachable from `wip` puts that review in the graph
+# instead of in a convention.
+#
+# What this preset cannot do yet: it cannot verify a completion claim. A status
+# is a stamp, not proof, and MindTape has no way to know who flipped it. Until
+# `[[tasks.gates]]` lands, pair this with a commit hook or CI check that refuses
+# a `done` stamp without a passing build. Treating the state machine alone as
+# enforcement reproduces the exact failure it is meant to catch.
+
+[tasks]
+[[tasks.roots]]
+path = "tasks"
+derive-tags = true
+
+[tasks.derive-tags]
+enabled = true
+collect = ["segments"]
+
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+to = ["accepted", "cancelled"]
+
+[[tasks.status]]
+value = "accepted"
+glyph = "📋"
+color = "cyan"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+to = ["needs-review", "blocked", "failed"]
+
+# The gate. `done` is reachable only from here, so no run of work closes itself.
+[[tasks.status]]
+value = "needs-review"
+glyph = "👀"
+color = "magenta"
+to = ["done", "wip", "failed"]
+
+[[tasks.status]]
+value = "blocked"
+glyph = "🔒"
+color = "red"
+to = ["wip", "cancelled", "failed"]
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+to = ["wip"]
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+
+[[tasks.status]]
+value = "failed"
+glyph = "❌"
+color = "red"
+terminal = true
+to = ["wip"]
+
+# Priority stays a plain optional integer, and no framework is configured.
+# Requiring a score would buy a number the agent invented to satisfy the field:
+# a model asked for a value it cannot know produces a plausible one. Fields are
+# required here only where the answer is knowable in advance.
+[tasks.priority]
+required = false
+
+# The required spec sections, all gated to non-terminal tasks.
+
+# What problem, stated once, in one place.
+[[tasks.body.headers.rules]]
+path = ["Summary"]
+action = "unique"
+when = "!terminal"
+message = "a task needs exactly one Summary: the problem, stated once"
+
+# How anyone can tell it is finished. This is the single strongest predictor of
+# a task an agent completes successfully.
+[[tasks.body.headers.rules]]
+path = ["Acceptance criteria"]
+action = "unique"
+when = "!terminal"
+message = "a task needs Acceptance criteria — checkable conditions, not a restatement of the summary"
+
+# What is deliberately out of scope. Agents bundle unrelated objectives into one
+# change several times more often than humans do, and oversized changes are the
+# ones that get rejected. Writing the boundary down is what makes drift visible.
+[[tasks.body.headers.rules]]
+path = ["Non-goals"]
+action = "require"
+when = "!terminal"
+message = "a task needs Non-goals — say what it will not touch, or it will touch it"
+
+# Which files this is expected to change. Doubles as the scope boundary you can
+# actually check: compare it against `git diff --name-only` while the work runs.
+[[tasks.body.headers.rules]]
+path = ["Files"]
+action = "require"
+when = "!terminal"
+message = "a task needs Files — the paths it expects to touch"
+
+# The problem comes before the test for it.
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Summary"]
+after = ["Acceptance criteria"]
+message = "Summary must precede Acceptance criteria"
+
+# `mt ls @wip` is the work-in-progress check. Keep this at one: a change set can
+# only be attributed to a task when one task is in flight.
+[views.wip]
+filter = "status == \"wip\""
+description = "In flight — keep this list at one"
+
+# `mt ls @review` is the queue a human owes an answer to.
+[views.review]
+filter = "status == \"needs-review\""
+sort = ["priority:desc"]
+description = "Waiting on human review before it can close"

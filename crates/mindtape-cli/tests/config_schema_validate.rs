@@ -13,23 +13,39 @@ fn toml_to_json(text: &str) -> serde_json::Value {
     serde_json::to_value(table).unwrap()
 }
 
-/// Every shipped config — the embedded floor and both `mt init`
-/// scaffolds — must validate against the generated schema.
+/// Every shipped config — the embedded floor, each `mt init` preset, and the
+/// dogfood config — must validate against the generated schema.
 #[test]
 fn shipped_configs_validate_against_schema() {
     let schema: serde_json::Value = serde_json::from_str(&mindtape::config_schema_json()).unwrap();
     let validator = jsonschema::validator_for(&schema).unwrap();
 
+    let presets = [
+        (
+            "todone preset",
+            include_str!("../src/presets/todone/config.toml"),
+        ),
+        (
+            "flow preset",
+            include_str!("../src/presets/flow/config.toml"),
+        ),
+        (
+            "personal preset",
+            include_str!("../src/presets/personal/config.toml"),
+        ),
+        (
+            "gated preset",
+            include_str!("../src/presets/gated/config.toml"),
+        ),
+    ];
     let cases = [
         ("embedded floor", mindtape::embedded_defaults()),
-        ("slim scaffold", include_str!("../src/slim-config.toml")),
-        ("full scaffold", include_str!("../src/default-config.toml")),
         (
             "dogfood config",
             include_str!("../../../.mindtape/config.toml"),
         ),
     ];
-    for (name, text) in cases {
+    for (name, text) in cases.into_iter().chain(presets) {
         let instance = toml_to_json(text);
         let errors: Vec<String> = validator
             .iter_errors(&instance)
