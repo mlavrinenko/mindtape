@@ -289,19 +289,7 @@ impl<'de> Deserialize<'de> for IdFormat {
     }
 }
 
-/// `[tasks.estimate]` — the estimate units allow-list.
-///
-/// An estimate is an opaque `unit -> quantity` dict (e.g. `(days: 5, hours: 5)`
-/// or `(points: 8)`). Units are free labels, not converted or compared; the
-/// config only constrains which unit names are legal. Empty = any unit.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, deny_unknown_fields)]
-pub struct EstimateConfig {
-    /// Allowed unit names. Empty = any unit.
-    pub units: Vec<String>,
-    /// Whether an estimate must be set.
-    pub required: Requirement,
-}
+pub use crate::config_estimate::{DriftConfig, EstimateConfig};
 
 /// `[tasks.fields.<name>]` — constraints for one configurable core field.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]

@@ -152,9 +152,9 @@ mt flip done 1b --force        # bypass the transition graph
 ## Validating — `mt check`
 
 `mt check` evaluates every task against the project config: status/kind enums,
-required fields, numeric bounds, link resolution and dependency cycles, tag
-allow-list, body-header rules, `[[tasks.limits]]` work-in-progress caps, and
-`[tasks.comments]` review-comment policy. A clean run means all is valid.
+required fields, numeric and `[tasks.estimate]` bounds, links, cycles, tags,
+body headers, `[[tasks.limits]]` caps, `[tasks.comments]` comment policy, and a
+warn-only drift check on the in-flight file budget. A clean run means all is valid.
 
 ## Authoring or editing a task file by hand
 

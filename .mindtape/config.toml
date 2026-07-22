@@ -89,8 +89,24 @@ max = 9
 glyph = "🔴"
 color = "red"
 
+# A task estimates how many FILES it means to touch — not how long it will take.
+# A duration is a guess a model will happily invent; a file count is plannable up
+# front, is the same information good file guidance already carries, and is
+# checkable against git while the work runs.
 [tasks.estimate]
-units = ["minutes", "hours", "days", "weeks"]
+units = ["files"]
+
+# Outside this range is a validation error, not a warning: an oversized task must
+# be split before the work starts, not after. Terminal tasks are exempt.
+[tasks.estimate.max]
+files = 5
+
+[tasks.estimate.min]
+files = 1
+
+# `[tasks.estimate.drift]` stays at its defaults — unit `files`, in-flight
+# `status == "wip"`, a 200-line-per-file soft ceiling — so `mt check` warns (never
+# fails) once the working tree outgrows what the in-flight tasks declared.
 
 [tasks.tags]
 # Area labels for the backlog. Empty would accept any tag.

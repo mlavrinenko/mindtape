@@ -11,9 +11,7 @@ use std::path::PathBuf;
 
 use uuid::Uuid;
 
-use crate::config::{
-    Config, EstimateConfig, FieldConfig, IdFormat, Legend, PriorityConfig, RequiredRules,
-};
+use crate::config::{Config, FieldConfig, IdFormat, Legend, PriorityConfig, RequiredRules};
 use crate::model::{Status, Task};
 use crate::numeric::{InputValue, NumValue, NumericField, format_num};
 
@@ -69,12 +67,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
             &config.tasks.difficulty,
             required.difficulty(task, config),
         ));
-        check_estimate(
-            task,
-            &config.tasks.estimate,
-            required.estimate(task, config),
-            &mut out,
-        );
+        check_estimate(task, config, required.estimate(task, config), &mut out);
         check_tags(task, config, &mut out);
         crate::validate_recur::check_all(task, config, &mut out);
     }
@@ -366,7 +359,15 @@ fn check_manual_priority(
     check_in_scale(task, "priority", value, &config.field)
 }
 
-fn check_estimate(task: &Task, config: &EstimateConfig, required: bool, out: &mut Vec<Violation>) {
+/// Validate a task's estimate: presence when `required`, allowed unit names,
+/// and the per-unit `max`/`min` bounds.
+///
+/// The bounds are deliberately an error, not a warning: an estimate outside the
+/// declared range means the task must be split *before* the work starts. A
+/// terminal task is exempt — it cannot be split any more, and re-litigating a
+/// finished task's estimate would only fail the whole backlog at once.
+fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Violation>) {
+    let estimate = &config.tasks.estimate;
     if task.estimate.is_empty() {
         if required {
             push(
@@ -378,11 +379,8 @@ fn check_estimate(task: &Task, config: &EstimateConfig, required: bool, out: &mu
         }
         return;
     }
-    if config.units.is_empty() {
-        return;
-    }
     for unit in task.estimate.keys() {
-        if !config.units.contains(unit) {
+        if !estimate.units.is_empty() && !estimate.units.contains(unit) {
             push(
                 out,
                 task,
@@ -390,6 +388,12 @@ fn check_estimate(task: &Task, config: &EstimateConfig, required: bool, out: &mu
                 format!("`{unit}` is not an allowed estimate unit"),
             );
         }
+    }
+    if task.is_terminal(&config.tasks.status.terminal()) {
+        return;
+    }
+    for problem in estimate.bound_problems(&task.estimate) {
+        push(out, task, "estimate", problem);
     }
 }
 

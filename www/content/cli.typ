@@ -172,9 +172,12 @@ that closing ends it.
 
 = Validate and inspect config
 
-`mt check` validates every task: enum values, required fields, numeric bounds,
-link resolution, and dependency cycles. It exits non-zero and names each
-violation when one exists — drop it in CI or a pre-commit hook. `mt config show`
+`mt check` validates every task: enum values, required fields, numeric bounds
+(including the `[tasks.estimate]` per-unit caps), link resolution, and dependency
+cycles. It exits non-zero and names each violation when one exists — drop it in
+CI or a pre-commit hook. It also warns, without failing, when the git working
+tree has outgrown the file budget the in-flight tasks declare (see
+#link(u("/config/"))[Configuration]). `mt config show`
 prints the effective merged config as re-parseable TOML; `--origin` lists which
 layers contributed, and from where.
 
