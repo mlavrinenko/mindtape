@@ -84,4 +84,5 @@ written task, even with the barebones built-in `task` template.
 `--edit` (or `[add] interactive`) opens an editor on a commented YAML scaffold of
 the slots, then parses the saved buffer back into fill values. The editor resolves
 `[add] editor` → `$VISUAL` → `$EDITOR` → `vi`, and only opens with a TTY.
-`[add] header` overrides the instruction block.
+`[add] header` overrides the instruction block; `[add] comments = false` strips
+every `#` comment (header and per-slot annotations), leaving a bare mapping.

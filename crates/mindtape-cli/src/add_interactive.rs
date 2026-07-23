@@ -129,7 +129,7 @@ fn scaffold(config: &AddConfig, specs: &[SlotSpec], seed: &BTreeMap<String, RawV
     ordered.sort_by_key(|spec| !is_unfilled_required(spec));
     let blocks: Vec<String> = ordered
         .iter()
-        .map(|spec| entry_block(spec, seed.get(&spec.name)))
+        .map(|spec| entry_block(spec, seed.get(&spec.name), config.comments))
         .collect();
     out.push_str(&blocks.join("\n"));
     while out.ends_with('\n') {
@@ -138,17 +138,24 @@ fn scaffold(config: &AddConfig, specs: &[SlotSpec], seed: &BTreeMap<String, RawV
     out
 }
 
-/// One slot's comment + value entry, ending with a newline.
-fn entry_block(spec: &SlotSpec, seed: Option<&RawValue>) -> String {
+/// One slot's (optional) comment + value entry, ending with a newline. The
+/// comment is dropped when `comments` is false, leaving a bare `name: value`.
+fn entry_block(spec: &SlotSpec, seed: Option<&RawValue>, comments: bool) -> String {
     let mut block = String::new();
-    push_comment(&mut block, spec);
+    if comments {
+        push_comment(&mut block, spec);
+    }
     push_entry(&mut block, spec, seed);
     block
 }
 
-/// Resolve the scaffold header: built-in default when unset, empty when the
-/// config disables it, else the custom text comment-prefixed.
+/// Resolve the scaffold header: empty when comments are disabled, the built-in
+/// default when unset, empty when the config disables it, else the custom text
+/// comment-prefixed.
 fn header_text(config: &AddConfig) -> String {
+    if !config.comments {
+        return String::new();
+    }
     match config.header.as_deref() {
         None => DEFAULT_HEADER.to_owned(),
         Some(custom) => commentify(custom),

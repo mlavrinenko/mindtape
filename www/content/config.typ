@@ -51,7 +51,7 @@ mt config show --json     # effective config as JSON
   [`[[on.flip]]`], [Actions bound to a status change: print a message, print a task list, or run a command that may refuse the flip. Only `mt flip` runs them. See below.],
   [`[[ls.rules]]`], [Ordered auto-activation rules for bare `mt ls`. See below and #link(u("/cli/"))[CLI reference].],
   [`[templates]`], [Template `dirs` and the `default` template. See #link(u("/templates/"))[Templates & slots].],
-  [`[add]`, `[go]`], [Editor, interactive mode, and header for `mt add` / `mt go`.],
+  [`[add]`, `[go]`], [Editor, interactive mode, header, and scaffold `comments` toggle for `mt add` / `mt go`.],
   [`[format]`], [`enabled` (default `true`): run typstyle over the Typst `mt` writes, so surgical edits and slot fills land in one canonical shape. Set `false` for raw byte-splice writes (minimal diffs).],
 )
 

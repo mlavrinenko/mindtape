@@ -4,6 +4,11 @@
       "additionalProperties": false,
       "description": "`[add]` — interactive editor fill settings.",
       "properties": {
+        "comments": {
+          "default": true,
+          "description": "Whether the scaffold carries explanatory `#` comments — the header block\nand the per-slot annotations (kind, required/optional, choices, default).\n`true` (default) keeps them; `false` strips every comment, leaving a bare\nmapping of slot names to values.",
+          "type": "boolean"
+        },
         "editor": {
           "default": null,
           "description": "Editor command override. Falls back to `$VISUAL`, then `$EDITOR`, then a\nbuilt-in default. May carry arguments (split on whitespace).",
@@ -14,7 +19,7 @@
         },
         "header": {
           "default": null,
-          "description": "Scaffold header override. Absent uses the built-in instructions; an empty\n(or all-blank) string disables the header; any other text replaces it,\ncomment-prefixed so it stays valid YAML.",
+          "description": "Scaffold header override. Absent uses the built-in instructions; an empty\n(or all-blank) string disables the header; any other text replaces it,\ncomment-prefixed so it stays valid YAML. Ignored when `comments = false`.",
           "type": [
             "string",
             "null"

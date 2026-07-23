@@ -96,6 +96,27 @@ fn scaffold_empty_header_disables_it() {
 }
 
 #[test]
+fn scaffold_comments_false_strips_every_comment_but_stays_fillable() {
+    let config = AddConfig {
+        comments: false,
+        // A custom header is ignored once comments are off.
+        header: Some("ignored".to_owned()),
+        ..Default::default()
+    };
+    let buffer = scaffold(&config, &specs(), &BTreeMap::new());
+    assert!(
+        !buffer
+            .lines()
+            .any(|line| line.trim_start().starts_with('#')),
+        "no comment lines: {buffer}"
+    );
+    // Bare mapping is still present and parses back cleanly (defaults fill in).
+    assert!(buffer.contains("priority: 5"), "{buffer}");
+    assert!(buffer.contains("title: "), "{buffer}");
+    parse_buffer(&buffer).unwrap();
+}
+
+#[test]
 fn scaffold_prefills_from_seed() {
     let mut seed = BTreeMap::new();
     seed.insert("title".to_owned(), RawValue::Str("Hello".to_owned()));

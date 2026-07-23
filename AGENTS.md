@@ -152,12 +152,12 @@ syntax; expose each leaf as its own slot inside the framework call instead
 flat `--set impact=8` fills it.
 
 `--edit` (or `[add] interactive`) opens an editor on a commented YAML scaffold of
-the slots (block scalars for `text` slots), then parses the saved buffer back
-into the same fill values; editor resolves `[add] editor` → `$VISUAL` → `$EDITOR`
-→ `vi`, and the editor only opens with a TTY (`crates/mindtape-cli/src/add_interactive.rs`).
-The scaffold tail carries no trailing blank (jump-to-end lands on the last
-fillable line). `[add] header` overrides the instruction block: custom text (auto
-comment-prefixed) or `""` to drop it.
+the slots (block scalars for `text` slots); the saved buffer parses back into fill
+values. Editor resolves `[add] editor` → `$VISUAL` → `$EDITOR` → `vi`, only with a
+TTY (`crates/mindtape-cli/src/add_interactive.rs`). The scaffold tail carries no
+trailing blank (jump-to-end lands on the last fillable line). `[add] header`
+overrides the instruction block: custom text (auto comment-prefixed) or `""` to
+drop it. `[add] comments = false` strips every `#` line (header and per-slot annotations), leaving a bare slot→value mapping.
 
 ### Derived tags (`[tasks.derive-tags]`, `crates/mindtape/src/derive.rs`)
 

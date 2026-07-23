@@ -7,7 +7,7 @@
 use serde::Deserialize;
 
 /// `[add]` — interactive editor fill settings.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct AddConfig {
     /// Editor command override. Falls back to `$VISUAL`, then `$EDITOR`, then a
@@ -17,8 +17,24 @@ pub struct AddConfig {
     pub interactive: InteractiveMode,
     /// Scaffold header override. Absent uses the built-in instructions; an empty
     /// (or all-blank) string disables the header; any other text replaces it,
-    /// comment-prefixed so it stays valid YAML.
+    /// comment-prefixed so it stays valid YAML. Ignored when `comments = false`.
     pub header: Option<String>,
+    /// Whether the scaffold carries explanatory `#` comments — the header block
+    /// and the per-slot annotations (kind, required/optional, choices, default).
+    /// `true` (default) keeps them; `false` strips every comment, leaving a bare
+    /// mapping of slot names to values.
+    pub comments: bool,
+}
+
+impl Default for AddConfig {
+    fn default() -> Self {
+        Self {
+            editor: None,
+            interactive: InteractiveMode::default(),
+            header: None,
+            comments: true,
+        }
+    }
 }
 
 /// When `mt add` opens the interactive editor.
