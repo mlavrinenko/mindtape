@@ -1,0 +1,53 @@
+# workflow: agent lifecycle with a review gate `done` cannot skip.
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+to = ["accepted", "cancelled"]
+
+[[tasks.status]]
+value = "accepted"
+glyph = "📋"
+color = "cyan"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+to = ["needs-review", "blocked", "failed"]
+
+[[tasks.status]]
+value = "needs-review"
+glyph = "👀"
+color = "magenta"
+to = ["done", "wip", "failed"]
+
+[[tasks.status]]
+value = "blocked"
+glyph = "🔒"
+color = "red"
+to = ["wip", "cancelled", "failed"]
+note = "required"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+to = ["wip"]
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+note = "required"
+
+[[tasks.status]]
+value = "failed"
+glyph = "❌"
+color = "red"
+terminal = true
+to = ["wip"]
+note = "required"

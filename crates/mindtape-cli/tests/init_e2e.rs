@@ -87,6 +87,130 @@ fn every_preset_supports_add_check_and_a_full_walk() {
     }
 }
 
+/// Reachable wizard answer sets — composed configs, not the four named presets.
+/// Each row is the batch flags that compose the config, the `--set` fills its
+/// first `mt add` needs, and the walk from the status `mt add` stamps through to
+/// a terminal one. Spelled out (not derived) so a set whose declared `to` edges
+/// do not connect, or whose config requires an unfillable field, fails here.
+const ANSWER_SETS: &[(&[&str], &[&str], &[&str])] = &[
+    (
+        &[
+            "--workflow",
+            "todo-done",
+            "--priority",
+            "off",
+            "--organisation",
+            "flat",
+        ],
+        &[],
+        &["done"],
+    ),
+    (
+        &[
+            "--workflow",
+            "gated",
+            "--priority",
+            "ice",
+            "--organisation",
+            "folders",
+            "--headers",
+            "spec",
+        ],
+        &[],
+        &["accepted", "wip", "needs-review", "done"],
+    ),
+    (
+        &[
+            "--workflow",
+            "flow",
+            "--required",
+            "difficulty",
+            "--recurrence",
+            "rrule",
+            "--estimate",
+            "days-hours",
+        ],
+        &["--set", "difficulty=3"],
+        &["wip", "done"],
+    ),
+    (&["--workflow", "personal"], &[], &["next", "done"]),
+];
+
+/// A composed answer set is as trustworthy as a named preset: for each one,
+/// batch-compose the config from flags, file a task, and walk it to a terminal
+/// status — validating at each step. Free composition multiplies the risk a
+/// config requires a field its scaffolded template cannot fill, so this covers
+/// reachable sets, not only the four presets.
+#[test]
+fn composed_answer_sets_support_add_check_and_a_full_walk() {
+    for (flags, fills, walk) in ANSWER_SETS {
+        let dir = tempfile::tempdir().unwrap();
+        support::install_lib(dir.path());
+        let mut init_args = vec!["init", "--no-input"];
+        init_args.extend_from_slice(flags);
+        mt(dir.path(), &init_args);
+        add_then_ls_and_check(dir.path(), "wire-set", fills);
+        for status in *walk {
+            mt(dir.path(), &["flip", status, "wire-set"]);
+            mt(dir.path(), &["check"]);
+        }
+    }
+}
+
+/// The wizard refuses an incoherent answer set — a strict-framework priority no
+/// scaffolded template can supply — and writes nothing.
+#[test]
+fn strict_framework_priority_answer_set_is_refused() {
+    let dir = tempfile::tempdir().unwrap();
+    support::install_lib(dir.path());
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["init", "--no-input", "--priority", "ice-strict"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("strict framework"));
+    assert!(!dir.path().join(".mindtape/config.toml").exists());
+}
+
+/// A batch-composed config records its axis answers as a comment block, and the
+/// `spec` headers answer ships the template that produces its sections.
+#[test]
+fn composed_config_records_answers_and_ships_templates() {
+    let dir = tempfile::tempdir().unwrap();
+    support::install_lib(dir.path());
+    mt(
+        dir.path(),
+        &[
+            "init",
+            "--no-input",
+            "--workflow",
+            "gated",
+            "--headers",
+            "spec",
+        ],
+    );
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    assert!(config.contains("# answers:"), "{config}");
+    assert!(config.contains("workflow = gated"), "{config}");
+    assert!(config.contains("headers = spec"), "{config}");
+    assert!(dir.path().join(".mindtape/templates/task.typ").exists());
+}
+
+/// `--no-input` with no axis flags falls through to the default preset — the
+/// same shape a bare non-terminal `mt init` writes — with no wizard answer block
+/// and no prompt.
+#[test]
+fn no_input_without_flags_writes_the_default_preset() {
+    let dir = tempfile::tempdir().unwrap();
+    support::install_lib(dir.path());
+    mt(dir.path(), &["init", "--no-input"]);
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    assert!(config.contains("[[tasks.status]]"), "{config}");
+    assert!(!config.contains("# answers:"), "{config}");
+    add_then_ls_and_check(dir.path(), "wire-default", &[]);
+}
+
 /// `mt init` with no `--preset` writes the default shape, and the written file
 /// carries the schema directive and a real status legend.
 #[test]

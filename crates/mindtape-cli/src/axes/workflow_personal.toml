@@ -1,0 +1,37 @@
+# workflow: capture to an inbox, then decide.
+[[tasks.status]]
+value = "inbox"
+glyph = "📥"
+color = "blue"
+to = ["next", "waiting", "someday", "dropped"]
+
+[[tasks.status]]
+value = "next"
+glyph = "▶"
+color = "yellow"
+to = ["waiting", "someday", "done", "dropped"]
+
+[[tasks.status]]
+value = "waiting"
+glyph = "⏳"
+color = "cyan"
+to = ["next", "done", "dropped"]
+
+[[tasks.status]]
+value = "someday"
+glyph = "🌙"
+color = "magenta"
+to = ["next", "dropped"]
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+to = ["next"]
+
+[[tasks.status]]
+value = "dropped"
+glyph = "🚫"
+color = "red"
+terminal = true
