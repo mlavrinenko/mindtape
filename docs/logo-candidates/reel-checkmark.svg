@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="MindTape reel-checkmark candidate">
+  <!-- Candidate: reel into checkmark. A tape reel (ring with a hub hole,
+       evenodd negative space) sits upper left; its unspooled tape is one
+       tapered ribbon, pointed at both ends, that bends through the same
+       silhouette as a checkmark. One evenodd path, single colour: the ring
+       and the ribbon never overlap, so the hub stays the only hole. -->
+  <path fill="#12805a" fill-rule="evenodd" d="M6.7 4.9 a3.8 3.8 0 1 0 0 7.6 a3.8 3.8 0 1 0 0 -7.6 Z M6.7 7.1 a1.6 1.6 0 1 0 0 3.2 a1.6 1.6 0 1 0 0 -3.2 Z M7.4 12.8 L11 19 L20 6 L10 16.3 Z"/>
+</svg>

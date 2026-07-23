@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="MindTape graph-in-cassette candidate">
+  <!-- Candidate: graph-in-cassette. Same cassette silhouette (tape strip lid
+       plus body) as the shipped mark, but the window is cut as one hole and
+       a small 3-node dependency graph (a root with two children) floats
+       inside it. Two paths, both fill #12805a: the first (evenodd) is the
+       cassette body with the window as negative space; the second (default
+       nonzero winding, all subpaths wound the same direction) is the node
+       circles and thick edge bars, which union cleanly instead of punching
+       holes in each other. Nodes are 1.7r and edges are bold to survive 16px,
+       after an earlier too-small attempt collapsed into a squiggle. -->
+  <path fill="#12805a" fill-rule="evenodd" d="M3.5 4 H20.5 a1.1 1.1 0 0 1 0 2.2 H3.5 a1.1 1.1 0 0 1 0 -2.2 Z M4.5 8.4 H19.5 a2.5 2.5 0 0 1 2.5 2.5 V17 a2.5 2.5 0 0 1 -2.5 2.5 H4.5 a2.5 2.5 0 0 1 -2.5 -2.5 V10.9 a2.5 2.5 0 0 1 2.5 -2.5 Z M6.4 9.3 H17.6 a1.4 1.4 0 0 1 1.4 1.4 V17.2 a1.4 1.4 0 0 1 -1.4 1.4 H6.4 a1.4 1.4 0 0 1 -1.4 -1.4 V10.7 a1.4 1.4 0 0 1 1.4 -1.4 Z"/>
+  <path fill="#12805a" d="M12 9.8 a1.8 1.8 0 1 0 0 3.6 a1.8 1.8 0 1 0 0 -3.6 Z M7.8 14.5 a1.8 1.8 0 1 0 0 3.6 a1.8 1.8 0 1 0 0 -3.6 Z M16.2 14.5 a1.8 1.8 0 1 0 0 3.6 a1.8 1.8 0 1 0 0 -3.6 Z M11.55 11.6 L7.35 16.3 L8.25 16.3 L12.45 11.6 Z M11.55 11.6 L15.75 16.3 L16.65 16.3 L12.45 11.6 Z"/>
+</svg>
