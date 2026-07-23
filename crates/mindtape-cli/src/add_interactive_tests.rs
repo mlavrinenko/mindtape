@@ -46,6 +46,20 @@ fn scaffold_emits_one_entry_per_slot_with_comments() {
 }
 
 #[test]
+fn scaffold_sorts_required_slots_before_optional_preserving_relative_order() {
+    // TEMPLATE order is title, priority, tags, summary; priority and tags have
+    // defaults (optional), title and summary don't (required).
+    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
+    let title = buffer.find("title:").unwrap();
+    let summary = buffer.find("summary:").unwrap();
+    let priority = buffer.find("priority:").unwrap();
+    let tags = buffer.find("tags:").unwrap();
+    assert!(title < summary, "{buffer}");
+    assert!(summary < priority, "{buffer}");
+    assert!(priority < tags, "{buffer}");
+}
+
+#[test]
 fn scaffold_tail_is_fillable_with_no_trailing_blank() {
     let specs = discover_slots("#show: task.with(title: slot(\"title\"))");
     let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());

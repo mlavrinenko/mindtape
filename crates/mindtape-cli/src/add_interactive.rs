@@ -49,7 +49,7 @@ pub fn should_open(
 fn has_unfilled_required(specs: &[SlotSpec], seed: &BTreeMap<String, RawValue>) -> bool {
     specs
         .iter()
-        .any(|spec| spec.required && spec.default.is_none() && !seed.contains_key(&spec.name))
+        .any(|spec| is_unfilled_required(spec) && !seed.contains_key(&spec.name))
 }
 
 /// Open the editor on a scaffold for `specs` pre-filled from `seed`, returning
@@ -125,7 +125,9 @@ fn scaffold(config: &AddConfig, specs: &[SlotSpec], seed: &BTreeMap<String, RawV
         out.push_str(&header);
         out.push_str("\n\n");
     }
-    let blocks: Vec<String> = specs
+    let mut ordered: Vec<&SlotSpec> = specs.iter().collect();
+    ordered.sort_by_key(|spec| !is_unfilled_required(spec));
+    let blocks: Vec<String> = ordered
         .iter()
         .map(|spec| entry_block(spec, seed.get(&spec.name)))
         .collect();
@@ -172,8 +174,15 @@ fn commentify(text: &str) -> String {
         .join("\n")
 }
 
+/// A slot still needs a value: declared `required` and no default to fall
+/// back on. Used both for the scaffold's `required`/`optional` badge and to
+/// sort required slots to the front of the scaffold.
+fn is_unfilled_required(spec: &SlotSpec) -> bool {
+    spec.required && spec.default.is_none()
+}
+
 fn push_comment(out: &mut String, spec: &SlotSpec) {
-    let need = if spec.required && spec.default.is_none() {
+    let need = if is_unfilled_required(spec) {
         "required"
     } else {
         "optional"
