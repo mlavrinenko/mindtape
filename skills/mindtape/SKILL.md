@@ -54,6 +54,7 @@ Most work is: find a task → read it → change its status → validate.
 | Validate all tasks | `mt check` |
 | Retire a task | `mt rm <task>` |
 | Inspect the effective config | `mt config show` (`--origin`, `--defaults`) |
+| Save/list starter presets | `mt preset save <name>` / `mt preset ls` |
 
 `<task>` / `<id>` accepts a filename stem, a relative/absolute path, or a handle
 ordinal from the last `mt ls` (the `#` column, e.g. `1b`).
@@ -195,6 +196,5 @@ file. For full flag sets, prefer `mt <cmd> --help` over guessing.
 
 ## Improving this skill (internal note)
 
-This skill is intentionally minimal and grown step by step. If it does not cover
-something, or led you astray, name what was missing (command, flag, or the exact
-error) so the next run goes better. (Internal-only note; remove on publish.)
+Skill grows step by step. If something is missing or misleading, name it (command,
+flag, exact error) so the next run improves. (Internal note; remove on publish.)

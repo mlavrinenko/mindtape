@@ -8,8 +8,8 @@ use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
 use crate::{
-    add, check, cli_dump, config_cmd, eval, flip, go, graph, import, init, install, ls, recur,
-    review, rm, views, worktrees,
+    add, check, cli_dump, config_cmd, eval, flip, go, graph, import, init, install, ls, preset_cmd,
+    recur, review, rm, views, worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -61,6 +61,10 @@ enum Command {
     Check,
     /// Inspect the effective merged configuration (`show` is the default action).
     Config(config_cmd::ConfigArgs),
+    /// Save or list named `mt init` starter shapes: `save <name>` captures the
+    /// current project's config and templates as a reusable user preset,
+    /// `ls` lists built-in and user presets together.
+    Preset(preset_cmd::PresetArgs),
     /// Scaffold `.mindtape/config.toml` in the current directory.
     Init(init::InitArgs),
     /// Set up the user environment: the `@local/mindtape` Typst package and
@@ -129,6 +133,7 @@ impl Cli {
             Command::Worktrees(args) => worktrees::run(&args),
             Command::Check => check::run(),
             Command::Config(args) => config_cmd::run(&args),
+            Command::Preset(args) => preset_cmd::run(&args),
             Command::Init(args) => init::run(&args),
             Command::Install(args) => install::run(&args),
             Command::InstallLib => init::run_install_lib(),

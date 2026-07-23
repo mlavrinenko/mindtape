@@ -1,0 +1,166 @@
+#![allow(clippy::unwrap_used)]
+
+use super::{render_ls, save};
+use crate::preset::{self, DEFAULT_PRESET};
+
+/// A project fixture: `.mindtape/config.toml`, optionally with
+/// `.mindtape/templates/*.typ`.
+fn write_project(root: &std::path::Path, config: &str, templates: &[(&str, &str)]) {
+    let dir = root.join(".mindtape");
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("config.toml"), config).unwrap();
+    if templates.is_empty() {
+        return;
+    }
+    let template_dir = dir.join("templates");
+    std::fs::create_dir_all(&template_dir).unwrap();
+    for (file, body) in templates {
+        std::fs::write(template_dir.join(file), body).unwrap();
+    }
+}
+
+/// Saving then resolving by name round-trips both the config and the
+/// templates.
+#[test]
+fn save_then_resolve_round_trips_config_and_templates() {
+    let project = tempfile::tempdir().unwrap();
+    let user_dir = tempfile::tempdir().unwrap();
+    write_project(
+        project.path(),
+        "[tasks]\nroots = [\"mine\"]\n",
+        &[("task.typ", "// t"), ("other.typ", "// o")],
+    );
+
+    let dest = save(project.path(), user_dir.path(), "mine", false).unwrap();
+    assert_eq!(dest, user_dir.path().join("mine"));
+
+    let resolved = preset::resolve("mine", Some(user_dir.path())).unwrap();
+    assert!(resolved.config.contains("mine"), "{}", resolved.config);
+    assert_eq!(
+        resolved
+            .templates
+            .iter()
+            .map(|(file, _)| file.as_str())
+            .collect::<Vec<_>>(),
+        vec!["other.typ", "task.typ"]
+    );
+}
+
+/// Saving from a project with no `.mindtape/templates` directory works, and
+/// writes just the config.
+#[test]
+fn save_with_no_templates_directory_writes_config_only() {
+    let project = tempfile::tempdir().unwrap();
+    let user_dir = tempfile::tempdir().unwrap();
+    write_project(project.path(), "[tasks]\nroots = [\"bare\"]\n", &[]);
+
+    let dest = save(project.path(), user_dir.path(), "bare", false).unwrap();
+    assert!(dest.join("config.toml").is_file());
+    assert!(!dest.join("templates").exists());
+
+    let resolved = preset::resolve("bare", Some(user_dir.path())).unwrap();
+    assert!(resolved.templates.is_empty());
+}
+
+/// A project and user preset dir with an initial `"dup"` preset (`roots =
+/// ["a"]`) already saved, for the two clobber tests below to continue from.
+fn saved_dup() -> (tempfile::TempDir, tempfile::TempDir) {
+    let project = tempfile::tempdir().unwrap();
+    let user_dir = tempfile::tempdir().unwrap();
+    write_project(project.path(), "[tasks]\nroots = [\"a\"]\n", &[]);
+    save(project.path(), user_dir.path(), "dup", false).unwrap();
+    (project, user_dir)
+}
+
+/// A second save of the same name without `--force` refuses and names what
+/// already exists.
+#[test]
+fn save_refuses_to_clobber_without_force() {
+    let (project, user_dir) = saved_dup();
+
+    write_project(project.path(), "[tasks]\nroots = [\"b\"]\n", &[]);
+    let err = save(project.path(), user_dir.path(), "dup", false)
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("dup"), "{err}");
+    assert!(err.contains("already exists"), "{err}");
+
+    // The original save is untouched.
+    let resolved = preset::resolve("dup", Some(user_dir.path())).unwrap();
+    assert!(resolved.config.contains('a'), "{}", resolved.config);
+}
+
+/// `--force` overwrites an existing user preset.
+#[test]
+fn save_with_force_overwrites() {
+    let (project, user_dir) = saved_dup();
+
+    write_project(project.path(), "[tasks]\nroots = [\"b\"]\n", &[]);
+    save(project.path(), user_dir.path(), "dup", true).unwrap();
+
+    let resolved = preset::resolve("dup", Some(user_dir.path())).unwrap();
+    assert!(resolved.config.contains('b'), "{}", resolved.config);
+}
+
+/// `--force` over a flat `<name>.toml` layout replaces it with the nested
+/// layout `save` always writes, so the new save is not silently shadowed by
+/// the flat file it superseded.
+#[test]
+fn save_with_force_replaces_a_flat_layout() {
+    let project = tempfile::tempdir().unwrap();
+    let user_dir = tempfile::tempdir().unwrap();
+    std::fs::write(
+        user_dir.path().join("flat.toml"),
+        "[tasks]\nroots = [\"old\"]\n",
+    )
+    .unwrap();
+    write_project(project.path(), "[tasks]\nroots = [\"new\"]\n", &[]);
+
+    save(project.path(), user_dir.path(), "flat", true).unwrap();
+
+    assert!(!user_dir.path().join("flat.toml").exists());
+    let resolved = preset::resolve("flat", Some(user_dir.path())).unwrap();
+    assert!(resolved.config.contains("new"), "{}", resolved.config);
+}
+
+/// `ls` marks a user preset that shadows a built-in of the same name, and the
+/// default built-in.
+#[test]
+fn ls_marks_a_shadowed_builtin_and_the_default() {
+    let user_dir = tempfile::tempdir().unwrap();
+    std::fs::write(
+        user_dir.path().join(format!("{DEFAULT_PRESET}.toml")),
+        "[tasks]\nroots = [\"mine\"]\n",
+    )
+    .unwrap();
+
+    let out = render_ls(Some(user_dir.path())).unwrap();
+    let builtin_line = out
+        .lines()
+        .find(|line| line.trim_start().starts_with(DEFAULT_PRESET))
+        .unwrap();
+    assert!(builtin_line.contains("default"), "{builtin_line}");
+    assert!(
+        builtin_line.contains("shadowed by user preset"),
+        "{builtin_line}"
+    );
+    assert!(out.contains("shadows built-in"), "{out}");
+}
+
+/// `ls` with no user preset directory still lists the built-ins, unmarked.
+#[test]
+fn ls_with_no_user_presets_lists_only_builtins() {
+    let out = render_ls(None).unwrap();
+    assert!(out.contains(DEFAULT_PRESET));
+    assert!(!out.contains("user presets"));
+    assert!(!out.contains("shadow"));
+}
+
+/// `ls` over an empty (but existing) user preset directory reports no user
+/// presets, same as a missing one.
+#[test]
+fn ls_with_empty_user_preset_dir_lists_only_builtins() {
+    let user_dir = tempfile::tempdir().unwrap();
+    let out = render_ls(Some(user_dir.path())).unwrap();
+    assert!(!out.contains("user presets"));
+}

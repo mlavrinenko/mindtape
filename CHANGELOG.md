@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt preset save <name>` / `mt preset ls`** — capture the current project's
+  `.mindtape/config.toml` and `templates/` as a reusable user preset under
+  `~/.config/mindtape/presets/<name>` (one directory per preset, so a broken one
+  breaks only itself), so a shape arrived at once travels into every later `mt
+  init --preset <name>`. The saved config is a raw copy — no reverse-engineering
+  of the wizard answers that produced it. `--force` overwrites an existing user
+  preset; without it the command refuses and names what is already there. `mt
+  preset ls` lists built-in and user presets together, marking which user
+  preset shadows a built-in of the same name, and the default.
 - **Flip hooks (`[[on.flip]]`)** — one mechanism for "when a task changes status,
   do something". Each entry pairs a `when` — a filter expression over the task as
   it stands before the write, plus an `into("status")` predicate for the status

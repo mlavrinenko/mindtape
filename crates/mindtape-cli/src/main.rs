@@ -24,6 +24,7 @@ mod ls_interactive;
 mod ls_rules;
 mod output;
 mod preset;
+mod preset_cmd;
 mod recur;
 mod recur_edit;
 // Infrastructure for future command migration; not every item is wired yet.

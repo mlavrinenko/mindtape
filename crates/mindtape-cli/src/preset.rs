@@ -150,21 +150,69 @@ pub fn user_preset_dir() -> Option<PathBuf> {
 /// Returns `Ok(None)` when neither layout exists, so resolution falls through
 /// to the built-ins.
 fn user_preset(dir: &Path, name: &str) -> Result<Option<Preset>> {
-    let flat = dir.join(format!("{name}.toml"));
-    if flat.is_file() {
-        let config = std::fs::read_to_string(&flat)
-            .with_context(|| format!("read preset {}", flat.display()))?;
+    let Some(path) = existing_user_preset(dir, name) else {
+        return Ok(None);
+    };
+    if path.is_file() {
+        let config = std::fs::read_to_string(&path)
+            .with_context(|| format!("read preset {}", path.display()))?;
         return Ok(Some(Preset {
             name: name.to_owned(),
             config,
             templates: Vec::new(),
         }));
     }
+    Ok(Some(read_preset_dir(name, &path)?))
+}
+
+/// Whether a user preset already exists under `dir` for `name`, in either
+/// layout. Returns the path that constitutes it — the flat `<name>.toml`
+/// file, or the nested `<name>/` directory — without reading its content, so
+/// `mt preset save` can name what is already there before deciding to clobber
+/// it.
+#[must_use]
+pub fn existing_user_preset(dir: &Path, name: &str) -> Option<PathBuf> {
+    let flat = dir.join(format!("{name}.toml"));
+    if flat.is_file() {
+        return Some(flat);
+    }
     let nested = dir.join(name);
     if nested.join("config.toml").is_file() {
-        return Ok(Some(read_preset_dir(name, &nested)?));
+        return Some(nested);
     }
-    Ok(None)
+    None
+}
+
+/// Every user preset name under `dir`, from either supported layout, sorted
+/// and deduplicated. A missing directory yields none, so `mt preset ls` needs
+/// no special case for a machine that has never saved one.
+///
+/// # Errors
+/// Returns an error if `dir` exists but cannot be read.
+pub fn list_user_presets(dir: &Path) -> Result<Vec<String>> {
+    if !dir.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut names = Vec::new();
+    let entries = std::fs::read_dir(dir).with_context(|| format!("read {}", dir.display()))?;
+    for entry in entries {
+        let path = entry
+            .with_context(|| format!("read {}", dir.display()))?
+            .path();
+        let name = if path.is_file() && path.extension().is_some_and(|ext| ext == "toml") {
+            path.file_stem()
+                .map(|stem| stem.to_string_lossy().into_owned())
+        } else if path.is_dir() && path.join("config.toml").is_file() {
+            path.file_name()
+                .map(|name| name.to_string_lossy().into_owned())
+        } else {
+            None
+        };
+        names.extend(name);
+    }
+    names.sort();
+    names.dedup();
+    Ok(names)
 }
 
 /// An explicit path: a `.toml` file, or a directory laid out like a nested
@@ -200,7 +248,7 @@ fn read_preset_dir(name: &str, dir: &Path) -> Result<Preset> {
 
 /// Every `*.typ` directly under `dir`, sorted by file name so a preset writes
 /// the same bytes on every platform. A missing directory yields none.
-fn read_templates(dir: &Path) -> Result<Vec<(String, String)>> {
+pub(crate) fn read_templates(dir: &Path) -> Result<Vec<(String, String)>> {
     if !dir.is_dir() {
         return Ok(Vec::new());
     }

@@ -32,7 +32,7 @@ drift from what `mt` actually is.
   ("Recurring tasks", ("recur",)),
   ("Validate & inspect config", ("check", "config")),
   ("Retire", ("rm",)),
-  ("Setup", ("init", "install", "worktrees")),
+  ("Setup", ("init", "install", "worktrees", "preset")),
 )
 #cli-gate(cli, cli-groups)
 
@@ -208,6 +208,15 @@ schema-aware TOML editor (tombi, Taplo) assists filling values; `--schema
 URL|PATH` retargets it and `--no-schema` (on either command) opts out. See
 #link(u("/quickstart/"))[Quickstart]. `mt worktrees` lists the `@name` worktree
 aliases (see #link(u("/agents/"))[Run from anywhere]).
+
+`mt preset save <name>` captures the current project's `.mindtape/config.toml`
+and its `templates/` as a reusable user preset under
+`~/.config/mindtape/presets/<name>` — a raw copy, never a reverse-engineered
+guess at the wizard answers that produced it — so a shape arrived at once
+travels into every later `mt init --preset <name>`. `--force` overwrites an
+existing user preset; without it the command refuses and names what is already
+there. `mt preset ls` lists built-in and user presets together, marking which
+user preset shadows a built-in of the same name, and which is the default.
 
 #cli-group(cli, cli-groups, "Setup")
 
