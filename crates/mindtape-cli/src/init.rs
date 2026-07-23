@@ -12,10 +12,14 @@
 //! the XDG config dir; `--schema URL|PATH` overrides it (e.g. the published
 //! URL for a portable, checked-in config), `--no-schema` drops it.
 
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
+use crate::init_wizard::{
+    self, Estimate, Headers, Organisation, Priority, Recurrence, Required, Workflow,
+};
 use crate::preset::{self, Preset};
 
 /// The Typst package version installed by `install-lib`. Mirrors `lib/typst.toml`.
@@ -40,6 +44,7 @@ pub struct SchemaArgs {
 
 /// Arguments for `init`.
 #[derive(Debug, clap::Args)]
+#[allow(clippy::struct_excessive_bools)] // independent, orthogonal switches
 pub struct InitArgs {
     /// Starter shape to write: a built-in name, a user preset under
     /// `~/.config/mindtape/presets`, or a path to a config or preset directory.
@@ -58,6 +63,39 @@ pub struct InitArgs {
     #[arg(long)]
     pub force: bool,
 
+    /// Never prompt: fall through to the default preset (or compose from the
+    /// axis flags below) without asking anything.
+    #[arg(long)]
+    pub no_input: bool,
+
+    /// Workflow axis: pre-answer the status-legend question (suppresses it).
+    #[arg(long, value_enum, conflicts_with = "preset")]
+    pub workflow: Option<Workflow>,
+
+    /// Priority axis: pre-answer the ranking question (suppresses it).
+    #[arg(long, value_enum, conflicts_with = "preset")]
+    pub priority: Option<Priority>,
+
+    /// Organisation axis: pre-answer the folder-derived-tags question.
+    #[arg(long, value_enum, conflicts_with = "preset")]
+    pub organisation: Option<Organisation>,
+
+    /// Estimate axis: pre-answer the units question (suppresses it).
+    #[arg(long, value_enum, conflicts_with = "preset")]
+    pub estimate: Option<Estimate>,
+
+    /// Required-fields axis: pre-answer the required-fields question.
+    #[arg(long, value_enum, conflicts_with = "preset")]
+    pub required: Option<Required>,
+
+    /// Body-headers axis: pre-answer the required-sections question.
+    #[arg(long, value_enum, conflicts_with = "preset")]
+    pub headers: Option<Headers>,
+
+    /// Recurrence axis: pre-answer the recurrence-syntax question.
+    #[arg(long, value_enum, conflicts_with = "preset")]
+    pub recurrence: Option<Recurrence>,
+
     /// `#:schema` directive controls.
     #[command(flatten)]
     pub schema: SchemaArgs,
@@ -73,7 +111,40 @@ pub fn run(args: &InitArgs) -> Result<()> {
         print_preset_list();
         return Ok(());
     }
-    let name = args.preset.as_deref().unwrap_or(preset::DEFAULT_PRESET);
+    if let Some(name) = args.preset.clone() {
+        // An explicit preset never prompts and ignores the axis flags.
+        return write_preset(&name, args, true);
+    }
+    let flags = wizard_flags(args);
+    let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
+    let interactive = !args.no_input && tty;
+    if interactive || flags.any() {
+        // A terminal walks the axes; a non-terminal run with any flag composes
+        // from the flags plus defaults, without prompting.
+        return run_wizard(args, &flags, interactive);
+    }
+    // No preset, no flags, and no terminal (or `--no-input`): write the default
+    // preset without asking anything — the non-interactive baseline.
+    write_preset(preset::DEFAULT_PRESET, args, false)
+}
+
+/// Collect the per-axis flag values off `InitArgs`.
+fn wizard_flags(args: &InitArgs) -> init_wizard::Flags {
+    init_wizard::Flags {
+        workflow: args.workflow,
+        priority: args.priority,
+        organisation: args.organisation,
+        estimate: args.estimate,
+        required: args.required,
+        headers: args.headers,
+        recurrence: args.recurrence,
+    }
+}
+
+/// Resolve, render, and write a named preset — the shared path for `--preset X`
+/// and for the non-interactive default fall-through. `explicit` suppresses the
+/// "other starter shapes" hint that only helps someone who did not pick one.
+fn write_preset(name: &str, args: &InitArgs, explicit: bool) -> Result<()> {
     let preset = preset::resolve(name, preset::user_preset_dir().as_deref())?;
     let text = with_schema_directive(&preset.render(args.annotate), &args.schema)?;
     let root = Path::new(".");
@@ -82,9 +153,35 @@ pub fn run(args: &InitArgs) -> Result<()> {
     }
     write_templates(root, &preset)?;
     println!("preset: {}", preset.name);
-    if args.preset.is_none() {
+    if !explicit {
         println!("run `mt init --list-presets` to see the other starter shapes");
     }
+    Ok(())
+}
+
+/// Walk the axes (or compose from flags when non-interactive), then scaffold the
+/// composed config and any templates the answers require.
+fn run_wizard(args: &InitArgs, flags: &init_wizard::Flags, interactive: bool) -> Result<()> {
+    let answers = {
+        let stdin = std::io::stdin();
+        let mut reader = stdin.lock();
+        let mut writer = std::io::stdout();
+        init_wizard::resolve(flags, interactive, &mut reader, &mut writer)?
+    };
+    let outcome = init_wizard::assemble(answers)?;
+    let text = with_schema_directive(&outcome.config, &args.schema)?;
+    let root = Path::new(".");
+    if !scaffold_config(root, args.force, &text)? {
+        return Ok(());
+    }
+    // Reuse the preset template writer for any synthesised templates.
+    let bundle = Preset {
+        name: "custom".to_owned(),
+        config: String::new(),
+        templates: outcome.templates,
+    };
+    write_templates(root, &bundle)?;
+    println!("scaffolded a custom configuration");
     Ok(())
 }
 

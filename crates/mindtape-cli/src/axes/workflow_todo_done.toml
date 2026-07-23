@@ -1,0 +1,11 @@
+# workflow: todo → done, nothing else enforced.
+[[tasks.status]]
+value = "todo"
+glyph = "○"
+color = "blue"
+
+[[tasks.status]]
+value = "done"
+glyph = "●"
+color = "green"
+terminal = true

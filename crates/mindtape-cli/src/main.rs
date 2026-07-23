@@ -18,6 +18,8 @@ mod graph_render;
 mod handle;
 mod import;
 mod init;
+mod init_compose;
+mod init_wizard;
 mod install;
 mod ls;
 mod ls_interactive;

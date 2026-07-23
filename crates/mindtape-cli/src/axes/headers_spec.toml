@@ -1,0 +1,30 @@
+# body headers: the four spec sections, all gated to non-terminal tasks.
+[[tasks.body.headers.rules]]
+path = ["Summary"]
+action = "unique"
+when = "!terminal"
+message = "a task needs exactly one Summary: the problem, stated once"
+
+[[tasks.body.headers.rules]]
+path = ["Acceptance criteria"]
+action = "unique"
+when = "!terminal"
+message = "a task needs Acceptance criteria — checkable conditions, not a restatement"
+
+[[tasks.body.headers.rules]]
+path = ["Non-goals"]
+action = "require"
+when = "!terminal"
+message = "a task needs Non-goals — say what it will not touch, or it will touch it"
+
+[[tasks.body.headers.rules]]
+path = ["Files"]
+action = "require"
+when = "!terminal"
+message = "a task needs Files — the paths it expects to touch"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Summary"]
+after = ["Acceptance criteria"]
+message = "Summary must precede Acceptance criteria"
