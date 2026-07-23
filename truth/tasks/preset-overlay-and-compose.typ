@@ -9,7 +9,7 @@
   ),
   difficulty: 6,
   tags: ("cli", "substrate"),
-  status: proposed(2026, 7, 22),
+  status: done(2026, 7, 23),
   links: parent("init-presets.typ"),
 )
 
