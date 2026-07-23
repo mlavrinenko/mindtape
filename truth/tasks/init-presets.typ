@@ -10,10 +10,11 @@
   difficulty: 3,
   kind: "umbrella",
   tags: ("cli", "docs"),
-  status: wip(2026, 7, 22)[
-    resolution, the four built-in shapes, template bundling, the e2e matrix and
-    the docs have landed; three children carry the rest
-  ],
+  status: done(
+    2026,
+    7,
+    23,
+  )[all three children landed — the wizard, preset save/ls, and preset \[overlay\] with the compose-time array-conflict error; the init milestone is complete],
 )
 
 == Summary
