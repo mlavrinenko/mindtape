@@ -160,6 +160,44 @@ fn bare_array_and_envelope_both_parse() {
 }
 
 #[test]
+fn envelope_with_current_schema_version_imports() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup_dest(dir.path());
+    let mut task = bare_task("solo");
+    task.title = "Solo Task".to_owned();
+    task.status = Some(status("wip", "2026-06-01"));
+    let canonical = mindtape::CanonicalTask::from_task(&task, &project.config);
+    let envelope = serde_json::json!({
+        "schema_version": mindtape::SCHEMA_VERSION,
+        "tasks": [canonical],
+    });
+
+    let outcomes = import_records(&project, &bare_args(), &envelope.to_string()).unwrap();
+    assert_eq!(outcomes.len(), 1);
+    assert!(outcomes[0].filed, "{:?}", outcomes[0].problems);
+}
+
+#[test]
+fn envelope_with_a_newer_schema_version_is_rejected() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup_dest(dir.path());
+    let too_new = mindtape::SCHEMA_VERSION + 1;
+    let envelope = serde_json::json!({
+        "schema_version": too_new,
+        "tasks": [],
+    });
+
+    // `TaskOutcome` (the `Ok` payload) has no `Debug` impl, so match instead
+    // of `unwrap_err` (which requires `T: Debug` for its own panic message).
+    let err = match import_records(&project, &bare_args(), &envelope.to_string()) {
+        Err(err) => err.to_string(),
+        Ok(_) => panic!("expected the newer schema_version to be rejected"),
+    };
+    assert!(err.contains(&too_new.to_string()), "{err}");
+    assert!(err.contains(&mindtape::SCHEMA_VERSION.to_string()), "{err}");
+}
+
+#[test]
 fn dry_run_writes_nothing_to_the_destination() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup_dest(dir.path());

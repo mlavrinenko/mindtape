@@ -90,6 +90,25 @@ fn json_exposes_core_fields() {
     assert_eq!(value[0]["estimate"]["hours"], 8.0);
 }
 
+/// Render one `sample()` task as `--format json`, sharing the render
+/// boilerplate across the tests below (jscpd flags it as a clone once
+/// duplicated three times over).
+fn json_out(applied: Option<&Applied>) -> String {
+    render(
+        &[sample()],
+        OutputFormat::Json,
+        &Config::default(),
+        &Readiness::empty(),
+        applied,
+    )
+    .unwrap()
+}
+
+/// [`json_out`], parsed back into a [`serde_json::Value`].
+fn json_value(applied: Option<&Applied>) -> serde_json::Value {
+    serde_json::from_str(&json_out(applied)).unwrap()
+}
+
 #[test]
 fn json_with_applied_wraps_tasks_in_envelope() {
     // `mt ls --json` (an `applied` present) is the breaking envelope
@@ -104,15 +123,7 @@ fn json_with_applied_wraps_tasks_in_envelope() {
         columns_from: "inbox".to_owned(),
         columns_value: vec!["status".to_owned(), "title".to_owned()],
     };
-    let out = render(
-        &[sample()],
-        OutputFormat::Json,
-        &Config::default(),
-        &Readiness::empty(),
-        Some(&applied),
-    )
-    .unwrap();
-    let value: serde_json::Value = serde_json::from_str(&out).unwrap();
+    let value = json_value(Some(&applied));
     assert_eq!(value["tasks"][0]["id"], "t1");
     assert_eq!(value["applied"]["rule"], "release");
     assert_eq!(value["applied"]["facets"]["filter"]["from"], "inbox");
@@ -129,21 +140,31 @@ fn json_with_applied_wraps_tasks_in_envelope() {
 }
 
 #[test]
+fn json_with_applied_carries_schema_version() {
+    // The envelope is document-level, so `schema_version` sits alongside
+    // `tasks`/`applied`, not on each task record
+    // (`truth/tasks/emit-schema-version-in-the-ls-json-envelope.typ`).
+    let value = json_value(Some(&Applied::default()));
+    assert_eq!(value["schema_version"], mindtape::SCHEMA_VERSION);
+    assert!(value["tasks"][0]["schema_version"].is_null());
+}
+
+#[test]
+fn json_without_applied_stays_a_bare_array_with_no_schema_version() {
+    let out = json_out(None);
+    assert!(!out.contains("schema_version"));
+    let value: serde_json::Value = serde_json::from_str(&out).unwrap();
+    assert!(value.is_array());
+}
+
+#[test]
 fn json_with_no_rule_matched_reports_null_rule() {
     let applied = Applied {
         rule: None,
         filter_from: "match-all".to_owned(),
         ..Applied::default()
     };
-    let out = render(
-        &[sample()],
-        OutputFormat::Json,
-        &Config::default(),
-        &Readiness::empty(),
-        Some(&applied),
-    )
-    .unwrap();
-    let value: serde_json::Value = serde_json::from_str(&out).unwrap();
+    let value = json_value(Some(&applied));
     assert!(value["applied"]["rule"].is_null());
     assert_eq!(value["applied"]["facets"]["filter"]["from"], "match-all");
 }

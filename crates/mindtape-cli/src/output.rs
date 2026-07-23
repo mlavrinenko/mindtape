@@ -3,7 +3,7 @@
 use anyhow::Result;
 use mindtape::config::Config;
 use mindtape::numeric::{NumValue, format_num};
-use mindtape::{CanonicalTask, Readiness, ReadyState, Task};
+use mindtape::{CanonicalTask, Readiness, ReadyState, SCHEMA_VERSION, Task};
 use serde_json::{Value, json};
 
 use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
@@ -31,9 +31,12 @@ fn status_name(task: &Task) -> String {
 /// Render `tasks` in the chosen `format`. `readiness` drives the table's
 /// dependency column; `Table` and `CSV` ignore `applied`. `applied` is `mt
 /// ls`'s resolved bundle attribution (`crate::ls_rules`): when `Some`, `JSON`
-/// wraps the task array in the `{"tasks": ..., "applied": ...}` envelope
-/// (`truth/tasks/conditional-ls-rules.typ`); `None` (e.g. `mt eval --json`,
-/// which has no rule/view context) keeps the bare array.
+/// wraps the task array in the `{"schema_version": ..., "tasks": ...,
+/// "applied": ...}` envelope (`truth/tasks/conditional-ls-rules.typ`,
+/// `truth/tasks/emit-schema-version-in-the-ls-json-envelope.typ`); `None`
+/// (e.g. `mt eval --json`, which has no rule/view context) keeps the bare
+/// array — `schema_version` is a document-level envelope marker, not a
+/// per-task field, so a bare array carries none.
 ///
 /// # Errors
 /// Returns an error if JSON or CSV serialization fails.
@@ -58,6 +61,7 @@ fn render_json(tasks: &[Task], config: &Config, applied: Option<&Applied>) -> Re
         .collect();
     let body = match applied {
         Some(applied) => json!({
+            "schema_version": SCHEMA_VERSION,
             "tasks": array,
             "applied": applied_to_json(applied),
         }),
