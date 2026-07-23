@@ -110,10 +110,24 @@ fn scaffold_comments_false_strips_every_comment_but_stays_fillable() {
             .any(|line| line.trim_start().starts_with('#')),
         "no comment lines: {buffer}"
     );
+    // Compact: no blank line separates the bare entries.
+    assert!(
+        !buffer.contains("\n\n"),
+        "no blank lines between entries: {buffer:?}"
+    );
     // Bare mapping is still present and parses back cleanly (defaults fill in).
     assert!(buffer.contains("priority: 5"), "{buffer}");
     assert!(buffer.contains("title: "), "{buffer}");
     parse_buffer(&buffer).unwrap();
+}
+
+#[test]
+fn scaffold_comments_on_spaces_entries_with_blank_lines() {
+    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
+    assert!(
+        buffer.contains("\n\n"),
+        "comment groups stay spaced: {buffer:?}"
+    );
 }
 
 #[test]

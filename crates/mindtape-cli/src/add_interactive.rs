@@ -131,7 +131,10 @@ fn scaffold(config: &AddConfig, specs: &[SlotSpec], seed: &BTreeMap<String, RawV
         .iter()
         .map(|spec| entry_block(spec, seed.get(&spec.name), config.comments))
         .collect();
-    out.push_str(&blocks.join("\n"));
+    // With comments on, a blank line spaces out each comment+value group. With
+    // comments off there is nothing to separate, so pack the bare mapping tight.
+    let separator = if config.comments { "\n" } else { "" };
+    out.push_str(&blocks.join(separator));
     while out.ends_with('\n') {
         out.pop();
     }
