@@ -72,11 +72,9 @@ pub struct FlipHook {
 
 /// One action of a `[[on.flip]]` entry.
 ///
-/// The three kinds share one flat TOML shape, discriminated by which of `show`
-/// / `list` / `run` is set — exactly one must be. [`FlipAction::kind`] resolves
-/// it into [`ActionKind`], which is what callers dispatch on; the flat struct
-/// exists so a typo lands as a named config error rather than serde's opaque
-/// "data did not match any variant".
+/// Exactly one of `show`, `list`, or `run` must be set — the three kinds
+/// share one flat TOML shape so a mistyped or conflicting entry surfaces as a
+/// clear config error instead of an opaque parse failure.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FlipAction {

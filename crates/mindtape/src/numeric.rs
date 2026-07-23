@@ -146,15 +146,9 @@ pub struct NumCell {
     pub color: Option<String>,
 }
 
-/// A numeric scalar field: scale plus one classification style.
-///
-/// Left opinionated (a usable `0..9` scale, no bands/anchors) rather than
-/// collapsed to a degenerate `0..0`: `Config::default()` is called directly
-/// (bypassing `parse_config`) by CLI test fixtures that carry an in-range
-/// manual priority/difficulty value and rely on `check_in_scale` accepting it
-/// with no classification declared. Its scale already agrees with the
-/// embedded floor's (`crate::config::EMBEDDED_DEFAULTS`), which additionally
-/// supplies the bands/anchors through `parse_config`.
+/// A numeric scalar field: a `[min, max]` scale plus, optionally, one
+/// classification style — contiguous bands or labelled anchor points.
+/// Defaults to an integer `0..9` scale with no classification.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct NumericField {

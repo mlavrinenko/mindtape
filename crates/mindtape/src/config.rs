@@ -210,12 +210,12 @@ impl Default for TasksConfig {
 
 /// `[tasks.priority]` — the priority numeric field plus its scoring frameworks.
 ///
-/// Flattens a [`NumericField`] (scale + band classification, shared with
-/// difficulty) and layers framework selection on top. When `framework` names an
-/// active framework, a task's priority is computed from that framework's inputs
-/// instead of a hand-set integer; `allow_manual` decides whether a raw integer
-/// is still accepted as an escape hatch. The `frameworks` registry holds the
-/// baked-in built-ins deep-merged with any user `[tasks.priority.frameworks.*]`.
+/// Carries the same scale and band/anchor classification as `difficulty`, plus
+/// framework selection on top. When `framework` names an active framework, a
+/// task's priority is computed from that framework's inputs instead of a
+/// hand-set integer; `allow-manual` decides whether a raw integer is still
+/// accepted as an escape hatch. The `frameworks` table holds the built-in
+/// frameworks deep-merged with any user-declared ones.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct PriorityConfig {
@@ -314,17 +314,12 @@ pub struct TagsConfig {
 }
 
 /// `[rm]` — defaults for the `rm` task-removal command.
-///
-/// `Default` is the truly-empty state (`None`, no sweep filter); the shipped
-/// `"terminal"` default lives in the embedded floor ([`EMBEDDED_DEFAULTS`]) and
-/// only applies through [`parse_config`].
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RmConfig {
-    /// Filter selecting which tasks a bare `mt rm` (no target) retires.
-    /// Built-in default `"terminal"`: sweep every terminal-status task, matching
-    /// the legacy `cleanup` behaviour. An explicit ref or filter argument
-    /// overrides it.
+    /// Filter selecting which tasks a bare `mt rm` (no target given) retires.
+    /// Defaults to `"terminal"`, sweeping every task in a terminal status.
+    /// An explicit ref or filter argument on the command line overrides it.
     pub default_filter: Option<String>,
 }
 

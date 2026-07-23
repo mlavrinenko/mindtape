@@ -119,9 +119,9 @@ pub struct RecurConfig {
     /// Materialize model used when a task's `recur` omits one.
     pub materialize: String,
     /// Whether the `rrule(...)` escape hatch is accepted. Off by default;
-    /// also requires the crate to be built with the `rrule` cargo feature
-    /// (`crates/mindtape/src/recur_rrule.rs`) — either gate missing rejects
-    /// an authored `rrule(...)` with a precise message.
+    /// also requires `MindTape` to be built with the `rrule` cargo feature —
+    /// missing either gate rejects an authored `rrule(...)` with a clear
+    /// error message.
     pub rrule: bool,
     /// Runaway cap: `mt recur --advance N` refuses `N` above this.
     pub max_advance: u32,

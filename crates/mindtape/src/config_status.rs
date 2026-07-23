@@ -12,11 +12,10 @@ use crate::link::NoteRule;
 /// The status legend: an ordered, displayable vocabulary.
 ///
 /// Each entry binds a value to optional display attributes (glyph, colour,
-/// label) plus the `terminal` flag. The legend defines the legal values, their
-/// lifecycle order, and how each renders. Empty = unconstrained (though an
-/// omitted `[[tasks.status]]` section inherits the embedded floor's six-value
-/// legend through `parse_config` — see `crate::config`). The same primitive
-/// will serve other discrete enum fields (kind, tags) as they gain display.
+/// label) plus the `terminal` flag. The legend defines the legal status
+/// values, their lifecycle order, and how each renders. An empty legend is
+/// unconstrained, though omitting `[[tasks.status]]` entirely still inherits
+/// `MindTape`'s shipped six-value legend.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(transparent)]
 pub struct Legend {
@@ -44,14 +43,11 @@ pub struct LegendEntry {
     /// and an empty `to` marks a sink: nothing out but a same-status re-stamp.
     /// A reopen edge is just a terminal (or any) state naming its target here.
     pub to: Vec<String>,
-    /// Note requirement for a task landing in this status: reuses [`NoteRule`]
-    /// unmodified from the typed `links:` edge kind rule
-    /// (`crate::link::LinkKind::note`) rather than defining a second type.
-    /// Defaults to `Optional`, so an existing config with no `note` field is
-    /// unchanged. Per-entry, not legend-wide: a preset can demand a note
-    /// exactly where no machine check exists (`blocked`, `failed`, a reopen)
-    /// and stay silent on `done`, where a gate command is the real check —
-    /// see `truth/tasks/status-note-rule.typ`.
+    /// Note requirement for a task landing in this status: whether the change
+    /// must (`required`), may (`optional`, the default), or must not
+    /// (`forbidden`) carry a note. Set per status rather than legend-wide, so
+    /// a project can demand a note for statuses with no automated check (e.g.
+    /// `blocked`, `failed`) while leaving others unconstrained.
     pub note: NoteRule,
 }
 

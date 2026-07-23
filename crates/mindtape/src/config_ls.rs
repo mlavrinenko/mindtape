@@ -21,12 +21,10 @@ pub const LS_COLUMNS: [&str; 6] = ["#", "status", "ready", "priority", "due", "t
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct LsConfig {
-    /// Name of the view driving the default `mt ls` listing when the caller
-    /// passes no filter. Resolved by [`crate::Config::ls_default_view`]:
-    /// `[ls] default-view` if set, else the `[views.default]` view if declared,
-    /// else match-all. Validated at config load. Supersedes the old
-    /// `default-filter`, so the default listing carries the view's sort and
-    /// columns too, not just a filter.
+    /// Name of the view that drives the default `mt ls` listing when the
+    /// caller passes no filter: falls back to the `[views.default]` view when
+    /// this is unset, or matches every task when neither is declared.
+    /// Validated at config load.
     pub default_view: Option<String>,
     /// Default sort chain for `mt ls` when the caller passes no `--sort`.
     /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
@@ -39,24 +37,22 @@ pub struct LsConfig {
     /// Non-token characters pass through literally.
     /// Default `None` renders ISO `YYYY-MM-DD`.
     pub date_format: Option<String>,
-    /// Per-column display settings, keyed by a [`LS_COLUMNS`] name. A map value
-    /// (not a scalar) so future column knobs extend [`ColumnConfig`] without a
-    /// breaking shape change. Unlisted columns take the defaults.
+    /// Per-column display settings, keyed by column name. Unlisted columns
+    /// keep their default display.
     pub columns: BTreeMap<String, ColumnConfig>,
-    /// Explicit column order. Empty means the built-in [`LS_COLUMNS`] order.
-    /// When set, it both selects and orders: only the listed columns render, in
-    /// the given sequence. Validated against [`LS_COLUMNS`] at config load.
+    /// Explicit column order and selection: when set, only the listed
+    /// columns render, in that order. Empty (the default) keeps the built-in
+    /// column set and order.
     pub columns_order: Vec<String>,
-    /// READY-column display: glyph / colour / label for the ready and blocked
-    /// states. Defaulted from the embedded floor (`defaults.toml`), so unset
-    /// behaviour is unchanged; see [`ReadyConfig`].
+    /// Display settings (glyph, colour, label) for the ready and blocked
+    /// states shown in the READY column. Defaults to `MindTape`'s built-in
+    /// values, so leaving this unset keeps the current behaviour.
     pub ready: ReadyConfig,
-    /// Colour for the overdue due-date accent (`due_cell`). Defaulted `"red"`
-    /// from the embedded floor.
+    /// Colour for the overdue due-date accent. Defaults to `"red"`.
     pub overdue_color: Option<String>,
-    /// Ordered auto-activation rules for bare `mt ls` (no CLI filter, no
-    /// `@view`): the first entry whose `condition` holds (or is absent) wins.
-    /// See [`LsRule`] and `truth/tasks/conditional-ls-rules.typ`.
+    /// Ordered auto-activation rules applied to a bare `mt ls` (no CLI
+    /// filter, no `@view`): the first rule whose condition holds (or that
+    /// has none) wins and supplies its filter, sort, and columns.
     pub rules: Vec<LsRule>,
 }
 
@@ -74,14 +70,14 @@ pub struct LsRule {
     /// Shown in the trailer and the JSON envelope's `applied.rule`; falls
     /// back to the condition text when unset.
     pub name: Option<String>,
-    /// Condition-grammar expression over environment predicates
-    /// ([`crate::condition`]) — `on_branch`, `env`, `weekday`, `now`. Absent
-    /// matches always.
+    /// Condition expression over environment predicates such as
+    /// `on_branch`, `env`, `weekday`, and `now`. Absent means the rule always
+    /// matches.
     pub condition: Option<String>,
-    /// Ordered `import-views` entries, composed left-to-right (per-facet
-    /// last-wins). Each is `"view"` (all three facets) or
-    /// `"view(facet, ...)"` (a subset of `filter` / `sort` / `columns`); see
-    /// [`parse_import_view`].
+    /// Ordered list of views to import facets from, composed left-to-right
+    /// (later entries win on conflict). Each entry is a view name (`"view"`,
+    /// importing its filter, sort, and columns) or a scoped form
+    /// (`"view(filter, sort)"`) naming just the facets to import.
     pub import_views: Vec<String>,
     /// Manual filter override — highest precedence for the filter facet.
     /// Same grammar as `[views]`; may use `@view` / `in_view`.
@@ -89,8 +85,8 @@ pub struct LsRule {
     /// Manual sort override — highest precedence for the sort facet. Same
     /// spec grammar as `--sort`; an entry may splice `@view`.
     pub sort: Vec<String>,
-    /// Manual columns override — highest precedence for the columns facet.
-    /// Subset of [`LS_COLUMNS`]; an entry may splice `@view`.
+    /// Manual column list — highest precedence for the columns facet. An
+    /// entry may reference a view's columns with `@view`.
     pub columns: Vec<String>,
 }
 

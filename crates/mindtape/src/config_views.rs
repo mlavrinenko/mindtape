@@ -26,7 +26,7 @@ pub struct ViewSpec {
     /// order.
     pub sort: Vec<String>,
     /// Column set applied when this view drives columns (bundle mode or
-    /// `--columns @name`). Subset of [`LS_COLUMNS`]; empty means the default set.
+    /// `--columns @name`). Empty means the default column set.
     pub columns: Vec<String>,
     /// Human description, shown by `mt views`.
     pub description: Option<String>,
