@@ -202,3 +202,7 @@ filter = 'status == "wip" && kind != "umbrella"'
 max = 1
 severity = "error"
 message = "finish the open task, or split off what is done and close that, before starting another"
+
+[add]
+header = ""
+comments = false
