@@ -35,9 +35,18 @@ mt install        # installs @local/mindtape + ~/.config/mindtape/defaults.toml
 Then scaffold a project, once per repository:
 
 ```sh
-mt init                  # writes .mindtape/config.toml in the current directory
+mt init                  # interactive: a short questionnaire, then writes .mindtape/config.toml
+mt init --preset flow    # skip the questions, write a named starter shape
+mt init --no-input       # non-interactive: write the default (flow) without asking
 mt init --list-presets   # the other starter shapes
 ```
+
+With no `--preset` and a terminal, `mt init` walks a short questionnaire over the
+configuration axes — workflow, priority, estimate, required fields, organisation,
+body headers, recurrence — asking a few core questions, then offering to accept
+defaults for the rest, and records the answers as a comment block in the written
+file. `--preset X`, `--no-input`, and a piped (non-terminal) stdin all skip it;
+every question also has a flag that suppresses just that question.
 
 A preset is a starter shape, not a straitjacket — the written file is yours to
 edit. Four ship:
@@ -54,6 +63,9 @@ edit. Four ship:
 
 `--annotate` keeps the preset's explanatory comments in the written file. User
 presets live in `~/.config/mindtape/presets` and shadow the built-ins by name.
+`mt preset save <name>` captures the current project's config and templates as one
+such reusable preset (and `mt preset ls` lists what exists); a preset may carry an
+`[overlay]` block for config the axes cannot express, merged last over the base.
 See #link(u("/config/"))[Configuration] for the layering.
 
 = File your first task
