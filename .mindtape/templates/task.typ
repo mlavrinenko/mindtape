@@ -9,6 +9,7 @@
   ),
   difficulty: slot("difficulty", kind: "int", default: 3),
   tags: slot("tags", kind: "list", default: ()),
+  estimate: slot("estimate", kind: "text", default: "(files: 2)"),
 )
 
 == Summary

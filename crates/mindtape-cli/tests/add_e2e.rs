@@ -260,6 +260,57 @@ fn derives_initial_status_from_a_custom_legend() {
         .success();
 }
 
+/// The real `.mindtape/templates/task.typ` this repo ships, so a drift in its
+/// `estimate` slot default (e.g. drifting outside the configured bounds) fails
+/// this test rather than only surfacing at dogfood `mt check` time.
+const PRODUCTION_TEMPLATE: &str = include_str!("../../../.mindtape/templates/task.typ");
+
+/// Mirrors the dogfood config's `[tasks.estimate]`: required on every
+/// non-terminal task, bounded 1-5 files.
+const ESTIMATE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
+     [tasks.priority]\nframework = \"ice\"\n\
+     [tasks.estimate]\nunits = [\"files\"]\nrequired = \"!terminal\"\n\
+     [tasks.estimate.max]\nfiles = 5\n[tasks.estimate.min]\nfiles = 1\n";
+
+/// `estimate` required with no explicit `--set estimate=...`: the production
+/// template's slot default must fill in a dict inside the configured bounds,
+/// not leave a task that fails `check` the moment it lands.
+#[test]
+fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    std::fs::write(
+        dir.path().join(".mindtape/config.toml"),
+        ESTIMATE_REQUIRED_CONFIG,
+    )
+    .unwrap();
+    std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
+    std::fs::write(
+        dir.path().join(".mindtape/templates/task.typ"),
+        PRODUCTION_TEMPLATE,
+    )
+    .unwrap();
+
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["add", "--name", "no-estimate", "--set", "title=No estimate"])
+        .args(["--set", "summary=A summary."])
+        .assert()
+        .success();
+
+    let written = std::fs::read_to_string(dir.path().join("tasks/no-estimate.typ")).unwrap();
+    assert!(written.contains("estimate: (files: 2)"), "{written}");
+    assert!(!written.contains("slot("), "slots must be gone: {written}");
+
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .arg("check")
+        .assert()
+        .success();
+}
+
 #[test]
 fn collision_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();

@@ -117,6 +117,7 @@ required = "!terminal"
 # checkable against git while the work runs.
 [tasks.estimate]
 units = ["files"]
+required = "!terminal"
 
 # Outside this range is a validation error, not a warning: an oversized task must
 # be split before the work starts, not after. Terminal tasks are exempt.
