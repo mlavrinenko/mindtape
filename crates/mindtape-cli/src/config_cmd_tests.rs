@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use mindtape::{Config, LayerSource, load_config, load_config_layered, parse_config};
 
-use super::{render_effective, render_origin};
+use super::{render_effective, render_origin, render_schema};
 
 /// A fresh tempdir with `.mindtape/` already created (so `find_root` and the
 /// layer discovery walk see a project), optionally holding a `config.toml`.
@@ -140,6 +140,48 @@ fn run_defaults_prints_embedded_floor() {
             defaults: true,
             json: false,
         })),
+    };
+    super::run(&args).unwrap();
+}
+
+/// `render_schema` must reuse `mindtape::config_schema_json` verbatim — the
+/// same generator `mt install` writes to disk — so the printed schema and the
+/// installed `config.schema.json` can never diverge.
+#[test]
+fn render_schema_matches_the_install_generator() {
+    assert_eq!(render_schema(), mindtape::config_schema_json());
+}
+
+/// Verify that `run()` with the `schema` action prints the JSON Schema to
+/// stdout, verbatim.
+///
+/// Uses a self-spawn subprocess so the parent can capture what the child
+/// prints (println! goes to the child's stdout). The child runs under
+/// `--nocapture`, so the captured stream also carries the test harness's own
+/// banner lines — check the exact generated schema appears as a substring
+/// rather than parsing the whole capture as JSON. A `run()` whose body is
+/// replaced with `Ok(())` would print nothing, so the `contains` assertion
+/// fails and the mutated test is caught.
+#[test]
+fn run_schema_prints_json_schema_to_stdout() {
+    if std::env::var("_MT_CONFIG_DELEGATE").is_err() {
+        // Parent: spawn self, capture output, verify it carries the schema.
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .env("_MT_CONFIG_DELEGATE", "1")
+            .args(["run_schema_prints_json_schema_to_stdout", "--nocapture"])
+            .output()
+            .unwrap();
+        assert!(output.status.success());
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            stdout.contains(&mindtape::config_schema_json()),
+            "run() with schema must print the generated schema verbatim"
+        );
+        return;
+    }
+    // Child: call run() with the schema action.
+    let args = super::ConfigArgs {
+        action: Some(super::ConfigAction::Schema),
     };
     super::run(&args).unwrap();
 }
