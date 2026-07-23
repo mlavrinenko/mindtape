@@ -4,6 +4,7 @@
 # to accept the defaults and the prelude's full status shortcut set.
 
 [tasks]
+
 # MindTape's own backlog lives here, one task per file. The `mt` root name is
 # emitted as a derived tag on every task (the tree is flat today, so no folder
 # tags yet); nest tasks into folders and the folder names join in.
@@ -70,18 +71,21 @@ max = 9
 required = "!terminal"
 framework = "ice"
 allow-manual = false
+
 [[tasks.priority.bands]]
 label = "low"
 min = 0
 max = 2
 glyph = "🟢"
 color = "green"
+
 [[tasks.priority.bands]]
 label = "normal"
 min = 3
 max = 6
 glyph = "🟡"
 color = "yellow"
+
 [[tasks.priority.bands]]
 label = "high"
 min = 7
@@ -133,7 +137,17 @@ files = 1
 
 [tasks.tags]
 # Area labels for the backlog. Empty would accept any tag.
-allowed = ["mt", "substrate", "speconaut", "cli", "tests", "www", "docs", "tooling", "gating"]
+allowed = [
+  "mt",
+  "substrate",
+  "speconaut",
+  "cli",
+  "tests",
+  "www",
+  "docs",
+  "tooling",
+  "gating"
+]
 
 # A review comment left in a task file is a conversation, not content: a human
 # annotates, an agent reframes the task and removes the note. Forbidding it
@@ -143,19 +157,41 @@ policy = "forbid"
 
 # Every task carries exactly one Summary section, and it precedes Scope.
 [[tasks.body.headers.rules]]
-path    = ["Summary"]
-action  = "unique"
+path = ["Summary"]
+action = "unique"
 message = "every task must have exactly one Summary section"
 
 [[tasks.body.headers.rules]]
 action = "order"
 before = ["Summary"]
-after  = ["Scope"]
+after = ["Scope"]
 message = "Summary must precede Scope"
 
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view (same filter as the retired `[ls] default-filter`).
 # Redeclare `[views.default]` here to add a sort/columns bundle.
+
+# Work-in-progress caps. One umbrella and one leaf, no more. An umbrella
+# coordinates a milestone and may legitimately stay open across sessions; a leaf
+# may not, and a session ending on an open leaf is the failure these exist to
+# stop. `severity = "error"` because the intended response is to finish or split
+# the open work, not to note the breach and carry on.
+#
+# No status name is hardcoded in Rust — a limit is just a filter. The second
+# filter catches every task carrying no `kind` at all, since an absent field is
+# unequal to every literal in the filter language, so the pair partitions the
+# whole backlog by construction.
+[[tasks.limits]]
+filter = 'status == "wip" && kind == "umbrella"'
+max = 1
+severity = "error"
+message = "close or split the open umbrella before opening another"
+
+[[tasks.limits]]
+filter = 'status == "wip" && kind != "umbrella"'
+max = 1
+severity = "error"
+message = "finish the open task, or split off what is done and close that, before starting another"
 
 # Closing a task asserts the gate already ran against this worktree, rather
 # than running it here. `mmz --is-fresh` exits 0 only when `just check` last
@@ -180,28 +216,6 @@ when = 'into("done") || into("cancelled") || into("failed")'
 actions = [
   { run = "mmz --is-fresh -- just check", gate = true, message = "the checks have not passed against this worktree — run `mmz just check`, then flip again (`--force` waives it and records the waiver in the note)" },
 ]
-
-# Work-in-progress caps. One umbrella and one leaf, no more. An umbrella
-# coordinates a milestone and may legitimately stay open across sessions; a leaf
-# may not, and a session ending on an open leaf is the failure these exist to
-# stop. `severity = "error"` because the intended response is to finish or split
-# the open work, not to note the breach and carry on.
-#
-# No status name is hardcoded in Rust — a limit is just a filter. The second
-# filter catches every task carrying no `kind` at all, since an absent field is
-# unequal to every literal in the filter language, so the pair partitions the
-# whole backlog by construction.
-[[tasks.limits]]
-filter = 'status == "wip" && kind == "umbrella"'
-max = 1
-severity = "error"
-message = "close or split the open umbrella before opening another"
-
-[[tasks.limits]]
-filter = 'status == "wip" && kind != "umbrella"'
-max = 1
-severity = "error"
-message = "finish the open task, or split off what is done and close that, before starting another"
 
 [add]
 header = ""
