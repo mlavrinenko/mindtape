@@ -9,7 +9,8 @@
   ),
   difficulty: 3,
   tags: ("mt", "gating"),
-  status: proposed(2026, 7, 22),
+  estimate: (files: 5),
+  status: done(2026, 7, 23),
   links: related("files-budget-drift-check.typ")[
     Split off from it. That task shipped the feature and put `units` and the
     caps on this repository's config; requiring an estimate needs a backfill of
