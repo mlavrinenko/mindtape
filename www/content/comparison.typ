@@ -16,6 +16,22 @@
 #let orgmode-url = "https://orgmode.org"
 #let git-bug-url = "https://github.com/git-bug/git-bug"
 
+// The maturity cell reads the real binary's own report of itself — "mt X.Y.Z"
+// captured by www/generate.sh into www/generated/version.txt, same pattern as
+// every other page's `read("../generated/…")` — so the cell can never drift
+// from what actually got tagged and shipped.
+#let mt-version = read("../generated/version.txt").trim().split(" ").last()
+
+// Neutral capability heatmap: the SAME rubric applies to every column,
+// including MindTape — green = has the capability / strong, amber = partial
+// or indirect, grey = none. Only the seven objectively-scoreable capability
+// rows in the matrix below get wrapped in `cap`; descriptive rows (storage
+// granularity, on-disk format, identity, ...) stay plain, since there is no
+// better or worse to signal there. Colour lives in theme-aware CSS custom
+// properties (components.css), not a baked Typst `fill`, so the tone stays
+// legible in both themes.
+#let cap(level, body) = html.elem("span", attrs: (class: "cap cap-" + level), [#body])
+
 MindTape is not out to replace every task tracker. It sits in a narrow niche:
 #strong[typed tasks, one per file, versioned with the code, validated by config,
 no daemon]. This page compares it, feature by feature, against the other local
@@ -63,12 +79,12 @@ matrix scrolls sideways on narrow screens.
   [Plain-text line], [Outline text], [Git blobs on refs],
 
   [#link(u("/concepts/"))[In the working tree, reviewed with your code]],
-  [Yes, by design], [No — its own git repo], [No — `~/.task` store],
-  [Possible], [Yes], [In git, not the tree],
+  [#cap("green")[Yes, by design]], [#cap("grey")[No — its own git repo]], [#cap("grey")[No — `~/.task` store]],
+  [#cap("amber")[Possible]], [#cap("green")[Yes]], [#cap("grey")[In git, not the tree]],
 
   [#link(u("/config/"))[Typed schema + config validation]],
-  [Config-enforced, `mt check`], [Light, fixed], [Typed attrs + UDAs],
-  [None], [Soft], [Minimal],
+  [#cap("green")[Config-enforced, `mt check`]], [#cap("amber")[Light, fixed]], [#cap("amber")[Typed attrs + UDAs]],
+  [#cap("grey")[None]], [#cap("amber")[Soft]], [#cap("amber")[Minimal]],
 
   [#link(u("/config/"))[Status model]],
   [Config legend (enum + dates + transitions)], [Fixed set], [Fixed enum],
@@ -83,31 +99,31 @@ matrix scrolls sideways on narrow screens.
   [Line position], [Headline / `:ID:`], [Content hash],
 
   [#link(u("/filters/"))[Dependencies / blocking]],
-  [Yes — typed links], [Yes], [Yes — `depends`],
-  [No], [Yes — `ORDERED` / org-depend], [No],
+  [#cap("green")[Yes — typed links]], [#cap("green")[Yes]], [#cap("green")[Yes — `depends`]],
+  [#cap("grey")[No]], [#cap("green")[Yes — `ORDERED` / org-depend]], [#cap("grey")[No]],
 
   [#link(u("/filters/"))[Query + machine output]],
-  [Filter DSL; JSON, CSV], [CLI filters; text only], [Filter DSL; JSON],
-  [grep-style; text only], [agenda / org-ql; many exports], [filters; JSON],
+  [#cap("green")[Filter DSL; JSON, CSV]], [#cap("amber")[CLI filters; text only]], [#cap("green")[Filter DSL; JSON]],
+  [#cap("grey")[grep-style; text only]], [#cap("green")[agenda / org-ql; many exports]], [#cap("green")[filters; JSON]],
 
   [#link(u("/templates/"))[Templates / scaffolds]],
-  [Slot templates], [Copy-a-task template], [Recurrence, UDAs, reports],
-  [Addons only], [`org-capture` templates], [No],
+  [#cap("green")[Slot templates]], [#cap("amber")[Copy-a-task template]], [#cap("amber")[Recurrence, UDAs, reports]],
+  [#cap("amber")[Addons only]], [#cap("green")[`org-capture` templates]], [#cap("grey")[No]],
 
   [#link(u("/dsl/"))[Recurring tasks]],
-  [Yes — `mt recur`], [No], [Yes],
-  [Addons only], [Yes], [No],
+  [#cap("green")[Yes — `mt recur`]], [#cap("grey")[No]], [#cap("green")[Yes]],
+  [#cap("amber")[Addons only]], [#cap("green")[Yes]], [#cap("grey")[No]],
 
   [#link(REPO + "/blob/main/lib/prelude.typ")[Typeset-document face]],
-  [Yes — `task` show rule], [No], [No],
-  [No], [Yes — PDF today], [No],
+  [#cap("green")[Yes — `task` show rule]], [#cap("grey")[No]], [#cap("grey")[No]],
+  [#cap("grey")[No]], [#cap("green")[Yes — PDF today]], [#cap("grey")[No]],
 
   [#link(u("/quickstart/"))[Toolchain footprint]],
   [`mt` binary + Typst], [Single Go binary + git], [Single binary],
   [Bash script only], [Emacs], [Go binary + git],
 
   [#link(REPO)[Maturity + license (mid-2026)]],
-  [Pre-1.0, unreleased; MIT], [~1.2k★, stable; MIT], [~5.9k★, active; MIT],
+  [#(mt-version + "; MIT")], [~1.2k★, stable; MIT], [~5.9k★, active; MIT],
   [~6.1k★ + huge ecosystem; GPL-3], [ships with Emacs, ~20y; GPL-3], [~9.9k★, active; GPL-3],
 ))
 
@@ -131,8 +147,9 @@ matrix scrolls sideways on narrow screens.
 = Where the others win
 
 - #strong[Maturity and ecosystem.] Every competitor is released and
-  battle-tested; MindTape is pre-1.0 and unreleased. Taskwarrior and todo.txt
-  carry decades of tooling, integrations, and mobile apps.
+  battle-tested; MindTape is younger, with far less mileage and a much smaller
+  ecosystem. Taskwarrior and todo.txt carry decades of tooling, integrations,
+  and mobile apps.
 - #strong[Zero toolchain.] todo.txt is one text file plus a shell script — no
   binary, no compiler. MindTape needs the `mt` binary and a Typst toolchain.
 - #strong[Rich document export.] Org-mode exports whole outlines to polished PDF,

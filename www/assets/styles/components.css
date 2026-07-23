@@ -92,6 +92,48 @@ main td code { font-size: 0.82em; }
 }
 .matrix thead th:first-child { position: sticky; left: 0; z-index: 2; }
 
+/* Capability heatmap tokens -------------------------------------------------
+   Pastel, low-saturation fills for the comparison matrix's objectively-
+   scoreable rows (comparison.typ's `cap()`): green = has the capability /
+   strong, amber = partial or indirect, grey = none — the SAME rubric for
+   every column, including MindTape. Kept next to the site-wide tokens in
+   main.css but scoped to this file (its `:root` / `[data-theme="dark"]`
+   merge with main.css's, loaded first) since components.css is the only
+   stylesheet this feature touches. Both fg/bg pairs hold >= 4.5:1 contrast in
+   light and dark (verified against the effective blended background). */
+:root {
+  --cap-green-bg: #e2f3ea;
+  --cap-green-fg: #1f6844;
+  --cap-amber-bg: #faf1da;
+  --cap-amber-fg: #7a5a12;
+  --cap-grey-bg: #eef0f1;
+  --cap-grey-fg: #4b535c;
+}
+[data-theme="dark"] {
+  --cap-green-bg: rgba(69, 208, 160, 0.16);
+  --cap-green-fg: #8fe9c8;
+  --cap-amber-bg: rgba(229, 176, 63, 0.18);
+  --cap-amber-fg: #f0cf7a;
+  --cap-grey-bg: rgba(255, 255, 255, 0.06);
+  --cap-grey-fg: #b7c0c7;
+}
+
+/* Capability heatmap cells ---------------------------------------------
+   Typst's HTML export bakes `text(fill:)`/`table.cell(fill:)` as one static
+   colour (see the terminal-ansi note above) that cannot react to
+   `[data-theme="dark"]`, so `cap()` instead wraps the cell body in a classed
+   <span> and this stylesheet paints it: negative margin equal to the cell's
+   own padding lets the span's background bleed flush to the `<td>`'s border
+   on every side, so the whole cell reads as a filled heatmap tile. */
+.matrix td .cap {
+  display: block;
+  margin: -0.38rem -0.55rem;
+  padding: 0.38rem 0.55rem;
+}
+.matrix td .cap-green { background: var(--cap-green-bg); color: var(--cap-green-fg); }
+.matrix td .cap-amber { background: var(--cap-amber-bg); color: var(--cap-amber-fg); }
+.matrix td .cap-grey { background: var(--cap-grey-bg); color: var(--cap-grey-fg); }
+
 /* Floating header clone for the comparison matrix -------------------------
    `.matrix` is a horizontal scroll container, which stops a plain CSS
    `position: sticky` on `thead th` from working for vertical scroll (a
