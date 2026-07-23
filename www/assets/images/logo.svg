@@ -1,60 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <defs>
-    <linearGradient id="tape1" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#39ff14" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#00fff7" stop-opacity="0.9"/>
-    </linearGradient>
-    <linearGradient id="tape2" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#00fff7" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#ff00ff" stop-opacity="0.9"/>
-    </linearGradient>
-    <linearGradient id="tape3" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ff00ff" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#39ff14" stop-opacity="0.85"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2.5" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-    <clipPath id="brain-clip">
-      <circle cx="100" cy="100" r="62"/>
-    </clipPath>
-  </defs>
-
-  <!-- Tape strips, clipped to a circle around the brain so they wrap tightly -->
-  <!-- clip-path and filter on separate <g> elements for cross-browser consistency -->
-  <g clip-path="url(#brain-clip)">
-   <g filter="url(#glow)">
-    <!-- Tape 1: diagonal upper-left to lower-right -->
-    <g transform="rotate(-25, 100, 100)">
-      <rect x="20" y="62" width="130" height="14" rx="2" fill="url(#tape1)"/>
-      <!-- Tape track lines -->
-      <line x1="20" y1="67" x2="150" y2="67" stroke="rgba(0,0,0,0.25)" stroke-width="0.7"/>
-      <line x1="20" y1="71" x2="150" y2="71" stroke="rgba(0,0,0,0.25)" stroke-width="0.7"/>
-    </g>
-
-    <!-- Brain (Lucide icon, ISC license) -->
-    <g transform="translate(52, 52) scale(4)" fill="none" stroke="#c25b6a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="11" fill="#f8a0a0" stroke="none"/>
-      <path d="M12 18V5" stroke="#d45a6a"/>
-      <path d="M15 13a4.17 4.17 0 0 1-3-4 4.17 4.17 0 0 1-3 4" stroke="#d45a6a"/>
-      <path d="M17.598 6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5"/>
-      <path d="M17.997 5.125a4 4 0 0 1 2.526 5.77"/>
-      <path d="M18 18a4 4 0 0 0 2-7.464"/>
-      <path d="M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517"/>
-      <path d="M6 18a4 4 0 0 1-2-7.464"/>
-      <path d="M6.003 5.125a4 4 0 0 0-2.526 5.77"/>
-    </g>
-
-    <!-- Tape 2: opposite diagonal -->
-    <g transform="rotate(20, 100, 100)">
-      <rect x="20" y="110" width="140" height="14" rx="2" fill="url(#tape2)"/>
-      <line x1="20" y1="115" x2="180" y2="115" stroke="rgba(0,0,0,0.25)" stroke-width="0.7"/>
-      <line x1="20" y1="119" x2="180" y2="119" stroke="rgba(0,0,0,0.25)" stroke-width="0.7"/>
-    </g>
-   </g>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="MindTape">
+  <!-- MindTape mark: a tape strip laid over a cassette.
+       Monochrome-first and a single evenodd path, on purpose. The site header
+       renders this file as a flat CSS mask tinted with the accent token (see
+       .brand-mark in www/assets/styles/main.css), so only the SILHOUETTE
+       survives there. The two reel holes are negative space rather than a
+       second colour, which is what keeps the mark readable at 16 to 26px in
+       both the mask and the favicon. Any future edit must stay one colour and
+       carry its meaning in the outline, never in a fill contrast.
+       Note: XML comments cannot contain a double hyphen. -->
+  <path fill="#12805a" fill-rule="evenodd" d="M3.5 4 H20.5 a1.1 1.1 0 0 1 0 2.2 H3.5 a1.1 1.1 0 0 1 0 -2.2 Z M4.5 8.4 H19.5 a2.5 2.5 0 0 1 2.5 2.5 V17 a2.5 2.5 0 0 1 -2.5 2.5 H4.5 a2.5 2.5 0 0 1 -2.5 -2.5 V10.9 a2.5 2.5 0 0 1 2.5 -2.5 Z M8.5 11.9 a2 2 0 1 0 0 4 a2 2 0 1 0 0 -4 Z M15.5 11.9 a2 2 0 1 0 0 4 a2 2 0 1 0 0 -4 Z"/>
 </svg>
