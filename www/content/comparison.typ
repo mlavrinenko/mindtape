@@ -174,12 +174,17 @@ matrix scrolls sideways on narrow screens.
 
 = The closest cousin
 
+// Never write a semicolon directly after a Typst code expression (`#strong[…];`,
+// `#link(…)[…];`, `#value;`): Typst's markup grammar consumes it as an
+// expression terminator and it never reaches the output, silently turning the
+// sentence into a run-on. A semicolon after plain text or after a literal `)`
+// is fine. Reword instead, as below.
 dstask shares the most DNA: one file per task, git as the store, a single-binary
 CLI. The differences are the trade. A MindTape task is #strong[typed Typst
-validated by project config]; a dstask task is a YAML record with a light fixed
+validated by project config]. A dstask task is a YAML record with a light fixed
 schema. MindTape tasks live #strong[in your code tree], reviewed in the same PR;
 dstask keeps them in its own git repo it auto-commits for you. MindTape
-#link(u("/priority/"))[scores priority frameworks]; dstask ranks `P0`–`P3`. The
+#link(u("/priority/"))[scores priority frameworks], while dstask ranks `P0`–`P3`. The
 cost of all that structure is a Typst toolchain versus a single static binary —
 and dstask, being released and mature, is simpler to install today.
 
