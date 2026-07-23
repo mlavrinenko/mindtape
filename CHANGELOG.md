@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Preset `[overlay]`** — a preset for `mt init` may carry a top-level
+  `[overlay]` table holding raw config the wizard's axes cannot express (custom
+  link kinds, named views, body-header rules). `mt init` deep-merges it over the
+  composed base last, so it beats every axis fragment, then flattens the result
+  to one `.mindtape/config.toml` — the loader never sees a literal `[overlay]`.
+  A preset whose whole body is under `[overlay]` composes to exactly that
+  overlay. Composition now also hard-errors when two non-overlay fragments each
+  declare the same array-typed section (status legend, priority bands, difficulty
+  anchors, roots), naming both sources instead of silently letting one win.
 - **`mt preset save <name>` / `mt preset ls`** — capture the current project's
   `.mindtape/config.toml` and `templates/` as a reusable user preset under
   `~/.config/mindtape/presets/<name>` (one directory per preset, so a broken one

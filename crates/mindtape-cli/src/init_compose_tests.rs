@@ -58,3 +58,163 @@ fn disjoint_subtables_of_one_parent_compose() {
     let table: toml::Table = toml::from_str(&out).unwrap();
     assert!(table.contains_key("tasks"));
 }
+
+/// Look up a dotted path in a parsed TOML value, returning the leaf value.
+fn dig<'a>(value: &'a toml::Value, path: &str) -> Option<&'a toml::Value> {
+    let mut cursor = value;
+    for key in path.split('.') {
+        cursor = cursor.get(key)?;
+    }
+    Some(cursor)
+}
+
+/// An `overlay` fragment merges last and beats every ordinary fragment: it
+/// overrides a scalar the base set and adds a section the axes never touched,
+/// and the flattened output carries no literal `[overlay]`.
+#[test]
+fn overlay_lands_last_and_beats_the_base() {
+    let fragments = vec![
+        ("recurrence", "[tasks.recur]\nrrule = false\n".to_owned()),
+        (
+            "overlay",
+            "[tasks.recur]\nrrule = true\n[[tasks.links.kinds]]\nkind = \"spike\"\n".to_owned(),
+        ),
+    ];
+    let out = compose(&fragments).unwrap();
+    assert!(!out.contains("[overlay]"), "{out}");
+    let table: toml::Value = toml::from_str(&out).unwrap();
+    let recur = dig(&table, "tasks.recur.rrule").unwrap().as_bool().unwrap();
+    assert!(recur, "overlay must win the scalar: {out}");
+    // The overlay's own section survives the flatten.
+    assert!(dig(&table, "tasks.links.kinds").is_some(), "{out}");
+}
+
+/// The overlay merges the base table key-by-key (a scalar it does not mention is
+/// kept) while replacing an array wholesale — the reference deep-merge.
+#[test]
+fn overlay_merges_tables_and_replaces_arrays() {
+    let fragments = vec![
+        (
+            "priority",
+            "[tasks.priority]\nframework = \"ice\"\nbands = [\"low\", \"high\"]\n".to_owned(),
+        ),
+        (
+            "overlay",
+            "[tasks.priority]\nbands = [\"only\"]\n".to_owned(),
+        ),
+    ];
+    let out = compose(&fragments).unwrap();
+    let table: toml::Value = toml::from_str(&out).unwrap();
+    // The untouched scalar key stays.
+    assert_eq!(
+        dig(&table, "tasks.priority.framework").unwrap().as_str(),
+        Some("ice"),
+        "{out}"
+    );
+    // The array is replaced wholesale, not appended.
+    let bands = dig(&table, "tasks.priority.bands")
+        .unwrap()
+        .as_array()
+        .unwrap();
+    assert_eq!(bands.len(), 1, "{out}");
+    assert_eq!(bands.first().unwrap().as_str(), Some("only"), "{out}");
+}
+
+/// The overlay is exempt from the array-conflict rule: it may redeclare an array
+/// an ordinary fragment already owns, precisely to override it.
+#[test]
+fn overlay_may_redeclare_an_array_the_base_owns() {
+    let fragments = vec![
+        (
+            "workflow",
+            "[[tasks.status]]\nvalue = \"todo\"\n".to_owned(),
+        ),
+        ("overlay", "[[tasks.status]]\nvalue = \"open\"\n".to_owned()),
+    ];
+    let out = compose(&fragments).unwrap();
+    let table: toml::Value = toml::from_str(&out).unwrap();
+    let status = dig(&table, "tasks.status").unwrap().as_array().unwrap();
+    assert_eq!(status.len(), 1, "overlay replaces the legend: {out}");
+    assert_eq!(
+        status.first().unwrap().get("value").unwrap().as_str(),
+        Some("open"),
+        "{out}"
+    );
+}
+
+/// A fragment that is only an overlay composes to just the overlay — the
+/// preset-with-only-an-overlay case, where the base is empty.
+#[test]
+fn overlay_only_composes_to_the_overlay() {
+    let fragments = vec![(
+        "overlay",
+        "[tasks]\nroots = [\"tasks\"]\n[views.mine]\nfilter = \"!terminal\"\n".to_owned(),
+    )];
+    let out = compose(&fragments).unwrap();
+    let table: toml::Value = toml::from_str(&out).unwrap();
+    assert_eq!(
+        dig(&table, "tasks.roots")
+            .unwrap()
+            .as_array()
+            .unwrap()
+            .len(),
+        1,
+        "{out}"
+    );
+    assert!(dig(&table, "views.mine").is_some(), "{out}");
+}
+
+/// Two ordinary fragments that each declare the `status` legend hard-error, and
+/// the message names both fragments and the section — never last-wins.
+#[test]
+fn two_status_fragments_error_naming_both() {
+    let fragments = vec![
+        (
+            "workflow",
+            "[[tasks.status]]\nvalue = \"todo\"\n".to_owned(),
+        ),
+        (
+            "imported",
+            "[[tasks.status]]\nvalue = \"open\"\n".to_owned(),
+        ),
+    ];
+    let err = compose(&fragments).unwrap_err().to_string();
+    assert!(err.contains("workflow"), "{err}");
+    assert!(err.contains("imported"), "{err}");
+    assert!(err.contains("tasks.status"), "{err}");
+}
+
+/// The array-conflict rule reaches a nested array too: priority bands declared
+/// by two fragments collide and name the nested path.
+#[test]
+fn two_priority_bands_fragments_error() {
+    let fragments = vec![
+        ("a", "[tasks.priority]\nbands = [\"low\"]\n".to_owned()),
+        ("b", "[tasks.priority]\nbands = [\"high\"]\n".to_owned()),
+    ];
+    let err = compose(&fragments).unwrap_err().to_string();
+    assert!(err.contains("tasks.priority.bands"), "{err}");
+}
+
+/// Two fragments declaring different array sections compose cleanly — the rule
+/// fires on a shared array, not on arrays in general.
+#[test]
+fn different_array_sections_compose() {
+    let fragments = vec![
+        (
+            "workflow",
+            "[[tasks.status]]\nvalue = \"todo\"\n".to_owned(),
+        ),
+        (
+            "priority",
+            "[tasks.priority]\nbands = [\"low\"]\n".to_owned(),
+        ),
+        (
+            "organisation",
+            "[[tasks.roots]]\npath = \"tasks\"\n".to_owned(),
+        ),
+    ];
+    let out = compose(&fragments).unwrap();
+    let table: toml::Table = toml::from_str(&out).unwrap();
+    assert!(table.contains_key("tasks"));
+}

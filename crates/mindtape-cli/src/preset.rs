@@ -80,6 +80,34 @@ impl Preset {
     }
 }
 
+/// Split a preset config into its base and its `[overlay]` fragment, if any.
+///
+/// A preset may carry a top-level `[overlay]` table: raw config the init axes
+/// cannot express (custom link kinds, named views, body-header rules). It is an
+/// init-time-only concept — [`crate::init_compose::compose`] deep-merges it over
+/// the composed base last, and the flattened result the loader reads never
+/// carries a literal `[overlay]`. Returns `Some((base, overlay))` — the config
+/// without `[overlay]`, and the overlay's inner contents promoted to top level,
+/// each a standalone TOML document — when the preset declares one; else `None`,
+/// so an ordinary preset keeps its verbatim/comment-stripped rendering.
+///
+/// # Errors
+/// Returns an error when the config is not valid TOML, when `[overlay]` is
+/// present but is not a table, or when either half cannot be re-serialised.
+pub fn split_overlay(config: &str) -> Result<Option<(String, String)>> {
+    let mut base: toml::Table =
+        toml::from_str(config).context("parse preset config for an [overlay]")?;
+    let Some(value) = base.remove("overlay") else {
+        return Ok(None);
+    };
+    let toml::Value::Table(overlay) = value else {
+        bail!("preset [overlay] must be a table");
+    };
+    let base = toml::to_string(&base).context("serialise the preset base")?;
+    let overlay = toml::to_string(&overlay).context("serialise the preset overlay")?;
+    Ok(Some((base, overlay)))
+}
+
 /// One line per built-in, for `--list-presets`.
 #[must_use]
 pub fn list_builtins() -> Vec<(&'static str, &'static str)> {

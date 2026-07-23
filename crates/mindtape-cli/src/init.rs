@@ -146,7 +146,7 @@ fn wizard_flags(args: &InitArgs) -> init_wizard::Flags {
 /// "other starter shapes" hint that only helps someone who did not pick one.
 fn write_preset(name: &str, args: &InitArgs, explicit: bool) -> Result<()> {
     let preset = preset::resolve(name, preset::user_preset_dir().as_deref())?;
-    let text = with_schema_directive(&preset.render(args.annotate), &args.schema)?;
+    let text = with_schema_directive(&render_preset(&preset, args.annotate)?, &args.schema)?;
     let root = Path::new(".");
     if !scaffold_config(root, args.force, &text)? {
         return Ok(());
@@ -157,6 +157,24 @@ fn write_preset(name: &str, args: &InitArgs, explicit: bool) -> Result<()> {
         println!("run `mt init --list-presets` to see the other starter shapes");
     }
     Ok(())
+}
+
+/// Render a preset's config body for writing.
+///
+/// An ordinary preset renders as before: annotated verbatim, or comment-stripped.
+/// A preset carrying a top-level `[overlay]` is composed instead — its base and
+/// overlay run through [`crate::init_compose::compose`], which deep-merges the
+/// overlay last and flattens the result to one file the loader can read (no
+/// literal `[overlay]` survives). That composed form is already comment-free, so
+/// `--annotate` has nothing left to keep.
+fn render_preset(preset: &Preset, annotate: bool) -> Result<String> {
+    match preset::split_overlay(&preset.config)? {
+        Some((base, overlay)) => crate::init_compose::compose(&[
+            ("preset", base),
+            (crate::init_compose::OVERLAY_AXIS, overlay),
+        ]),
+        None => Ok(preset.render(annotate)),
+    }
 }
 
 /// Walk the axes (or compose from flags when non-interactive), then scaffold the

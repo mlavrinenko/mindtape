@@ -535,6 +535,40 @@ checked-in config, or a path relative to the config file — and `--no-schema`
 (on `init` or `install`) opts out. The directive is a plain TOML comment, so
 `mt` itself ignores it.
 
+= Preset overlays
+
+A preset (`mt init --preset`) is composed at init time from the wizard's
+configuration axes. Whatever the axes cannot express — custom link kinds, named
+views, body-header rules — goes in a top-level `[overlay]` table the preset may
+carry:
+
+```toml
+[tasks]
+roots = ["tasks"]
+# ... axis-shaped sections ...
+
+[overlay.views.mine]
+filter = "!terminal"
+
+[[overlay.tasks.links.kinds]]
+kind = "spike"
+```
+
+`[overlay]` is an init-time-only concept: `mt init` deep-merges it over the
+composed base *last*, so it beats every axis fragment, then flattens the
+result to one `.mindtape/config.toml`. The loader never sees a literal
+`[overlay]` — the written file is an ordinary config, yours to edit. In the
+merge, tables merge key-by-key and a scalar or array replaces the base value
+wholesale, so the overlay always wins the key it names. A preset whose whole
+body is under `[overlay]` composes to exactly that overlay.
+
+Because arrays replace wholesale, two ordinary (non-overlay) fragments that each
+declare the same array-typed section — the status legend (`[[tasks.status]]`),
+priority `bands`, difficulty anchors, `[[tasks.roots]]` — are a hard error naming
+both sources: a silent pick is a status legend nobody chose. The fix is to pick
+one, or move the difference into `[overlay]`, which is exempt from the rule
+precisely because it exists to override.
+
 = Environment variables
 
 Besides `-w`/`--worktree` (or `$MINDTAPE_WORKTREE`, see #link(u("/agents/"))[For

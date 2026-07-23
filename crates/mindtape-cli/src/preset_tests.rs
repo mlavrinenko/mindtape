@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use super::{DEFAULT_PRESET, list_builtins, resolve, strip_comments};
+use super::{DEFAULT_PRESET, list_builtins, resolve, split_overlay, strip_comments};
 
 /// Write a nested user preset (`<dir>/<name>/config.toml`) and return its root.
 fn write_nested_preset(dir: &Path, name: &str, config: &str, templates: &[(&str, &str)]) {
@@ -204,4 +204,35 @@ fn strip_comments_drops_indented_comments() {
 fn strip_comments_is_idempotent() {
     let once = strip_comments("# c\n\n[tasks]\nroots = []\n");
     assert_eq!(strip_comments(&once), once);
+}
+
+/// A config with no `[overlay]` splits to `None`, so ordinary presets keep their
+/// verbatim rendering.
+#[test]
+fn split_overlay_absent_is_none() {
+    assert!(
+        split_overlay("[tasks]\nroots = [\"tasks\"]\n")
+            .unwrap()
+            .is_none()
+    );
+}
+
+/// A `[overlay]` splits into the base (without it) and the overlay's inner
+/// contents promoted to top level.
+#[test]
+fn split_overlay_extracts_base_and_promoted_overlay() {
+    let config = "[tasks]\nroots = [\"tasks\"]\n\n[overlay.views.mine]\nfilter = \"!terminal\"\n";
+    let (base, overlay) = split_overlay(config).unwrap().unwrap();
+    assert!(base.contains("roots"), "{base}");
+    assert!(!base.contains("overlay"), "{base}");
+    // The overlay's inner contents are promoted: a top-level [views.mine], not
+    // a nested [overlay.views.mine].
+    assert!(overlay.contains("[views.mine]"), "{overlay}");
+    assert!(!overlay.contains("overlay"), "{overlay}");
+}
+
+/// An `[overlay]` that is not a table is rejected.
+#[test]
+fn split_overlay_rejects_a_non_table_overlay() {
+    assert!(split_overlay("overlay = 7\n").is_err());
 }

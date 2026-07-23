@@ -315,6 +315,92 @@ fn gated_preset_gates_done_on_an_unfilled_task() {
     assert!(task.contains("forced past failing gate"), "{task}");
 }
 
+/// A todone-shaped base plus a top-level `[overlay]` the axes cannot express — a
+/// named view. The overlay merges last, so the flattened config carries `[views]`
+/// and no literal `[overlay]`.
+const OVERLAY_PRESET: &str = "\
+[tasks]
+roots = [\"tasks\"]
+
+[[tasks.status]]
+value = \"todo\"
+glyph = \"○\"
+color = \"blue\"
+
+[[tasks.status]]
+value = \"done\"
+glyph = \"●\"
+color = \"green\"
+terminal = true
+
+[tasks.priority]
+bands = []
+
+[overlay.views.mine]
+filter = \"!terminal\"
+";
+
+/// A preset whose entire body sits under `[overlay]`: the base is empty, so the
+/// composition is exactly the overlay — the preset-with-only-an-overlay case.
+const OVERLAY_ONLY_PRESET: &str = "\
+[overlay.tasks]
+roots = [\"tasks\"]
+
+[[overlay.tasks.status]]
+value = \"todo\"
+glyph = \"○\"
+color = \"blue\"
+
+[[overlay.tasks.status]]
+value = \"done\"
+glyph = \"●\"
+color = \"green\"
+terminal = true
+";
+
+/// Scaffold from a path preset written to `<dir>/preset.toml`, returning the dir.
+fn init_from_preset_file(body: &str) -> tempfile::TempDir {
+    let dir = tempfile::tempdir().unwrap();
+    support::install_lib(dir.path());
+    std::fs::write(dir.path().join("preset.toml"), body).unwrap();
+    mt(dir.path(), &["init", "--preset", "preset.toml"]);
+    dir
+}
+
+/// A preset carrying a top-level `[overlay]` composes: the overlay merges last
+/// over the base, the written config is flattened (no literal `[overlay]`) and
+/// carries the overlay's own section, and it supports the add / ls / check cycle.
+#[test]
+fn preset_overlay_composes_a_flattened_valid_config() {
+    let dir = init_from_preset_file(OVERLAY_PRESET);
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    assert!(!config.contains("[overlay]"), "{config}");
+    assert!(!config.contains("[overlay."), "{config}");
+    assert!(
+        config.contains("[views.mine]"),
+        "overlay section flattened in: {config}"
+    );
+    assert!(config.contains("[[tasks.status]]"), "{config}");
+
+    add_then_ls_and_check(dir.path(), "wire-overlay", &[]);
+    mt(dir.path(), &["flip", "done", "wire-overlay"]);
+    mt(dir.path(), &["check"]);
+}
+
+/// A preset whose whole body is under `[overlay]` composes to just that overlay:
+/// the base is empty, and the result is a valid config that supports the cycle.
+#[test]
+fn overlay_only_preset_composes_to_the_overlay() {
+    let dir = init_from_preset_file(OVERLAY_ONLY_PRESET);
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    assert!(!config.contains("overlay"), "{config}");
+    assert!(config.contains("[[tasks.status]]"), "{config}");
+
+    add_then_ls_and_check(dir.path(), "wire-overlay-only", &[]);
+    mt(dir.path(), &["flip", "done", "wire-overlay-only"]);
+    mt(dir.path(), &["check"]);
+}
+
 /// An unknown preset name fails and lists what exists, rather than reaching for
 /// a path or the network.
 #[test]
