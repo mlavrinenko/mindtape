@@ -141,6 +141,31 @@ fn scaffold_prefills_from_seed() {
 }
 
 #[test]
+fn scaffold_renders_empty_list_default_as_bracket_pair() {
+    // TEMPLATE's tags slot has `default: ()` — an empty list. It should surface
+    // as an explicit empty flow sequence, not a blank scalar.
+    let buffer = scaffold(&AddConfig::default(), &specs(), &BTreeMap::new());
+    assert!(buffer.contains("tags: []"), "{buffer}");
+    // Left untouched, it parses back to an empty list (not dropped as null).
+    let values = parse_buffer(&buffer).unwrap();
+    assert_eq!(values["tags"], RawValue::List(Vec::new()));
+}
+
+#[test]
+fn scaffold_leaves_non_empty_list_default_blank() {
+    // A non-empty list default stays blank so an untouched slot falls through to
+    // the default rather than being overwritten with an empty `[]`.
+    let specs = discover_slots(
+        "#show: task.with(tags: slot(\"tags\", kind: \"list\", default: (\"backend\",)))",
+    );
+    let buffer = scaffold(&AddConfig::default(), &specs, &BTreeMap::new());
+    assert!(buffer.ends_with("tags: "), "left blank: {buffer:?}");
+    assert!(!buffer.contains("tags: []"), "not bracketed: {buffer}");
+    // The default is advertised in the comment.
+    assert!(buffer.contains("# default:"), "{buffer}");
+}
+
+#[test]
 fn parse_back_yields_typed_values() {
     let buffer = "\
 title: \"Fix the parser\"

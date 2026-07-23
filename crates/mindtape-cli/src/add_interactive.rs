@@ -255,7 +255,9 @@ fn seed_entry(kind: SlotKind, raw: &RawValue) -> Entry {
 
 /// Pre-fill from a non-`text` slot's default. String/choice defaults come from
 /// the unescaped `default_string`; numeric and bool defaults pass through the raw
-/// literal; lists and dates are left blank (the comment shows the default).
+/// literal; an empty/absent list default renders as an explicit `[]` so the list
+/// kind is visible; a dated default and a non-empty list default are left blank
+/// (the comment shows the default).
 fn default_entry(spec: &SlotSpec) -> Option<Entry> {
     if let Some(text) = &spec.default_string {
         return Some(Entry::Scalar(quote(text)));
@@ -264,7 +266,18 @@ fn default_entry(spec: &SlotSpec) -> Option<Entry> {
         SlotKind::Int | SlotKind::Float | SlotKind::Real | SlotKind::Bool => {
             spec.default.clone().map(Entry::Scalar)
         }
+        SlotKind::List if is_empty_list_default(spec) => Some(Entry::List(Vec::new())),
         _ => None,
+    }
+}
+
+/// A list slot whose default is empty (`()`) or absent — so an empty `[]` in the
+/// scaffold matches its default and leaving it untouched changes nothing. A
+/// non-empty list default stays blank so an untouched slot falls through to it.
+fn is_empty_list_default(spec: &SlotSpec) -> bool {
+    match &spec.default {
+        None => true,
+        Some(source) => source.trim() == "()",
     }
 }
 
@@ -280,6 +293,10 @@ fn push_block(out: &mut String, name: &str, body: &str) {
 }
 
 fn push_list(out: &mut String, name: &str, items: &[String]) {
+    if items.is_empty() {
+        out.push_str(&format!("{name}: []\n"));
+        return;
+    }
     out.push_str(&format!("{name}:\n"));
     for item in items {
         out.push_str(&format!("  - {}\n", quote(item)));
