@@ -12,11 +12,11 @@ groups:
       crates/mindtape/src/lib.rs: a00449bd3c866bd300a62f765f83c1e36e7047fb6620859c34544f435f692dc6
     dependents:
       skills/mindtape/SKILL.md: 93274445f8cdb738e46d62cdbac861fe0ba0132c453291886389e5a64166b075
-      www/content/cli.typ: 9daf83547fd277cbbb01dc26e4f3e4a9d1ad713832a141c7e935f240ebe93873
-      www/content/config.typ: 87731c66d7cda9d5b0d32ebbf67c3f14ac38f8f0cff53530833a9ff13f2bfd0d
-      www/content/filters.typ: 0756642c6fcf1a997f3cb7386bb4a3ca6eb766e003bcc5465c1ae69fcc89eb92
-      www/content/quickstart.typ: e7a7705732762d97cad2d0ac581253a30e13089b00558ce91585df938f269923
-      www/utils/cli-notes.typ: 4e55b2ab311f489d466413989e3d27ca7f80ca633e12c142f7d8f52cdfdaf483
+      www/content/cli.typ: cc6c9eb2adb23fca22798591fb566d6f9764cb77b232a057cb61c982e6cb9e6d
+      www/content/config.typ: 1266c6b55b5adbf3ea24cac459a249f6d56a2f8baba831e17045337d3b013b97
+      www/content/filters.typ: 83bdd938f8d34d7f9b2bfbe32a176cc255535f4afd4758c6aa2f56613ca1c07a
+      www/content/quickstart.typ: 8cde4f338c19d8f2dba2d802b8f94fc9aae84877fee3b700c79fd1734ef04c07
+      www/utils/cli-notes.typ: edcfe87c5ea74fc97ba0be06da372955478b15756ed011f2fbeba711ed9bb7fd
   cli-name:
     source:
       crates/mindtape-cli/Cargo.toml: 5bcbe4377a1394cb2c09c21298297cdff11eed1bee7e970164440b14010be72a
@@ -24,27 +24,27 @@ groups:
     dependents:
       AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
       CHANGELOG.md: 356fc865d9a16598bf7d6ce2fb6db246d3f6bc7de3f9c3825ebb72074f306d6a
-      CONTRIBUTING.md: f0d73d6f092da0f153217a3c6079c29904646266530655f1f451d28c5a2e51fc
+      CONTRIBUTING.md: 49d01285dde8c33332bffbc0b7ce7d21df10379c18f4543d50ff017754eb4fda
       README.md: fd88c379fc4a426c6ec92300e816592cec9e7e6f0035b37bc6d7b323fa919557
       skills/mindtape/SKILL.md: 93274445f8cdb738e46d62cdbac861fe0ba0132c453291886389e5a64166b075
-      www/content/cli.typ: 9daf83547fd277cbbb01dc26e4f3e4a9d1ad713832a141c7e935f240ebe93873
-      www/content/index.typ: 46d74bcc72c78a177366ec62a5979c9b2f8fc29c454367da9a4b34d6535bae0e
-      www/content/quickstart.typ: e7a7705732762d97cad2d0ac581253a30e13089b00558ce91585df938f269923
+      www/content/cli.typ: cc6c9eb2adb23fca22798591fb566d6f9764cb77b232a057cb61c982e6cb9e6d
+      www/content/index.typ: 637bb5ff74599f1dac969418ddc61f90736a6a448df5182a155f19634b92b881
+      www/content/quickstart.typ: 8cde4f338c19d8f2dba2d802b8f94fc9aae84877fee3b700c79fd1734ef04c07
   dev-docs:
     source:
-      Justfile: f8a4a5800686b253dbae611345f7e2ae877f1a0da19fa156b2d27516d886f239
-      flake.nix: 57e18a75ef4a4c4aab5e7d6bd22a5b613c5032767877b36225ce745d0ceffc20
+      Justfile: 3e875ef09ce23c2b8364bed64b95ac7c663416c76f62189ac0749e0cb0b8e758
+      flake.nix: 7ff69227b29c9493f9fcc985af8e265d75fe726112fc6208ac4482d0210ae8f2
     dependents:
       AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
-      CONTRIBUTING.md: f0d73d6f092da0f153217a3c6079c29904646266530655f1f451d28c5a2e51fc
+      CONTRIBUTING.md: 49d01285dde8c33332bffbc0b7ce7d21df10379c18f4543d50ff017754eb4fda
   prelude-docs:
     source:
-      lib/prelude.typ: b569239a93e4e3527ab20e0801d294217e2492458ba231dae0f1927885324c5b
+      lib/prelude.typ: 5077df1584c595b80525d691dbfc6538ce6adf3e8c94fbe01aa478bbbca0e45b
     dependents:
       AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
       README.md: fd88c379fc4a426c6ec92300e816592cec9e7e6f0035b37bc6d7b323fa919557
       skills/mindtape/SKILL.md: 93274445f8cdb738e46d62cdbac861fe0ba0132c453291886389e5a64166b075
-      www/content/dsl.typ: 4ab63a2f231c5c578731a5d96b84f1ed3356d8b798c33ae8d1a41de6337fef06
+      www/content/dsl.typ: 31f848445c443565f9b494c8990b983833c39337b97bccdc667671ada2f9bbcd
   release-notes:
     source:
       Cargo.toml: 09d8ee5c1cc971e967e96e313c256abf7ef51093c1cbd06fbdf1c97fef7d457e
@@ -59,17 +59,17 @@ groups:
       crates/mindtape-cli/src/init.rs: 07d3d59ef22cd329571059e0eb8aa849b5adef98189a6c66b3b416527ddcf878
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898
       examples/learn-piano/.mindtape/templates/task.typ: 4ad252834d7839c4281199e23b3feb0b958d7e60190d7e0a5d58bcfd57fa9f19
-      examples/learn-piano/tasks/repertoire/abandoned-rondo-alla-turca.typ: bfd6f7c36788072c03386e3fe94fc3782210c88b7f7466754c3ef785a0b60c00
-      examples/learn-piano/tasks/repertoire/clair-de-lune-practice.typ: 47d866ce3b96d642faa1d73a0df38ad3bccfcb45c2378e6285fc4f34e234f93d
+      examples/learn-piano/tasks/repertoire/abandoned-rondo-alla-turca.typ: 240c47c55cb8bd0354146c6342959d5961c19b92f5210f0a9c48440463d1707b
+      examples/learn-piano/tasks/repertoire/clair-de-lune-practice.typ: 139a4952c08ac5fa81a061de2bbaa7c06de838aeead65d7f77bb1728b6c3c997
       examples/learn-piano/tasks/repertoire/fur-elise-polish.typ: ddf5b677a91a14fcbe42946c0a67ae8e34e04f790a626a4d1dcbcf0cc16ec415
       examples/learn-piano/tasks/repertoire/jazz-standard-autumn-leaves.typ: a28d1413ecd4b12f3106eb0f86c0d06622918a58d99fa7a6112b22ce2e712049
       examples/learn-piano/tasks/technique/arpeggios-all-inversions.typ: 49dac152242cb9c58f46340caf1a0dd31a512daebbc17863ff0d4c4f7c908c59
       examples/learn-piano/tasks/technique/hanon-warmup-daily.typ: 9939c7838f96dab6bd09d4c504db66f90b39a5c47f34d5484b78e4b291de7ff6
       examples/learn-piano/tasks/technique/major-scales-two-octaves.typ: 2a92157aeb5ef5a9e9b8c5d4753eaf84177d86ad0f1db5d4a5c2c0ddaa6f5436
-      examples/learn-piano/tasks/technique/minor-scales-two-octaves.typ: e859b6f26032f5cd05dfec82fa751cbac8bf89a8a3fd3a8e2f57a58d15fb4c7e
+      examples/learn-piano/tasks/technique/minor-scales-two-octaves.typ: e158ece0e3ff83760c0abfee39b4e5f745992f7d89150824e49ef3be619cd4c8
       examples/learn-piano/tasks/technique/sight-reading-grade-3.typ: 2953e70d3cabd5bce44d4081d7456b4aa2dda0b26a6b9842dd615f556e319e41
-      examples/learn-piano/tasks/theory/chord-progression-analysis.typ: d093369345ffd712af47776fd29e78548dc446916c6c3de645fa788b91e6d791
+      examples/learn-piano/tasks/theory/chord-progression-analysis.typ: db5391ebc3ea8a5f8b8a453031ba75200154036574655e1626497e1a5579a4d3
       examples/learn-piano/tasks/theory/circle-of-fifths-drill.typ: d973b37bc835cec282b9e1cd97c3096a599af7facfb86755ca032b060c47216f
-      examples/learn-piano/tasks/theory/interval-recognition-ear-training.typ: 01d3e82d07e4f2bd01bf05ddb877c7090e070e3e77d78b7ba9e2f4d863ca5912
-      examples/learn-piano/tasks/theory/sight-singing-solfege.typ: 00dd76872d47fbf308af4858ced66c978e27cee0ec57d36f1c6cf6f08a3f943e
+      examples/learn-piano/tasks/theory/interval-recognition-ear-training.typ: c1ffe175961bf20b00b2ed8c5b8e7aba44126e8d5265d9124289b77e3a1a3f7b
+      examples/learn-piano/tasks/theory/sight-singing-solfege.typ: e16ade5ad5a65d203556a6bce5f1a9808ee1c4fb15fae8afaeaa67250e7337cf
       www/utils/site.typ: a29a804a7873726fe2abad3b4064649a3c138dfd8b3ed54ff3e65ecf9b3b6e60

@@ -18,7 +18,8 @@ check:
         "chronic just check-dry" \
         "chronic just outdatty-check" \
         "chronic just check-examples" \
-        "chronic just docs-check"
+        "chronic just docs-check" \
+        "chronic just fmt-fixture-check"
 
 # Validate the learn-piano example project (examples/learn-piano/) against
 # itself, so the fixture the docs generator runs `mt` against can never rot.
@@ -157,10 +158,60 @@ mutants *ARGS:
 # Format code
 fmt:
     cargo fmt --all
+    tombi format \
+        .mindtape/config.toml \
+        examples/learn-piano/.mindtape/config.toml \
+        examples/large/.mindtape/config.toml
+    typstyle --inplace \
+        lib \
+        truth/tasks \
+        examples/learn-piano/tasks \
+        examples/learn-piano/.mindtape/templates \
+        www/content \
+        www/templates \
+        www/utils
 
 # Format check (CI-friendly)
 fmt-check:
     cargo fmt --all -- --check
+    tombi format --check \
+        .mindtape/config.toml \
+        examples/learn-piano/.mindtape/config.toml \
+        examples/large/.mindtape/config.toml
+    typstyle --check \
+        lib \
+        truth/tasks \
+        examples/learn-piano/tasks \
+        examples/learn-piano/.mindtape/templates \
+        www/content \
+        www/templates \
+        www/utils
+
+# Lock the formatter gates: synthesize a deliberately-mis-formatted TOML and
+# Typst fixture in a temp dir, then assert `tombi format --check` and
+# `typstyle --check` both fail. The fmt recipe is what `just fmt`/`fmt-check`
+# apply to the tracked config + docs tree, so the same formatters must
+# reject the mis-formatted fixture (and accept a re-formatted one). A
+# formatter that silently accepts drift would let `just fmt-check` pass on
+# an out-of-sync editor save — exactly the bug this task is fixing.
+fmt-fixture-check:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    bad_toml="$tmp/bad.toml"
+    bad_typ="$tmp/bad.typ"
+    printf '[a]\nb=1\nc  =   2\n' > "$bad_toml"
+    printf '#let   x   =   1\n#let y=2\n' > "$bad_typ"
+    if tombi format --check --offline "$bad_toml" >/dev/null 2>&1; then
+        echo "fmt-fixture-check: tombi accepted the mis-formatted TOML — gate is broken" >&2
+        exit 1
+    fi
+    if typstyle --check "$bad_typ" >/dev/null 2>&1; then
+        echo "fmt-fixture-check: typstyle accepted the mis-formatted Typst — gate is broken" >&2
+        exit 1
+    fi
+    echo "fmt-fixture-check: both formatters reject drift"
 
 # Check for unused dependencies
 machete:

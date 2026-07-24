@@ -75,7 +75,7 @@ with violations. Key restrictions:
 
 | Gate | Tool |
 |------|------|
-| Format | `cargo fmt --check` |
+| Format | `just fmt-check` — `cargo fmt` over Rust, `tombi format` over the project config TOML (`.mindtape/config.toml` and the per-example configs), and `typstyle` over the Typst sources (`lib/`, `truth/tasks/`, the learn-piano example, and `www/`) |
 | Lints | `cargo clippy --all-targets -D warnings` |
 | Tests | `cargo test --workspace` |
 | Unused deps | `cargo machete` |

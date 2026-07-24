@@ -97,6 +97,12 @@
               nixd
               pagefind
               rust-analyzer
+              # `tombi` and `typstyle` are the project formatters: Tombi is
+              # the canonical TOML formatter (Tombi 0.9+ ships `format` /
+              # `format --check` / `lint`); typstyle is the Typst formatter
+              # `just fmt` runs after `cargo fmt`. Both stay on the project
+              # PATH so editor-on-save and `just fmt-check` are byte-identical.
+              tombi
               typst
               typstyle
               util-linux
