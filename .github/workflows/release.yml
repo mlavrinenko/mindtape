@@ -69,8 +69,25 @@ jobs:
           echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> "$GITHUB_ENV"
       - name: Build release binary
         run: cargo build --release --target ${{ matrix.target }} -p mindtape-cli
-      - name: Rename binary
-        run: cp target/${{ matrix.target }}/release/mindtape mindtape-${{ matrix.target }}
+      # Derive the binary name from the manifest instead of hardcoding it. The
+      # package is `mindtape-cli` but its [[bin]] is `mt`, and hardcoding the
+      # package name here meant this step copied a file that never existed, so
+      # every target failed and a tagged release attached no binaries at all.
+      # Reading it from cargo metadata keeps the artifact correct if the binary
+      # is ever renamed. The downloaded file stays `mindtape-<triple>`.
+      - name: Stage binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          bin="$(cargo metadata --format-version 1 --no-deps \
+            | jq -r '.packages[]
+                     | select(.name == "mindtape-cli")
+                     | .targets[]
+                     | select(.kind[] == "bin")
+                     | .name' \
+            | head -1)"
+          test -n "$bin" || { echo "could not resolve the mindtape-cli binary name" >&2; exit 1; }
+          cp "target/${{ matrix.target }}/release/$bin" "mindtape-${{ matrix.target }}"
       - uses: actions/upload-artifact@v4
         with:
           name: mindtape-${{ matrix.target }}
