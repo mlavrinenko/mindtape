@@ -2103,11 +2103,11 @@
         "qahq": "qahq"
       },
       "locked": {
-        "lastModified": 1784328960,
-        "narHash": "sha256-UzIhUOTazMBLQgZp05ci9X2pYbDYLGnSUcbKacvvvmg=",
+        "lastModified": 1784888223,
+        "narHash": "sha256-rIkSJdqnVK2WjFiCJnDfgc1+dGirVEa+qIghaFyZELs=",
         "owner": "mlavrinenko",
         "repo": "mmz",
-        "rev": "2c3cea9290a503d4965e75f0ab3cbd11cc8635c0",
+        "rev": "7253e16a62b4fd7d2392b2de0d3b69ba6d9f2de5",
         "type": "github"
       },
       "original": {

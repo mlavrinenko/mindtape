@@ -6,8 +6,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # Memoized command runner. `mt flip` into a terminal status gates on
-    # `mmz --is-fresh -- just check`, which asserts the gate already passed
-    # against this worktree instead of running it again.
+    # `mmz --is-fresh --tag gate`, which asserts every gate-tagged rule in
+    # .mmz/config.yaml already passed against this worktree instead of
+    # running any of them again.
     mmz.url = "github:mlavrinenko/mmz";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     qahq.url = "github:mlavrinenko/qahq";
