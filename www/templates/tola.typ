@@ -135,8 +135,13 @@
   if type(s) == datetime { return s }
   let s = str(s).split("T").at(0)
   let parts = s.split("-")
-  assert(parts.len() == 3, message: "Invalid date format: '" + s + "', expected YYYY-MM-DD")
-  datetime(year: int(parts.at(0)), month: int(parts.at(1)), day: int(parts.at(2)))
+  assert(
+    parts.len() == 3,
+    message: "Invalid date format: '" + s + "', expected YYYY-MM-DD",
+  )
+  datetime(year: int(parts.at(0)), month: int(parts.at(1)), day: int(
+    parts.at(2),
+  ))
 }
 
 // ============================================================================

@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, terminal-ansi, callout
-#import "../utils/site.typ": u, REPO
+#import "../utils/ui.typ": callout, terminal, terminal-ansi
+#import "../utils/site.typ": REPO, u
 
 #show: page.with(
   title: "Quickstart",
@@ -20,12 +20,15 @@ From nothing to a validated task in a few commands.
 #if cli-crates.len() != 1 {
   panic(
     "quickstart: release-targets.json must name exactly one published crate "
-      + "with a [[bin]] (the CLI); found " + str(cli-crates.len()),
+      + "with a [[bin]] (the CLI); found "
+      + str(cli-crates.len()),
   )
 }
 #let cli-crate = cli-crates.at(0).crate
 #let targets = release.targets
-#let artifact-for(target) = release.at("artifact-name-template").replace("${{ matrix.target }}", target)
+#let artifact-for(target) = (
+  release.at("artifact-name-template").replace("${{ matrix.target }}", target)
+)
 
 Run it straight from the flake:
 
@@ -39,7 +42,7 @@ Install the published CLI crate from crates.io:
 
 Every tagged release (`.github/workflows/release.yml`) also builds a binary
 for #targets.len() platforms, attached to the #link(REPO + "/releases")[Releases
-page] — download whichever matches yours:
+  page] — download whichever matches yours:
 
 #list(..targets.map(t => raw(artifact-for(t))))
 
@@ -139,7 +142,7 @@ the file:
 #terminal(read("../generated/done.txt"))
 
 `mt done x` is shorthand for `mt flip done x`. See #link(u("/cli/"))[the CLI
-reference] for the full command set.
+  reference] for the full command set.
 
 = Validate
 

@@ -10,7 +10,11 @@
   tags: ("classical",),
   links: depends-on("../technique/minor-scales-two-octaves.typ"),
   due: on(2026, 8, 1),
-  status: blocked(2025, 11, 10)[waiting on left-hand arpeggio control from minor scales],
+  status: blocked(
+    2025,
+    11,
+    10,
+  )[waiting on left-hand arpeggio control from minor scales],
 )
 
 == Notes

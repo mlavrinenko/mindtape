@@ -8,7 +8,11 @@
     ease: 5,
   ),
   tags: ("ear-training",),
-  status: failed(2026, 6, 30)[couldn't hold pitch a cappella; retry with a tutor],
+  status: failed(
+    2026,
+    6,
+    30,
+  )[couldn't hold pitch a cappella; retry with a tutor],
 )
 
 == Notes

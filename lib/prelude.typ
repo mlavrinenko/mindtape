@@ -20,7 +20,9 @@
   note: note,
 )
 // The optional note rides in as a trailing content block: `done(y, m, d)[note]`.
-#let _mk(name) = (y, m, d, ..note) => status(name, y, m, d, note: note.pos().at(0, default: none))
+#let _mk(name) = (y, m, d, ..note) => status(name, y, m, d, note: note
+  .pos()
+  .at(0, default: none))
 #let draft = _mk("draft")
 #let proposed = _mk("proposed")
 #let accepted = _mk("accepted")
@@ -43,16 +45,32 @@
 // the generic escape hatch; the named helpers fix one built-in's input shape.
 #let framework(name, ..inputs) = (framework: name, inputs: inputs.named())
 #let ice(impact: none, confidence: none, ease: none) = framework(
-  "ice", impact: impact, confidence: confidence, ease: ease,
+  "ice",
+  impact: impact,
+  confidence: confidence,
+  ease: ease,
 )
-#let rice(reach: none, impact: none, confidence: none, effort: none) = framework(
-  "rice", reach: reach, impact: impact, confidence: confidence, effort: effort,
+#let rice(
+  reach: none,
+  impact: none,
+  confidence: none,
+  effort: none,
+) = framework(
+  "rice",
+  reach: reach,
+  impact: impact,
+  confidence: confidence,
+  effort: effort,
 )
 #let wsjf(cost_of_delay: none, job_size: none) = framework(
-  "wsjf", cost_of_delay: cost_of_delay, job_size: job_size,
+  "wsjf",
+  cost_of_delay: cost_of_delay,
+  job_size: job_size,
 )
 #let eisenhower(urgent: false, important: false) = framework(
-  "eisenhower", urgent: urgent, important: important,
+  "eisenhower",
+  urgent: urgent,
+  important: important,
 )
 #let moscow(level) = framework("moscow", level: level)
 
@@ -100,12 +118,21 @@
 // `none` and the Rust layer resolves it from `[tasks.recur]`, validates the
 // rule, and computes the next date.
 #let every(
-  days: none, weeks: none, months: none, years: none,
+  days: none,
+  weeks: none,
+  months: none,
+  years: none,
   on: none,
-  anchor: none, until: none, count: none, materialize: none,
+  anchor: none,
+  until: none,
+  count: none,
+  materialize: none,
 ) = {
   let units = (
-    (days, "days"), (weeks, "weeks"), (months, "months"), (years, "years"),
+    (days, "days"),
+    (weeks, "weeks"),
+    (months, "months"),
+    (years, "years"),
   ).filter(u => u.at(0) != none)
   assert(
     units.len() == 1,
@@ -114,7 +141,10 @@
   let (value, unit) = units.at(0)
   (
     rule: (kind: "period", unit: unit, value: value, on: on),
-    anchor: anchor, until: until, count: count, materialize: materialize,
+    anchor: anchor,
+    until: until,
+    count: count,
+    materialize: materialize,
   )
 }
 
@@ -124,7 +154,10 @@
 // behind `[tasks.recur] rrule` rather than computing a next date from it.
 #let rrule(rule, anchor: none, until: none, count: none, materialize: none) = (
   rule: (kind: "rrule", raw: rule),
-  anchor: anchor, until: until, count: count, materialize: materialize,
+  anchor: anchor,
+  until: until,
+  count: count,
+  materialize: materialize,
 )
 
 // Template authoring helper. `mt add` discovers `slot(...)` calls on the
@@ -134,12 +167,30 @@
 // filled value ("string", "int", "float", "bool", "date", "list", "text",
 // "choice"); `prompt`/`required`/`choices` steer the fill UI. Args must be
 // literals — `add` reads them without evaluating the template.
-#let slot(name, default: none, kind: "string", prompt: none, required: true, choices: none) = default
+#let slot(
+  name,
+  default: none,
+  kind: "string",
+  prompt: none,
+  required: true,
+  choices: none,
+) = default
 
 // Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
 #let _core-slots = (
-  "title", "status", "priority", "difficulty", "kind", "estimate",
-  "links", "tags", "due", "start", "reviewed", "id", "recur",
+  "title",
+  "status",
+  "priority",
+  "difficulty",
+  "kind",
+  "estimate",
+  "links",
+  "tags",
+  "due",
+  "start",
+  "reviewed",
+  "id",
+  "recur",
 )
 
 // ── Typeset render ────────────────────────────────────────────────────────────
@@ -182,10 +233,14 @@
 )
 
 // Scalar → plain string (bools read as yes/no; numbers and strings pass through).
-#let _scalar(v) = if type(v) == bool { if v { "yes" } else { "no" } } else { str(v) }
+#let _scalar(v) = if type(v) == bool { if v { "yes" } else { "no" } } else {
+  str(v)
+}
 
 // A framework value is a `(framework, inputs)` dict; a raw priority is an int/float.
-#let _framework-name(v) = if type(v) == dictionary and "framework" in v { v.framework } else { none }
+#let _framework-name(v) = if type(v) == dictionary and "framework" in v {
+  v.framework
+} else { none }
 
 // Join a framework's inputs (`impact 6 · confidence 0.6 · ease 4`), skipping none.
 #let _fmt-inputs(inputs) = {
@@ -210,7 +265,9 @@
   let name = st.at("name", default: none)
   if name == none { return none }
   let date = st.at("date", default: none)
-  if type(date) == datetime { name + " · " + date.display("[year]-[month]-[day]") } else { name }
+  if type(date) == datetime {
+    name + " · " + date.display("[year]-[month]-[day]")
+  } else { name }
 }
 
 // Priority pill: the framework name (ICE) or the raw score (P8); the meta detail
@@ -218,10 +275,16 @@
 #let _priority-pill(v) = {
   if v == none { return none }
   let fw = _framework-name(v)
-  if fw != none { _pill(upper(fw), fg: rgb("#44506b"), bg: rgb("#eceff5")) } else if type(v) == int or type(v) == float { _pill("P" + str(v), fg: rgb("#44506b"), bg: rgb("#eceff5")) } else { none }
+  if fw != none {
+    _pill(upper(fw), fg: rgb("#44506b"), bg: rgb("#eceff5"))
+  } else if type(v) == int or type(v) == float {
+    _pill("P" + str(v), fg: rgb("#44506b"), bg: rgb("#eceff5"))
+  } else { none }
 }
 #let _priority-detail(v) = {
-  if _framework-name(v) != none { _fmt-inputs(v.at("inputs", default: (:))) } else { none }
+  if _framework-name(v) != none {
+    _fmt-inputs(v.at("inputs", default: (:)))
+  } else { none }
 }
 
 // A numeric field (difficulty) as text: `ice · impact 6 …` for a framework, the
@@ -244,7 +307,9 @@
   if type(est) != dictionary or est.len() == 0 { return none }
   let parts = ()
   for (unit, val) in est {
-    let u = if val == 1 and unit.ends-with("s") { unit.slice(0, -1) } else { unit }
+    let u = if val == 1 and unit.ends-with("s") { unit.slice(0, -1) } else {
+      unit
+    }
     parts.push(_scalar(val) + " " + u)
   }
   parts.join(", ")
@@ -265,7 +330,12 @@
   let unit = rule.at("unit", default: none)
   let value = rule.at("value", default: none)
   let core = if type(value) == int and type(unit) == str {
-    "every " + _scalar(value) + " " + (if value == 1 { unit.slice(0, -1) } else { unit })
+    (
+      "every "
+        + _scalar(value)
+        + " "
+        + (if value == 1 { unit.slice(0, -1) } else { unit })
+    )
   } else { none }
   let on = rule.at("on", default: none)
   if type(on) == array and on.len() > 0 {
@@ -289,14 +359,18 @@
   let count = r.at("count", default: none)
   let parts = (base,)
   if type(anchor) == str { parts.push("anchor " + anchor) }
-  if type(until) == datetime { parts.push("until " + until.display("[year]-[month]-[day]")) }
+  if type(until) == datetime {
+    parts.push("until " + until.display("[year]-[month]-[day]"))
+  }
   if type(count) == int { parts.push("count " + str(count)) }
   parts.join(" · ")
 }
 
 // A datetime → `YYYY-MM-DD`; a bare string passes through; none stays none.
 #let _fmt-date(d) = {
-  if d == none { none } else if type(d) == datetime { d.display("[year]-[month]-[day]") } else { str(d) }
+  if d == none { none } else if type(d) == datetime {
+    d.display("[year]-[month]-[day]")
+  } else { str(d) }
 }
 
 // The bare stem of a link target (`../sub/other.typ` → `other`).
@@ -309,7 +383,9 @@
 // `link()`, since the marker now carries the string directly — see `edge`).
 // `none` for a malformed entry (no string `task`); the Rust layer flags those.
 #let _edge-chip(e) = {
-  let dest = if type(e) == dictionary { e.at("task", default: none) } else { none }
+  let dest = if type(e) == dictionary { e.at("task", default: none) } else {
+    none
+  }
   if type(dest) == str { link(dest, raw(_stem(dest))) } else { none }
 }
 
@@ -327,7 +403,9 @@
   let order = ()
   let groups = (:)
   for e in arr {
-    let k = if type(e) == dictionary { e.at("kind", default: none) } else { none }
+    let k = if type(e) == dictionary { e.at("kind", default: none) } else {
+      none
+    }
     if type(k) != str or k == "" { continue }
     if k not in groups {
       groups.insert(k, ())
@@ -365,11 +443,19 @@
 // Lay the whole card out. Set rules come first — before the marker — so page 1
 // carries the card page settings rather than the document default.
 #let _render-task(m, marker, body) = {
-  set page(width: 15.5cm, height: auto, margin: (x: 1.6cm, top: 1.5cm, bottom: 1.7cm))
+  set page(width: 15.5cm, height: auto, margin: (
+    x: 1.6cm,
+    top: 1.5cm,
+    bottom: 1.7cm,
+  ))
   set text(size: 10.5pt)
   set par(leading: 0.62em)
   set heading(numbering: none)
-  show heading: it => block(above: 1em, below: 0.55em, text(size: 1.05em, weight: "bold", it.body))
+  show heading: it => block(above: 1em, below: 0.55em, text(
+    size: 1.05em,
+    weight: "bold",
+    it.body,
+  ))
 
   marker
 
@@ -386,13 +472,20 @@
     block(below: 0.35em, text(size: 1.55em, weight: "bold", title))
   }
 
-  let note = if status == none { none } else { status.at("note", default: none) }
-  if note != none { block(below: 0.6em, text(fill: _muted, style: "italic", note)) }
+  let note = if status == none { none } else {
+    status.at("note", default: none)
+  }
+  if note != none {
+    block(below: 0.6em, text(fill: _muted, style: "italic", note))
+  }
 
   // Link rows are dynamic: one row per kind present in `links`, grouped, in
   // first-seen order — not a fixed depends-on/relates-to/supersedes/duplicates
   // set, since a project can add its own kinds.
-  let link-rows = _links-by-kind(m.at("links", default: ())).map(pair => (pair.at(0), _edges-row(pair.at(1))))
+  let link-rows = _links-by-kind(m.at("links", default: ())).map(pair => (
+    pair.at(0),
+    _edges-row(pair.at(1)),
+  ))
 
   let rows = (
     (
@@ -407,7 +500,11 @@
     )
       + link-rows
       + (
-        ("id", if type(m.at("id", default: none)) == str and m.at("id", default: "") != "" { raw(m.id) } else { none }),
+        (
+          "id",
+          if type(m.at("id", default: none)) == str
+            and m.at("id", default: "") != "" { raw(m.id) } else { none },
+        ),
       )
   ).filter(row => row.at(1) != none)
   let meta = _meta(rows)
@@ -422,7 +519,10 @@
 }
 
 #let task(body, ..meta) = {
-  assert(meta.pos().len() == 0, message: "task takes no positional args besides its body")
+  assert(
+    meta.pos().len() == 0,
+    message: "task takes no positional args besides its body",
+  )
   let m = meta.named()
   let extras = (:)
   for pair in m.pairs() {
@@ -430,29 +530,31 @@
     if key not in _core-slots {
       assert(
         key.starts-with("x-"),
-        message: "unknown task slot `" + key + "`; tool extensions must use an x-<ns> slot",
+        message: "unknown task slot `"
+          + key
+          + "`; tool extensions must use an x-<ns> slot",
       )
       extras.insert(key, pair.at(1))
     }
   }
   let marker = [#metadata((
-      marker: "mindtape.task",
-      fields: (
-        title: m.at("title", default: ""),
-        status: m.at("status", default: none),
-        priority: m.at("priority", default: none),
-        difficulty: m.at("difficulty", default: none),
-        kind: m.at("kind", default: none),
-        estimate: m.at("estimate", default: (:)),
-        links: m.at("links", default: ()),
-        tags: m.at("tags", default: ()),
-        due: m.at("due", default: none),
-        start: m.at("start", default: none),
-        reviewed: m.at("reviewed", default: none),
-        recur: m.at("recur", default: none),
-        id: m.at("id", default: none),
-      ),
-      extras: extras,
-    )) <mindtape>]
+    marker: "mindtape.task",
+    fields: (
+      title: m.at("title", default: ""),
+      status: m.at("status", default: none),
+      priority: m.at("priority", default: none),
+      difficulty: m.at("difficulty", default: none),
+      kind: m.at("kind", default: none),
+      estimate: m.at("estimate", default: (:)),
+      links: m.at("links", default: ()),
+      tags: m.at("tags", default: ()),
+      due: m.at("due", default: none),
+      start: m.at("start", default: none),
+      reviewed: m.at("reviewed", default: none),
+      recur: m.at("recur", default: none),
+      id: m.at("id", default: none),
+    ),
+    extras: extras,
+  )) <mindtape>]
   _render-task(m, marker, body)
 }

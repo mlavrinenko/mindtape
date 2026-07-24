@@ -9,7 +9,9 @@
   ),
   tags: ("theory-drill",),
   links: parent("circle-of-fifths-drill.typ")
-    + related("interval-recognition-ear-training.typ")[leans on the same interval vocabulary],
+    + related(
+      "interval-recognition-ear-training.typ",
+    )[leans on the same interval vocabulary],
   due: on(2026, 7, 10),
   status: proposed(2026, 7, 3),
 )

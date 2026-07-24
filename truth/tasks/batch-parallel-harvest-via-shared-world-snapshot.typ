@@ -7,8 +7,12 @@
     confidence: 0.8,
     ease: 4,
   ),
-  tags: ("mt", "substrate",),
-  status: done(2026, 7, 16)[shipped: typst-world 0.2.0 + typst-harvest 0.2.0 on crates.io, loader adopts batch\_harvest (~13-19x at 2000 tasks)],
+  tags: ("mt", "substrate"),
+  status: done(
+    2026,
+    7,
+    16,
+  )[shipped: typst-world 0.2.0 + typst-harvest 0.2.0 on crates.io, loader adopts batch\_harvest (~13-19x at 2000 tasks)],
 )
 
 == Summary

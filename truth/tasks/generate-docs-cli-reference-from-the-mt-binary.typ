@@ -9,9 +9,9 @@
   ),
   tags: ("docs",),
   links: depends-on(
-      "pinnable-clock-for-reproducible-output.typ",
-      "learn-piano-example-tracker.typ",
-    )
+    "pinnable-clock-for-reproducible-output.typ",
+    "learn-piano-example-tracker.typ",
+  )
     + related("render-task-files-as-typeset-documents.typ")[
       the typeset-card face is that task's job; both build on the same
       typeset-render face

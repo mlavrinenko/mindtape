@@ -8,7 +8,10 @@
     ease: 3,
   ),
   tags: (),
-  links: depends-on("typed-relation-edges.typ", "configurable-task-stem-naming.typ"),
+  links: depends-on(
+    "typed-relation-edges.typ",
+    "configurable-task-stem-naming.typ",
+  ),
   status: done(2026, 7, 10),
 )
 

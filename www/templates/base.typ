@@ -27,9 +27,15 @@
 
 #let base(body) = {
   // h1 is the page title (from the layout); content headings shift down one.
-  show heading.where(level: 1): it => html.elem("h2", attrs: (id: slug(it.body)))[#it.body]
-  show heading.where(level: 2): it => html.elem("h3", attrs: (id: slug(it.body)))[#it.body]
-  show heading.where(level: 3): it => html.elem("h4", attrs: (id: slug(it.body)))[#it.body]
+  show heading.where(level: 1): it => html.elem("h2", attrs: (
+    id: slug(it.body),
+  ))[#it.body]
+  show heading.where(level: 2): it => html.elem("h3", attrs: (
+    id: slug(it.body),
+  ))[#it.body]
+  show heading.where(level: 3): it => html.elem("h4", attrs: (
+    id: slug(it.body),
+  ))[#it.body]
 
   body
 }

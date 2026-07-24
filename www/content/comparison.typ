@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout
-#import "../utils/site.typ": u, REPO
+#import "../utils/site.typ": REPO, u
 
 #show: page.with(
   title: "Comparison",
@@ -30,11 +30,15 @@
 // better or worse to signal there. Colour lives in theme-aware CSS custom
 // properties (components.css), not a baked Typst `fill`, so the tone stays
 // legible in both themes.
-#let cap(level, body) = html.elem("span", attrs: (class: "cap cap-" + level), [#body])
+#let cap(level, body) = html.elem(
+  "span",
+  attrs: (class: "cap cap-" + level),
+  [#body],
+)
 
 MindTape is not out to replace every task tracker. It sits in a narrow niche:
 #strong[typed tasks, one per file, versioned with the code, validated by config,
-no daemon]. This page compares it, feature by feature, against the other local
+  no daemon]. This page compares it, feature by feature, against the other local
 file-and-CLI trackers — the real neighbours. Hosted services (GitHub Issues,
 Jira, Linear) are a different category: daemon-plus-database SaaS with no in-repo
 file artifact, and out of scope here.
@@ -66,65 +70,125 @@ matrix scrolls sideways on narrow screens.
   align: left,
   table.header(
     [Dimension],
-    [#link(u("/"))[MindTape]], [#link(dstask-url)[dstask]], [#link(taskwarrior-url)[Taskwarrior]],
-    [#link(todotxt-url)[todo.txt]], [#link(orgmode-url)[Org-mode]], [#link(git-bug-url)[git-bug]],
+    [#link(u("/"))[MindTape]],
+    [#link(dstask-url)[dstask]],
+    [#link(taskwarrior-url)[Taskwarrior]],
+    [#link(todotxt-url)[todo.txt]],
+    [#link(orgmode-url)[Org-mode]],
+    [#link(git-bug-url)[git-bug]],
   ),
 
   [#link(u("/concepts/"))[Storage granularity]],
-  [One file / task], [One file / task], [Central store],
-  [One shared file], [Many per `.org` file], [Git objects],
+  [One file / task],
+  [One file / task],
+  [Central store],
+  [One shared file],
+  [Many per `.org` file],
+  [Git objects],
 
   [#link(u("/dsl/"))[On-disk format]],
-  [Typst `.typ`], [YAML `.yml`], [SQLite DB],
-  [Plain-text line], [Outline text], [Git blobs on refs],
+  [Typst `.typ`],
+  [YAML `.yml`],
+  [SQLite DB],
+  [Plain-text line],
+  [Outline text],
+  [Git blobs on refs],
 
   [#link(u("/concepts/"))[In the working tree, reviewed with your code]],
-  [#cap("green")[Yes, by design]], [#cap("grey")[No — its own git repo]], [#cap("grey")[No — `~/.task` store]],
-  [#cap("amber")[Possible]], [#cap("green")[Yes]], [#cap("grey")[In git, not the tree]],
+  [#cap("green")[Yes, by design]],
+  [#cap("grey")[No — its own git repo]],
+  [#cap("grey")[No — `~/.task` store]],
+  [#cap("amber")[Possible]],
+  [#cap("green")[Yes]],
+  [#cap("grey")[In git, not the tree]],
 
   [#link(u("/config/"))[Typed schema + config validation]],
-  [#cap("green")[Config-enforced, `mt check`]], [#cap("amber")[Light, fixed]], [#cap("amber")[Typed attrs + UDAs]],
-  [#cap("grey")[None]], [#cap("amber")[Soft]], [#cap("amber")[Minimal]],
+  [#cap("green")[Config-enforced, `mt check`]],
+  [#cap("amber")[Light, fixed]],
+  [#cap("amber")[Typed attrs + UDAs]],
+  [#cap("grey")[None]],
+  [#cap("amber")[Soft]],
+  [#cap("amber")[Minimal]],
 
   [#link(u("/config/"))[Status model]],
-  [Config legend (enum + dates + transitions)], [Fixed set], [Fixed enum],
-  [`x ` prefix], [User-defined keywords], [open / closed],
+  [Config legend (enum + dates + transitions)],
+  [Fixed set],
+  [Fixed enum],
+  [`x ` prefix],
+  [User-defined keywords],
+  [open / closed],
 
   [#link(u("/priority/"))[Priority model]],
-  [Int scale or scored framework], [`P0`–`P3`], [H/M/L + urgency score],
-  [`(A)`–`(Z)`], [`#A`/`#B`/`#C`], [None],
+  [Int scale or scored framework],
+  [`P0`–`P3`],
+  [H/M/L + urgency score],
+  [`(A)`–`(Z)`],
+  [`#A`/`#B`/`#C`],
+  [None],
 
   [#link(u("/concepts/"))[Task identity]],
-  [Filename stem], [UUID], [UUID],
-  [Line position], [Headline / `:ID:`], [Content hash],
+  [Filename stem],
+  [UUID],
+  [UUID],
+  [Line position],
+  [Headline / `:ID:`],
+  [Content hash],
 
   [#link(u("/filters/"))[Dependencies / blocking]],
-  [#cap("green")[Yes — typed links]], [#cap("green")[Yes]], [#cap("green")[Yes — `depends`]],
-  [#cap("grey")[No]], [#cap("green")[Yes — `ORDERED` / org-depend]], [#cap("grey")[No]],
+  [#cap("green")[Yes — typed links]],
+  [#cap("green")[Yes]],
+  [#cap("green")[Yes — `depends`]],
+  [#cap("grey")[No]],
+  [#cap("green")[Yes — `ORDERED` / org-depend]],
+  [#cap("grey")[No]],
 
   [#link(u("/filters/"))[Query + machine output]],
-  [#cap("green")[Filter DSL; JSON, CSV]], [#cap("amber")[CLI filters; text only]], [#cap("green")[Filter DSL; JSON]],
-  [#cap("grey")[grep-style; text only]], [#cap("green")[agenda / org-ql; many exports]], [#cap("green")[filters; JSON]],
+  [#cap("green")[Filter DSL; JSON, CSV]],
+  [#cap("amber")[CLI filters; text only]],
+  [#cap("green")[Filter DSL; JSON]],
+  [#cap("grey")[grep-style; text only]],
+  [#cap("green")[agenda / org-ql; many exports]],
+  [#cap("green")[filters; JSON]],
 
   [#link(u("/templates/"))[Templates / scaffolds]],
-  [#cap("green")[Slot templates]], [#cap("amber")[Copy-a-task template]], [#cap("amber")[Recurrence, UDAs, reports]],
-  [#cap("amber")[Addons only]], [#cap("green")[`org-capture` templates]], [#cap("grey")[No]],
+  [#cap("green")[Slot templates]],
+  [#cap("amber")[Copy-a-task template]],
+  [#cap("amber")[Recurrence, UDAs, reports]],
+  [#cap("amber")[Addons only]],
+  [#cap("green")[`org-capture` templates]],
+  [#cap("grey")[No]],
 
   [#link(u("/dsl/"))[Recurring tasks]],
-  [#cap("green")[Yes — `mt recur`]], [#cap("grey")[No]], [#cap("green")[Yes]],
-  [#cap("amber")[Addons only]], [#cap("green")[Yes]], [#cap("grey")[No]],
+  [#cap("green")[Yes — `mt recur`]],
+  [#cap("grey")[No]],
+  [#cap("green")[Yes]],
+  [#cap("amber")[Addons only]],
+  [#cap("green")[Yes]],
+  [#cap("grey")[No]],
 
   [#link(REPO + "/blob/main/lib/prelude.typ")[Typeset-document face]],
-  [#cap("green")[Yes — `task` show rule]], [#cap("grey")[No]], [#cap("grey")[No]],
-  [#cap("grey")[No]], [#cap("green")[Yes — PDF today]], [#cap("grey")[No]],
+  [#cap("green")[Yes — `task` show rule]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
+  [#cap("green")[Yes — PDF today]],
+  [#cap("grey")[No]],
 
   [#link(u("/quickstart/"))[Toolchain footprint]],
-  [`mt` binary + Typst], [Single Go binary + git], [Single binary],
-  [Bash script only], [Emacs], [Go binary + git],
+  [`mt` binary + Typst],
+  [Single Go binary + git],
+  [Single binary],
+  [Bash script only],
+  [Emacs],
+  [Go binary + git],
 
   [#link(REPO)[Maturity + license (mid-2026)]],
-  [#(mt-version + "; MIT")], [~1.2k★, stable; MIT], [~5.9k★, active; MIT],
-  [~6.1k★ + huge ecosystem; GPL-3], [ships with Emacs, ~20y; GPL-3], [~9.9k★, active; GPL-3],
+  [#(mt-version + "; MIT")],
+  [~1.2k★, stable; MIT],
+  [~5.9k★, active; MIT],
+  [~6.1k★ + huge ecosystem; GPL-3],
+  [ships with Emacs, ~20y; GPL-3],
+  [~9.9k★, active; GPL-3],
 ))
 
 = Where MindTape leads
@@ -181,7 +245,7 @@ matrix scrolls sideways on narrow screens.
 // is fine. Reword instead, as below.
 dstask shares the most DNA: one file per task, git as the store, a single-binary
 CLI. The differences are the trade. A MindTape task is #strong[typed Typst
-validated by project config]. A dstask task is a YAML record with a light fixed
+  validated by project config]. A dstask task is a YAML record with a light fixed
 schema. MindTape tasks live #strong[in your code tree], reviewed in the same PR;
 dstask keeps them in its own git repo it auto-commits for you. MindTape
 #link(u("/priority/"))[scores priority frameworks], while dstask ranks `P0`–`P3`. The

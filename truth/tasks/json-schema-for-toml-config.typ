@@ -7,8 +7,12 @@
     confidence: 0.8,
     ease: 4,
   ),
-  tags: ("cli", "tooling",),
-  status: done(2026, 7, 15)[shipped: schemars-derived schema, mt install writes it, mt init adds \#:schema directive; drift + validation gates],
+  tags: ("cli", "tooling"),
+  status: done(
+    2026,
+    7,
+    15,
+  )[shipped: schemars-derived schema, mt install writes it, mt init adds \#:schema directive; drift + validation gates],
 )
 
 == Summary

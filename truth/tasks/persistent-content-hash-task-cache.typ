@@ -7,7 +7,7 @@
     confidence: 0.7,
     ease: 4,
   ),
-  tags: ("mt", "cli",),
+  tags: ("mt", "cli"),
   status: done(2026, 7, 17),
 )
 

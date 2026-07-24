@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, callout
+#import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 
 #show: page.with(
@@ -40,7 +40,7 @@ MindTape reads its own data back out without MindTape interpreting it.
 #link(u("/cli/"))[`[[ls.rules]]`] entry (if any) drove the listing and which
 source won each facet, so an agent can tell a conditional listing from a plain
 one without re-deriving it. `schema_version` (see #link(u("/schema/"))[the
-canonical schema]) lets an agent check the envelope shape it is about to parse
+  canonical schema]) lets an agent check the envelope shape it is about to parse
 instead of guessing — a version it does not recognize is a signal to bail out,
 not silently mis-parse:
 

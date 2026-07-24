@@ -60,18 +60,21 @@ max = 9
 required = "!terminal"
 framework = "ice"
 allow-manual = false
+
 [[tasks.priority.bands]]
 label = "green"
 min = 0
 max = 2
 glyph = "🟢"
 color = "green"
+
 [[tasks.priority.bands]]
 label = "amber"
 min = 3
 max = 6
 glyph = "🟡"
 color = "yellow"
+
 [[tasks.priority.bands]]
 label = "red"
 min = 7

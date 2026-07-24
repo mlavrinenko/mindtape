@@ -8,7 +8,11 @@
     ease: 6,
   ),
   tags: (),
-  status: done(2026, 7, 12)[shipped: per-status to-graph, mt flip --force + allowed-next message, mt check reachability, well-formedness in Config::validate; dogfood declares the graph, mt check green],
+  status: done(
+    2026,
+    7,
+    12,
+  )[shipped: per-status to-graph, mt flip --force + allowed-next message, mt check reachability, well-formedness in Config::validate; dogfood declares the graph, mt check green],
 )
 
 == Summary

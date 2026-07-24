@@ -9,7 +9,11 @@
   ),
   tags: ("docs",),
   links: depends-on("generate-docs-cli-reference-from-the-mt-binary.typ"),
-  status: done(2026, 7, 12)[Shipped via the html.frame → inline-SVG route (raw-HTML injection proved impossible). `terminal-ansi` parses SGR runs into a monospace block on the theme-invariant dark panel; generator captures the `mt ls` family with `--color always`. Verified in-browser: bands + status colours render on the hero and content pages.],
+  status: done(
+    2026,
+    7,
+    12,
+  )[Shipped via the html.frame → inline-SVG route (raw-HTML injection proved impossible). `terminal-ansi` parses SGR runs into a monospace block on the theme-invariant dark panel; generator captures the `mt ls` family with `--color always`. Verified in-browser: bands + status colours render on the hero and content pages.],
 )
 
 == Summary

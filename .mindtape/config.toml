@@ -4,7 +4,6 @@
 # to accept the defaults and the prelude's full status shortcut set.
 
 [tasks]
-
 # MindTape's own backlog lives here, one task per file. The `mt` root name is
 # emitted as a derived tag on every task (the tree is flat today, so no folder
 # tags yet); nest tasks into folders and the folder names join in.

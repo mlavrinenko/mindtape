@@ -38,13 +38,24 @@ mt import --drop-unmapped       # drop a tag outside [tasks.tags] allowed instea
 #table(
   columns: (auto, 1fr),
   table.header([Flag], [Meaning]),
-  [`[FILE|-]`], [Positional; canonical task-JSON source. `-` (default) reads stdin.],
-  [`--into <DIR>`], [Destination directory; `.` (default) is the first configured root.],
-  [`--to <SUBDIR>`], [Subfolder under `--into` to nest imports into (folder-derived tags).],
+  [`[FILE|-]`],
+  [Positional; canonical task-JSON source. `-` (default) reads stdin.],
+
+  [`--into <DIR>`],
+  [Destination directory; `.` (default) is the first configured root.],
+
+  [`--to <SUBDIR>`],
+  [Subfolder under `--into` to nest imports into (folder-derived tags).],
+
   [`--dry-run`], [Report and preview only; writes nothing.],
-  [`--status <NAME>`], [Default status (dated today) stamped on a record missing one.],
-  [`--map <OLD=NEW>`], [Status rename, applied before legend validation. Repeatable.],
-  [`--drop-unmapped`], [Drop a disallowed tag instead of keeping it and reporting a violation.],
+  [`--status <NAME>`],
+  [Default status (dated today) stamped on a record missing one.],
+
+  [`--map <OLD=NEW>`],
+  [Status rename, applied before legend validation. Repeatable.],
+
+  [`--drop-unmapped`],
+  [Drop a disallowed tag instead of keeping it and reporting a violation.],
 )
 
 Every record is reported to stderr: filed or skipped, plus each mapping

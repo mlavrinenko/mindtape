@@ -9,7 +9,11 @@
   ),
   tags: ("docs",),
   links: depends-on("generate-docs-cli-reference-from-the-mt-binary.typ"),
-  status: done(2026, 7, 12)[Generator captures `ls 'id == "fur-elise-polish"' --json | jq '.[0]'` → ls-task.json; the page reads it. Purged every wire-oauth / Wire OAuth mention site-wide (concepts stem, dsl example task, templates + agents `mt add` examples), re-themed to piano.],
+  status: done(
+    2026,
+    7,
+    12,
+  )[Generator captures `ls 'id == "fur-elise-polish"' --json | jq '.[0]'` → ls-task.json; the page reads it. Purged every wire-oauth / Wire OAuth mention site-wide (concepts stem, dsl example task, templates + agents `mt add` examples), re-themed to piano.],
 )
 
 == Summary

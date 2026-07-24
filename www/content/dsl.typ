@@ -11,7 +11,8 @@
 A task file imports the prelude and applies `task.with`. Here is the full shape,
 with the version-synced import:
 
-#mt-import("#show: task.with(
+#mt-import(
+  "#show: task.with(
   title: \"Für Elise — polish for recital\",
   status: wip(2026, 7, 6)[C-section run still rushes],
   priority: ice(impact: 8, confidence: 0.9, ease: 6),
@@ -26,7 +27,8 @@ with the version-synced import:
 )
 
 == Summary
-The body is free-form Typst below the metadata.")
+The body is free-form Typst below the metadata.",
+)
 
 = Fields
 
@@ -34,16 +36,25 @@ The body is free-form Typst below the metadata.")
   columns: 2,
   table.header([Field], [Value]),
   [`title`], [Display title. The only field the built-in template requires.],
-  [`status`], [A legend value dated today or explicitly: `wip(2026, 7, 6)`. A trailing block is a note: `wip(2026, 7, 6)[behind a flag]`.],
-  [`priority`], [A number on the scale, or a framework call. See #link(u("/priority/"))[Priority].],
+  [`status`],
+  [A legend value dated today or explicitly: `wip(2026, 7, 6)`. A trailing block is a note: `wip(2026, 7, 6)[behind a flag]`.],
+
+  [`priority`],
+  [A number on the scale, or a framework call. See #link(u("/priority/"))[Priority].],
+
   [`difficulty`], [The sibling scale to priority, same shape.],
-  [`estimate`], [An opaque `unit: quantity` dict, e.g. `(days: 1, hours: 2)`. Units are never converted or compared — only the allowed set is checked.],
+  [`estimate`],
+  [An opaque `unit: quantity` dict, e.g. `(days: 1, hours: 2)`. Units are never converted or compared — only the allowed set is checked.],
+
   [`kind`], [A config-defined enum value (e.g. `"feature"`, `"bug"`).],
   [`due`, `start`], [Dates via `datetime(year: …, month: …, day: …)`.],
   [`tags`], [A tuple of strings: `("backend", "auth")`.],
-  [`links`], [Typed edges to other tasks — a sum of helper calls, e.g. `depends-on("a.typ") + related("b.typ")[why]`. See below.],
+  [`links`],
+  [Typed edges to other tasks — a sum of helper calls, e.g. `depends-on("a.typ") + related("b.typ")[why]`. See below.],
+
   [`recur`], [A recurrence rule + policy: `every(weeks: 1)`. See below.],
-  [`x-<ns>`], [Opaque extension slot for tools built on MindTape. Carried untouched; the consumer validates it.],
+  [`x-<ns>`],
+  [Opaque extension slot for tools built on MindTape. Carried untouched; the consumer validates it.],
 )
 
 = Status shortcuts
@@ -145,5 +156,5 @@ against your #link(u("/config/"))[config], at `mt check` time.
 #callout("note")[
   `x-<ns>` fields are yours to define. MindTape validates the core fields above
   and passes your extension fields through — see #link(u("/concepts/"))[the
-  extension seam].
+    extension seam].
 ]

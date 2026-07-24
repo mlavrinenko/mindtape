@@ -11,7 +11,11 @@
   tags: ("scales",),
   due: on(2026, 7, 12),
   start: on(2026, 6, 25),
-  status: wip(2026, 7, 5)[harmonic minor solid, melodic minor descending still shaky],
+  status: wip(
+    2026,
+    7,
+    5,
+  )[harmonic minor solid, melodic minor descending still shaky],
 )
 
 == Notes

@@ -42,7 +42,10 @@ the invariant is written down and tested.
 - Add a "Command Semantics (read/write separation)" section to
   `CONTRIBUTING.md` with this exact content:
 
-  #raw(block: true, lang: "markdown", "## Command Semantics (read/write separation)
+  #raw(
+    block: true,
+    lang: "markdown",
+    "## Command Semantics (read/write separation)
 
 MindTape follows a strict read/write split (CQRS). Read commands never mutate
 the working tree; only explicit write commands do.
@@ -53,7 +56,8 @@ the working tree; only explicit write commands do.
 
 Recurrence never materializes as a side effect of a read. An instance is spawned
 or refreshed only by an explicit `mt recur`; `mt done` closes a task and never
-creates or advances anything.")
+creates or advances anything.",
+  )
 
 - Regression test: a read command over a fixture leaves the tree byte-identical.
 - The `mt done` notice + recur-on-done behaviour is implemented under the

@@ -49,7 +49,7 @@
   table.header([Section], [Purpose]),
   ..sections
     .map(s => (raw(s.at(1)), _fmt-desc(_prop-desc(schema, s.at(0)))))
-    .flatten()
+    .flatten(),
 )
 
 // Is `prefix` covered by some rendered path — an exact match, or the ancestor

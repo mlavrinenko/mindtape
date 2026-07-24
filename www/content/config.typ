@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, callout
+#import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 #import "../utils/config-ref.typ": config-gate, config-sections-table
 
@@ -227,11 +227,15 @@ regex = "^ACME-[0-9]+$"
 #table(
   columns: 2,
   table.header([`validate`], [Accepts]),
-  [`local-task-path`], [A filename stem resolved against the loaded tasks — the default, and today's behaviour for every kind that omits the key.],
+  [`local-task-path`],
+  [A filename stem resolved against the loaded tasks — the default, and today's behaviour for every kind that omits the key.],
+
   [`url`], [An RFC 3986 URI: a scheme, then only URI-legal characters.],
   [`git-sha`], [A hexadecimal git object name, 7 to 64 characters.],
   [`uuid`], [A UUID.],
-  [`regex`], [Whatever the kind's sibling `regex = "..."` matches. The pattern is required — a `regex` kind without one fails config validation rather than accepting everything.],
+  [`regex`],
+  [Whatever the kind's sibling `regex = "..."` matches. The pattern is required — a `regex` kind without one fails config validation rather than accepting everything.],
+
   [`any`], [Any non-empty string — the deliberate opt-out.],
 )
 
@@ -266,7 +270,8 @@ stem = "{slug}.task-{yy}{mm}{dd}"
   [`{date}`], [Today's (or the recurrence anchor's) date, ISO `YYYY-MM-DD`.],
   [`{date:FMT}`], [The same date in a custom format token grammar.],
   [`{yy}` / `{mm}` / `{dd}`], [Two-digit year / month / day.],
-  [`{n}` / `{n:0N}`], [The recurrence occurrence index; bare or zero-padded to `N` digits.],
+  [`{n}` / `{n:0N}`],
+  [The recurrence occurrence index; bare or zero-padded to `N` digits.],
 )
 
 A minted stem never overwrites an existing file: on a collision `mt` appends
@@ -451,8 +456,11 @@ Each action declares exactly one kind:
   columns: 2,
   table.header([Action], [Effect]),
   [`{ show = "text" }`], [Print `text`.],
-  [`{ list = "filter or @view", title = "..." }`], [Print the matching tasks as a table under `title`. A bare `@view` also picks up that view's sort. This is how an agent starting work sees what else is in flight — with no materialised index and nothing written to disk.],
-  [`{ run = "cmd", gate = false, message = "..." }`], [Execute `cmd`. With `gate = true` a non-zero exit *refuses the flip*, prints the command's output, and stops: nothing is written for that task and the actions after it do not run. Without `gate` the output is informational. `message` replaces the default advice on failure.],
+  [`{ list = "filter or @view", title = "..." }`],
+  [Print the matching tasks as a table under `title`. A bare `@view` also picks up that view's sort. This is how an agent starting work sees what else is in flight — with no materialised index and nothing written to disk.],
+
+  [`{ run = "cmd", gate = false, message = "..." }`],
+  [Execute `cmd`. With `gate = true` a non-zero exit *refuses the flip*, prints the command's output, and stops: nothing is written for that task and the actions after it do not run. Without `gate` the output is informational. `message` replaces the default advice on failure.],
 )
 
 Actions run in declaration order. `--force` waives a failing gate and records
@@ -464,7 +472,9 @@ with the transition in its environment:
   columns: 2,
   table.header([Variable], [Value]),
   [`MINDTAPE_TASK_FILE`], [Absolute path of the task file being flipped.],
-  [`MINDTAPE_TASK_STEM`], [The task's identity (its file stem, unless `id:` overrides).],
+  [`MINDTAPE_TASK_STEM`],
+  [The task's identity (its file stem, unless `id:` overrides).],
+
   [`MINDTAPE_TASK_STATUS`], [The status being stamped.],
 )
 
@@ -612,7 +622,7 @@ nobody chose. Fix it by picking one fragment, or by moving the difference into
 = Environment variables
 
 Besides `-w`/`--worktree` (or `$MINDTAPE_WORKTREE`, see #link(u("/agents/"))[For
-AI agents]), `mt` honours `$MINDTAPE_NOW` for a pinnable "today": every date
+  AI agents]), `mt` honours `$MINDTAPE_NOW` for a pinnable "today": every date
 `mt` stamps or reads — status dates, `now()`/`stale()` in filters, `mt recur`
 advances — resolves once per process from `$MINDTAPE_NOW` (`YYYY-MM-DD` or an
 RFC 3339 timestamp; only the date part is used), else the system clock (UTC). A

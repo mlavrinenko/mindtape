@@ -8,7 +8,11 @@
     ease: 4,
   ),
   tags: (),
-  status: done(2026, 7, 11)[rm scans links: helper edges; retargets every kind to tombstone],
+  status: done(
+    2026,
+    7,
+    11,
+  )[rm scans links: helper edges; retargets every kind to tombstone],
 )
 
 == Summary

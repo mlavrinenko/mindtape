@@ -14,7 +14,9 @@
 // ── argument signature, e.g. `-n, --limit <LIMIT>` or `[FILTER]` ──────────────
 #let _sig(arg) = {
   if arg.kind == "positional" {
-    let name = if arg.value_name != none { arg.value_name } else { upper(arg.id) }
+    let name = if arg.value_name != none { arg.value_name } else {
+      upper(arg.id)
+    }
     let s = if arg.required { "<" + name + ">" } else { "[" + name + "]" }
     return if arg.multiple { s + "…" } else { s }
   }
@@ -44,21 +46,33 @@
     let extra = if short != none and long.starts-with(short) {
       long.slice(short.len()).trim()
     } else if long != short { long } else { "" }
-    if extra != "" { parbreak(); _dim[#extra] }
+    if extra != "" {
+      parbreak()
+      _dim[#extra]
+    }
   }
 }
 
 // ── one argument's description cell ──────────────────────────────────────────
 #let _arg-desc(arg, key) = {
   _desc(arg.about, arg.long_about)
-  if arg.possible_values != none { parbreak(); _pvals(arg) }
+  if arg.possible_values != none {
+    parbreak()
+    _pvals(arg)
+  }
   let meta = ()
   if arg.default != none { meta.push("default: " + arg.default) }
   if arg.multiple { meta.push("repeatable") }
-  if meta.len() > 0 { parbreak(); _dim(raw(meta.join("   ·   "))) }
+  if meta.len() > 0 {
+    parbreak()
+    _dim(raw(meta.join("   ·   ")))
+  }
   let note = cli-notes.at(key, default: none)
   if note != none {
-    if "prose" in note { parbreak(); note.prose }
+    if "prose" in note {
+      parbreak()
+      note.prose
+    }
     if "examples" in note { note.examples }
   }
 }
@@ -70,7 +84,9 @@
     align: (left + top, left + top),
     stroke: none,
     inset: (x: 6pt, y: 5pt),
-    ..args.map(arg => (raw(_sig(arg)), _arg-desc(arg, key-prefix + "." + arg.id))).flatten()
+    ..args
+      .map(arg => (raw(_sig(arg)), _arg-desc(arg, key-prefix + "." + arg.id)))
+      .flatten()
   )
 }
 
@@ -91,7 +107,10 @@
   let note = cli-notes.at(key, default: none)
   heading(level: path.len() + 1, raw("mt " + path.join(" ")))
   _desc(cmd.about, cmd.long_about)
-  if note != none and "prose" in note { parbreak(); note.prose }
+  if note != none and "prose" in note {
+    parbreak()
+    note.prose
+  }
   _args-table(cmd.args, key)
   if note != none and "examples" in note { note.examples }
   _outputs(note)
@@ -139,10 +158,14 @@
   for name in by.keys() {
     let n = grouped.filter(x => x == name).len()
     if n == 0 { panic("cli.json command not grouped in cli.typ: " + name) }
-    if n > 1 { panic("cli.json command grouped more than once in cli.typ: " + name) }
+    if n > 1 {
+      panic("cli.json command grouped more than once in cli.typ: " + name)
+    }
   }
   for name in grouped {
-    if name not in by { panic("cli.typ group references unknown command: " + name) }
+    if name not in by {
+      panic("cli.typ group references unknown command: " + name)
+    }
   }
   let valid = ()
   for a in data.globals { valid.push("@global." + a.id) }

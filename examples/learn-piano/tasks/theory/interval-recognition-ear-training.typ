@@ -11,7 +11,11 @@
   tags: ("ear-training",),
   due: on(2026, 7, 14),
   start: on(2026, 6, 20),
-  status: wip(2026, 7, 7)[unisons through fifths solid, sixths and sevenths still guessing],
+  status: wip(
+    2026,
+    7,
+    7,
+  )[unisons through fifths solid, sixths and sevenths still guessing],
 )
 
 == Notes

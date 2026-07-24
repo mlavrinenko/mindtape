@@ -27,11 +27,16 @@
   let flatten(items) = {
     let result = ()
     for item in items {
-      if type(item) == array { result += flatten(item) } else { result.push(item) }
+      if type(item) == array { result += flatten(item) } else {
+        result.push(item)
+      }
     }
     result
   }
-  let raw = flatten(args.pos()).filter(x => x != none and x != "").map(x => str(x)).join(" ")
+  let raw = flatten(args.pos())
+    .filter(x => x != none and x != "")
+    .map(x => str(x))
+    .join(" ")
   raw.split(" ").filter(x => x != "").join(" ")
 }
 
@@ -118,9 +123,13 @@
 /// to-string(42)             // => "42"
 /// ```
 #let to-string(it) = {
-  if it == none { "" } else if type(it) == str { it } else if type(it) != content { str(it) } else if it.has("text") {
+  if it == none { "" } else if type(it) == str { it } else if (
+    type(it) != content
+  ) { str(it) } else if it.has("text") {
     if type(it.text) == str { it.text } else { to-string(it.text) }
-  } else if it.has("children") { it.children.map(to-string).join() } else if it.has("body") {
+  } else if it.has("children") {
+    it.children.map(to-string).join()
+  } else if it.has("body") {
     to-string(it.body)
   } else if it == [ ] { " " } else { "" }
 }
@@ -143,8 +152,13 @@
   if type(s) == datetime { return s }
   let s = str(s).split("T").at(0)
   let parts = s.split("-")
-  assert(parts.len() == 3, message: "Invalid date format: '" + s + "', expected YYYY-MM-DD")
-  datetime(year: int(parts.at(0)), month: int(parts.at(1)), day: int(parts.at(2)))
+  assert(
+    parts.len() == 3,
+    message: "Invalid date format: '" + s + "', expected YYYY-MM-DD",
+  )
+  datetime(year: int(parts.at(0)), month: int(parts.at(1)), day: int(
+    parts.at(2),
+  ))
 }
 
 // ============================================================================
@@ -179,7 +193,10 @@
   }
   // OG/article/book/profile use "property" attribute, not supported by html.meta
   if (
-    prop.starts-with("og:") or prop.starts-with("article:") or prop.starts-with("book:") or prop.starts-with("profile:")
+    prop.starts-with("og:")
+      or prop.starts-with("article:")
+      or prop.starts-with("book:")
+      or prop.starts-with("profile:")
   ) {
     html.elem("meta", attrs: (property: prop, content: c))
   } else {

@@ -7,8 +7,12 @@
     confidence: 0.8,
     ease: 6,
   ),
-  tags: ("tooling", "tests",),
-  status: done(2026, 7, 21)[every file swept clean, the 4 parked files resolved, 6 exclusions dropped as killable; re-sweep 542 mutants → 522 caught / 17 unviable / 0 MISSED],
+  tags: ("tooling", "tests"),
+  status: done(
+    2026,
+    7,
+    21,
+  )[every file swept clean, the 4 parked files resolved, 6 exclusions dropped as killable; re-sweep 542 mutants → 522 caught / 17 unviable / 0 MISSED],
 )
 
 == Summary

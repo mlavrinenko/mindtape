@@ -10,7 +10,11 @@
   tags: ("docs",),
   links: depends-on("render-task-files-as-typeset-documents.typ")
     + depends-on("generate-docs-cli-reference-from-the-mt-binary.typ"),
-  status: done(2026, 7, 12)[Hero card face now compiles fur-elise-polish.typ to SVG (throwaway `--package-path`) and inlines it as a data-uri `<img>` via `image(read(…, encoding: none))` — dodging tola's asset validator since generated/ is never copied. Hand-built task-card/pill/tag helpers and CSS dropped.],
+  status: done(
+    2026,
+    7,
+    12,
+  )[Hero card face now compiles fur-elise-polish.typ to SVG (throwaway `--package-path`) and inlines it as a data-uri `<img>` via `image(read(…, encoding: none))` — dodging tola's asset validator since generated/ is never copied. Hand-built task-card/pill/tag helpers and CSS dropped.],
 )
 
 == Summary

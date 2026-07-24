@@ -1,6 +1,6 @@
 // Page chrome: <head>, header, docs sidebar, main, footer.
 
-#import "../utils/site.typ": SITE, NAV, REPO, u
+#import "../utils/site.typ": NAV, REPO, SITE, u
 
 // Set data-theme before first paint (no flash), then a global toggle.
 #let _theme-script = "(function(){var d=document.documentElement;var t=localStorage.getItem('theme');if(t){d.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){d.setAttribute('data-theme','dark')}}());function toggleTheme(){var d=document.documentElement;var n=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',n);localStorage.setItem('theme',n)}"
@@ -15,7 +15,19 @@
 // results drawer behave like a popup: dismiss on outside-click / Escape via a
 // `search--closed` class the CSS honours, and re-open when the input regains
 // focus. Search is a production-build feature; `tola serve` has no index.
-#let _search-init = "(function(){var p='" + u("/pagefind/") + "';" + "var l=document.createElement('link');l.rel='stylesheet';l.href=p+'pagefind-ui.css';document.head.appendChild(l);" + "var s=document.createElement('script');s.src=p+'pagefind-ui.js';s.onload=function(){var init=function(){" + "new PagefindUI({element:'#search',showSubResults:true,showImages:false,bundlePath:p});" + "var box=document.getElementById('search');if(!box)return;" + "document.addEventListener('click',function(e){if(!box.contains(e.target)){box.classList.add('search--closed');}});" + "box.addEventListener('focusin',function(){box.classList.remove('search--closed');});" + "document.addEventListener('keydown',function(e){if(e.key==='Escape'){box.classList.add('search--closed');box.blur&&box.blur();}});" + "};if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}};document.head.appendChild(s);}());"
+#let _search-init = (
+  "(function(){var p='"
+    + u("/pagefind/")
+    + "';"
+    + "var l=document.createElement('link');l.rel='stylesheet';l.href=p+'pagefind-ui.css';document.head.appendChild(l);"
+    + "var s=document.createElement('script');s.src=p+'pagefind-ui.js';s.onload=function(){var init=function(){"
+    + "new PagefindUI({element:'#search',showSubResults:true,showImages:false,bundlePath:p});"
+    + "var box=document.getElementById('search');if(!box)return;"
+    + "document.addEventListener('click',function(e){if(!box.contains(e.target)){box.classList.add('search--closed');}});"
+    + "box.addEventListener('focusin',function(){box.classList.remove('search--closed');});"
+    + "document.addEventListener('keydown',function(e){if(e.key==='Escape'){box.classList.add('search--closed');box.blur&&box.blur();}});"
+    + "};if(document.readyState!=='loading'){init();}else{document.addEventListener('DOMContentLoaded',init);}};document.head.appendChild(s);}());"
+)
 
 // Floating <thead> clone for wide tables like the comparison matrix. Plain
 // CSS `position: sticky` on `thead th` can't work there: the `.matrix`
@@ -114,12 +126,23 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
 
 #let make-head(m) = {
   html.elem("meta", attrs: (charset: "utf-8"))
-  html.elem("meta", attrs: (name: "viewport", content: "width=device-width, initial-scale=1"))
+  html.elem("meta", attrs: (
+    name: "viewport",
+    content: "width=device-width, initial-scale=1",
+  ))
   let t = m.at("title", default: SITE.title)
-  html.elem("title")[#(if t == SITE.title { t } else { t + " — " + SITE.title })]
+  html.elem("title")[#(
+    if t == SITE.title { t } else { t + " — " + SITE.title }
+  )]
   let desc = m.at("summary", default: SITE.tagline)
-  if desc != none { html.elem("meta", attrs: (name: "description", content: desc)) }
-  html.elem("link", attrs: (rel: "icon", href: "/assets/images/logo.svg", type: "image/svg+xml"))
+  if desc != none {
+    html.elem("meta", attrs: (name: "description", content: desc))
+  }
+  html.elem("link", attrs: (
+    rel: "icon",
+    href: "/assets/images/logo.svg",
+    type: "image/svg+xml",
+  ))
   // Raster fallbacks for browsers/contexts that skip the svg favicon above,
   // rasterised at build time from that same logo.svg (www/generate.sh) — no
   // hand-maintained second copy of the mark.
@@ -129,16 +152,30 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
     type: "image/png",
     sizes: "32x32",
   ))
-  html.elem("link", attrs: (rel: "apple-touch-icon", href: "/assets/images/apple-touch-icon.png", sizes: "180x180"))
-  html.elem("link", attrs: (rel: "preconnect", href: "https://fonts.googleapis.com"))
-  html.elem("link", attrs: (rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: ""))
+  html.elem("link", attrs: (
+    rel: "apple-touch-icon",
+    href: "/assets/images/apple-touch-icon.png",
+    sizes: "180x180",
+  ))
+  html.elem("link", attrs: (
+    rel: "preconnect",
+    href: "https://fonts.googleapis.com",
+  ))
+  html.elem("link", attrs: (
+    rel: "preconnect",
+    href: "https://fonts.gstatic.com",
+    crossorigin: "",
+  ))
   html.elem("link", attrs: (
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap",
   ))
   // Assets stay source-relative; tola applies the site prefix on build.
   html.elem("link", attrs: (rel: "stylesheet", href: "/assets/styles/main.css"))
-  html.elem("link", attrs: (rel: "stylesheet", href: "/assets/styles/components.css"))
+  html.elem("link", attrs: (
+    rel: "stylesheet",
+    href: "/assets/styles/components.css",
+  ))
   html.script(_theme-script)
   html.script(_matrix-float-head-script)
   html.script(_toc-script)
@@ -150,13 +187,22 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
   attrs: (href: u("/"), class: "brand"),
   // Logo as an accent-tinted inline mark (see .brand-mark in main.css); a real
   // block-level <img> would force a <p> inside the <a> and split the anchor.
-  html.elem("span", attrs: (class: "brand-mark", role: "img", "aria-label": "MindTape"))
+  html.elem("span", attrs: (
+    class: "brand-mark",
+    role: "img",
+    "aria-label": "MindTape",
+  ))
     + html.elem("span", attrs: (class: "brand-name"), [MindTape]),
 )
 
 #let _toggle = html.elem(
   "button",
-  attrs: (class: "theme-toggle", type: "button", "aria-label": "Toggle theme", onclick: "toggleTheme()"),
+  attrs: (
+    class: "theme-toggle",
+    type: "button",
+    "aria-label": "Toggle theme",
+    onclick: "toggleTheme()",
+  ),
   html.elem("span", attrs: (class: "theme-icon theme-icon-sun"), [☀])
     + html.elem("span", attrs: (class: "theme-icon theme-icon-moon"), [☾]),
 )
@@ -202,13 +248,19 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
     _sidebar(active)
     // data-pagefind-body scopes the search index to page content only, so the
     // header, sidebar nav, and footer never leak into results.
-    html.elem("main", attrs: (class: if home { "home" } else { "" }, "data-pagefind-body": ""), {
-      if title != none and not home { html.elem("h1")[#title] }
-      // The home page carries its own hero lede (see hero() in ui.typ); skip
-      // here so it never doubles up.
-      if summary != none and not home { html.elem("p", attrs: (class: "lede"))[#summary] }
-      body
-    })
+    html.elem(
+      "main",
+      attrs: (class: if home { "home" } else { "" }, "data-pagefind-body": ""),
+      {
+        if title != none and not home { html.elem("h1")[#title] }
+        // The home page carries its own hero lede (see hero() in ui.typ); skip
+        // here so it never doubles up.
+        if summary != none and not home {
+          html.elem("p", attrs: (class: "lede"))[#summary]
+        }
+        body
+      },
+    )
   })
 
   html.elem("footer", attrs: (class: "site-footer"), {

@@ -8,8 +8,14 @@
     ease: 3,
   ),
   tags: ("classical",),
-  links: related("clair-de-lune-practice.typ")[same recital era, revisit once Clair de Lune lands],
-  status: cancelled(2026, 6, 28)[deprioritized in favor of Clair de Lune this term],
+  links: related(
+    "clair-de-lune-practice.typ",
+  )[same recital era, revisit once Clair de Lune lands],
+  status: cancelled(
+    2026,
+    6,
+    28,
+  )[deprioritized in favor of Clair de Lune this term],
 )
 
 == Notes

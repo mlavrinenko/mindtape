@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": hero, callout, pkg
+#import "../utils/ui.typ": callout, hero, pkg
 #import "../utils/site.typ": u
 
 #show: page.with(

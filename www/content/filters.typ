@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, terminal-ansi, callout
+#import "../utils/ui.typ": callout, terminal, terminal-ansi
 #import "../utils/site.typ": u
 
 #show: page.with(
@@ -42,12 +42,19 @@ with `miss(field)`.
   columns: 2,
   table.header([Function], [Matches]),
   [`has(field)` / `miss(field)`], [The field is present / absent.],
-  [`has_tag("name")`], [The tag is set — authored or #link(u("/derived-tags/"))[derived].],
+  [`has_tag("name")`],
+  [The tag is set — authored or #link(u("/derived-tags/"))[derived].],
+
   [`contains(field, "substr")`], [Substring match on a field.],
   [`search("query")`], [Full-text search across the task.],
-  [`stale(N)`], [Not re-affirmed (or, lacking `reviewed`, last status-changed) for more than N days.],
-  [`links("kind")`], [The task carries a #link(u("/dsl/"))[`links:`] edge of that kind — built-in or a project's custom kind.],
-  [`in_view("name")`], [The named #link(u("/config/"))[view]'s filter matches. `@name` is sugar for it.],
+  [`stale(N)`],
+  [Not re-affirmed (or, lacking `reviewed`, last status-changed) for more than N days.],
+
+  [`links("kind")`],
+  [The task carries a #link(u("/dsl/"))[`links:`] edge of that kind — built-in or a project's custom kind.],
+
+  [`in_view("name")`],
+  [The named #link(u("/config/"))[view]'s filter matches. `@name` is sugar for it.],
 )
 
 `@name` composes like any predicate:

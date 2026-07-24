@@ -7,8 +7,12 @@
     confidence: 0.8,
     ease: 6,
   ),
-  tags: ("substrate", "cli",),
-  status: done(2026, 7, 12)[rewired onto typst\_cleanup::plan via Policy::scan; local skeleton deleted],
+  tags: ("substrate", "cli"),
+  status: done(
+    2026,
+    7,
+    12,
+  )[rewired onto typst\_cleanup::plan via Policy::scan; local skeleton deleted],
 )
 
 == Summary

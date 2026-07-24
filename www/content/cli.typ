@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal, callout
+#import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 #import "../utils/cli-ref.typ": cli-gate, cli-group, render-globals
 
@@ -92,7 +92,9 @@ task fields — the same operators and parser as
 #table(
   columns: 2,
   table.header([Predicate], [Matches]),
-  [`on_branch("glob")`], [The current git branch (`.git/HEAD`), glob-matched. `false` off a git repo or on a detached `HEAD`.],
+  [`on_branch("glob")`],
+  [The current git branch (`.git/HEAD`), glob-matched. `false` off a git repo or on a detached `HEAD`.],
+
   [`env("NAME")`], [The named environment variable (`""` when unset).],
   [`weekday()`], [Today's ISO weekday, `1` (Monday) through `7` (Sunday).],
   [`now()`], [Today's ISO date — same as the filter-language `now()`.],

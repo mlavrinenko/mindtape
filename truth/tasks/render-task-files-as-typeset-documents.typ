@@ -8,8 +8,14 @@
     ease: 4,
   ),
   tags: (),
-  links: related("generate-docs-cli-reference-from-the-mt-binary.typ")[both build on the same typeset-render face],
-  status: done(2026, 7, 12)[Shipped in `lib/prelude.typ`: the `task` show rule lays every set field out as a printed index card (status/priority/kind pills, metadata grid, tag chips, body), inert under `typst-harvest` eval. Docs-embed follow-on split out to embed-compiled-task-card-in-docs-hero.],
+  links: related(
+    "generate-docs-cli-reference-from-the-mt-binary.typ",
+  )[both build on the same typeset-render face],
+  status: done(
+    2026,
+    7,
+    12,
+  )[Shipped in `lib/prelude.typ`: the `task` show rule lays every set field out as a printed index card (status/priority/kind pills, metadata grid, tag chips, body), inert under `typst-harvest` eval. Docs-embed follow-on split out to embed-compiled-task-card-in-docs-hero.],
 )
 
 == Summary

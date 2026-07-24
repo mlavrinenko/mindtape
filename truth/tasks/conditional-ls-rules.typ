@@ -9,7 +9,11 @@
   ),
   tags: ("cli",),
   links: depends-on("default-view-for-ls.typ"),
-  status: done(2026, 7, 12)[shipped [[ls.rules]] + condition language + JSON envelope],
+  status: done(
+    2026,
+    7,
+    12,
+  )[shipped [[ls.rules]] + condition language + JSON envelope],
 )
 
 == Summary
