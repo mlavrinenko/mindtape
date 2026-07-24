@@ -15,23 +15,29 @@
 # check` is `just mmz <subgate>`, so the underlying sub-recipe runs through mmz
 # and records its outcome. `mmz --is-fresh --tag gate` then asserts all of them.
 #
-# NOTE ON SCOPE. `truth/tasks/**` is deliberately absent. `mt flip` writes the
-# task file it is gating, so a rule keyed on the whole tree would go stale the
-# moment a status is stamped and the gate could never pass. Nothing in
-# `just check` reads `truth/tasks/` anyway — the backlog is validated by the
-# pre-commit hook (`cargo run -- check`), not by the gate.
+# NOTE ON SCOPE. `truth/tasks/**` is deliberately absent from every scope.
+# `mt flip` writes the task file it is gating, so a rule keyed on those files
+# would go stale the moment a status is stamped — the close gate would flip
+# itself stale mid-command, and a multi-target or sequential close could never
+# pass. `just fmt-check` DOES typstyle-check `truth/tasks/` (see the Justfile),
+# so a full `just check` still rejects a mis-formatted task file; we just don't
+# MEMOIZE that read, trading a task-file-only formatting change escaping the
+# freshness shortcut for a gate that survives its own writes. Task structure is
+# validated by the pre-commit hook (`cargo run -- check`), not by the gate.
 
 scopes:
-  # Everything that builds the rust crates: sources, manifests, and the
-  # toolchain pins (rust-toolchain plus the flake.lock that actually selects
-  # rustc in the dev shell). Bumping the toolchain or any Cargo dep busts every
-  # rule that depends on `rust`.
+  # Everything that builds the rust crates: ALL files under crates/ — not just
+  # `*.rs`. defaults.toml, frameworks.toml, the preset/axes `config.toml` and the
+  # embedded template `.typ` are `include_str!`'d into the binary and asserted by
+  # the test suite, so `crates/**` keeps them in the build/test freshness (a
+  # `*.rs`-only glob silently dropped them). Plus the workspace manifests and the
+  # rust-toolchain pin. The dev-shell toolchain (flake.nix/flake.lock) lives in
+  # `gates-meta`, shared by every rule.
   rust:
-    - "crates/**/*.rs"
+    - "crates/**"
     - "Cargo.toml"
     - "Cargo.lock"
     - "rust-toolchain.toml"
-    - "flake.lock"
 
   # cargo fmt's config — edits change what "formatted" means.
   rust-fmt:
@@ -41,10 +47,13 @@ scopes:
   rust-clippy:
     - "clippy.toml"
 
-  # Cargo manifests only — cargo-machete reads these, not sources.
+  # Cargo manifests only — cargo-machete reads these, not sources. Includes the
+  # per-crate manifests (where the `[dependencies]` machete scans actually live),
+  # not just the virtual workspace root.
   manifests:
     - "Cargo.toml"
     - "Cargo.lock"
+    - "crates/**/Cargo.toml"
 
   # Policy/config the workspace tests assert against, plus the Typst prelude
   # every task file imports (edits to lib/prelude.typ bust the test cache).
@@ -61,9 +70,10 @@ scopes:
     - "examples/large/.mindtape/config.toml"
 
   # Typst formatter (`just fmt-check` runs `typstyle --check` over these).
+  # `truth/tasks/**` is intentionally NOT listed (see NOTE ON SCOPE): the gate
+  # must survive `mt flip`'s own writes to that tree.
   typ-fmt:
     - "lib/**"
-    - "truth/tasks/**"
     - "examples/learn-piano/tasks/**"
     - "examples/learn-piano/.mindtape/templates/**"
     - "www/content/**"
@@ -98,14 +108,20 @@ scopes:
     - "skills/**"
     - "contrib/**"
     - "docs/**"
+    # www/generate.sh reads the release workflow (via yq) to derive the
+    # quickstart install targets baked into the built docs.
+    - ".github/workflows/release.yml"
 
-  # The Justfile holds every recipe body. Add it to every rule so a recipe
-  # edit re-runs every gate it wraps — rare, and you'd want a re-run then
-  # anyway. In the common case (a source edit, no Justfile touch) it costs
-  # nothing: the hash is content-based, so an unchanged Justfile contributes no
-  # churn.
+  # Shared by every rule: the recipe bodies (Justfile) and the dev-shell they all
+  # run in (flake.nix/flake.lock). Every formatter, linter and cargo tool comes
+  # from that shell, so a toolchain or tool-set bump must re-run every gate,
+  # machete included — and flake.nix is an outdatty `dev-docs` source, so keeping
+  # it here stops `outdatty-check` reporting fresh after a flake.nix edit. All
+  # content-hashed, so an untouched file contributes no churn.
   gates-meta:
     - "Justfile"
+    - "flake.nix"
+    - "flake.lock"
 
 on_hit: "mmz: skipped {cache:command} (inputs unchanged)"
 
