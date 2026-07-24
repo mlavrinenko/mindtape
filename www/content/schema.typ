@@ -13,12 +13,9 @@ canonical schema; `mt import` reads that same shape back and writes native
 `.typ` files. Because it is one contract, `mt ls --json | mt import` round-trips
 a task losslessly, and a jq program that targets this schema works as both an
 import adapter's *output* and something you can hand-inspect from a live
-export. The schema carries a version marker, bumped only when the shape changes
-in a way that could break `mt import` or an external `jq` consumer:
-
-```json
-{"schema_version": 1}
-```
+export. The shape itself carries a version marker, but at the document level,
+in the envelope wrapped around a listing (see "The envelope" below) — not on
+each record.
 
 #callout("note")[
   This page mirrors the field contract documented on
@@ -121,10 +118,28 @@ round-trip.
 }
 ```
 
-`mt ls --json`'s top-level shape wraps records in `{"tasks": [...], "applied":
-{...}}` (see #link(u("/agents/"))[For AI agents]); `mt import` also accepts a
-bare JSON array, so a hand-built or `jq`-produced list of records — no
-`applied` envelope — is valid input too.
+A record on its own carries no `schema_version` — the field above is complete
+without one. That's on purpose: the version marker versions the *document*
+shape a listing comes wrapped in, not each task inside it.
+
+= The envelope
+
+`mt ls --json` wraps its records in a document-level envelope, captured here
+verbatim against the `learn-piano` fixture (see #link(u("/agents/"))[For AI
+agents] for the same capture):
+
+#raw(read("../generated/ls-json.txt"), lang: "json", block: true)
+
+`schema_version` bumps only when the envelope or record shape changes in a way
+that could break `mt import` or an external `jq` consumer; `applied` names
+which #link(u("/cli/"))[`[[ls.rules]]`] entry (if any) drove the listing.
+
+`mt import` reads `schema_version` permissively: absent — a bare JSON array,
+or an envelope without the field, such as hand-written or `jq`-produced input
+— is accepted; present and no newer than the version this binary understands
+is accepted; a version newer than this binary supports is rejected outright,
+naming both versions, rather than risk silently mis-parsing a shape it has
+never seen.
 
 #callout("tip")[
   See #link(u("/import-export/"))[Import & export] for the `mt import` flags and
