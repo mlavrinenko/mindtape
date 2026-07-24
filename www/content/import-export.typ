@@ -14,13 +14,16 @@ sides of that decision are `jq` recipes against the
 
 = Import
 
-`mt import` reads canonical task-JSON (a file, or stdin by default) and writes
-native `.typ` tasks: it maps each record onto #emph[this project's] config
-policy — status legend, priority scale, `kind` enum, tag allow-list — emits a
-`task.with(...)` file, lands the batch, and validates it. There is no
-`--from`/`--via` source selector: sources are `jq` programs, upstream of the
-pipe, documented below. `mt check` still gates the result the same as any other
-task.
+`mt import` reads canonical task-JSON — a file, or stdin by default — and writes
+native `.typ` tasks. For each record it:
+
+- maps it onto #emph[this project's] config policy: status legend, priority
+  scale, `kind` enum, tag allow-list;
+- emits a `task.with(...)` file, lands the batch, and validates it.
+
+There is no `--from`/`--via` source selector: sources are `jq` programs,
+upstream of the pipe, documented below. `mt check` still gates the result the
+same as any other task.
 
 ```sh
 mt import                       # canonical JSON from stdin, writes into the first root

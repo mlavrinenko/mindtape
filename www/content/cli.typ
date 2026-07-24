@@ -48,12 +48,14 @@ File a new task, open one in your editor, or evaluate a single file.
 
 = Listing
 
-`mt ls [filter]` lists tasks under the configured roots. Omitting the filter
-(and any `@view`) first tries the project's `[[ls.rules]]` — see Conditional
-rules, below — then falls back to the default view (`[ls] default-view`, else
-`[views.default]`); an empty filter (`mt ls ''`) skips both and lists
-everything. It accepts a #link(u("/filters/"))[filter expression], sorts, and
-limits.
+`mt ls [filter]` lists tasks under the configured roots, and accepts a
+#link(u("/filters/"))[filter expression], sorts, and limits. With no filter and
+no `@view`, what it lists resolves in order:
+
+- the project's `[[ls.rules]]` first — see Conditional rules, below;
+- then the default view: `[ls] default-view`, else `[views.default]`.
+
+An empty filter (`mt ls ''`) skips both and lists everything.
 
 #cli-group(cli, cli-groups, "Listing")
 
@@ -61,11 +63,15 @@ Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`, or
 override for one run with `--columns`.
 
 `mt ls -i` (`--interactive`) holds the terminal in a key loop over the listed
-table instead of printing once: type a task's `#`-column ordinal to highlight it
-(prefix match), `Enter` opens the first highlighted task in the editor (via
-#link(u("/cli/"))[`go`]), `Ctrl+Enter` opens every listed task, `Space`
-re-evaluates the project, and `q` / `Ctrl+C` leaves. Table output only, and it
-needs a TTY.
+table instead of printing once:
+
+- a task's `#`-column ordinal highlights it (prefix match);
+- `Enter` opens the first highlighted task in the editor (via
+  #link(u("/cli/"))[`go`]), `Ctrl+Enter` opens every listed task;
+- `Space` re-evaluates the project;
+- `q` / `Ctrl+C` leaves.
+
+Table output only, and it needs a TTY.
 
 = Conditional rules
 
