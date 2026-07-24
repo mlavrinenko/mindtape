@@ -182,6 +182,9 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
   let title = meta.at("title", default: none)
   let active = meta.at("active", default: none)
   let home = meta.at("home", default: false)
+  // Same string that feeds <meta name="description"> in make-head — one
+  // source, so the lede and the description can never diverge.
+  let summary = meta.at("summary", default: none)
 
   html.elem("header", attrs: (class: "site-header"), {
     html.elem("div", attrs: (class: "header-inner"), {
@@ -201,6 +204,9 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
     // header, sidebar nav, and footer never leak into results.
     html.elem("main", attrs: (class: if home { "home" } else { "" }, "data-pagefind-body": ""), {
       if title != none and not home { html.elem("h1")[#title] }
+      // The home page carries its own hero lede (see hero() in ui.typ); skip
+      // here so it never doubles up.
+      if summary != none and not home { html.elem("p", attrs: (class: "lede"))[#summary] }
       body
     })
   })
