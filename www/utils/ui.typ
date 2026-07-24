@@ -43,13 +43,16 @@
   }
   col
 }
+// The SGR escape this module understands, shared by the colour splitter below
+// and `_ansi-strip`, so the "what counts as an SGR run" definition lives once.
+#let _sgr-re = regex("\u{1b}\[([0-9;]*)m")
 // ANSI text → a monospace block of coloured runs (whitespace significant,
 // newlines → linebreaks), split on the SGR escape via regex match offsets.
 #let _ansi-block(body) = {
   let runs = ()
   let pos = 0
   let cur = _term-fg
-  for m in body.matches(regex("\u{1b}\[([0-9;]*)m")) {
+  for m in body.matches(_sgr-re) {
     if m.start > pos { runs.push((cur, body.slice(pos, m.start))) }
     cur = _sgr-color(m.captures.at(0))
     pos = m.end
@@ -69,17 +72,36 @@
   set par(leading: 0.65em)
   lines.map(l => l.map(((c, t)) => text(fill: c, raw(t))).join()).join(linebreak())
 }
-// The colour terminal: the same dark panel as `terminal()`, but the body is the
-// html.frame'd SVG — so this output is an image, not selectable text (the
-// copyable commands live in the sibling `sh` code blocks).
-#let terminal-ansi(body) = html.elem(
-  "div",
-  attrs: (class: "terminal terminal-svg"),
-  html.frame(block(
-    fill: _term-bg, inset: (x: 14pt, y: 12pt),
-    _ansi-block(body.trim("\n", repeat: true)),
-  )),
-)
+// The same ANSI-bearing string, stripped of its SGR escapes — the accessible
+// text twin. Sourced from the very string every call site already passes (the
+// `--color always` `.ansi` capture), so it can never diverge from the image:
+// no caller change, no second `.txt` argument to keep in sync.
+#let _ansi-strip(body) = body.replace(_sgr-re, "")
+
+// The colour terminal: the same dark panel as `terminal()`, but the visible
+// body is the html.frame'd SVG — an image, not selectable text (the copyable
+// commands live in the sibling `sh` code blocks). Paired with a visually
+// hidden, real-text twin (`.sr-only`, components.css) so assistive tech gets
+// the actual transcript instead of nothing; the SVG itself is `aria-hidden`
+// so the transcript isn't announced twice.
+#let terminal-ansi(body) = {
+  let trimmed = body.trim("\n", repeat: true)
+  html.elem(
+    "div",
+    attrs: (class: "terminal terminal-svg"),
+    {
+      html.elem("div", attrs: (class: "sr-only"), raw(_ansi-strip(trimmed), block: true))
+      html.elem(
+        "div",
+        attrs: ("aria-hidden": "true"),
+        html.frame(block(
+          fill: _term-bg, inset: (x: 14pt, y: 12pt),
+          _ansi-block(trimmed),
+        )),
+      )
+    },
+  )
+}
 
 // All three hero faces are read from the live fixture and its captures under
 // generated/ (see www/generate.sh) — so none drift from reality: source is the
