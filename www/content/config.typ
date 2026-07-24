@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": terminal, callout
 #import "../utils/site.typ": u
+#import "../utils/config-ref.typ": config-gate, config-sections-table
 
 #show: page.with(
   title: "Configuration",
@@ -33,27 +34,55 @@ mt config show --json     # effective config as JSON
 
 = Sections
 
-#table(
-  columns: 2,
-  table.header([Section], [Purpose]),
-  [`[tasks] roots`], [Directories holding tasks. Table-form `[[tasks.roots]]` adds a display name and folder-tag policy — see #link(u("/derived-tags/"))[Derived tags].],
-  [`[[tasks.status]]`], [The status legend, in lifecycle order: `value`, optional `glyph` / `color`, `terminal`, optional `to` transition edges, and optional `note` (`required` / `optional` / `forbidden`).],
-  [`[tasks.priority]`, `[tasks.difficulty]`], [Numeric scales, bands, and frameworks. See #link(u("/priority/"))[Priority].],
-  [`[tasks.estimate]`], [Allowed estimate `units` (free labels, never converted), per-unit `max` / `min` bounds, and the working-tree `drift` check. See below.],
-  [`[tasks.recur]`], [Recurring-tasks policy floor: `enabled`, allowed `units` / `anchors`, `default-anchor`, `materialize`, the `rrule` feature flag, `max-advance`. See below.],
-  [`[tasks.naming]`], [`stem` template for the filename `mt add` / `mt recur` mint. Unset ⇒ bare slug. See below.],
-  [`[tasks.tags]`], [`allowed` — the tag allow-list, checked against authored and derived tags.],
-  [`[[tasks.limits]]`], [Work-in-progress caps: how many tasks may match a `filter` at once. Reported by `mt check`. See below.],
-  [`[tasks.comments]`], [Review-comment `policy` (`allow` / `warn` / `forbid`) over a task's whole source file, plus an `allow-pattern` escape hatch. See below.],
-  [`[[tasks.links.kinds]]`], [Project-declared edge kinds layered over the built-ins: cardinality, note rule, readiness/cycle flags, and the `validate` target shape. See below.],
-  [`[ls]`, `[rm]`], [Default filters, columns, and ordering. See #link(u("/filters/"))[Filter language].],
-  [`[views.<name>]`], [Named filter + sort + columns bundles, referenced with `@name`. See #link(u("/filters/"))[Filter language].],
-  [`[[on.flip]]`], [Actions bound to a status change: print a message, print a task list, or run a command that may refuse the flip. Only `mt flip` runs them. See below.],
-  [`[[ls.rules]]`], [Ordered auto-activation rules for bare `mt ls`. See below and #link(u("/cli/"))[CLI reference].],
-  [`[templates]`], [Template `dirs` and the `default` template. See #link(u("/templates/"))[Templates & slots].],
-  [`[add]`, `[go]`], [Editor, interactive mode, header, and scaffold `comments` toggle for `mt add` / `mt go`.],
-  [`[format]`], [`enabled` (default `true`): run typstyle over the Typst `mt` writes, so surgical edits and slot fills land in one canonical shape. Set `false` for raw byte-splice writes (minimal diffs).],
+Every section below is reflected straight from `mt config schema` — the same
+JSON Schema `mt install` writes to disk, generated from the config structs
+themselves. A row's purpose column is that property's own doc comment, so a
+newly added config key cannot silently go undocumented: the build fails first.
+Deep-dive sections further down this page (linked from the prose above and
+below) cover the sections whose shape needs more than one line.
+
+// The command tree pattern (cli.typ / cli-ref.typ) reflects clap's own
+// definition; this mirrors it for config: `config-sections` is presentation
+// (row order, TOML-syntax labels) and config-gate is the anti-drift check —
+// every schema property must be covered here, or the build panics.
+#let schema = json("../generated/config-schema.json")
+#let config-sections = (
+  ("tasks.roots", "[tasks] roots"),
+  ("tasks.status", "[[tasks.status]]"),
+  ("tasks.priority", "[tasks.priority]"),
+  ("tasks.difficulty", "[tasks.difficulty]"),
+  ("tasks.estimate", "[tasks.estimate]"),
+  ("tasks.recur", "[tasks.recur]"),
+  ("tasks.naming", "[tasks.naming]"),
+  ("tasks.id", "[tasks.id]"),
+  ("tasks.fields", "[tasks.fields.<name>]"),
+  ("tasks.body.headers", "[tasks.body.headers]"),
+  ("tasks.derive-tags", "[tasks.derive-tags]"),
+  ("tasks.tags", "[tasks.tags]"),
+  ("tasks.limits", "[[tasks.limits]]"),
+  ("tasks.comments", "[tasks.comments]"),
+  ("tasks.links", "[[tasks.links.kinds]]"),
+  ("ls", "[ls]"),
+  ("rm", "[rm]"),
+  ("views", "[views.<name>]"),
+  ("on", "[[on.flip]]"),
+  ("templates", "[templates]"),
+  ("add", "[add]"),
+  ("go", "[go]"),
+  ("format", "[format]"),
+  ("project", "[project]"),
+  ("typst", "[typst]"),
 )
+#config-gate(schema, config-sections)
+#config-sections-table(schema, config-sections)
+
+#callout("note")[
+  #link(u("/derived-tags/"))[Derived tags], #link(u("/priority/"))[Priority],
+  and #link(u("/filters/"))[Filter language] cover `[tasks.roots]` /
+  `[tasks.derive-tags]`, `[tasks.priority]` / `[tasks.difficulty]`, and
+  `[views]` / `[ls]` / `[rm]` in full; the #link(u("/cli/"))[CLI reference]
+  covers `[[ls.rules]]`.
+]
 
 = Example
 
@@ -207,12 +236,17 @@ regex = "^ACME-[0-9]+$"
 )
 
 Anything but `local-task-path` declares the kind's targets to be artifacts
-outside the backlog, and the graph semantics follow from that one field: such an
-edge is never resolved to a stem, never counted against a cardinality cap, never
-part of a cycle, and never blocks readiness — `blocking` and `acyclic` are
-ignored on it. A malformed target is a `mt check` violation naming the kind, the
-validator, and the value. `mt ls` never follows one, and `mt graph` draws it as
-its own dashed leaf node rather than a task.
+outside the backlog. The graph semantics follow from that one field — such an
+edge is:
+
+- never resolved to a stem;
+- never counted against a cardinality cap;
+- never part of a cycle;
+- never a readiness blocker, even with `blocking` set (`acyclic` is ignored too).
+
+A malformed target is a `mt check` violation naming the kind, the validator,
+and the value. `mt ls` never follows one, and `mt graph` draws it as its own
+dashed leaf node rather than a task.
 
 = Stem naming
 
@@ -477,9 +511,12 @@ view with `@name`: bare `@name` applies filter, sort, and columns together;
 `in_view("name")` — see #link(u("/filters/"))[Filter language] for the
 predicate and #link(u("/cli/"))[CLI reference] for `mt ls` / `mt views`.
 
-Views are validated at config load: each `filter` must parse, `sort` and
-`columns` entries must be legal, every view reference must resolve, and the
-reference graph must be acyclic — a cycle is a config error.
+Views are validated at config load:
+
+- each `filter` must parse;
+- `sort` and `columns` entries must be legal;
+- every view reference must resolve;
+- the reference graph must be acyclic — a cycle is a config error.
 
 = Conditional `ls` rules
 
@@ -510,10 +547,13 @@ it > the built-in default. A matched rule does not inherit `default-view` as a
 base layer — it composes everything it uses. No rule matching falls back to
 `default-view` exactly as before bare `mt ls` had rules at all.
 
-Rules are validated at config load: `condition` must parse and reference only
-environment predicates (a task field name is a load-time error), each
-`import-views` entry must resolve to a declared view with legal facet
-selectors, and a manual override must be valid — same checks as `[views]`.
+Rules are validated at config load, same checks as `[views]`:
+
+- `condition` must parse and reference only environment predicates — a task
+  field name is a load-time error;
+- each `import-views` entry must resolve to a declared view with legal facet
+  selectors;
+- a manual override must be valid.
 
 = Editor schema
 
@@ -562,12 +602,12 @@ merge, tables merge key-by-key and a scalar or array replaces the base value
 wholesale, so the overlay always wins the key it names. A preset whose whole
 body is under `[overlay]` composes to exactly that overlay.
 
-Because arrays replace wholesale, two ordinary (non-overlay) fragments that each
+Arrays replace wholesale, so two ordinary (non-overlay) fragments can't safely
 declare the same array-typed section — the status legend (`[[tasks.status]]`),
-priority `bands`, difficulty anchors, `[[tasks.roots]]` — are a hard error naming
-both sources: a silent pick is a status legend nobody chose. The fix is to pick
-one, or move the difference into `[overlay]`, which is exempt from the rule
-precisely because it exists to override.
+priority `bands`, difficulty anchors, `[[tasks.roots]]`. Declaring it twice is
+a hard error naming both sources: a silent pick would be a status legend
+nobody chose. Fix it by picking one fragment, or by moving the difference into
+`[overlay]` — exempt from the rule precisely because it exists to override.
 
 = Environment variables
 

@@ -64,6 +64,13 @@ gen_read() {
 # reference-only prose and worked examples live in www/utils/cli-notes.typ.
 "$MT" _cli --json >"$OUT/cli.json"
 
+# The config JSON Schema (project-independent — the exact bytes `mt install`
+# also writes to disk). config.typ renders it into the generated Sections
+# table; config-gate (www/utils/config-ref.typ) asserts every schema property
+# is surfaced, so a newly added config key cannot silently vanish — same
+# discipline as cli.json above.
+"$MT" config schema >"$OUT/config-schema.json"
+
 # --- release workflow: prebuilt targets + published crates ----------------
 # The install page must never hand-transcribe what a release ships — derive
 # it from .github/workflows/release.yml itself: the build-matrix `target:`
