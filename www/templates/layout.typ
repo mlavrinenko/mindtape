@@ -84,6 +84,16 @@ update();
   let desc = m.at("summary", default: SITE.tagline)
   if desc != none { html.elem("meta", attrs: (name: "description", content: desc)) }
   html.elem("link", attrs: (rel: "icon", href: "/assets/images/logo.svg", type: "image/svg+xml"))
+  // Raster fallbacks for browsers/contexts that skip the svg favicon above,
+  // rasterised at build time from that same logo.svg (www/generate.sh) — no
+  // hand-maintained second copy of the mark.
+  html.elem("link", attrs: (
+    rel: "icon",
+    href: "/assets/images/favicon-32.png",
+    type: "image/png",
+    sizes: "32x32",
+  ))
+  html.elem("link", attrs: (rel: "apple-touch-icon", href: "/assets/images/apple-touch-icon.png", sizes: "180x180"))
   html.elem("link", attrs: (rel: "preconnect", href: "https://fonts.googleapis.com"))
   html.elem("link", attrs: (rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: ""))
   html.elem("link", attrs: (

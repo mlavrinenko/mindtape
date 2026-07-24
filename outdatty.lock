@@ -22,7 +22,7 @@ groups:
       crates/mindtape-cli/Cargo.toml: 5bcbe4377a1394cb2c09c21298297cdff11eed1bee7e970164440b14010be72a
       crates/mindtape-cli/src/cli.rs: 68957ac34c35fd3239157582ac748c79bd31a0cf6207eb56c8a4e0d843b55e04
     dependents:
-      AGENTS.md: 06ca72fa42ceaa18d48b91adeb21d51077bf08aa6c7312bd5ad8e77a1da1b416
+      AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
       CHANGELOG.md: 356fc865d9a16598bf7d6ce2fb6db246d3f6bc7de3f9c3825ebb72074f306d6a
       CONTRIBUTING.md: f0d73d6f092da0f153217a3c6079c29904646266530655f1f451d28c5a2e51fc
       README.md: fd88c379fc4a426c6ec92300e816592cec9e7e6f0035b37bc6d7b323fa919557
@@ -33,15 +33,15 @@ groups:
   dev-docs:
     source:
       Justfile: f8a4a5800686b253dbae611345f7e2ae877f1a0da19fa156b2d27516d886f239
-      flake.nix: 8f2d26a74e437135d3af1e9483f5bc3c0685cfebd150a075c47f8581137746ab
+      flake.nix: 57e18a75ef4a4c4aab5e7d6bd22a5b613c5032767877b36225ce745d0ceffc20
     dependents:
-      AGENTS.md: 06ca72fa42ceaa18d48b91adeb21d51077bf08aa6c7312bd5ad8e77a1da1b416
+      AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
       CONTRIBUTING.md: f0d73d6f092da0f153217a3c6079c29904646266530655f1f451d28c5a2e51fc
   prelude-docs:
     source:
       lib/prelude.typ: b569239a93e4e3527ab20e0801d294217e2492458ba231dae0f1927885324c5b
     dependents:
-      AGENTS.md: 06ca72fa42ceaa18d48b91adeb21d51077bf08aa6c7312bd5ad8e77a1da1b416
+      AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
       README.md: fd88c379fc4a426c6ec92300e816592cec9e7e6f0035b37bc6d7b323fa919557
       skills/mindtape/SKILL.md: 93274445f8cdb738e46d62cdbac861fe0ba0132c453291886389e5a64166b075
       www/content/dsl.typ: 4ab63a2f231c5c578731a5d96b84f1ed3356d8b798c33ae8d1a41de6337fef06
@@ -54,7 +54,7 @@ groups:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5
     dependents:
-      AGENTS.md: 06ca72fa42ceaa18d48b91adeb21d51077bf08aa6c7312bd5ad8e77a1da1b416
+      AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
       README.md: fd88c379fc4a426c6ec92300e816592cec9e7e6f0035b37bc6d7b323fa919557
       crates/mindtape-cli/src/init.rs: 07d3d59ef22cd329571059e0eb8aa849b5adef98189a6c66b3b416527ddcf878
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898

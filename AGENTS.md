@@ -44,7 +44,7 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
 - Nix flake + `just`; dev tools: sccache, cargo-machete, linecop, outdatty,
   ejectest, cargo-llvm-cov (`just cover`; sees across the subprocess e2e tests), cargo-crap (`just crap`; CRAP gate over the lcov `cover` writes, CI-enforced), cargo-mutants (`just mutants-diff` pre-PR, `just mutants -f FILE` for a full-file sweep; not a `just check` gate and no CI job), jq (test/docs only: `contrib/jq/` import adapters), tola (Typst-native SSG for the `www/` docs) +
   pagefind (post-build client-side search index over the built HTML) +
-  hyperfine (`just bench` timing against the `examples/large/` generated fixture) + util-linux (`script(1)`, PTY wrapper for the interactive e2e test) + yq (docs-only: `www/generate.sh` reads `.github/workflows/release.yml` to derive the quickstart install targets)
+  hyperfine (`just bench` timing against the `examples/large/` generated fixture) + util-linux (`script(1)`, PTY wrapper for the interactive e2e test) + yq (docs-only: `www/generate.sh` reads `.github/workflows/release.yml` to derive the quickstart install targets) + librsvg (docs-only: `rsvg-convert` rasterises the favicon/apple-touch-icon from `assets/images/logo.svg` in `www/generate.sh`)
 
 ## Agent Rules
 

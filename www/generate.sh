@@ -189,4 +189,14 @@ cp "$COPY/tasks/practice-pedaling-technique.typ" "$OUT/add-written.typ"
 
 rm -rf "$(dirname "$COPY")"
 
+# --- favicon + apple touch icon, rasterised from the one hand-maintained SVG --
+# assets/images/ (unlike generated/) IS a tola-copied dir (see the header
+# comment above), so a file written here lands at a real, stable public URL —
+# the <link> tags in layout.typ point at it. Regenerated every build from
+# logo.svg, the sole hand-maintained copy of the mark, so the raster can never
+# drift from it; both PNGs are gitignored (see www/.gitignore / www/.ignore).
+LOGO="$SCRIPT_DIR/assets/images/logo.svg"
+rsvg-convert -w 32 -h 32 "$LOGO" -o "$SCRIPT_DIR/assets/images/favicon-32.png"
+rsvg-convert -w 180 -h 180 "$LOGO" -o "$SCRIPT_DIR/assets/images/apple-touch-icon.png"
+
 echo "generated $(find "$OUT" -type f | wc -l) files under $OUT"

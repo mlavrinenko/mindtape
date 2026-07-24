@@ -92,6 +92,7 @@
               hyperfine
               jq
               just
+              librsvg
               moreutils
               nixd
               pagefind
