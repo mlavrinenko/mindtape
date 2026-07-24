@@ -9,8 +9,8 @@
   ),
   difficulty: 5,
   tags: ("tooling", "gating"),
-  estimate: (files: 3),
-  status: proposed(2026, 7, 23),
+  estimate: (files: 5),
+  status: wip(2026, 7, 24),
 )
 
 == Summary
