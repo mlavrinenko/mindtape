@@ -10,7 +10,7 @@
   difficulty: 2,
   tags: ("docs", "www"),
   estimate: (files: 2),
-  status: proposed(2026, 7, 23),
+  status: done(2026, 7, 24),
 )
 
 == Summary
