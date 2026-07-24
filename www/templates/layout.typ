@@ -76,6 +76,42 @@ wrapper.addEventListener('scroll',onScroll,{passive:true});
 update();
 });"
 
+// "On this page" index, derived at runtime from the rendered h2 elements (see
+// base.typ's slug() show rule for their ids) — never a hand-written list, so
+// it cannot drift from the content it indexes. Only worth showing once a page
+// clears a minimum of 3 headings; a shorter page skims fine without one. The
+// `open` state is decided once, before the element is inserted, from the same
+// 52rem breakpoint main.css uses for its narrow layout: expanded on wide
+// viewports, collapsed (a `<details>` toggle) on narrow ones so it never
+// shoves the content down. `data-pagefind-ignore` keeps this nav out of the
+// search index, matching the header/sidebar/footer it sits alongside.
+#let _toc-script = "document.addEventListener('DOMContentLoaded',function(){
+var main=document.querySelector('main[data-pagefind-body]');
+if(!main)return;
+var heads=main.querySelectorAll('h2[id]');
+if(heads.length<3)return;
+var nav=document.createElement('nav');
+nav.className='page-toc';
+nav.setAttribute('data-pagefind-ignore','');
+var details=document.createElement('details');
+details.open=window.matchMedia('(min-width:52.01rem)').matches;
+var summary=document.createElement('summary');
+summary.textContent='On this page';
+var list=document.createElement('ul');
+heads.forEach(function(h){
+var li=document.createElement('li');
+var a=document.createElement('a');
+a.href='#'+h.id;
+a.textContent=h.textContent;
+li.appendChild(a);
+list.appendChild(li);
+});
+details.appendChild(summary);
+details.appendChild(list);
+nav.appendChild(details);
+heads[0].parentNode.insertBefore(nav,heads[0]);
+});"
+
 #let make-head(m) = {
   html.elem("meta", attrs: (charset: "utf-8"))
   html.elem("meta", attrs: (name: "viewport", content: "width=device-width, initial-scale=1"))
@@ -105,6 +141,7 @@ update();
   html.elem("link", attrs: (rel: "stylesheet", href: "/assets/styles/components.css"))
   html.script(_theme-script)
   html.script(_matrix-float-head-script)
+  html.script(_toc-script)
   html.script(_search-init)
 }
 
