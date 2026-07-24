@@ -32,8 +32,8 @@ groups:
       www/content/quickstart.typ: 8cde4f338c19d8f2dba2d802b8f94fc9aae84877fee3b700c79fd1734ef04c07
   dev-docs:
     source:
-      Justfile: 3e875ef09ce23c2b8364bed64b95ac7c663416c76f62189ac0749e0cb0b8e758
-      flake.nix: 7ff69227b29c9493f9fcc985af8e265d75fe726112fc6208ac4482d0210ae8f2
+      Justfile: 6368fcdb6392f99c4afa65bd942e8e749931dc190ce9c7dd1fbde6899e60ea3b
+      flake.nix: c43b68ba83b5b86068380cf7cc1680155ca5d678470daf0fc1ce5eb7e1dfe11a
     dependents:
       AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
       CONTRIBUTING.md: 49d01285dde8c33332bffbc0b7ce7d21df10379c18f4543d50ff017754eb4fda

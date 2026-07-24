@@ -1,13 +1,19 @@
-# .mmz/config.yaml — memoized freshness for MindTape's own close gate.
+# .mmz/config.yaml — per-sub-gate memoized freshness for MindTape's close gate.
 #
-# `mt flip` into a terminal status runs `mmz --is-fresh -- just check`, which
-# asserts the gate already passed against this worktree rather than running it
-# again. A gate that re-runs `just check` inside `mt flip` is bad ergonomics —
-# slow, at the least convenient moment, and an agent learns to reach for
+# `mt flip` into a terminal status runs `mmz --is-fresh --tag gate`, which
+# asserts every gate-tagged rule already passed against this worktree rather
+# than running any of them again. Rules here that are NOT gate-tagged are
+# memoized for convenience (a future `mmz just bench` would skip on a no-op
+# re-run) but stay out of the close predicate.
+#
+# A gate that re-runs `just check` inside `mt flip` is bad ergonomics — slow,
+# at the least convenient moment, and it teaches an agent to reach for
 # `--force`. Asserting a prior pass is cheap and is the predicate the review
 # actually wants: proof of a passing build, not a claim of one.
 #
-# Record a pass by running the gate through mmz: `mmz just check`.
+# Record every gate pass by running `just check` itself — every arm of `just
+# check` is `just mmz <subgate>`, so the underlying sub-recipe runs through mmz
+# and records its outcome. `mmz --is-fresh --tag gate` then asserts all of them.
 #
 # NOTE ON SCOPE. `truth/tasks/**` is deliberately absent. `mt flip` writes the
 # task file it is gating, so a rule keyed on the whole tree would go stale the
@@ -16,33 +22,73 @@
 # pre-commit hook (`cargo run -- check`), not by the gate.
 
 scopes:
-  # Everything cargo test / clippy / machete / the file-size and copy-paste
-  # gates read: sources, manifests, and the toolchain pins (rust-toolchain plus
-  # the flake.lock that actually selects rustc in the dev shell).
+  # Everything that builds the rust crates: sources, manifests, and the
+  # toolchain pins (rust-toolchain plus the flake.lock that actually selects
+  # rustc in the dev shell). Bumping the toolchain or any Cargo dep busts every
+  # rule that depends on `rust`.
   rust:
     - "crates/**/*.rs"
     - "Cargo.toml"
     - "Cargo.lock"
     - "rust-toolchain.toml"
-    - "rustfmt.toml"
-    - "clippy.toml"
-    - "flake.nix"
     - "flake.lock"
 
-  # Config and schema the tests assert against, plus the Typst prelude every
-  # task file imports.
+  # cargo fmt's config — edits change what "formatted" means.
+  rust-fmt:
+    - "rustfmt.toml"
+
+  # cargo clippy's config — edits change the lint surface.
+  rust-clippy:
+    - "clippy.toml"
+
+  # Cargo manifests only — cargo-machete reads these, not sources.
+  manifests:
+    - "Cargo.toml"
+    - "Cargo.lock"
+
+  # Policy/config the workspace tests assert against, plus the Typst prelude
+  # every task file imports (edits to lib/prelude.typ bust the test cache).
   policy:
     - ".mindtape/config.toml"
     - ".mindtape/templates/**"
     - "schema/**"
     - "lib/**"
 
-  # `just check-examples` validates this fixture project against itself.
+  # TOML formatter (`just fmt-check` runs `tombi format --check` over these).
+  toml-fmt:
+    - ".mindtape/config.toml"
+    - "examples/learn-piano/.mindtape/config.toml"
+    - "examples/large/.mindtape/config.toml"
+
+  # Typst formatter (`just fmt-check` runs `typstyle --check` over these).
+  typ-fmt:
+    - "lib/**"
+    - "truth/tasks/**"
+    - "examples/learn-piano/tasks/**"
+    - "examples/learn-piano/.mindtape/templates/**"
+    - "www/content/**"
+    - "www/templates/**"
+    - "www/utils/**"
+
+  # linecop config — a limit change busts the file-size gate.
+  file-size-config:
+    - ".linecop.yaml"
+
+  # outdatty's own config + lock. The dependents outdatty re-reads are already
+  # covered by the `rust`/`policy`/`examples`/`docs` scopes (outdatty.lock
+  # hashes their content), so a dependent edit busts via those scopes, and a
+  # raw lock/config edit busts here.
+  outdatty-config:
+    - "outdatty.yaml"
+    - "outdatty.lock"
+
+  # `just check-examples` runs `mt check` against this fixture project.
   examples:
     - "examples/learn-piano/**"
 
-  # `just docs-check` builds the tola site and validates its links and assets;
-  # `just outdatty-check` compares these against outdatty.lock.
+  # The docs tree `just docs-check` builds and validates (tola + pagefind +
+  # validate) plus the mirrored docs whose drift outdatty gates. `docs/**`
+  # covers the frozen decisions and redesign subdirs too — harmless over-scope.
   docs:
     - "www/**"
     - "README.md"
@@ -51,17 +97,78 @@ scopes:
     - "CHANGELOG.md"
     - "skills/**"
     - "contrib/**"
+    - "docs/**"
 
-  # The gate definitions themselves: change a limit and the previous pass no
-  # longer proves anything.
-  gates:
+  # The Justfile holds every recipe body. Add it to every rule so a recipe
+  # edit re-runs every gate it wraps — rare, and you'd want a re-run then
+  # anyway. In the common case (a source edit, no Justfile touch) it costs
+  # nothing: the hash is content-based, so an unchanged Justfile contributes no
+  # churn.
+  gates-meta:
     - "Justfile"
-    - ".linecop.yaml"
-    - "outdatty.yaml"
-    - "outdatty.lock"
 
 on_hit: "mmz: skipped {cache:command} (inputs unchanged)"
 
 commands:
-  - name: just check
-    inputs: [rust, policy, examples, docs, gates]
+  # Rust formatting — `cargo fmt --check` over Rust, `tombi format --check`
+  # over the project config TOML, `typstyle --check` over the Typst sets. A
+  # single edit to one set busts only this rule.
+  - name: just fmt-check
+    tags: [gate]
+    inputs: [rust, rust-fmt, toml-fmt, typ-fmt, gates-meta]
+
+  - name: just clippy
+    tags: [gate]
+    inputs: [rust, rust-clippy, gates-meta]
+
+  - name: just test
+    tags: [gate]
+    inputs: [rust, policy, examples, gates-meta]
+
+  - name: just machete
+    tags: [gate]
+    inputs: [manifests, gates-meta]
+
+  # linecop scans `*.rs` and `*.md` (target/archive/var excluded by config).
+  # `crates/**/*.rs` is the `rust` scope; the tracked `.md` files all live
+  # under `docs` (README, CONTRIBUTING, AGENTS, CHANGELOG, skills/**,
+  # docs/** — including docs/logo-candidates/README.md).
+  - name: just check-file-size
+    tags: [gate]
+    inputs: [rust, file-size-config, docs, gates-meta]
+
+  # jscpd scans `crates/` Rust only; the `-k 70` token threshold is Justfile-
+  # defined, so a Justfile edit re-runs this gate.
+  - name: just check-dry
+    tags: [gate]
+    inputs: [rust, gates-meta]
+
+  # outdatty.check re-reads every dependent's current content and compares to
+  # the lock. Every dependent lives under `rust`/`policy`/`examples`/`docs`, so
+  # a dependent edit busts via those scopes; `outdatty-config` covers the lock
+  # + the group config directly.
+  - name: just outdatty-check
+    tags: [gate]
+    inputs: [outdatty-config, rust, policy, examples, docs, gates-meta]
+
+  # `cargo run -p mindtape-cli -w examples/learn-piano check` — depends on the
+  # built binary (rust) plus the fixture's task tree + project config (policy +
+  # examples).
+  - name: just check-examples
+    tags: [gate]
+    inputs: [rust, policy, examples, gates-meta]
+
+  # docs-gen shells out to the built `mt` binary (rust) and reads the docs
+  # tree + the learn-piano fixture (examples) + the project policy/prelude
+  # (the generated CLI transcripts reference `mt`'s config-driven output).
+  - name: just docs-check
+    tags: [gate]
+    inputs: [rust, policy, examples, docs, gates-meta]
+
+  # Formatter self-test: a deliberately-mis-formatted TOML/Typst fixture must
+  # be rejected by tombi/typstyle. The formatters are dev-shell-pinned, and the
+  # recipe body (the bad-fixture literals) lives in the Justfile — so this rule
+  # only re-runs on a Justfile or toolchain-pin edit.
+  - name: just fmt-fixture-check
+    tags: [gate]
+    inputs: [rust, rust-fmt, gates-meta]

@@ -7,19 +7,36 @@ default:
 # Run fixes, then other checks
 fix-check: eject fmt clippy-fix check
 
-# Run all checks in parallel (fmt + clippy + tests + unused deps + file size + drift)
+# Run all checks in parallel (fmt + clippy + tests + unused deps + file size +
+# drift). Each arm is `just mmz <subgate>` — mmz wraps it, so a no-op `just
+# check` re-run skips every arm whose declared inputs are unchanged, and `mt
+# flip` into a terminal status asserts them all fresh via
+# `mmz --is-fresh --tag gate` without running any. Per-rule scopes and the
+# `gate` tag live in .mmz/config.yaml. There is no `chronic` here: a cache hit
+# prints mmz's own `on_hit` note to stderr (quiet by construction), a miss
+# streams the underlying recipe's stdout/stderr live, and a failure propagates
+# its non-zero exit out of `parallel` unchanged.
 check:
     parallel -j 0 -- \
-        "chronic just fmt-check" \
-        "chronic cargo clippy --workspace --all-targets -q -- -D warnings" \
-        "chronic cargo test --workspace -q" \
-        "chronic just machete" \
-        "chronic just check-file-size" \
-        "chronic just check-dry" \
-        "chronic just outdatty-check" \
-        "chronic just check-examples" \
-        "chronic just docs-check" \
-        "chronic just fmt-fixture-check"
+        "just mmz fmt-check" \
+        "just mmz clippy" \
+        "just mmz test" \
+        "just mmz machete" \
+        "just mmz check-file-size" \
+        "just mmz check-dry" \
+        "just mmz outdatty-check" \
+        "just mmz check-examples" \
+        "just mmz docs-check" \
+        "just mmz fmt-fixture-check"
+
+# Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`. The
+# double hop makes mmz the cache identity (rule name `just <recipe>` in
+# .mmz/config.yaml), uniform across every sub-gate of `just check`. `just test
+# <filter>` (a developer query, no `mmz`) bypasses this recipe and stays plain
+# `cargo test` with ARGS — so the `just test` cache record reflects only the
+# bare, full-suite invocation that `just check` runs, never a filtered subset.
+mmz *ARGS:
+    mmz just {{ ARGS }}
 
 # Validate the learn-piano example project (examples/learn-piano/) against
 # itself, so the fixture the docs generator runs `mt` against can never rot.

@@ -193,19 +193,27 @@ severity = "error"
 message = "finish the open task, or split off what is done and close that, before starting another"
 
 # Closing a task asserts the gate already ran against this worktree, rather
-# than running it here. `mmz --is-fresh` exits 0 only when `just check` last
-# passed with these inputs unchanged; it never runs the wrapped command itself.
+# than running it here. `mmz --is-fresh --tag gate` exits 0 only when every
+# gate-tagged rule in .mmz/config.yaml last passed with these inputs unchanged;
+# it never runs any wrapped command itself.
 #
 # Why assert instead of run: a gate that invokes `just check` inside `mt flip`
 # is slow, fires at the least convenient moment, and teaches an agent to reach
 # for `--force`. Asserting a prior pass is cheap, and it is the machine-checkable
 # predicate the review actually wants — proof of a passing build, not a claim.
 #
+# Why per-tag and not the whole manifest: the manifest can carry non-gating
+# mmz rules (a bench, a prune) without those flipping the close predicate. The
+# `gate` tag is the boundary between "must have passed to close a task" and
+# "memoized for reuse elsewhere". `just check` writes every gate-tagged record
+# by running each arm as `mmz just <subgate>`; `mmz --is-fresh --tag gate` then
+# asserts them all.
+#
 # `mmz` is one thing this command can be, not a requirement: `run` is a plain
-# command, so a project without mmz points it at anything else. The rule and its
-# scopes live in .mmz/config.yaml, which deliberately excludes truth/tasks/ —
-# `mt flip` writes the task file it is gating and would otherwise bust its own
-# rule mid-command.
+# command, so a project without mmz points it at anything else. The rules and
+# their scopes live in .mmz/config.yaml, which deliberately excludes
+# truth/tasks/ — `mt flip` writes the task file it is gating and would
+# otherwise bust its own rule mid-command.
 #
 # The terminal statuses are listed rather than derived: `when` sees the task as
 # it stands BEFORE the write, so a bare `terminal` would test the status being
@@ -213,7 +221,7 @@ message = "finish the open task, or split off what is done and close that, befor
 [[on.flip]]
 when = 'into("done") || into("cancelled") || into("failed")'
 actions = [
-  { run = "mmz --is-fresh -- just check", gate = true, message = "the checks have not passed against this worktree — run `mmz just check`, then flip again (`--force` waives it and records the waiver in the note)" },
+  { run = "mmz --is-fresh --tag gate", gate = true, message = "the checks have not passed against this worktree — run `just check`, then flip again (`--force` waives it and records the waiver in the note)" },
 ]
 
 [add]
