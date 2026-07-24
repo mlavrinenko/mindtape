@@ -124,11 +124,29 @@ shape a listing comes wrapped in, not each task inside it.
 
 = The envelope
 
-`mt ls --json` wraps its records in a document-level envelope, captured here
-verbatim against the `learn-piano` fixture (see #link(u("/agents/"))[For AI
-agents] for the same capture):
+`mt ls --json` wraps its records in a document-level envelope. Its shape, with
+the version and the record count read from a real capture against the
+`learn-piano` fixture, so neither can drift:
 
-#raw(read("../generated/ls-json.txt"), lang: "json", block: true)
+// Derived from the generated capture rather than hand-typed, but summarised
+// rather than inlined whole: the full 380-line transcript lives on the
+// agents page, where the audience wants every field.
+#let envelope = json("../generated/ls-json.txt")
+#raw(
+  "{\n"
+    + "  \"schema_version\": "
+    + str(envelope.schema_version)
+    + ",\n"
+    + "  \"tasks\": [ … "
+    + str(envelope.tasks.len())
+    + " records, each shaped as above … ],\n"
+    + "  \"applied\": { … which rule and view won each facet … }\n"
+    + "}",
+  lang: "json",
+  block: true,
+)
+
+#link(u("/agents/"))[For AI agents] shows the same envelope captured in full.
 
 `schema_version` bumps only when the envelope or record shape changes in a way
 that could break `mt import` or an external `jq` consumer; `applied` names
