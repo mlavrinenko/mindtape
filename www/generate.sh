@@ -14,6 +14,12 @@
 #
 # `just docs-gen` invokes this; docs-build / docs-serve / docs-check run it first.
 #
+# One capture is not an `mt` transcript: release-targets.json reads
+# .github/workflows/release.yml (the build-matrix targets and the
+# `cargo publish -p` crate list) via `yq`, for the same reason as everything
+# else here — the install page must derive from the pipeline that actually
+# ships artifacts, never transcribe it by hand.
+#
 # Docs SSG gotchas (tola), learned building this generator:
 #   - Build-time images (the hero-card SVG, the terminal-ansi html.frame renders)
 #     live only under generated/, never copied to public/. `tola validate`
@@ -57,6 +63,54 @@ gen_read() {
 # source, so the reference cannot restate or drift from a flag fact; the
 # reference-only prose and worked examples live in www/utils/cli-notes.typ.
 "$MT" _cli --json >"$OUT/cli.json"
+
+# --- release workflow: prebuilt targets + published crates ----------------
+# The install page must never hand-transcribe what a release ships — derive
+# it from .github/workflows/release.yml itself: the build-matrix `target:`
+# list (one prebuilt binary per entry, attached to the GitHub Release) and
+# the ordered `cargo publish -p <crate>` steps (crates.io). `yq` reads the
+# workflow YAML as jq-filterable JSON (it's a jq wrapper, so the filters below
+# are plain jq syntax); everything downstream is jq, matching this script's
+# other JSON captures (cli.json).
+RELEASE_WF="$REPO/.github/workflows/release.yml"
+
+# Build-matrix target triples, in matrix order.
+TARGETS_JSON="$(yq -r '[.jobs.build.strategy.matrix.include[].target]' "$RELEASE_WF")"
+
+# The upload-artifact "name:" template, e.g. "mindtape-${{ matrix.target }}".
+# Captured verbatim (placeholder and all) so the page can derive each
+# release's download filename by substitution instead of assuming a prefix.
+ARTIFACT_TEMPLATE="$(yq -r \
+  '.jobs.build.steps[] | select(.uses != null and (.uses | test("upload-artifact"))) | .with.name' \
+  "$RELEASE_WF")"
+
+# Published crates, in the workflow's publish order (`cargo publish -p X`
+# lines only — the interstitial `sleep 30` steps have no `-p`).
+PUBLISH_CRATES="$(yq -r '.jobs.publish.steps[].run // empty' "$RELEASE_WF" \
+  | grep -oP '(?<=cargo publish -p )\S+')"
+
+# A published crate is the installable CLI iff ITS OWN manifest declares a
+# `[[bin]]` — checked against the crate's manifest in this workspace (a crate
+# published from elsewhere, e.g. an extracted substrate crate no longer in
+# crates/, can't be inspected here and is never mistaken for the CLI).
+publish_json="[]"
+while IFS= read -r crate; do
+  [ -z "$crate" ] && continue
+  is_bin=false
+  manifest="$REPO/crates/$crate/Cargo.toml"
+  if [ -f "$manifest" ] && grep -q '^\[\[bin\]\]' "$manifest"; then
+    is_bin=true
+  fi
+  publish_json="$(jq --arg crate "$crate" --argjson bin "$is_bin" \
+    '. + [{crate: $crate, bin: $bin}]' <<<"$publish_json")"
+done <<<"$PUBLISH_CRATES"
+
+jq -n \
+  --argjson targets "$TARGETS_JSON" \
+  --arg artifact_template "$ARTIFACT_TEMPLATE" \
+  --argjson publish "$publish_json" \
+  '{targets: $targets, "artifact-name-template": $artifact_template, publish: $publish}' \
+  >"$OUT/release-targets.json"
 
 # --- read commands against the fixture (verbatim) -------------------------
 gen_read ls        ls

@@ -12,13 +12,40 @@ From nothing to a validated task in a few commands.
 
 = Install
 
-Run it straight from the flake, or build from source:
+#let release = json("../generated/release-targets.json")
+// The installable CLI is whichever published crate declares its own
+// `[[bin]]` — asserted here so a workflow edit that drops or renames it
+// fails the docs build loudly instead of quietly showing a stale crate.
+#let cli-crates = release.publish.filter(p => p.bin)
+#if cli-crates.len() != 1 {
+  panic(
+    "quickstart: release-targets.json must name exactly one published crate "
+      + "with a [[bin]] (the CLI); found " + str(cli-crates.len()),
+  )
+}
+#let cli-crate = cli-crates.at(0).crate
+#let targets = release.targets
+#let artifact-for(target) = release.at("artifact-name-template").replace("${{ matrix.target }}", target)
+
+Run it straight from the flake:
 
 ```sh
-# Run without installing
 nix run github:mlavrinenko/mindtape -- --help
+```
 
-# Or build from source
+Install the published CLI crate from crates.io:
+
+#raw("cargo install " + cli-crate, lang: "sh", block: true)
+
+Every tagged release (`.github/workflows/release.yml`) also builds a binary
+for #targets.len() platforms, attached to the #link(REPO + "/releases")[Releases
+page] — download whichever matches yours:
+
+#list(..targets.map(t => raw(artifact-for(t))))
+
+Or build from source:
+
+```sh
 git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape && cargo build --release   # produces target/release/mt
 ```

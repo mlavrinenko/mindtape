@@ -99,6 +99,7 @@
               typst
               typstyle
               util-linux
+              yq
             ]);
           buildInputs = with pkgs; [ openssl ];
           shellHook = ''
