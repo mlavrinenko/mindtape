@@ -58,7 +58,7 @@ enum Command {
     /// List worktree aliases (`@name` sugar; `~/.config/mindtape/worktrees.toml`).
     Worktrees(worktrees::WorktreesArgs),
     /// Validate tasks against the project configuration.
-    Check,
+    Check(check::CheckArgs),
     /// Inspect the effective merged configuration (`show` is the default action).
     Config(config_cmd::ConfigArgs),
     /// Save or list named `mt init` starter shapes: `save <name>` captures the
@@ -131,7 +131,7 @@ impl Cli {
             Command::Graph(args) => graph::run(&args),
             Command::Views(args) => views::run(&args),
             Command::Worktrees(args) => worktrees::run(&args),
-            Command::Check => check::run(),
+            Command::Check(args) => check::run(&args),
             Command::Config(args) => config_cmd::run(&args),
             Command::Preset(args) => preset_cmd::run(&args),
             Command::Init(args) => init::run(&args),

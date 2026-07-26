@@ -1,6 +1,7 @@
 //! `mt check` — validate tasks against the project configuration.
 
 use anyhow::{Context, Result, bail};
+use clap::Args;
 use mindtape::{
     LimitBreach, Violation, check_comments, check_estimate_drift, check_headers, check_limits,
     compile_rules, validate,
@@ -8,15 +9,24 @@ use mindtape::{
 
 use crate::util;
 
+/// Arguments for `mt check`.
+#[derive(Args, Default)]
+pub struct CheckArgs {
+    /// Suppress the `ok: N task(s) valid` summary on success; violations,
+    /// warnings, and the exit code are unaffected.
+    #[arg(short = 'q', long)]
+    pub quiet: bool,
+}
+
 /// Run the `check` command.
 ///
 /// # Errors
 /// Returns an error (non-zero exit) if any task is invalid or failed to load.
-pub fn run() -> Result<()> {
-    run_with(&util::open()?)
+pub fn run(args: &CheckArgs) -> Result<()> {
+    run_with(&util::open()?, args)
 }
 
-pub(crate) fn run_with(project: &util::Project) -> Result<()> {
+pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> {
     util::warn_errors(&project.outcome);
 
     let header_rules = compile_rules(&project.config.tasks.body.headers.rules)
@@ -64,7 +74,9 @@ pub(crate) fn run_with(project: &util::Project) -> Result<()> {
 
     let load_errors = project.outcome.errors.len();
     if violations.is_empty() && load_errors == 0 && over_limit == 0 {
-        println!("ok: {} task(s) valid", project.outcome.tasks.len());
+        if !args.quiet {
+            println!("ok: {} task(s) valid", project.outcome.tasks.len());
+        }
         return Ok(());
     }
     bail!(

@@ -19,14 +19,14 @@ fn make_project_with_config(dir: &Path, files: &[(&str, &str)], config: Config) 
 fn valid_project_returns_ok() {
     let dir = tempfile::tempdir().unwrap();
     let project = make_project(dir.path(), &[("x.typ", TASK)]);
-    assert!(super::run_with(&project).is_ok());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn empty_project_returns_ok() {
     let dir = tempfile::tempdir().unwrap();
     let project = make_project(dir.path(), &[]);
-    assert!(super::run_with(&project).is_ok());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn load_error_returns_err() {
         dir.path(),
         &[("broken.typ", "#import \"@local/nope:9.9.9\": *\n")],
     );
-    assert!(super::run_with(&project).is_err());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 #[test]
@@ -54,7 +54,60 @@ fn validation_violation_returns_err() {
     ))
     ";
     let project = make_project_with_config(dir.path(), &[("y.typ", body)], config);
-    assert!(super::run_with(&project).is_err());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
+}
+
+const QUIET_CLEAN_CHILD: &str = "_MT_CHECK_QUIET_CLEAN_CHILD";
+
+/// `--quiet` suppresses the `ok: N task(s) valid` summary on a clean run, but
+/// the command still exits 0. Asserted from a child process, since the
+/// parent's test harness owns stdout.
+#[test]
+fn quiet_suppresses_ok_summary_on_clean_run() {
+    if std::env::var(QUIET_CLEAN_CHILD).is_err() {
+        let out = crate::test_util::run_self_test(
+            "quiet_suppresses_ok_summary_on_clean_run",
+            QUIET_CLEAN_CHILD,
+        );
+        crate::test_util::assert_child_ok(&out);
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            !stdout.contains("ok:"),
+            "quiet clean run should suppress the ok summary, got: {stdout}"
+        );
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let project = make_project(dir.path(), &[("x.typ", TASK)]);
+    assert!(super::run_with(&project, &super::CheckArgs { quiet: true }).is_ok());
+}
+
+const QUIET_VIOLATION_CHILD: &str = "_MT_CHECK_QUIET_VIOLATION_CHILD";
+
+/// `--quiet` still reports violations and fails the command on a bad run —
+/// only the success summary is suppressed.
+#[test]
+fn quiet_still_reports_violations_on_failing_run() {
+    if std::env::var(QUIET_VIOLATION_CHILD).is_err() {
+        let out = crate::test_util::run_self_test(
+            "quiet_still_reports_violations_on_failing_run",
+            QUIET_VIOLATION_CHILD,
+        );
+        crate::test_util::assert_child_ok(&out);
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            stdout.contains("priority"),
+            "quiet should still print violation details, got: {stdout}"
+        );
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let project = make_project_with_config(
+        dir.path(),
+        &[("y.typ", BODY_NO_PRIORITY)],
+        violation_config(),
+    );
+    assert!(super::run_with(&project, &super::CheckArgs { quiet: true }).is_err());
 }
 
 #[test]
@@ -67,7 +120,7 @@ fn multiple_valid_tasks_reports_count() {
     };
     // Confirm two tasks loaded successfully before asserting Ok.
     assert_eq!(outcome.tasks.len(), 2);
-    assert!(super::run_with(&project).is_ok());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 const TASK_WITH_SUMMARY: &str = "#metadata((
@@ -92,7 +145,7 @@ fn header_require_rule_passes_when_heading_present() {
         parse_config("[[tasks.body.headers.rules]]\npath = [\"Summary\"]\naction = \"require\"\n")
             .unwrap();
     let project = make_project_with_config(dir.path(), &[("a.typ", TASK_WITH_SUMMARY)], config);
-    assert!(super::run_with(&project).is_ok());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
@@ -103,7 +156,7 @@ fn header_require_rule_fails_when_heading_absent() {
             .unwrap();
     // TASK has no headings at all
     let project = make_project_with_config(dir.path(), &[("a.typ", TASK)], config);
-    assert!(super::run_with(&project).is_err());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 const BODY_NO_PRIORITY: &str = "#metadata((
@@ -176,7 +229,7 @@ fn run_with_prints_violation_and_fails() {
         &[("y.typ", BODY_NO_PRIORITY)],
         violation_config(),
     );
-    assert!(super::run_with(&project).is_err());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 /// Verify that `run()` loads the project from disk and validates it.
@@ -220,7 +273,7 @@ fn run_validates_from_disk() {
         return;
     }
     // Child: call run() from cwd (which is the temp project).
-    let result = super::run();
+    let result = super::run(&super::CheckArgs::default());
     assert!(result.is_err(), "run() should fail on missing priority");
 }
 
@@ -257,7 +310,7 @@ fn limit_breach_at_warn_severity_still_passes() {
         &[("a.typ", TASK), ("b.typ", TASK)],
         LIMIT_WARN_TOML,
     );
-    assert!(super::run_with(&project).is_ok());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
@@ -268,7 +321,7 @@ fn limit_breach_at_error_severity_fails() {
         &[("a.typ", TASK), ("b.typ", TASK)],
         LIMIT_ERROR_TOML,
     );
-    let err = super::run_with(&project).unwrap_err();
+    let err = super::run_with(&project, &super::CheckArgs::default()).unwrap_err();
     assert!(
         err.to_string().contains("1 limit breach(es)"),
         "failure should name the breach count: {err}"
@@ -279,7 +332,7 @@ fn limit_breach_at_error_severity_fails() {
 fn a_respected_limit_passes_at_error_severity() {
     let dir = tempfile::tempdir().unwrap();
     let project = limited_project(dir.path(), &[("a.typ", TASK)], LIMIT_ERROR_TOML);
-    assert!(super::run_with(&project).is_ok());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
@@ -290,7 +343,7 @@ fn invalid_limit_filter_fails_with_config_error() {
         &[("a.typ", TASK)],
         "[[tasks.limits]]\nfilter = 'nonesuch == \"x\"'\nmax = 0\n",
     );
-    assert!(super::run_with(&project).is_err());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 const LIMIT_CHILD: &str = "_MT_CHECK_LIMIT_CHILD";
@@ -328,7 +381,7 @@ fn run_with_prints_the_breach_and_its_tasks() {
         &[("a.typ", TASK), ("b.typ", TASK)],
         LIMIT_ERROR_TOML,
     );
-    assert!(super::run_with(&project).is_err());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 #[test]
@@ -339,7 +392,7 @@ fn invalid_header_rule_regex_fails_with_config_error() {
     )
     .unwrap();
     let project = make_project_with_config(dir.path(), &[("a.typ", TASK)], config);
-    assert!(super::run_with(&project).is_err());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
 // --- `[tasks.comments]` review-comment policy ----------------------------
@@ -373,21 +426,21 @@ fn comments_project(dir: &Path, files: &[(&str, &str)], policy: &str) -> util::P
 fn default_policy_allow_ignores_a_comment() {
     let dir = tempfile::tempdir().unwrap();
     let project = make_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)]);
-    assert!(super::run_with(&project).is_ok());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn forbid_policy_passes_a_file_with_no_comments() {
     let dir = tempfile::tempdir().unwrap();
     let project = comments_project(dir.path(), &[("a.typ", TASK)], "forbid");
-    assert!(super::run_with(&project).is_ok());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 #[test]
 fn warn_policy_does_not_fail_the_command() {
     let dir = tempfile::tempdir().unwrap();
     let project = comments_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)], "warn");
-    assert!(super::run_with(&project).is_ok());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_ok());
 }
 
 const COMMENTS_CHILD: &str = "_MT_CHECK_COMMENTS_CHILD";
@@ -414,5 +467,5 @@ fn forbid_policy_fails_and_reports_file_line_and_text() {
     }
     let dir = tempfile::tempdir().unwrap();
     let project = comments_project(dir.path(), &[("a.typ", TASK_WITH_COMMENT)], "forbid");
-    assert!(super::run_with(&project).is_err());
+    assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
