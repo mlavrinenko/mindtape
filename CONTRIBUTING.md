@@ -82,7 +82,7 @@ with violations. Key restrictions:
 | File size | `linecop` (Rust 500, Markdown 200; 250 README, 300 `AGENTS.md`/`SKILL.md`). `linecop --baseline 85` lists what is nearing its cap — run it before adding to an existing file |
 | Copy-paste | `jscpd` (`just check-dry`) — fails on any duplicated Rust block ≥70 tokens; fix by extracting a shared helper |
 | Doc drift | `outdatty check` |
-| Fixtures | `just check-examples` — `mt check` against each in-tree fixture project: `examples/learn-piano/` (the docs generator's input) and `skills/mindtape/evals/files/sandbox/` (the mindtape skill's eval input). A fixture no gate validates rots silently |
+| Fixtures | `just check-examples` — `mt check` against each example project: `examples/learn-piano/` (full config surface; feeds the docs generator and the skill's triage evals) and `examples/minimal/` (the floor config; feeds the skill's trap evals). Keep the recipe and the mmz `examples` scope in step. A fixture no gate validates rots silently |
 | Docs site | `just docs-check` — `docs-gen` first captures live `mt` output (`www/generate.sh`), then `tola build`, then `pagefind` indexes the built HTML for client-side search, then `tola validate` checks links + assets |
 
 Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-llvm-cov`,

@@ -38,15 +38,16 @@ check:
 mmz *ARGS:
     mmz just {{ ARGS }}
 
-# Validate the in-tree fixture projects against themselves, so a fixture some
-# other tool runs `mt` against can never rot: learn-piano feeds the docs
-# generator, and the eval sandbox feeds the mindtape skill's evals. The sandbox
-# earned its place here — it silently outlived two config migrations (the
-# retired `[ls] default-filter`, the `depends-on:` → `links:` move) while it
-# was untracked scratch, so no eval could have run against it.
+# Validate every example project against itself, so a fixture some other tool
+# runs `mt` against can never rot: learn-piano feeds the docs generator and the
+# skill's triage evals, minimal feeds the skill's trap evals. Gating them is
+# what earns the right to depend on them — the eval fixture that preceded these
+# sat in untracked scratch and silently outlived two config migrations (the
+# retired `[ls] default-filter`, the `depends-on:` → `links:` move), so no eval
+# could have run against it and nothing said so.
 check-examples:
     cargo run -p mindtape-cli -q -- -w examples/learn-piano check
-    cargo run -p mindtape-cli -q -- -w skills/mindtape/evals/files/sandbox check
+    cargo run -p mindtape-cli -q -- -w examples/minimal check
 
 # (Re)generate the examples/large/ benchmark fixture: N deterministic task
 # files under examples/large/tasks/ (gitignored). Default N=2000.

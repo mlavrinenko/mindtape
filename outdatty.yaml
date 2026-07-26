@@ -35,10 +35,6 @@ groups:
       - CHANGELOG.md
 
   # The Typst task DSL is mirrored in the docs and the CLI's embedded copy.
-  # The eval sandbox vendors a verbatim copy of the prelude (it must stay
-  # self-contained, since eval runs copy it into a scratch dir with no path
-  # back to lib/) — so a prelude change has to be re-applied there by hand.
-  # It drifted to a 110-line stub against the real 560 while nothing watched it.
   - name: prelude-docs
     source:
       - lib/prelude.typ
@@ -47,7 +43,6 @@ groups:
       - AGENTS.md
       - www/content/dsl.typ
       - skills/mindtape/SKILL.md
-      - skills/mindtape/evals/files/sandbox/lib/prelude.typ
 
   # The Typst library version appears in every #import example and the CLI's
   # embedded constant. Bump lib/typst.toml and these must follow (the docs read
@@ -75,12 +70,11 @@ groups:
       - examples/learn-piano/tasks/theory/interval-recognition-ear-training.typ
       - examples/learn-piano/tasks/theory/chord-progression-analysis.typ
       - examples/learn-piano/tasks/theory/sight-singing-solfege.typ
-      - skills/mindtape/evals/files/sandbox/lib/typst.toml
-      - skills/mindtape/evals/files/sandbox/tasks/fix-login-bug.typ
-      - skills/mindtape/evals/files/sandbox/tasks/add-dark-mode.typ
-      - skills/mindtape/evals/files/sandbox/tasks/refactor-auth.typ
-      - skills/mindtape/evals/files/sandbox/tasks/setup-ci.typ
-      - skills/mindtape/evals/files/sandbox/tasks/write-docs.typ
+      - examples/minimal/tasks/fix-login-bug.typ
+      - examples/minimal/tasks/add-dark-mode.typ
+      - examples/minimal/tasks/refactor-auth.typ
+      - examples/minimal/tasks/setup-ci.typ
+      - examples/minimal/tasks/write-docs.typ
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.

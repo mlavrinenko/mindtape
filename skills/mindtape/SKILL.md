@@ -191,6 +191,10 @@ Rules to respect:
   prefer `mt rm` to retire, which rewrites them to tombstones.
 - Status, kind, priority scale, and tags come from `.mindtape/config.toml`.
 - Custom/extension fields must be namespaced `x-<ns>` (e.g. `x-speconaut: ...`).
+- The body is Typst, so a bare `//` starts a line comment and swallows the rest
+  of the line; under `[tasks.comments] policy = "forbid"` `mt check` rejects the
+  file. `https://…` is safe (Typst auto-links it), but `file://`, other URL
+  schemes, and any literal `//` are not — put those in backticks.
 - After any hand edit, run `mt check`.
 
 ## When the tool fights you

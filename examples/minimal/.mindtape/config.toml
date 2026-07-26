@@ -1,0 +1,58 @@
+#:schema ../../../schema/config.schema.json
+# examples/minimal/.mindtape/config.toml — the floor.
+#
+# The counterpart to examples/learn-piano/, which showcases the full config
+# surface. This one declares the least a project can and still be useful: a
+# four-value legend with no transition graph, an optional raw-int priority, no
+# template, no required fields, no header rules, no derived tags. Everything
+# else is inherited from the embedded defaults.
+#
+# It also backs the mindtape skill's trap evals, and the two things it does NOT
+# have are the point:
+#
+#   - No `blocked` in the legend. Blockage here is what it is everywhere — a
+#     `links: depends-on` edge (write-docs waits on add-dark-mode) — so an agent
+#     that reaches for `mt flip blocked` has invented a status. Contrast
+#     learn-piano, whose legend does declare one.
+#   - No `[templates]`, so `mt add` falls back to the built-in task template
+#     whose only slot is `title`. `mt add … --set priority=8` is therefore
+#     silently dropped: exit 0, success reported, no priority written. A skill
+#     that does not warn about that ships agents into a wrong-value trap.
+#
+# Keep both absences. Fixing them here would quietly delete the eval coverage
+# they exist to provide.
+
+[tasks]
+roots = ["tasks"]
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+
+# Bands come from the embedded floor (0-2 / 3-6 / 7-9), so `max` must be 9.
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
+required = false
+
+[views.default]
+filter = "!terminal"

@@ -92,13 +92,15 @@ scopes:
     - "outdatty.yaml"
     - "outdatty.lock"
 
-  # `just check-examples` runs `mt check` against these fixture projects: the
-  # docs generator's learn-piano, and the mindtape skill's eval sandbox. Both
-  # belong here — a fixture outside the scope goes false-fresh and stops being
-  # gated, which is how the eval sandbox rotted through two config migrations.
+  # The example projects `just check-examples` validates — keep this list and
+  # that recipe in step. A fixture outside the scope goes false-fresh and stops
+  # being gated, which is how the skill's previous eval fixture rotted through
+  # two config migrations unnoticed. Deliberately not a `examples/*` glob:
+  # examples/large/ is a generated, gitignored benchmark fixture that the recipe
+  # does not check, and its 2000 task files would churn this rule for nothing.
   examples:
     - "examples/learn-piano/**"
-    - "skills/mindtape/evals/files/sandbox/**"
+    - "examples/minimal/**"
 
   # The docs tree `just docs-check` builds and validates (tola + pagefind +
   # validate) plus the mirrored docs whose drift outdatty gates. `docs/**`

@@ -1,86 +1,93 @@
 {
   "skill_name": "mindtape",
+  "fixtures": {
+    "note": "Each eval names a fixture project by repo-relative path. Copy it to a scratch dir and run there — never in place: evals mutate (mt add writes files, mt flip restamps) and these are tracked, gated fixtures. See README.md.",
+    "learn-piano": "examples/learn-piano",
+    "minimal": "examples/minimal"
+  },
   "evals": [
     {
       "id": 0,
       "name": "ready-priority-triage",
+      "fixture": "examples/learn-piano",
       "prompt": "I've got some time this afternoon — what should I work on next? Show me what's actually ready to start, most important first.",
-      "expected_output": "Agent runs `mt ls` with a ready filter sorted by priority desc, returns the 3 ready tasks (Fix login redirect bug, Add dark mode toggle, Refactor auth middleware) in that order, and excludes the blocked Write onboarding docs. No files mutated.",
-      "files": [
-        "evals/files/sandbox"
-      ],
+      "expected_output": "Agent drives `mt ls` with a ready filter sorted by priority desc. Seven tasks are ready; the top is 'Analyze chord progressions in the recital repertoire' (ICE score 7, the only one in the red band). The two blocked tasks must not be recommended: 'Clair de Lune' (status blocked) and 'Autumn Leaves' (status proposed but dependency-blocked — status alone does not reveal it). No files mutated.",
+      "files": [],
       "assertions": [
         {
           "text": "Used the `mt ls` command (drove the CLI rather than hand-reading task files)"
         },
         {
-          "text": "Excluded the blocked task 'Write onboarding docs' from the recommendation"
+          "text": "Excluded BOTH blocked tasks: 'Clair de Lune' and 'Autumn Leaves' — the latter is only discoverable via the `blocked`/`ready` filter, not from its `proposed` status"
         },
         {
-          "text": "Presented ready tasks ordered by priority descending: Fix login redirect bug (8), Add dark mode toggle (7), Refactor auth middleware (6)"
+          "text": "Led with 'Analyze chord progressions in the recital repertoire', the highest-priority ready task"
         },
         {
-          "text": "Did not mutate any task files (sandbox tasks identical to template)"
+          "text": "Ordered by priority rather than by file order or due date, unless it explained why it chose otherwise"
+        },
+        {
+          "text": "Did not mutate any task files"
         }
       ]
     },
     {
       "id": 1,
       "name": "file-new-task",
-      "prompt": "We keep getting flaky failures on the Windows CI runner. Add a task to look into it.",
-      "expected_output": "Agent runs `mt add` to create a new task file under tasks/ about the Windows CI flake; the task validates (`mt check` passes); the 5 existing tasks are untouched.",
-      "files": [
-        "evals/files/sandbox"
-      ],
+      "fixture": "examples/learn-piano",
+      "prompt": "I keep fumbling the left-hand jumps in the Chopin waltz. Add a task to drill them.",
+      "expected_output": "Agent runs `mt add` to file a new task about drilling left-hand jumps. learn-piano declares a template, so the task should pick up its slots; `--to repertoire` or `--to technique` would nest it and earn a derived tag. `mt check` still passes and the 13 existing tasks are untouched.",
+      "files": [],
       "assertions": [
         {
           "text": "Used `mt add` to create the task (did not hand-author a .typ file from scratch)"
         },
         {
-          "text": "A new task file exists under tasks/ whose title/slug is about the Windows CI flake"
+          "text": "A new task file exists whose title/slug is about drilling the left-hand jumps"
         },
         {
-          "text": "The project still validates: `mt check` reports all tasks valid (6 total)"
+          "text": "`mt check` reports all tasks valid (14 total)"
         },
         {
-          "text": "The 5 original task files are unchanged"
+          "text": "The 13 original task files are unchanged"
         }
       ]
     },
     {
       "id": 2,
       "name": "mark-task-done",
-      "prompt": "I just shipped the login redirect fix. Mark that task as done.",
-      "expected_output": "Agent identifies fix-login-bug.typ, uses `mt flip done` (or the `mt done` verb) to set its status to done; no other task changes status.",
-      "files": [
-        "evals/files/sandbox"
-      ],
+      "fixture": "examples/learn-piano",
+      "prompt": "Finished the Hanon warm-up routine — it's solid now. Mark it done.",
+      "expected_output": "Agent identifies hanon-warmup-daily.typ (status wip) and closes it with `mt flip done` or the `mt done` verb. learn-piano's legend declares `to` edges and wip → done is allowed, so no `--force` is needed. No other task changes status.",
+      "files": [],
       "assertions": [
         {
-          "text": "Identified the correct task (Fix login redirect bug / fix-login-bug)"
+          "text": "Identified the correct task (Hanon warm-up / hanon-warmup-daily)"
         },
         {
           "text": "Used the CLI to change status (`mt flip done` or `mt done`), not a hand edit of the status line"
         },
         {
-          "text": "fix-login-bug.typ status is now `done`"
+          "text": "hanon-warmup-daily.typ status is now `done`"
         },
         {
-          "text": "No other task's status was changed (only fix-login-bug moved)"
+          "text": "Did not reach for `--force` — wip → done is a legal edge in this legend"
+        },
+        {
+          "text": "No other task's status was changed"
         }
       ]
     },
     {
       "id": 3,
       "name": "list-everything-no-all-flag",
-      "prompt": "Show me the whole backlog — every task, including the ones already finished.",
-      "expected_output": "Agent lists all 5 tasks including the terminal 'Set up CI pipeline' (done), using an empty filter (`mt ls ''`). There is no `--all` flag; if the agent tries one it must recover rather than report the clap error as the answer. No files mutated.",
-      "files": [
-        "evals/files/sandbox"
-      ],
+      "fixture": "examples/learn-piano",
+      "prompt": "Show me the whole backlog — every task, including the ones already finished or dropped.",
+      "expected_output": "Agent lists all 13 tasks, including the 4 terminal ones (2 done, 1 failed, 1 cancelled), using an empty filter (`mt ls ''`). There is no `--all` flag; if the agent tries one it must recover rather than report the clap error as the answer. No files mutated.",
+      "files": [],
       "assertions": [
         {
-          "text": "All 5 tasks are reported, including the done task 'Set up CI pipeline'"
+          "text": "All 13 tasks are reported, including the terminal ones (circle-of-fifths-drill, major-scales-two-octaves, sight-singing-solfege, abandoned-rondo-alla-turca)"
         },
         {
           "text": "Used an empty filter (`mt ls ''`) or an equivalent match-all filter, not a `--all` flag"
@@ -96,20 +103,19 @@
     {
       "id": 4,
       "name": "add-with-priority-slot-trap",
+      "fixture": "examples/minimal",
       "prompt": "File a task to upgrade the Postgres driver, and give it priority 8.",
-      "expected_output": "Agent files the task with `mt add`. The sandbox uses the built-in fallback template, whose only slot is `title`, so `--set priority=8` is silently dropped (exit 0, no priority written). The agent must notice this — via `mt add --describe`, `--print`, or reading the written file — and get `priority: 8` onto the task anyway (a hand edit of the new file is the sanctioned path, since priority has no CLI writer and no slot here). `mt check` passes.",
-      "files": [
-        "evals/files/sandbox"
-      ],
+      "expected_output": "examples/minimal declares no template, so `mt add` uses the built-in fallback whose only slot is `title`. `--set priority=8` is therefore dropped silently — exit 0, success reported, no priority written. The agent must notice (via `mt add --describe`, `--print`, or reading the file back) and get `priority: 8` onto the task anyway; a hand edit of the new file is the sanctioned path, since priority has no CLI writer and no slot here. `mt check` passes.",
+      "files": [],
       "assertions": [
         {
           "text": "Used `mt add` to create the task (did not hand-author the .typ from scratch)"
         },
         {
-          "text": "A new task file exists under tasks/ about upgrading the Postgres driver"
+          "text": "A new task file exists about upgrading the Postgres driver"
         },
         {
-          "text": "The new task actually carries `priority: 8` — not a missing priority left behind by a silently-dropped `--set`"
+          "text": "The new task actually carries `priority: 8` — not a missing priority left behind by the silently-dropped `--set`"
         },
         {
           "text": "The agent verified the written result rather than trusting the exit code (ran `--describe`, `--print`, `mt eval`, `mt ls`, or read the file back)"
@@ -125,11 +131,10 @@
     {
       "id": 5,
       "name": "external-blocker-no-blocked-status",
+      "fixture": "examples/minimal",
       "prompt": "The dark mode toggle is stuck — it's waiting on an upstream design-system release that hasn't shipped yet. Record that.",
-      "expected_output": "The sandbox legend is todo/wip/done/cancelled — there is no `blocked` status, and blockage is modelled as a `links: depends-on(...)` edge. Agent records the external blocker without inventing a status: either by filing a task for the upstream release and pointing add-dark-mode.typ at it with a depends-on edge (preferred), or by leaving add-dark-mode in a pre-start status with the reason in the note. `mt check` passes.",
-      "files": [
-        "evals/files/sandbox"
-      ],
+      "expected_output": "examples/minimal's legend is todo/wip/done/cancelled — no `blocked` value, so `mt flip blocked` fails. Blockage here is a `links: depends-on` edge. Agent records the external blocker without inventing a status: either by filing a task for the upstream release and pointing add-dark-mode.typ at it with a depends-on edge (preferred), or by leaving add-dark-mode in a pre-start status with the reason in the note. `mt check` passes.",
+      "files": [],
       "assertions": [
         {
           "text": "Did not write a `blocked` (or otherwise invented) status into any task file"
