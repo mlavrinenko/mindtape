@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("tooling",),
   estimate: (files: 3),
-  status: wip(2026, 7, 26),
+  status: done(
+    2026,
+    7,
+    26,
+  )[SKILL.md and AGENTS.md at 300; linecop --baseline 85 wired into both agent docs as the pre-edit check],
 )
 
 == Summary
