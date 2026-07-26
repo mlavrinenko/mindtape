@@ -13,6 +13,30 @@ overrides:
   - pattern: "**/CHANGELOG.md"
     exclude: true
 
+  # Agent skills and AGENTS.md get 300, not the 200 Markdown ceiling.
+  #
+  # Why raise it: the pressure a size cap should apply is against scope growth,
+  # not against accuracy. Both files sat at exactly 200/200, so the next
+  # correctness fix hit a wall — a round of skill fixes worth ~40 lines
+  # (a documented flag that does not exist, a silent `mt add --set` drop, a
+  # `blocked` status the legend never had) turned into a dozen compression
+  # passes that spent the budget on rewording, not on getting it right. A cap
+  # that makes a true fix expensive buys shorter files at the price of wrong
+  # ones.
+  #
+  # Why 300 and not more: 300 fits a correctness fix in one pass and still bites
+  # long before either file becomes a dump. Past it the answer is not a bigger
+  # number — it is progressive disclosure (skills/<name>/references/, which
+  # skill-creator supports) so the always-loaded surface stays small.
+  #
+  # Growth is still meant to be fought each time. `linecop --baseline 85` lists
+  # everything at 255+ of the 300, which is the moment to compact deliberately
+  # rather than at a wall mid-edit; run it before adding to an existing file.
+  - pattern: "**/SKILL.md"
+    limit: 300
+  - pattern: "**/AGENTS.md"
+    limit: 300
+
 count_mode: total
 
 exclude_dirs:
