@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("docs",),
   estimate: (files: 2),
-  status: wip(2026, 7, 26),
+  status: done(
+    2026,
+    7,
+    26,
+  )[skill verified command-by-command against the installed mt; three traps covered by evals],
 )
 
 == Summary
