@@ -7,7 +7,7 @@ use mindtape::{Config, RawValue, discover_slots};
 
 use super::{
     BUILTIN_TASK, DescribeFormat, collect_values, describe, env_var_name, layer_env,
-    list_templates, resolve_template, slug, stdin_title,
+    list_templates, reject_unknown_keys, resolve_template, slug, stdin_title,
 };
 
 #[test]
@@ -135,6 +135,27 @@ fn collect_rejects_non_object_json() {
     let path = dir.path().join("v.json");
     std::fs::write(&path, "[1,2,3]").unwrap();
     assert!(collect_values(&[path.to_string_lossy().into_owned()], &[]).is_err());
+}
+
+#[test]
+fn reject_unknown_keys_allows_known_slots() {
+    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
+    let mut values = BTreeMap::new();
+    values.insert("title".to_owned(), RawValue::Str("Fine".to_owned()));
+    assert!(reject_unknown_keys(&values, &specs).is_ok());
+}
+
+#[test]
+fn reject_unknown_keys_errors_naming_the_key_and_known_slots() {
+    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
+    let mut values = BTreeMap::new();
+    values.insert("title".to_owned(), RawValue::Str("Fine".to_owned()));
+    values.insert("priority".to_owned(), RawValue::Str("3".to_owned()));
+    let err = reject_unknown_keys(&values, &specs)
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("priority"), "{err}");
+    assert!(err.contains("title"), "{err}");
 }
 
 #[test]

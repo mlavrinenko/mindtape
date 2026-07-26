@@ -19,7 +19,7 @@ use typst_edit::apply;
 use crate::add_interactive;
 use crate::add_values::{
     DescribeFormat, append_list_value, collect_values, describe, layer_env, list_templates,
-    resolve_template, slug, stdin_title,
+    reject_unknown_keys, resolve_template, slug, stdin_title,
 };
 use crate::task_edit::{initial_status, task_with, upsert_named_arg};
 use crate::util;
@@ -116,6 +116,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
 
     let mut values = collect_values(&args.values, &args.set)?;
     let specs = discover_slots(&source);
+    reject_unknown_keys(&values, &specs)?;
     fill_title_from_args(&mut values, args, &specs);
     layer_env(&mut values, &specs, |key| std::env::var(key).ok());
     fill_title_from_stdin(&mut values, args)?;

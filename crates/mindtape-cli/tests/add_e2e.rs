@@ -324,6 +324,54 @@ fn collision_is_a_hard_error() {
         .failure();
 }
 
+/// `--set` naming no slot of the active template must fail loudly, naming the
+/// key, rather than silently filing a task with the wrong (default) value.
+#[test]
+fn unknown_set_key_is_a_hard_error() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+
+    let output = assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["add", "--name", "typo", "--set", "title=T"])
+        .args(["--set", "priorty=3"])
+        .assert()
+        .failure()
+        .get_output()
+        .stderr
+        .clone();
+    let stderr = String::from_utf8_lossy(&output);
+    assert!(stderr.contains("priorty"), "{stderr}");
+    assert!(
+        !dir.path().join("tasks/typo.typ").exists(),
+        "a rejected --set must never write a file"
+    );
+}
+
+/// Same treatment for the `-f`/`--values` JSON entry point.
+#[test]
+fn unknown_values_json_key_is_a_hard_error() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    let values = dir.path().join("v.json");
+    std::fs::write(&values, r#"{"title":"T","priorty":3}"#).unwrap();
+
+    let output = assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(dir.path())
+        .args(["add", "--name", "typo", "-f"])
+        .arg(&values)
+        .assert()
+        .failure()
+        .get_output()
+        .stderr
+        .clone();
+    let stderr = String::from_utf8_lossy(&output);
+    assert!(stderr.contains("priorty"), "{stderr}");
+    assert!(!dir.path().join("tasks/typo.typ").exists());
+}
+
 /// Prose carrying every Typst markup leader must file a task that loads and
 /// whose values read back exactly as typed. The `text` slots reach markup and
 /// are escaped on the way in; the `string` title and `int` priority render as

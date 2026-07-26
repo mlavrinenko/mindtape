@@ -130,6 +130,32 @@ pub fn append_list_value(values: &mut BTreeMap<String, RawValue>, name: &str, it
     }
 }
 
+/// Reject any `values` key that names no slot in `specs` — a `--set`/`-f`
+/// typo would otherwise silently vanish (the template default fills in
+/// instead) with nothing in the output to notice. Mirrors the existing
+/// list-slot-misuse hard error: a caller mistake fails loudly, naming the
+/// fix, rather than filing a task with the wrong value.
+///
+/// # Errors
+/// Returns an error listing the unknown key(s) and the template's known slot
+/// names when any `values` key matches no discovered slot.
+pub fn reject_unknown_keys(values: &BTreeMap<String, RawValue>, specs: &[SlotSpec]) -> Result<()> {
+    let known: Vec<&str> = specs.iter().map(|spec| spec.name.as_str()).collect();
+    let unknown: Vec<&str> = values
+        .keys()
+        .map(String::as_str)
+        .filter(|key| !known.contains(key))
+        .collect();
+    if unknown.is_empty() {
+        return Ok(());
+    }
+    bail!(
+        "unknown --set/-f key(s): {}; known slots: {}",
+        unknown.join(", "),
+        known.join(", ")
+    );
+}
+
 fn read_source(source: &str) -> Result<String> {
     if source == "-" {
         let mut text = String::new();
