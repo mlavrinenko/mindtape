@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("tests",),
   estimate: (files: 5),
-  status: wip(2026, 7, 26),
+  status: done(
+    2026,
+    7,
+    26,
+  )[evals 0-3 on learn-piano, 4-5 on examples/minimal; both fixtures gated by check-examples],
 )
 
 == Summary
