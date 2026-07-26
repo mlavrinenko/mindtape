@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("tooling",),
   estimate: (files: 5),
-  status: proposed(2026, 7, 26),
+  status: done(
+    2026,
+    7,
+    26,
+  )[fixture tracked under evals/files/, gated by check-examples with the mmz scope proven to catch changes],
 )
 
 == Summary
