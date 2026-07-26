@@ -10,7 +10,7 @@
   difficulty: 1,
   tags: ("cli",),
   estimate: (files: 3),
-  status: proposed(2026, 7, 26),
+  status: done(2026, 7, 26),
 )
 
 == Summary
