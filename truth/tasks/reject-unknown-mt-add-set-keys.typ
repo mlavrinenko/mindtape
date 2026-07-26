@@ -13,7 +13,7 @@
   links: related("correct-the-mindtape-skill-against-the-cli.typ")[
     found while correcting the agent skill against the real CLI
   ],
-  status: wip(2026, 7, 26),
+  status: done(2026, 7, 26)[landed the --set/-f unknown-slot-key hard error],
 )
 
 == Summary
