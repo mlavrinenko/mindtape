@@ -2,41 +2,38 @@
 name: mindtape
 description: >-
   How to drive MindTape, a daemon-free file-based task tracker, via its `mt` CLI
-  and one-task-per-file Typst artifacts. Use this whenever you are in a repo that
-  has a `.mindtape/config.toml` or `.typ` task files under a tasks root, or when
-  the user asks to list or find tasks, see what is ready or blocked, file or add
-  a task, mark a task done / in-progress / blocked, check or validate tasks,
+  and one-task-per-file Typst artifacts. Use in any repo that has a
+  `.mindtape/config.toml` or `.typ` task files under a tasks root, or when the
+  user asks to list or find tasks, see what is ready or blocked, file or add a
+  task, mark a task done / in-progress / blocked, check or validate tasks,
   retire or remove a task, or edit a task's status, priority, or links. Also
-  trigger on mentions of "mindtape", "mt ls", "mt add", "mt check", the task
-  backlog, or "what should I work on" in such a repo, even when the tool is not
-  named.
+  trigger on "mindtape", "mt ls", "mt add", "mt check", the task backlog, or
+  "what should I work on" in such a repo, even when the tool is not named.
 ---
 
 # MindTape (`mt`)
 
 MindTape is a file-based task tracker. Each task is one Typst file
-(`#show: task.with(...)`); the filename stem is the task's identity. There is no
-daemon, database, or index — every `mt` command live-evaluates the configured
-roots. You drive it through the `mt` binary.
+(`#show: task.with(...)`); the filename stem is the identity. No daemon,
+database, or index — every `mt` command live-evaluates the configured roots.
 
 Core rule: drive the `mt` CLI; do not hand-edit task files to list, file, or
 re-status them. `mt` stamps dates, slugs filenames, injects required fields,
-resolves and rewrites links, and validates against the project config — hand
-edits skip all of that and quietly produce invalid tasks. Edit a `.typ` by hand
-only for what no command covers: rewording the body, fixing a typo, adjusting a
-field the CLI does not manage.
+resolves links, and validates against the project config — hand edits skip that
+and quietly produce invalid tasks. Hand-edit a `.typ` only for what no command
+covers: the body, and fields with no CLI writer (notably `links:`); then run
+`mt check`.
 
 ## Is this a MindTape project?
 
-It is if `.mindtape/config.toml` exists at the repo root — it declares the task
-roots and the rules (status legend, priority scale, tags). Run `mt` from the
-directory holding `.mindtape/`, or any descendant. To drive a project from
-outside its tree: `-w/--worktree <path>`, `$MINDTAPE_WORKTREE`, or a `@name`
-from `~/.config/mindtape/worktrees.toml` (`mt worktrees` lists them).
+Yes if `.mindtape/config.toml` exists at the repo root — it declares the task
+roots and rules (status legend, priority scale, tags). Run `mt` from the
+directory holding `.mindtape/`, or any descendant. From outside the tree:
+`-w <path>`, `$MINDTAPE_WORKTREE`, or a `@name` that `mt worktrees` lists.
 
 ## The basic loop
 
-Most work is: find a task → read it → change its status → validate.
+Find a task → read it → change its status → validate.
 
 | Goal | Command |
 |------|---------|
@@ -44,34 +41,32 @@ Most work is: find a task → read it → change its status → validate.
 | List everything | `mt ls ''` (empty filter; there is no `--all`) |
 | Filter | `mt ls '<filter>'` (see below) |
 | Apply a named view | `mt ls @<view>`; `mt views` lists them |
-| Machine-readable list | `mt ls --json` |
 | Dependency graph | `mt graph` (DOT; `--format mermaid`, `--no-terminal`) |
-| Read one task | `mt eval <file>` or `mt eval <file> --json` |
+| Read one task | `mt eval <file>` (`--json`) |
 | Open a task in `$EDITOR` | `mt go <id>` |
 | File a new task | `mt add <title…>` (see below) |
 | Change status | `mt flip <status> <task…>` or the status verb |
+| Stamp `reviewed:` today | `mt review <task>` (one task) |
 | Advance a recurring task | `mt recur <task>` (spawn a new file or refresh in place) |
 | Validate all tasks | `mt check` |
 | Retire a task | `mt rm <task>` |
 | Inspect the effective config | `mt config show` (`--origin`, `--defaults`) |
-| Save/list starter presets | `mt preset save <name>` / `mt preset ls` |
 
 `<task>` / `<id>` accepts a filename stem, a relative/absolute path, or a handle
 ordinal from the last `mt ls` (the `#` column, e.g. `1b`).
 
-Common flags are listed below, so reach for `mt <cmd> --help` only when a command
-errors or you need a flag this skill lacks — not as a warm-up. The legend, kinds,
-priority scale, and tags are per-project: when you must pick among them, read
-`.mindtape/config.toml` (or `mt flip --list`) instead of guessing.
+Common flags are below; reach for `mt <cmd> --help` only when a command errors
+or needs a flag this skill lacks. Legend, kinds, priority scale, and tags are
+per-project: read `.mindtape/config.toml` (or `mt flip --list`), don't guess.
 
 ## Finding tasks — `mt ls`
 
-Bare `mt ls` first tries the project's `[[ls.rules]]` (ordered auto-activation
-rules keyed off branch/env/weekday/date — see the config), then falls back to
-the default view (`[ls] default-view`, else `[views.default]`; usually: active,
-startable tasks), printing a table with handle ordinals, status, priority, due
-date, and title, plus a dim `applied: ...` line naming which source won. Pass
-an empty filter (`mt ls ''`) to drop all of that and list everything (no `--all`).
+Bare `mt ls` tries the project's `[[ls.rules]]` (auto-activation keyed off
+branch/env/weekday/date), then falls back to the default view (`[ls]
+default-view`, else `[views.default]`; usually active, startable tasks), naming
+the winner on a dim `applied: ...` line. An empty filter (`mt ls ''`) drops all
+of that and lists everything. There is no `--all` flag; `mt ls --all` errors
+with `unexpected argument '--all'`.
 
 Pass a filter expression as the positional argument. Fields:
 `status priority difficulty kind title id due start reviewed file`.
@@ -79,84 +74,98 @@ Operators: `== != < > <= >= && || !` and parentheses. Helpers:
 
 - `has(field)` / `miss(field)` — field present / absent
 - `has_tag("name")` — authored or folder-derived tag
-- `contains(field, "substr")` — substring match
-- `search("query")` — full-text over title + body
+- `contains(field, "substr")` / `search("query")` — substring / full-text
 - `ready` / `blocked` — all direct deps terminal / not
 - `terminal` — status is a configured terminal state
-- `stale(N)` — untouched for more than N days
-- `now()` — today's ISO date, e.g. `due < now()`
+- `stale(N)` — untouched for more than N days; `now()` — today's ISO date
 - `in_view("name")` (also `@name`) — matches a named view's filter
 
-Named views are `[views.<name>]` bundles (filter + optional sort/columns); a
-bare `@name` applies all three facets, `@name` inside a bigger filter is the
-filter facet only. `--columns <cols|@view>` picks columns for one run.
-
-Examples:
+Named views are `[views.<name>]` bundles (filter + optional sort/columns); bare
+`@name` applies all three facets, `@name` inside a bigger filter is the filter
+facet only. `--columns <cols|@view>` picks columns for one run.
 
 ```sh
-mt ls 'status == "wip"'
 mt ls 'ready && priority > 5'
 mt ls 'has_tag("backend") && !terminal'
 mt ls 'due <= now()' --sort priority:desc
-mt ls @broken                        # a named view (filter + sort + columns)
-mt ls '@backend && !@blocked'        # compose views by @name
+mt ls '@backend && !@blocked'        # compose named views by @name
+mt ls 'stale(30)' --json             # --json / --format csv for other programs
 ```
-
-For another program to consume, use `mt ls --json` (or `--format csv`).
 
 ## Creating a task — `mt add`
 
-`mt add <title words>` files a new task from a template. The positional words
+`mt add <title words>` files a new task from a template; the positional words
 become the title and the filename slug (`mt add fix login bug` →
-`fix-login-bug.typ`). It writes under the first configured root and validates
-the result — never hand-write the `.typ`: `mt add` injects the status and id,
-slugs the filename, and validates for you. Common flags:
+`fix-login-bug.typ`). It writes under the first configured root, injects the
+status and id, and validates — never hand-write the `.typ`. Common flags:
 
-- `-t <template>` — pick a template (default from config)
-- `--to <subdir>` — nest under a folder of the root (drives derived tags)
-- `--set key=value` — fill a template slot
-- `--print` — preview the filled task instead of writing
-- `--describe` — show the template's fillable slots
-- `--list` — list available templates
+- `-t <template>` pick a template; `--list` list templates; `--describe` show slots
+- `--to <subdir>` nest under a folder of the root (drives derived tags)
+- `--set key=value` fill a slot; `--print` preview instead of writing
 
-For an unfamiliar custom template, `mt add --describe -t <template>` shows its
-slots and `mt add --list` what exists; otherwise go straight to `mt add <title>`.
+### `--set` keys are slot names, and unknown ones are dropped silently
 
-Multiple tags: `+word` positional args are sugar for the `tags` slot, e.g.
-`mt add fix login +backend +auth`; or repeat `--set tags[]=backend --set
-tags[]=auth`. A bare `--set tags=backend,auth` is one literal tag, not two — a
-`list` slot always needs `[]=` (or `-f values.json` with a JSON array).
+A `--set` key must name a slot of the active template. An unrecognised key is
+dropped with no warning and exit 0: `mt add fix bug --set priority=3` reports
+success while writing the template's default priority, not 3. A clean exit
+proves nothing here, so run `mt add --describe` (plus `-t <template>` for a
+non-default one), fill only names it lists, and `--print` to check the result.
+
+Slot names need not match field names. A framework priority is authored as
+`priority: ice(impact: slot("impact"), …)`, so the slots are its leaves —
+`--set impact=8 --set confidence=0.9 --set ease=4`, never `--set priority=8`.
+Under a strict framework (`framework` + `allow-manual = false` in
+`[tasks.priority]`) a scalar priority is invalid by construction and never a
+slot. Same for any field the template nests inside a call.
+
+Tags: `+word` positionals are sugar for the `tags` slot (`mt add fix login
++backend +auth`); or repeat `--set tags[]=backend --set tags[]=auth`. A bare
+`--set tags=backend,auth` is a hard error — a `list` slot needs `[]=`.
 
 ## Changing status — `mt flip` and status verbs
 
 `mt flip <status> <task…>` stamps a new status, dated today. The status must be a
-value from the project's legend. Every legend value is also a shortcut verb, so
-`mt done 1b` ≡ `mt flip done 1b`. Add `-m "note"` to attach a note.
+legend value; every legend value is also a shortcut verb, so `mt done 1b` ≡
+`mt flip done 1b`. `-m "note"` attaches a note. Use the command, not a hand edit
+of the `status:` line. If the legend declares `to` edges, a disallowed move is
+rejected with the valid next states listed; `--force` overrides (a same-status
+re-stamp is always fine).
 
-The legend is project-defined; if unsure a status exists, check `mt flip --list`,
-but when the target is obvious just run it. Use the command, not a hand edit of
-the `status:` line — it stamps today's date and validates the transition. If the
-legend declares `to` edges, `mt flip` rejects a disallowed move and lists the
-valid next states; `--force` overrides (a same-status re-stamp is always fine).
-
-A project may bind actions to a flip (`[[on.flip]]`): printing the open task set
-on the way into work, or a gate command that refuses a close until it passes.
-`mt flip` is the only command that runs them — reads never do. A refusal prints
-the command's output; `--force` waives it and records the waiver in the note.
+A project may bind actions to a flip (`[[on.flip]]`) — e.g. a gate that refuses
+a close until it passes. `mt flip` is the only command that runs them; reads
+never do. A refusal prints the command's output; `--force` waives it and records
+the waiver in the note.
 
 ```sh
-mt flip --list                 # show the legend and its verbs
+mt flip --list                 # the legend and its verbs
 mt wip 1b -m "started"         # if `wip` is a legend value
-mt flip blocked 2c 3a          # set several at once
-mt flip done 1b --force        # bypass the graph, or waive a failing gate
+mt flip done 1b 2c --force     # several at once; waive a failing gate
 ```
+
+### Blocked is a dependency, not a status
+
+`ready` / `blocked` in filters derive from `links:` — a non-terminal task with a
+non-terminal `depends-on` target is blocked. Most legends carry no `blocked`
+value (common: proposed/accepted/wip/done/cancelled/failed); check `mt flip
+--list` before reaching for one.
+
+Express blockage as an edge, not a status. `links:` has no CLI writer, so this
+is a sanctioned hand edit — add `links: depends-on("upstream-task.typ"),`, then
+`mt check`.
+
+When the blocker is external (an upstream release, another team's decision)
+there is no task to depend on. Either file a task for the external thing and
+depend on it (preferred — keeps `mt ls 'blocked'` truthful and gives the blocker
+somewhere to be closed), or park the task in a pre-start legend state with the
+reason in the note: `mt flip proposed 1b -m "blocked on upstream X"`. Do not
+leave it in `wip` as a stand-in: `wip` means someone is working it, and under
+`[[tasks.limits]]` a parked task burns the WIP cap and blocks a real start.
 
 ## Validating — `mt check`
 
-`mt check` evaluates every task against the project config: status/kind enums,
-required fields, numeric and `[tasks.estimate]` bounds, links, cycles, tags,
-body headers, `[[tasks.limits]]` caps, `[tasks.comments]` comment policy, and a
-warn-only drift check on the in-flight file budget. A clean run means all is valid.
+`mt check` validates every task against the project config: status/kind enums,
+required fields, numeric and estimate bounds, links, cycles, tags, body headers,
+`[[tasks.limits]]` caps, comment policy, and file-budget drift (warn-only).
 
 ## Authoring or editing a task file by hand
 
@@ -167,34 +176,25 @@ A task file is Typst. Edit the fields inside `task.with(...)`:
 #show: task.with(
   title: "Fix login bug",
   status: wip(2026, 6, 28)[started investigation],  // (name, y, m, d)[note]
-  priority: 6,                  // raw int, or a framework call like ice(...)
+  priority: 6,                          // raw int, or a call like ice(...)
   difficulty: 3,
-  kind: "bug",                  // enum from config
-  estimate: (hours: 4),         // opaque unit dict
+  kind: "bug",                          // enum from config
+  estimate: (hours: 4),                 // opaque unit dict
   links: depends-on("other-task.typ"),  // typed edges by file stem
   tags: ("backend",),
-  due: on(2026, 7, 1),          // ISO date, or omit
+  due: on(2026, 7, 1),                  // ISO date, or omit
 )
-
-= Notes
-
-Body is normal Typst markup, free for context, checklists, etc.
 ```
 
 Rules to respect:
-- One task per file; the filename stem is the identity. Renaming a file breaks
-  inbound `link()`s — prefer `mt rm` to retire, or update links and `mt check`.
-- Status, kind, priority scale, and tags are defined in `.mindtape/config.toml`
-  — read it before inventing values.
+- One task per file; the stem is the identity. Renaming breaks inbound links —
+  prefer `mt rm` to retire, which rewrites them to tombstones.
+- Status, kind, priority scale, and tags come from `.mindtape/config.toml`.
 - Custom/extension fields must be namespaced `x-<ns>` (e.g. `x-speconaut: ...`).
 - After any hand edit, run `mt check`.
 
 ## When the tool fights you
 
-If a command errors, read the message — it usually names the offending field or
-file. For full flag sets, prefer `mt <cmd> --help` over guessing.
-
-## Improving this skill (internal note)
-
-Skill grows step by step. If something is missing or misleading, name it (command,
-flag, exact error) so the next run improves. (Internal note; remove on publish.)
+Read the error — it usually names the offending field or file. For full flag
+sets prefer `mt <cmd> --help`. Silence is not success for fill values (see the
+`--set` note). If this skill misled you, say so concretely so it improves.

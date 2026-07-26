@@ -39,6 +39,48 @@
         {"text": "fix-login-bug.typ status is now `done`"},
         {"text": "No other task's status was changed (only fix-login-bug moved)"}
       ]
+    },
+    {
+      "id": 3,
+      "name": "list-everything-no-all-flag",
+      "prompt": "Show me the whole backlog — every task, including the ones already finished.",
+      "expected_output": "Agent lists all 5 tasks including the terminal 'Set up CI pipeline' (done), using an empty filter (`mt ls ''`). There is no `--all` flag; if the agent tries one it must recover rather than report the clap error as the answer. No files mutated.",
+      "files": [],
+      "assertions": [
+        {"text": "All 5 tasks are reported, including the done task 'Set up CI pipeline'"},
+        {"text": "Used an empty filter (`mt ls ''`) or an equivalent match-all filter, not a `--all` flag"},
+        {"text": "Did not present `error: unexpected argument '--all'` as the outcome; if tried, the agent recovered and still answered"},
+        {"text": "Did not mutate any task files"}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "add-with-priority-slot-trap",
+      "prompt": "File a task to upgrade the Postgres driver, and give it priority 8.",
+      "expected_output": "Agent files the task with `mt add`. The sandbox uses the built-in fallback template, whose only slot is `title`, so `--set priority=8` is silently dropped (exit 0, no priority written). The agent must notice this — via `mt add --describe`, `--print`, or reading the written file — and get `priority: 8` onto the task anyway (a hand edit of the new file is the sanctioned path, since priority has no CLI writer and no slot here). `mt check` passes.",
+      "files": [],
+      "assertions": [
+        {"text": "Used `mt add` to create the task (did not hand-author the .typ from scratch)"},
+        {"text": "A new task file exists under tasks/ about upgrading the Postgres driver"},
+        {"text": "The new task actually carries `priority: 8` — not a missing priority left behind by a silently-dropped `--set`"},
+        {"text": "The agent verified the written result rather than trusting the exit code (ran `--describe`, `--print`, `mt eval`, `mt ls`, or read the file back)"},
+        {"text": "`mt check` reports all tasks valid (6 total)"},
+        {"text": "The 5 original task files are unchanged"}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "external-blocker-no-blocked-status",
+      "prompt": "The dark mode toggle is stuck — it's waiting on an upstream design-system release that hasn't shipped yet. Record that.",
+      "expected_output": "The sandbox legend is todo/wip/done/cancelled — there is no `blocked` status, and blockage is modelled as a `links: depends-on(...)` edge. Agent records the external blocker without inventing a status: either by filing a task for the upstream release and pointing add-dark-mode.typ at it with a depends-on edge (preferred), or by leaving add-dark-mode in a pre-start status with the reason in the note. `mt check` passes.",
+      "files": [],
+      "assertions": [
+        {"text": "Did not write a `blocked` (or otherwise invented) status into any task file"},
+        {"text": "Checked the legend before choosing a status (`mt flip --list`, `mt config show`, or reading .mindtape/config.toml), or used a path that needs no new status"},
+        {"text": "Recorded the blockage durably: either a depends-on edge from add-dark-mode.typ to a newly filed upstream-release task, or a note on add-dark-mode.typ naming the upstream dependency"},
+        {"text": "add-dark-mode.typ was not left silently unchanged with the answer only in chat"},
+        {"text": "`mt check` reports all tasks valid"}
+      ]
     }
   ]
 }
