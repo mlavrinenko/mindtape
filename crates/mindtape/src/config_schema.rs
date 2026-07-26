@@ -20,8 +20,9 @@ use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use crate::config::{HeaderAction, HeaderPathSegment, IdFormat, Requirement};
 
 /// Canonical published location of this schema. Used as the schema `$id`, and
-/// the value `mt init --schema url` writes for a portable, checked-in config
-/// (an editor fetches and caches it, so no local install is required).
+/// as the `#:schema` directive `mt init` writes by default — a checked-in
+/// config has to mean the same thing on someone else's machine, and an editor
+/// fetches and caches the URL, so no local install is required.
 pub const SCHEMA_URL: &str =
     "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/config.schema.json";
 

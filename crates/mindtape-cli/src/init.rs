@@ -31,10 +31,11 @@ const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
 /// makes it read like four unrelated toggles.
 #[derive(Debug, clap::Args)]
 pub struct SchemaArgs {
-    /// Value for the top `#:schema` directive: a URL, or a path relative to the
-    /// config file. Defaults to a `file://` URL for the schema `mt install`
-    /// writes under the XDG config dir.
-    #[arg(long, value_name = "URL|PATH")]
+    /// Value for the top `#:schema` directive: a URL, a path relative to the
+    /// config file, or `local` for a `file://` URL to the schema `mt install`
+    /// writes under the XDG config dir. Defaults to the published URL, which is
+    /// the only value that survives someone else cloning the repo.
+    #[arg(long, value_name = "URL|PATH|local")]
     pub schema: Option<String>,
 
     /// Omit the `#:schema` comment directive from the scaffold.
@@ -218,25 +219,35 @@ fn print_preset_list() {
 }
 
 /// Prepend the `#:schema` comment directive to the scaffold, unless
-/// `--no-schema`. The value is `--schema` when given, else a `file://` URL to
-/// the schema `mt install` writes under the XDG config dir; that file may not
-/// exist yet, so a hint nudges the user to run `mt install`.
+/// `--no-schema`.
+///
+/// Defaults to the published [`SCHEMA_URL`]. `.mindtape/config.toml` is a
+/// checked-in file, and the previous default — a `file://` URL into the running
+/// user's XDG dir — was meaningless to anyone who cloned the repo, so every
+/// scaffold started life needing a hand edit. An editor fetches and caches the
+/// URL, so this needs no local install either.
+///
+/// `--schema local` opts back into the XDG path for offline use or a project
+/// that is never shared; that file may not exist yet, so a hint nudges the user
+/// to run `mt install`.
 fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
     if args.no_schema {
         return Ok(template.to_owned());
     }
-    let value = if let Some(value) = &args.schema {
-        value.clone()
-    } else {
-        let path = crate::install::xdg_schema_path()?;
-        if !path.exists() {
-            println!(
-                "note: schema not installed at {} yet — run `mt install` (the \
-                 `#:schema` directive points there)",
-                path.display()
-            );
+    let value = match args.schema.as_deref() {
+        Some("local") => {
+            let path = crate::install::xdg_schema_path()?;
+            if !path.exists() {
+                println!(
+                    "note: schema not installed at {} yet — run `mt install` (the \
+                     `#:schema` directive points there)",
+                    path.display()
+                );
+            }
+            format!("file://{}", path.display())
         }
-        format!("file://{}", path.display())
+        Some(value) => value.to_owned(),
+        None => mindtape::SCHEMA_URL.to_owned(),
     };
     Ok(format!("#:schema {value}\n{template}"))
 }

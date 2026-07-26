@@ -220,8 +220,14 @@ fn init_default_preset_supports_add_ls_check() {
     mt(dir.path(), &["init"]);
 
     let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
-    // First line is the schema-association directive (default: the installed schema).
-    assert!(config.starts_with("#:schema "), "{config}");
+    // First line is the schema-association directive. It defaults to the
+    // published URL: the config is checked in, so a machine-local `file://`
+    // path would be meaningless to anyone who clones the repo.
+    assert!(
+        config.starts_with(&format!("#:schema {}\n", mindtape::SCHEMA_URL)),
+        "{config}"
+    );
+    assert!(!config.contains("file://"), "{config}");
     assert!(config.contains("[[tasks.status]]"), "{config}");
 
     add_then_ls_and_check(dir.path(), "wire-init", &[]);

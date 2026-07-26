@@ -114,8 +114,27 @@ fn directive_survives_the_stripped_rendering() {
     config.validate().unwrap();
 }
 
-/// Verify that `with_schema_directive` without `--schema` or `--no-schema`
-/// prints a note when the XDG schema path does not exist.
+/// The default directive is the published URL, not a machine-local path.
+///
+/// `.mindtape/config.toml` is checked in, so a `file://` default meant every
+/// scaffold shipped a path that resolved only on the machine that ran
+/// `mt init`. Guards the regression directly: no `file://`, and the exact
+/// published URL.
+#[test]
+fn schema_directive_defaults_to_published_url() {
+    let out = with_schema_directive(SAMPLE, &init_args(None, false)).unwrap();
+    assert!(
+        out.starts_with(&format!("#:schema {}\n", mindtape::SCHEMA_URL)),
+        "default should be the published URL, got: {out}"
+    );
+    assert!(
+        !out.contains("file://"),
+        "a checked-in config must not carry a machine-local path: {out}"
+    );
+}
+
+/// Verify that `with_schema_directive` with `--schema local` prints a note when
+/// the XDG schema path does not exist.
 ///
 /// The `!` deletion mutant reverses the existence check: the real code prints
 /// when the path is missing; the mutant prints when it exists. The self-spawn
@@ -148,10 +167,10 @@ fn with_schema_directive_prints_note_when_schema_missing() {
         );
         return;
     }
-    // Child: call with_schema_directive without --schema or --no-schema.
-    // The function calls xdg_schema_path(), checks its existence, and
-    // prints a note if the path is missing.
-    let out = super::with_schema_directive(SAMPLE, &init_args(None, false)).unwrap();
+    // Child: call with_schema_directive with `--schema local`. The function
+    // calls xdg_schema_path(), checks its existence, and prints a note if the
+    // path is missing.
+    let out = super::with_schema_directive(SAMPLE, &init_args(Some("local"), false)).unwrap();
     assert!(out.starts_with("#:schema file://"));
 }
 

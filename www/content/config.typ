@@ -570,20 +570,25 @@ Rules are validated at config load, same checks as `[views]`:
 `mt install` writes a JSON Schema for `.mindtape/config.toml` next to the app
 config (`~/.config/mindtape/config.schema.json`), generated from the config
 types so it never drifts. `mt init` scaffolds a config whose first line is a
-`#:schema` comment directive pointing at it:
+`#:schema` comment directive:
 
 ```toml
-#:schema file:///home/you/.config/mindtape/config.schema.json
+#:schema https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/config.schema.json
 [tasks]
 roots = ["tasks"]
 ```
 
 A schema-aware TOML editor (tombi, Taplo) reads the directive to offer
-completion, hover docs, and validation while you edit. `mt init --schema
-URL|PATH` sets a different target — e.g. the published URL for a portable,
-checked-in config, or a path relative to the config file — and `--no-schema`
-(on `init` or `install`) opts out. The directive is a plain TOML comment, so
-`mt` itself ignores it.
+completion, hover docs, and validation while you edit.
+
+The default is the published URL because `.mindtape/config.toml` is a
+checked-in file: an editor fetches and caches the URL, so it needs no local
+install and means the same thing to everyone who clones the repo. `mt init
+--schema local` points at the installed copy instead (a `file://` URL under
+your XDG config dir) for offline use or a project you never share; `--schema
+URL|PATH` sets any other target, including a path relative to the config file;
+and `--no-schema` (on `init` or `install`) opts out. The directive is a plain
+TOML comment, so `mt` itself ignores it.
 
 = Preset overlays
 

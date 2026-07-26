@@ -210,10 +210,12 @@ filter is `terminal`.
 `mt install` installs the `@local/mindtape` prelude, seeds the XDG global
 defaults, and writes the config JSON Schema (`config.schema.json`) beside them.
 `mt init` writes `.mindtape/config.toml` from a named preset (`--preset NAME`,
-`--list-presets`; `--annotate` keeps the reasoning) with a
-first-line `#:schema` comment directive pointing at that schema, so a
-schema-aware TOML editor (tombi, Taplo) assists filling values; `--schema
-URL|PATH` retargets it and `--no-schema` (on either command) opts out. See
+`--list-presets`; `--annotate` keeps the reasoning) with a first-line
+`#:schema` comment directive, so a schema-aware TOML editor (tombi, Taplo)
+assists filling values. It points at the published schema URL by default —
+the config is checked in, so a machine-local path would not survive a clone;
+`--schema local` uses the installed copy instead, `--schema URL|PATH` any
+other target, and `--no-schema` (on either command) opts out. See
 #link(u("/quickstart/"))[Quickstart]. `mt worktrees` lists the `@name` worktree
 aliases (see #link(u("/agents/"))[Run from anywhere]).
 
