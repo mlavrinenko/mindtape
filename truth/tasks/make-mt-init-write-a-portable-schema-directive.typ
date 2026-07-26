@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("cli",),
   estimate: (files: 3),
-  status: wip(2026, 7, 26),
+  status: done(
+    2026,
+    7,
+    26,
+  )[default is now SCHEMA\_URL; --schema local opts into the XDG path; docs and tests follow],
 )
 
 == Summary
