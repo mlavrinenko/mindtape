@@ -13,7 +13,7 @@
   links: related("correct-the-mindtape-skill-against-the-cli.typ")[
     found while correcting the agent skill against the real CLI
   ],
-  status: proposed(2026, 7, 26),
+  status: wip(2026, 7, 26),
 )
 
 == Summary
