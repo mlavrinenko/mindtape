@@ -79,9 +79,10 @@ with violations. Key restrictions:
 | Lints | `cargo clippy --all-targets -D warnings` |
 | Tests | `cargo test --workspace` |
 | Unused deps | `cargo machete` |
-| File size | `linecop` (Rust 500, Markdown 200) |
+| File size | `linecop` (Rust 500, Markdown 200; 250 README, 300 `AGENTS.md`/`SKILL.md`). `linecop --baseline 85` lists what is nearing its cap — run it before adding to an existing file |
 | Copy-paste | `jscpd` (`just check-dry`) — fails on any duplicated Rust block ≥70 tokens; fix by extracting a shared helper |
 | Doc drift | `outdatty check` |
+| Fixtures | `just check-examples` — `mt check` against each in-tree fixture project: `examples/learn-piano/` (the docs generator's input) and `skills/mindtape/evals/files/sandbox/` (the mindtape skill's eval input). A fixture no gate validates rots silently |
 | Docs site | `just docs-check` — `docs-gen` first captures live `mt` output (`www/generate.sh`), then `tola build`, then `pagefind` indexes the built HTML for client-side search, then `tola validate` checks links + assets |
 
 Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-llvm-cov`,

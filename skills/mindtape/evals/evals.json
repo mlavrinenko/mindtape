@@ -6,12 +6,22 @@
       "name": "ready-priority-triage",
       "prompt": "I've got some time this afternoon — what should I work on next? Show me what's actually ready to start, most important first.",
       "expected_output": "Agent runs `mt ls` with a ready filter sorted by priority desc, returns the 3 ready tasks (Fix login redirect bug, Add dark mode toggle, Refactor auth middleware) in that order, and excludes the blocked Write onboarding docs. No files mutated.",
-      "files": [],
+      "files": [
+        "evals/files/sandbox"
+      ],
       "assertions": [
-        {"text": "Used the `mt ls` command (drove the CLI rather than hand-reading task files)"},
-        {"text": "Excluded the blocked task 'Write onboarding docs' from the recommendation"},
-        {"text": "Presented ready tasks ordered by priority descending: Fix login redirect bug (8), Add dark mode toggle (7), Refactor auth middleware (6)"},
-        {"text": "Did not mutate any task files (sandbox tasks identical to template)"}
+        {
+          "text": "Used the `mt ls` command (drove the CLI rather than hand-reading task files)"
+        },
+        {
+          "text": "Excluded the blocked task 'Write onboarding docs' from the recommendation"
+        },
+        {
+          "text": "Presented ready tasks ordered by priority descending: Fix login redirect bug (8), Add dark mode toggle (7), Refactor auth middleware (6)"
+        },
+        {
+          "text": "Did not mutate any task files (sandbox tasks identical to template)"
+        }
       ]
     },
     {
@@ -19,12 +29,22 @@
       "name": "file-new-task",
       "prompt": "We keep getting flaky failures on the Windows CI runner. Add a task to look into it.",
       "expected_output": "Agent runs `mt add` to create a new task file under tasks/ about the Windows CI flake; the task validates (`mt check` passes); the 5 existing tasks are untouched.",
-      "files": [],
+      "files": [
+        "evals/files/sandbox"
+      ],
       "assertions": [
-        {"text": "Used `mt add` to create the task (did not hand-author a .typ file from scratch)"},
-        {"text": "A new task file exists under tasks/ whose title/slug is about the Windows CI flake"},
-        {"text": "The project still validates: `mt check` reports all tasks valid (6 total)"},
-        {"text": "The 5 original task files are unchanged"}
+        {
+          "text": "Used `mt add` to create the task (did not hand-author a .typ file from scratch)"
+        },
+        {
+          "text": "A new task file exists under tasks/ whose title/slug is about the Windows CI flake"
+        },
+        {
+          "text": "The project still validates: `mt check` reports all tasks valid (6 total)"
+        },
+        {
+          "text": "The 5 original task files are unchanged"
+        }
       ]
     },
     {
@@ -32,12 +52,22 @@
       "name": "mark-task-done",
       "prompt": "I just shipped the login redirect fix. Mark that task as done.",
       "expected_output": "Agent identifies fix-login-bug.typ, uses `mt flip done` (or the `mt done` verb) to set its status to done; no other task changes status.",
-      "files": [],
+      "files": [
+        "evals/files/sandbox"
+      ],
       "assertions": [
-        {"text": "Identified the correct task (Fix login redirect bug / fix-login-bug)"},
-        {"text": "Used the CLI to change status (`mt flip done` or `mt done`), not a hand edit of the status line"},
-        {"text": "fix-login-bug.typ status is now `done`"},
-        {"text": "No other task's status was changed (only fix-login-bug moved)"}
+        {
+          "text": "Identified the correct task (Fix login redirect bug / fix-login-bug)"
+        },
+        {
+          "text": "Used the CLI to change status (`mt flip done` or `mt done`), not a hand edit of the status line"
+        },
+        {
+          "text": "fix-login-bug.typ status is now `done`"
+        },
+        {
+          "text": "No other task's status was changed (only fix-login-bug moved)"
+        }
       ]
     },
     {
@@ -45,12 +75,22 @@
       "name": "list-everything-no-all-flag",
       "prompt": "Show me the whole backlog — every task, including the ones already finished.",
       "expected_output": "Agent lists all 5 tasks including the terminal 'Set up CI pipeline' (done), using an empty filter (`mt ls ''`). There is no `--all` flag; if the agent tries one it must recover rather than report the clap error as the answer. No files mutated.",
-      "files": [],
+      "files": [
+        "evals/files/sandbox"
+      ],
       "assertions": [
-        {"text": "All 5 tasks are reported, including the done task 'Set up CI pipeline'"},
-        {"text": "Used an empty filter (`mt ls ''`) or an equivalent match-all filter, not a `--all` flag"},
-        {"text": "Did not present `error: unexpected argument '--all'` as the outcome; if tried, the agent recovered and still answered"},
-        {"text": "Did not mutate any task files"}
+        {
+          "text": "All 5 tasks are reported, including the done task 'Set up CI pipeline'"
+        },
+        {
+          "text": "Used an empty filter (`mt ls ''`) or an equivalent match-all filter, not a `--all` flag"
+        },
+        {
+          "text": "Did not present `error: unexpected argument '--all'` as the outcome; if tried, the agent recovered and still answered"
+        },
+        {
+          "text": "Did not mutate any task files"
+        }
       ]
     },
     {
@@ -58,14 +98,28 @@
       "name": "add-with-priority-slot-trap",
       "prompt": "File a task to upgrade the Postgres driver, and give it priority 8.",
       "expected_output": "Agent files the task with `mt add`. The sandbox uses the built-in fallback template, whose only slot is `title`, so `--set priority=8` is silently dropped (exit 0, no priority written). The agent must notice this — via `mt add --describe`, `--print`, or reading the written file — and get `priority: 8` onto the task anyway (a hand edit of the new file is the sanctioned path, since priority has no CLI writer and no slot here). `mt check` passes.",
-      "files": [],
+      "files": [
+        "evals/files/sandbox"
+      ],
       "assertions": [
-        {"text": "Used `mt add` to create the task (did not hand-author the .typ from scratch)"},
-        {"text": "A new task file exists under tasks/ about upgrading the Postgres driver"},
-        {"text": "The new task actually carries `priority: 8` — not a missing priority left behind by a silently-dropped `--set`"},
-        {"text": "The agent verified the written result rather than trusting the exit code (ran `--describe`, `--print`, `mt eval`, `mt ls`, or read the file back)"},
-        {"text": "`mt check` reports all tasks valid (6 total)"},
-        {"text": "The 5 original task files are unchanged"}
+        {
+          "text": "Used `mt add` to create the task (did not hand-author the .typ from scratch)"
+        },
+        {
+          "text": "A new task file exists under tasks/ about upgrading the Postgres driver"
+        },
+        {
+          "text": "The new task actually carries `priority: 8` — not a missing priority left behind by a silently-dropped `--set`"
+        },
+        {
+          "text": "The agent verified the written result rather than trusting the exit code (ran `--describe`, `--print`, `mt eval`, `mt ls`, or read the file back)"
+        },
+        {
+          "text": "`mt check` reports all tasks valid (6 total)"
+        },
+        {
+          "text": "The 5 original task files are unchanged"
+        }
       ]
     },
     {
@@ -73,13 +127,25 @@
       "name": "external-blocker-no-blocked-status",
       "prompt": "The dark mode toggle is stuck — it's waiting on an upstream design-system release that hasn't shipped yet. Record that.",
       "expected_output": "The sandbox legend is todo/wip/done/cancelled — there is no `blocked` status, and blockage is modelled as a `links: depends-on(...)` edge. Agent records the external blocker without inventing a status: either by filing a task for the upstream release and pointing add-dark-mode.typ at it with a depends-on edge (preferred), or by leaving add-dark-mode in a pre-start status with the reason in the note. `mt check` passes.",
-      "files": [],
+      "files": [
+        "evals/files/sandbox"
+      ],
       "assertions": [
-        {"text": "Did not write a `blocked` (or otherwise invented) status into any task file"},
-        {"text": "Checked the legend before choosing a status (`mt flip --list`, `mt config show`, or reading .mindtape/config.toml), or used a path that needs no new status"},
-        {"text": "Recorded the blockage durably: either a depends-on edge from add-dark-mode.typ to a newly filed upstream-release task, or a note on add-dark-mode.typ naming the upstream dependency"},
-        {"text": "add-dark-mode.typ was not left silently unchanged with the answer only in chat"},
-        {"text": "`mt check` reports all tasks valid"}
+        {
+          "text": "Did not write a `blocked` (or otherwise invented) status into any task file"
+        },
+        {
+          "text": "Checked the legend before choosing a status (`mt flip --list`, `mt config show`, or reading .mindtape/config.toml), or used a path that needs no new status"
+        },
+        {
+          "text": "Recorded the blockage durably: either a depends-on edge from add-dark-mode.typ to a newly filed upstream-release task, or a note on add-dark-mode.typ naming the upstream dependency"
+        },
+        {
+          "text": "add-dark-mode.typ was not left silently unchanged with the answer only in chat"
+        },
+        {
+          "text": "`mt check` reports all tasks valid"
+        }
       ]
     }
   ]

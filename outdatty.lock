@@ -11,7 +11,7 @@ groups:
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
       crates/mindtape/src/lib.rs: a00449bd3c866bd300a62f765f83c1e36e7047fb6620859c34544f435f692dc6
     dependents:
-      skills/mindtape/SKILL.md: 93274445f8cdb738e46d62cdbac861fe0ba0132c453291886389e5a64166b075
+      skills/mindtape/SKILL.md: 4a82fb4c9618af00613da929b608f652ddf33d342447bb97abded7992febdc32
       www/content/cli.typ: cc6c9eb2adb23fca22798591fb566d6f9764cb77b232a057cb61c982e6cb9e6d
       www/content/config.typ: 1266c6b55b5adbf3ea24cac459a249f6d56a2f8baba831e17045337d3b013b97
       www/content/filters.typ: 83bdd938f8d34d7f9b2bfbe32a176cc255535f4afd4758c6aa2f56613ca1c07a
@@ -22,28 +22,29 @@ groups:
       crates/mindtape-cli/Cargo.toml: 5bcbe4377a1394cb2c09c21298297cdff11eed1bee7e970164440b14010be72a
       crates/mindtape-cli/src/cli.rs: 68957ac34c35fd3239157582ac748c79bd31a0cf6207eb56c8a4e0d843b55e04
     dependents:
-      AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
+      AGENTS.md: 298bff692ca0597fa17cc7468138ecfc50dd05830e640c83769ccfa0315e51fe
       CHANGELOG.md: 356fc865d9a16598bf7d6ce2fb6db246d3f6bc7de3f9c3825ebb72074f306d6a
-      CONTRIBUTING.md: 49d01285dde8c33332bffbc0b7ce7d21df10379c18f4543d50ff017754eb4fda
+      CONTRIBUTING.md: b57a758725c9cd09d901ac64aceb7cb2757427059645e159d5b369759f0ae63e
       README.md: fd88c379fc4a426c6ec92300e816592cec9e7e6f0035b37bc6d7b323fa919557
-      skills/mindtape/SKILL.md: 93274445f8cdb738e46d62cdbac861fe0ba0132c453291886389e5a64166b075
+      skills/mindtape/SKILL.md: 4a82fb4c9618af00613da929b608f652ddf33d342447bb97abded7992febdc32
       www/content/cli.typ: cc6c9eb2adb23fca22798591fb566d6f9764cb77b232a057cb61c982e6cb9e6d
       www/content/index.typ: 637bb5ff74599f1dac969418ddc61f90736a6a448df5182a155f19634b92b881
       www/content/quickstart.typ: 8cde4f338c19d8f2dba2d802b8f94fc9aae84877fee3b700c79fd1734ef04c07
   dev-docs:
     source:
-      Justfile: 6368fcdb6392f99c4afa65bd942e8e749931dc190ce9c7dd1fbde6899e60ea3b
+      Justfile: d597b9022f824803179394a659c3d7b0e677740a43a00964368d972bc6caeb90
       flake.nix: c43b68ba83b5b86068380cf7cc1680155ca5d678470daf0fc1ce5eb7e1dfe11a
     dependents:
-      AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
-      CONTRIBUTING.md: 49d01285dde8c33332bffbc0b7ce7d21df10379c18f4543d50ff017754eb4fda
+      AGENTS.md: 298bff692ca0597fa17cc7468138ecfc50dd05830e640c83769ccfa0315e51fe
+      CONTRIBUTING.md: b57a758725c9cd09d901ac64aceb7cb2757427059645e159d5b369759f0ae63e
   prelude-docs:
     source:
       lib/prelude.typ: 5077df1584c595b80525d691dbfc6538ce6adf3e8c94fbe01aa478bbbca0e45b
     dependents:
-      AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
+      AGENTS.md: 298bff692ca0597fa17cc7468138ecfc50dd05830e640c83769ccfa0315e51fe
       README.md: fd88c379fc4a426c6ec92300e816592cec9e7e6f0035b37bc6d7b323fa919557
-      skills/mindtape/SKILL.md: 93274445f8cdb738e46d62cdbac861fe0ba0132c453291886389e5a64166b075
+      skills/mindtape/SKILL.md: 4a82fb4c9618af00613da929b608f652ddf33d342447bb97abded7992febdc32
+      skills/mindtape/evals/files/sandbox/lib/prelude.typ: 5077df1584c595b80525d691dbfc6538ce6adf3e8c94fbe01aa478bbbca0e45b
       www/content/dsl.typ: 31f848445c443565f9b494c8990b983833c39337b97bccdc667671ada2f9bbcd
   release-notes:
     source:
@@ -54,7 +55,7 @@ groups:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5
     dependents:
-      AGENTS.md: 579669797ea38a3b4917d32ae19b6b83c07b03dcbf83ca9788cd223f2cdece1a
+      AGENTS.md: 298bff692ca0597fa17cc7468138ecfc50dd05830e640c83769ccfa0315e51fe
       README.md: fd88c379fc4a426c6ec92300e816592cec9e7e6f0035b37bc6d7b323fa919557
       crates/mindtape-cli/src/init.rs: 07d3d59ef22cd329571059e0eb8aa849b5adef98189a6c66b3b416527ddcf878
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898
@@ -72,4 +73,10 @@ groups:
       examples/learn-piano/tasks/theory/circle-of-fifths-drill.typ: d973b37bc835cec282b9e1cd97c3096a599af7facfb86755ca032b060c47216f
       examples/learn-piano/tasks/theory/interval-recognition-ear-training.typ: c1ffe175961bf20b00b2ed8c5b8e7aba44126e8d5265d9124289b77e3a1a3f7b
       examples/learn-piano/tasks/theory/sight-singing-solfege.typ: e16ade5ad5a65d203556a6bce5f1a9808ee1c4fb15fae8afaeaa67250e7337cf
+      skills/mindtape/evals/files/sandbox/lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5
+      skills/mindtape/evals/files/sandbox/tasks/add-dark-mode.typ: 76e48378b7dfeee0e40511457813dae7a15f002fdaf4f358203d8ba1992d18ee
+      skills/mindtape/evals/files/sandbox/tasks/fix-login-bug.typ: b848110c2bb7fab6eb39792dc3eb58a682a7a48a816e91ef390e9d4cf4119e82
+      skills/mindtape/evals/files/sandbox/tasks/refactor-auth.typ: c0ca3a97de0ecdc0ef1e8b8df45d29d49b67c697d0856fb28b4ed141521948fe
+      skills/mindtape/evals/files/sandbox/tasks/setup-ci.typ: 398c86142adb266183391b5e7ef5b4988100f59225cf7273e23ec9475f65c530
+      skills/mindtape/evals/files/sandbox/tasks/write-docs.typ: 85b64eb42b0a66948c35fcb6e21a68ef409be65d9af219e9547763ec50dafe8a
       www/utils/site.typ: a29a804a7873726fe2abad3b4064649a3c138dfd8b3ed54ff3e65ecf9b3b6e60

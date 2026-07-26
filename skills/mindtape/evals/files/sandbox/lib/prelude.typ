@@ -1,0 +1,560 @@
+// MindTape prelude — per-file task model.
+// See docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md.
+//
+// THIS layer (Typst) is config-agnostic and consumer-blind. It only:
+//   - shapes one task per file via `#show: task.with(...)`
+//   - emits one labelled metadata marker the Rust layer collects
+//   - enforces the extension discipline: any non-core slot must be `x-<ns>`
+// The Rust layer, driven by `.mindtape/config.toml`, owns the rest:
+//   - the status legend, the numeric priority/difficulty scales, the kind enum,
+//     required-unless-terminal
+//   - identity (filename stem), the filter language
+// Keeping the prelude config-free means the same package serves every project.
+
+// Status is a plain (name, date, note) dict. The project's config decides which
+// names are legal; the prelude ships shortcut constructors for a broad common
+// set so an unconfigured project still gets ergonomic status calls.
+#let status(name, year, month, day, note: none) = (
+  name: name,
+  date: datetime(year: year, month: month, day: day),
+  note: note,
+)
+// The optional note rides in as a trailing content block: `done(y, m, d)[note]`.
+#let _mk(name) = (y, m, d, ..note) => status(name, y, m, d, note: note
+  .pos()
+  .at(0, default: none))
+#let draft = _mk("draft")
+#let proposed = _mk("proposed")
+#let accepted = _mk("accepted")
+#let todo = _mk("todo")
+#let wip = _mk("wip")
+#let doing = _mk("doing")
+#let blocked = _mk("blocked")
+#let in-review = _mk("in-review")
+#let done = _mk("done")
+#let cancelled = _mk("cancelled")
+#let failed = _mk("failed")
+
+// Generic date shortcut: `on(2026, 6, 18)` instead of `datetime(year: …, …)`.
+// Serves every date slot uniformly (due, start, reviewed, …).
+#let on(y, m, d) = datetime(year: y, month: m, day: d)
+
+// Priority framework packagers. These are pure sugar: they only shape a
+// `(framework, inputs)` dict for the Rust layer to score — no math, bounds, or
+// classification live here (those are config + Rust concerns). `framework` is
+// the generic escape hatch; the named helpers fix one built-in's input shape.
+#let framework(name, ..inputs) = (framework: name, inputs: inputs.named())
+#let ice(impact: none, confidence: none, ease: none) = framework(
+  "ice",
+  impact: impact,
+  confidence: confidence,
+  ease: ease,
+)
+#let rice(
+  reach: none,
+  impact: none,
+  confidence: none,
+  effort: none,
+) = framework(
+  "rice",
+  reach: reach,
+  impact: impact,
+  confidence: confidence,
+  effort: effort,
+)
+#let wsjf(cost_of_delay: none, job_size: none) = framework(
+  "wsjf",
+  cost_of_delay: cost_of_delay,
+  job_size: job_size,
+)
+#let eisenhower(urgent: false, important: false) = framework(
+  "eisenhower",
+  urgent: urgent,
+  important: important,
+)
+#let moscow(level) = framework("moscow", level: level)
+
+// Typed relation edges. Each helper packages one or more plain stem-string
+// targets into edges of a fixed kind — `depends-on("a.typ", "b.typ")` yields
+// two edges — and the whole call already IS the flat array `links:` expects
+// (no wrapping tuple needed); combine several kinds with `+`:
+// `links: depends-on("a.typ") + related("b.typ")[why]`. A trailing content
+// block is the note, uniform with the status `_mk` idiom. Helpers take plain
+// strings, never `link(...)`: the Rust layer resolves the string directly,
+// and the render re-wraps it in `link()` for a clickable PDF. `edge` is the
+// generic escape hatch for a project's config-declared custom kind; the six
+// named helpers below are pure sugar over it.
+#let edge(kind, ..args) = {
+  let pos = args.pos()
+  let notes = pos.filter(p => type(p) == content)
+  let targets = pos.filter(p => type(p) != content)
+  let note = if notes.len() > 0 { notes.at(0) } else { none }
+  targets.map(t => (task: t, kind: kind, note: note))
+}
+#let depends-on(..args) = edge("depends-on", ..args)
+#let parent(..args) = edge("parent", ..args)
+#let recurred-from(..args) = edge("recurred-from", ..args)
+#let supersedes(..args) = edge("supersedes", ..args)
+#let duplicates(..args) = edge("duplicates", ..args)
+#let related(..args) = edge("related", ..args)
+
+// Weekday constants for `every(..., on: (...))`'s weekday set — plain string
+// labels; the Rust layer maps them to real weekdays, no date math here.
+#let mon = "mon"
+#let tue = "tue"
+#let wed = "wed"
+#let thu = "thu"
+#let fri = "fri"
+#let sat = "sat"
+#let sun = "sun"
+
+// Recurrence. A task advances to its next occurrence only via `mt recur`,
+// never as a side effect of a read (see command-semantics-cqrs). `every()`
+// shapes one period unit (days/weeks/months/years) — optionally narrowed to a
+// weekday set via `on:` — plus the policy riding along with it: `anchor`
+// ("completion", the default, or "due"), the series stop conditions
+// `until`/`count`, and `materialize` ("spawn"/"mutate"). No math lives here,
+// same discipline as the priority frameworks: an omitted policy arg stays
+// `none` and the Rust layer resolves it from `[tasks.recur]`, validates the
+// rule, and computes the next date.
+#let every(
+  days: none,
+  weeks: none,
+  months: none,
+  years: none,
+  on: none,
+  anchor: none,
+  until: none,
+  count: none,
+  materialize: none,
+) = {
+  let units = (
+    (days, "days"),
+    (weeks, "weeks"),
+    (months, "months"),
+    (years, "years"),
+  ).filter(u => u.at(0) != none)
+  assert(
+    units.len() == 1,
+    message: "every() takes exactly one of days/weeks/months/years",
+  )
+  let (value, unit) = units.at(0)
+  (
+    rule: (kind: "period", unit: unit, value: value, on: on),
+    anchor: anchor,
+    until: until,
+    count: count,
+    materialize: materialize,
+  )
+}
+
+// The rrule escape hatch (its own task, rrule-escape-hatch): shapes the SAME
+// policy dict, a raw rule string standing in for the period. Expansion is a
+// later feature; until then the Rust layer parses and gates this rule kind
+// behind `[tasks.recur] rrule` rather than computing a next date from it.
+#let rrule(rule, anchor: none, until: none, count: none, materialize: none) = (
+  rule: (kind: "rrule", raw: rule),
+  anchor: anchor,
+  until: until,
+  count: count,
+  materialize: materialize,
+)
+
+// Template authoring helper. `mt add` discovers `slot(...)` calls on the
+// parse plane and replaces each with a filled literal, so a filed task holds
+// plain values and never calls `slot`. At eval time a slot returns its `default`,
+// keeping a template a previewable, valid task. `kind` drives how `add` renders a
+// filled value ("string", "int", "float", "bool", "date", "list", "text",
+// "choice"); `prompt`/`required`/`choices` steer the fill UI. Args must be
+// literals — `add` reads them without evaluating the template.
+#let slot(
+  name,
+  default: none,
+  kind: "string",
+  prompt: none,
+  required: true,
+  choices: none,
+) = default
+
+// Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
+#let _core-slots = (
+  "title",
+  "status",
+  "priority",
+  "difficulty",
+  "kind",
+  "estimate",
+  "links",
+  "tags",
+  "due",
+  "start",
+  "reviewed",
+  "id",
+  "recur",
+)
+
+// ── Typeset render ────────────────────────────────────────────────────────────
+// The third face. `#show: task.with(...)` wraps the whole file; below the marker
+// we lay the authored fields out as a printed index card (a title, status /
+// priority pills, a metadata grid, tag chips, then the body). This is paged
+// content only — headings, boxes, grids, `set page` — never `html.elem` (that
+// path is the docs SSG's). It is inert under `typst-harvest` eval: the harvester
+// evaluates the module and walks it for the `<mindtape>` metadata element,
+// laying nothing out, so the chrome costs harvesting nothing and the marker
+// stays the single queryable payload. Every field is rendered only when set and
+// skipped cleanly when none/empty.
+
+#let _muted = luma(110)
+#let _rule = luma(205)
+
+// A rounded pill: bold, small, coloured wash. `fg`/`bg` default to a neutral grey.
+#let _pill(body, fg: luma(70), bg: luma(232)) = box(
+  fill: bg,
+  inset: (x: 0.55em, y: 0.3em),
+  radius: 1em,
+  text(size: 0.72em, weight: "bold", fill: fg, tracking: 0.02em, body),
+)
+
+// Per-status wash, keyed by the prelude's shortcut names. An unlisted status
+// (a project may legislate its own) falls back to a neutral grey — colour is
+// cosmetic, never authoritative; the Rust layer owns the legend.
+#let _status-styles = (
+  draft: (luma(95), luma(234)),
+  proposed: (rgb("#1a56b0"), rgb("#e6effb")),
+  accepted: (rgb("#0e6b7a"), rgb("#e0f3f6")),
+  todo: (rgb("#44506b"), rgb("#eceff5")),
+  wip: (rgb("#a97b00"), rgb("#fbf1d6")),
+  doing: (rgb("#a97b00"), rgb("#fbf1d6")),
+  blocked: (rgb("#b3453f"), rgb("#fbe6e4")),
+  "in-review": (rgb("#6b3fa0"), rgb("#f0e9fb")),
+  done: (rgb("#2f7d4f"), rgb("#e2f3e8")),
+  cancelled: (rgb("#6b7280"), rgb("#eceef1")),
+  failed: (rgb("#b3453f"), rgb("#fbe6e4")),
+)
+
+// Scalar → plain string (bools read as yes/no; numbers and strings pass through).
+#let _scalar(v) = if type(v) == bool { if v { "yes" } else { "no" } } else {
+  str(v)
+}
+
+// A framework value is a `(framework, inputs)` dict; a raw priority is an int/float.
+#let _framework-name(v) = if type(v) == dictionary and "framework" in v {
+  v.framework
+} else { none }
+
+// Join a framework's inputs (`impact 6 · confidence 0.6 · ease 4`), skipping none.
+#let _fmt-inputs(inputs) = {
+  if type(inputs) != dictionary { return none }
+  let parts = ()
+  for (k, v) in inputs {
+    if v != none { parts.push(k + " " + _scalar(v)) }
+  }
+  if parts.len() == 0 { none } else { parts.join(" · ") }
+}
+
+// Status pill (name only) and the meta-grid detail (name + date), each or none.
+#let _status-pill(st) = {
+  if st == none { return none }
+  let name = st.at("name", default: none)
+  if name == none { return none }
+  let style = _status-styles.at(name, default: (luma(80), luma(230)))
+  _pill(name, fg: style.at(0), bg: style.at(1))
+}
+#let _status-detail(st) = {
+  if st == none { return none }
+  let name = st.at("name", default: none)
+  if name == none { return none }
+  let date = st.at("date", default: none)
+  if type(date) == datetime {
+    name + " · " + date.display("[year]-[month]-[day]")
+  } else { name }
+}
+
+// Priority pill: the framework name (ICE) or the raw score (P8); the meta detail
+// carries a framework's inputs, and none for a raw int (the pill already shows it).
+#let _priority-pill(v) = {
+  if v == none { return none }
+  let fw = _framework-name(v)
+  if fw != none {
+    _pill(upper(fw), fg: rgb("#44506b"), bg: rgb("#eceff5"))
+  } else if type(v) == int or type(v) == float {
+    _pill("P" + str(v), fg: rgb("#44506b"), bg: rgb("#eceff5"))
+  } else { none }
+}
+#let _priority-detail(v) = {
+  if _framework-name(v) != none {
+    _fmt-inputs(v.at("inputs", default: (:)))
+  } else { none }
+}
+
+// A numeric field (difficulty) as text: `ice · impact 6 …` for a framework, the
+// raw value otherwise.
+#let _num-field(v) = {
+  if v == none { return none }
+  let fw = _framework-name(v)
+  if fw != none {
+    let d = _fmt-inputs(v.at("inputs", default: (:)))
+    if d == none { fw } else { fw + " · " + d }
+  } else if type(v) == int or type(v) == float { str(v) } else { none }
+}
+
+// A kind pill, if set.
+#let _kind-pill(k) = if type(k) == str and k != "" { _pill(k) } else { none }
+
+// The estimate unit dict (`(days: 1, hours: 2)` → `1 day, 2 hours`), authored
+// order preserved, unit singularised at one.
+#let _fmt-estimate(est) = {
+  if type(est) != dictionary or est.len() == 0 { return none }
+  let parts = ()
+  for (unit, val) in est {
+    let u = if val == 1 and unit.ends-with("s") { unit.slice(0, -1) } else {
+      unit
+    }
+    parts.push(_scalar(val) + " " + u)
+  }
+  parts.join(", ")
+}
+
+// The rule half of `_fmt-recur`: a period (with its optional weekday set) or
+// an `rrule(...)` raw string. Defined first: Typst `#let` bindings capture
+// the scope at definition time (no hoisting), so `_fmt-recur` below must be
+// able to see this name already bound when IT is defined, not just when
+// called.
+#let _fmt-recur-rule(rule) = {
+  let kind = rule.at("kind", default: none)
+  if kind == "rrule" {
+    let raw = rule.at("raw", default: none)
+    return if type(raw) == str { "rrule: " + raw } else { none }
+  }
+  if kind != "period" { return none }
+  let unit = rule.at("unit", default: none)
+  let value = rule.at("value", default: none)
+  let core = if type(value) == int and type(unit) == str {
+    (
+      "every "
+        + _scalar(value)
+        + " "
+        + (if value == 1 { unit.slice(0, -1) } else { unit })
+    )
+  } else { none }
+  let on = rule.at("on", default: none)
+  if type(on) == array and on.len() > 0 {
+    let days = on.join(", ")
+    if core == none { "on " + days } else { core + " on " + days }
+  } else { core }
+}
+
+// Recurrence as compact text (`every 1 week`, `every 3 days on mon, wed, fri`,
+// `rrule: FREQ=MONTHLY;BYDAY=1MO`), plus `anchor …`/`until …`/`count …` when
+// set. `none` when `recur` is unset or malformed — the rendered card skips
+// the row entirely rather than showing a blank one.
+#let _fmt-recur(r) = {
+  if type(r) != dictionary { return none }
+  let rule = r.at("rule", default: none)
+  if type(rule) != dictionary { return none }
+  let base = _fmt-recur-rule(rule)
+  if base == none { return none }
+  let anchor = r.at("anchor", default: none)
+  let until = r.at("until", default: none)
+  let count = r.at("count", default: none)
+  let parts = (base,)
+  if type(anchor) == str { parts.push("anchor " + anchor) }
+  if type(until) == datetime {
+    parts.push("until " + until.display("[year]-[month]-[day]"))
+  }
+  if type(count) == int { parts.push("count " + str(count)) }
+  parts.join(" · ")
+}
+
+// A datetime → `YYYY-MM-DD`; a bare string passes through; none stays none.
+#let _fmt-date(d) = {
+  if d == none { none } else if type(d) == datetime {
+    d.display("[year]-[month]-[day]")
+  } else { str(d) }
+}
+
+// The bare stem of a link target (`../sub/other.typ` → `other`).
+#let _stem(path) = {
+  let base = path.split("/").last()
+  if base.ends-with(".typ") { base.slice(0, -4) } else { base }
+}
+
+// One edge dict → a clickable stem chip (re-wraps the plain `task` string in
+// `link()`, since the marker now carries the string directly — see `edge`).
+// `none` for a malformed entry (no string `task`); the Rust layer flags those.
+#let _edge-chip(e) = {
+  let dest = if type(e) == dictionary { e.at("task", default: none) } else {
+    none
+  }
+  if type(dest) == str { link(dest, raw(_stem(dest))) } else { none }
+}
+
+// Comma-joined chips for one kind's edges.
+#let _edges-row(edges) = {
+  if type(edges) != array or edges.len() == 0 { return none }
+  edges.map(_edge-chip).filter(c => c != none).join(", ")
+}
+
+// Group the flat `links` array by kind, first-seen order, as (kind, edges)
+// pairs — a malformed entry (no string `kind`, e.g. a bare-string edge with no
+// helper) is dropped here; the Rust layer validates and reports those.
+#let _links-by-kind(arr) = {
+  if type(arr) != array or arr.len() == 0 { return () }
+  let order = ()
+  let groups = (:)
+  for e in arr {
+    let k = if type(e) == dictionary { e.at("kind", default: none) } else {
+      none
+    }
+    if type(k) != str or k == "" { continue }
+    if k not in groups {
+      groups.insert(k, ())
+      order.push(k)
+    }
+    groups.insert(k, groups.at(k) + (e,))
+  }
+  order.map(k => (k, groups.at(k)))
+}
+
+// A tag chip, and the authored tags as a wrapping row of chips.
+#let _tag-chip(t) = box(
+  fill: luma(244),
+  stroke: 0.5pt + luma(212),
+  inset: (x: 0.45em, y: 0.2em),
+  radius: 4pt,
+  text(size: 0.72em, fill: luma(90), raw(t)),
+)
+#let _tags-row(tags) = {
+  if type(tags) != array or tags.len() == 0 { return none }
+  tags.map(_tag-chip).join(h(0.35em))
+}
+
+// A label→value metadata grid from the set rows (none-valued rows already dropped).
+#let _meta(rows) = {
+  if rows.len() == 0 { return none }
+  let cells = ()
+  for (label, value) in rows {
+    cells.push(text(fill: _muted, size: 0.82em, raw(label)))
+    cells.push(text(size: 0.92em, value))
+  }
+  grid(columns: (auto, 1fr), column-gutter: 1.1em, row-gutter: 0.55em, ..cells)
+}
+
+// Lay the whole card out. Set rules come first — before the marker — so page 1
+// carries the card page settings rather than the document default.
+#let _render-task(m, marker, body) = {
+  set page(width: 15.5cm, height: auto, margin: (
+    x: 1.6cm,
+    top: 1.5cm,
+    bottom: 1.7cm,
+  ))
+  set text(size: 10.5pt)
+  set par(leading: 0.62em)
+  set heading(numbering: none)
+  show heading: it => block(above: 1em, below: 0.55em, text(
+    size: 1.05em,
+    weight: "bold",
+    it.body,
+  ))
+
+  marker
+
+  let status = m.at("status", default: none)
+  let pills = (
+    _status-pill(status),
+    _priority-pill(m.at("priority", default: none)),
+    _kind-pill(m.at("kind", default: none)),
+  ).filter(p => p != none)
+  if pills.len() > 0 { block(below: 0.5em, pills.join(h(0.4em))) }
+
+  let title = m.at("title", default: "")
+  if title != none and title != "" {
+    block(below: 0.35em, text(size: 1.55em, weight: "bold", title))
+  }
+
+  let note = if status == none { none } else {
+    status.at("note", default: none)
+  }
+  if note != none {
+    block(below: 0.6em, text(fill: _muted, style: "italic", note))
+  }
+
+  // Link rows are dynamic: one row per kind present in `links`, grouped, in
+  // first-seen order — not a fixed depends-on/relates-to/supersedes/duplicates
+  // set, since a project can add its own kinds.
+  let link-rows = _links-by-kind(m.at("links", default: ())).map(pair => (
+    pair.at(0),
+    _edges-row(pair.at(1)),
+  ))
+
+  let rows = (
+    (
+      ("status", _status-detail(status)),
+      ("priority", _priority-detail(m.at("priority", default: none))),
+      ("difficulty", _num-field(m.at("difficulty", default: none))),
+      ("estimate", _fmt-estimate(m.at("estimate", default: (:)))),
+      ("due", _fmt-date(m.at("due", default: none))),
+      ("start", _fmt-date(m.at("start", default: none))),
+      ("reviewed", _fmt-date(m.at("reviewed", default: none))),
+      ("recur", _fmt-recur(m.at("recur", default: none))),
+    )
+      + link-rows
+      + (
+        (
+          "id",
+          if type(m.at("id", default: none)) == str
+            and m.at("id", default: "") != "" { raw(m.id) } else { none },
+        ),
+      )
+  ).filter(row => row.at(1) != none)
+  let meta = _meta(rows)
+  if meta != none { block(below: 0.7em, meta) }
+
+  let tags = _tags-row(m.at("tags", default: ()))
+  if tags != none { block(below: 0.8em, tags) }
+
+  block(below: 0.85em, line(length: 100%, stroke: 0.5pt + _rule))
+
+  body
+}
+
+#let task(body, ..meta) = {
+  assert(
+    meta.pos().len() == 0,
+    message: "task takes no positional args besides its body",
+  )
+  let m = meta.named()
+  let extras = (:)
+  for pair in m.pairs() {
+    let key = pair.at(0)
+    if key not in _core-slots {
+      assert(
+        key.starts-with("x-"),
+        message: "unknown task slot `"
+          + key
+          + "`; tool extensions must use an x-<ns> slot",
+      )
+      extras.insert(key, pair.at(1))
+    }
+  }
+  let marker = [#metadata((
+    marker: "mindtape.task",
+    fields: (
+      title: m.at("title", default: ""),
+      status: m.at("status", default: none),
+      priority: m.at("priority", default: none),
+      difficulty: m.at("difficulty", default: none),
+      kind: m.at("kind", default: none),
+      estimate: m.at("estimate", default: (:)),
+      links: m.at("links", default: ()),
+      tags: m.at("tags", default: ()),
+      due: m.at("due", default: none),
+      start: m.at("start", default: none),
+      reviewed: m.at("reviewed", default: none),
+      recur: m.at("recur", default: none),
+      id: m.at("id", default: none),
+    ),
+    extras: extras,
+  )) <mindtape>]
+  _render-task(m, marker, body)
+}

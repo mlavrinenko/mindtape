@@ -1,0 +1,40 @@
+# Sandbox project for exercising the mindtape skill. Relaxed config: simple
+# status legend, raw-int priority, tags open, no header rules.
+
+[tasks]
+roots = ["tasks"]
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
+required = false
+
+[views.default]
+filter = "!terminal"
+
+[[typst.local-packages]]
+name = "mindtape"
+path = "lib"
