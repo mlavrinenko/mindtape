@@ -10,11 +10,7 @@
   difficulty: 2,
   tags: ("cli",),
   estimate: (files: 4),
-  status: wip(
-    2026,
-    7,
-    28,
-  )[starting: install hint + README/quickstart install story],
+  status: done(2026, 7, 28)[one note per run, wired through warn\_errors],
 )
 
 == Summary
