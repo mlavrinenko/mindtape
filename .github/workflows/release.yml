@@ -7,8 +7,10 @@ on:
 permissions:
   contents: write
 
-# Rustup-based jobs run cargo without the dev shell, so disable the sccache
-# rustc-wrapper that .cargo/config.toml sets for local/Nix builds.
+# Rustup-based jobs run cargo without the dev shell, so clear the sccache
+# rustc-wrapper. No .cargo/config.toml is committed — `just nix-build` exists to
+# keep it that way — but RUSTC_WRAPPER is an inherited environment setting on a
+# dev machine, and a wrapper these jobs cannot resolve fails every cargo call.
 env:
   RUSTC_WRAPPER: ""
 

@@ -53,9 +53,8 @@ jobs:
   windows:
     name: Test (Windows)
     runs-on: windows-latest
-    # `.cargo/config.toml` is not committed, but the dev shell exports sccache
-    # as the rustc wrapper; this job runs plain rustup cargo, so clear it for
-    # the same reason release.yml does.
+    # This job runs plain rustup cargo, never the dev shell, so clear the
+    # sccache rustc-wrapper for the same reason release.yml does.
     env:
       RUSTC_WRAPPER: ""
     steps:
