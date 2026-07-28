@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("docs",),
   estimate: (files: 2),
-  status: wip(2026, 7, 28)[install order, jargon, identity, export framing],
+  status: done(
+    2026,
+    7,
+    28,
+  )[install order, plain-noun architecture, bench table],
 )
 
 == Summary
