@@ -11,7 +11,7 @@
   tags: ("cli", "docs"),
   estimate: (files: 13),
   links: depends-on("opt-in-file-column-for-mt-ls.typ"),
-  status: wip(2026, 7, 28),
+  status: done(2026, 7, 28),
 )
 
 == Summary
@@ -68,3 +68,27 @@ full support.
   `www/content/config.typ`, `www/content/quickstart.typ`,
   `www/utils/cli-notes.typ`, and `skills/mindtape/SKILL.md`. Then
   `just outdatty-update` and commit the refreshed `outdatty.lock`.
+
+== Outcome
+
+Landed as specified. `Column` gained `link_uris`, populated only for the file
+column, and `render_grid` wraps the already-width-fitted, already-painted cell
+— the same side of the width boundary as colour. CSV and JSON never construct a
+`Column` at all, so they cannot leak an escape structurally; tests pin it
+anyway. The config-side and CLI-side `HyperlinkChoice` are separate types
+bridged by a `From` impl, because `mindtape` must not depend on clap.
+
+One design note worth keeping: `hyperlink_enabled` takes `term_is_dumb` as an
+explicit parameter rather than reading `TERM` internally, unlike
+`color_enabled`'s `NO_COLOR` read. An agent sandbox runs with `TERM=dumb`, so
+an env-reading pure core made the pty test flaky. A pure core that reads the
+environment is not pure.
+
+The estimate was wrong, and in a way worth recording rather than editing away:
+13 files declared, 26 touched. The overrun is entirely the documentation
+reconcile, which covered three features because `cli.rs` is a `cli-docs`
+outdatty source and this was the first commit in the sequence to touch it. The
+lesson is not that the 15-file ceiling is too tight — it caught a genuinely
+oversized change, which is its job. It is that a doc reconcile forced by a
+drift group belongs in its own task, sized on its own, instead of riding along
+with the feature that happens to trip the gate.
