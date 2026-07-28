@@ -42,6 +42,10 @@
         # LLVM 21) — a mismatched llvm-profdata rejects the profraw format.
         llvm = pkgs.llvmPackages_21.llvm;
 
+        # Windows cross-check toolchain (see `devShells.windows`).
+        mingw = pkgs.pkgsCross.mingwW64;
+        mingwBin = "${mingw.stdenv.cc}/bin/${mingw.stdenv.cc.targetPrefix}";
+
         # cargo-crap (the CRAP-metric gate behind `just crap`) is not in
         # nixpkgs. Build it from the crates.io tarball with naersk `singleStep`
         # — crates.io' data-access policy 403s the UA that nixpkgs'
@@ -115,6 +119,44 @@
             export LLVM_PROFDATA=${llvm}/bin/llvm-profdata
             just install-hooks > /dev/null 2>&1
           '';
+        };
+
+        # For `just check-windows` — cross-check the workspace against Windows
+        # from Linux, so a `cfg(windows)` arm cannot rot between CI runs.
+        #
+        # Why a separate shell: nixpkgs' plain `rustc` ships std for the host,
+        # wasm and bpf only, so `cargo check --target x86_64-pc-windows-gnu`
+        # has nothing to compile against. `pkgsCross.mingwW64`'s rustc carries
+        # std for BOTH x86_64-pc-windows-gnu (the target) and
+        # x86_64-unknown-linux-gnu (the host — build scripts and proc macros
+        # still run there), which is exactly the pair a cross `cargo check`
+        # needs. rustup is the usual way to add a target and is deliberately
+        # not used: it is not on this project's dev path, and a
+        # rustup-managed target would drift from the pinned toolchain, whereas
+        # pkgsCross comes from the same nixpkgs input as the default shell and
+        # so is the same rustc version as rust-toolchain.toml for free.
+        #
+        # Why -gnu when the release ships -msvc: the two share one
+        # `cfg(windows)` surface, which is all this codebase branches on, and
+        # msvc's C dependencies (stacker, psm) cannot be built from Linux at
+        # all. The Windows CI job is what proves -msvc and runtime behaviour;
+        # this shell only moves compile breakage earlier.
+        devShells.windows = pkgs.mkShell {
+          nativeBuildInputs = [
+            mingw.buildPackages.cargo
+            mingw.buildPackages.rustc
+            pkgs.just
+          ];
+          # The `cc` crate builds the C and assembly bits of stacker/psm for
+          # the TARGET during a plain `cargo check` (build scripts run), so it
+          # needs the mingw compiler by store path. The host toolchain stays
+          # whatever mkShell's own stdenv provides.
+          CC_x86_64_pc_windows_gnu = "${mingwBin}cc";
+          AR_x86_64_pc_windows_gnu = "${mingwBin}ar";
+          CARGO_TARGET_X86_64_PC_WINDOWS_GNU_LINKER = "${mingwBin}cc";
+          # sccache is inherited from the host session and is not part of this
+          # toolchain's closure; a stale wrapper breaks the cross build.
+          RUSTC_WRAPPER = "";
         };
       }
     );

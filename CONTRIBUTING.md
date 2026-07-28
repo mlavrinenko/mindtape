@@ -49,6 +49,15 @@ with violations. Key restrictions:
   plain `cargo build`/`cargo test`, not `just check`: there is no Nix there, and
   the remaining gates are platform-independent. Anything you write that shells
   out or joins paths needs a thought for that job.
+- `just check-windows` cross-checks the workspace (tests included) against
+  `x86_64-pc-windows-gnu` from Linux, so compile breakage surfaces before the
+  push rather than in CI. It runs in its own dev shell (`nix develop .#windows`)
+  because the default shell's rustc carries no Windows std; `pkgsCross.mingwW64`
+  supplies a rustc — the same pinned 1.92.0 — that has std for the target and
+  the host both, so no rustup and no second toolchain manager is involved. Not
+  a `just check` arm: it pulls a separate toolchain closure and `target/` tree.
+  Windows CI still owns runtime behaviour and the `-msvc` target; this only
+  moves the compile half earlier.
 - Run `just test`; count with `just count-tests`.
 - Mutation testing (`cargo-mutants`) proves whether tests pin behavior, not
   just execute it. A surviving `MISSED` mutant is a real assertion gap. Not a

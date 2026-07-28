@@ -45,6 +45,11 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
   ejectest, cargo-llvm-cov (`just cover`; sees across the subprocess e2e tests), cargo-crap (`just crap`; CRAP gate over the lcov `cover` writes, CI-enforced), cargo-mutants (`just mutants-diff` pre-PR, `just mutants -f FILE` for a full-file sweep; not a `just check` gate and no CI job), jq (test/docs only: `contrib/jq/` import adapters), tola (Typst-native SSG for the `www/` docs) +
   pagefind (post-build client-side search index over the built HTML) +
   hyperfine (`just bench` timing against the `examples/large/` generated fixture) + util-linux (`script(1)`, PTY wrapper for the interactive e2e test) + yq (docs-only: `www/generate.sh` reads `.github/workflows/release.yml` to derive the quickstart install targets) + librsvg (docs-only: `rsvg-convert` rasterises the favicon/apple-touch-icon from `assets/images/logo.svg` in `www/generate.sh`)
+- `just check-windows` cross-checks the workspace against
+  `x86_64-pc-windows-gnu` in the `nix develop .#windows` shell (`pkgsCross.mingwW64`
+  rustc — the same pinned 1.92.0, with std for target and host; no rustup). Not
+  a `just check` arm; run it after touching a `cfg(windows)` arm, a process
+  spawn or a path join. Windows CI owns runtime behaviour and the `-msvc` target.
 
 ## Agent Rules
 

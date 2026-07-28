@@ -73,6 +73,21 @@ check-rrule:
     cargo clippy -p mindtape --features rrule --all-targets -q -- -D warnings
     cargo test -p mindtape --features rrule -q
 
+# Cross-check the workspace, tests included, against Windows without leaving
+# Linux — the compile half of what the CI windows job proves at runtime, minutes
+# earlier and without pushing. Runs in its own dev shell (flake.nix
+# `devShells.windows`) because the default shell's rustc has no Windows std;
+# see that shell's comment for why the target is -gnu and the release is -msvc.
+#
+# Deliberately not a `just check` arm: it pulls a second toolchain closure and
+# a separate target/ tree, and CI already covers the regression. Reach for it
+# when touching a `cfg(windows)` arm, a process spawn, a path join, or anything
+# else with a platform seam.
+check-windows:
+    nix develop .#windows --command \
+        cargo check --workspace --all-targets --locked \
+        --target x86_64-pc-windows-gnu
+
 # Fail if a source changed without its dependents being re-confirmed
 outdatty-check:
     outdatty check --format quiet
