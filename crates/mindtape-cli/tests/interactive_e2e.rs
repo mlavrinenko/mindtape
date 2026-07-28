@@ -62,7 +62,8 @@ const TASK_TITLE: &str = "E2E Task";
 fn spawn_interactive(dir: &std::path::Path, suffix: &str) -> Child {
     let mt_bin = PathBuf::from(env!("CARGO_BIN_EXE_mt"));
     let mt_str = mt_bin.to_string_lossy().to_string();
-    Command::new("script")
+    let mut script = Command::new("script");
+    support::isolate(&mut script, dir)
         .args([
             "-q",
             "-e",
@@ -240,7 +241,8 @@ fn select_first_task_and_open(extra_args: &[&str]) -> String {
         command.push(' ');
         command.push_str(arg);
     }
-    let mut child = Command::new("script")
+    let mut script = Command::new("script");
+    let mut child = support::isolate(&mut script, dir.path())
         .args(["-q", "-e", "-c", &command, "/dev/null"])
         .current_dir(dir.path())
         // `resolve_editor` prefers $VISUAL over $EDITOR, so an inherited

@@ -36,7 +36,7 @@ fn mt_on_pty(dir: &Path, args: &str, cols: usize, env: &[(&str, &str)]) -> Outpu
     let mt = PathBuf::from(env!("CARGO_BIN_EXE_mt"));
     let inner = format!("stty cols {cols} rows 24; {} {args}", mt.to_string_lossy());
     let mut command = Command::new("script");
-    command
+    support::isolate(&mut command, dir)
         .args(["-q", "-e", "-c", &inner, "/dev/null"])
         .current_dir(dir)
         .env_remove("NO_COLOR")

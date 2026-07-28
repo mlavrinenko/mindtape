@@ -6,9 +6,71 @@
 //! dead code, hence the module-wide allow.
 #![allow(clippy::unwrap_used, dead_code)]
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const PRELUDE: &str = include_str!("../../../../lib/prelude.typ");
+
+/// Where [`isolated_env`] points the global-config lookup: a path under the
+/// test's own project directory that nothing ever creates.
+const NO_GLOBAL_CONFIG: &str = "no-global-config";
+
+/// Environment variables that steer `mt` and must not reach a spawned binary
+/// from the developer's shell: `MINDTAPE_NOW` repins the clock every dated
+/// write reads, `MINDTAPE_WORKTREE` retargets the project root.
+const CLEARED_VARS: [&str; 2] = ["MINDTAPE_NOW", "MINDTAPE_WORKTREE"];
+
+/// The environment a spawned `mt` needs for a test to be about the code rather
+/// than about the machine running it.
+///
+/// `mt` layers a global `defaults.toml` under every project config —
+/// `dirs::config_dir()/mindtape/defaults.toml`, a supported and documented
+/// layer (`crates/mindtape/src/config_layers.rs`). A spawned binary reads
+/// whatever the developer happens to keep there, so without this every e2e
+/// test is a function of their personal `mt` setup: two lines of `[ls]
+/// hyperlinks` in `~/.config/mindtape/defaults.toml` are enough to fail
+/// `hyperlinks_e2e` on a tree with no Rust change in it.
+///
+/// So point that lookup at an empty path in both places `dirs` resolves it
+/// from the environment — `XDG_CONFIG_HOME` on Linux, `HOME` on macOS (which
+/// reads `~/Library/Application Support` and ignores XDG) — and let the same
+/// `HOME` cap the ancestor `.mindtape/defaults.toml` walk at `dir`, so a stray
+/// one above the tempdir cannot leak in either.
+///
+/// Windows resolves the config directory through a known-folder API that no
+/// environment variable overrides, so there this isolates nothing; see
+/// `truth/tasks/isolate-the-windows-global-config-lookup-in-tests.typ`.
+pub fn isolated_env(dir: &Path) -> [(&'static str, PathBuf); 2] {
+    [
+        ("XDG_CONFIG_HOME", dir.join(NO_GLOBAL_CONFIG)),
+        ("HOME", dir.to_path_buf()),
+    ]
+}
+
+/// `mt`, ready to run in `dir` with the developer's global config out of reach
+/// ([`isolated_env`]). The spawn every e2e test goes through; a bare
+/// `cargo_bin("mt")` is the un-isolated one and only `install_e2e` (which
+/// injects its own XDG directories) has cause to write it.
+pub fn mt(dir: &Path) -> assert_cmd::Command {
+    let mut command = std::process::Command::new(env!("CARGO_BIN_EXE_mt"));
+    command.current_dir(dir);
+    isolate(&mut command, dir);
+    assert_cmd::Command::from_std(command)
+}
+
+/// [`mt`]'s isolation for a caller that builds its own command — the pty tests
+/// spawn `mt` through `script(1)`, which passes its environment down.
+pub fn isolate<'a>(
+    command: &'a mut std::process::Command,
+    dir: &Path,
+) -> &'a mut std::process::Command {
+    for (key, value) in isolated_env(dir) {
+        command.env(key, value);
+    }
+    for key in CLEARED_VARS {
+        command.env_remove(key);
+    }
+    command
+}
 
 /// Every character that opens Typst syntax, in one line of otherwise ordinary
 /// prose: emphasis (`*`, `_`), math (`$`), code (`#`), content-block delimiters
@@ -64,9 +126,7 @@ pub fn project_with_slot_template() -> tempfile::TempDir {
 /// a value back through the harvest is the only way to tell text that survived a
 /// write from text Typst quietly interpreted on the way in.
 pub fn task_json(dir: &Path, id: &str) -> serde_json::Value {
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir)
+    let output = mt(dir)
         .args(["ls", "--json"])
         .assert()
         .success()

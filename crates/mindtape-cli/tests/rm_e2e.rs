@@ -60,9 +60,7 @@ fn scaffold(dir: &Path) {
 }
 
 fn mt(dir: &Path) -> assert_cmd::Command {
-    let mut cmd = assert_cmd::Command::cargo_bin("mt").unwrap();
-    cmd.current_dir(dir);
-    cmd
+    support::mt(dir)
 }
 
 #[test]

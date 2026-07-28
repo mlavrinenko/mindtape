@@ -41,13 +41,11 @@ fn scaffold(dir: &Path, files: &[(&str, &str)]) {
 }
 
 fn mt(dir: &Path) -> assert_cmd::Command {
-    let mut cmd = assert_cmd::Command::cargo_bin("mt").unwrap();
-    cmd.current_dir(dir)
-        // These recurrence-math tests assume the real wall clock: clear any
-        // ambient `$MINDTAPE_NOW` pin so a caller that exports one doesn't leak
-        // into "today" here — see `date_pin_e2e.rs` for the pin's own tests.
-        .env_remove("MINDTAPE_NOW");
-    cmd
+    // These recurrence-math tests assume the real wall clock, which is what
+    // `support::mt` hands them: it clears any ambient `$MINDTAPE_NOW` pin, so a
+    // caller that exports one cannot leak into "today" here — see
+    // `date_pin_e2e.rs` for the pin's own tests.
+    support::mt(dir)
 }
 
 fn tasks_dir_entries(dir: &Path) -> Vec<String> {

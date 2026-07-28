@@ -61,7 +61,15 @@ fn scaffold_with_lib(gone_src: &str, live_src: Option<&str>) -> (tempfile::TempD
 
 fn mt(root: &Path) -> Command {
     let mut cmd = Command::cargo_bin("mt").unwrap();
-    cmd.current_dir(root);
+    // The same isolation `tests/support/mod.rs` gives every e2e spawn, spelled
+    // out because a unit test cannot reach that module: `mt` layers
+    // `dirs::config_dir()/mindtape/defaults.toml` under the project config, so
+    // an un-isolated child reads the config of whoever runs the suite.
+    cmd.current_dir(root)
+        .env("XDG_CONFIG_HOME", root.join("no-global-config"))
+        .env("HOME", root)
+        .env_remove("MINDTAPE_NOW")
+        .env_remove("MINDTAPE_WORKTREE");
     cmd
 }
 

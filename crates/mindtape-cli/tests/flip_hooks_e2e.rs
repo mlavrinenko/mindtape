@@ -26,8 +26,8 @@ fn project(hooks: &str) -> tempfile::TempDir {
 }
 
 fn cmd(dir: &Path, args: &[&str]) -> assert_cmd::Command {
-    let mut command = assert_cmd::Command::cargo_bin("mt").unwrap();
-    command.current_dir(dir).args(args);
+    let mut command = support::mt(dir);
+    command.args(args);
     command
 }
 
