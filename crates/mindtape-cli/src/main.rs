@@ -21,6 +21,7 @@ mod init;
 mod init_compose;
 mod init_wizard;
 mod install;
+mod install_hint;
 mod ls;
 mod ls_interactive;
 mod ls_rules;

@@ -208,10 +208,14 @@ fn resolve_by_handle(project: &Project, ordinal: usize, check: &str) -> Result<(
     Ok((task.clone(), abs))
 }
 
-/// Print per-file load errors to stderr as warnings.
+/// Print per-file load errors to stderr as warnings, then — when the errors say
+/// the prelude is not installed — one hint naming `mt install`.
 pub fn warn_errors(outcome: &LoadOutcome) {
     for error in &outcome.errors {
         eprintln!("warning: {}: {}", error.file.display(), error.message);
+    }
+    if let Some(hint) = crate::install_hint::missing_prelude_hint(outcome) {
+        eprintln!("{hint}");
     }
 }
 
