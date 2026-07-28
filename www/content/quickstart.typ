@@ -25,10 +25,11 @@ From nothing to a validated task in a few commands.
   )
 }
 #let cli-crate = cli-crates.at(0).crate
+// Each entry carries the artifact name the release workflow actually uploads
+// for that target — extension included, so the Windows build reads `.exe`
+// here rather than being silently listed as an extensionless file nobody
+// could run.
 #let targets = release.targets
-#let artifact-for(target) = (
-  release.at("artifact-name-template").replace("${{ matrix.target }}", target)
-)
 
 Install the published CLI crate from crates.io:
 
@@ -38,7 +39,7 @@ Every tagged release (`.github/workflows/release.yml`) also builds a binary
 for #targets.len() platforms, attached to the #link(REPO + "/releases")[Releases
   page] — download whichever matches yours:
 
-#list(..targets.map(t => raw(artifact-for(t))))
+#list(..targets.map(t => raw(t.artifact)))
 
 Or run it straight from the flake, without installing anything:
 

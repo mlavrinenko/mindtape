@@ -40,7 +40,15 @@ with violations. Key restrictions:
   into a `_tests.rs` sibling with [ejectest](https://github.com/mlavrinenko/ejectest).
 - `tests/interactive_e2e.rs` drives `mt ls --interactive` under a real PTY via
   `script(1)` (util-linux, in the flake devShell) — it needs a TTY to exercise
-  the `guard` checks and `event_loop`/`draw`.
+  the `guard` checks and `event_loop`/`draw`. It and `tests/tty_e2e.rs` are
+  `#![cfg(unix)]`: `script(1)` has no Windows equivalent, so on Windows they
+  compile to nothing rather than being skipped at runtime.
+- CI runs the suite on Windows too (`.github/workflows/ci.yml`, job `windows`),
+  which is where the platform seams get exercised — `cmd /C` vs `sh -c` for
+  `[[on.flip]]` `run`, the `dirs` config/data paths, path separators. It runs
+  plain `cargo build`/`cargo test`, not `just check`: there is no Nix there, and
+  the remaining gates are platform-independent. Anything you write that shells
+  out or joins paths needs a thought for that job.
 - Run `just test`; count with `just count-tests`.
 - Mutation testing (`cargo-mutants`) proves whether tests pin behavior, not
   just execute it. A surviving `MISSED` mutant is a real assertion gap. Not a

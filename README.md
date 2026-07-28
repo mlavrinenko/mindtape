@@ -52,7 +52,7 @@ From crates.io:
 cargo install mindtape-cli
 ```
 
-Or grab a prebuilt binary for Linux or macOS from the
+Or grab a prebuilt binary for Linux, macOS or Windows from the
 [Releases page](https://github.com/mlavrinenko/mindtape/releases), or run it
 without installing:
 
@@ -63,6 +63,23 @@ nix run github:mlavrinenko/mindtape -- --help
 Building from source needs only a Rust toolchain (`cargo build --release`
 produces `target/release/mt`); the `nix develop` shell adds the full test and
 lint toolchain used by `just check`.
+
+### Platform support
+
+Linux, macOS and Windows all get a prebuilt binary per release, and CI runs the
+test suite on Linux and Windows. Two things differ on Windows, both by
+necessity rather than omission:
+
+- An `[[on.flip]]` `run` command goes through `cmd /C`, not `sh -c`. It is
+  shell text, so a command written for one shell does not carry to the other.
+- The terminal tests driven by a pty (`mt ls --interactive`, terminal-width
+  and `NO_COLOR` handling) are Unix-only, because their harness is util-linux
+  `script`. The behaviour is platform-independent and `crossterm` implements it
+  over ConPTY; what is unverified there is the harness, not the feature.
+
+Everything else — the config and data directories, the Typst local-package
+path, editor resolution, path separators in derived tags and link resolution —
+is the same code on every platform, and the Windows CI job covers it.
 
 ### Set up, once per machine
 

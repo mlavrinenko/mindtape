@@ -69,8 +69,17 @@ pub fn run(
     parse_buffer(&edited)
 }
 
+/// Last-resort editor when neither `[add] editor` nor `$VISUAL`/`$EDITOR` says
+/// anything: the one editor the platform is guaranteed to have. `vi` is
+/// POSIX-mandated and absent from Windows, where `notepad` is the equivalent
+/// floor — it also blocks until closed, which is what this path needs.
+#[cfg(not(windows))]
+const FALLBACK_EDITOR: &str = "vi";
+#[cfg(windows)]
+const FALLBACK_EDITOR: &str = "notepad";
+
 /// Resolve the editor command: config override, then `$VISUAL`, then `$EDITOR`,
-/// then `vi`.
+/// then [`FALLBACK_EDITOR`].
 fn editor_command(override_cmd: Option<&str>) -> String {
     if let Some(cmd) = override_cmd
         && !cmd.trim().is_empty()
@@ -84,7 +93,7 @@ fn editor_command(override_cmd: Option<&str>) -> String {
             return value;
         }
     }
-    "vi".to_owned()
+    FALLBACK_EDITOR.to_owned()
 }
 
 /// Write `initial` to a scratch `.yaml` file, run `command` on it, and read it

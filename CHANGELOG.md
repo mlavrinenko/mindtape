@@ -213,6 +213,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   falls back to a live eval, never a wrong task. The cache is scratch — reads
   populate it without violating the read/write (CQRS) invariant, which now
   guards the authored tree only. Set `MINDTAPE_NO_CACHE=1` to bypass it.
+- **Windows binaries** — every tagged release now attaches
+  `mindtape-x86_64-pc-windows-msvc.exe` alongside the four Linux and macOS
+  targets, and CI runs the test suite on `windows-latest`, so the platform is
+  supported rather than merely unclaimed. The install page derives each
+  download's filename (extension included) from the release matrix, so a new
+  target never needs transcribing. `README.md` states the support level and the
+  two seams that differ; the pty-driven terminal tests stay Unix-only, since
+  their harness is util-linux `script`.
+
+### Changed
+
+- **`[[on.flip]]` `run` commands go through the platform shell** — `sh -c` as
+  before on Unix, `cmd /C` on Windows. A `run` command is shell text rather than
+  an argv, so it is written for the platform the project builds on, the same way
+  the `Justfile` recipes and git hooks it stands in for are.
+- **`mt add --edit` falls back to `notepad` on Windows** — the `[add] editor` →
+  `$VISUAL` → `$EDITOR` chain is unchanged; only the last-resort floor is now
+  per-platform, since `vi` does not exist there.
+- **`jsonschema` dev-dependency drops its default features** — the schema under
+  test is generated in-process and resolves no external `$ref`, so
+  `resolve-http`/`resolve-file` bought nothing while pulling
+  reqwest → rustls → `aws-lc-sys` into every test build (a C and assembly crypto
+  build needing NASM on windows-msvc). No behaviour change; a much smaller
+  `Cargo.lock` and faster test builds on every platform.
 
 ### Fixed
 

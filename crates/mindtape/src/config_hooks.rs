@@ -82,7 +82,8 @@ pub struct FlipAction {
     pub show: Option<String>,
     /// `{ list = "filter or @view" }` — print the matching tasks.
     pub list: Option<String>,
-    /// `{ run = "command" }` — execute a command through `sh -c`.
+    /// `{ run = "command" }` — execute a command through the platform shell
+    /// (`sh -c`; `cmd /C` on Windows).
     pub run: Option<String>,
     /// Heading printed above a `list`'s table.
     pub title: Option<String>,
@@ -106,7 +107,8 @@ pub enum ActionKind<'a> {
     },
     /// Execute `command`.
     Run {
-        /// The command line, run through `sh -c`.
+        /// The command line, run through the platform shell (`sh -c`; `cmd /C`
+        /// on Windows).
         command: &'a str,
         /// Whether a non-zero exit refuses the flip.
         gate: bool,

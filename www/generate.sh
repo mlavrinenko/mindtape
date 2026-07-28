@@ -81,15 +81,30 @@ gen_read() {
 # other JSON captures (cli.json).
 RELEASE_WF="$REPO/.github/workflows/release.yml"
 
-# Build-matrix target triples, in matrix order.
-TARGETS_JSON="$(yq -r '[.jobs.build.strategy.matrix.include[].target]' "$RELEASE_WF")"
-
-# The upload-artifact "name:" template, e.g. "mindtape-${{ matrix.target }}".
-# Captured verbatim (placeholder and all) so the page can derive each
-# release's download filename by substitution instead of assuming a prefix.
+# The upload-artifact "name:" template, e.g.
+# "mindtape-${{ matrix.target }}${{ matrix.ext }}". Captured verbatim
+# (placeholders and all) so the page derives each release's download filename by
+# substitution instead of assuming a prefix — or, worse, assuming every target
+# has no extension, which stopped being true when Windows joined the matrix.
 ARTIFACT_TEMPLATE="$(yq -r \
   '.jobs.build.steps[] | select(.uses != null and (.uses | test("upload-artifact"))) | .with.name' \
   "$RELEASE_WF")"
+
+# One entry per build-matrix target, in matrix order: the triple, plus the
+# artifact name with that entry's own `target`/`ext` substituted in. Resolved
+# here rather than in the page because only this side can read the matrix; the
+# page would have to re-implement the substitution against fields it cannot see.
+# Literal (non-regex) replacement, so the `${{ }}` braces need no escaping.
+targets_json="[]"
+while IFS=$'\t' read -r target ext; do
+  [ -z "$target" ] && continue
+  artifact="${ARTIFACT_TEMPLATE//\$\{\{ matrix.target \}\}/$target}"
+  artifact="${artifact//\$\{\{ matrix.ext \}\}/$ext}"
+  targets_json="$(jq --arg target "$target" --arg artifact "$artifact" \
+    '. + [{target: $target, artifact: $artifact}]' <<<"$targets_json")"
+done < <(yq -r \
+  '.jobs.build.strategy.matrix.include[] | [.target, (.ext // "")] | @tsv' \
+  "$RELEASE_WF")
 
 # Published crates, in the workflow's publish order (`cargo publish -p X`
 # lines only — the interstitial `sleep 30` steps have no `-p`).
@@ -113,10 +128,9 @@ while IFS= read -r crate; do
 done <<<"$PUBLISH_CRATES"
 
 jq -n \
-  --argjson targets "$TARGETS_JSON" \
-  --arg artifact_template "$ARTIFACT_TEMPLATE" \
+  --argjson targets "$targets_json" \
   --argjson publish "$publish_json" \
-  '{targets: $targets, "artifact-name-template": $artifact_template, publish: $publish}' \
+  '{targets: $targets, publish: $publish}' \
   >"$OUT/release-targets.json"
 
 # --- read commands against the fixture (verbatim) -------------------------

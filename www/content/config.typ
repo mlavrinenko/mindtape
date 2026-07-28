@@ -486,10 +486,16 @@ one still prints its output — that is the evidence the refusal rests on.
 #callout("warn")[
   *Trust boundary.* An `[[on.flip]]` command is exactly as trusted as a
   `Justfile` recipe or a git hook: it comes from the repository's own config and
-  runs through `sh -c` with your full authority, from the project root. Nothing
-  sandboxes it. Read a project's config before running `mt flip` under it, the
-  same way you read a `Makefile` before running `make`.
+  runs through the platform shell — `sh -c`, or `cmd /C` on Windows — with your
+  full authority, from the project root. Nothing sandboxes it. Read a project's
+  config before running `mt flip` under it, the same way you read a `Makefile`
+  before running `make`.
 ]
+
+A `run` command is shell text, not an argv, and the two shells share no syntax,
+so a command written for one platform is not portable to the other — the same
+constraint the `Justfile` recipes and git hooks it stands in for live with. A
+project targeting both writes a line both shells accept, or calls a script.
 
 Only `mt flip` runs actions. `mt check`, `mt ls` and every other read command
 execute nothing — a read that shells out is a surprise, and `mt check` is what

@@ -259,13 +259,21 @@ mod tests {
         assert!(super::spawn_editor("   ", &task_path(&dir)).is_err());
     }
 
+    /// A command that always exits 0, whatever the platform: `true` is a POSIX
+    /// utility Windows has no counterpart for, so `cmd /C rem` (a comment)
+    /// stands in. `spawn_editor` appends the task path either way, and both
+    /// ignore it.
+    #[cfg(not(windows))]
+    const ALWAYS_OK: &str = "true";
+    #[cfg(windows)]
+    const ALWAYS_OK: &str = "cmd /C rem";
+
     /// `spawn_editor` with a valid command succeeds. The `delete !` mutant
     /// would invert the success check, making a successful editor `bail!`.
     #[test]
     fn spawn_editor_succeeds_with_true() {
-        // `true` always exits 0; spawn_editor should return Ok.
         // The `delete !` mutant would check `if true` and bail.
         let dir = tempfile::tempdir().unwrap();
-        super::spawn_editor("true", &task_path(&dir)).unwrap();
+        super::spawn_editor(ALWAYS_OK, &task_path(&dir)).unwrap();
     }
 }

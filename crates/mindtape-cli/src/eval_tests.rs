@@ -31,7 +31,10 @@ fn eval_valid_file_json_succeeds() {
 
 #[test]
 fn eval_missing_file_returns_err() {
-    let file = std::path::PathBuf::from("/tmp/mindtape_test_no_such_file_xyz.typ");
+    // A path under a fresh tempdir that was never written: nonexistent by
+    // construction on every platform, unlike a hardcoded `/tmp/...`.
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("no_such_file.typ");
     assert!(run(&EvalArgs { file, json: false }).is_err());
 }
 
@@ -45,6 +48,7 @@ fn eval_file_without_marker_returns_err() {
 
 #[test]
 fn build_world_missing_file_returns_err() {
-    let file = std::path::Path::new("/tmp/mindtape_test_build_world_xyz.typ");
-    assert!(super::build_world(file).is_err());
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("no_such_file.typ");
+    assert!(super::build_world(&file).is_err());
 }

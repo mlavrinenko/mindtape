@@ -43,16 +43,27 @@ jobs:
     needs: check
     runs-on: ${{ matrix.os }}
     strategy:
+      # `ext` is the executable suffix for the target, and it is spelled out per
+      # entry rather than derived from the triple so www/generate.sh can read
+      # the release's real download filenames straight out of this matrix (see
+      # the artifact `name:` below). Empty everywhere but Windows.
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
+            ext: ""
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
+            ext: ""
           - target: x86_64-apple-darwin
             os: macos-latest
+            ext: ""
           - target: aarch64-apple-darwin
             os: macos-latest
+            ext: ""
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            ext: ".exe"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -74,7 +85,9 @@ jobs:
       # package name here meant this step copied a file that never existed, so
       # every target failed and a tagged release attached no binaries at all.
       # Reading it from cargo metadata keeps the artifact correct if the binary
-      # is ever renamed. The downloaded file stays `mindtape-<triple>`.
+      # is ever renamed. The downloaded file stays `mindtape-<triple><ext>` —
+      # the `.exe` on Windows matters: a downloaded file without it is not
+      # runnable, and renaming it is not something a Release page can say.
       - name: Stage binary
         shell: bash
         run: |
@@ -87,11 +100,13 @@ jobs:
                      | .name' \
             | head -1)"
           test -n "$bin" || { echo "could not resolve the mindtape-cli binary name" >&2; exit 1; }
-          cp "target/${{ matrix.target }}/release/$bin" "mindtape-${{ matrix.target }}"
+          ext='${{ matrix.ext }}'
+          cp "target/${{ matrix.target }}/release/${bin}${ext}" \
+             "mindtape-${{ matrix.target }}${ext}"
       - uses: actions/upload-artifact@v4
         with:
-          name: mindtape-${{ matrix.target }}
-          path: mindtape-${{ matrix.target }}
+          name: mindtape-${{ matrix.target }}${{ matrix.ext }}
+          path: mindtape-${{ matrix.target }}${{ matrix.ext }}
 
   publish:
     name: Publish to crates.io

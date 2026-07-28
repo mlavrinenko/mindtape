@@ -8,6 +8,15 @@
 //! pseudo-terminal, util-linux) makes them observable, which pins
 //! `terminal_width`, `apply_flex`, `no_color_set` and `add`'s `stdin && stdout`
 //! check against mutants that would otherwise survive.
+//!
+//! Unix only. The harness is util-linux `script` driving a pty, plus `stty` and
+//! `/dev/null`; Windows' `ConPTY` has no drop-in command-line equivalent, so
+//! there is nothing here to port rather than rewrite. The behaviours under test
+//! are platform-independent (a width from `terminal_size`, an environment
+//! variable, an `IsTerminal` check), so verifying them on Linux and macOS
+//! covers the logic — what stays unverified on Windows is the pty plumbing
+//! underneath, which is `crossterm`'s.
+#![cfg(unix)]
 #![allow(clippy::unwrap_used)]
 
 mod support;

@@ -5,6 +5,10 @@
 //! table was rendered. Catches the body-replacement mutants on `event_loop` and
 //! `draw`, and every mutant in `guard` — including `||` -> `&&`, which only the
 //! piped-stdin case below can tell apart.
+//!
+//! Unix only, for the same reason as `tty_e2e.rs`: the pty comes from
+//! util-linux `script`, which Windows has no equivalent of.
+#![cfg(unix)]
 #![allow(clippy::unwrap_used)]
 
 mod support;

@@ -275,17 +275,32 @@ fn editor_command_env_var_not_empty_used() {
         .unwrap_or_else(|| panic!("missing sentinel in stderr:\n{stderr}"));
     let child_result = sentinel.strip_prefix("__MT_EDITOR=").unwrap();
     // Real: `!is_empty` is true → returns "custom-editor".
-    // Mutant (no !): `is_empty` is false → skips → falls to "vi".
+    // Mutant (no !): `is_empty` is false → skips → falls to FALLBACK_EDITOR.
     assert_eq!(child_result, "custom-editor");
+}
+
+/// A stand-in editor that rewrites its file argument with fixed YAML, written
+/// for the platform shell. `open_in_editor` appends the scratch path as the
+/// trailing argument, which the script reads as `$1` / `%~1`.
+#[cfg(not(windows))]
+fn fake_editor(dir: &std::path::Path) -> String {
+    let script = dir.join("fake-editor.sh");
+    std::fs::write(&script, "printf 'title: \"Edited\"\\n' > \"$1\"\n").unwrap();
+    format!("sh {}", script.display())
+}
+
+#[cfg(windows)]
+fn fake_editor(dir: &std::path::Path) -> String {
+    let script = dir.join("fake-editor.cmd");
+    // No space before `>`: `echo x >f` would write a trailing space too.
+    std::fs::write(&script, "@echo title: \"Edited\">\"%~1\"\r\n").unwrap();
+    format!("cmd /C {}", script.display())
 }
 
 #[test]
 fn open_in_editor_runs_command_and_reads_back() {
     let dir = tempfile::tempdir().unwrap();
-    let script = dir.path().join("fake-editor.sh");
-    // The fake editor rewrites its file argument ($1) with fixed YAML.
-    std::fs::write(&script, "printf 'title: \"Edited\"\\n' > \"$1\"\n").unwrap();
-    let command = format!("bash {}", script.display());
+    let command = fake_editor(dir.path());
     let edited = open_in_editor(&command, "title:\n").unwrap();
     assert!(edited.contains("title: \"Edited\""), "{edited}");
 }

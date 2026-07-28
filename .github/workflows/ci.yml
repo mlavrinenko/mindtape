@@ -39,6 +39,41 @@ jobs:
       - name: Check
         run: nix develop --command just check
 
+  # Windows has no Nix, so this job cannot run `just check` and deliberately
+  # does not try: fmt, clippy, machete, linecop, jscpd and the docs gates are
+  # platform-independent and stay on the Linux job above. What only a Windows
+  # runner can answer is whether the code compiles and behaves there — the
+  # platform seams `sh -c` vs `cmd /C`, the `dirs` config/data paths `mt
+  # install` writes, the Typst local-package directory, and path separators in
+  # derived tags and link resolution. So this job builds and runs the suite,
+  # nothing more.
+  #
+  # The pty-driven tests (`tests/tty_e2e.rs`, `tests/interactive_e2e.rs`) are
+  # `#![cfg(unix)]` and compile to nothing here; see their module docs.
+  windows:
+    name: Test (Windows)
+    runs-on: windows-latest
+    # `.cargo/config.toml` is not committed, but the dev shell exports sccache
+    # as the rustc wrapper; this job runs plain rustup cargo, so clear it for
+    # the same reason release.yml does.
+    env:
+      RUSTC_WRAPPER: ""
+    steps:
+      - uses: actions/checkout@v4
+      # Same toolchain source as release.yml's build job: the action exports
+      # RUSTUP_TOOLCHAIN, which takes precedence over rust-toolchain.toml, so
+      # this tests what the Windows release binary is actually compiled with.
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2.9.1
+        with:
+          key: windows-latest
+
+      - name: Build
+        run: cargo build --workspace --all-targets
+
+      - name: Test
+        run: cargo test --workspace
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
