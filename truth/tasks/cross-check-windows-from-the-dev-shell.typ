@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("tooling",),
   estimate: (files: 5),
-  status: proposed(2026, 7, 28),
+  status: done(
+    2026,
+    7,
+    28,
+  )[flake.nix devShells.windows + just check-windows; the cfg(windows) coverage proven with a canary typo],
 )
 
 == Summary
