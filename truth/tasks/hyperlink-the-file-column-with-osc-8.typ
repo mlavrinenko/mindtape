@@ -11,7 +11,7 @@
   tags: ("cli", "docs"),
   estimate: (files: 13),
   links: depends-on("opt-in-file-column-for-mt-ls.typ"),
-  status: proposed(2026, 7, 28),
+  status: wip(2026, 7, 28),
 )
 
 == Summary
