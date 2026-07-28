@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::{Requirement, RootSpec, embedded_defaults, load_config, parse_config};
+use super::{Requirement, RootSpec, embedded_defaults, parse_config};
 
 #[test]
 fn defaults_when_empty() {
@@ -42,14 +42,6 @@ fn explicit_status_legend_replaces_the_floor() {
 fn empty_status_legend_clears_the_floor() {
     let config = parse_config("[tasks]\nstatus = []\n").unwrap();
     assert!(config.tasks.status.is_empty());
-}
-
-#[test]
-fn load_config_on_missing_file_matches_parse_config_empty() {
-    let dir = tempfile::tempdir().unwrap();
-    let loaded = load_config(dir.path()).unwrap();
-    let parsed = parse_config("").unwrap();
-    assert_eq!(loaded, parsed);
 }
 
 #[test]

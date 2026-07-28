@@ -217,6 +217,12 @@ fn dir_layers_dedupes_via_canonicalized_symlinked_home() {
 
 // --- full assembly: identical to parse_config("") with nothing on disk ---
 
+/// Asserted through the injected seam, never through `load_config`: that entry
+/// point reads the real `dirs::config_dir()`, so the same assertion made
+/// against it passes or fails on whether the developer happens to keep a
+/// `~/.config/mindtape/defaults.toml` — which is a supported layer, so the
+/// failure would be the test's, not the loader's. A twin of this test did go
+/// through `load_config` and started failing the moment one was written.
 #[test]
 fn no_files_anywhere_matches_parse_config_empty() {
     let (_tmp, home, project) = home_and_project();
