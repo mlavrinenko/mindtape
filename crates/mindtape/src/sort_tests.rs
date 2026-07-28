@@ -324,3 +324,29 @@ fn sort_by_specs_orders_by_file_path() {
     let tasks = vec![bare_task("f-b"), bare_task("f-a")];
     assert_eq!(ids_by(tasks, "file", &cfg), vec!["f-a", "f-b"]);
 }
+
+#[test]
+fn sort_by_specs_orders_by_file_path_across_a_mixed_set() {
+    let cfg = config();
+    let mut root = bare_task("m-root");
+    root.file = "zzz.typ".into(); // no folder at all
+    let mut nested_a = bare_task("m-nested-a");
+    nested_a.file = "tasks/sub/a.typ".into();
+    let mut nested_b = bare_task("m-nested-b");
+    nested_b.file = "tasks/sub/b.typ".into();
+    let mut flat = bare_task("m-flat");
+    flat.file = "tasks/top.typ".into();
+
+    // Input order deliberately scrambled; expected order is the full
+    // root-relative path compared byte-wise, folder and file both.
+    let tasks = vec![
+        root.clone(),
+        nested_b.clone(),
+        flat.clone(),
+        nested_a.clone(),
+    ];
+    assert_eq!(
+        ids_by(tasks, "file", &cfg),
+        vec!["m-nested-a", "m-nested-b", "m-flat", "m-root"]
+    );
+}

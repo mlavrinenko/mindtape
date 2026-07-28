@@ -117,7 +117,7 @@ fn sort_string_key(task: &Task, field: &str) -> String {
         "kind" => task.kind.clone().unwrap_or_default(),
         "due" => task.due.clone().unwrap_or_default(),
         "start" => task.start.clone().unwrap_or_default(),
-        "file" => task.file.display().to_string(),
+        "file" => task.file_key(),
         _ => String::new(),
     }
 }

@@ -1,6 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::collections::BTreeMap;
+use std::path::Path;
 
 use typst_harvest::HVal;
 
@@ -319,4 +320,16 @@ fn from_marker_reads_framework_priority_with_text_input() {
     let (name, inputs) = expect_framework_priority(task);
     assert_eq!(name, "moscow");
     assert_eq!(inputs.get("level"), Some(&InputValue::Text("must".into())));
+}
+
+/// Guards `file_key`'s separator normalisation: it must rejoin path
+/// components with `/`, not defer to `Path::display` (which prints the
+/// OS-native separator, `\` on Windows). Building `file` from per-component
+/// `join` calls — rather than a literal `/`-joined string — exercises the
+/// same code path `Path::components` would walk on either platform.
+#[test]
+fn file_key_joins_components_with_forward_slash() {
+    let mut task = bare_task("nested");
+    task.file = Path::new("tasks").join("sub").join("nested.typ");
+    assert_eq!(task.file_key(), "tasks/sub/nested.typ");
 }

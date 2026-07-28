@@ -136,6 +136,26 @@ impl Task {
             .filter(move |link| link.kind == kind)
             .map(|link| link.task.as_str())
     }
+
+    /// `file` as a portable, `/`-separated string — the root-relative path the
+    /// filter language's `file` field and the `--sort file` key both read (see
+    /// `truth/tasks/filter-and-sort-tasks-by-file.typ`). Built from
+    /// [`Path::components`] and rejoined with `/` rather than [`Path::display`],
+    /// so the same value comes out on every platform: `Display` would print the
+    /// OS-native separator (`\` on Windows), making a filter or `[views.*]`
+    /// expression written on one machine not match on another. This is the
+    /// stored value, not the cwd-relative form the `file` display column
+    /// renders (`crates/mindtape-cli/src/render/file_path.rs`) — display is
+    /// localized, the stored value is not, the same split dates already have
+    /// between the ISO value and `[ls] date-format`.
+    #[must_use]
+    pub fn file_key(&self) -> String {
+        self.file
+            .components()
+            .map(|part| part.as_os_str().to_string_lossy())
+            .collect::<Vec<_>>()
+            .join("/")
+    }
 }
 
 /// Whether a link target is a history pointer (a SWHID tombstone) rather than a

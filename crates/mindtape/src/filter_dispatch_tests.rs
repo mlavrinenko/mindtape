@@ -90,3 +90,24 @@ fn contains_reads_numeric_fields_and_rejects_missing_ones() {
     assert!(!hit("contains(priority, \"9\")", &task));
     assert!(!hit("contains(start, \"2026\")", &task));
 }
+
+#[test]
+fn file_field_contains_matches_nested_dir_not_flat_sibling() {
+    // `sample()` is flat (tasks/add-auth.typ) — no "sub/" segment, so a
+    // subdirectory task must match `contains(file, "sub/")` and its flat
+    // sibling must not.
+    let mut nested = sample();
+    nested.file = "tasks/sub/add-auth.typ".into();
+    assert!(hit("contains(file, \"sub/\")", &nested));
+
+    let flat = sample();
+    assert!(!hit("contains(file, \"sub/\")", &flat));
+}
+
+#[test]
+fn file_field_equality_matches_the_full_root_relative_path() {
+    let task = sample(); // file: tasks/add-auth.typ
+    assert!(hit("file == \"tasks/add-auth.typ\"", &task));
+    assert!(!hit("file == \"tasks/other.typ\"", &task));
+    assert!(hit("file != \"tasks/other.typ\"", &task));
+}
