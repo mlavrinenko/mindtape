@@ -55,6 +55,40 @@ pub fn relativize(root: &Path, cwd: &Path, file: &Path) -> PathBuf {
     }
 }
 
+/// Default `[ls] hyperlink-target` template: the `file://` scheme over the
+/// absolute path. Anyone whose editor registers its own URI scheme overrides
+/// this in config instead.
+pub const DEFAULT_HYPERLINK_TARGET: &str = "file://{abs}";
+
+/// Build the `file` column's hyperlink target URI for `file` (a task's
+/// root-relative source path) by substituting `{abs}` and `{rel}` into
+/// `template` — the absolute path (`root.join(file)`) and the same
+/// working-directory-relative path [`cell_text`] renders.
+///
+/// Falls back to `file` unchanged for both tokens when [`init`] never ran
+/// (unit tests, any non-`open()` caller) — the same fallback [`cell_text`]
+/// uses.
+#[must_use]
+pub fn hyperlink_target(file: &Path, template: &str) -> String {
+    match CONTEXT.get() {
+        Some((root, cwd)) => build_hyperlink_target(root, cwd, file, template),
+        None => template
+            .replace("{abs}", &file.display().to_string())
+            .replace("{rel}", &file.display().to_string()),
+    }
+}
+
+/// Pure core of [`hyperlink_target`], with `root`/`cwd` passed explicitly so
+/// the substitution is unit-testable without the process-global `CONTEXT` —
+/// mirrors [`relativize`]'s split from [`cell_text`].
+fn build_hyperlink_target(root: &Path, cwd: &Path, file: &Path, template: &str) -> String {
+    let abs = root.join(file);
+    let rel = relativize(root, cwd, file);
+    template
+        .replace("{abs}", &abs.display().to_string())
+        .replace("{rel}", &rel.display().to_string())
+}
+
 /// The relative path from `from` to `to` (both absolute): shared-prefix
 /// components dropped, one `..` per leftover `from` component, then `to`'s
 /// leftover components appended. `None` when `to` and `from` disagree on
@@ -146,5 +180,43 @@ mod tests {
         // and any non-`open()` caller observe.
         let file = Path::new("truth/tasks/x.typ");
         assert_eq!(cell_text(file), "truth/tasks/x.typ");
+    }
+
+    #[test]
+    fn build_hyperlink_target_substitutes_abs() {
+        let root = Path::new("/home/user/proj");
+        let cwd = Path::new("/home/user/proj");
+        let file = Path::new("truth/tasks/x.typ");
+        let uri = build_hyperlink_target(root, cwd, file, "file://{abs}");
+        assert_eq!(uri, "file:///home/user/proj/truth/tasks/x.typ");
+    }
+
+    #[test]
+    fn build_hyperlink_target_substitutes_rel_from_a_subdirectory() {
+        let root = Path::new("/home/user/proj");
+        let cwd = Path::new("/home/user/proj/sub");
+        let file = Path::new("truth/tasks/x.typ");
+        let uri = build_hyperlink_target(root, cwd, file, "editor://{rel}");
+        assert_eq!(uri, "editor://../truth/tasks/x.typ");
+    }
+
+    #[test]
+    fn build_hyperlink_target_supports_both_tokens_in_one_template() {
+        let root = Path::new("/proj");
+        let cwd = Path::new("/proj");
+        let file = Path::new("x.typ");
+        let uri = build_hyperlink_target(root, cwd, file, "{rel} -> {abs}");
+        assert_eq!(uri, "x.typ -> /proj/x.typ");
+    }
+
+    #[test]
+    fn hyperlink_target_falls_back_to_file_unchanged_when_context_unset() {
+        // Mirrors `cell_text_falls_back_to_root_relative_when_context_unset`:
+        // no test in this binary ever calls `init`.
+        let file = Path::new("truth/tasks/x.typ");
+        assert_eq!(
+            hyperlink_target(file, "file://{abs}"),
+            "file://truth/tasks/x.typ"
+        );
     }
 }

@@ -84,6 +84,31 @@ fn no_color_env_var_disables_colour_on_a_tty() {
     );
 }
 
+#[test]
+fn hyperlinks_auto_needs_a_tty_and_a_non_dumb_term() {
+    // The harness's own ambient `TERM` cannot be trusted either way (observed
+    // "dumb" in this sandbox), so both arms set `TERM` explicitly rather than
+    // inheriting it — unlike `no_color_env_var_disables_colour_on_a_tty`,
+    // whose `auto` never reads `TERM` at all.
+    let dir = support::project_with_task(LONG_TITLE);
+    let args = "ls --hyperlinks auto --columns '#,title,file'";
+    let non_dumb_term = pty_output(dir.path(), args, 200, &[("TERM", "xterm-256color")]);
+    let dumb_term = pty_output(dir.path(), args, 200, &[("TERM", "dumb")]);
+
+    assert!(
+        non_dumb_term.contains("\u{1b}]8;;file://"),
+        "a real TTY with a non-dumb TERM must enable auto hyperlinks\nstdout:\n{non_dumb_term}"
+    );
+    // Check the OSC 8 signature specifically, not "any escape byte": the
+    // trailer line still gets its ordinary dim colour styling on a TTY
+    // regardless of TERM (colour's `auto` never reads `TERM`), so a bare
+    // `contains('\x1b')` would false-positive on that unrelated escape.
+    assert!(
+        !dumb_term.contains("\u{1b}]8;;"),
+        "TERM=dumb must suppress auto hyperlinks even on a TTY\nstdout:\n{dumb_term:?}"
+    );
+}
+
 /// `add` opens the editor only when stdin *and* stdout are terminals.
 /// Redirecting only stdin from `/dev/null` leaves stdout on the pty — the one
 /// shape that tells `stdin && stdout` apart from `||`, whose reading would

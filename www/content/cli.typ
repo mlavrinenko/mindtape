@@ -60,7 +60,19 @@ An empty filter (`mt ls ''`) skips both and lists everything.
 #cli-group(cli, cli-groups, "Listing")
 
 Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`, or
-override for one run with `--columns`.
+override for one run with `--columns`. A `file` column (the task's source
+path) exists but is opt-in — its cell is never blank, so the ordinary
+auto-hide rule cannot apply to it; name it explicitly (`--columns
+'#,title,file'`, a view, an `[[ls.rules]]` columns override, or `[ls.columns.file]
+visibility = "visible"`) to see it. Its cell is relative to the working
+directory (what an IDE-integrated terminal ctrl-clicks straight to); pair it
+with `--hyperlinks always` (or `[ls] hyperlinks`) to make the cell itself
+clickable in a standalone terminal via an OSC 8 hyperlink sequence, targeting
+`[ls] hyperlink-target` (default `file://{abs}`). There is no way to ask a
+terminal whether it supports OSC 8, so `--hyperlinks auto` is a heuristic
+(TTY, non-`dumb` `TERM`) and the default is `never`, not `auto` — an
+unsupported terminal can render the escape payload as visible garbage, unlike
+colour, which just does nothing.
 
 `mt ls -i` (`--interactive`) holds the terminal in a key loop over the listed
 table instead of printing once:

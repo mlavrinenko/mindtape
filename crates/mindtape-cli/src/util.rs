@@ -11,6 +11,7 @@ use mindtape::{
 };
 
 use crate::handle::{DEFAULT_CHECK_LEN, check_chars, parse_handle};
+use crate::render::link::HyperlinkChoice;
 
 /// A discovered, loaded project: its root, config and load outcome.
 pub struct Project {
@@ -39,6 +40,34 @@ pub fn init_worktree(flag: Option<PathBuf>) {
 /// `MINDTAPE_WORKTREE` value. An empty env var counts as unset.
 fn pick_override(flag: Option<PathBuf>, env: Option<OsString>) -> Option<PathBuf> {
     flag.or_else(|| env.filter(|value| !value.is_empty()).map(PathBuf::from))
+}
+
+/// Process-global `--hyperlinks` flag, resolved once from `main`. `None`
+/// means the flag was not passed, deferring to `[ls] hyperlinks` — unlike
+/// `WORKTREE`, this cannot be resolved to a final on/off decision until a
+/// project's config is loaded, which is why [`crate::render::link::init`]
+/// itself runs from [`open`] rather than from `main`.
+static HYPERLINKS_FLAG: OnceLock<Option<HyperlinkChoice>> = OnceLock::new();
+
+/// Record the `--hyperlinks` flag for this process. Call once from `main`;
+/// later calls are ignored.
+pub fn init_hyperlinks_flag(flag: Option<HyperlinkChoice>) {
+    let _ = HYPERLINKS_FLAG.set(flag);
+}
+
+/// The cached flag, or `None` if [`init_hyperlinks_flag`] never ran (e.g.
+/// tests) or the flag itself was not passed.
+fn hyperlinks_flag() -> Option<HyperlinkChoice> {
+    HYPERLINKS_FLAG.get().copied().flatten()
+}
+
+/// Resolve the effective `--hyperlinks` choice: the flag wins over `[ls]
+/// hyperlinks` (which itself defaults to `never`) when passed.
+fn resolve_hyperlinks(
+    flag: Option<HyperlinkChoice>,
+    config_choice: mindtape::HyperlinkChoice,
+) -> HyperlinkChoice {
+    flag.unwrap_or_else(|| config_choice.into())
 }
 
 /// The cached override, or `None` if [`init_worktree`] never ran (e.g. tests).
@@ -88,7 +117,10 @@ fn resolve_root_with(cwd: &Path, override_path: Option<&Path>) -> Result<PathBuf
 /// Also records the `(root, cwd)` pair for [`crate::render::file_path`]'s
 /// `file` column, mirroring the `WORKTREE`/`COLOR_ENABLED` one-shot pattern; a
 /// cwd read failure is silently skipped, leaving the column's root-relative
-/// fallback in place rather than failing project discovery over it.
+/// fallback in place rather than failing project discovery over it. Resolves
+/// and caches the hyperlink decision too ([`resolve_hyperlinks`],
+/// [`crate::render::link::init`]) — it has to happen here rather than `main`,
+/// since it also consults this project's `[ls] hyperlinks`.
 ///
 /// # Errors
 /// Returns an error if no `.mindtape/` project is found or the config is invalid.
@@ -99,6 +131,7 @@ pub fn open() -> Result<Project> {
     }
     let config =
         load_config(&root).with_context(|| format!("load {}", config_path(&root).display()))?;
+    crate::render::link::init(resolve_hyperlinks(hyperlinks_flag(), config.ls.hyperlinks));
     let outcome = load_project(&root, &config);
     Ok(Project {
         root,

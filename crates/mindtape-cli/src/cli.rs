@@ -7,6 +7,7 @@ use clap::{CommandFactory, Parser, Subcommand};
 use log::LevelFilter;
 
 use crate::render::color::ColorChoice;
+use crate::render::link::HyperlinkChoice;
 use crate::{
     add, check, cli_dump, config_cmd, eval, flip, go, graph, import, init, install, ls, preset_cmd,
     recur, review, rm, views, worktrees,
@@ -39,6 +40,18 @@ pub struct Cli {
     /// `never` suppresses all ANSI colour sequences.
     #[arg(long, value_name = "WHEN", default_value_t, global = true)]
     pub color: ColorChoice,
+
+    /// Hyperlink output for the `file` column: auto, always, or never.
+    ///
+    /// `auto` emits OSC 8 hyperlink sequences only when stdout is a TTY and
+    /// `TERM` is not `dumb` — a heuristic guess, since no terminal capability
+    /// query exists for OSC 8 support. Wins over `[ls] hyperlinks` when
+    /// passed; omitted defers to that config key, which itself defaults to
+    /// `never` — unlike colour, which just degrades to nothing, an
+    /// unsupported terminal can render the OSC 8 payload as visible garbage,
+    /// so opting in stays explicit rather than automatic.
+    #[arg(long, value_name = "WHEN", global = true)]
+    pub hyperlinks: Option<HyperlinkChoice>,
 }
 
 #[derive(Subcommand)]
@@ -189,6 +202,7 @@ mod tests {
 
     use super::{Cli, builtin_subcommand_names, init_logger, verbosity_level};
     use crate::render::color::ColorChoice;
+    use crate::render::link::HyperlinkChoice;
 
     #[test]
     fn color_flag_before_subcommand() {
@@ -206,6 +220,20 @@ mod tests {
     fn color_default_is_auto() {
         let cli = Cli::try_parse_from(["mt", "check"]).unwrap();
         assert_eq!(cli.color, ColorChoice::Auto);
+    }
+
+    #[test]
+    fn hyperlinks_flag_parses() {
+        let cli = Cli::try_parse_from(["mt", "--hyperlinks", "always", "check"]).unwrap();
+        assert_eq!(cli.hyperlinks, Some(HyperlinkChoice::Always));
+    }
+
+    #[test]
+    fn hyperlinks_flag_absent_defers_to_config() {
+        // Unlike `--color`, an absent `--hyperlinks` is `None`, not a default
+        // value — the flag must not shadow `[ls] hyperlinks` when unpassed.
+        let cli = Cli::try_parse_from(["mt", "check"]).unwrap();
+        assert_eq!(cli.hyperlinks, None);
     }
 
     /// `check` is a built-in, which also proves the list is non-empty — a

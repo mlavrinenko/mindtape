@@ -77,10 +77,10 @@ pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use condition::{Condition, ConditionEnv, ConditionError};
 pub use config::{
     AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags, DriftConfig,
-    EstimateConfig, Facet, FormatConfig, GoConfig, ImportView, InteractiveMode, LS_COLUMNS,
-    LocalPackage, LsRule, PriorityConfig, ReadyConfig, RootConfig, RootSpec, TemplatesConfig,
-    TypstConfig, ViewSpec, Visibility, config_path, embedded_defaults, load_config, parse_config,
-    parse_import_view, validate_views,
+    EstimateConfig, Facet, FormatConfig, GoConfig, HyperlinkChoice, ImportView, InteractiveMode,
+    LS_COLUMNS, LocalPackage, LsRule, PriorityConfig, ReadyConfig, RootConfig, RootSpec,
+    TemplatesConfig, TypstConfig, ViewSpec, Visibility, config_path, embedded_defaults,
+    load_config, parse_config, parse_import_view, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_layers::{LayerSource, load_config_layered, merged_config_table};

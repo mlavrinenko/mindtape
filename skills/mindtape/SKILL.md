@@ -69,8 +69,10 @@ of that and lists everything. There is no `--all` flag; `mt ls --all` errors
 with `unexpected argument '--all'`.
 
 Pass a filter expression as the positional argument. Fields:
-`status priority difficulty kind title id due start reviewed file`.
-Operators: `== != < > <= >= && || !` and parentheses. Helpers:
+`status priority difficulty kind title id due start reviewed file`. `file`
+compares the project-root-relative path (`/`-separated on every platform) —
+not the same as the `file` *column*'s working-directory-relative display,
+below. Operators: `== != < > <= >= && || !` and parentheses. Helpers:
 
 - `has(field)` / `miss(field)` — field present / absent
 - `has_tag("name")` — authored or folder-derived tag
@@ -82,7 +84,11 @@ Operators: `== != < > <= >= && || !` and parentheses. Helpers:
 
 Named views are `[views.<name>]` bundles (filter + optional sort/columns); bare
 `@name` applies all three facets, `@name` inside a bigger filter is the filter
-facet only. `--columns <cols|@view>` picks columns for one run.
+facet only. `--columns <cols|@view>` picks columns for one run. An opt-in
+`file` column (never shown unless named, e.g. `--columns '#,title,file'`)
+prints each task's source path relative to the working directory;
+`--hyperlinks always` (default `never`; `[ls] hyperlinks` sets it in config)
+wraps that cell in an OSC 8 sequence so it is clickable in a plain terminal.
 
 ```sh
 mt ls 'ready && priority > 5'

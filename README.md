@@ -106,7 +106,7 @@ That is a sliver of the surface. The docs site has the rest:
 
 - [CLI reference](https://mlavrinenko.github.io/mindtape/cli/) — every `mt`
   command and global flag (`-w`/`--worktree`, `@name` worktree aliases,
-  `--color`, `-v`), grouped.
+  `--color`, `--hyperlinks`, `-v`), grouped.
 - [Filter language](https://mlavrinenko.github.io/mindtape/filters/) — the
   fields, operators, and functions `mt ls` / `mt rm` accept.
 - [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) —

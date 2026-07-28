@@ -81,7 +81,8 @@ below) cover the sections whose shape needs more than one line.
   and #link(u("/filters/"))[Filter language] cover `[tasks.roots]` /
   `[tasks.derive-tags]`, `[tasks.priority]` / `[tasks.difficulty]`, and
   `[views]` / `[ls]` / `[rm]` in full; the #link(u("/cli/"))[CLI reference]
-  covers `[[ls.rules]]`.
+  covers `[[ls.rules]]`, the opt-in `file` column, and `[ls] hyperlinks` /
+  `hyperlink-target`.
 ]
 
 = Example

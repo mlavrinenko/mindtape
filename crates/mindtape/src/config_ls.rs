@@ -57,6 +57,41 @@ pub struct LsConfig {
     /// filter, no `@view`): the first rule whose condition holds (or that
     /// has none) wins and supplies its filter, sort, and columns.
     pub rules: Vec<LsRule>,
+    /// Hyperlink output for the `file` column's cells: `auto`, `always`, or
+    /// `never` (the default). Mirrors `--hyperlinks`, which wins over this
+    /// key when passed — see [`HyperlinkChoice`] for what each value means
+    /// and why the default is not `auto`.
+    pub hyperlinks: HyperlinkChoice,
+    /// Template for the `file` column's hyperlink target URI: `{abs}` (the
+    /// absolute path, the project root joined with the task's `file`) and
+    /// `{rel}` (the same working-directory-relative path the column
+    /// displays) are substituted. Defaults to `file://{abs}`; point it at
+    /// another scheme (e.g. an editor's own URI handler) to open elsewhere.
+    pub hyperlink_target: Option<String>,
+}
+
+/// `[ls] hyperlinks` — whether the `file` column's cells carry an OSC 8
+/// hyperlink sequence (`ESC ] 8 ; ; <uri> ST <text> ESC ] 8 ; ; ST`) in a
+/// standalone terminal. The `mt` binary's `--hyperlinks` flag is this same
+/// choice, mirrored one-to-one in the CLI crate (which alone depends on
+/// `clap`) as `crate::render::link::HyperlinkChoice` there.
+///
+/// There is no terminal capability query for OSC 8 support, so `auto` is a
+/// heuristic (stdout is a TTY and `TERM` is not `dumb`), never a detection —
+/// and unlike colour, which degrades to nothing on a terminal that ignores
+/// it, an unsupported terminal can render the OSC 8 payload as visible
+/// garbage. That asymmetry is why the default is `never`, not `auto`
+/// (`truth/tasks/hyperlink-the-file-column-with-osc-8.typ`).
+#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
+#[serde(rename_all = "lowercase")]
+pub enum HyperlinkChoice {
+    /// Enable hyperlinks only when stdout is a TTY and `TERM` is not `dumb`.
+    Auto,
+    /// Always emit OSC 8 hyperlink sequences.
+    Always,
+    /// Never emit hyperlink sequences.
+    #[default]
+    Never,
 }
 
 /// One `[[ls.rules]]` entry.

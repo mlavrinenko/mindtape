@@ -149,3 +149,32 @@ fn ls_columns_order_rejects_duplicate() {
         "duplicate column name must fail"
     );
 }
+
+#[test]
+fn ls_hyperlinks_defaults_to_never() {
+    let config = parse_config("").unwrap();
+    assert_eq!(config.ls.hyperlinks, crate::HyperlinkChoice::Never);
+}
+
+#[test]
+fn ls_hyperlinks_parses_auto_and_always() {
+    let auto = parse_config("[ls]\nhyperlinks = \"auto\"\n").unwrap();
+    assert_eq!(auto.ls.hyperlinks, crate::HyperlinkChoice::Auto);
+    let always = parse_config("[ls]\nhyperlinks = \"always\"\n").unwrap();
+    assert_eq!(always.ls.hyperlinks, crate::HyperlinkChoice::Always);
+}
+
+#[test]
+fn ls_hyperlink_target_absent_means_none() {
+    let config = parse_config("").unwrap();
+    assert!(config.ls.hyperlink_target.is_none());
+}
+
+#[test]
+fn ls_hyperlink_target_parses_custom_template() {
+    let config = parse_config("[ls]\nhyperlink-target = \"vscode://file/{abs}\"\n").unwrap();
+    assert_eq!(
+        config.ls.hyperlink_target.as_deref(),
+        Some("vscode://file/{abs}")
+    );
+}

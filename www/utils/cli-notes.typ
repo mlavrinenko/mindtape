@@ -42,6 +42,7 @@
     mt ls @stuck                    # named view — filter + sort + columns
     mt ls --json                    # shorthand for --format json
     mt ls --format csv              # table (default), json, or csv
+    mt ls --columns '#,title,file' --hyperlinks always   # clickable file column
     ```,
   ),
   "ls.sort": (

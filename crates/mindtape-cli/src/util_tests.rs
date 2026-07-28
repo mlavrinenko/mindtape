@@ -5,10 +5,11 @@ use mindtape::test_support::{TASK_SRC, bare_task};
 use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
 use super::{
-    Project, init_worktree, pick_override, resolve_root_with, resolve_task, warn_errors,
-    worktree_override,
+    Project, hyperlinks_flag, init_hyperlinks_flag, init_worktree, pick_override,
+    resolve_hyperlinks, resolve_root_with, resolve_task, warn_errors, worktree_override,
 };
 use crate::handle::{DEFAULT_CHECK_LEN, check_chars};
+use crate::render::link::HyperlinkChoice;
 
 #[test]
 fn warn_errors_is_silent_when_no_errors() {
@@ -124,6 +125,28 @@ fn pick_override_empty_env_is_unset() {
 }
 
 #[test]
+fn resolve_hyperlinks_flag_wins_over_config() {
+    // The spec's crux: `never` beats a config opt-in.
+    let choice = resolve_hyperlinks(
+        Some(HyperlinkChoice::Never),
+        mindtape::HyperlinkChoice::Always,
+    );
+    assert_eq!(choice, HyperlinkChoice::Never);
+}
+
+#[test]
+fn resolve_hyperlinks_falls_back_to_config_when_flag_absent() {
+    let choice = resolve_hyperlinks(None, mindtape::HyperlinkChoice::Always);
+    assert_eq!(choice, HyperlinkChoice::Always);
+}
+
+#[test]
+fn resolve_hyperlinks_defaults_to_never_when_both_absent() {
+    let choice = resolve_hyperlinks(None, mindtape::HyperlinkChoice::Never);
+    assert_eq!(choice, HyperlinkChoice::Never);
+}
+
+#[test]
 fn resolve_root_override_targets_named_worktree() {
     let dir = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
@@ -198,6 +221,22 @@ fn init_worktree_sets_override_once() {
     assert_eq!(
         worktree_override(),
         Some(PathBuf::from("/test/path")),
+        "must be set after init"
+    );
+}
+
+#[test]
+fn init_hyperlinks_flag_sets_override_once() {
+    if std::env::var(CHILD).is_err() {
+        let out = crate::test_util::run_self_test("init_hyperlinks_flag_sets_override_once", CHILD);
+        crate::test_util::assert_child_ok(&out);
+        return;
+    }
+    assert_eq!(hyperlinks_flag(), None, "must be None before init");
+    init_hyperlinks_flag(Some(HyperlinkChoice::Always));
+    assert_eq!(
+        hyperlinks_flag(),
+        Some(HyperlinkChoice::Always),
         "must be set after init"
     );
 }

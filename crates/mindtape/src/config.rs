@@ -24,8 +24,8 @@ pub use crate::config_add::{AddConfig, InteractiveMode};
 pub use crate::config_format::FormatConfig;
 pub use crate::config_go::GoConfig;
 pub use crate::config_ls::{
-    ColumnConfig, Facet, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig, Visibility,
-    parse_import_view, validate_ls_columns, validate_ls_rules,
+    ColumnConfig, Facet, HyperlinkChoice, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig,
+    Visibility, parse_import_view, validate_ls_columns, validate_ls_rules,
 };
 pub use crate::config_required::{RequiredRules, Requirement, RequirementRule};
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};

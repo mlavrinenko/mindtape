@@ -607,6 +607,26 @@
       },
       "type": "object"
     },
+    "HyperlinkChoice": {
+      "description": "`[ls] hyperlinks` — whether the `file` column's cells carry an OSC 8\nhyperlink sequence (`ESC ] 8 ; ; <uri> ST <text> ESC ] 8 ; ; ST`) in a\nstandalone terminal. The `mt` binary's `--hyperlinks` flag is this same\nchoice, mirrored one-to-one in the CLI crate (which alone depends on\n`clap`) as `crate::render::link::HyperlinkChoice` there.\n\nThere is no terminal capability query for OSC 8 support, so `auto` is a\nheuristic (stdout is a TTY and `TERM` is not `dumb`), never a detection —\nand unlike colour, which degrades to nothing on a terminal that ignores\nit, an unsupported terminal can render the OSC 8 payload as visible\ngarbage. That asymmetry is why the default is `never`, not `auto`\n(`truth/tasks/hyperlink-the-file-column-with-osc-8.typ`).",
+      "oneOf": [
+        {
+          "const": "auto",
+          "description": "Enable hyperlinks only when stdout is a TTY and `TERM` is not `dumb`.",
+          "type": "string"
+        },
+        {
+          "const": "always",
+          "description": "Always emit OSC 8 hyperlink sequences.",
+          "type": "string"
+        },
+        {
+          "const": "never",
+          "description": "Never emit hyperlink sequences.",
+          "type": "string"
+        }
+      ]
+    },
     "IdConfig": {
       "additionalProperties": false,
       "description": "`[tasks.id]` — task identity format constraint.",
@@ -933,6 +953,18 @@
             "string",
             "null"
           ]
+        },
+        "hyperlink-target": {
+          "default": null,
+          "description": "Template for the `file` column's hyperlink target URI: `{abs}` (the\nabsolute path, the project root joined with the task's `file`) and\n`{rel}` (the same working-directory-relative path the column\ndisplays) are substituted. Defaults to `file://{abs}`; point it at\nanother scheme (e.g. an editor's own URI handler) to open elsewhere.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hyperlinks": {
+          "$ref": "#/$defs/HyperlinkChoice",
+          "description": "Hyperlink output for the `file` column's cells: `auto`, `always`, or\n`never` (the default). Mirrors `--hyperlinks`, which wins over this\nkey when passed — see [`HyperlinkChoice`] for what each value means\nand why the default is not `auto`."
         },
         "overdue-color": {
           "default": null,

@@ -149,8 +149,11 @@ Pass a filter expression to narrow it down — here, everything not yet terminal
 
 #terminal-ansi(read("../generated/ls-open.ansi"))
 
-Empty columns hide themselves. The full #link(u("/filters/"))[filter language]
-covers tags, dates, dependency state, and full-text search.
+Empty columns hide themselves. An opt-in `file` column (`--columns
+'#,title,file'`) shows each task's source path, clickable in a standalone
+terminal with `--hyperlinks always` — see #link(u("/cli/"))[the CLI
+  reference]. The full #link(u("/filters/"))[filter language] covers tags,
+dates, dependency state, and full-text search.
 
 = Change status
 

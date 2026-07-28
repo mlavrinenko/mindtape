@@ -20,6 +20,13 @@ Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
 numerically (`priority >= 7`). The opaque `estimate` dict supports presence only
 (`has(estimate)`), never comparison.
 
+`file` compares the task's project-root-relative source path with `/`
+separators on every platform — deliberately not the
+#link(u("/cli/"))[`file` column]'s working-directory-relative display: a
+filter saved in `.mindtape/config.toml` (a view, an `[[ls.rules]]` entry) must
+mean the same thing regardless of where `mt` runs from, so it stays anchored
+to the root rather than to whichever directory issued the command.
+
 = Operators
 
 `==` `!=` `<` `>` `<=` `>=` for comparison; `&&` `||` `!` for logic; parentheses

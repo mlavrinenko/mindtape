@@ -10,9 +10,10 @@ use anstyle::{Effects, Style};
 use mindtape::{Config, Readiness, Task};
 
 use super::color::{Painter, is_color_active};
-use super::columns::{ColumnId, resolve_order};
+use super::columns::{ColumnId, file_hyperlink_targets, resolve_order};
 use super::field::{CellSpec, DensityMode, cell_content, content_width, render_cell};
 use super::glyph::GlyphMode;
+use super::link::{Linker, is_hyperlinks_active};
 use super::width::{display_width, pad_to_width, truncate_to_width};
 use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
 
@@ -24,6 +25,11 @@ struct Column {
     id: ColumnId,
     cells: Vec<CellSpec>,
     width: usize,
+    /// Per-row hyperlink target URI, populated only for the `file` column —
+    /// the only column OSC 8 wraps. `None` for every other column, so
+    /// `render_grid` skips the wrap there regardless of whether hyperlinks
+    /// are active.
+    link_uris: Option<Vec<String>>,
 }
 
 /// Render `tasks` as a borderless, space-aligned table.
@@ -60,11 +66,12 @@ fn render_inner(
 ) -> String {
     let glyph_mode = glyph_mode();
     let painter = Painter::new(is_color_active());
+    let linker = Linker::new(is_hyperlinks_active());
     let handles: Vec<(String, &Task)> = make_handles(tasks, DEFAULT_CHECK_LEN);
     let visible = resolve_order(config, &handles, readiness);
     let mut columns = build_columns(&visible, &handles, config, readiness, glyph_mode);
     apply_highlight(&mut columns, highlighted);
-    render_grid(&columns, glyph_mode, painter)
+    render_grid(&columns, glyph_mode, painter, linker)
 }
 
 /// Paint the `#` column's cells reverse-video for the highlighted rows. A no-op
@@ -115,7 +122,13 @@ fn build_columns(
                     .iter()
                     .map(|cell| content_width(cell, glyph_mode, full)),
             );
-            Column { id, cells, width }
+            let link_uris = (id == ColumnId::File).then(|| file_hyperlink_targets(handles, config));
+            Column {
+                id,
+                cells,
+                width,
+                link_uris,
+            }
         })
         .collect();
     apply_flex(&mut columns, terminal_width());
@@ -158,8 +171,15 @@ fn terminal_width() -> Option<usize> {
 
 /// Lay out the header and one line per task. Every column is padded to its
 /// width except the last, which is truncated-not-padded so no trailing run
-/// survives (keeps output greppable / paste-friendly).
-fn render_grid(columns: &[Column], glyph_mode: GlyphMode, painter: Painter) -> String {
+/// survives (keeps output greppable / paste-friendly). `linker` wraps a data
+/// cell in its OSC 8 sequence, if any, strictly after width fitting and
+/// colour — same as colour, it never disturbs the padding math.
+fn render_grid(
+    columns: &[Column],
+    glyph_mode: GlyphMode,
+    painter: Painter,
+    linker: Linker,
+) -> String {
     if columns.is_empty() {
         return String::new();
     }
@@ -185,10 +205,14 @@ fn render_grid(columns: &[Column], glyph_mode: GlyphMode, painter: Painter) -> S
             .enumerate()
             .filter_map(|(idx, col)| {
                 col.cells.get(row).map(|cell| {
-                    if idx == last {
+                    let rendered = if idx == last {
                         render_unpadded(cell, glyph_mode, painter, col.width)
                     } else {
                         render_cell(cell, glyph_mode, DensityMode::Full, painter, col.width)
+                    };
+                    match col.link_uris.as_ref().and_then(|uris| uris.get(row)) {
+                        Some(uri) => linker.link(&rendered, uri),
+                        None => rendered,
                     }
                 })
             })
