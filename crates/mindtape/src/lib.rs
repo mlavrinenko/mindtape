@@ -83,7 +83,9 @@ pub use config::{
     load_config, parse_config, parse_import_view, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
-pub use config_layers::{LayerSource, load_config_layered, merged_config_table};
+pub use config_layers::{
+    LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
+};
 pub use config_limits::{LimitBreach, LimitError, LimitSeverity, LimitSpec, check_limits};
 pub use config_schema::{SCHEMA_URL, config_schema_json};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};

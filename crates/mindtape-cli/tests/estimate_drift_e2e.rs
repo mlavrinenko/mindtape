@@ -9,6 +9,8 @@
 use std::path::Path;
 use std::process::Command;
 
+mod support;
+
 /// A project config declaring a `files` estimate unit, with the drift settings
 /// left at their defaults (unit `files`, in-flight `status == "wip"`).
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n\
@@ -59,12 +61,7 @@ fn fixture(files: u32, extra: usize) -> tempfile::TempDir {
 
 /// Run `mt check` in `root` and return its stdout, asserting a zero exit.
 fn check_stdout(root: &Path) -> String {
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(root)
-        .arg("check")
-        .output()
-        .unwrap();
+    let output = support::mt(root).arg("check").output().unwrap();
     assert!(
         output.status.success(),
         "`mt check` must stay green: {}",

@@ -26,9 +26,7 @@ fn end_to_end_files_and_validates_a_task() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["add", "--name", "wire-add", "--set", "title=Wire add"])
         .assert()
         .success();
@@ -39,12 +37,7 @@ fn end_to_end_files_and_validates_a_task() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task passes `check`.
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .arg("check")
-        .assert()
-        .success();
+    support::mt(dir.path()).arg("check").assert().success();
 }
 
 #[test]
@@ -52,9 +45,7 @@ fn end_to_end_files_from_positional_title() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["add", "cleanup", "kitchen"])
         .assert()
         .success();
@@ -69,9 +60,7 @@ fn end_to_end_nests_into_subfolder() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["add", "--to", "shopping", "Potatoes"])
         .assert()
         .success();
@@ -82,9 +71,7 @@ fn end_to_end_nests_into_subfolder() {
 
 /// Parsed `add --describe=json` schema rows run in `dir`.
 fn describe_slots(dir: &Path) -> serde_json::Value {
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir)
+    let output = support::mt(dir)
         .args(["add", "--describe=json"])
         .assert()
         .success()
@@ -145,9 +132,7 @@ fn injects_config_required_priority_slot() {
     assert!(names.iter().any(|n| n == "priority"), "{names:?}");
 
     // Filling it writes a valid task.
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args([
             "add",
             "--name",
@@ -164,9 +149,7 @@ fn injects_config_required_priority_slot() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // Omitting a config-required field is the existing missing-slot hard error.
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["add", "--name", "no-pri", "--set", "title=T"])
         .assert()
         .failure();
@@ -196,9 +179,7 @@ fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
     assert_eq!(describe_slot_kind(dir.path(), "priority"), "real");
 
     // Filling it with a decimal writes a float literal without truncation.
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args([
             "add",
             "--name",
@@ -215,12 +196,7 @@ fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     // The filed task with a real priority value passes `check`.
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .arg("check")
-        .assert()
-        .success();
+    support::mt(dir.path()).arg("check").assert().success();
 }
 
 /// A config whose legend has no `"proposed"` entry at all — the initial
@@ -240,9 +216,7 @@ fn derives_initial_status_from_a_custom_legend() {
     )
     .unwrap();
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["add", "--name", "custom-legend", "--set", "title=T"])
         .assert()
         .success();
@@ -252,12 +226,7 @@ fn derives_initial_status_from_a_custom_legend() {
     assert!(!written.contains("proposed"), "{written}");
 
     // The filed task passes `check` even though the legend has no `proposed`.
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .arg("check")
-        .assert()
-        .success();
+    support::mt(dir.path()).arg("check").assert().success();
 }
 
 /// The real `.mindtape/templates/task.typ` this repo ships, so a drift in its
@@ -291,9 +260,7 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
     )
     .unwrap();
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["add", "--name", "no-estimate", "--set", "title=No estimate"])
         .args(["--set", "summary=A summary."])
         .assert()
@@ -303,12 +270,7 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
     assert!(written.contains("estimate: (files: 2)"), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .arg("check")
-        .assert()
-        .success();
+    support::mt(dir.path()).arg("check").assert().success();
 }
 
 #[test]
@@ -316,9 +278,7 @@ fn collision_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
     std::fs::write(dir.path().join("tasks/dup.typ"), "existing").unwrap();
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["add", "--name", "dup", "--set", "title=Dup"])
         .assert()
         .failure();
@@ -331,9 +291,7 @@ fn unknown_set_key_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
 
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    let output = support::mt(dir.path())
         .args(["add", "--name", "typo", "--set", "title=T"])
         .args(["--set", "priorty=3"])
         .assert()
@@ -357,9 +315,7 @@ fn unknown_values_json_key_is_a_hard_error() {
     let values = dir.path().join("v.json");
     std::fs::write(&values, r#"{"title":"T","priorty":3}"#).unwrap();
 
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    let output = support::mt(dir.path())
         .args(["add", "--name", "typo", "-f"])
         .arg(&values)
         .assert()
@@ -381,9 +337,7 @@ fn markup_hazards_in_slot_values_round_trip_literally() {
     let dir = support::project_with_slot_template();
     let hazards = support::MARKUP_HAZARDS;
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["add", "--name", "hazards"])
         .args(["--set", &format!("title={hazards}")])
         .args(["--set", &format!("why={hazards}")])
@@ -437,9 +391,7 @@ fn a_task_that_fails_verification_is_kept_and_reported_as_kept() {
     )
     .unwrap();
 
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    let output = support::mt(dir.path())
         .args(["add", "--name", "broken", "--set", "title=Broken"])
         .assert()
         .failure()

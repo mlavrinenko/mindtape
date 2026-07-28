@@ -9,7 +9,7 @@ groups:
       crates/mindtape-cli/src/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
-      crates/mindtape/src/lib.rs: 2d7fc6608bfcaa453f1f571ca8f6ad8e018fb4bdfea2e1ae14e68547bf452c7d
+      crates/mindtape/src/lib.rs: cdfd01ead356d4991684afed56eac204b9e0eecf99535a317483a50f8a3a05ed
     dependents:
       skills/mindtape/SKILL.md: 18519737dabd549e88c49bd4140a4f7705411b08211769e5bade09636cb0ad98
       www/content/cli.typ: c0458f7dac6c46bfed42b4cb2acfe9acccee838c3f6d1c830fd6391f6f048430

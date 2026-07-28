@@ -36,9 +36,7 @@ fn build_fixture() -> tempfile::TempDir {
     scaffold(dir.path());
 
     for (name, title) in [("alpha", "Alpha task"), ("beta", "Beta task")] {
-        assert_cmd::Command::cargo_bin("mt")
-            .unwrap()
-            .current_dir(dir.path())
+        support::mt(dir.path())
             .args(["add", "--name", name, "--set", &format!("title={title}")])
             .assert()
             .success();
@@ -128,12 +126,7 @@ fn collect_files(root: &Path, dir: &Path, out: &mut Vec<(String, Vec<u8>)>) {
 fn assert_read_untouched(dir: &Path, args: &[&str]) {
     let before = hash_tree(dir);
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir)
-        .args(args)
-        .assert()
-        .success();
+    support::mt(dir).args(args).assert().success();
 
     let after = hash_tree(dir);
     assert_eq!(

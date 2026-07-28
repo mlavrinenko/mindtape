@@ -7,12 +7,14 @@
 //! `dump_json()` directly, so they are deliberately not re-asserted here.
 #![allow(clippy::unwrap_used)]
 
-use assert_cmd::Command;
+mod support;
 
 #[test]
 fn cli_dump_prints_the_json_to_stdout() {
-    let output = Command::cargo_bin("mt")
-        .unwrap()
+    // `_cli` reads no config, but it still runs through `support::mt` (in a
+    // throwaway directory) so no e2e spawn anywhere is the un-isolated one.
+    let dir = tempfile::tempdir().unwrap();
+    let output = support::mt(dir.path())
         .arg("_cli")
         .arg("--json")
         .output()

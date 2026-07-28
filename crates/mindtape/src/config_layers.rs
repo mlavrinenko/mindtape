@@ -176,7 +176,30 @@ pub fn merged_config_table(root: &Path) -> Result<toml::Table, ConfigError> {
 /// Returns [`ConfigError`] if any layer fails to parse, the merged document
 /// fails to deserialize, or semantic validation fails.
 pub fn load_config_layered(root: &Path) -> Result<(Config, Vec<LayerSource>), ConfigError> {
-    let layers = discover_layers(root, dirs::home_dir().as_deref());
+    load_config_layered_from(
+        root,
+        dirs::home_dir().as_deref(),
+        dirs::config_dir().as_deref(),
+    )
+}
+
+/// [`load_config_layered`] with both environment-derived directories injected:
+/// `home` bounds the ancestor walk, `xdg_config_dir` locates the global
+/// `mindtape/defaults.toml` layer. Pass `None` for either to drop it.
+///
+/// The entry point for a caller that must not read the running machine —
+/// embedders wiring their own config discovery, and any test asserting on a
+/// full merge, which through [`load_config_layered`] would instead assert on
+/// whether the developer keeps a global `defaults.toml`.
+///
+/// # Errors
+/// As [`load_config_layered`].
+pub fn load_config_layered_from(
+    root: &Path,
+    home: Option<&Path>,
+    xdg_config_dir: Option<&Path>,
+) -> Result<(Config, Vec<LayerSource>), ConfigError> {
+    let layers = discover_layers_with_xdg(root, home, xdg_config_dir);
     let sources = layers.iter().map(|layer| layer.source.clone()).collect();
     let config = build_config(&layers)?;
     Ok((config, sources))

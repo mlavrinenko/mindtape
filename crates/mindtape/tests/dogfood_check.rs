@@ -11,7 +11,11 @@ use std::path::PathBuf;
 #[test]
 fn dogfood_truth_tasks_pass_validation() {
     let root: PathBuf = [env!("CARGO_MANIFEST_DIR"), "..", ".."].iter().collect();
-    let config = mindtape::load_config(&root).unwrap();
+    // Loaded with both environment-derived directories dropped: through
+    // `load_config` this would merge the global `defaults.toml` of whoever
+    // runs the suite, and a `[tasks]` line there could fail the repo's own
+    // backlog on their machine alone.
+    let (config, _sources) = mindtape::load_config_layered_from(&root, None, None).unwrap();
     let outcome = mindtape::load_project(&root, &config);
     assert!(outcome.errors.is_empty(), "{:#?}", outcome.errors);
 

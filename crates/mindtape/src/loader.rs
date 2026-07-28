@@ -38,12 +38,24 @@ pub struct LoadOutcome {
 /// Walk up from `start` for the project root (the dir containing `.mindtape/`).
 #[must_use]
 pub fn find_root(start: &Path) -> Option<PathBuf> {
+    find_root_bounded(start, None)
+}
+
+/// [`find_root`] with the walk optionally bounded: `stop`, when given, is the
+/// last directory examined.
+///
+/// Unbounded is what `mt` wants — a project marker may sit any distance above
+/// the working directory. It is not what a test wants: "no marker anywhere
+/// above this tempdir" is then a fact about the machine running the suite, and
+/// a developer who keeps a `~/.mindtape` project with `$TMPDIR` under `$HOME`
+/// fails an assertion the fixture looks like it controls.
+fn find_root_bounded(start: &Path, stop: Option<&Path>) -> Option<PathBuf> {
     let mut dir = start.to_path_buf();
     loop {
         if dir.join(".mindtape").is_dir() {
             return Some(dir);
         }
-        if !dir.pop() {
+        if stop == Some(dir.as_path()) || !dir.pop() {
             return None;
         }
     }

@@ -105,20 +105,13 @@ fn assert_e2e_import(source: &str) {
     let input = jq_dir.join("fixtures").join(format!("{source}.in.json"));
     let canonical = run_jq(&script, &input);
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .arg("import")
         .write_stdin(canonical)
         .assert()
         .success();
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .arg("check")
-        .assert()
-        .success();
+    support::mt(dir.path()).arg("check").assert().success();
 
     let filed = std::fs::read_dir(dir.path().join("tasks"))
         .unwrap()

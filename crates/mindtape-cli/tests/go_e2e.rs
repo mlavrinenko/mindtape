@@ -18,19 +18,12 @@ fn go_prints_opened_message() {
     .unwrap();
 
     // File a task via `mt add` so it has the right format.
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["add", "--name", "x", "--set", "title=Test"])
         .assert()
         .success();
 
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .args(["go", "x"])
-        .output()
-        .unwrap();
+    let output = support::mt(dir.path()).args(["go", "x"]).output().unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("opened"), "mt go should print 'opened ...'");
 }

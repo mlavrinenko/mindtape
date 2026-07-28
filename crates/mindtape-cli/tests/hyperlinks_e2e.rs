@@ -31,9 +31,7 @@ fn project_with_config(config: &str) -> tempfile::TempDir {
 }
 
 fn ls_stdout(dir: &std::path::Path, args: &[&str]) -> String {
-    let out = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir)
+    let out = support::mt(dir)
         .args(args)
         .assert()
         .success()

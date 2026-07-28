@@ -18,12 +18,7 @@ fn views_lists_known_views() {
     let dir = tempfile::tempdir().unwrap();
     scaffold_with_views(dir.path());
 
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .args(["views"])
-        .output()
-        .unwrap();
+    let output = support::mt(dir.path()).args(["views"]).output().unwrap();
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("hot"));
     assert!(stdout.contains("simple"));
@@ -34,9 +29,7 @@ fn views_detail_shows_view_definition() {
     let dir = tempfile::tempdir().unwrap();
     scaffold_with_views(dir.path());
 
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    let output = support::mt(dir.path())
         .args(["views", "hot"])
         .output()
         .unwrap();
@@ -51,9 +44,7 @@ fn views_detail_omits_empty_sort_and_columns() {
     let dir = tempfile::tempdir().unwrap();
     scaffold_with_views(dir.path());
 
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    let output = support::mt(dir.path())
         .args(["views", "simple"])
         .output()
         .unwrap();

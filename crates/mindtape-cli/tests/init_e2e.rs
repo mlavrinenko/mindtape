@@ -11,12 +11,7 @@ mod support;
 
 /// Run `mt` in `dir` and assert it succeeds.
 fn mt(dir: &Path, args: &[&str]) {
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir)
-        .args(args)
-        .assert()
-        .success();
+    support::mt(dir).args(args).assert().success();
 }
 
 /// File a task in `dir` via `mt add --name <name> --set title=T <extra_set…>`,
@@ -163,9 +158,7 @@ fn composed_answer_sets_support_add_check_and_a_full_walk() {
 fn strict_framework_priority_answer_set_is_refused() {
     let dir = tempfile::tempdir().unwrap();
     support::install_lib(dir.path());
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["init", "--no-input", "--priority", "ice-strict"])
         .assert()
         .failure()
@@ -289,9 +282,7 @@ fn gated_preset_blocks_done_straight_from_wip() {
     mt(dir.path(), &["flip", "accepted", "guard"]);
     mt(dir.path(), &["flip", "wip", "guard"]);
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["flip", "done", "guard"])
         .assert()
         .failure();
@@ -308,9 +299,7 @@ fn gated_preset_gates_done_on_an_unfilled_task() {
         mt(dir.path(), &["flip", status, "hollow"]);
     }
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["flip", "done", "hollow"])
         .assert()
         .failure()
@@ -412,9 +401,7 @@ fn overlay_only_preset_composes_to_the_overlay() {
 #[test]
 fn unknown_preset_fails_without_writing() {
     let dir = tempfile::tempdir().unwrap();
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["init", "--preset", "nope"])
         .assert()
         .failure();
@@ -425,9 +412,7 @@ fn unknown_preset_fails_without_writing() {
 #[test]
 fn list_presets_writes_nothing() {
     let dir = tempfile::tempdir().unwrap();
-    let output = assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    let output = support::mt(dir.path())
         .args(["init", "--list-presets"])
         .assert()
         .success()

@@ -28,9 +28,7 @@ fn imports_from_stdin() {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .arg("import")
         .write_stdin(ONE_TASK_JSON)
         .assert()
@@ -48,9 +46,7 @@ fn imports_from_a_file_argument() {
     let input = dir.path().join("in.json");
     std::fs::write(&input, ONE_TASK_JSON).unwrap();
 
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
+    support::mt(dir.path())
         .args(["import", input.to_str().unwrap()])
         .assert()
         .success();
@@ -59,10 +55,5 @@ fn imports_from_a_file_argument() {
     assert!(written.contains("title: \"Wire import\""), "{written}");
 
     // The filed task passes `check`.
-    assert_cmd::Command::cargo_bin("mt")
-        .unwrap()
-        .current_dir(dir.path())
-        .arg("check")
-        .assert()
-        .success();
+    support::mt(dir.path()).arg("check").assert().success();
 }

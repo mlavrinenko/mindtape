@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use super::{body_after_marker, find_root, load_project};
+use super::{body_after_marker, find_root, find_root_bounded, load_project};
 use crate::config::Config;
 use crate::numeric::NumValue;
 use crate::parse_config;
@@ -314,8 +314,15 @@ fn find_root_locates_mindtape_dir() {
 
 #[test]
 fn find_root_returns_none_without_marker() {
+    // Bounded at the fixture's own top, so the walk still ascends (two levels)
+    // but never reaches the machine: through the unbounded `find_root` this
+    // asserted that nothing above `$TMPDIR` holds a `.mindtape`, which any
+    // developer with a `~/.mindtape` project and a `$HOME`-rooted `$TMPDIR`
+    // would fail. Planting `/tmp/.mindtape` reproduces it.
     let dir = tempfile::tempdir().unwrap();
-    assert!(find_root(dir.path()).is_none());
+    let nested = dir.path().join("a/b");
+    std::fs::create_dir_all(&nested).unwrap();
+    assert!(find_root_bounded(&nested, Some(dir.path())).is_none());
 }
 
 #[test]
