@@ -10,7 +10,7 @@ use anstyle::{Effects, Style};
 use mindtape::{Config, Readiness, Task};
 
 use super::color::{Painter, is_color_active};
-use super::columns::{ColumnId, file_hyperlink_targets, resolve_order};
+use super::columns::{ColumnId, resolve_order, row_hyperlink_targets};
 use super::field::{CellSpec, DensityMode, cell_content, content_width, render_cell};
 use super::glyph::GlyphMode;
 use super::link::{Linker, is_hyperlinks_active};
@@ -25,10 +25,11 @@ struct Column {
     id: ColumnId,
     cells: Vec<CellSpec>,
     width: usize,
-    /// Per-row hyperlink target URI, populated only for the `file` column —
-    /// the only column OSC 8 wraps. `None` for every other column, so
-    /// `render_grid` skips the wrap there regardless of whether hyperlinks
-    /// are active.
+    /// Per-row hyperlink target URI, populated for the `#` and `file`
+    /// columns — the only two OSC 8 wraps. Both share the same per-row list
+    /// (the target is a property of the row, not the column); `None` for
+    /// every other column, so `render_grid` skips the wrap there regardless
+    /// of whether hyperlinks are active.
     link_uris: Option<Vec<String>>,
 }
 
@@ -109,6 +110,16 @@ fn build_columns(
     glyph_mode: GlyphMode,
 ) -> Vec<Column> {
     let full = DensityMode::Full;
+    // `#` and `file` both link to the same per-row target (the task's own
+    // file), so it is built once here — only when one of them is actually
+    // visible — and cloned into each, rather than recomputed per column.
+    // Recomputing per column would be both wasted work and a divergence
+    // risk: two calls could disagree if `[ls] hyperlink-target` or the
+    // handles ever drifted between them.
+    let row_uris = visible
+        .iter()
+        .any(|&id| is_linked_column(id))
+        .then(|| row_hyperlink_targets(handles, config));
     let mut columns: Vec<Column> = visible
         .iter()
         .map(|&id| {
@@ -122,7 +133,11 @@ fn build_columns(
                     .iter()
                     .map(|cell| content_width(cell, glyph_mode, full)),
             );
-            let link_uris = (id == ColumnId::File).then(|| file_hyperlink_targets(handles, config));
+            let link_uris = if is_linked_column(id) {
+                row_uris.clone()
+            } else {
+                None
+            };
             Column {
                 id,
                 cells,
@@ -133,6 +148,13 @@ fn build_columns(
         .collect();
     apply_flex(&mut columns, terminal_width());
     columns
+}
+
+/// Whether `id` is one of the two columns OSC 8 wraps. Fixed by design (see
+/// `truth/tasks/hyperlink-the-handle-column.typ`) — there is no per-column
+/// `link` key to consult.
+fn is_linked_column(id: ColumnId) -> bool {
+    matches!(id, ColumnId::Handle | ColumnId::File)
 }
 
 fn col_width(header: &str, cells: impl Iterator<Item = usize>) -> usize {
@@ -241,6 +263,9 @@ fn render_unpadded(
 #[cfg(test)]
 #[path = "table_tests.rs"]
 mod tests;
+#[cfg(test)]
+#[path = "table_tests_hyperlinks.rs"]
+mod tests_hyperlinks;
 #[cfg(test)]
 #[path = "table_tests_layout.rs"]
 mod tests_layout;

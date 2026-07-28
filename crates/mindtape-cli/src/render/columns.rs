@@ -182,12 +182,15 @@ pub fn resolve_order(
         .collect()
 }
 
-/// Per-row hyperlink target URIs for the `file` column — the only column OSC
-/// 8 wraps (`render/link.rs`). Built from `[ls] hyperlink-target`, defaulting
-/// to [`file_path::DEFAULT_HYPERLINK_TARGET`]; `table.rs` decides whether to
-/// actually apply them (`--hyperlinks`).
+/// Per-row hyperlink target URIs, shared by every column OSC 8 wraps (`#` and
+/// `file` — see `render/link.rs`). The target is a property of the row (the
+/// task's file), not of any one column, so this is built once per render and
+/// the same list is attached to both columns rather than recomputed per
+/// column. Built from `[ls] hyperlink-target`, defaulting to
+/// [`file_path::DEFAULT_HYPERLINK_TARGET`]; `table.rs` decides whether to
+/// actually apply it (`--hyperlinks`).
 #[must_use]
-pub fn file_hyperlink_targets(handles: &[(String, &Task)], config: &Config) -> Vec<String> {
+pub fn row_hyperlink_targets(handles: &[(String, &Task)], config: &Config) -> Vec<String> {
     let template = config
         .ls
         .hyperlink_target

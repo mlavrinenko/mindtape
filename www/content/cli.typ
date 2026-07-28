@@ -65,12 +65,15 @@ path) exists but is opt-in — its cell is never blank, so the ordinary
 auto-hide rule cannot apply to it; name it explicitly (`--columns
 '#,title,file'`, a view, an `[[ls.rules]]` columns override, or `[ls.columns.file]
 visibility = "visible"`) to see it. Its cell is relative to the working
-directory (what an IDE-integrated terminal ctrl-clicks straight to); pair it
-with `--hyperlinks always` (or `[ls] hyperlinks`) to make the cell itself
-clickable in a standalone terminal via an OSC 8 hyperlink sequence, targeting
-`[ls] hyperlink-target` (default `file://{abs}`). There is no way to ask a
-terminal whether it supports OSC 8, so `--hyperlinks auto` is a heuristic
-(TTY, non-`dumb` `TERM`) and the default is `never`, not `auto` — an
+directory (what an IDE-integrated terminal ctrl-clicks straight to).
+
+`--hyperlinks always` (or `[ls] hyperlinks`) makes both the always-visible `#`
+column and, when shown, `file` clickable in a standalone terminal via an OSC 8
+hyperlink sequence — the same row's target either way, targeting `[ls]
+hyperlink-target` (default `file://{abs}`) — so `#` alone gives a
+click-navigable listing without spending a column on a path. There is no way
+to ask a terminal whether it supports OSC 8, so `--hyperlinks auto` is a
+heuristic (TTY, non-`dumb` `TERM`) and the default is `never`, not `auto` — an
 unsupported terminal can render the escape payload as visible garbage, unlike
 colour, which just does nothing.
 

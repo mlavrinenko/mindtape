@@ -187,19 +187,19 @@ fn visibility_visible_forces_file_on_under_built_in_order() {
 }
 
 #[test]
-fn file_hyperlink_targets_uses_default_template_when_unset() {
+fn row_hyperlink_targets_uses_default_template_when_unset() {
     let task = bare_task("t");
     let config = Config::default();
-    let uris = file_hyperlink_targets(&rows(&[("1c", &task)]), &config);
+    let uris = row_hyperlink_targets(&rows(&[("1c", &task)]), &config);
     assert_eq!(uris, vec![format!("file://{}", task.file.display())]);
 }
 
 #[test]
-fn file_hyperlink_targets_honours_a_custom_template() {
+fn row_hyperlink_targets_honours_a_custom_template() {
     let task = bare_task("t");
     let mut config = Config::default();
     config.ls.hyperlink_target = Some("editor://open?f={rel}".to_owned());
-    let uris = file_hyperlink_targets(&rows(&[("1c", &task)]), &config);
+    let uris = row_hyperlink_targets(&rows(&[("1c", &task)]), &config);
     assert_eq!(
         uris,
         vec![format!("editor://open?f={}", task.file.display())]

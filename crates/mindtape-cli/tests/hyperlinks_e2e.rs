@@ -1,9 +1,21 @@
 //! End-to-end tests for `--hyperlinks`: the OSC 8 sequence reaches the
-//! table's `file` column when forced on, but never a default (opted-out) run,
-//! CSV, or JSON — and the config/flag precedence resolves as documented.
+//! table's `#` and `file` columns when forced on, but never a default
+//! (opted-out) run, CSV, or JSON — and the config/flag precedence resolves as
+//! documented.
 #![allow(clippy::unwrap_used)]
 
 mod support;
+
+/// Every OSC 8 *open* target in `line` — the payload between `ESC ] 8 ; ;`
+/// and the following `ESC \` that is non-empty (an empty payload is a close
+/// marker, `\x1b]8;;\x1b\\`, not an open one).
+fn hyperlink_targets(line: &str) -> Vec<&str> {
+    line.split("\u{1b}]8;;")
+        .skip(1)
+        .filter_map(|frag| frag.split("\u{1b}\\").next())
+        .filter(|uri| !uri.is_empty())
+        .collect()
+}
 
 /// [`support::project_with_task`], but with a caller-chosen config so the
 /// `[ls] hyperlinks` precedence tests can set it without the flag.
@@ -44,6 +56,31 @@ fn hyperlinks_always_wraps_the_file_column() {
     );
 }
 
+/// `--columns '#,title'` has no `file` column at all, so any OSC 8 sequence
+/// that shows up can only have come from the `#` column.
+#[test]
+fn hyperlinks_always_wraps_the_handle_column() {
+    let dir = support::project_with_task("Rewrite auth");
+    let out = ls_stdout(
+        dir.path(),
+        &["ls", "--hyperlinks", "always", "--columns", "#,title"],
+    );
+    assert!(
+        out.contains("\u{1b}]8;;file://"),
+        "expected an OSC 8 hyperlink sequence on the # column: {out:?}"
+    );
+}
+
+#[test]
+fn hyperlinks_off_the_handle_column_has_no_escape() {
+    let dir = support::project_with_task("Rewrite auth");
+    let out = ls_stdout(dir.path(), &["ls", "--columns", "#,title"]);
+    assert!(
+        !out.contains('\u{1b}'),
+        "hyperlinks default to never: {out:?}"
+    );
+}
+
 #[test]
 fn hyperlinks_default_never_emits_no_escape() {
     let dir = support::project_with_task("Rewrite auth");
@@ -51,6 +88,26 @@ fn hyperlinks_default_never_emits_no_escape() {
     assert!(
         !out.contains('\u{1b}'),
         "hyperlinks default to never: {out:?}"
+    );
+}
+
+/// Both `#` and `file` link the same row, so for a single-task listing they
+/// must carry the identical target (the same task's own file).
+#[test]
+fn handle_and_file_columns_link_to_the_same_target() {
+    let dir = support::project_with_task("Rewrite auth");
+    let out = ls_stdout(
+        dir.path(),
+        &["ls", "--hyperlinks", "always", "--columns", "#,title,file"],
+    );
+    let data_line = out.lines().nth(1).expect("must have one data row");
+    let targets = hyperlink_targets(data_line);
+    let [handle_target, file_target] = targets.as_slice() else {
+        panic!("expected both # and file to open a hyperlink: {data_line:?}");
+    };
+    assert_eq!(
+        handle_target, file_target,
+        "# and file must target the same file for a given row: {data_line:?}"
     );
 }
 

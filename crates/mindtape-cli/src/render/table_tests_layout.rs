@@ -268,92 +268,10 @@ fn render_grid_single_column_shows_header_then_content() {
     assert!(out.contains("My task"), "content must follow");
 }
 
-/// The width-accounting trap this task exists to pin: rendering with
-/// hyperlinks on must lay out identically to rendering with them off, once
-/// the OSC 8 escapes are stripped back out. `link_uris` sits on the `file`
-/// column only, exactly mirroring how a real `--columns '#,title,file'` run
-/// would carry it, with `title` as the flex column and `file` last (so the
-/// unpadded-last-column path is exercised too).
-#[test]
-fn hyperlink_wrap_does_not_disturb_column_layout() {
-    let uri = "file:///abs/truth/tasks/x.typ";
-    let build = |linked: bool| {
-        vec![
-            Column {
-                id: ColumnId::Title,
-                cells: vec![CellSpec {
-                    text: "Rewrite auth".into(),
-                    glyph: None,
-                    color: None,
-                }],
-                width: 20,
-                link_uris: None,
-            },
-            Column {
-                id: ColumnId::File,
-                cells: vec![CellSpec {
-                    text: "truth/tasks/x.typ".into(),
-                    glyph: None,
-                    color: None,
-                }],
-                width: 20,
-                link_uris: linked.then(|| vec![uri.to_owned()]),
-            },
-        ]
-    };
-    let with_links = render_grid(
-        &build(true),
-        GlyphMode::None,
-        Painter::new(false),
-        Linker::new(true),
-    );
-    let without_links = render_grid(
-        &build(false),
-        GlyphMode::None,
-        Painter::new(false),
-        no_links(),
-    );
-
-    assert_ne!(
-        with_links, without_links,
-        "sanity: turning hyperlinks on must actually add bytes"
-    );
-
-    let open = format!("\x1b]8;;{uri}\x1b\\");
-    let close = "\x1b]8;;\x1b\\";
-    let stripped = with_links.replacen(&open, "", 1).replacen(close, "", 1);
-    assert_eq!(
-        stripped, without_links,
-        "stripping the OSC 8 wrap must restore an identical, unlinked layout \
-         (same column positions and padding)"
-    );
-}
-
-#[test]
-fn only_the_file_column_is_wrapped_even_when_others_have_no_uris() {
-    // A non-file column never carries `link_uris`, so even with hyperlinks
-    // forced on, its cell must render byte-identical to hyperlinks off.
-    let cols = vec![Column {
-        id: ColumnId::Handle,
-        cells: vec![CellSpec {
-            text: "1a".into(),
-            glyph: None,
-            color: None,
-        }],
-        width: 2,
-        link_uris: None,
-    }];
-    let linked = render_grid(
-        &cols,
-        GlyphMode::None,
-        Painter::new(false),
-        Linker::new(true),
-    );
-    assert!(
-        !linked.contains('\u{1b}'),
-        "a column with no link_uris must never be wrapped: {linked:?}"
-    );
-}
+// The hyperlink-wrap tests (width accounting, which columns get wrapped, the
+// `#`/`file` shared-target invariant, and highlight+link composition) live in
+// the sibling `table_tests_hyperlinks.rs` — kept out of this file so it stays
+// well clear of the size gate.
 
 // --- render_unpadded -------------------------------------------------------
 

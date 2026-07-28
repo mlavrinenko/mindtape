@@ -211,16 +211,33 @@ fn quitting_restores_the_terminal() {
 /// a `Tui` by hand and drove the developer's own terminal into raw mode.
 #[test]
 fn opening_a_task_suspends_the_tui_and_runs_the_editor() {
+    let stdout = select_first_task_and_open(&[]);
+    assert!(
+        stdout.contains("SUSPEND_MARKER"),
+        "the editor closure must run inside suspend\nstdout:\n{stdout}"
+    );
+}
+
+/// Drive one interactive session under a pseudo-terminal: select the first
+/// task, press Enter to open it, then quit. `extra_args` is appended to
+/// `ls --interactive` (e.g. `["--hyperlinks", "always"]`). Returns the
+/// session's stdout, having already asserted it exited within
+/// [`WAIT_TIMEOUT`].
+///
+/// Shared rather than inlined per test: the spawn-and-drive sequence is
+/// twenty lines of pty plumbing that says nothing about what any individual
+/// test is asserting, and two copies of it drifting apart is exactly the bug
+/// these tests exist to catch.
+fn select_first_task_and_open(extra_args: &[&str]) -> String {
     let dir = support::project_with_task(TASK_TITLE);
     let mt_bin = PathBuf::from(env!("CARGO_BIN_EXE_mt"));
+    let mut command = format!("{} ls --interactive", mt_bin.to_string_lossy());
+    for arg in extra_args {
+        command.push(' ');
+        command.push_str(arg);
+    }
     let mut child = Command::new("script")
-        .args([
-            "-q",
-            "-e",
-            "-c",
-            &format!("{} ls --interactive", mt_bin.to_string_lossy()),
-            "/dev/null",
-        ])
+        .args(["-q", "-e", "-c", &command, "/dev/null"])
         .current_dir(dir.path())
         // `resolve_editor` prefers $VISUAL over $EDITOR, so an inherited
         // $VISUAL (a real editor, often with --wait) would hang this test on
@@ -242,10 +259,28 @@ fn opening_a_task_suspends_the_tui_and_runs_the_editor() {
     drop(stdin);
 
     let (output, timed_out) = wait_with_timeout(child);
-    let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(!timed_out, "mt did not exit within {WAIT_TIMEOUT:?}");
+    String::from_utf8_lossy(&output.stdout).into_owned()
+}
+
+/// The risk `truth/tasks/hyperlink-the-handle-column.typ` exists to guard:
+/// the `#` column's cells now carry an OSC 8 wrap (and, once a row is typed,
+/// an invert-colour wrap on top of that), but the key loop reads real key
+/// events off the terminal (crossterm), never the rendered screen — so typing
+/// a digit and Enter must still select and open the right task with
+/// hyperlinks active. Mirrors
+/// `opening_a_task_suspends_the_tui_and_runs_the_editor`, with
+/// `--hyperlinks always` added.
+#[test]
+fn opening_a_task_still_works_with_hyperlinks_active() {
+    let stdout = select_first_task_and_open(&["--hyperlinks", "always"]);
+    assert!(
+        stdout.contains("\u{1b}]8;;file://"),
+        "the # column must actually carry the OSC 8 wrap in this run\nstdout:\n{stdout}"
+    );
     assert!(
         stdout.contains("SUSPEND_MARKER"),
-        "the editor closure must run inside suspend\nstdout:\n{stdout}"
+        "selecting task 1 and pressing Enter must still open the editor with \
+         hyperlinks active\nstdout:\n{stdout}"
     );
 }

@@ -57,24 +57,26 @@ pub struct LsConfig {
     /// filter, no `@view`): the first rule whose condition holds (or that
     /// has none) wins and supplies its filter, sort, and columns.
     pub rules: Vec<LsRule>,
-    /// Hyperlink output for the `file` column's cells: `auto`, `always`, or
-    /// `never` (the default). Mirrors `--hyperlinks`, which wins over this
-    /// key when passed — see [`HyperlinkChoice`] for what each value means
-    /// and why the default is not `auto`.
+    /// Hyperlink output for the `#` and `file` columns' cells: `auto`,
+    /// `always`, or `never` (the default). Mirrors `--hyperlinks`, which wins
+    /// over this key when passed — see [`HyperlinkChoice`] for what each
+    /// value means and why the default is not `auto`.
     pub hyperlinks: HyperlinkChoice,
-    /// Template for the `file` column's hyperlink target URI: `{abs}` (the
-    /// absolute path, the project root joined with the task's `file`) and
-    /// `{rel}` (the same working-directory-relative path the column
-    /// displays) are substituted. Defaults to `file://{abs}`; point it at
-    /// another scheme (e.g. an editor's own URI handler) to open elsewhere.
+    /// Template for the shared per-row hyperlink target URI both `#` and
+    /// `file` link to: `{abs}` (the absolute path, the project root joined
+    /// with the task's `file`) and `{rel}` (the same working-directory-relative
+    /// path the `file` column displays) are substituted. Defaults to
+    /// `file://{abs}`; point it at another scheme (e.g. an editor's own URI
+    /// handler) to open elsewhere.
     pub hyperlink_target: Option<String>,
 }
 
-/// `[ls] hyperlinks` — whether the `file` column's cells carry an OSC 8
-/// hyperlink sequence (`ESC ] 8 ; ; <uri> ST <text> ESC ] 8 ; ; ST`) in a
-/// standalone terminal. The `mt` binary's `--hyperlinks` flag is this same
-/// choice, mirrored one-to-one in the CLI crate (which alone depends on
-/// `clap`) as `crate::render::link::HyperlinkChoice` there.
+/// `[ls] hyperlinks` — whether the `#` and `file` columns' cells carry an
+/// OSC 8 hyperlink sequence (`ESC ] 8 ; ; <uri> ST <text> ESC ] 8 ; ; ST`) in
+/// a standalone terminal, both pointing at the same per-row target. The `mt`
+/// binary's `--hyperlinks` flag is this same choice, mirrored one-to-one in
+/// the CLI crate (which alone depends on `clap`) as
+/// `crate::render::link::HyperlinkChoice` there.
 ///
 /// There is no terminal capability query for OSC 8 support, so `auto` is a
 /// heuristic (stdout is a TTY and `TERM` is not `dumb`), never a detection —
