@@ -9,9 +9,9 @@
   ),
   difficulty: 3,
   tags: ("cli",),
-  estimate: (files: 4),
+  estimate: (files: 6),
   links: depends-on("hyperlink-the-file-column-with-osc-8.typ"),
-  status: proposed(2026, 7, 28),
+  status: wip(2026, 7, 28),
 )
 
 == Summary
@@ -29,11 +29,26 @@ showing a path column at all.
   answer.
 - The target is the task's own file, built through the same
   `[ls] hyperlink-target` template.
+- Both `#` and `file` link. The two open questions this task was filed with —
+  whether per-column control is wanted, and whether linking `#` makes the
+  `file` column redundant — are settled: no per-column `link` key, and `file`
+  stays exactly as it is. Linking `#` is additive. Someone who wants the path
+  on screen still opts the column in; someone who does not gets a
+  click-navigable listing with no extra width spent.
+- No new configuration. `[ls] hyperlinks` remains the single switch, and the
+  set of linked columns is fixed rather than declared.
 
-== Open questions
+== Scope
 
-- Whether per-column control is wanted (`[ls.columns.<name>] link = true`) or
-  whether a fixed set of linked columns is enough. Two linked columns is the
-  point at which this stops being obvious.
-- Whether linking `#` makes the `file` column redundant for the click use case,
-  and if so whether `file` should ever appear in a default column set.
+- `build_columns` in `table.rs` currently attaches `link_uris` when
+  `id == ColumnId::File`. Extend that to `Handle` as well; the URI is per row,
+  not per column, so both columns share one target list and it is built once.
+- The interactive path is the risk. `apply_highlight` rewrites the handle
+  column's cells for `mt ls -i`, and the same characters are what a user types
+  to select a row. Highlighting and linking must compose without the escape
+  payload leaking into the width accounting or into what the key loop reads
+  back.
+- Tests: `#` wrapped when hyperlinks are on and not otherwise; both columns
+  carrying the same target for a given row; layout byte-identical once the
+  sequences are stripped, matching the existing width-accounting test; the
+  interactive highlight still correct with links active.
