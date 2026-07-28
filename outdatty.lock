@@ -32,7 +32,7 @@ groups:
       www/content/quickstart.typ: ec67df32e539b5c2ee0d853c989583679c176639b58f4dacde15ce35ee858be6
   dev-docs:
     source:
-      Justfile: 6d5258345494d4f357e6e9d446710ff7880ed621b199e32ab42fc9c945ef6b27
+      Justfile: a75ff79145b715c4365b0bee23272120e9ff1134a9b43ca4b15dbf46cc2a6cfb
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: d8a68388bd82404454461d847269ca3c159b72c2d28b58ae38f08bd138ddcc5a

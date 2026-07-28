@@ -83,6 +83,10 @@ check-rrule:
 # a separate target/ tree, and CI already covers the regression. Reach for it
 # when touching a `cfg(windows)` arm, a process spawn, a path join, or anything
 # else with a platform seam.
+#
+# `just --list` shows only the LAST comment line of a recipe, so the summary is
+# repeated as an explicit [doc] rather than left as a dangling fragment.
+[doc("Cross-check the workspace against Windows (x86_64-pc-windows-gnu)")]
 check-windows:
     nix develop .#windows --command \
         cargo check --workspace --all-targets --locked \
