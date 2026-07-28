@@ -124,8 +124,17 @@ required = "!terminal"
 
 # Outside this range is a validation error, not a warning: an oversized task must
 # be split before the work starts, not after. Terminal tasks are exempt.
+#
+# The ceiling is calibrated against this repo's own history rather than picked
+# by feel: over the last 200 commits, files-per-commit runs p50=2, p75=5,
+# p90=11, p95=15, p99=32. The former cap of 5 sat at p75, so a quarter of the
+# work that actually lands here was already over it — a cap that routine work
+# breaches teaches you to inflate the estimate, not to split the task. 15 (p95)
+# leaves ordinary multi-file changes honest while still catching the genuine
+# outliers. Anything looser (30 ≈ p99) would never bind, and a limit that never
+# fires is not a limit.
 [tasks.estimate.max]
-files = 5
+files = 15
 
 [tasks.estimate.min]
 files = 1
