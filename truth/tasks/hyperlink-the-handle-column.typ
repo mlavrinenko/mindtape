@@ -9,9 +9,9 @@
   ),
   difficulty: 3,
   tags: ("cli",),
-  estimate: (files: 6),
+  estimate: (files: 12),
   links: depends-on("hyperlink-the-file-column-with-osc-8.typ"),
-  status: wip(2026, 7, 28),
+  status: done(2026, 7, 28),
 )
 
 == Summary
@@ -52,3 +52,22 @@ showing a path column at all.
   carrying the same target for a given row; layout byte-identical once the
   sequences are stripped, matching the existing width-accounting test; the
   interactive highlight still correct with links active.
+
+== Outcome
+
+The feared conflict did not exist. The key loop reads real key events from
+crossterm, never the rendered screen, so the escape payload on a handle cell
+cannot reach what the loop matches against — and the wrap already sat after
+width fitting in `render_grid`, which is where highlight applies too. `#` and
+`file` compose by construction rather than by care.
+
+`is_linked_column` states the fixed set in one place, and `build_columns`
+builds the per-row target list once — only when a linked column is actually
+visible — and clones it into each. Two calls could have disagreed if
+`[ls] hyperlink-target` or the handles drifted between them.
+
+Estimate 6 declared, 12 touched, and unlike the previous overrun this one is
+not a doc reconcile: half the count is test files. Filed at 6 by reasoning
+from the production diff, which really is about two files. That is the wrong
+way to size a task in a repo where inline tests get ejected into siblings and
+e2e coverage spans three more.
