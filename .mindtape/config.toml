@@ -236,7 +236,3 @@ actions = [
 [add]
 header = ""
 comments = false
-
-[ls]
-hyperlinks = "auto"
-hyperlink-target = "file://{abs}"
