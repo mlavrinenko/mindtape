@@ -10,7 +10,11 @@
   difficulty: 1,
   tags: ("tooling",),
   estimate: (files: 2),
-  status: proposed(2026, 7, 28),
+  status: done(
+    2026,
+    7,
+    28,
+  )[dropped the duplicate that went through load\_config; the injected-seam twin covers it],
 )
 
 == Summary
