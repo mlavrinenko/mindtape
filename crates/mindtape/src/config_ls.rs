@@ -14,8 +14,11 @@ use crate::sort::validate_sort_spec;
 
 /// Canonical `mt ls` column names, in built-in render order. The single
 /// validated vocabulary shared by `[ls.columns]` and `[ls] columns-order` (and
-/// any consumer): `#` is the handle column, `title` the flex column.
-pub const LS_COLUMNS: [&str; 6] = ["#", "status", "ready", "priority", "due", "title"];
+/// any consumer): `#` is the handle column, `title` the flex column, `file`
+/// (last) the task's source path — opt-in only, since its `auto` visibility
+/// means "was it named explicitly", not "does it carry text" (its cell is
+/// never blank; see `crate::config_ls::Visibility`).
+pub const LS_COLUMNS: [&str; 7] = ["#", "status", "ready", "priority", "due", "title", "file"];
 
 /// `[ls]` — `mt ls` defaults.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]

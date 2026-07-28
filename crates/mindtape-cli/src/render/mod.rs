@@ -21,6 +21,7 @@ pub mod color;
 pub mod columns;
 pub mod field;
 pub mod fields;
+pub mod file_path;
 pub mod glyph;
 pub mod sep;
 pub mod table;

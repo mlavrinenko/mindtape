@@ -251,6 +251,44 @@ fn csv_omits_fields_without_ls_column() {
 }
 
 #[test]
+fn csv_file_column_hidden_unless_named() {
+    // Bare `mt ls --format csv` (no explicit `[ls] columns-order`) must not
+    // surface `file`: its cell is never blank, so the ordinary auto rule
+    // cannot apply — significance comes only from being named explicitly.
+    let out = render(
+        &[sample()],
+        OutputFormat::Csv,
+        &Config::default(),
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    assert!(!out.lines().next().unwrap().contains("file"));
+}
+
+#[test]
+fn csv_file_column_shown_and_root_relative_when_named() {
+    // No process-global `(root, cwd)` context is ever set in this test
+    // binary, so the cell falls back to `task.file` unchanged (root-relative)
+    // — the same fallback unit tests for `file_path::cell_text` rely on.
+    let mut config = Config::default();
+    config.ls.columns_order = vec!["title".to_owned(), "file".to_owned()];
+    let mut task = sample();
+    task.file = "truth/tasks/t1.typ".into();
+    let out = render(
+        &[task],
+        OutputFormat::Csv,
+        &config,
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    let mut lines = out.lines();
+    assert_eq!(lines.next().unwrap(), "title,file");
+    assert_eq!(lines.next().unwrap(), "Build,truth/tasks/t1.typ");
+}
+
+#[test]
 fn extras_arrays_and_dicts_serialize() {
     let mut task = sample();
     task.extras.insert(
