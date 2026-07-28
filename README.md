@@ -9,15 +9,17 @@
 </p>
 
 <p align="center">
-  <a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/quickstart/">Quickstart</a> · <a href="https://mlavrinenko.github.io/mindtape/import-export/">Import &amp; export</a> (there is no <code>mt export</code> — see why)
+  <a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/quickstart/">Quickstart</a> · <a href="https://mlavrinenko.github.io/mindtape/comparison/">Comparison</a>
 </p>
 
 ---
 
 MindTape tracks tasks as one-task-per-file Typst artifacts. Each file declares a
 task with `#show: task.with(...)`; MindTape live-evaluates the configured roots on
-every command — no daemon, no database, no global index. Identity is the
-filename stem, so links between tasks break loudly when a file is renamed.
+every command — no daemon, no database, no index you maintain. A task's `id`
+identifies it in listings, filters and links-by-hand, and defaults to the
+filename stem. Links target files, so renaming a task without updating its
+dependents fails `mt check` instead of dangling silently.
 
 ```typ
 #import "@local/mindtape:0.2.0": *
@@ -44,28 +46,50 @@ field a task can declare.
 
 ## Installation
 
-```bash
-git clone https://github.com/mlavrinenko/mindtape.git
-cd mindtape
-nix develop                 # dev shell with the full toolchain
-cargo build --release       # produces target/release/mt
-```
-
-Set up the user environment once per machine (installs the Typst prelude, seeds the XDG global app config), then scaffold a project (once per project):
+From crates.io:
 
 ```bash
-mt install            # @local/mindtape + ~/.config/mindtape/{defaults.toml,config.schema.json}
-mt init               # writes .mindtape/config.toml (with a #:schema directive) here
+cargo install mindtape-cli
 ```
 
-`mt init --list-presets` shows the named starter shapes (`flow`, a lifecycle
-with enforced transitions, is the default); `--annotate` keeps a preset's
-explanatory comments. See
-[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) for what
-each preset is for and
+Or grab a prebuilt binary for Linux or macOS from the
+[Releases page](https://github.com/mlavrinenko/mindtape/releases), or run it
+without installing:
+
+```bash
+nix run github:mlavrinenko/mindtape -- --help
+```
+
+Building from source needs only a Rust toolchain (`cargo build --release`
+produces `target/release/mt`); the `nix develop` shell adds the full test and
+lint toolchain used by `just check`.
+
+### Set up, once per machine
+
+```bash
+mt install
+```
+
+Task files begin with `#import "@local/mindtape:0.2.0"`, and Typst resolves
+`@local` packages from a directory on your machine, not from the repository. So
+until `mt install` puts the prelude there, every task file fails to evaluate —
+including in a repository someone else set up. `mt install` also seeds the
+global defaults and the JSON Schema that gives editors config completion. Any
+command that hits an uninstalled prelude says so and names this command.
+
+### Set up, once per project
+
+```bash
+mt init
+```
+
+Writes `.mindtape/config.toml`. With a terminal and no arguments it asks a short
+questionnaire; `--preset <name>` skips it and writes a named starter shape
+(`mt init --list-presets`). See
+[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) for what each
+preset is for and
 [Configuration](https://mlavrinenko.github.io/mindtape/config/) for the
-four-layer merge `mt install`/`mt init` write into, and the JSON Schema
-`mt install` generates for editor completion.
+four-layer merge both commands write into.
 
 ## Usage
 
@@ -90,22 +114,45 @@ That is a sliver of the surface. The docs site has the rest:
 - [Configuration](https://mlavrinenko.github.io/mindtape/config/) — the
   four-layer config merge, every `.mindtape/config.toml` section, and stem
   naming for minted filenames.
+- [Import & export](https://mlavrinenko.github.io/mindtape/import-export/) —
+  `mt import` plus `jq` adapters for Taskwarrior and GitHub Issues. There is no
+  `mt export` command; the tasks are already plain files, and the page shows
+  how to reshape them into another tool's format.
 - [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) —
   structured JSON, slot schemas, and driving `mt` from outside the project
   tree.
 
+## Performance
+
+Evaluating every file on every command is not free, so a content-hash cache
+under each root skips re-evaluating files whose bytes have not changed. Measured
+on a generated backlog of 2000 tasks (`just bench`, on one developer machine —
+run it on yours):
+
+| command    | cold cache | warm cache |
+| ---------- | ---------- | ---------- |
+| `mt ls`    | 0.46 s     | 0.20 s     |
+| `mt check` | 0.35 s     | 0.12 s     |
+
+The cache is derived state, not a source of truth: delete it and the next run
+rebuilds it; change the config, the prelude, or the `mt` version and it busts
+itself.
+
 ## Architecture
 
-A two-crate `cargo` workspace — the domain library plus its thin CLI — built
-on consumer-blind Typst substrates reusable by any file-based tool:
+A two-crate `cargo` workspace: `mindtape` is the library — config, the task
+model, the filter language, and config-driven validation — and `mindtape-cli`
+is the thin `mt` binary.
 
-- `mindtape` — the domain library: config, the task model, the filter language,
-  and config-driven validation. `mindtape-cli` is the thin `mt` binary.
-- `typst-harvest` (crates.io) — eval-only Typst World plus labelled-metadata-marker
-  harvesting (Typst as a data medium).
-- `typst-cst` / `typst-edit` (crates.io) — parse-plane structure extraction (heading
-  tree with spans) and in-place source editing (span queries + atomic changeset); no
-  eval, World, or IO.
+Three general-purpose crates sit underneath, published separately because none
+of them knows what a task is:
+
+- `typst-harvest` — evaluates a Typst file and collects the data it marked for
+  export, treating Typst as a data format. Never lays out or renders a page.
+- `typst-cst` — reads a file's structure (its heading tree, with source spans)
+  by parsing alone, without evaluating it.
+- `typst-edit` — rewrites a Typst file in place at known spans, applying a batch
+  of edits as one change.
 
 ## Contributing
 

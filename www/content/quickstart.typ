@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout, terminal, terminal-ansi
+#import "../utils/ui.typ": callout, pkg, terminal, terminal-ansi
 #import "../utils/site.typ": REPO, u
 
 #show: page.with(
@@ -30,12 +30,6 @@ From nothing to a validated task in a few commands.
   release.at("artifact-name-template").replace("${{ matrix.target }}", target)
 )
 
-Run it straight from the flake:
-
-```sh
-nix run github:mlavrinenko/mindtape -- --help
-```
-
 Install the published CLI crate from crates.io:
 
 #raw("cargo install " + cli-crate, lang: "sh", block: true)
@@ -46,7 +40,13 @@ for #targets.len() platforms, attached to the #link(REPO + "/releases")[Releases
 
 #list(..targets.map(t => raw(artifact-for(t))))
 
-Or build from source:
+Or run it straight from the flake, without installing anything:
+
+```sh
+nix run github:mlavrinenko/mindtape -- --help
+```
+
+Or build from source — a Rust toolchain is all it needs:
 
 ```sh
 git clone https://github.com/mlavrinenko/mindtape.git
@@ -55,12 +55,30 @@ cd mindtape && cargo build --release   # produces target/release/mt
 
 = Set up the environment
 
-Once per machine, install the Typst prelude (so `#import` resolves) and seed the
-global defaults:
+#raw("cargo install " + cli-crate, lang: "sh") gave you the binary. One more
+command gives it something to read:
 
 ```sh
-mt install        # installs @local/mindtape + ~/.config/mindtape/defaults.toml
+mt install
 ```
+
+This is not optional, and it is easy to skip. Every task file opens by importing
+#pkg, and Typst resolves an `@local` package from a
+directory on your machine — never from the repository holding the tasks. Until
+the prelude is installed there, every task file fails to evaluate, `mt ls` shows
+an empty table, and the warnings name a path rather than a fix. It bites twice:
+on a fresh machine, and on a repository a colleague set up, which otherwise
+looks like it should just work after a clone.
+
+#callout("note")[
+  Run it once per machine, not once per project. Any command that meets an
+  uninstalled prelude prints a note naming `mt install`, so a forgotten setup
+  reports itself rather than looking like an empty backlog.
+]
+
+`mt install` also seeds `~/.config/mindtape/defaults.toml` (the global config
+layer) and `config.schema.json` (which gives editors completion and validation
+over `.mindtape/config.toml`). `--no-defaults` and `--no-schema` skip either.
 
 Then scaffold a project, once per repository:
 
