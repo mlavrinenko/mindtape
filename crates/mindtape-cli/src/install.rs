@@ -57,11 +57,13 @@ pub fn run(args: &InstallArgs) -> Result<()> {
     Ok(())
 }
 
-/// `dirs::config_dir()/mindtape` — the directory holding the XDG global
+/// `<config home>/mindtape` — the directory holding the XDG global
 /// `defaults.toml`. Mirrors [`crate::config_layers::discover_layers`]'s XDG
-/// layer resolution (`mindtape` crate).
+/// layer resolution (`mindtape` crate) — one `mindtape::config_home()`, so
+/// `$MINDTAPE_CONFIG_HOME` moves what `install` writes and what the loader
+/// reads together.
 fn xdg_defaults_dir() -> Result<PathBuf> {
-    let mut path = dirs::config_dir().context("determine XDG config directory")?;
+    let mut path = mindtape::config_home().context("determine the global config directory")?;
     path.push("mindtape");
     Ok(path)
 }

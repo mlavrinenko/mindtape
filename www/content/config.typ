@@ -647,3 +647,15 @@ would date it yesterday for everyone east of Greenwich and skew `now()`,
 `stale()` and the overdue marker by up to a day. Dates carry no offset once
 written — a `YYYY-MM-DD` in a task file is a plain civil date, compared against
 whatever "today" is where the command runs.
+
+Two more move where `mt` keeps per-user state. `$MINDTAPE_CONFIG_HOME` replaces
+the config directory — the global `defaults.toml` layer, `config.schema.json`,
+`presets/`, `worktrees.toml` — and `$MINDTAPE_DATA_HOME` replaces the data
+directory the `@local/mindtape` Typst package installs under. Both override the
+platform lookup wholesale, for reading and for what `mt install` writes; set but
+empty means "no such directory", which drops the global layer rather than
+falling back to the machine's own. They exist because the platform lookup reads
+the environment on Unix only (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `HOME`) and
+goes through a known-folder API on Windows that no variable can move — so a
+sandboxed run or a test that must not see your personal `mt` setup has one knob
+that works everywhere.

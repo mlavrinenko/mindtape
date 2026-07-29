@@ -141,10 +141,10 @@ fn schema_directive_defaults_to_published_url() {
 /// subprocess captures what `println!` writes to stdout so the parent can
 /// verify the note is present (real) or absent (mutant fails the assertion).
 ///
-/// The child gets an empty `XDG_CONFIG_HOME`, so "the schema is missing" is a
-/// fact about the fixture rather than about the developer's machine: without
-/// it, `dirs::config_dir()` resolves to the real `~/.config` and this test
-/// fails for anyone who has run `mt install --schema`.
+/// The child gets an empty `$MINDTAPE_CONFIG_HOME`, so "the schema is missing"
+/// is a fact about the fixture rather than about the developer's machine:
+/// without it, `mindtape::config_home()` resolves to the real config directory
+/// and this test fails for anyone who has run `mt install --schema`.
 #[test]
 fn with_schema_directive_prints_note_when_schema_missing() {
     if std::env::var("_MT_INIT_DELEGATE").is_err() {
@@ -152,7 +152,7 @@ fn with_schema_directive_prints_note_when_schema_missing() {
         let xdg = tempfile::tempdir().unwrap();
         let output = std::process::Command::new(std::env::current_exe().unwrap())
             .env("_MT_INIT_DELEGATE", "1")
-            .env("XDG_CONFIG_HOME", xdg.path())
+            .env(mindtape::CONFIG_HOME_ENV, xdg.path())
             .args([
                 "with_schema_directive_prints_note_when_schema_missing",
                 "--nocapture",

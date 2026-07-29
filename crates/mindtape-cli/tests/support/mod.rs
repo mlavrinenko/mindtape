@@ -30,17 +30,17 @@ const CLEARED_VARS: [&str; 2] = ["MINDTAPE_NOW", "MINDTAPE_WORKTREE"];
 /// hyperlinks` in `~/.config/mindtape/defaults.toml` are enough to fail
 /// `hyperlinks_e2e` on a tree with no Rust change in it.
 ///
-/// So point that lookup at an empty path in both places `dirs` resolves it
-/// from the environment — `XDG_CONFIG_HOME` on Linux, `HOME` on macOS (which
-/// reads `~/Library/Application Support` and ignores XDG) — and let the same
-/// `HOME` cap the ancestor `.mindtape/defaults.toml` walk at `dir`, so a stray
-/// one above the tempdir cannot leak in either.
-///
-/// Windows resolves the config directory through a known-folder API that no
-/// environment variable overrides, so there this isolates nothing; see
-/// `truth/tasks/isolate-the-windows-global-config-lookup-in-tests.typ`.
-pub fn isolated_env(dir: &Path) -> [(&'static str, PathBuf); 2] {
+/// So point that lookup at an empty path. `MINDTAPE_CONFIG_HOME` is the one
+/// knob that does it on every platform (`mindtape::config_home`): `dirs` reads
+/// the environment only on Unix — `XDG_CONFIG_HOME` on Linux, `HOME` on macOS
+/// (which reads `~/Library/Application Support` and ignores XDG) — and goes
+/// through a known-folder API on Windows that no variable overrides. The XDG
+/// pair stays set anyway, since `HOME` also caps the ancestor
+/// `.mindtape/defaults.toml` walk at `dir`, so a stray one above the tempdir
+/// cannot leak in either.
+pub fn isolated_env(dir: &Path) -> [(&'static str, PathBuf); 3] {
     [
+        (mindtape::CONFIG_HOME_ENV, dir.join(NO_GLOBAL_CONFIG)),
         ("XDG_CONFIG_HOME", dir.join(NO_GLOBAL_CONFIG)),
         ("HOME", dir.to_path_buf()),
     ]

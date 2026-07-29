@@ -276,7 +276,7 @@ pub(crate) fn install_lib() -> Result<()> {
 }
 
 pub(crate) fn package_dir() -> Result<PathBuf> {
-    let mut path = dirs::data_local_dir().context("determine local data directory")?;
+    let mut path = mindtape::data_home().context("determine local data directory")?;
     path.push("typst");
     path.push("packages");
     path.push("local");

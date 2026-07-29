@@ -1,18 +1,22 @@
 //! End-to-end tests for the `install` command that shell out to the `mt`
-//! binary, exercising real XDG directory resolution (`dirs::config_dir()` /
-//! `dirs::data_local_dir()` both read `XDG_CONFIG_HOME` / `XDG_DATA_HOME` on
-//! Linux).
+//! binary, exercising real app-directory resolution
+//! (`mindtape::config_home()` / `mindtape::data_home()`).
+//!
+//! Staged through `$MINDTAPE_CONFIG_HOME`/`$MINDTAPE_DATA_HOME` rather than the
+//! XDG pair: `dirs` reads the environment on Unix only, so an XDG-injected
+//! directory is not where a Windows `mt install` writes and every assertion
+//! below would be about a path nothing touched.
 #![allow(clippy::unwrap_used)]
 
 use std::path::{Path, PathBuf};
 
-/// Point `XDG_CONFIG_HOME`/`XDG_DATA_HOME` at fresh tempdirs under `home` and
-/// run `mt <args>` with them, returning the command's `Assert`.
+/// Point the config and data homes at fresh tempdirs under `home` and run
+/// `mt <args>` with them, returning the command's `Assert`.
 fn run_install(home: &Path, args: &[&str]) -> assert_cmd::assert::Assert {
     assert_cmd::Command::cargo_bin("mt")
         .unwrap()
-        .env("XDG_CONFIG_HOME", home.join("config"))
-        .env("XDG_DATA_HOME", home.join("data"))
+        .env(mindtape::CONFIG_HOME_ENV, home.join("config"))
+        .env(mindtape::DATA_HOME_ENV, home.join("data"))
         .args(args)
         .assert()
 }

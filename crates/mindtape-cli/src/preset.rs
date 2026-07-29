@@ -119,7 +119,7 @@ pub fn list_builtins() -> Vec<(&'static str, &'static str)> {
 
 /// Resolve `name` to a preset, searching the user preset directory first.
 ///
-/// `user_dir` is the XDG preset directory (`dirs::config_dir()/mindtape/
+/// `user_dir` is the XDG preset directory (`<config home>/mindtape/
 /// presets`); pass `None` when it cannot be determined. Injected rather than
 /// read here so tests need not touch the real environment.
 ///
@@ -169,7 +169,7 @@ fn looks_like_path(name: &str) -> bool {
 /// The XDG user preset directory, if the config dir resolves.
 #[must_use]
 pub fn user_preset_dir() -> Option<PathBuf> {
-    Some(dirs::config_dir()?.join("mindtape").join("presets"))
+    Some(mindtape::config_home()?.join("mindtape").join("presets"))
 }
 
 /// A user preset in `dir`, in either supported layout: `<name>.toml`, or

@@ -3,7 +3,8 @@
 //!
 //! Precedence, lowest to highest:
 //! 1. The compiled-in embedded floor (`config.rs`'s `EMBEDDED_DEFAULTS`).
-//! 2. XDG global defaults: `dirs::config_dir()/mindtape/defaults.toml`.
+//! 2. XDG global defaults: `<config home>/mindtape/defaults.toml`, with the
+//!    config home resolved by [`crate::app_dirs::config_home`].
 //! 3. Every `.mindtape/defaults.toml` found walking up from the project root,
 //!    farthest ancestor first, so the nearest one wins.
 //! 4. The project's own `<root>/.mindtape/config.toml`.
@@ -33,7 +34,7 @@ pub struct Layer {
 pub enum LayerSource {
     /// The compiled-in default floor.
     Embedded,
-    /// `dirs::config_dir()/mindtape/defaults.toml`.
+    /// `<config home>/mindtape/defaults.toml`.
     Xdg(PathBuf),
     /// One ancestor's `.mindtape/defaults.toml`, found walking up from root.
     Dir(PathBuf),
@@ -42,15 +43,15 @@ pub enum LayerSource {
 }
 
 /// Locate every config layer that applies to `root`, in precedence order
-/// (lowest first). Reads the real XDG global config dir
-/// (`dirs::config_dir()`); see [`load_config_layered`] for the entry point
+/// (lowest first). Reads the real global config dir
+/// ([`crate::app_dirs::config_home`]); see [`load_config_layered`] for the entry point
 /// that also supplies the real home directory.
 ///
 /// `home` bounds the ancestor walk-up (never ascended past); pass
 /// `dirs::home_dir()` in production, an injected path in tests.
 #[must_use]
 pub fn discover_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
-    discover_layers_with_xdg(root, home, dirs::config_dir().as_deref())
+    discover_layers_with_xdg(root, home, crate::app_dirs::config_home().as_deref())
 }
 
 /// [`discover_layers`] with the XDG global config dir injected, so tests can
@@ -70,7 +71,7 @@ fn discover_layers_with_xdg(
     layers
 }
 
-/// The XDG global defaults layer, if `dirs::config_dir()` resolved and
+/// The XDG global defaults layer, if the config home resolved and
 /// `mindtape/defaults.toml` exists under it.
 fn xdg_layer(xdg_config_dir: Option<&Path>) -> Option<Layer> {
     let path = xdg_config_dir?.join("mindtape").join("defaults.toml");
@@ -179,7 +180,7 @@ pub fn load_config_layered(root: &Path) -> Result<(Config, Vec<LayerSource>), Co
     load_config_layered_from(
         root,
         dirs::home_dir().as_deref(),
-        dirs::config_dir().as_deref(),
+        crate::app_dirs::config_home().as_deref(),
     )
 }
 

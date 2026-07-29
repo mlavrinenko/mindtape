@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`$MINDTAPE_CONFIG_HOME` / `$MINDTAPE_DATA_HOME`** — cross-platform overrides
+  for the per-user directories `mt` reads and writes: the global `defaults.toml`
+  layer, `config.schema.json`, `presets/` and `worktrees.toml` under the config
+  home, the installed `@local/mindtape` Typst package under the data home. Both
+  replace the platform lookup wholesale for reading and for what `mt install`
+  writes; set but empty means "no such directory" (the global layer is dropped,
+  never silently resolved from the machine). The platform lookup reads the
+  environment on Unix only — Windows goes through a known-folder API no variable
+  can move — so the test suite now isolates the developer's own `mt` setup on
+  every platform, and the global-config regression is no longer `cfg(unix)`.
 - **Preset `[overlay]`** — a preset for `mt init` may carry a top-level
   `[overlay]` table holding raw config the wizard's axes cannot express (custom
   link kinds, named views, body-header rules). `mt init` deep-merges it over the

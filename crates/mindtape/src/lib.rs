@@ -9,6 +9,7 @@
 //! depend on it directly.
 
 pub mod add_slots;
+pub mod app_dirs;
 mod body_headers;
 pub mod canonical;
 pub mod condition;
@@ -73,6 +74,7 @@ mod validate_recur;
 pub mod worktrees;
 
 pub use add_slots::{RequiredSlot, required_core_slots};
+pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use condition::{Condition, ConditionEnv, ConditionError};
 pub use config::{

@@ -145,10 +145,10 @@ fn unknown_worktree(
     anyhow!(msg)
 }
 
-/// The app-scoped worktrees config path: `<config-dir>/mindtape/worktrees.toml`.
+/// The app-scoped worktrees config path: `<config home>/mindtape/worktrees.toml`.
 /// Mirrors [`crate::install`]'s XDG defaults resolution.
 fn worktrees_path() -> Option<PathBuf> {
-    dirs::config_dir().map(|dir| dir.join("mindtape").join("worktrees.toml"))
+    mindtape::config_home().map(|dir| dir.join("mindtape").join("worktrees.toml"))
 }
 
 /// Load the registry from `worktrees.toml`, returning it alongside the expected
@@ -284,7 +284,7 @@ mod tests {
 
     // ===== Subprocess tests (stdout / env isolation) =====
     //
-    // Each test spawns itself as a child process with `XDG_CONFIG_HOME`
+    // Each test spawns itself as a child process with `$MINDTAPE_CONFIG_HOME`
     // pointing at a temp directory and a sentinel env var set. The child
     // branch runs the real function; the parent branch asserts the child's
     // exit status and, for stdout tests, the captured output.
@@ -292,7 +292,7 @@ mod tests {
     const CHILD: &str = "_MT_WT_CHILD";
 
     /// Spawn `test_name` as a child, optionally writing `config` to
-    /// `mindtape/worktrees.toml` under a temp `XDG_CONFIG_HOME`.
+    /// `mindtape/worktrees.toml` under a temp `$MINDTAPE_CONFIG_HOME`.
     fn run_child(
         test_name: &str,
         config: Option<&str>,
@@ -304,7 +304,7 @@ mod tests {
             std::fs::write(wt_dir.join("worktrees.toml"), body).unwrap();
         }
         let out = std::process::Command::new(std::env::current_exe().unwrap())
-            .env("XDG_CONFIG_HOME", dir.path())
+            .env(mindtape::CONFIG_HOME_ENV, dir.path())
             .env(CHILD, "1")
             .args([test_name, "--nocapture"])
             .output()
@@ -357,7 +357,7 @@ mod tests {
             let dir = tempfile::TempDir::new().unwrap();
             std::fs::write(dir.path().join("mindtape"), "i am a file not a dir").unwrap();
             let out = std::process::Command::new(std::env::current_exe().unwrap())
-                .env("XDG_CONFIG_HOME", dir.path())
+                .env(mindtape::CONFIG_HOME_ENV, dir.path())
                 .env(CHILD, "1")
                 .args(["load_registry_non_notfound_error_propagates", "--nocapture"])
                 .output()
