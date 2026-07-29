@@ -176,23 +176,6 @@
   choices: none,
 ) = default
 
-// Core slots every consumer shares. Anything else MUST be an x-<ns> extension.
-#let _core-slots = (
-  "title",
-  "status",
-  "priority",
-  "difficulty",
-  "kind",
-  "estimate",
-  "links",
-  "tags",
-  "due",
-  "start",
-  "reviewed",
-  "id",
-  "recur",
-)
-
 // ── Typeset render ────────────────────────────────────────────────────────────
 // The third face. `#show: task.with(...)` wraps the whole file; below the marker
 // we lay the authored fields out as a printed index card (a title, status /
@@ -518,43 +501,66 @@
   body
 }
 
-#let task(body, ..meta) = {
+// The task show-rule. Every core field is an explicit named parameter, so the
+// signature IS the core-slot enumeration — no separate `_core-slots` list to
+// drift from the marker builder, and an editor (tinymist) can offer completion,
+// signature help and spelling feedback while a task is authored. That typed
+// authoring is a main reason tasks are Typst and not YAML frontmatter.
+// `..meta` stays as the extension sink only: anything reaching it is by
+// definition not a core field, so the x-<ns> discipline is one assert over the
+// sink rather than a membership test per key. Defaults match what the Rust
+// layer reads for an unset field ("" / none / empty), keeping an omitted field
+// and an explicitly-defaulted one indistinguishable downstream.
+#let task(
+  body,
+  title: "",
+  status: none,
+  priority: none,
+  difficulty: none,
+  kind: none,
+  estimate: (:),
+  links: (),
+  tags: (),
+  due: none,
+  start: none,
+  reviewed: none,
+  recur: none,
+  id: none,
+  ..meta,
+) = {
   assert(
     meta.pos().len() == 0,
     message: "task takes no positional args besides its body",
   )
-  let m = meta.named()
   let extras = (:)
-  for pair in m.pairs() {
-    let key = pair.at(0)
-    if key not in _core-slots {
-      assert(
-        key.starts-with("x-"),
-        message: "unknown task slot `"
-          + key
-          + "`; tool extensions must use an x-<ns> slot",
-      )
-      extras.insert(key, pair.at(1))
-    }
+  for (key, value) in meta.named() {
+    assert(
+      key.starts-with("x-"),
+      message: "unknown task slot `"
+        + key
+        + "`; tool extensions must use an x-<ns> slot",
+    )
+    extras.insert(key, value)
   }
+  let fields = (
+    title: title,
+    status: status,
+    priority: priority,
+    difficulty: difficulty,
+    kind: kind,
+    estimate: estimate,
+    links: links,
+    tags: tags,
+    due: due,
+    start: start,
+    reviewed: reviewed,
+    recur: recur,
+    id: id,
+  )
   let marker = [#metadata((
     marker: "mindtape.task",
-    fields: (
-      title: m.at("title", default: ""),
-      status: m.at("status", default: none),
-      priority: m.at("priority", default: none),
-      difficulty: m.at("difficulty", default: none),
-      kind: m.at("kind", default: none),
-      estimate: m.at("estimate", default: (:)),
-      links: m.at("links", default: ()),
-      tags: m.at("tags", default: ()),
-      due: m.at("due", default: none),
-      start: m.at("start", default: none),
-      reviewed: m.at("reviewed", default: none),
-      recur: m.at("recur", default: none),
-      id: m.at("id", default: none),
-    ),
+    fields: fields,
     extras: extras,
   )) <mindtape>]
-  _render-task(m, marker, body)
+  _render-task(fields, marker, body)
 }

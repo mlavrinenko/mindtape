@@ -158,3 +158,12 @@ against your #link(u("/config/"))[config], at `mt check` time.
   and passes your extension fields through — see #link(u("/concepts/"))[the
     extension seam].
 ]
+
+= Editor support
+
+Every core field is a declared parameter of `task`, so a Typst language server
+(#link("https://myriad-dreamin.github.io/tinymist/")[tinymist]) completes the
+field names inside `task.with(...)` and shows the whole signature — each field
+with its default — as signature help. A misspelled field is not silently kept:
+it falls through to the extension sink and fails the file with
+#raw("unknown task slot `titel`; tool extensions must use an x-<ns> slot").

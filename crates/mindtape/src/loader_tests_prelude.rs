@@ -1,0 +1,129 @@
+//! The real, in-tree prelude (not `loader_tests.rs`'s `PRELUDE_STUB`) driven
+//! end to end: what a task file authors against `@local/mindtape` must arrive
+//! as a [`crate::model::Task`], through the actual Typst eval and harvester
+//! rather than hand-built `HVal` fixtures. Shares `loader_tests.rs`'s
+//! fixtures (`setup`, `write`, `write_pkg`).
+#![allow(clippy::unwrap_used, clippy::indexing_slicing)]
+
+use super::tests::{setup, write, write_pkg};
+use super::{LoadOutcome, load_project};
+use crate::config::Config;
+use crate::numeric::NumValue;
+use crate::recur::{PeriodUnit, Rule};
+
+const REAL_PRELUDE: &str = include_str!("../../../lib/prelude.typ");
+
+/// Load one file authored against the real prelude, under a default config.
+/// The `TempDir` rides along in the return so the caller keeps it alive.
+fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
+    let dir = setup();
+    write_pkg(dir.path(), "lib", "mindtape", "0.2.0", REAL_PRELUDE);
+    write(dir.path(), "tasks/t.typ", source);
+    let outcome = load_project(dir.path(), &Config::default());
+    (dir, outcome)
+}
+
+/// The `links:` DSL — variadic helpers, the trailing-note idiom, and combining
+/// several kinds with `+`.
+#[test]
+fn real_prelude_parses_typed_links_end_to_end() {
+    let (_dir, outcome) = load_real_prelude(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(\n  \
+           title: \"T\",\n  \
+           links: depends-on(\"a.typ\", \"b.typ\") + related(\"c.typ\")[why],\n\
+         )\n",
+    );
+
+    assert_eq!(outcome.errors, Vec::new());
+    let task = outcome.tasks.first().unwrap();
+
+    let deps: Vec<&str> = task.link_targets("depends-on").collect();
+    assert_eq!(deps, vec!["a.typ", "b.typ"]);
+
+    let related: Vec<_> = task.links.iter().filter(|l| l.kind == "related").collect();
+    assert_eq!(related.len(), 1);
+    assert_eq!(related[0].task, "c.typ");
+    assert_eq!(related[0].note.as_deref(), Some("why"));
+}
+
+/// Every core field is a declared named parameter of `task` — that is the point
+/// of the explicit signature — so each must still reach the marker under its own
+/// name. A parameter the signature declares but the marker's `fields` dict
+/// forgets would silently drop that field for every task in every project, with
+/// nothing failing; this authors all thirteen at once and reads them back.
+#[test]
+fn real_prelude_carries_every_core_field_to_the_marker() {
+    let (_dir, outcome) = load_real_prelude(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(\n  \
+           title: \"T\",\n  \
+           status: wip(2026, 6, 14)[note],\n  \
+           priority: 8,\n  \
+           difficulty: 3,\n  \
+           kind: \"bug\",\n  \
+           estimate: (days: 2),\n  \
+           links: depends-on(\"a.typ\"),\n  \
+           tags: (\"mt\",),\n  \
+           due: on(2026, 7, 1),\n  \
+           start: on(2026, 6, 20),\n  \
+           reviewed: on(2026, 6, 25),\n  \
+           recur: every(weeks: 1),\n  \
+           id: \"explicit\",\n\
+         )\n",
+    );
+
+    assert_eq!(outcome.errors, Vec::new());
+    let task = outcome.tasks.first().unwrap();
+    assert_eq!(task.title, "T");
+    let status = task.status.as_ref().unwrap();
+    assert_eq!(status.name, "wip");
+    assert_eq!(status.date.as_deref(), Some("2026-06-14"));
+    assert_eq!(status.note.as_deref(), Some("note"));
+    assert_eq!(task.priority, Some(NumValue::Num(8.0)));
+    assert_eq!(task.difficulty, Some(NumValue::Num(3.0)));
+    assert_eq!(task.kind.as_deref(), Some("bug"));
+    assert_eq!(task.estimate.get("days"), Some(&2.0));
+    assert_eq!(
+        task.link_targets("depends-on").collect::<Vec<_>>(),
+        ["a.typ"]
+    );
+    assert_eq!(task.tags, ["mt"]);
+    assert_eq!(task.due.as_deref(), Some("2026-07-01"));
+    assert_eq!(task.start.as_deref(), Some("2026-06-20"));
+    assert_eq!(task.reviewed.as_deref(), Some("2026-06-25"));
+    assert!(matches!(
+        task.recur.as_ref().unwrap().rule,
+        Rule::Period {
+            unit: PeriodUnit::Weeks,
+            value: 1,
+            ..
+        }
+    ));
+    assert_eq!(task.id, "explicit");
+}
+
+/// The extension discipline, now enforced over `..meta` alone: an `x-<ns>` slot
+/// is collected, and a misspelled core field — which the named parameters do not
+/// absorb, since none is named `titel` — fails the file with the same message
+/// the membership test used to produce.
+#[test]
+fn real_prelude_collects_extensions_and_rejects_unknown_slots() {
+    let (_dir, ok) = load_real_prelude(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: \"T\", x-speconaut: (spec: \"s.typ\"))\n",
+    );
+    assert_eq!(ok.errors, Vec::new());
+    assert!(ok.tasks.first().unwrap().extras.contains_key("x-speconaut"));
+
+    let (_dir, bad) = load_real_prelude(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: \"T\", titel: \"typo\")\n",
+    );
+    assert!(bad.tasks.is_empty());
+    assert!(
+        bad.errors[0].message.contains("unknown task slot `titel`"),
+        "unexpected error: {}",
+        bad.errors[0].message
+    );
+}

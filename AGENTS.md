@@ -88,6 +88,11 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
 )
 ```
 
+`task` declares every core field as a named parameter (`..meta` is the `x-<ns>`
+extension sink only), so tinymist completes the field names and shows the whole
+signature; a misspelled field reaches the sink and fails the file with
+``unknown task slot `titel` ``.
+
 Priority can be a raw int on the scale or a framework call: thin packagers
 `ice/rice/wsjf/eisenhower/moscow` (and the generic `framework(name, ..inputs)`)
 shape a `(framework, inputs)` dict — no math in Typst. Config picks the active

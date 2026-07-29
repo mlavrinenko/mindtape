@@ -309,3 +309,7 @@ mod tests;
 #[cfg(test)]
 #[path = "loader_tests_cache.rs"]
 mod tests_cache;
+
+#[cfg(test)]
+#[path = "loader_tests_prelude.rs"]
+mod tests_prelude;
