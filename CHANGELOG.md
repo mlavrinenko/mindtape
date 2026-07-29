@@ -224,6 +224,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **"Today" is the local calendar date, not UTC** — every date `mt` stamps or
+  compares (`status`/`reviewed` dates, `now()` and `stale(N)` in filters, the
+  overdue marker, `mt recur` advances) now resolves through the machine's local
+  timezone (`$TZ` on Unix, the platform zone on Windows) instead of UTC epoch
+  seconds. A task filed at 01:00 east of Greenwich used to be stamped the
+  previous day, and the date filters skewed with it. `$MINDTAPE_NOW` still
+  overrides everything, and its value is taken verbatim — a trailing RFC 3339
+  offset shifts nothing, since the pinned value *is* the date to stamp. Dates in
+  task files remain plain civil dates with no offset attached. Costs `chrono`'s
+  `clock` feature (chrono resolves the zone itself, no `localtime_r`, so no
+  multithreaded-soundness hazard).
 - **`[[on.flip]]` `run` commands go through the platform shell** — `sh -c` as
   before on Unix, `cmd /C` on Windows. A `run` command is shell text rather than
   an argv, so it is written for the platform the project builds on, the same way

@@ -20,10 +20,17 @@ test-support = []
 rrule = ["dep:rrule"]
 
 [dependencies]
-# `default-features = false` + `std` only: NaiveDate/Months/Days arithmetic,
-# no `clock` (that pulls in reading the OS timezone/`Local::now()`) — every
-# recur date computation takes its reference date from the caller.
-chrono = { version = "0.4", default-features = false, features = ["std"] }
+# `default-features = false` + `std` for NaiveDate/Months/Days arithmetic
+# (every recur date computation takes its reference date from the caller), plus
+# `clock` for the one clock read in the tree: `crates/mindtape/src/date.rs`
+# resolves "today" as the machine's LOCAL calendar date (`Local::now()`), not
+# UTC — see `truth/tasks/decide-whether-today-is-utc-or-local.typ`. `clock`
+# adds `iana-time-zone`; chrono resolves the zone itself (no `localtime_r`), so
+# there is no multithreaded-soundness hazard.
+chrono = { version = "0.4", default-features = false, features = [
+    "std",
+    "clock",
+] }
 # The `rrule(...)` escape hatch's expander, behind the `rrule` feature (see
 # `crates/mindtape/src/recur_rrule.rs`). Pulls in chrono-tz + regex, so it
 # stays optional rather than a plain dependency.

@@ -64,6 +64,13 @@ with `miss(field)`.
   [The named #link(u("/config/"))[view]'s filter matches. `@name` is sugar for it.],
 )
 
+Everything date-shaped — `stale(N)`, `now()` in an `[[ls.rules]]` condition,
+`due < now()` and the overdue marker — reads "today" as the calendar date on
+the machine running `mt`, in its local timezone (`$TZ` on Unix), never UTC. So
+a task filed at 01:00 carries that day's date, not the previous one, and
+`$MINDTAPE_NOW` overrides the lot — see #link(u("/config/"))[Environment
+  variables].
+
 `@name` composes like any predicate:
 
 ```sh

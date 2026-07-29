@@ -637,6 +637,13 @@ Besides `-w`/`--worktree` (or `$MINDTAPE_WORKTREE`, see #link(u("/agents/"))[For
   AI agents]), `mt` honours `$MINDTAPE_NOW` for a pinnable "today": every date
 `mt` stamps or reads — status dates, `now()`/`stale()` in filters, `mt recur`
 advances — resolves once per process from `$MINDTAPE_NOW` (`YYYY-MM-DD` or an
-RFC 3339 timestamp; only the date part is used), else the system clock (UTC). A
-malformed value is a hard error naming the variable — never a silent
-fall-through.
+RFC 3339 timestamp; only the date part is used, verbatim — a trailing offset
+shifts nothing), else the system clock read as a *local* calendar date (`$TZ`
+on Unix, the platform zone on Windows), never UTC. A malformed value is a hard
+error naming the variable — never a silent fall-through.
+
+Local, not UTC, because a task filed at 01:00 belongs to that day: stamping UTC
+would date it yesterday for everyone east of Greenwich and skew `now()`,
+`stale()` and the overdue marker by up to a day. Dates carry no offset once
+written — a `YYYY-MM-DD` in a task file is a plain civil date, compared against
+whatever "today" is where the command runs.

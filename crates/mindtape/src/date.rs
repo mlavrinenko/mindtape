@@ -1,6 +1,12 @@
-//! Date helpers using only `std`: today's date, relative thresholds for the
-//! staleness predicate, and a configurable display formatter. No external
-//! crates; UTC only (close enough for backlog-rot detection).
+//! Date helpers: today's date, relative thresholds for the staleness
+//! predicate, and a configurable display formatter.
+//!
+//! "Today" is the machine's LOCAL calendar date, not UTC (see
+//! `truth/tasks/decide-whether-today-is-utc-or-local.typ`): a task filed at
+//! 01:00 on the 29th is stamped the 29th, whatever the offset. Only
+//! [`local_epoch_days`] knows about zones — everything downstream is a plain
+//! `YYYY-MM-DD` civil date with no offset attached, and every comparison is
+//! date-to-date within that one calendar.
 //!
 //! "Today" is pinnable for reproducible output (see
 //! `truth/tasks/pinnable-clock-for-reproducible-output.typ`):
@@ -9,20 +15,22 @@
 //! result; `today_epoch_days`, below, is the single point every helper here
 //! reads through — no other function in this module touches the clock directly.
 
-/// Today's date as `YYYY-MM-DD` (UTC).
+use chrono::Datelike as _;
+
+/// Today's local date as `YYYY-MM-DD`.
 #[must_use]
 pub fn today_iso() -> String {
     let (year, month, day) = today_ymd();
     format!("{year:04}-{month:02}-{day:02}")
 }
 
-/// Today's date as `(year, month, day)` (UTC).
+/// Today's local date as `(year, month, day)`.
 #[must_use]
 pub fn today_ymd() -> (i32, u8, u8) {
     epoch_days_to_ymd(today_epoch_days())
 }
 
-/// The date `count` days before today as `YYYY-MM-DD` (UTC).
+/// The date `count` days before today as `YYYY-MM-DD`.
 #[must_use]
 pub fn days_ago_iso(count: u64) -> String {
     let (year, month, day) = epoch_days_to_ymd(today_epoch_days().saturating_sub(count));
@@ -30,26 +38,30 @@ pub fn days_ago_iso(count: u64) -> String {
 }
 
 /// Today, as days since the Unix epoch: the process's pinned override if
-/// [`crate::date_pin::init_pinned_today`] resolved one, else the system
-/// clock. The only place in this module that reads a clock.
+/// [`crate::date_pin::init_pinned_today`] resolved one, else the system clock
+/// read in the machine's local timezone. The only place in this module that
+/// reads a clock.
 fn today_epoch_days() -> u64 {
     if let Some(days) = crate::date_pin::pinned_epoch_days() {
         return days;
     }
-    epoch_days_at(std::time::SystemTime::now())
+    local_epoch_days(&chrono::Local::now())
 }
 
-/// Days since the Unix epoch containing `at`, truncating towards the epoch.
+/// Days since the Unix epoch for the calendar date `at` falls on *in its own
+/// timezone* — the local date, not the UTC one, whenever `at` carries a local
+/// offset.
 ///
-/// Split out of [`today_epoch_days`] so the conversion can be asserted against
-/// a single captured `SystemTime`: a test that reads the clock once inside the
-/// conversion and once outside races a UTC-midnight rollover between the two
-/// reads, and fails on whichever side of midnight it lands.
-fn epoch_days_at(at: std::time::SystemTime) -> u64 {
-    at.duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs()
-        / 86_400
+/// Generic over the zone (rather than taking `DateTime<Local>`) so the
+/// offset-awareness can be asserted against fixed offsets in a unit test:
+/// mutating `$TZ` in-process is neither safe nor parallel-safe, and reading
+/// the real clock twice — once inside the conversion, once outside — races a
+/// midnight rollover between the two reads.
+fn local_epoch_days<Tz: chrono::TimeZone>(at: &chrono::DateTime<Tz>) -> u64 {
+    let date = at.date_naive();
+    let month = u8::try_from(date.month()).unwrap_or(1);
+    let day = u8::try_from(date.day()).unwrap_or(1);
+    u64::try_from(days_from_civil(date.year(), month, day)).unwrap_or(0)
 }
 
 /// Parse a `YYYY-MM-DD` string into `(year, month, day)`; `None` if malformed.
@@ -206,25 +218,48 @@ pub(crate) fn days_from_civil(year: i32, month: u8, day: u8) -> i64 {
 
 #[cfg(test)]
 mod tests {
+    use chrono::TimeZone as _;
+
     use super::{
-        days_ago_iso, days_from_civil, epoch_days_at, epoch_days_to_ymd, format_iso,
+        days_ago_iso, days_from_civil, epoch_days_to_ymd, format_iso, local_epoch_days,
         today_epoch_days, today_iso, today_ymd,
     };
 
-    /// The seconds-to-days conversion must land in the one-day window
-    /// containing its sample. One `SystemTime` is captured and used for both
-    /// sides, so there is no midnight rollover to race.
+    /// 2026-07-28T22:00:00Z, the instant the deciding task was filed at: still
+    /// the 28th in UTC, already the 29th three hours east.
+    fn late_july_evening_utc() -> chrono::DateTime<chrono::Utc> {
+        chrono::Utc
+            .with_ymd_and_hms(2026, 7, 28, 22, 0, 0)
+            .single()
+            .expect("22:00 UTC on 2026-07-28 is unambiguous")
+    }
+
+    /// The offset decides the calendar date, not the underlying instant: one
+    /// moment, read three hours east and five hours west, is two different
+    /// days. This is the assertion that pins "local, not UTC" — under the old
+    /// UTC conversion both sides would answer the 28th.
     #[test]
-    fn epoch_days_at_brackets_its_own_sample() {
-        let now = std::time::SystemTime::now();
-        let secs = now
-            .duration_since(std::time::UNIX_EPOCH)
-            .expect("system clock is after the Unix epoch")
-            .as_secs();
-        let days = epoch_days_at(now);
-        assert!(
-            days * 86_400 <= secs && secs < (days + 1) * 86_400,
-            "epoch_days_at() = {days} does not bracket its sample ({secs}s)"
+    fn local_epoch_days_reads_the_offsets_own_calendar_date() {
+        let instant = late_july_evening_utc();
+        let east = chrono::FixedOffset::east_opt(3 * 3600).expect("+03:00 is a valid offset");
+        let west = chrono::FixedOffset::west_opt(5 * 3600).expect("-05:00 is a valid offset");
+
+        assert_eq!(
+            local_epoch_days(&instant.with_timezone(&east)),
+            u64::try_from(days_from_civil(2026, 7, 29)).expect("after the epoch")
+        );
+        assert_eq!(
+            local_epoch_days(&instant.with_timezone(&west)),
+            u64::try_from(days_from_civil(2026, 7, 28)).expect("after the epoch")
+        );
+    }
+
+    /// UTC is just the zero-offset case of the same conversion.
+    #[test]
+    fn local_epoch_days_at_utc_is_the_utc_date() {
+        assert_eq!(
+            local_epoch_days(&late_july_evening_utc()),
+            u64::try_from(days_from_civil(2026, 7, 28)).expect("after the epoch")
         );
     }
 
@@ -236,9 +271,9 @@ mod tests {
     /// the answer is still one of the two ends.
     #[test]
     fn today_epoch_days_falls_back_to_the_system_clock() {
-        let before = epoch_days_at(std::time::SystemTime::now());
+        let before = local_epoch_days(&chrono::Local::now());
         let days = today_epoch_days();
-        let after = epoch_days_at(std::time::SystemTime::now());
+        let after = local_epoch_days(&chrono::Local::now());
         assert!(
             (before..=after).contains(&days),
             "today_epoch_days() = {days} outside the sampled window {before}..={after}"

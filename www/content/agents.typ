@@ -108,8 +108,9 @@ mt @app ls
 Every date `mt` stamps or reads — `status`/`reviewed` dates, `now()` and
 `stale()` in filters, the overdue marker, `mt recur` advances — resolves
 "today" once per process from `$MINDTAPE_NOW` (`YYYY-MM-DD` or an RFC 3339
-timestamp; the date part is used), else the system clock (UTC). Pin it for
-deterministic output — docs generation, golden-file tests, a CI snapshot:
+timestamp; the date part is used verbatim), else the system clock read as a
+local calendar date (`$TZ` on Unix), never UTC. Pin it for deterministic
+output — docs generation, golden-file tests, a CI snapshot:
 
 ```sh
 MINDTAPE_NOW=2026-07-11 mt ls --json

@@ -1,5 +1,8 @@
-//! End-to-end tests for the pinnable clock (`$MINDTAPE_NOW`, see
-//! `truth/tasks/pinnable-clock-for-reproducible-output.typ`).
+//! End-to-end tests for the clock `mt` reads: the pinnable override
+//! (`$MINDTAPE_NOW`, see
+//! `truth/tasks/pinnable-clock-for-reproducible-output.typ`) and, unpinned,
+//! the local calendar date it falls back to (see
+//! `truth/tasks/decide-whether-today-is-utc-or-local.typ`).
 //!
 //! These shell out to the compiled `mt` binary (like `recur_e2e.rs`) rather
 //! than calling `mindtape::date` directly: the override is resolved once into
@@ -59,6 +62,75 @@ fn ls_ids(dir: &Path, filter: &str, env: &[(&str, &str)]) -> Vec<String> {
         .filter_map(|task| task.get("id").and_then(serde_json::Value::as_str))
         .map(ToOwned::to_owned)
         .collect()
+}
+
+/// File `name` with `env` set on the child only, and read back the date `mt`
+/// stamped into its `proposed(...)` status, normalised to `YYYY-MM-DD` so two
+/// stamps compare as dates rather than as raw Typst arguments.
+///
+/// `#[cfg(unix)]` with its callers: on Windows the whole timezone pair below
+/// compiles to nothing, and an ungated helper would only be dead code there.
+#[cfg(unix)]
+fn stamped_add_date(dir: &Path, name: &str, env: &[(&str, &str)]) -> String {
+    let mut cmd = mt(dir);
+    cmd.args(["add", "--name", name, "--set", &format!("title={name}")]);
+    for (key, value) in env {
+        cmd.env(key, value);
+    }
+    cmd.assert().success();
+
+    let written = std::fs::read_to_string(dir.join("tasks").join(format!("{name}.typ"))).unwrap();
+    let (stamp, _) = written
+        .split_once("proposed(")
+        .and_then(|(_, rest)| rest.split_once(')'))
+        .unwrap_or_else(|| panic!("no proposed(...) status in {written}"));
+    let (year, rest) = stamp.split_once(',').unwrap();
+    let (month, day) = rest.split_once(',').unwrap();
+    format!("{:04}-{:02}-{:02}", num(year), num(month), num(day))
+}
+
+#[cfg(unix)]
+fn num(part: &str) -> u32 {
+    part.trim().parse().unwrap()
+}
+
+/// Unpinned, "today" is the machine's local calendar date, not UTC.
+///
+/// POSIX `TZ` strings, so no tzdb file has to exist: the offset is what gets
+/// added to local time to reach UTC, making `MTE-14` UTC+14 and `MTW+12`
+/// UTC-12 — the two extremes of the inhabited calendar, 26 hours apart. At
+/// every instant their dates differ, and east is always the later one; a
+/// UTC-stamping `mt` would write the same date on both sides.
+///
+/// `#[cfg(unix)]`: chrono reads the Windows zone through the platform API,
+/// which no environment variable overrides, so there is nothing to set there.
+#[cfg(unix)]
+#[test]
+fn today_is_the_local_calendar_date_not_utc() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+
+    let east = stamped_add_date(dir.path(), "east", &[("TZ", "MTE-14")]);
+    let west = stamped_add_date(dir.path(), "west", &[("TZ", "MTW+12")]);
+    assert!(
+        east > west,
+        "UTC+14 stamped {east}, UTC-12 stamped {west}: 26 hours apart must be different dates"
+    );
+}
+
+/// The pin outranks the local zone: with `$MINDTAPE_NOW` set, the offset that
+/// would otherwise decide the date changes nothing.
+#[cfg(unix)]
+#[test]
+fn mindtape_now_outranks_the_local_timezone() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+
+    let pin = [("MINDTAPE_NOW", "2026-09-05")];
+    let east = stamped_add_date(dir.path(), "east", &[("TZ", "MTE-14"), pin[0]]);
+    let west = stamped_add_date(dir.path(), "west", &[("TZ", "MTW+12"), pin[0]]);
+    assert_eq!(east, "2026-09-05");
+    assert_eq!(west, "2026-09-05");
 }
 
 #[test]

@@ -2,8 +2,10 @@
 //! `truth/tasks/pinnable-clock-for-reproducible-output.typ`).
 //!
 //! `$MINDTAPE_NOW` pins "today" — a `YYYY-MM-DD` date or an RFC 3339 timestamp
-//! (the date part is used, split on `'T'`); unset falls through to the system
-//! clock (UTC). [`init_pinned_today`] resolves this once from the real
+//! (the date part is used verbatim, split on `'T'`: a trailing offset shifts
+//! nothing, since the pinned value *is* the calendar date to stamp); unset
+//! falls through to the system clock, read in the machine's local timezone
+//! (`crate::date`). [`init_pinned_today`] resolves this once from the real
 //! environment and caches it in a process-wide [`OnceLock`] so every
 //! day-granular read in [`crate::date`] agrees — call it once, early, from the
 //! binary's `main`. A malformed override is a hard error naming the variable
