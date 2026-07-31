@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("cli",),
   estimate: (files: 2),
-  status: proposed(2026, 7, 31),
+  status: done(
+    2026,
+    8,
+    1,
+  )[the strict-framework splice writes framework("name", input: slot(…), …); mt init no longer refuses the answer set],
 )
 
 == Summary
