@@ -5,8 +5,6 @@
 //! to keep both files under the size gate; sibling of `table_tests.rs`
 //! (render/due-cell) and `table_tests_ready.rs` (`ready_cell` floor).
 
-use std::io::IsTerminal;
-
 use anstyle::{Effects, Style};
 
 use super::super::color::Painter;
@@ -16,7 +14,7 @@ use super::super::glyph::GlyphMode;
 use super::super::link::Linker;
 use super::super::width::display_width;
 use super::{
-    Column, apply_flex, apply_highlight, flex_columns, glyph_mode, render_grid, render_unpadded,
+    Column, apply_flex, apply_highlight, flex_columns, glyph_mode_for, render_grid, render_unpadded,
 };
 
 /// Every layout test renders with hyperlinks off; only the width-accounting
@@ -298,18 +296,13 @@ fn render_unpadded_returns_content_as_is_when_fits() {
     assert_eq!(out, "hi", "must not add trailing padding");
 }
 
-// --- glyph_mode (non-TTY) --------------------------------------------------
+// --- glyph_mode ------------------------------------------------------------
 
+/// Both arms of the rule, with the input supplied rather than read from the
+/// harness. Re-deriving the expectation from `is_terminal()` made the test
+/// re-implement the function it covers, so it could not fail either way.
 #[test]
-fn glyph_mode_follows_whether_stdout_is_a_terminal() {
-    // `glyph_mode` has exactly one input, and it is not something this test can
-    // set: asserting a bare `GlyphMode::None` stated a property of the harness
-    // (cargo pipes stdout), not of the code, and would flip meaning the moment
-    // the suite ran on a tty. Assert the rule against the same input instead.
-    let expected = if std::io::stdout().is_terminal() {
-        GlyphMode::Emoji
-    } else {
-        GlyphMode::None
-    };
-    assert_eq!(glyph_mode(), expected);
+fn glyph_mode_is_emoji_on_a_tty_and_none_when_piped() {
+    assert_eq!(glyph_mode_for(true), GlyphMode::Emoji);
+    assert_eq!(glyph_mode_for(false), GlyphMode::None);
 }

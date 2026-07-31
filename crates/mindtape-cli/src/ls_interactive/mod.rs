@@ -53,10 +53,25 @@ pub fn run(args: &LsArgs, project: util::Project) -> Result<()> {
 /// Reject the modes interactive cannot serve: a non-table format and a
 /// non-interactive terminal (piped stdin or stdout).
 fn guard(args: &LsArgs) -> Result<()> {
+    guard_with(
+        args,
+        io::stdin().is_terminal() && io::stdout().is_terminal(),
+    )
+}
+
+/// [`guard`] with the terminal answer supplied rather than read from the
+/// process, so both arms are reachable in a test.
+///
+/// Reading `is_terminal()` inside the check made the outcome depend on how the
+/// suite was invoked: piped (CI, `just check`, which runs the arm under
+/// `parallel`) it refused and the refusal test passed, but run straight from a
+/// terminal `cargo test` inherits the tty, the guard allowed, and that same test
+/// failed. A test whose verdict flips with the caller's stdout is not a test.
+fn guard_with(args: &LsArgs, tty: bool) -> Result<()> {
     if !matches!(args.format, OutputFormat::Table) {
         bail!("--interactive is table-only; drop --format json/csv");
     }
-    if !io::stdin().is_terminal() || !io::stdout().is_terminal() {
+    if !tty {
         bail!("--interactive needs a TTY on stdin and stdout (not available when piped)");
     }
     Ok(())

@@ -93,7 +93,13 @@ fn apply_highlight(columns: &mut [Column], highlighted: &[bool]) {
 
 /// Emoji on a TTY; no glyphs when piped (keeps pipe output plain).
 fn glyph_mode() -> GlyphMode {
-    if std::io::stdout().is_terminal() {
+    glyph_mode_for(std::io::stdout().is_terminal())
+}
+
+/// [`glyph_mode`] with the terminal answer supplied, so both arms are reachable
+/// in a test regardless of how the suite was invoked.
+fn glyph_mode_for(tty: bool) -> GlyphMode {
+    if tty {
         GlyphMode::Emoji
     } else {
         GlyphMode::None

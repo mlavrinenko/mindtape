@@ -6,7 +6,7 @@ use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifi
 use mindtape::test_support::bare_task;
 use mindtape::{Config, Readiness, Task};
 
-use super::{Intent, State, classify, collect_first, footer, guard, run};
+use super::{Intent, State, classify, collect_first, footer, guard_with, run};
 use crate::ls::LsArgs;
 use crate::output::OutputFormat;
 use crate::util;
@@ -143,15 +143,24 @@ fn ls_args(format: OutputFormat) -> LsArgs {
 
 // --- guard / run ----------------------------------------------------------
 
+/// The format check runs before the TTY check, so a non-table format is
+/// refused even on a real terminal.
 #[test]
 fn guard_rejects_non_table() {
-    assert!(guard(&ls_args(OutputFormat::Json)).is_err());
+    assert!(guard_with(&ls_args(OutputFormat::Json), true).is_err());
 }
 
+/// Table format with no TTY refuses, and names the TTY rather than the format.
 #[test]
 fn guard_table_fails_on_tty_not_format() {
-    let err = guard(&ls_args(OutputFormat::Table)).unwrap_err();
+    let err = guard_with(&ls_args(OutputFormat::Table), false).unwrap_err();
     assert!(err.to_string().contains("TTY"), "got: {err}");
+}
+
+/// Table format with a TTY is the one combination interactive can serve.
+#[test]
+fn guard_allows_table_on_a_tty() {
+    assert!(guard_with(&ls_args(OutputFormat::Table), true).is_ok());
 }
 
 #[test]
