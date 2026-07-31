@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("cli",),
   estimate: (files: 5),
-  status: proposed(2026, 7, 31),
+  status: done(
+    2026,
+    7,
+    31,
+  )[shipped extension+sniff dispatch and the shared yaml\_values converter],
 )
 
 == Summary
