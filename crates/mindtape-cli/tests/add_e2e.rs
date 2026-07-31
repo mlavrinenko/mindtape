@@ -307,6 +307,26 @@ fn unknown_set_key_is_a_hard_error() {
     );
 }
 
+/// `mt add -f -` accepts YAML on stdin, not just JSON — real stdin can only
+/// be exercised by shelling out, hence this lives here rather than as a unit
+/// test (unit coverage for the dispatch/sniff logic itself lives in
+/// `add_values_tests.rs`).
+#[test]
+fn end_to_end_files_from_yaml_on_stdin() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+
+    support::mt(dir.path())
+        .args(["add", "--name", "wire-yaml", "-f", "-"])
+        .write_stdin("title: Wire YAML\n")
+        .assert()
+        .success();
+
+    let written = std::fs::read_to_string(dir.path().join("tasks/wire-yaml.typ")).unwrap();
+    assert!(written.contains("title: \"Wire YAML\""), "{written}");
+    assert!(!written.contains("slot("), "slots must be gone: {written}");
+}
+
 /// Same treatment for the `-f`/`--values` JSON entry point.
 #[test]
 fn unknown_values_json_key_is_a_hard_error() {

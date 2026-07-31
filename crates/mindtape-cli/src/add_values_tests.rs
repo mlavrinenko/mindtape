@@ -7,8 +7,18 @@ use mindtape::{Config, RawValue, discover_slots};
 
 use super::{
     BUILTIN_TASK, DescribeFormat, collect_values, describe, env_var_name, layer_env,
-    list_templates, reject_unknown_keys, resolve_template, slug, stdin_title,
+    list_templates, parse_sniffed_source, parse_source, reject_unknown_keys, resolve_template,
+    slug, stdin_title,
 };
+
+/// Write `text` to `dir`/`name` and return the JSON/YAML `-f` value:
+/// `collect_values` reads a path from disk, so extension-driven dispatch
+/// needs a real file, not an in-memory string.
+fn values_file(dir: &std::path::Path, name: &str, text: &str) -> String {
+    let path = dir.join(name);
+    std::fs::write(&path, text).unwrap();
+    path.to_string_lossy().into_owned()
+}
 
 #[test]
 fn slug_lowercases_and_collapses() {
@@ -135,6 +145,170 @@ fn collect_rejects_non_object_json() {
     let path = dir.path().join("v.json");
     std::fs::write(&path, "[1,2,3]").unwrap();
     assert!(collect_values(&[path.to_string_lossy().into_owned()], &[]).is_err());
+}
+
+// ── YAML `-f` dispatch: extension, sniff, malformed input, tabs, blanks ──
+
+#[test]
+fn dot_yaml_extension_parses_as_yaml() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = values_file(dir.path(), "v.yaml", "title: From YAML\nimpact: 8\n");
+    let values = collect_values(&[path], &[]).unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("From YAML".to_owned()))
+    );
+    assert_eq!(values.get("impact"), Some(&RawValue::Int(8)));
+}
+
+#[test]
+fn dot_yml_extension_parses_as_yaml() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = values_file(dir.path(), "v.yml", "title: From Yml\n");
+    let values = collect_values(&[path], &[]).unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("From Yml".to_owned()))
+    );
+}
+
+#[test]
+fn sniff_picks_yaml_for_non_brace_content() {
+    // No filename extension to trust (the stdin `-` shape): a document with
+    // no leading `{`/`[` sniffs as YAML.
+    let values = parse_sniffed_source("-", "title: Sniffed\ntags:\n  - a\n  - b\n").unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&Some(RawValue::Str("Sniffed".to_owned())))
+    );
+    assert_eq!(
+        values.get("tags"),
+        Some(&Some(RawValue::List(vec!["a".to_owned(), "b".to_owned()])))
+    );
+}
+
+#[test]
+fn sniff_picks_json_for_brace_content() {
+    let values = parse_sniffed_source("-", r#"{"title":"Sniffed JSON"}"#).unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&Some(RawValue::Str("Sniffed JSON".to_owned())))
+    );
+}
+
+#[test]
+fn unknown_extension_sniffs_like_stdin() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = values_file(dir.path(), "v.values", "title: Unknown Extension\n");
+    let values = collect_values(&[path], &[]).unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("Unknown Extension".to_owned()))
+    );
+}
+
+#[test]
+fn malformed_yaml_extension_reports_a_useful_error() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = values_file(dir.path(), "v.yaml", "title: [unterminated\n");
+    let err = collect_values(std::slice::from_ref(&path), &[])
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains(path.as_str()), "{err}");
+}
+
+#[test]
+fn malformed_sniffed_input_reports_the_json_error() {
+    // Leading `{` sniffs as JSON; when both the JSON and the YAML retry fail,
+    // the JSON parse error is the one surfaced (see `parse_sniffed_source`).
+    let err = parse_sniffed_source("-", "{not valid anything")
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("parse JSON from -"), "{err}");
+}
+
+#[test]
+fn tab_indented_json_still_parses() {
+    // libyaml rejects tab indentation; a `.json`-dispatched source must keep
+    // using serde_json, which accepts it.
+    let dir = tempfile::tempdir().unwrap();
+    let path = values_file(dir.path(), "v.json", "{\n\t\"title\": \"Tabbed\"\n}\n");
+    let values = collect_values(&[path], &[]).unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("Tabbed".to_owned()))
+    );
+}
+
+#[test]
+fn tab_indented_json_still_parses_when_sniffed() {
+    let values = parse_sniffed_source("-", "{\n\t\"title\": \"Tabbed\"\n}\n").unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&Some(RawValue::Str("Tabbed".to_owned())))
+    );
+}
+
+#[test]
+fn empty_string_survives_a_yaml_values_file() {
+    // Unlike the `--edit` scaffold (blank means "use the default"), a `-f`
+    // file's `""` is a real value that must reach the fill map unchanged.
+    let dir = tempfile::tempdir().unwrap();
+    let path = values_file(dir.path(), "v.yaml", "note: \"\"\n");
+    let values = collect_values(&[path], &[]).unwrap();
+    assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
+}
+
+#[test]
+fn empty_string_survives_a_json_values_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = values_file(dir.path(), "v.json", r#"{"note":""}"#);
+    let values = collect_values(&[path], &[]).unwrap();
+    assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
+}
+
+#[test]
+fn yaml_non_mapping_root_is_rejected_with_json_shaped_wording() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = values_file(dir.path(), "v.yaml", "- a\n- b\n");
+    let err = collect_values(std::slice::from_ref(&path), &[])
+        .unwrap_err()
+        .to_string();
+    assert!(
+        err.contains(&format!("values from {path} must be a mapping")),
+        "{err}"
+    );
+}
+
+#[test]
+fn yaml_multi_document_stream_is_rejected() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = values_file(dir.path(), "v.yaml", "---\na: 1\n---\nb: 2\n");
+    assert!(collect_values(&[path], &[]).is_err());
+}
+
+#[test]
+fn yaml_extension_dispatch_matches_parse_source() {
+    // `parse_source` is the single dispatch point `collect_values` uses per
+    // source; pin its extension routing directly.
+    let values = parse_source("v.yaml", "x: 1\n").unwrap();
+    assert_eq!(values.get("x"), Some(&Some(RawValue::Int(1))));
+}
+
+#[test]
+fn later_yaml_null_unsets_an_earlier_set_key() {
+    let dir = tempfile::tempdir().unwrap();
+    let first = values_file(dir.path(), "a.json", r#"{"title":"First","impact":8}"#);
+    let second = values_file(dir.path(), "b.yaml", "impact: ~\n");
+    let values = collect_values(&[first, second], &[]).unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("First".to_owned()))
+    );
+    assert!(
+        !values.contains_key("impact"),
+        "a later explicit null must unset an earlier value: {values:?}"
+    );
 }
 
 #[test]

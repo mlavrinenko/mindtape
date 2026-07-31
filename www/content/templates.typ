@@ -33,13 +33,16 @@ a slot instead.
 
 = Fill the slots
 
-Values come from several sources, highest priority first: `--set`, a JSON file
-(`-f`), the positional title, then the slot default.
+Values come from several sources, highest priority first: `--set`, a JSON or
+YAML file (`-f`), the positional title, then the slot default. `-f` picks the
+parser from the extension (`.json`, `.yaml`/`.yml`); stdin (`-`) and any other
+extension sniff the content — a leading `{`/`[` tries JSON first, else YAML.
 
 ```sh
 mt add --set title="Practice arpeggios" --set impact=8 # explicit values
 mt add cleanup kitchen                                # positional → title slot
 echo '{"title":"Practice arpeggios","impact":8}' | mt add -f - # JSON on stdin
+mt add -f values.yaml                                 # YAML values file
 mt add fix login +backend +auth                       # +word → tags slot
 mt add --edit                                         # fill in your editor
 ```

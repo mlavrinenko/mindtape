@@ -11,6 +11,8 @@ use std::process::Command;
 use anyhow::{Context, Result, bail};
 use mindtape::{AddConfig, InteractiveMode, RawValue, SlotKind, SlotSpec};
 
+use crate::yaml_values::parse_mapping;
+
 const DEFAULT_HEADER: &str = "\
 # mt add — fill the values below, then save and quit.
 # '#' lines are ignored. Leave a value empty to use its default (or to skip it).
@@ -329,61 +331,39 @@ fn quote(text: &str) -> String {
     out
 }
 
-/// Parse a saved buffer into fill values, dropping null/empty entries.
+/// Parse a saved buffer into fill values, dropping null/empty entries. The
+/// YAML -> `RawValue` conversion itself lives in `yaml_values` (shared with
+/// the `-f/--values` YAML path); only the empty-string drop is specific to
+/// this caller — blank means "use the default" in the editor scaffold, but a
+/// `-f` file's `""` is a real value the other caller must keep.
 ///
 /// # Errors
 /// Returns an error when the buffer is not a YAML mapping, a key is non-string,
 /// or a value has an unsupported shape (nested mapping, non-string list item).
 fn parse_buffer(text: &str) -> Result<BTreeMap<String, RawValue>> {
-    let value: serde_yaml_ng::Value =
-        serde_yaml_ng::from_str(text).context("parse the YAML buffer")?;
-    let mapping = match value {
-        serde_yaml_ng::Value::Mapping(mapping) => mapping,
-        serde_yaml_ng::Value::Null => return Ok(BTreeMap::new()),
-        _ => bail!("the buffer must be a YAML mapping of slot names to values"),
-    };
-    let mut out = BTreeMap::new();
-    for (key, raw) in mapping {
-        let Some(name) = key.as_str() else {
-            bail!("YAML keys must be strings");
-        };
-        if let Some(value) = yaml_to_raw(&raw).with_context(|| format!("value for {name:?}"))? {
-            out.insert(name.to_owned(), value);
-        }
-    }
-    Ok(out)
+    let values = parse_mapping(
+        text,
+        || "parse the YAML buffer".to_owned(),
+        || "the buffer must be a YAML mapping of slot names to values".to_owned(),
+    )?;
+    Ok(drop_blank(values))
 }
 
-fn yaml_to_raw(value: &serde_yaml_ng::Value) -> Result<Option<RawValue>> {
-    use serde_yaml_ng::Value;
-    let raw = match value {
-        Value::Null => return Ok(None),
-        Value::Bool(flag) => RawValue::Bool(*flag),
-        Value::Number(num) => number_to_raw(num),
-        Value::String(text) if text.is_empty() => return Ok(None),
-        Value::String(text) => RawValue::Str(text.clone()),
-        Value::Sequence(items) => RawValue::List(sequence_strings(items)?),
-        Value::Mapping(_) | Value::Tagged(_) => bail!("nested mapping values are unsupported"),
-    };
-    Ok(Some(raw))
-}
-
-fn number_to_raw(num: &serde_yaml_ng::Number) -> RawValue {
-    num.as_i64().map_or_else(
-        || RawValue::Float(num.as_f64().unwrap_or_default()),
-        RawValue::Int,
-    )
-}
-
-fn sequence_strings(items: &[serde_yaml_ng::Value]) -> Result<Vec<String>> {
-    let mut out = Vec::with_capacity(items.len());
-    for item in items {
-        let Some(text) = item.as_str() else {
-            bail!("list items must be strings");
-        };
-        out.push(text.to_owned());
-    }
-    Ok(out)
+/// Drop entries the editor treats as "not filled": a `null` (already `None`
+/// from the shared converter) and an empty string (kept as a real value by
+/// the shared converter for the `-f` caller, but blank here means "fall
+/// through to the default").
+fn drop_blank(values: BTreeMap<String, Option<RawValue>>) -> BTreeMap<String, RawValue> {
+    values
+        .into_iter()
+        .filter_map(|(key, value)| {
+            let raw = value?;
+            if matches!(&raw, RawValue::Str(text) if text.is_empty()) {
+                return None;
+            }
+            Some((key, raw))
+        })
+        .collect()
 }
 
 #[cfg(test)]

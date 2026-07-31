@@ -7,6 +7,8 @@ use std::path::Path;
 use anyhow::{Context, Result, bail};
 use mindtape::{Config, RawValue, SlotSpec};
 
+use crate::yaml_values;
+
 /// Built-in default task template, used when no `task.typ` is found under the
 /// configured template dirs.
 pub const BUILTIN_TASK: &str = include_str!("templates/task.typ");
@@ -78,29 +80,33 @@ pub fn list_templates(config: &Config, root: &Path) -> Vec<String> {
     names.into_iter().collect()
 }
 
-/// Merge JSON `--values` sources (paths; `-` = stdin), then apply `--set k=v`
-/// string overrides, into a typed fill map.
+/// Merge `--values` sources (paths; `-` = stdin; JSON or YAML, see
+/// [`parse_source`]), then apply `--set k=v` string overrides, into a typed
+/// fill map.
+///
+/// Sources are applied left to right, key by key: a later source's value for
+/// a key replaces an earlier one, and an explicit `null`/`~` in a later
+/// source unsets a key an earlier source set (rather than being silently
+/// skipped) — the same "last source wins" rule extended to an explicit
+/// unset, uniformly across JSON and YAML sources.
 ///
 /// # Errors
-/// Returns an error when a source is unreadable, not a JSON object, holds an
-/// unsupported value shape, or a `--set` entry lacks `=`.
+/// Returns an error when a source is unreadable, not a JSON object or YAML
+/// mapping, holds an unsupported value shape, or a `--set` entry lacks `=`.
 pub fn collect_values(values: &[String], sets: &[String]) -> Result<BTreeMap<String, RawValue>> {
-    let mut merged = serde_json::Map::new();
+    let mut out = BTreeMap::new();
     for source in values {
         let text = read_source(source)?;
-        let parsed: serde_json::Value =
-            serde_json::from_str(&text).with_context(|| format!("parse JSON from {source}"))?;
-        let object = parsed
-            .as_object()
-            .with_context(|| format!("values from {source} must be a JSON object"))?;
-        for (key, value) in object {
-            merged.insert(key.clone(), value.clone());
-        }
-    }
-    let mut out = BTreeMap::new();
-    for (key, value) in &merged {
-        if let Some(raw) = json_to_raw(value).with_context(|| format!("value for {key:?}"))? {
-            out.insert(key.clone(), raw);
+        let patch = parse_source(source, &text)?;
+        for (key, value) in patch {
+            match value {
+                Some(raw) => {
+                    out.insert(key, raw);
+                }
+                None => {
+                    out.remove(&key);
+                }
+            }
         }
     }
     for set in sets {
@@ -165,6 +171,63 @@ fn read_source(source: &str) -> Result<String> {
         return Ok(text);
     }
     std::fs::read_to_string(source).with_context(|| format!("read values from {source}"))
+}
+
+/// Parse one `-f/--values` source into a key -> (value or explicit unset)
+/// patch. Dispatch is per source: `.yaml`/`.yml` and `.json` extensions pick
+/// their parser outright; stdin (`-`) and any other extension sniff the
+/// content instead, since neither carries a filename extension to trust.
+fn parse_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
+    if source == "-" {
+        return parse_sniffed_source(source, text);
+    }
+    match Path::new(source).extension().and_then(|ext| ext.to_str()) {
+        Some("yaml" | "yml") => parse_yaml_source(source, text),
+        Some("json") => parse_json_source(source, text),
+        _ => parse_sniffed_source(source, text),
+    }
+}
+
+/// Sniff JSON vs. YAML from the content: a leading `{`/`[` is tried as JSON
+/// first (retrying YAML only if that fails — a YAML flow-mapping edge case);
+/// anything else goes straight to YAML. When both attempts fail, the JSON
+/// parse error is reported: the leading brace/bracket was a strong signal of
+/// intent, and re-reading the same malformed bytes as YAML tends to produce
+/// the more confusing of the two errors.
+fn parse_sniffed_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
+    if !looks_like_json(text) {
+        return parse_yaml_source(source, text);
+    }
+    match parse_json_source(source, text) {
+        Ok(map) => Ok(map),
+        Err(json_err) => parse_yaml_source(source, text).map_err(|_| json_err),
+    }
+}
+
+fn looks_like_json(text: &str) -> bool {
+    matches!(text.trim_start().as_bytes().first(), Some(b'{' | b'['))
+}
+
+fn parse_json_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
+    let parsed: serde_json::Value =
+        serde_json::from_str(text).with_context(|| format!("parse JSON from {source}"))?;
+    let object = parsed
+        .as_object()
+        .with_context(|| format!("values from {source} must be a JSON object"))?;
+    let mut out = BTreeMap::new();
+    for (key, value) in object {
+        let raw = json_to_raw(value).with_context(|| format!("value for {key:?}"))?;
+        out.insert(key.clone(), raw);
+    }
+    Ok(out)
+}
+
+fn parse_yaml_source(source: &str, text: &str) -> Result<BTreeMap<String, Option<RawValue>>> {
+    yaml_values::parse_mapping(
+        text,
+        || format!("parse YAML from {source}"),
+        || format!("values from {source} must be a mapping"),
+    )
 }
 
 /// Extract a task title from raw stdin text: the first non-blank line, trimmed.

@@ -41,6 +41,7 @@ mod test_util;
 mod util;
 mod views;
 mod worktrees;
+mod yaml_values;
 
 use anyhow::Result;
 use clap::Parser;

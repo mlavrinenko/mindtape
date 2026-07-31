@@ -177,7 +177,7 @@ impl fmt::Display for FillError {
             } => write!(
                 f,
                 "slot {slot:?} expects a list; use --set {slot}[]=value (repeatable) or \
-                 -f/--values with a JSON array, got {got}"
+                 -f/--values with a JSON/YAML array, got {got}"
             ),
             Self::Type { slot, want, got } => {
                 write!(f, "slot {slot:?} expects {}, got {got}", want.as_str())

@@ -15,8 +15,9 @@
 #let cli-notes = (
   // ── Files ───────────────────────────────────────────────────────────────────
   "add": (
-    prose: [Positional words join into the title; `--set`, `-f values.json`, or
-      editor mode fill the rest. Full detail on #link(u("/templates/"))[Templates & slots].],
+    prose: [Positional words join into the title; `--set`, `-f values.json` (or
+      `.yaml`/`.yml`), or editor mode fill the rest. Full detail on
+      #link(u("/templates/"))[Templates & slots].],
     examples: ```sh
     mt add cleanup kitchen              # title from positional words
     mt add fix login +backend +auth     # +word peels into the tags slot

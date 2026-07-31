@@ -37,7 +37,9 @@ pub struct AddArgs {
     #[arg(long = "template", short = 't', value_name = "TEMPLATE")]
     pub template: Option<String>,
 
-    /// JSON values file (repeatable, merged left-to-right; `-` reads stdin).
+    /// JSON or YAML values file (repeatable, merged left-to-right; `-` reads
+    /// stdin). `.json`/`.yaml`/`.yml` pick the parser by extension; stdin and
+    /// any other extension sniff the content.
     #[arg(long = "values", short = 'f', value_name = "PATH")]
     pub values: Vec<String>,
 
