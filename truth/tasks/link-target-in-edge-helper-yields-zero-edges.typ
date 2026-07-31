@@ -10,7 +10,7 @@
   difficulty: 3,
   tags: ("substrate",),
   estimate: (files: 2),
-  status: proposed(2026, 7, 31),
+  status: done(2026, 7, 31),
 )
 
 == Summary
