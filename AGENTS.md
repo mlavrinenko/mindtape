@@ -108,13 +108,19 @@ stem strings — `depends-on("a.typ", "b.typ")` yields two edges — and a
 trailing content block is the note, uniform with status: `related("epic.typ")[why]`.
 Combine kinds with `+`: `links: depends-on("a.typ") + related("b.typ")[why]`.
 `edge(kind, ..targets)[note]` builds an edge of any project-declared custom
-kind (`[[tasks.links.kinds]]`). Helpers take plain strings, never `link(...)`.
+kind (`[[tasks.links.kinds]]`). Helpers take plain strings, never `link(...)`,
+and say so: an argument that is neither a string nor the single note block —
+`link("a.typ")` (content, so it reads as the note and leaves no target), a
+second note, a named arg, an int — is an eval error naming the helper.
 Per-kind rules the Rust layer enforces: `depends-on` (∞, blocks readiness,
 acyclic), `parent` (max 1, acyclic), `recurred-from` (max 1), `supersedes`/
 `duplicates` (∞), `related` (∞, note required — the escape hatch).
 
-The prelude enforces structure only (one task, the `x-<ns>` discipline). The
-Rust layer enforces the status legend, numeric priority/difficulty scales and
+The prelude enforces structure only: one task, the `x-<ns>` discipline, and the
+argument shapes it would otherwise drop before the marker is written (edge
+targets/notes, a status note, framework inputs — the mistakes the Rust layer
+can never see, since nothing reaches it to validate). Everything that DOES
+reach the marker is the Rust layer's: the status legend, numeric priority/difficulty scales and
 classification, priority frameworks (scoring + in-bounds-by-construction), the
 kind enum, the `required` rules (a filter expression per field), bounds, and
 link resolution. Consumers validate their own `x-<ns>` fields.

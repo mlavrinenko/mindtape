@@ -201,6 +201,9 @@ Rules to respect:
 - Custom/extension fields must be namespaced `x-<ns>` (e.g. `x-speconaut: ...`).
   Every other field name is a declared parameter of `task`, so a typo is not
   kept as an extension — it fails with ``unknown task slot `titel` ``.
+- Edge helpers take plain stem strings, never `link("a.typ")` — that is content,
+  which reads as the trailing note. Passing one (or a second note, a named arg,
+  a non-string) is an eval error naming the helper, not a dropped edge.
 - The body is Typst, so a bare `//` starts a line comment and swallows the rest
   of the line; under `[tasks.comments] policy = "forbid"` `mt check` rejects the
   file. `https://…` is safe (Typst auto-links it), but `file://`, other URL

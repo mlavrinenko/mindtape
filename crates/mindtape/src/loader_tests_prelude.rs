@@ -23,6 +23,24 @@ fn load_real_prelude(source: &str) -> (tempfile::TempDir, LoadOutcome) {
     (dir, outcome)
 }
 
+/// Load one task authored with a single `task.with` field and return the first
+/// load-error message. Used by the assertion tests, which all expect the file
+/// to fail eval and produce no task at all.
+fn prelude_eval_error(field: &str) -> String {
+    let source = format!(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: \"T\", {field})\n"
+    );
+    let (_dir, outcome) = load_real_prelude(&source);
+    assert!(
+        outcome.tasks.is_empty(),
+        "expected no task from `{field}`, got {:?}",
+        outcome.tasks
+    );
+    assert!(!outcome.errors.is_empty(), "`{field}` loaded clean");
+    outcome.errors[0].message.clone()
+}
+
 /// The `links:` DSL — variadic helpers, the trailing-note idiom, and combining
 /// several kinds with `+`.
 #[test]
@@ -126,4 +144,76 @@ fn real_prelude_collects_extensions_and_rejects_unknown_slots() {
         "unexpected error: {}",
         bad.errors[0].message
     );
+}
+
+/// The regression this file exists for: `link()` returns content, content is
+/// the note, so `depends-on(link("a.typ"))` used to yield an edge array with no
+/// edge in it. Nothing downstream could see the loss — the marker carried an
+/// empty `links`, `mt check` passed, and the task reported ready. The helper
+/// must name itself and say why the target vanished.
+#[test]
+fn real_prelude_rejects_a_link_target_in_an_edge_helper() {
+    let message = prelude_eval_error("links: depends-on(link(\"a.typ\"))");
+    assert!(
+        message.contains("`depends-on()` needs at least one target")
+            && message.contains("`link(...)` is content"),
+        "unexpected error: {message}"
+    );
+}
+
+/// Every other argument shape the helpers would otherwise drop on the floor.
+/// Each is an authoring mistake whose value never reaches the marker, so the
+/// Rust layer has nothing to validate — the prelude is the only layer that can
+/// still see it. The error names the offending helper in each case.
+#[test]
+fn real_prelude_rejects_argument_shapes_that_would_be_dropped() {
+    let cases = [
+        (
+            "links: depends-on()",
+            "`depends-on()` needs at least one target",
+        ),
+        (
+            "links: related(\"a.typ\")[one][two]",
+            "`related()` takes at most one note block",
+        ),
+        (
+            "links: depends-on(42)",
+            "`depends-on()` target must be a plain stem string",
+        ),
+        (
+            "links: parent(none)",
+            "`parent()` target must be a plain stem string",
+        ),
+        (
+            "links: depends-on(\"a.typ\", note: [n])",
+            "`depends-on()` takes no named arguments",
+        ),
+        (
+            "links: edge(7, \"a.typ\")",
+            "edge() kind must be a non-empty string",
+        ),
+        (
+            "status: wip(2026, 6, 14)[one][two]",
+            "`wip()` takes at most one note block",
+        ),
+        (
+            "status: wip(2026, 6, 14, \"note\")",
+            "`wip()` note must be a content block",
+        ),
+        (
+            "status: wip(2026, 6, 14, note: [n])",
+            "`wip()` takes no named arguments",
+        ),
+        (
+            "priority: framework(\"ice\", 8)",
+            "`ice()` inputs must be named",
+        ),
+    ];
+    for (field, needle) in cases {
+        let message = prelude_eval_error(field);
+        assert!(
+            message.contains(needle),
+            "`{field}`: expected {needle:?}, got {message}"
+        );
+    }
 }

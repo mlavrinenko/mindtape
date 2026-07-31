@@ -261,6 +261,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The DSL helpers reject arguments they used to drop** — `depends-on(link(
+  "a.typ"))` built no edge at all: `link()` returns content, content is the
+  trailing note, so the call yielded an empty edge array. Nothing downstream
+  could see it — the marker carried an empty `links`, `mt check` passed and the
+  task listed as ready — because the value was destroyed before anything the
+  Rust layer validates. Every such drop is now an eval error naming the helper:
+  a `link()`/non-string target, a second note block or a named argument in an
+  edge helper (`depends-on`, `parent`, `recurred-from`, `supersedes`,
+  `duplicates`, `related`, `edge`), a second/non-content note in a status
+  constructor (`wip(2026, 6, 14, "note")`), and a positional input to a
+  priority framework (`framework("ice", 8)`). The split it draws: the prelude
+  asserts only what would never reach the marker, everything that does reach it
+  stays `mt check`'s to report, where the config lives.
 - **`mt add` escapes text slot fills into Typst markup** — a text slot carrying
   ordinary prose used to land in markup verbatim, so a value containing `*`, `_`,
   `$`, `#`, `[`, `]`, `<` or `@` produced a task file that failed to load the

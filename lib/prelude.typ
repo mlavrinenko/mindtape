@@ -20,9 +20,35 @@
   note: note,
 )
 // The optional note rides in as a trailing content block: `done(y, m, d)[note]`.
-#let _mk(name) = (y, m, d, ..note) => status(name, y, m, d, note: note
-  .pos()
-  .at(0, default: none))
+// Same discipline as `edge` below: a second block, a named argument or a bare
+// string would land in the sink and be dropped on the floor, so each is an
+// error instead of a note that quietly never arrives.
+#let _mk(name) = (y, m, d, ..note) => {
+  let pos = note.pos()
+  assert(
+    note.named().len() == 0,
+    message: "`"
+      + name
+      + "()` takes no named arguments; the note is a trailing block, e.g. `"
+      + name
+      + "(2026, 6, 14)[note]`",
+  )
+  let count = str(pos.len())
+  assert(
+    pos.len() <= 1,
+    message: "`" + name + "()` takes at most one note block, got " + count,
+  )
+  assert(
+    pos.len() == 0 or type(pos.at(0, default: none)) == content,
+    message: "`"
+      + name
+      + "()` note must be a content block, e.g. `"
+      + name
+      + "(2026, 6, 14)[note]`, got "
+      + str(type(pos.at(0, default: none))),
+  )
+  status(name, y, m, d, note: pos.at(0, default: none))
+}
 #let draft = _mk("draft")
 #let proposed = _mk("proposed")
 #let accepted = _mk("accepted")
@@ -43,7 +69,21 @@
 // `(framework, inputs)` dict for the Rust layer to score — no math, bounds, or
 // classification live here (those are config + Rust concerns). `framework` is
 // the generic escape hatch; the named helpers fix one built-in's input shape.
-#let framework(name, ..inputs) = (framework: name, inputs: inputs.named())
+#let framework(name, ..inputs) = {
+  assert(
+    type(name) == str and name != "",
+    message: "framework() name must be a string, got " + str(type(name)),
+  )
+  assert(
+    inputs.pos().len() == 0,
+    message: "`"
+      + name
+      + "()` inputs must be named, e.g. `ice(impact: 8)`; got "
+      + str(inputs.pos().len())
+      + " positional",
+  )
+  (framework: name, inputs: inputs.named())
+}
 #let ice(impact: none, confidence: none, ease: none) = framework(
   "ice",
   impact: impact,
@@ -84,11 +124,62 @@
 // and the render re-wraps it in `link()` for a clickable PDF. `edge` is the
 // generic escape hatch for a project's config-declared custom kind; the six
 // named helpers below are pure sugar over it.
+//
+// Targets and the note are told apart by type, so every argument that is
+// neither is an error rather than a silent drop. That asymmetry is the point:
+// `depends-on(link("a.typ"))` passes content, content reads as the note, and
+// the call yields zero edges — a loss nothing downstream can see, since the
+// marker then carries an empty `links` and `mt check` has no dependency left
+// to complain about (the task even reports ready). Anything that DOES reach
+// the marker — an unknown kind, an unresolvable stem, a missing required note
+// — stays the Rust layer's to report, where the config lives. The prelude
+// asserts only where the mistake destroys the value before the marker is
+// written. Assert messages evaluate eagerly, so each one stays total on the
+// passing path too (hence `at(0, default: none)` over `at(0)`).
 #let edge(kind, ..args) = {
+  assert(
+    type(kind) == str and kind != "",
+    message: "edge() kind must be a non-empty string, got " + str(type(kind)),
+  )
+  assert(
+    args.named().len() == 0,
+    message: "`"
+      + kind
+      + "()` takes no named arguments; targets are positional strings and the "
+      + "note is a trailing block",
+  )
   let pos = args.pos()
+  let targets = pos.filter(p => type(p) == str)
   let notes = pos.filter(p => type(p) == content)
-  let targets = pos.filter(p => type(p) != content)
-  let note = if notes.len() > 0 { notes.at(0) } else { none }
+  let stray = pos.filter(p => type(p) != str and type(p) != content)
+  assert(
+    stray.len() == 0,
+    message: "`"
+      + kind
+      + "()` target must be a plain stem string like \"other.typ\", got "
+      + str(type(stray.at(0, default: none))),
+  )
+  let count = str(notes.len())
+  assert(
+    notes.len() <= 1,
+    message: "`" + kind + "()` takes at most one note block, got " + count,
+  )
+  // Bound before the assert, not inlined into `message`: in a code block a
+  // leading `+` on a continuation line parses as a unary plus, not as
+  // concatenation, so the string stays on one line here.
+  let hint = if notes.len() > 0 {
+    "; `link(...)` is content, so it read as the note, not a target"
+  } else { "" }
+  assert(
+    targets.len() > 0,
+    message: "`"
+      + kind
+      + "()` needs at least one target, e.g. `"
+      + kind
+      + "(\"other.typ\")`"
+      + hint,
+  )
+  let note = notes.at(0, default: none)
   targets.map(t => (task: t, kind: kind, note: note))
 }
 #let depends-on(..args) = edge("depends-on", ..args)

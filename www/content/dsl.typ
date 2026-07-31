@@ -89,6 +89,14 @@ kinds with `+`:
 links: depends-on("design-schema.typ") + related("write-docs.typ")[docs companion],
 ```
 
+Targets and the note are told apart by type, so a helper rejects an argument
+that is neither. `link()` returns content and content is the note, so
+`depends-on(link("design-schema.typ"))` builds no edge at all — and instead of
+yielding an empty edge array it fails the file with
+`` `depends-on()` needs at least one target ``, plus why the target vanished.
+A second note block, a named argument and a non-string target fail the same
+way, each naming the helper.
+
 `related`'s note is required — the escape hatch for "connected, but not a
 dependency" needs a reason. `edge(kind, ..targets)[note]` builds an edge of any
 project-declared custom kind (`[[tasks.links.kinds]]`); `depends-on` and
