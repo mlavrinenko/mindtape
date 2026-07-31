@@ -123,8 +123,9 @@ Slot names need not match field names. A framework priority is authored as
 `priority: ice(impact: slot("impact"), …)`, so the slots are its leaves —
 `--set impact=8 --set confidence=0.9 --set ease=4`, never `--set priority=8`.
 Under a strict framework (`framework` + `allow-manual = false` in
-`[tasks.priority]`) a scalar priority is invalid by construction and never a
-slot. Same for any field the template nests inside a call.
+`[tasks.priority]`) a scalar priority is invalid by construction, so even a
+template that omits priority gets the framework call spliced in and the leaves
+are still the slots. Same for any field the template nests inside a call.
 
 Tags: `+word` positionals are sugar for the `tags` slot (`mt add fix login
 +backend +auth`); or repeat `--set tags[]=backend --set tags[]=auth`. A bare

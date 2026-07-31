@@ -189,15 +189,18 @@ fn spec_headers_ship_a_template() {
     assert!(body.contains("Acceptance criteria"));
 }
 
-/// A strict-framework priority that is required is refused, and the message
-/// names the conflict.
+/// A strict-framework priority that is required composes and validates: the
+/// fallback template satisfies it through the spliced framework leaf slots.
 #[test]
-fn strict_framework_priority_is_refused() {
+fn strict_framework_priority_assembles() {
     let mut answers = all_default();
     answers.priority = Priority::IceStrict;
-    let err = assemble(answers).unwrap_err().to_string();
-    assert!(err.contains("strict framework"), "{err}");
-    assert!(err.contains("allow-manual"), "{err}");
+    let outcome = assemble(answers).unwrap();
+    assert!(
+        outcome.config.contains("allow-manual = false"),
+        "{}",
+        outcome.config
+    );
 }
 
 /// The recorded answer comment round-trips: parsing it back yields the same

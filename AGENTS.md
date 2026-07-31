@@ -159,9 +159,12 @@ before discovery (`mindtape::required_core_slots`, `crates/mindtape/src/add_slot
 a required `priority`/`difficulty` → `int` slot, required `kind` → `choice` (its
 allowed values), required `estimate` → `text` slot for the unit dict. So a
 required field always surfaces in the scaffold, `--describe`, and the written
-task even with the barebones template. Strict-framework priority (`framework` +
-`allow-manual = false`) has no scalar form and is not spliced — declare it in a
-template.
+task even with the barebones template. A strict-framework priority (`framework` +
+`allow-manual = false`) has no scalar form, so the framework call itself is
+spliced — the generic `framework("ice", impact: slot("impact", kind: "float"), …)`
+spelling with one leaf slot per declared input (number → `float`, bounds in the
+prompt; bool → `bool`; enum → `choice`). Leaves carry no defaults: an unfilled
+leaf fails at fill time instead of writing a misprioritised task.
 
 A `list`-kind slot needs `--set name[]=value` (repeatable; accumulates) — a bare
 `--set name=value` errors, since a single string is never silently treated as a

@@ -192,9 +192,11 @@ fn kept_note(file: &Path) -> String {
     )
 }
 
-/// Splice `slot(...)` calls for config-required core fields the template omits,
-/// so they surface in the fill scaffold, `--describe`, and the written task. A
-/// field already set by the template (literal or slot) is left untouched.
+/// Splice slot-bearing values for config-required core fields the template
+/// omits, so their slots surface in the fill scaffold, `--describe`, and the
+/// written task. A field already set by the template (literal or slot) is left
+/// untouched. Runs before discovery, so a spliced value may itself nest slots —
+/// a strict-framework priority splices `framework("ice", impact: slot(…), …)`.
 fn inject_required_slots(source: &str, config: &Config) -> Result<String> {
     let needed = mindtape::required_core_slots(config);
     if needed.is_empty() {

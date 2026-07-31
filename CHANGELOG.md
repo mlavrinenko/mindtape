@@ -261,6 +261,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt add` can satisfy a required strict-framework priority** — a project
+  whose `[tasks.priority]` sets `framework` with `allow-manual = false` and
+  `required` had no `mt add` invocation that could file a valid task unless it
+  shipped a template declaring the framework call: naming the field failed
+  (`unknown --set/-f key(s): priority`), and omitting it wrote the file and then
+  failed validation on it. A strict framework has no scalar form, so the splice
+  now writes the framework call itself — the generic `framework("ice", impact:
+  slot("impact", kind: "float"), …)` spelling with one leaf slot per declared
+  input (number → `float` with its bounds in the prompt, bool → `bool`, enum →
+  `choice` over the declared values). The leaves carry no defaults, so an
+  unfilled one is the usual missing-slot error before anything is written rather
+  than a misprioritised task on disk. `mt init --priority ice-strict` composed a
+  config in exactly this shape, so it used to be refused as an incoherent answer
+  set; it now scaffolds like any other.
 - **The DSL helpers reject arguments they used to drop** — `depends-on(link(
   "a.typ"))` built no edge at all: `link()` returns content, content is the
   trailing note, so the call yielded an empty edge array. Nothing downstream

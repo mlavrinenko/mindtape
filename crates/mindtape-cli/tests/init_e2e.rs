@@ -129,6 +129,18 @@ const ANSWER_SETS: &[(&[&str], &[&str], &[&str])] = &[
         &["wip", "done"],
     ),
     (&["--workflow", "personal"], &[], &["next", "done"]),
+    (
+        &["--priority", "ice-strict"],
+        &[
+            "--set",
+            "impact=9",
+            "--set",
+            "confidence=0.9",
+            "--set",
+            "ease=6",
+        ],
+        &["wip", "done"],
+    ),
 ];
 
 /// A composed answer set is as trustworthy as a named preset: for each one,
@@ -152,18 +164,20 @@ fn composed_answer_sets_support_add_check_and_a_full_walk() {
     }
 }
 
-/// The wizard refuses an incoherent answer set — a strict-framework priority no
-/// scaffolded template can supply — and writes nothing.
+/// A strict-framework answer set scaffolds like any other: the fallback
+/// template supplies the required priority through the spliced framework leaf
+/// slots (covered end-to-end in `ANSWER_SETS` above), so init writes the
+/// config instead of refusing the set.
 #[test]
-fn strict_framework_priority_answer_set_is_refused() {
+fn strict_framework_priority_answer_set_scaffolds() {
     let dir = tempfile::tempdir().unwrap();
     support::install_lib(dir.path());
-    support::mt(dir.path())
-        .args(["init", "--no-input", "--priority", "ice-strict"])
-        .assert()
-        .failure()
-        .stderr(predicates::str::contains("strict framework"));
-    assert!(!dir.path().join(".mindtape/config.toml").exists());
+    mt(
+        dir.path(),
+        &["init", "--no-input", "--priority", "ice-strict"],
+    );
+    let config = std::fs::read_to_string(dir.path().join(".mindtape/config.toml")).unwrap();
+    assert!(config.contains("allow-manual = false"), "{config}");
 }
 
 /// A batch-composed config records its axis answers as a comment block, and the

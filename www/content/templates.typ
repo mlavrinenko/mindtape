@@ -78,7 +78,8 @@ written task, even with the barebones built-in `task` template.
 
 #callout("note")[
   Strict-framework priority (`framework` + `allow-manual = false`) has no scalar
-  form and is not spliced. Declare it in a template as nested slots, as above. See
+  form, so the splice writes the framework call itself — one slot per input, in
+  the generic `framework("name", …)` spelling. See
   #link(u("/priority/"))[Priority].
 ]
 

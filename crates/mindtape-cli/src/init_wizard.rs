@@ -13,7 +13,7 @@
 
 use std::io::{BufRead, Write};
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, anyhow};
 
 /// One configuration axis: a menu of choices, each carrying its config fragment.
 ///
@@ -81,7 +81,7 @@ axis!(Priority ("Priority — how tasks are ranked:", default = Bands) {
     Ice = "ice": "ICE scoring, raw ints still allowed"
         => "# priority: ICE scoring (impact x confidence x ease); raw ints still allowed.\n\
             [tasks.priority]\nframework = \"ice\"\n",
-    IceStrict = "ice-strict": "ICE scoring enforced on every task (no template ships it)"
+    IceStrict = "ice-strict": "ICE scoring enforced on every task (no raw fallback)"
         => "# priority: ICE scoring enforced on every task, no raw fallback.\n\
             [tasks.priority]\nframework = \"ice\"\nallow-manual = false\nrequired = true\n",
 });
@@ -314,9 +314,8 @@ fn accept_defaults<R: BufRead, W: Write>(reader: &mut R, writer: &mut W) -> Resu
 /// templates the answers require.
 ///
 /// # Errors
-/// Returns an error when the fragments do not compose into a valid config, when
-/// the composed config fails validation, or when the answer set is incoherent
-/// (see [`coherence`]).
+/// Returns an error when the fragments do not compose into a valid config or
+/// when the composed config fails validation.
 pub fn assemble(answers: Answers) -> Result<Outcome> {
     let comment = render_answer_comment(answers);
     let fragments: Vec<(&str, String)> = vec![
@@ -332,7 +331,6 @@ pub fn assemble(answers: Answers) -> Result<Outcome> {
     let config = crate::init_compose::compose(&fragments)?;
     let parsed = mindtape::parse_config(&config)
         .map_err(|err| anyhow!("the composed config is not valid: {err}"))?;
-    coherence(&parsed)?;
     parsed
         .validate()
         .map_err(|msg| anyhow!("the composed config fails validation: {msg}"))?;
@@ -340,29 +338,6 @@ pub fn assemble(answers: Answers) -> Result<Outcome> {
         config,
         templates: answers.headers.templates(),
     })
-}
-
-/// Refuse an answer set whose config the scaffolded template cannot satisfy.
-///
-/// The concrete case is a strict-framework priority: a `framework` with
-/// `allow-manual = false` has no scalar form, so `mindtape::required_core_slots`
-/// cannot splice it into the barebones template — the project would scaffold
-/// cleanly and then fail on its first `mt add`. Caught here, it fails init with
-/// a message that names the conflict instead.
-fn coherence(config: &mindtape::Config) -> Result<()> {
-    let priority = &config.tasks.priority;
-    if priority.field.required.may_apply() && priority.framework.is_some() && !priority.allow_manual
-    {
-        bail!(
-            "incoherent answer set: priority uses the strict framework {:?} \
-             (allow-manual = false) and is required, but a strict framework has no \
-             scalar form, so the scaffolded template cannot supply it. Choose a \
-             non-strict priority (--priority ice), make priority optional, or start \
-             from a preset that ships a matching template (mt init --preset gated).",
-            priority.framework.as_deref().unwrap_or("?"),
-        );
-    }
-    Ok(())
 }
 
 /// The recorded answer block: documents how the project was made and lets

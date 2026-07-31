@@ -65,13 +65,84 @@ fn non_terminal_requirement_counts_as_required() {
 }
 
 #[test]
-fn strict_framework_priority_is_omitted() {
+fn strict_framework_priority_splices_a_leaf_slot_per_input() {
     let config = parse_config(
         "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 16\nrequired = true\n\
          framework = \"ice\"\nallow-manual = false\n",
     )
     .unwrap();
-    assert!(required_core_slots(&config).is_empty());
+    let slot = single(&config);
+    assert_eq!(slot.field, "priority");
+    assert!(
+        slot.call.starts_with("framework(\"ice\", "),
+        "{}",
+        slot.call
+    );
+    for leaf in ["impact", "confidence", "ease"] {
+        assert!(
+            slot.call
+                .contains(&format!("{leaf}: slot(\"{leaf}\", kind: \"float\"")),
+            "{}",
+            slot.call
+        );
+    }
+    // Number inputs carry their bounds in the prompt.
+    assert!(slot.call.contains("ice impact (1..10)"), "{}", slot.call);
+    assert!(slot.call.contains("ice confidence (0..1)"), "{}", slot.call);
+}
+
+#[test]
+fn strict_framework_bool_inputs_become_bool_slots() {
+    let config = parse_config(
+        "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n\
+         framework = \"eisenhower\"\nallow-manual = false\n",
+    )
+    .unwrap();
+    let call = single(&config).call;
+    assert!(call.starts_with("framework(\"eisenhower\", "), "{call}");
+    assert!(
+        call.contains("urgent: slot(\"urgent\", kind: \"bool\""),
+        "{call}"
+    );
+    assert!(
+        call.contains("important: slot(\"important\", kind: \"bool\""),
+        "{call}"
+    );
+}
+
+#[test]
+fn strict_framework_enum_inputs_become_choice_slots() {
+    let config = parse_config(
+        "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n\
+         framework = \"moscow\"\nallow-manual = false\n",
+    )
+    .unwrap();
+    let call = single(&config).call;
+    assert!(
+        call.contains("level: slot(\"level\", kind: \"choice\""),
+        "{call}"
+    );
+    for value in ["must", "should", "could", "wont"] {
+        assert!(call.contains(&format!("\"{value}\"")), "{call}");
+    }
+}
+
+#[test]
+fn strict_custom_framework_uses_the_same_generic_spelling() {
+    let config = parse_config(
+        "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 10\nrequired = true\n\
+         framework = \"impact-only\"\nallow-manual = false\n\
+         [tasks.priority.frameworks.impact-only]\nscore = \"impact\"\n\
+         [tasks.priority.frameworks.impact-only.inputs.impact]\n\
+         type = \"number\"\nmin = 0\nmax = 10\n",
+    )
+    .unwrap();
+    let call = single(&config).call;
+    assert!(call.starts_with("framework(\"impact-only\", "), "{call}");
+    assert!(
+        call.contains("impact: slot(\"impact\", kind: \"float\""),
+        "{call}"
+    );
 }
 
 #[test]

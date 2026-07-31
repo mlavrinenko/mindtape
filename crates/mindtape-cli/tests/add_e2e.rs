@@ -199,6 +199,70 @@ fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
     support::mt(dir.path()).arg("check").assert().success();
 }
 
+/// A config whose priority is a required strict framework (`allow-manual =
+/// false`): a scalar priority is invalid by construction, so `add` must splice
+/// the framework call itself with one leaf slot per input — otherwise the
+/// fallback template could never file a valid task in this project.
+const STRICT_ICE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
+     [tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = \"!terminal\"\n\
+     framework = \"ice\"\nallow-manual = false\n";
+
+#[test]
+fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    std::fs::write(dir.path().join(".mindtape/config.toml"), STRICT_ICE_CONFIG).unwrap();
+
+    // `--describe` surfaces the framework leaves, not a scalar priority.
+    let names = describe_slot_names(dir.path());
+    for leaf in ["impact", "confidence", "ease"] {
+        assert!(names.iter().any(|n| n == leaf), "{names:?}");
+    }
+    assert!(!names.iter().any(|n| n == "priority"), "{names:?}");
+
+    // Filling the leaves writes a valid framework priority.
+    support::mt(dir.path())
+        .args([
+            "add",
+            "--name",
+            "with-ice",
+            "--set",
+            "title=T",
+            "--set",
+            "impact=9",
+            "--set",
+            "confidence=0.9",
+            "--set",
+            "ease=6",
+        ])
+        .assert()
+        .success();
+    let written = std::fs::read_to_string(dir.path().join("tasks/with-ice.typ")).unwrap();
+    assert!(written.contains("priority: framework(\"ice\""), "{written}");
+    assert!(written.contains("impact: 9.0"), "{written}");
+    assert!(!written.contains("slot("), "slots must be gone: {written}");
+
+    // The filed task passes `check` (the framework score lands in the scale).
+    support::mt(dir.path()).arg("check").assert().success();
+
+    // Omitting a leaf is the existing missing-slot hard error, before any write.
+    support::mt(dir.path())
+        .args([
+            "add",
+            "--name",
+            "no-ease",
+            "--set",
+            "title=T",
+            "--set",
+            "impact=9",
+            "--set",
+            "confidence=0.9",
+        ])
+        .assert()
+        .failure();
+    assert!(!dir.path().join("tasks/no-ease.typ").exists());
+}
+
 /// A config whose legend has no `"proposed"` entry at all — the initial
 /// status `add` stamps must be derived from this legend, not a hardcoded
 /// literal that would fail `check`.

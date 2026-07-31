@@ -61,9 +61,10 @@ just shapes a `(framework, inputs)` dict; scoring happens in the CLI.
 
 - `allow-manual = true` (default when a framework is set) — tasks may use either a
   raw integer or the framework call.
-- `allow-manual = false` — every task must score through the framework. This form
-  has no scalar fallback, so declare it in a #link(u("/templates/"))[template] with
-  each input as its own slot; `mt add` cannot splice a scalar for it.
+- `allow-manual = false` — every task must score through the framework. There is
+  no scalar form, so when the template omits priority `mt add` splices the
+  framework call itself: one slot per input, filled leaf by leaf
+  (`--set impact=8 --set confidence=0.9 --set ease=6`).
 
 = Built-in frameworks
 
