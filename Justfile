@@ -163,9 +163,46 @@ cover:
         --lcov --output-path target/coverage/lcov.info
     cargo llvm-cov report --ignore-filename-regex "$ignore" --fail-under-lines 90
 
-# Gate complex, undertested functions via CRAP metric. Needs lcov from `just cover`.
+# Gate complex, undertested functions via CRAP metric, over the lcov `just
+# cover` writes.
+#
+# `--min` matches `--threshold`, so the table lists only the functions that
+# FAIL. Without it the report is every analyzed function — 976 rows to carry the
+# one that matters. The cost is that the tail summary then counts printed rows
+# ("1/1", not "1/976"); the numerator, which is the number that decides the
+# gate, is unaffected.
+#
+# The `*_tests.rs` exclusions keep CRAP on production code. They are inline test
+# modules (`#[path] mod tests`), which llvm-cov emits no records for, so scoring
+# them meant 71 of the 73 "no matching entry in the LCOV report" warnings and a
+# complexity budget spent on test helpers. Excluding them changes no verdict.
+#
+# The lcov is a build artifact nothing re-derives for you, and scoring against a
+# stale one does not degrade gracefully: a function in a file written since the
+# lcov has no coverage record at all, `--missing` defaults to `pessimistic`, and
+# so it reads as 0% covered rather than as unknown. Observed on a 10-day-old
+# lcov — 28 failures, 27 of them phantom (each showed coverage `—`, not a
+# percentage). A gate that invents failures is worse than no gate, so refuse a
+# stale lcov and name the recipe that refreshes it. CI is unaffected: its
+# `coverage` job runs `just cover` immediately before this.
 crap:
-    cargo crap --lcov target/coverage/lcov.info --workspace --exclude 'crates/mindtape-cli/src/main.rs' --threshold 30 --fail-above
+    #!/usr/bin/env bash
+    set -eo pipefail
+    lcov=target/coverage/lcov.info
+    if [ ! -f "$lcov" ]; then
+        echo "just crap: $lcov is missing — run \`just cover\` first" >&2
+        exit 1
+    fi
+    newer=$(find crates -name '*.rs' -newer "$lcov" -print -quit)
+    if [ -n "$newer" ]; then
+        echo "just crap: $lcov predates $newer — run \`just cover\` first" >&2
+        echo "  (a source the lcov never saw scores as 0% covered, not as unknown)" >&2
+        exit 1
+    fi
+    cargo crap --lcov "$lcov" --workspace \
+        --exclude 'crates/mindtape-cli/src/main.rs' \
+        --exclude '**/*_tests.rs' --exclude '**/tests.rs' \
+        --threshold 30 --min 30 --fail-above
 
 # Pre-PR mutation check — the daily driver (see CONTRIBUTING.md "Testing").
 # Sweeps only mutants touched by this branch's diff against main, so it needs

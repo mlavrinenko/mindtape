@@ -111,7 +111,12 @@ the command code they exercise (tarpaulin, which it replaced, could not see past
 
 `just crap` runs right after it, in the same CI job and over the same
 `lcov.info`: the CRAP metric (`CC² × uncovered³ + CC`) fails above 30, flagging
-functions that are both complex and undertested. cargo-crap is not in nixpkgs,
+functions that are both complex and undertested. It reports only the functions
+that fail (`--min` tracks `--threshold`) and skips the inline `*_tests.rs`
+modules, and it refuses to run at all when `lcov.info` is older than a source
+file — a function the lcov never saw is scored as 0% covered, not as unknown,
+so a stale lcov invents failures (a 10-day-old one reported 28, of which 27 were
+phantom). Run `just cover` first; CI already does. cargo-crap is not in nixpkgs,
 so `flake.nix` builds it from the crates.io tarball with naersk `singleStep`
 (crates.io 403s the user agent nixpkgs' `fetch-cargo-vendor` sends, so
 `buildRustPackage` cannot compute a vendor hash). A flat dispatcher sits near
