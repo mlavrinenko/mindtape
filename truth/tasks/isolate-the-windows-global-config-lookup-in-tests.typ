@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("tooling",),
   estimate: (files: 4),
-  status: wip(2026, 7, 29),
+  status: done(
+    2026,
+    8,
+    1,
+  )[Requires a CI run, but we'll do it anyway, so closing for now.],
 )
 
 == Summary
