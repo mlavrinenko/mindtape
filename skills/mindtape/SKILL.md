@@ -110,14 +110,19 @@ status and id, and validates — never hand-write the `.typ`. Common flags:
 - `-t <template>` pick a template; `--list` list templates; `--describe` show slots
 - `--to <subdir>` nest under a folder of the root (drives derived tags)
 - `--set key=value` fill a slot; `--print` preview instead of writing
+- `-f/--values <path>` fill slots from a JSON or YAML file (repeatable, merged
+  left-to-right; `-` reads stdin); `.json`/`.yaml`/`.yml` pick the parser by
+  extension, stdin and any other extension sniff the content; `--set` applies
+  after and wins on overlap
 
-### `--set` keys are slot names, and unknown ones are dropped silently
+### `--set` keys are slot names, and unknown ones are a hard error
 
-A `--set` key must name a slot of the active template. An unrecognised key is
-dropped with no warning and exit 0: `mt add fix bug --set priority=3` reports
-success while writing the template's default priority, not 3. A clean exit
-proves nothing here, so run `mt add --describe` (plus `-t <template>` for a
-non-default one), fill only names it lists, and `--print` to check the result.
+A `--set`/`-f` key must name a slot of the active template. An unrecognised
+key fails the command: `mt add fix bug --set priority=3` errors with
+`unknown --set/-f key(s): priority; known slots: title, ...` rather than
+writing anything. Run `mt add --describe` (plus `-t <template>` for a
+non-default one) to see the real slot names, and `--print` to check the
+result before it's written.
 
 Slot names need not match field names. A framework priority is authored as
 `priority: ice(impact: slot("impact"), …)`, so the slots are its leaves —
@@ -214,5 +219,6 @@ Rules to respect:
 ## When the tool fights you
 
 Read the error — it usually names the offending field or file. For full flag
-sets prefer `mt <cmd> --help`. Silence is not success for fill values (see the
-`--set` note). If this skill misled you, say so concretely so it improves.
+sets prefer `mt <cmd> --help`. An unrecognised `--set`/`-f` key is a hard error,
+not silent (see the `--set` note). If this skill misled you, say so concretely
+so it improves.
