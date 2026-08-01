@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("docs",),
   estimate: (files: 2),
-  status: done(2026, 8, 1)[added a "`text` slots are escaped, not markup" section to skills/mindtape/SKILL.md and cleaned the escaped-backtick corruption out of 8 already-filed tasks that had it],
+  status: done(
+    2026,
+    8,
+    1,
+  )[added a "`text` slots are escaped, not markup" section to skills/mindtape/SKILL.md and cleaned the escaped-backtick corruption out of 8 already-filed tasks that had it],
 )
 
 == Summary

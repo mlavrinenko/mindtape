@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("tests",),
   estimate: (files: 1),
-  status: done(2026, 8, 1)[Already fixed as a side effect of fc842c1 (`dev: fix cargo crap warning`), which predates this task's filing time on the clock but landed after it in history: that commit added run-dispatch tests to `preset_cmd_tests.rs` that re-exec the test binary and call `run()` directly, exercising `resolve_root` and the user config dir lookup. Verified locally: `preset_cmd.rs:53 run` is now 100% line-covered, CRAP score 6.0, and `just crap` reports no function above threshold. No separate `preset_e2e.rs` needed.],
+  status: done(
+    2026,
+    8,
+    1,
+  )[Already fixed as a side effect of fc842c1 (`dev: fix cargo crap warning`), which predates this task's filing time on the clock but landed after it in history: that commit added run-dispatch tests to `preset_cmd_tests.rs` that re-exec the test binary and call `run()` directly, exercising `resolve_root` and the user config dir lookup. Verified locally: `preset_cmd.rs:53 run` is now 100% line-covered, CRAP score 6.0, and `just crap` reports no function above threshold. No separate `preset_e2e.rs` needed.],
 )
 
 == Summary
