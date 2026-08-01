@@ -15,7 +15,7 @@
 
 == Summary
 
-The edge helpers classify every positional by type: \`content\` becomes the note, everything else becomes a target. \`link("a.typ")\` returns content, so \`depends-on(link("a.typ"))\` produces a note and no target at all. The task loads clean, \`mt check\` passes, and the dependency is simply gone.
+The edge helpers classify every positional by type: `content` becomes the note, everything else becomes a target. `link("a.typ")` returns content, so `depends-on(link("a.typ"))` produces a note and no target at all. The task loads clean, `mt check` passes, and the dependency is simply gone.
 
 == Reproduction
 
@@ -39,5 +39,5 @@ An assertion naming the offending helper would be enough.
 
 == Scope
 
-- the \`edge\` helper in the prelude
-- out of scope: accepting \`link()\` as a target; plain strings are the right authoring surface
+- the `edge` helper in the prelude
+- out of scope: accepting `link()` as a target; plain strings are the right authoring surface

@@ -15,8 +15,8 @@
 
 == Summary
 
-The interactive \`mt add\` YAML scaffold renders a list-kind slot with an empty or absent default as a blank scalar (\`tags:\`), which reads as an unfilled value rather than an empty collection. Render it as an explicit empty flow sequence (\`tags: \[\]\`) so the list kind is visible and the fill affordance is unambiguous.
+The interactive `mt add` YAML scaffold renders a list-kind slot with an empty or absent default as a blank scalar (`tags:`), which reads as an unfilled value rather than an empty collection. Render it as an explicit empty flow sequence (`tags: []`) so the list kind is visible and the fill affordance is unambiguous.
 
 == Scope
 
-- \`crates/mindtape-cli/src/add\_interactive.rs\`: render empty-default list slots as \`\[\]\`.
+- `crates/mindtape-cli/src/add_interactive.rs`: render empty-default list slots as `[]`.
