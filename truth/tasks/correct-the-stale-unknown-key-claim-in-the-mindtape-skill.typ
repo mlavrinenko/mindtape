@@ -10,7 +10,11 @@
   difficulty: 1,
   tags: ("docs",),
   estimate: (files: 1),
-  status: proposed(2026, 7, 31),
+  status: done(
+    2026,
+    8,
+    1,
+  )[SKILL.md now states the hard error, quotes the real message shape, added -f/--values doc],
 )
 
 == Summary
