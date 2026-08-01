@@ -10,7 +10,11 @@
   difficulty: 4,
   tags: ("substrate",),
   estimate: (files: 3),
-  status: proposed(2026, 7, 31),
+  status: done(
+    2026,
+    8,
+    1,
+  )[Task::from\_marker threads a shape-error channel through tags/links/estimate/recur's on:; mt check now reports the mismatch instead of silently coercing to empty],
   links: related("link-target-in-edge-helper-yields-zero-edges.typ")[
     the other half of the same layer split
   ],
