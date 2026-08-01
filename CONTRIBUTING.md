@@ -107,7 +107,10 @@ which merges each process's profraw — so the subprocess-based e2e tests credit
 the command code they exercise (tarpaulin, which it replaced, could not see past
 `exec` and read every command entry point as dead). The recipe writes
 `target/coverage/lcov.info` for `just crap` and fails under 90% lines.
-`main.rs` is excluded — keep it thin.
+`main.rs` is excluded — keep it thin. `just cover` builds default features only,
+so `recur_rrule.rs` (the `rrule` cargo feature's expander) never compiles and
+`just crap` excludes it too, rather than scoring it as phantom 0%-covered;
+`just check-rrule` covers it separately, under the `rrule` feature.
 
 `just crap` runs right after it, in the same CI job and over the same
 `lcov.info`: the CRAP metric (`CC² × uncovered³ + CC`) fails above 30, flagging

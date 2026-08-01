@@ -185,6 +185,19 @@ cover:
 # percentage). A gate that invents failures is worse than no gate, so refuse a
 # stale lcov and name the recipe that refreshes it. CI is unaffected: its
 # `coverage` job runs `just cover` immediately before this.
+#
+# `--exclude` is matched twice, in two different roots: once per-crate during
+# `cargo crap`'s own source walk (so `main.rs` must read `**/main.rs`, not
+# `crates/mindtape-cli/src/main.rs` — the latter never matches a walk rooted at
+# the crate dir and so leaves `main.rs` in the "no matching entry in the LCOV
+# report" warning even though it is correctly excluded from scoring), and once
+# workspace-root-relative when filtering the final table. A `**/` prefix
+# matches both. `recur_rrule.rs` is excluded the same way: it is real
+# production code, but `just cover` builds with default features only, so
+# nothing ever compiles it and it would otherwise score every function inside
+# as phantom 0%-covered (see `just check-rrule`, which covers it under the
+# `rrule` feature — CI runs it as a separate job, per
+# truth/tasks/run-the-rrule-feature-gate-in-ci.typ).
 crap:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -200,7 +213,7 @@ crap:
         exit 1
     fi
     cargo crap --lcov "$lcov" --workspace \
-        --exclude 'crates/mindtape-cli/src/main.rs' \
+        --exclude '**/main.rs' --exclude '**/recur_rrule.rs' \
         --exclude '**/*_tests.rs' --exclude '**/tests.rs' \
         --threshold 30 --min 30 --fail-above
 

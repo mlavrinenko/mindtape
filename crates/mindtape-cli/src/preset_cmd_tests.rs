@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{render_ls, save};
+use super::{PresetAction, PresetArgs, SaveArgs, render_ls, save};
 use crate::preset::{self, DEFAULT_PRESET};
 
 /// A project fixture: `.mindtape/config.toml`, optionally with
@@ -163,4 +163,111 @@ fn ls_with_empty_user_preset_dir_lists_only_builtins() {
     let user_dir = tempfile::tempdir().unwrap();
     let out = render_ls(Some(user_dir.path())).unwrap();
     assert!(!out.contains("user presets"));
+}
+
+/// `run` dispatch tests: `save`/`render_ls` above cover the logic, these cover
+/// the `PresetArgs` -> `run` wiring itself (dispatch, `resolve_root`,
+/// `println!`/`print!`), which is otherwise untested. `resolve_root` reads the
+/// process cwd and `preset::user_preset_dir` reads `$MINDTAPE_CONFIG_HOME`, so
+/// each case re-execs the test binary rather than mutating the shared
+/// process's cwd/env.
+const RUN_CHILD_ENV: &str = "_MT_PRESET_RUN_CHILD";
+
+fn run_child_output(name: &str, cwd: &std::path::Path, config_home: &std::path::Path) -> String {
+    let out = std::process::Command::new(std::env::current_exe().unwrap())
+        .env(RUN_CHILD_ENV, "1")
+        .env(mindtape::CONFIG_HOME_ENV, config_home)
+        .current_dir(cwd)
+        .args([name, "--nocapture"])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "child failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
+/// `run` with the `Ls` action delegates to `render_ls` and prints its result.
+#[test]
+fn run_ls_prints_builtin_presets() {
+    if std::env::var(RUN_CHILD_ENV).is_err() {
+        let empty_home = tempfile::tempdir().unwrap();
+        let cwd = tempfile::tempdir().unwrap();
+        let stdout = run_child_output(
+            "run_ls_prints_builtin_presets",
+            cwd.path(),
+            empty_home.path(),
+        );
+        assert!(stdout.contains("built-in presets:"), "{stdout}");
+        return;
+    }
+    let args = PresetArgs {
+        action: PresetAction::Ls,
+    };
+    super::run(&args).unwrap();
+}
+
+/// `run` with the `Save` action resolves the project root from the cwd,
+/// writes the user preset under `$MINDTAPE_CONFIG_HOME`, and prints the
+/// destination.
+#[test]
+fn run_save_writes_preset_and_prints_destination() {
+    if std::env::var(RUN_CHILD_ENV).is_err() {
+        let config_home = tempfile::tempdir().unwrap();
+        let project = tempfile::tempdir().unwrap();
+        write_project(project.path(), "[tasks]\nroots = [\"mine\"]\n", &[]);
+
+        let stdout = run_child_output(
+            "run_save_writes_preset_and_prints_destination",
+            project.path(),
+            config_home.path(),
+        );
+        assert!(stdout.contains("saved preset"), "{stdout}");
+        let written = config_home
+            .path()
+            .join("mindtape")
+            .join("presets")
+            .join("mine")
+            .join("config.toml");
+        assert!(written.is_file(), "{}", written.display());
+        return;
+    }
+    let args = PresetArgs {
+        action: PresetAction::Save(SaveArgs {
+            name: "mine".to_owned(),
+            force: false,
+        }),
+    };
+    super::run(&args).unwrap();
+}
+
+/// `run` with the `Save` action outside a `MindTape` project surfaces
+/// `resolve_root`'s error rather than panicking or silently doing nothing.
+#[test]
+fn run_save_outside_project_fails() {
+    if std::env::var(RUN_CHILD_ENV).is_err() {
+        let config_home = tempfile::tempdir().unwrap();
+        let cwd = tempfile::tempdir().unwrap();
+        let out = std::process::Command::new(std::env::current_exe().unwrap())
+            .env(RUN_CHILD_ENV, "1")
+            .env(mindtape::CONFIG_HOME_ENV, config_home.path())
+            .current_dir(cwd.path())
+            .args(["run_save_outside_project_fails", "--nocapture"])
+            .output()
+            .unwrap();
+        assert!(
+            !out.status.success(),
+            "run() must fail outside a MindTape project"
+        );
+        return;
+    }
+    let args = PresetArgs {
+        action: PresetAction::Save(SaveArgs {
+            name: "mine".to_owned(),
+            force: false,
+        }),
+    };
+    super::run(&args).unwrap();
 }

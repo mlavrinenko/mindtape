@@ -11,7 +11,7 @@ groups:
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
       crates/mindtape/src/lib.rs: 6dcc541b26ab9c362fcabed8f79eca9bfcc4d20930888fe5ceac75e33f342d61
     dependents:
-      skills/mindtape/SKILL.md: f6b2e06a38eb22b030a7d517e3f933c376028d83c019a72a1caabd96465f7af3
+      skills/mindtape/SKILL.md: faadf5a65bf484a86de4d5a7e4fb2b4d32ea9b7e7ee808b0d21643be87cd7718
       www/content/cli.typ: c0458f7dac6c46bfed42b4cb2acfe9acccee838c3f6d1c830fd6391f6f048430
       www/content/config.typ: 061e98443fae7826827f15bc2488de041fd2a5b0ee4c28af5fb7998aadace476
       www/content/filters.typ: e0f7bae4ead634dd2d77154ce36e716dfa864827e13c1228e9ca6a123a112f78
@@ -24,26 +24,26 @@ groups:
     dependents:
       AGENTS.md: abc1a1a01cb7335023b836af0f61e49ee44b610a3d2b3038cc60fc5005ec47e3
       CHANGELOG.md: a6c605ff4ce2e22c1ac5ae13a2dbc28c9f5b0f95abc5e5d6eaf53f38fd252781
-      CONTRIBUTING.md: cac8ea5c0cee939924dc0e2a6cfa0f217dfbe40bac9b224abfa91bcf73046f80
+      CONTRIBUTING.md: d47825e2e96a676be14e54885cfd33780ac4749036c0eef02999573147b358c8
       README.md: 0e2910d0396e3437c445315b4e26c05f59b367e2f6c4c847865948536fe16495
-      skills/mindtape/SKILL.md: f6b2e06a38eb22b030a7d517e3f933c376028d83c019a72a1caabd96465f7af3
+      skills/mindtape/SKILL.md: faadf5a65bf484a86de4d5a7e4fb2b4d32ea9b7e7ee808b0d21643be87cd7718
       www/content/cli.typ: c0458f7dac6c46bfed42b4cb2acfe9acccee838c3f6d1c830fd6391f6f048430
       www/content/index.typ: 637bb5ff74599f1dac969418ddc61f90736a6a448df5182a155f19634b92b881
       www/content/quickstart.typ: ec67df32e539b5c2ee0d853c989583679c176639b58f4dacde15ce35ee858be6
   dev-docs:
     source:
-      Justfile: 55500ee6cb8e8f753c7fde9455a395c13e6b995d7b545b19b45e35d79b7b44bd
+      Justfile: 1068ff185aec135aa9664ccbba0cf435ca7f50c53cb3475f20fc0917d50970a8
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: abc1a1a01cb7335023b836af0f61e49ee44b610a3d2b3038cc60fc5005ec47e3
-      CONTRIBUTING.md: cac8ea5c0cee939924dc0e2a6cfa0f217dfbe40bac9b224abfa91bcf73046f80
+      CONTRIBUTING.md: d47825e2e96a676be14e54885cfd33780ac4749036c0eef02999573147b358c8
   prelude-docs:
     source:
       lib/prelude.typ: 942f2bccd61891966631e0e816391db2ef20bb4ec5bdb22165d0624f2a7e952e
     dependents:
       AGENTS.md: abc1a1a01cb7335023b836af0f61e49ee44b610a3d2b3038cc60fc5005ec47e3
       README.md: 0e2910d0396e3437c445315b4e26c05f59b367e2f6c4c847865948536fe16495
-      skills/mindtape/SKILL.md: f6b2e06a38eb22b030a7d517e3f933c376028d83c019a72a1caabd96465f7af3
+      skills/mindtape/SKILL.md: faadf5a65bf484a86de4d5a7e4fb2b4d32ea9b7e7ee808b0d21643be87cd7718
       www/content/dsl.typ: fcfb8579659ce4c2483ca051c62591cb3ab2f9925f47a800228bfb57d234657c
   release-notes:
     source:
