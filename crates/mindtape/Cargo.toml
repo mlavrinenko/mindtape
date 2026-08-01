@@ -43,6 +43,10 @@ typst-edit = "0.1.0"
 # deterministic, idempotent. Pins `typst-syntax` 0.15 — the exact version
 # `typst-harvest` already resolves — so it adds no second `typst` crate.
 typstyle-core = "0.15.0"
+# Validates framework input names as Typst identifiers (`is_ident`) before they
+# splice into generated `framework("f", input: …)` calls (`framework_validate.rs`).
+# Same 0.15 already pinned via typstyle-core, so no second typst crate.
+typst-syntax = "0.15"
 artifact-gate = "0.1.0"
 swhid-mint = { version = "0.1.1", default-features = false }
 serde = { version = "1", features = ["derive"] }

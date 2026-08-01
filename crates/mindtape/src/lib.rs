@@ -41,6 +41,7 @@ mod filter_views;
 pub mod format;
 pub mod framework;
 mod framework_eval;
+mod framework_validate;
 pub mod gate;
 pub mod git;
 pub mod graph;

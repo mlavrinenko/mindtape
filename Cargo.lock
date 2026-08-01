@@ -2685,6 +2685,7 @@ dependencies = [
  "typst-cst",
  "typst-edit",
  "typst-harvest",
+ "typst-syntax",
  "typstyle-core",
  "uuid",
 ]
