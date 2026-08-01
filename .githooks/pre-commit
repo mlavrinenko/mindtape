@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Pre-commit: three cheap assertions, no heavy work.
+#
+# 1. The memoized close gate already passed against this worktree. `just
+#    check` records every sub-gate through mmz; `mmz --is-fresh --tag gate`
+#    asserts them all without re-running anything (a stale or failed rule
+#    names itself, so the fix is a fresh `just check`).
+# 2. Task-file formatting. `truth/tasks/**` is deliberately outside every mmz
+#    scope (.mmz/config.yaml: NOTE ON SCOPE — the close gate must survive
+#    `mt flip`'s own writes), so a mis-formatted task file busts nothing. The
+#    tree is small, so check it directly.
+# 3. Task structure — the close gate delegates this here by policy.
+set -eo pipefail
+root="$(git rev-parse --show-toplevel)"
+direnv exec "$root" mmz --is-fresh --tag gate
+direnv exec "$root" typstyle --check truth/tasks
+exec direnv exec "$root" cargo run -q -- check

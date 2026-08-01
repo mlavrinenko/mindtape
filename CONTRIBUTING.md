@@ -5,7 +5,9 @@
 ```bash
 git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape
-nix develop          # dev shell with the full toolchain
+nix develop          # dev shell with the full toolchain (installs the
+                     # pre-commit hook: asserts the gate is fresh, checks
+                     # task files)
 just check           # run before every commit
 ```
 

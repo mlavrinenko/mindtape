@@ -360,19 +360,14 @@ uninstall-lib:
     TARGET="$HOME/.local/share/typst/packages/local/mindtape/$VERSION"
     [ -L "$TARGET" ] && rm "$TARGET" && echo "removed $TARGET" || echo "no symlink at $TARGET"
 
-# Install git hooks (pre-commit runs `mt check`)
+# Point git at the tracked hook dir (pre-commit asserts the memoized gate via
+# `mmz --is-fresh --tag gate`, then checks task-file formatting and structure)
 install-hooks:
     #!/usr/bin/env bash
     set -eo pipefail
-    hook=.git/hooks/pre-commit
-    mkdir -p .git/hooks
-    cat > "$hook" <<'HOOK'
-    #!/usr/bin/env bash
-    set -eo pipefail
-    exec direnv exec "$(git rev-parse --show-toplevel)" cargo run -q -- check
-    HOOK
-    chmod +x "$hook"
-    echo "installed $hook"
+    git config core.hooksPath .githooks
+    rm -f .git/hooks/pre-commit
+    echo "installed .githooks"
 
 # Tag a release and push (usage: just release 0.2.0)
 release VERSION:
