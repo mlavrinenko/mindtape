@@ -31,6 +31,7 @@ fn sample() -> Task {
         reviewed: None,
         recur: None,
         extras: BTreeMap::new(),
+        shape_errors: Vec::new(),
         body: String::new(),
     }
 }

@@ -44,6 +44,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     check_id_uniqueness(tasks, &mut out);
     let required = RequiredRules::compile(config);
     for task in tasks {
+        check_shape(task, &mut out);
         check_id_format(task, config, &mut out);
         check_status(task, config, &mut out);
         for (name, field) in &config.tasks.fields {
@@ -73,6 +74,15 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     }
     crate::validate_links::check_all(tasks, config, &mut out);
     out
+}
+
+/// A field the marker held with the wrong Typst shape (coerced to
+/// empty/absent by [`Task::from_marker`]) always fails `check`, regardless of
+/// project config — a type mismatch is never a matter of policy.
+fn check_shape(task: &Task, out: &mut Vec<Violation>) {
+    for err in &task.shape_errors {
+        push(out, task, &err.field, err.message.clone());
+    }
 }
 
 fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {

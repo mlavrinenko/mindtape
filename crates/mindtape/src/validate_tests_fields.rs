@@ -9,6 +9,7 @@ use std::collections::BTreeMap;
 use super::tests::{config, task};
 use super::validate;
 use crate::config::{Config, FieldConfig, Requirement, parse_config};
+use crate::model::ShapeError;
 use crate::numeric::NumValue;
 use crate::test_support::ice_priority;
 
@@ -49,6 +50,21 @@ fn flags_unknown_estimate_unit() {
         violations
             .iter()
             .any(|v| v.field == "estimate" && v.message.contains("fortnights"))
+    );
+}
+
+#[test]
+fn flags_marker_shape_error_regardless_of_config() {
+    let mut item = task("a", "wip");
+    item.shape_errors = vec![ShapeError {
+        field: "tags".to_owned(),
+        message: "expected an array, found a string".to_owned(),
+    }];
+    let violations = validate(&[item], &Config::default());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "tags" && v.message.contains("expected an array"))
     );
 }
 

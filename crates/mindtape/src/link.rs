@@ -39,13 +39,19 @@ pub struct Link {
 /// Parse the `links:` marker field into edges. History-pointer targets
 /// (SWHID tombstones minted by `cleanup` in place of a retired task) are
 /// excluded — they name no loaded task, so they are not a task↔task edge; see
-/// [`crate::model::is_history_pointer`].
+/// [`crate::model::is_history_pointer`]. A present-but-not-an-array value (a
+/// bare string, say) reports a [`crate::model::ShapeError`] into `errors`
+/// rather than silently coercing to no edges.
 #[must_use]
-pub fn parse_links(value: Option<&HVal>) -> Vec<Link> {
-    value
-        .and_then(HVal::as_array)
-        .map(|items| items.iter().filter_map(parse_one).collect())
-        .unwrap_or_default()
+pub fn parse_links(value: Option<&HVal>, errors: &mut Vec<crate::model::ShapeError>) -> Vec<Link> {
+    let Some(value) = value else {
+        return Vec::new();
+    };
+    let Some(items) = value.as_array() else {
+        errors.push(crate::model::shape_error("links", "an array", value));
+        return Vec::new();
+    };
+    items.iter().filter_map(parse_one).collect()
 }
 
 /// Parse one `links:` entry: the helper-shaped dict (`task`, `kind`, `note`),

@@ -109,7 +109,7 @@ pub use import_map::{
 };
 pub use link_scan::{TargetSpan, link_target_spans};
 pub use loader::{LoadError, LoadOutcome, find_root, load_project};
-pub use model::{Status, Task, is_history_pointer, normalize_link};
+pub use model::{ShapeError, Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind};
 pub use ready::{Readiness, ReadyState};
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};

@@ -18,6 +18,18 @@ pub struct Status {
     pub note: Option<String>,
 }
 
+/// A core field whose marker value did not match its expected Typst shape
+/// (e.g. a string where `tags:` expects an array). Detected during
+/// [`Task::from_marker`] — the only place that still sees the raw,
+/// un-degraded value — instead of silently coercing the field to empty.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ShapeError {
+    /// Field name (`tags`, `links`, `estimate`, `recur`).
+    pub field: String,
+    /// Human-readable cause, naming the expected shape and what was found.
+    pub message: String,
+}
+
 /// One task: the portable item model harvested from a per-file artifact.
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Task {
@@ -62,6 +74,10 @@ pub struct Task {
     pub recur: Option<crate::recur::Recur>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     pub extras: BTreeMap<String, HVal>,
+    /// Core fields present in the marker but the wrong Typst shape — coerced
+    /// to empty/absent same as an absent field, but flagged here so `check`
+    /// can report it instead of staying silent. See [`ShapeError`].
+    pub shape_errors: Vec<ShapeError>,
     /// Raw Typst source after the `#show: task.with(…)` marker — the prose body
     /// (`== Summary`, notes), verbatim and whitespace-trimmed. Populated by the
     /// loader from the file source; empty when constructed without a loader (e.g.
@@ -86,6 +102,11 @@ impl Task {
             .unwrap_or_default();
         let explicit_id = field_str(fields, "id").filter(|s| !s.is_empty());
         let id = explicit_id.unwrap_or(stem);
+        let mut shape_errors = Vec::new();
+        let tags = parse_str_array(field(fields, "tags"), "tags", &mut shape_errors);
+        let estimate = parse_num_map(field(fields, "estimate"), "estimate", &mut shape_errors);
+        let links = crate::link::parse_links(field(fields, "links"), &mut shape_errors);
+        let recur = crate::recur::parse_recur(field(fields, "recur"), &mut shape_errors);
         Self {
             id,
             file,
@@ -94,15 +115,16 @@ impl Task {
             priority: parse_num_value(field(fields, "priority")),
             difficulty: parse_num_value(field(fields, "difficulty")),
             kind: field_str(fields, "kind"),
-            estimate: parse_num_map(field(fields, "estimate")),
-            links: crate::link::parse_links(field(fields, "links")),
-            tags: parse_str_array(field(fields, "tags")),
+            estimate,
+            links,
+            tags,
             derived_tags: Vec::new(),
             due: field_str(fields, "due"),
             start: field_str(fields, "start"),
             reviewed: field_str(fields, "reviewed"),
-            recur: crate::recur::parse_recur(field(fields, "recur")),
+            recur,
             extras,
+            shape_errors,
             body: String::new(),
         }
     }
@@ -284,27 +306,60 @@ fn input_value(value: &HVal) -> Option<InputValue> {
     }
 }
 
-fn parse_num_map(value: Option<&HVal>) -> BTreeMap<String, f64> {
-    value
-        .and_then(HVal::as_dict)
-        .map(|dict| {
-            dict.iter()
-                .filter_map(|(key, val)| val.as_f64().map(|num| (key.clone(), num)))
-                .collect()
-        })
-        .unwrap_or_default()
+fn parse_num_map(
+    value: Option<&HVal>,
+    field_name: &str,
+    errors: &mut Vec<ShapeError>,
+) -> BTreeMap<String, f64> {
+    let Some(value) = value else {
+        return BTreeMap::new();
+    };
+    let Some(dict) = value.as_dict() else {
+        errors.push(shape_error(field_name, "a dict", value));
+        return BTreeMap::new();
+    };
+    dict.iter()
+        .filter_map(|(key, val)| val.as_f64().map(|num| (key.clone(), num)))
+        .collect()
 }
 
-fn parse_str_array(value: Option<&HVal>) -> Vec<String> {
-    value
-        .and_then(HVal::as_array)
-        .map(|items| {
-            items
-                .iter()
-                .filter_map(|item| item.as_str().map(ToOwned::to_owned))
-                .collect()
-        })
-        .unwrap_or_default()
+fn parse_str_array(
+    value: Option<&HVal>,
+    field_name: &str,
+    errors: &mut Vec<ShapeError>,
+) -> Vec<String> {
+    let Some(value) = value else {
+        return Vec::new();
+    };
+    let Some(items) = value.as_array() else {
+        errors.push(shape_error(field_name, "an array", value));
+        return Vec::new();
+    };
+    items
+        .iter()
+        .filter_map(|item| item.as_str().map(ToOwned::to_owned))
+        .collect()
+}
+
+/// Build a [`ShapeError`] naming `field_name`, the expected shape, and the
+/// Typst kind of what was actually found.
+pub(crate) fn shape_error(field_name: &str, expected: &str, value: &HVal) -> ShapeError {
+    ShapeError {
+        field: field_name.to_owned(),
+        message: format!("expected {expected}, found {}", hval_kind(value)),
+    }
+}
+
+fn hval_kind(value: &HVal) -> &'static str {
+    match value {
+        HVal::Null => "none",
+        HVal::Bool(_) => "a boolean",
+        HVal::Int(_) | HVal::Float(_) => "a number",
+        HVal::Str(_) => "a string",
+        HVal::Date(_) => "a date",
+        HVal::Array(_) => "an array",
+        HVal::Dict(_) => "a dict",
+    }
 }
 
 #[cfg(test)]

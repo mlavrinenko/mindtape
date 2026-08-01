@@ -81,6 +81,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         reviewed: canonical.reviewed.clone(),
         recur: None,
         extras,
+        shape_errors: Vec::new(),
         body,
     };
 

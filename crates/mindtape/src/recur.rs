@@ -149,11 +149,16 @@ impl Default for RecurConfig {
 /// Parse the `recur` marker field into a [`Recur`], or `None` when absent or
 /// malformed (an authored `recur` only ever comes from `every()`/`rrule()`,
 /// which always shape it correctly; a hand-edited malformed dict is treated
-/// as absent, the same tolerant style as the rest of the model).
+/// as absent, the same tolerant style as the rest of the model) — except for
+/// `on:`, whose shape is checked and reported into `errors` even when the
+/// rest of the rule parses cleanly; see [`crate::model::ShapeError`].
 #[must_use]
-pub fn parse_recur(value: Option<&HVal>) -> Option<Recur> {
+pub fn parse_recur(
+    value: Option<&HVal>,
+    errors: &mut Vec<crate::model::ShapeError>,
+) -> Option<Recur> {
     let dict = value?.as_dict()?;
-    let rule = parse_rule(dict.get("rule"))?;
+    let rule = parse_rule(dict.get("rule"), errors)?;
     Some(Recur {
         rule,
         anchor: str_field(dict, "anchor"),
@@ -170,10 +175,10 @@ fn str_field(dict: &std::collections::BTreeMap<String, HVal>, key: &str) -> Opti
         .map(ToOwned::to_owned)
 }
 
-fn parse_rule(value: Option<&HVal>) -> Option<Rule> {
+fn parse_rule(value: Option<&HVal>, errors: &mut Vec<crate::model::ShapeError>) -> Option<Rule> {
     let dict = value?.as_dict()?;
     match dict.get("kind").and_then(HVal::as_str)? {
-        "period" => parse_period_rule(dict),
+        "period" => parse_period_rule(dict, errors),
         "rrule" => Some(Rule::Rrule {
             raw: dict.get("raw").and_then(HVal::as_str)?.to_owned(),
         }),
@@ -181,29 +186,47 @@ fn parse_rule(value: Option<&HVal>) -> Option<Rule> {
     }
 }
 
-fn parse_period_rule(dict: &std::collections::BTreeMap<String, HVal>) -> Option<Rule> {
+fn parse_period_rule(
+    dict: &std::collections::BTreeMap<String, HVal>,
+    errors: &mut Vec<crate::model::ShapeError>,
+) -> Option<Rule> {
     let unit = dict
         .get("unit")
         .and_then(HVal::as_str)
         .and_then(PeriodUnit::parse)?;
     let value = dict.get("value").and_then(as_u32)?;
-    let weekdays = dict
-        .get("on")
-        .filter(|v| !v.is_null())
-        .and_then(HVal::as_array)
-        .map(|items| {
-            items
-                .iter()
-                .filter_map(HVal::as_str)
-                .filter_map(parse_weekday)
-                .collect()
-        })
-        .unwrap_or_default();
+    let weekdays = parse_weekdays(dict.get("on"), errors);
     Some(Rule::Period {
         unit,
         value,
         weekdays,
     })
+}
+
+/// Parse `on:`'s weekday set. Absent/`none` is a plain unnarrowed period; a
+/// present value that isn't an array reports a
+/// [`crate::model::ShapeError`] rather than silently narrowing to no
+/// weekdays at all.
+fn parse_weekdays(
+    value: Option<&HVal>,
+    errors: &mut Vec<crate::model::ShapeError>,
+) -> Vec<chrono::Weekday> {
+    let Some(value) = value.filter(|v| !v.is_null()) else {
+        return Vec::new();
+    };
+    let Some(items) = value.as_array() else {
+        errors.push(crate::model::shape_error(
+            "recur",
+            "an array for `on:`",
+            value,
+        ));
+        return Vec::new();
+    };
+    items
+        .iter()
+        .filter_map(HVal::as_str)
+        .filter_map(parse_weekday)
+        .collect()
 }
 
 fn as_u32(value: &HVal) -> Option<u32> {

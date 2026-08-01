@@ -26,15 +26,21 @@ fn every_val(rule: HVal, policy: Vec<(&str, HVal)>) -> HVal {
     dict(fields)
 }
 
+/// [`parse_recur`] without caring about shape errors — most tests here feed
+/// it a well-shaped dict; shape-error tests call `parse_recur` directly.
+fn parse(value: Option<&HVal>) -> Option<Recur> {
+    parse_recur(value, &mut Vec::new())
+}
+
 #[test]
 fn parse_recur_absent_is_none() {
-    assert_eq!(parse_recur(None), None);
+    assert_eq!(parse(None), None);
 }
 
 #[test]
 fn parse_recur_simple_weekly() {
     let val = every_val(period_rule("weeks", 1, None), vec![]);
-    let recur = parse_recur(Some(&val)).unwrap();
+    let recur = parse(Some(&val)).unwrap();
     assert_eq!(
         recur.rule,
         Rule::Period {
@@ -57,7 +63,7 @@ fn parse_recur_weekday_set() {
         HVal::Str("fri".to_owned()),
     ]);
     let val = every_val(period_rule("weeks", 1, Some(on)), vec![]);
-    let recur = parse_recur(Some(&val)).unwrap();
+    let recur = parse(Some(&val)).unwrap();
     let Rule::Period { weekdays, .. } = recur.rule else {
         panic!("expected a period rule");
     };
@@ -75,7 +81,7 @@ fn parse_recur_full_policy() {
             ("materialize", HVal::Str("mutate".to_owned())),
         ],
     );
-    let recur = parse_recur(Some(&val)).unwrap();
+    let recur = parse(Some(&val)).unwrap();
     assert_eq!(recur.anchor.as_deref(), Some("due"));
     assert_eq!(recur.until.as_deref(), Some("2027-01-01"));
     assert_eq!(recur.count, Some(10));
@@ -89,7 +95,7 @@ fn parse_recur_rrule_rule() {
         ("raw", HVal::Str("FREQ=MONTHLY;BYDAY=1MO".to_owned())),
     ]);
     let val = every_val(rule, vec![]);
-    let recur = parse_recur(Some(&val)).unwrap();
+    let recur = parse(Some(&val)).unwrap();
     assert_eq!(
         recur.rule,
         Rule::Rrule {
@@ -101,18 +107,36 @@ fn parse_recur_rrule_rule() {
 #[test]
 fn parse_recur_missing_rule_kind_is_none() {
     let val = dict(vec![("rule", dict(vec![]))]);
-    assert_eq!(parse_recur(Some(&val)), None);
+    assert_eq!(parse(Some(&val)), None);
 }
 
 #[test]
 fn parse_recur_unknown_unit_is_none() {
     let val = every_val(period_rule("fortnights", 1, None), vec![]);
-    assert_eq!(parse_recur(Some(&val)), None);
+    assert_eq!(parse(Some(&val)), None);
 }
 
 #[test]
 fn parse_recur_non_dict_value_is_none() {
-    assert_eq!(parse_recur(Some(&HVal::Str("nope".to_owned()))), None);
+    assert_eq!(parse(Some(&HVal::Str("nope".to_owned()))), None);
+}
+
+#[test]
+fn parse_recur_non_array_on_reports_shape_error_not_silent_empty() {
+    let on = HVal::Str("mon".to_owned());
+    let val = every_val(period_rule("weeks", 1, Some(on)), vec![]);
+    let mut errors = Vec::new();
+    let recur = parse_recur(Some(&val), &mut errors).unwrap();
+    let Rule::Period { weekdays, .. } = recur.rule else {
+        panic!("expected a period rule");
+    };
+    assert!(weekdays.is_empty());
+    assert_eq!(errors.len(), 1);
+    assert_eq!(errors[0].field, "recur");
+    assert_eq!(
+        errors[0].message,
+        "expected an array for `on:`, found a string"
+    );
 }
 
 #[test]

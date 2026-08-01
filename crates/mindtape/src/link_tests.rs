@@ -40,9 +40,15 @@ fn edge(task: &str, kind: &str, note: Option<&str>) -> HVal {
     ])
 }
 
+/// [`parse_links`] without caring about shape errors — most tests here feed
+/// it a well-shaped array; shape-error tests call `parse_links` directly.
+fn parse(value: Option<&HVal>) -> Vec<super::Link> {
+    parse_links(value, &mut Vec::new())
+}
+
 #[test]
 fn parse_links_absent_is_empty() {
-    assert_eq!(parse_links(None), Vec::new());
+    assert_eq!(parse(None), Vec::new());
 }
 
 #[test]
@@ -51,7 +57,7 @@ fn parse_links_reads_dict_edges() {
         edge("a.typ", "depends-on", None),
         edge("b.typ", "related", Some("why")),
     ]);
-    let links = parse_links(Some(&arr));
+    let links = parse(Some(&arr));
     assert_eq!(links.len(), 2);
     assert_eq!(links[0].task, "a.typ");
     assert_eq!(links[0].kind, "depends-on");
@@ -66,10 +72,21 @@ fn parse_links_bare_string_gets_empty_kind() {
     // No helper used: kept (not silently dropped) so validation can flag it as
     // an unknown-kind edge — never a matching built-in or config kind.
     let arr = HVal::Array(vec![HVal::Str("bare.typ".to_owned())]);
-    let links = parse_links(Some(&arr));
+    let links = parse(Some(&arr));
     assert_eq!(links.len(), 1);
     assert_eq!(links[0].task, "bare.typ");
     assert_eq!(links[0].kind, "");
+}
+
+#[test]
+fn parse_links_non_array_reports_shape_error_not_silent_empty() {
+    let mut errors = Vec::new();
+    let value = HVal::Str("a.typ".to_owned());
+    let links = parse_links(Some(&value), &mut errors);
+    assert!(links.is_empty());
+    assert_eq!(errors.len(), 1);
+    assert_eq!(errors[0].field, "links");
+    assert_eq!(errors[0].message, "expected an array, found a string");
 }
 
 #[test]
@@ -82,7 +99,7 @@ fn parse_links_excludes_history_pointers() {
         ),
         edge("live.typ", "depends-on", None),
     ]);
-    let links = parse_links(Some(&arr));
+    let links = parse(Some(&arr));
     assert_eq!(links.len(), 1);
     assert_eq!(links[0].task, "live.typ");
 }
