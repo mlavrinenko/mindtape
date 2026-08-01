@@ -136,6 +136,22 @@ Tags: `+word` positionals are sugar for the `tags` slot (`mt add fix login
 +backend +auth`); or repeat `--set tags[]=backend --set tags[]=auth`. A bare
 `--set tags=backend,auth` is a hard error — a `list` slot needs `[]=`.
 
+### `text` slots are escaped, not markup
+
+Every `text`-kind slot value (`-f`/`--set`/`--edit`/positional, JSON or YAML —
+the source format makes no difference, escaping runs after parsing) is
+markup-escaped before it lands in the file: a literal `` ` `` / `*` / `_` /
+`#` / `[` / `]` / `@` / `<` you type becomes `` \` ``, `\*`, etc. — safe, but
+never live Typst. So don't author code spans or emphasis inside slot content
+(a `summary`/`scope` fill) expecting them to render — write plain prose there.
+If a task genuinely needs formatted body text (a code span, a link), fill the
+slot with a placeholder and hand-edit the body afterward — sanctioned per
+"Authoring or editing a task file by hand" above, since only the section
+*headers* are config-enforced, not the prose under them. Heuristic: after
+`mt add`, search the written task for a literal backslash-backtick pair
+(`` rg -F '\`' <file> ``) — a hit is almost always markup you meant literally,
+not prose you meant escaped.
+
 ## Changing status — `mt flip` and status verbs
 
 `mt flip <status> <task…>` stamps a new status, dated today. The status must be a
