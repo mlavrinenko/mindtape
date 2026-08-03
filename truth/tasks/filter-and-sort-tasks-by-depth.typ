@@ -9,8 +9,12 @@
   ),
   difficulty: 3,
   tags: ("cli", "tests"),
-  estimate: (files: 7),
-  status: proposed(2026, 8, 3),
+  estimate: (files: 14),
+  status: done(
+    2026,
+    8,
+    3,
+  )[implemented; depth field + sort key + regression tests; docs updated],
 )
 
 == Summary
@@ -37,3 +41,13 @@ Consult `filter-and-sort-tasks-by-file.typ` in this root: it is the closest prio
 == Decision: `==`, never `=`
 
 The supported query is `mt ls 'depth == 0'` (and the other binary comparisons `!=`/`<`/`>`/`<=`/`>=`). A single `=` is not supported and will not be: `evalexpr` reads `=` as an assignment operator, and supporting it would mean fighting the eval engine. A bare `mt ls 'depth = 0'` stays rejected as `unsupported in filter: Assign`. The task's motivating example is written with `==`.
+
+== Outcome
+
+- `Task.depth: u8` added, following the `derived_tags` precedent — set once at load in `loader.rs:assemble_task`, zero in `from_marker`.
+- `derive::depth` computes it from the root-relative path, reusing `folder_segments` so the count and the derived-tag segments cannot disagree; the loader threads it through `LoadItem`.
+- Filter dispatch reads `depth` as `FieldValue::Num`; `SORT_FIELDS` gains `depth` with a numeric `compare_field` arm beside priority/difficulty.
+- Tests: filter comparison + dispatch, `--sort depth` ordering, and a loader test pinning 0/1/2 depth from real folder nesting.
+- Docs: `www/content/filters.typ` and the in-tree skill list `depth` among the comparable fields.
+- Estimate revised from 7 files to the 14 the work actually touched.
+
