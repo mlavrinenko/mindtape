@@ -16,7 +16,7 @@ Here, every task not yet in a terminal status:
 = Fields
 
 Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
-`due`, `start`, `reviewed`, `file`. `priority` and `difficulty` compare
+`due`, `start`, `reviewed`, `file`, `depth`. `priority` and `difficulty` compare
 numerically (`priority >= 7`). The opaque `estimate` dict supports presence only
 (`has(estimate)`), never comparison.
 
@@ -26,6 +26,10 @@ separators on every platform — deliberately not the
 filter saved in `.mindtape/config.toml` (a view, an `[[ls.rules]]` entry) must
 mean the same thing regardless of where `mt` runs from, so it stays anchored
 to the root rather than to whichever directory issued the command.
+
+`depth` is the task's nesting under its root — 0 for a task in the root itself,
+1 for one in a sub-folder, and so on. It is always numeric, so `depth == 0`
+lists the root tasks with no sub-folder (`depth > 0` the nested ones).
 
 = Operators
 

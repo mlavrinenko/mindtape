@@ -372,6 +372,7 @@ fn field_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, F
         "start" => opt_str(task.start.clone()),
         "reviewed" => opt_str(task.reviewed.clone()),
         "file" => FieldValue::Str(task.file_key()),
+        "depth" => FieldValue::Num(task.depth.into()),
         other => return Err(FilterError::UnknownField(other.to_owned())),
     };
     Ok(value)

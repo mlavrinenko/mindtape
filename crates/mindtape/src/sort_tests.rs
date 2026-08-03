@@ -326,6 +326,22 @@ fn sort_by_specs_orders_by_file_path() {
 }
 
 #[test]
+fn sort_by_specs_orders_by_depth() {
+    let cfg = config();
+    // bare_task sets depth 0; give the others distinct depths in inverse sorted
+    // order so a dropped comparator arm (equal keys) fails the assertion.
+    let mut deep = bare_task("d-deep");
+    deep.depth = 2;
+    let mut shallow = bare_task("d-shallow");
+    shallow.depth = 1;
+    let root = bare_task("d-root");
+    assert_eq!(
+        ids_by(vec![deep, root, shallow], "depth", &cfg),
+        vec!["d-root", "d-shallow", "d-deep"]
+    );
+}
+
+#[test]
 fn sort_by_specs_orders_by_file_path_across_a_mixed_set() {
     let cfg = config();
     let mut root = bare_task("m-root");

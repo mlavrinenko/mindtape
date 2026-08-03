@@ -15,7 +15,7 @@ use crate::model::Task;
 use crate::ready::{Readiness, ReadyState};
 
 /// All sort field names accepted by `--sort` and `[query] default_sort`.
-pub const SORT_FIELDS: [&str; 10] = [
+pub const SORT_FIELDS: [&str; 11] = [
     "id",
     "title",
     "status",
@@ -25,6 +25,7 @@ pub const SORT_FIELDS: [&str; 10] = [
     "due",
     "start",
     "file",
+    "depth",
     "ready",
 ];
 
@@ -97,6 +98,7 @@ fn compare_field(
             difficulty_value(left, config),
             difficulty_value(right, config),
         ),
+        "depth" => left.depth.cmp(&right.depth),
         _ => sort_string_key(left, field).cmp(&sort_string_key(right, field)),
     }
 }

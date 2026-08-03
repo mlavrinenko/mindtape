@@ -111,3 +111,16 @@ fn file_field_equality_matches_the_full_root_relative_path() {
     assert!(!hit("file == \"tasks/other.typ\"", &task));
     assert!(hit("file != \"tasks/other.typ\"", &task));
 }
+
+#[test]
+fn depth_field_dispatches_as_a_number() {
+    // depth is always numeric (a root task is 0), so it compares numerically and
+    // its value walks the same dispatch as priority/difficulty.
+    let mut task = sample(); // depth 0
+    assert!(hit("depth == 0", &task));
+    assert!(hit("depth < 1", &task));
+    assert!(!hit("depth >= 1", &task));
+    task.depth = 3;
+    assert!(hit("depth > 2", &task));
+    assert!(hit("depth != 0", &task));
+}

@@ -121,6 +121,18 @@ fn folder_segments(rel: &Path) -> Vec<String> {
         .collect()
 }
 
+/// Nesting depth of a file under its root: the number of folder components
+/// between the root and the file (the file name excluded). A file sitting
+/// directly under the root is depth 0, one in a sub-folder is depth 1, and so
+/// on. Reuses [`folder_segments`] so the folder count and the derived-tag
+/// segments can never disagree.
+#[must_use]
+pub fn depth(rel: &Path) -> u8 {
+    // A path can exceed 255 segments only in a pathological tree; clamp rather
+    // than truncate silently.
+    u8::try_from(folder_segments(rel).len()).unwrap_or(u8::MAX)
+}
+
 /// Lowercase, collapse non-alphanumeric runs to `-`, trim leading/trailing `-`.
 fn slugify(text: &str) -> String {
     let mut out = String::new();

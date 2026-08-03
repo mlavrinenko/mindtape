@@ -26,6 +26,7 @@ fn sample() -> Task {
         links: vec![noted_edge("other.typ", "related", "context")],
         tags: vec!["backend".to_owned()],
         derived_tags: Vec::new(),
+        depth: 0,
         due: Some("2026-07-01".to_owned()),
         start: None,
         reviewed: None,

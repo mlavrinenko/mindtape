@@ -63,6 +63,11 @@ pub struct Task {
     /// Folder-derived virtual tags, injected at load by [`crate::derive`]. Never
     /// written to the file; empty unless the task's root enables derivation.
     pub derived_tags: Vec<String>,
+    /// Nesting depth of the file under its root: 0 for a task sitting directly
+    /// in the root, 1 for one in a sub-folder, and so on. Computed at load from
+    /// the file's location (like [`derived_tags`](Self::derived_tags)); never
+    /// authored. Zero when constructed without a loader (e.g. [`Task::from_marker`]).
+    pub depth: u8,
     /// Due date, `YYYY-MM-DD`.
     pub due: Option<String>,
     /// Start date, `YYYY-MM-DD`.
@@ -119,6 +124,7 @@ impl Task {
             links,
             tags,
             derived_tags: Vec::new(),
+            depth: 0,
             due: field_str(fields, "due"),
             start: field_str(fields, "start"),
             reviewed: field_str(fields, "reviewed"),

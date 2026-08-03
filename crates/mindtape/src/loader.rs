@@ -61,12 +61,13 @@ fn find_root_bounded(start: &Path, stop: Option<&Path>) -> Option<PathBuf> {
     }
 }
 
-/// One task file to harvest: its path, project-relative path, and the tags its
-/// folder location derives.
+/// One task file to harvest: its path, project-relative path, the tags its
+/// folder location derives, and its nesting depth under the root.
 struct LoadItem {
     file: PathBuf,
     rel: PathBuf,
     folder_tags: Vec<String>,
+    depth: u8,
 }
 
 /// A cache miss to harvest: the item, the source already read for hashing (so a
@@ -162,6 +163,7 @@ fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
     let id = file_stem(&item.file);
     let mut task = Task::from_marker(id, item.rel.clone(), marker);
     task.derived_tags = item.folder_tags.clone();
+    task.depth = item.depth;
     task.body = body_after_marker(source);
     task
 }
@@ -179,11 +181,13 @@ fn collect_items(root: &Path, config: &Config) -> Vec<LoadItem> {
         for file in files {
             let rel_within = file.strip_prefix(&dir).unwrap_or(&file);
             let folder_tags = deriver.tags_for(rel_within);
+            let depth = crate::derive::depth(rel_within);
             let rel = file.strip_prefix(root).unwrap_or(&file).to_path_buf();
             items.push(LoadItem {
                 file,
                 rel,
                 folder_tags,
+                depth,
             });
         }
     }

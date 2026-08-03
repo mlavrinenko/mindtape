@@ -165,6 +165,24 @@ collect = ["segments", "breadcrumbs"]
 }
 
 #[test]
+fn injects_nesting_depth() {
+    let dir = setup();
+    std::fs::create_dir_all(dir.path().join("tasks/backend/auth")).unwrap();
+    write(dir.path(), "tasks/backend/auth/login.typ", TASK_BODY);
+    write(dir.path(), "tasks/backend/util.typ", TASK_BODY);
+    write(dir.path(), "tasks/top.typ", TASK_BODY);
+
+    let outcome = load_project(dir.path(), &Config::default());
+
+    let deep = outcome.tasks.iter().find(|t| t.id == "login").unwrap();
+    assert_eq!(deep.depth, 2);
+    let mid = outcome.tasks.iter().find(|t| t.id == "util").unwrap();
+    assert_eq!(mid.depth, 1);
+    let root = outcome.tasks.iter().find(|t| t.id == "top").unwrap();
+    assert_eq!(root.depth, 0);
+}
+
+#[test]
 fn glob_gates_which_files_derive() {
     let dir = setup();
     std::fs::create_dir_all(dir.path().join("tasks/backend")).unwrap();

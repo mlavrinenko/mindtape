@@ -69,10 +69,13 @@ of that and lists everything. There is no `--all` flag; `mt ls --all` errors
 with `unexpected argument '--all'`.
 
 Pass a filter expression as the positional argument. Fields:
-`status priority difficulty kind title id due start reviewed file`. `file`
-compares the project-root-relative path (`/`-separated on every platform) —
-not the same as the `file` *column*'s working-directory-relative display,
-below. Operators: `== != < > <= >= && || !` and parentheses. Helpers:
+`status priority difficulty kind title id due start reviewed file depth`.
+`file` compares the project-root-relative path (`/`-separated on every
+platform) — not the same as the `file` *column*'s working-directory-relative
+display, below. `depth` is the folder nesting under a root (0 for a task in the
+root itself, 1 for a sub-folder, ...), always numeric — so `mt ls 'depth == 0'`
+lists the root tasks. Operators: `== != < > <= >= && || !` and parentheses.
+Helpers:
 
 - `has(field)` / `miss(field)` — field present / absent
 - `has_tag("name")` — authored or folder-derived tag

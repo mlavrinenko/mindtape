@@ -29,6 +29,7 @@ pub fn bare_task(id: &str) -> Task {
         links: Vec::new(),
         tags: Vec::new(),
         derived_tags: Vec::new(),
+        depth: 0,
         due: None,
         start: None,
         reviewed: None,
