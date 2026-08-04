@@ -72,6 +72,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         priority,
         difficulty,
         kind: canonical.kind.clone(),
+        assignee: canonical.assignee.clone(),
         estimate: canonical.estimate.clone(),
         links,
         tags,

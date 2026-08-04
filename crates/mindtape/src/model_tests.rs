@@ -75,6 +75,26 @@ fn from_marker_reads_core_fields() {
 }
 
 #[test]
+fn from_marker_reads_assignee_and_blank_is_absent() {
+    let marker = dict(vec![
+        ("marker", HVal::Str("mindtape.task".to_owned())),
+        (
+            "fields",
+            dict(vec![("assignee", HVal::Str("ada".to_owned()))]),
+        ),
+    ]);
+    let task = Task::from_marker("x".to_owned(), "x.typ".into(), &marker);
+    assert_eq!(task.assignee.as_deref(), Some("ada"));
+
+    let blank = dict(vec![
+        ("marker", HVal::Str("mindtape.task".to_owned())),
+        ("fields", dict(vec![("assignee", HVal::Str(String::new()))])),
+    ]);
+    let task = Task::from_marker("y".to_owned(), "y.typ".into(), &blank);
+    assert!(task.assignee.is_none());
+}
+
+#[test]
 fn from_marker_reads_recur_field() {
     let rule = dict(vec![
         ("kind", HVal::Str("period".to_owned())),

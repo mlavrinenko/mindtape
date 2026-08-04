@@ -19,6 +19,7 @@
 //! | `priority`      | authored | see below                                           |
 //! | `difficulty`    | authored | number, label string, or framework-name fallback    |
 //! | `kind`          | authored |                                                      |
+//! | `assignee`      | authored |                                                      |
 //! | `estimate`      | authored | opaque `unit -> quantity` map                        |
 //! | `links`         | authored | `[{task, kind, note}]`                              |
 //! | `tags`          | authored | authored tags only                                  |
@@ -82,6 +83,8 @@ pub struct CanonicalTask {
     pub difficulty: Option<CanonicalNum>,
     /// Kind enum value.
     pub kind: Option<String>,
+    /// The actor currently working the task.
+    pub assignee: Option<String>,
     /// Opaque `unit -> quantity` estimate map.
     #[serde(default)]
     pub estimate: BTreeMap<String, f64>,
@@ -179,6 +182,7 @@ impl CanonicalTask {
             priority: priority_to_canonical(task.priority.as_ref(), config),
             difficulty: num_to_canonical(task.difficulty.as_ref()),
             kind: task.kind.clone(),
+            assignee: task.assignee.clone(),
             estimate: task.estimate.clone(),
             links: task.links.iter().map(canonical_link).collect(),
             tags: task.tags.clone(),

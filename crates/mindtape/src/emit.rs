@@ -48,8 +48,8 @@ pub fn emit_task(task: &Task) -> String {
 }
 
 /// Every set field, in the fixed emission order: title, status, priority,
-/// difficulty, kind, estimate, links, tags, due/start/reviewed, recur, then
-/// the `x-<ns>` extras in their `BTreeMap` key order.
+/// difficulty, kind, assignee, estimate, links, tags, due/start/reviewed,
+/// recur, then the `x-<ns>` extras in their `BTreeMap` key order.
 fn emit_fields(task: &Task) -> Vec<String> {
     let mut fields = vec![format!("title: {}", typ_str(&task.title))];
     if let Some(status) = task.status.as_ref().and_then(emit_status) {
@@ -63,6 +63,9 @@ fn emit_fields(task: &Task) -> Vec<String> {
     }
     if let Some(kind) = &task.kind {
         fields.push(format!("kind: {}", typ_str(kind)));
+    }
+    if let Some(assignee) = &task.assignee {
+        fields.push(format!("assignee: {}", typ_str(assignee)));
     }
     if let Some(estimate) = emit_estimate(&task.estimate) {
         fields.push(estimate);

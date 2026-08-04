@@ -300,6 +300,7 @@ fn stub_task() -> Task {
         priority: None,
         difficulty: None,
         kind: None,
+        assignee: None,
         estimate: Default::default(),
         links: vec![],
         tags: vec![],

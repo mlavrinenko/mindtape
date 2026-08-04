@@ -49,6 +49,10 @@ pub struct Task {
     pub difficulty: Option<NumValue>,
     /// Kind enum value.
     pub kind: Option<String>,
+    /// The actor currently working the task. Orthogonal to status; not
+    /// ownership. Plain free text until a project constrains it via
+    /// `[tasks.assignee]` (allowed list) or the actors registry.
+    pub assignee: Option<String>,
     /// Estimate as an opaque `unit -> quantity` map (e.g. `{days: 5, hours: 5}`
     /// or `{points: 8}`). Units are free labels; never converted or compared.
     pub estimate: BTreeMap<String, f64>,
@@ -120,6 +124,7 @@ impl Task {
             priority: parse_num_value(field(fields, "priority")),
             difficulty: parse_num_value(field(fields, "difficulty")),
             kind: field_str(fields, "kind"),
+            assignee: field_str(fields, "assignee").filter(|s| !s.is_empty()),
             estimate,
             links,
             tags,

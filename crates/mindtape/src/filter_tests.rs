@@ -22,6 +22,7 @@ fn sample() -> Task {
         priority: Some(NumValue::Num(8.0)),
         difficulty: Some(NumValue::Num(6.0)),
         kind: Some("feature".to_owned()),
+        assignee: None,
         estimate: BTreeMap::from([("hours".to_owned(), 8.0)]),
         links: vec![noted_edge("other.typ", "related", "context")],
         tags: vec!["backend".to_owned()],

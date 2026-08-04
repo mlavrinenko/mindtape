@@ -570,6 +570,13 @@
       ("status", _status-detail(status)),
       ("priority", _priority-detail(m.at("priority", default: none))),
       ("difficulty", _num-field(m.at("difficulty", default: none))),
+      (
+        "assignee",
+        if type(m.at("assignee", default: none)) == str
+          and m.at("assignee", default: "") != "" {
+          text(m.at("assignee", default: ""))
+        } else { none },
+      ),
       ("estimate", _fmt-estimate(m.at("estimate", default: (:)))),
       ("due", _fmt-date(m.at("due", default: none))),
       ("start", _fmt-date(m.at("start", default: none))),
@@ -613,6 +620,7 @@
   priority: none,
   difficulty: none,
   kind: none,
+  assignee: none,
   estimate: (:),
   links: (),
   tags: (),
@@ -643,6 +651,7 @@
     priority: priority,
     difficulty: difficulty,
     kind: kind,
+    assignee: assignee,
     estimate: estimate,
     links: links,
     tags: tags,

@@ -25,6 +25,7 @@ pub fn bare_task(id: &str) -> Task {
         priority: None,
         difficulty: None,
         kind: None,
+        assignee: None,
         estimate: BTreeMap::new(),
         links: Vec::new(),
         tags: Vec::new(),
