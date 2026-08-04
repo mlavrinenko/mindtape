@@ -56,6 +56,7 @@ below) cover the sections whose shape needs more than one line.
   ("tasks.naming", "[tasks.naming]"),
   ("tasks.id", "[tasks.id]"),
   ("tasks.fields", "[tasks.fields.<name>]"),
+  ("tasks.assignee", "[tasks.assignee]"),
   ("tasks.body.headers", "[tasks.body.headers]"),
   ("tasks.derive-tags", "[tasks.derive-tags]"),
   ("tasks.tags", "[tasks.tags]"),
@@ -130,10 +131,10 @@ filter = "status != \"done\""
 
 = Required fields
 
-`required` gates `[tasks.priority]`, `[tasks.difficulty]`, `[tasks.estimate]` and
-each `[tasks.fields.<name>]`. It takes `true`, `false`, or a
-#link(u("/filters/"))[filter expression] — the field is required for exactly the
-tasks that expression matches, evaluated per task by `mt check`:
+`required` gates `[tasks.priority]`, `[tasks.difficulty]`, `[tasks.estimate]`,
+`[tasks.assignee]` and each `[tasks.fields.<name>]`. It takes `true`, `false`,
+or a #link(u("/filters/"))[filter expression] — the field is required for exactly
+the tasks that expression matches, evaluated per task by `mt check`:
 
 ```toml
 [tasks.priority]
@@ -151,6 +152,26 @@ required = "@active"          # only inside the `active` view
   same thing in the filter language. A malformed expression fails when the config
   loads, naming the field — not once per task.
 ]
+
+= Assignees
+
+`assignee:` names the actor currently working a task — a plain string,
+orthogonal to status: a blocked task keeps its assignee, and reassigning is just
+editing the field. It is not ownership: the worker is whoever it is now.
+`[tasks.assignee]` bounds the vocabulary:
+
+```toml
+[tasks.assignee]
+allowed  = ["ada", "lin"]
+required = "!terminal"
+```
+
+`allowed` is optional — absent or empty accepts any string. `required` behaves
+like every other core field: `true`, `false`, or a filter expression, as above.
+A required assignee is spliced into the add template as a slot backed by
+`$MINDTAPE_PRINCIPAL`: under a harness that sets the variable, `mt add` files
+silently; unset, the slot prompts interactively — an unknown actor is never
+silently written as an empty worker.
 
 = Status transitions
 

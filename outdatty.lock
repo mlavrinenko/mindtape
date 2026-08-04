@@ -9,11 +9,11 @@ groups:
       crates/mindtape-cli/src/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
-      crates/mindtape/src/lib.rs: 8a55315504796a9af49e1daf42a8ae338a5347fd30f9ef44f23e6ff872b9d15e
+      crates/mindtape/src/lib.rs: 1b08cd760d50bc0978baf2b59e8be6a8886b356193f21eb1a7c9692cbf73b8de
     dependents:
-      skills/mindtape/SKILL.md: 098aaca7603511fc460c6dc04e24e33ace90191e60fea4f3cd45f07bf0cd255f
+      skills/mindtape/SKILL.md: 9a37ef56aaf7f0947ddc8ce997e0528f4e3920fec2ce53b60b5595b93e9b1142
       www/content/cli.typ: c0458f7dac6c46bfed42b4cb2acfe9acccee838c3f6d1c830fd6391f6f048430
-      www/content/config.typ: 061e98443fae7826827f15bc2488de041fd2a5b0ee4c28af5fb7998aadace476
+      www/content/config.typ: a41e0d54d2bbaa0e5a79d6302d3a147b2bca488e8a2a38033d8e478864cf471c
       www/content/filters.typ: 7bb655f2fcbda31789c194f05a378d2ad840b84d4fbd3cd270ccbd97310f407b
       www/content/quickstart.typ: ec67df32e539b5c2ee0d853c989583679c176639b58f4dacde15ce35ee858be6
       www/utils/cli-notes.typ: 3edebc5ddcd58cbab30ec1f4ffd3e4811c04609c30fb06475656ca76ffe8359a
@@ -22,11 +22,11 @@ groups:
       crates/mindtape-cli/Cargo.toml: 2492cf0da34ddea59cc25725b865cc95c988bacf8f7c5052bb5648f26457cd41
       crates/mindtape-cli/src/cli.rs: 77cce8162dde07edb348e5cd51a41a97fb863b2a884585a4703ade8ce9166645
     dependents:
-      AGENTS.md: d30c0f315aa71f2aa74a8217811aac79dfb60621b2c6dbc7beadc769cde7586d
+      AGENTS.md: 9c8d8d28e6442b432c1d9eed513666dab0ee48d674e726300700af8015a914c0
       CHANGELOG.md: a6c605ff4ce2e22c1ac5ae13a2dbc28c9f5b0f95abc5e5d6eaf53f38fd252781
       CONTRIBUTING.md: c413b7a945bdcfab1816dcd565893092632b13f33ddfd57f1d62f5d54077cb37
       README.md: 0e2910d0396e3437c445315b4e26c05f59b367e2f6c4c847865948536fe16495
-      skills/mindtape/SKILL.md: 098aaca7603511fc460c6dc04e24e33ace90191e60fea4f3cd45f07bf0cd255f
+      skills/mindtape/SKILL.md: 9a37ef56aaf7f0947ddc8ce997e0528f4e3920fec2ce53b60b5595b93e9b1142
       www/content/cli.typ: c0458f7dac6c46bfed42b4cb2acfe9acccee838c3f6d1c830fd6391f6f048430
       www/content/index.typ: 637bb5ff74599f1dac969418ddc61f90736a6a448df5182a155f19634b92b881
       www/content/quickstart.typ: ec67df32e539b5c2ee0d853c989583679c176639b58f4dacde15ce35ee858be6
@@ -35,16 +35,16 @@ groups:
       Justfile: 62fd493a0b37538a29f75db190a9227b6fcf40f817755daf0cca62d5d6a0a274
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
-      AGENTS.md: d30c0f315aa71f2aa74a8217811aac79dfb60621b2c6dbc7beadc769cde7586d
+      AGENTS.md: 9c8d8d28e6442b432c1d9eed513666dab0ee48d674e726300700af8015a914c0
       CONTRIBUTING.md: c413b7a945bdcfab1816dcd565893092632b13f33ddfd57f1d62f5d54077cb37
   prelude-docs:
     source:
-      lib/prelude.typ: c3548fc0ece385f7eb60bc17055f6fa4d6ca9a56f6f5ac930bb562af17e8de85
+      lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf
     dependents:
-      AGENTS.md: d30c0f315aa71f2aa74a8217811aac79dfb60621b2c6dbc7beadc769cde7586d
+      AGENTS.md: 9c8d8d28e6442b432c1d9eed513666dab0ee48d674e726300700af8015a914c0
       README.md: 0e2910d0396e3437c445315b4e26c05f59b367e2f6c4c847865948536fe16495
-      skills/mindtape/SKILL.md: 098aaca7603511fc460c6dc04e24e33ace90191e60fea4f3cd45f07bf0cd255f
-      www/content/dsl.typ: fcfb8579659ce4c2483ca051c62591cb3ab2f9925f47a800228bfb57d234657c
+      skills/mindtape/SKILL.md: 9a37ef56aaf7f0947ddc8ce997e0528f4e3920fec2ce53b60b5595b93e9b1142
+      www/content/dsl.typ: 13d11a3f151169650363902e0c9951b9ea7b8c0af9c07707891fb34ee68bbbeb
   release-notes:
     source:
       Cargo.toml: 09d8ee5c1cc971e967e96e313c256abf7ef51093c1cbd06fbdf1c97fef7d457e
@@ -54,7 +54,7 @@ groups:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5
     dependents:
-      AGENTS.md: d30c0f315aa71f2aa74a8217811aac79dfb60621b2c6dbc7beadc769cde7586d
+      AGENTS.md: 9c8d8d28e6442b432c1d9eed513666dab0ee48d674e726300700af8015a914c0
       README.md: 0e2910d0396e3437c445315b4e26c05f59b367e2f6c4c847865948536fe16495
       crates/mindtape-cli/src/init.rs: 380a04e3fb2ce958354ba9f3e9bd90bc30e21715f4f18653794064326905edd5
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898

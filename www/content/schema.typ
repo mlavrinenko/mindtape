@@ -45,6 +45,7 @@ import):
   [Number, label string, or a framework's name as fallback.],
 
   [`kind`], [authored], [],
+  [`assignee`], [authored], [`null` when unset.],
   [`estimate`], [authored], [Opaque `unit -> quantity` map.],
   [`links`], [authored], [`[{task, kind, note}]`.],
   [`tags`], [authored], [Authored tags only.],

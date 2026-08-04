@@ -82,6 +82,7 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
   status: wip(2026, 6, 14)[note],    // (name, date, note); note is a trailing block
   priority: ice(impact: 8, confidence: 0.7, ease: 6), // or a raw int; difficulty too
   estimate: (days: 1, hours: 2),     // opaque unit dict; allowed units per project
+  assignee: "ada",                   // actor working it; config-bounded, not ownership
   links: depends-on("other.typ"),    // typed edges by file stem; see below
   tags: ("backend",),
   x-speconaut: ...,                  // opaque extension slot (x-<ns>)

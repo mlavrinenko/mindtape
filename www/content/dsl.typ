@@ -47,6 +47,9 @@ The body is free-form Typst below the metadata.",
   [An opaque `unit: quantity` dict, e.g. `(days: 1, hours: 2)`. Units are never converted or compared — only the allowed set is checked.],
 
   [`kind`], [A config-defined enum value (e.g. `"feature"`, `"bug"`).],
+  [`assignee`],
+  [The actor currently working the task: a plain string. Orthogonal to status; never ownership.],
+
   [`due`, `start`], [Dates via `datetime(year: …, month: …, day: …)`.],
   [`tags`], [A tuple of strings: `("backend", "auth")`.],
   [`links`],

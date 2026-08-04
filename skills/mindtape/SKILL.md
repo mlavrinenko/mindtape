@@ -212,6 +212,7 @@ A task file is Typst. Edit the fields inside `task.with(...)`:
   priority: 6,                          // raw int, or a call like ice(...)
   difficulty: 3,
   kind: "bug",                          // enum from config
+  assignee: "ada",                      // actor working it, config-bounded
   estimate: (hours: 4),                 // opaque unit dict
   links: depends-on("other-task.typ"),  // typed edges by file stem
   tags: ("backend",),
