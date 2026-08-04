@@ -73,6 +73,33 @@ fn layer_env_fills_unset_skips_seeded_and_blank() {
 }
 
 #[test]
+fn layer_env_reads_declared_env_name() {
+    let specs =
+        discover_slots(r#"#f(t: slot("title", env: "MINDTAPE_PRINCIPAL", default: "untitled"))"#);
+    let mut values = BTreeMap::new();
+    layer_env(&mut values, &specs, |key| {
+        (key == "MINDTAPE_PRINCIPAL").then(|| "From Declared Env".to_owned())
+    });
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("From Declared Env".to_owned()))
+    );
+}
+
+#[test]
+fn layer_env_declared_env_unset_falls_through() {
+    let specs =
+        discover_slots(r#"#f(t: slot("title", env: "MINDTAPE_PRINCIPAL", default: "untitled"))"#);
+    // The declared variable is unset: nothing fills, and the implicit
+    // `MINDTAPE_ADD_TITLE` is not consulted — a declared `env` replaces it.
+    let mut values = BTreeMap::new();
+    layer_env(&mut values, &specs, |key| {
+        (key == "MINDTAPE_ADD_TITLE").then(|| "Implicit".to_owned())
+    });
+    assert!(values.is_empty());
+}
+
+#[test]
 fn collect_set_overrides_json() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("v.json");
@@ -367,6 +394,7 @@ fn describe_text_marks_optional_correctly() {
         required: false,
         default: None,
         prompt: None,
+        env: None,
         choices: None,
         default_string: None,
         markup: false,
@@ -395,6 +423,31 @@ fn describe_text_marks_required() {
         text.lines()
             .any(|line| line.contains("title") && line.contains("required"))
     );
+}
+
+#[test]
+fn describe_surfaces_declared_env() {
+    let specs =
+        discover_slots(r#"#f(t: slot("title", env: "MINDTAPE_PRINCIPAL", default: "untitled"))"#);
+
+    let text = describe(&specs, DescribeFormat::Text).unwrap();
+    assert!(
+        text.lines()
+            .any(|line| line.contains("env: MINDTAPE_PRINCIPAL")),
+        "text describe should name the env variable, got: {text}"
+    );
+
+    let json = describe(&specs, DescribeFormat::Json).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(parsed.as_array().unwrap()[0]["env"], "MINDTAPE_PRINCIPAL");
+
+    // A slot without `env` stays quiet in both formats.
+    let plain = discover_slots(BUILTIN_TASK);
+    let text = describe(&plain, DescribeFormat::Text).unwrap();
+    assert!(!text.contains("env:"));
+    let json = describe(&plain, DescribeFormat::Json).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert!(parsed.as_array().unwrap()[0]["env"].is_null());
 }
 
 #[test]

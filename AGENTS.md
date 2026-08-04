@@ -140,13 +140,14 @@ recurrence — pure close, per command-semantics-cqrs.
 ### Templates (`mt add`)
 
 `mt add [TITLE…] [-t template]` files a new task from a Typst template — a
-task whose authored values are `slot(name, kind: …, default: …, prompt: …)` calls.
+task whose authored values are `slot(name, kind: …, default: …, prompt: …, env: …)` calls.
 The positional words join into the `title` slot (`add cleanup kitchen` →
 `cleanup-kitchen.typ`); `-t/--template` picks the template (default `[templates]
 default`). `add` discovers each slot on the parse plane (`typst-edit`, no eval),
 fills it from `-f values.json`/`.yaml` (extension picks the parser; stdin `-`
 and any other extension sniff the content) / `--set k=v` / the positional
-title / the slot default, injects the add-owned `status` (initial legend
+title / environment variables (`slot(…, env: "VAR")` names a variable;
+otherwise every slot reads `MINDTAPE_ADD_<NAME>`) / the slot default, injects the add-owned `status` (initial legend
 value, dated today) and `id`, then writes `<root>/<stem>.typ` and validates
 it. `--describe[=json]` dumps the slot schema; `--print` previews; `--into .`
 targets the first root; `--to

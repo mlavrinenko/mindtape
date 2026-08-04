@@ -155,13 +155,7 @@ pub fn at<'a>(row: &'a serde_json::Value, pointer: &str) -> &'a serde_json::Valu
 /// Install the in-tree `@local/mindtape` lib override and an empty `tasks/`
 /// root under `dir`, so a task filed there can actually be evaluated.
 pub fn install_lib(dir: &Path) {
-    std::fs::create_dir_all(dir.join("lib")).unwrap();
-    std::fs::write(dir.join("lib/prelude.typ"), PRELUDE).unwrap();
-    std::fs::write(
-        dir.join("lib/typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
+    mindtape::test_support::write_lib_package(dir, PRELUDE);
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
 }
 

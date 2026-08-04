@@ -89,6 +89,9 @@ pub struct SlotSpec {
     pub required: bool,
     /// Optional human prompt for interactive fill / `describe`.
     pub prompt: Option<String>,
+    /// Optional environment variable name the CLI reads at fill time. `None`
+    /// keeps the implicit `MINDTAPE_ADD_<NAME>` lookup.
+    pub env: Option<String>,
     /// Allowed values for a `choice` slot.
     pub choices: Option<Vec<String>>,
     /// Default expression's raw source (spliced verbatim when unfilled). `None`
@@ -218,6 +221,7 @@ fn spec_from_call(source: &str, call: &Call) -> Option<SlotSpec> {
         .unwrap_or(SlotKind::String);
     let required = call.named("required").is_none_or(|arg| arg.value == "true");
     let prompt = call.named("prompt").map(|arg| arg.value.clone());
+    let env = call.named("env").map(|arg| arg.value.clone());
     let choices = call
         .named("choices")
         .map(|arg| parse_string_array(&arg.value));
@@ -233,6 +237,7 @@ fn spec_from_call(source: &str, call: &Call) -> Option<SlotSpec> {
         kind,
         required,
         prompt,
+        env,
         choices,
         default,
         default_string,

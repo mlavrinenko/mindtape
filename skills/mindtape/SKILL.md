@@ -141,8 +141,8 @@ Tags: `+word` positionals are sugar for the `tags` slot (`mt add fix login
 
 ### `text` slots are escaped, not markup
 
-Every `text`-kind slot value (`-f`/`--set`/`--edit`/positional, JSON or YAML —
-the source format makes no difference, escaping runs after parsing) is
+Every `text`-kind slot value (`-f`/`--set`/`--edit`/positional/environment,
+JSON or YAML — the source makes no difference, escaping runs after parsing) is
 markup-escaped before it lands in the file: a literal `` ` `` / `*` / `_` /
 `#` / `[` / `]` / `@` / `<` you type becomes `` \` ``, `\*`, etc. — safe, but
 never live Typst. So don't author code spans or emphasis inside slot content

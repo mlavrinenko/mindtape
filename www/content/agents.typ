@@ -56,8 +56,9 @@ without guessing:
 echo '{"title":"Practice arpeggios","priority":8}' | mt add -f -
 ```
 
-Fill values also come from `--set k=v` and from `MINDTAPE_ADD_<SLOT>` environment
-variables, so a task can be filed with no interactive prompt.
+Fill values also come from `--set k=v` and from environment variables — a
+template's `slot(…, env: "VAR")` names an exact variable, otherwise every slot
+reads `MINDTAPE_ADD_<SLOT>` — so a task can be filed with no interactive prompt.
 
 = Honest exit codes and quiet output
 

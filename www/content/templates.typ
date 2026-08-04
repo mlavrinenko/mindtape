@@ -16,8 +16,8 @@ written file holds plain literals; no `slot` call survives.
 = A template
 
 Templates live under `[templates] dirs` (default `.mindtape/templates`). A slot
-declares a name, a kind, and an optional default or prompt. This is the example
-project's template:
+declares a name, a kind, and an optional default, prompt, or environment
+variable. This is the example project's template:
 
 #raw(read("../generated/template.typ"), lang: "typ", block: true)
 
@@ -34,9 +34,12 @@ a slot instead.
 = Fill the slots
 
 Values come from several sources, highest priority first: `--set`, a JSON or
-YAML file (`-f`), the positional title, then the slot default. `-f` picks the
-parser from the extension (`.json`, `.yaml`/`.yml`); stdin (`-`) and any other
-extension sniff the content — a leading `{`/`[` tries JSON first, else YAML.
+YAML file (`-f`), the positional title, environment variables, then the slot
+default. A slot names its variable with `slot(…, env: "VAR")`; without one it
+reads `MINDTAPE_ADD_<SLOTNAME>` instead. A missing or unreadable variable is
+skipped, not an error. `-f` picks the parser from the extension (`.json`,
+`.yaml`/`.yml`); stdin (`-`) and any other extension sniff the content — a
+leading `{`/`[` tries JSON first, else YAML.
 
 ```sh
 mt add --set title="Practice arpeggios" --set impact=8 # explicit values

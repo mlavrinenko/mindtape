@@ -249,10 +249,11 @@ pub fn env_var_name(slot: &str) -> String {
     format!("MINDTAPE_ADD_{}", slot.to_uppercase().replace('-', "_"))
 }
 
-/// Fill each slot left unset by `--set`/`-f` from its `MINDTAPE_ADD_*` variable
-/// via `lookup`. Values are strings (coerced to the slot kind by `fill`, like
-/// `--set`); blank values are skipped. Reading per discovered slot keeps the
-/// mapping unambiguous and ignores unknown env keys.
+/// Fill each slot left unset by `--set`/`-f` from its environment variable via
+/// `lookup`: the declared `env` name when the slot names one, else the implicit
+/// `MINDTAPE_ADD_*` variable. Values are strings (coerced to the slot kind by
+/// `fill`, like `--set`); blank values are skipped. Reading per discovered slot
+/// keeps the mapping unambiguous and ignores unknown env keys.
 pub fn layer_env(
     values: &mut BTreeMap<String, RawValue>,
     specs: &[SlotSpec],
@@ -262,7 +263,11 @@ pub fn layer_env(
         if values.contains_key(&spec.name) {
             continue;
         }
-        if let Some(value) = lookup(&env_var_name(&spec.name))
+        let key = match &spec.env {
+            Some(var) => var.clone(),
+            None => env_var_name(&spec.name),
+        };
+        if let Some(value) = lookup(&key)
             && !value.trim().is_empty()
         {
             values.insert(spec.name.clone(), RawValue::Str(value));
@@ -315,6 +320,9 @@ fn describe_text(specs: &[SlotSpec]) -> String {
             "optional"
         };
         let mut line = format!("{}  {}  {need}", spec.name, spec.kind.as_str());
+        if let Some(env) = &spec.env {
+            line.push_str(&format!("  env: {env}"));
+        }
         if let Some(default) = &spec.default {
             line.push_str(&format!("  = {default}"));
         }
@@ -336,6 +344,7 @@ fn describe_json(specs: &[SlotSpec]) -> Result<String> {
                 "required": spec.required && spec.default.is_none(),
                 "default": spec.default,
                 "prompt": spec.prompt,
+                "env": spec.env,
                 "choices": spec.choices,
             })
         })

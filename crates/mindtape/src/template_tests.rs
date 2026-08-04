@@ -63,6 +63,21 @@ fn parses_choices() {
 }
 
 #[test]
+fn parses_declared_env() {
+    let specs = discover_slots(&wrap(r#"x: slot("a", env: "MINDTAPE_PRINCIPAL")"#));
+    assert_eq!(
+        specs.first().unwrap().env.as_deref(),
+        Some("MINDTAPE_PRINCIPAL")
+    );
+}
+
+#[test]
+fn env_defaults_to_implicit_lookup() {
+    let specs = discover_slots(&wrap(r#"x: slot("a")"#));
+    assert_eq!(specs.first().unwrap().env, None);
+}
+
+#[test]
 fn fills_string_with_quoting_and_escape() {
     let out = fill_wrapped(
         r#"title: slot("title")"#,

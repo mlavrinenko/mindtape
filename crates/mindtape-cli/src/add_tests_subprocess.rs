@@ -151,6 +151,21 @@ const RUN_NO_VERIFY_INNER: &str = "_MT_ADD_RUN_NO_VERIFY";
 /// In-tree prelude for the @local/mindtape package override.
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
 
+/// A throwaway project for `run()` tests: config with a single tasks root, a
+/// custom template, the @local/mindtape lib, and an empty tasks dir.
+fn run_scenario_project(dir: &Path, template: &str) {
+    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+    std::fs::write(
+        dir.join(".mindtape/config.toml"),
+        "[tasks]\nroots = [\"tasks\"]\n",
+    )
+    .unwrap();
+    std::fs::create_dir_all(dir.join(".mindtape/templates")).unwrap();
+    std::fs::write(dir.join(".mindtape/templates/task.typ"), template).unwrap();
+    mindtape::test_support::write_lib_package(dir, PRELUDE);
+    std::fs::create_dir_all(dir.join("tasks")).unwrap();
+}
+
 /// A template with a depends-on link to a non-existent task: the file passes
 /// fill and write but fails post-write validation. When `--no-verify` is set,
 /// the original `run()` skips validation, but the `delete !` mutant would run
@@ -200,29 +215,8 @@ fn run_with_no_verify_skips_validation() {
     }
 
     let dir = tempfile::tempdir().unwrap();
-    // Project config with a single tasks root.
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
     // Custom template that produces a task with an unresolvable depends-on.
-    std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/templates/task.typ"),
-        BAD_TEMPLATE,
-    )
-    .unwrap();
-    // Install the @local/mindtape lib so the task can be evaluated.
-    std::fs::create_dir_all(dir.path().join("lib")).unwrap();
-    std::fs::write(dir.path().join("lib/prelude.typ"), PRELUDE).unwrap();
-    std::fs::write(
-        dir.path().join("lib/typst.toml"),
-        "[package]\nname = \"mindtape\"\nversion = \"0.2.0\"\nentrypoint = \"prelude.typ\"\n",
-    )
-    .unwrap();
-    std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
+    run_scenario_project(dir.path(), BAD_TEMPLATE);
 
     let path = dir.path().to_str().unwrap().to_owned();
     let out = std::process::Command::new(std::env::current_exe().unwrap())
@@ -230,6 +224,72 @@ fn run_with_no_verify_skips_validation() {
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .args(["run_with_no_verify_skips_validation", "--nocapture"])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "inner test failed:\nstderr: {}",
+        String::from_utf8_lossy(&out.stderr),
+    );
+}
+
+// ── declared-env fill through run() ──
+
+/// Env var gating the inner/outer split; also the variable the template names.
+const ENV_FILL_INNER: &str = "_MT_ADD_ENV_FILL";
+
+/// A template whose `title` slot declares `env:` — deliberately NOT the
+/// implicit `MINDTAPE_ADD_TITLE` name, so only the declared lookup can fill it.
+const ENV_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
+#show: task.with(
+  title: slot("title", env: "MT_ADD_E2E_TITLE", default: "untitled"),
+)
+"#;
+
+/// Pins the declared-env branch of `layer_env` (a `delete` on the lookup
+/// substitution leaves the slot on its default and the file never mentions
+/// the env value).
+#[test]
+fn run_fills_slot_from_declared_env() {
+    if std::env::var(ENV_FILL_INNER).is_ok() {
+        let root_dir = std::env::var(ENV_FILL_INNER).unwrap();
+        let root = Path::new(&root_dir);
+        std::env::set_current_dir(root).unwrap();
+        let args = AddArgs {
+            title: vec![],
+            template: None,
+            values: vec![],
+            set: vec![],
+            into: ".".to_owned(),
+            to: None,
+            name: Some("env-fill-test".to_owned()),
+            status: None,
+            edit: false,
+            describe: None,
+            list: false,
+            print: false,
+            no_verify: false,
+        };
+        run(&args).expect("run should fill the slot from its declared env");
+        let written =
+            std::fs::read_to_string(root.join("tasks/env-fill-test.typ")).expect("read task");
+        assert!(
+            written.contains("Env Filled Title"),
+            "task should carry the env value, got: {written}",
+        );
+        return;
+    }
+
+    let dir = tempfile::tempdir().unwrap();
+    run_scenario_project(dir.path(), ENV_TEMPLATE);
+
+    let path = dir.path().to_str().unwrap().to_owned();
+    let out = std::process::Command::new(std::env::current_exe().unwrap())
+        .env(ENV_FILL_INNER, &path)
+        .env("MT_ADD_E2E_TITLE", "Env Filled Title")
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .args(["run_fills_slot_from_declared_env", "--nocapture"])
         .output()
         .unwrap();
     assert!(
