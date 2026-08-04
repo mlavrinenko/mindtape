@@ -10,16 +10,19 @@
   difficulty: 4,
   tags: ("cli", "substrate"),
   estimate: (files: 4),
-  status: accepted(
+  status: done(
     2026,
     8,
-    3,
-  )[naming and env-var settled: assignee, MINDTAPE_PRINCIPAL],
+    5,
+  )[field, config, validation, env-backed splice, docs, and e2e shipped; harness session verifies],
   links: depends-on("add-slot-env-fill.typ")[
     the required assignee splice reads MINDTAPE_PRINCIPAL through the generic env slot
   ]
     + related("actors-roles-registry.typ")[
       the assignee value may reference a declared actor; the registry lands as its own task
+    ]
+    + related("assignee-field-manual-test.typ")[
+      the harness session this task's implementation relies on
     ],
 )
 
