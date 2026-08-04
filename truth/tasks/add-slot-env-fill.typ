@@ -10,11 +10,7 @@
   difficulty: 4,
   tags: ("cli", "substrate"),
   estimate: (files: 3),
-  status: accepted(
-    2026,
-    8,
-    3,
-  )[design settled with actor-registry work; filed alongside assignee-field-core],
+  status: done(2026, 8, 5)[env param implemented; e2e proves declared-var fill],
   links: related("assignee-field-core.typ")[
     the assignee slot is this feature's first consumer, and its required splice reads MINDTAPE_PRINCIPAL through it
   ],
