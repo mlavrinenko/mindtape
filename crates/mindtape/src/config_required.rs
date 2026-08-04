@@ -127,6 +127,7 @@ pub struct RequiredRules {
     priority: RequirementRule,
     difficulty: RequirementRule,
     estimate: RequirementRule,
+    assignee: RequirementRule,
     fields: BTreeMap<String, RequirementRule>,
 }
 
@@ -139,6 +140,7 @@ impl RequiredRules {
             priority: RequirementRule::compile(&tasks.priority.field.required),
             difficulty: RequirementRule::compile(&tasks.difficulty.required),
             estimate: RequirementRule::compile(&tasks.estimate.required),
+            assignee: RequirementRule::compile(&tasks.assignee.required),
             fields: tasks
                 .fields
                 .iter()
@@ -163,6 +165,12 @@ impl RequiredRules {
     #[must_use]
     pub fn estimate(&self, task: &Task, config: &Config) -> bool {
         self.estimate.applies(task, config)
+    }
+
+    /// Whether `task` must carry an assignee.
+    #[must_use]
+    pub fn assignee(&self, task: &Task, config: &Config) -> bool {
+        self.assignee.applies(task, config)
     }
 
     /// Whether `task` must carry `[tasks.fields.<name>]`. A name the config
@@ -206,6 +214,10 @@ fn requirements(config: &Config) -> Vec<(String, &Requirement)> {
         (
             "tasks.estimate.required".to_owned(),
             &tasks.estimate.required,
+        ),
+        (
+            "tasks.assignee.required".to_owned(),
+            &tasks.assignee.required,
         ),
     ];
     out.extend(

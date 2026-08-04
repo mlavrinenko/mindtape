@@ -69,6 +69,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
             required.difficulty(task, config),
         ));
         check_estimate(task, config, required.estimate(task, config), &mut out);
+        check_assignee(task, config, required.assignee(task, config), &mut out);
         check_tags(task, config, &mut out);
         crate::validate_recur::check_all(task, config, &mut out);
     }
@@ -233,6 +234,34 @@ fn check_enum_field(
                 task,
                 name,
                 format!("`{value}` is not an allowed value"),
+            );
+        }
+        _ => {}
+    }
+}
+
+/// Flag an assignee outside `[tasks.assignee] allowed`, or a missing one when
+/// the config requires it. An unset assignee is simply absent — an unknown
+/// actor is not a value — so only the required rule cares about `None`.
+fn check_assignee(task: &Task, config: &Config, required: bool, out: &mut Vec<Violation>) {
+    match task.assignee.as_deref() {
+        None if required => {
+            push(
+                out,
+                task,
+                "assignee",
+                "required field is missing".to_owned(),
+            );
+        }
+        Some(value)
+            if !config.tasks.assignee.allowed.is_empty()
+                && !config.tasks.assignee.allowed.iter().any(|a| a == value) =>
+        {
+            push(
+                out,
+                task,
+                "assignee",
+                format!("`{value}` is not an allowed assignee"),
             );
         }
         _ => {}

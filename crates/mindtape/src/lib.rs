@@ -15,6 +15,7 @@ pub mod canonical;
 pub mod condition;
 pub mod config;
 mod config_add;
+mod config_assignee;
 pub mod config_comments;
 mod config_estimate;
 mod config_format;
@@ -79,11 +80,11 @@ pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use condition::{Condition, ConditionEnv, ConditionError};
 pub use config::{
-    AddConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig, DeriveTags, DriftConfig,
-    EstimateConfig, Facet, FormatConfig, GoConfig, HyperlinkChoice, ImportView, InteractiveMode,
-    LS_COLUMNS, LocalPackage, LsRule, PriorityConfig, ReadyConfig, RootConfig, RootSpec,
-    TemplatesConfig, TypstConfig, ViewSpec, Visibility, config_path, embedded_defaults,
-    load_config, parse_config, parse_import_view, validate_views,
+    AddConfig, AssigneeConfig, Collector, ColumnConfig, Config, ConfigError, DeriveConfig,
+    DeriveTags, DriftConfig, EstimateConfig, Facet, FormatConfig, GoConfig, HyperlinkChoice,
+    ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule, PriorityConfig, ReadyConfig,
+    RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec, Visibility, config_path,
+    embedded_defaults, load_config, parse_config, parse_import_view, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_layers::{

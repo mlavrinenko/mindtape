@@ -1,13 +1,14 @@
 //! Synthetic `slot(...)` calls for config-required core fields.
 //!
 //! `mt add` files tasks from a template, but a project's config may require
-//! core fields (priority, difficulty, kind, estimate) the chosen template never
-//! declares. This module derives the slot-bearing expressions those fields need
-//! so a CLI can splice them into `task.with(…)` — surfacing them in the fill
-//! scaffold and the `--describe` schema, and writing them into the final task.
-//! Consumer-blind: pure over [`Config`], no IO, no source editing.
+//! core fields (priority, difficulty, kind, assignee, estimate) the chosen
+//! template never declares. This module derives the slot-bearing expressions
+//! those fields need so a CLI can splice them into `task.with(…)` — surfacing
+//! them in the fill scaffold and the `--describe` schema, and writing them into
+//! the final task. Consumer-blind: pure over [`Config`], no IO, no source
+//! editing.
 
-use crate::config::{Config, FieldConfig};
+use crate::config::{AssigneeConfig, Config, FieldConfig};
 use crate::framework::{Framework, Input, InputKind};
 use crate::numeric::{ScaleKind, format_num};
 
@@ -25,7 +26,7 @@ pub struct RequiredSlot {
 }
 
 /// The required core-field slots a config demands at task-creation time, in a
-/// stable order (`priority`, `difficulty`, `kind`, `estimate`).
+/// stable order (`priority`, `difficulty`, `kind`, `assignee`, `estimate`).
 ///
 /// A field counts as required unless its requirement is `false`: a filter
 /// expression (`"!terminal"`, `"kind == \"bug\""`) is taken as possibly required,
@@ -60,6 +61,12 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
         out.push(RequiredSlot {
             field: "kind",
             call: kind_slot(field),
+        });
+    }
+    if tasks.assignee.required.may_apply() {
+        out.push(RequiredSlot {
+            field: "assignee",
+            call: assignee_slot(&tasks.assignee),
         });
     }
     if tasks.estimate.required.may_apply() {
@@ -165,6 +172,23 @@ fn estimate_slot(config: &Config) -> String {
         .first()
         .map_or("days", String::as_str);
     format!(r#"slot("estimate", kind: "text", prompt: "estimate dict, e.g. ({hint}: 1)")"#)
+}
+
+/// Environment variable a required assignee slot reads by default: the actor
+/// running the CLI. Unset or blank is an unknown actor — not a value — so the
+/// fill falls through to the interactive scaffold.
+const PRINCIPAL_ENV: &str = "MINDTAPE_PRINCIPAL";
+
+fn assignee_slot(assignee: &AssigneeConfig) -> String {
+    if assignee.allowed.is_empty() {
+        return format!(r#"slot("assignee", prompt: "assignee", env: "{PRINCIPAL_ENV}")"#);
+    }
+    let choices: String = assignee
+        .allowed
+        .iter()
+        .map(|value| format!("{value:?}, "))
+        .collect();
+    format!(r#"slot("assignee", kind: "choice", choices: ({choices}), env: "{PRINCIPAL_ENV}")"#)
 }
 
 #[cfg(test)]

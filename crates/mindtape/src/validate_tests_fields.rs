@@ -289,6 +289,61 @@ fn kind_disallowed_value_flags() {
     );
 }
 
+fn assignee_config() -> Config {
+    let mut cfg = config();
+    cfg.tasks.assignee.allowed = vec!["ada".into(), "lin".into()];
+    cfg.tasks.assignee.required = Requirement::Expr("!terminal".to_owned());
+    cfg
+}
+
+#[test]
+fn assignee_missing_required_flags_on_non_terminal() {
+    let mut t = task("a", "wip");
+    t.assignee = None;
+    let violations = validate(&[t], &assignee_config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "assignee" && v.message.contains("missing")),
+        "{violations:?}"
+    );
+}
+
+#[test]
+fn assignee_missing_required_skips_on_terminal() {
+    let mut t = task("a", "done");
+    t.assignee = None;
+    assert!(
+        !validate(&[t], &assignee_config())
+            .iter()
+            .any(|v| v.field == "assignee")
+    );
+}
+
+#[test]
+fn assignee_allowed_value_passes() {
+    let mut t = task("a", "wip");
+    t.assignee = Some("ada".into());
+    assert!(
+        !validate(&[t], &assignee_config())
+            .iter()
+            .any(|v| v.field == "assignee")
+    );
+}
+
+#[test]
+fn assignee_disallowed_value_flags() {
+    let mut t = task("a", "wip");
+    t.assignee = Some("eve".into());
+    let violations = validate(&[t], &assignee_config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "assignee" && v.message.contains("eve")),
+        "{violations:?}"
+    );
+}
+
 #[test]
 fn difficulty_out_of_scale_flags() {
     let mut t = task("a", "wip");

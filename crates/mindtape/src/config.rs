@@ -159,6 +159,8 @@ pub struct TasksConfig {
     /// Constraints for the remaining configurable enum core fields, keyed by
     /// Typst slot name (`kind`).
     pub fields: BTreeMap<String, FieldConfig>,
+    /// Assignee-field constraints (allowed actors, required).
+    pub assignee: crate::config_assignee::AssigneeConfig,
     /// Estimate units allow-list.
     pub estimate: EstimateConfig,
     /// Tag allow-list.
@@ -195,6 +197,7 @@ impl Default for TasksConfig {
             priority: PriorityConfig::default(),
             difficulty: NumericField::default(),
             fields: BTreeMap::new(),
+            assignee: crate::config_assignee::AssigneeConfig::default(),
             estimate: EstimateConfig::default(),
             tags: TagsConfig::default(),
             body: TaskBodyConfig::default(),
@@ -291,6 +294,7 @@ impl<'de> Deserialize<'de> for IdFormat {
     }
 }
 
+pub use crate::config_assignee::AssigneeConfig;
 pub use crate::config_estimate::{DriftConfig, EstimateConfig};
 
 /// `[tasks.fields.<name>]` — constraints for one configurable core field.

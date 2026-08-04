@@ -176,16 +176,47 @@ fn required_estimate_yields_text_slot_with_unit_hint() {
 }
 
 #[test]
-fn order_is_priority_difficulty_kind_estimate() {
+fn order_is_priority_difficulty_kind_assignee_estimate() {
     let config = parse_config(
         "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n\
          [tasks.difficulty]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n\
          [tasks.fields.kind]\nvalues = [\"a\"]\nrequired = true\n\
+         [tasks.assignee]\nrequired = true\n\
          [tasks.estimate]\nrequired = true\n",
     )
     .unwrap();
     assert_eq!(
         fields(&config),
-        vec!["priority", "difficulty", "kind", "estimate"]
+        vec!["priority", "difficulty", "kind", "assignee", "estimate"]
+    );
+}
+
+#[test]
+fn required_assignee_yields_env_backed_plain_slot() {
+    let config = parse_config("[tasks.assignee]\nrequired = true\n").unwrap();
+    let slot = single(&config);
+    assert_eq!(slot.field, "assignee");
+    assert!(
+        slot.call.contains(r#"env: "MINDTAPE_PRINCIPAL""#),
+        "{}",
+        slot.call
+    );
+    assert!(!slot.call.contains("kind: \"choice\""), "{}", slot.call);
+}
+
+#[test]
+fn required_assignee_with_allowed_yields_choice_slot() {
+    let config =
+        parse_config("[tasks.assignee]\nrequired = true\nallowed = [\"ada\", \"lin\"]\n").unwrap();
+    let slot = single(&config);
+    assert_eq!(slot.field, "assignee");
+    assert!(slot.call.contains("kind: \"choice\""), "{}", slot.call);
+    for actor in ["ada", "lin"] {
+        assert!(slot.call.contains(&format!("\"{actor}\"")), "{}", slot.call);
+    }
+    assert!(
+        slot.call.contains(r#"env: "MINDTAPE_PRINCIPAL""#),
+        "{}",
+        slot.call
     );
 }

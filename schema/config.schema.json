@@ -66,6 +66,25 @@
       },
       "type": "object"
     },
+    "AssigneeConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.assignee]` — who may be named, and whether one must be.",
+      "properties": {
+        "allowed": {
+          "default": [],
+          "description": "Allowed assignees (the project's actors). Empty = accept any value.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "required": {
+          "$ref": "#/$defs/Requirement",
+          "description": "Whether an assignee must be set."
+        }
+      },
+      "type": "object"
+    },
     "Band": {
       "additionalProperties": false,
       "description": "One contiguous labelled range in a band classification.",
@@ -1471,6 +1490,10 @@
       "additionalProperties": false,
       "description": "`[tasks]` — where tasks live and how they are constrained.",
       "properties": {
+        "assignee": {
+          "$ref": "#/$defs/AssigneeConfig",
+          "description": "Assignee-field constraints (allowed actors, required)."
+        },
         "body": {
           "$ref": "#/$defs/TaskBodyConfig",
           "description": "Body-shape constraints (heading gating)."
