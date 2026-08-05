@@ -236,3 +236,14 @@ actions = [
 [add]
 header = ""
 comments = false
+
+# The project's actors and roles: who works tasks, and under which hats.
+# Identity-only — a role carries no payload; what a role can do lives in each
+# harness's own config, keyed by role name by convention.
+[[roles]]
+name = "maintainer"
+
+[[actors]]
+name = "ada"
+kind = "human"
+roles = ["maintainer"]

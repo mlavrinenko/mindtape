@@ -10,14 +10,15 @@
   difficulty: 4,
   tags: ("substrate", "tooling"),
   estimate: (files: 3),
-  status: accepted(
-    2026,
-    8,
-    3,
-  )[roles are identity-only; any tooling they should enable lives in the reader's harness, keyed by role name],
+  status: done(2026, 8, 5)[
+    config, validation, assignee constraint, role filters, schema, and docs shipped; harness session verifies
+  ],
   links: depends-on("assignee-field-core.typ")[
     the assignee value references a declared actor when `[tasks.assignee]` allowed is set
-  ],
+  ]
+    + related("actors-roles-registry-manual-test.typ")[
+      session verifies the registry end to end
+    ],
 )
 
 == Summary
