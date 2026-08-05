@@ -9,12 +9,12 @@ groups:
       crates/mindtape-cli/src/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
-      crates/mindtape/src/lib.rs: 1b08cd760d50bc0978baf2b59e8be6a8886b356193f21eb1a7c9692cbf73b8de
+      crates/mindtape/src/lib.rs: e85dd0e7184abfede172b8cf5e240348e1e2c0f739023497fceba6a189d5da19
     dependents:
       skills/mindtape/SKILL.md: 9a37ef56aaf7f0947ddc8ce997e0528f4e3920fec2ce53b60b5595b93e9b1142
       www/content/cli.typ: c0458f7dac6c46bfed42b4cb2acfe9acccee838c3f6d1c830fd6391f6f048430
-      www/content/config.typ: a41e0d54d2bbaa0e5a79d6302d3a147b2bca488e8a2a38033d8e478864cf471c
-      www/content/filters.typ: 7bb655f2fcbda31789c194f05a378d2ad840b84d4fbd3cd270ccbd97310f407b
+      www/content/config.typ: e7b6aa4f7e58fba54c384d88ba62b7be65767fc4582372986854a7bba4a7dbc6
+      www/content/filters.typ: ecc60cdc1d6a1ea8f46dbdffe5280c77f44e165fb58e4a6acfa2ae3134a11bf4
       www/content/quickstart.typ: ec67df32e539b5c2ee0d853c989583679c176639b58f4dacde15ce35ee858be6
       www/utils/cli-notes.typ: 3edebc5ddcd58cbab30ec1f4ffd3e4811c04609c30fb06475656ca76ffe8359a
   cli-name:

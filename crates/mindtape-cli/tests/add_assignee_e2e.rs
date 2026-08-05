@@ -10,9 +10,12 @@ mod support;
 
 /// A config whose `[tasks.assignee]` is required with an allowed list: the
 /// barebones template omits assignee, so `add` must splice in a choice slot
-/// backed by `$MINDTAPE_PRINCIPAL`.
+/// backed by `$MINDTAPE_PRINCIPAL`. The allowed names are declared actors, as
+/// the actors registry requires.
 const ASSIGNEE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
-     [tasks.assignee]\nallowed = [\"ada\", \"lin\"]\nrequired = true\n";
+     [tasks.assignee]\nallowed = [\"ada\", \"lin\"]\nrequired = true\n\
+     [[actors]]\nname = \"ada\"\nkind = \"human\"\n\
+     [[actors]]\nname = \"lin\"\nkind = \"human\"\n";
 
 fn scaffold(dir: &Path, config: &str) {
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();

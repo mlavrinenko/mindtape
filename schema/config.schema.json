@@ -1,5 +1,47 @@
 {
   "$defs": {
+    "Actor": {
+      "additionalProperties": false,
+      "description": "`[[actors]]` — one named worker in the project.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/ActorKind",
+          "description": "What the actor is."
+        },
+        "name": {
+          "description": "Unique actor name; the value an `assignee:` field (or a\n`[tasks.assignee] allowed` entry) references.",
+          "type": "string"
+        },
+        "roles": {
+          "default": [],
+          "description": "Roles the actor holds, each naming a declared `[[roles]]` entry.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "ActorKind": {
+      "description": "What an actor is.",
+      "oneOf": [
+        {
+          "const": "human",
+          "description": "A person.",
+          "type": "string"
+        },
+        {
+          "const": "llm",
+          "description": "A language model.",
+          "type": "string"
+        }
+      ]
+    },
     "AddConfig": {
       "additionalProperties": false,
       "description": "`[add]` — interactive editor fill settings.",
@@ -1366,6 +1408,20 @@
       },
       "type": "object"
     },
+    "Role": {
+      "additionalProperties": false,
+      "description": "`[[roles]]` — one role name an actor can hold. Identity-only: the role\ncarries no payload; a reader's harness keys its own config by role name.",
+      "properties": {
+        "name": {
+          "description": "Unique role name.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
     "RootConfig": {
       "additionalProperties": false,
       "description": "The table form of a task root.",
@@ -1664,6 +1720,13 @@
   "additionalProperties": false,
   "description": "Schema for `.mindtape/config.toml`, MindTape's per-project configuration. MindTape is a white-list: every section is optional and inherits the shipped floor when omitted.",
   "properties": {
+    "actors": {
+      "description": "The project's actor registry (`[[actors]]`): named workers (people and\nlanguage models) that `assignee:` values may reference.",
+      "items": {
+        "$ref": "#/$defs/Actor"
+      },
+      "type": "array"
+    },
     "add": {
       "$ref": "#/$defs/AddConfig",
       "description": "`add` interactive-fill settings (editor, when it opens)."
@@ -1691,6 +1754,13 @@
     "rm": {
       "$ref": "#/$defs/RmConfig",
       "description": "`rm` (task removal) defaults."
+    },
+    "roles": {
+      "description": "Declared role names (`[[roles]]`) actors may hold. Identity-only: a\nrole carries no payload; the reader's harness keys its own config by\nrole name by convention.",
+      "items": {
+        "$ref": "#/$defs/Role"
+      },
+      "type": "array"
     },
     "tasks": {
       "$ref": "#/$defs/TasksConfig",

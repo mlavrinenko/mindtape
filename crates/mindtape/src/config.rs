@@ -74,6 +74,13 @@ pub struct Config {
     pub views: BTreeMap<String, ViewSpec>,
     /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
     pub on: crate::config_hooks::OnConfig,
+    /// The project's actor registry (`[[actors]]`): named workers (people and
+    /// language models) that `assignee:` values may reference.
+    pub actors: Vec<crate::config_actors::Actor>,
+    /// Declared role names (`[[roles]]`) actors may hold. Identity-only: a
+    /// role carries no payload; the reader's harness keys its own config by
+    /// role name by convention.
+    pub roles: Vec<crate::config_actors::Role>,
 }
 
 /// `[typst]` — Typst evaluation settings.
@@ -294,6 +301,7 @@ impl<'de> Deserialize<'de> for IdFormat {
     }
 }
 
+pub use crate::config_actors::{Actor, ActorKind, Role, roles_of};
 pub use crate::config_assignee::AssigneeConfig;
 pub use crate::config_estimate::{DriftConfig, EstimateConfig};
 
@@ -363,6 +371,7 @@ impl Config {
         problems.extend(crate::config_links_validate::validate_link_kinds(self));
         problems.extend(crate::config_limits::validate_limits(self));
         problems.extend(crate::config_comments::validate_comments(self));
+        problems.extend(crate::config_actors::validate_actors(self));
         problems.extend(crate::config_hooks::validate_flip_hooks(self));
         problems.extend(validate_ls_rules(&self.ls.rules, &self.views));
         if let Some(name) = &self.ls.default_view

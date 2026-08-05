@@ -69,6 +69,8 @@ fn schema_has_expected_root() {
         "typst",
         "format",
         "views",
+        "actors",
+        "roles",
     ] {
         assert!(
             value["properties"][section].is_object(),

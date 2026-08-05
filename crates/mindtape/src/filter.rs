@@ -6,10 +6,15 @@
 //! # Syntax
 //!
 //! Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`,
-//! `id`, `due`, `start`, `reviewed`, `file`. `priority` and `difficulty` are
-//! numeric, so they compare numerically against a number literal (e.g.
-//! `priority >= 7`). The opaque `estimate` dict supports presence only
-//! (`has(estimate)` / `miss(estimate)`), not comparison.
+//! `id`, `due`, `start`, `reviewed`, `file`, `assignee` (the actor name, a
+//! string compare), and `role` (a virtual, comparison-only field: the literal
+//! resolves against the assignee's declared roles from the `[[actors]]`
+//! registry at read time, so `role == "reviewer"` matches a task whose
+//! assignee holds that role; any other comparison follows the missing-field
+//! rule, making `role != "reviewer"` its exact complement). `priority` and
+//! `difficulty` are numeric, so they compare numerically against a number
+//! literal (e.g. `priority >= 7`). The opaque `estimate` dict supports presence
+//! only (`has(estimate)` / `miss(estimate)`), not comparison.
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
@@ -230,8 +235,31 @@ fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, Filte
     };
     let field = extract_identifier(lhs).map_err(FilterError::Invalid)?;
     let literal = resolve_now_or_literal(rhs).map_err(FilterError::Invalid)?;
-    let value = field_value(ctx.task, &field, ctx.config)?;
+    let value = if field == "role" {
+        role_field(ctx.task, ctx.config, &literal)
+    } else {
+        field_value(ctx.task, &field, ctx.config)?
+    };
     Ok(compare(node.operator(), &value, &literal))
+}
+
+/// `role` is a virtual, comparison-only field resolved from the actors
+/// registry at read time: a task matches a role literal when its assignee is a
+/// declared actor holding that role. Every other comparison resolves to
+/// [`FieldValue::Missing`], so the missing-field rule applies uniformly and
+/// `role == "reviewer"` / `role != "reviewer"` partition the whole set with no
+/// third case.
+fn role_field(task: &Task, config: &Config, literal: &str) -> FieldValue {
+    match task
+        .assignee
+        .as_deref()
+        .and_then(|name| crate::config_actors::roles_of(name, config))
+    {
+        Some(roles) if roles.iter().any(|role| role == literal) => {
+            FieldValue::Str(literal.to_owned())
+        }
+        _ => FieldValue::Missing,
+    }
 }
 
 /// Compare one resolved field value against a literal.
@@ -372,6 +400,7 @@ fn field_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, F
         "start" => opt_str(task.start.clone()),
         "reviewed" => opt_str(task.reviewed.clone()),
         "file" => FieldValue::Str(task.file_key()),
+        "assignee" => opt_str(task.assignee.clone()),
         "depth" => FieldValue::Num(task.depth.into()),
         other => return Err(FilterError::UnknownField(other.to_owned())),
     };

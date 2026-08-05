@@ -63,6 +63,8 @@ below) cover the sections whose shape needs more than one line.
   ("tasks.limits", "[[tasks.limits]]"),
   ("tasks.comments", "[tasks.comments]"),
   ("tasks.links", "[[tasks.links.kinds]]"),
+  ("actors", "[[actors]]"),
+  ("roles", "[[roles]]"),
   ("ls", "[ls]"),
   ("rm", "[rm]"),
   ("views", "[views.<name>]"),
@@ -172,6 +174,42 @@ A required assignee is spliced into the add template as a slot backed by
 `$MINDTAPE_PRINCIPAL`: under a harness that sets the variable, `mt add` files
 silently; unset, the slot prompts interactively — an unknown actor is never
 silently written as an empty worker.
+
+= Actors and roles
+
+`[[actors]]` and `[[roles]]` form the project's actor registry: who works
+tasks, and under which hats. An actor is a person or a language model; roles
+are identity-only — a role carries no tooling or prompt payload, any tooling a
+role should enable lives in the reader's harness config, keyed by role name by
+convention:
+
+```toml
+[[roles]]
+name = "reviewer"
+
+[[actors]]
+name   = "ada"
+kind   = "human"
+roles  = ["reviewer"]
+
+[[actors]]
+name  = "gpt"
+kind  = "llm"
+roles = ["author"]
+```
+
+`kind` is one of `human` / `llm`. `mt check` validates the registry: actor and
+role names are unique and non-empty, and an actor may only hold declared
+roles. When `[tasks.assignee] allowed` is set, every allowed name must be a
+declared actor — the registry is the vocabulary the assignee field points
+into, so a free-text misspelling can never slip through config. In filters,
+`assignee == "ada"` compares the actor name and `role == "reviewer"` resolves
+the assignee's roles from the registry at read time:
+
+```text
+mt ls 'role == "reviewer"'        # tasks currently held by a reviewer
+mt ls 'assignee == "gpt"'         # tasks assigned to the model
+```
 
 = Status transitions
 

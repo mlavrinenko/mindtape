@@ -491,3 +491,7 @@ fn contains_does_not_match_absent_substring() {
 // under the linecop limit).
 #[path = "filter_dispatch_tests.rs"]
 mod dispatch;
+
+// The `assignee` / `role` registry-backed filter tests likewise.
+#[path = "filter_actors_tests.rs"]
+mod actors;

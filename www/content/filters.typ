@@ -16,9 +16,15 @@ Here, every task not yet in a terminal status:
 = Fields
 
 Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
-`due`, `start`, `reviewed`, `file`, `depth`. `priority` and `difficulty` compare
-numerically (`priority >= 7`). The opaque `estimate` dict supports presence only
-(`has(estimate)`), never comparison.
+`due`, `start`, `reviewed`, `file`, `depth`, `assignee`, `role`. `priority` and
+`difficulty` compare numerically (`priority >= 7`). The opaque `estimate` dict
+supports presence only (`has(estimate)`), never comparison.
+
+`assignee` compares the actor name as a plain string (`assignee == "ada"`).
+`role` is resolved from the `[[actors]]` registry at read time: `role ==
+"reviewer"` matches a task whose assignee holds that role, and `role !=
+"reviewer"` is its exact complement — an unassigned task, or one whose
+assignee is not a declared actor, holds no role.
 
 `file` compares the task's project-root-relative source path with `/`
 separators on every platform — deliberately not the
