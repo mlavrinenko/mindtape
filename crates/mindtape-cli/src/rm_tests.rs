@@ -7,7 +7,10 @@ use mindtape::test_support::bare_task;
 use mindtape::{Config, LoadOutcome, Readiness, Status, Task, parse_config};
 use swhid_mint::test_support::repo_with;
 
-use super::{Plan, apply, check_eligible_files, plan, rewrite_link_count, select_targets};
+use super::{
+    Plan, apply, check_eligible_files, inbound_references, plain_delete_plan, plan,
+    rewrite_link_count, select_targets,
+};
 use crate::git;
 use crate::util::Project;
 use typst_cleanup::{Rewrite, is_clean};
@@ -153,6 +156,85 @@ fn plan_aborts_when_a_removed_task_is_untracked() {
     assert!(result.is_err());
     assert!(root.join("gone.typ").exists());
     assert!(root.join("orphan.typ").exists());
+}
+
+// --- unreferenced removal: no git at all ---
+
+#[test]
+fn inbound_references_finds_survivor_edges() {
+    // The parse-plane scan sees the `links:` helper edges, not just `link()`.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(root.join("live.typ"), depends_survivor()).unwrap();
+    let tasks = gone_and_live("done");
+
+    let referenced = inbound_references(&tasks, &ids(&["gone"]), root).unwrap();
+
+    assert_eq!(referenced, ids(&["gone"]));
+}
+
+#[test]
+fn inbound_references_empty_when_nothing_points_at_eligible() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(root.join("live.typ"), "no links here\n").unwrap();
+    let tasks = gone_and_live("done");
+
+    let referenced = inbound_references(&tasks, &ids(&["gone"]), root).unwrap();
+
+    assert!(referenced.is_empty());
+}
+
+#[test]
+fn inbound_references_ignores_eligible_tasks_own_edges() {
+    // `a` (also being removed) links to `gone` — both go away in the same run,
+    // so the edge is not waiting for attention and must not force a tombstone.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(root.join("a.typ"), depends_survivor()).unwrap();
+    let tasks = vec![
+        task("gone", "gone.typ", Some("done")),
+        task("a", "a.typ", Some("done")),
+    ];
+
+    let referenced = inbound_references(&tasks, &ids(&["gone", "a"]), root).unwrap();
+
+    assert!(referenced.is_empty());
+}
+
+#[test]
+fn plain_delete_plan_deletes_without_git() {
+    // No repository anywhere: the eligible task is removed by direct deletion,
+    // the survivor is left untouched — not even read.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
+    std::fs::write(root.join("live.typ"), depends_survivor()).unwrap();
+    let tasks = gone_and_live("done");
+
+    let plan = plain_delete_plan(&tasks, &ids(&["gone"]), root);
+    assert_eq!(plan.deletions.len(), 1);
+    assert_eq!(plan.deletions[0].rel, PathBuf::from("gone.typ"));
+    assert!(plan.rewrites.is_empty());
+
+    apply(&plan).unwrap();
+    assert!(!root.join("gone.typ").exists());
+    assert!(root.join("live.typ").exists());
+}
+
+#[test]
+fn plain_delete_plan_sorts_like_tombstone_path() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    let tasks = vec![
+        task("b", "b.typ", Some("done")),
+        task("a", "a.typ", Some("done")),
+    ];
+
+    let plan = plain_delete_plan(&tasks, &ids(&["a", "b"]), root);
+
+    assert_eq!(plan.deletions[0].rel, PathBuf::from("a.typ"));
+    assert_eq!(plan.deletions[1].rel, PathBuf::from("b.typ"));
 }
 
 // The behaviour of `is_clean` (dirty tracked file, untracked file) is owned and

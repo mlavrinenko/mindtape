@@ -207,11 +207,22 @@ fn run_dry_run_skips_preflight() {
     // eligible file the real code fails from plan() (mint_rev_path on dirty
     // file) — error does NOT contain "uncommitted".  The mutant fails from
     // check_eligible_files — error DOES contain "uncommitted".
-    let (_dir, root) = scaffold(&[("tasks/gone.typ", METADATA_GONE)]);
+    // The eligible task must be referenced: an unreferenced task is deleted
+    // directly with no git, so the preflight path never runs.
+    let (_dir, root) = scaffold_with_lib(
+        "#import \"@local/mindtape:0.2.0\": *\n\n\
+         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody.\n",
+        Some(
+            "#import \"@local/mindtape:0.2.0\": *\n\n\
+             #show: task.with(\n  title: \"Live\",\n  status: wip(2026, 6, 1),\n  \
+             links: depends-on(\"gone.typ\"),\n)\n\nBody.\n",
+        ),
+    );
     // Dirty the eligible file.
     std::fs::write(
         root.join("tasks/gone.typ"),
-        format!("{METADATA_GONE}// dirty\n"),
+        "#import \"@local/mindtape:0.2.0\": *\n\n\
+         #show: task.with(\n  title: \"Gone\",\n  status: done(2026, 6, 1),\n)\n\nBody. // dirty\n",
     )
     .unwrap();
 

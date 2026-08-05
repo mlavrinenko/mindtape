@@ -16,6 +16,11 @@
 //! Atomic by construction: [`typst_cleanup::plan`] computes every mint and
 //! rewrite in memory; not a byte is written until [`apply`] runs on a complete
 //! plan. `rm` does not commit — the user reviews the diff and commits.
+//!
+//! Git is gated on need, not presence: [`run`] scans the survivors for inbound
+//! references before touching the repository, and a task nothing references is
+//! deleted directly ([`plain_delete_plan`]) — no toplevel discovery, no
+//! tombstone, no committed-clean guard.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -25,7 +30,7 @@ use clap::Args;
 use mindtape::{
     Filter, Readiness, Task, is_history_pointer, link_target_spans, normalize_link, select,
 };
-use typst_cleanup::{Artifact, Policy, Swhid, Target};
+use typst_cleanup::{Artifact, Deletion, Policy, Swhid, Target};
 // Re-exported so `rm`'s presentation and tests refer to one plan type.
 pub use typst_cleanup::{Plan, apply};
 
@@ -80,15 +85,20 @@ impl Policy for TaskLinks {
 /// Run the `rm` command.
 ///
 /// Applies the plan in place (deletes the selected task files, rewrites inbound
-/// links) but does not commit — the user reviews the diff and commits. On a real
-/// run (not `--dry-run`), refuses early if any selected task file is not
-/// committed-clean; all offenders are listed at once so the user can fix them in
-/// one step.
+/// links) but does not commit — the user reviews the diff and commits. A task
+/// no survivor references is deleted directly, with no git at all: nothing
+/// needs a tombstone, so there is no toplevel discovery, no committed-clean
+/// guard, no mint. When a survivor does reference a removed task, a real run
+/// (not `--dry-run`) refuses early if any selected task file is not
+/// committed-clean; all offenders are listed at once so the user can fix them
+/// in one step.
 ///
 /// # Errors
-/// Returns an error (non-zero exit) on an uncommitted task file, an unresolvable
-/// target, an invalid filter, a task file that is not recoverable from git, a
-/// wrong-shaped surviving file, a declined prompt, or any git failure.
+/// Returns an error (non-zero exit) on an unresolvable target, an invalid
+/// filter, an unreadable surviving file, a declined prompt, or — when a
+/// survivor references a removed task — an uncommitted task file, a task file
+/// that is not recoverable from git, a wrong-shaped surviving file, or any git
+/// failure.
 pub fn run(args: &RmArgs) -> Result<()> {
     let project = util::open()?;
     util::warn_errors(&project.outcome);
@@ -107,6 +117,16 @@ pub fn run(args: &RmArgs) -> Result<()> {
         .root
         .canonicalize()
         .with_context(|| format!("resolve {}", project.root.display()))?;
+
+    // A task nothing references needs no tombstone, so no git at all. Only when
+    // a survivor points at an eligible task is the repository consulted.
+    if inbound_references(&project.outcome.tasks, &eligible, &root)?.is_empty() {
+        return finalize(
+            &plain_delete_plan(&project.outcome.tasks, &eligible, &root),
+            args,
+        );
+    }
+
     let git_root = git::toplevel(&root)?
         .canonicalize()
         .context("resolve git toplevel")?;
@@ -116,19 +136,28 @@ pub fn run(args: &RmArgs) -> Result<()> {
     }
 
     let plan = plan(&project.outcome.tasks, &eligible, &root, &git_root)?;
+    finalize(&plan, args)
+}
 
+/// The tail shared by both removal paths: dry-run reporting, confirmation, and
+/// the atomic apply + summary. Writes nothing on `--dry-run`.
+///
+/// # Errors
+/// A declined prompt aborts with `aborted by user`; [`apply`] propagates its
+/// write failures.
+fn finalize(plan: &Plan, args: &RmArgs) -> Result<()> {
     if args.dry_run {
-        report_plan(&plan);
+        report_plan(plan);
         println!("dry run: nothing written");
         return Ok(());
     }
 
-    if !args.yes && !confirm(&plan)? {
+    if !args.yes && !confirm(plan)? {
         bail!("aborted by user");
     }
 
-    apply(&plan)?;
-    report_applied(&plan);
+    apply(plan)?;
+    report_applied(plan);
     Ok(())
 }
 
@@ -212,6 +241,62 @@ fn plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path, git_root: &Path
     )?)
 }
 
+/// Which eligible ids a *surviving* task's source references — the same
+/// parse-plane scan the tombstone path uses ([`TaskLinks::scan`] +
+/// [`TaskLinks::identity`]), so the `links:` helper edges are covered, not just
+/// `link()`. No eval, no git. Empty means no tombstone is needed: plain
+/// deletion.
+///
+/// A link *from* an eligible task counts for nothing — it is going away in the
+/// same run, so it is not waiting for attention.
+///
+/// # Errors
+/// A survivor file that cannot be read fails the run, matching the tombstone
+/// path's behaviour in [`typst_cleanup::plan`].
+fn inbound_references(
+    tasks: &[Task],
+    eligible: &HashSet<String>,
+    root: &Path,
+) -> Result<HashSet<String>> {
+    let policy = TaskLinks;
+    let mut referenced = HashSet::new();
+    for task in tasks {
+        if eligible.contains(&task.id) {
+            continue;
+        }
+        let source = std::fs::read_to_string(root.join(&task.file))
+            .with_context(|| format!("read {}", task.file.display()))?;
+        for target in policy.scan(&source) {
+            let Some(id) = policy.identity(&target.raw) else {
+                continue;
+            };
+            if eligible.contains(&id) {
+                referenced.insert(id);
+            }
+        }
+    }
+    Ok(referenced)
+}
+
+/// The deletion-only plan for tasks nothing references: no tombstones, no
+/// rewrites, no git. Deletions sorted like [`typst_cleanup::plan`]'s, for a
+/// stable report.
+fn plain_delete_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> Plan {
+    let mut deletions: Vec<Deletion> = tasks
+        .iter()
+        .filter(|task| eligible.contains(&task.id))
+        .map(|task| Deletion {
+            abs: root.join(&task.file),
+            rel: task.file.clone(),
+        })
+        .collect();
+    deletions.sort_by(|a, b| a.rel.cmp(&b.rel));
+    Plan {
+        deletions,
+        rewrites: Vec::new(),
+    }
+}
+
 /// Check every eligible task file individually: each must be committed and
 /// unmodified so `swhid_mint` can pin its tombstone to the last-touch commit.
 /// Collects all failures before returning so the user sees every offender in
@@ -274,11 +359,15 @@ fn check_eligible_files(
 fn confirm(plan: &Plan) -> Result<bool> {
     use std::io::Write;
     let mut stderr = std::io::stderr();
+    let rewrites = if plan.rewrites.is_empty() {
+        String::new()
+    } else {
+        format!(" and rewrite links in {} file(s)", plan.rewrites.len())
+    };
     writeln!(
         stderr,
-        "rm will delete {} task(s) and rewrite links in {} file(s):",
-        plan.deletions.len(),
-        plan.rewrites.len()
+        "rm will delete {} task(s){rewrites}:",
+        plan.deletions.len()
     )?;
     for deletion in &plan.deletions {
         writeln!(stderr, "  - {}", deletion.rel.display())?;

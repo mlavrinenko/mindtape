@@ -33,6 +33,14 @@ status: wip(2026, 6, 1),\n  \
 links: depends-on(\"gone.typ\") + related(\"gone.typ\")[why] + edge(\"blocks\", \"gone.typ\"),\n\
 )\n\n== Summary\n\nBody.\n";
 
+/// A survivor that never references `gone` — the unreferenced-removal case,
+/// where deletion needs no tombstone and no git.
+const UNRELATED: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+#show: task.with(\n  \
+title: \"Unrelated\",\n  \
+status: wip(2026, 6, 1),\n\
+)\n\n== Summary\n\nBody.\n";
+
 fn git(dir: &Path, args: &[&str]) {
     let status = Command::new("git")
         .current_dir(dir)
@@ -42,13 +50,19 @@ fn git(dir: &Path, args: &[&str]) {
     assert!(status.success(), "git {args:?} failed");
 }
 
-/// Scaffold a committed-clean git repo with the config, in-tree lib, and tasks.
-fn scaffold(dir: &Path) {
+/// Scaffold the project files — config, in-tree lib, and the given task
+/// sources — without initializing git.
+fn scaffold_files(dir: &Path, files: &[(&str, &str)]) {
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
     std::fs::write(dir.join(".mindtape/config.toml"), CONFIG).unwrap();
     support::install_lib(dir);
-    std::fs::write(dir.join("tasks/gone.typ"), GONE).unwrap();
-    std::fs::write(dir.join("tasks/live.typ"), LIVE).unwrap();
+    for (name, contents) in files {
+        std::fs::write(dir.join("tasks").join(name), contents).unwrap();
+    }
+}
+
+/// The git half of [`scaffold`]: init, identity, and a committed-clean seed.
+fn git_commit_all(dir: &Path) {
     git(dir, &["init", "-q"]);
     git(dir, &["config", "user.email", "t@example.com"]);
     git(dir, &["config", "user.name", "t"]);
@@ -57,6 +71,13 @@ fn scaffold(dir: &Path) {
         dir,
         &["-c", "commit.gpgsign=false", "commit", "-q", "-m", "seed"],
     );
+}
+
+/// Scaffold a committed-clean git repo with the config, in-tree lib, and the
+/// referencing task pair.
+fn scaffold(dir: &Path) {
+    scaffold_files(dir, &[("gone.typ", GONE), ("live.typ", LIVE)]);
+    git_commit_all(dir);
 }
 
 fn mt(dir: &Path) -> assert_cmd::Command {
@@ -88,5 +109,49 @@ fn rm_retargets_every_links_edge_and_check_stays_green() {
 
     // The dangling-edge regression: with every inbound edge tombstoned, no
     // survivor edge resolves to a missing task, so validation stays green.
+    mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_deletes_unreferenced_task_outside_git_repo() {
+    // No repository anywhere: a task nothing references must be removable
+    // anyway — no toplevel discovery, no tombstone, no committed-clean guard.
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_files(
+        dir.path(),
+        &[("gone.typ", GONE), ("unrelated.typ", UNRELATED)],
+    );
+
+    // --dry-run reports the plan without git and writes nothing.
+    mt(dir.path())
+        .args(["rm", "--dry-run", "-y", "gone"])
+        .assert()
+        .success();
+    assert!(dir.path().join("tasks/gone.typ").exists());
+
+    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+
+    assert!(!dir.path().join("tasks/gone.typ").exists());
+    // The survivor is untouched — no tombstone, no rewrite.
+    let unrelated = std::fs::read_to_string(dir.path().join("tasks/unrelated.typ")).unwrap();
+    assert!(!unrelated.contains("swh:1:rev:"), "survivor was rewritten");
+    mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_deletes_unreferenced_task_inside_git_repo() {
+    // The fast path also applies when git exists: nothing references `gone`,
+    // so deletion still skips the repository entirely.
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_files(
+        dir.path(),
+        &[("gone.typ", GONE), ("unrelated.typ", UNRELATED)],
+    );
+    git_commit_all(dir.path());
+
+    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+
+    assert!(!dir.path().join("tasks/gone.typ").exists());
+    assert!(dir.path().join("tasks/unrelated.typ").exists());
     mt(dir.path()).arg("check").assert().success();
 }
