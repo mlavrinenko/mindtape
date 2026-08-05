@@ -420,3 +420,6 @@ fn select_targets_unresolvable_token_errors() {
 
 #[path = "rm_cli_tests.rs"]
 mod rm_cli_tests;
+
+#[path = "rm_gitless_tests.rs"]
+mod rm_gitless_tests;

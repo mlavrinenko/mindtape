@@ -67,6 +67,7 @@ below) cover the sections whose shape needs more than one line.
   ("roles", "[[roles]]"),
   ("ls", "[ls]"),
   ("rm", "[rm]"),
+  ("retire", "[retire]"),
   ("views", "[views.<name>]"),
   ("on", "[[on.flip]]"),
   ("templates", "[templates]"),

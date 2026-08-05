@@ -9,11 +9,11 @@ groups:
       crates/mindtape-cli/src/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
-      crates/mindtape/src/lib.rs: e85dd0e7184abfede172b8cf5e240348e1e2c0f739023497fceba6a189d5da19
+      crates/mindtape/src/lib.rs: 762de604b4693f9663162e257fe0415285087fad1649564c3c7e9330aae44977
     dependents:
-      skills/mindtape/SKILL.md: 9a37ef56aaf7f0947ddc8ce997e0528f4e3920fec2ce53b60b5595b93e9b1142
-      www/content/cli.typ: c0458f7dac6c46bfed42b4cb2acfe9acccee838c3f6d1c830fd6391f6f048430
-      www/content/config.typ: e7b6aa4f7e58fba54c384d88ba62b7be65767fc4582372986854a7bba4a7dbc6
+      skills/mindtape/SKILL.md: 1e2222eacec91ed06bb65fabed5910da119dddaad9b3e4c84a19c9bf978c36cb
+      www/content/cli.typ: ef1cdb0645210fd20931e8909d3db200cd23ba88dce878fb6b9317dcbfc76d18
+      www/content/config.typ: cb97bf6ad62002143725da5daf9f083c19601a2fdfb92d677244fbaff8857f88
       www/content/filters.typ: ecc60cdc1d6a1ea8f46dbdffe5280c77f44e165fb58e4a6acfa2ae3134a11bf4
       www/content/quickstart.typ: ec67df32e539b5c2ee0d853c989583679c176639b58f4dacde15ce35ee858be6
       www/utils/cli-notes.typ: 3edebc5ddcd58cbab30ec1f4ffd3e4811c04609c30fb06475656ca76ffe8359a
@@ -44,7 +44,7 @@ groups:
       AGENTS.md: 9c8d8d28e6442b432c1d9eed513666dab0ee48d674e726300700af8015a914c0
       README.md: 0e2910d0396e3437c445315b4e26c05f59b367e2f6c4c847865948536fe16495
       skills/mindtape/SKILL.md: 9a37ef56aaf7f0947ddc8ce997e0528f4e3920fec2ce53b60b5595b93e9b1142
-      www/content/dsl.typ: 13d11a3f151169650363902e0c9951b9ea7b8c0af9c07707891fb34ee68bbbeb
+      www/content/dsl.typ: 7a7472f3a74342b9b85a850750f0188a2f42c2c6e6b0756bf412f87e7c539530
   release-notes:
     source:
       Cargo.toml: 09d8ee5c1cc971e967e96e313c256abf7ef51093c1cbd06fbdf1c97fef7d457e

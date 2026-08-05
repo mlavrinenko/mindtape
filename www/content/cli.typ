@@ -218,6 +218,13 @@ layers contributed, and from where.
 `links:` edge (any kind) onto it, and does not commit. Its built-in default
 filter is `terminal`.
 
+Without a git repository there is no tombstone to mint, so `[rm] strategy`
+picks how the inbound edges are handled instead: `reject` (the default)
+refuses, listing every surviving referrer; `unlink` strips the edges and
+deletes; `retire` keeps the file and flips it to a terminal status — `[retire]`
+tunes the status and an optional archive move. A task nothing references is
+deleted plainly, git or not.
+
 #cli-group(cli, cli-groups, "Retire")
 
 = Setup

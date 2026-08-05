@@ -16,11 +16,29 @@ mod support;
 /// `edge("blocks", …)` resolves and `mt check` accepts it.
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n";
 
+const UNLINK_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n\n[rm]\nstrategy = \"unlink\"\n";
+
+const RETIRE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n\n[rm]\nstrategy = \"retire\"\n";
+
+const RETIRE_STATUS_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n\n[rm]\nstrategy = \"retire\"\n[retire]\nstatus = \"cancelled\"\n";
+
+const RETIRE_ARCHIVE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n\n[rm]\nstrategy = \"retire\"\n[retire]\nrename = \".archive\"\n";
+
+const BATCH_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\n[[tasks.links.kinds]]\nname = \"blocks\"\n\n[rm]\ndefault-filter = \"status == \\\"wip\\\"\"\n";
+
 /// The retired task: terminal, so `mt rm` sweeps it without a target override.
 const GONE: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
 #show: task.with(\n  \
 title: \"Gone\",\n  \
 status: done(2026, 6, 1),\n\
+)\n\n== Summary\n\nBody.\n";
+
+/// A non-terminal removed task: `retire` must flip it, and the strategy must
+/// kick in on its inbound edge even though the file itself is not terminal.
+const REMOVED: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+#show: task.with(\n  \
+title: \"Gone\",\n  \
+status: wip(2026, 6, 1),\n\
 )\n\n== Summary\n\nBody.\n";
 
 /// The survivor: three inbound edges to `gone`, one per kind the fix must
@@ -53,8 +71,13 @@ fn git(dir: &Path, args: &[&str]) {
 /// Scaffold the project files — config, in-tree lib, and the given task
 /// sources — without initializing git.
 fn scaffold_files(dir: &Path, files: &[(&str, &str)]) {
+    scaffold_config(dir, CONFIG, files);
+}
+
+/// Scaffold the project files with an explicit config instead of [`CONFIG`].
+fn scaffold_config(dir: &Path, config: &str, files: &[(&str, &str)]) {
     std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), CONFIG).unwrap();
+    std::fs::write(dir.join(".mindtape/config.toml"), config).unwrap();
     support::install_lib(dir);
     for (name, contents) in files {
         std::fs::write(dir.join("tasks").join(name), contents).unwrap();
@@ -154,4 +177,159 @@ fn rm_deletes_unreferenced_task_inside_git_repo() {
     assert!(!dir.path().join("tasks/gone.typ").exists());
     assert!(dir.path().join("tasks/unrelated.typ").exists());
     mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_defaults_to_reject_without_git_and_lists_surviving_referrers() {
+    // No repository, no configured strategy: the default is `reject`, which
+    // refuses and names every surviving task that points at `gone` — dry-run
+    // included, since reject has no plan to preview.
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_files(dir.path(), &[("gone.typ", GONE), ("live.typ", LIVE)]);
+
+    mt(dir.path())
+        .args(["rm", "--dry-run", "-y", "gone"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains(
+            "cannot remove task(s): 1 reference(s) from surviving task(s)",
+        ))
+        .stderr(predicates::str::contains("live.typ  links to gone"));
+
+    mt(dir.path())
+        .args(["rm", "-y", "gone"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains(
+            "cannot remove task(s): 1 reference(s) from surviving task(s)",
+        ));
+
+    assert!(dir.path().join("tasks/gone.typ").exists());
+    assert!(dir.path().join("tasks/live.typ").exists());
+}
+
+#[test]
+fn rm_unlink_strips_inbound_edges_and_deletes_without_git() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_config(
+        dir.path(),
+        UNLINK_CONFIG,
+        &[("gone.typ", GONE), ("live.typ", LIVE)],
+    );
+
+    // --dry-run reports the strategy and its planned edits without any git.
+    mt(dir.path())
+        .args(["rm", "--dry-run", "-y", "gone"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("strategy: unlink"))
+        .stdout(predicates::str::contains("would delete 1 task(s)"))
+        .stdout(predicates::str::contains(
+            "would rewrite 3 link(s) in 1 file(s)",
+        ));
+    assert!(dir.path().join("tasks/gone.typ").exists());
+
+    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+
+    assert!(!dir.path().join("tasks/gone.typ").exists());
+    let live = std::fs::read_to_string(dir.path().join("tasks/live.typ")).unwrap();
+    assert!(!live.contains("gone.typ"), "edge survived:\n{live}");
+    assert!(!live.contains("+"), "separator survived:\n{live}");
+    assert!(!live.contains("swh:1:rev:"), "tombstone written:\n{live}");
+    mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_retire_flips_to_first_terminal_status_without_git() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_config(
+        dir.path(),
+        RETIRE_CONFIG,
+        &[("gone.typ", REMOVED), ("live.typ", LIVE)],
+    );
+
+    mt(dir.path())
+        .args(["rm", "--dry-run", "-y", "gone"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("strategy: retire"))
+        .stdout(predicates::str::contains(
+            "would retire 1 task(s) (status → done)",
+        ));
+    assert!(dir.path().join("tasks/gone.typ").exists());
+
+    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+
+    // The file stays, flipped to the legend's first terminal status.
+    assert!(
+        dir.path().join("tasks/gone.typ").exists(),
+        "retired file must stay"
+    );
+    let retired = std::fs::read_to_string(dir.path().join("tasks/gone.typ")).unwrap();
+    assert!(retired.contains("done("), "not flipped:\n{retired}");
+    assert!(!retired.contains("wip("), "still wip:\n{retired}");
+    // The inbound edge still resolves — the file stayed put.
+    mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_retire_uses_configured_status_without_git() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_config(
+        dir.path(),
+        RETIRE_STATUS_CONFIG,
+        &[("gone.typ", REMOVED), ("live.typ", LIVE)],
+    );
+
+    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+
+    let retired = std::fs::read_to_string(dir.path().join("tasks/gone.typ")).unwrap();
+    assert!(retired.contains("cancelled("), "not cancelled:\n{retired}");
+    mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_retire_moves_the_file_into_the_archive_folder() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_config(
+        dir.path(),
+        RETIRE_ARCHIVE_CONFIG,
+        &[("gone.typ", REMOVED), ("live.typ", LIVE)],
+    );
+
+    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+
+    assert!(!dir.path().join("tasks/gone.typ").exists());
+    let archived = dir.path().join("tasks/.archive/gone.typ");
+    assert!(archived.exists(), "not moved into .archive/");
+    let contents = std::fs::read_to_string(&archived).unwrap();
+    assert!(contents.contains("done("), "not flipped:\n{contents}");
+    // The inbound edges retarget onto the new path — no dangling reference.
+    let live = std::fs::read_to_string(dir.path().join("tasks/live.typ")).unwrap();
+    assert!(
+        live.contains(".archive/gone.typ"),
+        "not retargeted:\n{live}"
+    );
+    assert!(
+        !live.contains("\"gone.typ\""),
+        "old target survived:\n{live}"
+    );
+    mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_batch_removing_every_referrer_needs_no_strategy_without_git() {
+    // The only referrer of `gone` is `live`, and both are being removed — the
+    // batch must not reject or trim its own edges, so deletion is plain.
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_config(
+        dir.path(),
+        BATCH_CONFIG,
+        &[("gone.typ", REMOVED), ("live.typ", LIVE)],
+    );
+
+    mt(dir.path()).args(["rm", "-y"]).assert().success();
+
+    assert!(!dir.path().join("tasks/gone.typ").exists());
+    assert!(!dir.path().join("tasks/live.typ").exists());
 }

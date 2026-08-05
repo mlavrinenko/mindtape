@@ -1393,6 +1393,29 @@
         }
       ]
     },
+    "RetireConfig": {
+      "additionalProperties": false,
+      "description": "`[retire]` — the gitless `rm` tombstone: keep the file, flip the status terminal.",
+      "properties": {
+        "rename": {
+          "default": null,
+          "description": "Move the retired task file into a sibling folder of this name (e.g. `.archive`), omitted → file stays.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "default": null,
+          "description": "The terminal status the retired task flips to; defaults to the legend's first terminal status (an error if the legend declares none).",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "RmConfig": {
       "additionalProperties": false,
       "description": "`[rm]` — defaults for the `rm` task-removal command.",
@@ -1404,9 +1427,45 @@
             "string",
             "null"
           ]
+        },
+        "strategy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RmStrategy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "How inbound references to removed task(s) are handled; defaults to `\"git-tombstone\"` in a git repository, `\"reject\"` without one."
         }
       },
       "type": "object"
+    },
+    "RmStrategy": {
+      "description": "How `rm` handles inbound references when the git-pinned SWHID tombstone rewrite is unavailable.",
+      "oneOf": [
+        {
+          "const": "git-tombstone",
+          "description": "Mint a git-pinned SWHID tombstone and rewrite inbound edges onto it (the default in a git repo).",
+          "type": "string"
+        },
+        {
+          "const": "retire",
+          "description": "Keep the task file, flip it to a terminal status — a tombstone without git.",
+          "type": "string"
+        },
+        {
+          "const": "unlink",
+          "description": "Strip each inbound edge from the surviving tasks, then delete.",
+          "type": "string"
+        },
+        {
+          "const": "reject",
+          "description": "Refuse, listing every surviving task that references a removed task.",
+          "type": "string"
+        }
+      ]
     },
     "Role": {
       "additionalProperties": false,
@@ -1750,6 +1809,10 @@
     "project": {
       "$ref": "#/$defs/ProjectConfig",
       "description": "Project-level settings (code, etc.)."
+    },
+    "retire": {
+      "$ref": "#/$defs/RetireConfig",
+      "description": "`[retire]` — the gitless `rm` strategy's tombstone settings."
     },
     "rm": {
       "$ref": "#/$defs/RmConfig",

@@ -60,6 +60,8 @@ pub struct Config {
     pub ls: LsConfig,
     /// `rm` (task removal) defaults.
     pub rm: RmConfig,
+    /// `[retire]` — the gitless `rm` strategy's tombstone settings.
+    pub retire: RetireConfig,
     /// `add` (task creation) template discovery.
     pub templates: TemplatesConfig,
     /// `add` interactive-fill settings (editor, when it opens).
@@ -325,6 +327,21 @@ pub struct TagsConfig {
     pub allowed: Vec<String>,
 }
 
+/// How `rm` handles inbound references when the git-pinned SWHID tombstone rewrite is unavailable.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum RmStrategy {
+    /// Mint a git-pinned SWHID tombstone and rewrite inbound edges onto it (the default in a git repo).
+    #[default]
+    GitTombstone,
+    /// Keep the task file, flip it to a terminal status — a tombstone without git.
+    Retire,
+    /// Strip each inbound edge from the surviving tasks, then delete.
+    Unlink,
+    /// Refuse, listing every surviving task that references a removed task.
+    Reject,
+}
+
 /// `[rm]` — defaults for the `rm` task-removal command.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
@@ -333,6 +350,18 @@ pub struct RmConfig {
     /// Defaults to `"terminal"`, sweeping every task in a terminal status.
     /// An explicit ref or filter argument on the command line overrides it.
     pub default_filter: Option<String>,
+    /// How inbound references to removed task(s) are handled; defaults to `"git-tombstone"` in a git repository, `"reject"` without one.
+    pub strategy: Option<RmStrategy>,
+}
+
+/// `[retire]` — the gitless `rm` tombstone: keep the file, flip the status terminal.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
+pub struct RetireConfig {
+    /// The terminal status the retired task flips to; defaults to the legend's first terminal status (an error if the legend declares none).
+    pub status: Option<String>,
+    /// Move the retired task file into a sibling folder of this name (e.g. `.archive`), omitted → file stays.
+    pub rename: Option<String>,
 }
 
 /// Errors from loading or locating a config file.
@@ -374,6 +403,11 @@ impl Config {
         problems.extend(crate::config_actors::validate_actors(self));
         problems.extend(crate::config_hooks::validate_flip_hooks(self));
         problems.extend(validate_ls_rules(&self.ls.rules, &self.views));
+        if let Some(status) = &self.retire.status
+            && !self.tasks.status.contains(status)
+        {
+            problems.push(format!("retire.status: unknown status `{status}`"));
+        }
         if let Some(name) = &self.ls.default_view
             && !self.views.contains_key(name)
         {

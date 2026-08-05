@@ -20,19 +20,32 @@
 //! Git is gated on need, not presence: [`run`] scans the survivors for inbound
 //! references before touching the repository, and a task nothing references is
 //! deleted directly ([`plain_delete_plan`]) — no toplevel discovery, no
-//! tombstone, no committed-clean guard.
+//! tombstone, no committed-clean guard. When a survivor does reference a
+//! removed task, the configured `[rm] strategy` decides what happens to those
+//! edges: the git-pinned SWHID tombstone rewrite (`git-tombstone`, the default
+//! in a repository) or one of the gitless strategies — `reject`, `unlink`,
+//! `retire` — implemented in [`rm_gitless`].
 
-use std::collections::HashSet;
+use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
 use mindtape::{
-    Filter, Readiness, Task, is_history_pointer, link_target_spans, normalize_link, select,
+    Filter, Readiness, RmStrategy, Task, is_history_pointer, link_target_spans, normalize_link,
+    select,
 };
-use typst_cleanup::{Artifact, Deletion, Policy, Swhid, Target};
+use typst_cleanup::{Artifact, Policy, Swhid, Target};
 // Re-exported so `rm`'s presentation and tests refer to one plan type.
 pub use typst_cleanup::{Plan, apply};
+
+#[path = "rm_gitless.rs"]
+mod rm_gitless;
+pub(crate) use rm_gitless::{
+    RetirePlan, confirm_retire, plain_delete_plan, redact_git_error, reject_message,
+    report_retire_applied, report_retire_plan, resolve_strategy, retire_apply, retire_plan,
+    unlink_plan,
+};
 
 use crate::{git, util};
 
@@ -88,17 +101,16 @@ impl Policy for TaskLinks {
 /// links) but does not commit — the user reviews the diff and commits. A task
 /// no survivor references is deleted directly, with no git at all: nothing
 /// needs a tombstone, so there is no toplevel discovery, no committed-clean
-/// guard, no mint. When a survivor does reference a removed task, a real run
-/// (not `--dry-run`) refuses early if any selected task file is not
-/// committed-clean; all offenders are listed at once so the user can fix them
-/// in one step.
+/// guard, no mint. When a survivor does reference a removed task, the
+/// configured `[rm] strategy` (default: `git-tombstone` in a repository,
+/// `reject` without one) decides what happens to the inbound edges.
 ///
 /// # Errors
 /// Returns an error (non-zero exit) on an unresolvable target, an invalid
-/// filter, an unreadable surviving file, a declined prompt, or — when a
-/// survivor references a removed task — an uncommitted task file, a task file
-/// that is not recoverable from git, a wrong-shaped surviving file, or any git
-/// failure.
+/// filter, an unreadable surviving file, a declined prompt, a `reject`
+/// strategy with surviving referrers, or — under `git-tombstone` — an
+/// uncommitted task file, a task file that is not recoverable from git, a
+/// wrong-shaped surviving file, or any git failure.
 pub fn run(args: &RmArgs) -> Result<()> {
     let project = util::open()?;
     util::warn_errors(&project.outcome);
@@ -119,45 +131,97 @@ pub fn run(args: &RmArgs) -> Result<()> {
         .with_context(|| format!("resolve {}", project.root.display()))?;
 
     // A task nothing references needs no tombstone, so no git at all. Only when
-    // a survivor points at an eligible task is the repository consulted.
-    if inbound_references(&project.outcome.tasks, &eligible, &root)?.is_empty() {
+    // a survivor points at an eligible task is the strategy consulted.
+    let referrers = referrers(&project.outcome.tasks, &eligible, &root)?;
+    if referrers.is_empty() {
         return finalize(
-            &plain_delete_plan(&project.outcome.tasks, &eligible, &root),
+            &Removal::Delete(plain_delete_plan(&project.outcome.tasks, &eligible, &root)),
             args,
+            None,
         );
     }
 
-    let git_root = git::toplevel(&root)?
-        .canonicalize()
-        .context("resolve git toplevel")?;
-
-    if !args.dry_run {
-        check_eligible_files(&project.outcome.tasks, &eligible, &root, &git_root)?;
+    let (git_root, git_error) = match git::toplevel(&root) {
+        Ok(dir) => (
+            Some(dir.canonicalize().context("resolve git toplevel")?),
+            None,
+        ),
+        Err(err) => (None, Some(err)),
+    };
+    match resolve_strategy(&project.config, git_root.is_some()) {
+        RmStrategy::GitTombstone => {
+            let Some(git_root) = git_root else {
+                let detail = git_error.map_or_else(String::new, |err| {
+                    format!(": {}", redact_git_error(&err, &root))
+                });
+                bail!(
+                    "cannot rewrite inbound links without a git repository{detail} — set [rm] strategy to \"retire\" or \"unlink\" for gitless repositories"
+                );
+            };
+            if !args.dry_run {
+                check_eligible_files(&project.outcome.tasks, &eligible, &root, &git_root)?;
+            }
+            let plan = plan(&project.outcome.tasks, &eligible, &root, &git_root)?;
+            finalize(&Removal::Delete(plan), args, Some("git-tombstone"))
+        }
+        RmStrategy::Reject => bail!("{}", reject_message(&referrers)),
+        RmStrategy::Unlink => {
+            let plan = unlink_plan(&project.outcome.tasks, &eligible, &root)?;
+            finalize(&Removal::Delete(plan), args, Some("unlink"))
+        }
+        RmStrategy::Retire => {
+            let plan = retire_plan(&project.outcome.tasks, &eligible, &root, &project.config)?;
+            finalize(&Removal::Retire(plan), args, Some("retire"))
+        }
     }
-
-    let plan = plan(&project.outcome.tasks, &eligible, &root, &git_root)?;
-    finalize(&plan, args)
 }
 
-/// The tail shared by both removal paths: dry-run reporting, confirmation, and
-/// the atomic apply + summary. Writes nothing on `--dry-run`.
+/// What a run will do, before it happens: a delete-style plan (deletions plus
+/// optional rewrites — the git-tombstone and unlink shapes) or a retire plan
+/// (status flips plus optional moves).
+enum Removal {
+    Delete(Plan),
+    Retire(RetirePlan),
+}
+
+/// The tail shared by every removal path: strategy dry-run reporting,
+/// confirmation, and the atomic apply + summary. Writes nothing on
+/// `--dry-run`.
 ///
 /// # Errors
-/// A declined prompt aborts with `aborted by user`; [`apply`] propagates its
+/// A declined prompt aborts with `aborted by user`; the apply propagates its
 /// write failures.
-fn finalize(plan: &Plan, args: &RmArgs) -> Result<()> {
+fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>) -> Result<()> {
     if args.dry_run {
-        report_plan(plan);
+        if let Some(name) = strategy {
+            println!("strategy: {name}");
+        }
+        match removal {
+            Removal::Delete(plan) => report_plan(plan),
+            Removal::Retire(plan) => report_retire_plan(plan),
+        }
         println!("dry run: nothing written");
         return Ok(());
     }
 
-    if !args.yes && !confirm(plan)? {
-        bail!("aborted by user");
+    if !args.yes {
+        let confirmed = match removal {
+            Removal::Delete(plan) => confirm(plan)?,
+            Removal::Retire(plan) => confirm_retire(plan)?,
+        };
+        if !confirmed {
+            bail!("aborted by user");
+        }
     }
 
-    apply(plan)?;
-    report_applied(plan);
+    match removal {
+        Removal::Delete(plan) => apply(plan)?,
+        Removal::Retire(plan) => retire_apply(plan)?,
+    }
+    match removal {
+        Removal::Delete(plan) => report_applied(plan),
+        Removal::Retire(plan) => report_retire_applied(plan),
+    }
     Ok(())
 }
 
@@ -241,10 +305,10 @@ fn plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path, git_root: &Path
     )?)
 }
 
-/// Which eligible ids a *surviving* task's source references — the same
+/// Which eligible ids each *surviving* task's source references — the same
 /// parse-plane scan the tombstone path uses ([`TaskLinks::scan`] +
-/// [`TaskLinks::identity`]), so the `links:` helper edges are covered, not just
-/// `link()`. No eval, no git. Empty means no tombstone is needed: plain
+/// [`TaskLinks::identity`]), so the `links:` helper edges are covered, not
+/// just `link()`. No eval, no git. Empty means no tombstone is needed: plain
 /// deletion.
 ///
 /// A link *from* an eligible task counts for nothing — it is going away in the
@@ -253,48 +317,48 @@ fn plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path, git_root: &Path
 /// # Errors
 /// A survivor file that cannot be read fails the run, matching the tombstone
 /// path's behaviour in [`typst_cleanup::plan`].
-fn inbound_references(
+fn referrers(
     tasks: &[Task],
     eligible: &HashSet<String>,
     root: &Path,
-) -> Result<HashSet<String>> {
+) -> Result<BTreeMap<PathBuf, HashSet<String>>> {
     let policy = TaskLinks;
-    let mut referenced = HashSet::new();
+    let mut by_file: BTreeMap<PathBuf, HashSet<String>> = BTreeMap::new();
     for task in tasks {
         if eligible.contains(&task.id) {
             continue;
         }
         let source = std::fs::read_to_string(root.join(&task.file))
             .with_context(|| format!("read {}", task.file.display()))?;
+        let mut hits = HashSet::new();
         for target in policy.scan(&source) {
             let Some(id) = policy.identity(&target.raw) else {
                 continue;
             };
             if eligible.contains(&id) {
-                referenced.insert(id);
+                hits.insert(id);
             }
         }
+        if !hits.is_empty() {
+            by_file.insert(task.file.clone(), hits);
+        }
     }
-    Ok(referenced)
+    Ok(by_file)
 }
 
-/// The deletion-only plan for tasks nothing references: no tombstones, no
-/// rewrites, no git. Deletions sorted like [`typst_cleanup::plan`]'s, for a
-/// stable report.
-fn plain_delete_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> Plan {
-    let mut deletions: Vec<Deletion> = tasks
-        .iter()
-        .filter(|task| eligible.contains(&task.id))
-        .map(|task| Deletion {
-            abs: root.join(&task.file),
-            rel: task.file.clone(),
-        })
-        .collect();
-    deletions.sort_by(|a, b| a.rel.cmp(&b.rel));
-    Plan {
-        deletions,
-        rewrites: Vec::new(),
-    }
+/// The union of [`referrers`]'s referenced ids — enough to decide whether any
+/// strategy applies at all. The run path works off the per-file map; tests
+/// still exercise the union.
+#[cfg(test)]
+fn inbound_references(
+    tasks: &[Task],
+    eligible: &HashSet<String>,
+    root: &Path,
+) -> Result<HashSet<String>> {
+    Ok(referrers(tasks, eligible, root)?
+        .into_values()
+        .flatten()
+        .collect())
 }
 
 /// Check every eligible task file individually: each must be committed and
@@ -372,14 +436,7 @@ fn confirm(plan: &Plan) -> Result<bool> {
     for deletion in &plan.deletions {
         writeln!(stderr, "  - {}", deletion.rel.display())?;
     }
-    write!(stderr, "Continue? [y/N] ")?;
-    stderr.flush()?;
-    let mut line = String::new();
-    std::io::stdin()
-        .read_line(&mut line)
-        .context("read confirmation")?;
-    let answer = line.trim().to_ascii_lowercase();
-    Ok(answer == "y" || answer == "yes")
+    rm_gitless::confirm_answer()
 }
 
 /// List each deletion in `plan` as an indented bullet on stdout.

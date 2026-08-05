@@ -303,8 +303,9 @@ fn flip_one(
 }
 
 /// Rewrite the `status:` argument of the first `task.with(…)` in `source` to
-/// `status` dated `ymd` with an optional note. Pure: no IO.
-fn status_edit(
+/// `status` dated `ymd` with an optional note. Pure: no IO. Shared with the
+/// gitless `retire` rm strategy.
+pub(crate) fn status_edit(
     source: &str,
     status: &str,
     ymd: (i32, u8, u8),

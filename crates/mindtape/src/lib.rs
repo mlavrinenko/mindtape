@@ -84,9 +84,9 @@ pub use config::{
     Actor, ActorKind, AddConfig, AssigneeConfig, Collector, ColumnConfig, Config, ConfigError,
     DeriveConfig, DeriveTags, DriftConfig, EstimateConfig, Facet, FormatConfig, GoConfig,
     HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule, PriorityConfig,
-    ReadyConfig, Role, RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec, Visibility,
-    config_path, embedded_defaults, load_config, parse_config, parse_import_view, roles_of,
-    validate_views,
+    ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role, RootConfig, RootSpec, TemplatesConfig,
+    TypstConfig, ViewSpec, Visibility, config_path, embedded_defaults, load_config, parse_config,
+    parse_import_view, roles_of, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_layers::{
@@ -111,7 +111,7 @@ pub use import_map::{
     EntryKind, ImportReport, MapOptions, Mapped, ReportEntry, map_canonical, slug_from_title,
     stem_for_title,
 };
-pub use link_scan::{TargetSpan, link_target_spans};
+pub use link_scan::{EdgeCall, TargetSpan, link_edges, link_target_spans};
 pub use loader::{LoadError, LoadOutcome, find_root, load_project};
 pub use model::{ShapeError, Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind};

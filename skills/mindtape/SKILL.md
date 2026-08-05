@@ -222,7 +222,9 @@ A task file is Typst. Edit the fields inside `task.with(...)`:
 
 Rules to respect:
 - One task per file; the stem is the identity. Renaming breaks inbound links —
-  prefer `mt rm` to retire, which rewrites them to tombstones.
+  prefer `mt rm` to retire, which rewrites them to tombstones. Without git,
+  `[rm] strategy` decides: `reject` (default, lists the referrers), `unlink`,
+  or `retire` (keeps the file, flips the status).
 - Status, kind, priority scale, and tags come from `.mindtape/config.toml`.
 - Custom/extension fields must be namespaced `x-<ns>` (e.g. `x-speconaut: ...`).
   Every other field name is a declared parameter of `task`, so a typo is not

@@ -92,6 +92,47 @@ fn string_span(source: &str, arg: &Arg) -> Option<TargetSpan> {
     })
 }
 
+/// A located edge helper call: the helper name, the whole call's byte range
+/// (a trailing note content block included), and its string-literal targets.
+/// Enough to strip an inbound edge wholesale.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EdgeCall {
+    /// The helper name (`depends-on`, `related`, `edge`, …).
+    pub name: String,
+    /// Byte range of the whole call in the source, note block included.
+    pub range: Range<usize>,
+    /// The call's string-literal targets (the `edge` kind argument excluded).
+    pub targets: Vec<TargetSpan>,
+}
+
+/// Every edge helper call in `source`, in document order. The `unlink` rm
+/// strategy's view: whole calls (not just target spans), so an inbound edge
+/// can be stripped in one edit.
+#[must_use]
+pub fn link_edges(source: &str) -> Vec<EdgeCall> {
+    let mut calls: Vec<EdgeCall> = EDGE_HELPERS
+        .iter()
+        .flat_map(|&helper| {
+            let skip = kind_args(helper);
+            find_calls(source, helper)
+                .into_iter()
+                .map(move |call| EdgeCall {
+                    name: call.name.clone(),
+                    range: call.range.clone(),
+                    targets: call
+                        .args
+                        .iter()
+                        .filter(|arg| arg.name.is_none())
+                        .skip(skip)
+                        .filter_map(|arg| string_span(source, arg))
+                        .collect(),
+                })
+        })
+        .collect();
+    calls.sort_by(|a, b| a.range.start.cmp(&b.range.start));
+    calls
+}
+
 #[cfg(test)]
 #[path = "link_scan_tests.rs"]
 mod tests;
