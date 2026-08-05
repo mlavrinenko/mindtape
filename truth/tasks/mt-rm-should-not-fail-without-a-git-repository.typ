@@ -12,8 +12,11 @@
   estimate: (files: 4),
   links: related(
     "mt-rm-must-not-require-git-for-a-task-nothing-references.typ",
-  )[sibling fix: gate git on need, not presence],
-  status: proposed(2026, 8, 3),
+  )[sibling fix: gate git on need, not presence]
+    + related("mt-rm-strategies-manual-test.typ")[
+      session verifies the gitless strategies end to end
+    ],
+  status: done(2026, 8, 5)[gitless strategies shipped and verified],
 )
 
 == Summary
