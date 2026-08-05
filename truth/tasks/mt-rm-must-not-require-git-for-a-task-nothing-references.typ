@@ -12,8 +12,11 @@
   estimate: (files: 3),
   links: related(
     "mt-rm-should-not-fail-without-a-git-repository.typ",
-  )[sibling fix: degrade gracefully when no git repo exists],
-  status: proposed(2026, 8, 3),
+  )[sibling fix: degrade gracefully when no git repo exists]
+    + related("mt-rm-gitless-manual-test.typ")[
+      session verifies the gitless deletion end to end
+    ],
+  status: done(2026, 8, 5)[gitless deletion path shipped and verified],
 )
 
 == Summary
