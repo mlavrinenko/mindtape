@@ -71,7 +71,11 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
 6. Commits: Conventional Commits; footer `Refs: truth/tasks/<stem>.typ` (the
    driving task). Exception: commits that file or edit task artifacts themselves
    (and the backlog config in `.mindtape/config.toml`) carry no `Refs:` footer —
-   a task commit refs nothing. Match prior commit language.
+   a task commit refs nothing. Match prior commit language. The one other
+   allowed footer is `Gate-Scope: <reason>`, which `.githooks/commit-msg`
+   *requires* when `MINDTAPE_GATE_SCOPE` skipped the pre-commit freshness
+   assertion (see CONTRIBUTING.md) — it is how a scoped commit stays visible
+   in `git log`, never an optional annotation.
 
 ## Task DSL (lib/prelude.typ)
 

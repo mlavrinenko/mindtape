@@ -10,7 +10,7 @@
   difficulty: 4,
   tags: ("cli", "docs"),
   estimate: (files: 6),
-  status: proposed(2026, 8, 7),
+  status: done(2026, 8, 8)[landed 2026-08-08; just check green on merged HEAD],
   links: depends-on("unify-search-and-contains-into-one-function.typ")[
     the function whose default this configures
   ]

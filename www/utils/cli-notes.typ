@@ -42,8 +42,24 @@
     mt ls ready -n 10               # predicate + limit
     mt ls @stuck                    # named view — filter + sort + columns
     mt ls --json                    # shorthand for --format json
-    mt ls --format csv              # table (default), json, or csv
+    mt ls --format csv              # table (default), json, csv, path, or path0
     mt ls --columns '#,title,file' --hyperlinks always   # clickable # and file columns
+    mt ls ready --format path       # bare paths, one per line — for another program
+    mt ls 'stale(30)' --format path0 | xargs -0 $EDITOR  # NUL-delimited
+    ```,
+  ),
+  "find": (
+    prose: [Sugar over the filter language, nothing more: `mt find login bug`
+      desugars to `contains("login") && contains("bug")` and runs the same code
+      path as `ls`, so every `ls` flag forwards and the desugared expression
+      shows up in the applied filter. Which fields a bare `contains()` sweeps is
+      `[ls] contains-fields` — see #link(u("/filters/"))[Filters]. To target a
+      field, use the filter language directly: `mt ls 'contains("bug", title)'`.],
+    examples: ```sh
+    mt find tombstone               # one term
+    mt find login bug               # several terms conjoin (AND)
+    mt find bug --sort priority:desc -n 5   # every `ls` flag forwards
+    mt find bug --format path | xargs $EDITOR
     ```,
   ),
   "ls.sort": (

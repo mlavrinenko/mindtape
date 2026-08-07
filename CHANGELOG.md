@@ -9,6 +9,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt find TERM…`** — sugar over the filter language, and deliberately nothing
+  more. `mt find login bug` desugars to `contains("login") && contains("bug")`
+  and runs the same code path as `mt ls`, so every `ls` flag forwards verbatim
+  and the desugared expression lands in the `applied` facet — visible in the
+  table footer and in `--json`, never a hidden query. There is no flag `ls`
+  lacks and no second matcher: field targeting stays in the filter language
+  (`mt ls 'contains("bug", title)'`). Pluggable external search backends were
+  weighed and rejected on measurement, not taste: over the 2000-task
+  `examples/large` fixture a filtered `mt ls` costs ~90 ms against `rg -l`'s
+  11 ms, but that 90 ms is loading and evaluating tasks rather than matching
+  text, and a backend still needs them loaded to render a row. Only a
+  persistent index would win, and that contradicts the daemon-free premise.
+- **`mt ls --format path` / `--format path0`** — a bare list of task file paths,
+  one per line or NUL-delimited, with no header, colour, hyperlinks or
+  `applied:` footer: output for a program, not a reader. Paths render through
+  the same core as the `file` column, so the two agree by construction.
+  Previously the only way to hand a selected set of files to another tool was
+  `mt ls --json | jq -r '.tasks[].file'` — a hard `jq` dependency for the most
+  basic composition there is. `contrib/fzf-mt-go.sh` ships the picker recipe
+  rather than a picker: `mt ls '' --format path | fzf | xargs mt go`.
+- **`[ls] contains-fields`** — names the default `contains()` haystack, so a
+  project states its own answer to what "the prose surface" means. Unset keeps
+  the shipped `title`, `id`, `body`. Two text-only surfaces join the searchable
+  vocabulary for projects that want them: `note` (every `links[].note`, prose
+  that lives outside `body`) and `tags` (authored and derived both, as
+  `has_tag()` already sees them). The shipped default stays narrow on purpose —
+  a default applied uniformly inherits the strictest constraint of anything that
+  could land in it, so widening it for everyone is the wrong move; opting in is
+  a line of config. Validated at load against the same vocabulary an explicit
+  `contains("x", field)` call uses: an unknown name is a config error naming the
+  field and listing the valid set, never a silent drop that would leave a
+  project believing it searches a surface it does not.
 - **`$MINDTAPE_CONFIG_HOME` / `$MINDTAPE_DATA_HOME`** — cross-platform overrides
   for the per-user directories `mt` reads and writes: the global `defaults.toml`
   layer, `config.schema.json`, `presets/` and `worktrees.toml` under the config
@@ -276,6 +308,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The pre-commit gate has a scoped path** — `.githooks/pre-commit` fused one
+  expensive assertion (`mmz --is-fresh --tag gate`, which needs a full `just
+  check` behind it) to two cheap ones (task formatting, `mt check`). In a fresh
+  worktree there are no gate records, so committing one line meant running a
+  cold Rust build plus a Typst docs site and a Pagefind index — and the only
+  escape, `git commit --no-verify`, switched off all three. `MINDTAPE_GATE_SCOPE
+  =<reason>` now skips only the freshness assertion; the cheap two always run.
+  A new `commit-msg` hook refuses the commit unless the message carries a
+  matching `Gate-Scope: <reason>` trailer, so a scoped commit can never look
+  identical to a fully gated one in `git log`. The variable was chosen over
+  scoping the assertion to the staged diff because `.mmz/config.yaml` documents
+  its own scopes as deliberately coarse — a diff-to-rule mapping built on that
+  would fail silently open, which is the bug being fixed, not a fix for it.
 - **`mt rm` no longer suggests committing outside a git repository** — every
   successful removal ended with `review the changes and commit when satisfied`,
   including in projects with no repository, where there is nothing to commit
