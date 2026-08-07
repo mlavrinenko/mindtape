@@ -180,6 +180,14 @@ commands:
     tags: [gate]
     inputs: [rust, policy, examples, gates-meta]
 
+  # Set-differences `mt _cli --json`'s reflected command names (built binary,
+  # so `rust`) against www/utils/cli-notes.typ's dict keys (`docs`) — a new
+  # subcommand with no matching entry fails by name. `gates-meta` because the
+  # recipe body (the typst-query driver) lives in the Justfile.
+  - name: just check-doc-coverage
+    tags: [gate]
+    inputs: [rust, docs, gates-meta]
+
   # docs-gen shells out to the built `mt` binary (rust) and reads the docs
   # tree + the learn-piano fixture (examples) + the project policy/prelude
   # (the generated CLI transcripts reference `mt`'s config-driven output).

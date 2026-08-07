@@ -13,10 +13,11 @@ overrides:
   - pattern: "**/CHANGELOG.md"
     exclude: true
 
-  # Agent skills and AGENTS.md get 300, not the 200 Markdown ceiling.
+  # Agent skills, AGENTS.md, and CONTRIBUTING.md get 300, not the 200 Markdown
+  # ceiling.
   #
   # Why raise it: the pressure a size cap should apply is against scope growth,
-  # not against accuracy. Both files sat at exactly 200/200, so the next
+  # not against accuracy. These files sat at exactly 200/200, so the next
   # correctness fix hit a wall — a round of skill fixes worth ~40 lines
   # (a documented flag that does not exist, a silent `mt add --set` drop, a
   # `blocked` status the legend never had) turned into a dozen compression
@@ -24,8 +25,14 @@ overrides:
   # that makes a true fix expensive buys shorter files at the price of wrong
   # ones.
   #
+  # CONTRIBUTING.md joined for the identical reason, not a new one: it sat at
+  # 200/200 when the Quality Gates table needed a new row for
+  # `check-doc-coverage` (truth/tasks/gate-cli-doc-coverage-in-just-check.typ)
+  # — a table that is wrong, not just long, once it omits a gate `just check`
+  # actually runs.
+  #
   # Why 300 and not more: 300 fits a correctness fix in one pass and still bites
-  # long before either file becomes a dump. Past it the answer is not a bigger
+  # long before any of these becomes a dump. Past it the answer is not a bigger
   # number — it is progressive disclosure (skills/<name>/references/, which
   # skill-creator supports) so the always-loaded surface stays small.
   #
@@ -35,6 +42,8 @@ overrides:
   - pattern: "**/SKILL.md"
     limit: 300
   - pattern: "**/AGENTS.md"
+    limit: 300
+  - pattern: "**/CONTRIBUTING.md"
     limit: 300
 
 count_mode: total
