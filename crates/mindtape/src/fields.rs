@@ -95,6 +95,21 @@ pub fn get(name: &str) -> Option<&'static FieldDef> {
     FIELDS.iter().find(|def| def.name == name)
 }
 
+/// `body` holds a task's prose, verbatim and already marker-free (the
+/// `#show: task.with(…)` head never reaches it). It is deliberately outside
+/// [`FIELDS`]: prose is neither comparable (`==`/`<`) nor sortable — the two
+/// jobs `FIELDS` backs — so `contains()` is the one place it is searchable.
+pub const BODY_FIELD: &str = "body";
+
+/// The `contains()` field vocabulary: every [`FIELDS`] name, plus
+/// [`BODY_FIELD`]. One derived source of truth, so `contains()` never
+/// hand-matches field names of its own — exactly the drift this module
+/// exists to end (see the module doc).
+#[must_use]
+pub fn is_contains_field(name: &str) -> bool {
+    name == BODY_FIELD || get(name).is_some()
+}
+
 fn opt_str(value: Option<String>) -> FieldValue {
     value.map_or(FieldValue::Missing, FieldValue::Str)
 }

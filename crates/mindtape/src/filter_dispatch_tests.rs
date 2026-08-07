@@ -28,13 +28,15 @@ fn miss_propagates_an_unknown_field_error() {
 }
 
 #[test]
-fn search_matches_the_id_when_the_title_does_not() {
-    // Title match short-circuits `||`; only a title miss reaches the id side.
+fn default_haystack_matches_the_id_when_the_title_does_not() {
+    // Complements `default_haystack_matches_title_or_id` in the parent module
+    // (which hits via `title`): the fold must also reach `id`, not stop after
+    // the first field misses.
     let mut task = sample();
     task.id = "mod-001".to_owned();
     task.title = "Nothing To See".to_owned();
-    assert!(hit("search(\"mod-0\")", &task));
-    assert!(!hit("search(\"absent\")", &task));
+    assert!(hit("contains(\"mod-0\")", &task));
+    assert!(!hit("contains(\"absent\")", &task));
 }
 
 #[test]
@@ -86,22 +88,22 @@ fn task_without_reviewed_or_status_date_is_stale() {
 #[test]
 fn contains_reads_numeric_fields_and_rejects_missing_ones() {
     let task = sample(); // priority 8, start None
-    assert!(hit("contains(priority, \"8\")", &task));
-    assert!(!hit("contains(priority, \"9\")", &task));
-    assert!(!hit("contains(start, \"2026\")", &task));
+    assert!(hit("contains(\"8\", priority)", &task));
+    assert!(!hit("contains(\"9\", priority)", &task));
+    assert!(!hit("contains(\"2026\", start)", &task));
 }
 
 #[test]
 fn file_field_contains_matches_nested_dir_not_flat_sibling() {
     // `sample()` is flat (tasks/add-auth.typ) — no "sub/" segment, so a
-    // subdirectory task must match `contains(file, "sub/")` and its flat
+    // subdirectory task must match `contains("sub/", file)` and its flat
     // sibling must not.
     let mut nested = sample();
     nested.file = "tasks/sub/add-auth.typ".into();
-    assert!(hit("contains(file, \"sub/\")", &nested));
+    assert!(hit("contains(\"sub/\", file)", &nested));
 
     let flat = sample();
-    assert!(!hit("contains(file, \"sub/\")", &flat));
+    assert!(!hit("contains(\"sub/\", file)", &flat));
 }
 
 #[test]

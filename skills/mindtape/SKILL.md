@@ -80,7 +80,8 @@ Helpers:
 
 - `has(field)` / `miss(field)` — field present / absent
 - `has_tag("name")` — authored or folder-derived tag
-- `contains(field, "substr")` / `search("query")` — substring / full-text
+- `contains("substr")` / `contains("substr", field, ...)` — case-insensitive
+  substring, needle first; no field named searches `title`/`id`/body prose
 - `ready` / `blocked` — all direct deps terminal / not
 - `terminal` — status is a configured terminal state
 - `stale(N)` — untouched for more than N days; `now()` — today's ISO date

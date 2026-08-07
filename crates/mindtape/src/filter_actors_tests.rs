@@ -47,7 +47,7 @@ fn assignee_compares_by_actor_name() {
     assert!(!hit_with("assignee != \"ada\"", &task, &config));
     assert!(!hit_with("assignee == \"eve\"", &task, &config));
     assert!(hit_with("has(assignee)", &task, &config));
-    assert!(hit_with("contains(assignee, \"ad\")", &task, &config));
+    assert!(hit_with("contains(\"ad\", assignee)", &task, &config));
 }
 
 #[test]

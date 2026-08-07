@@ -62,8 +62,10 @@ with `miss(field)`.
   [`has_tag("name")`],
   [The tag is set — authored or #link(u("/derived-tags/"))[derived].],
 
-  [`contains(field, "substr")`], [Substring match on a field.],
-  [`search("query")`], [Full-text search across the task.],
+  [`contains("substr")` / `contains("substr", field, ...)`],
+  [Case-insensitive substring — needle first. No field named searches
+    `title`, `id`, and the body prose; one or more field names narrows it.],
+
   [`stale(N)`],
   [Not re-affirmed (or, lacking `reviewed`, last status-changed) for more than N days.],
 
