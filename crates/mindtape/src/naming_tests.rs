@@ -1,8 +1,8 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{
-    DEFAULT_STEM_TEMPLATE, MAX_DISAMBIGUATE_ATTEMPTS, MintContext, NamingConfig, disambiguate,
-    mint_stem,
+    DEFAULT_STEM_TEMPLATE, DedupMode, MAX_DISAMBIGUATE_ATTEMPTS, MintContext, NamingConfig,
+    disambiguate, mint_stem,
 };
 
 fn ctx<'a>(slug: &'a str, date: (i32, u8, u8), occurrence: u32) -> MintContext<'a> {
@@ -35,8 +35,39 @@ fn template_default_returns_default_stem_template() {
 fn template_configured_returns_stem() {
     let cfg = NamingConfig {
         stem: Some("{slug}-{date}".into()),
+        ..NamingConfig::default()
     };
     assert_eq!(cfg.template(), "{slug}-{date}");
+}
+
+// -- DedupMode: `[tasks.naming] dedup` deserialize + default -----------------
+
+#[test]
+fn dedup_mode_default_is_fail() {
+    assert_eq!(NamingConfig::default().dedup, DedupMode::Fail);
+}
+
+#[test]
+fn dedup_mode_deserializes_each_value() {
+    let cases = [
+        ("\"fail\"", DedupMode::Fail),
+        ("\"skip\"", DedupMode::Skip),
+        ("\"add-suffix\"", DedupMode::AddSuffix),
+    ];
+    for (json, expected) in cases {
+        let mode: DedupMode = serde_json::from_str(json).unwrap();
+        assert_eq!(mode, expected, "{json}");
+    }
+}
+
+#[test]
+fn dedup_mode_rejects_unknown_value() {
+    let err = serde_json::from_str::<DedupMode>("\"bogus\"").unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("invalid dedup mode `bogus`; expected `fail`, `skip`, or `add-suffix`"),
+        "{err}"
+    );
 }
 
 #[test]

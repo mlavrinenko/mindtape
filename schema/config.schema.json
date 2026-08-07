@@ -274,6 +274,15 @@
         }
       ]
     },
+    "DedupMode": {
+      "description": "`mt add`'s collision policy when the destination stem already exists: `fail` bails before writing (the default), `skip` exits 0 without writing and reports the existing path, `add-suffix` mints `-2`, `-3`, … until a free stem turns up. `mt add --dedup` overrides this default for one run.",
+      "enum": [
+        "fail",
+        "skip",
+        "add-suffix"
+      ],
+      "type": "string"
+    },
     "DeriveConfig": {
       "additionalProperties": false,
       "description": "`[tasks.derive-tags]` — project-wide folder-derived-tag policy.",
@@ -1114,8 +1123,12 @@
     },
     "NamingConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem.",
+      "description": "`[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem,\nand (`dedup`) what `mt add` does when the minted stem collides.",
       "properties": {
+        "dedup": {
+          "$ref": "#/$defs/DedupMode",
+          "description": "Default collision policy for `mt add`; `--dedup` overrides. Unset ⇒\n[`DedupMode::Fail`] (today's behaviour: bail before writing)."
+        },
         "stem": {
           "default": null,
           "description": "Stem template with macros. Unset ⇒ bare `{slug}` (today's behaviour).",
@@ -1661,7 +1674,7 @@
         },
         "naming": {
           "$ref": "#/$defs/NamingConfig",
-          "description": "Task stem naming template (`mt add`/`mt recur` minting)."
+          "description": "Task stem naming template (`mt add`/`mt recur` minting) and `mt add`'s\ndefault collision policy (`dedup`)."
         },
         "priority": {
           "$ref": "#/$defs/PriorityConfig",

@@ -17,11 +17,21 @@
   "add": (
     prose: [Positional words join into the title; `--set`, `-f values.json` (or
       `.yaml`/`.yml`), or editor mode fill the rest. Full detail on
-      #link(u("/templates/"))[Templates & slots].],
+      #link(u("/templates/"))[Templates & slots]. `--dedup` decides what
+      happens when the destination stem already exists (`fail`, the default —
+      bail before writing; `skip` — exit 0, write nothing; `add-suffix` —
+      mint `-2`, `-3`, … via #link(u("/config/"))[`[tasks.naming]`], which
+      also carries the project-wide `dedup` default the flag overrides).
+      `--format` reports what happened — `text` (default prose), `path`,
+      `path0`, or `json` — and the JSON object states the outcome
+      (`wrote`/`skipped`/`suffixed`), not only the path.],
     examples: ```sh
     mt add cleanup kitchen              # title from positional words
     mt add fix login +backend +auth     # +word peels into the tags slot
     mt add --describe                   # dump the template's slot schema
+    mt add ship-it --dedup skip         # leave an existing task alone, exit 0
+    mt add ship-it --dedup add-suffix   # write ship-it-2.typ instead of failing
+    mt add ship-it --format json        # {"outcome": "wrote", "path": "..."}
     ```,
   ),
   "import": (

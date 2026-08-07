@@ -1,7 +1,9 @@
 //! `MindTape` CLI entry point: parse arguments, init logging, dispatch.
 
 mod add;
+mod add_dedup;
 mod add_interactive;
+mod add_output;
 mod add_values;
 mod check;
 mod cli;

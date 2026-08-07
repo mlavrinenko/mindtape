@@ -13,18 +13,22 @@
 use thiserror::Error;
 
 use crate::date::format_iso;
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 /// The bare-slug template: today's behaviour when `[tasks.naming] stem` is
 /// unset.
 pub const DEFAULT_STEM_TEMPLATE: &str = "{slug}";
 
-/// `[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem.
+/// `[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem,
+/// and (`dedup`) what `mt add` does when the minted stem collides.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct NamingConfig {
     /// Stem template with macros. Unset ⇒ bare `{slug}` (today's behaviour).
     pub stem: Option<String>,
+    /// Default collision policy for `mt add`; `--dedup` overrides. Unset ⇒
+    /// [`DedupMode::Fail`] (today's behaviour: bail before writing).
+    pub dedup: DedupMode,
 }
 
 impl NamingConfig {
@@ -33,6 +37,39 @@ impl NamingConfig {
     #[must_use]
     pub fn template(&self) -> &str {
         self.stem.as_deref().unwrap_or(DEFAULT_STEM_TEMPLATE)
+    }
+}
+
+/// `mt add`'s policy when the destination stem already exists. Config-side
+/// counterpart of `mt add --dedup`; the CLI carries its own `clap::ValueEnum`
+/// (`mindtape` has no clap dependency — see `mindtape_cli::add_dedup::DedupArg`)
+/// that converts into this one, so the flag and `[tasks.naming] dedup` share a
+/// single vocabulary.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum DedupMode {
+    /// Bail before writing (today's behaviour, the default).
+    #[default]
+    Fail,
+    /// Exit 0, write nothing, report the existing path.
+    Skip,
+    /// Reuse [`disambiguate`] to append `-2`, `-3`, … until a free stem turns up.
+    AddSuffix,
+}
+
+impl<'de> Deserialize<'de> for DedupMode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let text = String::deserialize(deserializer)?;
+        match text.as_str() {
+            "fail" => Ok(Self::Fail),
+            "skip" => Ok(Self::Skip),
+            "add-suffix" => Ok(Self::AddSuffix),
+            other => Err(serde::de::Error::custom(format!(
+                "invalid dedup mode `{other}`; expected `fail`, `skip`, or `add-suffix`"
+            ))),
+        }
     }
 }
 

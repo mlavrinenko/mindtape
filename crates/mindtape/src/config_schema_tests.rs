@@ -5,6 +5,7 @@ use schemars::JsonSchema;
 use super::{SCHEMA_URL, config_schema_json};
 use crate::body_headers::{HeaderAction, HeaderPathSegment};
 use crate::config::{IdFormat, Requirement};
+use crate::naming::DedupMode;
 
 /// The committed schema artifact (`schema/config.schema.json`) must equal the
 /// schema generated from the config structs. On drift, re-bless:
@@ -49,6 +50,10 @@ fn hand_written_schema_ids_are_correct() {
     assert_eq!(
         <HeaderPathSegment as JsonSchema>::schema_id(),
         "mindtape::body_headers::HeaderPathSegment"
+    );
+    assert_eq!(
+        <DedupMode as JsonSchema>::schema_id(),
+        "mindtape::naming::DedupMode"
     );
 }
 
