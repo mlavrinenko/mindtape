@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("tests",),
   estimate: (files: 4),
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[split by subject seam; shared scaffold promoted to support/mod.rs after jscpd caught the duplicate],
 )
 
 == Summary

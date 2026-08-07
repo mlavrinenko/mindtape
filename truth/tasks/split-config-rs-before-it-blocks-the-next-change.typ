@@ -10,7 +10,11 @@
   difficulty: 4,
   tags: ("cli", "tooling"),
   estimate: (files: 4),
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[extracted the rm/retire facet into config\_rm.rs; 499 -> 463, no prose trimmed],
 )
 
 == Summary

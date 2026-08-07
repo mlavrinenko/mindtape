@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("tests",),
   estimate: (files: 11),
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[five modules split by named theme; parents grew 4 lines each, recur.rs now 481/500],
 )
 
 == Summary
