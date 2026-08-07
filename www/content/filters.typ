@@ -64,7 +64,12 @@ with `miss(field)`.
 
   [`contains("substr")` / `contains("substr", field, ...)`],
   [Case-insensitive substring — needle first. No field named searches
-    `title`, `id`, and the body prose; one or more field names narrows it.],
+    `title`, `id`, and the body prose (or `[ls] contains-fields`, when a
+    project has configured one — see #link(u("/config/"))[Configuration]);
+    one or more explicit field names always searches exactly those,
+    regardless of the configured default. `note` (every `links[].note`,
+    concatenated) and `tags` (authored and derived) are searchable this way
+    too, though neither is in the shipped default.],
 
   [`stale(N)`],
   [Not re-affirmed (or, lacking `reviewed`, last status-changed) for more than N days.],
