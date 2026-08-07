@@ -110,8 +110,16 @@ mt rm terminal       # retire finished work
 
 = Sort and limit
 
+Sortable fields: every comparable field above except `role` (virtual,
+comparison-only), plus `ready` (a computed rank — ready before blocked before
+settled). `--sort` takes one or more `field` / `field:asc` / `field:desc`
+specs, most-significant first; `[ls] default-sort` in
+#link(u("/config/"))[Configuration] takes the same specs for the built-in
+ordering.
+
 ```sh
 mt ls --sort priority:asc      # or :desc
+mt ls --sort status --sort due:desc   # status first, due breaks ties
 mt ls -n 10                    # limit to 10
 ```
 

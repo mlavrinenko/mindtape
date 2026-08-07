@@ -5,16 +5,18 @@
 //!
 //! # Syntax
 //!
-//! Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`,
-//! `id`, `due`, `start`, `reviewed`, `file`, `assignee` (the actor name, a
-//! string compare), and `role` (a virtual, comparison-only field: the literal
-//! resolves against the assignee's declared roles from the `[[actors]]`
-//! registry at read time, so `role == "reviewer"` matches a task whose
-//! assignee holds that role; any other comparison follows the missing-field
-//! rule, making `role != "reviewer"` its exact complement). `priority` and
-//! `difficulty` are numeric, so they compare numerically against a number
-//! literal (e.g. `priority >= 7`). The opaque `estimate` dict supports presence
-//! only (`has(estimate)` / `miss(estimate)`), not comparison.
+//! Comparable fields: [`crate::fields::FIELDS`] (`status`, `priority`,
+//! `difficulty`, `kind`, `title`, `id`, `due`, `start`, `reviewed`, `file`,
+//! `assignee`, `depth`) plus `role` (a virtual, comparison-only field with no
+//! `Task` field behind it: the literal resolves against the assignee's
+//! declared roles from the `[[actors]]` registry at read time, so
+//! `role == "reviewer"` matches a task whose assignee holds that role; any
+//! other comparison follows the missing-field rule, making
+//! `role != "reviewer"` its exact complement). `priority` and `difficulty` are
+//! numeric, so they compare numerically against a number literal (e.g.
+//! `priority >= 7`). The opaque `estimate` dict supports presence only
+//! (`has(estimate)` / `miss(estimate)`), not comparison. The same field set
+//! backs `--sort` — see [`crate::sort::SORT_FIELDS`].
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
@@ -39,13 +41,14 @@
 use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
 use thiserror::Error;
 
-use crate::config::{Config, PriorityConfig};
+use crate::config::Config;
 use crate::expr::{
     compare_ordering, extract_identifier, extract_literal, resolve_now_or_literal, unwrap_root,
 };
+use crate::fields::{self, FieldValue};
 use crate::filter_views::{collect_view_refs, desugar_view_refs};
 use crate::model::Task;
-use crate::numeric::{NumValue, format_num};
+use crate::numeric::format_num;
 use crate::ready::Readiness;
 
 /// Maximum `in_view` nesting depth evaluated before bailing. Config load rejects
@@ -79,15 +82,6 @@ pub enum FilterError {
     /// A structurally invalid expression.
     #[error("invalid filter: {0}")]
     Invalid(String),
-}
-
-/// A resolved field value during evaluation. String fields compare
-/// lexicographically (ISO-correct for dates); numeric fields compare as numbers
-/// against a numeric literal and fall back to their display string otherwise.
-enum FieldValue {
-    Str(String),
-    Num(f64),
-    Missing,
 }
 
 impl Filter {
@@ -388,41 +382,13 @@ fn contains_ci(value: &FieldValue, needle: &str) -> bool {
     haystack.to_lowercase().contains(&needle.to_lowercase())
 }
 
+/// Resolve a field name to its value on `task`, via the shared
+/// [`crate::fields`] registry — the single place every generically comparable
+/// field is wired, so a field usable here is usable in `--sort` too.
 fn field_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, FilterError> {
-    let value = match name {
-        "status" => opt_str(task.status.as_ref().map(|status| status.name.clone())),
-        "priority" => num_field(task.priority.as_ref(), Some(&config.tasks.priority)),
-        "difficulty" => num_field(task.difficulty.as_ref(), None),
-        "kind" => opt_str(task.kind.clone()),
-        "title" => FieldValue::Str(task.title.clone()),
-        "id" => FieldValue::Str(task.id.clone()),
-        "due" => opt_str(task.due.clone()),
-        "start" => opt_str(task.start.clone()),
-        "reviewed" => opt_str(task.reviewed.clone()),
-        "file" => FieldValue::Str(task.file_key()),
-        "assignee" => opt_str(task.assignee.clone()),
-        "depth" => FieldValue::Num(task.depth.into()),
-        other => return Err(FilterError::UnknownField(other.to_owned())),
-    };
-    Ok(value)
-}
-
-fn opt_str(value: Option<String>) -> FieldValue {
-    value.map_or(FieldValue::Missing, FieldValue::Str)
-}
-
-/// A numeric field as a comparable value: a raw number compares numerically; a
-/// label falls back to a string compare; a framework value resolves its score
-/// through `priority` (numeric) when given the priority config.
-fn num_field(value: Option<&NumValue>, priority: Option<&PriorityConfig>) -> FieldValue {
-    match value {
-        Some(NumValue::Num(num)) => FieldValue::Num(*num),
-        Some(NumValue::Label(label)) => FieldValue::Str(label.clone()),
-        Some(framework @ NumValue::Framework { .. }) => priority
-            .and_then(|config| config.resolve(framework))
-            .map_or(FieldValue::Missing, FieldValue::Num),
-        None => FieldValue::Missing,
-    }
+    fields::get(name)
+        .map(|def| (def.get)(task, config))
+        .ok_or_else(|| FilterError::UnknownField(name.to_owned()))
 }
 
 // --- AST helpers (ported from the SQL translator; shared walk primitives now

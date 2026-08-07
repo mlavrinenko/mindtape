@@ -37,6 +37,7 @@ pub mod derive;
 pub mod emit;
 pub mod estimate_drift;
 mod expr;
+mod fields;
 pub mod filter;
 mod filter_links;
 mod filter_views;

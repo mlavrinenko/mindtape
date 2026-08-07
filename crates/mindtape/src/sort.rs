@@ -11,11 +11,17 @@
 use std::cmp::Ordering;
 
 use crate::config::Config;
+use crate::fields::{self, FieldValue};
 use crate::model::Task;
 use crate::ready::{Readiness, ReadyState};
 
-/// All sort field names accepted by `--sort` and `[query] default_sort`.
-pub const SORT_FIELDS: [&str; 11] = [
+/// All sort field names accepted by `--sort` and `[query] default_sort`:
+/// every [`crate::fields::FIELDS`] entry, plus `ready` (a computed rank, not a
+/// `Task` field — see [`ready_rank`]). Pinned against the registry by
+/// `sort_fields_covers_every_registry_field` in `sort_tests.rs`, so a field
+/// added to `crate::fields` and forgotten here fails a test instead of
+/// silently staying unsortable.
+pub const SORT_FIELDS: [&str; 13] = [
     "id",
     "title",
     "status",
@@ -24,6 +30,8 @@ pub const SORT_FIELDS: [&str; 11] = [
     "kind",
     "due",
     "start",
+    "reviewed",
+    "assignee",
     "file",
     "depth",
     "ready",
@@ -83,6 +91,12 @@ fn parse_spec(spec: &str) -> (&str, bool) {
 }
 
 /// Compare two tasks on `field` ascending; callers reverse for descending specs.
+///
+/// `status`/`ready`/`priority`/`difficulty` need config- or readiness-aware
+/// ordering that a raw field value can't express (legend position, readiness
+/// band, a resolved numeric scale point) so they stay special-cased; every
+/// other field — including any added to [`crate::fields::FIELDS`] later —
+/// falls through to the shared registry.
 fn compare_field(
     left: &Task,
     right: &Task,
@@ -98,8 +112,40 @@ fn compare_field(
             difficulty_value(left, config),
             difficulty_value(right, config),
         ),
-        "depth" => left.depth.cmp(&right.depth),
-        _ => sort_string_key(left, field).cmp(&sort_string_key(right, field)),
+        _ => cmp_field_value(
+            &registry_value(left, field, config),
+            &registry_value(right, field, config),
+        ),
+    }
+}
+
+/// A field's value via the shared [`crate::fields`] registry; `Missing` when
+/// `field` isn't registered there — unreachable via `--sort`, since
+/// `sort_by_specs` validates every spec against [`SORT_FIELDS`] first, and
+/// every name in `SORT_FIELDS` reaching this arm has a registry entry.
+fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {
+    fields::get(field).map_or(FieldValue::Missing, |def| (def.get)(task, config))
+}
+
+/// Compare two resolved field values for `--sort`, ascending: numbers
+/// numerically, strings lexicographically (ISO-correct for dates), a missing
+/// value after every present one — the same missing-last convention
+/// [`cmp_num_asc`] and [`cmp_opt_asc`] already use, so every field orders
+/// missing values the same way (`sort_by_specs` reverses the whole comparison
+/// for `:desc`, so there a missing value sorts first — same as `priority`/
+/// `difficulty`, whose `cmp_num_asc` arms follow the identical rule). The two
+/// values passed in are always resolved from the same field name, so they are
+/// always the same variant when both are present.
+fn cmp_field_value(left: &FieldValue, right: &FieldValue) -> Ordering {
+    match (left, right) {
+        (FieldValue::Missing, FieldValue::Missing) => Ordering::Equal,
+        (FieldValue::Missing, _) => Ordering::Greater,
+        (_, FieldValue::Missing) => Ordering::Less,
+        (FieldValue::Num(low), FieldValue::Num(high)) => {
+            low.partial_cmp(high).unwrap_or(Ordering::Equal)
+        }
+        (FieldValue::Str(left), FieldValue::Str(right)) => left.cmp(right),
+        _ => Ordering::Equal,
     }
 }
 
@@ -109,18 +155,6 @@ fn cmp_num_asc(left: Option<f64>, right: Option<f64>) -> Ordering {
         (Some(_), None) => Ordering::Less,
         (None, Some(_)) => Ordering::Greater,
         (None, None) => Ordering::Equal,
-    }
-}
-
-fn sort_string_key(task: &Task, field: &str) -> String {
-    match field {
-        "id" => task.id.clone(),
-        "title" => task.title.clone(),
-        "kind" => task.kind.clone().unwrap_or_default(),
-        "due" => task.due.clone().unwrap_or_default(),
-        "start" => task.start.clone().unwrap_or_default(),
-        "file" => task.file_key(),
-        _ => String::new(),
     }
 }
 

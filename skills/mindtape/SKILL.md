@@ -69,7 +69,8 @@ of that and lists everything. There is no `--all` flag; `mt ls --all` errors
 with `unexpected argument '--all'`.
 
 Pass a filter expression as the positional argument. Fields:
-`status priority difficulty kind title id due start reviewed file depth`.
+`status priority difficulty kind title id due start reviewed file assignee
+depth` — the same set `--sort` accepts (plus a computed `ready` rank).
 `file` compares the project-root-relative path (`/`-separated on every
 platform) — not the same as the `file` *column*'s working-directory-relative
 display, below. `depth` is the folder nesting under a root (0 for a task in the

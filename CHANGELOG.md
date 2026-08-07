@@ -261,6 +261,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`--sort assignee` / `--sort reviewed`** — both fields were already
+  filterable but silently rejected by `--sort` (`unknown sort field`) since
+  `SORT_FIELDS` never listed them. Filter and sort now share one field
+  registry (`crate::fields`), so a field wired in is filterable and sortable
+  together — no second match statement to forget. As part of the same fix,
+  every field now sorts a missing value consistently: previously a missing
+  optional field (e.g. `kind`) sorted *first* ascending (a stray `""`
+  fallback) while `priority`/`difficulty` sorted a missing value *last* —
+  every field now follows the same last-ascending, first-descending rule.
 - **`mt add` can satisfy a required strict-framework priority** — a project
   whose `[tasks.priority]` sets `framework` with `allow-manual = false` and
   `required` had no `mt add` invocation that could file a valid task unless it

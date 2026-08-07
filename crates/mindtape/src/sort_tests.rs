@@ -211,10 +211,11 @@ default-sort = ["id"]
     assert_eq!(tasks.first().unwrap().id, "a-task");
 }
 
-// Per-field `--sort` comparators: each `compare_field` / `sort_string_key` arm
-// must route to its own key. Input order is the inverse of the expected sorted
-// order, so dropping an arm (which collapses to an equal/empty key and leaves
-// the input order) fails the assertion.
+// Per-field `--sort` comparators: each `compare_field` special case and each
+// `crate::fields` registry entry must route to its own key. Input order is
+// the inverse of the expected sorted order, so dropping the special case (or
+// the registry entry, which would fail at `sort_by_specs`' `SORT_FIELDS`
+// check first) fails the assertion.
 
 #[test]
 fn sort_by_specs_orders_by_status_lifecycle() {
@@ -339,6 +340,76 @@ fn sort_by_specs_orders_by_depth() {
         ids_by(vec![deep, root, shallow], "depth", &cfg),
         vec!["d-root", "d-shallow", "d-deep"]
     );
+}
+
+#[test]
+fn sort_by_specs_orders_by_assignee_ascending() {
+    let cfg = config();
+    let mut zed = bare_task("a-zed");
+    zed.assignee = Some("zed".to_owned());
+    let mut ada = bare_task("a-ada");
+    ada.assignee = Some("ada".to_owned());
+    assert_eq!(
+        ids_by(vec![zed, ada], "assignee", &cfg),
+        vec!["a-ada", "a-zed"]
+    );
+}
+
+#[test]
+fn sort_by_specs_orders_by_reviewed_ascending() {
+    let cfg = config();
+    let mut late = bare_task("rev-late");
+    late.reviewed = Some("2026-09-01".to_owned());
+    let mut early = bare_task("rev-early");
+    early.reviewed = Some("2026-07-01".to_owned());
+    assert_eq!(
+        ids_by(vec![late, early], "reviewed", &cfg),
+        vec!["rev-early", "rev-late"]
+    );
+}
+
+#[test]
+fn sort_by_specs_sorts_missing_generic_field_last_ascending() {
+    // Regression: before routing through the shared `crate::fields` registry,
+    // a missing optional field (e.g. `kind`) fell back to `""`, which sorts
+    // *first* ascending — inconsistent with every numeric field's
+    // missing-sorts-last rule. A missing `kind` must trail a present one
+    // ascending, and (since `:desc` reverses the whole comparison, same as
+    // `priority`/`difficulty`) lead it descending.
+    let cfg = config();
+    let mut has_kind = bare_task("k-has");
+    has_kind.kind = Some("bug".to_owned());
+    let no_kind = bare_task("k-none");
+    assert_eq!(
+        ids_by(vec![no_kind.clone(), has_kind.clone()], "kind", &cfg),
+        vec!["k-has", "k-none"]
+    );
+    let mut tasks = vec![no_kind, has_kind];
+    sort_by_specs(
+        &mut tasks,
+        &["kind:desc".to_owned()],
+        &cfg,
+        &crate::ready::Readiness::empty(),
+    )
+    .unwrap();
+    let ids: Vec<&str> = tasks.iter().map(|t| t.id.as_str()).collect();
+    assert_eq!(ids, vec!["k-none", "k-has"]);
+}
+
+#[test]
+fn sort_fields_covers_every_registry_field() {
+    // A field wired into `crate::fields` (and therefore filterable) must also
+    // be listed in `SORT_FIELDS` — otherwise it stays silently unsortable, the
+    // exact drift this registry closes off. Add the field here (and, if its
+    // sort order needs to differ from the generic registry compare, a
+    // `compare_field` arm) when this fails.
+    for def in crate::fields::FIELDS {
+        assert!(
+            super::SORT_FIELDS.contains(&def.name),
+            "field {:?} is filterable but missing from SORT_FIELDS",
+            def.name
+        );
+    }
 }
 
 #[test]
