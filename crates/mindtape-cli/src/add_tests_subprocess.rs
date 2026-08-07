@@ -206,6 +206,7 @@ fn run_with_no_verify_skips_validation() {
             print: false,
             no_verify: true,
             dedup: None,
+            format: Format::Text,
         };
         let result = run(&args);
         assert!(
@@ -271,6 +272,7 @@ fn run_fills_slot_from_declared_env() {
             print: false,
             no_verify: false,
             dedup: None,
+            format: Format::Text,
         };
         run(&args).expect("run should fill the slot from its declared env");
         let written =

@@ -359,8 +359,9 @@ dedup = "skip"   # fail (default) | skip | add-suffix
     already uses, made explicit and unconditional.],
 )
 
-`mt add --dedup <mode>` overrides this default for one run — see
-#link(u("/cli/"))[`mt add`].
+`mt add --dedup <mode>` overrides this default for one run; `mt add --format
+json` reports which outcome fired (`wrote`, `skipped`, `suffixed`) alongside
+the path — see #link(u("/cli/"))[`mt add`].
 
 = Recurring tasks
 

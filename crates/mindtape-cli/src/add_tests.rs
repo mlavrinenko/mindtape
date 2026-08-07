@@ -18,6 +18,7 @@ use super::{
     AddArgs, dest_dir, fill_title_from_args, initial_status, inject_header, markup_safe,
     output_stem,
 };
+use crate::add_output::Format;
 use crate::util::Project;
 
 const HEADER: &str = r#"#import "@local/mindtape:0.2.0": *
@@ -45,6 +46,7 @@ fn bare_args() -> AddArgs {
         print: false,
         no_verify: false,
         dedup: None,
+        format: Format::Text,
     }
 }
 

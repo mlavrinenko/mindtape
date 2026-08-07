@@ -18,6 +18,7 @@ use typst_edit::apply;
 
 use crate::add_dedup::{self, DedupArg};
 use crate::add_interactive;
+use crate::add_output::{self, Format, Outcome};
 use crate::add_values::{
     DescribeFormat, append_list_value, collect_values, describe, layer_env, list_templates,
     reject_unknown_keys, resolve_template, slug, stdin_title,
@@ -93,6 +94,12 @@ pub struct AddArgs {
     /// `naming::disambiguate`). Overrides `[tasks.naming] dedup`.
     #[arg(long, value_enum, value_name = "MODE")]
     pub dedup: Option<DedupArg>,
+
+    /// Output format: `text` (today's `wrote <path>` prose, the default),
+    /// `path`, `path0`, or `json` — the JSON object reports the outcome
+    /// (`wrote`, `skipped`, `suffixed`), not only the path.
+    #[arg(long, value_enum, default_value_t)]
+    pub format: Format,
 }
 
 /// Run the `add` command.
@@ -147,15 +154,17 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let dest = dest_dir(&args.into, args.to.as_deref(), &project)?;
     let stem = output_stem(args, &values, config, &dest)?;
     let file = dest.join(format!("{stem}.typ"));
-    let Some(file) = resolve_destination(args, config, &stem, &dest, file)? else {
+    let outcome = resolve_outcome(args, config, &stem, &dest, file)?;
+    let Some(outcome) = outcome else {
         // `--dedup skip` already reported the existing path; nothing to write.
         return Ok(());
     };
+    let file = outcome.path().to_path_buf();
 
     std::fs::create_dir_all(&dest).with_context(|| format!("create {}", dest.display()))?;
     std::fs::write(&file, &filled).with_context(|| format!("write {}", file.display()))?;
     warn_if_outside_roots(&project, &dest);
-    println!("wrote {}", file.display());
+    add_output::emit(&outcome, args.format);
 
     if !args.no_verify {
         crate::task_edit::verify_written(&project.root, &file).with_context(|| kept_note(&file))?;
@@ -163,34 +172,33 @@ pub fn run(args: &AddArgs) -> Result<()> {
     Ok(())
 }
 
-/// Resolve the destination path against `--dedup`/`[tasks.naming] dedup`,
-/// reporting a `skip` outcome immediately (nothing is written for it).
-/// Returns `None` for `skip` (the caller's cue to stop); `Some(path)`
-/// otherwise — the exact path to write, re-stemmed when `add-suffix` minted
-/// one.
+/// Resolve the destination collision against `--dedup`/`[tasks.naming]
+/// dedup`, and report a `skip` outcome immediately (nothing is written for
+/// it). Returns `None` for `skip` (the caller's cue to stop); `Some(outcome)`
+/// otherwise, carrying the exact path to write.
 ///
 /// # Errors
 /// Propagates [`add_dedup::resolve`]'s `fail`/exhausted-`add-suffix` errors.
-fn resolve_destination(
+fn resolve_outcome(
     args: &AddArgs,
     config: &Config,
     stem: &str,
     dest: &Path,
     file: PathBuf,
-) -> Result<Option<PathBuf>> {
+) -> Result<Option<Outcome>> {
     let dedup = add_dedup::effective_mode(args.dedup, config);
     let label = file.display().to_string();
     let collision = add_dedup::resolve(dedup, stem, &label, |candidate| {
         dest.join(format!("{candidate}.typ")).exists()
     })?;
     Ok(match collision {
-        add_dedup::Collision::None => Some(file),
+        add_dedup::Collision::None => Some(Outcome::Wrote(file)),
         add_dedup::Collision::Skipped => {
-            println!("skipped, already exists at {}", file.display());
+            add_output::emit(&Outcome::Skipped(file), args.format);
             None
         }
         add_dedup::Collision::Suffixed(suffixed_stem) => {
-            Some(dest.join(format!("{suffixed_stem}.typ")))
+            Some(Outcome::Suffixed(dest.join(format!("{suffixed_stem}.typ"))))
         }
     })
 }
