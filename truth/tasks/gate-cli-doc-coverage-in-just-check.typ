@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("gating", "docs"),
   estimate: (files: 6),
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[check-doc-coverage wired as a just check arm; exposed and closed a 5-command pre-existing gap (graph, import, init, preset, worktrees)],
 )
 
 == Summary

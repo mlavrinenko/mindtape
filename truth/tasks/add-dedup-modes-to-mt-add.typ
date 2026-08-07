@@ -14,7 +14,11 @@
     + related(
       "give-mt-add-machine-readable-output.typ",
     )[the outcome a skip has to be observable through],
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[fail/skip/add-suffix landed; verified live in a scratch project: skip exits 0 without writing, add-suffix yields -2 then -3],
 )
 
 == Summary

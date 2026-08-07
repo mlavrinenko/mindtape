@@ -13,7 +13,11 @@
   links: related(
     "add-dedup-modes-to-mt-add.typ",
   )[the outcomes this format has to report],
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[text/path/path0/json formats; json reports outcome (wrote/skipped/suffixed) alongside the path],
 )
 
 == Summary
