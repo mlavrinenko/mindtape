@@ -10,6 +10,9 @@
   difficulty: 4,
   tags: ("cli",),
   estimate: (files: 4),
+  links: related(
+    "add-dedup-modes-to-mt-add.typ",
+  )[the task that landed the flag this makes reachable],
   status: proposed(2026, 8, 8),
 )
 
