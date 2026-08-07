@@ -179,7 +179,8 @@ pub struct TasksConfig {
     pub body: TaskBodyConfig,
     /// Task id format.
     pub id: IdConfig,
-    /// Task stem naming template (`mt add`/`mt recur` minting).
+    /// Task stem naming template (`mt add`/`mt recur` minting) and `mt add`'s
+    /// default collision policy (`dedup`).
     pub naming: crate::naming::NamingConfig,
     /// Typed relation edge (`links:`) kind registry.
     pub links: crate::link::LinksConfig,

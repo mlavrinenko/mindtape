@@ -18,6 +18,7 @@ use std::borrow::Cow;
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 
 use crate::config::{HeaderAction, HeaderPathSegment, IdFormat, Requirement};
+use crate::naming::DedupMode;
 
 /// Canonical published location of this schema. Used as the schema `$id`, and
 /// as the `#:schema` directive `mt init` writes by default — a checked-in
@@ -67,6 +68,28 @@ impl JsonSchema for IdFormat {
             "description": "Format requirement for an explicit task `id:` field.",
             "type": "string",
             "enum": ["string", "uuid-v4", "uuid-v7"]
+        })
+    }
+}
+
+impl JsonSchema for DedupMode {
+    fn schema_name() -> Cow<'static, str> {
+        "DedupMode".into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        "mindtape::naming::DedupMode".into()
+    }
+
+    fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
+        json_schema!({
+            "description": "`mt add`'s collision policy when the destination stem \
+                already exists: `fail` bails before writing (the default), `skip` \
+                exits 0 without writing and reports the existing path, `add-suffix` \
+                mints `-2`, `-3`, … until a free stem turns up. `mt add --dedup` \
+                overrides this default for one run.",
+            "type": "string",
+            "enum": ["fail", "skip", "add-suffix"]
         })
     }
 }

@@ -44,6 +44,7 @@ fn bare_args() -> AddArgs {
         list: false,
         print: false,
         no_verify: false,
+        dedup: None,
     }
 }
 

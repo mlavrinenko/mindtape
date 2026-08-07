@@ -335,8 +335,32 @@ stem = "{slug}.task-{yy}{mm}{dd}"
   [The recurrence occurrence index; bare or zero-padded to `N` digits.],
 )
 
-A minted stem never overwrites an existing file: on a collision `mt` appends
-`-2`, `-3`, … until a free name turns up.
+A *templated* stem never overwrites an existing file: on a collision `mt`
+appends `-2`, `-3`, … until a free name turns up, independently of `dedup`
+below — a project that opts into `stem` templating is opting into that
+suffix-and-move-on behaviour for its minted stems specifically.
+
+A *bare* stem (`stem` unset, or an explicit `mt add --name`) instead follows
+`[tasks.naming] dedup` — `mt add`'s collision policy when the destination
+stem already exists:
+
+```toml
+[tasks.naming]
+dedup = "skip"   # fail (default) | skip | add-suffix
+```
+
+#table(
+  columns: 2,
+  table.header([Value], [Behaviour]),
+  [`fail`], [Bail before writing — today's behaviour, the default.],
+  [`skip`], [Exit 0, write nothing, report the existing path.],
+  [`add-suffix`],
+  [Mint `-2`, `-3`, … via the same disambiguation search a templated `stem`
+    already uses, made explicit and unconditional.],
+)
+
+`mt add --dedup <mode>` overrides this default for one run — see
+#link(u("/cli/"))[`mt add`].
 
 = Recurring tasks
 

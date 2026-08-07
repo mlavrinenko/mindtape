@@ -127,6 +127,9 @@ status and id, and validates — never hand-write the `.typ`. Common flags:
   left-to-right; `-` reads stdin); `.json`/`.yaml`/`.yml` pick the parser by
   extension, stdin and any other extension sniff the content; `--set` applies
   after and wins on overlap
+- `--dedup fail|skip|add-suffix` collision policy on an existing stem: `fail`
+  bails (default), `skip` exits 0 writing nothing, `add-suffix` mints `-2`,
+  `-3`, …; overrides `[tasks.naming] dedup`
 
 ### `--set` keys are slot names, and unknown ones are a hard error
 

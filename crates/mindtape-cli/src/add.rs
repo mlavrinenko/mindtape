@@ -16,6 +16,7 @@ use mindtape::{
 };
 use typst_edit::apply;
 
+use crate::add_dedup::{self, DedupArg};
 use crate::add_interactive;
 use crate::add_values::{
     DescribeFormat, append_list_value, collect_values, describe, layer_env, list_templates,
@@ -85,6 +86,13 @@ pub struct AddArgs {
     /// Skip post-write validation of the new task.
     #[arg(long = "no-verify")]
     pub no_verify: bool,
+
+    /// Collision policy when the destination stem already exists: `fail`
+    /// (bail, the default), `skip` (exit 0, write nothing, report the
+    /// existing path), or `add-suffix` (mint `-2`, `-3`, … via
+    /// `naming::disambiguate`). Overrides `[tasks.naming] dedup`.
+    #[arg(long, value_enum, value_name = "MODE")]
+    pub dedup: Option<DedupArg>,
 }
 
 /// Run the `add` command.
@@ -139,9 +147,11 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let dest = dest_dir(&args.into, args.to.as_deref(), &project)?;
     let stem = output_stem(args, &values, config, &dest)?;
     let file = dest.join(format!("{stem}.typ"));
-    if file.exists() {
-        bail!("task {stem:?} already exists at {}", file.display());
-    }
+    let Some(file) = resolve_destination(args, config, &stem, &dest, file)? else {
+        // `--dedup skip` already reported the existing path; nothing to write.
+        return Ok(());
+    };
+
     std::fs::create_dir_all(&dest).with_context(|| format!("create {}", dest.display()))?;
     std::fs::write(&file, &filled).with_context(|| format!("write {}", file.display()))?;
     warn_if_outside_roots(&project, &dest);
@@ -151,6 +161,38 @@ pub fn run(args: &AddArgs) -> Result<()> {
         crate::task_edit::verify_written(&project.root, &file).with_context(|| kept_note(&file))?;
     }
     Ok(())
+}
+
+/// Resolve the destination path against `--dedup`/`[tasks.naming] dedup`,
+/// reporting a `skip` outcome immediately (nothing is written for it).
+/// Returns `None` for `skip` (the caller's cue to stop); `Some(path)`
+/// otherwise — the exact path to write, re-stemmed when `add-suffix` minted
+/// one.
+///
+/// # Errors
+/// Propagates [`add_dedup::resolve`]'s `fail`/exhausted-`add-suffix` errors.
+fn resolve_destination(
+    args: &AddArgs,
+    config: &Config,
+    stem: &str,
+    dest: &Path,
+    file: PathBuf,
+) -> Result<Option<PathBuf>> {
+    let dedup = add_dedup::effective_mode(args.dedup, config);
+    let label = file.display().to_string();
+    let collision = add_dedup::resolve(dedup, stem, &label, |candidate| {
+        dest.join(format!("{candidate}.typ")).exists()
+    })?;
+    Ok(match collision {
+        add_dedup::Collision::None => Some(file),
+        add_dedup::Collision::Skipped => {
+            println!("skipped, already exists at {}", file.display());
+            None
+        }
+        add_dedup::Collision::Suffixed(suffixed_stem) => {
+            Some(dest.join(format!("{suffixed_stem}.typ")))
+        }
+    })
 }
 
 /// Escape every fill value that lands in Typst markup, leaving the rest alone.
