@@ -20,6 +20,14 @@ pub enum OutputFormat {
     Json,
     /// Comma-separated values with a header row.
     Csv,
+    /// One task file path per line, nothing else — for composing with
+    /// another program (`rg TODO $(mt ls ready --format path)`).
+    #[value(name = "path")]
+    Path,
+    /// The same list as `path`, NUL-delimited instead of newline-delimited,
+    /// for `xargs -0` and paths holding whitespace.
+    #[value(name = "path0")]
+    Path0,
 }
 
 fn status_name(task: &Task) -> String {
@@ -36,7 +44,10 @@ fn status_name(task: &Task) -> String {
 /// `truth/tasks/emit-schema-version-in-the-ls-json-envelope.typ`); `None`
 /// (e.g. `mt eval --json`, which has no rule/view context) keeps the bare
 /// array — `schema_version` is a document-level envelope marker, not a
-/// per-task field, so a bare array carries none.
+/// per-task field, so a bare array carries none. `Path`/`Path0` ignore
+/// `applied` too: no header, no colour, no hyperlinks, no envelope — the
+/// output is for a program, not a reader
+/// (`truth/tasks/emit-a-plain-path-list-from-ls.typ`).
 ///
 /// # Errors
 /// Returns an error if JSON or CSV serialization fails.
@@ -51,7 +62,31 @@ pub fn render(
         OutputFormat::Table => Ok(crate::render::table::render(tasks, config, readiness)),
         OutputFormat::Json => render_json(tasks, config, applied),
         OutputFormat::Csv => render_csv(tasks, config, readiness),
+        OutputFormat::Path => Ok(render_path(tasks)),
+        OutputFormat::Path0 => Ok(render_path0(tasks)),
     }
+}
+
+/// `path` format: one task path per line, joined (not trailing) — the caller
+/// prints this through `println!`, which supplies the final newline the same
+/// way every other format already relies on it.
+fn render_path(tasks: &[Task]) -> String {
+    tasks
+        .iter()
+        .map(|task| crate::render::file_path::cell_text(&task.file))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// `path0` format: each task path is its own NUL-terminated record, including
+/// the last — unlike [`render_path`], the caller must print this verbatim
+/// (`print!`, not `println!`), since a stray trailing newline after the final
+/// NUL would land inside the last `xargs -0` argument.
+fn render_path0(tasks: &[Task]) -> String {
+    tasks
+        .iter()
+        .map(|task| format!("{}\0", crate::render::file_path::cell_text(&task.file)))
+        .collect()
 }
 
 fn render_json(tasks: &[Task], config: &Config, applied: Option<&Applied>) -> Result<String> {

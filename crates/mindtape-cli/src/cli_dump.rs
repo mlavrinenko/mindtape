@@ -228,7 +228,7 @@ mod tests {
             .iter()
             .map(|p| field(p, "name"))
             .collect();
-        assert_eq!(values, vec!["table", "json", "csv"]);
+        assert_eq!(values, vec!["table", "json", "csv", "path", "path0"]);
     }
 
     #[test]

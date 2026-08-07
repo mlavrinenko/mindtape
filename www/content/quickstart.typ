@@ -156,6 +156,13 @@ terminal with `--hyperlinks always` — see #link(u("/cli/"))[the CLI
   reference]. The full #link(u("/filters/"))[filter language] covers tags,
 dates, dependency state, and full-text search.
 
+`mt ls --format path` prints a bare list of task paths (`path0` NUL-delimits
+it for `xargs -0`), for composing with another program:
+
+```sh
+rg TODO $(mt ls ready --format path)
+```
+
 = Change status
 
 Every status in the legend is also a verb. Set one, dated today, without opening

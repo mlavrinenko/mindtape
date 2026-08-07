@@ -19,6 +19,18 @@ pub struct LsArgs {
     /// and columns.
     pub filter: Option<String>,
 
+    #[command(flatten)]
+    pub flags: LsFlags,
+}
+
+/// Output-shaping flags shared verbatim between `ls` and `find`
+/// (`crate::find`, sugar over `contains()`): everything but the filter
+/// itself. Flattened into both so a flag can never exist on one and not the
+/// other — the drift `crate::fields` was created to end after `filter.rs` and
+/// `sort.rs` disagreed about which fields exist (see
+/// `truth/tasks/mt-find-as-sugar-over-contains.typ`).
+#[derive(Debug, Clone, clap::Args)]
+pub struct LsFlags {
     /// Output format.
     #[arg(long, value_enum, default_value_t)]
     pub format: OutputFormat,
@@ -57,20 +69,25 @@ pub fn run(args: &LsArgs) -> Result<()> {
 
 pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
     util::warn_errors(&project.outcome);
-    if args.interactive {
+    if args.flags.interactive {
         return crate::ls_interactive::run(args, project);
     }
     let (tasks, readiness, applied, config) = resolve_and_select(args, project)?;
 
-    let format = if args.json {
+    let format = if args.flags.json {
         OutputFormat::Json
     } else {
-        args.format
+        args.flags.format
     };
-    println!(
-        "{}",
-        render(&tasks, format, &config, &readiness, Some(&applied))?
-    );
+    let body = render(&tasks, format, &config, &readiness, Some(&applied))?;
+    if matches!(format, OutputFormat::Path0) {
+        // Self-terminated: every path (including the last) already carries
+        // its own trailing NUL, so a `println!`-supplied newline would land
+        // inside the final `xargs -0` argument instead of after it.
+        print!("{body}");
+    } else {
+        println!("{body}");
+    }
     if matches!(format, OutputFormat::Table)
         && let Some(line) = ls_rules::trailer(&applied)
     {
@@ -111,7 +128,7 @@ fn resolve_and_select(
         &readiness,
     )?;
     sort_tasks(&mut tasks, &bundle.sort, &project.config, &readiness)?;
-    if let Some(limit) = args.limit {
+    if let Some(limit) = args.flags.limit {
         tasks.truncate(limit);
     }
     Ok((tasks, readiness, applied, config))
@@ -203,12 +220,14 @@ mod tests {
     fn default_args() -> LsArgs {
         LsArgs {
             filter: None,
-            format: OutputFormat::Table,
-            json: false,
-            limit: None,
-            sort: vec![],
-            columns: None,
-            interactive: false,
+            flags: crate::ls::LsFlags {
+                format: OutputFormat::Table,
+                json: false,
+                limit: None,
+                sort: vec![],
+                columns: None,
+                interactive: false,
+            },
         }
     }
 
@@ -236,10 +255,8 @@ mod tests {
     fn run_with_json_flag_succeeds() {
         let dir = tempfile::tempdir().unwrap();
         let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let args = LsArgs {
-            json: true,
-            ..default_args()
-        };
+        let mut args = default_args();
+        args.flags.json = true;
         assert!(run_with(&args, project).is_ok());
     }
 
@@ -247,10 +264,8 @@ mod tests {
     fn run_with_csv_format_succeeds() {
         let dir = tempfile::tempdir().unwrap();
         let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let args = LsArgs {
-            format: OutputFormat::Csv,
-            ..default_args()
-        };
+        let mut args = default_args();
+        args.flags.format = OutputFormat::Csv;
         assert!(run_with(&args, project).is_ok());
     }
 
@@ -258,10 +273,8 @@ mod tests {
     fn run_with_limit_truncates() {
         let dir = tempfile::tempdir().unwrap();
         let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
-        let args = LsArgs {
-            limit: Some(1),
-            ..default_args()
-        };
+        let mut args = default_args();
+        args.flags.limit = Some(1);
         assert!(run_with(&args, project).is_ok());
     }
 
@@ -280,10 +293,8 @@ mod tests {
     fn run_with_invalid_sort_returns_err() {
         let dir = tempfile::tempdir().unwrap();
         let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let args = LsArgs {
-            sort: vec!["no_such_field".to_owned()],
-            ..default_args()
-        };
+        let mut args = default_args();
+        args.flags.sort = vec!["no_such_field".to_owned()];
         assert!(run_with(&args, project).is_err());
     }
 
@@ -321,40 +332,32 @@ mod tests {
     #[test]
     fn columns_flag_selects_named_columns() {
         let dir = tempfile::tempdir().unwrap();
-        let args = LsArgs {
-            columns: Some("status,title".to_owned()),
-            ..default_args()
-        };
+        let mut args = default_args();
+        args.flags.columns = Some("status,title".to_owned());
         assert!(run_with(&args, view_project(dir.path())).is_ok());
     }
 
     #[test]
     fn columns_at_view_runs() {
         let dir = tempfile::tempdir().unwrap();
-        let args = LsArgs {
-            columns: Some("@hot".to_owned()),
-            ..default_args()
-        };
+        let mut args = default_args();
+        args.flags.columns = Some("@hot".to_owned());
         assert!(run_with(&args, view_project(dir.path())).is_ok());
     }
 
     #[test]
     fn unknown_column_errors() {
         let dir = tempfile::tempdir().unwrap();
-        let args = LsArgs {
-            columns: Some("bogus".to_owned()),
-            ..default_args()
-        };
+        let mut args = default_args();
+        args.flags.columns = Some("bogus".to_owned());
         assert!(run_with(&args, view_project(dir.path())).is_err());
     }
 
     #[test]
     fn sort_at_view_expands() {
         let dir = tempfile::tempdir().unwrap();
-        let args = LsArgs {
-            sort: vec!["@hot".to_owned()],
-            ..default_args()
-        };
+        let mut args = default_args();
+        args.flags.sort = vec!["@hot".to_owned()];
         assert!(run_with(&args, view_project(dir.path())).is_ok());
     }
 

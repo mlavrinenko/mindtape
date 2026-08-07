@@ -171,17 +171,37 @@ pub fn scaffold_project(config: &str) -> tempfile::TempDir {
     dir
 }
 
-/// A throwaway project — lib override, `[tasks] roots = ["tasks"]`, and one
-/// `wip` task titled `title` — for tests that only need something to list.
-pub fn project_with_task(title: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
-    install_lib(dir.path());
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        "[tasks]\nroots = [\"tasks\"]\n",
+/// `[tasks] roots = ["tasks"]` — the minimal config both [`project_with_tasks`]
+/// and [`project_with_task`] scaffold onto via [`scaffold_project`].
+const TASKS_ROOT_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
+
+/// A minimal real task source through the actual prelude: `title`, `wip`
+/// since 2026-06-01, priority 3 — the plumbing [`project_with_tasks`] shares
+/// across every fixture that needs several distinguishable real tasks.
+fn task_source(title: &str) -> String {
+    format!(
+        "#import \"@local/mindtape:0.2.0\": *\n\n\
+         #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n  priority: 3,\n)\n"
     )
-    .unwrap();
+}
+
+/// A throwaway project — [`scaffold_project`] with [`TASKS_ROOT_CONFIG`],
+/// plus one real task per `(file, title)` pair, written under `tasks/`.
+/// Unlike [`project_with_task`]'s single raw-metadata fixture, this goes
+/// through the actual prelude and supports several tasks, for a test that
+/// needs to tell them apart (`mt find`/`mt ls --format path` fixtures).
+pub fn project_with_tasks(tasks: &[(&str, &str)]) -> tempfile::TempDir {
+    let dir = scaffold_project(TASKS_ROOT_CONFIG);
+    for (file, title) in tasks {
+        std::fs::write(dir.path().join("tasks").join(file), task_source(title)).unwrap();
+    }
+    dir
+}
+
+/// A throwaway project — [`scaffold_project`] with [`TASKS_ROOT_CONFIG`] and
+/// one `wip` task titled `title` — for tests that only need something to list.
+pub fn project_with_task(title: &str) -> tempfile::TempDir {
+    let dir = scaffold_project(TASKS_ROOT_CONFIG);
     std::fs::write(
         dir.path().join("tasks/test.typ"),
         format!(

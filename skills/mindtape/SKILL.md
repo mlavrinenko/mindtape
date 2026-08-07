@@ -103,6 +103,8 @@ mt ls 'has_tag("backend") && !terminal'
 mt ls 'due <= now()' --sort priority:desc
 mt ls '@backend && !@blocked'        # compose named views by @name
 mt ls 'stale(30)' --json             # --json / --format csv for other programs
+mt ls ready --format path            # bare path list, one per line, no jq needed
+rg TODO $(mt ls ready --format path) # compose with another program
 ```
 
 ## Creating a task — `mt add`

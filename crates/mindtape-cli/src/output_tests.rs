@@ -289,6 +289,97 @@ fn csv_file_column_shown_and_root_relative_when_named() {
 }
 
 #[test]
+fn path_format_emits_one_path_per_line_no_header() {
+    let mut a = sample();
+    a.file = "tasks/a.typ".into();
+    let mut b = bare_task("t2");
+    b.file = "tasks/b.typ".into();
+    let out = render(
+        &[a, b],
+        OutputFormat::Path,
+        &Config::default(),
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    assert_eq!(out, "tasks/a.typ\ntasks/b.typ");
+}
+
+#[test]
+fn path_format_is_empty_for_no_tasks() {
+    let out = render(
+        &[],
+        OutputFormat::Path,
+        &Config::default(),
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    assert_eq!(out, "");
+}
+
+/// The spec's whole premise: `path` must agree with the `file` column by
+/// construction, since both read `file_path::cell_text`.
+#[test]
+fn path_format_matches_the_csv_file_column_cell() {
+    let mut config = Config::default();
+    config.ls.columns_order = vec!["file".to_owned()];
+    let mut task = sample();
+    task.file = "truth/tasks/t1.typ".into();
+
+    let csv = render(
+        &[task.clone()],
+        OutputFormat::Csv,
+        &config,
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    let csv_cell = csv.lines().nth(1).unwrap();
+
+    let path = render(
+        &[task],
+        OutputFormat::Path,
+        &Config::default(),
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    assert_eq!(path, csv_cell);
+}
+
+#[test]
+fn path0_format_terminates_every_entry_including_the_last() {
+    let mut a = sample();
+    a.file = "tasks/a.typ".into();
+    let mut b = bare_task("t2");
+    b.file = "tasks/b.typ".into();
+    let out = render(
+        &[a, b],
+        OutputFormat::Path0,
+        &Config::default(),
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    assert_eq!(out, "tasks/a.typ\0tasks/b.typ\0");
+    assert_eq!(out.matches('\0').count(), 2, "one NUL per task, incl. last");
+}
+
+#[test]
+fn path0_format_is_empty_for_no_tasks() {
+    let out = render(
+        &[],
+        OutputFormat::Path0,
+        &Config::default(),
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    assert_eq!(out, "");
+}
+
+#[test]
 fn extras_arrays_and_dicts_serialize() {
     let mut task = sample();
     task.extras.insert(

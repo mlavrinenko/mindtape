@@ -6,18 +6,20 @@ use mindtape::parse_config;
 use mindtape::test_support::TASK_SRC;
 
 use super::{Applied, MATCH_ALL, resolve, resolve_bare, trailer};
-use crate::ls::LsArgs;
+use crate::ls::{LsArgs, LsFlags};
 use crate::test_util::make_project;
 
 fn args(filter: Option<&str>) -> LsArgs {
     LsArgs {
         filter: filter.map(str::to_owned),
-        format: crate::output::OutputFormat::Table,
-        json: false,
-        limit: None,
-        sort: vec![],
-        columns: None,
-        interactive: false,
+        flags: LsFlags {
+            format: crate::output::OutputFormat::Table,
+            json: false,
+            limit: None,
+            sort: vec![],
+            columns: None,
+            interactive: false,
+        },
     }
 }
 
@@ -258,7 +260,7 @@ sort = ["priority:desc"]
 "#,
     );
     let mut cli_args = args(None);
-    cli_args.sort = vec!["due:asc".to_owned()];
+    cli_args.flags.sort = vec!["due:asc".to_owned()];
     let (bundle, applied) = resolve(&project, &cli_args).unwrap();
     assert_eq!(bundle.sort, vec!["due:asc".to_owned()]);
     assert_eq!(applied.sort_from, "manual");

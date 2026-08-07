@@ -88,6 +88,16 @@ table instead of printing once:
 
 Table output only, and it needs a TTY.
 
+`--format path` prints one task file path per line and nothing else — no
+header, no colour, no hyperlinks, no `applied:` trailer — for composing with
+another program: `rg TODO $(mt ls ready --format path)`. `--format path0` is
+the same list NUL-delimited instead, for `xargs -0` and paths holding
+whitespace: `mt ls 'stale(30)' --format path0 | xargs -0 $EDITOR`. Both render
+the path exactly as the `file` column does — relative to the working
+directory — so the two never disagree. `contrib/fzf-mt-go.sh` wires
+`--format path` to a fuzzy picker of your choice (`mt ls -i` stays a plain
+key-loop highlighter, not a fuzzy finder).
+
 = Conditional rules
 
 Ordered `[[ls.rules]]` entries let bare `mt ls` adapt to ambient project state
