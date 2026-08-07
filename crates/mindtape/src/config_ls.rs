@@ -7,7 +7,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
 use crate::config_views::ViewSpec;
 use crate::sort::validate_sort_spec;
@@ -69,6 +69,42 @@ pub struct LsConfig {
     /// `file://{abs}`; point it at another scheme (e.g. an editor's own URI
     /// handler) to open elsewhere.
     pub hyperlink_target: Option<String>,
+    /// Default `contains()` haystack when a call names no field: an ordered
+    /// list of field names drawn from `crate::fields::is_contains_field`'s
+    /// vocabulary (every `crate::fields::FIELDS` name, plus the text-only
+    /// tier `body`/`note`/`tags`). Empty (the default) keeps the shipped
+    /// sweep — `title`, `id`, `body` — unchanged; a project states its own
+    /// answer to widen it (e.g. to include `note`, the `links[].note` prose,
+    /// or `tags`) or narrow it. An explicitly named field in a `contains()`
+    /// call (`contains("x", note)`) always works regardless of this default.
+    /// Validated at config load
+    /// ([`deserialize_contains_fields`]): an unknown name is a config error
+    /// naming the field and listing the valid set, never a silent drop.
+    #[serde(deserialize_with = "deserialize_contains_fields")]
+    pub contains_fields: Vec<String>,
+}
+
+/// Deserialize `[ls] contains-fields`, rejecting any name outside
+/// `crate::fields::is_contains_field`'s vocabulary — the same one an explicit
+/// `contains("x", field)` call validates against. Runs only when the key is
+/// present (a missing key keeps the struct-level `#[serde(default)]` empty
+/// vec, silently valid since nothing was configured); a bad name surfaces as
+/// a config parse error at load, naming the field and the valid set, rather
+/// than a silently ignored entry.
+fn deserialize_contains_fields<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let names = Vec::<String>::deserialize(deserializer)?;
+    for name in &names {
+        if !crate::fields::is_contains_field(name) {
+            return Err(serde::de::Error::custom(format!(
+                "ls.contains-fields: unknown field `{name}`, expected one of {}",
+                crate::fields::contains_field_names().join(", ")
+            )));
+        }
+    }
+    Ok(names)
 }
 
 /// `[ls] hyperlinks` — whether the `#` and `file` columns' cells carry an

@@ -3,7 +3,9 @@
 use std::collections::BTreeMap;
 
 use super::{Facet, LsRule, parse_import_view, validate_ls_rules};
+use crate::config::Config;
 use crate::config_views::ViewSpec;
+use crate::parse_config;
 
 fn view(filter: &str) -> ViewSpec {
     ViewSpec {
@@ -170,4 +172,40 @@ fn validate_rules_prefixes_each_problem_by_index() {
     ];
     let problems = validate_ls_rules(&rules, &BTreeMap::new());
     assert_has(&problems, "ls.rules[1]");
+}
+
+#[test]
+fn contains_fields_defaults_to_empty_when_unset() {
+    // Empty is the signal `filter_predicates::default_contains_fields` reads
+    // to fall back to the shipped `title`/`id`/`body` sweep.
+    assert!(Config::default().ls.contains_fields.is_empty());
+    assert!(parse_config("").unwrap().ls.contains_fields.is_empty());
+}
+
+#[test]
+fn contains_fields_accepts_the_full_vocabulary_including_note_and_tags() {
+    let cfg =
+        parse_config("[ls]\ncontains-fields = [\"title\", \"id\", \"body\", \"note\", \"tags\"]\n")
+            .unwrap();
+    assert_eq!(
+        cfg.ls.contains_fields,
+        vec!["title", "id", "body", "note", "tags"]
+    );
+}
+
+#[test]
+fn contains_fields_accepts_a_narrowed_list() {
+    let cfg = parse_config("[ls]\ncontains-fields = [\"title\"]\n").unwrap();
+    assert_eq!(cfg.ls.contains_fields, vec!["title"]);
+}
+
+#[test]
+fn unknown_contains_field_is_rejected_at_load() {
+    let err = parse_config("[ls]\ncontains-fields = [\"bogus\"]\n").unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("unknown field `bogus`"), "{msg}");
+    // The valid set is listed, not just named as invalid.
+    assert!(msg.contains("title"), "{msg}");
+    assert!(msg.contains("note"), "{msg}");
+    assert!(msg.contains("tags"), "{msg}");
 }

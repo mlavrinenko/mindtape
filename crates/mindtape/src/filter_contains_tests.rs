@@ -5,10 +5,12 @@
 //! its own module so `filter_tests.rs` stays under the linecop line cap.
 #![allow(clippy::unwrap_used)]
 
-use super::{hit, sample};
+use super::{hit, hit_views, sample};
 use crate::config::Config;
 use crate::filter::{Filter, FilterError};
 use crate::model::Task;
+use crate::parse_config;
+use crate::test_support::noted_edge;
 
 fn err(expr: &str, task: &Task) -> FilterError {
     Filter::parse(expr)
@@ -126,4 +128,98 @@ fn legacy_search_is_rejected() {
         matches!(&got, FilterError::Invalid(msg) if msg.contains("contains")),
         "{got:?}"
     );
+}
+
+// --- `[ls] contains-fields`: the configurable default haystack (see
+// `filter_predicates::default_contains_fields`) ---
+
+fn config_with_contains_fields(fields: &str) -> Config {
+    parse_config(&format!("[ls]\ncontains-fields = [{fields}]\n")).unwrap()
+}
+
+#[test]
+fn default_haystack_unchanged_when_contains_fields_unset() {
+    // No `[ls] contains-fields` at all — same shipped `title`/`id`/`body`
+    // sweep as `Config::default()`.
+    let cfg = parse_config("").unwrap();
+    let mut task = sample();
+    task.title = "Nothing".to_owned();
+    task.id = "t1".to_owned();
+    task.body = "the tombstone note".to_owned();
+    assert!(hit_views("contains(\"tombstone\")", &task, &cfg));
+}
+
+#[test]
+fn narrowed_default_excludes_id_and_body() {
+    // A project narrowing `contains-fields` to `title` only.
+    let cfg = config_with_contains_fields("\"title\"");
+    let mut task = sample();
+    task.title = "unrelated".to_owned();
+    task.id = "matchable-id".to_owned();
+    task.body = "matchable body text".to_owned();
+    assert!(!hit_views("contains(\"matchable\")", &task, &cfg));
+    task.title = "matchable title".to_owned();
+    assert!(hit_views("contains(\"matchable\")", &task, &cfg));
+}
+
+#[test]
+fn widened_default_includes_note_and_tags() {
+    // A project widening `contains-fields` to add `note` and `tags`.
+    let cfg = config_with_contains_fields("\"title\", \"id\", \"body\", \"note\", \"tags\"");
+    let mut task = sample();
+    task.title = "unrelated".to_owned();
+    task.id = "t1".to_owned();
+    task.body = "nothing".to_owned();
+    task.links = vec![noted_edge("other.typ", "related", "hunt the bug here")];
+    assert!(hit_views("contains(\"bug\")", &task, &cfg));
+    task.links.clear();
+    task.tags = vec!["needs-bugfix".to_owned()];
+    assert!(hit_views("contains(\"bugfix\")", &task, &cfg));
+}
+
+#[test]
+fn explicit_field_overrides_a_narrowed_default() {
+    // `contains("x", note)` searches notes even though the configured default
+    // omits them.
+    let cfg = config_with_contains_fields("\"title\"");
+    let mut task = sample();
+    task.title = "unrelated".to_owned();
+    task.links = vec![noted_edge("other.typ", "related", "bug lurking here")];
+    assert!(!hit_views("contains(\"bug\")", &task, &cfg));
+    assert!(hit_views("contains(\"bug\", note)", &task, &cfg));
+}
+
+#[test]
+fn note_field_matches_a_link_note_invisible_to_the_shipped_default() {
+    let mut task = sample();
+    task.links = vec![noted_edge("other.typ", "related", "hunt the bug here")];
+    // The shipped default (title/id/body) never sees a link note.
+    assert!(!hit("contains(\"bug\")", &task));
+    assert!(hit("contains(\"bug\", note)", &task));
+}
+
+#[test]
+fn note_field_joins_every_link_note() {
+    let mut task = sample();
+    task.links = vec![
+        noted_edge("a.typ", "related", "first note"),
+        noted_edge("b.typ", "depends-on", "second note mentions bug"),
+    ];
+    assert!(hit("contains(\"bug\", note)", &task));
+}
+
+#[test]
+fn tags_field_matches_authored_tags() {
+    let mut task = sample();
+    task.tags = vec!["needs-bugfix".to_owned()];
+    task.derived_tags = Vec::new();
+    assert!(hit("contains(\"bugfix\", tags)", &task));
+}
+
+#[test]
+fn tags_field_matches_derived_tags() {
+    let mut task = sample();
+    task.tags = Vec::new();
+    task.derived_tags = vec!["needs-bugfix".to_owned()];
+    assert!(hit("contains(\"bugfix\", tags)", &task));
 }

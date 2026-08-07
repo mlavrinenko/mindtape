@@ -49,10 +49,31 @@ fn contains_ci(value: &FieldValue, needle: &str) -> bool {
     haystack.to_lowercase().contains(&needle.to_lowercase())
 }
 
-/// Default `contains()` haystack when no field is named — the prose surface.
-/// Tags have `has_tag()` and every scalar field has a comparison operator, so
-/// neither belongs in an implicit text sweep.
+/// Shipped default `contains()` haystack when no field is named, and no
+/// `[ls] contains-fields` is configured — the prose surface. Tags have
+/// `has_tag()` and every scalar field has a comparison operator, so neither
+/// belongs in an implicit text sweep. Deliberately narrow: a default applied
+/// uniformly across every project inherits the strictest constraint of
+/// anything that could land in it, so widening this for everyone is the
+/// wrong move — a project opts in via `[ls] contains-fields` instead (see
+/// [`default_contains_fields`]).
 const DEFAULT_CONTAINS_FIELDS: [&str; 3] = ["title", "id", fields::BODY_FIELD];
+
+/// The default `contains()` haystack: the project's `[ls] contains-fields`
+/// when set, else [`DEFAULT_CONTAINS_FIELDS`] unchanged. Config load already
+/// validated a configured list against [`fields::is_contains_field`]
+/// ([`crate::config_ls::deserialize_contains_fields`]), so every name here is
+/// trusted.
+fn default_contains_fields(config: &Config) -> Vec<String> {
+    if config.ls.contains_fields.is_empty() {
+        DEFAULT_CONTAINS_FIELDS
+            .iter()
+            .map(|name| (*name).to_owned())
+            .collect()
+    } else {
+        config.ls.contains_fields.clone()
+    }
+}
 
 /// `contains(needle)` / `contains(needle, field, ...)`: case-insensitive
 /// substring, needle first. Zero or more bare field identifiers follow; none
@@ -87,10 +108,7 @@ pub(crate) fn contains_call(
     })?;
 
     let names: Vec<String> = if field_nodes.is_empty() {
-        DEFAULT_CONTAINS_FIELDS
-            .iter()
-            .map(|name| (*name).to_owned())
-            .collect()
+        default_contains_fields(config)
     } else {
         field_nodes
             .iter()
@@ -105,8 +123,10 @@ pub(crate) fn contains_call(
 }
 
 /// Resolve `name`'s `contains()` haystack on `task`: `body` reads
-/// [`Task::body`] directly (marker-free); anything else defers to
-/// [`field_value`]. Errors outside [`fields::is_contains_field`]'s vocabulary.
+/// [`Task::body`] directly (marker-free), `note` joins every `links[].note`
+/// ([`joined_notes`]), `tags` joins authored and derived tags
+/// ([`Task::all_tags`]); anything else defers to [`field_value`]. Errors
+/// outside [`fields::is_contains_field`]'s vocabulary.
 fn contains_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, FilterError> {
     if !fields::is_contains_field(name) {
         return Err(FilterError::UnknownField(name.to_owned()));
@@ -114,7 +134,23 @@ fn contains_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue
     if name == fields::BODY_FIELD {
         return Ok(FieldValue::Str(task.body.clone()));
     }
+    if name == fields::NOTE_FIELD {
+        return Ok(FieldValue::Str(joined_notes(task)));
+    }
+    if name == fields::TAGS_FIELD {
+        return Ok(FieldValue::Str(task.all_tags().join(" ")));
+    }
     field_value(task, name, config)
+}
+
+/// Every `links[].note` on `task`, space-joined so a needle cannot spuriously
+/// span the boundary between two adjacent notes.
+fn joined_notes(task: &Task) -> String {
+    task.links
+        .iter()
+        .filter_map(|link| link.note.as_deref())
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 /// All arguments of a variadic call (`contains(...)`), left to right.

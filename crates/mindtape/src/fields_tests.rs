@@ -1,6 +1,9 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{FIELDS, FieldValue, get};
+use super::{
+    BODY_FIELD, FIELDS, FieldValue, NOTE_FIELD, TAGS_FIELD, contains_field_names, get,
+    is_contains_field,
+};
 use crate::config::{Config, parse_config};
 use crate::model::Status;
 use crate::numeric::NumValue;
@@ -119,6 +122,28 @@ fn priority_raw_number_resolves_numeric() {
         (get("priority").unwrap().get)(&task, &cfg),
         FieldValue::Num(n) if n == 7.0
     ));
+}
+
+#[test]
+fn note_and_tags_are_contains_fields_but_not_sortable_fields() {
+    // `note`/`tags` extend the text-only `contains()` tier alongside `body`;
+    // they must never enter `FIELDS`, which backs comparison and `--sort`.
+    for name in [BODY_FIELD, NOTE_FIELD, TAGS_FIELD] {
+        assert!(is_contains_field(name), "{name} must be a contains field");
+        assert!(get(name).is_none(), "{name} must stay out of FIELDS");
+    }
+}
+
+#[test]
+fn contains_field_names_lists_fields_then_the_text_only_tier() {
+    let names = contains_field_names();
+    for def in FIELDS {
+        assert!(names.contains(&def.name), "{} missing", def.name);
+    }
+    for text_only in [BODY_FIELD, NOTE_FIELD, TAGS_FIELD] {
+        assert!(names.contains(&text_only), "{text_only} missing");
+    }
+    assert_eq!(names.len(), FIELDS.len() + 3);
 }
 
 #[test]

@@ -101,13 +101,41 @@ pub fn get(name: &str) -> Option<&'static FieldDef> {
 /// jobs `FIELDS` backs — so `contains()` is the one place it is searchable.
 pub const BODY_FIELD: &str = "body";
 
-/// The `contains()` field vocabulary: every [`FIELDS`] name, plus
-/// [`BODY_FIELD`]. One derived source of truth, so `contains()` never
-/// hand-matches field names of its own — exactly the drift this module
-/// exists to end (see the module doc).
+/// Every `links[].note` on a task, concatenated for `contains()` matching.
+/// Link notes are prose (`related("x")[why]`) but live on `links[].note`, not
+/// in [`BODY_FIELD`] — text-only like `body`, so it joins the same tier
+/// rather than entering [`FIELDS`].
+pub const NOTE_FIELD: &str = "note";
+
+/// A task's authored and derived tags (see `Task::all_tags`), joined for
+/// `contains()` matching. `tags` is a controlled vocabulary with `has_tag()`
+/// for exact match, so this is the substring-match escape hatch — text-only
+/// like `body`, so it joins the same tier rather than entering [`FIELDS`].
+pub const TAGS_FIELD: &str = "tags";
+
+/// Fields addressable by `contains()` but carrying no comparison or sort
+/// semantics, so they stay out of [`FIELDS`]: prose ([`BODY_FIELD`],
+/// [`NOTE_FIELD`]) and the tag vocabulary ([`TAGS_FIELD`]).
+const TEXT_ONLY_CONTAINS_FIELDS: [&str; 3] = [BODY_FIELD, NOTE_FIELD, TAGS_FIELD];
+
+/// The `contains()` field vocabulary: every [`FIELDS`] name, plus the
+/// text-only tier ([`TEXT_ONLY_CONTAINS_FIELDS`]). One derived source of
+/// truth, so `contains()` never hand-matches field names of its own —
+/// exactly the drift this module exists to end (see the module doc).
 #[must_use]
 pub fn is_contains_field(name: &str) -> bool {
-    name == BODY_FIELD || get(name).is_some()
+    TEXT_ONLY_CONTAINS_FIELDS.contains(&name) || get(name).is_some()
+}
+
+/// Every name [`is_contains_field`] accepts, [`FIELDS`] first then the
+/// text-only tier — for "expected one of ..." error messages (an unknown
+/// explicit `contains()` field, or an unknown name in a configured default
+/// haystack).
+#[must_use]
+pub fn contains_field_names() -> Vec<&'static str> {
+    let mut names: Vec<&'static str> = FIELDS.iter().map(|def| def.name).collect();
+    names.extend(TEXT_ONLY_CONTAINS_FIELDS);
+    names
 }
 
 fn opt_str(value: Option<String>) -> FieldValue {
