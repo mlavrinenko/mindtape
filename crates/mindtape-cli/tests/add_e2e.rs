@@ -1,30 +1,23 @@
-//! End-to-end tests for the `add` command that shell out to the `mt` binary.
+//! End-to-end tests for the `add` command that shell out to the `mt` binary:
+//! core wiring (positional title, `--to` nesting, YAML stdin), the slot
+//! schema, error surfaces (collisions, unknown keys), markup-hazard escaping,
+//! and the kept-on-verification-failure contract.
+//!
+//! Config-derived splicing (a required priority slot, a custom status legend,
+//! a required estimate default) lives in `add_config_scaffold_e2e.rs`, a
+//! separate binary along that subject seam.
 //!
 //! These live here (not as inline `#[path]` unit tests) because `cargo_bin`
 //! needs the compiled binary: Cargo builds it before running integration tests
 //! and exports `CARGO_BIN_EXE_mt`, a guarantee `--lib` unit tests don't get.
 #![allow(clippy::unwrap_used)]
 
-use std::path::Path;
-
 mod support;
-
-/// Scaffold a temp project that can evaluate `@local/mindtape` via the in-tree
-/// lib override the loader honours.
-fn scaffold(dir: &Path) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.join(".mindtape/config.toml"),
-        "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
-    support::install_lib(dir);
-}
 
 #[test]
 fn end_to_end_files_and_validates_a_task() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
+    support::scaffold(dir.path());
 
     support::mt(dir.path())
         .args(["add", "--name", "wire-add", "--set", "title=Wire add"])
@@ -43,7 +36,7 @@ fn end_to_end_files_and_validates_a_task() {
 #[test]
 fn end_to_end_files_from_positional_title() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
+    support::scaffold(dir.path());
 
     support::mt(dir.path())
         .args(["add", "cleanup", "kitchen"])
@@ -58,7 +51,7 @@ fn end_to_end_files_from_positional_title() {
 #[test]
 fn end_to_end_nests_into_subfolder() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
+    support::scaffold(dir.path());
 
     support::mt(dir.path())
         .args(["add", "--to", "shopping", "Potatoes"])
@@ -69,278 +62,21 @@ fn end_to_end_nests_into_subfolder() {
     assert!(written.contains("title: \"Potatoes\""), "{written}");
 }
 
-/// Parsed `add --describe=json` schema rows run in `dir`.
-fn describe_slots(dir: &Path) -> serde_json::Value {
-    let output = support::mt(dir)
-        .args(["add", "--describe=json"])
-        .assert()
-        .success()
-        .get_output()
-        .stdout
-        .clone();
-    serde_json::from_slice(&output).unwrap()
-}
-
-/// Slot names from `add --describe=json` run in `dir`.
-fn describe_slot_names(dir: &Path) -> Vec<String> {
-    describe_slots(dir)
-        .as_array()
-        .unwrap()
-        .iter()
-        .filter_map(|row| row.get("name").and_then(serde_json::Value::as_str))
-        .map(ToOwned::to_owned)
-        .collect()
-}
-
-/// The `kind` reported for slot `name` in `add --describe=json` run in `dir`.
-fn describe_slot_kind(dir: &Path, name: &str) -> String {
-    describe_slots(dir)
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|row| row.get("name").and_then(serde_json::Value::as_str) == Some(name))
-        .and_then(|row| row.get("kind"))
-        .and_then(serde_json::Value::as_str)
-        .unwrap()
-        .to_owned()
-}
-
 #[test]
 fn describe_json_emits_slot_schema() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
-    assert!(describe_slot_names(dir.path()).iter().any(|n| n == "title"));
-}
-
-/// A config whose `[tasks.priority]` is required: the barebones template omits
-/// priority, so `add` must splice it in.
-const PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
-     [tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n";
-
-#[test]
-fn injects_config_required_priority_slot() {
-    let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        PRIORITY_REQUIRED_CONFIG,
-    )
-    .unwrap();
-
-    // `--describe` surfaces the spliced-in priority slot.
-    let names = describe_slot_names(dir.path());
-    assert!(names.iter().any(|n| n == "priority"), "{names:?}");
-
-    // Filling it writes a valid task.
-    support::mt(dir.path())
-        .args([
-            "add",
-            "--name",
-            "with-pri",
-            "--set",
-            "title=T",
-            "--set",
-            "priority=7",
-        ])
-        .assert()
-        .success();
-    let written = std::fs::read_to_string(dir.path().join("tasks/with-pri.typ")).unwrap();
-    assert!(written.contains("priority: 7"), "{written}");
-    assert!(!written.contains("slot("), "slots must be gone: {written}");
-
-    // Omitting a config-required field is the existing missing-slot hard error.
-    support::mt(dir.path())
-        .args(["add", "--name", "no-pri", "--set", "title=T"])
-        .assert()
-        .failure();
-}
-
-/// A config whose `[tasks.priority]` is real-scaled and required: the
-/// barebones template omits priority, so `add` must splice in a `real`-kind
-/// slot, not the `int` it would wrongly emit for an int-scaled field.
-///
-/// `bands = []` clears the embedded floor's int-contiguous bands (0-2/3-6/7-9),
-/// which are non-contiguous under real semantics; a real-scale project either
-/// defines real bands or drops them.
-const REAL_PRIORITY_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
-     [tasks.priority]\nkind = \"real\"\nmin = 0\nmax = 9\nrequired = true\nbands = []\n";
-
-#[test]
-fn injects_real_scale_priority_slot_and_round_trips_a_decimal() {
-    let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        REAL_PRIORITY_REQUIRED_CONFIG,
-    )
-    .unwrap();
-
-    // `--describe=json` reports the spliced-in priority slot as `real`.
-    assert_eq!(describe_slot_kind(dir.path(), "priority"), "real");
-
-    // Filling it with a decimal writes a float literal without truncation.
-    support::mt(dir.path())
-        .args([
-            "add",
-            "--name",
-            "with-real-pri",
-            "--set",
-            "title=T",
-            "--set",
-            "priority=2.5",
-        ])
-        .assert()
-        .success();
-    let written = std::fs::read_to_string(dir.path().join("tasks/with-real-pri.typ")).unwrap();
-    assert!(written.contains("priority: 2.5"), "{written}");
-    assert!(!written.contains("slot("), "slots must be gone: {written}");
-
-    // The filed task with a real priority value passes `check`.
-    support::mt(dir.path()).arg("check").assert().success();
-}
-
-/// A config whose priority is a required strict framework (`allow-manual =
-/// false`): a scalar priority is invalid by construction, so `add` must splice
-/// the framework call itself with one leaf slot per input — otherwise the
-/// fallback template could never file a valid task in this project.
-const STRICT_ICE_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
-     [tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = \"!terminal\"\n\
-     framework = \"ice\"\nallow-manual = false\n";
-
-#[test]
-fn injects_framework_leaf_slots_for_a_strict_framework_priority() {
-    let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
-    std::fs::write(dir.path().join(".mindtape/config.toml"), STRICT_ICE_CONFIG).unwrap();
-
-    // `--describe` surfaces the framework leaves, not a scalar priority.
-    let names = describe_slot_names(dir.path());
-    for leaf in ["impact", "confidence", "ease"] {
-        assert!(names.iter().any(|n| n == leaf), "{names:?}");
-    }
-    assert!(!names.iter().any(|n| n == "priority"), "{names:?}");
-
-    // Filling the leaves writes a valid framework priority.
-    support::mt(dir.path())
-        .args([
-            "add",
-            "--name",
-            "with-ice",
-            "--set",
-            "title=T",
-            "--set",
-            "impact=9",
-            "--set",
-            "confidence=0.9",
-            "--set",
-            "ease=6",
-        ])
-        .assert()
-        .success();
-    let written = std::fs::read_to_string(dir.path().join("tasks/with-ice.typ")).unwrap();
-    assert!(written.contains("priority: framework(\"ice\""), "{written}");
-    assert!(written.contains("impact: 9.0"), "{written}");
-    assert!(!written.contains("slot("), "slots must be gone: {written}");
-
-    // The filed task passes `check` (the framework score lands in the scale).
-    support::mt(dir.path()).arg("check").assert().success();
-
-    // Omitting a leaf is the existing missing-slot hard error, before any write.
-    support::mt(dir.path())
-        .args([
-            "add",
-            "--name",
-            "no-ease",
-            "--set",
-            "title=T",
-            "--set",
-            "impact=9",
-            "--set",
-            "confidence=0.9",
-        ])
-        .assert()
-        .failure();
-    assert!(!dir.path().join("tasks/no-ease.typ").exists());
-}
-
-/// A config whose legend has no `"proposed"` entry at all — the initial
-/// status `add` stamps must be derived from this legend, not a hardcoded
-/// literal that would fail `check`.
-const CUSTOM_LEGEND_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
-     [[tasks.status]]\nvalue = \"todo\"\n\
-     [[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
-
-#[test]
-fn derives_initial_status_from_a_custom_legend() {
-    let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        CUSTOM_LEGEND_CONFIG,
-    )
-    .unwrap();
-
-    support::mt(dir.path())
-        .args(["add", "--name", "custom-legend", "--set", "title=T"])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/custom-legend.typ")).unwrap();
-    assert!(written.contains("status: todo("), "{written}");
-    assert!(!written.contains("proposed"), "{written}");
-
-    // The filed task passes `check` even though the legend has no `proposed`.
-    support::mt(dir.path()).arg("check").assert().success();
-}
-
-/// The real `.mindtape/templates/task.typ` this repo ships, so a drift in its
-/// `estimate` slot default (e.g. drifting outside the configured bounds) fails
-/// this test rather than only surfacing at dogfood `mt check` time.
-const PRODUCTION_TEMPLATE: &str = include_str!("../../../.mindtape/templates/task.typ");
-
-/// Mirrors the dogfood config's `[tasks.estimate]`: required on every
-/// non-terminal task, bounded 1-5 files.
-const ESTIMATE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
-     [tasks.priority]\nframework = \"ice\"\n\
-     [tasks.estimate]\nunits = [\"files\"]\nrequired = \"!terminal\"\n\
-     [tasks.estimate.max]\nfiles = 5\n[tasks.estimate.min]\nfiles = 1\n";
-
-/// `estimate` required with no explicit `--set estimate=...`: the production
-/// template's slot default must fill in a dict inside the configured bounds,
-/// not leave a task that fails `check` the moment it lands.
-#[test]
-fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
-    let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        ESTIMATE_REQUIRED_CONFIG,
-    )
-    .unwrap();
-    std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/templates/task.typ"),
-        PRODUCTION_TEMPLATE,
-    )
-    .unwrap();
-
-    support::mt(dir.path())
-        .args(["add", "--name", "no-estimate", "--set", "title=No estimate"])
-        .args(["--set", "summary=A summary."])
-        .assert()
-        .success();
-
-    let written = std::fs::read_to_string(dir.path().join("tasks/no-estimate.typ")).unwrap();
-    assert!(written.contains("estimate: (files: 2)"), "{written}");
-    assert!(!written.contains("slot("), "slots must be gone: {written}");
-
-    support::mt(dir.path()).arg("check").assert().success();
+    support::scaffold(dir.path());
+    assert!(
+        support::describe_slot_names(dir.path())
+            .iter()
+            .any(|n| n == "title")
+    );
 }
 
 #[test]
 fn collision_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
+    support::scaffold(dir.path());
     std::fs::write(dir.path().join("tasks/dup.typ"), "existing").unwrap();
     support::mt(dir.path())
         .args(["add", "--name", "dup", "--set", "title=Dup"])
@@ -353,7 +89,7 @@ fn collision_is_a_hard_error() {
 #[test]
 fn unknown_set_key_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
+    support::scaffold(dir.path());
 
     let output = support::mt(dir.path())
         .args(["add", "--name", "typo", "--set", "title=T"])
@@ -378,7 +114,7 @@ fn unknown_set_key_is_a_hard_error() {
 #[test]
 fn end_to_end_files_from_yaml_on_stdin() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
+    support::scaffold(dir.path());
 
     support::mt(dir.path())
         .args(["add", "--name", "wire-yaml", "-f", "-"])
@@ -395,7 +131,7 @@ fn end_to_end_files_from_yaml_on_stdin() {
 #[test]
 fn unknown_values_json_key_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
+    support::scaffold(dir.path());
     let values = dir.path().join("v.json");
     std::fs::write(&values, r#"{"title":"T","priorty":3}"#).unwrap();
 
@@ -467,7 +203,7 @@ const BROKEN_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 #[test]
 fn a_task_that_fails_verification_is_kept_and_reported_as_kept() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold(dir.path());
+    support::scaffold(dir.path());
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
     std::fs::write(
         dir.path().join(".mindtape/templates/task.typ"),
