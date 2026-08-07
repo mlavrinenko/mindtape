@@ -321,12 +321,12 @@ fn apply_cli_overrides(
     mut applied: Applied,
 ) -> Result<(Bundle, Applied)> {
     let config = &project.config;
-    if !args.sort.is_empty() {
-        bundle.sort = splice_view_refs(&args.sort, config, |view| &view.sort)?;
+    if !args.flags.sort.is_empty() {
+        bundle.sort = splice_view_refs(&args.flags.sort, config, |view| &view.sort)?;
         applied.sort_from = MANUAL.to_owned();
         applied.sort_value = bundle.sort.clone();
     }
-    if let Some(spec) = &args.columns {
+    if let Some(spec) = &args.flags.columns {
         bundle.columns = resolve_columns(spec, config)?;
         applied.columns_from = MANUAL.to_owned();
         applied.columns_value = bundle.columns.clone();

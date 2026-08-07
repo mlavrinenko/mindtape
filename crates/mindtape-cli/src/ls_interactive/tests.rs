@@ -7,7 +7,7 @@ use mindtape::test_support::bare_task;
 use mindtape::{Config, Readiness, Task};
 
 use super::{Intent, State, classify, collect_first, footer, guard_with, run};
-use crate::ls::LsArgs;
+use crate::ls::{LsArgs, LsFlags};
 use crate::output::OutputFormat;
 use crate::util;
 
@@ -132,12 +132,14 @@ fn footer_shows_buffer_when_typing() {
 fn ls_args(format: OutputFormat) -> LsArgs {
     LsArgs {
         filter: None,
-        format,
-        json: false,
-        limit: None,
-        sort: vec![],
-        columns: None,
-        interactive: true,
+        flags: LsFlags {
+            format,
+            json: false,
+            limit: None,
+            sort: vec![],
+            columns: None,
+            interactive: true,
+        },
     }
 }
 

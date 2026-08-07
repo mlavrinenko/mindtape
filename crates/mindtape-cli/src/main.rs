@@ -8,6 +8,7 @@ mod cli;
 mod cli_dump;
 mod config_cmd;
 mod eval;
+mod find;
 mod flip;
 mod flip_hooks;
 mod flip_hooks_cmd;

@@ -68,8 +68,8 @@ fn guard(args: &LsArgs) -> Result<()> {
 /// terminal `cargo test` inherits the tty, the guard allowed, and that same test
 /// failed. A test whose verdict flips with the caller's stdout is not a test.
 fn guard_with(args: &LsArgs, tty: bool) -> Result<()> {
-    if !matches!(args.format, OutputFormat::Table) {
-        bail!("--interactive is table-only; drop --format json/csv");
+    if !matches!(args.flags.format, OutputFormat::Table) {
+        bail!("--interactive is table-only; drop --format json/csv/path/path0");
     }
     if !tty {
         bail!("--interactive needs a TTY on stdin and stdout (not available when piped)");
