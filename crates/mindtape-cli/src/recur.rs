@@ -477,3 +477,7 @@ fn write_advance_chain(
 #[cfg(test)]
 #[path = "recur_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "recur_tests_advance.rs"]
+mod tests_advance;
