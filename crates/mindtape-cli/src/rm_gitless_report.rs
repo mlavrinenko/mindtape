@@ -1,6 +1,8 @@
 //! The retire strategy's report and confirm helpers — split out of
 //! `rm_gitless.rs` to stay under the file-size gate.
 
+use std::path::Path;
+
 use anyhow::{Context, Result};
 
 use super::{RetirePlan, dest_rel};
@@ -32,8 +34,9 @@ pub fn report_retire_plan(plan: &RetirePlan) {
     report_retarget(plan, "would rewrite");
 }
 
-/// Print what the retire plan just did, and remind the user to review.
-pub fn report_retire_applied(plan: &RetirePlan) {
+/// Print what the retire plan just did, and remind the user to review — the
+/// commit hint only when `root` sits inside a git repository.
+pub fn report_retire_applied(plan: &RetirePlan, root: &Path) {
     println!(
         "retired {} task(s) (status → {}):",
         plan.rewrites.len(),
@@ -50,7 +53,7 @@ pub fn report_retire_applied(plan: &RetirePlan) {
         );
     }
     report_retarget(plan, "rewrote");
-    println!("review the changes and commit when satisfied");
+    super::print_commit_hint(root);
 }
 
 /// The retarget summary shared by the dry-run and applied reports: how many

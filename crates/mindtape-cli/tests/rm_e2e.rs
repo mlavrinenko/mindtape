@@ -10,6 +10,8 @@
 use std::path::Path;
 use std::process::Command;
 
+use predicates::prelude::PredicateBooleanExt;
+
 mod support;
 
 /// A tasks root plus a custom `blocks` edge kind, so the survivor's
@@ -152,7 +154,13 @@ fn rm_deletes_unreferenced_task_outside_git_repo() {
         .success();
     assert!(dir.path().join("tasks/gone.typ").exists());
 
-    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+    // No git anywhere: the hint would point at a tool the user deliberately
+    // does not have, so it must not print.
+    mt(dir.path())
+        .args(["rm", "-y", "gone"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("review the changes and commit").not());
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
     // The survivor is untouched — no tombstone, no rewrite.
@@ -172,7 +180,12 @@ fn rm_deletes_unreferenced_task_inside_git_repo() {
     );
     git_commit_all(dir.path());
 
-    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+    // A git repository does exist here, so the commit hint belongs.
+    mt(dir.path())
+        .args(["rm", "-y", "gone"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("review the changes and commit"));
 
     assert!(!dir.path().join("tasks/gone.typ").exists());
     assert!(dir.path().join("tasks/unrelated.typ").exists());
@@ -258,7 +271,12 @@ fn rm_retire_flips_to_first_terminal_status_without_git() {
         ));
     assert!(dir.path().join("tasks/gone.typ").exists());
 
-    mt(dir.path()).args(["rm", "-y", "gone"]).assert().success();
+    // No git anywhere: the retire report's commit hint must not print either.
+    mt(dir.path())
+        .args(["rm", "-y", "gone"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("review the changes and commit").not());
 
     // The file stays, flipped to the legend's first terminal status.
     assert!(
@@ -270,6 +288,26 @@ fn rm_retire_flips_to_first_terminal_status_without_git() {
     assert!(!retired.contains("wip("), "still wip:\n{retired}");
     // The inbound edge still resolves — the file stayed put.
     mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_retire_prints_commit_hint_inside_git_repo() {
+    // The retire strategy needs no git either, but when a repository does
+    // exist the hint belongs — same emitter (`rm_gitless_report.rs`) as the
+    // gitless case above, opposite repository state.
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_config(
+        dir.path(),
+        RETIRE_CONFIG,
+        &[("gone.typ", REMOVED), ("live.typ", LIVE)],
+    );
+    git_commit_all(dir.path());
+
+    mt(dir.path())
+        .args(["rm", "-y", "gone"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("review the changes and commit"));
 }
 
 #[test]

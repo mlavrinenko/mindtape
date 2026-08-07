@@ -19,12 +19,16 @@
 //!
 //! Git is gated on need, not presence: [`run`] scans the survivors for inbound
 //! references before touching the repository, and a task nothing references is
-//! deleted directly ([`plain_delete_plan`]) — no toplevel discovery, no
-//! tombstone, no committed-clean guard. When a survivor does reference a
-//! removed task, the configured `[rm] strategy` decides what happens to those
-//! edges: the git-pinned SWHID tombstone rewrite (`git-tombstone`, the default
-//! in a repository) or one of the gitless strategies — `reject`, `unlink`,
-//! `retire` — implemented in [`rm_gitless`].
+//! deleted directly ([`plain_delete_plan`]) — no strategy-deciding toplevel
+//! discovery, no tombstone, no committed-clean guard. When a survivor does
+//! reference a removed task, the configured `[rm] strategy` decides what
+//! happens to those edges: the git-pinned SWHID tombstone rewrite
+//! (`git-tombstone`, the default in a repository) or one of the gitless
+//! strategies — `reject`, `unlink`, `retire` — implemented in [`rm_gitless`].
+//! Every path's applied report still does one cheap, reused discovery
+//! ([`rm_gitless::print_commit_hint`]) to decide whether the commit hint is
+//! worth printing at all — pointless outside a repository, since there is
+//! nothing to commit and no tool to name.
 
 use std::collections::{BTreeMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -138,6 +142,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
             &Removal::Delete(plain_delete_plan(&project.outcome.tasks, &eligible, &root)),
             args,
             None,
+            &root,
         );
     }
 
@@ -162,16 +167,16 @@ pub fn run(args: &RmArgs) -> Result<()> {
                 check_eligible_files(&project.outcome.tasks, &eligible, &root, &git_root)?;
             }
             let plan = plan(&project.outcome.tasks, &eligible, &root, &git_root)?;
-            finalize(&Removal::Delete(plan), args, Some("git-tombstone"))
+            finalize(&Removal::Delete(plan), args, Some("git-tombstone"), &root)
         }
         RmStrategy::Reject => bail!("{}", reject_message(&referrers)),
         RmStrategy::Unlink => {
             let plan = unlink_plan(&project.outcome.tasks, &eligible, &root)?;
-            finalize(&Removal::Delete(plan), args, Some("unlink"))
+            finalize(&Removal::Delete(plan), args, Some("unlink"), &root)
         }
         RmStrategy::Retire => {
             let plan = retire_plan(&project.outcome.tasks, &eligible, &root, &project.config)?;
-            finalize(&Removal::Retire(plan), args, Some("retire"))
+            finalize(&Removal::Retire(plan), args, Some("retire"), &root)
         }
     }
 }
@@ -186,12 +191,13 @@ enum Removal {
 
 /// The tail shared by every removal path: strategy dry-run reporting,
 /// confirmation, and the atomic apply + summary. Writes nothing on
-/// `--dry-run`.
+/// `--dry-run`. `root` gates the applied report's commit hint — printed only
+/// inside a git repository.
 ///
 /// # Errors
 /// A declined prompt aborts with `aborted by user`; the apply propagates its
 /// write failures.
-fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>) -> Result<()> {
+fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>, root: &Path) -> Result<()> {
     if args.dry_run {
         if let Some(name) = strategy {
             println!("strategy: {name}");
@@ -219,8 +225,8 @@ fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>) -> Result<
         Removal::Retire(plan) => retire_apply(plan)?,
     }
     match removal {
-        Removal::Delete(plan) => report_applied(plan),
-        Removal::Retire(plan) => report_retire_applied(plan),
+        Removal::Delete(plan) => report_applied(plan, root),
+        Removal::Retire(plan) => report_retire_applied(plan, root),
     }
     Ok(())
 }
@@ -467,8 +473,10 @@ fn report_plan(plan: &Plan) {
     }
 }
 
-/// Print what the plan just did, and remind the user to review and commit.
-fn report_applied(plan: &Plan) {
+/// Print what the plan just did, and remind the user to review and commit —
+/// the hint only when `root` sits inside a git repository; there is nothing
+/// to commit and no tool to name otherwise.
+fn report_applied(plan: &Plan, root: &Path) {
     println!("deleted {} task(s):", plan.deletions.len());
     print_deletions(plan);
     if !plan.rewrites.is_empty() {
@@ -478,7 +486,7 @@ fn report_applied(plan: &Plan) {
             plan.rewrites.len()
         );
     }
-    println!("review the changes and commit when satisfied");
+    rm_gitless::print_commit_hint(root);
 }
 
 #[cfg(test)]
