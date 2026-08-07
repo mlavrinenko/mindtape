@@ -40,6 +40,7 @@ mod expr;
 mod fields;
 pub mod filter;
 mod filter_links;
+mod filter_predicates;
 mod filter_views;
 pub mod format;
 pub mod framework;

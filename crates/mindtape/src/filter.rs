@@ -46,10 +46,9 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
 use thiserror::Error;
 
 use crate::config::Config;
-use crate::expr::{
-    compare_ordering, extract_identifier, extract_literal, resolve_now_or_literal, unwrap_root,
-};
+use crate::expr::{compare_ordering, extract_identifier, extract_literal, resolve_now_or_literal};
 use crate::fields::{self, FieldValue};
+use crate::filter_predicates::{contains_call, is_stale, present};
 use crate::filter_views::{collect_view_refs, desugar_view_refs};
 use crate::model::Task;
 use crate::numeric::format_num;
@@ -347,111 +346,15 @@ fn in_view(name: &str, ctx: &Ctx) -> Result<bool, FilterError> {
     }
 }
 
-fn present(task: &Task, name: &str, config: &Config) -> Result<bool, FilterError> {
-    if let Some(kind) = crate::filter_links::sugar_kind(name) {
-        return Ok(crate::filter_links::has_kind(task, kind));
-    }
-    match name {
-        "tags" => Ok(!task.tags.is_empty() || !task.derived_tags.is_empty()),
-        "estimate" => Ok(!task.estimate.is_empty()),
-        other => Ok(!matches!(
-            field_value(task, other, config)?,
-            FieldValue::Missing
-        )),
-    }
-}
-
-fn is_stale(task: &Task, days: u64) -> bool {
-    let threshold = crate::date::days_ago_iso(days);
-    if let Some(rev) = &task.reviewed {
-        rev.as_str() < threshold.as_str()
-    } else if let Some(ref_date) = task.status.as_ref().and_then(|s| s.date.as_deref()) {
-        ref_date < threshold.as_str()
-    } else {
-        true
-    }
-}
-
-fn contains_ci(value: &FieldValue, needle: &str) -> bool {
-    let haystack = match value {
-        FieldValue::Str(text) => text.clone(),
-        FieldValue::Num(num) => format_num(*num),
-        FieldValue::Missing => return false,
-    };
-    haystack.to_lowercase().contains(&needle.to_lowercase())
-}
-
-/// Default `contains()` haystack when no field is named — the prose surface.
-/// Tags have `has_tag()` and every scalar field has a comparison operator, so
-/// neither belongs in an implicit text sweep.
-const DEFAULT_CONTAINS_FIELDS: [&str; 3] = ["title", "id", fields::BODY_FIELD];
-
-/// `contains(needle)` / `contains(needle, field, ...)`: case-insensitive
-/// substring, needle first. Zero or more bare field identifiers follow; none
-/// named searches [`DEFAULT_CONTAINS_FIELDS`]. A leading identifier instead of
-/// a string literal is the retired `contains(field, "substr")` order and
-/// errors by name (`search(...)` is its own dispatch arm, not here).
-///
-/// Names are resolved and validated in full (`collect` into a `Result<Vec<_>,
-/// _>`, short-circuiting only on the first invalid one) before any is matched
-/// against the needle — an `||` fold straight over resolved values would
-/// short-circuit on the first hit, letting a bogus name past an
-/// already-matching one through unvalidated.
-fn contains_call(
-    children: &[Node<DefaultNumericTypes>],
-    task: &Task,
-    config: &Config,
-) -> Result<bool, FilterError> {
-    let args = call_args(children);
-    let Some((needle_node, field_nodes)) = args.split_first() else {
-        return Err(FilterError::Invalid(
-            "contains() needs a needle: contains(\"substr\") or contains(\"substr\", field, ...)"
-                .to_owned(),
-        ));
-    };
-    let needle = extract_literal(needle_node).map_err(|_| {
-        FilterError::Invalid(
-            "contains() takes the needle first: contains(\"substr\", field, ...) — the old \
-             contains(field, \"substr\") order is gone"
-                .to_owned(),
-        )
-    })?;
-
-    let names: Vec<String> = if field_nodes.is_empty() {
-        DEFAULT_CONTAINS_FIELDS
-            .iter()
-            .map(|name| (*name).to_owned())
-            .collect()
-    } else {
-        field_nodes
-            .iter()
-            .map(|node| extract_identifier(node).map_err(FilterError::Invalid))
-            .collect::<Result<Vec<_>, _>>()?
-    };
-    let values = names
-        .iter()
-        .map(|name| contains_value(task, name, config))
-        .collect::<Result<Vec<_>, _>>()?;
-    Ok(values.iter().any(|value| contains_ci(value, &needle)))
-}
-
-/// Resolve `name`'s `contains()` haystack on `task`: `body` reads
-/// [`Task::body`] directly (marker-free); anything else defers to
-/// [`field_value`]. Errors outside [`fields::is_contains_field`]'s vocabulary.
-fn contains_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, FilterError> {
-    if !fields::is_contains_field(name) {
-        return Err(FilterError::UnknownField(name.to_owned()));
-    }
-    if name == fields::BODY_FIELD {
-        return Ok(FieldValue::Str(task.body.clone()));
-    }
-    field_value(task, name, config)
-}
-
 /// Resolve a field name to its value on `task`, via the shared
 /// [`crate::fields`] registry — the single place every generically comparable
-/// field is wired, so a field usable here is usable in `--sort` too.
-fn field_value(task: &Task, name: &str, config: &Config) -> Result<FieldValue, FilterError> {
+/// field is wired, so a field usable here is usable in `--sort` too. `pub(crate)`
+/// so [`crate::filter_predicates`]'s `present`/`contains_value` can share it.
+pub(crate) fn field_value(
+    task: &Task,
+    name: &str,
+    config: &Config,
+) -> Result<FieldValue, FilterError> {
     fields::get(name)
         .map(|def| (def.get)(task, config))
         .ok_or_else(|| FilterError::UnknownField(name.to_owned()))
@@ -477,20 +380,6 @@ fn single_literal(
     match children {
         [arg] => extract_literal(arg).map_err(FilterError::Invalid),
         _ => Err(FilterError::Invalid(format!("{name}() needs one argument"))),
-    }
-}
-
-/// All arguments of a variadic call (`contains(...)`), left to right.
-/// `evalexpr` wraps a call's argument list in one child: zero args unwrap to
-/// an empty `RootNode`, one arg is the bare node, two or more is a `Tuple`.
-fn call_args(children: &[Node<DefaultNumericTypes>]) -> Vec<&Node<DefaultNumericTypes>> {
-    let [wrapper] = children else {
-        return Vec::new();
-    };
-    match unwrap_root(wrapper).operator() {
-        Operator::RootNode => Vec::new(),
-        Operator::Tuple => unwrap_root(wrapper).children().iter().collect(),
-        _ => vec![wrapper],
     }
 }
 

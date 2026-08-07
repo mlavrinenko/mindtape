@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Enforce visibility for the pre-commit freshness override. When
+# MINDTAPE_GATE_SCOPE skipped `mmz --is-fresh --tag gate` (see
+# .githooks/pre-commit), the commit message must carry a matching
+# `Gate-Scope:` trailer, so `git log` can tell a scoped commit apart from a
+# fully gated one — never a silent bypass. No-op when the variable is unset.
+set -eo pipefail
+scope="${MINDTAPE_GATE_SCOPE:-}"
+[[ -z "$scope" ]] && exit 0
+
+msg_file="$1"
+trailer="Gate-Scope: ${scope}"
+if ! grep -qxF "$trailer" "$msg_file"; then
+    cat >&2 <<EOF
+commit-msg: MINDTAPE_GATE_SCOPE=${scope} skipped the pre-commit freshness
+assertion, but the commit message carries no matching trailer. Add a footer
+line reading exactly:
+
+    ${trailer}
+
+(see CONTRIBUTING.md, Quality Gates) and commit again.
+EOF
+    exit 1
+fi
