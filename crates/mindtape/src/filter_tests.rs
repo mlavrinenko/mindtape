@@ -120,8 +120,8 @@ fn tag_and_text_functions() {
     let task = sample();
     assert!(hit("has_tag(\"backend\")", &task));
     assert!(!hit("has_tag(\"frontend\")", &task));
-    assert!(hit("contains(title, \"auth\")", &task)); // case-insensitive
-    assert!(hit("search(\"AUTH\")", &task));
+    assert!(hit("contains(\"auth\", title)", &task)); // case-insensitive
+    assert!(hit("contains(\"AUTH\")", &task)); // default haystack
 }
 
 #[test]
@@ -405,13 +405,13 @@ fn cyclic_view_hits_depth_limit() {
 }
 
 #[test]
-fn search_matches_title_or_id() {
-    // Guards against `||` → `&&` in the search function.
+fn default_haystack_matches_title_or_id() {
+    // Guards against `||` → `&&` in `contains_call`'s default-haystack fold.
     let mut task = sample();
     task.id = "mod-001".to_owned();
     task.title = "Auth Module".to_owned();
     // "auth" in title, not in id — `||` gives true, `&&` gives false.
-    assert!(hit("search(\"auth\")", &task));
+    assert!(hit("contains(\"auth\")", &task));
 }
 
 #[test]
@@ -479,13 +479,6 @@ fn missing_field_is_unequal_to_every_literal() {
     assert!(!hit("priority >= 0", &task));
 }
 
-#[test]
-fn contains_does_not_match_absent_substring() {
-    // Guards against `contains_ci` returning `true` unconditionally.
-    let task = sample();
-    assert!(!hit("contains(title, \"xyz\")", &task));
-}
-
 // The rare arms of the `function` dispatcher live in a child module so they
 // share `sample()` / `hit()` without duplicating them (and keep this file
 // under the linecop limit).
@@ -495,3 +488,8 @@ mod dispatch;
 // The `assignee` / `role` registry-backed filter tests likewise.
 #[path = "filter_actors_tests.rs"]
 mod actors;
+
+// `contains()`'s unified needle-first grammar (default haystack, explicit
+// fields, the retired `search()` / field-first orders) likewise.
+#[path = "filter_contains_tests.rs"]
+mod contains;

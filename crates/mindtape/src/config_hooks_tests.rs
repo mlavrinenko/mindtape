@@ -70,7 +70,7 @@ fn desugar_into_keeps_the_rest_of_the_expression() {
 /// An `into(` inside a string literal is data, not a call.
 #[test]
 fn desugar_into_skips_string_literals() {
-    let expr = r#"contains(title, "into(\"done\")")"#;
+    let expr = r#"contains("into(\"done\")", title)"#;
     assert_eq!(desugar_into(expr, "done"), expr);
     assert!(into_targets(expr).is_empty());
 }

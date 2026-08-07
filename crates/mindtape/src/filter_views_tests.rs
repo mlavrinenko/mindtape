@@ -30,12 +30,12 @@ fn hyphen_and_underscore_in_name() {
 #[test]
 fn skips_at_inside_string_literal() {
     assert_eq!(
-        desugar_view_refs("search(\"a@b.com\")"),
-        "search(\"a@b.com\")"
+        desugar_view_refs("contains(\"a@b.com\")"),
+        "contains(\"a@b.com\")"
     );
     assert_eq!(
-        desugar_view_refs("@x && search(\"a@b\")"),
-        "in_view(\"x\") && search(\"a@b\")"
+        desugar_view_refs("@x && contains(\"a@b\")"),
+        "in_view(\"x\") && contains(\"a@b\")"
     );
 }
 
@@ -46,9 +46,9 @@ fn bare_at_without_name_passes_through() {
 
 #[test]
 fn escaped_quote_inside_string_does_not_end_it() {
-    // `search("a\"@b")` — the escaped quote must not close the string, so the
-    // following `@b` stays literal rather than being rewritten.
-    let input = "search(\"a\\\"@b\")";
+    // `contains("a\"@b")` — the escaped quote must not close the string, so
+    // the following `@b` stays literal rather than being rewritten.
+    let input = "contains(\"a\\\"@b\")";
     assert_eq!(desugar_view_refs(input), input);
 }
 
