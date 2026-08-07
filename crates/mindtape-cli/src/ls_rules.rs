@@ -397,3 +397,7 @@ pub fn trailer(applied: &Applied) -> Option<String> {
 #[cfg(test)]
 #[path = "ls_rules_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "ls_rules_tests_applied.rs"]
+mod tests_applied;

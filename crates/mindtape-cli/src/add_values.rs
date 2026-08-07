@@ -376,3 +376,7 @@ pub fn slug(text: &str) -> String {
 #[cfg(test)]
 #[path = "add_values_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "add_values_tests_templates.rs"]
+mod tests_templates;

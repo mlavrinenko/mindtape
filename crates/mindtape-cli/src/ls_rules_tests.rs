@@ -1,3 +1,7 @@
+//! Tests for the `resolve`/`resolve_bare` cascade: rule matching,
+//! `import-views` composition, CLI-argument override precedence. `Applied`'s
+//! trailer rendering, `is_trivial`, and `bare_view_ref` parsing live in
+//! `ls_rules_tests_applied.rs`.
 #![allow(clippy::unwrap_used)]
 
 use std::path::Path;
@@ -5,11 +9,11 @@ use std::path::Path;
 use mindtape::parse_config;
 use mindtape::test_support::TASK_SRC;
 
-use super::{Applied, MATCH_ALL, resolve, resolve_bare, trailer};
+use super::{resolve, resolve_bare};
 use crate::ls::{LsArgs, LsFlags};
 use crate::test_util::make_project;
 
-fn args(filter: Option<&str>) -> LsArgs {
+pub(super) fn args(filter: Option<&str>) -> LsArgs {
     LsArgs {
         filter: filter.map(str::to_owned),
         flags: LsFlags {
@@ -23,11 +27,11 @@ fn args(filter: Option<&str>) -> LsArgs {
     }
 }
 
-fn project(dir: &Path, config_toml: &str) -> crate::util::Project {
+pub(super) fn project(dir: &Path, config_toml: &str) -> crate::util::Project {
     project_with_config(dir, parse_config(config_toml).unwrap())
 }
 
-fn project_with_config(dir: &Path, config: mindtape::Config) -> crate::util::Project {
+pub(super) fn project_with_config(dir: &Path, config: mindtape::Config) -> crate::util::Project {
     make_project(dir, &[("x.typ", TASK_SRC)], config)
 }
 
@@ -279,51 +283,6 @@ import-views = ["ghost"]
     assert!(resolve_bare(&project).is_err());
 }
 
-#[test]
-fn trailer_groups_by_source_in_first_appearance_order() {
-    let applied = Applied {
-        rule: Some("release".to_owned()),
-        filter_from: "inbox".to_owned(),
-        filter_value: String::new(),
-        sort_from: "release".to_owned(),
-        sort_value: vec![],
-        columns_from: "inbox".to_owned(),
-        columns_value: vec![],
-    };
-    assert_eq!(
-        trailer(&applied).as_deref(),
-        Some("applied: inbox (filter, columns) → release (sort)")
-    );
-}
-
-#[test]
-fn trailer_omits_match_all_facets() {
-    let applied = Applied {
-        rule: Some("release".to_owned()),
-        filter_from: "match-all".to_owned(),
-        sort_from: "release".to_owned(),
-        columns_from: "match-all".to_owned(),
-        ..Applied::default()
-    };
-    assert_eq!(
-        trailer(&applied).as_deref(),
-        Some("applied: release (sort)")
-    );
-}
-
-#[test]
-fn trailer_is_none_when_trivial() {
-    let applied = Applied {
-        rule: None,
-        filter_from: "match-all".to_owned(),
-        sort_from: "match-all".to_owned(),
-        columns_from: "match-all".to_owned(),
-        ..Applied::default()
-    };
-    assert!(applied.is_trivial());
-    assert_eq!(trailer(&applied).as_deref(), None);
-}
-
 // ---------------------------------------------------------------------------
 // Regression tests for cargo-mutants survivors in ls_rules.rs
 // ---------------------------------------------------------------------------
@@ -331,40 +290,6 @@ fn trailer_is_none_when_trivial() {
 // Pins delete rule from Self in Applied::match_all.
 //   PROVABLY EQUIVALENT: ..Self::default() already supplies rule: None.
 //   No test needed.
-
-#[test]
-fn is_trivial_false_when_rule_is_some_but_sort_columns_match_all() {
-    // Kills mutant at second && → || in is_trivial.
-    // Real:   rule.is_some() && filter_from != match-all && sort_from == match-all && ..
-    //         → false
-    // Mutant: (rule.is_none() && filter_from==match-all) || (sort_from==match-all && ..)
-    //         → true
-    let applied = Applied {
-        rule: Some("x".to_owned()),
-        filter_from: "manual".to_owned(),
-        sort_from: MATCH_ALL.to_owned(),
-        columns_from: MATCH_ALL.to_owned(),
-        ..Applied::default()
-    };
-    assert!(!applied.is_trivial());
-}
-
-#[test]
-fn is_trivial_false_when_filter_from_not_match_all() {
-    // Kills mutant at first && → || in is_trivial.
-    // Real:   rule.is_none() && filter_from != match-all && …
-    //         → false
-    // Mutant: rule.is_none() || (filter_from==match-all && sort_from==match-all && …)
-    //         → true
-    let applied = Applied {
-        rule: None,
-        filter_from: "manual".to_owned(),
-        sort_from: MATCH_ALL.to_owned(),
-        columns_from: MATCH_ALL.to_owned(),
-        ..Applied::default()
-    };
-    assert!(!applied.is_trivial());
-}
 
 #[test]
 fn explicit_filter_sets_filter_value_in_applied() {
@@ -381,51 +306,6 @@ filter = "priority > 1"
     );
     let (_bundle, applied) = resolve(&project, &args(Some("priority > 9"))).unwrap();
     assert_eq!(applied.filter_value, "priority > 9");
-}
-
-#[test]
-fn bare_at_sign_is_manual_filter_not_view_ref() {
-    // Kills mutant at && → || in bare_view_ref.
-    // "@" has empty name after @, so bare_view_ref returns None in real code.
-    // Mutant makes it return Some(""), which then errors looking up view "".
-    let dir = tempfile::tempdir().unwrap();
-    let project = project_with_config(dir.path(), mindtape::Config::default());
-    let (bundle, applied) = resolve(&project, &args(Some("@"))).unwrap();
-    assert_eq!(bundle.filter, "@");
-    assert_eq!(applied.filter_from, "manual");
-}
-
-#[test]
-fn view_ref_with_underscore_is_valid() {
-    // Kills mutant at second || → && in bare_view_ref.
-    // "_" is a valid view-name character. Mutant: c.is_ascii_alphanumeric() || (c=='_' && c=='-')
-    // → only alphanumeric passes, so "@foo_bar" is misrecognised as manual.
-    let dir = tempfile::tempdir().unwrap();
-    let project = project(
-        dir.path(),
-        r#"
-[views.foo_bar]
-filter = "priority > 5"
-"#,
-    );
-    let (bundle, _applied) = resolve(&project, &args(Some("@foo_bar"))).unwrap();
-    assert_eq!(bundle.filter, "priority > 5");
-}
-
-#[test]
-fn view_ref_with_hyphen_is_valid() {
-    // Kills mutant at == → != in bare_view_ref.
-    // "-" is a valid view-name char under ==; under != it is rejected.
-    let dir = tempfile::tempdir().unwrap();
-    let project = project(
-        dir.path(),
-        r#"
-[views.my-view]
-filter = "priority > 5"
-"#,
-    );
-    let (bundle, _applied) = resolve(&project, &args(Some("@my-view"))).unwrap();
-    assert_eq!(bundle.filter, "priority > 5");
 }
 
 #[test]

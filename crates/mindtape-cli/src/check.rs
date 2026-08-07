@@ -135,3 +135,7 @@ fn print_violation(violation: &Violation) {
 #[cfg(test)]
 #[path = "check_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "check_tests_limits.rs"]
+mod tests_limits;

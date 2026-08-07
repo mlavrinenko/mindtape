@@ -369,3 +369,7 @@ fn drop_blank(values: BTreeMap<String, Option<RawValue>>) -> BTreeMap<String, Ra
 #[cfg(test)]
 #[path = "add_interactive_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "add_interactive_tests_editor.rs"]
+mod tests_editor;
