@@ -991,6 +991,14 @@
           },
           "type": "array"
         },
+        "contains-fields": {
+          "default": [],
+          "description": "Default `contains()` haystack when a call names no field: an ordered\nlist of field names drawn from `crate::fields::is_contains_field`'s\nvocabulary (every `crate::fields::FIELDS` name, plus the text-only\ntier `body`/`note`/`tags`). Empty (the default) keeps the shipped\nsweep — `title`, `id`, `body` — unchanged; a project states its own\nanswer to widen it (e.g. to include `note`, the `links[].note` prose,\nor `tags`) or narrow it. An explicitly named field in a `contains()`\ncall (`contains(\"x\", note)`) always works regardless of this default.\nValidated at config load\n([`deserialize_contains_fields`]): an unknown name is a config error\nnaming the field and listing the valid set, never a silent drop.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "date-format": {
           "default": null,
           "description": "Global date display format applied to every rendered date column.\nTokens (longest-match-first): `YYYY` 4-digit year, `YY` 2-digit year,\n`MMMM` full month name, `MMM` abbreviated month, `MM` zero-padded month,\n`M` bare month, `DD` zero-padded day, `D` bare day.\nNon-token characters pass through literally.\nDefault `None` renders ISO `YYYY-MM-DD`.",
