@@ -10,7 +10,7 @@
   difficulty: 1,
   tags: ("cli",),
   estimate: (files: 2),
-  status: proposed(2026, 8, 7),
+  status: done(2026, 8, 7)[landed 2026-08-07; just check green on merged HEAD],
   links: related("mt-rm-gitless-manual-test.typ")[
     the session that surfaced this
   ],

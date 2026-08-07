@@ -234,6 +234,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`search()` and `contains()` collapse into one filter function** — the
+  language carried two overlapping text predicates: `contains(field, "substr")`
+  matched a single field, while `search("query")` was documented as full-text
+  but read only `title` and `id`, never `Task.body` — which is loaded already
+  and marker-free. One variadic function replaces both, needle first:
+  `contains("bug")` sweeps the prose surface (`title`, `id`, `body`),
+  `contains("bug", title, body)` names its own. Tags keep `has_tag()` and every
+  scalar field keeps its comparison operator, so neither joins an implicit
+  sweep. The field vocabulary derives from the `fields` registry plus the
+  text-only `body`, so `contains()` never hand-matches names of its own; every
+  named field is validated before any is matched, so an unknown name errors
+  whatever the argument order and whether or not an earlier field already hit.
+  Both retired spellings — the old `contains(field, "substr")` order and
+  `search(…)` — are hard errors naming the replacement rather than silently
+  accepted alternatives.
 - **"Today" is the local calendar date, not UTC** — every date `mt` stamps or
   compares (`status`/`reviewed` dates, `now()` and `stale(N)` in filters, the
   overdue marker, `mt recur` advances) now resolves through the machine's local
@@ -261,6 +276,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt rm` no longer suggests committing outside a git repository** — every
+  successful removal ended with `review the changes and commit when satisfied`,
+  including in projects with no repository, where there is nothing to commit
+  and the hint names a tool the user deliberately does not have. Both emitters
+  now route through one helper gated on the same repository discovery that
+  already resolves the default `[rm]` strategy, rather than a second probe.
 - **`--sort assignee` / `--sort reviewed`** — both fields were already
   filterable but silently rejected by `--sort` (`unknown sort field`) since
   `SORT_FIELDS` never listed them. Filter and sort now share one field

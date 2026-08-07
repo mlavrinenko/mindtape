@@ -10,7 +10,7 @@
   difficulty: 2,
   tags: ("cli", "tests"),
   estimate: (files: 1),
-  status: proposed(2026, 8, 7),
+  status: done(2026, 8, 7)[landed 2026-08-07; just check green on merged HEAD],
   links: related("actors-roles-registry-manual-test.typ")[
     the session that surfaced this gap
   ]
