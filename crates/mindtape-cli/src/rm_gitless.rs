@@ -13,6 +13,7 @@ use mindtape::{Config, RmStrategy, Task, link_edges, normalize_link, today_ymd};
 use typst_cleanup::{Deletion, Plan, Rewrite, apply};
 
 use crate::flip::status_edit;
+use crate::git;
 use crate::task_edit::task_with;
 
 /// The strategy for a run, resolved before anything is planned: the configured
@@ -57,6 +58,18 @@ pub fn reject_message(referrers: &BTreeMap<PathBuf, HashSet<String>>) -> String 
 pub fn redact_git_error(err: &typst_cleanup::Error, root: &Path) -> String {
     err.to_string()
         .replace(&root.display().to_string(), "<tasks-root>")
+}
+
+/// Print the post-apply commit hint, but only when `root` sits inside a git
+/// work tree. Every strategy's success report ends here — the delete-style
+/// path (plain, git-tombstone, unlink) and the retire path — so gitless runs
+/// never point the user at a tool they deliberately do not have. Reuses
+/// [`git::toplevel`], the same discovery [`resolve_strategy`]'s caller already
+/// runs to pick a default strategy, instead of a second probe.
+pub fn print_commit_hint(root: &Path) {
+    if git::toplevel(root).is_ok() {
+        println!("review the changes and commit when satisfied");
+    }
 }
 
 /// The deletion-only plan for tasks nothing references: no tombstones, no
