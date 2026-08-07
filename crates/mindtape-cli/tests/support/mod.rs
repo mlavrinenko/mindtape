@@ -152,11 +152,89 @@ pub fn at<'a>(row: &'a serde_json::Value, pointer: &str) -> &'a serde_json::Valu
         .unwrap_or_else(|| panic!("no {pointer} in {row}"))
 }
 
+/// Run `mt` in `dir` and assert it succeeds. Named `run_ok` (not `mt`) so it
+/// sits alongside [`mt`] rather than shadowing it: callers that need the raw
+/// `assert_cmd::Command` (a failure assertion, stdout capture, …) still reach
+/// for [`mt`] directly.
+pub fn run_ok(dir: &Path, args: &[&str]) {
+    mt(dir).args(args).assert().success();
+}
+
+/// File a task in `dir` via `mt add --name <name> --set title=T <extra_set…>`,
+/// then assert `mt ls` and `mt check` both succeed against it. Shared by the
+/// `init` e2e batteries that prove a scaffolded preset or answer set is usable
+/// end to end, not just that `init` wrote *something*.
+pub fn add_then_ls_and_check(dir: &Path, name: &str, extra_set: &[&str]) {
+    let mut args = vec!["add", "--name", name, "--set", "title=T"];
+    args.extend_from_slice(extra_set);
+    run_ok(dir, &args);
+    run_ok(dir, &["ls"]);
+    run_ok(dir, &["check"]);
+}
+
+/// A scaffolded project for `preset`, with the Typst package installed.
+pub fn init_preset(preset: &str) -> tempfile::TempDir {
+    let dir = tempfile::tempdir().unwrap();
+    install_lib(dir.path());
+    run_ok(dir.path(), &["init", "--preset", preset]);
+    dir
+}
+
+/// Parsed `add --describe=json` schema rows run in `dir`.
+pub fn describe_slots(dir: &Path) -> serde_json::Value {
+    let output = mt(dir)
+        .args(["add", "--describe=json"])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    serde_json::from_slice(&output).unwrap()
+}
+
+/// Slot names from `add --describe=json` run in `dir`.
+pub fn describe_slot_names(dir: &Path) -> Vec<String> {
+    describe_slots(dir)
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|row| row.get("name").and_then(serde_json::Value::as_str))
+        .map(ToOwned::to_owned)
+        .collect()
+}
+
+/// The `kind` reported for slot `name` in `add --describe=json` run in `dir`.
+pub fn describe_slot_kind(dir: &Path, name: &str) -> String {
+    describe_slots(dir)
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row.get("name").and_then(serde_json::Value::as_str) == Some(name))
+        .and_then(|row| row.get("kind"))
+        .and_then(serde_json::Value::as_str)
+        .unwrap()
+        .to_owned()
+}
+
 /// Install the in-tree `@local/mindtape` lib override and an empty `tasks/`
 /// root under `dir`, so a task filed there can actually be evaluated.
 pub fn install_lib(dir: &Path) {
     mindtape::test_support::write_lib_package(dir, PRELUDE);
     std::fs::create_dir_all(dir.join("tasks")).unwrap();
+}
+
+/// Scaffold a temp project that can evaluate `@local/mindtape` via the
+/// in-tree lib override the loader honours, with the barebones `[tasks]
+/// roots = ["tasks"]` config the `add` e2e batteries build on before
+/// overriding it with a scenario-specific one.
+pub fn scaffold(dir: &Path) {
+    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+    std::fs::write(
+        dir.join(".mindtape/config.toml"),
+        "[tasks]\nroots = [\"tasks\"]\n",
+    )
+    .unwrap();
+    install_lib(dir);
 }
 
 /// A throwaway project directory: the in-tree `@local/mindtape` package
