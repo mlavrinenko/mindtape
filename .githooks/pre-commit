@@ -5,6 +5,14 @@
 #    check` records every sub-gate through mmz; `mmz --is-fresh --tag gate`
 #    asserts them all without re-running anything (a stale or failed rule
 #    names itself, so the fix is a fresh `just check`).
+#
+#    MINDTAPE_GATE_SCOPE=<reason> skips only this one assertion — the escape
+#    hatch for a delegated worktree whose full aggregate (cold Rust build +
+#    Typst docs site + Pagefind index) runs at integration, not per commit
+#    (see CONTRIBUTING.md, Quality Gates). It never touches assertions 2/3
+#    below, and `.githooks/commit-msg` refuses the commit unless the message
+#    carries a matching `Gate-Scope: <reason>` trailer, so a scoped commit
+#    can never look identical to a fully gated one in `git log`.
 # 2. Task-file formatting. `truth/tasks/**` is deliberately outside every mmz
 #    scope (.mmz/config.yaml: NOTE ON SCOPE — the close gate must survive
 #    `mt flip`'s own writes), so a mis-formatted task file busts nothing. The
@@ -12,6 +20,10 @@
 # 3. Task structure — the close gate delegates this here by policy.
 set -eo pipefail
 root="$(git rev-parse --show-toplevel)"
-direnv exec "$root" mmz --is-fresh --tag gate
+if [[ -n "${MINDTAPE_GATE_SCOPE:-}" ]]; then
+    echo "pre-commit: MINDTAPE_GATE_SCOPE=${MINDTAPE_GATE_SCOPE} — skipping mmz --is-fresh --tag gate (commit-msg requires a matching Gate-Scope trailer)" >&2
+else
+    direnv exec "$root" mmz --is-fresh --tag gate
+fi
 direnv exec "$root" typstyle --check truth/tasks
 exec direnv exec "$root" cargo run -q -- check
