@@ -94,7 +94,7 @@ check-windows:
 
 # Fail if a source changed without its dependents being re-confirmed
 outdatty-check:
-    outdatty check --format quiet
+    outdatty check
 
 # Re-confirm dependency groups: record current hashes into outdatty.lock
 outdatty-update:

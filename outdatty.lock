@@ -24,26 +24,26 @@ groups:
     dependents:
       AGENTS.md: 9c8d8d28e6442b432c1d9eed513666dab0ee48d674e726300700af8015a914c0
       CHANGELOG.md: a6c605ff4ce2e22c1ac5ae13a2dbc28c9f5b0f95abc5e5d6eaf53f38fd252781
-      CONTRIBUTING.md: c413b7a945bdcfab1816dcd565893092632b13f33ddfd57f1d62f5d54077cb37
+      CONTRIBUTING.md: 19601a6b4977a59e83b7409b02e11fd9e7e401adfc700c368220054c7484b6ba
       README.md: 0e2910d0396e3437c445315b4e26c05f59b367e2f6c4c847865948536fe16495
-      skills/mindtape/SKILL.md: 9a37ef56aaf7f0947ddc8ce997e0528f4e3920fec2ce53b60b5595b93e9b1142
-      www/content/cli.typ: c0458f7dac6c46bfed42b4cb2acfe9acccee838c3f6d1c830fd6391f6f048430
+      skills/mindtape/SKILL.md: 1e2222eacec91ed06bb65fabed5910da119dddaad9b3e4c84a19c9bf978c36cb
+      www/content/cli.typ: ef1cdb0645210fd20931e8909d3db200cd23ba88dce878fb6b9317dcbfc76d18
       www/content/index.typ: 637bb5ff74599f1dac969418ddc61f90736a6a448df5182a155f19634b92b881
       www/content/quickstart.typ: ec67df32e539b5c2ee0d853c989583679c176639b58f4dacde15ce35ee858be6
   dev-docs:
     source:
-      Justfile: 62fd493a0b37538a29f75db190a9227b6fcf40f817755daf0cca62d5d6a0a274
+      Justfile: 317724ba081ea47206548f28526e19afd0353832bab3c3d710e0ebb023234753
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: 9c8d8d28e6442b432c1d9eed513666dab0ee48d674e726300700af8015a914c0
-      CONTRIBUTING.md: c413b7a945bdcfab1816dcd565893092632b13f33ddfd57f1d62f5d54077cb37
+      CONTRIBUTING.md: 19601a6b4977a59e83b7409b02e11fd9e7e401adfc700c368220054c7484b6ba
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf
     dependents:
       AGENTS.md: 9c8d8d28e6442b432c1d9eed513666dab0ee48d674e726300700af8015a914c0
       README.md: 0e2910d0396e3437c445315b4e26c05f59b367e2f6c4c847865948536fe16495
-      skills/mindtape/SKILL.md: 9a37ef56aaf7f0947ddc8ce997e0528f4e3920fec2ce53b60b5595b93e9b1142
+      skills/mindtape/SKILL.md: 1e2222eacec91ed06bb65fabed5910da119dddaad9b3e4c84a19c9bf978c36cb
       www/content/dsl.typ: 7a7472f3a74342b9b85a850750f0188a2f42c2c6e6b0756bf412f87e7c539530
   release-notes:
     source:
