@@ -27,6 +27,7 @@ pub mod config_limits;
 mod config_links_validate;
 mod config_ls;
 mod config_required;
+mod config_rm;
 mod config_roots;
 mod config_schema;
 mod config_status;
