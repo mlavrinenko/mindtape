@@ -9,8 +9,8 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    add, check, cli_dump, config_cmd, eval, flip, go, graph, import, init, install, ls, preset_cmd,
-    recur, review, rm, views, worktrees,
+    add, check, cli_dump, config_cmd, eval, find, flip, go, graph, import, init, install, ls,
+    preset_cmd, recur, review, rm, views, worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -64,6 +64,11 @@ enum Command {
     Import(import::ImportArgs),
     /// List tasks under the configured roots, applying a filter.
     Ls(ls::LsArgs),
+    /// Search by text — sugar over `contains()`: `mt find login bug` is
+    /// `mt ls 'contains("login") && contains("bug")'`. Every `ls` flag
+    /// forwards verbatim; no `--in`, field targeting stays in the filter
+    /// language.
+    Find(find::FindArgs),
     /// Emit the task dependency graph as DOT or Mermaid, scoped by a filter.
     Graph(graph::GraphArgs),
     /// List or inspect named views (`[views]`).
@@ -141,6 +146,7 @@ impl Cli {
             Command::Add(args) => add::run(&args),
             Command::Import(args) => import::run(&args),
             Command::Ls(args) => ls::run(&args),
+            Command::Find(args) => find::run(&args),
             Command::Graph(args) => graph::run(&args),
             Command::Views(args) => views::run(&args),
             Command::Worktrees(args) => worktrees::run(&args),

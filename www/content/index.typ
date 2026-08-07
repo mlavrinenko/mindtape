@@ -45,5 +45,6 @@ as a row can also be typeset into a document.
 
 The CLI is scriptable and quiet by default: table, JSON, CSV, or a bare path
 list for piping into another program, honest exit codes, and a filter language
-for querying. Structured JSON and slot schemas make it equally legible to AI
-coding agents — see #link(u("/agents/"))[For AI agents].
+for querying (`mt find` is a shortcut over it). Structured JSON and slot
+schemas make it equally legible to AI coding agents — see
+#link(u("/agents/"))[For AI agents].

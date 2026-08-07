@@ -25,7 +25,7 @@ drift from what `mt` actually is.
 #let cli = json("../generated/cli.json")
 #let cli-groups = (
   ("Files", ("add", "import", "go", "eval")),
-  ("Listing", ("ls",)),
+  ("Listing", ("ls", "find")),
   ("Graph", ("graph",)),
   ("Views", ("views",)),
   ("Status", ("flip", "review")),
@@ -97,6 +97,15 @@ the path exactly as the `file` column does — relative to the working
 directory — so the two never disagree. `contrib/fzf-mt-go.sh` wires
 `--format path` to a fuzzy picker of your choice (`mt ls -i` stays a plain
 key-loop highlighter, not a fuzzy finder).
+
+`mt find TERM…` is sugar over `contains()`: `mt find login bug` is exactly
+`mt ls 'contains("login") && contains("bug")'`, run through the same code
+path. Every `ls` flag forwards verbatim (`--format`, `--json`, `--sort`,
+`--columns`, `-n`, `-i`, `--color`, `--hyperlinks`, `-w`); there is no `--in`
+flag; targeting a field stays in the filter language
+(`mt ls 'contains("bug", title)'`). The desugared expression is not hidden —
+`mt find bug --json` reports `contains("bug")` in the `applied` envelope, and
+the table footer names it the same way a manual filter would.
 
 = Conditional rules
 

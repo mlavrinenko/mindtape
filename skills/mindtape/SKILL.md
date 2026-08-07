@@ -40,6 +40,7 @@ Find a task → read it → change its status → validate.
 | List active tasks | `mt ls` |
 | List everything | `mt ls ''` (empty filter; there is no `--all`) |
 | Filter | `mt ls '<filter>'` (see below) |
+| Search by text | `mt find <term…>` (sugar over `contains()`; same flags as `mt ls`) |
 | Apply a named view | `mt ls @<view>`; `mt views` lists them |
 | Dependency graph | `mt graph` (DOT; `--format mermaid`, `--no-terminal`) |
 | Read one task | `mt eval <file>` (`--json`) |
@@ -86,6 +87,11 @@ Helpers:
 - `terminal` — status is a configured terminal state
 - `stale(N)` — untouched for more than N days; `now()` — today's ISO date
 - `in_view("name")` (also `@name`) — matches a named view's filter
+
+`mt find <term…>` is pure sugar over `contains()`: `mt find login bug` ==
+`mt ls 'contains("login") && contains("bug")'` (terms conjoin with `&&`), run
+through the same code path. Every `mt ls` flag forwards; there is no `--in`
+— target a field with the filter directly (`mt ls 'contains("bug", title)'`).
 
 Named views are `[views.<name>]` bundles (filter + optional sort/columns); bare
 `@name` applies all three facets, `@name` inside a bigger filter is the filter

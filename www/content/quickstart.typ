@@ -156,6 +156,8 @@ terminal with `--hyperlinks always` — see #link(u("/cli/"))[the CLI
   reference]. The full #link(u("/filters/"))[filter language] covers tags,
 dates, dependency state, and full-text search.
 
+`mt find login bug` is a shortcut for the last of those —
+`mt ls 'contains("login") && contains("bug")'` — and takes every `ls` flag.
 `mt ls --format path` prints a bare list of task paths (`path0` NUL-delimits
 it for `xargs -0`), for composing with another program:
 
