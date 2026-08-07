@@ -55,15 +55,19 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
 
 1. Use `just` recipes, not raw cargo (see `Justfile`). `just check` before done.
 2. After code changes, `just check` must pass (fmt, clippy `-D warnings`, tests,
-   machete, file-size, copy-paste, outdatty drift). Apply `cargo fmt` first.
-   Copy-paste: `just check-dry` (jscpd) fails on any duplicated Rust block ≥70
-   tokens — fix by extracting a shared helper, never by shuffling tokens.
-3. File size: Rust ≤500 lines, Markdown ≤200 — 250 README, 300 `AGENTS.md` and
-   `SKILL.md` (enforced by `linecop`, limits in `.linecop.yaml`). Split up
-   front; `just fix-check` ejects oversized inline tests via `ejectest`. Before
-   adding to an existing file run `linecop --baseline 85`: it lists what is
-   near its cap, so you budget the cuts up front instead of hitting a wall
-   mid-edit and spending the change on rewording.
+   machete, file-size, copy-paste, outdatty drift, doc coverage). Apply
+   `cargo fmt` first. Copy-paste: `just check-dry` (jscpd) fails on any
+   duplicated Rust block ≥70 tokens — fix by extracting a shared helper, never
+   by shuffling tokens. Doc coverage: `just check-doc-coverage` fails naming
+   any visible `mt` subcommand (from `mt _cli --json`) with no matching key in
+   `www/utils/cli-notes.typ`.
+3. File size: Rust ≤500 lines, Markdown ≤200 — 250 README, 300 `AGENTS.md`,
+   `SKILL.md`, and `CONTRIBUTING.md` (enforced by `linecop`, limits in
+   `.linecop.yaml`). Split up front; `just fix-check` ejects oversized inline
+   tests via `ejectest`. Before adding to an existing file run `linecop
+   --baseline 85`: it lists what is near its cap, so you budget the cuts up
+   front instead of hitting a wall mid-edit and spending the change on
+   rewording.
 4. When `outdatty` reports drift, update the listed dependents, then
    `just outdatty-update` and commit `outdatty.lock`.
 5. Record architectural/tooling decisions as task artifacts under `truth/tasks/`,

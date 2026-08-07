@@ -26,6 +26,7 @@ check:
         "just mmz check-dry" \
         "just mmz outdatty-check" \
         "just mmz check-examples" \
+        "just mmz check-doc-coverage" \
         "just mmz docs-check" \
         "just mmz fmt-fixture-check"
 
@@ -48,6 +49,47 @@ mmz *ARGS:
 check-examples:
     cargo run -p mindtape-cli -q -- -w examples/learn-piano check
     cargo run -p mindtape-cli -q -- -w examples/minimal check
+
+# Doc-coverage gate: every visible top-level `mt` subcommand must have a
+# www/utils/cli-notes.typ entry. `mt find` once shipped with none — the docs
+# site would have carried a new verb with no prose or examples, and only a
+# human reviewing dependents caught it, which is not a mechanism. The check is
+# a set-difference: `mt _cli --json`'s reflected command names (the same dump
+# cli.typ itself renders) minus cli-notes.typ's dict keys.
+#
+# Hidden/internal commands (`_cli` itself, the deprecated `install-lib` alias)
+# are excluded because cli_dump.rs (`crates/mindtape-cli/src/cli_dump.rs`)
+# already drops any `hide = true` command and clap's synthetic `help` pseudo-
+# command before they ever reach the JSON — never by a hand-maintained skip
+# list here, which would rot exactly the way the thing being gated rots.
+#
+# Reading cli-notes.typ's keys means actually evaluating the Typst dict, not
+# grepping for quoted strings (a dotted arg-level key like "ls.sort" would
+# false-positive a regex meant to only see top-level command names, and a
+# regex silently drifts the moment the file's shape changes). `typst query`
+# only inspects document content, and cli-notes.typ is a bare `#let` with none,
+# so a throwaway driver imports it and re-exports `cli-notes.keys()` as
+# `metadata` under a label query can select. The driver must live inside
+# `--root .` (typst refuses a source outside the project root), so it goes
+# under target/ (gitignored, already exists after the build below).
+check-doc-coverage:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    cargo build -p mindtape-cli -q
+    visible=$(./target/debug/mt _cli --json | jq -r '.commands[].name')
+    tmp=$(mktemp -d -p target)
+    trap 'rm -rf "$tmp"' EXIT
+    printf '#import "/www/utils/cli-notes.typ": cli-notes\n#metadata(cli-notes.keys()) <cli-notes-keys>\n' \
+        > "$tmp/keys.typ"
+    documented=$(typst query --root . "$tmp/keys.typ" '<cli-notes-keys>' \
+        --field value --one | jq -r '.[]')
+    missing=$(comm -23 <(sort <<<"$visible") <(sort <<<"$documented"))
+    if [ -n "$missing" ]; then
+        echo "check-doc-coverage: undocumented commands (no www/utils/cli-notes.typ entry):" >&2
+        while IFS= read -r name; do echo "  - mt $name" >&2; done <<<"$missing"
+        exit 1
+    fi
+    echo "check-doc-coverage: $(wc -l <<<"$visible") visible commands, all documented"
 
 # (Re)generate the examples/large/ benchmark fixture: N deterministic task
 # files under examples/large/tasks/ (gitignored). Default N=2000.

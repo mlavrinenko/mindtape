@@ -24,6 +24,16 @@
     mt add --describe                   # dump the template's slot schema
     ```,
   ),
+  "import": (
+    prose: [Full cookbook — the canonical schema, `jq` adapters for Taskwarrior
+      and GitHub Issues, the round-trip contract — on
+      #link(u("/import-export/"))[Import & export].],
+    examples: ```sh
+    mt import                       # canonical JSON from stdin
+    mt import export.json --dry-run # from a file, preview only
+    task export | jq -f contrib/jq/taskwarrior.jq | mt import
+    ```,
+  ),
   "eval": (outputs: ("eval",)),
   "go": (
     prose: [Resolves `id` to a path, then spawns `[go] editor` (falling back to
@@ -71,6 +81,15 @@
   "ls.columns": (
     examples: ```sh
     mt ls --columns status,title    # one-off override of [ls] columns-order
+    ```,
+  ),
+
+  // ── Graph ───────────────────────────────────────────────────────────────────
+  "graph": (
+    examples: ```sh
+    mt graph                              # every task, Graphviz DOT
+    mt graph 'blocked' --format mermaid   # subgraph as a Mermaid flowchart
+    mt graph --no-terminal | dot -Tsvg -o graph.svg
     ```,
   ),
 
@@ -126,10 +145,29 @@
   ),
 
   // ── Setup ───────────────────────────────────────────────────────────────────
+  "init": (
+    examples: ```sh
+    mt init                           # questionnaire, writes .mindtape/config.toml
+    mt init --preset flow --annotate  # named preset, keep the reasoning comments
+    mt init --list-presets            # show built-in preset names
+    ```,
+  ),
   "install": (
     prose: [`--no-lib` / `--no-defaults` / `--no-schema` skip any one install;
       `--force` overwrites an existing XDG `defaults.toml` / schema. The hidden
       `mt install-lib` is a deprecated alias for `mt install --no-defaults
       --no-schema` — lib only, kept for existing docs and muscle memory.],
+  ),
+  "worktrees": (
+    examples: ```sh
+    mt worktrees      # list configured @name aliases
+    mt @sn ls         # @name sugar rewrites to -w <path> before parsing
+    ```,
+  ),
+  "preset": (
+    examples: ```sh
+    mt preset save my-shape   # capture this project's config + templates
+    mt preset ls              # built-in and user presets together
+    ```,
   ),
 )
