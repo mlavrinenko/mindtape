@@ -14,7 +14,11 @@
     + related(
       "sweep-crap-scores-into-tasks.typ",
     )[the CRAP band, split out of this
-      one and not built here],
+      one and not built here]
+    + related(
+      "sweep-undertested-functions-in-covered-files.typ",
+    )[the function-shaped signal this
+      arm cannot see],
   status: done(2026, 8, 8),
 )
 

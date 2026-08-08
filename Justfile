@@ -228,6 +228,14 @@ cover:
 # stale lcov and name the recipe that refreshes it. CI is unaffected: its
 # `coverage` job runs `just cover` immediately before this.
 #
+# There is deliberately no ADVISORY band below this gate, and it was measured
+# rather than assumed (truth/tasks/sweep-crap-scores-into-tasks.typ). CRAP is
+# CC^2 * (1-cov)^3 + CC, so above ~90% coverage the cubed term vanishes and the
+# score IS cyclomatic complexity: of the 15 functions scoring 15..30 here, 11 are
+# at or above 90% covered, while 12 of the 16 functions that are genuinely
+# complex and undertested score below 15. A band below 30 would be wrong in both
+# directions at once, so `just ask-refactoring` has no CRAP arm.
+#
 # `--exclude` is matched twice, in two different roots: once per-crate during
 # `cargo crap`'s own source walk (so `main.rs` must read `**/main.rs`, not
 # `crates/mindtape-cli/src/main.rs` — the latter never matches a walk rooted at
