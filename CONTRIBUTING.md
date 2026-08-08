@@ -198,11 +198,11 @@ plus one signal tag (`size`, `mutants`, `coverage`); the guard selects on `swept
 alone, so a new signal joins it for free.
 
 Scoring is honest per finding, not a constant triple wearing a framework's
-clothes: impact rises as headroom falls, confidence is high (0.9) because linecop
-*measures* rather than guesses — 0.7 for a test module, where the remedy is
-genuinely open — and ease falls with how many lines have to find a new home. The
-formulas and their justification live in the script, next to the code that
-applies them.
+clothes: impact rises as headroom falls or as the unreached fraction grows, ease
+falls with how much has to be written or moved, and confidence is high (0.9)
+because both tools *measure* rather than guess — 0.7 only for a test module,
+where the remedy is genuinely open. The formulas and their justification live in
+the script, next to the code that applies them.
 
 Adding a signal is a scoring function plus a `.mindtape/templates/sweep-*.typ`
 template, never a config change: the tags and the guard are already declared. The

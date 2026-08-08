@@ -81,14 +81,19 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
    assertion (see CONTRIBUTING.md) — it is how a scoped commit stays visible
    in `git log`, never an optional annotation.
 7. `just ask-refactoring` files a backlog task per ADVISORY-signal finding
-   (`contrib/ask-refactoring.sh`; today linecop, siblings for cargo-mutants and
-   coverage). Dry by default, `--write` files. Never a gate and never memoized —
+   (`contrib/ask-refactoring.sh`; today linecop file sizes at `--baseline` and
+   per-file line coverage at `--coverage-floor`, which nothing gates since `just
+   cover` fails on the workspace total only; cargo-mutants is the remaining
+   sibling). Dry by default, `--write` files. Never a gate and never memoized —
    a signal that already blocks a commit (jscpd, outdatty, machete, clippy) must
-   not produce a task. Its re-run guard is `[views.ask-refactoring]`
+   not produce a task. The one memoized step is the lcov refresh (`just mmz
+   cover`) inside the coverage arm; a stale lcov is refused, never read as a
+   phantom 0%. Its re-run guard is `[views.ask-refactoring]`
    (`has_tag("swept") && !terminal`): it refuses while anything it filed is
    still open. There is no ledger, so the only way to silence a finding for good
    is an override with a written reason in the signal's own config
-   (`.linecop.yaml`). See CONTRIBUTING.md "Signal Sweep".
+   (`.linecop.yaml`, or an `--exclude` in `just cover`/`just crap`). See
+   CONTRIBUTING.md "Signal Sweep".
 
 ## Task DSL (lib/prelude.typ)
 
