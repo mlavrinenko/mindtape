@@ -3,24 +3,44 @@
 #show: task.with(
   title: slot("title", prompt: "split or re-cap <path>"),
   priority: ice(
-    impact: slot("impact", kind: "int", prompt: "1-10, rises as headroom falls"),
+    impact: slot(
+      "impact",
+      kind: "int",
+      prompt: "1-10, rises as headroom falls",
+    ),
     confidence: slot(
       "confidence",
       kind: "float",
       prompt: "0-1, high: linecop measures, it does not guess",
     ),
-    ease: slot("ease", kind: "int", prompt: "1-10, falls with how much code must move"),
+    ease: slot(
+      "ease",
+      kind: "int",
+      prompt: "1-10, falls with how much code must move",
+    ),
   ),
-  difficulty: slot("difficulty", kind: "int", prompt: "0-9 on the judgment scale"),
+  difficulty: slot(
+    "difficulty",
+    kind: "int",
+    prompt: "0-9 on the judgment scale",
+  ),
   estimate: slot("estimate", kind: "text", prompt: "(files: N)"),
-  tags: slot("tags", kind: "list", prompt: "swept, size, plus tests for a test module"),
+  tags: slot(
+    "tags",
+    kind: "list",
+    prompt: "swept, size, plus tests for a test module",
+  ),
 )
 
 == Summary
 
 #raw(slot("path", prompt: "repo-relative path of the oversized file")) stands at #slot("lines", kind: "text", prompt: "current line count") of its #slot("limit", kind: "text", prompt: "the linecop limit for this file")-line budget: #slot("headroom", kind: "text", prompt: "limit minus lines") lines of headroom left, #slot("percent", kind: "text", prompt: "lines over limit, as a percentage")% of the cap spent.
 
-#slot("seam", kind: "text", prompt: "one plain sentence on where the seam question stands")
+#slot(
+  "seam",
+  kind: "text",
+  prompt: "one plain sentence on where the seam question stands",
+)
 
 `just ask-refactoring` filed this from `linecop --format json`, and nothing
 recorded that it did. The sweep re-reads the signal every run, so this task is

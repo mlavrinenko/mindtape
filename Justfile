@@ -289,37 +289,26 @@ mutants *ARGS:
     export RUSTFLAGS="${RUSTFLAGS:-} -Clink-arg=-fuse-ld=mold"
     cargo mutants {{ ARGS }}
 
+# What the non-Rust formatters cover. One list each, read by both `fmt` and
+# `fmt-check`, because two hand-maintained copies drift: `.mindtape/templates`
+# (the project's own `mt add` templates) sat outside both lists while the
+# learn-piano example's templates sat inside, so the example project's
+# templates were formatted and the real ones were not. A single list cannot
+# omit a path from the check while applying it in the fix.
+TOML_FMT_PATHS := ".mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml"
+TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates www/content www/templates www/utils"
+
 # Format code
 fmt:
     cargo fmt --all
-    tombi format \
-        .mindtape/config.toml \
-        examples/learn-piano/.mindtape/config.toml \
-        examples/large/.mindtape/config.toml
-    typstyle --inplace \
-        lib \
-        truth/tasks \
-        examples/learn-piano/tasks \
-        examples/learn-piano/.mindtape/templates \
-        www/content \
-        www/templates \
-        www/utils
+    tombi format {{ TOML_FMT_PATHS }}
+    typstyle --inplace {{ TYPST_FMT_PATHS }}
 
 # Format check (CI-friendly)
 fmt-check:
     cargo fmt --all -- --check
-    tombi format --check \
-        .mindtape/config.toml \
-        examples/learn-piano/.mindtape/config.toml \
-        examples/large/.mindtape/config.toml
-    typstyle --check \
-        lib \
-        truth/tasks \
-        examples/learn-piano/tasks \
-        examples/learn-piano/.mindtape/templates \
-        www/content \
-        www/templates \
-        www/utils
+    tombi format --check {{ TOML_FMT_PATHS }}
+    typstyle --check {{ TYPST_FMT_PATHS }}
 
 # Lock the formatter gates: synthesize a deliberately-mis-formatted TOML and
 # Typst fixture in a temp dir, then assert `tombi format --check` and

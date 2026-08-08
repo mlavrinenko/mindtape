@@ -13,7 +13,11 @@
   links: related(
     "format-all-source-files-in-just-fmt-not-only-rust.typ",
   )[the recipe this completes],
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[one list feeds both fmt recipes; three templates reformatted],
 )
 
 == Summary

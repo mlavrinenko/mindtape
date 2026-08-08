@@ -51,7 +51,7 @@ groups:
     dependents:
       AGENTS.md: 6b5e61027a797383786af13ed1e44255bb885058a4528d83e59ad06283e1f18f
       CHANGELOG.md: d791138cdac403c3bc40fc0a42fddf31740233dd5c812be5055344ff5c119f59
-      CONTRIBUTING.md: 6125b00ef2d823f6c2ccb1b4a0245f895032715e92d19bf8325cda9dd0c24305
+      CONTRIBUTING.md: af5f025e51dccb05372f590dda436c7613ae73aebba71f0081782f03c6544a62
       README.md: 5c0002ae2e6911188c65c7b9c50df2cb4410b8ef6a67b4eb1303cebcf00d6c4e
       skills/mindtape/SKILL.md: fa403061145bca63aa3289657a16204998025200934d994c4f2cfb150ec5bf30
       www/content/cli.typ: 4da3b4386735d38b88bb705ee0eb7d18efb181d7f5ed11d509ab9e0f10bf8a3f
@@ -59,11 +59,11 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      Justfile: 01d3ca12f1e50dd97ed23d9b7d34d9942f38b4593229ccffb0d10a0fdc3b4d4b
+      Justfile: 0985519b3143f978c181c304a814148ac4f967c18d2416b24bbf35ec2a38db51
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: 6b5e61027a797383786af13ed1e44255bb885058a4528d83e59ad06283e1f18f
-      CONTRIBUTING.md: 6125b00ef2d823f6c2ccb1b4a0245f895032715e92d19bf8325cda9dd0c24305
+      CONTRIBUTING.md: af5f025e51dccb05372f590dda436c7613ae73aebba71f0081782f03c6544a62
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf
@@ -82,10 +82,10 @@ groups:
       CHANGELOG.md: d791138cdac403c3bc40fc0a42fddf31740233dd5c812be5055344ff5c119f59
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: f6592414e5ac401f8c8690f2f565d6b9a524e64e7349099859dae0055aa09783
+      .mindtape/templates/sweep-size.typ: e87efe0ec85144b4a844967605e9d5e2070d9d80d58505e3a32d8057c047ff33
     dependents:
-      .mindtape/templates/sweep-coverage.typ: 54ed298f5754e418a77f933977661d689c7a6a956a653af1d3482d02e49306cb
-      .mindtape/templates/sweep-mutants.typ: fe2179ae575f81dea001599cd9c542914a9ddfd175bb48ed48ecc3cfa5687781
+      .mindtape/templates/sweep-coverage.typ: 679c6da51b78863fb2e7018785ecbee263cd7d58ca99e35d641b5b55c0a54b4d
+      .mindtape/templates/sweep-mutants.typ: 3a88383f63431728c3ba09de20750bfa23a7f4281c8cac0fdfb0231c53918847
       contrib/ask-refactoring.sh: 8812ab76bff8686376b0fa3dc8d10235b21c3a0c437244e0cf00c44ee00968fd
   typst-pkg-version:
     source:

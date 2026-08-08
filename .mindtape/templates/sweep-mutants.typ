@@ -3,15 +3,27 @@
 #show: task.with(
   title: slot("title", prompt: "pin <function> in <path>"),
   priority: ice(
-    impact: slot("impact", kind: "int", prompt: "1-10, rises with what the unpinned line decides"),
+    impact: slot(
+      "impact",
+      kind: "int",
+      prompt: "1-10, rises with what the unpinned line decides",
+    ),
     confidence: slot(
       "confidence",
       kind: "float",
       prompt: "0-1, high: cargo-mutants ran the suite, it did not guess",
     ),
-    ease: slot("ease", kind: "int", prompt: "1-10, falls with how far the mutant sits from a seam"),
+    ease: slot(
+      "ease",
+      kind: "int",
+      prompt: "1-10, falls with how far the mutant sits from a seam",
+    ),
   ),
-  difficulty: slot("difficulty", kind: "int", prompt: "0-9 on the judgment scale"),
+  difficulty: slot(
+    "difficulty",
+    kind: "int",
+    prompt: "0-9 on the judgment scale",
+  ),
   estimate: slot("estimate", kind: "text", prompt: "(files: N)"),
   tags: slot("tags", kind: "list", prompt: "swept, mutants"),
 )
@@ -27,7 +39,11 @@ decides.
 that it did. The sweep re-reads the signal every run, so this task is worth
 exactly as much as the measurement behind it still is.
 
-#slot("scope", kind: "text", prompt: "one sentence naming what that sweep covered")
+#slot(
+  "scope",
+  kind: "text",
+  prompt: "one sentence naming what that sweep covered",
+)
 
 == Scope
 
