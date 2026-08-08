@@ -43,8 +43,40 @@ fn template_configured_returns_stem() {
 // -- DedupMode: `[tasks.naming] dedup` deserialize + default -----------------
 
 #[test]
-fn dedup_mode_default_is_fail() {
-    assert_eq!(NamingConfig::default().dedup, DedupMode::Fail);
+fn dedup_field_default_is_unset() {
+    assert_eq!(NamingConfig::default().dedup, None);
+}
+
+#[test]
+fn effective_dedup_is_fail_when_neither_stem_nor_dedup_is_set() {
+    assert_eq!(NamingConfig::default().effective_dedup(), DedupMode::Fail);
+}
+
+#[test]
+fn effective_dedup_is_add_suffix_when_stem_is_configured_and_dedup_is_unset() {
+    let cfg = NamingConfig {
+        stem: Some("{slug}".into()),
+        ..NamingConfig::default()
+    };
+    assert_eq!(cfg.effective_dedup(), DedupMode::AddSuffix);
+}
+
+#[test]
+fn effective_dedup_honours_an_explicit_setting_with_a_stem_template() {
+    let cfg = NamingConfig {
+        stem: Some("{slug}".into()),
+        dedup: Some(DedupMode::Skip),
+    };
+    assert_eq!(cfg.effective_dedup(), DedupMode::Skip);
+}
+
+#[test]
+fn effective_dedup_honours_an_explicit_setting_without_a_stem_template() {
+    let cfg = NamingConfig {
+        stem: None,
+        dedup: Some(DedupMode::AddSuffix),
+    };
+    assert_eq!(cfg.effective_dedup(), DedupMode::AddSuffix);
 }
 
 #[test]

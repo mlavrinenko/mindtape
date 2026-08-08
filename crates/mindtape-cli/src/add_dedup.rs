@@ -36,10 +36,13 @@ impl From<DedupArg> for naming::DedupMode {
 }
 
 /// The effective dedup mode for one `add` run: `--dedup` wins outright, else
-/// `[tasks.naming] dedup`, else [`naming::DedupMode::Fail`].
+/// [`naming::NamingConfig::effective_dedup`] — which is the single place that
+/// picks a default between `[tasks.naming] dedup` and `stem`, so this
+/// function never re-derives it from whether the stem happened to be
+/// templated.
 #[must_use]
 pub fn effective_mode(flag: Option<DedupArg>, config: &Config) -> naming::DedupMode {
-    flag.map_or(config.tasks.naming.dedup, Into::into)
+    flag.map_or_else(|| config.tasks.naming.effective_dedup(), Into::into)
 }
 
 /// What `dedup` decided about `stem`, given `exists`.

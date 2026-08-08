@@ -95,21 +95,17 @@ fn initial_status_is_first_non_terminal() {
 #[test]
 fn output_stem_prefers_name_then_title_slug() {
     let config = Config::default();
-    let dest = Path::new(".");
     let mut args = bare_args();
     args.name = Some("explicit".to_owned());
     assert_eq!(
-        output_stem(&args, &BTreeMap::new(), &config, dest).unwrap(),
+        output_stem(&args, &BTreeMap::new(), &config).unwrap(),
         "explicit"
     );
 
     let args = bare_args();
     let mut values = BTreeMap::new();
     values.insert("title".to_owned(), RawValue::Str("My New Task".to_owned()));
-    assert_eq!(
-        output_stem(&args, &values, &config, dest).unwrap(),
-        "my-new-task"
-    );
+    assert_eq!(output_stem(&args, &values, &config).unwrap(), "my-new-task");
 }
 
 /// A minimal `tags` list slot, as a real template would discover it.
@@ -217,7 +213,7 @@ fn bare_plus_stays_in_title_when_tags_slot_present() {
 #[test]
 fn output_stem_errors_without_name_or_title() {
     let config = Config::default();
-    assert!(output_stem(&bare_args(), &BTreeMap::new(), &config, Path::new(".")).is_err());
+    assert!(output_stem(&bare_args(), &BTreeMap::new(), &config).is_err());
 }
 
 /// The `title` value shared by the naming-template tests below.
@@ -227,42 +223,35 @@ fn ship_it_values() -> BTreeMap<String, RawValue> {
     values
 }
 
-/// A tempdir that already has `<stem>.typ` in it, for collision-guard tests.
-fn dir_with_existing_stem(stem: &str) -> tempfile::TempDir {
-    let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join(format!("{stem}.typ")), "").unwrap();
-    dir
-}
-
 #[test]
 fn output_stem_applies_naming_template_when_configured() {
     let mut config = Config::default();
     config.tasks.naming.stem = Some("{slug}.task-{yy}{mm}{dd}".to_owned());
-    let dir = tempfile::tempdir().unwrap();
 
-    let stem = output_stem(&bare_args(), &ship_it_values(), &config, dir.path()).unwrap();
+    let stem = output_stem(&bare_args(), &ship_it_values(), &config).unwrap();
     assert!(stem.starts_with("ship-it.task-"), "{stem}");
     assert_eq!(stem.len(), "ship-it.task-".len() + 6);
 }
 
+/// `output_stem` is pure minting now: it never consults a destination and
+/// never disambiguates, even when the rendered stem would collide. That
+/// decision moved wholesale into `resolve_outcome`/`add_dedup::resolve`, the
+/// one place a collision under any stem shape is decided — see
+/// `add_dedup_e2e.rs` for the full dedup-mode × stem-shape matrix this
+/// enables.
 #[test]
-fn output_stem_disambiguates_a_templated_collision() {
+fn output_stem_never_disambiguates_a_templated_collision() {
     let mut config = Config::default();
     config.tasks.naming.stem = Some("{slug}".to_owned());
-    let dir = dir_with_existing_stem("ship-it");
 
-    let stem = output_stem(&bare_args(), &ship_it_values(), &config, dir.path()).unwrap();
-    assert_eq!(stem, "ship-it-2");
+    let stem = output_stem(&bare_args(), &ship_it_values(), &config).unwrap();
+    assert_eq!(stem, "ship-it");
 }
 
 #[test]
-fn output_stem_unset_naming_keeps_bare_slug_even_with_existing_file() {
-    // Unset `[tasks.naming]` is exactly today's behaviour: no disambiguation.
-    // `run()`'s own `file.exists()` check is what turns this into an error.
+fn output_stem_unset_naming_keeps_bare_slug() {
     let config = Config::default();
-    let dir = dir_with_existing_stem("ship-it");
-
-    let stem = output_stem(&bare_args(), &ship_it_values(), &config, dir.path()).unwrap();
+    let stem = output_stem(&bare_args(), &ship_it_values(), &config).unwrap();
     assert_eq!(stem, "ship-it");
 }
 

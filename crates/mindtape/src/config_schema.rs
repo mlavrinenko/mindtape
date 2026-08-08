@@ -84,10 +84,10 @@ impl JsonSchema for DedupMode {
     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
             "description": "`mt add`'s collision policy when the destination stem \
-                already exists: `fail` bails before writing (the default), `skip` \
-                exits 0 without writing and reports the existing path, `add-suffix` \
-                mints `-2`, `-3`, … until a free stem turns up. `mt add --dedup` \
-                overrides this default for one run.",
+                already exists: `fail` bails before writing, `skip` exits 0 without \
+                writing and reports the existing path, `add-suffix` mints `-2`, \
+                `-3`, … until a free stem turns up. `mt add --dedup` overrides this \
+                for one run; see `[tasks.naming] dedup` for the unset default.",
             "type": "string",
             "enum": ["fail", "skip", "add-suffix"]
         })

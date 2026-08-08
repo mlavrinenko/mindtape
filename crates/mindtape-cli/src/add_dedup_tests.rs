@@ -14,7 +14,7 @@ fn dedup_arg_converts_to_naming_dedup_mode() {
 #[test]
 fn effective_mode_flag_wins_over_config() {
     let mut config = mindtape::Config::default();
-    config.tasks.naming.dedup = DedupMode::Skip;
+    config.tasks.naming.dedup = Some(DedupMode::Skip);
     assert_eq!(
         effective_mode(Some(DedupArg::AddSuffix), &config),
         DedupMode::AddSuffix
@@ -24,13 +24,36 @@ fn effective_mode_flag_wins_over_config() {
 #[test]
 fn effective_mode_falls_back_to_config_default() {
     let mut config = mindtape::Config::default();
-    config.tasks.naming.dedup = DedupMode::Skip;
+    config.tasks.naming.dedup = Some(DedupMode::Skip);
     assert_eq!(effective_mode(None, &config), DedupMode::Skip);
 }
 
 #[test]
 fn effective_mode_falls_back_to_fail_when_nothing_set() {
     let config = mindtape::Config::default();
+    assert_eq!(effective_mode(None, &config), DedupMode::Fail);
+}
+
+/// The regression this task fixes, pinned at the `effective_mode` layer: a
+/// project that configures `[tasks.naming] stem` but never touches `dedup`
+/// must still default to `add-suffix` — the behaviour a templated stem got
+/// before dedup modes existed — even though the decision now flows through
+/// the same function a bare stem uses.
+#[test]
+fn effective_mode_defaults_to_add_suffix_when_only_stem_is_configured() {
+    let mut config = mindtape::Config::default();
+    config.tasks.naming.stem = Some("{slug}".to_owned());
+    assert_eq!(effective_mode(None, &config), DedupMode::AddSuffix);
+}
+
+/// An explicit config `dedup` overrides the stem-driven default, whether or
+/// not `stem` is templated too — `fail`/`skip` must be reachable under a
+/// templated stem, which is exactly what was silently broken.
+#[test]
+fn effective_mode_explicit_config_dedup_wins_over_the_stem_default() {
+    let mut config = mindtape::Config::default();
+    config.tasks.naming.stem = Some("{slug}".to_owned());
+    config.tasks.naming.dedup = Some(DedupMode::Fail);
     assert_eq!(effective_mode(None, &config), DedupMode::Fail);
 }
 

@@ -335,31 +335,32 @@ stem = "{slug}.task-{yy}{mm}{dd}"
   [The recurrence occurrence index; bare or zero-padded to `N` digits.],
 )
 
-A *templated* stem never overwrites an existing file: on a collision `mt`
-appends `-2`, `-3`, … until a free name turns up, independently of `dedup`
-below — a project that opts into `stem` templating is opting into that
-suffix-and-move-on behaviour for its minted stems specifically.
-
-A *bare* stem (`stem` unset, or an explicit `mt add --name`) instead follows
-`[tasks.naming] dedup` — `mt add`'s collision policy when the destination
-stem already exists:
+Whatever mints the stem — a bare slug, a rendered `stem` template, or an
+explicit `mt add --name` — one policy decides what happens on a collision at
+the destination: `[tasks.naming] dedup`.
 
 ```toml
 [tasks.naming]
-dedup = "skip"   # fail (default) | skip | add-suffix
+dedup = "skip"   # fail | skip | add-suffix
 ```
 
 #table(
   columns: 2,
   table.header([Value], [Behaviour]),
-  [`fail`], [Bail before writing — today's behaviour, the default.],
+  [`fail`], [Bail before writing.],
   [`skip`], [Exit 0, write nothing, report the existing path.],
-  [`add-suffix`],
-  [Mint `-2`, `-3`, … via the same disambiguation search a templated `stem`
-    already uses, made explicit and unconditional.],
+  [`add-suffix`], [Mint `-2`, `-3`, … until a free stem turns up.],
 )
 
-`mt add --dedup <mode>` overrides this default for one run; `mt add --format
+Left unset, `dedup`'s default follows `stem`: a bare stem (no `[tasks.naming]
+stem` configured) defaults to `fail`, today's hard error; a templated stem
+defaults to `add-suffix`, so a project that sets `stem` and never touches
+`dedup` sees no behaviour change. Set `dedup` explicitly — in config or via
+`--dedup` — and it applies the same regardless of how the stem was produced:
+`fail` and `skip` bail or skip on a templated-stem collision exactly as they
+do on a bare one.
+
+`mt add --dedup <mode>` overrides the default for one run; `mt add --format
 json` reports which outcome fired (`wrote`, `skipped`, `suffixed`) alongside
 the path — see #link(u("/cli/"))[`mt add`].
 

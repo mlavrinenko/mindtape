@@ -26,9 +26,9 @@ pub const DEFAULT_STEM_TEMPLATE: &str = "{slug}";
 pub struct NamingConfig {
     /// Stem template with macros. Unset ⇒ bare `{slug}` (today's behaviour).
     pub stem: Option<String>,
-    /// Default collision policy for `mt add`; `--dedup` overrides. Unset ⇒
-    /// [`DedupMode::Fail`] (today's behaviour: bail before writing).
-    pub dedup: DedupMode,
+    /// Collision policy for `mt add`; `--dedup` overrides for one run. Unset
+    /// takes its default from `stem` — see [`NamingConfig::effective_dedup`].
+    pub dedup: Option<DedupMode>,
 }
 
 impl NamingConfig {
@@ -37,6 +37,24 @@ impl NamingConfig {
     #[must_use]
     pub fn template(&self) -> &str {
         self.stem.as_deref().unwrap_or(DEFAULT_STEM_TEMPLATE)
+    }
+
+    /// The collision policy `mt add` falls back to when `--dedup` is absent:
+    /// an explicitly configured `dedup` wins outright. Left unset, the
+    /// default itself depends on `stem` — a configured stem *template*
+    /// defaults to [`DedupMode::AddSuffix`], so a project that sets `stem`
+    /// and never touches `dedup` sees no behaviour change from before dedup
+    /// modes reached the templated-stem path; a bare (unset) `stem` keeps
+    /// [`DedupMode::Fail`], today's hard error. This is the single place the
+    /// default lives — collision *handling* itself no longer branches on
+    /// whether the stem came from a template (`mindtape_cli::add_dedup`).
+    #[must_use]
+    pub fn effective_dedup(&self) -> DedupMode {
+        self.dedup.unwrap_or(if self.stem.is_some() {
+            DedupMode::AddSuffix
+        } else {
+            DedupMode::Fail
+        })
     }
 }
 
