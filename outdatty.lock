@@ -51,7 +51,7 @@ groups:
     dependents:
       AGENTS.md: 731abaca21b1bf82742ddb04beb102b9773f8342cfff3566339a6db9918765f5
       CHANGELOG.md: d791138cdac403c3bc40fc0a42fddf31740233dd5c812be5055344ff5c119f59
-      CONTRIBUTING.md: 0923b64a6487d06b94324b006bb029d7a23d1c9139bee96bebf1cfed1ed9b3be
+      CONTRIBUTING.md: 121cd01e0bcdd5f2f9496648788356c3e92dc1b068411ccf5cea04aa4b42cbb6
       README.md: 5c0002ae2e6911188c65c7b9c50df2cb4410b8ef6a67b4eb1303cebcf00d6c4e
       skills/mindtape/SKILL.md: fa403061145bca63aa3289657a16204998025200934d994c4f2cfb150ec5bf30
       www/content/cli.typ: 4da3b4386735d38b88bb705ee0eb7d18efb181d7f5ed11d509ab9e0f10bf8a3f
@@ -59,11 +59,11 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      Justfile: 0985519b3143f978c181c304a814148ac4f967c18d2416b24bbf35ec2a38db51
+      Justfile: 7871e224718e4acb9e54d29b70db067d00a0af6710528e9bffd71571d80f0fa0
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: 731abaca21b1bf82742ddb04beb102b9773f8342cfff3566339a6db9918765f5
-      CONTRIBUTING.md: 0923b64a6487d06b94324b006bb029d7a23d1c9139bee96bebf1cfed1ed9b3be
+      CONTRIBUTING.md: 121cd01e0bcdd5f2f9496648788356c3e92dc1b068411ccf5cea04aa4b42cbb6
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf

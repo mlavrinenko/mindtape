@@ -178,7 +178,10 @@ Five rules the design turns on, in the order they matter:
   `cargo llvm-cov report --json` (over the lcov `just cover` writes, refreshed
   via `just mmz cover`) for per-file line coverage — advisory because `just
   cover` gates only the workspace total, never a single file — and
-  `mutants.out/outcomes.json` for surviving mutants.
+  `mutants.out/outcomes.json` for surviving mutants. There is deliberately no
+  CRAP arm: above ~90% coverage CRAP degenerates into cyclomatic complexity, so
+  no band below the `just crap` gate separates signal from noise here. Measured,
+  not assumed — the numbers are in the `crap` recipe comment.
 - **A signal never fakes a measurement it does not have.** Coverage refreshes
   its own lcov and *refuses* a stale one. The mutants arm cannot: a full
   `cargo mutants` run is hours, so it *skips* — loudly, naming
