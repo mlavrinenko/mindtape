@@ -154,7 +154,16 @@ allowed = [
   "www",
   "docs",
   "tooling",
-  "gating"
+  "gating",
+  # Provenance, written by `just ask-refactoring` (contrib/ask-refactoring.sh)
+  # and by nothing else. `swept` marks a task the sweep filed rather than a
+  # human; the three signal tags say which advisory tool noticed it. All four
+  # are declared now, before the mutants and coverage arms exist, so adding a
+  # signal is a script and a template — never a config migration.
+  "swept",
+  "size",
+  "mutants",
+  "coverage"
 ]
 
 # A review comment left in a task file is a conversation, not content: a human
@@ -178,6 +187,22 @@ message = "Summary must precede Scope"
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view (same filter as the retired `[ls] default-filter`).
 # Redeclare `[views.default]` here to add a sort/columns bundle.
+
+# The sweep's own inbox: everything `just ask-refactoring` filed that is still
+# open. It is both a listing (`mt ls @ask-refactoring`) and the sweep's re-run
+# guard — contrib/ask-refactoring.sh refuses to run while this view is
+# non-empty, so one sprint of mechanical work is emptied before the next is
+# filed. Without it a weekly sweep would re-file the same seven splits on top of
+# the seven already sitting there.
+#
+# It selects on the provenance tag alone, not on any signal tag, so a new signal
+# joins the guard for free. `!terminal` is what "still open" means here:
+# cancelling a finding is a legitimate way to empty the view, and so is writing
+# the `.linecop.yaml` override that makes the finding stop existing.
+[views.ask-refactoring]
+filter = 'has_tag("swept") && !terminal'
+sort = ["priority:desc"]
+description = "Open findings from the last `just ask-refactoring` sweep"
 
 # Work-in-progress caps. One umbrella and one leaf, no more. An umbrella
 # coordinates a milestone and may legitimately stay open across sessions; a leaf
