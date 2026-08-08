@@ -14,7 +14,11 @@
     "add-dedup-modes-to-mt-add.typ",
     "give-mt-add-machine-readable-output.typ",
   ),
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[sweep + linecop signal landed; dry run reproduces 7 findings, guard observed refusing on a non-empty view, test/production split verified at --baseline 85],
 )
 
 == Summary

@@ -13,7 +13,11 @@
   links: related(
     "document-that-mt-add-text-slots-escape-markup-instead-of-rendering-it.typ",
   )[the task that documented this and deferred the fix],
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[kind: typst splices verbatim; unparseable markup fails before any write, naming the slot],
 )
 
 == Summary
