@@ -81,14 +81,17 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
    assertion (see CONTRIBUTING.md) — it is how a scoped commit stays visible
    in `git log`, never an optional annotation.
 7. `just ask-refactoring` files a backlog task per ADVISORY-signal finding
-   (`contrib/ask-refactoring.sh`; today linecop file sizes at `--baseline` and
-   per-file line coverage at `--coverage-floor`, which nothing gates since `just
-   cover` fails on the workspace total only; cargo-mutants is the remaining
-   sibling). Dry by default, `--write` files. Never a gate and never memoized —
+   (`contrib/ask-refactoring.sh`; three arms — linecop file sizes at
+   `--baseline`, per-file line coverage at `--coverage-floor`, which nothing
+   gates since `just cover` fails on the workspace total only, and surviving
+   mutants read from `mutants.out/outcomes.json`). Dry by default, `--write`
+   files. Never a gate and never memoized —
    a signal that already blocks a commit (jscpd, outdatty, machete, clippy) must
    not produce a task. The one memoized step is the lcov refresh (`just mmz
    cover`) inside the coverage arm; a stale lcov is refused, never read as a
-   phantom 0%. Its re-run guard is `[views.ask-refactoring]`
+   phantom 0%. The mutants arm cannot refresh its input (a full sweep is hours),
+   so it skips loudly instead — absent must never print like clean. Its re-run
+   guard is `[views.ask-refactoring]`
    (`has_tag("swept") && !terminal`): it refuses while anything it filed is
    still open. There is no ledger, so the only way to silence a finding for good
    is an override with a written reason in the signal's own config

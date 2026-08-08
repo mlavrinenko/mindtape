@@ -370,17 +370,18 @@ check-file-size:
     linecop
 
 # File backlog tasks from the ADVISORY quality signals — the ones that predict
-# mechanical work instead of blocking on it. Today that is linecop (file size)
-# and per-file line coverage, which nothing gates: `just cover` fails on the
-# workspace total only. cargo-mutants is the remaining sibling arm, and each arm
-# is a scoring function plus a `.mindtape/templates/sweep-*.typ` template, not a
-# config change.
+# mechanical work instead of blocking on it. Three arms: linecop (file size),
+# per-file line coverage — which nothing gates, since `just cover` fails on the
+# workspace total only — and surviving mutants. Each arm is a scoring function
+# plus a `.mindtape/templates/sweep-*.typ` template, not a config change.
 #
 # Dry by default: it prints, via `mt add --print`, the exact tasks it would
 # file. `just ask-refactoring --write` files them. Each arm has its own
 # threshold — `--baseline PCT` for linecop (default 90), `--coverage-floor PCT`
 # for coverage (default 88) — never one flag shared across arms, which would
-# read as one band and move two.
+# read as one band and move two. The mutants arm has no threshold: it reads what
+# `just mutants-diff` last wrote, and skips loudly when that is missing or stale
+# rather than run a sweep that takes hours.
 #
 # It refuses to run while `mt ls @ask-refactoring` is non-empty, so one sprint
 # of mechanical work is emptied before the next is filed.

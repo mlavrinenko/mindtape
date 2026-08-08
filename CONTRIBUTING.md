@@ -160,15 +160,25 @@ just ask-refactoring --baseline 85      # widen the linecop threshold (default 9
 just ask-refactoring --coverage-floor 85 # widen the coverage threshold (default 88)
 ```
 
-Four rules the design turns on, in the order they matter:
+The mutants arm has no threshold: it reads whatever `just mutants-diff` (or
+`just mutants -f FILE`) last wrote to `mutants.out/`, and skips when that is
+missing or older than the sources.
+
+Five rules the design turns on, in the order they matter:
 
 - **Only advisory signals qualify.** jscpd, outdatty, machete and clippy already
   block a commit; a task from one of those would be a note about a wall you are
-  standing at. Today the sweep reads `linecop --format json` for file size and
+  standing at. All three arms are live: `linecop --format json` for file size,
   `cargo llvm-cov report --json` (over the lcov `just cover` writes, refreshed
   via `just mmz cover`) for per-file line coverage — advisory because `just
-  cover` gates only the workspace total, never a single file. `cargo-mutants` is
-  the remaining sibling arm.
+  cover` gates only the workspace total, never a single file — and
+  `mutants.out/outcomes.json` for surviving mutants.
+- **A signal never fakes a measurement it does not have.** Coverage refreshes
+  its own lcov and *refuses* a stale one. The mutants arm cannot: a full
+  `cargo mutants` run is hours, so it *skips* — loudly, naming
+  `just mutants-diff` — rather than blocking the other two arms or, worse,
+  printing "no survivors" when nobody has measured. Absent and clean must never
+  look alike.
 - **One task per finding, never one per sweep.** Each is dispatched to its own
   agent and has to carry its own scope. Two axes shape it, kept apart on
   purpose. *Language* decides the remedy — linecop caps Rust and Markdown, and
@@ -183,8 +193,11 @@ Four rules the design turns on, in the order they matter:
   the signal's own config — a `.linecop.yaml` entry for size, in the style the
   `SKILL.md` / `AGENTS.md` / `CONTRIBUTING.md` ones already use; an `--exclude`
   entry (with its reason in the comment beside it) in the `just cover` /
-  `just crap` recipes for coverage. There is no ignore list anywhere else, so
-  silencing a finding always leaves a sentence behind saying why.
+  `just crap` recipes for coverage; an `exclude_re` line in `.cargo/mutants.toml`
+  for an equivalent mutant. There is no ignore list anywhere else, so silencing a
+  finding always leaves a sentence behind saying why. Scope is derived, not
+  recorded: a mutants task names what that sweep actually covered, read out of
+  `outcomes.json` itself, so a one-file run never reads as a workspace verdict.
 - **The remedy is the refactorer's call.** Split thoughtfully, or raise the limit
   with an override that names a new sane number and the reason for it. A split
   for its own sake is not the goal; the cap pushes back on scope growth, not on

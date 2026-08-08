@@ -18,7 +18,7 @@
 
 == Summary
 
-#raw(slot("function", prompt: "the mutated function")) in #raw(slot("path", prompt: "repo-relative path of the mutated file")) survived a mutation at line #slot("line", kind: "text", prompt: "line number of the mutant"): the suite still passed with #raw(slot("mutation", prompt: "the replacement cargo-mutants applied")) in place.
+#raw(slot("function", prompt: "the mutated function")) in #raw(slot("path", prompt: "repo-relative path of the mutated file")) survived a mutation at line #slot("line", kind: "text", prompt: "line number of the mutant"): the suite still passed after #raw(slot("mutation", prompt: "cargo-mutants' own wording for the mutation, so it greps against missed.txt")).
 
 The line is covered — something executes it — but nothing asserts on what it
 decides.
@@ -26,6 +26,8 @@ decides.
 `just ask-refactoring` filed this from `cargo mutants`, and nothing recorded
 that it did. The sweep re-reads the signal every run, so this task is worth
 exactly as much as the measurement behind it still is.
+
+#slot("scope", kind: "text", prompt: "one sentence naming what that sweep covered")
 
 == Scope
 
