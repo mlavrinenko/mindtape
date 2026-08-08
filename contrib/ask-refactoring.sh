@@ -117,17 +117,29 @@ fi
 #   extraction, 5 = several defensible seams), +1 for a test module.
 #
 #   estimate is the split path: the file, the module it sheds, the parent that
-#   declares it — 4 when the carve is big enough to want two new homes.
+#   declares it — 4 when the carve is big enough to want two new homes. Markdown
+#   is flat 2: the page and the one it sheds. There is no third file, because
+#   nothing has to declare a Markdown page the way a `mod` line declares a
+#   module.
 #
 # The result is monotone in headroom (5,5,4,4,3,3,3 on today's tree) and sits in
 # the `normal` band. That is honest: mechanical refactoring is real work and is
 # never the most important thing on the board.
+#
+# Two axes, kept apart deliberately. LANGUAGE (linecop's own `language` field,
+# never re-derived from the extension) decides the remedy: a Rust file is carved
+# into a module, a Markdown page sheds a section. TEST-VERSUS-PRODUCTION decides
+# tone and score, and is a Rust distinction only — it is what `ejectest` already
+# played its move on — so it is scored `false` for anything else rather than
+# left to a path regex that would happen to agree.
 score_size() {
     jq -r '
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
       .[]
       | (.path | ltrimstr("./"))                            as $path
-      | ($path | test("_tests\\.rs$|(^|/)tests\\.rs$|(^|/)tests/")) as $is_test
+      | (.language)                                         as $language
+      | ($language == "Rust"
+         and ($path | test("_tests\\.rs$|(^|/)tests\\.rs$|(^|/)tests/"))) as $is_test
       | (.lines / .limit * 100)                             as $pct
       | (100 - $pct)                                        as $free
       | (.limit - .lines)                                   as $headroom
@@ -137,9 +149,11 @@ score_size() {
       | ((9 - (($move / 20) | round)) - (if $is_test then 2 else 0 end) | clamp(1; 10)) as $ease
       | ((if $move <= 20 then 3 elif $move <= 40 then 4 else 5 end)
           + (if $is_test then 1 else 0 end))                as $difficulty
-      | (if $move > 40 then 4 else 3 end)                   as $files
+      | (if $language == "Markdown" then 2
+         elif $move > 40 then 4 else 3 end)                 as $files
       | [
           $path,
+          $language,
           (.lines | tostring),
           (.limit | tostring),
           ($headroom | tostring),
@@ -175,16 +189,80 @@ signal_size() {
 # the three arms cannot collide.
 stem_for() { printf 'size-%s\n' "$(printf '%s' "$1" | tr -c 'A-Za-z0-9' '-' | tr -s '-' | sed 's/^-//; s/-$//')"; }
 
-emit_size() {
-    local path="$1" lines="$2" limit="$3" headroom="$4" pct="$5" flavour="$6"
-    local impact="$7" confidence="$8" ease="$9" difficulty="${10}" files="${11}"
+# One plain sentence on where the seam question stands. Rust splits on the
+# test-versus-production axis; every other language has only the one form,
+# because ejectest is a Rust tool and the distinction it draws does not exist
+# outside it. Plain prose, no backticks: the `seam` slot is `kind: "text"`, so
+# markup would be escaped and shown literally.
+seam_for() {
+    case "$1:$2" in
+        Rust:test) echo "Test code: ejectest already moved these tests out of their parent once, so the eject recipe has no second move here and any further seam is one you draw by hand." ;;
+        Rust:*) echo "Production code: linecop measures the file, it cannot tell you where the file wants to be cut, so the seam is yours to choose." ;;
+        Markdown:*) echo "Prose: the seam is a section boundary, and the question is which sections a reader needs in front of them every time versus which ones they go looking for." ;;
+        *) echo "linecop measures the file, it cannot tell you where the file wants to be cut, so the seam is yours to choose." ;;
+    esac
+}
 
-    local seam
-    if [ "$flavour" = test ]; then
-        seam="Test code: ejectest already moved these tests out of their parent once, so the eject recipe has no second move here and any further seam is one you draw by hand."
-    else
-        seam="Production code: linecop measures the file, it cannot tell you where the file wants to be cut, so the seam is yours to choose."
-    fi
+# The first two Scope bullets, spliced into the `remedy` slot as real markup
+# (`kind: "typst"`). This is the language axis and nothing else: what counts as
+# a remedy here, and what a split has to amount to for it to have been one. The
+# bullets after it in the template are language-neutral and stay literal there.
+#
+# Markdown is genuinely a different remedy, not the Rust one reworded. The cost
+# of the wrong answer — compressing in place until the budget goes on phrasing
+# instead of on being right — is already argued at length next to the 300-line
+# overrides in .linecop.yaml, so this points at that reasoning rather than
+# restating it.
+remedy_for() {
+    case "$1" in
+        Rust)
+            cat <<'EOF'
+- Pick the remedy, then do it. Either carve the file along a seam that means
+  something, or raise its cap in `.linecop.yaml` with an override that names a
+  new sane number and says why. Both are correct answers. A split for its own
+  sake is not: the cap is there to push back on scope growth, not on accuracy.
+- If you split, the extracted module has to stand on its own and be named for
+  what it does. An arbitrary bottom half moved into a `_more.rs` clears linecop
+  and misses the point entirely.
+EOF
+            ;;
+        Markdown)
+            cat <<'EOF'
+- Pick the remedy, then do it. Either move a section off the always-loaded
+  surface, or raise its cap in `.linecop.yaml` with an override that names a new
+  sane number and says why. Both are correct answers. Compressing the prose in
+  place is not, and `.linecop.yaml` already records what it costs: the 300-line
+  overrides exist because a wall mid-edit turned a round of correctness fixes
+  into a dozen rewording passes.
+- If you move a section, move it somewhere a reader reaches deliberately —
+  progressive disclosure into `references/` for a skill, its own page for the
+  docs site. What the cap defends is the surface that loads every time, so a
+  section still pulled in from a second file has not actually moved.
+EOF
+            ;;
+        *)
+            cat <<'EOF'
+- Pick the remedy, then do it. Either move a self-contained part of this file
+  somewhere it stands on its own, or raise its cap in `.linecop.yaml` with an
+  override that names a new sane number and says why. Both are correct answers.
+  A split for its own sake is not: the cap is there to push back on scope
+  growth, not on accuracy.
+- If you split, what comes out has to be nameable for what it does. A cut made
+  where the line count happens to land clears linecop and misses the point.
+EOF
+            ;;
+    esac
+}
+
+emit_size() {
+    local path="$1" language="$2" lines="$3" limit="$4" headroom="$5" pct="$6" flavour="$7"
+    local impact="$8" confidence="$9" ease="${10}" difficulty="${11}" files="${12}"
+
+    local seam remedy
+    seam="$(seam_for "$language" "$flavour")"
+    # Trailing newline stripped by the substitution, so the spliced bullets abut
+    # the literal ones after the slot and the Scope reads as one list.
+    remedy="$(remedy_for "$language")"
 
     local tags=(--set 'tags[]=swept' --set 'tags[]=size')
     [ "$flavour" = test ] && tags+=(--set 'tags[]=tests')
@@ -199,6 +277,7 @@ emit_size() {
         --set "headroom=$headroom"
         --set "percent=$pct"
         --set "seam=$seam"
+        --set "remedy=$remedy"
         --set "impact=$impact"
         --set "confidence=$confidence"
         --set "ease=$ease"
@@ -222,7 +301,7 @@ emit_size() {
             *) echo "$outcome $dest" ;;
         esac
     else
-        echo "── would file: $(stem_for "$path")  [$flavour, ice($impact, $confidence, $ease)]"
+        echo "── would file: $(stem_for "$path")  [$language $flavour, ice($impact, $confidence, $ease)]"
         "$MT" "${args[@]}" --print
         echo
     fi

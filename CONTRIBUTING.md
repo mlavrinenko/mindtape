@@ -166,8 +166,12 @@ Four rules the design turns on, in the order they matter:
   standing at. Today the sweep reads `linecop --format json`; `cargo-mutants`
   and coverage are the sibling arms.
 - **One task per finding, never one per sweep.** Each is dispatched to its own
-  agent and has to carry its own scope. Test modules and production files are
-  scored and worded separately — both need a real seam decision, but an
+  agent and has to carry its own scope. Two axes shape it, kept apart on
+  purpose. *Language* decides the remedy — linecop caps Rust and Markdown, and
+  shedding a section into `references/` is not carving a module, so the filed
+  task says the one that applies; it comes from linecop's own `language` field,
+  never re-derived from the extension. *Test versus production* decides tone and
+  score, and is a Rust distinction only: both need a real seam decision, but an
   already-ejected `*_tests.rs` is different work from the file it came out of,
   and `just eject` has no second move on it.
 - **Idempotency comes from the signal, not a ledger.** Nothing records what was

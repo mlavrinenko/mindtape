@@ -51,7 +51,7 @@ groups:
     dependents:
       AGENTS.md: bff48ddb4835d6b04cbe9840c1b1b5082ec418bfea0e31379f63c033c977d4db
       CHANGELOG.md: d791138cdac403c3bc40fc0a42fddf31740233dd5c812be5055344ff5c119f59
-      CONTRIBUTING.md: ba7173bde6a046e16e379ba3a97824d3cc56fd7cce8f2c7f15555bb1f0930f80
+      CONTRIBUTING.md: 25ee3355246e96e2a14bbb27e901313fceb2c06f90d3243ac844d64af69a3d40
       README.md: 5c0002ae2e6911188c65c7b9c50df2cb4410b8ef6a67b4eb1303cebcf00d6c4e
       skills/mindtape/SKILL.md: fa403061145bca63aa3289657a16204998025200934d994c4f2cfb150ec5bf30
       www/content/cli.typ: 4da3b4386735d38b88bb705ee0eb7d18efb181d7f5ed11d509ab9e0f10bf8a3f
@@ -63,7 +63,7 @@ groups:
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: bff48ddb4835d6b04cbe9840c1b1b5082ec418bfea0e31379f63c033c977d4db
-      CONTRIBUTING.md: ba7173bde6a046e16e379ba3a97824d3cc56fd7cce8f2c7f15555bb1f0930f80
+      CONTRIBUTING.md: 25ee3355246e96e2a14bbb27e901313fceb2c06f90d3243ac844d64af69a3d40
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf
@@ -82,11 +82,11 @@ groups:
       CHANGELOG.md: d791138cdac403c3bc40fc0a42fddf31740233dd5c812be5055344ff5c119f59
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: 9d1d2822299baf28098777572e64493336926318c100307cb9878dff077c0f51
+      .mindtape/templates/sweep-size.typ: f6592414e5ac401f8c8690f2f565d6b9a524e64e7349099859dae0055aa09783
     dependents:
       .mindtape/templates/sweep-coverage.typ: 54ed298f5754e418a77f933977661d689c7a6a956a653af1d3482d02e49306cb
       .mindtape/templates/sweep-mutants.typ: b035d499ea1c2b02c9bf66dca6e6b0df910eb0df4e3e509043512d43dd32ab43
-      contrib/ask-refactoring.sh: b0619b581a529fc431cab4142f83b991227e4b1c3268142b1eb7073a11448198
+      contrib/ask-refactoring.sh: be0a38fbf4e25327aeafd9400e4af8e7dab5e8d8db6f9ff7f2caf5f2df5b9add
   typst-pkg-version:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5

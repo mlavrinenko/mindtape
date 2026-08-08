@@ -170,6 +170,13 @@ groups:
   # exercised; the other two are its dependents. contrib/ask-refactoring.sh is a
   # dependent too, and the sharper edge of the two — it fills these slots by
   # name, so a renamed or retyped slot breaks the sweep silently.
+  #
+  # One shape difference is deliberate and is not drift: sweep-size.typ carries
+  # the first two Scope bullets in a `remedy` slot, the siblings write theirs
+  # literally. linecop caps two languages, so what a remedy IS differs per
+  # finding there — carve a Rust module, shed a Markdown section. cargo-mutants
+  # and llvm-cov only ever report Rust, so a slot in those templates would have
+  # exactly one filler and would hide the prose from the reader for nothing.
   - name: sweep-templates
     source:
       - .mindtape/templates/sweep-size.typ
