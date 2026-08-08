@@ -275,7 +275,7 @@
       ]
     },
     "DedupMode": {
-      "description": "`mt add`'s collision policy when the destination stem already exists: `fail` bails before writing (the default), `skip` exits 0 without writing and reports the existing path, `add-suffix` mints `-2`, `-3`, … until a free stem turns up. `mt add --dedup` overrides this default for one run.",
+      "description": "`mt add`'s collision policy when the destination stem already exists: `fail` bails before writing, `skip` exits 0 without writing and reports the existing path, `add-suffix` mints `-2`, `-3`, … until a free stem turns up. `mt add --dedup` overrides this for one run; see `[tasks.naming] dedup` for the unset default.",
       "enum": [
         "fail",
         "skip",
@@ -1126,8 +1126,15 @@
       "description": "`[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem,\nand (`dedup`) what `mt add` does when the minted stem collides.",
       "properties": {
         "dedup": {
-          "$ref": "#/$defs/DedupMode",
-          "description": "Default collision policy for `mt add`; `--dedup` overrides. Unset ⇒\n[`DedupMode::Fail`] (today's behaviour: bail before writing)."
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DedupMode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Collision policy for `mt add`; `--dedup` overrides for one run. Unset\ntakes its default from `stem` — see [`NamingConfig::effective_dedup`]."
         },
         "stem": {
           "default": null,

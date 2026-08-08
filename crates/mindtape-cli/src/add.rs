@@ -89,9 +89,12 @@ pub struct AddArgs {
     pub no_verify: bool,
 
     /// Collision policy when the destination stem already exists: `fail`
-    /// (bail, the default), `skip` (exit 0, write nothing, report the
-    /// existing path), or `add-suffix` (mint `-2`, `-3`, … via
-    /// `naming::disambiguate`). Overrides `[tasks.naming] dedup`.
+    /// (bail), `skip` (exit 0, write nothing, report the existing path), or
+    /// `add-suffix` (mint `-2`, `-3`, … via `naming::disambiguate`). Applies
+    /// the same whether the stem was minted from a `[tasks.naming] stem`
+    /// template or is bare. Overrides `[tasks.naming] dedup`, whose unset
+    /// default is `fail` for a bare stem and `add-suffix` for a templated one
+    /// (see `mindtape::naming::NamingConfig::effective_dedup`).
     #[arg(long, value_enum, value_name = "MODE")]
     pub dedup: Option<DedupArg>,
 
@@ -152,7 +155,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     }
 
     let dest = dest_dir(&args.into, args.to.as_deref(), &project)?;
-    let stem = output_stem(args, &values, config, &dest)?;
+    let stem = output_stem(args, &values, config)?;
     let file = dest.join(format!("{stem}.typ"));
     let outcome = resolve_outcome(args, config, &stem, &dest, file)?;
     let Some(outcome) = outcome else {
@@ -361,17 +364,22 @@ fn fill_title_from_stdin(values: &mut BTreeMap<String, RawValue>, args: &AddArgs
 }
 
 /// Compute the new task's filename stem: an explicit `--name` wins outright
-/// (literal, never templated or disambiguated — an explicit request is
-/// trusted as-is). Otherwise the title's slug feeds the configured
-/// `[tasks.naming] stem` template (today's date; the pure expander never
-/// reads a clock — see [`mindtape::naming`]); unset naming keeps today's bare
-/// behaviour untouched. A templated stem is then disambiguated against `dest`
-/// so a rendered collision never overwrites an existing file.
+/// (literal, never templated — an explicit request is trusted as-is).
+/// Otherwise the title's slug feeds the configured `[tasks.naming] stem`
+/// template (today's date; the pure expander never reads a clock — see
+/// [`mindtape::naming`]); unset naming keeps today's bare behaviour
+/// untouched.
+///
+/// Pure minting only — this never checks `dest` or decides what to do about
+/// a collision. Whatever produced the stem, [`resolve_outcome`] is the single
+/// place that resolves it against the destination and the effective `--dedup`
+/// mode; unifying that decision (rather than pre-disambiguating a templated
+/// stem here, as before) is what makes `fail`/`skip` reachable under a
+/// templated `stem` at all.
 fn output_stem(
     args: &AddArgs,
     values: &BTreeMap<String, RawValue>,
     config: &Config,
-    dest: &Path,
 ) -> Result<String> {
     if let Some(name) = &args.name {
         return Ok(name.clone());
@@ -385,11 +393,7 @@ fn output_stem(
         date: today_ymd(),
         occurrence: 0,
     };
-    let stem = naming::mint_stem(template, &ctx).map_err(|err| anyhow!(err.to_string()))?;
-    naming::disambiguate(&stem, |candidate| {
-        dest.join(format!("{candidate}.typ")).exists()
-    })
-    .map_err(|err| anyhow!(err.to_string()))
+    naming::mint_stem(template, &ctx).map_err(|err| anyhow!(err.to_string()))
 }
 
 /// The title's slug, or an error when there is nothing to name the file from.
