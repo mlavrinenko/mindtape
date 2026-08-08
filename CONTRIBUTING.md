@@ -133,9 +133,11 @@ so a stale lcov invents failures (a 10-day-old one reported 28, of which 27 were
 phantom). Run `just cover` first; CI already does. cargo-crap is not in nixpkgs,
 so `flake.nix` builds it from the crates.io tarball with naersk `singleStep`
 (crates.io 403s the user agent nixpkgs' `fetch-cargo-vendor` sends, so
-`buildRustPackage` cannot compute a vendor hash). A flat dispatcher sits near
-the limit by construction — `filter.rs` `function` scores 28 at full coverage —
-so adding an arm there means covering it in the same change.
+`buildRustPackage` cannot compute a vendor hash). Above ~90% coverage the cubed
+term vanishes and a function scores its own cyclomatic complexity, so a flat
+dispatcher sits near the limit by construction — `filter.rs` `function` is CC 22
+and scores 22.0 at full coverage — and adding an arm there means covering it in
+the same change.
 
 Since nixpkgs' `rustc` ships no `llvm-tools-preview`, the dev shell exports
 `LLVM_COV`/`LLVM_PROFDATA` from `llvmPackages_21` — the same LLVM major as

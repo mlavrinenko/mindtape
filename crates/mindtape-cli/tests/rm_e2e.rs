@@ -356,6 +356,64 @@ fn rm_retire_moves_the_file_into_the_archive_folder() {
 }
 
 #[test]
+fn rm_retire_prompt_lists_the_plan_and_an_empty_answer_aborts() {
+    // Every other retire test passes `-y`, which skips `confirm_retire`
+    // outright — so the prompt the retire path prints was never executed by the
+    // suite while the delete path's was. Omitting `-y` reaches it: the empty
+    // stdin reads as "no", the way the delete-path tests already rely on.
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_config(
+        dir.path(),
+        RETIRE_CONFIG,
+        &[("gone.typ", REMOVED), ("live.typ", LIVE)],
+    );
+
+    mt(dir.path())
+        .args(["rm", "gone"])
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("rm will retire 1 task(s) to done:"))
+        .stderr(predicates::str::contains("gone.typ"))
+        .stderr(predicates::str::contains("aborted by user"))
+        // Retiring in place leaves the path alone, so no inbound edge moves and
+        // the retarget line stays off. `…archive…` below is the opposite case.
+        .stderr(predicates::str::contains("and retarget").not());
+
+    // Declined means nothing was written: the task keeps its non-terminal status.
+    let untouched = std::fs::read_to_string(dir.path().join("tasks/gone.typ")).unwrap();
+    assert!(
+        untouched.contains("wip("),
+        "flipped despite abort:\n{untouched}"
+    );
+}
+
+#[test]
+fn rm_retire_prompt_names_the_archive_move_and_a_piped_yes_applies_it() {
+    // The `rename` branch of the prompt, plus the accepting answer — the two
+    // paths the aborting test above leaves unexecuted.
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_config(
+        dir.path(),
+        RETIRE_ARCHIVE_CONFIG,
+        &[("gone.typ", REMOVED), ("live.typ", LIVE)],
+    );
+
+    mt(dir.path())
+        .args(["rm", "gone"])
+        .write_stdin("y\n")
+        .assert()
+        .success()
+        .stderr(predicates::str::contains("and move 1 task(s) into"))
+        // Moving the file does retarget the three inbound edges of `live`.
+        .stderr(predicates::str::contains(
+            "and retarget 3 link(s) in 1 file(s)",
+        ));
+
+    assert!(dir.path().join("tasks/.archive/gone.typ").exists());
+    mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
 fn rm_batch_removing_every_referrer_needs_no_strategy_without_git() {
     // The only referrer of `gone` is `live`, and both are being removed — the
     // batch must not reject or trim its own edges, so deletion is plain.

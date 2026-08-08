@@ -5,20 +5,24 @@
   priority: ice(
     impact: 9,
     confidence: 1.0,
-    ease: 4,
+    ease: 6,
   ),
-  difficulty: 4,
+  difficulty: 3,
   tags: ("tests", "cli"),
   estimate: (files: 2),
   links: related(
     "sweep-crap-scores-into-tasks.typ",
   )[measuring that arm's band is what surfaced this],
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[e2e drives both prompt halves; the gate exits 0 on a fresh lcov],
 )
 
 == Summary
 
-`just crap` is FAILING on `main`. `confirm_retire`
+`just crap` was FAILING on `main` when this was filed. `confirm_retire`
 (`crates/mindtape-cli/src/rm_gitless_report.rs:76`) scores CRAP 72.0 — cyclomatic
 8, coverage 0.0% — against the gate's threshold of 30. The gate is CI-enforced
 and is not part of `just check`, which is why a green local `just check` has been
@@ -38,11 +42,13 @@ The reason is the shape of the tests, not an oversight in the file.
 
 == Scope
 
-- Add an e2e test that drives `mt rm` down the retire path with a piped
-  confirmation, the way the delete-path test already does. Retire mode needs a
-  project whose gitless `rm` strategy is retire, so the fixture is the real
-  cost here — check whether an existing fixture can be configured into it before
-  adding another.
+- Add an e2e test that drives `mt rm` down the retire path without `-y`, so the
+  prompt is reached. The fixture is not the cost: `rm_e2e.rs` already holds
+  `RETIRE_CONFIG`, `RETIRE_STATUS_CONFIG` and `RETIRE_ARCHIVE_CONFIG` (lines
+  23--27), and every existing retire test passes `-y` to skip the prompt. The
+  delete path's 15 hits on `confirm_answer` come from tests that omit `-y` and
+  let the empty stdin read as "no"; the same trick reaches `confirm_retire`, and
+  `assert_cmd`'s `write_stdin("y\n")` reaches the accepting branch.
 - The function is CC 8 and writes four conditional blocks (the rename line, the
   link-retarget line) before delegating to `confirm_answer`. One pass through it
   will not cover it; the plan variants are the test cases.
@@ -54,3 +60,21 @@ The reason is the shape of the tests, not an oversight in the file.
   them.
 - Worth deciding separately, and not in this task: `just crap` sits outside
   `just check`, so only CI notices it. That is how it went red unobserved.
+
+== Outcome
+
+Two tests in `crates/mindtape-cli/tests/rm_e2e.rs`, one per half of the
+function. Omitting `-y` reaches the prompt at all — the empty stdin reads as
+"no", covering the plan listing and the abort; the archive fixture plus a piped
+`y` covers the `rename` and `link_rewrites` branches and the accepting answer.
+
+One thing the plan had backwards: retiring IN PLACE produces no link rewrites,
+because the file keeps its path and no inbound edge moves. The retarget line
+prints only under `rename`. Asserted as an absence in the in-place test, since
+that absence is what separates the two cases.
+
+`confirm_retire` went 0% → 88.9% (CRAP 72.0 → 8.1) and the gate exits 0. The
+file went 51/89 lines → 75/89, which is 84% and still under the sweep's 88
+floor: covering the gate's function did not clear the file-shaped finding, and
+the 14 lines left are a separate, smaller piece of work. The separate decision
+named above is filed as `observe-the-crap-gate-locally.typ`.
