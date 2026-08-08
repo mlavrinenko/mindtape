@@ -13,7 +13,11 @@
   links: related(
     "add-dedup-modes-to-mt-add.typ",
   )[the task that landed the flag this makes reachable],
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[one policy decides a collision however the stem was minted; verified live: skip skips, fail errors, unset default stays add-suffix under a stem template],
 )
 
 == Summary

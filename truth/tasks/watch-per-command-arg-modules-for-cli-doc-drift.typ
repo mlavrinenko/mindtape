@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("gating", "docs"),
   estimate: (files: 3),
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[18 arg modules added as cli-docs sources, plus 9 previously-untracked dependents; bite-tested against a scratch lock and it caught the next real change immediately],
 )
 
 == Summary
