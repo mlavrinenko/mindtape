@@ -10,8 +10,12 @@
   difficulty: 4,
   tags: ("tooling", "tests"),
   estimate: (files: 4),
-  links: depends-on("file-refactoring-tasks-from-quality-signals.typ"),
-  status: proposed(2026, 8, 8),
+  links: depends-on("file-refactoring-tasks-from-quality-signals.typ")
+    + related(
+      "sweep-crap-scores-into-tasks.typ",
+    )[the CRAP band, split out of this
+      one and not built here],
+  status: done(2026, 8, 8),
 )
 
 == Summary
