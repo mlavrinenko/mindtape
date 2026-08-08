@@ -1,5 +1,13 @@
 # MindTape — AI Agent Context
 
+How to contribute — quality gates, testing, file-size caps, commit rules, the
+signal sweep, dependency drift, version bumps — lives in @CONTRIBUTING.md. That
+reference pulls the whole file into your context automatically, so nothing here
+restates any of it. If you are about to write a rule about *how work is done*,
+it belongs there, not here.
+
+This file carries the other half: what MindTape *is*.
+
 ## What is this?
 
 A daemon-free, file-based task tracker. Tasks are one-per-file Typst artifacts
@@ -11,7 +19,6 @@ Repository: https://github.com/mlavrinenko/mindtape
 
 ## Key Docs
 
-- `CONTRIBUTING.md` — workflow, commit style, testing, quality gates
 - `docs/decisions/` — retired ADRs, kept as frozen history; decisions now live
   as task artifacts under `truth/tasks/`
 - `docs/redesign/` — the redesign brief and DSL shape probe (historical)
@@ -35,70 +42,15 @@ extraction, slot/link rewriting, git-aware cleanup, SWHID minting, and
 artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
 `mindtape` does not depend on it directly.
 
-## Tech Stack
+## Architecture
 
 - Rust (edition 2024, pinned `rust-toolchain.toml`)
 - Typst 0.14 eval-only (`typst-eval`); never layout or render
 - `evalexpr` 12 as a parser for the filter language (walked, not evaluated by it)
 - `clap` 4 CLI; `serde`/`toml` config; `comfy-table`/`serde_json`/`csv` output
-- Nix flake + `just`; dev tools: sccache, cargo-machete, linecop, outdatty,
-  ejectest, cargo-llvm-cov (`just cover`; sees across the subprocess e2e tests), cargo-crap (`just crap`; CRAP gate over the lcov `cover` writes, CI-enforced — run `just cover` first, it refuses a lcov older than the sources), cargo-mutants (`just mutants-diff` pre-PR, `just mutants -f FILE` for a full-file sweep; not a `just check` gate and no CI job), jq (`contrib/ask-refactoring.sh` scores every sweep finding in it; also the `contrib/jq/` import adapters and the doc-coverage gate), `contrib/fzf-mt-go.sh` (a sourceable shell function wiring `mt ls --format path` to a fuzzy picker of your choice — a recipe, not a bundled dependency), tola (Typst-native SSG for the `www/` docs) +
-  pagefind (post-build client-side search index over the built HTML) +
-  hyperfine (`just bench` timing against the `examples/large/` generated fixture) + util-linux (`script(1)`, PTY wrapper for the interactive e2e test) + yq (docs-only: `www/generate.sh` reads `.github/workflows/release.yml` to derive the quickstart install targets) + librsvg (docs-only: `rsvg-convert` rasterises the favicon/apple-touch-icon from `assets/images/logo.svg` in `www/generate.sh`)
-- `just check-windows` cross-checks the workspace against
-  `x86_64-pc-windows-gnu` in the `nix develop .#windows` shell (`pkgsCross.mingwW64`
-  rustc — the same pinned 1.92.0, with std for target and host; no rustup). Not
-  a `just check` arm; run it after touching a `cfg(windows)` arm, a process
-  spawn or a path join. Windows CI owns runtime behaviour and the `-msvc` target.
 
-## Agent Rules
-
-1. Use `just` recipes, not raw cargo (see `Justfile`). `just check` before done.
-2. After code changes, `just check` must pass (fmt, clippy `-D warnings`, tests,
-   machete, file-size, copy-paste, outdatty drift, doc coverage). Apply
-   `cargo fmt` first. Copy-paste: `just check-dry` (jscpd) fails on any
-   duplicated Rust block ≥70 tokens — fix by extracting a shared helper, never
-   by shuffling tokens. Doc coverage: `just check-doc-coverage` fails naming
-   any visible `mt` subcommand (from `mt _cli --json`) with no matching key in
-   `www/utils/cli-notes.typ`.
-3. File size: Rust ≤500 lines, Markdown ≤200, Shell ≤300 — 250 README, 300
-   `AGENTS.md`, `SKILL.md`, and `CONTRIBUTING.md` (enforced by `linecop`, limits
-   in `.linecop.yaml`; it detects language by extension, so extensionless
-   `.githooks/` hooks are uncapped). Split up front; `just fix-check` ejects oversized inline
-   tests via `ejectest`. Before adding to an existing file run `linecop
-   --baseline 85`: it lists what is near its cap, so you budget the cuts up
-   front instead of hitting a wall mid-edit and spending the change on
-   rewording.
-4. When `outdatty` reports drift, update the listed dependents, then
-   `just outdatty-update` and commit `outdatty.lock`.
-5. Record architectural/tooling decisions as task artifacts under `truth/tasks/`,
-   not as ADRs. The ADR process is retired; `docs/decisions/` is frozen history.
-6. Commits: Conventional Commits; footer `Refs: truth/tasks/<stem>.typ` (the
-   driving task). Exception: commits that file or edit task artifacts themselves
-   (and the backlog config in `.mindtape/config.toml`) carry no `Refs:` footer —
-   a task commit refs nothing. Match prior commit language. The one other
-   allowed footer is `Gate-Scope: <reason>`, which `.githooks/commit-msg`
-   *requires* when `MINDTAPE_GATE_SCOPE` skipped the pre-commit freshness
-   assertion (see CONTRIBUTING.md) — it is how a scoped commit stays visible
-   in `git log`, never an optional annotation.
-7. `just ask-refactoring` files a backlog task per ADVISORY-signal finding
-   (`contrib/ask-refactoring.sh` drives; one file per arm under
-   `contrib/ask-refactoring/`, named in `ARMS` — linecop file sizes at
-   `--baseline`, per-file line coverage at `--coverage-floor`, which nothing
-   gates since `just cover` fails on the workspace total only, and surviving
-   mutants read from `mutants.out/outcomes.json`). Dry by default, `--write`
-   files. Never a gate and never memoized —
-   a signal that already blocks a commit (jscpd, outdatty, machete, clippy) must
-   not produce a task. The one memoized step is the lcov refresh (`just mmz
-   cover`) inside the coverage arm; a stale lcov is refused, never read as a
-   phantom 0%. The mutants arm cannot refresh its input (a full sweep is hours),
-   so it skips loudly instead — absent must never print like clean. Its re-run
-   guard is `[views.ask-refactoring]`
-   (`has_tag("swept") && !terminal`): it refuses while anything it filed is
-   still open. There is no ledger, so the only way to silence a finding for good
-   is an override with a written reason in the signal's own config
-   (`.linecop.yaml`, or an `--exclude` in `just cover`/`just crap`). See
-   CONTRIBUTING.md "Signal Sweep".
+The dev shell and its tooling are `flake.nix`'s subject, and the workflow around
+each tool is CONTRIBUTING.md's — neither is restated here.
 
 ## Task DSL (lib/prelude.typ)
 
@@ -224,31 +176,3 @@ files derive. Tags are virtual (never written), live on `Task.derived_tags`
 are validated against `[tasks.tags] allowed` strictly. `derive.rs` is pure and
 consumer-blind enough for speconaut to converge onto.
 
-## Version Management
-
-- Workspace crates: `Cargo.toml` `[workspace.package] version` (semver)
-- Typst library: `lib/typst.toml` `version` (independent). On bump, update the
-  `TYPST_PKG_VERSION` const in `crates/mindtape-cli/src/init.rs`, the
-  `PKG_VERSION` const in `www/utils/site.typ` (the docs render every `#import`
-  example from it), and the import examples in `README.md` and this file. The
-  `typst-pkg-version` outdatty group guards these.
-
-## Context Hygiene
-
-- Keep agent-facing docs under 200 lines; reference instead of duplicating.
-
-## Temporary — active only on branch `redesign/per-file-rewrite`
-
-Remove this whole section when this branch merges to `main`.
-
-- Convergence directive: design `crates/mindtape` and its consumer-blind siblings
-  (`typst-harvest`, `typst-cst`, and a planned `typst-edit`) so speconaut can delete
-  its generic code and depend on them. Any generic capability speconaut hand-rolls —
-  Typst-source span location, slot/link rewriting, git tombstone resolution — is a
-  candidate to host here.
-- Research workflow: spawn mid-tier sub-agents for codebase sweeps, but read the cited
-  key files yourself to validate before deciding. speconaut reference points:
-  `src/commands/{cleanup_cmd,cleanup_refs,cleanup_git_refs,link_scanner,git_ref_scanner}.rs`,
-  `src/commands/{typ_source,specs_stage_rewrite}.rs`, `src/git.rs`,
-  `src/engine/dsl_links.rs`.
-- 0.2 is on pre-release stage. Don't bump Typst lib or other packages versions.
