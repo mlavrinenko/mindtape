@@ -128,8 +128,9 @@ status and id, and validates — never hand-write the `.typ`. Common flags:
   extension, stdin and any other extension sniff the content; `--set` applies
   after and wins on overlap
 - `--dedup fail|skip|add-suffix` collision policy on an existing stem: `fail`
-  bails (default), `skip` exits 0 writing nothing, `add-suffix` mints `-2`,
-  `-3`, …; overrides `[tasks.naming] dedup`
+  bails, `skip` exits 0 writing nothing, `add-suffix` mints `-2`, `-3`, …;
+  overrides `[tasks.naming] dedup`, which defaults to `add-suffix` under a
+  configured `stem` template and `fail` otherwise
 - `--format text|path|path0|json` report the outcome instead of prose; `json`
   carries `{"outcome": "wrote"|"skipped"|"suffixed", "path": "..."}`, the same
   vocabulary as `mt ls --format`

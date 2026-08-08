@@ -18,10 +18,12 @@
     prose: [Positional words join into the title; `--set`, `-f values.json` (or
       `.yaml`/`.yml`), or editor mode fill the rest. Full detail on
       #link(u("/templates/"))[Templates & slots]. `--dedup` decides what
-      happens when the destination stem already exists (`fail`, the default —
-      bail before writing; `skip` — exit 0, write nothing; `add-suffix` —
-      mint `-2`, `-3`, … via #link(u("/config/"))[`[tasks.naming]`], which
-      also carries the project-wide `dedup` default the flag overrides).
+      happens when the destination stem already exists (`fail` — bail before
+      writing; `skip` — exit 0, write nothing; `add-suffix` — mint `-2`,
+      `-3`, …). One policy decides a collision however the stem was produced.
+      #link(u("/config/"))[`[tasks.naming]`] carries the project-wide `dedup`
+      default the flag overrides; unset, it is `add-suffix` when a `stem`
+      template is configured and `fail` otherwise.
       `--format` reports what happened — `text` (default prose), `path`,
       `path0`, or `json` — and the JSON object states the outcome
       (`wrote`/`skipped`/`suffixed`), not only the path.],
