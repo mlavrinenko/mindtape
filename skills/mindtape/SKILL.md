@@ -171,6 +171,20 @@ slot with a placeholder and hand-edit the body afterward — sanctioned per
 (`` rg -F '\`' <file> ``) — a hit is almost always markup you meant literally,
 not prose you meant escaped.
 
+### `typst` slots opt out of escaping — a template's choice, never a caller's
+
+A template can declare `kind: "typst"` instead of `kind: "text"` to skip the
+escaping above: a filled value splices into the body as live markup, code
+spans and all — `` `mt add` `` stays a code span, not `` \`mt add\` ``. This is
+strictly a *template author*'s decision: only the checked-in template file
+declares the kind, so a `--set`/`-f`/environment value never escapes escaping
+on its own just by looking like markup — the same value fills a `text` slot
+escaped and a `typst` slot raw, depending only on which the template
+declared. Prefer `typst` when a slot's whole point is formatted body content
+(a `summary`/`body`); a value that fails to parse as Typst markup still fails
+`mt add` outright, naming the slot, before anything is written — no half-typed
+file to clean up.
+
 ## Changing status — `mt flip` and status verbs
 
 `mt flip <status> <task…>` stamps a new status, dated today. The status must be a
