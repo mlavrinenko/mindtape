@@ -151,6 +151,14 @@ commands:
     tags: [gate]
     inputs: [rust, policy, examples, gates-meta]
 
+  # cargo-llvm-cov instruments and runs the same suite as `just test` (same
+  # scope), then writes target/coverage/lcov.info — the artifact `just crap`
+  # and `just ask-refactoring`'s coverage arm both read. NOT gate-tagged:
+  # `just check` does not run coverage, so `mt flip`'s freshness assertion
+  # must not require this rule to be fresh.
+  - name: just cover
+    inputs: [rust, policy, examples, gates-meta]
+
   - name: just machete
     tags: [gate]
     inputs: [manifests, gates-meta]

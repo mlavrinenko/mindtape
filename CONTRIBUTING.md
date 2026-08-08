@@ -157,14 +157,18 @@ sweep says which wall you are walking toward.
 just ask-refactoring                    # dry: print the tasks it would file
 just ask-refactoring --write            # file them
 just ask-refactoring --baseline 85      # widen the linecop threshold (default 90)
+just ask-refactoring --coverage-floor 85 # widen the coverage threshold (default 88)
 ```
 
 Four rules the design turns on, in the order they matter:
 
 - **Only advisory signals qualify.** jscpd, outdatty, machete and clippy already
   block a commit; a task from one of those would be a note about a wall you are
-  standing at. Today the sweep reads `linecop --format json`; `cargo-mutants`
-  and coverage are the sibling arms.
+  standing at. Today the sweep reads `linecop --format json` for file size and
+  `cargo llvm-cov report --json` (over the lcov `just cover` writes, refreshed
+  via `just mmz cover`) for per-file line coverage — advisory because `just
+  cover` gates only the workspace total, never a single file. `cargo-mutants` is
+  the remaining sibling arm.
 - **One task per finding, never one per sweep.** Each is dispatched to its own
   agent and has to carry its own scope. Two axes shape it, kept apart on
   purpose. *Language* decides the remedy — linecop caps Rust and Markdown, and
@@ -176,10 +180,11 @@ Four rules the design turns on, in the order they matter:
   and `just eject` has no second move on it.
 - **Idempotency comes from the signal, not a ledger.** Nothing records what was
   filed. The one deliberate suppression is an override with a *written reason* in
-  the signal's own config — a `.linecop.yaml` entry, in the style the
-  `SKILL.md` / `AGENTS.md` / `CONTRIBUTING.md` ones already use. There is no
-  ignore list anywhere else, so silencing a finding always leaves a sentence
-  behind saying why.
+  the signal's own config — a `.linecop.yaml` entry for size, in the style the
+  `SKILL.md` / `AGENTS.md` / `CONTRIBUTING.md` ones already use; an `--exclude`
+  entry (with its reason in the comment beside it) in the `just cover` /
+  `just crap` recipes for coverage. There is no ignore list anywhere else, so
+  silencing a finding always leaves a sentence behind saying why.
 - **The remedy is the refactorer's call.** Split thoughtfully, or raise the limit
   with an override that names a new sane number and the reason for it. A split
   for its own sake is not the goal; the cap pushes back on scope growth, not on
