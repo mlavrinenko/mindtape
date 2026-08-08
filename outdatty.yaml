@@ -100,3 +100,23 @@ groups:
     dependents:
       - CONTRIBUTING.md
       - AGENTS.md
+
+  # The three `just ask-refactoring` templates share one shape: the same
+  # task.with header, the same "filed from a signal, nothing recorded that it
+  # did" paragraph, and the same remedy-is-your-call Scope. A Typst `#import`
+  # would be the obvious way to share it and is the wrong one — the import
+  # survives into every task the sweep writes and binds a tracked artifact to a
+  # path outside the tasks root, so a task file stops being self-contained.
+  # This group is the sharing mechanism instead: a drift gate, not an import.
+  #
+  # sweep-size.typ is the source because it is the arm that exists and is
+  # exercised; the other two are its dependents. contrib/ask-refactoring.sh is a
+  # dependent too, and the sharper edge of the two — it fills these slots by
+  # name, so a renamed or retyped slot breaks the sweep silently.
+  - name: sweep-templates
+    source:
+      - .mindtape/templates/sweep-size.typ
+    dependents:
+      - .mindtape/templates/sweep-mutants.typ
+      - .mindtape/templates/sweep-coverage.typ
+      - contrib/ask-refactoring.sh

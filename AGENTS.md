@@ -42,7 +42,7 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
 - `evalexpr` 12 as a parser for the filter language (walked, not evaluated by it)
 - `clap` 4 CLI; `serde`/`toml` config; `comfy-table`/`serde_json`/`csv` output
 - Nix flake + `just`; dev tools: sccache, cargo-machete, linecop, outdatty,
-  ejectest, cargo-llvm-cov (`just cover`; sees across the subprocess e2e tests), cargo-crap (`just crap`; CRAP gate over the lcov `cover` writes, CI-enforced — run `just cover` first, it refuses a lcov older than the sources), cargo-mutants (`just mutants-diff` pre-PR, `just mutants -f FILE` for a full-file sweep; not a `just check` gate and no CI job), jq (test/docs only: `contrib/jq/` import adapters), `contrib/fzf-mt-go.sh` (a sourceable shell function wiring `mt ls --format path` to a fuzzy picker of your choice — a recipe, not a bundled dependency), tola (Typst-native SSG for the `www/` docs) +
+  ejectest, cargo-llvm-cov (`just cover`; sees across the subprocess e2e tests), cargo-crap (`just crap`; CRAP gate over the lcov `cover` writes, CI-enforced — run `just cover` first, it refuses a lcov older than the sources), cargo-mutants (`just mutants-diff` pre-PR, `just mutants -f FILE` for a full-file sweep; not a `just check` gate and no CI job), jq (`contrib/ask-refactoring.sh` scores every sweep finding in it; also the `contrib/jq/` import adapters and the doc-coverage gate), `contrib/fzf-mt-go.sh` (a sourceable shell function wiring `mt ls --format path` to a fuzzy picker of your choice — a recipe, not a bundled dependency), tola (Typst-native SSG for the `www/` docs) +
   pagefind (post-build client-side search index over the built HTML) +
   hyperfine (`just bench` timing against the `examples/large/` generated fixture) + util-linux (`script(1)`, PTY wrapper for the interactive e2e test) + yq (docs-only: `www/generate.sh` reads `.github/workflows/release.yml` to derive the quickstart install targets) + librsvg (docs-only: `rsvg-convert` rasterises the favicon/apple-touch-icon from `assets/images/logo.svg` in `www/generate.sh`)
 - `just check-windows` cross-checks the workspace against
@@ -80,6 +80,15 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
    *requires* when `MINDTAPE_GATE_SCOPE` skipped the pre-commit freshness
    assertion (see CONTRIBUTING.md) — it is how a scoped commit stays visible
    in `git log`, never an optional annotation.
+7. `just ask-refactoring` files a backlog task per ADVISORY-signal finding
+   (`contrib/ask-refactoring.sh`; today linecop, siblings for cargo-mutants and
+   coverage). Dry by default, `--write` files. Never a gate and never memoized —
+   a signal that already blocks a commit (jscpd, outdatty, machete, clippy) must
+   not produce a task. Its re-run guard is `[views.ask-refactoring]`
+   (`has_tag("swept") && !terminal`): it refuses while anything it filed is
+   still open. There is no ledger, so the only way to silence a finding for good
+   is an override with a written reason in the signal's own config
+   (`.linecop.yaml`). See CONTRIBUTING.md "Signal Sweep".
 
 ## Task DSL (lib/prelude.typ)
 

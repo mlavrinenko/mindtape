@@ -131,6 +131,10 @@ scopes:
 
 on_hit: "mmz: skipped {cache:command} (inputs unchanged)"
 
+# `just ask-refactoring` is deliberately absent below, and not merely because it
+# is not a gate: memoizing it would defeat it. The sweep exists to RE-OBSERVE the
+# advisory signals every run, and a cache hit is exactly the answer it must never
+# give. Its own re-run guard is the [views.ask-refactoring] view, not a cache.
 commands:
   # Rust formatting — `cargo fmt --check` over Rust, `tombi format --check`
   # over the project config TOML, `typstyle --check` over the Typst sets. A

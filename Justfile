@@ -369,6 +369,26 @@ eject PCT='90':
 check-file-size:
     linecop
 
+# File backlog tasks from the ADVISORY quality signals — the ones that predict
+# mechanical work instead of blocking on it. Today that is linecop (file size);
+# cargo-mutants and coverage are the sibling arms, and each is a scoring
+# function plus a `.mindtape/templates/sweep-*.typ` template, not a config
+# change.
+#
+# Dry by default: it prints, via `mt add --print`, the exact tasks it would
+# file. `just ask-refactoring --write` files them. `--baseline PCT` moves the
+# reporting threshold (default 90).
+#
+# It refuses to run while `mt ls @ask-refactoring` is non-empty, so one sprint
+# of mechanical work is emptied before the next is filed.
+#
+# Deliberately NOT an `mmz` arm and not part of `just check`: memoizing it would
+# defeat the point (it must re-observe the tree every run), and a signal that
+# already blocks a commit — jscpd, outdatty, machete, clippy — must never file a
+# task, because the wall is already in front of you.
+ask-refactoring *ARGS:
+    bash contrib/ask-refactoring.sh {{ ARGS }}
+
 # Copy-paste gate: fail on any duplicated Rust block across the crates
 check-dry:
     #!/usr/bin/env bash
