@@ -36,7 +36,10 @@ Pick what you want under `[tasks.derive-tags] collect`.
 
 ```toml
 [tasks.derive-tags]
-collect = ["segments"]        # segments and/or breadcrumbs
+collect = ["segments"]         # segments and/or breadcrumbs
+separator = ":"                # breadcrumb join separator (default)
+slugify = true                 # normalise folder names to tag form (default)
+breadcrumb-root = false        # fold the root name into the breadcrumb chain (default)
 
 [[tasks.roots]]
 path = "tasks"
@@ -46,6 +49,11 @@ derive-tags = true            # bool | glob | list — gates which files derive
 
 Per-root `derive-tags` gates which files under that root derive their location:
 a bool, a glob, or a list of globs.
+
+`separator` joins a breadcrumb's segments (`backend:auth` by default). `slugify`
+normalises each folder name before it becomes a tag. `breadcrumb-root` prepends
+the root name onto the breadcrumb chain itself — off by default, since the root
+name is already emitted as its own standalone tag.
 
 = How they behave
 
