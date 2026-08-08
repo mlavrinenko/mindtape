@@ -12,7 +12,14 @@ just check           # run before every commit
 ```
 
 Use `just` recipes instead of raw `cargo` — they carry the right flags and
-environment. `just` (no args) lists them.
+environment. `just` (no args) lists them. What is in the shell and why each tool
+is there is `flake.nix`'s subject, commented in place; this file covers the
+workflow around the tools, not their inventory.
+
+This document is the single source for how work is done here. `AGENTS.md` pulls
+it into agent context with `@CONTRIBUTING.md` and describes only what MindTape
+*is* — architecture and the task DSL. The two must not overlap: a rule about
+process belongs here, and nowhere else.
 
 ## Code Style
 
@@ -62,33 +69,15 @@ with violations. Key restrictions:
   moves the compile half earlier.
 - Run `just test`; count with `just count-tests`.
 - Mutation testing (`cargo-mutants`) proves whether tests pin behavior, not
-  just execute it. A surviving `MISSED` mutant is a real assertion gap. Not a
-  `just check` gate — deliberately no CI job either (see below). Two commands:
-  `just mutants-diff` sweeps only mutants touched by this branch's diff against
-  `main` — the pre-PR check, minutes not hours, no state file, and it covers
-  new files for free (every line of a new file counts as touched). `just
-  mutants -f <file>` forces a deliberate full-file sweep. Triage each survivor
-  into a real gap (write a regression test) or an equivalent mutant (add it to
-  `.cargo/mutants.toml` `exclude_re` with its reason). `.cargo/mutants.toml`
-  also holds the excluded files (`main.rs`, `recur_rrule_off.rs`) and the
-  `rrule` feature; `just crap` picks where a pass pays off.
-- A `TIMEOUT` verdict is not a verdict in either direction — under parallel
-  load it can hide a real pass or a real survivor, so a final-verdict sweep
-  runs at `CARGO_MUTANTS_JOBS=2` or lower with an extended timeout, not the
-  default parallelism. When a `TIMEOUT` is reproducible, it found a real
-  unbounded loop (`MAX_CATCH_UP_STEPS` in `recur_dates.rs`,
-  `MAX_DISAMBIGUATE_ATTEMPTS` in `naming.rs`) — bound it, and always by a `for`
-  over a fixed range, never by the counter a mutant can freeze (`while n <=
-  CEILING` still hangs once the mutant stops incrementing `n`). A survivor
-  inside `#[cfg(not(feature = …))]` code is unreachable under the sweep's own
-  feature set — move the twin into its own file and `exclude_globs` it
-  (`recur_rrule_off.rs`) so the live side stays one always-compiled function.
-- No CI mutation job, on purpose: every mutant re-runs a suite that includes
-  subprocess and PTY e2e tests, and `TIMEOUT` verdicts are untrustworthy under
-  parallel load — exactly the environment a shared runner is. An advisory
-  check with unreliable verdicts trains people to ignore it, and a cold build
-  on two runner cores turns "advisory" into the slowest job in the pipeline.
-  Run `just mutants-diff` locally instead, where a timeout means something.
+  just execute it. A surviving `MISSED` mutant is a real assertion gap. Run
+  `just mutants-diff` before a PR — it sweeps only the mutants your branch's
+  diff touches, so it is minutes not hours and covers new files for free.
+  `just mutants -f <file>` forces a deliberate full-file sweep. Triage each
+  survivor into a real gap (write a regression test) or an equivalent mutant
+  (`.cargo/mutants.toml` `exclude_re`, with its reason). Neither command is a
+  `just check` gate, and there is no CI job for it on purpose — the reasoning,
+  the `TIMEOUT` caveat, and how to bound a loop a mutant can hang are in the
+  `mutants` recipes' comments and in `.cargo/mutants.toml`.
 
 ## Quality Gates (run by `just check`)
 
@@ -125,24 +114,20 @@ so `recur_rrule.rs` (the `rrule` cargo feature's expander) never compiles and
 
 `just crap` runs right after it, in the same CI job and over the same
 `lcov.info`: the CRAP metric (`CC² × uncovered³ + CC`) fails above 30, flagging
-functions that are both complex and undertested. It reports only the functions
-that fail (`--min` tracks `--threshold`) and skips the inline `*_tests.rs`
-modules, and it refuses to run at all when `lcov.info` is older than a source
-file — a function the lcov never saw is scored as 0% covered, not as unknown,
-so a stale lcov invents failures (a 10-day-old one reported 28, of which 27 were
-phantom). Run `just cover` first; CI already does. cargo-crap is not in nixpkgs,
-so `flake.nix` builds it from the crates.io tarball with naersk `singleStep`
-(crates.io 403s the user agent nixpkgs' `fetch-cargo-vendor` sends, so
-`buildRustPackage` cannot compute a vendor hash). Above ~90% coverage the cubed
-term vanishes and a function scores its own cyclomatic complexity, so a flat
-dispatcher sits near the limit by construction — `filter.rs` `function` is CC 22
-and scores 22.0 at full coverage — and adding an arm there means covering it in
-the same change.
+functions that are both complex and undertested. It refuses to run against an
+lcov older than a source file, so run `just cover` first — CI already does. Why
+it refuses, what it excludes, and why there is deliberately no advisory band
+below the threshold are argued in the `crap` recipe's own comment. Read that
+before changing its flags.
 
-Since nixpkgs' `rustc` ships no `llvm-tools-preview`, the dev shell exports
-`LLVM_COV`/`LLVM_PROFDATA` from `llvmPackages_21` — the same LLVM major as
-`rustc` 1.92. Bumping the toolchain across an LLVM major means bumping that
-`llvmPackages_*` in `flake.nix` too, or `llvm-profdata` rejects the profraw.
+One consequence is worth carrying in your head rather than looking up: above
+~90% coverage the cubed term vanishes and a function scores its own cyclomatic
+complexity, so a flat dispatcher sits near the threshold by construction, and
+adding an arm to one means covering it in the same change.
+
+How the dev shell supplies cargo-crap and the LLVM tools `cargo-llvm-cov` needs
+is `flake.nix`'s subject — both are non-obvious, both break loudly if changed
+carelessly, and both are commented there.
 
 `just nix-build` verifies that `nix build` succeeds in a clean sandbox (no dev
 shell, no sccache). Run it when touching `flake.nix` or `.cargo/config.toml`; it
@@ -155,61 +140,41 @@ backlog task per finding. It is not a gate and never will be — it is the other
 half of the gates: a gate stops you when the wall is already in front of you, the
 sweep says which wall you are walking toward.
 
-The entry script holds the argument parsing, the re-run guard, the shared
-`stem_for` and the driver; each arm is one file under `contrib/ask-refactoring/`
-defining `score_<arm>`/`signal_<arm>`/`emit_<arm>` next to the reasoning that
-justifies its numbers. Adding an arm is a new file there, its name in `ARMS`,
-and a template — still no config change.
-
 ```
-just ask-refactoring                    # dry: print the tasks it would file
-just ask-refactoring --write            # file them
-just ask-refactoring --baseline 85      # widen the linecop threshold (default 90)
+just ask-refactoring                     # dry: print the tasks it would file
+just ask-refactoring --write             # file them
+just ask-refactoring --baseline 85       # widen the linecop threshold (default 90)
 just ask-refactoring --coverage-floor 85 # widen the coverage threshold (default 88)
 ```
 
-The mutants arm has no threshold: it reads whatever `just mutants-diff` (or
-`just mutants -f FILE`) last wrote to `mutants.out/`, and skips when that is
-missing or older than the sources.
+The entry script holds the argument parsing, the re-run guard, the shared
+`stem_for` and the driver; each arm is one file under `contrib/ask-refactoring/`,
+defining `score_<arm>`/`signal_<arm>`/`emit_<arm>` next to the reasoning that
+justifies its numbers. Adding an arm is a new file there, its name in `ARMS`, and
+a `.mindtape/templates/sweep-*.typ` template — never a config change, since the
+tags and the guard are already declared. The templates share one shape, kept in
+step by the `sweep-templates` outdatty group rather than by a Typst `#import`,
+which would survive into every task the sweep writes and bind a tracked artifact
+to a path outside the tasks root. Which arms exist, what each reads and how each
+scores are the scripts' own subject — read them there rather than here.
 
 Five rules the design turns on, in the order they matter:
 
-- **Only advisory signals qualify.** jscpd, outdatty, machete and clippy already
+- Only advisory signals qualify. jscpd, outdatty, machete and clippy already
   block a commit; a task from one of those would be a note about a wall you are
-  standing at. All three arms are live: `linecop --format json` for file size,
-  `cargo llvm-cov report --json` (over the lcov `just cover` writes, refreshed
-  via `just mmz cover`) for per-file line coverage — advisory because `just
-  cover` gates only the workspace total, never a single file — and
-  `mutants.out/outcomes.json` for surviving mutants. There is deliberately no
-  CRAP arm: above ~90% coverage CRAP degenerates into cyclomatic complexity, so
-  no band below the `just crap` gate separates signal from noise here. Measured,
-  not assumed — the numbers are in the `crap` recipe comment.
-- **A signal never fakes a measurement it does not have.** Coverage refreshes
-  its own lcov and *refuses* a stale one. The mutants arm cannot: a full
-  `cargo mutants` run is hours, so it *skips* — loudly, naming
-  `just mutants-diff` — rather than blocking the other two arms or, worse,
-  printing "no survivors" when nobody has measured. Absent and clean must never
-  look alike.
-- **One task per finding, never one per sweep.** Each is dispatched to its own
-  agent and has to carry its own scope. Two axes shape it, kept apart on
-  purpose. *Language* decides the remedy — linecop caps Rust and Markdown, and
-  shedding a section into `references/` is not carving a module, so the filed
-  task says the one that applies; it comes from linecop's own `language` field,
-  never re-derived from the extension. *Test versus production* decides tone and
-  score, and is a Rust distinction only: both need a real seam decision, but an
-  already-ejected `*_tests.rs` is different work from the file it came out of,
-  and `just eject` has no second move on it.
-- **Idempotency comes from the signal, not a ledger.** Nothing records what was
-  filed. The one deliberate suppression is an override with a *written reason* in
-  the signal's own config — a `.linecop.yaml` entry for size, in the style the
-  `SKILL.md` / `AGENTS.md` / `CONTRIBUTING.md` ones already use; an `--exclude`
-  entry (with its reason in the comment beside it) in the `just cover` /
-  `just crap` recipes for coverage; an `exclude_re` line in `.cargo/mutants.toml`
-  for an equivalent mutant. There is no ignore list anywhere else, so silencing a
-  finding always leaves a sentence behind saying why. Scope is derived, not
-  recorded: a mutants task names what that sweep actually covered, read out of
-  `outcomes.json` itself, so a one-file run never reads as a workspace verdict.
-- **The remedy is the refactorer's call.** Split thoughtfully, or raise the limit
+  already standing at.
+- A signal never fakes a measurement it does not have. An arm that can refresh
+  its input refuses a stale one; an arm that cannot — a full mutation sweep is
+  hours — skips loudly, naming the command that would refresh it, rather than
+  blocking the other arms or printing "clean" when nobody has measured. Absent
+  and clean must never look alike.
+- One task per finding, never one per sweep. Each is dispatched to its own agent
+  and has to carry its own scope, including which remedy applies to it.
+- Idempotency comes from the signal, not a ledger. Nothing records what was
+  filed, so the only way to silence a finding for good is an override with a
+  written reason in the signal's own config. There is no ignore list anywhere
+  else, deliberately: silencing always leaves a sentence behind saying why.
+- The remedy is the refactorer's call. Split thoughtfully, or raise the limit
   with an override that names a new sane number and the reason for it. A split
   for its own sake is not the goal; the cap pushes back on scope growth, not on
   accuracy.
@@ -218,21 +183,8 @@ The re-run guard is `[views.ask-refactoring]` in `.mindtape/config.toml`
 (`has_tag("swept") && !terminal`). While anything the sweep filed is still open,
 the sweep refuses and names the count — one sprint of mechanical work is emptied
 before the next is filed. Every filed task carries the provenance tag `swept`
-plus one signal tag (`size`, `mutants`, `coverage`); the guard selects on `swept`
-alone, so a new signal joins it for free.
-
-Scoring is honest per finding, not a constant triple wearing a framework's
-clothes: impact rises as headroom falls or as the unreached fraction grows, ease
-falls with how much has to be written or moved, and confidence is high (0.9)
-because both tools *measure* rather than guess — 0.7 only for a test module,
-where the remedy is genuinely open. The formulas and their justification live in
-the script, next to the code that applies them.
-
-Adding a signal is a scoring function plus a `.mindtape/templates/sweep-*.typ`
-template, never a config change: the tags and the guard are already declared. The
-three templates share one shape, kept in step by the `sweep-templates` outdatty
-group rather than by a Typst `#import` — an import would survive into every task
-the sweep writes and bind a tracked artifact to a path outside the tasks root.
+plus one signal tag; the guard selects on `swept` alone, so a new signal joins
+it for free.
 
 ## Dependency Drift (outdatty)
 
@@ -240,6 +192,16 @@ the sweep writes and bind a tracked artifact to a path outside the tasks root.
 stay in sync (e.g. the CLI surface to `README.md`). After editing a source,
 review the listed dependents, update them, then run `just outdatty-update` to
 record the new state into `outdatty.lock` and commit it.
+
+## Version Management
+
+- Workspace crates: `Cargo.toml` `[workspace.package] version` (semver).
+- Typst library: `lib/typst.toml` `version`, independent of the crates. On bump,
+  every place that repeats it has to move with it — the `TYPST_PKG_VERSION` const
+  in `crates/mindtape-cli/src/init.rs`, the `PKG_VERSION` const in
+  `www/utils/site.typ` (the docs render every `#import` example from it), and the
+  import examples in `README.md` and `AGENTS.md`. The `typst-pkg-version`
+  outdatty group is what enforces that; trust it over this list.
 
 ## Commit Messages
 

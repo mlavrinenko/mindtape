@@ -290,6 +290,29 @@ mutants-diff *ARGS:
 # through to cargo-mutants untouched. File set, excludes (main.rs + equivalent
 # mutants), the rrule feature and the debuginfo-free `mutants` profile come
 # from .cargo/mutants.toml. Same speed knobs as `mutants-diff`.
+#
+# A TIMEOUT is not a verdict in either direction: under parallel load it can
+# hide a real pass or a real survivor equally well. So a sweep you intend to
+# BELIEVE runs at CARGO_MUTANTS_JOBS=2 or lower with an extended timeout, not at
+# the default parallelism — the speed knobs above are for the pre-PR pass, not
+# for a final verdict.
+#
+# A REPRODUCIBLE timeout is a finding, not noise: it means a mutant reached an
+# unbounded loop. Both found so far (MAX_CATCH_UP_STEPS in recur_dates.rs,
+# MAX_DISAMBIGUATE_ATTEMPTS in naming.rs) were fixed by bounding the loop with a
+# `for` over a fixed range — never by a `while n <= CEILING`, which still hangs
+# once the mutant stops incrementing `n`.
+#
+# A survivor inside `#[cfg(not(feature = …))]` code is unreachable under the
+# sweep's own feature set. Move the twin into its own file and `exclude_globs`
+# it (recur_rrule_off.rs) so the live side stays one always-compiled function.
+#
+# There is deliberately no CI mutation job. Every mutant re-runs a suite that
+# includes subprocess and PTY e2e tests, and TIMEOUT verdicts are least
+# trustworthy exactly where a shared runner puts you. An advisory check with
+# unreliable verdicts trains people to ignore it, and a cold build on two runner
+# cores turns "advisory" into the slowest job in the pipeline. Run it locally,
+# where a timeout means something.
 mutants *ARGS:
     #!/usr/bin/env bash
     set -eo pipefail

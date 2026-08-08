@@ -72,6 +72,10 @@ groups:
       - www/content/templates.typ
       - www/utils/cli-notes.typ
       - skills/mindtape/SKILL.md
+      # SKILL.md sheds `mt add` slot detail here (progressive disclosure, per
+      # the .linecop.yaml note). The content is still CLI surface, so it has to
+      # stay a tracked dependent — shedding it must not shed the drift gate.
+      - skills/mindtape/references/add-slots.md
       - skills/mindtape/evals/README.md
       - skills/mindtape/evals/evals.json
 
@@ -100,6 +104,9 @@ groups:
       - www/content/priority.typ
       - www/content/templates.typ
       - skills/mindtape/SKILL.md
+      # Dual membership, same reason as SKILL.md's: the shed slot detail also
+      # restates DSL shape (a framework priority's leaves are its slots).
+      - skills/mindtape/references/add-slots.md
 
   # The Typst library version appears in every #import example and the CLI's
   # embedded constant. Bump lib/typst.toml and these must follow (the docs read
