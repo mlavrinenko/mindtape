@@ -13,7 +13,7 @@
   links: related(
     "file-refactoring-tasks-from-quality-signals.typ",
   )[the sweep this refines],
-  status: proposed(2026, 8, 8),
+  status: done(2026, 8, 8),
 )
 
 == Summary
