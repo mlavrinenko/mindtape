@@ -3,15 +3,27 @@
 #show: task.with(
   title: slot("title", prompt: "cover <path>"),
   priority: ice(
-    impact: slot("impact", kind: "int", prompt: "1-10, rises as the covered fraction falls"),
+    impact: slot(
+      "impact",
+      kind: "int",
+      prompt: "1-10, rises as the covered fraction falls",
+    ),
     confidence: slot(
       "confidence",
       kind: "float",
       prompt: "0-1, high: llvm-cov counted the lines, it did not guess",
     ),
-    ease: slot("ease", kind: "int", prompt: "1-10, falls with how many lines are unreached"),
+    ease: slot(
+      "ease",
+      kind: "int",
+      prompt: "1-10, falls with how many lines are unreached",
+    ),
   ),
-  difficulty: slot("difficulty", kind: "int", prompt: "0-9 on the judgment scale"),
+  difficulty: slot(
+    "difficulty",
+    kind: "int",
+    prompt: "0-9 on the judgment scale",
+  ),
   estimate: slot("estimate", kind: "text", prompt: "(files: N)"),
   tags: slot("tags", kind: "list", prompt: "swept, coverage"),
 )

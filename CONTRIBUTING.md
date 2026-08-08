@@ -94,7 +94,7 @@ with violations. Key restrictions:
 
 | Gate | Tool |
 |------|------|
-| Format | `just fmt-check` — `cargo fmt` over Rust, `tombi format` over the project config TOML (`.mindtape/config.toml` and the per-example configs), and `typstyle` over the Typst sources (`lib/`, `truth/tasks/`, the learn-piano example, and `www/`) |
+| Format | `just fmt-check` — `cargo fmt` over Rust, `tombi format` over the project config TOML (`.mindtape/config.toml` and the per-example configs), and `typstyle` over the Typst sources (`lib/`, `truth/tasks/`, both template dirs, the learn-piano example, and `www/`). The non-Rust path lists live in the `TOML_FMT_PATHS`/`TYPST_FMT_PATHS` Justfile variables, one list feeding both `fmt` and `fmt-check` — add a path there, never to one recipe |
 | Lints | `cargo clippy --all-targets -D warnings` |
 | Tests | `cargo test --workspace` |
 | Unused deps | `cargo machete` |
