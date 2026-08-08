@@ -60,6 +60,11 @@ mt add --edit                                         # fill in your editor
   came from. Prose containing `*`, `_`, `$`, `#`, `[`, `]`, `<` or `@` stays
   literal instead of opening emphasis or evaluating away. Numeric, choice and
   date slots are literals and are left alone.
+- #strong[Typst slots are not escaped]: `kind: "typst"` splices its value as
+  real markup, so a fill value may carry code spans, emphasis or a list. The
+  opt-out belongs to the template author, never to the caller — a template is
+  trusted repo content, a `--set` value is not. A `typst` slot whose value does
+  not parse fails before anything is written, naming the slot.
 
 = Placement and preview
 
