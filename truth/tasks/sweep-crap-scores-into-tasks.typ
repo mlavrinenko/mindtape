@@ -18,7 +18,10 @@
     )[the signal that survived this one's measurement]
     + related(
       "cover-confirm-retire-and-unred-the-crap-gate.typ",
-    )[the red gate this one's measurement surfaced],
+    )[the red gate this one's measurement surfaced]
+    + related(
+      "ratchet-the-crap-gate-against-a-baseline.typ",
+    )[the use of cargo-crap this measurement does not rule out],
   status: cancelled(
     2026,
     8,
