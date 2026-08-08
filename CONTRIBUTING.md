@@ -98,7 +98,7 @@ with violations. Key restrictions:
 | Lints | `cargo clippy --all-targets -D warnings` |
 | Tests | `cargo test --workspace` |
 | Unused deps | `cargo machete` |
-| File size | `linecop` (Rust 500, Markdown 200; 250 README, 300 `AGENTS.md`/`SKILL.md`). `linecop --baseline 85` lists what is nearing its cap — run it before adding to an existing file |
+| File size | `linecop` (Rust 500, Markdown 200; 250 README, 300 `AGENTS.md`/`SKILL.md`/`CONTRIBUTING.md`). `linecop --baseline 85` lists what is nearing its cap — run it before adding to an existing file |
 | Copy-paste | `jscpd` (`just check-dry`) — fails on any duplicated Rust block ≥70 tokens; fix by extracting a shared helper |
 | Doc drift | `outdatty check` |
 | Fixtures | `just check-examples` — `mt check` against each example project: `examples/learn-piano/` (full config surface; feeds the docs generator and the skill's triage evals) and `examples/minimal/` (the floor config; feeds the skill's trap evals). Keep the recipe and the mmz `examples` scope in step. A fixture no gate validates rots silently |
@@ -145,6 +145,61 @@ Since nixpkgs' `rustc` ships no `llvm-tools-preview`, the dev shell exports
 `just nix-build` verifies that `nix build` succeeds in a clean sandbox (no dev
 shell, no sccache). Run it when touching `flake.nix` or `.cargo/config.toml`; it
 is called automatically by `just release`.
+
+## Signal Sweep (`just ask-refactoring`)
+
+`contrib/ask-refactoring.sh` reads the *advisory* quality signals and files a
+backlog task per finding. It is not a gate and never will be — it is the other
+half of the gates: a gate stops you when the wall is already in front of you, the
+sweep says which wall you are walking toward.
+
+```
+just ask-refactoring                    # dry: print the tasks it would file
+just ask-refactoring --write            # file them
+just ask-refactoring --baseline 85      # widen the linecop threshold (default 90)
+```
+
+Four rules the design turns on, in the order they matter:
+
+- **Only advisory signals qualify.** jscpd, outdatty, machete and clippy already
+  block a commit; a task from one of those would be a note about a wall you are
+  standing at. Today the sweep reads `linecop --format json`; `cargo-mutants`
+  and coverage are the sibling arms.
+- **One task per finding, never one per sweep.** Each is dispatched to its own
+  agent and has to carry its own scope. Test modules and production files are
+  scored and worded separately — both need a real seam decision, but an
+  already-ejected `*_tests.rs` is different work from the file it came out of,
+  and `just eject` has no second move on it.
+- **Idempotency comes from the signal, not a ledger.** Nothing records what was
+  filed. The one deliberate suppression is an override with a *written reason* in
+  the signal's own config — a `.linecop.yaml` entry, in the style the
+  `SKILL.md` / `AGENTS.md` / `CONTRIBUTING.md` ones already use. There is no
+  ignore list anywhere else, so silencing a finding always leaves a sentence
+  behind saying why.
+- **The remedy is the refactorer's call.** Split thoughtfully, or raise the limit
+  with an override that names a new sane number and the reason for it. A split
+  for its own sake is not the goal; the cap pushes back on scope growth, not on
+  accuracy.
+
+The re-run guard is `[views.ask-refactoring]` in `.mindtape/config.toml`
+(`has_tag("swept") && !terminal`). While anything the sweep filed is still open,
+the sweep refuses and names the count — one sprint of mechanical work is emptied
+before the next is filed. Every filed task carries the provenance tag `swept`
+plus one signal tag (`size`, `mutants`, `coverage`); the guard selects on `swept`
+alone, so a new signal joins it for free.
+
+Scoring is honest per finding, not a constant triple wearing a framework's
+clothes: impact rises as headroom falls, confidence is high (0.9) because linecop
+*measures* rather than guesses — 0.7 for a test module, where the remedy is
+genuinely open — and ease falls with how many lines have to find a new home. The
+formulas and their justification live in the script, next to the code that
+applies them.
+
+Adding a signal is a scoring function plus a `.mindtape/templates/sweep-*.typ`
+template, never a config change: the tags and the guard are already declared. The
+three templates share one shape, kept in step by the `sweep-templates` outdatty
+group rather than by a Typst `#import` — an import would survive into every task
+the sweep writes and bind a tracked artifact to a path outside the tasks root.
 
 ## Dependency Drift (outdatty)
 
