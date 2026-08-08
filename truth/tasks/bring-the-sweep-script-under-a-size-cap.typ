@@ -13,7 +13,11 @@
   links: related(
     "file-refactoring-tasks-from-quality-signals.typ",
   )[the script this is about],
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    8,
+  )[Shell capped at 300; one file per arm, prose moved verbatim],
 )
 
 == Summary
