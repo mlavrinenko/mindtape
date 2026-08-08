@@ -10,9 +10,48 @@ groups:
   # command teaser (tracked by the coarser cli-name group below), not this
   # group's depth — the reference material that made it a dependent here moved
   # to these pages (readme-to-www).
+  #
+  # `cli.rs` only wires the `Command` enum onto each module's `*Args` struct —
+  # it names the types, it does not declare their fields. Every flag lives in
+  # its own command module (`AddArgs` in `add.rs`, `LsArgs` in `ls.rs`, …), so a
+  # flag added or changed there previously busted no group: `cli.rs` stayed
+  # byte-identical and the docs went stale unnoticed (found when `--dedup` and
+  # `--format` landed on `mt add` and nothing here reacted). The modules below
+  # are listed explicitly rather than as a glob (e.g. `crates/mindtape-cli/src/*.rs`):
+  # the command directory interleaves each command's `*Args` module with its own
+  # helper/rendering/test siblings (`add_dedup.rs`, `add_interactive.rs`,
+  # `ls_rules.rs`, `init_wizard.rs`, `*_tests*.rs`, …) under no naming convention
+  # that separates the two (`add*.rs` alone matches five unrelated files), so a
+  # directory-wide glob would fire this group on routine internal refactors that
+  # touch no documented flag. An explicit list rots instead — a brand-new command
+  # module needs a manual add here — but `just check-doc-coverage` already closes
+  # that half of the gap (it fails naming any visible `mt` subcommand missing from
+  # `www/utils/cli-notes.typ`), so this list only has to catch the other half:
+  # a flag changing on a command already known to the docs. `cli_dump.rs`
+  # (`mt _cli`) is deliberately not one of these sources: it is hidden tooling
+  # that reflects `Cli::command()` back out for the docs generator, so it can
+  # only remove drift, never introduce it — see its own module doc.
   - name: cli-docs
     source:
       - crates/mindtape-cli/src/cli.rs
+      - crates/mindtape-cli/src/add.rs
+      - crates/mindtape-cli/src/check.rs
+      - crates/mindtape-cli/src/config_cmd.rs
+      - crates/mindtape-cli/src/eval.rs
+      - crates/mindtape-cli/src/find.rs
+      - crates/mindtape-cli/src/flip.rs
+      - crates/mindtape-cli/src/go.rs
+      - crates/mindtape-cli/src/graph.rs
+      - crates/mindtape-cli/src/import.rs
+      - crates/mindtape-cli/src/init.rs
+      - crates/mindtape-cli/src/install.rs
+      - crates/mindtape-cli/src/ls.rs
+      - crates/mindtape-cli/src/preset_cmd.rs
+      - crates/mindtape-cli/src/recur.rs
+      - crates/mindtape-cli/src/review.rs
+      - crates/mindtape-cli/src/rm.rs
+      - crates/mindtape-cli/src/views.rs
+      - crates/mindtape-cli/src/worktrees.rs
       - crates/mindtape/src/lib.rs
       - crates/mindtape/src/defaults.toml
       - crates/mindtape-cli/src/presets/todone/config.toml
@@ -24,8 +63,17 @@ groups:
       - www/content/filters.typ
       - www/content/config.typ
       - www/content/quickstart.typ
+      - www/content/agents.typ
+      - www/content/concepts.typ
+      - www/content/derived-tags.typ
+      - www/content/import-export.typ
+      - www/content/priority.typ
+      - www/content/schema.typ
+      - www/content/templates.typ
       - www/utils/cli-notes.typ
       - skills/mindtape/SKILL.md
+      - skills/mindtape/evals/README.md
+      - skills/mindtape/evals/evals.json
 
   # A package change (version, dependencies, metadata) should land in the changelog.
   - name: release-notes
@@ -35,6 +83,12 @@ groups:
       - CHANGELOG.md
 
   # The Typst task DSL is mirrored in the docs and the CLI's embedded copy.
+  # concepts.typ, priority.typ, and templates.typ each carry their own
+  # `task.with(...)`/`ice(...)`/`slot(...)` snippet straight from this file's
+  # signatures (the audit that added them to cli-docs for their CLI/config
+  # facts found the same pages restate DSL shape too — dual membership, same
+  # pattern as SKILL.md below); dsl.typ stays the detailed reference the
+  # others defer to.
   - name: prelude-docs
     source:
       - lib/prelude.typ
@@ -42,6 +96,9 @@ groups:
       - README.md
       - AGENTS.md
       - www/content/dsl.typ
+      - www/content/concepts.typ
+      - www/content/priority.typ
+      - www/content/templates.typ
       - skills/mindtape/SKILL.md
 
   # The Typst library version appears in every #import example and the CLI's
