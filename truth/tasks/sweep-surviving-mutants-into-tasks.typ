@@ -11,7 +11,7 @@
   tags: ("tooling", "tests"),
   estimate: (files: 5),
   links: depends-on("file-refactoring-tasks-from-quality-signals.typ"),
-  status: proposed(2026, 8, 8),
+  status: done(2026, 8, 8),
 )
 
 == Summary
