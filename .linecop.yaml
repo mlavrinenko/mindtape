@@ -3,6 +3,25 @@ limits:
   Rust: 500
   Markdown: 200
 
+  # Shell was uncapped until `contrib/ask-refactoring.sh` reached 750 lines —
+  # the script that files tasks about oversized files was the largest source
+  # file in the repo and structurally unable to see itself, because these
+  # limits named Rust and Markdown only.
+  #
+  # Why 300: it has to bite on 750 without firing on the split that fixes it.
+  # The seam is one file per sweep arm, and the arms land at 222/217/192 with a
+  # 154-line entry script; `www/generate.sh`, the only other capped shell file,
+  # is 223. At 300 the largest of those sits at 74% — outside the band
+  # `linecop --baseline 85` reports, so the cap does not hand the next sweep a
+  # finding about the files it just created. At 250 both the largest arm and
+  # `www/generate.sh` would be reported on day one, which is a cap arriving as
+  # a surprise rather than as a decision.
+  #
+  # What it does NOT cover: linecop detects language by extension, so the
+  # shebang-only `.githooks/` hooks are invisible to it at any limit. They are
+  # ~25 lines each and the cap was never the thing keeping them short.
+  Shell: 300
+
 # README and CHANGELOG are the user-facing docs that grow a line per command /
 # change; give them headroom while agent-facing Markdown stays under the 200
 # hygiene ceiling. The changelog is append-only (all under [Unreleased] pre-1.0)

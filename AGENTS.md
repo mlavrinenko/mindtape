@@ -61,9 +61,10 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
    by shuffling tokens. Doc coverage: `just check-doc-coverage` fails naming
    any visible `mt` subcommand (from `mt _cli --json`) with no matching key in
    `www/utils/cli-notes.typ`.
-3. File size: Rust ≤500 lines, Markdown ≤200 — 250 README, 300 `AGENTS.md`,
-   `SKILL.md`, and `CONTRIBUTING.md` (enforced by `linecop`, limits in
-   `.linecop.yaml`). Split up front; `just fix-check` ejects oversized inline
+3. File size: Rust ≤500 lines, Markdown ≤200, Shell ≤300 — 250 README, 300
+   `AGENTS.md`, `SKILL.md`, and `CONTRIBUTING.md` (enforced by `linecop`, limits
+   in `.linecop.yaml`; it detects language by extension, so extensionless
+   `.githooks/` hooks are uncapped). Split up front; `just fix-check` ejects oversized inline
    tests via `ejectest`. Before adding to an existing file run `linecop
    --baseline 85`: it lists what is near its cap, so you budget the cuts up
    front instead of hitting a wall mid-edit and spending the change on
@@ -81,7 +82,8 @@ artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
    assertion (see CONTRIBUTING.md) — it is how a scoped commit stays visible
    in `git log`, never an optional annotation.
 7. `just ask-refactoring` files a backlog task per ADVISORY-signal finding
-   (`contrib/ask-refactoring.sh`; three arms — linecop file sizes at
+   (`contrib/ask-refactoring.sh` drives; one file per arm under
+   `contrib/ask-refactoring/`, named in `ARMS` — linecop file sizes at
    `--baseline`, per-file line coverage at `--coverage-floor`, which nothing
    gates since `just cover` fails on the workspace total only, and surviving
    mutants read from `mutants.out/outcomes.json`). Dry by default, `--write`

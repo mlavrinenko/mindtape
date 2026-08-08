@@ -153,6 +153,12 @@ backlog task per finding. It is not a gate and never will be — it is the other
 half of the gates: a gate stops you when the wall is already in front of you, the
 sweep says which wall you are walking toward.
 
+The entry script holds the argument parsing, the re-run guard, the shared
+`stem_for` and the driver; each arm is one file under `contrib/ask-refactoring/`
+defining `score_<arm>`/`signal_<arm>`/`emit_<arm>` next to the reasoning that
+justifies its numbers. Adding an arm is a new file there, its name in `ARMS`,
+and a template — still no config change.
+
 ```
 just ask-refactoring                    # dry: print the tasks it would file
 just ask-refactoring --write            # file them
