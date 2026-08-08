@@ -22,11 +22,11 @@
 
 == Summary
 
-On success \`mt add\` prints \`wrote \<path>\` as prose (\`add.rs:148\`). A caller that needs the written path — any script that files a task and then wants to link, open or report it — has to regex stdout. \`mt ls\` already answers this with a \`--format\` enum carrying \`json\`, \`path\` and \`path0\`; \`add\` should reuse it rather than grow a second convention.
+On success `mt add` prints `wrote <path>` as prose (`add.rs:148`). A caller that needs the written path — any script that files a task and then wants to link, open or report it — has to regex stdout. `mt ls` already answers this with a `--format` enum carrying `json`, `path` and `path0`; `add` should reuse it rather than grow a second convention.
 
 == Scope
 
-- Add \`--format \<FMT>\` to \`mt add\`, reusing the existing \`output::Format\` value enum where the variants make sense: \`text\` (today’s prose, the default), \`path\`, \`path0\`, \`json\`.
+- Add `--format <FMT>` to `mt add`, reusing the existing `output::Format` value enum where the variants make sense: `text` (today’s prose, the default), `path`, `path0`, `json`.
 - The JSON object must state what happened, not only where: the written path and whether the run wrote, skipped or suffixed — so a dedup mode is observable without parsing prose.
-- Keep \`--print\` distinct: it previews the task source, this reports the outcome.
+- Keep `--print` distinct: it previews the task source, this reports the outcome.
 - Cover each format, including the skipped and suffixed outcomes once dedup modes exist.
