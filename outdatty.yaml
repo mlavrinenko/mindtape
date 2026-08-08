@@ -167,9 +167,13 @@ groups:
   # This group is the sharing mechanism instead: a drift gate, not an import.
   #
   # sweep-size.typ is the source because it is the arm that exists and is
-  # exercised; the other two are its dependents. contrib/ask-refactoring.sh is a
-  # dependent too, and the sharper edge of the two — it fills these slots by
-  # name, so a renamed or retyped slot breaks the sweep silently.
+  # exercised; the other two are its dependents. The arm scripts under
+  # contrib/ask-refactoring/ are dependents too, and the sharper edge — each
+  # fills its template's slots by name, so a renamed or retyped slot breaks the
+  # sweep silently. They are tracked per arm rather than through the entry
+  # script: since the split, contrib/ask-refactoring.sh holds the driver and
+  # fills no slot at all, so tracking it would watch a file that cannot break
+  # this way while missing the three that can.
   #
   # One shape difference is deliberate and is not drift: sweep-size.typ carries
   # the first two Scope bullets in a `remedy` slot, the siblings write theirs
@@ -183,4 +187,6 @@ groups:
     dependents:
       - .mindtape/templates/sweep-mutants.typ
       - .mindtape/templates/sweep-coverage.typ
-      - contrib/ask-refactoring.sh
+      - contrib/ask-refactoring/size.sh
+      - contrib/ask-refactoring/coverage.sh
+      - contrib/ask-refactoring/mutants.sh
