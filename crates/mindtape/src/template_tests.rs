@@ -261,6 +261,44 @@ fn text_slot_default_lands_as_body_markup() {
     assert_eq!(out, "== Scope\n\n- TODO\n");
 }
 
+/// Round trip: a code span in, a code span out, no backslashes — the opt-out
+/// `text` slots deferred (`add-a-typst-slot-kind-for-pre-formatted-markup.typ`).
+#[test]
+fn markup_typst_slot_splices_without_escaping() {
+    let src = "== Example\n\n#slot(\"body\", kind: \"typst\")\n";
+    let out = fill(
+        src,
+        &values(&[(
+            "body",
+            RawValue::Str("See `mt add` for details.".to_owned()),
+        )]),
+    )
+    .unwrap();
+    assert_eq!(out, "== Example\n\nSee `mt add` for details.\n");
+    assert!(!out.contains('\\'), "typst slot must not escape: {out}");
+}
+
+#[test]
+fn typst_slot_default_lands_as_body_markup() {
+    let src = "== Scope\n\n#slot(\"scope\", kind: \"typst\", default: \"- `TODO`\")\n";
+    let out = fill(src, &BTreeMap::new()).unwrap();
+    assert_eq!(out, "== Scope\n\n- `TODO`\n");
+}
+
+#[test]
+fn typst_slot_unparseable_markup_names_the_slot() {
+    let err = fill_wrapped(
+        r#"body: slot("body", kind: "typst")"#,
+        &[("body", RawValue::Str("#unclosed[".to_owned()))],
+    )
+    .unwrap_err();
+    assert!(
+        matches!(&err, FillError::BadMarkup { slot, .. } if slot == "body"),
+        "{err:?}"
+    );
+    assert!(err.to_string().contains("\"body\""), "{err}");
+}
+
 #[test]
 fn multiple_slots_in_nested_calls() {
     let out = fill_wrapped(
@@ -282,7 +320,14 @@ fn slotkind_as_str_returns_correct_spelling() {
     assert_eq!(SlotKind::Date.as_str(), "date");
     assert_eq!(SlotKind::List.as_str(), "list");
     assert_eq!(SlotKind::Text.as_str(), "text");
+    assert_eq!(SlotKind::Typst.as_str(), "typst");
     assert_eq!(SlotKind::Choice.as_str(), "choice");
+}
+
+#[test]
+fn slotkind_parse_typst_returns_typst() {
+    // Catches deletion of the "typst" arm in SlotKind::parse.
+    assert_eq!(SlotKind::parse("typst"), Some(SlotKind::Typst));
 }
 
 #[test]

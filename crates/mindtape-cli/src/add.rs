@@ -205,13 +205,21 @@ fn resolve_outcome(
 
 /// Escape every fill value that lands in Typst markup, leaving the rest alone.
 ///
-/// Only a `text` slot splices its value verbatim into the document (see
-/// [`mindtape::SlotKind::Text`]); every other kind renders as a self-delimiting
-/// literal — a quoted string, a number, a `("a",)` list, an `on(y, m, d)` call —
-/// where the escaping backslashes would be data, not syntax, and would read back
-/// as themselves. So the decision is per kind, and escaping is applied here,
+/// Only a `text` slot is escaped (see [`mindtape::SlotKind::Text`]); every
+/// other kind renders as a self-delimiting literal — a quoted string, a
+/// number, a `("a",)` list, an `on(y, m, d)` call — where the escaping
+/// backslashes would be data, not syntax, and would read back as themselves.
+///
+/// `typst` ([`mindtape::SlotKind::Typst`]) also splices its value verbatim
+/// into markup, like `text`, but is deliberately left out of this escape
+/// pass. The choice belongs to the *template*, not the *caller*: a template
+/// is checked-in repo content, so `kind: "typst"` is the template author
+/// asserting that whatever fills this slot — `--set`, `-f`, the environment,
+/// none of which this function can tell apart — is trusted to be markup, not
+/// prose that merely contains markup characters. Escaping is applied here,
 /// downstream of every value source: `-f`/`--set`, the positional title, the
-/// `MINDTAPE_ADD_*` environment, and the `--edit` buffer all converge on this map.
+/// `MINDTAPE_ADD_*` environment, and the `--edit` buffer all converge on this
+/// map, so the trust decision is enforced in exactly one place.
 ///
 /// The escaped copy feeds [`fill`] only; the caller keeps the authored values so
 /// the filename slug is minted from the text the user actually typed.

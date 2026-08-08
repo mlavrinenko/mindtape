@@ -188,6 +188,70 @@ fn markup_hazards_in_slot_values_round_trip_literally() {
     assert_eq!(support::at(&task, "/links/0/note").as_str(), Some(hazards));
 }
 
+/// A `typst`-kind slot splices its value verbatim: a code span filled through
+/// `--set` survives as a code span, not an escaped literal. Round trip: a
+/// code span in, a code span out, no backslashes — the opt-out `text` slots
+/// deferred (`add-a-typst-slot-kind-for-pre-formatted-markup.typ`).
+#[test]
+fn typst_slot_splices_markup_without_escaping() {
+    let dir = support::project_with_typst_slot_template();
+
+    support::mt(dir.path())
+        .args(["add", "--name", "typst-body", "--set", "title=Typst body"])
+        .args(["--set", "summary=See `mt add` for details."])
+        .assert()
+        .success();
+
+    let written = std::fs::read_to_string(dir.path().join("tasks/typst-body.typ")).unwrap();
+    assert!(
+        written.contains("See `mt add` for details."),
+        "the code span must survive verbatim: {written}"
+    );
+    assert!(
+        !written.contains(r"\`"),
+        "a typst slot must not be markup-escaped: {written}"
+    );
+
+    // Reading back proves it landed as live markup, not inert text: `mt eval`
+    // sees the same code span in the harvested body.
+    support::mt(dir.path()).arg("check").assert().success();
+}
+
+/// A `typst` slot's filler is trusted to be markup, not guaranteed to be
+/// *valid* markup: a value that fails to parse must fail `mt add` itself,
+/// before anything is written, with an error naming the slot rather than a
+/// bare compiler diagnostic about a file the caller never hand-wrote.
+#[test]
+fn typst_slot_unparseable_markup_fails_naming_the_slot_before_writing() {
+    let dir = support::project_with_typst_slot_template();
+
+    let output = support::mt(dir.path())
+        .args(["add", "--name", "broken-typst", "--set", "title=Broken"])
+        .args(["--set", "summary=#unclosed["])
+        .assert()
+        .failure()
+        .get_output()
+        .clone();
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("\"summary\""),
+        "the error must name the slot: {stderr}"
+    );
+    assert!(
+        !dir.path().join("tasks/broken-typst.typ").exists(),
+        "a typst slot's markup is checked before anything is written"
+    );
+}
+
+/// `--describe=json` must report `typst` as the kind so a caller can tell
+/// which slots accept raw markup before building a payload.
+#[test]
+fn describe_reports_typst_kind() {
+    let dir = support::project_with_typst_slot_template();
+    assert_eq!(support::describe_slot_kind(dir.path(), "summary"), "typst");
+}
+
 /// A template that cannot evaluate no matter how its slots are filled, so the
 /// post-write verification always fails.
 const BROKEN_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *

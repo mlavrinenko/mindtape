@@ -17,6 +17,11 @@ use typst_edit::{Call, Edit, apply, find_calls};
 
 use crate::date::parse_ymd;
 
+/// Fill-time validation for `typst`-kind slots; split out to keep this file
+/// under its line budget. See [`markup::render_typst`].
+#[path = "template_markup.rs"]
+mod markup;
+
 /// What kind of value a slot holds; drives how a filled value renders to Typst.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SlotKind {
@@ -38,7 +43,18 @@ pub enum SlotKind {
     /// An array of strings, e.g. `("a", "b",)`.
     List,
     /// Raw markup spliced into the body; a markup `#slot(…)` drops its `#`.
+    /// Escaped on the way in by the CLI (`add.rs::markup_safe`, via
+    /// [`crate::status_value::escape_markup`]) since a filled value may be
+    /// caller-supplied and untrusted. Compare [`Self::Typst`].
     Text,
+    /// Raw Typst markup spliced into the body, same as [`Self::Text`] but
+    /// never escaped. The trust decision belongs to the template author, not
+    /// the caller: a template is checked-in repo content, a `--set`/`-f`/
+    /// environment value is not, so `kind: "typst"` is the template's own
+    /// assertion that this slot's filler is safe to splice verbatim. A filled
+    /// value that fails to parse as Typst markup is rejected at [`fill`]
+    /// time, naming the slot — never written to disk.
+    Typst,
     /// A string constrained to the slot's `choices`.
     Choice,
 }
@@ -56,6 +72,7 @@ impl SlotKind {
             Self::Date => "date",
             Self::List => "list",
             Self::Text => "text",
+            Self::Typst => "typst",
             Self::Choice => "choice",
         }
     }
@@ -70,10 +87,21 @@ impl SlotKind {
             "date" => Self::Date,
             "list" => Self::List,
             "text" => Self::Text,
+            "typst" => Self::Typst,
             "choice" => Self::Choice,
             _ => return None,
         };
         Some(kind)
+    }
+
+    /// Whether this kind splices its value straight into body markup —
+    /// dropping a `#slot(...)` call's leading `#` and unquoting a
+    /// string-literal default, rather than rendering as a self-delimiting
+    /// Typst literal (a quoted string, a number, a list). `text` and `typst`
+    /// both hold body content; they differ only in whether the value is
+    /// escaped first, a decision made upstream of this crate.
+    fn splices_verbatim(self) -> bool {
+        matches!(self, Self::Text | Self::Typst)
     }
 }
 
@@ -165,6 +193,13 @@ pub enum FillError {
         /// The rejected value.
         value: String,
     },
+    /// A `typst` slot's value failed to parse as Typst markup.
+    BadMarkup {
+        /// Slot name.
+        slot: String,
+        /// The parser's own message for the first error.
+        message: String,
+    },
     /// The rewrite changeset was invalid (overlap / bounds).
     Edit(String),
 }
@@ -196,6 +231,9 @@ impl fmt::Display for FillError {
             ),
             Self::BadDate { slot, value } => {
                 write!(f, "slot {slot:?} value {value:?} is not a YYYY-MM-DD date")
+            }
+            Self::BadMarkup { slot, message } => {
+                write!(f, "slot {slot:?} is not valid Typst markup: {message}")
             }
             Self::Edit(message) => write!(f, "rewrite failed: {message}"),
         }
@@ -250,11 +288,12 @@ fn arg_raw<'a>(source: &'a str, arg: &typst_edit::Arg) -> &'a str {
     source.get(arg.value_range.clone()).unwrap_or_default()
 }
 
-/// The replacement for an unfilled slot: a `text` slot's string-literal default
-/// becomes unquoted body markup; every other default splices verbatim.
+/// The replacement for an unfilled slot: a `text`/`typst` slot's
+/// string-literal default becomes unquoted body markup; every other default
+/// splices verbatim.
 fn default_replacement(spec: &SlotSpec) -> Option<String> {
     let raw = spec.default.as_ref()?;
-    if spec.kind == SlotKind::Text
+    if spec.kind.splices_verbatim()
         && let Some(text) = &spec.default_string
     {
         return Some(text.clone());
@@ -321,11 +360,11 @@ pub fn fill(source: &str, values: &BTreeMap<String, RawValue>) -> Result<String,
     apply(source, edits).map_err(|err| FillError::Edit(err.to_string()))
 }
 
-/// The byte range to replace for a slot. A markup `text` slot extends over the
-/// leading `#` so the spliced body markup stands alone.
+/// The byte range to replace for a slot. A markup `text`/`typst` slot extends
+/// over the leading `#` so the spliced body markup stands alone.
 fn edit_range(spec: &SlotSpec, source: &str) -> Range<usize> {
     if spec.markup
-        && spec.kind == SlotKind::Text
+        && spec.kind.splices_verbatim()
         && let Some(prev) = spec.range.start.checked_sub(1)
         && source.as_bytes().get(prev) == Some(&b'#')
     {
@@ -338,6 +377,7 @@ fn render(spec: &SlotSpec, value: &RawValue) -> Result<String, FillError> {
     match spec.kind {
         SlotKind::String => Ok(quote(&coerce_str(spec, value)?)),
         SlotKind::Text => coerce_str(spec, value),
+        SlotKind::Typst => markup::render_typst(spec, value),
         SlotKind::Choice => render_choice(spec, value),
         SlotKind::Int => Ok(coerce_int(spec, value)?.to_string()),
         SlotKind::Float | SlotKind::Real => Ok(render_float(coerce_float(spec, value)?)),

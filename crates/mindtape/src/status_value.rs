@@ -70,6 +70,12 @@ pub fn status_value(name: &str, ymd: (i32, u8, u8), note: Option<&str>) -> Strin
 /// prose either fails to load (`create-*star*` opens an unclosed strong) or,
 /// worse, loads with the markup silently applied — `<a>` and `@at` evaluate to
 /// a label and a reference and vanish from the value read back.
+///
+/// `add`'s `typst`-kind slots ([`crate::template::SlotKind::Typst`]) are the
+/// one deliberate exception, not an oversight: escaping is a default for
+/// values of unknown trust, and a `typst` slot is the *template*, not this
+/// function, asserting its filler is trusted markup — see
+/// `add.rs::markup_safe`.
 #[must_use]
 pub fn escape_markup(text: &str) -> String {
     let mut out = String::with_capacity(text.len());
