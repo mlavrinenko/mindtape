@@ -10,7 +10,11 @@
   difficulty: 6,
   estimate: (files: 4),
   tags: ("swept", "size", "tests"),
-  status: proposed(2026, 8, 10),
+  status: done(
+    2026,
+    8,
+    10,
+  )[split the comparator cluster into sort\_compare\_tests.rs (500->213 + 305); all 19 tests moved, gates green],
 )
 
 == Summary
