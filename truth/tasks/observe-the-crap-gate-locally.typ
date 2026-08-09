@@ -16,7 +16,11 @@
     + related(
       "ratchet-the-crap-gate-against-a-baseline.typ",
     )[the other half of the same recipe change],
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    9,
+  )[check-crap skips loudly, check-full is the correct arm],
 )
 
 == Summary

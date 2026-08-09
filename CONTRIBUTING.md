@@ -93,6 +93,7 @@ with violations. Key restrictions:
 | Fixtures | `just check-examples` — `mt check` against each example project: `examples/learn-piano/` (full config surface; feeds the docs generator and the skill's triage evals) and `examples/minimal/` (the floor config; feeds the skill's trap evals). Keep the recipe and the mmz `examples` scope in step. A fixture no gate validates rots silently |
 | Doc coverage | `just check-doc-coverage` — set-differences `mt _cli --json`'s reflected command names against `www/utils/cli-notes.typ`'s dict keys; fails naming any visible subcommand with no matching entry, so a new verb can no longer ship silently undocumented |
 | Docs site | `just docs-check` — `docs-gen` first captures live `mt` output (`www/generate.sh`), then `tola build`, then `pagefind` indexes the built HTML for client-side search, then `tola validate` checks links + assets |
+| CRAP (partial) | `just check-crap` — runs the CRAP gate when `target/coverage/lcov.info` is fresh, and otherwise SKIPS LOUDLY, saying so and exiting 0. Editing any source stales the lcov, so on the commits that matter it skips; it catches the free case only. `just check-full` is the arm that is always correct |
 
 `MINDTAPE_GATE_SCOPE=<reason> git commit` skips only the pre-commit freshness
 assertion (`mmz --is-fresh --tag gate`); `typstyle --check truth/tasks` and
@@ -101,6 +102,11 @@ message carries a matching `Gate-Scope: <reason>` trailer — a scoped commit
 never reads like a fully gated one in `git log`. Legitimate for a delegated
 worktree whose full aggregate runs at integration; never legitimate to dodge a
 gate that is actually red.
+
+`just check-full` is `just check` plus `just cover` and `just crap` — the pre-PR
+run, always correct about coverage and CRAP, at the price of an instrumented
+rebuild and a full suite pass. Use it before opening a PR; use plain
+`just check` while iterating.
 
 Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-llvm-cov`,
 which merges each process's profraw — so the subprocess-based e2e tests credit
