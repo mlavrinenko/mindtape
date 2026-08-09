@@ -76,6 +76,7 @@ pub mod template;
 pub mod test_support;
 pub mod validate;
 mod validate_links;
+mod validate_priority;
 mod validate_recur;
 pub mod worktrees;
 
