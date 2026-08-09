@@ -10,7 +10,11 @@
   difficulty: 4,
   estimate: (files: 3),
   tags: ("swept", "size", "tests"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    10,
+  )[file 471 -> 267 + 214 (retire suite carved out); linecop no longer names it],
 )
 
 == Summary
