@@ -147,6 +147,21 @@ fn do_skip_advances_due_and_decrements_count() {
     );
 }
 
+#[test]
+fn do_skip_dry_run_writes_nothing() {
+    // Real do_skip with dry_run=true prints the preview and returns early.
+    // The if dry_run → false mutant falls through and rewrites the file;
+    // the → true mutant hijacks the write path (pinned by the test above).
+    let (_dir, project, task, abs, recur) = advance_fixture();
+
+    let original = std::fs::read_to_string(&abs).unwrap();
+
+    do_skip(&project, &task, &abs, &recur, true).unwrap();
+
+    let content = std::fs::read_to_string(&abs).unwrap();
+    assert_eq!(original, content, "dry-run must not write the file");
+}
+
 // === do_advance (survivor 2) ================================================
 // Pins replace do_advance -> Result<()> with Ok(()).
 
