@@ -18,6 +18,40 @@ fn validate_rejects_framework_exceeding_scale() {
 }
 
 #[test]
+fn validate_rejects_framework_with_both_score_and_categories() {
+    // validate: the (Some(_), false) match arm — score and categories are
+    // mutually exclusive shapes.
+    let config = parse_config(
+        "[tasks.priority]\nframework = \"x\"\n\
+         [tasks.priority.frameworks.x]\nscore = \"1\"\n\
+         [tasks.priority.frameworks.x.inputs.flag]\ntype = \"bool\"\n\
+         [[tasks.priority.frameworks.x.category]]\nwhen = \"flag\"\nscore = 5\n",
+    )
+    .unwrap();
+    let problems = config.validate().unwrap_err();
+    assert!(
+        problems.contains("declares both a score and categories"),
+        "got: {problems}"
+    );
+}
+
+#[test]
+fn validate_rejects_framework_with_neither_score_nor_categories() {
+    // validate: the (None, true) match arm — an input-only framework cannot
+    // score at all.
+    let config = parse_config(
+        "[tasks.priority]\nframework = \"x\"\n\
+         [tasks.priority.frameworks.x.inputs.v]\ntype = \"number\"\nmin = 1\nmax = 10\n",
+    )
+    .unwrap();
+    let problems = config.validate().unwrap_err();
+    assert!(
+        problems.contains("declares neither a score nor categories"),
+        "got: {problems}"
+    );
+}
+
+#[test]
 fn validate_rejects_non_exhaustive_categories() {
     let config = parse_config(
         "[tasks.priority]\nframework = \"partial\"\n\
