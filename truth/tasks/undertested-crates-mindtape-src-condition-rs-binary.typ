@@ -10,7 +10,11 @@
   difficulty: 2,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[agent 3: hand-built wrong-arity tree test, binary CC 5 cov 100%; mutants: 38 tested, 0 missed],
 )
 
 == Summary
