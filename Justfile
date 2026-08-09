@@ -268,6 +268,16 @@ cover:
 # as phantom 0%-covered (see `just check-rrule`, which covers it under the
 # `rrule` feature — CI runs it as a separate job, per
 # truth/tasks/run-the-rrule-feature-gate-in-ci.typ).
+#
+# `ls_interactive/tui.rs` is excluded because every function in it drives the
+# real terminal — raw mode, the alternate screen, keyboard-enhancement
+# negotiation — so an in-process test would either hijack the developer's own
+# screen or assert nothing without a TTY. It is pinned end-to-end under a
+# pseudo-terminal instead (tests/interactive_e2e.rs: quitting_restores_the_terminal
+# pins the enter/leave byte sequences; opening_a_task_suspends_the_tui_and_runs_the_editor
+# pins the suspend path). The one uncovered branch left (the `enhanced`
+# keyboard-enhancement path in enter_screen) depends on a terminal negotiation
+# no test can force.
 # Why target/coverage/lcov.info is unusable, or empty output when it is fine.
 # One implementation, two callers with opposite policies: `crap` treats a stale
 # lcov as a hard error, `check-crap` treats it as a reason to skip. Two staleness
@@ -333,7 +343,7 @@ check-full: check cover crap
 # reason TYPST_FMT_PATHS exists: two hand-maintained copies drift, and a baseline
 # minted over a different file set than the gate scores would report every
 # difference between the two lists as a regression.
-CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/*_tests.rs --exclude **/tests.rs"
+CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/ls_interactive/tui.rs --exclude **/*_tests.rs --exclude **/tests.rs"
 
 # Same list for a third consumer that is not a `just` recipe: the sweep's
 # undertested arm (contrib/ask-refactoring/undertested.sh) runs `cargo crap` for
