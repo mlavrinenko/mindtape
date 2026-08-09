@@ -16,7 +16,11 @@
     + related(
       "observe-the-crap-gate-locally.typ",
     )[the other half of the same recipe change],
-  status: proposed(2026, 8, 8),
+  status: done(
+    2026,
+    8,
+    9,
+  )[baseline minted green; regression detection verified by tampering],
 )
 
 == Summary

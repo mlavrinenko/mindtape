@@ -310,6 +310,12 @@ check-crap:
 # `target/` on the maintainer's machine; a cold run and CI are both larger.
 check-full: check cover crap
 
+# What `crap` and `crap-baseline` both exclude. One list, two consumers, for the
+# reason TYPST_FMT_PATHS exists: two hand-maintained copies drift, and a baseline
+# minted over a different file set than the gate scores would report every
+# difference between the two lists as a regression.
+CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/*_tests.rs --exclude **/tests.rs"
+
 crap:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -320,10 +326,44 @@ crap:
         echo "  (a source the lcov never saw scores as 0% covered, not as unknown)" >&2
         exit 1
     fi
-    cargo crap --lcov "$lcov" --workspace \
-        --exclude '**/main.rs' --exclude '**/recur_rrule.rs' \
-        --exclude '**/*_tests.rs' --exclude '**/tests.rs' \
+    # Two checks, run separately so each failure prints its own readable table.
+    # Folding them into one invocation does not work: `--min 30` is a PRINT
+    # filter, so a regression from 5 to 12 would fail the gate with no visible
+    # row, and baseline mode hides unchanged rows, so a function sitting above
+    # the threshold without moving would fail with no visible row either. Each
+    # mode needs the other's rows suppressed to stay legible.
+    #
+    # 1. Absolute: no function above 30, whatever its history.
+    cargo crap --lcov "$lcov" --workspace {{ CRAP_EXCLUDES }} \
         --threshold 30 --min 30 --fail-above
+    # 2. Ratchet: no function worse than the committed baseline, at any level.
+    # This is the half that sees the 12 complex-and-undertested functions scoring
+    # below 15 that no advisory band could separate from noise
+    # (truth/tasks/sweep-crap-scores-into-tasks.typ measured why). It never reads
+    # the absolute score, only the delta, so the degeneracy that killed the band
+    # — CRAP collapsing to cyclomatic complexity above ~90% coverage — does not
+    # apply: a rise still means complexity went up or coverage went down.
+    cargo crap --lcov "$lcov" --workspace {{ CRAP_EXCLUDES }} \
+        --baseline crap-baseline.json --fail-regression
+
+# Re-mint crap-baseline.json after a DELIBERATE complexity increase. Run it in
+# the same commit as the change that justifies it, so the diff shows the new
+# number next to the reason for it — a ratchet with no documented release valve
+# gets bypassed instead of refreshed.
+#
+# Mint only against a green gate: the baseline records today as acceptable, so
+# minting while something is red freezes the red. `just crap` runs first here for
+# exactly that reason, and its failure aborts the mint.
+#
+# `--sort file` is the documented stable ordering for a committed baseline;
+# `--sort crap` reshuffles the whole file whenever any score moves, which turns
+# every diff into noise.
+crap-baseline: crap
+    #!/usr/bin/env bash
+    set -eo pipefail
+    cargo crap --lcov target/coverage/lcov.info --workspace {{ CRAP_EXCLUDES }} \
+        --format json --sort file --output crap-baseline.json
+    echo "crap-baseline.json re-minted — commit it with the change that justifies it"
 
 # Pre-PR mutation check — the daily driver (see CONTRIBUTING.md "Testing").
 # Sweeps only mutants touched by this branch's diff against main, so it needs
