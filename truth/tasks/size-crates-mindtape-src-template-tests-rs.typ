@@ -10,7 +10,11 @@
   difficulty: 5,
   estimate: (files: 3),
   tags: ("swept", "size", "tests"),
-  status: proposed(2026, 8, 10),
+  status: done(
+    2026,
+    8,
+    10,
+  )[split template\_tests.rs 488->117, new template\_fill\_tests.rs 384 (discovery vs fill seam, mod tests\_fill wired in template.rs); all 45 tests intact; linecop --baseline 90 no longer names it],
 )
 
 == Summary
