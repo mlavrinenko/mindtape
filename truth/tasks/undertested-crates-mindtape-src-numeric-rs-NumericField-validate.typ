@@ -10,7 +10,11 @@
   difficulty: 2,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[inverted-scale (min>=max) arm pinned (CC 6, 100% cov); mutants -f numeric.rs: 76 caught, 9 unviable, 0 missed],
 )
 
 == Summary
