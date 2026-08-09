@@ -7,7 +7,7 @@
 
 use super::tests::{config, task};
 use super::{cmp_field_value, cmp_num_asc, priority_value, sort_by_specs};
-use crate::config::Config;
+use crate::config::{Config, parse_config};
 use crate::fields::FieldValue;
 use crate::model::Task;
 use crate::numeric::NumValue;
@@ -63,6 +63,81 @@ fn sort_by_specs_orders_by_difficulty_ascending() {
     assert_eq!(
         ids_by(vec![hard, easy], "difficulty", &cfg),
         vec!["d-easy", "d-hard"]
+    );
+}
+
+// Priority/difficulty resolve *labels* through the configured bands to a scale
+// point, so `--sort` orders by that numeric point. A label's lexicographic
+// order can disagree with its numeric order — the wedge that pins the
+// `compare_field` arms: `high`(6) sorts after `low`(1) numerically but before
+// it as a string, so deleting the arm (falling back to the raw label string
+// compare) flips the order.
+
+/// Bands whose labels sort opposite to their numeric order in both fields:
+/// `low`/`soft` = 1 and `high`/`hard` = 6 — each "bigger" label is
+/// lexicographically the *smaller* string.
+fn inverted_label_config() -> Config {
+    parse_config(
+        r#"
+[[tasks.status]]
+value = "wip"
+
+[tasks.priority]
+min = 1
+max = 10
+[[tasks.priority.bands]]
+label = "low"
+min = 1
+max = 5
+[[tasks.priority.bands]]
+label = "high"
+min = 6
+max = 10
+
+[tasks.difficulty]
+min = 1
+max = 10
+anchors = []
+[[tasks.difficulty.bands]]
+label = "soft"
+min = 1
+max = 5
+[[tasks.difficulty.bands]]
+label = "hard"
+min = 6
+max = 10
+"#,
+    )
+    .unwrap()
+}
+
+#[test]
+fn sort_by_specs_orders_priority_labels_numerically() {
+    let cfg = inverted_label_config();
+    let mut high = bare_task("p-high");
+    high.priority = Some(NumValue::Label("high".to_owned()));
+    let mut low = bare_task("p-low");
+    low.priority = Some(NumValue::Label("low".to_owned()));
+    // `high` = 6 > `low` = 1 numerically, but `high` < `low` as strings: the
+    // numeric arm sorts low first, a deleted arm would sort high first.
+    assert_eq!(
+        ids_by(vec![high, low], "priority", &cfg),
+        vec!["p-low", "p-high"]
+    );
+}
+
+#[test]
+fn sort_by_specs_orders_difficulty_labels_numerically() {
+    let cfg = inverted_label_config();
+    let mut hard = bare_task("d-hard");
+    hard.difficulty = Some(NumValue::Label("hard".to_owned()));
+    let mut soft = bare_task("d-soft");
+    soft.difficulty = Some(NumValue::Label("soft".to_owned()));
+    // `hard` = 6 > `soft` = 1 numerically, but `hard` < `soft` as strings: the
+    // numeric arm sorts soft first, a deleted arm would sort hard first.
+    assert_eq!(
+        ids_by(vec![hard, soft], "difficulty", &cfg),
+        vec!["d-soft", "d-hard"]
     );
 }
 
