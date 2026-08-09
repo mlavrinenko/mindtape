@@ -420,4 +420,67 @@ mod tests {
         let result = super::run(&super::WorktreesArgs { json: false });
         assert!(result.is_err(), "malformed config should cause error");
     }
+
+    #[test]
+    fn run_without_config_names_the_config_dir() {
+        if std::env::var(CHILD).is_err() {
+            let (_dir, out) = run_child("run_without_config_names_the_config_dir", None);
+            assert_child_ok(&out);
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            assert!(
+                stdout.contains("no worktrees configured"),
+                "missing empty-registry message: {stdout}"
+            );
+            assert!(
+                stdout.contains("add [[worktrees]] entries to"),
+                "missing config-dir hint: {stdout}"
+            );
+            return;
+        }
+        super::run(&super::WorktreesArgs { json: false }).unwrap();
+    }
+
+    #[test]
+    fn run_without_resolvable_config_home_prints_fallback() {
+        if std::env::var(CHILD).is_err() {
+            let out = std::process::Command::new(std::env::current_exe().unwrap())
+                .env(mindtape::CONFIG_HOME_ENV, "")
+                .env(CHILD, "1")
+                .args([
+                    "run_without_resolvable_config_home_prints_fallback",
+                    "--nocapture",
+                ])
+                .output()
+                .unwrap();
+            assert_child_ok(&out);
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            assert!(
+                stdout.contains("could not resolve the app config directory"),
+                "missing fallback message: {stdout}"
+            );
+            return;
+        }
+        super::run(&super::WorktreesArgs { json: false }).unwrap();
+    }
+
+    #[test]
+    fn run_lists_aliases_and_bases() {
+        if std::env::var(CHILD).is_err() {
+            let cfg = "[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n\
+                       [[worktrees]]\nbase = \"/wt\"\n";
+            let (_dir, out) = run_child("run_lists_aliases_and_bases", Some(cfg));
+            assert_child_ok(&out);
+            let stdout = String::from_utf8_lossy(&out.stdout);
+            assert!(
+                stdout.contains("@sn → /wt/sn"),
+                "missing alias line: {stdout}"
+            );
+            assert!(
+                stdout.contains("@<name> → /wt/<name>"),
+                "missing base line: {stdout}"
+            );
+            return;
+        }
+        super::run(&super::WorktreesArgs { json: false }).unwrap();
+    }
 }
