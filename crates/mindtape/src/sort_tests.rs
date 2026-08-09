@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{
-    cmp_field_value, default_order, default_order_with, priority_value, sort_by_specs,
+    cmp_field_value, cmp_num_asc, default_order, default_order_with, priority_value, sort_by_specs,
     status_index, validate_sort_spec,
 };
 use crate::config::{Config, parse_config};
@@ -489,4 +489,12 @@ fn cmp_field_value_ties_mismatched_variants() {
         cmp_field_value(&FieldValue::Str("a".to_owned()), &FieldValue::Num(1.0)),
         Ordering::Equal
     );
+}
+#[test]
+fn cmp_num_asc_orders_missing_last() {
+    use std::cmp::Ordering;
+    assert_eq!(cmp_num_asc(None, None), Ordering::Equal);
+    assert_eq!(cmp_num_asc(Some(1.0), None), Ordering::Less);
+    assert_eq!(cmp_num_asc(None, Some(1.0)), Ordering::Greater);
+    assert_eq!(cmp_num_asc(Some(2.0), Some(8.0)), Ordering::Less);
 }
