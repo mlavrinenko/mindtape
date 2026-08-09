@@ -371,6 +371,23 @@ fn missing_field_is_unequal_to_every_literal() {
     assert!(!hit("priority >= 0", &task));
 }
 
+#[test]
+fn binary_op_with_wrong_arity_is_invalid_at_match_time() {
+    // `evalexpr`'s parser always builds `&&`/`||` with exactly two operands,
+    // so the wrong-arity arm of `binary` is only reachable on a hand-built
+    // tree, the same route the match-time errors take that `parse` cannot see.
+    // Mutate a parsed tree: drop one of `And`'s operands.
+    let mut tree = evalexpr::build_operator_tree("true && true").unwrap();
+    let mut and = tree.children_mut().pop().unwrap();
+    and.children_mut().pop();
+    let filter = Filter { tree: Some(and) };
+    let err = filter.matches(&sample(), &Config::default()).unwrap_err();
+    assert!(
+        matches!(&err, super::FilterError::Invalid(msg) if msg.contains("binary op needs two operands")),
+        "{err:?}"
+    );
+}
+
 // The rare arms of the `function` dispatcher live in a child module so they
 // share `sample()` / `hit()` without duplicating them (and keep this file
 // under the linecop limit).
