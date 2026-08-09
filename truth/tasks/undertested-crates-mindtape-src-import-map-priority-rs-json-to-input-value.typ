@@ -10,7 +10,7 @@
   difficulty: 4,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(2026, 8, 9),
 )
 
 == Summary
