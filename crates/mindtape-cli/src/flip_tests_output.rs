@@ -145,6 +145,63 @@ fn terminal_flip_prints_recur_notice() {
     run_with(&project, &flip_args("done", &["g"])).unwrap();
 }
 
+/// A legend whose entries carry glyphs renders them in the `--list` output —
+/// the `Some(glyph)` arm of `list_verbs`' entry loop, which the floor-free
+/// `LEGEND_CONFIG` never reaches.
+#[test]
+fn list_prints_glyph_verbs() {
+    if std::env::var(FLIP_CHILD_ENV).is_err() {
+        let o = child_output("list_prints_glyph_verbs");
+        assert!(
+            o.status.success(),
+            "child: {}",
+            String::from_utf8_lossy(&o.stderr)
+        );
+        let out = String::from_utf8_lossy(&o.stdout);
+        assert!(
+            out.contains("🔨 wip") && out.contains("✅ done"),
+            "expected glyph-prefixed legend verbs in --list output: {out}"
+        );
+        return;
+    }
+    let glyph_cfg = "[[tasks.status]]\nvalue = \"wip\"\nglyph = \"🔨\"\n\
+        [[tasks.status]]\nvalue = \"done\"\nglyph = \"✅\"\nterminal = true\n";
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[], glyph_cfg);
+    let mut args = flip_args("done", &[]);
+    args.status = None;
+    args.list = true;
+    run_with(&project, &args).unwrap();
+}
+
+/// An explicitly emptied legend (`status = []`, which unconstrains the floored
+/// section) hits `list_verbs`' no-legend branch: the hint, not a verb listing.
+#[test]
+fn list_empty_legend_prints_hint() {
+    if std::env::var(FLIP_CHILD_ENV).is_err() {
+        let o = child_output("list_empty_legend_prints_hint");
+        assert!(
+            o.status.success(),
+            "child: {}",
+            String::from_utf8_lossy(&o.stderr)
+        );
+        let out = String::from_utf8_lossy(&o.stdout);
+        assert!(
+            out.contains("no status legend configured")
+                && out.contains("shortcut verbs are unavailable"),
+            "expected the empty-legend hint in --list output: {out}"
+        );
+        return;
+    }
+    let empty_cfg = "[tasks]\nstatus = []\n";
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[], empty_cfg);
+    let mut args = flip_args("done", &[]);
+    args.status = None;
+    args.list = true;
+    run_with(&project, &args).unwrap();
+}
+
 #[test]
 fn list_prints_verbs() {
     if std::env::var(FLIP_CHILD_ENV).is_err() {
