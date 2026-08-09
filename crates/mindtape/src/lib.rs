@@ -31,6 +31,7 @@ mod config_rm;
 mod config_roots;
 mod config_schema;
 mod config_status;
+mod config_tasks;
 mod config_views;
 mod date;
 mod date_pin;
