@@ -50,15 +50,20 @@ cd "$repo"
 
 BASELINE=90
 COVERAGE_FLOOR=88
+CC_FLOOR=5
+FN_COVERAGE_FLOOR=80
 WRITE=0
 
 usage() {
     cat <<'EOF'
 usage: just ask-refactoring [--write] [--baseline PCT] [--coverage-floor PCT]
+                            [--cc-floor N] [--fn-coverage-floor PCT]
 
-  --write               file the tasks (default: print what would be filed)
-  --baseline PCT        report files at or above PCT% of their linecop limit [90]
-  --coverage-floor PCT  report files below PCT% line coverage [88]
+  --write                  file the tasks (default: print what would be filed)
+  --baseline PCT           report files at or above PCT% of their linecop limit [90]
+  --coverage-floor PCT     report files below PCT% line coverage [88]
+  --cc-floor N             undertested arm: floor on cyclomatic complexity [5]
+  --fn-coverage-floor PCT  undertested arm: report functions below PCT% [80]
 
 env:
   MT   path to the `mt` binary (default: build and use ./target/debug/mt)
@@ -72,6 +77,10 @@ while [ $# -gt 0 ]; do
         --baseline=*) BASELINE="${1#*=}"; shift ;;
         --coverage-floor) COVERAGE_FLOOR="$2"; shift 2 ;;
         --coverage-floor=*) COVERAGE_FLOOR="${1#*=}"; shift ;;
+        --cc-floor) CC_FLOOR="$2"; shift 2 ;;
+        --cc-floor=*) CC_FLOOR="${1#*=}"; shift ;;
+        --fn-coverage-floor) FN_COVERAGE_FLOOR="$2"; shift 2 ;;
+        --fn-coverage-floor=*) FN_COVERAGE_FLOOR="${1#*=}"; shift ;;
         -h | --help) usage; exit 0 ;;
         *) echo "ask-refactoring: unknown argument: $1" >&2; usage >&2; exit 2 ;;
     esac
@@ -120,7 +129,13 @@ stem_for() { printf '%s-%s\n' "$1" "$(printf '%s' "$2" | tr -c 'A-Za-z0-9' '-' |
 #
 # Adding an arm is: a new file here, its name in `ARMS`, and a template. Still
 # no config change.
-ARMS=(size coverage mutants)
+#
+# `undertested` follows `coverage`: it defers to that arm (it stays quiet about a
+# function whose file the file-shaped arm already reports) and borrows its
+# freshness check and production-file predicate, so the pair reads in the order
+# the deferral runs. Sourcing is a separate loop, so nothing here depends on the
+# order for definitions — only the output does.
+ARMS=(size coverage undertested mutants)
 
 for arm in "${ARMS[@]}"; do
     # shellcheck source=/dev/null
@@ -147,7 +162,8 @@ for arm in "${ARMS[@]}"; do
 done
 
 if [ "$findings" -eq 0 ]; then
-    echo "ask-refactoring: no findings at --baseline $BASELINE / --coverage-floor $COVERAGE_FLOOR"
+    echo "ask-refactoring: no findings at --baseline $BASELINE / --coverage-floor $COVERAGE_FLOOR" \
+        "/ --cc-floor $CC_FLOOR --fn-coverage-floor $FN_COVERAGE_FLOOR"
 elif [ "$WRITE" -eq 0 ]; then
     echo "ask-refactoring: $findings finding(s); re-run with --write to file them"
 else

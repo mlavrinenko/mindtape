@@ -316,6 +316,14 @@ check-full: check cover crap
 # difference between the two lists as a regression.
 CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/*_tests.rs --exclude **/tests.rs"
 
+# Same list for a third consumer that is not a `just` recipe: the sweep's
+# undertested arm (contrib/ask-refactoring/undertested.sh) runs `cargo crap` for
+# its per-function complexity and coverage, and must score the same file set the
+# gate does or it files findings about `main.rs` and a feature-gated stub. A
+# recipe rather than a copy, for the reason above.
+_crap-excludes:
+    @echo '{{ CRAP_EXCLUDES }}'
+
 crap:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -488,18 +496,20 @@ check-file-size:
     linecop
 
 # File backlog tasks from the ADVISORY quality signals — the ones that predict
-# mechanical work instead of blocking on it. Three arms: linecop (file size),
+# mechanical work instead of blocking on it. Four arms: linecop (file size),
 # per-file line coverage — which nothing gates, since `just cover` fails on the
-# workspace total only — and surviving mutants. Each arm is a scoring function
-# plus a `.mindtape/templates/sweep-*.typ` template, not a config change.
+# workspace total only — per-function complexity against coverage, and surviving
+# mutants. Each arm is a scoring function plus a `.mindtape/templates/sweep-*.typ`
+# template, not a config change.
 #
 # Dry by default: it prints, via `mt add --print`, the exact tasks it would
 # file. `just ask-refactoring --write` files them. Each arm has its own
 # threshold — `--baseline PCT` for linecop (default 90), `--coverage-floor PCT`
-# for coverage (default 88) — never one flag shared across arms, which would
-# read as one band and move two. The mutants arm has no threshold: it reads what
-# `just mutants-diff` last wrote, and skips loudly when that is missing or stale
-# rather than run a sweep that takes hours.
+# for coverage (default 88), `--cc-floor N` / `--fn-coverage-floor PCT` for the
+# undertested arm (5 and 80, a conjunction and so two edges) — never one flag
+# shared across arms, which would read as one band and move two. The mutants arm
+# has no threshold: it reads what `just mutants-diff` last wrote, and skips
+# loudly when that is missing or stale rather than run a sweep that takes hours.
 #
 # It refuses to run while `mt ls @ask-refactoring` is non-empty, so one sprint
 # of mechanical work is emptied before the next is filed.
