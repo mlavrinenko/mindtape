@@ -19,6 +19,15 @@ fn number(min: f64, max: f64) -> Input {
     }
 }
 
+fn boolean() -> Input {
+    Input {
+        kind: InputKind::Bool,
+        min: None,
+        max: None,
+        values: Vec::new(),
+    }
+}
+
 const ICE: &str = "round(impact * confidence * ease * 0.09)";
 
 #[test]
@@ -149,4 +158,62 @@ fn score_interval_arithmetic_division() {
     let iv = score_interval("a / b", &inputs).unwrap();
     assert_eq!(iv.lo, 0.5);
     assert_eq!(iv.hi, 4.0);
+}
+
+#[test]
+fn score_interval_handles_bool_input() {
+    // A bool-kind input spans [0, 1] — the same interval a `when` predicate
+    // treats it as truthy/falsy over.
+    let inputs = BTreeMap::from([("urgent".to_owned(), boolean())]);
+    let iv = score_interval("urgent", &inputs).unwrap();
+    assert_eq!(iv.lo, 0.0);
+    assert_eq!(iv.hi, 1.0);
+}
+
+#[test]
+fn score_interval_rejects_non_arithmetic_operator() {
+    // A comparison is a valid `when` predicate but not a valid `score`
+    // formula — interval arithmetic has no meaning for `==`.
+    let inputs = BTreeMap::from([
+        ("a".to_owned(), number(1.0, 10.0)),
+        ("b".to_owned(), number(1.0, 10.0)),
+    ]);
+    let err = score_interval("a == b", &inputs).unwrap_err();
+    assert!(err.contains("unsupported operator"), "{err}");
+}
+
+#[test]
+fn score_interval_rejects_non_numeric_constant() {
+    let err = score_interval("\"oops\"", &BTreeMap::new()).unwrap_err();
+    assert!(err.contains("non-numeric constant"), "{err}");
+}
+
+#[test]
+fn score_interval_rejects_wrong_function_arity() {
+    // `round` takes exactly one argument; with none, `evalexpr` still wraps
+    // the (empty) argument list in one `RootNode` child, which then has zero
+    // children of its own where interval evaluation expects exactly one —
+    // the same "wrapped argument list" shape `condition.rs`'s `no_args`
+    // relies on for the zero-arg case, but unwanted here.
+    let inputs = BTreeMap::from([("a".to_owned(), number(1.0, 10.0))]);
+    let err = score_interval("round()", &inputs).unwrap_err();
+    assert!(err.contains("malformed score expression"), "{err}");
+}
+
+#[test]
+fn score_interval_handles_floor_and_ceil() {
+    let inputs = BTreeMap::from([("a".to_owned(), number(1.2, 4.7))]);
+    let floor = score_interval("floor(a)", &inputs).unwrap();
+    assert_eq!(floor.lo, 1.0);
+    assert_eq!(floor.hi, 4.0);
+    let ceil = score_interval("ceil(a)", &inputs).unwrap();
+    assert_eq!(ceil.lo, 2.0);
+    assert_eq!(ceil.hi, 5.0);
+}
+
+#[test]
+fn score_interval_rejects_unsupported_function() {
+    let inputs = BTreeMap::from([("a".to_owned(), number(1.0, 10.0))]);
+    let err = score_interval("sqrt(a)", &inputs).unwrap_err();
+    assert!(err.contains("unsupported function"), "{err}");
 }
