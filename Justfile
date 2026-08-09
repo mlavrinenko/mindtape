@@ -28,7 +28,8 @@ check:
         "just mmz check-examples" \
         "just mmz check-doc-coverage" \
         "just mmz docs-check" \
-        "just mmz fmt-fixture-check"
+        "just mmz fmt-fixture-check" \
+        "just check-crap"
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`. The
 # double hop makes mmz the cache identity (rule name `just <recipe>` in
@@ -248,17 +249,74 @@ cover:
 # as phantom 0%-covered (see `just check-rrule`, which covers it under the
 # `rrule` feature — CI runs it as a separate job, per
 # truth/tasks/run-the-rrule-feature-gate-in-ci.typ).
-crap:
+# Why target/coverage/lcov.info is unusable, or empty output when it is fine.
+# One implementation, two callers with opposite policies: `crap` treats a stale
+# lcov as a hard error, `check-crap` treats it as a reason to skip. Two staleness
+# tests that could disagree would be worse than none, which is why this is a
+# recipe and not a copied five-line block.
+#
+# It reports through stdout and always exits 0, rather than failing. A non-zero
+# exit here would make `just` print its own `error: Recipe ... failed` line into
+# the skip path, so a deliberate skip would read on screen exactly like a broken
+# gate — the one thing this arm exists to keep distinguishable.
+_lcov-stale-reason:
     #!/usr/bin/env bash
     set -eo pipefail
     lcov=target/coverage/lcov.info
     if [ ! -f "$lcov" ]; then
-        echo "just crap: $lcov is missing — run \`just cover\` first" >&2
-        exit 1
+        echo "$lcov is missing"
+        exit 0
     fi
     newer=$(find crates -name '*.rs' -newer "$lcov" -print -quit)
     if [ -n "$newer" ]; then
-        echo "just crap: $lcov predates $newer — run \`just cover\` first" >&2
+        echo "$lcov predates $newer"
+    fi
+
+# The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
+# fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0.
+#
+# Why it exists: `just crap` is CI-enforced and used to be absent from
+# `just check`, so nothing local ever evaluated it and a green `just check`
+# carried no information about it. That is how it sat red on main
+# (truth/tasks/cover-confirm-retire-and-unred-the-crap-gate.typ).
+#
+# Be honest about what this buys. Editing any source stales the lcov, so on
+# precisely the commits that matter this arm SKIPS. It catches the free case — a
+# check run after a recent `just cover` — and nothing more. `just check-full` is
+# the arm that is always correct; this one is the cheap partial. It follows the
+# signal sweep's mutants arm: absent and clean must never look alike, so it says
+# which of the two it is every time.
+#
+# Deliberately NOT wrapped in mmz, unlike every other arm of `just check`. mmz
+# memoizes on file scopes and the lcov is a build artifact in none of them, so a
+# memoized verdict would survive the lcov going fresh and this arm would skip
+# forever on unchanged sources — a gate that caches "I could not measure" is
+# worse than one that is simply absent.
+check-crap:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    reason=$(just _lcov-stale-reason)
+    if [ -z "$reason" ]; then
+        just crap
+    else
+        echo "check-crap: SKIPPED — ${reason}" >&2
+        echo "  the CRAP gate was NOT evaluated. \`just cover\` refreshes it;" >&2
+        echo "  \`just check-full\` runs the whole thing. CI evaluates it either way." >&2
+    fi
+
+# `just check` plus the two gates it cannot afford to run every time. This is
+# the pre-PR run: it is always correct about coverage and CRAP, at the price of
+# an instrumented rebuild and a full suite pass. Measured at ~21s with a hot
+# `target/` on the maintainer's machine; a cold run and CI are both larger.
+check-full: check cover crap
+
+crap:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    lcov=target/coverage/lcov.info
+    reason=$(just _lcov-stale-reason)
+    if [ -n "$reason" ]; then
+        echo "just crap: $reason — run \`just cover\` first" >&2
         echo "  (a source the lcov never saw scores as 0% covered, not as unknown)" >&2
         exit 1
     fi
