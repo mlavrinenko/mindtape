@@ -257,3 +257,7 @@ fn cmp_opt_asc<T: Ord>(left: Option<T>, right: Option<T>) -> Ordering {
 #[cfg(test)]
 #[path = "sort_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "sort_compare_tests.rs"]
+mod tests_compare;
