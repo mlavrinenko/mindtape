@@ -10,7 +10,11 @@
   difficulty: 2,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[glyph and empty-legend arms pinned (CC 5, cov 100%); mutants 33 caught, 0 missed in fn],
 )
 
 == Summary
