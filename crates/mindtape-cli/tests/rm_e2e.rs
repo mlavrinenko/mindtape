@@ -109,6 +109,19 @@ fn mt(dir: &Path) -> assert_cmd::Command {
     support::mt(dir)
 }
 
+/// Scaffold a retire-strategy project (the `gone`/`live` pair) under `config`
+/// and run `mt rm --dry-run -y gone`, asserting success and the "strategy:
+/// retire" preamble every retire dry-run test shares. Callers chain their own
+/// further `.stdout(...)` checks onto the returned `Assert`.
+fn retire_dry_run(dir: &Path, config: &str) -> assert_cmd::assert::Assert {
+    scaffold_config(dir, config, &[("gone.typ", REMOVED), ("live.typ", LIVE)]);
+    mt(dir)
+        .args(["rm", "--dry-run", "-y", "gone"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("strategy: retire"))
+}
+
 #[test]
 fn rm_retargets_every_links_edge_and_check_stays_green() {
     let dir = tempfile::tempdir().unwrap();
@@ -255,20 +268,9 @@ fn rm_unlink_strips_inbound_edges_and_deletes_without_git() {
 #[test]
 fn rm_retire_flips_to_first_terminal_status_without_git() {
     let dir = tempfile::tempdir().unwrap();
-    scaffold_config(
-        dir.path(),
-        RETIRE_CONFIG,
-        &[("gone.typ", REMOVED), ("live.typ", LIVE)],
-    );
-
-    mt(dir.path())
-        .args(["rm", "--dry-run", "-y", "gone"])
-        .assert()
-        .success()
-        .stdout(predicates::str::contains("strategy: retire"))
-        .stdout(predicates::str::contains(
-            "would retire 1 task(s) (status → done)",
-        ));
+    retire_dry_run(dir.path(), RETIRE_CONFIG).stdout(predicates::str::contains(
+        "would retire 1 task(s) (status → done)",
+    ));
     assert!(dir.path().join("tasks/gone.typ").exists());
 
     // No git anywhere: the retire report's commit hint must not print either.
@@ -411,6 +413,44 @@ fn rm_retire_prompt_names_the_archive_move_and_a_piped_yes_applies_it() {
 
     assert!(dir.path().join("tasks/.archive/gone.typ").exists());
     mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_retire_dry_run_previews_the_archive_move_and_writes_nothing() {
+    // `report_retire_plan`'s `rename` branch (the "would move" preview, plus
+    // the per-file `old → new` mapping) is reachable only when a dry-run
+    // retire is combined with `[retire] rename` — every other retire test
+    // above either has no rename configured or applies for real. Neither
+    // `rm_retire_flips_to_first_terminal_status_without_git` (no rename) nor
+    // `rm_retire_moves_the_file_into_the_archive_folder` (rename, but applied)
+    // exercises it.
+    let dir = tempfile::tempdir().unwrap();
+    retire_dry_run(dir.path(), RETIRE_ARCHIVE_CONFIG)
+        .stdout(predicates::str::contains(
+            "would retire 1 task(s) (status → done):",
+        ))
+        .stdout(predicates::str::contains(
+            "would move 1 task(s) into .archive/:",
+        ))
+        .stdout(predicates::str::contains(
+            "tasks/gone.typ → tasks/.archive/gone.typ",
+        ))
+        .stdout(predicates::str::contains(
+            "would rewrite 3 link(s) in 1 file(s):",
+        ))
+        .stdout(predicates::str::contains("dry run: nothing written"));
+
+    // A preview writes nothing: the file stays put, non-terminal, and the
+    // survivor's edges still point at the untouched original path.
+    assert!(dir.path().join("tasks/gone.typ").exists());
+    assert!(!dir.path().join("tasks/.archive/gone.typ").exists());
+    let gone = std::fs::read_to_string(dir.path().join("tasks/gone.typ")).unwrap();
+    assert!(gone.contains("wip("), "flipped despite dry-run:\n{gone}");
+    let live = std::fs::read_to_string(dir.path().join("tasks/live.typ")).unwrap();
+    assert!(
+        live.contains("\"gone.typ\""),
+        "retargeted despite dry-run:\n{live}"
+    );
 }
 
 #[test]

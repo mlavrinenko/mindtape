@@ -36,8 +36,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, bail};
 use clap::Args;
 use mindtape::{
-    Filter, Readiness, RmStrategy, Task, is_history_pointer, link_target_spans, normalize_link,
-    select,
+    Readiness, RmStrategy, Task, is_history_pointer, link_target_spans, normalize_link,
 };
 use typst_cleanup::{Artifact, Policy, Swhid, Target};
 // Re-exported so `rm`'s presentation and tests refer to one plan type.
@@ -50,6 +49,14 @@ pub(crate) use rm_gitless::{
     report_retire_applied, report_retire_plan, resolve_strategy, retire_apply, retire_plan,
     unlink_plan,
 };
+
+#[path = "rm_select.rs"]
+mod select;
+use select::select_targets;
+
+#[path = "rm_report.rs"]
+mod report;
+use report::{confirm, report_applied, report_plan};
 
 use crate::{git, util};
 
@@ -231,56 +238,6 @@ fn finalize(removal: &Removal, args: &RmArgs, strategy: Option<&str>, root: &Pat
     Ok(())
 }
 
-/// Resolve the optional `target` into the set of task ids to retire.
-///
-/// A `Some` target resolves reference-first (path, handle, slug — slug wins on a
-/// bare token), falling back to a filter parse + [`select`] when it is not a
-/// reference. A `None` target applies the configured `[rm] default_filter`.
-///
-/// # Errors
-/// Returns an error if the reference does not resolve and the input is not a
-/// valid filter, or if the filter references an unknown field.
-fn select_targets(
-    project: &util::Project,
-    target: Option<&str>,
-    readiness: &Readiness,
-) -> Result<HashSet<String>> {
-    let tasks = match target {
-        Some(spec) => match util::resolve_task(project, spec) {
-            Ok((task, _)) => vec![task],
-            // Not a reference: try a filter. Surface the reference error when the
-            // input does not even parse as one (a mistyped ref, not a filter).
-            Err(ref_err) => {
-                let filter = Filter::parse(spec).map_err(|_| ref_err)?;
-                filter_tasks(project, &filter, readiness)?
-            }
-        },
-        None => match project.config.rm.default_filter.as_deref() {
-            Some(expr) => {
-                let filter = Filter::parse(expr)
-                    .with_context(|| format!("parse [rm] default_filter {expr:?}"))?;
-                filter_tasks(project, &filter, readiness)?
-            }
-            None => Vec::new(),
-        },
-    };
-    Ok(tasks.into_iter().map(|task| task.id).collect())
-}
-
-/// Select every task matching `filter` over the full loaded set.
-fn filter_tasks(
-    project: &util::Project,
-    filter: &Filter,
-    readiness: &Readiness,
-) -> Result<Vec<Task>> {
-    Ok(select(
-        project.outcome.tasks.clone(),
-        Some(filter),
-        &project.config,
-        readiness,
-    )?)
-}
-
 /// Compute the removal plan over `tasks`: partition the `eligible` ids (to
 /// retire) from survivors (to scan) and delegate to [`typst_cleanup::plan`],
 /// which mints a tombstone per retired task and retargets every survivor's
@@ -424,69 +381,6 @@ fn check_eligible_files(
         problems.len(),
         lines.join("\n")
     );
-}
-
-fn confirm(plan: &Plan) -> Result<bool> {
-    use std::io::Write;
-    let mut stderr = std::io::stderr();
-    let rewrites = if plan.rewrites.is_empty() {
-        String::new()
-    } else {
-        format!(" and rewrite links in {} file(s)", plan.rewrites.len())
-    };
-    writeln!(
-        stderr,
-        "rm will delete {} task(s){rewrites}:",
-        plan.deletions.len()
-    )?;
-    for deletion in &plan.deletions {
-        writeln!(stderr, "  - {}", deletion.rel.display())?;
-    }
-    rm_gitless::confirm_answer()
-}
-
-/// List each deletion in `plan` as an indented bullet on stdout.
-fn print_deletions(plan: &Plan) {
-    for deletion in &plan.deletions {
-        println!("  - {}", deletion.rel.display());
-    }
-}
-
-/// Total inbound links rewritten across `plan`'s rewrites.
-fn rewrite_link_count(plan: &Plan) -> usize {
-    plan.rewrites.iter().map(|r| r.links).sum()
-}
-
-/// Print what the plan would do (used by `--dry-run`).
-fn report_plan(plan: &Plan) {
-    println!("would delete {} task(s):", plan.deletions.len());
-    print_deletions(plan);
-    if !plan.rewrites.is_empty() {
-        println!(
-            "would rewrite {} link(s) in {} file(s):",
-            rewrite_link_count(plan),
-            plan.rewrites.len()
-        );
-        for rewrite in &plan.rewrites {
-            println!("  - {}", rewrite.rel.display());
-        }
-    }
-}
-
-/// Print what the plan just did, and remind the user to review and commit —
-/// the hint only when `root` sits inside a git repository; there is nothing
-/// to commit and no tool to name otherwise.
-fn report_applied(plan: &Plan, root: &Path) {
-    println!("deleted {} task(s):", plan.deletions.len());
-    print_deletions(plan);
-    if !plan.rewrites.is_empty() {
-        println!(
-            "rewrote {} link(s) in {} file(s)",
-            rewrite_link_count(plan),
-            plan.rewrites.len()
-        );
-    }
-    rm_gitless::print_commit_hint(root);
 }
 
 #[cfg(test)]

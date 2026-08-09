@@ -23,7 +23,7 @@ groups:
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
       crates/mindtape-cli/src/recur.rs: b9c552d3e218d4c2eb79ade93d3de100586f2bb05120ac46e1e546273eb69ed1
       crates/mindtape-cli/src/review.rs: 4f8665cb1bed211885387936cafd8082ba2a0d8a885eb749ea5069d6c07355d8
-      crates/mindtape-cli/src/rm.rs: 0b8d42c02a6cd898d4f35e7c8f8a777930e6a9dac6689d4c1950928aab87cd1d
+      crates/mindtape-cli/src/rm.rs: 43fdacf034671da2cb5cf8cd790165242d5b7c4249ad654ecd7fcc1146a2443f
       crates/mindtape-cli/src/views.rs: 95572b4071e2103a8e2140ad182f36fa6ae99ba9fd74ef118893ea54a76fc378
       crates/mindtape-cli/src/worktrees.rs: ee6a699022423b6305392775ae743efadbd62984205df03256a432fec2c586cf
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e

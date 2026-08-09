@@ -7,9 +7,9 @@ use mindtape::test_support::bare_task;
 use mindtape::{Config, LoadOutcome, Readiness, Status, Task, parse_config};
 use swhid_mint::test_support::repo_with;
 
+use super::report::rewrite_link_count;
 use super::{
-    Plan, apply, check_eligible_files, inbound_references, plain_delete_plan, plan,
-    rewrite_link_count, select_targets,
+    Plan, apply, check_eligible_files, inbound_references, plain_delete_plan, plan, select_targets,
 };
 use crate::git;
 use crate::util::Project;
