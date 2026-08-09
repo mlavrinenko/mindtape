@@ -6,7 +6,7 @@ use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifi
 use mindtape::test_support::bare_task;
 use mindtape::{Config, Readiness, Task};
 
-use super::{Intent, State, classify, collect_first, footer, guard_with, run};
+use super::{Action, Intent, State, apply, classify, collect_first, footer, guard_with, run};
 use crate::ls::{LsArgs, LsFlags};
 use crate::output::OutputFormat;
 use crate::util;
@@ -84,6 +84,65 @@ fn classify_unknown_is_ignored() {
     assert_eq!(
         classify(key(KeyCode::Up, KeyModifiers::NONE)),
         Intent::Ignore
+    );
+}
+
+#[test]
+fn apply_digit_appends_to_buffer() {
+    let mut state = state(3, "");
+    assert_eq!(apply(&mut state, Intent::Digit('2')), Action::Continue);
+    assert_eq!(state.buffer, "2");
+}
+
+#[test]
+fn apply_del_last_pops_buffer() {
+    let mut state = state(3, "12");
+    assert_eq!(apply(&mut state, Intent::DelLast), Action::Continue);
+    assert_eq!(state.buffer, "1");
+}
+
+#[test]
+fn apply_clear_empties_buffer() {
+    let mut state = state(3, "12");
+    assert_eq!(apply(&mut state, Intent::Clear), Action::Continue);
+    assert_eq!(state.buffer, "");
+}
+
+#[test]
+fn apply_refresh_and_quit_are_passthrough() {
+    assert_eq!(apply(&mut state(3, ""), Intent::Refresh), Action::Refresh);
+    assert_eq!(apply(&mut state(3, ""), Intent::Quit), Action::Quit);
+}
+
+#[test]
+fn apply_ignore_keeps_buffer() {
+    let mut state = state(3, "1");
+    assert_eq!(apply(&mut state, Intent::Ignore), Action::Continue);
+    assert_eq!(state.buffer, "1");
+}
+
+#[test]
+fn apply_open_first_targets_the_first_highlighted() {
+    // Buffer "3" selects ordinal 3 → index 2.
+    assert_eq!(
+        apply(&mut state(10, "3"), Intent::OpenFirst),
+        Action::Open(vec![2])
+    );
+}
+
+#[test]
+fn apply_open_first_without_a_match_opens_nothing() {
+    assert_eq!(
+        apply(&mut state(3, "9"), Intent::OpenFirst),
+        Action::Open(vec![])
+    );
+}
+
+#[test]
+fn apply_open_all_targets_every_task() {
+    assert_eq!(
+        apply(&mut state(3, ""), Intent::OpenAll),
+        Action::Open(vec![0, 1, 2])
     );
 }
 

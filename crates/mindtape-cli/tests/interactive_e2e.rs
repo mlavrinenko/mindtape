@@ -59,11 +59,14 @@ const TASK_TITLE: &str = "E2E Task";
 
 /// Spawn `mt ls --interactive <suffix>` inside `dir` under `script`, which
 /// hands it a pseudo-terminal. Stdin is piped so the caller can send keys.
-fn spawn_interactive(dir: &std::path::Path, suffix: &str) -> Child {
+/// `with_editor` sets `$EDITOR` to echo `SUSPEND_MARKER` (and clears `$VISUAL`,
+/// which would otherwise inherit a real editor and hang the session) — the
+/// shape the opening tests need.
+fn spawn_interactive(dir: &std::path::Path, suffix: &str, with_editor: bool) -> Child {
     let mt_bin = PathBuf::from(env!("CARGO_BIN_EXE_mt"));
     let mt_str = mt_bin.to_string_lossy().to_string();
     let mut script = Command::new("script");
-    support::isolate(&mut script, dir)
+    let mut cmd = support::isolate(&mut script, dir)
         .args([
             "-q",
             "-e",
@@ -74,25 +77,56 @@ fn spawn_interactive(dir: &std::path::Path, suffix: &str) -> Child {
         .current_dir(dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("script must be available (util-linux)")
+        .stderr(Stdio::piped());
+    if with_editor {
+        cmd = cmd
+            .env_remove("VISUAL")
+            .env("EDITOR", "echo SUSPEND_MARKER");
+    }
+    cmd.spawn().expect("script must be available (util-linux)")
+}
+
+/// Drive one interactive session under a pseudo-terminal: send `keys` (already
+/// shaped for raw mode), then `q` to quit, and assert a clean exit within
+/// [`WAIT_TIMEOUT`]. Returns the session's stdout.
+///
+/// Shared rather than inlined per test: the spawn-and-drive sequence is
+/// twenty lines of pty plumbing that says nothing about what any individual
+/// test is asserting, and two copies of it drifting apart is exactly the bug
+/// these tests exist to catch.
+fn drive_session(dir: &std::path::Path, suffix: &str, keys: &[u8]) -> String {
+    let mut child = spawn_interactive(dir, suffix, true);
+    let mut stdin = child.stdin.take().expect("stdin pipe must be available");
+    std::thread::sleep(Duration::from_millis(300));
+    stdin.write_all(keys).unwrap();
+    std::thread::sleep(Duration::from_millis(400));
+    stdin.write_all(b"q\n").unwrap();
+    drop(stdin);
+
+    let (output, timed_out) = wait_with_timeout(child);
+    assert!(!timed_out, "mt did not exit within {WAIT_TIMEOUT:?}");
+    assert!(
+        output.status.success(),
+        "mt should exit successfully (status: {:?})",
+        output.status.code(),
+    );
+    String::from_utf8_lossy(&output.stdout).into_owned()
 }
 
 #[test]
 fn interactive_mode_renders_tasks_and_quits() {
     let dir = support::project_with_task(TASK_TITLE);
-    let mut child = spawn_interactive(dir.path(), "");
+    let mut child = spawn_interactive(dir.path(), "", false);
 
     // Give mt a moment to start the event loop and draw the table.
     std::thread::sleep(Duration::from_millis(300));
 
-    // Send 'q' to quit interactive mode.
+    // Space reloads the view (the Refresh action); 'q' quits.
     child
         .stdin
         .take()
         .expect("stdin pipe must be available")
-        .write_all(b"q\n")
+        .write_all(b" q\n")
         .unwrap();
 
     let (output, timed_out) = wait_with_timeout(child);
@@ -121,7 +155,7 @@ fn interactive_mode_renders_tasks_and_quits() {
 #[test]
 fn interactive_refuses_piped_stdin_when_stdout_is_a_tty() {
     let dir = support::project_with_task(TASK_TITLE);
-    let mut child = spawn_interactive(dir.path(), " < /dev/null");
+    let mut child = spawn_interactive(dir.path(), " < /dev/null", false);
 
     // crossterm reads keys from /dev/tty, not stdin, so a `&&` guard would
     // enter the event loop regardless of the redirect. Send 'q' so that case
@@ -171,7 +205,7 @@ const CURSOR_SHOW: &str = "\x1b[?25h";
 #[test]
 fn quitting_restores_the_terminal() {
     let dir = support::project_with_task(TASK_TITLE);
-    let mut child = spawn_interactive(dir.path(), "");
+    let mut child = spawn_interactive(dir.path(), "", false);
 
     std::thread::sleep(Duration::from_millis(300));
     child
@@ -216,57 +250,40 @@ fn quitting_restores_the_terminal() {
 /// a `Tui` by hand and drove the developer's own terminal into raw mode.
 #[test]
 fn opening_a_task_suspends_the_tui_and_runs_the_editor() {
-    let stdout = select_first_task_and_open(&[]);
+    let stdout = select_first_task_and_open("");
     assert!(
         stdout.contains("SUSPEND_MARKER"),
         "the editor closure must run inside suspend\nstdout:\n{stdout}"
     );
 }
 
-/// Drive one interactive session under a pseudo-terminal: select the first
-/// task, press Enter to open it, then quit. `extra_args` is appended to
-/// `ls --interactive` (e.g. `["--hyperlinks", "always"]`). Returns the
-/// session's stdout, having already asserted it exited within
-/// [`WAIT_TIMEOUT`].
-///
-/// Shared rather than inlined per test: the spawn-and-drive sequence is
-/// twenty lines of pty plumbing that says nothing about what any individual
-/// test is asserting, and two copies of it drifting apart is exactly the bug
-/// these tests exist to catch.
-fn select_first_task_and_open(extra_args: &[&str]) -> String {
+/// Enter with no task selected must not spawn the editor: `collect_first`
+/// returns nothing for a buffer that matches no ordinal, `open` no-ops on an
+/// empty index set, and the loop keeps running. The transcript has no
+/// `SUSPEND_MARKER` and the session still quits cleanly on 'q'.
+#[test]
+fn enter_without_a_match_opens_nothing() {
     let dir = support::project_with_task(TASK_TITLE);
-    let mt_bin = PathBuf::from(env!("CARGO_BIN_EXE_mt"));
-    let mut command = format!("{} ls --interactive", mt_bin.to_string_lossy());
-    for arg in extra_args {
-        command.push(' ');
-        command.push_str(arg);
-    }
-    let mut script = Command::new("script");
-    let mut child = support::isolate(&mut script, dir.path())
-        .args(["-q", "-e", "-c", &command, "/dev/null"])
-        .current_dir(dir.path())
-        // `resolve_editor` prefers $VISUAL over $EDITOR, so an inherited
-        // $VISUAL (a real editor, often with --wait) would hang this test on
-        // the developer's machine while passing in a bare CI environment.
-        .env_remove("VISUAL")
-        .env("EDITOR", "echo SUSPEND_MARKER")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("script must be available (util-linux)");
+    // "9" matches no ordinal (the project has one task), then Enter.
+    let stdout = drive_session(dir.path(), "", b"9\r");
+    assert!(
+        !stdout.contains("SUSPEND_MARKER"),
+        "a no-match Enter must not spawn the editor\nstdout:\n{stdout}"
+    );
+    assert!(
+        stdout.contains(TASK_TITLE),
+        "the table must still be rendered\nstdout:\n{stdout}"
+    );
+}
 
-    let mut stdin = child.stdin.take().expect("stdin pipe must be available");
-    std::thread::sleep(Duration::from_millis(300));
+/// Drive one interactive session under a pseudo-terminal: select the first
+/// task, press Enter to open it, then quit. `suffix` is appended to
+/// `ls --interactive` (e.g. ` --hyperlinks always`). Returns the session's
+/// stdout, having already asserted it exited cleanly within [`WAIT_TIMEOUT`].
+fn select_first_task_and_open(suffix: &str) -> String {
+    let dir = support::project_with_task(TASK_TITLE);
     // Select the first task, then Enter (CR in raw mode) to open it.
-    stdin.write_all(b"1\r").unwrap();
-    std::thread::sleep(Duration::from_millis(400));
-    stdin.write_all(b"q\n").unwrap();
-    drop(stdin);
-
-    let (output, timed_out) = wait_with_timeout(child);
-    assert!(!timed_out, "mt did not exit within {WAIT_TIMEOUT:?}");
-    String::from_utf8_lossy(&output.stdout).into_owned()
+    drive_session(dir.path(), suffix, b"1\r")
 }
 
 /// The risk `truth/tasks/hyperlink-the-handle-column.typ` exists to guard:
@@ -279,7 +296,7 @@ fn select_first_task_and_open(extra_args: &[&str]) -> String {
 /// `--hyperlinks always` added.
 #[test]
 fn opening_a_task_still_works_with_hyperlinks_active() {
-    let stdout = select_first_task_and_open(&["--hyperlinks", "always"]);
+    let stdout = select_first_task_and_open(" --hyperlinks always");
     assert!(
         stdout.contains("\u{1b}]8;;file://"),
         "the # column must actually carry the OSC 8 wrap in this run\nstdout:\n{stdout}"

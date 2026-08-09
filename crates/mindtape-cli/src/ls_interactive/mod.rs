@@ -133,9 +133,12 @@ impl State {
 }
 
 /// What the loop does after one key.
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Action {
     /// Stay; redraw from the current state.
     Continue,
+    /// Open the tasks at these indices in the editor (empty means no-op).
+    Open(Vec<usize>),
     /// Re-open the project and recompute the view.
     Refresh,
     /// Leave interactive mode.
@@ -186,34 +189,44 @@ fn event_loop(state: &mut State, tui: &Tui, args: &LsArgs) -> Result<()> {
         if key.kind != KeyEventKind::Press {
             continue;
         }
-        match apply(state, tui, classify(key))? {
+        match apply(state, classify(key)) {
             Action::Continue => {}
+            Action::Open(indices) => handle_open(state, tui, &indices, args)?,
             Action::Refresh => state.refresh(args)?,
             Action::Quit => return Ok(()),
         }
     }
 }
 
-/// Apply an intent: mutate the buffer, or open tasks / refresh.
-fn apply(state: &mut State, tui: &Tui, intent: Intent) -> Result<Action> {
+/// Open the tasks at `indices`, then reload the view if anything opened.
+fn handle_open(state: &mut State, tui: &Tui, indices: &[usize], args: &LsArgs) -> Result<()> {
+    if open(state, tui, indices)? {
+        state.refresh(args)?;
+    }
+    Ok(())
+}
+
+/// Apply an intent: mutate the buffer, or resolve which tasks the open
+/// intents target. Pure in the `Tui` — the caller does the actual opening.
+fn apply(state: &mut State, intent: Intent) -> Action {
     match intent {
         Intent::Digit(c) => {
             state.buffer.push(c);
-            Ok(Action::Continue)
+            Action::Continue
         }
         Intent::DelLast => {
             state.buffer.pop();
-            Ok(Action::Continue)
+            Action::Continue
         }
         Intent::Clear => {
             state.buffer.clear();
-            Ok(Action::Continue)
+            Action::Continue
         }
-        Intent::OpenFirst => open(state, tui, &collect_first(state)),
-        Intent::OpenAll => open(state, tui, &(0..state.tasks.len()).collect::<Vec<_>>()),
-        Intent::Refresh => Ok(Action::Refresh),
-        Intent::Quit => Ok(Action::Quit),
-        Intent::Ignore => Ok(Action::Continue),
+        Intent::OpenFirst => Action::Open(collect_first(state)),
+        Intent::OpenAll => Action::Open((0..state.tasks.len()).collect()),
+        Intent::Refresh => Action::Refresh,
+        Intent::Quit => Action::Quit,
+        Intent::Ignore => Action::Continue,
     }
 }
 
@@ -222,11 +235,12 @@ fn collect_first(state: &State) -> Vec<usize> {
 }
 
 /// Open the tasks at `indices` in the editor, suspending the TUI around the
-/// spawn so a terminal editor gets a clean screen. No indices is a no-op.
-fn open(state: &State, tui: &Tui, indices: &[usize]) -> Result<Action> {
+/// spawn so a terminal editor gets a clean screen. No indices is a no-op
+/// that reports `false`.
+fn open(state: &State, tui: &Tui, indices: &[usize]) -> Result<bool> {
     let paths = state.paths(indices);
     if paths.is_empty() {
-        return Ok(Action::Continue);
+        return Ok(false);
     }
     let template = go::resolve_editor(&state.config)?;
     suspend(tui, || {
@@ -235,7 +249,7 @@ fn open(state: &State, tui: &Tui, indices: &[usize]) -> Result<Action> {
         }
         Ok(())
     })?;
-    Ok(Action::Refresh)
+    Ok(true)
 }
 
 /// Redraw the frame: the highlighted table plus the footer, cleared each time.
