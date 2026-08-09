@@ -42,6 +42,19 @@ fn flags_priority_out_of_scale() {
 }
 
 #[test]
+fn flags_unknown_priority_label() {
+    let mut item = task("a", "wip");
+    item.priority = Some(NumValue::Label("epic".to_owned()));
+    let violations = validate(&[item], &config());
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.field == "priority" && v.message.contains("not a known priority value")),
+        "a label outside the configured bands should be flagged, got: {violations:?}"
+    );
+}
+
+#[test]
 fn flags_unknown_estimate_unit() {
     let mut item = task("a", "wip");
     item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
@@ -374,6 +387,19 @@ fn difficulty_max_boundary_passes() {
         !validate(&[t], &config())
             .iter()
             .any(|v| v.field == "difficulty")
+    );
+}
+
+#[test]
+fn flags_unknown_difficulty_label() {
+    let mut t = task("a", "wip");
+    t.difficulty = Some(NumValue::Label("expert".to_owned()));
+    let violations = validate(&[t], &config());
+    assert!(
+        violations.iter().any(|v| {
+            v.field == "difficulty" && v.message.contains("not a known difficulty value")
+        }),
+        "an unresolvable difficulty label should be flagged, got: {violations:?}"
     );
 }
 
