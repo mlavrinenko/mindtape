@@ -108,7 +108,13 @@ fn and_or_not_combine_predicates() {
 
 #[test]
 fn task_field_identifier_is_load_time_error() {
+    // A bare identifier is a task-field mistake whether it's a comparison
+    // operand (`resolve_value`'s arm) or lands straight in boolean position
+    // with no comparison at all (`eval_bool`'s own arm) — both routes should
+    // read alike to a caller.
     let err = Condition::parse("priority > 5").unwrap_err();
+    assert!(matches!(err, ConditionError::TaskField(name) if name == "priority"));
+    let err = Condition::parse("priority").unwrap_err();
     assert!(matches!(err, ConditionError::TaskField(name) if name == "priority"));
 }
 
@@ -142,4 +148,52 @@ fn syntax_error_is_parse_error() {
 #[test]
 fn weekday_needs_no_arguments() {
     assert_invalid(r#"weekday("mon") == 1"#);
+}
+
+#[test]
+fn bare_literal_in_boolean_position_is_unsupported() {
+    let err = Condition::parse("5").unwrap_err();
+    assert!(matches!(err, ConditionError::Unsupported(_)), "{err}");
+}
+
+#[test]
+fn mixed_type_comparison_falls_back_to_string_ordering() {
+    // `weekday()` yields a number; compared against a non-numeric string
+    // literal neither side is coerced — both display as text and compare
+    // lexically, so a numeric weekday never accidentally equals a word.
+    let condition = Condition::parse(r#"weekday() == "monday""#).unwrap();
+    assert!(!condition.matches(&env(None, "2026-07-13")).unwrap());
+}
+
+#[test]
+fn non_value_node_as_comparison_operand_is_invalid() {
+    // A parenthesized boolean sub-expression used where a value is expected —
+    // `resolve_value` rejects any operator it does not already special-case.
+    assert_invalid("(1 && 1) == 1");
+}
+
+#[test]
+fn weekday_with_malformed_today_is_invalid_at_match_time() {
+    // `Condition::parse`'s dry-run always probes with a valid placeholder
+    // date, so a malformed `today` can only surface later, at `matches`.
+    let condition = Condition::parse("weekday() == 1").unwrap();
+    let err = condition.matches(&env(None, "not-a-date")).unwrap_err();
+    assert!(
+        matches!(&err, ConditionError::Invalid(msg) if msg.contains("malformed date")),
+        "{err}"
+    );
+}
+
+#[test]
+fn unknown_function_in_value_position_is_unknown_predicate() {
+    // Distinct from `unknown_predicate_is_load_time_error`: that one is an
+    // unknown call in boolean position (`predicate`'s arm); this one is an
+    // unknown call used as a comparison operand (`resolve_function`'s arm).
+    let err = Condition::parse(r"foo() == 1").unwrap_err();
+    assert!(matches!(err, ConditionError::UnknownPredicate(name) if name == "foo"));
+}
+
+#[test]
+fn wrong_arg_count_to_on_branch_is_invalid() {
+    assert_invalid(r#"on_branch("a", "b")"#);
 }
