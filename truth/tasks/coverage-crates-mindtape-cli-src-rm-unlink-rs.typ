@@ -10,7 +10,11 @@
   difficulty: 4,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[file 86.99% -> 97.95% (floor 88); legacy link() and whitespace arms pinned],
 )
 
 == Summary
