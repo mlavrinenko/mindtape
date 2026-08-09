@@ -442,3 +442,7 @@ mod tests;
 #[cfg(test)]
 #[path = "flip_tests_output.rs"]
 mod tests_output;
+
+#[cfg(test)]
+#[path = "flip_tests_revalidate.rs"]
+mod tests_revalidate;
