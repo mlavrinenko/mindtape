@@ -10,7 +10,11 @@
   difficulty: 2,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[unknown-label arm pinned by priority/difficulty fixtures (CC 5, 100% cov); mutants -f validate.rs: 59 caught, 5 unviable, 0 missed],
 )
 
 == Summary
