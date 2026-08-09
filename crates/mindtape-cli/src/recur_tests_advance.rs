@@ -10,7 +10,7 @@
     clippy::indexing_slicing
 )]
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use mindtape::test_support::bare_task;
 use mindtape::{LoadOutcome, parse_config};

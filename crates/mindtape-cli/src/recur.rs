@@ -8,7 +8,7 @@
 //! without materializing anything. `mt ls`/`mt check` never call into this
 //! module — see `truth/tasks/command-semantics-cqrs.typ`.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::NaiveDate;
@@ -24,6 +24,15 @@ use crate::recur_edit::{
 };
 use crate::task_edit::{task_with, verify_written};
 use crate::util::{self, Project};
+
+#[path = "recur_advance.rs"]
+mod advance;
+use advance::do_advance;
+// Only reachable from the `--advance` test module below (glob-imported via
+// `super::*`); `recur.rs` itself calls `advance::do_advance` alone; `--advance`
+// dispatches everything else internally.
+#[cfg(test)]
+use advance::{build_advance_chain, check_advance_preconditions, write_advance_chain};
 
 /// Built-in fallback stem template `mt recur` spawn uses when
 /// `[tasks.naming] stem` is unset, so spawned occurrence stems stay unique
@@ -344,134 +353,6 @@ fn do_skip(project: &Project, task: &Task, abs: &Path, recur: &Recur, dry_run: b
         abs.display()
     );
     verify_written(&project.root, abs)
-}
-
-// ---- advance: pre-materialize N future spawns (spawn only) -------------
-
-fn do_advance(
-    project: &Project,
-    task: &Task,
-    abs: &Path,
-    recur: &Recur,
-    args: &RecurArgs,
-) -> Result<()> {
-    let count = args.advance.context("--advance requires a count")?;
-    check_advance_preconditions(project, task, recur, args, count)?;
-    let spawned = build_advance_chain(project, task, abs, recur, count)?;
-    write_advance_chain(project, &spawned, args.dry_run)
-}
-
-/// The checks `--advance` needs before touching anything: `spawn`-only,
-/// bounded by `[tasks.recur] max-advance`, and the double-spawn guard.
-fn check_advance_preconditions(
-    project: &Project,
-    task: &Task,
-    recur: &Recur,
-    args: &RecurArgs,
-    count: u32,
-) -> Result<()> {
-    let recur_config = &project.config.tasks.recur;
-    let materialize = effective_materialize(recur, recur_config);
-    if materialize != "spawn" {
-        bail!(
-            "--advance only supports spawn materialization (this task's materialize is `{materialize}`)"
-        );
-    }
-    if count > recur_config.max_advance {
-        bail!(
-            "--advance {count} exceeds [tasks.recur] max-advance ({})",
-            recur_config.max_advance
-        );
-    }
-    guard_double_spawn(project, task, args.force)
-}
-
-/// Chain `count` future spawns forward from `task` in memory: each entry's
-/// content already carries its own `recurred-from` back to the previous one.
-/// Nothing is written yet — [`write_advance_chain`] decides dry-run vs write.
-/// Stops early (without erroring) once a stop condition trips on a
-/// non-empty chain, since the earlier spawns are still a valid partial batch.
-fn build_advance_chain(
-    project: &Project,
-    task: &Task,
-    abs: &Path,
-    recur: &Recur,
-    count: u32,
-) -> Result<Vec<(PathBuf, NaiveDate, String)>> {
-    let recur_config = &project.config.tasks.recur;
-    let dest = abs.parent().context("task file has no parent directory")?;
-    let (today, mut due_cursor, mut start_cursor) = dates(task)?;
-    let mut current = recur.clone();
-    let mut occurrence = occurrence_index(&project.outcome.tasks, task);
-    let mut predecessor_stem = stem_of(&task.file);
-    let mut predecessor_source =
-        std::fs::read_to_string(abs).with_context(|| format!("read {}", abs.display()))?;
-    let mut spawned: Vec<(PathBuf, NaiveDate, String)> = Vec::new();
-
-    for _ in 0..count {
-        let next = match plan_next(&current, recur_config, today, due_cursor) {
-            Ok(next) => next,
-            Err(err) if !spawned.is_empty() => {
-                eprintln!("warning: stopping early: {err:#}");
-                break;
-            }
-            Err(err) => return Err(err),
-        };
-        let stem = mint_stem(project, task, next, occurrence, dest)?;
-        let file = dest.join(format!("{stem}.typ"));
-        let occurrence_dates = OccurrenceDates {
-            today: today_ymd(),
-            old_due: due_cursor,
-            old_start: start_cursor,
-            next_due: next,
-        };
-        let new_source = spawn_source(
-            &predecessor_source,
-            &project.config,
-            &occurrence_dates,
-            &current,
-            &predecessor_stem,
-        )?;
-
-        spawned.push((file, next, new_source.clone()));
-        start_cursor = crate::recur_edit::shift_start(due_cursor, start_cursor, next);
-        due_cursor = Some(next);
-        current.count = recur_dates::carry_count(&current);
-        predecessor_stem = stem;
-        predecessor_source = new_source;
-        occurrence += 1;
-    }
-    Ok(spawned)
-}
-
-/// Print a preview (dry-run) or write and verify each chained spawn.
-fn write_advance_chain(
-    project: &Project,
-    spawned: &[(PathBuf, NaiveDate, String)],
-    dry_run: bool,
-) -> Result<()> {
-    for (file, next, source) in spawned {
-        if dry_run {
-            println!(
-                "would spawn {} (due {})",
-                file.display(),
-                recur_dates::format_iso(*next)
-            );
-        } else {
-            util::write_task(&project.config, file, source.clone())?;
-            println!(
-                "spawned {} (due {})",
-                file.display(),
-                recur_dates::format_iso(*next)
-            );
-        }
-    }
-    if !dry_run {
-        for (file, ..) in spawned {
-            verify_written(&project.root, file)?;
-        }
-    }
-    Ok(())
 }
 
 #[cfg(test)]
