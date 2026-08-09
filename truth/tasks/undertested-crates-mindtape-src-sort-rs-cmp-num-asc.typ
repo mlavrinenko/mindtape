@@ -10,7 +10,11 @@
   difficulty: 4,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[agent 2: 1 test covering all 4 arms, cmp\_num\_asc CC 5 cov 100%; mutants: 41 tested, fn mutant caught (2 pre-existing compare\_field misses out of scope)],
 )
 
 == Summary
