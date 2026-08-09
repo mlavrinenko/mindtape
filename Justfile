@@ -196,11 +196,30 @@ build *args:
 # main.rs is excluded — keep it thin (`just crap` excludes it too); so is any
 # registry checkout, which llvm-cov's own dep filter misses when CARGO_HOME is
 # relocated (a local kache), so local and CI report the same set.
+#
+# The `clean --workspace` is what makes the number mean anything, and it is
+# cargo-llvm-cov's own documented precondition for the --no-report/report split
+# ("should be called before the first run"): --no-report deliberately does NOT
+# clear the profraw pile, because the split exists so several runs CAN be merged
+# (the tool's own recipe for coverage across feature sets). Without it, `report`
+# merges every profraw and every object file left in target/llvm-cov-target
+# since the last `cargo clean` — across feature sets and across commits — and the
+# lcov becomes the union of all of them. Measured, not theorised
+# (truth/tasks/clean-the-profraw-pile-before-each-coverage-run.typ): two runs
+# left 461+461 profraw; merging one `--features rrule` run took
+# `check_rrule_rule` from 57% to 100%, coverage of a branch that is dead code
+# without the feature; and the pile that accumulated across a whole session put
+# `ls_interactive::apply` at 84% when no test in the tree can call it at all.
+# That lcov minted crap-baseline.json, so the ratchet then failed 48 functions
+# on the first honest run after a `cargo clean`. Inflated coverage is the worst
+# failure this repo can have here — it hides exactly what `just crap` and the
+# sweep's coverage arms exist to find — so pay the instrumented rebuild.
 cover:
     #!/usr/bin/env bash
     set -eo pipefail
     ignore='crates/mindtape-cli/src/main\.rs|/registry/src/'
     mkdir -p target/coverage
+    cargo llvm-cov clean --workspace
     cargo llvm-cov --workspace --no-report
     cargo llvm-cov report --ignore-filename-regex "$ignore" \
         --lcov --output-path target/coverage/lcov.info
@@ -366,6 +385,17 @@ crap:
 # `--sort file` is the documented stable ordering for a committed baseline;
 # `--sort crap` reshuffles the whole file whenever any score moves, which turns
 # every diff into noise.
+#
+# The guard has one blind spot, and it has fired once: if the BASELINE is the
+# thing that is wrong, `just crap` fails forever and this recipe refuses to
+# refresh the file that would fix it. That happens when the baseline was minted
+# over an lcov that no clean run reproduces — before `cover` cleaned the profraw
+# pile, the mint could credit coverage from another feature set or another
+# commit. Recovery is deliberately manual, one commit that re-mints against a
+# fresh lcov, with the two facts that make it not a bypass in the message:
+# `cargo crap --lcov ... --threshold 30 --min 30 --fail-above` is green (nothing
+# is actually bad), and no cyclomatic complexity moved (the ratchet's real
+# subject is unchanged; only the measurement was). Run the recipe body by hand.
 crap-baseline: crap
     #!/usr/bin/env bash
     set -eo pipefail

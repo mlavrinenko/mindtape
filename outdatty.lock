@@ -60,11 +60,11 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      Justfile: 8303d3bb26e7f948164850c9c9ac9249d0debaea861d7a04568edc81ac9d436c
+      Justfile: acc14cc26631352df43340ddbd1925b36d0755e2de5c927de123b915515b13ed
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: e30aae142dfb736c3df8eccfd7f794c264bb78defacf4eab36ae5b44b57494bd
-      CONTRIBUTING.md: 92d026feade388e64f6e5ff69630c62950bfd8b2feaa7ba4c7584a2b2f6abd40
+      CONTRIBUTING.md: 1adaa5ee2b8e203b3c59546f9eb8cd067619afd7233e6af9ad73154b36f32313
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf

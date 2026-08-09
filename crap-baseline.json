@@ -25,8 +25,8 @@
       "function": "inject_header",
       "line": 255,
       "cyclomatic": 6.0,
-      "coverage": 100.0,
-      "crap": 6.0,
+      "coverage": 93.33333333333333,
+      "crap": 6.010666666666666,
       "crate": "mindtape-cli"
     },
     {
@@ -61,8 +61,8 @@
       "function": "run",
       "line": 118,
       "cyclomatic": 24.0,
-      "coverage": 100.0,
-      "crap": 24.0,
+      "coverage": 92.5925925925926,
+      "crap": 24.23411065386374,
       "crate": "mindtape-cli"
     },
     {
@@ -115,8 +115,8 @@
       "function": "default_entry",
       "line": 272,
       "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
+      "coverage": 88.88888888888889,
+      "crap": 5.034293552812072,
       "crate": "mindtape-cli"
     },
     {
@@ -133,8 +133,8 @@
       "function": "editor_command",
       "line": 85,
       "cyclomatic": 6.0,
-      "coverage": 100.0,
-      "crap": 6.0,
+      "coverage": 91.66666666666666,
+      "crap": 6.020833333333333,
       "crate": "mindtape-cli"
     },
     {
@@ -178,8 +178,8 @@
       "function": "is_empty_list_default",
       "line": 288,
       "cyclomatic": 3.0,
-      "coverage": 83.33333333333334,
-      "crap": 3.0416666666666665,
+      "coverage": 80.0,
+      "crap": 3.072,
       "crate": "mindtape-cli"
     },
     {
@@ -196,8 +196,8 @@
       "function": "open_in_editor",
       "line": 103,
       "cyclomatic": 6.0,
-      "coverage": 95.83333333333334,
-      "crap": 6.002604166666667,
+      "coverage": 91.30434782608695,
+      "crap": 6.023670584367552,
       "crate": "mindtape-cli"
     },
     {
@@ -214,8 +214,8 @@
       "function": "push_block",
       "line": 295,
       "cyclomatic": 3.0,
-      "coverage": 80.0,
-      "crap": 3.072,
+      "coverage": 88.88888888888889,
+      "crap": 3.0123456790123457,
       "crate": "mindtape-cli"
     },
     {
@@ -223,8 +223,8 @@
       "function": "push_comment",
       "line": 205,
       "cyclomatic": 4.0,
-      "coverage": 100.0,
-      "crap": 4.0,
+      "coverage": 92.3076923076923,
+      "crap": 4.007282658170232,
       "crate": "mindtape-cli"
     },
     {
@@ -250,8 +250,8 @@
       "function": "quote",
       "line": 318,
       "cyclomatic": 7.0,
-      "coverage": 92.85714285714286,
-      "crap": 7.017857142857143,
+      "coverage": 100.0,
+      "crap": 7.0,
       "crate": "mindtape-cli"
     },
     {
@@ -277,8 +277,8 @@
       "function": "seed_entry",
       "line": 256,
       "cyclomatic": 7.0,
-      "coverage": 90.0,
-      "crap": 7.049,
+      "coverage": 77.77777777777779,
+      "crap": 7.5377229080932775,
       "crate": "mindtape-cli"
     },
     {
@@ -475,8 +475,8 @@
       "function": "append_list_value",
       "line": 129,
       "cyclomatic": 3.0,
-      "coverage": 77.77777777777779,
-      "crap": 3.0987654320987654,
+      "coverage": 85.71428571428571,
+      "crap": 3.0262390670553936,
       "crate": "mindtape-cli"
     },
     {
@@ -511,8 +511,8 @@
       "function": "describe_text",
       "line": 314,
       "cyclomatic": 7.0,
-      "coverage": 95.45454545454545,
-      "crap": 7.004601803155522,
+      "coverage": 100.0,
+      "crap": 7.0,
       "crate": "mindtape-cli"
     },
     {
@@ -529,8 +529,8 @@
       "function": "json_to_raw",
       "line": 278,
       "cyclomatic": 9.0,
-      "coverage": 90.9090909090909,
-      "crap": 9.060856498873028,
+      "coverage": 84.21052631578947,
+      "crap": 9.318851144481703,
       "crate": "mindtape-cli"
     },
     {
@@ -547,8 +547,8 @@
       "function": "list_templates",
       "line": 64,
       "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
+      "coverage": 93.33333333333333,
+      "crap": 5.007407407407407,
       "crate": "mindtape-cli"
     },
     {
@@ -574,8 +574,8 @@
       "function": "parse_sniffed_source",
       "line": 197,
       "cyclomatic": 4.0,
-      "coverage": 88.88888888888889,
-      "crap": 4.021947873799726,
+      "coverage": 100.0,
+      "crap": 4.0,
       "crate": "mindtape-cli"
     },
     {
@@ -592,8 +592,8 @@
       "function": "parse_yaml_source",
       "line": 225,
       "cyclomatic": 1.0,
-      "coverage": 85.71428571428571,
-      "crap": 1.0029154518950438,
+      "coverage": 100.0,
+      "crap": 1.0,
       "crate": "mindtape-cli"
     },
     {
@@ -682,8 +682,8 @@
       "function": "run_with",
       "line": 29,
       "cyclomatic": 14.0,
-      "coverage": 98.07692307692307,
-      "crap": 14.001393946290396,
+      "coverage": 100.0,
+      "crap": 14.0,
       "crate": "mindtape-cli"
     },
     {
@@ -700,8 +700,8 @@
       "function": "Cli::run",
       "line": 144,
       "cyclomatic": 22.0,
-      "coverage": 100.0,
-      "crap": 22.0,
+      "coverage": 95.83333333333334,
+      "crap": 22.035011574074073,
       "crate": "mindtape-cli"
     },
     {
@@ -979,8 +979,8 @@
       "function": "list_verbs",
       "line": 410,
       "cyclomatic": 5.0,
-      "coverage": 87.5,
-      "crap": 5.048828125,
+      "coverage": 71.42857142857143,
+      "crap": 5.5830903790087465,
       "crate": "mindtape-cli"
     },
     {
@@ -988,8 +988,8 @@
       "function": "notice_recur",
       "line": 342,
       "cyclomatic": 4.0,
-      "coverage": 100.0,
-      "crap": 4.0,
+      "coverage": 93.75,
+      "crap": 4.00390625,
       "crate": "mindtape-cli"
     },
     {
@@ -1006,8 +1006,8 @@
       "function": "revalidate",
       "line": 366,
       "cyclomatic": 6.0,
-      "coverage": 74.07407407407408,
-      "crap": 6.627343392775491,
+      "coverage": 72.0,
+      "crap": 6.790272,
       "crate": "mindtape-cli"
     },
     {
@@ -1024,8 +1024,8 @@
       "function": "run_external",
       "line": 92,
       "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
+      "coverage": 80.0,
+      "crap": 5.2,
       "crate": "mindtape-cli"
     },
     {
@@ -1033,8 +1033,8 @@
       "function": "run_with",
       "line": 110,
       "cyclomatic": 17.0,
-      "coverage": 100.0,
-      "crap": 17.0,
+      "coverage": 97.95918367346938,
+      "crap": 17.00245645946842,
       "crate": "mindtape-cli"
     },
     {
@@ -1258,8 +1258,8 @@
       "function": "class_name",
       "line": 73,
       "cyclomatic": 4.0,
-      "coverage": 85.71428571428571,
-      "crap": 4.0466472303206995,
+      "coverage": 83.33333333333334,
+      "crap": 4.0740740740740735,
       "crate": "mindtape-cli"
     },
     {
@@ -1276,8 +1276,8 @@
       "function": "dot_edge_style",
       "line": 83,
       "cyclomatic": 8.0,
-      "coverage": 90.9090909090909,
-      "crap": 8.0480841472577,
+      "coverage": 90.0,
+      "crap": 8.064,
       "crate": "mindtape-cli"
     },
     {
@@ -1321,8 +1321,8 @@
       "function": "node_label",
       "line": 107,
       "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
+      "coverage": 85.71428571428571,
+      "crap": 2.011661807580175,
       "crate": "mindtape-cli"
     },
     {
@@ -1915,8 +1915,8 @@
       "function": "resolve_and_select",
       "line": 113,
       "cyclomatic": 7.0,
-      "coverage": 100.0,
-      "crap": 7.0,
+      "coverage": 95.65217391304348,
+      "crap": 7.0040272869236455,
       "crate": "mindtape-cli"
     },
     {
@@ -2014,8 +2014,8 @@
       "function": "apply",
       "line": 198,
       "cyclomatic": 9.0,
-      "coverage": 84.21052631578947,
-      "crap": 9.318851144481703,
+      "coverage": 53.333333333333336,
+      "crap": 17.232,
       "crate": "mindtape-cli"
     },
     {
@@ -2050,8 +2050,8 @@
       "function": "event_loop",
       "line": 180,
       "cyclomatic": 10.0,
-      "coverage": 85.71428571428571,
-      "crap": 10.291545189504374,
+      "coverage": 83.33333333333334,
+      "crap": 10.462962962962962,
       "crate": "mindtape-cli"
     },
     {
@@ -2086,8 +2086,8 @@
       "function": "open",
       "line": 226,
       "cyclomatic": 4.0,
-      "coverage": 100.0,
-      "crap": 4.0,
+      "coverage": 92.3076923076923,
+      "crap": 4.007282658170232,
       "crate": "mindtape-cli"
     },
     {
@@ -2590,8 +2590,8 @@
       "function": "do_mutate",
       "line": 292,
       "cyclomatic": 8.0,
-      "coverage": 91.66666666666666,
-      "crap": 8.037037037037038,
+      "coverage": 81.81818181818183,
+      "crap": 8.384673178061608,
       "crate": "mindtape-cli"
     },
     {
@@ -2599,8 +2599,8 @@
       "function": "do_skip",
       "line": 331,
       "cyclomatic": 9.0,
-      "coverage": 92.3076923076923,
-      "crap": 9.0368684569868,
+      "coverage": 78.26086956521739,
+      "crap": 9.832168981671735,
       "crate": "mindtape-cli"
     },
     {
@@ -2608,8 +2608,8 @@
       "function": "do_spawn",
       "line": 212,
       "cyclomatic": 8.0,
-      "coverage": 100.0,
-      "crap": 8.0,
+      "coverage": 97.5,
+      "crap": 8.001,
       "crate": "mindtape-cli"
     },
     {
@@ -2671,8 +2671,8 @@
       "function": "run_with",
       "line": 84,
       "cyclomatic": 8.0,
-      "coverage": 100.0,
-      "crap": 8.0,
+      "coverage": 85.71428571428571,
+      "crap": 8.1865889212828,
       "crate": "mindtape-cli"
     },
     {
@@ -3364,8 +3364,8 @@
       "function": "apply_highlight",
       "line": 80,
       "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
+      "coverage": 91.66666666666666,
+      "crap": 5.014467592592593,
       "crate": "mindtape-cli"
     },
     {
@@ -3562,8 +3562,8 @@
       "function": "TaskLinks::identity",
       "line": 96,
       "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
+      "coverage": 80.0,
+      "crap": 2.032,
       "crate": "mindtape-cli"
     },
     {
@@ -3598,8 +3598,8 @@
       "function": "finalize",
       "line": 207,
       "cyclomatic": 17.0,
-      "coverage": 96.7741935483871,
-      "crap": 17.009700916384144,
+      "coverage": 100.0,
+      "crap": 17.0,
       "crate": "mindtape-cli"
     },
     {
@@ -3625,8 +3625,8 @@
       "function": "referrers",
       "line": 283,
       "cyclomatic": 7.0,
-      "coverage": 100.0,
-      "crap": 7.0,
+      "coverage": 96.0,
+      "crap": 7.003136,
       "crate": "mindtape-cli"
     },
     {
@@ -3634,8 +3634,8 @@
       "function": "run",
       "line": 125,
       "cyclomatic": 19.0,
-      "coverage": 91.07142857142857,
-      "crap": 19.25695266946064,
+      "coverage": 84.0909090909091,
+      "crap": 20.453594571750564,
       "crate": "mindtape-cli"
     },
     {
@@ -3976,8 +3976,8 @@
       "function": "default_view",
       "line": 205,
       "cyclomatic": 5.0,
-      "coverage": 93.33333333333333,
-      "crap": 5.007407407407407,
+      "coverage": 92.3076923076923,
+      "crap": 5.011379153390988,
       "crate": "mindtape-cli"
     },
     {
@@ -4201,8 +4201,8 @@
       "function": "run",
       "line": 31,
       "cyclomatic": 9.0,
-      "coverage": 86.36363636363636,
-      "crap": 9.20539068369647,
+      "coverage": 59.09090909090909,
+      "crap": 14.545548459804657,
       "crate": "mindtape-cli"
     },
     {
@@ -4282,8 +4282,8 @@
       "function": "framework_call",
       "line": 102,
       "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
+      "coverage": 90.9090909090909,
+      "crap": 2.0030052592036065,
       "crate": "mindtape"
     },
     {
@@ -4291,8 +4291,8 @@
       "function": "kind_slot",
       "line": 151,
       "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
+      "coverage": 93.33333333333333,
+      "crap": 2.0011851851851854,
       "crate": "mindtape"
     },
     {
@@ -4570,8 +4570,8 @@
       "function": "priority_to_canonical",
       "line": 234,
       "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
+      "coverage": 92.3076923076923,
+      "crap": 5.011379153390988,
       "crate": "mindtape"
     },
     {
@@ -4732,8 +4732,8 @@
       "function": "Config::validate",
       "line": 180,
       "cyclomatic": 8.0,
-      "coverage": 100.0,
-      "crap": 8.0,
+      "coverage": 93.75,
+      "crap": 8.015625,
       "crate": "mindtape"
     },
     {
@@ -5056,8 +5056,8 @@
       "function": "dir_layers",
       "line": 100,
       "cyclomatic": 7.0,
-      "coverage": 100.0,
-      "crap": 7.0,
+      "coverage": 95.83333333333334,
+      "crap": 7.003544560185185,
       "crate": "mindtape"
     },
     {
@@ -6082,8 +6082,8 @@
       "function": "slugify",
       "line": 137,
       "cyclomatic": 6.0,
-      "coverage": 100.0,
-      "crap": 6.0,
+      "coverage": 84.61538461538461,
+      "crap": 6.131087847064179,
       "crate": "mindtape"
     },
     {
@@ -6190,8 +6190,8 @@
       "function": "weekday",
       "line": 205,
       "cyclomatic": 8.0,
-      "coverage": 90.9090909090909,
-      "crap": 8.0480841472577,
+      "coverage": 100.0,
+      "crap": 8.0,
       "crate": "mindtape"
     },
     {
@@ -6514,8 +6514,8 @@
       "function": "binary",
       "line": 214,
       "cyclomatic": 5.0,
-      "coverage": 81.81818181818183,
-      "crap": 5.150262960180315,
+      "coverage": 72.72727272727273,
+      "crap": 5.507137490608565,
       "crate": "mindtape"
     },
     {
@@ -6541,8 +6541,8 @@
       "function": "eval_bool",
       "line": 177,
       "cyclomatic": 14.0,
-      "coverage": 94.44444444444444,
-      "crap": 14.03360768175583,
+      "coverage": 80.0,
+      "crap": 15.568,
       "crate": "mindtape"
     },
     {
@@ -6595,8 +6595,8 @@
       "function": "single_identifier",
       "line": 366,
       "cyclomatic": 3.0,
-      "coverage": 100.0,
-      "crap": 3.0,
+      "coverage": 87.5,
+      "crap": 3.017578125,
       "crate": "mindtape"
     },
     {
@@ -6604,8 +6604,8 @@
       "function": "single_literal",
       "line": 376,
       "cyclomatic": 3.0,
-      "coverage": 88.88888888888889,
-      "crap": 3.0123456790123457,
+      "coverage": 87.5,
+      "crap": 3.017578125,
       "crate": "mindtape"
     },
     {
@@ -6739,8 +6739,8 @@
       "function": "Framework::check_input_values",
       "line": 125,
       "cyclomatic": 6.0,
-      "coverage": 100.0,
-      "crap": 6.0,
+      "coverage": 83.33333333333334,
+      "crap": 6.166666666666666,
       "crate": "mindtape"
     },
     {
@@ -6757,8 +6757,8 @@
       "function": "Framework::match_category",
       "line": 141,
       "cyclomatic": 4.0,
-      "coverage": 75.0,
-      "crap": 4.25,
+      "coverage": 71.42857142857143,
+      "crap": 4.373177842565598,
       "crate": "mindtape"
     },
     {
@@ -6802,8 +6802,8 @@
       "function": "PriorityConfig::resolve",
       "line": 162,
       "cyclomatic": 4.0,
-      "coverage": 85.71428571428571,
-      "crap": 4.0466472303206995,
+      "coverage": 100.0,
+      "crap": 4.0,
       "crate": "mindtape"
     },
     {
@@ -6811,8 +6811,8 @@
       "function": "PriorityConfig::validate",
       "line": 207,
       "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
+      "coverage": 95.0,
+      "crap": 5.003125,
       "crate": "mindtape"
     },
     {
@@ -6820,8 +6820,8 @@
       "function": "check_input_value",
       "line": 230,
       "cyclomatic": 8.0,
-      "coverage": 95.0,
-      "crap": 8.008000000000001,
+      "coverage": 94.44444444444444,
+      "crap": 8.010973936899862,
       "crate": "mindtape"
     },
     {
@@ -6838,8 +6838,8 @@
       "function": "merge_builtin_frameworks",
       "line": 259,
       "cyclomatic": 2.0,
-      "coverage": 100.0,
-      "crap": 2.0,
+      "coverage": 90.0,
+      "crap": 2.004,
       "crate": "mindtape"
     },
     {
@@ -6847,8 +6847,8 @@
       "function": "set_frameworks",
       "line": 280,
       "cyclomatic": 1.0,
-      "coverage": 66.66666666666666,
-      "crap": 1.0370370370370372,
+      "coverage": 71.42857142857143,
+      "crap": 1.0233236151603498,
       "crate": "mindtape"
     },
     {
@@ -6856,8 +6856,8 @@
       "function": "take_frameworks",
       "line": 271,
       "cyclomatic": 8.0,
-      "coverage": 100.0,
-      "crap": 8.0,
+      "coverage": 85.71428571428571,
+      "crap": 8.1865889212828,
       "crate": "mindtape"
     },
     {
@@ -7774,8 +7774,8 @@
       "function": "collect_typ_files",
       "line": 286,
       "cyclomatic": 4.0,
-      "coverage": 100.0,
-      "crap": 4.0,
+      "coverage": 90.9090909090909,
+      "crap": 4.012021036814425,
       "crate": "mindtape"
     },
     {
@@ -8008,8 +8008,8 @@
       "function": "input_value",
       "line": 311,
       "cyclomatic": 5.0,
-      "coverage": 87.5,
-      "crap": 5.048828125,
+      "coverage": 85.71428571428571,
+      "crap": 5.072886297376093,
       "crate": "mindtape"
     },
     {
@@ -8026,8 +8026,8 @@
       "function": "normalize_link",
       "line": 209,
       "cyclomatic": 1.0,
-      "coverage": 83.33333333333334,
-      "crap": 1.0046296296296295,
+      "coverage": 80.0,
+      "crap": 1.008,
       "crate": "mindtape"
     },
     {
@@ -8080,8 +8080,8 @@
       "function": "push_components",
       "line": 237,
       "cyclomatic": 8.0,
-      "coverage": 100.0,
-      "crap": 8.0,
+      "coverage": 90.0,
+      "crap": 8.064,
       "crate": "mindtape"
     },
     {
@@ -8215,8 +8215,8 @@
       "function": "NumericField::classify_anchor",
       "line": 240,
       "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
+      "coverage": 82.14285714285714,
+      "crap": 5.142356049562682,
       "crate": "mindtape"
     },
     {
@@ -8233,8 +8233,8 @@
       "function": "NumericField::in_band",
       "line": 229,
       "cyclomatic": 6.0,
-      "coverage": 90.0,
-      "crap": 6.036,
+      "coverage": 87.5,
+      "crap": 6.0703125,
       "crate": "mindtape"
     },
     {
@@ -8251,8 +8251,8 @@
       "function": "NumericField::resolve",
       "line": 186,
       "cyclomatic": 4.0,
-      "coverage": 100.0,
-      "crap": 4.0,
+      "coverage": 83.33333333333334,
+      "crap": 4.0740740740740735,
       "crate": "mindtape"
     },
     {
@@ -8260,8 +8260,8 @@
       "function": "NumericField::validate",
       "line": 281,
       "cyclomatic": 6.0,
-      "coverage": 85.0,
-      "crap": 6.1215,
+      "coverage": 75.0,
+      "crap": 6.5625,
       "crate": "mindtape"
     },
     {
@@ -8269,8 +8269,8 @@
       "function": "NumericField::validate_anchors",
       "line": 356,
       "cyclomatic": 8.0,
-      "coverage": 93.10344827586206,
-      "crap": 8.020993070646602,
+      "coverage": 81.48148148148148,
+      "crap": 8.406442107402327,
       "crate": "mindtape"
     },
     {
@@ -8422,8 +8422,8 @@
       "function": "check_rrule_rule",
       "line": 295,
       "cyclomatic": 4.0,
-      "coverage": 90.9090909090909,
-      "crap": 4.012021036814425,
+      "coverage": 57.14285714285714,
+      "crap": 5.259475218658892,
       "crate": "mindtape"
     },
     {
@@ -8440,8 +8440,8 @@
       "function": "check_rule",
       "line": 279,
       "cyclomatic": 5.0,
-      "coverage": 81.81818181818183,
-      "crap": 5.150262960180315,
+      "coverage": 100.0,
+      "crap": 5.0,
       "crate": "mindtape"
     },
     {
@@ -8467,8 +8467,8 @@
       "function": "parse_rule",
       "line": 178,
       "cyclomatic": 8.0,
-      "coverage": 100.0,
-      "crap": 8.0,
+      "coverage": 87.5,
+      "crap": 8.125,
       "crate": "mindtape"
     },
     {
@@ -8476,8 +8476,8 @@
       "function": "parse_weekday",
       "line": 244,
       "cyclomatic": 9.0,
-      "coverage": 100.0,
-      "crap": 9.0,
+      "coverage": 90.9090909090909,
+      "crap": 9.060856498873028,
       "crate": "mindtape"
     },
     {
@@ -8647,8 +8647,8 @@
       "function": "cmp_field_value",
       "line": 139,
       "cyclomatic": 7.0,
-      "coverage": 83.33333333333334,
-      "crap": 7.226851851851851,
+      "coverage": 70.0,
+      "crap": 8.323,
       "crate": "mindtape"
     },
     {
@@ -8656,8 +8656,8 @@
       "function": "cmp_num_asc",
       "line": 152,
       "cyclomatic": 5.0,
-      "coverage": 85.71428571428571,
-      "crap": 5.072886297376093,
+      "coverage": 57.14285714285714,
+      "crap": 6.96793002915452,
       "crate": "mindtape"
     },
     {
@@ -8872,8 +8872,8 @@
       "function": "parse_string_array",
       "line": 188,
       "cyclomatic": 7.0,
-      "coverage": 92.0,
-      "crap": 7.025088,
+      "coverage": 86.95652173913044,
+      "crap": 7.10873674693844,
       "crate": "mindtape"
     },
     {
@@ -9115,8 +9115,8 @@
       "function": "check_assignee",
       "line": 247,
       "cyclomatic": 5.0,
-      "coverage": 91.66666666666666,
-      "crap": 5.014467592592593,
+      "coverage": 100.0,
+      "crap": 5.0,
       "crate": "mindtape"
     },
     {
@@ -9124,8 +9124,8 @@
       "function": "check_enum_field",
       "line": 217,
       "cyclomatic": 7.0,
-      "coverage": 100.0,
-      "crap": 7.0,
+      "coverage": 95.83333333333334,
+      "crap": 7.003544560185185,
       "crate": "mindtape"
     },
     {
@@ -9133,8 +9133,8 @@
       "function": "check_estimate",
       "line": 325,
       "cyclomatic": 8.0,
-      "coverage": 96.66666666666667,
-      "crap": 8.00237037037037,
+      "coverage": 100.0,
+      "crap": 8.0,
       "crate": "mindtape"
     },
     {
@@ -9142,8 +9142,8 @@
       "function": "check_id_format",
       "line": 110,
       "cyclomatic": 7.0,
-      "coverage": 96.55172413793103,
-      "crap": 7.002009102464226,
+      "coverage": 100.0,
+      "crap": 7.0,
       "crate": "mindtape"
     },
     {
@@ -9160,8 +9160,8 @@
       "function": "check_in_scale",
       "line": 292,
       "cyclomatic": 5.0,
-      "coverage": 92.0,
-      "crap": 5.0128,
+      "coverage": 79.16666666666666,
+      "crap": 5.2260561342592595,
       "crate": "mindtape"
     },
     {
@@ -9169,8 +9169,8 @@
       "function": "check_numeric",
       "line": 274,
       "cyclomatic": 1.0,
-      "coverage": 91.66666666666666,
-      "crap": 1.0005787037037037,
+      "coverage": 100.0,
+      "crap": 1.0,
       "crate": "mindtape"
     },
     {
@@ -9187,8 +9187,8 @@
       "function": "check_status",
       "line": 153,
       "cyclomatic": 5.0,
-      "coverage": 100.0,
-      "crap": 5.0,
+      "coverage": 94.11764705882352,
+      "crap": 5.005088540606554,
       "crate": "mindtape"
     },
     {
@@ -9196,8 +9196,8 @@
       "function": "check_status_note",
       "line": 177,
       "cyclomatic": 3.0,
-      "coverage": 100.0,
-      "crap": 3.0,
+      "coverage": 92.3076923076923,
+      "crap": 3.0040964952207556,
       "crate": "mindtape"
     },
     {
