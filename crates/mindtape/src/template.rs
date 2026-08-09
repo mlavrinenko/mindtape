@@ -214,3 +214,7 @@ fn parse_string_array(source: &str) -> Vec<String> {
 #[cfg(test)]
 #[path = "template_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "template_fill_tests.rs"]
+mod tests_fill;
