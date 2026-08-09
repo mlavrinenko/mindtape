@@ -6,25 +6,30 @@
 
 use std::collections::BTreeMap;
 use std::io::{IsTerminal, Read};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, anyhow};
 use clap::Args;
 use mindtape::{
-    Config, RawValue, SlotKind, SlotSpec, discover_slots, escape_markup, fill, naming,
-    status_value, today_ymd,
+    Config, RawValue, SlotKind, SlotSpec, discover_slots, escape_markup, fill, status_value,
+    today_ymd,
 };
 use typst_edit::apply;
 
-use crate::add_dedup::{self, DedupArg};
+use crate::add_dedup::DedupArg;
 use crate::add_interactive;
-use crate::add_output::{self, Format, Outcome};
+use crate::add_output::{self, Format};
 use crate::add_values::{
     DescribeFormat, append_list_value, collect_values, describe, layer_env, list_templates,
-    reject_unknown_keys, resolve_template, slug, stdin_title,
+    reject_unknown_keys, resolve_template, stdin_title,
 };
 use crate::task_edit::{initial_status, task_with, upsert_named_arg};
 use crate::util;
+
+#[path = "add_target.rs"]
+mod target;
+pub(crate) use target::{dest_dir, warn_if_outside_roots};
+use target::{output_stem, resolve_outcome};
 
 /// Arguments for `mt add`.
 // A clap flag struct: each `--flag` is an independent boolean toggle.
@@ -173,37 +178,6 @@ pub fn run(args: &AddArgs) -> Result<()> {
         crate::task_edit::verify_written(&project.root, &file).with_context(|| kept_note(&file))?;
     }
     Ok(())
-}
-
-/// Resolve the destination collision against `--dedup`/`[tasks.naming]
-/// dedup`, and report a `skip` outcome immediately (nothing is written for
-/// it). Returns `None` for `skip` (the caller's cue to stop); `Some(outcome)`
-/// otherwise, carrying the exact path to write.
-///
-/// # Errors
-/// Propagates [`add_dedup::resolve`]'s `fail`/exhausted-`add-suffix` errors.
-fn resolve_outcome(
-    args: &AddArgs,
-    config: &Config,
-    stem: &str,
-    dest: &Path,
-    file: PathBuf,
-) -> Result<Option<Outcome>> {
-    let dedup = add_dedup::effective_mode(args.dedup, config);
-    let label = file.display().to_string();
-    let collision = add_dedup::resolve(dedup, stem, &label, |candidate| {
-        dest.join(format!("{candidate}.typ")).exists()
-    })?;
-    Ok(match collision {
-        add_dedup::Collision::None => Some(Outcome::Wrote(file)),
-        add_dedup::Collision::Skipped => {
-            add_output::emit(&Outcome::Skipped(file), args.format);
-            None
-        }
-        add_dedup::Collision::Suffixed(suffixed_stem) => {
-            Some(Outcome::Suffixed(dest.join(format!("{suffixed_stem}.typ"))))
-        }
-    })
 }
 
 /// Escape every fill value that lands in Typst markup, leaving the rest alone.
@@ -361,105 +335,6 @@ fn fill_title_from_stdin(values: &mut BTreeMap<String, RawValue>, args: &AddArgs
         values.insert("title".to_owned(), RawValue::Str(title));
     }
     Ok(())
-}
-
-/// Compute the new task's filename stem: an explicit `--name` wins outright
-/// (literal, never templated — an explicit request is trusted as-is).
-/// Otherwise the title's slug feeds the configured `[tasks.naming] stem`
-/// template (today's date; the pure expander never reads a clock — see
-/// [`mindtape::naming`]); unset naming keeps today's bare behaviour
-/// untouched.
-///
-/// Pure minting only — this never checks `dest` or decides what to do about
-/// a collision. Whatever produced the stem, [`resolve_outcome`] is the single
-/// place that resolves it against the destination and the effective `--dedup`
-/// mode; unifying that decision (rather than pre-disambiguating a templated
-/// stem here, as before) is what makes `fail`/`skip` reachable under a
-/// templated `stem` at all.
-fn output_stem(
-    args: &AddArgs,
-    values: &BTreeMap<String, RawValue>,
-    config: &Config,
-) -> Result<String> {
-    if let Some(name) = &args.name {
-        return Ok(name.clone());
-    }
-    let slug_value = title_slug(values)?;
-    let Some(template) = config.tasks.naming.stem.as_deref() else {
-        return Ok(slug_value);
-    };
-    let ctx = naming::MintContext {
-        slug: &slug_value,
-        date: today_ymd(),
-        occurrence: 0,
-    };
-    naming::mint_stem(template, &ctx).map_err(|err| anyhow!(err.to_string()))
-}
-
-/// The title's slug, or an error when there is nothing to name the file from.
-fn title_slug(values: &BTreeMap<String, RawValue>) -> Result<String> {
-    if let Some(RawValue::Str(title)) = values.get("title") {
-        let stem = slug(title);
-        if !stem.is_empty() {
-            return Ok(stem);
-        }
-    }
-    bail!("need --name or a 'title' value to name the task file")
-}
-
-pub(crate) fn dest_dir(into: &str, to: Option<&str>, project: &util::Project) -> Result<PathBuf> {
-    let base = base_dir(into, project)?;
-    let Some(sub) = to else {
-        return Ok(base);
-    };
-    let sub = Path::new(sub);
-    if sub.is_absolute() {
-        bail!("--to expects a subfolder relative to the destination root, got absolute {sub:?}");
-    }
-    Ok(base.join(sub))
-}
-
-/// Resolve the destination base directory from `--into`: `.` (default) is the
-/// first configured root; an absolute path is taken as-is; a relative path
-/// resolves against the current directory.
-pub(crate) fn base_dir(into: &str, project: &util::Project) -> Result<PathBuf> {
-    if into == "." {
-        let first = project
-            .config
-            .tasks
-            .roots
-            .first()
-            .map_or(".", mindtape::RootSpec::path);
-        return Ok(project.root.join(first));
-    }
-    let path = Path::new(into);
-    if path.is_absolute() {
-        return Ok(path.to_path_buf());
-    }
-    Ok(std::env::current_dir()
-        .context("determine current directory")?
-        .join(path))
-}
-
-/// Warn when `dest` lands outside every configured root, since recursive loading
-/// only sees files under a root.
-pub(crate) fn warn_if_outside_roots(project: &util::Project, dest: &Path) {
-    let Ok(dest_abs) = dest.canonicalize() else {
-        return;
-    };
-    let inside = project.config.tasks.roots.iter().any(|root| {
-        project
-            .root
-            .join(root.path())
-            .canonicalize()
-            .is_ok_and(|abs| dest_abs.starts_with(abs))
-    });
-    if !inside {
-        eprintln!(
-            "warning: {} is outside the configured roots; the task will not be tracked",
-            dest.display()
-        );
-    }
 }
 
 #[cfg(test)]

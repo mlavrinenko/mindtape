@@ -3,7 +3,7 @@ algorithm: blake3
 groups:
   cli-docs:
     source:
-      crates/mindtape-cli/src/add.rs: 3e7b48da9c399c04b7b21e741f16b293a07fde71a1f5c7a2a2820cf80c11a5a0
+      crates/mindtape-cli/src/add.rs: 7c80e16fce9a8a3e4511638b00272d12d52067b4c7c0f8ac20cb98656c6a6ba3
       crates/mindtape-cli/src/check.rs: be65527021e1d8f8db8174309975ffff78384ef46aa2b24bff6095c611cdd285
       crates/mindtape-cli/src/cli.rs: 6bc1d3bf7754483c65144205d29e675c0996ac6220cf54d50c7a798ca5e9d795
       crates/mindtape-cli/src/config_cmd.rs: 12d9f8d935aa44d2749e2e7ce4b47f0d87320aac2589444b101e5ed406ceed78
@@ -21,7 +21,7 @@ groups:
       crates/mindtape-cli/src/presets/gated/config.toml: 542ed81c65b6509746df4d8870429acf4b76578a0765df080e66eccd3217079b
       crates/mindtape-cli/src/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
-      crates/mindtape-cli/src/recur.rs: b9c552d3e218d4c2eb79ade93d3de100586f2bb05120ac46e1e546273eb69ed1
+      crates/mindtape-cli/src/recur.rs: f97642928f9288d15f185abd8a4fa99429932d7aa7c50c81614226f7cbc62e1b
       crates/mindtape-cli/src/review.rs: 4f8665cb1bed211885387936cafd8082ba2a0d8a885eb749ea5069d6c07355d8
       crates/mindtape-cli/src/rm.rs: 43fdacf034671da2cb5cf8cd790165242d5b7c4249ad654ecd7fcc1146a2443f
       crates/mindtape-cli/src/views.rs: 95572b4071e2103a8e2140ad182f36fa6ae99ba9fd74ef118893ea54a76fc378
