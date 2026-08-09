@@ -122,6 +122,20 @@ fn valid_configs_report_no_problems() {
 }
 
 #[test]
+fn inverted_scale_is_rejected() {
+    let field = NumericField {
+        kind: ScaleKind::Int,
+        min: 9.0,
+        max: 0.0,
+        bands: Vec::new(),
+        anchors: Vec::new(),
+        required: Requirement::No,
+    };
+    let problems = field.validate("priority");
+    assert_eq!(problems, vec!["priority: min 9 must be below max 0"]);
+}
+
+#[test]
 fn bands_with_a_gap_are_rejected() {
     let mut field = int_bands();
     field.bands = vec![band("low", 0.0, 2.0), band("high", 5.0, 9.0)];
