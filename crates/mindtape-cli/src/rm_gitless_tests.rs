@@ -188,6 +188,61 @@ fn unlink_plan_skips_survivors_without_edges() {
     assert!(plan.rewrites.is_empty());
 }
 
+#[test]
+fn unlink_plan_strips_legacy_link_calls() {
+    // The pre-`links:` DSL referenced tasks from body text with `#link("stem.typ")[label]`
+    // calls, which `link_edges` never scans — the unlink rewrite carries its own
+    // `link(...)` pass. With no `links:` field there is no named argument to
+    // drop afterwards, either. A non-literal argument (`#link(gone.typ)`) is
+    // not a target: only quoted strings name a task.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
+    std::fs::write(
+        root.join("live.typ"),
+        "#import \"@local/mindtape:0.2.0\": *\n\
+#show: task.with(\n  title: \"Live\",\n)\n\n== Summary\n\n\
+#link(\"gone.typ\")[Depends on gone]\n\
+#link(gone.typ)[Unquoted]\n",
+    )
+    .unwrap();
+    let tasks = gone_and_live("done");
+
+    let plan = unlink_plan(&tasks, &ids(&["gone"]), root).unwrap();
+    let contents = &plan.rewrites[0].contents;
+
+    assert_eq!(plan.rewrites.len(), 1);
+    assert_eq!(plan.rewrites[0].links, 1);
+    assert!(contents.contains("== Summary"), "got: {contents}");
+    assert!(!contents.contains("#link(\"gone.typ\")"), "got: {contents}");
+    assert!(
+        contents.contains("#link(gone.typ)[Unquoted]"),
+        "non-literal arg must survive, got: {contents}"
+    );
+}
+
+#[test]
+fn unlink_plan_drops_whole_links_arg_across_whitespace() {
+    // The stripped call is followed by whitespace before the separator comma:
+    // the whole-value drop must skip the gap, not stop at the call's end and
+    // leave a dangling `links: ` key.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(root.join("gone.typ"), "gone\n").unwrap();
+    std::fs::write(root.join("live.typ"), survivor("depends-on(\"gone.typ\") ")).unwrap();
+    let tasks = gone_and_live("done");
+
+    let plan = unlink_plan(&tasks, &ids(&["gone"]), root).unwrap();
+    assert_eq!(plan.rewrites[0].links, 1);
+
+    apply(&plan).unwrap();
+    let contents = std::fs::read_to_string(root.join("live.typ")).unwrap();
+
+    let expected = "#import \"@local/mindtape:0.2.0\": *\n\
+#show: task.with(\n  title: \"Live\",\n)\n\n== Summary\n\nBody.\n";
+    assert_eq!(contents, expected, "the whole links: argument is dropped");
+}
+
 // --- retire ---
 
 #[test]
@@ -356,3 +411,31 @@ fn gitless_strategies_share_the_plain_delete_shape() {
 // The retire paths don't read survivors at all — only the eligible files — so
 // their batch behaviour (eligible edges ignored) is the same as the single
 // case exercised above.
+
+#[test]
+fn dbg_whole_links_probe() {
+    let source = "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  title: \"Live\",\n  links: depends-on(\"gone.typ\") ,\n)\n";
+    let call = crate::task_edit::task_with(source).unwrap();
+    let value = call.named("links").unwrap();
+    eprintln!(
+        "value_range: {:?} = {:?}",
+        value.value_range,
+        &source[value.value_range.clone()]
+    );
+    let bytes = source.as_bytes();
+    for i in value.value_range.clone() {
+        eprintln!(
+            "  {i}: {} (whitespace={})",
+            bytes.get(i).copied().unwrap_or(0),
+            bytes.get(i).is_some_and(u8::is_ascii_whitespace)
+        );
+    }
+    let mut cursor = value.value_range.end;
+    let mut steps = 0;
+    while bytes.get(cursor).is_some_and(u8::is_ascii_whitespace) && steps < 10 {
+        cursor += 1;
+        steps += 1;
+        eprintln!("  cursor {cursor}: {:?}", bytes.get(cursor));
+    }
+    eprintln!("final cursor {cursor}, byte {:?}", bytes.get(cursor));
+}
