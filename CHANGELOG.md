@@ -263,6 +263,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   target never needs transcribing. `README.md` states the support level and the
   two seams that differ; the pty-driven terminal tests stay Unix-only, since
   their harness is util-linux `script`.
+- **A fourth `just ask-refactoring` arm: undertested functions** — per-function
+  cyclomatic complexity against per-function coverage (`--cc-floor 5`,
+  `--fn-coverage-floor 80`), read from `cargo crap --format json` over the lcov
+  `just cover` writes. It sees what the file-shaped coverage arm structurally
+  cannot: an untested function inside a well-covered file, like `hval_kind` at
+  40% covered inside a `model.rs` no gate reports. It bands on the conjunction of
+  the two numbers, never on the CRAP score that combines them — that score
+  degenerates into complexity alone above ~90% coverage, which is why the
+  score-shaped arm was cancelled on measurement. The two coverage arms cannot
+  file the same gap twice: this one skips any function whose file the file-shaped
+  arm reports, by calling that arm's own predicate rather than a copy of it.
 
 ### Changed
 

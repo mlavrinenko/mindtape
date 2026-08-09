@@ -94,14 +94,23 @@ ensure_lcov_fresh() {
 #   report at all under the default build — nothing compiles it, so llvm-cov
 #   has no records for it either way; `just crap` excludes it explicitly because
 #   its own tool walks the source tree independently of what compiled.)
+#
+# Both constants are read by the undertested arm too (see its header): that arm
+# skips a function whose FILE this one reports, and the dedup is only sound if the
+# two agree on which files are production code to begin with. One definition, so
+# they cannot drift apart.
+COVERAGE_TEST_RE='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
+COVERAGE_STUB='crates/mindtape/src/recur_rrule_off.rs'
+
 score_coverage() {
-    jq -r --arg repo "$repo/" --argjson floor "$COVERAGE_FLOOR" '
+    jq -r --arg repo "$repo/" --argjson floor "$COVERAGE_FLOOR" \
+        --arg re "$COVERAGE_TEST_RE" --arg stub "$COVERAGE_STUB" '
       def clamp($lo; $hi): [[., $lo] | max, $hi] | min;
       .data[0].files[]
       | select(.summary.lines.count > 0)
       | (.filename | ltrimstr($repo))                       as $path
-      | select(($path | test("(^|/)([^/]*_)?tests(_[^/]*)?\\.rs$")) | not)
-      | select($path != "crates/mindtape/src/recur_rrule_off.rs")
+      | select(($path | test($re)) | not)
+      | select($path != $stub)
       | .summary.lines                                      as $l
       | $l.percent                                          as $percent
       | $l.count                                            as $lines
@@ -158,8 +167,13 @@ score_coverage() {
 #   count. Markdown's flat 2 in `score_size` is the same move for the opposite
 #   reason: a constant is honest when the real answer does not vary with the
 #   measurement, not when it is merely convenient.
-signal_coverage() {
-    ensure_lcov_fresh
+# The producer, split out of `signal_coverage` because `coverage_arm_files` needs
+# the same report. Captured with `$(...)` and rc-checked rather than piped blind:
+# llvm-cov failing quietly would read as "no findings", and the sweep's one
+# unaffordable failure is a clean, wrong result. The `exit 1` reaches the top
+# level through `set -eo pipefail` — the pipeline element it kills is a subshell,
+# but pipefail carries its status out.
+coverage_report_json() {
     local ignore='crates/mindtape-cli/src/main\.rs|/registry/src/'
     local json rc
     set +e
@@ -170,7 +184,21 @@ signal_coverage() {
         echo "ask-refactoring: cargo llvm-cov report failed (exit $rc) or wrote no JSON" >&2
         exit 1
     fi
-    printf '%s' "$json" | score_coverage
+    printf '%s' "$json"
+}
+
+signal_coverage() {
+    ensure_lcov_fresh
+    coverage_report_json | score_coverage
+}
+
+# The paths this arm reports, and the whole of the undertested arm's dedup rule:
+# a function whose file appears here is inside this arm's finding already, so the
+# function-shaped arm stays quiet about it. It is this arm's own predicate rather
+# than a copy of it — same report, same floor, same run — so the two arms can
+# only disagree about a file if someone edits `score_coverage`.
+coverage_arm_files() {
+    coverage_report_json | score_coverage | cut -f1
 }
 
 emit_coverage() {

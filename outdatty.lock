@@ -51,8 +51,8 @@ groups:
       crates/mindtape-cli/src/cli.rs: 6bc1d3bf7754483c65144205d29e675c0996ac6220cf54d50c7a798ca5e9d795
     dependents:
       AGENTS.md: e30aae142dfb736c3df8eccfd7f794c264bb78defacf4eab36ae5b44b57494bd
-      CHANGELOG.md: d791138cdac403c3bc40fc0a42fddf31740233dd5c812be5055344ff5c119f59
-      CONTRIBUTING.md: fe6eee5f52ee9f0127c9928faac4bd8eaebe85fa578a88ed75656a1e8a2750b9
+      CHANGELOG.md: 4633c59058fd18999dcc445ba38c8232150072f2de42b92b590b3f41cf77bced
+      CONTRIBUTING.md: 92d026feade388e64f6e5ff69630c62950bfd8b2feaa7ba4c7584a2b2f6abd40
       README.md: 5c0002ae2e6911188c65c7b9c50df2cb4410b8ef6a67b4eb1303cebcf00d6c4e
       skills/mindtape/SKILL.md: b98990c297ea1098b87f2c02ad2d900fbabedb63b8c8a93cd4128e9f178c4bb8
       www/content/cli.typ: 4da3b4386735d38b88bb705ee0eb7d18efb181d7f5ed11d509ab9e0f10bf8a3f
@@ -60,11 +60,11 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      Justfile: 939c9ab057768774403f10bcbce2d97b2a042b266f79917887261e3e3685a5d8
+      Justfile: 8303d3bb26e7f948164850c9c9ac9249d0debaea861d7a04568edc81ac9d436c
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: e30aae142dfb736c3df8eccfd7f794c264bb78defacf4eab36ae5b44b57494bd
-      CONTRIBUTING.md: fe6eee5f52ee9f0127c9928faac4bd8eaebe85fa578a88ed75656a1e8a2750b9
+      CONTRIBUTING.md: 92d026feade388e64f6e5ff69630c62950bfd8b2feaa7ba4c7584a2b2f6abd40
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf
@@ -81,16 +81,23 @@ groups:
     source:
       Cargo.toml: 09d8ee5c1cc971e967e96e313c256abf7ef51093c1cbd06fbdf1c97fef7d457e
     dependents:
-      CHANGELOG.md: d791138cdac403c3bc40fc0a42fddf31740233dd5c812be5055344ff5c119f59
+      CHANGELOG.md: 4633c59058fd18999dcc445ba38c8232150072f2de42b92b590b3f41cf77bced
+  sweep-dedup:
+    source:
+      contrib/ask-refactoring/coverage.sh: a233130d4f5749ac8e8336c761e4841a31dc12710d730adeb4e1fc2a6615896f
+    dependents:
+      contrib/ask-refactoring/undertested.sh: 4cd7fd19172037ae9fd24aa208e75fc70426a964ada03ba84a646ed7bcf300b2
   sweep-templates:
     source:
       .mindtape/templates/sweep-size.typ: e87efe0ec85144b4a844967605e9d5e2070d9d80d58505e3a32d8057c047ff33
     dependents:
       .mindtape/templates/sweep-coverage.typ: 679c6da51b78863fb2e7018785ecbee263cd7d58ca99e35d641b5b55c0a54b4d
       .mindtape/templates/sweep-mutants.typ: 3a88383f63431728c3ba09de20750bfa23a7f4281c8cac0fdfb0231c53918847
-      contrib/ask-refactoring/coverage.sh: 60cbc370f70511dc64c5075586c0e1a13c2913232c042843ac3488cc44304af9
+      .mindtape/templates/sweep-undertested.typ: b687a02112336384ac8f0c176e698e6a4ba0461a6efec92aec9a7ba53a608ac0
+      contrib/ask-refactoring/coverage.sh: a233130d4f5749ac8e8336c761e4841a31dc12710d730adeb4e1fc2a6615896f
       contrib/ask-refactoring/mutants.sh: f21c7b06b0e44b685be31871ebeef188cc4c4a3e90e7bbd99fd6ff93bd64b09d
       contrib/ask-refactoring/size.sh: 422631bdf909c034caad0f945183a53353f325383fb90a2c29216839f3465053
+      contrib/ask-refactoring/undertested.sh: 4cd7fd19172037ae9fd24aa208e75fc70426a964ada03ba84a646ed7bcf300b2
   typst-pkg-version:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5
