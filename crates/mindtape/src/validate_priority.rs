@@ -105,3 +105,7 @@ fn check_manual_priority(
     }
     check_in_scale(task, "priority", value, &config.field)
 }
+
+#[cfg(test)]
+#[path = "validate_priority_tests.rs"]
+mod tests;
