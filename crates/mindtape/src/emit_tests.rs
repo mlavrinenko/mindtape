@@ -267,6 +267,127 @@ fn emits_nothing_after_marker_when_body_empty() {
 }
 
 #[test]
+fn round_trips_kind_and_assignee() {
+    let mut task = bare_task("kind-and-assignee");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.kind = Some("bug".to_owned());
+    task.assignee = Some("ada".to_owned());
+    assert_round_trips(&task, CONFIG, &[]);
+}
+
+#[test]
+fn emits_label_priority_as_a_string() {
+    let mut task = bare_task("label-priority");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.priority = Some(NumValue::Label("high".to_owned()));
+    let source = emit_task(&task);
+    assert!(source.contains("priority: \"high\""), "{source}");
+}
+
+#[test]
+fn emits_moscow_framework_as_a_positional_call() {
+    // `moscow(level)` takes one positional argument, not a named one —
+    // distinct emission shape from every other named framework.
+    let mut task = bare_task("moscow-priority");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.priority = Some(NumValue::Framework {
+        name: "moscow".to_owned(),
+        inputs: BTreeMap::from([("level".to_owned(), InputValue::Text("must".to_owned()))]),
+    });
+    let source = emit_task(&task);
+    assert!(source.contains("priority: moscow(\"must\")"), "{source}");
+}
+
+#[test]
+fn emits_unnamed_framework_via_the_generic_escape_hatch() {
+    let mut task = bare_task("custom-framework-priority");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.priority = Some(NumValue::Framework {
+        name: "custom".to_owned(),
+        inputs: BTreeMap::new(),
+    });
+    let source = emit_task(&task);
+    assert!(
+        source.contains("priority: framework(\"custom\")"),
+        "{source}"
+    );
+}
+
+#[test]
+fn emits_unnamed_framework_with_inputs_via_the_generic_escape_hatch() {
+    let mut task = bare_task("custom-framework-with-inputs");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.priority = Some(NumValue::Framework {
+        name: "custom".to_owned(),
+        inputs: BTreeMap::from([
+            ("flag".to_owned(), InputValue::Bool(true)),
+            ("note".to_owned(), InputValue::Text("careful".to_owned())),
+        ]),
+    });
+    let source = emit_task(&task);
+    assert!(
+        source.contains(r#"priority: framework("custom", flag: true, note: "careful")"#),
+        "{source}"
+    );
+}
+
+#[test]
+fn emit_recur_omits_field_for_rrule_escape_hatch() {
+    // The module doc's "deliberate, documented gap": a `rrule(...)` recur
+    // emits no `recur` field at all, rather than a wrong or partial one.
+    let mut task = bare_task("rrule-recur");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.recur = Some(Recur {
+        rule: Rule::Rrule {
+            raw: "FREQ=MONTHLY;BYDAY=1MO".to_owned(),
+        },
+        anchor: None,
+        until: None,
+        count: None,
+        materialize: None,
+    });
+    let source = emit_task(&task);
+    assert!(!source.contains("recur:"), "{source}");
+}
+
+#[test]
+fn round_trips_recur_without_specific_weekdays() {
+    let mut task = bare_task("recur-no-weekdays");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.recur = Some(Recur {
+        rule: Rule::Period {
+            unit: PeriodUnit::Days,
+            value: 3,
+            weekdays: Vec::new(),
+        },
+        anchor: None,
+        until: None,
+        count: None,
+        materialize: None,
+    });
+    assert_round_trips(&task, CONFIG, &[]);
+}
+
+#[test]
+fn round_trips_recur_with_every_weekday() {
+    use chrono::Weekday::{Fri, Mon, Sat, Sun, Thu, Tue, Wed};
+    let mut task = bare_task("recur-all-weekdays");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.recur = Some(Recur {
+        rule: Rule::Period {
+            unit: PeriodUnit::Weeks,
+            value: 1,
+            weekdays: vec![Mon, Tue, Wed, Thu, Fri, Sat, Sun],
+        },
+        anchor: None,
+        until: None,
+        count: None,
+        materialize: None,
+    });
+    assert_round_trips(&task, CONFIG, &[]);
+}
+
+#[test]
 fn emits_deterministic_field_order() {
     let mut task = bare_task("deterministic");
     task.status = Some(status("wip", "2026-06-01"));
