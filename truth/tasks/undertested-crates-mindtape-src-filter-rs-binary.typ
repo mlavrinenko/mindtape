@@ -10,7 +10,11 @@
   difficulty: 2,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[hand-built-tree test pins the wrong-arity arm (CC 5, 100% cov); mutants -f filter.rs: 42 caught, 4 unviable, 0 missed],
 )
 
 == Summary
