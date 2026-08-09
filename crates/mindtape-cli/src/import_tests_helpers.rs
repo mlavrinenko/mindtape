@@ -11,7 +11,7 @@ use std::path::Path;
 use std::process::Command;
 
 use mindtape::test_support::bare_task;
-use mindtape::{CanonicalTask, EntryKind, ImportReport};
+use mindtape::{CanonicalTask, EntryKind, ImportReport, ReportEntry};
 
 use super::import_records;
 use super::tests::{bare_args, setup_dest, to_canonical};
@@ -224,6 +224,7 @@ fn report_emits_per_task_detail_and_extras() {
             .unwrap();
         let s = String::from_utf8_lossy(&o.stderr);
         assert!(s.contains("fail-task: skipped"), "{s}");
+        assert!(s.contains("[mapped] status: renamed todo -> wip"), "{s}");
         assert!(s.contains("extras carried:"), "{s}");
         return;
     }
@@ -232,7 +233,11 @@ fn report_emits_per_task_detail_and_extras() {
         filed: false,
         problems: vec!["err".into()],
         report: ImportReport {
-            entries: vec![],
+            entries: vec![ReportEntry {
+                field: "status".into(),
+                kind: EntryKind::Mapped,
+                message: "renamed todo -> wip".into(),
+            }],
             carried_extras: vec!["x-foo".into()],
         },
     };

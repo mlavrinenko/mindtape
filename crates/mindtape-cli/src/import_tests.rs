@@ -305,3 +305,61 @@ fn colliding_titles_disambiguate_with_a_numeric_suffix() {
     assert!(dir.path().join("tasks/duplicate.typ").exists());
     assert!(dir.path().join("tasks/duplicate-2.typ").exists());
 }
+
+#[test]
+fn a_title_that_slugifies_to_nothing_is_reported_and_leaves_no_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup_dest(dir.path());
+    let mut punctuation_only = bare_task("placeholder");
+    // Every character here is filtered by `slug_from_title`, so the record has
+    // a non-empty title yet mints an empty stem candidate — `stem_for`'s own
+    // guard, distinct from a record missing a title outright.
+    punctuation_only.title = "!!! ---".to_owned();
+    punctuation_only.status = Some(status("wip", "2026-06-01"));
+    let raw = to_canonical(&[punctuation_only], &project.config);
+
+    let outcomes = import_records(&project, &bare_args(), &raw).unwrap();
+    assert_eq!(outcomes.len(), 1);
+    assert!(
+        !outcomes[0].filed,
+        "a title with no alphanumerics must not be filed"
+    );
+    assert!(
+        outcomes[0]
+            .problems
+            .iter()
+            .any(|problem| problem.contains("empty title")),
+        "{:?}",
+        outcomes[0].problems
+    );
+    let entries: Vec<_> = std::fs::read_dir(dir.path().join("tasks"))
+        .unwrap()
+        .flatten()
+        .collect();
+    assert!(entries.is_empty(), "no file must land: {entries:?}");
+}
+
+#[test]
+fn a_malformed_map_entry_fails_the_batch_before_any_record_is_written() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup_dest(dir.path());
+    let mut task = bare_task("solo");
+    task.title = "Solo Task".to_owned();
+    task.status = Some(status("wip", "2026-06-01"));
+    let raw = to_canonical(&[task], &project.config);
+
+    let mut args = bare_args();
+    args.map = vec!["=bad".to_owned()];
+    let err = match import_records(&project, &args, &raw) {
+        Err(err) => err.to_string(),
+        Ok(outcomes) => panic!(
+            "expected the malformed --map entry to be rejected, got {} outcomes",
+            outcomes.len()
+        ),
+    };
+    assert!(err.contains("OLD=NEW"), "{err}");
+    assert!(
+        !dir.path().join("tasks/solo-task.typ").exists(),
+        "a rejected --map must never reach the write stage"
+    );
+}
