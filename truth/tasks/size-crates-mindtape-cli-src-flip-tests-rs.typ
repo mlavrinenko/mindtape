@@ -10,7 +10,11 @@
   difficulty: 5,
   estimate: (files: 3),
   tags: ("swept", "size", "tests"),
-  status: proposed(2026, 8, 10),
+  status: done(
+    2026,
+    8,
+    10,
+  )[split flip\_tests.rs 471->413, new flip\_tests\_revalidate.rs 85 (revalidate cluster, mod tests\_revalidate wired in flip.rs); 35 tests intact; outdatty cli-docs reconfirmed (cfg(test)-only wiring)],
 )
 
 == Summary
