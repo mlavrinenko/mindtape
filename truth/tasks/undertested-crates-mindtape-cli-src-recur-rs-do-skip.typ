@@ -10,7 +10,11 @@
   difficulty: 2,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[dry-run branch pinned (CC 9, cov 100%); mutants 35/35 caught],
 )
 
 == Summary
