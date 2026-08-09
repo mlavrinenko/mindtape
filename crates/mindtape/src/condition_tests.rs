@@ -197,3 +197,20 @@ fn unknown_function_in_value_position_is_unknown_predicate() {
 fn wrong_arg_count_to_on_branch_is_invalid() {
     assert_invalid(r#"on_branch("a", "b")"#);
 }
+
+#[test]
+fn binary_op_with_wrong_arity_is_invalid_at_match_time() {
+    // `evalexpr`'s parser always gives `&&`/`||` exactly two operands, so the
+    // wrong-arity arm of `binary` is only reachable on a tree built by hand —
+    // the same route `Condition::matches` documents for errors that `parse`'s
+    // dry-run cannot see. Mutate a parsed tree: drop one of `And`'s operands.
+    let mut tree = evalexpr::build_operator_tree("true && true").unwrap();
+    let mut and = tree.children_mut().pop().unwrap();
+    and.children_mut().pop();
+    let condition = Condition { tree: Some(and) };
+    let err = condition.matches(&env(None, "2026-07-12")).unwrap_err();
+    assert!(
+        matches!(&err, ConditionError::Invalid(msg) if msg.contains("binary op needs two operands")),
+        "{err}"
+    );
+}
