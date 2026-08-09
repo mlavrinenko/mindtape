@@ -131,6 +131,16 @@ One consequence is worth carrying in your head rather than looking up: above
 complexity, so a flat dispatcher sits near the threshold by construction, and
 adding an arm to one means covering it in the same change.
 
+That same collapse is why the threshold alone is not the whole gate. `just crap`
+runs a second check against `crap-baseline.json`, a committed score for every
+function: nothing may get WORSE than the baseline, at any absolute level. It
+never reads the absolute score, only the delta, so the collapse does not apply —
+a rise means complexity went up or coverage went down either way. It is what
+catches a function that is complex and undertested but scores well under 30,
+which the threshold is structurally blind to. When you deliberately add
+complexity, run `just crap-baseline` in the same commit so the new number lands
+next to the reason for it.
+
 How the dev shell supplies cargo-crap and the LLVM tools `cargo-llvm-cov` needs
 is `flake.nix`'s subject — both are non-obvious, both break loudly if changed
 carelessly, and both are commented there.
