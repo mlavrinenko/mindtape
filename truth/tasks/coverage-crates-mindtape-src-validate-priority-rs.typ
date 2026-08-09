@@ -10,7 +10,11 @@
   difficulty: 2,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[file 85.53% -> 100% (floor 88); framework None/dangling/gap arms pinned],
 )
 
 == Summary
