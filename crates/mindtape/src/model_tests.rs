@@ -5,7 +5,7 @@ use std::path::Path;
 
 use typst_harvest::HVal;
 
-use super::{Status, Task, is_history_pointer, normalize_link, resolve_link_path};
+use super::{Status, Task, is_history_pointer, normalize_link, resolve_link_path, shape_error};
 use crate::numeric::{InputValue, NumValue};
 use crate::test_support::bare_task;
 
@@ -182,6 +182,29 @@ fn from_marker_reports_links_wrong_shape_instead_of_silent_empty() {
         "expected an array, found a string",
     );
     assert!(task.links.is_empty());
+}
+
+/// `shape_error` names the Typst kind of the offending value in its message,
+/// via `hval_kind` — one arm per `HVal` variant. `Null` never reaches it
+/// through `from_marker` (the `field` helper filters nulls out), so it is
+/// exercised directly on the crate-level surface.
+#[test]
+fn shape_error_names_every_hval_kind() {
+    let cases = vec![
+        (HVal::Null, "none"),
+        (HVal::Bool(true), "a boolean"),
+        (HVal::Int(1), "a number"),
+        (HVal::Float(1.5), "a number"),
+        (HVal::Str("x".to_owned()), "a string"),
+        (HVal::Date("2026-01-01".to_owned()), "a date"),
+        (HVal::Array(vec![]), "an array"),
+        (HVal::Dict(BTreeMap::new()), "a dict"),
+    ];
+    for (value, kind) in cases {
+        let err = shape_error("tags", "an array", &value);
+        assert_eq!(err.field, "tags");
+        assert_eq!(err.message, format!("expected an array, found {kind}"));
+    }
 }
 
 #[test]
