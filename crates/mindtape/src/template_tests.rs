@@ -163,6 +163,7 @@ fn bad_date_errors() {
     )
     .unwrap_err();
     assert!(matches!(err, FillError::BadDate { .. }));
+    assert!(err.to_string().contains("YYYY-MM-DD"), "{err}");
 }
 
 #[test]
@@ -241,6 +242,11 @@ fn type_mismatch_errors() {
     )
     .unwrap_err();
     assert!(matches!(err, FillError::Type { .. }));
+    let msg = err.to_string();
+    assert!(
+        msg.contains("\"a\"") && msg.contains("int") && msg.contains("bool"),
+        "{msg}"
+    );
 }
 
 #[test]
@@ -402,4 +408,81 @@ fn fills_bool_from_bool_value() {
     )
     .unwrap();
     assert_eq!(out, wrap("flag: true"));
+}
+
+#[test]
+fn fills_string_kind_from_scalar_values() {
+    // Catches deletion of the Int/Float/Bool arms in coerce_str: a `--set`
+    // value always arrives as a string, but a `-f` JSON/YAML file can hand any
+    // scalar to a string-kind slot.
+    let out = fill_wrapped(
+        r#"a: slot("a"), b: slot("b"), c: slot("c")"#,
+        &[
+            ("a", RawValue::Int(7)),
+            ("b", RawValue::Float(2.5)),
+            ("c", RawValue::Bool(true)),
+        ],
+    )
+    .unwrap();
+    assert_eq!(out, wrap(r#"a: "7", b: "2.5", c: "true""#));
+}
+
+#[test]
+fn list_value_into_string_kind_errors() {
+    let err = fill_wrapped(
+        r#"a: slot("a")"#,
+        &[("a", RawValue::List(vec!["x".to_owned()]))],
+    )
+    .unwrap_err();
+    assert!(matches!(
+        err,
+        FillError::Type {
+            want: SlotKind::String,
+            got: "list",
+            ..
+        }
+    ));
+}
+
+#[test]
+fn non_numeric_value_into_float_slot_errors() {
+    let err = fill_wrapped(
+        r#"b: slot("b", kind: "float")"#,
+        &[("b", RawValue::Bool(true))],
+    )
+    .unwrap_err();
+    assert!(matches!(
+        err,
+        FillError::Type {
+            want: SlotKind::Float,
+            got: "bool",
+            ..
+        }
+    ));
+}
+
+#[test]
+fn non_bool_value_into_bool_slot_errors() {
+    let err = fill_wrapped(
+        r#"flag: slot("flag", kind: "bool")"#,
+        &[("flag", RawValue::Int(3))],
+    )
+    .unwrap_err();
+    assert!(matches!(
+        err,
+        FillError::Type {
+            want: SlotKind::Bool,
+            got: "int",
+            ..
+        }
+    ));
+}
+
+#[test]
+fn edit_failure_displays_rewrite_message() {
+    // `FillError::Edit` is built only from `apply`'s changeset validation,
+    // which no real `fill` call can trip (slot ranges come from the parser and
+    // never overlap), so exercise the display arm directly.
+    let err = FillError::Edit("boom".to_owned());
+    assert_eq!(err.to_string(), "rewrite failed: boom");
 }
