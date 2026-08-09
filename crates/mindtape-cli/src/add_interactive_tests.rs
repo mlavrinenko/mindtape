@@ -275,6 +275,31 @@ fn text_slot_seed_renders_as_block() {
     );
 }
 
+// ── seed_entry: the Float and Bool arms render their typed scalars ──
+
+#[test]
+fn float_seed_renders_as_scalar() {
+    let mut seed = BTreeMap::new();
+    seed.insert("x".to_owned(), RawValue::Float(1.5));
+    let specs = discover_slots("#show: task.with(x: slot(\"x\", kind: \"float\"))");
+    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    assert!(buffer.contains("x: 1.5"), "{buffer}");
+    // Round-trips back as a typed float, not a string.
+    let values = parse_buffer(&buffer).unwrap();
+    assert_eq!(values["x"], RawValue::Float(1.5));
+}
+
+#[test]
+fn bool_seed_renders_as_scalar() {
+    let mut seed = BTreeMap::new();
+    seed.insert("x".to_owned(), RawValue::Bool(true));
+    let specs = discover_slots("#show: task.with(x: slot(\"x\", kind: \"bool\"))");
+    let buffer = scaffold(&AddConfig::default(), &specs, &seed);
+    assert!(buffer.contains("x: true"), "{buffer}");
+    let values = parse_buffer(&buffer).unwrap();
+    assert_eq!(values["x"], RawValue::Bool(true));
+}
+
 // ── quote: every character that must be escaped, one case each ──
 
 #[test]
