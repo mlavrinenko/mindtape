@@ -10,7 +10,11 @@
   difficulty: 2,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[float/bool seed arms pinned (CC 7, cov 100%); mutants 58 caught, 0 missed],
 )
 
 == Summary
