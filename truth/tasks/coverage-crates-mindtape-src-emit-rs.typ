@@ -10,7 +10,7 @@
   difficulty: 6,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 8),
+  status: done(2026, 8, 9)[swept finding resolved; gate green on merged HEAD],
 )
 
 == Summary
