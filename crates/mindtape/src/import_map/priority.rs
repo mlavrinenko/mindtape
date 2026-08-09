@@ -154,7 +154,7 @@ fn push_if_out_of_scale(point: f64, field: &str, scale: &NumericField, out: &mut
 mod tests {
     use crate::canonical::{CanonicalNum, CanonicalPriority};
     use crate::config::{Config, PriorityConfig, TasksConfig};
-    use crate::numeric::NumValue;
+    use crate::numeric::{InputValue, NumValue};
 
     #[test]
     fn no_framework_with_disallowed_manual_is_clean() {
@@ -197,5 +197,44 @@ mod tests {
             out.is_empty(),
             "expected no report entries for difficulty at max, got {out:?}",
         );
+    }
+
+    #[test]
+    fn json_number_converts_to_num() {
+        assert_eq!(
+            super::json_to_input_value(&serde_json::json!(2.5)),
+            Some(InputValue::Num(2.5)),
+        );
+        assert_eq!(
+            super::json_to_input_value(&serde_json::json!(8)),
+            Some(InputValue::Num(8.0)),
+        );
+    }
+
+    #[test]
+    fn json_bool_converts_to_bool() {
+        assert_eq!(
+            super::json_to_input_value(&serde_json::json!(true)),
+            Some(InputValue::Bool(true)),
+        );
+        assert_eq!(
+            super::json_to_input_value(&serde_json::json!(false)),
+            Some(InputValue::Bool(false)),
+        );
+    }
+
+    #[test]
+    fn json_string_converts_to_text() {
+        assert_eq!(
+            super::json_to_input_value(&serde_json::json!("high")),
+            Some(InputValue::Text("high".to_owned())),
+        );
+    }
+
+    #[test]
+    fn json_null_array_object_are_dropped() {
+        assert_eq!(super::json_to_input_value(&serde_json::json!(null)), None);
+        assert_eq!(super::json_to_input_value(&serde_json::json!([])), None);
+        assert_eq!(super::json_to_input_value(&serde_json::json!({})), None);
     }
 }
