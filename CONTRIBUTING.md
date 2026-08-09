@@ -118,16 +118,12 @@ so `recur_rrule.rs` (the `rrule` cargo feature's expander) never compiles and
 `just crap` excludes it too, rather than scoring it as phantom 0%-covered;
 `just check-rrule` covers it separately, under the `rrule` feature.
 
-The recipe throws the previous run away (`cargo llvm-cov clean --workspace`)
-before instrumenting, which is why it always pays a full instrumented rebuild
-(~1 min). That is not caution: the `--no-report`/`report` split it uses exists
-so that several runs CAN be merged, so without the clean, `report` unions every
-profraw and object file left under `target/llvm-cov-target` since the last
-`cargo clean` — other feature sets, other commits — and reports coverage the
-current source cannot produce. It inflated `crap-baseline.json` once already
-(`truth/tasks/clean-the-profraw-pile-before-each-coverage-run.typ`). Never add
-`--no-clean` or drop that line to make the loop faster; measure with
-`just check` and leave `cover` alone.
+It throws the previous run away first (`cargo llvm-cov clean --workspace`), so it
+always pays a full instrumented rebuild (~1 min). Without that, `report` unions
+every profraw and object file left since the last `cargo clean` — other feature
+sets, other commits — and reports coverage this source cannot produce; it
+inflated `crap-baseline.json` once already. Never trade that line for speed. The
+recipe's comment carries the measurement.
 
 `just crap` runs right after it, in the same CI job and over the same
 `lcov.info`: the CRAP metric (`CC² × uncovered³ + CC`) fails above 30, flagging
