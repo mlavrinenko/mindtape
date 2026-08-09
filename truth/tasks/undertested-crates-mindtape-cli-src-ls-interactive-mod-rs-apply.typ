@@ -10,7 +10,11 @@
   difficulty: 6,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[refactored: apply is now pure in the Tui; all 8 buffer/control arms unit-tested (CC 9, 100% cov); mutants -f mod.rs: 45 caught, 3 unviable, 0 missed — forced past failing gate: "mmz --is-fresh --tag gate"],
 )
 
 == Summary

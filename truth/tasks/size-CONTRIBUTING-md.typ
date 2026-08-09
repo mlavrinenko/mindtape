@@ -10,7 +10,11 @@
   difficulty: 3,
   estimate: (files: 2),
   tags: ("swept", "size"),
-  status: done(2026, 8, 9)[swept finding resolved; gate green on merged HEAD],
+  status: proposed(
+    2026,
+    8,
+    9,
+  )[reopened: still named by the size arm at 276 lines (reports at >=270); deliberate compaction pass due],
 )
 
 == Summary

@@ -10,7 +10,11 @@
   difficulty: 4,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[empty-registry Some/None and both listing arms covered by subprocess tests (CC 9, 100% cov); mutants -f worktrees.rs: 17 caught, 1 unviable, 0 missed — forced past failing gate: "mmz --is-fresh --tag gate"],
 )
 
 == Summary

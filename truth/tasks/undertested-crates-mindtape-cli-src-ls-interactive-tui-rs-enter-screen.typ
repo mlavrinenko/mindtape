@@ -10,7 +10,11 @@
   difficulty: 2,
   estimate: (files: 1),
   tags: ("swept", "coverage"),
-  status: proposed(2026, 8, 9),
+  status: done(
+    2026,
+    8,
+    9,
+  )[excluded via CRAP\_EXCLUDES with written reason: terminal-bound module, pinned end-to-end by pty tests (interactive\_e2e.rs); baseline re-minted in the same commit — forced past failing gate: "mmz --is-fresh --tag gate"],
 )
 
 == Summary
