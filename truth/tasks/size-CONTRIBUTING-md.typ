@@ -10,11 +10,11 @@
   difficulty: 3,
   estimate: (files: 2),
   tags: ("swept", "size"),
-  status: proposed(
+  status: done(
     2026,
     8,
-    9,
-  )[reopened: still named by the size arm at 276 lines (reports at >=270); deliberate compaction pass due],
+    10,
+  )[sweep deep-dive moved to docs/contributing/signal-sweep.md; 276 -> 231 lines, linecop no longer names it],
 )
 
 == Summary
