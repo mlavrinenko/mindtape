@@ -10,7 +10,11 @@
   difficulty: 4,
   estimate: (files: 1),
   tags: ("swept", "mutants"),
-  status: proposed(2026, 8, 10),
+  status: done(
+    2026,
+    8,
+    10,
+  )[pin test: bands whose labels sort opposite to their numeric order (low=1/high=6); mutants -f sort.rs: 0 missed],
 )
 
 == Summary

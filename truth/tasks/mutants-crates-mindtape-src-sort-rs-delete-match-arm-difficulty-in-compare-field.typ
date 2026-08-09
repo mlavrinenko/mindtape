@@ -10,7 +10,11 @@
   difficulty: 4,
   estimate: (files: 1),
   tags: ("swept", "mutants"),
-  status: proposed(2026, 8, 10),
+  status: done(
+    2026,
+    8,
+    10,
+  )[same fixture covers the difficulty field (soft=1/hard=6); mutants -f sort.rs: 0 missed],
 )
 
 == Summary
