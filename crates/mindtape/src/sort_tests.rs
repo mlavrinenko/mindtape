@@ -1,10 +1,11 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{
-    default_order, default_order_with, priority_value, sort_by_specs, status_index,
-    validate_sort_spec,
+    cmp_field_value, default_order, default_order_with, priority_value, sort_by_specs,
+    status_index, validate_sort_spec,
 };
 use crate::config::{Config, parse_config};
+use crate::fields::FieldValue;
 use crate::model::{Status, Task};
 use crate::numeric::NumValue;
 use crate::test_support::{bare_task, dep_edge};
@@ -435,5 +436,57 @@ fn sort_by_specs_orders_by_file_path_across_a_mixed_set() {
     assert_eq!(
         ids_by(tasks, "file", &cfg),
         vec!["m-nested-a", "m-nested-b", "m-flat", "m-root"]
+    );
+}
+
+#[test]
+fn cmp_field_value_orders_missing_after_present() {
+    use std::cmp::Ordering;
+    // Missing-missing ties; a missing value sorts after any present one — the
+    // same missing-last rule `cmp_num_asc`/`cmp_opt_asc` use.
+    assert_eq!(
+        cmp_field_value(&FieldValue::Missing, &FieldValue::Missing),
+        Ordering::Equal
+    );
+    assert_eq!(
+        cmp_field_value(&FieldValue::Missing, &FieldValue::Num(1.0)),
+        Ordering::Greater
+    );
+    assert_eq!(
+        cmp_field_value(&FieldValue::Str("a".to_owned()), &FieldValue::Missing),
+        Ordering::Less
+    );
+}
+
+#[test]
+fn cmp_field_value_compares_numbers_numerically() {
+    use std::cmp::Ordering;
+    assert_eq!(
+        cmp_field_value(&FieldValue::Num(2.0), &FieldValue::Num(8.0)),
+        Ordering::Less
+    );
+    assert_eq!(
+        cmp_field_value(&FieldValue::Num(8.0), &FieldValue::Num(2.0)),
+        Ordering::Greater
+    );
+    // `partial_cmp` yields None for NaN; the fallback ties rather than panics.
+    assert_eq!(
+        cmp_field_value(&FieldValue::Num(f64::NAN), &FieldValue::Num(1.0)),
+        Ordering::Equal
+    );
+}
+
+#[test]
+fn cmp_field_value_ties_mismatched_variants() {
+    use std::cmp::Ordering;
+    // A Num vs Str pair can't come from `--sort` (both sides resolve from the
+    // same field), so the fallback ties rather than panics.
+    assert_eq!(
+        cmp_field_value(&FieldValue::Num(1.0), &FieldValue::Str("a".to_owned())),
+        Ordering::Equal
+    );
+    assert_eq!(
+        cmp_field_value(&FieldValue::Str("a".to_owned()), &FieldValue::Num(1.0)),
+        Ordering::Equal
     );
 }
