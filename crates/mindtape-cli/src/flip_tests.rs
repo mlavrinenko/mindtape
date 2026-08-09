@@ -38,6 +38,21 @@ pub(super) const REACHABLE_CONFIG: &str = "\
 [[tasks.status]]\nvalue = \"done\"\nterminal = true\n\
 [[tasks.status]]\nvalue = \"blocked\"\n";
 
+/// A legend whose `broken"done` value carries a double quote: flipping to it
+/// renders the generic `status("broken"done", …)` — a Typst syntax error — so
+/// the rewrite lands on disk as a file that fails to reload, and the
+/// post-flip `revalidate` must report that load error against the touched
+/// file.
+pub(super) const BROKEN_RELOAD_CONFIG: &str = "\
+[[tasks.status]]\nvalue = \"wip\"\n\
+[[tasks.status]]\nvalue = \"broken\\\"done\"\n\
+[[tasks.status]]\nvalue = \"done\"\nterminal = true\n";
+
+/// A file that fails to evaluate (an unclosed content block), used as a
+/// pre-existing broken task that no flip touches.
+const BROKEN_FILE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+#show: task.with(\n  title: \"Broken\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody [\n";
+
 /// Project rooted at `dir` with an in-tree `lib/` mindtape package override (so
 /// `@local/mindtape` resolves without a global install), a real
 /// `.mindtape/config.toml` holding `config_text`, and `files` under `tasks/`.
@@ -342,6 +357,56 @@ fn revalidate_catches_unreachable_status() {
         err.contains("1 task(s) had problems"),
         "expected the revalidation failure count: {err}"
     );
+}
+
+/// A flip whose rewrite breaks the file (the status value renders into a Typst
+/// syntax error) surfaces through the post-flip reload: `revalidate` appends
+/// the load error against the touched file to the problem list. The returned
+/// error only carries the count; the message itself goes to stderr (see
+/// `flip_tests_output.rs`).
+#[test]
+fn revalidate_reports_load_error_on_touched_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
+    let err = run_with(&project, &flip_args("broken\"done", &["alpha"]))
+        .unwrap_err()
+        .to_string();
+    assert!(
+        err.contains("1 task(s) had problems"),
+        "expected the load-failure count: {err}"
+    );
+}
+
+/// A pre-existing broken file elsewhere in the project is not the flip's
+/// doing, so `revalidate` must not report its load error: only errors on the
+/// touched file are appended to the problem list, and the batch stays Ok.
+#[test]
+fn revalidate_ignores_load_errors_on_untouched_files() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(
+        dir.path(),
+        &[("alpha.typ", ALPHA), ("broken.typ", BROKEN_FILE)],
+        LEGEND_CONFIG,
+    );
+    run_with(&project, &flip_args("done", &["alpha"])).unwrap();
+    assert!(read(dir.path(), "alpha.typ").contains("status: done("));
+}
+
+/// A task whose authored status is unreachable under the declared graph is a
+/// pre-existing condition: when that task is not part of the batch, its
+/// revalidation violation must not fail the flip of an unrelated task.
+#[test]
+fn revalidate_ignores_violations_on_untouched_tasks() {
+    let dir = tempfile::tempdir().unwrap();
+    // BETA's authored `blocked` is unreachable under REACHABLE_CONFIG; only
+    // alpha is flipped, so the violation must stay out of the problem list.
+    let project = setup(
+        dir.path(),
+        &[("alpha.typ", ALPHA), ("beta.typ", BETA)],
+        REACHABLE_CONFIG,
+    );
+    run_with(&project, &flip_args("done", &["alpha"])).unwrap();
+    assert!(read(dir.path(), "alpha.typ").contains("status: done("));
 }
 
 #[test]

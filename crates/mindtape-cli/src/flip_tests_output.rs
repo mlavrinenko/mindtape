@@ -9,7 +9,8 @@
 #![allow(clippy::unwrap_used)]
 
 use super::tests::{
-    ALPHA, GAMMA, LEGEND_CONFIG, REACHABLE_CONFIG, STATELESS, flip_args, read, setup,
+    ALPHA, BROKEN_RELOAD_CONFIG, GAMMA, LEGEND_CONFIG, REACHABLE_CONFIG, STATELESS, flip_args,
+    read, setup,
 };
 use super::{run, run_with};
 
@@ -185,4 +186,23 @@ fn revalidate_prints_the_unreachable_violation() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("s.typ", STATELESS)], REACHABLE_CONFIG);
     assert!(run_with(&project, &flip_args("blocked", &["s"])).is_err());
+}
+
+/// The post-flip load-error report is also printed, not returned: the message
+/// naming the file and the "failed to load after flip" cause is only
+/// observable on a child's stderr.
+#[test]
+fn revalidate_prints_the_load_error() {
+    if std::env::var(FLIP_CHILD_ENV).is_err() {
+        let o = child_output("revalidate_prints_the_load_error");
+        let err = String::from_utf8_lossy(&o.stderr);
+        assert!(
+            err.contains("failed to load after flip"),
+            "expected the load-error report naming the file: {err}"
+        );
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
+    assert!(run_with(&project, &flip_args("broken\"done", &["alpha"])).is_err());
 }
