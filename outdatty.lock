@@ -47,12 +47,12 @@ groups:
       www/utils/cli-notes.typ: 53a5ee0a4901c9e2e35346edc81c80680fba566560808eccde43ac5140b09915
   cli-name:
     source:
-      crates/mindtape-cli/Cargo.toml: 2492cf0da34ddea59cc25725b865cc95c988bacf8f7c5052bb5648f26457cd41
+      crates/mindtape-cli/Cargo.toml: 9ce1e4d3844fc88e726278cc268a51a08a69a5894cacf5e2a86f5d3b689e8824
       crates/mindtape-cli/src/cli.rs: 6bc1d3bf7754483c65144205d29e675c0996ac6220cf54d50c7a798ca5e9d795
     dependents:
       AGENTS.md: e30aae142dfb736c3df8eccfd7f794c264bb78defacf4eab36ae5b44b57494bd
-      CHANGELOG.md: 4633c59058fd18999dcc445ba38c8232150072f2de42b92b590b3f41cf77bced
-      CONTRIBUTING.md: b6b8ea246b53ef7c3d2195f44285b4839d3447e7604fe310c16e9fa05d38ec7b
+      CHANGELOG.md: 37370daeb9077f39ffd13414ba6ca3e83a5774fa8336315e03d242040c9f9e6b
+      CONTRIBUTING.md: b8941f257a1a028a7dda905b07403e10a1d47b05632eb9a900b64fb2c970bc8a
       README.md: 5c0002ae2e6911188c65c7b9c50df2cb4410b8ef6a67b4eb1303cebcf00d6c4e
       skills/mindtape/SKILL.md: b98990c297ea1098b87f2c02ad2d900fbabedb63b8c8a93cd4128e9f178c4bb8
       www/content/cli.typ: 4da3b4386735d38b88bb705ee0eb7d18efb181d7f5ed11d509ab9e0f10bf8a3f
@@ -60,11 +60,11 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      Justfile: 002f341be9b8c52c4a56404c619a626b697b673272a10a2b2b8089fdbd3d2954
+      Justfile: 6e7b026407bde2d577328821426f6cda2a573a2d1ee9cc20d1595f5a51bb0971
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: e30aae142dfb736c3df8eccfd7f794c264bb78defacf4eab36ae5b44b57494bd
-      CONTRIBUTING.md: b6b8ea246b53ef7c3d2195f44285b4839d3447e7604fe310c16e9fa05d38ec7b
+      CONTRIBUTING.md: b8941f257a1a028a7dda905b07403e10a1d47b05632eb9a900b64fb2c970bc8a
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf
@@ -79,9 +79,9 @@ groups:
       www/content/templates.typ: e10a7b1463a613cf0333aaf1f13221aa9fcef79dafafcdb59c6de848f14ffbe7
   release-notes:
     source:
-      Cargo.toml: 09d8ee5c1cc971e967e96e313c256abf7ef51093c1cbd06fbdf1c97fef7d457e
+      Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b
     dependents:
-      CHANGELOG.md: 4633c59058fd18999dcc445ba38c8232150072f2de42b92b590b3f41cf77bced
+      CHANGELOG.md: 37370daeb9077f39ffd13414ba6ca3e83a5774fa8336315e03d242040c9f9e6b
   sweep-dedup:
     source:
       contrib/ask-refactoring/coverage.sh: a233130d4f5749ac8e8336c761e4841a31dc12710d730adeb4e1fc2a6615896f

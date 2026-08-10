@@ -2665,7 +2665,7 @@ checksum = "c2a86d3146ed3995b5913c414f6664344b9617457320782e64f0bb44afd49d74"
 
 [[package]]
 name = "mindtape"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "artifact-gate",
  "chrono",
@@ -2692,7 +2692,7 @@ dependencies = [
 
 [[package]]
 name = "mindtape-cli"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anstyle",
  "anyhow",

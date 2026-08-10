@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.0] - 2026-08-10
 
 ### Added
 
@@ -523,11 +523,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`mt review`** — stamp `reviewed:` with today's date on a non-terminal
   task; idempotent within the same day.
 
-## [0.4.0] - 2026-06-14
+### The rewrite (2026-06-14)
 
 Per-file rewrite. See `docs/decisions/002-per-file-rewrite-and-speconaut-convergence.md`.
 
-### Added
+#### Added
 
 - **Per-file task model** — one task per file via `#show: task.with(...)`, with
   a `(name, date, note)` status, configurable enum/number core fields, task
@@ -541,22 +541,22 @@ Per-file rewrite. See `docs/decisions/002-per-file-rewrite-and-speconaut-converg
 - **`mindtape init`** — scaffolds project config (once per project)
 - Dev tooling: parallel `just check`, sccache, cargo-machete, linecop, outdatty
 
-### Changed
+#### Changed
 
 - Split into a three-crate workspace: `typst-harvest`, `mindtape` (library),
   `mindtape-cli` (binary). The filter language now runs over live-evaluated
   tasks instead of SQL
 - Typst library bumped to 0.2.0 (new task DSL; breaking)
 
-### Removed
+#### Removed
 
 - The `watch` daemon, the SQLite index, the `mindtape-store` crate,
   eval-hash skipping, the global cross-project agenda, inline checkbox markers
   and `#id()` identity, and the NixOS service module
 
-## [0.3.0] - 2026-03-23
+### The agenda era (2026-03-23)
 
-### Added
+#### Added
 
 - **Global agenda filter** — `[agenda]` now supports a top-level `filter` field
   that is AND-ed into every task section, e.g. hide tasks with a future
@@ -564,13 +564,13 @@ Per-file rewrite. See `docs/decisions/002-per-file-rewrite-and-speconaut-converg
 - **Default `#start()` filter** in the built-in agenda: tasks whose start date
   hasn't arrived are automatically hidden
 
-### Changed
+#### Changed
 
 - **Agenda config restructured** — `[[agenda]]` sections are now nested under
   `[agenda]` as `[[agenda.sections]]`, enabling agenda-level settings alongside
   per-section configuration (breaking change to config format)
 
-### Fixed
+#### Fixed
 
 - Resolve workspace version for naersk Nix build
 

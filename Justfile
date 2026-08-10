@@ -603,12 +603,10 @@ install-hooks:
     rm -f .git/hooks/pre-commit
     echo "installed .githooks"
 
-# Tag a release and push (usage: just release 0.2.0). Refuses to run while
-# CHANGELOG.md has an [Unreleased] section with content — move it into a dated
-# [VERSION] section first — and requires the release workflow to be committed
-# (the tag fires it, so uncommitted changes there would silently ship the old
-# pipeline). Pushes main before the tag so the docs site (pages.yml) and CI
-# run on the release tree.
+# Tag a release and push (usage: just release 0.3.0). Refuses to run in a
+# dirty worktree, and while CHANGELOG.md has an [Unreleased] section with
+# content — move it into a dated [VERSION] section first. Pushes main before
+# the tag so the docs site (pages.yml) and CI run on the release tree.
 release VERSION:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -617,15 +615,15 @@ release VERSION:
         echo "error: requested v{{ VERSION }} but Cargo.toml is $cargo_version; bump Cargo.toml first" >&2
         exit 1
     fi
+    if [ -n "$(git status --porcelain)" ]; then
+        echo "error: working tree is dirty; commit or stash before releasing" >&2
+        exit 1
+    fi
     unreleased=$(sed -n '/^## \[Unreleased\]/,/^## \[/p' CHANGELOG.md | sed '1d;$d' | sed '/^[[:space:]]*$/d')
     if [ -n "$unreleased" ]; then
         echo "error: CHANGELOG.md has a non-empty [Unreleased] section; move it into a dated [{{ VERSION }}] section before releasing" >&2
         exit 1
     fi
-    git diff --quiet --exit-code -- .github/workflows/release.yml || {
-        echo "error: .github/workflows/release.yml has uncommitted changes; the tag fires it, so commit them first" >&2
-        exit 1
-    }
     just check
     just nix-build
     git push origin main

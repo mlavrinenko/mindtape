@@ -19,7 +19,7 @@ path = "src/main.rs"
 rrule = ["mindtape/rrule"]
 
 [dependencies]
-mindtape = { path = "../mindtape" }
+mindtape = { version = "0.3.0", path = "../mindtape" }
 # Same minimal shape as mindtape's own dependency: `recur.rs`/`recur_edit.rs`
 # build `on(y, m, d)` Typst source and shift `start`/`due` with `NaiveDate`
 # arithmetic directly (no clock reads — the reference date always comes from
