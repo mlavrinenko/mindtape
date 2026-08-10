@@ -182,6 +182,12 @@ record the new state into `outdatty.lock` and commit it.
   `www/utils/site.typ` (the docs render every `#import` example from it), and the
   import examples in `README.md` and `AGENTS.md`. The `typst-pkg-version`
   outdatty group is what enforces that; trust it over this list.
+- `mindtape-cli`'s dependency on `mindtape` carries a version requirement (not
+  path-only), because crates.io rejects path-only deps on publish; bump it with
+  the workspace version.
+- A release (`just release VERSION`) pushes `main` before the tag, so the docs
+  site (`pages.yml`) and CI run on the release tree before the tag fires the
+  pipeline.
 
 ## Commit Messages
 

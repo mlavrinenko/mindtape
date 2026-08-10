@@ -603,7 +603,8 @@ install-hooks:
     rm -f .git/hooks/pre-commit
     echo "installed .githooks"
 
-# Tag a release and push (usage: just release 0.2.0)
+# Tag a release and push (usage: just release 0.2.0). Pushes main first so the
+# docs site (pages.yml) and CI run on the release tree before the tag fires.
 release VERSION:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -614,5 +615,6 @@ release VERSION:
     fi
     just check
     just nix-build
+    git push origin main
     git tag -a "v{{ VERSION }}" -m "v{{ VERSION }}"
     git push origin "v{{ VERSION }}"
