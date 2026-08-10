@@ -10,7 +10,11 @@
   difficulty: 4,
   estimate: (files: 3),
   tags: ("swept", "size"),
-  status: proposed(2026, 8, 10),
+  status: done(
+    2026,
+    8,
+    10,
+  )[externalized the inline test module to worktrees\_tests.rs (309 lines); worktrees.rs 486 -> 176; linecop --baseline 90 names no files; cli-docs outdatty lock reconfirmed (test relocation, CLI surface byte-identical)],
 )
 
 == Summary
