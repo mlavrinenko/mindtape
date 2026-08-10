@@ -25,7 +25,7 @@ groups:
       crates/mindtape-cli/src/review.rs: 4f8665cb1bed211885387936cafd8082ba2a0d8a885eb749ea5069d6c07355d8
       crates/mindtape-cli/src/rm.rs: 43fdacf034671da2cb5cf8cd790165242d5b7c4249ad654ecd7fcc1146a2443f
       crates/mindtape-cli/src/views.rs: 95572b4071e2103a8e2140ad182f36fa6ae99ba9fd74ef118893ea54a76fc378
-      crates/mindtape-cli/src/worktrees.rs: 2caff640a3cfd65141b2041209160e9fb9913d4107ce922489186ea116bb9ea4
+      crates/mindtape-cli/src/worktrees.rs: ed1e2dcd48df37456e4c61a2d9220a20ee94ea05b1c3c2005023962583347dee
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
       crates/mindtape/src/lib.rs: 4ff27e2e90197e5eedfe78f8f37ba2965bd85ca2dc8ff8172aceff9e67a5c8c5
     dependents:
