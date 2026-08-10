@@ -10,7 +10,7 @@
   difficulty: 3,
   tags: ("tooling",),
   estimate: (files: 2),
-  status: proposed(2026, 8, 10),
+  status: done(2026, 8, 10),
 )
 
 == Summary
