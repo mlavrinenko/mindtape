@@ -185,9 +185,12 @@ record the new state into `outdatty.lock` and commit it.
 - `mindtape-cli`'s dependency on `mindtape` carries a version requirement (not
   path-only), because crates.io rejects path-only deps on publish; bump it with
   the workspace version.
-- A release (`just release VERSION`) pushes `main` before the tag, so the docs
-  site (`pages.yml`) and CI run on the release tree before the tag fires the
-  pipeline.
+- A release (`just release VERSION`) is gated: the tag must equal the workspace
+  version, `CHANGELOG.md` may not have a non-empty `[Unreleased]` section (it
+  moves into a dated `[VERSION]` section at release time), and the release
+  workflow must be committed (the tag fires it). The recipe pushes `main`
+  before the tag, so the docs site (`pages.yml`) and CI run on the release
+  tree.
 
 ## Commit Messages
 
