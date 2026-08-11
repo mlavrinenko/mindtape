@@ -60,7 +60,7 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      Justfile: 6e7b026407bde2d577328821426f6cda2a573a2d1ee9cc20d1595f5a51bb0971
+      Justfile: 032908200e4d03b06c4d96ba0c64af8a446e9dc59a0710faa580ff4ae6c71a31
       flake.nix: 682174a2e108d44c0e360afc824eef085d26dab84ea7132947202aa275046019
     dependents:
       AGENTS.md: e30aae142dfb736c3df8eccfd7f794c264bb78defacf4eab36ae5b44b57494bd
