@@ -84,8 +84,8 @@ a:hover { color: var(--accent-strong); }
 .brand-mark {
   width: 26px; height: 26px; display: inline-block;
   background: var(--accent);
-  -webkit-mask: url("/assets/images/logo.svg") center / contain no-repeat;
-  mask: url("/assets/images/logo.svg") center / contain no-repeat;
+  -webkit-mask: url("../images/logo.svg") center / contain no-repeat;
+  mask: url("../images/logo.svg") center / contain no-repeat;
 }
 .brand-name { font-family: var(--font-mono); font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; }
 
