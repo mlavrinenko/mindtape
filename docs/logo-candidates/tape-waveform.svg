@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-label="MindTape tape-waveform candidate">
-  <!-- Candidate: tape waveform. Five stadium-capped vertical bars of varying
-       height, single path, single colour. Reads as a magnetic-tape level
-       meter and as a bar chart at once, with no fill contrast needed: the
-       meaning lives entirely in the bar heights and the gaps between them. -->
-  <path fill="#12805a" d="M2.8 10.2 a1.2 1.2 0 0 1 2.4 0 V13.8 a1.2 1.2 0 0 1 -2.4 0 Z M6.8 7.2 a1.2 1.2 0 0 1 2.4 0 V16.8 a1.2 1.2 0 0 1 -2.4 0 Z M10.8 5.2 a1.2 1.2 0 0 1 2.4 0 V18.8 a1.2 1.2 0 0 1 -2.4 0 Z M14.8 7.2 a1.2 1.2 0 0 1 2.4 0 V16.8 a1.2 1.2 0 0 1 -2.4 0 Z M18.8 9.2 a1.2 1.2 0 0 1 2.4 0 V14.8 a1.2 1.2 0 0 1 -2.4 0 Z"/>
-</svg>
