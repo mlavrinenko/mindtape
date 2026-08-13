@@ -2,7 +2,7 @@
 // docs/contributing/generated-docs.md. Rendered by docs/generate-md.sh via
 // typlite, same as every other docs/src/*.typ source; see docs/src/lib.typ
 // for the render path's constraints.
-#import "../lib.typ": doc-title
+#import "../lib.typ": doc-title, just
 
 #metadata((
   output: "docs/contributing/generated-docs.md",
@@ -79,7 +79,7 @@ invisible on GitHub, so it never leaks into the rendered page:
 
 == The freshness gate diffs a temp directory, not the working tree
 
-`just docs-md-check` regenerates every source into a fresh temp directory and
+#just.docs-md-check() regenerates every source into a fresh temp directory and
 diffs each file there against the committed copy at its real path — it never
 regenerates in place and then runs `git status`/`git diff`.
 

@@ -19,7 +19,7 @@
 // achievable to the original centered look, not a byte-for-byte match. This
 // document therefore has no separate `doc-title` ATX `#`: the centered
 // `<h1>` IS the title, exactly as in the hand-written original.
-#import "lib.typ": fact
+#import "lib.typ": fact, just
 
 #metadata((
   output: "README.md",
@@ -96,7 +96,7 @@ nix run github:mlavrinenko/mindtape -- --help
 
 Building from source needs only a Rust toolchain (`cargo build --release`
 produces `target/release/mt`); the `nix develop` shell adds the full test and
-lint toolchain used by `just check`.
+lint toolchain used by #just.check().
 
 Linux, macOS and Windows each get a prebuilt binary per release;
 #link("https://mlavrinenko.github.io/mindtape/internals/")[Internals] covers the two

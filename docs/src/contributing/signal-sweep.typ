@@ -9,12 +9,13 @@
 // importing `doc-title` the way every other source here does. Nothing is
 // derived: the sweep's arms, its rules and its guard expression are design,
 // not values any of www/generate-facts.sh's four artifacts carries.
+#import "../lib.typ": just
 
 #metadata((
   output: "docs/contributing/signal-sweep.md",
 )) <mindtape-md>
 
-= Signal Sweep (`just ask-refactoring`)
+= Signal Sweep (#just.ask-refactoring())
 
 `contrib/ask-refactoring.sh` reads the _advisory_ quality signals and files a
 backlog task per finding. It is not a gate and never will be — it is the

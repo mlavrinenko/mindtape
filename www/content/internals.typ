@@ -2,6 +2,7 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 #import "../utils/crate-notes.typ": crate-notes
+#import "../generated/just.typ" as just
 
 #show: page.with(
   title: "Internals",
@@ -52,7 +53,7 @@ that wants Typst-as-data gets it without inheriting a task model.
 
 Evaluating every file on every command is not free, so a content-hash cache
 under each root skips re-evaluating files whose bytes have not changed. Measured
-on a generated backlog of 2000 tasks (`just bench`, on one developer machine —
+on a generated backlog of 2000 tasks (#just.bench(), on one developer machine —
 run it on yours):
 
 #table(
