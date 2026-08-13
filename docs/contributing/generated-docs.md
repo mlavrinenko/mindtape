@@ -71,4 +71,11 @@ Verified against the pinned tinymist (nixpkgs, this flake’s input) / typst 0.1
 
 The footnote error and the silently-stripped `<p>`/`<div>`/`<span>` are the two sharpest edges: one fails loud but with a confusing message pointing at typlite’s own internals rather than the source; the other fails silent — content just does not appear, with no diagnostic at all. Test a new construct against typlite directly (`typlite --root . <src> /tmp/out.md`, read the output) before trusting it in a source, rather than assuming Markdown-shaped Typst always survives the trip.
 
+### Two authoring traps when porting hand-written Markdown prose
+
+Both bit the AGENTS.md port and are easy to reintroduce in the next one:
+
+- Typst’s `*x*` is BOLD (`strong`), not italic — the opposite of Markdown’s single-asterisk convention. A byte-for-byte port of Markdown prose that used `*word*` for italic emphasis silently becomes bold unless rewritten as Typst’s own italic syntax, `_word_` (which typlite renders back as Markdown `_word_`, not `*word*` — another representation change to expect, not a bug).
+- A hand-wrapped line that ends mid-word with a hyphen (`wrong -\nedited`) does NOT get TeX-style hyphenation-continuation across the soft break: Typst joins it as `wrong- edited`, an extra space and all, because typlite collapses the paragraph to one line without re-flowing it. Never end a wrapped source line on a hyphen that continues into the next line; move the whole hyphenated word to one line instead.
+
 One more consequence, not a constraint: typlite emits ONE LINE PER PARAGRAPH — it does not hard-wrap. A generated `.md`’s line count is therefore not a meaningful size proxy, which is why `.linecop.yaml` caps the `.typ` SOURCE under `docs/src/**` and excludes every path a source declares as its `output`. The source itself still wraps like any other Typst file in this repo, and `typstyle` still formats it.
