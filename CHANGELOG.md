@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Derived doc facts** — `www/generate-facts.sh` extracts the crate map and
+  dependency versions (`cargo metadata`, `rust-toolchain.toml`,
+  `[workspace.package]`, `lib/typst.toml`), the task DSL's core field list
+  (read back off `lib/prelude.typ`'s own `<mindtape>` marker), the `just check`
+  gate table, and the `.linecop.yaml` caps into `www/generated/*.json`. The
+  Internals and Task DSL docs pages now read the crate list and field list
+  from those artifacts instead of restating them by hand — the drift that had
+  Internals claiming "three general-purpose crates" for a Workspace that ships
+  seven can no longer happen silently. `just check-doc-facts` set-differences
+  each artifact against its hand-written prose dict
+  (`www/utils/crate-notes.typ`, `www/utils/dsl-field-notes.typ`) and fails
+  naming any entry with no prose.
+
 ## [0.3.0] - 2026-08-10
 
 ### Added

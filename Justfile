@@ -18,7 +18,7 @@ fix-check: eject fmt clippy-fix check
 
 # its non-zero exit out of `parallel` unchanged.
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "docs-check") (mmz "fmt-fixture-check") check-crap
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "docs-check") (mmz "fmt-fixture-check") check-crap
 
 # Wrap a just recipe in mmz: `j ust mmz fmt-check` runs `mmz just fmt-check`. The
 # double hop makes mmz the cache identity (rule name `just <recipe>` in
@@ -83,6 +83,50 @@ check-doc-coverage:
         exit 1
     fi
     echo "check-doc-coverage: $(wc -l <<<"$visible") visible commands, all documented"
+
+# Doc-facts gate: same set-difference idiom as check-doc-coverage above, over
+# the facts www/generate-facts.sh derives instead of a hand-maintained list
+# (see truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ).
+# Two arms: every crate in crate-map.json needs a www/utils/crate-notes.typ
+# entry, and every DSL field in dsl-fields.json needs a
+# www/utils/dsl-field-notes.typ entry. Each arm reads its Typst dict's keys
+# through the same target/-rooted driver trick as check-doc-coverage, never by
+# grepping quoted strings.
+#
+# Regenerates its own inputs (bash www/generate-facts.sh) rather than trusting
+# whatever www/generated/ already holds, so this gate never depends on `just
+# docs-gen` — or a release build — having run first.
+check-doc-facts:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    bash www/generate-facts.sh
+    tmp=$(mktemp -d -p target)
+    trap 'rm -rf "$tmp"' EXIT
+
+    crates=$(jq -r '.workspace[].name, .substrate[].name' www/generated/crate-map.json)
+    printf '#import "/www/utils/crate-notes.typ": crate-notes\n#metadata(crate-notes.keys()) <crate-notes-keys>\n' \
+        > "$tmp/crate-keys.typ"
+    documented_crates=$(typst query --root . "$tmp/crate-keys.typ" '<crate-notes-keys>' \
+        --field value --one | jq -r '.[]')
+    missing_crates=$(comm -23 <(sort <<<"$crates") <(sort <<<"$documented_crates"))
+    if [ -n "$missing_crates" ]; then
+        echo "check-doc-facts: undocumented crates (no www/utils/crate-notes.typ entry):" >&2
+        while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_crates"
+        exit 1
+    fi
+
+    fields=$(jq -r '.fields[].name' www/generated/dsl-fields.json)
+    printf '#import "/www/utils/dsl-field-notes.typ": dsl-field-notes\n#metadata(dsl-field-notes.keys()) <dsl-field-notes-keys>\n' \
+        > "$tmp/field-keys.typ"
+    documented_fields=$(typst query --root . "$tmp/field-keys.typ" '<dsl-field-notes-keys>' \
+        --field value --one | jq -r '.[]')
+    missing_fields=$(comm -23 <(sort <<<"$fields") <(sort <<<"$documented_fields"))
+    if [ -n "$missing_fields" ]; then
+        echo "check-doc-facts: undocumented DSL fields (no www/utils/dsl-field-notes.typ entry):" >&2
+        while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_fields"
+        exit 1
+    fi
+    echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, all documented"
 
 # (Re)generate the examples/large/ benchmark fixture: N deterministic task
 
@@ -149,10 +193,14 @@ nix-build:
 
 # Capture live `mt` output for the docs (www/generated/*.txt), so the site's
 # CLI reference, help, version, and transcripts cannot drift from the binary.
+# Then derive the crate/DSL/gate/linecop facts (www/generate-facts.sh) — after
+# generate.sh, never before: generate.sh `rm -rf`s the whole generated/ dir on
+# entry, which would erase anything written here first.
 
 # Builds `mt` release, runs it against examples/learn-piano at a pinned clock.
 docs-gen:
     bash www/generate.sh
+    bash www/generate-facts.sh
 
 # Build the documentation site (www/ -> www/public/mindtape) with tola, then
 # index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/).

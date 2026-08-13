@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
+#import "../utils/crate-notes.typ": crate-notes
 
 #show: page.with(
   title: "Internals",
@@ -13,19 +14,32 @@ for anyone auditing it, packaging it, or building on top.
 
 = Workspace
 
-A two-crate `cargo` workspace. `mindtape` is the library — config, the task
-model, the filter language, and config-driven validation — and `mindtape-cli` is
-the thin `mt` binary.
+// Facts (the crate list, versions, direct-vs-transitive) come from
+// www/generated/crate-map.json (`cargo metadata` + rust-toolchain.toml); this
+// page owns only the presentation and the per-crate prose (crate-notes.typ) —
+// a machine cannot write "treating Typst as a data format". `just
+// check-doc-facts` fails the build if a crate here has no matching prose.
+#let crate-map = json("../generated/crate-map.json")
 
-Three general-purpose crates sit underneath, published separately because none
-of them knows what a task is:
+A #crate-map.workspace.len()-crate `cargo` workspace (edition
+#crate-map.workspace-package.edition, pinned to rustc
+#crate-map.rust-toolchain.channel):
 
-- `typst-harvest` — evaluates a Typst file and collects the data it marked for
-  export, treating Typst as a data format. Never lays out or renders a page.
-- `typst-cst` — reads a file's structure (its heading tree, with source spans)
-  by parsing alone, without evaluating it.
-- `typst-edit` — rewrites a Typst file in place at known spans, applying a batch
-  of edits as one change.
+#for c in crate-map.workspace [
+  - #raw(c.name) #raw(c.version) — #crate-notes.at(c.name)
+]
+
+#let transitive = crate-map.substrate.filter(c => not c.direct)
+
+#crate-map.substrate.len() general-purpose crates sit underneath, published
+separately because none of them knows what a task is
+(#(crate-map.substrate.len() - transitive.len()) direct,
+#transitive.len() reached only transitively — via another substrate crate,
+never named in a workspace manifest — marked below):
+
+#for c in crate-map.substrate [
+  - #raw(c.name) #raw(c.version)#(if not c.direct [ (transitive)]) — #crate-notes.at(c.name)
+]
 
 That split is the #link(u("/concepts/"))[extension seam] one layer down: a tool
 that wants Typst-as-data gets it without inheriting a task model.

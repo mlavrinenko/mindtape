@@ -50,19 +50,22 @@ Two crates (`cargo` workspace, virtual root manifest):
 - `crates/mindtape-cli` — the thin `mt` binary (clap).
 
 The former in-tree substrate crates (`typst-world`, `typst-harvest`,
-`typst-cst`, `typst-edit`, `typst-cleanup`, `swhid-mint`, `artifact-gate`) are
-published to crates.io at `0.1.0` and consumed as regular registry
-dependencies — package-agnostic Typst World/eval, parse-plane structure
-extraction, slot/link rewriting, git-aware cleanup, SWHID minting, and
-artifact validation. `typst-world` is pulled transitively via `typst-harvest`;
-`mindtape` does not depend on it directly.
+`typst-cst`, `typst-edit`, `typst-cleanup`, `swhid-mint`, `artifact-gate`) —
+seven, not three — are published to crates.io as regular registry
+dependencies: package-agnostic Typst World/eval, harvest, parse-plane
+structure extraction, slot/link rewriting, git-aware cleanup, SWHID minting,
+and artifact validation. `typst-world` is pulled transitively via
+`typst-harvest`; `mindtape` does not depend on it directly. Versions are
+derived, never hand-listed — see `www/generated/crate-map.json`
+(`www/generate-facts.sh`, consumed by `www/content/internals.typ`).
 
 ## Architecture
 
 - Rust (edition 2024, pinned `rust-toolchain.toml`)
-- Typst 0.14 eval-only (`typst-eval`); never layout or render
+- Typst eval-only (`typst-eval`); never layout or render
 - `evalexpr` 12 as a parser for the filter language (walked, not evaluated by it)
-- `clap` 4 CLI; `serde`/`toml` config; `comfy-table`/`serde_json`/`csv` output
+- `clap` 4 CLI; `serde`/`toml` config; a hand-rolled table renderer
+  (`crates/mindtape-cli/src/render/`), `serde_json`/`csv` output
 
 The dev shell and its tooling are `flake.nix`'s subject, and the workflow around
 each tool is CONTRIBUTING.md's — neither is restated here.

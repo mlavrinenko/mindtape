@@ -200,6 +200,17 @@ commands:
     tags: [gate]
     inputs: [rust, docs, gates-meta]
 
+  # Regenerates its own facts (www/generate-facts.sh reads Cargo.toml/Cargo.lock/
+  # rust-toolchain.toml — `rust` — plus lib/prelude.typ/lib/typst.toml —
+  # `policy` — and .linecop.yaml — `file-size-config`) then set-differences
+  # crate-map.json/dsl-fields.json against the two prose dicts under
+  # www/utils/ (`docs`). `gates-meta` because the recipe body — and the
+  # gate-table shape www/generate-facts.sh's gates.json reads back out of the
+  # Justfile — lives there.
+  - name: just check-doc-facts
+    tags: [gate]
+    inputs: [rust, policy, file-size-config, docs, gates-meta]
+
   # docs-gen shells out to the built `mt` binary (rust) and reads the docs
   # tree + the learn-piano fixture (examples) + the project policy/prelude
   # (the generated CLI transcripts reference `mt`'s config-driven output).

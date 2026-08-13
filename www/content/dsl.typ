@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, mt-import, pkg
 #import "../utils/site.typ": u
+#import "../utils/dsl-field-notes.typ": dsl-field-notes
 
 #show: page.with(
   title: "Task DSL",
@@ -32,30 +33,18 @@ The body is free-form Typst below the metadata.",
 
 = Fields
 
+// The field list itself comes from www/generated/dsl-fields.json — read back
+// off lib/prelude.typ's own `task` signature via its `<mindtape>` marker, not
+// mirrored by hand. `x-<ns>` isn't a core field (it's the extension sink, not
+// a named parameter), so it stays a hand-added row below the derived ones.
+// `just check-doc-facts` fails the build if a field here has no matching
+// prose in dsl-field-notes.typ.
+#let dsl-fields = json("../generated/dsl-fields.json").fields
+
 #table(
   columns: 2,
   table.header([Field], [Value]),
-  [`title`], [Display title. The only field the built-in template requires.],
-  [`status`],
-  [A legend value dated today or explicitly: `wip(2026, 7, 6)`. A trailing block is a note: `wip(2026, 7, 6)[behind a flag]`.],
-
-  [`priority`],
-  [A number on the scale, or a framework call. See #link(u("/priority/"))[Priority].],
-
-  [`difficulty`], [The sibling scale to priority, same shape.],
-  [`estimate`],
-  [An opaque `unit: quantity` dict, e.g. `(days: 1, hours: 2)`. Units are never converted or compared — only the allowed set is checked.],
-
-  [`kind`], [A config-defined enum value (e.g. `"feature"`, `"bug"`).],
-  [`assignee`],
-  [The actor currently working the task: a plain string. Orthogonal to status; never ownership.],
-
-  [`due`, `start`], [Dates via `datetime(year: …, month: …, day: …)`.],
-  [`tags`], [A tuple of strings: `("backend", "auth")`.],
-  [`links`],
-  [Typed edges to other tasks — a sum of helper calls, e.g. `depends-on("a.typ") + related("b.typ")[why]`. See below.],
-
-  [`recur`], [A recurrence rule + policy: `every(weeks: 1)`. See below.],
+  ..dsl-fields.map(f => (raw(f.name), dsl-field-notes.at(f.name))).flatten(),
   [`x-<ns>`],
   [Opaque extension slot for tools built on MindTape. Carried untouched; the consumer validates it.],
 )
