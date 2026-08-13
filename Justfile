@@ -1,4 +1,5 @@
 set quiet := true
+set unstable := true
 
 # List available recipes
 default:
@@ -95,6 +96,7 @@ check-doc-coverage:
 #
 # Regenerates its own inputs (bash www/generate-facts.sh) rather than trusting
 # whatever www/generated/ already holds, so this gate never depends on `just
+
 # docs-gen` — or a release build — having run first.
 check-doc-facts:
     #!/usr/bin/env bash
@@ -223,6 +225,7 @@ docs-check: docs-gen
 # (README.md, AGENTS.md, CONTRIBUTING.md, skills/mindtape/SKILL.md,
 # docs/contributing/*.md) with typlite. See docs/generate-md.sh's header for
 # what typlite can and cannot do, and docs/contributing/generated-docs.md for
+
 # the pipeline this feeds and how to add a source.
 docs-md:
     bash docs/generate-md.sh
@@ -233,6 +236,7 @@ docs-md:
 # regenerate would heal a hand-corrupted committed file before the diff ever
 # ran, so the gate would read clean on a fix that is no longer actually
 # represented; a fresh temp render diffed against the untouched committed
+
 # tree cannot self-heal that way, so a drifted file fails by name every time.
 docs-md-check:
     #!/usr/bin/env bash
@@ -571,12 +575,14 @@ fmt:
     cargo fmt --all
     tombi format {{ TOML_FMT_PATHS }}
     typstyle --inplace {{ TYPST_FMT_PATHS }}
+    just --fmt
 
 # Format check (CI-friendly)
 fmt-check:
     cargo fmt --all -- --check
     tombi format --check {{ TOML_FMT_PATHS }}
     typstyle --check {{ TYPST_FMT_PATHS }}
+    just --fmt --check
 
 # Lock the formatter gates: synthesize a deliberately-mis-formatted TOML and
 # Typst fixture in a temp dir, then assert `tombi format --check` and
