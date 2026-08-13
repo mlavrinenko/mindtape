@@ -93,10 +93,10 @@ groups:
   # facts found the same pages restate DSL shape too — dual membership, same
   # pattern as SKILL.md below); dsl.typ stays the detailed reference the
   # others defer to.
-  # AGENTS.md is generated from docs/src/agents.typ (typlite; `just docs-md` —
+  # AGENTS.md and README.md are both generated (typlite; `just docs-md` —
   # truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ), so the
-  # source, not the rendered file, is the dependent to reconcile. Its DSL
-  # snippet and field-shape prose are still hand-restated here, not derived:
+  # sources, not the rendered files, are the dependents to reconcile. Their DSL
+  # snippets and field-shape prose are still hand-restated here, not derived:
   # `www/generated/dsl-fields.json` carries the field NAMES, but this group is
   # about the FULL task DSL shape (field types, framework packagers, the
   # validation-layer split) that no fact file captures.
@@ -104,8 +104,8 @@ groups:
     source:
       - lib/prelude.typ
     dependents:
-      - README.md
       - docs/src/agents.typ
+      - docs/src/readme.typ
       - www/content/dsl.typ
       - www/content/concepts.typ
       - www/content/priority.typ
@@ -119,8 +119,9 @@ groups:
   # embedded constant. Bump lib/typst.toml and these must follow (the docs read
   # it from one place — www/utils/site.typ PKG_VERSION).
   #
-  # docs/src/agents.typ (AGENTS.md's source) is NOT a dependent: its
-  # `@local/mindtape:...` snippet version reads
+  # docs/src/agents.typ (AGENTS.md's source) and docs/src/readme.typ
+  # (README.md's source) are NOT dependents: both read their
+  # `@local/mindtape:...` snippet version from
   # `www/generated/crate-map.json`'s `typst-lib.version` (itself derived from
   # this same lib/typst.toml), so a bump propagates through `just docs-md`
   # with no human reconciliation — the point of deriving it in the first
@@ -131,7 +132,6 @@ groups:
     dependents:
       - crates/mindtape-cli/src/init.rs
       - crates/mindtape-cli/src/presets/gated/templates/task.typ
-      - README.md
       - www/utils/site.typ
       - examples/learn-piano/.mindtape/templates/task.typ
       - examples/learn-piano/tasks/technique/hanon-warmup-daily.typ
@@ -155,15 +155,16 @@ groups:
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.
-  # docs/src/agents.typ (not AGENTS.md — generated from it) because its
-  # bare `mt`/`mt ls`/`mt check` mentions are hand-typed, not derived: nothing
-  # in www/generated/*.json carries the CLI binary's invocation name.
+  # docs/src/agents.typ (not AGENTS.md) and docs/src/readme.typ (not
+  # README.md) — both generated from their sources — because their bare
+  # `mt`/`mt ls`/`mt check` mentions are hand-typed, not derived: nothing in
+  # www/generated/*.json carries the CLI binary's invocation name.
   - name: cli-name
     source:
       - crates/mindtape-cli/Cargo.toml
       - crates/mindtape-cli/src/cli.rs
     dependents:
-      - README.md
+      - docs/src/readme.typ
       - www/content/index.typ
       - www/content/quickstart.typ
       - www/content/cli.typ

@@ -33,9 +33,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caps move onto the `.typ` sources — a generated `.md` cannot be edited to
   fix an oversize — and `outdatty.yaml`'s dependents repoint from AGENTS.md to
   `docs/src/agents.typ`, dropping it entirely where a fact is now derived.
-  README.md, CONTRIBUTING.md and `skills/mindtape/SKILL.md` stay hand-written
-  for now; the gates and the metadata schema (including SKILL.md's YAML
-  frontmatter, which typlite cannot emit) are already in place for them.
+  README.md is the second port: its centered `<p align="center">` header
+  cannot survive typlite (`<p>` is silently stripped), so it is rebuilt from
+  `<h1 align="center">`/`<h4 align="center">`, which both typlite and GitHub's
+  HTML sanitizer preserve. Its `@local/mindtape` example version now reads
+  `www/generated/crate-map.json` too, dropping README.md from
+  `outdatty.yaml`'s `typst-pkg-version` group. CONTRIBUTING.md and
+  `skills/mindtape/SKILL.md` stay hand-written for now; the gates and the
+  metadata schema (including SKILL.md's YAML frontmatter, which typlite
+  cannot emit) are already in place for them.
 
 ## [0.3.0] - 2026-08-10
 
