@@ -13,8 +13,11 @@
   links: depends-on(
     "trim-root-docs-by-delegating-deep-content.typ",
     "derive-the-drift-prone-doc-facts-from-their-sources.typ",
-  ),
-  status: wip(2026, 8, 13),
+  )
+    + related(
+      "verify-the-generated-readme-header-renders-on-github.typ",
+    )[the human check no gate can do: the rebuilt header on github.com],
+  status: done(2026, 8, 13),
 )
 
 == Summary
