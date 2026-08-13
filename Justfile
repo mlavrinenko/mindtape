@@ -147,17 +147,19 @@ check-doc-coverage:
 # Doc-facts gate: same set-difference idiom as check-doc-coverage above, over
 # the facts www/generate-facts.sh derives instead of a hand-maintained list
 # (see truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ).
-# Two arms: every crate in crate-map.json needs a www/utils/crate-notes.typ
-# entry, and every DSL field in dsl-fields.json needs a
-# www/utils/dsl-field-notes.typ entry. Each arm reads its Typst dict's keys
-# through the same target/-rooted driver trick as check-doc-coverage, never by
+# Three arms: every crate in crate-map.json needs a www/utils/crate-notes.typ
+# entry, every DSL field in dsl-fields.json needs a
+# www/utils/dsl-field-notes.typ entry, and every gate in gates.json needs a
+# www/utils/gate-notes.typ entry (truth/tasks/derive-the-gate-table-command-
+# column-from-the-justfile.typ). Each arm reads its Typst dict's keys through
+# the same target/-rooted driver trick as check-doc-coverage, never by
 # grepping quoted strings.
 #
 # Regenerates its own inputs (bash www/generate-facts.sh) rather than trusting
 # whatever www/generated/ already holds, so this gate never depends on `just
 # docs-gen` — or a release build — having run first.
 
-[doc("Fail if a derived crate or DSL fact has no doc entry")]
+[doc("Fail if a derived crate, DSL field, or gate fact has no doc entry")]
 [group("gate")]
 check-doc-facts:
     #!/usr/bin/env bash
@@ -189,7 +191,19 @@ check-doc-facts:
         while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_fields"
         exit 1
     fi
-    echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, all documented"
+
+    gates=$(jq -r '.gates[].name' www/generated/gates.json)
+    printf '#import "/www/utils/gate-notes.typ": gate-notes\n#metadata(gate-notes.keys()) <gate-notes-keys>\n' \
+        > "$tmp/gate-keys.typ"
+    documented_gates=$(typst query --root . "$tmp/gate-keys.typ" '<gate-notes-keys>' \
+        --field value --one | jq -r '.[]')
+    missing_gates=$(comm -23 <(sort <<<"$gates") <(sort <<<"$documented_gates"))
+    if [ -n "$missing_gates" ]; then
+        echo "check-doc-facts: undocumented gates (no www/utils/gate-notes.typ entry):" >&2
+        while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_gates"
+        exit 1
+    fi
+    echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, $(wc -l <<<"$gates") gates, all documented"
 
 # The gate for what www/generated/just.typ cannot reach: a fenced code block
 # cannot call a function, and typst's own "module does not contain" error at

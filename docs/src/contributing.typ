@@ -3,14 +3,21 @@
 //
 // Content-preserving port, except for the Quality Gates table:
 // `www/generated/gates.json` carries the sub-gates `just check` declares, in
-// order, each with its Justfile doc comment, so the Gate column and row order
-// are derived. The Tool column's prose has no machine source, so it stays
-// hand-written below, keyed by gate name via `.at()` (the house pattern; see
-// docs/src/agents.typ's `*-roles` dicts) — a gate missing here fails `just
-// docs-md` naming it, and one removed from `just check` drops out on its
-// own. `.linecop.yaml`'s caps land in `www/generated/linecop-caps.json` too,
-// but this file quotes no literal cap to derive from it.
+// order, each with its Justfile doc comment and a derived `command` — the
+// recipe's own body, read back rather than retyped, so it cannot drift the
+// way the hand-quoted clippy invocation once did (www/gates.jq argues the
+// derivation). Gate and Command are both machine-derived; the Notes column's
+// prose has no machine source, so it stays hand-written in
+// `www/utils/gate-notes.typ` — the same `www/utils/*-notes.typ` house
+// pattern as `crate-notes.typ`, `dsl-field-notes.typ` and `cli-notes.typ` —
+// keyed by gate name via `.at()`. A gate missing there fails `just docs-md`
+// naming it, and one removed from `just check` drops out on its own.
+// `.linecop.yaml`'s caps land in `www/generated/linecop-caps.json` too, but
+// this file quotes no literal cap to derive from it. `gates.json` also
+// carries the three Justfile path/exclude assignments `fmt-check`'s note
+// used to only name; the block below the table renders their real contents.
 #import "lib.typ": doc-title, fact, just
+#import "/www/utils/gate-notes.typ": gate-notes
 
 #metadata((
   output: "CONTRIBUTING.md",
@@ -77,85 +84,25 @@ build with violations. Key restrictions:
 
 = Quality Gates (run by #just.check())
 
-#let gate-tools = (
-  "fmt-check": [
-    #just.fmt-check() — `cargo fmt` over Rust, `tombi format` over the project
-    config TOML (`.mindtape/config.toml` and the per-example configs), and
-    `typstyle` over the Typst sources (`lib/`, `truth/tasks/`, both template
-    dirs, the learn-piano example, and `www/`). The non-Rust path lists live
-    in the `TOML_FMT_PATHS`/`TYPST_FMT_PATHS` Justfile variables, one list
-    feeding both `fmt` and `fmt-check` — add a path there, never to one recipe
-  ],
-  "clippy": [`cargo clippy --all-targets -D warnings`],
-  "test": [`cargo test --workspace`],
-  "machete": [`cargo machete`],
-  "check-file-size": [
-    `linecop` — per-language caps and the tighter ones on the always-loaded
-    docs are in #link(".linecop.yaml")[`.linecop.yaml`], argued in place.
-    `linecop --baseline 85` lists what is nearing its cap; run it before
-    adding to an existing file
-  ],
-  "check-dry": [
-    `jscpd` (#just.check-dry()) — fails on any duplicated Rust block ≥70
-    tokens; fix by extracting a shared helper
-  ],
-  "outdatty-check": [`outdatty check`],
-  "check-examples": [
-    #just.check-examples() — `mt check` against each example project:
-    `examples/learn-piano/` (full config surface; feeds the docs generator
-    and the skill's triage evals) and `examples/minimal/` (the floor config;
-    feeds the skill's trap evals). A fixture no gate validates rots silently
-  ],
-  "check-doc-coverage": [
-    #just.check-doc-coverage() — set-differences `mt _cli --json`'s reflected
-    command names against `www/utils/cli-notes.typ`'s dict keys; fails naming
-    any visible subcommand with no matching entry
-  ],
-  "check-doc-facts": [
-    #just.check-doc-facts() — regenerates
-    `www/generated/{crate-map,dsl-fields}.json` (`www/generate-facts.sh`) and
-    set-differences each against its
-    `www/utils/{crate-notes,dsl-field-notes}.typ` prose dict; fails naming
-    any crate or DSL field with no matching entry
-  ],
-  "check-doc-recipes": [
-    #just.check-doc-recipes() — a hand-typed recipe mention, or an unknown one
-  ],
-  "docs-check": [
-    #just.docs-check() — `docs-gen` first captures live `mt` output
-    (`www/generate.sh`), then `tola build`, then `pagefind` indexes the built
-    HTML for client-side search, then `tola validate` checks links + assets
-  ],
-  "docs-md-check": [
-    #just.docs-md-check() — regenerates every `docs/src/*.typ` source with
-    typlite into a temp directory and diffs each against the committed
-    Markdown it declares; fails naming any drifted file rather than healing
-    it in place. #just.docs-md() refreshes it — see
-    #link(
-      "docs/contributing/generated-docs.md",
-    )[docs/contributing/generated-docs.md]
-  ],
-  "fmt-fixture-check": [
-    #just.fmt-fixture-check() — synthesizes a deliberately mis-formatted TOML
-    and Typst fixture in a temp directory and asserts `tombi format --check`
-    and `typstyle --check` both reject it (and accept a reformatted one);
-    locks the formatter gates themselves, so a formatter silently accepting
-    drift could not let `fmt-check` pass on an out-of-sync editor save
-  ],
-  "check-crap": [
-    #just.check-crap() — runs the CRAP gate when `target/coverage/lcov.info`
-    is fresh, and otherwise SKIPS LOUDLY, saying so and exiting 0. Editing
-    any source stales the lcov, so it skips on the commits that matter;
-    it catches the free case only. #just.check-full() is always correct
-  ],
+#let gate-rows = fact("gates").at("gates")
+#let gate-assignments = fact("gates").at("assignments")
+#table(
+  columns: 3,
+  table.header([Gate], [Command], [Notes]),
+  ..gate-rows
+    .map(g => (
+      raw(g.name),
+      if g.command == none { emph(g.doc) } else { raw(g.command) },
+      gate-notes.at(g.name),
+    ))
+    .flatten(),
 )
 
-#let gate-rows = fact("gates").at("gates")
-#table(
-  columns: 2,
-  table.header([Gate], [Tool]),
-  ..gate-rows.map(g => (raw(g.name), gate-tools.at(g.name))).flatten(),
-)
+`fmt-check`'s non-Rust path lists — one list feeds both `fmt` and
+`fmt-check`, so a path is added in one place, never to a single recipe:
+
+- `TOML_FMT_PATHS`: #gate-assignments.at("TOML_FMT_PATHS").split(" ").map(raw).join(", ")
+- `TYPST_FMT_PATHS`: #gate-assignments.at("TYPST_FMT_PATHS").split(" ").map(raw).join(", ")
 
 #just.check-full() is #just.check() plus #just.cover() and #just.crap() — always
 correct about coverage and CRAP, at the price of an instrumented rebuild and a

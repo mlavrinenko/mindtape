@@ -60,11 +60,11 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      Justfile: 68725594402757cf5a90003db2a5fd7378257f83404d402694d9707fdb2dae94
+      Justfile: 9fdefb11a374ebabb3807976c0b69c53d44d214f7b1f961731315d1a5123b4de
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 934645643e48556ed8fdae54fc4f1aea8a47d241c1c36ee99d5b64134a6d3068
-      docs/src/contributing.typ: 625b9109ee7d14f62c8889078c49d3ea16486a91bded6afd13a91ded7866fbad
+      docs/src/contributing.typ: 5d0f3c7d2a537e67ded2d3a2745cab0dd6444f55c7d66953598be90abf829a86
       docs/src/contributing/coverage-crap.typ: ee43f5d83a4bc5021be02d54e8ab076d82f736329e12180aaa5815bcb9397686
       docs/src/contributing/gates.typ: d3fdbd910573265fa30c65459d945be9801b83f1f88a4744c2582c92472e09c5
       docs/src/contributing/mutation-testing.typ: 331f23a967453950362f284e357f47cef8c51aaf34b4d28cf1aab469e04d5486

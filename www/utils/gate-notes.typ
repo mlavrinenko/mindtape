@@ -1,0 +1,112 @@
+// Hand-written rationale, one entry per `just check` gate, keyed by gate
+// name. The gate list and the command each one runs come from
+// www/generated/gates.json (www/generate-facts.sh, reading `just --dump`);
+// this dict carries only what a machine cannot state — why the gate exists,
+// or what it does beyond its own one-line command. An entry must never
+// restate the command itself: docs/src/contributing.typ already renders it
+// alongside, derived, so a copy here would be the same drift this file
+// exists to end. `just check-doc-facts` fails naming any gates.json entry
+// with no matching key here.
+//
+// A cross-recipe mention below is literal `just <name>` text, never
+// `#just.<name>()` — this file must NOT import www/generated/just.typ.
+// `just check-doc-facts` queries this dict through a throwaway driver
+// immediately after its own `www/generate-facts.sh` call, outside the flock
+// that serializes every OTHER writer of www/generated/ (see that script and
+// www/generate.sh); a concurrent `docs-check`/`docs-md-check` arm under
+// `just check`'s `[parallel]` can rm-rf and repopulate that directory in the
+// gap, so a read from here would intermittently fail with "file not found"
+// on work that is correct — the exact race
+// truth/tasks/stop-the-generated-docs-writers-racing-under-parallel-check.typ
+// fixed for the writers themselves. crate-notes.typ/dsl-field-notes.typ stay
+// import-free for the same reason; this file follows suit.
+//
+// Refs: truth/tasks/derive-the-gate-table-command-column-from-the-justfile.typ
+
+#let gate-notes = (
+  "fmt-check": [
+    `cargo fmt` over Rust, `tombi format` over the project config TOML
+    (`.mindtape/config.toml` and the per-example configs), and `typstyle`
+    over the Typst sources — the exact path lists are below the table. One
+    list feeds both `fmt` and `fmt-check`, so a path is added in one place,
+    never to a single recipe.
+  ],
+  "clippy": [
+    Every lint is workspace `deny` (see Code Style above); this recipe is
+    only the enforcement point, not a separate lint surface.
+  ],
+  "test": [
+    The full workspace suite. `just test <filter>` (a developer query, no
+    `mmz`) runs this recipe directly with the filter as `ARGS`, so a
+    filtered run never pollutes the cached full-suite record `just check`
+    relies on.
+  ],
+  "machete": [Flags a workspace dependency no crate actually imports.],
+  "check-file-size": [
+    Per-language caps — and the tighter ones on the always-loaded docs — are
+    in #link(".linecop.yaml")[`.linecop.yaml`], argued in place.
+    `linecop --baseline 85` lists what is nearing its cap; run it before
+    adding to an existing file.
+  ],
+  "check-dry": [
+    `jscpd` — fails on any duplicated Rust block ≥70 tokens; fix by
+    extracting a shared helper.
+  ],
+  "outdatty-check": [
+    See Dependency Drift below for how `outdatty.yaml` couples a source to
+    the dependents it must stay in sync with.
+  ],
+  "check-examples": [
+    `mt check` against each example project: `examples/learn-piano/` (full
+    config surface; feeds the docs generator and the skill's triage evals)
+    and `examples/minimal/` (the floor config; feeds the skill's trap
+    evals). Keep the recipe and the mmz `examples` scope in step. A fixture
+    no gate validates rots silently.
+  ],
+  "check-doc-coverage": [
+    Set-differences `mt _cli --json`'s reflected command names against
+    `www/utils/cli-notes.typ`'s dict keys; fails naming any visible
+    subcommand with no matching entry, so a new verb can no longer ship
+    silently undocumented.
+  ],
+  "check-doc-facts": [
+    Regenerates `www/generated/{crate-map,dsl-fields,gates}.json`
+    (`www/generate-facts.sh`) and set-differences each against its
+    `www/utils/{crate-notes,dsl-field-notes,gate-notes}.typ` prose dict;
+    fails naming any crate, DSL field, or gate with no matching entry — this
+    file included.
+  ],
+  "check-doc-recipes": [
+    Fails on a hand-typed recipe mention in a doc source — literal `just`
+    followed by a name, whether or not the name is real — that should have
+    gone through the generated module (`www/generated/just.typ`, called as
+    `#just.check()` and friends) instead. The three literal shapes it scans
+    for (a prose backtick span, a fenced example's leading command, a quoted
+    config value) are argued in place in the Justfile.
+  ],
+  "docs-check": [
+    `docs-gen` — a dependency, not part of the command shown — captures live
+    `mt` output first (`www/generate.sh`), so this gate always sees fresh
+    CLI examples before `pagefind` indexes the build for client-side search
+    and `tola validate` checks links and assets.
+  ],
+  "docs-md-check": [
+    Regenerates every `docs/src/*.typ` source with typlite into a temp
+    directory and diffs each against the committed Markdown it declares;
+    fails naming any drifted file rather than healing it in place.
+    `just docs-md` refreshes it — see
+    #link("docs/contributing/generated-docs.md")[docs/contributing/generated-docs.md].
+  ],
+  "fmt-fixture-check": [
+    Synthesizes a deliberately mis-formatted TOML and Typst fixture in a
+    temp directory and asserts `tombi format --check` and `typstyle --check`
+    both reject it (and accept a reformatted one); locks the formatter gates
+    themselves, so a formatter silently accepting drift could not let
+    `fmt-check` pass on an out-of-sync editor save.
+  ],
+  "check-crap": [
+    Editing any source stales the lcov, so it skips on the commits that
+    matter; it catches the free case only. `just check-full` is the arm
+    that is always correct.
+  ],
+)
