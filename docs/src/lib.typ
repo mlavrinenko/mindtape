@@ -43,6 +43,20 @@
 //   - `"straight quotes"` outside a raw/code span render as smart quotes.
 //   - Tables, ordered/nested lists, fenced code, blockquotes, definition
 //     lists, `**bold**` and `_em_` all round-trip clean.
+//   - A backtick raw span must not be BROKEN ACROSS A SOURCE LINE. Typst
+//     keeps the newline inside the span, and typlite emits it literally into
+//     the Markdown — inside a table row that ends the row mid-cell and
+//     corrupts the table. Hard-wrap the prose around a code span, never
+//     through one. (Hit five times porting CONTRIBUTING.md and SKILL.md; it
+//     is the most common trap in this list.)
+//   - A `;` — and any other character Typst can read as continuing a code
+//     expression — glued straight onto a `#link(...)[...]`'s closing `]` with
+//     no space is SWALLOWED. Put a space before it.
+//   - `doc-title` with a nested raw span (`` `mt` ``) renders the span as
+//     `<code>`, so the emitted h1 is no longer attribute-free plain text and
+//     docs/generate-md.sh's demotion (below) skips it — the title survives as
+//     a raw `<h1>` tag. For literal inline backticks in a title, interpolate
+//     the character instead: `#"`"`.
 //   - A raw/code span containing a literal backtick (`raw("a`b")`, or
 //     backtick markup with a backtick inside) does NOT get a wider Markdown
 //     delimiter — typlite always wraps in a SINGLE backtick regardless of
