@@ -85,6 +85,26 @@ for src in docs/src/**/*.typ; do
 
   body="$(mktemp)"
   typlite --root "$REPO" "$src" "$body"
+
+  # Demote `doc-title`'s HTML h1 back to an ATX `#` heading.
+  #
+  # typlite maps `=` to `##` and offers no way back to `#` (see docs/src/lib.typ),
+  # so `doc-title` goes through `html.elem("h1")` — the one element typlite
+  # preserves. That is a rendering workaround, not an authoring intent: every
+  # one of these files is read as RAW TEXT far more often than rendered (README
+  # in a terminal, AGENTS.md and SKILL.md straight into an agent context
+  # window), and a raw `<h1>` tag there is worse than the `#` the author wrote.
+  #
+  # Deliberately anchored and attribute-free: only a whole line that is exactly
+  # `<h1>…</h1>` converts. An h1 CARRYING attributes is doing something markdown
+  # cannot express (README centers its header with `<h1 align="center">`, which
+  # both typlite and the GitHub sanitizer keep) and is left alone. Nested tags
+  # inside the title would not survive the demotion either, so a title
+  # containing one keeps its HTML form rather than being silently mangled.
+  # Line 1 only: the title is the first thing typlite emits for these sources.
+  # If a source ever puts content ahead of its title, nothing converts and the
+  # raw <h1> survives — a visible no-op, never a silent mangling.
+  sed -i -E '1s|^<h1>([^<>]*)</h1>$|# \1|' "$body"
   {
     if jq -e '.frontmatter != null' <<<"$meta" >/dev/null; then
       echo "---"

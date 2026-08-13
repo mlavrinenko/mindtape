@@ -9,7 +9,7 @@
 // versions in Architecture, and the `@local/mindtape` version in the Task DSL
 // snippet. See docs/contributing/generated-docs.md for the pipeline this
 // feeds and why each derived fact moved here.
-#import "lib.typ": doc-title, fact
+#import "lib.typ": doc-title, fact, num-word
 
 #metadata((
   output: "AGENTS.md",
@@ -79,7 +79,8 @@ Before writing about a feature, check whether the answer is already one of:
   "mindtape-cli": [the thin `mt` binary (clap).],
 )
 
-#workspace.len() crates (`cargo` workspace, virtual root manifest):
+#upper(num-word(workspace.len()).first())#num-word(workspace.len()).slice(1) crates
+(`cargo` workspace, virtual root manifest):
 
 #for c in workspace [
   - #raw("crates/" + c.name) — #workspace-roles.at(c.name)
@@ -97,23 +98,22 @@ Before writing about a feature, check whether the answer is already one of:
 )
 #let transitive = substrate.filter(c => not c.direct)
 
-The former in-tree substrate crates — #substrate.len(), not three — are
-published to crates.io as regular registry dependencies:
+The #num-word(substrate.len()) former in-tree substrate crates are published to
+crates.io and consumed back as regular registry dependencies:
 
+// A transitive crate names the parent that pulls it, straight from
+// crate-map.json's `via` (the cargo resolve graph). AGENTS.md carried
+// "typst-world is pulled transitively via typst-harvest" by hand: true when
+// written, with no way to stay true.
 #for c in substrate [
-  - #raw(c.name) #raw(c.version)#(if not c.direct [ (transitive)]) — #substrate-roles.at(c.name)
+  - #raw(c.name) #raw(c.version)#(
+      if not c.direct [ (transitive, via #c.via.map(raw).join(", "))]
+    ) — #substrate-roles.at(c.name)
 ]
 
 #if transitive.len() > 0 [
-  #if transitive.len() == 1 [
-    The crate marked transitive above is reached only through another
-    substrate crate, never named directly in a workspace manifest — `mindtape`
-    does not depend on it directly.
-  ] else [
-    The crates marked transitive above are reached only through another
-    substrate crate, never named directly in a workspace manifest —
-    `mindtape` does not depend on them directly.
-  ]
+  A crate marked transitive is never named in a workspace manifest —
+  `mindtape` does not depend on it directly.
 ]
 
 Name, version, and direct-vs-transitive are derived, never hand-listed — see

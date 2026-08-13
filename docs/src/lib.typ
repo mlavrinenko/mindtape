@@ -64,6 +64,27 @@
 // position instead of through Typst's own heading syntax.
 #let doc-title(body) = html.elem("h1")[#body]
 
+// Spell a small derived count as an English word, so prose that used to read
+// "Two crates" does not regress to "2 crates" the moment the number stops
+// being hand-typed. Above the table, fall back to the numeral — that is where
+// a numeral is what a reader wants anyway.
+#let num-word(n) = {
+  let words = (
+    "zero",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+  )
+  if n >= 0 and n < words.len() { words.at(n) } else { str(n) }
+}
+
 // Read one of www/generate-facts.sh's derived facts by name (e.g.
 // "crate-map"), so every source reads the same root-relative path instead of
 // retyping it. docs/generate-md.sh always runs `www/generate-facts.sh` before

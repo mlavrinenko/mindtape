@@ -34,11 +34,15 @@ A #crate-map.workspace.len()-crate `cargo` workspace (edition
 #crate-map.substrate.len() general-purpose crates sit underneath, published
 separately because none of them knows what a task is
 (#(crate-map.substrate.len() - transitive.len()) direct,
-#transitive.len() reached only transitively — via another substrate crate,
-never named in a workspace manifest — marked below):
+#transitive.len() reached only transitively — never named in a workspace
+manifest, and marked below with the crate that pulls it in):
 
+// `via` is the cargo resolve graph's answer to WHICH crate pulls a transitive
+// one, so this page names the parent instead of gesturing at "another crate".
 #for c in crate-map.substrate [
-  - #raw(c.name) #raw(c.version)#(if not c.direct [ (transitive)]) — #crate-notes.at(c.name)
+  - #raw(c.name) #raw(c.version)#(
+      if not c.direct [ (transitive, via #c.via.map(raw).join(", "))]
+    ) — #crate-notes.at(c.name)
 ]
 
 That split is the #link(u("/concepts/"))[extension seam] one layer down: a tool

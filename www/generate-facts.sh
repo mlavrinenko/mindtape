@@ -95,6 +95,15 @@ jq --arg substrate_re "$SUBSTRATE_REPO_RE" \
 | ([$meta.resolve.nodes[]
     | select(.id as $id | $ws | index($id) != null)
     | .deps[].pkg] | unique) as $direct_pkgs
+| ($meta.packages | map({key: .id, value: .name}) | from_entries) as $idname
+# pkgid -> the names of the packages that depend on it. A transitively reached
+# substrate crate is documented as "via <parent>", and WHICH parent pulls it is
+# a fact with a source (the resolve graph), so it is read rather than asserted.
+# AGENTS.md carried "typst-world is pulled transitively via typst-harvest" by
+# hand, which was true and had no way to STAY true.
+# (No apostrophes in this jq program: it is a single-quoted shell string.)
+| (reduce ($meta.resolve.nodes[] | . as $n | $n.deps[] | {parent: $idname[$n.id], child: .pkg})
+    as $e ({}; .[$e.child] += [$e.parent])) as $parents_of
 | {
     workspace: [$meta.packages[]
       | select(.id as $id | $ws | index($id) != null)
@@ -103,10 +112,14 @@ jq --arg substrate_re "$SUBSTRATE_REPO_RE" \
       | . as $p
       | select(($ws | index($p.id)) == null)
       | select(($p.repository // "") | test($substrate_re))
+      | (($direct_pkgs | index($p.id)) != null) as $is_direct
       | {
           name: $p.name,
           version: $p.version,
-          direct: (($direct_pkgs | index($p.id)) != null),
+          direct: $is_direct,
+          # Only meaningful when not direct; null keeps the shape uniform.
+          via: (if $is_direct then null
+                else (($parents_of[$p.id] // []) | unique | sort) end),
         }] | sort_by(.name),
     "arch-deps": [$archdeps[] as $n | {name: $n, version: ($byname[$n].version // null)}],
     "rust-toolchain": {channel: $channel},

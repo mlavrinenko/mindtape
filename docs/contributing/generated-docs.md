@@ -1,6 +1,6 @@
 <!-- Generated from docs/src/contributing/generated-docs.typ by `just docs-md`. Do not edit; edit the source. -->
 
-<h1>Generating the root Markdown from Typst</h1>
+# Generating the root Markdown from Typst
 
 Deep dive behind CONTRIBUTING.md’s pointer to this pipeline: how `docs/src/*.typ` becomes README.md, AGENTS.md, CONTRIBUTING.md, `skills/mindtape/SKILL.md` and `docs/contributing/*.md`, how a new source declares its own output, why the freshness gate diffs against a temp directory instead of the working tree, and the typlite constraints every source has to design around.
 

@@ -1,6 +1,6 @@
 <!-- Generated from docs/src/agents.typ by `just docs-md`. Do not edit; edit the source. -->
 
-<h1>MindTape — AI Agent Context</h1>
+# MindTape — AI Agent Context
 
 How to contribute — quality gates, testing, file-size caps, commit rules, the signal sweep, dependency drift, version bumps — lives in @CONTRIBUTING.md. That reference pulls the whole file into your context automatically, so nothing here restates any of it. If you are about to write a rule about _how work is done_, it belongs there, not here.
 
@@ -34,12 +34,12 @@ Before writing about a feature, check whether the answer is already one of:
 
 ## Workspace
 
-2 crates (`cargo` workspace, virtual root manifest):
+Two crates (`cargo` workspace, virtual root manifest):
 
 - `crates/mindtape` — domain library: config, task model, filter language, validation, project loader. Other tools (e.g. speconaut) depend on this.
 - `crates/mindtape-cli` — the thin `mt` binary (clap).
 
-The former in-tree substrate crates — 7, not three — are published to crates.io as regular registry dependencies:
+The seven former in-tree substrate crates are published to crates.io and consumed back as regular registry dependencies:
 
 - `artifact-gate` `0.1.0` — artifact validation
 - `swhid-mint` `0.1.1` — SWHID minting
@@ -47,9 +47,9 @@ The former in-tree substrate crates — 7, not three — are published to crates
 - `typst-cst` `0.2.0` — parse-plane structure extraction
 - `typst-edit` `0.1.0` — slot/link rewriting
 - `typst-harvest` `0.3.0` — harvest
-- `typst-world` `0.3.0` (transitive) — package-agnostic Typst World/eval
+- `typst-world` `0.3.0` (transitive, via `typst-harvest`) — package-agnostic Typst World/eval
 
-The crate marked transitive above is reached only through another substrate crate, never named directly in a workspace manifest — `mindtape` does not depend on it directly.
+A crate marked transitive is never named in a workspace manifest — `mindtape` does not depend on it directly.
 
 Name, version, and direct-vs-transitive are derived, never hand-listed — see `www/generated/crate-map.json` (`www/generate-facts.sh`, consumed by `www/content/internals.typ`).
 
