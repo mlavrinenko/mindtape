@@ -38,10 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `<h1 align="center">`/`<h4 align="center">`, which both typlite and GitHub's
   HTML sanitizer preserve. Its `@local/mindtape` example version now reads
   `www/generated/crate-map.json` too, dropping README.md from
-  `outdatty.yaml`'s `typst-pkg-version` group. CONTRIBUTING.md and
-  `skills/mindtape/SKILL.md` stay hand-written for now; the gates and the
-  metadata schema (including SKILL.md's YAML frontmatter, which typlite
-  cannot emit) are already in place for them.
+  `outdatty.yaml`'s `typst-pkg-version` group.
 - **Five more Typst-sourced docs** — `docs/src/contributing/{gates,windows,
   coverage-crap,mutation-testing,signal-sweep}.typ` join `agents.typ` and
   `generated-docs.typ` as ports of the matching `docs/contributing/*.md`
@@ -49,6 +46,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `www/generated/crate-map.json`'s `rust-toolchain.channel` instead of
   hand-typing it; the other four have no fact to derive and port as
   content-preserving prose.
+- **CONTRIBUTING.md and `skills/mindtape/SKILL.md` join the generated docs**
+  — the last two hand-written root files, and the payoff for the two facts
+  `www/generate-facts.sh` derived with no consumer of their own until now.
+  `docs/src/contributing.typ`'s Quality Gates table renders from
+  `www/generated/gates.json` (the sub-gates `just check` actually declares,
+  in order): the Gate column and row order are derived, so a gate added to
+  `just check` and left undocumented fails `just docs-md` naming it, and one
+  removed from `just check` drops off the table with no edit at all — it
+  caught `fmt-fixture-check`, a real gate the hand-written table had never
+  listed. `docs/src/skill.typ` is the first source to use the
+  `<mindtape-md>` block's `frontmatter` dict: `docs/generate-md.sh` queries
+  it out and prepends it as YAML (`yq`, ahead of typlite, which cannot emit
+  YAML) — SKILL.md's trigger-critical `description` passes through
+  unchanged, verified byte-identical against the committed file. Both
+  sources read their `@local/mindtape` example version from
+  `www/generated/crate-map.json`, same as `agents.typ`/`readme.typ`.
+  `.linecop.yaml` flips both files from a numeric cap to `exclude: true`
+  (the cap moves to their `docs/src/**` sources, already pre-staged), and
+  `outdatty.yaml` repoints their dependent entries at the two new sources —
+  dropping neither group, since both still restate content (CLI flags, the
+  full DSL shape, non-`just check` recipes like `cover`/`crap`/`release`)
+  that none of the four generated-fact artifacts carries.
 
 ## [0.3.0] - 2026-08-10
 

@@ -45,37 +45,27 @@ overrides:
   # These four are the always-loaded surface: README is the first thing a
   # reader sees, and AGENTS.md/CONTRIBUTING.md/SKILL.md are pulled into an
   # agent's context on every session. A line here costs more than a line
-  # anywhere else, so — where still hand-written — they stay capped tighter
-  # than the 200 Markdown ceiling, not looser.
+  # anywhere else — which is exactly why none of the four is capped directly
+  # any more.
   #
-  # AGENTS.md and README.md have moved: they are now GENERATED from
-  # `docs/src/agents.typ` and `docs/src/readme.typ` (typlite; `just docs-md`),
-  # so a numeric cap on the rendered file is unactionable — you cannot shorten
-  # AGENTS.md directly, only its source, and a generated file cannot be "fixed"
-  # by editing it (the next `just docs-md` run overwrites any such edit). The
-  # cap moves to the source instead, in the docs/src/** overrides below.
-  # CONTRIBUTING.md and `skills/mindtape/SKILL.md` are still hand-written and
-  # keep their numeric caps below; each moves the same way — an `exclude: true`
-  # here plus a docs/src/** override — in the commit that ports it
-  # (truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ).
+  # All four are now GENERATED: `docs/src/{agents,readme,contributing,skill}.typ`
+  # render to them (typlite; `just docs-md`). A numeric cap on a rendered file
+  # is unactionable — you cannot shorten AGENTS.md directly, only its source,
+  # and a generated file cannot be "fixed" by editing it (the next `just
+  # docs-md` run overwrites any such edit) — so the cap lives on the source
+  # instead, in the docs/src/** overrides below.
   #
-  # This is progressive disclosure continuing, not stopping: the previous drop
+  # This is progressive disclosure continuing, not stopping. The first drop
   # (truth/tasks/trim-root-docs-by-delegating-deep-content.typ) moved DEEP
-  # CONTENT out to www/content/ and docs/contributing/, leaving each file near
-  # 75% of its cap with room for several correctness fixes in a row. This drop
-  # moves DERIVED FACTS (the crate map, DSL fields, the gate table) out to
-  # `www/generated/*.json`, read back by the .typ source instead of hand-
-  # listed — the same "don't restate it, point at it" move, one layer down. If
-  # a hand-written one of the remaining two hits its cap again before it is
-  # ported, the answer is still progressive disclosure — move the deep content
-  # out and link it — never a bigger number.
-  #
-  # CONTRIBUTING.md is the tighter of the two because its remaining bulk is
-  # the Quality Gates table, which is common-path and cannot be linked away.
-  # This task is what makes generating that table out of the file possible
-  # (`gates.json` now exists — `www/generate-facts.sh` — with no consumer of
-  # its own); porting `docs/src/contributing.typ` to read it is the next drop,
-  # not another compression pass over hand-written prose.
+  # CONTENT out to www/content/ and docs/contributing/. The second
+  # (truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ, this
+  # one) moved DERIVED FACTS out to `www/generated/*.json` — the crate map and
+  # DSL fields first (agents.typ, readme.typ), then the Quality Gates table
+  # and the linecop caps themselves (contributing.typ, skill.typ) — read back
+  # by the .typ source instead of hand-listed, the same "don't restate it,
+  # point at it" move, one layer down. If one of the four hits its docs/src/**
+  # cap again, the answer is still progressive disclosure — move the deep
+  # content out and link it — never a bigger number.
   #
   # `linecop --baseline 85` names anything at 85% of its cap; run it before
   # adding to an existing file, so compaction is deliberate rather than a wall.
@@ -85,16 +75,17 @@ overrides:
   # matches none. `./README.md` matches the root one alone. That distinction is
   # load-bearing here — `skills/mindtape/evals/README.md` is hand-written and
   # must keep the 200 Markdown default, so the exclusion below is anchored.
-  # Use `./` for a generated file's exclusion; a `**/` exclusion would silently
-  # uncap its hand-written namesakes.
+  # Use `./` (the full repo-root-relative path, not a bare filename) for a
+  # generated file's exclusion; a `**/` exclusion would silently uncap its
+  # hand-written namesakes.
   - pattern: "./README.md"
     exclude: true
   - pattern: "./AGENTS.md"
     exclude: true
-  - pattern: "**/CONTRIBUTING.md"
-    limit: 200
-  - pattern: "**/SKILL.md"
-    limit: 300
+  - pattern: "./CONTRIBUTING.md"
+    exclude: true
+  - pattern: "./skills/mindtape/SKILL.md"
+    exclude: true
 
   # docs/src/**: the .typ SOURCES the four caps above used to apply to
   # directly. A generated .md's line count is not a meaningful size proxy
@@ -103,14 +94,16 @@ overrides:
   # half of why the cap belongs here and not on the output.
   #
   # Each limit is the old Markdown cap plus the overhead one ported source
-  # measured: docs/src/agents.typ carries the same prose AGENTS.md did (118
+  # measured, pre-staged for all four so porting one never meant reopening
+  # this file: docs/src/agents.typ carries the same prose AGENTS.md did (118
   # lines) at 186 — a +68-line, ~1.5x tax from the import, the `<mindtape-md>`
   # block, and the crate-map-derived Workspace/Architecture sections that used
-  # to be hand-listed prose. Applied at the same ratio to the other three
-  # (not yet measured — pre-staged so porting one never means re-opening this
-  # file): README's install/quickstart snippets carry less derivation than
-  # agents.typ, CONTRIBUTING's future gates-table read and SKILL's frontmatter
-  # dict carry more, so those two get extra headroom on top of the ratio.
+  # to be hand-listed prose. README's install/quickstart snippets carried less
+  # derivation than that and landed under its cap; CONTRIBUTING's gates-table
+  # read (`gate-tools.at(...)`, one dict entry per `gates.json` row) and
+  # SKILL's frontmatter dict carried more, so those two kept the extra
+  # headroom over the plain ratio — contributing.typ lands exactly at 260,
+  # skill.typ at 275 of 320.
   #
   # Source filenames are a naming CONVENTION this task fixes, not a schema the
   # generator enforces (docs/generate-md.sh reads each source's own

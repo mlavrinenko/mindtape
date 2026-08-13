@@ -71,9 +71,10 @@ groups:
       - www/content/schema.typ
       - www/content/templates.typ
       - www/utils/cli-notes.typ
-      - skills/mindtape/SKILL.md
-      # SKILL.md sheds `mt add` slot detail here (progressive disclosure, per
-      # the .linecop.yaml note). The content is still CLI surface, so it has to
+      - docs/src/skill.typ
+      # SKILL.md (generated from docs/src/skill.typ; just docs-md) sheds
+      # `mt add` slot detail here (progressive disclosure, per the
+      # .linecop.yaml note). The content is still CLI surface, so it has to
       # stay a tracked dependent — shedding it must not shed the drift gate.
       - skills/mindtape/references/add-slots.md
       - skills/mindtape/evals/README.md
@@ -93,7 +94,8 @@ groups:
   # facts found the same pages restate DSL shape too — dual membership, same
   # pattern as SKILL.md below); dsl.typ stays the detailed reference the
   # others defer to.
-  # AGENTS.md and README.md are both generated (typlite; `just docs-md` —
+  # AGENTS.md, README.md, and skills/mindtape/SKILL.md are all generated
+  # (typlite; `just docs-md` —
   # truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ), so the
   # sources, not the rendered files, are the dependents to reconcile. Their DSL
   # snippets and field-shape prose are still hand-restated here, not derived:
@@ -110,7 +112,7 @@ groups:
       - www/content/concepts.typ
       - www/content/priority.typ
       - www/content/templates.typ
-      - skills/mindtape/SKILL.md
+      - docs/src/skill.typ
       # Dual membership, same reason as SKILL.md's: the shed slot detail also
       # restates DSL shape (a framework priority's leaves are its slots).
       - skills/mindtape/references/add-slots.md
@@ -119,13 +121,15 @@ groups:
   # embedded constant. Bump lib/typst.toml and these must follow (the docs read
   # it from one place — www/utils/site.typ PKG_VERSION).
   #
-  # docs/src/agents.typ (AGENTS.md's source) and docs/src/readme.typ
-  # (README.md's source) are NOT dependents: both read their
-  # `@local/mindtape:...` snippet version from
+  # docs/src/agents.typ (AGENTS.md's source), docs/src/readme.typ (README.md's
+  # source), and docs/src/skill.typ (SKILL.md's source) are NOT dependents:
+  # each reads its `@local/mindtape:...` snippet version from
   # `www/generated/crate-map.json`'s `typst-lib.version` (itself derived from
   # this same lib/typst.toml), so a bump propagates through `just docs-md`
   # with no human reconciliation — the point of deriving it in the first
-  # place. A derived fact needs no drift gate.
+  # place. A derived fact needs no drift gate. docs/src/contributing.typ
+  # (CONTRIBUTING.md's source) never hand-typed this version at all — it only
+  # names the group by reference — so it was never a dependent either.
   - name: typst-pkg-version
     source:
       - lib/typst.toml
@@ -155,10 +159,11 @@ groups:
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.
-  # docs/src/agents.typ (not AGENTS.md) and docs/src/readme.typ (not
-  # README.md) — both generated from their sources — because their bare
-  # `mt`/`mt ls`/`mt check` mentions are hand-typed, not derived: nothing in
-  # www/generated/*.json carries the CLI binary's invocation name.
+  # docs/src/agents.typ (not AGENTS.md), docs/src/readme.typ (not README.md),
+  # docs/src/contributing.typ (not CONTRIBUTING.md), and docs/src/skill.typ
+  # (not SKILL.md) — all four generated from their sources — because their
+  # bare `mt`/`mt ls`/`mt check` mentions are hand-typed, not derived: nothing
+  # in www/generated/*.json carries the CLI binary's invocation name.
   - name: cli-name
     source:
       - crates/mindtape-cli/Cargo.toml
@@ -168,29 +173,40 @@ groups:
       - www/content/index.typ
       - www/content/quickstart.typ
       - www/content/cli.typ
-      - CONTRIBUTING.md
+      - docs/src/contributing.typ
       - docs/src/agents.typ
       - CHANGELOG.md
-      - skills/mindtape/SKILL.md
+      - docs/src/skill.typ
 
   # Dev tooling and contributor conventions track the files that define them.
-  # docs/src/agents.typ (not AGENTS.md — generated from it).
+  # docs/src/agents.typ (not AGENTS.md — generated from it). Likewise
+  # docs/src/contributing.typ (not CONTRIBUTING.md): its Quality Gates table
+  # now reads `gates.json` for the sub-gate list and row order, so a gate
+  # added to or removed from `just check` no longer needs a dev-docs
+  # reconcile — it fails `just docs-md` (missing Tool prose) or drops off the
+  # table on its own instead. What still makes docs/src/contributing.typ a
+  # dependent here is everything else it restates by hand: `just check-full`,
+  # `just cover`/`just crap` and their thresholds, `just nix-build`, `just
+  # release`, `just ask-refactoring`, `just outdatty-update`, and the
+  # `MINDTAPE_GATE_SCOPE` commit path — none of those are `just check`
+  # sub-gates, so none are in `gates.json`.
   #
   # The five contributor deep dives are dependents for the same reason
-  # CONTRIBUTING.md is, and were missed when they were ports of hand-written
-  # Markdown: each describes recipes defined in the Justfile and tools pinned
-  # in flake.nix by hand (`just check-windows` and the mingw cross shell,
-  # `just cover`/`just crap` and their thresholds, `just mutants-diff`,
-  # `just ask-refactoring`, the `MINDTAPE_GATE_SCOPE` commit path). None of
-  # that is derived — `gates.json` carries only the sub-gates `just check`
-  # itself declares, and every recipe these five discuss is deliberately NOT
-  # one of those — so a renamed or re-flagged recipe silently rots them.
+  # docs/src/contributing.typ is, and were missed when they were ports of
+  # hand-written Markdown: each describes recipes defined in the Justfile and
+  # tools pinned in flake.nix by hand (`just check-windows` and the mingw
+  # cross shell, `just cover`/`just crap` and their thresholds, `just
+  # mutants-diff`, `just ask-refactoring`, the `MINDTAPE_GATE_SCOPE` commit
+  # path). None of that is derived — `gates.json` carries only the sub-gates
+  # `just check` itself declares, and every recipe these five discuss is
+  # deliberately NOT one of those — so a renamed or re-flagged recipe
+  # silently rots them.
   - name: dev-docs
     source:
       - flake.nix
       - Justfile
     dependents:
-      - CONTRIBUTING.md
+      - docs/src/contributing.typ
       - docs/src/agents.typ
       - docs/src/contributing/gates.typ
       - docs/src/contributing/windows.typ
