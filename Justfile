@@ -1,10 +1,17 @@
 set quiet := true
+set unstable := true
 
 # List available recipes
+
+[doc("List available recipes")]
+[group("workflow")]
 default:
     @just --list
 
 # Run fixes, then other checks
+
+[doc("Run fixes, then run the full check gate")]
+[group("workflow")]
 fix-check: eject fmt clippy-fix check
 
 # Run all checks in parallel (fmt + clippy + tests + unused deps + file size +
@@ -15,8 +22,10 @@ fix-check: eject fmt clippy-fix check
 # `gate` tag live in .mmz/config.yaml. There is no `chronic` here: a cache hit
 # prints mmz's own `on_hit` note to stderr (quiet by construction), a miss
 # streams the underlying recipe's stdout/stderr live, and a failure propagates
-
 # its non-zero exit out of `parallel` unchanged.
+
+[doc("Run every check-gate sub-recipe in parallel")]
+[group("workflow")]
 [parallel]
 check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "docs-check") (mmz "docs-md-check") (mmz "fmt-fixture-check") check-crap
 
@@ -25,10 +34,75 @@ check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check
 # .mmz/config.yaml), uniform across every sub-gate of `just check`. `just test
 # <filter>` (a developer query, no `mmz`) bypasses this recipe and stays plain
 # `cargo test` with ARGS — so the `just test` cache record reflects only the
-
 # bare, full-suite invocation that `just check` runs, never a filtered subset.
+
+[doc("Run a just recipe through mmz memoization")]
+[group("workflow")]
 mmz *ARGS:
     mmz just {{ ARGS }}
+
+# Format check (CI-friendly)
+
+[doc("Check formatting without writing changes")]
+[group("gate")]
+fmt-check:
+    cargo fmt --all -- --check
+    tombi format --check {{ TOML_FMT_PATHS }}
+    typstyle --check {{ TYPST_FMT_PATHS }}
+    just --fmt --check
+
+# Run clippy only
+
+[doc("Run clippy only")]
+[group("dev")]
+[group("gate")]
+clippy:
+    cargo clippy --workspace --all-targets -q -- -D warnings
+
+# Run tests only
+
+[doc("Run tests only")]
+[group("dev")]
+[group("gate")]
+test *ARGS:
+    cargo test --workspace {{ ARGS }}
+
+# Check for unused dependencies
+
+[doc("Check for unused dependencies")]
+[group("gate")]
+machete:
+    cargo machete
+
+# Check for oversized files (fails if any exceed limits)
+
+[doc("Check for oversized files")]
+[group("gate")]
+check-file-size:
+    linecop
+
+# Copy-paste gate: fail on any duplicated Rust block across the crates
+
+[doc("Fail on any duplicated Rust block across the crates")]
+[group("gate")]
+check-dry:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    # jscpd (the Rust port, packaged in flake.nix) fails on any duplicated
+    # block of >=70 tokens, naming both spans. Scans all Rust under crates/.
+    # Fix a finding by extracting a shared helper — never by shuffling tokens
+    # until the detector loses the scent.
+    #
+    # `--exit-code 1` is spelled with its value: bare `--exit-code` would
+    # swallow the following path argument as its optional code.
+    jscpd --no-tips -k 70 -f rust --exit-code 1 crates
+
+# Fail if a source changed without its dependents being re-confirmed
+
+[doc("Fail if a source changed without its dependents reconfirmed")]
+[group("gate")]
+outdatty-check:
+    outdatty check
 
 # Validate every example project against itself, so a fixture some other tool
 # runs `mt` against can never rot: learn-piano feeds the docs generator and the
@@ -36,8 +110,10 @@ mmz *ARGS:
 # what earns the right to depend on them — the eval fixture that preceded these
 # sat in untracked scratch and silently outlived two config migrations (the
 # retired `[ls] default-filter`, the `depends-on:` → `links:` move), so no eval
-
 # could have run against it and nothing said so.
+
+[doc("Validate each example project against itself")]
+[group("gate")]
 check-examples:
     cargo run -p mindtape-cli -q -- -w examples/learn-piano check
     cargo run -p mindtape-cli -q -- -w examples/minimal check
@@ -63,8 +139,10 @@ check-examples:
 # so a throwaway driver imports it and re-exports `cli-notes.keys()` as
 # `metadata` under a label query can select. The driver must live inside
 # `--root .` (typst refuses a source outside the project root), so it goes
-
 # under target/ (gitignored, already exists after the build below).
+
+[doc("Fail if a visible mt subcommand has no CLI doc entry")]
+[group("gate")]
 check-doc-coverage:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -96,6 +174,9 @@ check-doc-coverage:
 # Regenerates its own inputs (bash www/generate-facts.sh) rather than trusting
 # whatever www/generated/ already holds, so this gate never depends on `just
 # docs-gen` — or a release build — having run first.
+
+[doc("Fail if a derived crate or DSL fact has no doc entry")]
+[group("gate")]
 check-doc-facts:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -128,104 +209,15 @@ check-doc-facts:
     fi
     echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, all documented"
 
-# (Re)generate the examples/large/ benchmark fixture: N deterministic task
-
-# files under examples/large/tasks/ (gitignored). Default N=2000.
-gen-bench N='2000':
-    examples/large/generate.sh {{ N }}
-
-# Benchmark `mt ls` and `mt check` against a large generated task set (N
-# files, default 2000): build the release binary, regenerate the fixture,
-
-# then time both commands with hyperfine at a pinned clock (MINDTAPE_NOW).
-bench N='2000':
-    direnv exec . cargo build --release -p mindtape-cli
-    examples/large/generate.sh {{ N }}
-    export MINDTAPE_NOW=2026-07-16 && direnv exec . hyperfine \
-        --warmup 1 --runs 3 \
-        --command-name "mt ls ({{ N }} tasks)" "./target/release/mt -w examples/large ls" \
-        --command-name "mt check ({{ N }} tasks)" "./target/release/mt -w examples/large check"
-
-# Check the `rrule(...)` escape hatch's expansion engine: `just check` builds
-# `mindtape` with default features, so it never compiles or runs this code
-
-# (see crates/mindtape/src/recur_rrule.rs). Reproduces what CI runs for it.
-check-rrule:
-    cargo fmt --all -- --check
-    cargo clippy -p mindtape --features rrule --all-targets -q -- -D warnings
-    cargo test -p mindtape --features rrule -q
-
-# Cross-check the workspace, tests included, against Windows without leaving
-# Linux — the compile half of what the CI windows job proves at runtime, minutes
-# earlier and without pushing. Runs in its own dev shell (flake.nix
-# `devShells.windows`) because the default shell's rustc has no Windows std;
-# see that shell's comment for why the target is -gnu and the release is -msvc.
-#
-# Deliberately not a `just check` arm: it pulls a second toolchain closure and
-# a separate target/ tree, and CI already covers the regression. Reach for it
-# when touching a `cfg(windows)` arm, a process spawn, a path join, or anything
-# else with a platform seam.
-#
-# `just --list` shows only the LAST comment line of a recipe, so the summary is
-
-[doc("Cross-check the workspace against Windows (x86_64-pc-windows-gnu)")]
-check-windows:
-    nix develop .#windows --command \
-        cargo check --workspace --all-targets --locked \
-        --target x86_64-pc-windows-gnu
-
-# Fail if a source changed without its dependents being re-confirmed
-outdatty-check:
-    outdatty check
-
-# Re-confirm dependency groups: record current hashes into outdatty.lock
-outdatty-update:
-    outdatty update
-
-# Prove `nix build` succeeds in a clean sandbox (no dev shell, no sccache).
-# Catches a committed .cargo/config.toml — or any dev-only setting — leaking
-# into the package build and breaking downstream flake consumers. Stage first:
-
-# flakes filter source to git-tracked files, and naersk needs the current tree.
-nix-build:
-    git add -A
-    nix build .#default
-
-# Capture live `mt` output for the docs (www/generated/*.txt), so the site's
-# CLI reference, help, version, and transcripts cannot drift from the binary.
-# Then derive the crate/DSL/gate/linecop facts (www/generate-facts.sh) — after
-# generate.sh, never before: generate.sh `rm -rf`s the whole generated/ dir on
-# entry, which would erase anything written here first.
-
-# Builds `mt` release, runs it against examples/learn-piano at a pinned clock.
-docs-gen:
-    bash www/generate.sh
-    bash www/generate-facts.sh
-
-# Build the documentation site (www/ -> www/public/mindtape) with tola, then
-# index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/).
-
-# docs-gen runs first so the injected transcripts reflect the current binary.
-docs-build: docs-gen
-    cd www && tola build && pagefind --site public/mindtape --silent
-
-# Serve the docs locally with hot reload (no search index — build for that)
-docs-serve: docs-gen
-    cd www && tola serve
-
 # Build the docs, index with Pagefind, then validate internal links + assets.
-
 # Pagefind runs before validate so the /pagefind/ bundle exists on disk.
-docs-check: docs-gen
-    cd www && tola build && pagefind --site public/mindtape --silent && tola validate
 
-# Render docs/src/*.typ to the repo-root Markdown each source declares
-# (README.md, AGENTS.md, CONTRIBUTING.md, skills/mindtape/SKILL.md,
-# docs/contributing/*.md) with typlite. See docs/generate-md.sh's header for
-# what typlite can and cannot do, and docs/contributing/generated-docs.md for
-# the pipeline this feeds and how to add a source.
-docs-md:
-    bash docs/generate-md.sh
+[doc("Build, index, and validate the docs site")]
+[group("docs")]
+[group("gate")]
+[working-directory("www")]
+docs-check: docs-gen
+    tola build && pagefind --site public/mindtape --silent && tola validate
 
 # Freshness gate for docs-md: regenerate into a TEMP directory and diff each
 # rendered file there against the COMMITTED copy at its real path — never
@@ -234,6 +226,10 @@ docs-md:
 # ran, so the gate would read clean on a fix that is no longer actually
 # represented; a fresh temp render diffed against the untouched committed
 # tree cannot self-heal that way, so a drifted file fails by name every time.
+
+[doc("Fail if generated Markdown has drifted from docs/src")]
+[group("docs")]
+[group("gate")]
 docs-md-check:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -254,19 +250,193 @@ docs-md-check:
     fi
     echo "docs-md-check: $(find "$tmp" -type f | wc -l) generated file(s) match committed"
 
-# Run tests only
-test *ARGS:
-    cargo test --workspace {{ ARGS }}
+# Lock the formatter gates: synthesize a deliberately-mis-formatted TOML and
+# Typst fixture in a temp dir, then assert `tombi format --check` and
+# `typstyle --check` both fail. The fmt recipe is what `just fmt`/`fmt-check`
+# apply to the tracked config + docs tree, so the same formatters must
+# reject the mis-formatted fixture (and accept a re-formatted one). A
+# formatter that silently accepts drift would let `just fmt-check` pass on
+# an out-of-sync editor save — exactly the bug this task is fixing.
 
-# Run clippy only
-clippy:
-    cargo clippy --workspace --all-targets -q -- -D warnings
+[doc("Lock the formatter gates against a mis-formatted fixture")]
+[group("gate")]
+fmt-fixture-check:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    bad_toml="$tmp/bad.toml"
+    bad_typ="$tmp/bad.typ"
+    printf '[a]\nb=1\nc  =   2\n' > "$bad_toml"
+    printf '#let   x   =   1\n#let y=2\n' > "$bad_typ"
+    if tombi format --check --offline "$bad_toml" >/dev/null 2>&1; then
+        echo "fmt-fixture-check: tombi accepted the mis-formatted TOML — gate is broken" >&2
+        exit 1
+    fi
+    if typstyle --check "$bad_typ" >/dev/null 2>&1; then
+        echo "fmt-fixture-check: typstyle accepted the mis-formatted Typst — gate is broken" >&2
+        exit 1
+    fi
+    echo "fmt-fixture-check: both formatters reject drift"
+
+# The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
+# fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0.
+#
+# Why it exists: `just crap` is CI-enforced and used to be absent from
+# `just check`, so nothing local ever evaluated it and a green `just check`
+# carried no information about it. That is how it sat red on main
+# (truth/tasks/cover-confirm-retire-and-unred-the-crap-gate.typ).
+#
+# Be honest about what this buys. Editing any source stales the lcov, so on
+# precisely the commits that matter this arm SKIPS. It catches the free case — a
+# check run after a recent `just cover` — and nothing more. `just check-full` is
+# the arm that is always correct; this one is the cheap partial. It follows the
+# signal sweep's mutants arm: absent and clean must never look alike, so it says
+# which of the two it is every time.
+#
+# Deliberately NOT wrapped in mmz, unlike every other arm of `just check`. mmz
+# memoizes on file scopes and the lcov is a build artifact in none of them, so a
+# memoized verdict would survive the lcov going fresh and this arm would skip
+# forever on unchanged sources — a gate that caches "I could not measure" is
+# worse than one that is simply absent.
+
+[doc("Run the CRAP gate when the lcov is fresh, else skip loudly")]
+[group("gate")]
+check-crap:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    reason=$(just _lcov-stale-reason)
+    if [ -z "$reason" ]; then
+        just crap
+    else
+        echo "check-crap: SKIPPED — ${reason}" >&2
+        echo "  the CRAP gate was NOT evaluated. \`just cover\` refreshes it;" >&2
+        echo "  \`just check-full\` runs the whole thing. CI evaluates it either way." >&2
+    fi
+
+# (Re)generate the examples/large/ benchmark fixture: N deterministic task
+# files under examples/large/tasks/ (gitignored). Default N=2000.
+
+[doc("Regenerate the examples/large benchmark fixture")]
+[group("dev")]
+gen-bench N='2000':
+    examples/large/generate.sh {{ N }}
+
+# Benchmark `mt ls` and `mt check` against a large generated task set (N
+# files, default 2000): build the release binary, regenerate the fixture,
+# then time both commands with hyperfine at a pinned clock (MINDTAPE_NOW).
+
+[doc("Benchmark mt ls and mt check against a large task set")]
+[group("dev")]
+bench N='2000':
+    direnv exec . cargo build --release -p mindtape-cli
+    examples/large/generate.sh {{ N }}
+    export MINDTAPE_NOW=2026-07-16 && direnv exec . hyperfine \
+        --warmup 1 --runs 3 \
+        --command-name "mt ls ({{ N }} tasks)" "./target/release/mt -w examples/large ls" \
+        --command-name "mt check ({{ N }} tasks)" "./target/release/mt -w examples/large check"
+
+# Check the `rrule(...)` escape hatch's expansion engine: `just check` builds
+# `mindtape` with default features, so it never compiles or runs this code
+# (see crates/mindtape/src/recur_rrule.rs). Reproduces what CI runs for it.
+
+[doc("Check the rrule feature build, lint, and tests")]
+[group("dev")]
+check-rrule:
+    cargo fmt --all -- --check
+    cargo clippy -p mindtape --features rrule --all-targets -q -- -D warnings
+    cargo test -p mindtape --features rrule -q
+
+# Cross-check the workspace, tests included, against Windows without leaving
+# Linux — the compile half of what the CI windows job proves at runtime, minutes
+# earlier and without pushing. Runs in its own dev shell (flake.nix
+# `devShells.windows`) because the default shell's rustc has no Windows std;
+# see that shell's comment for why the target is -gnu and the release is -msvc.
+#
+# Deliberately not a `just check` arm: it pulls a second toolchain closure and
+# a separate target/ tree, and CI already covers the regression. Reach for it
+# when touching a `cfg(windows)` arm, a process spawn, a path join, or anything
+# else with a platform seam.
+#
+# `just --list` shows only the LAST comment line of a recipe, so the summary is
+
+[doc("Cross-check the workspace against Windows (x86_64-pc-windows-gnu)")]
+[group("dev")]
+check-windows:
+    nix develop .#windows --command \
+        cargo check --workspace --all-targets --locked \
+        --target x86_64-pc-windows-gnu
+
+# Re-confirm dependency groups: record current hashes into outdatty.lock
+
+[doc("Re-confirm dependency groups by recording current hashes")]
+outdatty-update:
+    outdatty update
+
+# Prove `nix build` succeeds in a clean sandbox (no dev shell, no sccache).
+# Catches a committed .cargo/config.toml — or any dev-only setting — leaking
+# into the package build and breaking downstream flake consumers. Stage first:
+# flakes filter source to git-tracked files, and naersk needs the current tree.
+
+[doc("Verify nix build succeeds in a clean sandbox")]
+[group("release")]
+nix-build:
+    git add -A
+    nix build .#default
+
+# Capture live `mt` output for the docs (www/generated/*.txt), so the site's
+# CLI reference, help, version, and transcripts cannot drift from the binary.
+# Then derive the crate/DSL/gate/linecop facts (www/generate-facts.sh) — after
+# generate.sh, never before: generate.sh `rm -rf`s the whole generated/ dir on
+# entry, which would erase anything written here first.
+# Builds `mt` release, runs it against examples/learn-piano at a pinned clock.
+
+[doc("Capture live mt output and derive doc facts")]
+[group("docs")]
+docs-gen:
+    bash www/generate.sh
+    bash www/generate-facts.sh
+
+# Build the documentation site (www/ -> www/public/mindtape) with tola, then
+# index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/).
+# docs-gen runs first so the injected transcripts reflect the current binary.
+
+[doc("Build the docs site and index it with Pagefind")]
+[group("docs")]
+[working-directory("www")]
+docs-build: docs-gen
+    tola build && pagefind --site public/mindtape --silent
+
+# Serve the docs locally with hot reload (no search index — build for that)
+
+[doc("Serve the docs locally with hot reload")]
+[group("docs")]
+[working-directory("www")]
+docs-serve: docs-gen
+    tola serve
+
+# Render docs/src/*.typ to the repo-root Markdown each source declares
+# (README.md, AGENTS.md, CONTRIBUTING.md, skills/mindtape/SKILL.md,
+# docs/contributing/*.md) with typlite. See docs/generate-md.sh's header for
+# what typlite can and cannot do, and docs/contributing/generated-docs.md for
+# the pipeline this feeds and how to add a source.
+
+[doc("Render docs/src Typst sources to repo-root Markdown")]
+[group("docs")]
+docs-md:
+    bash docs/generate-md.sh
 
 # Auto-fix clippy warnings
+
+[doc("Auto-fix clippy warnings")]
+[group("dev")]
 clippy-fix:
     cargo clippy --fix --workspace --all-targets --allow-dirty --allow-staged -- -D warnings
 
 # Build the project
+
+[doc("Build the project")]
+[group("dev")]
 build *args:
     cargo build --workspace -q {{ args }}
 
@@ -294,8 +464,10 @@ build *args:
 # That lcov minted crap-baseline.json, so the ratchet then failed 48 functions
 # on the first honest run after a `cargo clean`. Inflated coverage is the worst
 # failure this repo can have here — it hides exactly what `just crap` and the
-
 # sweep's coverage arms exist to find — so pay the instrumented rebuild.
+
+[doc("Run coverage with cargo-llvm-cov")]
+[group("advisory")]
 cover:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -369,8 +541,10 @@ cover:
 # It reports through stdout and always exits 0, rather than failing. A non-zero
 # exit here would make `just` print its own `error: Recipe ... failed` line into
 # the skip path, so a deliberate skip would read on screen exactly like a broken
-
 # gate — the one thing this arm exists to keep distinguishable.
+
+[doc("Print why the lcov is stale, or nothing if fresh")]
+[private]
 _lcov-stale-reason:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -384,44 +558,13 @@ _lcov-stale-reason:
         echo "$lcov predates $newer"
     fi
 
-# The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
-# fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0.
-#
-# Why it exists: `just crap` is CI-enforced and used to be absent from
-# `just check`, so nothing local ever evaluated it and a green `just check`
-# carried no information about it. That is how it sat red on main
-# (truth/tasks/cover-confirm-retire-and-unred-the-crap-gate.typ).
-#
-# Be honest about what this buys. Editing any source stales the lcov, so on
-# precisely the commits that matter this arm SKIPS. It catches the free case — a
-# check run after a recent `just cover` — and nothing more. `just check-full` is
-# the arm that is always correct; this one is the cheap partial. It follows the
-# signal sweep's mutants arm: absent and clean must never look alike, so it says
-# which of the two it is every time.
-#
-# Deliberately NOT wrapped in mmz, unlike every other arm of `just check`. mmz
-# memoizes on file scopes and the lcov is a build artifact in none of them, so a
-# memoized verdict would survive the lcov going fresh and this arm would skip
-# forever on unchanged sources — a gate that caches "I could not measure" is
-
-# worse than one that is simply absent.
-check-crap:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    reason=$(just _lcov-stale-reason)
-    if [ -z "$reason" ]; then
-        just crap
-    else
-        echo "check-crap: SKIPPED — ${reason}" >&2
-        echo "  the CRAP gate was NOT evaluated. \`just cover\` refreshes it;" >&2
-        echo "  \`just check-full\` runs the whole thing. CI evaluates it either way." >&2
-    fi
-
 # `just check` plus the two gates it cannot afford to run every time. This is
 # the pre-PR run: it is always correct about coverage and CRAP, at the price of
 # an instrumented rebuild and a full suite pass. Measured at ~21s with a hot
-
 # `target/` on the maintainer's machine; a cold run and CI are both larger.
+
+[doc("Run check plus coverage and the CRAP gate")]
+[group("workflow")]
 check-full: check cover crap
 
 # What `crap` and `crap-baseline` both exclude. One list, two consumers, for the
@@ -435,11 +578,15 @@ CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/
 # undertested arm (contrib/ask-refactoring/undertested.sh) runs `cargo crap` for
 # its per-function complexity and coverage, and must score the same file set the
 # gate does or it files findings about `main.rs` and a feature-gated stub. A
-
 # recipe rather than a copy, for the reason above.
+
+[doc("Print the CRAP exclude flags shared across consumers")]
+[private]
 _crap-excludes:
     @echo '{{ CRAP_EXCLUDES }}'
 
+[doc("Gate complex, undertested functions via the CRAP metric")]
+[group("advisory")]
 crap:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -492,8 +639,10 @@ crap:
 # fresh lcov, with the two facts that make it not a bypass in the message:
 # `cargo crap --lcov ... --threshold 30 --min 30 --fail-above` is green (nothing
 # is actually bad), and no cyclomatic complexity moved (the ratchet's real
-
 # subject is unchanged; only the measurement was). Run the recipe body by hand.
+
+[doc("Re-mint crap-baseline.json after a deliberate complexity increase")]
+[group("advisory")]
 crap-baseline: crap
     #!/usr/bin/env bash
     set -eo pipefail
@@ -508,8 +657,10 @@ crap-baseline: crap
 # assertion gap: a line covered but not pinned. Speed knobs (benchmarked
 # ~3.5x over the naive run): CARGO_MUTANTS_JOBS=3 parallel jobs and the mold
 # linker via RUSTFLAGS — both overridable; drop jobs to 2 if parallel load
-
 # provokes false TIMEOUTs. Extra args pass through to cargo-mutants.
+
+[doc("Run mutation testing over this branch's diff against main")]
+[group("advisory")]
 mutants-diff *ARGS:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -547,8 +698,10 @@ mutants-diff *ARGS:
 # trustworthy exactly where a shared runner puts you. An advisory check with
 # unreliable verdicts trains people to ignore it, and a cold build on two runner
 # cores turns "advisory" into the slowest job in the pipeline. Run it locally,
-
 # where a timeout means something.
+
+[doc("Run a full-file mutation testing sweep")]
+[group("advisory")]
 mutants *ARGS:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -567,65 +720,37 @@ TOML_FMT_PATHS := ".mindtape/config.toml examples/learn-piano/.mindtape/config.t
 TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates www/content www/templates www/utils docs/src"
 
 # Format code
+
+[doc("Format code")]
+[group("dev")]
 fmt:
     cargo fmt --all
     tombi format {{ TOML_FMT_PATHS }}
     typstyle --inplace {{ TYPST_FMT_PATHS }}
-
-# Format check (CI-friendly)
-fmt-check:
-    cargo fmt --all -- --check
-    tombi format --check {{ TOML_FMT_PATHS }}
-    typstyle --check {{ TYPST_FMT_PATHS }}
-
-# Lock the formatter gates: synthesize a deliberately-mis-formatted TOML and
-# Typst fixture in a temp dir, then assert `tombi format --check` and
-# `typstyle --check` both fail. The fmt recipe is what `just fmt`/`fmt-check`
-# apply to the tracked config + docs tree, so the same formatters must
-# reject the mis-formatted fixture (and accept a re-formatted one). A
-# formatter that silently accepts drift would let `just fmt-check` pass on
-
-# an out-of-sync editor save — exactly the bug this task is fixing.
-fmt-fixture-check:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' EXIT
-    bad_toml="$tmp/bad.toml"
-    bad_typ="$tmp/bad.typ"
-    printf '[a]\nb=1\nc  =   2\n' > "$bad_toml"
-    printf '#let   x   =   1\n#let y=2\n' > "$bad_typ"
-    if tombi format --check --offline "$bad_toml" >/dev/null 2>&1; then
-        echo "fmt-fixture-check: tombi accepted the mis-formatted TOML — gate is broken" >&2
-        exit 1
-    fi
-    if typstyle --check "$bad_typ" >/dev/null 2>&1; then
-        echo "fmt-fixture-check: typstyle accepted the mis-formatted Typst — gate is broken" >&2
-        exit 1
-    fi
-    echo "fmt-fixture-check: both formatters reject drift"
-
-# Check for unused dependencies
-machete:
-    cargo machete
+    just --fmt
 
 # Count tests across the workspace
+
+[doc("Count tests across the workspace")]
+[group("advisory")]
 count-tests:
     #!/usr/bin/env bash
     cargo test --workspace 2>&1 | grep "test result:" | awk '{sum += $4} END {print sum " tests"}'
 
 # Show the top 20 files by line count
+
+[doc("Show the top 20 files by line count")]
+[group("advisory")]
 file-sizes:
     #!/usr/bin/env bash
     find . -type f \( -name '*.rs' -o -name '*.md' \) ! -path './target/*' -exec wc -l {} + | sort -rn | head -20
 
 # Eject inline tests from Rust files nearing the linecop limit
+
+[doc("Eject inline tests from files nearing the linecop limit")]
+[group("advisory")]
 eject PCT='90':
     linecop --baseline {{ PCT }} --format paths | ejectest apply . --files-from - --lenient
-
-# Check for oversized files (fails if any exceed limits)
-check-file-size:
-    linecop
 
 # File backlog tasks from the ADVISORY quality signals — the ones that predict
 # mechanical work instead of blocking on it. Four arms: linecop (file size),
@@ -649,25 +774,17 @@ check-file-size:
 # Deliberately NOT an `mmz` arm and not part of `just check`: memoizing it would
 # defeat the point (it must re-observe the tree every run), and a signal that
 # already blocks a commit — jscpd, outdatty, machete, clippy — must never file a
-
 # task, because the wall is already in front of you.
+
+[doc("File backlog tasks from advisory quality signals")]
+[group("advisory")]
 ask-refactoring *ARGS:
     bash contrib/ask-refactoring.sh {{ ARGS }}
 
-# Copy-paste gate: fail on any duplicated Rust block across the crates
-check-dry:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    # jscpd (the Rust port, packaged in flake.nix) fails on any duplicated
-    # block of >=70 tokens, naming both spans. Scans all Rust under crates/.
-    # Fix a finding by extracting a shared helper — never by shuffling tokens
-    # until the detector loses the scent.
-    #
-    # `--exit-code 1` is spelled with its value: bare `--exit-code` would
-    # swallow the following path argument as its optional code.
-    jscpd --no-tips -k 70 -f rust --exit-code 1 crates
-
 # Install the mindtape Typst library for local #import (dev symlink)
+
+[doc("Install the mindtape Typst library for local #import")]
+[group("dev")]
 install-lib:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -681,6 +798,9 @@ install-lib:
     echo "linked lib -> $TARGET/$VERSION (use @local/mindtape:$VERSION)"
 
 # Remove the dev symlink installed by install-lib
+
+[doc("Remove the dev symlink installed by install-lib")]
+[group("dev")]
 uninstall-lib:
     #!/usr/bin/env bash
     VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)
@@ -688,8 +808,10 @@ uninstall-lib:
     [ -L "$TARGET" ] && rm "$TARGET" && echo "removed $TARGET" || echo "no symlink at $TARGET"
 
 # Point git at the tracked hook dir (pre-commit asserts the memoized gate via
-
 # `mmz --is-fresh --tag gate`, then checks task-file formatting and structure)
+
+[doc("Point git at the tracked hook directory")]
+[group("dev")]
 install-hooks:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -700,8 +822,11 @@ install-hooks:
 # Tag a release and push (usage: just release 0.3.0). Refuses to run in a
 # dirty worktree, and while CHANGELOG.md has an [Unreleased] section with
 # content — move it into a dated [VERSION] section first. Pushes main before
-
 # the tag so the docs site (pages.yml) and CI run on the release tree.
+
+[confirm("Tag and push a release to origin — proceed?")]
+[doc("Tag a release and push")]
+[group("release")]
 release VERSION:
     #!/usr/bin/env bash
     set -eo pipefail
