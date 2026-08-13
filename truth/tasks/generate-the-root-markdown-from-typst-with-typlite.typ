@@ -14,7 +14,7 @@
     "trim-root-docs-by-delegating-deep-content.typ",
     "derive-the-drift-prone-doc-facts-from-their-sources.typ",
   ),
-  status: proposed(2026, 8, 13),
+  status: wip(2026, 8, 13),
 )
 
 == Summary
