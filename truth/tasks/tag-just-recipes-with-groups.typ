@@ -11,7 +11,7 @@
   tags: ("tooling", "docs"),
   estimate: (files: 2),
   links: depends-on("give-every-just-recipe-a-doc-attribute.typ"),
-  status: proposed(2026, 8, 14),
+  status: done(2026, 8, 14),
 )
 
 == Summary

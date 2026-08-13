@@ -11,18 +11,22 @@
 # captures), and let a doc STATE the fact by reading the file, never by
 # repeating it by hand.
 #
-# `just docs-gen` runs this after www/generate.sh (never before — that script
-# `rm -rf`s the whole generated/ dir on entry, so anything written here first
-# would be deleted). `just check-doc-facts` also calls this directly, so the
-# gate is self-contained and never depends on a prior docs-gen run.
+# www/generate.sh calls this at its END, inside the flock it already holds:
+# that script `rm -rf`s the whole generated/ dir on entry, and the wipe and
+# the restore have to be ONE critical section or a concurrent reader sees the
+# gap between them. `just docs-gen` then calls this again — idempotent, and it
+# keeps the recipe honest about what it produces — and `just check-doc-facts`
+# and `docs/generate-md.sh` call it directly, so each is self-contained and
+# never depends on a prior docs-gen run.
 #
 # Four artifacts, four sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
 #                          through its own `<mindtape>` marker
-#   - gates.json        <- `just --dump --dump-format json`, the `check`
-#                          recipe's own dependency list
+#   - gates.json        <- `just --dump --dump-format json` for the
+#                          `[group("gate")]` tags, `just --summary --unsorted`
+#                          for source order
 #   - linecop-caps.json <- .linecop.yaml, via yq
 #
 # `gates.json` and `linecop-caps.json` get no consumer in this script's sibling
@@ -43,6 +47,39 @@ mkdir -p "$OUT"
 
 cd "$REPO"
 mkdir -p target
+
+# Same lock as www/generate.sh, same reason: `just check` is [parallel] and
+# check-doc-facts, docs-md-check and docs-check can all be inside this
+# directory at once. Re-exec under flock unless a caller already holds it —
+# www/generate.sh exports the variable before calling this script, so the
+# wipe-then-restore there stays ONE critical section instead of two.
+if [ -z "$MINDTAPE_GENERATED_LOCK" ]; then
+  export MINDTAPE_GENERATED_LOCK=1
+  exec flock "$REPO/target/www-generated.lock" "$0" "$@"
+fi
+
+# Every artifact below is written through a temp file and moved into place, so
+# a reader holding no lock (a Typst source mid-render) sees the previous
+# complete file or the next one, never a truncated or absent one. `mv` within
+# one filesystem is atomic; a redirect straight onto the destination is not,
+# and would also leave a zero-byte file behind when the producing jq program
+# calls halt_error (the gate-group cross-check below does).
+#
+# The parse check is what makes that guarantee hold under a FAILING producer,
+# not just a slow one: a jq that dies mid-stream still closes the pipe, so the
+# temp file exists and is partial. Installing a partial fact file is worse
+# than installing none — the reader gets a plausible-looking JSON prefix
+# instead of an error. Every artifact here is JSON, so `jq -e .` is the test.
+emit() {
+  local name="$1" tmp="$OUT/.$1.tmp.$$"
+  cat >"$tmp"
+  if ! jq -e . "$tmp" >/dev/null 2>&1; then
+    rm -f "$tmp"
+    echo "generate-facts.sh: refusing to install malformed $name" >&2
+    return 1
+  fi
+  mv -f "$tmp" "$OUT/$name"
+}
 
 # --- crate-map.json ---------------------------------------------------------
 # One `cargo metadata` call carries the whole dependency graph, so direct-vs-
@@ -126,7 +163,7 @@ jq --arg substrate_re "$SUBSTRATE_REPO_RE" \
     "workspace-package": {version: $ws_version, edition: $ws_edition, "rust-version": $ws_rust_version},
     "typst-lib": {version: $typst_lib_version},
   }
-' <<<"$META" >"$OUT/crate-map.json"
+' <<<"$META" | emit crate-map.json
 
 # --- dsl-fields.json ---------------------------------------------------------
 # lib/prelude.typ's `task` function names every core field as a parameter, and
@@ -146,7 +183,7 @@ fields_dict="$(typst query --root . "$tmp/dsl-driver.typ" '<mindtape>' \
   --field value --one | jq '.fields')"
 jq -n --argjson fields "$fields_dict" \
   '{fields: [$fields | keys_unsorted[] as $k | {name: $k, default: $fields[$k]}]}' \
-  >"$OUT/dsl-fields.json"
+  | emit dsl-fields.json
 rm -rf "$tmp"
 
 # --- gates.json --------------------------------------------------------------
@@ -181,12 +218,12 @@ jq --argjson order "$SUMMARY_ORDER" '
       ($order | map(select(. as $n | $gate_group | index($n) != null))) as $names
       | {gates: [$names[] as $n | {name: $n, doc: .recipes[$n].doc}]}
     end
-' <<<"$JUST_DUMP" >"$OUT/gates.json"
+' <<<"$JUST_DUMP" | emit gates.json
 
 # --- linecop-caps.json --------------------------------------------------------
 # The exact `limits`/`overrides` .linecop.yaml carries — the source CONTRIBUTING.md
 # quotes caps from. yq is the same jq-over-YAML wrapper generate.sh uses for the
 # release workflow, so this stays consistent with the rest of the docs tooling.
-yq '{limits, overrides}' .linecop.yaml >"$OUT/linecop-caps.json"
+yq '{limits, overrides}' .linecop.yaml | emit linecop-caps.json
 
 echo "generated $(find "$OUT" -maxdepth 1 -name '*.json' | wc -l) fact files under $OUT"

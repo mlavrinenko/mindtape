@@ -370,6 +370,7 @@ check-windows:
 # Re-confirm dependency groups: record current hashes into outdatty.lock
 
 [doc("Re-confirm dependency groups by recording current hashes")]
+[group("dev")]
 outdatty-update:
     outdatty update
 

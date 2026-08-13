@@ -43,6 +43,24 @@ FIX="$REPO/examples/learn-piano"
 OUT="$SCRIPT_DIR/generated"
 MT="$REPO/target/release/mt"
 
+# Serialize every writer of www/generated/ (see www/generate-facts.sh for the
+# other one). `just check` is [parallel] and three of its arms touch this
+# directory: docs-check runs this script, while check-doc-facts and
+# docs-md-check regenerate the facts inside it. The `rm -rf` below would then
+# delete the facts out from under a concurrent reader — an intermittent
+# "file not found (searched at www/generated/crate-map.json)" on work that is
+# perfectly correct (truth/tasks/stop-the-generated-docs-writers-racing-under-
+# parallel-check.typ). Re-exec under flock rather than locking at each call
+# site, so a new caller is safe by default instead of by remembering.
+#
+# The lock lives under target/ because this script deletes the directory it
+# would otherwise live in.
+if [ -z "$MINDTAPE_GENERATED_LOCK" ]; then
+  mkdir -p "$REPO/target"
+  export MINDTAPE_GENERATED_LOCK=1
+  exec flock "$REPO/target/www-generated.lock" "$0" "$@"
+fi
+
 # Build the binary the captures run against.
 ( cd "$REPO" && cargo build --release -p mindtape-cli )
 
@@ -219,5 +237,13 @@ rm -rf "$(dirname "$COPY")"
 LOGO="$SCRIPT_DIR/assets/images/logo.svg"
 rsvg-convert -w 32 -h 32 "$LOGO" -o "$SCRIPT_DIR/assets/images/favicon-32.png"
 rsvg-convert -w 180 -h 180 "$LOGO" -o "$SCRIPT_DIR/assets/images/apple-touch-icon.png"
+
+# Restore the derived facts inside the same critical section that deleted
+# them. Splitting the wipe and the restore across two lock acquisitions would
+# leave a window where www/generated/ exists with no facts in it, which is the
+# exact state a concurrent reader must never see. `just docs-gen` still calls
+# generate-facts.sh after this script — that run is idempotent and locked, and
+# it keeps the recipe honest about what it produces.
+bash "$SCRIPT_DIR/generate-facts.sh"
 
 echo "generated $(find "$OUT" -type f | wc -l) files under $OUT"
