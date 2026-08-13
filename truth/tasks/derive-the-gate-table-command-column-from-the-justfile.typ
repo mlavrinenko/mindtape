@@ -14,7 +14,7 @@
     "render-just-recipe-names-through-a-generated-typst-module.typ",
     "tag-just-recipes-with-groups.typ",
   ),
-  status: proposed(2026, 8, 14),
+  status: wip(2026, 8, 14),
 )
 
 == Summary
