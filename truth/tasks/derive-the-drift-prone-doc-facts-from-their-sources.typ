@@ -13,7 +13,7 @@
   links: related(
     "generate-the-root-markdown-from-typst-with-typlite.typ",
   )[the rendering hop that consumes what this extracts],
-  status: proposed(2026, 8, 13),
+  status: wip(2026, 8, 13),
 )
 
 == Summary
