@@ -8,7 +8,7 @@
 // commit-msg trailer it requires) is process, not a value any of
 // www/generate-facts.sh's four artifacts (crate-map, dsl-fields, gates,
 // linecop-caps) carries.
-#import "../lib.typ": doc-title
+#import "../lib.typ": doc-title, just
 
 #metadata((
   output: "docs/contributing/gates.md",
@@ -17,7 +17,7 @@
 #doc-title[Scoping a gate]
 
 Deep dive behind one line of CONTRIBUTING.md's Quality Gates section: the one
-sanctioned way to commit without a fully fresh `just check`.
+sanctioned way to commit without a fully fresh #just.check().
 
 = What the pre-commit hook asserts
 

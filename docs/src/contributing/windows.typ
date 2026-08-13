@@ -9,7 +9,7 @@
 // `rust-toolchain.channel` (`www/generate-facts.sh`, from
 // `rust-toolchain.toml`) instead of being hand-typed, so a toolchain bump
 // cannot leave this sentence stale.
-#import "../lib.typ": doc-title, fact
+#import "../lib.typ": doc-title, fact, just
 
 #metadata((
   output: "docs/contributing/windows.md",
@@ -25,7 +25,7 @@ Windows, what cannot, and how to catch a break before CI does.
 CI runs the suite on Windows (`.github/workflows/ci.yml`, job `windows`),
 which is where the platform seams get exercised — `cmd /C` vs `sh -c` for
 `[[on.flip]]` `run`, the `dirs` config/data paths, path separators. It runs
-plain `cargo build` / `cargo test`, not `just check`: there is no Nix there,
+plain `cargo build` / `cargo test`, not #just.check(): there is no Nix there,
 and the remaining gates are platform-independent. Anything you write that
 shells out or joins paths needs a thought for that job.
 
@@ -44,7 +44,7 @@ behaviour is platform-independent and `crossterm` implements it over ConPTY.
 
 #let rust-channel = fact("crate-map").at("rust-toolchain").at("channel")
 
-`just check-windows` cross-checks the workspace (tests included) against
+#just.check-windows() cross-checks the workspace (tests included) against
 `x86_64-pc-windows-gnu` from Linux, so compile breakage surfaces before the
 push rather than in CI.
 
@@ -53,6 +53,6 @@ shell's rustc carries no Windows std. `pkgsCross.mingwW64` supplies a rustc —
 the same pinned #rust-channel — that has std for the target and the host
 both, so no rustup and no second toolchain manager is involved.
 
-It is deliberately not a `just check` arm: it pulls a separate toolchain
+It is deliberately not a #just.check() arm: it pulls a separate toolchain
 closure and `target/` tree. Windows CI still owns runtime behaviour and the
 `-msvc` target; this only moves the compile half earlier.

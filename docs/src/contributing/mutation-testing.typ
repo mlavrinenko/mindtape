@@ -8,7 +8,7 @@
 // www/generate-facts.sh's four artifacts (crate-map, dsl-fields, gates,
 // linecop-caps) — `mutants`/`mutants-diff` are deliberately not `just check`
 // dependencies (see the prose below), so `gates.json` never carries them.
-#import "../lib.typ": doc-title
+#import "../lib.typ": doc-title, just
 
 #metadata((
   output: "docs/contributing/mutation-testing.md",
@@ -27,12 +27,12 @@ code your suite runs but does not pin.
 
 = How to run it
 
-- `just mutants-diff` before a PR. It sweeps only the mutants your branch's
+- #just.mutants-diff() before a PR. It sweeps only the mutants your branch's
   diff touches, so it is minutes rather than hours, and covers new files for
   free.
-- `just mutants -f <file>` forces a deliberate full-file sweep.
+- #just.mutants("-f <file>") forces a deliberate full-file sweep.
 
-Neither is a `just check` gate, and there is no CI job for it on purpose. The
+Neither is a #just.check() gate, and there is no CI job for it on purpose. The
 reasoning, the `TIMEOUT` caveat, and how to bound a loop a mutant can hang are
 in the `mutants` recipes' comments and in `.cargo/mutants.toml`.
 

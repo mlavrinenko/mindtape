@@ -10,7 +10,7 @@
 // docs-md` naming it, and one removed from `just check` drops out on its
 // own. `.linecop.yaml`'s caps land in `www/generated/linecop-caps.json` too,
 // but this file quotes no literal cap to derive from it.
-#import "lib.typ": doc-title, fact
+#import "lib.typ": doc-title, fact, just
 
 #metadata((
   output: "CONTRIBUTING.md",
@@ -61,25 +61,25 @@ build with violations. Key restrictions:
   `tests/` (integration tests), not inline: Cargo builds the binary and
   exports `CARGO_BIN_EXE_mt` before integration tests, a guarantee `--lib`
   unit tests lack.
-- As a file nears the linecop limit, `just fix-check` ejects its inline tests
+- As a file nears the linecop limit, #just.fix-check() ejects its inline tests
   into a `_tests.rs` sibling with
   #link("https://github.com/mlavrinenko/ejectest")[ejectest].
-- Run `just test`; count with `just count-tests`.
+- Run #just.test()\; count with #just.count-tests().
 - Windows and the pty-driven terminal tests have their own seams — CI job,
-  `just check-windows` cross-check, why `tests/interactive_e2e.rs` is
+  #just.check-windows() cross-check, why `tests/interactive_e2e.rs` is
   `#![cfg(unix)]`:
   #link("docs/contributing/windows.md")[docs/contributing/windows.md]. Anything
   you write that shells out or joins paths needs a thought for that job.
 - Mutation testing (`cargo-mutants`) proves whether tests pin behaviour, not
-  just execute it. Run `just mutants-diff` before a PR and triage every
+  just execute it. Run #just.mutants-diff() before a PR and triage every
   survivor:
   #link("docs/contributing/mutation-testing.md")[docs/contributing/mutation-testing.md].
 
-= Quality Gates (run by `just check`)
+= Quality Gates (run by #just.check())
 
 #let gate-tools = (
   "fmt-check": [
-    `just fmt-check` — `cargo fmt` over Rust, `tombi format` over the project
+    #just.fmt-check() — `cargo fmt` over Rust, `tombi format` over the project
     config TOML (`.mindtape/config.toml` and the per-example configs), and
     `typstyle` over the Typst sources (`lib/`, `truth/tasks/`, both template
     dirs, the learn-piano example, and `www/`). The non-Rust path lists live
@@ -96,57 +96,57 @@ build with violations. Key restrictions:
     adding to an existing file
   ],
   "check-dry": [
-    `jscpd` (`just check-dry`) — fails on any duplicated Rust block ≥70
+    `jscpd` (#just.check-dry()) — fails on any duplicated Rust block ≥70
     tokens; fix by extracting a shared helper
   ],
   "outdatty-check": [`outdatty check`],
   "check-examples": [
-    `just check-examples` — `mt check` against each example project:
+    #just.check-examples() — `mt check` against each example project:
     `examples/learn-piano/` (full config surface; feeds the docs generator
     and the skill's triage evals) and `examples/minimal/` (the floor config;
-    feeds the skill's trap evals). Keep the recipe and the mmz `examples`
-    scope in step. A fixture no gate validates rots silently
+    feeds the skill's trap evals). A fixture no gate validates rots silently
   ],
   "check-doc-coverage": [
-    `just check-doc-coverage` — set-differences `mt _cli --json`'s reflected
+    #just.check-doc-coverage() — set-differences `mt _cli --json`'s reflected
     command names against `www/utils/cli-notes.typ`'s dict keys; fails naming
-    any visible subcommand with no matching entry, so a new verb can no
-    longer ship silently undocumented
+    any visible subcommand with no matching entry
   ],
   "check-doc-facts": [
-    `just check-doc-facts` — regenerates
+    #just.check-doc-facts() — regenerates
     `www/generated/{crate-map,dsl-fields}.json` (`www/generate-facts.sh`) and
     set-differences each against its
     `www/utils/{crate-notes,dsl-field-notes}.typ` prose dict; fails naming
     any crate or DSL field with no matching entry
   ],
+  "check-doc-recipes": [
+    #just.check-doc-recipes() — a hand-typed recipe mention, or an unknown one
+  ],
   "docs-check": [
-    `just docs-check` — `docs-gen` first captures live `mt` output
+    #just.docs-check() — `docs-gen` first captures live `mt` output
     (`www/generate.sh`), then `tola build`, then `pagefind` indexes the built
     HTML for client-side search, then `tola validate` checks links + assets
   ],
   "docs-md-check": [
-    `just docs-md-check` — regenerates every `docs/src/*.typ` source with
+    #just.docs-md-check() — regenerates every `docs/src/*.typ` source with
     typlite into a temp directory and diffs each against the committed
     Markdown it declares; fails naming any drifted file rather than healing
-    it in place. `just docs-md` refreshes it — see
+    it in place. #just.docs-md() refreshes it — see
     #link(
       "docs/contributing/generated-docs.md",
     )[docs/contributing/generated-docs.md]
   ],
   "fmt-fixture-check": [
-    `just fmt-fixture-check` — synthesizes a deliberately mis-formatted TOML
+    #just.fmt-fixture-check() — synthesizes a deliberately mis-formatted TOML
     and Typst fixture in a temp directory and asserts `tombi format --check`
     and `typstyle --check` both reject it (and accept a reformatted one);
     locks the formatter gates themselves, so a formatter silently accepting
     drift could not let `fmt-check` pass on an out-of-sync editor save
   ],
   "check-crap": [
-    `just check-crap` — runs the CRAP gate when `target/coverage/lcov.info`
+    #just.check-crap() — runs the CRAP gate when `target/coverage/lcov.info`
     is fresh, and otherwise SKIPS LOUDLY, saying so and exiting 0. Editing
-    any source stales the lcov, so on the commits that matter it skips; it
-    catches the free case only. `just check-full` is the arm that is always
-    correct
+    any source stales the lcov, so it skips on the commits that matter;
+    it catches the free case only. #just.check-full() is always correct
   ],
 )
 
@@ -157,9 +157,9 @@ build with violations. Key restrictions:
   ..gate-rows.map(g => (raw(g.name), gate-tools.at(g.name))).flatten(),
 )
 
-`just check-full` is `just check` plus `just cover` and `just crap` — always
+#just.check-full() is #just.check() plus #just.cover() and #just.crap() — always
 correct about coverage and CRAP, at the price of an instrumented rebuild and a
-full suite pass. Use it before opening a PR, plain `just check` while
+full suite pass. Use it before opening a PR, plain #just.check() while
 iterating.
 
 A delegated worktree whose full aggregate runs at integration can scope the
@@ -168,24 +168,24 @@ matching `Gate-Scope:` trailer so the commit never reads as fully gated:
 #link("docs/contributing/gates.md")[docs/contributing/gates.md]. Never
 legitimate to dodge a gate that is actually red.
 
-Coverage and CRAP run outside `just check`: `just cover` fails under 90%
-lines, then `just crap` fails above 30 and on any regression against
+Coverage and CRAP run outside #just.check(): #just.cover() fails under 90%
+lines, then #just.crap() fails above 30 and on any regression against
 `crap-baseline.json`. Run `cover` first — `crap` refuses a stale lcov — and
-`just crap-baseline` in the same commit as any deliberate complexity. Every
+#just.crap-baseline() in the same commit as any deliberate complexity. Every
 one of those numbers is argued in
 #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md]
 ; read it before changing either recipe's flags.
 
-`just nix-build` verifies `nix build` in a clean sandbox (no dev shell, no
+#just.nix-build() verifies `nix build` in a clean sandbox (no dev shell, no
 sccache). Run it when touching `flake.nix` or `.cargo/config.toml`;
-`just release` calls it automatically.
+#just.release() calls it automatically.
 
-= Signal Sweep (`just ask-refactoring`)
+= Signal Sweep (#just.ask-refactoring())
 
 `contrib/ask-refactoring.sh` reads the _advisory_ quality signals and files a
 backlog task per finding. It is not a gate and never will be — a gate stops
 you at the wall, the sweep names the wall you are walking toward. Run
-`just ask-refactoring` to see what it would file today; the arms, the scoring
+#just.ask-refactoring() to see what it would file today; the arms, the scoring
 and the design rules are in
 #link("docs/contributing/signal-sweep.md")[docs/contributing/signal-sweep.md].
 
@@ -194,7 +194,7 @@ and the design rules are in
 #link("outdatty.yaml")[`outdatty.yaml`] couples source files to the
 dependents that must stay in sync (e.g. the CLI surface to `README.md`).
 After editing a source, update the listed dependents, then
-`just outdatty-update` and commit `outdatty.lock`.
+#just.outdatty-update() and commit `outdatty.lock`.
 
 = Version Management
 
@@ -206,7 +206,7 @@ After editing a source, update the listed dependents, then
 - `mindtape-cli`'s dependency on `mindtape` carries a version requirement
   (not path-only), because crates.io rejects path-only deps on publish; bump
   it with the workspace version.
-- A release (`just release VERSION`) is gated: the tag must equal the
+- A release (#just.release("VERSION")) is gated: the tag must equal the
   workspace version, the working tree must be clean, and `CHANGELOG.md` may
   not have a non-empty `[Unreleased]` section (it moves into a dated
   `[VERSION]` section at release time). The recipe pushes `main` before the
