@@ -48,15 +48,15 @@ overrides:
   # anywhere else, so — where still hand-written — they stay capped tighter
   # than the 200 Markdown ceiling, not looser.
   #
-  # AGENTS.md is the first of the four to move: it is now GENERATED from
-  # `docs/src/agents.typ` (typlite; `just docs-md`), so a numeric cap on the
-  # rendered file is unactionable — you cannot shorten AGENTS.md directly, only
-  # its source, and a generated file cannot be "fixed" by editing it (the next
-  # `just docs-md` run overwrites any such edit). The cap moves to the source
-  # instead, in the docs/src/** overrides below. README.md, CONTRIBUTING.md and
-  # `skills/mindtape/SKILL.md` stay hand-written this wave and keep their
-  # numeric caps below; each moves the same way — an `exclude: true` here plus
-  # a docs/src/** override — in the commit that ports it
+  # AGENTS.md and README.md have moved: they are now GENERATED from
+  # `docs/src/agents.typ` and `docs/src/readme.typ` (typlite; `just docs-md`),
+  # so a numeric cap on the rendered file is unactionable — you cannot shorten
+  # AGENTS.md directly, only its source, and a generated file cannot be "fixed"
+  # by editing it (the next `just docs-md` run overwrites any such edit). The
+  # cap moves to the source instead, in the docs/src/** overrides below.
+  # CONTRIBUTING.md and `skills/mindtape/SKILL.md` are still hand-written and
+  # keep their numeric caps below; each moves the same way — an `exclude: true`
+  # here plus a docs/src/** override — in the commit that ports it
   # (truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ).
   #
   # This is progressive disclosure continuing, not stopping: the previous drop
@@ -66,11 +66,11 @@ overrides:
   # moves DERIVED FACTS (the crate map, DSL fields, the gate table) out to
   # `www/generated/*.json`, read back by the .typ source instead of hand-
   # listed — the same "don't restate it, point at it" move, one layer down. If
-  # a hand-written one of these three hits its cap again before it is ported,
-  # the answer is still progressive disclosure — move the deep content out and
-  # link it — never a bigger number.
+  # a hand-written one of the remaining two hits its cap again before it is
+  # ported, the answer is still progressive disclosure — move the deep content
+  # out and link it — never a bigger number.
   #
-  # CONTRIBUTING.md is the tightest of the three because its remaining bulk is
+  # CONTRIBUTING.md is the tighter of the two because its remaining bulk is
   # the Quality Gates table, which is common-path and cannot be linked away.
   # This task is what makes generating that table out of the file possible
   # (`gates.json` now exists — `www/generate-facts.sh` — with no consumer of
@@ -79,9 +79,17 @@ overrides:
   #
   # `linecop --baseline 85` names anything at 85% of its cap; run it before
   # adding to an existing file, so compaction is deliberate rather than a wall.
-  - pattern: "**/README.md"
-    limit: 180
-  - pattern: "**/AGENTS.md"
+  # PATTERN ANCHORING, verified empirically because excluding the wrong file is
+  # silent: linecop matches against the `./`-prefixed path it reports, so
+  # `**/README.md` matches EVERY README at any depth and a bare `README.md`
+  # matches none. `./README.md` matches the root one alone. That distinction is
+  # load-bearing here — `skills/mindtape/evals/README.md` is hand-written and
+  # must keep the 200 Markdown default, so the exclusion below is anchored.
+  # Use `./` for a generated file's exclusion; a `**/` exclusion would silently
+  # uncap its hand-written namesakes.
+  - pattern: "./README.md"
+    exclude: true
+  - pattern: "./AGENTS.md"
     exclude: true
   - pattern: "**/CONTRIBUTING.md"
     limit: 200
@@ -124,13 +132,15 @@ overrides:
   # with headroom serves all of them without per-file tuning.
   - pattern: "**/docs/src/contributing/**"
     limit: 220
-  # The one docs/contributing/*.md deep dive this task actually generates.
-  # Excluded for the same reason AGENTS.md is: a generated file's cap belongs
-  # on its source (above), not on output typlite rewrites on every
-  # `just docs-md`. The other five docs/contributing/*.md files stay
-  # hand-written this wave and keep the plain 200 Markdown default — each
-  # gets its own `exclude: true` here in the commit that ports it.
-  - pattern: "**/docs/contributing/generated-docs.md"
+  # Every docs/contributing/*.md deep dive is now generated from a
+  # docs/src/contributing/*.typ source, so the whole directory is excluded for
+  # the same reason AGENTS.md is: a generated file's cap belongs on its source
+  # (above), not on output typlite rewrites on every `just docs-md`. Anchored
+  # with `./` per the note above, and a directory glob rather than six entries
+  # so the next deep dive is covered by existing the moment it is generated —
+  # the failure mode of a per-file list is a new generated file silently
+  # inheriting a cap nobody can act on.
+  - pattern: "./docs/contributing/*.md"
     exclude: true
 
 count_mode: total

@@ -42,6 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `skills/mindtape/SKILL.md` stay hand-written for now; the gates and the
   metadata schema (including SKILL.md's YAML frontmatter, which typlite
   cannot emit) are already in place for them.
+- **Five more Typst-sourced docs** — `docs/src/contributing/{gates,windows,
+  coverage-crap,mutation-testing,signal-sweep}.typ` join `agents.typ` and
+  `generated-docs.typ` as ports of the matching `docs/contributing/*.md`
+  deep dives. `windows.typ` reads the pinned rustc version from
+  `www/generated/crate-map.json`'s `rust-toolchain.channel` instead of
+  hand-typing it; the other four have no fact to derive and port as
+  content-preserving prose.
 
 ## [0.3.0] - 2026-08-10
 

@@ -175,6 +175,16 @@ groups:
 
   # Dev tooling and contributor conventions track the files that define them.
   # docs/src/agents.typ (not AGENTS.md — generated from it).
+  #
+  # The five contributor deep dives are dependents for the same reason
+  # CONTRIBUTING.md is, and were missed when they were ports of hand-written
+  # Markdown: each describes recipes defined in the Justfile and tools pinned
+  # in flake.nix by hand (`just check-windows` and the mingw cross shell,
+  # `just cover`/`just crap` and their thresholds, `just mutants-diff`,
+  # `just ask-refactoring`, the `MINDTAPE_GATE_SCOPE` commit path). None of
+  # that is derived — `gates.json` carries only the sub-gates `just check`
+  # itself declares, and every recipe these five discuss is deliberately NOT
+  # one of those — so a renamed or re-flagged recipe silently rots them.
   - name: dev-docs
     source:
       - flake.nix
@@ -182,6 +192,11 @@ groups:
     dependents:
       - CONTRIBUTING.md
       - docs/src/agents.typ
+      - docs/src/contributing/gates.typ
+      - docs/src/contributing/windows.typ
+      - docs/src/contributing/coverage-crap.typ
+      - docs/src/contributing/mutation-testing.typ
+      - docs/src/contributing/signal-sweep.typ
 
   # The four `just ask-refactoring` templates share one shape: the same
   # task.with header, the same "filed from a signal, nothing recorded that it
