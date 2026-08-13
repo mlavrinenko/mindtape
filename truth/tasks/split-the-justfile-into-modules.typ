@@ -14,7 +14,7 @@
     "render-just-recipe-names-through-a-generated-typst-module.typ",
     "derive-the-gate-table-command-column-from-the-justfile.typ",
   ),
-  status: proposed(2026, 8, 14),
+  status: wip(2026, 8, 14),
 )
 
 == Summary
