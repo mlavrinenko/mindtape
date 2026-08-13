@@ -21,6 +21,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   each artifact against its hand-written prose dict
   (`www/utils/crate-notes.typ`, `www/utils/dsl-field-notes.typ`) and fails
   naming any entry with no prose.
+- **Typst-sourced root docs** — `docs/src/*.typ` sources render to the
+  repo-root Markdown they each declare, via typlite (`docs/generate-md.sh`,
+  `just docs-md`; typlite ships in nixpkgs' `tinymist`, added to the dev
+  shell). AGENTS.md is the first port: its crate lists, versions, and the
+  Typst/`evalexpr`/`clap` major versions now read
+  `www/generated/crate-map.json` instead of being hand-listed.
+  `just docs-md-check` (in `just check`) regenerates into a temp directory and
+  diffs against the committed file, so a hand-edit or a stale render fails
+  naming the file rather than self-healing on regeneration. `.linecop.yaml`'s
+  caps move onto the `.typ` sources — a generated `.md` cannot be edited to
+  fix an oversize — and `outdatty.yaml`'s dependents repoint from AGENTS.md to
+  `docs/src/agents.typ`, dropping it entirely where a fact is now derived.
+  README.md, CONTRIBUTING.md and `skills/mindtape/SKILL.md` stay hand-written
+  for now; the gates and the metadata schema (including SKILL.md's YAML
+  frontmatter, which typlite cannot emit) are already in place for them.
 
 ## [0.3.0] - 2026-08-10
 

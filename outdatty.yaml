@@ -93,12 +93,19 @@ groups:
   # facts found the same pages restate DSL shape too — dual membership, same
   # pattern as SKILL.md below); dsl.typ stays the detailed reference the
   # others defer to.
+  # AGENTS.md is generated from docs/src/agents.typ (typlite; `just docs-md` —
+  # truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ), so the
+  # source, not the rendered file, is the dependent to reconcile. Its DSL
+  # snippet and field-shape prose are still hand-restated here, not derived:
+  # `www/generated/dsl-fields.json` carries the field NAMES, but this group is
+  # about the FULL task DSL shape (field types, framework packagers, the
+  # validation-layer split) that no fact file captures.
   - name: prelude-docs
     source:
       - lib/prelude.typ
     dependents:
       - README.md
-      - AGENTS.md
+      - docs/src/agents.typ
       - www/content/dsl.typ
       - www/content/concepts.typ
       - www/content/priority.typ
@@ -111,6 +118,13 @@ groups:
   # The Typst library version appears in every #import example and the CLI's
   # embedded constant. Bump lib/typst.toml and these must follow (the docs read
   # it from one place — www/utils/site.typ PKG_VERSION).
+  #
+  # docs/src/agents.typ (AGENTS.md's source) is NOT a dependent: its
+  # `@local/mindtape:...` snippet version reads
+  # `www/generated/crate-map.json`'s `typst-lib.version` (itself derived from
+  # this same lib/typst.toml), so a bump propagates through `just docs-md`
+  # with no human reconciliation — the point of deriving it in the first
+  # place. A derived fact needs no drift gate.
   - name: typst-pkg-version
     source:
       - lib/typst.toml
@@ -118,7 +132,6 @@ groups:
       - crates/mindtape-cli/src/init.rs
       - crates/mindtape-cli/src/presets/gated/templates/task.typ
       - README.md
-      - AGENTS.md
       - www/utils/site.typ
       - examples/learn-piano/.mindtape/templates/task.typ
       - examples/learn-piano/tasks/technique/hanon-warmup-daily.typ
@@ -142,6 +155,9 @@ groups:
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.
+  # docs/src/agents.typ (not AGENTS.md — generated from it) because its
+  # bare `mt`/`mt ls`/`mt check` mentions are hand-typed, not derived: nothing
+  # in www/generated/*.json carries the CLI binary's invocation name.
   - name: cli-name
     source:
       - crates/mindtape-cli/Cargo.toml
@@ -152,18 +168,19 @@ groups:
       - www/content/quickstart.typ
       - www/content/cli.typ
       - CONTRIBUTING.md
-      - AGENTS.md
+      - docs/src/agents.typ
       - CHANGELOG.md
       - skills/mindtape/SKILL.md
 
   # Dev tooling and contributor conventions track the files that define them.
+  # docs/src/agents.typ (not AGENTS.md — generated from it).
   - name: dev-docs
     source:
       - flake.nix
       - Justfile
     dependents:
       - CONTRIBUTING.md
-      - AGENTS.md
+      - docs/src/agents.typ
 
   # The four `just ask-refactoring` templates share one shape: the same
   # task.with header, the same "filed from a signal, nothing recorded that it

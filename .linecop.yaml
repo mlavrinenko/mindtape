@@ -22,47 +22,116 @@ limits:
   # ~25 lines each and the cap was never the thing keeping them short.
   Shell: 300
 
+  # A base is REQUIRED for an override's `limit:` to do anything: verified
+  # empirically — a `docs/src/**` override with no `Typst` entry here scans
+  # zero .typ files (linecop skips a language entirely when it has no base),
+  # so the per-source overrides below would be silently inert without this
+  # line. 1000 is not a target, it is a floor picked to clear the largest
+  # Typst file in the repo today (`www/content/config.typ`, 747 lines) with
+  # headroom — every real cap that matters for a docs/src/*.typ source lives
+  # in that source's own override below, at a fraction of this number. A
+  # second file crossing 1000 uncapped-by-design (`lib/prelude.typ`, `www/
+  # content/*.typ`) is not this task's problem to solve; raising THIS number
+  # to accommodate one would silently loosen every other Typst file's ceiling
+  # at once.
+  Typst: 1000
+
 # The changelog is append-only (all under [Unreleased] pre-1.0) and gets
 # archived on release, so a hard cap only fights normal growth.
 overrides:
   - pattern: "**/CHANGELOG.md"
     exclude: true
 
-  # These four are the always-loaded surface: README is the first thing a reader
-  # sees, and AGENTS.md/CONTRIBUTING.md/SKILL.md are pulled into an agent's
-  # context on every session. A line here costs more than a line anywhere else,
-  # so they are capped tighter than the 200 Markdown ceiling, not looser.
+  # These four are the always-loaded surface: README is the first thing a
+  # reader sees, and AGENTS.md/CONTRIBUTING.md/SKILL.md are pulled into an
+  # agent's context on every session. A line here costs more than a line
+  # anywhere else, so — where still hand-written — they stay capped tighter
+  # than the 200 Markdown ceiling, not looser.
   #
-  # These caps were 250/300/300/300 and are now lower. That is not a reversal of
-  # the reasoning that raised them (truth/tasks/stop-the-doc-size-cap-fighting-
-  # correctness-fixes.typ), which still holds: a cap must never make a
-  # correctness fix expensive. It applied because the files sat at 200/200 — a
-  # wall, mid-edit. It does not apply now, because the delegation trim
-  # (truth/tasks/trim-root-docs-by-delegating-deep-content.typ) moved the
-  # reference material into www/content and docs/contributing, and each file
-  # sits near 75% of its new cap with room for several correctness fixes in a
-  # row.
+  # AGENTS.md is the first of the four to move: it is now GENERATED from
+  # `docs/src/agents.typ` (typlite; `just docs-md`), so a numeric cap on the
+  # rendered file is unactionable — you cannot shorten AGENTS.md directly, only
+  # its source, and a generated file cannot be "fixed" by editing it (the next
+  # `just docs-md` run overwrites any such edit). The cap moves to the source
+  # instead, in the docs/src/** overrides below. README.md, CONTRIBUTING.md and
+  # `skills/mindtape/SKILL.md` stay hand-written this wave and keep their
+  # numeric caps below; each moves the same way — an `exclude: true` here plus
+  # a docs/src/** override — in the commit that ports it
+  # (truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ).
   #
-  # If one of these hits its cap again, the answer is progressive disclosure —
-  # move the deep content to docs/contributing/ or www/content/ and link it —
-  # not a bigger number. That is what the headroom is protecting.
+  # This is progressive disclosure continuing, not stopping: the previous drop
+  # (truth/tasks/trim-root-docs-by-delegating-deep-content.typ) moved DEEP
+  # CONTENT out to www/content/ and docs/contributing/, leaving each file near
+  # 75% of its cap with room for several correctness fixes in a row. This drop
+  # moves DERIVED FACTS (the crate map, DSL fields, the gate table) out to
+  # `www/generated/*.json`, read back by the .typ source instead of hand-
+  # listed — the same "don't restate it, point at it" move, one layer down. If
+  # a hand-written one of these three hits its cap again before it is ported,
+  # the answer is still progressive disclosure — move the deep content out and
+  # link it — never a bigger number.
   #
-  # CONTRIBUTING.md is the tightest of the four because its remaining bulk is
-  # the Quality Gates table, which is common-path and cannot be linked away. The
-  # next drop comes from generating that table out of the file entirely
-  # (truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ), not
-  # from another compression pass.
+  # CONTRIBUTING.md is the tightest of the three because its remaining bulk is
+  # the Quality Gates table, which is common-path and cannot be linked away.
+  # This task is what makes generating that table out of the file possible
+  # (`gates.json` now exists — `www/generate-facts.sh` — with no consumer of
+  # its own); porting `docs/src/contributing.typ` to read it is the next drop,
+  # not another compression pass over hand-written prose.
   #
   # `linecop --baseline 85` names anything at 85% of its cap; run it before
   # adding to an existing file, so compaction is deliberate rather than a wall.
   - pattern: "**/README.md"
     limit: 180
   - pattern: "**/AGENTS.md"
-    limit: 150
+    exclude: true
   - pattern: "**/CONTRIBUTING.md"
     limit: 200
   - pattern: "**/SKILL.md"
     limit: 300
+
+  # docs/src/**: the .typ SOURCES the four caps above used to apply to
+  # directly. A generated .md's line count is not a meaningful size proxy
+  # either way — typlite emits one line per paragraph, never hard-wrapping, so
+  # it reads short regardless of how much the source says — which is the other
+  # half of why the cap belongs here and not on the output.
+  #
+  # Each limit is the old Markdown cap plus the overhead one ported source
+  # measured: docs/src/agents.typ carries the same prose AGENTS.md did (118
+  # lines) at 186 — a +68-line, ~1.5x tax from the import, the `<mindtape-md>`
+  # block, and the crate-map-derived Workspace/Architecture sections that used
+  # to be hand-listed prose. Applied at the same ratio to the other three
+  # (not yet measured — pre-staged so porting one never means re-opening this
+  # file): README's install/quickstart snippets carry less derivation than
+  # agents.typ, CONTRIBUTING's future gates-table read and SKILL's frontmatter
+  # dict carry more, so those two get extra headroom on top of the ratio.
+  #
+  # Source filenames are a naming CONVENTION this task fixes, not a schema the
+  # generator enforces (docs/generate-md.sh reads each source's own
+  # `<mindtape-md>` block for its output path — the filename is free): the
+  # lowercased stem of the file it produces, so a future port has an
+  # unambiguous place to land without touching this file.
+  - pattern: "**/docs/src/agents.typ"
+    limit: 220
+  - pattern: "**/docs/src/readme.typ"
+    limit: 250
+  - pattern: "**/docs/src/contributing.typ"
+    limit: 260
+  - pattern: "**/docs/src/skill.typ"
+    limit: 320
+  # One shared cap for every docs/contributing/*.typ deep-dive source (today:
+  # generated-docs.typ at 135, the pipeline this task adds), rather than a
+  # per-file entry — these deep dives vary 31-59 lines in their current
+  # hand-written form and none is on the always-loaded path, so one ceiling
+  # with headroom serves all of them without per-file tuning.
+  - pattern: "**/docs/src/contributing/**"
+    limit: 220
+  # The one docs/contributing/*.md deep dive this task actually generates.
+  # Excluded for the same reason AGENTS.md is: a generated file's cap belongs
+  # on its source (above), not on output typlite rewrites on every
+  # `just docs-md`. The other five docs/contributing/*.md files stay
+  # hand-written this wave and keep the plain 200 Markdown default — each
+  # gets its own `exclude: true` here in the commit that ports it.
+  - pattern: "**/docs/contributing/generated-docs.md"
+    exclude: true
 
 count_mode: total
 

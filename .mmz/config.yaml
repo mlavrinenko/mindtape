@@ -79,6 +79,7 @@ scopes:
     - "www/content/**"
     - "www/templates/**"
     - "www/utils/**"
+    - "docs/src/**"
 
   # linecop config — a limit change busts the file-size gate.
   file-size-config:
@@ -217,6 +218,18 @@ commands:
   - name: just docs-check
     tags: [gate]
     inputs: [rust, policy, examples, docs, gates-meta]
+
+  # Regenerates every docs/src/*.typ source (after www/generate-facts.sh, same
+  # as check-doc-facts) with typlite into a temp dir, then diffs each against
+  # the committed file at its declared output path (AGENTS.md today).
+  # `rust`+`policy`+`file-size-config` because a source may read
+  # www/generated/{crate-map,dsl-fields,linecop-caps}.json, and those scopes
+  # cover THAT json's own sources; `docs` because docs/src/** and every output
+  # path it writes both sit under it. `gates-meta` because typlite is a
+  # flake.nix devShell addition and the recipe body lives in the Justfile.
+  - name: just docs-md-check
+    tags: [gate]
+    inputs: [rust, policy, file-size-config, docs, gates-meta]
 
   # Formatter self-test: a deliberately-mis-formatted TOML/Typst fixture must
   # be rejected by tombi/typstyle. The formatters are dev-shell-pinned, and the

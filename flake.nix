@@ -102,6 +102,16 @@
               nixd
               pagefind
               rust-analyzer
+              # tinymist bundles `typlite` (`$out/bin/typlite`) — the binary
+              # `docs/generate-md.sh` runs to render the docs/src/*.typ sources
+              # into the repo-root Markdown. Pulled in for that one binary, not
+              # for tinymist's LSP itself; the cost is real (~196 MiB closure)
+              # but it is already in the nixpkgs binary cache under this
+              # flake's pinned input, so no local build. Pin note: tinymist
+              # 0.14.10 (this pin) embeds Typst 0.14, matching the `typst`
+              # below — verify that still holds after any nixpkgs bump, since
+              # a later tinymist has moved to Typst 0.15 upstream.
+              tinymist
               # `tombi` and `typstyle` are the project formatters: Tombi is
               # the canonical TOML formatter (Tombi 0.9+ ships `format` /
               # `format --check` / `lint`); typstyle is the Typst formatter

@@ -18,7 +18,7 @@ fix-check: eject fmt clippy-fix check
 
 # its non-zero exit out of `parallel` unchanged.
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "docs-check") (mmz "fmt-fixture-check") check-crap
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "docs-check") (mmz "docs-md-check") (mmz "fmt-fixture-check") check-crap
 
 # Wrap a just recipe in mmz: `j ust mmz fmt-check` runs `mmz just fmt-check`. The
 # double hop makes mmz the cache identity (rule name `just <recipe>` in
@@ -218,6 +218,41 @@ docs-serve: docs-gen
 # Pagefind runs before validate so the /pagefind/ bundle exists on disk.
 docs-check: docs-gen
     cd www && tola build && pagefind --site public/mindtape --silent && tola validate
+
+# Render docs/src/*.typ to the repo-root Markdown each source declares
+# (README.md, AGENTS.md, CONTRIBUTING.md, skills/mindtape/SKILL.md,
+# docs/contributing/*.md) with typlite. See docs/generate-md.sh's header for
+# what typlite can and cannot do, and docs/contributing/generated-docs.md for
+# the pipeline this feeds and how to add a source.
+docs-md:
+    bash docs/generate-md.sh
+
+# Freshness gate for docs-md: regenerate into a TEMP directory and diff each
+# rendered file there against the COMMITTED copy at its real path — never
+# regenerate in place and read `git status`/`git diff`. An in-place
+# regenerate would heal a hand-corrupted committed file before the diff ever
+# ran, so the gate would read clean on a fix that is no longer actually
+# represented; a fresh temp render diffed against the untouched committed
+# tree cannot self-heal that way, so a drifted file fails by name every time.
+docs-md-check:
+    #!/usr/bin/env bash
+    set -eo pipefail
+    tmp=$(mktemp -d)
+    trap 'rm -rf "$tmp"' EXIT
+    bash docs/generate-md.sh "$tmp"
+    drift=()
+    while IFS= read -r -d '' f; do
+        rel="${f#"$tmp"/}"
+        if [ ! -f "$rel" ] || ! diff -q "$rel" "$f" >/dev/null 2>&1; then
+            drift+=("$rel")
+        fi
+    done < <(find "$tmp" -type f -print0)
+    if [ "${#drift[@]}" -gt 0 ]; then
+        echo "docs-md-check: drifted from docs/src/ (run \`just docs-md\` to refresh):" >&2
+        for f in "${drift[@]}"; do echo "  - $f" >&2; done
+        exit 1
+    fi
+    echo "docs-md-check: $(find "$tmp" -type f | wc -l) generated file(s) match committed"
 
 # Run tests only
 test *ARGS:
@@ -529,7 +564,7 @@ mutants *ARGS:
 # omit a path from the check while applying it in the fix.
 
 TOML_FMT_PATHS := ".mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml"
-TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates www/content www/templates www/utils"
+TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates www/content www/templates www/utils docs/src"
 
 # Format code
 fmt:
