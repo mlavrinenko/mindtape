@@ -52,8 +52,26 @@ mkdir -p target
 # pulls it in directly).
 META="$(cargo metadata --format-version 1)"
 
-SUBSTRATE_CRATES='["typst-world","typst-harvest","typst-cst","typst-edit","typst-cleanup","swhid-mint","artifact-gate"]'
-ARCH_DEPS='["typst","typst-eval","evalexpr","clap","serde","toml","comfy-table","serde_json","csv"]'
+# WHICH crates are substrate is derived too, not listed: they are exactly the
+# packages whose own manifest points at this author's GitHub org and that are
+# not workspace members — i.e. the crates extracted OUT of this repo and now
+# consumed back from crates.io. Verified exact against today's graph (seven
+# hits, no false positives; `mindtape`/`mindtape-cli` share the org and are
+# excluded as workspace members). A hand-written list was the last hardcoded
+# claim in this file and would go stale the day an eighth crate is extracted —
+# which is the precise failure this whole script exists to prevent. When one
+# is, it appears here automatically and `just check-doc-facts` fails until it
+# has prose, instead of silently going unmentioned.
+SUBSTRATE_REPO_RE='github\.com/mlavrinenko/'
+
+# The architecture-level dependencies the docs name by hand. This one IS a
+# list, and has to be: "which deps are worth naming in an architecture
+# sentence" is an editorial judgement with no machine source. Only the
+# VERSIONS are derived. A dep that leaves the graph resolves to null rather
+# than silently vanishing, so a stale editorial claim surfaces as a visible
+# hole (this is how `comfy-table` — replaced by the hand-rolled renderer in
+# crates/mindtape-cli/src/render/ — was caught).
+ARCH_DEPS='["typst","typst-eval","evalexpr","clap","serde","toml","serde_json","csv"]'
 
 CHANNEL="$(sed -n 's/^channel = "\(.*\)"/\1/p' rust-toolchain.toml | head -1)"
 WS_VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
@@ -61,7 +79,7 @@ WS_EDITION="$(sed -n 's/^edition = "\(.*\)"/\1/p' Cargo.toml | head -1)"
 WS_RUST_VERSION="$(sed -n 's/^rust-version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
 TYPST_LIB_VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)"
 
-jq --argjson substrate "$SUBSTRATE_CRATES" \
+jq --arg substrate_re "$SUBSTRATE_REPO_RE" \
    --argjson archdeps "$ARCH_DEPS" \
    --arg channel "$CHANNEL" \
    --arg ws_version "$WS_VERSION" \
@@ -81,11 +99,15 @@ jq --argjson substrate "$SUBSTRATE_CRATES" \
     workspace: [$meta.packages[]
       | select(.id as $id | $ws | index($id) != null)
       | {name, version, description}],
-    substrate: [$substrate[] as $n | ($byname[$n]) as $p | {
-        name: $n,
-        version: ($p.version // null),
-        direct: (if $p == null then null else ($direct_pkgs | index($p.id) != null) end),
-      }],
+    substrate: [$meta.packages[]
+      | . as $p
+      | select(($ws | index($p.id)) == null)
+      | select(($p.repository // "") | test($substrate_re))
+      | {
+          name: $p.name,
+          version: $p.version,
+          direct: (($direct_pkgs | index($p.id)) != null),
+        }] | sort_by(.name),
     "arch-deps": [$archdeps[] as $n | {name: $n, version: ($byname[$n].version // null)}],
     "rust-toolchain": {channel: $channel},
     "workspace-package": {version: $ws_version, edition: $ws_edition, "rust-version": $ws_rust_version},
