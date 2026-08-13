@@ -10,7 +10,7 @@
   difficulty: 3,
   tags: ("docs",),
   estimate: (files: 9),
-  status: wip(2026, 8, 13),
+  status: done(2026, 8, 13),
 )
 
 == Summary

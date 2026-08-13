@@ -14,7 +14,7 @@
     + related(
       "stop-the-doc-size-cap-fighting-correctness-fixes.typ",
     )[revises the caps that task raised, on the same reasoning],
-  status: proposed(2026, 8, 13),
+  status: done(2026, 8, 13),
 )
 
 == Summary
