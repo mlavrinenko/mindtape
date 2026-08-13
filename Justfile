@@ -215,8 +215,9 @@ check-doc-facts:
 [doc("Build, index, and validate the docs site")]
 [group("docs")]
 [group("gate")]
+[working-directory("www")]
 docs-check: docs-gen
-    cd www && tola build && pagefind --site public/mindtape --silent && tola validate
+    tola build && pagefind --site public/mindtape --silent && tola validate
 
 # Freshness gate for docs-md: regenerate into a TEMP directory and diff each
 # rendered file there against the COMMITTED copy at its real path — never
@@ -402,15 +403,17 @@ docs-gen:
 
 [doc("Build the docs site and index it with Pagefind")]
 [group("docs")]
+[working-directory("www")]
 docs-build: docs-gen
-    cd www && tola build && pagefind --site public/mindtape --silent
+    tola build && pagefind --site public/mindtape --silent
 
 # Serve the docs locally with hot reload (no search index — build for that)
 
 [doc("Serve the docs locally with hot reload")]
 [group("docs")]
+[working-directory("www")]
 docs-serve: docs-gen
-    cd www && tola serve
+    tola serve
 
 # Render docs/src/*.typ to the repo-root Markdown each source declares
 # (README.md, AGENTS.md, CONTRIBUTING.md, skills/mindtape/SKILL.md,
@@ -541,6 +544,7 @@ cover:
 # gate — the one thing this arm exists to keep distinguishable.
 
 [doc("Print why the lcov is stale, or nothing if fresh")]
+[private]
 _lcov-stale-reason:
     #!/usr/bin/env bash
     set -eo pipefail
@@ -577,6 +581,7 @@ CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/
 # recipe rather than a copy, for the reason above.
 
 [doc("Print the CRAP exclude flags shared across consumers")]
+[private]
 _crap-excludes:
     @echo '{{ CRAP_EXCLUDES }}'
 
@@ -819,6 +824,7 @@ install-hooks:
 # content — move it into a dated [VERSION] section first. Pushes main before
 # the tag so the docs site (pages.yml) and CI run on the release tree.
 
+[confirm("Tag and push a release to origin — proceed?")]
 [doc("Tag a release and push")]
 [group("release")]
 release VERSION:
