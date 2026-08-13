@@ -22,47 +22,46 @@ limits:
   # ~25 lines each and the cap was never the thing keeping them short.
   Shell: 300
 
-# README and CHANGELOG are the user-facing docs that grow a line per command /
-# change; give them headroom while agent-facing Markdown stays under the 200
-# hygiene ceiling. The changelog is append-only (all under [Unreleased] pre-1.0)
-# and gets archived on release, so a hard cap only fights normal growth.
+# The changelog is append-only (all under [Unreleased] pre-1.0) and gets
+# archived on release, so a hard cap only fights normal growth.
 overrides:
-  - pattern: "**/README.md"
-    limit: 250
   - pattern: "**/CHANGELOG.md"
     exclude: true
 
-  # Agent skills, AGENTS.md, and CONTRIBUTING.md get 300, not the 200 Markdown
-  # ceiling.
+  # These four are the always-loaded surface: README is the first thing a reader
+  # sees, and AGENTS.md/CONTRIBUTING.md/SKILL.md are pulled into an agent's
+  # context on every session. A line here costs more than a line anywhere else,
+  # so they are capped tighter than the 200 Markdown ceiling, not looser.
   #
-  # Why raise it: the pressure a size cap should apply is against scope growth,
-  # not against accuracy. These files sat at exactly 200/200, so the next
-  # correctness fix hit a wall — a round of skill fixes worth ~40 lines
-  # (a documented flag that does not exist, a silent `mt add --set` drop, a
-  # `blocked` status the legend never had) turned into a dozen compression
-  # passes that spent the budget on rewording, not on getting it right. A cap
-  # that makes a true fix expensive buys shorter files at the price of wrong
-  # ones.
+  # These caps were 250/300/300/300 and are now lower. That is not a reversal of
+  # the reasoning that raised them (truth/tasks/stop-the-doc-size-cap-fighting-
+  # correctness-fixes.typ), which still holds: a cap must never make a
+  # correctness fix expensive. It applied because the files sat at 200/200 — a
+  # wall, mid-edit. It does not apply now, because the delegation trim
+  # (truth/tasks/trim-root-docs-by-delegating-deep-content.typ) moved the
+  # reference material into www/content and docs/contributing, and each file
+  # sits near 75% of its new cap with room for several correctness fixes in a
+  # row.
   #
-  # CONTRIBUTING.md joined for the identical reason, not a new one: it sat at
-  # 200/200 when the Quality Gates table needed a new row for
-  # `check-doc-coverage` (truth/tasks/gate-cli-doc-coverage-in-just-check.typ)
-  # — a table that is wrong, not just long, once it omits a gate `just check`
-  # actually runs.
+  # If one of these hits its cap again, the answer is progressive disclosure —
+  # move the deep content to docs/contributing/ or www/content/ and link it —
+  # not a bigger number. That is what the headroom is protecting.
   #
-  # Why 300 and not more: 300 fits a correctness fix in one pass and still bites
-  # long before any of these becomes a dump. Past it the answer is not a bigger
-  # number — it is progressive disclosure (skills/<name>/references/, which
-  # skill-creator supports) so the always-loaded surface stays small.
+  # CONTRIBUTING.md is the tightest of the four because its remaining bulk is
+  # the Quality Gates table, which is common-path and cannot be linked away. The
+  # next drop comes from generating that table out of the file entirely
+  # (truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ), not
+  # from another compression pass.
   #
-  # Growth is still meant to be fought each time. `linecop --baseline 85` lists
-  # everything at 255+ of the 300, which is the moment to compact deliberately
-  # rather than at a wall mid-edit; run it before adding to an existing file.
-  - pattern: "**/SKILL.md"
-    limit: 300
+  # `linecop --baseline 85` names anything at 85% of its cap; run it before
+  # adding to an existing file, so compaction is deliberate rather than a wall.
+  - pattern: "**/README.md"
+    limit: 180
   - pattern: "**/AGENTS.md"
-    limit: 300
+    limit: 150
   - pattern: "**/CONTRIBUTING.md"
+    limit: 200
+  - pattern: "**/SKILL.md"
     limit: 300
 
 count_mode: total
