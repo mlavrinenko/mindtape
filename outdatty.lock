@@ -60,16 +60,16 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      Justfile: 7aa037d7891116637f48a248a905d69af2968751e768aca8cd2a16a8ff0ffd46
+      Justfile: 68725594402757cf5a90003db2a5fd7378257f83404d402694d9707fdb2dae94
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 934645643e48556ed8fdae54fc4f1aea8a47d241c1c36ee99d5b64134a6d3068
-      docs/src/contributing.typ: c090b08e79bbe86194223bebc47bb20c8f6aa209c0e002d6fcc87d2c6f7b66bc
-      docs/src/contributing/coverage-crap.typ: 91ff3f5924c68424394216b14940b56bc9ac38e9dd80d153d634a8ba4fb1d8c0
-      docs/src/contributing/gates.typ: 3c21e3706fa13edf96725486286af8d32fd4a6107f78f5d80258f3db0597a4db
-      docs/src/contributing/mutation-testing.typ: 4baebfbb4f9ea66fdb26c1b12a91979cc4fed25a1412fd1bc0bd99754ae420ef
-      docs/src/contributing/signal-sweep.typ: 063eef932bfd1f9e3aa823092f6e9777b4e24c42386c0e0a1501c9877a61923a
-      docs/src/contributing/windows.typ: 7779bf7507d3860eac2555c4e88178454b6c358c3d9e0d73a43f3b50ce1ee505
+      docs/src/contributing.typ: 625b9109ee7d14f62c8889078c49d3ea16486a91bded6afd13a91ded7866fbad
+      docs/src/contributing/coverage-crap.typ: ee43f5d83a4bc5021be02d54e8ab076d82f736329e12180aaa5815bcb9397686
+      docs/src/contributing/gates.typ: d3fdbd910573265fa30c65459d945be9801b83f1f88a4744c2582c92472e09c5
+      docs/src/contributing/mutation-testing.typ: 331f23a967453950362f284e357f47cef8c51aaf34b4d28cf1aab469e04d5486
+      docs/src/contributing/signal-sweep.typ: 12fb58c8f6e7991367a4d959e3f1acca123bb070bb1eba528748b6daed1a3c12
+      docs/src/contributing/windows.typ: f6acf2d8c85c924166f34c1b5f06e9d77c0b2bae94ddd196ca5e1455a672bc75
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf

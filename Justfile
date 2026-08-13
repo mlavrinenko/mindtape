@@ -1,14 +1,10 @@
 set quiet := true
 set unstable := true
 
-# List available recipes
-
 [doc("List available recipes")]
 [group("workflow")]
 default:
     @just --list
-
-# Run fixes, then other checks
 
 [doc("Run fixes, then run the full check gate")]
 [group("workflow")]
@@ -41,9 +37,7 @@ check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check
 mmz *ARGS:
     mmz just {{ ARGS }}
 
-# Format check (CI-friendly)
-
-[doc("Check formatting without writing changes")]
+[doc("Check formatting without writing changes (CI-friendly)")]
 [group("gate")]
 fmt-check:
     cargo fmt --all -- --check
@@ -51,15 +45,11 @@ fmt-check:
     typstyle --check {{ TYPST_FMT_PATHS }}
     just --fmt --check
 
-# Run clippy only
-
 [doc("Run clippy only")]
 [group("dev")]
 [group("gate")]
 clippy:
     cargo clippy --workspace --all-targets -q -- -D warnings
-
-# Run tests only
 
 [doc("Run tests only")]
 [group("dev")]
@@ -67,23 +57,17 @@ clippy:
 test *ARGS:
     cargo test --workspace {{ ARGS }}
 
-# Check for unused dependencies
-
 [doc("Check for unused dependencies")]
 [group("gate")]
 machete:
     cargo machete
 
-# Check for oversized files (fails if any exceed limits)
-
-[doc("Check for oversized files")]
+[doc("Fail if any file exceeds its linecop cap")]
 [group("gate")]
 check-file-size:
     linecop
 
-# Copy-paste gate: fail on any duplicated Rust block across the crates
-
-[doc("Fail on any duplicated Rust block across the crates")]
+[doc("Copy-paste gate: fail on any duplicated Rust block")]
 [group("gate")]
 check-dry:
     #!/usr/bin/env bash
@@ -96,8 +80,6 @@ check-dry:
     # `--exit-code 1` is spelled with its value: bare `--exit-code` would
     # swallow the following path argument as its optional code.
     jscpd --no-tips -k 70 -f rust --exit-code 1 crates
-
-# Fail if a source changed without its dependents being re-confirmed
 
 [doc("Fail if a source changed without its dependents reconfirmed")]
 [group("gate")]
@@ -470,9 +452,7 @@ check-windows:
         cargo check --workspace --all-targets --locked \
         --target x86_64-pc-windows-gnu
 
-# Re-confirm dependency groups: record current hashes into outdatty.lock
-
-[doc("Re-confirm dependency groups by recording current hashes")]
+[doc("Re-confirm dependency groups: record hashes into outdatty.lock")]
 [group("dev")]
 outdatty-update:
     outdatty update
@@ -511,9 +491,7 @@ docs-gen:
 docs-build: docs-gen
     tola build && pagefind --site public/mindtape --silent
 
-# Serve the docs locally with hot reload (no search index — build for that)
-
-[doc("Serve the docs locally with hot reload")]
+[doc("Serve the docs locally with hot reload (no search index)")]
 [group("docs")]
 [working-directory("www")]
 docs-serve: docs-gen
@@ -530,14 +508,10 @@ docs-serve: docs-gen
 docs-md:
     bash docs/generate-md.sh
 
-# Auto-fix clippy warnings
-
 [doc("Auto-fix clippy warnings")]
 [group("dev")]
 clippy-fix:
     cargo clippy --fix --workspace --all-targets --allow-dirty --allow-staged -- -D warnings
-
-# Build the project
 
 [doc("Build the project")]
 [group("dev")]
@@ -823,8 +797,6 @@ mutants *ARGS:
 TOML_FMT_PATHS := ".mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml"
 TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates www/content www/templates www/utils docs/src"
 
-# Format code
-
 [doc("Format code")]
 [group("dev")]
 fmt:
@@ -833,15 +805,11 @@ fmt:
     typstyle --inplace {{ TYPST_FMT_PATHS }}
     just --fmt
 
-# Count tests across the workspace
-
 [doc("Count tests across the workspace")]
 [group("advisory")]
 count-tests:
     #!/usr/bin/env bash
     cargo test --workspace 2>&1 | grep "test result:" | awk '{sum += $4} END {print sum " tests"}'
-
-# Show the top 20 files by line count
 
 [doc("Show the top 20 files by line count")]
 [group("advisory")]
@@ -849,9 +817,7 @@ file-sizes:
     #!/usr/bin/env bash
     find . -type f \( -name '*.rs' -o -name '*.md' \) ! -path './target/*' -exec wc -l {} + | sort -rn | head -20
 
-# Eject inline tests from Rust files nearing the linecop limit
-
-[doc("Eject inline tests from files nearing the linecop limit")]
+[doc("Eject inline tests from Rust files nearing the linecop cap")]
 [group("advisory")]
 eject PCT='90':
     linecop --baseline {{ PCT }} --format paths | ejectest apply . --files-from - --lenient
@@ -885,9 +851,7 @@ eject PCT='90':
 ask-refactoring *ARGS:
     bash contrib/ask-refactoring.sh {{ ARGS }}
 
-# Install the mindtape Typst library for local #import (dev symlink)
-
-[doc("Install the mindtape Typst library for local #import")]
+[doc("Install the mindtape Typst library for local #import (dev symlink)")]
 [group("dev")]
 install-lib:
     #!/usr/bin/env bash
@@ -900,8 +864,6 @@ install-lib:
     rm -rf "$TARGET/$VERSION"
     ln -sfn "$(pwd)/lib" "$TARGET/$VERSION"
     echo "linked lib -> $TARGET/$VERSION (use @local/mindtape:$VERSION)"
-
-# Remove the dev symlink installed by install-lib
 
 [doc("Remove the dev symlink installed by install-lib")]
 [group("dev")]

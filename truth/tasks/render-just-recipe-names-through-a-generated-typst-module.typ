@@ -17,7 +17,7 @@
     + related(
       "convert-hand-typed-just-mentions-to-the-generated-module.typ",
     )[the sibling that rewrites existing prose onto this mechanism],
-  status: wip(2026, 8, 14),
+  status: done(2026, 8, 14),
 )
 
 == Summary

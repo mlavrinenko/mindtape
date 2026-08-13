@@ -13,7 +13,7 @@
   links: depends-on(
     "render-just-recipe-names-through-a-generated-typst-module.typ",
   ),
-  status: proposed(2026, 8, 14),
+  status: done(2026, 8, 14),
 )
 
 == Summary
