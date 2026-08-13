@@ -207,38 +207,15 @@ jq -n --argjson fields "$fields_dict" \
 rm -rf "$tmp"
 
 # --- gates.json --------------------------------------------------------------
-# Gate membership + row order both come from the Justfile now, not from
-# unwrapping `just check`'s dependency list: every gate recipe carries
-# `[group("gate")]` (truth/tasks/tag-just-recipes-with-groups.typ), and the
-# gate recipes are grouped together in the Justfile in the exact order this
-# table should read. The JSON dump sorts recipes alphabetically and carries
-# no source order, so `just --summary --unsorted` (source order) is the
-# ordering key instead.
-#
-# Still cross-checked against `check`'s own (mmz-unwrapped) dependency list —
-# the old derivation got membership-equals-dependencies for free by
-# construction, and losing that silently would let a recipe carry
-# `[group("gate")]` without actually gating anything, or gate something with
-# no `[group("gate")]` tag to show for it. Disagreement fails here, naming
-# both sides of the mismatch, rather than downstream in check-doc-facts.
+# Gate list + row order from the Justfile's `[group("gate")]` tags and its
+# own recipe order, cross-checked against `check`'s dependency list; each
+# gate also carries a derived `command` (the recipe's own body, when short
+# enough to quote). The jq program is long enough to blow this script's own
+# linecop cap, so it lives in www/gates.jq (argued in place there) instead
+# of inline.
 JUST_DUMP="$(just --dump --dump-format json)"
 SUMMARY_ORDER="$(just --summary --unsorted | jq -R 'split(" ") | map(select(length > 0))')"
-jq --argjson order "$SUMMARY_ORDER" '
-  ([.recipes | to_entries[]
-    | select(.value.attributes // [] | any(.group? == "gate"))
-    | .key] | sort) as $gate_group
-  | ([.recipes.check.dependencies[]
-      | if .recipe == "mmz" then .arguments[0] else .recipe end] | sort) as $check_deps
-  | if $gate_group != $check_deps then
-      ("gate group and check dependencies disagree:\n"
-        + "  only in [group(\"gate\")]: " + (($gate_group - $check_deps) | join(", ")) + "\n"
-        + "  only in check dependencies: " + (($check_deps - $gate_group) | join(", ")))
-      | halt_error(1)
-    else
-      ($order | map(select(. as $n | $gate_group | index($n) != null))) as $names
-      | {gates: [$names[] as $n | {name: $n, doc: .recipes[$n].doc}]}
-    end
-' <<<"$JUST_DUMP" | emit gates.json
+jq --argjson order "$SUMMARY_ORDER" -f "$SCRIPT_DIR/gates.jq" <<<"$JUST_DUMP" | emit gates.json
 
 # --- just.typ ------------------------------------------------------------
 # Reuses $JUST_DUMP above — one `just --dump` shell-out, two artifacts. The
