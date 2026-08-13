@@ -209,10 +209,10 @@ rm -rf "$tmp"
 # --- gates.json --------------------------------------------------------------
 # Gate list + row order from the Justfile's `[group("gate")]` tags and its
 # own recipe order, cross-checked against `check`'s dependency list; each
-# gate also carries a derived `command` (the recipe's own body, when short
-# enough to quote). The jq program is long enough to blow this script's own
-# linecop cap, so it lives in www/gates.jq (argued in place there) instead
-# of inline.
+# gate carries a derived `command`, and the artifact as a whole carries the
+# three Justfile path/exclude assignments CONTRIBUTING.md renders verbatim.
+# The jq program is long enough to blow this script's own linecop cap, so it
+# lives in www/gates.jq (argued in place there) instead of inline.
 JUST_DUMP="$(just --dump --dump-format json)"
 SUMMARY_ORDER="$(just --summary --unsorted | jq -R 'split(" ") | map(select(length > 0))')"
 jq --argjson order "$SUMMARY_ORDER" -f "$SCRIPT_DIR/gates.jq" <<<"$JUST_DUMP" | emit gates.json

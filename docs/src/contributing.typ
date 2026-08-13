@@ -13,7 +13,9 @@
 // keyed by gate name via `.at()`. A gate missing there fails `just docs-md`
 // naming it, and one removed from `just check` drops out on its own.
 // `.linecop.yaml`'s caps land in `www/generated/linecop-caps.json` too, but
-// this file quotes no literal cap to derive from it.
+// this file quotes no literal cap to derive from it. `gates.json` also
+// carries the three Justfile path/exclude assignments `fmt-check`'s note
+// used to only name; the block below the table renders their real contents.
 #import "lib.typ": doc-title, fact, just
 #import "/www/utils/gate-notes.typ": gate-notes
 
@@ -83,6 +85,7 @@ build with violations. Key restrictions:
 = Quality Gates (run by #just.check())
 
 #let gate-rows = fact("gates").at("gates")
+#let gate-assignments = fact("gates").at("assignments")
 #table(
   columns: 3,
   table.header([Gate], [Command], [Notes]),
@@ -94,6 +97,12 @@ build with violations. Key restrictions:
     ))
     .flatten(),
 )
+
+`fmt-check`'s non-Rust path lists — one list feeds both `fmt` and
+`fmt-check`, so a path is added in one place, never to a single recipe:
+
+- `TOML_FMT_PATHS`: #gate-assignments.at("TOML_FMT_PATHS").split(" ").map(raw).join(", ")
+- `TYPST_FMT_PATHS`: #gate-assignments.at("TYPST_FMT_PATHS").split(" ").map(raw).join(", ")
 
 #just.check-full() is #just.check() plus #just.cover() and #just.crap() — always
 correct about coverage and CRAP, at the price of an instrumented rebuild and a

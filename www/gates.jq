@@ -29,6 +29,12 @@
 # `.body` is structured (one array per line, of string or `{{ VAR }}`
 # fragments — `[["variable","VAR"]]`); render_line renders both readably as
 # `{{ VAR }}`, the Justfile's own syntax, instead of dumping raw JSON.
+#
+# `assignments` folds in the three Justfile variables CONTRIBUTING.md quotes
+# by name today (TOML_FMT_PATHS/TYPST_FMT_PATHS/CRAP_EXCLUDES) verbatim, so
+# docs/src/contributing.typ can render their real contents instead of
+# sending the reader to the Justfile — reusing $JUST_DUMP, never a second
+# `just --dump`.
 
 def render_frag:
   if type == "string" then .
@@ -58,7 +64,13 @@ def gate_command:
     | halt_error(1)
   else
     ($order | map(select(. as $n | $gate_group | index($n) != null))) as $names
-    | {gates: [$names[] as $n
-        | .recipes[$n] as $r
-        | {name: $n, doc: $r.doc, command: ($r | gate_command)}]}
+    | {
+        gates: [$names[] as $n
+          | .recipes[$n] as $r
+          | {name: $n, doc: $r.doc, command: ($r | gate_command)}],
+        assignments: (.assignments
+          | with_entries(select(.key
+              | IN("TOML_FMT_PATHS", "TYPST_FMT_PATHS", "CRAP_EXCLUDES")))
+          | map_values(.value)),
+      }
   end
