@@ -53,6 +53,22 @@ REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUT_ROOT="${1:-$REPO}"
 
 cd "$REPO"
+
+# Hold the www/generated/ lock for this whole script, not just the regenerate
+# below. Every source rendered here READS that directory — the fact files via
+# docs/src/lib.typ's `fact`, and the recipe names via its generated `just`
+# module — and www/generate.sh (the docs-check arm, running concurrently under
+# `just check`'s [parallel]) `rm -rf`s the directory on entry. Regenerating
+# under the lock and then releasing it before the render leaves exactly the
+# window that produces "file not found (searched at www/generated/just.typ)"
+# on a tree that is perfectly correct. The lock is held until fd 9 closes at
+# exit; MINDTAPE_GENERATED_LOCK tells the nested generate-facts.sh call that
+# this process already owns it.
+mkdir -p target
+exec 9>"target/www-generated.lock"
+flock 9
+export MINDTAPE_GENERATED_LOCK=1
+
 bash www/generate-facts.sh
 
 BANNER_TMPL='<!-- Generated from %s by `just docs-md`. Do not edit; edit the source. -->'

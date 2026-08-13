@@ -13,7 +13,7 @@
   links: related(
     "derive-the-gate-table-command-column-from-the-justfile.typ",
   )[same table, same dump, same generator pass],
-  status: proposed(2026, 8, 14),
+  status: done(2026, 8, 14),
 )
 
 == Summary

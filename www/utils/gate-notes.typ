@@ -8,20 +8,28 @@
 // exists to end. `just check-doc-facts` fails naming any gates.json entry
 // with no matching key here.
 //
-// A cross-recipe mention below is literal `just <name>` text, never
-// `#just.<name>()` — this file must NOT import www/generated/just.typ.
-// `just check-doc-facts` queries this dict through a throwaway driver
-// immediately after its own `www/generate-facts.sh` call, outside the flock
-// that serializes every OTHER writer of www/generated/ (see that script and
-// www/generate.sh); a concurrent `docs-check`/`docs-md-check` arm under
-// `just check`'s `[parallel]` can rm-rf and repopulate that directory in the
-// gap, so a read from here would intermittently fail with "file not found"
-// on work that is correct — the exact race
-// truth/tasks/stop-the-generated-docs-writers-racing-under-parallel-check.typ
-// fixed for the writers themselves. crate-notes.typ/dsl-field-notes.typ stay
-// import-free for the same reason; this file follows suit.
+// A cross-recipe mention below goes through `#just.<name>()`, like every
+// other doc source — a hand-typed recipe name is exactly the drift this
+// milestone ended, and `just check-doc-recipes` scans this directory too.
+//
+// That makes this file a READER of www/generated/, which is only safe
+// because the one gate that queries it — check-doc-facts — holds the
+// www/generated/ flock across its typst queries as well as its own
+// regenerate. It did not always: querying outside the lock let a concurrent
+// docs-check arm rm-rf the directory mid-read, failing with "file not found"
+// on a correct tree. If you add another consumer of this dict, it must hold
+// that lock for its whole run (see www/generate.sh, docs/generate-md.sh, and
+// the check-doc-facts recipe for the fd-held idiom) or read no generated
+// file at all, the way crate-notes.typ and dsl-field-notes.typ do.
 //
 // Refs: truth/tasks/derive-the-gate-table-command-column-from-the-justfile.typ
+
+// Relative, not root-absolute: this file is read under TWO different Typst
+// roots — the repo (docs/src/contributing.typ, and check-doc-facts's query
+// driver) and www/ (the docs site). A relative import resolves against this
+// file either way; `/www/generated/...` would double to `www/www/...` under
+// the second.
+#import "../generated/just.typ" as just
 
 #let gate-notes = (
   "fmt-check": [
@@ -36,10 +44,10 @@
     only the enforcement point, not a separate lint surface.
   ],
   "test": [
-    The full workspace suite. `just test <filter>` (a developer query, no
-    `mmz`) runs this recipe directly with the filter as `ARGS`, so a
-    filtered run never pollutes the cached full-suite record `just check`
-    relies on.
+    The full workspace suite. #just.test("<filter>") (a developer query,
+    no `mmz`) runs this recipe directly with the filter as `ARGS`, so a
+    filtered run never pollutes the cached full-suite record
+    #just.check() relies on.
   ],
   "machete": [Flags a workspace dependency no crate actually imports.],
   "check-file-size": [
@@ -94,7 +102,7 @@
     Regenerates every `docs/src/*.typ` source with typlite into a temp
     directory and diffs each against the committed Markdown it declares;
     fails naming any drifted file rather than healing it in place.
-    `just docs-md` refreshes it — see
+    #just.docs-md() refreshes it — see
     #link("docs/contributing/generated-docs.md")[docs/contributing/generated-docs.md].
   ],
   "fmt-fixture-check": [
@@ -106,7 +114,7 @@
   ],
   "check-crap": [
     Editing any source stales the lcov, so it skips on the commits that
-    matter; it catches the free case only. `just check-full` is the arm
+    matter; it catches the free case only. #just.check-full() is the arm
     that is always correct.
   ],
 )

@@ -164,6 +164,16 @@ check-doc-coverage:
 check-doc-facts:
     #!/usr/bin/env bash
     set -eo pipefail
+    # Hold the www/generated/ lock across the regenerate AND the typst queries
+    # below, not just the regenerate: www/utils/gate-notes.typ reads the
+    # generated `just` module, so a driver querying it is a reader of that
+    # directory, and the concurrent docs-check arm `rm -rf`s it. Same fd-held
+    # lock and same MINDTAPE_GENERATED_LOCK handshake as www/generate.sh and
+    # docs/generate-md.sh.
+    mkdir -p target
+    exec 9>target/www-generated.lock
+    flock 9
+    export MINDTAPE_GENERATED_LOCK=1
     bash www/generate-facts.sh
     tmp=$(mktemp -d -p target)
     trap 'rm -rf "$tmp"' EXIT
@@ -248,7 +258,11 @@ check-doc-recipes:
     is_recipe() { grep -qxF "$1" <<<"$names"; }
 
     shopt -s globstar nullglob
-    sources=(docs/src/**/*.typ www/content/*.typ)
+    # www/utils/ is scanned too: gate-notes.typ's prose is rendered straight
+    # into CONTRIBUTING.md, so a recipe name hand-typed there rots exactly
+    # like one in a docs/src source. The other notes dicts under www/utils
+    # mention no recipe today and cost nothing to scan.
+    sources=(docs/src/**/*.typ www/content/*.typ www/utils/*.typ)
     fail=0
 
     for f in "${sources[@]}"; do

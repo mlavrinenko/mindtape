@@ -55,14 +55,23 @@ MT="$REPO/target/release/mt"
 #
 # The lock lives under target/ because this script deletes the directory it
 # would otherwise live in.
-if [ -z "$MINDTAPE_GENERATED_LOCK" ]; then
-  mkdir -p "$REPO/target"
-  export MINDTAPE_GENERATED_LOCK=1
-  exec flock "$REPO/target/www-generated.lock" "$0" "$@"
-fi
-
-# Build the binary the captures run against.
+#
+# The release build runs BEFORE the lock is taken, deliberately. Every reader
+# of www/generated/ now holds this lock for its whole run (docs/generate-md.sh
+# and the check-doc-facts recipe both do), so anything held inside it is time
+# the rest of `just check`'s [parallel] arms spend blocked. A cold release
+# build is minutes; the wipe-and-repopulate it precedes is seconds.
 ( cd "$REPO" && cargo build --release -p mindtape-cli )
+
+# Taken on a file descriptor rather than by re-exec'ing under `flock`, because
+# a re-exec would rerun the build above. The lock is held until this script
+# exits and fd 9 closes. MINDTAPE_GENERATED_LOCK tells the nested
+# generate-facts.sh call at the end of this file that the lock is already
+# held, so it does not deadlock waiting for a lock this process owns.
+mkdir -p "$REPO/target"
+exec 9>"$REPO/target/www-generated.lock"
+flock 9
+export MINDTAPE_GENERATED_LOCK=1
 
 rm -rf "$OUT"
 mkdir -p "$OUT"
