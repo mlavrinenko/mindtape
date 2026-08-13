@@ -212,6 +212,15 @@ commands:
     tags: [gate]
     inputs: [rust, policy, file-size-config, docs, gates-meta]
 
+  # Scans docs/src/**/*.typ and www/content/*.typ for a hand-typed `just
+  # <recipe>` mention that skips www/generated/just.typ (`docs`) against the
+  # recipe/alias names `just --dump` reflects (`gates-meta`, since the
+  # recipe body and the Justfile it dumps both live there — no `rust` input,
+  # this never touches the built binary).
+  - name: just check-doc-recipes
+    tags: [gate]
+    inputs: [docs, gates-meta]
+
   # docs-gen shells out to the built `mt` binary (rust) and reads the docs
   # tree + the learn-piano fixture (examples) + the project policy/prelude
   # (the generated CLI transcripts reference `mt`'s config-driven output).

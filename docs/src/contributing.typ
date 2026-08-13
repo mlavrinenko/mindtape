@@ -120,6 +120,13 @@ build with violations. Key restrictions:
     `www/utils/{crate-notes,dsl-field-notes}.typ` prose dict; fails naming
     any crate or DSL field with no matching entry
   ],
+  "check-doc-recipes": [
+    `just check-doc-recipes` — fails on a hand-typed recipe mention that
+    skips `www/generated/just.typ` (`www/generate-facts.sh`): a literal one
+    outside a fenced code block (a fence cannot call the generated helper,
+    so that is the only legal literal form left), or one naming a recipe
+    that does not exist
+  ],
   "docs-check": [
     `just docs-check` — `docs-gen` first captures live `mt` output
     (`www/generate.sh`), then `tola build`, then `pagefind` indexes the built
