@@ -64,22 +64,9 @@ Building from source needs only a Rust toolchain (`cargo build --release`
 produces `target/release/mt`); the `nix develop` shell adds the full test and
 lint toolchain used by `just check`.
 
-### Platform support
-
-Linux, macOS and Windows all get a prebuilt binary per release, and CI runs the
-test suite on Linux and Windows. Two things differ on Windows, both by
-necessity rather than omission:
-
-- An `[[on.flip]]` `run` command goes through `cmd /C`, not `sh -c`. It is
-  shell text, so a command written for one shell does not carry to the other.
-- The terminal tests driven by a pty (`mt ls --interactive`, terminal-width
-  and `NO_COLOR` handling) are Unix-only, because their harness is util-linux
-  `script`. The behaviour is platform-independent and `crossterm` implements it
-  over ConPTY; what is unverified there is the harness, not the feature.
-
-Everything else — the config and data directories, the Typst local-package
-path, editor resolution, path separators in derived tags and link resolution —
-is the same code on every platform, and the Windows CI job covers it.
+Linux, macOS and Windows each get a prebuilt binary per release;
+[Internals](https://mlavrinenko.github.io/mindtape/internals/) covers the two
+Windows seams and what CI verifies where.
 
 ### Set up, once per machine
 
@@ -140,38 +127,9 @@ That is a sliver of the surface. The docs site has the rest:
 - [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) —
   structured JSON, slot schemas, and driving `mt` from outside the project
   tree.
-
-## Performance
-
-Evaluating every file on every command is not free, so a content-hash cache
-under each root skips re-evaluating files whose bytes have not changed. Measured
-on a generated backlog of 2000 tasks (`just bench`, on one developer machine —
-run it on yours):
-
-| command    | cold cache | warm cache |
-| ---------- | ---------- | ---------- |
-| `mt ls`    | 0.46 s     | 0.20 s     |
-| `mt check` | 0.35 s     | 0.12 s     |
-
-The cache is derived state, not a source of truth: delete it and the next run
-rebuilds it; change the config, the prelude, or the `mt` version and it busts
-itself.
-
-## Architecture
-
-A two-crate `cargo` workspace: `mindtape` is the library — config, the task
-model, the filter language, and config-driven validation — and `mindtape-cli`
-is the thin `mt` binary.
-
-Three general-purpose crates sit underneath, published separately because none
-of them knows what a task is:
-
-- `typst-harvest` — evaluates a Typst file and collects the data it marked for
-  export, treating Typst as a data format. Never lays out or renders a page.
-- `typst-cst` — reads a file's structure (its heading tree, with source spans)
-  by parsing alone, without evaluating it.
-- `typst-edit` — rewrites a Typst file in place at known spans, applying a batch
-  of edits as one change.
+- [Internals](https://mlavrinenko.github.io/mindtape/internals/) — the crate
+  layout, the content-hash cache that keeps live evaluation cheap (a warm
+  `mt ls` over 2000 tasks lands at 0.20 s), and what differs per platform.
 
 ## Contributing
 

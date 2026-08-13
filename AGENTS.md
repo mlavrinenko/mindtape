@@ -17,14 +17,29 @@ index. Identity is the filename stem.
 
 Repository: https://github.com/mlavrinenko/mindtape
 
-## Key Docs
+## Repo map
 
-- `docs/decisions/` — retired ADRs, kept as frozen history; decisions now live
-  as task artifacts under `truth/tasks/`
-- `docs/redesign/` — the redesign brief and DSL shape probe (historical)
 - `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
 - `truth/tasks/` — MindTape's own backlog as per-file task artifacts (dogfood);
-  `mt ls` / `mt check` run against it via the in-tree `lib/`
+  `mt ls` / `mt check` run against it via the in-tree `lib/`. Decisions live here
+  too — the ADR process is retired
+- `www/content/*.typ` — the docs site (tola). Reference material lives here, not
+  in this file; read the page rather than restating it
+- `docs/contributing/*.md` — contributor deep dives behind CONTRIBUTING.md
+- `examples/` — `learn-piano` (full config surface, feeds the docs generator and
+  the skill's evals) and `minimal` (the floor config)
+
+Before writing about a feature, check whether the answer is already one of:
+
+| Topic | Read |
+|---|---|
+| Every task field, `links:` edge kinds, `recur` | `www/content/dsl.typ` |
+| `mt add`, slots, `--set`, `--describe`, `--edit` | `www/content/templates.typ` |
+| Derived tags from folder layout | `www/content/derived-tags.typ` |
+| Priority frameworks, scoring, bands | `www/content/priority.typ` |
+| Filter language | `www/content/filters.typ` |
+| Every config key | `www/content/config.typ` |
+| Driving `mt` as an agent | `skills/mindtape/SKILL.md` |
 
 ## Workspace
 
@@ -62,7 +77,7 @@ each tool is CONTRIBUTING.md's — neither is restated here.
   priority: ice(impact: 8, confidence: 0.7, ease: 6), // or a raw int; difficulty too
   estimate: (days: 1, hours: 2),     // opaque unit dict; allowed units per project
   assignee: "ada",                   // actor working it; config-bounded, not ownership
-  links: depends-on("other.typ"),    // typed edges by file stem; see below
+  links: depends-on("other.typ"),    // typed edges by file stem
   tags: ("backend",),
   x-speconaut: ...,                  // opaque extension slot (x-<ns>)
 )
@@ -73,106 +88,28 @@ extension sink only), so tinymist completes the field names and shows the whole
 signature; a misspelled field reaches the sink and fails the file with
 ``unknown task slot `titel` ``.
 
-Priority can be a raw int on the scale or a framework call: thin packagers
-`ice/rice/wsjf/eisenhower/moscow` (and the generic `framework(name, ..inputs)`)
-shape a `(framework, inputs)` dict — no math in Typst. Config picks the active
-`[tasks.priority] framework`; the Rust layer scores it (evalexpr), bands or
-categorises the result, and keeps it on the scale.
+Values are shapes, never computed results: `ice(...)` and the other framework
+packagers build a `(framework, inputs)` dict, `every(...)`/`rrule(...)` build a
+recurrence dict, `depends-on("a.typ") + related("b.typ")[why]` builds typed edges.
+No math and no date arithmetic happen in Typst — the Rust layer does all of it.
 
-### Typed relation edges (`links:`)
+### Where validation lives
 
-One field, `links:`, replaces the old `depends-on`/`relates-to`/`supersedes`/
-`duplicates` fields. Each built-in helper (`depends-on`, `parent`,
-`recurred-from`, `supersedes`, `duplicates`, `related`) is variadic over plain
-stem strings — `depends-on("a.typ", "b.typ")` yields two edges — and a
-trailing content block is the note, uniform with status: `related("epic.typ")[why]`.
-Combine kinds with `+`: `links: depends-on("a.typ") + related("b.typ")[why]`.
-`edge(kind, ..targets)[note]` builds an edge of any project-declared custom
-kind (`[[tasks.links.kinds]]`). Helpers take plain strings, never `link(...)`,
-and say so: an argument that is neither a string nor the single note block —
-`link("a.typ")` (content, so it reads as the note and leaves no target), a
-second note, a named arg, an int — is an eval error naming the helper.
-Per-kind rules the Rust layer enforces: `depends-on` (∞, blocks readiness,
-acyclic), `parent` (max 1, acyclic), `recurred-from` (max 1), `supersedes`/
-`duplicates` (∞), `related` (∞, note required — the escape hatch).
+The seam that decides which layer a change belongs in:
 
-The prelude enforces structure only: one task, the `x-<ns>` discipline, and the
-argument shapes it would otherwise drop before the marker is written (edge
-targets/notes, a status note, framework inputs — the mistakes the Rust layer
-can never see, since nothing reaches it to validate). Everything that DOES
-reach the marker is the Rust layer's: the status legend, numeric priority/difficulty scales and
-classification, priority frameworks (scoring + in-bounds-by-construction), the
-kind enum, the `required` rules (a filter expression per field), bounds, and
-link resolution. Consumers validate their own `x-<ns>` fields.
+- The prelude enforces structure only — one task, the `x-<ns>` discipline, and
+  the argument shapes it would otherwise drop before the marker is written (edge
+  targets and notes, a status note, framework inputs). Those are the mistakes the
+  Rust layer can never see, because nothing reaches it to validate.
+- Everything that DOES reach the marker is the Rust layer's: the status legend,
+  the numeric priority/difficulty scales and classification, priority frameworks
+  (scoring, in-bounds by construction), the edge-kind enum and its per-kind rules,
+  the `required` rules (a filter expression per field), bounds, and link
+  resolution.
+- Consumers validate their own `x-<ns>` fields. MindTape carries them through
+  untouched.
 
-### Recurring tasks (`recur`, `mt recur`)
-
-`recur: every(weeks: 1, on: (mon, wed, fri), anchor: "due", until: on(2027, 1,
-1), count: 10, materialize: "spawn")` shapes `(rule, anchor, until, count,
-materialize)` — no date math in Typst; `rrule("FREQ=...")` shares the shape,
-expanded by the `rrule` cargo feature (gated by `[tasks.recur] rrule`;
-date-anchored only, rejects `anchor: "completion"`). `mt recur X` is the only
-writer: `spawn` (default) writes the next instance as a new file with a
-`recurred-from(X)` edge; `mutate` refreshes the same file in place.
-`--dry-run` / `--advance N` / `--skip` / `--force`. `mt done` never advances a
-recurrence — pure close, per command-semantics-cqrs.
-
-### Templates (`mt add`)
-
-`mt add [TITLE…] [-t template]` files a new task from a Typst template — a
-task whose authored values are `slot(name, kind: …, default: …, prompt: …, env: …)` calls.
-The positional words join into the `title` slot (`add cleanup kitchen` →
-`cleanup-kitchen.typ`); `-t/--template` picks the template (default `[templates]
-default`). `add` discovers each slot on the parse plane (`typst-edit`, no eval),
-fills it from `-f values.json`/`.yaml` (extension picks the parser; stdin `-`
-and any other extension sniff the content) / `--set k=v` / the positional
-title / environment variables (`slot(…, env: "VAR")` names a variable;
-otherwise every slot reads `MINDTAPE_ADD_<NAME>`) / the slot default, injects the add-owned `status` (initial legend
-value, dated today) and `id`, then writes `<root>/<stem>.typ` and validates
-it. `--describe[=json]` dumps the slot schema; `--print` previews; `--into .`
-targets the first root; `--to
-<subdir>` nests under it (`--to shopping` → `<root>/shopping/`). Templates live under
-`[templates] dirs`; the built-in `task` fallback is barebones (one required
-`title` slot). Filled tasks hold plain literals — no `slot` call survives.
-
-Config-required core fields the chosen template omits are spliced in as slots
-before discovery (`mindtape::required_core_slots`, `crates/mindtape/src/add_slots.rs`):
-a required `priority`/`difficulty` → `int` slot, required `kind` → `choice` (its
-allowed values), required `estimate` → `text` slot for the unit dict. So a
-required field always surfaces in the scaffold, `--describe`, and the written
-task even with the barebones template. A strict-framework priority (`framework` +
-`allow-manual = false`) has no scalar form, so the framework call itself is
-spliced — the generic `framework("ice", impact: slot("impact", kind: "float"), …)`
-spelling with one leaf slot per declared input (number → `float`, bounds in the
-prompt; bool → `bool`; enum → `choice`). Leaves carry no defaults: an unfilled
-leaf fails at fill time instead of writing a misprioritised task.
-
-A `list`-kind slot needs `--set name[]=value` (repeatable; accumulates) — a bare
-`--set name=value` errors, since a single string is never silently treated as a
-one-item list. `+word` positional args are tag sugar: peeled into the `tags`
-slot (if the template declares one) instead of joining the title, e.g. `add fix
-login +backend +auth`. Structured fields (e.g. ICE priority) have no CLI path
-syntax; expose each leaf as its own slot inside the framework call instead
-(`priority: ice(impact: slot("impact", kind: "int"), …)`, as in
-`.mindtape/templates/task.typ`) — `discover_slots` walks nested calls, so a
-flat `--set impact=8` fills it.
-
-`--edit` (or `[add] interactive`) opens an editor on a commented YAML scaffold of
-the slots (block scalars for `text` slots); the saved buffer parses back into fill
-values. Editor resolves `[add] editor` → `$VISUAL` → `$EDITOR` → `vi`, only with a
-TTY (`crates/mindtape-cli/src/add_interactive.rs`). The scaffold tail carries no
-trailing blank (jump-to-end lands on the last fillable line). `[add] header`
-overrides the instruction block: custom text (auto comment-prefixed) or `""` to
-drop it. `[add] comments = false` strips every `#` line (header and per-slot annotations), leaving a bare slot→value mapping.
-
-### Derived tags (`[tasks.derive-tags]`, `crates/mindtape/src/derive.rs`)
-
-Tasks inherit virtual tags from their location under a root: the root name (the
-table-form `[[tasks.roots]] name`, else the path's last segment) plus folder
-segments. `collect` picks `segments` (`backend`, `auth`) and/or `breadcrumbs`
-(`backend`, `backend:auth`); per-root `derive-tags` (bool/glob/list) gates which
-files derive. Tags are virtual (never written), live on `Task.derived_tags`
-(authored `tags` stay pristine; `Task::all_tags` unions them for filters), and
-are validated against `[tasks.tags] allowed` strictly. `derive.rs` is pure and
-consumer-blind enough for speconaut to converge onto.
+So: a new constraint on a value goes in Rust and config. A new constraint on the
+*call shape* goes in the prelude. Putting either in the other place produces a
+rule that cannot fire.
 

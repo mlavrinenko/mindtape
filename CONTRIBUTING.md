@@ -12,14 +12,12 @@ just check           # run before every commit
 ```
 
 Use `just` recipes instead of raw `cargo` — they carry the right flags and
-environment. `just` (no args) lists them. What is in the shell and why each tool
-is there is `flake.nix`'s subject, commented in place; this file covers the
-workflow around the tools, not their inventory.
+environment. `just` (no args) lists them. Tool inventory is `flake.nix`'s
+subject, commented in place; this file covers the workflow around them.
 
-This document is the single source for how work is done here. `AGENTS.md` pulls
-it into agent context with `@CONTRIBUTING.md` and describes only what MindTape
-*is* — architecture and the task DSL. The two must not overlap: a rule about
-process belongs here, and nowhere else.
+This document is the single source for how work is done here — a rule about
+process belongs here and nowhere else. `AGENTS.md` pulls it into agent context
+and describes only what MindTape *is*. Deep dives sit in `docs/contributing/`.
 
 ## Code Style
 
@@ -47,37 +45,14 @@ with violations. Key restrictions:
   lack.
 - As a file nears the linecop limit, `just fix-check` ejects its inline tests
   into a `_tests.rs` sibling with [ejectest](https://github.com/mlavrinenko/ejectest).
-- `tests/interactive_e2e.rs` drives `mt ls --interactive` under a real PTY via
-  `script(1)` (util-linux, in the flake devShell) — it needs a TTY to exercise
-  the `guard` checks and `event_loop`/`draw`. It and `tests/tty_e2e.rs` are
-  `#![cfg(unix)]`: `script(1)` has no Windows equivalent, so on Windows they
-  compile to nothing rather than being skipped at runtime.
-- CI runs the suite on Windows too (`.github/workflows/ci.yml`, job `windows`),
-  which is where the platform seams get exercised — `cmd /C` vs `sh -c` for
-  `[[on.flip]]` `run`, the `dirs` config/data paths, path separators. It runs
-  plain `cargo build`/`cargo test`, not `just check`: there is no Nix there, and
-  the remaining gates are platform-independent. Anything you write that shells
-  out or joins paths needs a thought for that job.
-- `just check-windows` cross-checks the workspace (tests included) against
-  `x86_64-pc-windows-gnu` from Linux, so compile breakage surfaces before the
-  push rather than in CI. It runs in its own dev shell (`nix develop .#windows`)
-  because the default shell's rustc carries no Windows std; `pkgsCross.mingwW64`
-  supplies a rustc — the same pinned 1.92.0 — that has std for the target and
-  the host both, so no rustup and no second toolchain manager is involved. Not
-  a `just check` arm: it pulls a separate toolchain closure and `target/` tree.
-  Windows CI still owns runtime behaviour and the `-msvc` target; this only
-  moves the compile half earlier.
 - Run `just test`; count with `just count-tests`.
-- Mutation testing (`cargo-mutants`) proves whether tests pin behavior, not
-  just execute it. A surviving `MISSED` mutant is a real assertion gap. Run
-  `just mutants-diff` before a PR — it sweeps only the mutants your branch's
-  diff touches, so it is minutes not hours and covers new files for free.
-  `just mutants -f <file>` forces a deliberate full-file sweep. Triage each
-  survivor into a real gap (write a regression test) or an equivalent mutant
-  (`.cargo/mutants.toml` `exclude_re`, with its reason). Neither command is a
-  `just check` gate, and there is no CI job for it on purpose — the reasoning,
-  the `TIMEOUT` caveat, and how to bound a loop a mutant can hang are in the
-  `mutants` recipes' comments and in `.cargo/mutants.toml`.
+- Windows and the pty-driven terminal tests have their own seams — CI job,
+  `just check-windows` cross-check, why `tests/interactive_e2e.rs` is
+  `#![cfg(unix)]`: [docs/contributing/windows.md](docs/contributing/windows.md).
+  Anything you write that shells out or joins paths needs a thought for that job.
+- Mutation testing (`cargo-mutants`) proves whether tests pin behaviour, not just
+  execute it. Run `just mutants-diff` before a PR and triage every survivor:
+  [docs/contributing/mutation-testing.md](docs/contributing/mutation-testing.md).
 
 ## Quality Gates (run by `just check`)
 
@@ -87,7 +62,7 @@ with violations. Key restrictions:
 | Lints | `cargo clippy --all-targets -D warnings` |
 | Tests | `cargo test --workspace` |
 | Unused deps | `cargo machete` |
-| File size | `linecop` (Rust 500, Markdown 200; 250 README, 300 `AGENTS.md`/`SKILL.md`/`CONTRIBUTING.md`). `linecop --baseline 85` lists what is nearing its cap — run it before adding to an existing file |
+| File size | `linecop` — per-language caps and the tighter ones on the always-loaded docs are in [`.linecop.yaml`](.linecop.yaml), argued in place. `linecop --baseline 85` lists what is nearing its cap; run it before adding to an existing file |
 | Copy-paste | `jscpd` (`just check-dry`) — fails on any duplicated Rust block ≥70 tokens; fix by extracting a shared helper |
 | Doc drift | `outdatty check` |
 | Fixtures | `just check-examples` — `mt check` against each example project: `examples/learn-piano/` (full config surface; feeds the docs generator and the skill's triage evals) and `examples/minimal/` (the floor config; feeds the skill's trap evals). Keep the recipe and the mmz `examples` scope in step. A fixture no gate validates rots silently |
@@ -95,93 +70,50 @@ with violations. Key restrictions:
 | Docs site | `just docs-check` — `docs-gen` first captures live `mt` output (`www/generate.sh`), then `tola build`, then `pagefind` indexes the built HTML for client-side search, then `tola validate` checks links + assets |
 | CRAP (partial) | `just check-crap` — runs the CRAP gate when `target/coverage/lcov.info` is fresh, and otherwise SKIPS LOUDLY, saying so and exiting 0. Editing any source stales the lcov, so on the commits that matter it skips; it catches the free case only. `just check-full` is the arm that is always correct |
 
-`MINDTAPE_GATE_SCOPE=<reason> git commit` skips only the pre-commit freshness
-assertion (`mmz --is-fresh --tag gate`); `typstyle --check truth/tasks` and
-`mt check` still run, and `.githooks/commit-msg` refuses the commit unless the
-message carries a matching `Gate-Scope: <reason>` trailer — a scoped commit
-never reads like a fully gated one in `git log`. Legitimate for a delegated
-worktree whose full aggregate runs at integration; never legitimate to dodge a
-gate that is actually red.
+`just check-full` is `just check` plus `just cover` and `just crap` — always
+correct about coverage and CRAP, at the price of an instrumented rebuild and a
+full suite pass. Use it before opening a PR, plain `just check` while iterating.
 
-`just check-full` is `just check` plus `just cover` and `just crap` — the pre-PR
-run, always correct about coverage and CRAP, at the price of an instrumented
-rebuild and a full suite pass. Use it before opening a PR; use plain
-`just check` while iterating.
+A delegated worktree whose full aggregate runs at integration can scope the gate
+with `MINDTAPE_GATE_SCOPE=<reason> git commit`, which requires a matching
+`Gate-Scope:` trailer so the commit never reads as fully gated:
+[docs/contributing/gates.md](docs/contributing/gates.md). Never legitimate to
+dodge a gate that is actually red.
 
-Coverage runs separately (`just cover`, CI `coverage` job) via `cargo-llvm-cov`,
-which merges each process's profraw — so the subprocess-based e2e tests credit
-the command code they exercise (tarpaulin, which it replaced, could not see past
-`exec` and read every command entry point as dead). The recipe writes
-`target/coverage/lcov.info` for `just crap` and fails under 90% lines.
-`main.rs` is excluded — keep it thin. `just cover` builds default features only,
-so `recur_rrule.rs` (the `rrule` cargo feature's expander) never compiles and
-`just crap` excludes it too, rather than scoring it as phantom 0%-covered;
-`just check-rrule` covers it separately, under the `rrule` feature.
+Coverage and CRAP run outside `just check`: `just cover` fails under 90% lines,
+then `just crap` fails above 30 and on any regression against
+`crap-baseline.json`. Run `cover` first — `crap` refuses a stale lcov — and
+`just crap-baseline` in the same commit as any deliberate complexity. Every one
+of those numbers is argued in
+[docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md); read it
+before changing either recipe's flags.
 
-It throws the previous run away first (`cargo llvm-cov clean --workspace`), so it
-always pays a full instrumented rebuild (~1 min). Without that, `report` unions
-every profraw and object file left since the last `cargo clean` — other feature
-sets, other commits — and reports coverage this source cannot produce; it
-inflated `crap-baseline.json` once already. Never trade that line for speed. The
-recipe's comment carries the measurement.
-
-`just crap` runs right after it, in the same CI job and over the same
-`lcov.info`: the CRAP metric (`CC² × uncovered³ + CC`) fails above 30, flagging
-functions that are both complex and undertested. It refuses to run against an
-lcov older than a source file, so run `just cover` first — CI already does. Why
-it refuses, what it excludes, and why there is deliberately no advisory band
-below the threshold are argued in the `crap` recipe's own comment. Read that
-before changing its flags.
-
-One consequence is worth carrying in your head rather than looking up: above
-~90% coverage the cubed term vanishes and a function scores its own cyclomatic
-complexity, so a flat dispatcher sits near the threshold by construction, and
-adding an arm to one means covering it in the same change.
-
-That same collapse is why the threshold alone is not the whole gate. `just crap`
-runs a second check against `crap-baseline.json`, a committed score for every
-function: nothing may get WORSE than the baseline, at any absolute level. It
-never reads the absolute score, only the delta, so the collapse does not apply —
-a rise means complexity went up or coverage went down either way. It is what
-catches a function that is complex and undertested but scores well under 30,
-which the threshold is structurally blind to. When you deliberately add
-complexity, run `just crap-baseline` in the same commit so the new number lands
-next to the reason for it.
-
-How the dev shell supplies cargo-crap and the LLVM tools `cargo-llvm-cov` needs
-is `flake.nix`'s subject — both are non-obvious, both break loudly if changed
-carelessly, and both are commented there.
-
-`just nix-build` verifies that `nix build` succeeds in a clean sandbox (no dev
-shell, no sccache). Run it when touching `flake.nix` or `.cargo/config.toml`; it
-is called automatically by `just release`.
+`just nix-build` verifies `nix build` in a clean sandbox (no dev shell, no
+sccache). Run it when touching `flake.nix` or `.cargo/config.toml`; `just
+release` calls it automatically.
 
 ## Signal Sweep (`just ask-refactoring`)
 
 `contrib/ask-refactoring.sh` reads the *advisory* quality signals and files a
-backlog task per finding. It is not a gate and never will be — it is the other
-half of the gates: a gate stops you when the wall is already in front of you,
-the sweep says which wall you are walking toward. How it works — what each arm
-reads, how it scores, the six design rules, the re-run guard — lives in
-[docs/contributing/signal-sweep.md](docs/contributing/signal-sweep.md); run
-`just ask-refactoring` to see what it would file today.
+backlog task per finding. It is not a gate and never will be — a gate stops you
+at the wall, the sweep names the wall you are walking toward. Run
+`just ask-refactoring` to see what it would file today; the arms, the scoring and
+the design rules are in
+[docs/contributing/signal-sweep.md](docs/contributing/signal-sweep.md).
 
 ## Dependency Drift (outdatty)
 
 [`outdatty.yaml`](outdatty.yaml) couples source files to the dependents that must
-stay in sync (e.g. the CLI surface to `README.md`). After editing a source,
-review the listed dependents, update them, then run `just outdatty-update` to
-record the new state into `outdatty.lock` and commit it.
+stay in sync (e.g. the CLI surface to `README.md`). After editing a source, update
+the listed dependents, then `just outdatty-update` and commit `outdatty.lock`.
 
 ## Version Management
 
 - Workspace crates: `Cargo.toml` `[workspace.package] version` (semver).
-- Typst library: `lib/typst.toml` `version`, independent of the crates. On bump,
-  every place that repeats it has to move with it — the `TYPST_PKG_VERSION` const
-  in `crates/mindtape-cli/src/init.rs`, the `PKG_VERSION` const in
-  `www/utils/site.typ` (the docs render every `#import` example from it), and the
-  import examples in `README.md` and `AGENTS.md`. The `typst-pkg-version`
-  outdatty group is what enforces that; trust it over this list.
+- Typst library: `lib/typst.toml` `version`, independent of the crates. Several
+  files repeat it and all have to move together; the `typst-pkg-version` outdatty
+  group enumerates them and fails the build otherwise. Trust the group, not a
+  list here.
 - `mindtape-cli`'s dependency on `mindtape` carries a version requirement (not
   path-only), because crates.io rejects path-only deps on publish; bump it with
   the workspace version.
@@ -205,8 +137,7 @@ Refs: truth/tasks/<stem>.typ
 MindTape tracks its own backlog as per-file task artifacts under `truth/tasks/`
 (MindTape dogfooding itself — see `.mindtape/config.toml`). Point `Refs:` at the
 driving task file (`truth/tasks/<stem>.typ`). Architectural and tooling decisions
-are tracked as task artifacts too; the ADR process is retired (`docs/decisions/`
-is frozen history).
+are tracked as task artifacts too; the ADR process is retired.
 
 Commits that file or edit task artifacts themselves (and the backlog config in
 `.mindtape/config.toml`) carry no `Refs:` footer — a task commit refs nothing.
@@ -224,10 +155,9 @@ Recurrence never materializes as a side effect of a read. An instance is spawned
 or refreshed only by an explicit `mt recur`; `mt done` closes a task and never
 creates or advances anything.
 
-"Byte-identical" is the *authored* tree — task files and config. A read may
-populate the git-ignored `.mindtape/cache/` scratch (the persistent content-hash
-harvest cache); that derived artifact is never authored state, the way `target/`
-is not, so it is exempt from the invariant.
+"Byte-identical" is the *authored* tree — task files and config. A read may still
+populate the git-ignored `.mindtape/cache/` scratch, which is derived state the
+way `target/` is, not authored state.
 
 ## Extending MindTape
 

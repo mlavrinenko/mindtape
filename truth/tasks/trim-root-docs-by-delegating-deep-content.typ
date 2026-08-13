@@ -9,7 +9,7 @@
   ),
   difficulty: 3,
   tags: ("docs",),
-  estimate: (files: 6),
+  estimate: (files: 9),
   status: wip(2026, 8, 13),
 )
 

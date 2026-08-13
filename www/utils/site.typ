@@ -53,6 +53,7 @@
     title: "More",
     items: (
       (label: "For AI agents", href: "/agents/"),
+      (label: "Internals", href: "/internals/"),
       (label: "Comparison", href: "/comparison/"),
     ),
   ),
