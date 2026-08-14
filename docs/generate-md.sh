@@ -12,7 +12,7 @@
 # file not at all.
 #
 # `www/generate-facts.sh` runs FIRST, unconditionally — a source that reads
-# `www/generated/*.json` must never depend on some other recipe (`docs-gen`,
+# `www/generated/*.json` must never depend on some other recipe (`docs::gen`,
 # `check-doc-facts`) having run first in this process.
 #
 # typlite (nixpkgs' tinymist, `$out/bin/typlite`; see flake.nix for the pin)
@@ -46,7 +46,7 @@ set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
-# Where rendered outputs land. docs/docs-md-check (Justfile) passes a temp
+# Where rendered outputs land. docs::md-check (docs.just) passes a temp
 # directory here so it can diff a fresh render against the committed tree
 # without ever writing into it — see that recipe's own comment for why an
 # in-place regenerate-then-diff cannot be trusted.
@@ -57,7 +57,7 @@ cd "$REPO"
 # Hold the www/generated/ lock for this whole script, not just the regenerate
 # below. Every source rendered here READS that directory — the fact files via
 # docs/src/lib.typ's `fact`, and the recipe names via its generated `just`
-# module — and www/generate.sh (the docs-check arm, running concurrently under
+# module — and www/generate.sh (the docs::check arm, running concurrently under
 # `just check`'s [parallel]) `rm -rf`s the directory on entry. Regenerating
 # under the lock and then releasing it before the render leaves exactly the
 # window that produces "file not found (searched at www/generated/just.typ)"

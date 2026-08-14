@@ -1,6 +1,16 @@
 set quiet := true
 set unstable := true
 
+# Docs site generation, build, serve, and the docs-md/docs-check gates —
+# truth/tasks/split-the-justfile-into-modules.typ. `just docs::<name>` and
+# `just docs <name>` both work; www/generate-facts.sh mangles the `::`
+# invocation path to `-` for www/generated/just.typ, so `docs::md` mangles to
+# `docs-md` — the identifier every doc source already calls via
+# `#just.docs-md()`. That is what keeps this split from touching doc prose.
+
+# Docs site generation, build, serve, and the docs-md/docs-check gates
+mod docs
+
 [doc("List available recipes")]
 [group("workflow")]
 default:
@@ -23,7 +33,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs-check") (mmz "docs-md-check") (mmz "fmt-fixture-check") check-crap
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") check-crap
 
 # Wrap a just recipe in mmz: `j ust mmz fmt-check` runs `mmz just fmt-check`. The
 # double hop makes mmz the cache identity (rule name `just <recipe>` in
@@ -157,7 +167,7 @@ check-doc-coverage:
 #
 # Regenerates its own inputs (bash www/generate-facts.sh) rather than trusting
 # whatever www/generated/ already holds, so this gate never depends on `just
-# docs-gen` — or a release build — having run first.
+# docs::gen` — or a release build — having run first.
 
 [doc("Fail if a derived crate, DSL field, or gate fact has no doc entry")]
 [group("gate")]
@@ -167,7 +177,7 @@ check-doc-facts:
     # Hold the www/generated/ lock across the regenerate AND the typst queries
     # below, not just the regenerate: www/utils/gate-notes.typ reads the
     # generated `just` module, so a driver querying it is a reader of that
-    # directory, and the concurrent docs-check arm `rm -rf`s it. Same fd-held
+    # directory, and the concurrent docs::check arm `rm -rf`s it. Same fd-held
     # lock and same MINDTAPE_GENERATED_LOCK handshake as www/generate.sh and
     # docs/generate-md.sh.
     mkdir -p target
@@ -218,7 +228,7 @@ check-doc-facts:
 # The gate for what www/generated/just.typ cannot reach: a fenced code block
 # cannot call a function, and typst's own "module does not contain" error at
 # render time is the gate for everything else — a doc source that writes
-# `#just.<name>()` already fails `just docs-md` loudly the moment `<name>`
+# `#just.<name>()` already fails `just docs::md` loudly the moment `<name>`
 # stops resolving (see truth/tasks/render-just-recipe-names-through-a-
 # generated-typst-module.typ). What is left uncovered is a hand-typed
 # mention that never went through the helper at all.
@@ -254,7 +264,20 @@ check-doc-recipes:
     set -eo pipefail
     # The same recipe/alias names www/generated/just.typ's own producer
     # reads — never a second source of truth for "is this a real recipe".
-    names=$(just --dump --dump-format json | jq -r '(.recipes | keys[]), (.aliases | keys[])')
+    # Module recipes (truth/tasks/split-the-justfile-into-modules.typ) are
+    # walked recursively and resolvable two ways: the module's own name alone
+    # (a hand-typed "just docs ..." example's captured word is only ever the
+    # FIRST token after "just", so a module invocation resolves to its bare
+    # name here) and the fully-qualified "module::recipe" path.
+    names=$(just --dump --dump-format json | jq -r '
+        def rec_names(prefix):
+          (.recipes // {} | keys[] | prefix + .),
+          ( (.modules // {}) | to_entries[] | . as $e |
+              (prefix + $e.key),
+              ($e.value | rec_names(prefix + $e.key + "::"))
+          );
+        rec_names(""), (.aliases | keys[])
+    ')
     is_recipe() { grep -qxF "$1" <<<"$names"; }
 
     shopt -s globstar nullglob
@@ -322,47 +345,9 @@ check-doc-recipes:
     [ "$fail" -eq 0 ] || exit 1
     echo "check-doc-recipes: no hand-typed just mention skips the generated module"
 
-# Build the docs, index with Pagefind, then validate internal links + assets.
-# Pagefind runs before validate so the /pagefind/ bundle exists on disk.
-
-[doc("Build, index, and validate the docs site")]
-[group("docs")]
-[group("gate")]
-[working-directory("www")]
-docs-check: docs-gen
-    tola build && pagefind --site public/mindtape --silent && tola validate
-
-# Freshness gate for docs-md: regenerate into a TEMP directory and diff each
-# rendered file there against the COMMITTED copy at its real path — never
-# regenerate in place and read `git status`/`git diff`. An in-place
-# regenerate would heal a hand-corrupted committed file before the diff ever
-# ran, so the gate would read clean on a fix that is no longer actually
-# represented; a fresh temp render diffed against the untouched committed
-# tree cannot self-heal that way, so a drifted file fails by name every time.
-
-[doc("Fail if generated Markdown has drifted from docs/src")]
-[group("docs")]
-[group("gate")]
-docs-md-check:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' EXIT
-    bash docs/generate-md.sh "$tmp"
-    drift=()
-    while IFS= read -r -d '' f; do
-        rel="${f#"$tmp"/}"
-        if [ ! -f "$rel" ] || ! diff -q "$rel" "$f" >/dev/null 2>&1; then
-            drift+=("$rel")
-        fi
-    done < <(find "$tmp" -type f -print0)
-    if [ "${#drift[@]}" -gt 0 ]; then
-        echo "docs-md-check: drifted from docs/src/ (run \`just docs-md\` to refresh):" >&2
-        for f in "${drift[@]}"; do echo "  - $f" >&2; done
-        exit 1
-    fi
-    echo "docs-md-check: $(find "$tmp" -type f | wc -l) generated file(s) match committed"
-
+# docs::check (build, index with Pagefind, then validate internal links +
+# assets) and docs::md-check (the docs-md freshness gate) moved to docs.just —
+# truth/tasks/split-the-justfile-into-modules.typ.
 # Lock the formatter gates: synthesize a deliberately-mis-formatted TOML and
 # Typst fixture in a temp dir, then assert `tombi format --check` and
 # `typstyle --check` both fail. The fmt recipe is what `just fmt`/`fmt-check`
@@ -496,45 +481,8 @@ nix-build:
     git add -A
     nix build .#default
 
-# Capture live `mt` output for the docs (www/generated/*.txt), so the site's
-# CLI reference, help, version, and transcripts cannot drift from the binary.
-# Then derive the crate/DSL/gate/linecop facts (www/generate-facts.sh) — after
-# generate.sh, never before: generate.sh `rm -rf`s the whole generated/ dir on
-# entry, which would erase anything written here first.
-# Builds `mt` release, runs it against examples/learn-piano at a pinned clock.
-
-[doc("Capture live mt output and derive doc facts")]
-[group("docs")]
-docs-gen:
-    bash www/generate.sh
-    bash www/generate-facts.sh
-
-# Build the documentation site (www/ -> www/public/mindtape) with tola, then
-# index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/).
-# docs-gen runs first so the injected transcripts reflect the current binary.
-
-[doc("Build the docs site and index it with Pagefind")]
-[group("docs")]
-[working-directory("www")]
-docs-build: docs-gen
-    tola build && pagefind --site public/mindtape --silent
-
-[doc("Serve the docs locally with hot reload (no search index)")]
-[group("docs")]
-[working-directory("www")]
-docs-serve: docs-gen
-    tola serve
-
-# Render docs/src/*.typ to the repo-root Markdown each source declares
-# (README.md, AGENTS.md, CONTRIBUTING.md, skills/mindtape/SKILL.md,
-# docs/contributing/*.md) with typlite. See docs/generate-md.sh's header for
-# what typlite can and cannot do, and docs/contributing/generated-docs.md for
-# the pipeline this feeds and how to add a source.
-
-[doc("Render docs/src Typst sources to repo-root Markdown")]
-[group("docs")]
-docs-md:
-    bash docs/generate-md.sh
+# docs::gen, docs::build, docs::serve, and docs::md moved to docs.just —
+# truth/tasks/split-the-justfile-into-modules.typ.
 
 [doc("Auto-fix clippy warnings")]
 [group("dev")]

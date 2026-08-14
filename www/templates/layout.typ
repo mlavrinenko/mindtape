@@ -6,7 +6,7 @@
 #let _theme-script = "(function(){var d=document.documentElement;var t=localStorage.getItem('theme');if(t){d.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){d.setAttribute('data-theme','dark')}}());function toggleTheme(){var d=document.documentElement;var n=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',n);localStorage.setItem('theme',n)}"
 
 // Bootstrap Pagefind's search UI. The bundle (UI JS/CSS + index) is generated
-// post-build by `pagefind --site public/mindtape` (Justfile docs-build) into
+// post-build by `pagefind --site public/mindtape` (docs.just's `build`) into
 // /mindtape/pagefind/, which is invisible to `tola build`/`validate`. Injecting
 // the stylesheet + script at runtime (rather than static <link>/<script>) keeps
 // tola's asset validator — which only knows build-time assets — from failing on

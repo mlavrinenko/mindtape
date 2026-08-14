@@ -16,7 +16,7 @@
 // because the one gate that queries it — check-doc-facts — holds the
 // www/generated/ flock across its typst queries as well as its own
 // regenerate. It did not always: querying outside the lock let a concurrent
-// docs-check arm rm-rf the directory mid-read, failing with "file not found"
+// docs::check arm rm-rf the directory mid-read, failing with "file not found"
 // on a correct tree. If you add another consumer of this dict, it must hold
 // that lock for its whole run (see www/generate.sh, docs/generate-md.sh, and
 // the check-doc-facts recipe for the fd-held idiom) or read no generated

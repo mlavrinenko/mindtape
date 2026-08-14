@@ -49,10 +49,10 @@ overrides:
   # any more.
   #
   # All four are now GENERATED: `docs/src/{agents,readme,contributing,skill}.typ`
-  # render to them (typlite; `just docs-md`). A numeric cap on a rendered file
+  # render to them (typlite; `just docs::md`). A numeric cap on a rendered file
   # is unactionable — you cannot shorten AGENTS.md directly, only its source,
   # and a generated file cannot be "fixed" by editing it (the next `just
-  # docs-md` run overwrites any such edit) — so the cap lives on the source
+  # docs::md` run overwrites any such edit) — so the cap lives on the source
   # instead, in the docs/src/** overrides below.
   #
   # This is progressive disclosure continuing, not stopping. The first drop
@@ -128,7 +128,7 @@ overrides:
   # Every docs/contributing/*.md deep dive is now generated from a
   # docs/src/contributing/*.typ source, so the whole directory is excluded for
   # the same reason AGENTS.md is: a generated file's cap belongs on its source
-  # (above), not on output typlite rewrites on every `just docs-md`. Anchored
+  # (above), not on output typlite rewrites on every `just docs::md`. Anchored
   # with `./` per the note above, and a directory glob rather than six entries
   # so the next deep dive is covered by existing the moment it is generated —
   # the failure mode of a per-file list is a new generated file silently
