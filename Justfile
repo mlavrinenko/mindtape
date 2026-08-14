@@ -54,6 +54,7 @@ fmt-check:
     tombi format --check {{ TOML_FMT_PATHS }}
     typstyle --check {{ TYPST_FMT_PATHS }}
     just --fmt --check
+    for f in {{ JUST_FMT_PATHS }}; do just --justfile "$f" --fmt --check; done
 
 [doc("Run clippy only")]
 [group("dev")]
@@ -348,13 +349,25 @@ check-doc-recipes:
 # docs::check (build, index with Pagefind, then validate internal links +
 # assets) and docs::md-check (the docs-md freshness gate) moved to docs.just —
 # truth/tasks/split-the-justfile-into-modules.typ.
-# Lock the formatter gates: synthesize a deliberately-mis-formatted TOML and
-# Typst fixture in a temp dir, then assert `tombi format --check` and
-# `typstyle --check` both fail. The fmt recipe is what `just fmt`/`fmt-check`
-# apply to the tracked config + docs tree, so the same formatters must
-# reject the mis-formatted fixture (and accept a re-formatted one). A
-# formatter that silently accepts drift would let `just fmt-check` pass on
-# an out-of-sync editor save — exactly the bug this task is fixing.
+# Lock the formatter gates: synthesize a deliberately-mis-formatted TOML,
+# Typst and just-module fixture in a temp dir, then assert `tombi format
+# --check`, `typstyle --check` and `just --justfile <f> --fmt --check` all
+# fail. The fmt recipe is what `just fmt`/`fmt-check` apply to the tracked
+# config + docs + justfile tree, so the same formatters must reject the
+# mis-formatted fixture (and accept a re-formatted one). A formatter that
+# silently accepts drift would let `just fmt-check` pass on an out-of-sync
+# editor save — exactly the bug this task is fixing.
+#
+# The just arm is spelled with the SAME `--justfile <file> --fmt --check`
+# invocation `fmt-check` runs over JUST_FMT_PATHS, because the bug it locks is
+# not "the formatter is broken" but "the invocation shape misses the file": a
+# bare `just --fmt` skips module files entirely, so a fixture checked the wrong
+# way would pass while the real gate saw nothing
+# (truth/tasks/gate-formatting-of-just-module-files.typ). The fixture carries
+# `set unstable := true` for the same reason every listed module file must —
+# `--fmt` is refused without it, and a refusal is a non-zero exit that would
+# pass this assertion for the wrong reason, so the arm asserts the SUCCESS case
+# too: the same file, reformatted, must be accepted.
 
 [doc("Lock the formatter gates against a mis-formatted fixture")]
 [group("gate")]
@@ -365,8 +378,10 @@ fmt-fixture-check:
     trap 'rm -rf "$tmp"' EXIT
     bad_toml="$tmp/bad.toml"
     bad_typ="$tmp/bad.typ"
+    bad_just="$tmp/bad.just"
     printf '[a]\nb=1\nc  =   2\n' > "$bad_toml"
     printf '#let   x   =   1\n#let y=2\n' > "$bad_typ"
+    printf 'set unstable := true\nfixture:\n  echo drifted\n' > "$bad_just"
     if tombi format --check --offline "$bad_toml" >/dev/null 2>&1; then
         echo "fmt-fixture-check: tombi accepted the mis-formatted TOML — gate is broken" >&2
         exit 1
@@ -375,7 +390,16 @@ fmt-fixture-check:
         echo "fmt-fixture-check: typstyle accepted the mis-formatted Typst — gate is broken" >&2
         exit 1
     fi
-    echo "fmt-fixture-check: both formatters reject drift"
+    if just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
+        echo "fmt-fixture-check: just accepted the mis-formatted module file — gate is broken" >&2
+        exit 1
+    fi
+    just --justfile "$bad_just" --fmt >/dev/null 2>&1
+    if ! just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
+        echo "fmt-fixture-check: just rejected its OWN formatting of the module file — the failure above was not about drift" >&2
+        exit 1
+    fi
+    echo "fmt-fixture-check: all three formatters reject drift"
 
 # The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
 # fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0.
@@ -774,6 +798,24 @@ mutants *ARGS:
 TOML_FMT_PATHS := ".mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml"
 TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates www/content www/templates www/utils docs/src"
 
+# The same one-list discipline for the justfiles themselves. A bare `just --fmt`
+# formats the ROOT justfile only and silently skips every `mod` file — verified
+# on just 1.46 against a synthetic module: `--fmt` left the mis-formatted module
+# byte-identical and `--fmt --check` reported only the root file's diff. So
+# docs.just sat outside both recipes from the day it was split out
+# (truth/tasks/split-the-justfile-into-modules.typ) and had already drifted by
+# one blank line before anything looked at it
+# (truth/tasks/gate-formatting-of-just-module-files.typ).
+#
+# Each module file therefore needs its own `--justfile <file> --fmt` pass, and
+# the set of them lives here rather than being spelled twice, for the reason
+# above: a third module file cannot land in the fix and miss the check. Every
+# file listed needs `set unstable := true` of its own — `--fmt` is unstable and
+# reads that setting from the file it is POINTED AT, never from the Justfile
+# that declares the `mod`.
+
+JUST_FMT_PATHS := "docs.just"
+
 [doc("Format code")]
 [group("dev")]
 fmt:
@@ -781,6 +823,7 @@ fmt:
     tombi format {{ TOML_FMT_PATHS }}
     typstyle --inplace {{ TYPST_FMT_PATHS }}
     just --fmt
+    for f in {{ JUST_FMT_PATHS }}; do just --justfile "$f" --fmt; done
 
 [doc("Count tests across the workspace")]
 [group("advisory")]

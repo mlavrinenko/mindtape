@@ -104,6 +104,14 @@ build with violations. Key restrictions:
 - `TOML_FMT_PATHS`: #gate-assignments.at("TOML_FMT_PATHS").split(" ").map(raw).join(", ")
 - `TYPST_FMT_PATHS`: #gate-assignments.at("TYPST_FMT_PATHS").split(" ").map(raw).join(", ")
 
+The justfiles are the third list, and the reason the discipline exists: a bare
+`--fmt` pass formats the root `Justfile` only and silently skips every `mod`
+file, so a module file was never checked at all until `JUST_FMT_PATHS` named
+it. Every file listed there gets its own `--justfile <file> --fmt` pass in both
+recipes, and needs `set unstable := true` of its own — `--fmt` reads that
+setting from the file it is pointed at, not from the `Justfile` declaring the
+`mod`.
+
 #just.check-full() is #just.check() plus #just.cover() and #just.crap() — always
 correct about coverage and CRAP, at the price of an instrumented rebuild and a
 full suite pass. Use it before opening a PR, plain #just.check() while

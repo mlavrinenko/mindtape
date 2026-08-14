@@ -16,6 +16,16 @@
 # echoes its command line even though the root Justfile sets it. Redeclared
 # here so `just check`'s docs::check / docs::md-check arms stay quiet like
 # every other gate.
+#
+# `set unstable := true` is NOT dead config, and it is not here for `mod` (the
+# root Justfile's own setting covers the module declaration). It is what makes
+# this file valid as a STANDALONE justfile: a bare `--fmt` pass does not
+# descend into module files (verified, just 1.46), so the formatter gate points
+# `--justfile` at each file in the Justfile's JUST_FMT_PATHS list — and `--fmt`
+# is itself unstable, read from the file it is pointed AT, not from the
+# Justfile that declares the `mod`. Delete this line and this file silently
+# drops out of `just fmt` and `just fmt-check`.
+
 set quiet := true
 set unstable := true
 
