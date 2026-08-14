@@ -14,7 +14,11 @@
     "render-just-recipe-names-through-a-generated-typst-module.typ",
     "derive-the-gate-table-command-column-from-the-justfile.typ",
   ),
-  status: wip(2026, 8, 14),
+  status: done(
+    2026,
+    8,
+    14,
+  )[one module, docs. Every other cluster failed the read-better test and stayed at top level. The identifier mangling held: docs::md mangles to docs-md, so no doc SOURCE changed — two rendered lines did, where the invocation text itself moved from 'just docs-md' to 'just docs md'. Row order moved off 'just --summary --unsorted' (which lists every top-level recipe before any module recipe, so the two docs gates would have jumped to the end of the table) onto check's own dependency list],
 )
 
 == Summary

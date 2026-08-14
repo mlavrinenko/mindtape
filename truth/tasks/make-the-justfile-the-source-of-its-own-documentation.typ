@@ -22,7 +22,11 @@
     "derive-the-formatter-path-lists-from-justfile-assignments.typ",
     "split-the-justfile-into-modules.typ",
   )[the nine leaves of this milestone],
-  status: wip(2026, 8, 14),
+  status: done(
+    2026,
+    8,
+    14,
+  )[all nine leaves landed, plus the www/generated race the milestone exposed. just --list is a grouped menu, every gate row's command is read from its recipe body, and no doc source hand-types a recipe name — check-doc-recipes fails on one],
 )
 
 == Summary
