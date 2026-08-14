@@ -7,10 +7,9 @@
 # file set, the excludes and the `mutants` profile come from .cargo/mutants.toml;
 # extra args pass through ("$@").
 #
-# Both knobs stay script-local, for the reason spelled out in
-# .just/scripts/mutants-diff.sh: a Justfile-level `export RUSTFLAGS` would land
-# in every cargo invocation's fingerprint and invalidate the build cache.
+# CARGO_MUTANTS_JOBS/RUSTFLAGS come from _mutants-env.sh, shared with
+# mutants-diff.sh — argued there for why both stay script-local rather than a
+# Justfile-level `export`.
 set -eo pipefail
-export CARGO_MUTANTS_JOBS="${CARGO_MUTANTS_JOBS:-3}"
-export RUSTFLAGS="${RUSTFLAGS:-} -Clink-arg=-fuse-ld=mold"
+. "$(dirname "${BASH_SOURCE[0]}")/_mutants-env.sh"
 cargo mutants "$@"

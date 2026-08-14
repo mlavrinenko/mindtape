@@ -73,10 +73,10 @@ groups:
       .just/scripts/docs-md-check.sh: ea2bfd24e3c13b400ec87a69f6ad68589ca6f5367923b792f044c399a463e3f4
       .just/scripts/fmt-fixture-check.sh: 1e1fa5749bf432e8ebb7546049855271d3693e4c6af0a8ee5129d9d629a63a1c
       .just/scripts/install-lib.sh: 8f29309c2fc631714e9745fea471766c15f086caa8bb5ffd8d69ff28329792c6
-      .just/scripts/mutants-diff.sh: 3261a22d8e82723dadfb2eed104c2b115b1a62967979cd7b641ffcd037944688
-      .just/scripts/mutants.sh: c2ea0a701f8bcc3042b33f64a68fe153856871de44a4f5afcf5a385b5781667c
+      .just/scripts/mutants-diff.sh: e64f8f986c65edea31d9ede23288248b0aa6df0512a45ccff44a3b4b70e642ba
+      .just/scripts/mutants.sh: a36405072738ddaaad9cbd8123479382032423b203ce568b51a2b866583fa113
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
-      Justfile: 2bf19c0ae8929076a4a94ab90a8ce98b78eaeb27862e7b0627437e97298bf57a
+      Justfile: d05d8d1ba53030271f75a916faf288cc578cd56198520773cb6df790803ba7bb
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c

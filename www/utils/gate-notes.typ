@@ -121,6 +121,17 @@
     through the `--dry-run --yes` flag pair, so no recipe body ever actually
     runs — `release`'s included; see `.just/scripts/arg-pattern-check.sh`.
   ],
+  "positional-args-check": [
+    Static self-test for the five passthrough recipes —
+    #just.test("<filter>"), #just.build("<args>"), #just.mutants("<args>"),
+    #just.mutants-diff("<args>") and #just.ask-refactoring("<args>") —
+    asserting each carries `[positional-arguments]` and forwards `"$@"`
+    rather than interpolating `{{ ARGS }}` into its body, which would
+    re-split an argument containing a space and re-glob one containing a
+    wildcard. Reads the `--dump --dump-format json` dump and greps the
+    scripts the recipes forward into; no recipe body runs. See
+    `.just/scripts/positional-args-check.sh`.
+  ],
   "check-crap": [
     Editing any source stales the lcov, so it skips on the commits that
     matter; it catches the free case only. #just.check-full() is the arm

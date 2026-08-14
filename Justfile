@@ -40,7 +40,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") check-crap
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") check-crap
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`. The
 # double hop makes mmz the cache identity (rule name `just <recipe>` in
@@ -72,8 +72,9 @@ clippy:
 [doc("Run tests only")]
 [group("dev")]
 [group("gate")]
+[positional-arguments]
 test *ARGS:
-    cargo test --workspace {{ ARGS }}
+    cargo test --workspace "$@"
 
 [doc("Check for unused dependencies")]
 [group("gate")]
@@ -245,6 +246,23 @@ fmt-fixture-check:
 arg-pattern-check:
     bash .just/scripts/arg-pattern-check.sh
 
+# Lock argument forwarding on the five passthrough recipes (`test`, `build`,
+# `mutants`, `mutants-diff`, `ask-refactoring`): each must carry
+# `[positional-arguments]` and forward "$@" rather than interpolate `{{ ARGS
+# }}`/`{{ args }}` into its body — a bare interpolation re-splits an argument
+# containing a space and re-globs one containing a wildcard
+# (truth/tasks/preserve-argument-quoting-with-positional-arguments.typ).
+# Separate from arg-pattern-check for the same reason that one is separate
+# from fmt-fixture-check: different subject. It is static (over `just --dump
+# --dump-format json` plus a grep of the scripts the recipes forward into),
+# never a real cargo test/build/mutants run — argued in place in
+# .just/scripts/positional-args-check.sh.
+
+[doc("Lock positional-argument forwarding on the five passthrough recipes")]
+[group("gate")]
+positional-args-check:
+    bash .just/scripts/positional-args-check.sh
+
 # The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
 # fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0.
 #
@@ -353,8 +371,9 @@ clippy-fix:
 
 [doc("Build the project")]
 [group("dev")]
+[positional-arguments]
 build *args:
-    cargo build --workspace -q {{ args }}
+    cargo build --workspace -q "$@"
 
 # Run coverage with cargo-llvm-cov (also writes target/coverage/lcov.info).
 # llvm-cov, unlike tarpaulin, merges the profraw of child processes, so the
@@ -528,8 +547,9 @@ crap-baseline: crap
 
 [doc("Run mutation testing over this branch's diff against main")]
 [group("advisory")]
+[positional-arguments]
 mutants-diff *ARGS:
-    bash .just/scripts/mutants-diff.sh {{ ARGS }}
+    bash .just/scripts/mutants-diff.sh "$@"
 
 # Deliberate full-file sweep — a dev aid, never a `just check` gate (see
 # CONTRIBUTING.md "Testing"). `-f <file>` forces one file; any other args pass
@@ -562,8 +582,9 @@ mutants-diff *ARGS:
 
 [doc("Run a full-file mutation testing sweep")]
 [group("advisory")]
+[positional-arguments]
 mutants *ARGS:
-    bash .just/scripts/mutants.sh {{ ARGS }}
+    bash .just/scripts/mutants.sh "$@"
 
 # What the non-Rust formatters cover. One list each, read by both `fmt` and
 # `fmt-check`, because two hand-maintained copies drift: `.mindtape/templates`
@@ -651,8 +672,9 @@ eject PCT='90':
 
 [doc("File backlog tasks from advisory quality signals")]
 [group("advisory")]
+[positional-arguments]
 ask-refactoring *ARGS:
-    bash contrib/ask-refactoring.sh {{ ARGS }}
+    bash contrib/ask-refactoring.sh "$@"
 
 [doc("Install the mindtape Typst library for local #import (dev symlink)")]
 [group("dev")]

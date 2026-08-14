@@ -275,3 +275,15 @@ commands:
   - name: just arg-pattern-check
     tags: [gate]
     inputs: [gates-meta]
+
+  # Static self-test: `test`/`build`/`mutants`/`mutants-diff`/`ask-refactoring`
+  # must carry `[positional-arguments]` and forward "$@", never interpolate
+  # `{{ ARGS }}`/`{{ args }}` into the body. Read from `just --dump --dump-
+  # format json` plus a grep of the scripts those recipes forward into
+  # (.just/scripts/mutants.sh, .just/scripts/mutants-diff.sh, contrib/ask-
+  # refactoring.sh) — no rust build, no task tree, nothing a static read of
+  # the Justfile and its scripts does not already cover, so `gates-meta` is
+  # the whole input, same as arg-pattern-check above.
+  - name: just positional-args-check
+    tags: [gate]
+    inputs: [gates-meta]

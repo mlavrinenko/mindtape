@@ -6,12 +6,13 @@
 # what a surviving MISSED mutant means and where the speed knobs came from
 # stays above that recipe in the Justfile. Extra args pass through ("$@").
 #
-# Both knobs stay script-local. RUSTFLAGS in particular must never become a
-# Justfile-level `export`: it lands in every cargo invocation's fingerprint and
-# invalidates the workspace build cache for every other recipe.
+# CARGO_MUTANTS_JOBS/RUSTFLAGS come from _mutants-env.sh, shared with
+# mutants.sh. Both stay script-local: sourcing exports them into this
+# script's own process, never a Justfile-level `export`, which would land
+# RUSTFLAGS in every cargo invocation's fingerprint and invalidate the
+# workspace build cache for every other recipe.
 set -eo pipefail
-export CARGO_MUTANTS_JOBS="${CARGO_MUTANTS_JOBS:-3}"
-export RUSTFLAGS="${RUSTFLAGS:-} -Clink-arg=-fuse-ld=mold"
+. "$(dirname "${BASH_SOURCE[0]}")/_mutants-env.sh"
 diff_file=$(mktemp)
 trap 'rm -f "$diff_file"' EXIT
 git diff "$(git merge-base main HEAD)" > "$diff_file"
