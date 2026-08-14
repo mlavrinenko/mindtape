@@ -11,7 +11,7 @@
   tags: ("tooling",),
   estimate: (files: 14),
   links: depends-on("validate-recipe-arguments-with-the-arg-attribute.typ"),
-  status: proposed(2026, 8, 14),
+  status: wip(2026, 8, 14)[wave 8, delegated],
 )
 
 == Summary

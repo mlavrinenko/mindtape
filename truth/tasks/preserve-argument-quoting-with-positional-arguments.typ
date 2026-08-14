@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("tooling",),
   estimate: (files: 5),
-  status: wip(2026, 8, 14)[wave 7, delegated],
+  status: done(
+    2026,
+    8,
+    14,
+  )[five recipes on positional-arguments, proven with a PATH-shimmed cargo dumping argv; mutants preamble factored into \_mutants-env.sh; new positional-args-check gate reads the dump statically since --dry-run cannot see a word-splitting bug],
 )
 
 == Summary
