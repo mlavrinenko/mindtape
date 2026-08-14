@@ -9,7 +9,7 @@
   ),
   difficulty: 2,
   tags: ("tooling",),
-  estimate: (files: 2),
+  estimate: (files: 5),
   status: proposed(2026, 8, 14),
 )
 

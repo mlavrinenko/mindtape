@@ -9,7 +9,7 @@
   ),
   difficulty: 5,
   tags: ("tooling",),
-  estimate: (files: 12),
+  estimate: (files: 15),
   links: depends-on(
     "move-the-just-module-and-scripts-into-a-dot-just-folder.typ",
   ),

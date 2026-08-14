@@ -11,7 +11,11 @@
   tags: ("tooling",),
   estimate: (files: 8),
   links: depends-on("gate-formatting-of-just-module-files.typ"),
-  status: wip(2026, 8, 14)[wave 3, delegated],
+  status: done(
+    2026,
+    8,
+    14,
+  )[git mv with set working-directory := '..'; trap reproduced by deleting the line (docs::md exits 127) and fixed by restoring it. just.typ, gates.json and CONTRIBUTING.md byte-identical],
 )
 
 == Summary

@@ -9,7 +9,7 @@
   ),
   difficulty: 8,
   tags: ("tooling",),
-  estimate: (files: 10),
+  estimate: (files: 14),
   links: depends-on("validate-recipe-arguments-with-the-arg-attribute.typ"),
   status: proposed(2026, 8, 14),
 )
