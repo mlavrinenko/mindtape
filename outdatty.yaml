@@ -227,6 +227,18 @@ groups:
   # an explicit decision to track it — the directory is recipe bodies by
   # construction today, but a helper that no doc describes would fire this
   # group for nothing.
+  #
+  # The last two are the same decision applied one step further out again.
+  # positional-args-check.sh is a self-test rather than an extracted body, and
+  # is tracked for arg-pattern-check.sh's reason: gate-notes.typ restates by
+  # hand what it asserts. _mutants-env.sh is the sharper case — it is not a
+  # recipe body at all, it is the `CARGO_MUTANTS_JOBS`/`RUSTFLAGS` preamble
+  # factored OUT of mutants.sh and mutants-diff.sh, both tracked above. Those
+  # speed knobs are restated by hand in docs/src/contributing/mutation-
+  # testing.typ, so leaving the extracted file untracked would mean an edit to
+  # the jobs default stopped busting this group on the day it moved, while the
+  # identical edit busted it the day before. A body escaping into a script and
+  # a script's content escaping into a helper are the same escape.
   - name: dev-docs
     source:
       - flake.nix
@@ -247,6 +259,8 @@ groups:
       - .just/scripts/mutants-diff.sh
       - .just/scripts/install-lib.sh
       - .just/scripts/release.sh
+      - .just/scripts/positional-args-check.sh
+      - .just/scripts/_mutants-env.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ

@@ -62,6 +62,7 @@ groups:
     source:
       .just/docs.just: 0b4ee0e2a4a721f418eefffc97ba7285015b46761ea288621e4a4049eb57ea7a
       .just/scripts/_lcov-stale-reason.sh: 429afd24fb8ddea7b15a9b19ded939cf2bd703c5e059d3f23783de596462e816
+      .just/scripts/_mutants-env.sh: 30dc11fb80c4af619d4dbcc096886d4773899b54b515fa891ce5e04bf35cc516
       .just/scripts/arg-pattern-check.sh: 69cf9a8b6995c7a89911fcc5897d8f91c07d252139560fef7dc17c50ac3cb52b
       .just/scripts/check-crap.sh: ba967e714356114753ce3bfa308acd01e6a26effe4bf77fc740a78cea06c48a8
       .just/scripts/check-doc-coverage.sh: 8e98aabc2db776579c7693fc9e66a1d80366a2d5e382f53c32dd93ef16847ebc
@@ -75,6 +76,7 @@ groups:
       .just/scripts/install-lib.sh: 8f29309c2fc631714e9745fea471766c15f086caa8bb5ffd8d69ff28329792c6
       .just/scripts/mutants-diff.sh: e64f8f986c65edea31d9ede23288248b0aa6df0512a45ccff44a3b4b70e642ba
       .just/scripts/mutants.sh: a36405072738ddaaad9cbd8123479382032423b203ce568b51a2b866583fa113
+      .just/scripts/positional-args-check.sh: 4fa5d3eb0f291e39b1380c9e23787579cf3bb4169e7fc79693c369aceb238ec5
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
       Justfile: d05d8d1ba53030271f75a916faf288cc578cd56198520773cb6df790803ba7bb
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
