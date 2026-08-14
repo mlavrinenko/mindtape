@@ -10,7 +10,11 @@
   difficulty: 1,
   tags: ("tooling",),
   estimate: (files: 1),
-  status: wip(2026, 8, 14)[wave 1, delegated],
+  status: done(
+    2026,
+    8,
+    14,
+  )[both lines restored verbatim from ddbeef5 and c373a9c; blank line added before the \[doc\] attribute so --fmt cannot re-truncate],
 )
 
 == Summary
