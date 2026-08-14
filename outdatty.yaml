@@ -202,17 +202,20 @@ groups:
   # deliberately NOT one of those — so a renamed or re-flagged recipe
   # silently rots them.
   #
-  # docs.just is a source alongside Justfile, not just Justfile alone: the
-  # `docs` module (truth/tasks/split-the-justfile-into-modules.typ) moved six
-  # recipe bodies out of Justfile into their own file, and a body edit there
-  # is exactly the kind of change this group exists to catch — a recipe body
-  # moving out of the Justfile into a module file must not escape the drift
-  # gate.
+  # .just/docs.just is a source alongside Justfile, not just Justfile alone:
+  # the `docs` module (truth/tasks/split-the-justfile-into-modules.typ) moved
+  # six recipe bodies out of Justfile into their own file, and a body edit
+  # there is exactly the kind of change this group exists to catch — a recipe
+  # body moving out of the Justfile into a module file must not escape the
+  # drift gate. The same reasoning covers `.just/scripts/*.sh` as recipe bodies
+  # are extracted into them (truth/tasks/move-the-just-module-and-scripts-into-
+  # a-dot-just-folder.typ): a body extracted into a script must be listed here
+  # too, or it escapes the gate the same way.
   - name: dev-docs
     source:
       - flake.nix
       - Justfile
-      - docs.just
+      - .just/docs.just
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ

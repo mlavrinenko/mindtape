@@ -6,15 +6,16 @@
 #let _theme-script = "(function(){var d=document.documentElement;var t=localStorage.getItem('theme');if(t){d.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){d.setAttribute('data-theme','dark')}}());function toggleTheme(){var d=document.documentElement;var n=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',n);localStorage.setItem('theme',n)}"
 
 // Bootstrap Pagefind's search UI. The bundle (UI JS/CSS + index) is generated
-// post-build by `pagefind --site public/mindtape` (docs.just's `build`) into
-// /mindtape/pagefind/, which is invisible to `tola build`/`validate`. Injecting
-// the stylesheet + script at runtime (rather than static <link>/<script>) keeps
-// tola's asset validator — which only knows build-time assets — from failing on
-// them. Once the script loads, mount PagefindUI into the header #search box
-// (waiting for the DOM if the async script wins the race), then make the
-// results drawer behave like a popup: dismiss on outside-click / Escape via a
-// `search--closed` class the CSS honours, and re-open when the input regains
-// focus. Search is a production-build feature; `tola serve` has no index.
+// post-build by `pagefind --site public/mindtape` (.just/docs.just's `build`)
+// into /mindtape/pagefind/, which is invisible to `tola build`/`validate`.
+// Injecting the stylesheet + script at runtime (rather than static
+// <link>/<script>) keeps tola's asset validator — which only knows build-time
+// assets — from failing on them. Once the script loads, mount PagefindUI into
+// the header #search box (waiting for the DOM if the async script wins the
+// race), then make the results drawer behave like a popup: dismiss on
+// outside-click / Escape via a `search--closed` class the CSS honours, and
+// re-open when the input regains focus. Search is a production-build feature;
+// `tola serve` has no index.
 #let _search-init = (
   "(function(){var p='"
     + u("/pagefind/")

@@ -1,0 +1,14 @@
+# .just/scripts/ — the landing place for recipe bodies extracted out of the
+# just files in .just/ (truth/tasks/move-the-just-module-and-scripts-into-a-
+# dot-just-folder.typ). Empty today; this file only keeps the directory
+# tracked, since git records no empty directories.
+#
+# Two rules for a script that lands here:
+#
+#   - Repo-root-relative paths, like every recipe body it comes from. The
+#     module files in .just/ carry `set working-directory := '..'` precisely so
+#     a recipe runs at the repo root rather than in .just/ — argued in place in
+#     .just/docs.just's header.
+#   - List it as an outdatty `dev-docs` source. That group already names
+#     Justfile and .just/docs.just for the same reason: a recipe body must not
+#     escape the drift gate by moving out of the file the gate watches.

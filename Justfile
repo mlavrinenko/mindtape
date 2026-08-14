@@ -7,9 +7,16 @@ set unstable := true
 # invocation path to `-` for www/generated/just.typ, so `docs::md` mangles to
 # `docs-md` — the identifier every doc source already calls via
 # `#just.docs-md()`. That is what keeps this split from touching doc prose.
+#
+# The path is spelled out because the file no longer sits beside this one: a
+# bare `mod docs` only looks for `docs.just`/`docs/mod.just` next to the
+# Justfile, and the module moved under .just/ (truth/tasks/move-the-just-
+# module-and-scripts-into-a-dot-just-folder.typ). A module recipe runs with its
+# cwd set to the MODULE FILE's directory, so .just/docs.just carries `set
+# working-directory := '..'` of its own — argued in that file's header.
 
 # Docs site generation, build, serve, and the docs-md/docs-check gates
-mod docs
+mod docs '.just/docs.just'
 
 [doc("List available recipes")]
 [group("workflow")]
@@ -347,8 +354,8 @@ check-doc-recipes:
     echo "check-doc-recipes: no hand-typed just mention skips the generated module"
 
 # docs::check (build, index with Pagefind, then validate internal links +
-# assets) and docs::md-check (the docs-md freshness gate) moved to docs.just —
-# truth/tasks/split-the-justfile-into-modules.typ.
+# assets) and docs::md-check (the docs-md freshness gate) moved to
+# .just/docs.just — truth/tasks/split-the-justfile-into-modules.typ.
 # Lock the formatter gates: synthesize a deliberately-mis-formatted TOML,
 # Typst and just-module fixture in a temp dir, then assert `tombi format
 # --check`, `typstyle --check` and `just --justfile <f> --fmt --check` all
@@ -506,7 +513,7 @@ nix-build:
     git add -A
     nix build .#default
 
-# docs::gen, docs::build, docs::serve, and docs::md moved to docs.just —
+# docs::gen, docs::build, docs::serve, and docs::md moved to .just/docs.just —
 # truth/tasks/split-the-justfile-into-modules.typ.
 
 [doc("Auto-fix clippy warnings")]
@@ -802,7 +809,7 @@ TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tas
 # formats the ROOT justfile only and silently skips every `mod` file — verified
 # on just 1.46 against a synthetic module: `--fmt` left the mis-formatted module
 # byte-identical and `--fmt --check` reported only the root file's diff. So
-# docs.just sat outside both recipes from the day it was split out
+# the docs module sat outside both recipes from the day it was split out
 # (truth/tasks/split-the-justfile-into-modules.typ) and had already drifted by
 # one blank line before anything looked at it
 # (truth/tasks/gate-formatting-of-just-module-files.typ).
@@ -813,8 +820,13 @@ TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tas
 # file listed needs `set unstable := true` of its own — `--fmt` is unstable and
 # reads that setting from the file it is POINTED AT, never from the Justfile
 # that declares the `mod`.
+#
+# The paths follow the module files, and must: this list is the whole coverage
+# of the formatter gate over them, so a module file that moves without its
+# entry moving silently drops back out of `just fmt` and `just fmt-check` —
+# reopening the exact hole gate-formatting-of-just-module-files.typ closed.
 
-JUST_FMT_PATHS := "docs.just"
+JUST_FMT_PATHS := ".just/docs.just"
 
 [doc("Format code")]
 [group("dev")]

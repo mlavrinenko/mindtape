@@ -46,7 +46,7 @@ set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
-# Where rendered outputs land. docs::md-check (docs.just) passes a temp
+# Where rendered outputs land. docs::md-check (.just/docs.just) passes a temp
 # directory here so it can diff a fresh render against the committed tree
 # without ever writing into it — see that recipe's own comment for why an
 # in-place regenerate-then-diff cannot be trusted.

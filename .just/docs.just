@@ -1,9 +1,24 @@
-# docs.just — the `docs` module (`mod docs` in Justfile), split out under
-# truth/tasks/split-the-justfile-into-modules.typ. Lives at the repo root,
-# beside Justfile, not under docs/ — every recipe body here shells out with a
-# repo-root-relative path (`www/generate.sh`, `docs/generate-md.sh`, …), and
-# `[working-directory("www")]` resolves relative to THIS file's directory, so
-# a module file anywhere but the repo root would break both.
+# .just/docs.just — the `docs` module (`mod docs '.just/docs.just'` in
+# Justfile), split out under truth/tasks/split-the-justfile-into-modules.typ
+# and moved here under
+# truth/tasks/move-the-just-module-and-scripts-into-a-dot-just-folder.typ.
+#
+# `set working-directory := '..'` below is load-bearing, not cosmetic. A module
+# recipe runs with its working directory set to the MODULE FILE's directory,
+# not the repo root (verified, just 1.46: a recipe here running `pwd` prints
+# `<repo>/.just`). Every recipe body in this file shells out with a repo-root-
+# relative path (`www/generate.sh`, `docs/generate-md.sh`, …), and
+# `[working-directory("www")]` resolves relative to that same directory — so
+# without the setting the bodies miss their scripts and the attribute looks for
+# `.just/www`, failing with a confusing `could not find the shell: No such file
+# or directory`. With it, a plain recipe runs at the repo root and
+# `[working-directory("www")]` composes on top to give `<repo>/www` (both
+# verified). Scripts extracted out of these bodies live in .just/scripts/ and
+# are invoked the same repo-root-relative way.
+#
+# What does NOT work, also verified: `[working-directory(source_directory() /
+# "www")]`. just 1.46 accepts const expressions in that attribute but not
+# function calls — `error: Expected ',', '=', or ')', but found '('`.
 #
 # Invoked as `just docs::<name>` or `just docs <name>` — both work (verified,
 # just 1.43+). www/generate-facts.sh mangles the `::` invocation path to `-`
@@ -28,6 +43,7 @@
 
 set quiet := true
 set unstable := true
+set working-directory := '..'
 
 # Capture live `mt` output for the docs (www/generated/*.txt), so the site's
 # CLI reference, help, version, and transcripts cannot drift from the binary.

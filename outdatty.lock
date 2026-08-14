@@ -60,8 +60,8 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      Justfile: b6539dbd3e5e3e4ce4ac8a35af05b8925ffc1869ab9f96fa467c9c1a58e16499
-      docs.just: 01451021759363fe80db3ced72710c659169f2e1b0bcc70dead4ce0ad070ac89
+      .just/docs.just: 63a6e25be7938db31d11043e2ba03521fa59a3946263fc3f7c86e97cfe8faf9c
+      Justfile: b13c22821a1f7270040b6b9d419f9efe16a8e8d94bbd537ea12a6bc8e0f1e112
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
