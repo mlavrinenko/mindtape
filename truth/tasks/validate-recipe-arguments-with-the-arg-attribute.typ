@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("tooling",),
   estimate: (files: 5),
-  status: wip(2026, 8, 14)[wave 6, delegated],
+  status: done(
+    2026,
+    8,
+    14,
+  )[four patterns, plus a new arg-pattern-check gate arm asserting each rejects a known-bad and accepts a known-good value through --dry-run --yes, so no body ever runs. eject's own default verified against its own pattern since fix-check depends on bare eject],
 )
 
 == Summary

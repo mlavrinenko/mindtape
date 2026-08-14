@@ -10,7 +10,7 @@
   difficulty: 2,
   tags: ("tooling",),
   estimate: (files: 5),
-  status: proposed(2026, 8, 14),
+  status: wip(2026, 8, 14)[wave 7, delegated],
 )
 
 == Summary
