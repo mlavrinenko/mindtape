@@ -40,7 +40,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") check-crap
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") check-crap
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`. The
 # double hop makes mmz the cache identity (rule name `just <recipe>` in
@@ -231,6 +231,20 @@ check-doc-recipes:
 fmt-fixture-check:
     bash .just/scripts/fmt-fixture-check.sh
 
+# Lock the `[arg(...)]` patterns on release/bench/gen-bench/eject: each must
+# reject a known-bad argument and accept a known-good one at DISPATCH, before
+# the recipe body runs (truth/tasks/validate-recipe-arguments-with-the-arg-
+# attribute.typ). A pattern nobody exercises is a comment, not a gate — same
+# reasoning as fmt-fixture-check, over a different subject (recipe dispatch,
+# not file formatting), so it is a sibling script rather than an added arm in
+# that one. `just --dry-run --yes` inside the script means no recipe body
+# ever actually runs, `release` included.
+
+[doc("Lock the arg-attribute patterns against known-bad and known-good input")]
+[group("gate")]
+arg-pattern-check:
+    bash .just/scripts/arg-pattern-check.sh
+
 # The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
 # fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0.
 #
@@ -260,6 +274,7 @@ check-crap:
 # (Re)generate the examples/large/ benchmark fixture: N deterministic task
 # files under examples/large/tasks/ (gitignored). Default N=2000.
 
+[arg('N', pattern='\d+', help='number of deterministic task files to generate')]
 [doc("Regenerate the examples/large benchmark fixture")]
 [group("dev")]
 gen-bench N='2000':
@@ -269,6 +284,7 @@ gen-bench N='2000':
 # files, default 2000): build the release binary, regenerate the fixture,
 # then time both commands with hyperfine at a pinned clock (MINDTAPE_NOW).
 
+[arg('N', pattern='\d+', help='number of generated task files to benchmark against')]
 [doc("Benchmark mt ls and mt check against a large task set")]
 [group("dev")]
 bench N='2000':
@@ -603,6 +619,7 @@ file-sizes:
     #!/usr/bin/env bash
     find . -type f \( -name '*.rs' -o -name '*.md' \) ! -path './target/*' -exec wc -l {} + | sort -rn | head -20
 
+[arg('PCT', pattern='(100|[1-9]?[0-9])', help='linecop baseline percentage (0-100) — files at or above it get ejected')]
 [doc("Eject inline tests from Rust files nearing the linecop cap")]
 [group("advisory")]
 eject PCT='90':
@@ -672,6 +689,7 @@ install-hooks:
 # the script refuses to run without the variable this line sets, and nothing
 # else sets it. Argued in full in .just/scripts/release.sh.
 
+[arg('VERSION', pattern='\d+\.\d+\.\d+', help='semver, no leading v (e.g. 0.3.0)')]
 [confirm("Tag and push a release to origin — proceed?")]
 [doc("Tag a release and push")]
 [group("release")]

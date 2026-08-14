@@ -212,9 +212,13 @@ groups:
   # two justfiles above, and a body extracted into a script escapes the gate
   # exactly the way a body moved into a module file would. The first six are
   # the gate bodies (truth/tasks/extract-the-long-gate-recipe-bodies-into-
-  # scripts.typ); the eight after them are the coverage, mutation, install and
-  # release bodies (truth/tasks/extract-the-coverage-and-release-recipe-bodies-
-  # into-scripts.typ), and that second wave is the one this group most needs —
+  # scripts.typ), plus arg-pattern-check.sh — added the same way, later, under
+  # truth/tasks/validate-recipe-arguments-with-the-arg-attribute.typ, whose
+  # bad/good values and the eject-default rationale are restated by hand in
+  # www/utils/gate-notes.typ; the eight after the gate bodies are the
+  # coverage, mutation, install and release bodies (truth/tasks/extract-the-
+  # coverage-and-release-recipe-bodies-into-scripts.typ), and that second wave
+  # is the one this group most needs —
   # docs/src/contributing/coverage-crap.typ and
   # docs/src/contributing/mutation-testing.typ restate those bodies' flags and
   # thresholds by hand, so a `--fail-under-lines`, `--threshold` or exclude
@@ -232,6 +236,7 @@ groups:
       - .just/scripts/check-doc-facts.sh
       - .just/scripts/check-doc-recipes.sh
       - .just/scripts/fmt-fixture-check.sh
+      - .just/scripts/arg-pattern-check.sh
       - .just/scripts/check-crap.sh
       - .just/scripts/docs-md-check.sh
       - .just/scripts/cover.sh

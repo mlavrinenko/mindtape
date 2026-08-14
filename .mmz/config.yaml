@@ -264,3 +264,14 @@ commands:
   - name: just fmt-fixture-check
     tags: [gate]
     inputs: [rust, rust-fmt, gates-meta]
+
+  # Dispatch-only self-test: `release`/`bench`/`gen-bench`/`eject`'s `[arg(...)]`
+  # patterns must reject a known-bad value and accept a known-good one, and
+  # `eject`'s default must satisfy its own pattern. Every check the script runs
+  # is `just --dry-run --yes <recipe> <value>` against THIS Justfile, so
+  # `gates-meta` (Justfile + .just/scripts/** + the dev-shell pin) is the whole
+  # input — no rust build, no task tree, nothing else the recipe bodies never
+  # execute (dry-run) could touch.
+  - name: just arg-pattern-check
+    tags: [gate]
+    inputs: [gates-meta]

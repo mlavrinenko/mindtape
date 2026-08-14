@@ -112,6 +112,15 @@
     themselves, so a formatter silently accepting drift could not let
     `fmt-check` pass on an out-of-sync editor save.
   ],
+  "arg-pattern-check": [
+    Dispatch-only self-test for the `[arg(...)]` patterns on
+    #just.release("VERSION"), #just.bench("N"), #just.gen-bench("N") and
+    #just.eject("PCT"): asserts each rejects a known-bad argument and
+    accepts a known-good one, and that `eject`'s own default satisfies its
+    own pattern (`fix-check` depends on bare `eject`). Every assertion goes
+    through the `--dry-run --yes` flag pair, so no recipe body ever actually
+    runs — `release`'s included; see `.just/scripts/arg-pattern-check.sh`.
+  ],
   "check-crap": [
     Editing any source stales the lcov, so it skips on the commits that
     matter; it catches the free case only. #just.check-full() is the arm

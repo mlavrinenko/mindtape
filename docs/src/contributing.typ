@@ -161,11 +161,16 @@ After editing a source, update the listed dependents, then
 - `mindtape-cli`'s dependency on `mindtape` carries a version requirement
   (not path-only), because crates.io rejects path-only deps on publish; bump
   it with the workspace version.
-- A release (#just.release("VERSION")) is gated: the tag must equal the
-  workspace version, the working tree must be clean, and `CHANGELOG.md` may
-  not have a non-empty `[Unreleased]` section (it moves into a dated
-  `[VERSION]` section at release time). The recipe pushes `main` before the
-  tag, so the docs site (`pages.yml`) and CI run on the release tree.
+- A release (#just.release("VERSION")) is gated twice. `VERSION` itself must
+  be a bare semver with no leading `v` (an `[arg(...)]` pattern rejects
+  anything else before the recipe body ever runs, so a typo like `v0.3.0`
+  fails fast with a pattern-mismatch message instead of a confusing "Cargo.toml
+  is 0.3.0" error from deep inside the script). Past that, the recipe body
+  itself gates: the tag must equal the workspace version, the working tree
+  must be clean, and `CHANGELOG.md` may not have a non-empty `[Unreleased]`
+  section (it moves into a dated `[VERSION]` section at release time). The
+  recipe pushes `main` before the tag, so the docs site (`pages.yml`) and CI
+  run on the release tree.
 
 = Commit Messages
 
