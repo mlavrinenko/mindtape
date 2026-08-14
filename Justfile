@@ -144,23 +144,7 @@ check-examples:
 [doc("Fail if a visible mt subcommand has no CLI doc entry")]
 [group("gate")]
 check-doc-coverage:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    cargo build -p mindtape-cli -q
-    visible=$(./target/debug/mt _cli --json | jq -r '.commands[].name')
-    tmp=$(mktemp -d -p target)
-    trap 'rm -rf "$tmp"' EXIT
-    printf '#import "/www/utils/cli-notes.typ": cli-notes\n#metadata(cli-notes.keys()) <cli-notes-keys>\n' \
-        > "$tmp/keys.typ"
-    documented=$(typst query --root . "$tmp/keys.typ" '<cli-notes-keys>' \
-        --field value --one | jq -r '.[]')
-    missing=$(comm -23 <(sort <<<"$visible") <(sort <<<"$documented"))
-    if [ -n "$missing" ]; then
-        echo "check-doc-coverage: undocumented commands (no www/utils/cli-notes.typ entry):" >&2
-        while IFS= read -r name; do echo "  - mt $name" >&2; done <<<"$missing"
-        exit 1
-    fi
-    echo "check-doc-coverage: $(wc -l <<<"$visible") visible commands, all documented"
+    bash .just/scripts/check-doc-coverage.sh
 
 # Doc-facts gate: same set-difference idiom as check-doc-coverage above, over
 # the facts www/generate-facts.sh derives instead of a hand-maintained list
@@ -180,58 +164,7 @@ check-doc-coverage:
 [doc("Fail if a derived crate, DSL field, or gate fact has no doc entry")]
 [group("gate")]
 check-doc-facts:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    # Hold the www/generated/ lock across the regenerate AND the typst queries
-    # below, not just the regenerate: www/utils/gate-notes.typ reads the
-    # generated `just` module, so a driver querying it is a reader of that
-    # directory, and the concurrent docs::check arm `rm -rf`s it. Same fd-held
-    # lock and same MINDTAPE_GENERATED_LOCK handshake as www/generate.sh and
-    # docs/generate-md.sh.
-    mkdir -p target
-    exec 9>target/www-generated.lock
-    flock 9
-    export MINDTAPE_GENERATED_LOCK=1
-    bash www/generate-facts.sh
-    tmp=$(mktemp -d -p target)
-    trap 'rm -rf "$tmp"' EXIT
-
-    crates=$(jq -r '.workspace[].name, .substrate[].name' www/generated/crate-map.json)
-    printf '#import "/www/utils/crate-notes.typ": crate-notes\n#metadata(crate-notes.keys()) <crate-notes-keys>\n' \
-        > "$tmp/crate-keys.typ"
-    documented_crates=$(typst query --root . "$tmp/crate-keys.typ" '<crate-notes-keys>' \
-        --field value --one | jq -r '.[]')
-    missing_crates=$(comm -23 <(sort <<<"$crates") <(sort <<<"$documented_crates"))
-    if [ -n "$missing_crates" ]; then
-        echo "check-doc-facts: undocumented crates (no www/utils/crate-notes.typ entry):" >&2
-        while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_crates"
-        exit 1
-    fi
-
-    fields=$(jq -r '.fields[].name' www/generated/dsl-fields.json)
-    printf '#import "/www/utils/dsl-field-notes.typ": dsl-field-notes\n#metadata(dsl-field-notes.keys()) <dsl-field-notes-keys>\n' \
-        > "$tmp/field-keys.typ"
-    documented_fields=$(typst query --root . "$tmp/field-keys.typ" '<dsl-field-notes-keys>' \
-        --field value --one | jq -r '.[]')
-    missing_fields=$(comm -23 <(sort <<<"$fields") <(sort <<<"$documented_fields"))
-    if [ -n "$missing_fields" ]; then
-        echo "check-doc-facts: undocumented DSL fields (no www/utils/dsl-field-notes.typ entry):" >&2
-        while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_fields"
-        exit 1
-    fi
-
-    gates=$(jq -r '.gates[].name' www/generated/gates.json)
-    printf '#import "/www/utils/gate-notes.typ": gate-notes\n#metadata(gate-notes.keys()) <gate-notes-keys>\n' \
-        > "$tmp/gate-keys.typ"
-    documented_gates=$(typst query --root . "$tmp/gate-keys.typ" '<gate-notes-keys>' \
-        --field value --one | jq -r '.[]')
-    missing_gates=$(comm -23 <(sort <<<"$gates") <(sort <<<"$documented_gates"))
-    if [ -n "$missing_gates" ]; then
-        echo "check-doc-facts: undocumented gates (no www/utils/gate-notes.typ entry):" >&2
-        while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_gates"
-        exit 1
-    fi
-    echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, $(wc -l <<<"$gates") gates, all documented"
+    bash .just/scripts/check-doc-facts.sh
 
 # The gate for what www/generated/just.typ cannot reach: a fenced code block
 # cannot call a function, and typst's own "module does not contain" error at
@@ -268,90 +201,7 @@ check-doc-facts:
 [doc("Fail on a hand-typed just recipe mention outside the generated module")]
 [group("gate")]
 check-doc-recipes:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    # The same recipe/alias names www/generated/just.typ's own producer
-    # reads — never a second source of truth for "is this a real recipe".
-    # Module recipes (truth/tasks/split-the-justfile-into-modules.typ) are
-    # walked recursively and resolvable two ways: the module's own name alone
-    # (a hand-typed "just docs ..." example's captured word is only ever the
-    # FIRST token after "just", so a module invocation resolves to its bare
-    # name here) and the fully-qualified "module::recipe" path.
-    names=$(just --dump --dump-format json | jq -r '
-        def rec_names(prefix):
-          (.recipes // {} | keys[] | prefix + .),
-          ( (.modules // {}) | to_entries[] | . as $e |
-              (prefix + $e.key),
-              ($e.value | rec_names(prefix + $e.key + "::"))
-          );
-        rec_names(""), (.aliases | keys[])
-    ')
-    is_recipe() { grep -qxF "$1" <<<"$names"; }
-
-    shopt -s globstar nullglob
-    # www/utils/ is scanned too: gate-notes.typ's prose is rendered straight
-    # into CONTRIBUTING.md, so a recipe name hand-typed there rots exactly
-    # like one in a docs/src source. The other notes dicts under www/utils
-    # mention no recipe today and cost nothing to scan.
-    sources=(docs/src/**/*.typ www/content/*.typ www/utils/*.typ)
-    fail=0
-
-    for f in "${sources[@]}"; do
-        [ "$(basename "$f")" = "lib.typ" ] && continue
-
-        tagged=$(awk '
-            BEGIN { fence = 0 }
-            {
-                t = $0
-                sub(/^[ \t]+/, "", t)
-                if (t ~ /^```/) { fence = !fence; print "F\t" NR "\t" $0; next }
-                if (t ~ /^\/\//) { print "C\t" NR "\t" $0; next }
-                print (fence ? "B" : "P") "\t" NR "\t" $0
-            }
-        ' "$f")
-
-        while IFS=$'\t' read -r tag lineno content; do
-            [ "$tag" = "F" ] && continue
-            [ "$tag" = "C" ] && continue
-
-            while IFS= read -r m; do
-                [ -z "$m" ] && continue
-                name="${m#\"just }"
-                if ! is_recipe "$name"; then
-                    echo "check-doc-recipes: $f:$lineno: \"just $name\" is not a real recipe" >&2
-                    fail=1
-                fi
-            done < <(grep -oE '"just [A-Za-z0-9_-]+' <<<"$content" || true)
-
-            if [ "$tag" = "B" ]; then
-                trimmed="${content#"${content%%[![:space:]]*}"}"
-                if [[ "$trimmed" =~ ^just([[:space:]]+([A-Za-z0-9_-]+))?([[:space:]]|$) ]]; then
-                    name="${BASH_REMATCH[2]}"
-                    if [ -n "$name" ] && ! is_recipe "$name"; then
-                        echo "check-doc-recipes: $f:$lineno: \`just $name\` is not a real recipe" >&2
-                        fail=1
-                    fi
-                fi
-                continue
-            fi
-
-            while IFS= read -r m; do
-                [ -z "$m" ] && continue
-                inner="${m#\`}"; inner="${inner%\`}"
-                name=""
-                read -r _ name _ <<<"$inner"
-                [ -z "$name" ] && continue
-                echo "check-doc-recipes: $f:$lineno: literal \`just $name\` outside the generated module — use #just.$name(...)" >&2
-                fail=1
-                if ! is_recipe "$name"; then
-                    echo "check-doc-recipes: $f:$lineno: \`just $name\` is not a real recipe" >&2
-                fi
-            done < <(grep -oE '`just(`| [^`]*`)' <<<"$content" || true)
-        done <<<"$tagged"
-    done
-
-    [ "$fail" -eq 0 ] || exit 1
-    echo "check-doc-recipes: no hand-typed just mention skips the generated module"
+    bash .just/scripts/check-doc-recipes.sh
 
 # docs::check (build, index with Pagefind, then validate internal links +
 # assets) and docs::md-check (the docs-md freshness gate) moved to
@@ -379,34 +229,7 @@ check-doc-recipes:
 [doc("Lock the formatter gates against a mis-formatted fixture")]
 [group("gate")]
 fmt-fixture-check:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' EXIT
-    bad_toml="$tmp/bad.toml"
-    bad_typ="$tmp/bad.typ"
-    bad_just="$tmp/bad.just"
-    printf '[a]\nb=1\nc  =   2\n' > "$bad_toml"
-    printf '#let   x   =   1\n#let y=2\n' > "$bad_typ"
-    printf 'set unstable := true\nfixture:\n  echo drifted\n' > "$bad_just"
-    if tombi format --check --offline "$bad_toml" >/dev/null 2>&1; then
-        echo "fmt-fixture-check: tombi accepted the mis-formatted TOML — gate is broken" >&2
-        exit 1
-    fi
-    if typstyle --check "$bad_typ" >/dev/null 2>&1; then
-        echo "fmt-fixture-check: typstyle accepted the mis-formatted Typst — gate is broken" >&2
-        exit 1
-    fi
-    if just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
-        echo "fmt-fixture-check: just accepted the mis-formatted module file — gate is broken" >&2
-        exit 1
-    fi
-    just --justfile "$bad_just" --fmt >/dev/null 2>&1
-    if ! just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
-        echo "fmt-fixture-check: just rejected its OWN formatting of the module file — the failure above was not about drift" >&2
-        exit 1
-    fi
-    echo "fmt-fixture-check: all three formatters reject drift"
+    bash .just/scripts/fmt-fixture-check.sh
 
 # The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
 # fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0.
@@ -432,16 +255,7 @@ fmt-fixture-check:
 [doc("Run the CRAP gate when the lcov is fresh, else skip loudly")]
 [group("gate")]
 check-crap:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    reason=$(just _lcov-stale-reason)
-    if [ -z "$reason" ]; then
-        just crap
-    else
-        echo "check-crap: SKIPPED — ${reason}" >&2
-        echo "  the CRAP gate was NOT evaluated. \`just cover\` refreshes it;" >&2
-        echo "  \`just check-full\` runs the whole thing. CI evaluates it either way." >&2
-    fi
+    bash .just/scripts/check-crap.sh
 
 # (Re)generate the examples/large/ benchmark fixture: N deterministic task
 # files under examples/large/tasks/ (gitignored). Default N=2000.

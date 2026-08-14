@@ -75,13 +75,32 @@ def render_frag:
   end;
 def render_line: map(render_frag) | join("");
 
-# Quotable = no shebang, exactly one body line, and that line renders under
-# 160 chars — comfortably above the longest one-line gate body today
-# (docs-check, 74 chars) with headroom for a future recipe to still qualify.
+# Quotable = no shebang, exactly one body line, that line renders under 160
+# chars — comfortably above the longest one-line gate body today (docs-check,
+# 74 chars) with headroom for a future recipe to still qualify — and it is not
+# a bare script invocation.
+#
+# That last clause is why gate_command exists as more than a length check.
+# truth/tasks/extract-the-long-gate-recipe-bodies-into-scripts.typ moved six
+# multi-line shebang bodies into `.just/scripts/*.sh`, and every one of them
+# came back as a one-liner that QUALIFIES on the two rules above: the Command
+# column would have silently swapped six doc strings for `bash
+# .just/scripts/check-doc-facts.sh`, which tells a reader nothing the Gate
+# column has not already said. A body that only names a script is a pointer,
+# not a command — the same body, spelled where linecop can see it — so it
+# reports null and docs/src/contributing.typ falls back to `[doc(...)]`, and
+# extracting a body changes no rendered byte. is_script_invocation is
+# deliberately narrow: an interpreter word plus one `.sh` path and nothing
+# else. A body that runs a script WITH arguments still says something (which
+# arguments), so it stays quotable.
+def is_script_invocation:
+  test("^((bash|sh|zsh) +)?[A-Za-z0-9._/-]+[.]sh$");
+
 def gate_command:
   if .shebang or (.body | length) != 1 then null
   else (.body[0] | render_line) as $line
-    | if ($line | length) > 160 then null else $line end
+    | if ($line | length) > 160 or ($line | is_script_invocation) then null
+      else $line end
   end;
 
 # Every recipe object, top-level and module, flattened. Each recipe already

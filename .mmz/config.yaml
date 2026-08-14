@@ -127,9 +127,18 @@ scopes:
   # machete included — and flake.nix is an outdatty `dev-docs` source, so keeping
   # it here stops `outdatty-check` reporting fresh after a flake.nix edit. All
   # content-hashed, so an untouched file contributes no churn.
+  #
+  # `.just/scripts/**` is here for exactly the reason the two justfiles are: a
+  # gate body over five lines now lives in a script rather than inline
+  # (truth/tasks/extract-the-long-gate-recipe-bodies-into-scripts.typ), and a
+  # body that left the Justfile without its new home entering this scope would
+  # serve a stale cache hit — mmz would call the gate fresh against a script it
+  # never hashed. Scoped as a glob, not six paths, so the next extraction is
+  # covered by arriving; the whole directory is recipe bodies by construction.
   gates-meta:
     - "Justfile"
     - ".just/docs.just"
+    - ".just/scripts/**"
     - "flake.nix"
     - "flake.lock"
 
@@ -199,7 +208,8 @@ commands:
   # Set-differences `mt _cli --json`'s reflected command names (built binary,
   # so `rust`) against www/utils/cli-notes.typ's dict keys (`docs`) — a new
   # subcommand with no matching entry fails by name. `gates-meta` because the
-  # recipe body (the typst-query driver) lives in the Justfile.
+  # recipe body (the typst-query driver) lives in
+  # .just/scripts/check-doc-coverage.sh.
   - name: just check-doc-coverage
     tags: [gate]
     inputs: [rust, docs, gates-meta]
@@ -208,9 +218,10 @@ commands:
   # rust-toolchain.toml — `rust` — plus lib/prelude.typ/lib/typst.toml —
   # `policy` — and .linecop.yaml — `file-size-config`) then set-differences
   # crate-map.json/dsl-fields.json against the two prose dicts under
-  # www/utils/ (`docs`). `gates-meta` because the recipe body — and the
-  # gate-table shape www/generate-facts.sh's gates.json reads back out of the
-  # Justfile — lives there.
+  # www/utils/ (`docs`). `gates-meta` because the recipe body
+  # (.just/scripts/check-doc-facts.sh) — and the gate-table shape
+  # www/generate-facts.sh's gates.json reads back out of the Justfile — lives
+  # there.
   - name: just check-doc-facts
     tags: [gate]
     inputs: [rust, policy, file-size-config, docs, gates-meta]
@@ -218,8 +229,9 @@ commands:
   # Scans docs/src/**/*.typ and www/content/*.typ for a hand-typed `just
   # <recipe>` mention that skips www/generated/just.typ (`docs`) against the
   # recipe/alias names `just --dump` reflects (`gates-meta`, since the
-  # recipe body and the Justfile it dumps both live there — no `rust` input,
-  # this never touches the built binary).
+  # recipe body — .just/scripts/check-doc-recipes.sh — and the Justfile it
+  # dumps both live there — no `rust` input, this never touches the built
+  # binary).
   - name: just check-doc-recipes
     tags: [gate]
     inputs: [docs, gates-meta]
@@ -238,15 +250,17 @@ commands:
   # www/generated/{crate-map,dsl-fields,linecop-caps}.json, and those scopes
   # cover THAT json's own sources; `docs` because docs/src/** and every output
   # path it writes both sit under it. `gates-meta` because typlite is a
-  # flake.nix devShell addition and the recipe body lives in .just/docs.just.
+  # flake.nix devShell addition and the recipe body lives in
+  # .just/scripts/docs-md-check.sh.
   - name: just docs::md-check
     tags: [gate]
     inputs: [rust, policy, file-size-config, docs, gates-meta]
 
   # Formatter self-test: a deliberately-mis-formatted TOML/Typst fixture must
   # be rejected by tombi/typstyle. The formatters are dev-shell-pinned, and the
-  # recipe body (the bad-fixture literals) lives in the Justfile — so this rule
-  # only re-runs on a Justfile or toolchain-pin edit.
+  # recipe body (the bad-fixture literals) lives in
+  # .just/scripts/fmt-fixture-check.sh — so this rule only re-runs on a recipe-
+  # body or toolchain-pin edit.
   - name: just fmt-fixture-check
     tags: [gate]
     inputs: [rust, rust-fmt, gates-meta]

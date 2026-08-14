@@ -1,7 +1,9 @@
 # .just/scripts/ — the landing place for recipe bodies extracted out of the
 # just files in .just/ (truth/tasks/move-the-just-module-and-scripts-into-a-
-# dot-just-folder.typ). Empty today; this file only keeps the directory
-# tracked, since git records no empty directories.
+# dot-just-folder.typ). It held nothing but this file until
+# truth/tasks/extract-the-long-gate-recipe-bodies-into-scripts.typ moved the
+# six over-five-line gate bodies in; the file stays for the two rules below,
+# which every later arrival has to follow too.
 #
 # Two rules for a script that lands here:
 #

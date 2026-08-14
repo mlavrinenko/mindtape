@@ -107,21 +107,4 @@ md:
 [group("docs")]
 [group("gate")]
 md-check:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    tmp=$(mktemp -d)
-    trap 'rm -rf "$tmp"' EXIT
-    bash docs/generate-md.sh "$tmp"
-    drift=()
-    while IFS= read -r -d '' f; do
-        rel="${f#"$tmp"/}"
-        if [ ! -f "$rel" ] || ! diff -q "$rel" "$f" >/dev/null 2>&1; then
-            drift+=("$rel")
-        fi
-    done < <(find "$tmp" -type f -print0)
-    if [ "${#drift[@]}" -gt 0 ]; then
-        echo "docs::md-check: drifted from docs/src/ (run \`just docs::md\` to refresh):" >&2
-        for f in "${drift[@]}"; do echo "  - $f" >&2; done
-        exit 1
-    fi
-    echo "docs::md-check: $(find "$tmp" -type f | wc -l) generated file(s) match committed"
+    bash .just/scripts/docs-md-check.sh

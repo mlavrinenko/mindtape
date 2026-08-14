@@ -60,8 +60,14 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      .just/docs.just: 63a6e25be7938db31d11043e2ba03521fa59a3946263fc3f7c86e97cfe8faf9c
-      Justfile: b13c22821a1f7270040b6b9d419f9efe16a8e8d94bbd537ea12a6bc8e0f1e112
+      .just/docs.just: 0b4ee0e2a4a721f418eefffc97ba7285015b46761ea288621e4a4049eb57ea7a
+      .just/scripts/check-crap.sh: ba967e714356114753ce3bfa308acd01e6a26effe4bf77fc740a78cea06c48a8
+      .just/scripts/check-doc-coverage.sh: 8e98aabc2db776579c7693fc9e66a1d80366a2d5e382f53c32dd93ef16847ebc
+      .just/scripts/check-doc-facts.sh: addddc58a2cdb8f0d432ba8d1f2ada19957dca9e694a564ea4ea6ab20878c33a
+      .just/scripts/check-doc-recipes.sh: 8a419c4772f3c56b4b95f08d79d040497921018ed5a2b1e3d1d6c6fdca3263c2
+      .just/scripts/docs-md-check.sh: ea2bfd24e3c13b400ec87a69f6ad68589ca6f5367923b792f044c399a463e3f4
+      .just/scripts/fmt-fixture-check.sh: 1e1fa5749bf432e8ebb7546049855271d3693e4c6af0a8ee5129d9d629a63a1c
+      Justfile: 8d0717c126c3f66799b4a623c794dc4c0f95f3b39b3b484b51e26335f102b661
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c

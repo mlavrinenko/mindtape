@@ -207,15 +207,26 @@ groups:
   # six recipe bodies out of Justfile into their own file, and a body edit
   # there is exactly the kind of change this group exists to catch — a recipe
   # body moving out of the Justfile into a module file must not escape the
-  # drift gate. The same reasoning covers `.just/scripts/*.sh` as recipe bodies
-  # are extracted into them (truth/tasks/move-the-just-module-and-scripts-into-
-  # a-dot-just-folder.typ): a body extracted into a script must be listed here
-  # too, or it escapes the gate the same way.
+  # drift gate. The six scripts below are here for that same reason, one step
+  # further out (truth/tasks/extract-the-long-gate-recipe-bodies-into-
+  # scripts.typ): each is a gate body that used to sit inline in one of the two
+  # justfiles above, and a body extracted into a script escapes the gate
+  # exactly the way a body moved into a module file would. Listed one by one
+  # rather than as `.just/scripts/*.sh`, so a new script is an explicit
+  # decision to track it — the directory is recipe bodies by construction
+  # today, but a helper that no doc describes would fire this group for
+  # nothing.
   - name: dev-docs
     source:
       - flake.nix
       - Justfile
       - .just/docs.just
+      - .just/scripts/check-doc-coverage.sh
+      - .just/scripts/check-doc-facts.sh
+      - .just/scripts/check-doc-recipes.sh
+      - .just/scripts/fmt-fixture-check.sh
+      - .just/scripts/check-crap.sh
+      - .just/scripts/docs-md-check.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ
