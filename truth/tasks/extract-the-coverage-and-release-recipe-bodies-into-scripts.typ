@@ -13,7 +13,11 @@
   links: depends-on(
     "move-the-just-module-and-scripts-into-a-dot-just-folder.typ",
   ),
-  status: wip(2026, 8, 14)[wave 5, delegated],
+  status: done(
+    2026,
+    8,
+    14,
+  )[eight bodies out, Justfile 763 to 679; CRAP\_EXCLUDES stays a Justfile variable passed as arguments; release gained a MINDTAPE\_RELEASE\_CONFIRMED handshake so the extracted script cannot bypass the recipe's confirm guard. cover 0, crap 0 against a fresh lcov],
 )
 
 == Summary
