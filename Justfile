@@ -35,7 +35,7 @@ fix-check: eject fmt clippy-fix check
 [parallel]
 check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") check-crap
 
-# Wrap a just recipe in mmz: `j ust mmz fmt-check` runs `mmz just fmt-check`. The
+# Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`. The
 # double hop makes mmz the cache identity (rule name `just <recipe>` in
 # .mmz/config.yaml), uniform across every sub-gate of `just check`. `just test
 # <filter>` (a developer query, no `mmz`) bypasses this recipe and stays plain
@@ -457,6 +457,7 @@ check-rrule:
 # else with a platform seam.
 #
 # `just --list` shows only the LAST comment line of a recipe, so the summary is
+# repeated as an explicit [doc] rather than left as a dangling fragment.
 
 [doc("Cross-check the workspace against Windows (x86_64-pc-windows-gnu)")]
 [group("dev")]
