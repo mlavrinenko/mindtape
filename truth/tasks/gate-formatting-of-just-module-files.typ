@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("tooling",),
   estimate: (files: 2),
-  status: wip(2026, 8, 14)[wave 2, delegated],
+  status: done(
+    2026,
+    8,
+    14,
+  )[JUST\_FMT\_PATHS shared by fmt and fmt-check; fmt-fixture-check gained a just arm asserting both the drift failure and the reformatted success, so an unstable-refusal cannot pass it],
 )
 
 == Summary

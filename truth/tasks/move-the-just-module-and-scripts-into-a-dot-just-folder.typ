@@ -11,7 +11,7 @@
   tags: ("tooling",),
   estimate: (files: 8),
   links: depends-on("gate-formatting-of-just-module-files.typ"),
-  status: proposed(2026, 8, 14),
+  status: wip(2026, 8, 14)[wave 3, delegated],
 )
 
 == Summary
