@@ -44,7 +44,7 @@ Every generated file starts with an HTML-comment banner naming its source — in
 
 ### The freshness gate diffs a temp directory, not the working tree
 
-`just docs-md-check` regenerates every source into a fresh temp directory and diffs each file there against the committed copy at its real path — it never regenerates in place and then runs `git status`/`git diff`.
+`just docs md-check` regenerates every source into a fresh temp directory and diffs each file there against the committed copy at its real path — it never regenerates in place and then runs `git status`/`git diff`.
 
 The difference matters when the committed artifact itself is wrong — hand-edited, or left over from a stale render. Regenerating in place and diffing the result against nothing (or against the same tree it just overwrote) heals whatever was wrong before the diff ever runs, so the gate reads clean on a file that was never actually correct. Diffing a fresh temp render against the committed file cannot self-heal: whatever is wrong on disk stays wrong on disk while the comparison happens, so a hand-edit or a stale render fails the gate by name, every time.
 

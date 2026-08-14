@@ -102,12 +102,12 @@
 // Read one of www/generate-facts.sh's derived facts by name (e.g.
 // "crate-map"), so every source reads the same root-relative path instead of
 // retyping it. docs/generate-md.sh always runs `www/generate-facts.sh` before
-// rendering any source, so this never depends on a prior `just docs-gen`.
+// rendering any source, so this never depends on a prior `just docs::gen`.
 #let fact(name) = json("/www/generated/" + name + ".json")
 
 // Re-export www/generated/just.typ (www/generate-facts.sh) so a source
 // writes `#import "lib.typ": fact, just` and then `#just.check()` instead of
-// hand-typing a recipe name — a rename fails `just docs-md` naming the
+// hand-typing a recipe name — a rename fails `just docs::md` naming the
 // missing member instead of rotting silently. www/content/*.typ sources are
 // a different render path (tola, not typlite) and import
 // "/www/generated/just.typ" directly instead of through this file.

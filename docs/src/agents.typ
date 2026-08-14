@@ -70,7 +70,7 @@ Before writing about a feature, check whether the answer is already one of:
 // www/utils/crate-notes.typ's paragraph-length blurbs, which back
 // www/content/internals.typ's deep dive instead. `.at(...)` on a missing key
 // panics, so an eighth substrate crate (or a new workspace member) with no
-// entry here fails `just docs-md` loudly instead of rendering silently thin.
+// entry here fails `just docs::md` loudly instead of rendering silently thin.
 #let workspace = fact("crate-map").at("workspace")
 #let workspace-roles = (
   "mindtape": [domain library: config, task model, filter language,

@@ -10,7 +10,7 @@
 // prose has no machine source, so it stays hand-written in
 // `www/utils/gate-notes.typ` — the same `www/utils/*-notes.typ` house
 // pattern as `crate-notes.typ`, `dsl-field-notes.typ` and `cli-notes.typ` —
-// keyed by gate name via `.at()`. A gate missing there fails `just docs-md`
+// keyed by gate name via `.at()`. A gate missing there fails `just docs::md`
 // naming it, and one removed from `just check` drops out on its own.
 // `.linecop.yaml`'s caps land in `www/generated/linecop-caps.json` too, but
 // this file quotes no literal cap to derive from it. `gates.json` also

@@ -36,10 +36,10 @@ jobs:
           purge-primary-key: never
 
       # tola comes from the same flake dev shell used locally, so CI matches
-      # `just docs-check`. Output lands in www/public/mindtape (the /mindtape
+      # `just docs::check`. Output lands in www/public/mindtape (the /mindtape
       # path prefix from tola.toml's url).
       - name: Build and validate docs
-        run: nix develop --command just docs-check
+        run: nix develop --command just docs::check
 
       # tola writes a CNAME from the url host; a project page has no custom
       # domain, so drop it before publishing.

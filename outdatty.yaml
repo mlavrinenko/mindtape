@@ -72,7 +72,7 @@ groups:
       - www/content/templates.typ
       - www/utils/cli-notes.typ
       - docs/src/skill.typ
-      # SKILL.md (generated from docs/src/skill.typ; just docs-md) sheds
+      # SKILL.md (generated from docs/src/skill.typ; just docs::md) sheds
       # `mt add` slot detail here (progressive disclosure, per the
       # .linecop.yaml note). The content is still CLI surface, so it has to
       # stay a tracked dependent — shedding it must not shed the drift gate.
@@ -95,7 +95,7 @@ groups:
   # pattern as SKILL.md below); dsl.typ stays the detailed reference the
   # others defer to.
   # AGENTS.md, README.md, and skills/mindtape/SKILL.md are all generated
-  # (typlite; `just docs-md` —
+  # (typlite; `just docs::md` —
   # truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ), so the
   # sources, not the rendered files, are the dependents to reconcile. Their DSL
   # snippets and field-shape prose are still hand-restated here, not derived:
@@ -125,7 +125,7 @@ groups:
   # source), and docs/src/skill.typ (SKILL.md's source) are NOT dependents:
   # each reads its `@local/mindtape:...` snippet version from
   # `www/generated/crate-map.json`'s `typst-lib.version` (itself derived from
-  # this same lib/typst.toml), so a bump propagates through `just docs-md`
+  # this same lib/typst.toml), so a bump propagates through `just docs::md`
   # with no human reconciliation — the point of deriving it in the first
   # place. A derived fact needs no drift gate. docs/src/contributing.typ
   # (CONTRIBUTING.md's source) never hand-typed this version at all — it only
@@ -183,7 +183,7 @@ groups:
   # docs/src/contributing.typ (not CONTRIBUTING.md): its Quality Gates table
   # now reads `gates.json` for the sub-gate list and row order, so a gate
   # added to or removed from `just check` no longer needs a dev-docs
-  # reconcile — it fails `just docs-md` (missing Tool prose) or drops off the
+  # reconcile — it fails `just docs::md` (missing Tool prose) or drops off the
   # table on its own instead. What still makes docs/src/contributing.typ a
   # dependent here is everything else it restates by hand: `just check-full`,
   # `just cover`/`just crap` and their thresholds, `just nix-build`, `just
@@ -201,10 +201,18 @@ groups:
   # `just check` itself declares, and every recipe these five discuss is
   # deliberately NOT one of those — so a renamed or re-flagged recipe
   # silently rots them.
+  #
+  # docs.just is a source alongside Justfile, not just Justfile alone: the
+  # `docs` module (truth/tasks/split-the-justfile-into-modules.typ) moved six
+  # recipe bodies out of Justfile into their own file, and a body edit there
+  # is exactly the kind of change this group exists to catch — a recipe body
+  # moving out of the Justfile into a module file must not escape the drift
+  # gate.
   - name: dev-docs
     source:
       - flake.nix
       - Justfile
+      - docs.just
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ

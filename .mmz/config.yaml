@@ -103,7 +103,7 @@ scopes:
     - "examples/learn-piano/**"
     - "examples/minimal/**"
 
-  # The docs tree `just docs-check` builds and validates (tola + pagefind +
+  # The docs tree `just docs::check` builds and validates (tola + pagefind +
   # validate) plus the mirrored docs whose drift outdatty gates. `docs/**`
   # covers the frozen decisions and redesign subdirs too — harmless over-scope.
   docs:
@@ -119,14 +119,17 @@ scopes:
     # quickstart install targets baked into the built docs.
     - ".github/workflows/release.yml"
 
-  # Shared by every rule: the recipe bodies (Justfile) and the dev-shell they all
-  # run in (flake.nix/flake.lock). Every formatter, linter and cargo tool comes
-  # from that shell, so a toolchain or tool-set bump must re-run every gate,
+  # Shared by every rule: the recipe bodies (Justfile, and docs.just — the
+  # `docs` module Justfile splits recipe bodies into, per truth/tasks/split-
+  # the-justfile-into-modules.typ) and the dev-shell they all run in
+  # (flake.nix/flake.lock). Every formatter, linter and cargo tool comes from
+  # that shell, so a toolchain or tool-set bump must re-run every gate,
   # machete included — and flake.nix is an outdatty `dev-docs` source, so keeping
   # it here stops `outdatty-check` reporting fresh after a flake.nix edit. All
   # content-hashed, so an untouched file contributes no churn.
   gates-meta:
     - "Justfile"
+    - "docs.just"
     - "flake.nix"
     - "flake.lock"
 
@@ -221,10 +224,10 @@ commands:
     tags: [gate]
     inputs: [docs, gates-meta]
 
-  # docs-gen shells out to the built `mt` binary (rust) and reads the docs
+  # docs::gen shells out to the built `mt` binary (rust) and reads the docs
   # tree + the learn-piano fixture (examples) + the project policy/prelude
   # (the generated CLI transcripts reference `mt`'s config-driven output).
-  - name: just docs-check
+  - name: just docs::check
     tags: [gate]
     inputs: [rust, policy, examples, docs, gates-meta]
 
@@ -235,8 +238,8 @@ commands:
   # www/generated/{crate-map,dsl-fields,linecop-caps}.json, and those scopes
   # cover THAT json's own sources; `docs` because docs/src/** and every output
   # path it writes both sit under it. `gates-meta` because typlite is a
-  # flake.nix devShell addition and the recipe body lives in the Justfile.
-  - name: just docs-md-check
+  # flake.nix devShell addition and the recipe body lives in docs.just.
+  - name: just docs::md-check
     tags: [gate]
     inputs: [rust, policy, file-size-config, docs, gates-meta]
 

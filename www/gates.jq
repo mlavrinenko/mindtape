@@ -5,18 +5,50 @@
 # `contrib/jq/*.jq` already uses for the import cookbook.
 #
 # Gate membership + row order both come from the Justfile: every gate recipe
-# carries `[group("gate")]` (truth/tasks/tag-just-recipes-with-groups.typ),
-# grouped together in the Justfile in the exact order this table should read.
+# carries `[group("gate")]` (truth/tasks/tag-just-recipes-with-groups.typ).
 # The JSON dump sorts recipes alphabetically and carries no source order, so
-# `just --summary --unsorted` (source order, passed in as $order) is the
-# ordering key instead.
+# row order is read back from `check`'s own dependency list instead — see the
+# "row order" paragraph below for why that changed from the prior derivation.
 #
-# Still cross-checked against `check`'s own (mmz-unwrapped) dependency list —
-# the old derivation got membership-equals-dependencies for free by
-# construction, and losing that silently would let a recipe carry
+# Cross-checked against that same (mmz-unwrapped) dependency list for
+# membership — the old derivation got membership-equals-dependencies for free
+# by construction, and losing that silently would let a recipe carry
 # `[group("gate")]` without actually gating anything, or gate something with
 # no `[group("gate")]` tag to show for it. Disagreement fails here, naming
 # both sides of the mismatch, rather than downstream in check-doc-facts.
+#
+# A gate can live in a module now (truth/tasks/split-the-justfile-into-
+# modules.typ), so recipe collection walks `.modules` recursively (all_recipes
+# below) instead of reading `.recipes` alone — a module recipe not walked here
+# would silently drop out of the gate table the day it moved. Every name
+# compared or rendered — $gate_group, $check_deps, and the gate's own `name`
+# field — is the MANGLED identifier (`::` joined with `-`, same function
+# www/generate-facts.sh's just.typ producer uses), never the raw `::`
+# invocation path: the gate `name` is what docs/src/contributing.typ prints
+# verbatim (`raw(g.name)`) and what www/utils/gate-notes.typ's dict is keyed
+# by, so keeping it mangled is what lets a recipe move into a module without
+# changing a byte of rendered CONTRIBUTING.md. `check`'s dependency list
+# carries the raw `::` form instead (it is a literal invocation string, e.g.
+# `docs::check` passed to `mmz`), so it is mangled here too before use.
+#
+# Row order: this used to read `just --summary --unsorted` (source order,
+# passed in as $order by www/generate-facts.sh) — truth/tasks/tag-just-
+# recipes-with-groups.typ, "make the Justfile the single source of both
+# membership and order". A module recipe breaks that: verified on just 1.46,
+# `--summary --unsorted` always lists EVERY top-level recipe first and appends
+# module recipes after, in each module's own declaration order, regardless of
+# where the `mod` statement sits among the top-level recipes. docs::check and
+# docs::md-check would have jumped from between check-doc-recipes and
+# fmt-fixture-check (their pre-split neighbors) to the very end of the table —
+# a rendered CONTRIBUTING.md diff with no doc source touched. `check`'s own
+# dependency list does not have this problem: it is one literal argument list
+# the split already had to touch by hand (mmz's string argument, renamed in
+# place, never reordered), so its textual order survives a recipe moving
+# module exactly as well as it survives one changing group. It was already
+# required to equal $gate_group as a set; reading row order from the same
+# list makes the `check` line the one place that changes reorder the table,
+# instead of two places (that line for membership, physical recipe position
+# for order) that discipline alone kept in sync.
 #
 # Each gate also carries a derived `command`: the recipe's own `.body` when
 # it is a single non-shebang line short enough to sit in a table cell, else
@@ -52,21 +84,35 @@ def gate_command:
     | if ($line | length) > 160 then null else $line end
   end;
 
-([.recipes | to_entries[]
-  | select(.value.attributes // [] | any(.group? == "gate"))
-  | .key] | sort) as $gate_group
+# Every recipe object, top-level and module, flattened. Each recipe already
+# carries its own fully-qualified `namepath` (just's own dump computes it,
+# e.g. a `docs` module's `check` recipe reports "docs::check"), so no prefix
+# bookkeeping is needed here — just walk `.modules` recursively and collect.
+def all_recipes:
+  ((.recipes // {}) | to_entries | map(.value))
+  + ((.modules // {}) | to_entries | map(.value) | map(all_recipes) | add // []);
+
+def mangle: gsub("::"; "-");
+
+(all_recipes) as $recipes
+| ($recipes | map({key: (.namepath | mangle), value: .}) | from_entries) as $by_mangled
+| ($recipes
+    | map(select(.attributes // [] | any(.group? == "gate")))
+    | map(.namepath | mangle) | sort) as $gate_group
 | ([.recipes.check.dependencies[]
-    | if .recipe == "mmz" then .arguments[0] else .recipe end] | sort) as $check_deps
+    | if .recipe == "mmz" then .arguments[0] else .recipe end
+    | mangle]) as $check_deps_ordered
+| ($check_deps_ordered | sort) as $check_deps
 | if $gate_group != $check_deps then
     ("gate group and check dependencies disagree:\n"
       + "  only in [group(\"gate\")]: " + (($gate_group - $check_deps) | join(", ")) + "\n"
       + "  only in check dependencies: " + (($check_deps - $gate_group) | join(", ")))
     | halt_error(1)
   else
-    ($order | map(select(. as $n | $gate_group | index($n) != null))) as $names
+    ($check_deps_ordered) as $names
     | {
         gates: [$names[] as $n
-          | .recipes[$n] as $r
+          | $by_mangled[$n] as $r
           | {name: $n, doc: $r.doc, command: ($r | gate_command)}],
         assignments: (.assignments
           | with_entries(select(.key

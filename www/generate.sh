@@ -12,7 +12,7 @@
 # "wrote <path>") are path-normalized to a project-relative form — the only
 # post-processing; the transcript content is otherwise the binary's stdout.
 #
-# `just docs-gen` invokes this; docs-build / docs-serve / docs-check run it first.
+# `just docs::gen` invokes this; docs::build / docs::serve / docs::check run it first.
 #
 # One capture is not an `mt` transcript: release-targets.json reads
 # .github/workflows/release.yml (the build-matrix targets and the
@@ -30,7 +30,7 @@
 #     Keep any new build-time image on the read() path, not a bare `image(path)`.
 #   - `tola serve` caches its file index at startup: a brand-new generated/ file
 #     is not found by an already-running serve (pre-existing files read fine).
-#     Restart serve (`just docs-serve`) after adding a capture here; `tola build`
+#     Restart serve (`just docs::serve`) after adding a capture here; `tola build`
 #     (the gate path) always re-scans and is unaffected.
 set -eo pipefail
 
@@ -45,8 +45,8 @@ MT="$REPO/target/release/mt"
 
 # Serialize every writer of www/generated/ (see www/generate-facts.sh for the
 # other one). `just check` is [parallel] and three of its arms touch this
-# directory: docs-check runs this script, while check-doc-facts and
-# docs-md-check regenerate the facts inside it. The `rm -rf` below would then
+# directory: docs::check runs this script, while check-doc-facts and
+# docs::md-check regenerate the facts inside it. The `rm -rf` below would then
 # delete the facts out from under a concurrent reader — an intermittent
 # "file not found (searched at www/generated/crate-map.json)" on work that is
 # perfectly correct (truth/tasks/stop-the-generated-docs-writers-racing-under-
@@ -250,7 +250,7 @@ rsvg-convert -w 180 -h 180 "$LOGO" -o "$SCRIPT_DIR/assets/images/apple-touch-ico
 # Restore the derived facts inside the same critical section that deleted
 # them. Splitting the wipe and the restore across two lock acquisitions would
 # leave a window where www/generated/ exists with no facts in it, which is the
-# exact state a concurrent reader must never see. `just docs-gen` still calls
+# exact state a concurrent reader must never see. `just docs::gen` still calls
 # generate-facts.sh after this script — that run is idempotent and locked, and
 # it keeps the recipe honest about what it produces.
 bash "$SCRIPT_DIR/generate-facts.sh"
