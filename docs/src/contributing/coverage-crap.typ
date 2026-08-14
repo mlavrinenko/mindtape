@@ -5,8 +5,11 @@
 //
 // Content-preserving port of the hand-written coverage-crap.md. Nothing here
 // is derived: the 90%-lines floor and the 30 CRAP threshold are literal
-// flags on the `cover`/`crap` Justfile recipes (`--fail-under-lines 90`,
-// `--threshold 30`), not values any of www/generate-facts.sh's four
+// flags in the `cover`/`crap` recipe bodies (`--fail-under-lines 90`,
+// `--threshold 30`), which since
+// truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ
+// live in .just/scripts/cover.sh and .just/scripts/crap.sh rather than inline
+// in the Justfile — not values any of www/generate-facts.sh's four
 // artifacts carries — `gates.json` only reflects recipes that are `just
 // check` dependencies, and neither `cover` nor `crap` is one (both run
 // outside it, on purpose; see the prose below).
@@ -39,12 +42,13 @@ separately, under the `rrule` feature.
 
 = Why it throws the previous run away
 
-The recipe starts with `cargo llvm-cov clean --workspace`, so it always pays a
+#just.cover() starts with `cargo llvm-cov clean --workspace` — in
+`.just/scripts/cover.sh`, where the recipe's body lives — so it always pays a
 full instrumented rebuild (\~1 min). Without that, `report` unions every
 profraw and object file left since the last `cargo clean` — other feature
 sets, other commits — and reports coverage this source cannot produce. It
 inflated `crap-baseline.json` once already. Never trade that line for speed.
-The recipe's comment carries the measurement.
+The comment above the recipe in the `Justfile` carries the measurement.
 
 = The CRAP threshold, and why it is not the whole gate
 

@@ -14,7 +14,7 @@ The recipe writes `target/coverage/lcov.info` for `just crap` and fails under 90
 
 ## Why it throws the previous run away
 
-The recipe starts with `cargo llvm-cov clean --workspace`, so it always pays a full instrumented rebuild (~1 min). Without that, `report` unions every profraw and object file left since the last `cargo clean` — other feature sets, other commits — and reports coverage this source cannot produce. It inflated `crap-baseline.json` once already. Never trade that line for speed. The recipe’s comment carries the measurement.
+`just cover` starts with `cargo llvm-cov clean --workspace` — in `.just/scripts/cover.sh`, where the recipe’s body lives — so it always pays a full instrumented rebuild (~1 min). Without that, `report` unions every profraw and object file left since the last `cargo clean` — other feature sets, other commits — and reports coverage this source cannot produce. It inflated `crap-baseline.json` once already. Never trade that line for speed. The comment above the recipe in the `Justfile` carries the measurement.
 
 ## The CRAP threshold, and why it is not the whole gate
 

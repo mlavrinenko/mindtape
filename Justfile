@@ -369,15 +369,7 @@ build *args:
 [doc("Run coverage with cargo-llvm-cov")]
 [group("advisory")]
 cover:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    ignore='crates/mindtape-cli/src/main\.rs|/registry/src/'
-    mkdir -p target/coverage
-    cargo llvm-cov clean --workspace
-    cargo llvm-cov --workspace --no-report
-    cargo llvm-cov report --ignore-filename-regex "$ignore" \
-        --lcov --output-path target/coverage/lcov.info
-    cargo llvm-cov report --ignore-filename-regex "$ignore" --fail-under-lines 90
+    bash .just/scripts/cover.sh
 
 # Gate complex, undertested functions via CRAP metric, over the lcov `just
 # cover` writes.
@@ -446,17 +438,7 @@ cover:
 [doc("Print why the lcov is stale, or nothing if fresh")]
 [private]
 _lcov-stale-reason:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    lcov=target/coverage/lcov.info
-    if [ ! -f "$lcov" ]; then
-        echo "$lcov is missing"
-        exit 0
-    fi
-    newer=$(find crates -name '*.rs' -newer "$lcov" -print -quit)
-    if [ -n "$newer" ]; then
-        echo "$lcov predates $newer"
-    fi
+    bash .just/scripts/_lcov-stale-reason.sh
 
 # `just check` plus the two gates it cannot afford to run every time. This is
 # the pre-PR run: it is always correct about coverage and CRAP, at the price of
@@ -488,34 +470,7 @@ _crap-excludes:
 [doc("Gate complex, undertested functions via the CRAP metric")]
 [group("advisory")]
 crap:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    lcov=target/coverage/lcov.info
-    reason=$(just _lcov-stale-reason)
-    if [ -n "$reason" ]; then
-        echo "just crap: $reason — run \`just cover\` first" >&2
-        echo "  (a source the lcov never saw scores as 0% covered, not as unknown)" >&2
-        exit 1
-    fi
-    # Two checks, run separately so each failure prints its own readable table.
-    # Folding them into one invocation does not work: `--min 30` is a PRINT
-    # filter, so a regression from 5 to 12 would fail the gate with no visible
-    # row, and baseline mode hides unchanged rows, so a function sitting above
-    # the threshold without moving would fail with no visible row either. Each
-    # mode needs the other's rows suppressed to stay legible.
-    #
-    # 1. Absolute: no function above 30, whatever its history.
-    cargo crap --lcov "$lcov" --workspace {{ CRAP_EXCLUDES }} \
-        --threshold 30 --min 30 --fail-above --format markdown
-    # 2. Ratchet: no function worse than the committed baseline, at any level.
-    # This is the half that sees the 12 complex-and-undertested functions scoring
-    # below 15 that no advisory band could separate from noise
-    # (truth/tasks/sweep-crap-scores-into-tasks.typ measured why). It never reads
-    # the absolute score, only the delta, so the degeneracy that killed the band
-    # — CRAP collapsing to cyclomatic complexity above ~90% coverage — does not
-    # apply: a rise still means complexity went up or coverage went down.
-    cargo crap --lcov "$lcov" --workspace {{ CRAP_EXCLUDES }} \
-        --baseline crap-baseline.json --fail-regression --format markdown
+    bash .just/scripts/crap.sh {{ CRAP_EXCLUDES }}
 
 # Re-mint crap-baseline.json after a DELIBERATE complexity increase. Run it in
 # the same commit as the change that justifies it, so the diff shows the new
@@ -544,11 +499,7 @@ crap:
 [doc("Re-mint crap-baseline.json after a deliberate complexity increase")]
 [group("advisory")]
 crap-baseline: crap
-    #!/usr/bin/env bash
-    set -eo pipefail
-    cargo crap --lcov target/coverage/lcov.info --workspace {{ CRAP_EXCLUDES }} \
-        --format json --sort file --output crap-baseline.json
-    echo "crap-baseline.json re-minted — commit it with the change that justifies it"
+    bash .just/scripts/crap-baseline.sh {{ CRAP_EXCLUDES }}
 
 # Pre-PR mutation check — the daily driver (see CONTRIBUTING.md "Testing").
 # Sweeps only mutants touched by this branch's diff against main, so it needs
@@ -562,14 +513,7 @@ crap-baseline: crap
 [doc("Run mutation testing over this branch's diff against main")]
 [group("advisory")]
 mutants-diff *ARGS:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    export CARGO_MUTANTS_JOBS="${CARGO_MUTANTS_JOBS:-3}"
-    export RUSTFLAGS="${RUSTFLAGS:-} -Clink-arg=-fuse-ld=mold"
-    diff_file=$(mktemp)
-    trap 'rm -f "$diff_file"' EXIT
-    git diff "$(git merge-base main HEAD)" > "$diff_file"
-    cargo mutants --in-diff "$diff_file" {{ ARGS }}
+    bash .just/scripts/mutants-diff.sh {{ ARGS }}
 
 # Deliberate full-file sweep — a dev aid, never a `just check` gate (see
 # CONTRIBUTING.md "Testing"). `-f <file>` forces one file; any other args pass
@@ -603,11 +547,7 @@ mutants-diff *ARGS:
 [doc("Run a full-file mutation testing sweep")]
 [group("advisory")]
 mutants *ARGS:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    export CARGO_MUTANTS_JOBS="${CARGO_MUTANTS_JOBS:-3}"
-    export RUSTFLAGS="${RUSTFLAGS:-} -Clink-arg=-fuse-ld=mold"
-    cargo mutants {{ ARGS }}
+    bash .just/scripts/mutants.sh {{ ARGS }}
 
 # What the non-Rust formatters cover. One list each, read by both `fmt` and
 # `fmt-check`, because two hand-maintained copies drift: `.mindtape/templates`
@@ -700,16 +640,7 @@ ask-refactoring *ARGS:
 [doc("Install the mindtape Typst library for local #import (dev symlink)")]
 [group("dev")]
 install-lib:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)
-    TARGET="$HOME/.local/share/typst/packages/local/mindtape"
-    mkdir -p "$TARGET"
-    # Drop any prior install first: `ln -sfn` into an existing *directory*
-    # places the link inside it, leaving a stale copy that tinymist reads.
-    rm -rf "$TARGET/$VERSION"
-    ln -sfn "$(pwd)/lib" "$TARGET/$VERSION"
-    echo "linked lib -> $TARGET/$VERSION (use @local/mindtape:$VERSION)"
+    bash .just/scripts/install-lib.sh
 
 [doc("Remove the dev symlink installed by install-lib")]
 [group("dev")]
@@ -735,29 +666,14 @@ install-hooks:
 # dirty worktree, and while CHANGELOG.md has an [Unreleased] section with
 # content — move it into a dated [VERSION] section first. Pushes main before
 # the tag so the docs site (pages.yml) and CI run on the release tree.
+#
+# The MINDTAPE_RELEASE_CONFIRMED prefix is how the [confirm] guard survives the
+# body living in a script: `just` can only enforce the prompt on the recipe, so
+# the script refuses to run without the variable this line sets, and nothing
+# else sets it. Argued in full in .just/scripts/release.sh.
 
 [confirm("Tag and push a release to origin — proceed?")]
 [doc("Tag a release and push")]
 [group("release")]
 release VERSION:
-    #!/usr/bin/env bash
-    set -eo pipefail
-    cargo_version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
-    if [ "{{ VERSION }}" != "$cargo_version" ]; then
-        echo "error: requested v{{ VERSION }} but Cargo.toml is $cargo_version; bump Cargo.toml first" >&2
-        exit 1
-    fi
-    if [ -n "$(git status --porcelain)" ]; then
-        echo "error: working tree is dirty; commit or stash before releasing" >&2
-        exit 1
-    fi
-    unreleased=$(sed -n '/^## \[Unreleased\]/,/^## \[/p' CHANGELOG.md | sed '1d;$d' | sed '/^[[:space:]]*$/d')
-    if [ -n "$unreleased" ]; then
-        echo "error: CHANGELOG.md has a non-empty [Unreleased] section; move it into a dated [{{ VERSION }}] section before releasing" >&2
-        exit 1
-    fi
-    just check
-    just nix-build
-    git push origin main
-    git tag -a "v{{ VERSION }}" -m "v{{ VERSION }}"
-    git push origin "v{{ VERSION }}"
+    MINDTAPE_RELEASE_CONFIRMED=1 bash .just/scripts/release.sh "{{ VERSION }}"

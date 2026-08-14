@@ -61,18 +61,26 @@ groups:
   dev-docs:
     source:
       .just/docs.just: 0b4ee0e2a4a721f418eefffc97ba7285015b46761ea288621e4a4049eb57ea7a
+      .just/scripts/_lcov-stale-reason.sh: 429afd24fb8ddea7b15a9b19ded939cf2bd703c5e059d3f23783de596462e816
       .just/scripts/check-crap.sh: ba967e714356114753ce3bfa308acd01e6a26effe4bf77fc740a78cea06c48a8
       .just/scripts/check-doc-coverage.sh: 8e98aabc2db776579c7693fc9e66a1d80366a2d5e382f53c32dd93ef16847ebc
       .just/scripts/check-doc-facts.sh: addddc58a2cdb8f0d432ba8d1f2ada19957dca9e694a564ea4ea6ab20878c33a
       .just/scripts/check-doc-recipes.sh: 8a419c4772f3c56b4b95f08d79d040497921018ed5a2b1e3d1d6c6fdca3263c2
+      .just/scripts/cover.sh: c49cb460a7c8da0774d752ed5a7dc8f735598a13bef785abcf618356d5806de5
+      .just/scripts/crap-baseline.sh: 12366c322b9464f05636b41b4d2f1bd763f9f8c0e0064ce3a852f8499b75799a
+      .just/scripts/crap.sh: e1313a68df5ef986d0309a31ffa415c21f83e9516cfd43c3fe9af9bf5c936a63
       .just/scripts/docs-md-check.sh: ea2bfd24e3c13b400ec87a69f6ad68589ca6f5367923b792f044c399a463e3f4
       .just/scripts/fmt-fixture-check.sh: 1e1fa5749bf432e8ebb7546049855271d3693e4c6af0a8ee5129d9d629a63a1c
-      Justfile: 8d0717c126c3f66799b4a623c794dc4c0f95f3b39b3b484b51e26335f102b661
+      .just/scripts/install-lib.sh: 8f29309c2fc631714e9745fea471766c15f086caa8bb5ffd8d69ff28329792c6
+      .just/scripts/mutants-diff.sh: 3261a22d8e82723dadfb2eed104c2b115b1a62967979cd7b641ffcd037944688
+      .just/scripts/mutants.sh: c2ea0a701f8bcc3042b33f64a68fe153856871de44a4f5afcf5a385b5781667c
+      .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
+      Justfile: 0c33d8a775846a3e515c09c198fa96bc97bf26470d12349f6f1570fb011c6db4
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
       docs/src/contributing.typ: 94bf26624cde75279ffaf83fb15d1d3ce86cc78da5edcfdddd77d86471f2d082
-      docs/src/contributing/coverage-crap.typ: ee43f5d83a4bc5021be02d54e8ab076d82f736329e12180aaa5815bcb9397686
+      docs/src/contributing/coverage-crap.typ: bf2a2c16be8b55655e99c836d2bde9fe959c6cc2bf3cf60261cd4612576d0165
       docs/src/contributing/gates.typ: d3fdbd910573265fa30c65459d945be9801b83f1f88a4744c2582c92472e09c5
       docs/src/contributing/mutation-testing.typ: 331f23a967453950362f284e357f47cef8c51aaf34b4d28cf1aab469e04d5486
       docs/src/contributing/signal-sweep.typ: 12fb58c8f6e7991367a4d959e3f1acca123bb070bb1eba528748b6daed1a3c12
