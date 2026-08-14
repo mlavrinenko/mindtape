@@ -13,7 +13,11 @@
   links: depends-on(
     "move-the-just-module-and-scripts-into-a-dot-just-folder.typ",
   ),
-  status: wip(2026, 8, 14)[wave 4, delegated],
+  status: done(
+    2026,
+    8,
+    14,
+  )[six bodies out, Justfile 949 to 763; gate\_command suppresses bare script invocations so CONTRIBUTING.md is byte-identical; each gate proven to still fail on the violation it exists to catch. Size-gate rationale turned out void — see restore-size-gate-coverage-over-the-dot-just-scripts],
 )
 
 == Summary

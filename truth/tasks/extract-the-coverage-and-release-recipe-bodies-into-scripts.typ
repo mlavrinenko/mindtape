@@ -13,7 +13,7 @@
   links: depends-on(
     "move-the-just-module-and-scripts-into-a-dot-just-folder.typ",
   ),
-  status: proposed(2026, 8, 14),
+  status: wip(2026, 8, 14)[wave 5, delegated],
 )
 
 == Summary
