@@ -239,17 +239,12 @@ check-rrule:
 
 # Cross-check the workspace, tests included, against Windows without leaving
 # Linux — the compile half of what the CI windows job proves at runtime, minutes
-# earlier and without pushing. Runs in its own dev shell (flake.nix
-# `devShells.windows`) because the default shell's rustc has no Windows std;
-# see that shell's comment for why the target is -gnu and the release is -msvc.
-#
-# Deliberately not a `just check` arm: it pulls a second toolchain closure and
-# a separate target/ tree, and CI already covers the regression. Reach for it
-# when touching a `cfg(windows)` arm, a process spawn, a path join, or anything
-# else with a platform seam.
-#
-# `just --list` shows only the LAST comment line of a recipe, so the summary is
-# repeated as an explicit [doc] rather than left as a dangling fragment.
+# earlier and without pushing. Reach for it when touching a `cfg(windows)` arm,
+# a process spawn, a path join, or anything else with a platform seam. Runs in
+# its own dev shell (flake.nix `devShells.windows`); see that shell's comment
+# for why the target is -gnu and the release is -msvc, and
+# docs/contributing/windows.md for why this is deliberately not a `just check`
+# arm.
 
 [doc("Cross-check the workspace against Windows (x86_64-pc-windows-gnu)")]
 [group("dev")]
@@ -450,44 +445,16 @@ eject PCT='90':
 # template, not a config change.
 #
 # Dry by default: it prints, via `mt add --print`, the exact tasks it would
-# file; `--write` files them. Each arm carries its OWN threshold — never one
-# flag shared across arms, which would read as one band and move two — and the
-# undertested arm's pair is a conjunction, so it is two edges rather than one
-# number: a function has to be BOTH complex enough and undertested enough. The
-# `--baseline` and `--coverage-floor` bands belong to different arms and are
-# argued separately, at their own arm's scoring function. The mutants arm has
-# no threshold at all: it reads what `just mutants-diff` last wrote, and skips
-# loudly when that is missing or stale rather than run a sweep that takes hours.
+# file; `--write` files them. It refuses to run while `mt ls @ask-refactoring`
+# is non-empty, so one sprint of mechanical work is emptied before the next is
+# filed. The five parameters below are the only copy of their defaults, and the
+# reason each arm carries its own threshold is in
+# docs/contributing/signal-sweep.md.
 #
-# The five parameters below ARE that interface, and the only copy of it. They
-# used to be a comment here and a parse loop with its own defaults in
-# contrib/ask-refactoring.sh — nothing rendered them, `just --list` showed none
-# of them, and the two copies could disagree without anything noticing
-# (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ).
-# Declared as parameters with `[arg(...)]`, they reach `just --dump` in full, so
-# `just --usage ask-refactoring` renders the flags at the terminal and
-# www/generated/sweep-flags.json carries them into
-# docs/contributing/signal-sweep.md's table — derived, never retyped. The script
-# now REQUIRES all five and defaults nothing, so the defaults exist here alone.
-#
-# This is deliberately no longer a passthrough recipe. It carried
-# `[positional-arguments]` and forwarded "$@" while the script did the parsing
-# (truth/tasks/preserve-argument-quoting-with-positional-arguments.typ), so
-# `just positional-args-check` no longer names it — that gate's own subject is a
-# recipe taking a passthrough `*ARGS`, and this one takes five pattern-checked
-# scalars instead. The quoting property the attribute bought is bought twice
-# over now: a value that could be word-split or globbed cannot pass DISPATCH
-# (every pattern below is digits only), and the body forwards EXPORTED
-# parameters through quoted `"$VAR"` expansions rather than interpolating
-# `{{ }}` into a command line. `just arg-pattern-check` locks the patterns.
-#
-# It refuses to run while `mt ls @ask-refactoring` is non-empty, so one sprint
-# of mechanical work is emptied before the next is filed.
-#
-# Deliberately NOT an `mmz` arm and not part of `just check`: memoizing it would
-# defeat the point (it must re-observe the tree every run), and a signal that
-# already blocks a commit — jscpd, outdatty, machete, clippy — must never file a
-# task, because the wall is already in front of you.
+# Deliberately no longer a passthrough recipe: its five pattern-checked scalars
+# replaced `[positional-arguments]`, which is why `just positional-args-check`
+# no longer names it and `just arg-pattern-check` does — argued in place in
+# .just/scripts/positional-args-check.sh.
 
 [arg('COVERAGE_FLOOR', long='coverage-floor', pattern='(100|[1-9]?[0-9])', help='coverage arm: report files below PCT% line coverage')]
 [arg('WRITE', long='write', pattern='[01]', value='1', help='file the tasks instead of printing what would be filed')]
@@ -532,9 +499,7 @@ install-hooks:
 # the tag so the docs site (pages.yml) and CI run on the release tree.
 #
 # The MINDTAPE_RELEASE_CONFIRMED prefix is how the [confirm] guard survives the
-# body living in a script: `just` can only enforce the prompt on the recipe, so
-# the script refuses to run without the variable this line sets, and nothing
-# else sets it. Argued in full in .just/scripts/release.sh.
+# body living in a script — argued in full in .just/scripts/release.sh.
 
 [arg('VERSION', pattern='\d+\.\d+\.\d+', help='semver, no leading v (e.g. 0.3.0)')]
 [confirm("Tag and push a release to origin — proceed?")]

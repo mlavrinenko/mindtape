@@ -57,7 +57,12 @@ Every row above is read out of the `ask-refactoring` recipe's own
 `[arg(...)]` parameters, so the defaults exist in the Justfile and nowhere
 else — `contrib/ask-refactoring.sh` requires all five and defaults nothing.
 just's own `--usage` flag prints the same five at the terminal, from the same
-data.
+data. That is a change rather than how it always was: the five used to be a
+paragraph of Justfile comment plus a parse loop with its own defaults in
+`contrib/ask-refactoring.sh`, so nothing rendered them, the `--list` output
+showed none of them, and the two copies could disagree without anything
+noticing
+(`truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ`).
 #if fixed-value.len() > 0 [
   #for f in fixed-value [
     #raw("--" + f.long) takes no argument of its own: passing it sets
@@ -110,6 +115,10 @@ Six rules the design turns on, in the order they matter:
 - The remedy is the refactorer's call. Every arm offers two correct answers —
   do the work, or write the override saying why not — and each template
   names its own pair. The signal pushes back on drift, never on accuracy.
+
+It is deliberately not an `mmz` arm and not part of #just.check() either.
+Memoizing it would defeat the point: it has to re-observe the tree every run,
+and a cache hit is the one answer it must never give.
 
 The re-run guard is `[views.ask-refactoring]` in `.mindtape/config.toml`
 (`has_tag("swept") && !terminal`). While anything the sweep filed is still
