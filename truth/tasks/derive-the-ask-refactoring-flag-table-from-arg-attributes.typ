@@ -11,7 +11,11 @@
   tags: ("tooling",),
   estimate: (files: 14),
   links: depends-on("validate-recipe-arguments-with-the-arg-attribute.typ"),
-  status: wip(2026, 8, 14)[wave 8, delegated],
+  status: wip(
+    2026,
+    8,
+    15,
+  )[partial work preserved on branch ask-refactoring-flag-table at ca7e547 (worktree /tmp/wt-sweep-flags), NOT gated and not merged; agent hit a session limit mid-task. All four stages started, none confirmed. Resume by gating that tree],
 )
 
 == Summary
