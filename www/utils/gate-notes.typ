@@ -90,7 +90,8 @@
     gone through the generated module (`www/generated/just.typ`, called as
     `#just.check()` and friends) instead. The three literal shapes it scans
     for (a prose backtick span, a fenced example's leading command, a quoted
-    config value) are argued in place in the Justfile.
+    config value) are argued in place in
+    `.just/scripts/check-doc-recipes.sh`.
   ],
   "docs-check": [
     `docs-gen` — a dependency, not part of the command shown — captures live

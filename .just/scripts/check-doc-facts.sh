@@ -2,8 +2,24 @@
 # .just/scripts/check-doc-facts.sh — the body of the `check-doc-facts` recipe,
 # extracted under truth/tasks/extract-the-long-gate-recipe-bodies-into-
 # scripts.typ. Every path below is repo-root-relative, because the recipe that
-# invokes it runs at the repo root; the prose arguing what this gate is for
-# stays above that recipe in the Justfile.
+# invokes it runs at the repo root.
+#
+# Doc-facts gate: the same set-difference idiom as check-doc-coverage.sh, over
+# the facts www/generate-facts.sh derives instead of a hand-maintained list
+# (see truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ).
+# Four arms: every crate in crate-map.json needs a www/utils/crate-notes.typ
+# entry, every DSL field in dsl-fields.json needs a
+# www/utils/dsl-field-notes.typ entry, every gate in gates.json needs a
+# www/utils/gate-notes.typ entry (truth/tasks/derive-the-gate-table-command-
+# column-from-the-justfile.typ), and every sweep flag in sweep-flags.json needs
+# a www/utils/sweep-flag-notes.typ entry (truth/tasks/derive-the-ask-
+# refactoring-flag-table-from-arg-attributes.typ). Each arm reads its Typst
+# dict's keys through the same target/-rooted driver trick as
+# check-doc-coverage.sh, never by grepping quoted strings.
+#
+# It regenerates its own inputs (bash www/generate-facts.sh below) rather than
+# trusting whatever www/generated/ already holds, so this gate never depends
+# on `just docs::gen` — or a release build — having run first.
 set -eo pipefail
 # Hold the www/generated/ lock across the regenerate AND the typst queries
 # below, not just the regenerate: www/utils/gate-notes.typ reads the

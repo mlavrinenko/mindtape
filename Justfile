@@ -124,85 +124,28 @@ check-examples:
     cargo run -p mindtape-cli -q -- -w examples/learn-piano check
     cargo run -p mindtape-cli -q -- -w examples/minimal check
 
-# Doc-coverage gate: every visible top-level `mt` subcommand must have a
-# www/utils/cli-notes.typ entry. `mt find` once shipped with none — the docs
-# site would have carried a new verb with no prose or examples, and only a
-# human reviewing dependents caught it, which is not a mechanism. The check is
-# a set-difference: `mt _cli --json`'s reflected command names (the same dump
-# cli.typ itself renders) minus cli-notes.typ's dict keys.
-#
-# Hidden/internal commands (`_cli` itself, the deprecated `install-lib` alias)
-# are excluded because cli_dump.rs (`crates/mindtape-cli/src/cli_dump.rs`)
-# already drops any `hide = true` command and clap's synthetic `help` pseudo-
-# command before they ever reach the JSON — never by a hand-maintained skip
-# list here, which would rot exactly the way the thing being gated rots.
-#
-# Reading cli-notes.typ's keys means actually evaluating the Typst dict, not
-# grepping for quoted strings (a dotted arg-level key like "ls.sort" would
-# false-positive a regex meant to only see top-level command names, and a
-# regex silently drifts the moment the file's shape changes). `typst query`
-# only inspects document content, and cli-notes.typ is a bare `#let` with none,
-# so a throwaway driver imports it and re-exports `cli-notes.keys()` as
-# `metadata` under a label query can select. The driver must live inside
-# `--root .` (typst refuses a source outside the project root), so it goes
-# under target/ (gitignored, already exists after the build below).
+# Every visible top-level `mt` subcommand must have a www/utils/cli-notes.typ
+# entry. How the set-difference is taken, and what it deliberately never
+# excludes by hand, are argued in .just/scripts/check-doc-coverage.sh.
 
 [doc("Fail if a visible mt subcommand has no CLI doc entry")]
 [group("gate")]
 check-doc-coverage:
     bash .just/scripts/check-doc-coverage.sh
 
-# Doc-facts gate: same set-difference idiom as check-doc-coverage above, over
-# the facts www/generate-facts.sh derives instead of a hand-maintained list
-# (see truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ).
-# Three arms: every crate in crate-map.json needs a www/utils/crate-notes.typ
-# entry, every DSL field in dsl-fields.json needs a
-# www/utils/dsl-field-notes.typ entry, and every gate in gates.json needs a
-# www/utils/gate-notes.typ entry (truth/tasks/derive-the-gate-table-command-
-# column-from-the-justfile.typ). Each arm reads its Typst dict's keys through
-# the same target/-rooted driver trick as check-doc-coverage, never by
-# grepping quoted strings.
-#
-# Regenerates its own inputs (bash www/generate-facts.sh) rather than trusting
-# whatever www/generated/ already holds, so this gate never depends on `just
-# docs::gen` — or a release build — having run first.
+# Every derived fact www/generate-facts.sh writes must have a hand-written
+# www/utils/*-notes.typ entry. The arms, and why the gate regenerates its own
+# inputs, are argued in .just/scripts/check-doc-facts.sh.
 
 [doc("Fail if a derived crate, DSL field, gate, or sweep flag fact has no doc entry")]
 [group("gate")]
 check-doc-facts:
     bash .just/scripts/check-doc-facts.sh
 
-# The gate for what www/generated/just.typ cannot reach: a fenced code block
-# cannot call a function, and typst's own "module does not contain" error at
-# render time is the gate for everything else — a doc source that writes
-# `#just.<name>()` already fails `just docs::md` loudly the moment `<name>`
-# stops resolving (see truth/tasks/render-just-recipe-names-through-a-
-# generated-typst-module.typ). What is left uncovered is a hand-typed
-# mention that never went through the helper at all.
-#
-# Scans docs/src/**/*.typ (skipping lib.typ — a helper module, not a source;
-# its own mentions are in `//` comments, invisible to every render path) and
-# www/content/*.typ, line by line, tagging each line by syntactic role
-# first: a fence delimiter, a full `//` comment line (never rendered, so
-# never checked — same reason lib.typ's own mentions are exempt), inside a
-# fenced block, or plain prose. Three shapes of literal mention follow from
-# that tagging, matched independently:
-#   - a backtick span opening with `just` in PROSE — the hand-typed mention
-#     the generated module exists to replace. Always fails, whether or not
-#     the name resolves: it has to become `#just.<name>(...)` either way.
-#     A bare `just` with nothing after it is exempt (`just` with no args
-#     lists the recipes, and that sentence has to stay literal).
-#   - `just <name>` opening a line INSIDE a fenced block — a shell-command
-#     example (Quick Start's `just check`, the signal sweep's dry-run
-#     transcript). A fenced block cannot call the helper, so this is legal
-#     as prose, but the name still has to resolve.
-#   - a quoted `"just <name>"` substring anywhere — a literal value, not a
-#     live reference (an example `.mindtape/config.toml` flip hook's
-#     `run = "just check"`, a demonstrated status-note string). Never has to
-#     convert, but still has to resolve.
-# Ordinary English "just" (an adverb, or a config value's own `#` shell
-# comment mid-line) matches none of the three shapes and is never touched —
-# verified against every non-recipe "just" already in the docs tree.
+# A doc source names a recipe through www/generated/just.typ; this catches the
+# hand-typed mention that never went through it. The three literal shapes it
+# matches, which files it scans, and why ordinary English "just" is never
+# touched are argued in .just/scripts/check-doc-recipes.sh.
 
 [doc("Fail on a hand-typed just recipe mention outside the generated module")]
 [group("gate")]
