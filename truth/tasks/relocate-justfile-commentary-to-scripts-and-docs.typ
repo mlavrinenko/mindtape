@@ -14,7 +14,11 @@
     "extract-the-long-gate-recipe-bodies-into-scripts.typ",
     "extract-the-coverage-and-release-recipe-bodies-into-scripts.typ",
   ),
-  status: proposed(2026, 8, 14),
+  status: done(
+    2026,
+    8,
+    15,
+  )[Justfile 753 to 509 lines, comments only — just --dump byte-identical apart from absolute paths. Every relocated block mapped, and audited by six-word shingle diff against the destination tree; three real losses found that way and put back],
 )
 
 == Summary

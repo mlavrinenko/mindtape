@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("tooling",),
   estimate: (files: 2),
-  status: proposed(2026, 8, 14),
+  status: done(
+    2026,
+    8,
+    15,
+  )[both moved-to-module notes merged into one block beside mod docs, where the formatter's blank-line collapse does not apply],
 )
 
 == Summary
