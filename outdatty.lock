@@ -63,10 +63,10 @@ groups:
       .just/docs.just: 0b4ee0e2a4a721f418eefffc97ba7285015b46761ea288621e4a4049eb57ea7a
       .just/scripts/_lcov-stale-reason.sh: 429afd24fb8ddea7b15a9b19ded939cf2bd703c5e059d3f23783de596462e816
       .just/scripts/_mutants-env.sh: 30dc11fb80c4af619d4dbcc096886d4773899b54b515fa891ce5e04bf35cc516
-      .just/scripts/arg-pattern-check.sh: 69cf9a8b6995c7a89911fcc5897d8f91c07d252139560fef7dc17c50ac3cb52b
+      .just/scripts/arg-pattern-check.sh: 64847fca01676f106782da303abff2ca8821d55fd76c42f9c3998d9793f6397b
       .just/scripts/check-crap.sh: ba967e714356114753ce3bfa308acd01e6a26effe4bf77fc740a78cea06c48a8
       .just/scripts/check-doc-coverage.sh: 8e98aabc2db776579c7693fc9e66a1d80366a2d5e382f53c32dd93ef16847ebc
-      .just/scripts/check-doc-facts.sh: addddc58a2cdb8f0d432ba8d1f2ada19957dca9e694a564ea4ea6ab20878c33a
+      .just/scripts/check-doc-facts.sh: b26ed33b2988f4bf9475150eb9de8440013b3f568fd452574f89ab5a9c8bcc22
       .just/scripts/check-doc-recipes.sh: 8a419c4772f3c56b4b95f08d79d040497921018ed5a2b1e3d1d6c6fdca3263c2
       .just/scripts/cover.sh: c49cb460a7c8da0774d752ed5a7dc8f735598a13bef785abcf618356d5806de5
       .just/scripts/crap-baseline.sh: 12366c322b9464f05636b41b4d2f1bd763f9f8c0e0064ce3a852f8499b75799a
@@ -76,9 +76,9 @@ groups:
       .just/scripts/install-lib.sh: 8f29309c2fc631714e9745fea471766c15f086caa8bb5ffd8d69ff28329792c6
       .just/scripts/mutants-diff.sh: e64f8f986c65edea31d9ede23288248b0aa6df0512a45ccff44a3b4b70e642ba
       .just/scripts/mutants.sh: a36405072738ddaaad9cbd8123479382032423b203ce568b51a2b866583fa113
-      .just/scripts/positional-args-check.sh: 4fa5d3eb0f291e39b1380c9e23787579cf3bb4169e7fc79693c369aceb238ec5
+      .just/scripts/positional-args-check.sh: a8b8291a8d8c1adcc8b6ca4188e7b3eb22e40718ef997b9e6d1c5ad0023bd74f
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
-      Justfile: d05d8d1ba53030271f75a916faf288cc578cd56198520773cb6df790803ba7bb
+      Justfile: e0258d1977bacffb0b1d036e93d4429b68d8cba7e47b5309210b9887a50d0318
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
@@ -86,7 +86,7 @@ groups:
       docs/src/contributing/coverage-crap.typ: bf2a2c16be8b55655e99c836d2bde9fe959c6cc2bf3cf60261cd4612576d0165
       docs/src/contributing/gates.typ: d3fdbd910573265fa30c65459d945be9801b83f1f88a4744c2582c92472e09c5
       docs/src/contributing/mutation-testing.typ: 331f23a967453950362f284e357f47cef8c51aaf34b4d28cf1aab469e04d5486
-      docs/src/contributing/signal-sweep.typ: 12fb58c8f6e7991367a4d959e3f1acca123bb070bb1eba528748b6daed1a3c12
+      docs/src/contributing/signal-sweep.typ: 4a1be52b1817319b6826ecaad546d2627b5b97e7a19011c0f8025ac92b398e54
       docs/src/contributing/windows.typ: f6acf2d8c85c924166f34c1b5f06e9d77c0b2bae94ddd196ca5e1455a672bc75
   prelude-docs:
     source:

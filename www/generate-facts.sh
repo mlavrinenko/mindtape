@@ -19,7 +19,7 @@
 # and `docs/generate-md.sh` call it directly, so each is self-contained and
 # never depends on a prior docs::gen run.
 #
-# Five artifacts, five sources:
+# Six artifacts, six sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
@@ -31,12 +31,11 @@
 #                          shell-out, two artifacts): a Typst module, one
 #                          function per public recipe
 #   - linecop-caps.json <- .linecop.yaml, via yq
+#   - sweep-flags.json  <- the same `just --dump` (see www/sweep-flags.jq)
 #
-# `gates.json` and `linecop-caps.json` get no consumer in this script's sibling
-# task: they are the input to the follow-up
-# truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ, which
-# turns the root Markdown into Typst that can read them. Nothing here invents
-# a consumer for either.
+# linecop-caps.json is the one artifact still without a consumer: it was
+# derived for truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ
+# beside gates.json, which docs/src/contributing.typ's gate table now reads.
 #
 # Deliberately out of scope: the design invariants (Typst eval-only, evalexpr
 # walked not evaluated, the prelude-vs-Rust split). Those change with the
@@ -281,6 +280,12 @@ jq -r --arg header "$JUST_TYP_HEADER" '
         + "\n"
     end
 ' <<<"$JUST_DUMP" | emit_raw just.typ
+
+# --- sweep-flags.json ---------------------------------------------------------
+# `ask-refactoring`'s five `[arg(...)]` parameters, off the same $JUST_DUMP —
+# the signal sweep's thresholds and their defaults, in one place, rendered by
+# docs/contributing/signal-sweep.md. Argued in www/sweep-flags.jq.
+jq -f "$SCRIPT_DIR/sweep-flags.jq" <<<"$JUST_DUMP" | emit sweep-flags.json
 
 # --- linecop-caps.json --------------------------------------------------------
 # The exact `limits`/`overrides` .linecop.yaml carries — the source CONTRIBUTING.md

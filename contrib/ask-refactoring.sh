@@ -48,22 +48,36 @@ set -eo pipefail
 repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo"
 
-BASELINE=90
-COVERAGE_FLOOR=88
-CC_FLOOR=5
-FN_COVERAGE_FLOOR=80
-WRITE=0
+# ── the thresholds ──────────────────────────────────────────────────────────
+#
+# Every one of them is REQUIRED and none is defaulted here, deliberately. The
+# defaults live in the `ask-refactoring` recipe's `[arg(...)]` parameters and
+# nowhere else (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-
+# attributes.typ): that is what `just --usage ask-refactoring` renders, what
+# `just --dump` carries into www/generated/sweep-flags.json, and what
+# docs/contributing/signal-sweep.md's table is generated from. A fallback here
+# would be a second copy of four numbers with nothing to keep it in step — the
+# arrangement this whole change exists to end — and it would fail SILENTLY, at
+# a threshold nobody chose, on the day the recipe stopped passing one.
+#
+# Initialised empty rather than left unset, because these five names are also
+# the recipe's EXPORTED parameters: `$BASELINE` and friends are in this
+# script's environment already, so an inherited value would satisfy the
+# required-check below without the flag ever having been passed.
+BASELINE=""
+COVERAGE_FLOOR=""
+CC_FLOOR=""
+FN_COVERAGE_FLOOR=""
+WRITE=""
 
 usage() {
     cat <<'EOF'
-usage: just ask-refactoring [--write] [--baseline PCT] [--coverage-floor PCT]
-                            [--cc-floor N] [--fn-coverage-floor PCT]
+usage: bash contrib/ask-refactoring.sh --write 0|1 --baseline PCT
+           --coverage-floor PCT --cc-floor N --fn-coverage-floor PCT
 
-  --write                  file the tasks (default: print what would be filed)
-  --baseline PCT           report files at or above PCT% of their linecop limit [90]
-  --coverage-floor PCT     report files below PCT% line coverage [88]
-  --cc-floor N             undertested arm: floor on cyclomatic complexity [5]
-  --fn-coverage-floor PCT  undertested arm: report functions below PCT% [80]
+Run it as `just ask-refactoring` — the recipe owns every default and forwards
+all five flags; `just --usage ask-refactoring` prints them with their values.
+All five are required here; there are no defaults at this layer.
 
 env:
   MT   path to the `mt` binary (default: build and use ./target/debug/mt)
@@ -72,7 +86,8 @@ EOF
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --write) WRITE=1; shift ;;
+        --write) WRITE="$2"; shift 2 ;;
+        --write=*) WRITE="${1#*=}"; shift ;;
         --baseline) BASELINE="$2"; shift 2 ;;
         --baseline=*) BASELINE="${1#*=}"; shift ;;
         --coverage-floor) COVERAGE_FLOOR="$2"; shift 2 ;;
@@ -83,6 +98,26 @@ while [ $# -gt 0 ]; do
         --fn-coverage-floor=*) FN_COVERAGE_FLOOR="${1#*=}"; shift ;;
         -h | --help) usage; exit 0 ;;
         *) echo "ask-refactoring: unknown argument: $1" >&2; usage >&2; exit 2 ;;
+    esac
+done
+
+# Missing, or not a number: refuse rather than sweep at a threshold nobody
+# chose. The recipe's patterns already reject a non-numeric value at DISPATCH,
+# so this fires only for a direct `bash contrib/ask-refactoring.sh` call —
+# which is exactly the caller the recipe's defaults cannot reach.
+for var in WRITE BASELINE COVERAGE_FLOOR CC_FLOOR FN_COVERAGE_FLOOR; do
+    flag="--$(printf '%s' "$var" | tr 'A-Z_' 'a-z-')"
+    value="${!var}"
+    if [ -z "$value" ]; then
+        echo "ask-refactoring: missing $flag (no default at this layer)" >&2
+        usage >&2
+        exit 2
+    fi
+    case "$value" in
+        *[!0-9]*)
+            echo "ask-refactoring: $flag wants a number, got '$value'" >&2
+            exit 2
+            ;;
     esac
 done
 

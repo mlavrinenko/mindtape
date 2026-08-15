@@ -162,7 +162,7 @@ check-doc-coverage:
 # whatever www/generated/ already holds, so this gate never depends on `just
 # docs::gen` — or a release build — having run first.
 
-[doc("Fail if a derived crate, DSL field, or gate fact has no doc entry")]
+[doc("Fail if a derived crate, DSL field, gate, or sweep flag fact has no doc entry")]
 [group("gate")]
 check-doc-facts:
     bash .just/scripts/check-doc-facts.sh
@@ -232,7 +232,8 @@ check-doc-recipes:
 fmt-fixture-check:
     bash .just/scripts/fmt-fixture-check.sh
 
-# Lock the `[arg(...)]` patterns on release/bench/gen-bench/eject: each must
+# Lock the `[arg(...)]` patterns on release/bench/gen-bench/eject and the five
+# `ask-refactoring` thresholds: each must
 # reject a known-bad argument and accept a known-good one at DISPATCH, before
 # the recipe body runs (truth/tasks/validate-recipe-arguments-with-the-arg-
 # attribute.typ). A pattern nobody exercises is a comment, not a gate — same
@@ -246,19 +247,23 @@ fmt-fixture-check:
 arg-pattern-check:
     bash .just/scripts/arg-pattern-check.sh
 
-# Lock argument forwarding on the five passthrough recipes (`test`, `build`,
-# `mutants`, `mutants-diff`, `ask-refactoring`): each must carry
+# Lock argument forwarding on the passthrough recipes (`test`, `build`,
+# `mutants`, `mutants-diff`): each must carry
 # `[positional-arguments]` and forward "$@" rather than interpolate `{{ ARGS
 # }}`/`{{ args }}` into its body — a bare interpolation re-splits an argument
 # containing a space and re-globs one containing a wildcard
 # (truth/tasks/preserve-argument-quoting-with-positional-arguments.typ).
+# `ask-refactoring` was the fifth and left by construction, not by exemption:
+# its flags are declared parameters now, so it takes no passthrough `*ARGS` at
+# all and `arg-pattern-check` locks the patterns that replaced the attribute —
+# argued in place in .just/scripts/positional-args-check.sh.
 # Separate from arg-pattern-check for the same reason that one is separate
 # from fmt-fixture-check: different subject. It is static (over `just --dump
 # --dump-format json` plus a grep of the scripts the recipes forward into),
 # never a real cargo test/build/mutants run — argued in place in
 # .just/scripts/positional-args-check.sh.
 
-[doc("Lock positional-argument forwarding on the five passthrough recipes")]
+[doc("Lock positional-argument forwarding on the four passthrough recipes")]
 [group("gate")]
 positional-args-check:
     bash .just/scripts/positional-args-check.sh
@@ -654,13 +659,36 @@ eject PCT='90':
 # template, not a config change.
 #
 # Dry by default: it prints, via `mt add --print`, the exact tasks it would
-# file. `just ask-refactoring --write` files them. Each arm has its own
-# threshold — `--baseline PCT` for linecop (default 90), `--coverage-floor PCT`
-# for coverage (default 88), `--cc-floor N` / `--fn-coverage-floor PCT` for the
-# undertested arm (5 and 80, a conjunction and so two edges) — never one flag
-# shared across arms, which would read as one band and move two. The mutants arm
-# has no threshold: it reads what `just mutants-diff` last wrote, and skips
+# file; `--write` files them. Each arm carries its OWN threshold — never one
+# flag shared across arms, which would read as one band and move two — and the
+# undertested arm's pair is a conjunction, so it is two edges rather than one
+# number: a function has to be BOTH complex enough and undertested enough. The
+# `--baseline` and `--coverage-floor` bands belong to different arms and are
+# argued separately, at their own arm's scoring function. The mutants arm has
+# no threshold at all: it reads what `just mutants-diff` last wrote, and skips
 # loudly when that is missing or stale rather than run a sweep that takes hours.
+#
+# The five parameters below ARE that interface, and the only copy of it. They
+# used to be a comment here and a parse loop with its own defaults in
+# contrib/ask-refactoring.sh — nothing rendered them, `just --list` showed none
+# of them, and the two copies could disagree without anything noticing
+# (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ).
+# Declared as parameters with `[arg(...)]`, they reach `just --dump` in full, so
+# `just --usage ask-refactoring` renders the flags at the terminal and
+# www/generated/sweep-flags.json carries them into
+# docs/contributing/signal-sweep.md's table — derived, never retyped. The script
+# now REQUIRES all five and defaults nothing, so the defaults exist here alone.
+#
+# This is deliberately no longer a passthrough recipe. It carried
+# `[positional-arguments]` and forwarded "$@" while the script did the parsing
+# (truth/tasks/preserve-argument-quoting-with-positional-arguments.typ), so
+# `just positional-args-check` no longer names it — that gate's own subject is a
+# recipe taking a passthrough `*ARGS`, and this one takes five pattern-checked
+# scalars instead. The quoting property the attribute bought is bought twice
+# over now: a value that could be word-split or globbed cannot pass DISPATCH
+# (every pattern below is digits only), and the body forwards EXPORTED
+# parameters through quoted `"$VAR"` expansions rather than interpolating
+# `{{ }}` into a command line. `just arg-pattern-check` locks the patterns.
 #
 # It refuses to run while `mt ls @ask-refactoring` is non-empty, so one sprint
 # of mechanical work is emptied before the next is filed.
@@ -670,11 +698,17 @@ eject PCT='90':
 # already blocks a commit — jscpd, outdatty, machete, clippy — must never file a
 # task, because the wall is already in front of you.
 
+[arg('COVERAGE_FLOOR', long='coverage-floor', pattern='(100|[1-9]?[0-9])', help='coverage arm: report files below PCT% line coverage')]
+[arg('WRITE', long='write', pattern='[01]', value='1', help='file the tasks instead of printing what would be filed')]
+[arg('BASELINE', long='baseline', pattern='(100|[1-9]?[0-9])', help='size arm: report files at or above PCT% of their linecop limit')]
+[arg('CC_FLOOR', long='cc-floor', pattern='\d+', help='undertested arm: floor on cyclomatic complexity')]
+[arg('FN_COVERAGE_FLOOR', long='fn-coverage-floor', pattern='(100|[1-9]?[0-9])', help='undertested arm: report functions below PCT% line coverage')]
 [doc("File backlog tasks from advisory quality signals")]
 [group("advisory")]
-[positional-arguments]
-ask-refactoring *ARGS:
-    bash contrib/ask-refactoring.sh "$@"
+ask-refactoring $WRITE='0' $BASELINE='90' $COVERAGE_FLOOR='88' $CC_FLOOR='5' $FN_COVERAGE_FLOOR='80':
+    bash contrib/ask-refactoring.sh --write "$WRITE" --baseline "$BASELINE" \
+        --coverage-floor "$COVERAGE_FLOOR" --cc-floor "$CC_FLOOR" \
+        --fn-coverage-floor "$FN_COVERAGE_FLOOR"
 
 [doc("Install the mindtape Typst library for local #import (dev symlink)")]
 [group("dev")]

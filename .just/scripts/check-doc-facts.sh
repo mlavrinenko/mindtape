@@ -54,4 +54,15 @@ if [ -n "$missing_gates" ]; then
     while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_gates"
     exit 1
 fi
-echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, $(wc -l <<<"$gates") gates, all documented"
+flags=$(jq -r '.flags[].long' www/generated/sweep-flags.json)
+printf '#import "/www/utils/sweep-flag-notes.typ": sweep-flag-notes\n#metadata(sweep-flag-notes.keys()) <sweep-flag-notes-keys>\n' \
+    > "$tmp/sweep-flag-keys.typ"
+documented_flags=$(typst query --root . "$tmp/sweep-flag-keys.typ" '<sweep-flag-notes-keys>' \
+    --field value --one | jq -r '.[]')
+missing_flags=$(comm -23 <(sort <<<"$flags") <(sort <<<"$documented_flags"))
+if [ -n "$missing_flags" ]; then
+    echo "check-doc-facts: undocumented sweep flags (no www/utils/sweep-flag-notes.typ entry):" >&2
+    while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_flags"
+    exit 1
+fi
+echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, $(wc -l <<<"$gates") gates, $(wc -l <<<"$flags") sweep flags, all documented"
