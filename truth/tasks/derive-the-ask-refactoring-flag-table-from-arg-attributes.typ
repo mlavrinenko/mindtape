@@ -11,11 +11,11 @@
   tags: ("tooling",),
   estimate: (files: 14),
   links: depends-on("validate-recipe-arguments-with-the-arg-attribute.typ"),
-  status: wip(
+  status: done(
     2026,
     8,
     15,
-  )[partial work preserved on branch ask-refactoring-flag-table at ca7e547 (worktree /tmp/wt-sweep-flags), NOT gated and not merged; agent hit a session limit mid-task. All four stages started, none confirmed. Resume by gating that tree],
+  )[all four stages landed: declared parameters with arg attributes, www/sweep-flags.jq emitting the artifact, signal-sweep.typ reading it, and a fourth check-doc-facts arm gating sweep-flag-notes.typ. Dry-run output identical to base except the size arm's own self-report, which moved because generate-facts.sh grew to emit the new artifact],
 )
 
 == Summary
