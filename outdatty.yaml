@@ -255,6 +255,12 @@ groups:
   # the jobs default stopped busting this group on the day it moved, while the
   # identical edit busted it the day before. A body escaping into a script and
   # a script's content escaping into a helper are the same escape.
+  #
+  # size-fixture-check.sh joins them for positional-args-check.sh's reason: it
+  # is a self-test, not an extracted body, and www/utils/gate-notes.typ
+  # restates by hand what it asserts — the replica tree, the `include_hidden`
+  # arm, why it does not probe the real directory. Change what the script
+  # proves and that prose is wrong with nothing else reacting.
   - name: dev-docs
     source:
       - flake.nix
@@ -277,6 +283,7 @@ groups:
       - .just/scripts/release.sh
       - .just/scripts/positional-args-check.sh
       - .just/scripts/_mutants-env.sh
+      - .just/scripts/size-fixture-check.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ

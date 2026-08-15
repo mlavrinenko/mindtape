@@ -51,7 +51,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") check-crap
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "size-fixture-check") check-crap
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -174,6 +174,22 @@ fmt-fixture-check:
 [group("gate")]
 arg-pattern-check:
     bash .just/scripts/arg-pattern-check.sh
+
+# Lock the file-size gate's SCAN SCOPE: an oversized shell script under
+# `.just/scripts/` must be reported by `linecop` reading this repo's
+# `.linecop.yaml`. The subject is the walker, not the caps — a directory the
+# scan never enters reports the same "All files within size limits." a clean
+# tree does, which is how every body extracted out of the Justfile sat
+# uncapped while the extraction claimed the opposite
+# (truth/tasks/restore-size-gate-coverage-over-the-dot-just-scripts.typ). Why
+# it runs against a replica tree instead of the real directory, and why the
+# unreported case is asserted too, are argued in place in
+# .just/scripts/size-fixture-check.sh.
+
+[doc("Lock the size gate's scan scope against an oversized hidden-dir fixture")]
+[group("gate")]
+size-fixture-check:
+    bash .just/scripts/size-fixture-check.sh
 
 # Lock argument forwarding on the passthrough recipes (`test`, `build`,
 # `mutants`, `mutants-diff`): each must carry `[positional-arguments]` and

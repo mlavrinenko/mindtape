@@ -143,6 +143,19 @@
     scripts the recipes forward into; no recipe body runs. See
     `.just/scripts/positional-args-check.sh`.
   ],
+  "size-fixture-check": [
+    Scan-scope self-test for #just.check-file-size(): an oversized shell
+    script at `.just/scripts/` inside a replica tree must be reported by
+    `linecop` reading this repo's own `.linecop.yaml`, and must go unreported
+    with `include_hidden` deleted from it. The caps need no self-test — a
+    wrong number is visible — but a directory the walker never enters reports
+    the same "All files within size limits." a clean tree does, which is how
+    every recipe body extracted into `.just/scripts/` sat uncapped while the
+    extraction's stated reason was bringing them under a cap. Runs against a
+    replica rather than the real directory because #just.check() runs its arms
+    in parallel and a probe in the tracked tree would fail the real size gate
+    mid-run; see `.just/scripts/size-fixture-check.sh`.
+  ],
   "check-crap": [
     Editing any source stales the lcov, so it skips on the commits that
     matter; it catches the free case only. #just.check-full() is the arm

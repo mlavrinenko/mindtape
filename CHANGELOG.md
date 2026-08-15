@@ -68,6 +68,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   dropping neither group, since both still restate content (CLI flags, the
   full DSL shape, non-`just check` recipes like `cover`/`crap`/`release`)
   that none of the four generated-fact artifacts carries.
+- **Size gate over the hidden dirs** — `.linecop.yaml` sets
+  `include_hidden: true` (linecop 0.4.0), so the recipe bodies extracted into
+  `.just/scripts/` are finally under the `Shell: 300` cap the extraction was
+  justified by; they had moved from one blind spot (`Justfile`, no extension)
+  into another (a dot-prefixed directory the walker skipped). `.mindtape/
+  templates/*.typ` comes under the Typst floor with them. `just
+  size-fixture-check` (in `just check`) locks the scan SCOPE rather than the
+  caps: an oversized script at `.just/scripts/` inside a replica tree must be
+  reported, and must go unreported with `include_hidden` deleted — a
+  directory the walker never enters prints the same "All files within size
+  limits." a clean tree does. The `check-file-size` mmz rule gains the
+  `policy` and `examples` scopes it had been missing since Typst got a base
+  limit, so a Typst file crossing its cap can no longer serve a fresh cache
+  hit.
 
 ## [0.3.0] - 2026-08-10
 

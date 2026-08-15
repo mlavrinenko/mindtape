@@ -78,7 +78,8 @@ groups:
       .just/scripts/mutants.sh: 6f558f4aeca4764ee7bc3636fc4cc3c57f6e9cbeadf679e78387e80205723a2e
       .just/scripts/positional-args-check.sh: a464c92ade574a6506ea2fb0a24a18fbb0b4c29ed5ee6ba3f69ced050a8b4cfa
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
-      Justfile: d1bcc05b247a117265c009124f144c5ff7a91379d2eea281221eef46b4f28f02
+      .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
+      Justfile: 0d305f8de0a53a089368f76ca199465102827dc8598c6a2ee6a7c3f2798fe735
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c

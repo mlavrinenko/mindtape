@@ -176,13 +176,20 @@ commands:
     tags: [gate]
     inputs: [manifests, gates-meta]
 
-  # linecop scans `*.rs` and `*.md` (target/archive/var excluded by config).
-  # `crates/**/*.rs` is the `rust` scope; the tracked `.md` files all live
-  # under `docs` (README, CONTRIBUTING, AGENTS, CHANGELOG, skills/**,
-  # docs/** — including docs/logo-candidates/README.md).
+  # linecop scans every language `.linecop.yaml` gives a base limit — Rust,
+  # Markdown, Shell and Typst (target/archive/var excluded by config) — so the
+  # input list has to cover all four, not the two it named while the config
+  # had grown past them. `crates/**/*.rs` is `rust`; the tracked `.md` files
+  # and the `www/`+`contrib/` shell live under `docs`; `.just/scripts/*.sh` is
+  # `gates-meta`. `policy` and `examples` are the Typst half — `lib/**`,
+  # `.mindtape/templates/**` and the learn-piano fixture's task tree and
+  # template — and were the live hole: a Typst file could cross its cap and
+  # this rule would still report fresh. `include_hidden: true` widened it
+  # (`.mindtape/templates/**` only entered the scan with that key), which is
+  # what surfaced it.
   - name: just check-file-size
     tags: [gate]
-    inputs: [rust, file-size-config, docs, gates-meta]
+    inputs: [rust, policy, examples, file-size-config, docs, gates-meta]
 
   # jscpd scans `crates/` Rust only; the `-k 70` token threshold is Justfile-
   # defined, so a Justfile edit re-runs this gate.
@@ -294,3 +301,14 @@ commands:
   - name: just positional-args-check
     tags: [gate]
     inputs: [gates-meta]
+
+  # Scan-scope self-test: an oversized shell script at `.just/scripts/` inside
+  # a replica tree must be reported by linecop reading this repo's config, and
+  # must go unreported with `include_hidden` deleted. `file-size-config` is the
+  # subject — the assertion is about that file's scan scope, so a config edit
+  # must re-run it — and `gates-meta` carries the script body and the dev-shell
+  # pin linecop itself comes from. No `rust`, no `docs`: the replica holds one
+  # synthesized file and the scan never touches the real tree.
+  - name: just size-fixture-check
+    tags: [gate]
+    inputs: [file-size-config, gates-meta]

@@ -19,7 +19,11 @@ limits:
   #
   # What it does NOT cover: linecop detects language by extension, so the
   # shebang-only `.githooks/` hooks are invisible to it at any limit. They are
-  # ~25 lines each and the cap was never the thing keeping them short.
+  # ~25 lines each and the cap was never the thing keeping them short. Same
+  # blind spot, same reason: `.just/docs.just` — a `.just` extension is no
+  # language linecop knows, so the module file is uncapped while every script
+  # beside it is capped (`include_hidden` below is what brought those scripts
+  # into the scan; it does nothing for an unrecognized extension).
   Shell: 300
 
   # A base is REQUIRED for an override's `limit:` to do anything: verified
@@ -142,3 +146,23 @@ exclude_dirs:
   - target
   - archive
   - var
+
+# The walker skips dot-prefixed directories by default, which silently uncapped
+# every recipe body the Justfile extraction moved into `.just/scripts/` — the
+# extraction's whole stated reason was that `Justfile` has no extension and a
+# `.sh` file lands under the `Shell: 300` cap on arrival, and the bodies landed
+# in a second blind spot instead (truth/tasks/restore-size-gate-coverage-over-
+# the-dot-just-scripts.typ). Turning it on here rather than passing `--hidden`
+# in the recipe keeps `check-file-size` a single `linecop` invocation, so the
+# gate table's Command column keeps rendering the real command, and keeps the
+# scan scope a property of the repo — `linecop`, `linecop --baseline 85` and
+# `just eject`'s `--format paths` run all see the same file set, which they
+# would not if only the gate carried the flag.
+#
+# What it pulls in beyond `.just/scripts/*.sh`: `.mindtape/templates/*.typ` and
+# the learn-piano fixture's copy, all far under the Typst floor. Nothing here
+# is at 85% of its cap, so this is coverage arriving quiet — no finding handed
+# to the next `just ask-refactoring`. VCS metadata stays excluded by linecop
+# itself and gitignored paths are still skipped, so `.direnv/` and `.mmz/cache/`
+# never enter the walk.
+include_hidden: true
