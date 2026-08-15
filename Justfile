@@ -43,27 +43,19 @@ default:
 [group("workflow")]
 fix-check: eject fmt clippy-fix check
 
-# Run all checks in parallel (fmt + clippy + tests + unused deps + file size +
-# drift). Each arm is `just mmz <subgate>` — mmz wraps it, so a no-op `just
-# check` re-run skips every arm whose declared inputs are unchanged, and `mt
-# flip` into a terminal status asserts them all fresh via
-# `mmz --is-fresh --tag gate` without running any. Per-rule scopes and the
-# `gate` tag live in .mmz/config.yaml. There is no `chronic` here: a cache hit
-# prints mmz's own `on_hit` note to stderr (quiet by construction), a miss
-# streams the underlying recipe's stdout/stderr live, and a failure propagates
-# its non-zero exit out of `parallel` unchanged.
+# Every arm is `just mmz <subgate>`, so a no-op re-run skips each one whose
+# declared inputs are unchanged. What the memoization buys, why there is no
+# `chronic` wrapper, and how `mt flip` asserts the whole set fresh without
+# running any of it are in docs/contributing/gates.md.
 
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
 check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") check-crap
 
-# Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`. The
-# double hop makes mmz the cache identity (rule name `just <recipe>` in
-# .mmz/config.yaml), uniform across every sub-gate of `just check`. `just test
-# <filter>` (a developer query, no `mmz`) bypasses this recipe and stays plain
-# `cargo test` with ARGS — so the `just test` cache record reflects only the
-# bare, full-suite invocation that `just check` runs, never a filtered subset.
+# Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
+# Why the double hop, and why `just test <filter>` deliberately bypasses it,
+# are in docs/contributing/gates.md.
 
 [doc("Run a just recipe through mmz memoization")]
 [group("workflow")]
@@ -121,13 +113,10 @@ check-dry:
 outdatty-check:
     outdatty check
 
-# Validate every example project against itself, so a fixture some other tool
-# runs `mt` against can never rot: learn-piano feeds the docs generator and the
-# skill's triage evals, minimal feeds the skill's trap evals. Gating them is
-# what earns the right to depend on them — the eval fixture that preceded these
-# sat in untracked scratch and silently outlived two config migrations (the
-# retired `[ls] default-filter`, the `depends-on:` → `links:` move), so no eval
-# could have run against it and nothing said so.
+# So a fixture some other tool runs `mt` against can never rot: learn-piano
+# feeds the docs generator and the skill's triage evals, minimal feeds the
+# skill's trap evals. Why gating them is what earns the right to depend on
+# them is in docs/contributing/gates.md.
 
 [doc("Validate each example project against itself")]
 [group("gate")]
@@ -612,25 +601,18 @@ TOML_FMT_PATHS := ".mindtape/config.toml examples/learn-piano/.mindtape/config.t
 TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates www/content www/templates www/utils docs/src"
 
 # The same one-list discipline for the justfiles themselves. A bare `just --fmt`
-# formats the ROOT justfile only and silently skips every `mod` file — verified
-# on just 1.46 against a synthetic module: `--fmt` left the mis-formatted module
-# byte-identical and `--fmt --check` reported only the root file's diff. So
-# the docs module sat outside both recipes from the day it was split out
-# (truth/tasks/split-the-justfile-into-modules.typ) and had already drifted by
-# one blank line before anything looked at it
-# (truth/tasks/gate-formatting-of-just-module-files.typ).
-#
-# Each module file therefore needs its own `--justfile <file> --fmt` pass, and
-# the set of them lives here rather than being spelled twice, for the reason
-# above: a third module file cannot land in the fix and miss the check. Every
-# file listed needs `set unstable := true` of its own — `--fmt` is unstable and
-# reads that setting from the file it is POINTED AT, never from the Justfile
-# that declares the `mod`.
+# formats the ROOT justfile only and silently skips every `mod` file, so each
+# module file needs its own `--justfile <file> --fmt` pass and the set of them
+# lives here rather than being spelled twice: a third module file cannot land
+# in the fix and miss the check. Every file listed needs `set unstable := true`
+# of its own — `--fmt` is unstable and reads that setting from the file it is
+# POINTED AT, never from the Justfile that declares the `mod`.
 #
 # The paths follow the module files, and must: this list is the whole coverage
 # of the formatter gate over them, so a module file that moves without its
-# entry moving silently drops back out of `just fmt` and `just fmt-check` —
-# reopening the exact hole gate-formatting-of-just-module-files.typ closed.
+# entry moving silently drops back out of `just fmt` and `just fmt-check`. The
+# verification behind that, and the drift it already cost, are in
+# docs/contributing/gates.md.
 
 JUST_FMT_PATHS := ".just/docs.just"
 

@@ -69,6 +69,8 @@ All clippy lints are `deny` (workspace `Cargo.toml`); the project will not build
 
 The justfiles are the third list, and the reason the discipline exists: a bare `--fmt` pass formats the root `Justfile` only and silently skips every `mod` file, so a module file was never checked at all until `JUST_FMT_PATHS` named it. Every file listed there gets its own `--justfile <file> --fmt` pass in both recipes, and needs `set unstable := true` of its own — `--fmt` reads that setting from the file it is pointed at, not from the `Justfile` declaring the `mod`.
 
+Every arm runs through `mmz`, so a re-run skips each one whose declared inputs are unchanged and the pre-commit hook can assert the whole set fresh without re-running it. That memoization, why the example projects are gated, and how the formatter gates are themselves locked are in [docs/contributing/gates.md](docs/contributing/gates.md).
+
 `just check-full` is `just check` plus `just cover` and `just crap` — always correct about coverage and CRAP, at the price of an instrumented rebuild and a full suite pass. Use it before opening a PR, plain `just check` while iterating.
 
 A delegated worktree whose full aggregate runs at integration can scope the gate with `MINDTAPE_GATE_SCOPE=<reason> git commit`, which requires a matching `Gate-Scope:` trailer so the commit never reads as fully gated: [docs/contributing/gates.md](docs/contributing/gates.md). Never legitimate to dodge a gate that is actually red.
