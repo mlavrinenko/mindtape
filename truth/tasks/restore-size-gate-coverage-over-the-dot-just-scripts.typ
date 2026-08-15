@@ -10,7 +10,11 @@
   difficulty: 3,
   tags: ("tooling",),
   estimate: (files: 5),
-  status: proposed(2026, 8, 14),
+  status: wip(
+    2026,
+    8,
+    15,
+  )[linecop 0.4.0 shipped include\_hidden; taking option two],
 )
 
 == Summary
