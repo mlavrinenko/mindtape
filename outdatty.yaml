@@ -5,6 +5,21 @@
 # to record the new state; `just outdatty-update-all` re-records every group,
 # the deliberate choice, never the default. `just outdatty-check` (part of
 # `just check`) fails until you do.
+
+# outdatty 0.4 added an audit that every non-gitignored file belong to some
+# group (`require_tracked`, default `["**"]`) and it does not fit this repo as
+# it stands: 581 files are uncovered, 276 of them crate sources and 235 task
+# artifacts, none of which a drift group should ever claim. A group means
+# "review these dependents when this source changes", and answering a coverage
+# audit by inventing groups would turn it into "this file is known", which is
+# not a fact worth gating. Even the doc surfaces the audit would genuinely
+# suit — the case it exists for is a new page no group tracks — have real
+# exclusions inside them (generated `.md` outputs, CSS, the jq programs), so
+# no narrow scope is free today either. Opted out explicitly rather than
+# absorbed silently on a tool bump; scoped adoption is
+# truth/tasks/evaluate-outdattys-require-tracked-audit.typ.
+require_tracked: ["!**"]
+
 groups:
   # The CLI surface (commands, flags, behaviour) is documented by hand, in the
   # docs-site reference pages. README.md only carries a thin, illustrative
