@@ -253,9 +253,22 @@ check-windows:
         cargo check --workspace --all-targets --locked \
         --target x86_64-pc-windows-gnu
 
-[doc("Re-confirm dependency groups: record hashes into outdatty.lock")]
+# Re-record ONE group after editing its source — `just outdatty-update <group>`
+# (usage: just outdatty-update dev-docs). A recorded hash is the review
+# watermark, so the blanket form (`just outdatty-update-all`) claims a review
+# of every group's dependents that never happened; it stays the explicit
+# choice, never the default
+# (truth/tasks/scope-the-outdatty-update-recipe-to-a-group.typ).
+
+[arg('GROUP', pattern='[a-z][a-z0-9-]*', help='outdatty group to re-confirm — the names outdatty.yaml declares')]
+[doc("Re-confirm one dependency group: record its hashes into outdatty.lock")]
 [group("dev")]
-outdatty-update:
+outdatty-update GROUP:
+    outdatty update --group {{ GROUP }}
+
+[doc("Re-confirm every dependency group: record all hashes into outdatty.lock")]
+[group("dev")]
+outdatty-update-all:
     outdatty update
 
 # Prove `nix build` succeeds in a clean sandbox (no dev shell, no sccache).

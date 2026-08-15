@@ -6,8 +6,9 @@
 # A pattern nobody exercises is a comment, not a gate. So this is a separate
 # script from fmt-fixture-check.sh on purpose: that one locks that three
 # FORMATTERS reject drift in a synthesized fixture file; this one locks that
-# the `[arg(...)]` `pattern`s on `release`, `bench`, `gen-bench`, `eject`
-# and `ask-refactoring` actually reject a bad argument and accept a good one.
+# the `[arg(...)]` `pattern`s on `release`, `bench`, `gen-bench`, `eject`,
+# `ask-refactoring` and `outdatty-update` actually reject a bad argument and
+# accept a good one.
 # Same reasoning, different subject (recipe dispatch, not file formatting), so
 # a sibling fixture-style script rather than an added arm in that one —
 # bundling them would make one script answer two questions.
@@ -102,6 +103,29 @@ assert_accepted bench 100
 
 assert_rejected gen-bench abc
 assert_accepted gen-bench 100
+
+# `outdatty-update` takes the ONE group whose source was just edited — the
+# blanket form is the separate `outdatty-update-all` recipe, so the group is
+# required (no default to assert). The `'Dev Docs'` case is the word-splitting
+# one, the same kind `[positional-arguments]` used to guard recipes against:
+# the body interpolates the value into `outdatty update --group {{ GROUP }}`,
+# so a space must be refused at dispatch. `'DEV_DOCS'` locks the shape that a
+# group name can never take (outdatty.yaml names are all lowercase).
+assert_rejected outdatty-update 'Dev Docs'
+assert_rejected outdatty-update 'DEV_DOCS'
+assert_accepted outdatty-update dev-docs
+
+# Bare `just outdatty-update` must fail at dispatch too — the whole point of
+# requiring the group is that the blanket form is no longer reachable by
+# muscle memory. The error is just's own missing-argument one, not a pattern
+# mismatch, so assert_rejected's message check does not apply.
+if out=$(just --dry-run --yes outdatty-update </dev/null 2>&1); then
+    echo "arg-pattern-check: bare outdatty-update succeeded — GROUP must be required" >&2
+    echo "  output: $out" >&2
+    fail=1
+else
+    echo "arg-pattern-check: bare outdatty-update correctly requires a group"
+fi
 
 assert_rejected eject 120
 assert_rejected eject abc

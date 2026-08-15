@@ -149,8 +149,12 @@ and the design rules are in
 
 #link("outdatty.yaml")[`outdatty.yaml`] couples source files to the
 dependents that must stay in sync (e.g. the CLI surface to `README.md`).
-After editing a source, update the listed dependents, then
-#just.outdatty-update() and commit `outdatty.lock`.
+After editing a source, update the listed dependents, then re-record the
+group you touched with #just.outdatty-update("<group>") and commit
+`outdatty.lock`. A recorded hash is a review watermark, so blanket
+re-recording — #just.outdatty-update-all() — claims a review of every
+group's dependents that never happened; it stays the explicit choice, never
+the default.
 
 = Version Management
 
