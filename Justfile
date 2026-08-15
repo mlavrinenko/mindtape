@@ -362,11 +362,10 @@ crap-baseline: crap
 # Pre-PR mutation check — the daily driver (see CONTRIBUTING.md "Testing").
 # Sweeps only mutants touched by this branch's diff against main, so it needs
 # no state file (nothing to invalidate) and covers new files for free (every
-# line of a new file is "touched"). A surviving `MISSED` mutant is a real
-# assertion gap: a line covered but not pinned. Speed knobs (benchmarked
-# ~3.5x over the naive run): CARGO_MUTANTS_JOBS=3 parallel jobs and the mold
-# linker via RUSTFLAGS — both overridable; drop jobs to 2 if parallel load
-# provokes false TIMEOUTs. Extra args pass through to cargo-mutants.
+# line of a new file is "touched"). Extra args pass through to cargo-mutants.
+# What a surviving mutant means, and when a verdict is worth believing, are in
+# docs/contributing/mutation-testing.md; the speed knobs are argued in place in
+# .just/scripts/_mutants-env.sh.
 
 [doc("Run mutation testing over this branch's diff against main")]
 [group("advisory")]
@@ -380,28 +379,9 @@ mutants-diff *ARGS:
 # mutants), the rrule feature and the debuginfo-free `mutants` profile come
 # from .cargo/mutants.toml. Same speed knobs as `mutants-diff`.
 #
-# A TIMEOUT is not a verdict in either direction: under parallel load it can
-# hide a real pass or a real survivor equally well. So a sweep you intend to
-# BELIEVE runs at CARGO_MUTANTS_JOBS=2 or lower with an extended timeout, not at
-# the default parallelism — the speed knobs above are for the pre-PR pass, not
-# for a final verdict.
-#
-# A REPRODUCIBLE timeout is a finding, not noise: it means a mutant reached an
-# unbounded loop. Both found so far (MAX_CATCH_UP_STEPS in recur_dates.rs,
-# MAX_DISAMBIGUATE_ATTEMPTS in naming.rs) were fixed by bounding the loop with a
-# `for` over a fixed range — never by a `while n <= CEILING`, which still hangs
-# once the mutant stops incrementing `n`.
-#
-# A survivor inside `#[cfg(not(feature = …))]` code is unreachable under the
-# sweep's own feature set. Move the twin into its own file and `exclude_globs`
-# it (recur_rrule_off.rs) so the live side stays one always-compiled function.
-#
-# There is deliberately no CI mutation job. Every mutant re-runs a suite that
-# includes subprocess and PTY e2e tests, and TIMEOUT verdicts are least
-# trustworthy exactly where a shared runner puts you. An advisory check with
-# unreliable verdicts trains people to ignore it, and a cold build on two runner
-# cores turns "advisory" into the slowest job in the pipeline. Run it locally,
-# where a timeout means something.
+# The TIMEOUT caveat, what a REPRODUCIBLE timeout means, what to do with a
+# survivor inside `#[cfg(not(feature = …))]` code, and why there is
+# deliberately no CI mutation job are in docs/contributing/mutation-testing.md.
 
 [doc("Run a full-file mutation testing sweep")]
 [group("advisory")]

@@ -47,7 +47,9 @@
 # commit message and is not re-run on every `just check` — mutants and
 # ask-refactoring shell out to real cargo/mt builds, and this repo already
 # keeps them out of `just check` for exactly that cost (see the Justfile's
-# `mutants`/`ask-refactoring` comments). A static gate is what stays cheap
+# `mutants`/`ask-refactoring` comments, and docs/contributing/mutation-
+# testing.md for why the mutation sweep has no CI job either). A static gate is
+# what stays cheap
 # enough to run every time and still catches the regression that matters:
 # the attribute or the "$@" disappearing from the Justfile or a script.
 set -eo pipefail

@@ -3,8 +3,15 @@
 // typlite, same as every other docs/src/*.typ source; see docs/src/lib.typ
 // for the render path's constraints.
 //
-// Content-preserving port of the hand-written mutation-testing.md. Nothing
-// here is derived: `cargo-mutants` and its recipes are not named in any of
+// Started as a content-preserving port of the hand-written
+// mutation-testing.md, and took in what the `mutants` and `mutants-diff`
+// recipes used to argue from above themselves under
+// truth/tasks/relocate-justfile-commentary-to-scripts-and-docs.typ: the
+// TIMEOUT caveat, the reproducible-timeout finding, the feature-gated
+// survivor, and the absent CI job. The speed knobs stayed with the knobs, in
+// .just/scripts/_mutants-env.sh.
+//
+// Nothing here is derived: `cargo-mutants` and its recipes are not named in any of
 // www/generate-facts.sh's four artifacts (crate-map, dsl-fields, gates,
 // linecop-caps) — `mutants`/`mutants-diff` are deliberately not `just check`
 // dependencies (see the prose below), so `gates.json` never carries them.
@@ -32,9 +39,37 @@ code your suite runs but does not pin.
   free.
 - #just.mutants("-f <file>") forces a deliberate full-file sweep.
 
-Neither is a #just.check() gate, and there is no CI job for it on purpose. The
-reasoning, the `TIMEOUT` caveat, and how to bound a loop a mutant can hang are
-in the `mutants` recipes' comments and in `.cargo/mutants.toml`.
+Neither is a #just.check() gate, and there is no CI job for it on purpose; both
+are argued below. The file set, the excludes, the `rrule` feature and the
+debuginfo-free `mutants` profile are `.cargo/mutants.toml`'s subject.
+
+= When a verdict is worth believing
+
+A `TIMEOUT` is not a verdict in either direction: under parallel load it can
+hide a real pass or a real survivor equally well. So a sweep you intend to
+BELIEVE runs at `CARGO_MUTANTS_JOBS=2` or lower with an extended timeout, not
+at the default parallelism. The speed knobs — three parallel jobs and the mold
+linker, benchmarked at \~3.5x over the naive run, argued in
+`.just/scripts/_mutants-env.sh` — are for the pre-PR pass, not for a final
+verdict.
+
+A REPRODUCIBLE timeout is a finding, not noise: it means a mutant reached an
+unbounded loop. Both found so far (`MAX_CATCH_UP_STEPS` in `recur_dates.rs`,
+`MAX_DISAMBIGUATE_ATTEMPTS` in `naming.rs`) were fixed by bounding the loop
+with a `for` over a fixed range — never by a `while n <= CEILING`, which still
+hangs once the mutant stops incrementing `n`.
+
+A survivor inside `#[cfg(not(feature = …))]` code is unreachable under the
+sweep's own feature set. Move the twin into its own file and `exclude_globs` it
+(`recur_rrule_off.rs`) so the live side stays one always-compiled function.
+
+= Why there is no CI mutation job
+
+Every mutant re-runs a suite that includes subprocess and PTY e2e tests, and
+`TIMEOUT` verdicts are least trustworthy exactly where a shared runner puts
+you. An advisory check with unreliable verdicts trains people to ignore it, and
+a cold build on two runner cores turns "advisory" into the slowest job in the
+pipeline. Run it locally, where a timeout means something.
 
 = Triage
 
