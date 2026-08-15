@@ -211,10 +211,12 @@ rm -rf "$tmp"
 # against each other for) — see www/gates.jq's header for why row order reads
 # that list rather than `just --summary --unsorted`'s source order now that a
 # gate can live in a module. Each gate carries a derived `command`, and the
-# artifact as a whole carries the three Justfile path/exclude assignments
-# CONTRIBUTING.md renders verbatim. The jq program is long enough to blow
-# this script's own linecop cap, so it lives in www/gates.jq (argued in place
-# there) instead of inline.
+# artifact as a whole carries the fmt path assignments (selected in
+# www/gates.jq by their shared `_FMT_PATHS` suffix, so a future
+# formatter's list lands without an edit) CONTRIBUTING.md renders
+# verbatim. The jq program is long enough to blow
+# this script's own linecop cap, so it lives in www/gates.jq (argued in
+# place there) instead of inline.
 JUST_DUMP="$(just --dump --dump-format json)"
 jq -f "$SCRIPT_DIR/gates.jq" <<<"$JUST_DUMP" | emit gates.json
 

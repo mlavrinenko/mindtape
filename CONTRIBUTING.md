@@ -44,7 +44,7 @@ All clippy lints are `deny` (workspace `Cargo.toml`); the project will not build
 
 | Gate | Command | Notes |
 | --- | --- | --- |
-| `fmt-check` | _Check formatting without writing changes (CI-friendly)_ | `cargo fmt` over Rust, `tombi format` over the project config TOML (`.mindtape/config.toml` and the per-example configs), and `typstyle` over the Typst sources — the exact path lists are below the table. One list feeds both `fmt` and `fmt-check`, so a path is added in one place, never to a single recipe. |
+| `fmt-check` | _Check formatting without writing changes (CI-friendly)_ | `cargo fmt` over Rust, `tombi format` over the project config TOML (`.mindtape/config.toml` and the per-example configs), `typstyle` over the Typst sources, and `--fmt` over the justfiles — the exact path lists are below the table. One list feeds both `fmt` and `fmt-check`, so a path is added in one place, never to a single recipe. The justfiles need a list of their own because a bare `--fmt` formats the root `Justfile` only and silently skips every `mod` file; each file listed gets its own `--justfile <file> --fmt` pass and needs `set unstable := true` of its own, since `--fmt` reads that setting from the file it is pointed at, not from the `Justfile` declaring the `mod`. |
 | `clippy` | `cargo clippy --workspace --all-targets -q -- -D warnings` | Every lint is workspace `deny` (see Code Style above); this recipe is only the enforcement point, not a separate lint surface. |
 | `test` | `cargo test --workspace "$@"` | The full workspace suite. `just test <filter>` (a developer query, no `mmz`) runs this recipe directly with the filter as `ARGS`, so a filtered run never pollutes the cached full-suite record `just check` relies on. |
 | `machete` | `cargo machete` | Flags a workspace dependency no crate actually imports. |
@@ -66,8 +66,7 @@ All clippy lints are `deny` (workspace `Cargo.toml`); the project will not build
 
 - `TOML_FMT_PATHS`: `.mindtape/config.toml`, `examples/learn-piano/.mindtape/config.toml`, `examples/large/.mindtape/config.toml`
 - `TYPST_FMT_PATHS`: `lib`, `truth/tasks`, `.mindtape/templates`, `examples/learn-piano/tasks`, `examples/learn-piano/.mindtape/templates`, `www/content`, `www/templates`, `www/utils`, `docs/src`
-
-The justfiles are the third list, and the reason the discipline exists: a bare `--fmt` pass formats the root `Justfile` only and silently skips every `mod` file, so a module file was never checked at all until `JUST_FMT_PATHS` named it. Every file listed there gets its own `--justfile <file> --fmt` pass in both recipes, and needs `set unstable := true` of its own — `--fmt` reads that setting from the file it is pointed at, not from the `Justfile` declaring the `mod`.
+- `JUST_FMT_PATHS`: `.just/docs.just`
 
 Every arm runs through `mmz`, so a re-run skips each one whose declared inputs are unchanged and the pre-commit hook can assert the whole set fresh without re-running it. That memoization, why the example projects are gated, and how the formatter gates are themselves locked are in [docs/contributing/gates.md](docs/contributing/gates.md).
 

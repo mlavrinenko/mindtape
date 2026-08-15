@@ -14,8 +14,10 @@
 // naming it, and one removed from `just check` drops out on its own.
 // `.linecop.yaml`'s caps land in `www/generated/linecop-caps.json` too, but
 // this file quotes no literal cap to derive from it. `gates.json` also
-// carries the three Justfile path/exclude assignments `fmt-check`'s note
-// used to only name; the block below the table renders their real contents.
+// carries the Justfile's fmt path assignments (TOML_FMT_PATHS, TYPST_FMT_PATHS,
+// JUST_FMT_PATHS — selected by their `_FMT_PATHS` suffix in www/gates.jq, so
+// a future formatter's list lands without an edit) `fmt-check`'s note used
+// to only name; the block below the table renders their real contents.
 #import "lib.typ": doc-title, fact, just
 #import "/www/utils/gate-notes.typ": gate-notes
 
@@ -103,14 +105,7 @@ build with violations. Key restrictions:
 
 - `TOML_FMT_PATHS`: #gate-assignments.at("TOML_FMT_PATHS").split(" ").map(raw).join(", ")
 - `TYPST_FMT_PATHS`: #gate-assignments.at("TYPST_FMT_PATHS").split(" ").map(raw).join(", ")
-
-The justfiles are the third list, and the reason the discipline exists: a bare
-`--fmt` pass formats the root `Justfile` only and silently skips every `mod`
-file, so a module file was never checked at all until `JUST_FMT_PATHS` named
-it. Every file listed there gets its own `--justfile <file> --fmt` pass in both
-recipes, and needs `set unstable := true` of its own — `--fmt` reads that
-setting from the file it is pointed at, not from the `Justfile` declaring the
-`mod`.
+- `JUST_FMT_PATHS`: #gate-assignments.at("JUST_FMT_PATHS").split(" ").map(raw).join(", ")
 
 Every arm runs through `mmz`, so a re-run skips each one whose declared inputs
 are unchanged and the pre-commit hook can assert the whole set fresh without

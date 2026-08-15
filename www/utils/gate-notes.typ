@@ -34,10 +34,16 @@
 #let gate-notes = (
   "fmt-check": [
     `cargo fmt` over Rust, `tombi format` over the project config TOML
-    (`.mindtape/config.toml` and the per-example configs), and `typstyle`
-    over the Typst sources — the exact path lists are below the table. One
-    list feeds both `fmt` and `fmt-check`, so a path is added in one place,
-    never to a single recipe.
+    (`.mindtape/config.toml` and the per-example configs), `typstyle`
+    over the Typst sources, and `--fmt` over the justfiles — the exact
+    path lists are below the table. One list feeds both `fmt` and
+    `fmt-check`, so a path is added in one place, never to a single
+    recipe. The justfiles need a list of their own because a bare `--fmt`
+    formats the root `Justfile` only and silently skips every `mod` file;
+    each file listed gets its own `--justfile <file> --fmt` pass and needs
+    `set unstable := true` of its own, since `--fmt` reads that setting
+    from the file it is pointed at, not from the `Justfile` declaring the
+    `mod`.
   ],
   "clippy": [
     Every lint is workspace `deny` (see Code Style above); this recipe is

@@ -62,11 +62,15 @@
 # fragments — `[["variable","VAR"]]`); render_line renders both readably as
 # `{{ VAR }}`, the Justfile's own syntax, instead of dumping raw JSON.
 #
-# `assignments` folds in the three Justfile variables CONTRIBUTING.md quotes
-# by name today (TOML_FMT_PATHS/TYPST_FMT_PATHS/CRAP_EXCLUDES) verbatim, so
+# `assignments` folds in the Justfile's fmt path variables
+# (TOML_FMT_PATHS/TYPST_FMT_PATHS/JUST_FMT_PATHS) verbatim, so
 # docs/src/contributing.typ can render their real contents instead of
 # sending the reader to the Justfile — reusing $JUST_DUMP, never a second
-# `just --dump`.
+# `just --dump`. The selection is the `_FMT_PATHS` suffix the Justfile's own
+# grouping discipline gives every fmt list, not a name list, so a fifth
+# formatter's list (a shell formatter, say) lands in the artifact without an
+# edit here; CRAP_EXCLUDES is deliberately not carried — it is an exclude
+# list, not a fmt path list, and no doc renders it.
 
 def render_frag:
   if type == "string" then .
@@ -134,8 +138,7 @@ def mangle: gsub("::"; "-");
           | $by_mangled[$n] as $r
           | {name: $n, doc: $r.doc, command: ($r | gate_command)}],
         assignments: (.assignments
-          | with_entries(select(.key
-              | IN("TOML_FMT_PATHS", "TYPST_FMT_PATHS", "CRAP_EXCLUDES")))
+          | with_entries(select(.key | test("_FMT_PATHS$")))
           | map_values(.value)),
       }
   end
