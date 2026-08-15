@@ -2,6 +2,9 @@
 # Justfile), split out under truth/tasks/split-the-justfile-into-modules.typ
 # and moved here under
 # truth/tasks/move-the-just-module-and-scripts-into-a-dot-just-folder.typ.
+# That declaration spells the path out because this file no longer sits beside
+# the Justfile: a bare `mod docs` only looks for `docs.just`/`docs/mod.just`
+# next to the file declaring it.
 #
 # `set working-directory := '..'` below is load-bearing, not cosmetic. A module
 # recipe runs with its working directory set to the MODULE FILE's directory,

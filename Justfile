@@ -1,19 +1,35 @@
+# MindTape's root justfile. `just` with no arguments lists every recipe.
+#
+# Where a comment about a recipe goes, now that this file no longer holds all
+# three kinds (truth/tasks/relocate-justfile-commentary-to-scripts-and-
+# docs.typ):
+#
+#   - HERE: what a caller needs before running it — what it does, when to
+#     reach for it, what it refuses to do. The `[doc(...)]` string plus at
+#     most a few lines.
+#   - IN THE SCRIPT (.just/scripts/*.sh): why the code inside is written the
+#     way it is, next to the line it explains.
+#   - IN docs/src/contributing/*.typ: the arguments — what was measured, what
+#     was tried, why a band or a job deliberately does not exist. `just
+#     docs::md` renders those to docs/contributing/*.md.
+#
+# `just --list` shows only the LAST comment line of a recipe, so a summary
+# worth reading there is repeated as an explicit `[doc(...)]` rather than left
+# as a dangling fragment.
+
 set quiet := true
 set unstable := true
 
-# Docs site generation, build, serve, and the docs-md/docs-check gates —
-# truth/tasks/split-the-justfile-into-modules.typ. `just docs::<name>` and
-# `just docs <name>` both work; www/generate-facts.sh mangles the `::`
-# invocation path to `-` for www/generated/just.typ, so `docs::md` mangles to
-# `docs-md` — the identifier every doc source already calls via
-# `#just.docs-md()`. That is what keeps this split from touching doc prose.
+# Six recipes live in .just/docs.just rather than here
+# (truth/tasks/split-the-justfile-into-modules.typ): docs::gen, docs::build,
+# docs::serve and docs::md (render docs/src/*.typ to the repo-root Markdown),
+# plus the two gates — docs::check (build, index with Pagefind, then validate
+# internal links + assets) and docs::md-check (the docs-md freshness gate).
+# `just docs::<name>` and `just docs <name>` both work.
 #
-# The path is spelled out because the file no longer sits beside this one: a
-# bare `mod docs` only looks for `docs.just`/`docs/mod.just` next to the
-# Justfile, and the module moved under .just/ (truth/tasks/move-the-just-
-# module-and-scripts-into-a-dot-just-folder.typ). A module recipe runs with its
-# cwd set to the MODULE FILE's directory, so .just/docs.just carries `set
-# working-directory := '..'` of its own — argued in that file's header.
+# Why the path is spelled out, why `docs::md` reaches doc prose as `docs-md`,
+# and why the module file carries `set working-directory := '..'` of its own
+# are argued in .just/docs.just's header.
 
 # Docs site generation, build, serve, and the docs-md/docs-check gates
 mod docs '.just/docs.just'
@@ -204,9 +220,6 @@ check-doc-facts:
 check-doc-recipes:
     bash .just/scripts/check-doc-recipes.sh
 
-# docs::check (build, index with Pagefind, then validate internal links +
-# assets) and docs::md-check (the docs-md freshness gate) moved to
-# .just/docs.just — truth/tasks/split-the-justfile-into-modules.typ.
 # Lock the formatter gates: synthesize a deliberately-mis-formatted TOML,
 # Typst and just-module fixture in a temp dir, then assert `tombi format
 # --check`, `typstyle --check` and `just --justfile <f> --fmt --check` all
@@ -365,9 +378,6 @@ outdatty-update:
 nix-build:
     git add -A
     nix build .#default
-
-# docs::gen, docs::build, docs::serve, and docs::md moved to .just/docs.just —
-# truth/tasks/split-the-justfile-into-modules.typ.
 
 [doc("Auto-fix clippy warnings")]
 [group("dev")]
