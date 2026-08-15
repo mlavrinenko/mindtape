@@ -22,6 +22,8 @@ Every row above is read out of the `ask-refactoring` recipe’s own `[arg(...)]`
 
 Four thresholds, never one band shared across the arms, and that is a decision rather than an accident: one flag over two arms would read as a single number and move two at once. The pair the undertested arm carries is a conjunction, so it is two edges rather than one — a function has to be both complex enough and undertested enough to be worth a task — and the size and coverage bands belong to different arms measuring different things. Each number’s full argument (the distributions behind it, what it rejects, why it stops where it does) lives in the arm script that applies it, next to the constant rather than in a doc that would drift from it.
 
+The mutants arm carries no threshold at all: it reads what `just mutants-diff` last wrote, and skips loudly when that is missing or stale rather than run a sweep that takes hours.
+
 The entry script holds the flag forwarding, the re-run guard, the shared `stem_for` and the driver; each arm is one file under `contrib/ask-refactoring/`, defining `score_<arm>`/`signal_<arm>`/`emit_<arm>` next to the reasoning that justifies its numbers. Adding an arm is a new file there, its name in `ARMS`, and a `.mindtape/templates/sweep-*.typ` template — never a config change, since the tags and the guard are already declared. The templates share one shape, kept in step by the `sweep-templates` outdatty group rather than by a Typst `#import`, which would survive into every task the sweep writes and bind a tracked artifact to a path outside the tasks root. Which arms exist, what each reads and how each scores are the scripts’ own subject — read them there rather than here.
 
 Six rules the design turns on, in the order they matter:

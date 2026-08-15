@@ -15,8 +15,9 @@ mkdir -p target/coverage
 # The clean is cargo-llvm-cov's own documented precondition for that split
 # ("should be called before the first run"): --no-report deliberately does NOT
 # clear the profraw pile, because the split exists so several runs CAN be
-# merged. Dropping it unions every profraw and object file left since the last
-# `cargo clean` into the lcov — measured, and argued in the docs page above.
+# merged. Dropping it unions every profraw and every object file left in
+# target/llvm-cov-target since the last `cargo clean` into the lcov — measured,
+# and argued in the docs page above.
 cargo llvm-cov clean --workspace
 cargo llvm-cov --workspace --no-report
 cargo llvm-cov report --ignore-filename-regex "$ignore" \

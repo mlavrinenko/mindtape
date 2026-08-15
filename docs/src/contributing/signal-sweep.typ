@@ -80,6 +80,10 @@ number's full argument (the distributions behind it, what it rejects, why it
 stops where it does) lives in the arm script that applies it, next to the
 constant rather than in a doc that would drift from it.
 
+The mutants arm carries no threshold at all: it reads what
+#just.mutants-diff() last wrote, and skips loudly when that is missing or
+stale rather than run a sweep that takes hours.
+
 The entry script holds the flag forwarding, the re-run guard, the shared
 `stem_for` and the driver; each arm is one file under
 `contrib/ask-refactoring/`, defining `score_<arm>`/`signal_<arm>`/`emit_<arm>`

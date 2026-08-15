@@ -14,7 +14,8 @@
 # channel and must not become one: `crap` treats a reason as fatal while
 # `check-crap` treats it as a reason to skip, and a non-zero exit here would
 # make `just` print its own `error: Recipe ... failed` line into that skip
-# path, so a deliberate skip would read on screen exactly like a broken gate.
+# path, so a deliberate skip would read on screen exactly like a broken gate —
+# the one thing that arm exists to keep distinguishable.
 set -eo pipefail
 lcov=target/coverage/lcov.info
 if [ ! -f "$lcov" ]; then
