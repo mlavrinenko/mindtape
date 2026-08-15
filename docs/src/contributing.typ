@@ -17,7 +17,11 @@
 // carries the Justfile's fmt path assignments (TOML_FMT_PATHS, TYPST_FMT_PATHS,
 // JUST_FMT_PATHS — selected by their `_FMT_PATHS` suffix in www/gates.jq, so
 // a future formatter's list lands without an edit) `fmt-check`'s note used
-// to only name; the block below the table renders their real contents.
+// to only name; the block below the table renders their real contents. That
+// block loops the dict rather than naming each key, so the suffix selection
+// reaches the PAGE and not only the artifact — a hand-listed `.at("...")` per
+// key meant a fifth list landed in gates.json and silently never rendered,
+// and nothing gates assignments the way check-doc-facts gates gate names.
 #import "lib.typ": doc-title, fact, just
 #import "/www/utils/gate-notes.typ": gate-notes
 
@@ -103,9 +107,9 @@ build with violations. Key restrictions:
 `fmt-check`'s non-Rust path lists — one list feeds both `fmt` and
 `fmt-check`, so a path is added in one place, never to a single recipe:
 
-- `TOML_FMT_PATHS`: #gate-assignments.at("TOML_FMT_PATHS").split(" ").map(raw).join(", ")
-- `TYPST_FMT_PATHS`: #gate-assignments.at("TYPST_FMT_PATHS").split(" ").map(raw).join(", ")
-- `JUST_FMT_PATHS`: #gate-assignments.at("JUST_FMT_PATHS").split(" ").map(raw).join(", ")
+#for (name, value) in gate-assignments [
+  - #raw(name): #value.split(" ").map(raw).join(", ")
+]
 
 Every arm runs through `mmz`, so a re-run skips each one whose declared inputs
 are unchanged and the pre-commit hook can assert the whole set fresh without
