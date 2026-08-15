@@ -10,11 +10,11 @@
   difficulty: 3,
   tags: ("tooling",),
   estimate: (files: 5),
-  status: wip(
+  status: done(
     2026,
     8,
     15,
-  )[linecop 0.4.0 shipped include\_hidden; taking option two],
+  )[include\_hidden: true; size-fixture-check locks the scan scope],
 )
 
 == Summary
