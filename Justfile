@@ -152,25 +152,11 @@ check-doc-facts:
 check-doc-recipes:
     bash .just/scripts/check-doc-recipes.sh
 
-# Lock the formatter gates: synthesize a deliberately-mis-formatted TOML,
-# Typst and just-module fixture in a temp dir, then assert `tombi format
-# --check`, `typstyle --check` and `just --justfile <f> --fmt --check` all
-# fail. The fmt recipe is what `just fmt`/`fmt-check` apply to the tracked
-# config + docs + justfile tree, so the same formatters must reject the
-# mis-formatted fixture (and accept a re-formatted one). A formatter that
-# silently accepts drift would let `just fmt-check` pass on an out-of-sync
-# editor save — exactly the bug this task is fixing.
-#
-# The just arm is spelled with the SAME `--justfile <file> --fmt --check`
-# invocation `fmt-check` runs over JUST_FMT_PATHS, because the bug it locks is
-# not "the formatter is broken" but "the invocation shape misses the file": a
-# bare `just --fmt` skips module files entirely, so a fixture checked the wrong
-# way would pass while the real gate saw nothing
-# (truth/tasks/gate-formatting-of-just-module-files.typ). The fixture carries
-# `set unstable := true` for the same reason every listed module file must —
-# `--fmt` is refused without it, and a refusal is a non-zero exit that would
-# pass this assertion for the wrong reason, so the arm asserts the SUCCESS case
-# too: the same file, reformatted, must be accepted.
+# Synthesize a deliberately-mis-formatted TOML, Typst and just-module fixture
+# in a temp dir, then assert every formatter `fmt`/`fmt-check` run rejects it —
+# and accepts a re-formatted one. Why the just arm is spelled the way it is,
+# and why the SUCCESS case is asserted too, are argued in place in
+# .just/scripts/fmt-fixture-check.sh.
 
 [doc("Lock the formatter gates against a mis-formatted fixture")]
 [group("gate")]
@@ -178,14 +164,11 @@ fmt-fixture-check:
     bash .just/scripts/fmt-fixture-check.sh
 
 # Lock the `[arg(...)]` patterns on release/bench/gen-bench/eject and the five
-# `ask-refactoring` thresholds: each must
-# reject a known-bad argument and accept a known-good one at DISPATCH, before
-# the recipe body runs (truth/tasks/validate-recipe-arguments-with-the-arg-
-# attribute.typ). A pattern nobody exercises is a comment, not a gate — same
-# reasoning as fmt-fixture-check, over a different subject (recipe dispatch,
-# not file formatting), so it is a sibling script rather than an added arm in
-# that one. `just --dry-run --yes` inside the script means no recipe body
-# ever actually runs, `release` included.
+# `ask-refactoring` thresholds: each must reject a known-bad argument and
+# accept a known-good one at DISPATCH, before the recipe body runs
+# (truth/tasks/validate-recipe-arguments-with-the-arg-attribute.typ). No recipe
+# body ever actually runs, `release` included — argued in place in
+# .just/scripts/arg-pattern-check.sh.
 
 [doc("Lock the arg-attribute patterns against known-bad and known-good input")]
 [group("gate")]
@@ -193,20 +176,14 @@ arg-pattern-check:
     bash .just/scripts/arg-pattern-check.sh
 
 # Lock argument forwarding on the passthrough recipes (`test`, `build`,
-# `mutants`, `mutants-diff`): each must carry
-# `[positional-arguments]` and forward "$@" rather than interpolate `{{ ARGS
-# }}`/`{{ args }}` into its body — a bare interpolation re-splits an argument
-# containing a space and re-globs one containing a wildcard
-# (truth/tasks/preserve-argument-quoting-with-positional-arguments.typ).
-# `ask-refactoring` was the fifth and left by construction, not by exemption:
-# its flags are declared parameters now, so it takes no passthrough `*ARGS` at
-# all and `arg-pattern-check` locks the patterns that replaced the attribute —
-# argued in place in .just/scripts/positional-args-check.sh.
-# Separate from arg-pattern-check for the same reason that one is separate
-# from fmt-fixture-check: different subject. It is static (over `just --dump
-# --dump-format json` plus a grep of the scripts the recipes forward into),
-# never a real cargo test/build/mutants run — argued in place in
-# .just/scripts/positional-args-check.sh.
+# `mutants`, `mutants-diff`): each must carry `[positional-arguments]` and
+# forward "$@" rather than interpolate `{{ ARGS }}`/`{{ args }}` into its body
+# — a bare interpolation re-splits an argument containing a space and re-globs
+# one containing a wildcard
+# (truth/tasks/preserve-argument-quoting-with-positional-arguments.typ). Why it
+# is static, why it is separate from arg-pattern-check, and why
+# `ask-refactoring` left it by construction rather than by exemption are argued
+# in place in .just/scripts/positional-args-check.sh.
 
 [doc("Lock positional-argument forwarding on the four passthrough recipes")]
 [group("gate")]
