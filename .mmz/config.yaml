@@ -265,9 +265,10 @@ commands:
     tags: [gate]
     inputs: [rust, rust-fmt, gates-meta]
 
-  # Dispatch-only self-test: `release`/`bench`/`gen-bench`/`eject`'s `[arg(...)]`
-  # patterns must reject a known-bad value and accept a known-good one, and
-  # `eject`'s default must satisfy its own pattern. Every check the script runs
+  # Dispatch-only self-test: the `[arg(...)]` patterns on
+  # `release`/`bench`/`gen-bench`/`eject` and on `ask-refactoring`'s five
+  # thresholds must reject a known-bad value and accept a known-good one, and
+  # every declared default must satisfy its own pattern. Every check the script runs
   # is `just --dry-run --yes <recipe> <value>` against THIS Justfile, so
   # `gates-meta` (Justfile + .just/scripts/** + the dev-shell pin) is the whole
   # input — no rust build, no task tree, nothing else the recipe bodies never
@@ -276,14 +277,20 @@ commands:
     tags: [gate]
     inputs: [gates-meta]
 
-  # Static self-test: `test`/`build`/`mutants`/`mutants-diff`/`ask-refactoring`
-  # must carry `[positional-arguments]` and forward "$@", never interpolate
+  # Static self-test: `test`/`build`/`mutants`/`mutants-diff` must carry
+  # `[positional-arguments]` and forward "$@", never interpolate
   # `{{ ARGS }}`/`{{ args }}` into the body. Read from `just --dump --dump-
   # format json` plus a grep of the scripts those recipes forward into
-  # (.just/scripts/mutants.sh, .just/scripts/mutants-diff.sh, contrib/ask-
-  # refactoring.sh) — no rust build, no task tree, nothing a static read of
+  # (.just/scripts/mutants.sh, .just/scripts/mutants-diff.sh) — no rust build,
+  # no task tree, nothing a static read of
   # the Justfile and its scripts does not already cover, so `gates-meta` is
   # the whole input, same as arg-pattern-check above.
+  #
+  # `ask-refactoring` was the fifth recipe here until its flags became declared
+  # parameters (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-
+  # attributes.typ). Dropping it also closed a real scope hole: the script
+  # grepped contrib/ask-refactoring.sh, which no scope below covers, so an edit
+  # there could serve a stale hit on this rule.
   - name: just positional-args-check
     tags: [gate]
     inputs: [gates-meta]

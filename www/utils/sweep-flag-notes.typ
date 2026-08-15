@@ -1,0 +1,72 @@
+// Hand-written rationale, one entry per `just ask-refactoring` flag, keyed by
+// the flag's long name. The flag list, each flag's help text and each default
+// come from www/generated/sweep-flags.json (www/generate-facts.sh, reading
+// `just --dump`); this dict carries only what a machine cannot state — WHY the
+// number is its own number rather than one band shared across the sweep's
+// arms. An entry must never restate the help text or the default:
+// docs/src/contributing/signal-sweep.typ renders both alongside, derived, so a
+// copy here would be the drift this file exists to end. `just check-doc-facts`
+// fails naming any sweep-flags.json entry with no matching key here.
+//
+// The full argument for each band — the distributions, the counts, what each
+// edge rejects and why it stops where it does — stays in the arm script that
+// applies it (`contrib/ask-refactoring/*.sh`), deliberately: it is the most
+// valuable thing in the arm, and prose that lived away from the constants it
+// explains would drift away from them. These entries point there.
+//
+// Two entries below cross-reference OTHER gates (`just cover`, `just crap`)
+// to explain what those measure that this sweep's own arms do not, so those
+// mentions go through `#just.<name>()` too — a hand-typed recipe name is
+// exactly the drift check-doc-recipes exists to catch, and it scans this
+// directory. That makes this file a READER of www/generated/ (the generated
+// `just` module), which is only safe because the renderers that reach it —
+// docs::md and check-doc-facts — hold the www/generated/ flock across their
+// typst queries as well as their own regenerate (see docs/generate-md.sh and
+// the check-doc-facts recipe for the fd-held idiom). If you add a consumer
+// that renders this dict outside one of those, it must hold that lock for
+// its whole run or read no generated file at all, the way crate-notes.typ
+// and dsl-field-notes.typ do.
+//
+// Refs: truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ
+
+#import "../generated/just.typ" as just
+
+#let sweep-flag-notes = (
+  "write": [
+    The one flag that is not a threshold: it decides whether a finding is
+    printed or filed, never which findings there are. Dry is the default
+    because the sweep is a proposal — the remedy is the refactorer's call, and
+    a proposal you have to read before it becomes a task is how that stays
+    true.
+  ],
+  "baseline": [
+    A percentage OF EACH FILE'S OWN CAP, not a line count: the caps differ per
+    language and per override, so the one number that means the same thing
+    everywhere is how much of a file's own budget is spent. Sits above
+    linecop's own `--baseline 85` reporting band, so the sweep files a task
+    strictly later than the number a contributor is told to watch.
+  ],
+  "coverage-floor": [
+    Per-FILE line coverage, and the only arm measuring something no gate
+    measures: #just.cover() fails on the workspace total alone, so a file can
+    sink without any gate noticing. Its own band, and deliberately not the
+    workspace gate's number — reusing that would imply the two mean the same
+    thing.
+  ],
+  "cc-floor": [
+    Half of a conjunction with `--fn-coverage-floor`, and the half that is not
+    a complexity judgement — #just.crap() gates complexity, at its own
+    threshold against a committed baseline. This floor is what makes the
+    coverage number mean something: below it, a low percentage says one line
+    is unhit; at or above it, it says decisions are unexercised.
+  ],
+  "fn-coverage-floor": [
+    The other half, per FUNCTION rather than per file, and stricter than
+    `--coverage-floor` on purpose: a function is small enough that one unreached
+    line moves its percentage by tens of points, so the tail starts further out.
+    Two edges rather than one shared number is the point of the pair — a
+    function has to be both complex enough and undertested enough — and the
+    undertested arm defers to the coverage arm on any file that one already
+    reports, so the overlap files nothing twice.
+  ],
+)

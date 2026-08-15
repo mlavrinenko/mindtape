@@ -6,10 +6,20 @@
 // Content-preserving port of the hand-written signal-sweep.md, including its
 // heading level: the original has no h1, only a single top-level `##`, so
 // this source opens at Typst's `=` (one level below `doc-title`) rather than
-// importing `doc-title` the way every other source here does. Nothing is
-// derived: the sweep's arms, its rules and its guard expression are design,
-// not values any of www/generate-facts.sh's four artifacts carries.
-#import "../lib.typ": just
+// importing `doc-title` the way every other source here does.
+//
+// One thing here IS derived, and it is the one thing on this page that is a
+// set of values rather than design: the flag table. It reads
+// www/generated/sweep-flags.json — `ask-refactoring`'s own `[arg(...)]`
+// parameters, straight out of `just --dump` — so the five thresholds and
+// their defaults are stated once, in the Justfile, and rendered here
+// (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ).
+// The Notes column is the half no machine can state and stays hand-written in
+// www/utils/sweep-flag-notes.typ, keyed by flag; a flag missing there fails
+// `just docs::md` naming it. The sweep's arms, its rules and its guard
+// expression stay design prose, derived from nothing.
+#import "../lib.typ": fact, just
+#import "/www/utils/sweep-flag-notes.typ": sweep-flag-notes
 
 #metadata((
   output: "docs/contributing/signal-sweep.md",
@@ -23,12 +33,49 @@ other half of the gates: a gate stops you when the wall is already in front
 of you, the sweep says which wall you are walking toward.
 
 ```
-just ask-refactoring          # dry: print the tasks it would file
-just ask-refactoring --write  # file them
-just ask-refactoring --help   # each arm's own threshold flag, with its default
+just ask-refactoring                      # dry: print the tasks it would file
+just ask-refactoring --write              # file them
+just ask-refactoring --coverage-floor 92  # one arm's threshold, this run only
 ```
 
-The entry script holds the argument parsing, the re-run guard, the shared
+#let sweep-flags = fact("sweep-flags").at("flags")
+#table(
+  columns: 4,
+  table.header([Flag], [Default], [Bounds], [Notes]),
+  ..sweep-flags
+    .map(f => (
+      raw("--" + f.long + if f.value == none { " " + f.name } else { "" }),
+      raw(f.default),
+      f.help,
+      sweep-flag-notes.at(f.long),
+    ))
+    .flatten(),
+)
+
+#let fixed-value = sweep-flags.filter(f => f.value != none)
+Every row above is read out of the `ask-refactoring` recipe's own
+`[arg(...)]` parameters, so the defaults exist in the Justfile and nowhere
+else — `contrib/ask-refactoring.sh` requires all five and defaults nothing.
+just's own `--usage` flag prints the same five at the terminal, from the same
+data.
+#if fixed-value.len() > 0 [
+  #for f in fixed-value [
+    #raw("--" + f.long) takes no argument of its own: passing it sets
+    #raw(f.value).
+  ]
+]
+
+Four thresholds, never one band shared across the arms, and that is a
+decision rather than an accident: one flag over two arms would read as a
+single number and move two at once. The pair the undertested arm carries is a
+conjunction, so it is two edges rather than one — a function has to be both
+complex enough and undertested enough to be worth a task — and the size and
+coverage bands belong to different arms measuring different things. Each
+number's full argument (the distributions behind it, what it rejects, why it
+stops where it does) lives in the arm script that applies it, next to the
+constant rather than in a doc that would drift from it.
+
+The entry script holds the flag forwarding, the re-run guard, the shared
 `stem_for` and the driver; each arm is one file under
 `contrib/ask-refactoring/`, defining `score_<arm>`/`signal_<arm>`/`emit_<arm>`
 next to the reasoning that justifies its numbers. Adding an arm is a new file

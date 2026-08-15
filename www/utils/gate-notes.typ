@@ -78,11 +78,11 @@
     silently undocumented.
   ],
   "check-doc-facts": [
-    Regenerates `www/generated/{crate-map,dsl-fields,gates}.json`
+    Regenerates `www/generated/{crate-map,dsl-fields,gates,sweep-flags}.json`
     (`www/generate-facts.sh`) and set-differences each against its
-    `www/utils/{crate-notes,dsl-field-notes,gate-notes}.typ` prose dict;
-    fails naming any crate, DSL field, or gate with no matching entry — this
-    file included.
+    `www/utils/{crate-notes,dsl-field-notes,gate-notes,sweep-flag-notes}.typ`
+    prose dict; fails naming any crate, DSL field, gate, or sweep flag with
+    no matching entry — this file included.
   ],
   "check-doc-recipes": [
     Fails on a hand-typed recipe mention in a doc source — literal `just`
@@ -114,18 +114,22 @@
   ],
   "arg-pattern-check": [
     Dispatch-only self-test for the `[arg(...)]` patterns on
-    #just.release("VERSION"), #just.bench("N"), #just.gen-bench("N") and
-    #just.eject("PCT"): asserts each rejects a known-bad argument and
-    accepts a known-good one, and that `eject`'s own default satisfies its
-    own pattern (`fix-check` depends on bare `eject`). Every assertion goes
+    #just.release("VERSION"), #just.bench("N"), #just.gen-bench("N"),
+    #just.eject("PCT") and the five #just.ask-refactoring() thresholds:
+    asserts each rejects a known-bad argument and accepts a known-good one,
+    and that every declared default satisfies its own pattern (`fix-check`
+    depends on bare `eject`; the sweep's defaults are the only copy of its
+    thresholds). One of the sweep's cases is a value containing a space —
+    the word-splitting that `[positional-arguments]` used to guard that
+    recipe against, refused at dispatch now instead. Every assertion goes
     through the `--dry-run --yes` flag pair, so no recipe body ever actually
     runs — `release`'s included; see `.just/scripts/arg-pattern-check.sh`.
   ],
   "positional-args-check": [
-    Static self-test for the five passthrough recipes —
-    #just.test("<filter>"), #just.build("<args>"), #just.mutants("<args>"),
-    #just.mutants-diff("<args>") and #just.ask-refactoring("<args>") —
-    asserting each carries `[positional-arguments]` and forwards `"$@"`
+    Static self-test for the four passthrough recipes —
+    #just.test("<filter>"), #just.build("<args>"), #just.mutants("<args>")
+    and #just.mutants-diff("<args>") — asserting each carries
+    `[positional-arguments]` and forwards `"$@"`
     rather than interpolating `{{ ARGS }}` into its body, which would
     re-split an argument containing a space and re-glob one containing a
     wildcard. Reads the `--dump --dump-format json` dump and greps the

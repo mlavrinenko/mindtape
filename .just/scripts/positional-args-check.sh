@@ -7,15 +7,15 @@
 # one is itself separate from fmt-fixture-check.sh: different subject. That
 # one locks that `[arg(...)]` `pattern`s reject bad input and accept good
 # input at DISPATCH, entirely via `--dry-run`, so no recipe body ever runs.
-# This one locks that `test`, `build`, `mutants`, `mutants-diff` and
-# `ask-refactoring` — the five recipes that take a passthrough `*ARGS` —
-# actually forward it as a real argument vector instead of a bare string.
+# This one locks that `test`, `build`, `mutants` and `mutants-diff` — the
+# recipes that take a passthrough `*ARGS` — actually forward it as a real
+# argument vector instead of a bare string.
 # That property is invisible to `--dry-run`: word-splitting and globbing
 # happen when the shell interpreting the recipe BODY evaluates it, which
 # dry-run explicitly never does. So this is a two-part check instead:
 #
 #   1. Structural, over `just --dump --dump-format json` — the same source
-#      check-doc-recipes.sh reads recipe names from. Each of the five must
+#      check-doc-recipes.sh reads recipe names from. Each of the four must
 #      carry the `positional-arguments` attribute, and its body must be
 #      exactly one line with no `{{ VAR }}` interpolation fragment left in
 #      it (gates.jq's own comment documents the shape: an interpolated
@@ -23,9 +23,23 @@
 #      catching a regression where the attribute stays but a body reverts to
 #      `{{ ARGS }}`, which would silently drop back to word-splitting even
 #      though the attribute suggests otherwise.
-#   2. Textual, over the three scripts the passthrough recipes forward into
-#      (mutants.sh, mutants-diff.sh, contrib/ask-refactoring.sh) — each must
-#      consume its own "$@", not re-join or re-split it.
+#   2. Textual, over the two scripts the passthrough recipes forward into
+#      (mutants.sh, mutants-diff.sh) — each must consume its own "$@", not
+#      re-join or re-split it.
+#
+# `ask-refactoring` was the fifth until truth/tasks/derive-the-ask-refactoring-
+# flag-table-from-arg-attributes.typ, and left this gate by construction rather
+# than by exemption: it no longer takes a passthrough `*ARGS`. Its five
+# thresholds are declared parameters now, each with an `[arg(...)]` attribute
+# and a digits-only `pattern`, so a value that could be word-split or globbed
+# cannot pass DISPATCH at all, and the body forwards EXPORTED parameters
+# through quoted `"$VAR"` expansions instead of interpolating `{{ }}`. Both
+# halves of what this gate asserted for it are therefore locked elsewhere —
+# the patterns by arg-pattern-check.sh, the quoting by the patterns themselves
+# — and dropping it also closes a scope gap this script had: it grepped
+# contrib/ask-refactoring.sh while its .mmz/config.yaml rule declared only
+# `gates-meta` as input, so an edit to that script could not bust the cache.
+# Nothing outside .just/scripts/** and the two justfiles is read here now.
 #
 # Both are static: nothing here runs cargo test, cargo build or cargo
 # mutants. A dynamic proof (an argument containing a space and a glob
@@ -65,11 +79,10 @@ assert_forwards test
 assert_forwards build
 assert_forwards mutants
 assert_forwards mutants-diff
-assert_forwards ask-refactoring
 
 # assert_script_forwards <script> <pattern>
 # The script a passthrough recipe forwards into must consume "$@" itself —
-# grepped, not parsed, because these are the same three files
+# grepped, not parsed, because these are the same files
 # .just/scripts/crap.sh's own header points to as the convention to follow.
 assert_script_forwards() {
     local script="$1" pattern="$2"
@@ -83,10 +96,9 @@ assert_script_forwards() {
 
 assert_script_forwards .just/scripts/mutants.sh 'cargo mutants.*"\$@"'
 assert_script_forwards .just/scripts/mutants-diff.sh 'cargo mutants.*"\$@"'
-assert_script_forwards contrib/ask-refactoring.sh 'while \[ \$# -gt 0 \]'
 
 if [ "$fail" -ne 0 ]; then
     echo "positional-args-check: one or more passthrough recipes lost real argument forwarding" >&2
     exit 1
 fi
-echo "positional-args-check: all five passthrough recipes forward a real argument vector"
+echo "positional-args-check: all four passthrough recipes forward a real argument vector"
