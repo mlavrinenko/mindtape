@@ -49,6 +49,13 @@ stderr (quiet by construction), a miss streams the underlying recipe's stdout
 and stderr live, and a failure propagates its non-zero exit out of `parallel`
 unchanged.
 
+One arm is deliberately NOT wrapped, and it is the exception that shows what
+the wrapping assumes. #just.check-crap() runs bare: mmz memoizes on file
+scopes and the lcov is a build artifact in none of them, so a memoized verdict
+would survive the lcov going fresh and that arm would skip forever on
+unchanged sources — a gate that caches "I could not measure" is worse than one
+that is simply absent.
+
 = Why the example projects are gated
 
 #just.check-examples() validates every example project against itself, so a

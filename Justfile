@@ -191,25 +191,11 @@ positional-args-check:
     bash .just/scripts/positional-args-check.sh
 
 # The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
-# fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0.
-#
-# Why it exists: `just crap` is CI-enforced and used to be absent from
-# `just check`, so nothing local ever evaluated it and a green `just check`
-# carried no information about it. That is how it sat red on main
-# (truth/tasks/cover-confirm-retire-and-unred-the-crap-gate.typ).
-#
-# Be honest about what this buys. Editing any source stales the lcov, so on
-# precisely the commits that matter this arm SKIPS. It catches the free case — a
-# check run after a recent `just cover` — and nothing more. `just check-full` is
-# the arm that is always correct; this one is the cheap partial. It follows the
-# signal sweep's mutants arm: absent and clean must never look alike, so it says
-# which of the two it is every time.
-#
-# Deliberately NOT wrapped in mmz, unlike every other arm of `just check`. mmz
-# memoizes on file scopes and the lcov is a build artifact in none of them, so a
-# memoized verdict would survive the lcov going fresh and this arm would skip
-# forever on unchanged sources — a gate that caches "I could not measure" is
-# worse than one that is simply absent.
+# fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0. It
+# is the cheap partial, not the correct one: `just check-full` is the arm that
+# is always right. Why it exists, what it does and does not buy, and why it is
+# the one arm not wrapped in mmz are in docs/contributing/coverage-crap.md and
+# docs/contributing/gates.md.
 
 [doc("Run the CRAP gate when the lcov is fresh, else skip loudly")]
 [group("gate")]
@@ -299,100 +285,19 @@ clippy-fix:
 build *args:
     cargo build --workspace -q "$@"
 
-# Run coverage with cargo-llvm-cov (also writes target/coverage/lcov.info).
-# llvm-cov, unlike tarpaulin, merges the profraw of child processes, so the
-# subprocess-based CLI e2e tests actually attribute to the code they exercise.
-# Instrument once (--no-report), then render both reports from that profdata.
-# main.rs is excluded — keep it thin (`just crap` excludes it too); so is any
-# registry checkout, which llvm-cov's own dep filter misses when CARGO_HOME is
-# relocated (a local kache), so local and CI report the same set.
-#
-# The `clean --workspace` is what makes the number mean anything, and it is
-# cargo-llvm-cov's own documented precondition for the --no-report/report split
-# ("should be called before the first run"): --no-report deliberately does NOT
-# clear the profraw pile, because the split exists so several runs CAN be merged
-# (the tool's own recipe for coverage across feature sets). Without it, `report`
-# merges every profraw and every object file left in target/llvm-cov-target
-# since the last `cargo clean` — across feature sets and across commits — and the
-# lcov becomes the union of all of them. Measured, not theorised
-# (truth/tasks/clean-the-profraw-pile-before-each-coverage-run.typ): two runs
-# left 461+461 profraw; merging one `--features rrule` run took
-# `check_rrule_rule` from 57% to 100%, coverage of a branch that is dead code
-# without the feature; and the pile that accumulated across a whole session put
-# `ls_interactive::apply` at 84% when no test in the tree can call it at all.
-# That lcov minted crap-baseline.json, so the ratchet then failed 48 functions
-# on the first honest run after a `cargo clean`. Inflated coverage is the worst
-# failure this repo can have here — it hides exactly what `just crap` and the
-# sweep's coverage arms exist to find — so pay the instrumented rebuild.
+# Run coverage with cargo-llvm-cov (also writes target/coverage/lcov.info, the
+# lcov `just crap` scores against). It always pays a full instrumented rebuild:
+# why that is not optional, and what an accumulated profraw pile did to the
+# numbers when it was, are in docs/contributing/coverage-crap.md.
 
 [doc("Run coverage with cargo-llvm-cov")]
 [group("advisory")]
 cover:
     bash .just/scripts/cover.sh
 
-# Gate complex, undertested functions via CRAP metric, over the lcov `just
-# cover` writes.
-#
-# `--min` matches `--threshold`, so the table lists only the functions that
-# FAIL. Without it the report is every analyzed function — 976 rows to carry the
-# one that matters. The cost is that the tail summary then counts printed rows
-# ("1/1", not "1/976"); the numerator, which is the number that decides the
-# gate, is unaffected.
-#
-# The `*_tests.rs` exclusions keep CRAP on production code. They are inline test
-# modules (`#[path] mod tests`), which llvm-cov emits no records for, so scoring
-# them meant 71 of the 73 "no matching entry in the LCOV report" warnings and a
-# complexity budget spent on test helpers. Excluding them changes no verdict.
-#
-# The lcov is a build artifact nothing re-derives for you, and scoring against a
-# stale one does not degrade gracefully: a function in a file written since the
-# lcov has no coverage record at all, `--missing` defaults to `pessimistic`, and
-# so it reads as 0% covered rather than as unknown. Observed on a 10-day-old
-# lcov — 28 failures, 27 of them phantom (each showed coverage `—`, not a
-# percentage). A gate that invents failures is worse than no gate, so refuse a
-# stale lcov and name the recipe that refreshes it. CI is unaffected: its
-# `coverage` job runs `just cover` immediately before this.
-#
-# There is deliberately no ADVISORY band below this gate, and it was measured
-# rather than assumed (truth/tasks/sweep-crap-scores-into-tasks.typ). CRAP is
-# CC^2 * (1-cov)^3 + CC, so above ~90% coverage the cubed term vanishes and the
-# score IS cyclomatic complexity: of the 15 functions scoring 15..30 here, 11 are
-# at or above 90% covered, while 12 of the 16 functions that are genuinely
-# complex and undertested score below 15. A band below 30 would be wrong in both
-# directions at once, so `just ask-refactoring` has no CRAP arm.
-#
-# `--exclude` is matched twice, in two different roots: once per-crate during
-# `cargo crap`'s own source walk (so `main.rs` must read `**/main.rs`, not
-# `crates/mindtape-cli/src/main.rs` — the latter never matches a walk rooted at
-# the crate dir and so leaves `main.rs` in the "no matching entry in the LCOV
-# report" warning even though it is correctly excluded from scoring), and once
-# workspace-root-relative when filtering the final table. A `**/` prefix
-# matches both. `recur_rrule.rs` is excluded the same way: it is real
-# production code, but `just cover` builds with default features only, so
-# nothing ever compiles it and it would otherwise score every function inside
-# as phantom 0%-covered (see `just check-rrule`, which covers it under the
-# `rrule` feature — CI runs it as a separate job, per
-# truth/tasks/run-the-rrule-feature-gate-in-ci.typ).
-#
-# `ls_interactive/tui.rs` is excluded because every function in it drives the
-# real terminal — raw mode, the alternate screen, keyboard-enhancement
-# negotiation — so an in-process test would either hijack the developer's own
-# screen or assert nothing without a TTY. It is pinned end-to-end under a
-# pseudo-terminal instead (tests/interactive_e2e.rs: quitting_restores_the_terminal
-# pins the enter/leave byte sequences; opening_a_task_suspends_the_tui_and_runs_the_editor
-# pins the suspend path). The one uncovered branch left (the `enhanced`
-# keyboard-enhancement path in enter_screen) depends on a terminal negotiation
-# no test can force.
 # Why target/coverage/lcov.info is unusable, or empty output when it is fine.
-# One implementation, two callers with opposite policies: `crap` treats a stale
-# lcov as a hard error, `check-crap` treats it as a reason to skip. Two staleness
-# tests that could disagree would be worse than none, which is why this is a
-# recipe and not a copied five-line block.
-#
-# It reports through stdout and always exits 0, rather than failing. A non-zero
-# exit here would make `just` print its own `error: Recipe ... failed` line into
-# the skip path, so a deliberate skip would read on screen exactly like a broken
-# gate — the one thing this arm exists to keep distinguishable.
+# One implementation for two callers with opposite policies — argued in place
+# in .just/scripts/_lcov-stale-reason.sh.
 
 [doc("Print why the lcov is stale, or nothing if fresh")]
 [private]
@@ -426,6 +331,13 @@ CRAP_EXCLUDES := "--exclude **/main.rs --exclude **/recur_rrule.rs --exclude **/
 _crap-excludes:
     @echo '{{ CRAP_EXCLUDES }}'
 
+# Gate complex, undertested functions via the CRAP metric, over the lcov `just
+# cover` writes. Refuses a stale lcov instead of scoring against it, and names
+# the recipe that refreshes it. The threshold, the exclusions, and why there is
+# deliberately no advisory band below the gate are in
+# docs/contributing/coverage-crap.md; how each flag is spelled and why is
+# argued in place in .just/scripts/crap.sh.
+
 [doc("Gate complex, undertested functions via the CRAP metric")]
 [group("advisory")]
 crap:
@@ -437,23 +349,10 @@ crap:
 # gets bypassed instead of refreshed.
 #
 # Mint only against a green gate: the baseline records today as acceptable, so
-# minting while something is red freezes the red. `just crap` runs first here for
-# exactly that reason, and its failure aborts the mint.
-#
-# `--sort file` is the documented stable ordering for a committed baseline;
-# `--sort crap` reshuffles the whole file whenever any score moves, which turns
-# every diff into noise.
-#
-# The guard has one blind spot, and it has fired once: if the BASELINE is the
-# thing that is wrong, `just crap` fails forever and this recipe refuses to
-# refresh the file that would fix it. That happens when the baseline was minted
-# over an lcov that no clean run reproduces — before `cover` cleaned the profraw
-# pile, the mint could credit coverage from another feature set or another
-# commit. Recovery is deliberately manual, one commit that re-mints against a
-# fresh lcov, with the two facts that make it not a bypass in the message:
-# `cargo crap --lcov ... --threshold 30 --min 30 --fail-above` is green (nothing
-# is actually bad), and no cyclomatic complexity moved (the ratchet's real
-# subject is unchanged; only the measurement was). Run the recipe body by hand.
+# minting while something is red freezes the red. `just crap` runs first here
+# for exactly that reason, and its failure aborts the mint. That guard has one
+# blind spot, and the recovery when it fires is in
+# docs/contributing/coverage-crap.md.
 
 [doc("Re-mint crap-baseline.json after a deliberate complexity increase")]
 [group("advisory")]
