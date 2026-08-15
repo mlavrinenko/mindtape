@@ -3,13 +3,14 @@
 # recipe (truth/tasks/validate-recipe-arguments-with-the-arg-attribute.typ).
 # Runs from the repo root, like the recipe that invokes it.
 #
-# A separate script from fmt-fixture-check.sh on purpose: that one locks
-# three FORMATTERS reject drift in a synthesized fixture file; this one locks
-# that the `[arg(...)]` `pattern`s on `release`, `bench`, `gen-bench`, `eject`
+# A pattern nobody exercises is a comment, not a gate. So this is a separate
+# script from fmt-fixture-check.sh on purpose: that one locks that three
+# FORMATTERS reject drift in a synthesized fixture file; this one locks that
+# the `[arg(...)]` `pattern`s on `release`, `bench`, `gen-bench`, `eject`
 # and `ask-refactoring` actually reject a bad argument and accept a good one.
-# Different subject (recipe dispatch, not file formatting), so a separate
-# fixture-style script — bundling them would make one script answer two
-# questions.
+# Same reasoning, different subject (recipe dispatch, not file formatting), so
+# a sibling fixture-style script rather than an added arm in that one —
+# bundling them would make one script answer two questions.
 #
 # `ask-refactoring`'s five thresholds are here for a second reason on top of
 # the first (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-

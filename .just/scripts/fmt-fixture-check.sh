@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 # .just/scripts/fmt-fixture-check.sh — the body of the `fmt-fixture-check`
 # recipe, extracted under truth/tasks/extract-the-long-gate-recipe-bodies-into-
-# scripts.typ. Runs from the repo root, like the recipe that invokes it; the
-# prose arguing why the just arm is spelled `--justfile <file> --fmt --check`
-# and why the SUCCESS case is asserted too stays above that recipe in the
-# Justfile.
+# scripts.typ. Runs from the repo root, like the recipe that invokes it.
+#
+# Lock the formatter gates: synthesize a deliberately-mis-formatted TOML,
+# Typst and just-module fixture in a temp dir, then assert `tombi format
+# --check`, `typstyle --check` and `just --justfile <f> --fmt --check` all
+# fail. The fmt recipe is what `just fmt`/`fmt-check` apply to the tracked
+# config + docs + justfile tree, so the same formatters must reject the
+# mis-formatted fixture (and accept a re-formatted one). A formatter that
+# silently accepts drift would let `just fmt-check` pass on an out-of-sync
+# editor save — exactly the bug this gate was added to prevent.
 set -eo pipefail
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -22,6 +28,16 @@ if typstyle --check "$bad_typ" >/dev/null 2>&1; then
     echo "fmt-fixture-check: typstyle accepted the mis-formatted Typst — gate is broken" >&2
     exit 1
 fi
+# The just arm is spelled with the SAME `--justfile <file> --fmt --check`
+# invocation `fmt-check` runs over JUST_FMT_PATHS, because the bug it locks is
+# not "the formatter is broken" but "the invocation shape misses the file": a
+# bare `just --fmt` skips module files entirely, so a fixture checked the wrong
+# way would pass while the real gate saw nothing
+# (truth/tasks/gate-formatting-of-just-module-files.typ). The fixture carries
+# `set unstable := true` for the same reason every listed module file must —
+# `--fmt` is refused without it, and a refusal is a non-zero exit that would
+# pass this assertion for the wrong reason, so the arm asserts the SUCCESS case
+# too: the same file, reformatted, must be accepted.
 if just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
     echo "fmt-fixture-check: just accepted the mis-formatted module file — gate is broken" >&2
     exit 1

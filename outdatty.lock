@@ -60,33 +60,33 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      .just/docs.just: 0b4ee0e2a4a721f418eefffc97ba7285015b46761ea288621e4a4049eb57ea7a
-      .just/scripts/_lcov-stale-reason.sh: 429afd24fb8ddea7b15a9b19ded939cf2bd703c5e059d3f23783de596462e816
-      .just/scripts/_mutants-env.sh: 30dc11fb80c4af619d4dbcc096886d4773899b54b515fa891ce5e04bf35cc516
-      .just/scripts/arg-pattern-check.sh: 64847fca01676f106782da303abff2ca8821d55fd76c42f9c3998d9793f6397b
-      .just/scripts/check-crap.sh: ba967e714356114753ce3bfa308acd01e6a26effe4bf77fc740a78cea06c48a8
-      .just/scripts/check-doc-coverage.sh: 8e98aabc2db776579c7693fc9e66a1d80366a2d5e382f53c32dd93ef16847ebc
-      .just/scripts/check-doc-facts.sh: b26ed33b2988f4bf9475150eb9de8440013b3f568fd452574f89ab5a9c8bcc22
-      .just/scripts/check-doc-recipes.sh: 8a419c4772f3c56b4b95f08d79d040497921018ed5a2b1e3d1d6c6fdca3263c2
-      .just/scripts/cover.sh: c49cb460a7c8da0774d752ed5a7dc8f735598a13bef785abcf618356d5806de5
-      .just/scripts/crap-baseline.sh: 12366c322b9464f05636b41b4d2f1bd763f9f8c0e0064ce3a852f8499b75799a
-      .just/scripts/crap.sh: e1313a68df5ef986d0309a31ffa415c21f83e9516cfd43c3fe9af9bf5c936a63
+      .just/docs.just: aa75a3eabb284afd43a9a334e9b07b8b3146d11c866b2c7fe76b64f7a55c3316
+      .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
+      .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
+      .just/scripts/arg-pattern-check.sh: f91112660e771d8325c802a0a5434c1471e9aedf022ef7346543047dcc4892e9
+      .just/scripts/check-crap.sh: 899940d299002319b0f7426134cdd2afb5deeba4d07ab83aa48e5cf3c5861586
+      .just/scripts/check-doc-coverage.sh: d1692da6fbe9e26f2d7bc72b89606548820120edbded1665776e548aeec54a2b
+      .just/scripts/check-doc-facts.sh: b8fa6513903f820b889dfb05290d3f75c067b385fc4dc540b1203fea867a52cc
+      .just/scripts/check-doc-recipes.sh: 899053ed43cae7e3542296aded65a0ad196f72d06676e1ec307902953fd08150
+      .just/scripts/cover.sh: 659506b43007a82de30c4b4deb878516cb3acd14a21eec633d2b960fbb478093
+      .just/scripts/crap-baseline.sh: ad27da186ba3d05eedf00f608fb5576627cb30ad63440f0d5723b02bd967fa2a
+      .just/scripts/crap.sh: ea05991d6681d64da98ca81a2e00878693f2080b587b9725fbc1b4f7da27789f
       .just/scripts/docs-md-check.sh: ea2bfd24e3c13b400ec87a69f6ad68589ca6f5367923b792f044c399a463e3f4
-      .just/scripts/fmt-fixture-check.sh: 1e1fa5749bf432e8ebb7546049855271d3693e4c6af0a8ee5129d9d629a63a1c
+      .just/scripts/fmt-fixture-check.sh: 0382b2e525fd33de782d0d1e65d389054c69118758f4fd22f58ee71a87b2967d
       .just/scripts/install-lib.sh: 8f29309c2fc631714e9745fea471766c15f086caa8bb5ffd8d69ff28329792c6
-      .just/scripts/mutants-diff.sh: e64f8f986c65edea31d9ede23288248b0aa6df0512a45ccff44a3b4b70e642ba
-      .just/scripts/mutants.sh: a36405072738ddaaad9cbd8123479382032423b203ce568b51a2b866583fa113
-      .just/scripts/positional-args-check.sh: a8b8291a8d8c1adcc8b6ca4188e7b3eb22e40718ef997b9e6d1c5ad0023bd74f
+      .just/scripts/mutants-diff.sh: 52d60ee0cc077889843e16235d3dc12587e90411aa05ddef236da3b1d9893adb
+      .just/scripts/mutants.sh: 6f558f4aeca4764ee7bc3636fc4cc3c57f6e9cbeadf679e78387e80205723a2e
+      .just/scripts/positional-args-check.sh: a464c92ade574a6506ea2fb0a24a18fbb0b4c29ed5ee6ba3f69ced050a8b4cfa
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
-      Justfile: e0258d1977bacffb0b1d036e93d4429b68d8cba7e47b5309210b9887a50d0318
+      Justfile: f062492ae9622b046eb5dcce83f29a080d84188930d7b0f180990ddf0f9ded9d
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
-      docs/src/contributing.typ: 5464df3a0e65e715ec1f8b7272b6e0d6b55e98e7d2b1e8dbf14b2a4dabec4c43
-      docs/src/contributing/coverage-crap.typ: bf2a2c16be8b55655e99c836d2bde9fe959c6cc2bf3cf60261cd4612576d0165
-      docs/src/contributing/gates.typ: d3fdbd910573265fa30c65459d945be9801b83f1f88a4744c2582c92472e09c5
-      docs/src/contributing/mutation-testing.typ: 331f23a967453950362f284e357f47cef8c51aaf34b4d28cf1aab469e04d5486
-      docs/src/contributing/signal-sweep.typ: 4a1be52b1817319b6826ecaad546d2627b5b97e7a19011c0f8025ac92b398e54
+      docs/src/contributing.typ: 576d56ae3facb8ffd33e92400300afa3001d12c97ad3694355026927c0bb6847
+      docs/src/contributing/coverage-crap.typ: 5ae92adf3b28813c3c5c53e7ae4e6afb144d0e1d9e0ed301d4b857347da817c0
+      docs/src/contributing/gates.typ: 7a3ab58c25653647b02e235504b1423f9b85201b6535eec09c6e722d1fc33b56
+      docs/src/contributing/mutation-testing.typ: aa7a8de97b0fdf6f1b8c9406b3af0db478f61f4ab86a714eaec789105d293c61
+      docs/src/contributing/signal-sweep.typ: afaf72f963be0b5d5e28f0251961e5a4512a80277cd3c76d92b6b292d62778ba
       docs/src/contributing/windows.typ: f6acf2d8c85c924166f34c1b5f06e9d77c0b2bae94ddd196ca5e1455a672bc75
   prelude-docs:
     source:
