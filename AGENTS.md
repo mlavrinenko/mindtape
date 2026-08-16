@@ -2,34 +2,32 @@
 
 # MindTape — AI Agent Context
 
-How to contribute — quality gates, testing, file-size caps, commit rules, the signal sweep, dependency drift, version bumps — lives in @CONTRIBUTING.md. That reference pulls the whole file into your context automatically, so nothing here restates any of it. If you are about to write a rule about _how work is done_, it belongs there, not here.
-
-This file carries the other half: what MindTape _is_.
+How work is done lives in @CONTRIBUTING.md, pulled into your context whole by that reference; a process rule belongs there and is never restated here. This file carries the other half: what MindTape _is_.
 
 ## What is this?
 
-A daemon-free, file-based task tracker. Tasks are one-per-file Typst artifacts (`#show: task.with(...)`). MindTape live-evaluates the configured roots on every command via the Typst compiler crates — no watch daemon, no SQLite, no global index. Identity is the filename stem.
+A daemon-free, file-based task tracker. Tasks are one-per-file Typst artifacts (`#show: task.with(...)`). MindTape live-evaluates the configured roots on every command via the Typst compiler crates — no SQLite, no global index. Identity is the filename stem.
 
 Repository: [https://github.com/mlavrinenko/mindtape](https://github.com/mlavrinenko/mindtape)
 
 ## Repo map
 
 - `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
-- `truth/tasks/` — MindTape’s own backlog as per-file task artifacts (dogfood); `mt ls` / `mt check` run against it via the in-tree `lib/`. Decisions live here too — the ADR process is retired
-- `www/content/*.typ` — the docs site (tola). Reference material lives here, not in this file; read the page rather than restating it
+- `truth/tasks/` — MindTape’s own backlog as per-file task artifacts (dogfood); `mt ls` / `mt check` run against it via the in-tree `lib/`
+- `www/content/*.typ` — the docs site (tola)
 - `docs/contributing/*.md` — contributor deep dives behind CONTRIBUTING.md
-- `examples/` — `learn-piano` (full config surface, feeds the docs generator and the skill’s evals) and `minimal` (the floor config)
+- `examples/` — `learn-piano` (full config surface; feeds the docs generator and the skill’s evals), `minimal` (the floor config), and `large` (a 2000-task benchmark fixture; its tasks are gitignored, `just gen-bench` rebuilds them)
 
-Before writing about a feature, check whether the answer is already one of:
+Reference material lives on the docs site, not here. Before writing about a feature, read whichever page below already answers it rather than restating it — the page at `/<stem>/` is `www/content/<stem>.typ`.
 
 | Topic | Read |
 | --- | --- |
-| Every task field, `links:` edge kinds, `recur` | `www/content/dsl.typ` |
-| `mt add`, slots, `--set`, `--describe`, `--edit` | `www/content/templates.typ` |
-| Derived tags from folder layout | `www/content/derived-tags.typ` |
-| Priority frameworks, scoring, bands | `www/content/priority.typ` |
-| Filter language | `www/content/filters.typ` |
-| Every config key | `www/content/config.typ` |
+| Every task field, `links:` edge kinds, `recur` | [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) |
+| `mt add`, slots, `--set`, `--describe`, `--edit` | [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) |
+| Derived tags from folder layout | [Derived tags](https://mlavrinenko.github.io/mindtape/derived-tags/) |
+| Priority frameworks, scoring, bands | [Priority](https://mlavrinenko.github.io/mindtape/priority/) |
+| Filter language | [Filter language](https://mlavrinenko.github.io/mindtape/filters/) |
+| Every config key | [Configuration](https://mlavrinenko.github.io/mindtape/config/) |
 | Driving `mt` as an agent | `skills/mindtape/SKILL.md` |
 
 ## Workspace
@@ -49,9 +47,7 @@ The seven former in-tree substrate crates are published to crates.io and consume
 - `typst-harvest` `0.3.0` — harvest
 - `typst-world` `0.3.0` (transitive, via `typst-harvest`) — package-agnostic Typst World/eval
 
-A crate marked transitive is never named in a workspace manifest — `mindtape` does not depend on it directly.
-
-Name, version, and direct-vs-transitive are derived, never hand-listed — see `www/generated/crate-map.json` (`www/generate-facts.sh`, consumed by `www/content/internals.typ`).
+Both lists — name, version, direct-vs-transitive — are derived from `www/generated/crate-map.json`, never hand-written. A crate marked transitive is named in no workspace manifest.
 
 ## Architecture
 
@@ -59,8 +55,6 @@ Name, version, and direct-vs-transitive are derived, never hand-listed — see `
 - Typst 0.15 eval-only (`typst-eval`); never layout or render
 - `evalexpr` 12 as a parser for the filter language (walked, not evaluated by it)
 - `clap` 4 CLI; `serde`/`toml` config; a hand-rolled table renderer (`crates/mindtape-cli/src/render/`), `serde_json`/`csv` output
-
-The dev shell and its tooling are `flake.nix`’s subject, and the workflow around each tool is CONTRIBUTING.md’s — neither is restated here.
 
 ## Task DSL (lib/prelude.typ)
 
