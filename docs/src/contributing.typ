@@ -110,6 +110,17 @@ always correct about coverage and CRAP, at the price of an instrumented
 rebuild and a full suite pass. Run it before opening a PR, plain #just.check()
 while iterating.
 
+#just.fork("<slug>", "<base>") stands one of those worktrees up:
+a new branch off `<base>` (default `HEAD`) at `../mindtape-<slug>`,
+`direnv allow`-ed and with its dev shell already evaluated, and the base read out
+of the created worktree and compared to the sha it was created from. It refuses
+a dirty `HEAD` — `git worktree add` copies commits, never the working tree, so
+forking off one would hand the agent a base missing the changes you are looking
+at while typing the command — and it reports, without refusing, a base behind or
+diverged from this checkout. It warms no build cache, deliberately; what was
+measured about that, and what the base check can and cannot prove, are argued in
+`.just/scripts/fork.sh`.
+
 A delegated worktree whose full aggregate runs at integration can scope the
 gate with `MINDTAPE_GATE_SCOPE=<reason> git commit`, which demands a matching
 `Gate-Scope:` trailer so the commit never reads as fully gated. Dodging a gate

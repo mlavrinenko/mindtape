@@ -572,6 +572,24 @@ ask-refactoring $WRITE='0' $BASELINE='90' $COVERAGE_FLOOR='88' $CC_FLOOR='5' $FN
         --coverage-floor "$COVERAGE_FLOOR" --cc-floor "$CC_FLOOR" \
         --fn-coverage-floor "$FN_COVERAGE_FLOOR"
 
+# Stand up a worktree for a delegated agent: a new branch off BASE (default
+# HEAD) at `../<repo>-<slug>`, `direnv allow`-ed, with the base read back out of
+# the created worktree and compared to the sha it was created from. Refuses a
+# dirty HEAD (`git worktree add` copies commits, never the working tree), and
+# reports — without refusing — a base behind or diverged from this checkout.
+#
+# Deliberately warms nothing: what was measured about `kache`, `target/` and the
+# cold `.mmz/cache/`, what the assertion can and cannot prove, and why the
+# worktree is a sibling rather than a child are argued in place in
+# .just/scripts/fork.sh.
+
+[arg('SLUG', pattern='[a-z0-9][a-z0-9-]*', help='branch name, and the `../<repo>-<slug>` directory suffix')]
+[arg('BASE', pattern='[A-Za-z0-9._/~^{}-]+', help='commit-ish to fork from — a branch, tag, sha or HEAD~n (default HEAD)')]
+[doc("Stand up a ready worktree on a new branch off BASE")]
+[group("dev")]
+fork SLUG BASE='HEAD':
+    bash .just/scripts/fork.sh '{{ SLUG }}' '{{ BASE }}'
+
 [doc("Install the mindtape Typst library for local #import (dev symlink)")]
 [group("dev")]
 install-lib:

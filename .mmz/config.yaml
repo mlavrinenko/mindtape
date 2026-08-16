@@ -228,13 +228,13 @@ scopes:
   # (`_lcov-stale-reason.sh` → `script-lcov-stale-reason`). The check does not
   # read the name — it matches on the path — so a convention is all it is.
   #
-  # FOUR OF THEM ARE NAMED BY NO RULE, and that is the honest state rather than
-  # an oversight: crap-baseline.sh, install-lib.sh, release.sh and
+  # FIVE OF THEM ARE NAMED BY NO RULE, and that is the honest state rather than
+  # an oversight: crap-baseline.sh, install-lib.sh, release.sh, fork.sh and
   # _mutants-env.sh are bodies of recipes no rule in `commands` wraps
-  # (`just crap-baseline`, `just install-lib`, `just release`, and the preamble
-  # mutants.sh/mutants-diff.sh source). They still get a scope, because the
-  # check demands every script be named, and they are still gated for size and
-  # drift through `scripts-all` above. A scope with no reader is the visible
+  # (`just crap-baseline`, `just install-lib`, `just release`, `just fork`, and
+  # the preamble mutants.sh/mutants-diff.sh source). They still get a scope,
+  # because the check demands every script be named, and they are still gated
+  # for size and drift through `scripts-all` above. A scope with no reader is the visible
   # form of "no memoized rule reads this"; deleting it would only hide that.
   script-arg-pattern-check:
     - ".just/scripts/arg-pattern-check.sh"
@@ -256,6 +256,8 @@ scopes:
     - ".just/scripts/docs-md-check.sh"
   script-fmt-fixture-check:
     - ".just/scripts/fmt-fixture-check.sh"
+  script-fork:
+    - ".just/scripts/fork.sh"
   script-install-lib:
     - ".just/scripts/install-lib.sh"
   script-lcov-stale-reason:

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`just fork <slug> [base]`** — stands up a worktree for a delegated agent:
+  a new branch off `[base]` (default `HEAD`) at the sibling
+  `../mindtape-<slug>`, `direnv allow`-ed with its dev shell already evaluated,
+  and the base read back out of the created worktree and compared to the sha it
+  was created from. Refuses a dirty `HEAD` — `git worktree add` copies commits,
+  never the working tree, so forking off one hands the agent a base missing the
+  changes on screen — and reports, without refusing, a base behind or diverged
+  from the current checkout. Warms no build cache on purpose: `kache` already
+  serves a fresh worktree's build at a 99.7% hit rate, and seeding a 17 GB
+  `target/` on a filesystem where `cp --reflink` fails would cost a full copy
+  per worktree. The one thing a worktree cannot bring with it — the
+  machine-global `@local/mindtape` symlink — is printed as a note.
 - **`site-pages-fixture-check` gate** — pins the three failures
   `www/generate-site-pages.sh` and `check-doc-facts`'s pages arm exist to
   catch (two pages declaring the same route, a page with no `<page-meta>`

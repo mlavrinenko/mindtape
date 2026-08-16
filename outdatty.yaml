@@ -323,6 +323,15 @@ groups:
   # _nav-diff.sh itself stays untracked here: gate-notes.typ names it but
   # never restates its own two-arm logic, so nothing here would go stale if
   # that logic changed shape.
+  #
+  # fork.sh is the sixth, and the first that is not a gate body of any kind
+  # (truth/tasks/add-a-just-fork-recipe-that-stands-up-a-ready-worktree.typ).
+  # It is tracked because docs/src/contributing.typ restates its behaviour by
+  # hand — the default base, the sibling `../mindtape-<slug>` path, the dirty-
+  # HEAD refusal and the report-without-refusing on a divergent base. Every one
+  # of those is a decision inside the script rather than anything derived, so
+  # changing the refusal into a warning, or moving where the worktree lands,
+  # rots that paragraph with nothing else reacting.
   - name: dev-docs
     source:
       - flake.nix
@@ -349,6 +358,7 @@ groups:
       - .just/scripts/script-attr-check.sh
       - .just/scripts/script-scope-check.sh
       - .just/scripts/site-pages-fixture-check.sh
+      - .just/scripts/fork.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ
