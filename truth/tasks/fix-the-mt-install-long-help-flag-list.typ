@@ -11,7 +11,7 @@
   tags: ("cli", "docs"),
   estimate: (files: 1),
   links: parent("de-slop-the-docs-and-close-the-drift-seams.typ"),
-  status: accepted(2026, 8, 16),
+  status: done(2026, 8, 16),
 )
 
 == Summary
