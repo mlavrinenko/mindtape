@@ -172,12 +172,12 @@ groups:
       - skills/mindtape/references/add-slots.md
 
   # The Typst library version appears in every #import example and the CLI's
-  # embedded constant. Bump lib/typst.toml and these must follow (the docs read
-  # it from one place — www/utils/site.typ PKG_VERSION).
+  # embedded constant. Bump lib/typst.toml and these must follow.
   #
   # docs/src/agents.typ (AGENTS.md's source), docs/src/readme.typ (README.md's
-  # source), and docs/src/skill.typ (SKILL.md's source) are NOT dependents:
-  # each reads its `@local/mindtape:...` snippet version from
+  # source), docs/src/skill.typ (SKILL.md's source) and www/utils/site.typ (the
+  # docs site's `PKG_VERSION`, and through it every `#import` example on the
+  # site) are NOT dependents: each reads its `@local/mindtape:...` version from
   # `www/generated/crate-map.json`'s `typst-lib.version` (itself derived from
   # this same lib/typst.toml), so a bump propagates through `just docs::md`
   # with no human reconciliation — the point of deriving it in the first
@@ -190,7 +190,6 @@ groups:
     dependents:
       - crates/mindtape-cli/src/init.rs
       - crates/mindtape-cli/src/presets/gated/templates/task.typ
-      - www/utils/site.typ
       - examples/learn-piano/.mindtape/templates/task.typ
       - examples/learn-piano/tasks/technique/hanon-warmup-daily.typ
       - examples/learn-piano/tasks/technique/major-scales-two-octaves.typ

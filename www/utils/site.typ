@@ -1,12 +1,18 @@
 // Site-wide constants for the MindTape docs. Single source of truth for the
 // site URL and its path prefix, the page manifest (route -> label, title,
-// summary), the nav tree those pages group into, and the Typst package
-// version used in every `#import` example (kept in sync with lib/typst.toml;
-// outdatty-tracked).
+// summary), and the nav tree those pages group into. The site URL and the
+// Typst package version are not constants at all any more — both are read
+// from the file that owns them.
 
-// Typst library version — mirrors lib/typst.toml [package] version. Bump both
-// together; the outdatty `typst-pkg-version` group fails the build otherwise.
-#let PKG_VERSION = "0.2.0"
+// Typst library version, read from lib/typst.toml through the crate map — the
+// same `typst-lib.version` docs/src/{agents,readme,skill}.typ already read, so
+// the site stops being the last place that hand-types it and a bump propagates
+// with no human reconciliation. Not read from lib/typst.toml directly: the
+// site builds under `--root www`, and Typst refuses a read that escapes the
+// root. www/generate-facts.sh writes crate-map.json before the site-pages
+// driver evaluates this module, so the file is always there by the time
+// anything imports it.
+#let PKG_VERSION = json("../generated/crate-map.json").at("typst-lib").version
 #let PKG = "@local/mindtape:" + PKG_VERSION
 
 #let REPO = "https://github.com/mlavrinenko/mindtape"

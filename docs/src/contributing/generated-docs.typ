@@ -145,9 +145,9 @@ content simply missing with no diagnostic at all. Test a new construct against
 typlite directly (`typlite --root . <src> /tmp/out.md`, then read the output)
 before trusting it in a source.
 
-== Two authoring traps when porting hand-written Markdown prose
+== Authoring traps when porting hand-written Markdown prose
 
-Both bit the AGENTS.md port and are easy to reintroduce:
+Each of these has bitten a real port, and each is easy to reintroduce:
 
 - Typst's `*x*` is BOLD (`strong`), not italic — the opposite of Markdown's
   single-asterisk convention. Ported prose that used `*word*` for italic
@@ -160,6 +160,12 @@ Both bit the AGENTS.md port and are easy to reintroduce:
   collapses the paragraph to one line without re-flowing it. Never end a
   wrapped source line on a hyphen that continues into the next line; move the
   whole hyphenated word to one line instead.
+- A wrapped line that OPENS with a number and a period is an enum item to
+  Typst, not prose — the shape a sentence lands in whenever a threshold falls
+  at a line break. The rendered paragraph splits in three around a stray list
+  marker, and nothing errors. Rewrap so the number never starts a line, or
+  escape the period (`15\.` renders as the plain number and rejoins the
+  paragraph).
 
 One more consequence, not a constraint: typlite emits ONE LINE PER PARAGRAPH,
 so a generated `.md`'s line count is not a meaningful size proxy. That is why

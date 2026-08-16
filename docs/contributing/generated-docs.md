@@ -69,11 +69,12 @@ Verified against the pinned tinymist (nixpkgs, this flake’s input) and the typ
 
 The footnote error and the silently-stripped `<p>`/`<div>`/`<span>` are the two sharpest edges: one fails loud, with a confusing message pointing at typlite’s own internals rather than your source; the other fails silent, the content simply missing with no diagnostic at all. Test a new construct against typlite directly (`typlite --root . <src> /tmp/out.md`, then read the output) before trusting it in a source.
 
-### Two authoring traps when porting hand-written Markdown prose
+### Authoring traps when porting hand-written Markdown prose
 
-Both bit the AGENTS.md port and are easy to reintroduce:
+Each of these has bitten a real port, and each is easy to reintroduce:
 
 - Typst’s `*x*` is BOLD (`strong`), not italic — the opposite of Markdown’s single-asterisk convention. Ported prose that used `*word*` for italic emphasis silently becomes bold unless rewritten as Typst’s own `_word_` (which typlite renders back as Markdown `_word_`, not `*word*` — another representation change to expect, not a bug).
 - A hand-wrapped line that ends mid-word with a hyphen (`wrong -\nedited`) does NOT get TeX-style hyphenation-continuation across the soft break: Typst joins it as `wrong- edited`, extra space and all, because typlite collapses the paragraph to one line without re-flowing it. Never end a wrapped source line on a hyphen that continues into the next line; move the whole hyphenated word to one line instead.
+- A wrapped line that OPENS with a number and a period is an enum item to Typst, not prose — the shape a sentence lands in whenever a threshold falls at a line break. The rendered paragraph splits in three around a stray list marker, and nothing errors. Rewrap so the number never starts a line, or escape the period (`15\.` renders as the plain number and rejoins the paragraph).
 
 One more consequence, not a constraint: typlite emits ONE LINE PER PARAGRAPH, so a generated `.md`’s line count is not a meaningful size proxy. That is why `.linecop.yaml` caps the `.typ` SOURCE under `docs/src/**` and excludes every path a source declares as its `output`. The source itself still wraps like any other Typst file in this repo, and `typstyle` still formats it.

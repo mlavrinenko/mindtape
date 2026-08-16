@@ -64,6 +64,12 @@
 //     docs/generate-md.sh's demotion (below) skips it — the title survives as
 //     a raw `<h1>` tag. For literal inline backticks in a title, interpolate
 //     the character instead: `#"`"`.
+//   - A source line that OPENS with a number and a period — `15. A band
+//     below 30 …`, the shape a hard-wrapped sentence lands in by accident —
+//     is an enum item to Typst, not prose. The paragraph splits in three and
+//     the Markdown grows a stray `15.` list marker; nothing errors (verified
+//     both ways). Rewrap so the number never starts a line, or escape the
+//     period: `15\.` renders as `15.` and rejoins the paragraph.
 //   - A raw/code span containing a literal backtick (`raw("a`b")`, or
 //     backtick markup with a backtick inside) does NOT get a wider Markdown
 //     delimiter — typlite always wraps in a SINGLE backtick regardless of
