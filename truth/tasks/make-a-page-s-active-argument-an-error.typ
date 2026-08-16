@@ -14,7 +14,7 @@
     parent("put-page-metadata-in-the-pages-and-derive-the-manifest.typ")
       + depends-on("pass-each-page-s-metadata-dict-to-its-show-rule.typ")
   ),
-  status: wip(2026, 8, 16),
+  status: done(2026, 8, 16),
 )
 
 == Summary
