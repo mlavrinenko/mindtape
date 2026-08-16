@@ -11,7 +11,7 @@
   tags: ("cli", "tests", "gating", "docs"),
   estimate: (files: 3),
   links: parent("de-slop-the-docs-and-close-the-drift-seams.typ"),
-  status: wip(2026, 8, 16),
+  status: done(2026, 8, 17),
 )
 
 == Summary
