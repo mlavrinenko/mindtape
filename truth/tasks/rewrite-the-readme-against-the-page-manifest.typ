@@ -15,7 +15,7 @@
     + related("verify-the-generated-readme-header-renders-on-github.typ")[
       the same rendered header
     ],
-  status: accepted(2026, 8, 16),
+  status: done(2026, 8, 16),
 )
 
 == Summary

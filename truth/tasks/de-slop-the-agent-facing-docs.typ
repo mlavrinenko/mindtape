@@ -12,7 +12,7 @@
   estimate: (files: 2),
   links: parent("de-slop-the-docs-and-close-the-drift-seams.typ")
     + depends-on("derive-the-docs-page-manifest-from-one-source.typ"),
-  status: accepted(2026, 8, 16),
+  status: done(2026, 8, 16),
 )
 
 == Summary

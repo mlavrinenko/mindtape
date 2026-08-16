@@ -11,7 +11,7 @@
   difficulty: 6,
   tags: ("docs", "www"),
   estimate: (files: 2),
-  status: wip(2026, 8, 16),
+  status: done(2026, 8, 16),
 )
 
 == Summary
