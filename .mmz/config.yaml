@@ -266,6 +266,8 @@ scopes:
     - ".just/scripts/mutants-diff.sh"
   script-mutants-env:
     - ".just/scripts/_mutants-env.sh"
+  script-nav-diff:
+    - ".just/scripts/_nav-diff.sh"
   script-positional-args-check:
     - ".just/scripts/positional-args-check.sh"
   script-release:
@@ -274,6 +276,8 @@ scopes:
     - ".just/scripts/script-attr-check.sh"
   script-script-scope-check:
     - ".just/scripts/script-scope-check.sh"
+  script-site-pages-fixture-check:
+    - ".just/scripts/site-pages-fixture-check.sh"
   script-size-fixture-check:
     - ".just/scripts/size-fixture-check.sh"
 
@@ -369,10 +373,14 @@ commands:
   # crate-map.json/dsl-fields.json against the two prose dicts under
   # www/utils/ (`docs`). `script-check-doc-facts` is the recipe body;
   # `gates-meta` carries the gate-table shape www/generate-facts.sh's
-  # gates.json reads back out of the Justfile.
+  # gates.json reads back out of the Justfile. `script-nav-diff` is wired by
+  # hand for check-crap's reason: check-doc-facts.sh's NAV arm now shells out
+  # to .just/scripts/_nav-diff.sh directly, and script-scope-check's arm two
+  # only proves what a recipe's OWN body names, not a script another script
+  # calls — the same nested-call blind spot as check-crap's `just crap`.
   - name: just check-doc-facts
     tags: [gate]
-    inputs: [rust, policy, file-size-config, docs, gates-meta, script-check-doc-facts]
+    inputs: [rust, policy, file-size-config, docs, gates-meta, script-check-doc-facts, script-nav-diff]
 
   # Scans docs/src/**/*.typ and www/content/*.typ for a hand-typed `just
   # <recipe>` mention that skips www/generated/just.typ (`docs`) against the
@@ -503,3 +511,17 @@ commands:
   - name: just script-scope-check
     tags: [gate]
     inputs: [mmz-config, scripts-all, script-script-scope-check, gates-meta]
+
+  # Replica-tree self-test for the docs manifest gate: two pages declaring the
+  # same route and a page with no `<page-meta>` block both drive a `cp -r
+  # www` copy of www/generate-site-pages.sh (`docs`, since the fixture is
+  # built from the real www/content/**), and a page missing from NAV drives
+  # `.just/scripts/_nav-diff.sh` directly against a synthetic pair of route
+  # lists — wired here by hand for the same nested-call reason
+  # `script-nav-diff` is wired onto `just check-doc-facts` above, since
+  # script-scope-check's arm two cannot see a script calling another script.
+  # `script-site-pages-fixture-check` is its own body, `gates-meta` the dev
+  # shell typst/jq come from.
+  - name: just site-pages-fixture-check
+    tags: [gate]
+    inputs: [docs, gates-meta, script-site-pages-fixture-check, script-nav-diff]

@@ -188,6 +188,24 @@
     the case the second arm deliberately does not derive. See
     `.just/scripts/script-scope-check.sh`.
   ],
+  "site-pages-fixture-check": [
+    Locks the docs manifest gate itself: two pages declaring the same route,
+    a page with no `<page-meta>` block, and a page missing from
+    `www/utils/site.typ`'s NAV were each demonstrated by hand once, when they
+    landed, and nothing since has proven they still fire. Runs a `cp -r www`
+    replica's own copy of `www/generate-site-pages.sh` for the first two
+    (never the working tree — #just.check()'s arms run in parallel, so a
+    mutation there would be read as real by a concurrent gate), and pins the
+    third by calling `.just/scripts/_nav-diff.sh` directly against a
+    synthetic pair of route lists rather than driving a whole
+    #just.check-doc-facts() regenerate — that script is the extracted
+    set-difference #just.check-doc-facts() itself now calls, so the thing
+    this gate pins is the thing that actually runs. A positive control
+    asserts the unmutated replica passes, and every case asserts both a
+    non-zero exit and that the failure names the offending page or route,
+    never the exit code alone. See
+    `.just/scripts/site-pages-fixture-check.sh`.
+  ],
   "check-crap": [
     Editing any source stales the lcov, so it skips on the commits that
     matter; it catches the free case only. #just.check-full() is the arm

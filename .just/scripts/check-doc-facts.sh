@@ -137,21 +137,14 @@ fi
 # two CAN disagree — a page missing from NAV is invisible in the sidebar, and
 # a NAV entry naming no real page's route 404s the moment it's clicked. Read
 # through the same target/-rooted driver trick as the four arms above, not by
-# grepping quoted strings out of site.typ.
+# grepping quoted strings out of site.typ. The set-difference itself is
+# .just/scripts/_nav-diff.sh, extracted under truth/tasks/pin-the-docs-
+# manifest-gate-failures-with-a-selftest.typ so site-pages-fixture-check.sh
+# can pin it against a synthetic pair of route lists without paying for this
+# regenerate.
 printf '#import "/www/utils/site.typ": NAV\n#metadata(NAV.map(g => g.items).flatten()) <nav-routes>\n' \
     > "$tmp/nav-routes.typ"
 nav_routes=$(typst query --root . "$tmp/nav-routes.typ" '<nav-routes>' \
     --field value --one | jq -r '.[]')
-nav_unlisted=$(comm -23 <(sort <<<"$routes") <(sort <<<"$nav_routes"))
-if [ -n "$nav_unlisted" ]; then
-    echo "check-doc-facts: pages missing from www/utils/site.typ's NAV (invisible in the sidebar):" >&2
-    while IFS= read -r route; do echo "  - $route" >&2; done <<<"$nav_unlisted"
-    exit 1
-fi
-nav_orphaned=$(comm -13 <(sort <<<"$routes") <(sort <<<"$nav_routes"))
-if [ -n "$nav_orphaned" ]; then
-    echo "check-doc-facts: www/utils/site.typ's NAV routes with no page declaring them (404 in the sidebar):" >&2
-    while IFS= read -r route; do echo "  - $route" >&2; done <<<"$nav_orphaned"
-    exit 1
-fi
+bash .just/scripts/_nav-diff.sh "$routes" "$nav_routes"
 echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, $(wc -l <<<"$gates") gates, $(wc -l <<<"$flags") sweep flags, $(wc -l <<<"$routes") pages, all documented"

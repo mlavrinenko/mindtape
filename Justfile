@@ -58,7 +58,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "check-crap")
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -244,6 +244,22 @@ script-attr-check:
 [group("gate")]
 script-scope-check:
     bash .just/scripts/script-scope-check.sh
+
+# Lock the docs manifest gate itself: two pages declaring the same route, a
+# page with no `<page-meta>` block, and a page missing from
+# www/utils/site.typ's NAV were each demonstrated by hand once, when they
+# landed, and never proven again since — a gate that never fires reads
+# identical to one that cannot
+# (truth/tasks/pin-the-docs-manifest-gate-failures-with-a-selftest.typ). Why
+# it runs against a replica tree rather than the working one, and why the
+# third case drives `.just/scripts/_nav-diff.sh` directly instead of the
+# whole check-doc-facts regenerate, are argued in place in
+# .just/scripts/site-pages-fixture-check.sh.
+
+[doc("Lock the docs manifest gate against three known-bad fixtures")]
+[group("gate")]
+site-pages-fixture-check:
+    bash .just/scripts/site-pages-fixture-check.sh
 
 # The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
 # fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0. It

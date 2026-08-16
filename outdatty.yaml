@@ -313,6 +313,16 @@ groups:
   # second does not derive, and the churn measurement that decided the split
   # (truth/tasks/split-gates-meta-into-per-script-scopes.typ). Change what it
   # proves and that prose is wrong with nothing else reacting.
+  #
+  # site-pages-fixture-check.sh is the fifth, and joins for size-fixture-
+  # check.sh's reason: a self-test, not an extracted body, and
+  # www/utils/gate-notes.typ restates by hand what it asserts — the replica
+  # tree, why cases one and two drive it and case three drives
+  # .just/scripts/_nav-diff.sh directly instead
+  # (truth/tasks/pin-the-docs-manifest-gate-failures-with-a-selftest.typ).
+  # _nav-diff.sh itself stays untracked here: gate-notes.typ names it but
+  # never restates its own two-arm logic, so nothing here would go stale if
+  # that logic changed shape.
   - name: dev-docs
     source:
       - flake.nix
@@ -338,6 +348,7 @@ groups:
       - .just/scripts/size-fixture-check.sh
       - .just/scripts/script-attr-check.sh
       - .just/scripts/script-scope-check.sh
+      - .just/scripts/site-pages-fixture-check.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ

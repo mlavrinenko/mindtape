@@ -80,16 +80,16 @@ so cannot take an enumeration as its input.
 == What the split did and did not buy
 
 Measured on the maintainer's machine with a hot `target/`, against the
-twenty-one rules in the manifest (the twenty #just.check() arms plus
+twenty-two rules in the manifest (the twenty-one #just.check() arms plus
 #just.cover()). Each figure is one #just.check() run after the edit named,
 with the `dev-docs` group re-recorded as any such edit requires:
 
-- A no-op re-run skips 20 of 20 arms: 0.2s wall, 0.4s CPU. The floor.
-- A one-script edit re-runs 4 of 20 — the rule whose body it is, plus the three
-  directory-wide ones above: 0.8s wall, 1.4s CPU. Before the split it re-ran
+- A no-op re-run skips 21 of 21 arms: 0.2s wall, 0.5s CPU. The floor.
+- A one-script edit re-runs 4 of 21 — the rule whose body it is, plus the three
+  directory-wide ones above: 0.8s wall, 1.5s CPU. Before the split it re-ran
   all of them, which is the Justfile figure below.
-- A Justfile-only edit re-runs 20 of 20: 39s wall, 85s CPU. Unchanged by this
-  work, and 50x the one-script case.
+- A Justfile-only edit re-runs 21 of 21: 42s wall, 105s CPU. Unchanged by this
+  work, and roughly 50x the one-script case.
 
 So script edits moved from the Justfile figure to the no-op figure, and the
 Justfile itself moved not at all. Every rule names `gates-meta` and the

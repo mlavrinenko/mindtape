@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`site-pages-fixture-check` gate** — pins the three failures
+  `www/generate-site-pages.sh` and `check-doc-facts`'s pages arm exist to
+  catch (two pages declaring the same route, a page with no `<page-meta>`
+  block, a page missing from `www/utils/site.typ`'s NAV), each demonstrated
+  by hand once when they landed and never proven again since. Runs the first
+  two against a `cp -r www` replica of the real producer; the NAV
+  set-difference was extracted to `.just/scripts/_nav-diff.sh` (now called by
+  `check-doc-facts` itself) so the third is pinned against a synthetic pair
+  of route lists instead of a full regenerate. Every case asserts a non-zero
+  exit AND that the failure names the offending page or route.
 - **`[tasks.estimate.drift] exclude`** — glob patterns naming paths the
   working-tree drift check never counts against a task's declared file
   budget. A generated output nobody hand-edits (`AGENTS.md`,
