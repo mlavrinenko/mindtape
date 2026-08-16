@@ -14,7 +14,7 @@
     parent("put-page-metadata-in-the-pages-and-derive-the-manifest.typ")
       + depends-on("add-a-queryable-page-meta-block-to-every-docs-page.typ")
   ),
-  status: proposed(2026, 8, 16),
+  status: wip(2026, 8, 16),
 )
 
 == Summary
@@ -40,11 +40,17 @@ place — the page — and its route is written once instead of twice.
   header states the opposite today and has to be rewritten to say why — the
   standalone render now pays a `cargo build --release -p mindtape-cli`, and
   inside `just check` it costs nothing because `docs::check` already ran it.
-- `www/utils/page.typ`: takes `title` and `summary` as arguments again, from the
-  page. Drop the `site.typ` import, `page-meta`, and the `_owned` guard that
-  makes passing them an error — that guard existed to stop a second copy
-  growing back beside the manifest, and there is no second copy to grow once
-  the page IS the manifest.
+- `www/utils/page.typ`: accepts the page's own metadata dict spread as named
+  arguments — `route`, `label`, `title`, `summary`, `home` — mapping `route` to
+  `active` and dropping `label` before `tola-page` sees it. It keeps accepting
+  the current `active:`-only form, resolving title and summary from the
+  manifest as it does today, so the fifteen pages can migrate in a following
+  leaf rather than inside this one; the leaf after that closes the door. This
+  is the same shim the previous manifest migration ran and then removed, and it
+  is a shim only because a task cannot touch 23 files at once.
+  The `_owned` guard that makes `title:`/`summary:` an error goes now: it
+  existed to stop a second copy growing beside the manifest, and the page IS
+  the manifest after this.
 - `www/utils/site.typ`: `NAV` keeps the group titles and the reading order,
   referencing the generated entries; `PAGES` and `page-meta` go. Nothing in this
   file restates a label, a title or a summary afterwards.
