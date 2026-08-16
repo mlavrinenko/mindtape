@@ -1,71 +1,56 @@
-// Page wrapper used by every content file. Two call forms, both live:
+// Page wrapper used by every content file. One call form:
 //
 //   #import "../utils/page.typ": page
-//   #show: page.with(active: "/quickstart/")
+//   #let meta = (route: "/quickstart/", label: "Quickstart", title: …, summary: …)
+//   #metadata(meta) <page-meta>
+//   #show: page.with(..meta)
 //
-// The OLD form: a page declares only its ROUTE, and its title, summary and
-// home flag are resolved from the PAGES manifest in utils/site.typ by that
-// route — the fifteen pages still write this. An unknown route panics naming
-// it (see site.typ's page-meta), which turns a renamed page from a silent 404
-// in the nav into a build failure; during www/generate-site-pages.sh's
-// bootstrap pass, before the manifest exists, page-meta returns `none`
-// instead, and this render resolves no title/summary/home rather than
-// crashing the very query that would produce the manifest.
-//
-//   #show: page.with(..page-meta-dict)
-//
-// The NEW form: a page's own `<page-meta>` metadata dict — `route`, `label`,
-// `title`, `summary`, `home` — spread directly. `route` maps to `active` and
+// The page's own `<page-meta>` dict, spread. `route` becomes `active` and
 // `label` is dropped (tola-page has no use for the sidebar string); `title`,
-// `summary` and `home` are used exactly as given, no manifest lookup at all.
-// This is what the sibling leaf (add-a-queryable-page-meta-block-to-every-
-// docs-page.typ) migrates the fifteen pages to, closing the "second copy
-// grows back" hole `title:`/`summary:` used to guard against by erroring —
-// that guard is gone now because the page IS the manifest's source, not a
-// second copy of it.
+// `summary` and `home` are used exactly as given. One binding per page feeds
+// both consumers — the metadata block www/generate-site-pages.sh queries to
+// build the manifest, and this show rule — so a page cannot disagree with
+// itself about its own route, title or summary.
+//
+// The `active:`-only form this used to accept resolved title and summary out
+// of that generated manifest instead. It was a shim, live only while the
+// fifteen pages migrated (truth/tasks/pass-each-page-s-metadata-dict-to-its-
+// show-rule.typ), and it is a panic now: left open it is a working second way
+// to write a page whose facts come from somewhere other than the page, which
+// is the whole failure this change set removes. The previous manifest
+// migration left exactly this door open and had to come back and shut it.
 //
 // The seam is wrap-page's `transform-meta` hook, which rewrites the named
 // arguments before tola-page ever sees them. Resolving there rather than in
-// `view` is what makes the resolved values reach BOTH consumers: the
-// <tola-meta> block tola reads (title, summary) and the meta dict layout()
-// renders the <h1>, the lede and the home-page branch from.
+// `view` is what makes the values reach BOTH consumers: the <tola-meta> block
+// tola reads (title, summary) and the meta dict layout() renders the <h1>,
+// the lede and the home-page branch from.
 
 #import "../templates/tola.typ": wrap-page
 #import "../templates/base.typ": base
 #import "../templates/layout.typ": layout, make-head
-#import "../utils/site.typ": page-meta
 
 #let _resolve(meta) = {
-  let route = meta.at("route", default: meta.at("active", default: none))
-  let rest = meta
-  for k in ("route", "label") {
-    if k in rest { rest.remove(k) }
+  if "active" in meta {
+    panic(
+      "page passes active: "
+        + repr(meta.active)
+        + " — that form is gone; spread the page's own <page-meta> dict "
+        + "instead: #show: page.with(..meta)",
+    )
   }
-  rest.insert("active", route)
-
-  // New form: the page already supplies its own title/summary/home, so there
-  // is nothing to resolve and no reason to touch PAGES at all — a page using
-  // this form never depends on the manifest existing, unlike the old one.
-  if ("title" in meta) or ("summary" in meta) or ("home" in meta) {
-    return rest
+  if "route" not in meta {
+    panic(
+      "page declares no route — spread its <page-meta> dict "
+        + "(#show: page.with(..meta)); got: "
+        + meta.keys().join(", "),
+    )
   }
-
-  // Old form: resolve from the manifest by route, exactly as before. `entry`
-  // is `none` only in the bootstrap pass (see the header comment above); this
-  // render then carries no title/summary/home rather than panicking.
-  let entry = page-meta(route)
-  if entry == none { return rest }
-  let resolved = (title: entry.title, summary: entry.summary)
-  // Only the home page carries the flag; spreading it unconditionally would
-  // write `home: false` into every other page's metadata for no reader.
-  if "home" in entry { resolved.insert("home", entry.home) }
-  // Dictionary `+` merges; `rest` no longer carries `title`/`summary`/`home`
-  // (this branch only runs when none of the three was in `meta`), so nothing
-  // collides. Spreading — `(..resolved, ..rest)` — cannot express this
-  // anyway: with no `key: value` pair to disambiguate it, Typst reads the
-  // parentheses as an array and fails with "cannot spread dictionary into
-  // array".
-  resolved + rest
+  let out = meta
+  let route = out.remove("route")
+  if "label" in out { let _ = out.remove("label") }
+  out.insert("active", route)
+  out
 }
 
 #let page = wrap-page(
