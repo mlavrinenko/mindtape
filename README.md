@@ -31,63 +31,42 @@ Everything scalar or enum is a generic core field constrained by `.mindtape/conf
 
 ## Installation
 
-From crates.io:
-
 ```bash
 cargo install mindtape-cli
 ```
 
-Or grab a prebuilt binary for Linux, macOS or Windows from the [Releases page](https://github.com/mlavrinenko/mindtape/releases), or run it without installing:
-
-```bash
-nix run github:mlavrinenko/mindtape -- --help
-```
-
-Building from source needs only a Rust toolchain (`cargo build --release` produces `target/release/mt`); the `nix develop` shell adds the full test and lint toolchain used by `just check`.
-
-Linux, macOS and Windows each get a prebuilt binary per release; [Internals](https://mlavrinenko.github.io/mindtape/internals/) covers the two Windows seams and what CI verifies where.
-
-### Set up, once per machine
-
-```bash
-mt install
-```
-
-Task files begin with `#import "@local/mindtape:0.2.0"`, and Typst resolves `@local` packages from a directory on your machine, not from the repository. So until `mt install` puts the prelude there, every task file fails to evaluate — including in a repository someone else set up. `mt install` also seeds the global defaults and the JSON Schema that gives editors config completion. Any command that hits an uninstalled prelude says so and names this command.
-
-### Set up, once per project
-
-```bash
-mt init
-```
-
-Writes `.mindtape/config.toml`. With a terminal and no arguments it asks a short questionnaire; `--preset <name>` skips it and writes a named starter shape (`mt init --list-presets`). See [Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) for what each preset is for and [Configuration](https://mlavrinenko.github.io/mindtape/config/) for the four-layer merge both commands write into.
+[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) covers the prebuilt binaries, `nix run`, and building from source.
 
 ## Usage
 
-One task, start to finish — file it, list it, close it, validate the project:
+One task, start to finish:
 
 ```bash
+mt install                                         # once per machine: put the Typst prelude where Typst looks
+mt init                                            # once per project: write .mindtape/config.toml
 mt add --set title="Wire OAuth" --set priority=7   # file a task from the default template
 mt ls 'status != "done" && priority >= 7'          # query it with a filter expression
 mt flip done wire-oauth                            # set its status, dated today
 mt check                                           # validate the whole project
 ```
 
-That is a sliver of the surface. The docs site has the rest:
+The docs site has the rest:
 
-- [CLI reference](https://mlavrinenko.github.io/mindtape/cli/) — every `mt` command and global flag (`-w`/`--worktree`, `@name` worktree aliases, `--color`, `--hyperlinks`, `-v`), grouped. Includes `mt find TERM…` (sugar over `contains()`) and `mt ls --format path`/`path0` (a bare path list for piping into another program, no `jq` needed).
-- [Filter language](https://mlavrinenko.github.io/mindtape/filters/) — the fields, operators, and functions `mt ls` / `mt rm` accept.
-- [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) — every way `mt add` can fill a task from a Typst template.
-- [Configuration](https://mlavrinenko.github.io/mindtape/config/) — the four-layer config merge, every `.mindtape/config.toml` section, and stem naming for minted filenames.
-- [Import & export](https://mlavrinenko.github.io/mindtape/import-export/) — `mt import` plus `jq` adapters for Taskwarrior and GitHub Issues. There is no `mt export` command; the tasks are already plain files, and the page shows how to reshape them into another tool’s format.
-- [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) — structured JSON, slot schemas, and driving `mt` from outside the project tree.
-- [Internals](https://mlavrinenko.github.io/mindtape/internals/) — the crate layout, the content-hash cache that keeps live evaluation cheap (a warm `mt ls` over 2000 tasks lands at 0.20 s), and what differs per platform.
+- [Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) — Install MindTape, scaffold a project, and file your first task.
+- [Concepts](https://mlavrinenko.github.io/mindtape/concepts/) — The model behind MindTape: files as tasks, live evaluation, identity by filename, and one extension seam.
+- [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) — Every field a task file can declare, and what the prelude versus the Rust layer enforce.
+- [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) — How mt add scaffolds a task from a Typst template whose values are slot() calls.
+- [Derived tags](https://mlavrinenko.github.io/mindtape/derived-tags/) — Tasks inherit tags from their location under a root, without those tags ever being written to the file.
+- [CLI reference](https://mlavrinenko.github.io/mindtape/cli/) — Every mt command, grouped, with the deep topics linked out to their own pages.
+- [Filter language](https://mlavrinenko.github.io/mindtape/filters/) — The expression language mt ls and mt rm use to select tasks: fields, operators, functions, and dependency predicates.
+- [Priority](https://mlavrinenko.github.io/mindtape/priority/) — Priority is a number on a configured scale, set by hand or scored by a framework; difficulty is its twin.
+- [Configuration](https://mlavrinenko.github.io/mindtape/config/) — How .mindtape/config.toml overlays a defaults floor through a four-layer merge, and the sections it can set.
+- [Canonical schema](https://mlavrinenko.github.io/mindtape/schema/) — The task-JSON schema mt ls --json and mt import share — the contract a jq adapter codes against.
+- [Import & export](https://mlavrinenko.github.io/mindtape/import-export/) — Bring tasks in from another tracker with mt import and jq, and reshape them back out with the same tools.
+- [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) — What makes MindTape legible to a coding agent: structured JSON, describable schemas, honest exit codes, and file-based state.
+- [Internals](https://mlavrinenko.github.io/mindtape/internals/) — How MindTape is built: the crate layout, the content-hash cache that keeps live evaluation cheap, and what differs per platform.
+- [Comparison](https://mlavrinenko.github.io/mindtape/comparison/) — How MindTape compares, feature by feature, to the other local file-and-CLI task trackers, and when one of them fits better.
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Acknowledgements
-
-The logo uses a brain icon from [Lucide](https://lucide.dev) (ISC license).
