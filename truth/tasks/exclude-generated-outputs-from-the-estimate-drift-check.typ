@@ -10,7 +10,7 @@
   difficulty: 5,
   tags: ("mt", "docs"),
   estimate: (files: 4),
-  status: proposed(2026, 8, 16),
+  status: wip(2026, 8, 16),
 )
 
 == Summary
