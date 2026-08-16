@@ -15,7 +15,7 @@
     Built the manifest this inverts, and argued why it had to live in
     `site.typ` at the time.
   ],
-  status: proposed(2026, 8, 16),
+  status: wip(2026, 8, 16),
 )
 
 == Summary
