@@ -2,14 +2,15 @@
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 
-#metadata((
+#let meta = (
   route: "/templates/",
   label: "Templates & slots",
   title: "Templates & slots",
   summary: "How mt add scaffolds a task from a Typst template whose values are slot() calls.",
-)) <page-meta>
+)
+#metadata(meta) <page-meta>
 
-#show: page.with(active: "/templates/")
+#show: page.with(..meta)
 
 `mt add` files a new task from a #strong[template] — a task whose authored values
 are `slot(…)` calls. It discovers the slots on the parse plane (no evaluation),

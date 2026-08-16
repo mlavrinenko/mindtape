@@ -2,14 +2,15 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
-#metadata((
+#let meta = (
   route: "/priority/",
   label: "Priority",
   title: "Priority",
   summary: "Priority is a number on a configured scale, set by hand or scored by a framework; difficulty is its twin.",
-)) <page-meta>
+)
+#metadata(meta) <page-meta>
 
-#show: page.with(active: "/priority/")
+#show: page.with(..meta)
 
 The number is classified into labelled bands; a #strong[framework] scores typed
 inputs into it. `difficulty` is the sibling field with the same shape.

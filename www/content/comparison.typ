@@ -1,14 +1,15 @@
 #import "../utils/page.typ": page
 #import "../utils/site.typ": REPO, u
 
-#metadata((
+#let meta = (
   route: "/comparison/",
   label: "Comparison",
   title: "Comparison",
   summary: "How MindTape compares, feature by feature, to the other local file-and-CLI task trackers, and when one of them fits better.",
-)) <page-meta>
+)
+#metadata(meta) <page-meta>
 
-#show: page.with(active: "/comparison/")
+#show: page.with(..meta)
 
 // Canonical landing page / repo for each neighbour, reused in the bullet list
 // and the matrix header. Verified live (curl -sI) before use.

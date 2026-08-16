@@ -2,14 +2,15 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
-#metadata((
+#let meta = (
   route: "/import-export/",
   label: "Import & export",
   title: "Import & export",
   summary: "Bring tasks in from another tracker with mt import and jq, and reshape them back out with the same tools.",
-)) <page-meta>
+)
+#metadata(meta) <page-meta>
 
-#show: page.with(active: "/import-export/")
+#show: page.with(..meta)
 
 MindTape ships one import command and zero export commands, on purpose. Both
 sides of that decision are `jq` recipes against the

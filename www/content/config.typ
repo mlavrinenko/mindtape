@@ -3,14 +3,15 @@
 #import "../utils/site.typ": u
 #import "../utils/config-ref.typ": config-gate, config-sections-table
 
-#metadata((
+#let meta = (
   route: "/config/",
   label: "Configuration",
   title: "Configuration",
   summary: "How .mindtape/config.toml overlays a defaults floor through a four-layer merge, and the sections it can set.",
-)) <page-meta>
+)
+#metadata(meta) <page-meta>
 
-#show: page.with(active: "/config/")
+#show: page.with(..meta)
 
 `.mindtape/config.toml` overlays a shipped defaults floor. Omit a section to
 inherit the floor's defaults, declare it to override, or set it empty (e.g.

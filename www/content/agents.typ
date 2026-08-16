@@ -2,14 +2,15 @@
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 
-#metadata((
+#let meta = (
   route: "/agents/",
   label: "For AI agents",
   title: "For AI agents",
   summary: "What makes MindTape legible to a coding agent: structured JSON, describable schemas, honest exit codes, and file-based state.",
-)) <page-meta>
+)
+#metadata(meta) <page-meta>
 
-#show: page.with(active: "/agents/")
+#show: page.with(..meta)
 
 None of this is an agent mode. It is the ordinary CLI surface — a shell script
 and an agent drive the same commands, for the same reasons.

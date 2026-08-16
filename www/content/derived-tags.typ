@@ -2,14 +2,15 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
-#metadata((
+#let meta = (
   route: "/derived-tags/",
   label: "Derived tags",
   title: "Derived tags",
   summary: "Tasks inherit tags from their location under a root, without those tags ever being written to the file.",
-)) <page-meta>
+)
+#metadata(meta) <page-meta>
 
-#show: page.with(active: "/derived-tags/")
+#show: page.with(..meta)
 
 A task can inherit #strong[virtual tags] from where it sits under a root — the
 root's name plus the folder segments leading to it. They live only in memory and

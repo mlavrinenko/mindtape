@@ -3,14 +3,15 @@
 #import "../utils/site.typ": u
 #import "../utils/cli-ref.typ": cli-gate, cli-group, render-globals
 
-#metadata((
+#let meta = (
   route: "/cli/",
   label: "CLI",
   title: "CLI reference",
   summary: "Every mt command, grouped, with the deep topics linked out to their own pages.",
-)) <page-meta>
+)
+#metadata(meta) <page-meta>
 
-#show: page.with(active: "/cli/")
+#show: page.with(..meta)
 
 `mt` is the whole surface. Commands are quiet by default and return honest exit
 codes. Every command, flag, and sample transcript below is generated from the
