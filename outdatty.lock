@@ -60,7 +60,7 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      .just/docs.just: aa75a3eabb284afd43a9a334e9b07b8b3146d11c866b2c7fe76b64f7a55c3316
+      .just/docs.just: 3e07eecf064133f4b25246a58e205f09139775c3f41bc9212525d1a477c628ac
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
       .just/scripts/arg-pattern-check.sh: f3bda8e8285ef4a4ce9e684d7440256ad6dbb2160e977d9a336f3f4135814593
@@ -79,7 +79,7 @@ groups:
       .just/scripts/positional-args-check.sh: a464c92ade574a6506ea2fb0a24a18fbb0b4c29ed5ee6ba3f69ced050a8b4cfa
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
       .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
-      Justfile: a3fae2e66e431e57885b0dc987601fdbc7453e4c65a46f1cecf7b9e1c32a8863
+      Justfile: 6970160835aab43eb34e7008764ad7a73bc6d42aba13b8d6785d1a21651e7833
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c

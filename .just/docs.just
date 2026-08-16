@@ -48,6 +48,15 @@ set quiet := true
 set unstable := true
 set working-directory := '..'
 
+# Same per-file rule, verified the same way for script-interpreter
+# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ): a
+# module does NOT inherit it from the root Justfile, so a future `[script]`
+# recipe in this module would silently run under the default interpreter
+# without this line. No recipe here uses `[script]` today — this is the
+# setting arriving before the first user, same as `set quiet`.
+
+set script-interpreter := ["bash", "-eo", "pipefail"]
+
 # Capture live `mt` output for the docs (www/generated/*.txt), so the site's
 # CLI reference, help, version, and transcripts cannot drift from the binary.
 # Then derive the crate/DSL/gate/linecop facts (www/generate-facts.sh) — after

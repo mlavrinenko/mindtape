@@ -20,6 +20,13 @@
 set quiet := true
 set unstable := true
 
+# Every `[script]` recipe runs under this interpreter, so bash strict mode
+# (`-e` plus `pipefail`) arrives by construction instead of by a per-recipe
+# `set -eo pipefail` that each new recipe must remember to type
+# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ).
+
+set script-interpreter := ["bash", "-eo", "pipefail"]
+
 # Six recipes live in .just/docs.just rather than here
 # (truth/tasks/split-the-justfile-into-modules.typ): docs::gen, docs::build,
 # docs::serve and docs::md (render docs/src/*.typ to the repo-root Markdown),
@@ -96,10 +103,10 @@ check-file-size:
     linecop
 
 [doc("Copy-paste gate: fail on any duplicated Rust block")]
+[extension('.sh')]
 [group("gate")]
+[script]
 check-dry:
-    #!/usr/bin/env bash
-    set -eo pipefail
     # jscpd (the Rust port, packaged in flake.nix) fails on any duplicated
     # block of >=70 tokens, naming both spans. Scans all Rust under crates/.
     # Fix a finding by extracting a shared helper — never by shuffling tokens
@@ -449,17 +456,36 @@ fmt:
     just --fmt
     for f in {{ JUST_FMT_PATHS }}; do just --justfile "$f" --fmt; done
 
+# Counts PASSING tests, and the count is only authoritative when the suite is
+# green: `cargo test --workspace` stops at the first failing test binary
+# (fail-fast), so a red suite's sum is partial by construction, and summing
+# field 4 counts passes, not tests. The deliberate shape is therefore to let
+# the script-interpreter's pipefail fail loudly: a red suite still prints the
+# partial sum (awk runs before `-e` fires) but the recipe exits with cargo's
+# non-zero status, so a wrong number is never presented as a success — no
+# `--no-fail-fast` and no PIPESTATUS salvage, both of which would only print a
+# different wrong number and pretend the count survived
+# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ).
+
 [doc("Count tests across the workspace")]
+[extension('.sh')]
 [group("advisory")]
+[script]
 count-tests:
-    #!/usr/bin/env bash
     cargo test --workspace 2>&1 | grep "test result:" | awk '{sum += $4} END {print sum " tests"}'
 
+# `awk 'NR <= 20'` instead of `head -20` is deliberate: `head` exits at line
+# 20 and the upstream `sort` then takes SIGPIPE, which pipefail reports as
+# exit 141 on a perfectly good run. awk consumes the whole stream and prints
+# the first 20 lines, so nothing upstream dies and real failures stay visible
+# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ).
+
 [doc("Show the top 20 files by line count")]
+[extension('.sh')]
 [group("advisory")]
+[script]
 file-sizes:
-    #!/usr/bin/env bash
-    find . -type f \( -name '*.rs' -o -name '*.md' \) ! -path './target/*' -exec wc -l {} + | sort -rn | head -20
+    find . -type f \( -name '*.rs' -o -name '*.md' \) ! -path './target/*' -exec wc -l {} + | sort -rn | awk 'NR <= 20'
 
 [arg('PCT', pattern='(100|[1-9]?[0-9])', help='linecop baseline percentage (0-100) — files at or above it get ejected')]
 [doc("Eject inline tests from Rust files nearing the linecop cap")]
@@ -504,9 +530,10 @@ install-lib:
     bash .just/scripts/install-lib.sh
 
 [doc("Remove the dev symlink installed by install-lib")]
+[extension('.sh')]
 [group("dev")]
+[script]
 uninstall-lib:
-    #!/usr/bin/env bash
     VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)
     TARGET="$HOME/.local/share/typst/packages/local/mindtape/$VERSION"
     [ -L "$TARGET" ] && rm "$TARGET" && echo "removed $TARGET" || echo "no symlink at $TARGET"
@@ -515,10 +542,10 @@ uninstall-lib:
 # `mmz --is-fresh --tag gate`, then checks task-file formatting and structure)
 
 [doc("Point git at the tracked hook directory")]
+[extension('.sh')]
 [group("dev")]
+[script]
 install-hooks:
-    #!/usr/bin/env bash
-    set -eo pipefail
     git config core.hooksPath .githooks
     rm -f .git/hooks/pre-commit
     echo "installed .githooks"
