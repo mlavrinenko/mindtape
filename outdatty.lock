@@ -79,11 +79,11 @@ groups:
       .just/scripts/positional-args-check.sh: a464c92ade574a6506ea2fb0a24a18fbb0b4c29ed5ee6ba3f69ced050a8b4cfa
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
       .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
-      Justfile: 0d305f8de0a53a089368f76ca199465102827dc8598c6a2ee6a7c3f2798fe735
+      Justfile: a3fae2e66e431e57885b0dc987601fdbc7453e4c65a46f1cecf7b9e1c32a8863
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
-      docs/src/contributing.typ: bfa7591549b7f79ec38bcb61feabe73fb1e76f5e0a829978afb1307bfa3d1fbc
+      docs/src/contributing.typ: f831de81db11023483a264ffb1eb3f643d83be1a17aa3983f551e70e9ce5f951
       docs/src/contributing/coverage-crap.typ: 5ae92adf3b28813c3c5c53e7ae4e6afb144d0e1d9e0ed301d4b857347da817c0
       docs/src/contributing/gates.typ: 7a3ab58c25653647b02e235504b1423f9b85201b6535eec09c6e722d1fc33b56
       docs/src/contributing/mutation-testing.typ: aa7a8de97b0fdf6f1b8c9406b3af0db478f61f4ab86a714eaec789105d293c61

@@ -59,6 +59,7 @@ check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check
 
 [doc("Run a just recipe through mmz memoization")]
 [group("workflow")]
+[no-exit-message]
 mmz *ARGS:
     mmz just {{ ARGS }}
 
