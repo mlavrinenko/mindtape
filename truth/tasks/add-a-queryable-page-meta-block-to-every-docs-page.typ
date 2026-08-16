@@ -11,7 +11,7 @@
   tags: ("docs", "www"),
   estimate: (files: 15),
   links: parent("put-page-metadata-in-the-pages-and-derive-the-manifest.typ"),
-  status: wip(2026, 8, 16),
+  status: done(2026, 8, 16),
 )
 
 == Summary
