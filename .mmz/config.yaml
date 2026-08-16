@@ -302,6 +302,19 @@ commands:
     tags: [gate]
     inputs: [gates-meta]
 
+  # Static self-test plus a synthesized probe: no recipe body may open with a
+  # `#!` shebang (read from `just --dump --dump-format json`, walking modules),
+  # and every justfile's own `set script-interpreter` must abort a failed
+  # pipeline — proven by running a `false | true` probe under a replica
+  # justfile carrying that file's setting line verbatim, never by matching its
+  # text. Both subjects are the two justfiles and the script itself, so
+  # `gates-meta` is the whole input, same as the two rules above; the probe
+  # runs in a temp dir and reads nothing else, and the `bash` it resolves comes
+  # from the dev shell that scope already pins.
+  - name: just script-attr-check
+    tags: [gate]
+    inputs: [gates-meta]
+
   # Scan-scope self-test: an oversized shell script at `.just/scripts/` inside
   # a replica tree must be reported by linecop reading this repo's config, and
   # must go unreported with `include_hidden` deleted. `file-size-config` is the

@@ -143,6 +143,24 @@
     scripts the recipes forward into; no recipe body runs. See
     `.just/scripts/positional-args-check.sh`.
   ],
+  "script-attr-check": [
+    Strict-mode self-test in two arms. No recipe body may open with a `#!`
+    shebang — every script body reaches the interpreter through `[script]`,
+    so `set script-interpreter` applies to it — and every justfile must
+    declare a setting that actually aborts a failed pipeline. `shebang` in the
+    dump cannot tell the two apart (a `[script]` recipe reports `true` exactly
+    as a `#!` body does, measured on just 1.46), so the first arm pairs that
+    field with the absence of a `script` attribute. The second runs a
+    `false | true` probe under a replica justfile carrying the file's own
+    setting line verbatim, rather than matching its text: `-euo pipefail`
+    would fail a literal match while being strictly better, and `-e` alone
+    would pass a looser one while dropping the exact flag that let
+    #just.count-tests() report a partial sum and exit 0. Every justfile is
+    checked, not only those with `[script]` recipes today — a module does not
+    inherit the root's setting, so `.just/docs.just`'s currently userless one
+    is load-bearing and cannot be tidied away; see
+    `.just/scripts/script-attr-check.sh`.
+  ],
   "size-fixture-check": [
     Scan-scope self-test for #just.check-file-size(): an oversized shell
     script at `.just/scripts/` inside a replica tree must be reported by

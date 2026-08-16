@@ -58,7 +58,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "size-fixture-check") check-crap
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") check-crap
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -213,6 +213,22 @@ size-fixture-check:
 [group("gate")]
 positional-args-check:
     bash .just/scripts/positional-args-check.sh
+
+# Lock bash strict mode in by construction: no recipe body may open with a `#!`
+# shebang (every script body goes through `[script]`, so `set
+# script-interpreter` reaches it), and every justfile must declare a setting
+# that actually aborts a failed pipeline. The setting removed the unstrict
+# bodies that existed, not the shape — `count-tests` printed a wrong test count
+# and exited 0 in exactly the form a new `#!` recipe would still be written in
+# (truth/tasks/lock-the-script-attribute-against-a-shebang-regression.typ). Why
+# `.shebang` cannot be the discriminator, why the setting is PROVEN by a probe
+# instead of matched as text, and why every justfile needs its own are argued in
+# place in .just/scripts/script-attr-check.sh.
+
+[doc("Lock the script attribute and each justfile's strict-mode interpreter")]
+[group("gate")]
+script-attr-check:
+    bash .just/scripts/script-attr-check.sh
 
 # The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
 # fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0. It

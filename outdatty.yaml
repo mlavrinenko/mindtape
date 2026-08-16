@@ -299,6 +299,12 @@ groups:
   # restates by hand what it asserts — the replica tree, the `include_hidden`
   # arm, why it does not probe the real directory. Change what the script
   # proves and that prose is wrong with nothing else reacting.
+  #
+  # script-attr-check.sh is the third of those, and the most restated of the
+  # three: gate-notes.typ hand-carries both its arms, the just-1.46 measurement
+  # that `shebang` cannot discriminate a `[script]` recipe from a `#!` body,
+  # and the argument for probing each justfile's setting instead of matching
+  # its text. None of that is derived from anything.
   - name: dev-docs
     source:
       - flake.nix
@@ -322,6 +328,7 @@ groups:
       - .just/scripts/positional-args-check.sh
       - .just/scripts/_mutants-env.sh
       - .just/scripts/size-fixture-check.sh
+      - .just/scripts/script-attr-check.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ
