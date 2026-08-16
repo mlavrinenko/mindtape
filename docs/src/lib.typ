@@ -12,6 +12,13 @@
 // source is plain Typst with no page show rule and no tola import, so
 // typlite can walk it on its own.
 //
+// Being a separate render path is also why a cross-link INTO the docs site is
+// the one thing a source must never hand-type. Nothing in this repo resolves
+// an absolute URL sitting in generated Markdown, so a renamed page ships a
+// 404 that only a reader ever finds. `www-link` / `www-title` / `www-summary`
+// below read the route out of the generated page manifest instead, and fail
+// the render naming it when it is not there.
+//
 // Constraints typlite imposes on every source below, verified against the
 // pinned tinymist 0.14.10 / typst 0.14.2 (this pin matches the dev shell's
 // own `typst` 0.14.2 — the *Rust crate* `typst`, a separate eval plane
@@ -104,6 +111,55 @@
 // retyping it. docs/generate-md.sh always runs `www/generate-facts.sh` before
 // rendering any source, so this never depends on a prior `just docs::gen`.
 #let fact(name) = json("/www/generated/" + name + ".json")
+
+// The docs site's page manifest — the site URL, and per route the page's
+// sidebar label, title and summary. Derived from www/utils/site.typ by
+// www/generate-facts.sh, and read through `fact` above so it arrives on the
+// same terms as every other derived fact.
+#let _site = fact("site-pages")
+
+// Resolve one page by route, or fail the render naming it.
+//
+// A docs/src source links INTO the site constantly, and a hand-typed absolute
+// URL there is a dead link waiting to happen: typlite renders a `#link`
+// without ever resolving it, so a renamed page leaves the generated Markdown
+// pointing at a 404 that no build in this repo can see. Reading the route out
+// of the manifest instead turns that into a `just docs md` failure. The
+// message lists the known routes because the fix is always one of them —
+// "unknown route /clix/" on its own only moves the search into another file.
+#let _page(route) = {
+  if type(route) == str and route in _site.pages {
+    return _site.pages.at(route)
+  }
+  panic(
+    "unknown docs-site route: "
+      + repr(route)
+      + " — known routes: "
+      + _site.pages.keys().join(", "),
+  )
+}
+
+// A page's own title and summary, for prose that NAMES a page (or lists every
+// page, as README does) rather than linking one. Same panic on an unknown
+// route, for the same reason.
+#let www-title(route) = _page(route).title
+#let www-summary(route) = _page(route).summary
+
+// An absolute link to a docs-site page. `#www-link("/cli/")` renders the
+// page's OWN title as the link text — the common case, and one less string to
+// keep in sync with the site; pass a body to override it, as in
+// `#www-link("/cli/")[the CLI reference]`.
+//
+// Emits a plain `#link`, which typlite renders as `[text](url)`, so the
+// header's warning about the closing `]` applies verbatim: never glue a `;`
+// — or anything else Typst can read as continuing the expression — onto it.
+#let www-link(route, ..body) = {
+  // Resolved unconditionally, never inside the branch below: an unknown route
+  // has to fail even when the caller supplied its own link text.
+  let entry = _page(route)
+  let pos = body.pos()
+  link(_site.url + route, if pos.len() > 0 { pos.at(0) } else { entry.title })
+}
 
 // Re-export www/generated/just.typ (www/generate-facts.sh) so a source
 // writes `#import "lib.typ": fact, just` and then `#just.check()` instead of
