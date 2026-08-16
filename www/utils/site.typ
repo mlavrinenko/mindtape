@@ -1,17 +1,21 @@
 // Site-wide constants for the MindTape docs. Single source of truth for the
-// site URL and its path prefix, the page manifest (route -> label, title,
-// summary), and the nav tree those pages group into. The site URL and the
-// Typst package version are not constants at all any more — both are read
-// from the file that owns them.
+// site URL and its path prefix, and the nav tree's group names and reading
+// order. The site URL and the Typst package version are not constants at all
+// any more — both are read from the file that owns them, and neither is the
+// page manifest (route -> label, title, summary): that is now `PAGES`,
+// read back off every page's own `<page-meta>` block via
+// www/generate-site-pages.sh, under
+// truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ.
+// This file no longer restates a label, a title or a summary anywhere.
 
 // Typst library version, read from lib/typst.toml through the crate map — the
 // same `typst-lib.version` docs/src/{agents,readme,skill}.typ already read, so
 // the site stops being the last place that hand-types it and a bump propagates
 // with no human reconciliation. Not read from lib/typst.toml directly: the
 // site builds under `--root www`, and Typst refuses a read that escapes the
-// root. www/generate-facts.sh writes crate-map.json before the site-pages
-// driver evaluates this module, so the file is always there by the time
-// anything imports it.
+// root. www/generate.sh runs generate-facts.sh (which writes crate-map.json)
+// before generate-site-pages.sh evaluates this module to query a page, so the
+// file is always there by the time anything imports it.
 #let PKG_VERSION = json("../generated/crate-map.json").at("typst-lib").version
 #let PKG = "@local/mindtape:" + PKG_VERSION
 
@@ -24,9 +28,10 @@
 //
 // Typst resolves a relative path against the FILE, not the root, so this one
 // read works under both roots this module is evaluated with — `--root www`
-// for the site build, `--root .` for www/generate-facts.sh's site-pages
-// driver. The trailing-slash trim is what lets `SITE_URL + route` compose
-// cleanly for a route that already opens with `/`.
+// for the site build and for www/generate-site-pages.sh's page queries,
+// `--root .` for that same script's site-meta driver. The trailing-slash trim
+// is what lets `SITE_URL + route` compose cleanly for a route that already
+// opens with `/`.
 #let TOLA = toml("../tola.toml")
 #let SITE_URL = TOLA.site.info.url.trim("/", at: end)
 
@@ -47,159 +52,53 @@
   tagline: "Tasks as Typst files. No daemon, no database, no lock-in.",
 )
 
-// Grouped sidebar, and the page manifest it is built from. Each item's href
-// is the page's ROUTE — site-root-relative, u() prefixes it — and carries the
-// three other facts that page owns:
-//
-//   label   the sidebar entry (short; fits a nav column)
-//   title   the page's own <h1> and <title> (index's differs from its label
-//           on purpose: "Overview" in the nav, "MindTape" on the page)
-//   summary one sentence, rendered as the page lede, as its <meta
-//           name="description">, and as the README's page list — so it has to
-//           read well standing completely alone, away from the page
-//
-// www/content/*.typ used to hand-write title and summary a second time in its
-// own `page.with(...)` header; utils/page.typ now resolves both from here by
-// the page's `active:` route.
+// Grouped sidebar: group title, and its members' reading order as ROUTES.
+// This is the one fact no single page owns — spreading it across fifteen
+// files as `order:` integers would make the sidebar's shape invisible and let
+// two pages claim one slot (see the umbrella task's "Out of scope"). Every
+// other fact a nav entry used to carry (label, title, summary, home) now
+// lives on the page itself and is resolved from `PAGES` below by route.
 #let NAV = (
-  (
-    title: "Start",
-    items: (
-      (
-        label: "Overview",
-        href: "/",
-        title: "MindTape",
-        home: true,
-        summary: "A daemon-free task tracker whose tasks are Typst files, live-evaluated on every command.",
-      ),
-      (
-        label: "Quickstart",
-        href: "/quickstart/",
-        title: "Quickstart",
-        summary: "Install MindTape, scaffold a project, and file your first task.",
-      ),
-    ),
-  ),
+  (title: "Start", items: ("/", "/quickstart/")),
   (
     title: "Guide",
-    items: (
-      (
-        label: "Concepts",
-        href: "/concepts/",
-        title: "Concepts",
-        summary: "The model behind MindTape: files as tasks, live evaluation, identity by filename, and one extension seam.",
-      ),
-      (
-        label: "Task DSL",
-        href: "/dsl/",
-        title: "Task DSL",
-        summary: "Every field a task file can declare, and what the prelude versus the Rust layer enforce.",
-      ),
-      (
-        label: "Templates & slots",
-        href: "/templates/",
-        title: "Templates & slots",
-        summary: "How mt add scaffolds a task from a Typst template whose values are slot() calls.",
-      ),
-      (
-        label: "Derived tags",
-        href: "/derived-tags/",
-        title: "Derived tags",
-        summary: "Tasks inherit tags from their location under a root, without those tags ever being written to the file.",
-      ),
-    ),
+    items: ("/concepts/", "/dsl/", "/templates/", "/derived-tags/"),
   ),
   (
     title: "Reference",
     items: (
-      (
-        label: "CLI",
-        href: "/cli/",
-        title: "CLI reference",
-        summary: "Every mt command, grouped, with the deep topics linked out to their own pages.",
-      ),
-      (
-        label: "Filter language",
-        href: "/filters/",
-        title: "Filter language",
-        summary: "The expression language mt ls and mt rm use to select tasks: fields, operators, functions, and dependency predicates.",
-      ),
-      (
-        label: "Priority",
-        href: "/priority/",
-        title: "Priority",
-        summary: "Priority is a number on a configured scale, set by hand or scored by a framework; difficulty is its twin.",
-      ),
-      (
-        label: "Configuration",
-        href: "/config/",
-        title: "Configuration",
-        summary: "How .mindtape/config.toml overlays a defaults floor through a four-layer merge, and the sections it can set.",
-      ),
-      (
-        label: "Canonical schema",
-        href: "/schema/",
-        title: "Canonical schema",
-        summary: "The task-JSON schema mt ls --json and mt import share — the contract a jq adapter codes against.",
-      ),
-      (
-        label: "Import & export",
-        href: "/import-export/",
-        title: "Import & export",
-        summary: "Bring tasks in from another tracker with mt import and jq, and reshape them back out with the same tools.",
-      ),
+      "/cli/",
+      "/filters/",
+      "/priority/",
+      "/config/",
+      "/schema/",
+      "/import-export/",
     ),
   ),
-  (
-    title: "More",
-    items: (
-      (
-        label: "For AI agents",
-        href: "/agents/",
-        title: "For AI agents",
-        summary: "What makes MindTape legible to a coding agent: structured JSON, describable schemas, honest exit codes, and file-based state.",
-      ),
-      (
-        label: "Internals",
-        href: "/internals/",
-        title: "Internals",
-        summary: "How MindTape is built: the crate layout, the content-hash cache that keeps live evaluation cheap, and what differs per platform.",
-      ),
-      (
-        label: "Comparison",
-        href: "/comparison/",
-        title: "Comparison",
-        summary: "How MindTape compares, feature by feature, to the other local file-and-CLI task trackers, and when one of them fits better.",
-      ),
-    ),
-  ),
+  (title: "More", items: ("/agents/", "/internals/", "/comparison/")),
 )
 
-// The same pages, flattened to a route -> facts lookup. The nav's grouping is
-// presentation; every consumer that resolves a page BY ROUTE (utils/page.typ,
-// www/generated/site-pages.json and through it docs/src/lib.typ's www-link)
-// wants this shape instead, and deriving it here rather than writing it out
-// keeps the two from ever disagreeing about which pages exist.
-#let PAGES = {
-  let out = (:)
-  for group in NAV {
-    for item in group.items {
-      let entry = (:)
-      for (k, v) in item {
-        if k != "href" { entry.insert(k, v) }
-      }
-      out.insert(item.href, entry)
-    }
-  }
-  out
-}
+// The page manifest — route -> {label, title, summary, home?} — derived from
+// every page's own `<page-meta>` block by www/generate-site-pages.sh, never
+// hand-written here. Empty only during that script's bootstrap pass (see its
+// header): compiling a page imports layout.typ -> this file -> this artifact,
+// so the artifact has to exist, even empty, before the query that fills it.
+#let PAGES = json("../generated/site-pages.json").pages
 
-// Resolve one page by route, or fail naming it. Panicking here — rather than
-// returning none and letting a caller render an empty title — is the point:
-// a route is a string typed by hand in a page header or in doc prose, and a
-// renamed page otherwise degrades into a silent 404 nothing checks. The
-// message lists the known routes because the fix is always one of them.
+// Resolve one page by route. Three outcomes, not two:
+//
+//   - PAGES is EMPTY (the bootstrap pass, before a single page has been
+//     queried yet): return `none`. Panicking here would make the bootstrap
+//     pass itself un-compilable, which is exactly the chicken-and-egg
+//     www/generate-site-pages.sh exists to break.
+//   - PAGES is non-empty and has the route: return its entry.
+//   - PAGES is non-empty and lacks the route: panic naming it. A silent skip
+//     here is the exact failure this whole change removes — a route is a
+//     string typed by hand in a page header, in NAV above, or in doc prose,
+//     and once the manifest is real, an unknown route is always a mistake,
+//     never a pass still warming up.
 #let page-meta(route) = {
+  if PAGES.len() == 0 { return none }
   if type(route) == str and route in PAGES { return PAGES.at(route) }
   panic(
     "unknown docs-site route: "

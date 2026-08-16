@@ -60,13 +60,13 @@ groups:
       www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
   dev-docs:
     source:
-      .just/docs.just: 3e07eecf064133f4b25246a58e205f09139775c3f41bc9212525d1a477c628ac
+      .just/docs.just: a401a5910ceedab097a374e1116b39049cfdb99fdeacea0526732f6d5a236477
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
       .just/scripts/arg-pattern-check.sh: f3bda8e8285ef4a4ce9e684d7440256ad6dbb2160e977d9a336f3f4135814593
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
-      .just/scripts/check-doc-coverage.sh: d1692da6fbe9e26f2d7bc72b89606548820120edbded1665776e548aeec54a2b
-      .just/scripts/check-doc-facts.sh: 341b5af49cfa377e75ba9d12f4b9ba95790c1280c35768f80fe2dd44a05fc85c
+      .just/scripts/check-doc-coverage.sh: 480b3c1d877029df53c1f0efb127ac81baa55b664492e5abac912680895449d4
+      .just/scripts/check-doc-facts.sh: 74b324541d11b514dda5366f28a1eca4a3004074a8f15d1b26a7864767e61223
       .just/scripts/check-doc-recipes.sh: 899053ed43cae7e3542296aded65a0ad196f72d06676e1ec307902953fd08150
       .just/scripts/cover.sh: 659506b43007a82de30c4b4deb878516cb3acd14a21eec633d2b960fbb478093
       .just/scripts/crap-baseline.sh: ad27da186ba3d05eedf00f608fb5576627cb30ad63440f0d5723b02bd967fa2a
@@ -84,7 +84,7 @@ groups:
       Justfile: 0609046c010cbe4905675869508622b046a270ef9f33f41bce967627e8402ddc
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
-      docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
+      docs/src/agents.typ: bd6d06065b7bbf238f73910ef035a76e071cd67d764f45f7243a63f1487716db
       docs/src/contributing.typ: 849d4e8a031bbd07a244edd8b5f469392af3c225f09c11127c2c376d48706112
       docs/src/contributing/coverage-crap.typ: 3b69fa26579a7e5f825e4601ba113ca5ddcec44a5d44c8253563c7c4df9bd168
       docs/src/contributing/gates.typ: dad6e75b108c6de5f4085524775f6750e2023f5f516ae42b2ddae9c3fca7160a

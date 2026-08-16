@@ -24,9 +24,17 @@ crate map, the DSL field list, the gate table, the linecop caps
 Markdown file cannot read JSON at build time. A Typst source can:
 `json("/www/generated/crate-map.json")` is a value like any other, so a fact
 gets stated once and every doc that needs it reads the same place.
-`docs/generate-md.sh` runs `www/generate-facts.sh` itself before rendering
-each source with typlite (nixpkgs' `tinymist` package, `$out/bin/typlite`), so
-a source never depends on some other recipe having run first.
+`docs/generate-md.sh` runs `www/generate.sh` itself before rendering each
+source with typlite (nixpkgs' `tinymist` package, `$out/bin/typlite`), so a
+source never depends on some other recipe having run first. That means a
+standalone #just.docs-md() now also pays `www/generate.sh`'s own
+`cargo build --release -p mindtape-cli` — it used to call
+`www/generate-facts.sh` alone and stay build-free, until the page manifest
+`www/generated/site-pages.json` moved out of that script into
+`www/generate-site-pages.sh`, whose derivation is a full compile of every
+docs page and so needs `www/generate.sh`'s own captures, not just
+`generate-facts.sh`'s. Inside #just.check() this costs nothing: #just.docs-check()
+already runs `www/generate.sh` first, sharing the same generated-docs lock.
 
 This is a separate render path from the docs site pages, `www/content/*.typ`:
 those open with `#show: page.with(...)` plus `@tola` imports and target HTML.

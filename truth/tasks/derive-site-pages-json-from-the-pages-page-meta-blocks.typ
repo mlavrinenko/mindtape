@@ -9,7 +9,7 @@
   ),
   difficulty: 6,
   tags: ("docs", "www", "tooling", "gating"),
-  estimate: (files: 8),
+  estimate: (files: 12),
   links: (
     parent("put-page-metadata-in-the-pages-and-derive-the-manifest.typ")
       + depends-on("add-a-queryable-page-meta-block-to-every-docs-page.typ")

@@ -5,37 +5,51 @@
 # invokes it runs at the repo root.
 #
 # Doc-facts gate: the same set-difference idiom as check-doc-coverage.sh, over
-# the facts www/generate-facts.sh derives instead of a hand-maintained list
-# (see truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ).
-# Five arms: every crate in crate-map.json needs a www/utils/crate-notes.typ
-# entry, every DSL field in dsl-fields.json needs a
-# www/utils/dsl-field-notes.typ entry, every gate in gates.json needs a
-# www/utils/gate-notes.typ entry (truth/tasks/derive-the-gate-table-command-
-# column-from-the-justfile.typ), every sweep flag in sweep-flags.json needs
-# a www/utils/sweep-flag-notes.typ entry (truth/tasks/derive-the-ask-
-# refactoring-flag-table-from-arg-attributes.typ), and every www/content/*.typ
-# page needs a route in site-pages.json (truth/tasks/derive-the-docs-page-
-# manifest-from-one-source.typ). The first four arms read their Typst dict's
+# the facts www/generate-facts.sh and www/generate-site-pages.sh derive
+# instead of a hand-maintained list (see truth/tasks/derive-the-drift-prone-
+# doc-facts-from-their-sources.typ and truth/tasks/derive-site-pages-json-
+# from-the-pages-page-meta-blocks.typ). Five arms: every crate in
+# crate-map.json needs a www/utils/crate-notes.typ entry, every DSL field in
+# dsl-fields.json needs a www/utils/dsl-field-notes.typ entry, every gate in
+# gates.json needs a www/utils/gate-notes.typ entry (truth/tasks/derive-the-
+# gate-table-command-column-from-the-justfile.typ), every sweep flag in
+# sweep-flags.json needs a www/utils/sweep-flag-notes.typ entry
+# (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
+# and every www/content/*.typ page needs a route in site-pages.json AND a NAV
+# entry in www/utils/site.typ. The first four arms read their Typst dict's
 # keys through the same target/-rooted driver trick as check-doc-coverage.sh,
-# never by grepping quoted strings; the fifth compares against the filesystem
-# and so runs in BOTH directions — a page with no nav entry is invisible in
-# the sidebar, and a nav entry with no page is a 404 in it.
+# never by grepping quoted strings; the fifth reads a driver too now (for
+# NAV) and ALSO compares against the filesystem, so it runs in three
+# directions — a page whose own declared route disagrees with its filename, a
+# page with no NAV entry (invisible in the sidebar), and a NAV entry with no
+# page (a 404 in it) — each failing by name.
 #
-# It regenerates its own inputs (bash www/generate-facts.sh below) rather than
-# trusting whatever www/generated/ already holds, so this gate never depends
-# on `just docs::gen` — or a release build — having run first.
+# It regenerates its own inputs (bash www/generate.sh below, which ends by
+# calling generate-facts.sh and then generate-site-pages.sh itself) rather
+# than trusting whatever www/generated/ already holds, so this gate never
+# depends on `just docs::gen` having run first. It USED to call
+# generate-facts.sh directly and never pay for a release build either; that
+# stopped being possible when site-pages.json moved to generate-site-pages.sh
+# (truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ),
+# because deriving it is a full page compile that needs generate.sh's own
+# captures (hero-source.typ, cli.json, …) — see that script's header. Inside
+# `just check` this is free: docs::check already ran generate.sh and both
+# share target/www-generated.lock, so the captures are already there.
 set -eo pipefail
 # Hold the www/generated/ lock across the regenerate AND the typst queries
 # below, not just the regenerate: www/utils/gate-notes.typ reads the
 # generated `just` module, so a driver querying it is a reader of that
 # directory, and the concurrent docs::check arm `rm -rf`s it. Same fd-held
 # lock and same MINDTAPE_GENERATED_LOCK handshake as www/generate.sh and
-# docs/generate-md.sh.
+# docs/generate-md.sh — and the reason www/generate.sh's OWN lock acquisition
+# below is conditional on that handshake rather than unconditional: without
+# it, generate.sh trying to take a second lock on the file this fd already
+# holds would deadlock against this process.
 mkdir -p target
 exec 9>target/www-generated.lock
 flock 9
 export MINDTAPE_GENERATED_LOCK=1
-bash www/generate-facts.sh
+bash www/generate.sh
 tmp=$(mktemp -d -p target)
 trap 'rm -rf "$tmp"' EXIT
 
@@ -86,12 +100,19 @@ if [ -n "$missing_flags" ]; then
     exit 1
 fi
 
-# The pages arm needs no Typst driver: site-pages.json already IS the read-back
-# of www/utils/site.typ's manifest (www/generate-facts.sh does that query), so
-# the other side of the difference is the filesystem. The route a file maps to
-# is tola's own layout rule — index.typ serves "/" and every other <stem>.typ
-# serves "/<stem>/" — applied here rather than read from anywhere, because the
-# whole point is to catch the file and the manifest disagreeing.
+# The pages arm, part one: filename vs. the route each PAGE ITSELF declares.
+# site-pages.json is no longer a read-back of www/utils/site.typ's manifest —
+# www/generate-site-pages.sh builds it from every page's own `<page-meta>`
+# block, keyed by the ROUTE THAT BLOCK DECLARES, not by the page's filename.
+# So this diff is not "file vs. manifest" in the abstract, it is "file vs. the
+# page's own claim about its route" — comparing THAT against the filename is
+# exactly what catches a `<page-meta>` route pointed at another page's route
+# (www/generate-site-pages.sh already refuses two pages declaring the SAME
+# route; this catches one declaring the WRONG one, which is a valid route
+# that simply is not this file's). The route a file maps to is tola's own
+# layout rule — index.typ serves "/" and every other <stem>.typ serves
+# "/<stem>/" — applied here rather than read from anywhere, because the whole
+# point is to catch the file and its own declared route disagreeing.
 routes=$(jq -r '.pages | keys_unsorted[]' www/generated/site-pages.json)
 page_routes=$(for f in www/content/*.typ; do
     stem=$(basename "$f" .typ)
@@ -99,14 +120,38 @@ page_routes=$(for f in www/content/*.typ; do
 done)
 unlisted=$(comm -23 <(sort <<<"$page_routes") <(sort <<<"$routes"))
 if [ -n "$unlisted" ]; then
-    echo "check-doc-facts: content pages missing from www/utils/site.typ's NAV:" >&2
+    echo "check-doc-facts: content pages whose declared route matches no filename-derived route:" >&2
     while IFS= read -r route; do echo "  - $route" >&2; done <<<"$unlisted"
     exit 1
 fi
 orphaned=$(comm -13 <(sort <<<"$page_routes") <(sort <<<"$routes"))
 if [ -n "$orphaned" ]; then
-    echo "check-doc-facts: NAV routes with no www/content/*.typ page:" >&2
+    echo "check-doc-facts: filename-derived routes with no page declaring them:" >&2
     while IFS= read -r route; do echo "  - $route" >&2; done <<<"$orphaned"
+    exit 1
+fi
+
+# The pages arm, part two: the manifest vs. www/utils/site.typ's NAV, the
+# other place a route is written by hand. Nothing derives NAV from the
+# manifest any more (NAV only carries group titles and reading order), so the
+# two CAN disagree — a page missing from NAV is invisible in the sidebar, and
+# a NAV entry naming no real page's route 404s the moment it's clicked. Read
+# through the same target/-rooted driver trick as the four arms above, not by
+# grepping quoted strings out of site.typ.
+printf '#import "/www/utils/site.typ": NAV\n#metadata(NAV.map(g => g.items).flatten()) <nav-routes>\n' \
+    > "$tmp/nav-routes.typ"
+nav_routes=$(typst query --root . "$tmp/nav-routes.typ" '<nav-routes>' \
+    --field value --one | jq -r '.[]')
+nav_unlisted=$(comm -23 <(sort <<<"$routes") <(sort <<<"$nav_routes"))
+if [ -n "$nav_unlisted" ]; then
+    echo "check-doc-facts: pages missing from www/utils/site.typ's NAV (invisible in the sidebar):" >&2
+    while IFS= read -r route; do echo "  - $route" >&2; done <<<"$nav_unlisted"
+    exit 1
+fi
+nav_orphaned=$(comm -13 <(sort <<<"$routes") <(sort <<<"$nav_routes"))
+if [ -n "$nav_orphaned" ]; then
+    echo "check-doc-facts: www/utils/site.typ's NAV routes with no page declaring them (404 in the sidebar):" >&2
+    while IFS= read -r route; do echo "  - $route" >&2; done <<<"$nav_orphaned"
     exit 1
 fi
 echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, $(wc -l <<<"$gates") gates, $(wc -l <<<"$flags") sweep flags, $(wc -l <<<"$routes") pages, all documented"

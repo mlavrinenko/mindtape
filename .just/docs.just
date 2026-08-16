@@ -59,10 +59,19 @@ set script-interpreter := ["bash", "-eo", "pipefail"]
 
 # Capture live `mt` output for the docs (www/generated/*.txt), so the site's
 # CLI reference, help, version, and transcripts cannot drift from the binary.
-# Then derive the crate/DSL/gate/linecop facts (www/generate-facts.sh) — after
-# generate.sh, never before: generate.sh `rm -rf`s the whole generated/ dir on
-# entry, which would erase anything written here first.
 # Builds `mt` release, runs it against examples/learn-piano at a pinned clock.
+#
+# generate.sh itself derives the crate/DSL/gate/linecop facts
+# (www/generate-facts.sh) and then the page manifest (www/generate-site-pages.sh)
+# at its own end, in that order and never before: generate.sh `rm -rf`s the
+# whole generated/ dir on entry, which would erase anything written here
+# first, and the page manifest is a full compile of every www/content/*.typ
+# page, which needs BOTH generate-facts.sh's crate-map.json (site.typ's
+# PKG_VERSION) and generate.sh's own captures (hero-source.typ, cli.json, …) —
+# see www/generate-site-pages.sh's header. The explicit second call below is
+# the same redundant, idempotent, lock-protected re-run this recipe has
+# always made — it keeps `gen` honest about what it produces without
+# depending on generate.sh's own trailing call to have been the last word.
 
 [doc("Capture live mt output and derive doc facts")]
 [group("docs")]

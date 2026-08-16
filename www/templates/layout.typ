@@ -1,6 +1,6 @@
 // Page chrome: <head>, header, docs sidebar, main, footer.
 
-#import "../utils/site.typ": NAV, REPO, SITE, u
+#import "../utils/site.typ": NAV, REPO, SITE, page-meta, u
 
 // Set data-theme before first paint (no flash), then a global toggle.
 #let _theme-script = "(function(){var d=document.documentElement;var t=localStorage.getItem('theme');if(t){d.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){d.setAttribute('data-theme','dark')}}());function toggleTheme(){var d=document.documentElement;var n=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',n);localStorage.setItem('theme',n)}"
@@ -214,10 +214,19 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
       html.elem("div", attrs: (class: "nav-group"), {
         html.elem("p", attrs: (class: "nav-title"), [#group.title])
         html.elem("ul", {
-          for item in group.items {
-            let attrs = (href: u(item.href))
-            if active == item.href { attrs.insert("aria-current", "page") }
-            html.elem("li", html.elem("a", attrs: attrs, [#item.label]))
+          for route in group.items {
+            // `page-meta` returns `none` only during
+            // www/generate-site-pages.sh's bootstrap pass, before the
+            // manifest it queries every page to build exists yet — skip that
+            // entry rather than render a labelless link. Once the manifest is
+            // real, a route in NAV with none in it is a bug, not a skip (see
+            // page-meta's own comment), so nothing here swallows that case.
+            let meta = page-meta(route)
+            if meta != none {
+              let attrs = (href: u(route))
+              if active == route { attrs.insert("aria-current", "page") }
+              html.elem("li", html.elem("a", attrs: attrs, [#meta.label]))
+            }
           }
         })
       })

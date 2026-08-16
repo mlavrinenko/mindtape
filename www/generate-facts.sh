@@ -15,11 +15,15 @@
 # that script `rm -rf`s the whole generated/ dir on entry, and the wipe and
 # the restore have to be ONE critical section or a concurrent reader sees the
 # gap between them. `just docs::gen` then calls this again — idempotent, and it
-# keeps the recipe honest about what it produces — and `just check-doc-facts`
-# and `docs/generate-md.sh` call it directly, so each is self-contained and
-# never depends on a prior docs::gen run.
+# keeps the recipe honest about what it produces. `just check-doc-facts` and
+# `docs/generate-md.sh` used to call this script directly; both now call
+# `www/generate.sh` instead (which ends by calling this script itself), because
+# the page manifest this script used to derive moved to
+# www/generate-site-pages.sh — see its header, and generate.sh's own header,
+# for why that artifact needs generate.sh's captures and can no longer be
+# produced standalone the way the six left here still are.
 #
-# Seven artifacts, seven sources:
+# Six artifacts, six sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
@@ -31,8 +35,6 @@
 #                          shell-out, two artifacts): a Typst module, one
 #                          function per public recipe
 #   - linecop-caps.json <- .linecop.yaml, via yq
-#   - site-pages.json   <- www/utils/site.typ's page manifest, and the site
-#                          URL it reads out of www/tola.toml
 #   - sweep-flags.json  <- the same `just --dump` (see www/sweep-flags.jq)
 #
 # linecop-caps.json is the one artifact still without a consumer: it was
@@ -167,27 +169,17 @@ jq -n --argjson fields "$fields_dict" \
   | emit dsl-fields.json
 rm -rf "$tmp"
 
-# --- site-pages.json ----------------------------------------------------------
-# The docs site's page manifest — the site URL, the path prefix derived from
-# it, and every page's route, sidebar label, title and summary — read back off
-# www/utils/site.typ through the same target/-rooted driver as dsl-fields.json
-# above.
-#
-# site.typ is the source because it is the one file that already had to know
-# every page exists: it renders the sidebar from that list. The PAGES it
-# exports cannot be read off the pages themselves, and not for want of trying
-# — evaluating a www/content/*.typ page imports www/utils/ui.typ, which reads
-# www/generated/hero-source.typ, a capture only www/generate.sh produces. This
-# script is called ALONE by docs/generate-md.sh (see its header), so an
-# artifact that needed those captures would be underivable in exactly the
-# place docs/src/lib.typ's www-link needs it, and the dead-link check that
-# helper exists to perform would silently have no manifest to check against.
-tmp="$(mktemp -d -p target)"
-printf '#import "/www/utils/site.typ": PAGES, PREFIX, REPO, SITE_URL\n#metadata((url: SITE_URL, prefix: PREFIX, repo: REPO, pages: PAGES)) <site-pages>\n' \
-  >"$tmp/site-pages-driver.typ"
-typst query --root . "$tmp/site-pages-driver.typ" '<site-pages>' \
-  --field value --one | emit site-pages.json
-rm -rf "$tmp"
+# site-pages.json — the docs site's page manifest — used to be derived here,
+# read back off www/utils/site.typ's PAGES dict. It moved to its own script,
+# www/generate-site-pages.sh, under
+# truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ:
+# each page now carries its OWN `<page-meta>` block, so the manifest is
+# derived from the fifteen pages instead of from site.typ, and deriving it
+# needs a full page compile — which needs www/generate.sh's own captures
+# (hero-source.typ, cli.json, …), not just this script's. That is also why
+# this script alone no longer suffices for docs/generate-md.sh or
+# check-doc-facts.sh: both now call www/generate.sh, which calls this script
+# and then www/generate-site-pages.sh in that order.
 
 # --- gates.json --------------------------------------------------------------
 # Gate list + row order from the Justfile's `[group("gate")]` tags and

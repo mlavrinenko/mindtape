@@ -11,9 +11,22 @@
 # skills/mindtape/SKILL.md, a docs/contributing/*.md deep dive) touches this
 # file not at all.
 #
-# `www/generate-facts.sh` runs FIRST, unconditionally — a source that reads
+# `www/generate.sh` runs FIRST, unconditionally — a source that reads
 # `www/generated/*.json` must never depend on some other recipe (`docs::gen`,
-# `check-doc-facts`) having run first in this process.
+# `check-doc-facts`) having run first in this process. That used to be a
+# direct call to `www/generate-facts.sh` alone, and this script's whole point
+# was staying cheap: no built binary, no release compile. That stopped being
+# possible when www/generated/site-pages.json — which docs/src/lib.typ's
+# `fact("site-pages")` reads for `www-link`/`www-title`/`www-summary` — moved
+# to www/generate-site-pages.sh (truth/tasks/derive-site-pages-json-from-the-
+# pages-page-meta-blocks.typ): deriving it now means compiling every
+# www/content/*.typ page, which needs www/generate.sh's OWN captures
+# (hero-source.typ, cli.json, …), not just generate-facts.sh's. `generate.sh`
+# ends by calling `generate-facts.sh` and then `generate-site-pages.sh`
+# itself, so calling it here is still the one call this script needs — it
+# now just also pays a `cargo build --release -p mindtape-cli` standalone.
+# Inside `just check` that cost is free: `docs::check` already ran
+# `generate.sh` first, sharing this same `target/www-generated.lock`.
 #
 # typlite (nixpkgs' tinymist, `$out/bin/typlite`; see flake.nix for the pin)
 # is a render path SEPARATE from the www/content/*.typ docs site — those pages
@@ -62,14 +75,16 @@ cd "$REPO"
 # under the lock and then releasing it before the render leaves exactly the
 # window that produces "file not found (searched at www/generated/just.typ)"
 # on a tree that is perfectly correct. The lock is held until fd 9 closes at
-# exit; MINDTAPE_GENERATED_LOCK tells the nested generate-facts.sh call that
-# this process already owns it.
+# exit; MINDTAPE_GENERATED_LOCK tells the nested www/generate.sh call (and,
+# through it, generate-facts.sh and generate-site-pages.sh) that this process
+# already owns the lock, so none of them tries to acquire it again — which
+# would deadlock, since this process is waiting on that call to return.
 mkdir -p target
 exec 9>"target/www-generated.lock"
 flock 9
 export MINDTAPE_GENERATED_LOCK=1
 
-bash www/generate-facts.sh
+bash www/generate.sh
 
 BANNER_TMPL='<!-- Generated from %s by `just docs-md`. Do not edit; edit the source. -->'
 

@@ -66,12 +66,31 @@ MT="$REPO/target/release/mt"
 # Taken on a file descriptor rather than by re-exec'ing under `flock`, because
 # a re-exec would rerun the build above. The lock is held until this script
 # exits and fd 9 closes. MINDTAPE_GENERATED_LOCK tells the nested
-# generate-facts.sh call at the end of this file that the lock is already
-# held, so it does not deadlock waiting for a lock this process owns.
+# generate-facts.sh and generate-site-pages.sh calls at the end of this file
+# that the lock is already held, so neither deadlocks waiting for a lock this
+# process owns.
+#
+# Acquisition itself is conditional on that same variable, for a second
+# reason beyond the nested calls: check-doc-facts.sh and docs/generate-md.sh
+# both call THIS script now (truth/tasks/derive-site-pages-json-from-the-
+# pages-page-meta-blocks.typ swapped their `bash www/generate-facts.sh` for
+# `bash www/generate.sh`, since the site-pages manifest now needs this
+# script's captures too), and both already hold the lock — via their own
+# `exec 9>...; flock 9` — across the regenerate AND their own subsequent
+# reads, for the same race this comment block opens with. Without this
+# check, this script's unconditional `exec 9>...; flock 9` would open a
+# SECOND file descriptor on the same lock file and block forever on the
+# first one, held by a parent that is itself blocked waiting for this
+# script to exit — a guaranteed deadlock. Skipping the acquisition when a
+# caller already holds it is the same reentrant handshake generate-facts.sh
+# has always used for the nested call below; this is that handshake applied
+# one level up, now that generate.sh itself can be the nested call.
 mkdir -p "$REPO/target"
-exec 9>"$REPO/target/www-generated.lock"
-flock 9
-export MINDTAPE_GENERATED_LOCK=1
+if [ -z "$MINDTAPE_GENERATED_LOCK" ]; then
+  exec 9>"$REPO/target/www-generated.lock"
+  flock 9
+  export MINDTAPE_GENERATED_LOCK=1
+fi
 
 rm -rf "$OUT"
 mkdir -p "$OUT"
@@ -254,5 +273,14 @@ rsvg-convert -w 180 -h 180 "$LOGO" -o "$SCRIPT_DIR/assets/images/apple-touch-ico
 # generate-facts.sh after this script — that run is idempotent and locked, and
 # it keeps the recipe honest about what it produces.
 bash "$SCRIPT_DIR/generate-facts.sh"
+
+# Then the page manifest — after generate-facts.sh, never before, and inside
+# the SAME lock: compiling a page (www/generate-site-pages.sh's query is a
+# full compile) imports layout.typ -> site.typ, which needs crate-map.json
+# (PKG_VERSION) just written above, plus every capture this script itself
+# wrote (hero-source.typ, cli.json, …) — a page importing utils/ui.typ dies on
+# a top-level read() otherwise (measured in the umbrella task). Its own file
+# because this one is already at .linecop.yaml's 300-line Shell cap.
+bash "$SCRIPT_DIR/generate-site-pages.sh"
 
 echo "generated $(find "$OUT" -type f | wc -l) files under $OUT"
