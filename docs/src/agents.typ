@@ -2,14 +2,23 @@
 // symlink to it). Rendered to Markdown by `docs/generate-md.sh` via typlite;
 // see docs/src/lib.typ for what that render path can and cannot do.
 //
-// Content-preserving port of the hand-written AGENTS.md, except where a fact
-// this file used to hand-list now reads from `www/generated/crate-map.json`
-// (`www/generate-facts.sh`): the workspace/substrate crate lists, their
-// versions and direct-vs-transitive status, the `evalexpr`/`clap`/Typst major
-// versions in Architecture, and the `@local/mindtape` version in the Task DSL
-// snippet. See docs/contributing/generated-docs.md for the pipeline this
-// feeds and why each derived fact moved here.
-#import "lib.typ": doc-title, fact, num-word
+// Facts this file used to hand-list read from `www/generated/crate-map.json`
+// (`www/generate-facts.sh`) instead: the workspace/substrate crate lists,
+// their versions and direct-vs-transitive status, the `evalexpr`/`clap`/Typst
+// major versions in Architecture, and the `@local/mindtape` version in the
+// Task DSL snippet. See docs/contributing/generated-docs.md for the pipeline
+// this feeds and why each derived fact moved here.
+//
+// Every docs-site pointer goes through `www-link` (docs/src/lib.typ), which
+// resolves the route against the generated page manifest and panics on an
+// unknown one. A hand-typed site URL here would rot unnoticed — nothing in
+// this repo resolves a URL sitting in generated Markdown.
+//
+// This file is on the always-loaded path, so its budget is a real cost, not
+// an aesthetic one: prose that motivates a rule an agent follows anyway, a
+// rule stated twice, and a pointer that restates the page it points at are
+// all deleted on sight. Every rule, command shape and field name stays.
+#import "lib.typ": doc-title, fact, just, num-word, www-link
 
 #metadata((
   output: "AGENTS.md",
@@ -17,20 +26,16 @@
 
 #doc-title[MindTape — AI Agent Context]
 
-How to contribute — quality gates, testing, file-size caps, commit rules, the
-signal sweep, dependency drift, version bumps — lives in \@CONTRIBUTING.md. That
-reference pulls the whole file into your context automatically, so nothing here
-restates any of it. If you are about to write a rule about _how work is done_,
-it belongs there, not here.
-
-This file carries the other half: what MindTape _is_.
+How work is done lives in \@CONTRIBUTING.md, pulled into your context whole by
+that reference; a process rule belongs there and is never restated here. This
+file carries the other half: what MindTape _is_.
 
 = What is this?
 
 A daemon-free, file-based task tracker. Tasks are one-per-file Typst artifacts
 (`#show: task.with(...)`). MindTape live-evaluates the configured roots on every
-command via the Typst compiler crates — no watch daemon, no SQLite, no global
-index. Identity is the filename stem.
+command via the Typst compiler crates — no SQLite, no global index. Identity is
+the filename stem.
 
 Repository: https://github.com/mlavrinenko/mindtape
 
@@ -38,27 +43,26 @@ Repository: https://github.com/mlavrinenko/mindtape
 
 - `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
 - `truth/tasks/` — MindTape's own backlog as per-file task artifacts (dogfood);
-  `mt ls` / `mt check` run against it via the in-tree `lib/`. Decisions live here
-  too — the ADR process is retired
-- `www/content/*.typ` — the docs site (tola). Reference material lives here, not
-  in this file; read the page rather than restating it
+  `mt ls` / `mt check` run against it via the in-tree `lib/`
+- `www/content/*.typ` — the docs site (tola)
 - `docs/contributing/*.md` — contributor deep dives behind CONTRIBUTING.md
-- `examples/` — `learn-piano` (full config surface, feeds the docs generator and
-  the skill's evals) and `minimal` (the floor config)
+- `examples/` — `learn-piano` (full config surface; feeds the docs generator and
+  the skill's evals), `minimal` (the floor config), and `large` (a 2000-task
+  benchmark fixture; its tasks are gitignored, #just.gen-bench() rebuilds them)
 
-Before writing about a feature, check whether the answer is already one of:
+Reference material lives on the docs site, not here. Before writing about a
+feature, read whichever page below already answers it rather than restating it —
+the page at `/<stem>/` is `www/content/<stem>.typ`.
 
 #table(
   columns: 2,
   table.header([Topic], [Read]),
-  [Every task field, `links:` edge kinds, `recur`], [`www/content/dsl.typ`],
-  [`mt add`, slots, `--set`, `--describe`, `--edit`],
-  [`www/content/templates.typ`],
-
-  [Derived tags from folder layout], [`www/content/derived-tags.typ`],
-  [Priority frameworks, scoring, bands], [`www/content/priority.typ`],
-  [Filter language], [`www/content/filters.typ`],
-  [Every config key], [`www/content/config.typ`],
+  [Every task field, `links:` edge kinds, `recur`], www-link("/dsl/"),
+  [`mt add`, slots, `--set`, `--describe`, `--edit`], www-link("/templates/"),
+  [Derived tags from folder layout], www-link("/derived-tags/"),
+  [Priority frameworks, scoring, bands], www-link("/priority/"),
+  [Filter language], www-link("/filters/"),
+  [Every config key], www-link("/config/"),
   [Driving `mt` as an agent], [`skills/mindtape/SKILL.md`],
 )
 
@@ -111,14 +115,11 @@ crates.io and consumed back as regular registry dependencies:
     ) — #substrate-roles.at(c.name)
 ]
 
+Both lists — name, version, direct-vs-transitive — are derived from
+`www/generated/crate-map.json`, never hand-written.
 #if transitive.len() > 0 [
-  A crate marked transitive is never named in a workspace manifest —
-  `mindtape` does not depend on it directly.
+  A crate marked transitive is named in no workspace manifest.
 ]
-
-Name, version, and direct-vs-transitive are derived, never hand-listed — see
-`www/generated/crate-map.json` (`www/generate-facts.sh`, consumed by
-`www/content/internals.typ`).
 
 = Architecture
 
@@ -135,9 +136,6 @@ Name, version, and direct-vs-transitive are derived, never hand-listed — see
 - `evalexpr` #major(dep-version("evalexpr")) as a parser for the filter language (walked, not evaluated by it)
 - `clap` #major(dep-version("clap")) CLI; `serde`/`toml` config; a hand-rolled table renderer
   (`crates/mindtape-cli/src/render/`), `serde_json`/`csv` output
-
-The dev shell and its tooling are `flake.nix`'s subject, and the workflow around
-each tool is CONTRIBUTING.md's — neither is restated here.
 
 = Task DSL (lib/prelude.typ)
 
