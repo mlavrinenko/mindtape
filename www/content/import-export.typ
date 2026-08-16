@@ -2,11 +2,7 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
-#show: page.with(
-  title: "Import & export",
-  active: "/import-export/",
-  summary: "Bring tasks in from another tracker with mt import + jq. There is no mt export — here is why that's a feature, and how to reshape your data anyway.",
-)
+#show: page.with(active: "/import-export/")
 
 MindTape ships one import command and zero export commands, on purpose. Both
 sides of that decision are `jq` recipes against the
@@ -60,8 +56,7 @@ mt import --drop-unmapped       # drop a tag outside [tasks.tags] allowed instea
 
 Every record is reported to stderr: filed or skipped, plus each mapping
 decision (`mapped` / `defaulted` / `dropped` / `violated`) and any carried
-`x-<ns>` extras — so a batch import tells you exactly what it did to your data,
-not just that it succeeded.
+`x-<ns>` extras.
 
 == Taskwarrior
 
@@ -82,15 +77,12 @@ gh issue list --json number,title,body,state,labels,assignees,createdAt,url \
   | mt import --to github
 ```
 
-Same shape: `gh issue list --json ...` is the foreign export, `github.jq`
-reshapes it, `mt import` policy-maps and files it. `--to github` nests the
-batch under a subfolder so it derives a `github` tag.
+`--to github` nests the batch under a subfolder so it derives a `github` tag.
 
 == todo.txt
 
 todo.txt is a line format, not JSON, so it is not a first-class source — no
-parser ships for it. A short `jq -R` (raw-input) recipe covers the common
-case: slurp the lines, strip todo.txt syntax, emit canonical records.
+parser ships for it. A short `jq -R` (raw-input) recipe covers the common case.
 
 ```sh
 jq -R -s '
@@ -112,9 +104,9 @@ jq -R -s '
 This strips a `(A)` priority marker and a leading creation date out of the
 title and lifts `+project` words into `tags`; `@context` markers are left
 verbatim in the title (`--status proposed` assumes the shipped default legend
-— point it at whatever your project's legend actually calls its intake state).
-Adapt the regexes to whatever subset of the format your file actually uses —
-it is a starting recipe, not a spec.
+— point it at whatever your project's legend calls its intake state). Adapt
+the regexes to the subset of the format your file uses: a starting recipe, not
+a spec.
 
 #callout("note")[
   Computed and empty fields (`id`, `file`, `estimate`, `links`,
@@ -176,10 +168,3 @@ mt ls --json | jq '[.tasks[] | {
 Taskwarrior itself has no bulk-JSON importer built in, but this shape is the
 starting point for a project-specific `task import` script or a one-off `jq`
 massage into individual `task add` calls.
-
-#callout("tip")[
-  Your export is already portable: files in git, plus
-  `mt ls --json`. Writing a reverse `jq` program against a known, versioned
-  schema is a smaller, more auditable surface than a bespoke export command per
-  foreign tool — and it costs this project nothing to maintain.
-]

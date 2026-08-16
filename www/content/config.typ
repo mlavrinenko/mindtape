@@ -3,14 +3,10 @@
 #import "../utils/site.typ": u
 #import "../utils/config-ref.typ": config-gate, config-sections-table
 
-#show: page.with(
-  title: "Configuration",
-  active: "/config/",
-  summary: "How .mindtape/config.toml overlays a defaults floor, the four-layer merge, and the sections you can set.",
-)
+#show: page.with(active: "/config/")
 
 `.mindtape/config.toml` overlays a shipped defaults floor. Omit a section to
-inherit the floor's sane defaults, declare it to override, or set it empty (e.g.
+inherit the floor's defaults, declare it to override, or set it empty (e.g.
 `status = []`) to leave that aspect unconstrained.
 
 = The four layers
@@ -38,8 +34,7 @@ Every section below is reflected straight from `mt config schema` — the same
 JSON Schema `mt install` writes to disk, generated from the config structs
 themselves. A row's purpose column is that property's own doc comment, so a
 newly added config key cannot silently go undocumented: the build fails first.
-Deep-dive sections further down this page (linked from the prose above and
-below) cover the sections whose shape needs more than one line.
+Sections whose shape needs more than one line get a deep dive further down.
 
 // The command tree pattern (cli.typ / cli-ref.typ) reflects clap's own
 // definition; this mirrors it for config: `config-sections` is presentation
@@ -91,8 +86,7 @@ below) cover the sections whose shape needs more than one line.
 
 = Example
 
-A compact project config — a status legend, a bounded priority scale, and allowed
-estimate units:
+A compact project config:
 
 ```toml
 [tasks]
@@ -159,9 +153,9 @@ required = "@active"          # only inside the `active` view
 = Assignees
 
 `assignee:` names the actor currently working a task — a plain string,
-orthogonal to status: a blocked task keeps its assignee, and reassigning is just
-editing the field. It is not ownership: the worker is whoever it is now.
-`[tasks.assignee]` bounds the vocabulary:
+orthogonal to status: a blocked task keeps its assignee, and reassigning is
+editing the field. It is not ownership. `[tasks.assignee]` bounds the
+vocabulary:
 
 ```toml
 [tasks.assignee]
@@ -173,8 +167,7 @@ required = "!terminal"
 like every other core field: `true`, `false`, or a filter expression, as above.
 A required assignee is spliced into the add template as a slot backed by
 `$MINDTAPE_PRINCIPAL`: under a harness that sets the variable, `mt add` files
-silently; unset, the slot prompts interactively — an unknown actor is never
-silently written as an empty worker.
+silently; unset, the slot prompts interactively.
 
 = Actors and roles
 
@@ -216,7 +209,7 @@ mt ls 'assignee == "gpt"'         # tasks assigned to the model
 
 Add a `to` list to a status entry to declare which statuses may follow it — the
 legend becomes a state machine instead of a flat enum. It is opt-in: with no `to`
-on any entry the legend stays any-to-any, exactly as before.
+on any entry the legend stays any-to-any.
 
 ```toml
 [[tasks.status]]
@@ -243,8 +236,7 @@ history).
 Add `note = "required"` to a status entry to demand a written note on every
 transition into it — the same `required` / `optional` / `forbidden` rule typed
 `links:` edges already use for a kind's note (the built-in `related` kind
-defaults to `required`). Unset, an entry stays `optional`, exactly as before
-the field existed:
+defaults to `required`). Unset, an entry stays `optional`:
 
 ```toml
 [[tasks.status]]
@@ -254,11 +246,9 @@ note = "required"   # `mt flip blocked task -m "why"` — omit -m and it is refu
 
 `mt flip` refuses a move into a `required` entry without `-m/--note`, naming the
 status and the flag; `mt check` flags a task already sitting there with a
-blank or absent note. The rule is per entry, not legend-wide, on purpose: a
-blanket requirement on every transition — including `done` — buys a note an
-agent will always fill plausibly, not a justification. Reserve it for the
-statuses no other check covers (`blocked`, `failed`, a reopen); leave `done`
-to a review gate instead. `forbidden` is enforced for a link kind's note but
+blank or absent note. The rule is per entry, not legend-wide: reserve it for
+the statuses no other check covers (`blocked`, `failed`, a reopen), and leave
+`done` to a review gate. `forbidden` is enforced for a link kind's note but
 not for a status entry's — `mt check` never rejects a status note for being
 present.
 
@@ -353,12 +343,9 @@ dedup = "skip"   # fail | skip | add-suffix
 )
 
 Left unset, `dedup`'s default follows `stem`: a bare stem (no `[tasks.naming]
-stem` configured) defaults to `fail`, today's hard error; a templated stem
-defaults to `add-suffix`, so a project that sets `stem` and never touches
-`dedup` sees no behaviour change. Set `dedup` explicitly — in config or via
-`--dedup` — and it applies the same regardless of how the stem was produced:
-`fail` and `skip` bail or skip on a templated-stem collision exactly as they
-do on a bare one.
+stem` configured) defaults to `fail`, a templated stem to `add-suffix`. Set
+`dedup` explicitly — in config or via `--dedup` — and it applies the same
+regardless of how the stem was produced.
 
 `mt add --dedup <mode>` overrides the default for one run; `mt add --format
 json` reports which outcome fired (`wrote`, `skipped`, `suffixed`) alongside
@@ -382,9 +369,8 @@ max-advance = 52                            # runaway cap for `mt recur --advanc
 ```
 
 Every field defaults to the value shown, so an unconfigured project already
-supports `recur:` out of the box; set `enabled = false` to turn the feature off
-project-wide, or narrow `units` / `anchors` to the cadences a project wants to
-support.
+supports `recur:`. Set `enabled = false` to turn the feature off project-wide,
+or narrow `units` / `anchors` to the cadences a project supports.
 
 `rrule = true` alone is not enough: the `rrule("FREQ=...")` escape hatch also
 needs `mindtape`/`mt` built with the `rrule` cargo feature (off by default —
@@ -396,8 +382,7 @@ at parse time. See #link(u("/dsl/"))[Task DSL]'s "Recurring tasks" section.
 = Work-in-progress limits
 
 `[[tasks.limits]]` caps how many tasks may sit in a matched set at once, and
-`mt check` reports a breach. Bounded work-in-progress is what stops a session
-ending on an open leaf task.
+`mt check` reports a breach.
 
 ```toml
 [[tasks.limits]]
@@ -413,10 +398,10 @@ severity = "error"
 ```
 
 `filter` and `max` are required; `message` replaces the default advice and
-`severity` is `"warn"` (the default) or `"error"`. Warning is the default
-because a breach is a state of the backlog rather than a malformed artifact —
-it clears by finishing work, not by editing a file. `"error"` fails `mt check`,
-which is what a project wanting a hard stop (a pre-commit hook, CI) uses.
+`severity` is `"warn"` (the default) or `"error"`. A breach is a state of the
+backlog rather than a malformed artifact — it clears by finishing work, not by
+editing a file — hence the warn default. `"error"` fails `mt check`, for a
+project wanting a hard stop (a pre-commit hook, CI).
 
 No status name is built in: the capped set is a
 #link(u("/filters/"))[filter expression], so the same primitive caps a status,
@@ -476,8 +461,7 @@ files = 1
 ```
 
 Outside the range is a *validation error*, not a warning: an oversized task must
-be split before the work starts, not after. Terminal tasks are exempt — a
-finished task cannot be split any more.
+be split before the work starts, not after. Terminal tasks are exempt.
 
 A file count is the estimate `mt check` can actually verify. `[tasks.estimate.drift]`
 compares the git working tree against the budget the in-flight tasks declare and
@@ -492,9 +476,8 @@ message       = "rescope before going further"   # replaces the default advice
 ```
 
 The working tree carries one diff and nothing in it says which file belongs to
-which task, so attribution is by count. One task in flight: compare against its
-budget and name it. Several: compare against the sum, and say the figure is a
-total.
+which task, so attribution is by count — against the one in-flight task's
+budget, or against the sum when several are open:
 
 ```
 warning: working tree touches 14 file(s), over the 2 declared by `alpha` — split the remaining work into a new task and finish the part in hand
@@ -502,10 +485,9 @@ warning: working tree touches 16 file(s), over the 6 declared in total by 3 in-f
   in flight: alpha, beta, gamma
 ```
 
-The message is the whole intervention, so the default names the action rather
-than restating the breach. The line total is a secondary soft signal at a
-generous multiple of the declared file count, never a budget of its own — line
-counts are distorted by generated files, lockfiles and formatting passes.
+The line total is a secondary soft signal at a generous multiple of the
+declared file count, never a budget of its own: line counts are distorted by
+generated files, lockfiles and formatting passes.
 
 #callout("note")[
   The check is inert until an in-flight task declares an estimate in `unit`, and
@@ -517,7 +499,7 @@ counts are distorted by generated files, lockfiles and formatting passes.
 = Flip hooks
 
 `[[on.flip]]` binds actions to a task changing status. One table, three action
-kinds, and the project decides what fires where:
+kinds:
 
 ```toml
 [[on.flip]]
@@ -551,9 +533,9 @@ Each action declares exactly one kind:
 )
 
 Actions run in declaration order. `--force` waives a failing gate and records
-the waiver in the status note (`forced past failing gate: "just check"`), so an
-override is still legible afterwards. A gate command runs from the project root
-with the transition in its environment:
+the waiver in the status note (`forced past failing gate: "just check"`). A
+gate command runs from the project root with the transition in its
+environment:
 
 #table(
   columns: 2,
@@ -567,7 +549,7 @@ with the transition in its environment:
 
 `show` and `list` output is suppressed under `--quiet` and whenever stdout is
 not a terminal, so a scripted flip stays clean. Gates still run, and a failing
-one still prints its output — that is the evidence the refusal rests on.
+one still prints its output.
 
 #callout("warn")[
   *Trust boundary.* An `[[on.flip]]` command is exactly as trusted as a
@@ -579,16 +561,14 @@ one still prints its output — that is the evidence the refusal rests on.
 ]
 
 A `run` command is shell text, not an argv, and the two shells share no syntax,
-so a command written for one platform is not portable to the other — the same
-constraint the `Justfile` recipes and git hooks it stands in for live with. A
-project targeting both writes a line both shells accept, or calls a script.
+so a command written for one platform is not portable to the other. A project
+targeting both writes a line both shells accept, or calls a script.
 
 Only `mt flip` runs actions. `mt check`, `mt ls` and every other read command
-execute nothing — a read that shells out is a surprise, and `mt check` is what
-runs inside editors and commit hooks. A malformed hook (an unparseable `when`,
-an `into(...)` naming no configured status, an action with no kind) is a config
-error at load, so it fails every command equally rather than surprising the
-first flip that reaches it.
+execute nothing. A malformed hook (an unparseable `when`, an `into(...)` naming
+no configured status, an action with no kind) is a config error at load, so it
+fails every command equally rather than surprising the first flip that reaches
+it.
 
 = Named views
 
@@ -608,7 +588,7 @@ description = "Summer push"
 
 `filter` is required; `sort` (a list of `--sort`-grammar specs) and `columns`
 (a subset of the `mt ls` column names — `#`, `status`, `ready`, `priority`,
-`due`, `title`) are optional, as is a free-text `description`. Reference a
+`due`, `title`, `file`) are optional, as is a free-text `description`. Reference a
 view with `@name`: bare `@name` applies filter, sort, and columns together;
 `@name` inside a larger expression is filter-only, equivalent to
 `in_view("name")` — see #link(u("/filters/"))[Filter language] for the
@@ -648,7 +628,7 @@ filter = '!terminal && due <= "2026-08-01"'   # optional manual override (highes
 Per facet, precedence is manual > the last `import-views` entry that provides
 it > the built-in default. A matched rule does not inherit `default-view` as a
 base layer — it composes everything it uses. No rule matching falls back to
-`default-view` exactly as before bare `mt ls` had rules at all.
+`default-view`.
 
 Rules are validated at config load, same checks as `[views]`:
 
@@ -675,8 +655,7 @@ A schema-aware TOML editor (tombi, Taplo) reads the directive to offer
 completion, hover docs, and validation while you edit.
 
 The default is the published URL because `.mindtape/config.toml` is a
-checked-in file: an editor fetches and caches the URL, so it needs no local
-install and means the same thing to everyone who clones the repo. `mt init
+checked-in file: a machine-local path would not survive a clone. `mt init
 --schema local` points at the installed copy instead (a `file://` URL under
 your XDG config dir) for offline use or a project you never share; `--schema
 URL|PATH` sets any other target, including a path relative to the config file;
@@ -705,7 +684,7 @@ kind = "spike"
 `[overlay]` is an init-time-only concept: `mt init` deep-merges it over the
 composed base *last*, so it beats every axis fragment, then flattens the
 result to one `.mindtape/config.toml`. The loader never sees a literal
-`[overlay]` — the written file is an ordinary config, yours to edit. In the
+`[overlay]` — the written file is an ordinary config. In the
 merge, tables merge key-by-key and a scalar or array replaces the base value
 wholesale, so the overlay always wins the key it names. A preset whose whole
 body is under `[overlay]` composes to exactly that overlay.
@@ -715,7 +694,7 @@ declare the same array-typed section — the status legend (`[[tasks.status]]`),
 priority `bands`, difficulty anchors, `[[tasks.roots]]`. Declaring it twice is
 a hard error naming both sources: a silent pick would be a status legend
 nobody chose. Fix it by picking one fragment, or by moving the difference into
-`[overlay]` — exempt from the rule precisely because it exists to override.
+`[overlay]` — exempt from the rule because it exists to override.
 
 = Environment variables
 

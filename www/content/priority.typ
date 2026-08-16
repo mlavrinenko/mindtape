@@ -2,15 +2,10 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
-#show: page.with(
-  title: "Priority",
-  active: "/priority/",
-  summary: "Priority is a number on a configured scale, set by hand or scored by a framework. Difficulty is its twin.",
-)
+#show: page.with(active: "/priority/")
 
-Priority is a number on a scale, classified into labelled bands. You can set it
-by hand, or let a #strong[framework] score typed inputs into that number.
-`difficulty` is the sibling field with the same shape.
+The number is classified into labelled bands; a #strong[framework] scores typed
+inputs into it. `difficulty` is the sibling field with the same shape.
 
 = The scale and bands
 
@@ -54,8 +49,8 @@ priority: ice(impact: 8, confidence: 0.9, ease: 6),
 ```
 
 The Rust layer scores it (here `round(impact * confidence * ease * 0.09)` = 4),
-bands the result, and keeps it on the scale. There is no math in Typst — the call
-just shapes a `(framework, inputs)` dict; scoring happens in the CLI.
+bands the result, and keeps it on the scale. No math happens in Typst — the call
+shapes a `(framework, inputs)` dict, nothing more.
 
 = Manual versus strict
 

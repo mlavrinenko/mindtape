@@ -3,11 +3,7 @@
 #import "../utils/site.typ": u
 #import "../utils/cli-ref.typ": cli-gate, cli-group, render-globals
 
-#show: page.with(
-  title: "CLI reference",
-  active: "/cli/",
-  summary: "Every mt command, grouped. Deep topics link out to their own pages.",
-)
+#show: page.with(active: "/cli/")
 
 `mt` is the whole surface. Commands are quiet by default and return honest exit
 codes. Every command, flag, and sample transcript below is generated from the
@@ -41,8 +37,6 @@ Every command accepts the same global flags:
 #render-globals(cli)
 
 = Files
-
-File a new task, open one in your editor, or evaluate a single file.
 
 #cli-group(cli, cli-groups, "Files")
 
@@ -139,14 +133,6 @@ A comparison takes a value or a literal on either side (`weekday() >= 6`,
 ever compare a field on the left. A task field name in a condition is a
 load-time config error, since the condition grammar has no fields at all.
 
-```toml
-[[ls.rules]]
-name = "release"                              # shown in the trailer / JSON
-condition = 'on_branch("release/*")'          # absent = always matches
-import-views = ["inbox", "release(sort)"]     # "view" = all facets, "view(f, ...)" a subset
-filter = '!terminal && due <= "2026-08-01"'   # optional manual override, highest precedence
-```
-
 = Graph
 
 `mt graph [filter]` emits the task dependency graph — the typed `links:` edges —
@@ -155,8 +141,7 @@ labelled by title and status and filled by readiness (ready, blocked, terminal);
 edges are styled per relation kind. The optional
 #link(u("/filters/"))[filter expression] scopes the subgraph — edges to tasks
 outside it drop — and `--no-terminal` prunes closed tasks. It reuses the same
-graph model that computes ready/blocked, so it is a pure read: a diffable view
-of the same source, no new store.
+graph model that computes ready/blocked, so it is a pure read: no new store.
 
 #cli-group(cli, cli-groups, "Graph")
 
@@ -252,19 +237,17 @@ deleted plainly, git or not.
 defaults, and writes the config JSON Schema (`config.schema.json`) beside them.
 `mt init` writes `.mindtape/config.toml` from a named preset (`--preset NAME`,
 `--list-presets`; `--annotate` keeps the reasoning) with a first-line
-`#:schema` comment directive, so a schema-aware TOML editor (tombi, Taplo)
-assists filling values. It points at the published schema URL by default —
-the config is checked in, so a machine-local path would not survive a clone;
+`#:schema` comment directive pointing at the published schema URL;
 `--schema local` uses the installed copy instead, `--schema URL|PATH` any
-other target, and `--no-schema` (on either command) opts out. See
-#link(u("/quickstart/"))[Quickstart]. `mt worktrees` lists the `@name` worktree
-aliases (see #link(u("/agents/"))[Run from anywhere]).
+other target, and `--no-schema` (on either command) opts out — see
+#link(u("/config/"))[Editor schema] and #link(u("/quickstart/"))[Quickstart].
+`mt worktrees` lists the `@name` worktree aliases (see
+#link(u("/agents/"))[Run from anywhere]).
 
 `mt preset save <name>` captures the current project's `.mindtape/config.toml`
 and its `templates/` as a reusable user preset under
 `~/.config/mindtape/presets/<name>` — a raw copy, never a reverse-engineered
-guess at the wizard answers that produced it — so a shape arrived at once
-travels into every later `mt init --preset <name>`. `--force` overwrites an
+guess at the wizard answers that produced it. `--force` overwrites an
 existing user preset; without it the command refuses and names what is already
 there. `mt preset ls` lists built-in and user presets together, marking which
 user preset shadows a built-in of the same name, and which is the default.
