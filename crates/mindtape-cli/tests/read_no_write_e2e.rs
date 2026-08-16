@@ -179,6 +179,22 @@ fn eval_leaves_tree_untouched() {
     assert_read_untouched(dir.path(), &["eval", "tasks/alpha.typ"]);
 }
 
+/// `find` is sugar over `ls` with a `contains()` filter, and `graph` walks the
+/// same loaded project to emit DOT. Both are reads, and neither was covered
+/// here — the gap surfaced when CONTRIBUTING.md's read list turned out to name
+/// two commands that do not exist while omitting these.
+#[test]
+fn find_leaves_tree_untouched() {
+    let dir = build_fixture();
+    assert_read_untouched(dir.path(), &["find", "alpha"]);
+}
+
+#[test]
+fn graph_leaves_tree_untouched() {
+    let dir = build_fixture();
+    assert_read_untouched(dir.path(), &["graph"]);
+}
+
 #[test]
 fn views_leaves_tree_untouched() {
     let dir = build_fixture();

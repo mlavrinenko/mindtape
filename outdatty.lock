@@ -85,12 +85,12 @@ groups:
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
-      docs/src/contributing.typ: 4b3e4047f381e286072481ee6a9032fb8641c05648c5d033038646fd263f227a
-      docs/src/contributing/coverage-crap.typ: d3487d2473ad5c4123ea4a3830fbf557698fcc93c99d504cfad2f31a1151035b
-      docs/src/contributing/gates.typ: a1acd6f0caa03472d30d82cd0eb918da22f9bfe84746ad6b3fa33312896c043a
-      docs/src/contributing/mutation-testing.typ: aa7a8de97b0fdf6f1b8c9406b3af0db478f61f4ab86a714eaec789105d293c61
-      docs/src/contributing/signal-sweep.typ: afaf72f963be0b5d5e28f0251961e5a4512a80277cd3c76d92b6b292d62778ba
-      docs/src/contributing/windows.typ: f6acf2d8c85c924166f34c1b5f06e9d77c0b2bae94ddd196ca5e1455a672bc75
+      docs/src/contributing.typ: 849d4e8a031bbd07a244edd8b5f469392af3c225f09c11127c2c376d48706112
+      docs/src/contributing/coverage-crap.typ: 3b69fa26579a7e5f825e4601ba113ca5ddcec44a5d44c8253563c7c4df9bd168
+      docs/src/contributing/gates.typ: dad6e75b108c6de5f4085524775f6750e2023f5f516ae42b2ddae9c3fca7160a
+      docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
+      docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c
+      docs/src/contributing/windows.typ: d306f6e7e5a434d961e0bc33108a7a76084d4a8f403aad0ddabc2f1f89f1bb6f
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf

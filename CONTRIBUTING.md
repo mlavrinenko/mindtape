@@ -116,8 +116,9 @@ Commits that file or edit task artifacts themselves (and the backlog config in `
 
 MindTape follows a strict read/write split (CQRS). Read commands never mutate the working tree; only explicit write commands do.
 
-- Read (pure): `ls`, `check`, `show`, `export`, `config` queries — leave the tree byte-identical (enforced by test).
-- Write (explicit): `add`, `recur`, `done`, `flip`, `rm`, `init`.
+- Read (pure): `ls`, `find`, `graph`, `views`, `worktrees`, `check`, `eval`, `config show`/`schema` — each leaves the tree byte-identical, asserted per command in `crates/mindtape-cli/tests/read_no_write_e2e.rs`. Add your command’s test there, not to this list.
+- Write (explicit): `add`, `import`, `init`, `install`, `preset save`, `flip`, `recur`, `review`, `rm`. Every legend value is also a top-level verb over `flip` — `mt done` is `mt flip done`, generated from the legend rather than declared as a subcommand.
+- `go` is neither: it hands the file to your editor and mutates nothing itself.
 
 Recurrence never materializes as a side effect of a read: an instance is spawned or refreshed only by an explicit `mt recur`, and `mt done` closes a task without creating or advancing anything.
 
