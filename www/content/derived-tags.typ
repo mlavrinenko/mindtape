@@ -2,16 +2,11 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
-#show: page.with(
-  title: "Derived tags",
-  active: "/derived-tags/",
-  summary: "Tasks inherit virtual tags from their location under a root, without those tags ever being written to the file.",
-)
+#show: page.with(active: "/derived-tags/")
 
 A task can inherit #strong[virtual tags] from where it sits under a root — the
-root's name plus the folder segments leading to it. Authored `tags` stay
-pristine; derived tags live only in memory and join the authored ones for
-filtering.
+root's name plus the folder segments leading to it. They live only in memory and
+join the authored `tags` for filtering.
 
 = What gets derived
 
@@ -48,12 +43,9 @@ derive-tags = true            # bool | glob | list — gates which files derive
 ```
 
 Per-root `derive-tags` gates which files under that root derive their location:
-a bool, a glob, or a list of globs.
-
-`separator` joins a breadcrumb's segments (`backend:auth` by default). `slugify`
-normalises each folder name before it becomes a tag. `breadcrumb-root` prepends
-the root name onto the breadcrumb chain itself — off by default, since the root
-name is already emitted as its own standalone tag.
+a bool, a glob, or a list of globs. `breadcrumb-root` prepends the root name onto
+the breadcrumb chain itself — off by default, since the root name is already
+emitted as its own standalone tag.
 
 = How they behave
 
@@ -64,6 +56,6 @@ name is already emitted as its own standalone tag.
   a derived tag outside the allow-list fails `mt check`.
 
 #callout("note")[
-  Derivation is pure and domain-agnostic: it only reads a file's path under a
-  root. Tools built on MindTape get the same behaviour for free.
+  Derivation only reads a file's path under a root, so tools built on MindTape
+  inherit it unchanged.
 ]

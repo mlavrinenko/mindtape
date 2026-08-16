@@ -1,16 +1,11 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout, mt-import, pkg
+#import "../utils/ui.typ": mt-import, pkg
 #import "../utils/site.typ": u
 #import "../utils/dsl-field-notes.typ": dsl-field-notes
 
-#show: page.with(
-  title: "Task DSL",
-  active: "/dsl/",
-  summary: "Every field a task file can declare, and what the prelude versus the Rust layer enforce.",
-)
+#show: page.with(active: "/dsl/")
 
-A task file imports the prelude and applies `task.with`. Here is the full shape,
-with the version-synced import:
+A task file imports the prelude and applies `task.with`. The full shape:
 
 #mt-import(
   "#show: task.with(
@@ -148,16 +143,12 @@ recurring task is a pure close and never touches `recur`.
 = What enforces what
 
 The prelude enforces #strong[structure] only: one task per file, and the
-`x-<ns>` naming discipline. Everything semantic — the status legend, numeric
-scales and classification, priority frameworks, the `kind` enum, required-unless-
-terminal rules, bounds, and link resolution — is enforced by the Rust layer
-against your #link(u("/config/"))[config], at `mt check` time.
-
-#callout("note")[
-  `x-<ns>` fields are yours to define. MindTape validates the core fields above
-  and passes your extension fields through — see #link(u("/concepts/"))[the
-    extension seam].
-]
+`x-<ns>` naming discipline — those fields are yours to define, and MindTape
+passes them through (see #link(u("/concepts/"))[the extension seam]).
+Everything semantic — the status legend, numeric scales and classification,
+priority frameworks, the `kind` enum, required-unless-terminal rules, bounds,
+and link resolution — is enforced by the Rust layer against your
+#link(u("/config/"))[config], at `mt check` time.
 
 = Editor support
 
