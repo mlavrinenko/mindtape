@@ -4,11 +4,7 @@
 #import "../utils/crate-notes.typ": crate-notes
 #import "../generated/just.typ" as just
 
-#show: page.with(
-  title: "Internals",
-  active: "/internals/",
-  summary: "How MindTape is built: the crate layout, the content-hash cache that keeps live evaluation cheap, and what differs per platform.",
-)
+#show: page.with(active: "/internals/")
 
 Nothing here is needed to use MindTape. It is the shape of the implementation,
 for anyone auditing it, packaging it, or building on top.
@@ -52,16 +48,26 @@ that wants Typst-as-data gets it without inheriting a task model.
 = The cache
 
 Evaluating every file on every command is not free, so a content-hash cache
-under each root skips re-evaluating files whose bytes have not changed. Measured
-on a generated backlog of 2000 tasks (#just.bench(), on one developer machine —
-run it on yours):
+under each root skips re-evaluating files whose bytes have not changed. On a
+generated backlog of 2000 tasks:
 
 #table(
   columns: 3,
   table.header([Command], [Cold cache], [Warm cache]),
-  [`mt ls`], [0.46 s], [0.20 s],
-  [`mt check`], [0.35 s], [0.12 s],
+  [`mt ls`], [0.44 s], [0.18 s],
+  [`mt check`], [0.33 s], [0.08 s],
 )
+
+// Hand-measured, and deliberately stamped as such: nothing in this repo
+// derives these four numbers. #just.bench() prints hyperfine's report to the
+// terminal and persists nothing, so there is no artifact a page could read —
+// and inventing a fact pipeline for a number a reader is told to re-measure
+// anyway would cost more than it settles. The stamp is what makes the figures
+// safe to leave here: a date and a machine let a reader discount them.
+Measured 2026-08-16 on one developer machine (Linux, i7-12700H). Nothing
+regenerates these numbers, so read them as an order of magnitude and run
+#just.bench() on yours — that recipe reports the warm column; the cold one is
+the same two commands with `<root>/.mindtape/cache` removed before each run.
 
 The cache is derived state, not a source of truth: delete it and the next run
 rebuilds it; change the config, the prelude, or the `mt` version and it busts
@@ -70,9 +76,34 @@ byte-identical — that is the one exemption to the read/write split.
 
 = Platform support
 
-Linux, macOS and Windows all get a prebuilt binary per release, and CI runs the
-test suite on Linux and Windows. Two things differ on Windows, both by necessity
-rather than omission:
+// The platform list is the release workflow's own build matrix, read through
+// www/generated/release-targets.json — the same file
+// www/content/quickstart.typ lists the download artifacts from. Adding or
+// dropping a target is then a workflow edit, never a prose edit, and an
+// unrecognized triple fails the build here rather than being silently dropped
+// from the sentence.
+#let OS-FAMILIES = (
+  ("linux", "Linux"),
+  ("apple-darwin", "macOS"),
+  ("windows", "Windows"),
+)
+#let os-of(target) = {
+  for (needle, name) in OS-FAMILIES {
+    if target.contains(needle) { return name }
+  }
+  panic("internals: unknown release target family: " + target)
+}
+// Braces, not a bare chain broken over lines: a `#let` in markup mode ends its
+// expression at the newline, so `json(…)\n  .targets` binds the whole JSON
+// dictionary and the rest is read as markup.
+#let platforms = {
+  let release = json("../generated/release-targets.json")
+  release.targets.map(t => os-of(t.target)).dedup()
+}
+
+#platforms.join(", ", last: " and ") all get a prebuilt binary per release, and
+CI runs the test suite on Linux and Windows. What differs on Windows differs by
+necessity, not omission:
 
 - An `[[on.flip]]` `run` command goes through `cmd /C`, not `sh -c`. It is shell
   text, so a command written for one shell does not carry to the other.
