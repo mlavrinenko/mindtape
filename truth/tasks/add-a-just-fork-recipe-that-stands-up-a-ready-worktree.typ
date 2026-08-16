@@ -10,7 +10,14 @@
   difficulty: 4,
   tags: ("tooling",),
   estimate: (files: 3),
-  status: proposed(2026, 8, 17),
+  links: related(
+    "resolve-the-typst-package-from-the-checkout-not-a-global-symlink.typ",
+  )[the one thing the first real fork turned up that the recipe cannot fix],
+  status: done(
+    2026,
+    8,
+    17,
+  )[just fork \<slug> \[base\]: sibling worktree, direnv-allowed and dev-shell loaded, base read back out of the created tree; refuses a dirty HEAD, warms nothing (measured)],
 )
 
 == Summary
