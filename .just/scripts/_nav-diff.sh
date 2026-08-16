@@ -15,6 +15,16 @@
 # `_mutants-env.sh` carries one — every caller here invokes it as a plain
 # script, never through `just`.
 #
+# THAT COSTS A GATE. script-scope-check's arm two derives a rule's scopes from
+# the recipe body it can see, so a script reached script-to-script rather than
+# through `just` is invisible to it: every caller's mmz rule has to name
+# `script-nav-diff` BY HAND or it serves a stale hit after this file changes,
+# and nothing fails to say so. Adding a caller means adding that input to the
+# caller's rule in .mmz/config.yaml (today: `just check-doc-facts` and `just
+# site-pages-fixture-check`, both commented there). This is the second such
+# exemption after check-crap's nested `just crap`; a third is the signal that
+# the derivation needs to follow nested calls instead of the list growing.
+#
 # Two failure directions, neither implying the other: a page with no NAV
 # entry is invisible in the sidebar, and a NAV entry naming no real page's
 # route 404s the moment it's clicked.
