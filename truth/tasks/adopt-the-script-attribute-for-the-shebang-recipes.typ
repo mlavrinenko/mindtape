@@ -12,7 +12,10 @@
   estimate: (files: 4),
   links: related(
     "silence-the-mmz-wrapper-exit-message.typ",
-  )[the other modern-just attribute worth adopting],
+  )[the other modern-just attribute worth adopting]
+    + related(
+      "lock-the-script-attribute-against-a-shebang-regression.typ",
+    )[the gate that would keep this conversion from unwinding],
   status: done(2026, 8, 16),
 )
 
