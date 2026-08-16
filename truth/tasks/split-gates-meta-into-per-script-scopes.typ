@@ -13,7 +13,7 @@
   links: related(
     "give-check-crap-an-lcov-input-scope-and-wrap-it-in-mmz.typ",
   )[the other mmz-scope change to this manifest],
-  status: proposed(2026, 8, 16),
+  status: wip(2026, 8, 16),
 )
 
 == Summary
