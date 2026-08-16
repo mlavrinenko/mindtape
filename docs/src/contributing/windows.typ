@@ -3,12 +3,11 @@
 // docs/src/*.typ source; see docs/src/lib.typ for the render path's
 // constraints.
 //
-// Content-preserving port of the hand-written windows.md, except the rustc
-// version `pkgsCross.mingwW64` is said to pin "the same" as the default
-// shell's — that claim now reads `www/generated/crate-map.json`'s
-// `rust-toolchain.channel` (`www/generate-facts.sh`, from
-// `rust-toolchain.toml`) instead of being hand-typed, so a toolchain bump
-// cannot leave this sentence stale.
+// One value here is derived: the rustc `pkgsCross.mingwW64` supplies is said
+// to be the same pin as the default shell's, and that pin reads
+// `www/generated/crate-map.json`'s `rust-toolchain.channel`
+// (`www/generate-facts.sh`, from `rust-toolchain.toml`) instead of being
+// hand-typed, so a toolchain bump cannot leave the sentence stale.
 #import "../lib.typ": doc-title, fact, just
 
 #metadata((
@@ -26,8 +25,7 @@ CI runs the suite on Windows (`.github/workflows/ci.yml`, job `windows`),
 which is where the platform seams get exercised — `cmd /C` vs `sh -c` for
 `[[on.flip]]` `run`, the `dirs` config/data paths, path separators. It runs
 plain `cargo build` / `cargo test`, not #just.check(): there is no Nix there,
-and the remaining gates are platform-independent. Anything you write that
-shells out or joins paths needs a thought for that job.
+and the remaining gates are platform-independent.
 
 = The pty tests are Unix-only
 

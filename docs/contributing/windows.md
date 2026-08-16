@@ -6,7 +6,7 @@ Deep dive behind two lines of CONTRIBUTING.md’s Testing section: what runs on 
 
 ## What CI runs on Windows
 
-CI runs the suite on Windows (`.github/workflows/ci.yml`, job `windows`), which is where the platform seams get exercised — `cmd /C` vs `sh -c` for `[[on.flip]]` `run`, the `dirs` config/data paths, path separators. It runs plain `cargo build` / `cargo test`, not `just check`: there is no Nix there, and the remaining gates are platform-independent. Anything you write that shells out or joins paths needs a thought for that job.
+CI runs the suite on Windows (`.github/workflows/ci.yml`, job `windows`), which is where the platform seams get exercised — `cmd /C` vs `sh -c` for `[[on.flip]]` `run`, the `dirs` config/data paths, path separators. It runs plain `cargo build` / `cargo test`, not `just check`: there is no Nix there, and the remaining gates are platform-independent.
 
 ## The pty tests are Unix-only
 
