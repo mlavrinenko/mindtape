@@ -4576,11 +4576,11 @@
         "qahq": "qahq"
       },
       "locked": {
-        "lastModified": 1784888223,
-        "narHash": "sha256-rIkSJdqnVK2WjFiCJnDfgc1+dGirVEa+qIghaFyZELs=",
+        "lastModified": 1786888114,
+        "narHash": "sha256-ls+UV5fHGLLdwvg6igJ9WqjVS9lRzIMyif2j6SA1v08=",
         "owner": "mlavrinenko",
         "repo": "mmz",
-        "rev": "7253e16a62b4fd7d2392b2de0d3b69ba6d9f2de5",
+        "rev": "1f6727f038e1882ddb0cc4bf7c4bb1383457036a",
         "type": "github"
       },
       "original": {
