@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`[tasks.estimate.drift] exclude`** — glob patterns naming paths the
+  working-tree drift check never counts against a task's declared file
+  budget. A generated output nobody hand-edits (`AGENTS.md`,
+  `CONTRIBUTING.md`, `README.md`, `skills/mindtape/SKILL.md`,
+  `docs/contributing/*.md`, everything under `www/generated/`) was counting
+  double against the source that produced it — a two-file docs edit reported
+  four — which trained authors to inflate their estimate rather than read the
+  warning. Matched repo-root-relative with the same glob syntax as
+  `[tasks.roots] derive-tags`. This repo's own `.mindtape/config.toml` now
+  excludes its generated set.
 - **Derived doc facts** — `www/generate-facts.sh` extracts the crate map and
   dependency versions (`cargo metadata`, `rust-toolchain.toml`,
   `[workspace.package]`, `lib/typst.toml`), the task DSL's core field list

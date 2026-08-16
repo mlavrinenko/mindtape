@@ -341,6 +341,14 @@
       "additionalProperties": false,
       "description": "`[tasks.estimate.drift]` — how `mt check` compares the working tree against\nthe budget the in-flight tasks declare.\n\nInert until some in-flight task actually declares an estimate in `unit`, so\na project that never uses a file budget never sees the check.",
       "properties": {
+        "exclude": {
+          "default": [],
+          "description": "Glob patterns naming paths the file count never counts — generated\noutput nobody hand-edits, so touching it should never cost part of a\nbudget spent on the source that produced it. Matched against the path\ngit reports, repo-root-relative (the same root `mt` runs against, not\nthe task root), with the same glob syntax as `[tasks.roots]\nderive-tags`: `*` matches within one path segment, `**` crosses\ndirectory boundaries. Empty = nothing excluded.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "in-flight": {
           "default": "status == \"wip\"",
           "description": "Filter expression naming the tasks in flight. The working tree carries\none diff and nothing in it says which file belongs to which task, so this\nis what attribution rests on. Default `status == \"wip\"`.",

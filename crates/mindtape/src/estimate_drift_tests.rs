@@ -4,11 +4,12 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use super::{
-    ChangeSet, DriftKind, InFlightBudget, check_estimate_drift, numstat_total, working_tree_changes,
+    ChangeSet, DriftKind, InFlightBudget, build_exclude_matcher, check_estimate_drift,
+    numstat_total, path_excluded, status_path, validate_exclude_globs, working_tree_changes,
 };
 use crate::config::{Config, DriftConfig, parse_config};
 use crate::model::{Status, Task};
-use crate::test_support::bare_task;
+use crate::test_support::{bare_task, git_init};
 
 /// A legend with one working and one terminal state, plus a `files` estimate
 /// unit. Drift settings stay at their defaults: unit `files`, in-flight
@@ -227,7 +228,7 @@ fn numstat_ignores_malformed_rows() {
 fn outside_a_repository_the_check_degrades_to_silence() {
     let missing = Path::new("/nonexistent-mindtape-drift-probe");
     assert!(
-        working_tree_changes(missing).is_none(),
+        working_tree_changes(missing, &DriftConfig::default()).is_none(),
         "a path git cannot read yields no change set, not a wrong one"
     );
 }
@@ -239,5 +240,109 @@ fn the_check_never_errors_on_a_breach() {
     assert!(
         check_estimate_drift(&tasks, &config(), dir.path()).is_ok(),
         "drift is a warning: the check must not turn into a failure"
+    );
+}
+
+// --- `[tasks.estimate.drift] exclude` -------------------------------------
+
+#[test]
+fn status_path_reads_the_path_off_an_untracked_or_modified_line() {
+    assert_eq!(
+        status_path("?? docs/generated/OUT.md"),
+        Some("docs/generated/OUT.md")
+    );
+    assert_eq!(status_path(" M src/lib.rs"), Some("src/lib.rs"));
+}
+
+#[test]
+fn status_path_resolves_a_rename_to_its_destination() {
+    assert_eq!(
+        status_path("R  old/name.rs -> new/name.rs"),
+        Some("new/name.rs"),
+        "a rename must count against the path the tree now holds, not the one it left"
+    );
+}
+
+#[test]
+fn status_path_strips_gits_quoting() {
+    assert_eq!(
+        status_path("?? \"a weird name.md\""),
+        Some("a weird name.md")
+    );
+}
+
+#[test]
+fn status_path_is_none_on_a_line_too_short_to_carry_a_path() {
+    assert_eq!(status_path("??"), None);
+}
+
+#[test]
+fn path_excluded_matches_a_repo_root_relative_glob_crossing_directories() {
+    let matcher = build_exclude_matcher(&["docs/generated/**".to_owned()]);
+    assert!(path_excluded("?? docs/generated/OUT.md", matcher.as_ref()));
+    assert!(
+        path_excluded("?? docs/generated/nested/OUT.md", matcher.as_ref()),
+        "`**` must cross directory boundaries"
+    );
+    assert!(!path_excluded("?? src/lib.rs", matcher.as_ref()));
+}
+
+#[test]
+fn path_excluded_is_false_with_no_configured_pattern() {
+    assert!(build_exclude_matcher(&[]).is_none());
+    assert!(!path_excluded("?? docs/generated/OUT.md", None));
+}
+
+/// Real regression coverage for `truth/tasks/exclude-generated-outputs-from-
+/// the-estimate-drift-check.typ`: a generated path sitting beside a
+/// hand-edited one must not inflate the count `mt check` compares against the
+/// declared budget. Runs against a real `git init`, not a filter over a
+/// synthetic string, so it pins the exact behaviour `working_tree_changes`
+/// hands back — not just that the option parses.
+#[test]
+fn working_tree_changes_excludes_a_generated_path_but_counts_the_real_one() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    git_init(root);
+    std::fs::create_dir_all(root.join("docs/generated")).unwrap();
+    std::fs::write(root.join("docs/generated/OUT.md"), "generated\n").unwrap();
+    std::fs::write(root.join("real.rs"), "fn main() {}\n").unwrap();
+
+    let drift = DriftConfig {
+        exclude: vec!["docs/generated/**".to_owned()],
+        ..DriftConfig::default()
+    };
+    let changes = working_tree_changes(root, &drift).unwrap();
+    assert_eq!(
+        changes.files, 1,
+        "only real.rs must count; the generated doc is excluded: {changes:?}"
+    );
+
+    let unfiltered = working_tree_changes(root, &DriftConfig::default()).unwrap();
+    assert_eq!(
+        unfiltered.files, 2,
+        "with no exclude both untracked paths count — proving the exclude is what dropped the total"
+    );
+}
+
+#[test]
+fn a_valid_exclude_list_reports_no_problems() {
+    let mut config = config();
+    config.tasks.estimate.drift.exclude = vec!["docs/generated/**".to_owned()];
+    assert!(validate_exclude_globs(&config).is_empty());
+}
+
+#[test]
+fn an_invalid_exclude_glob_is_reported_not_silently_ignored() {
+    let mut config = config();
+    config.tasks.estimate.drift.exclude = vec!["[invalid".to_owned()];
+    let problems = validate_exclude_globs(&config);
+    assert_eq!(problems.len(), 1, "{problems:?}");
+    assert!(
+        problems
+            .first()
+            .unwrap()
+            .contains("tasks.estimate.drift.exclude"),
+        "{problems:?}"
     );
 }

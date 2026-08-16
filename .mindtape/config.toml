@@ -139,9 +139,28 @@ files = 15
 [tasks.estimate.min]
 files = 1
 
-# `[tasks.estimate.drift]` stays at its defaults — unit `files`, in-flight
-# `status == "wip"`, a 200-line-per-file soft ceiling — so `mt check` warns (never
-# fails) once the working tree outgrows what the in-flight tasks declared.
+# `[tasks.estimate.drift]` stays at its defaults for everything but `exclude` —
+# unit `files`, in-flight `status == "wip"`, a 200-line-per-file soft ceiling —
+# so `mt check` warns (never fails) once the working tree outgrows what the
+# in-flight tasks declared.
+[tasks.estimate.drift]
+# Nobody hand-edits any of these — `docs-md-check` / `docs-check` fail the
+# build if anyone tries — so counting them against a task's declared file
+# budget turns a truthful estimate into a number an author has to inflate just
+# to keep an advisory warning quiet, which trains everyone to stop reading it.
+# See truth/tasks/exclude-generated-outputs-from-the-estimate-drift-check.typ.
+exclude = [
+  # The four root Markdown files and the docs/contributing/ deep dives,
+  # rendered from docs/src/**.typ by `just docs-md` (docs/generate-md.sh).
+  "README.md",
+  "CONTRIBUTING.md",
+  "AGENTS.md",
+  "skills/mindtape/SKILL.md",
+  "docs/contributing/*.md",
+  # Every derived fact and captured CLI artifact the docs site reads, rebuilt
+  # from source by `just docs-gen` (www/generate.sh and the scripts it calls).
+  "www/generated/**"
+]
 
 [tasks.tags]
 # Area labels for the backlog. Empty would accept any tag.

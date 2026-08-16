@@ -6,6 +6,7 @@
 
 use std::collections::BTreeMap;
 use std::path::Path;
+use std::process::Command;
 
 use crate::link::Link;
 use crate::model::Task;
@@ -75,6 +76,27 @@ pub fn write_lib_package(dir: &Path, prelude: &str) {
     )
     .unwrap();
     std::fs::write(lib.join("prelude.typ"), prelude).unwrap();
+}
+
+/// `git init --quiet` in `dir`, asserting success. Shared by every test that
+/// drives a real git working copy — the estimate-drift check (`mt check`)
+/// reads one, and both the in-crate unit tests and the CLI's e2e tests need
+/// the exact same three-line setup to get one.
+///
+/// # Panics
+/// Panics if `git init` fails — a test-harness bug against a fresh tempdir,
+/// not a case to recover from.
+#[allow(clippy::unwrap_used)]
+pub fn git_init(dir: &Path) {
+    assert!(
+        Command::new("git")
+            .args(["init", "--quiet"])
+            .current_dir(dir)
+            .status()
+            .unwrap()
+            .success(),
+        "git init must succeed in a fresh tempdir"
+    );
 }
 
 /// A `links:` edge of `kind` to `target`, with no note — the common shape test

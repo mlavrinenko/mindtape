@@ -130,6 +130,14 @@ pub struct DriftConfig {
     /// Lines allowed per declared file before the secondary soft line warning.
     /// `0` disables it. Default 200.
     pub line_multiple: usize,
+    /// Glob patterns naming paths the file count never counts — generated
+    /// output nobody hand-edits, so touching it should never cost part of a
+    /// budget spent on the source that produced it. Matched against the path
+    /// git reports, repo-root-relative (the same root `mt` runs against, not
+    /// the task root), with the same glob syntax as `[tasks.roots]
+    /// derive-tags`: `*` matches within one path segment, `**` crosses
+    /// directory boundaries. Empty = nothing excluded.
+    pub exclude: Vec<String>,
 }
 
 impl Default for DriftConfig {
@@ -139,6 +147,7 @@ impl Default for DriftConfig {
             in_flight: DEFAULT_IN_FLIGHT.to_owned(),
             message: None,
             line_multiple: DEFAULT_LINE_MULTIPLE,
+            exclude: Vec::new(),
         }
     }
 }

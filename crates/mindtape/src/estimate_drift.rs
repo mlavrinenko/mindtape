@@ -32,10 +32,22 @@
 //! v1 compares counts only. The intended path list stays prose under the task's
 //! Files heading; machine-comparing declared paths against the diff would need
 //! prose parsing.
+//!
+//! # Excluding generated output
+//!
+//! `[tasks.estimate.drift] exclude` names paths the file count skips — a
+//! generated output nobody hand-edits should never spend part of a budget
+//! meant for the source that produced it. Each `--porcelain` line is parsed
+//! back to the path it names (the destination side of a rename) and matched
+//! against the configured globs; only the *file* count is filtered. The line
+//! total stays unfiltered — it is already documented as a generous, distorted-
+//! by-design secondary signal, never a budget of its own.
 
 use std::fmt;
 use std::path::Path;
 use std::process::Command;
+
+use globset::{Glob, GlobSet, GlobSetBuilder};
 
 use crate::config::{Config, DriftConfig};
 use crate::filter::{Filter, FilterError};
@@ -194,26 +206,89 @@ pub fn check_estimate_drift(
     let Some(budget) = InFlightBudget::of(tasks, config)? else {
         return Ok(Vec::new());
     };
-    let Some(changes) = working_tree_changes(root) else {
+    let Some(changes) = working_tree_changes(root, &config.tasks.estimate.drift) else {
         return Ok(Vec::new());
     };
     Ok(budget.compare(changes, &config.tasks.estimate.drift))
 }
 
-/// Read the working-tree change set under `root` with git.
+/// Read the working-tree change set under `root` with git, skipping any path
+/// `drift.exclude` names from the file count.
 ///
 /// `None` when `root` is not a git working copy or git is unavailable. A
 /// repository with no commits yet has no `HEAD`, so the line total falls back to
 /// zero while the file count still stands — the file budget is the real one.
 #[must_use]
-pub fn working_tree_changes(root: &Path) -> Option<ChangeSet> {
+pub fn working_tree_changes(root: &Path, drift: &DriftConfig) -> Option<ChangeSet> {
     let status = git(root, &["status", "--porcelain", "--untracked-files=all"])?;
+    let excluded = build_exclude_matcher(&drift.exclude);
     let files = status
         .lines()
         .filter(|line| !line.trim().is_empty())
+        .filter(|line| !path_excluded(line, excluded.as_ref()))
         .count();
     let lines = git(root, &["diff", "--numstat", "HEAD"]).map_or(0, |out| numstat_total(&out));
     Some(ChangeSet { files, lines })
+}
+
+/// Compile `[tasks.estimate.drift] exclude` into a matcher, or `None` when the
+/// list is empty. A pattern that fails to compile is skipped here — invalid
+/// syntax is reported at config load time by [`validate_exclude_globs`], not
+/// re-reported on every `mt check` run.
+fn build_exclude_matcher(patterns: &[String]) -> Option<GlobSet> {
+    if patterns.is_empty() {
+        return None;
+    }
+    let mut builder = GlobSetBuilder::new();
+    for pattern in patterns {
+        if let Ok(glob) = Glob::new(pattern) {
+            builder.add(glob);
+        }
+    }
+    builder.build().ok()
+}
+
+/// Whether one `--porcelain --untracked-files=all` line names a path
+/// `matcher` covers. `false` with no matcher, or when the line is too short to
+/// carry a path.
+fn path_excluded(status_line: &str, matcher: Option<&GlobSet>) -> bool {
+    let Some(matcher) = matcher else {
+        return false;
+    };
+    let Some(path) = status_path(status_line) else {
+        return false;
+    };
+    matcher.is_match(path)
+}
+
+/// The path one `--porcelain` line names, or `None` if the line is too short
+/// to carry a two-character status code, a space, and a path. A rename line
+/// (`R  old -> new`) resolves to the destination path — the one the working
+/// tree now holds. Git quotes a path containing unusual bytes in a wrapping
+/// `"..."`; that layer is stripped so the raw path reaches the glob matcher.
+fn status_path(line: &str) -> Option<&str> {
+    let rest = line.get(3..)?;
+    let path = rest.rsplit(" -> ").next().unwrap_or(rest);
+    Some(path.trim_matches('"'))
+}
+
+/// Validate that every `[tasks.estimate.drift] exclude` glob compiles. Returns
+/// one message per pattern the glob syntax rejects, so a typo fails config
+/// load instead of the pattern silently matching nothing forever.
+#[must_use]
+pub fn validate_exclude_globs(config: &Config) -> Vec<String> {
+    config
+        .tasks
+        .estimate
+        .drift
+        .exclude
+        .iter()
+        .filter_map(|pattern| {
+            Glob::new(pattern)
+                .err()
+                .map(|err| format!("tasks.estimate.drift.exclude: invalid glob {pattern:?}: {err}"))
+        })
+        .collect()
 }
 
 /// Run one read-only git command in `root` and return its stdout, or `None` on

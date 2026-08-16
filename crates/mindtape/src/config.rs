@@ -182,6 +182,7 @@ impl Config {
         problems.extend(self.tasks.difficulty.validate("difficulty"));
         problems.extend(self.tasks.status.transition_problems());
         problems.extend(crate::derive::validate_root_globs(self));
+        problems.extend(crate::estimate_drift::validate_exclude_globs(self));
         for spec in &self.ls.default_sort {
             if let Err(msg) = crate::sort::validate_sort_spec(spec) {
                 problems.push(format!("ls.default-sort: {msg}"));

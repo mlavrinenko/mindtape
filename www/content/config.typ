@@ -481,7 +481,17 @@ unit          = "files"              # estimate unit read as the file budget
 in-flight     = 'status == "wip"'    # which tasks the diff is attributed to
 line-multiple = 200                  # secondary line ceiling per declared file; 0 disables
 message       = "rescope before going further"   # replaces the default advice
+exclude       = ["docs/generated/**", "*.lock"]  # paths the file count skips
 ```
+
+`exclude` names paths the file count never counts — generated output nobody
+hand-edits, so touching it should not spend part of a budget meant for the
+source that produced it. Each pattern is matched against the path git reports,
+repo-root-relative (the root `mt` runs against, not the task root), with the
+same glob syntax as `[tasks.roots] derive-tags`: `*` matches within one path
+segment, `**` crosses directory boundaries. It only filters the file count —
+the line total stays unfiltered, already documented below as a generous signal
+that tolerates exactly this kind of distortion.
 
 The working tree carries one diff and nothing in it says which file belongs to
 which task, so attribution is by count — against the one in-flight task's

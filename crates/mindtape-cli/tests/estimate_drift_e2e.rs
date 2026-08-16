@@ -7,7 +7,8 @@
 #![allow(clippy::unwrap_used)]
 
 use std::path::Path;
-use std::process::Command;
+
+use mindtape::test_support::git_init;
 
 mod support;
 
@@ -41,14 +42,7 @@ fn task_src(files: u32) -> String {
 fn fixture(files: u32, extra: usize) -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
-    assert!(
-        Command::new("git")
-            .args(["init", "--quiet"])
-            .current_dir(root)
-            .status()
-            .unwrap()
-            .success()
-    );
+    git_init(root);
     std::fs::create_dir_all(root.join(".mindtape")).unwrap();
     std::fs::create_dir_all(root.join("tasks")).unwrap();
     std::fs::write(root.join(".mindtape/config.toml"), CONFIG).unwrap();
@@ -97,6 +91,33 @@ fn a_working_tree_inside_the_budget_says_nothing() {
     assert!(
         !stdout.contains("working tree"),
         "a change set inside the budget is silent: {stdout}"
+    );
+}
+
+#[test]
+fn a_generated_output_does_not_inflate_the_reported_count() {
+    // `truth/tasks/exclude-generated-outputs-from-the-estimate-drift-check.typ`:
+    // a docs edit that also writes a generated artifact must be counted
+    // against its own source only. 2 scaffold files (config + task) plus one
+    // real edit plus one excluded generated output, against a 2-file budget:
+    // git sees 4 untracked paths, but only 3 count.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    git_init(root);
+    let config = format!("{CONFIG}\n[tasks.estimate.drift]\nexclude = [\"docs/generated/**\"]\n");
+    std::fs::create_dir_all(root.join(".mindtape")).unwrap();
+    std::fs::create_dir_all(root.join("tasks")).unwrap();
+    std::fs::create_dir_all(root.join("docs/generated")).unwrap();
+    std::fs::write(root.join(".mindtape/config.toml"), config).unwrap();
+    std::fs::write(root.join("tasks/budgeted.typ"), task_src(2)).unwrap();
+    std::fs::write(root.join("docs/generated/OUTPUT.md"), "generated\n").unwrap();
+    std::fs::write(root.join("real.rs"), "fn main() {}\n").unwrap();
+
+    let stdout = check_stdout(root);
+    assert!(
+        stdout.contains("working tree touches 3 file(s), over the 2"),
+        "the generated doc must not inflate the count — 4 untracked paths, \
+         3 counted, over the 2-file budget: {stdout}"
     );
 }
 

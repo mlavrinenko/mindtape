@@ -147,6 +147,7 @@ fn drift_defaults_target_a_file_budget_on_the_working_state() {
     assert_eq!(drift.unit, "files");
     assert_eq!(drift.in_flight, "status == \"wip\"");
     assert_eq!(drift.line_multiple, 200);
+    assert!(drift.exclude.is_empty(), "nothing is excluded by default");
     assert_eq!(drift.advice(), DEFAULT_DRIFT_ADVICE);
     assert!(
         drift.advice().contains("split the remaining work"),
@@ -162,4 +163,26 @@ fn a_configured_message_replaces_the_default_advice() {
         ..DriftConfig::default()
     };
     assert_eq!(drift.advice(), "stop and rescope");
+}
+
+#[test]
+fn an_exclude_list_parses_off_tasks_estimate_drift() {
+    let toml = r#"
+[[tasks.status]]
+value = "wip"
+[[tasks.status]]
+value = "done"
+terminal = true
+
+[tasks.estimate]
+units = ["files"]
+
+[tasks.estimate.drift]
+exclude = ["docs/generated/**", "*.lock"]
+"#;
+    let drift = parse_config(toml).unwrap().tasks.estimate.drift;
+    assert_eq!(
+        drift.exclude,
+        vec!["docs/generated/**".to_owned(), "*.lock".to_owned()]
+    );
 }
