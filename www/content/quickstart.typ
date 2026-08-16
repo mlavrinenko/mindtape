@@ -2,13 +2,7 @@
 #import "../utils/ui.typ": callout, pkg, terminal, terminal-ansi
 #import "../utils/site.typ": REPO, u
 
-#show: page.with(
-  title: "Quickstart",
-  active: "/quickstart/",
-  summary: "Install MindTape, scaffold a project, and file your first task.",
-)
-
-From nothing to a validated task in a few commands.
+#show: page.with(active: "/quickstart/")
 
 = Install
 
@@ -56,30 +50,24 @@ cd mindtape && cargo build --release   # produces target/release/mt
 
 = Set up the environment
 
-#raw("cargo install " + cli-crate, lang: "sh") gave you the binary. One more
-command gives it something to read:
+The binary needs a prelude to read. Install it once per machine, not once per
+project:
 
 ```sh
 mt install
 ```
 
-This is not optional, and it is easy to skip. Every task file opens by importing
-#pkg, and Typst resolves an `@local` package from a
-directory on your machine — never from the repository holding the tasks. Until
-the prelude is installed there, every task file fails to evaluate, `mt ls` shows
-an empty table, and the warnings name a path rather than a fix. It bites twice:
-on a fresh machine, and on a repository a colleague set up, which otherwise
-looks like it should just work after a clone.
-
-#callout("note")[
-  Run it once per machine, not once per project. Any command that meets an
-  uninstalled prelude prints a note naming `mt install`, so a forgotten setup
-  reports itself rather than looking like an empty backlog.
-]
+Every task file opens by importing #pkg, and Typst resolves an `@local` package
+from a directory on your machine — never from the repository holding the tasks.
+Until the prelude is installed there, every task file fails to evaluate and
+`mt ls` shows an empty table; any command that meets an uninstalled prelude
+prints a note naming `mt install`, so a forgotten setup reports itself rather
+than looking like an empty backlog.
 
 `mt install` also seeds `~/.config/mindtape/defaults.toml` (the global config
 layer) and `config.schema.json` (which gives editors completion and validation
-over `.mindtape/config.toml`). `--no-defaults` and `--no-schema` skip either.
+over `.mindtape/config.toml`). It performs all three installs; `--no-lib`,
+`--no-defaults` and `--no-schema` skip any of them.
 
 Then scaffold a project, once per repository:
 
@@ -90,15 +78,14 @@ mt init --no-input       # non-interactive: write the default (flow) without ask
 mt init --list-presets   # the other starter shapes
 ```
 
-With no `--preset` and a terminal, `mt init` walks a short questionnaire over the
-configuration axes — workflow, priority, estimate, required fields, organisation,
-body headers, recurrence — asking a few core questions, then offering to accept
-defaults for the rest, and records the answers as a comment block in the written
-file. `--preset X`, `--no-input`, and a piped (non-terminal) stdin all skip it;
+With no `--preset` and a terminal, `mt init` walks the configuration axes —
+workflow, priority, estimate, required fields, organisation, body headers,
+recurrence — asking a few core questions, then offering to accept defaults for
+the rest, and records the answers as a comment block in the written file. A
+piped (non-terminal) stdin skips the questionnaire the way `--no-input` does;
 every question also has a flag that suppresses just that question.
 
-A preset is a starter shape, not a straitjacket — the written file is yours to
-edit. Four ship:
+A preset is a starter shape; the written file is yours to edit. Four ship:
 
 / #raw("todone"): open or finished, nothing else constrained.
 / #raw("flow"): a lifecycle with enforced transitions (the default). Suits one
@@ -112,8 +99,8 @@ edit. Four ship:
 
 `--annotate` keeps the preset's explanatory comments in the written file. User
 presets live in `~/.config/mindtape/presets` and shadow the built-ins by name.
-`mt preset save <name>` captures the current project's config and templates as one
-such reusable preset (and `mt preset ls` lists what exists); a preset may carry an
+`mt preset save <name>` captures the current project's config and templates as
+such a preset (`mt preset ls` lists what exists); a preset may carry an
 `[overlay]` block for config the axes cannot express, merged last over the base.
 See #link(u("/config/"))[Configuration] for the layering.
 
@@ -188,6 +175,6 @@ fields, numeric bounds, link resolution, and dependency cycles. Wire it into a
 pre-commit hook or CI.
 
 #callout("note")[
-  Want the model behind all this? #link(u("/concepts/"))[Concepts] explains why a
-  task is a file and what "live evaluation" buys you.
+  #link(u("/concepts/"))[Concepts] has the model behind all this: why a task is a
+  file, and what live evaluation means.
 ]

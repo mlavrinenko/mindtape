@@ -2,11 +2,7 @@
 #import "../utils/ui.typ": callout, pkg, terminal
 #import "../utils/site.typ": u
 
-#show: page.with(
-  title: "Templates & slots",
-  active: "/templates/",
-  summary: "How mt add scaffolds a task from a Typst template whose values are slot() calls.",
-)
+#show: page.with(active: "/templates/")
 
 `mt add` files a new task from a #strong[template] — a task whose authored values
 are `slot(…)` calls. It discovers the slots on the parse plane (no evaluation),
@@ -81,8 +77,8 @@ mt add --into .                            # target the first root explicitly
 
 If your config marks `priority`, `difficulty`, `kind`, or `estimate` as required
 but the template omits it, `mt add` splices in a slot for it before discovery —
-so a required field always appears in the scaffold, in `--describe`, and in the
-written task, even with the barebones built-in `task` template.
+so it appears in the scaffold, in `--describe`, and in the written task, even
+with the barebones built-in `task` template.
 
 #callout("note")[
   Strict-framework priority (`framework` + `allow-manual = false`) has no scalar
