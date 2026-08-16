@@ -9,7 +9,7 @@
   ),
   difficulty: 6,
   tags: ("docs", "www", "tooling"),
-  estimate: (files: 9),
+  estimate: (files: 6),
   links: parent("de-slop-the-docs-and-close-the-drift-seams.typ"),
   status: accepted(2026, 8, 16),
 )
@@ -42,9 +42,10 @@ dead link.
   `cli-notes.typ`.
 - `docs/src/lib.typ`: `www-link(route)[body]`, `www-title`, `www-summary` —
   each panicking on a route absent from the manifest.
-- A gate arm asserting `www/content/*.typ` and `PAGES` are one-to-one, so a
-  new page without a nav entry (or a nav entry without a page) fails by name.
-- The Justfile / gates-doc / outdatty reconcile that arm forces.
+- A fifth arm in `.just/scripts/check-doc-facts.sh` asserting `www/content/*.typ`
+  and `PAGES` are one-to-one, so a new page without a nav entry (or a nav entry
+  without a page) fails by name. It is the same set-difference the four arms
+  already there use, so it needs no new recipe, mmz scope or gate-notes entry.
 
 == Constraints
 
