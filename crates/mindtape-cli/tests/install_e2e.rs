@@ -156,7 +156,7 @@ fn seeded_defaults_parses_through_parse_config() {
 }
 
 /// The hidden, deprecated `install-lib` alias still installs the lib only,
-/// equivalent to `mt install --no-defaults`.
+/// equivalent to `mt install --no-defaults --no-schema`.
 #[test]
 fn install_lib_alias_installs_lib_only() {
     let home = tempfile::tempdir().unwrap();
@@ -166,6 +166,29 @@ fn install_lib_alias_installs_lib_only() {
     assert!(lib_prelude(home.path()).exists());
     assert!(!defaults_path(home.path()).exists());
     assert!(!schema_path(home.path()).exists());
+}
+
+/// Every skip flag `InstallArgs` declares is named in `install`'s own long
+/// help, which is the text `mt _cli --json` carries into the docs site's CLI
+/// reference. `--no-schema` shipped without ever reaching that sentence, so
+/// the site rendered "performs both by default" directly above the
+/// hand-written note listing all three — the derived reference contradicting
+/// itself on one page. Deriving the reference from clap moved the drift into
+/// the doc comment, where nothing was watching; this is the thing watching.
+#[test]
+fn install_long_help_names_every_skip_flag() {
+    let home = tempfile::tempdir().unwrap();
+    let assert = run_install(home.path(), &["install", "--help"]).success();
+    let output = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    // The flag list under Options: is clap's own render of the struct, so
+    // split there and read only the prose above it — the half a human writes.
+    let long_about = output.split("Usage:").next().unwrap();
+    for flag in ["--no-lib", "--no-defaults", "--no-schema"] {
+        assert!(
+            long_about.contains(flag),
+            "`mt install`'s long help never mentions {flag}:\n{long_about}"
+        );
+    }
 }
 
 /// `install-lib` is hidden from `--help` (deprecated in favour of `install`).

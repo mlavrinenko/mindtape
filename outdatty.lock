@@ -5,7 +5,7 @@ groups:
     source:
       crates/mindtape-cli/src/add.rs: 7c80e16fce9a8a3e4511638b00272d12d52067b4c7c0f8ac20cb98656c6a6ba3
       crates/mindtape-cli/src/check.rs: be65527021e1d8f8db8174309975ffff78384ef46aa2b24bff6095c611cdd285
-      crates/mindtape-cli/src/cli.rs: 6bc1d3bf7754483c65144205d29e675c0996ac6220cf54d50c7a798ca5e9d795
+      crates/mindtape-cli/src/cli.rs: b05f73a88e9877931e9d66f587935c7b5751ea6c6911a3435246c1eb2772b24b
       crates/mindtape-cli/src/config_cmd.rs: 12d9f8d935aa44d2749e2e7ce4b47f0d87320aac2589444b101e5ed406ceed78
       crates/mindtape-cli/src/eval.rs: f062458f0f925ddbe77966de7dc62572875f3ee7ca6a2bd12bfd2dd3a4813e06
       crates/mindtape-cli/src/find.rs: 2524ada47afeb3d72c42b35ebf7e9e8c3774fbe4ec8f616186e2c2269228dfdd
@@ -48,12 +48,12 @@ groups:
   cli-name:
     source:
       crates/mindtape-cli/Cargo.toml: 9ce1e4d3844fc88e726278cc268a51a08a69a5894cacf5e2a86f5d3b689e8824
-      crates/mindtape-cli/src/cli.rs: 6bc1d3bf7754483c65144205d29e675c0996ac6220cf54d50c7a798ca5e9d795
+      crates/mindtape-cli/src/cli.rs: b05f73a88e9877931e9d66f587935c7b5751ea6c6911a3435246c1eb2772b24b
     dependents:
-      CHANGELOG.md: eba713aa3ebfc16eb8533a6c98ae9462486c66592e032ef90874bad152b76774
-      docs/src/agents.typ: 934645643e48556ed8fdae54fc4f1aea8a47d241c1c36ee99d5b64134a6d3068
-      docs/src/contributing.typ: 8ddc2e05ccabdee234abf0f471ff5a934f50055c5df4e819dadd859966582734
-      docs/src/readme.typ: e1552698d15b8eade02b73f288c7e09028f691ba4833f251bf052566dd7276e2
+      CHANGELOG.md: 48e422978f63e9634e420290a8478f95f7316127937c8f68b5da4a1a129c27ca
+      docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
+      docs/src/contributing.typ: 4b3e4047f381e286072481ee6a9032fb8641c05648c5d033038646fd263f227a
+      docs/src/readme.typ: 2cc486562a688e7cdeb4ebb295f3bf9fc7ecf04d90797af01dd736b34818cd64
       docs/src/skill.typ: 9b07d4c6ed48afe20905132beaf0c9d6fb60cb815e5bb3e2036cb677eb5a24ad
       www/content/cli.typ: 4da3b4386735d38b88bb705ee0eb7d18efb181d7f5ed11d509ab9e0f10bf8a3f
       www/content/index.typ: eeb6dacf001681274ace80e70a7c373b3c2cad6de092ca9f99ed31c94d6de8a4
