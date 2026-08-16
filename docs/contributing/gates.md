@@ -14,7 +14,7 @@ The double hop makes mmz the cache identity — the rule name is `just <recipe>`
 
 There is no `chronic` here: a cache hit prints mmz’s own `on_hit` note to stderr (quiet by construction), a miss streams the underlying recipe’s stdout and stderr live, and a failure propagates its non-zero exit out of `parallel` unchanged.
 
-One arm is deliberately NOT wrapped, and it is the exception that shows what the wrapping assumes. `just check-crap` runs bare: mmz memoizes on file scopes and the lcov is a build artifact in none of them, so a memoized verdict would survive the lcov going fresh and that arm would skip forever on unchanged sources — a gate that caches “I could not measure” is worse than one that is simply absent.
+The arm that measures a build artifact is wrapped like the rest, and it is the case that shows what the wrapping needs. `just check-crap` reads `target/coverage/lcov.info`, a path git ignores and no source scope covers, so it is named by an `lcov` scope of its own, declared `gitignore: false` — the per-scope opt-out that keeps a scope over ignored paths from resolving empty under the manifest-wide filter (when that key is load-bearing for a given glob and when it is a declaration is measured in `.mmz/config.yaml`, beside the scope). Absent and present are therefore different input states: the arm skips loudly while no lcov exists and goes stale the moment `just cover` writes one, instead of caching “I could not measure” as a pass that outlives the artifact appearing. That arm ran unwrapped for as long as nothing named the artifact it reads; nothing else ever did.
 
 ## Why the example projects are gated
 

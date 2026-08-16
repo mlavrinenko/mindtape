@@ -58,7 +58,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") check-crap
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "check-crap")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -233,9 +233,10 @@ script-attr-check:
 # The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
 # fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0. It
 # is the cheap partial, not the correct one: `just check-full` is the arm that
-# is always right. Why it exists, what it does and does not buy, and why it is
-# the one arm not wrapped in mmz are in docs/contributing/coverage-crap.md and
-# docs/contributing/gates.md.
+# is always right. Why it exists and what it does and does not buy are in
+# docs/contributing/coverage-crap.md; it is wrapped in mmz like every other arm
+# and the `lcov` scope that lets a skip be memoized without sticking is argued
+# in .mmz/config.yaml.
 
 [doc("Run the CRAP gate when the lcov is fresh, else skip loudly")]
 [group("gate")]

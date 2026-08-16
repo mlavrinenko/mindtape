@@ -119,6 +119,46 @@ scopes:
     # quickstart install targets baked into the built docs.
     - ".github/workflows/release.yml"
 
+  # The coverage artifact `just check-crap` measures. This scope is the reason
+  # that arm can be memoized at all: it is a build artifact under git-ignored
+  # `target/`, in none of the scopes above, and a rule that cannot name its
+  # input records "I could not measure" as a pass whose digest never moves when
+  # the artifact appears — the exact false-fresh the comments above keep
+  # arguing against, and why that arm ran unwrapped for as long as it did.
+  #
+  # What actually unblocked it was naming the artifact at all, NOT the
+  # `gitignore: false` below. Measured on mmz 0.6.0, and recorded here because
+  # the tidy story is the wrong one: a wildcard pattern
+  # (`target/coverage/*.info`) is walked, so the filter applies and it yields
+  # nothing under `gitignore: true`; the wildcard-free path below is stat-ed
+  # instead of walked, so it yields the lcov under either setting.
+  #
+  # The key stays for two reasons that do not depend on that. This scope's
+  # correctness must not rest on the glob never gaining a wildcard, and a scope
+  # whose whole subject is ignored paths should say so. It belongs on the scope
+  # rather than the manifest: flipping the top-level key would walk all of
+  # `target/` and the 2000 generated files under `examples/large/` the
+  # `examples` scope exists to keep out of every rule.
+  #
+  # A glob matching nothing is legal and is the point — absent and present are
+  # different input states, so `just check-crap` skips loudly while no lcov
+  # exists and goes stale the moment `just cover` writes one.
+  lcov:
+    gitignore: false
+    globs:
+      - "target/coverage/lcov.info"
+
+  # The ratchet baseline `just crap`'s second pass scores against
+  # (`--baseline`, in .just/scripts/crap.sh). A root JSON file no other scope
+  # covers, and `just crap-baseline` re-mints it without necessarily touching a
+  # source — so without this the check-crap record taken against the old
+  # baseline would stay fresh and the ratchet would never be re-evaluated
+  # against the new one. Same class of hole as the Typst half of
+  # check-file-size below, found by writing the input list rather than by a
+  # gate going quiet.
+  crap-baseline:
+    - "crap-baseline.json"
+
   # Shared by every rule: the recipe bodies (Justfile, and .just/docs.just —
   # the `docs` module Justfile splits recipe bodies into, per truth/tasks/split-
   # the-justfile-into-modules.typ) and the dev-shell they all run in
@@ -325,3 +365,18 @@ commands:
   - name: just size-fixture-check
     tags: [gate]
     inputs: [file-size-config, gates-meta]
+
+  # The cheap CRAP arm: `just _lcov-stale-reason` decides, then either `just
+  # crap` scores or the arm skips loudly and exits 0. It ran unwrapped until
+  # mmz could name a git-ignored path, because memoizing a skip that could not
+  # see the artifact is worse than not memoizing at all; the `lcov` scope above
+  # is what closed that, so the recorded verdict — pass or skip — dies the
+  # moment the artifact it read (or could not read) changes state. `rust`
+  # because the staleness test compares `crates/**/*.rs` mtimes against the
+  # lcov and `cargo crap` scores those same sources, `crap-baseline` because
+  # the ratchet pass reads it, `gates-meta` for the three script bodies
+  # (check-crap.sh, crap.sh, _lcov-stale-reason.sh), the CRAP_EXCLUDES list
+  # they are handed, and the cargo-crap pin they run from.
+  - name: just check-crap
+    tags: [gate]
+    inputs: [rust, crap-baseline, lcov, gates-meta]

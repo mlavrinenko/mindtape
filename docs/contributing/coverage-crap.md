@@ -50,7 +50,7 @@ Why it exists: `just crap` is CI-enforced and used to be absent from `just check
 
 Be honest about what this buys. Editing any source stales the lcov, so on precisely the commits that matter this arm SKIPS. It catches the free case — a check run after a recent `just cover` — and nothing more. `just check-full` is the arm that is always correct; this one is the cheap partial. It follows the signal sweep’s mutants arm: absent and clean must never look alike, so it says which of the two it is every time.
 
-Why it is the one `just check` arm that is not memoized is in [docs/contributing/gates.md](docs/contributing/gates.md).
+It is memoized like every other `just check` arm, over an `lcov` input scope naming the artifact it reads — so a recorded skip dies the moment that artifact appears, rather than caching “I could not measure” on unchanged sources. What that scope costs and why it needs its own `gitignore` opt-out is in [docs/contributing/gates.md](docs/contributing/gates.md).
 
 ## When the baseline itself is the thing that is wrong
 

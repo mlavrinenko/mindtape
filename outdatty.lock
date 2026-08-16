@@ -64,7 +64,7 @@ groups:
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
       .just/scripts/arg-pattern-check.sh: f3bda8e8285ef4a4ce9e684d7440256ad6dbb2160e977d9a336f3f4135814593
-      .just/scripts/check-crap.sh: 899940d299002319b0f7426134cdd2afb5deeba4d07ab83aa48e5cf3c5861586
+      .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
       .just/scripts/check-doc-coverage.sh: d1692da6fbe9e26f2d7bc72b89606548820120edbded1665776e548aeec54a2b
       .just/scripts/check-doc-facts.sh: b8fa6513903f820b889dfb05290d3f75c067b385fc4dc540b1203fea867a52cc
       .just/scripts/check-doc-recipes.sh: 899053ed43cae7e3542296aded65a0ad196f72d06676e1ec307902953fd08150
@@ -80,13 +80,13 @@ groups:
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
       .just/scripts/script-attr-check.sh: a9c85174cfafb4e0d2edb585ae8c61e0b6cf1fbd2af9e65585f34d4d991d8640
       .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
-      Justfile: 9bc2a731697a57cf509f0f22cd361885a11f236101c990cf9e94ece4acb8c674
+      Justfile: 6613c2ec3df520dcb3820665f0fd4ccaa3dc7e9a677332f539764d69d10a564a
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
       docs/src/contributing.typ: 4b3e4047f381e286072481ee6a9032fb8641c05648c5d033038646fd263f227a
-      docs/src/contributing/coverage-crap.typ: 5ae92adf3b28813c3c5c53e7ae4e6afb144d0e1d9e0ed301d4b857347da817c0
-      docs/src/contributing/gates.typ: 7a3ab58c25653647b02e235504b1423f9b85201b6535eec09c6e722d1fc33b56
+      docs/src/contributing/coverage-crap.typ: d3487d2473ad5c4123ea4a3830fbf557698fcc93c99d504cfad2f31a1151035b
+      docs/src/contributing/gates.typ: c79e9294b0a909cf0229979a6f593561b25d7355934149cded023b68c47b1b31
       docs/src/contributing/mutation-testing.typ: aa7a8de97b0fdf6f1b8c9406b3af0db478f61f4ab86a714eaec789105d293c61
       docs/src/contributing/signal-sweep.typ: afaf72f963be0b5d5e28f0251961e5a4512a80277cd3c76d92b6b292d62778ba
       docs/src/contributing/windows.typ: f6acf2d8c85c924166f34c1b5f06e9d77c0b2bae94ddd196ca5e1455a672bc75
