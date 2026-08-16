@@ -58,7 +58,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "check-crap")
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "check-crap")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -229,6 +229,21 @@ positional-args-check:
 [group("gate")]
 script-attr-check:
     bash .just/scripts/script-attr-check.sh
+
+# Lock the per-script mmz scopes onto the directory they enumerate: every
+# `.just/scripts/*.sh` must be named by a scope as a literal path, and every
+# memoized rule whose body invokes a script must name that script's scope. This
+# is what `.mmz/config.yaml` bought the split with — the `.just/scripts/**`
+# glob it replaced covered a new body by ARRIVING, and an enumeration only
+# covers what somebody listed
+# (truth/tasks/split-gates-meta-into-per-script-scopes.typ). Why a glob can
+# never satisfy the first arm, and which case the second deliberately cannot
+# see, are argued in place in .just/scripts/script-scope-check.sh.
+
+[doc("Lock every gate script into a named mmz scope")]
+[group("gate")]
+script-scope-check:
+    bash .just/scripts/script-scope-check.sh
 
 # The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
 # fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0. It

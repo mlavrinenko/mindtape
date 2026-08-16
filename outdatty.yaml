@@ -305,6 +305,15 @@ groups:
   # that `shebang` cannot discriminate a `[script]` recipe from a `#!` body,
   # and the argument for probing each justfile's setting instead of matching
   # its text. None of that is derived from anything.
+  #
+  # script-scope-check.sh is the fourth, and it is tracked for a reason none of
+  # the other three has: it is the only script whose subject is
+  # .mmz/config.yaml's own shape, and both docs/src/contributing/gates.typ and
+  # www/utils/gate-notes.typ restate by hand what it asserts — the two arms,
+  # why a wildcard can never satisfy the first, the nested-`just` case the
+  # second does not derive, and the churn measurement that decided the split
+  # (truth/tasks/split-gates-meta-into-per-script-scopes.typ). Change what it
+  # proves and that prose is wrong with nothing else reacting.
   - name: dev-docs
     source:
       - flake.nix
@@ -329,6 +338,7 @@ groups:
       - .just/scripts/_mutants-env.sh
       - .just/scripts/size-fixture-check.sh
       - .just/scripts/script-attr-check.sh
+      - .just/scripts/script-scope-check.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ

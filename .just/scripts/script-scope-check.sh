@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+# .just/scripts/script-scope-check.sh — the body of the `script-scope-check`
+# recipe (truth/tasks/split-gates-meta-into-per-script-scopes.typ). Runs from
+# the repo root, like the recipe that invokes it.
+#
+# THE PRICE THIS PAYS. `.mmz/config.yaml`'s `gates-meta` scope used to carry
+# `.just/scripts/**` as a glob, shared by every rule, and that glob was a
+# deliberate choice with a real property: the directory is recipe bodies by
+# construction, so a body extracted out of the Justfile was covered by
+# ARRIVING, never by someone remembering to wire it up. It also meant editing
+# one script re-ran every rule in the manifest — clippy, the full test suite
+# and the docs build included — for a change to one gate's body. Splitting the
+# glob into one scope per script buys that back and gives up the arriving-is-
+# enough property, so the split is a net loss unless something closes it. This
+# is that something: both halves of what the glob guaranteed, asserted instead
+# of assumed.
+#
+# The two arms answer two different questions, and neither implies the other:
+#
+#   1. Is every script NAMED at all? A set difference between the files on disk
+#      and the literal paths the scopes list. A script no scope names is
+#      invisible to mmz — the rule that runs it serves a stale cache hit
+#      against a body it never hashed, which is the false-fresh every comment
+#      in .mmz/config.yaml argues against.
+#   2. Is it named by the RIGHT rule? Arm one passes for a script listed in a
+#      scope no rule reads, or read by some unrelated rule, and the stale hit
+#      survives both. So each rule's recipe body is read back out of `just
+#      --dump` and its declared inputs must cover every script that body
+#      invokes.
+#
+# ONLY WILDCARD-FREE PATHS COUNT as naming a script in arm one, and that is
+# load-bearing rather than tidy. The obvious way to make a failure here go
+# away is to put `.just/scripts/**` back into some scope; if a glob counted,
+# that would satisfy this gate while restoring exactly the shared-scope churn
+# the split removed. It does not count, so the only way to green is to name the
+# file. The one glob that remains over this directory (`scripts-all`) therefore
+# names nothing here — it exists for the three rules whose subject IS the whole
+# directory, this one included: a check that has to notice a script ARRIVING
+# cannot take an enumeration as its input, because the file it must react to is
+# by definition the one nobody listed.
+#
+# WHAT ARM TWO CANNOT SEE: a body reached through a nested `just`. check-crap.sh
+# shells out to `just crap` and `just _lcov-stale-reason`, so those two scripts
+# are inputs of the `just check-crap` rule by hand, not by derivation. Resolving
+# that transitively would mean interpreting recipe bodies rather than reading
+# them, and a wrong answer there would fail correct manifests. Direct
+# invocation is what a static read can prove, so it is all this arm claims.
+#
+# Static, like check-doc-recipes.sh and positional-args-check.sh: it reads the
+# manifest, the directory listing and the just dump. No recipe body runs.
+set -eo pipefail
+
+manifest=".mmz/config.yaml"
+fail=0
+
+shopt -s nullglob
+scripts=(.just/scripts/*.sh)
+if [ ${#scripts[@]} -eq 0 ]; then
+    echo "script-scope-check: no .just/scripts/*.sh found — running outside the repo root?" >&2
+    exit 1
+fi
+
+# scope<TAB>glob, every entry of every scope. A scope's value is either a bare
+# list of globs or a `{gitignore, globs}` dict (the `lcov` scope is the second
+# shape), so both are unwrapped here rather than one being assumed.
+entries=$(yq -r '
+    .scopes // {} | to_entries[]
+    | .key as $scope
+    | (if (.value | type) == "object" then (.value.globs // []) else .value end)[]
+    | "\($scope)\t\(.)"
+' "$manifest")
+
+# rule<TAB>input-scope, for every rule in `commands`.
+rule_inputs=$(yq -r '
+    .commands // [] | .[] | .name as $rule | (.inputs // [])[] | "\($rule)\t\(.)"
+' "$manifest")
+
+# recipe<TAB>script, for every `.just/scripts/*.sh` path a recipe body invokes.
+# Modules are walked recursively (`docs::md-check`'s body is the reason), and
+# each recipe's `namepath` is already fully qualified, so it maps straight onto
+# the `just <namepath>` rule names the manifest uses. A body line is a list of
+# string and `{{ VAR }}` fragments; the variable fragments are dropped and the
+# rest joined. A line that opens with `#` is a comment in the body — commented
+# out is not invoked — so it is skipped rather than scanned.
+invocations=$(just --dump --dump-format json | jq -r '
+    def all_recipes:
+      ((.recipes // {}) | to_entries | map(.value))
+      + ((.modules // {}) | to_entries | map(.value) | map(all_recipes) | add // []);
+    all_recipes[]
+    | .namepath as $recipe
+    | (.body // [])[]
+    | map(select(type == "string")) | join(" ") | sub("^[ \t]+"; "")
+    | select(startswith("#") | not)
+    | scan("\\.just/scripts/[A-Za-z0-9._-]+\\.sh")
+    | "\($recipe)\t\(.)"
+' | sort -u)
+
+# ARM ONE: every script on disk is named by some scope, as a literal path.
+for script in "${scripts[@]}"; do
+    if ! awk -F'\t' -v p="$script" '
+        $2 == p && $2 !~ /[][*?]/ { found = 1 } END { exit !found }
+    ' <<<"$entries"; then
+        echo "script-scope-check: $script is named by no scope in $manifest" >&2
+        echo "  add a \`script-<stem>\` scope listing it, and name that scope from the rule whose body it is" >&2
+        fail=1
+    fi
+done
+
+# The same difference the other way: a scope naming a script that no longer
+# exists. Harmless to mmz (a glob matching nothing is legal), and exactly the
+# line a rename leaves behind pointing at the old name while the rule it feeds
+# quietly stops hashing anything.
+while IFS=$'\t' read -r scope path; do
+    [ -n "$path" ] || continue
+    case "$path" in
+        .just/scripts/*.sh) ;;
+        *) continue ;;
+    esac
+    [[ "$path" == *[][*?]* ]] && continue
+    if [ ! -f "$path" ]; then
+        echo "script-scope-check: scope \`$scope\` names $path, which does not exist" >&2
+        fail=1
+    fi
+done <<<"$entries"
+
+# ARM TWO: a rule whose recipe body invokes a script must declare a scope
+# covering it. A glob input counts here — unlike arm one, the question is only
+# whether the body is hashed at all, and `scripts-all` hashes it.
+checked=0
+while IFS=$'\t' read -r recipe script; do
+    [ -n "$recipe" ] || continue
+    rule="just $recipe"
+    grep -qxF "$rule" <<<"$(cut -f1 <<<"$rule_inputs")" || continue
+    checked=$((checked + 1))
+    covered=0
+    while IFS= read -r scope; do
+        while IFS= read -r pattern; do
+            # shellcheck disable=SC2053  # pattern match, not string equality
+            if [[ "$script" == $pattern ]]; then
+                covered=1
+                break 2
+            fi
+        done < <(awk -F'\t' -v s="$scope" '$1 == s { print $2 }' <<<"$entries")
+    done < <(awk -F'\t' -v r="$rule" '$1 == r { print $2 }' <<<"$rule_inputs")
+    if [ "$covered" -eq 0 ]; then
+        echo "script-scope-check: rule \`$rule\` runs $script but no scope in its inputs names it" >&2
+        echo "  it would serve a stale hit against a body it never hashed" >&2
+        fail=1
+    fi
+done <<<"$invocations"
+
+if [ "$fail" -ne 0 ]; then
+    echo "script-scope-check: the per-script scopes no longer cover .just/scripts/" >&2
+    exit 1
+fi
+echo "script-scope-check: all ${#scripts[@]} scripts are named by a scope, and $checked memoized rules name every body they invoke"

@@ -62,6 +62,63 @@ one, instead of caching "I could not measure" as a pass that outlives the
 artifact appearing. That arm ran unwrapped for as long as nothing named the
 artifact it reads; nothing else ever did.
 
+= Why the script scopes are enumerated
+
+`.mmz/config.yaml` names one scope per file under `.just/scripts/`, listed
+path by path. It used to name them with a single `.just/scripts/**` glob inside
+`gates-meta`, the scope every rule shares, so editing one recipe body re-ran
+every rule — clippy, the full test suite, the docs build — for a change to a
+gate that never opens the file.
+
+The glob was not an oversight, and the enumeration gives up something real. The
+directory is recipe bodies by construction, so a body extracted out of the
+Justfile was covered by arriving, rather than by someone remembering to wire it
+up. An enumeration only covers what somebody listed, and an unlisted script is
+invisible: the rule that runs it serves a stale hit against a body it never
+hashed.
+
+That is paid for by #just.script-scope-check(), not by care. It set-differences
+the files on disk against the literal paths the scopes name, and separately
+reads each rule's recipe body back out of the just dump to require that a rule
+invoking a script declares a scope covering it — the second arm because a
+script listed in a scope no rule reads passes the first while the stale hit
+survives. A wildcard never counts as naming a script, so answering a failure by
+putting the glob back satisfies nothing.
+
+Three rules keep a directory-wide glob, and their subject is the directory
+rather than one body in it: #just.check-file-size() (linecop scans every file
+under it), #just.outdatty-check() (every script is a `dev-docs` source) and
+#just.script-scope-check() itself, which has to notice a script ARRIVING and so
+cannot take an enumeration as its input.
+
+== What the split did and did not buy
+
+Measured on the maintainer's machine with a hot `target/`, against the
+twenty-one rules in the manifest (the twenty #just.check() arms plus
+#just.cover()). Each figure is one #just.check() run after the edit named,
+with the `dev-docs` group re-recorded the way any such edit requires:
+
+- A no-op re-run skips 20 of 20 arms: 0.2s wall, 0.4s CPU. The floor.
+- A one-script edit re-runs 4 of 20 — the rule whose body it is, plus the three
+  directory-wide ones above: 0.8s wall, 1.4s CPU. Before the split it re-ran
+  all of them, which is the Justfile figure below.
+- A Justfile-only edit re-runs 20 of 20: 39s wall, 85s CPU. Unchanged by this
+  work, and 50x the one-script case.
+
+So the split moved script edits from the Justfile figure to the no-op figure,
+and moved the Justfile itself not at all. Every rule names `gates-meta` and the
+Justfile is one file, so hashing part of it needs mmz's command-driven input
+hashes; that is filed separately and deliberately not adopted here, where a
+wrong probe would make a gate lie. The scripts were the half that split with no
+new mmz feature at all, and this measurement is what the adoption decision
+waits on.
+
+One caveat the averages hide: what a one-script edit costs after the split is
+the edited arm's own runtime, not the fan-out. Editing
+`.just/scripts/check-doc-recipes.sh` still takes 38s, because that arm alone
+takes 38s — it is also the arm that sets the whole gate's parallel wall-clock
+floor. Fan-out is what the scopes control; a slow arm is its own problem.
+
 = Why the example projects are gated
 
 #just.check-examples() validates every example project against itself, so a

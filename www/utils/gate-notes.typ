@@ -174,6 +174,20 @@
     in parallel and a probe in the tracked tree would fail the real size gate
     mid-run; see `.just/scripts/size-fixture-check.sh`.
   ],
+  "script-scope-check": [
+    Enumeration lock for `.mmz/config.yaml`'s per-script scopes, in two arms.
+    Every `.just/scripts/*.sh` must be named by some scope as a literal path,
+    and every memoized rule whose recipe body invokes a script must declare a
+    scope covering it — the second because a script listed in a scope no rule
+    reads passes the first while still serving a stale hit. It exists because
+    those scopes replaced a `.just/scripts/**` glob every rule carried,
+    and the glob had the property an enumeration cannot have: a recipe
+    body extracted out of the Justfile was covered by arriving. A wildcard
+    never counts as naming a script, so putting the glob back satisfies
+    nothing; a body reached through a nested `just` (check-crap.sh's two) is
+    the case the second arm deliberately does not derive. See
+    `.just/scripts/script-scope-check.sh`.
+  ],
   "check-crap": [
     Editing any source stales the lcov, so it skips on the commits that
     matter; it catches the free case only. #just.check-full() is the arm
