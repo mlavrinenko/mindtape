@@ -1,12 +1,7 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout
 #import "../utils/site.typ": REPO, u
 
-#show: page.with(
-  title: "Comparison",
-  active: "/comparison/",
-  summary: "How MindTape compares, feature by feature, to the other local file-and-CLI task trackers — and when one of them is the better fit.",
-)
+#show: page.with(active: "/comparison/")
 
 // Canonical landing page / repo for each neighbour, reused in the bullet list
 // and the matrix header. Verified live (curl -sI) before use.
@@ -16,16 +11,16 @@
 #let orgmode-url = "https://orgmode.org"
 #let git-bug-url = "https://github.com/git-bug/git-bug"
 
-// The maturity cell reads the real binary's own report of itself — "mt X.Y.Z"
+// MindTape's own version reads the real binary's report of itself — "mt X.Y.Z"
 // captured by www/generate.sh into www/generated/version.txt, same pattern as
-// every other page's `read("../generated/…")` — so the cell can never drift
-// from what actually got tagged and shipped.
+// every other page's `read("../generated/…")` — so it can never drift from what
+// actually got tagged and shipped.
 #let mt-version = read("../generated/version.txt").trim().split(" ").last()
 
 // Neutral capability heatmap: the SAME rubric applies to every column,
 // including MindTape — green = has the capability / strong, amber = partial
-// or indirect, grey = none. Only the seven objectively-scoreable capability
-// rows in the matrix below get wrapped in `cap`; descriptive rows (storage
+// or indirect, grey = none. Only the objectively-scoreable capability rows in
+// the matrix below get wrapped in `cap`; descriptive rows (storage
 // granularity, on-disk format, identity, ...) stay plain, since there is no
 // better or worse to signal there. Colour lives in theme-aware CSS custom
 // properties (components.css), not a baked Typst `fill`, so the tone stays
@@ -38,10 +33,9 @@
 
 MindTape is not out to replace every task tracker. It sits in a narrow niche:
 #strong[typed tasks, one per file, versioned with the code, validated by config,
-  no daemon]. This page compares it, feature by feature, against the other local
-file-and-CLI trackers — the real neighbours. Hosted services (GitHub Issues,
-Jira, Linear) are a different category: daemon-plus-database SaaS with no in-repo
-file artifact, and out of scope here.
+  no daemon]. The neighbours below are the other local file-and-CLI trackers.
+Hosted services (GitHub Issues, Jira, Linear) are a different category:
+daemon-plus-database SaaS with no in-repo file artifact, and out of scope here.
 
 = The neighbourhood
 
@@ -57,8 +51,9 @@ file artifact, and out of scope here.
 - #strong[#link(git-bug-url)[git-bug]] — issues stored inside git objects, offline-first and
   distributed.
 
-All six are daemon-free and run locally, so that alone separates none of them.
-The table below digs into how each one stores, types, links, and renders a task.
+All of them are daemon-free and run locally, so that alone separates none of
+them. The table below digs into how each one stores, types, links, and renders a
+task.
 
 = Feature by feature
 
@@ -174,21 +169,31 @@ matrix scrolls sideways on narrow screens.
   [#cap("green")[Yes — PDF today]],
   [#cap("grey")[No]],
 
+  // NOT "mt binary + Typst": `mt` links the Typst compiler crates and embeds
+  // the prelude, so nothing external is installed or shelled out to (verified —
+  // `mt ls` evaluates a project with an empty environment and no `typst` on
+  // PATH). The one-time `mt install` writes the prelude into the user data
+  // directory; that is the whole footprint.
   [#link(u("/quickstart/"))[Toolchain footprint]],
-  [`mt` binary + Typst],
+  [Single binary + `mt install`],
   [Single Go binary + git],
   [Single binary],
   [Bash script only],
   [Emacs],
   [Go binary + git],
 
-  [#link(REPO)[Maturity + license (mid-2026)]],
-  [#(mt-version + "; MIT")],
-  [~1.2k★, stable; MIT],
-  [~5.9k★, active; MIT],
-  [~6.1k★ + huge ecosystem; GPL-3],
-  [ships with Emacs, ~20y; GPL-3],
-  [~9.9k★, active; GPL-3],
+  // This row used to carry each neighbour's GitHub star count under a
+  // "mid-2026" stamp. Nothing in this repo can check those numbers, and they
+  // move every week — a stamped snapshot only dates the page, and the maturity
+  // gap is already argued in words below, which is where a judgement belongs.
+  // The license is the part of the old cell that holds still.
+  [#link(REPO + "/blob/main/LICENSE")[License]],
+  [MIT],
+  [MIT],
+  [MIT],
+  [GPL-3],
+  [GPL-3],
+  [GPL-3],
 ))
 
 = Where MindTape leads
@@ -211,11 +216,12 @@ matrix scrolls sideways on narrow screens.
 = Where the others win
 
 - #strong[Maturity and ecosystem.] Every competitor is released and
-  battle-tested; MindTape is younger, with far less mileage and a much smaller
-  ecosystem. Taskwarrior and todo.txt carry decades of tooling, integrations,
-  and mobile apps.
-- #strong[Zero toolchain.] todo.txt is one text file plus a shell script — no
-  binary, no compiler. MindTape needs the `mt` binary and a Typst toolchain.
+  battle-tested. MindTape is at #mt-version, with far less mileage and a much
+  smaller ecosystem; Taskwarrior and todo.txt carry decades of tooling,
+  integrations, and mobile apps.
+- #strong[Zero install.] todo.txt is one text file plus a shell script — no
+  binary at all. MindTape needs the `mt` binary, plus one `mt install` per
+  machine to place the prelude.
 - #strong[Rich document export.] Org-mode exports whole outlines to polished PDF,
   HTML, and LaTeX with decades of theming. MindTape's `task` show rule typesets a
   single task as an index card today — real, but one card, not a multi-task report
@@ -244,15 +250,9 @@ matrix scrolls sideways on narrow screens.
 // sentence into a run-on. A semicolon after plain text or after a literal `)`
 // is fine. Reword instead, as below.
 dstask shares the most DNA: one file per task, git as the store, a single-binary
-CLI. The differences are the trade. A MindTape task is #strong[typed Typst
-  validated by project config]. A dstask task is a YAML record with a light fixed
-schema. MindTape tasks live #strong[in your code tree], reviewed in the same PR;
+CLI. A MindTape task is #strong[typed Typst validated by project config]. A
+dstask task is a YAML record with a light fixed schema. MindTape tasks live #strong[in your code tree], reviewed in the same PR;
 dstask keeps them in its own git repo it auto-commits for you. MindTape
 #link(u("/priority/"))[scores priority frameworks], while dstask ranks `P0`–`P3`. The
-cost of all that structure is a Typst toolchain versus a single static binary —
-and dstask, being released and mature, is simpler to install today.
-
-#callout("note")[
-  Pick the tool that matches how you work. If tasks-as-code, in-repo, and typed is
-  the shape you want, #link(u("/quickstart/"))[start here].
-]
+cost of all that structure is a task file you author in Typst rather than fill in
+as YAML — and dstask, being released and mature, is simpler to adopt today.

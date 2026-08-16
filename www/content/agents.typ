@@ -2,14 +2,10 @@
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 
-#show: page.with(
-  title: "For AI agents",
-  active: "/agents/",
-  summary: "MindTape is legible to coding agents: structured JSON, describable schemas, honest exit codes, and file-based state.",
-)
+#show: page.with(active: "/agents/")
 
-MindTape is a good fit for AI coding agents for the same reasons it suits scripts:
-state is plain files, output is structured, and every command is deterministic.
+None of this is an agent mode. It is the ordinary CLI surface — a shell script
+and an agent drive the same commands, for the same reasons.
 
 = Structured output everywhere
 
@@ -40,9 +36,8 @@ MindTape reads its own data back out without MindTape interpreting it.
 #link(u("/cli/"))[`[[ls.rules]]`] entry (if any) drove the listing and which
 source won each facet, so an agent can tell a conditional listing from a plain
 one without re-deriving it. `schema_version` (see #link(u("/schema/"))[the
-  canonical schema]) lets an agent check the envelope shape it is about to parse
-instead of guessing — a version it does not recognize is a signal to bail out,
-not silently mis-parse:
+  canonical schema]) names the envelope shape it is about to parse: a version it
+does not recognize is a signal to bail out, not to mis-parse silently.
 
 #terminal(read("../generated/ls-json.txt"))
 
@@ -62,9 +57,9 @@ reads `MINDTAPE_ADD_<SLOT>` — so a task can be filed with no interactive promp
 
 = Honest exit codes and quiet output
 
-`mt check` exits non-zero on any violation and names each one — drop it in CI or a
-pre-commit hook. On a clean project it exits 0. Pass `--color never` (or rely on
-`NO_COLOR`) for clean, parseable output in a non-TTY:
+`mt check` exits non-zero on any violation and names each one — drop it in CI or
+a pre-commit hook. Pass `--color never` (or rely on `NO_COLOR`) for parseable
+output in a non-TTY:
 
 #terminal(read("../generated/check.txt"))
 
@@ -72,9 +67,8 @@ pre-commit hook. On a clean project it exits 0. Pass `--color never` (or rely on
 
 An agent driving `mt` from outside the project tree points it at a worktree with
 `-w/--worktree <path>` (or `$MINDTAPE_WORKTREE`; the flag wins). The path must
-hold a `.mindtape/`; relative paths resolve against the cwd. Every command —
-`ls`, `add`, `check`, `flip`, `go`, `rm`, `config` — honours it uniformly, so no
-`cd` into the checkout is needed.
+hold a `.mindtape/`; relative paths resolve against the cwd. It is a global
+flag, so every command honours it and no `cd` into the checkout is needed.
 
 ```sh
 mt -w ~/code/app check
@@ -106,19 +100,18 @@ mt @app ls
 
 = Reproducible "today"
 
-Every date `mt` stamps or reads — `status`/`reviewed` dates, `now()` and
-`stale()` in filters, the overdue marker, `mt recur` advances — resolves
-"today" once per process from `$MINDTAPE_NOW` (`YYYY-MM-DD` or an RFC 3339
-timestamp; the date part is used verbatim), else the system clock read as a
-local calendar date (`$TZ` on Unix), never UTC. Pin it for deterministic
-output — docs generation, golden-file tests, a CI snapshot:
+// The full rule — which dates resolve from it, the accepted formats, the
+// local (never UTC) fallback and the hard error on a malformed value — is
+// /config/'s "Environment variables" section. Stating it twice is how the two
+// copies drift; this page owns only the reason an agent reaches for it.
+Pin `$MINDTAPE_NOW` and every date `mt` stamps or reads comes from it instead of
+the clock — the one knob that makes a run reproducible, for docs generation,
+golden-file tests, or a CI snapshot. #link(u("/config/"))[Environment variables]
+has the rule.
 
 ```sh
 MINDTAPE_NOW=2026-07-11 mt ls --json
 ```
-
-A malformed `$MINDTAPE_NOW` is a hard error naming the variable, never a silent
-fall-through to the system clock.
 
 = State is just files
 
