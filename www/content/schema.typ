@@ -2,20 +2,13 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
-#show: page.with(
-  title: "Canonical schema",
-  active: "/schema/",
-  summary: "The canonical task-JSON schema shared by `mt ls --json` and `mt import` — the contract a jq adapter codes against.",
-)
+#show: page.with(active: "/schema/")
 
 One shape, two directions: `mt ls --json` serializes every task into the
 canonical schema; `mt import` reads that same shape back and writes native
-`.typ` files. Because it is one contract, `mt ls --json | mt import` round-trips
-a task losslessly, and a jq program that targets this schema works as both an
-import adapter's *output* and something you can hand-inspect from a live
-export. The shape itself carries a version marker, but at the document level,
-in the envelope wrapped around a listing (see "The envelope" below) — not on
-each record.
+`.typ` files. Being one contract, `mt ls --json | mt import` round-trips a task
+losslessly, and a jq program that targets this schema works as both an import
+adapter's *output* and something to hand-inspect from a live export.
 
 #callout("note")[
   This page mirrors the field contract documented on
@@ -128,19 +121,19 @@ round-trip.
 }
 ```
 
-A record on its own carries no `schema_version` — the field above is complete
-without one. That's on purpose: the version marker versions the *document*
-shape a listing comes wrapped in, not each task inside it.
+A record on its own carries no `schema_version`: the marker versions the
+*document* shape a listing comes wrapped in, not each task inside it.
 
 = The envelope
 
-`mt ls --json` wraps its records in a document-level envelope. Its shape, with
-the version and the record count read from a real capture against the
-`learn-piano` fixture, so neither can drift:
+`mt ls --json` wraps its records in a document-level envelope. The version and
+record count below are read from a real capture against the `learn-piano`
+fixture, so neither can drift:
 
 // Derived from the generated capture rather than hand-typed, but summarised
-// rather than inlined whole: the full 380-line transcript lives on the
-// agents page, where the audience wants every field.
+// rather than inlined whole: the full transcript lives on the agents page,
+// where the audience wants every field. No line count here — it is generated,
+// so any number written down goes stale on the next capture.
 #let envelope = json("../generated/ls-json.txt")
 #raw(
   "{\n"

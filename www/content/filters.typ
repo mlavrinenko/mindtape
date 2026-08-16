@@ -2,11 +2,7 @@
 #import "../utils/ui.typ": callout, terminal, terminal-ansi
 #import "../utils/site.typ": u
 
-#show: page.with(
-  title: "Filter language",
-  active: "/filters/",
-  summary: "The expression language mt ls and mt rm use to select tasks: fields, operators, functions, and dependency predicates.",
-)
+#show: page.with(active: "/filters/")
 
 `mt ls` and `mt rm` take a filter expression — a boolean query over task fields.
 Here, every task not yet in a terminal status:
@@ -82,11 +78,9 @@ with `miss(field)`.
 )
 
 Everything date-shaped — `stale(N)`, `now()` in an `[[ls.rules]]` condition,
-`due < now()` and the overdue marker — reads "today" as the calendar date on
-the machine running `mt`, in its local timezone (`$TZ` on Unix), never UTC. So
-a task filed at 01:00 carries that day's date, not the previous one, and
-`$MINDTAPE_NOW` overrides the lot — see #link(u("/config/"))[Environment
-  variables].
+`due < now()` and the overdue marker — reads one "today", resolved once per
+process and pinnable with `$MINDTAPE_NOW`: see
+#link(u("/config/"))[Environment variables].
 
 `@name` composes like any predicate:
 
@@ -134,8 +128,8 @@ mt ls -n 10                    # limit to 10
 
 Omitting the filter first tries the project's ordered
 #link(u("/cli/"))[`[[ls.rules]]`] — auto-activation rules keyed off a separate,
-environment-only mini-language (`on_branch(...)`, `env(...)`, `weekday()`,
-`now()` — no task fields; same operators and parser as this page's filters).
+environment-only mini-language: same operators and parser as this page's
+filters, no task fields.
 No rule matching falls back to the default view — `[ls] default-view` by name,
 else the `[views.default]` view; an empty filter (`''`) skips all of that and
 matches everything. The shipped default view filters `!terminal &&
@@ -149,6 +143,6 @@ required = "!terminal"` (and its siblings) is a filter, evaluated per task by
 `mt check` — see #link(u("/config/"))[Required fields].
 
 #callout("note")[
-  Filters are parsed, not evaluated as code — the expression syntax is fixed.
-  There is no arbitrary function call surface to worry about.
+  Filters are parsed, not evaluated as code: the expression syntax is fixed,
+  with no arbitrary call surface.
 ]
