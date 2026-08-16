@@ -13,7 +13,11 @@
   links: related(
     "adopt-the-script-attribute-for-the-shebang-recipes.typ",
   )[the conversion this would keep from unwinding],
-  status: proposed(2026, 8, 16),
+  status: done(
+    2026,
+    8,
+    16,
+  )[gate arm; two arms, four regressions proven to bite],
 )
 
 == Summary
