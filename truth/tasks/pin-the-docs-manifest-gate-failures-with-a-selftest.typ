@@ -13,7 +13,7 @@
   links: related("derive-site-pages-json-from-the-pages-page-meta-blocks.typ")[
     Added the three failures this pins, and demonstrated them by hand.
   ],
-  status: wip(2026, 8, 17),
+  status: done(2026, 8, 17),
 )
 
 == Summary
