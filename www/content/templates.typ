@@ -2,6 +2,13 @@
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 
+#metadata((
+  route: "/templates/",
+  label: "Templates & slots",
+  title: "Templates & slots",
+  summary: "How mt add scaffolds a task from a Typst template whose values are slot() calls.",
+)) <page-meta>
+
 #show: page.with(active: "/templates/")
 
 `mt add` files a new task from a #strong[template] — a task whose authored values

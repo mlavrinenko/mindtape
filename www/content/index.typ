@@ -2,6 +2,14 @@
 #import "../utils/ui.typ": hero
 #import "../utils/site.typ": u
 
+#metadata((
+  route: "/",
+  label: "Overview",
+  title: "MindTape",
+  summary: "A daemon-free task tracker whose tasks are Typst files, live-evaluated on every command.",
+  home: true,
+)) <page-meta>
+
 #show: page.with(active: "/")
 
 #hero()

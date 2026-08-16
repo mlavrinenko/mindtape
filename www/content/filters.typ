@@ -2,6 +2,13 @@
 #import "../utils/ui.typ": callout, terminal, terminal-ansi
 #import "../utils/site.typ": u
 
+#metadata((
+  route: "/filters/",
+  label: "Filter language",
+  title: "Filter language",
+  summary: "The expression language mt ls and mt rm use to select tasks: fields, operators, functions, and dependency predicates.",
+)) <page-meta>
+
 #show: page.with(active: "/filters/")
 
 `mt ls` and `mt rm` take a filter expression — a boolean query over task fields.

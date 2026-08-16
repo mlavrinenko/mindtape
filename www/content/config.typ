@@ -3,6 +3,13 @@
 #import "../utils/site.typ": u
 #import "../utils/config-ref.typ": config-gate, config-sections-table
 
+#metadata((
+  route: "/config/",
+  label: "Configuration",
+  title: "Configuration",
+  summary: "How .mindtape/config.toml overlays a defaults floor through a four-layer merge, and the sections it can set.",
+)) <page-meta>
+
 #show: page.with(active: "/config/")
 
 `.mindtape/config.toml` overlays a shipped defaults floor. Omit a section to

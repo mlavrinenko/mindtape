@@ -3,6 +3,13 @@
 #import "../utils/site.typ": u
 #import "../utils/dsl-field-notes.typ": dsl-field-notes
 
+#metadata((
+  route: "/dsl/",
+  label: "Task DSL",
+  title: "Task DSL",
+  summary: "Every field a task file can declare, and what the prelude versus the Rust layer enforce.",
+)) <page-meta>
+
 #show: page.with(active: "/dsl/")
 
 A task file imports the prelude and applies `task.with`. The full shape:

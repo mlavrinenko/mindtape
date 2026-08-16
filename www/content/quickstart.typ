@@ -2,6 +2,13 @@
 #import "../utils/ui.typ": callout, pkg, terminal, terminal-ansi
 #import "../utils/site.typ": REPO, u
 
+#metadata((
+  route: "/quickstart/",
+  label: "Quickstart",
+  title: "Quickstart",
+  summary: "Install MindTape, scaffold a project, and file your first task.",
+)) <page-meta>
+
 #show: page.with(active: "/quickstart/")
 
 = Install

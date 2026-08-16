@@ -4,6 +4,13 @@
 #import "../utils/crate-notes.typ": crate-notes
 #import "../generated/just.typ" as just
 
+#metadata((
+  route: "/internals/",
+  label: "Internals",
+  title: "Internals",
+  summary: "How MindTape is built: the crate layout, the content-hash cache that keeps live evaluation cheap, and what differs per platform.",
+)) <page-meta>
+
 #show: page.with(active: "/internals/")
 
 Nothing here is needed to use MindTape. It is the shape of the implementation,

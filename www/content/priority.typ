@@ -2,6 +2,13 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
+#metadata((
+  route: "/priority/",
+  label: "Priority",
+  title: "Priority",
+  summary: "Priority is a number on a configured scale, set by hand or scored by a framework; difficulty is its twin.",
+)) <page-meta>
+
 #show: page.with(active: "/priority/")
 
 The number is classified into labelled bands; a #strong[framework] scores typed

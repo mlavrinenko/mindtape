@@ -2,6 +2,13 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
+#metadata((
+  route: "/concepts/",
+  label: "Concepts",
+  title: "Concepts",
+  summary: "The model behind MindTape: files as tasks, live evaluation, identity by filename, and one extension seam.",
+)) <page-meta>
+
 #show: page.with(active: "/concepts/")
 
 = A task is a file

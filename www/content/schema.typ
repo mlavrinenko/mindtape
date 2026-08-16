@@ -2,6 +2,13 @@
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
+#metadata((
+  route: "/schema/",
+  label: "Canonical schema",
+  title: "Canonical schema",
+  summary: "The task-JSON schema mt ls --json and mt import share — the contract a jq adapter codes against.",
+)) <page-meta>
+
 #show: page.with(active: "/schema/")
 
 One shape, two directions: `mt ls --json` serializes every task into the

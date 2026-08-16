@@ -2,6 +2,13 @@
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 
+#metadata((
+  route: "/agents/",
+  label: "For AI agents",
+  title: "For AI agents",
+  summary: "What makes MindTape legible to a coding agent: structured JSON, describable schemas, honest exit codes, and file-based state.",
+)) <page-meta>
+
 #show: page.with(active: "/agents/")
 
 None of this is an agent mode. It is the ordinary CLI surface — a shell script
