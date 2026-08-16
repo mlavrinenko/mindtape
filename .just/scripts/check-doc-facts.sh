@@ -7,15 +7,19 @@
 # Doc-facts gate: the same set-difference idiom as check-doc-coverage.sh, over
 # the facts www/generate-facts.sh derives instead of a hand-maintained list
 # (see truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ).
-# Four arms: every crate in crate-map.json needs a www/utils/crate-notes.typ
+# Five arms: every crate in crate-map.json needs a www/utils/crate-notes.typ
 # entry, every DSL field in dsl-fields.json needs a
 # www/utils/dsl-field-notes.typ entry, every gate in gates.json needs a
 # www/utils/gate-notes.typ entry (truth/tasks/derive-the-gate-table-command-
-# column-from-the-justfile.typ), and every sweep flag in sweep-flags.json needs
+# column-from-the-justfile.typ), every sweep flag in sweep-flags.json needs
 # a www/utils/sweep-flag-notes.typ entry (truth/tasks/derive-the-ask-
-# refactoring-flag-table-from-arg-attributes.typ). Each arm reads its Typst
-# dict's keys through the same target/-rooted driver trick as
-# check-doc-coverage.sh, never by grepping quoted strings.
+# refactoring-flag-table-from-arg-attributes.typ), and every www/content/*.typ
+# page needs a route in site-pages.json (truth/tasks/derive-the-docs-page-
+# manifest-from-one-source.typ). The first four arms read their Typst dict's
+# keys through the same target/-rooted driver trick as check-doc-coverage.sh,
+# never by grepping quoted strings; the fifth compares against the filesystem
+# and so runs in BOTH directions — a page with no nav entry is invisible in
+# the sidebar, and a nav entry with no page is a 404 in it.
 #
 # It regenerates its own inputs (bash www/generate-facts.sh below) rather than
 # trusting whatever www/generated/ already holds, so this gate never depends
@@ -81,4 +85,28 @@ if [ -n "$missing_flags" ]; then
     while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_flags"
     exit 1
 fi
-echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, $(wc -l <<<"$gates") gates, $(wc -l <<<"$flags") sweep flags, all documented"
+
+# The pages arm needs no Typst driver: site-pages.json already IS the read-back
+# of www/utils/site.typ's manifest (www/generate-facts.sh does that query), so
+# the other side of the difference is the filesystem. The route a file maps to
+# is tola's own layout rule — index.typ serves "/" and every other <stem>.typ
+# serves "/<stem>/" — applied here rather than read from anywhere, because the
+# whole point is to catch the file and the manifest disagreeing.
+routes=$(jq -r '.pages | keys_unsorted[]' www/generated/site-pages.json)
+page_routes=$(for f in www/content/*.typ; do
+    stem=$(basename "$f" .typ)
+    if [ "$stem" = "index" ]; then echo "/"; else echo "/$stem/"; fi
+done)
+unlisted=$(comm -23 <(sort <<<"$page_routes") <(sort <<<"$routes"))
+if [ -n "$unlisted" ]; then
+    echo "check-doc-facts: content pages missing from www/utils/site.typ's NAV:" >&2
+    while IFS= read -r route; do echo "  - $route" >&2; done <<<"$unlisted"
+    exit 1
+fi
+orphaned=$(comm -13 <(sort <<<"$page_routes") <(sort <<<"$routes"))
+if [ -n "$orphaned" ]; then
+    echo "check-doc-facts: NAV routes with no www/content/*.typ page:" >&2
+    while IFS= read -r route; do echo "  - $route" >&2; done <<<"$orphaned"
+    exit 1
+fi
+echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, $(wc -l <<<"$gates") gates, $(wc -l <<<"$flags") sweep flags, $(wc -l <<<"$routes") pages, all documented"

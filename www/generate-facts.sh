@@ -19,7 +19,7 @@
 # and `docs/generate-md.sh` call it directly, so each is self-contained and
 # never depends on a prior docs::gen run.
 #
-# Six artifacts, six sources:
+# Seven artifacts, seven sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
@@ -31,6 +31,8 @@
 #                          shell-out, two artifacts): a Typst module, one
 #                          function per public recipe
 #   - linecop-caps.json <- .linecop.yaml, via yq
+#   - site-pages.json   <- www/utils/site.typ's page manifest, and the site
+#                          URL it reads out of www/tola.toml
 #   - sweep-flags.json  <- the same `just --dump` (see www/sweep-flags.jq)
 #
 # linecop-caps.json is the one artifact still without a consumer: it was
@@ -101,11 +103,10 @@ emit_raw() {
 }
 
 # --- crate-map.json ---------------------------------------------------------
-# One `cargo metadata` call carries the whole dependency graph, so direct-vs-
-# transitive for the substrate crates is a graph query, never a hardcoded
-# claim (typst-world is transitive today, via typst-harvest — that has to stay
-# derived, not asserted, or it silently goes stale the day something else
-# pulls it in directly).
+# The derivation itself lives in www/crate-map.jq (argued in place there,
+# alongside its gates.jq and sweep-flags.jq siblings); what stays here is the
+# metadata call and the handful of facts that jq program cannot read for
+# itself.
 META="$(cargo metadata --format-version 1)"
 
 # WHICH crates are substrate is derived too, not listed: they are exactly the
@@ -135,54 +136,15 @@ WS_EDITION="$(sed -n 's/^edition = "\(.*\)"/\1/p' Cargo.toml | head -1)"
 WS_RUST_VERSION="$(sed -n 's/^rust-version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
 TYPST_LIB_VERSION="$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)"
 
-jq --arg substrate_re "$SUBSTRATE_REPO_RE" \
+jq -f "$SCRIPT_DIR/crate-map.jq" \
+   --arg substrate_re "$SUBSTRATE_REPO_RE" \
    --argjson archdeps "$ARCH_DEPS" \
    --arg channel "$CHANNEL" \
    --arg ws_version "$WS_VERSION" \
    --arg ws_edition "$WS_EDITION" \
    --arg ws_rust_version "$WS_RUST_VERSION" \
    --arg typst_lib_version "$TYPST_LIB_VERSION" \
-'
-. as $meta
-| ($meta.workspace_members) as $ws
-| ($meta.packages | INDEX(.name)) as $byname
-# Every direct dep of a workspace member, by pkgid — a substrate crate absent
-# from this set but present in $byname is reached only transitively.
-| ([$meta.resolve.nodes[]
-    | select(.id as $id | $ws | index($id) != null)
-    | .deps[].pkg] | unique) as $direct_pkgs
-| ($meta.packages | map({key: .id, value: .name}) | from_entries) as $idname
-# pkgid -> the names of the packages that depend on it. A transitively reached
-# substrate crate is documented as "via <parent>", and WHICH parent pulls it is
-# a fact with a source (the resolve graph), so it is read rather than asserted.
-# AGENTS.md carried "typst-world is pulled transitively via typst-harvest" by
-# hand, which was true and had no way to STAY true.
-# (No apostrophes in this jq program: it is a single-quoted shell string.)
-| (reduce ($meta.resolve.nodes[] | . as $n | $n.deps[] | {parent: $idname[$n.id], child: .pkg})
-    as $e ({}; .[$e.child] += [$e.parent])) as $parents_of
-| {
-    workspace: [$meta.packages[]
-      | select(.id as $id | $ws | index($id) != null)
-      | {name, version, description}],
-    substrate: [$meta.packages[]
-      | . as $p
-      | select(($ws | index($p.id)) == null)
-      | select(($p.repository // "") | test($substrate_re))
-      | (($direct_pkgs | index($p.id)) != null) as $is_direct
-      | {
-          name: $p.name,
-          version: $p.version,
-          direct: $is_direct,
-          # Only meaningful when not direct; null keeps the shape uniform.
-          via: (if $is_direct then null
-                else (($parents_of[$p.id] // []) | unique | sort) end),
-        }] | sort_by(.name),
-    "arch-deps": [$archdeps[] as $n | {name: $n, version: ($byname[$n].version // null)}],
-    "rust-toolchain": {channel: $channel},
-    "workspace-package": {version: $ws_version, edition: $ws_edition, "rust-version": $ws_rust_version},
-    "typst-lib": {version: $typst_lib_version},
-  }
-' <<<"$META" | emit crate-map.json
+   <<<"$META" | emit crate-map.json
 
 # --- dsl-fields.json ---------------------------------------------------------
 # lib/prelude.typ's `task` function names every core field as a parameter, and
@@ -203,6 +165,28 @@ fields_dict="$(typst query --root . "$tmp/dsl-driver.typ" '<mindtape>' \
 jq -n --argjson fields "$fields_dict" \
   '{fields: [$fields | keys_unsorted[] as $k | {name: $k, default: $fields[$k]}]}' \
   | emit dsl-fields.json
+rm -rf "$tmp"
+
+# --- site-pages.json ----------------------------------------------------------
+# The docs site's page manifest — the site URL, the path prefix derived from
+# it, and every page's route, sidebar label, title and summary — read back off
+# www/utils/site.typ through the same target/-rooted driver as dsl-fields.json
+# above.
+#
+# site.typ is the source because it is the one file that already had to know
+# every page exists: it renders the sidebar from that list. The PAGES it
+# exports cannot be read off the pages themselves, and not for want of trying
+# — evaluating a www/content/*.typ page imports www/utils/ui.typ, which reads
+# www/generated/hero-source.typ, a capture only www/generate.sh produces. This
+# script is called ALONE by docs/generate-md.sh (see its header), so an
+# artifact that needed those captures would be underivable in exactly the
+# place docs/src/lib.typ's www-link needs it, and the dead-link check that
+# helper exists to perform would silently have no manifest to check against.
+tmp="$(mktemp -d -p target)"
+printf '#import "/www/utils/site.typ": PAGES, PREFIX, REPO, SITE_URL\n#metadata((url: SITE_URL, prefix: PREFIX, repo: REPO, pages: PAGES)) <site-pages>\n' \
+  >"$tmp/site-pages-driver.typ"
+typst query --root . "$tmp/site-pages-driver.typ" '<site-pages>' \
+  --field value --one | emit site-pages.json
 rm -rf "$tmp"
 
 # --- gates.json --------------------------------------------------------------
