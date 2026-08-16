@@ -14,7 +14,7 @@
     parent("put-page-metadata-in-the-pages-and-derive-the-manifest.typ")
       + depends-on("derive-site-pages-json-from-the-pages-page-meta-blocks.typ")
   ),
-  status: wip(2026, 8, 16),
+  status: done(2026, 8, 16),
 )
 
 == Summary
