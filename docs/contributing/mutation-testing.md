@@ -13,7 +13,7 @@ Coverage proves a line executed. Mutation testing proves a test would fail if th
 - `just mutants-diff` before a PR. It sweeps only the mutants your branch’s diff touches, so it is minutes rather than hours, and covers new files for free.
 - `just mutants -f <file>` forces a deliberate full-file sweep.
 
-Neither is a `just check` gate, and there is no CI job for it on purpose; both are argued below. The file set, the excludes, the `rrule` feature and the debuginfo-free `mutants` profile are `.cargo/mutants.toml`’s subject.
+Neither is a `just check` gate, and there is no CI job for it on purpose. The file set, the excludes, the `rrule` feature and the debuginfo-free `mutants` profile are `.cargo/mutants.toml`’s subject.
 
 ## When a verdict is worth believing
 

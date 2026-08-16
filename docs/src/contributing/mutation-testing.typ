@@ -3,18 +3,11 @@
 // typlite, same as every other docs/src/*.typ source; see docs/src/lib.typ
 // for the render path's constraints.
 //
-// Started as a content-preserving port of the hand-written
-// mutation-testing.md, and took in what the `mutants` and `mutants-diff`
-// recipes used to argue from above themselves under
-// truth/tasks/relocate-justfile-commentary-to-scripts-and-docs.typ: the
-// TIMEOUT caveat, the reproducible-timeout finding, the feature-gated
-// survivor, and the absent CI job. The speed knobs stayed with the knobs, in
+// Nothing here is derived: `mutants`/`mutants-diff` are deliberately not
+// `just check` dependencies (see the prose below), so `gates.json` never
+// carries them and no other www/generate-facts.sh artifact names
+// cargo-mutants either. The speed knobs stay with the knobs, in
 // .just/scripts/_mutants-env.sh.
-//
-// Nothing here is derived: `cargo-mutants` and its recipes are not named in any of
-// www/generate-facts.sh's four artifacts (crate-map, dsl-fields, gates,
-// linecop-caps) — `mutants`/`mutants-diff` are deliberately not `just check`
-// dependencies (see the prose below), so `gates.json` never carries them.
 #import "../lib.typ": doc-title, just
 
 #metadata((
@@ -39,9 +32,9 @@ code your suite runs but does not pin.
   free.
 - #just.mutants("-f <file>") forces a deliberate full-file sweep.
 
-Neither is a #just.check() gate, and there is no CI job for it on purpose; both
-are argued below. The file set, the excludes, the `rrule` feature and the
-debuginfo-free `mutants` profile are `.cargo/mutants.toml`'s subject.
+Neither is a #just.check() gate, and there is no CI job for it on purpose. The
+file set, the excludes, the `rrule` feature and the debuginfo-free `mutants`
+profile are `.cargo/mutants.toml`'s subject.
 
 = When a verdict is worth believing
 
