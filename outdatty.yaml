@@ -20,6 +20,44 @@
 # truth/tasks/evaluate-outdattys-require-tracked-audit.typ.
 require_tracked: ["!**"]
 
+# WHAT A DEPENDENT-ONLY EDIT OWES THIS LOCK: re-record its group, in the commit
+# that made the edit (truth/tasks/decide-what-a-dependent-only-edit-owes-
+# outdatty-lock.typ). Only a SOURCE change is a trigger — that asymmetry is the
+# whole point of the split and is not up for revision — so a dependent edited
+# on its own moves no source hash and the gate stays green, correctly. But its
+# recorded hash then sits stale until some unrelated source edit re-records the
+# group and carries the doc's hash along, which is how `0c96610` (one attribute
+# on the `mmz` recipe) came to record a `docs/src/contributing.typ` hash the
+# commit never touched, five commits after `d1f9ede` actually edited that file.
+# Read from the lock alone, the review landed on the wrong commit.
+#
+# Measured on outdatty 0.4.0 against a worktree with one hand-edited dependent,
+# before choosing:
+#
+#   - `outdatty check` AND plain `outdatty status` both print `[ ok ]` for the
+#     group and exit 0. Nothing surfaces it.
+#   - `outdatty status --format json` already does: the group's
+#     `changed_dependents` array names the file while its `status` stays `"ok"`.
+#     The drift is computed and exposed today — only the plain renderer omits
+#     it — so there is nothing to take upstream for visibility.
+#   - `outdatty update --group <g>` after a dependent-only edit rewrites exactly
+#     one line, that dependent's hash.
+#
+# One line is not a price worth designing around, so re-recording wins over
+# accepting the stale hash: it costs a command, and it makes the watermark
+# CONTRIBUTING.md claims ("a recorded hash is a review watermark") true on both
+# sides of the split instead of only the source side.
+#
+# Deliberately NOT a gate, and never will be. A dependent changing alone is
+# ordinary work, not drift; a check that failed on it would turn every doc edit
+# red and would be reversing the source/dependent asymmetry above. It is a
+# convention with a query, not an enforcement — pending re-records are listed by
+#
+#   outdatty status --format json | jq -r '.groups[] | select(.changed_dependents != []) | .id'
+#
+# and a forgotten one costs the same misattributed watermark it always did,
+# never a broken build.
+
 groups:
   # The CLI surface (commands, flags, behaviour) is documented by hand, in the
   # docs-site reference pages. README.md only carries a thin, illustrative

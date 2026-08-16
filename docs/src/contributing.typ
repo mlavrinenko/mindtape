@@ -160,6 +160,15 @@ re-recording — #just.outdatty-update-all() — claims a review of every
 group's dependents that never happened; it stays the explicit choice, never
 the default.
 
+Editing a dependent on its own re-records its group too, in the same commit.
+Only a source change is a trigger, so that edit moves no source hash and the
+gate stays green — but the dependent's recorded hash then sits stale until
+some unrelated source edit re-records the group and carries it along, putting
+the watermark on a commit that never touched the file. Re-recording costs one
+lock line. It is a convention, never a gate: a dependent changing alone is
+ordinary work, and `outdatty.yaml`'s header carries the measurement, the
+reasoning, and the one-liner that lists groups with a dependent still pending.
+
 = Version Management
 
 - Workspace crates: `Cargo.toml` `[workspace.package] version` (semver).
