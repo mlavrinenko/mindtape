@@ -114,11 +114,11 @@ Commits that file or edit task artifacts themselves (and the backlog config in `
 
 ## Command Semantics (read/write separation)
 
-MindTape follows a strict read/write split (CQRS). Read commands never mutate the working tree; only explicit write commands do.
+MindTape follows a strict read/write split (CQRS). Read commands never mutate the working tree; only explicit write commands do. The split is declared once, in `crates/mindtape-cli/src/command_class.rs`, checked for exhaustiveness against `mt _cli --json`’s visible command list in `cli_dump.rs`’s own tests, and read here from `fact("cli")` rather than retyped.
 
-- Read (pure): `ls`, `find`, `graph`, `views`, `worktrees`, `check`, `eval`, `config show`/`schema` — each leaves the tree byte-identical, asserted per command in `crates/mindtape-cli/tests/read_no_write_e2e.rs`. Add your command’s test there, not to this list.
-- Write (explicit): `add`, `import`, `init`, `install`, `preset save`, `flip`, `recur`, `review`, `rm`. Every legend value is also a top-level verb over `flip` — `mt done` is `mt flip done`, generated from the legend rather than declared as a subcommand.
-- `go` is neither: it hands the file to your editor and mutates nothing itself.
+- Read (pure): `ls`, `find`, `graph`, `views`, `worktrees`, `check`, `config show`, `config schema`, `preset ls`, `eval` — each leaves the tree byte-identical, asserted per command in `crates/mindtape-cli/tests/read_no_write_e2e.rs`. Add your command’s test there, not to this list.
+- Write (explicit): `add`, `import`, `preset save`, `init`, `install`, `rm`, `review`, `flip`, `recur`. Every legend value is also a top-level verb over `flip` — `mt done` is `mt flip done`, generated from the legend rather than declared as a subcommand.
+- `go` is neither: hands the file to the configured editor; mutates nothing itself.
 
 Recurrence never materializes as a side effect of a read: an instance is spawned or refreshed only by an explicit `mt recur`, and `mt done` closes a task without creating or advancing anything.
 

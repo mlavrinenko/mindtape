@@ -6,13 +6,22 @@
 //! structs are the single source of truth; this only reads them back, so the
 //! docs can never restate — or drift from — a flag fact.
 //!
-//! Refs: `truth/tasks/structured-cli-reference-from-command-dump.typ`.
+//! Every leaf command node also carries a `class` field — its read/write
+//! classification from [`crate::command_class`] — so `www/generated/cli.json`
+//! carries the CQRS split for `docs/src/contributing.typ` and
+//! `tests/read_no_write_e2e.rs` to read, instead of either retyping it. A
+//! node with subcommands (`config`, `preset`) carries `class: null`: it is
+//! not a leaf, only its children are classified.
+//!
+//! Refs: `truth/tasks/structured-cli-reference-from-command-dump.typ`,
+//! `truth/tasks/gate-the-cqrs-split-against-the-command-tree.typ`.
 
 use anyhow::Result;
 use clap::{Arg, ArgAction, Command, CommandFactory};
 use serde_json::{Value, json};
 
 use crate::cli::Cli;
+use crate::command_class::{self, Class};
 
 /// Arguments for the hidden `_cli` dump command.
 #[derive(Debug, clap::Args)]
@@ -54,23 +63,28 @@ fn dump(root: &Command) -> Value {
         "version": root.get_version(),
         "about": opt_str(root.get_about()),
         "globals": globals,
-        "commands": subcommands(root),
+        "commands": subcommands(root, ""),
     })
 }
 
-/// Visible, non-`help` child commands, each reflected recursively.
-fn subcommands(cmd: &Command) -> Vec<Value> {
+/// Visible, non-`help` child commands, each reflected recursively. `prefix` is
+/// the flattened path of `cmd` itself (empty at the root), threaded down so
+/// each child can compute its own [`flattened_name`].
+fn subcommands(cmd: &Command, prefix: &str) -> Vec<Value> {
     cmd.get_subcommands()
         // clap's synthetic `help` pseudo-command and any `hide = true` command
         // (InstallLib, `_cli` itself) never appear in the reference.
         .filter(|c| c.get_name() != "help" && !c.is_hide_set())
-        .map(command_json)
+        .map(|c| command_json(c, prefix))
         .collect()
 }
 
-/// One command node: name, both about levels, visible aliases, local args, and
-/// nested subcommands. Global args are dropped here — they live once at the top.
-fn command_json(cmd: &Command) -> Value {
+/// One command node: name, both about levels, visible aliases, local args,
+/// read/write `class`, and nested subcommands. Global args are dropped here —
+/// they live once at the top.
+fn command_json(cmd: &Command, prefix: &str) -> Value {
+    let name = cmd.get_name();
+    let path = flattened_name(prefix, name);
     let args: Vec<Value> = cmd
         .get_arguments()
         .filter(|a| !a.is_global_set())
@@ -79,14 +93,48 @@ fn command_json(cmd: &Command) -> Value {
         .filter(|a| !matches!(a.get_id().as_str(), "help" | "version"))
         .map(arg_json)
         .collect();
+    let subs = subcommands(cmd, &path);
+    // Only a leaf is classified — `config`/`preset` are containers, not
+    // commands in their own right; their children carry the class instead.
+    let class = if subs.is_empty() {
+        class_json(&path)
+    } else {
+        Value::Null
+    };
     json!({
-        "name": cmd.get_name(),
+        "name": name,
         "about": opt_str(cmd.get_about()),
         "long_about": opt_str(cmd.get_long_about()),
         "aliases": cmd.get_visible_aliases().collect::<Vec<_>>(),
         "args": args,
-        "subcommands": subcommands(cmd),
+        "class": class,
+        "subcommands": subs,
     })
+}
+
+/// A node's flattened path: its own name if `prefix` is empty, else `"<prefix>
+/// <name>"` — the same joining [`crate::command_class::CLASSIFICATION`]'s keys
+/// use for a nested leaf like `"config show"`.
+fn flattened_name(prefix: &str, name: &str) -> String {
+    if prefix.is_empty() {
+        name.to_owned()
+    } else {
+        format!("{prefix} {name}")
+    }
+}
+
+/// A leaf's classification as JSON: `"read"`/`"write"`, or `{"kind":
+/// "exempt", "reason": "..."}`. `null` for a name with no
+/// [`crate::command_class`] entry — never expected to ship (the
+/// exhaustiveness tests below catch it first), but this function stays total
+/// rather than panicking the dump itself.
+fn class_json(path: &str) -> Value {
+    match command_class::classify(path) {
+        Some(Class::Read) => json!({"kind": "read", "reason": null}),
+        Some(Class::Write) => json!({"kind": "write", "reason": null}),
+        Some(Class::Exempt(reason)) => json!({"kind": "exempt", "reason": reason}),
+        None => Value::Null,
+    }
 }
 
 /// One argument (positional, flag, or option), discriminated by `kind`.
@@ -258,6 +306,85 @@ mod tests {
         let t = tree();
         let subs = arr(command(&t, "config"), "subcommands");
         assert!(subs.iter().any(|c| field(c, "name") == "show"));
+    }
+
+    #[test]
+    fn config_show_carries_its_own_class_not_the_parent() {
+        let t = tree();
+        // `config` itself has children, so it is not classified directly...
+        assert!(command(&t, "config").get("class").unwrap().is_null());
+        // ...only its leaves are.
+        let show = arr(command(&t, "config"), "subcommands")
+            .iter()
+            .find(|c| field(c, "name") == "show")
+            .unwrap();
+        assert_eq!(field(show.get("class").unwrap(), "kind"), "read");
+    }
+
+    #[test]
+    fn go_carries_an_exempt_class_with_a_reason() {
+        let t = tree();
+        let go = command(&t, "go");
+        let class = go.get("class").unwrap();
+        assert_eq!(field(class, "kind"), "exempt");
+        assert!(!field(class, "reason").is_empty());
+    }
+
+    /// Every leaf's `(flattened path, class)` under `commands`, recursing
+    /// into any node that itself has subcommands (`config`, `preset`) — the
+    /// same tree `www/generated/cli.json` ships, walked back for the
+    /// exhaustiveness tests below rather than re-derived from `Cli::command()`
+    /// a second, possibly-diverging way.
+    fn leaf_paths(commands: &[Value], prefix: &str, out: &mut Vec<(String, Value)>) {
+        for cmd in commands {
+            let name = field(cmd, "name");
+            let path = if prefix.is_empty() {
+                name.to_owned()
+            } else {
+                format!("{prefix} {name}")
+            };
+            let subs = arr(cmd, "subcommands");
+            if subs.is_empty() {
+                out.push((path, cmd.get("class").cloned().unwrap_or(Value::Null)));
+            } else {
+                leaf_paths(subs, &path, out);
+            }
+        }
+    }
+
+    /// The exhaustiveness gate this module exists for: the union of
+    /// `command_class::CLASSIFICATION` must equal the visible leaf commands
+    /// `mt _cli --json` reflects, in both directions — mirrors
+    /// `check-doc-coverage`'s set-difference shape, failing naming the
+    /// offender rather than healing silently.
+    #[test]
+    fn every_visible_leaf_is_classified_and_no_entry_is_stale() {
+        let t = tree();
+        let mut leaves = Vec::new();
+        leaf_paths(arr(&t, "commands"), "", &mut leaves);
+
+        let unclassified: Vec<&str> = leaves
+            .iter()
+            .filter(|(_, class)| class.is_null())
+            .map(|(name, _)| name.as_str())
+            .collect();
+        assert!(
+            unclassified.is_empty(),
+            "command(s) visible in `mt _cli --json` with no entry in \
+             command_class::CLASSIFICATION: {unclassified:?}"
+        );
+
+        let visible: Vec<&str> = leaves.iter().map(|(name, _)| name.as_str()).collect();
+        let stale: Vec<&str> = command_class::CLASSIFICATION
+            .iter()
+            .map(|(name, _)| *name)
+            .filter(|name| !visible.contains(name))
+            .collect();
+        assert!(
+            stale.is_empty(),
+            "command_class::CLASSIFICATION entry no longer visible in \
+             `mt _cli --json`: {stale:?}"
+        );
     }
 
     #[test]

@@ -196,17 +196,40 @@ nothing.
 = Command Semantics (read/write separation)
 
 MindTape follows a strict read/write split (CQRS). Read commands never
-mutate the working tree; only explicit write commands do.
+mutate the working tree; only explicit write commands do. The split is
+declared once, in `crates/mindtape-cli/src/command_class.rs`, checked for
+exhaustiveness against `mt _cli --json`'s visible command list in
+`cli_dump.rs`'s own tests, and read here from `fact("cli")` rather than
+retyped.
 
-- Read (pure): `ls`, `find`, `graph`, `views`, `worktrees`, `check`, `eval`,
-  `config show`/`schema` — each leaves the tree byte-identical, asserted per
-  command in `crates/mindtape-cli/tests/read_no_write_e2e.rs`. Add your
-  command's test there, not to this list.
-- Write (explicit): `add`, `import`, `init`, `install`, `preset save`, `flip`,
-  `recur`, `review`, `rm`. Every legend value is also a top-level verb over
-  `flip` — `mt done` is `mt flip done`, generated from the legend rather than
-  declared as a subcommand.
-- `go` is neither: it hands the file to your editor and mutates nothing itself.
+#let cli-leaves(commands, prefix: none) = (
+  commands
+    .map(c => {
+      let name = if prefix == none { c.name } else { prefix + " " + c.name }
+      if c.subcommands.len() == 0 {
+        ((name: name, class: c.class),)
+      } else {
+        cli-leaves(c.subcommands, prefix: name)
+      }
+    })
+    .flatten()
+)
+#let cli-classes = cli-leaves(fact("cli").commands)
+#let names(kind) = (
+  cli-classes.filter(l => l.class.kind == kind).map(l => raw(l.name))
+)
+#let exempt = cli-classes.filter(l => l.class.kind == "exempt")
+
+- Read (pure): #names("read").join(", ") — each leaves the tree
+  byte-identical, asserted per command in
+  `crates/mindtape-cli/tests/read_no_write_e2e.rs`. Add your command's test
+  there, not to this list.
+- Write (explicit): #names("write").join(", "). Every legend value is also a
+  top-level verb over `flip` — `mt done` is `mt flip done`, generated from
+  the legend rather than declared as a subcommand.
+#for e in exempt [
+  - #raw(e.name) is neither: #e.class.reason.
+]
 
 Recurrence never materializes as a side effect of a read: an instance is
 spawned or refreshed only by an explicit `mt recur`, and `mt done` closes a

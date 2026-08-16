@@ -92,6 +92,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `policy` and `examples` scopes it had been missing since Typst got a base
   limit, so a Typst file crossing its cap can no longer serve a fresh cache
   hit.
+- **A declared read/write classification for the CLI (CQRS gate)** —
+  `crates/mindtape-cli/src/command_class.rs` names every visible `mt` leaf
+  command's class (`Read`, `Write`, or `Exempt` with a reason — `go`'s home)
+  as data, replacing the hand-typed lists CONTRIBUTING.md's "Command
+  Semantics" section used to carry, which had drifted twice: nine wrong
+  entries (`mt show`/`mt export` never existed; `find`, `graph`, `views`,
+  `worktrees`, `eval` were missing) were only caught by an agent asked to go
+  looking. `cli_dump.rs` rides each leaf's class along on `mt _cli --json`
+  (so it reaches `www/generated/cli.json` for free); its own tests
+  set-difference `command_class::CLASSIFICATION` against the reflected
+  command tree in both directions, failing naming the offender the moment a
+  command joins the CLI unclassified or a classified one stops existing.
+  `docs/src/contributing.typ` renders the two bullets from `fact("cli")`
+  instead of retyping them — surfacing `config schema` and `preset ls` as
+  read commands for the first time, neither of which had a test before.
+  `tests/read_no_write_e2e.rs` generates one byte-identical-tree check per
+  `Read`-classified command from that same JSON, on top of (not instead of)
+  the hand-written per-flag variants already there.
 
 ## [0.3.0] - 2026-08-10
 

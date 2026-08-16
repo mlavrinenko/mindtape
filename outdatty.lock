@@ -85,7 +85,7 @@ groups:
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: bd6d06065b7bbf238f73910ef035a76e071cd67d764f45f7243a63f1487716db
-      docs/src/contributing.typ: 849d4e8a031bbd07a244edd8b5f469392af3c225f09c11127c2c376d48706112
+      docs/src/contributing.typ: 0c87022d7a37d311aacb89aeb3609f3458ef5ca09e96bc12a34c49f0e61c23d3
       docs/src/contributing/coverage-crap.typ: 3b69fa26579a7e5f825e4601ba113ca5ddcec44a5d44c8253563c7c4df9bd168
       docs/src/contributing/gates.typ: dad6e75b108c6de5f4085524775f6750e2023f5f516ae42b2ddae9c3fca7160a
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4

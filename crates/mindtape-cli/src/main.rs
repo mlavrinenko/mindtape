@@ -8,6 +8,7 @@ mod add_values;
 mod check;
 mod cli;
 mod cli_dump;
+mod command_class;
 mod config_cmd;
 mod eval;
 mod find;

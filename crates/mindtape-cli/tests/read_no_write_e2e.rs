@@ -1,11 +1,26 @@
 //! Regression test for the read/write separation (CQRS) principle: read
 //! commands must never mutate the working tree.
 //!
-//! See `truth/tasks/command-semantics-cqrs.typ` and the "Command Semantics
-//! (read/write separation)" section of `CONTRIBUTING.md`. Each test builds a
-//! link-free fixture task tree, hashes it, runs a single read command, hashes
-//! it again, and asserts the two digests match — byte-identical, not just
-//! "still parses".
+//! See `truth/tasks/command-semantics-cqrs.typ`,
+//! `truth/tasks/gate-the-cqrs-split-against-the-command-tree.typ`, and the
+//! "Command Semantics (read/write separation)" section of `CONTRIBUTING.md`.
+//! Each test builds a link-free fixture task tree, hashes it, runs a single
+//! read command, hashes it again, and asserts the two digests match —
+//! byte-identical, not just "still parses".
+//!
+//! [`every_classified_read_command_leaves_tree_untouched`] generates one such
+//! check per command the classification in
+//! `crates/mindtape-cli/src/command_class.rs` declares `Read`, read back via
+//! `mt _cli --json` (`cli_dump.rs` rides the `class` field along on the same
+//! tree `www/generated/cli.json` ships) — a bare invocation of every read
+//! command, so a newly classified one is covered with no test hand-written
+//! here. The hand-written tests below it stay: several exercise a read
+//! command with flag combinations (`ls --format json`, `config show
+//! --origin`) the generated loop's bare invocation does not reach, and a
+//! generated test that dropped them would assert less than what is here
+//! today. This crate has no `[lib]` target, so an integration test cannot
+//! `use crate::command_class` directly — reading the classification back out
+//! of the CLI's own JSON dump is how a `tests/` binary sees it at all.
 #![allow(clippy::unwrap_used)]
 
 use std::collections::hash_map::DefaultHasher;
@@ -205,4 +220,76 @@ fn views_leaves_tree_untouched() {
 fn worktrees_leaves_tree_untouched() {
     let dir = build_fixture();
     assert_read_untouched(dir.path(), &["worktrees"]);
+}
+
+/// Every `Read`-classified leaf's flattened path (`"ls"`, `"config schema"`,
+/// `"preset ls"`, …), read from a fresh `mt _cli --json` rather than
+/// hand-copied — the exhaustiveness this file leans on lives in `cli_dump.rs`
+/// (`command_class::CLASSIFICATION` must equal the visible command tree), so
+/// this only has to walk the tree the same way that gate does.
+fn read_command_paths() -> Vec<String> {
+    let dir = tempfile::tempdir().unwrap();
+    let output = support::mt(dir.path())
+        .args(["_cli", "--json"])
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "`mt _cli --json` failed");
+    let tree: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let commands = tree
+        .get("commands")
+        .and_then(serde_json::Value::as_array)
+        .unwrap();
+    let mut out = Vec::new();
+    collect_read_leaves(commands, "", &mut out);
+    out
+}
+
+/// Recurse into a node with subcommands (`config`, `preset`); collect a leaf
+/// whose `class.kind` is `"read"`, flattening its path the same way
+/// `cli_dump.rs`'s `flattened_name` does.
+fn collect_read_leaves(commands: &[serde_json::Value], prefix: &str, out: &mut Vec<String>) {
+    for cmd in commands {
+        let name = cmd.get("name").and_then(serde_json::Value::as_str).unwrap();
+        let path = if prefix.is_empty() {
+            name.to_owned()
+        } else {
+            format!("{prefix} {name}")
+        };
+        let subs = cmd
+            .get("subcommands")
+            .and_then(serde_json::Value::as_array)
+            .unwrap();
+        if subs.is_empty() {
+            let kind = cmd
+                .pointer("/class/kind")
+                .and_then(serde_json::Value::as_str);
+            if kind == Some("read") {
+                out.push(path);
+            }
+        } else {
+            collect_read_leaves(subs, &path, out);
+        }
+    }
+}
+
+/// Extra args a read command needs beyond its bare name split on spaces, for
+/// a required positional the classification has no way to supply generically.
+fn extra_args(path: &str) -> &'static [&'static str] {
+    match path {
+        // `mt eval <file>`: the file positional is required.
+        "eval" => &["tasks/alpha.typ"],
+        // `mt find <term>...`: at least one search term is required.
+        "find" => &["alpha"],
+        _ => &[],
+    }
+}
+
+#[test]
+fn every_classified_read_command_leaves_tree_untouched() {
+    for path in read_command_paths() {
+        let dir = build_fixture();
+        let mut args: Vec<&str> = path.split(' ').collect();
+        args.extend_from_slice(extra_args(&path));
+        assert_read_untouched(dir.path(), &args);
+    }
 }
