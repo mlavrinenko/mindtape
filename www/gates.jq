@@ -100,6 +100,18 @@ def render_line: map(render_frag) | join("");
 def is_script_invocation:
   test("^((bash|sh|zsh) +)?[A-Za-z0-9._/-]+[.]sh$");
 
+# `.shebang` still covers every script body after the five `#!/usr/bin/env
+# bash` recipes became `[script]` + `set script-interpreter`
+# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ). That
+# task predicted the opposite — "a `[script]` recipe may well report `shebang:
+# false`, which would make a single-line body quotable where it was not
+# before" — so this is the measurement, not the guess: on just 1.46 a recipe
+# carrying `[script]` dumps `shebang: true` exactly as a `#!` body did. The
+# field means "this body is a script", not "this body opens with `#!`", which
+# is why the conversion moved no rendered byte (check-dry, the only gate among
+# the five, reports null on both sides). A future single-line `[script]` gate
+# therefore falls back to `[doc(...)]` too; reading `.attributes` for the
+# `script` key is the change to make if one of those ever wants quoting.
 def gate_command:
   if .shebang or (.body | length) != 1 then null
   else (.body[0] | render_line) as $line
