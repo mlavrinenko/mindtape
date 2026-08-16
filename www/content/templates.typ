@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout, pkg, terminal
+#import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 
 #show: page.with(active: "/templates/")

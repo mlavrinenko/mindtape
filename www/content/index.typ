@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": hero, pkg
+#import "../utils/ui.typ": hero
 #import "../utils/site.typ": u
 
 #show: page.with(active: "/")

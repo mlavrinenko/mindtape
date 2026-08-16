@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": mt-import, pkg
+#import "../utils/ui.typ": mt-import
 #import "../utils/site.typ": u
 #import "../utils/dsl-field-notes.typ": dsl-field-notes
 
