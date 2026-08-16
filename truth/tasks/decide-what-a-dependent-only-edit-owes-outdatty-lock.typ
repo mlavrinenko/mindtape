@@ -10,7 +10,11 @@
   difficulty: 2,
   tags: ("tooling",),
   estimate: (files: 2),
-  status: proposed(2026, 8, 16),
+  status: done(
+    2026,
+    8,
+    16,
+  )[re-record on dependent edit; status --format json already reports it],
 )
 
 == Summary
