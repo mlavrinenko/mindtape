@@ -60,7 +60,7 @@ groups:
       www/content/quickstart.typ: deadd0718bd2d16ffd0aa94ab29aab5f419665eef4d3fe233b970b67b92a6c6b
   dev-docs:
     source:
-      .just/docs.just: a401a5910ceedab097a374e1116b39049cfdb99fdeacea0526732f6d5a236477
+      .just/docs.just: d8d4142ffaca3e176cf2091e82ec795d57c805bcc8066311380cbe2ceb4600a0
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
       .just/scripts/arg-pattern-check.sh: 6fa0158acf6298a132577a7a8059151eccb09b7ebd959ec79e3dbee36ff4fa92

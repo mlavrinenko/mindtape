@@ -57,6 +57,18 @@ set working-directory := '..'
 
 set script-interpreter := ["bash", "-eo", "pipefail"]
 
+# just runs a module's FIRST recipe when the module is named with no recipe of
+# its own, so `just docs` used to run `gen`: a full fact regeneration, and a
+# cold release build the first time, from a command that reads like a question
+# about what the module holds. Listing is the right answer to a bare namespace
+# for the same reason it is at the repo root. Whichever recipe leads this file
+# is what a bare `just docs` runs, so this one has to stay first.
+
+[doc("List available recipes")]
+[group("docs")]
+default:
+    @just --list docs
+
 # Capture live `mt` output for the docs (www/generated/*.txt), so the site's
 # CLI reference, help, version, and transcripts cannot drift from the binary.
 # Builds `mt` release, runs it against examples/learn-piano at a pinned clock.
