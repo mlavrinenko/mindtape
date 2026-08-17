@@ -173,6 +173,13 @@ status and id, and validates. Common flags:
   `json` carries `{"outcome": "wrote"|"skipped"|"suffixed", "path": "..."}`,
   the same vocabulary as `mt ls --format`
 
+`--describe` can list a slot no template declares: a required `assignee`
+(`[tasks.assignee] required`) is spliced in, backed by `$MINDTAPE_PRINCIPAL`.
+An unset variable is an unknown actor and not a default, so a non-interactive
+add fails naming the slot rather than guessing who works the task — fill it
+(`--set assignee=<actor>`), and pass the OTHER actor's name when you are
+filing work for someone else.
+
 == Slot semantics live in `references/add-slots.md`
 
 Three things about slots you cannot infer from `--describe`, each of which

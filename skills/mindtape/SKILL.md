@@ -88,6 +88,8 @@ rg TODO $(mt ls ready --format path) # compose with another program
 - `--dedup fail|skip|add-suffix` collision policy on an existing stem: `fail` bails, `skip` exits 0 writing nothing, `add-suffix` mints `-2`, `-3`, …; overrides `[tasks.naming] dedup`, which defaults to `add-suffix` under a configured `stem` template and `fail` otherwise
 - `--format text|path|path0|json` report the outcome instead of prose; `json` carries `{"outcome": "wrote"|"skipped"|"suffixed", "path": "..."}`, the same vocabulary as `mt ls --format`
 
+`--describe` can list a slot no template declares: a required `assignee` (`[tasks.assignee] required`) is spliced in, backed by `$MINDTAPE_PRINCIPAL`. An unset variable is an unknown actor and not a default, so a non-interactive add fails naming the slot rather than guessing who works the task — fill it (`--set assignee=<actor>`), and pass the OTHER actor’s name when you are filing work for someone else.
+
 ### Slot semantics live in `references/add-slots.md`
 
 Three things about slots you cannot infer from `--describe`, each of which silently produces a wrong task if you guess: token keys are slot NAMES (a framework priority’s slots are its leaves — `impact`/`confidence`/`ease`, never `priority`), a `list` slot needs `name+=value` and rejects a bare `name=a,b`, and `text` slots are markup-escaped while `raw` slots splice in live. Read `references/add-slots.md` before filling slots on an unfamiliar template.
