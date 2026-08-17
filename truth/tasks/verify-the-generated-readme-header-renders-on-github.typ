@@ -8,6 +8,7 @@
     ease: 9,
   ),
   difficulty: 1,
+  assignee: "max",
   tags: ("docs",),
   estimate: (files: 1),
   links: related(

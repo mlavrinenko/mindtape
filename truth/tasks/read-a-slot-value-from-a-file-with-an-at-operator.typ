@@ -8,6 +8,7 @@
     ease: 5,
   ),
   difficulty: 4,
+  assignee: "agent",
   tags: ("cli", "docs"),
   estimate: (files: 5),
   status: proposed(2026, 8, 17),

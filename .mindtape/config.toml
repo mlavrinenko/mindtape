@@ -185,6 +185,30 @@ allowed = [
   "coverage"
 ]
 
+# Who is working the task. The only distinction this backlog needs is
+# human-vs-model: `max` holds the work no agent can finish — a render loaded in
+# a browser, a decision the maintainer owns — and `agent` holds everything
+# else. Which MODEL takes an agent task is the reader's routing policy, read off
+# `difficulty`, which is why one `agent` actor is enough and no vendor or model
+# name belongs here either.
+#
+# `required = "!terminal"` mirrors priority/difficulty/estimate: an open task
+# says who is working it, a closed one is exempt, so finishing work never means
+# backfilling a name onto history. `allowed` is checked against the `[[actors]]`
+# registry at the bottom of this file, so a misspelling cannot reach a task.
+#
+# No template declares `assignee`, so `mt add` splices in a choice slot over
+# these two names backed by `$MINDTAPE_PRINCIPAL`. Unset, the variable is an
+# unknown actor rather than a default: an interactive add prompts, and a
+# non-interactive one fails naming the slot. That is deliberate — the harness
+# that guesses here is the harness that silently files the human's work as the
+# agent's. Agents pass `--set assignee=agent` (and `--set assignee=max` when
+# they are filing work FOR the maintainer, which the sweep templates hardcode
+# because a swept finding is agent work by construction).
+[tasks.assignee]
+allowed = ["max", "agent"]
+required = "!terminal"
+
 # A review comment left in a task file is a conversation, not content: a human
 # annotates, an agent reframes the task and removes the note. Forbidding it
 # stops the conversation silently becoming the artifact.
@@ -245,6 +269,24 @@ filter = 'has_tag("swept") && !terminal'
 sort = ["priority:desc"]
 description = "Open findings from the last `just ask-refactoring` sweep"
 
+# The two working lists: `mt ls @owner` is what the maintainer still has to do
+# by hand, `mt ls @agent` is what an agent can pick up. Both are `!terminal`
+# because the question either answers is "what is left", not "what happened" —
+# the closed history is `mt ls 'assignee == "max"'`.
+#
+# The view names are handles, not a claim about the field: `assignee` says who
+# works a task, never who owns it, so the actor is named `max` and only the
+# LISTING is called `owner`.
+[views.owner]
+filter = 'assignee == "max" && !terminal'
+sort = ["priority:desc"]
+description = "Open tasks waiting on the maintainer"
+
+[views.agent]
+filter = 'assignee == "agent" && !terminal'
+sort = ["priority:desc"]
+description = "Open tasks an agent can take"
+
 # Closing a task asserts the gate already ran against this worktree, rather
 # than running it here. `mmz --is-fresh --tag gate` exits 0 only when every
 # gate-tagged rule in .mmz/config.yaml last passed with these inputs unchanged;
@@ -284,10 +326,18 @@ comments = false
 # The project's actors and roles: who works tasks, and under which hats.
 # Identity-only — a role carries no payload; what a role can do lives in each
 # harness's own config, keyed by role name by convention.
+#
+# The vocabulary `[tasks.assignee] allowed` points into. `agent` holds no role:
+# a role here would have to mean the same thing for every model that ever runs
+# in this repo, and the per-task routing signal is `difficulty`.
 [[roles]]
 name = "maintainer"
 
 [[actors]]
-name = "ada"
+name = "max"
 kind = "human"
 roles = ["maintainer"]
+
+[[actors]]
+name = "agent"
+kind = "llm"

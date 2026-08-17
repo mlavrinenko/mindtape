@@ -8,6 +8,7 @@
     ease: 6,
   ),
   difficulty: 3,
+  assignee: "agent",
   tags: ("tooling",),
   estimate: (files: 4),
   links: related("relativize-the-crap-baseline-s-committed-file-paths.typ")[
