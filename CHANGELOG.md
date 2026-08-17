@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`crap-baseline-check` gate** — the CRAP arm that never skips: it reads
+  `crap-baseline.json` itself rather than the lcov, failing on an entry that
+  carries a machine-local absolute path (or one climbing out of the repo with
+  `..`) and on a baseline scoring no functions at all, which would pass the
+  ratchet by reporting every function as new. Carries a positive control over
+  a known-bad fixture, because a path filter matching nothing reads exactly
+  like a clean baseline. gitleaks cannot cover this: its default ruleset's
+  global allowlist matches `/home/<user>/` and drops any custom rule's finding
+  on it, and an extending config can only add allowlists, never remove one.
 - **`just fork <slug> [base]`** — stands up a worktree for a delegated agent:
   a new branch off `[base]` (default `HEAD`) at the sibling
   `../mindtape-<slug>`, `direnv allow`-ed with its dev shell already evaluated,
@@ -131,6 +140,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `tests/read_no_write_e2e.rs` generates one byte-identical-tree check per
   `Read`-classified command from that same JSON, on top of (not instead of)
   the hand-written per-flag variants already there.
+
+### Changed
+
+- **`crap-baseline.json` records repo-relative paths.** `cargo crap
+  --workspace` reports the absolute member roots `cargo metadata` gives it and
+  cargo-crap 0.3.1 has no flag to shorten them, so every one of the 1058
+  entries published the minter's own machine layout. `just crap-baseline` now
+  strips the workspace root after minting. Nothing is given up: cargo-crap
+  keys its first matching pass on `(file, function, line)`, so a baseline
+  minted under one checkout root already missed that pass under CI's and
+  paired through the suffix-aware pass instead — 1056 of 1058 entries pair as
+  unchanged, and the two that do not are one file's two same-named
+  `fake_editor` functions, ambiguous by suffix under any root.
 
 ### Fixed
 

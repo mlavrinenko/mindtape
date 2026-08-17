@@ -58,7 +58,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap")
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -291,6 +291,17 @@ site-pages-fixture-check:
 [group("gate")]
 check-crap:
     bash .just/scripts/check-crap.sh
+
+# The committed ratchet baseline itself: every `file` in it must be repo-
+# relative, and it must score something. Reads one JSON file and needs no
+# lcov, so unlike check-crap above it never skips. What a machine-local path
+# leaks, and why gitleaks cannot be the thing that catches it, are argued in
+# .just/scripts/crap-baseline-check.sh.
+
+[doc("Fail if the CRAP baseline is empty or carries machine-local paths")]
+[group("gate")]
+crap-baseline-check:
+    bash .just/scripts/crap-baseline-check.sh
 
 # (Re)generate the examples/large/ benchmark fixture: N deterministic task
 # files under examples/large/tasks/ (gitignored). Default N=2000.

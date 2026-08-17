@@ -347,6 +347,7 @@ groups:
       - .just/scripts/cover.sh
       - .just/scripts/crap.sh
       - .just/scripts/crap-baseline.sh
+      - .just/scripts/crap-baseline-check.sh
       - .just/scripts/_lcov-stale-reason.sh
       - .just/scripts/mutants.sh
       - .just/scripts/mutants-diff.sh

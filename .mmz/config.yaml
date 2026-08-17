@@ -252,6 +252,8 @@ scopes:
     - ".just/scripts/crap.sh"
   script-crap-baseline:
     - ".just/scripts/crap-baseline.sh"
+  script-crap-baseline-check:
+    - ".just/scripts/crap-baseline-check.sh"
   script-docs-md-check:
     - ".just/scripts/docs-md-check.sh"
   script-fmt-fixture-check:
@@ -500,6 +502,15 @@ commands:
   - name: just check-crap
     tags: [gate]
     inputs: [rust, crap-baseline, lcov, gates-meta, script-check-crap, script-crap, script-lcov-stale-reason]
+
+  # The other half of the CRAP pair, and the half that is always correct: a
+  # static read of the committed baseline, refusing a machine-local path or an
+  # empty entry list. Two inputs and no `rust`, because nothing about a source
+  # edit changes the verdict — the subject is the JSON file, not the code it
+  # scores. `gates-meta` is the dev shell jq comes from.
+  - name: just crap-baseline-check
+    tags: [gate]
+    inputs: [crap-baseline, gates-meta, script-crap-baseline-check]
 
   # The arm that pays for the enumeration above (truth/tasks/split-gates-meta-
   # into-per-script-scopes.typ): set-differences the `.just/scripts/*.sh` files

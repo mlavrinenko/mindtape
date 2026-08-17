@@ -211,4 +211,12 @@
     matter; it catches the free case only. #just.check-full() is the arm
     that is always correct.
   ],
+  "crap-baseline-check": [
+    The CRAP arm that never skips: it reads the committed baseline itself
+    rather than the lcov, so no coverage run has to be fresh for it to be
+    right. It fails on an entry carrying a machine-local absolute path —
+    what #just.crap-baseline() strips after minting, and what a re-mint by
+    hand puts straight back — and on a baseline scoring no functions at
+    all, which passes the ratchet by reporting every function as new.
+  ],
 )
