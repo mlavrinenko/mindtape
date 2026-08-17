@@ -21,7 +21,22 @@ pub fn task_with(source: &str) -> Result<Call> {
 }
 
 /// Build an edit setting `name: value_text` in `call`: replace an existing
-/// argument's value, or insert a new line before the closing paren.
+/// argument's value, or insert a new argument separated from the ones already
+/// there.
+///
+/// The insertion anchors immediately after the last argument's value and
+/// carries its own leading comma, rather than landing before the closing paren
+/// and relying on a separator already sitting there. A call written on one line
+/// (`task.with(title: slot("title"))`) or without a trailing comma has nothing
+/// to separate from at the paren, and the old anchor spliced the new argument
+/// straight onto the previous value — writing a file that could not parse.
+/// Carrying the separator also keeps the edit self-composing: any number of
+/// insertions share the anchor, apply in the order they were pushed, and each
+/// arrives already separated from the one before.
+///
+/// An empty argument list is the opposite case — nothing precedes the new
+/// argument, so it takes no leading comma and keeps the trailing one instead,
+/// which is what separates a second insertion from it.
 ///
 /// # Errors
 /// Returns an error when the call range is empty (malformed source).
@@ -29,14 +44,29 @@ pub fn upsert_named_arg(source: &str, call: &Call, name: &str, value_text: &str)
     if let Some(arg) = call.named(name) {
         return Ok(Edit::new(arg.value_range.clone(), value_text.to_owned()));
     }
-    let indent = detect_indent(source, call);
-    let insertion = format!("{indent}{name}: {value_text},\n");
     let close_paren = call
         .range
         .end
         .checked_sub(1)
         .context("call range is empty")?;
-    Ok(Edit::new(close_paren..close_paren, insertion))
+    let Some(last) = call.args.last() else {
+        let indent = detect_indent(source, call);
+        return Ok(Edit::new(
+            close_paren..close_paren,
+            format!("{indent}{name}: {value_text},\n"),
+        ));
+    };
+    let anchor = last.value_range.end;
+    let gap = match source.get(anchor..close_paren) {
+        // The closing paren is on a line of its own: one argument per line.
+        Some(tail) if tail.contains('\n') => format!("\n{}", detect_indent(source, call)),
+        // Everything closes on one line: stay on it.
+        _ => " ".to_owned(),
+    };
+    Ok(Edit::new(
+        anchor..anchor,
+        format!(",{gap}{name}: {value_text}"),
+    ))
 }
 
 /// The status name a freshly written task (`mt add`) or occurrence

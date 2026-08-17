@@ -100,8 +100,10 @@ const SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 /// A throwaway project scaffolded with `source` as its default template
 /// (`.mindtape/templates/task.typ`) — the shared prologue
 /// [`project_with_slot_template`] and [`project_with_raw_slot_template`]
-/// both build on before adding their own fixtures.
-fn project_with_template(source: &str) -> tempfile::TempDir {
+/// both build on before adding their own fixtures, and the one every test
+/// about a template's *shape* (a single-line `task.with(…)`, a template that
+/// cannot evaluate) reaches for directly.
+pub fn project_with_template(source: &str) -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
     install_lib(dir.path());
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();

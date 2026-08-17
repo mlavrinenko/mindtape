@@ -1,11 +1,13 @@
 #![allow(clippy::unwrap_used)]
 
 use tempfile::TempDir;
+use typst_edit::apply;
 
-use super::verify_written;
+use super::{task_with, upsert_named_arg, verify_written};
 
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
 const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n";
+const IMPORT: &str = "#import \"@local/mindtape:0.2.0\": *\n";
 
 /// Scaffold a project holding a single `tasks/<name>` file and return the temp
 /// dir plus the absolute path of that file, ready for [`verify_written`].
@@ -14,6 +16,130 @@ fn project_with(name: &str, body: &str) -> (TempDir, std::path::PathBuf) {
     crate::test_util::make_project_with_lib(dir.path(), PRELUDE, &[(name, body)], CONFIG);
     let file = dir.path().join("tasks").join(name);
     (dir, file)
+}
+
+/// Upsert each `(name, value)` into `source`'s `task.with(…)` call and splice
+/// the whole set at once — the shape every write path builds, so what these
+/// tests read is what would reach the file. All the edits are computed against
+/// the same untouched `source`, which is what makes several insertions sharing
+/// one anchor worth pinning.
+fn upsert(source: &str, args: &[(&str, &str)]) -> String {
+    let call = task_with(source).unwrap();
+    let edits = args
+        .iter()
+        .map(|(name, value)| upsert_named_arg(source, &call, name, value).unwrap())
+        .collect();
+    apply(source, edits).unwrap()
+}
+
+/// Assert that `source` is a task file that loads and validates, by writing it
+/// into a throwaway project — the one property a separator bug destroys, and
+/// the one an assertion on the rendered text alone cannot see.
+fn assert_loads(name: &str, source: &str) {
+    let (dir, file) = project_with(name, source);
+    verify_written(dir.path(), &file).unwrap();
+}
+
+/// The bug this seam was rewritten for: a `task.with(…)` call written on ONE
+/// line ends with no separator before its closing paren, and an injected
+/// `status:` used to land glued to the previous value —
+/// `title: "One line"status: wip(…)` — a file that cannot parse, written
+/// before the error surfaced. Legal Typst in, loadable Typst out.
+#[test]
+fn injects_into_a_single_line_call() {
+    let out = upsert(
+        &format!("{IMPORT}#show: task.with(title: \"One line\")\n"),
+        &[("status", "wip(2026, 1, 1)")],
+    );
+    assert_eq!(
+        out,
+        format!("{IMPORT}#show: task.with(title: \"One line\", status: wip(2026, 1, 1))\n")
+    );
+    assert_loads("one-line.typ", &out);
+}
+
+/// The same missing separator one line down: a multi-line call whose last
+/// argument carries no trailing comma. A newline is not an argument separator
+/// in Typst, so the injected argument needs the comma just as much as the
+/// single-line shape does — it merely looked plausible.
+#[test]
+fn injects_into_a_multi_line_call_with_no_trailing_comma() {
+    let out = upsert(
+        &format!("{IMPORT}\n#show: task.with(\n  title: \"No comma\"\n)\n"),
+        &[("status", "wip(2026, 1, 1)")],
+    );
+    assert_eq!(
+        out,
+        format!(
+            "{IMPORT}\n#show: task.with(\n  title: \"No comma\",\n  status: wip(2026, 1, 1)\n)\n"
+        )
+    );
+    assert_loads("no-comma.typ", &out);
+}
+
+/// The shape every in-tree template is written in — multi-line, trailing comma
+/// — is byte-identical to what the old anchor produced. The fix moved where the
+/// insertion lands, so the case that always worked is pinned here rather than
+/// left to be noticed as churn in a task file's diff.
+#[test]
+fn injects_into_a_multi_line_call_unchanged() {
+    let out = upsert(
+        &format!("{IMPORT}\n#show: task.with(\n  title: \"Multi\",\n)\n"),
+        &[("status", "wip(2026, 1, 1)")],
+    );
+    assert_eq!(
+        out,
+        format!(
+            "{IMPORT}\n#show: task.with(\n  title: \"Multi\",\n  status: wip(2026, 1, 1),\n)\n"
+        )
+    );
+    assert_loads("multi.typ", &out);
+}
+
+/// An EMPTY argument list is the mirror case: nothing precedes the injected
+/// argument, so it must take NO leading comma. `task.with(,status: …)` would be
+/// as unparseable as the glued form this fix removes.
+#[test]
+fn injects_into_an_empty_argument_list_without_a_leading_comma() {
+    let out = upsert(
+        &format!("{IMPORT}#show: task.with()\n"),
+        &[("status", "wip(2026, 1, 1)"), ("title", "\"Empty\"")],
+    );
+    assert!(!out.contains("with(,"), "no leading comma: {out}");
+    assert!(out.contains("status: wip(2026, 1, 1)"), "{out}");
+    assert!(out.contains("title: \"Empty\""), "{out}");
+    assert_loads("empty-args.typ", &out);
+}
+
+/// Two insertions computed against the same source share one anchor, so each
+/// carries its own separator or the second glues onto the first. `mt add`
+/// injects `status` and `id` exactly this way, in one splice.
+#[test]
+fn several_insertions_are_each_separated() {
+    let out = upsert(
+        &format!("{IMPORT}#show: task.with(title: \"Two\")\n"),
+        &[("status", "wip(2026, 1, 1)"), ("priority", "3")],
+    );
+    assert_eq!(
+        out,
+        format!("{IMPORT}#show: task.with(title: \"Two\", status: wip(2026, 1, 1), priority: 3)\n")
+    );
+    assert_loads("two-inserts.typ", &out);
+}
+
+/// An argument the call already carries is replaced in place, separators and
+/// all — the path the insertion rules must not disturb.
+#[test]
+fn replaces_an_existing_argument_in_place() {
+    let out = upsert(
+        &format!("{IMPORT}\n#show: task.with(\n  title: \"Old\",\n  status: wip(2026, 1, 1),\n)\n"),
+        &[("title", "\"New\"")],
+    );
+    assert_eq!(
+        out,
+        format!("{IMPORT}\n#show: task.with(\n  title: \"New\",\n  status: wip(2026, 1, 1),\n)\n")
+    );
+    assert_loads("replaced.typ", &out);
 }
 
 /// A task that harvests cleanly and validates: [`verify_written`] returns `Ok`.

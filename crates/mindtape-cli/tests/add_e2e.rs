@@ -252,6 +252,37 @@ fn describe_reports_raw_kind() {
     assert_eq!(support::describe_slot_kind(dir.path(), "summary"), "raw");
 }
 
+/// A template whose whole `task.with(…)` call sits on one line, with no
+/// trailing comma for `add`'s own `status:` to be separated by. Legal Typst,
+/// and the one shape no in-tree template happens to be written in.
+const SINGLE_LINE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
+
+#show: task.with(title: slot("title"))
+
+== Summary
+"#;
+
+/// `add` injects `status:` into whatever `task.with(…)` the template declares.
+/// Against a single-line call it used to write `title: "…"status: proposed(…)`
+/// — a file that cannot parse, reported only *after* it was on disk. The whole
+/// point of this test is being the other shape: the multi-line one every
+/// in-tree template uses is covered several times over above, which is how this
+/// got through.
+#[test]
+fn single_line_template_files_a_task_that_loads() {
+    let dir = support::project_with_template(SINGLE_LINE_TEMPLATE);
+
+    support::mt(dir.path())
+        .args(["add", "--name", "one-line", "--set", "title=One line"])
+        .assert()
+        .success();
+
+    let written = std::fs::read_to_string(dir.path().join("tasks/one-line.typ")).unwrap();
+    assert!(written.contains("title: \"One line\""), "{written}");
+    assert!(written.contains("status: proposed("), "{written}");
+    support::mt(dir.path()).arg("check").assert().success();
+}
+
 /// A template that cannot evaluate no matter how its slots are filled, so the
 /// post-write verification always fails.
 const BROKEN_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
@@ -266,14 +297,7 @@ const BROKEN_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 /// leaving "wrote <path>" to imply a file that loads.
 #[test]
 fn a_task_that_fails_verification_is_kept_and_reported_as_kept() {
-    let dir = tempfile::tempdir().unwrap();
-    support::scaffold(dir.path());
-    std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/templates/task.typ"),
-        BROKEN_TEMPLATE,
-    )
-    .unwrap();
+    let dir = support::project_with_template(BROKEN_TEMPLATE);
 
     let output = support::mt(dir.path())
         .args(["add", "--name", "broken", "--set", "title=Broken"])

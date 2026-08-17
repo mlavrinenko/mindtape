@@ -61,6 +61,22 @@ fn injects_default_status_proposed() {
     assert!(!out.contains("status(\"proposed\""), "{out}");
 }
 
+/// Every in-tree template is multi-line with trailing commas, which is exactly
+/// why the single-line shape — legal Typst, and a reasonable thing to write —
+/// went untested until it wrote `title: "Do thing"status: proposed(…)`, a file
+/// that cannot parse. The injected argument brings its own separator now, so
+/// the template's shape is the header's business and not the injection's.
+#[test]
+fn injects_status_into_a_single_line_header() {
+    const ONE_LINE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
+                            #show: task.with(title: \"Do thing\")\n";
+    let out = inject_header(ONE_LINE, &Config::default(), Some("wip")).unwrap();
+    assert!(
+        out.contains("title: \"Do thing\", status: wip("),
+        "the injected status must be separated from the last argument: {out}"
+    );
+}
+
 #[test]
 fn leaves_status_unfilled_when_legend_is_empty() {
     // A project that clears the legend (`status = []`) gets no invented

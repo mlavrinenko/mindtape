@@ -209,6 +209,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **An injected argument brings its own separator.** `mt add` writes its
+  `status:` (and `id:`) into whatever `task.with(…)` the template declares, and
+  the insertion landed just before the closing paren — correct only when a
+  trailing comma already sat there. A template written on one line
+  (`#show: task.with(title: slot("title"))`) or simply without a trailing comma
+  got `title: "…"status: proposed(…)` instead: a file that cannot parse,
+  reported as `written task failed to load: expected comma` *after* it was on
+  disk. The insertion anchors after the last argument's value now and carries
+  its own comma, so the template's shape is the template's business; several
+  insertions share that anchor and each arrives separated from the one before.
+  An empty argument list is the opposite case and keeps its trailing comma
+  instead of taking a leading one. No in-tree template is written that way,
+  which is exactly why nothing caught it — the regression tests are the other
+  shape, at every level: the splice, `add`'s header injection, and a
+  single-line template filed end to end through the binary.
 - **`$MINDTAPE_DATA_HOME` moved the install but not the load.** The variable
   replaced the data directory `mt install` writes the `@local/mindtape` package
   into, while resolution went one level below `mt` — through `typst-world`,
