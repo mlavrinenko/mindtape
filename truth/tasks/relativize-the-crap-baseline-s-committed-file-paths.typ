@@ -12,7 +12,10 @@
   estimate: (files: 13),
   links: related("scan-the-tree-for-secrets-with-gitleaks.typ")[
     the secret scanner that cannot take this job
-  ],
+  ]
+    + related("fail-a-half-wired-gate-arm-at-the-wiring-it-is-missing.typ")[
+      what wiring this arm's six edits measured
+    ],
   status: done(
     2026,
     8,
