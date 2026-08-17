@@ -27,6 +27,16 @@ which is where the platform seams get exercised — `cmd /C` vs `sh -c` for
 plain `cargo build` / `cargo test`, not #just.check(): there is no Nix there,
 and the remaining gates are platform-independent.
 
+The data-path seam is the one worth naming, because it is the reason
+`$MINDTAPE_CONFIG_HOME` / `$MINDTAPE_DATA_HOME` exist at all: `dirs` reads the
+environment on Unix only and goes through a known-folder API here that no
+variable can move, so a test staged through `XDG_DATA_HOME` would assert about
+a path nothing on this runner touched. `tests/install_e2e.rs` stages through
+the `MINDTAPE_*` pair instead, and covers both halves — where `mt install`
+writes the `@local/mindtape` package, and where a load resolves it from — so
+the two agreeing is checked on the platform where they were hardest to make
+agree.
+
 = The pty tests are Unix-only
 
 `tests/interactive_e2e.rs` drives `mt ls --interactive` under a real PTY via

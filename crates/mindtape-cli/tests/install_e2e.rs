@@ -191,6 +191,89 @@ fn install_long_help_names_every_skip_flag() {
     }
 }
 
+/// A project with no in-tree `lib/`, so its one task can only load through the
+/// data home's installed package. Returned so the caller keeps the tempdir
+/// alive.
+fn project_without_a_lib() -> tempfile::TempDir {
+    let dir = tempfile::tempdir().unwrap();
+    mindtape::test_support::write_bare_project(dir.path());
+    std::fs::write(
+        dir.path().join("tasks/only.typ"),
+        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(title: \"Only task\")\n",
+    )
+    .unwrap();
+    dir
+}
+
+/// `mt ls` in `project`, with the data home pointed at `data` (verbatim, so an
+/// empty value stays empty) and the global config layer out of reach.
+fn ls_with_data_home(project: &Path, data: &std::ffi::OsStr) -> assert_cmd::assert::Assert {
+    assert_cmd::Command::cargo_bin("mt")
+        .unwrap()
+        .current_dir(project)
+        .env(mindtape::CONFIG_HOME_ENV, project.join("no-global-config"))
+        .env(mindtape::DATA_HOME_ENV, data)
+        .args(["--color", "never", "ls"])
+        .assert()
+}
+
+/// The install and the read must name the same directory. `$MINDTAPE_DATA_HOME`
+/// moved where `mt install` WRITES the `@local/mindtape` package long before it
+/// moved where the loader READS it — resolution went through `typst-world`,
+/// which looked the directory up through `dirs` and had never heard of the
+/// variable. Pointed at a tempdir, `mt install` filled that tempdir while every
+/// task file kept importing the machine's own package.
+///
+/// The pair is what makes this a test rather than a coincidence: a data home
+/// that HAS the package loads the task, and a second one that does not fails
+/// naming its own path. Before the fix both answers came from the machine, so
+/// they were identical whichever way the variable pointed.
+#[test]
+fn ls_resolves_the_prelude_from_the_configured_data_home() {
+    let home = tempfile::tempdir().unwrap();
+    run_install(home.path(), &["install", "--no-defaults", "--no-schema"]).success();
+    let project = project_without_a_lib();
+
+    let assert = ls_with_data_home(project.path(), home.path().join("data").as_os_str()).success();
+    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    assert!(stdout.contains("Only task"), "{stdout}");
+}
+
+#[test]
+fn ls_fails_against_a_data_home_the_package_was_not_installed_into() {
+    let installed = tempfile::tempdir().unwrap();
+    run_install(
+        installed.path(),
+        &["install", "--no-defaults", "--no-schema"],
+    )
+    .success();
+    let elsewhere = tempfile::tempdir().unwrap();
+    let project = project_without_a_lib();
+
+    let assert = ls_with_data_home(project.path(), elsewhere.path().as_os_str());
+    let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
+    assert!(
+        stderr.contains(&elsewhere.path().display().to_string()),
+        "the failure must name the data home that was searched:\n{stderr}"
+    );
+}
+
+/// Set but empty is `app_dirs`'s "no such directory", and a read honours it the
+/// same way a write does: no global package resolves at all, even on a machine
+/// that has one installed. What `just check-examples` leans on to prove each
+/// example fixture resolves its prelude from the checkout beside it.
+#[test]
+fn an_empty_data_home_resolves_no_global_package() {
+    let project = project_without_a_lib();
+
+    let assert = ls_with_data_home(project.path(), std::ffi::OsStr::new(""));
+    let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
+    assert!(
+        stderr.contains("@local/mindtape"),
+        "the failure must name the unresolved package:\n{stderr}"
+    );
+}
+
 /// `install-lib` is hidden from `--help` (deprecated in favour of `install`).
 #[test]
 fn install_lib_hidden_from_help() {

@@ -131,25 +131,24 @@ outdatty-check:
 # checkout's lib/; the machine-global local-package directory would serve the
 # same import from whichever checkout last ran `just install-lib`, so a fixture
 # that lost its entry would keep passing here against some other tree's
-# prelude. Pointing the platform data dir at a path that holds no packages
-# deletes that fallback: the entry is load-bearing, and a fork editing the DSL
-# gates against the prelude it is editing. It is also what lets a contributor —
-# and CI, which never runs `mt install` — run this gate on a machine with no
-# global install at all.
+# prelude. An empty `MINDTAPE_DATA_HOME` deletes that fallback — the variable
+# set-but-empty means "no such directory", which resolves no global package at
+# all rather than falling back — so the entry is load-bearing, and a fork
+# editing the DSL gates against the prelude it is editing. It is also what lets
+# a contributor, and CI, which never runs `mt install`, run this gate on a
+# machine with no global install at all.
 #
-# XDG_DATA_HOME is the seam `dirs::data_dir` reads on Linux, which covers the
-# dev shell and the CI job that runs `just check`. macOS keeps the fallback
-# (the gate still passes, just less strictly); Windows never runs this gate.
-# Absolute because a relative XDG_DATA_HOME is ignored per the XDG spec, and
-# deliberately never created.
-
-NO_LOCAL_PKGS := justfile_directory() / "target" / "no-typst-packages"
+# The variable rather than XDG_DATA_HOME because `dirs` reads the environment
+# on Unix only: XDG_DATA_HOME would isolate this gate on Linux, leave macOS
+# reading the machine's packages, and mean nothing on Windows. `mt` resolves
+# the local-package directory through its own setting on every platform
+# (crates/mindtape/src/loader.rs), so the gate says what it means everywhere.
 
 [doc("Validate each example project against itself")]
 [group("gate")]
 check-examples:
-    XDG_DATA_HOME={{ NO_LOCAL_PKGS }} cargo run -p mindtape-cli -q -- -w examples/learn-piano check
-    XDG_DATA_HOME={{ NO_LOCAL_PKGS }} cargo run -p mindtape-cli -q -- -w examples/minimal check
+    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/learn-piano check
+    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/minimal check
 
 # Every visible top-level `mt` subcommand must have a www/utils/cli-notes.typ
 # entry. How the set-difference is taken, and what it deliberately never

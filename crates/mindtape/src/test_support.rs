@@ -78,6 +78,27 @@ pub fn write_lib_package(dir: &Path, prelude: &str) {
     std::fs::write(lib.join("prelude.typ"), prelude).unwrap();
 }
 
+/// Write the barebones project scaffold under `dir`: a `.mindtape/config.toml`
+/// declaring a single `tasks` root, plus the empty root itself. The prologue
+/// every test that needs a real project on disk repeats, and deliberately
+/// nothing more — a scenario-specific config overwrites the file, and the lib
+/// override ([`write_lib_package`]) is a separate decision, since a test about
+/// package resolution wants a project WITHOUT one.
+///
+/// # Panics
+/// Panics if writing under `dir` fails — a test-only helper, so an IO failure
+/// against a fresh tempdir is a test-harness bug, not a case to recover from.
+#[allow(clippy::unwrap_used)]
+pub fn write_bare_project(dir: &Path) {
+    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+    std::fs::write(
+        dir.join(".mindtape/config.toml"),
+        "[tasks]\nroots = [\"tasks\"]\n",
+    )
+    .unwrap();
+    std::fs::create_dir_all(dir.join("tasks")).unwrap();
+}
+
 /// `git init --quiet` in `dir`, asserting success. Shared by every test that
 /// drives a real git working copy — the estimate-drift check (`mt check`)
 /// reads one, and both the in-crate unit tests and the CLI's e2e tests need

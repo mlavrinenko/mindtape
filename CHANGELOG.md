@@ -134,6 +134,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`$MINDTAPE_DATA_HOME` moved the install but not the load.** The variable
+  replaced the data directory `mt install` writes the `@local/mindtape` package
+  into, while resolution went one level below `mt` — through `typst-world`,
+  which looked the directory up with `dirs` and had never heard of it. Point it
+  at a directory and the package landed there while every task file kept
+  importing the machine's own, so the one knob documented as working on every
+  platform (the reason it exists is that `dirs` reads no environment on
+  Windows) isolated a write and not a read. `mt` now hands the resolver the
+  directory it settled on — via `World::with_package_root`, added in
+  `typst-world` 0.3.1 — so the install and the load can no longer name
+  different directories. Set the variable empty and no global package resolves
+  at all, matching what empty already meant for the config layer; the harvest
+  cache folds the directory into its build key, so moving it routes reads to a
+  fresh cache instead of replaying markers harvested against another prelude.
+  `just check-examples` uses that to prove each fixture reads the checkout's
+  prelude, replacing an `XDG_DATA_HOME` that only isolated the gate on Linux.
 - **Example fixtures resolved the prelude from a machine-global symlink.**
   `@local/mindtape` resolves through one directory per machine — pointed at
   whichever checkout last ran `mt install` — so `just check-examples` in a

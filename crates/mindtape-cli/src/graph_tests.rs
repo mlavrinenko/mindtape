@@ -344,13 +344,7 @@ fn run_prints_graph_from_disk() {
     if std::env::var("_MT_GRAPH_RUN").is_err() {
         let dir = tempfile::tempdir().unwrap();
         // Scaffold project manually (must exist before run() calls open()).
-        std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-        std::fs::write(
-            dir.path().join(".mindtape/config.toml"),
-            "[tasks]\nroots = [\"tasks\"]\n",
-        )
-        .unwrap();
-        std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
+        mindtape::test_support::write_bare_project(dir.path());
         std::fs::write(dir.path().join("tasks/a.typ"), TASK_SRC).unwrap();
         // Need lib override for HarvestWorld evaluation.
         std::fs::create_dir_all(dir.path().join("lib")).unwrap();

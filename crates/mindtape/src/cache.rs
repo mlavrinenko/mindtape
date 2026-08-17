@@ -144,13 +144,23 @@ fn disabled() -> bool {
 }
 
 /// The build key: a hex digest folding the cache format, the `mt` version, the
-/// whole config, and every prelude/override directory's contents. Governs the
-/// cache directory, so any change busts the whole cache.
+/// whole config, the local-package directory, and every prelude/override
+/// directory's contents. Governs the cache directory, so any change busts the
+/// whole cache.
 fn build_key(config: &Config, overrides: &[(String, PathBuf)]) -> String {
     let mut hasher = Sha1::new();
     hasher.update(FORMAT_VERSION.to_le_bytes());
     hasher.update(b"\x00mt\x00");
     hasher.update(env!("CARGO_PKG_VERSION").as_bytes());
+    // Where an unoverridden `@local` import resolves from. The path, not its
+    // contents: it holds every installed package, and only the one this project
+    // imports could matter. Folding it in means moving `$MINDTAPE_DATA_HOME`
+    // routes reads to a fresh cache instead of replaying markers harvested
+    // against a prelude that is no longer the one being resolved.
+    hasher.update(b"\x00pkgroot\x00");
+    if let Some(dir) = crate::data_home() {
+        hasher.update(dir.as_os_str().as_encoded_bytes());
+    }
     hasher.update(b"\x00cfg\x00");
     // Debug is deterministic (every collection in `Config` is ordered) and
     // covers every field, so the key busts conservatively on any config change.

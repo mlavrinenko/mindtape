@@ -231,11 +231,32 @@ fn build_world(
     root: &Path,
     overrides: &[(String, PathBuf)],
 ) -> Result<HarvestWorld, String> {
-    let mut world = HarvestWorld::with_root(file, root).map_err(|err| err.to_string())?;
+    let mut world = HarvestWorld::with_root(file, root)
+        .map_err(|err| err.to_string())?
+        .with_package_root(package_root());
     for (name, dir) in overrides {
         world = world.with_local_package(name, dir.clone());
     }
     Ok(world)
+}
+
+/// The directory an unoverridden `@local/<name>` resolves under: the app's own
+/// data directory (`$MINDTAPE_DATA_HOME`, else the platform one) joined with
+/// Typst's `typst/packages` layout.
+///
+/// Named rather than left to Typst's own lookup because that lookup goes
+/// through `dirs`, which reads the environment on Unix only — on Windows it
+/// calls a known-folder API no variable can move. `mt install` already writes
+/// through [`crate::data_home`], so leaving the read on the platform default
+/// let the two disagree: point `$MINDTAPE_DATA_HOME` at a directory and the
+/// package landed there while every task file kept importing the machine's own.
+///
+/// `None` — the variable set but empty, which
+/// [`crate::app_dirs`] defines as "no such directory" — resolves no global
+/// package at all rather than falling back, so an explicit disable is honoured
+/// on a read the same way it already is on a write.
+fn package_root() -> Option<PathBuf> {
+    crate::data_home().map(|dir| dir.join("typst").join("packages"))
 }
 
 /// The `@local/<name>` → in-tree lib overrides for this project: `MindTape`'s own

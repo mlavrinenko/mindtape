@@ -29,35 +29,35 @@ groups:
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
       crates/mindtape/src/lib.rs: 4ff27e2e90197e5eedfe78f8f37ba2965bd85ca2dc8ff8172aceff9e67a5c8c5
     dependents:
-      docs/src/skill.typ: 9b07d4c6ed48afe20905132beaf0c9d6fb60cb815e5bb3e2036cb677eb5a24ad
+      docs/src/skill.typ: 364be1c717487fad369e39407095014b3d76b962e1888afe1d9f371c6a574153
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: fc34eddf144ff8e5905e93d259e0c1049ff86077b0f7d31a9e2e25dca08e946d
-      www/content/agents.typ: 50a75a732b9f591868557c68c575fef6a61550f67749540786aaedf9303e6d6b
-      www/content/cli.typ: 4da3b4386735d38b88bb705ee0eb7d18efb181d7f5ed11d509ab9e0f10bf8a3f
-      www/content/concepts.typ: 57b163c678399b18214cd57526ec9de6e1c95e4cd8271fa9b037224d6a84f5a4
-      www/content/config.typ: 1973342d2badb65b1cbe5b5ebb89a6cd7f877c8a73a77783c5196a67d892dd22
-      www/content/derived-tags.typ: 6beda8701db21f67c90319fee81f1d0f211cc3d57e61fae56c66151a350981dc
-      www/content/filters.typ: 9e75afe0b2ab6228b5aed52989fddbb472020d41e3fbc604eac386047cc4896d
-      www/content/import-export.typ: 76e007acc1fe5ef421525d76febbdd3cf5f75c378c6283dcfcc8453217dd9b22
-      www/content/priority.typ: 07903a53ecb758f8dfc47b553c580c52d550cf99f6967326f2d3426802549932
-      www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
-      www/content/schema.typ: 300f1dc9302d45c99396f416b02290569549da4c26cf343068f6e4f644db1f66
-      www/content/templates.typ: e10a7b1463a613cf0333aaf1f13221aa9fcef79dafafcdb59c6de848f14ffbe7
+      www/content/agents.typ: 405a2f3dd81ba4e4a205fb5c178804f4be8b3e057b6ef743328f957f17bc132f
+      www/content/cli.typ: 5de8f92a2a68036cafa2b72d309baab4a4b26c7f172e5e6e648b3652897b5560
+      www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
+      www/content/config.typ: 60e8b63bcd55d08f1af85774c5e0052c6cbcd5a1d91f5d2401f9bf51a2b588d5
+      www/content/derived-tags.typ: df0c7aab4e3e9634eb8236b1ddfb426499b62f5f9b6c1fbc44a8b46d3c5bb17c
+      www/content/filters.typ: 830ffe946b7f74dcb19268297370bb5d62dbad6c2bad1c9109fcb5c3434b370c
+      www/content/import-export.typ: a869ce1490053348afbc750d6a66dc85ede03a3dc51330ad43b871b110e2285c
+      www/content/priority.typ: df10cfbdbbfe85ab35c7d9725210beb202c0f9437f9b7e462aaf7534eedf1a09
+      www/content/quickstart.typ: deadd0718bd2d16ffd0aa94ab29aab5f419665eef4d3fe233b970b67b92a6c6b
+      www/content/schema.typ: ffb77af3d2f6a5dd31f3da0164fc9931f2bb7f3fc6d48fb468694a0b83dc840d
+      www/content/templates.typ: 1db0baea38ca373241d068bb39433054c74b6bcd6571a135a1c769c6c13e25b4
       www/utils/cli-notes.typ: 53a5ee0a4901c9e2e35346edc81c80680fba566560808eccde43ac5140b09915
   cli-name:
     source:
       crates/mindtape-cli/Cargo.toml: 9ce1e4d3844fc88e726278cc268a51a08a69a5894cacf5e2a86f5d3b689e8824
       crates/mindtape-cli/src/cli.rs: b05f73a88e9877931e9d66f587935c7b5751ea6c6911a3435246c1eb2772b24b
     dependents:
-      CHANGELOG.md: 48e422978f63e9634e420290a8478f95f7316127937c8f68b5da4a1a129c27ca
-      docs/src/agents.typ: 3061aa964f76f6befa2a436fbba04ba200c4bfde856a08d9325649409ff92e9c
-      docs/src/contributing.typ: 4b3e4047f381e286072481ee6a9032fb8641c05648c5d033038646fd263f227a
-      docs/src/readme.typ: 2cc486562a688e7cdeb4ebb295f3bf9fc7ecf04d90797af01dd736b34818cd64
-      docs/src/skill.typ: 9b07d4c6ed48afe20905132beaf0c9d6fb60cb815e5bb3e2036cb677eb5a24ad
-      www/content/cli.typ: 4da3b4386735d38b88bb705ee0eb7d18efb181d7f5ed11d509ab9e0f10bf8a3f
-      www/content/index.typ: eeb6dacf001681274ace80e70a7c373b3c2cad6de092ca9f99ed31c94d6de8a4
-      www/content/quickstart.typ: d1df5e75c3e375a4efa06848ba4c5d449215708b9c9c37a52983ae7a3a9e9236
+      CHANGELOG.md: 79ec9a05199a2af54a61ec35a466eb5f8f4bc76f59968b5a999369d398b5ea3a
+      docs/src/agents.typ: bd6d06065b7bbf238f73910ef035a76e071cd67d764f45f7243a63f1487716db
+      docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
+      docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
+      docs/src/skill.typ: 364be1c717487fad369e39407095014b3d76b962e1888afe1d9f371c6a574153
+      www/content/cli.typ: 5de8f92a2a68036cafa2b72d309baab4a4b26c7f172e5e6e648b3652897b5560
+      www/content/index.typ: acc3d4572975bd4c7d8d92e12d63cad17bb27f53cf9666929460f132159ce662
+      www/content/quickstart.typ: deadd0718bd2d16ffd0aa94ab29aab5f419665eef4d3fe233b970b67b92a6c6b
   dev-docs:
     source:
       .just/docs.just: a401a5910ceedab097a374e1116b39049cfdb99fdeacea0526732f6d5a236477
@@ -83,33 +83,33 @@ groups:
       .just/scripts/script-scope-check.sh: b533aefffe3511875ef697585b51cb5ec0f35aafd9d9fe73e2a6a54a855c5966
       .just/scripts/site-pages-fixture-check.sh: fc55ddc693bca685f6169e3d5c8e90236fae5eb781f958239048483a94dede50
       .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
-      Justfile: d1b1027e44299421953654fc6217fa882f8dad6be0fd2e0f2bafd174ffbf2f10
+      Justfile: 0c12f2ea1b9503399fcdd3ee605406ff373943d4820ac1494f79141677957133
       flake.nix: bcc7455a45e2ac837b128dfbe4514ade83fbe56adfae48fb3f38639f58ad5466
     dependents:
       docs/src/agents.typ: bd6d06065b7bbf238f73910ef035a76e071cd67d764f45f7243a63f1487716db
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
       docs/src/contributing/coverage-crap.typ: 3b69fa26579a7e5f825e4601ba113ca5ddcec44a5d44c8253563c7c4df9bd168
-      docs/src/contributing/gates.typ: e77e63bd8a24fa3b3b0ed7383b7b9b96f0718b8ed5d7b428c2ab54c1801c3c33
+      docs/src/contributing/gates.typ: c311cdca66ecc6a457714e517ee1907b5db84e9a81e5b0a7832ed414f12ca805
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
       docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c
-      docs/src/contributing/windows.typ: d306f6e7e5a434d961e0bc33108a7a76084d4a8f403aad0ddabc2f1f89f1bb6f
+      docs/src/contributing/windows.typ: bd5fbf570767c4452743a60eb7ae39d9fafcdac584bf28973ae7f97dc38853db
   prelude-docs:
     source:
       lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf
     dependents:
-      docs/src/agents.typ: 934645643e48556ed8fdae54fc4f1aea8a47d241c1c36ee99d5b64134a6d3068
-      docs/src/readme.typ: e1552698d15b8eade02b73f288c7e09028f691ba4833f251bf052566dd7276e2
-      docs/src/skill.typ: 9b07d4c6ed48afe20905132beaf0c9d6fb60cb815e5bb3e2036cb677eb5a24ad
+      docs/src/agents.typ: bd6d06065b7bbf238f73910ef035a76e071cd67d764f45f7243a63f1487716db
+      docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
+      docs/src/skill.typ: 364be1c717487fad369e39407095014b3d76b962e1888afe1d9f371c6a574153
       skills/mindtape/references/add-slots.md: fc34eddf144ff8e5905e93d259e0c1049ff86077b0f7d31a9e2e25dca08e946d
-      www/content/concepts.typ: 57b163c678399b18214cd57526ec9de6e1c95e4cd8271fa9b037224d6a84f5a4
-      www/content/dsl.typ: 3fa51a050412e4bb70ba124a3ac2dae70b3f9b01588d0864704be1e9eae0bc0d
-      www/content/priority.typ: 07903a53ecb758f8dfc47b553c580c52d550cf99f6967326f2d3426802549932
-      www/content/templates.typ: e10a7b1463a613cf0333aaf1f13221aa9fcef79dafafcdb59c6de848f14ffbe7
+      www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
+      www/content/dsl.typ: eb9df45b7f30663ddc4eab9d91cbc7dc075712de2762a67bd23f23a500f6efb4
+      www/content/priority.typ: df10cfbdbbfe85ab35c7d9725210beb202c0f9437f9b7e462aaf7534eedf1a09
+      www/content/templates.typ: 1db0baea38ca373241d068bb39433054c74b6bcd6571a135a1c769c6c13e25b4
   release-notes:
     source:
       Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b
     dependents:
-      CHANGELOG.md: eba713aa3ebfc16eb8533a6c98ae9462486c66592e032ef90874bad152b76774
+      CHANGELOG.md: 79ec9a05199a2af54a61ec35a466eb5f8f4bc76f59968b5a999369d398b5ea3a
   sweep-dedup:
     source:
       contrib/ask-refactoring/coverage.sh: a233130d4f5749ac8e8336c761e4841a31dc12710d730adeb4e1fc2a6615896f
@@ -151,4 +151,3 @@ groups:
       examples/minimal/tasks/refactor-auth.typ: c0ca3a97de0ecdc0ef1e8b8df45d29d49b67c697d0856fb28b4ed141521948fe
       examples/minimal/tasks/setup-ci.typ: 398c86142adb266183391b5e7ef5b4988100f59225cf7273e23ec9475f65c530
       examples/minimal/tasks/write-docs.typ: 85b64eb42b0a66948c35fcb6e21a68ef409be65d9af219e9547763ec50dafe8a
-      www/utils/site.typ: 239a5d5bc0461b971156e3ce7e1b3bbd21d078bd6f3b26c999409e7819873bec

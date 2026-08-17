@@ -9,11 +9,15 @@
   ),
   difficulty: 5,
   tags: ("mt", "substrate"),
-  estimate: (files: 3),
+  estimate: (files: 13),
   links: related(
     "resolve-the-typst-package-from-the-checkout-not-a-global-symlink.typ",
   )[the fix whose gate had to reach for `XDG_DATA_HOME` because of this],
-  status: proposed(2026, 8, 17),
+  status: done(
+    2026,
+    8,
+    17,
+  )[typst-world 0.3.1 World::with\_package\_root; mt hands the resolver its own data home, read and write agree],
 )
 
 == Summary
