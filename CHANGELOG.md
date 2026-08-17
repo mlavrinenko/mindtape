@@ -143,6 +143,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING: one `key OP value` token grammar for `mt add` values.** A value
+  is `key=value` (set) or `key+=value` (append to a list slot), and the same
+  token is accepted after `--set` or bare after `--` —
+  `mt add "Practice arpeggios" -- estimate.files=2 tags+=docs`. Both carriers
+  reach one parser, so the shorthand cannot drift into a second grammar. The
+  `key[]=value` append spelling is retired: it encoded a verb in the key's
+  suffix where nothing else did, and needed shell quoting to survive globbing.
+  A `[]=` token now fails naming its replacement rather than being silently
+  accepted. `+word` tag sugar is unchanged — it carries no `=`, so it cannot
+  collide with a token — and a bare positional stays title text, which is why
+  the `--` is required: `mt add "fix a=b parsing"` sets no slot.
+- **Nesting a slot needs no new syntax.** A slot's name is an arbitrary
+  string and values are looked up flat, so a template that writes
+  `slot("estimate.files")` already accepts `--set estimate.files=2`. The dot
+  is a naming convention for template authors; MindTape never parses it.
+- **The docs lead with YAML for `-f`.** `-f` always accepted YAML (stdin and
+  unknown extensions sniff the content, and YAML is a JSON superset), but
+  every example was JSON — the shape that makes an author escape exactly the
+  prose slots that need it least. The `-f` sections on Templates & slots and
+  in the skill now open with a YAML heredoc and a block scalar.
 - **`script-scope-check` grew a third arm, over `outdatty.yaml`.** Its
   `dev-docs` group lists `.just/scripts/*.sh` one by one and outdatty reacts
   only to files it lists, so a script never added was coupled to no dependent

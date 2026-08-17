@@ -50,10 +50,16 @@ pub struct AddArgs {
     #[arg(long = "values", short = 'f', value_name = "PATH")]
     pub values: Vec<String>,
 
-    /// Override a slot: `key=value` (string; applied after `--values`). Repeat
-    /// `key[]=value` to append to a list slot (e.g. `tags[]=a --set tags[]=b`).
+    /// Override a slot: `key=value` sets, `key+=value` appends to a list slot
+    /// (e.g. `--set tags+=a --set tags+=b`). Applied after `--values`.
     #[arg(long = "set", value_name = "KEY=VALUE")]
     pub set: Vec<String>,
+
+    /// Slot assignments after `--`, in the same `key=value` / `key+=value`
+    /// grammar as `--set` (e.g. `mt add "title" -- estimate.files=2 tags+=a`).
+    /// Applied after `--set`.
+    #[arg(last = true, value_name = "KEY=VALUE")]
+    pub tokens: Vec<String>,
 
     /// Destination directory; `.` (default) is the first configured root.
     #[arg(long, value_name = "DIR", default_value = ".")]
@@ -139,7 +145,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
         return Ok(());
     }
 
-    let mut values = collect_values(&args.values, &args.set)?;
+    let mut values = collect_values(&args.values, &args.set, &args.tokens)?;
     let specs = discover_slots(&source);
     reject_unknown_keys(&values, &specs)?;
     fill_title_from_args(&mut values, args, &specs);

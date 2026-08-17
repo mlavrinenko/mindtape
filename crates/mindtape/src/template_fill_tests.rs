@@ -139,7 +139,7 @@ fn bare_string_into_list_slot_errors_with_brackets_hint() {
             ..
         }
     ));
-    assert!(err.to_string().contains("tags[]="), "{err}");
+    assert!(err.to_string().contains("tags+="), "{err}");
 }
 
 #[test]

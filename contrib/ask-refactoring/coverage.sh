@@ -219,7 +219,7 @@ emit_coverage() {
         --set "ease=$ease"
         --set "difficulty=$difficulty"
         --set "estimate=(files: 1)"
-        --set 'tags[]=swept' --set 'tags[]=coverage'
+        --set 'tags+=swept' --set 'tags+=coverage'
     )
 
     if [ "$WRITE" -eq 1 ]; then

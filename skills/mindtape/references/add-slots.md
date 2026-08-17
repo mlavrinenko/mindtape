@@ -1,10 +1,39 @@
 # `mt add` slot semantics
 
 Reference for the mindtape skill. Read this when filling slots on a real
-template — the three things that surprise callers, none of which you can
-infer from `--describe` output alone.
+template — the things that surprise callers, none of which you can infer from
+`--describe` output alone.
 
-## `--set` keys are slot names, and unknown ones are a hard error
+## Values are data, and there is one token grammar
+
+A value is `key=value` (set) or `key+=value` (append to a list slot). Pass a
+token after `--set` or bare after `--`; both parse identically:
+
+```sh
+mt add "Practice arpeggios" --set impact=8 --set tags+=technique
+mt add "Practice arpeggios" -- impact=8 tags+=technique
+```
+
+A bare positional is title text, never a token — `mt add "fix a=b parsing"`
+sets no slot. A dot in a key is part of the slot's NAME, not a path MindTape
+parses: `--set estimate.files=2` works only because the template wrote
+`slot("estimate.files")`.
+
+If you are generating values rather than typing them, prefer `-f -` with
+YAML. One structured channel, no shell quoting, and a block scalar carries a
+prose slot verbatim:
+
+```sh
+mt add -f - <<'YAML'
+title: Practice arpeggios
+estimate.files: 2
+tags: [technique, daily]
+summary: |
+  Work the 7th chords hands-separate, then together at 60bpm.
+YAML
+```
+
+## Token keys are slot names, and unknown ones are a hard error
 
 A `--set`/`-f` key must name a slot of the active template. An unrecognised
 key fails the command: `mt add fix bug --set priority=3` errors with
@@ -22,8 +51,9 @@ template that omits priority gets the framework call spliced in and the leaves
 are still the slots. Same for any field the template nests inside a call.
 
 Tags: `+word` positionals are sugar for the `tags` slot (`mt add fix login
-+backend +auth`); or repeat `--set tags[]=backend --set tags[]=auth`. A bare
-`--set tags=backend,auth` is a hard error — a `list` slot needs `[]=`.
++backend +auth`); or repeat the append operator, `--set tags+=backend --set
+tags+=auth`. A bare `--set tags=backend,auth` is a hard error — a `list` slot
+needs `+=`, or an array through `-f`.
 
 ## `text` slots are escaped, not markup
 

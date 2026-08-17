@@ -178,8 +178,8 @@ emit_size() {
     # the literal ones after the slot and the Scope reads as one list.
     remedy="$(remedy_for "$language")"
 
-    local tags=(--set 'tags[]=swept' --set 'tags[]=size')
-    [ "$flavour" = test ] && tags+=(--set 'tags[]=tests')
+    local tags=(--set 'tags+=swept' --set 'tags+=size')
+    [ "$flavour" = test ] && tags+=(--set 'tags+=tests')
 
     local args=(
         add "split or re-cap $path"

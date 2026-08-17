@@ -238,7 +238,7 @@ emit_undertested() {
         # the same signal, not a new one. So the config claim holds unchanged:
         # adding an arm is a script and a template. The stem namespace
         # (`undertested-…` vs `coverage-…`) is what tells the two apart.
-        --set 'tags[]=swept' --set 'tags[]=coverage'
+        --set 'tags+=swept' --set 'tags+=coverage'
     )
 
     if [ "$WRITE" -eq 1 ]; then

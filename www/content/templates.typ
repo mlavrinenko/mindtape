@@ -37,29 +37,37 @@ a slot instead.
 
 = Fill the slots
 
-Values come from several sources, highest priority first: `--set`, a JSON or
-YAML file (`-f`), the positional title, environment variables, then the slot
-default. A slot names its variable with `slot(…, env: "VAR")`; without one it
-reads `MINDTAPE_ADD_<SLOTNAME>` instead. A missing or unreadable variable is
-skipped, not an error. `-f` picks the parser from the extension (`.json`,
-`.yaml`/`.yml`); stdin (`-`) and any other extension sniff the content — a
-leading `{`/`[` tries JSON first, else YAML.
+Values come from several sources, highest priority first: the `key OP value`
+tokens, a YAML or JSON file (`-f`), the positional title, environment
+variables, then the slot default. A slot names its variable with
+`slot(…, env: "VAR")`; without one it reads `MINDTAPE_ADD_<SLOTNAME>`
+instead. A missing or unreadable variable is skipped, not an error.
 
 ```sh
-mt add --set title="Practice arpeggios" --set impact=8 # explicit values
-mt add cleanup kitchen                                # positional → title slot
-echo '{"title":"Practice arpeggios","impact":8}' | mt add -f - # JSON on stdin
-mt add -f values.yaml                                 # YAML values file
-mt add fix login +backend +auth                       # +word → tags slot
-mt add --edit                                         # fill in your editor
+mt add "Practice arpeggios" -- impact=8 tags+=technique # tokens after --
+mt add --set impact=8 --set tags+=technique            # the same tokens as flags
+mt add cleanup kitchen                                 # positional → title slot
+mt add fix login +backend +auth                        # +word → tags slot
+mt add -f values.yaml                                  # values file
+mt add --edit                                          # fill in your editor
 ```
 
+- #strong[One grammar, two carriers]: a token is `key=value` (set) or
+  `key+=value` (append to a list slot, repeatable). Pass it after `--set` or
+  bare after `--` — they parse identically, so the shorthand can never mean
+  something different from the flag.
+- #strong[A bare positional is title text], never a token: `mt add "fix a=b
+  parsing"` files a task by that name and sets no slot. The `--` is what makes
+  an argument an assignment.
+- #strong[Nesting is a naming convention], not a path syntax. A slot's name is
+  any string, so a template that writes `slot("estimate.files")` accepts
+  `--set estimate.files=2`. MindTape never parses the dot.
 - #strong[Positional words] join into the `title` slot: `add cleanup kitchen` →
   `cleanup-kitchen.typ`.
 - #strong[`+word`] arguments are tag sugar: peeled into a `tags` slot if the
   template declares one, instead of joining the title.
-- #strong[List slots] need `--set name[]=value`, repeatable to append. A bare
-  `--set name=value` for a list errors — one string is never silently a list.
+- #strong[A bare `name=value` for a list slot errors] — one string is never
+  silently a list. Append with `+=`, or pass an array through `-f`.
 - #strong[Text slots are escaped] into Typst markup, whichever source the value
   came from. Prose containing `*`, `_`, `$`, `#`, `[`, `]`, `<` or `@` stays
   literal instead of opening emphasis or evaluating away. Numeric, choice and
@@ -69,6 +77,31 @@ mt add --edit                                         # fill in your editor
   opt-out belongs to the template author, never to the caller — a template is
   trusted repo content, a `--set` value is not. A `typst` slot whose value does
   not parse fails before anything is written, naming the slot.
+
+= Structured values with `-f`
+
+`-f` reads a whole set of values at once. It takes YAML or JSON: `.json` and
+`.yaml`/`.yml` pick the parser by extension, while stdin (`-`) and any other
+extension sniff the content — a leading `{`/`[` tries JSON first, else YAML.
+YAML is a superset of JSON, so one channel accepts both.
+
+Prefer YAML, and prefer it especially when you are generating the values
+rather than typing them. There is no shell quoting to get right, and a block
+scalar carries a prose slot verbatim — which matters, because a `summary` or
+`scope` is exactly the value JSON makes you escape hardest.
+
+```sh
+mt add -f - <<'YAML'
+title: Practice arpeggios
+estimate.files: 2
+tags: [technique, daily]
+summary: |
+  Work the 7th chords hands-separate, then together at 60bpm.
+YAML
+```
+
+Sources merge left to right, and `-f` is repeatable: a later source's value
+for a key replaces an earlier one, and an explicit `null`/`~` unsets it.
 
 = Placement and preview
 

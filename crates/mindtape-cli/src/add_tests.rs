@@ -36,6 +36,7 @@ fn bare_args() -> AddArgs {
         template: None,
         values: vec![],
         set: vec![],
+        tokens: vec![],
         into: ".".to_owned(),
         to: None,
         name: None,

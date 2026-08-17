@@ -176,12 +176,17 @@ status and id, and validates. Common flags:
 == Slot semantics live in `references/add-slots.md`
 
 Three things about slots you cannot infer from `--describe`, each of which
-silently produces a wrong task if you guess: `--set` keys are slot NAMES (a
+silently produces a wrong task if you guess: token keys are slot NAMES (a
 framework priority's slots are its leaves — `impact`/`confidence`/`ease`,
-never `priority`), a `list` slot needs `--set name[]=value` and rejects a
-bare `name=a,b`, and `text` slots are markup-escaped while `typst` slots
-splice in live. Read `references/add-slots.md` before filling slots on an
+never `priority`), a `list` slot needs `name+=value` and rejects a bare
+`name=a,b`, and `text` slots are markup-escaped while `typst` slots splice
+in live. Read `references/add-slots.md` before filling slots on an
 unfamiliar template.
+
+Prefer `-f -` with YAML when you are generating values rather than typing
+them: one structured channel, no shell quoting, and a block scalar carries a
+prose slot verbatim. The flag form (`--set k=v`, `--set k+=v`) and the same
+tokens after `--` are there for argv you assemble by hand.
 
 = Changing status — `mt flip` and status verbs
 

@@ -15,8 +15,9 @@
 #let cli-notes = (
   // ── Files ───────────────────────────────────────────────────────────────────
   "add": (
-    prose: [Positional words join into the title; `--set`, `-f values.json` (or
-      `.yaml`/`.yml`), or editor mode fill the rest. Full detail on
+    prose: [Positional words join into the title; `key=value` / `key+=value`
+      tokens (after `--set`, or bare after `--`), a `-f` values file (YAML or
+      JSON), or editor mode fill the rest. Full detail on
       #link(u("/templates/"))[Templates & slots]. `--dedup` decides what
       happens when the destination stem already exists (`fail` — bail before
       writing; `skip` — exit 0, write nothing; `add-suffix` — mint `-2`,

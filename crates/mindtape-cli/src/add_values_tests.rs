@@ -90,6 +90,7 @@ fn collect_set_overrides_json() {
     let values = collect_values(
         &[path.to_string_lossy().into_owned()],
         &["title=Override".to_owned()],
+        &[],
     )
     .unwrap();
     assert_eq!(
@@ -101,14 +102,15 @@ fn collect_set_overrides_json() {
 }
 
 #[test]
-fn collect_set_brackets_accumulate_into_list() {
+fn collect_append_operator_accumulates_into_list() {
     let values = collect_values(
         &[],
         &[
-            "tags[]=a".to_owned(),
-            "tags[]=b".to_owned(),
-            "tags[]=b,c".to_owned(),
+            "tags+=a".to_owned(),
+            "tags+=b".to_owned(),
+            "tags+=b,c".to_owned(),
         ],
+        &[],
     )
     .unwrap();
     assert_eq!(
@@ -122,13 +124,14 @@ fn collect_set_brackets_accumulate_into_list() {
 }
 
 #[test]
-fn collect_set_brackets_append_to_json_list() {
+fn collect_append_operator_appends_to_json_list() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("v.json");
     std::fs::write(&path, r#"{"tags":["a"]}"#).unwrap();
     let values = collect_values(
         &[path.to_string_lossy().into_owned()],
-        &["tags[]=b".to_owned()],
+        &["tags+=b".to_owned()],
+        &[],
     )
     .unwrap();
     assert_eq!(
@@ -142,7 +145,7 @@ fn collect_reads_json_array_as_list() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("v.json");
     std::fs::write(&path, r#"{"tags":["a","b"]}"#).unwrap();
-    let values = collect_values(&[path.to_string_lossy().into_owned()], &[]).unwrap();
+    let values = collect_values(&[path.to_string_lossy().into_owned()], &[], &[]).unwrap();
     assert_eq!(
         values.get("tags"),
         Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
@@ -154,7 +157,7 @@ fn collect_rejects_non_object_json() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("v.json");
     std::fs::write(&path, "[1,2,3]").unwrap();
-    assert!(collect_values(&[path.to_string_lossy().into_owned()], &[]).is_err());
+    assert!(collect_values(&[path.to_string_lossy().into_owned()], &[], &[]).is_err());
 }
 
 // ── YAML `-f` dispatch: extension, sniff, malformed input, tabs, blanks ──
@@ -163,7 +166,7 @@ fn collect_rejects_non_object_json() {
 fn dot_yaml_extension_parses_as_yaml() {
     let dir = tempfile::tempdir().unwrap();
     let path = values_file(dir.path(), "v.yaml", "title: From YAML\nimpact: 8\n");
-    let values = collect_values(&[path], &[]).unwrap();
+    let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("From YAML".to_owned()))
@@ -175,7 +178,7 @@ fn dot_yaml_extension_parses_as_yaml() {
 fn dot_yml_extension_parses_as_yaml() {
     let dir = tempfile::tempdir().unwrap();
     let path = values_file(dir.path(), "v.yml", "title: From Yml\n");
-    let values = collect_values(&[path], &[]).unwrap();
+    let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("From Yml".to_owned()))
@@ -210,7 +213,7 @@ fn sniff_picks_json_for_brace_content() {
 fn unknown_extension_sniffs_like_stdin() {
     let dir = tempfile::tempdir().unwrap();
     let path = values_file(dir.path(), "v.values", "title: Unknown Extension\n");
-    let values = collect_values(&[path], &[]).unwrap();
+    let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("Unknown Extension".to_owned()))
@@ -221,7 +224,7 @@ fn unknown_extension_sniffs_like_stdin() {
 fn malformed_yaml_extension_reports_a_useful_error() {
     let dir = tempfile::tempdir().unwrap();
     let path = values_file(dir.path(), "v.yaml", "title: [unterminated\n");
-    let err = collect_values(std::slice::from_ref(&path), &[])
+    let err = collect_values(std::slice::from_ref(&path), &[], &[])
         .unwrap_err()
         .to_string();
     assert!(err.contains(path.as_str()), "{err}");
@@ -243,7 +246,7 @@ fn tab_indented_json_still_parses() {
     // using serde_json, which accepts it.
     let dir = tempfile::tempdir().unwrap();
     let path = values_file(dir.path(), "v.json", "{\n\t\"title\": \"Tabbed\"\n}\n");
-    let values = collect_values(&[path], &[]).unwrap();
+    let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("Tabbed".to_owned()))
@@ -265,7 +268,7 @@ fn empty_string_survives_a_yaml_values_file() {
     // file's `""` is a real value that must reach the fill map unchanged.
     let dir = tempfile::tempdir().unwrap();
     let path = values_file(dir.path(), "v.yaml", "note: \"\"\n");
-    let values = collect_values(&[path], &[]).unwrap();
+    let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
 }
 
@@ -273,7 +276,7 @@ fn empty_string_survives_a_yaml_values_file() {
 fn empty_string_survives_a_json_values_file() {
     let dir = tempfile::tempdir().unwrap();
     let path = values_file(dir.path(), "v.json", r#"{"note":""}"#);
-    let values = collect_values(&[path], &[]).unwrap();
+    let values = collect_values(&[path], &[], &[]).unwrap();
     assert_eq!(values.get("note"), Some(&RawValue::Str(String::new())));
 }
 
@@ -281,7 +284,7 @@ fn empty_string_survives_a_json_values_file() {
 fn yaml_non_mapping_root_is_rejected_with_json_shaped_wording() {
     let dir = tempfile::tempdir().unwrap();
     let path = values_file(dir.path(), "v.yaml", "- a\n- b\n");
-    let err = collect_values(std::slice::from_ref(&path), &[])
+    let err = collect_values(std::slice::from_ref(&path), &[], &[])
         .unwrap_err()
         .to_string();
     assert!(
@@ -294,7 +297,7 @@ fn yaml_non_mapping_root_is_rejected_with_json_shaped_wording() {
 fn yaml_multi_document_stream_is_rejected() {
     let dir = tempfile::tempdir().unwrap();
     let path = values_file(dir.path(), "v.yaml", "---\na: 1\n---\nb: 2\n");
-    assert!(collect_values(&[path], &[]).is_err());
+    assert!(collect_values(&[path], &[], &[]).is_err());
 }
 
 #[test]
@@ -310,7 +313,7 @@ fn later_yaml_null_unsets_an_earlier_set_key() {
     let dir = tempfile::tempdir().unwrap();
     let first = values_file(dir.path(), "a.json", r#"{"title":"First","impact":8}"#);
     let second = values_file(dir.path(), "b.yaml", "impact: ~\n");
-    let values = collect_values(&[first, second], &[]).unwrap();
+    let values = collect_values(&[first, second], &[], &[]).unwrap();
     assert_eq!(
         values.get("title"),
         Some(&RawValue::Str("First".to_owned()))
@@ -340,4 +343,81 @@ fn reject_unknown_keys_errors_naming_the_key_and_known_slots() {
         .to_string();
     assert!(err.contains("priority"), "{err}");
     assert!(err.contains("title"), "{err}");
+}
+
+/// The `--` tokens and `--set` reach the same parser, so both operators have
+/// to behave identically whichever carrier delivered them. Asserting only the
+/// `--set` path would let the shorthand drift into a second grammar.
+#[test]
+fn trailing_tokens_parse_as_set_entries_do() {
+    let values = collect_values(
+        &[],
+        &[],
+        &["title=From tokens".to_owned(), "tags+=docs".to_owned()],
+    )
+    .unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("From tokens".to_owned()))
+    );
+    assert_eq!(
+        values.get("tags"),
+        Some(&RawValue::List(vec!["docs".to_owned()]))
+    );
+}
+
+#[test]
+fn trailing_tokens_apply_after_set() {
+    let values = collect_values(
+        &[],
+        &["title=From set".to_owned()],
+        &["title=From tokens".to_owned()],
+    )
+    .unwrap();
+    assert_eq!(
+        values.get("title"),
+        Some(&RawValue::Str("From tokens".to_owned()))
+    );
+}
+
+/// One list built from both carriers at once: `+=` appends rather than
+/// replacing, so the carrier a token arrived through cannot reset the list.
+#[test]
+fn append_operator_accumulates_across_both_carriers() {
+    let values = collect_values(&[], &["tags+=a".to_owned()], &["tags+=b".to_owned()]).unwrap();
+    assert_eq!(
+        values.get("tags"),
+        Some(&RawValue::List(vec!["a".to_owned(), "b".to_owned()]))
+    );
+}
+
+/// The retired append spelling has to name its replacement. Failing with the
+/// generic "expected key=value" would read as though the token were malformed
+/// rather than renamed, which is the whole cost of a breaking change.
+#[test]
+fn retired_bracket_append_names_the_replacement() {
+    let err = collect_values(&[], &["tags[]=docs".to_owned()], &[])
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("tags+=docs"), "{err}");
+}
+
+#[test]
+fn token_without_an_equals_errors_naming_the_token() {
+    let err = collect_values(&[], &[], &["tags".to_owned()])
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("tags"), "{err}");
+    assert!(err.contains("key+=value"), "{err}");
+}
+
+/// A value may hold `=`; only the FIRST one separates. Splitting on the last
+/// would corrupt any value carrying one.
+#[test]
+fn only_the_first_equals_separates() {
+    let values = collect_values(&[], &[], &["summary=a=b=c".to_owned()]).unwrap();
+    assert_eq!(
+        values.get("summary"),
+        Some(&RawValue::Str("a=b=c".to_owned()))
+    );
 }
