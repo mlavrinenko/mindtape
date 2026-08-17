@@ -15,7 +15,7 @@
     8,
     17,
   )[premise inverted: --set stops reading Typst rather than reading more of it, and the \[\]= spelling it took as fixed is retired],
-  links: related("remove-the-typst-slot-kind-from-mt-add-input.typ")[
+  links: related("rename-the-typst-slot-kind-to-raw.typ")[
     resolved in the opposite direction: `--set` stops reading Typst for every
     slot, rather than starting to read it for one more
   ]

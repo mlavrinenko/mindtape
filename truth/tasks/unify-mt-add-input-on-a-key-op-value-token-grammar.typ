@@ -15,7 +15,7 @@
     8,
     17,
   )[token grammar landed: = / += across --set and --, \[\]= retired, dot-named slots documented; just check green],
-  links: related("remove-the-typst-slot-kind-from-mt-add-input.typ")[
+  links: related("rename-the-typst-slot-kind-to-raw.typ")[
     the same milestone: this fixes the shape of an input, that one fixes what
     an input may be
   ]

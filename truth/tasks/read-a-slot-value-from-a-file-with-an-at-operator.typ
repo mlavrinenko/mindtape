@@ -34,16 +34,33 @@ whole `-f` YAML document.
 Strictly independent of the grammar task beyond needing it to land first. Do
 not bundle them.
 
+== What the file's bytes are
+
+The slot's kind decides, and that is the whole design — there is no conversion
+step anywhere in this task.
+
+- Into a `text` slot the bytes are markup-escaped like any other caller value.
+  The file contributes prose, not formatting, so the examples must use `.txt`.
+  `.md` is a trap: nothing converts Markdown to Typst, and a reader passing
+  `notes.md` would reasonably expect headings and code spans to survive, which
+  they would not. Markdown-to-Typst conversion is its own project and is
+  explicitly out of scope — named here as the reason this stays narrow.
+- Into a `raw` slot the bytes are Typst, spliced verbatim, and no conversion
+  is even conceptually needed. This is the case that makes the operator worth
+  building:
+
+  ```sh
+  mt add -- remedy@remedy.typ
+  ```
+
+  It buys a workflow the flag form cannot: write the `.typ`, check it, then
+  file the task. Today the same markup has to survive a shell argument, which
+  is how `contrib/ask-refactoring/size.sh` ends up holding a heredoc per
+  language.
+
 == Open question
 
-What the file's bytes ARE, which is the whole design. The value goes into a
-`text` slot, so it is markup-escaped like any other caller value — the file
-contributes prose, not formatting. That makes `.md` a bad example to reach
-for: nothing converts Markdown to Typst, and a reader who passes
-`notes.md` would reasonably expect their headings and code spans to survive,
-which they would not.
-
-So either the operator is documented as plain-prose-only and the examples all
-use `.txt`, or it is not worth having. Markdown-to-Typst conversion is its own
-project and is explicitly not in scope here — naming it as the reason this
-stays narrow.
+Whether the operator reads the file at all for kinds that are neither `text`
+nor `raw`. A `date` or `int` slot fed from a file is legal but pointless, and
+allowing it costs nothing except a wider surface to document. Decide before
+writing the parser.
