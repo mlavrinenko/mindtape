@@ -521,9 +521,14 @@ commands:
   # to is by definition the one no scope lists yet, and an enumeration could
   # not see it arrive; `script-script-scope-check` is its own body, and
   # `gates-meta` is the Justfile it dumps plus the dev shell yq/jq come from.
+  # `outdatty-config` arrived with arm three (truth/tasks/fail-a-half-wired-
+  # gate-arm-at-the-wiring-it-is-missing.typ): that arm reads outdatty.yaml's
+  # `dev-docs` sources, so a script dropped from that list must bust this rule.
+  # Without it the arm would report a verdict over a file it never hashed —
+  # the same false-fresh the arms themselves exist to refuse.
   - name: just script-scope-check
     tags: [gate]
-    inputs: [mmz-config, scripts-all, script-script-scope-check, gates-meta]
+    inputs: [mmz-config, outdatty-config, scripts-all, script-script-scope-check, gates-meta]
 
   # Replica-tree self-test for the docs manifest gate: two pages declaring the
   # same route and a page with no `<page-meta>` block both drive a `cp -r

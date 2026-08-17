@@ -71,17 +71,26 @@ script listed in a scope no rule reads passes the first while the stale hit
 survives. A wildcard never counts as naming a script, so putting the glob back
 satisfies nothing.
 
+`outdatty.yaml` enumerates the same directory and lost the same property: a
+script never added to its `dev-docs` group is coupled to no dependent and
+reported by nothing. A third arm closes it, demanding a DECISION rather than
+membership — `_nav-diff.sh` is outside it on purpose, no doc restating its
+logic — so a script is a source or carries an exemption naming the reason, and
+a new one is neither.
+
 Three rules keep a directory-wide glob, because their subject is the directory
 rather than one body in it: #just.check-file-size() (linecop scans every file
-under it), #just.outdatty-check() (every script is a `dev-docs` source) and
-#just.script-scope-check() itself, which has to notice a script ARRIVING and
-so cannot take an enumeration as its input.
+under it), #just.outdatty-check() (nearly every script is a `dev-docs` source)
+and #just.script-scope-check() itself, which has to notice a script ARRIVING
+and so cannot take an enumeration as its input.
 
 == What the split did and did not buy
 
 Measured on the maintainer's machine with a hot `target/`, against the
-twenty-two rules in the manifest (the twenty-one #just.check() arms plus
-#just.cover()). Each figure is one #just.check() run after the edit named,
+twenty-two rules the manifest carried then (the twenty-one #just.check() arms
+of the day plus #just.cover()); arms have been added since, and the figures
+are the measurement rather than a current reading. Each is one #just.check()
+run after the edit named,
 with the `dev-docs` group re-recorded as any such edit requires:
 
 - A no-op re-run skips 21 of 21 arms: 0.2s wall, 0.5s CPU. The floor.

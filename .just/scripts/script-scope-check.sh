@@ -15,7 +15,7 @@
 # is that something: both halves of what the glob guaranteed, asserted instead
 # of assumed.
 #
-# The two arms answer two different questions, and neither implies the other:
+# The three arms answer three different questions, and none implies another:
 #
 #   1. Is every script NAMED at all? A set difference between the files on disk
 #      and the literal paths the scopes list. A script no scope names is
@@ -27,6 +27,25 @@
 #      survives both. So each rule's recipe body is read back out of `just
 #      --dump` and its declared inputs must cover every script that body
 #      invokes.
+#   3. Is it coupled to the docs it can rot, or exempted on purpose? Same
+#      enumeration problem, one file over: `outdatty.yaml`'s `dev-docs` group
+#      lists these scripts one by one, and outdatty reacts only to files it
+#      lists — so a script never added is coupled to no dependent and reported
+#      by nothing (truth/tasks/fail-a-half-wired-gate-arm-at-the-wiring-it-is-
+#      missing.typ). Membership is all this arm claims: WHICH dependents a
+#      script owes is outdatty's own subject, and it answers that well once the
+#      file is listed at all.
+#
+# ARM THREE DEMANDS A DECISION, NOT MEMBERSHIP, and the difference is the whole
+# design. Not every script belongs in that group: `_nav-diff.sh` is deliberately
+# outside it, with the reason recorded in outdatty.yaml — no doc restates its
+# logic, so listing it would ask a reader to review seven dependents for a
+# change that cannot rot any of them. Demanding membership outright would have
+# forced exactly the coupling this repo declined on purpose, and demanding
+# nothing lets the next script fall out silently. So a script must be a source
+# OR carry an exemption below, and a NEW one is neither — which is the arriving-
+# is-enough property restored: the file nobody decided about is the file that
+# fails.
 #
 # ONLY WILDCARD-FREE PATHS COUNT as naming a script in arm one, and that is
 # load-bearing rather than tidy. The obvious way to make a failure here go
@@ -149,8 +168,71 @@ while IFS=$'\t' read -r recipe script; do
     fi
 done <<<"$invocations"
 
-if [ "$fail" -ne 0 ]; then
-    echo "script-scope-check: the per-script scopes no longer cover .just/scripts/" >&2
+# ARM THREE: every script is a `dev-docs` SOURCE in outdatty.yaml, or is
+# exempted here with the reason. Read from outdatty.yaml rather than
+# outdatty.lock — the lock records what was confirmed, so a script listed in
+# neither is missing from both and the lock agrees with itself. The group name
+# is hard-coded because exactly one group's subject is this directory; a second
+# would make "which group does this script belong to" a real question, and this
+# arm would have to be told the answer rather than assume it.
+#
+# One entry per exempt script, with the reason it owes no dependent. Each is a
+# claim about the DOCS, not about the script: nothing anywhere restates its
+# behaviour by hand, so no prose can go stale when it changes.
+declare -A dev_docs_exempt=(
+    # gate-notes.typ names it, but restates none of its own two-arm logic —
+    # the reason outdatty.yaml already records for leaving it out.
+    ["_nav-diff.sh"]="no doc restates its logic; gate-notes.typ only names it"
+)
+
+dev_docs_sources=$(yq -r '
+    .groups // [] | .[] | select(.name == "dev-docs") | (.source // [])[]
+' outdatty.yaml)
+
+if [ -z "$dev_docs_sources" ]; then
+    echo "script-scope-check: outdatty.yaml declares no \`dev-docs\` sources" >&2
+    echo "  the group this arm reads was renamed or removed — retarget the arm, do not delete it" >&2
     exit 1
 fi
-echo "script-scope-check: all ${#scripts[@]} scripts are named by a scope, and $checked memoized rules name every body they invoke"
+
+exempt=0
+for script in "${scripts[@]}"; do
+    stem=${script##*/}
+    listed=0
+    grep -qxF "$script" <<<"$dev_docs_sources" && listed=1
+    # An exemption for a script that IS a source is a contradiction, and the
+    # shape a half-finished change leaves behind: the file was listed, the
+    # exemption never removed, and the next reader cannot tell which of the two
+    # is the decision.
+    if [ -n "${dev_docs_exempt[$stem]}" ]; then
+        if [ "$listed" -eq 1 ]; then
+            echo "script-scope-check: $script is a \`dev-docs\` source AND exempt here" >&2
+            echo "  drop the exemption (\"${dev_docs_exempt[$stem]}\") or drop the source line" >&2
+            fail=1
+        else
+            exempt=$((exempt + 1))
+        fi
+        continue
+    fi
+    if [ "$listed" -eq 0 ]; then
+        echo "script-scope-check: $script is neither a \`dev-docs\` source nor exempt" >&2
+        echo "  add \`      - $script\` to that group in outdatty.yaml, so editing it asks for the docs it can rot" >&2
+        echo "  or add it to dev_docs_exempt in this script, with the reason no doc restates it" >&2
+        fail=1
+    fi
+done
+
+# The reverse difference, like arm one's: an exemption for a file that is gone
+# outlives the rename that removed it and quietly exempts nothing.
+for stem in "${!dev_docs_exempt[@]}"; do
+    if [ ! -f ".just/scripts/$stem" ]; then
+        echo "script-scope-check: dev_docs_exempt names $stem, which does not exist" >&2
+        fail=1
+    fi
+done
+
+if [ "$fail" -ne 0 ]; then
+    echo "script-scope-check: the manifests that enumerate .just/scripts/ no longer cover it" >&2
+    exit 1
+fi
+echo "script-scope-check: all ${#scripts[@]} scripts are named by a scope and decided about by outdatty's dev-docs group ($exempt exempt), and $checked memoized rules name every body they invoke"

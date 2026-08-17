@@ -248,17 +248,19 @@ positional-args-check:
 script-attr-check:
     bash .just/scripts/script-attr-check.sh
 
-# Lock the per-script mmz scopes onto the directory they enumerate: every
-# `.just/scripts/*.sh` must be named by a scope as a literal path, and every
-# memoized rule whose body invokes a script must name that script's scope. This
-# is what `.mmz/config.yaml` bought the split with — the `.just/scripts/**`
-# glob it replaced covered a new body by ARRIVING, and an enumeration only
-# covers what somebody listed
-# (truth/tasks/split-gates-meta-into-per-script-scopes.typ). Why a glob can
-# never satisfy the first arm, and which case the second deliberately cannot
-# see, are argued in place in .just/scripts/script-scope-check.sh.
+# Lock both manifests that enumerate `.just/scripts/` onto the directory they
+# enumerate: every script must be named by an mmz scope as a literal path, every
+# memoized rule whose body invokes a script must name that script's scope, and
+# every script must be an `outdatty.yaml` `dev-docs` source. This is what
+# `.mmz/config.yaml` bought the scope split with — the `.just/scripts/**` glob
+# it replaced covered a new body by ARRIVING, and an enumeration only covers
+# what somebody listed (truth/tasks/split-gates-meta-into-per-script-scopes.typ,
+# and truth/tasks/fail-a-half-wired-gate-arm-at-the-wiring-it-is-missing.typ for
+# the outdatty half). Why a glob can never satisfy the first arm, which case the
+# second deliberately cannot see, and why the third reads the config rather than
+# the lock, are argued in place in .just/scripts/script-scope-check.sh.
 
-[doc("Lock every gate script into a named mmz scope")]
+[doc("Lock every gate script into a named mmz scope and outdatty's dev-docs group")]
 [group("gate")]
 script-scope-check:
     bash .just/scripts/script-scope-check.sh

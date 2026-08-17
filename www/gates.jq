@@ -139,9 +139,20 @@ def mangle: gsub("::"; "-");
     | mangle]) as $check_deps_ordered
 | ($check_deps_ordered | sort) as $check_deps
 | if $gate_group != $check_deps then
-    ("gate group and check dependencies disagree:\n"
-      + "  only in [group(\"gate\")]: " + (($gate_group - $check_deps) | join(", ")) + "\n"
-      + "  only in check dependencies: " + (($check_deps - $gate_group) | join(", ")))
+    # `(none)` rather than an empty join, and a trailing newline rather than
+    # none, because BOTH omissions were read off one real failure (truth/tasks/
+    # fail-a-half-wired-gate-arm-at-the-wiring-it-is-missing.typ): a recipe
+    # carrying [group("gate")] but absent from `check` empties the second side,
+    # and `halt_error` writes its string verbatim — no newline appended — so
+    # www/generate-facts.sh's own next stderr line landed after that empty
+    # colon and read as a check dependency named `generate-facts.sh: refusing
+    # to install malformed gates.json`. The one line a reader would act on was
+    # the fiction. An empty side must render as a value, and the message must
+    # end where it ends.
+    (def side: if length == 0 then "(none)" else join(", ") end;
+      "gate group and check dependencies disagree:\n"
+      + "  only in [group(\"gate\")]: " + (($gate_group - $check_deps) | side) + "\n"
+      + "  only in check dependencies: " + (($check_deps - $gate_group) | side) + "\n")
     | halt_error(1)
   else
     ($check_deps_ordered) as $names

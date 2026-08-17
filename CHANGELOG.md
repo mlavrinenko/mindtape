@@ -143,6 +143,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`script-scope-check` grew a third arm, over `outdatty.yaml`.** Its
+  `dev-docs` group lists `.just/scripts/*.sh` one by one and outdatty reacts
+  only to files it lists, so a script never added was coupled to no dependent
+  and reported by nothing — the arriving-is-enough hole the first arm already
+  closes for `.mmz` scopes, one manifest over. The arm demands a decision
+  rather than membership: a script is a `dev-docs` source or carries an
+  exemption naming the reason no doc restates it (`_nav-diff.sh` is the one,
+  left out on purpose), and a new script is neither, so it fails. An exemption
+  that contradicts a source line, or names a file that is gone, fails too.
+- **`www/gates.jq` no longer reports a check dependency that does not exist.**
+  A recipe carrying `[group("gate")]` but absent from `check:` emptied one side
+  of the membership diff, and `halt_error` writes its string with no trailing
+  newline — so `www/generate-facts.sh`'s next stderr line landed after that
+  empty colon and read as a dependency named
+  `generate-facts.sh: refusing to install malformed gates.json`. An empty side
+  now renders `(none)` and the message ends where it ends.
 - **`crap-baseline.json` records repo-relative paths.** `cargo crap
   --workspace` reports the absolute member roots `cargo metadata` gives it and
   cargo-crap 0.3.1 has no flag to shorten them, so every one of the 1058

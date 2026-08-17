@@ -175,17 +175,22 @@
     mid-run; see `.just/scripts/size-fixture-check.sh`.
   ],
   "script-scope-check": [
-    Enumeration lock for `.mmz/config.yaml`'s per-script scopes, in two arms.
-    Every `.just/scripts/*.sh` must be named by some scope as a literal path,
-    and every memoized rule whose recipe body invokes a script must declare a
-    scope covering it — the second because a script listed in a scope no rule
-    reads passes the first while still serving a stale hit. It exists because
-    those scopes replaced a `.just/scripts/**` glob every rule carried,
-    and the glob had the property an enumeration cannot have: a recipe
-    body extracted out of the Justfile was covered by arriving. A wildcard
-    never counts as naming a script, so putting the glob back satisfies
-    nothing; a body reached through a nested `just` (check-crap.sh's two) is
-    the case the second arm deliberately does not derive. See
+    Enumeration lock over the two manifests that list `.just/scripts/` file by
+    file, in three arms. Every `.just/scripts/*.sh` must be named by some
+    `.mmz/config.yaml` scope as a literal path; every memoized rule whose
+    recipe body invokes a script must declare a scope covering it — the second
+    because a script listed in a scope no rule reads passes the first while
+    still serving a stale hit; and every script must be an `outdatty.yaml`
+    `dev-docs` source or carry an exemption naming the reason no doc restates
+    it. It exists because those scopes replaced a `.just/scripts/**` glob every
+    rule carried, and the glob had the property an enumeration cannot have: a
+    recipe body extracted out of the Justfile was covered by arriving. A
+    wildcard never counts as naming a script, so putting the glob back
+    satisfies nothing; a body reached through a nested `just` (check-crap.sh's
+    two) is the case the second arm deliberately does not derive; and the third
+    demands a DECISION rather than membership, because `_nav-diff.sh` is
+    outside that group on purpose and forcing it in would ask for a review of
+    seven dependents no change to it can rot. See
     `.just/scripts/script-scope-check.sh`.
   ],
   "site-pages-fixture-check": [
