@@ -68,6 +68,7 @@ fn describe_text_marks_optional_correctly() {
         choices: None,
         default_string: None,
         markup: false,
+        unknown_kind: None,
         range: 0..0,
     }];
     let text = super::describe(&specs, super::DescribeFormat::Text).unwrap();

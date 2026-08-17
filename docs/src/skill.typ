@@ -179,7 +179,7 @@ Three things about slots you cannot infer from `--describe`, each of which
 silently produces a wrong task if you guess: token keys are slot NAMES (a
 framework priority's slots are its leaves — `impact`/`confidence`/`ease`,
 never `priority`), a `list` slot needs `name+=value` and rejects a bare
-`name=a,b`, and `text` slots are markup-escaped while `typst` slots splice
+`name=a,b`, and `text` slots are markup-escaped while `raw` slots splice
 in live. Read `references/add-slots.md` before filling slots on an
 unfamiliar template.
 

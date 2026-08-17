@@ -309,7 +309,7 @@ const KIND_SLOTS: &str = r#"#f(
   pick: slot("pick", kind: "choice", choices: ("a",)),
   tags: slot("tags", kind: "list"),
   body: slot("body", kind: "text"),
-  code: slot("code", kind: "typst"),
+  code: slot("code", kind: "raw"),
 )"#;
 
 /// Ordinary prose that happens to hold every Typst markup leader.
@@ -336,9 +336,9 @@ fn markup_safe_escapes_text_slots_and_nothing_else() {
         Some(&RawValue::Str(HAZARDS_ESCAPED.to_owned())),
         "a text slot splices into markup verbatim, so it must be escaped"
     );
-    // `typst` also splices into markup verbatim, but escaping it is the one
+    // `raw` also splices into markup verbatim, but escaping it is the one
     // the template author opted out of by choosing the kind — the trust
-    // decision `mindtape::SlotKind::Typst` documents.
+    // decision `mindtape::SlotKind::Raw` documents.
     for name in ["title", "weight", "ratio", "pick", "tags", "code"] {
         assert_eq!(
             out.get(name),

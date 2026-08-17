@@ -19,8 +19,8 @@ use crate::date::parse_ymd;
 
 use super::{SlotKind, SlotSpec, discover_slots};
 
-/// Fill-time validation for `typst`-kind slots; split out to keep this file
-/// under its line budget. See [`markup::render_typst`].
+/// Fill-time validation for `raw`-kind slots; split out to keep this file
+/// under its line budget. See [`markup::render_raw`].
 #[path = "template_markup.rs"]
 mod markup;
 
@@ -85,7 +85,14 @@ pub enum FillError {
         /// The rejected value.
         value: String,
     },
-    /// A `typst` slot's value failed to parse as Typst markup.
+    /// A slot declared a `kind:` that names no known kind.
+    UnknownKind {
+        /// Slot name.
+        slot: String,
+        /// The unrecognised spelling.
+        kind: String,
+    },
+    /// A `raw` slot's value failed to parse as Typst markup.
     BadMarkup {
         /// Slot name.
         slot: String,
@@ -124,6 +131,11 @@ impl fmt::Display for FillError {
             Self::BadDate { slot, value } => {
                 write!(f, "slot {slot:?} value {value:?} is not a YYYY-MM-DD date")
             }
+            Self::UnknownKind { slot, kind } => write!(
+                f,
+                "slot {slot:?} declares unknown kind {kind:?}; expected one of: \
+                 string, int, float, real, bool, date, list, text, raw, choice"
+            ),
             Self::BadMarkup { slot, message } => {
                 write!(f, "slot {slot:?} is not valid Typst markup: {message}")
             }
@@ -134,7 +146,7 @@ impl fmt::Display for FillError {
 
 impl std::error::Error for FillError {}
 
-/// The replacement for an unfilled slot: a `text`/`typst` slot's
+/// The replacement for an unfilled slot: a `text`/`raw` slot's
 /// string-literal default becomes unquoted body markup; every other default
 /// splices verbatim.
 fn default_replacement(spec: &SlotSpec) -> Option<String> {
@@ -156,6 +168,15 @@ fn default_replacement(spec: &SlotSpec) -> Option<String> {
 /// is unfilled, or the resulting changeset is invalid.
 pub fn fill(source: &str, values: &BTreeMap<String, RawValue>) -> Result<String, FillError> {
     let specs = discover_slots(source);
+    // Before any value is coerced: a slot whose declared kind names nothing
+    // would otherwise be filled as a `string`, which is a wrong task written
+    // silently rather than a template error reported.
+    if let Some(spec) = specs.iter().find(|spec| spec.unknown_kind.is_some()) {
+        return Err(FillError::UnknownKind {
+            slot: spec.name.clone(),
+            kind: spec.unknown_kind.clone().unwrap_or_default(),
+        });
+    }
     let mut edits = Vec::new();
     let mut missing = Vec::new();
     for spec in &specs {
@@ -178,7 +199,7 @@ pub fn fill(source: &str, values: &BTreeMap<String, RawValue>) -> Result<String,
     apply(source, edits).map_err(|err| FillError::Edit(err.to_string()))
 }
 
-/// The byte range to replace for a slot. A markup `text`/`typst` slot extends
+/// The byte range to replace for a slot. A markup `text`/`raw` slot extends
 /// over the leading `#` so the spliced body markup stands alone.
 fn edit_range(spec: &SlotSpec, source: &str) -> Range<usize> {
     if spec.markup
@@ -195,7 +216,7 @@ fn render(spec: &SlotSpec, value: &RawValue) -> Result<String, FillError> {
     match spec.kind {
         SlotKind::String => Ok(quote(&coerce_str(spec, value)?)),
         SlotKind::Text => coerce_str(spec, value),
-        SlotKind::Typst => markup::render_typst(spec, value),
+        SlotKind::Raw => markup::render_raw(spec, value),
         SlotKind::Choice => render_choice(spec, value),
         SlotKind::Int => Ok(coerce_int(spec, value)?.to_string()),
         SlotKind::Float | SlotKind::Real => Ok(render_float(coerce_float(spec, value)?)),

@@ -48,16 +48,25 @@ pub enum SlotKind {
     /// Raw markup spliced into the body; a markup `#slot(…)` drops its `#`.
     /// Escaped on the way in by the CLI (`add.rs::markup_safe`, via
     /// [`crate::status_value::escape_markup`]) since a filled value may be
-    /// caller-supplied and untrusted. Compare [`Self::Typst`].
+    /// caller-supplied and untrusted. Compare [`Self::Raw`].
     Text,
-    /// Raw Typst markup spliced into the body, same as [`Self::Text`] but
-    /// never escaped. The trust decision belongs to the template author, not
-    /// the caller: a template is checked-in repo content, a `--set`/`-f`/
-    /// environment value is not, so `kind: "typst"` is the template's own
-    /// assertion that this slot's filler is safe to splice verbatim. A filled
-    /// value that fails to parse as Typst markup is rejected at [`fill`]
-    /// time, naming the slot — never written to disk.
-    Typst,
+    /// Raw source spliced in verbatim, same as [`Self::Text`] but never
+    /// escaped. Named for what it does rather than for the language it holds:
+    /// the value is pasted, not read, so nothing here builds a Typst value
+    /// and nothing type-checks one.
+    ///
+    /// The trust decision belongs to the template author, not the caller: a
+    /// template is checked-in repo content, a `--set`/`-f`/environment value
+    /// is not, so `kind: "raw"` is the template's own assertion that this
+    /// slot's filler is safe to splice.
+    ///
+    /// What IS checked is narrow, and the name is honest about it. A value
+    /// that fails to parse as Typst markup is rejected at [`fill`] time,
+    /// naming the slot; that catches a markup-position slot, which is what
+    /// the kind is for. It cannot catch a slot spliced into an argument
+    /// position, where the value is an expression and parens are not markup —
+    /// see `template_markup.rs`.
+    Raw,
     /// A string constrained to the slot's `choices`.
     Choice,
 }
@@ -75,7 +84,7 @@ impl SlotKind {
             Self::Date => "date",
             Self::List => "list",
             Self::Text => "text",
-            Self::Typst => "typst",
+            Self::Raw => "raw",
             Self::Choice => "choice",
         }
     }
@@ -90,7 +99,7 @@ impl SlotKind {
             "date" => Self::Date,
             "list" => Self::List,
             "text" => Self::Text,
-            "typst" => Self::Typst,
+            "raw" => Self::Raw,
             "choice" => Self::Choice,
             _ => return None,
         };
@@ -100,11 +109,11 @@ impl SlotKind {
     /// Whether this kind splices its value straight into body markup —
     /// dropping a `#slot(...)` call's leading `#` and unquoting a
     /// string-literal default, rather than rendering as a self-delimiting
-    /// Typst literal (a quoted string, a number, a list). `text` and `typst`
+    /// Typst literal (a quoted string, a number, a list). `text` and `raw`
     /// both hold body content; they differ only in whether the value is
     /// escaped first, a decision made upstream of this crate.
     fn splices_verbatim(self) -> bool {
-        matches!(self, Self::Text | Self::Typst)
+        matches!(self, Self::Text | Self::Raw)
     }
 }
 
@@ -133,6 +142,16 @@ pub struct SlotSpec {
     pub default_string: Option<String>,
     /// Whether the call is markup (`#slot(…)`), so a `text` fill drops the `#`.
     pub markup: bool,
+    /// The `kind:` spelling when it names no known kind, e.g. a typo or a
+    /// renamed kind a template has not caught up with. `None` when the kind
+    /// parsed, or when the call declared none at all.
+    ///
+    /// Discovery cannot fail — it returns a `Vec`, and a template with one bad
+    /// slot still has to describe its good ones — so the bad spelling is
+    /// carried here and rejected by [`fill`] instead. Defaulting it to
+    /// [`SlotKind::String`] silently, as this once did, turns a renamed kind
+    /// into a quoted, escaped string with no diagnostic anywhere.
+    pub unknown_kind: Option<String>,
     /// Byte span of the whole `slot(...)` call.
     pub range: Range<usize>,
 }
@@ -148,10 +167,13 @@ pub fn discover_slots(source: &str) -> Vec<SlotSpec> {
 
 fn spec_from_call(source: &str, call: &Call) -> Option<SlotSpec> {
     let name = call.positional(0)?.value.clone();
-    let kind = call
-        .named("kind")
+    let declared = call.named("kind");
+    let kind = declared
         .and_then(|arg| SlotKind::parse(&arg.value))
         .unwrap_or(SlotKind::String);
+    let unknown_kind = declared
+        .filter(|arg| SlotKind::parse(&arg.value).is_none())
+        .map(|arg| arg.value.clone());
     let required = call.named("required").is_none_or(|arg| arg.value == "true");
     let prompt = call.named("prompt").map(|arg| arg.value.clone());
     let env = call.named("env").map(|arg| arg.value.clone());
@@ -175,6 +197,7 @@ fn spec_from_call(source: &str, call: &Call) -> Option<SlotSpec> {
         default,
         default_string,
         markup: call.markup,
+        unknown_kind,
         range: call.range.clone(),
     })
 }

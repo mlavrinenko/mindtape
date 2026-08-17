@@ -84,14 +84,14 @@ fn slotkind_as_str_returns_correct_spelling() {
     assert_eq!(SlotKind::Date.as_str(), "date");
     assert_eq!(SlotKind::List.as_str(), "list");
     assert_eq!(SlotKind::Text.as_str(), "text");
-    assert_eq!(SlotKind::Typst.as_str(), "typst");
+    assert_eq!(SlotKind::Raw.as_str(), "raw");
     assert_eq!(SlotKind::Choice.as_str(), "choice");
 }
 
 #[test]
-fn slotkind_parse_typst_returns_typst() {
-    // Catches deletion of the "typst" arm in SlotKind::parse.
-    assert_eq!(SlotKind::parse("typst"), Some(SlotKind::Typst));
+fn slotkind_parse_raw_returns_raw() {
+    // Catches deletion of the "raw" arm in SlotKind::parse.
+    assert_eq!(SlotKind::parse("raw"), Some(SlotKind::Raw));
 }
 
 #[test]
@@ -114,4 +114,34 @@ fn rawvalue_type_name_returns_correct_name() {
     assert_eq!(RawValue::Float(0.0).type_name(), "float");
     assert_eq!(RawValue::Bool(true).type_name(), "bool");
     assert_eq!(RawValue::List(vec![]).type_name(), "list");
+}
+
+/// The kind was spelled `typst` before it was renamed to `raw`. A template
+/// still carrying the old spelling must be caught as an unknown kind, not
+/// quietly accepted — see `unknown_kind_is_carried_for_fill_to_reject`.
+#[test]
+fn slotkind_parse_rejects_the_retired_typst_spelling() {
+    assert_eq!(SlotKind::parse("typst"), None);
+}
+
+/// Discovery cannot fail, so a bad `kind:` rides along on the spec. Without
+/// this the spelling is lost and the slot reads as a plain `string`.
+#[test]
+fn unknown_kind_is_carried_for_fill_to_reject() {
+    let specs = discover_slots(r#"#f(body: slot("body", kind: "typst"))"#);
+    assert_eq!(specs.len(), 1);
+    assert_eq!(
+        specs.first().unwrap().unknown_kind.as_deref(),
+        Some("typst")
+    );
+}
+
+/// A slot with no `kind:` at all is a `string` by design, and must not be
+/// confused with one whose kind failed to parse.
+#[test]
+fn absent_kind_is_not_an_unknown_kind() {
+    let specs = discover_slots(r#"#f(title: slot("title"))"#);
+    assert_eq!(specs.len(), 1);
+    assert_eq!(specs.first().unwrap().kind, SlotKind::String);
+    assert_eq!(specs.first().unwrap().unknown_kind, None);
 }

@@ -50,7 +50,7 @@ worth exactly as much as the measurement behind it still is.
 
 #slot(
   "remedy",
-  kind: "typst",
+  kind: "raw",
   prompt: "the two language-specific bullets: what a remedy is here, and what a split has to be",
 )
 - If you re-cap, write the reason next to the pattern in `.linecop.yaml`, in the

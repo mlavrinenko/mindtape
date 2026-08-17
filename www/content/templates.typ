@@ -72,11 +72,19 @@ mt add --edit                                          # fill in your editor
   came from. Prose containing `*`, `_`, `$`, `#`, `[`, `]`, `<` or `@` stays
   literal instead of opening emphasis or evaluating away. Numeric, choice and
   date slots are literals and are left alone.
-- #strong[Typst slots are not escaped]: `kind: "typst"` splices its value as
-  real markup, so a fill value may carry code spans, emphasis or a list. The
+- #strong[Raw slots are not escaped]: `kind: "raw"` splices its value in
+  verbatim, so a fill value may carry code spans, emphasis or a list. The
   opt-out belongs to the template author, never to the caller — a template is
-  trusted repo content, a `--set` value is not. A `typst` slot whose value does
-  not parse fails before anything is written, naming the slot.
+  trusted repo content, a `--set` value is not. The name says what it does:
+  the value is pasted, not read, so nothing builds a value out of it and
+  nothing type-checks one.
+- #strong[What a raw slot checks is narrow.] A value that does not parse as
+  Typst markup fails before anything is written, naming the slot — that covers
+  a `#slot(…)` in the body, which is what the kind is for. A raw slot spliced
+  into an argument position is a different plane: there the value is an
+  expression, and markup reads parens and `*` as ordinary text, so a broken
+  one reaches the file and `mt add` fails loading what it wrote. Use `raw` for
+  body markup; reach for a typed kind anywhere a value has a shape.
 
 = Structured values with `-f`
 

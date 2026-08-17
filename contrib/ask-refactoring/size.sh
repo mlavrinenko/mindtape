@@ -118,7 +118,7 @@ seam_for() {
 }
 
 # The first two Scope bullets, spliced into the `remedy` slot as real markup
-# (`kind: "typst"`). This is the language axis and nothing else: what counts as
+# (`kind: "raw"`). This is the language axis and nothing else: what counts as
 # a remedy here, and what a split has to amount to for it to have been one. The
 # bullets after it in the template are language-neutral and stay literal there.
 #

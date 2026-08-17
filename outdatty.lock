@@ -3,7 +3,7 @@ algorithm: blake3
 groups:
   cli-docs:
     source:
-      crates/mindtape-cli/src/add.rs: 2f6079298df1509bb622e8e972d0ce6eb89a6df04f7cc5929f07c6aeede7c1b1
+      crates/mindtape-cli/src/add.rs: 5f3ece26dff2596639ba951d2bfc483d16f365e70c094451cc64c7e144faf8d0
       crates/mindtape-cli/src/check.rs: be65527021e1d8f8db8174309975ffff78384ef46aa2b24bff6095c611cdd285
       crates/mindtape-cli/src/cli.rs: b05f73a88e9877931e9d66f587935c7b5751ea6c6911a3435246c1eb2772b24b
       crates/mindtape-cli/src/config_cmd.rs: 12d9f8d935aa44d2749e2e7ce4b47f0d87320aac2589444b101e5ed406ceed78
@@ -29,10 +29,10 @@ groups:
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
       crates/mindtape/src/lib.rs: 4ff27e2e90197e5eedfe78f8f37ba2965bd85ca2dc8ff8172aceff9e67a5c8c5
     dependents:
-      docs/src/skill.typ: 2d129728f621ccbc9dd40af6dccba84e7a938878f33c5631bc2311031ee66d91
+      docs/src/skill.typ: c0bdcda980fcc929701d2acc48e90adb40ced32bcb831ae43784eec760290125
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
-      skills/mindtape/references/add-slots.md: 8054e1f087daa7494565410604514e2ffe01e5c79cf384d63fc145c9d3bc2272
+      skills/mindtape/references/add-slots.md: 9db388674a1305dfc105f98c0b245e34493e6622d1fca4b7bd5fa53fa7085525
       www/content/agents.typ: 405a2f3dd81ba4e4a205fb5c178804f4be8b3e057b6ef743328f957f17bc132f
       www/content/cli.typ: 5de8f92a2a68036cafa2b72d309baab4a4b26c7f172e5e6e648b3652897b5560
       www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
@@ -43,7 +43,7 @@ groups:
       www/content/priority.typ: df10cfbdbbfe85ab35c7d9725210beb202c0f9437f9b7e462aaf7534eedf1a09
       www/content/quickstart.typ: deadd0718bd2d16ffd0aa94ab29aab5f419665eef4d3fe233b970b67b92a6c6b
       www/content/schema.typ: ffb77af3d2f6a5dd31f3da0164fc9931f2bb7f3fc6d48fb468694a0b83dc840d
-      www/content/templates.typ: 1e4eabffea36e24d8bb0f107578ee07e19c106578be0dcf549f4f6900117e44c
+      www/content/templates.typ: 6aef25f34c6d4017dafe71114ca83e8c26cba06a0ea089679d7bc94c1a431581
       www/utils/cli-notes.typ: 31094125ddc0cb28b0dd53b801e281d4e1435bd25dafadf9e49b605021f65585
   cli-name:
     source:
@@ -118,15 +118,15 @@ groups:
       contrib/ask-refactoring/undertested.sh: c56732b62ce3b6924deaae9861e182ee4be62e4cddef4223907e01baa40417d1
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: e87efe0ec85144b4a844967605e9d5e2070d9d80d58505e3a32d8057c047ff33
+      .mindtape/templates/sweep-size.typ: 95214dc897b9450baac13dbae8a81008281252133ecbdad0fd381177dba9e479
     dependents:
       .mindtape/templates/sweep-coverage.typ: 679c6da51b78863fb2e7018785ecbee263cd7d58ca99e35d641b5b55c0a54b4d
       .mindtape/templates/sweep-mutants.typ: 3a88383f63431728c3ba09de20750bfa23a7f4281c8cac0fdfb0231c53918847
       .mindtape/templates/sweep-undertested.typ: b687a02112336384ac8f0c176e698e6a4ba0461a6efec92aec9a7ba53a608ac0
-      contrib/ask-refactoring/coverage.sh: a233130d4f5749ac8e8336c761e4841a31dc12710d730adeb4e1fc2a6615896f
-      contrib/ask-refactoring/mutants.sh: f21c7b06b0e44b685be31871ebeef188cc4c4a3e90e7bbd99fd6ff93bd64b09d
-      contrib/ask-refactoring/size.sh: 422631bdf909c034caad0f945183a53353f325383fb90a2c29216839f3465053
-      contrib/ask-refactoring/undertested.sh: 4cd7fd19172037ae9fd24aa208e75fc70426a964ada03ba84a646ed7bcf300b2
+      contrib/ask-refactoring/coverage.sh: fa3101fae54260566e2edf743232104f4690f4cf5cfece1f550b6cb298f84d93
+      contrib/ask-refactoring/mutants.sh: f5f88f6665c868dd2f185da37c591dfa56fdb16d2748be0425a08b49ac96c0e8
+      contrib/ask-refactoring/size.sh: e0a14b56a760870f4ed0cb9f2d0d4e522124b814b545fc2d2d5d5de8850f6dfb
+      contrib/ask-refactoring/undertested.sh: c56732b62ce3b6924deaae9861e182ee4be62e4cddef4223907e01baa40417d1
   typst-pkg-version:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5

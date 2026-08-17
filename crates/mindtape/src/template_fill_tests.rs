@@ -209,8 +209,8 @@ fn text_slot_default_lands_as_body_markup() {
 /// Round trip: a code span in, a code span out, no backslashes — the opt-out
 /// `text` slots deferred (`add-a-typst-slot-kind-for-pre-formatted-markup.typ`).
 #[test]
-fn markup_typst_slot_splices_without_escaping() {
-    let src = "== Example\n\n#slot(\"body\", kind: \"typst\")\n";
+fn markup_raw_slot_splices_without_escaping() {
+    let src = "== Example\n\n#slot(\"body\", kind: \"raw\")\n";
     let out = fill(
         src,
         &values(&[(
@@ -220,20 +220,20 @@ fn markup_typst_slot_splices_without_escaping() {
     )
     .unwrap();
     assert_eq!(out, "== Example\n\nSee `mt add` for details.\n");
-    assert!(!out.contains('\\'), "typst slot must not escape: {out}");
+    assert!(!out.contains('\\'), "raw slot must not escape: {out}");
 }
 
 #[test]
-fn typst_slot_default_lands_as_body_markup() {
-    let src = "== Scope\n\n#slot(\"scope\", kind: \"typst\", default: \"- `TODO`\")\n";
+fn raw_slot_default_lands_as_body_markup() {
+    let src = "== Scope\n\n#slot(\"scope\", kind: \"raw\", default: \"- `TODO`\")\n";
     let out = fill(src, &BTreeMap::new()).unwrap();
     assert_eq!(out, "== Scope\n\n- `TODO`\n");
 }
 
 #[test]
-fn typst_slot_unparseable_markup_names_the_slot() {
+fn raw_slot_unparseable_markup_names_the_slot() {
     let err = fill_wrapped(
-        r#"body: slot("body", kind: "typst")"#,
+        r#"body: slot("body", kind: "raw")"#,
         &[("body", RawValue::Str("#unclosed[".to_owned()))],
     )
     .unwrap_err();
@@ -381,4 +381,31 @@ fn edit_failure_displays_rewrite_message() {
     // never overlap), so exercise the display arm directly.
     let err = FillError::Edit("boom".to_owned());
     assert_eq!(err.to_string(), "rewrite failed: boom");
+}
+
+/// The migration path off the retired `typst` spelling. Before `unknown_kind`
+/// existed this filled as a `string` — the value quoted and escaped, a wrong
+/// task written with exit 0 and no diagnostic anywhere.
+#[test]
+fn retired_typst_kind_fails_naming_the_slot_and_the_valid_kinds() {
+    let err = fill_wrapped(
+        r#"body: slot("body", kind: "typst")"#,
+        &[("body", RawValue::Str("See `mt add`.".to_owned()))],
+    )
+    .unwrap_err();
+    assert!(
+        matches!(&err, FillError::UnknownKind { slot, kind } if slot == "body" && kind == "typst"),
+        "{err:?}"
+    );
+    let msg = err.to_string();
+    assert!(msg.contains("raw"), "{msg}");
+}
+
+/// An unknown kind is rejected even when no value is supplied for the slot:
+/// the default path must not sneak a mis-declared slot past the check.
+#[test]
+fn unknown_kind_fails_even_when_the_slot_is_unfilled() {
+    let err =
+        fill_wrapped(r#"body: slot("body", kind: "markdown", default: "x")"#, &[]).unwrap_err();
+    assert!(matches!(&err, FillError::UnknownKind { .. }), "{err:?}");
 }

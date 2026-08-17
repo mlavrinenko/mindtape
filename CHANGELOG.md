@@ -143,6 +143,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING: the `typst` slot kind is renamed `raw`.** The old name claimed
+  more than the kind delivers. Nothing builds a Typst value out of a `typst`
+  slot and nothing type-checks one — the value is pasted, and the only check
+  reads it as top-level markup. That check covers a `#slot(…)` in the body,
+  which is what the kind is for, but it cannot see a slot spliced into an
+  argument position: there the value is an expression, and markup treats
+  parens and `*` as ordinary text, so `(files: 2` and `*emphasis*` both parse
+  clean and reach the file, after which `mt add` fails loading what it wrote.
+  `raw` names the splice, which is the actual contract, and the gap is now
+  documented rather than implied away.
+- **BREAKING: a slot declaring an unknown `kind:` is an error.** It previously
+  fell back to `string` silently, so a typo — or a template still saying
+  `kind: "typst"` after the rename above — filled as a quoted, escaped string
+  with exit 0 and no diagnostic anywhere. `fill` now fails before coercing any
+  value, naming the slot, the unrecognised spelling, and the valid kinds. This
+  is what makes the rename safe to take: an un-migrated template fails loudly
+  instead of quietly writing a wrong task.
 - **BREAKING: one `key OP value` token grammar for `mt add` values.** A value
   is `key=value` (set) or `key+=value` (append to a list slot), and the same
   token is accepted after `--set` or bare after `--` —

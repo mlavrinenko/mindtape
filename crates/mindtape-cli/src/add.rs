@@ -193,10 +193,10 @@ pub fn run(args: &AddArgs) -> Result<()> {
 /// number, a `("a",)` list, an `on(y, m, d)` call — where the escaping
 /// backslashes would be data, not syntax, and would read back as themselves.
 ///
-/// `typst` ([`mindtape::SlotKind::Typst`]) also splices its value verbatim
+/// `raw` ([`mindtape::SlotKind::Raw`]) also splices its value verbatim
 /// into markup, like `text`, but is deliberately left out of this escape
 /// pass. The choice belongs to the *template*, not the *caller*: a template
-/// is checked-in repo content, so `kind: "typst"` is the template author
+/// is checked-in repo content, so `kind: "raw"` is the template author
 /// asserting that whatever fills this slot — `--set`, `-f`, the environment,
 /// none of which this function can tell apart — is trusted to be markup, not
 /// prose that merely contains markup characters. Escaping is applied here,

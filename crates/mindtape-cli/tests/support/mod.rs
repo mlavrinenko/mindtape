@@ -99,7 +99,7 @@ const SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 
 /// A throwaway project scaffolded with `source` as its default template
 /// (`.mindtape/templates/task.typ`) — the shared prologue
-/// [`project_with_slot_template`] and [`project_with_typst_slot_template`]
+/// [`project_with_slot_template`] and [`project_with_raw_slot_template`]
 /// both build on before adding their own fixtures.
 fn project_with_template(source: &str) -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
@@ -127,7 +127,7 @@ pub fn project_with_slot_template() -> tempfile::TempDir {
     dir
 }
 
-/// A template with one `typst`-kind slot, the unescaped counterpart to
+/// A template with one `raw`-kind slot, the unescaped counterpart to
 /// [`SLOT_TEMPLATE`]'s `text` slots — proves the escaping decision is a
 /// per-slot choice the template author makes, not a per-command one.
 const TYPST_SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
@@ -138,11 +138,11 @@ const TYPST_SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 
 == Summary
 
-#slot("summary", kind: "typst", default: "- `TODO`")
+#slot("summary", kind: "raw", default: "- `TODO`")
 "#;
 
 /// A throwaway project whose default template is [`TYPST_SLOT_TEMPLATE`].
-pub fn project_with_typst_slot_template() -> tempfile::TempDir {
+pub fn project_with_raw_slot_template() -> tempfile::TempDir {
     project_with_template(TYPST_SLOT_TEMPLATE)
 }
 

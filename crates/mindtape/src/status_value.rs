@@ -71,9 +71,9 @@ pub fn status_value(name: &str, ymd: (i32, u8, u8), note: Option<&str>) -> Strin
 /// worse, loads with the markup silently applied — `<a>` and `@at` evaluate to
 /// a label and a reference and vanish from the value read back.
 ///
-/// `add`'s `typst`-kind slots ([`crate::template::SlotKind::Typst`]) are the
+/// `add`'s `raw`-kind slots ([`crate::template::SlotKind::Raw`]) are the
 /// one deliberate exception, not an oversight: escaping is a default for
-/// values of unknown trust, and a `typst` slot is the *template*, not this
+/// values of unknown trust, and a `raw` slot is the *template*, not this
 /// function, asserting its filler is trusted markup — see
 /// `add.rs::markup_safe`.
 #[must_use]
