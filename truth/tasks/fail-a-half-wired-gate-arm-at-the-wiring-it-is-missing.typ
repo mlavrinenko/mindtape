@@ -9,11 +9,15 @@
   ),
   difficulty: 2,
   tags: ("tooling",),
-  estimate: (files: 3),
+  estimate: (files: 10),
   links: related("relativize-the-crap-baseline-s-committed-file-paths.typ")[
     the gate arm whose wiring produced these measurements
   ],
-  status: proposed(2026, 8, 17),
+  status: done(
+    2026,
+    8,
+    17,
+  )[both probes now read true; arm three caught \_nav-diff.sh on its first run],
 )
 
 == Summary
@@ -42,3 +46,11 @@ The second line names no recipe. `www/gates.jq` ends its message with `halt_erro
 - set-difference `.just/scripts/*.sh` against `outdatty.yaml`'s `dev-docs` sources, failing with the line to add. `script-scope-check` already walks that directory for the same class of question and is the natural home, as an arm rather than a new gate
 - out of scope: a `just new-gate <name>` scaffold. Generation cannot be forgotten, which beats any check, but it would have to write six files in four formats and would rot against every one of them; the two checks above make a half-wired arm fail by itself, which is the property actually wanted
 - out of scope, explicitly: a CONTRIBUTING.md checklist. A wiring step that can be forgotten gets a check that names it
+
+== Resolution
+
+Arm three demands a DECISION, not membership, which the scope above got wrong. Written as a plain set-difference it failed on its first run against `_nav-diff.sh` — a script left out of `dev-docs` on purpose, with the reason recorded in `outdatty.yaml`: no doc restates its logic, so listing it would ask for a review of seven dependents no change to it can rot. Demanding membership would have forced exactly the coupling this repo declined. So a script is a source or carries an exemption naming the reason, and a new one is neither — the arriving-is-enough property lands on the file nobody decided about, which is the one that matters. An exemption contradicting a source line, or naming a file that is gone, fails as well; all four cases were probed by hand.
+
+The `www/gates.jq` half re-runs the original probe clean: the empty side reads `(none)` and `generate-facts.sh`'s refusal now lands on its own line instead of on the end of it.
+
+`docs/src/contributing/gates.typ`'s measured split figures were reframed as the measurement they are rather than a current reading — arms have been added since they were taken, and re-typing the numbers without re-measuring would have been the drift this repo files tasks about.
