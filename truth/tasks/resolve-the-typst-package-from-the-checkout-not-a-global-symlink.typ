@@ -9,11 +9,18 @@
   ),
   difficulty: 4,
   tags: ("tooling",),
-  estimate: (files: 2),
+  estimate: (files: 12),
   links: related(
     "add-a-just-fork-recipe-that-stands-up-a-ready-worktree.typ",
-  )[the recipe whose first real run surfaced this],
-  status: proposed(2026, 8, 17),
+  )[the recipe whose first real run surfaced this]
+    + related(
+      "honour-mindtape-data-home-when-resolving-local-packages-not-only-when-installing-them.typ",
+    )[why this fix's gate empties the package dir with XDG_DATA_HOME],
+  status: done(
+    2026,
+    8,
+    17,
+  )[examples pin the prelude to the checkout; the gate empties the global dir so the pin cannot rot],
 )
 
 == Summary

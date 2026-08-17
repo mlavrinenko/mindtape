@@ -19,8 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from the current checkout. Warms no build cache on purpose: `kache` already
   serves a fresh worktree's build at a 99.7% hit rate, and seeding a 17 GB
   `target/` on a filesystem where `cp --reflink` fails would cost a full copy
-  per worktree. The one thing a worktree cannot bring with it — the
-  machine-global `@local/mindtape` symlink — is printed as a note.
+  per worktree.
 - **`site-pages-fixture-check` gate** — pins the three failures
   `www/generate-site-pages.sh` and `check-doc-facts`'s pages arm exist to
   catch (two pages declaring the same route, a page with no `<page-meta>`
@@ -132,6 +131,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `tests/read_no_write_e2e.rs` generates one byte-identical-tree check per
   `Read`-classified command from that same JSON, on top of (not instead of)
   the hand-written per-flag variants already there.
+
+### Fixed
+
+- **Example fixtures resolved the prelude from a machine-global symlink.**
+  `@local/mindtape` resolves through one directory per machine — pointed at
+  whichever checkout last ran `mt install` — so `just check-examples` in a
+  worktree or a second clone validated `examples/learn-piano` and
+  `examples/minimal` against the MAIN tree's `lib/prelude.typ`, not the one
+  beside them, and the harvest cache (whose build key folds each override's
+  file contents, and with no override folds nothing about the prelude) would
+  not even re-evaluate. A fork editing the DSL therefore gated its fixtures
+  against a prelude it had not changed. Both fixtures now declare a
+  `[[typst.local-packages]]` entry pointing at this checkout's `lib/`, and the
+  gate runs with the machine-global directory emptied so the entry cannot
+  silently rot back — which also makes the gate, and `just check` as a whole,
+  pass on a machine that never ran `mt install`, CI included. The repo's own
+  root already resolved correctly: the loader auto-registers `<root>/lib` when
+  its `typst.toml` names `mindtape`. `just fork` no longer prints its note
+  about the symlink, which existed only to make the old behaviour visible.
 
 ## [0.3.0] - 2026-08-10
 

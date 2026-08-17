@@ -3,6 +3,24 @@
 # doubles as the input the docs generator runs `mt` against. Modeled on the
 # repo's own .mindtape/config.toml.
 
+# Resolve `@local/mindtape` from the `lib/` two levels up — this checkout's
+# prelude — instead of the machine-global local-package directory, which is one
+# symlink pointing at whichever checkout last ran `just install-lib`. Without
+# this line every worktree and every second clone validates these tasks against
+# the MAIN tree's prelude, silently: `just check-examples` in a fork editing the
+# DSL would gate the fixture against a prelude the fork did not change, and the
+# harvest cache — whose build key folds each override's file contents — would
+# not even re-evaluate, since with no override there is nothing about the
+# prelude in the key. The repo's own root needs no such entry: the loader
+# auto-registers `<root>/lib` when its typst.toml names `mindtape`, and nothing
+# named `lib` sits beside a fixture.
+#
+# It is also the one part of the config surface this fixture would otherwise
+# not showcase. `path` is relative to the project root and may leave it.
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
 [tasks]
 [[tasks.roots]]
 path = "tasks"

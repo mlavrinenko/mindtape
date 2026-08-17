@@ -125,12 +125,31 @@ outdatty-check:
 # feeds the docs generator and the skill's triage evals, minimal feeds the
 # skill's trap evals. Why gating them is what earns the right to depend on
 # them is in docs/contributing/gates.md.
+#
+# "Against itself" is enforced, not trusted. Each fixture declares a
+# `[[typst.local-packages]]` entry pointing `@local/mindtape` at this
+# checkout's lib/; the machine-global local-package directory would serve the
+# same import from whichever checkout last ran `just install-lib`, so a fixture
+# that lost its entry would keep passing here against some other tree's
+# prelude. Pointing the platform data dir at a path that holds no packages
+# deletes that fallback: the entry is load-bearing, and a fork editing the DSL
+# gates against the prelude it is editing. It is also what lets a contributor —
+# and CI, which never runs `mt install` — run this gate on a machine with no
+# global install at all.
+#
+# XDG_DATA_HOME is the seam `dirs::data_dir` reads on Linux, which covers the
+# dev shell and the CI job that runs `just check`. macOS keeps the fallback
+# (the gate still passes, just less strictly); Windows never runs this gate.
+# Absolute because a relative XDG_DATA_HOME is ignored per the XDG spec, and
+# deliberately never created.
+
+NO_LOCAL_PKGS := justfile_directory() / "target" / "no-typst-packages"
 
 [doc("Validate each example project against itself")]
 [group("gate")]
 check-examples:
-    cargo run -p mindtape-cli -q -- -w examples/learn-piano check
-    cargo run -p mindtape-cli -q -- -w examples/minimal check
+    XDG_DATA_HOME={{ NO_LOCAL_PKGS }} cargo run -p mindtape-cli -q -- -w examples/learn-piano check
+    XDG_DATA_HOME={{ NO_LOCAL_PKGS }} cargo run -p mindtape-cli -q -- -w examples/minimal check
 
 # Every visible top-level `mt` subcommand must have a www/utils/cli-notes.typ
 # entry. How the set-difference is taken, and what it deliberately never

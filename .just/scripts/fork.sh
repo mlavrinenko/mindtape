@@ -137,24 +137,14 @@ echo "worktree  $path"
 echo "branch    $wt_branch"
 echo "base      $base_sha ($base)"
 
-# The one thing a worktree cannot bring with it, found by running this recipe and
-# then reading where `mt` actually resolves its prelude from. `@local/mindtape`
-# is a MACHINE-GLOBAL symlink into whichever checkout last ran `just install-lib`
-# — one link, every clone and every worktree — so a fork's `mt ls`/`mt check`
-# read the main tree's `lib/prelude.typ`, not the one beside them. It is silent
-# and it only bites prelude work, which is exactly why it is printed rather than
-# left to be discovered: a worktree editing the DSL would validate its task files
-# against the prelude it did not change. The path is derived the way
-# install-lib.sh derives it, not a second guess at it.
-lib_version=$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)
-lib_link="$HOME/.local/share/typst/packages/local/mindtape/$lib_version"
-lib_target=$(readlink -f "$lib_link" 2>/dev/null || true)
-if [ -n "$lib_target" ] && [ "$lib_target" != "$path/lib" ]; then
-    echo
-    echo "note      \`mt\` here resolves @local/mindtape:$lib_version from $lib_target"
-    echo "          run \`just install-lib\` IN the worktree if it edits lib/ — the link is"
-    echo "          machine-global, so that repoints it away from every other checkout"
-fi
+# A note about `@local/mindtape` resolving through the machine-global symlink
+# used to be printed here — a fork's `mt`/`check-examples` read whichever
+# checkout last ran `just install-lib`, not the lib beside them. It is gone
+# because the behaviour is: the loader auto-registers `<root>/lib` for the repo
+# itself, both example fixtures declare a `[[typst.local-packages]]` entry
+# pointing at it, and `just check-examples` runs with the global directory
+# emptied so the entry cannot rot back. A worktree now reads its own prelude
+# with nothing printed and nothing to remember.
 echo
 echo "pin the base in the agent's prompt, and have it assert before any work:"
 echo "  cd $path"

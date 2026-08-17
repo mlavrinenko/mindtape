@@ -44,6 +44,9 @@ One caveat the averages hide: a one-script edit now costs the edited arm’s own
 
 Gating them earns the right to depend on them. The eval fixture that preceded these sat in untracked scratch and silently outlived two config migrations — the retired `[ls] default-filter`, the `depends-on:` → `links:` move — so no eval could have run against it, and nothing said so.
 
+“Against itself” is enforced rather than assumed. A task file imports `@local/mindtape`, which Typst resolves from one directory per machine — the one `mt install` fills, pointing at whichever checkout installed last — so a fixture in a worktree validated against the MAIN tree’s prelude and passed while gating nothing, which is exactly the case a prelude change needs it for. Each fixture now pins the import to this checkout’s `lib/` with a `[[typst.local-packages]]` entry, and the recipe runs with the machine-global directory pointed at a path holding no packages, so a fixture that lost its entry fails here instead of passing against some other tree. That also makes the gate — and the whole aggregate — runnable on a machine that never ran `mt
+install`, which is every CI run.
+
 ## Why the module files are formatted one by one
 
 A bare `--fmt` pass formats the root `Justfile` only and silently skips every `mod` file. Verified rather than assumed: on just 1.46, against a synthetic module, `--fmt` left the mis-formatted module byte-identical and `--fmt --check` reported only the root file’s diff.

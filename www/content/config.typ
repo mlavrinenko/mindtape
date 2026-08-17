@@ -2,6 +2,7 @@
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 #import "../utils/config-ref.typ": config-gate, config-sections-table
+#import "../generated/just.typ" as just
 
 #let meta = (
   route: "/config/",
@@ -713,6 +714,43 @@ priority `bands`, difficulty anchors, `[[tasks.roots]]`. Declaring it twice is
 a hard error naming both sources: a silent pick would be a status legend
 nobody chose. Fix it by picking one fragment, or by moving the difference into
 `[overlay]` — exempt from the rule because it exists to override.
+
+= Local Typst packages
+
+A task file imports the DSL as `@local/mindtape:0.2.0`, and Typst resolves a
+`@local` package from one machine-global directory —
+`<data dir>/typst/packages/local/<name>/<version>/`, which `mt install` fills.
+One directory, every checkout: a second clone or a git worktree reads whichever
+tree installed last, not the `lib/` beside it. Nothing says so, and it stays
+invisible until the two preludes differ — at which point a project is validated
+against a DSL it does not contain.
+
+`[[typst.local-packages]]` pins resolution to the tree instead:
+
+```toml
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+```
+
+`path` names the directory holding that package's `typst.toml`, resolved
+relative to the project root and free to leave it. An entry wins over both the
+machine-global directory and the automatic registration below, for the name it
+declares. The seam is not MindTape-specific: any `@local/<name>` a task file or
+an `x-<ns>` helper imports can be pointed at an in-tree path this way.
+
+One case needs no entry. A project whose own `<root>/lib` holds a `typst.toml`
+naming `mindtape` gets that directory registered automatically — matched on the
+manifest's declared name, not on the directory merely existing, so a `lib/`
+that is some other package is left alone. This repo resolves its own prelude
+that way; the fixtures under `examples/` each carry an explicit entry, since
+nothing named `lib` sits beside them.
+
+`mt install` is unaffected either way. It still writes the machine-global
+package, which an editor's Typst language server, `typst compile`, and every
+project without an entry all read. What an entry buys is a checkout that
+validates on a machine which never ran it — MindTape's own #just.check() passes
+with no global install, which is how CI runs it.
 
 = Environment variables
 

@@ -239,7 +239,16 @@ rm -rf "$PKGS"
 cp "$FIX/.mindtape/templates/task.typ" "$OUT/template.typ"
 
 # --- mutating commands against a throwaway copy (never touch the fixture) --
-COPY="$(mktemp -d)/lp"
+# The copy has to preserve the fixture's DEPTH: its `[[typst.local-packages]]`
+# entry resolves `@local/mindtape` at `../../lib` — this checkout's prelude
+# rather than the machine-global one — so a copy parked one level down loads
+# nothing, and every `mt` call below fails on the task it just wrote. Rebuild
+# the two levels and symlink the real lib/ at the far end, the same throwaway
+# resolution the hero card above builds for `typst compile`.
+COPY_ROOT="$(mktemp -d)"
+mkdir -p "$COPY_ROOT/examples"
+ln -s "$REPO/lib" "$COPY_ROOT/lib"
+COPY="$COPY_ROOT/examples/lp"
 cp -r "$FIX" "$COPY"
 
 # add: file a new task; normalize the "wrote <abs>" path to project-relative.
@@ -254,7 +263,7 @@ cp "$COPY/tasks/practice-pedaling-technique.typ" "$OUT/add-written.typ"
 # done: close a wip task (pure status flip).
 "$MT" -w "$COPY" --color never done fur-elise-polish >"$OUT/done.txt"
 
-rm -rf "$(dirname "$COPY")"
+rm -rf "$COPY_ROOT"
 
 # --- favicon + apple touch icon, rasterised from the one hand-maintained SVG --
 # assets/images/ (unlike generated/) IS a tola-copied dir (see the header
