@@ -13,7 +13,11 @@
   links: related("scan-the-tree-for-secrets-with-gitleaks.typ")[
     the secret scanner that cannot take this job
   ],
-  status: wip(2026, 8, 17),
+  status: done(
+    2026,
+    8,
+    17,
+  )[1056/1058 entries pair through the suffix pass; gate green, ratchet still fires],
 )
 
 == Summary
