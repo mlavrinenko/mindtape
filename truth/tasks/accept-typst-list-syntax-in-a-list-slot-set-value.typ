@@ -10,7 +10,18 @@
   difficulty: 3,
   tags: ("cli", "docs"),
   estimate: (files: 5),
-  status: proposed(2026, 8, 16),
+  status: cancelled(
+    2026,
+    8,
+    17,
+  )[premise inverted: --set stops reading Typst rather than reading more of it, and the \[\]= spelling it took as fixed is retired],
+  links: related("remove-the-typst-slot-kind-from-mt-add-input.typ")[
+    resolved in the opposite direction: `--set` stops reading Typst for every
+    slot, rather than starting to read it for one more
+  ]
+    + related("unify-mt-add-input-on-a-key-op-value-token-grammar.typ")[
+      what replaces the `[]=` spelling this task took as fixed
+    ],
 )
 
 == Summary
