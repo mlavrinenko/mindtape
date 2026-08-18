@@ -402,3 +402,33 @@ fn json_exposes_links_as_task_kind_note() {
     assert_eq!(json["links"][0]["kind"], "related");
     assert_eq!(json["links"][0]["note"], "why");
 }
+
+#[test]
+fn csv_assignee_column_appears_on_a_mixed_listing() {
+    // `assignee` renders off the same `resolve_order` the table uses, so the
+    // hidden case is already pinned by every other csv test here (`sample()`
+    // carries no assignee, and each asserts the exact header line). What is
+    // only reachable through CSV is the raw cell: the actor name verbatim,
+    // not the table's styled `CellSpec`.
+    let mut a = sample();
+    a.assignee = Some("agent".to_owned());
+    let mut b = sample();
+    b.id = "t2".to_owned();
+    b.file = "tasks/t2.typ".into();
+    b.assignee = Some("max".to_owned());
+    let out = render(
+        &[a, b],
+        OutputFormat::Csv,
+        &Config::default(),
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    let mut lines = out.lines();
+    assert_eq!(
+        lines.next().unwrap(),
+        "id,status,priority,due,assignee,title"
+    );
+    assert_eq!(lines.next().unwrap(), "t1,wip,8,2026-07-01,agent,Build");
+    assert_eq!(lines.next().unwrap(), "t2,wip,8,2026-07-01,max,Build");
+}

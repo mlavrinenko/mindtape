@@ -65,7 +65,8 @@ Pass a filter expression as the positional argument. Fields: `status priority di
 
 `mt find <term…>` is pure sugar over `contains()`: `mt find login bug` == `mt ls 'contains("login") && contains("bug")'` (terms conjoin with `&&`). Every `mt ls` flag forwards; there is no `--in` — target a field with the filter directly (`mt ls 'contains("bug", title)'`).
 
-Named views are `[views.<name>]` bundles (filter + optional sort/columns); bare `@name` applies all three facets, `@name` inside a bigger filter is the filter facet only. `--columns <cols|@view>` picks columns for one run. An opt-in `file` column (never shown unless named, e.g. `--columns '#,title,file'`) prints each task’s source path relative to the working directory. `--hyperlinks always` (default `never`, or set `[ls] hyperlinks`) wraps the always-visible `#` column — and `file` when shown — in an OSC 8 link to that row’s target.
+Named views are `[views.<name>]` bundles (filter + optional sort/columns); bare `@name` applies all three facets, `@name` inside a bigger filter is the filter facet only. `--columns <cols|@view>` picks columns for one run. An opt-in `file` column (never shown unless named, e.g. `--columns '#,title,file'`) prints each task’s source path relative to the working directory. An `assignee` column shows only when the listed rows disagree about it, so a listing already filtered to one actor never grows one; naming it does not override that — `[ls.columns.assignee] visibility =
+"visible"` does. `--hyperlinks always` (default `never`, or set `[ls] hyperlinks`) wraps the always-visible `#` column — and `file` when shown — in an OSC 8 link to that row’s target.
 
 ```sh
 mt ls 'ready && priority > 5'

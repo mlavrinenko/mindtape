@@ -21,6 +21,7 @@ pub enum ColumnId {
     Ready,
     Priority,
     Due,
+    Assignee,
     Title,
     File,
 }
@@ -29,12 +30,18 @@ pub enum ColumnId {
 /// last: it never renders unless named explicitly (see
 /// [`ColumnId::auto_significant`]), so appending it after `Title` cannot
 /// disturb the built-in look of an unconfigured `mt ls`.
-pub const ORDER: [ColumnId; 7] = [
+///
+/// `Assignee` sits with the other short scalars, before the flex `Title`,
+/// rather than being tacked on at the end like `File`: when it renders at all
+/// it is because the rows disagree about it, and that is metadata to read
+/// alongside status and priority, not a trailing path.
+pub const ORDER: [ColumnId; 8] = [
     ColumnId::Handle,
     ColumnId::Status,
     ColumnId::Ready,
     ColumnId::Priority,
     ColumnId::Due,
+    ColumnId::Assignee,
     ColumnId::Title,
     ColumnId::File,
 ];
@@ -49,6 +56,7 @@ impl ColumnId {
             ColumnId::Ready => "ready",
             ColumnId::Priority => "priority",
             ColumnId::Due => "due",
+            ColumnId::Assignee => "assignee",
             ColumnId::Title => "title",
             ColumnId::File => "file",
         }
@@ -63,6 +71,7 @@ impl ColumnId {
             ColumnId::Ready => "READY",
             ColumnId::Priority => "PRIORITY",
             ColumnId::Due => "DUE",
+            ColumnId::Assignee => "ASSIGNEE",
             ColumnId::Title => "TITLE",
             ColumnId::File => "FILE",
         }
@@ -98,6 +107,7 @@ impl ColumnId {
             ColumnId::Ready => ready_cell(readiness.state(task), config),
             ColumnId::Priority => priority_cell(task, config),
             ColumnId::Due => due_cell(task, config),
+            ColumnId::Assignee => plain(task.assignee.clone().unwrap_or_default()),
             ColumnId::Title => plain(task.title.clone()),
             ColumnId::File => plain(file_path::cell_text(&task.file)),
         }
@@ -110,8 +120,11 @@ impl ColumnId {
     /// would pin it permanently visible and there would be no opt-in at all.
     /// Its significance is instead `explicit_order`: whether the render order
     /// was explicitly named (`--columns`, a view's `columns`, an
-    /// `[[ls.rules]]` columns override) rather than the built-in default. The
-    /// rest show when any cell has text.
+    /// `[[ls.rules]]` columns override) rather than the built-in default.
+    /// `assignee` is significant only when the rows disagree about it (see
+    /// [`assignee_contested`]) — a listing already narrowed to one actor
+    /// learns nothing from a column repeating that name. The rest show when
+    /// any cell has text.
     #[must_use]
     pub fn auto_significant(
         self,
@@ -124,6 +137,7 @@ impl ColumnId {
             ColumnId::Handle | ColumnId::Title => true,
             ColumnId::File => explicit_order,
             ColumnId::Ready => rows.iter().any(|(_, task)| readiness.is_blocked(task)),
+            ColumnId::Assignee => assignee_contested(rows),
             _ => rows
                 .iter()
                 .any(|(handle, task)| !self.cell(handle, task, config, readiness).text.is_empty()),
@@ -200,6 +214,24 @@ pub fn row_hyperlink_targets(handles: &[(String, &Task)], config: &Config) -> Ve
         .iter()
         .map(|(_, task)| file_path::hyperlink_target(&task.file, template))
         .collect()
+}
+
+/// Whether the listed rows disagree about their assignee — the `auto`
+/// significance of the `assignee` column.
+///
+/// An absent assignee counts as its own value rather than being skipped, so a
+/// half-assigned listing is contested (the blanks are exactly what you want to
+/// see) while a wholly unassigned one is not. Short-circuits on the first row
+/// that differs from the first.
+#[must_use]
+fn assignee_contested(rows: &[(String, &Task)]) -> bool {
+    let mut values = rows
+        .iter()
+        .map(|(_, task)| task.assignee.as_deref().unwrap_or_default());
+    let Some(first) = values.next() else {
+        return false;
+    };
+    values.any(|value| value != first)
 }
 
 fn plain(text: String) -> CellSpec {

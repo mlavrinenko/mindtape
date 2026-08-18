@@ -161,6 +161,7 @@ fn csv_header(id: ColumnId) -> &'static str {
         ColumnId::Ready => "ready",
         ColumnId::Priority => "priority",
         ColumnId::Due => "due",
+        ColumnId::Assignee => "assignee",
         ColumnId::Title => "title",
         ColumnId::File => "file",
     }
@@ -177,6 +178,7 @@ fn csv_value(id: ColumnId, task: &Task, config: &Config, readiness: &Readiness) 
         ColumnId::Ready => ready_text(readiness.state(task)).to_owned(),
         ColumnId::Priority => priority_display(task.priority.as_ref(), config),
         ColumnId::Due => task.due.clone().unwrap_or_default(),
+        ColumnId::Assignee => task.assignee.clone().unwrap_or_default(),
         ColumnId::Title => task.title.clone(),
         ColumnId::File => crate::render::file_path::cell_text(&task.file),
     }

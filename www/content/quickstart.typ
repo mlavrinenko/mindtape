@@ -145,7 +145,8 @@ Pass a filter expression to narrow it down — here, everything not yet terminal
 
 #terminal-ansi(read("../generated/ls-open.ansi"))
 
-Empty columns hide themselves. An opt-in `file` column (`--columns
+Empty columns hide themselves, and an `assignee` column appears only when the
+rows disagree about who works them. An opt-in `file` column (`--columns
 '#,title,file'`) shows each task's source path, clickable in a standalone
 terminal with `--hyperlinks always` — see #link(u("/cli/"))[the CLI
   reference]. The full #link(u("/filters/"))[filter language] covers tags,

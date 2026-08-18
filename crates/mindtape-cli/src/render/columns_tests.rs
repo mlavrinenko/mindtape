@@ -224,3 +224,175 @@ fn visibility_hidden_wins_even_when_explicitly_listed() {
         "visibility = hidden must win even when file is explicitly listed"
     );
 }
+
+#[test]
+fn assignee_is_not_flex() {
+    assert!(!ColumnId::Assignee.is_flex());
+}
+
+/// A task carrying `assignee` (`None` leaves it unset).
+fn assigned(id: &str, who: Option<&str>) -> Task {
+    let mut task = bare_task(id);
+    task.assignee = who.map(str::to_owned);
+    task
+}
+
+/// Whether the `assignee` column is significant across a two-row listing with
+/// these assignees, under the built-in (non-explicit) order.
+fn assignee_significant(a: Option<&str>, b: Option<&str>) -> bool {
+    let (a, b) = (assigned("a", a), assigned("b", b));
+    ColumnId::Assignee.auto_significant(
+        &rows(&[("1a", &a), ("2b", &b)]),
+        &Config::default(),
+        &Readiness::default(),
+        false,
+    )
+}
+
+/// The render order `config` resolves for a two-row listing with these
+/// assignees.
+fn assignee_order(config: &Config, a: &str, b: &str) -> Vec<ColumnId> {
+    let (a, b) = (assigned("a", Some(a)), assigned("b", Some(b)));
+    let tasks = [a.clone(), b.clone()];
+    let readiness = Readiness::compute(&tasks, config);
+    resolve_order(config, &rows(&[("1a", &a), ("2b", &b)]), &readiness)
+}
+
+/// Whether that order keeps the `assignee` column.
+fn assignee_rendered(config: &Config, a: &str, b: &str) -> bool {
+    assignee_order(config, a, b).contains(&ColumnId::Assignee)
+}
+
+/// A config pinning `[ls.columns.assignee] visibility`.
+fn assignee_visibility(visibility: Visibility) -> Config {
+    let mut config = Config::default();
+    config
+        .ls
+        .columns
+        .insert("assignee".to_owned(), mindtape::ColumnConfig { visibility });
+    config
+}
+
+#[test]
+fn assignee_cell_is_blank_when_unset() {
+    let task = assigned("t", None);
+    let cell = ColumnId::Assignee.cell("1c", &task, &Config::default(), &Readiness::default());
+    assert_eq!(cell.text, "");
+}
+
+#[test]
+fn assignee_cell_renders_the_actor_name() {
+    let task = assigned("t", Some("agent"));
+    let cell = ColumnId::Assignee.cell("1c", &task, &Config::default(), &Readiness::default());
+    assert_eq!(cell.text, "agent");
+}
+
+#[test]
+fn assignee_not_significant_when_every_row_agrees() {
+    // The crux of the contested design: `mt ls @agent` is already narrowed to
+    // one actor, so a column repeating that name down every row says nothing
+    // the filter did not. The ordinary "any cell has text" rule would show it.
+    assert!(
+        !assignee_significant(Some("agent"), Some("agent")),
+        "assignee must not be significant when every row carries the same name"
+    );
+}
+
+#[test]
+fn assignee_significant_when_rows_disagree() {
+    assert!(
+        assignee_significant(Some("agent"), Some("max")),
+        "assignee must be significant once a listing mixes two actors"
+    );
+}
+
+#[test]
+fn assignee_not_significant_when_nobody_is_assigned() {
+    assert!(
+        !assignee_significant(None, None),
+        "assignee must not be significant when no task carries one"
+    );
+}
+
+#[test]
+fn assignee_significant_when_only_some_rows_are_assigned() {
+    // An absent assignee counts as its own value, so the blanks are what makes
+    // this listing contested — reading which rows are unassigned is the point.
+    assert!(
+        assignee_significant(Some("agent"), None),
+        "a half-assigned listing must be contested"
+    );
+    assert!(
+        assignee_significant(None, Some("agent")),
+        "the blank arriving first must be contested too"
+    );
+}
+
+#[test]
+fn assignee_not_significant_on_a_single_row() {
+    let task = assigned("t", Some("agent"));
+    assert!(
+        !ColumnId::Assignee.auto_significant(
+            &rows(&[("1c", &task)]),
+            &Config::default(),
+            &Readiness::default(),
+            false
+        ),
+        "one row can never disagree with itself"
+    );
+}
+
+#[test]
+fn bare_ls_shows_assignee_on_a_mixed_listing() {
+    assert!(
+        assignee_rendered(&Config::default(), "agent", "max"),
+        "assignee must appear under the built-in order once the rows disagree"
+    );
+}
+
+#[test]
+fn bare_ls_hides_assignee_on_a_single_actor_listing() {
+    assert!(
+        !assignee_rendered(&Config::default(), "agent", "agent"),
+        "mt ls @agent must not grow a column repeating one name on every row"
+    );
+}
+
+#[test]
+fn assignee_renders_between_due_and_title() {
+    let order = assignee_order(&Config::default(), "agent", "max");
+    let at = |id: ColumnId| order.iter().position(|c| *c == id);
+    assert!(
+        at(ColumnId::Assignee) < at(ColumnId::Title),
+        "assignee is a short scalar and belongs before the flex title column"
+    );
+}
+
+#[test]
+fn explicit_columns_order_still_defers_to_the_contested_rule() {
+    // Naming a column does not override its `auto` significance — the same
+    // way an explicitly listed `priority` stays hidden when no task scores
+    // one. `[ls.columns.assignee] visibility = "visible"` is the override.
+    let mut config = Config::default();
+    config.ls.columns_order = vec!["title".to_owned(), "assignee".to_owned()];
+    assert!(
+        !assignee_rendered(&config, "agent", "agent"),
+        "an uncontested assignee stays hidden even when named in columns-order"
+    );
+}
+
+#[test]
+fn visibility_visible_forces_assignee_on_an_uncontested_listing() {
+    assert!(
+        assignee_rendered(&assignee_visibility(Visibility::Visible), "agent", "agent"),
+        "visibility = visible must force assignee on despite an uncontested listing"
+    );
+}
+
+#[test]
+fn visibility_hidden_wins_for_assignee_on_a_mixed_listing() {
+    assert!(
+        !assignee_rendered(&assignee_visibility(Visibility::Hidden), "agent", "max"),
+        "visibility = hidden must win even on a contested listing"
+    );
+}

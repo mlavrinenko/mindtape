@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`assignee` as an `mt ls` column** — the field was filterable and sortable
+  but could not be displayed, so a mixed listing could be narrowed by who works
+  each task and never show it. It joins `LS_COLUMNS` between `due` and `title`,
+  renders in the table and in `--format csv`, and reads `auto` visibility as
+  "do the rows disagree": a listing already narrowed to one actor (`mt ls
+  @agent`) does not grow a column repeating that name down every row, while a
+  mixed one shows the split unasked. An unassigned row counts as its own value,
+  so a half-assigned listing is contested. Naming the column does not override
+  the rule — `[ls.columns.assignee] visibility = "visible"` does, matching how
+  an explicitly listed `priority` still hides when nothing scores one.
 - **`crap-baseline-check` gate** — the CRAP arm that never skips: it reads
   `crap-baseline.json` itself rather than the lcov, failing on an entry that
   carries a machine-local absolute path (or one climbing out of the repo with

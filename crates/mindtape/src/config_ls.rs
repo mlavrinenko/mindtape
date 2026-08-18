@@ -18,7 +18,16 @@ use crate::sort::validate_sort_spec;
 /// (last) the task's source path — opt-in only, since its `auto` visibility
 /// means "was it named explicitly", not "does it carry text" (its cell is
 /// never blank; see `crate::config_ls::Visibility`).
-pub const LS_COLUMNS: [&str; 7] = ["#", "status", "ready", "priority", "due", "title", "file"];
+///
+/// `assignee` joins the short scalars ahead of `title`, and reads `auto` as a
+/// third thing again — "do the rows disagree". Neither existing rule fits: the
+/// ordinary non-empty test would pin a column onto `mt ls @agent` repeating one
+/// name down every row the filter already named, and `file`'s
+/// named-explicitly test would keep it off a mixed listing, which is the one
+/// place it says something.
+pub const LS_COLUMNS: [&str; 8] = [
+    "#", "status", "ready", "priority", "due", "assignee", "title", "file",
+];
 
 /// `[ls]` — `mt ls` defaults.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]

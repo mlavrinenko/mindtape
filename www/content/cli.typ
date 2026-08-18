@@ -69,6 +69,16 @@ auto-hide rule cannot apply to it; name it explicitly (`--columns
 visibility = "visible"`) to see it. Its cell is relative to the working
 directory (what an IDE-integrated terminal ctrl-clicks straight to).
 
+An `assignee` column auto-hides on a third rule again: it shows only when the
+listed rows disagree about who works them. A listing already narrowed to one
+actor (`mt ls @agent`, or any `assignee == "…"` filter) learns nothing from a
+column repeating that name down every row, so it does not grow one — while a
+mixed listing shows the split without being asked. An unassigned row counts as
+its own value, so a half-assigned listing is a mixed one. Naming the column
+does not override this, the same way an explicitly listed `priority` stays
+hidden when nothing scores one; `[ls.columns.assignee] visibility = "visible"`
+is the override.
+
 `--hyperlinks always` (or `[ls] hyperlinks`) makes both the always-visible `#`
 column and, when shown, `file` clickable in a standalone terminal via an OSC 8
 hyperlink sequence — the same row's target either way, targeting `[ls]

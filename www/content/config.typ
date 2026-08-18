@@ -214,6 +214,10 @@ mt ls 'role == "reviewer"'        # tasks currently held by a reviewer
 mt ls 'assignee == "gpt"'         # tasks assigned to the model
 ```
 
+`assignee` is also an `mt ls` column, sorted by `--sort assignee`. It renders
+only when the listed rows disagree about it — see
+#link(u("/cli/"))[the CLI reference] for that rule and its override.
+
 = Status transitions
 
 Add a `to` list to a status entry to declare which statuses may follow it — the

@@ -29,19 +29,19 @@ groups:
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
       crates/mindtape/src/lib.rs: 4ff27e2e90197e5eedfe78f8f37ba2965bd85ca2dc8ff8172aceff9e67a5c8c5
     dependents:
-      docs/src/skill.typ: c0bdcda980fcc929701d2acc48e90adb40ced32bcb831ae43784eec760290125
+      docs/src/skill.typ: b082c170a7b631cc59686be25e873d78c8616ebe2e25777d6f41df41c6a30310
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: 9db388674a1305dfc105f98c0b245e34493e6622d1fca4b7bd5fa53fa7085525
       www/content/agents.typ: 405a2f3dd81ba4e4a205fb5c178804f4be8b3e057b6ef743328f957f17bc132f
-      www/content/cli.typ: 5de8f92a2a68036cafa2b72d309baab4a4b26c7f172e5e6e648b3652897b5560
+      www/content/cli.typ: 5dfbd3ec7ddf472ced9f5e92d0d1f96d07bcd31d6b51dd0305fecfa0f533fefd
       www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
-      www/content/config.typ: 60e8b63bcd55d08f1af85774c5e0052c6cbcd5a1d91f5d2401f9bf51a2b588d5
+      www/content/config.typ: 2dd8031a25f27edf113716da168887828cbd0aa87759f39beb57f424324e49ad
       www/content/derived-tags.typ: df0c7aab4e3e9634eb8236b1ddfb426499b62f5f9b6c1fbc44a8b46d3c5bb17c
       www/content/filters.typ: 830ffe946b7f74dcb19268297370bb5d62dbad6c2bad1c9109fcb5c3434b370c
       www/content/import-export.typ: a869ce1490053348afbc750d6a66dc85ede03a3dc51330ad43b871b110e2285c
       www/content/priority.typ: df10cfbdbbfe85ab35c7d9725210beb202c0f9437f9b7e462aaf7534eedf1a09
-      www/content/quickstart.typ: deadd0718bd2d16ffd0aa94ab29aab5f419665eef4d3fe233b970b67b92a6c6b
+      www/content/quickstart.typ: c7d440e651eb932edf9aac0d33ac0107b53b38622d39065a1413b62289c62c67
       www/content/schema.typ: ffb77af3d2f6a5dd31f3da0164fc9931f2bb7f3fc6d48fb468694a0b83dc840d
       www/content/templates.typ: 6aef25f34c6d4017dafe71114ca83e8c26cba06a0ea089679d7bc94c1a431581
       www/utils/cli-notes.typ: 31094125ddc0cb28b0dd53b801e281d4e1435bd25dafadf9e49b605021f65585
@@ -50,14 +50,14 @@ groups:
       crates/mindtape-cli/Cargo.toml: 9ce1e4d3844fc88e726278cc268a51a08a69a5894cacf5e2a86f5d3b689e8824
       crates/mindtape-cli/src/cli.rs: b05f73a88e9877931e9d66f587935c7b5751ea6c6911a3435246c1eb2772b24b
     dependents:
-      CHANGELOG.md: 79ec9a05199a2af54a61ec35a466eb5f8f4bc76f59968b5a999369d398b5ea3a
+      CHANGELOG.md: 40da3f25820a52dff9354c39d0da21d0c4dcde1028a9ade12db6a23ec3642095
       docs/src/agents.typ: bd6d06065b7bbf238f73910ef035a76e071cd67d764f45f7243a63f1487716db
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
       docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
-      docs/src/skill.typ: 364be1c717487fad369e39407095014b3d76b962e1888afe1d9f371c6a574153
-      www/content/cli.typ: 5de8f92a2a68036cafa2b72d309baab4a4b26c7f172e5e6e648b3652897b5560
+      docs/src/skill.typ: b082c170a7b631cc59686be25e873d78c8616ebe2e25777d6f41df41c6a30310
+      www/content/cli.typ: 5dfbd3ec7ddf472ced9f5e92d0d1f96d07bcd31d6b51dd0305fecfa0f533fefd
       www/content/index.typ: acc3d4572975bd4c7d8d92e12d63cad17bb27f53cf9666929460f132159ce662
-      www/content/quickstart.typ: deadd0718bd2d16ffd0aa94ab29aab5f419665eef4d3fe233b970b67b92a6c6b
+      www/content/quickstart.typ: c7d440e651eb932edf9aac0d33ac0107b53b38622d39065a1413b62289c62c67
   dev-docs:
     source:
       .just/docs.just: d8d4142ffaca3e176cf2091e82ec795d57c805bcc8066311380cbe2ceb4600a0
@@ -110,7 +110,7 @@ groups:
     source:
       Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b
     dependents:
-      CHANGELOG.md: 79ec9a05199a2af54a61ec35a466eb5f8f4bc76f59968b5a999369d398b5ea3a
+      CHANGELOG.md: 40da3f25820a52dff9354c39d0da21d0c4dcde1028a9ade12db6a23ec3642095
   sweep-dedup:
     source:
       contrib/ask-refactoring/coverage.sh: fa3101fae54260566e2edf743232104f4690f4cf5cfece1f550b6cb298f84d93
