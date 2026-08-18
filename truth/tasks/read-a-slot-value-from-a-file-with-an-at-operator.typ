@@ -11,7 +11,11 @@
   assignee: "agent",
   tags: ("cli", "docs"),
   estimate: (files: 5),
-  status: proposed(2026, 8, 17),
+  status: done(
+    2026,
+    8,
+    18,
+  )[key\@path landed in both carriers; the open question is answered yes — every kind reads the file, since the operator carries and the slot kind decides. Trailing newlines stripped, so it is a drop-in for \$(cat path). just check green, mutants-diff clean.],
   links: depends-on(
     "unify-mt-add-input-on-a-key-op-value-token-grammar.typ",
   )[
