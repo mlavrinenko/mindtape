@@ -15,9 +15,9 @@
 #let cli-notes = (
   // ── Files ───────────────────────────────────────────────────────────────────
   "add": (
-    prose: [Positional words join into the title; `key=value` / `key+=value`
-      tokens (after `--set`, or bare after `--`), a `-f` values file (YAML or
-      JSON), or editor mode fill the rest. Full detail on
+    prose: [Positional words join into the title; `key=value` / `key+=value` /
+      `key@path` tokens (after `--set`, or bare after `--`), a `-f` values file
+      (YAML or JSON), or editor mode fill the rest. Full detail on
       #link(u("/templates/"))[Templates & slots]. `--dedup` decides what
       happens when the destination stem already exists (`fail` — bail before
       writing; `skip` — exit 0, write nothing; `add-suffix` — mint `-2`,
@@ -31,6 +31,7 @@
     examples: ```sh
     mt add cleanup kitchen              # title from positional words
     mt add fix login +backend +auth     # +word peels into the tags slot
+    mt add note -- summary@notes.txt    # slot value read from a file
     mt add --describe                   # dump the template's slot schema
     mt add ship-it --dedup skip         # leave an existing task alone, exit 0
     mt add ship-it --dedup add-suffix   # write ship-it-2.typ instead of failing

@@ -46,16 +46,22 @@ instead. A missing or unreadable variable is skipped, not an error.
 ```sh
 mt add "Practice arpeggios" -- impact=8 tags+=technique # tokens after --
 mt add --set impact=8 --set tags+=technique            # the same tokens as flags
+mt add "Practice arpeggios" -- summary@notes.txt       # value from a file
 mt add cleanup kitchen                                 # positional → title slot
 mt add fix login +backend +auth                        # +word → tags slot
 mt add -f values.yaml                                  # values file
 mt add --edit                                          # fill in your editor
 ```
 
-- #strong[One grammar, two carriers]: a token is `key=value` (set) or
-  `key+=value` (append to a list slot, repeatable). Pass it after `--set` or
-  bare after `--` — they parse identically, so the shorthand can never mean
-  something different from the flag.
+- #strong[One grammar, two carriers]: a token is `key=value` (set),
+  `key+=value` (append to a list slot, repeatable) or `key@path` (read the
+  value out of a file). Pass it after `--set` or bare after `--` — they parse
+  identically, so the shorthand can never mean something different from the
+  flag.
+- #strong[The first operator separates], `=` or `@`, whichever comes first —
+  the rule that already made `summary=a=b` a value holding an `=`. So
+  `summary=ping @ada` sets prose containing an `@`, and `summary@v=1.txt`
+  reads a path containing one.
 - #strong[A bare positional is title text], never a token: `mt add "fix a=b
   parsing"` files a task by that name and sets no slot. The `--` is what makes
   an argument an assignment.
@@ -85,6 +91,38 @@ mt add --edit                                          # fill in your editor
   expression, and markup reads parens and `*` as ordinary text, so a broken
   one reaches the file and `mt add` fails loading what it wrote. Use `raw` for
   body markup; reach for a typed kind anywhere a value has a shape.
+
+= A value from a file with `@`
+
+`key@path` puts a file where a command-line value would go. It serves the long
+value: a `summary` or a `scope` that is uncomfortable to type as a shell
+argument and does not justify writing a whole `-f` document.
+
+```sh
+mt add "Practice arpeggios" -- summary@notes.txt   # prose into a text slot
+mt add "Split or re-cap ls.rs" -- remedy@remedy.typ # markup into a raw slot
+```
+
+The operator carries bytes; it converts nothing. What they become is decided
+by #strong[the slot's kind], exactly as for a typed value:
+
+- Into a #strong[`text`] slot the bytes are markup-escaped like any other
+  caller value. The file contributes prose, not formatting — which is why the
+  example is `.txt`. A `.md` file is a trap: nothing converts Markdown to
+  Typst, so its headings and code spans land as the literal `#` and backticks
+  they are.
+- Into a #strong[`raw`] slot the bytes are Typst, spliced verbatim. This is
+  the case the operator is worth building for — write the `.typ`, check it,
+  then file the task, instead of making the markup survive a shell argument.
+- Into any #strong[other kind] the file is read too, and coerced like a typed
+  value. `weight@score.txt` fills an `int` slot; a file that does not fit
+  fails naming the slot, the same error the same value typed inline would get.
+
+Trailing newlines are stripped and nothing else is, so `@` is a drop-in for
+the `--set "key=$(cat path)"` it replaces. There is no append form: a file is
+one value, and a list goes through `-f` as an array. There is no stdin form
+either — `-f -` is that channel, and a YAML block scalar carries a prose slot
+verbatim.
 
 = Structured values with `-f`
 

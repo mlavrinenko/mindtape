@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`key@path`, a third `mt add` token operator** — reads a slot's value out of
+  a file, in the same grammar and both carriers as `=` and `+=` (`mt add "..."
+  -- summary@notes.txt`, `--set summary@notes.txt`). It serves the long value:
+  a `summary` or a `scope` awkward to type as a shell argument and not worth a
+  whole `-f` document, and above all a `raw` slot fed a `.typ` written and
+  checked before the task was filed, instead of markup that has to survive a
+  shell argument. The operator carries bytes and converts nothing — the slot's
+  KIND still decides, so a `text` slot markup-escapes them, a `raw` slot
+  splices them verbatim, and any other kind coerces them and fails naming
+  itself. Notably nothing turns Markdown into Typst, which is why the examples
+  are `.txt` and `.md` is a trap. Trailing newlines are stripped and nothing
+  else is, so `@` is a drop-in for the `--set "key=$(cat path)"` it replaces.
+  The first operator separates, `=` or `@` whichever comes first, extending the
+  rule that already made `summary=a=b` a value holding an `=`. No `key+@path`
+  (a file is one value; a list goes through `-f` as an array) and no `key@-`
+  (`-f -` is the stdin channel, and a YAML block scalar already carries a prose
+  slot verbatim).
 - **`check-secrets` gate** — gitleaks over the working tree, so a committed
   credential fails the build instead of waiting to be noticed. `.gitleaks.toml`
   extends the default ruleset with a walk bound naming the gitignored roots

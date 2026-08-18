@@ -84,7 +84,7 @@ rg TODO $(mt ls ready --format path) # compose with another program
 
 - `-t <template>` pick a template; `--list` list templates; `--describe` show slots
 - `--to <subdir>` nest under a folder of the root (drives derived tags)
-- `--set key=value` fill a slot; `--print` preview instead of writing
+- `--set key=value` fill a slot, `--set key@path` fill it from a file; `--print` preview instead of writing
 - `-f/--values <path>` fill slots from a JSON or YAML file (repeatable, merged left-to-right; `-` reads stdin); `.json`/`.yaml`/`.yml` pick the parser by extension, stdin and any other extension sniff the content; `--set` applies after and wins on overlap
 - `--dedup fail|skip|add-suffix` collision policy on an existing stem: `fail` bails, `skip` exits 0 writing nothing, `add-suffix` mints `-2`, `-3`, …; overrides `[tasks.naming] dedup`, which defaults to `add-suffix` under a configured `stem` template and `fail` otherwise
 - `--format text|path|path0|json` report the outcome instead of prose; `json` carries `{"outcome": "wrote"|"skipped"|"suffixed", "path": "..."}`, the same vocabulary as `mt ls --format`
@@ -96,6 +96,8 @@ rg TODO $(mt ls ready --format path) # compose with another program
 Three things about slots you cannot infer from `--describe`, each of which silently produces a wrong task if you guess: token keys are slot NAMES (a framework priority’s slots are its leaves — `impact`/`confidence`/`ease`, never `priority`), a `list` slot needs `name+=value` and rejects a bare `name=a,b`, and `text` slots are markup-escaped while `raw` slots splice in live. Read `references/add-slots.md` before filling slots on an unfamiliar template.
 
 Prefer `-f -` with YAML when you are generating values rather than typing them: one structured channel, no shell quoting, and a block scalar carries a prose slot verbatim. The flag form (`--set k=v`, `--set k+=v`) and the same tokens after `--` are there for argv you assemble by hand.
+
+`k@path` is the third operator: it reads the value out of a file, converting nothing — the slot’s kind still decides, so a `text` slot escapes the bytes and a `raw` slot splices them. Reach for it when you have already written a file, above all a `.typ` you want spliced into a `raw` slot; for values you are generating in-process, `-f -` is still the shorter path.
 
 ## Changing status — `mt flip` and status verbs
 

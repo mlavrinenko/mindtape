@@ -6,18 +6,22 @@ template — the things that surprise callers, none of which you can infer from
 
 ## Values are data, and there is one token grammar
 
-A value is `key=value` (set) or `key+=value` (append to a list slot). Pass a
-token after `--set` or bare after `--`; both parse identically:
+A value is `key=value` (set), `key+=value` (append to a list slot) or
+`key@path` (read the value out of a file). Pass a token after `--set` or bare
+after `--`; both parse identically:
 
 ```sh
 mt add "Practice arpeggios" --set impact=8 --set tags+=technique
 mt add "Practice arpeggios" -- impact=8 tags+=technique
+mt add "Practice arpeggios" -- summary@notes.txt
 ```
 
 A bare positional is title text, never a token — `mt add "fix a=b parsing"`
 sets no slot. A dot in a key is part of the slot's NAME, not a path MindTape
 parses: `--set estimate.files=2` works only because the template wrote
-`slot("estimate.files")`.
+`slot("estimate.files")`. The FIRST operator separates, `=` or `@` whichever
+comes first, so `summary=ping @ada` is prose holding an `@` and
+`summary@v=1.txt` is a path holding one.
 
 If you are generating values rather than typing them, prefer `-f -` with
 YAML. One structured channel, no shell quoting, and a block scalar carries a
@@ -95,3 +99,30 @@ The kind was spelled `typst` before it was renamed. A template still carrying
 that spelling now fails naming the slot and listing the valid kinds, rather
 than silently filling as a quoted string.
 
+## `key@path` reads a file, and converts nothing
+
+The `@` operator puts a file's bytes where a command-line value would go. It
+carries; it does not convert. The slot's KIND still decides what the bytes
+become, exactly as above:
+
+```sh
+mt add "Practice arpeggios" -- summary@notes.txt    # text slot: escaped
+mt add "Split or re-cap ls.rs" -- remedy@remedy.typ # raw slot: verbatim
+```
+
+Do not pass a `.md` file to a `text` slot expecting Markdown to render — the
+headings and code spans arrive as the literal `#` and backticks they are, and
+nothing anywhere converts Markdown to Typst. `.txt` for prose, `.typ` for a
+`raw` slot.
+
+Every other kind reads the file too (`weight@score.txt` fills an `int`), and a
+file that does not fit fails naming the slot, the same error the same value
+typed inline gets. Trailing newlines are stripped and nothing else is, so `@`
+is a drop-in for `--set "key=$(cat path)"`. There is no `key+@path` — a file
+is one value, and a list goes through `-f` as an array — and no `key@-`: `-f
+-` is the stdin channel, where a YAML block scalar already carries a prose
+slot verbatim.
+
+Reach for `@` when the file already exists, above all a `.typ` you wrote and
+checked before filing the task. When you are generating the values in-process,
+`-f -` is still shorter: one payload instead of one temp file per slot.

@@ -7,6 +7,7 @@ use std::path::Path;
 use anyhow::{Context, Result, bail};
 use mindtape::{Config, RawValue, SlotSpec};
 
+use crate::add_tokens::apply_token;
 use crate::yaml_values;
 
 /// Built-in default task template, used when no `task.typ` is found under the
@@ -82,7 +83,8 @@ pub fn list_templates(config: &Config, root: &Path) -> Vec<String> {
 
 /// Merge `--values` sources (paths; `-` = stdin; JSON or YAML, see
 /// [`parse_source`]), then apply the `key OP value` tokens — `--set` entries
-/// first, then the bare arguments after `--` — into a typed fill map.
+/// first, then the bare arguments after `--` — into a typed fill map. The
+/// token grammar itself (`=`, `+=`, `@`) lives in [`crate::add_tokens`].
 ///
 /// Sources are applied left to right, key by key: a later source's value for
 /// a key replaces an earlier one, and an explicit `null`/`~` in a later
@@ -92,7 +94,8 @@ pub fn list_templates(config: &Config, root: &Path) -> Vec<String> {
 ///
 /// # Errors
 /// Returns an error when a source is unreadable, not a JSON object or YAML
-/// mapping, holds an unsupported value shape, or a token lacks `=`.
+/// mapping, holds an unsupported value shape, or a token is not a valid
+/// assignment (see [`apply_token`]).
 pub fn collect_values(
     values: &[String],
     sets: &[String],
@@ -117,45 +120,6 @@ pub fn collect_values(
         apply_token(&mut out, token)?;
     }
     Ok(out)
-}
-
-/// Apply one `key OP value` token, the single grammar behind both `--set` and
-/// the bare arguments after `--`. `=` sets a slot, `+=` appends to its list.
-///
-/// The two carriers parse identically on purpose: `--set tags+=docs` and a
-/// trailing `tags+=docs` are the same token reaching the same parser, so the
-/// shorthand can never drift into a second grammar with its own rules.
-///
-/// # Errors
-/// Returns an error when the token carries no `=`, or when it uses the
-/// retired `key[]=value` append spelling.
-fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<()> {
-    let (key, value) = token
-        .split_once('=')
-        .with_context(|| format!("expected key=value or key+=value, got {token:?}"))?;
-    if let Some(name) = key.strip_suffix("[]") {
-        bail!("`{key}=` is no longer accepted; append with `{name}+={value}`");
-    }
-    match key.strip_suffix('+') {
-        Some(name) => append_list_value(out, name, value.to_owned()),
-        None => {
-            out.insert(key.to_owned(), RawValue::Str(value.to_owned()));
-        }
-    }
-    Ok(())
-}
-
-/// Append `item` to slot `name`'s list value (the `name+=item`/`+tag` shape),
-/// creating the list on first use. A slot already set to a non-list value is
-/// replaced outright — the last shape written wins.
-pub fn append_list_value(values: &mut BTreeMap<String, RawValue>, name: &str, item: String) {
-    match values
-        .entry(name.to_owned())
-        .or_insert_with(|| RawValue::List(Vec::new()))
-    {
-        RawValue::List(items) => items.push(item),
-        slot => *slot = RawValue::List(vec![item]),
-    }
 }
 
 /// Reject any `values` key that names no slot in `specs` — a `--set`/`-f`

@@ -19,9 +19,10 @@ use typst_edit::apply;
 use crate::add_dedup::DedupArg;
 use crate::add_interactive;
 use crate::add_output::{self, Format};
+use crate::add_tokens::append_list_value;
 use crate::add_values::{
-    DescribeFormat, append_list_value, collect_values, describe, layer_env, list_templates,
-    reject_unknown_keys, resolve_template, stdin_title,
+    DescribeFormat, collect_values, describe, layer_env, list_templates, reject_unknown_keys,
+    resolve_template, stdin_title,
 };
 use crate::task_edit::{initial_status, task_with, upsert_named_arg};
 use crate::util;
@@ -51,13 +52,14 @@ pub struct AddArgs {
     pub values: Vec<String>,
 
     /// Override a slot: `key=value` sets, `key+=value` appends to a list slot
-    /// (e.g. `--set tags+=a --set tags+=b`). Applied after `--values`.
+    /// (e.g. `--set tags+=a --set tags+=b`), `key@path` reads the value out of
+    /// a file. Applied after `--values`.
     #[arg(long = "set", value_name = "KEY=VALUE")]
     pub set: Vec<String>,
 
-    /// Slot assignments after `--`, in the same `key=value` / `key+=value`
-    /// grammar as `--set` (e.g. `mt add "title" -- estimate.files=2 tags+=a`).
-    /// Applied after `--set`.
+    /// Slot assignments after `--`, in the same `key=value` / `key+=value` /
+    /// `key@path` grammar as `--set` (e.g. `mt add "title" --
+    /// estimate.files=2 tags+=a summary@notes.txt`). Applied after `--set`.
     #[arg(last = true, value_name = "KEY=VALUE")]
     pub tokens: Vec<String>,
 

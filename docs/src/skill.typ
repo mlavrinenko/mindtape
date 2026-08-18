@@ -163,7 +163,8 @@ status and id, and validates. Common flags:
 - `-t <template>` pick a template; `--list` list templates; `--describe`
   show slots
 - `--to <subdir>` nest under a folder of the root (drives derived tags)
-- `--set key=value` fill a slot; `--print` preview instead of writing
+- `--set key=value` fill a slot, `--set key@path` fill it from a file;
+  `--print` preview instead of writing
 - `-f/--values <path>` fill slots from a JSON or YAML file (repeatable,
   merged left-to-right; `-` reads stdin); `.json`/`.yaml`/`.yml` pick the
   parser by extension, stdin and any other extension sniff the content;
@@ -197,6 +198,12 @@ Prefer `-f -` with YAML when you are generating values rather than typing
 them: one structured channel, no shell quoting, and a block scalar carries a
 prose slot verbatim. The flag form (`--set k=v`, `--set k+=v`) and the same
 tokens after `--` are there for argv you assemble by hand.
+
+`k@path` is the third operator: it reads the value out of a file, converting
+nothing — the slot's kind still decides, so a `text` slot escapes the bytes
+and a `raw` slot splices them. Reach for it when you have already written a
+file, above all a `.typ` you want spliced into a `raw` slot; for values you
+are generating in-process, `-f -` is still the shorter path.
 
 = Changing status — `mt flip` and status verbs
 
