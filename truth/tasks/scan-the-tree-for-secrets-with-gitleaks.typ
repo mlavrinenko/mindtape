@@ -14,7 +14,7 @@
   links: related("relativize-the-crap-baseline-s-committed-file-paths.typ")[
     where the measurement below came from
   ],
-  status: proposed(2026, 8, 17),
+  status: done(2026, 8, 18),
 )
 
 == Summary
