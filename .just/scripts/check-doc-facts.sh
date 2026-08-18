@@ -28,7 +28,7 @@
 # calling generate-facts.sh and then generate-site-pages.sh itself) rather
 # than trusting whatever www/generated/ already holds, so this gate never
 # depends on `just docs::gen` having run first. It USED to call
-# generate-facts.sh directly and never pay for a release build either; that
+# generate-facts.sh directly and never pay for a cargo build either; that
 # stopped being possible when site-pages.json moved to generate-site-pages.sh
 # (truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ),
 # because deriving it is a full page compile that needs generate.sh's own

@@ -41,7 +41,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 FIX="$REPO/examples/learn-piano"
 OUT="$SCRIPT_DIR/generated"
-MT="$REPO/target/release/mt"
+MT="$REPO/target/debug/mt"
 
 # Serialize every writer of www/generated/ (see www/generate-facts.sh for the
 # other one). `just check` is [parallel] and three of its arms touch this
@@ -56,12 +56,16 @@ MT="$REPO/target/release/mt"
 # The lock lives under target/ because this script deletes the directory it
 # would otherwise live in.
 #
-# The release build runs BEFORE the lock is taken, deliberately. Every reader
-# of www/generated/ now holds this lock for its whole run (docs/generate-md.sh
+# The build runs BEFORE the lock is taken, deliberately. Every reader of
+# www/generated/ now holds this lock for its whole run (docs/generate-md.sh
 # and the check-doc-facts recipe both do), so anything held inside it is time
-# the rest of `just check`'s [parallel] arms spend blocked. A cold release
-# build is minutes; the wipe-and-repopulate it precedes is seconds.
-( cd "$REPO" && cargo build --release -p mindtape-cli )
+# the rest of `just check`'s [parallel] arms spend blocked. This is the DEBUG
+# binary: the captures are --help/_cli/config/ls transcripts, byte-identical to
+# release (nothing here depends on optimisation), and `target/debug/mt` is the
+# artifact the test suite already keeps warm — so a docs run pays a ~15s debug
+# rebuild, not a minutes-long fat-LTO relink (truth/tasks/capture-docs-output-
+# with-the-debug-binary-not-release.typ).
+( cd "$REPO" && cargo build -p mindtape-cli )
 
 # Taken on a file descriptor rather than by re-exec'ing under `flock`, because
 # a re-exec would rerun the build above. The lock is held until this script

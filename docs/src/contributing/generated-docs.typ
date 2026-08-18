@@ -28,7 +28,9 @@ gets stated once and every doc that needs it reads the same place.
 source with typlite (nixpkgs' `tinymist` package, `$out/bin/typlite`), so a
 source never depends on some other recipe having run first. That means a
 standalone #just.docs-md() now also pays `www/generate.sh`'s own
-`cargo build --release -p mindtape-cli` — it used to call
+`cargo build -p mindtape-cli` (the debug binary — the docs captures are
+byte-identical to release and the test suite already keeps it warm) — it used
+to call
 `www/generate-facts.sh` alone and stay build-free, until the page manifest
 `www/generated/site-pages.json` moved out of that script into
 `www/generate-site-pages.sh`, whose derivation is a full compile of every

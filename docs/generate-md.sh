@@ -24,7 +24,8 @@
 # (hero-source.typ, cli.json, …), not just generate-facts.sh's. `generate.sh`
 # ends by calling `generate-facts.sh` and then `generate-site-pages.sh`
 # itself, so calling it here is still the one call this script needs — it
-# now just also pays a `cargo build --release -p mindtape-cli` standalone.
+# now just also pays a `cargo build -p mindtape-cli` standalone (the debug
+# binary; see www/generate.sh).
 # Inside `just check` that cost is free: `docs::check` already ran
 # `generate.sh` first, sharing this same `target/www-generated.lock`.
 #
