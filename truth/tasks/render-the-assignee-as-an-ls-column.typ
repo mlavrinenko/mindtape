@@ -14,7 +14,13 @@
   links: related("adopt-the-assignee-field-in-the-dogfood-backlog.typ")[
     the adoption that made the missing column visible
   ],
-  status: proposed(2026, 8, 18),
+  status: done(
+    2026,
+    8,
+    18,
+  )[table and CSV both render it, between `due` and `title`; `auto` visibility
+    resolves on whether the rows disagree, so a listing already narrowed to one
+    actor grows no column],
 )
 
 == Summary
