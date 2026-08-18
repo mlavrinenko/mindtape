@@ -1,0 +1,72 @@
+# .gitleaks.toml — the ruleset `just check-secrets` reads this tree with
+# (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ).
+#
+# WHAT THE GATE IS FOR: a credential sitting in a tracked file of the CURRENT
+# tree. History is deliberately out of scope — `gitleaks git` reports the
+# absolute paths this repo has already committed (the leak
+# `just crap-baseline-check` exists to stop repeating) and would need a
+# `.gitleaksignore` entry per past mint, which is a triage backlog rather than
+# a gate.
+#
+# WHY IT EXTENDS RATHER THAN REPLACES. `useDefault` compiles in gitleaks' own
+# ~170 rules, so the gate knows every credential shape upstream knows without
+# this file restating one of them. An extending config can only ADD
+# allowlists, never remove one — which is also the reason a machine-local-path
+# rule cannot live here: the default config's global allowlist matches
+# `/home/<user>/` and drops any custom rule's finding on it, measured under
+# `--log-level trace` on gitleaks 8.30 (`skipping finding: global allowlist
+# allowed-regex=true`). That job stays with `just crap-baseline-check`, whose
+# own header argues it; dropping the default ruleset to make such a rule fire
+# would leave a secret scanner scanning for no secrets.
+#
+# TWO ALLOWLISTS, and both are narrow on purpose. An allowlist is the one
+# thing in a scanner that can only ever hide a finding, so each below says
+# what class of file it silences and why nothing in that class can carry a
+# committed secret.
+
+[extend]
+useDefault = true
+
+# THE WALK BOUND. gitleaks does not read `.gitignore` (measured: an unbounded
+# `gitleaks dir .` walks `target/` and takes 1m44s over 2.09 GB, against 1.5s
+# over 7.5 MB with these six), so the gitignored roots are spelled here by
+# hand. Every one is generated scratch — cargo's build dir, cargo-mutants'
+# reports, tola's site output, the reference clones under `var/`, `build/`,
+# and the 2000 generated task files of the `examples/large` benchmark fixture.
+# None of them can hold a COMMITTED credential, which is the only thing this
+# gate is looking for, so silencing them costs no coverage.
+#
+# This list is coupled to `.gitignore` by hand and by nothing else. A new
+# gitignored root is not silently missed — the scan either slows down or
+# reports a finding in generated content — but it is missed until someone adds
+# it here.
+[[allowlists]]
+description = "generated, gitignored scratch: nothing here is committable"
+paths = [
+  '''^target/''',
+  '''^mutants\.out(\.old)?/''',
+  '''^www/public/''',
+  '''^var/''',
+  '''^build/''',
+  '''^examples/large/tasks/''',
+]
+
+# THE ONE FALSE POSITIVE this tree reports today. `outdatty.lock` records a
+# sha256 per tracked dependent, keyed by its path, and `generic-api-key` reads
+# `refactor-auth.typ: <digest>` as an auth secret — the key contains "auth"
+# and the digest clears the entropy floor.
+#
+# Scoped three ways rather than by fingerprint, because a lock line's number
+# moves on every re-record and a `Fingerprint` allowlist would silently expire
+# the next time the group is updated: to the ONE rule that misfires, to the
+# ONE file it misfires in, and to the shape of what it matched. A bare 64-hex
+# digest is all this file ever holds, so anything in it that is NOT one stays
+# reported — which is what `condition = "AND"` buys over three independent
+# allowlists, and what the `outdatty.lock` arm of
+# `.just/scripts/check-secrets.sh` proves rather than assumes.
+[[allowlists]]
+description = "outdatty.lock records a sha256 per dependent, not a credential"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''^outdatty\.lock$''']
+regexes = ['''^[a-f0-9]{64}$''']

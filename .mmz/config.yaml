@@ -65,6 +65,7 @@ scopes:
 
   # TOML formatter (`just fmt-check` runs `tombi format --check` over these).
   toml-fmt:
+    - ".gitleaks.toml"
     - ".mindtape/config.toml"
     - "examples/learn-piano/.mindtape/config.toml"
     - "examples/large/.mindtape/config.toml"
@@ -84,6 +85,44 @@ scopes:
   # linecop config — a limit change busts the file-size gate.
   file-size-config:
     - ".linecop.yaml"
+
+  # gitleaks' ruleset for this repo — the walk bound and the two allowlists.
+  # An edit changes what `just check-secrets` can find, so it busts that rule
+  # the way .linecop.yaml busts the size gate.
+  secrets-config:
+    - ".gitleaks.toml"
+
+  # EVERYTHING `just check-secrets` READS, which is the whole tracked tree —
+  # a credential can land in any file, so no narrower list would be honest.
+  # Spelled as an enumeration for one reason: `truth/tasks/**` must stay out
+  # (see NOTE ON SCOPE above — `mt flip` writes the task file it is gating),
+  # mmz has no negative glob, and `**` minus one directory is therefore a list
+  # of what is left. Those task files ARE still scanned; the read is just not
+  # memoized, exactly the trade `just fmt-check` already takes over the same
+  # directory.
+  #
+  # The enumeration's own failure mode — a top-level directory arriving that
+  # nobody adds here, going false-fresh with a whole subtree unhashed — is
+  # what arm three of .just/scripts/check-secrets.sh refuses: it set-
+  # differences `git ls-files` against mmz's own expansion of this scope and
+  # fails naming the uncovered files. So a missing line below is a red gate,
+  # not a quiet hole, and adding the line is the fix it names.
+  secrets-tree:
+    - "*"
+    - ".cargo/**"
+    - ".githooks/**"
+    - ".github/**"
+    - ".just/**"
+    - ".mindtape/**"
+    - ".mmz/**"
+    - "contrib/**"
+    - "crates/**"
+    - "docs/**"
+    - "examples/**"
+    - "lib/**"
+    - "schema/**"
+    - "skills/**"
+    - "www/**"
 
   # outdatty's own config + lock. The dependents outdatty re-reads are already
   # covered by the `rust`/`policy`/`examples`/`docs` scopes (outdatty.lock
@@ -246,6 +285,8 @@ scopes:
     - ".just/scripts/check-doc-facts.sh"
   script-check-doc-recipes:
     - ".just/scripts/check-doc-recipes.sh"
+  script-check-secrets:
+    - ".just/scripts/check-secrets.sh"
   script-cover:
     - ".just/scripts/cover.sh"
   script-crap:
@@ -342,6 +383,22 @@ commands:
   - name: just check-dry
     tags: [gate]
     inputs: [rust, gates-meta]
+
+  # gitleaks over the whole tracked tree. `secrets-tree` is that tree (minus
+  # the one directory a gate-tagged rule may not name, argued on the scope
+  # itself) and `secrets-config` is the ruleset it reads it with; both are
+  # this rule's alone. `mmz-config` is here for script-scope-check's reason,
+  # one file over: arm three of the body reads THIS manifest as data — mmz's
+  # own expansion of `secrets-tree` is what it set-differences `git ls-files`
+  # against — so an input-list edit must re-run the arm that judges it. The
+  # scope union already covers .mmz/config.yaml through `.mmz/**`, and naming
+  # it anyway is the same "a rule reading a file as data says so" the
+  # `mmz-config` scope exists for. No `rust`: nothing is built or run here,
+  # and `crates/**` is scanned as text through `secrets-tree` like every other
+  # file.
+  - name: just check-secrets
+    tags: [gate]
+    inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets]
 
   # outdatty.check re-reads every dependent's current content and compares to
   # the lock. Every dependent lives under `rust`/`policy`/`examples`/`docs`, so

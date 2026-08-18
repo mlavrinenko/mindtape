@@ -156,7 +156,8 @@ mode is a false green — a filter matching nothing reads exactly like a clean
 file. gitleaks cannot take that job: measured under `--log-level trace`, the
 default ruleset's global allowlist matches `/home/<user>/` and drops any
 custom rule's finding on it, and an extending config can only add allowlists,
-never remove one.
+never remove one. gitleaks is in the gate set for the job it is good at —
+#just.check-secrets(), over credential shapes rather than local paths.
 
 = When the baseline itself is the thing that is wrong
 

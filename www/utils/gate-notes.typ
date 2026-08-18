@@ -33,8 +33,9 @@
 
 #let gate-notes = (
   "fmt-check": [
-    `cargo fmt` over Rust, `tombi format` over the project config TOML
-    (`.mindtape/config.toml` and the per-example configs), `typstyle`
+    `cargo fmt` over Rust, `tombi format` over the tracked TOML
+    (`.gitleaks.toml`, `.mindtape/config.toml` and the per-example
+    configs), `typstyle`
     over the Typst sources, and `--fmt` over the justfiles — the exact
     path lists are below the table. One list feeds both `fmt` and
     `fmt-check`, so a path is added in one place, never to a single
@@ -65,6 +66,27 @@
   "check-dry": [
     `jscpd` — fails on any duplicated Rust block ≥70 tokens; fix by
     extracting a shared helper.
+  ],
+  "check-secrets": [
+    gitleaks over the working tree under `.gitleaks.toml` — its default
+    ruleset, a walk bound naming the gitignored roots (an unbounded scan
+    walks `target/`: 1m44s over 2.09 GB, against 1.5s over 7.5 MB), and one
+    allowlist for the `outdatty.lock` digests `generic-api-key` reads as auth
+    secrets. History is out of scope: `gitleaks git` reports the absolute
+    paths this repo has already committed and would need a `.gitleaksignore`
+    entry per past mint. A control fixture is scanned first and must report an
+    exact set of findings, because "no leaks found" is equally what an
+    over-broad allowlist and a config that loaded no rules print — that one
+    assertion pins the ruleset being live, both allowlists firing, each
+    staying scoped to the rule and to the shape it silences rather than to the
+    whole file, and none being wide enough to swallow the tree. A third arm
+    set-differences
+    `git ls-files` against mmz's own expansion of this rule's inputs, so the
+    enumeration that stands in for "the whole tree" (`.mmz/config.yaml` has no
+    negative glob, and `truth/tasks/**` may not be named by a gate-tagged
+    rule) fails by name rather than going quietly false-fresh. What it cannot
+    do is catch a machine-local path — that is #just.crap-baseline-check()'s
+    job, argued there. See `.just/scripts/check-secrets.sh`.
   ],
   "outdatty-check": [
     See Dependency Drift below for how `outdatty.yaml` couples a source to

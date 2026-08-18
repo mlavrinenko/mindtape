@@ -58,7 +58,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check")
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -115,6 +115,18 @@ check-dry:
     # `--exit-code 1` is spelled with its value: bare `--exit-code` would
     # swallow the following path argument as its optional code.
     jscpd --no-tips -k 70 -f rust --exit-code 1 crates
+
+# Scan the working tree for a committed credential with gitleaks, under
+# `.gitleaks.toml` (the default ruleset plus this repo's two allowlists, each
+# argued in that file). Current tree only — history is deliberately out of
+# scope. A control fixture runs first, because "no leaks found" is what an
+# over-broad allowlist prints too; that, and why the arm also checks its own
+# mmz input list, are argued in .just/scripts/check-secrets.sh.
+
+[doc("Fail if the working tree carries a committed credential")]
+[group("gate")]
+check-secrets:
+    bash .just/scripts/check-secrets.sh
 
 [doc("Fail if a source changed without its dependents reconfirmed")]
 [group("gate")]
@@ -507,7 +519,7 @@ mutants *ARGS:
 # templates were formatted and the real ones were not. A single list cannot
 # omit a path from the check while applying it in the fix.
 
-TOML_FMT_PATHS := ".mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml"
+TOML_FMT_PATHS := ".gitleaks.toml .mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml"
 TYPST_FMT_PATHS := "lib truth/tasks .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates www/content www/templates www/utils docs/src"
 
 # The same one-list discipline for the justfiles themselves. A bare `just --fmt`

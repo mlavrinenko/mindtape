@@ -50,6 +50,20 @@ present are then different input states: the arm skips loudly while no lcov
 exists and goes stale the moment #just.cover() writes one, instead of caching
 "I could not measure" as a pass that outlives the artifact appearing.
 
+#just.check-secrets() is the other end of the same problem. Its subject is the
+whole tree — a credential can land in any file — and `.mmz/config.yaml` cannot
+say "everything": it has no negative glob, and `truth/tasks/**` is the one
+directory a gate-tagged rule may not name, since `mt flip` writes the task file
+it is gating and the close gate would otherwise flip itself stale mid-command.
+What is left is an enumeration standing in for a wildcard, and an enumeration
+goes false-fresh the moment a top-level directory arrives that nobody listed.
+So the arm judges its own input list, set-differencing `git ls-files` against
+mmz's own expansion of the rule's inputs and failing by name — the move
+#just.script-scope-check() makes below, aimed at one rule's scope rather than
+at the manifest's coverage of a directory. The task files the scope cannot
+name are still scanned; only the read is unmemoized, the same trade
+`typstyle --check truth/tasks` already takes.
+
 = Why the script scopes are enumerated
 
 `.mmz/config.yaml` names one scope per file under `.just/scripts/`, path by

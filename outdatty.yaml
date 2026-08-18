@@ -332,6 +332,15 @@ groups:
   # of those is a decision inside the script rather than anything derived, so
   # changing the refusal into a warning, or moving where the worktree lands,
   # rots that paragraph with nothing else reacting.
+  #
+  # check-secrets.sh is the seventh, for size-fixture-check.sh's reason plus
+  # one of its own (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ).
+  # www/utils/gate-notes.typ restates by hand what its control fixture proves
+  # and what its third arm demands of .mmz/config.yaml, neither derived from
+  # anything. The one of its own: `.gitleaks.toml` is NOT a source here, and
+  # deliberately — the prose describes the arms, not the ruleset, so an
+  # allowlist edit rots no dependent, while a change to what the fixture
+  # asserts rots the paragraph describing it.
   - name: dev-docs
     source:
       - flake.nix
@@ -340,6 +349,7 @@ groups:
       - .just/scripts/check-doc-coverage.sh
       - .just/scripts/check-doc-facts.sh
       - .just/scripts/check-doc-recipes.sh
+      - .just/scripts/check-secrets.sh
       - .just/scripts/fmt-fixture-check.sh
       - .just/scripts/arg-pattern-check.sh
       - .just/scripts/check-crap.sh

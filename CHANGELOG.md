@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`check-secrets` gate** — gitleaks over the working tree, so a committed
+  credential fails the build instead of waiting to be noticed. `.gitleaks.toml`
+  extends the default ruleset with a walk bound naming the gitignored roots
+  (unbounded, the scan walks `target/`: 1m44s over 2.09 GB, against 1.5s over
+  7.5 MB) and one allowlist for the `outdatty.lock` sha256 digests
+  `generic-api-key` reads as auth secrets — scoped to that rule, that file and
+  the digest shape, never by fingerprint, which the next re-record expires. A
+  control fixture runs through the real config first, because "no leaks found"
+  is equally what an over-broad allowlist and a config that loaded no rules
+  print; a third arm set-differences `git ls-files` against mmz's own expansion
+  of the rule's inputs, so the enumeration standing in for "the whole tree"
+  fails by name instead of going quietly false-fresh. History stays out of
+  scope: `gitleaks git` reports the absolute paths this repo has already
+  committed and would need a `.gitleaksignore` entry per past mint.
 - **`assignee` as an `mt ls` column** — the field was filterable and sortable
   but could not be displayed, so a mixed listing could be narrowed by who works
   each task and never show it. It joins `LS_COLUMNS` between `due` and `title`,
