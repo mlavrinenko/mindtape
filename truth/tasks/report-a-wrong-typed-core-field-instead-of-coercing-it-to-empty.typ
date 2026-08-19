@@ -17,7 +17,13 @@
   )[Task::from\_marker threads a shape-error channel through tags/links/estimate/recur's on:; mt check now reports the mismatch instead of silently coercing to empty],
   links: related("link-target-in-edge-helper-yields-zero-edges.typ")[
     the other half of the same layer split
-  ],
+  ]
+    + related(
+      "report-a-wrong-typed-element-inside-a-well-shaped-core-field.typ",
+    )[
+      carries this channel from the field down to its elements, where the same
+      silent coercion survived
+    ],
 )
 
 == Summary

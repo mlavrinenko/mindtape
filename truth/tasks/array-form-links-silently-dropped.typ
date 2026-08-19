@@ -11,7 +11,16 @@
   tags: ("cli",),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 8, 20),
+  status: done(2026, 8, 20),
+  links: (
+    related("report-a-wrong-typed-element-inside-a-well-shaped-core-field.typ")[
+      what the audit bullet below found once this field was closed
+    ],
+    related("link-target-in-edge-helper-yields-zero-edges.typ")[
+      the same trap one layer up, answered the other way: there `content` meant
+      two things, so an assert was the only honest reading
+    ],
+  ),
 )
 
 == Summary
