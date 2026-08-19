@@ -8,6 +8,7 @@
 use super::tests::{setup, write, write_pkg};
 use super::{LoadOutcome, load_project};
 use crate::config::Config;
+use crate::model::Task;
 use crate::numeric::NumValue;
 use crate::recur::{PeriodUnit, Rule};
 
@@ -41,21 +42,30 @@ fn prelude_eval_error(field: &str) -> String {
     outcome.errors[0].message.clone()
 }
 
-/// The `links:` DSL — variadic helpers, the trailing-note idiom, and combining
-/// several kinds with `+`.
-#[test]
-fn real_prelude_parses_typed_links_end_to_end() {
-    let (_dir, outcome) = load_real_prelude(
+/// Load one task carrying `links` as its whole `links:` field value, assert it
+/// loaded clean and shape-error-free, and return it. The spellings below are
+/// meant to be interchangeable, so what separates them has to be the source
+/// text and nothing else — one loader and one set of assertions is what makes
+/// that claim, rather than three tests that merely happen to agree.
+fn task_with_links(links: &str) -> Task {
+    let source = format!(
         "#import \"@local/mindtape:0.2.0\": *\n\
-         #show: task.with(\n  \
-           title: \"T\",\n  \
-           links: depends-on(\"a.typ\", \"b.typ\") + related(\"c.typ\")[why],\n\
-         )\n",
+         #show: task.with(title: \"T\", links: {links})\n"
     );
+    let (_dir, outcome) = load_real_prelude(&source);
+    assert_eq!(outcome.errors, Vec::new(), "`{links}` failed to load");
+    let task = outcome.tasks.first().unwrap().clone();
+    assert!(
+        task.shape_errors.is_empty(),
+        "`{links}` is a spelling, not a shape violation: {:?}",
+        task.shape_errors
+    );
+    task
+}
 
-    assert_eq!(outcome.errors, Vec::new());
-    let task = outcome.tasks.first().unwrap();
-
+/// The edges every spelling must land on: two `depends-on` targets in authored
+/// order, and one `related` carrying its note.
+fn assert_canonical_edges(task: &Task) {
     let deps: Vec<&str> = task.link_targets("depends-on").collect();
     assert_eq!(deps, vec!["a.typ", "b.typ"]);
 
@@ -63,6 +73,58 @@ fn real_prelude_parses_typed_links_end_to_end() {
     assert_eq!(related.len(), 1);
     assert_eq!(related[0].task, "c.typ");
     assert_eq!(related[0].note.as_deref(), Some("why"));
+}
+
+/// The `links:` DSL — variadic helpers, the trailing-note idiom, and combining
+/// several kinds with `+`.
+#[test]
+fn real_prelude_parses_typed_links_end_to_end() {
+    let task = task_with_links("depends-on(\"a.typ\", \"b.typ\") + related(\"c.typ\")[why]");
+    assert_canonical_edges(&task);
+}
+
+/// The array spelling of the same thing. Every helper returns an array, so
+/// writing `links:` as the tuple every other multi-valued field takes nests one
+/// level — and used to reach the model as zero edges, validating clean while the
+/// dependency graph sat empty. A task that loads with no links here is the
+/// regression.
+#[test]
+fn real_prelude_reads_array_form_links_as_the_same_edges_as_concatenation() {
+    let task = task_with_links("(depends-on(\"a.typ\", \"b.typ\"), related(\"c.typ\")[why])");
+    assert_canonical_edges(&task);
+}
+
+/// The partial-loss shape: one helper concatenated with a tuple holding another.
+/// This kept exactly one of the two edges, which is worse than losing both —
+/// `mt ls blocked` still lists the task, just against half its blockers.
+#[test]
+fn real_prelude_reads_links_mixing_concatenation_and_the_array_form() {
+    let task = task_with_links(
+        "depends-on(\"a.typ\") + (depends-on(\"b.typ\"), (related(\"c.typ\")[why],))",
+    );
+    assert_canonical_edges(&task);
+}
+
+/// Flattening must not swallow the field-level shape error the prelude
+/// deliberately leaves to the Rust layer: a non-array `links:` passes through
+/// untouched, so it still reports against the expected shape rather than failing
+/// eval on a method a string does not have.
+#[test]
+fn real_prelude_leaves_a_non_array_links_to_the_rust_shape_error() {
+    let (_dir, outcome) = load_real_prelude(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: \"T\", links: \"a.typ\")\n",
+    );
+
+    assert_eq!(outcome.errors, Vec::new());
+    let task = outcome.tasks.first().unwrap();
+    assert!(task.links.is_empty());
+    assert_eq!(task.shape_errors.len(), 1);
+    assert_eq!(task.shape_errors[0].field, "links");
+    assert_eq!(
+        task.shape_errors[0].message,
+        "expected an array, found a string"
+    );
 }
 
 /// Every core field is a declared named parameter of `task` — that is the point

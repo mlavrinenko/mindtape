@@ -84,6 +84,22 @@ kinds with `+`:
 links: depends-on("design-schema.typ") + related("write-docs.typ")[docs companion],
 ```
 
+Because each helper returns an array, `+` is array concatenation — so the array
+every other multi-valued field takes means the same thing and is accepted too:
+
+```typ
+links: (
+  depends-on("design-schema.typ"),
+  related("write-docs.typ")[docs companion],
+),
+```
+
+Nesting has one possible reading here, so it is flattened rather than guessed
+at; `mt import` writes the `+` form back either way. This is the one place the
+DSL takes two spellings, and only because neither can mean anything else — a
+value the helpers *cannot* read unambiguously is an error instead, as the rest
+of this section shows.
+
 Targets and the note are told apart by type, so a helper rejects an argument
 that is neither. `link()` returns content and content is the note, so
 `depends-on(link("design-schema.typ"))` builds no edge at all — and instead of

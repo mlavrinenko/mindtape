@@ -90,6 +90,74 @@ fn parse_links_non_array_reports_shape_error_not_silent_empty() {
 }
 
 #[test]
+fn parse_links_flattens_the_array_spelling_of_concatenation() {
+    // `links: (depends-on("a.typ"), depends-on("b.typ"))` — each helper returns
+    // an array, so the array spelling nests. Every edge survives; the `+` form
+    // and this one differ only in source text.
+    let arr = HVal::Array(vec![
+        HVal::Array(vec![edge("a.typ", "depends-on", None)]),
+        HVal::Array(vec![edge("b.typ", "depends-on", None)]),
+    ]);
+    let mut errors = Vec::new();
+    let links = parse_links(Some(&arr), &mut errors);
+    assert!(
+        errors.is_empty(),
+        "the array form is a spelling, not an error"
+    );
+    assert_eq!(links.len(), 2);
+    assert_eq!(links[0].task, "a.typ");
+    assert_eq!(links[1].task, "b.typ");
+}
+
+#[test]
+fn parse_links_keeps_a_nested_entry_mixed_with_a_flat_one() {
+    // The partial-loss case: `depends-on("a.typ") + (depends-on("b.typ"),)`
+    // used to keep exactly one of two edges — half a dependency graph, which is
+    // harder to notice than none of it.
+    let arr = HVal::Array(vec![
+        edge("a.typ", "depends-on", None),
+        HVal::Array(vec![HVal::Array(vec![edge(
+            "b.typ",
+            "related",
+            Some("why"),
+        )])]),
+    ]);
+    let mut errors = Vec::new();
+    let links = parse_links(Some(&arr), &mut errors);
+    assert!(errors.is_empty());
+    assert_eq!(links.len(), 2);
+    assert_eq!(links[1].task, "b.typ");
+    assert_eq!(links[1].kind, "related");
+    assert_eq!(links[1].note.as_deref(), Some("why"));
+}
+
+#[test]
+fn parse_links_reports_a_non_edge_entry_by_position() {
+    // Neither an edge nor a nest: the drop that flattening must not re-hide.
+    let arr = HVal::Array(vec![
+        edge("a.typ", "depends-on", None),
+        HVal::Array(vec![HVal::Int(42)]),
+    ]);
+    let mut errors = Vec::new();
+    let links = parse_links(Some(&arr), &mut errors);
+    assert_eq!(links.len(), 1);
+    assert_eq!(errors.len(), 1);
+    assert_eq!(errors[0].field, "links[1][0]");
+    assert_eq!(
+        errors[0].message,
+        "expected an edge like depends-on(\"other.typ\"), found a number"
+    );
+}
+
+#[test]
+fn parse_links_empty_nest_contributes_nothing_and_reports_nothing() {
+    let arr = HVal::Array(vec![HVal::Array(Vec::new())]);
+    let mut errors = Vec::new();
+    assert!(parse_links(Some(&arr), &mut errors).is_empty());
+    assert!(errors.is_empty());
+}
+
+#[test]
 fn parse_links_excludes_history_pointers() {
     let arr = HVal::Array(vec![
         edge(

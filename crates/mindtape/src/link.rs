@@ -42,6 +42,17 @@ pub struct Link {
 /// [`crate::model::is_history_pointer`]. A present-but-not-an-array value (a
 /// bare string, say) reports a [`crate::model::ShapeError`] into `errors`
 /// rather than silently coercing to no edges.
+///
+/// A nested entry is flattened rather than dropped: each prelude helper returns
+/// an array, so `links: (depends-on("a.typ"), depends-on("b.typ"))` — the array
+/// spelling of the `+` concatenation — arrives as an array of arrays. The
+/// prelude normalizes that at the source, but the prelude ships as a versioned
+/// Typst package installed per machine (`mt install`), so a project still
+/// resolving an older copy emits the nested shape to a current binary; this
+/// keeps its edges rather than losing half a dependency graph to a version
+/// skew. Anything that is neither an edge nor a nest — a number, a date —
+/// reports a [`ShapeError`](crate::model::ShapeError) naming its position,
+/// closing the last silent drop on this field.
 #[must_use]
 pub fn parse_links(value: Option<&HVal>, errors: &mut Vec<crate::model::ShapeError>) -> Vec<Link> {
     let Some(value) = value else {
@@ -51,13 +62,47 @@ pub fn parse_links(value: Option<&HVal>, errors: &mut Vec<crate::model::ShapeErr
         errors.push(crate::model::shape_error("links", "an array", value));
         return Vec::new();
     };
-    items.iter().filter_map(parse_one).collect()
+    let mut links = Vec::new();
+    collect_links(items, &mut Vec::new(), &mut links, errors);
+    links
+}
+
+/// Append every edge in `items` to `out`, descending into a nested array and
+/// reporting anything else. `path` is the entry's index trail from the `links:`
+/// field down (`[0]`, `[1][0]`), so a report names the offending position in a
+/// shape the author can count to in their own source.
+fn collect_links(
+    items: &[HVal],
+    path: &mut Vec<usize>,
+    out: &mut Vec<Link>,
+    errors: &mut Vec<crate::model::ShapeError>,
+) {
+    for (index, item) in items.iter().enumerate() {
+        path.push(index);
+        if let Some(nested) = item.as_array() {
+            collect_links(nested, path, out, errors);
+        } else if item.as_dict().is_some() || item.as_str().is_some() {
+            out.extend(parse_one(item));
+        } else {
+            errors.push(crate::model::shape_error(
+                &format!("links{}", index_path(path)),
+                "an edge like depends-on(\"other.typ\")",
+                item,
+            ));
+        }
+        path.pop();
+    }
+}
+
+/// An index trail rendered as Typst-ish subscripts: `[0]`, `[1][0]`.
+fn index_path(path: &[usize]) -> String {
+    path.iter().map(|index| format!("[{index}]")).collect()
 }
 
 /// Parse one `links:` entry: the helper-shaped dict (`task`, `kind`, `note`),
 /// or a bare string (kept with an empty `kind` so validation can flag it — see
-/// [`Link::kind`]). Anything else (a stray non-string, non-dict value) is
-/// dropped; the prelude never emits one.
+/// [`Link::kind`]). `None` only for a history pointer; a wrong-shaped entry
+/// never reaches here (see [`collect_links`]).
 fn parse_one(item: &HVal) -> Option<Link> {
     let (task, kind, note) = if let Some(dict) = item.as_dict() {
         (

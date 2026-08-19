@@ -231,7 +231,9 @@ with a non-terminal `depends-on` target is blocked. Most legends carry no
 `blocked` value; check `mt flip --list` before reaching for one.
 
 `links:` has no CLI writer, so expressing blockage is a sanctioned hand edit
-— add `links: depends-on("upstream-task.typ"),`, then `mt check`.
+— add `links: depends-on("upstream-task.typ"),`, then `mt check`. Several
+edges take either spelling: `+` between helpers, or the array every other
+multi-valued field uses.
 
 When the blocker is external (an upstream release, another team's decision)
 there is no task to depend on. Either file a task for the external thing and

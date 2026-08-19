@@ -97,16 +97,16 @@ groups:
       docs/src/contributing/windows.typ: bd5fbf570767c4452743a60eb7ae39d9fafcdac584bf28973ae7f97dc38853db
   prelude-docs:
     source:
-      lib/prelude.typ: a47f42c23102fb8808e04257b2a7a234187ab14a7f171b214ff5247f10c7bebf
+      lib/prelude.typ: 0821243e42f9ad51bd7882c9cd4f9395dd682143175a399c3c3121a0099e904e
     dependents:
       docs/src/agents.typ: bd6d06065b7bbf238f73910ef035a76e071cd67d764f45f7243a63f1487716db
       docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
-      docs/src/skill.typ: 364be1c717487fad369e39407095014b3d76b962e1888afe1d9f371c6a574153
-      skills/mindtape/references/add-slots.md: fc34eddf144ff8e5905e93d259e0c1049ff86077b0f7d31a9e2e25dca08e946d
+      docs/src/skill.typ: 12049c8a59cad83a2e77c86293effa594499149522036066094e36d5b181e3e5
+      skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
-      www/content/dsl.typ: eb9df45b7f30663ddc4eab9d91cbc7dc075712de2762a67bd23f23a500f6efb4
+      www/content/dsl.typ: dd5ff2b30a15cc164323d30d1afe3c70c9ea802f21ac1465608a0349388e8a38
       www/content/priority.typ: df10cfbdbbfe85ab35c7d9725210beb202c0f9437f9b7e462aaf7534eedf1a09
-      www/content/templates.typ: 1db0baea38ca373241d068bb39433054c74b6bcd6571a135a1c769c6c13e25b4
+      www/content/templates.typ: 2d712e818fb3cfcbf28aa26c6e3c9f2e228d45ca17101674aad835082c63e36a
   release-notes:
     source:
       Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b

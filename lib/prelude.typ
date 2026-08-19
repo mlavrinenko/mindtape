@@ -189,6 +189,24 @@
 #let duplicates(..args) = edge("duplicates", ..args)
 #let related(..args) = edge("related", ..args)
 
+// Normalize `links:` to the flat edge array the marker promises. Each helper
+// already RETURNS an array, so `+` between two of them is array concatenation
+// — which means the array spelling an author reaches for first,
+// `links: (depends-on("a.typ"), depends-on("b.typ"))`, is an array of arrays,
+// and every entry in it is an array the Rust layer's per-entry parse cannot
+// read. Nesting has exactly one possible meaning here (concatenation, the same
+// thing `+` spells), so flattening it loses nothing and leaves nothing to
+// guess — unlike the `link(...)` target above, where `content` genuinely meant
+// two things and an assert was the only honest answer. This is normalization,
+// not validation: it fires where the Rust layer cannot see, since the printed
+// card below groups the SAME value by kind and drops a nested entry just as
+// silently. A non-array `links:` (`links: "a.typ"`) passes through untouched,
+// so the Rust layer still reports it against the expected shape rather than
+// Typst failing on a method a string does not have.
+#let _flat-links(links) = if type(links) == array { links.flatten() } else {
+  links
+}
+
 // Weekday constants for `every(..., on: (...))`'s weekday set — plain string
 // labels; the Rust layer maps them to real weekdays, no date math here.
 #let mon = "mon"
@@ -653,7 +671,7 @@
     kind: kind,
     assignee: assignee,
     estimate: estimate,
-    links: links,
+    links: _flat-links(links),
     tags: tags,
     due: due,
     start: start,
