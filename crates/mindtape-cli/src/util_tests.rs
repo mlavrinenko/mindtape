@@ -106,6 +106,75 @@ fn resolve_handle_wrong_check_errors_with_current_handle() {
     );
 }
 
+/// A project that raised `[handle] check-len` gets handles of that length, and
+/// the resolver reads the same key the display does.
+fn stub_project_with_check_len(tasks: Vec<Task>, len: usize) -> Project {
+    let mut config = Config::default();
+    config.handle.check_len = Some(len);
+    Project {
+        root: ".".into(),
+        config,
+        outcome: LoadOutcome {
+            tasks,
+            errors: vec![],
+        },
+    }
+}
+
+#[test]
+fn resolve_handle_honours_a_configured_check_len() {
+    let project = stub_project_with_check_len(
+        vec![
+            stub_task("alpha", "Alpha Task"),
+            stub_task("beta", "Beta Task"),
+        ],
+        2,
+    );
+
+    let handle = format!("2{}", check_chars("beta", 2));
+    let (resolved, _) = resolve_task(&project, &handle).unwrap();
+    assert_eq!(resolved.id, "beta");
+}
+
+/// The whole point of raising the length: a one-character handle is a handle
+/// that belongs to a different task, not a short spelling of this one. Matching
+/// it as a prefix would hand back the collision rate the project paid to remove.
+#[test]
+fn resolve_handle_refuses_a_short_handle_rather_than_prefix_matching() {
+    let project = stub_project_with_check_len(vec![stub_task("alpha", "Alpha Task")], 2);
+
+    let full = check_chars("alpha", 2);
+    let short = format!("1{}", &full[..1]);
+
+    let err = resolve_task(&project, &short).unwrap_err();
+    let msg = err.to_string();
+    assert!(
+        msg.contains("check character"),
+        "error should name the length: {msg}"
+    );
+    assert!(
+        msg.contains(&format!("1{full}")),
+        "error should show the full-length handle: {msg}"
+    );
+    assert!(
+        !msg.contains("check mismatch"),
+        "a short handle is a different failure from a wrong check: {msg}"
+    );
+}
+
+/// Too LONG is refused by the same arm, so a handle copied out of a project
+/// with a longer setting cannot half-resolve here.
+#[test]
+fn resolve_handle_refuses_an_over_long_handle() {
+    let project = stub_project(vec![stub_task("alpha", "Alpha Task")]);
+
+    let err = resolve_task(&project, &format!("1{}", check_chars("alpha", 3))).unwrap_err();
+    assert!(
+        err.to_string().contains("check character"),
+        "error should name the length: {err}"
+    );
+}
+
 #[test]
 fn pick_override_flag_wins_over_env() {
     let picked = pick_override(Some("/flag/path".into()), Some("/env/path".into()));

@@ -21,6 +21,7 @@ pub mod config_comments;
 mod config_estimate;
 mod config_format;
 mod config_go;
+mod config_handle;
 pub mod config_hooks;
 mod config_layers;
 pub mod config_limits;
@@ -88,10 +89,10 @@ pub use condition::{Condition, ConditionEnv, ConditionError};
 pub use config::{
     Actor, ActorKind, AddConfig, AssigneeConfig, Collector, ColumnConfig, Config, ConfigError,
     DeriveConfig, DeriveTags, DriftConfig, EstimateConfig, Facet, FormatConfig, GoConfig,
-    HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule, PriorityConfig,
-    ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role, RootConfig, RootSpec, TemplatesConfig,
-    TypstConfig, ViewSpec, Visibility, config_path, embedded_defaults, load_config, parse_config,
-    parse_import_view, roles_of, validate_views,
+    HandleConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule,
+    MAX_CHECK_LEN, PriorityConfig, ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role,
+    RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec, Visibility, config_path,
+    embedded_defaults, load_config, parse_config, parse_import_view, roles_of, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_layers::{

@@ -6,13 +6,27 @@
 //!   inline FNV-1a hash.  The check is intrinsic to the id — the same task
 //!   always maps to the same letter regardless of its position.
 //!
-//! The check length defaults to 1; a future `[handle] check_len` config key
-//! can extend it without changing this module's interface.
+//! The check length defaults to 1 and is per-project: `[handle] check-len`
+//! raises it for a project that would rather type two characters than have a
+//! stale handle land on a neighbour. [`check_len`] resolves the two.
 
-use mindtape::Task;
+use mindtape::{Config, Task};
 
 /// Default number of check characters appended after the ordinal.
+///
+/// What a project inherits by saying nothing. `[handle] check-len` overrides
+/// it; this constant is the floor both the display and the resolver fall back
+/// to, so they can never disagree about a handle's shape.
 pub const DEFAULT_CHECK_LEN: usize = 1;
+
+/// The check length this project's handles carry.
+///
+/// Every producer of a handle and the one consumer of it read the length from
+/// here. A handle displayed at one length and resolved at another would refuse
+/// the handle it just printed.
+pub fn check_len(config: &Config) -> usize {
+    config.handle.check_len.unwrap_or(DEFAULT_CHECK_LEN)
+}
 
 /// FNV-1a 32-bit offset basis and prime (version-stable, inline — no crate).
 const FNV_OFFSET: u32 = 2_166_136_261;

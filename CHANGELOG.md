@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`[handle] check-len`, the handle guard's width, per project** — a list
+  handle is `<ordinal><check>`, where the ordinal is the task's position in the
+  default view recomputed on every command and the check is derived from the
+  task's stable id. The ordinal is what goes stale: a flip re-sorts the view
+  under anyone still holding a handle, so the check is the only thing between a
+  stale handle and an operation on the wrong task. One base-26 letter lets a
+  wrong handle through about once in 26; `check-len` buys more at a character
+  apiece, up to the six a 32-bit hash can fill. Omitted, it stays 1, so a
+  project that says nothing keeps the handles it has. Raising it invalidates the
+  short handles rather than accepting them — under `check-len = 2`, `2y` is
+  refused with the expected length named, because `2y` is a valid handle for
+  whichever task hashes to `y` at length 1, not a short spelling of `2yq`.
+
 - **`key@path`, a third `mt add` token operator** — reads a slot's value out of
   a file, in the same grammar and both carriers as `=` and `+=` (`mt add "..."
   -- summary@notes.txt`, `--set summary@notes.txt`). It serves the long value:

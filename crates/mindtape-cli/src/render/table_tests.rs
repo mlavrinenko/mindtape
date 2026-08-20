@@ -256,3 +256,21 @@ fn due_cell_overdue_color_unset_falls_back_to_red() {
         "unset overdue-color must default to red"
     );
 }
+
+/// The `#` column is the one place a reader ever sees a handle, so a raised
+/// `[handle] check-len` has to reach it — a table printing `1b` while the
+/// resolver demands `1bq` would refuse every handle it displayed.
+#[test]
+fn handle_column_honours_a_configured_check_len() {
+    let mut config = Config::default();
+    config.handle.check_len = Some(2);
+    let tasks = vec![task("alpha", "Alpha", "wip")];
+    let readiness = Readiness::compute(&tasks, &config);
+
+    let out = render(&tasks, &config, &readiness);
+    let expected = format!("1{}", crate::handle::check_chars("alpha", 2));
+    assert!(
+        out.contains(&expected),
+        "table should print the two-character handle {expected}: {out}"
+    );
+}

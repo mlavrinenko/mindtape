@@ -79,6 +79,17 @@ does not override this, the same way an explicitly listed `priority` stays
 hidden when nothing scores one; `[ls.columns.assignee] visibility = "visible"`
 is the override.
 
+The `#` column is a handle: an ordinal followed by check characters derived
+from the task's id. The ordinal is the task's position in the view #emph[as
+  recomputed on every command], never a token the last listing handed out, so a
+flip that re-sorts or filters the list renumbers it under anyone still holding
+one. The check is what catches that — a handle whose ordinal moved resolves to
+a task whose check disagrees, and the command is refused rather than run
+against the wrong task. One character catches most such shifts; `[handle]
+check-len` buys more at a character apiece, and a handle of any other length is
+then refused outright rather than matched as a prefix, since a short handle is
+a valid handle for some other task.
+
 `--hyperlinks always` (or `[ls] hyperlinks`) makes both the always-visible `#`
 column and, when shown, `file` clickable in a standalone terminal via an OSC 8
 hyperlink sequence — the same row's target either way, targeting `[ls]

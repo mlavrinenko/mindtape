@@ -10,7 +10,7 @@ use mindtape::{
     load_project, select,
 };
 
-use crate::handle::{DEFAULT_CHECK_LEN, check_chars, parse_handle};
+use crate::handle::{check_chars, check_len, parse_handle};
 use crate::render::link::HyperlinkChoice;
 
 /// A discovered, loaded project: its root, config and load outcome.
@@ -235,7 +235,22 @@ fn resolve_by_handle(project: &Project, ordinal: usize, check: &str) -> Result<(
     let task = tasks
         .get(index)
         .with_context(|| format!("handle ordinal {ordinal} out of range"))?;
-    let expected_check = check_chars(&task.id, DEFAULT_CHECK_LEN);
+    // Length first, and strictly: under `[handle] check-len = 2` a bare `2y` is
+    // not a short spelling of `2yq`, it is a handle that belongs to whichever
+    // task hashes to `y` at length 1 — a different question with a different
+    // answer. Prefix-matching it would hand back the collision rate the project
+    // raised the length to avoid.
+    let len = check_len(&project.config);
+    let expected_check = check_chars(&task.id, len);
+    let given = check.chars().count();
+    if given != len {
+        bail!(
+            "handle {ordinal}{check} carries {given} check character(s); this project's handles \
+             carry {len} ({ordinal}{expected_check} is the handle at that position, {title:?}). \
+             A handle of another length is refused, never matched as a prefix",
+            title = task.title,
+        );
+    }
     if check != expected_check {
         let current_handle = format!("{ordinal}{expected_check}");
         bail!(

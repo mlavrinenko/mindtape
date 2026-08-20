@@ -6,7 +6,7 @@ use mindtape::numeric::{NumValue, format_num};
 use mindtape::{CanonicalTask, Readiness, ReadyState, SCHEMA_VERSION, Task};
 use serde_json::{Value, json};
 
-use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
+use crate::handle::{check_len, make_handles};
 use crate::ls_rules::Applied;
 use crate::render::columns::{ColumnId, resolve_order};
 
@@ -136,7 +136,7 @@ fn applied_to_json(applied: &Applied) -> Value {
 /// are not represented here, same as the table. `--format json` is the
 /// escape hatch: it always emits every field.
 fn render_csv(tasks: &[Task], config: &Config, readiness: &Readiness) -> Result<String> {
-    let handles = make_handles(tasks, DEFAULT_CHECK_LEN);
+    let handles = make_handles(tasks, check_len(config));
     let columns = resolve_order(config, &handles, readiness);
     let mut writer = csv::Writer::from_writer(Vec::new());
     writer.write_record(columns.iter().copied().map(csv_header))?;

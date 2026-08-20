@@ -72,6 +72,7 @@ Sections whose shape needs more than one line get a deep dive further down.
   ("ls", "[ls]"),
   ("rm", "[rm]"),
   ("retire", "[retire]"),
+  ("handle", "[handle]"),
   ("views", "[views.<name>]"),
   ("on", "[[on.flip]]"),
   ("templates", "[templates]"),

@@ -15,7 +15,7 @@ use super::field::{CellSpec, DensityMode, cell_content, content_width, render_ce
 use super::glyph::GlyphMode;
 use super::link::{Linker, is_hyperlinks_active};
 use super::width::{display_width, pad_to_width, truncate_to_width};
-use crate::handle::{DEFAULT_CHECK_LEN, make_handles};
+use crate::handle::{check_len, make_handles};
 
 const GAP: &str = "  ";
 const TITLE_MIN: usize = 16;
@@ -68,7 +68,7 @@ fn render_inner(
     let glyph_mode = glyph_mode();
     let painter = Painter::new(is_color_active());
     let linker = Linker::new(is_hyperlinks_active());
-    let handles: Vec<(String, &Task)> = make_handles(tasks, DEFAULT_CHECK_LEN);
+    let handles: Vec<(String, &Task)> = make_handles(tasks, check_len(config));
     let visible = resolve_order(config, &handles, readiness);
     let mut columns = build_columns(&visible, &handles, config, readiness, glyph_mode);
     apply_highlight(&mut columns, highlighted);
