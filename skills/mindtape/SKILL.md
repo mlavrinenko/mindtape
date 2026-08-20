@@ -43,7 +43,7 @@ Find a task → read it → change its status → validate.
 | Retire a task | `mt rm <task>` |
 | Inspect the effective config | `mt config show` (`--origin`, `--defaults`) |
 
-`<task>` / `<id>` accepts a filename stem, a relative/absolute path, or a handle ordinal from the last `mt ls` (the `#` column, e.g. `1b`).
+`<task>` / `<id>` accepts a filename stem, a relative/absolute path, or a handle (the `#` column, e.g. `1b`). A handle is not a token from the last `mt ls`: its ordinal is the task’s position in the default view **recomputed on every command**, so any flip that re-sorts or filters the list renumbers it, and the trailing check letters catch only most such shifts. Address a task by its filename stem for any second operation on a task you just flipped.
 
 Reach for `mt <cmd> --help` only when a command errors or needs a flag this skill lacks. Legend, kinds, priority scale, and tags are per-project: read `.mindtape/config.toml` (or `mt flip --list`), don’t guess.
 
