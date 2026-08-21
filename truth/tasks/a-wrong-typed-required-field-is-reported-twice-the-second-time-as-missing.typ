@@ -11,7 +11,11 @@
   tags: ("substrate",),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 8, 21),
+  status: done(
+    2026,
+    8,
+    21,
+  )[a FIELD-level shape error masks the required answer at each check's input; an element error still lets it fire, since the field itself read],
   links: related(
     "report-a-wrong-typed-element-inside-a-well-shaped-core-field.typ",
   )[
