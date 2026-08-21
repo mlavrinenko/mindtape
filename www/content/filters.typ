@@ -20,9 +20,10 @@ Here, every task not yet in a terminal status:
 = Fields
 
 Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
-`due`, `start`, `reviewed`, `file`, `depth`, `assignee`, `role`. `priority` and
-`difficulty` compare numerically (`priority >= 7`). The opaque `estimate` dict
-supports presence only (`has(estimate)`), never comparison.
+`due`, `start`, `reviewed`, `file`, `depth`, `topo`, `blocks`, `assignee`,
+`role`. `priority` and `difficulty` compare numerically (`priority >= 7`). The
+opaque `estimate` dict supports presence only (`has(estimate)`), never
+comparison.
 
 `assignee` compares the actor name as a plain string (`assignee == "ada"`).
 `role` is resolved from the `[[actors]]` registry at read time: `role ==
@@ -40,6 +41,10 @@ to the root rather than to whichever directory issued the command.
 `depth` is the task's nesting under its root — 0 for a task in the root itself,
 1 for one in a sub-folder, and so on. It is always numeric, so `depth == 0`
 lists the root tasks with no sub-folder (`depth > 0` the nested ones).
+
+`topo` and `blocks` read the dependency graph rather than the task's own
+fields — see _Graph position and leverage_ below. Both are always numeric and
+never absent: a task with no links carries 0, not nothing.
 
 = Operators
 
@@ -117,6 +122,45 @@ mt rm terminal       # retire finished work
 
 `mt ls` floats ready work to the top by default.
 
+= Graph position and leverage
+
+`ready` and `blocked` answer one hop, and only yes or no — they separate
+startable work from waiting work without ordering either group. `topo` and
+`blocks` read the same edges transitively and answer with a number, so they
+can sort.
+
+`topo` is *position*: 0 for a task nothing in the set blocks, otherwise one
+more than the deepest task it depends on. A dependency always sits on a lower
+level than its dependents, so ascending `topo` is a valid working order. It is
+a level, not a queue number — unrelated tasks tie, which is what leaves room
+for a second `--sort` spec to decide between them.
+
+`blocks` is *leverage*: how many tasks transitively wait on this one. This is
+the number that reorders a backlog, because a scoring framework ranks a task on
+its own properties alone — so the decision five other tasks depend on scores
+low for being expensive and sorts last. `blocks` says how much that decision
+unlocks.
+
+```sh
+mt ls 'blocks > 3'             # load-bearing work
+mt ls 'topo == 0 && !terminal' # nothing in the way of these
+```
+
+Both read the same edges `ready` does: `depends-on`, plus any custom kind a
+project flags #link(u("/config/"))[`blocking = true`]. An edge naming no loaded
+task constrains nothing.
+
+They differ on status, deliberately. `topo` ignores it: a finished dependency
+still sits before its dependent in the graph. `blocks` counts only unfinished
+dependents, and walks only through them — a done task is waiting on nothing and
+passes nothing on, so it blocks 0. The count therefore *shrinks as work
+closes*, which is the point: it measures what is still waiting, not what once
+was.
+
+`mt check` rejects a dependency cycle, but sorting never has to: a task on a
+loop simply keeps the level its resolved dependencies gave it, and neither rank
+can hang.
+
 = Sort and limit
 
 Sortable fields: every comparable field above except `role` (virtual,
@@ -130,6 +174,14 @@ ordering.
 mt ls --sort priority:asc      # or :desc
 mt ls --sort status --sort due:desc   # status first, due breaks ties
 mt ls -n 10                    # limit to 10
+```
+
+The graph ranks are what make a sort chain read as an order of work, since both
+tie and hand the tie to the next spec:
+
+```sh
+mt ls --sort topo --sort priority:desc    # graph order, priority within a layer
+mt ls --sort blocks:desc --sort priority:desc  # leverage first, score to break ties
 ```
 
 = Default filters

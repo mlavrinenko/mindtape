@@ -209,3 +209,94 @@ fn sort_fields_covers_every_registry_field() {
         );
     }
 }
+
+// --- Graph-derived sort keys (`topo`, `blocks`) ---
+
+/// A task carrying the graph ranks the loader derives (`crate::dep_rank`),
+/// plus a priority — the shape the tiebreak tests need.
+fn ranked(id: &str, topo: u32, blocks: u32, priority: f64) -> Task {
+    let mut t = task(id, "wip", priority, None);
+    t.topo = topo;
+    t.blocks = blocks;
+    t
+}
+
+fn ids(tasks: &[Task]) -> Vec<&str> {
+    tasks.iter().map(|t| t.id.as_str()).collect()
+}
+
+fn sorted(mut tasks: Vec<Task>, specs: &[&str]) -> Vec<Task> {
+    let specs: Vec<String> = specs.iter().map(|s| (*s).to_owned()).collect();
+    sort_by_specs(
+        &mut tasks,
+        &specs,
+        &config(),
+        &crate::ready::Readiness::empty(),
+    )
+    .unwrap();
+    tasks
+}
+
+#[test]
+fn sort_topo_puts_dependencies_before_dependents() {
+    let tasks = sorted(
+        vec![
+            ranked("dependent", 2, 0, 5.0),
+            ranked("root", 0, 2, 5.0),
+            ranked("middle", 1, 1, 5.0),
+        ],
+        &["topo"],
+    );
+    assert_eq!(ids(&tasks), vec!["root", "middle", "dependent"]);
+}
+
+#[test]
+fn sort_topo_leaves_a_tie_for_the_next_spec_to_break() {
+    // The declared tiebreak: `topo` is a level, not a linear position, so
+    // independent tasks tie and the following spec decides — which is what
+    // makes `--sort topo --sort priority:desc` read as "graph order, priority
+    // within a layer".
+    let tasks = sorted(
+        vec![
+            ranked("cheap", 0, 0, 1.0),
+            ranked("late", 1, 0, 9.0),
+            ranked("valuable", 0, 0, 9.0),
+        ],
+        &["topo", "priority:desc"],
+    );
+    assert_eq!(ids(&tasks), vec!["valuable", "cheap", "late"]);
+}
+
+#[test]
+fn sort_blocks_desc_floats_the_highest_leverage_task() {
+    // The inversion the feature exists to fix: `hub` scores lowest on priority
+    // and highest on leverage, and `blocks:desc` is what surfaces it.
+    let tasks = sorted(
+        vec![
+            ranked("isolated", 0, 0, 9.0),
+            ranked("hub", 0, 5, 1.0),
+            ranked("small", 0, 1, 7.0),
+        ],
+        &["blocks:desc"],
+    );
+    assert_eq!(ids(&tasks), vec!["hub", "small", "isolated"]);
+}
+
+#[test]
+fn sort_blocks_breaks_ties_on_the_next_spec() {
+    let tasks = sorted(
+        vec![
+            ranked("low", 0, 3, 2.0),
+            ranked("high", 0, 3, 8.0),
+            ranked("lonely", 0, 0, 9.0),
+        ],
+        &["blocks:desc", "priority:desc"],
+    );
+    assert_eq!(ids(&tasks), vec!["high", "low", "lonely"]);
+}
+
+#[test]
+fn topo_and_blocks_are_accepted_sort_specs() {
+    assert!(validate_sort_spec("topo").is_ok());
+    assert!(validate_sort_spec("blocks:desc").is_ok());
+}

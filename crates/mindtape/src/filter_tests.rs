@@ -28,6 +28,8 @@ fn sample() -> Task {
         tags: vec!["backend".to_owned()],
         derived_tags: Vec::new(),
         depth: 0,
+        topo: 0,
+        blocks: 0,
         due: Some("2026-07-01".to_owned()),
         start: None,
         reviewed: None,

@@ -36,6 +36,7 @@ mod config_tasks;
 mod config_views;
 mod date;
 mod date_pin;
+mod dep_rank;
 pub mod derive;
 pub mod emit;
 pub mod estimate_drift;

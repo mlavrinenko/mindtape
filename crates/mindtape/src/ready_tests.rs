@@ -1,32 +1,12 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{Readiness, ReadyState};
-use crate::config::{Config, parse_config};
-use crate::model::{Status, Task};
-use crate::test_support::{bare_task, dep_edge};
+use crate::config::Config;
+use crate::model::Status;
+use crate::test_support::{bare_task, dep_config, dep_task as task};
 
 fn config() -> Config {
-    parse_config(
-        r#"
-[[tasks.status]]
-value = "wip"
-[[tasks.status]]
-value = "done"
-terminal = true
-"#,
-    )
-    .unwrap()
-}
-
-fn task(id: &str, status: &str, deps: &[&str]) -> Task {
-    let mut task = bare_task(id);
-    task.status = Some(Status {
-        name: status.to_owned(),
-        date: None,
-        note: None,
-    });
-    task.links = deps.iter().map(|d| dep_edge(d)).collect();
-    task
+    dep_config("")
 }
 
 #[test]

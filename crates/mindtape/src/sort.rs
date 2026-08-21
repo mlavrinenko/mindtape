@@ -21,7 +21,14 @@ use crate::ready::{Readiness, ReadyState};
 /// `sort_fields_covers_every_registry_field` in `sort_tests.rs`, so a field
 /// added to `crate::fields` and forgotten here fails a test instead of
 /// silently staying unsortable.
-pub const SORT_FIELDS: [&str; 13] = [
+///
+/// Two of them read the dependency graph rather than the task's own
+/// properties: `topo` (dependency level — ascending is a topological order)
+/// and `blocks` (how many tasks it transitively unblocks). Both are levels,
+/// not linear positions, so they tie and a following spec breaks the tie:
+/// `--sort topo --sort priority:desc` is graph order with priority inside a
+/// layer. See [`crate::dep_rank`].
+pub const SORT_FIELDS: [&str; 15] = [
     "id",
     "title",
     "status",
@@ -34,6 +41,8 @@ pub const SORT_FIELDS: [&str; 13] = [
     "assignee",
     "file",
     "depth",
+    "topo",
+    "blocks",
     "ready",
 ];
 

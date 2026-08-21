@@ -1,6 +1,7 @@
 //! Round-trip property tests for [`super::emit_task`]: for a representative
 //! spread of `Task` values, emit then re-harvest through the real prelude
-//! yields an equal task (modulo `file`/`derived_tags`, and `links`
+//! yields an equal task (modulo the loader-derived `file`/`derived_tags`/
+//! `topo`/`blocks`, and `links`
 //! order-normalized — grouping by kind/note can reorder same-kind edges),
 //! and the emitted source passes [`crate::validate::validate`] clean for
 //! that task's id.
@@ -64,8 +65,9 @@ fn link_sort_key(link: &Link) -> (String, String, Option<String>) {
 /// Round-trip `task` through `emit_task` + reload against `config_text`,
 /// writing `stub_ids` as extra minimal tasks so `task`'s link targets
 /// resolve. Asserts: the source parses to exactly one task, it equals `task`
-/// field-by-field (modulo `file`/`derived_tags`/link order), and it passes
-/// validation with no violation attributed to `task.id`.
+/// field-by-field (modulo the loader-derived `file`/`derived_tags`/`topo`/
+/// `blocks` and link order), and it passes validation with no violation
+/// attributed to `task.id`.
 fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
     let dir = tempfile::tempdir().unwrap();
     let source = emit_task(task);
@@ -86,6 +88,13 @@ fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
         .unwrap_or_else(|| panic!("task `{}` did not load\n--- source ---\n{source}", task.id));
     reloaded.file.clone_from(&task.file);
     reloaded.derived_tags.clone_from(&task.derived_tags);
+    // `topo`/`blocks` are derived from the whole loaded set (`crate::dep_rank`)
+    // exactly as `derived_tags` is, and nothing about them is written to the
+    // file — so the stub link targets this fixture plants give the reloaded
+    // task a graph position the authored one never carried. Not a round-trip
+    // property; `dep_rank_tests.rs` is what pins their values.
+    reloaded.topo = task.topo;
+    reloaded.blocks = task.blocks;
     reloaded.links.sort_by_key(link_sort_key);
 
     let mut expected = task.clone();

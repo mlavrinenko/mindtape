@@ -72,6 +72,19 @@ pub struct Task {
     /// the file's location (like [`derived_tags`](Self::derived_tags)); never
     /// authored. Zero when constructed without a loader (e.g. [`Task::from_marker`]).
     pub depth: u8,
+    /// Level in the dependency graph: 0 for a task with no in-set blocking
+    /// dependency, otherwise one more than the deepest task it depends on.
+    /// Ordering by it puts every dependency ahead of its dependents, and leaves
+    /// independent tasks tied for a secondary key to break — unlike
+    /// [`depth`](Self::depth), which is folder nesting and says nothing about
+    /// the graph. Derived over the whole loaded set by [`crate::dep_rank`];
+    /// zero when constructed without a loader.
+    pub topo: u32,
+    /// How many non-terminal tasks transitively wait on this one — the work
+    /// finishing it would unblock. Zero for a terminal task, which blocks
+    /// nothing. Derived over the whole loaded set by [`crate::dep_rank`]; zero
+    /// when constructed without a loader.
+    pub blocks: u32,
     /// Due date, `YYYY-MM-DD`.
     pub due: Option<String>,
     /// Start date, `YYYY-MM-DD`.
@@ -130,6 +143,8 @@ impl Task {
             tags,
             derived_tags: Vec::new(),
             depth: 0,
+            topo: 0,
+            blocks: 0,
             due: field_str(fields, "due"),
             start: field_str(fields, "start"),
             reviewed: field_str(fields, "reviewed"),

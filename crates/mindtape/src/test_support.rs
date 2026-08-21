@@ -8,8 +8,9 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::process::Command;
 
+use crate::config::Config;
 use crate::link::Link;
-use crate::model::Task;
+use crate::model::{Status, Task};
 use crate::numeric::{InputValue, NumValue};
 
 /// A task with the given id and every other field at its empty/`None` default.
@@ -32,6 +33,8 @@ pub fn bare_task(id: &str) -> Task {
         tags: Vec::new(),
         derived_tags: Vec::new(),
         depth: 0,
+        topo: 0,
+        blocks: 0,
         due: None,
         start: None,
         reviewed: None,
@@ -159,6 +162,40 @@ pub const TASK_SRC: &str = "#metadata((
   extras: (:),
 ))
 ";
+
+/// The minimal legend any dependency-graph fixture needs: an open `wip` and a
+/// terminal `done`, with `extra` appended for a project that also declares,
+/// say, a custom blocking link kind. Shared by `ready_tests.rs` and
+/// `dep_rank_tests.rs` — the one-hop and transitive readers of the same edges,
+/// which must be exercised against the same project shape to be comparable.
+///
+/// # Panics
+/// Panics if `extra` does not parse — a test-only helper, so a malformed
+/// fixture is a test bug rather than a case to recover from.
+#[must_use]
+#[allow(clippy::unwrap_used)]
+pub fn dep_config(extra: &str) -> Config {
+    crate::config::parse_config(&format!(
+        "[[tasks.status]]\nvalue = \"wip\"\n\
+         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n{extra}"
+    ))
+    .unwrap()
+}
+
+/// A task with `status` stamped and one `depends-on` edge per entry in `deps`
+/// (each a raw target as authored, e.g. `"other.typ"`) — the fixture shape the
+/// readiness and graph-rank tests are written in.
+#[must_use]
+pub fn dep_task(id: &str, status: &str, deps: &[&str]) -> Task {
+    let mut task = bare_task(id);
+    task.status = Some(Status {
+        name: status.to_owned(),
+        date: None,
+        note: None,
+    });
+    task.links = deps.iter().map(|dep| dep_edge(dep)).collect();
+    task
+}
 
 #[cfg(test)]
 mod tests {

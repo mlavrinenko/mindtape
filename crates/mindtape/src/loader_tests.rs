@@ -389,3 +389,47 @@ fn body_after_marker_empty_without_body_or_marker() {
     assert_eq!(body_after_marker("#show: task.with(title: \"T\")\n"), "");
     assert_eq!(body_after_marker("no marker here\n"), "");
 }
+
+/// A task marker carrying `status` and a `depends-on` edge per entry in
+/// `deps` — the shape the graph-rank test needs the loader to actually read.
+fn linked_body(status: &str, deps: &[&str]) -> String {
+    let links: String = deps
+        .iter()
+        .map(|dep| format!("(task: \"{dep}\", kind: \"depends-on\", note: none),"))
+        .collect();
+    format!(
+        "#metadata((\n  marker: \"mindtape.task\",\n  fields: (\n    title: \"T\",\n    \
+         status: (name: \"{status}\", date: none, note: none),\n    links: ({links}),\n  ),\n  \
+         extras: (:),\n))\n"
+    )
+}
+
+#[test]
+fn stamps_graph_ranks_over_the_whole_set() {
+    // The loader is the single place `topo`/`blocks` are derived (see
+    // `crate::dep_rank`), so this is what wires the graph sorts and filters to
+    // real files: without it every task would read 0 and `--sort topo` would be
+    // a no-op.
+    let dir = setup();
+    write(dir.path(), "tasks/root.typ", &linked_body("wip", &[]));
+    write(
+        dir.path(),
+        "tasks/mid.typ",
+        &linked_body("wip", &["root.typ"]),
+    );
+    write(
+        dir.path(),
+        "tasks/leaf.typ",
+        &linked_body("wip", &["mid.typ"]),
+    );
+
+    let outcome = load_project(dir.path(), &Config::default());
+    assert_eq!(outcome.errors, Vec::new());
+    let rank = |id: &str| {
+        let task = outcome.tasks.iter().find(|t| t.id == id).unwrap();
+        (task.topo, task.blocks)
+    };
+    assert_eq!(rank("root"), (0, 2));
+    assert_eq!(rank("mid"), (1, 1));
+    assert_eq!(rank("leaf"), (2, 0));
+}

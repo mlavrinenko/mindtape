@@ -156,3 +156,56 @@ fn priority_label_falls_back_to_string() {
         FieldValue::Str(s) if s == "high"
     ));
 }
+
+// --- Graph-derived fields (`topo`, `blocks`) ---
+
+#[test]
+fn graph_ranks_read_back_as_numbers() {
+    let cfg = config();
+    let mut task = bare_task("t");
+    task.topo = 2;
+    task.blocks = 5;
+    assert!(matches!(
+        (get("topo").unwrap().get)(&task, &cfg),
+        FieldValue::Num(n) if (n - 2.0).abs() < f64::EPSILON
+    ));
+    assert!(matches!(
+        (get("blocks").unwrap().get)(&task, &cfg),
+        FieldValue::Num(n) if (n - 5.0).abs() < f64::EPSILON
+    ));
+}
+
+#[test]
+fn graph_ranks_are_never_missing() {
+    // Like `depth`, they are derived numbers rather than authored fields, so a
+    // task that names no link still carries 0 rather than nothing. That is what
+    // makes `blocks > 3` a plain numeric comparison with no missing-field case.
+    let cfg = config();
+    let task = bare_task("t");
+    for name in ["topo", "blocks"] {
+        assert!(
+            matches!((get(name).unwrap().get)(&task, &cfg), FieldValue::Num(n) if n == 0.0),
+            "{name} must read 0 on a bare task"
+        );
+    }
+}
+
+#[test]
+fn graph_ranks_are_filterable() {
+    let cfg = config();
+    let mut task = bare_task("t");
+    task.topo = 1;
+    task.blocks = 5;
+    let hit = |expr: &str| {
+        crate::filter::Filter::parse(expr)
+            .unwrap()
+            .matches(&task, &cfg)
+            .unwrap()
+    };
+    assert!(hit("blocks > 3"));
+    assert!(!hit("blocks > 5"));
+    assert!(hit("blocks == 5"));
+    assert!(hit("topo == 1"));
+    assert!(!hit("topo == 0"));
+    assert!(hit("blocks > 3 && topo < 2"));
+}

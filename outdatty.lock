@@ -27,9 +27,9 @@ groups:
       crates/mindtape-cli/src/views.rs: 95572b4071e2103a8e2140ad182f36fa6ae99ba9fd74ef118893ea54a76fc378
       crates/mindtape-cli/src/worktrees.rs: ed1e2dcd48df37456e4c61a2d9220a20ee94ea05b1c3c2005023962583347dee
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
-      crates/mindtape/src/lib.rs: 37d2c1e07bab648c4ed53374f98330003fbc2f26713356500cf814931c2503a8
+      crates/mindtape/src/lib.rs: bfa0fd6301a2a1029d2c596533a6e80997a5825a8a24e967f7389551c25b5989
     dependents:
-      docs/src/skill.typ: 467b415a25532e04a792d43d42911bf7825e6b5f602a090f991972425188d22a
+      docs/src/skill.typ: 25551f838605c61b264b2f229fd16d55e8d9a8e240e9a116793bd49e228457d1
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
@@ -38,7 +38,7 @@ groups:
       www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
       www/content/config.typ: d223cb7d5949569f3ddd6549d86c9d7c189d60284f4e262519aaa6b1ebdaf3a0
       www/content/derived-tags.typ: df0c7aab4e3e9634eb8236b1ddfb426499b62f5f9b6c1fbc44a8b46d3c5bb17c
-      www/content/filters.typ: 830ffe946b7f74dcb19268297370bb5d62dbad6c2bad1c9109fcb5c3434b370c
+      www/content/filters.typ: ccd5ab12aa12b2a978f6225710d14b9b43481c6b6e5d20f93beb1d8b77594384
       www/content/import-export.typ: a869ce1490053348afbc750d6a66dc85ede03a3dc51330ad43b871b110e2285c
       www/content/priority.typ: df10cfbdbbfe85ab35c7d9725210beb202c0f9437f9b7e462aaf7534eedf1a09
       www/content/quickstart.typ: c7d440e651eb932edf9aac0d33ac0107b53b38622d39065a1413b62289c62c67

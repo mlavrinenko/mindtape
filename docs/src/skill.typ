@@ -107,7 +107,7 @@ tasks), naming the winner on a dim `applied: ...` line. An empty filter
 (`mt ls ''`) drops all of that and lists everything; there is no `--all` flag.
 
 Pass a filter expression as the positional argument. Fields:
-`status priority difficulty kind title id due start reviewed file assignee depth role`
+`status priority difficulty kind title id due start reviewed file assignee depth topo blocks role`
 — `--sort` takes the same set except `role`, plus a computed `ready` rank.
 `role` is filter-only and resolves through the `[[actors]]` registry: it
 matches a role the task's assignee holds. `file` compares the
@@ -115,7 +115,13 @@ project-root-relative path (`/`-separated on every platform) — not the same
 as the `file` _column_'s working-directory-relative display, below. `depth`
 is the folder nesting under a root (0 for a task in the root itself, 1 for a
 sub-folder, ...), always numeric — so `mt ls 'depth == 0'` lists the root
-tasks. Operators: `== != < > <= >= && || !` and parentheses. Helpers:
+tasks. `topo` and `blocks` read the `links:` graph and are numeric too, never
+absent: `topo` is dependency level (0 = nothing blocks it; ascending is a
+working order, and independent tasks tie so the next `--sort` spec decides),
+`blocks` is how many unfinished tasks transitively wait on this one — the
+leverage a per-task score cannot see. A done task blocks 0, and a cycle
+neither hangs nor panics. Operators: `== != < > <= >= && || !` and
+parentheses. Helpers:
 
 - `has(field)` / `miss(field)` — field present / absent
 - `has_tag("name")` — authored or folder-derived tag
@@ -152,6 +158,7 @@ shown — in an OSC 8 link to that row's target.
 mt ls 'ready && priority > 5'
 mt ls 'has_tag("backend") && !terminal'
 mt ls 'due <= now()' --sort priority:desc
+mt ls --sort blocks:desc --sort priority:desc  # unblocks the most, first
 mt ls '@backend && !@blocked'        # compose named views by @name
 mt ls 'stale(30)' --json             # --json / --format csv for other programs
 mt ls ready --format path            # bare path list, one per line, no jq needed

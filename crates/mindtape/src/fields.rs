@@ -15,6 +15,14 @@
 //! `Task` field behind it — see `filter::role_field`). `sort.rs` special-cases
 //! `status`/`ready`/`priority`/`difficulty` before falling back to this
 //! registry for everything else.
+//!
+//! `depth`, `topo` and `blocks` are *derived* entries: nothing authors them,
+//! the loader computes them (folder nesting; dependency level and transitive
+//! leverage — see `crate::dep_rank`). They enter here rather than being
+//! special-cased because they are plain numbers on `Task` by the time a filter
+//! or a sort sees one, so the generic comparator already orders them right —
+//! which is the whole point of a registry: a graph-derived rank becomes both
+//! `mt ls 'blocks > 3'` and `--sort blocks:desc` by being listed once.
 
 use crate::config::{Config, PriorityConfig};
 use crate::model::Task;
@@ -86,6 +94,14 @@ pub const FIELDS: &[FieldDef] = &[
     FieldDef {
         name: "depth",
         get: |task, _config| FieldValue::Num(task.depth.into()),
+    },
+    FieldDef {
+        name: "topo",
+        get: |task, _config| FieldValue::Num(task.topo.into()),
+    },
+    FieldDef {
+        name: "blocks",
+        get: |task, _config| FieldValue::Num(task.blocks.into()),
     },
 ];
 

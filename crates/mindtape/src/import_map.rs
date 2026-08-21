@@ -78,6 +78,8 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         tags,
         derived_tags: Vec::new(),
         depth: 0,
+        topo: 0,
+        blocks: 0,
         due: canonical.due.clone(),
         start: canonical.start.clone(),
         reviewed: canonical.reviewed.clone(),

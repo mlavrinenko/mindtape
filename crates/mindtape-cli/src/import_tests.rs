@@ -128,6 +128,12 @@ fn round_trips_the_batch_field_for_field_including_body() {
             .clone();
         actual.file.clone_from(&expected.file);
         actual.derived_tags.clone_from(&expected.derived_tags);
+        // Loader-derived from the whole set, like `derived_tags`, and written
+        // to no file: `task-alpha` depends on `task-beta`, so reloading gives
+        // it a graph position the authored fixture never carried. The import
+        // schema round-trips authored fields; the ranks are not one.
+        actual.topo = expected.topo;
+        actual.blocks = expected.blocks;
         actual.links.sort_by_key(link_sort_key);
 
         let mut expected = expected.clone();

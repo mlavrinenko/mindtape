@@ -306,6 +306,8 @@ fn stub_task() -> Task {
         tags: vec![],
         derived_tags: vec![],
         depth: 0,
+        topo: 0,
+        blocks: 0,
         due: None,
         start: None,
         reviewed: None,

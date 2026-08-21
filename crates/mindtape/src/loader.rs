@@ -98,6 +98,12 @@ pub fn load_project(root: &Path, config: &Config) -> LoadOutcome {
     harvest_misses(&misses, root, &overrides, &cache, &mut outcome);
 
     outcome.tasks.sort_by(|left, right| left.id.cmp(&right.id));
+    // Graph-derived ranks (`topo`, `blocks`) are facts about the whole set, so
+    // they are stamped on here — after every task is in and in id order — and
+    // never per file. Both are cheap graph walks over already-parsed `links:`,
+    // so no cache entry holds them: a task served from the cache gets the same
+    // ranks a freshly harvested one does.
+    crate::dep_rank::annotate(&mut outcome.tasks, config);
     outcome
 }
 

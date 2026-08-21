@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`topo` and `blocks`, the dependency graph as two sortable numbers** —
+  `links:` already carried the true working order of a backlog and no sort
+  read it: `--sort ready` ranks on a boolean, separating ready from blocked
+  without ordering either group, and `--sort depth` is folder nesting. A
+  scoring framework only makes it worse, ranking a task on its own properties
+  alone — so the decision five others depend on scores low for being expensive
+  and sorts last. `topo` is position: 0 for a task nothing blocks, else one
+  more than the deepest task it depends on, so ascending is a valid working
+  order. `blocks` is leverage: how many tasks transitively wait on this one.
+  Both are levels rather than queue numbers, so independent tasks tie and the
+  next spec decides — `--sort topo --sort priority:desc` is graph order with
+  priority inside a layer. Both are also filter fields (`mt ls 'blocks > 3'`),
+  because they enter the same field registry that already gives `--sort` and
+  the filter language one wiring. They read the same edges `ready` does
+  (`depends-on` plus any kind a project flags `blocking = true`), and differ
+  only on status: `topo` ignores it, since a finished dependency still sits
+  before its dependent in the graph, while `blocks` counts only unfinished
+  dependents and walks only through them — a done task blocks 0, so the number
+  shrinks as work closes, which is the point. `mt check` still rejects a
+  dependency cycle, but neither rank needs it to: a task on a loop keeps the
+  level its resolved dependencies gave it, and nothing hangs.
+
 - **`[handle] check-len`, the handle guard's width, per project** — a list
   handle is `<ordinal><check>`, where the ordinal is the task's position in the
   default view recomputed on every command and the check is derived from the
