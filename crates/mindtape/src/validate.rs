@@ -49,28 +49,25 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         check_id_format(task, config, &mut out);
         check_status(task, config, &mut out);
         for (name, field) in &config.tasks.fields {
-            check_enum_field(
-                task,
-                name,
-                field,
-                required.field(name, task, config),
-                &mut out,
-            );
+            let must = still_required(required.field(name, task, config), task, name);
+            check_enum_field(task, name, field, must, &mut out);
         }
         out.extend(crate::validate_priority::check_priority(
             task,
             &config.tasks.priority,
-            required.priority(task, config),
+            still_required(required.priority(task, config), task, "priority"),
         ));
         out.extend(check_numeric(
             task,
             "difficulty",
             &task.difficulty,
             &config.tasks.difficulty,
-            required.difficulty(task, config),
+            still_required(required.difficulty(task, config), task, "difficulty"),
         ));
-        check_estimate(task, config, required.estimate(task, config), &mut out);
-        check_assignee(task, config, required.assignee(task, config), &mut out);
+        let must_estimate = still_required(required.estimate(task, config), task, "estimate");
+        check_estimate(task, config, must_estimate, &mut out);
+        let must_assignee = still_required(required.assignee(task, config), task, "assignee");
+        check_assignee(task, config, must_assignee, &mut out);
         check_tags(task, config, &mut out);
         crate::validate_recur::check_all(task, config, &mut out);
     }
@@ -85,6 +82,37 @@ fn check_shape(task: &Task, out: &mut Vec<Violation>) {
     for err in &task.shape_errors {
         push(out, task, &err.field, err.message.clone());
     }
+}
+
+/// Whether the projection reported `name` ITSELF unreadable — a FIELD-level
+/// [`crate::marker::ShapeError`], whose path is the field name and nothing more.
+/// Exact equality is the whole test, and it is exact by that module's path
+/// convention rather than by luck: every element path EXTENDS the field name
+/// (`status.date`, `tags[1]`, `priority.inputs.ease`), so the one path equal to
+/// the name is the one case where the projection came away with nothing.
+fn shape_reported(task: &Task, name: &str) -> bool {
+    task.shape_errors.iter().any(|err| err.field == name)
+}
+
+/// A `required` answer with the fields the marker could not read at all masked
+/// out. A FIELD-level shape error means the author DID write the field and
+/// [`check_shape`] already reported it naming the type; "missing required" on
+/// top of that sends them to add a field that is on the page.
+///
+/// The mask sits HERE, at the input to each check, rather than as a pass over
+/// the finished violations: after the fact the only handle on the report to
+/// drop is its rendered message — `required field is missing`, spelled
+/// independently by four checks, and `missing required status` by a fifth — so
+/// filtering would pin prose no gate holds still and would equally swallow a
+/// genuinely different violation worded the same way. The `required` bool is
+/// the real input, and the input is what is wrong.
+///
+/// An ELEMENT error is deliberately NOT masked: it leaves the field itself
+/// readable, so the required check on what survives is correct and must fire.
+/// `estimate: (days: "two")` is an estimate whose only unit did not parse, and
+/// reporting both the element and the empty estimate is two true statements.
+fn still_required(required: bool, task: &Task, name: &str) -> bool {
+    required && !shape_reported(task, name)
 }
 
 fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
@@ -156,6 +184,11 @@ fn check_status(task: &Task, config: &Config, out: &mut Vec<Violation>) {
         return;
     }
     match &task.status {
+        // `status:` never passes through `RequiredRules` — a non-empty legend
+        // requires it unconditionally — so it takes the same mask by hand.
+        // See [`still_required`] for why the mask, and not a filter over the
+        // finished violations.
+        None if shape_reported(task, "status") => {}
         None => push(out, task, "status", "missing required status".to_owned()),
         Some(status) if !legend.contains(&status.name) => push(
             out,
@@ -382,3 +415,7 @@ mod tests;
 #[cfg(test)]
 #[path = "validate_tests_fields.rs"]
 mod tests_fields;
+
+#[cfg(test)]
+#[path = "validate_tests_shape.rs"]
+mod tests_shape;

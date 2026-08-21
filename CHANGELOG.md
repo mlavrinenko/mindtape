@@ -285,6 +285,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A wrong-typed required field is reported once, naming its type.** The shape
+  channel and the `required` rules both fired on the same field: `status: "wip"`
+  is a status the projection cannot read, so it degrades to absent, and
+  `mt check` printed the type report and then `status: missing required status`.
+  The second line was false — the author demonstrably wrote a status — and it
+  sent them to add a field already on the page, the exact misdirection the shape
+  reports were added to end. Every required core field a shape error empties
+  read the same way (`priority`, `difficulty`, `estimate`, `assignee`, and any
+  `[[tasks.fields]]` enum). A FIELD-level shape error now masks the `required`
+  answer for that field, and it masks it at the INPUT to each check rather than
+  as a filter over the finished violations: after the fact the only handle on
+  the report to drop is its rendered message, prose no gate holds still, spelled
+  independently by five checks, and which a genuinely different violation could
+  share. An ELEMENT error is deliberately not masked — it leaves the field
+  itself readable, so `estimate: (days: "two")` still reports both the
+  unreadable `estimate.days` and the empty `estimate` the required rule demands,
+  which are two true statements about one mistake.
 - **A wrong-typed element inside a well-shaped field is reported, not
   dropped.** `Task::from_marker` caught a wrong-typed FIELD (`links: "a.typ"`,
   `estimate: "2 days"`) and stopped there: one bad entry inside an otherwise

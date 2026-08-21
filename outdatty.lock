@@ -111,7 +111,7 @@ groups:
     source:
       Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b
     dependents:
-      CHANGELOG.md: 40da3f25820a52dff9354c39d0da21d0c4dcde1028a9ade12db6a23ec3642095
+      CHANGELOG.md: e56377c5574f051391a9d275fb44e44db90541b35fa0bd35580ad65bcebc776f
   sweep-dedup:
     source:
       contrib/ask-refactoring/coverage.sh: fa3101fae54260566e2edf743232104f4690f4cf5cfece1f550b6cb298f84d93
