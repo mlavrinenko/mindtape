@@ -13,7 +13,11 @@
   links: related("configure-the-handle-check-length-per-project.typ")[the guard
     that catches a stale ordinal; this one keeps it from going stale unnoticed],
   assignee: "max",
-  status: proposed(2026, 8, 20),
+  status: done(
+    2026,
+    8,
+    21,
+  )[one pre-batch and one post-batch default view; a moved handle prints, an unmoved one stays silent, and a task leaving the view names its stem],
 )
 
 == Summary
