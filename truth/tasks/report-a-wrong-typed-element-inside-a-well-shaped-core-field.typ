@@ -11,7 +11,11 @@
   tags: ("substrate",),
   estimate: (files: 3),
   assignee: "agent",
-  status: proposed(2026, 8, 20),
+  status: done(
+    2026,
+    8,
+    21,
+  )[every core field's projection reports its elements now (tags\[1\], estimate.days, priority.inputs.ease, status.date, recur.on\[1\]); the card render is total, so tags' accidental eval catch became a real shape error like the rest],
   links: related(
     "report-a-wrong-typed-core-field-instead-of-coercing-it-to-empty.typ",
   )[
@@ -21,6 +25,12 @@
     + related("array-form-links-silently-dropped.typ")[
       the one instance of this pattern already closed; the audit it asked for
       is what filed this
+    ]
+    + related(
+      "a-wrong-typed-required-field-is-reported-twice-the-second-time-as-missing.typ",
+    )[
+      the loud half this leaves open: a reported field still degrades to
+      absent, so a required one is reported missing on top
     ],
 )
 
