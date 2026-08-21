@@ -20,9 +20,52 @@
 # `${BASH_SOURCE[0]}`, so running the COPY (never the original) gives it a
 # copied REPO, and it globs the copy's own content/*.typ. site.typ resolves
 # tola.toml and www/generated/ relative to ITSELF rather than to the root, so
-# the copy needs no re-pointing, and www/generated/ rides along in the same
-# `cp -r` — it is already on disk by the time any `just check` arm reaches
-# this gate, so the producer needs no captures regenerated.
+# the copy needs no re-pointing.
+#
+# WHY IT REGENERATES FIRST. This header used to claim www/generated/ "rides
+# along in the same `cp -r` — it is already on disk by the time any `just
+# check` arm reaches this gate". That was true of a WARM checkout and only
+# there. The directory is gitignored (www/.gitignore) and written by the
+# docs-gen arm, which `just check` runs in PARALLEL with this one, so on a
+# cold tree — a fresh clone, or a `just fork` worktree, which warms no cache
+# by design — the producer's very first page query dies on `file not found`
+# for generated/crate-map.json (site.typ's PKG_VERSION), the positive control
+# fails, and cases 1 and 2 report "failed, but never named" without ever
+# reaching the mutation they exist to catch
+# (truth/tasks/site-pages-fixture-check-fails-on-a-cold-checkout.typ). That
+# reads exactly like this gate catching a real break in whatever change is
+# being gated, on the run that decides whether it is green.
+#
+# So the gate carries its own inputs, the way check-doc-facts.sh already
+# carries the same ones for the same stated reason: it runs www/generate.sh
+# itself rather than trusting whatever www/generated/ happens to hold. The
+# alternative — STUBBING the captures into the replica — is cheaper (no `mt`
+# build at all) and was rejected on what it costs the fixture. Querying one
+# `<page-meta>` block is a FULL COMPILE, so a stub owes every artifact any
+# page reads at the top level: crate-map.json, dsl-fields.json, cli.json,
+# config-schema.json, release-targets.json, site-pages.json, the generated
+# `just` MODULE, and a dozen transcripts and SVGs — and every capture
+# www/generate.sh grows later owes the stub one more, with nothing to fail
+# when it does not get it. A stub that falls behind fails the positive
+# control for an environmental reason, which is precisely the bug being fixed
+# here; a stub that keeps up is www/generate.sh with a second implementation
+# and a second place for the fixture to be wrong. Measured cost of the real
+# producer: 4s warm, on top of a debug `mt` build every other arm pays anyway.
+#
+# WHY NOT A `docs::gen` DEPENDENCY, the other option on the table. It would
+# put the captures on disk and then RELEASE target/www-generated.lock, and the
+# `cp -r` below is itself a READER of a directory the concurrent docs::check
+# arm `rm -rf`s on entry — the same trap that made check-doc-facts.sh hold the
+# lock across its typst queries and not merely across its own regenerate
+# (argued in www/utils/gate-notes.typ's header). The regenerate and the
+# snapshot have to sit inside ONE lock hold or the copy can still catch the
+# directory mid-rebuild, and a recipe dependency cannot express that. So the
+# lock is taken here, with the same fd-held idiom and MINDTAPE_GENERATED_LOCK
+# handshake www/generate.sh, docs/generate-md.sh and check-doc-facts.sh use,
+# and dropped the moment the snapshot exists: the three replica runs that
+# follow read nothing under the repo, and holding a repo-wide lock across ~45
+# page compiles would serialize docs::check and check-doc-facts behind this
+# gate for nothing.
 #
 # Cases 1 and 2 drive the replica's own copy of the real producer end to
 # end. Case 3 does not: catching a page missing from NAV lives in check-doc-
@@ -60,6 +103,21 @@ assert_catches() {
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
+# The captures every page compile reads, produced inside the lock the
+# snapshot below is taken under — see WHY IT REGENERATES FIRST above. The
+# producer's own output is held back unless it fails: a green run has nothing
+# to say here, and a red one has to name www/generate.sh rather than surface
+# three lines later as an unexplained positive-control failure.
+mkdir -p target
+exec 9>target/www-generated.lock
+flock 9
+export MINDTAPE_GENERATED_LOCK=1
+if ! gen_out=$(bash www/generate.sh 2>&1); then
+    printf '%s\n' "$gen_out" >&2
+    problem "could not regenerate www/generated/: the replica has no captures to compile against"
+    exit 1
+fi
+
 # Each variant needs its OWN parent dir, with the copy's leaf directory still
 # named "www": generate-site-pages.sh's REPO is the PARENT of the directory
 # it lives in (see its own header), so `$variant/www/generate-site-pages.sh`
@@ -69,6 +127,13 @@ trap 'rm -rf "$tmp"' EXIT
 # even in play.
 mkdir -p "$tmp/clean"
 cp -r www "$tmp/clean/www"
+
+# Snapshot taken: closing the fd releases the lock, and dropping the
+# handshake stops this process claiming to hold one — so each replica
+# producer takes its own lock over its own temp REPO, exactly as a standalone
+# run does.
+exec 9>&-
+unset MINDTAPE_GENERATED_LOCK
 
 # Positive control: the UNMUTATED replica must pass. Without this, a probe
 # that fails for an environmental reason (a missing tool, a broken `--root`)

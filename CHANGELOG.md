@@ -309,6 +309,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`site-pages-fixture-check` no longer fails on a cold checkout.** The gate
+  replicates `www/` with `cp -r` and runs the copy's own
+  `www/generate-site-pages.sh`, which needs `www/generated/*.json` — a
+  gitignored directory written by the `docs-gen` arm, which `just check` runs
+  in PARALLEL with this one. Its own header stated the assumption it broke on:
+  that the directory "rides along in the same `cp -r`", already on disk by the
+  time any arm reaches this gate. True of a warm checkout and only there. On a
+  fresh clone or a `just fork` worktree — which warms no cache by design — the
+  first page query died on `file not found` for `crate-map.json`, the positive
+  control failed, and two of the three cases reported "failed, but never
+  named": a red that is indistinguishable from the gate catching a real break,
+  arriving on the run that decides whether a change is green, naming a gate the
+  change never touched, and answered correctly by the same re-run a flaky-test
+  habit would order. The gate now produces its own inputs, `check-doc-facts`'s
+  idiom for the identical problem: `www/generate.sh` under
+  `target/www-generated.lock`, with the `cp -r` snapshot taken inside the same
+  lock hold and the lock dropped before the three replica compiles that need
+  nothing from the repo. Stubbing the captures instead was rejected as the
+  cheaper answer that costs the fixture — one `<page-meta>` query is a full
+  page compile, so a stub owes every artifact any page reads at the top level
+  and owes one more with every capture `www/generate.sh` grows; a stub that
+  falls behind fails the positive control for an environmental reason, which is
+  this bug again. Declaring a `docs-gen` dependency was rejected for a
+  different reason: it releases the lock before the copy runs, and the copy
+  reads a directory the concurrent `docs-check` arm `rm -rf`s on entry, so the
+  ordering it fixes is not the only one that matters. Costs one
+  `www/generate.sh`, 4s warm, against a verdict that used to depend on which
+  arm finished first.
 - **A wrong-typed required field is reported once, naming its type.** The shape
   channel and the `required` rules both fired on the same field: `status: "wip"`
   is a status the projection cannot read, so it degrades to absent, and

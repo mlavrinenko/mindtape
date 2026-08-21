@@ -230,7 +230,13 @@
     this gate pins is the thing that actually runs. A positive control
     asserts the unmutated replica passes, and every case asserts both a
     non-zero exit and that the failure names the offending page or route,
-    never the exit code alone. See
+    never the exit code alone. It regenerates `www/generated/` itself first
+    (`www/generate.sh`, inside the flock, the snapshot taken before the lock
+    drops) rather than reading what the parallel #just.docs-gen() arm may
+    have left: that directory is gitignored, so on a cold checkout the
+    replica had no captures to compile against and every case failed for want
+    of them — indistinguishable, on the run that decides, from the gate
+    catching a real break. See
     `.just/scripts/site-pages-fixture-check.sh`.
   ],
   "check-crap": [

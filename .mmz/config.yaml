@@ -597,6 +597,18 @@ commands:
   # script-scope-check's arm two cannot see a script calling another script.
   # `script-site-pages-fixture-check` is its own body, `gates-meta` the dev
   # shell typst/jq come from.
+  #
+  # `rust`, `policy`, `examples` and `file-size-config` arrived when the gate
+  # stopped assuming www/generated/ was already on disk and started producing
+  # it (truth/tasks/site-pages-fixture-check-fails-on-a-cold-checkout.typ):
+  # the body now runs www/generate.sh, so this rule reads everything
+  # `just docs::check` names for that same producer — the built `mt` and its
+  # sources, lib/prelude.typ, the learn-piano fixture it captures against —
+  # plus `file-size-config` for the .linecop.yaml generate-facts.sh reads back
+  # as linecop-caps.json, exactly as `just check-doc-facts` names it for
+  # running the same script. Four scopes a verdict rarely turns on, and
+  # naming them costs a re-run where not naming them would record a pass over
+  # a file the rule never hashed.
   - name: just site-pages-fixture-check
     tags: [gate]
-    inputs: [docs, gates-meta, script-site-pages-fixture-check, script-nav-diff]
+    inputs: [rust, policy, examples, file-size-config, docs, gates-meta, script-site-pages-fixture-check, script-nav-diff]
