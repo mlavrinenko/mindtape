@@ -11,7 +11,11 @@
   tags: ("gating",),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 8, 21),
+  status: done(
+    2026,
+    8,
+    21,
+  )[the gate regenerates www/generated itself inside the flock and snapshots the replica before the lock drops; verified cold with .mmz/cache deleted too, so the arm ran rather than skipped],
 )
 
 == Summary
