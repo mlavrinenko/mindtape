@@ -15,6 +15,10 @@
 //! up front), then the valid edits are applied and any resolution or post-edit
 //! validation problem is reported without rolling the rest back.
 //!
+//! A landed batch closes with one post-write pass over a single reload
+//! ([`crate::flip_batch`]): the revalidation above, and what the batch did to
+//! the handles the caller is holding ([`crate::flip_handles`]).
+//!
 //! `flip` is also the one command that runs the project's `[[on.flip]]` actions
 //! ([`crate::flip_hooks`]). They run per target, after the transition and
 //! note-requirement guards and before the write, so a refusing gate leaves that
@@ -22,14 +26,15 @@
 
 use std::collections::HashSet;
 use std::io::IsTerminal;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{Context, Result, anyhow, bail};
 use clap::{Args, Parser};
 use mindtape::config::Legend;
-use mindtape::{Config, load_config, load_project, status_value, today_ymd, validate};
+use mindtape::{Config, status_value, today_ymd};
 use typst_edit::apply;
 
+use crate::flip_batch::{Landed, after_batch};
 use crate::flip_hooks::{Hooks, Transition, note_with_overrides};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util::{self, Project};
@@ -139,6 +144,11 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
         }
     }
 
+    // The ordinals the caller is holding, read before any write: the report at
+    // the bottom is a diff against these, so it has to be taken while they are
+    // still true.
+    let before = crate::flip_handles::snapshot(project);
+
     let batch = Batch {
         project,
         args,
@@ -146,20 +156,16 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
         hooks: &Hooks::new(project, !args.quiet && std::io::stdout().is_terminal()),
         ymd: today_ymd(),
     };
-    let mut touched_ids = HashSet::new();
-    let mut touched_files = HashSet::new();
+    let mut landed = Landed::default();
     for (spec, task, abs) in &resolved {
         match flip_target(&batch, spec, task, abs) {
-            Ok(()) => {
-                touched_ids.insert(task.id.clone());
-                touched_files.insert(task.file.clone());
-            }
+            Ok(()) => landed.record(task),
             Err(problem) => problems.push(format!("{spec}: {problem}")),
         }
     }
 
-    if !touched_ids.is_empty() {
-        revalidate(&project.root, &touched_ids, &touched_files, &mut problems)?;
+    if !landed.is_empty() {
+        after_batch(&project.root, &landed, before.as_ref(), &mut problems)?;
     }
 
     if problems.is_empty() {
@@ -359,36 +365,6 @@ fn notice_recur(
             task.id, task.id
         ),
     }
-}
-
-/// Reload the project and append any load error or validation violation that
-/// touches a flipped file to `problems` (tolerant batch: writes are kept).
-fn revalidate(
-    root: &Path,
-    touched_ids: &HashSet<String>,
-    touched_files: &HashSet<PathBuf>,
-    problems: &mut Vec<String>,
-) -> Result<()> {
-    let config = load_config(root)?;
-    let outcome = load_project(root, &config);
-    for error in &outcome.errors {
-        if touched_files.contains(&error.file) {
-            problems.push(format!(
-                "{}: failed to load after flip: {}",
-                error.file.display(),
-                error.message
-            ));
-        }
-    }
-    for violation in validate(&outcome.tasks, &config) {
-        if touched_ids.contains(&violation.task_id) {
-            problems.push(format!(
-                "{}: {}: {}",
-                violation.task_id, violation.field, violation.message
-            ));
-        }
-    }
-    Ok(())
 }
 
 /// Warn when a legend value collides with a built-in subcommand name: the

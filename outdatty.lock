@@ -9,7 +9,7 @@ groups:
       crates/mindtape-cli/src/config_cmd.rs: 12d9f8d935aa44d2749e2e7ce4b47f0d87320aac2589444b101e5ed406ceed78
       crates/mindtape-cli/src/eval.rs: f062458f0f925ddbe77966de7dc62572875f3ee7ca6a2bd12bfd2dd3a4813e06
       crates/mindtape-cli/src/find.rs: 2524ada47afeb3d72c42b35ebf7e9e8c3774fbe4ec8f616186e2c2269228dfdd
-      crates/mindtape-cli/src/flip.rs: 9f52dfd0c8e843c69cf56a378790d98d7a67a752e44afe0853a70f6a82c1c9c5
+      crates/mindtape-cli/src/flip.rs: 5981e08580061b522733c4435875e1ca82b1b13be80ad59faeb7ea5de953a2d9
       crates/mindtape-cli/src/go.rs: 33b0f28d21337e8a8d93d229abaa922124cdd0f73db2b0c8a7fedffa3e5c346a
       crates/mindtape-cli/src/graph.rs: c576d262e16ba21c03e20c4535dabab61a18a2add62730e42103e49772f799e6
       crates/mindtape-cli/src/import.rs: bd6da22b9f1426cb39db97c93396e32c7684c79dc08a4282f84b513387841102
@@ -29,12 +29,12 @@ groups:
       crates/mindtape/src/defaults.toml: 983ed4eaaa12b9e8173f0a7881371d99fd5c026fbde9abb70ae418dd6995556e
       crates/mindtape/src/lib.rs: e291844edc330f4fbf843ed621ad2b27c016f7790014b1b9931cfa628e05c990
     dependents:
-      docs/src/skill.typ: 721d16f815112198398f228de4202e2f0df964eb798dd2307f38392fcf357010
+      docs/src/skill.typ: a3f249cb93e98321bfabf779fc6e01ad24edef2934320cec23b7b7582e484169
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/agents.typ: 405a2f3dd81ba4e4a205fb5c178804f4be8b3e057b6ef743328f957f17bc132f
-      www/content/cli.typ: 067119110be57e97fddcaeb606681b85c39cf7d658df34485ec1065ab94b0acd
+      www/content/cli.typ: a459369c3052241a9bcfb7a3f52717e1a38fe6b815ee6f30617915f10b599b5e
       www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
       www/content/config.typ: d223cb7d5949569f3ddd6549d86c9d7c189d60284f4e262519aaa6b1ebdaf3a0
       www/content/derived-tags.typ: df0c7aab4e3e9634eb8236b1ddfb426499b62f5f9b6c1fbc44a8b46d3c5bb17c
@@ -50,12 +50,12 @@ groups:
       crates/mindtape-cli/Cargo.toml: 9ce1e4d3844fc88e726278cc268a51a08a69a5894cacf5e2a86f5d3b689e8824
       crates/mindtape-cli/src/cli.rs: b05f73a88e9877931e9d66f587935c7b5751ea6c6911a3435246c1eb2772b24b
     dependents:
-      CHANGELOG.md: e56377c5574f051391a9d275fb44e44db90541b35fa0bd35580ad65bcebc776f
+      CHANGELOG.md: 0efd92f58457aa43e277bf8ea8508e47b9dd83c3959689acc420bfa89aa26255
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
       docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
-      docs/src/skill.typ: 721d16f815112198398f228de4202e2f0df964eb798dd2307f38392fcf357010
-      www/content/cli.typ: 067119110be57e97fddcaeb606681b85c39cf7d658df34485ec1065ab94b0acd
+      docs/src/skill.typ: a3f249cb93e98321bfabf779fc6e01ad24edef2934320cec23b7b7582e484169
+      www/content/cli.typ: a459369c3052241a9bcfb7a3f52717e1a38fe6b815ee6f30617915f10b599b5e
       www/content/index.typ: acc3d4572975bd4c7d8d92e12d63cad17bb27f53cf9666929460f132159ce662
       www/content/quickstart.typ: c7d440e651eb932edf9aac0d33ac0107b53b38622d39065a1413b62289c62c67
   dev-docs:
@@ -101,7 +101,7 @@ groups:
     dependents:
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
-      docs/src/skill.typ: 721d16f815112198398f228de4202e2f0df964eb798dd2307f38392fcf357010
+      docs/src/skill.typ: a3f249cb93e98321bfabf779fc6e01ad24edef2934320cec23b7b7582e484169
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
       www/content/dsl.typ: 1c9fdc28b3002d0db5596669ec869d2a26b4cf2898c3d7dcec9c10bebfd3fa71
@@ -111,7 +111,7 @@ groups:
     source:
       Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b
     dependents:
-      CHANGELOG.md: e56377c5574f051391a9d275fb44e44db90541b35fa0bd35580ad65bcebc776f
+      CHANGELOG.md: 0efd92f58457aa43e277bf8ea8508e47b9dd83c3959689acc420bfa89aa26255
   sweep-dedup:
     source:
       contrib/ask-refactoring/coverage.sh: fa3101fae54260566e2edf743232104f4690f4cf5cfece1f550b6cb298f84d93

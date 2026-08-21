@@ -83,9 +83,10 @@ The `#` column is a handle: an ordinal followed by check characters derived
 from the task's id. The ordinal is the task's position in the view #emph[as
   recomputed on every command], never a token the last listing handed out, so a
 flip that re-sorts or filters the list renumbers it under anyone still holding
-one. The check is what catches that — a handle whose ordinal moved resolves to
-a task whose check disagrees, and the command is refused rather than run
-against the wrong task. One character catches most such shifts; `[handle]
+one — which is why `mt flip` reports the refreshed handle of every task it
+moved. The check is what catches the rest — a handle whose ordinal moved
+resolves to a task whose check disagrees, and the command is refused rather
+than run against the wrong task. One character catches most shifts; `[handle]
 check-len` buys more at a character apiece, and a handle of any other length is
 then refused outright rather than matched as a prefix, since a short handle is
 a valid handle for some other task.
@@ -205,6 +206,15 @@ target entry declares `note = "required"`, `mt flip` refuses the move without
 `-m/--note` — no `--force` escape for this one. Tasks are referenced by slug,
 list handle (`1b`), or path. `mt flip --list` prints the shortcut verbs
 generated from the legend.
+
+A landed flip re-sorts the default view, so the batch closes by saying what
+that did to the handles you are holding: `handle <stem>: 1b → 3b` per flipped
+task whose ordinal moved, computed against one view taken before the batch and
+one after — not one per target, so a batch reports the ordinals that were on
+your screen rather than ones that existed only mid-batch. A task the flip
+filtered out of the view has no ordinal left, and the line says so naming the
+stem (`handle <stem>: 1b → none`), which still addresses it. A flip that moved
+nothing — a same-status re-stamp, typically — says nothing.
 
 `mt flip` is also the only command that runs a project's
 #link(u("/config/"))[`[[on.flip]]` hooks] — printing a message or a task list,

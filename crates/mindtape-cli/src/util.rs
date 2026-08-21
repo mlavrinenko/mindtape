@@ -202,7 +202,14 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
 /// and sort — so handle ordinals resolve to the same tasks the user reads
 /// off it. Columns play no part; they don't affect which tasks appear or in
 /// what order.
-fn default_view(project: &Project) -> Result<Vec<Task>> {
+///
+/// Shared with [`crate::flip_handles`], which reports what a flip did to those
+/// ordinals: it has to ask the same question this resolver answers, or it
+/// would print a handle the next command refuses.
+///
+/// # Errors
+/// Returns an error if the resolved filter or sort spec fails to parse.
+pub(crate) fn default_view(project: &Project) -> Result<Vec<Task>> {
     let (bundle, _applied) = crate::ls_rules::resolve_bare(project)?;
     let filter = Filter::parse(&bundle.filter)?;
     // Readiness over the full set, before the filter narrows the view, so a

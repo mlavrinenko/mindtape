@@ -14,6 +14,8 @@ mod config_cmd;
 mod eval;
 mod find;
 mod flip;
+mod flip_batch;
+mod flip_handles;
 mod flip_hooks;
 mod flip_hooks_cmd;
 mod git;

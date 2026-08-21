@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt flip` reports the handles it just invalidated** — a handle's ordinal is
+  the task's position in the default view, recomputed on every command, and a
+  flip re-sorts that view: `1b` is stale the moment the write it named lands,
+  and nothing the flip printed said so. The caller found out on the NEXT
+  command, from a check mismatch naming a task they never meant — the guard
+  firing exactly as designed, one command too late and about the wrong
+  question. A landed batch now closes with `handle <stem>: 1b → 3b`, one line
+  per flipped task whose ordinal moved. A task the flip filtered OUT of the
+  view has no ordinal left to hand back — `mt done` under the config floor's
+  `!terminal` filter, so the common case rather than an edge — and its line
+  says `→ none` naming the filename stem, which still addresses it; a flip
+  back INTO the view is the mirror and reads the same. A flip that moved
+  nothing says nothing, because a same-status re-stamp reorders nothing and a
+  line asserting that would train the reader to skip the line that matters.
+  The two views it diffs are taken once each, before the batch and after,
+  never once per target: the second rides the project reload the post-flip
+  revalidation already pays for, and a per-target recomputation would report
+  ordinals that existed only mid-batch — in `mt flip wip 1x 2f`, the second
+  target moving from the ordinal the first target's write had just vacated,
+  which was on nobody's screen. Only the flipped tasks are reported, not every
+  handle they displaced: the caller is holding the one they typed, and a
+  batch that renumbered a hundred rows would otherwise answer a question
+  nobody asked.
+
 - **`topo` and `blocks`, the dependency graph as two sortable numbers** —
   `links:` already carried the true working order of a backlog and no sort
   read it: `--sort ready` ranks on a boolean, separating ready from blocked

@@ -91,8 +91,8 @@ handle (the `#` column, e.g. `1b`). A handle is not a token from the last
 `mt ls`: its ordinal is the task's position in the default view
 #strong[recomputed on every command], so any flip that re-sorts or filters the
 list renumbers it, and the trailing check letters catch only most such shifts.
-Address a task by its filename stem for any second operation on a task you just
-flipped.
+A flip reports what it moved (`handle <stem>: 1b → 3b`, or `→ none` when it
+left the view); for any second operation, prefer the stem, which never moves.
 
 Reach for `mt <cmd> --help` only when a command errors or needs a flag this
 skill lacks. Legend, kinds, priority scale, and tags are per-project: read
