@@ -219,7 +219,7 @@
     Locks the docs manifest gate itself: two pages declaring the same route,
     a page with no `<page-meta>` block, and a page missing from
     `www/utils/site.typ`'s NAV were each demonstrated by hand once, when they
-    landed, and nothing since has proven they still fire. Runs a `cp -r www`
+    landed, and nothing since has proven they still fire. Runs a temp-tree
     replica's own copy of `www/generate-site-pages.sh` for the first two
     (never the working tree — #just.check()'s arms run in parallel, so a
     mutation there would be read as real by a concurrent gate), and pins the
@@ -236,8 +236,12 @@
     have left: that directory is gitignored, so on a cold checkout the
     replica had no captures to compile against and every case failed for want
     of them — indistinguishable, on the run that decides, from the gate
-    catching a real break. See
-    `.just/scripts/site-pages-fixture-check.sh`.
+    catching a real break. The replica is copied entry by entry so it can skip
+    `www/public/` and `www/.tola/` — gitignored build outputs no page compile
+    reads, both written by the parallel #just.docs-check() arm, so copying
+    them made this gate a reader of a tree another arm rewrites underneath it
+    for 8 MB of nothing. An assertion beside the copy fails the gate if either
+    reappears. See `.just/scripts/site-pages-fixture-check.sh`.
   ],
   "check-crap": [
     Editing any source stales the lcov, so it skips on the commits that

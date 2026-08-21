@@ -309,6 +309,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The `site-pages-fixture-check` replica no longer copies the docs site's
+  build output.** Its snapshot was a faithful `cp -r www`, which carried
+  `www/public/` (6.1 MB of built site and its pagefind index) and `www/.tola/`
+  (1.9 MB of tola's vdom cache) into every one of the three variants. Neither
+  is read by a page compile, both are gitignored, and both belong to the
+  `docs-check` arm `just check` runs in PARALLEL with this gate — so the
+  snapshot was a reader of a tree another arm rewrites underneath it, for 8 MB
+  per variant of nothing. The copy now walks `www/` entry by entry and skips
+  those two by name; an assertion beside it fails the gate if either reappears,
+  so a revert to the whole-tree form cannot land unnoticed. Excluded by name
+  rather than by copying an allow-list of what the pages need, because an
+  allow-list owes a line for every directory `www/` grows and fails the
+  positive control for an environmental reason on the day someone forgets one —
+  the failure mode this gate exists to be free of. One claim in the report that
+  filed this was measured and is false: neither `tola build` nor `pagefind`
+  wipes `public/` on entry, and a sentinel file dropped there survives both, so
+  this was never a `cp` racing an `rm -rf`. What is measured is that `tola
+  build` rewrites every `.tola/cache/*.vdom` and `index.json` in place on each
+  run, which leaves the copy walking a tree whose files another process is
+  replacing — a question about tola's write discipline that the gate has no
+  reason to be asking.
 - **`site-pages-fixture-check` no longer fails on a cold checkout.** The gate
   replicates `www/` with `cp -r` and runs the copy's own
   `www/generate-site-pages.sh`, which needs `www/generated/*.json` — a

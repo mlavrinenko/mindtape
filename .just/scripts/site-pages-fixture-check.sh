@@ -15,8 +15,9 @@
 # WHY A REPLICA. Mutating a page in the working tree to trip the producer
 # cannot run here: `just check` runs its arms `[parallel]`, so a concurrent
 # fmt-check/docs::check arm would read the mutation as real, and a failed
-# assertion would leave the repo half-mutated. `cp -r www <tmp>` is proven
-# to work instead: www/generate-site-pages.sh derives its own REPO from
+# assertion would leave the repo half-mutated. A copy of www/ under a temp
+# parent is proven to work instead (WHAT THE REPLICA LEAVES OUT, below, is the
+# one thing it does not copy): www/generate-site-pages.sh derives its REPO from
 # `${BASH_SOURCE[0]}`, so running the COPY (never the original) gives it a
 # copied REPO, and it globs the copy's own content/*.typ. site.typ resolves
 # tola.toml and www/generated/ relative to ITSELF rather than to the root, so
@@ -66,6 +67,34 @@
 # follow read nothing under the repo, and holding a repo-wide lock across ~45
 # page compiles would serialize docs::check and check-doc-facts behind this
 # gate for nothing.
+#
+# WHAT THE REPLICA LEAVES OUT. The snapshot copies www/ entry by entry so it
+# can skip two gitignored build outputs no page compile reads: public/ (6.1 MB
+# of built site, from `tola build` plus its pagefind index) and .tola/ (1.9 MB,
+# tola's own vdom cache). Both are OWNED by the docs::check arm `just check`
+# runs in PARALLEL with this one, and the copy is a reader of them — the same
+# shape as the captures problem above, one directory further out (truth/tasks/
+# the-site-pages-replica-copies-www-public-from-a-parallel-arm.typ).
+#
+# Measured, because the filed task assumed worse. Neither `tola build` nor
+# `pagefind` wipes public/ on entry — a sentinel file dropped there survives
+# both — so this is NOT a `cp` racing an `rm -rf`, and the paragraph above is
+# the only place in this script where that is the mechanism. What is measured
+# is that `tola build` rewrites every www/.tola/cache/*.vdom and index.json in
+# place on each run: the copy walks a tree another process is replacing files
+# inside, and whether that hands back a torn file or a vanished one is a
+# property of tola's write discipline, not of anything this gate controls. The
+# gate was paying 8 MB per variant, three variants, to stay exposed to a
+# question with no bearing on what it pins.
+#
+# Excluded BY NAME rather than by copying an allow-list of what the pages
+# need. An allow-list owes a line for every directory www/ grows, and the day
+# someone forgets one it fails the positive control for an ENVIRONMENTAL
+# reason — the failure mode this whole gate exists to be free of. A named
+# exclusion fails the other way: a new directory rides along and costs a copy.
+# The positive control below is what proves nothing a page reads was dropped,
+# and the assertion beside the copy is what stops a revert to a whole-tree
+# `cp -r www` putting both directories back unnoticed.
 #
 # Cases 1 and 2 drive the replica's own copy of the real producer end to
 # end. Case 3 does not: catching a page missing from NAV lives in check-doc-
@@ -125,8 +154,30 @@ fi
 # renaming the leaf itself (e.g. to `$tmp/clean`) breaks that derivation and
 # every page query fails "input file not found" before a single mutation is
 # even in play.
-mkdir -p "$tmp/clean"
-cp -r www "$tmp/clean/www"
+#
+# `dotglob` so www/.gitignore and www/.ignore ride along the way a whole-tree
+# `cp -r www` carried them; bash never yields `.`/`..` from a glob, so the
+# loop needs no guard against them. The two skipped names are argued in WHAT
+# THE REPLICA LEAVES OUT above. The variant copies below are made from THIS
+# snapshot, not from www/, so each of them is short the same two directories.
+mkdir -p "$tmp/clean/www"
+shopt -s dotglob
+for entry in www/*; do
+    case "${entry#www/}" in
+        public | .tola) continue ;;
+    esac
+    cp -r "$entry" "$tmp/clean/www/"
+done
+shopt -u dotglob
+
+# Regression pin for that exclusion: a revert to `cp -r www` would restore
+# both directories with nothing else in the gate reacting. Checked rather than
+# assumed because the whole point of the loop is a property of the copy.
+for skipped in public .tola; do
+    if [ -e "$tmp/clean/www/$skipped" ]; then
+        problem "replica copied www/$skipped: no page compile reads it and the parallel docs::check arm writes it"
+    fi
+done
 
 # Snapshot taken: closing the fd releases the lock, and dropping the
 # handshake stops this process claiming to hold one — so each replica

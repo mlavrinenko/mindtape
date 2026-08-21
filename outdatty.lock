@@ -83,7 +83,7 @@ groups:
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
       .just/scripts/script-attr-check.sh: a9c85174cfafb4e0d2edb585ae8c61e0b6cf1fbd2af9e65585f34d4d991d8640
       .just/scripts/script-scope-check.sh: 867b4070f0a6dee123bbd18ec7cc74fdb75fae73765adc261534942623ecc7da
-      .just/scripts/site-pages-fixture-check.sh: c1bc9fe9073c118ef94dc77f6de5044648bf5a2cefeec5eeb2db07d2a04d74ad
+      .just/scripts/site-pages-fixture-check.sh: aa40e196b692f4c0fb37385bfb5267bdf237c163daa9a57909a36f9cb871d91e
       .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
       Justfile: 5d742538dd4ec1c34cdce6fc222f3a5dd090dc32653d26642b56fca2eed66fc1
       flake.nix: 52fed03010204cf5b66d2110f00b59ed499909a05d41b8164fa23b07abc921b8
@@ -111,7 +111,7 @@ groups:
     source:
       Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b
     dependents:
-      CHANGELOG.md: c52042a24302978f17e08257167856dac5814fc031542e8e5eb25f603188b7ba
+      CHANGELOG.md: 7a655590d869478abf0f12a920706e6e98e983ff49365fbff482354a85075a47
   sweep-dedup:
     source:
       contrib/ask-refactoring/coverage.sh: fa3101fae54260566e2edf743232104f4690f4cf5cfece1f550b6cb298f84d93
