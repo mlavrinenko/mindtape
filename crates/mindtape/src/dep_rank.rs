@@ -49,6 +49,13 @@
 //! never reaches zero unresolved dependencies, so it keeps whatever level the
 //! resolved part of its history gave it. Both stay deterministic — every walk
 //! is seeded in the loader's id order.
+//!
+//! Neither walk is written as an unbounded `while let … pop_front()`. Each
+//! runs a `for` over the node count, which is the exact maximum a correct pass
+//! can pop, so the no-hang promise above is structural rather than argued from
+//! the visited check being right. That is also what a mutation sweep found:
+//! two mutants of these loops reached an unbounded state and timed out instead
+//! of failing a test.
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::Path;
@@ -175,7 +182,18 @@ impl<'a> Graph<'a> {
             .copied()
             .filter(|file| unresolved.get(file) == Some(&0))
             .collect();
-        while let Some(file) = queue.pop_front() {
+        // A `for` over a fixed range, not an unbounded `while let`: a task's
+        // countdown reaches zero exactly once, so a correct pass pops at most
+        // one entry per task, and holding the loop to that means a defect in
+        // the countdown ends the pass with a wrong level a test can catch
+        // rather than re-queueing forever. Two mutants of this loop reached
+        // exactly that unbounded state — see
+        // `docs/contributing/mutation-testing.md` on why a reproducible
+        // timeout is a finding.
+        for _ in 0..self.order.len() {
+            let Some(file) = queue.pop_front() else {
+                break;
+            };
             let next = level.get(file).copied().unwrap_or_default() + 1;
             for &dependent in self.blocking.get(file).into_iter().flatten() {
                 let slot = level.entry(dependent).or_default();
@@ -196,30 +214,52 @@ impl<'a> Graph<'a> {
     /// terminal task scores 0 without a walk.
     fn leverage(&self) -> HashMap<&'a Path, u32> {
         let mut out = HashMap::with_capacity(self.order.len());
+        // One pair of buffers reused across every walk rather than allocated
+        // per start — the walks are independent, and `waiting_on` resets them.
         let mut seen: HashSet<&'a Path> = HashSet::new();
         let mut queue: VecDeque<&'a Path> = VecDeque::new();
         for &start in &self.order {
-            if self.terminal.contains(start) {
-                out.insert(start, 0);
-                continue;
-            }
-            seen.clear();
-            seen.insert(start);
-            queue.clear();
-            queue.push_back(start);
-            let mut count = 0;
-            while let Some(file) = queue.pop_front() {
-                for &dependent in self.blocking.get(file).into_iter().flatten() {
-                    if self.terminal.contains(dependent) || !seen.insert(dependent) {
-                        continue;
-                    }
-                    count += 1;
-                    queue.push_back(dependent);
-                }
-            }
+            let count = if self.terminal.contains(start) {
+                0
+            } else {
+                self.waiting_on(start, &mut seen, &mut queue)
+            };
             out.insert(start, count);
         }
         out
+    }
+
+    /// How many non-terminal tasks `start` transitively blocks: a breadth-first
+    /// walk out along `blocking`, entering a task once and never entering a
+    /// terminal one. `seen`/`queue` are caller-owned scratch, reset here.
+    fn waiting_on(
+        &self,
+        start: &'a Path,
+        seen: &mut HashSet<&'a Path>,
+        queue: &mut VecDeque<&'a Path>,
+    ) -> u32 {
+        seen.clear();
+        seen.insert(start);
+        queue.clear();
+        queue.push_back(start);
+        let mut count = 0;
+        // Bounded for the same reason [`Self::levels`]'s loop is: `seen` admits
+        // each task once, so a correct walk pops at most one entry per task,
+        // and a `for` over that range turns a defect in the visited check into
+        // a wrong count a test catches rather than a hang.
+        for _ in 0..self.order.len() {
+            let Some(file) = queue.pop_front() else {
+                break;
+            };
+            for &dependent in self.blocking.get(file).into_iter().flatten() {
+                if self.terminal.contains(dependent) || !seen.insert(dependent) {
+                    continue;
+                }
+                count += 1;
+                queue.push_back(dependent);
+            }
+        }
+        count
     }
 }
 
