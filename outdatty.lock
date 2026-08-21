@@ -50,12 +50,12 @@ groups:
       crates/mindtape-cli/Cargo.toml: 9ce1e4d3844fc88e726278cc268a51a08a69a5894cacf5e2a86f5d3b689e8824
       crates/mindtape-cli/src/cli.rs: b05f73a88e9877931e9d66f587935c7b5751ea6c6911a3435246c1eb2772b24b
     dependents:
-      CHANGELOG.md: 40da3f25820a52dff9354c39d0da21d0c4dcde1028a9ade12db6a23ec3642095
-      docs/src/agents.typ: bd6d06065b7bbf238f73910ef035a76e071cd67d764f45f7243a63f1487716db
+      CHANGELOG.md: e56377c5574f051391a9d275fb44e44db90541b35fa0bd35580ad65bcebc776f
+      docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
       docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
-      docs/src/skill.typ: b082c170a7b631cc59686be25e873d78c8616ebe2e25777d6f41df41c6a30310
-      www/content/cli.typ: 5dfbd3ec7ddf472ced9f5e92d0d1f96d07bcd31d6b51dd0305fecfa0f533fefd
+      docs/src/skill.typ: 721d16f815112198398f228de4202e2f0df964eb798dd2307f38392fcf357010
+      www/content/cli.typ: 067119110be57e97fddcaeb606681b85c39cf7d658df34485ec1065ab94b0acd
       www/content/index.typ: acc3d4572975bd4c7d8d92e12d63cad17bb27f53cf9666929460f132159ce662
       www/content/quickstart.typ: c7d440e651eb932edf9aac0d33ac0107b53b38622d39065a1413b62289c62c67
   dev-docs:
@@ -88,7 +88,7 @@ groups:
       Justfile: 5d742538dd4ec1c34cdce6fc222f3a5dd090dc32653d26642b56fca2eed66fc1
       flake.nix: 52fed03010204cf5b66d2110f00b59ed499909a05d41b8164fa23b07abc921b8
     dependents:
-      docs/src/agents.typ: bd6d06065b7bbf238f73910ef035a76e071cd67d764f45f7243a63f1487716db
+      docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
       docs/src/contributing/coverage-crap.typ: c1535b887fa64383c94ea071eba3508cb7770a1b267cd72b66b9fc70bc2c2d8c
       docs/src/contributing/gates.typ: 9a27d9df9178c3dddc635936679fe08532f4963d2e851c5e33939cbffdd524b7
