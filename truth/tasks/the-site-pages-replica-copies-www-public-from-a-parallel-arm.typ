@@ -15,17 +15,11 @@
     2026,
     8,
     21,
-  )[Replica now copies www/ entry by entry, skipping www/public/ and www/.tola/ — both gitignored build outputs the parallel docs-check arm writes and no page compile reads. An assertion beside the copy fails the gate if either reappears. One premise here was wrong and is corrected in the commit: neither `tola build` nor `pagefind` wipes public/ (a sentinel survives both), so this was never a cp racing an rm -rf; what is measured is `tola build` rewriting every `.tola/cache/*.vdom` in place each run.],
+  )[Replica now copies www/ entry by entry, skipping www/public/ and www/.tola/ — both gitignored build outputs the parallel docs-check arm writes and no page compile reads. An assertion beside the copy fails the gate if either reappears. One premise here was wrong and is corrected in the commit: neither `tola build` nor `pagefind` wipes public/ (a sentinel survives both), so this was never a cp racing an rm -rf; what is measured is `tola build` rewriting every `.tola/cache/*.vdom` in place each run. The `just check` run that closed this also hit `mmz: i/o error: No such file or directory` on the check-secrets arm, exit 70, naming no file; that is mmz's own, filed upstream as its `mmz-an-i-o-error-while-hashing-an-input-names-no-path`.],
   links: related("site-pages-fixture-check-fails-on-a-cold-checkout.typ")[
     the same family, found while fixing that one: a gate reading a directory
     a parallel arm owns
-  ]
-    + related(
-      "mmz-died-hashing-check-secrets-inputs-during-a-parallel-just-check.typ",
-    )[
-      the reverse edge of that task's own link — filed from the `just check` run
-      that closed this one
-    ],
+  ],
 )
 
 == Summary
