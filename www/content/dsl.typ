@@ -174,6 +174,20 @@ priority frameworks, the `kind` enum, required-unless-terminal rules, bounds,
 and link resolution — is enforced by the Rust layer against your
 #link(u("/config/"))[config], at `mt check` time.
 
+So does every #strong[type]. A field holding the wrong shape, or one wrong
+element inside the right shape, is a `mt check` violation naming the position
+you can count to in your own source:
+
+```text
+tags[1]: expected a string, found a number
+estimate.days: expected a number, found a string
+recur.on[1]: expected a weekday name (mon, tue, wed, thu, fri, sat, sun), found `funday`
+```
+
+Nothing is dropped quietly, and none of it is the card render's business: the
+card is total, so a mistyped value still previews rather than failing the file
+with a message naming neither the field nor the task.
+
 = Editor support
 
 Every core field is a declared parameter of `task`, so a Typst language server

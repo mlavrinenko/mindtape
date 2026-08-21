@@ -9,7 +9,7 @@ use std::collections::BTreeMap;
 use super::tests::{config, task};
 use super::validate;
 use crate::config::{Config, FieldConfig, Requirement, parse_config};
-use crate::model::ShapeError;
+use crate::marker::ShapeError;
 use crate::numeric::NumValue;
 use crate::test_support::ice_priority;
 

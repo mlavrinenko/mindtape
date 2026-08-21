@@ -5,7 +5,7 @@ use std::path::Path;
 
 use typst_harvest::HVal;
 
-use super::{Status, Task, is_history_pointer, normalize_link, resolve_link_path, shape_error};
+use super::{Status, Task, is_history_pointer, normalize_link, resolve_link_path};
 use crate::numeric::{InputValue, NumValue};
 use crate::test_support::bare_task;
 
@@ -126,85 +126,6 @@ fn from_marker_tolerates_missing_fields() {
     assert!(task.status.is_none());
     assert!(task.tags.is_empty());
     assert!(task.shape_errors.is_empty());
-}
-
-/// Build a task from a marker whose only field is `field_name: value`, and
-/// assert it reports exactly one [`crate::model::ShapeError`] naming
-/// `field_name` and `expected_message` — shared setup for the wrong-shape
-/// tests below, each of which also checks its field still coerced to empty.
-fn assert_reports_shape_error(field_name: &str, value: HVal, expected_message: &str) -> Task {
-    let fields = dict(vec![(field_name, value)]);
-    let marker = dict(vec![
-        ("marker", HVal::Str("mindtape.task".to_owned())),
-        ("fields", fields),
-    ]);
-    let task = Task::from_marker("x".to_owned(), "x.typ".into(), &marker);
-    assert_eq!(task.shape_errors.len(), 1);
-    assert_eq!(task.shape_errors[0].field, field_name);
-    assert_eq!(task.shape_errors[0].message, expected_message);
-    task
-}
-
-/// `tags: ("backend")` — a Typst tuple missing its trailing comma, so a plain
-/// string rather than a one-element array — must not silently look like no
-/// tags authored at all: `from_marker` still coerces `tags` to empty (the
-/// field is typed `Vec<String>`), but now names the mismatch in
-/// `shape_errors` instead of leaving it unpoliced.
-#[test]
-fn from_marker_reports_tags_wrong_shape_instead_of_silent_empty() {
-    let task = assert_reports_shape_error(
-        "tags",
-        HVal::Str("backend".to_owned()),
-        "expected an array, found a string",
-    );
-    assert!(task.tags.is_empty());
-}
-
-/// `estimate: "2 days"` — a bare string rather than the `(unit: quantity)`
-/// dict — must likewise be reported, not silently coerced to an empty map.
-#[test]
-fn from_marker_reports_estimate_wrong_shape_instead_of_silent_empty() {
-    let task = assert_reports_shape_error(
-        "estimate",
-        HVal::Str("2 days".to_owned()),
-        "expected a dict, found a string",
-    );
-    assert!(task.estimate.is_empty());
-}
-
-/// `links: "a.typ"` — a bare string rather than an array of edges — must
-/// likewise be reported, not silently coerced to no edges.
-#[test]
-fn from_marker_reports_links_wrong_shape_instead_of_silent_empty() {
-    let task = assert_reports_shape_error(
-        "links",
-        HVal::Str("a.typ".to_owned()),
-        "expected an array, found a string",
-    );
-    assert!(task.links.is_empty());
-}
-
-/// `shape_error` names the Typst kind of the offending value in its message,
-/// via `hval_kind` — one arm per `HVal` variant. `Null` never reaches it
-/// through `from_marker` (the `field` helper filters nulls out), so it is
-/// exercised directly on the crate-level surface.
-#[test]
-fn shape_error_names_every_hval_kind() {
-    let cases = vec![
-        (HVal::Null, "none"),
-        (HVal::Bool(true), "a boolean"),
-        (HVal::Int(1), "a number"),
-        (HVal::Float(1.5), "a number"),
-        (HVal::Str("x".to_owned()), "a string"),
-        (HVal::Date("2026-01-01".to_owned()), "a date"),
-        (HVal::Array(vec![]), "an array"),
-        (HVal::Dict(BTreeMap::new()), "a dict"),
-    ];
-    for (value, kind) in cases {
-        let err = shape_error("tags", "an array", &value);
-        assert_eq!(err.field, "tags");
-        assert_eq!(err.message, format!("expected an array, found {kind}"));
-    }
 }
 
 #[test]

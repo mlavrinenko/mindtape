@@ -5,7 +5,10 @@ use std::path::{Path, PathBuf};
 
 use typst_harvest::HVal;
 
-use crate::numeric::{InputValue, NumValue};
+use crate::marker::{
+    ShapeError, field, field_str, parse_num_map, parse_num_value, parse_status, parse_str_array,
+};
+use crate::numeric::NumValue;
 
 /// A task's status: a lifecycle name plus when it was set and an optional note.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -16,18 +19,6 @@ pub struct Status {
     pub date: Option<String>,
     /// Free-form note.
     pub note: Option<String>,
-}
-
-/// A core field whose marker value did not match its expected Typst shape
-/// (e.g. a string where `tags:` expects an array). Detected during
-/// [`Task::from_marker`] — the only place that still sees the raw,
-/// un-degraded value — instead of silently coercing the field to empty.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ShapeError {
-    /// Field name (`tags`, `links`, `estimate`, `recur`).
-    pub field: String,
-    /// Human-readable cause, naming the expected shape and what was found.
-    pub message: String,
 }
 
 /// One task: the portable item model harvested from a per-file artifact.
@@ -96,9 +87,11 @@ pub struct Task {
     pub recur: Option<crate::recur::Recur>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     pub extras: BTreeMap<String, HVal>,
-    /// Core fields present in the marker but the wrong Typst shape — coerced
-    /// to empty/absent same as an absent field, but flagged here so `check`
-    /// can report it instead of staying silent. See [`ShapeError`].
+    /// Core fields — and elements inside them — present in the marker but the
+    /// wrong Typst shape: coerced to empty/absent same as an absent field, but
+    /// flagged here so `check` can report it instead of staying silent. Each
+    /// names the position it was found at (`tags[1]`, `estimate.days`). See
+    /// [`ShapeError`] and [`crate::marker`].
     pub shape_errors: Vec<ShapeError>,
     /// Raw Typst source after the `#show: task.with(…)` marker — the prose body
     /// (`== Summary`, notes), verbatim and whitespace-trimmed. Populated by the
@@ -114,6 +107,11 @@ impl Task {
     ///
     /// An explicit non-empty `id:` in `fields` wins; otherwise the `stem` is
     /// used as the identity.
+    ///
+    /// Every field is projected through [`crate::marker`], so a value the
+    /// projection cannot read — the field itself or an element inside it —
+    /// lands in [`shape_errors`](Self::shape_errors) instead of reading as
+    /// unset.
     #[must_use]
     pub fn from_marker(stem: String, file: PathBuf, marker: &HVal) -> Self {
         let fields = marker.get("fields");
@@ -122,22 +120,22 @@ impl Task {
             .and_then(HVal::as_dict)
             .cloned()
             .unwrap_or_default();
-        let explicit_id = field_str(fields, "id").filter(|s| !s.is_empty());
+        let mut errors = Vec::new();
+        let explicit_id = field_str(fields, "id", &mut errors).filter(|s| !s.is_empty());
         let id = explicit_id.unwrap_or(stem);
-        let mut shape_errors = Vec::new();
-        let tags = parse_str_array(field(fields, "tags"), "tags", &mut shape_errors);
-        let estimate = parse_num_map(field(fields, "estimate"), "estimate", &mut shape_errors);
-        let links = crate::link::parse_links(field(fields, "links"), &mut shape_errors);
-        let recur = crate::recur::parse_recur(field(fields, "recur"), &mut shape_errors);
+        let tags = parse_str_array(field(fields, "tags"), "tags", &mut errors);
+        let estimate = parse_num_map(field(fields, "estimate"), "estimate", &mut errors);
+        let links = crate::link::parse_links(field(fields, "links"), &mut errors);
+        let recur = crate::recur::parse_recur(field(fields, "recur"), &mut errors);
         Self {
             id,
             file,
-            title: field_str(fields, "title").unwrap_or_default(),
-            status: parse_status(field(fields, "status")),
-            priority: parse_num_value(field(fields, "priority")),
-            difficulty: parse_num_value(field(fields, "difficulty")),
-            kind: field_str(fields, "kind"),
-            assignee: field_str(fields, "assignee").filter(|s| !s.is_empty()),
+            title: field_str(fields, "title", &mut errors).unwrap_or_default(),
+            status: parse_status(field(fields, "status"), &mut errors),
+            priority: parse_num_value(field(fields, "priority"), "priority", &mut errors),
+            difficulty: parse_num_value(field(fields, "difficulty"), "difficulty", &mut errors),
+            kind: field_str(fields, "kind", &mut errors),
+            assignee: field_str(fields, "assignee", &mut errors).filter(|s| !s.is_empty()),
             estimate,
             links,
             tags,
@@ -145,12 +143,12 @@ impl Task {
             depth: 0,
             topo: 0,
             blocks: 0,
-            due: field_str(fields, "due"),
-            start: field_str(fields, "start"),
-            reviewed: field_str(fields, "reviewed"),
+            due: field_str(fields, "due", &mut errors),
+            start: field_str(fields, "start", &mut errors),
+            reviewed: field_str(fields, "reviewed", &mut errors),
             recur,
             extras,
-            shape_errors,
+            shape_errors: errors,
             body: String::new(),
         }
     }
@@ -263,129 +261,6 @@ fn push_components<'a>(out: &mut Vec<&'a str>, path: &'a Path) -> Option<()> {
         }
     }
     Some(())
-}
-
-fn field<'a>(fields: Option<&'a HVal>, key: &str) -> Option<&'a HVal> {
-    fields
-        .and_then(|dict| dict.get(key))
-        .filter(|value| !value.is_null())
-}
-
-fn field_str(fields: Option<&HVal>, key: &str) -> Option<String> {
-    field(fields, key)
-        .and_then(HVal::as_str)
-        .map(ToOwned::to_owned)
-}
-
-fn parse_status(value: Option<&HVal>) -> Option<Status> {
-    let dict = value?;
-    let name = dict.get("name").and_then(HVal::as_str)?.to_owned();
-    Some(Status {
-        name,
-        date: dict
-            .get("date")
-            .and_then(HVal::as_str)
-            .map(ToOwned::to_owned),
-        note: dict
-            .get("note")
-            .and_then(HVal::as_str)
-            .map(ToOwned::to_owned),
-    })
-}
-
-/// Project a marker field into a numeric-field value: a number becomes
-/// [`NumValue::Num`], a framework dict (`(framework: …, inputs: …)`) a
-/// [`NumValue::Framework`], a string a [`NumValue::Label`]; else absent.
-fn parse_num_value(value: Option<&HVal>) -> Option<NumValue> {
-    let value = value?;
-    if let Some(num) = value.as_f64() {
-        return Some(NumValue::Num(num));
-    }
-    if let Some(dict) = value.as_dict() {
-        let name = dict.get("framework").and_then(HVal::as_str)?;
-        return Some(NumValue::Framework {
-            name: name.to_owned(),
-            inputs: parse_inputs(dict.get("inputs")),
-        });
-    }
-    value.as_str().map(|text| NumValue::Label(text.to_owned()))
-}
-
-/// Project the `inputs` dict of a framework value into typed input values.
-fn parse_inputs(value: Option<&HVal>) -> BTreeMap<String, InputValue> {
-    value
-        .and_then(HVal::as_dict)
-        .map(|dict| {
-            dict.iter()
-                .filter_map(|(key, val)| input_value(val).map(|iv| (key.clone(), iv)))
-                .collect()
-        })
-        .unwrap_or_default()
-}
-
-fn input_value(value: &HVal) -> Option<InputValue> {
-    match value {
-        HVal::Bool(flag) => Some(InputValue::Bool(*flag)),
-        HVal::Int(_) | HVal::Float(_) => value.as_f64().map(InputValue::Num),
-        HVal::Str(text) => Some(InputValue::Text(text.clone())),
-        _ => None,
-    }
-}
-
-fn parse_num_map(
-    value: Option<&HVal>,
-    field_name: &str,
-    errors: &mut Vec<ShapeError>,
-) -> BTreeMap<String, f64> {
-    let Some(value) = value else {
-        return BTreeMap::new();
-    };
-    let Some(dict) = value.as_dict() else {
-        errors.push(shape_error(field_name, "a dict", value));
-        return BTreeMap::new();
-    };
-    dict.iter()
-        .filter_map(|(key, val)| val.as_f64().map(|num| (key.clone(), num)))
-        .collect()
-}
-
-fn parse_str_array(
-    value: Option<&HVal>,
-    field_name: &str,
-    errors: &mut Vec<ShapeError>,
-) -> Vec<String> {
-    let Some(value) = value else {
-        return Vec::new();
-    };
-    let Some(items) = value.as_array() else {
-        errors.push(shape_error(field_name, "an array", value));
-        return Vec::new();
-    };
-    items
-        .iter()
-        .filter_map(|item| item.as_str().map(ToOwned::to_owned))
-        .collect()
-}
-
-/// Build a [`ShapeError`] naming `field_name`, the expected shape, and the
-/// Typst kind of what was actually found.
-pub(crate) fn shape_error(field_name: &str, expected: &str, value: &HVal) -> ShapeError {
-    ShapeError {
-        field: field_name.to_owned(),
-        message: format!("expected {expected}, found {}", hval_kind(value)),
-    }
-}
-
-fn hval_kind(value: &HVal) -> &'static str {
-    match value {
-        HVal::Null => "none",
-        HVal::Bool(_) => "a boolean",
-        HVal::Int(_) | HVal::Float(_) => "a number",
-        HVal::Str(_) => "a string",
-        HVal::Date(_) => "a date",
-        HVal::Array(_) => "an array",
-        HVal::Dict(_) => "a dict",
-    }
 }
 
 #[cfg(test)]

@@ -303,7 +303,9 @@ Rules to respect:
   rejects the file. `https://…` is safe (Typst auto-links it), but
   `file://`, other URL schemes, and any literal `//` are not — put those in
   backticks.
-- After any hand edit, run `mt check`.
+- After any hand edit, run `mt check`. A wrong-typed value is a violation
+  naming its position (`tags[1]`, `estimate.days`, `recur.on[1]`), never a
+  silently unset field.
 
 = When the tool fights you
 

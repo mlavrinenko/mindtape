@@ -177,7 +177,14 @@ The seam that decides which layer a change belongs in:
   the numeric priority/difficulty scales and classification, priority frameworks
   (scoring, in-bounds by construction), the edge-kind enum and its per-kind rules,
   the `required` rules (a filter expression per field), bounds, and link
-  resolution.
+  resolution. Types too — `crates/mindtape/src/marker.rs` reports a wrong-shaped
+  field, and any wrong-typed element inside a well-shaped one, naming the
+  position (`tags[1]`, `estimate.days`, `recur.on[1]`).
+- The card render enforces nothing. It is total by construction — every accessor
+  type-guards, `_scalar` falls back to `repr` — so a wrong-typed value reaches
+  the marker instead of failing eval on a method it does not have. An eval error
+  there names neither the field nor the task, and disappears the moment the
+  render stops making that call.
 - Consumers validate their own `x-<ns>` fields. MindTape carries them through
   untouched.
 

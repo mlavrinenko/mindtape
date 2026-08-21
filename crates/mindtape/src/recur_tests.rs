@@ -4,11 +4,11 @@ use chrono::Weekday;
 
 use super::*;
 
-fn dict(pairs: Vec<(&str, HVal)>) -> HVal {
+pub(super) fn dict(pairs: Vec<(&str, HVal)>) -> HVal {
     HVal::Dict(pairs.into_iter().map(|(k, v)| (k.to_owned(), v)).collect())
 }
 
-fn period_rule(unit: &str, value: i64, on: Option<HVal>) -> HVal {
+pub(super) fn period_rule(unit: &str, value: i64, on: Option<HVal>) -> HVal {
     let mut fields = vec![
         ("kind", HVal::Str("period".to_owned())),
         ("unit", HVal::Str(unit.to_owned())),
@@ -18,7 +18,7 @@ fn period_rule(unit: &str, value: i64, on: Option<HVal>) -> HVal {
     dict(fields)
 }
 
-fn every_val(rule: HVal, policy: Vec<(&str, HVal)>) -> HVal {
+pub(super) fn every_val(rule: HVal, policy: Vec<(&str, HVal)>) -> HVal {
     let mut fields = vec![("rule", rule)];
     for (k, v) in policy {
         fields.push((k, v));
@@ -28,7 +28,7 @@ fn every_val(rule: HVal, policy: Vec<(&str, HVal)>) -> HVal {
 
 /// [`parse_recur`] without caring about shape errors — most tests here feed
 /// it a well-shaped dict; shape-error tests call `parse_recur` directly.
-fn parse(value: Option<&HVal>) -> Option<Recur> {
+pub(super) fn parse(value: Option<&HVal>) -> Option<Recur> {
     parse_recur(value, &mut Vec::new())
 }
 
@@ -101,41 +101,6 @@ fn parse_recur_rrule_rule() {
         Rule::Rrule {
             raw: "FREQ=MONTHLY;BYDAY=1MO".to_owned(),
         }
-    );
-}
-
-#[test]
-fn parse_recur_missing_rule_kind_is_none() {
-    let val = dict(vec![("rule", dict(vec![]))]);
-    assert_eq!(parse(Some(&val)), None);
-}
-
-#[test]
-fn parse_recur_unknown_unit_is_none() {
-    let val = every_val(period_rule("fortnights", 1, None), vec![]);
-    assert_eq!(parse(Some(&val)), None);
-}
-
-#[test]
-fn parse_recur_non_dict_value_is_none() {
-    assert_eq!(parse(Some(&HVal::Str("nope".to_owned()))), None);
-}
-
-#[test]
-fn parse_recur_non_array_on_reports_shape_error_not_silent_empty() {
-    let on = HVal::Str("mon".to_owned());
-    let val = every_val(period_rule("weeks", 1, Some(on)), vec![]);
-    let mut errors = Vec::new();
-    let recur = parse_recur(Some(&val), &mut errors).unwrap();
-    let Rule::Period { weekdays, .. } = recur.rule else {
-        panic!("expected a period rule");
-    };
-    assert!(weekdays.is_empty());
-    assert_eq!(errors.len(), 1);
-    assert_eq!(errors[0].field, "recur");
-    assert_eq!(
-        errors[0].message,
-        "expected an array for `on:`, found a string"
     );
 }
 

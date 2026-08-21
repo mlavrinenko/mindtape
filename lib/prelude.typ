@@ -328,10 +328,16 @@
   failed: (rgb("#b3453f"), rgb("#fbe6e4")),
 )
 
-// Scalar → plain string (bools read as yes/no; numbers and strings pass through).
-#let _scalar(v) = if type(v) == bool { if v { "yes" } else { "no" } } else {
-  str(v)
-}
+// Scalar → plain string (bools read as yes/no; numbers and strings pass
+// through). TOTAL by construction — anything else renders as its `repr` rather
+// than failing `str()`. The render layer owes nobody validation: a wrong-typed
+// value must reach the marker so the Rust layer can report it by field and
+// position (`tags[1]`, `estimate.days`), which an eval error here naming
+// neither the field nor the task cannot do. Every accessor below is defensive
+// for the same reason.
+#let _scalar(v) = if type(v) == bool { if v { "yes" } else { "no" } } else if (
+  type(v) == str
+) { v } else if type(v) == int or type(v) == float { str(v) } else { repr(v) }
 
 // A framework value is a `(framework, inputs)` dict; a raw priority is an int/float.
 #let _framework-name(v) = if type(v) == dictionary and "framework" in v {
@@ -350,14 +356,14 @@
 
 // Status pill (name only) and the meta-grid detail (name + date), each or none.
 #let _status-pill(st) = {
-  if st == none { return none }
+  if type(st) != dictionary { return none }
   let name = st.at("name", default: none)
   if name == none { return none }
   let style = _status-styles.at(name, default: (luma(80), luma(230)))
   _pill(name, fg: style.at(0), bg: style.at(1))
 }
 #let _status-detail(st) = {
-  if st == none { return none }
+  if type(st) != dictionary { return none }
   let name = st.at("name", default: none)
   if name == none { return none }
   let date = st.at("date", default: none)
@@ -435,7 +441,7 @@
   } else { none }
   let on = rule.at("on", default: none)
   if type(on) == array and on.len() > 0 {
-    let days = on.join(", ")
+    let days = on.map(_scalar).join(", ")
     if core == none { "on " + days } else { core + " on " + days }
   } else { core }
 }
@@ -466,7 +472,7 @@
 #let _fmt-date(d) = {
   if d == none { none } else if type(d) == datetime {
     d.display("[year]-[month]-[day]")
-  } else { str(d) }
+  } else { _scalar(d) }
 }
 
 // The bare stem of a link target (`../sub/other.typ` → `other`).
@@ -518,7 +524,7 @@
   stroke: 0.5pt + luma(212),
   inset: (x: 0.45em, y: 0.2em),
   radius: 4pt,
-  text(size: 0.72em, fill: luma(90), raw(t)),
+  text(size: 0.72em, fill: luma(90), raw(_scalar(t))),
 )
 #let _tags-row(tags) = {
   if type(tags) != array or tags.len() == 0 { return none }
@@ -564,14 +570,14 @@
   if pills.len() > 0 { block(below: 0.5em, pills.join(h(0.4em))) }
 
   let title = m.at("title", default: "")
-  if title != none and title != "" {
+  if type(title) == str and title != "" {
     block(below: 0.35em, text(size: 1.55em, weight: "bold", title))
   }
 
-  let note = if status == none { none } else {
+  let note = if type(status) != dictionary { none } else {
     status.at("note", default: none)
   }
-  if note != none {
+  if type(note) == str or type(note) == content {
     block(below: 0.6em, text(fill: _muted, style: "italic", note))
   }
 

@@ -285,6 +285,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A wrong-typed element inside a well-shaped field is reported, not
+  dropped.** `Task::from_marker` caught a wrong-typed FIELD (`links: "a.typ"`,
+  `estimate: "2 days"`) and stopped there: one bad entry inside an otherwise
+  correct field was discarded in silence. `estimate: (days: "two")` loaded as
+  no estimate, `priority: (8, 9)` as no priority, `kind: 7` / `assignee: 5` /
+  `due: 42` as unset, `every(weeks: 2, on: ("mon", "funday"))` as a period
+  narrowed to one day the author never asked for. Every projection now reports
+  the position an author can count to in their own source — `tags[1]`,
+  `estimate.days`, `priority.inputs.ease`, `status.date`, `recur.on[1]`,
+  `recur.weeks` — the way `links[1][0]` already did, and `mt check` fails on it
+  regardless of config, since a type mismatch is never a matter of policy. The
+  entries that DO read survive, so one mistyped tag costs one report and not
+  the field. A `none` dict entry still reads as an unset key (`ice(impact: 8)`
+  passes `confidence: none` through by construction); a `none` array element is
+  a value the author wrote, and is reported.
+- **The card render stopped standing in for validation.** `tags: ("x", 7)`,
+  `status: "wip"` and an `on:` set mixing types used to fail at *eval* — not by
+  design, but because the prelude's card reached for `raw(tag)`,
+  `status.at("name")` and `on.join(", ")` on values that had no such method.
+  That message named neither the field nor the task, and would have vanished
+  the moment the render stopped making the call. The render is total now (every
+  accessor type-guards; `_scalar` falls back to `repr`), so those values reach
+  the marker and get the report above. The prelude still rejects the argument
+  shapes it would otherwise DROP before the marker — that half is unchanged,
+  and remains the only thing it can usefully assert.
 - **An injected argument brings its own separator.** `mt add` writes its
   `status:` (and `id:`) into whatever `task.with(…)` the template declares, and
   the insertion landed just before the closing paren — correct only when a

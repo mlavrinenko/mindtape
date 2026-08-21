@@ -146,55 +146,85 @@ impl Default for RecurConfig {
     }
 }
 
-/// Parse the `recur` marker field into a [`Recur`], or `None` when absent or
-/// malformed (an authored `recur` only ever comes from `every()`/`rrule()`,
-/// which always shape it correctly; a hand-edited malformed dict is treated
-/// as absent, the same tolerant style as the rest of the model) — except for
-/// `on:`, whose shape is checked and reported into `errors` even when the
-/// rest of the rule parses cleanly; see [`crate::model::ShapeError`].
+/// What a `recur:` field accepts, for the reports below.
+const RECUR_EXPECTED: &str = "a recurrence like `every(weeks: 2)`";
+/// What one entry of a period's `on:` set accepts.
+const WEEKDAY_EXPECTED: &str = "a weekday name (mon, tue, wed, thu, fri, sat, sun)";
+
+/// Parse the `recur` marker field into a [`Recur`], or `None` when absent.
+///
+/// An authored `recur` only ever comes from `every()`/`rrule()`, which shape
+/// the dict correctly — so anything this cannot read is a value the author
+/// passed through one of those helpers (`every(weeks: "two")`, an `on:` entry
+/// that is not a weekday) or a hand-edited dict. Either way it is reported
+/// into `errors` as a [`crate::marker::ShapeError`] rather than read as no
+/// recurrence at all. Reports name the AUTHORED position — `recur.on[1]`,
+/// `recur.weeks` — since that is what the author can count to in their own
+/// source; only a shape no helper can produce is named by its marker path
+/// (`recur.rule`).
 #[must_use]
 pub fn parse_recur(
     value: Option<&HVal>,
-    errors: &mut Vec<crate::model::ShapeError>,
+    errors: &mut Vec<crate::marker::ShapeError>,
 ) -> Option<Recur> {
-    let dict = value?.as_dict()?;
-    let rule = parse_rule(dict.get("rule"), errors)?;
+    let value = value?;
+    let Some(dict) = value.as_dict() else {
+        errors.push(crate::marker::shape_error("recur", RECUR_EXPECTED, value));
+        return None;
+    };
+    let rule = parse_rule(dict, errors)?;
     Some(Recur {
         rule,
-        anchor: str_field(dict, "anchor"),
-        until: str_field(dict, "until"),
-        count: dict.get("count").and_then(as_u32),
-        materialize: str_field(dict, "materialize"),
+        anchor: crate::marker::dict_str(dict, "recur", "anchor", errors),
+        until: crate::marker::dict_str(dict, "recur", "until", errors),
+        count: parse_count(dict, errors),
+        materialize: crate::marker::dict_str(dict, "recur", "materialize", errors),
     })
 }
 
-fn str_field(dict: &std::collections::BTreeMap<String, HVal>, key: &str) -> Option<String> {
-    dict.get(key)
-        .filter(|v| !v.is_null())
-        .and_then(HVal::as_str)
-        .map(ToOwned::to_owned)
-}
-
-fn parse_rule(value: Option<&HVal>, errors: &mut Vec<crate::model::ShapeError>) -> Option<Rule> {
-    let dict = value?.as_dict()?;
-    match dict.get("kind").and_then(HVal::as_str)? {
+fn parse_rule(
+    outer: &std::collections::BTreeMap<String, HVal>,
+    errors: &mut Vec<crate::marker::ShapeError>,
+) -> Option<Rule> {
+    let Some(value) = outer.get("rule").filter(|v| !v.is_null()) else {
+        errors.push(crate::marker::shape_message(
+            "recur",
+            &format!("expected {RECUR_EXPECTED}, found one with no `rule`"),
+        ));
+        return None;
+    };
+    let Some(dict) = value.as_dict() else {
+        errors.push(crate::marker::shape_error("recur.rule", "a dict", value));
+        return None;
+    };
+    match crate::marker::dict_str_required(dict, "recur.rule", "kind", errors)?.as_str() {
         "period" => parse_period_rule(dict, errors),
         "rrule" => Some(Rule::Rrule {
-            raw: dict.get("raw").and_then(HVal::as_str)?.to_owned(),
+            raw: crate::marker::dict_str_required(dict, "recur.rule", "raw", errors)?,
         }),
-        _ => None,
+        other => {
+            errors.push(crate::marker::shape_message(
+                "recur.rule.kind",
+                &format!("expected `period` or `rrule`, found `{other}`"),
+            ));
+            None
+        }
     }
 }
 
 fn parse_period_rule(
     dict: &std::collections::BTreeMap<String, HVal>,
-    errors: &mut Vec<crate::model::ShapeError>,
+    errors: &mut Vec<crate::marker::ShapeError>,
 ) -> Option<Rule> {
-    let unit = dict
-        .get("unit")
-        .and_then(HVal::as_str)
-        .and_then(PeriodUnit::parse)?;
-    let value = dict.get("value").and_then(as_u32)?;
+    let name = crate::marker::dict_str_required(dict, "recur.rule", "unit", errors)?;
+    let Some(unit) = PeriodUnit::parse(&name) else {
+        errors.push(crate::marker::shape_message(
+            "recur.rule.unit",
+            &format!("expected one of days, weeks, months, years, found `{name}`"),
+        ));
+        return None;
+    };
+    let value = period_value(dict, &name, errors)?;
     let weekdays = parse_weekdays(dict.get("on"), errors);
     Some(Rule::Period {
         unit,
@@ -203,30 +233,76 @@ fn parse_period_rule(
     })
 }
 
+/// A period's length, reported against the argument that carried it —
+/// `every(weeks: "two")` reports `recur.weeks`, not the marker's `rule.value`.
+fn period_value(
+    dict: &std::collections::BTreeMap<String, HVal>,
+    unit_name: &str,
+    errors: &mut Vec<crate::marker::ShapeError>,
+) -> Option<u32> {
+    let path = format!("recur.{unit_name}");
+    let Some(value) = dict.get("value").filter(|v| !v.is_null()) else {
+        errors.push(crate::marker::shape_message(
+            &path,
+            "expected a whole number, found none",
+        ));
+        return None;
+    };
+    let Some(num) = as_u32(value) else {
+        errors.push(crate::marker::shape_error(&path, "a whole number", value));
+        return None;
+    };
+    Some(num)
+}
+
+fn parse_count(
+    dict: &std::collections::BTreeMap<String, HVal>,
+    errors: &mut Vec<crate::marker::ShapeError>,
+) -> Option<u32> {
+    let value = dict.get("count").filter(|v| !v.is_null())?;
+    let Some(num) = as_u32(value) else {
+        errors.push(crate::marker::shape_error(
+            "recur.count",
+            "a whole number",
+            value,
+        ));
+        return None;
+    };
+    Some(num)
+}
+
 /// Parse `on:`'s weekday set. Absent/`none` is a plain unnarrowed period; a
-/// present value that isn't an array reports a
-/// [`crate::model::ShapeError`] rather than silently narrowing to no
-/// weekdays at all.
+/// present value that isn't an array, and every entry that isn't a weekday
+/// name, report a [`crate::marker::ShapeError`] naming their position rather
+/// than silently narrowing the period to fewer days than the author wrote.
 fn parse_weekdays(
     value: Option<&HVal>,
-    errors: &mut Vec<crate::model::ShapeError>,
+    errors: &mut Vec<crate::marker::ShapeError>,
 ) -> Vec<chrono::Weekday> {
     let Some(value) = value.filter(|v| !v.is_null()) else {
         return Vec::new();
     };
     let Some(items) = value.as_array() else {
-        errors.push(crate::model::shape_error(
-            "recur",
-            "an array for `on:`",
-            value,
-        ));
+        errors.push(crate::marker::shape_error("recur.on", "an array", value));
         return Vec::new();
     };
-    items
-        .iter()
-        .filter_map(HVal::as_str)
-        .filter_map(parse_weekday)
-        .collect()
+    let mut out = Vec::new();
+    for (index, item) in items.iter().enumerate() {
+        let path = format!("recur.on[{index}]");
+        let Some(name) = item.as_str() else {
+            errors.push(crate::marker::shape_error(&path, WEEKDAY_EXPECTED, item));
+            continue;
+        };
+        if let Some(day) = parse_weekday(name) {
+            out.push(day);
+        } else {
+            errors.push(crate::marker::shape_message(
+                &path,
+                &format!("expected {WEEKDAY_EXPECTED}, found `{name}`"),
+            ));
+        }
+    }
+    out
 }
 
 fn as_u32(value: &HVal) -> Option<u32> {
@@ -342,3 +418,7 @@ fn check_materialize(value: Option<&str>, out: &mut Vec<String>) {
 #[cfg(test)]
 #[path = "recur_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "recur_tests_shape.rs"]
+mod tests_shape;

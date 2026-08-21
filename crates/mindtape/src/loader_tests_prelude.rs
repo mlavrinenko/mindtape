@@ -279,3 +279,57 @@ fn real_prelude_rejects_argument_shapes_that_would_be_dropped() {
         );
     }
 }
+
+/// The other half of the same seam: a wrong-typed value INSIDE a well-shaped
+/// field must survive eval and arrive at the Rust layer as a shape error
+/// naming its position.
+///
+/// Each of these used to fail eval instead, by accident rather than by design
+/// — the card render reached for a method the value did not have (`raw(tag)`,
+/// `status.at("name")`, `on.join(", ")`). That produced a message naming
+/// neither the field nor the task, and would have vanished the moment the
+/// render stopped making that call. The render owes nobody validation, so it
+/// is total now and this is where the check lives.
+#[test]
+fn real_prelude_carries_a_wrong_typed_element_to_the_rust_shape_error() {
+    let cases = [
+        (
+            "tags: (\"x\", 7)",
+            "tags[1]",
+            "expected a string, found a number",
+        ),
+        (
+            "status: \"wip\"",
+            "status",
+            "expected a status like `wip(2026, 6, 14)`, found a string",
+        ),
+        (
+            "recur: every(weeks: 2, on: (\"mon\", 7))",
+            "recur.on[1]",
+            "expected a weekday name (mon, tue, wed, thu, fri, sat, sun), found a number",
+        ),
+        (
+            "estimate: (days: \"two\")",
+            "estimate.days",
+            "expected a number, found a string",
+        ),
+    ];
+    for (field, path, message) in cases {
+        let source = format!(
+            "#import \"@local/mindtape:0.2.0\": *\n\
+             #show: task.with(title: \"T\", {field})\n"
+        );
+        let (_dir, outcome) = load_real_prelude(&source);
+
+        assert_eq!(outcome.errors, Vec::new(), "`{field}` failed to load");
+        let task = outcome.tasks.first().unwrap();
+        assert_eq!(
+            task.shape_errors.len(),
+            1,
+            "`{field}`: {:?}",
+            task.shape_errors
+        );
+        assert_eq!(task.shape_errors[0].field, path);
+        assert_eq!(task.shape_errors[0].message, message);
+    }
+}
