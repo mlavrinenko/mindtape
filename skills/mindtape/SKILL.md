@@ -118,6 +118,8 @@ mt flip done 1b 2c --force     # several at once; waive a failing gate
 
 `links:` has no CLI writer, so expressing blockage is a sanctioned hand edit — add `links: depends-on("upstream-task.typ"),`, then `mt check`. Several edges take either spelling: `+` between helpers, or the array every other multi-valued field uses.
 
+A few kinds also require a trailing note, and `related` is one of them. `related("other.typ")` fails `mt check` with “`related` edge to `other.typ` requires a note”; `related("other.typ")[why they relate]` passes. `depends-on` takes an optional note.
+
 When the blocker is external (an upstream release, another team’s decision) there is no task to depend on. Either file a task for the external thing and depend on it (preferred — keeps `mt ls 'blocked'` truthful), or park the task in a pre-start legend state with the reason in the note: `mt flip proposed 1b -m "blocked on upstream X"`. Do not leave it in `wip` as a stand-in — under `[[tasks.limits]]` a parked task burns the WIP cap and blocks a real start.
 
 ## Validating — `mt check`

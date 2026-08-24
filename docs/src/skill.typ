@@ -247,6 +247,11 @@ with a non-terminal `depends-on` target is blocked. Most legends carry no
 edges take either spelling: `+` between helpers, or the array every other
 multi-valued field uses.
 
+A few kinds also require a trailing note, and `related` is one of them.
+`related("other.typ")` fails `mt check` with "`related` edge to
+`other.typ` requires a note"; `related("other.typ")[why they relate]`
+passes. `depends-on` takes an optional note.
+
 When the blocker is external (an upstream release, another team's decision)
 there is no task to depend on. Either file a task for the external thing and
 depend on it (preferred — keeps `mt ls 'blocked'` truthful), or park the task
