@@ -225,10 +225,10 @@ must be a legend value; every legend value is also a shortcut verb, so
 declares `to` edges, a disallowed move is rejected with the valid next states
 listed; `--force` overrides (a same-status re-stamp is always fine).
 
-A project may bind actions to a flip (`[[on.flip]]`) — e.g. a gate that
-refuses a close until it passes. `mt flip` is the only command that runs
-them; reads never do. A refusal prints the command's output; `--force`
-waives it and records the waiver in the note.
+A project may bind actions to a flip (`[[on.flip]]`) — e.g. a gate refusing a
+close until it passes. Only `mt flip` runs them; a refusal prints its output.
+They run in a PLAIN shell, not the dev shell: a gate binary needing one reads
+as a FAILED gate, exit 127, inviting a `--force` over a gate that never ran.
 
 ```sh
 mt flip --list                 # the legend and its verbs
