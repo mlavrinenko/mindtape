@@ -309,6 +309,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A reader that stops reading no longer panics `mt`.** `mt ls | head -3`, a
+  pager quit part way, an `xargs` whose child failed — each closes the pipe
+  under a command still writing to it, and libstd ignores `SIGPIPE`, so the
+  write came back `EPIPE` and the prelude's `println!` unwrapped it into exit
+  101 and a `failed printing to stdout: Broken pipe` backtrace naming a line in
+  `library/std/src/io/stdio.rs`. A crash report, with an internal libstd
+  address, for the normal end of a pipeline. A closed reader is now an ordinary
+  write error: the first one mutes every later write and the command runs to
+  completion, exiting on its own merits. Stopping the process at the broken
+  write was the other candidate and is wrong for a tool that also writes files —
+  `mt add`, `mt flip` and `mt rm` print as they go, so bailing out there would
+  abort them half way, either claiming a success that never happened or
+  reporting a failure for work that mostly landed. Only `BrokenPipe` is
+  swallowed; every other write error still panics, because a full disk under
+  `mt ls > out.txt` must not read as a clean run. Enforced at one seam rather
+  than at the ~110 print sites: `main.rs` shadows `print!`/`println!` crate-wide
+  with macros that route through `crate::stdout`, since a policy holding at some
+  call sites is one no caller can rely on at any of them. The shadow is
+  `cfg(not(test))` — libtest captures a test's output through `print!`'s
+  internals, which a direct `io::stdout()` write bypasses.
+  <br>Filed as `mt` exiting **141** on roughly one call in ten, and that part of
+  the report was about something else: `mt` never raised `SIGPIPE`. It ignores
+  the signal from startup, and a read command is single-threaded and spawns
+  nothing, so there was no handler to restore and no worker to reach. The 141
+  came from a `mt` shell wrapper on the reporter's `PATH`, whose staleness check
+  ran `find … | sort -nr | head -1` under `set -euo pipefail`: `head` closes the
+  pipe as soon as it has its line, `sort` dies of `SIGPIPE` if it has not
+  finished writing, and `pipefail` inside a command substitution under `set -e`
+  exits the wrapper 141 before it ever executes `mt`. That is the race behind
+  the fraction, and behind the two symptoms that had ruled the binary in: no
+  output at all, and an identical rate with stdout redirected to a regular file.
+  `tests/broken_pipe_e2e.rs` asserts `mt`'s side of it — never a signal death,
+  never 141 — so the binary can never quietly acquire the behaviour it was
+  blamed for.
 - **The `site-pages-fixture-check` replica no longer copies the docs site's
   build output.** Its snapshot was a faithful `cp -r www`, which carried
   `www/public/` (6.1 MB of built site and its pagefind index) and `www/.tola/`

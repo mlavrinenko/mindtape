@@ -1,5 +1,37 @@
 //! `MindTape` CLI entry point: parse arguments, init logging, dispatch.
 
+mod stdout;
+
+// Every `print!`/`println!` below this point is this crate's, not the
+// prelude's: a `macro_rules!` at crate root shadows a prelude macro for the
+// rest of the crate, nested modules included. The prelude's pair unwraps its
+// write, so `mt ls | head -3` panics out at exit 101 naming a libstd line;
+// `crate::stdout` makes a closed reader an ordinary write error instead. That
+// module's docs carry the policy and why it is enforced here rather than at the
+// ~110 call sites.
+//
+// The shadow is textual, so it only reaches code declared AFTER it — hence its
+// place above every `mod`, ahead of the alphabetical block that rustfmt owns
+// (`reorder_modules` would sort a `mod` declaration into that block; a
+// `macro_rules!` item between the two groups is what keeps `mod stdout;` out of
+// it).
+//
+// `cfg(not(test))` leaves the prelude's macros in place under `cargo test`:
+// libtest captures a test's output through `print!`'s internals, which a
+// direct `io::stdout()` write bypasses, so shadowing them there would spill
+// every in-process command's output over the test report. The binary an e2e
+// test spawns is built without `cfg(test)` and gets the real thing.
+#[cfg(not(test))]
+macro_rules! print {
+    ($($arg:tt)*) => { $crate::stdout::write(::std::format_args!($($arg)*)) };
+}
+
+#[cfg(not(test))]
+macro_rules! println {
+    () => { $crate::stdout::write_line(::std::format_args!("")) };
+    ($($arg:tt)*) => { $crate::stdout::write_line(::std::format_args!($($arg)*)) };
+}
+
 mod add;
 mod add_dedup;
 mod add_interactive;
