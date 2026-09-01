@@ -133,6 +133,7 @@
           shellHook = ''
             export LLVM_COV=${llvm}/bin/llvm-cov
             export LLVM_PROFDATA=${llvm}/bin/llvm-profdata
+            export PATH="$PWD/target/debug:$PATH"
             just install-hooks > /dev/null 2>&1
           '';
         };
