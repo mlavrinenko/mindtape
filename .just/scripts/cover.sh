@@ -19,7 +19,12 @@ mkdir -p target/coverage
 # target/llvm-cov-target since the last `cargo clean` into the lcov — measured,
 # and argued in the docs page above.
 cargo llvm-cov clean --workspace
-cargo llvm-cov --workspace --no-report
+# `nextest` subcommand, matching `just test`'s own move to nextest: gating a
+# suite under one execution model while measuring it under another can pass in
+# one and fail in the other with nothing saying so. llvm-cov merges the
+# profraw of child processes, so subprocess-based CLI e2e tests still
+# attribute to the code they exercise.
+cargo llvm-cov nextest --workspace --no-report
 cargo llvm-cov report --ignore-filename-regex "$ignore" \
     --lcov --output-path target/coverage/lcov.info
 cargo llvm-cov report --ignore-filename-regex "$ignore" --fail-under-lines 90

@@ -85,12 +85,25 @@ fmt-check:
 clippy:
     cargo clippy --workspace --all-targets -q -- -D warnings
 
+# The suite runs through cargo-nextest — one process per test, so a panicking
+# or hanging test is isolated and in-process global state cannot leak between
+# tests — with `--status-level fail`: a green run prints only the run header
+# and the summary line, a red one prints every failure's full output. It is
+# deliberately the only runner: `just cover` measures the same one
+# (.just/scripts/cover.sh), and CI's Windows job installs it too (ci.yml), so
+# a test passing under one execution model while failing under another cannot
+# go unnoticed.
+#
+# nextest runs no doctests. The extra `cargo test --doc` pass cratemplate
+# carries for them is absent here on purpose: `cargo test --doc` reports 0
+# tests in both crates, and no ```rust fence exists in the tree. A doctest
+
 [doc("Run tests only")]
 [group("dev")]
 [group("gate")]
 [positional-arguments]
 test *ARGS:
-    cargo test --workspace "$@"
+    cargo nextest run --workspace --status-level fail "$@"
 
 [doc("Check for unused dependencies")]
 [group("gate")]
@@ -344,13 +357,14 @@ bench N='2000':
 # Check the `rrule(...)` escape hatch's expansion engine: `just check` builds
 # `mindtape` with default features, so it never compiles or runs this code
 # (see crates/mindtape/src/recur_rrule.rs). Reproduces what CI runs for it.
+# Runs through nextest, the same runner `just test` gates on.
 
 [doc("Check the rrule feature build, lint, and tests")]
 [group("dev")]
 check-rrule:
     cargo fmt --all -- --check
     cargo clippy -p mindtape --features rrule --all-targets -q -- -D warnings
-    cargo test -p mindtape --features rrule -q
+    cargo nextest run -p mindtape --features rrule --status-level fail
 
 # Cross-check the workspace, tests included, against Windows without leaving
 # Linux — the compile half of what the CI windows job proves at runtime, minutes
@@ -547,23 +561,24 @@ fmt:
     just --fmt
     for f in {{ JUST_FMT_PATHS }}; do just --justfile "$f" --fmt; done
 
-# Counts PASSING tests, and the count is only authoritative when the suite is
-# green: `cargo test --workspace` stops at the first failing test binary
-# (fail-fast), so a red suite's sum is partial by construction, and summing
-# field 4 counts passes, not tests. The deliberate shape is therefore to let
-# the script-interpreter's pipefail fail loudly: a red suite still prints the
-# partial sum (awk runs before `-e` fires) but the recipe exits with cargo's
-# non-zero status, so a wrong number is never presented as a success — no
-# `--no-fail-fast` and no PIPESTATUS salvage, both of which would only print a
-# different wrong number and pretend the count survived
-# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ).
+# Counts the suite `just test` gates on, WITHOUT running it: `cargo nextest
+# list` reports every test nextest sees, and dropping the `#[ignore]`d ones
+# (which `just test` never runs) matches the count a green full run would
+# pass. The old body summed `cargo test`'s "test result:" lines and only made
+# sense when the suite was green, and nextest prints no such line — swapping
+# the command alone would have grep'd nothing and piped a bogus "0 tests" past
+# pipefail's silence. Listing is the shape that stays honest without paying a
+# full run; under the global pipefail shell, a listing that fails to build
+# takes the recipe down with it, so a count scraped from a broken run is never
+# presented as a success.
 
 [doc("Count tests across the workspace")]
 [extension('.sh')]
 [group("advisory")]
 [script]
 count-tests:
-    cargo test --workspace 2>&1 | grep "test result:" | awk '{sum += $4} END {print sum " tests"}'
+    cargo nextest list --workspace --message-format json \
+        | jq -r '[.["rust-suites"][].testcases[] | select(.ignored == false)] | "\(length) tests"'
 
 # `awk 'NR <= 20'` instead of `head -20` is deliberate: `head` exits at line
 # 20 and the upstream `sort` then takes SIGPIPE, which pipefail reports as

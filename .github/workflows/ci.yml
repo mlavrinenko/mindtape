@@ -69,6 +69,13 @@ jobs:
       # RUSTUP_TOOLCHAIN, which takes precedence over rust-toolchain.toml, so
       # this tests what the Windows release binary is actually compiled with.
       - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      # cargo-nextest is not part of rustup, and there is no Nix here to
+      # provide the dev shell's copy (flake.nix) — install the same runner
+      # the Linux job gates on, from an official prebuilt. Pinned to a commit
+      # SHA like every third-party action.
+      - uses: taiki-e/install-action@1ed6d7be6168f6c9046541087ff549b6bc581fdf # v2.87.2
+        with:
+          tool: nextest
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2.9.1
         with:
           key: windows-latest
@@ -77,7 +84,7 @@ jobs:
         run: cargo build --workspace --all-targets
 
       - name: Test
-        run: cargo test --workspace
+        run: cargo nextest run --workspace
 
   coverage:
     name: Coverage

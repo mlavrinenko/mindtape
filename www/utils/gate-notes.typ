@@ -51,9 +51,15 @@
     only the enforcement point, not a separate lint surface.
   ],
   "test": [
-    The full workspace suite. #just.test("<filter>") (a developer query,
-    no `mmz`) runs this recipe directly with the filter as `ARGS`, so a
-    filtered run never pollutes the cached full-suite record
+    The full workspace suite, run through nextest: one process per test, so a
+    panicking or hanging test is isolated, and `--status-level fail` keeps a
+    green run to a header and a summary — only a failure prints, per test,
+    rather than every binary's own result block. nextest does not run
+    doctests, and there is no separate `cargo test --doc` pass: the tree has
+    none (`cargo test --doc` reports 0 tests in both crates), so a doctest
+    added later must come with a pass of its own. #just.test("<filter>") (a
+    developer query, no `mmz`) runs this recipe directly with the filter as
+    `ARGS`, so a filtered run never pollutes the cached full-suite record
     #just.check() relies on.
   ],
   "machete": [Flags a workspace dependency no crate actually imports.],

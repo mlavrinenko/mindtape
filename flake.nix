@@ -91,6 +91,14 @@
               cargo-machete
               cargo-llvm-cov
               cargo-mutants
+              # cargo-nextest is a GATE dependency, not a dev aid: `just test`,
+              # `just check-rrule` and `just cover` all run through it, so a
+              # second runner is dead config. nextest runs no doctests, and
+              # the separate `cargo test --doc` pass cratemplate keeps for
+# them is absent here deliberately: the tree has zero doctests
+      # (see the `test *ARGS` recipe's comment for the verification),
+              # so a doctest added later must come with its own gate.
+              cargo-nextest
               clippy
               rustfmt
               mold

@@ -10,7 +10,7 @@ Deep dive behind CONTRIBUTING.md’s Quality Gates section: how `just check` run
 
 Each arm is `just mmz <subgate>`, so a no-op re-run skips every arm whose declared inputs are unchanged, and `mt flip` into a terminal status asserts them all fresh via `mmz --is-fresh --tag gate` without running any. Per-rule scopes and the `gate` tag live in `.mmz/config.yaml`.
 
-The double hop makes mmz the cache identity — the rule name is `just <recipe>` in `.mmz/config.yaml` — uniform across every sub-gate. `just test <filter>` is a developer query with no mmz around it: it stays plain `cargo test` with `ARGS`, so the cached record only ever reflects the bare full-suite run, never a filtered subset.
+The double hop makes mmz the cache identity — the rule name is `just <recipe>` in `.mmz/config.yaml` — uniform across every sub-gate. `just test <filter>` is a developer query with no mmz around it: it stays plain `cargo nextest run` with `ARGS`, so the cached record only ever reflects the bare full-suite run, never a filtered subset.
 
 There is no `chronic` here. A cache hit prints mmz’s own `on_hit` note to stderr, a miss streams the underlying recipe’s stdout and stderr live, and a failure propagates its non-zero exit out of `parallel` unchanged.
 

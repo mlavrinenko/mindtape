@@ -69,7 +69,7 @@ groups:
       .just/scripts/check-doc-facts.sh: 1e2f53fe8d0fa7686944e550c3115dc5c655f8561753342b86ae5b339b202da2
       .just/scripts/check-doc-recipes.sh: 899053ed43cae7e3542296aded65a0ad196f72d06676e1ec307902953fd08150
       .just/scripts/check-secrets.sh: ab1f2f68787893a8f205d23efa9059cdb1c1f0aa8965684d366cdbb01f84bfee
-      .just/scripts/cover.sh: 659506b43007a82de30c4b4deb878516cb3acd14a21eec633d2b960fbb478093
+      .just/scripts/cover.sh: b64a43362b1f478b9642a6746b5309ab880f8f4b4d8fffad62444de5a75a20dd
       .just/scripts/crap-baseline-check.sh: a2d83475f4eb95050978dc2e079884bd5b15c2708c3203bf8250c6dc4fb139e5
       .just/scripts/crap-baseline.sh: 0a71d6722e73f0cf79b69402d50ab97f83b1c75e087eb72608c8dc552b5a2925
       .just/scripts/crap.sh: ea05991d6681d64da98ca81a2e00878693f2080b587b9725fbc1b4f7da27789f
@@ -85,16 +85,16 @@ groups:
       .just/scripts/script-scope-check.sh: 867b4070f0a6dee123bbd18ec7cc74fdb75fae73765adc261534942623ecc7da
       .just/scripts/site-pages-fixture-check.sh: aa40e196b692f4c0fb37385bfb5267bdf237c163daa9a57909a36f9cb871d91e
       .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
-      Justfile: 5d742538dd4ec1c34cdce6fc222f3a5dd090dc32653d26642b56fca2eed66fc1
-      flake.nix: f0a04138b1a732a995eedb344ee181b04cb1165f627450608130267983648941
+      Justfile: 3af708e0da24ea1768f5fcade0cc7647d7853f350bcb8d43e5438a638aeb21fa
+      flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
       docs/src/contributing/coverage-crap.typ: c1535b887fa64383c94ea071eba3508cb7770a1b267cd72b66b9fc70bc2c2d8c
-      docs/src/contributing/gates.typ: 9a27d9df9178c3dddc635936679fe08532f4963d2e851c5e33939cbffdd524b7
+      docs/src/contributing/gates.typ: b35bacfb65df73be93c3aa173f9b31f737f1b7672e6c3e30d64e18cbcd0ba083
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
       docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c
-      docs/src/contributing/windows.typ: bd5fbf570767c4452743a60eb7ae39d9fafcdac584bf28973ae7f97dc38853db
+      docs/src/contributing/windows.typ: 247a7f533ec3dc7b69c3047d93a3332e3245f91dcfa830c365d9394bbc576da0
   prelude-docs:
     source:
       lib/prelude.typ: 2e99b69589c8842bb2fc36461828ee2fdb77a39da3e975358e378b25b924ba06
