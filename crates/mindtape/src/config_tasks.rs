@@ -14,6 +14,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Deserializer};
 
+use crate::body_content::ContentConfig;
 use crate::body_headers::HeadersConfig;
 use crate::config_estimate::EstimateConfig;
 use crate::config_required::Requirement;
@@ -203,4 +204,6 @@ pub struct TagsConfig {
 pub struct TaskBodyConfig {
     /// Section-heading gating rules.
     pub headers: HeadersConfig,
+    /// Section-content gating rules.
+    pub content: ContentConfig,
 }

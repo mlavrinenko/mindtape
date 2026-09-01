@@ -62,6 +62,7 @@ Sections whose shape needs more than one line get a deep dive further down.
   ("tasks.fields", "[tasks.fields.<name>]"),
   ("tasks.assignee", "[tasks.assignee]"),
   ("tasks.body.headers", "[tasks.body.headers]"),
+  ("tasks.body.content", "[tasks.body.content]"),
   ("tasks.derive-tags", "[tasks.derive-tags]"),
   ("tasks.tags", "[tasks.tags]"),
   ("tasks.limits", "[[tasks.limits]]"),
@@ -93,6 +94,62 @@ Sections whose shape needs more than one line get a deep dive further down.
   covers `[[ls.rules]]`, the opt-in `file` column, and `[ls] hyperlinks` /
   `hyperlink-target`.
 ]
+
+= Body shape: headings and section content
+
+`[tasks.body]` gates the body with two sibling rule families, both selected by
+the same `path` through the heading tree. `[tasks.body.headers]` constrains the
+heading tree itself — which headings exist, their order, their vocabulary.
+`[tasks.body.content]` constrains what is written *under* a heading: a section's
+content, everything from the heading down to the next heading of the same or
+higher level (nested subsection prose included).
+
+```toml
+[[tasks.body.headers.rules]]
+path = ["Summary"]
+action = "unique"
+message = "every task must have exactly one Summary section"
+
+[[tasks.body.content.rules]]
+path = ["Summary"]
+assert = "non-empty"                # a heading over nothing satisfies nobody
+message = "the Summary must not be a placeholder"
+
+[[tasks.body.content.rules]]
+path = ["Scope"]
+assert = { min-words = 30 }
+when = 'kind == "bug"'              # same `when` gating the heading rules have
+
+[[tasks.body.content.rules]]
+path = ["Watch for"]
+assert = { must-match = "\\?" }     # an open-question section states its question
+```
+
+A heading path is a list of segments. A bare TOML string is an exact,
+case-sensitive, direct-child match; `{ match = "regex", recursive = true }`
+matches heading *text* against the regex (recursive = any descendant). With
+`when` and `message` on every rule, those two segment shapes are the whole
+language — which also means the "section-title vocabulary" people reach for
+custom validation to express is already here as an allowlist plus a regex
+segment:
+
+```toml
+[[tasks.body.headers.rules]]
+action = "allowlist"
+allowed = [{ match = "^(Summary|Scope|Watch for|Decisions)$" }]
+```
+
+The four content assertions: `"non-empty"`, `min-words = N`, `must-match =
+"regex"`, and `must-not-match = "regex"`. The regexes run against the section's
+source text as written (markup included), and words are whitespace-delimited
+tokens containing an alphanumeric character — so markup, code blocks, and
+nested subsection headings all count toward `min-words`, and a `Scope` section
+that is all `#raw` reads as non-empty rather than as a placeholder. A violation
+prints at the heading's line, `mt check` style:
+
+```
+truth/tasks/example.typ:11: body.content: section `Summary` must not be empty
+```
 
 = Example
 

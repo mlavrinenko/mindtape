@@ -10,6 +10,7 @@
 
 pub mod add_slots;
 pub mod app_dirs;
+mod body_content;
 mod body_headers;
 pub mod canonical;
 pub mod condition;
@@ -34,6 +35,7 @@ mod config_schema;
 mod config_status;
 mod config_tasks;
 mod config_views;
+pub mod content_gate;
 mod date;
 mod date_pin;
 mod dep_rank;
@@ -102,6 +104,7 @@ pub use config_layers::{
 };
 pub use config_limits::{LimitBreach, LimitError, LimitSeverity, LimitSpec, check_limits};
 pub use config_schema::{SCHEMA_URL, config_schema_json};
+pub use content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use date_pin::{DateOverrideError, init_pinned_today};
 pub use derive::RootDeriver;

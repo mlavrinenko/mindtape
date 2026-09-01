@@ -274,6 +274,107 @@
         }
       ]
     },
+    "ContentAssert": {
+      "description": "The assertion made over a matched section's content: the string `\"non-empty\"`, or a one-key table `{ min-words = N }`, `{ must-match = \"regex\" }`, or `{ must-not-match = \"regex\" }`.",
+      "oneOf": [
+        {
+          "enum": [
+            "non-empty"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "min-words": {
+              "description": "The section must contain at least this many words.",
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "min-words"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "must-match": {
+              "description": "Rust regex the section's source text must match.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "must-match"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "must-not-match": {
+              "description": "Rust regex the section's source text must not match.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "must-not-match"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "ContentConfig": {
+      "additionalProperties": false,
+      "description": "`[tasks.body.content]` — section-content rules.",
+      "properties": {
+        "rules": {
+          "description": "Ordered list of section-content gating rules.",
+          "items": {
+            "$ref": "#/$defs/ContentRuleConfig"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "ContentRuleConfig": {
+      "additionalProperties": false,
+      "description": "One entry in `[[tasks.body.content.rules]]`.\n\n`path` selects the section(s) — the heading tree paths the header rules\nalready use — and `assert` is the assertion made over each matched\nsection's content. Like every header rule, it carries the optional `when`\nfilter and `message` override.",
+      "properties": {
+        "assert": {
+          "$ref": "#/$defs/ContentAssert",
+          "description": "The assertion made over each matched section's content."
+        },
+        "message": {
+          "description": "Override for the default violation message.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "description": "Path through the heading tree selecting the section(s) to assert over.",
+          "items": {
+            "$ref": "#/$defs/HeaderPathSegment"
+          },
+          "type": "array"
+        },
+        "when": {
+          "description": "Optional filter expression gating this rule to matching tasks only.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "path",
+        "assert"
+      ],
+      "type": "object"
+    },
     "DedupMode": {
       "description": "`mt add`'s collision policy when the destination stem already exists: `fail` bails before writing, `skip` exits 0 without writing and reports the existing path, `add-suffix` mints `-2`, `-3`, … until a free stem turns up. `mt add --dedup` overrides this for one run; see `[tasks.naming] dedup` for the unset default.",
       "enum": [
@@ -1647,6 +1748,10 @@
       "additionalProperties": false,
       "description": "`[tasks.body]` — body-shape constraints.",
       "properties": {
+        "content": {
+          "$ref": "#/$defs/ContentConfig",
+          "description": "Section-content gating rules."
+        },
         "headers": {
           "$ref": "#/$defs/HeadersConfig",
           "description": "Section-heading gating rules."

@@ -227,6 +227,33 @@ before = ["Summary"]
 after = ["Scope"]
 message = "Summary must precede Scope"
 
+# Section-content rules: the heading rules above prove a task has the right
+# sections; these prove the sections say something. Measured on the backlog at
+# adoption (2026-08-29): every task's Summary carries prose, and the
+# placeholder scopes ("- TODO") and question-less Open-question sections all
+# sit in closed history — so all three bind nothing today and police the
+# future instead. `assert` shapes: the string "non-empty", a `min-words` table,
+# or a `must-match`/`must-not-match` regex table, each over the section's
+# source text (nested subsection prose and code blocks count). `when` gates
+# like the heading rules; `!terminal` is the same choice `required = "!terminal"`
+# fields make — history is not backfilled, the open backlog is policed.
+[[tasks.body.content.rules]]
+path = ["Summary"]
+assert = "non-empty"
+message = "a Summary heading over nothing reads as a placeholder; say what the task is"
+
+[[tasks.body.content.rules]]
+path = ["Scope"]
+assert = { min-words = 10 }
+when = "!terminal"
+message = "a Scope section naming no work reads as a placeholder; spell out what the task touches"
+
+[[tasks.body.content.rules]]
+path = [{ match = "^(Open question|Watch for)$" }]
+assert = { must-match = "\\?" }
+when = "!terminal"
+message = "an open-question section that states no question is not doing its job; end the question with ?"
+
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view (same filter as the retired `[ls] default-filter`).
 # Redeclare `[views.default]` here to add a sort/columns bundle.

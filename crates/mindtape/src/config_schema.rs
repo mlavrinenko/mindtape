@@ -17,7 +17,7 @@ use std::borrow::Cow;
 
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 
-use crate::config::{HeaderAction, HeaderPathSegment, IdFormat, Requirement};
+use crate::config::{ContentAssert, HeaderAction, HeaderPathSegment, IdFormat, Requirement};
 use crate::naming::DedupMode;
 
 /// Canonical published location of this schema. Used as the schema `$id`, and
@@ -112,6 +112,61 @@ impl JsonSchema for Requirement {
             "oneOf": [
                 { "type": "boolean" },
                 { "type": "string" }
+            ]
+        })
+    }
+}
+
+impl JsonSchema for ContentAssert {
+    fn schema_name() -> Cow<'static, str> {
+        "ContentAssert".into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        "mindtape::body_content::ContentAssert".into()
+    }
+
+    fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
+        json_schema!({
+            "description": "The assertion made over a matched section's content: the \
+                string `\"non-empty\"`, or a one-key table `{ min-words = N }`, \
+                `{ must-match = \"regex\" }`, or `{ must-not-match = \"regex\" }`.",
+            "oneOf": [
+                { "type": "string", "enum": ["non-empty"] },
+                {
+                    "type": "object",
+                    "properties": {
+                        "min-words": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "The section must contain at least this many words."
+                        }
+                    },
+                    "required": ["min-words"],
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "must-match": {
+                            "type": "string",
+                            "description": "Rust regex the section's source text must match."
+                        }
+                    },
+                    "required": ["must-match"],
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "must-not-match": {
+                            "type": "string",
+                            "description": "Rust regex the section's source text must not match."
+                        }
+                    },
+                    "required": ["must-not-match"],
+                    "additionalProperties": false
+                }
             ]
         })
     }

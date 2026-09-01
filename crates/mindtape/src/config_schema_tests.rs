@@ -3,6 +3,7 @@
 use schemars::JsonSchema;
 
 use super::{SCHEMA_URL, config_schema_json};
+use crate::body_content::ContentAssert;
 use crate::body_headers::{HeaderAction, HeaderPathSegment};
 use crate::config::{IdFormat, Requirement};
 use crate::naming::DedupMode;
@@ -50,6 +51,10 @@ fn hand_written_schema_ids_are_correct() {
     assert_eq!(
         <HeaderPathSegment as JsonSchema>::schema_id(),
         "mindtape::body_headers::HeaderPathSegment"
+    );
+    assert_eq!(
+        <ContentAssert as JsonSchema>::schema_id(),
+        "mindtape::body_content::ContentAssert"
     );
     assert_eq!(
         <DedupMode as JsonSchema>::schema_id(),

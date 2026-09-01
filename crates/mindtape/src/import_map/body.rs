@@ -94,6 +94,7 @@ mod tests {
             tasks: TasksConfig {
                 body: TaskBodyConfig {
                     headers: HeadersConfig { rules },
+                    ..Default::default()
                 },
                 ..Default::default()
             },

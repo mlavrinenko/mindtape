@@ -19,6 +19,7 @@ use thiserror::Error;
 use crate::framework::merge_builtin_frameworks;
 use crate::merge::deep_merge_tables;
 
+pub use crate::body_content::{ContentAssert, ContentConfig, ContentRuleConfig};
 pub use crate::body_headers::{HeaderAction, HeaderPathSegment, HeaderRuleConfig, HeadersConfig};
 pub use crate::config_add::{AddConfig, InteractiveMode};
 pub use crate::config_format::FormatConfig;

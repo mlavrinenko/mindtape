@@ -3,8 +3,8 @@
 use anyhow::{Context, Result, bail};
 use clap::Args;
 use mindtape::{
-    LimitBreach, Violation, check_comments, check_estimate_drift, check_headers, check_limits,
-    compile_rules, validate,
+    LimitBreach, Violation, check_comments, check_content, check_estimate_drift, check_headers,
+    check_limits, compile_content_rules, compile_rules, validate,
 };
 
 use crate::util;
@@ -31,15 +31,23 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
 
     let header_rules = compile_rules(&project.config.tasks.body.headers.rules)
         .context("invalid tasks.body.headers.rules in config")?;
+    let content_rules = compile_content_rules(&project.config.tasks.body.content.rules)
+        .context("invalid tasks.body.content.rules in config")?;
 
     let mut violations = validate(&project.outcome.tasks, &project.config);
 
-    if !header_rules.is_empty() {
+    if !header_rules.is_empty() || !content_rules.is_empty() {
         for task in &project.outcome.tasks {
             let abs = project.root.join(&task.file);
             let source =
                 std::fs::read_to_string(&abs).with_context(|| format!("read {}", abs.display()))?;
             violations.extend(check_headers(task, &source, &header_rules, &project.config));
+            violations.extend(check_content(
+                task,
+                &source,
+                &content_rules,
+                &project.config,
+            ));
         }
     }
 
