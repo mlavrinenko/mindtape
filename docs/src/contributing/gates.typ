@@ -88,9 +88,9 @@ satisfies nothing.
 `outdatty.yaml` enumerates the same directory and lost the same property: a
 script never added to its `dev-docs` group is coupled to no dependent and
 reported by nothing. A third arm closes it, demanding a DECISION rather than
-membership — `_nav-diff.sh` is outside it on purpose, no doc restating its
-logic — so a script is a source or carries an exemption naming the reason, and
-a new one is neither.
+membership — `_nav-diff.sh` and the machine-install scripts are outside it on
+purpose, no doc restating their logic — so a script is a source or carries an
+exemption naming the reason, and a new one is neither.
 
 Three rules keep a directory-wide glob, because their subject is the directory
 rather than one body in it: #just.check-file-size() (linecop scans every file

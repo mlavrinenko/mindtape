@@ -648,19 +648,25 @@ ask-refactoring $WRITE='0' $BASELINE='90' $COVERAGE_FLOOR='88' $CC_FLOOR='5' $FN
 fork SLUG BASE='HEAD':
     bash .just/scripts/fork.sh '{{ SLUG }}' '{{ BASE }}'
 
+[doc("Build mt in release mode and install it into ~/.cargo/bin")]
+[group("dev")]
+install-bin:
+    bash .just/scripts/install-bin.sh
+
+[doc("Install everything this checkout provides: mt, the Typst lib, schema, skill")]
+[group("dev")]
+install: install-bin install-lib
+    bash .just/scripts/install.sh
+
 [doc("Install the mindtape Typst library for local #import (dev symlink)")]
 [group("dev")]
 install-lib:
     bash .just/scripts/install-lib.sh
 
 [doc("Remove the dev symlink installed by install-lib")]
-[extension('.sh')]
 [group("dev")]
-[script]
 uninstall-lib:
-    VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' lib/typst.toml | head -1)
-    TARGET="$HOME/.local/share/typst/packages/local/mindtape/$VERSION"
-    [ -L "$TARGET" ] && rm "$TARGET" && echo "removed $TARGET" || echo "no symlink at $TARGET"
+    bash .just/scripts/uninstall-lib.sh
 
 # Point git at the tracked hook dir (pre-commit asserts the memoized gate via
 # `mmz --is-fresh --tag gate`, then checks task-file formatting and structure)

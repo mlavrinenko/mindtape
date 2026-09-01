@@ -26,7 +26,7 @@ The enumeration gives up something real: the directory is recipe bodies by const
 
 `just script-scope-check` pays for that, so care does not have to. It set-differences the files on disk against the literal paths the scopes name, then reads each rule’s recipe body out of the just dump to require that a rule invoking a script declares a scope covering it — the second arm because a script listed in a scope no rule reads passes the first while the stale hit survives. A wildcard never counts as naming a script, so putting the glob back satisfies nothing.
 
-`outdatty.yaml` enumerates the same directory and lost the same property: a script never added to its `dev-docs` group is coupled to no dependent and reported by nothing. A third arm closes it, demanding a DECISION rather than membership — `_nav-diff.sh` is outside it on purpose, no doc restating its logic — so a script is a source or carries an exemption naming the reason, and a new one is neither.
+`outdatty.yaml` enumerates the same directory and lost the same property: a script never added to its `dev-docs` group is coupled to no dependent and reported by nothing. A third arm closes it, demanding a DECISION rather than membership — `_nav-diff.sh` and the machine-install scripts are outside it on purpose, no doc restating their logic — so a script is a source or carries an exemption naming the reason, and a new one is neither.
 
 Three rules keep a directory-wide glob, because their subject is the directory rather than one body in it: `just check-file-size` (linecop scans every file under it), `just outdatty-check` (nearly every script is a `dev-docs` source) and `just script-scope-check` itself, which has to notice a script ARRIVING and so cannot take an enumeration as its input.
 

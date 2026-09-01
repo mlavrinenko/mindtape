@@ -183,6 +183,14 @@ declare -A dev_docs_exempt=(
     # gate-notes.typ names it, but restates none of its own two-arm logic —
     # the reason outdatty.yaml already records for leaving it out.
     ["_nav-diff.sh"]="no doc restates its logic; gate-notes.typ only names it"
+    # The machine-install scripts. install-lib.sh IS a dev-docs source, because
+    # the contributing docs walk a contributor through `just install-lib`;
+    # these four are not, because no doc describes what they put on a machine —
+    # they are read off `just --list` and run.
+    ["install.sh"]="no doc describes the install set; --list is the only entry point"
+    ["install-bin.sh"]="no doc describes the binary install; --list is the only entry point"
+    ["uninstall-lib.sh"]="no doc describes it; the inverse of install-lib, named only in its own [doc]"
+    ["_typst-package.sh"]="a sourced preamble, no behaviour of its own for a doc to restate"
 )
 
 dev_docs_sources=$(yq -r '

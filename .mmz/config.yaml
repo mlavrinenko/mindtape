@@ -267,13 +267,14 @@ scopes:
   # (`_lcov-stale-reason.sh` → `script-lcov-stale-reason`). The check does not
   # read the name — it matches on the path — so a convention is all it is.
   #
-  # FIVE OF THEM ARE NAMED BY NO RULE, and that is the honest state rather than
-  # an oversight: crap-baseline.sh, install-lib.sh, release.sh, fork.sh and
-  # _mutants-env.sh are bodies of recipes no rule in `commands` wraps
-  # (`just crap-baseline`, `just install-lib`, `just release`, `just fork`, and
-  # the preamble mutants.sh/mutants-diff.sh source). They still get a scope,
-  # because the check demands every script be named, and they are still gated
-  # for size and drift through `scripts-all` above. A scope with no reader is the visible
+  # NINE OF THEM ARE NAMED BY NO RULE, and that is the honest state rather
+  # than an oversight: crap-baseline.sh, release.sh, fork.sh, the four install
+  # scripts (install.sh, install-bin.sh, install-lib.sh, uninstall-lib.sh) and
+  # the two sourced preambles (_mutants-env.sh, _typst-package.sh) are bodies
+  # of recipes no rule in `commands` wraps — installs mutate the machine, so
+  # memoizing them would skip the mutation. They still get a scope, because the
+  # check demands every script be named, and they are still gated for size and
+  # drift through `scripts-all` above. A scope with no reader is the visible
   # form of "no memoized rule reads this"; deleting it would only hide that.
   script-arg-pattern-check:
     - ".just/scripts/arg-pattern-check.sh"
@@ -301,6 +302,10 @@ scopes:
     - ".just/scripts/fmt-fixture-check.sh"
   script-fork:
     - ".just/scripts/fork.sh"
+  script-install:
+    - ".just/scripts/install.sh"
+  script-install-bin:
+    - ".just/scripts/install-bin.sh"
   script-install-lib:
     - ".just/scripts/install-lib.sh"
   script-lcov-stale-reason:
@@ -325,6 +330,10 @@ scopes:
     - ".just/scripts/site-pages-fixture-check.sh"
   script-size-fixture-check:
     - ".just/scripts/size-fixture-check.sh"
+  script-typst-package:
+    - ".just/scripts/_typst-package.sh"
+  script-uninstall-lib:
+    - ".just/scripts/uninstall-lib.sh"
 
 on_hit: "mmz: skipped {cache:command} (inputs unchanged)"
 
