@@ -33,6 +33,16 @@ point as dead.
 The recipe writes `target/coverage/lcov.info` for #just.crap() and fails under
 90% lines. `main.rs` is excluded — keep it thin.
 
+Its output level is set in `.config/nextest.toml`, not in the recipe, and that
+is not tidiness: `cargo llvm-cov nextest` accepts `--status-level fail` and
+*ignores* it. Measured 2026-09-02 — the recipe's run was *2316 lines, 2137 of
+them `PASS`*, one per test, to report a green suite and a coverage table; 179
+lines with the profile set. A flag accepted and ignored is worse
+than one that is absent, because the recipe then claims something the output
+disproves. Both runners read the profile, so #just.test() and #just.cover()
+cannot drift; a failure still prints in full, which is what `fail` means rather
+than `none`.
+
 #just.cover() builds default features only, so `recur_rrule.rs` (the `rrule`
 feature's expander) never compiles, and #just.crap() excludes it too rather
 than scoring it as phantom 0%-covered. #just.check-rrule() covers it

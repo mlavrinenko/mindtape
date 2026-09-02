@@ -60,6 +60,7 @@ groups:
       www/content/quickstart.typ: c7d440e651eb932edf9aac0d33ac0107b53b38622d39065a1413b62289c62c67
   dev-docs:
     source:
+      .config/nextest.toml: 509384734e79e026c13895a33acf0151298c27e6cb2e135f1630ba57932df1eb
       .just/docs.just: 4c6365203682212c38efa6abdeb0e4b70528adff7af9b149a99ab1f4727e6664
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
@@ -90,7 +91,7 @@ groups:
     dependents:
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
-      docs/src/contributing/coverage-crap.typ: c1535b887fa64383c94ea071eba3508cb7770a1b267cd72b66b9fc70bc2c2d8c
+      docs/src/contributing/coverage-crap.typ: a62cc9863d8442a04bdbab1c5e4bb57bf793abf5885c87c9071f87fd7068830a
       docs/src/contributing/gates.typ: 447619d0cb007551d70ad41b80232c9cbc989a4811d0590098ca7ef26ce29b98
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
       docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c

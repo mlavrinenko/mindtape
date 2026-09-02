@@ -345,6 +345,7 @@ groups:
     source:
       - flake.nix
       - Justfile
+      - .config/nextest.toml
       - .just/docs.just
       - .just/scripts/check-doc-coverage.sh
       - .just/scripts/check-doc-facts.sh

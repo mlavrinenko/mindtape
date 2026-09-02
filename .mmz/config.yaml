@@ -211,8 +211,16 @@ scopes:
   # `.just/scripts/**` was here too until truth/tasks/split-gates-meta-into-per-
   # script-scopes.typ; it is enumerated one scope per script below. What that
   # bought, and what it cost, are argued there.
+  # `.config/nextest.toml` is a recipe body in every sense that matters here:
+  # `status-level` lives there rather than in the `test` recipe because
+  # `cargo llvm-cov nextest` accepts the flag and ignores it, so the file is
+  # what decides what the suite PRINTS and — the day it grows retries, a
+  # test-thread count or a default filter — what the suite RUNS. Without it
+  # here, every memoized `just test` and `just cover` record survives an edit
+  # to it.
   gates-meta:
     - "Justfile"
+    - ".config/nextest.toml"
     - ".just/docs.just"
     - "flake.nix"
     - "flake.lock"

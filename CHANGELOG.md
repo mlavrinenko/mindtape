@@ -309,6 +309,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`just cover` printed 2137 `PASS` lines to report a green suite.**
+  `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it, so the
+  flag `just test` has always carried never reached the coverage run: 2316
+  lines, one per test, ahead of the table anyone actually reads. The level moved
+  to `.config/nextest.toml`, where both runners read it — 179 lines, same
+  verdict, and a failure still prints in full, which is what `fail` means rather
+  than `none`. A flag that is accepted and ignored is worse than one that is
+  absent, because the recipe then claims something the output disproves. The
+  file is a `dev-docs` outdatty source and a `gates-meta` mmz input, since it
+  decides what the suite prints and, the day it grows retries or a default
+  filter, what the suite runs.
 - **A reader that stops reading no longer panics `mt`.** `mt ls | head -3`, a
   pager quit part way, an `xargs` whose child failed — each closes the pipe
   under a command still writing to it, and libstd ignores `SIGPIPE`, so the
