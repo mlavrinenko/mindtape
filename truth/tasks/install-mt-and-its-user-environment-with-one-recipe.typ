@@ -11,7 +11,7 @@
   tags: (),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 9, 2),
+  status: done(2026, 9, 3),
 )
 
 == Summary
