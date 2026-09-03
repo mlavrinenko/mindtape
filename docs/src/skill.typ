@@ -1,15 +1,14 @@
 // docs/src/skill.typ — source for skills/mindtape/SKILL.md, rendered by
 // docs/generate-md.sh via typlite (render-path constraints: docs/src/lib.typ).
-// Three traps this source is shaped around. `<mindtape-md>`'s `frontmatter`
+// The one trap this source is shaped around: `<mindtape-md>`'s `frontmatter`
 // key is prepended as a `---` YAML block by `yq`, ahead of typlite, which
 // cannot emit YAML — so `description` must stay a plain Typst string, not a
 // markup value, and be verified against the committed file rather than
-// assumed. The `@local/mindtape` version in the hand-edit example is read from
-// `www/generated/crate-map.json`'s `typst-lib.version`
-// (`www/generate-facts.sh`), as in docs/src/agents.typ and readme.typ. And a
-// double-backtick Markdown span holding a literal backtick never round-trips,
-// because typlite does not widen the emitted delimiter — hence two plain spans
-// in the `unknown task slot` sentence, as agents.typ does.
+// assumed. The deep authoring/dependency content (hand-editing rules, batch
+// `mt import`) lives in skills/mindtape/references/ and is linked from the
+// body; the traps that shaped those sentences (fact-derived crate version,
+// double-backtick spans) now apply only to those Markdown references, not
+// this typlite source.
 //
 // SKILL.md loads whole into a context window every session, so its budget is a
 // real cost, not an aesthetic one: prose that motivates a rule an agent
@@ -17,7 +16,7 @@
 // the reader is already told to query are all deleted on sight. Every rule,
 // command shape and field name stays — precision beats brevity wherever the
 // two conflict.
-#import "lib.typ": doc-title, fact
+#import "lib.typ": doc-title
 
 #metadata((
   output: "skills/mindtape/SKILL.md",
@@ -202,23 +201,10 @@ wrote, above all a `.typ` bound for a `raw` slot.
 
 = Filing a batch — `mt import`
 
-`mt import` reads canonical task-JSON (`mt ls --json`'s own schema) and is the
-right tool for filing a whole backlog at once. Two behaviours it does not
-announce, each of which quietly produces a batch you have to redo:
-
-- *The filename stem comes from `title`, not `id`.* An input `id` is ignored
-  for naming, so a non-ASCII title yields a non-ASCII stem
-  (`аудит-поисковых-запросов.typ`), and `links:` targets being stems, every
-  edge in the batch must spell it. Give ASCII titles when you want ASCII paths.
-- *Intra-batch `links:` resolve only backwards.* A target is checked against
-  files existing when its record is written, so a task must appear AFTER
-  everything it depends on. Order topologically and one pass files the lot;
-  otherwise dependents report `skipped: link target ... not found` while the
-  rest are filed, leaving a half-imported backlog. A forward edge that cannot
-  be reordered (the reverse `related` of a pair) is a hand edit afterwards.
-
-`--dry-run` writes nothing, so every intra-batch edge reports as missing; a
-batch with internal edges has no clean dry run — read the real run's report.
+`mt import` reads canonical task-JSON and is the right tool for filing a whole
+backlog at once. Its two quiet sharp edges (the stem comes from `title`, not
+`id`; intra-batch `links` resolve only backwards) are why the deep
+`references/import.md` exists — read it before the first batch.
 
 = Changing status — `mt flip` and status verbs
 
@@ -268,47 +254,9 @@ comment policy, and file-budget drift (warn-only).
 
 = Authoring or editing a task file by hand
 
-A task file is Typst. Edit the fields inside `task.with(...)`:
-
-#let typst-lib-version = fact("crate-map").at("typst-lib").at("version")
-#let hand-edit-lines = (
-  "#import \"@local/mindtape:" + typst-lib-version + "\": *",
-  "#show: task.with(",
-  "  title: \"Fix login bug\",",
-  "  status: wip(2026, 6, 28)[started investigation],  // (name, y, m, d)[note]",
-  "  priority: 6,                          // raw int, or a call like ice(...)",
-  "  difficulty: 3,",
-  "  kind: \"bug\",                          // enum from config",
-  "  assignee: \"ada\",                      // actor working it, config-bounded",
-  "  estimate: (hours: 4),                 // opaque unit dict",
-  "  links: depends-on(\"other-task.typ\"),  // typed edges by file stem",
-  "  tags: (\"backend\",),",
-  "  due: on(2026, 7, 1),                  // ISO date, or omit",
-  ")",
-)
-#raw(hand-edit-lines.join("\n"), lang: "typ", block: true)
-
-Rules to respect:
-- One task per file; the stem is the identity. Renaming breaks inbound links —
-  prefer `mt rm` to retire, which rewrites them to tombstones. Without git,
-  `[rm] strategy` decides: `reject` (default, lists the referrers), `unlink`,
-  or `retire` (keeps the file, flips the status).
-- Status, kind, priority scale, and tags come from `.mindtape/config.toml`.
-- Custom/extension fields must be namespaced `x-<ns>` (e.g.
-  `x-speconaut: ...`). Every other field name is a declared parameter of
-  `task`, so a typo is not kept as an extension — it fails with an
-  `unknown task slot` error naming the field, e.g. `titel`.
-- Edge helpers take plain stem strings, never `link("a.typ")` — that is
-  content, and reads as the trailing note. Passing one (or a second note, a
-  named arg, a non-string) is an eval error naming the helper, not a dropped
-  edge.
-- The body is Typst: a bare `//` starts a line comment and swallows the rest
-  of the line, and under `[tasks.comments] policy = "forbid"` `mt check`
-  rejects the file. `https://…` is safe (Typst auto-links it); `file://`,
-  other URL schemes, and any literal `//` go in backticks.
-- After any hand edit, run `mt check`. A wrong-typed value is a violation
-  naming its position (`tags[1]`, `estimate.days`, `recur.on[1]`), never a
-  silently unset field.
+The full worked example and the rules (stem identity, `x-<ns>` namespacing,
+edge helpers, body pitfalls) live in `references/hand-editing.md`. After any
+hand edit, run `mt check`.
 
 = When the tool fights you
 
