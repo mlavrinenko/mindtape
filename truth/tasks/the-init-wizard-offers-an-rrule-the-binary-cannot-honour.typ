@@ -11,7 +11,7 @@
   tags: ("cli",),
   estimate: (files: 4),
   assignee: "agent",
-  status: proposed(2026, 9, 3),
+  status: done(2026, 9, 3)[just check and just check-rrule green],
 )
 
 == Summary
