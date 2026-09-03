@@ -11,7 +11,11 @@
   tags: ("cli",),
   estimate: (files: 2),
   assignee: "max",
-  status: proposed(2026, 8, 29),
+  status: done(
+    2026,
+    9,
+    3,
+  )[the -n/--limit flag already shipped; what landed here is the truncation signal — a truncated: table footer, a truncated key in the --json envelope, nothing in csv/path/path0],
 )
 
 == Summary
