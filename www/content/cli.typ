@@ -112,8 +112,21 @@ table instead of printing once:
 
 Table output only, and it needs a TTY.
 
+`-n N` (`--limit N`) caps the listing at N rows, cutting after the filter and
+the sort so it always yields the top N of the order asked for. It truncates
+in-process, where `mt ls | head` truncates by closing the read end under a
+still-writing `mt` — same rows, one fewer moving part, and it works on a
+format that is not line-oriented.
+
+A cut listing says so, in whatever the format has room for: a dim
+`truncated: showing 10 of 47` under the table, the same pair in `--json`'s
+#link(u("/schema/"))[envelope], and nothing at all in `csv` / `path` /
+`path0`, which are record streams a trailing prose line would corrupt for the
+program reading them. A limit that hides nothing prints nothing.
+
 `--format path` prints one task file path per line and nothing else — no
-header, no colour, no hyperlinks, no `applied:` trailer — for composing with
+header, no colour, no hyperlinks, no `applied:` or `truncated:` trailer — for
+composing with
 another program: `rg TODO $(mt ls ready --format path)`. `--format path0` is
 the same list NUL-delimited instead, for `xargs -0` and paths holding
 whitespace: `mt ls 'stale(30)' --format path0 | xargs -0 $EDITOR`. Both render

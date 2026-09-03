@@ -8,7 +8,7 @@ use mindtape::{Config, Readiness, Task};
 
 use super::{Action, Intent, State, apply, classify, collect_first, footer, guard_with, run};
 use crate::ls::{LsArgs, LsFlags};
-use crate::output::OutputFormat;
+use crate::output::{OutputFormat, Truncation};
 use crate::util;
 
 fn key(code: KeyCode, modifiers: KeyModifiers) -> KeyEvent {
@@ -27,6 +27,7 @@ fn state(n: usize, buffer: &str) -> State {
         root: ".".into(),
         tasks,
         readiness: Readiness::empty(),
+        truncated: None,
         buffer: buffer.to_owned(),
     }
 }
@@ -183,9 +184,27 @@ fn nonmatching_buffer_highlights_nothing() {
 
 #[test]
 fn footer_shows_buffer_when_typing() {
-    assert!(footer("12").contains("#12"));
+    assert!(footer("12", None).contains("#12"));
     // Empty buffer drops the status line, keeping only the hints.
-    assert!(!footer("").contains('#'));
+    assert!(!footer("", None).contains('#'));
+}
+
+#[test]
+fn footer_reports_a_truncated_listing() {
+    // The picker can only open what it lists, so `-n` hiding rows has to
+    // reach the footer — otherwise a caller who capped the view reads an
+    // absent task as a missing one.
+    let cut = Truncation::new(Some(3), 40).unwrap();
+    let text = footer("", Some(cut));
+    assert!(text.contains("truncated: showing 3 of 40"), "got: {text}");
+    // The hints keep the last line: the truncation note is prepended, never
+    // printed instead of the keys the caller needs.
+    assert!(text.lines().next_back().unwrap().contains("q quit"));
+}
+
+#[test]
+fn footer_stays_silent_on_a_complete_listing() {
+    assert!(!footer("", None).contains("truncated"));
 }
 
 fn ls_args(format: OutputFormat) -> LsArgs {
@@ -222,6 +241,47 @@ fn guard_table_fails_on_tty_not_format() {
 #[test]
 fn guard_allows_table_on_a_tty() {
     assert!(guard_with(&ls_args(OutputFormat::Table), true).is_ok());
+}
+
+#[test]
+fn from_project_honours_a_views_columns() {
+    // The picker renders the same table `ls` prints, so a `@view`'s columns
+    // have to reach it. They did not: the state kept the raw project config
+    // and dropped the one the resolved listing folds them into, so `mt ls
+    // @cols -i` drew columns `mt ls @cols` would not.
+    let dir = tempfile::tempdir().unwrap();
+    let config =
+        mindtape::parse_config("[views.cols]\nfilter = ''\ncolumns = ['status', 'title']\n")
+            .unwrap();
+    let project = crate::test_util::make_project(
+        dir.path(),
+        &[("x.typ", mindtape::test_support::TASK_SRC)],
+        config,
+    );
+    let args = LsArgs {
+        filter: Some("@cols".to_owned()),
+        ..ls_args(OutputFormat::Table)
+    };
+    let state = State::from_project(project, &args).unwrap();
+    assert_eq!(state.config.ls.columns_order, vec!["status", "title"]);
+}
+
+#[test]
+fn from_project_carries_the_truncation_into_the_state() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = crate::test_util::make_project(
+        dir.path(),
+        &[
+            ("a.typ", mindtape::test_support::TASK_SRC),
+            ("b.typ", mindtape::test_support::TASK_SRC),
+        ],
+        Config::default(),
+    );
+    let mut args = ls_args(OutputFormat::Table);
+    args.flags.limit = Some(1);
+    let state = State::from_project(project, &args).unwrap();
+    assert_eq!(state.tasks.len(), 1);
+    assert_eq!(state.truncated.map(|cut| cut.total), Some(2));
 }
 
 #[test]

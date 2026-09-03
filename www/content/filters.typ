@@ -184,6 +184,14 @@ mt ls --sort topo --sort priority:desc    # graph order, priority within a layer
 mt ls --sort blocks:desc --sort priority:desc  # leverage first, score to break ties
 ```
 
+`-n` cuts the list *after* the filter and the sort, so it always yields the top
+N of the order you asked for rather than whichever tasks the loader reached
+first. A cut listing says so: a table prints a dim `truncated: showing 10 of
+47` under the rows, and `--json` reports the same pair in its
+#link(u("/schema/"))[envelope]. The record formats — `csv`, `path`, `path0` —
+print records and nothing else, since a prose line appended there is corruption
+for the program on the other end of the pipe.
+
 = Default filters
 
 Omitting the filter first tries the project's ordered

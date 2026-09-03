@@ -63,7 +63,7 @@
     examples: ```sh
     mt ls ''                        # empty filter — lists everything
     mt ls 'has_tag("classical")'    # filter expression
-    mt ls ready -n 10               # predicate + limit
+    mt ls ready -n 10               # predicate + limit; a table says what it cut
     mt ls @stuck                    # named view — filter + sort + columns
     mt ls --json                    # shorthand for --format json
     mt ls --format csv              # table (default), json, csv, path, or path0

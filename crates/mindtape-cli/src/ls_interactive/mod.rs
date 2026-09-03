@@ -22,8 +22,8 @@ use crossterm::{cursor, execute};
 use anstyle::{Effects, Style};
 use mindtape::{Config, Readiness, Task};
 
-use crate::ls::{LsArgs, select_view};
-use crate::output::OutputFormat;
+use crate::ls::{LsArgs, resolve_and_select};
+use crate::output::{OutputFormat, Truncation};
 use crate::render::color::{Painter, is_color_active};
 use crate::render::table::render_highlighted;
 use crate::{go, util};
@@ -83,20 +83,23 @@ struct State {
     root: PathBuf,
     tasks: Vec<Task>,
     readiness: Readiness,
+    /// What `--limit` cut from the listed rows; recomputed on every refresh,
+    /// since a flip made in the editor can move a task in or out of the view.
+    truncated: Option<Truncation>,
     /// Accumulated `#`-ordinal digits; empty means nothing is selected.
     buffer: String,
 }
 
 impl State {
     fn from_project(project: util::Project, args: &LsArgs) -> Result<Self> {
-        let config = project.config.clone();
         let root = project.root.clone();
-        let (tasks, readiness) = select_view(args, project)?;
+        let listing = resolve_and_select(args, project)?;
         Ok(Self {
-            config,
+            config: listing.config,
             root,
-            tasks,
-            readiness,
+            tasks: listing.tasks,
+            readiness: listing.readiness,
+            truncated: listing.truncated,
             buffer: String::new(),
         })
     }
@@ -256,7 +259,7 @@ fn open(state: &State, tui: &Tui, indices: &[usize]) -> Result<bool> {
 fn draw(state: &State) -> Result<()> {
     let mask = state.highlight_mask();
     let table = render_highlighted(&state.tasks, &state.config, &state.readiness, &mask);
-    let body = format!("{table}\n{}\n", footer(&state.buffer));
+    let body = format!("{table}\n{}\n", footer(&state.buffer, state.truncated));
     // Raw mode does not translate `\n`; move every line back to column 0.
     let body = body.replace('\n', "\r\n");
     let mut out = io::stdout();
@@ -266,15 +269,22 @@ fn draw(state: &State) -> Result<()> {
     Ok(())
 }
 
-/// The footer: a dim hint line, preceded by the live `#` buffer when typing.
-fn footer(buffer: &str) -> String {
+/// The footer: a dim hint line, preceded by the live `#` buffer when typing
+/// and by the `truncated:` line when `--limit` hid rows. The picker can only
+/// open what it lists, so a caller who capped the listing has to be told the
+/// task they are looking for may be one of the rows `-n` cut.
+fn footer(buffer: &str, truncated: Option<Truncation>) -> String {
     let painter = Painter::new(is_color_active());
-    let hints = painter.paint(HINTS, Style::new().effects(Effects::DIMMED));
-    if buffer.is_empty() {
-        hints
-    } else {
-        format!("#{buffer}\n{hints}")
+    let dim = Style::new().effects(Effects::DIMMED);
+    let mut lines: Vec<String> = Vec::new();
+    if let Some(cut) = truncated {
+        lines.push(painter.paint(&cut.footer(), dim));
     }
+    if !buffer.is_empty() {
+        lines.push(format!("#{buffer}"));
+    }
+    lines.push(painter.paint(HINTS, dim));
+    lines.join("\n")
 }
 
 #[cfg(test)]

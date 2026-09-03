@@ -151,7 +151,8 @@ fixture, so neither can drift:
     + "  \"tasks\": [ … "
     + str(envelope.tasks.len())
     + " records, each shaped as above … ],\n"
-    + "  \"applied\": { … which rule and view won each facet … }\n"
+    + "  \"applied\": { … which rule and view won each facet … },\n"
+    + "  \"truncated\": null\n"
     + "}",
   lang: "json",
   block: true,
@@ -162,6 +163,12 @@ fixture, so neither can drift:
 `schema_version` bumps only when the envelope or record shape changes in a way
 that could break `mt import` or an external `jq` consumer; `applied` names
 which #link(u("/cli/"))[`[[ls.rules]]`] entry (if any) drove the listing.
+
+`truncated` is what `-n` / `--limit` cut: `null` on a complete listing, else
+`{"shown": 10, "total": 47}` — the rows you got against the rows the filter
+matched, so a bounded query answers "did I see everything?" from the same
+parse. The key is always present, never omitted, so reading it is one lookup
+rather than a test for existence.
 
 `mt import` reads `schema_version` permissively: absent — a bare JSON array,
 or an envelope without the field, such as hand-written or `jq`-produced input

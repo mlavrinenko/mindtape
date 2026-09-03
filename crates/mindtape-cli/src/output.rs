@@ -30,6 +30,49 @@ pub enum OutputFormat {
     Path0,
 }
 
+/// What `--limit` cut from a listing: the rows the caller was shown against
+/// the rows the filter actually matched. Only ever constructed when the limit
+/// bit, so `shown < total` holds by construction and a consumer never
+/// re-derives whether anything was hidden — absent *is* "this listing is
+/// complete" (`truth/tasks/ls-limit-flag.typ`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Truncation {
+    pub shown: usize,
+    pub total: usize,
+}
+
+impl Truncation {
+    /// The truncation `--limit` produced over `total` matched tasks: `None`
+    /// when no limit was given, and `None` when the limit was at least as
+    /// large as the match set and so hid nothing — a listing that fits under
+    /// its own cap is not truncated, and saying so would train the reader to
+    /// skip the line that means something.
+    #[must_use]
+    pub fn new(limit: Option<usize>, total: usize) -> Option<Self> {
+        let shown = limit?;
+        (shown < total).then_some(Self { shown, total })
+    }
+
+    /// The human footer line for a truncated table, labelled like
+    /// [`crate::ls_rules::trailer`]'s `applied:` so the two read as one block
+    /// under the rows.
+    #[must_use]
+    pub fn footer(self) -> String {
+        format!("truncated: showing {} of {}", self.shown, self.total)
+    }
+}
+
+/// The document-level envelope `mt ls --json` wraps its records in: which rule
+/// and view won each facet ([`Applied`]), and what `--limit` cut
+/// ([`Truncation`]). `mt eval --json` and the flip-hook table have neither
+/// context and pass `None` to [`render`], keeping the bare array —
+/// `schema_version` is an envelope marker, not a per-task field.
+#[derive(Debug, Clone, Copy)]
+pub struct Envelope<'a> {
+    pub applied: &'a Applied,
+    pub truncated: Option<Truncation>,
+}
+
 fn status_name(task: &Task) -> String {
     task.status
         .as_ref()
@@ -37,17 +80,22 @@ fn status_name(task: &Task) -> String {
 }
 
 /// Render `tasks` in the chosen `format`. `readiness` drives the table's
-/// dependency column; `Table` and `CSV` ignore `applied`. `applied` is `mt
-/// ls`'s resolved bundle attribution (`crate::ls_rules`): when `Some`, `JSON`
-/// wraps the task array in the `{"schema_version": ..., "tasks": ...,
-/// "applied": ...}` envelope (`truth/tasks/conditional-ls-rules.typ`,
-/// `truth/tasks/emit-schema-version-in-the-ls-json-envelope.typ`); `None`
-/// (e.g. `mt eval --json`, which has no rule/view context) keeps the bare
-/// array — `schema_version` is a document-level envelope marker, not a
-/// per-task field, so a bare array carries none. `Path`/`Path0` ignore
-/// `applied` too: no header, no colour, no hyperlinks, no envelope — the
-/// output is for a program, not a reader
-/// (`truth/tasks/emit-a-plain-path-list-from-ls.typ`).
+/// dependency column; only `JSON` reads `envelope` at all. When it is `Some`,
+/// `JSON` wraps the task array in the `{"schema_version": ..., "tasks": ...,
+/// "applied": ..., "truncated": ...}` envelope
+/// (`truth/tasks/conditional-ls-rules.typ`,
+/// `truth/tasks/emit-schema-version-in-the-ls-json-envelope.typ`,
+/// `truth/tasks/ls-limit-flag.typ`); `None` (e.g. `mt eval --json`, which has
+/// no rule/view context) keeps the bare array — `schema_version` is a
+/// document-level envelope marker, not a per-task field, so a bare array
+/// carries none.
+///
+/// `Table`, `CSV`, `Path` and `Path0` ignore `envelope`: the table's
+/// attribution and truncation lines are printed under it by the caller
+/// (`crate::ls`), and the three machine formats are record streams with
+/// nowhere to put a document-level fact — no header, no colour, no
+/// hyperlinks, no envelope, so a `csv` reader and `xargs -0` get records and
+/// nothing else (`truth/tasks/emit-a-plain-path-list-from-ls.typ`).
 ///
 /// # Errors
 /// Returns an error if JSON or CSV serialization fails.
@@ -56,11 +104,11 @@ pub fn render(
     format: OutputFormat,
     config: &Config,
     readiness: &Readiness,
-    applied: Option<&Applied>,
+    envelope: Option<Envelope<'_>>,
 ) -> Result<String> {
     match format {
         OutputFormat::Table => Ok(crate::render::table::render(tasks, config, readiness)),
-        OutputFormat::Json => render_json(tasks, config, applied),
+        OutputFormat::Json => render_json(tasks, config, envelope),
         OutputFormat::Csv => render_csv(tasks, config, readiness),
         OutputFormat::Path => Ok(render_path(tasks)),
         OutputFormat::Path0 => Ok(render_path0(tasks)),
@@ -89,20 +137,33 @@ fn render_path0(tasks: &[Task]) -> String {
         .collect()
 }
 
-fn render_json(tasks: &[Task], config: &Config, applied: Option<&Applied>) -> Result<String> {
+fn render_json(tasks: &[Task], config: &Config, envelope: Option<Envelope<'_>>) -> Result<String> {
     let array: Vec<Value> = tasks
         .iter()
         .map(|task| task_to_json(task, config))
         .collect();
-    let body = match applied {
-        Some(applied) => json!({
+    let body = match envelope {
+        Some(envelope) => json!({
             "schema_version": SCHEMA_VERSION,
             "tasks": array,
-            "applied": applied_to_json(applied),
+            "applied": applied_to_json(envelope.applied),
+            "truncated": truncated_to_json(envelope.truncated),
         }),
         None => Value::Array(array),
     };
     Ok(serde_json::to_string_pretty(&body)?)
+}
+
+/// `mt ls --json`'s `truncated` envelope field: `null` on a complete listing,
+/// else the pair a caller needs to decide whether to ask again with a bigger
+/// `--limit`. Always present, so a consumer reads one key rather than testing
+/// for its existence — an additive envelope key no `mt import` or `jq`
+/// consumer can trip over, hence no `SCHEMA_VERSION` bump.
+fn truncated_to_json(truncated: Option<Truncation>) -> Value {
+    truncated.map_or(
+        Value::Null,
+        |cut| json!({"shown": cut.shown, "total": cut.total}),
+    )
 }
 
 /// `mt ls --json`'s `applied` envelope field: which rule (if any) fired, and
@@ -220,3 +281,6 @@ fn priority_display(value: Option<&NumValue>, config: &Config) -> String {
 #[cfg(test)]
 #[path = "output_tests.rs"]
 mod tests;
+#[cfg(test)]
+#[path = "output_tests_envelope.rs"]
+mod tests_envelope;

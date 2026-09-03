@@ -6,7 +6,7 @@ use mindtape::sort::{default_order_with, sort_by_specs};
 use mindtape::{Config, Filter, Readiness, Task, select};
 
 use crate::ls_rules::{self, Applied};
-use crate::output::{OutputFormat, render};
+use crate::output::{Envelope, OutputFormat, Truncation, render};
 use crate::render::color::{Painter, is_color_active};
 use crate::util;
 
@@ -39,7 +39,10 @@ pub struct LsFlags {
     #[arg(long)]
     pub json: bool,
 
-    /// Limit output to N tasks.
+    /// Limit output to N tasks. Applied after the filter and the sort, so it
+    /// composes with `--sort` and a named view; a table says what it cut,
+    /// `--json` reports it in the envelope, and the record formats (`csv`,
+    /// `path`, `path0`) stay records only.
     #[arg(short = 'n', long)]
     pub limit: Option<usize>,
 
@@ -72,14 +75,24 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
     if args.flags.interactive {
         return crate::ls_interactive::run(args, project);
     }
-    let (tasks, readiness, applied, config) = resolve_and_select(args, project)?;
+    let listing = resolve_and_select(args, project)?;
 
     let format = if args.flags.json {
         OutputFormat::Json
     } else {
         args.flags.format
     };
-    let body = render(&tasks, format, &config, &readiness, Some(&applied))?;
+    let envelope = Envelope {
+        applied: &listing.applied,
+        truncated: listing.truncated,
+    };
+    let body = render(
+        &listing.tasks,
+        format,
+        &listing.config,
+        &listing.readiness,
+        Some(envelope),
+    )?;
     if matches!(format, OutputFormat::Path0) {
         // Self-terminated: every path (including the last) already carries
         // its own trailing NUL, so a `println!`-supplied newline would land
@@ -88,16 +101,37 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
     } else {
         println!("{body}");
     }
-    if matches!(format, OutputFormat::Table)
-        && let Some(line) = ls_rules::trailer(&applied)
-    {
-        let painter = Painter::new(is_color_active());
-        println!(
-            "{}",
-            painter.paint(&line, Style::new().effects(Effects::DIMMED))
-        );
+    if matches!(format, OutputFormat::Table) {
+        print_trailers(&listing);
     }
     Ok(())
+}
+
+/// The dim lines under a rendered table: the `applied:` attribution, then the
+/// `truncated:` count when `--limit` hid rows. Table only — every other format
+/// is a record stream a reader parses, so a trailing prose line there is
+/// corruption, not information.
+fn print_trailers(listing: &Listing) {
+    let painter = Painter::new(is_color_active());
+    let dim = Style::new().effects(Effects::DIMMED);
+    let lines = ls_rules::trailer(&listing.applied)
+        .into_iter()
+        .chain(listing.truncated.map(Truncation::footer));
+    for line in lines {
+        println!("{}", painter.paint(&line, dim));
+    }
+}
+
+/// The resolved listing one `mt ls` run prints: the selected tasks, the
+/// readiness and attribution they were selected under, the config the render
+/// reads (view columns folded in), and what `--limit` cut — `None` when the
+/// listing is complete.
+pub(crate) struct Listing {
+    pub tasks: Vec<Task>,
+    pub readiness: Readiness,
+    pub applied: Applied,
+    pub config: Config,
+    pub truncated: Option<Truncation>,
 }
 
 /// Resolve the effective bundle ([`ls_rules::resolve`]), apply it, select and
@@ -105,15 +139,17 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
 /// is computed over the full set — before the filter narrows it — so a
 /// terminal dependency hidden by the effective filter still counts as
 /// satisfied; it is shared by the filter, the sort, and the rendered column.
-/// Both the one-shot render and the interactive loop build on this (via
-/// [`select_view`]), so their lists (and thus the `#` ordinals) match exactly.
+///
+/// `--limit` is applied last, over the filtered and sorted list, so it
+/// composes with `--sort` and a view's own sort chain rather than racing
+/// them; the match count is taken before the cut, which is what makes the
+/// reported `total` the number the caller would see with a bigger `--limit`.
+/// Both the one-shot render and the interactive loop build on this, so their
+/// lists (and thus the `#` ordinals) match exactly.
 ///
 /// # Errors
 /// Returns an error if the resolved filter or sort spec is invalid.
-fn resolve_and_select(
-    args: &LsArgs,
-    project: util::Project,
-) -> Result<(Vec<Task>, Readiness, Applied, Config)> {
+pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Result<Listing> {
     let (bundle, applied) = ls_rules::resolve(&project, args)?;
     let mut config = project.config.clone();
     if !bundle.columns.is_empty() {
@@ -128,21 +164,17 @@ fn resolve_and_select(
         &readiness,
     )?;
     sort_tasks(&mut tasks, &bundle.sort, &project.config, &readiness)?;
+    let truncated = Truncation::new(args.flags.limit, tasks.len());
     if let Some(limit) = args.flags.limit {
         tasks.truncate(limit);
     }
-    Ok((tasks, readiness, applied, config))
-}
-
-/// Compute the displayed view: [`resolve_and_select`], keeping only the task
-/// list and readiness. The interactive loop ([`crate::ls_interactive`]) calls
-/// this so it matches the one-shot render exactly.
-///
-/// # Errors
-/// Returns an error if the resolved filter or sort spec is invalid.
-pub(crate) fn select_view(args: &LsArgs, project: util::Project) -> Result<(Vec<Task>, Readiness)> {
-    let (tasks, readiness, _applied, _config) = resolve_and_select(args, project)?;
-    Ok((tasks, readiness))
+    Ok(Listing {
+        tasks,
+        readiness,
+        applied,
+        config,
+        truncated,
+    })
 }
 
 /// Apply `specs` (empty means the built-in default order); shared by the
@@ -165,236 +197,5 @@ pub(crate) fn sort_tasks(
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used)]
-mod tests {
-    use std::path::Path;
-
-    use mindtape::numeric::NumValue;
-    use mindtape::test_support::{TASK_SRC as TASK, bare_task};
-    use mindtape::{Config, Readiness, Task};
-
-    use mindtape::sort::sort_by_specs;
-
-    use super::{LsArgs, resolve_and_select, run_with};
-    use crate::output::OutputFormat;
-
-    fn task(id: &str, priority: f64) -> Task {
-        let mut t = bare_task(id);
-        t.priority = Some(NumValue::Num(priority));
-        t
-    }
-
-    #[test]
-    fn sort_by_specs_orders_priority_numerically() {
-        // Ascending: lower number first. Lexicographic "8" < "2" is false,
-        // so this only passes with numeric ordering.
-        let mut tasks = vec![task("b", 8.0), task("a", 2.0)];
-        sort_by_specs(
-            &mut tasks,
-            &["priority:asc".to_owned()],
-            &Config::default(),
-            &Readiness::empty(),
-        )
-        .unwrap();
-        assert_eq!(tasks.first().unwrap().id, "a");
-    }
-
-    #[test]
-    fn sort_by_specs_rejects_unknown_field() {
-        let mut tasks = vec![task("a", 1.0)];
-        assert!(
-            sort_by_specs(
-                &mut tasks,
-                &["no_such_field".to_owned()],
-                &Config::default(),
-                &Readiness::empty(),
-            )
-            .is_err()
-        );
-    }
-
-    fn make_project(dir: &Path, files: &[(&str, &str)]) -> crate::util::Project {
-        crate::test_util::make_project(dir, files, Config::default())
-    }
-
-    fn default_args() -> LsArgs {
-        LsArgs {
-            filter: None,
-            flags: crate::ls::LsFlags {
-                format: OutputFormat::Table,
-                json: false,
-                limit: None,
-                sort: vec![],
-                columns: None,
-                interactive: false,
-            },
-        }
-    }
-
-    fn config_with_views() -> Config {
-        mindtape::parse_config(
-            "[views.hot]\nfilter = 'priority > 5'\nsort = ['priority:desc']\n\
-             columns = ['status', 'title']\n\
-             [views.broken]\nfilter = 'blocked'\n",
-        )
-        .unwrap()
-    }
-
-    fn view_project(dir: &Path) -> crate::util::Project {
-        crate::test_util::make_project(dir, &[("x.typ", TASK)], config_with_views())
-    }
-
-    #[test]
-    fn run_with_table_format_succeeds() {
-        let dir = tempfile::tempdir().unwrap();
-        let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        assert!(run_with(&default_args(), project).is_ok());
-    }
-
-    #[test]
-    fn run_with_json_flag_succeeds() {
-        let dir = tempfile::tempdir().unwrap();
-        let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let mut args = default_args();
-        args.flags.json = true;
-        assert!(run_with(&args, project).is_ok());
-    }
-
-    #[test]
-    fn run_with_csv_format_succeeds() {
-        let dir = tempfile::tempdir().unwrap();
-        let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let mut args = default_args();
-        args.flags.format = OutputFormat::Csv;
-        assert!(run_with(&args, project).is_ok());
-    }
-
-    #[test]
-    fn run_with_limit_truncates() {
-        let dir = tempfile::tempdir().unwrap();
-        let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
-        let mut args = default_args();
-        args.flags.limit = Some(1);
-        assert!(run_with(&args, project).is_ok());
-    }
-
-    #[test]
-    fn run_with_invalid_filter_returns_err() {
-        let dir = tempfile::tempdir().unwrap();
-        let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let args = LsArgs {
-            filter: Some("!!bad!!".to_owned()),
-            ..default_args()
-        };
-        assert!(run_with(&args, project).is_err());
-    }
-
-    #[test]
-    fn run_with_invalid_sort_returns_err() {
-        let dir = tempfile::tempdir().unwrap();
-        let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let mut args = default_args();
-        args.flags.sort = vec!["no_such_field".to_owned()];
-        assert!(run_with(&args, project).is_err());
-    }
-
-    #[test]
-    fn empty_filter_lists_everything() {
-        let dir = tempfile::tempdir().unwrap();
-        let project = make_project(dir.path(), &[("x.typ", TASK)]);
-        let args = LsArgs {
-            filter: Some(String::new()),
-            ..default_args()
-        };
-        assert!(run_with(&args, project).is_ok());
-    }
-
-    #[test]
-    fn bundle_view_reference_runs() {
-        let dir = tempfile::tempdir().unwrap();
-        let args = LsArgs {
-            filter: Some("@hot".to_owned()),
-            ..default_args()
-        };
-        assert!(run_with(&args, view_project(dir.path())).is_ok());
-    }
-
-    #[test]
-    fn unknown_bundle_view_errors() {
-        let dir = tempfile::tempdir().unwrap();
-        let args = LsArgs {
-            filter: Some("@ghost".to_owned()),
-            ..default_args()
-        };
-        assert!(run_with(&args, view_project(dir.path())).is_err());
-    }
-
-    #[test]
-    fn columns_flag_selects_named_columns() {
-        let dir = tempfile::tempdir().unwrap();
-        let mut args = default_args();
-        args.flags.columns = Some("status,title".to_owned());
-        assert!(run_with(&args, view_project(dir.path())).is_ok());
-    }
-
-    #[test]
-    fn columns_at_view_runs() {
-        let dir = tempfile::tempdir().unwrap();
-        let mut args = default_args();
-        args.flags.columns = Some("@hot".to_owned());
-        assert!(run_with(&args, view_project(dir.path())).is_ok());
-    }
-
-    #[test]
-    fn unknown_column_errors() {
-        let dir = tempfile::tempdir().unwrap();
-        let mut args = default_args();
-        args.flags.columns = Some("bogus".to_owned());
-        assert!(run_with(&args, view_project(dir.path())).is_err());
-    }
-
-    #[test]
-    fn sort_at_view_expands() {
-        let dir = tempfile::tempdir().unwrap();
-        let mut args = default_args();
-        args.flags.sort = vec!["@hot".to_owned()];
-        assert!(run_with(&args, view_project(dir.path())).is_ok());
-    }
-
-    #[test]
-    fn default_view_drives_bare_listing() {
-        // A `[views.default]` view supplies the filter for a bare `mt ls`.
-        // TASK is `wip` (non-terminal), so a `terminal` default view hides it.
-        let dir = tempfile::tempdir().unwrap();
-        let config = mindtape::parse_config("[views.default]\nfilter = 'terminal'\n").unwrap();
-        let project = crate::test_util::make_project(dir.path(), &[("x.typ", TASK)], config);
-        let (tasks, _) = super::select_view(&default_args(), project).unwrap();
-        assert!(tasks.is_empty());
-    }
-
-    #[test]
-    fn resolve_and_select_applies_view_columns() {
-        let dir = tempfile::tempdir().unwrap();
-        let project = view_project(dir.path());
-        let args = LsArgs {
-            filter: Some("@hot".to_owned()),
-            ..default_args()
-        };
-        let (_, _, _, config_out) = resolve_and_select(&args, project).unwrap();
-        assert_eq!(config_out.ls.columns_order, vec!["status", "title"]);
-    }
-
-    #[test]
-    fn explicit_empty_filter_bypasses_default_view() {
-        // `mt ls ''` is match-all: the default view is ignored entirely.
-        let dir = tempfile::tempdir().unwrap();
-        let config = mindtape::parse_config("[views.default]\nfilter = 'terminal'\n").unwrap();
-        let project = crate::test_util::make_project(dir.path(), &[("x.typ", TASK)], config);
-        let args = LsArgs {
-            filter: Some(String::new()),
-            ..default_args()
-        };
-        let (tasks, _) = super::select_view(&args, project).unwrap();
-        assert_eq!(tasks.len(), 1);
-    }
-}
+#[path = "ls_tests.rs"]
+mod tests;

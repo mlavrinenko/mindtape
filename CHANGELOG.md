@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A truncated listing now says what it cut** — `mt ls -n 10` printed ten rows
+  and nothing about the other thirty-seven, so a bounded listing and a short
+  backlog were the same output and a caller reported the one as the other. The
+  cut is now reported in whatever the format has room for: a dim
+  `truncated: showing 10 of 47` under the table, beside the `applied:` trailer;
+  a `"truncated": {"shown": 10, "total": 47}` key in `mt ls --json`'s envelope;
+  and deliberately nothing in `csv`, `path` and `path0`, which are record
+  streams a trailing prose line would corrupt for the `csv` reader or the
+  `xargs -0` on the other end — the exact failure `-n` exists to avoid. The
+  JSON key is always present, `null` on a complete listing, so a consumer reads
+  one lookup rather than testing whether a key exists; being additive it breaks
+  no `mt import` or `jq` consumer, so `schema_version` does not move. `total`
+  is the match count taken before the cut, which makes it the number a bigger
+  `-n` would show rather than the number printed, and the cut still happens
+  after the filter and the sort, so `-n` composes with `--sort` and a view's
+  own sort chain. `mt find` inherits all of it by flattening the same flag
+  struct. `mt ls -i` carries the line into the picker's footer, where it
+  matters most: the loop can only open what it lists, so a capped view would
+  otherwise read as a missing task.
+
 - **`mt flip` reports the handles it just invalidated** — a handle's ordinal is
   the task's position in the default view, recomputed on every command, and a
   flip re-sorts that view: `1b` is stale the moment the write it named lands,
@@ -308,6 +328,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `fake_editor` functions, ambiguous by suffix under any root.
 
 ### Fixed
+
+- **`mt ls @view -i` ignored the view's `columns`.** The interactive picker
+  kept the raw project config and dropped the one a resolved listing folds a
+  view's column set into, so it drew columns `mt ls @view` would not — against
+  a module whose stated contract is rendering the same table `ls` prints. Both
+  now build on the same resolved listing, which is also what carries the new
+  `truncated:` line into the picker's footer.
 
 - **`mt init` offered a recurrence syntax the binary could not expand.** The
   wizard's `rrule` choice writes `[tasks.recur] rrule = true`, but that key only

@@ -94,6 +94,11 @@ branch/env/weekday/date), then falls back to the default view
 tasks), naming the winner on a dim `applied: ...` line. An empty filter
 (`mt ls ''`) drops all of that and lists everything; there is no `--all` flag.
 
+`-n N` bounds a listing without a pipe. It cuts after the filter and sort, so
+you get the top N of the order you asked for, and a cut listing says so: a
+`truncated: showing 10 of 47` line under the table, the same pair as `--json`'s
+`truncated` envelope key. Read it before reporting a backlog as complete.
+
 Pass a filter expression as the positional argument. Fields:
 `status priority difficulty kind title id due start reviewed file assignee depth topo blocks role`
 — `--sort` takes the same set except `role`, plus a computed `ready` rank.

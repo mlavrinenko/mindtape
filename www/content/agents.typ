@@ -40,12 +40,17 @@ A task in `mt ls --json` (the hero's Für Elise task, captured verbatim from the
 MindTape reads its own data back out without MindTape interpreting it.
 
 `mt ls --json`'s top-level shape is `{"schema_version": ..., "tasks": [...],
-"applied": {...}}`, not a bare array — `applied` names which
+"applied": {...}, "truncated": ...}`, not a bare array — `applied` names which
 #link(u("/cli/"))[`[[ls.rules]]`] entry (if any) drove the listing and which
 source won each facet, so an agent can tell a conditional listing from a plain
 one without re-deriving it. `schema_version` (see #link(u("/schema/"))[the
   canonical schema]) names the envelope shape it is about to parse: a version it
 does not recognize is a signal to bail out, not to mis-parse silently.
+
+`truncated` closes the bounded-listing question. `mt ls ready -n 10 --json`
+keeps a reply small, and `truncated` says whether small was the whole answer:
+`null` when nothing was cut, else `{"shown": 10, "total": 47}` — ask again with
+a bigger `-n` rather than reporting a backlog that has 37 more rows in it.
 
 #terminal(read("../generated/ls-json.txt"))
 
