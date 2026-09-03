@@ -10,11 +10,7 @@
   difficulty: 3,
   tags: ("cli", "tests"),
   estimate: (files: 3),
-  status: done(
-    2026,
-    8,
-    18,
-  )[Insertion anchors after the last argument and carries its own comma.],
+  status: done(2026, 9, 3),
 )
 
 == Summary
