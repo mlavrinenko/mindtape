@@ -355,16 +355,22 @@ bench N='2000':
         --command-name "mt check ({{ N }} tasks)" "./target/release/mt -w examples/large check"
 
 # Check the `rrule(...)` escape hatch's expansion engine: `just check` builds
-# `mindtape` with default features, so it never compiles or runs this code
-# (see crates/mindtape/src/recur_rrule.rs). Reproduces what CI runs for it.
-# Runs through nextest, the same runner `just test` gates on.
+# with default features, so it never compiles or runs this code (see
+# crates/mindtape/src/recur_rrule.rs). Reproduces what CI runs for it. Runs
+# through nextest, the same runner `just test` gates on.
+#
+# Both crates, not only `mindtape`: `mt init`'s recurrence axis hides its
+# `rrule` choice from a build without the engine, so mindtape-cli carries
+# `cfg(feature = "rrule")` arms of its own. Lint and run one crate here and the
+# other's feature-on arms compile nowhere — the same rot this recipe exists to
+# stop, one crate over.
 
 [doc("Check the rrule feature build, lint, and tests")]
 [group("dev")]
 check-rrule:
     cargo fmt --all -- --check
-    cargo clippy -p mindtape --features rrule --all-targets -q -- -D warnings
-    cargo nextest run -p mindtape --features rrule --status-level fail
+    cargo clippy --workspace --features mindtape/rrule,mindtape-cli/rrule --all-targets -q -- -D warnings
+    cargo nextest run --workspace --features mindtape/rrule,mindtape-cli/rrule --status-level fail
 
 # Cross-check the workspace, tests included, against Windows without leaving
 # Linux — the compile half of what the CI windows job proves at runtime, minutes

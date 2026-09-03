@@ -309,6 +309,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt init` offered a recurrence syntax the binary could not expand.** The
+  wizard's `rrule` choice writes `[tasks.recur] rrule = true`, but that key only
+  opens the config gate — expanding a rule needs the engine behind the `rrule`
+  cargo feature, which is off by default and which `just install-bin` does not
+  build. So the composed config was accepted, `mt init` reported success, and
+  the failure surfaced later and elsewhere: the first task authored with
+  `recur: rrule("FREQ=MONTHLY")` failed `mt check` with "requires mindtape to be
+  built with the `rrule` cargo feature (not compiled into this binary)". A real
+  project lost that answer to a re-file with `every(months: 1)` and a comment in
+  its own config warning the next reader off the wizard's own menu entry — the
+  documentation you write when a tool contradicts itself. An axis choice now
+  declares whether THIS build can honour it: unhonourable choices are absent
+  from the menu, refused when typed, and refused by name and reason from the
+  flag, so `--recurrence rrule` fails `mt init` naming the cargo feature instead
+  of scaffolding a project that breaks on its first recurring task. An axis left
+  with one honourable choice is not a question either, and is not asked. The
+  variant stays compiled in both builds, so `--recurrence rrule` keeps parsing
+  and keeps appearing in `--help` — a flag that vanishes reports "invalid value"
+  and names the feature nowhere. Every other axis is untouched: availability
+  defaults to available, and a build carrying the feature offers the choice as
+  before (`just check-rrule`).
 - **`just cover` printed 2137 `PASS` lines to report a green suite.**
   `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it, so the
   flag `just test` has always carried never reached the coverage run: 2316

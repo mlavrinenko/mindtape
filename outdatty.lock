@@ -86,12 +86,12 @@ groups:
       .just/scripts/script-scope-check.sh: e9ef7c86a60e12345a36c9b34af80a4c9da8c66f929742510c1cca63e2cbb7a3
       .just/scripts/site-pages-fixture-check.sh: aa40e196b692f4c0fb37385bfb5267bdf237c163daa9a57909a36f9cb871d91e
       .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
-      Justfile: 46726fced2b2694b3b9a045f5853d7e4d547ae8e16b6c06fd24bb3a1603e4422
+      Justfile: 56a39495b855ede90f78c40d5a81ebb8894d6fad2e04bd48ef638e876d670a0f
       flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
-      docs/src/contributing/coverage-crap.typ: a62cc9863d8442a04bdbab1c5e4bb57bf793abf5885c87c9071f87fd7068830a
+      docs/src/contributing/coverage-crap.typ: 173494b7ad613015a587e7bfff67620f7b2661c42e8b88927c3bc7f6ea9c29ba
       docs/src/contributing/gates.typ: 447619d0cb007551d70ad41b80232c9cbc989a4811d0590098ca7ef26ce29b98
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
       docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c

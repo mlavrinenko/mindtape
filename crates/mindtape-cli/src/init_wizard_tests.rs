@@ -7,12 +7,37 @@ use super::{
     Workflow, assemble, parse_answer_comment, resolve,
 };
 
+/// Whether this build carries the `rrule` expansion engine. Without it the
+/// wizard hides `--recurrence rrule`, which leaves the axis one choice — so
+/// every recurrence expectation below is a function of this, not a constant.
+const RRULE_BUILD: bool = cfg!(feature = "rrule");
+
+/// The recurrence answer this build can actually reach through the wizard.
+fn reachable_recurrence() -> Recurrence {
+    if RRULE_BUILD {
+        Recurrence::Rrule
+    } else {
+        Recurrence::default_value()
+    }
+}
+
 /// Drive `resolve` with a scripted answer stream, capturing the prompts.
 fn walk(flags: &Flags, interactive: bool, script: &str) -> (Answers, String) {
     let mut reader = Cursor::new(script.as_bytes().to_vec());
     let mut writer = Vec::<u8>::new();
     let answers = resolve(flags, interactive, &mut reader, &mut writer).unwrap();
     (answers, String::from_utf8(writer).unwrap())
+}
+
+/// Drive `resolve` expecting a refusal, returning the message. Only a build
+/// missing an engine has an unhonourable answer to refuse.
+#[cfg(not(feature = "rrule"))]
+fn walk_err(flags: &Flags) -> String {
+    let mut reader = Cursor::new(Vec::new());
+    let mut writer = Vec::<u8>::new();
+    resolve(flags, true, &mut reader, &mut writer)
+        .unwrap_err()
+        .to_string()
 }
 
 fn all_default() -> Answers {
@@ -65,13 +90,13 @@ fn all_flags_suppress_every_question() {
         estimate: Some(Estimate::DaysHours),
         required: Some(Required::Difficulty),
         headers: Some(Headers::Spec),
-        recurrence: Some(Recurrence::Rrule),
+        recurrence: Some(reachable_recurrence()),
     };
     let (answers, prompts) = walk(&flags, true, "");
     assert!(prompts.is_empty(), "all questions suppressed: {prompts:?}");
     assert_eq!(answers.workflow, Workflow::TodoDone);
     assert_eq!(answers.headers, Headers::Spec);
-    assert_eq!(answers.recurrence, Recurrence::Rrule);
+    assert_eq!(answers.recurrence, reachable_recurrence());
 }
 
 /// A core-axis flag suppresses exactly its own question; the other core
@@ -114,7 +139,13 @@ fn extra_flag_suppresses_only_its_question() {
     );
     assert!(prompts.contains(Required::TITLE), "{prompts}");
     assert!(prompts.contains(Headers::TITLE), "{prompts}");
-    assert!(prompts.contains(Recurrence::TITLE), "{prompts}");
+    // Recurrence is a question only while this build offers more than one
+    // answer to it; without the `rrule` engine there is nothing to choose.
+    assert_eq!(
+        prompts.contains(Recurrence::TITLE),
+        RRULE_BUILD,
+        "{prompts}"
+    );
     assert_eq!(answers.estimate, Estimate::DaysHours);
     assert_eq!(answers.required, Required::None);
 }
@@ -142,7 +173,102 @@ fn declining_the_gate_walks_the_extras() {
     assert_eq!(answers.estimate, Estimate::DaysHours);
     assert_eq!(answers.required, Required::Difficulty);
     assert_eq!(answers.headers, Headers::Spec);
-    assert_eq!(answers.recurrence, Recurrence::Rrule);
+    assert_eq!(answers.recurrence, reachable_recurrence());
+}
+
+/// The `rrule` choice is offered only by a build that carries its expansion
+/// engine — the wizard never puts a config on the menu that `mt check` would
+/// then reject on the first task to use it.
+#[test]
+fn rrule_is_offered_only_by_an_rrule_build() {
+    assert_eq!(Recurrence::Rrule.unavailable().is_none(), RRULE_BUILD);
+    assert_eq!(Recurrence::offered().len(), if RRULE_BUILD { 2 } else { 1 });
+    assert!(Recurrence::offered().contains(&Recurrence::Off));
+    // Every other axis is untouched: unavailability defaults to "available".
+    assert_eq!(Workflow::offered().len(), Workflow::VARIANTS.len());
+    assert_eq!(Priority::offered().len(), Priority::VARIANTS.len());
+}
+
+/// `--recurrence rrule` on a build without the engine fails the run, naming the
+/// cargo feature. Composing it instead would defer the failure to `mt check` in
+/// a different session, where nothing connects it back to the answer.
+#[test]
+#[cfg(not(feature = "rrule"))]
+fn an_unavailable_flag_is_refused_by_name_and_reason() {
+    let flags = Flags {
+        recurrence: Some(Recurrence::Rrule),
+        ..Flags::default()
+    };
+    let message = walk_err(&flags);
+    assert!(message.contains("rrule"), "{message}");
+    assert!(message.contains("cargo feature"), "{message}");
+}
+
+/// Declining the extras gate on a build without the engine walks the other
+/// extras and never writes the word `rrule` — the menu entry that sent a real
+/// project down this path is simply not there.
+#[test]
+#[cfg(not(feature = "rrule"))]
+fn a_build_without_the_engine_never_prints_the_rrule_menu_entry() {
+    let (answers, prompts) = walk(
+        &Flags::default(),
+        true,
+        "flow\nbands\nfolders\nn\noff\nnone\noff\n",
+    );
+    assert!(!prompts.contains(Recurrence::TITLE), "{prompts}");
+    assert!(!prompts.contains("rrule"), "{prompts}");
+    assert_eq!(answers.recurrence, Recurrence::Off);
+}
+
+/// Always true, as a call rather than a literal so the generated condition is
+/// an expression clippy has no simplification for.
+fn always() -> bool {
+    true
+}
+
+// A three-choice axis with the middle one hidden. Recurrence has two choices,
+// so hiding one leaves a question the walk skips entirely — this is the shape
+// that proves what the menu does when a hidden choice sits between offered
+// ones, which no real axis can exercise yet.
+// The title and blurbs deliberately avoid the word `hidden`, so the assertions
+// below can look for it in the rendered menu and mean the slug alone.
+axis!(Probe ("Probe — a middle choice this build cannot honour:", default = First) {
+    First = "first": "offered" => "",
+    Hidden = "hidden": "unavailable" => "",
+    Last = "last": "offered" => "",
+}
+unavailable {
+    Hidden when always() => "the probe axis hides this one unconditionally",
+});
+
+/// Drive one axis's menu with a scripted answer, returning the choice and the
+/// prompt text.
+fn ask<A: Axis>(script: &str) -> (A, String) {
+    let mut reader = Cursor::new(script.as_bytes().to_vec());
+    let mut writer = Vec::<u8>::new();
+    let chosen = super::ask_axis(&mut reader, &mut writer).unwrap();
+    (chosen, String::from_utf8(writer).unwrap())
+}
+
+/// A hidden choice is absent from the menu and the numbering closes over it,
+/// so `2` is the second choice SHOWN, not the second variant declared.
+#[test]
+fn the_menu_numbers_the_offered_choices_not_the_declared_ones() {
+    let (chosen, prompts) = ask::<Probe>("2\n");
+    assert!(!prompts.contains("hidden"), "{prompts}");
+    assert!(prompts.contains("1) first"), "{prompts}");
+    assert!(prompts.contains("2) last"), "{prompts}");
+    assert_eq!(chosen, Probe::Last);
+}
+
+/// The slug of a hidden choice is refused like any unrecognised word — hiding
+/// it from the menu but honouring it when typed would be the same bug wearing
+/// a different hat.
+#[test]
+fn a_hidden_slug_typed_at_the_prompt_re_prompts() {
+    let (chosen, prompts) = ask::<Probe>("hidden\nlast\n");
+    assert!(prompts.contains("not one of the choices"), "{prompts}");
+    assert_eq!(chosen, Probe::Last);
 }
 
 /// An empty line takes the default; an unrecognised line re-prompts.

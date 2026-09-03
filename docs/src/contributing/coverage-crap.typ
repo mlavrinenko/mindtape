@@ -46,7 +46,9 @@ than `none`.
 #just.cover() builds default features only, so `recur_rrule.rs` (the `rrule`
 feature's expander) never compiles, and #just.crap() excludes it too rather
 than scoring it as phantom 0%-covered. #just.check-rrule() covers it
-separately, under the `rrule` feature.
+separately, under the `rrule` feature — across the whole workspace, not only
+`mindtape`: `mt init`'s recurrence axis hides its `rrule` choice from a build
+without the engine, so `mindtape-cli` carries feature-gated arms of its own.
 
 = Why it throws the previous run away
 

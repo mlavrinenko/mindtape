@@ -93,6 +93,13 @@ the rest, and records the answers as a comment block in the written file. A
 piped (non-terminal) stdin skips the questionnaire the way `--no-input` does;
 every question also has a flag that suppresses just that question.
 
+A build offers only the answers it can act on. The `rrule` recurrence syntax
+needs an expansion engine behind an off-by-default cargo feature, so an `mt`
+built without it neither lists that choice nor accepts `--recurrence rrule` —
+the flag fails naming the feature, rather than writing a config whose first
+`rrule(...)` task would fail `mt check`. An axis left with one answer is not
+asked at all.
+
 A preset is a starter shape; the written file is yours to edit. Four ship:
 
 / #raw("todone"): open or finished, nothing else constrained.

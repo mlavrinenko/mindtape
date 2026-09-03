@@ -66,6 +66,15 @@ fn every_preset_supports_add_check_and_a_full_walk() {
     }
 }
 
+/// The recurrence answer THIS build can honour. `rrule` is offered only by a
+/// build carrying the expansion engine, so the composed-set battery below asks
+/// for what it can get; the refusal is pinned by its own test.
+const RECURRENCE_ANSWER: &str = if cfg!(feature = "rrule") {
+    "rrule"
+} else {
+    "off"
+};
+
 /// Reachable wizard answer sets — composed configs, not the four named presets.
 /// Each row is the batch flags that compose the config, the `--set` fills its
 /// first `mt add` needs, and the walk from the status `mt add` stamps through to
@@ -105,7 +114,7 @@ const ANSWER_SETS: &[(&[&str], &[&str], &[&str])] = &[
             "--required",
             "difficulty",
             "--recurrence",
-            "rrule",
+            RECURRENCE_ANSWER,
             "--estimate",
             "days-hours",
         ],
@@ -146,6 +155,31 @@ fn composed_answer_sets_support_add_check_and_a_full_walk() {
             support::run_ok(dir.path(), &["check"]);
         }
     }
+}
+
+/// `--recurrence rrule` on a build without the expansion engine fails `mt init`
+/// naming the cargo feature, and writes no config — the alternative is a project
+/// scaffolded happily whose first `recur: rrule(...)` task fails `mt check` in
+/// some later session, with nothing pointing back at the answer that caused it.
+#[test]
+#[cfg(not(feature = "rrule"))]
+fn init_refuses_the_rrule_answer_without_the_engine() {
+    let dir = tempfile::tempdir().unwrap();
+    support::install_lib(dir.path());
+    let stderr = support::mt(dir.path())
+        .args(["init", "--no-input", "--recurrence", "rrule"])
+        .assert()
+        .failure()
+        .get_output()
+        .stderr
+        .clone();
+    let message = String::from_utf8(stderr).unwrap();
+    assert!(message.contains("rrule"), "{message}");
+    assert!(message.contains("cargo feature"), "{message}");
+    assert!(
+        !dir.path().join(".mindtape/config.toml").exists(),
+        "a refused answer must leave no config behind"
+    );
 }
 
 /// A strict-framework answer set scaffolds like any other: the fallback
