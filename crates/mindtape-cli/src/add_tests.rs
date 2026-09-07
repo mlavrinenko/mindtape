@@ -364,5 +364,23 @@ fn markup_safe_escapes_text_slots_and_nothing_else() {
     }
 }
 
+/// The rescue for a rejected `--edit` buffer: the parked file must actually
+/// hold the render and outlive the call. A path that reads back empty, or no
+/// path at all, is the same silent loss of the user's typing that keeping the
+/// invalid task on disk used to prevent.
+#[test]
+fn park_writes_the_rejected_source_to_a_readable_file() {
+    let source = "#show: task.with(title: \"Parked\")\n";
+
+    let parked = super::park(source).expect("parking must yield a path");
+
+    assert_eq!(std::fs::read_to_string(&parked).unwrap(), source);
+    assert_eq!(
+        parked.extension().and_then(std::ffi::OsStr::to_str),
+        Some("typ")
+    );
+    std::fs::remove_file(&parked).unwrap();
+}
+
 #[path = "add_tests_subprocess.rs"]
 mod subprocess;

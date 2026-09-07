@@ -5,9 +5,13 @@
 
 use std::path::Path;
 
-use anyhow::{Context, Result, bail};
-use mindtape::{Config, load_config, load_project, validate};
+use anyhow::{Context, Result, anyhow, bail};
+use mindtape::{
+    Candidate, Config, Violation, check_candidate, load_config, load_project, validate,
+};
 use typst_edit::{Call, Edit, find_method_calls};
+
+use crate::util::Project;
 
 /// The first `task.with(…)` call in `source`.
 ///
@@ -111,16 +115,54 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
         .into_iter()
         .filter(|violation| violation.task_id == task.id)
         .collect();
+    report_issues(&task.id, &issues, &format!("in {}", rel.display()))
+}
+
+/// Validate a rendered task *before* it is written, so a rejected write leaves
+/// nothing on disk. `source` is checked as if it already sat at `file`, against
+/// the project's already-loaded tasks — the same load and the same
+/// [`validate`] pass [`verify_written`] runs, in the other order.
+///
+/// Returns `false` when `file` lies outside the project root (`mt add --into
+/// /elsewhere`), where there is no project-relative path to evaluate the
+/// candidate at; the caller then falls back to [`verify_written`]. A `true`
+/// return means the check ran and passed.
+///
+/// # Errors
+/// Returns an error if the source failed to evaluate, harvested no task
+/// marker, or violates a rule — none of which mention a file to repair,
+/// because none was created.
+pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<bool> {
+    let Ok(rel) = file.strip_prefix(&project.root) else {
+        return Ok(false);
+    };
+    let issues = check_candidate(
+        &project.root,
+        &project.config,
+        &project.outcome.tasks,
+        Candidate { rel, source },
+    )
+    .map_err(|err| anyhow!("the task as filled did not load: {}", err.message))?;
+    let id = file_stem(file);
+    report_issues(&id, &issues, "as filled; nothing was written").map(|()| true)
+}
+
+/// Print each violation and fail naming their count, or succeed on none.
+/// `scope` completes the sentence "N validation issue(s) …", so a post-write
+/// check names the file and a pre-write one names the input instead.
+fn report_issues(id: &str, issues: &[Violation], scope: &str) -> Result<()> {
     if issues.is_empty() {
         return Ok(());
     }
-    for violation in &issues {
-        eprintln!(
-            "warning: {}: {}: {}",
-            task.id, violation.field, violation.message
-        );
+    for violation in issues {
+        eprintln!("warning: {id}: {}: {}", violation.field, violation.message);
     }
-    bail!("{} validation issue(s) in {}", issues.len(), rel.display())
+    bail!("{} validation issue(s) {scope}", issues.len())
+}
+
+fn file_stem(file: &Path) -> String {
+    file.file_stem()
+        .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned())
 }
 
 #[cfg(test)]

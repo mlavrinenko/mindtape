@@ -174,6 +174,43 @@ fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
     task
 }
 
+/// Build a [`Task`] for a file at project-relative `rel` from an already
+/// harvested `marker` and the source it came from — the [`assemble_task`] path
+/// for a file that [`collect_items`] never walked, because it is not on disk
+/// yet ([`crate::candidate`]).
+pub(crate) fn task_at(
+    root: &Path,
+    config: &Config,
+    rel: &Path,
+    marker: &HVal,
+    source: &str,
+) -> Task {
+    assemble_task(&item_at(root, config, rel), marker, source)
+}
+
+/// The [`LoadItem`] a file at project-relative `rel` would be walked as: the
+/// folder-derived tags and nesting depth of the first configured root that
+/// contains it. A path under no root derives neither — the same tags and depth
+/// a file written outside the roots would carry once it landed there, which is
+/// nothing.
+fn item_at(root: &Path, config: &Config, rel: &Path) -> LoadItem {
+    let derived = config.tasks.roots.iter().find_map(|spec| {
+        let rel_within = rel.strip_prefix(spec.path()).ok()?;
+        let deriver = RootDeriver::new(spec, &config.tasks.derive_tags);
+        Some((
+            deriver.tags_for(rel_within),
+            crate::derive::depth(rel_within),
+        ))
+    });
+    let (folder_tags, depth) = derived.unwrap_or_default();
+    LoadItem {
+        file: root.join(rel),
+        rel: rel.to_path_buf(),
+        folder_tags,
+        depth,
+    }
+}
+
 /// Every `.typ` file under the configured roots, paired with its
 /// project-relative path and the tags its folder location derives.
 fn collect_items(root: &Path, config: &Config) -> Vec<LoadItem> {
@@ -261,7 +298,7 @@ fn build_world(
 /// [`crate::app_dirs`] defines as "no such directory" — resolves no global
 /// package at all rather than falling back, so an explicit disable is honoured
 /// on a read the same way it already is on a write.
-fn package_root() -> Option<PathBuf> {
+pub(crate) fn package_root() -> Option<PathBuf> {
     crate::data_home().map(|dir| dir.join("typst").join("packages"))
 }
 
@@ -270,7 +307,7 @@ fn package_root() -> Option<PathBuf> {
 /// `[[typst.local-packages]]` entry (which wins on a name clash). Resolving by
 /// the `lib/` manifest name — not its mere presence — keeps `mindtape` from
 /// hijacking a foreign worktree whose `lib/` is some other package.
-fn package_overrides(root: &Path, config: &Config) -> Vec<(String, PathBuf)> {
+pub(crate) fn package_overrides(root: &Path, config: &Config) -> Vec<(String, PathBuf)> {
     let mut overrides = Vec::new();
     if let Some(lib) = mindtape_lib_dir(root) {
         overrides.push(("mindtape".to_owned(), lib));

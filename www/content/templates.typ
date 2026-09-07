@@ -14,8 +14,10 @@
 
 `mt add` files a new task from a #strong[template] — a task whose authored values
 are `slot(…)` calls. It discovers the slots on the parse plane (no evaluation),
-fills them, injects the status and id, then writes and validates the result. The
-written file holds plain literals; no `slot` call survives.
+fills them, injects the status and id, then validates the result and — only if
+it passes — writes it. A rejected add creates no file, so a mistyped slot costs
+a retry rather than a repair. The written file holds plain literals; no `slot`
+call survives.
 
 = A template
 

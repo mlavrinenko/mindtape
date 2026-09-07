@@ -284,7 +284,7 @@ fn single_line_template_files_a_task_that_loads() {
 }
 
 /// A template that cannot evaluate no matter how its slots are filled, so the
-/// post-write verification always fails.
+/// verification always fails.
 const BROKEN_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 
 #show: task.with(title: slot("title"))
@@ -292,11 +292,12 @@ const BROKEN_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 #no-such-function()
 "#;
 
-/// `add` writes before it verifies, so a rejected task is already on disk when
-/// the error surfaces. It stays there — and the error says so, instead of
-/// leaving "wrote <path>" to imply a file that loads.
+/// `add` validates the render before it commits it, so a rejection creates no
+/// file at all. The board is readable straight afterwards — one mistyped slot
+/// costs a retry, not a repair — and the error names the input rather than a
+/// file to fix or delete.
 #[test]
-fn a_task_that_fails_verification_is_kept_and_reported_as_kept() {
+fn a_task_that_fails_verification_is_never_written() {
     let dir = support::project_with_template(BROKEN_TEMPLATE);
 
     let output = support::mt(dir.path())
@@ -307,14 +308,91 @@ fn a_task_that_fails_verification_is_kept_and_reported_as_kept() {
         .clone();
 
     let file = dir.path().join("tasks/broken.typ");
-    assert!(file.exists(), "the written task must be kept, not removed");
+    assert!(!file.exists(), "a rejected task must never reach the disk");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("was kept on disk"),
-        "the error must say the file survives: {stderr}"
-    );
-    assert!(
-        stderr.contains("failed to load"),
+        stderr.contains("did not load"),
         "the underlying cause must still be reported: {stderr}"
     );
+    assert!(
+        !stderr.contains("kept on disk"),
+        "there is no file to repair, so nothing may claim there is: {stderr}"
+    );
+    assert!(
+        !String::from_utf8_lossy(&output.stdout).contains("wrote"),
+        "a rejected add must not report a write: {output:?}"
+    );
+
+    // The next command runs clean: nothing was left behind to trip over.
+    support::mt(dir.path()).arg("check").assert().success();
+}
+
+/// A template that evaluates fine but whose filled value breaks a *rule* — the
+/// shape actually observed: an `estimate` slot filled with a bare number where
+/// the field wants a dict. Distinct from [`BROKEN_TEMPLATE`], which fails at
+/// eval; this one reaches the marker and is refused by the Rust layer.
+const ESTIMATE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
+
+#show: task.with(
+  title: slot("title"),
+  estimate: slot("estimate", kind: "raw", default: "(days: 1)"),
+)
+
+== Summary
+"#;
+
+/// The reported case, end to end: a slot filled with the wrong shape is caught
+/// before the write, so no repair is needed before the next command.
+#[test]
+fn a_wrong_shaped_slot_value_is_refused_before_the_write() {
+    let dir = support::project_with_template(ESTIMATE_TEMPLATE);
+
+    let output = support::mt(dir.path())
+        .args([
+            "add",
+            "--name",
+            "wrong-shape",
+            "--set",
+            "title=Wrong shape",
+            "--set",
+            "estimate=5",
+        ])
+        .assert()
+        .failure()
+        .get_output()
+        .clone();
+
+    assert!(!dir.path().join("tasks/wrong-shape.typ").exists());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("wrong-shape: estimate:"),
+        "the error must name the task and the offending field: {stderr}"
+    );
+    assert!(
+        stderr.contains("nothing was written"),
+        "the error must say the write did not happen: {stderr}"
+    );
+    support::mt(dir.path()).arg("check").assert().success();
+}
+
+/// `--no-verify` still writes whatever it was handed: the flag skips the check
+/// wherever the check sits, and moving it before the write must not quietly
+/// turn it into a gate the flag cannot open.
+#[test]
+fn no_verify_writes_a_task_that_would_be_refused() {
+    let dir = support::project_with_template(BROKEN_TEMPLATE);
+
+    support::mt(dir.path())
+        .args([
+            "add",
+            "--no-verify",
+            "--name",
+            "broken",
+            "--set",
+            "title=Broken",
+        ])
+        .assert()
+        .success();
+
+    assert!(dir.path().join("tasks/broken.typ").exists());
 }

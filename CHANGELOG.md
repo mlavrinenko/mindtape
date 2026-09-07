@@ -329,6 +329,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt add` wrote an invalid task before it validated one.** The render landed
+  on disk and validation ran after, so a rejected add left the broken file
+  behind and every subsequent `mt` command failed on it until someone deleted
+  it by hand — one mistyped slot cost a repair rather than a retry. Observed
+  filing a single task: `estimate=5` parses as a number where that template's
+  slot wants `(files: 5)`, and the rejection that was right about the value was
+  the one that made the board unreadable. `mt add` now validates the rendered
+  source *before* it reaches the filesystem, at the exact path it would occupy
+  — so folder-derived tags, nesting depth, and `links:` resolution against the
+  rest of the project are the ones the written file would have — and writes
+  nothing when that fails. The error names the offending field and ends
+  `nothing was written`, with no note about repairing a file, because there is
+  none. What made this possible without a file is `mindtape::check_candidate`,
+  a public API the other writers (`mt recur`'s spawn, `mt import`) can adopt on
+  the same terms; only `mt add` moves in this release. Two seams keep their old
+  behaviour: `--no-verify` still writes whatever it was handed, and a
+  destination outside the project root (`mt add --into /elsewhere`) has no
+  project-relative path to evaluate a candidate at, so it still writes first
+  and reports the file as kept. A rejected interactive `--edit` buffer is
+  parked in a temp file and named on stderr, so the typing that the refused
+  write would otherwise discard stays recoverable — outside every task root,
+  where no later command reads it.
+
 - **`mt ls @view -i` ignored the view's `columns`.** The interactive picker
   kept the raw project config and dropped the one a resolved listing folds a
   view's column set into, so it drew columns `mt ls @view` would not — against

@@ -2,7 +2,10 @@
 //!
 //! Resolves a template, fills its `slot(...)` calls from JSON/`--set` values via
 //! the parse-plane engine in [`mindtape`], injects the add-owned `status`/`id`
-//! into `task.with(…)`, then writes (or prints) the result and validates it.
+//! into `task.with(…)`, then validates the result and — only if it passes —
+//! writes it (or prints it, under `--print`). The render and the write have
+//! always been separable; validation sits between them, so a rejected add
+//! leaves nothing on disk for the next command to trip over.
 
 use std::collections::BTreeMap;
 use std::io::{IsTerminal, Read};
@@ -154,7 +157,8 @@ pub fn run(args: &AddArgs) -> Result<()> {
     layer_env(&mut values, &specs, |key| std::env::var(key).ok());
     fill_title_from_stdin(&mut values, args)?;
     let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
-    if add_interactive::should_open(args.edit, &config.add, &specs, &values, tty)? {
+    let interactive = add_interactive::should_open(args.edit, &config.add, &specs, &values, tty)?;
+    if interactive {
         values = add_interactive::run(&config.add, &specs, &values)?;
     }
     let filled =
@@ -175,17 +179,77 @@ pub fn run(args: &AddArgs) -> Result<()> {
         // `--dedup skip` already reported the existing path; nothing to write.
         return Ok(());
     };
-    let file = outcome.path().to_path_buf();
+    commit(args, &project, &outcome, &filled, interactive)
+}
 
-    std::fs::create_dir_all(&dest).with_context(|| format!("create {}", dest.display()))?;
-    std::fs::write(&file, &filled).with_context(|| format!("write {}", file.display()))?;
-    warn_if_outside_roots(&project, &dest);
-    add_output::emit(&outcome, args.format);
+/// Validate the rendered task, then write it — in that order, so a rejected add
+/// creates nothing and the failure is about the input rather than about a file
+/// to repair. The write is the last irreversible step: everything that can
+/// still say no has already said it.
+///
+/// The pre-write check needs a project-relative path to evaluate the candidate
+/// at, which `mt add --into /somewhere/else` does not have. That case alone
+/// falls back to the old order — write, then [`verify_written`] — and its error
+/// still carries [`kept_note`], because there the file really is on disk.
+fn commit(
+    args: &AddArgs,
+    project: &util::Project,
+    outcome: &add_output::Outcome,
+    filled: &str,
+    interactive: bool,
+) -> Result<()> {
+    let file = outcome.path();
+    let checked = args.no_verify || pre_verify(project, file, filled, interactive)?;
 
-    if !args.no_verify {
-        crate::task_edit::verify_written(&project.root, &file).with_context(|| kept_note(&file))?;
+    let dest = file.parent().unwrap_or(Path::new("."));
+    std::fs::create_dir_all(dest).with_context(|| format!("create {}", dest.display()))?;
+    std::fs::write(file, filled).with_context(|| format!("write {}", file.display()))?;
+    warn_if_outside_roots(project, dest);
+    add_output::emit(outcome, args.format);
+
+    if !checked {
+        crate::task_edit::verify_written(&project.root, file).with_context(|| kept_note(file))?;
     }
     Ok(())
+}
+
+/// [`crate::task_edit::verify_candidate`], with one thing added: when the
+/// values came from an interactive `--edit` buffer, a rejection parks the
+/// rendered task in a scratch file and names it.
+///
+/// The buffer is minutes of typing that the editor's own temp file no longer
+/// holds, and refusing the write is exactly what makes it unrecoverable —
+/// which is why the file used to be kept in the tasks root instead. Parking it
+/// outside every root keeps the recovery without the cost: no later `mt`
+/// command ever loads it. A `-f`/`--set` rejection parks nothing; the values
+/// are still in the shell history that produced them.
+fn pre_verify(
+    project: &util::Project,
+    file: &Path,
+    source: &str,
+    interactive: bool,
+) -> Result<bool> {
+    let result = crate::task_edit::verify_candidate(project, file, source);
+    if result.is_err()
+        && interactive
+        && let Some(parked) = park(source)
+    {
+        eprintln!("note: the filled task was parked at {}", parked.display());
+    }
+    result
+}
+
+/// Write `source` to a kept scratch file, returning its path. `None` when the
+/// scratch file cannot be created — a failed rescue must not replace the
+/// validation error that prompted it.
+fn park(source: &str) -> Option<std::path::PathBuf> {
+    let file = tempfile::Builder::new()
+        .prefix("mindtape-rejected-")
+        .suffix(".typ")
+        .tempfile()
+        .ok()?;
+    std::fs::write(file.path(), source).ok()?;
+    file.keep().ok().map(|(_, path)| path)
 }
 
 /// Escape every fill value that lands in Typst markup, leaving the rest alone.
@@ -223,11 +287,15 @@ fn markup_safe(
 
 /// What a failed post-write verification says about the file already on disk.
 ///
-/// `add` writes before it verifies, so a rejected task is a real file by the
-/// time the error surfaces. It is kept rather than removed — a `--edit` buffer
-/// can hold minutes of typing, and silently deleting it to tidy up an error
+/// Only [`commit`]'s fallback arm reaches this: a destination outside the
+/// project root, where the candidate cannot be evaluated before the write and
+/// a rejected task is therefore a real file by the time the error surfaces. It
+/// is kept rather than removed — silently deleting a file to tidy up an error
 /// message is the worse trade — but "wrote X" followed by a bare error read as
 /// if `add` had cleaned up after itself. It never did; now it says so.
+///
+/// Under a root the order is the other way round ([`pre_verify`]) and no such
+/// file exists, so this note is never printed there.
 fn kept_note(file: &Path) -> String {
     format!(
         "{} was kept on disk exactly as written; fix or delete it before the next command",

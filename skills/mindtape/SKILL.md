@@ -82,7 +82,7 @@ rg TODO $(mt ls ready --format path) # compose with another program
 
 ## Creating a task — `mt add`
 
-`mt add <title words>` files a new task from a template; the positional words become the title and the filename slug (`mt add fix login bug` → `fix-login-bug.typ`). It writes under the first configured root, injects the status and id, and validates. Common flags:
+`mt add <title words>` files a new task from a template; the positional words become the title and the filename slug (`mt add fix login bug` → `fix-login-bug.typ`). It writes under the first configured root, injects the status and id, and validates _before_ writing — a rejected add leaves no file behind, so fix the input and re-run rather than repairing anything. Common flags:
 
 - `-t <template>` pick a template; `--list` list templates; `--describe` show slots
 - `--to <subdir>` nest under a folder of the root (drives derived tags)

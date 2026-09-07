@@ -27,7 +27,10 @@
       template is configured and `fail` otherwise.
       `--format` reports what happened — `text` (default prose), `path`,
       `path0`, or `json` — and the JSON object states the outcome
-      (`wrote`/`skipped`/`suffixed`), not only the path.],
+      (`wrote`/`skipped`/`suffixed`), not only the path. The rendered task is
+      validated #emph[before] it is written, so a rejected add leaves no file
+      behind: fix the value the error names and re-run. `--no-verify` skips
+      that check and writes whatever it was handed.],
     examples: ```sh
     mt add cleanup kitchen              # title from positional words
     mt add fix login +backend +auth     # +word peels into the tags slot
