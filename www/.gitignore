@@ -7,3 +7,16 @@
 # www/generate.sh on every build — logo.svg stays the only hand-maintained copy.
 /assets/images/favicon-32.png
 /assets/images/apple-touch-icon.png
+# rsvg-convert writes those two rasters through GIO, which saves atomically: a
+# `.goutputstream-XXXXXX` sibling, then a rename over the target. The sibling
+# lives for milliseconds, and unignored it was an INPUT — mmz resolved it while
+# hashing `secrets-tree` for a parallel `just check-secrets`, then exited 8
+# ("input www/assets/images/.goutputstream-RLQRU3 disappeared after it was
+# resolved") with no secret involved, once in three runs
+# (truth/tasks/check-secrets-races-the-docs-arm-over-www-generated.typ). Ignored
+# here rather than redirected in www/generate.sh: this file is the one
+# declaration of what the docs build owns that both readers of the tree consult
+# — mmz filters its input walk by it, and .gitleaks.toml restates it by hand
+# under the arm-four check — so the answer belongs where they already look, and
+# it holds for any future writer that saves the same way.
+.goutputstream-*

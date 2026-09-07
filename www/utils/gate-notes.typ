@@ -90,7 +90,12 @@
     `git ls-files` against mmz's own expansion of this rule's inputs, so the
     enumeration that stands in for "the whole tree" (`.mmz/config.yaml` has no
     negative glob, and `truth/tasks/**` may not be named by a gate-tagged
-    rule) fails by name rather than going quietly false-fresh. What it cannot
+    rule) fails by name rather than going quietly false-fresh. A fourth arm
+    holds the walk bound to `www/.gitignore`: every path that file names must
+    be covered, because each is written by a docs arm running in parallel with
+    the scan, and an uncovered one makes gitleaks log an `ERR` over a directory
+    that just vanished on a run it still exits 0 — noise that teaches the
+    reader to re-run rather than to read. What it cannot
     do is catch a machine-local path — that is #just.crap-baseline-check()'s
     job, argued there. See `.just/scripts/check-secrets.sh`.
   ],

@@ -57,6 +57,9 @@
 # fmt-check` already takes over the same directory — a full `just check`
 # still refuses a credential in a task file; a task-file-only edit just does
 # not bust this rule's cached pass.
+#
+# ARM FOUR IS ABOUT THE WALK BOUND rather than the tree, and runs last
+# because arm two's verdict never depends on it. Argued where it fires.
 set -eo pipefail
 
 config=".gitleaks.toml"
@@ -185,4 +188,67 @@ if [ -n "$uncovered" ]; then
     exit 1
 fi
 
-echo "check-secrets: no secrets in the tree, and all $(wc -l <<<"$scanned") scanned files are in \`$rule\`'s inputs"
+# --------------------------------------------------------------- arm four
+
+# THE WALK BOUND IS A HAND COPY, and this arm stops it drifting. gitleaks
+# reads no .gitignore, so the unscoped `paths` allowlist in $config restates
+# by hand what is generated scratch — and half of that list is owned by docs
+# arms `just check` runs in PARALLEL with this one: www/generate.sh deletes
+# and recreates www/generated/ on every run, `tola build` rewrites www/.tola/
+# in place. Missing one costs no coverage (nothing there is committable); it
+# makes arm two walk a directory that can vanish underneath it, which gitleaks
+# logs at ERR while still exiting 0 — measured on 8.30, `skipping directory:
+# could not get info error="lstat www/generated: no such file or directory"`.
+# ERR on a green run teaches the reader to re-run rather than to read, which
+# is the property that makes a real leak look like the same flake
+# (truth/tasks/check-secrets-races-the-docs-arm-over-www-generated.typ).
+#
+# www/.gitignore IS THE DECLARATION both readers of this tree consult. mmz
+# filters its input walk by it — which is why `secrets-tree`'s `www/**`
+# resolves three files under www/assets/ and none of www/generated/, and why
+# the mmz half of the same race was closed by a line there, not here. gitleaks
+# cannot read it, so this arm demands the bound cover every path it names.
+#
+# WHY ONLY www/.gitignore. Every root-anchored entry there is docs-build
+# output, no exception and no negation, so one rule covers the file. The root
+# .gitignore is a mixed list — `/.cargo/*` carries a tracked exception
+# (`!/.cargo/mutants.toml`) that bounding would hide from the scan, `/result`
+# is a nix symlink, `/skills/*-workspace` is a glob — so the same rule there
+# needs a per-entry decision, not a check. Filed, not pretended away.
+#
+# TWO SHAPES ARE NOT DEMANDED. An unanchored pattern (`.DS_Store`,
+# `.goutputstream-*`) names a class of transient with no fixed location, and a
+# path regex has nothing to say about it; the readers that must skip those do
+# it through www/.gitignore directly. And the BARE path is what must match,
+# never a child: `^www/public/` skips every entry inside www/public/ while
+# still stat-ing www/public/ and descending into it, which bounds nothing —
+# `^www/public(/|$)` does.
+#
+# The allowlist is selected by carrying no `targetRules`: a rule-scoped one is
+# a false-positive silencer (arm one's subject), the unscoped one is the
+# bound. tomlq is the `yq` package's TOML front end, the same dev-shell pin.
+bound=$(tomlq -r '.allowlists[] | select(has("targetRules") | not) | .paths[]' "$config")
+if [ -z "$bound" ]; then
+    echo "check-secrets: $config declares no unscoped path allowlist" >&2
+    echo "  the walk bound this arm reads is gone — restore it, do not delete the arm" >&2
+    exit 1
+fi
+
+unbounded=""
+while IFS= read -r entry; do
+    # Root-anchored only — which also drops comments and blank lines.
+    [ "${entry#/}" != "$entry" ] || continue
+    path="www${entry%/}"
+    grep -qE -f <(printf '%s\n' "$bound") <<<"$path" || unbounded="$unbounded  $path"$'\n'
+done <www/.gitignore
+
+if [ -n "$unbounded" ]; then
+    echo "check-secrets: www/.gitignore names paths the walk bound in $config misses" >&2
+    printf '%s' "$unbounded" >&2
+    echo "  each is written by a docs arm \`just check\` runs in parallel with this scan," >&2
+    echo "  so the walk must never enter it — add \`^<path>(/|\$)\` (a directory) or" >&2
+    echo "  \`^<path>\$\` (a file) to the allowlist that declares no targetRules" >&2
+    exit 1
+fi
+
+echo "check-secrets: no secrets in the tree, all $(wc -l <<<"$scanned") scanned files are in \`$rule\`'s inputs, and the walk bound covers www/.gitignore"

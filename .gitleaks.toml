@@ -29,26 +29,51 @@ useDefault = true
 
 # THE WALK BOUND. gitleaks does not read `.gitignore` (measured: an unbounded
 # `gitleaks dir .` walks `target/` and takes 1m44s over 2.09 GB, against 1.5s
-# over 7.5 MB with these six), so the gitignored roots are spelled here by
+# over 7.5 MB with these), so the gitignored roots are spelled here by
 # hand. Every one is generated scratch — cargo's build dir, cargo-mutants'
-# reports, tola's site output, the reference clones under `var/`, `build/`,
-# and the 2000 generated task files of the `examples/large` benchmark fixture.
-# None of them can hold a COMMITTED credential, which is the only thing this
-# gate is looking for, so silencing them costs no coverage.
+# reports, tola's site output and vdom cache, the live `mt` captures under
+# `www/generated/`, the two favicon rasters, the reference clones under
+# `var/`, `build/`, and the 2000 generated task files of the `examples/large`
+# benchmark fixture. None of them can hold a COMMITTED credential, which is
+# the only thing this gate is looking for, so silencing them costs no
+# coverage.
 #
-# This list is coupled to `.gitignore` by hand and by nothing else. A new
+# EVERY PATTERN ENDS `(/|$)` RATHER THAN `/`, and the difference is the whole
+# point rather than tidiness. Measured under `--log-level debug` on gitleaks
+# 8.30: `^gen/` never matches the directory `gen` itself, so the walk ENTERS
+# it and reports one `skipping directory` per child; `^gen(/|$)` matches the
+# directory and the walk never descends. That matters because `just check`
+# runs its arms in parallel and several of these directories are being
+# rewritten while the scan walks them — `www/generate.sh` deletes and
+# recreates `www/generated/` on every run, `tola build` rewrites
+# `www/.tola/`, and cargo churns `target/`. A walk that descends stat-s an
+# entry that has just vanished and logs it at ERR while still exiting 0
+# (`skipping directory: could not get info error="lstat www/generated: no
+# such file or directory"`), which teaches the reader of a green run to
+# re-run rather than to read
+# (truth/tasks/check-secrets-races-the-docs-arm-over-www-generated.typ).
+#
+# This list is coupled to `.gitignore` by hand and by nothing else. For the
+# half of it that `www/.gitignore` declares — everything the docs build owns
+# — arm four of `.just/scripts/check-secrets.sh` is what makes the coupling a
+# gate rather than a habit, and its header argues why the root `.gitignore`
+# cannot be held to the same rule. The rest stays a hand copy: a new
 # gitignored root is not silently missed — the scan either slows down or
-# reports a finding in generated content — but it is missed until someone adds
-# it here.
+# reports a finding in generated content — but it is missed until someone
+# adds it here.
 [[allowlists]]
 description = "generated, gitignored scratch: nothing here is committable"
 paths = [
-  '''^target/''',
-  '''^mutants\.out(\.old)?/''',
-  '''^www/public/''',
-  '''^var/''',
-  '''^build/''',
-  '''^examples/large/tasks/''',
+  '''^target(/|$)''',
+  '''^mutants\.out(\.old)?(/|$)''',
+  '''^var(/|$)''',
+  '''^build(/|$)''',
+  '''^examples/large/tasks(/|$)''',
+  '''^www/public(/|$)''',
+  '''^www/generated(/|$)''',
+  '''^www/\.tola(/|$)''',
+  '''^www/assets/images/favicon-32\.png$''',
+  '''^www/assets/images/apple-touch-icon\.png$''',
 ]
 
 # THE ONE FALSE POSITIVE this tree reports today. `outdatty.lock` records a
