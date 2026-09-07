@@ -280,7 +280,30 @@ fn unknown_import_view_errors() {
 import-views = ["ghost"]
 "#,
     );
-    assert!(resolve_bare(&project).is_err());
+    // "ghost" is far from the only view the embedded floor supplies
+    // ("default"), so the message enumerates without a suggestion
+    // (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
+    let err = resolve_bare(&project).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("known views: default"), "{msg}");
+    assert!(!msg.contains("did you mean"), "{msg}");
+}
+
+#[test]
+fn unknown_import_view_near_miss_suggests_the_declared_view() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[views.release]
+filter = ""
+[[ls.rules]]
+import-views = ["releasee"]
+"#,
+    );
+    let err = resolve_bare(&project).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("did you mean: release?"), "{msg}");
 }
 
 // ---------------------------------------------------------------------------

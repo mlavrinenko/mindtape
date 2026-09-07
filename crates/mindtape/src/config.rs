@@ -210,7 +210,10 @@ impl Config {
         if let Some(name) = &self.ls.default_view
             && !self.views.contains_key(name)
         {
-            problems.push(format!("ls.default-view: unknown view `{name}`"));
+            problems.push(format!(
+                "ls.default-view: unknown view `{name}`{}",
+                crate::suggest::hint("view", name, self.views.keys())
+            ));
         }
         if problems.is_empty() {
             Ok(())

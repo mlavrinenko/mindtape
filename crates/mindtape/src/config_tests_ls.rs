@@ -18,10 +18,21 @@ fn ls_default_view_names_a_declared_view() {
 
 #[test]
 fn ls_default_view_unknown_errors_on_validate() {
-    // The floor supplies `[views.default]`, but not `ghost`.
+    // The floor supplies `[views.default]`, but not `ghost` — too far from
+    // "default" to suggest, so the error enumerates without a "did you mean".
     let config = parse_config("[ls]\ndefault-view = \"ghost\"\n").unwrap();
     let err = config.validate().unwrap_err();
     assert!(err.contains("ls.default-view"), "{err}");
+    assert!(err.contains("known views: default"), "{err}");
+    assert!(!err.contains("did you mean"), "{err}");
+}
+
+#[test]
+fn ls_default_view_near_miss_suggests_the_close_name() {
+    // The floor's own `[views.default]` name is one transposition away.
+    let config = parse_config("[ls]\ndefault-view = \"defualt\"\n").unwrap();
+    let err = config.validate().unwrap_err();
+    assert!(err.contains("did you mean: default?"), "{err}");
 }
 
 #[test]

@@ -199,6 +199,58 @@ fn contains_fields_accepts_a_narrowed_list() {
     assert_eq!(cfg.ls.contains_fields, vec!["title"]);
 }
 
+// --- suggest wiring for `import-views` / `@view` references
+// (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`) -------
+
+/// Validate a single `import-views` entry against the one declared view
+/// `release`, for the near-miss / far-miss pair below.
+fn problems_for_import(entry: &str) -> Vec<String> {
+    let views = BTreeMap::from([("release".to_owned(), view(""))]);
+    let rule = rule_with_list(&[entry], |v| LsRule {
+        import_views: v,
+        ..LsRule::default()
+    });
+    problems_with_views(&rule, &views)
+}
+
+#[test]
+fn unknown_import_view_near_miss_offers_a_suggestion() {
+    let problems = problems_for_import("releasee");
+    assert_has(&problems, "did you mean: release?");
+    assert_has(&problems, "known views: release");
+}
+
+#[test]
+fn unknown_import_view_far_miss_lists_known_views_without_a_suggestion() {
+    let problems = problems_for_import("zzz");
+    assert_has(&problems, "known views: release");
+    assert!(
+        !problems.iter().any(|p| p.contains("did you mean")),
+        "{problems:?}"
+    );
+}
+
+#[test]
+fn unknown_import_view_with_no_declared_views_leaves_the_message_unchanged() {
+    let rule = rule_with_list(&["ghost"], |v| LsRule {
+        import_views: v,
+        ..LsRule::default()
+    });
+    let problems = problems(&rule);
+    assert_eq!(
+        problems,
+        vec!["ls.rules[0].import-views: unknown view `ghost`".to_owned()]
+    );
+}
+
+#[test]
+fn unknown_view_filter_reference_near_miss_offers_a_suggestion() {
+    let views = BTreeMap::from([("release".to_owned(), view(""))]);
+    let rule = rule_filter("@releasee");
+    let problems = problems_with_views(&rule, &views);
+    assert_has(&problems, "did you mean: release?");
+}
+
 #[test]
 fn unknown_contains_field_is_rejected_at_load() {
     let err = parse_config("[ls]\ncontains-fields = [\"bogus\"]\n").unwrap_err();

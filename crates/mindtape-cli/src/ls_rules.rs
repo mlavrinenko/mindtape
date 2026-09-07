@@ -124,7 +124,7 @@ fn explicit_bundle(config: &Config, expr: &str) -> Result<(Bundle, Applied)> {
         let view = config
             .views
             .get(name)
-            .ok_or_else(|| anyhow!("unknown view: {name}"))?;
+            .ok_or_else(|| util::unknown_view_error(name, &config.views))?;
         return Ok(view_bundle(name, view));
     }
     let bundle = Bundle {
@@ -239,7 +239,7 @@ fn compose_rule(config: &Config, rule: &LsRule) -> Result<(Bundle, Applied)> {
         let view = config
             .views
             .get(&parsed.view)
-            .ok_or_else(|| anyhow!("unknown view: {}", parsed.view))?;
+            .ok_or_else(|| util::unknown_view_error(&parsed.view, &config.views))?;
         apply_import_entry(&mut applied, &parsed.facets, &parsed.view, view);
     }
     if let Some(filter) = &rule.filter {
@@ -302,7 +302,7 @@ fn splice_view_refs(
             let view = config
                 .views
                 .get(name)
-                .ok_or_else(|| anyhow!("unknown view: {name}"))?;
+                .ok_or_else(|| util::unknown_view_error(name, &config.views))?;
             out.extend(field(view).iter().cloned());
         } else {
             out.push(spec.clone());
@@ -341,7 +341,7 @@ fn resolve_columns(spec: &str, config: &Config) -> Result<Vec<String>> {
         let view = config
             .views
             .get(name)
-            .ok_or_else(|| anyhow!("unknown view: {name}"))?;
+            .ok_or_else(|| util::unknown_view_error(name, &config.views))?;
         view.columns.clone()
     } else {
         spec.split(',')

@@ -318,8 +318,9 @@ fn validate_import_views(
     for entry in &rule.import_views {
         match parse_import_view(entry) {
             Ok(parsed) if !views.contains_key(&parsed.view) => problems.push(format!(
-                "{prefix}.import-views: unknown view `{}`",
-                parsed.view
+                "{prefix}.import-views: unknown view `{}`{}",
+                parsed.view,
+                crate::suggest::hint("view", &parsed.view, views.keys())
             )),
             Ok(_) => {}
             Err(msg) => problems.push(format!("{prefix}.import-views: {msg}")),
@@ -340,7 +341,10 @@ fn validate_manual_filter(
         Ok(parsed) => {
             for target in parsed.view_refs() {
                 if !views.contains_key(&target) {
-                    problems.push(format!("{prefix}.filter: unknown view reference @{target}"));
+                    problems.push(format!(
+                        "{prefix}.filter: unknown view reference @{target}{}",
+                        crate::suggest::hint("view", &target, views.keys())
+                    ));
                 }
             }
         }
@@ -362,7 +366,10 @@ fn validate_view_spliced(
     for entry in entries {
         if let Some(name) = entry.strip_prefix('@') {
             if !views.contains_key(name) {
-                problems.push(format!("{prefix}.{facet}: unknown view reference @{name}"));
+                problems.push(format!(
+                    "{prefix}.{facet}: unknown view reference @{name}{}",
+                    crate::suggest::hint("view", name, views.keys())
+                ));
             }
         } else if let Err(msg) = check_spec(entry) {
             problems.push(format!("{prefix}.{facet}: {msg}"));

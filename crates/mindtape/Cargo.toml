@@ -78,6 +78,11 @@ thiserror = "2"
 evalexpr = "12"
 uuid = { version = "1", features = ["v4", "v7"] }
 dirs = "5"
+# Nearest-name suggestion for an unknown view name (`crates/mindtape/src/
+# suggest.rs`). Already in `Cargo.lock` transitively via clap's `Command`
+# suggestion feature, at the same 0.11 line this pins, so promoting it to a
+# direct dependency here adds no new crate to the build.
+strsim = "0.11"
 
 [dev-dependencies]
 tempfile = "3"

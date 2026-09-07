@@ -1,12 +1,13 @@
 //! Shared project discovery for the CLI commands.
 
+use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Result, anyhow, bail};
 use mindtape::{
-    Config, Filter, LoadOutcome, Readiness, Task, config_path, find_root, load_config,
+    Config, Filter, LoadOutcome, Readiness, Task, ViewSpec, config_path, find_root, load_config,
     load_project, select,
 };
 
@@ -303,6 +304,19 @@ pub fn canonical_source(config: &Config, source: String) -> String {
 pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
     std::fs::write(path, canonical_source(config, source))
         .with_context(|| format!("write {}", path.display()))
+}
+
+/// Build the `unknown view: <name>` error, extended with a nearest-match
+/// suggestion and the full view list
+/// (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`).
+/// Shared by every CLI view lookup site (`ls_rules.rs`, `views.rs`) so the
+/// message and its hint composition are not duplicated across them.
+#[must_use]
+pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> anyhow::Error {
+    anyhow!(
+        "unknown view: {name}{}",
+        mindtape::suggest::hint("view", name, views.keys())
+    )
 }
 
 #[cfg(test)]

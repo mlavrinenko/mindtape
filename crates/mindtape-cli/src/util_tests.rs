@@ -6,7 +6,8 @@ use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
 use super::{
     Project, hyperlinks_flag, init_hyperlinks_flag, init_worktree, pick_override,
-    resolve_hyperlinks, resolve_root_with, resolve_task, warn_errors, worktree_override,
+    resolve_hyperlinks, resolve_root_with, resolve_task, unknown_view_error, warn_errors,
+    worktree_override,
 };
 use crate::handle::{DEFAULT_CHECK_LEN, check_chars};
 use crate::render::link::HyperlinkChoice;
@@ -342,6 +343,40 @@ fn resolve_path_with_slash_is_path_not_slug() {
         msg.contains("resolve"),
         "path with / must be resolved as path, not slug: {msg}"
     );
+}
+
+// --- unknown_view_error: shared hint composition for every CLI view lookup
+// (`truth/tasks/suggest-a-nearest-match-on-an-unknown-view-name.typ`) -------
+
+fn views(names: &[&str]) -> std::collections::BTreeMap<String, mindtape::ViewSpec> {
+    names
+        .iter()
+        .map(|&name| (name.to_owned(), mindtape::ViewSpec::default()))
+        .collect()
+}
+
+#[test]
+fn unknown_view_error_near_miss_offers_a_suggestion() {
+    let known = views(&["backlog", "blocked"]);
+    let msg = unknown_view_error("backlgo", &known).to_string();
+    assert_eq!(
+        msg,
+        "unknown view: backlgo; did you mean: backlog?; known views: backlog, blocked"
+    );
+}
+
+#[test]
+fn unknown_view_error_far_miss_lists_known_views_without_a_suggestion() {
+    let known = views(&["backlog", "blocked"]);
+    let msg = unknown_view_error("zzz", &known).to_string();
+    assert_eq!(msg, "unknown view: zzz; known views: backlog, blocked");
+}
+
+#[test]
+fn unknown_view_error_with_no_declared_views_is_unchanged() {
+    let known = views(&[]);
+    let msg = unknown_view_error("anything", &known).to_string();
+    assert_eq!(msg, "unknown view: anything");
 }
 
 #[test]

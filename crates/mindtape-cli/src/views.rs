@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use mindtape::ViewSpec;
 
 use crate::util;
@@ -29,7 +29,7 @@ pub fn run(args: &ViewsArgs) -> Result<()> {
     if let Some(name) = &args.name {
         let spec = views
             .get(name)
-            .ok_or_else(|| anyhow!("unknown view: {name}"))?;
+            .ok_or_else(|| util::unknown_view_error(name, views))?;
         if args.json {
             println!("{}", serde_json::to_string_pretty(spec)?);
         } else {
