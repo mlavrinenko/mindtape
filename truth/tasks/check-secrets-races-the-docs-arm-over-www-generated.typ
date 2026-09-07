@@ -11,7 +11,11 @@
   tags: ("gating",),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 9, 3),
+  status: done(
+    2026,
+    9,
+    7,
+  )[arm four holds the bound to www/.gitignore; the root .gitignore gap is filed separately],
 )
 
 == Summary
