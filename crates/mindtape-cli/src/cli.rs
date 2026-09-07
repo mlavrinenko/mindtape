@@ -9,8 +9,8 @@ use log::LevelFilter;
 use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
-    add, check, cli_dump, config_cmd, eval, find, flip, go, graph, import, init, install, ls,
-    preset_cmd, recur, review, rm, views, worktrees,
+    add, check, cli_dump, config_cmd, eval, find, flip, go, graph, import, init, install, link_cmd,
+    ls, preset_cmd, recur, review, rm, views, worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -130,6 +130,16 @@ enum Command {
     /// anchor/`count` without materializing anything. `mt done` never
     /// advances a recurrence — it stays a pure close.
     Recur(recur::RecurArgs),
+    /// Write typed `links:` edges: one at a time, or a whole adjacency map.
+    ///
+    /// `mt link <task> <kind> <target>...` upserts one edge per target;
+    /// `mt link --apply <file>` (`-` for stdin) reads a YAML/JSON mapping of
+    /// stem to kind to targets and merges every entry. Merging dedupes on
+    /// (kind, target), so re-running either form writes nothing the second
+    /// time; `--replace` makes the map the complete edge set instead.
+    /// `--dry-run` prints the plan without writing. A per-entry failure is
+    /// reported and the rest still land.
+    Link(link_cmd::LinkArgs),
     /// Dump the command tree as JSON for the docs generator (hidden;
     /// reflects `Cli::command()`, so the rendered CLI reference cannot drift).
     #[command(name = "_cli", hide = true)]
@@ -165,6 +175,7 @@ impl Cli {
             Command::Review(args) => review::run(&args),
             Command::Flip(args) => flip::run(&args),
             Command::Recur(args) => recur::run(&args),
+            Command::Link(args) => link_cmd::run(&args),
             Command::CliDump(args) => cli_dump::run(&args),
             Command::Status(argv) => flip::run_external(&argv),
         }

@@ -229,6 +229,25 @@ pub fn resolve_kind(name: &str, config: &LinksConfig) -> Option<KindRule> {
         })
 }
 
+/// Every kind name this project accepts: the six built-ins first, then its
+/// `[[tasks.links.kinds]]` additions, each name at most once.
+///
+/// [`resolve_kind`] answers one name at a time, which is all validation needs;
+/// a *writer* rejecting a kind before it writes needs the enumeration instead —
+/// to list what is configured, and to feed [`crate::suggest`] a candidate set.
+/// Unlike [`kinds_matching`], this keeps a non-task kind: `mt link` can write
+/// an `edge("discharged-by", …)` as legitimately as a `depends-on`.
+#[must_use]
+pub fn kind_names(config: &LinksConfig) -> Vec<&str> {
+    let mut names: Vec<&str> = BUILTIN_KINDS.iter().map(|(name, _)| *name).collect();
+    for custom in &config.kinds {
+        if !names.contains(&custom.name.as_str()) {
+            names.push(custom.name.as_str());
+        }
+    }
+    names
+}
+
 /// Whether `name`'s targets are local task files — the axis
 /// `[[tasks.links.kinds]] validate` sets. Built-ins always are (their validator
 /// is fixed at `local-task-path`), and an unknown kind is treated as one so it

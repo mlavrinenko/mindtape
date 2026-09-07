@@ -31,6 +31,7 @@ drift from what `mt` actually is.
   ("Files", ("add", "import", "go", "eval")),
   ("Listing", ("ls", "find")),
   ("Graph", ("graph",)),
+  ("Links", ("link",)),
   ("Views", ("views",)),
   ("Status", ("flip", "review")),
   ("Recurring tasks", ("recur",)),
@@ -187,6 +188,22 @@ outside it drop — and `--no-terminal` prunes closed tasks. It reuses the same
 graph model that computes ready/blocked, so it is a pure read: no new store.
 
 #cli-group(cli, cli-groups, "Graph")
+
+= Links
+
+`mt link` is the write side of that same graph, and the only CLI writer for
+`links:`. `mt link <task> <kind> <target>...` upserts one edge per target;
+`mt link --apply <file>` (`-` for stdin) reads an adjacency map — stem, then
+kind, then targets — whose shape is documented on
+#link(u("/dsl/"))[Task DSL]. Edges dedupe on (kind, target), so either form is
+safe to re-run and a map stays safe to re-apply as it grows.
+
+Every edge is checked before a byte is written: the kind must be configured,
+the target must resolve, and a kind whose note is `required` is refused
+without one, naming the edge. A per-entry failure is reported and the rest
+still land, the way `mt rm` and `mt flip` report a batch.
+
+#cli-group(cli, cli-groups, "Links")
 
 = Views
 

@@ -12,6 +12,13 @@
 //! cap before this pass grew, and the seam is real — everything left in
 //! `flip.rs` is about deciding and performing one write, everything here is
 //! about reporting on all of them at once.
+//!
+//! `mt link` shares [`after_batch`] with `before: None`. It writes a batch of
+//! task files too, so it owes the same revalidation over the same single
+//! reload; what it does not owe is the handle report, since it changes no
+//! task's position in the default view. Shared rather than copied: two
+//! revalidation passes would be two places for "which problems belong to this
+//! batch" to drift.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};

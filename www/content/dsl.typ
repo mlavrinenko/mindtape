@@ -125,6 +125,46 @@ are checked for shape, never resolved to a stem, and never join the task graph:
 links: edge("discharged-by", "https://github.com/acme/app/pull/42"),
 ```
 
+== Writing links from the CLI
+
+`links:` is the one field with a CLI writer of its own, `mt link`. It
+serializes through the same helpers above, so a written file reads as if it
+were hand-authored — and a note is markup-escaped on the way in, the way every
+`mt` text write is:
+
+```sh
+mt link wire-oauth depends-on pick-a-provider
+mt link wire-oauth depends-on read-the-rfc write-a-spike   # one call, two targets
+mt link wire-oauth related write-docs -m "same release"
+```
+
+Edges dedupe on (kind, target), and a target's `.typ` is optional on the
+command line, so `pick-a-provider` and `pick-a-provider.typ` are one edge and
+re-running any of the above writes nothing the second time.
+
+Cross-linking many tasks at once is `mt link --apply <file>` (`-` for stdin),
+reading an adjacency map — stem, then kind, then targets:
+
+```yaml
+seed-content-from-telegram-export:
+  depends-on: [article-content-type, error-record-content-type]
+  related:
+    - target: telegram-export-format
+      note: same export shape
+wire-oauth:
+  parent: auth-epic
+```
+
+A target is a bare stem or a `{target, note}` mapping; a kind taking one target
+needs no list. JSON is accepted verbatim — the reader is a YAML 1.2 parser, and
+JSON is a subset of it — so a `jq` program emitting this shape pipes straight
+in. The map merges by default; `--replace` makes it the complete edge set for
+each stem it names, and `--dry-run` prints the plan instead of writing.
+
+Every edge is checked before anything is written: the kind must be configured,
+the target must resolve, and a kind whose note is `required` is refused without
+one, naming the edge. A per-file failure is reported and the rest still land.
+
 = Recurring tasks
 
 `every()` shapes one period unit — no date math in Typst, the same discipline

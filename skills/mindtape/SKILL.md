@@ -15,7 +15,7 @@ description: How to drive MindTape, a daemon-free file-based task tracker, via i
 
 MindTape is a file-based task tracker. Each task is one Typst file (`#show: task.with(...)`); the filename stem is the identity. No daemon, database, or index — every `mt` command live-evaluates the configured roots.
 
-Core rule: drive the `mt` CLI. A hand edit skips what `mt` stamps, slugs, injects, resolves and validates, and quietly yields an invalid task. Hand-edit a `.typ` only for what no command covers — the body, and fields with no CLI writer (notably `links:`) — then run `mt check`.
+Core rule: drive the `mt` CLI. A hand edit skips what `mt` stamps, slugs, injects, resolves and validates, and quietly yields an invalid task. Hand-edit a `.typ` only for what no command covers — chiefly the body — then run `mt check`.
 
 ## Is this a MindTape project?
 
@@ -119,9 +119,23 @@ mt flip done 1b 2c --force     # several at once; waive a failing gate
 
 `ready` / `blocked` in filters derive from `links:` — a non-terminal task with a non-terminal `depends-on` target is blocked. Most legends carry no `blocked` value; check `mt flip --list` before reaching for one.
 
-Expressing blockage is therefore a hand edit: add `links: depends-on("upstream-task.typ"),`, then `mt check`. Several edges take either spelling — `+` between helpers, or the array every other multi-valued field uses. A few kinds require a trailing note: `related("other.typ")` fails `mt check` with “`related` edge to `other.typ` requires a note”, while `related("other.typ")[why they relate]` passes. `depends-on`’s note is optional.
+Express blockage with `mt link` (below), never a hand edit.
 
 An external blocker (an upstream release, another team’s decision) has no task to depend on. Either file a task for it and depend on that (preferred — keeps `mt ls 'blocked'` truthful), or park the task in a pre-start legend state with the reason in the note: `mt flip proposed 1b -m "blocked on upstream X"`. Not `wip` as a stand-in — under `[[tasks.limits]]` a parked task burns the WIP cap and blocks a real start.
+
+## Cross-linking — `mt link`
+
+`mt link <task> <kind> <target…>` upserts one edge per target into `links:`. `mt link --apply <file>` (`-` for stdin) reads an adjacency map instead — YAML or JSON, stem to kind to targets, a target being a stem or a `{target, note}` mapping. It is the tool for wiring a batch you just filed:
+
+```yaml
+wire-oauth:
+  depends-on: [pick-a-provider, read-the-rfc]
+  related:
+    - target: write-docs
+      note: same release
+```
+
+Both forms merge and dedupe on (kind, target), so re-running writes nothing. `--replace` (`--apply` only) makes the map the complete edge set per stem; `--dry-run` prints the plan. Kind, target and note rule are checked BEFORE the write, so a refusal leaves nothing to repair — a kind whose note is `required` (`related`, out of the box) needs `-m "why"`, `depends-on`’s is optional. A per-entry failure is reported and the rest still land.
 
 ## Validating — `mt check`
 

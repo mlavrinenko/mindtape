@@ -59,6 +59,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ("review", Class::Write),
     ("flip", Class::Write),
     ("recur", Class::Write),
+    ("link", Class::Write),
 ];
 
 /// Look up a flattened command name's classification.

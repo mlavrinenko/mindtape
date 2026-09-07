@@ -110,6 +110,31 @@
     ```,
   ),
 
+  // ── Links ───────────────────────────────────────────────────────────────────
+  "link": (
+    prose: [The write path for `links:`. `mt link \<task\> \<kind\>
+      \<target\>...` upserts one edge per target; `mt link --apply \<file\>`
+      (`-` for stdin) reads an adjacency map — a YAML or JSON mapping of stem
+      to kind to targets, documented with its full shape on
+      #link(u("/dsl/"))[Task DSL]. Both merge: edges dedupe on (kind, target),
+      so re-running either form writes nothing the second time and a map stays
+      safe to re-apply as it grows. `--replace` (`--apply` only) makes the map
+      the complete edge set for each stem it names. The kind must be
+      configured and the target must resolve #emph[before] anything is
+      written, so a refused edge leaves no file to repair — a kind whose
+      `note` rule is `required` (`related`, out of the box) is refused without
+      one, naming the edge. A per-entry failure is reported and the rest still
+      land, `mt rm`-style; `--dry-run` prints the plan instead.],
+    examples: ```sh
+    mt link wire-oauth depends-on pick-a-provider   # one edge
+    mt link wire-oauth depends-on a b c             # one call, three targets
+    mt link wire-oauth related write-docs -m "same release"
+    mt link --apply links.yaml                      # a whole adjacency map
+    mt ls --format json | jq -f edges.jq | mt link --apply -
+    mt link --apply links.yaml --replace --dry-run  # preview the full rewrite
+    ```,
+  ),
+
   // ── Views ───────────────────────────────────────────────────────────────────
   "views": (outputs: ("views",)),
 

@@ -99,6 +99,14 @@ groups:
       - crates/mindtape-cli/src/import.rs
       - crates/mindtape-cli/src/init.rs
       - crates/mindtape-cli/src/install.rs
+      # `mt link`'s flags live in `link_cmd.rs` (`LinkArgs`); its INPUT format —
+      # the adjacency map the docs restate by hand on the DSL page and in
+      # SKILL.md — lives in `link_input.rs`, so both are sources. The other two
+      # halves are not: `link_edit.rs` and `link_plan.rs` decide what gets
+      # written and what is refused, and no dependent restates either beyond
+      # what those two files already declare.
+      - crates/mindtape-cli/src/link_cmd.rs
+      - crates/mindtape-cli/src/link_input.rs
       - crates/mindtape-cli/src/ls.rs
       - crates/mindtape-cli/src/preset_cmd.rs
       - crates/mindtape-cli/src/recur.rs

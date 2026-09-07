@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`links:` has a CLI writer — `mt link`** — it was the one task field with
+  none, so cross-linking a batch of tasks meant hand-editing files, and the
+  thing that actually gets reached for at that point is a regex one-shot over
+  the tree. `mt link <task> <kind> <target>...` upserts one edge per target;
+  `mt link --apply <file>` (`-` for stdin) reads an adjacency map — a YAML or
+  JSON mapping of stem to kind to targets, where a target is a bare stem or a
+  `{target, note}` mapping — so a `jq` program emitting that shape pipes
+  straight in. Both forms merge and dedupe on (kind, target), with a target's
+  `.typ` optional on the way in, which is what makes a map safe to re-apply as
+  it grows rather than a thing you run once: re-running writes nothing.
+  `--replace` (`--apply` only, since the positional form upserts one edge and
+  clearing the others there would be a different command wearing the same
+  name) makes the map the complete edge set per stem; `--dry-run` prints the
+  plan instead. The kind, the target and the kind's note rule are checked
+  *before* anything is written, so a refused edge leaves no file to repair —
+  `related` without a note is refused naming the edge, and an unknown kind
+  lists the configured ones with a nearest match. A per-entry failure is
+  reported and the rest still land, the way `mt rm` and `mt flip` report a
+  batch, and the landed batch revalidates over one reload, so a cycle the
+  batch created is reported by the run that created it. Edges serialize
+  through the prelude's own typed helpers with the note markup-escaped, so a
+  written file reads as hand-authored and `mt check` stays green. One
+  deliberate refusal: `--replace` on a task whose `links:` carries a SWHID
+  history pointer, since rewriting the value from the evaluated edges would
+  erase provenance `mt rm` went to a git round trip to record — merge still
+  works there.
+
 - **A truncated listing now says what it cut** — `mt ls -n 10` printed ten rows
   and nothing about the other thirty-seven, so a bounded listing and a short
   backlog were the same output and a caller reported the one as the other. The
