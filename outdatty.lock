@@ -94,7 +94,7 @@ groups:
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
       docs/src/contributing/coverage-crap.typ: 173494b7ad613015a587e7bfff67620f7b2661c42e8b88927c3bc7f6ea9c29ba
-      docs/src/contributing/gates.typ: 447619d0cb007551d70ad41b80232c9cbc989a4811d0590098ca7ef26ce29b98
+      docs/src/contributing/gates.typ: b001972b026af7dab12578190f32c5e002d0fb1caeb8b1776f33a73a4c937432
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
       docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c
       docs/src/contributing/windows.typ: 247a7f533ec3dc7b69c3047d93a3332e3245f91dcfa830c365d9394bbc576da0
