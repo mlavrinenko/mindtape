@@ -11,7 +11,11 @@
   tags: ("cli", "tests", "docs"),
   estimate: (files: 8),
   assignee: "agent",
-  status: proposed(2026, 8, 29),
+  status: done(
+    2026,
+    9,
+    7,
+  )[mt link ships: single-edge verb, --apply adjacency map, merge/replace, pre-write checks],
 )
 
 == Summary
