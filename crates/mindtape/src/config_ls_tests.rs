@@ -2,7 +2,10 @@
 
 use std::collections::BTreeMap;
 
-use super::{Facet, LsRule, parse_import_view, validate_ls_rules};
+use super::{
+    ColumnConfig, Facet, LsConfig, LsRule, parse_import_view, validate_ls_columns,
+    validate_ls_rules,
+};
 use crate::config::Config;
 use crate::config_views::ViewSpec;
 use crate::parse_config;
@@ -26,6 +29,22 @@ fn problems(rule: &LsRule) -> Vec<String> {
 
 fn assert_has(problems: &[String], needle: &str) {
     assert!(problems.iter().any(|p| p.contains(needle)), "{problems:?}");
+}
+
+/// No problem carries a `did you mean` clause: the far-miss shared assertion
+/// for every unknown-name suggestion test below (view / column), so the
+/// negative check lives once rather than once per site.
+fn assert_no_suggestion(problems: &[String]) {
+    assert!(
+        !problems.iter().any(|p| p.contains("did you mean")),
+        "{problems:?}"
+    );
+}
+
+/// Some problem carries a `did you mean: <name>?` clause: the near-miss
+/// counterpart to [`assert_no_suggestion`].
+fn assert_suggests(problems: &[String], name: &str) {
+    assert_has(problems, &format!("did you mean: {name}?"));
 }
 
 #[test]
@@ -224,10 +243,7 @@ fn unknown_import_view_near_miss_offers_a_suggestion() {
 fn unknown_import_view_far_miss_lists_known_views_without_a_suggestion() {
     let problems = problems_for_import("zzz");
     assert_has(&problems, "known views: release");
-    assert!(
-        !problems.iter().any(|p| p.contains("did you mean")),
-        "{problems:?}"
-    );
+    assert_no_suggestion(&problems);
 }
 
 #[test]
@@ -260,4 +276,53 @@ fn unknown_contains_field_is_rejected_at_load() {
     assert!(msg.contains("title"), "{msg}");
     assert!(msg.contains("note"), "{msg}");
     assert!(msg.contains("tags"), "{msg}");
+}
+
+// --- suggest wiring for unknown `[ls]` column names
+// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
+
+/// Validate a single `[[ls.rules]]` `columns` entry, for the near-miss /
+/// far-miss pair below.
+fn problems_for_rule_column(entry: &str) -> Vec<String> {
+    let rule = rule_with_list(&[entry], |v| LsRule {
+        columns: v,
+        ..LsRule::default()
+    });
+    problems(&rule)
+}
+
+#[test]
+fn unknown_rule_column_near_miss_offers_a_suggestion() {
+    let problems = problems_for_rule_column("staatus");
+    assert_has(&problems, "expected one of");
+    assert_suggests(&problems, "status");
+}
+
+#[test]
+fn unknown_rule_column_far_miss_omits_the_suggestion() {
+    let problems = problems_for_rule_column("zzzzzzzz");
+    assert_has(&problems, "expected one of");
+    assert_no_suggestion(&problems);
+}
+
+#[test]
+fn unknown_ls_columns_key_near_miss_offers_a_suggestion() {
+    let ls = LsConfig {
+        columns: BTreeMap::from([("staatus".to_owned(), ColumnConfig::default())]),
+        ..LsConfig::default()
+    };
+    let problems = validate_ls_columns(&ls);
+    assert_has(&problems, "ls.columns: unknown column `staatus`");
+    assert_suggests(&problems, "status");
+}
+
+#[test]
+fn unknown_ls_columns_order_far_miss_omits_the_suggestion() {
+    let ls = LsConfig {
+        columns_order: vec!["zzzzzzzz".to_owned()],
+        ..LsConfig::default()
+    };
+    let problems = validate_ls_columns(&ls);
+    assert_has(&problems, "ls.columns-order: unknown column `zzzzzzzz`");
+    assert_no_suggestion(&problems);
 }

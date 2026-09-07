@@ -99,7 +99,7 @@ fn unknown_worktree_shows_aliases_when_nonempty() {
             .unwrap();
     let err = super::unknown_worktree("bad", &registry, None);
     let msg = err.to_string();
-    assert!(msg.contains("known aliases: sn"), "{msg}");
+    assert!(msg.contains("known worktrees: sn"), "{msg}");
 }
 
 #[test]
@@ -107,7 +107,27 @@ fn unknown_worktree_omits_aliases_when_empty() {
     let registry = mindtape::WorktreeRegistry::default();
     let err = super::unknown_worktree("bad", &registry, None);
     let msg = err.to_string();
-    assert!(!msg.contains("known aliases"), "{msg}");
+    assert!(!msg.contains("known worktrees"), "{msg}");
+}
+
+#[test]
+fn unknown_worktree_suggests_a_near_miss() {
+    let registry =
+        mindtape::WorktreeRegistry::parse("[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n")
+            .unwrap();
+    let err = super::unknown_worktree("sm", &registry, None);
+    let msg = err.to_string();
+    assert!(msg.contains("did you mean: sn?"), "{msg}");
+}
+
+#[test]
+fn unknown_worktree_omits_suggestion_on_a_far_miss() {
+    let registry =
+        mindtape::WorktreeRegistry::parse("[[worktrees]]\nname = \"sn\"\npath = \"/wt/sn\"\n")
+            .unwrap();
+    let err = super::unknown_worktree("zzzzzzzz", &registry, None);
+    let msg = err.to_string();
+    assert!(!msg.contains("did you mean"), "{msg}");
 }
 
 // ===== Subprocess tests (stdout / env isolation) =====

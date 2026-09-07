@@ -345,6 +345,43 @@ fn reject_unknown_keys_errors_naming_the_key_and_known_slots() {
     assert!(err.contains("title"), "{err}");
 }
 
+// --- suggest wiring for an unknown `--set`/`-f` key
+// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
+
+#[test]
+fn reject_unknown_keys_near_miss_offers_a_suggestion() {
+    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
+    let mut values = BTreeMap::new();
+    values.insert("titel".to_owned(), RawValue::Str("Typo".to_owned()));
+    let err = reject_unknown_keys(&values, &specs)
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("did you mean: title?"), "{err}");
+}
+
+#[test]
+fn reject_unknown_keys_far_miss_omits_the_suggestion() {
+    let specs = discover_slots(BUILTIN_TASK); // one `title` slot
+    let mut values = BTreeMap::new();
+    values.insert("zzzzzzzz".to_owned(), RawValue::Str("Nope".to_owned()));
+    let err = reject_unknown_keys(&values, &specs)
+        .unwrap_err()
+        .to_string();
+    assert!(!err.contains("did you mean"), "{err}");
+}
+
+#[test]
+fn reject_unknown_keys_with_no_slots_omits_the_suggestion() {
+    let specs: Vec<mindtape::SlotSpec> = Vec::new();
+    let mut values = BTreeMap::new();
+    values.insert("anything".to_owned(), RawValue::Str("x".to_owned()));
+    let err = reject_unknown_keys(&values, &specs)
+        .unwrap_err()
+        .to_string();
+    assert!(!err.contains("did you mean"), "{err}");
+    assert!(err.contains("known slots: "), "{err}");
+}
+
 /// The `--` tokens and `--set` reach the same parser, so both operators have
 /// to behave identically whichever carrier delivered them. Asserting only the
 /// `--set` path would let the shorthand drift into a second grammar.

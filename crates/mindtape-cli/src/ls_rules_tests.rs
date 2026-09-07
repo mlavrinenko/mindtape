@@ -379,3 +379,24 @@ import-views = ["a", "b(columns)"]
         vec!["status".to_owned(), "title".to_owned()]
     );
 }
+
+// --- suggest wiring for a `--columns` spec
+// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
+
+#[test]
+fn resolve_columns_near_miss_offers_a_suggestion() {
+    let config = parse_config("").unwrap();
+    let err = super::resolve_columns("staatus", &config).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("expected one of"), "{msg}");
+    assert!(msg.contains("did you mean: status?"), "{msg}");
+}
+
+#[test]
+fn resolve_columns_far_miss_omits_the_suggestion() {
+    let config = parse_config("").unwrap();
+    let err = super::resolve_columns("zzzzzzzz", &config).unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains("expected one of"), "{msg}");
+    assert!(!msg.contains("did you mean"), "{msg}");
+}

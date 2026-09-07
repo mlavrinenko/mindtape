@@ -102,13 +102,31 @@ pub fn run_external(external: &[String]) -> Result<()> {
         .as_str();
     let legend = &project.config.tasks.status;
     if !legend.contains(verb) {
-        bail!(
-            "unknown command {verb:?}; run `mt --help` for commands or \
-             `mt flip --list` for status shortcut verbs"
-        );
+        bail!(unknown_command_message(verb, legend));
     }
     let parsed = Shortcut::try_parse_from(external).map_err(|err| anyhow::anyhow!("{err}"))?;
     run_with(&project, &parsed.args)
+}
+
+/// Configured legend values as `&str`, for a nearest-match suggestion shared
+/// by the unknown-status and shortcut-verb-miss sites — both reject against
+/// this same set
+/// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
+fn legend_values(legend: &Legend) -> Vec<&str> {
+    legend.entries.iter().map(|e| e.value.as_str()).collect()
+}
+
+/// The "unknown command" message for a shortcut-verb miss (`mt <typo>
+/// <task>`), naming a near legend value when one clears the similarity floor.
+/// Only the message changes here — `verb` still dispatches solely on
+/// `legend.contains`, so which inputs `mt <status> <task>` accepts is
+/// untouched.
+fn unknown_command_message(verb: &str, legend: &Legend) -> String {
+    format!(
+        "unknown command {verb:?}{}; run `mt --help` for commands or \
+         `mt flip --list` for status shortcut verbs",
+        mindtape::suggest::suggestion(verb, &legend_values(legend))
+    )
 }
 
 /// Flip `args.status` onto every resolved task in `project`.
@@ -128,8 +146,9 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
     let legend = &project.config.tasks.status;
     if !legend.is_empty() && !legend.contains(status) {
         bail!(
-            "unknown status {status:?}; configured legend: {}",
-            verbs_csv(legend)
+            "unknown status {status:?}; configured legend: {}{}",
+            verbs_csv(legend),
+            mindtape::suggest::suggestion(status, &legend_values(legend))
         );
     }
 
@@ -403,12 +422,7 @@ fn list_verbs(config: &Config) {
 
 /// Comma-separated legend values, for an unknown-status error message.
 fn verbs_csv(legend: &Legend) -> String {
-    legend
-        .entries
-        .iter()
-        .map(|entry| entry.value.as_str())
-        .collect::<Vec<_>>()
-        .join(", ")
+    legend_values(legend).join(", ")
 }
 
 #[cfg(test)]
