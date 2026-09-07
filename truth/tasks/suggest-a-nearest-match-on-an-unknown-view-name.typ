@@ -11,7 +11,7 @@
   tags: ("cli",),
   estimate: (files: 4),
   assignee: "agent",
-  status: proposed(2026, 9, 7),
+  status: done(2026, 9, 7)[landed on add9bc4],
 )
 
 == Summary
