@@ -11,7 +11,11 @@
   assignee: "agent",
   tags: ("cli",),
   estimate: (files: 3),
-  status: proposed(2026, 9, 5),
+  status: done(
+    2026,
+    9,
+    7,
+  )[validates before writing; check\_candidate is the shared seam, other writers tracked separately],
 )
 
 == Summary
@@ -57,3 +61,36 @@ One open question, and it is about how far the seam moves: does `mt add` alone
 validate before writing, or does every writer — `mt set`, a status flip, any
 command that rewrites a `.typ` — go through the same
 render-check-then-commit path?
+
+== Resolution
+
+`mt add` alone moves. The capability is public
+(`mindtape::check_candidate`, `crates/mindtape/src/candidate.rs`), so the other
+writers can adopt the same path without a second implementation, and
+#link("extend-the-pre-write-validation-seam-to-the-other-writers.typ")[a
+  follow-up task] carries them. They were left out deliberately: `mt recur`'s
+spawn is the same defect and a mechanical port, but `mt flip` and `mt review`
+rewrite a file that was already valid, where the question is whether a rejected
+rewrite is *restored* rather than whether it is written — a different decision,
+not this one applied twice.
+
+Two seams keep the old order, both because they cannot have the new one.
+`--no-verify` writes whatever it was handed, which is what the flag means. A
+destination outside the project root (`mt add --into /elsewhere`) has no
+project-relative path to evaluate a candidate at, so it writes first and still
+reports the file as kept.
+
+The message question above ("should the error quote the template's own
+default") is *not* answered. The pre-write error names the field and the shape
+the Rust layer expected — `estimate: expected a dict, found a number` — and
+says `nothing was written`; it does not reach back into the template for a
+copyable example. That is worth doing and is a separate change to the violation
+text, not to the write order.
+
+What did not change: the check is `validate` only, exactly the pass
+`verify_written` ran. `mt check`'s other gates — body headers,
+`[tasks.body.content]`, `[[tasks.limits]]`, the comment policy — still run only
+at `mt check`, so `mt add` can still write a task that `mt check` then rejects
+on a body rule. Pulling those into the pre-write check would refuse the default
+template's own `- TODO` scope placeholder on every `mt add`, which is a
+decision about what `add` is for, not a fix to the order of write and check.
