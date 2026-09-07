@@ -12,11 +12,11 @@
   estimate: (files: 6),
   assignee: "agent",
   links: depends-on("suggest-a-nearest-match-on-an-unknown-view-name.typ"),
-  status: wip(
+  status: done(
     2026,
     9,
     7,
-  )[delegated to a worktree agent on branch suggest-remaining-names],
+  )[landed across the merge; derived-tag site wired at integration],
 )
 
 == Summary
