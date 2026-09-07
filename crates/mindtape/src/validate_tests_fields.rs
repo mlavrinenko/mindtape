@@ -90,6 +90,33 @@ fn flags_disallowed_tag() {
 }
 
 #[test]
+fn disallowed_tag_near_miss_offers_a_suggestion() {
+    // `config()`'s `[tasks.tags] allowed` is `["backend"]`.
+    let mut item = task("a", "wip");
+    item.tags = vec!["backendd".to_owned()];
+    let violations = validate(&[item], &config());
+    let hit = violations
+        .iter()
+        .find(|v| v.field == "tags")
+        .expect("disallowed tag must be flagged");
+    assert!(hit.message.contains("did you mean: backend?"), "{hit:?}");
+    assert!(hit.message.contains("known tags: backend"), "{hit:?}");
+}
+
+#[test]
+fn disallowed_tag_far_miss_omits_the_suggestion() {
+    let mut item = task("a", "wip");
+    item.tags = vec!["frontend".to_owned()];
+    let violations = validate(&[item], &config());
+    let hit = violations
+        .iter()
+        .find(|v| v.field == "tags")
+        .expect("disallowed tag must be flagged");
+    assert!(!hit.message.contains("did you mean"), "{hit:?}");
+    assert!(hit.message.contains("known tags: backend"), "{hit:?}");
+}
+
+#[test]
 fn flags_disallowed_derived_tag() {
     let mut item = task("a", "wip");
     item.derived_tags = vec!["marketing".to_owned()];

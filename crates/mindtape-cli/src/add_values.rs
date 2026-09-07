@@ -141,9 +141,13 @@ pub fn reject_unknown_keys(values: &BTreeMap<String, RawValue>, specs: &[SlotSpe
     if unknown.is_empty() {
         return Ok(());
     }
+    let named: Vec<String> = unknown
+        .iter()
+        .map(|key| format!("{key}{}", mindtape::suggest::suggestion(key, &known)))
+        .collect();
     bail!(
         "unknown --set/-f key(s): {}; known slots: {}",
-        unknown.join(", "),
+        named.join(", "),
         known.join(", ")
     );
 }

@@ -64,6 +64,21 @@ where
     format!("; {suggestion}known {kind}s: {}", known.join(", "))
 }
 
+/// Render just the nearest-match fragment as a trailing clause: `; did you
+/// mean: <name>?` when a candidate clears [`SIMILARITY_FLOOR`], empty
+/// otherwise (including when `known` is empty — nothing to suggest).
+///
+/// [`hint`] folds a suggestion together with a full enumeration for a caller
+/// that has neither; a caller that already enumerates the legal values
+/// (column / status / slot sites) appends this instead, so the enumeration is
+/// never printed twice.
+#[must_use]
+pub fn suggestion(name: &str, known: &[&str]) -> String {
+    nearest(name, known)
+        .map(|m| format!("; did you mean: {m}?"))
+        .unwrap_or_default()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -109,5 +124,22 @@ mod tests {
     fn hint_empty_known_set_is_silent() {
         let known: Vec<String> = Vec::new();
         assert_eq!(hint("view", "anything", &known), "");
+    }
+
+    #[test]
+    fn suggestion_near_miss_renders_the_clause_alone() {
+        let known = ["backlog", "blocked", "default"];
+        assert_eq!(suggestion("backlgo", &known), "; did you mean: backlog?");
+    }
+
+    #[test]
+    fn suggestion_far_miss_is_empty() {
+        let known = ["backlog", "blocked", "default"];
+        assert_eq!(suggestion("zzz", &known), "");
+    }
+
+    #[test]
+    fn suggestion_empty_known_set_is_empty() {
+        assert_eq!(suggestion("anything", &[]), "");
     }
 }

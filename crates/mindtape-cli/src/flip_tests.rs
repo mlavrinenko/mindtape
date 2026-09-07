@@ -351,6 +351,50 @@ fn verbs_csv_includes_legend_values_in_error() {
     assert!(msg.contains("wip") && msg.contains("blocked"));
 }
 
+// --- suggest wiring for the unknown-status / shortcut-verb-miss messages
+// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
+
+#[test]
+fn unknown_status_near_miss_offers_a_suggestion() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
+    let msg = run_with(&project, &flip_args("donee", &["a"]))
+        .unwrap_err()
+        .to_string();
+    assert!(msg.contains("did you mean: done?"), "{msg}");
+}
+
+#[test]
+fn unknown_status_far_miss_omits_the_suggestion() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path(), &[("a.typ", ALPHA)], LEGEND_CONFIG);
+    let msg = run_with(&project, &flip_args("zzzzzzzz", &["a"]))
+        .unwrap_err()
+        .to_string();
+    assert!(!msg.contains("did you mean"), "{msg}");
+}
+
+#[test]
+fn unknown_command_message_near_miss_offers_a_suggestion() {
+    let legend = parse_config(LEGEND_CONFIG).unwrap().tasks.status;
+    let msg = super::unknown_command_message("donee", &legend);
+    assert!(msg.contains("did you mean: done?"), "{msg}");
+}
+
+#[test]
+fn unknown_command_message_far_miss_omits_the_suggestion() {
+    let legend = parse_config(LEGEND_CONFIG).unwrap().tasks.status;
+    let msg = super::unknown_command_message("zzzzzzzz", &legend);
+    assert!(!msg.contains("did you mean"), "{msg}");
+}
+
+#[test]
+fn unknown_command_message_with_an_empty_legend_omits_the_suggestion() {
+    let legend = mindtape::config::Legend::default();
+    let msg = super::unknown_command_message("anything", &legend);
+    assert!(!msg.contains("did you mean"), "{msg}");
+}
+
 // --- note requirement ------------------------------------------------------
 
 /// `blocked` declares `note = "required"`; `wip`/`done` are left at the

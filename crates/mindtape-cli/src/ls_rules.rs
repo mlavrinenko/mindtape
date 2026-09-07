@@ -353,8 +353,9 @@ fn resolve_columns(spec: &str, config: &Config) -> Result<Vec<String>> {
     for name in &names {
         if !mindtape::LS_COLUMNS.contains(&name.as_str()) {
             return Err(anyhow!(
-                "unknown column `{name}`, expected one of {}",
-                mindtape::LS_COLUMNS.join(", ")
+                "unknown column `{name}`, expected one of {}{}",
+                mindtape::LS_COLUMNS.join(", "),
+                mindtape::suggest::suggestion(name, &mindtape::LS_COLUMNS)
             ));
         }
     }

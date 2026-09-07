@@ -290,10 +290,7 @@ pub fn validate_ls_rules(rules: &[LsRule], views: &BTreeMap<String, ViewSpec>) -
                 if LS_COLUMNS.contains(&col) {
                     Ok(())
                 } else {
-                    Err(format!(
-                        "unknown column `{col}`, expected one of {}",
-                        LS_COLUMNS.join(", ")
-                    ))
+                    Err(unknown_column(col))
                 }
             },
         ));
@@ -428,26 +425,36 @@ pub enum Visibility {
 /// unknown column names, and duplicates within `columns-order`, are reported.
 #[must_use]
 pub fn validate_ls_columns(ls: &LsConfig) -> Vec<String> {
-    let legal = LS_COLUMNS.join(", ");
     let mut problems = Vec::new();
     for name in ls.columns.keys() {
         if !LS_COLUMNS.contains(&name.as_str()) {
-            problems.push(format!(
-                "ls.columns: unknown column `{name}`, expected one of {legal}"
-            ));
+            problems.push(format!("ls.columns: {}", unknown_column(name)));
         }
     }
     let mut seen = BTreeSet::new();
     for name in &ls.columns_order {
         if !LS_COLUMNS.contains(&name.as_str()) {
-            problems.push(format!(
-                "ls.columns-order: unknown column `{name}`, expected one of {legal}"
-            ));
+            problems.push(format!("ls.columns-order: {}", unknown_column(name)));
         } else if !seen.insert(name.as_str()) {
             problems.push(format!("ls.columns-order: duplicate column `{name}`"));
         }
     }
     problems
+}
+
+/// The `unknown column` message body (no field-path prefix): the fixed
+/// [`LS_COLUMNS`] enumeration plus a nearest-match suggestion when one clears
+/// the similarity floor. Shared by every `[ls]` column-name validation site
+/// (`[[ls.rules]]` entries and `[ls.columns]` / `[ls] columns-order`) so the
+/// wording and the suggestion wiring live once
+/// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
+#[must_use]
+fn unknown_column(name: &str) -> String {
+    format!(
+        "unknown column `{name}`, expected one of {}{}",
+        LS_COLUMNS.join(", "),
+        crate::suggest::suggestion(name, &LS_COLUMNS)
+    )
 }
 
 #[cfg(test)]

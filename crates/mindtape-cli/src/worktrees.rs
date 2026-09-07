@@ -126,18 +126,28 @@ fn is_project(path: &Path) -> bool {
     path.join(".mindtape").is_dir()
 }
 
-/// Build a helpful "unknown worktree" error naming the known aliases and where
-/// worktrees are configured.
+/// Build a helpful "unknown worktree" error: a nearest-match suggestion plus
+/// the known aliases, in the same shape `util::unknown_view_error` renders for
+/// an unknown view (`; did you mean: X?; known worktrees: a, b`), then where
+/// worktrees are configured. A leading `@token` is this worktree-alias sugar,
+/// rewritten before clap ever sees it — a bare `[views.<name>]` reference only
+/// ever appears in argument position (`mt ls @view`) — so the two error
+/// messages never fire for the same input and stay distinguishable by their
+/// leading word (`unknown worktree` vs. `unknown view`) alone.
 fn unknown_worktree(
     token: &str,
     registry: &WorktreeRegistry,
     path: Option<&Path>,
 ) -> anyhow::Error {
-    let mut msg = format!("unknown worktree @{token}");
-    let aliases = registry.alias_names();
-    if !aliases.is_empty() {
-        msg.push_str(&format!("\n  known aliases: {}", aliases.join(", ")));
-    }
+    let aliases: Vec<String> = registry
+        .alias_names()
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
+    let mut msg = format!(
+        "unknown worktree @{token}{}",
+        mindtape::suggest::hint("worktree", token, &aliases)
+    );
     match path {
         Some(p) => msg.push_str(&format!("\n  configure worktrees in {}", p.display())),
         None => msg.push_str("\n  could not resolve the app config directory"),

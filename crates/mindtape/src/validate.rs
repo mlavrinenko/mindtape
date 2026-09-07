@@ -393,7 +393,15 @@ fn check_tags(task: &Task, config: &Config, out: &mut Vec<Violation>) {
     }
     for tag in &task.tags {
         if !allowed.contains(tag) {
-            push(out, task, "tags", format!("`{tag}` is not an allowed tag"));
+            push(
+                out,
+                task,
+                "tags",
+                format!(
+                    "`{tag}` is not an allowed tag{}",
+                    crate::suggest::hint("tag", tag, allowed)
+                ),
+            );
         }
     }
     for tag in &task.derived_tags {
