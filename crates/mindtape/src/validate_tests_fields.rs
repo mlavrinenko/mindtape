@@ -126,6 +126,19 @@ fn flags_disallowed_derived_tag() {
         .find(|v| v.field == "tags")
         .expect("derived tag outside the allow-list must be flagged");
     assert!(hit.message.contains("derived from folder"));
+    assert!(hit.message.contains("known tags: backend"), "{hit:?}");
+}
+
+#[test]
+fn disallowed_derived_tag_near_miss_suggests_the_allowed_tag() {
+    let mut item = task("a", "wip");
+    item.derived_tags = vec!["backedn".to_owned()];
+    let violations = validate(&[item], &config());
+    let hit = violations
+        .iter()
+        .find(|v| v.field == "tags")
+        .expect("derived tag outside the allow-list must be flagged");
+    assert!(hit.message.contains("did you mean: backend?"), "{hit:?}");
 }
 
 #[test]

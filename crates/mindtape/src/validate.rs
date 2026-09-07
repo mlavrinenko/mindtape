@@ -410,7 +410,10 @@ fn check_tags(task: &Task, config: &Config, out: &mut Vec<Violation>) {
                 out,
                 task,
                 "tags",
-                format!("`{tag}` derived from folder is not an allowed tag"),
+                format!(
+                    "`{tag}` derived from folder is not an allowed tag{}",
+                    crate::suggest::hint("tag", tag, allowed)
+                ),
             );
         }
     }
