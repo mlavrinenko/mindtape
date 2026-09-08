@@ -11,7 +11,7 @@
   tags: ("cli",),
   estimate: (files: 8),
   assignee: "agent",
-  status: proposed(2026, 9, 8),
+  status: done(2026, 9, 8),
   links: related(
     "cite-task-paths-as-links-never-handles-in-prose-to-a-human.typ",
   )[two halves of one fix — this makes the path available, that makes it the thing an agent quotes]
