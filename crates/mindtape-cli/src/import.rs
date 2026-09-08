@@ -5,10 +5,14 @@
 //! template, from a full record" — reuses `mt add`'s destination resolution
 //! (`--into`/`--to`) and dedupe.
 //!
+//! One bad record does not refuse the batch: the rest still land, and the
+//! per-record report says which did. What it no longer does is land the bad
+//! one first — the whole batch is validated before a byte is written, so a
+//! rejected record is never created. That discipline lives in [`write`]; input
+//! parsing lives in [`input`].
+//!
 //! No `--from`/`--via` source selector: sources are jq adapters, upstream of
-//! the pipe (`truth/tasks/import-tasks-from-other-trackers.typ`). Batch
-//! validation and the write/remove-on-failure discipline live in [`write`];
-//! input parsing lives in [`input`].
+//! the pipe (`truth/tasks/import-tasks-from-other-trackers.typ`).
 
 mod input;
 mod write;
@@ -118,7 +122,7 @@ fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec
     }
 
     let mut outcomes = if args.dry_run {
-        write::preview(project, &dest, staged)?
+        write::preview(project, &dest, staged)
     } else {
         write::land(project, &dest, staged)?
     };

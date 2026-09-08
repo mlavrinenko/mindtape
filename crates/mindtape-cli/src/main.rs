@@ -69,6 +69,7 @@ mod ls;
 mod ls_interactive;
 mod ls_rules;
 mod output;
+mod pre_write;
 mod preset;
 mod preset_cmd;
 mod recur;

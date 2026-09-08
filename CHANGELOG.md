@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Every task writer now validates before it writes** — `mt add` already
+  rendered into a buffer, checked the candidate at the exact path it would
+  occupy, and wrote only if it passed. The rest wrote first and reported
+  after: `mt recur`'s spawn created a new file exactly the way `add` used to,
+  so a rejected occurrence left the same broken artifact behind; `mt import`
+  landed the whole batch and then `remove_file`d the failures; `mt flip`,
+  `mt review` and `mt link` rewrote a file that was valid before they touched
+  it and reported afterwards without restoring it. All of them go through one
+  seam now, and a rejected write leaves nothing to repair.
+
+  A rejected rewrite is **not restored** — it is simply not written, so the
+  file still holds exactly what its author put there. Restoring would be a
+  second write, which can fail on its own and would leave the file in a third
+  state nobody can name; not writing cannot fail.
+
+  For `mt import` the answer to "one bad record, or the whole batch" is
+  unchanged: **land the rest**, and the `N filed, M skipped` report says which.
+  What changed is that the bad one is never created, so `--dry-run` no longer
+  needs a temp mirror of the project to preview against, and a batch rejected
+  end to end leaves not even an empty destination directory.
+
+  A batch goes to the validator as one set (`mindtape::check_candidates`),
+  because the rules that span tasks have no answer for one member alone: id
+  uniqueness, edge resolution, cardinality, cycles, and the dependency ranks a
+  `required` filter reads. That is what lets `mt link --apply` add an edge in
+  both directions at once and `mt recur --advance` chain occurrences that name
+  their predecessor. `mt flip` keeps its post-batch revalidation as the net for
+  what a landed flip does to *other* tasks, which no per-candidate check sees.
+
+### Fixed
+
+- **`mt recur` on an already-spawned occurrence wrote a task `mt check`
+  refuses** — a spawn's source is its predecessor's source, so an occurrence
+  spawned from an occurrence already carried a `recurred-from` edge, and the
+  spawn appended a second one. `recurred-from` allows one edge per task, so
+  every hop of the ordinary loop after the first produced an invalid file: the
+  post-write check reported it, and the file stayed. The edge is now replaced
+  rather than appended — the chain is a linked list, each occurrence naming
+  only the one before it — and every other edge kind is carried forward
+  verbatim, notes included.
+
 ### Added
 
 - **A load failure on a literal `#` in a task body now names `\#`** — task

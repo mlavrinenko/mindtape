@@ -208,6 +208,82 @@ fn done_notice_says_mutate_series_ends() {
     assert!(stdout.contains("ends the series"), "{stdout}");
 }
 
+/// Spawning from an occurrence that is itself a spawn — every hop of the
+/// ordinary loop after the first. The new occurrence's `recurred-from` names
+/// its immediate predecessor and nothing else: that kind allows one edge, so
+/// carrying the older hop forward as well wrote a file `mt check` refuses.
+#[test]
+fn a_second_hop_names_only_its_immediate_predecessor() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path(), &[("water-plants.typ", WEEKLY_SPAWN)]);
+
+    mt(dir.path())
+        .args(["recur", "water-plants"])
+        .assert()
+        .success();
+    let first = tasks_dir_entries(dir.path())
+        .into_iter()
+        .find(|n| n != "water-plants.typ")
+        .unwrap();
+    let first_stem = first.trim_end_matches(".typ").to_owned();
+
+    mt(dir.path())
+        .args(["recur", &first_stem])
+        .assert()
+        .success();
+
+    let second = tasks_dir_entries(dir.path())
+        .into_iter()
+        .find(|n| *n != first && n != "water-plants.typ")
+        .unwrap();
+    let source = std::fs::read_to_string(dir.path().join("tasks").join(&second)).unwrap();
+    assert!(
+        source.contains(&format!(r#"recurred-from("{first_stem}.typ")"#)),
+        "{source}"
+    );
+    assert!(
+        !source.contains(r#"recurred-from("water-plants.typ")"#),
+        "the older hop must not be carried forward: {source}"
+    );
+
+    mt(dir.path()).arg("check").assert().success();
+}
+
+/// The defect this seam closes for `recur`: a spawn whose occurrence would not
+/// validate is refused before the write, so the tasks directory is exactly as
+/// it was. The fixture's `estimate` unit is outside the configured allow-list,
+/// which the predecessor is exempt from (terminal) and the fresh occurrence is
+/// not.
+#[test]
+fn a_rejected_spawn_creates_no_file() {
+    let dir = tempfile::tempdir().unwrap();
+    let config = "[tasks]\nroots = [\"tasks\"]\n\n[tasks.tags]\nallowed = [\"ok\"]\n";
+    let body = "#import \"@local/mindtape:0.2.0\": *\n\n\
+#show: task.with(\n  \
+title: \"Water plants\",\n  \
+status: wip(2026, 6, 1),\n  \
+tags: (\"nope\",),\n  \
+recur: every(weeks: 1),\n\
+)\n\n== Body\n";
+    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
+    support::install_lib(dir.path());
+    std::fs::write(dir.path().join("tasks/water-plants.typ"), body).unwrap();
+
+    let output = mt(dir.path())
+        .args(["recur", "water-plants"])
+        .assert()
+        .failure();
+
+    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    assert!(stderr.contains("nothing was written"), "{stderr}");
+    assert_eq!(
+        tasks_dir_entries(dir.path()),
+        vec!["water-plants.typ".to_owned()],
+        "a rejected occurrence must never reach the disk"
+    );
+}
+
 #[test]
 fn no_recur_field_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();

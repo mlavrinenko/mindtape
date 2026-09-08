@@ -1,10 +1,12 @@
 //! Typst-source rewriting helpers for `mt recur`.
 //!
 //! The status/due/start edits shared by spawn and mutate, the `links:`
-//! `recurred-from` append (spawn only), and the nested `every()`/`rrule()`
+//! `recurred-from` rewrite (spawn only), and the nested `every()`/`rrule()`
 //! `count:` decrement. Same `task_edit::{task_with, upsert_named_arg}` +
 //! `typst_edit::apply` shape as `flip.rs`'s `status_edit` and `review.rs`'s
 //! `build_edit` — just more fields rewritten at once.
+
+use std::ops::Range;
 
 use anyhow::{Context, Result, anyhow};
 use chrono::{Datelike, NaiveDate};
@@ -95,20 +97,66 @@ pub fn status_due_start_edits(
     Ok(edits)
 }
 
-/// Append a `recurred-from("<predecessor_stem>.typ")` edge to `links:`
-/// (creating the argument when absent), preserving whatever edges were
-/// already there.
+/// Point `links:` at `predecessor_stem` with a single
+/// `recurred-from("<stem>.typ")` edge, creating the argument when absent and
+/// preserving every edge of any other kind.
+///
+/// It REPLACES rather than appends, and the difference is the whole point. A
+/// spawn's source is its predecessor's source, so an occurrence spawned from an
+/// occurrence already carries a `recurred-from` — and that kind allows one edge
+/// per task ([`mindtape::link::builtin_kinds`]). Appending wrote a second one,
+/// which is a file `mt check` refuses: the chain is a linked list, and each
+/// occurrence names only the one before it.
 ///
 /// # Errors
 /// Returns an error when `source` holds no `task.with(…)` call.
-pub fn append_recurred_from(source: &str, predecessor_stem: &str) -> Result<Edit> {
+pub fn set_recurred_from(source: &str, predecessor_stem: &str) -> Result<Edit> {
     let call = task_with(source)?;
-    let edge_call = format!("recurred-from(\"{predecessor_stem}.typ\")");
+    let edge = format!("recurred-from(\"{predecessor_stem}.typ\")");
     let value_text = match call.named("links") {
-        Some(existing) => format!("{} + {edge_call}", existing.value),
-        None => edge_call,
+        Some(existing) => without_recurred_from(source, &existing.value_range, &edge)
+            .unwrap_or_else(|| format!("{} + {edge}", existing.value)),
+        None => edge,
     };
     upsert_named_arg(source, &call, "links", &value_text)
+}
+
+/// The `links:` value in `range` rewritten as every edge call that is not
+/// `recurred-from`, then `edge` — each surviving call's text taken verbatim, so
+/// a note's markup passes through untouched rather than being re-rendered.
+///
+/// `None` when there is nothing to replace (no `recurred-from` in there, so the
+/// plain append is already right and byte-identical), or when the edge calls do
+/// not account for the whole value apart from `+` and whitespace. The second
+/// case is the guard: this scanner only knows the edge helpers, and silently
+/// dropping something it cannot see would be a worse bug than the duplicate
+/// edge it is here to prevent.
+fn without_recurred_from(source: &str, range: &Range<usize>, edge: &str) -> Option<String> {
+    let calls: Vec<_> = mindtape::link_edges(source)
+        .into_iter()
+        .filter(|call| call.range.start >= range.start && call.range.end <= range.end)
+        .collect();
+    if !calls.iter().any(|call| call.name == "recurred-from") {
+        return None;
+    }
+    let mut gaps = String::new();
+    let mut cursor = range.start;
+    for call in &calls {
+        gaps.push_str(source.get(cursor..call.range.start)?);
+        cursor = call.range.end;
+    }
+    gaps.push_str(source.get(cursor..range.end)?);
+    if !gaps.chars().all(|ch| ch.is_whitespace() || ch == '+') {
+        return None;
+    }
+
+    let mut kept: Vec<&str> = calls
+        .iter()
+        .filter(|call| call.name != "recurred-from")
+        .map(|call| source.get(call.range.clone()))
+        .collect::<Option<Vec<_>>>()?;
+    kept.push(edge);
+    Some(kept.join(" + "))
 }
 
 /// Decrement the recur rule's `count:` in place, when the task set one

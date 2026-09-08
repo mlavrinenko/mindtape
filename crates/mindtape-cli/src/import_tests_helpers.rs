@@ -1,13 +1,19 @@
 //! Unit tests for `import`'s internal helpers: source reading, record parsing,
-//! per-file load-error filtering, the project mirror used by `--dry-run`, the
-//! `--map` option parser, record labelling, and the report writer.
+//! the `--map` option parser, record labelling, and the report writer.
+//!
+//! Per-record problem attribution used to be tested here, against a
+//! `problems_for` helper that read a post-write reload. That reload is gone —
+//! the batch is checked as candidates before anything is written — and the
+//! attribution it did now belongs to `mindtape::check_candidates`, tested in
+//! `candidate_tests.rs` and `pre_write_tests.rs`. So is the temp project mirror
+//! `--dry-run` needed: a candidate is validated without a file, so there is
+//! nothing left to mirror.
 //!
 //! The command-level round-trip, input shapes and failure behaviour live in
 //! `import_tests.rs`; everything here calls one helper directly.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use std::collections::HashSet;
-use std::path::Path;
 use std::process::Command;
 
 use mindtape::test_support::bare_task;
@@ -15,7 +21,7 @@ use mindtape::{CanonicalTask, EntryKind, ImportReport, ReportEntry};
 
 use super::import_records;
 use super::tests::{bare_args, setup_dest, to_canonical};
-use super::write::{TaskOutcome, copy_dir, mirror_project, problems_for};
+use super::write::TaskOutcome;
 
 #[test]
 fn read_source_reads_a_real_file() {
@@ -39,99 +45,6 @@ fn parse_records_accepts_bare_array_and_envelope() {
 fn parse_records_rejects_neither_shape() {
     let err = super::input::parse_records(r#"{"nope": []}"#).unwrap_err();
     assert!(err.to_string().contains("tasks"), "{err}");
-}
-
-#[test]
-fn problems_for_ignores_other_files_load_errors() {
-    let outcome = mindtape::LoadOutcome {
-        tasks: vec![{
-            let mut t = bare_task("good");
-            t.file = "tasks/good.typ".into();
-            t
-        }],
-        errors: vec![mindtape::LoadError {
-            file: "tasks/broken.typ".into(),
-            message: "eval crashed".to_owned(),
-        }],
-    };
-    let violations = vec![];
-    let problems = problems_for(
-        Path::new("."),
-        Path::new("tasks/good.typ"),
-        &outcome,
-        &violations,
-    );
-    assert!(
-        problems.is_empty(),
-        "a different file's load error must not be attributed here: {problems:?}"
-    );
-}
-
-#[test]
-fn problems_for_returns_load_error_for_matching_file() {
-    let outcome = mindtape::LoadOutcome {
-        tasks: vec![],
-        errors: vec![mindtape::LoadError {
-            file: "tasks/broken.typ".into(),
-            message: "eval crashed".to_owned(),
-        }],
-    };
-    let problems = problems_for(Path::new("."), Path::new("tasks/broken.typ"), &outcome, &[]);
-    assert_eq!(problems, vec!["eval crashed"]);
-}
-
-#[test]
-fn copy_dir_copies_file_tree() {
-    let src = tempfile::tempdir().unwrap();
-    let dst = tempfile::tempdir().unwrap();
-    std::fs::create_dir_all(src.path().join("sub")).unwrap();
-    std::fs::write(src.path().join("a.txt"), "a").unwrap();
-    std::fs::write(src.path().join("sub/b.txt"), "b").unwrap();
-    copy_dir(src.path(), dst.path()).unwrap();
-    assert_eq!(
-        std::fs::read_to_string(dst.path().join("a.txt")).unwrap(),
-        "a"
-    );
-    assert_eq!(
-        std::fs::read_to_string(dst.path().join("sub/b.txt")).unwrap(),
-        "b"
-    );
-}
-
-#[test]
-fn copy_dir_creates_parent_directory() {
-    let src = tempfile::tempdir().unwrap();
-    let dst = tempfile::tempdir().unwrap();
-    std::fs::write(src.path().join("f.txt"), "x").unwrap();
-    let nested = dst.path().join("a").join("b");
-    copy_dir(src.path(), &nested).unwrap();
-    assert_eq!(std::fs::read_to_string(nested.join("f.txt")).unwrap(), "x");
-}
-
-#[test]
-fn mirror_project_copies_config_lib_and_tasks() {
-    let dir = tempfile::tempdir().unwrap();
-    let project = setup_dest(dir.path());
-    std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
-    std::fs::write(
-        dir.path().join("tasks/existing.typ"),
-        "#import \"@local/mindtape:0.2.0\": *\n\n#show: task.with(title: \"existing\")\n",
-    )
-    .unwrap();
-    let tmp = tempfile::tempdir().unwrap();
-    mirror_project(&project, tmp.path()).unwrap();
-    assert!(
-        tmp.path().join(".mindtape/config.toml").exists(),
-        "config must be mirrored"
-    );
-    assert!(
-        tmp.path().join("lib/typst.toml").exists(),
-        "lib package must be mirrored"
-    );
-    assert!(
-        tmp.path().join("tasks/existing.typ").exists(),
-        "task files must be mirrored"
-    );
 }
 
 // cargo-mutants regression tests -- each assertion fails under one specific

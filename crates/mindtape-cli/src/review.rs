@@ -3,12 +3,16 @@
 //! Resolves the task by slug, relative path, or absolute path; refuses terminal
 //! statuses; writes the `reviewed:` slot via [`typst_edit`], idempotent on the
 //! same day.
+//!
+//! The rewrite goes through [`crate::pre_write`] first, so a stamp that would
+//! leave the task invalid is refused rather than landed and reported.
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
 use mindtape::{parse_ymd, today_iso};
 use typst_edit::{Edit, apply};
 
+use crate::pre_write::{self, Pending};
 use crate::task_edit::{task_with, upsert_named_arg};
 use crate::util;
 
@@ -53,6 +57,15 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
     let updated =
         apply(&source, vec![edit]).with_context(|| format!("apply edit to {}", abs.display()))?;
 
+    // Checked at the file's own path before the write, so a rejected stamp
+    // leaves the task exactly as it was — nothing written, nothing to restore.
+    pre_write::ensure(
+        &project,
+        &[Pending {
+            file: &abs,
+            source: &updated,
+        }],
+    )?;
     util::write_task(&project.config, &abs, updated)?;
     println!(
         "reviewed: {} ({}) stamped on {}",

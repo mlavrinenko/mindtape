@@ -5,12 +5,11 @@
 
 use std::path::Path;
 
-use anyhow::{Context, Result, anyhow, bail};
-use mindtape::{
-    Candidate, Config, Violation, check_candidate, load_config, load_project, validate,
-};
+use anyhow::{Context, Result, bail};
+use mindtape::{Config, Violation, load_config, load_project, validate};
 use typst_edit::{Call, Edit, find_method_calls};
 
+use crate::pre_write::Pending;
 use crate::util::Project;
 
 /// The first `task.with(…)` call in `source`.
@@ -128,28 +127,54 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
 /// candidate at; the caller then falls back to [`verify_written`]. A `true`
 /// return means the check ran and passed.
 ///
+/// `mt add`'s door onto [`crate::pre_write`] — one file, and the only writer
+/// with somewhere to fall back to when the destination is out of root.
+///
 /// # Errors
 /// Returns an error if the source failed to evaluate, harvested no task
 /// marker, or violates a rule — none of which mention a file to repair,
 /// because none was created.
 pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<bool> {
-    let Ok(rel) = file.strip_prefix(&project.root) else {
+    let pending = [Pending { file, source }];
+    let verdict = crate::pre_write::check(project, &project.outcome.tasks, &pending)
+        .into_iter()
+        .next()
+        // One verdict per pending write, and exactly one was asked about.
+        .unwrap_or_else(unchecked_fallback);
+    if !verdict.checked {
         return Ok(false);
-    };
-    let issues = check_candidate(
-        &project.root,
-        &project.config,
-        &project.outcome.tasks,
-        Candidate { rel, source },
-    )
-    .map_err(|err| anyhow!("the task as filled did not load: {}", err.message))?;
+    }
+    if verdict.problems.is_empty() {
+        return Ok(true);
+    }
+    // A source that did not evaluate has no fields to have got wrong, so it is
+    // reported as itself rather than counted among the rule violations.
+    if verdict.task.is_none() {
+        bail!("the task as filled {}", verdict.problems.join("; "));
+    }
     let id = file_stem(file);
-    report_issues(&id, &issues, "as filled; nothing was written").map(|()| true)
+    for problem in &verdict.problems {
+        eprintln!("warning: {id}: {problem}");
+    }
+    bail!(
+        "{} validation issue(s) as filled; nothing was written",
+        verdict.problems.len()
+    )
+}
+
+/// Unreachable placeholder: [`crate::pre_write::check`] answers one verdict per
+/// pending write, so the single-entry slice above always yields one.
+fn unchecked_fallback() -> crate::pre_write::Verdict {
+    crate::pre_write::Verdict {
+        problems: Vec::new(),
+        task: None,
+        checked: false,
+    }
 }
 
 /// Print each violation and fail naming their count, or succeed on none.
-/// `scope` completes the sentence "N validation issue(s) …", so a post-write
-/// check names the file and a pre-write one names the input instead.
+/// `scope` completes the sentence "N validation issue(s) …", naming the file a
+/// post-write check found the problem in.
 fn report_issues(id: &str, issues: &[Violation], scope: &str) -> Result<()> {
     if issues.is_empty() {
         return Ok(());

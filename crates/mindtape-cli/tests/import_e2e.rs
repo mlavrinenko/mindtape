@@ -57,3 +57,36 @@ fn imports_from_a_file_argument() {
     // The filed task passes `check`.
     support::mt(dir.path()).arg("check").assert().success();
 }
+
+/// One bad record does not refuse the batch — the good one still lands — and
+/// the bad one is never written, so no file has to be removed afterwards. The
+/// second record's status is outside the legend.
+#[test]
+fn a_rejected_record_is_never_written_and_the_rest_still_land() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    let bad = ONE_TASK_JSON
+        .replace("Wire import", "Bad record")
+        .replace(r#""name":"wip""#, r#""name":"nonesuch""#);
+    let batch = format!(
+        "[{},{}]",
+        &ONE_TASK_JSON[1..ONE_TASK_JSON.len() - 1],
+        &bad[1..bad.len() - 1]
+    );
+
+    support::mt(dir.path())
+        .arg("import")
+        .write_stdin(batch)
+        .assert()
+        .success();
+
+    assert!(
+        dir.path().join("tasks/wire-import.typ").exists(),
+        "the clean record must still land"
+    );
+    assert!(
+        !dir.path().join("tasks/bad-record.typ").exists(),
+        "a rejected record must never reach the disk"
+    );
+    support::mt(dir.path()).arg("check").assert().success();
+}

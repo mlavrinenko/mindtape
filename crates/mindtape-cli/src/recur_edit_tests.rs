@@ -3,8 +3,8 @@
 use chrono::NaiveDate;
 
 use super::{
-    OccurrenceDates, append_recurred_from, apply_edits, decrement_count_edit, due_start_edits,
-    on_call, shift_start, status_due_start_edits,
+    OccurrenceDates, apply_edits, decrement_count_edit, due_start_edits, on_call,
+    set_recurred_from, shift_start, status_due_start_edits,
 };
 use crate::task_edit::task_with;
 
@@ -39,6 +39,30 @@ const SOURCE_WITH_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
   status: done(2026, 6, 1),
   priority: 3,
   links: depends-on("other.typ"),
+  recur: every(weeks: 1),
+)
+"#;
+
+/// An occurrence that is itself a spawn: it already carries the
+/// `recurred-from` edge pointing at the hop before it.
+const SOURCE_ALREADY_SPAWNED: &str = r#"#import "@local/mindtape:0.2.0": *
+
+#show: task.with(
+  title: "Water plants",
+  status: done(2026, 6, 1),
+  priority: 3,
+  links: depends-on("other.typ") + recurred-from("chore.typ"),
+  recur: every(weeks: 1),
+)
+"#;
+
+/// The same, with a noted edge — the case a re-render would flatten.
+const SOURCE_NOTED_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
+
+#show: task.with(
+  title: "Water plants",
+  status: done(2026, 6, 1),
+  links: related("other.typ")[same _room_] + recurred-from("chore.typ"),
   recur: every(weeks: 1),
 )
 "#;
@@ -116,17 +140,48 @@ fn status_due_start_edits_stamps_the_initial_legend_value() {
 }
 
 #[test]
-fn append_recurred_from_creates_links_when_absent() {
-    let edit = append_recurred_from(SOURCE_NO_RECUR_LINKS, "chore").unwrap();
+fn set_recurred_from_creates_links_when_absent() {
+    let edit = set_recurred_from(SOURCE_NO_RECUR_LINKS, "chore").unwrap();
     let result = apply_edits(SOURCE_NO_RECUR_LINKS, vec![edit]).unwrap();
     assert!(result.contains(r#"links: recurred-from("chore.typ"),"#));
 }
 
 #[test]
-fn append_recurred_from_preserves_existing_edges() {
-    let edit = append_recurred_from(SOURCE_WITH_LINKS, "chore").unwrap();
+fn set_recurred_from_preserves_existing_edges() {
+    let edit = set_recurred_from(SOURCE_WITH_LINKS, "chore").unwrap();
     let result = apply_edits(SOURCE_WITH_LINKS, vec![edit]).unwrap();
     assert!(result.contains(r#"depends-on("other.typ") + recurred-from("chore.typ")"#));
+}
+
+/// Spawning from an occurrence that is itself a spawn: its own
+/// `recurred-from` is REPLACED, not added to. `recurred-from` allows one edge
+/// per task, so appending wrote an occurrence `mt check` refuses — and that is
+/// every second hop of the ordinary recurrence loop, not a corner.
+#[test]
+fn set_recurred_from_replaces_the_predecessors_own_edge() {
+    let edit = set_recurred_from(SOURCE_ALREADY_SPAWNED, "chore-2026-06-08").unwrap();
+    let result = apply_edits(SOURCE_ALREADY_SPAWNED, vec![edit]).unwrap();
+    assert!(
+        result
+            .contains(r#"links: depends-on("other.typ") + recurred-from("chore-2026-06-08.typ")"#),
+        "{result}"
+    );
+    assert!(
+        !result.contains(r#"recurred-from("chore.typ")"#),
+        "the older hop must not survive: {result}"
+    );
+}
+
+/// A note's markup passes through verbatim rather than being re-rendered: the
+/// surviving calls are copied out of the source by span, not rebuilt.
+#[test]
+fn set_recurred_from_keeps_a_noted_edge_verbatim() {
+    let edit = set_recurred_from(SOURCE_NOTED_LINKS, "chore-2026-06-08").unwrap();
+    let result = apply_edits(SOURCE_NOTED_LINKS, vec![edit]).unwrap();
+    assert!(
+        result.contains(r#"related("other.typ")[same _room_]"#),
+        "{result}"
+    );
 }
 
 #[test]

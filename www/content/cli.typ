@@ -270,9 +270,20 @@ predecessor with a `recurred-from` edge — and refuses a second spawn unless
 one stem forever, the audit trail is git history. Either way `mt done` on a
 recurring task stays a pure close — it never strips `recur` — and prints a
 notice: a `spawn` series points back at `mt recur`, a `mutate` series notes
-that closing ends it.
+that closing ends it. Either way the occurrence is validated before it is
+written, so a rejected one creates no file and refreshes nothing.
 
 = Validate and inspect config
+
+Every write command validates before it writes, never after. A new file that
+would not pass is not created; a rewrite that would not pass is not applied, so
+the file still holds exactly what its author put there. That is why a failed
+`mt add`, `mt recur`, `mt flip`, `mt review`, `mt link` or `mt import` asks you
+to fix the input and re-run rather than to repair or delete anything. A batch is
+checked as one set, so records or edges that reference each other resolve;
+`mt import` and `mt link` then land the entries that passed and report the rest,
+while `mt recur --advance` refuses its whole chain, whose entries derive from
+one another.
 
 `mt check` validates every task: enum values, required fields, numeric bounds
 (including the `[tasks.estimate]` per-unit caps), link resolution, and dependency

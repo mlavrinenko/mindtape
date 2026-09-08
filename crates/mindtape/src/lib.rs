@@ -90,7 +90,7 @@ pub mod worktrees;
 
 pub use add_slots::{RequiredSlot, required_core_slots};
 pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
-pub use candidate::{Candidate, check_candidate, harvest_candidate};
+pub use candidate::{Candidate, Checked, check_candidate, check_candidates, harvest_candidate};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use condition::{Condition, ConditionEnv, ConditionError};
 pub use config::{

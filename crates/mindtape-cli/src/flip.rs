@@ -175,9 +175,15 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
         hooks: &Hooks::new(project, !args.quiet && std::io::stdout().is_terminal()),
         ymd: today_ymd(),
     };
+    // The project as this batch's own writes have already left it. Each
+    // accepted flip is folded back in, so the next target is checked against a
+    // project that carries the earlier ones — a flip that unblocks a later
+    // target must not have that target refused for a violation it has already
+    // cured.
+    let mut world = project.outcome.tasks.clone();
     let mut landed = Landed::default();
     for (spec, task, abs) in &resolved {
-        match flip_target(&batch, spec, task, abs) {
+        match flip_target(&batch, &mut world, spec, task, abs) {
             Ok(()) => landed.record(task),
             Err(problem) => problems.push(format!("{spec}: {problem}")),
         }
@@ -271,6 +277,7 @@ struct Batch<'a> {
 /// local checks, so they run before any configured command does.
 fn flip_target(
     batch: &Batch<'_>,
+    world: &mut Vec<mindtape::Task>,
     spec: &str,
     task: &mindtape::Task,
     abs: &Path,
@@ -298,33 +305,37 @@ fn flip_target(
     }
     let note = note_with_overrides(args.note.as_deref(), &outcome.forced);
     let restamp = task.status.as_ref().is_some_and(|s| s.name == status);
-    flip_one(
-        &batch.project.config,
-        abs,
-        status,
-        batch.ymd,
-        note.as_deref(),
-    )
-    .map_err(|err| format!("{err:#}"))?;
+    flip_one(batch, world, abs, note.as_deref()).map_err(|err| format!("{err:#}"))?;
     report_flip(spec, &task.title, task.status.as_ref(), status, restamp);
     notice_recur(task, status, legend, &batch.project.config.tasks.recur);
     Ok(())
 }
 
-/// Rewrite the task at `abs`: stamp `status` dated `ymd` (with optional `note`),
-/// then canonicalize and write per `config`. The re-stamp determination (did the
-/// task already carry `status`) is the caller's, computed before the write.
+/// Rewrite the task at `abs`: stamp the batch's status dated its `ymd` (with
+/// optional `note`), check the result at that same path, and write it only if
+/// it passes. The re-stamp determination (did the task already carry the
+/// status) is the caller's, computed before the write.
+///
+/// A refused flip is not written, and so is not restored either — the file
+/// still holds exactly what its author put there. `after_batch`'s revalidation
+/// stays as the net for what a landed flip does to OTHER tasks: this check only
+/// ever names the task being rewritten.
 fn flip_one(
-    config: &Config,
+    batch: &Batch<'_>,
+    world: &mut Vec<mindtape::Task>,
     abs: &Path,
-    status: &str,
-    ymd: (i32, u8, u8),
     note: Option<&str>,
 ) -> Result<()> {
+    let project = batch.project;
     let source = std::fs::read_to_string(abs).with_context(|| format!("read {}", abs.display()))?;
-    let updated = status_edit(&source, status, ymd, note)
+    let updated = status_edit(&source, batch.status, batch.ymd, note)
         .with_context(|| format!("rewrite status in {}", abs.display()))?;
-    util::write_task(config, abs, updated)
+    let landed = crate::pre_write::verify_one(project, world, abs, &updated)?;
+    util::write_task(&project.config, abs, updated)?;
+    if let Some(task) = landed {
+        crate::pre_write::absorb(world, task);
+    }
+    Ok(())
 }
 
 /// Rewrite the `status:` argument of the first `task.with(…)` in `source` to

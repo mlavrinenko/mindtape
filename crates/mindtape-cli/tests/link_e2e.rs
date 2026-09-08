@@ -39,6 +39,29 @@ fn source(dir: &Path, stem: &str) -> String {
     std::fs::read_to_string(dir.join("tasks").join(format!("{stem}.typ"))).unwrap()
 }
 
+/// An edge that would make the linking task invalid is refused before the
+/// write, so the file is byte-identical afterwards. `depends-on` is acyclic,
+/// and a self-edge is the shortest cycle there is — a rule the planner does not
+/// check and only the whole-project validator can answer.
+#[test]
+fn a_rejected_edge_leaves_the_file_untouched() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    let before = source(dir.path(), "wire-oauth");
+
+    support::mt(dir.path())
+        .args(["link", "wire-oauth", "depends-on", "wire-oauth"])
+        .assert()
+        .failure();
+
+    assert_eq!(
+        source(dir.path(), "wire-oauth"),
+        before,
+        "a refused edge must leave the file byte-identical"
+    );
+    support::mt(dir.path()).arg("check").assert().success();
+}
+
 #[test]
 fn a_written_edge_leaves_the_project_valid() {
     let dir = tempfile::tempdir().unwrap();

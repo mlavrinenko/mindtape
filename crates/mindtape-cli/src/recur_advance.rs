@@ -20,8 +20,8 @@ use super::{
     RecurArgs, dates, guard_double_spawn, mint_stem, occurrence_index, plan_next, spawn_source,
     stem_of,
 };
+use crate::pre_write::{self, Pending};
 use crate::recur_edit::OccurrenceDates;
-use crate::task_edit::verify_written;
 use crate::util::{self, Project};
 
 pub(super) fn do_advance(
@@ -120,32 +120,44 @@ pub(super) fn build_advance_chain(
     Ok(spawned)
 }
 
-/// Print a preview (dry-run) or write and verify each chained spawn.
+/// Print a preview (dry-run), or check the whole chain and write it.
+///
+/// The check is all-or-nothing, and the chain is why: every occurrence's source
+/// is the previous one rewritten, and each names its predecessor through a
+/// `recurred-from` edge. So the members are only valid as a set — a lone
+/// occurrence whose predecessor was refused points at a file that does not
+/// exist — and one rejected entry condemns every entry after it. Refusing the
+/// batch writes nothing at all, which is the only outcome with no half-chain to
+/// unpick afterwards.
 pub(super) fn write_advance_chain(
     project: &Project,
     spawned: &[(PathBuf, NaiveDate, String)],
     dry_run: bool,
 ) -> Result<()> {
-    for (file, next, source) in spawned {
-        if dry_run {
+    if dry_run {
+        for (file, next, _) in spawned {
             println!(
                 "would spawn {} (due {})",
                 file.display(),
                 recur_dates::format_iso(*next)
             );
-        } else {
-            util::write_task(&project.config, file, source.clone())?;
-            println!(
-                "spawned {} (due {})",
-                file.display(),
-                recur_dates::format_iso(*next)
-            );
         }
+        return Ok(());
     }
-    if !dry_run {
-        for (file, ..) in spawned {
-            verify_written(&project.root, file)?;
-        }
+
+    let pending: Vec<Pending<'_>> = spawned
+        .iter()
+        .map(|(file, _, source)| Pending { file, source })
+        .collect();
+    pre_write::ensure(project, &pending)?;
+
+    for (file, next, source) in spawned {
+        util::write_task(&project.config, file, source.clone())?;
+        println!(
+            "spawned {} (due {})",
+            file.display(),
+            recur_dates::format_iso(*next)
+        );
     }
     Ok(())
 }

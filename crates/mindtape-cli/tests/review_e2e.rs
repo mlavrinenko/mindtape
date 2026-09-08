@@ -75,6 +75,41 @@ fn reviewing_twice_the_same_day_is_a_no_op_after_the_first() {
     );
 }
 
+/// A stamp that would leave the task invalid is refused before the write, and
+/// the file is byte-identical afterwards. Refusing is the whole answer to
+/// "should a rejected rewrite be restored": there is nothing to restore,
+/// because nothing was written. The `reviewed` field is required only of
+/// non-terminal tasks here, so the fixture's real violation is the tag — a
+/// pre-existing one the stamp does not create but does have to carry.
+#[test]
+fn a_rejected_stamp_leaves_the_file_untouched() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(
+        dir.path().join(".mindtape/config.toml"),
+        format!("{CONFIG}\n[tasks.tags]\nallowed = [\"ok\"]\n"),
+    )
+    .unwrap();
+    support::install_lib(dir.path());
+    let body = "#import \"@local/mindtape:0.2.0\": *\n\n\
+         #show: task.with(\n  title: \"Wire OAuth\",\n  status: wip(2026, 6, 1),\n  \
+         tags: (\"nope\",),\n)\n";
+    let file = dir.path().join("tasks/wire-oauth.typ");
+    std::fs::write(&file, body).unwrap();
+
+    let output = support::mt(dir.path())
+        .args(["review", "wire-oauth"])
+        .assert()
+        .failure();
+    let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
+    assert!(stderr.contains("nothing was written"), "{stderr}");
+    assert_eq!(
+        std::fs::read_to_string(&file).unwrap(),
+        body,
+        "a refused stamp must leave the file byte-identical"
+    );
+}
+
 #[test]
 fn reviewing_an_unresolvable_id_fails() {
     let dir = tempfile::tempdir().unwrap();

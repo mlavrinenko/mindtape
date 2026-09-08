@@ -1,10 +1,16 @@
-//! The post-flip revalidation cluster: after a batch, `run_with` reloads the
-//! project and reports violations or load errors that touch a flipped file.
-//! These tests pin that reload-and-report path — the unreachable-status catch,
-//! the load-error report on the touched file, and the tolerance for pre-existing
-//! breakage on untouched files and tasks — split out of `flip_tests.rs` along
-//! the same seam the `flip_tests_output.rs` sibling draws for the stderr half
-//! of these reports. Shared fixtures come from `super::tests`.
+//! What a flip refuses, and what it tolerates.
+//!
+//! Two halves that used to be one. A rewrite that would leave the flipped task
+//! invalid is now caught as a *candidate*, before the write — so these tests
+//! assert the file is byte-identical afterwards, which the old
+//! write-then-reload order could not offer. What still runs after the batch is
+//! the cross-task net: a problem a landed flip caused on some OTHER task, which
+//! no per-candidate check can see. The tolerance tests pin that net's scope —
+//! pre-existing breakage on untouched files and tasks is not the batch's doing.
+//!
+//! Split out of `flip_tests.rs` along the same seam the `flip_tests_output.rs`
+//! sibling draws for the stderr half of these reports. Shared fixtures come
+//! from `super::tests`.
 #![allow(clippy::unwrap_used)]
 
 use super::run_with;
@@ -18,11 +24,12 @@ use super::tests::{
 const BROKEN_FILE: &str = "#import \"@local/mindtape:0.2.0\": *\n\
 #show: task.with(\n  title: \"Broken\",\n  status: wip(2026, 6, 1),\n)\n\n== Summary\n\nBody [\n";
 
-/// The post-flip revalidation reloads the project and reports violations on the
-/// touched task. The returned error only carries the count; the violation text
-/// itself goes to stderr, so `flip_tests_output.rs` asserts that half.
+/// A flip into a status the declared graph cannot reach is refused before the
+/// write, and the file is left exactly as it was. The returned error only
+/// carries the count; the violation text goes to stderr, so
+/// `flip_tests_output.rs` asserts that half.
 #[test]
-fn revalidate_catches_unreachable_status() {
+fn refuses_a_flip_into_an_unreachable_status() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("s.typ", STATELESS)], REACHABLE_CONFIG);
     let err = run_with(&project, &flip_args("blocked", &["s"]))
@@ -30,17 +37,21 @@ fn revalidate_catches_unreachable_status() {
         .to_string();
     assert!(
         err.contains("1 task(s) had problems"),
-        "expected the revalidation failure count: {err}"
+        "expected the refusal count: {err}"
+    );
+    assert_eq!(
+        read(dir.path(), "s.typ"),
+        STATELESS,
+        "a refused flip must leave the file byte-identical"
     );
 }
 
 /// A flip whose rewrite breaks the file (the status value renders into a Typst
-/// syntax error) surfaces through the post-flip reload: `revalidate` appends
-/// the load error against the touched file to the problem list. The returned
-/// error only carries the count; the message itself goes to stderr (see
-/// `flip_tests_output.rs`).
+/// syntax error) is caught as a candidate, so the broken source never reaches
+/// disk. The returned error only carries the count; the message itself goes to
+/// stderr (see `flip_tests_output.rs`).
 #[test]
-fn revalidate_reports_load_error_on_touched_file() {
+fn refuses_a_rewrite_that_would_not_load() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
     let err = run_with(&project, &flip_args("broken\"done", &["alpha"]))
@@ -48,7 +59,12 @@ fn revalidate_reports_load_error_on_touched_file() {
         .to_string();
     assert!(
         err.contains("1 task(s) had problems"),
-        "expected the load-failure count: {err}"
+        "expected the refusal count: {err}"
+    );
+    assert_eq!(
+        read(dir.path(), "alpha.typ"),
+        ALPHA,
+        "a refused flip must leave the file byte-identical"
     );
 }
 

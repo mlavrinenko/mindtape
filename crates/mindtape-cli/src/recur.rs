@@ -18,11 +18,12 @@ use mindtape::recur_dates::{self, effective_materialize, exhausted, next_date, p
 use mindtape::{Task, today_ymd};
 
 use crate::add_values::slug;
+use crate::pre_write::{self, Pending};
 use crate::recur_edit::{
-    OccurrenceDates, append_recurred_from, apply_edits, decrement_count_edit, due_start_edits,
+    OccurrenceDates, apply_edits, decrement_count_edit, due_start_edits, set_recurred_from,
     status_due_start_edits,
 };
-use crate::task_edit::{task_with, verify_written};
+use crate::task_edit::task_with;
 use crate::util::{self, Project};
 
 #[path = "recur_advance.rs"]
@@ -202,6 +203,24 @@ fn mint_stem(
     .map_err(|err| anyhow!(err.to_string()))
 }
 
+/// The pre-write seam every single-step `recur` path funnels through: check the
+/// materialized occurrence at the exact path it would occupy, and write it only
+/// if it passes.
+///
+/// A rejected spawn creates no file, and a rejected mutate/skip leaves the task
+/// exactly as its author left it. Nothing to repair either way — which is why
+/// no path here reports after the fact any more.
+fn commit(project: &Project, file: &Path, source: String) -> Result<()> {
+    pre_write::ensure(
+        project,
+        &[Pending {
+            file,
+            source: &source,
+        }],
+    )?;
+    util::write_task(&project.config, file, source)
+}
+
 fn stem_of(path: &Path) -> String {
     path.file_stem()
         .map_or_else(String::new, |s| s.to_string_lossy().into_owned())
@@ -246,13 +265,13 @@ fn do_spawn(
         );
         return Ok(());
     }
-    util::write_task(&project.config, &file, new_source)?;
+    commit(project, &file, new_source)?;
     println!(
         "spawned {} (due {})",
         file.display(),
         recur_dates::format_iso(next)
     );
-    verify_written(&project.root, &file)
+    Ok(())
 }
 
 fn guard_double_spawn(project: &Project, task: &Task, force: bool) -> Result<()> {
@@ -280,7 +299,7 @@ fn spawn_source(
     predecessor_stem: &str,
 ) -> Result<String> {
     let mut edits = status_due_start_edits(source, config, dates)?;
-    edits.push(append_recurred_from(source, predecessor_stem)?);
+    edits.push(set_recurred_from(source, predecessor_stem)?);
     if let Some(edit) = decrement_count_edit(source, recur.count)? {
         edits.push(edit);
     }
@@ -317,13 +336,13 @@ fn do_mutate(
         );
         return Ok(());
     }
-    util::write_task(&project.config, abs, new_source)?;
+    commit(project, abs, new_source)?;
     println!(
         "refreshed {} (due {})",
         abs.display(),
         recur_dates::format_iso(next)
     );
-    verify_written(&project.root, abs)
+    Ok(())
 }
 
 // ---- skip: advance the anchor/count, materialize nothing --------------
@@ -346,13 +365,13 @@ fn do_skip(project: &Project, task: &Task, abs: &Path, recur: &Recur, dry_run: b
         );
         return Ok(());
     }
-    util::write_task(&project.config, abs, new_source)?;
+    commit(project, abs, new_source)?;
     println!(
         "skipped to due {} ({})",
         recur_dates::format_iso(next),
         abs.display()
     );
-    verify_written(&project.root, abs)
+    Ok(())
 }
 
 #[cfg(test)]

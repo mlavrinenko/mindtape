@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use super::{Candidate, check_candidate, harvest_candidate};
+use super::{Candidate, check_candidate, check_candidates, harvest_candidate};
 use crate::config::Config;
 use crate::loader::load_project;
 use crate::parse_config;
@@ -187,6 +187,100 @@ fn errors_when_the_source_fails_to_evaluate() {
 
     assert_eq!(err.file, Path::new("tasks/build.typ"));
     assert!(!err.message.is_empty());
+}
+
+/// A task marker with `depends-on` edges — the batch fixture, since an edge is
+/// the cheapest rule that cannot be answered for one candidate alone.
+fn linked(deps: &[&str]) -> String {
+    let links: String = deps
+        .iter()
+        .map(|dep| format!("(task: {dep:?}, kind: \"depends-on\", note: none),"))
+        .collect();
+    format!(
+        "#metadata((
+  marker: \"mindtape.task\",
+  fields: (
+    title: \"Build\",
+    status: (name: \"wip\", date: none, note: none),
+    links: ({links}),
+  ),
+  extras: (:),
+))
+"
+    )
+}
+
+/// The reason a batch is one call and not a loop: `a` depends on `b`, and `b`
+/// exists only as the other candidate. Together the edge resolves.
+#[test]
+fn resolves_an_edge_between_two_candidates_in_one_batch() {
+    let dir = setup();
+    let a = linked(&["b.typ"]);
+    let b = linked(&[]);
+    let batch = [
+        Candidate {
+            rel: Path::new("tasks/a.typ"),
+            source: &a,
+        },
+        Candidate {
+            rel: Path::new("tasks/b.typ"),
+            source: &b,
+        },
+    ];
+
+    let results = check_candidates(dir.path(), &floor(), &[], &batch);
+
+    assert_eq!(results.len(), 2);
+    let checked = results[0].as_ref().unwrap();
+    assert_eq!(checked.task.id, "a");
+    assert!(checked.violations.is_empty(), "{:?}", checked.violations);
+}
+
+/// The same candidate checked alone cannot see its peer — the negative half of
+/// the pair above, so "checked together" is pinned as load-bearing rather than
+/// merely true.
+#[test]
+fn an_edge_to_a_batch_peer_fails_when_checked_alone() {
+    let dir = setup();
+    let a = linked(&["b.typ"]);
+
+    let violations = check_candidate(
+        dir.path(),
+        &floor(),
+        &[],
+        Candidate {
+            rel: Path::new("tasks/a.typ"),
+            source: &a,
+        },
+    )
+    .unwrap();
+
+    assert!(!violations.is_empty());
+}
+
+/// One entry that does not evaluate is its own `Err` and does not cost the rest
+/// their verdict: a batch reports per entry, so a writer can land the good ones.
+#[test]
+fn a_candidate_that_fails_to_evaluate_does_not_sink_the_batch() {
+    let dir = setup();
+    let good = marker("wip");
+    let batch = [
+        Candidate {
+            rel: Path::new("tasks/broken.typ"),
+            source: "= no marker here\n",
+        },
+        Candidate {
+            rel: Path::new("tasks/good.typ"),
+            source: &good,
+        },
+    ];
+
+    let results = check_candidates(dir.path(), &floor(), &[], &batch);
+
+    assert!(results[0].is_err());
+    let checked = results[1].as_ref().unwrap();
+    assert_eq!(checked.task.id, "good");
+    assert!(checked.violations.is_empty(), "{:?}", checked.violations);
 }
 
 /// A candidate overwriting a task already at its path is checked as a rewrite:

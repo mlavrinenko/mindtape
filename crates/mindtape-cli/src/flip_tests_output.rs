@@ -245,21 +245,31 @@ fn revalidate_prints_the_unreachable_violation() {
     assert!(run_with(&project, &flip_args("blocked", &["s"])).is_err());
 }
 
-/// The post-flip load-error report is also printed, not returned: the message
-/// naming the file and the "failed to load after flip" cause is only
-/// observable on a child's stderr.
+/// A rewrite that would not evaluate is refused *before* the write, so the
+/// report says the source did not load rather than that the file did — the
+/// difference being that there is no file. The message is only observable on a
+/// child's stderr: `run_with`'s error carries the problem count alone.
 #[test]
-fn revalidate_prints_the_load_error() {
+fn refuses_a_rewrite_that_would_not_load() {
     if std::env::var(FLIP_CHILD_ENV).is_err() {
-        let o = child_output("revalidate_prints_the_load_error");
+        let o = child_output("refuses_a_rewrite_that_would_not_load");
         let err = String::from_utf8_lossy(&o.stderr);
         assert!(
-            err.contains("failed to load after flip"),
-            "expected the load-error report naming the file: {err}"
+            err.contains("alpha: did not load:"),
+            "expected the pre-write refusal naming the task: {err}"
+        );
+        assert!(
+            err.contains("nothing was written"),
+            "the refusal must say the file was left alone: {err}"
         );
         return;
     }
     let dir = tempfile::tempdir().unwrap();
     let project = setup(dir.path(), &[("alpha.typ", ALPHA)], BROKEN_RELOAD_CONFIG);
     assert!(run_with(&project, &flip_args("broken\"done", &["alpha"])).is_err());
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("tasks/alpha.typ")).unwrap(),
+        ALPHA,
+        "a refused flip must leave the file byte-identical"
+    );
 }

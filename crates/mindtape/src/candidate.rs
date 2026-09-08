@@ -7,6 +7,11 @@
 //! buffer, asks [`check_candidate`], and only then commits the buffer to its
 //! path — so a rejected write leaves nothing behind to repair.
 //!
+//! [`check_candidates`] is the same question asked of several buffers at once,
+//! for the writers whose unit of work is a batch (`mt import`, `mt link`,
+//! `mt recur --advance`). It is not a convenience wrapper over a loop: the
+//! rules that span tasks have no answer for one member of a batch taken alone.
+//!
 //! The candidate is evaluated exactly where it would live: its
 //! [`Candidate::rel`] is the file id Typst resolves relative imports against,
 //! and the folder-derived tags and nesting depth are read off that same path.
@@ -15,6 +20,7 @@
 //! every disk-backed constructor canonicalizes its path, so the world is built
 //! from the id directly instead.
 
+use std::collections::HashSet;
 use std::path::Path;
 
 use typst_harvest::{HVal, HarvestWorld, harvest};
@@ -35,6 +41,16 @@ pub struct Candidate<'a> {
     pub source: &'a str,
 }
 
+/// A candidate that evaluated, and what the project makes of it.
+#[derive(Debug, Clone)]
+pub struct Checked {
+    /// The task the candidate would load as, once written.
+    pub task: Task,
+    /// The violations naming that task, with every candidate in the same batch
+    /// already standing beside the rest of the project.
+    pub violations: Vec<Violation>,
+}
+
 /// Validate `candidate` against `existing` as if it had already been written to
 /// [`Candidate::rel`], returning only the violations that name the candidate
 /// itself.
@@ -52,20 +68,71 @@ pub fn check_candidate(
     existing: &[Task],
     candidate: Candidate<'_>,
 ) -> Result<Vec<Violation>, LoadError> {
-    let task = harvest_candidate(root, config, candidate)?;
-    let id = task.id.clone();
+    check_candidates(root, config, existing, std::slice::from_ref(&candidate))
+        .into_iter()
+        .next()
+        // One answer per candidate, and exactly one candidate was asked about;
+        // the fallback is unreachable rather than a policy.
+        .map_or_else(|| Ok(Vec::new()), |result| result.map(|ok| ok.violations))
+}
+
+/// Validate a whole batch of candidates as if every one of them had been
+/// written, answering one entry per candidate in input order.
+///
+/// A batch is checked together rather than one at a time because the rules that
+/// span tasks cannot answer for one candidate without the others: id
+/// uniqueness, edge resolution and cardinality, cycles, and the dependency
+/// ranks a `required` filter reads. `mt link --apply` merging an adjacency map
+/// and `mt recur --advance` chaining occurrences that name their predecessor
+/// are both batches whose members only make sense as a set.
+///
+/// Failure stays per entry, though. A candidate that does not evaluate is
+/// reported as its own `Err` and simply never joins the set, so one
+/// unparseable entry does not cost the rest their verdict.
+///
+/// Every task already sitting at one of the candidates' paths is replaced, so a
+/// batch of rewrites is checked as rewrites rather than as duplicate ids.
+#[must_use]
+pub fn check_candidates(
+    root: &Path,
+    config: &Config,
+    existing: &[Task],
+    candidates: &[Candidate<'_>],
+) -> Vec<Result<Checked, LoadError>> {
+    let harvested: Vec<Result<Task, LoadError>> = candidates
+        .iter()
+        .map(|candidate| harvest_candidate(root, config, *candidate))
+        .collect();
+
+    let replaced: HashSet<&Path> = candidates.iter().map(|candidate| candidate.rel).collect();
     let mut tasks: Vec<Task> = existing
         .iter()
-        .filter(|task| task.file != candidate.rel)
+        .filter(|task| !replaced.contains(task.file.as_path()))
         .cloned()
         .collect();
-    tasks.push(task);
+    tasks.extend(
+        harvested
+            .iter()
+            .filter_map(|result| result.as_ref().ok())
+            .cloned(),
+    );
     tasks.sort_by(|left, right| left.id.cmp(&right.id));
     crate::dep_rank::annotate(&mut tasks, config);
-    Ok(crate::validate::validate(&tasks, config)
+    let violations = crate::validate::validate(&tasks, config);
+
+    harvested
         .into_iter()
-        .filter(|violation| violation.task_id == id)
-        .collect())
+        .map(|result| {
+            result.map(|task| Checked {
+                violations: violations
+                    .iter()
+                    .filter(|violation| violation.task_id == task.id)
+                    .cloned()
+                    .collect(),
+                task,
+            })
+        })
+        .collect()
 }
 
 /// Evaluate `candidate`'s source at its destination path and build the [`Task`]

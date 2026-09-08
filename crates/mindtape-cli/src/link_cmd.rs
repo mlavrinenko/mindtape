@@ -23,6 +23,7 @@ use crate::flip_batch::{Landed, after_batch};
 use crate::link_edit::{EdgeSpec, Mode};
 use crate::link_input::{self, Entry};
 use crate::link_plan::{self, Plan, Staged};
+use crate::pre_write::{self, Pending};
 use crate::util::{self, Project};
 
 /// Arguments for `mt link`.
@@ -114,7 +115,28 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
 
     let mut problems = plan.problems;
     let mut landed = Landed::default();
-    for staged in &plan.staged {
+    // The batch goes to the pre-write check as one set: `--apply` routinely
+    // adds edges in both directions at once, and an edge whose other end is
+    // staged in the same run only resolves when both candidates are present.
+    let pending: Vec<Pending<'_>> = plan
+        .staged
+        .iter()
+        .map(|staged| Pending {
+            file: &staged.abs,
+            source: &staged.updated,
+        })
+        .collect();
+    let verdicts = pre_write::check(project, &project.outcome.tasks, &pending);
+
+    for (staged, verdict) in plan.staged.iter().zip(&verdicts) {
+        if !verdict.problems.is_empty() {
+            problems.push(format!(
+                "{}: not linked: {}",
+                staged.stem,
+                verdict.problems.join("; ")
+            ));
+            continue;
+        }
         match util::write_task(&project.config, &staged.abs, staged.updated.clone()) {
             Ok(()) => {
                 report_written(staged);

@@ -23,7 +23,12 @@ native `.typ` tasks. For each record it:
 
 - maps it onto #emph[this project's] config policy: status legend, priority
   scale, `kind` enum, tag allow-list;
-- emits a `task.with(...)` file, lands the batch, and validates it.
+- emits a `task.with(...)` file.
+
+The whole batch is validated #emph[before] any of it is written — as one set,
+so records that link to each other resolve. Only the records that pass are
+written; a rejected one never reaches the disk, and the rest still land. The
+per-record report says which did.
 
 There is no `--from`/`--via` source selector: sources are `jq` programs,
 upstream of the pipe, documented below. `mt check` still gates the result the
