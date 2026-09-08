@@ -64,9 +64,11 @@ itself out of that tree or serialise against its writer. Four instances:
   patterns take the `^x(/|$)` form, not `^x/`: measured on gitleaks 8.30 under
   `--log-level debug`, `^gen/` never matches the directory `gen` itself, so the
   walk ENTERS it and skips each child, while `^gen(/|$)` skips it and never
-  descends. A descending walk stat-s an entry that just vanished and logs it at
-  ERR while still exiting 0 — arm four of `.just/scripts/check-secrets.sh` holds
-  the bound to `www/.gitignore`.
+  descends. The bound stops there: under strace the `lstat` of the bounded
+  directory lands one syscall BEFORE the allowlist is consulted, so a `rm -rf`
+  between `readdir` and that `lstat` still logs `could not get info` at ERR on an
+  exit-0 run — 8 runs in 20, reproduced. So arm two takes the flock above across
+  its scan, and arm four holds the bound to `www/.gitignore`.
 - mmz is stricter under the same rule: it resolves inputs before running the
   command, so a transient file inside a hashed tree that vanishes mid-hash aborts
   the run outright (exit 8, "a file mmz needed could not be read or written").

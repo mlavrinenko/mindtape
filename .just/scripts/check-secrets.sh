@@ -125,6 +125,34 @@ fi
 
 # ---------------------------------------------------------------- arm two
 
+# THE SCAN HOLDS target/www-generated.lock, because the walk bound in $config
+# keeps this arm out of that directory's CONTENTS and cannot keep it out of
+# the stat of the entry itself — the strace measurement, and why no pattern
+# can buy that, are argued beside the bound in $config. www/generate.sh
+# `rm -rf`s the directory on entry and `just check` is [parallel], so without
+# the lock a deletion landing in that window logs an `ERR` on a run that
+# finds no leaks and exits 0 (truth/tasks/check-secrets-still-logs-an-err-
+# over-www-generated.typ). Same fd-9 flock www/generate.sh,
+# docs/generate-md.sh and check-doc-facts.sh share — this arm is one more
+# READER of that directory, and was the last one not taking it. No
+# MINDTAPE_GENERATED_LOCK handshake: nothing holding the lock calls this
+# gate, and an unconditional acquisition makes a future caller deadlock
+# loudly rather than race quietly.
+mkdir -p target
+exec 9>target/www-generated.lock
+flock 9
+
+# Asserted rather than assumed — deleting the three lines above restores the
+# race in silence, on a gate that stays green either way. `flock -n` opens
+# the file on a NEW description, which conflicts with the one fd 9 holds, so
+# it can only succeed if the lock is not ours.
+if flock -n target/www-generated.lock true 2>/dev/null; then
+    echo "check-secrets: the tree scan is not holding target/www-generated.lock" >&2
+    echo "  restore the \`exec 9>…; flock 9\` above — without it a parallel docs" >&2
+    echo "  arm deletes www/generated mid-walk and gitleaks ERRs on a green run" >&2
+    exit 1
+fi
+
 # The report is read rather than the console output, and not for tidiness:
 # gitleaks 8.30 prints `leaks found: N` and nothing else unless `-v` is
 # passed, so a failing gate would name no file at all. Reading the JSON gives
@@ -152,6 +180,11 @@ if [ -n "$findings" ]; then
     echo "  re-run \`gitleaks dir -c $config -v .\` to see what matched" >&2
     exit 1
 fi
+
+# Released the moment the walk is over: every [parallel] arm that touches
+# www/generated/ is blocked while it is held, and neither arm below reads
+# that directory — mmz filters its own walk by www/.gitignore.
+exec 9>&-
 
 # -------------------------------------------------------------- arm three
 
@@ -196,12 +229,12 @@ fi
 # arms `just check` runs in PARALLEL with this one: www/generate.sh deletes
 # and recreates www/generated/ on every run, `tola build` rewrites www/.tola/
 # in place. Missing one costs no coverage (nothing there is committable); it
-# makes arm two walk a directory that can vanish underneath it, which gitleaks
-# logs at ERR while still exiting 0 — measured on 8.30, `skipping directory:
-# could not get info error="lstat www/generated: no such file or directory"`.
-# ERR on a green run teaches the reader to re-run rather than to read, which
-# is the property that makes a real leak look like the same flake
-# (truth/tasks/check-secrets-races-the-docs-arm-over-www-generated.typ).
+# makes arm two DESCEND into a tree another arm is rewriting, stat-ing every
+# child of a directory whose contents are in flux and paying for the walk.
+# What this arm cannot buy is the stat of the bounded directory ITSELF: the
+# allowlist is read after that stat, which is why arm two holds the
+# www/generated/ lock rather than trusting the bound to cover it
+# (truth/tasks/check-secrets-still-logs-an-err-over-www-generated.typ).
 #
 # www/.gitignore IS THE DECLARATION both readers of this tree consult. mmz
 # filters its input walk by it — which is why `secrets-tree`'s `www/**`

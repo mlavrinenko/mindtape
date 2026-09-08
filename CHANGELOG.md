@@ -40,6 +40,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`just check-secrets` no longer logs an `ERR` over `www/generated/` on a
+  green run.** The walk bound in `.gitleaks.toml` was believed to close that
+  race; it does not, and strace says why: gitleaks 8.30 `lstat`s a directory
+  entry one syscall *before* it consults the allowlist that skips it, so the
+  bound stops the walk descending and nothing more. `www/generate.sh` `rm -rf`s
+  that directory on entry and `just check` runs its arms in parallel, so a
+  deletion landing between `readdir(www)` and that `lstat` still logged
+  `could not get info` at ERR while the gate reported no leaks and exited 0 —
+  8 runs in 20 under a synthetic churner. The scan now holds the same
+  `target/www-generated.lock` flock every other reader of that directory takes,
+  released the moment the walk is over; 0 runs in 20 after. An assertion beside
+  the acquisition fails the gate if the scan is ever running without the lock,
+  since removing it would restore the race in silence.
+
 - **`mt recur` on an already-spawned occurrence wrote a task `mt check`
   refuses** — a spawn's source is its predecessor's source, so an occurrence
   spawned from an occurrence already carried a `recurred-from` edge, and the

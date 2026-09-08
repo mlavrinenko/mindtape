@@ -46,12 +46,19 @@ useDefault = true
 # runs its arms in parallel and several of these directories are being
 # rewritten while the scan walks them — `www/generate.sh` deletes and
 # recreates `www/generated/` on every run, `tola build` rewrites
-# `www/.tola/`, and cargo churns `target/`. A walk that descends stat-s an
-# entry that has just vanished and logs it at ERR while still exiting 0
-# (`skipping directory: could not get info error="lstat www/generated: no
-# such file or directory"`), which teaches the reader of a green run to
-# re-run rather than to read
-# (truth/tasks/check-secrets-races-the-docs-arm-over-www-generated.typ).
+# `www/.tola/`, and cargo churns `target/`. A walk that descends stat-s
+# children that may already have vanished, and logs each at ERR while still
+# exiting 0.
+#
+# WHAT NO PATTERN HERE CAN BUY is the stat of the bounded directory itself.
+# Measured with strace on the same 8.30: `newfstatat("www/generated", …,
+# AT_SYMLINK_NOFOLLOW)` lands one syscall BEFORE the `skipping directory:
+# global allowlist` it decides on, so the allowlist is read after the entry's
+# info is fetched, never instead of fetching it. The last window — a `rm -rf`
+# landing between `readdir(www)` and that stat — is closed by arm two of
+# `.just/scripts/check-secrets.sh` holding `target/www-generated.lock`, not
+# by this list
+# (truth/tasks/check-secrets-still-logs-an-err-over-www-generated.typ).
 #
 # This list is coupled to `.gitignore` by hand and by nothing else. For the
 # half of it that `www/.gitignore` declares — everything the docs build owns
