@@ -234,6 +234,10 @@ A project may bind actions to a flip (`[[on.flip]]`) — e.g. a gate refusing a
 close until it passes. Only `mt flip` runs them; a refusal prints its output.
 They run in a PLAIN shell, not the dev shell: a gate binary needing one reads
 as a FAILED gate, exit 127, inviting a `--force` over a gate that never ran.
+The fix is to re-run the whole flip inside the dev shell (`nix develop
+--command mt done <task>`, `direnv exec . mt done <task>`), so the gate
+actually evaluates. `--force` is for waiving a gate you have READ, never for
+one whose binary was missing.
 
 ```sh
 mt flip --list                 # the legend and its verbs

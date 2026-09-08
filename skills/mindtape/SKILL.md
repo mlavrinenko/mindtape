@@ -109,7 +109,8 @@ Prefer `-f -` with YAML for values you generate rather than type: one structured
 
 `mt flip <status> <task…>` stamps a new status, dated today. The status must be a legend value; every legend value is also a shortcut verb, so `mt done 1b` ≡ `mt flip done 1b`. `-m "note"` attaches a note. A move the legend’s `to` edges disallow is rejected with the valid next states listed; `--force` overrides (a same-status re-stamp is always fine).
 
-A project may bind actions to a flip (`[[on.flip]]`) — e.g. a gate refusing a close until it passes. Only `mt flip` runs them; a refusal prints its output. They run in a PLAIN shell, not the dev shell: a gate binary needing one reads as a FAILED gate, exit 127, inviting a `--force` over a gate that never ran.
+A project may bind actions to a flip (`[[on.flip]]`) — e.g. a gate refusing a close until it passes. Only `mt flip` runs them; a refusal prints its output. They run in a PLAIN shell, not the dev shell: a gate binary needing one reads as a FAILED gate, exit 127, inviting a `--force` over a gate that never ran. The fix is to re-run the whole flip inside the dev shell (`nix develop
+--command mt done <task>`, `direnv exec . mt done <task>`), so the gate actually evaluates. `--force` is for waiving a gate you have READ, never for one whose binary was missing.
 
 ```sh
 mt flip --list                 # the legend and its verbs
