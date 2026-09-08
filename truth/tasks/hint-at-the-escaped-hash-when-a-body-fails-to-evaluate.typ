@@ -11,7 +11,7 @@
   tags: ("cli", "docs"),
   assignee: "agent",
   estimate: (files: 3),
-  status: proposed(2026, 9, 5),
+  status: done(2026, 9, 8),
 )
 
 == Summary

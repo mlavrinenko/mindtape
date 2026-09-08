@@ -1,17 +1,24 @@
-//! The one first-run failure that looks like a broken tool: task files import
-//! `@local/mindtape`, but the machine has never run `mt install`.
+//! Load failures whose diagnostic names a symptom but never the remedy, and
+//! the one-line hints that name it.
 //!
-//! Typst reports it per file as `file not found (searched at
-//! <data dir>/typst/packages/local/mindtape/<version>/typst.toml)` — a path,
-//! not a remedy. Every task in the project fails the same way, so `mt ls`
-//! prints a wall of warnings above an empty table and still exits 0, and
-//! nothing names the command that fixes it. A collaborator cloning a
-//! `MindTape` repo hits this before anything else.
+//! Two of them today:
 //!
-//! The hint is derived once from the whole [`LoadOutcome`] rather than per
-//! error, so a 2000-task backlog reports it once — the failure is machine-wide
-//! by construction, and repeating it per file buries the tasks that failed for
-//! some other reason.
+//! - Task files import `@local/mindtape`, but the machine has never run
+//!   `mt install`. Typst reports it per file as `file not found (searched at
+//!   <data dir>/typst/packages/local/mindtape/<version>/typst.toml)` — a path,
+//!   not a remedy. Every task in the project fails the same way, so `mt ls`
+//!   prints a wall of warnings above an empty table and still exits 0, and
+//!   nothing names the command that fixes it. A collaborator cloning a
+//!   `MindTape` repo hits this before anything else.
+//! - A task body is Typst markup, so a literal `#` in prose (`Channel #N
+//!   carries it`) opens an inline expression and the file fails with `unknown
+//!   variable: N`. The message names the variable the reader never wrote and
+//!   never mentions `\#`, so the remedy has to be discovered rather than read.
+//!
+//! Every hint is derived once from the whole [`LoadOutcome`] rather than per
+//! error, so a 2000-task backlog reports each once — both failures are
+//! project-wide by construction, and repeating one per file buries the tasks
+//! that failed for some other reason.
 
 use mindtape::LoadOutcome;
 
@@ -48,6 +55,58 @@ fn names_prelude_package(message: &str) -> bool {
     message.replace('\\', "/").contains(PRELUDE_PKG_PATH)
 }
 
+/// Printed when a body's prose was read as markup. Names both remedies,
+/// because a run of `#`-heavy prose is better off in a code block than
+/// escaped hash by hash.
+const HASH_HINT: &str = "note: a literal `#` in a task body opens a Typst expression — write it \
+                         `\\#`, or put the prose in a code block";
+
+/// The prefix `Candidate` puts on every Typst diagnostic it turns into a
+/// [`mindtape::LoadError`]; stripped before matching so the hint keys off the
+/// diagnostic's own opening words, not that framing.
+const EVAL_PREFIX: &str = "eval error: ";
+
+/// The diagnostic Typst emits for an identifier that resolves to nothing —
+/// which is what `#N` in prose is.
+const UNKNOWN_VARIABLE: &str = "unknown variable";
+
+/// The hint to print for this load outcome, or `None` when nothing failed on
+/// an unbound identifier.
+///
+/// Sibling of [`missing_prelude_hint`] and derived the same way: one value for
+/// the whole outcome, so the hint appears once however many bodies tripped.
+#[must_use]
+pub fn escaped_hash_hint(outcome: &LoadOutcome) -> Option<&'static str> {
+    outcome
+        .errors
+        .iter()
+        .any(|error| is_unknown_variable(&error.message))
+        .then_some(HASH_HINT)
+}
+
+/// Whether `message` is the unknown-variable diagnostic itself.
+///
+/// Anchored at the start rather than searched for: an error that merely quotes
+/// the phrase — a task titled `unknown variable`, a nested diagnostic naming
+/// another failure's text — is a different failure, and pointing its author at
+/// `\#` sends them after a `#` that is not there.
+fn is_unknown_variable(message: &str) -> bool {
+    message
+        .strip_prefix(EVAL_PREFIX)
+        .unwrap_or(message)
+        .starts_with(UNKNOWN_VARIABLE)
+}
+
+/// Every hint this outcome earns, in the order they are printed.
+///
+/// The two are independent — a project can have both an uninstalled prelude
+/// and an unescaped `#` — so this is a list, not a first-match.
+pub fn load_hints(outcome: &LoadOutcome) -> impl Iterator<Item = &'static str> {
+    [missing_prelude_hint(outcome), escaped_hash_hint(outcome)]
+        .into_iter()
+        .flatten()
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
@@ -55,7 +114,10 @@ mod tests {
 
     use mindtape::{LoadError, LoadOutcome};
 
-    use super::{missing_prelude_hint, names_prelude_package};
+    use super::{
+        escaped_hash_hint, is_unknown_variable, load_hints, missing_prelude_hint,
+        names_prelude_package,
+    };
 
     /// Verbatim from `mt ls` against a project whose prelude is not installed.
     const REAL: &str = "eval error: file not found (searched at \
@@ -123,6 +185,69 @@ mod tests {
         assert!(
             missing_prelude_hint(&outcome(&["eval error: unknown task slot `foo`", REAL]))
                 .is_some()
+        );
+    }
+
+    /// Verbatim from `mt ls` over a body reading `Channel #N carries it.`
+    const UNBOUND: &str = "eval error: unknown variable: N";
+
+    #[test]
+    fn detects_the_real_unknown_variable_diagnostic() {
+        assert!(is_unknown_variable(UNBOUND));
+        assert!(escaped_hash_hint(&outcome(&[UNBOUND])).is_some());
+    }
+
+    /// The prefix is `Candidate`'s framing, not Typst's; a diagnostic reaching
+    /// the outcome without it is the same failure.
+    #[test]
+    fn detects_the_bare_diagnostic() {
+        assert!(is_unknown_variable("unknown variable: N"));
+    }
+
+    /// The reason the match is anchored: an error that quotes the phrase
+    /// mid-text is some other failure, and `\#` is not its remedy.
+    #[test]
+    fn ignores_the_phrase_mid_text() {
+        assert!(!is_unknown_variable(
+            "eval error: cannot resolve unknown variable: N"
+        ));
+        assert_eq!(
+            escaped_hash_hint(&outcome(&[
+                "eval error: unknown task slot `unknown variable`"
+            ])),
+            None
+        );
+    }
+
+    #[test]
+    fn no_hash_hint_when_nothing_failed() {
+        assert_eq!(escaped_hash_hint(&LoadOutcome::default()), None);
+    }
+
+    /// Same once-per-run property the prelude hint has.
+    #[test]
+    fn one_hash_hint_however_many_bodies_failed() {
+        let many = vec![UNBOUND; 2000];
+        assert_eq!(
+            load_hints(&outcome(&many)).collect::<Vec<_>>(),
+            vec![super::HASH_HINT]
+        );
+    }
+
+    /// Both failures at once yield both hints — neither suppresses the other.
+    #[test]
+    fn both_hints_coexist() {
+        assert_eq!(
+            load_hints(&outcome(&[REAL, UNBOUND])).collect::<Vec<_>>(),
+            vec![super::HINT, super::HASH_HINT]
+        );
+    }
+
+    #[test]
+    fn no_hints_for_an_unrelated_failure() {
+        assert_eq!(
+            load_hints(&outcome(&["eval error: unknown task slot `foo`"])).count(),
+            0
         );
     }
 }

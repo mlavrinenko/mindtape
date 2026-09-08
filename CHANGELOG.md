@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A load failure on a literal `#` in a task body now names `\#`** — task
+  bodies are real Typst markup, so prose like `Channel #N carries it` opens an
+  inline expression and the file fails with `eval error: unknown variable: N`,
+  a message naming a variable the author never wrote and no remedy. Every
+  command that warns about load errors now follows them with one note saying
+  to write `\#` or move the prose into a code block. Derived once from the
+  whole load outcome, next to the existing `mt install` hint, so a backlog
+  where every body trips reports it once and both notes can appear together.
+  The Task DSL page grew a *Task bodies* section saying the same thing to the
+  author who has not hit it yet. Auto-escaping stays out: bodies are
+  intentionally real Typst, and escaping would break the markup that works.
+
 - **`links:` has a CLI writer — `mt link`** — it was the one task field with
   none, so cross-linking a batch of tasks meant hand-editing files, and the
   thing that actually gets reached for at that point is a regex one-shot over

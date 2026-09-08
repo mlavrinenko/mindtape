@@ -204,6 +204,30 @@ A task never advances itself — only an explicit `mt recur` spawns or mutates
 the next occurrence (see #link(u("/cli/"))[CLI reference]); `mt done` on a
 recurring task is a pure close and never touches `recur`.
 
+= Task bodies
+
+Everything below `task.with(...)` is real Typst markup — headings, lists, code
+blocks, whatever you write. That includes `#`, which in Typst opens an inline
+expression rather than printing a hash. So prose like `Channel #N carries it`
+is read as a reference to a variable `N`, and the file fails to load:
+
+```text
+warning: tasks/probe.typ: eval error: unknown variable: N
+```
+
+Write a literal hash as `\#`, or put the run of prose in a code block:
+
+```typ
+== Summary
+
+Channel \#N carries it, per issue \#412.
+
+`#[allow(dead_code)]` is fine inside backticks — no escape needed.
+```
+
+Bodies are deliberately left as real Typst rather than escaped for you, since
+escaping would break the markup that already works.
+
 = What enforces what
 
 The prelude enforces #strong[structure] only: one task per file, and the
