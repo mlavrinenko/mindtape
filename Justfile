@@ -347,9 +347,9 @@ gen-bench N='2000':
 [doc("Benchmark mt ls and mt check against a large task set")]
 [group("dev")]
 bench N='2000':
-    direnv exec . cargo build --release -p mindtape-cli
+    cargo build --release -p mindtape-cli
     examples/large/generate.sh {{ N }}
-    export MINDTAPE_NOW=2026-07-16 && direnv exec . hyperfine \
+    export MINDTAPE_NOW=2026-07-16 && hyperfine \
         --warmup 1 --runs 3 \
         --command-name "mt ls ({{ N }} tasks)" "./target/release/mt -w examples/large ls" \
         --command-name "mt check ({{ N }} tasks)" "./target/release/mt -w examples/large check"

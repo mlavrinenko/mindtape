@@ -112,12 +112,14 @@ if [ "$wt_branch" != "$slug" ]; then
     exit 1
 fi
 
-# Without this the worktree's `.envrc` is unauthorised, and `direnv exec . <cmd>`
-# there resolves nothing from the dev shell — every tool the gates run comes from
-# it, so the failure reads as a missing binary rather than a missing allow.
+# Without this the worktree's `.envrc` is unauthorised and loads nothing there —
+# every tool the gates run comes from the dev shell, so the failure reads as a
+# missing binary rather than a missing allow. Silently, either way: a shell that
+# loads .envrc on `cd` reports the refusal, but one driven by direnv's own
+# export (`/etc/bash_env` on the NixOS host) discards it.
 #
 # And then the shell is LOADED, not merely authorised. `direnv allow` records
-# consent; the first `direnv exec` after it pays the flake evaluation and any
+# consent; the first load after it pays the flake evaluation and any
 # substituter fetch the pin needs — measured at roughly two minutes on a warm
 # store for this repo. Paying it here, once, visibly, is worth more than it
 # looks: unpaid, it lands inside the delegated agent's FIRST gate run, where a
@@ -129,7 +131,7 @@ if command -v direnv >/dev/null 2>&1; then
     direnv exec "$path" true
 else
     echo "fork: direnv is not on PATH — the worktree's dev shell is NOT authorised" >&2
-    echo "  run \`direnv allow\` in $path before \`direnv exec . <cmd>\`" >&2
+    echo "  run \`direnv allow\` in $path before running anything from the dev shell" >&2
 fi
 
 echo

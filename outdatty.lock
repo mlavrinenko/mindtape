@@ -80,7 +80,7 @@ groups:
       .just/scripts/crap.sh: ea05991d6681d64da98ca81a2e00878693f2080b587b9725fbc1b4f7da27789f
       .just/scripts/docs-md-check.sh: ea2bfd24e3c13b400ec87a69f6ad68589ca6f5367923b792f044c399a463e3f4
       .just/scripts/fmt-fixture-check.sh: 0382b2e525fd33de782d0d1e65d389054c69118758f4fd22f58ee71a87b2967d
-      .just/scripts/fork.sh: 2c8b59d2ad40b3c0b477a5d17ae7dc904736804d923519ace44dbc5fc7367f56
+      .just/scripts/fork.sh: 9f6f970049115b7a703f7a8444e6c8089ac24901e8ecf90bbc6c6047b4b3a015
       .just/scripts/install-lib.sh: a32b796ffb58b5ccdff32d9eb2e69a2535abbb6de3aead82f176e9ca3f8a4e32
       .just/scripts/mutants-diff.sh: 52d60ee0cc077889843e16235d3dc12587e90411aa05ddef236da3b1d9893adb
       .just/scripts/mutants.sh: 6f558f4aeca4764ee7bc3636fc4cc3c57f6e9cbeadf679e78387e80205723a2e
@@ -90,7 +90,7 @@ groups:
       .just/scripts/script-scope-check.sh: 7e1b1a51486c8b07e95220611915b7fb132ea9e139310b89e38ad632d6833cce
       .just/scripts/site-pages-fixture-check.sh: aa40e196b692f4c0fb37385bfb5267bdf237c163daa9a57909a36f9cb871d91e
       .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
-      Justfile: 56a39495b855ede90f78c40d5a81ebb8894d6fad2e04bd48ef638e876d670a0f
+      Justfile: e0acda7062f5771f156198ad3d6429008748da5a816891b99bdd0957b328b96a
       flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
