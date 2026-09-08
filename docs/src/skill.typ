@@ -232,12 +232,13 @@ overrides (a same-status re-stamp is always fine).
 
 A project may bind actions to a flip (`[[on.flip]]`) — e.g. a gate refusing a
 close until it passes. Only `mt flip` runs them; a refusal prints its output.
-They run in a PLAIN shell, not the dev shell: a gate binary needing one reads
-as a FAILED gate, exit 127, inviting a `--force` over a gate that never ran.
-The fix is to re-run the whole flip inside the dev shell (`nix develop
---command mt done <task>`, `direnv exec . mt done <task>`), so the gate
-actually evaluates. `--force` is for waiving a gate you have READ, never for
-one whose binary was missing.
+They run as `sh -c` inheriting `mt`'s OWN environment, and `sh` re-enters no
+`direnv` hook of its own. So a gate binary that lives in the project's dev
+shell is found exactly when `mt` itself was run with that shell loaded, and
+otherwise exits 127 — which prints as a FAILED gate, inviting a `--force` over
+a gate that never ran. Exit 127 is "binary not found", never a refusal: fix
+the environment `mt` runs in and flip again. `--force` is for waiving a gate
+you have READ.
 
 ```sh
 mt flip --list                 # the legend and its verbs
