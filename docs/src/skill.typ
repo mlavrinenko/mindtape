@@ -81,6 +81,16 @@ renumbers it, and the trailing check letters catch most such shifts, not all.
 A flip reports what it moved (`handle <stem>: 1b → 3b`, or `→ none` when it
 left the view); for any second operation, prefer the stem, which never moves.
 
+#strong[Never write a handle into prose a human reads.] Use them freely for
+your own next command in the same turn — that is what they are good at — but a
+report, a commit message, a chat line and a task body all outlive the listing
+that produced the handle, and the reader who meets `1b` there has to re-run
+`mt ls` and hope. Cite the task file path instead, as a Markdown link
+(`[title](truth/tasks/<stem>.typ)`), so they click through instead of
+resolving anything. The rule is absolute: a conditional one is a judgment call
+you will get wrong on the run that matters, and captured `mt ls` output hands
+you the path in its `file` column without a second command.
+
 Reach for `mt <cmd> --help` only when a command errors or needs a flag this
 skill lacks. Legend, kinds, priority scale, and tags are per-project: read
 `.mindtape/config.toml` (or `mt flip --list`), don't guess.

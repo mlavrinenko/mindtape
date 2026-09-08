@@ -31,7 +31,7 @@ groups:
       crates/mindtape/src/defaults.toml: cb487dbffbc2b5fe5c40799c4ed909a24623b182e668a665bc9c3adb19fdc1e3
       crates/mindtape/src/lib.rs: 483a561b22b522b9d2babdcae8b573a5b405177a4416d45c272b4e98b3c4da4a
     dependents:
-      docs/src/skill.typ: 09bb7d9200fdea0eef32e4187c68831f2f06829e340d6d7b573fa287421d0874
+      docs/src/skill.typ: 22fe753a258118cac32b5b51cc355c62a12e29e56e2f09d92eec5b2f5abb47ad
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
