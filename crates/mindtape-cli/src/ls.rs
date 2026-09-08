@@ -5,6 +5,7 @@ use anyhow::{Result, anyhow};
 use mindtape::sort::{default_order_with, sort_by_specs};
 use mindtape::{Config, Filter, Readiness, Task, select};
 
+use crate::ls_columns::apply_column_rules;
 use crate::ls_rules::{self, Applied};
 use crate::output::{Envelope, OutputFormat, Truncation, render};
 use crate::render::color::{Painter, is_color_active};
@@ -77,11 +78,7 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
     }
     let listing = resolve_and_select(args, project)?;
 
-    let format = if args.flags.json {
-        OutputFormat::Json
-    } else {
-        args.flags.format
-    };
+    let format = effective_format(args);
     let envelope = Envelope {
         applied: &listing.applied,
         truncated: listing.truncated,
@@ -105,6 +102,25 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
         print_trailers(&listing);
     }
     Ok(())
+}
+
+/// The format this run renders in: `--json` is shorthand for `--format json`
+/// and wins, otherwise `--format` (which has its own default).
+fn effective_format(args: &LsArgs) -> OutputFormat {
+    if args.flags.json {
+        OutputFormat::Json
+    } else {
+        args.flags.format
+    }
+}
+
+/// The effective format's config-facing name, backing `format()` in a
+/// condition. Read off clap's own value enum rather than a second `match`, so
+/// a new `--format` variant cannot arrive with a name the condition language
+/// disagrees about.
+fn format_name(args: &LsArgs) -> String {
+    clap::ValueEnum::to_possible_value(&effective_format(args))
+        .map_or_else(String::new, |value| value.get_name().to_owned())
 }
 
 /// The dim lines under a rendered table: the `applied:` attribution, then the
@@ -150,11 +166,15 @@ pub(crate) struct Listing {
 /// # Errors
 /// Returns an error if the resolved filter or sort spec is invalid.
 pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Result<Listing> {
-    let (bundle, applied) = ls_rules::resolve(&project, args)?;
+    let env = ls_rules::build_env(&project, &format_name(args));
+    let (bundle, applied) = ls_rules::resolve(&project, args, &env)?;
     let mut config = project.config.clone();
     if !bundle.columns.is_empty() {
         config.ls.columns_order = bundle.columns.clone();
     }
+    // Conditional per-column visibility, resolved against the same environment
+    // `[[ls.rules]]` just used, so a condition means one thing per run.
+    apply_column_rules(&mut config, &env)?;
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let filter = Filter::parse(&bundle.filter)?;
     let mut tasks = select(

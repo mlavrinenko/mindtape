@@ -29,6 +29,7 @@ mod config_layers;
 pub mod config_limits;
 mod config_links_validate;
 mod config_ls;
+mod config_ls_columns;
 mod config_required;
 mod config_rm;
 mod config_roots;
@@ -94,10 +95,10 @@ pub use candidate::{Candidate, Checked, check_candidate, check_candidates, harve
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use condition::{Condition, ConditionEnv, ConditionError};
 pub use config::{
-    Actor, ActorKind, AddConfig, AssigneeConfig, Collector, ColumnConfig, Config, ConfigError,
-    DeriveConfig, DeriveTags, DriftConfig, EstimateConfig, Facet, FormatConfig, GoConfig,
-    HandleConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule,
-    MAX_CHECK_LEN, PriorityConfig, ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role,
+    Actor, ActorKind, AddConfig, AssigneeConfig, Collector, ColumnConfig, ColumnRule, Config,
+    ConfigError, DeriveConfig, DeriveTags, DriftConfig, EstimateConfig, Facet, FormatConfig,
+    GoConfig, HandleConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage,
+    LsRule, MAX_CHECK_LEN, PriorityConfig, ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role,
     RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec, Visibility, config_path,
     embedded_defaults, load_config, parse_config, parse_import_view, roles_of, validate_views,
 };

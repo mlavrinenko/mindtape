@@ -12,6 +12,8 @@
 //! without the CLI-argument layer, for callers (`util::default_view`) that
 //! only ever want the bare-`mt ls` view.
 
+use std::io::IsTerminal;
+
 use anyhow::{Result, anyhow};
 use mindtape::{Condition, ConditionEnv, Config, Facet, LsRule, ViewSpec, parse_import_view};
 
@@ -73,13 +75,26 @@ impl Applied {
 }
 
 /// Build the environment [`mindtape::Condition`]s evaluate against: the
-/// current git branch (from `project.root`'s `.git`), today's date, and a
-/// full snapshot of the process environment.
-fn build_env(project: &util::Project) -> ConditionEnv {
+/// current git branch (from `project.root`'s `.git`), today's date, a full
+/// snapshot of the process environment, whether stdout is a terminal, and the
+/// active output format.
+///
+/// This is the one place the CLI reads those ambient facts —
+/// [`mindtape::condition`] is pure by design and takes them injected. The same
+/// environment drives both `[[ls.rules]]` and the per-column
+/// `[[ls.columns.<name>.rules]]`, so a condition means the same thing wherever
+/// it is written.
+///
+/// `format` is `""` for a caller with no active format — handle resolution
+/// ([`crate::util::default_view`]) resolves a view to address a task, not to
+/// render one — and `""` compares unequal to every real format name.
+pub(crate) fn build_env(project: &util::Project, format: &str) -> ConditionEnv {
     ConditionEnv {
         branch: mindtape::current_branch(&project.root),
         today: mindtape::today_iso(),
         env: std::env::vars().collect(),
+        tty: std::io::stdout().is_terminal(),
+        format: format.to_owned(),
     }
 }
 
@@ -92,8 +107,8 @@ fn build_env(project: &util::Project) -> ConditionEnv {
 /// Returns an error if a rule's condition or a referenced view fails to
 /// resolve (both already validated at config load, so this only recurs for a
 /// hand-built, unvalidated config).
-pub fn resolve_bare(project: &util::Project) -> Result<(Bundle, Applied)> {
-    if let Some(hit) = match_rule(project)? {
+pub fn resolve_bare(project: &util::Project, env: &ConditionEnv) -> Result<(Bundle, Applied)> {
+    if let Some(hit) = match_rule(project, env)? {
         return Ok(hit);
     }
     Ok(default_view_bundle(&project.config))
@@ -107,10 +122,14 @@ pub fn resolve_bare(project: &util::Project) -> Result<(Bundle, Applied)> {
 /// # Errors
 /// Returns an error if an explicit `@view` / `--sort @view` / `--columns
 /// @view` names an undeclared view, or (see [`resolve_bare`]).
-pub fn resolve(project: &util::Project, args: &LsArgs) -> Result<(Bundle, Applied)> {
+pub fn resolve(
+    project: &util::Project,
+    args: &LsArgs,
+    env: &ConditionEnv,
+) -> Result<(Bundle, Applied)> {
     let (bundle, applied) = match &args.filter {
         Some(expr) => explicit_bundle(&project.config, expr)?,
-        None => resolve_bare(project)?,
+        None => resolve_bare(project, env)?,
     };
     apply_cli_overrides(project, args, bundle, applied)
 }
@@ -192,14 +211,13 @@ fn default_view_bundle(config: &Config) -> (Bundle, Applied) {
 
 /// Evaluate `[[ls.rules]]` top to bottom; the first entry whose condition
 /// holds (or is absent) wins.
-fn match_rule(project: &util::Project) -> Result<Option<(Bundle, Applied)>> {
+fn match_rule(project: &util::Project, env: &ConditionEnv) -> Result<Option<(Bundle, Applied)>> {
     let config = &project.config;
     if config.ls.rules.is_empty() {
         return Ok(None);
     }
-    let env = build_env(project);
     for rule in &config.ls.rules {
-        if condition_holds(rule, &env)? {
+        if condition_holds(rule, env)? {
             return Ok(Some(compose_rule(config, rule)?));
         }
     }

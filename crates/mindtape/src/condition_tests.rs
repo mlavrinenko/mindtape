@@ -9,6 +9,8 @@ fn env(branch: Option<&str>, today: &str) -> ConditionEnv {
         branch: branch.map(str::to_owned),
         today: today.to_owned(),
         env: BTreeMap::new(),
+        tty: false,
+        format: String::new(),
     }
 }
 

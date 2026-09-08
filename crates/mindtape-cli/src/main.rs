@@ -66,6 +66,7 @@ mod link_edit;
 mod link_input;
 mod link_plan;
 mod ls;
+mod ls_columns;
 mod ls_interactive;
 mod ls_rules;
 mod output;

@@ -176,6 +176,7 @@ fn visibility_visible_forces_file_on_under_built_in_order() {
         "file".to_owned(),
         mindtape::ColumnConfig {
             visibility: Visibility::Visible,
+            ..mindtape::ColumnConfig::default()
         },
     );
     let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
@@ -215,6 +216,7 @@ fn visibility_hidden_wins_even_when_explicitly_listed() {
         "file".to_owned(),
         mindtape::ColumnConfig {
             visibility: Visibility::Hidden,
+            ..mindtape::ColumnConfig::default()
         },
     );
     let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
@@ -266,10 +268,13 @@ fn assignee_rendered(config: &Config, a: &str, b: &str) -> bool {
 /// A config pinning `[ls.columns.assignee] visibility`.
 fn assignee_visibility(visibility: Visibility) -> Config {
     let mut config = Config::default();
-    config
-        .ls
-        .columns
-        .insert("assignee".to_owned(), mindtape::ColumnConfig { visibility });
+    config.ls.columns.insert(
+        "assignee".to_owned(),
+        mindtape::ColumnConfig {
+            visibility,
+            ..mindtape::ColumnConfig::default()
+        },
+    );
     config
 }
 

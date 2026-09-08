@@ -211,7 +211,10 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
 /// # Errors
 /// Returns an error if the resolved filter or sort spec fails to parse.
 pub(crate) fn default_view(project: &Project) -> Result<Vec<Task>> {
-    let (bundle, _applied) = crate::ls_rules::resolve_bare(project)?;
+    // No active output format: this resolves a view to ADDRESS a task, not to
+    // render one, so `format()` in a condition reads as the empty string.
+    let env = crate::ls_rules::build_env(project, "");
+    let (bundle, _applied) = crate::ls_rules::resolve_bare(project, &env)?;
     let filter = Filter::parse(&bundle.filter)?;
     // Readiness over the full set, before the filter narrows the view, so a
     // dependency hidden by the default filter still counts. Shared by select and

@@ -134,8 +134,11 @@ filter directly (`mt ls 'contains("bug", title)'`).
 Named views are `[views.<name>]` bundles (filter + optional sort/columns);
 bare `@name` applies all three facets, `@name` inside a bigger filter is the
 filter facet only. `--columns <cols|@view>` picks columns for one run. The
-opt-in `file` column (never shown unless named, e.g. `--columns '#,title,file'`)
-prints each task's source path relative to the working directory. An `assignee`
+`file` column prints each task's source path relative to the working
+directory. It is opt-in on a terminal (`--columns '#,title,file'`) and
+automatic everywhere else, so your captured `mt ls` already carries the path to
+cite — you never need a second `--format path` run to get it. `--format csv`
+is unaffected and addresses tasks by `id`. An `assignee`
 column shows only when the listed rows disagree about it; naming it does not
 override that — `[ls.columns.assignee] visibility = "visible"` does.
 `--hyperlinks always` (default `never`, or `[ls] hyperlinks`) wraps the

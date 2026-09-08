@@ -64,11 +64,42 @@ An empty filter (`mt ls ''`) skips both and lists everything.
 
 Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`, or
 override for one run with `--columns`. A `file` column (the task's source
-path) exists but is opt-in — its cell is never blank, so the ordinary
-auto-hide rule cannot apply to it; name it explicitly (`--columns
+path) exists but is opt-in on a terminal — its cell is never blank, so the
+ordinary auto-hide rule cannot apply to it; name it explicitly (`--columns
 '#,title,file'`, a view, an `[[ls.rules]]` columns override, or `[ls.columns.file]
 visibility = "visible"`) to see it. Its cell is relative to the working
 directory (what an IDE-integrated terminal ctrl-clicks straight to).
+
+#emph[Off] a terminal it turns itself on, because the `#` handle beside it
+stops being an address there. Captured output outlives the listing that
+produced it — it is pasted into a report, a commit message, a chat — and the
+handle's ordinal is a position in a view every command recomputes, so a handle
+quoted an hour later names whatever now sits at that position. Every other
+renderer had already settled this: `--json` carries `id` and `file` and no
+handle at all, and `--format csv` substitutes `id` for `#`. The table was the
+last surface handing out a positional id with no stable identity beside it.
+
+The mechanism is a conditional visibility rule the embedded floor ships, not a
+special case in the renderer:
+
+```toml
+[[ls.columns.file.rules]]
+condition = '!tty() && format() == "table"'
+visibility = "visible"
+```
+
+`[[ls.columns.<name>.rules]]` takes the same
+#link(u("/cli/"))[condition language] as `[[ls.rules]]`, first match wins, and
+a matching rule beats the column's own `visibility` key — rules #emph[are] the
+override mechanism, so the other direction would make them unwritable. Two
+predicates exist for this: `tty()` (is stdout a terminal) and `format()` (the
+active `--format` name). The floor rule names `table` because `csv` resolves
+the same column set and is a data contract — a script parsing it must not
+silently gain a column, and it already carries `id`.
+
+To opt out, set `rules = []` under `[ls.columns.file]`: an array replaces
+rather than merges across config layers, so the empty list drops the inherited
+rule. Setting `visibility` alone will not do it.
 
 An `assignee` column auto-hides on a third rule again: it shows only when the
 listed rows disagree about who works them. A listing already narrowed to one
@@ -147,6 +178,11 @@ the table footer names it the same way a manual filter would.
 
 = Conditional rules
 
+Two things take a `condition`: `[[ls.rules]]`, which picks the whole listing
+bundle for a bare `mt ls`, and `[[ls.columns.<name>.rules]]`, which picks one
+column's visibility for any `mt ls`. Both read the same mini-language against
+the same ambient facts, so a condition means one thing wherever it is written.
+
 Ordered `[[ls.rules]]` entries let bare `mt ls` adapt to ambient project state
 — see #link(u("/config/"))[Config] for the table shape. The first entry whose
 `condition` holds (or that omits `condition` entirely) wins; it composes its
@@ -167,15 +203,22 @@ task fields — the same operators and parser as
   [`on_branch("glob")`],
   [The current git branch (`.git/HEAD`), glob-matched. `false` off a git repo or on a detached `HEAD`.],
 
+  [`tty()`],
+  [Whether stdout is a terminal — whether a human is reading this output directly, rather than a capture that will outlive the command.],
+
   [`env("NAME")`], [The named environment variable (`""` when unset).],
   [`weekday()`], [Today's ISO weekday, `1` (Monday) through `7` (Sunday).],
   [`now()`], [Today's ISO date — same as the filter-language `now()`.],
+  [`format()`],
+  [The active `--format` name (`table`, `json`, `csv`, `path`, `path0`); `""` outside a rendering command.],
 )
 
-A comparison takes a value or a literal on either side (`weekday() >= 6`,
-`"review" == env("MODE")`) — more general than filter expressions, which only
-ever compare a field on the left. A task field name in a condition is a
-load-time config error, since the condition grammar has no fields at all.
+`on_branch()` and `tty()` are boolean and are used bare (`!tty()`); the rest
+produce values and belong in a comparison. A comparison takes a value or a
+literal on either side (`weekday() >= 6`, `"review" == env("MODE")`) — more
+general than filter expressions, which only ever compare a field on the left. A
+task field name in a condition is a load-time config error, since the condition
+grammar has no fields at all.
 
 = Graph
 

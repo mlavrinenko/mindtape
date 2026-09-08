@@ -11,13 +11,19 @@
 //! - `on_branch("glob")` -> bool. Glob-matches the current git branch (the
 //!   same [`globset`] matcher [`crate::derive`] uses for `derive-tags`
 //!   globs); `false` when not a git repo / detached `HEAD`.
+//! - `tty()` -> bool. Whether stdout is a terminal, i.e. whether a human is
+//!   reading this output directly. Boolean like `on_branch`, so it is used
+//!   bare (`!tty()`) rather than in a comparison.
 //! - `env("NAME")` -> string (`""` when unset).
 //! - `weekday()` -> int `1..7` (Mon..Sun), derived from [`ConditionEnv::today`].
 //! - `now()` -> [`ConditionEnv::today`] verbatim (an ISO date string).
+//! - `format()` -> string. The active `--format` value (`table`, `csv`,
+//!   `json`, `path`, `path0`), so a rule can scope itself to the presentation
+//!   surfaces without the distinction being hardcoded in Rust.
 //!
-//! A comparison accepts a value (`env(...)`, `now()`, `weekday()`) or a
-//! literal on either side — more general than `filter.rs`, which only ever
-//! compares a field (always the left side) against a literal.
+//! A comparison accepts a value (`env(...)`, `now()`, `weekday()`,
+//! `format()`) or a literal on either side — more general than `filter.rs`,
+//! which only ever compares a field (always the left side) against a literal.
 //!
 //! Purity: this module never reads the clock or the filesystem itself.
 //! [`ConditionEnv`] carries every ambient fact it needs (mirrors
@@ -46,6 +52,14 @@ pub struct ConditionEnv {
     /// Environment variable snapshot backing `env("NAME")`; a name absent
     /// from the map reads as `""`, same as an unset variable.
     pub env: BTreeMap<String, String>,
+    /// Whether stdout is a terminal, backing `tty()`. Injected rather than
+    /// probed here for the same reason as every other field: this module
+    /// never touches the process or the filesystem.
+    pub tty: bool,
+    /// The active output format, backing `format()`. Empty when the caller
+    /// has no format to speak of (a condition evaluated outside a rendering
+    /// command), which compares unequal to every real format name.
+    pub format: String,
 }
 
 impl ConditionEnv {
@@ -60,6 +74,8 @@ impl ConditionEnv {
             branch: None,
             today: "1970-01-01".to_owned(),
             env: BTreeMap::new(),
+            tty: false,
+            format: String::new(),
         }
     }
 }
@@ -86,7 +102,8 @@ pub enum ConditionError {
     /// syntax by mistake.
     #[error("field `{0}` not available in a condition")]
     TaskField(String),
-    /// A function name outside `on_branch` / `env` / `weekday` / `now`.
+    /// A function name outside `on_branch` / `tty` / `env` / `weekday` /
+    /// `now` / `format`.
     #[error("unknown predicate in condition: {0}")]
     UnknownPredicate(String),
     /// A structurally invalid expression (wrong arity, bad glob, ...).
@@ -171,8 +188,9 @@ fn binary(
     }
 }
 
-/// A function call in boolean position: only `on_branch(...)` is boolean;
-/// `env` / `weekday` / `now` are value-producers and belong in a comparison.
+/// A function call in boolean position: `on_branch(...)` and `tty()` are
+/// boolean; `env` / `weekday` / `now` / `format` are value-producers and
+/// belong in a comparison.
 fn predicate(
     name: &str,
     node: &Node<DefaultNumericTypes>,
@@ -183,7 +201,11 @@ fn predicate(
             let pattern = single_literal(node.children(), "on_branch")?;
             on_branch(env, &pattern)
         }
-        "env" | "weekday" | "now" => Err(ConditionError::Invalid(format!(
+        "tty" => {
+            no_args(node.children(), "tty")?;
+            Ok(env.tty)
+        }
+        "env" | "weekday" | "now" | "format" => Err(ConditionError::Invalid(format!(
             "`{name}(...)` is not boolean; use it in a comparison"
         ))),
         other => Err(ConditionError::UnknownPredicate(other.to_owned())),
@@ -252,9 +274,9 @@ fn compare_values(
 }
 
 /// Resolve one side of a comparison: a value-producing call (`env`, `now`,
-/// `weekday`) or a literal. `on_branch(...)` and a bare identifier are
-/// rejected here — the former is boolean-only, the latter is always a
-/// task-field mistake in this grammar.
+/// `weekday`, `format`) or a literal. `on_branch(...)` / `tty()` and a bare
+/// identifier are rejected here — the former are boolean-only, the latter is
+/// always a task-field mistake in this grammar.
 fn resolve_value(
     node: &Node<DefaultNumericTypes>,
     env: &ConditionEnv,
@@ -303,9 +325,13 @@ fn resolve_function(
             })?;
             Ok(ConditionValue::Num(f64::from(day)))
         }
-        "on_branch" => Err(ConditionError::Invalid(
-            "on_branch(...) is boolean; it cannot appear in a comparison".to_owned(),
-        )),
+        "format" => {
+            no_args(node.children(), "format")?;
+            Ok(ConditionValue::Str(env.format.clone()))
+        }
+        "on_branch" | "tty" => Err(ConditionError::Invalid(format!(
+            "{name}(...) is boolean; it cannot appear in a comparison"
+        ))),
         other => Err(ConditionError::UnknownPredicate(other.to_owned())),
     }
 }

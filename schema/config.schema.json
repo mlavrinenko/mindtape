@@ -228,9 +228,35 @@
       "additionalProperties": false,
       "description": "`[ls.columns.<name>]` — one column's display settings.",
       "properties": {
+        "rules": {
+          "description": "Conditional overrides, in declaration order. The first entry whose\n`condition` holds supplies this column's visibility for the run,\nbeating the `visibility` key above — rules ARE the override mechanism,\nso a matching one winning is what makes them worth writing.\n\nA project opts out of an inherited rule (the embedded floor ships one\nfor `file`) by setting `rules = []`, which is explicit and greppable,\nrather than by setting `visibility` and wondering why it lost.",
+          "items": {
+            "$ref": "#/$defs/ColumnRule"
+          },
+          "type": "array"
+        },
         "visibility": {
           "$ref": "#/$defs/Visibility",
-          "description": "Whether the column renders. `Auto` hides it when it carries nothing\nsignificant; `Visible` always renders it; `Hidden` never does."
+          "description": "Whether the column renders when no `rules` entry matches. `Auto` hides\nit when it carries nothing significant; `Visible` always renders it;\n`Hidden` never does."
+        }
+      },
+      "type": "object"
+    },
+    "ColumnRule": {
+      "additionalProperties": false,
+      "description": "`[[ls.columns.<name>.rules]]` — one conditional visibility override.",
+      "properties": {
+        "condition": {
+          "default": null,
+          "description": "Condition expression over the ambient environment — the same grammar\n`[[ls.rules]]` uses (`tty()`, `format()`, `env()`, `on_branch()`,\n`now()`, `weekday()`). Absent or empty means the rule always matches.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "visibility": {
+          "$ref": "#/$defs/Visibility",
+          "description": "The visibility this rule imposes when its condition holds."
         }
       },
       "type": "object"

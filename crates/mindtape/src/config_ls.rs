@@ -1,14 +1,16 @@
 //! `[ls]` config: `mt ls` rendering defaults.
 //!
-//! Filter / sort defaults, the global date format, and per-column display
-//! settings (visibility, order). The column-name vocabulary ([`LS_COLUMNS`])
-//! lives here as the single validated source shared by `[ls.columns]`,
-//! `[ls] columns-order`, and any consumer renderer.
+//! Filter / sort defaults, the global date format, and the column render
+//! order. The column-name vocabulary ([`LS_COLUMNS`]) lives here as the single
+//! validated source shared by `[ls.columns]`, `[ls] columns-order`, and any
+//! consumer renderer; one column's own settings (`visibility`, conditional
+//! `rules`) live in [`crate::config_ls_columns`].
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use serde::{Deserialize, Deserializer};
 
+use crate::config_ls_columns::{ColumnConfig, unknown_column};
 use crate::config_views::ViewSpec;
 use crate::sort::validate_sort_spec;
 
@@ -397,64 +399,6 @@ pub struct ReadyConfig {
     pub blocked_color: Option<String>,
     /// Display label for the blocked state.
     pub blocked_label: Option<String>,
-}
-
-/// `[ls.columns.<name>]` — one column's display settings.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
-pub struct ColumnConfig {
-    /// Whether the column renders. `Auto` hides it when it carries nothing
-    /// significant; `Visible` always renders it; `Hidden` never does.
-    pub visibility: Visibility,
-}
-
-/// A column's visibility policy.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum Visibility {
-    /// Render only when the column is significant (non-empty / contested).
-    #[default]
-    Auto,
-    /// Always render, even when every cell is blank.
-    Visible,
-    /// Never render, even when populated.
-    Hidden,
-}
-
-/// Validate `[ls.columns]` keys and `[ls] columns-order` against [`LS_COLUMNS`]:
-/// unknown column names, and duplicates within `columns-order`, are reported.
-#[must_use]
-pub fn validate_ls_columns(ls: &LsConfig) -> Vec<String> {
-    let mut problems = Vec::new();
-    for name in ls.columns.keys() {
-        if !LS_COLUMNS.contains(&name.as_str()) {
-            problems.push(format!("ls.columns: {}", unknown_column(name)));
-        }
-    }
-    let mut seen = BTreeSet::new();
-    for name in &ls.columns_order {
-        if !LS_COLUMNS.contains(&name.as_str()) {
-            problems.push(format!("ls.columns-order: {}", unknown_column(name)));
-        } else if !seen.insert(name.as_str()) {
-            problems.push(format!("ls.columns-order: duplicate column `{name}`"));
-        }
-    }
-    problems
-}
-
-/// The `unknown column` message body (no field-path prefix): the fixed
-/// [`LS_COLUMNS`] enumeration plus a nearest-match suggestion when one clears
-/// the similarity floor. Shared by every `[ls]` column-name validation site
-/// (`[[ls.rules]]` entries and `[ls.columns]` / `[ls] columns-order`) so the
-/// wording and the suggestion wiring live once
-/// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`).
-#[must_use]
-fn unknown_column(name: &str) -> String {
-    format!(
-        "unknown column `{name}`, expected one of {}{}",
-        LS_COLUMNS.join(", "),
-        crate::suggest::suggestion(name, &LS_COLUMNS)
-    )
 }
 
 #[cfg(test)]

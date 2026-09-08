@@ -2,11 +2,9 @@
 
 use std::collections::BTreeMap;
 
-use super::{
-    ColumnConfig, Facet, LsConfig, LsRule, parse_import_view, validate_ls_columns,
-    validate_ls_rules,
-};
+use super::{Facet, LsConfig, LsRule, parse_import_view, validate_ls_rules};
 use crate::config::Config;
+use crate::config_ls_columns::{ColumnConfig, validate_ls_columns};
 use crate::config_views::ViewSpec;
 use crate::parse_config;
 

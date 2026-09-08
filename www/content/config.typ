@@ -91,8 +91,8 @@ Sections whose shape needs more than one line get a deep dive further down.
   and #link(u("/filters/"))[Filter language] cover `[tasks.roots]` /
   `[tasks.derive-tags]`, `[tasks.priority]` / `[tasks.difficulty]`, and
   `[views]` / `[ls]` / `[rm]` in full; the #link(u("/cli/"))[CLI reference]
-  covers `[[ls.rules]]`, the opt-in `file` column, and `[ls] hyperlinks` /
-  `hyperlink-target`.
+  covers `[[ls.rules]]`, the `file` column and its conditional
+  `[[ls.columns.<name>.rules]]`, and `[ls] hyperlinks` / `hyperlink-target`.
 ]
 
 = Body shape: headings and section content
@@ -699,7 +699,9 @@ filter = '!terminal && due <= "2026-08-01"'   # optional manual override (highes
 - `name` — shown in the trailer and JSON; falls back to the `condition` text
   when unset.
 - `condition` — a #link(u("/cli/"))[condition-language] expression over
-  `on_branch`/`env`/`weekday`/`now`; absent matches always.
+  `on_branch`/`tty`/`env`/`weekday`/`now`/`format`; absent matches always. The
+  same language gates one column's visibility in
+  `[[ls.columns.<name>.rules]]`.
 - `import-views` — ordered `"view"` (all facets) or `"view(facet, ...)"` (a
   subset of `filter`/`sort`/`columns`) entries, composed left to right with
   per-facet last-wins.

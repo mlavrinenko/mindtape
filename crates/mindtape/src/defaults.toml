@@ -122,6 +122,34 @@ filter = "!terminal && (miss(start) || start <= now())"
 [ls]
 overdue-color = "red"
 
+# The `file` column is opt-in on a terminal and automatic everywhere else.
+#
+# On a TTY the `#` handle is the address a reader wants: two characters, typed
+# straight back into the next command, and a full path beside every row is
+# noise. In captured output the same handle is a trap — its ordinal is a
+# position in a view recomputed on every command, so a handle quoted into a
+# report, a commit message or a chat names whatever now sits at that position.
+# The path does not move.
+#
+# So the rule is not "agents get different columns"; it is that the ONE
+# always-visible address a listing hands out has to be stable for a reader who
+# cannot re-run the command. Every other renderer already agreed: `--json`
+# carries `id` and `file` and no handle at all, and `--format csv` substitutes
+# `id` for `#`. The table was the last surface emitting a positional id with
+# no stable identity beside it.
+#
+# Scoped to `table` because `csv` resolves the same column set and IS a data
+# contract: a script parsing `mt ls --format csv` must not silently gain a
+# column, and it already carries `id`, so it gains nothing by it either.
+#
+# A project that wants the old shape sets `rules = []` under
+# `[ls.columns.file]` — an array replaces rather than merges across config
+# layers, so the empty list is the documented opt-out. Setting `visibility`
+# alone will NOT do it: a matching rule beats the unconditional key.
+[[ls.columns.file.rules]]
+condition = '!tty() && format() == "table"'
+visibility = "visible"
+
 # READY-column display: glyph / colour / label for each state.
 [ls.ready]
 ready-glyph = "▶"

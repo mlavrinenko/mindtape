@@ -4,8 +4,8 @@
 //! fixtures.
 #![allow(clippy::unwrap_used)]
 
-use super::tests::{args, project, project_with_config};
-use super::{Applied, MATCH_ALL, resolve, trailer};
+use super::tests::{args, project, project_with_config, resolve};
+use super::{Applied, MATCH_ALL, trailer};
 
 #[test]
 fn trailer_groups_by_source_in_first_appearance_order() {

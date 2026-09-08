@@ -26,9 +26,10 @@ pub use crate::config_format::FormatConfig;
 pub use crate::config_go::GoConfig;
 pub use crate::config_handle::{HandleConfig, MAX_CHECK_LEN};
 pub use crate::config_ls::{
-    ColumnConfig, Facet, HyperlinkChoice, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig,
-    Visibility, parse_import_view, validate_ls_columns, validate_ls_rules,
+    Facet, HyperlinkChoice, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig,
+    parse_import_view, validate_ls_rules,
 };
+pub use crate::config_ls_columns::{ColumnConfig, ColumnRule, Visibility, validate_ls_columns};
 pub use crate::config_required::{RequiredRules, Requirement, RequirementRule};
 pub use crate::config_rm::{RetireConfig, RmConfig, RmStrategy};
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};

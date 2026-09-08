@@ -9,9 +9,24 @@ use std::path::Path;
 use mindtape::parse_config;
 use mindtape::test_support::TASK_SRC;
 
-use super::{resolve, resolve_bare};
+use super::{Applied, Bundle, build_env};
 use crate::ls::{LsArgs, LsFlags};
 use crate::test_util::make_project;
+use crate::util::Project;
+
+/// [`super::resolve_bare`] against the ambient environment the CLI would
+/// build, pinned to the table format. These tests exercise rule matching and
+/// facet composition, not the environment; the environment's own predicates
+/// are covered in `mindtape`'s `condition_tests.rs` and the per-column
+/// resolution in `ls_columns_tests.rs`.
+pub(super) fn resolve_bare(project: &Project) -> anyhow::Result<(Bundle, Applied)> {
+    super::resolve_bare(project, &build_env(project, "table"))
+}
+
+/// [`super::resolve`], same pinning as [`resolve_bare`].
+pub(super) fn resolve(project: &Project, args: &LsArgs) -> anyhow::Result<(Bundle, Applied)> {
+    super::resolve(project, args, &build_env(project, "table"))
+}
 
 pub(super) fn args(filter: Option<&str>) -> LsArgs {
     LsArgs {

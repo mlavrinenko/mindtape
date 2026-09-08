@@ -118,6 +118,66 @@ fn hyperlinks_auto_needs_a_tty_and_a_non_dumb_term() {
     );
 }
 
+/// Run `mt <args>` inside `dir` with stdout on an ordinary pipe — the shape
+/// every captured run has, and the one half of the `file` column's floor rule
+/// a pty cannot produce.
+fn piped_output(dir: &Path, args: &[&str]) -> String {
+    let mut command = Command::new(PathBuf::from(env!("CARGO_BIN_EXE_mt")));
+    support::isolate(&mut command, dir)
+        .args(args)
+        .current_dir(dir)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    let out = command.output().expect("mt must run");
+    String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
+/// The embedded floor's `[[ls.columns.file.rules]]`: the `file` column stays
+/// opt-in on a terminal, where the `#` handle is the address a reader wants,
+/// and turns itself on in captured output, where that handle is a position in
+/// a view the next command recomputes and the path is the only stable thing to
+/// quote.
+///
+/// Only reachable end to end: an in-process test resolves the rule against an
+/// injected environment, which cannot tell whether the real `IsTerminal` check
+/// is wired to it at all.
+#[test]
+fn the_file_column_turns_itself_on_when_stdout_is_captured() {
+    let dir = support::project_with_task(LONG_TITLE);
+    let on_pty = pty_output(dir.path(), "ls", 200, &[]);
+    let piped = piped_output(dir.path(), &["ls"]);
+
+    assert!(
+        !on_pty.contains("FILE"),
+        "a terminal keeps the file column opt-in\nstdout:\n{on_pty}"
+    );
+    assert!(
+        piped.contains("FILE"),
+        "captured output must carry the path column\nstdout:\n{piped}"
+    );
+}
+
+/// CSV resolves the same column set as the table, so the floor rule scopes
+/// itself with `format() == "table"`. A script parsing `mt ls --format csv`
+/// must not silently gain a column — and it already carries the stable `id`,
+/// so it would gain nothing by it either.
+#[test]
+fn the_file_column_rule_leaves_captured_csv_alone() {
+    let dir = support::project_with_task(LONG_TITLE);
+    let csv = piped_output(dir.path(), &["ls", "--format", "csv"]);
+    let header = csv.lines().next().unwrap_or_default().to_owned();
+
+    assert!(
+        header.contains("id"),
+        "CSV addresses a task by its stable id\nheader: {header}"
+    );
+    assert!(
+        !header.contains("file"),
+        "the table-scoped rule must not reach CSV\nheader: {header}"
+    );
+}
+
 /// `add` opens the editor only when stdin *and* stdout are terminals.
 /// Redirecting only stdin from `/dev/null` leaves stdout on the pty — the one
 /// shape that tells `stdin && stdout` apart from `||`, whose reading would

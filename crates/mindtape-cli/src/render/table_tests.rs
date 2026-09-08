@@ -11,10 +11,13 @@ use super::{render, render_highlighted};
 
 fn with_column(key: &str, visibility: Visibility) -> Config {
     let mut config = Config::default();
-    config
-        .ls
-        .columns
-        .insert(key.to_owned(), ColumnConfig { visibility });
+    config.ls.columns.insert(
+        key.to_owned(),
+        ColumnConfig {
+            visibility,
+            ..ColumnConfig::default()
+        },
+    );
     config
 }
 
