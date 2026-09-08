@@ -336,6 +336,10 @@ scopes:
     - ".just/scripts/release.sh"
   script-script-attr-check:
     - ".just/scripts/script-attr-check.sh"
+  script-script-graph:
+    - ".just/scripts/_script-graph.sh"
+  script-script-graph-control:
+    - ".just/scripts/_script-graph-control.sh"
   script-script-scope-check:
     - ".just/scripts/script-scope-check.sh"
   script-site-pages-fixture-check:
@@ -418,15 +422,13 @@ commands:
   # and `crates/**` is scanned as text through `secrets-tree` like every other
   # file.
   #
-  # `script-gitleaks-bound-check` and `script-gitleaks-bound-control` are wired
-  # BY HAND, like `script-nav-diff` on the two rules below: arm four runs both
-  # script-to-script rather than through `just`, and script-scope-check's arm
-  # two derives scopes from the recipe body it can see. Drop either input and
-  # this rule serves a stale pass over a walk-bound check it never hashed, with
-  # nothing saying so. These are the third and fourth such hand-wiring, which
-  # _nav-diff.sh's header already named as the count that should turn the
-  # derivation transitive instead
-  # (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ).
+  # `script-gitleaks-bound-check` and `script-gitleaks-bound-control` cover the
+  # two bodies arm four runs script-to-script rather than through `just`. They
+  # were wired BY HAND until script-scope-check's arm two learned to walk the
+  # call graph transitively; they are derived now
+  # (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ), so
+  # dropping either fails that gate by name instead of silently serving a stale
+  # pass over a walk-bound check this rule never hashed.
   - name: just check-secrets
     tags: [gate]
     inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets, script-gitleaks-bound-check, script-gitleaks-bound-control]
@@ -465,11 +467,10 @@ commands:
   # crate-map.json/dsl-fields.json against the two prose dicts under
   # www/utils/ (`docs`). `script-check-doc-facts` is the recipe body;
   # `gates-meta` carries the gate-table shape www/generate-facts.sh's
-  # gates.json reads back out of the Justfile. `script-nav-diff` is wired by
-  # hand for check-crap's reason: check-doc-facts.sh's NAV arm now shells out
-  # to .just/scripts/_nav-diff.sh directly, and script-scope-check's arm two
-  # only proves what a recipe's OWN body names, not a script another script
-  # calls — the same nested-call blind spot as check-crap's `just crap`.
+  # gates.json reads back out of the Justfile. `script-nav-diff` is here because
+  # check-doc-facts.sh's NAV arm shells out to .just/scripts/_nav-diff.sh
+  # directly; arm two of script-scope-check walks that hop now rather than
+  # taking it on trust, so the input is derived and dropping it fails by name.
   - name: just check-doc-facts
     tags: [gate]
     inputs: [rust, policy, file-size-config, docs, gates-meta, script-check-doc-facts, script-nav-diff]
@@ -583,10 +584,11 @@ commands:
   #
   # THREE script scopes, because this arm runs three bodies, not one:
   # check-crap.sh shells out to `just _lcov-stale-reason` and then to `just
-  # crap`. `script-scope-check` only proves the DIRECT invocation — the body
-  # the recipe names — so the other two are wired by hand here and stay a
-  # reading exercise; a body reached through a nested `just` is the one case
-  # that check cannot derive.
+  # crap`. That nested-`just` hop was the FIRST body script-scope-check's arm
+  # two could not derive, and the one its transitive walk was finally written
+  # for (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ);
+  # all three are derived now, so dropping one fails that gate rather than
+  # leaving a reading exercise.
   - name: just check-crap
     tags: [gate]
     inputs: [rust, crap-baseline, lcov, gates-meta, script-check-crap, script-crap, script-lcov-stale-reason]
@@ -614,20 +616,26 @@ commands:
   # `dev-docs` sources, so a script dropped from that list must bust this rule.
   # Without it the arm would report a verdict over a file it never hashed —
   # the same false-fresh the arms themselves exist to refuse.
+  #
+  # `script-script-graph` and `script-script-graph-control` are the walk arm two
+  # now asks for its answer and the control that proves the walk still reads an
+  # edge, and they are the first two script inputs on any rule here that NOBODY
+  # TYPED: the walk reads script-scope-check.sh reaching both and derives them,
+  # which is the transitive derivation demonstrating itself
+  # (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ).
   - name: just script-scope-check
     tags: [gate]
-    inputs: [mmz-config, outdatty-config, scripts-all, script-script-scope-check, gates-meta]
+    inputs: [mmz-config, outdatty-config, scripts-all, script-script-scope-check, script-script-graph, script-script-graph-control, gates-meta]
 
   # Replica-tree self-test for the docs manifest gate: two pages declaring the
   # same route and a page with no `<page-meta>` block both drive a `cp -r
   # www` copy of www/generate-site-pages.sh (`docs`, since the fixture is
   # built from the real www/content/**), and a page missing from NAV drives
   # `.just/scripts/_nav-diff.sh` directly against a synthetic pair of route
-  # lists — wired here by hand for the same nested-call reason
-  # `script-nav-diff` is wired onto `just check-doc-facts` above, since
-  # script-scope-check's arm two cannot see a script calling another script.
-  # `script-site-pages-fixture-check` is its own body, `gates-meta` the dev
-  # shell typst/jq come from.
+  # lists — the same script-to-script hop `script-nav-diff` covers on `just
+  # check-doc-facts` above, derived by script-scope-check's arm two rather than
+  # taken on trust. `script-site-pages-fixture-check` is its own body,
+  # `gates-meta` the dev shell typst/jq come from.
   #
   # `rust`, `policy`, `examples` and `file-size-config` arrived when the gate
   # stopped assuming www/generated/ was already on disk and started producing

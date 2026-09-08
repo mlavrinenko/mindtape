@@ -15,15 +15,18 @@
 # `_mutants-env.sh` carries one — every caller here invokes it as a plain
 # script, never through `just`.
 #
-# THAT COSTS A GATE. script-scope-check's arm two derives a rule's scopes from
-# the recipe body it can see, so a script reached script-to-script rather than
-# through `just` is invisible to it: every caller's mmz rule has to name
-# `script-nav-diff` BY HAND or it serves a stale hit after this file changes,
-# and nothing fails to say so. Adding a caller means adding that input to the
-# caller's rule in .mmz/config.yaml (today: `just check-doc-facts` and `just
-# site-pages-fixture-check`, both commented there). This is the second such
-# exemption after check-crap's nested `just crap`; a third is the signal that
-# the derivation needs to follow nested calls instead of the list growing.
+# THAT USED TO COST A GATE. script-scope-check's arm two derived a rule's
+# scopes from the recipe body it could see, so a script reached script-to-script
+# rather than through `just` was invisible to it and every caller's mmz rule had
+# to name `script-nav-diff` BY HAND or serve a stale hit after this file
+# changes, with nothing failing to say so. Adding a caller was a thing to
+# remember. The count this header named as the signal to fix that was reached,
+# and the derivation now follows the hop
+# (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ): a
+# caller that does not name `script-nav-diff` fails the gate with the chain that
+# reached this file. Both callers still carry the input in .mmz/config.yaml
+# (`just check-doc-facts` and `just site-pages-fixture-check`) — what changed is
+# that neither is trusted to.
 #
 # Two failure directions, neither implying the other: a page with no NAV
 # entry is invisible in the sidebar, and a NAV entry naming no real page's

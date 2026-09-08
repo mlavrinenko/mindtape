@@ -24,9 +24,10 @@
 #      in .mmz/config.yaml argues against.
 #   2. Is it named by the RIGHT rule? Arm one passes for a script listed in a
 #      scope no rule reads, or read by some unrelated rule, and the stale hit
-#      survives both. So each rule's recipe body is read back out of `just
-#      --dump` and its declared inputs must cover every script that body
-#      invokes.
+#      survives both. So the call graph from each rule's recipe body is walked
+#      (.just/scripts/_script-graph.sh) and the rule's declared inputs must
+#      cover every script that body REACHES — through another script and
+#      through a nested `just`, not only the ones it names itself.
 #   3. Is it coupled to the docs it can rot, or exempted on purpose? Same
 #      enumeration problem, one file over: `outdatty.yaml`'s `dev-docs` group
 #      lists these scripts one by one, and outdatty reacts only to files it
@@ -58,12 +59,19 @@
 # cannot take an enumeration as its input, because the file it must react to is
 # by definition the one nobody listed.
 #
-# WHAT ARM TWO CANNOT SEE: a body reached through a nested `just`. check-crap.sh
-# shells out to `just crap` and `just _lcov-stale-reason`, so those two scripts
-# are inputs of the `just check-crap` rule by hand, not by derivation. Resolving
-# that transitively would mean interpreting recipe bodies rather than reading
-# them, and a wrong answer there would fail correct manifests. Direct
-# invocation is what a static read can prove, so it is all this arm claims.
+# ARM TWO IS TRANSITIVE, and did not start that way. It used to claim direct
+# invocation only — the scripts a recipe body names itself — so a body reached
+# one hop further was invisible and the caller's rule had to name that scope BY
+# HAND: check-crap's nested `just crap`, then _nav-diff.sh on two rules, then
+# the two gitleaks-bound scripts on `just check-secrets`. That list growing was
+# the signal to derive it instead (truth/tasks/follow-script-to-script-calls-in-
+# the-scope-derivation.typ). The walk lives in .just/scripts/_script-graph.sh,
+# which argues in place what it reads as a call and what it refuses to guess at;
+# this file only asks it which scripts a rule reaches and compares that to the
+# scopes the rule declares. .just/scripts/_script-graph-control.sh runs first,
+# for the reason check-secrets.sh gives for its own control pair: a derivation
+# that quietly stopped following an edge would report every rule covered, which
+# is exactly what a correct manifest reports.
 #
 # Static, like check-doc-recipes.sh and positional-args-check.sh: it reads the
 # manifest, the directory listing and the just dump. No recipe body runs.
@@ -94,25 +102,14 @@ rule_inputs=$(yq -r '
     .commands // [] | .[] | .name as $rule | (.inputs // [])[] | "\($rule)\t\(.)"
 ' "$manifest")
 
-# recipe<TAB>script, for every `.just/scripts/*.sh` path a recipe body invokes.
-# Modules are walked recursively (`docs::md-check`'s body is the reason), and
-# each recipe's `namepath` is already fully qualified, so it maps straight onto
-# the `just <namepath>` rule names the manifest uses. A body line is a list of
-# string and `{{ VAR }}` fragments; the variable fragments are dropped and the
-# rest joined. A line that opens with `#` is a comment in the body — commented
-# out is not invoked — so it is skipped rather than scanned.
-invocations=$(just --dump --dump-format json | jq -r '
-    def all_recipes:
-      ((.recipes // {}) | to_entries | map(.value))
-      + ((.modules // {}) | to_entries | map(.value) | map(all_recipes) | add // []);
-    all_recipes[]
-    | .namepath as $recipe
-    | (.body // [])[]
-    | map(select(type == "string")) | join(" ") | sub("^[ \t]+"; "")
-    | select(startswith("#") | not)
-    | scan("\\.just/scripts/[A-Za-z0-9._-]+\\.sh")
-    | "\($recipe)\t\(.)"
-' | sort -u)
+# recipe<TAB>script<TAB>chain, for every script a recipe body REACHES. The
+# control runs first and fails loudly on its own, so a derivation that stopped
+# following an edge cannot reach arm two and report every rule covered.
+bash .just/scripts/_script-graph-control.sh
+dump=$(mktemp)
+trap 'rm -f "$dump"' EXIT
+just --dump --dump-format json >"$dump"
+reachable=$(bash .just/scripts/_script-graph.sh "$dump")
 
 # ARM ONE: every script on disk is named by some scope, as a literal path.
 for script in "${scripts[@]}"; do
@@ -142,11 +139,11 @@ while IFS=$'\t' read -r scope path; do
     fi
 done <<<"$entries"
 
-# ARM TWO: a rule whose recipe body invokes a script must declare a scope
+# ARM TWO: a rule whose recipe body reaches a script must declare a scope
 # covering it. A glob input counts here — unlike arm one, the question is only
 # whether the body is hashed at all, and `scripts-all` hashes it.
 checked=0
-while IFS=$'\t' read -r recipe script; do
+while IFS=$'\t' read -r recipe script chain; do
     [ -n "$recipe" ] || continue
     rule="just $recipe"
     grep -qxF "$rule" <<<"$(cut -f1 <<<"$rule_inputs")" || continue
@@ -162,11 +159,12 @@ while IFS=$'\t' read -r recipe script; do
         done < <(awk -F'\t' -v s="$scope" '$1 == s { print $2 }' <<<"$entries")
     done < <(awk -F'\t' -v r="$rule" '$1 == r { print $2 }' <<<"$rule_inputs")
     if [ "$covered" -eq 0 ]; then
-        echo "script-scope-check: rule \`$rule\` runs $script but no scope in its inputs names it" >&2
+        echo "script-scope-check: rule \`$rule\` reaches $script but no scope in its inputs names it" >&2
+        echo "  $chain" >&2
         echo "  it would serve a stale hit against a body it never hashed" >&2
         fail=1
     fi
-done <<<"$invocations"
+done <<<"$reachable"
 
 # ARM THREE: every script is a `dev-docs` SOURCE in outdatty.yaml, or is
 # exempted here with the reason. Read from outdatty.yaml rather than
@@ -195,6 +193,11 @@ declare -A dev_docs_exempt=(
     # four assertions, which are what would change. The check it drives IS a
     # source, for the prose that does restate its rules.
     ["_gitleaks-bound-control.sh"]="no doc restates its assertions; gate-notes.typ only names it"
+    # Same shape one gate over: the prose restates what the DERIVATION reads as
+    # a call, which is _script-graph.sh's own subject and makes that file a
+    # source. The control's four cases are what would change here, and no doc
+    # names one.
+    ["_script-graph-control.sh"]="no doc restates its cases; the derivation it drives is the documented part"
 )
 
 dev_docs_sources=$(yq -r '
@@ -247,4 +250,4 @@ if [ "$fail" -ne 0 ]; then
     echo "script-scope-check: the manifests that enumerate .just/scripts/ no longer cover it" >&2
     exit 1
 fi
-echo "script-scope-check: all ${#scripts[@]} scripts are named by a scope and decided about by outdatty's dev-docs group ($exempt exempt), and $checked memoized rules name every body they invoke"
+echo "script-scope-check: all ${#scripts[@]} scripts are named by a scope and decided about by outdatty's dev-docs group ($exempt exempt), and every one of the $checked (rule, reachable body) pairs is named by that rule's own scopes"

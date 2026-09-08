@@ -67,6 +67,7 @@ groups:
       .just/scripts/_gitleaks-bound-check.sh: 5af91f2c877d2b9492e56f183c1890f8282ce8f1ac3f01c32caa88ad109e37d8
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
+      .just/scripts/_script-graph.sh: 8fceccf6f861ef295c8983d30f0a43c450f7be6e6628053c0dbeddd36ee78e54
       .just/scripts/arg-pattern-check.sh: 6fa0158acf6298a132577a7a8059151eccb09b7ebd959ec79e3dbee36ff4fa92
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
       .just/scripts/check-doc-coverage.sh: 480b3c1d877029df53c1f0efb127ac81baa55b664492e5abac912680895449d4
@@ -86,7 +87,7 @@ groups:
       .just/scripts/positional-args-check.sh: a464c92ade574a6506ea2fb0a24a18fbb0b4c29ed5ee6ba3f69ced050a8b4cfa
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
       .just/scripts/script-attr-check.sh: a9c85174cfafb4e0d2edb585ae8c61e0b6cf1fbd2af9e65585f34d4d991d8640
-      .just/scripts/script-scope-check.sh: c84054bff9aec76452bb22f06f7601fb619e92d4770c48e5fe47285daa646c1b
+      .just/scripts/script-scope-check.sh: 7e1b1a51486c8b07e95220611915b7fb132ea9e139310b89e38ad632d6833cce
       .just/scripts/site-pages-fixture-check.sh: aa40e196b692f4c0fb37385bfb5267bdf237c163daa9a57909a36f9cb871d91e
       .just/scripts/size-fixture-check.sh: b9b007683ef8c12a6b911c8f7c966b4cfe74f0160c217c3f7bec978a8743988e
       Justfile: 56a39495b855ede90f78c40d5a81ebb8894d6fad2e04bd48ef638e876d670a0f
@@ -95,7 +96,7 @@ groups:
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
       docs/src/contributing/coverage-crap.typ: 173494b7ad613015a587e7bfff67620f7b2661c42e8b88927c3bc7f6ea9c29ba
-      docs/src/contributing/gates.typ: 81466114cd70842f2ccb0a748f95b935ba26f392e30c1fc149c9b01e8fac5398
+      docs/src/contributing/gates.typ: ba5e6fdf9ccdf354a9173fc744aaddad51e914f90ec4cc4c973d23cad18dc046
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
       docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c
       docs/src/contributing/windows.typ: 247a7f533ec3dc7b69c3047d93a3332e3245f91dcfa830c365d9394bbc576da0

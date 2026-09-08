@@ -387,6 +387,7 @@ groups:
       - .just/scripts/size-fixture-check.sh
       - .just/scripts/script-attr-check.sh
       - .just/scripts/script-scope-check.sh
+      - .just/scripts/_script-graph.sh
       - .just/scripts/site-pages-fixture-check.sh
       - .just/scripts/fork.sh
     dependents:

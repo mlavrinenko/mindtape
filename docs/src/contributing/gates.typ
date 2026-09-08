@@ -90,10 +90,11 @@ listed and the rule running an unlisted script serves a stale hit against a body
 it never hashed.
 
 #just.script-scope-check() pays for that. It set-differences the files on disk
-against the literal paths the scopes name, then reads each rule's recipe body out
-of the just dump to demand that a rule invoking a script declare a scope covering
-it — a second arm, because a script listed in a scope no rule reads passes the
-first while the stale hit survives. A wildcard never counts as naming a script.
+against the literal paths the scopes name, then walks the call graph out of each
+rule's recipe body to demand that a rule reaching a script declare a scope
+covering it — a second arm, because a script listed in a scope no rule reads
+passes the first while the stale hit survives. A wildcard never counts as naming
+a script.
 `outdatty.yaml` enumerates the same directory and lost the same property: a
 script never in its `dev-docs` group couples to no dependent and is reported by
 nothing. A third arm demands a DECISION, not membership (`_nav-diff.sh` and the
@@ -103,6 +104,18 @@ is neither. Three rules keep a directory-wide glob, their subject being the
 directory, not one body in it: #just.check-file-size() (linecop scans every file
 under it), #just.outdatty-check() (nearly every script is a `dev-docs` source)
 and #just.script-scope-check() itself, which must notice a script ARRIVING.
+
+That call graph (`.just/scripts/_script-graph.sh`) is transitive and treats a
+recipe and a script as one kind of node, so a script invoking a script and a
+script shelling out to a nested `just` are the same hop — `script-nav-diff`, the
+two gitleaks-bound scripts on #just.check-secrets() and check-crap.sh's
+#just.crap() were each hand-wired first, which is what a missing derivation looks
+like from the outside. Reading one word too many fails a CORRECT manifest and the
+obvious repair is to add the input rather than fix the reader, so what counts as
+a call is argued line by line in that script, and
+`.just/scripts/_script-graph-control.sh` pins every one of those shapes on a
+synthetic tree before arm two runs: from the tracked tree, the right answer and a
+walk that stopped following edges print the same sentence.
 
 == What the split did and did not buy
 

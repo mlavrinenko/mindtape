@@ -22,14 +22,15 @@
 # reader would run on purpose, and `just check-secrets` running it first is
 # what makes the arm below trustworthy.
 #
-# THAT COSTS THE SAME HAND-WIRING, twice over now: `script-gitleaks-bound-
-# control` and `script-gitleaks-bound-check` are both named BY HAND in `just
-# check-secrets`'s mmz inputs, because script-scope-check's arm two derives a
-# rule's scopes from the recipe body it can see and neither of these is
-# reached through `just`. That is the third and fourth such exemption after
-# _nav-diff.sh's two, which is the count its own header named as the signal
-# that the derivation should follow script-to-script calls instead
-# (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ).
+# THAT COST THE SAME HAND-WIRING, twice over, until it did not:
+# `script-gitleaks-bound-control` and `script-gitleaks-bound-check` had to be
+# named BY HAND in `just check-secrets`'s mmz inputs, because script-scope-
+# check's arm two derived a rule's scopes from the recipe body it could see and
+# neither of these is reached through `just`. Being the third and fourth such
+# exemption is what finally turned that derivation transitive
+# (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ). Both
+# inputs are still there and neither is trusted: the walk reads check-secrets.sh
+# reaching this file and fails that rule by name if its scopes stop covering it.
 #
 # FOUR ASSERTIONS ON ONE RUN, three loud and one silent, because each failure
 # path can rot without touching another: arm one's miss, the unreasoned
