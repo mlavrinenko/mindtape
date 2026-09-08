@@ -58,8 +58,10 @@
 # still refuses a credential in a task file; a task-file-only edit just does
 # not bust this rule's cached pass.
 #
-# ARM FOUR IS ABOUT THE WALK BOUND rather than the tree, and runs last
-# because arm two's verdict never depends on it. Argued where it fires.
+# ARM FOUR IS ABOUT THE WALK BOUND rather than the tree, and lives in
+# .just/scripts/_gitleaks-bound-check.sh rather than here — a separate subject
+# (the manifest, not secrets) that arm two's verdict never depends on, and the
+# 60 lines that made this file 96% of the 300-line Shell cap. Argued there.
 set -eo pipefail
 
 config=".gitleaks.toml"
@@ -223,65 +225,13 @@ fi
 
 # --------------------------------------------------------------- arm four
 
-# THE WALK BOUND IS A HAND COPY, and this arm stops it drifting. gitleaks
-# reads no .gitignore, so the unscoped `paths` allowlist in $config restates
-# by hand what is generated scratch — and half of that list is owned by docs
-# arms `just check` runs in PARALLEL with this one: www/generate.sh deletes
-# and recreates www/generated/ on every run, `tola build` rewrites www/.tola/
-# in place. Missing one costs no coverage (nothing there is committable); it
-# makes arm two DESCEND into a tree another arm is rewriting, stat-ing every
-# child of a directory whose contents are in flux and paying for the walk.
-# What this arm cannot buy is the stat of the bounded directory ITSELF: the
-# allowlist is read after that stat, which is why arm two holds the
-# www/generated/ lock rather than trusting the bound to cover it
-# (truth/tasks/check-secrets-still-logs-an-err-over-www-generated.typ).
-#
-# www/.gitignore IS THE DECLARATION both readers of this tree consult. mmz
-# filters its input walk by it — which is why `secrets-tree`'s `www/**`
-# resolves three files under www/assets/ and none of www/generated/, and why
-# the mmz half of the same race was closed by a line there, not here. gitleaks
-# cannot read it, so this arm demands the bound cover every path it names.
-#
-# WHY ONLY www/.gitignore. Every root-anchored entry there is docs-build
-# output, no exception and no negation, so one rule covers the file. The root
-# .gitignore is a mixed list — `/.cargo/*` carries a tracked exception
-# (`!/.cargo/mutants.toml`) that bounding would hide from the scan, `/result`
-# is a nix symlink, `/skills/*-workspace` is a glob — so the same rule there
-# needs a per-entry decision, not a check. Filed, not pretended away.
-#
-# TWO SHAPES ARE NOT DEMANDED. An unanchored pattern (`.DS_Store`,
-# `.goutputstream-*`) names a class of transient with no fixed location, and a
-# path regex has nothing to say about it; the readers that must skip those do
-# it through www/.gitignore directly. And the BARE path is what must match,
-# never a child: `^www/public/` skips every entry inside www/public/ while
-# still stat-ing www/public/ and descending into it, which bounds nothing —
-# `^www/public(/|$)` does.
-#
-# The allowlist is selected by carrying no `targetRules`: a rule-scoped one is
-# a false-positive silencer (arm one's subject), the unscoped one is the
-# bound. tomlq is the `yq` package's TOML front end, the same dev-shell pin.
-bound=$(tomlq -r '.allowlists[] | select(has("targetRules") | not) | .paths[]' "$config")
-if [ -z "$bound" ]; then
-    echo "check-secrets: $config declares no unscoped path allowlist" >&2
-    echo "  the walk bound this arm reads is gone — restore it, do not delete the arm" >&2
-    exit 1
-fi
+# Its control first, for the reason arm one runs one: a manifest check whose
+# pass looks identical to a check that stopped checking. Then both gitignores
+# the bound is a hand copy of, passed rather than discovered — the script
+# derives each one's prefix from its own path, so a third is covered by being
+# named here. Run rather than `exec`-ed, so the summary below stays this
+# file's last word.
+bash .just/scripts/_gitleaks-bound-control.sh
+bash .just/scripts/_gitleaks-bound-check.sh "$config" .gitignore www/.gitignore
 
-unbounded=""
-while IFS= read -r entry; do
-    # Root-anchored only — which also drops comments and blank lines.
-    [ "${entry#/}" != "$entry" ] || continue
-    path="www${entry%/}"
-    grep -qE -f <(printf '%s\n' "$bound") <<<"$path" || unbounded="$unbounded  $path"$'\n'
-done <www/.gitignore
-
-if [ -n "$unbounded" ]; then
-    echo "check-secrets: www/.gitignore names paths the walk bound in $config misses" >&2
-    printf '%s' "$unbounded" >&2
-    echo "  each is written by a docs arm \`just check\` runs in parallel with this scan," >&2
-    echo "  so the walk must never enter it — add \`^<path>(/|\$)\` (a directory) or" >&2
-    echo "  \`^<path>\$\` (a file) to the allowlist that declares no targetRules" >&2
-    exit 1
-fi
-
-echo "check-secrets: no secrets in the tree, all $(wc -l <<<"$scanned") scanned files are in \`$rule\`'s inputs, and the walk bound covers www/.gitignore"
+echo "check-secrets: no secrets in the tree, all $(wc -l <<<"$scanned") scanned files are in \`$rule\`'s inputs"

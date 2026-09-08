@@ -191,6 +191,10 @@ declare -A dev_docs_exempt=(
     ["install-bin.sh"]="no doc describes the binary install; --list is the only entry point"
     ["uninstall-lib.sh"]="no doc describes it; the inverse of install-lib, named only in its own [doc]"
     ["_typst-package.sh"]="a sourced preamble, no behaviour of its own for a doc to restate"
+    # gate-notes.typ says a control pair runs first; it restates none of the
+    # four assertions, which are what would change. The check it drives IS a
+    # source, for the prose that does restate its rules.
+    ["_gitleaks-bound-control.sh"]="no doc restates its assertions; gate-notes.typ only names it"
 )
 
 dev_docs_sources=$(yq -r '

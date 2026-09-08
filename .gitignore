@@ -1,9 +1,22 @@
+# gitleaks reads no .gitignore, so every anchored entry here is ALSO named by
+# hand in .gitleaks.toml's unscoped `paths` allowlist, and
+# .just/scripts/_gitleaks-bound-check.sh fails if one is not: an unbounded root
+# is a tree the secret scan descends into while a parallel `just check` arm
+# rewrites it. An entry that must NOT be bounded carries a
+# `# gitleaks-bound: exempt — <why>` line directly above it; an entry with no
+# such line is demanded, so a new one is decided about rather than forgotten.
 /.direnv
 /build
 /target
+# gitleaks-bound: exempt — a nix build symlink, never followed without
+# `--follow-symlinks` (measured), so a pattern here would silence a real
+# directory if the name were ever reused for one
 /result
 # Local cargo config (host sccache/RUSTC_WRAPPER) stays out of git, but the
 # tracked cargo-mutants config is the one exception.
+#
+# gitleaks-bound: exempt — bounding the directory would hide the tracked
+# mutants.toml below from the scan, and Go's RE2 has no lookahead to spare it
 /.cargo/*
 !/.cargo/mutants.toml
 # cargo-mutants scratch (mutant build dirs + reports); regenerable via `just mutants`

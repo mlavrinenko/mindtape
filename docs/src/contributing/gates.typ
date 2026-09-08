@@ -68,7 +68,8 @@ itself out of that tree or serialise against its writer. Four instances:
   directory lands one syscall BEFORE the allowlist is consulted, so a `rm -rf`
   between `readdir` and that `lstat` still logs `could not get info` at ERR on an
   exit-0 run — 8 runs in 20, reproduced. So arm two takes the flock above across
-  its scan, and arm four holds the bound to `www/.gitignore`.
+  its scan, and arm four holds the bound to BOTH `.gitignore` files — covered,
+  or `# gitleaks-bound: exempt` — in `.just/scripts/_gitleaks-bound-check.sh`.
 - mmz is stricter under the same rule: it resolves inputs before running the
   command, so a transient file inside a hashed tree that vanishes mid-hash aborts
   the run outright (exit 8, "a file mmz needed could not be read or written").

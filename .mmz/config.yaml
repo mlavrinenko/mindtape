@@ -310,6 +310,10 @@ scopes:
     - ".just/scripts/fmt-fixture-check.sh"
   script-fork:
     - ".just/scripts/fork.sh"
+  script-gitleaks-bound-check:
+    - ".just/scripts/_gitleaks-bound-check.sh"
+  script-gitleaks-bound-control:
+    - ".just/scripts/_gitleaks-bound-control.sh"
   script-install:
     - ".just/scripts/install.sh"
   script-install-bin:
@@ -413,9 +417,19 @@ commands:
   # `mmz-config` scope exists for. No `rust`: nothing is built or run here,
   # and `crates/**` is scanned as text through `secrets-tree` like every other
   # file.
+  #
+  # `script-gitleaks-bound-check` and `script-gitleaks-bound-control` are wired
+  # BY HAND, like `script-nav-diff` on the two rules below: arm four runs both
+  # script-to-script rather than through `just`, and script-scope-check's arm
+  # two derives scopes from the recipe body it can see. Drop either input and
+  # this rule serves a stale pass over a walk-bound check it never hashed, with
+  # nothing saying so. These are the third and fourth such hand-wiring, which
+  # _nav-diff.sh's header already named as the count that should turn the
+  # derivation transitive instead
+  # (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ).
   - name: just check-secrets
     tags: [gate]
-    inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets]
+    inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets, script-gitleaks-bound-check, script-gitleaks-bound-control]
 
   # outdatty.check re-reads every dependent's current content and compares to
   # the lock. Every dependent lives under `rust`/`policy`/`examples`/`docs`, so

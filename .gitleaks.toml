@@ -31,12 +31,21 @@ useDefault = true
 # `gitleaks dir .` walks `target/` and takes 1m44s over 2.09 GB, against 1.5s
 # over 7.5 MB with these), so the gitignored roots are spelled here by
 # hand. Every one is generated scratch — cargo's build dir, cargo-mutants'
-# reports, tola's site output and vdom cache, the live `mt` captures under
-# `www/generated/`, the two favicon rasters, the reference clones under
-# `var/`, `build/`, and the 2000 generated task files of the `examples/large`
-# benchmark fixture. None of them can hold a COMMITTED credential, which is
-# the only thing this gate is looking for, so silencing them costs no
-# coverage.
+# reports, the direnv profile, mmz's freshness records, MindTape's own harvest
+# cache, the skill-eval workspaces, tola's site output and vdom cache, the live
+# `mt` captures under `www/generated/`, the two favicon rasters, the reference
+# clones under `var/`, `build/`, and the 2000 generated task files of the
+# `examples/large` benchmark fixture. None of them can hold a COMMITTED
+# credential, which is the only thing this gate is looking for, so silencing
+# them costs no coverage — and that nothing here silences a committed file is
+# asserted rather than asserted-by-eye, by arm two of
+# `.just/scripts/_gitleaks-bound-check.sh`.
+#
+# `^skills/[^/]*-workspace(/|$)` is the one pattern that is not a literal path,
+# because `/skills/*-workspace` is a glob and every workspace under it is
+# scratch while `skills/mindtape/` beside them is tracked. `[^/]*` rather than
+# `.*`: a gitignore `*` does not cross a `/` either, and `.*` would reach into
+# any depth of a directory nobody ignored.
 #
 # EVERY PATTERN ENDS `(/|$)` RATHER THAN `/`, and the difference is the whole
 # point rather than tidiness. Measured under `--log-level debug` on gitleaks
@@ -60,14 +69,15 @@ useDefault = true
 # by this list
 # (truth/tasks/check-secrets-still-logs-an-err-over-www-generated.typ).
 #
-# This list is coupled to `.gitignore` by hand and by nothing else. For the
-# half of it that `www/.gitignore` declares — everything the docs build owns
-# — arm four of `.just/scripts/check-secrets.sh` is what makes the coupling a
-# gate rather than a habit, and its header argues why the root `.gitignore`
-# cannot be held to the same rule. The rest stays a hand copy: a new
-# gitignored root is not silently missed — the scan either slows down or
-# reports a finding in generated content — but it is missed until someone
-# adds it here.
+# This list is a hand copy of two `.gitignore` files, and
+# `.just/scripts/_gitleaks-bound-check.sh` is what makes that coupling a gate
+# rather than a habit: every anchored entry of the root `.gitignore` and of
+# `www/.gitignore` must be covered here, or carry a `# gitleaks-bound: exempt`
+# line above it recording why not. Two entries do — `/.cargo/*`, whose tracked
+# `!/.cargo/mutants.toml` exception no path regex can spare (Go's RE2 has no
+# lookahead), and `/result`, the nix build symlink gitleaks never follows.
+# Adding an entry to either file without deciding about it is a red gate, so
+# what used to be missed until someone remembered now fails by name.
 [[allowlists]]
 description = "generated, gitignored scratch: nothing here is committable"
 paths = [
@@ -75,6 +85,10 @@ paths = [
   '''^mutants\.out(\.old)?(/|$)''',
   '''^var(/|$)''',
   '''^build(/|$)''',
+  '''^\.direnv(/|$)''',
+  '''^\.mmz/cache(/|$)''',
+  '''^\.mindtape/cache(/|$)''',
+  '''^skills/[^/]*-workspace(/|$)''',
   '''^examples/large/tasks(/|$)''',
   '''^www/public(/|$)''',
   '''^www/generated(/|$)''',

@@ -91,10 +91,17 @@
     enumeration that stands in for "the whole tree" (`.mmz/config.yaml` has no
     negative glob, and `truth/tasks/**` may not be named by a gate-tagged
     rule) fails by name rather than going quietly false-fresh. A fourth arm
-    holds the walk bound to `www/.gitignore`: every path that file names must
-    be covered, because each is written by a docs arm running in parallel with
-    the scan, and an uncovered one has the walk descend into a tree being
-    rewritten under it. The bound stops there — the `lstat` of the bounded
+    (`.just/scripts/_gitleaks-bound-check.sh`, run against a synthesized
+    control pair first for the same false-green reason) holds the walk bound to
+    BOTH `.gitignore` files: every anchored entry either appears in the bound
+    or carries a `# gitleaks-bound: exempt — <why>` line above it, and no bound
+    pattern may match a file git tracks. Uncovered scratch has the walk descend
+    into a tree a parallel arm is rewriting; an over-wide pattern silences a
+    committed file, which is the only way an allowlist can cost coverage.
+    Two entries are exempt and say so where they live — `/.cargo/*`, whose
+    tracked `!/.cargo/mutants.toml` exception RE2 has no lookahead to spare,
+    and `/result`, a nix symlink gitleaks never follows. The bound stops
+    there — the `lstat` of the bounded
     directory itself precedes the allowlist check, so the scan holds the
     `target/www-generated.lock` flock across its walk rather than trusting the
     bound to stop the `ERR` a concurrent `rm -rf` logs on a run it still exits

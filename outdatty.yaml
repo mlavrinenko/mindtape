@@ -349,6 +349,15 @@ groups:
   # deliberately — the prose describes the arms, not the ruleset, so an
   # allowlist edit rots no dependent, while a change to what the fixture
   # asserts rots the paragraph describing it.
+  #
+  # _gitleaks-bound-check.sh is the eighth, and joins for check-secrets.sh's
+  # reason rather than _nav-diff.sh's — the underscore says no `just` recipe
+  # wraps it, not that no doc depends on it. Both gates.typ and gate-notes.typ
+  # restate what it demands by hand: that the bound covers BOTH `.gitignore`
+  # files, the `# gitleaks-bound: exempt` line that opts an entry out, and the
+  # two entries that use it. Change the marker's spelling or drop an arm and
+  # that prose is wrong with nothing else reacting
+  # (truth/tasks/hold-the-root-gitignore-to-the-gitleaks-walk-bound.typ).
   - name: dev-docs
     source:
       - flake.nix
@@ -359,6 +368,7 @@ groups:
       - .just/scripts/check-doc-facts.sh
       - .just/scripts/check-doc-recipes.sh
       - .just/scripts/check-secrets.sh
+      - .just/scripts/_gitleaks-bound-check.sh
       - .just/scripts/fmt-fixture-check.sh
       - .just/scripts/arg-pattern-check.sh
       - .just/scripts/check-crap.sh
