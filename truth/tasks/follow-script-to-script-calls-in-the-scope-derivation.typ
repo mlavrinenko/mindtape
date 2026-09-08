@@ -11,7 +11,7 @@
   tags: ("gating",),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 9, 8),
+  status: done(2026, 9, 8),
 )
 
 == Summary
