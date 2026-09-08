@@ -11,7 +11,11 @@
   tags: ("gating",),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 9, 7),
+  status: done(
+    2026,
+    9,
+    8,
+  )[bounded /.direnv, /.mindtape/cache/, .mmz/cache/ and /skills/\*-workspace; /.cargo/\* and /result exempt with the reason recorded in .gitignore; the arm now covers both files, refuses a pattern hiding a tracked file, and is pinned by a control pair],
 )
 
 == Summary
