@@ -11,7 +11,11 @@
   tags: ("gating",),
   estimate: (files: 6),
   assignee: "agent",
-  status: proposed(2026, 9, 8),
+  status: done(
+    2026,
+    9,
+    8,
+  )[arm two holds target/www-generated.lock across the walk, with a flock -n probe asserting the hold; 8/20 before, 0/20 after],
   links: related(
     "check-secrets-races-the-docs-arm-over-www-generated.typ",
   )[the same race; that task closed the descent and the mmz half, this one the stat of the directory itself],
