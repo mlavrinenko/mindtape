@@ -67,7 +67,7 @@ override for one run with `--columns`. A `file` column (the task's source
 path) exists but is opt-in on a terminal — its cell is never blank, so the
 ordinary auto-hide rule cannot apply to it; name it explicitly (`--columns
 '#,title,file'`, a view, an `[[ls.rules]]` columns override, or `[ls.columns.file]
-visibility = "visible"`) to see it. Its cell is relative to the working
+when = 'true'`) to see it. Its cell is relative to the working
 directory (what an IDE-integrated terminal ctrl-clicks straight to) — a
 display, not a filterable value: the field that compares a task's path is
 #link(u("/filters/"))[`path`], and it is root-relative.
@@ -88,44 +88,44 @@ renderer had already settled this: `--json` carries `id` and `file` and no
 handle at all, and `--format csv` substitutes `id` for `#`. The table was the
 last surface handing out a positional id with no stable identity beside it.
 
-The mechanism is a conditional visibility rule the embedded floor ships, not a
-special case in the renderer:
+The mechanism is a line of the embedded floor, not a special case in the
+renderer:
 
 ```toml
-[[ls.columns.file.rules]]
-condition = '!tty() && format() == "table"'
-visibility = "visible"
+[ls.columns.file]
+when = 'named() || (!tty() && format() == "table")'
 ```
 
-`[[ls.columns.<name>.rules]]` takes the same
-#link(u("/cli/"))[condition language] as `[[ls.rules]]`, first match wins, and
-a matching rule beats the column's own `visibility` key — rules #emph[are] the
-override mechanism, so the other direction would make them unwritable. Two
-predicates carry this rule: `tty()` (is stdout a terminal) and `format()` (the
-active `--format` name). The floor rule names `table` because `csv` resolves
-the same column set and is a data contract — a script parsing it must not
-silently gain a column, and it already carries `id`.
+`[ls.columns.<name>] when` is one boolean expression in the same
+#link(u("/cli/"))[condition language] `[[ls.rules]]` takes, and it is the
+whole answer to "does this column render" — no list, so no ordering and no
+precedence to know. Three predicates carry this one: `named()` (did the caller
+ask for this column), `tty()` (is stdout a terminal) and `format()` (the active
+`--format` name). It names `table` because `csv` resolves the same column set
+and is a data contract — a script parsing it must not silently gain a column,
+and it already carries `id`.
 
-A column's rules are resolved against the rows they would render, so a
-condition can also read what the listing says: `nonempty()`, `contested()`,
-`named()` and `blocked()` are the four facts `auto` itself decides from —
-`file` is `named()`, `assignee` is `contested()`, `ready` is `blocked()`, and
-every other column is `nonempty()`. Writing one of them in a rule says in
-config what `auto` would have said in Rust, for a column where the built-in
-answer is the wrong one.
+A `when` is resolved against the rows it would render, so it can read what the
+listing says: `nonempty()` (any cell carries text), `contested()` (the rows
+disagree), `named()`, and `blocked()` (some listed task is blocked). Those four
+are what let every column's visibility live in config rather than in the
+renderer, and the floor uses all of them: `#` and `title` are `true`,
+`status`, `priority` and `due` are `nonempty()`, `assignee` is `contested()`,
+`ready` is `blocked()`, and `file` is the expression above.
 
-To opt out, set `rules = []` under `[ls.columns.file]`: an array replaces
-rather than merges across config layers, so the empty list drops the inherited
-rule. Setting `visibility` alone will not do it.
+So the floor is the complete statement of what `mt ls` shows. A project
+overrides one column by writing its own `when` — a scalar replaces wholesale
+across config layers, so `when = 'false'` on one line turns a column off — and
+a column with no `when` at all never renders.
 
-An `assignee` column auto-hides on a third rule again: it shows only when the
+An `assignee` column auto-hides on a rule of its own: it shows only when the
 listed rows disagree about who works them. A listing already narrowed to one
 actor (`mt ls @agent`, or any `assignee == "…"` filter) learns nothing from a
 column repeating that name down every row, so it does not grow one — while a
 mixed listing shows the split without being asked. An unassigned row counts as
 its own value, so a half-assigned listing is a mixed one. Naming the column
 does not override this, the same way an explicitly listed `priority` stays
-hidden when nothing scores one; `[ls.columns.assignee] visibility = "visible"`
+hidden when nothing scores one; `[ls.columns.assignee] when = 'true'`
 is the override.
 
 The `#` column is a handle: an ordinal followed by check characters derived
@@ -196,10 +196,11 @@ the table footer names it the same way a manual filter would.
 
 = Conditional rules
 
-Two things take a `condition`: `[[ls.rules]]`, which picks the whole listing
-bundle for a bare `mt ls`, and `[[ls.columns.<name>.rules]]`, which picks one
-column's visibility for any `mt ls`. Both read the same mini-language against
-the same ambient facts, so a condition means one thing wherever it is written.
+Two keys take an expression in this language: `[[ls.rules]]`'s `condition`,
+which picks the whole listing bundle for a bare `mt ls`, and
+`[ls.columns.<name>]`'s `when`, which decides one column's visibility for any
+`mt ls`. Both read the same mini-language against the same ambient facts, so an
+expression means one thing wherever it is written.
 
 Ordered `[[ls.rules]]` entries let bare `mt ls` adapt to ambient project state
 — see #link(u("/config/"))[Config] for the table shape. The first entry whose

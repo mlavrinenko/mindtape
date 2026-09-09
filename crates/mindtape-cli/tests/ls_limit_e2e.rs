@@ -10,19 +10,13 @@
 //! the exact failure `--limit` exists to avoid.
 #![allow(clippy::unwrap_used)]
 
-use std::path::Path;
-
 mod support;
+
+use support::stdout;
 
 /// Three listable tasks, titled so a `--sort title` run has a decidable order.
 fn scaffold() -> tempfile::TempDir {
     support::project_with_tasks(&[("a.typ", "Alpha"), ("b.typ", "Beta"), ("c.typ", "Gamma")])
-}
-
-fn stdout(dir: &Path, args: &[&str]) -> String {
-    let out = support::mt(dir).args(args).output().unwrap();
-    assert!(out.status.success(), "mt {args:?} failed: {out:?}");
-    String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
 #[test]

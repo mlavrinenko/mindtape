@@ -70,13 +70,12 @@ impl ConditionEnv {
     }
 }
 
-/// What one `mt ls` column's `auto` decision is made from: three facts about
-/// the column against the selected rows, and one about the listing.
+/// What one `mt ls` column's `[ls.columns.<name>] when` decides against: three
+/// facts about the column against the selected rows, and one about the listing.
 ///
-/// These are the predicates a `[[ls.columns.<name>.rules]]` condition needs in
-/// order to say what the render layer's `auto` already means, which is what
-/// makes the three meanings of `auto` writable in config rather than buried in
-/// a Rust match.
+/// These are the predicates that let a `when` expression say everything the
+/// render layer used to decide for itself, which is what moved the per-column
+/// visibility policy out of a Rust match and into the embedded floor.
 // Four independent, orthogonal facts, one per predicate — the lint's advice
 // (a state machine, or two-variant enums) would name states this record does
 // not have and cost the predicate table its one-field-per-call shape.
@@ -103,8 +102,8 @@ pub struct ColumnFacts {
     /// `blocked()`: at least one listed task is blocked on an unmet
     /// dependency. A property of the listing, not of the column, so it reads
     /// the same for every column — it lives here because it is the `ready`
-    /// column's `auto` significance, and that significance is not
-    /// [`Self::nonempty`]: a listing where every task is ready has non-blank
-    /// `ready` cells and nothing worth a column.
+    /// column's whole `when`, and that is not [`Self::nonempty`]: a listing
+    /// where every task is ready has non-blank `ready` cells and nothing worth
+    /// a column.
     pub blocked: bool,
 }

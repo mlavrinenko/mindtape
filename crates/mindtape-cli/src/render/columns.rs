@@ -1,24 +1,27 @@
 //! Column descriptors for the `ls` table.
 //!
-//! One place maps each [`mindtape::LS_COLUMNS`] name to its header label, its
-//! per-task [`CellSpec`] builder, and its auto-significance test. `table.rs`
-//! drives rendering off a resolved list of these, so column order and
-//! visibility are data, not hardcoded control flow.
+//! One place maps each [`mindtape::LS_COLUMNS`] name to its header label and
+//! its per-task [`CellSpec`] builder. `table.rs` drives rendering off a
+//! resolved list of these, so column order and visibility are data, not
+//! hardcoded control flow.
 //!
 //! # Why visibility resolves here
 //!
-//! A column's `auto` significance is a fact about the rows — whether any cell
-//! carries text, whether the rows disagree, whether anything is blocked — and a
-//! `[[ls.columns.<name>.rules]]` condition can now ask for exactly those facts
-//! (`nonempty()`, `contested()`, `named()`, `blocked()`). So the two cannot be
-//! resolved in different places any more: this module is where the rows are, so
-//! this is where the conditions are evaluated, against the same
-//! [`mindtape::ColumnFacts`] `auto` itself reads.
+//! Whether a column renders is `[ls.columns.<name>] when`, and that expression
+//! reads facts about the rows — whether any cell carries text, whether the rows
+//! disagree, whether anything is blocked (`nonempty()`, `contested()`,
+//! `blocked()`) — plus whether the caller named the column (`named()`). This
+//! module is where the rows are, so this is where the expression is evaluated,
+//! against the [`mindtape::ColumnFacts`] built here per column.
+//!
+//! No visibility policy lives in this file. The per-column defaults are lines
+//! of `crates/mindtape/src/defaults.toml`, and a column with no `when` at all
+//! does not render.
 
 use anyhow::{Context, Result};
 use mindtape::{
-    ColumnConfig, ColumnFacts, Condition, ConditionEnv, Config, Readiness, ReadyState, Task,
-    Visibility, format_iso, today_iso,
+    ColumnFacts, Condition, ConditionEnv, Config, Readiness, ReadyState, Task, format_iso,
+    today_iso,
 };
 
 use super::RenderCtx;
@@ -42,9 +45,9 @@ pub enum ColumnId {
 }
 
 /// Built-in column order, used when `[ls] columns-order` is unset. `File` is
-/// last: it never renders unless named explicitly (see
-/// [`ColumnId::auto_significant`]), so appending it after `Title` cannot
-/// disturb the built-in look of an unconfigured `mt ls`.
+/// last: under the shipped floor it renders only when named explicitly or when
+/// the output is a captured table, so appending it after `Title` cannot disturb
+/// the built-in look of an unconfigured `mt ls` on a terminal.
 ///
 /// `Assignee` sits with the other short scalars, before the flex `Title`,
 /// rather than being tacked on at the end like `File`: when it renders at all
@@ -128,9 +131,9 @@ impl ColumnId {
         }
     }
 
-    /// The listing facts this column's visibility is decided from — the same
-    /// four a `[[ls.columns.<name>.rules]]` condition reads as `nonempty()`,
-    /// `contested()`, `named()` and `blocked()`.
+    /// The listing facts this column's `when` expression is decided against —
+    /// the four it reads as `nonempty()`, `contested()`, `named()` and
+    /// `blocked()`.
     ///
     /// `nonempty` and `contested` come from one pass over the rows, which
     /// stops as soon as both are settled: a column whose first two cells
@@ -165,72 +168,32 @@ impl ColumnId {
         facts
     }
 
-    /// Whether the column carries something worth a column under `auto`
-    /// visibility — the built-in policy, one [`ColumnFacts`] field per arm.
+    /// Resolve this column's visibility for one run: evaluate
+    /// `[ls.columns.<key>] when` against the facts `env` carries.
     ///
-    /// `#` and `title` are never blank; `ready` shows only when something is
-    /// blocked, which is narrower than `nonempty` (a listing where every task
-    /// is ready has a label in every cell and nothing to report). `file` is
-    /// never blank either but that must *not* make it significant — its cell
-    /// always has text, so the ordinary rule would pin it permanently visible
-    /// and there would be no opt-in at all; its significance is `named`
-    /// instead. `assignee` is significant only when the rows disagree — a
-    /// listing already narrowed to one actor learns nothing from a column
-    /// repeating that name. The rest show when any cell has text.
-    #[must_use]
-    pub fn auto_significant(self, facts: ColumnFacts) -> bool {
-        match self {
-            ColumnId::Handle | ColumnId::Title => true,
-            ColumnId::File => facts.named,
-            ColumnId::Ready => facts.blocked,
-            ColumnId::Assignee => facts.contested,
-            _ => facts.nonempty,
-        }
-    }
-
-    /// Resolve this column's visibility for one run: the first matching
-    /// `rules` entry, else `[ls.columns.<key>] visibility`; `visible` always
-    /// renders, `hidden` never, `auto` defers to [`ColumnId::auto_significant`]
-    /// over the facts `env` carries.
+    /// A column the config does not describe — no entry, or an entry with no
+    /// `when` — does not render. The embedded floor carries one per column, so
+    /// reaching that case means a config layer deleted the column's answer, not
+    /// that a built-in one is waiting.
+    ///
+    /// # Errors
+    /// Returns an error naming the column if the expression fails to parse or
+    /// evaluate. Config load already validates every one of them, so this only
+    /// recurs for a config built in memory rather than parsed.
     fn visible(self, config: &Config, env: &ConditionEnv) -> Result<bool> {
-        let visibility = rule_visibility(self.key(), config.ls.columns.get(self.key()), env)?;
-        Ok(match visibility {
-            Visibility::Visible => true,
-            Visibility::Hidden => false,
-            Visibility::Auto => self.auto_significant(env.column),
-        })
-    }
-}
-
-/// The visibility a column's `rules` resolve to: the first entry whose
-/// condition holds (or that omits one) wins and beats the column's own
-/// `visibility` key — rules ARE the override mechanism, so the other direction
-/// would make them unwritable. No column config at all is the `auto` default.
-///
-/// # Errors
-/// Returns an error naming the column and rule index if a condition fails to
-/// parse or evaluate. Config load already validates every one of them, so this
-/// only recurs for a config built in memory rather than parsed.
-fn rule_visibility(
-    key: &str,
-    column: Option<&ColumnConfig>,
-    env: &ConditionEnv,
-) -> Result<Visibility> {
-    let Some(column) = column else {
-        return Ok(Visibility::default());
-    };
-    for (index, rule) in column.rules.iter().enumerate() {
-        let holds = match &rule.condition {
-            None => true,
-            Some(expr) => Condition::parse(expr)
-                .and_then(|condition| condition.matches(env))
-                .with_context(|| format!("ls.columns.{key}.rules[{index}].condition {expr:?}"))?,
+        let key = self.key();
+        let Some(expr) = config
+            .ls
+            .columns
+            .get(key)
+            .and_then(|column| column.when.as_deref())
+        else {
+            return Ok(false);
         };
-        if holds {
-            return Ok(rule.visibility);
-        }
+        Condition::parse(expr)
+            .and_then(|condition| condition.matches(env))
+            .with_context(|| format!("ls.columns.{key}.when {expr:?}"))
     }
-    Ok(column.visibility)
 }
 
 /// The render order (built-in or `[ls] columns-order`), filtered to the
@@ -240,12 +203,12 @@ fn rule_visibility(
 /// columns render and in what order — only their per-cell formatting differs.
 ///
 /// Each column is resolved against `ctx.env` with its own [`ColumnFacts`]
-/// swapped in, so a condition asking `nonempty()` gets this column's answer
-/// and the next column's condition gets its own.
+/// swapped in, so a `when` asking `nonempty()` gets this column's answer and
+/// the next column's `when` gets its own.
 ///
 /// # Errors
-/// Returns an error if a column's `rules` condition fails to parse or
-/// evaluate (see [`rule_visibility`]).
+/// Returns an error if a column's `when` fails to parse or evaluate (see
+/// [`ColumnId::visible`]).
 pub fn resolve_order(handles: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<Vec<ColumnId>> {
     // Whether the render order was explicitly named — `ls.rs` assigns
     // `columns_order` uniformly for `--columns`, a view's `columns`, and an

@@ -186,6 +186,14 @@ pub fn run_ok(dir: &Path, args: &[&str]) {
     mt(dir).args(args).assert().success();
 }
 
+/// Run `mt` in `dir`, assert it succeeds, and return its stdout — [`run_ok`]
+/// for the tests that assert on what was printed rather than only that it was.
+pub fn stdout(dir: &Path, args: &[&str]) -> String {
+    let out = mt(dir).args(args).output().unwrap();
+    assert!(out.status.success(), "mt {args:?} failed: {out:?}");
+    String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
 /// File a task in `dir` via `mt add --name <name> --set title=T <extra_set…>`,
 /// then assert `mt ls` and `mt check` both succeed against it. Shared by the
 /// `init` e2e batteries that prove a scaffolded preset or answer set is usable

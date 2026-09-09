@@ -92,7 +92,7 @@ Sections whose shape needs more than one line get a deep dive further down.
   `[tasks.derive-tags]`, `[tasks.priority]` / `[tasks.difficulty]`, and
   `[views]` / `[ls]` / `[rm]` in full; the #link(u("/cli/"))[CLI reference]
   covers `[[ls.rules]]`, the `file` column and its conditional
-  `[[ls.columns.<name>.rules]]`, and `[ls] hyperlinks` / `hyperlink-target`.
+  `[ls.columns.<name>] when`, and `[ls] hyperlinks` / `hyperlink-target`.
 ]
 
 = Body shape: headings and section content
@@ -700,8 +700,8 @@ filter = '!terminal && due <= "2026-08-01"'   # optional manual override (highes
   when unset.
 - `condition` — a #link(u("/cli/"))[condition-language] expression over
   `on_branch`/`tty`/`env`/`weekday`/`now`/`format`; absent matches always. The
-  same language gates one column's visibility in
-  `[[ls.columns.<name>.rules]]`, where four more predicates —
+  same language gates one column's visibility in `[ls.columns.<name>] when`,
+  where four more predicates —
   `nonempty()`/`contested()`/`named()`/`blocked()` — describe the listed rows
   and the column request. Those four read `false` here: an `[[ls.rules]]`
   entry picks the whole bundle, so no column is being resolved when it runs.

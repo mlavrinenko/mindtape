@@ -1,8 +1,8 @@
 #![allow(clippy::unwrap_used)]
 use mindtape::config::Config;
 use mindtape::numeric::NumValue;
-use mindtape::test_support::bare_task;
-use mindtape::{Readiness, today_iso};
+use mindtape::test_support::{bare_task, floor_config};
+use mindtape::{ConditionEnv, Readiness, today_iso};
 
 use super::super::TestCtx;
 use super::*;
@@ -11,21 +11,25 @@ fn rows<'a>(data: &[(&'a str, &'a Task)]) -> Vec<(String, &'a Task)> {
     data.iter().map(|(h, t)| (h.to_string(), *t)).collect()
 }
 
-/// The `auto` outcome for one column over `rows` — the [`ColumnId::facts`] /
-/// [`ColumnId::auto_significant`] pair `resolve_order` runs, kept together so
-/// a test asserts on the decision rather than on either half of it.
-fn significant(
-    col: ColumnId,
-    rows: &[(String, &Task)],
-    config: &Config,
-    readiness: &Readiness,
-    named: bool,
-) -> bool {
-    col.auto_significant(col.facts(rows, config, readiness, named))
+/// Whether the shipped floor's `when` for `col` resolves true over `rows`.
+///
+/// The per-column policy used to be a Rust match (`auto_significant`) and is
+/// now one `when` expression per column in `defaults.toml`, so these tests ask
+/// the floor rather than a fixture restating it: a fixture would pass while the
+/// floor said anything. `named` is the request fact `resolve_order` derives
+/// from `[ls] columns-order`; the environment is otherwise blank, which is the
+/// captured-but-formatless shape (`!tty()`, no `format()`).
+fn shows(col: ColumnId, rows: &[(String, &Task)], readiness: &Readiness, named: bool) -> bool {
+    let config = floor_config();
+    let env = ConditionEnv {
+        column: col.facts(rows, &config, readiness, named),
+        ..ConditionEnv::default()
+    };
+    col.visible(&config, &env).unwrap()
 }
 
-/// The render order `config` resolves for `rows`. No fixture here declares a
-/// column rule, so the resolution cannot fail.
+/// The render order `config` resolves for `rows`. Every fixture here carries a
+/// parseable `when`, so the resolution cannot fail.
 fn order_for(config: &Config, rows: &[(String, &Task)], readiness: Readiness) -> Vec<ColumnId> {
     let fixture = TestCtx {
         config: config.clone(),
@@ -51,114 +55,100 @@ fn status_is_not_flex() {
 }
 
 #[test]
-fn handle_always_significant() {
-    assert!(significant(
-        ColumnId::Handle,
-        &[],
-        &Config::default(),
-        &Readiness::default(),
-        false
-    ));
+fn handle_always_renders() {
+    assert!(shows(ColumnId::Handle, &[], &Readiness::default(), false));
 }
 
 #[test]
-fn title_always_significant() {
-    assert!(significant(
-        ColumnId::Title,
-        &[],
-        &Config::default(),
-        &Readiness::default(),
-        false
-    ));
+fn title_always_renders() {
+    assert!(shows(ColumnId::Title, &[], &Readiness::default(), false));
 }
 
 #[test]
-fn ready_not_significant_for_uncontested() {
+fn ready_hidden_when_nothing_is_blocked() {
     let task = bare_task("t");
-    let config = Config::default();
-    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
+    let readiness = Readiness::compute(std::slice::from_ref(&task), &Config::default());
     assert!(
-        !significant(
-            ColumnId::Ready,
-            &rows(&[("1c", &task)]),
-            &config,
-            &readiness,
-            false
-        ),
-        "ready column must not be significant when no task is blocked"
+        !shows(ColumnId::Ready, &rows(&[("1c", &task)]), &readiness, false),
+        "ready column must not render when no task is blocked"
     );
 }
 
+/// The reason `ready` reads `blocked()` rather than `nonempty()`: on an
+/// all-ready listing every cell carries a label, so the two disagree, and the
+/// column that says "something is stuck" must follow the one that means it.
 #[test]
-fn priority_significant_when_set() {
+fn ready_reads_blocked_not_nonempty() {
+    let task = bare_task("t");
+    let config = floor_config();
+    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
+    let facts = ColumnId::Ready.facts(&rows(&[("1c", &task)]), &config, &readiness, false);
+    assert!(
+        facts.nonempty,
+        "a ready task renders a label, so the cells are not blank"
+    );
+    assert!(!facts.blocked, "nothing here is blocked");
+}
+
+#[test]
+fn priority_renders_when_set() {
     let mut task = bare_task("t");
     task.priority = Some(NumValue::Num(5.0));
-    let config = Config::default();
-    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
+    let readiness = Readiness::compute(std::slice::from_ref(&task), &Config::default());
     assert!(
-        significant(
+        shows(
             ColumnId::Priority,
             &rows(&[("1c", &task)]),
-            &config,
             &readiness,
             false
         ),
-        "priority column must be significant when at least one task has a value"
+        "priority column must render when at least one task has a value"
     );
 }
 
 #[test]
-fn priority_not_significant_when_unset() {
+fn priority_hidden_when_unset() {
     let task = bare_task("t");
-    let config = Config::default();
-    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
+    let readiness = Readiness::compute(std::slice::from_ref(&task), &Config::default());
     assert!(
-        !significant(
+        !shows(
             ColumnId::Priority,
             &rows(&[("1c", &task)]),
-            &config,
             &readiness,
             false
         ),
-        "priority column must not be significant when no task has a value"
+        "priority column must not render when no task has a value"
     );
 }
 
 #[test]
-fn file_not_significant_under_built_in_order() {
-    // The crux of the opt-in design: `file`'s cell is never blank, so
-    // the ordinary "non-empty means significant" rule cannot apply to it
-    // — it would pin the column permanently visible. Significance is
-    // instead `explicit_order` alone.
+fn file_hidden_under_built_in_order() {
+    // The crux of the opt-in design: `file`'s cell is never blank, so the
+    // ordinary `nonempty()` rule cannot apply to it — it would pin the column
+    // permanently visible. The floor gives it `named()` instead.
     let task = bare_task("t");
-    let config = Config::default();
-    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
     assert!(
-        !significant(
+        !shows(
             ColumnId::File,
             &rows(&[("1c", &task)]),
-            &config,
-            &readiness,
+            &Readiness::default(),
             false
         ),
-        "file column must not be significant under the built-in (non-explicit) order"
+        "file column must not render under the built-in (non-explicit) order"
     );
 }
 
 #[test]
-fn file_significant_when_order_explicit() {
+fn file_renders_when_order_explicit() {
     let task = bare_task("t");
-    let config = Config::default();
-    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
     assert!(
-        significant(
+        shows(
             ColumnId::File,
             &rows(&[("1c", &task)]),
-            &config,
-            &readiness,
+            &Readiness::default(),
             true
         ),
-        "file column must be significant once the render order is explicitly named"
+        "file column must render once the render order is explicitly named"
     );
 }
 
@@ -232,14 +222,13 @@ fn assigned(id: &str, who: Option<&str>) -> Task {
     task
 }
 
-/// Whether the `assignee` column is significant across a two-row listing with
-/// these assignees, under the built-in (non-explicit) order.
-fn assignee_significant(a: Option<&str>, b: Option<&str>) -> bool {
+/// Whether the floor renders the `assignee` column across a two-row listing
+/// with these assignees, under the built-in (non-explicit) order.
+fn assignee_shows(a: Option<&str>, b: Option<&str>) -> bool {
     let (a, b) = (assigned("a", a), assigned("b", b));
-    significant(
+    shows(
         ColumnId::Assignee,
         &rows(&[("1a", &a), ("2b", &b)]),
-        &Config::default(),
         &Readiness::default(),
         false,
     )
@@ -259,14 +248,14 @@ fn assignee_rendered(config: &Config, a: &str, b: &str) -> bool {
     assignee_order(config, a, b).contains(&ColumnId::Assignee)
 }
 
-/// A config pinning `[ls.columns.assignee] visibility`.
-fn assignee_visibility(visibility: Visibility) -> Config {
-    let mut config = Config::default();
+/// The floor with `[ls.columns.assignee] when` replaced. A scalar replaces
+/// wholesale across config layers, so this is exactly what a project writes.
+fn assignee_when(when: &str) -> Config {
+    let mut config = floor_config();
     config.ls.columns.insert(
         "assignee".to_owned(),
         mindtape::ColumnConfig {
-            visibility,
-            ..mindtape::ColumnConfig::default()
+            when: Some(when.to_owned()),
         },
     );
     config
@@ -287,54 +276,53 @@ fn assignee_cell_renders_the_actor_name() {
 }
 
 #[test]
-fn assignee_not_significant_when_every_row_agrees() {
+fn assignee_hidden_when_every_row_agrees() {
     // The crux of the contested design: `mt ls @agent` is already narrowed to
     // one actor, so a column repeating that name down every row says nothing
     // the filter did not. The ordinary "any cell has text" rule would show it.
     assert!(
-        !assignee_significant(Some("agent"), Some("agent")),
-        "assignee must not be significant when every row carries the same name"
+        !assignee_shows(Some("agent"), Some("agent")),
+        "assignee must not render when every row carries the same name"
     );
 }
 
 #[test]
-fn assignee_significant_when_rows_disagree() {
+fn assignee_renders_when_rows_disagree() {
     assert!(
-        assignee_significant(Some("agent"), Some("max")),
-        "assignee must be significant once a listing mixes two actors"
+        assignee_shows(Some("agent"), Some("max")),
+        "assignee must render once a listing mixes two actors"
     );
 }
 
 #[test]
-fn assignee_not_significant_when_nobody_is_assigned() {
+fn assignee_hidden_when_nobody_is_assigned() {
     assert!(
-        !assignee_significant(None, None),
-        "assignee must not be significant when no task carries one"
+        !assignee_shows(None, None),
+        "assignee must not render when no task carries one"
     );
 }
 
 #[test]
-fn assignee_significant_when_only_some_rows_are_assigned() {
+fn assignee_renders_when_only_some_rows_are_assigned() {
     // An absent assignee counts as its own value, so the blanks are what makes
     // this listing contested — reading which rows are unassigned is the point.
     assert!(
-        assignee_significant(Some("agent"), None),
+        assignee_shows(Some("agent"), None),
         "a half-assigned listing must be contested"
     );
     assert!(
-        assignee_significant(None, Some("agent")),
+        assignee_shows(None, Some("agent")),
         "the blank arriving first must be contested too"
     );
 }
 
 #[test]
-fn assignee_not_significant_on_a_single_row() {
+fn assignee_hidden_on_a_single_row() {
     let task = assigned("t", Some("agent"));
     assert!(
-        !significant(
+        !shows(
             ColumnId::Assignee,
             &rows(&[("1c", &task)]),
-            &Config::default(),
             &Readiness::default(),
             false
         ),
@@ -345,7 +333,7 @@ fn assignee_not_significant_on_a_single_row() {
 #[test]
 fn bare_ls_shows_assignee_on_a_mixed_listing() {
     assert!(
-        assignee_rendered(&Config::default(), "agent", "max"),
+        assignee_rendered(&floor_config(), "agent", "max"),
         "assignee must appear under the built-in order once the rows disagree"
     );
 }
@@ -353,14 +341,14 @@ fn bare_ls_shows_assignee_on_a_mixed_listing() {
 #[test]
 fn bare_ls_hides_assignee_on_a_single_actor_listing() {
     assert!(
-        !assignee_rendered(&Config::default(), "agent", "agent"),
+        !assignee_rendered(&floor_config(), "agent", "agent"),
         "mt ls @agent must not grow a column repeating one name on every row"
     );
 }
 
 #[test]
 fn assignee_renders_between_due_and_title() {
-    let order = assignee_order(&Config::default(), "agent", "max");
+    let order = assignee_order(&floor_config(), "agent", "max");
     let at = |id: ColumnId| order.iter().position(|c| *c == id);
     assert!(
         at(ColumnId::Assignee) < at(ColumnId::Title),
@@ -370,10 +358,10 @@ fn assignee_renders_between_due_and_title() {
 
 #[test]
 fn explicit_columns_order_still_defers_to_the_contested_rule() {
-    // Naming a column does not override its `auto` significance — the same
-    // way an explicitly listed `priority` stays hidden when no task scores
-    // one. `[ls.columns.assignee] visibility = "visible"` is the override.
-    let mut config = Config::default();
+    // Naming a column does not override its `when` — the same way an
+    // explicitly listed `priority` stays hidden when no task scores one.
+    // `[ls.columns.assignee] when = 'true'` is the override.
+    let mut config = floor_config();
     config.ls.columns_order = vec!["title".to_owned(), "assignee".to_owned()];
     assert!(
         !assignee_rendered(&config, "agent", "agent"),
@@ -382,17 +370,17 @@ fn explicit_columns_order_still_defers_to_the_contested_rule() {
 }
 
 #[test]
-fn visibility_visible_forces_assignee_on_an_uncontested_listing() {
+fn when_true_forces_assignee_on_an_uncontested_listing() {
     assert!(
-        assignee_rendered(&assignee_visibility(Visibility::Visible), "agent", "agent"),
-        "visibility = visible must force assignee on despite an uncontested listing"
+        assignee_rendered(&assignee_when("true"), "agent", "agent"),
+        "when = 'true' must force assignee on despite an uncontested listing"
     );
 }
 
 #[test]
-fn visibility_hidden_wins_for_assignee_on_a_mixed_listing() {
+fn when_false_hides_assignee_on_a_mixed_listing() {
     assert!(
-        !assignee_rendered(&assignee_visibility(Visibility::Hidden), "agent", "max"),
-        "visibility = hidden must win even on a contested listing"
+        !assignee_rendered(&assignee_when("false"), "agent", "max"),
+        "when = 'false' must win even on a contested listing"
     );
 }

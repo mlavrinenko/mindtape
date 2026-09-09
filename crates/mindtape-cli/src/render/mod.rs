@@ -30,7 +30,7 @@ use mindtape::{ConditionEnv, Config, Readiness};
 pub struct RenderCtx<'a> {
     pub config: &'a Config,
     pub readiness: &'a Readiness,
-    /// Ambient facts for a column's conditional visibility. Per-column
+    /// Ambient facts a column's `when` expression resolves against. Per-column
     /// [`mindtape::ColumnFacts`] are filled in by `resolve_order`, which is
     /// the only place that knows them.
     pub env: &'a ConditionEnv,
@@ -40,16 +40,30 @@ pub struct RenderCtx<'a> {
 ///
 /// The context borrows its three pieces, so a test that built them inline
 /// would be handing `render` references to temporaries. This holds them
-/// instead; the default is the empty config, no readiness and no ambient
-/// facts — the "no column carries a conditional rule" case nearly every render
-/// test wants, and the one the pre-context signature used to spell out at
-/// every call.
+/// instead; the default is the shipped floor, no readiness and no ambient
+/// facts — the unconfigured-project case nearly every render test wants, and
+/// the one the pre-context signature used to spell out at every call.
+///
+/// The floor rather than [`Config::default`], because every column's
+/// visibility now lives in `defaults.toml` as a `when` expression: a config
+/// that never went through `parse_config` describes no column, so it renders
+/// none, and a render test built on one would assert against an empty table.
 #[cfg(test)]
-#[derive(Default)]
 pub struct TestCtx {
     pub config: Config,
     pub readiness: Readiness,
     pub env: ConditionEnv,
+}
+
+#[cfg(test)]
+impl Default for TestCtx {
+    fn default() -> Self {
+        Self {
+            config: mindtape::test_support::floor_config(),
+            readiness: Readiness::default(),
+            env: ConditionEnv::default(),
+        }
+    }
 }
 
 #[cfg(test)]

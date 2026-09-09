@@ -2,21 +2,22 @@
 
 use mindtape::config::{Legend, LegendEntry};
 use mindtape::numeric::NumValue;
-use mindtape::test_support::{bare_task, dep_edge};
-use mindtape::{ColumnConfig, Config, Readiness, Status, Task, Visibility};
+use mindtape::test_support::{bare_task, dep_edge, floor_config};
+use mindtape::{ColumnConfig, Config, Readiness, Status, Task};
 
 use super::super::TestCtx;
 use super::super::color::parse_color;
 use super::super::columns::due_cell;
 use super::{render, render_highlighted};
 
-fn with_column(key: &str, visibility: Visibility) -> Config {
-    let mut config = Config::default();
+/// The shipped floor with one column's `when` replaced — the whole of what a
+/// project writes to change which columns a listing carries.
+fn with_column(key: &str, when: &str) -> Config {
+    let mut config = floor_config();
     config.ls.columns.insert(
         key.to_owned(),
         ColumnConfig {
-            visibility,
-            ..ColumnConfig::default()
+            when: Some(when.to_owned()),
         },
     );
     config
@@ -126,7 +127,8 @@ fn readiness_column_appears_only_when_blocked() {
 #[test]
 fn empty_columns_hidden_by_default() {
     // A task with status but no priority and no due date: PRIORITY and DUE
-    // carry nothing, so `auto` drops them; STATUS and TITLE stay.
+    // carry nothing, so their floored `nonempty()` drops them; STATUS and
+    // TITLE stay.
     let mut t = task("a", "A", "wip");
     t.priority = None;
     let out = render(&[t], TestCtx::default().ctx()).unwrap();
@@ -138,20 +140,20 @@ fn empty_columns_hidden_by_default() {
 }
 
 #[test]
-fn visibility_visible_forces_blank_column() {
+fn when_true_forces_blank_column() {
     let mut t = task("a", "A", "wip");
     t.priority = None;
-    let config = with_column("priority", Visibility::Visible);
+    let config = with_column("priority", "true");
     let out = render(&[t], TestCtx::with_config(config).ctx()).unwrap();
     assert!(
         out.lines().next().unwrap().contains("PRIORITY"),
-        "visible must render even when blank"
+        "when = 'true' must render even when blank"
     );
 }
 
 #[test]
-fn visibility_hidden_drops_populated_column() {
-    let config = with_column("status", Visibility::Hidden);
+fn when_false_drops_populated_column() {
+    let config = with_column("status", "false");
     let out = render(&[task("a", "A", "wip")], TestCtx::with_config(config).ctx()).unwrap();
     assert!(!out.contains("STATUS"), "hidden column must not render");
     assert!(
@@ -162,7 +164,7 @@ fn visibility_hidden_drops_populated_column() {
 
 #[test]
 fn columns_order_selects_and_orders() {
-    let mut config = Config::default();
+    let mut config = floor_config();
     config.ls.columns_order = vec!["title".to_owned(), "status".to_owned()];
     let out = render(
         &[task("a", "Hello", "wip")],
@@ -257,7 +259,7 @@ fn due_cell_overdue_color_unset_falls_back_to_red() {
 /// resolver demands `1bq` would refuse every handle it displayed.
 #[test]
 fn handle_column_honours_a_configured_check_len() {
-    let mut config = Config::default();
+    let mut config = floor_config();
     config.handle.check_len = Some(2);
     let tasks = vec![task("alpha", "Alpha", "wip")];
     let fixture = TestCtx {

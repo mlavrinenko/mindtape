@@ -97,12 +97,12 @@ pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use condition::{Condition, ConditionError};
 pub use condition_env::{ColumnFacts, ConditionEnv};
 pub use config::{
-    Actor, ActorKind, AddConfig, AssigneeConfig, Collector, ColumnConfig, ColumnRule, Config,
-    ConfigError, DeriveConfig, DeriveTags, DriftConfig, EstimateConfig, Facet, FormatConfig,
-    GoConfig, HandleConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage,
-    LsRule, MAX_CHECK_LEN, PriorityConfig, ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role,
-    RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec, Visibility, config_path,
-    embedded_defaults, load_config, parse_config, parse_import_view, roles_of, validate_views,
+    Actor, ActorKind, AddConfig, AssigneeConfig, Collector, ColumnConfig, Config, ConfigError,
+    DeriveConfig, DeriveTags, DriftConfig, EstimateConfig, Facet, FormatConfig, GoConfig,
+    HandleConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule,
+    MAX_CHECK_LEN, PriorityConfig, ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role,
+    RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec, config_path, embedded_defaults,
+    load_config, parse_config, parse_import_view, roles_of, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_layers::{

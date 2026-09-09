@@ -228,35 +228,13 @@
       "additionalProperties": false,
       "description": "`[ls.columns.<name>]` — one column's display settings.",
       "properties": {
-        "rules": {
-          "description": "Conditional overrides, in declaration order. The first entry whose\n`condition` holds supplies this column's visibility for the run,\nbeating the `visibility` key above — rules ARE the override mechanism,\nso a matching one winning is what makes them worth writing.\n\nA project opts out of an inherited rule (the embedded floor ships one\nfor `file`) by setting `rules = []`, which is explicit and greppable,\nrather than by setting `visibility` and wondering why it lost.",
-          "items": {
-            "$ref": "#/$defs/ColumnRule"
-          },
-          "type": "array"
-        },
-        "visibility": {
-          "$ref": "#/$defs/Visibility",
-          "description": "Whether the column renders when no `rules` entry matches. `Auto` hides\nit when it carries nothing significant; `Visible` always renders it;\n`Hidden` never does."
-        }
-      },
-      "type": "object"
-    },
-    "ColumnRule": {
-      "additionalProperties": false,
-      "description": "`[[ls.columns.<name>.rules]]` — one conditional visibility override.",
-      "properties": {
-        "condition": {
+        "when": {
           "default": null,
-          "description": "Condition expression — the same grammar `[[ls.rules]]` uses (`tty()`,\n`format()`, `env()`, `on_branch()`, `now()`, `weekday()`), plus the\nfour listing predicates only a column resolution can answer:\n`nonempty()`, `contested()`, `named()`, `blocked()`. Absent or empty\nmeans the rule always matches.",
+          "description": "Whether this column renders, as a condition expression — the same\ngrammar `[[ls.rules]]` uses (`tty()`, `format()`, `env()`,\n`on_branch()`, `now()`, `weekday()`, `true` / `false`), plus the four\nlisting predicates only a column resolution can answer: `nonempty()`,\n`contested()`, `named()`, `blocked()`.\n\nAbsent means the column never renders. The embedded floor carries one\nper column, so an absent `when` is a column the project deleted from\nthe floor rather than a column awaiting a built-in default.",
           "type": [
             "string",
             "null"
           ]
-        },
-        "visibility": {
-          "$ref": "#/$defs/Visibility",
-          "description": "The visibility this rule imposes when its condition holds."
         }
       },
       "type": "object"
@@ -1141,7 +1119,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/ColumnConfig"
           },
-          "description": "Per-column display settings, keyed by column name. Unlisted columns\nkeep their default display.",
+          "description": "Per-column display settings, keyed by column name. The embedded floor\nlists every column in [`LS_COLUMNS`], so an entry missing here is one a\nconfig layer deleted — and a column with no `when` never renders.",
           "type": "object"
         },
         "columns-order": {
@@ -1451,7 +1429,7 @@
     },
     "ReadyConfig": {
       "additionalProperties": false,
-      "description": "`[ls.ready]` — the READY column's per-state display (glyph, colour, label).\n\nOne block covering both `ready` and `blocked` states (rather than nesting\nunder `[ls.columns.ready]`, which only carries generic `visibility`):\n`blocked` needs display attributes `ColumnConfig` has no room for. Every\nfield is optional so an omitted key falls back to the embedded floor's\nvalue (or, absent even that, the renderer's own literal fallback).",
+      "description": "`[ls.ready]` — the READY column's per-state display (glyph, colour, label).\n\nOne block covering both `ready` and `blocked` states (rather than nesting\nunder `[ls.columns.ready]`, which only carries a generic `when`): `blocked`\nneeds display attributes `ColumnConfig` has no room for. Every\nfield is optional so an omitted key falls back to the embedded floor's\nvalue (or, absent even that, the renderer's own literal fallback).",
       "properties": {
         "blocked-color": {
           "default": null,
@@ -1936,26 +1914,6 @@
         }
       },
       "type": "object"
-    },
-    "Visibility": {
-      "description": "A column's visibility policy.",
-      "oneOf": [
-        {
-          "const": "auto",
-          "description": "Render only when the column is significant (non-empty / contested).",
-          "type": "string"
-        },
-        {
-          "const": "visible",
-          "description": "Always render, even when every cell is blank.",
-          "type": "string"
-        },
-        {
-          "const": "hidden",
-          "description": "Never render, even when populated.",
-          "type": "string"
-        }
-      ]
     }
   },
   "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/config.schema.json",

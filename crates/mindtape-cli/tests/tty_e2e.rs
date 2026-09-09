@@ -119,8 +119,8 @@ fn hyperlinks_auto_needs_a_tty_and_a_non_dumb_term() {
 }
 
 /// Run `mt <args>` inside `dir` with stdout on an ordinary pipe — the shape
-/// every captured run has, and the one half of the `file` column's floor rule
-/// a pty cannot produce.
+/// every captured run has, and the one term of the `file` column's floor
+/// expression a pty cannot produce.
 fn piped_output(dir: &Path, args: &[&str]) -> String {
     let mut command = Command::new(PathBuf::from(env!("CARGO_BIN_EXE_mt")));
     support::isolate(&mut command, dir)
@@ -133,15 +133,15 @@ fn piped_output(dir: &Path, args: &[&str]) -> String {
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
-/// The embedded floor's `[[ls.columns.file.rules]]`: the `file` column stays
+/// The embedded floor's `[ls.columns.file] when`: the `file` column stays
 /// opt-in on a terminal, where the `#` handle is the address a reader wants,
 /// and turns itself on in captured output, where that handle is a position in
 /// a view the next command recomputes and the path is the only stable thing to
 /// quote.
 ///
-/// Only reachable end to end: an in-process test resolves the rule against an
-/// injected environment, which cannot tell whether the real `IsTerminal` check
-/// is wired to it at all.
+/// Only reachable end to end: an in-process test resolves the expression
+/// against an injected environment, which cannot tell whether the real
+/// `IsTerminal` check is wired to it at all.
 #[test]
 fn the_file_column_turns_itself_on_when_stdout_is_captured() {
     let dir = support::project_with_task(LONG_TITLE);
@@ -158,10 +158,25 @@ fn the_file_column_turns_itself_on_when_stdout_is_captured() {
     );
 }
 
-/// CSV resolves the same column set as the table, so the floor rule scopes
-/// itself with `format() == "table"`. A script parsing `mt ls --format csv`
-/// must not silently gain a column — and it already carries the stable `id`,
-/// so it would gain nothing by it either.
+/// The `named()` term of the same expression, on the side a pty is needed for:
+/// asking for the column is what turns it on where the captured-table terms are
+/// both false. It is the opt-in the docs hand a reader on a terminal, and it
+/// reaches the real `IsTerminal` check the same way its sibling above does.
+#[test]
+fn naming_the_file_column_shows_it_on_a_terminal() {
+    let dir = support::project_with_task(LONG_TITLE);
+    let named = pty_output(dir.path(), "ls --columns '#,title,file'", 200, &[]);
+
+    assert!(
+        named.contains("FILE"),
+        "--columns must show the file column on a terminal\nstdout:\n{named}"
+    );
+}
+
+/// CSV resolves the same column set as the table, so the floor's expression
+/// scopes itself with `format() == "table"`. A script parsing `mt ls --format
+/// csv` must not silently gain a column — and it already carries the stable
+/// `id`, so it would gain nothing by it either.
 #[test]
 fn the_file_column_rule_leaves_captured_csv_alone() {
     let dir = support::project_with_task(LONG_TITLE);

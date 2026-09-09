@@ -29,7 +29,7 @@ pub use crate::config_ls::{
     Facet, HyperlinkChoice, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig,
     parse_import_view, validate_ls_rules,
 };
-pub use crate::config_ls_columns::{ColumnConfig, ColumnRule, Visibility, validate_ls_columns};
+pub use crate::config_ls_columns::{ColumnConfig, validate_ls_columns};
 pub use crate::config_required::{RequiredRules, Requirement, RequirementRule};
 pub use crate::config_rm::{RetireConfig, RmConfig, RmStrategy};
 pub use crate::config_roots::{Collector, DeriveConfig, DeriveTags, RootConfig, RootSpec};

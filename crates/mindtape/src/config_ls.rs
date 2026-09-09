@@ -3,8 +3,8 @@
 //! Filter / sort defaults, the global date format, and the column render
 //! order. The column-name vocabulary ([`LS_COLUMNS`]) lives here as the single
 //! validated source shared by `[ls.columns]`, `[ls] columns-order`, and any
-//! consumer renderer; one column's own settings (`visibility`, conditional
-//! `rules`) live in [`crate::config_ls_columns`].
+//! consumer renderer; one column's own settings (its `when` expression) live
+//! in [`crate::config_ls_columns`].
 
 use std::collections::BTreeMap;
 
@@ -17,16 +17,19 @@ use crate::sort::validate_sort_spec;
 /// Canonical `mt ls` column names, in built-in render order. The single
 /// validated vocabulary shared by `[ls.columns]` and `[ls] columns-order` (and
 /// any consumer): `#` is the handle column, `title` the flex column, `file`
-/// (last) the task's source path — opt-in only, since its `auto` visibility
-/// means "was it named explicitly", not "does it carry text" (its cell is
-/// never blank; see `crate::config_ls::Visibility`).
+/// (last) the task's source path — opt-in only, since its cell is never blank
+/// and `nonempty()` would pin it permanently visible; the floor gives it
+/// `named()` instead.
 ///
-/// `assignee` joins the short scalars ahead of `title`, and reads `auto` as a
-/// third thing again — "do the rows disagree". Neither existing rule fits: the
-/// ordinary non-empty test would pin a column onto `mt ls @agent` repeating one
-/// name down every row the filter already named, and `file`'s
-/// named-explicitly test would keep it off a mixed listing, which is the one
-/// place it says something.
+/// `assignee` joins the short scalars ahead of `title` on a third rule again —
+/// `contested()`, "do the rows disagree". Neither of the others fits: the
+/// ordinary `nonempty()` test would pin a column onto `mt ls @agent` repeating
+/// one name down every row the filter already named, and `file`'s `named()`
+/// would keep it off a mixed listing, which is the one place it says something.
+///
+/// All three live as one `when` expression per column in
+/// `crates/mindtape/src/defaults.toml`, not in Rust — see
+/// [`crate::config_ls_columns`].
 pub const LS_COLUMNS: [&str; 8] = [
     "#", "status", "ready", "priority", "due", "assignee", "title", "file",
 ];
@@ -51,8 +54,9 @@ pub struct LsConfig {
     /// Non-token characters pass through literally.
     /// Default `None` renders ISO `YYYY-MM-DD`.
     pub date_format: Option<String>,
-    /// Per-column display settings, keyed by column name. Unlisted columns
-    /// keep their default display.
+    /// Per-column display settings, keyed by column name. The embedded floor
+    /// lists every column in [`LS_COLUMNS`], so an entry missing here is one a
+    /// config layer deleted — and a column with no `when` never renders.
     pub columns: BTreeMap<String, ColumnConfig>,
     /// Explicit column order and selection: when set, only the listed
     /// columns render, in that order. Empty (the default) keeps the built-in
@@ -380,8 +384,8 @@ fn validate_view_spliced(
 /// `[ls.ready]` — the READY column's per-state display (glyph, colour, label).
 ///
 /// One block covering both `ready` and `blocked` states (rather than nesting
-/// under `[ls.columns.ready]`, which only carries generic `visibility`):
-/// `blocked` needs display attributes `ColumnConfig` has no room for. Every
+/// under `[ls.columns.ready]`, which only carries a generic `when`): `blocked`
+/// needs display attributes `ColumnConfig` has no room for. Every
 /// field is optional so an omitted key falls back to the embedded floor's
 /// value (or, absent even that, the renderer's own literal fallback).
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]

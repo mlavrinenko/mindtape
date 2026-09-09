@@ -76,8 +76,8 @@ pub(crate) struct Hooks<'a> {
     /// Whether `show` / `list` output is rendered at all.
     show: bool,
     /// The environment a `list` table's column visibility resolves against —
-    /// built exactly as `mt ls` builds it, so a `[[ls.columns.<name>.rules]]`
-    /// condition means the same thing in both surfaces.
+    /// built exactly as `mt ls` builds it, so a `[ls.columns.<name>] when`
+    /// expression means the same thing in both surfaces.
     env: ConditionEnv,
 }
 

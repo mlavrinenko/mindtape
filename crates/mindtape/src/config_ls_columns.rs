@@ -5,22 +5,32 @@
 //! line cap; the `[ls]` block itself, the [`crate::config_ls::LS_COLUMNS`]
 //! vocabulary and the `[[ls.rules]]` listing cascade all remain there.
 //!
-//! # Why a column carries `rules`
+//! # Why a column carries one `when`
 //!
-//! A column's `visibility` answers "should this column render", but the honest
-//! answer sometimes depends on who is reading. The `file` column is the case
-//! that motivated this: on a terminal the `#` handle is the ergonomic address
-//! and a full path is noise, while in captured output the handle is a position
-//! in a view recomputed on every command and the path is the only stable thing
-//! to quote. That is a condition, not a visibility — so it is written as one,
-//! next to the column it governs, rather than folded into `auto`'s meaning
-//! where no reader would look for it.
+//! Whether a column renders is one question, so it takes one answer: a boolean
+//! expression in the condition language, evaluated against the rows it would
+//! render.
 //!
 //! ```toml
-//! [[ls.columns.file.rules]]
-//! condition = '!tty() && format() == "table"'
-//! visibility = "visible"
+//! [ls.columns.file]
+//! when = 'named() || (!tty() && format() == "table")'
 //! ```
+//!
+//! The predicates are what make that expressible. `nonempty()`, `contested()`,
+//! `named()` and `blocked()` describe the listing, so the built-in policy each
+//! column used to get from a Rust match is now a line of the embedded floor:
+//! `#` and `title` are `true`, `status` / `priority` / `due` are `nonempty()`,
+//! `assignee` is `contested()`, `ready` is `blocked()`, and `file` is the
+//! expression above.
+//!
+//! A scalar replaces wholesale across config layers, so a project overrides an
+//! inherited `when` by writing its own on one line — `when = 'false'` turns a
+//! floored column off — and there is no precedence to state, no ordering, and
+//! no opt-out convention: `||` does what a rule list's first-match-wins did.
+//!
+//! An absent `when` renders the column never. Nothing falls back to Rust: the
+//! floor carries one per column, so the floor is the complete statement of what
+//! `mt ls` shows, and a column nobody described is a column nobody asked for.
 
 use std::collections::BTreeSet;
 
@@ -33,63 +43,32 @@ use crate::config_ls::{LS_COLUMNS, LsConfig};
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ColumnConfig {
-    /// Whether the column renders when no `rules` entry matches. `Auto` hides
-    /// it when it carries nothing significant; `Visible` always renders it;
-    /// `Hidden` never does.
-    pub visibility: Visibility,
-    /// Conditional overrides, in declaration order. The first entry whose
-    /// `condition` holds supplies this column's visibility for the run,
-    /// beating the `visibility` key above — rules ARE the override mechanism,
-    /// so a matching one winning is what makes them worth writing.
+    /// Whether this column renders, as a condition expression — the same
+    /// grammar `[[ls.rules]]` uses (`tty()`, `format()`, `env()`,
+    /// `on_branch()`, `now()`, `weekday()`, `true` / `false`), plus the four
+    /// listing predicates only a column resolution can answer: `nonempty()`,
+    /// `contested()`, `named()`, `blocked()`.
     ///
-    /// A project opts out of an inherited rule (the embedded floor ships one
-    /// for `file`) by setting `rules = []`, which is explicit and greppable,
-    /// rather than by setting `visibility` and wondering why it lost.
-    pub rules: Vec<ColumnRule>,
+    /// Absent means the column never renders. The embedded floor carries one
+    /// per column, so an absent `when` is a column the project deleted from
+    /// the floor rather than a column awaiting a built-in default.
+    pub when: Option<String>,
 }
 
-/// `[[ls.columns.<name>.rules]]` — one conditional visibility override.
-#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
-pub struct ColumnRule {
-    /// Condition expression — the same grammar `[[ls.rules]]` uses (`tty()`,
-    /// `format()`, `env()`, `on_branch()`, `now()`, `weekday()`), plus the
-    /// four listing predicates only a column resolution can answer:
-    /// `nonempty()`, `contested()`, `named()`, `blocked()`. Absent or empty
-    /// means the rule always matches.
-    pub condition: Option<String>,
-    /// The visibility this rule imposes when its condition holds.
-    pub visibility: Visibility,
-}
-
-/// A column's visibility policy.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum Visibility {
-    /// Render only when the column is significant (non-empty / contested).
-    #[default]
-    Auto,
-    /// Always render, even when every cell is blank.
-    Visible,
-    /// Never render, even when populated.
-    Hidden,
-}
-
-/// Validate `[ls.columns]` keys, their `rules` conditions, and `[ls]`
+/// Validate `[ls.columns]` keys, their `when` expressions, and `[ls]`
 /// `columns-order` against [`LS_COLUMNS`]: unknown column names, duplicates
-/// within `columns-order`, and unparseable rule conditions are reported.
+/// within `columns-order`, and unparseable `when` expressions are reported.
 ///
-/// A rule's condition is parsed here so a typo (`ttty()`, a task field name
-/// carried over from filter syntax) fails at config load naming the column and
-/// the rule index, rather than silently never matching at render time — where
-/// a column that does not appear looks exactly like a column that was not
-/// meant to.
+/// A `when` is parsed here so a typo (`ttty()`, a task field name carried over
+/// from filter syntax) fails at config load naming the column, rather than
+/// silently never matching at render time — where a column that does not
+/// appear looks exactly like a column that was not meant to.
 #[must_use]
 pub fn validate_ls_columns(ls: &LsConfig) -> Vec<String> {
     let mut problems = Vec::new();
     for (name, column) in &ls.columns {
         if LS_COLUMNS.contains(&name.as_str()) {
-            validate_column_rules(name, column, &mut problems);
+            validate_column_when(name, column, &mut problems);
         } else {
             problems.push(format!("ls.columns: {}", unknown_column(name)));
         }
@@ -105,16 +84,24 @@ pub fn validate_ls_columns(ls: &LsConfig) -> Vec<String> {
     problems
 }
 
-/// Parse every `[[ls.columns.<name>.rules]]` condition, reporting each failure
-/// under the column and index that owns it.
-fn validate_column_rules(name: &str, column: &ColumnConfig, problems: &mut Vec<String>) {
-    for (index, rule) in column.rules.iter().enumerate() {
-        let Some(expr) = &rule.condition else {
-            continue;
-        };
-        if let Err(err) = Condition::parse(expr) {
-            problems.push(format!("ls.columns.{name}.rules[{index}].condition: {err}"));
-        }
+/// Parse one column's `when`, reporting a failure under the column that owns
+/// it.
+///
+/// A blank expression is rejected rather than parsed: [`Condition`] reads an
+/// empty expression as the always-matching one, so `when = ''` would render the
+/// column always while an absent `when` renders it never — two spellings of
+/// "nothing written here" with opposite answers. Writing the answer out
+/// (`true` / `false`) is what the key is for.
+fn validate_column_when(name: &str, column: &ColumnConfig, problems: &mut Vec<String>) {
+    let Some(expr) = &column.when else {
+        return;
+    };
+    if expr.trim().is_empty() {
+        problems.push(format!(
+            "ls.columns.{name}.when: empty expression; write `true` or `false`"
+        ));
+    } else if let Err(err) = Condition::parse(expr) {
+        problems.push(format!("ls.columns.{name}.when: {err}"));
     }
 }
 

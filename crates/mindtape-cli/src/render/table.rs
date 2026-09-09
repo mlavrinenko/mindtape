@@ -38,12 +38,12 @@ struct Column {
 /// Render `tasks` as a borderless, space-aligned table.
 ///
 /// The column set, order, and visibility come from `[ls.columns]` /
-/// `[ls] columns-order`. Under the default `auto` visibility a column is
-/// dropped when it carries nothing — so a backlog with no priorities, no due
+/// `[ls] columns-order`. Under the shipped floor's `when` expressions a column
+/// is dropped when it carries nothing — so a backlog with no priorities, no due
 /// dates, or no contested dependencies stays uncluttered.
 ///
 /// # Errors
-/// Returns an error if a column's `rules` condition fails to evaluate
+/// Returns an error if a column's `when` fails to evaluate
 /// ([`resolve_order`]).
 pub fn render(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
     render_inner(tasks, ctx, &[])

@@ -1,5 +1,5 @@
 //! `[ls]`/`[views.*]` — the default view, rule import/gating, sort spec
-//! validation, and the columns table (visibility, order, duplicate names).
+//! validation, and the columns table (`when`, order, duplicate names).
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 use super::parse_config;
@@ -114,28 +114,25 @@ default-sort = ["no_such_field"]
 }
 
 #[test]
-fn ls_columns_parses_visibility() {
+fn ls_columns_parses_when() {
     let config = parse_config(
-        r#"
+        r"
 [ls.columns.priority]
-visibility = "visible"
-"#,
+when = 'true'
+",
     )
     .unwrap();
-    assert_eq!(
-        config.ls.columns["priority"].visibility,
-        crate::Visibility::Visible
-    );
+    assert_eq!(config.ls.columns["priority"].when.as_deref(), Some("true"));
     assert!(config.validate().is_ok());
 }
 
 #[test]
 fn ls_columns_rejects_unknown_column_on_validate() {
     let config = parse_config(
-        r#"
+        r"
 [ls.columns.nope]
-visibility = "hidden"
-"#,
+when = 'false'
+",
     )
     .unwrap();
     assert!(

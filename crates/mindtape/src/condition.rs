@@ -1,4 +1,5 @@
-//! The condition mini-language for `[[ls.rules]]` (`truth/tasks/conditional-ls-rules.typ`).
+//! The condition mini-language for `[[ls.rules]]` and `[ls.columns.<name>]
+//! when` (`truth/tasks/conditional-ls-rules.typ`).
 //!
 //! Same `evalexpr` parser and operator set as [`crate::filter`] (`==`, `!=`,
 //! `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parens, bare-or-call predicates) —
@@ -21,8 +22,8 @@
 //!   `json`, `path`, `path0`), so a rule can scope itself to the presentation
 //!   surfaces without the distinction being hardcoded in Rust.
 //! - `nonempty()`, `contested()`, `named()`, `blocked()` -> bool. The four
-//!   listing facts a column's `auto` visibility is decided from, read off
-//!   [`ConditionEnv::column`]; see [`ColumnFacts`] for what each means and
+//!   listing facts a column's `[ls.columns.<name>] when` is decided from, read
+//!   off [`ConditionEnv::column`]; see [`ColumnFacts`] for what each means and
 //!   what they answer for a caller resolving no column.
 //! - `true`, `false` -> bool constants, usable bare or composed (`!false`,
 //!   `true && !tty()`). Not valid on either side of a comparison — `env(...)`

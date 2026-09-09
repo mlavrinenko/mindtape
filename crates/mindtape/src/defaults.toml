@@ -122,6 +122,43 @@ filter = "!terminal && (miss(start) || start <= now())"
 [ls]
 overdue-color = "red"
 
+# When each column renders. One boolean expression per column, in the condition
+# language, evaluated against the rows the listing would show: `nonempty()` (any
+# cell carries text), `contested()` (the rows disagree), `named()` (the caller
+# asked for this column), `blocked()` (some listed task is blocked), plus the
+# ambient `tty()` / `format()` / `env()` / `on_branch()` / `now()` / `weekday()`.
+#
+# This block is the WHOLE statement of what `mt ls` shows: an absent `when`
+# renders a column never, and nothing falls back to a built-in policy in Rust.
+# A scalar replaces wholesale across config layers, so a project turns a column
+# off with `when = 'false'` on one line.
+[ls.columns."#"]
+# The handle is the listing's address; it is never blank and never optional.
+when = 'true'
+
+[ls.columns.status]
+when = 'nonempty()'
+
+# Not `nonempty()`: a listing where every task is ready has a label in every
+# cell and nothing to report. The column exists to say something is stuck.
+[ls.columns.ready]
+when = 'blocked()'
+
+[ls.columns.priority]
+when = 'nonempty()'
+
+[ls.columns.due]
+when = 'nonempty()'
+
+# Only when the rows disagree about who works them. A listing already narrowed
+# to one actor (`mt ls @agent`) learns nothing from a column repeating that
+# name down every row; a mixed listing shows the split without being asked.
+[ls.columns.assignee]
+when = 'contested()'
+
+[ls.columns.title]
+when = 'true'
+
 # The `file` column is opt-in on a terminal and automatic everywhere else.
 #
 # On a TTY the `#` handle is the address a reader wants: two characters, typed
@@ -138,17 +175,13 @@ overdue-color = "red"
 # `id` for `#`. The table was the last surface emitting a positional id with
 # no stable identity beside it.
 #
-# Scoped to `table` because `csv` resolves the same column set and IS a data
-# contract: a script parsing `mt ls --format csv` must not silently gain a
-# column, and it already carries `id`, so it gains nothing by it either.
-#
-# A project that wants the old shape sets `rules = []` under
-# `[ls.columns.file]` — an array replaces rather than merges across config
-# layers, so the empty list is the documented opt-out. Setting `visibility`
-# alone will NOT do it: a matching rule beats the unconditional key.
-[[ls.columns.file.rules]]
-condition = '!tty() && format() == "table"'
-visibility = "visible"
+# `named()` is the opt-in half: the cell is never blank, so `nonempty()` would
+# pin the column permanently visible and there would be no opt-in at all. The
+# other half is scoped to `table` because `csv` resolves the same column set and
+# IS a data contract: a script parsing `mt ls --format csv` must not silently
+# gain a column, and it already carries `id`, so it gains nothing by it either.
+[ls.columns.file]
+when = 'named() || (!tty() && format() == "table")'
 
 # READY-column display: glyph / colour / label for each state.
 [ls.ready]

@@ -45,6 +45,23 @@ pub fn bare_task(id: &str) -> Task {
     }
 }
 
+/// The config an unconfigured project gets: the embedded floor and nothing
+/// over it.
+///
+/// [`Config::default`] is not that — it bypasses `defaults.toml` entirely, so
+/// it carries no `[ls.columns]` entries and therefore no column that renders.
+/// A test asserting on what `mt ls` shows wants the floor; a test pinning one
+/// key in isolation still wants `Config::default()`.
+///
+/// # Panics
+/// Panics only if the compiled-in floor stops parsing, which every other
+/// `parse_config` caller would fail on first.
+#[must_use]
+#[allow(clippy::expect_used)]
+pub fn floor_config() -> Config {
+    crate::parse_config("").expect("the embedded floor must parse")
+}
+
 /// An `ice` framework priority with the given inputs — the shared fixture for
 /// framework-priority scenarios (schema serialization, validation).
 #[must_use]

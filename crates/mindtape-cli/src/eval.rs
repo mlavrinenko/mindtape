@@ -40,27 +40,50 @@ pub fn run(args: &EvalArgs) -> Result<()> {
     let task = Task::from_marker(id, args.file.clone(), &marker.value);
 
     if args.json {
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&task_to_json(&task, &mindtape::Config::default()))?
-        );
+        print_json(&task)
     } else {
-        // `mt eval` renders one harvested file against the empty config, not a
-        // project: no `[ls.columns]` entries exist, so no column carries a
-        // conditional rule and the environment has nothing to answer.
-        let config = mindtape::Config::default();
-        let readiness = mindtape::Readiness::empty();
-        let env = mindtape::ConditionEnv::default();
-        let ctx = RenderCtx {
-            config: &config,
-            readiness: &readiness,
-            env: &env,
-        };
-        println!(
-            "{}",
-            render(std::slice::from_ref(&task), OutputFormat::Table, ctx, None)?
-        );
+        print_table(&task)
     }
+}
+
+/// Print one harvested task as a bare JSON object — no envelope, since there
+/// is no listing here for `applied` or `truncated` to describe.
+///
+/// # Errors
+/// Returns an error if the task will not serialize.
+fn print_json(task: &Task) -> Result<()> {
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&task_to_json(task, &mindtape::Config::default()))?
+    );
+    Ok(())
+}
+
+/// Print one harvested task as a one-row `ls` table.
+///
+/// It renders against the embedded floor, not [`mindtape::Config::default`]:
+/// every column's `when` expression lives in `defaults.toml`, so a config that
+/// never went through `parse_config` describes no column at all and would print
+/// an empty table. There is no project here to layer over it. The environment
+/// stays default too — one file is not a listing, so nothing is asking
+/// `nonempty()` or `tty()` for a real answer.
+///
+/// # Errors
+/// Returns an error if the embedded floor stops parsing, or if a column's
+/// `when` fails to evaluate.
+fn print_table(task: &Task) -> Result<()> {
+    let config = mindtape::parse_config("")?;
+    let readiness = mindtape::Readiness::empty();
+    let env = mindtape::ConditionEnv::default();
+    let ctx = RenderCtx {
+        config: &config,
+        readiness: &readiness,
+        env: &env,
+    };
+    println!(
+        "{}",
+        render(std::slice::from_ref(task), OutputFormat::Table, ctx, None)?
+    );
     Ok(())
 }
 

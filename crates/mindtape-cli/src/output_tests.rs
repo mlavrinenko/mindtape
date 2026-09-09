@@ -2,7 +2,7 @@
 use std::collections::BTreeMap;
 
 use mindtape::numeric::NumValue;
-use mindtape::test_support::bare_task;
+use mindtape::test_support::{bare_task, floor_config};
 use mindtape::{Status, Task};
 use typst_harvest::HVal;
 
@@ -23,8 +23,8 @@ fn sample() -> Task {
     t.priority = Some(NumValue::Num(8.0));
     t.estimate = BTreeMap::from([("hours".to_owned(), 8.0)]);
     t.tags = vec!["x".to_owned()];
-    // Populated so `due` stays significant under the default `auto`
-    // column visibility — several csv tests below assert on its presence.
+    // Populated so `due` clears its floored `nonempty()` — several csv tests
+    // below assert on its presence.
     t.due = Some("2026-07-01".to_owned());
     t
 }
@@ -105,7 +105,7 @@ fn csv_has_header_and_row() {
 fn csv_columns_order_selects_and_orders() {
     // A custom `[ls] columns-order` must drive CSV exactly like the table
     // renderer: only the listed columns, in the given sequence.
-    let mut config = Config::default();
+    let mut config = floor_config();
     config.ls.columns_order = vec!["title".to_owned(), "status".to_owned()];
     let out = render(
         &[sample()],
@@ -180,7 +180,7 @@ fn csv_file_column_shown_and_root_relative_when_named() {
     // cell, so this holds for any working directory — what a subdirectory run
     // proves, and this binary cannot, is in `tests/ls_path_e2e.rs`
     // (`csv_and_json_report_the_same_root_relative_file_from_a_subdirectory`).
-    let mut config = Config::default();
+    let mut config = floor_config();
     config.ls.columns_order = vec!["title".to_owned(), "file".to_owned()];
     let mut task = sample();
     task.file = "truth/tasks/t1.typ".into();
@@ -239,7 +239,7 @@ fn path_format_matches_the_table_file_column_cell() {
 /// display.
 #[test]
 fn csv_file_cell_equals_the_json_file_key() {
-    let mut config = Config::default();
+    let mut config = floor_config();
     config.ls.columns_order = vec!["file".to_owned()];
     let mut task = sample();
     task.file = "truth/tasks/t1.typ".into();

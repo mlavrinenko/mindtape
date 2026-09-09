@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A column's visibility is one `when` expression** (breaking, pre-1.0).
+  `[ls.columns.<name>]` used to carry two keys that both answered "does this
+  render" — a `visibility` scalar (`auto` / `visible` / `hidden`) and a `rules`
+  list of conditional overrides. Two keys need a precedence rule, the
+  precedence needed stating in three places, and the `rules = []` opt-out
+  existed only because the two could disagree. All of it is replaced by a
+  single boolean expression in the condition language:
+
+  ```toml
+  [ls.columns.file]
+  when = 'named() || (!tty() && format() == "table")'
+  ```
+
+  No list, so no ordering and no first-match-wins; `||` does what rule order
+  did. A scalar replaces wholesale across config layers, so a project override
+  is `when = 'false'` on one line and the `rules = []` opt-out goes away with
+  the thing it was working around.
+
+  The per-column defaults `auto` used to encode in Rust move into the embedded
+  floor, one `when` per column — `#` and `title` are `true`, `status` /
+  `priority` / `due` are `nonempty()`, `assignee` is `contested()`, `ready` is
+  `blocked()` — so the three different things `auto` meant are now legible
+  where a reader looks for them. Nothing falls back to Rust: the floor is the
+  complete statement of what `mt ls` shows, and a column with no `when` never
+  renders. A blank `when = ''` is a config error naming the column, since the
+  condition language reads an empty expression as always-true and that would
+  contradict what an absent one means.
+
+  Rendered output is unchanged for an unconfigured project. There is no
+  migration shim: `visibility` and `rules` are rejected as unknown keys.
+
 - **`--format csv`'s `file` cell is now the project-root-relative path**
   (breaking, pre-1.0), the same value `--format json` already reported under
   `file`. It used to go through the same renderer the table column does, so
