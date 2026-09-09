@@ -11,7 +11,7 @@
   tags: ("cli",),
   estimate: (files: 3),
   assignee: "agent",
-  status: proposed(2026, 9, 9),
+  status: done(2026, 9, 9),
   links: related(
     "the-file-filter-field-and-the-file-column-name-different-paths.typ",
   )[the same file/path split, one layer down],
@@ -62,8 +62,33 @@ and the most consistent, but it costs a schema break on the JSON side, which
 the first bullet above argues against. Reading order matters here: settle
 whether CSV is a record format or a rendering first, and the rest follows.
 
+= Decision
+
+CSV is a record format, and its `file` cell is now the root-relative path
+`--format json` already reported — the second bullet above, minus the extra
+column, since one value under one name needs no second column.
+
+What settled it was already written down twice. `www/content/cli.typ` calls
+`csv` a data contract where it argues why the `file` column auto-shows off a
+terminal for `table` only, and `render_csv`'s own doc comment declares CSV
+values to be the plain field rather than the table's cell text — `file` was
+the one column not obeying the rule its renderer states. The `#` column had
+made the same move for the same reason: the table's handle is ephemeral per
+render, so CSV emits the stable `id` instead. A cwd-relative path is ephemeral
+in exactly that way, so `file` follows `#`.
+
+The pairing `path_format_matches_the_file_column_exactly` protected is intact
+and now reads the column it was always about: `--format path` and the table
+cell, the two surfaces a human reads from a shell. Only CSV left that pair,
+and the test asserts it from a subdirectory now, where the claim has content.
+
 = Watch for
 
 Whatever lands, `contrib/jq/*.jq` and their fixtures read the JSON `file`
 key, and `www/content/import-export.typ` states that `mt import` ignores
 `file` on the way back in. Does any of that change meaning?
+
+Neither does. Nothing about the JSON side moved — `contrib/jq/*.jq` select on
+the same key over the same value, and `mt import` still ignores `file` as a
+computed field. What gained meaning is a CSV export: its `file` column is now
+a value the `path` filter can be built from.
