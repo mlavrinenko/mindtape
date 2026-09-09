@@ -131,6 +131,25 @@ fn validate_sort_spec_rejects_unknown_field() {
     assert!(validate_sort_spec("no_such_field:desc").is_err());
 }
 
+/// `--sort file` is the same trap the filter field was: the column is named
+/// `file`, the sort key is `path`. Both the pre-flight validator and
+/// `sort_by_specs`' own guard must name the replacement, since a saved
+/// `[query] default_sort` reaches one and a `--sort` flag the other.
+#[test]
+fn the_retired_file_sort_field_errors_naming_path() {
+    let spec = validate_sort_spec("file").unwrap_err();
+    assert!(spec.contains("`path`"), "{spec}");
+
+    let applied = sort_by_specs(
+        &mut [task("a", "wip", 5.0, None)],
+        &["file:desc".to_owned()],
+        &config(),
+        &crate::ready::Readiness::empty(),
+    )
+    .unwrap_err();
+    assert!(applied.contains("`path`"), "{applied}");
+}
+
 #[test]
 fn sort_by_specs_orders_by_id_ascending() {
     let cfg = config();

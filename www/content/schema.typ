@@ -34,7 +34,11 @@ import):
   columns: (auto, auto, 1fr),
   table.header([Field], [Kind], [Notes]),
   [`id`], [computed], [Defaults to the file stem.],
-  [`file`], [computed], [Project-relative path.],
+  [`file`],
+  [computed],
+  [Project-root-relative path — the value the `path` filter field compares,
+    not the working-directory-relative path the `file` column displays.],
+
   [`title`], [authored], [],
   [`status`], [authored], [`{name, date, note}`, `null` when unset.],
   [`priority`],

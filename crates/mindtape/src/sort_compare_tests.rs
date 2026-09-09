@@ -212,7 +212,7 @@ fn sort_by_specs_orders_by_file_path() {
     let cfg = config();
     // bare_task sets file = tasks/{id}.typ; input reverses file order.
     let tasks = vec![bare_task("f-b"), bare_task("f-a")];
-    assert_eq!(ids_by(tasks, "file", &cfg), vec!["f-a", "f-b"]);
+    assert_eq!(ids_by(tasks, "path", &cfg), vec!["f-a", "f-b"]);
 }
 
 #[test]
@@ -306,7 +306,7 @@ fn sort_by_specs_orders_by_file_path_across_a_mixed_set() {
         nested_a.clone(),
     ];
     assert_eq!(
-        ids_by(tasks, "file", &cfg),
+        ids_by(tasks, "path", &cfg),
         vec!["m-nested-a", "m-nested-b", "m-flat", "m-root"]
     );
 }

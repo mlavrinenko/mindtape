@@ -16,6 +16,19 @@
 //! `status`/`ready`/`priority`/`difficulty` before falling back to this
 //! registry for everything else.
 //!
+//! `path` is the task's project-root-relative source path
+//! ([`Task::file_key`]), and is deliberately not spelled `file`: the `file`
+//! COLUMN renders the same task's path relative to the working directory, so
+//! one name covered two values that coincide inside the project root and
+//! diverge under `-w <other-project>` — where a filter copied from the
+//! listing matched nothing, silently, an empty listing being also what a
+//! correct filter over an empty result set looks like
+//! (`truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
+//! Display stays working-directory-relative (the only form openable from
+//! where the reader is standing); the comparable value stays root-relative,
+//! so a filter saved in `.mindtape/config.toml` means the same thing wherever
+//! `mt` runs from. [`rename_hint`] carries the old spelling's users across.
+//!
 //! `depth`, `topo` and `blocks` are *derived* entries: nothing authors them,
 //! the loader computes them (folder nesting; dependency level and transitive
 //! leverage — see `crate::dep_rank`). They enter here rather than being
@@ -84,7 +97,7 @@ pub const FIELDS: &[FieldDef] = &[
         get: |task, _config| opt_str(task.reviewed.clone()),
     },
     FieldDef {
-        name: "file",
+        name: "path",
         get: |task, _config| FieldValue::Str(task.file_key()),
     },
     FieldDef {
@@ -109,6 +122,35 @@ pub const FIELDS: &[FieldDef] = &[
 #[must_use]
 pub fn get(name: &str) -> Option<&'static FieldDef> {
     FIELDS.iter().find(|def| def.name == name)
+}
+
+/// Field names this registry has retired, each paired with the name that
+/// replaced it and the distinction the rename draws. A rename that only
+/// deletes the old name trades a silent wrong answer for a bare "unknown
+/// field", which tells the reader they are wrong but not what to type; this
+/// table is what [`rename_hint`] turns into the rest of the sentence.
+const RENAMED_FIELDS: &[(&str, &str, &str)] = &[(
+    "file",
+    "path",
+    "`file` now names only the ls COLUMN, whose display is relative to the \
+     working directory; the comparable field is the root-relative path",
+)];
+
+/// The trailing clause an unknown-field error appends when `name` is a
+/// retired spelling ([`RENAMED_FIELDS`]) — empty for every other unknown
+/// name, so a caller can append it unconditionally.
+///
+/// Both the filter (`crate::filter::FilterError::UnknownField`) and `--sort`
+/// (`crate::sort::validate_sort_spec`) error paths go through this, because
+/// the registry backs both and a name retired here is retired in both.
+#[must_use]
+pub fn rename_hint(name: &str) -> String {
+    RENAMED_FIELDS
+        .iter()
+        .find(|(old, _, _)| *old == name)
+        .map_or_else(String::new, |(_, new, why)| {
+            format!("; renamed to `{new}` — {why}")
+        })
 }
 
 /// `body` holds a task's prose, verbatim and already marker-free (the

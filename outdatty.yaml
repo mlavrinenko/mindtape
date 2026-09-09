@@ -115,6 +115,17 @@ groups:
       - crates/mindtape-cli/src/views.rs
       - crates/mindtape-cli/src/worktrees.rs
       - crates/mindtape/src/lib.rs
+      # The filter/`--sort` field vocabulary. Every dependent that lists the
+      # comparable fields (filters.typ, docs/src/skill.typ) hand-types them —
+      # nothing in www/generated/*.json carries this registry — so renaming
+      # `file` to `path` moved a documented surface while every source above
+      # stayed byte-identical and the gate stayed green
+      # (truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ).
+      # `sort.rs` is deliberately NOT a second source: its `SORT_FIELDS` is
+      # pinned to this registry by `sort_fields_covers_every_registry_field`,
+      # so a field cannot enter or leave one without the other, and the rest of
+      # that file is comparator internals no dependent restates.
+      - crates/mindtape/src/fields.rs
       - crates/mindtape/src/defaults.toml
       - crates/mindtape-cli/src/presets/todone/config.toml
       - crates/mindtape-cli/src/presets/flow/config.toml

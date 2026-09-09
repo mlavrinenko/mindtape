@@ -2,7 +2,7 @@
 
 use super::{
     BODY_FIELD, FIELDS, FieldValue, NOTE_FIELD, TAGS_FIELD, contains_field_names, get,
-    is_contains_field,
+    is_contains_field, rename_hint,
 };
 use crate::config::{Config, parse_config};
 use crate::model::Status;
@@ -155,6 +155,43 @@ fn priority_label_falls_back_to_string() {
         (get("priority").unwrap().get)(&task, &cfg),
         FieldValue::Str(s) if s == "high"
     ));
+}
+
+// --- The `file` → `path` rename ---
+
+#[test]
+fn path_resolves_the_root_relative_key_and_file_is_gone() {
+    // The whole point of the rename: `file` names the ls column (a
+    // working-directory-relative display) and nothing else, so it must not
+    // resolve as a comparable field at all — including through `contains()`,
+    // whose vocabulary is derived from this registry.
+    let cfg = config();
+    let mut task = bare_task("t");
+    task.file = "tasks/sub/nested.typ".into();
+    assert!(matches!(
+        (get("path").unwrap().get)(&task, &cfg),
+        FieldValue::Str(s) if s == "tasks/sub/nested.typ"
+    ));
+    assert!(get("file").is_none());
+    assert!(!is_contains_field("file"));
+}
+
+#[test]
+fn rename_hint_points_the_old_spelling_at_the_new_one() {
+    let hint = rename_hint("file");
+    assert!(hint.contains("`path`"), "{hint}");
+    assert!(
+        hint.starts_with("; "),
+        "the hint is a trailing clause a caller appends unconditionally: {hint}"
+    );
+}
+
+#[test]
+fn rename_hint_is_empty_for_a_name_that_was_never_a_field() {
+    // Silence for an ordinary typo, so appending the clause unconditionally
+    // cannot bolt a rename story onto an unrelated unknown name.
+    assert_eq!(rename_hint("bogus"), "");
+    assert_eq!(rename_hint("path"), "");
 }
 
 // --- Graph-derived fields (`topo`, `blocks`) ---

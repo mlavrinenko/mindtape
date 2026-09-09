@@ -109,12 +109,13 @@ you get the top N of the order you asked for, and a cut listing says so: a
 `truncated` envelope key. Read it before reporting a backlog as complete.
 
 Pass a filter expression as the positional argument. Fields:
-`status priority difficulty kind title id due start reviewed file assignee depth topo blocks role`
+`status priority difficulty kind title id due start reviewed path assignee depth topo blocks role`
 — `--sort` takes the same set except `role`, plus a computed `ready` rank.
 `role` is filter-only: it matches a role the task's assignee holds, via the
-`[[actors]]` registry. `file` compares the project-root-relative path
-(`/`-separated on every platform) — not the `file` _column_'s
-working-directory-relative display, below. `depth` is folder nesting under a
+`[[actors]]` registry. `path` compares the project-root-relative path
+(`/`-separated on every platform); the `file` _column_ below is a
+working-directory-relative display, a different value under `-w`, so filtering
+or sorting on `file` is an error naming `path`. `depth` is folder nesting under a
 root, always numeric, so `mt ls 'depth == 0'` lists the root tasks. `topo` and
 `blocks` read the `links:` graph, numeric and never absent: `topo` is
 dependency level (0 = nothing blocks it; ascending is a working order, ties

@@ -83,6 +83,59 @@ fn path_format_matches_the_file_column_exactly() {
     assert_eq!(csv_cells, path_lines);
 }
 
+/// The `file` display and the `path` filter field are two different values,
+/// and this is the run that proves it: from `tasks/`, the column and
+/// `--format path` render `../tasks/a.typ` (openable from where the reader is
+/// standing) while the filter still compares the root-relative
+/// `tasks/a.typ` — so a view or `[[ls.rules]]` entry means the same thing
+/// wherever `mt` runs from
+/// (`truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
+#[test]
+fn the_path_field_stays_root_relative_while_the_display_follows_the_cwd() {
+    let dir = scaffold();
+    let out = support::mt(dir.path())
+        .current_dir(dir.path().join("tasks"))
+        .args(["ls", "path == \"tasks/a.typ\"", "--format", "path"])
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert_eq!(stdout.lines().collect::<Vec<_>>(), vec!["../tasks/a.typ"]);
+}
+
+/// The rename's whole point: the old spelling fails loudly, naming the
+/// replacement. Before it, a filter built from what the listing showed
+/// returned zero rows and exit 0 — indistinguishable from a correct filter
+/// over an empty result set.
+#[test]
+fn the_retired_file_filter_field_fails_loudly_naming_path() {
+    let dir = scaffold();
+    let out = support::mt(dir.path())
+        .current_dir(dir.path().join("tasks"))
+        .args(["ls", "file == \"../tasks/a.typ\"", "--format", "path"])
+        .output()
+        .unwrap();
+    assert!(
+        !out.status.success(),
+        "an unknown field must fail, not list nothing: {out:?}"
+    );
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(stderr.contains("`path`"), "{stderr}");
+}
+
+/// The same trap on the sort side, which a saved `[query] default_sort` or a
+/// `--sort` flag reaches instead of the filter parser.
+#[test]
+fn the_retired_file_sort_field_fails_loudly_naming_path() {
+    let dir = scaffold();
+    let out = support::mt(dir.path())
+        .args(["ls", "", "--sort", "file"])
+        .output()
+        .unwrap();
+    assert!(!out.status.success(), "{out:?}");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(stderr.contains("`path`"), "{stderr}");
+}
+
 #[test]
 fn path_format_composes_with_a_real_pipe() {
     // `xargs -n1 echo` proves the output is directly consumable, not just

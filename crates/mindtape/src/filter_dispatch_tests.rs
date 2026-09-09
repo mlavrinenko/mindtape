@@ -94,24 +94,42 @@ fn contains_reads_numeric_fields_and_rejects_missing_ones() {
 }
 
 #[test]
-fn file_field_contains_matches_nested_dir_not_flat_sibling() {
+fn path_field_contains_matches_nested_dir_not_flat_sibling() {
     // `sample()` is flat (tasks/add-auth.typ) — no "sub/" segment, so a
-    // subdirectory task must match `contains("sub/", file)` and its flat
+    // subdirectory task must match `contains("sub/", path)` and its flat
     // sibling must not.
     let mut nested = sample();
     nested.file = "tasks/sub/add-auth.typ".into();
-    assert!(hit("contains(\"sub/\", file)", &nested));
+    assert!(hit("contains(\"sub/\", path)", &nested));
 
     let flat = sample();
-    assert!(!hit("contains(\"sub/\", file)", &flat));
+    assert!(!hit("contains(\"sub/\", path)", &flat));
 }
 
 #[test]
-fn file_field_equality_matches_the_full_root_relative_path() {
+fn path_field_equality_matches_the_full_root_relative_path() {
     let task = sample(); // file: tasks/add-auth.typ
-    assert!(hit("file == \"tasks/add-auth.typ\"", &task));
-    assert!(!hit("file == \"tasks/other.typ\"", &task));
-    assert!(hit("file != \"tasks/other.typ\"", &task));
+    assert!(hit("path == \"tasks/add-auth.typ\"", &task));
+    assert!(!hit("path == \"tasks/other.typ\"", &task));
+    assert!(hit("path != \"tasks/other.typ\"", &task));
+}
+
+/// The retired spelling must fail loudly and name its replacement: a reader
+/// who copies a path out of the `file` COLUMN and writes `file` into a filter
+/// used to get an empty listing, which is also what a correct filter over an
+/// empty result set looks like
+/// (`truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
+#[test]
+fn the_retired_file_field_errors_naming_path() {
+    let got = err("file == \"tasks/add-auth.typ\"", &sample());
+    assert!(matches!(&got, FilterError::UnknownField(name) if name == "file"));
+    assert!(got.to_string().contains("`path`"), "{got}");
+}
+
+#[test]
+fn the_retired_file_field_errors_naming_path_inside_contains() {
+    let got = err("contains(\"sub/\", file)", &sample());
+    assert!(got.to_string().contains("`path`"), "{got}");
 }
 
 #[test]

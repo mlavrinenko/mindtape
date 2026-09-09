@@ -20,7 +20,7 @@ Here, every task not yet in a terminal status:
 = Fields
 
 Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
-`due`, `start`, `reviewed`, `file`, `depth`, `topo`, `blocks`, `assignee`,
+`due`, `start`, `reviewed`, `path`, `depth`, `topo`, `blocks`, `assignee`,
 `role`. `priority` and `difficulty` compare numerically (`priority >= 7`). The
 opaque `estimate` dict supports presence only (`has(estimate)`), never
 comparison.
@@ -31,12 +31,18 @@ comparison.
 "reviewer"` is its exact complement — an unassigned task, or one whose
 assignee is not a declared actor, holds no role.
 
-`file` compares the task's project-root-relative source path with `/`
-separators on every platform — deliberately not the
-#link(u("/cli/"))[`file` column]'s working-directory-relative display: a
-filter saved in `.mindtape/config.toml` (a view, an `[[ls.rules]]` entry) must
-mean the same thing regardless of where `mt` runs from, so it stays anchored
-to the root rather than to whichever directory issued the command.
+`path` compares the task's project-root-relative source path with `/`
+separators on every platform. A filter saved in `.mindtape/config.toml` (a
+view, an `[[ls.rules]]` entry) must mean the same thing regardless of where
+`mt` runs from, so it stays anchored to the root rather than to whichever
+directory issued the command — and it is the same value `--format json`
+reports as each task's `file`.
+
+The #link(u("/cli/"))[`file` column] is a different value: a _display_,
+relative to the working directory, so the path you read is openable from
+where you are standing. The two coincide inside the project root and diverge
+under `mt -w <other-project>`, which is why they no longer share a name.
+Filtering on `file` is an error naming `path`, not an empty listing.
 
 `depth` is the task's nesting under its root — 0 for a task in the root itself,
 1 for one in a sub-folder, and so on. It is always numeric, so `depth == 0`

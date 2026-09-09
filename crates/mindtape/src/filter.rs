@@ -6,7 +6,7 @@
 //! # Syntax
 //!
 //! Comparable fields: [`crate::fields::FIELDS`] (`status`, `priority`,
-//! `difficulty`, `kind`, `title`, `id`, `due`, `start`, `reviewed`, `file`,
+//! `difficulty`, `kind`, `title`, `id`, `due`, `start`, `reviewed`, `path`,
 //! `assignee`, `depth`) plus `role` (a virtual, comparison-only field with no
 //! `Task` field behind it: the literal resolves against the assignee's
 //! declared roles from the `[[actors]]` registry at read time, so
@@ -76,8 +76,12 @@ pub enum FilterError {
     /// An operator that the filter language does not support.
     #[error("unsupported in filter: {0}")]
     Unsupported(String),
-    /// A field name the filter language does not know.
-    #[error("unknown field in filter: {0}")]
+    /// A field name the filter language does not know. A name the registry
+    /// retired (`file`, now `path`) appends
+    /// [`crate::fields::rename_hint`]'s clause naming the replacement, so the
+    /// reader who copied a name out of the `file` column is told what to type
+    /// rather than only that they are wrong.
+    #[error("unknown field in filter: {}{}", .0, fields::rename_hint(.0))]
     UnknownField(String),
     /// An `in_view` / `@` reference naming no declared view.
     #[error("unknown view in filter: {0}")]

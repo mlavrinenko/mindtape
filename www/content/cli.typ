@@ -68,7 +68,9 @@ path) exists but is opt-in on a terminal — its cell is never blank, so the
 ordinary auto-hide rule cannot apply to it; name it explicitly (`--columns
 '#,title,file'`, a view, an `[[ls.rules]]` columns override, or `[ls.columns.file]
 visibility = "visible"`) to see it. Its cell is relative to the working
-directory (what an IDE-integrated terminal ctrl-clicks straight to).
+directory (what an IDE-integrated terminal ctrl-clicks straight to) — a
+display, not a filterable value: the field that compares a task's path is
+#link(u("/filters/"))[`path`], and it is root-relative.
 
 #emph[Off] a terminal it turns itself on, because the `#` handle beside it
 stops being an address there. Captured output outlives the listing that

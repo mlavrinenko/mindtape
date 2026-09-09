@@ -39,7 +39,7 @@ pub const SORT_FIELDS: [&str; 15] = [
     "start",
     "reviewed",
     "assignee",
-    "file",
+    "path",
     "depth",
     "topo",
     "blocks",
@@ -55,8 +55,16 @@ pub fn validate_sort_spec(spec: &str) -> Result<(), String> {
     if SORT_FIELDS.contains(&field) {
         Ok(())
     } else {
-        Err(format!("unknown sort field: {field}"))
+        Err(unknown_sort_field(field))
     }
+}
+
+/// The `--sort` / `[query] default_sort` error for an unrecognised field,
+/// carrying [`crate::fields::rename_hint`]'s clause when the name is one the
+/// registry retired — so `--sort file` names `path` rather than only saying
+/// `file` does not exist.
+fn unknown_sort_field(field: &str) -> String {
+    format!("unknown sort field: {field}{}", fields::rename_hint(field))
 }
 
 /// A task's difficulty resolved to a number on its scale, if set and resolvable.
@@ -81,7 +89,7 @@ pub fn sort_by_specs(
     for spec in specs.iter().rev() {
         let (field, descending) = parse_spec(spec);
         if !SORT_FIELDS.contains(&field) {
-            return Err(format!("unknown sort field: {field}"));
+            return Err(unknown_sort_field(field));
         }
         tasks.sort_by(|l, r| {
             let ord = compare_field(l, r, field, config, readiness);

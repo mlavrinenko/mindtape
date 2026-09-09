@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The filter/sort field `file` is now `path`** (breaking, pre-1.0). One name
+  covered two values: the field compared the project-root-relative path, while
+  the `file` column and `--format path` render the same task's path relative
+  to the working directory. Inside the project root the two coincide, which is
+  why it went unnoticed; under `mt -w <other-project>` they diverge and a
+  filter built from what the listing showed matched nothing — silently, an
+  empty listing being also what a correct filter over an empty result set
+  looks like.
+
+  The display is unchanged and stays working-directory-relative: it is the only
+  form openable from where the reader is standing. The comparable value stays
+  root-relative, so a filter saved in `.mindtape/config.toml` means the same
+  thing wherever `mt` runs from — and is the same value `--format json` reports
+  as each task's `file`. Only the name moved.
+
+  `file` in a filter (`mt ls 'contains("x", file)'`, `has(file)`) and in a sort
+  spec (`--sort file`, `[query] default_sort`) is now an error naming `path`,
+  rather than a silent miss. No shipped view, `[[ls.rules]]` entry or example
+  config filtered on it.
+
 - **Every task writer now validates before it writes** — `mt add` already
   rendered into a buffer, checked the candidate at the exact path it would
   occupy, and wrote only if it passed. The rest wrote first and reported
