@@ -14,8 +14,8 @@
 
 == Summary
 
-#slot("summary", kind: "text", prompt: "One-paragraph summary")
+#slot("summary", kind: "raw", prompt: "One-paragraph summary")
 
 == Scope
 
-#slot("scope", kind: "text", default: "- TODO")
+#slot("scope", kind: "raw", default: "- TODO")
