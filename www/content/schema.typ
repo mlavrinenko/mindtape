@@ -36,8 +36,9 @@ import):
   [`id`], [computed], [Defaults to the file stem.],
   [`file`],
   [computed],
-  [Project-root-relative path — the value the `path` filter field compares,
-    not the working-directory-relative path the `file` column displays.],
+  [Project-root-relative path — the value the `path` filter field compares
+    and the one `--format csv` carries too, not the working-directory-relative
+    path the table's `file` column and `--format path` display.],
 
   [`title`], [authored], [],
   [`status`], [authored], [`{name, date, note}`, `null` when unset.],

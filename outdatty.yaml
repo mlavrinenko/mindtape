@@ -108,6 +108,14 @@ groups:
       - crates/mindtape-cli/src/link_cmd.rs
       - crates/mindtape-cli/src/link_input.rs
       - crates/mindtape-cli/src/ls.rs
+      # `--format`'s per-surface contract: which columns each machine format
+      # carries and what each cell means. `ls.rs` decides nothing about this —
+      # it hands a resolved list to `render()` — so the CSV mapping decision
+      # (`#` -> `id`, and `file` as the root-relative record path rather than
+      # the table's cwd-relative display) lives here and nowhere else, while
+      # cli.typ, schema.typ and docs/src/skill.typ each restate it by hand
+      # (truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ).
+      - crates/mindtape-cli/src/output.rs
       - crates/mindtape-cli/src/preset_cmd.rs
       - crates/mindtape-cli/src/recur.rs
       - crates/mindtape-cli/src/review.rs

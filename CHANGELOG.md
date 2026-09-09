@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`--format csv`'s `file` cell is now the project-root-relative path**
+  (breaking, pre-1.0), the same value `--format json` already reported under
+  `file`. It used to go through the same renderer the table column does, so
+  the two machine formats disagreed by whichever directory produced them: from
+  `tasks/`, `--format json` said `tasks/a.typ` and `--format csv --columns
+  file` said `../tasks/a.typ` for one task.
+
+  CSV is a record format, not a rendering — the docs already called it a data
+  contract, and it already substituted the task's stable `id` for the table's
+  ephemeral `#` handle for exactly this reason. `file` is the second column to
+  follow that rule: where the table shows something only the render that
+  produced it can resolve, CSV emits the value a program can keep. So a CSV
+  row now agrees with a JSON record field for field, and its `file` is the
+  value the `path` filter compares and `mt import` reads back.
+
+  The cwd-relative form is unchanged and still has two surfaces of its own —
+  the table's `file` column, and `--format path`/`path0`, which exist to be
+  pasted back into a command from the directory that produced them. Those two
+  stay pinned to each other.
+
 - **The filter/sort field `file` is now `path`** (breaking, pre-1.0). One name
   covered two values: the field compared the project-root-relative path, while
   the `file` column and `--format path` render the same task's path relative

@@ -187,10 +187,22 @@ fn applied_to_json(applied: &Applied) -> Value {
 /// Column *mapping decision*: CSV column values are the plain/raw field
 /// (e.g. the status legend's raw name, the numeric priority score) rather
 /// than the table's coloured/labelled cell text — matching CSV's prior
-/// behaviour and staying friendly to non-interactive consumers. The one
-/// deliberate divergence is the `#` column: the table's handle
-/// (`<ordinal><check>`) is ephemeral per render, so CSV emits the task's
-/// stable `id` under an `id` header instead.
+/// behaviour and staying friendly to non-interactive consumers. Two columns
+/// diverge from the table on purpose, and for one reason: where the table
+/// shows something only the render that produced it can resolve, CSV emits
+/// the stable value a program can keep.
+///
+/// - `#`: the table's handle (`<ordinal><check>`) is ephemeral per render, so
+///   CSV emits the task's stable `id` under an `id` header instead.
+/// - `file`: the table's cell is relative to the process's working directory
+///   ([`crate::render::file_path::cell_text`]), so one task reads
+///   `tasks/a.typ` from the root and `../tasks/a.typ` from `tasks/`. CSV
+///   emits `task.file` — the project-root-relative path, byte-identical to
+///   `--format json`'s `file` key and to what the `path` filter field
+///   compares, so the two machine formats never disagree by cwd
+///   (`truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ`).
+///   Rendering that path from where the reader stands is `--format path`'s
+///   whole job, and the table's.
 ///
 /// Fields with no [`mindtape::LS_COLUMNS`] entry — `kind`, `estimate`, `tags`,
 /// derived tags, and any `x-<ns>` extra — have no column to drive from and so
@@ -241,7 +253,7 @@ fn csv_value(id: ColumnId, task: &Task, config: &Config, readiness: &Readiness) 
         ColumnId::Due => task.due.clone().unwrap_or_default(),
         ColumnId::Assignee => task.assignee.clone().unwrap_or_default(),
         ColumnId::Title => task.title.clone(),
-        ColumnId::File => crate::render::file_path::cell_text(&task.file),
+        ColumnId::File => task.file.display().to_string(),
     }
 }
 

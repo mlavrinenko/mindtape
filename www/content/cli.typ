@@ -72,6 +72,13 @@ directory (what an IDE-integrated terminal ctrl-clicks straight to) — a
 display, not a filterable value: the field that compares a task's path is
 #link(u("/filters/"))[`path`], and it is root-relative.
 
+That is the table's cell, and `--format path` renders the same one. The
+record formats do not: a `file` in `--format csv` is the root-relative path,
+byte-identical to the `file` key in
+#link(u("/schema/"))[`--format json`] — a record means the same thing
+wherever it was produced, so a stored one never has to carry the directory
+that produced it.
+
 #emph[Off] a terminal it turns itself on, because the `#` handle beside it
 stops being an address there. Captured output outlives the listing that
 produced it — it is pasted into a report, a commit message, a chat — and the
@@ -164,8 +171,9 @@ composing with
 another program: `rg TODO $(mt ls ready --format path)`. `--format path0` is
 the same list NUL-delimited instead, for `xargs -0` and paths holding
 whitespace: `mt ls 'stale(30)' --format path0 | xargs -0 $EDITOR`. Both render
-the path exactly as the `file` column does — relative to the working
-directory — so the two never disagree. `contrib/fzf-mt-go.sh` wires
+the path exactly as the table's `file` column does — relative to the working
+directory — so the listing and the list you paste into the next command never
+disagree. `contrib/fzf-mt-go.sh` wires
 `--format path` to a fuzzy picker of your choice (`mt ls -i` stays a plain
 key-loop highlighter, not a fuzzy finder).
 

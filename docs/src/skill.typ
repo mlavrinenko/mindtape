@@ -149,7 +149,9 @@ filter facet only. `--columns <cols|@view>` picks columns for one run. The
 directory. It is opt-in on a terminal (`--columns '#,title,file'`) and
 automatic everywhere else, so your captured `mt ls` already carries the path to
 cite — you never need a second `--format path` run to get it. `--format csv`
-is unaffected and addresses tasks by `id`. An `assignee`
+is unaffected and addresses tasks by `id`; its `file` cell is the
+root-relative path `--json` reports, not the cwd-relative display. An
+`assignee`
 column shows only when the listed rows disagree about it; naming it does not
 override that — `[ls.columns.assignee] visibility = "visible"` does.
 `--hyperlinks always` (default `never`, or `[ls] hyperlinks`) wraps the

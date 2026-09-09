@@ -189,9 +189,10 @@ fn csv_file_column_hidden_unless_named() {
 
 #[test]
 fn csv_file_column_shown_and_root_relative_when_named() {
-    // No process-global `(root, cwd)` context is ever set in this test
-    // binary, so the cell falls back to `task.file` unchanged (root-relative)
-    // — the same fallback unit tests for `file_path::cell_text` rely on.
+    // CSV reads `task.file` directly rather than the table's cwd-relative
+    // cell, so this holds for any working directory — what a subdirectory run
+    // proves, and this binary cannot, is in `tests/ls_path_e2e.rs`
+    // (`csv_and_json_report_the_same_root_relative_file_from_a_subdirectory`).
     let mut config = Config::default();
     config.ls.columns_order = vec!["title".to_owned(), "file".to_owned()];
     let mut task = sample();
@@ -239,10 +240,40 @@ fn path_format_is_empty_for_no_tasks() {
     assert_eq!(out, "");
 }
 
-/// The spec's whole premise: `path` must agree with the `file` column by
-/// construction, since both read `file_path::cell_text`.
+/// `--format path` is paired with the *table's* `file` column — both read
+/// `file_path::cell_text`, so the list you paste into the next command spells
+/// each path the way the listing you read it from did. CSV is not part of
+/// that pair: it is a record format, and pins the pairing to the wrong side
+/// (`truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ`).
 #[test]
-fn path_format_matches_the_csv_file_column_cell() {
+fn path_format_matches_the_table_file_column_cell() {
+    let mut task = sample();
+    task.file = "truth/tasks/t1.typ".into();
+
+    let cell = crate::render::columns::ColumnId::File.cell(
+        "1a",
+        &task,
+        &Config::default(),
+        &Readiness::empty(),
+    );
+
+    let path = render(
+        &[task],
+        OutputFormat::Path,
+        &Config::default(),
+        &Readiness::empty(),
+        None,
+    )
+    .unwrap();
+    assert_eq!(path, cell.text);
+}
+
+/// One value under `file` across both machine formats: CSV's cell is the
+/// root-relative path `--format json` carries — the value `mt import` reads
+/// back and `contrib/jq/*.jq` select on — never the table's cwd-relative
+/// display.
+#[test]
+fn csv_file_cell_equals_the_json_file_key() {
     let mut config = Config::default();
     config.ls.columns_order = vec!["file".to_owned()];
     let mut task = sample();
@@ -258,15 +289,8 @@ fn path_format_matches_the_csv_file_column_cell() {
     .unwrap();
     let csv_cell = csv.lines().nth(1).unwrap();
 
-    let path = render(
-        &[task],
-        OutputFormat::Path,
-        &Config::default(),
-        &Readiness::empty(),
-        None,
-    )
-    .unwrap();
-    assert_eq!(path, csv_cell);
+    let json = task_to_json(&task, &Config::default());
+    assert_eq!(csv_cell, json["file"].as_str().unwrap());
 }
 
 #[test]

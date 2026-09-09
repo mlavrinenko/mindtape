@@ -1,13 +1,20 @@
 //! Working-directory-relative rendering of a task's source path.
 //!
-//! `Task.file` is stored root-relative (`truth/tasks/x.typ`), but the `file`
-//! column shows a path relative to the process's working directory — the
-//! form an IDE-integrated terminal (Zed, VS Code, `JetBrains`) turns into a
-//! ctrl-click with no escape sequences involved
+//! `Task.file` is stored root-relative (`truth/tasks/x.typ`), but the table's
+//! `file` column shows a path relative to the process's working directory —
+//! the form an IDE-integrated terminal (Zed, VS Code, `JetBrains`) turns into
+//! a ctrl-click with no escape sequences involved
 //! (`truth/tasks/opt-in-file-column-for-mt-ls.typ`). [`relativize`] is the
 //! pure core; the process-global `(root, cwd)` pair is recorded once by
 //! [`crate::util::open`], mirroring the `WORKTREE` and `COLOR_ENABLED`
 //! one-shot cells ([`crate::util`], [`super::color`]).
+//!
+//! Only the two surfaces a human reads from a shell come through here: the
+//! table cell and `--format path`/`path0`, which exist to be pasted back into
+//! a command from the cwd that produced them. The record formats do not —
+//! `--format json` and `--format csv` both carry `task.file` unchanged, so a
+//! stored record means the same thing whatever directory produced it
+//! (`truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ`).
 
 use std::path::{Component, Path, PathBuf};
 use std::sync::OnceLock;

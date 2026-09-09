@@ -52,13 +52,58 @@ fn path0_format_is_nul_delimited_and_self_terminated() {
     assert_eq!(parts, vec!["tasks/a.typ", "tasks/b.typ"]);
 }
 
-/// The spec's whole premise: paths render exactly as the `file` column does
-/// today, so the two agree by construction.
+/// The spec's whole premise: paths render exactly as the table's `file`
+/// column does, so the two agree by construction — and they have to agree
+/// from a subdirectory too, which is the only place the claim has content.
+/// Run from `tasks/`, both spell every path `../tasks/…`.
 #[test]
-fn path_format_matches_the_file_column_exactly() {
+fn path_format_matches_the_table_file_column_exactly() {
     let dir = scaffold();
+    let cwd = dir.path().join("tasks");
+
+    let table = support::mt(dir.path())
+        .current_dir(&cwd)
+        .args(["ls", "", "--format", "table", "--columns", "file"])
+        .output()
+        .unwrap();
+    let table_stdout = String::from_utf8_lossy(&table.stdout);
+    // Drop the `FILE` header row and the table's own `applied:` trailer; each
+    // remaining row is the one column, padded to width.
+    let mut table_cells: Vec<&str> = table_stdout
+        .lines()
+        .skip(1)
+        .map(str::trim_end)
+        .filter(|line| !line.is_empty() && !line.starts_with("applied:"))
+        .collect();
+    table_cells.sort_unstable();
+    assert_eq!(table_cells, vec!["../tasks/a.typ", "../tasks/b.typ"]);
+
+    let path = support::mt(dir.path())
+        .current_dir(&cwd)
+        .args(["ls", "", "--format", "path"])
+        .output()
+        .unwrap();
+    let path_stdout = String::from_utf8_lossy(&path.stdout);
+    let mut path_lines: Vec<&str> = path_stdout.lines().collect();
+    path_lines.sort_unstable();
+
+    assert_eq!(table_cells, path_lines);
+}
+
+/// `file` names one value across both machine formats. Run from `tasks/`,
+/// `--format csv` and `--format json` both report the project-root-relative
+/// `tasks/a.typ` — the value `mt import` reads back and the `path` filter
+/// field compares — while the table and `--format path` show `../tasks/a.typ`
+/// for the same task. Before this, CSV rendered the display and the two
+/// machine formats disagreed by whichever directory the producer stood in
+/// (`truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ`).
+#[test]
+fn csv_and_json_report_the_same_root_relative_file_from_a_subdirectory() {
+    let dir = scaffold();
+    let cwd = dir.path().join("tasks");
 
     let csv = support::mt(dir.path())
+        .current_dir(&cwd)
         .args(["ls", "", "--format", "csv", "--columns", "file"])
         .output()
         .unwrap();
@@ -71,16 +116,23 @@ fn path_format_matches_the_file_column_exactly() {
         .filter(|line| !line.is_empty())
         .collect();
     csv_cells.sort_unstable();
+    assert_eq!(csv_cells, vec!["tasks/a.typ", "tasks/b.typ"]);
 
-    let path = support::mt(dir.path())
-        .args(["ls", "", "--format", "path"])
+    let json = support::mt(dir.path())
+        .current_dir(&cwd)
+        .args(["ls", "", "--format", "json"])
         .output()
         .unwrap();
-    let path_stdout = String::from_utf8_lossy(&path.stdout);
-    let mut path_lines: Vec<&str> = path_stdout.lines().collect();
-    path_lines.sort_unstable();
+    let parsed: serde_json::Value = serde_json::from_slice(&json.stdout).unwrap();
+    let mut json_files: Vec<&str> = support::at(&parsed, "/tasks")
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|task| support::at(task, "/file").as_str().unwrap())
+        .collect();
+    json_files.sort_unstable();
 
-    assert_eq!(csv_cells, path_lines);
+    assert_eq!(csv_cells, json_files);
 }
 
 /// The `file` display and the `path` filter field are two different values,
