@@ -23,11 +23,46 @@ fn schema_matches_golden() {
         return;
     }
     let golden = std::fs::read_to_string(golden_path).unwrap_or_default();
-    assert_eq!(
-        generated, golden,
+    assert!(
+        generated == golden,
         "config JSON schema drifted from the config structs; re-bless with \
-         `MINDTAPE_BLESS=1 cargo test -p mindtape schema_matches_golden`"
+         `MINDTAPE_BLESS=1 cargo test -p mindtape schema_matches_golden`\n{}",
+        first_difference(&golden, &generated)
     );
+}
+
+/// Where two schema documents first disagree, as three lines: the line number
+/// and each side's text, each capped.
+///
+/// `assert_eq!` on the two documents instead printed both in full — ~20 000
+/// characters of JSON to say "re-bless", on every run that touches a config
+/// struct, in a message whose actionable half is the sentence above it. The
+/// only thing the dumps added over a line number was *what* moved, and one
+/// differing line says that; the whole shape of the move is
+/// `git diff schema/config.schema.json` after blessing, which is the next step
+/// either way.
+fn first_difference(golden: &str, generated: &str) -> String {
+    /// Long enough for a `"description"` line to show which field it belongs
+    /// to, short enough that a prose-heavy one cannot re-flood the message.
+    const CAP: usize = 200;
+    let cut = |line: &str| line.chars().take(CAP).collect::<String>();
+    for (index, (want, got)) in golden.lines().zip(generated.lines()).enumerate() {
+        if want != got {
+            let line = index + 1;
+            return format!(
+                "first difference at line {line}\n  committed: {}\n  generated: {}",
+                cut(want),
+                cut(got)
+            );
+        }
+    }
+    // No differing line in the common prefix, so one document is longer.
+    format!(
+        "identical for {} line(s); committed has {}, generated has {}",
+        golden.lines().count().min(generated.lines().count()),
+        golden.lines().count(),
+        generated.lines().count()
+    )
 }
 
 /// Each hand-written `JsonSchema::schema_id` returns its unique dotted path.
