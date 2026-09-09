@@ -106,6 +106,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A column condition can read the rows it would render** — four predicates
+  join the condition language for `[[ls.columns.<name>.rules]]`: `nonempty()`
+  (any cell in this column carries text), `contested()` (the rows disagree
+  about it), `named()` (the caller asked for this column by name), and
+  `blocked()` (any listed task is blocked). They are exactly the facts the
+  built-in `auto` visibility already decided from — `file` means `named()`,
+  `assignee` means `contested()`, `ready` means `blocked()`, everything else
+  means `nonempty()` — so a project that wants a different answer for one
+  column can now write it in config instead of asking for a code change.
+
+  `ready` kept a predicate of its own rather than folding into `nonempty()`:
+  on an all-ready listing every `ready` cell carries a label, so the two
+  genuinely disagree, and reusing `nonempty()` would have grown a column on
+  every listing.
+
+  The four are listing facts, not ambient ones, so they only have an answer
+  while a column is being resolved; in an `[[ls.rules]]` condition they read
+  `false`. A typo is still a load-time error naming the column
+  (`Condition::parse` dry-runs every expression), so `nonemtpy()` fails on
+  `mt ls` rather than becoming a column that silently never renders.
+
+  Mechanically, a column's `rules` are now resolved by the renderer's own
+  `resolve_order` — the one place that has the rows — instead of being folded
+  onto the config beforehand. Both the table and CSV go through it, so they
+  still cannot disagree about the column set, and `mt eval` and a `[[on.flip]]`
+  `list` table now resolve column rules like `mt ls` does rather than skipping
+  them.
+
 - **A load failure on a literal `#` in a task body now names `\#`** — task
   bodies are real Typst markup, so prose like `Channel #N carries it` opens an
   inline expression and the file fails with `eval error: unknown variable: N`,

@@ -20,6 +20,10 @@
 //! - `format()` -> string. The active `--format` value (`table`, `csv`,
 //!   `json`, `path`, `path0`), so a rule can scope itself to the presentation
 //!   surfaces without the distinction being hardcoded in Rust.
+//! - `nonempty()`, `contested()`, `named()`, `blocked()` -> bool. The four
+//!   listing facts a column's `auto` visibility is decided from, read off
+//!   [`ConditionEnv::column`]; see [`ColumnFacts`] for what each means and
+//!   what they answer for a caller resolving no column.
 //! - `true`, `false` -> bool constants, usable bare or composed (`!false`,
 //!   `true && !tty()`). Not valid on either side of a comparison — `env(...)`
 //!   and friends only ever yield a string or number, so a bool there is a
@@ -30,59 +34,17 @@
 //! which only ever compares a field (always the left side) against a literal.
 //!
 //! Purity: this module never reads the clock or the filesystem itself.
-//! [`ConditionEnv`] carries every ambient fact it needs (mirrors
+//! [`ConditionEnv`] carries every fact it needs (mirrors
 //! [`crate::worktrees`]'s injected-fs pattern); the CLI populates it from
-//! `std::env`, [`crate::current_branch`], and [`crate::today_iso`].
-
-use std::collections::BTreeMap;
+//! `std::env`, [`crate::current_branch`], and [`crate::today_iso`], and the
+//! render layer supplies [`ColumnFacts`] per column.
 
 use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
 
+use crate::condition_env::{ColumnFacts, ConditionEnv};
 use crate::expr::{compare_ordering, extract_literal, unwrap_root};
 use crate::numeric::format_num;
-
-/// Environment facts a [`Condition`] evaluates against — no task, no config,
-/// just ambient project state. See the module doc for why this is injected.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub struct ConditionEnv {
-    /// Current git branch name, if resolvable. `None` when the project is not
-    /// a git working copy, or `HEAD` is detached — `on_branch` reads that as
-    /// "no branch matches".
-    pub branch: Option<String>,
-    /// Today's date as `YYYY-MM-DD`, the sole input to `now()` and
-    /// `weekday()`.
-    pub today: String,
-    /// Environment variable snapshot backing `env("NAME")`; a name absent
-    /// from the map reads as `""`, same as an unset variable.
-    pub env: BTreeMap<String, String>,
-    /// Whether stdout is a terminal, backing `tty()`. Injected rather than
-    /// probed here for the same reason as every other field: this module
-    /// never touches the process or the filesystem.
-    pub tty: bool,
-    /// The active output format, backing `format()`. Empty when the caller
-    /// has no format to speak of (a condition evaluated outside a rendering
-    /// command), which compares unequal to every real format name.
-    pub format: String,
-}
-
-impl ConditionEnv {
-    /// A structurally valid, branch-less, dateful environment used only to
-    /// dry-run a freshly parsed [`Condition`] ([`Condition::parse`]), so a
-    /// task-field identifier, unknown predicate, or malformed `on_branch`
-    /// glob surfaces as a load-time error rather than waiting for the rule to
-    /// actually run. The date is an arbitrary well-formed placeholder, not
-    /// "today" — parse-time validation only needs *a* valid environment.
-    fn probe() -> Self {
-        Self {
-            branch: None,
-            today: "1970-01-01".to_owned(),
-            env: BTreeMap::new(),
-            tty: false,
-            format: String::new(),
-        }
-    }
-}
 
 /// A parsed, reusable condition expression. `None` is the always-matching
 /// condition (an absent or empty/whitespace-only `condition`, e.g. an
@@ -107,7 +69,7 @@ pub enum ConditionError {
     #[error("field `{0}` not available in a condition")]
     TaskField(String),
     /// A function name outside `on_branch` / `tty` / `env` / `weekday` /
-    /// `now` / `format`.
+    /// `now` / `format` / `nonempty` / `contested` / `named` / `blocked`.
     #[error("unknown predicate in condition: {0}")]
     UnknownPredicate(String),
     /// A structurally invalid expression (wrong arity, bad glob, ...).
@@ -195,9 +157,9 @@ fn binary(
     }
 }
 
-/// A function call in boolean position: `on_branch(...)` and `tty()` are
-/// boolean; `env` / `weekday` / `now` / `format` are value-producers and
-/// belong in a comparison.
+/// A function call in boolean position: `on_branch(...)`, `tty()` and the four
+/// [`ColumnFacts`] predicates are boolean; `env` / `weekday` / `now` /
+/// `format` are value-producers and belong in a comparison.
 fn predicate(
     name: &str,
     node: &Node<DefaultNumericTypes>,
@@ -212,10 +174,27 @@ fn predicate(
             no_args(node.children(), "tty")?;
             Ok(env.tty)
         }
+        "nonempty" | "contested" | "named" | "blocked" => {
+            no_args(node.children(), name)?;
+            Ok(column_fact(name, env.column))
+        }
         "env" | "weekday" | "now" | "format" => Err(ConditionError::Invalid(format!(
             "`{name}(...)` is not boolean; use it in a comparison"
         ))),
         other => Err(ConditionError::UnknownPredicate(other.to_owned())),
+    }
+}
+
+/// Read one [`ColumnFacts`] field by predicate name. `name` is already known
+/// to be one of the four — [`predicate`]'s match arm is the only caller — so
+/// the fallback arm is unreachable in practice and reads `false`, which is
+/// what an unknown fact means everywhere else in this domain.
+fn column_fact(name: &str, facts: ColumnFacts) -> bool {
+    match name {
+        "nonempty" => facts.nonempty,
+        "contested" => facts.contested,
+        "named" => facts.named,
+        _ => facts.blocked,
     }
 }
 
@@ -281,7 +260,7 @@ fn compare_values(
 }
 
 /// Resolve one side of a comparison: a value-producing call (`env`, `now`,
-/// `weekday`, `format`) or a literal. `on_branch(...)` / `tty()` and a bare
+/// `weekday`, `format`) or a literal. The boolean predicates and a bare
 /// identifier are rejected here — the former are boolean-only, the latter is
 /// always a task-field mistake in this grammar.
 fn resolve_value(
@@ -341,9 +320,11 @@ fn resolve_function(
             no_args(node.children(), "format")?;
             Ok(ConditionValue::Str(env.format.clone()))
         }
-        "on_branch" | "tty" => Err(ConditionError::Invalid(format!(
-            "{name}(...) is boolean; it cannot appear in a comparison"
-        ))),
+        "on_branch" | "tty" | "nonempty" | "contested" | "named" | "blocked" => {
+            Err(ConditionError::Invalid(format!(
+                "{name}(...) is boolean; it cannot appear in a comparison"
+            )))
+        }
         other => Err(ConditionError::UnknownPredicate(other.to_owned())),
     }
 }

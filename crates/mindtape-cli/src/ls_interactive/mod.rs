@@ -20,10 +20,11 @@ use crossterm::terminal::{Clear, ClearType};
 use crossterm::{cursor, execute};
 
 use anstyle::{Effects, Style};
-use mindtape::{Config, Readiness, Task};
+use mindtape::{ConditionEnv, Config, Readiness, Task};
 
 use crate::ls::{LsArgs, resolve_and_select};
 use crate::output::{OutputFormat, Truncation};
+use crate::render::RenderCtx;
 use crate::render::color::{Painter, is_color_active};
 use crate::render::table::render_highlighted;
 use crate::{go, util};
@@ -83,6 +84,9 @@ struct State {
     root: PathBuf,
     tasks: Vec<Task>,
     readiness: Readiness,
+    /// The environment a column's conditional visibility resolves against,
+    /// rebuilt with the rest of the listing on every refresh.
+    env: ConditionEnv,
     /// What `--limit` cut from the listed rows; recomputed on every refresh,
     /// since a flip made in the editor can move a task in or out of the view.
     truncated: Option<Truncation>,
@@ -99,9 +103,19 @@ impl State {
             root,
             tasks: listing.tasks,
             readiness: listing.readiness,
+            env: listing.env,
             truncated: listing.truncated,
             buffer: String::new(),
         })
+    }
+
+    /// What the table renderer reads, borrowed from this state.
+    fn render_ctx(&self) -> RenderCtx<'_> {
+        RenderCtx {
+            config: &self.config,
+            readiness: &self.readiness,
+            env: &self.env,
+        }
     }
 
     /// Re-open the project, recompute the view, and clear the selection.
@@ -258,7 +272,7 @@ fn open(state: &State, tui: &Tui, indices: &[usize]) -> Result<bool> {
 /// Redraw the frame: the highlighted table plus the footer, cleared each time.
 fn draw(state: &State) -> Result<()> {
     let mask = state.highlight_mask();
-    let table = render_highlighted(&state.tasks, &state.config, &state.readiness, &mask);
+    let table = render_highlighted(&state.tasks, state.render_ctx(), &mask)?;
     let body = format!("{table}\n{}\n", footer(&state.buffer, state.truncated));
     // Raw mode does not translate `\n`; move every line back to column 0.
     let body = body.replace('\n', "\r\n");

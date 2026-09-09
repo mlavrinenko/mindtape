@@ -7,8 +7,10 @@
 use std::io::IsTerminal;
 
 use anstyle::{Effects, Style};
-use mindtape::{Config, Readiness, Task};
+use anyhow::Result;
+use mindtape::Task;
 
+use super::RenderCtx;
 use super::color::{Painter, is_color_active};
 use super::columns::{ColumnId, resolve_order, row_hyperlink_targets};
 use super::field::{CellSpec, DensityMode, cell_content, content_width, render_cell};
@@ -39,9 +41,12 @@ struct Column {
 /// `[ls] columns-order`. Under the default `auto` visibility a column is
 /// dropped when it carries nothing — so a backlog with no priorities, no due
 /// dates, or no contested dependencies stays uncluttered.
-#[must_use]
-pub fn render(tasks: &[Task], config: &Config, readiness: &Readiness) -> String {
-    render_inner(tasks, config, readiness, &[])
+///
+/// # Errors
+/// Returns an error if a column's `rules` condition fails to evaluate
+/// ([`resolve_order`]).
+pub fn render(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
+    render_inner(tasks, ctx, &[])
 }
 
 /// Render `tasks` with the interactive `#`-column highlight applied.
@@ -49,30 +54,26 @@ pub fn render(tasks: &[Task], config: &Config, readiness: &Readiness) -> String 
 /// `highlighted[i]` marks whether the handle cell of display row `i` renders
 /// reverse-video; a shorter slice leaves the remaining rows un-highlighted. The
 /// invert effect rides the table's painter, so `--color never` drops it.
-#[must_use]
+///
+/// # Errors
+/// Same as [`render`].
 pub fn render_highlighted(
     tasks: &[Task],
-    config: &Config,
-    readiness: &Readiness,
+    ctx: RenderCtx<'_>,
     highlighted: &[bool],
-) -> String {
-    render_inner(tasks, config, readiness, highlighted)
+) -> Result<String> {
+    render_inner(tasks, ctx, highlighted)
 }
 
-fn render_inner(
-    tasks: &[Task],
-    config: &Config,
-    readiness: &Readiness,
-    highlighted: &[bool],
-) -> String {
+fn render_inner(tasks: &[Task], ctx: RenderCtx<'_>, highlighted: &[bool]) -> Result<String> {
     let glyph_mode = glyph_mode();
     let painter = Painter::new(is_color_active());
     let linker = Linker::new(is_hyperlinks_active());
-    let handles: Vec<(String, &Task)> = make_handles(tasks, check_len(config));
-    let visible = resolve_order(config, &handles, readiness);
-    let mut columns = build_columns(&visible, &handles, config, readiness, glyph_mode);
+    let handles: Vec<(String, &Task)> = make_handles(tasks, check_len(ctx.config));
+    let visible = resolve_order(&handles, ctx)?;
+    let mut columns = build_columns(&visible, &handles, ctx, glyph_mode);
     apply_highlight(&mut columns, highlighted);
-    render_grid(&columns, glyph_mode, painter, linker)
+    Ok(render_grid(&columns, glyph_mode, painter, linker))
 }
 
 /// Paint the `#` column's cells reverse-video for the highlighted rows. A no-op
@@ -111,8 +112,7 @@ fn glyph_mode_for(tty: bool) -> GlyphMode {
 fn build_columns(
     visible: &[ColumnId],
     handles: &[(String, &Task)],
-    config: &Config,
-    readiness: &Readiness,
+    ctx: RenderCtx<'_>,
     glyph_mode: GlyphMode,
 ) -> Vec<Column> {
     let full = DensityMode::Full;
@@ -125,13 +125,13 @@ fn build_columns(
     let row_uris = visible
         .iter()
         .any(|&id| is_linked_column(id))
-        .then(|| row_hyperlink_targets(handles, config));
+        .then(|| row_hyperlink_targets(handles, ctx.config));
     let mut columns: Vec<Column> = visible
         .iter()
         .map(|&id| {
             let cells: Vec<CellSpec> = handles
                 .iter()
-                .map(|(handle, task)| id.cell(handle, task, config, readiness))
+                .map(|(handle, task)| id.cell(handle, task, ctx.config, ctx.readiness))
                 .collect();
             let width = col_width(
                 id.header(),

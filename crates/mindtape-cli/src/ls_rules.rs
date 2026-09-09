@@ -88,6 +88,13 @@ impl Applied {
 /// `format` is `""` for a caller with no active format — handle resolution
 /// ([`crate::util::default_view`]) resolves a view to address a task, not to
 /// render one — and `""` compares unequal to every real format name.
+///
+/// The listing facts ([`mindtape::ColumnFacts`]) stay at their all-false
+/// default here and are filled in per column by
+/// [`crate::render::columns::resolve_order`], the only place that knows them.
+/// That is also what keeps `named()` from closing a loop: an `[[ls.rules]]`
+/// condition — which may itself supply the `columns` override `named()` later
+/// reads — sees the default, never a live answer.
 pub(crate) fn build_env(project: &util::Project, format: &str) -> ConditionEnv {
     ConditionEnv {
         branch: mindtape::current_branch(&project.root),
@@ -95,6 +102,7 @@ pub(crate) fn build_env(project: &util::Project, format: &str) -> ConditionEnv {
         env: std::env::vars().collect(),
         tty: std::io::stdout().is_terminal(),
         format: format.to_owned(),
+        column: mindtape::ColumnFacts::default(),
     }
 }
 

@@ -7,6 +7,7 @@ use mindtape::Task;
 use typst_harvest::{HarvestWorld, harvest};
 
 use crate::output::{OutputFormat, render, task_to_json};
+use crate::render::RenderCtx;
 
 /// Arguments for `eval`.
 #[derive(Debug, clap::Args)]
@@ -44,15 +45,20 @@ pub fn run(args: &EvalArgs) -> Result<()> {
             serde_json::to_string_pretty(&task_to_json(&task, &mindtape::Config::default()))?
         );
     } else {
+        // `mt eval` renders one harvested file against the empty config, not a
+        // project: no `[ls.columns]` entries exist, so no column carries a
+        // conditional rule and the environment has nothing to answer.
+        let config = mindtape::Config::default();
+        let readiness = mindtape::Readiness::empty();
+        let env = mindtape::ConditionEnv::default();
+        let ctx = RenderCtx {
+            config: &config,
+            readiness: &readiness,
+            env: &env,
+        };
         println!(
             "{}",
-            render(
-                std::slice::from_ref(&task),
-                OutputFormat::Table,
-                &mindtape::Config::default(),
-                &mindtape::Readiness::empty(),
-                None,
-            )?
+            render(std::slice::from_ref(&task), OutputFormat::Table, ctx, None)?
         );
     }
     Ok(())

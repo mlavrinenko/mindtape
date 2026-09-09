@@ -248,7 +248,7 @@
       "properties": {
         "condition": {
           "default": null,
-          "description": "Condition expression over the ambient environment — the same grammar\n`[[ls.rules]]` uses (`tty()`, `format()`, `env()`, `on_branch()`,\n`now()`, `weekday()`). Absent or empty means the rule always matches.",
+          "description": "Condition expression — the same grammar `[[ls.rules]]` uses (`tty()`,\n`format()`, `env()`, `on_branch()`, `now()`, `weekday()`), plus the\nfour listing predicates only a column resolution can answer:\n`nonempty()`, `contested()`, `named()`, `blocked()`. Absent or empty\nmeans the rule always matches.",
           "type": [
             "string",
             "null"

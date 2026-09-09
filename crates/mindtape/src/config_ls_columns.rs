@@ -52,9 +52,11 @@ pub struct ColumnConfig {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ColumnRule {
-    /// Condition expression over the ambient environment — the same grammar
-    /// `[[ls.rules]]` uses (`tty()`, `format()`, `env()`, `on_branch()`,
-    /// `now()`, `weekday()`). Absent or empty means the rule always matches.
+    /// Condition expression — the same grammar `[[ls.rules]]` uses (`tty()`,
+    /// `format()`, `env()`, `on_branch()`, `now()`, `weekday()`), plus the
+    /// four listing predicates only a column resolution can answer:
+    /// `nonempty()`, `contested()`, `named()`, `blocked()`. Absent or empty
+    /// means the rule always matches.
     pub condition: Option<String>,
     /// The visibility this rule imposes when its condition holds.
     pub visibility: Visibility,

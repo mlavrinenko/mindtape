@@ -8,6 +8,7 @@ use serde_json::{Value, json};
 
 use crate::handle::{check_len, make_handles};
 use crate::ls_rules::Applied;
+use crate::render::RenderCtx;
 use crate::render::columns::{ColumnId, resolve_order};
 
 /// Output format for `list` and `eval`.
@@ -79,8 +80,10 @@ fn status_name(task: &Task) -> String {
         .map_or_else(String::new, |status| status.name.clone())
 }
 
-/// Render `tasks` in the chosen `format`. `readiness` drives the table's
-/// dependency column; only `JSON` reads `envelope` at all. When it is `Some`,
+/// Render `tasks` in the chosen `format`. `ctx` carries the config, the
+/// readiness driving the table's dependency column, and the environment a
+/// column's conditional visibility evaluates against; only `JSON` reads
+/// `envelope` at all. When it is `Some`,
 /// `JSON` wraps the task array in the `{"schema_version": ..., "tasks": ...,
 /// "applied": ..., "truncated": ...}` envelope
 /// (`truth/tasks/conditional-ls-rules.typ`,
@@ -98,18 +101,19 @@ fn status_name(task: &Task) -> String {
 /// nothing else (`truth/tasks/emit-a-plain-path-list-from-ls.typ`).
 ///
 /// # Errors
-/// Returns an error if JSON or CSV serialization fails.
+/// Returns an error if JSON or CSV serialization fails, or if a column's
+/// `rules` condition fails to evaluate (`table` and `csv` only — the record
+/// formats resolve no columns).
 pub fn render(
     tasks: &[Task],
     format: OutputFormat,
-    config: &Config,
-    readiness: &Readiness,
+    ctx: RenderCtx<'_>,
     envelope: Option<Envelope<'_>>,
 ) -> Result<String> {
     match format {
-        OutputFormat::Table => Ok(crate::render::table::render(tasks, config, readiness)),
-        OutputFormat::Json => render_json(tasks, config, envelope),
-        OutputFormat::Csv => render_csv(tasks, config, readiness),
+        OutputFormat::Table => crate::render::table::render(tasks, ctx),
+        OutputFormat::Json => render_json(tasks, ctx.config, envelope),
+        OutputFormat::Csv => render_csv(tasks, ctx),
         OutputFormat::Path => Ok(render_path(tasks)),
         OutputFormat::Path0 => Ok(render_path0(tasks)),
     }
@@ -208,15 +212,15 @@ fn applied_to_json(applied: &Applied) -> Value {
 /// derived tags, and any `x-<ns>` extra — have no column to drive from and so
 /// are not represented here, same as the table. `--format json` is the
 /// escape hatch: it always emits every field.
-fn render_csv(tasks: &[Task], config: &Config, readiness: &Readiness) -> Result<String> {
-    let handles = make_handles(tasks, check_len(config));
-    let columns = resolve_order(config, &handles, readiness);
+fn render_csv(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
+    let handles = make_handles(tasks, check_len(ctx.config));
+    let columns = resolve_order(&handles, ctx)?;
     let mut writer = csv::Writer::from_writer(Vec::new());
     writer.write_record(columns.iter().copied().map(csv_header))?;
     for (_, task) in &handles {
         let row: Vec<String> = columns
             .iter()
-            .map(|&id| csv_value(id, task, config, readiness))
+            .map(|&id| csv_value(id, task, ctx.config, ctx.readiness))
             .collect();
         writer.write_record(row)?;
     }

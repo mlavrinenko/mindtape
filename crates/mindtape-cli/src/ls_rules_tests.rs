@@ -18,7 +18,7 @@ use crate::util::Project;
 /// build, pinned to the table format. These tests exercise rule matching and
 /// facet composition, not the environment; the environment's own predicates
 /// are covered in `mindtape`'s `condition_tests.rs` and the per-column
-/// resolution in `ls_columns_tests.rs`.
+/// resolution in `render/columns_tests.rs`.
 pub(super) fn resolve_bare(project: &Project) -> anyhow::Result<(Bundle, Applied)> {
     super::resolve_bare(project, &build_env(project, "table"))
 }

@@ -20,10 +20,11 @@ use std::path::Path;
 
 use anyhow::{Result, anyhow};
 use mindtape::config_hooks::{ActionKind, FlipAction, matching_flip_hooks};
-use mindtape::{Filter, Readiness, Task, select};
+use mindtape::{ConditionEnv, Filter, Readiness, Task, select};
 
 use crate::flip_hooks_cmd::{CommandReport, RunCtx, run_command};
 use crate::output::{OutputFormat, render};
+use crate::render::RenderCtx;
 use crate::util::Project;
 
 /// Advice attached to a gate refusal the action declares no `message` for.
@@ -74,6 +75,10 @@ pub(crate) struct Hooks<'a> {
     readiness: Readiness,
     /// Whether `show` / `list` output is rendered at all.
     show: bool,
+    /// The environment a `list` table's column visibility resolves against —
+    /// built exactly as `mt ls` builds it, so a `[[ls.columns.<name>.rules]]`
+    /// condition means the same thing in both surfaces.
+    env: ConditionEnv,
 }
 
 impl<'a> Hooks<'a> {
@@ -93,6 +98,7 @@ impl<'a> Hooks<'a> {
             project,
             readiness,
             show,
+            env: crate::ls_rules::build_env(project, "table"),
         }
     }
 
@@ -186,7 +192,12 @@ impl<'a> Hooks<'a> {
             writeln!(out, "  (no matching tasks)")?;
             return Ok(());
         }
-        let table = render(&tasks, OutputFormat::Table, config, &self.readiness, None)?;
+        let ctx = RenderCtx {
+            config,
+            readiness: &self.readiness,
+            env: &self.env,
+        };
+        let table = render(&tasks, OutputFormat::Table, ctx, None)?;
         writeln!(out, "{table}")?;
         Ok(())
     }

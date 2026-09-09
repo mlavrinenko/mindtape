@@ -101,10 +101,18 @@ visibility = "visible"
 #link(u("/cli/"))[condition language] as `[[ls.rules]]`, first match wins, and
 a matching rule beats the column's own `visibility` key — rules #emph[are] the
 override mechanism, so the other direction would make them unwritable. Two
-predicates exist for this: `tty()` (is stdout a terminal) and `format()` (the
+predicates carry this rule: `tty()` (is stdout a terminal) and `format()` (the
 active `--format` name). The floor rule names `table` because `csv` resolves
 the same column set and is a data contract — a script parsing it must not
 silently gain a column, and it already carries `id`.
+
+A column's rules are resolved against the rows they would render, so a
+condition can also read what the listing says: `nonempty()`, `contested()`,
+`named()` and `blocked()` are the four facts `auto` itself decides from —
+`file` is `named()`, `assignee` is `contested()`, `ready` is `blocked()`, and
+every other column is `nonempty()`. Writing one of them in a rule says in
+config what `auto` would have said in Rust, for a column where the built-in
+answer is the wrong one.
 
 To opt out, set `rules = []` under `[ls.columns.file]`: an array replaces
 rather than merges across config layers, so the empty list drops the inherited
@@ -222,12 +230,30 @@ task fields — the same operators and parser as
   [`format()`],
   [The active `--format` name (`table`, `json`, `csv`, `path`, `path0`); `""` outside a rendering command.],
 
+  [`nonempty()`], [Whether any cell in this column carries text.],
+  [`contested()`],
+  [Whether the listed rows disagree about this column's cell. A blank counts as its own value, so a half-filled column is contested; one row never is.],
+
+  [`named()`],
+  [Whether the caller asked for this column by name — `--columns`, a view's `columns`, or an `[[ls.rules]]` columns override — rather than taking the built-in order.],
+
+  [`blocked()`],
+  [Whether #emph[any] listed task is blocked on an unmet dependency — a fact about the listing, unlike the #link(u("/filters/"))[filter] field of the same name, which is about one task.],
+
   [`true`, `false`],
   [Boolean constants, composable like any other boolean (`!false`, `true && !tty()`).],
 )
 
-`on_branch()`, `tty()`, and the `true`/`false` literals are boolean and are
-used bare (`!tty()`); the rest produce values and belong in a comparison. A
+The last four describe the listing rather than the ambient environment, so
+they only have an answer while a column is being resolved. In an `[[ls.rules]]`
+condition — which picks the whole bundle, no column in sight — all four read
+`false`. That is also what keeps `named()` honest: it reports what was
+_requested_, and the one place a `columns` override is itself chosen cannot
+consult it.
+
+`on_branch()`, `tty()`, the four listing predicates, and the `true`/`false`
+literals are boolean and are used bare (`!tty()`); the rest produce values and
+belong in a comparison. A
 comparison takes a value or a literal on either side (`weekday() >= 6`,
 `"review" == env("MODE")`) — more general than filter expressions, which only
 ever compare a field on the left. `true`/`false` are the one exception:

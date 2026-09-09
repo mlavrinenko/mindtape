@@ -3,11 +3,11 @@
 use anstyle::{Effects, Style};
 use anyhow::{Result, anyhow};
 use mindtape::sort::{default_order_with, sort_by_specs};
-use mindtape::{Config, Filter, Readiness, Task, select};
+use mindtape::{ConditionEnv, Config, Filter, Readiness, Task, select};
 
-use crate::ls_columns::apply_column_rules;
 use crate::ls_rules::{self, Applied};
 use crate::output::{Envelope, OutputFormat, Truncation, render};
+use crate::render::RenderCtx;
 use crate::render::color::{Painter, is_color_active};
 use crate::util;
 
@@ -83,13 +83,7 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
         applied: &listing.applied,
         truncated: listing.truncated,
     };
-    let body = render(
-        &listing.tasks,
-        format,
-        &listing.config,
-        &listing.readiness,
-        Some(envelope),
-    )?;
+    let body = render(&listing.tasks, format, listing.render_ctx(), Some(envelope))?;
     if matches!(format, OutputFormat::Path0) {
         // Self-terminated: every path (including the last) already carries
         // its own trailing NUL, so a `println!`-supplied newline would land
@@ -140,14 +134,29 @@ fn print_trailers(listing: &Listing) {
 
 /// The resolved listing one `mt ls` run prints: the selected tasks, the
 /// readiness and attribution they were selected under, the config the render
-/// reads (view columns folded in), and what `--limit` cut — `None` when the
+/// reads (view columns folded in), the environment a column's conditional
+/// visibility evaluates against, and what `--limit` cut — `None` when the
 /// listing is complete.
 pub(crate) struct Listing {
     pub tasks: Vec<Task>,
     pub readiness: Readiness,
     pub applied: Applied,
     pub config: Config,
+    pub env: ConditionEnv,
     pub truncated: Option<Truncation>,
+}
+
+impl Listing {
+    /// The three things a renderer reads, borrowed from this listing so the
+    /// one-shot render and the interactive loop cannot resolve columns
+    /// against different facts.
+    pub(crate) fn render_ctx(&self) -> RenderCtx<'_> {
+        RenderCtx {
+            config: &self.config,
+            readiness: &self.readiness,
+            env: &self.env,
+        }
+    }
 }
 
 /// Resolve the effective bundle ([`ls_rules::resolve`]), apply it, select and
@@ -172,9 +181,6 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
     if !bundle.columns.is_empty() {
         config.ls.columns_order = bundle.columns.clone();
     }
-    // Conditional per-column visibility, resolved against the same environment
-    // `[[ls.rules]]` just used, so a condition means one thing per run.
-    apply_column_rules(&mut config, &env)?;
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let filter = Filter::parse(&bundle.filter)?;
     let mut tasks = select(
@@ -193,6 +199,10 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
         readiness,
         applied,
         config,
+        // The same environment `[[ls.rules]]` just resolved against, carried
+        // through to the render so a condition means one thing per run
+        // whether it picked the bundle or a column's visibility.
+        env,
         truncated,
     })
 }

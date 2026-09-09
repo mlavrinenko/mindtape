@@ -701,7 +701,10 @@ filter = '!terminal && due <= "2026-08-01"'   # optional manual override (highes
 - `condition` — a #link(u("/cli/"))[condition-language] expression over
   `on_branch`/`tty`/`env`/`weekday`/`now`/`format`; absent matches always. The
   same language gates one column's visibility in
-  `[[ls.columns.<name>.rules]]`.
+  `[[ls.columns.<name>.rules]]`, where four more predicates —
+  `nonempty()`/`contested()`/`named()`/`blocked()` — describe the listed rows
+  and the column request. Those four read `false` here: an `[[ls.rules]]`
+  entry picks the whole bundle, so no column is being resolved when it runs.
 - `import-views` — ordered `"view"` (all facets) or `"view(facet, ...)"` (a
   subset of `filter`/`sort`/`columns`) entries, composed left to right with
   per-facet last-wins.

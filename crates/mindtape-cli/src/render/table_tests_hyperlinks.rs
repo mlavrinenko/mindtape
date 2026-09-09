@@ -7,9 +7,10 @@
 //! `table_tests_layout.rs` to keep both files clear of the size gate.
 
 use anstyle::{Effects, Style};
+use mindtape::Task;
 use mindtape::test_support::bare_task;
-use mindtape::{Config, Readiness, Task};
 
+use super::super::TestCtx;
 use super::super::color::Painter;
 use super::super::columns::ColumnId;
 use super::super::field::CellSpec;
@@ -40,11 +41,10 @@ fn plain_cell(text: &str) -> CellSpec {
 #[test]
 fn handle_and_file_columns_share_the_same_row_target() {
     let task = bare_task("x");
-    let config = Config::default();
-    let readiness = Readiness::empty();
+    let fixture = TestCtx::default();
     let handles: Vec<(String, &Task)> = vec![("1a".to_owned(), &task)];
     let visible = [ColumnId::Handle, ColumnId::Title, ColumnId::File];
-    let columns = build_columns(&visible, &handles, &config, &readiness, GlyphMode::None);
+    let columns = build_columns(&visible, &handles, fixture.ctx(), GlyphMode::None);
 
     let handle_uris = columns[0]
         .link_uris

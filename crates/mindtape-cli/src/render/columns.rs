@@ -4,9 +4,24 @@
 //! per-task [`CellSpec`] builder, and its auto-significance test. `table.rs`
 //! drives rendering off a resolved list of these, so column order and
 //! visibility are data, not hardcoded control flow.
+//!
+//! # Why visibility resolves here
+//!
+//! A column's `auto` significance is a fact about the rows — whether any cell
+//! carries text, whether the rows disagree, whether anything is blocked — and a
+//! `[[ls.columns.<name>.rules]]` condition can now ask for exactly those facts
+//! (`nonempty()`, `contested()`, `named()`, `blocked()`). So the two cannot be
+//! resolved in different places any more: this module is where the rows are, so
+//! this is where the conditions are evaluated, against the same
+//! [`mindtape::ColumnFacts`] `auto` itself reads.
 
-use mindtape::{Config, Readiness, ReadyState, Task, Visibility, format_iso, today_iso};
+use anyhow::{Context, Result};
+use mindtape::{
+    ColumnConfig, ColumnFacts, Condition, ConditionEnv, Config, Readiness, ReadyState, Task,
+    Visibility, format_iso, today_iso,
+};
 
+use super::RenderCtx;
 use super::color::parse_color;
 use super::field::{CellSpec, Field};
 use super::fields::{Status as StatusField, priority_cell_spec};
@@ -113,52 +128,109 @@ impl ColumnId {
         }
     }
 
-    /// Whether the column carries something worth a column under `auto`
-    /// visibility. `#` and `title` are never blank; `ready` shows only when a
-    /// task is contested; `file` is never blank either but that must *not*
-    /// make it significant — its cell always has text, so the ordinary rule
-    /// would pin it permanently visible and there would be no opt-in at all.
-    /// Its significance is instead `explicit_order`: whether the render order
-    /// was explicitly named (`--columns`, a view's `columns`, an
-    /// `[[ls.rules]]` columns override) rather than the built-in default.
-    /// `assignee` is significant only when the rows disagree about it (see
-    /// [`assignee_contested`]) — a listing already narrowed to one actor
-    /// learns nothing from a column repeating that name. The rest show when
-    /// any cell has text.
+    /// The listing facts this column's visibility is decided from — the same
+    /// four a `[[ls.columns.<name>.rules]]` condition reads as `nonempty()`,
+    /// `contested()`, `named()` and `blocked()`.
+    ///
+    /// `nonempty` and `contested` come from one pass over the rows, which
+    /// stops as soon as both are settled: a column whose first two cells
+    /// differ and carry text never touches row three. A blank counts as its
+    /// own value for `contested`, so a half-filled column is contested — the
+    /// blanks are exactly what a reader wants to see there.
     #[must_use]
-    pub fn auto_significant(
+    pub fn facts(
         self,
         rows: &[(String, &Task)],
         config: &Config,
         readiness: &Readiness,
-        explicit_order: bool,
-    ) -> bool {
+        named: bool,
+    ) -> ColumnFacts {
+        let mut facts = ColumnFacts {
+            named,
+            blocked: rows.iter().any(|(_, task)| readiness.is_blocked(task)),
+            ..ColumnFacts::default()
+        };
+        let mut first: Option<String> = None;
+        for (handle, task) in rows {
+            let text = self.cell(handle, task, config, readiness).text;
+            facts.nonempty |= !text.is_empty();
+            match &first {
+                None => first = Some(text),
+                Some(seen) => facts.contested |= *seen != text,
+            }
+            if facts.nonempty && facts.contested {
+                break;
+            }
+        }
+        facts
+    }
+
+    /// Whether the column carries something worth a column under `auto`
+    /// visibility — the built-in policy, one [`ColumnFacts`] field per arm.
+    ///
+    /// `#` and `title` are never blank; `ready` shows only when something is
+    /// blocked, which is narrower than `nonempty` (a listing where every task
+    /// is ready has a label in every cell and nothing to report). `file` is
+    /// never blank either but that must *not* make it significant — its cell
+    /// always has text, so the ordinary rule would pin it permanently visible
+    /// and there would be no opt-in at all; its significance is `named`
+    /// instead. `assignee` is significant only when the rows disagree — a
+    /// listing already narrowed to one actor learns nothing from a column
+    /// repeating that name. The rest show when any cell has text.
+    #[must_use]
+    pub fn auto_significant(self, facts: ColumnFacts) -> bool {
         match self {
             ColumnId::Handle | ColumnId::Title => true,
-            ColumnId::File => explicit_order,
-            ColumnId::Ready => rows.iter().any(|(_, task)| readiness.is_blocked(task)),
-            ColumnId::Assignee => assignee_contested(rows),
-            _ => rows
-                .iter()
-                .any(|(handle, task)| !self.cell(handle, task, config, readiness).text.is_empty()),
+            ColumnId::File => facts.named,
+            ColumnId::Ready => facts.blocked,
+            ColumnId::Assignee => facts.contested,
+            _ => facts.nonempty,
         }
     }
 
-    /// Resolve `[ls.columns.<key>] visibility` against `significant` (the
-    /// `auto` outcome): `visible` always renders, `hidden` never, `auto` defers.
-    #[must_use]
-    pub fn visible(self, config: &Config, significant: bool) -> bool {
-        let visibility = config
-            .ls
-            .columns
-            .get(self.key())
-            .map_or(Visibility::default(), |col| col.visibility);
-        match visibility {
+    /// Resolve this column's visibility for one run: the first matching
+    /// `rules` entry, else `[ls.columns.<key>] visibility`; `visible` always
+    /// renders, `hidden` never, `auto` defers to [`ColumnId::auto_significant`]
+    /// over the facts `env` carries.
+    fn visible(self, config: &Config, env: &ConditionEnv) -> Result<bool> {
+        let visibility = rule_visibility(self.key(), config.ls.columns.get(self.key()), env)?;
+        Ok(match visibility {
             Visibility::Visible => true,
             Visibility::Hidden => false,
-            Visibility::Auto => significant,
+            Visibility::Auto => self.auto_significant(env.column),
+        })
+    }
+}
+
+/// The visibility a column's `rules` resolve to: the first entry whose
+/// condition holds (or that omits one) wins and beats the column's own
+/// `visibility` key — rules ARE the override mechanism, so the other direction
+/// would make them unwritable. No column config at all is the `auto` default.
+///
+/// # Errors
+/// Returns an error naming the column and rule index if a condition fails to
+/// parse or evaluate. Config load already validates every one of them, so this
+/// only recurs for a config built in memory rather than parsed.
+fn rule_visibility(
+    key: &str,
+    column: Option<&ColumnConfig>,
+    env: &ConditionEnv,
+) -> Result<Visibility> {
+    let Some(column) = column else {
+        return Ok(Visibility::default());
+    };
+    for (index, rule) in column.rules.iter().enumerate() {
+        let holds = match &rule.condition {
+            None => true,
+            Some(expr) => Condition::parse(expr)
+                .and_then(|condition| condition.matches(env))
+                .with_context(|| format!("ls.columns.{key}.rules[{index}].condition {expr:?}"))?,
+        };
+        if holds {
+            return Ok(rule.visibility);
         }
     }
+    Ok(column.visibility)
 }
 
 /// The render order (built-in or `[ls] columns-order`), filtered to the
@@ -166,19 +238,24 @@ impl ColumnId {
 ///
 /// Shared by every `ls` renderer (`table`, `csv`) so they agree on which
 /// columns render and in what order — only their per-cell formatting differs.
-#[must_use]
-pub fn resolve_order(
-    config: &Config,
-    handles: &[(String, &Task)],
-    readiness: &Readiness,
-) -> Vec<ColumnId> {
+///
+/// Each column is resolved against `ctx.env` with its own [`ColumnFacts`]
+/// swapped in, so a condition asking `nonempty()` gets this column's answer
+/// and the next column's condition gets its own.
+///
+/// # Errors
+/// Returns an error if a column's `rules` condition fails to parse or
+/// evaluate (see [`rule_visibility`]).
+pub fn resolve_order(handles: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<Vec<ColumnId>> {
     // Whether the render order was explicitly named — `ls.rs` assigns
     // `columns_order` uniformly for `--columns`, a view's `columns`, and an
-    // `[[ls.rules]]` columns override, so this one check covers every
-    // explicit path and doubles as the `file` column's `auto` significance.
-    let explicit_order = !config.ls.columns_order.is_empty();
-    let order: Vec<ColumnId> = if explicit_order {
-        config
+    // `[[ls.rules]]` columns override, so this one check covers every explicit
+    // path. It is per-column `named()` too, and not by approximation: when the
+    // order is explicit it IS the requested list, so every column reaching the
+    // loop below was named by the caller.
+    let named = !ctx.config.ls.columns_order.is_empty();
+    let order: Vec<ColumnId> = if named {
+        ctx.config
             .ls
             .columns_order
             .iter()
@@ -187,13 +264,15 @@ pub fn resolve_order(
     } else {
         ORDER.to_vec()
     };
-    order
-        .into_iter()
-        .filter(|col| {
-            let significant = col.auto_significant(handles, config, readiness, explicit_order);
-            col.visible(config, significant)
-        })
-        .collect()
+    let mut env = ctx.env.clone();
+    let mut visible = Vec::with_capacity(order.len());
+    for col in order {
+        env.column = col.facts(handles, ctx.config, ctx.readiness, named);
+        if col.visible(ctx.config, &env)? {
+            visible.push(col);
+        }
+    }
+    Ok(visible)
 }
 
 /// Per-row hyperlink target URIs, shared by every column OSC 8 wraps (`#` and
@@ -214,24 +293,6 @@ pub fn row_hyperlink_targets(handles: &[(String, &Task)], config: &Config) -> Ve
         .iter()
         .map(|(_, task)| file_path::hyperlink_target(&task.file, template))
         .collect()
-}
-
-/// Whether the listed rows disagree about their assignee — the `auto`
-/// significance of the `assignee` column.
-///
-/// An absent assignee counts as its own value rather than being skipped, so a
-/// half-assigned listing is contested (the blanks are exactly what you want to
-/// see) while a wholly unassigned one is not. Short-circuits on the first row
-/// that differs from the first.
-#[must_use]
-fn assignee_contested(rows: &[(String, &Task)]) -> bool {
-    let mut values = rows
-        .iter()
-        .map(|(_, task)| task.assignee.as_deref().unwrap_or_default());
-    let Some(first) = values.next() else {
-        return false;
-    };
-    values.any(|value| value != first)
 }
 
 fn plain(text: String) -> CellSpec {
@@ -322,3 +383,6 @@ pub fn due_cell(task: &Task, config: &Config) -> CellSpec {
 #[cfg(test)]
 #[path = "columns_tests.rs"]
 mod tests;
+#[cfg(test)]
+#[path = "columns_tests_rules.rs"]
+mod tests_rules;

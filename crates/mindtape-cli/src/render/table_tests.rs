@@ -5,6 +5,7 @@ use mindtape::numeric::NumValue;
 use mindtape::test_support::{bare_task, dep_edge};
 use mindtape::{ColumnConfig, Config, Readiness, Status, Task, Visibility};
 
+use super::super::TestCtx;
 use super::super::color::parse_color;
 use super::super::columns::due_cell;
 use super::{render, render_highlighted};
@@ -58,9 +59,9 @@ fn config_with_terminal(terminal_statuses: &[&str]) -> Config {
 fn one_line_per_task_plus_header() {
     let out = render(
         &[task("a", "A", "wip"), task("b", "B", "done")],
-        &Config::default(),
-        &Readiness::empty(),
-    );
+        TestCtx::default().ctx(),
+    )
+    .unwrap();
     assert_eq!(out.lines().count(), 3);
 }
 
@@ -69,9 +70,9 @@ fn highlight_empty_mask_equals_plain() {
     // No row flagged: the highlighted render is byte-identical to the plain
     // one (the `#` column is untouched).
     let tasks = [task("a", "A", "wip"), task("b", "B", "wip")];
-    let config = Config::default();
-    let plain = render(&tasks, &config, &Readiness::empty());
-    let highlighted = render_highlighted(&tasks, &config, &Readiness::empty(), &[false, false]);
+    let fixture = TestCtx::default();
+    let plain = render(&tasks, fixture.ctx()).unwrap();
+    let highlighted = render_highlighted(&tasks, fixture.ctx(), &[false, false]).unwrap();
     assert_eq!(plain, highlighted);
 }
 
@@ -80,22 +81,13 @@ fn highlight_preserves_shape() {
     // Flagging a row keeps the header + one-line-per-task layout intact
     // (colour is off in tests, so the invert effect itself is not emitted).
     let tasks = [task("a", "A", "wip"), task("b", "B", "wip")];
-    let out = render_highlighted(
-        &tasks,
-        &Config::default(),
-        &Readiness::empty(),
-        &[true, false],
-    );
+    let out = render_highlighted(&tasks, TestCtx::default().ctx(), &[true, false]).unwrap();
     assert_eq!(out.lines().count(), 3);
 }
 
 #[test]
 fn no_box_drawing_chars() {
-    let out = render(
-        &[task("a", "A", "wip")],
-        &Config::default(),
-        &Readiness::empty(),
-    );
+    let out = render(&[task("a", "A", "wip")], TestCtx::default().ctx()).unwrap();
     for ch in ['│', '┆', '─', '┌', '└', '╞'] {
         assert!(!out.contains(ch), "unexpected box char {ch:?}");
     }
@@ -105,9 +97,9 @@ fn no_box_drawing_chars() {
 fn header_and_content_present() {
     let out = render(
         &[task("auth", "Rewrite auth", "wip")],
-        &Config::default(),
-        &Readiness::empty(),
-    );
+        TestCtx::default().ctx(),
+    )
+    .unwrap();
     assert!(out.contains("TITLE"));
     assert!(out.contains("Rewrite auth"));
     assert!(out.contains("wip"));
@@ -117,11 +109,7 @@ fn header_and_content_present() {
 #[test]
 fn readiness_column_appears_only_when_blocked() {
     // No blocked task: column stays hidden.
-    let clean = render(
-        &[task("a", "A", "wip")],
-        &Config::default(),
-        &Readiness::empty(),
-    );
+    let clean = render(&[task("a", "A", "wip")], TestCtx::default().ctx()).unwrap();
     assert!(!clean.contains("READY"));
 
     // `b` depends on the non-terminal `a`, so `b` is blocked and the column
@@ -130,7 +118,7 @@ fn readiness_column_appears_only_when_blocked() {
     blocked.links = vec![dep_edge("a.typ")];
     let tasks = vec![task("a", "A", "wip"), blocked];
     let readiness = Readiness::compute(&tasks, &Config::default());
-    let out = render(&tasks, &Config::default(), &readiness);
+    let out = render(&tasks, TestCtx::with_readiness(readiness).ctx()).unwrap();
     assert!(out.contains("READY"));
     assert!(out.contains("blocked"));
 }
@@ -141,7 +129,7 @@ fn empty_columns_hidden_by_default() {
     // carry nothing, so `auto` drops them; STATUS and TITLE stay.
     let mut t = task("a", "A", "wip");
     t.priority = None;
-    let out = render(&[t], &Config::default(), &Readiness::empty());
+    let out = render(&[t], TestCtx::default().ctx()).unwrap();
     let header = out.lines().next().unwrap();
     assert!(!header.contains("PRIORITY"), "empty PRIORITY must hide");
     assert!(!header.contains("DUE"), "empty DUE must hide");
@@ -154,7 +142,7 @@ fn visibility_visible_forces_blank_column() {
     let mut t = task("a", "A", "wip");
     t.priority = None;
     let config = with_column("priority", Visibility::Visible);
-    let out = render(&[t], &config, &Readiness::empty());
+    let out = render(&[t], TestCtx::with_config(config).ctx()).unwrap();
     assert!(
         out.lines().next().unwrap().contains("PRIORITY"),
         "visible must render even when blank"
@@ -164,7 +152,7 @@ fn visibility_visible_forces_blank_column() {
 #[test]
 fn visibility_hidden_drops_populated_column() {
     let config = with_column("status", Visibility::Hidden);
-    let out = render(&[task("a", "A", "wip")], &config, &Readiness::empty());
+    let out = render(&[task("a", "A", "wip")], TestCtx::with_config(config).ctx()).unwrap();
     assert!(!out.contains("STATUS"), "hidden column must not render");
     assert!(
         !out.contains("wip"),
@@ -176,7 +164,11 @@ fn visibility_hidden_drops_populated_column() {
 fn columns_order_selects_and_orders() {
     let mut config = Config::default();
     config.ls.columns_order = vec!["title".to_owned(), "status".to_owned()];
-    let out = render(&[task("a", "Hello", "wip")], &config, &Readiness::empty());
+    let out = render(
+        &[task("a", "Hello", "wip")],
+        TestCtx::with_config(config).ctx(),
+    )
+    .unwrap();
     let header = out.lines().next().unwrap();
     let title_at = header.find("TITLE").unwrap();
     let status_at = header.find("STATUS").unwrap();
@@ -268,9 +260,13 @@ fn handle_column_honours_a_configured_check_len() {
     let mut config = Config::default();
     config.handle.check_len = Some(2);
     let tasks = vec![task("alpha", "Alpha", "wip")];
-    let readiness = Readiness::compute(&tasks, &config);
+    let fixture = TestCtx {
+        readiness: Readiness::compute(&tasks, &config),
+        config,
+        ..TestCtx::default()
+    };
 
-    let out = render(&tasks, &config, &readiness);
+    let out = render(&tasks, fixture.ctx()).unwrap();
     let expected = format!("1{}", crate::handle::check_chars("alpha", 2));
     assert!(
         out.contains(&expected),

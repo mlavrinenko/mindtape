@@ -15,6 +15,7 @@ mod body_headers;
 pub mod candidate;
 pub mod canonical;
 pub mod condition;
+pub mod condition_env;
 pub mod config;
 mod config_actors;
 mod config_add;
@@ -93,7 +94,8 @@ pub use add_slots::{RequiredSlot, required_core_slots};
 pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use candidate::{Candidate, Checked, check_candidate, check_candidates, harvest_candidate};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
-pub use condition::{Condition, ConditionEnv, ConditionError};
+pub use condition::{Condition, ConditionError};
+pub use condition_env::{ColumnFacts, ConditionEnv};
 pub use config::{
     Actor, ActorKind, AddConfig, AssigneeConfig, Collector, ColumnConfig, ColumnRule, Config,
     ConfigError, DeriveConfig, DeriveTags, DriftConfig, EstimateConfig, Facet, FormatConfig,

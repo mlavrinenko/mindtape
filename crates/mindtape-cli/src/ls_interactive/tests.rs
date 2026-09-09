@@ -27,6 +27,7 @@ fn state(n: usize, buffer: &str) -> State {
         root: ".".into(),
         tasks,
         readiness: Readiness::empty(),
+        env: mindtape::ConditionEnv::default(),
         truncated: None,
         buffer: buffer.to_owned(),
     }

@@ -2,6 +2,8 @@
 
 use std::collections::BTreeMap;
 
+use crate::condition_env::ColumnFacts;
+
 use super::{Condition, ConditionEnv, ConditionError};
 
 fn env(branch: Option<&str>, today: &str) -> ConditionEnv {
@@ -11,6 +13,16 @@ fn env(branch: Option<&str>, today: &str) -> ConditionEnv {
         env: BTreeMap::new(),
         tty: false,
         format: String::new(),
+        column: ColumnFacts::default(),
+    }
+}
+
+/// An environment carrying only these listing facts — everything ambient left
+/// at its default, since the four column predicates read nothing else.
+fn column_env(column: ColumnFacts) -> ConditionEnv {
+    ConditionEnv {
+        column,
+        ..ConditionEnv::default()
     }
 }
 
@@ -253,6 +265,93 @@ fn binary_op_with_wrong_arity_is_invalid_at_match_time() {
     let err = condition.matches(&env(None, "2026-07-12")).unwrap_err();
     assert!(
         matches!(&err, ConditionError::Invalid(msg) if msg.contains("binary op needs two operands")),
+        "{err}"
+    );
+}
+
+// --- the listing predicates -------------------------------------------------
+
+/// Every `ColumnFacts` field set, so a predicate reading the wrong one still
+/// answers `true` and the per-field tests below are what separate them.
+const ALL_FACTS: ColumnFacts = ColumnFacts {
+    nonempty: true,
+    contested: true,
+    named: true,
+    blocked: true,
+};
+
+/// Whether `expr` holds for a column with only `field` set — the assertion
+/// that each predicate reads its own fact and not a neighbour's.
+fn holds_for_only(expr: &str, field: fn(&mut ColumnFacts)) -> bool {
+    let mut facts = ColumnFacts::default();
+    field(&mut facts);
+    Condition::parse(expr)
+        .unwrap()
+        .matches(&column_env(facts))
+        .unwrap()
+}
+
+#[test]
+fn each_listing_predicate_reads_its_own_fact() {
+    assert!(holds_for_only("nonempty()", |f| f.nonempty = true));
+    assert!(holds_for_only("contested()", |f| f.contested = true));
+    assert!(holds_for_only("named()", |f| f.named = true));
+    assert!(holds_for_only("blocked()", |f| f.blocked = true));
+    // The negative half: a predicate must not answer off a sibling's fact.
+    assert!(!holds_for_only("nonempty()", |f| f.contested = true));
+    assert!(!holds_for_only("contested()", |f| f.named = true));
+    assert!(!holds_for_only("named()", |f| f.blocked = true));
+    assert!(!holds_for_only("blocked()", |f| f.nonempty = true));
+}
+
+#[test]
+fn listing_predicates_are_false_by_default() {
+    // The answer an `[[ls.rules]]` condition gets: that cascade resolves no
+    // column, so there is no fact to report and the default stands.
+    for expr in ["nonempty()", "contested()", "named()", "blocked()"] {
+        let condition = Condition::parse(expr).unwrap();
+        assert!(
+            !condition.matches(&ConditionEnv::default()).unwrap(),
+            "{expr} must be false with no column resolved"
+        );
+    }
+}
+
+#[test]
+fn listing_predicates_compose_with_the_ambient_ones() {
+    let condition = Condition::parse("nonempty() && !named() && !tty()").unwrap();
+    assert!(
+        condition
+            .matches(&column_env(ColumnFacts {
+                named: false,
+                ..ALL_FACTS
+            }))
+            .unwrap()
+    );
+    assert!(!condition.matches(&column_env(ALL_FACTS)).unwrap());
+}
+
+#[test]
+fn listing_predicates_take_no_arguments() {
+    assert_invalid("nonempty(1)");
+    assert_invalid(r#"named("file")"#);
+}
+
+#[test]
+fn listing_predicates_are_not_comparison_operands() {
+    // Boolean like `tty()`: they are written bare, never against a value.
+    assert_invalid("nonempty() == 1");
+    assert_invalid(r#""x" == blocked()"#);
+}
+
+/// The whole point of dry-running against [`ConditionEnv::probe`]: a typo has
+/// to fail at config load, because a predicate that silently never matches is
+/// indistinguishable from a column nobody meant to show.
+#[test]
+fn a_misspelled_listing_predicate_is_a_load_time_error() {
+    let err = Condition::parse("nonemtpy()").unwrap_err();
+    assert!(
+        matches!(&err, ConditionError::UnknownPredicate(name) if name == "nonemtpy"),
         "{err}"
     );
 }

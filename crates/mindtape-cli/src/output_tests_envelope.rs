@@ -10,8 +10,8 @@
 //! field, only on where the envelope puts the records and what it says
 //! alongside them.
 
+use crate::render::TestCtx;
 use mindtape::test_support::bare_task;
-use mindtape::{Config, Readiness};
 
 use super::{Applied, Envelope, OutputFormat, Truncation, render};
 
@@ -22,8 +22,7 @@ fn json_out(envelope: Option<Envelope<'_>>) -> String {
     render(
         &[bare_task("t1")],
         OutputFormat::Json,
-        &Config::default(),
-        &Readiness::empty(),
+        TestCtx::default().ctx(),
         envelope,
     )
     .unwrap()

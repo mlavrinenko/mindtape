@@ -8,6 +8,8 @@ use typst_harvest::HVal;
 
 use mindtape::{Config, Readiness};
 
+use crate::render::TestCtx;
+
 use super::{OutputFormat, render, task_to_json};
 
 fn sample() -> Task {
@@ -32,8 +34,7 @@ fn table_contains_fields() {
     let out = render(
         &[sample()],
         OutputFormat::Table,
-        &Config::default(),
-        &Readiness::empty(),
+        TestCtx::default().ctx(),
         None,
     )
     .unwrap();
@@ -46,8 +47,7 @@ fn table_has_handle_column() {
     let out = render(
         &[sample()],
         OutputFormat::Table,
-        &Config::default(),
-        &Readiness::empty(),
+        TestCtx::default().ctx(),
         None,
     )
     .unwrap();
@@ -61,8 +61,7 @@ fn json_does_not_contain_handle() {
     let out = render(
         &[sample()],
         OutputFormat::Json,
-        &Config::default(),
-        &Readiness::empty(),
+        TestCtx::default().ctx(),
         None,
     )
     .unwrap();
@@ -79,8 +78,7 @@ fn json_exposes_core_fields() {
     let out = render(
         &[sample()],
         OutputFormat::Json,
-        &Config::default(),
-        &Readiness::empty(),
+        TestCtx::default().ctx(),
         None,
     )
     .unwrap();
@@ -95,8 +93,7 @@ fn csv_has_header_and_row() {
     let out = render(
         &[sample()],
         OutputFormat::Csv,
-        &Config::default(),
-        &Readiness::empty(),
+        TestCtx::default().ctx(),
         None,
     )
     .unwrap();
@@ -113,8 +110,7 @@ fn csv_columns_order_selects_and_orders() {
     let out = render(
         &[sample()],
         OutputFormat::Csv,
-        &config,
-        &Readiness::empty(),
+        TestCtx::with_config(config).ctx(),
         None,
     )
     .unwrap();
@@ -136,8 +132,7 @@ fn csv_includes_ready_when_blocked() {
     let out = render(
         &tasks,
         OutputFormat::Csv,
-        &Config::default(),
-        &readiness,
+        TestCtx::with_readiness(readiness).ctx(),
         None,
     )
     .unwrap();
@@ -156,14 +151,7 @@ fn csv_omits_fields_without_ls_column() {
     // limitation from `render_csv`'s doc comment as a regression guard.
     let mut task = sample();
     task.kind = Some("bug-report".to_owned());
-    let out = render(
-        &[task],
-        OutputFormat::Csv,
-        &Config::default(),
-        &Readiness::empty(),
-        None,
-    )
-    .unwrap();
+    let out = render(&[task], OutputFormat::Csv, TestCtx::default().ctx(), None).unwrap();
     assert_eq!(out.lines().next().unwrap(), "id,status,priority,due,title");
     assert!(
         !out.contains("bug-report"),
@@ -179,8 +167,7 @@ fn csv_file_column_hidden_unless_named() {
     let out = render(
         &[sample()],
         OutputFormat::Csv,
-        &Config::default(),
-        &Readiness::empty(),
+        TestCtx::default().ctx(),
         None,
     )
     .unwrap();
@@ -200,8 +187,7 @@ fn csv_file_column_shown_and_root_relative_when_named() {
     let out = render(
         &[task],
         OutputFormat::Csv,
-        &config,
-        &Readiness::empty(),
+        TestCtx::with_config(config).ctx(),
         None,
     )
     .unwrap();
@@ -216,27 +202,13 @@ fn path_format_emits_one_path_per_line_no_header() {
     a.file = "tasks/a.typ".into();
     let mut b = bare_task("t2");
     b.file = "tasks/b.typ".into();
-    let out = render(
-        &[a, b],
-        OutputFormat::Path,
-        &Config::default(),
-        &Readiness::empty(),
-        None,
-    )
-    .unwrap();
+    let out = render(&[a, b], OutputFormat::Path, TestCtx::default().ctx(), None).unwrap();
     assert_eq!(out, "tasks/a.typ\ntasks/b.typ");
 }
 
 #[test]
 fn path_format_is_empty_for_no_tasks() {
-    let out = render(
-        &[],
-        OutputFormat::Path,
-        &Config::default(),
-        &Readiness::empty(),
-        None,
-    )
-    .unwrap();
+    let out = render(&[], OutputFormat::Path, TestCtx::default().ctx(), None).unwrap();
     assert_eq!(out, "");
 }
 
@@ -257,14 +229,7 @@ fn path_format_matches_the_table_file_column_cell() {
         &Readiness::empty(),
     );
 
-    let path = render(
-        &[task],
-        OutputFormat::Path,
-        &Config::default(),
-        &Readiness::empty(),
-        None,
-    )
-    .unwrap();
+    let path = render(&[task], OutputFormat::Path, TestCtx::default().ctx(), None).unwrap();
     assert_eq!(path, cell.text);
 }
 
@@ -282,8 +247,7 @@ fn csv_file_cell_equals_the_json_file_key() {
     let csv = render(
         &[task.clone()],
         OutputFormat::Csv,
-        &config,
-        &Readiness::empty(),
+        TestCtx::with_config(config).ctx(),
         None,
     )
     .unwrap();
@@ -299,28 +263,14 @@ fn path0_format_terminates_every_entry_including_the_last() {
     a.file = "tasks/a.typ".into();
     let mut b = bare_task("t2");
     b.file = "tasks/b.typ".into();
-    let out = render(
-        &[a, b],
-        OutputFormat::Path0,
-        &Config::default(),
-        &Readiness::empty(),
-        None,
-    )
-    .unwrap();
+    let out = render(&[a, b], OutputFormat::Path0, TestCtx::default().ctx(), None).unwrap();
     assert_eq!(out, "tasks/a.typ\0tasks/b.typ\0");
     assert_eq!(out.matches('\0').count(), 2, "one NUL per task, incl. last");
 }
 
 #[test]
 fn path0_format_is_empty_for_no_tasks() {
-    let out = render(
-        &[],
-        OutputFormat::Path0,
-        &Config::default(),
-        &Readiness::empty(),
-        None,
-    )
-    .unwrap();
+    let out = render(&[], OutputFormat::Path0, TestCtx::default().ctx(), None).unwrap();
     assert_eq!(out, "");
 }
 
@@ -361,14 +311,7 @@ fn csv_assignee_column_appears_on_a_mixed_listing() {
     b.id = "t2".to_owned();
     b.file = "tasks/t2.typ".into();
     b.assignee = Some("max".to_owned());
-    let out = render(
-        &[a, b],
-        OutputFormat::Csv,
-        &Config::default(),
-        &Readiness::empty(),
-        None,
-    )
-    .unwrap();
+    let out = render(&[a, b], OutputFormat::Csv, TestCtx::default().ctx(), None).unwrap();
     let mut lines = out.lines();
     assert_eq!(
         lines.next().unwrap(),

@@ -4,10 +4,35 @@ use mindtape::numeric::NumValue;
 use mindtape::test_support::bare_task;
 use mindtape::{Readiness, today_iso};
 
+use super::super::TestCtx;
 use super::*;
 
 fn rows<'a>(data: &[(&'a str, &'a Task)]) -> Vec<(String, &'a Task)> {
     data.iter().map(|(h, t)| (h.to_string(), *t)).collect()
+}
+
+/// The `auto` outcome for one column over `rows` — the [`ColumnId::facts`] /
+/// [`ColumnId::auto_significant`] pair `resolve_order` runs, kept together so
+/// a test asserts on the decision rather than on either half of it.
+fn significant(
+    col: ColumnId,
+    rows: &[(String, &Task)],
+    config: &Config,
+    readiness: &Readiness,
+    named: bool,
+) -> bool {
+    col.auto_significant(col.facts(rows, config, readiness, named))
+}
+
+/// The render order `config` resolves for `rows`. No fixture here declares a
+/// column rule, so the resolution cannot fail.
+fn order_for(config: &Config, rows: &[(String, &Task)], readiness: Readiness) -> Vec<ColumnId> {
+    let fixture = TestCtx {
+        config: config.clone(),
+        readiness,
+        ..TestCtx::default()
+    };
+    resolve_order(rows, fixture.ctx()).unwrap()
 }
 
 #[test]
@@ -27,7 +52,8 @@ fn status_is_not_flex() {
 
 #[test]
 fn handle_always_significant() {
-    assert!(ColumnId::Handle.auto_significant(
+    assert!(significant(
+        ColumnId::Handle,
         &[],
         &Config::default(),
         &Readiness::default(),
@@ -37,7 +63,8 @@ fn handle_always_significant() {
 
 #[test]
 fn title_always_significant() {
-    assert!(ColumnId::Title.auto_significant(
+    assert!(significant(
+        ColumnId::Title,
         &[],
         &Config::default(),
         &Readiness::default(),
@@ -51,7 +78,13 @@ fn ready_not_significant_for_uncontested() {
     let config = Config::default();
     let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
     assert!(
-        !ColumnId::Ready.auto_significant(&rows(&[("1c", &task)]), &config, &readiness, false),
+        !significant(
+            ColumnId::Ready,
+            &rows(&[("1c", &task)]),
+            &config,
+            &readiness,
+            false
+        ),
         "ready column must not be significant when no task is blocked"
     );
 }
@@ -63,7 +96,13 @@ fn priority_significant_when_set() {
     let config = Config::default();
     let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
     assert!(
-        ColumnId::Priority.auto_significant(&rows(&[("1c", &task)]), &config, &readiness, false),
+        significant(
+            ColumnId::Priority,
+            &rows(&[("1c", &task)]),
+            &config,
+            &readiness,
+            false
+        ),
         "priority column must be significant when at least one task has a value"
     );
 }
@@ -74,7 +113,13 @@ fn priority_not_significant_when_unset() {
     let config = Config::default();
     let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
     assert!(
-        !ColumnId::Priority.auto_significant(&rows(&[("1c", &task)]), &config, &readiness, false),
+        !significant(
+            ColumnId::Priority,
+            &rows(&[("1c", &task)]),
+            &config,
+            &readiness,
+            false
+        ),
         "priority column must not be significant when no task has a value"
     );
 }
@@ -89,7 +134,13 @@ fn file_not_significant_under_built_in_order() {
     let config = Config::default();
     let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
     assert!(
-        !ColumnId::File.auto_significant(&rows(&[("1c", &task)]), &config, &readiness, false),
+        !significant(
+            ColumnId::File,
+            &rows(&[("1c", &task)]),
+            &config,
+            &readiness,
+            false
+        ),
         "file column must not be significant under the built-in (non-explicit) order"
     );
 }
@@ -100,7 +151,13 @@ fn file_significant_when_order_explicit() {
     let config = Config::default();
     let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
     assert!(
-        ColumnId::File.auto_significant(&rows(&[("1c", &task)]), &config, &readiness, true),
+        significant(
+            ColumnId::File,
+            &rows(&[("1c", &task)]),
+            &config,
+            &readiness,
+            true
+        ),
         "file column must be significant once the render order is explicitly named"
     );
 }
@@ -144,50 +201,6 @@ fn file_cell_renders_the_task_file_when_context_unset() {
 }
 
 #[test]
-fn bare_ls_hides_the_file_column() {
-    let task = bare_task("t");
-    let config = Config::default();
-    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
-    let order = resolve_order(&config, &rows(&[("1c", &task)]), &readiness);
-    assert!(
-        !order.contains(&ColumnId::File),
-        "file must stay hidden under a bare mt ls with no explicit columns"
-    );
-}
-
-#[test]
-fn explicit_columns_order_shows_the_file_column() {
-    let task = bare_task("t");
-    let mut config = Config::default();
-    config.ls.columns_order = vec!["title".to_owned(), "file".to_owned()];
-    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
-    let order = resolve_order(&config, &rows(&[("1c", &task)]), &readiness);
-    assert!(
-        order.contains(&ColumnId::File),
-        "file must show once named in [ls] columns-order"
-    );
-}
-
-#[test]
-fn visibility_visible_forces_file_on_under_built_in_order() {
-    let task = bare_task("t");
-    let mut config = Config::default();
-    config.ls.columns.insert(
-        "file".to_owned(),
-        mindtape::ColumnConfig {
-            visibility: Visibility::Visible,
-            ..mindtape::ColumnConfig::default()
-        },
-    );
-    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
-    let order = resolve_order(&config, &rows(&[("1c", &task)]), &readiness);
-    assert!(
-        order.contains(&ColumnId::File),
-        "visibility = visible must force file on even under the built-in order"
-    );
-}
-
-#[test]
 fn row_hyperlink_targets_uses_default_template_when_unset() {
     let task = bare_task("t");
     let config = Config::default();
@@ -208,26 +221,6 @@ fn row_hyperlink_targets_honours_a_custom_template() {
 }
 
 #[test]
-fn visibility_hidden_wins_even_when_explicitly_listed() {
-    let task = bare_task("t");
-    let mut config = Config::default();
-    config.ls.columns_order = vec!["title".to_owned(), "file".to_owned()];
-    config.ls.columns.insert(
-        "file".to_owned(),
-        mindtape::ColumnConfig {
-            visibility: Visibility::Hidden,
-            ..mindtape::ColumnConfig::default()
-        },
-    );
-    let readiness = Readiness::compute(std::slice::from_ref(&task), &config);
-    let order = resolve_order(&config, &rows(&[("1c", &task)]), &readiness);
-    assert!(
-        !order.contains(&ColumnId::File),
-        "visibility = hidden must win even when file is explicitly listed"
-    );
-}
-
-#[test]
 fn assignee_is_not_flex() {
     assert!(!ColumnId::Assignee.is_flex());
 }
@@ -243,7 +236,8 @@ fn assigned(id: &str, who: Option<&str>) -> Task {
 /// these assignees, under the built-in (non-explicit) order.
 fn assignee_significant(a: Option<&str>, b: Option<&str>) -> bool {
     let (a, b) = (assigned("a", a), assigned("b", b));
-    ColumnId::Assignee.auto_significant(
+    significant(
+        ColumnId::Assignee,
         &rows(&[("1a", &a), ("2b", &b)]),
         &Config::default(),
         &Readiness::default(),
@@ -257,7 +251,7 @@ fn assignee_order(config: &Config, a: &str, b: &str) -> Vec<ColumnId> {
     let (a, b) = (assigned("a", Some(a)), assigned("b", Some(b)));
     let tasks = [a.clone(), b.clone()];
     let readiness = Readiness::compute(&tasks, config);
-    resolve_order(config, &rows(&[("1a", &a), ("2b", &b)]), &readiness)
+    order_for(config, &rows(&[("1a", &a), ("2b", &b)]), readiness)
 }
 
 /// Whether that order keeps the `assignee` column.
@@ -337,7 +331,8 @@ fn assignee_significant_when_only_some_rows_are_assigned() {
 fn assignee_not_significant_on_a_single_row() {
     let task = assigned("t", Some("agent"));
     assert!(
-        !ColumnId::Assignee.auto_significant(
+        !significant(
+            ColumnId::Assignee,
             &rows(&[("1c", &task)]),
             &Config::default(),
             &Readiness::default(),
