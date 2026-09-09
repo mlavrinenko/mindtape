@@ -11,7 +11,11 @@
   tags: ("cli",),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 9, 8),
+  status: done(
+    2026,
+    9,
+    10,
+  )[Both causes fixed. The semantic question is settled the first way: `--advance N` chains the dates off the cursor regardless of the anchor — the first hop honours it (`plan_next`), every hop after steps off the previous occurrence (`plan_step`) — because refusing a non-`due` anchor would refuse `default-anchor = "completion"`, the default, and with it nearly every `--advance` there is. Stems now disambiguate against a `StemDest` carrying the claimed set beside the directory, `mt import`'s shape. Written up in www/content/cli.typ and truth/tasks/recurring-tasks.typ. `just check` green, `cargo mutants --in-diff` 10/10 caught.],
 )
 
 == Summary
