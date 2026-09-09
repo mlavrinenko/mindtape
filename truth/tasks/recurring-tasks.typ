@@ -80,7 +80,10 @@ Declared per task via `materialize` (default `spawn`, overridable by
 - `mt recur X` — advance one step per the materialization model.
 - `mt recur X --dry-run` — preview the spawn/mutate; write nothing.
 - `mt recur X --advance N` — pre-materialize N future instances (spawn only)
-  without closing the current; the get-ahead / batch path.
+  without closing the current; the get-ahead / batch path. Only the first hop
+  honours the anchor; each one after it steps off the occurrence before it, so
+  a completion anchor (which resolves from today) spaces the chain by the rule
+  instead of planning one date N times.
 - `mt recur X --skip` — advance the anchor and counter, create/refresh nothing.
 - `mt done X` — pure close; on a recurring task, print a notice ("'X' is
   recurring — run `mt recur X` to advance") and do not strip `recur`.
