@@ -7,6 +7,7 @@
 //! toolkit — `--advance` is the one materialize path that walks it in a loop
 //! instead of once.
 
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
@@ -17,8 +18,8 @@ use mindtape::recur_dates::{self, effective_materialize};
 use mindtape::today_ymd;
 
 use super::{
-    RecurArgs, dates, guard_double_spawn, mint_stem, occurrence_index, plan_next, spawn_source,
-    stem_of,
+    RecurArgs, StemDest, dates, guard_double_spawn, mint_stem, occurrence_index, plan_next,
+    plan_step, spawn_source, stem_of,
 };
 use crate::pre_write::{self, Pending};
 use crate::recur_edit::OccurrenceDates;
@@ -67,6 +68,13 @@ pub(super) fn check_advance_preconditions(
 /// Nothing is written yet — [`write_advance_chain`] decides dry-run vs write.
 /// Stops early (without erroring) once a stop condition trips on a
 /// non-empty chain, since the earlier spawns are still a valid partial batch.
+///
+/// The first hop is anchor-aware (`plan_next`) and every hop after it steps
+/// off the previous occurrence's date instead (`plan_step`) — see that
+/// function for why an anchor cannot be re-asked mid-chain. Each minted stem
+/// is claimed as it is planned, so a later hop landing on the same name
+/// (a `{slug}`-only template, or a rule that repeats a date) gets the
+/// `-2`/`-3` suffix rather than the file the hop before it already spoke for.
 pub(super) fn build_advance_chain(
     project: &Project,
     task: &Task,
@@ -75,17 +83,23 @@ pub(super) fn build_advance_chain(
     count: u32,
 ) -> Result<Vec<(PathBuf, NaiveDate, String)>> {
     let recur_config = &project.config.tasks.recur;
-    let dest = abs.parent().context("task file has no parent directory")?;
+    let dir = abs.parent().context("task file has no parent directory")?;
     let (today, mut due_cursor, mut start_cursor) = dates(task)?;
     let mut current = recur.clone();
     let mut occurrence = occurrence_index(&project.outcome.tasks, task);
     let mut predecessor_stem = stem_of(&task.file);
     let mut predecessor_source =
         std::fs::read_to_string(abs).with_context(|| format!("read {}", abs.display()))?;
+    let mut claimed: HashSet<String> = HashSet::new();
+    let mut chain_cursor: Option<NaiveDate> = None;
     let mut spawned: Vec<(PathBuf, NaiveDate, String)> = Vec::new();
 
     for _ in 0..count {
-        let next = match plan_next(&current, recur_config, today, due_cursor) {
+        let planned = match chain_cursor {
+            None => plan_next(&current, recur_config, today, due_cursor),
+            Some(from) => plan_step(&current, from),
+        };
+        let next = match planned {
             Ok(next) => next,
             Err(err) if !spawned.is_empty() => {
                 eprintln!("warning: stopping early: {err:#}");
@@ -93,8 +107,18 @@ pub(super) fn build_advance_chain(
             }
             Err(err) => return Err(err),
         };
-        let stem = mint_stem(project, task, next, occurrence, dest)?;
-        let file = dest.join(format!("{stem}.typ"));
+        let stem = mint_stem(
+            project,
+            task,
+            next,
+            occurrence,
+            &StemDest {
+                dir,
+                claimed: &claimed,
+            },
+        )?;
+        claimed.insert(stem.clone());
+        let file = dir.join(format!("{stem}.typ"));
         let occurrence_dates = OccurrenceDates {
             today: today_ymd(),
             old_due: due_cursor,
@@ -112,6 +136,7 @@ pub(super) fn build_advance_chain(
         spawned.push((file, next, new_source.clone()));
         start_cursor = crate::recur_edit::shift_start(due_cursor, start_cursor, next);
         due_cursor = Some(next);
+        chain_cursor = Some(next);
         current.count = recur_dates::carry_count(&current);
         predecessor_stem = stem;
         predecessor_source = new_source;

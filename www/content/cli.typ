@@ -360,6 +360,14 @@ notice: a `spawn` series points back at `mt recur`, a `mutate` series notes
 that closing ends it. Either way the occurrence is validated before it is
 written, so a rejected one creates no file and refreshes nothing.
 
+`--advance N` lays out `N` future occurrences at once, spaced by the rule
+itself: the first honours the task's `anchor`, and each one after it steps off
+the occurrence before it rather than asking the anchor again. That difference is
+what makes the flag work under `anchor: "completion"` (the default), which
+resolves from today and would otherwise plan the same date `N` times over. The
+chain is written as one batch or not at all, since every entry names the one
+before it.
+
 = Validate and inspect config
 
 Every write command validates before it writes, never after. A new file that

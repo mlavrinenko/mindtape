@@ -205,15 +205,18 @@ const SPAWN_SRC: &str = "#show: task.with(\n  title: \"Chore\",\n  status: wip(2
      due: on(2026, 6, 15),\n  start: on(2026, 6, 10),\n  \
      recur: every(weeks: 1, count: 10),\n)\n\n== Summary\n\nBody.\n";
 
-fn chain_project(dir: &Path) -> (Project, Task, PathBuf, Recur) {
+/// A minimal project holding one weekly recurring task on disk, with
+/// `[tasks.naming] stem` set to `stem_template` — the tests pick the template
+/// that makes the property they pin visible in the filename.
+fn chain_project(dir: &Path, stem_template: &str) -> (Project, Task, PathBuf, Recur) {
     let task_dir = dir.join("tasks");
     std::fs::create_dir_all(&task_dir).unwrap();
     let file_path = task_dir.join("chore.typ");
     std::fs::write(&file_path, SPAWN_SRC).unwrap();
 
-    let config_text = "[[tasks.status]]\nvalue = \"wip\"\n\
-                       [tasks.naming]\nstem = \"{n}\"\n";
-    let config = parse_config(config_text).unwrap();
+    let config_text =
+        format!("[[tasks.status]]\nvalue = \"wip\"\n[tasks.naming]\nstem = \"{stem_template}\"\n");
+    let config = parse_config(&config_text).unwrap();
     let mut task = bare_task("chore");
     task.due = Some("2026-06-15".to_owned());
     task.start = Some("2026-06-10".to_owned());
@@ -237,7 +240,7 @@ fn build_advance_chain_returns_correct_count() {
     // Kills all three Ok(…) replacements.
     // Real: returns `count` entries.  Mutants return 0 or 1 entry.
     let dir = tempfile::tempdir().unwrap();
-    let (project, task, abs, recur) = chain_project(dir.path());
+    let (project, task, abs, recur) = chain_project(dir.path(), "{n}");
     let result = build_advance_chain(&project, &task, &abs, &recur, 2).unwrap();
     assert_eq!(result.len(), 2, "expected 2 entries, got {}", result.len());
     // Each entry must have distinct content (different due dates)
@@ -252,7 +255,7 @@ fn build_advance_chain_rejects_exhausted_with_empty_spawned() {
     // →true mutant:  true → early stop → Ok(vec![]).
     // delete !:      spawned.is_empty() is true → early stop → Ok(vec![]).
     let dir = tempfile::tempdir().unwrap();
-    let (project, task, abs, mut recur) = chain_project(dir.path());
+    let (project, task, abs, mut recur) = chain_project(dir.path(), "{n}");
     recur.count = Some(0); // first plan_next call sees exhausted
 
     let result = build_advance_chain(&project, &task, &abs, &recur, 1);
@@ -269,7 +272,7 @@ fn build_advance_chain_stops_early_with_partial() {
     //       spawned is NOT empty → early stop → Ok(vec![1 entry]).
     // →false mutant: → return Err.
     let dir = tempfile::tempdir().unwrap();
-    let (project, task, abs, mut recur) = chain_project(dir.path());
+    let (project, task, abs, mut recur) = chain_project(dir.path(), "{n}");
     recur.count = Some(1); // one successful iteration, then exhausted
 
     let result = build_advance_chain(&project, &task, &abs, &recur, 2).unwrap();
@@ -284,7 +287,7 @@ fn build_advance_chain_increments_occurrence() {
     // -= mutant: 1 → 0 (stems "1", "0").
     // *= mutant: 1 → 1 (duplicate stems "1", "1").
     let dir = tempfile::tempdir().unwrap();
-    let (project, task, abs, recur) = chain_project(dir.path());
+    let (project, task, abs, recur) = chain_project(dir.path(), "{n}");
     let result = build_advance_chain(&project, &task, &abs, &recur, 2).unwrap();
     assert_eq!(result.len(), 2);
 
@@ -309,6 +312,46 @@ fn build_advance_chain_increments_occurrence() {
         .into_owned();
     assert_eq!(stem1, "1", "first spawn occurrence");
     assert_eq!(stem2, "2", "second spawn occurrence");
+}
+
+#[test]
+fn build_advance_chain_steps_the_date_off_the_cursor() {
+    // The fixture's anchor is unset and the config sets no `default-anchor`,
+    // so it resolves to `completion`: every hop asking the anchor again would
+    // plan today + 1 week three times over. Only the first hop may ask.
+    let dir = tempfile::tempdir().unwrap();
+    let (project, task, abs, recur) = chain_project(dir.path(), "{n}");
+    let result = build_advance_chain(&project, &task, &abs, &recur, 3).unwrap();
+    assert_eq!(result.len(), 3);
+
+    let dates: Vec<_> = result.iter().map(|(_, date, _)| *date).collect();
+    assert_eq!(
+        dates[1],
+        dates[0] + chrono::Duration::weeks(1),
+        "second hop must step a week off the first: {dates:?}"
+    );
+    assert_eq!(
+        dates[2],
+        dates[0] + chrono::Duration::weeks(2),
+        "third hop must step a week off the second: {dates:?}"
+    );
+}
+
+#[test]
+fn build_advance_chain_disambiguates_against_stems_claimed_in_flight() {
+    // A `{slug}` template mints the same candidate on every hop, and none of
+    // the chain is on disk while it is being planned — so disk alone answers
+    // "taken?" with `no` after the first hop. `chore.typ` IS on disk, which is
+    // why the first hop already lands on `chore-2`.
+    let dir = tempfile::tempdir().unwrap();
+    let (project, task, abs, recur) = chain_project(dir.path(), "{slug}");
+    let result = build_advance_chain(&project, &task, &abs, &recur, 3).unwrap();
+
+    let stems: Vec<String> = result
+        .iter()
+        .map(|(path, _, _)| path.file_stem().unwrap().to_string_lossy().into_owned())
+        .collect();
+    assert_eq!(stems, ["chore-2", "chore-3", "chore-4"], "{stems:?}");
 }
 
 // === write_advance_chain ====================================================

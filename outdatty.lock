@@ -24,7 +24,7 @@ groups:
       crates/mindtape-cli/src/presets/gated/config.toml: 542ed81c65b6509746df4d8870429acf4b76578a0765df080e66eccd3217079b
       crates/mindtape-cli/src/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
-      crates/mindtape-cli/src/recur.rs: b272e44b0e8b025578d1343e123bb0d1dedf3584db462e26858b96fced3f941f
+      crates/mindtape-cli/src/recur.rs: bbf9679a030018aad665e9f62c7d66de531452e18d0208f17eed1393e236c2d6
       crates/mindtape-cli/src/review.rs: f86a0772326ab3ce0e500c7a3e900483ebd402193259ac4ab279abaac023aae0
       crates/mindtape-cli/src/rm.rs: 43fdacf034671da2cb5cf8cd790165242d5b7c4249ad654ecd7fcc1146a2443f
       crates/mindtape-cli/src/views.rs: a6987780b57f9651a48af4e5c559b4c3972e06f428be39799af0c9529c6f0483
@@ -33,12 +33,12 @@ groups:
       crates/mindtape/src/fields.rs: cb068900af7c66d7f589fef6e0b9a2001dc8f04db31a610356509bcd099e666c
       crates/mindtape/src/lib.rs: 6b1e3e477970b3980ef978502f8f225e1d6421f7baf4c04894a95fc0f7a88d60
     dependents:
-      docs/src/skill.typ: ea4d6f886c0336177bf8aeba32d704cb65507cef3033ee1a3e0c14950b8a04cd
+      docs/src/skill.typ: 5986a4ee506bb7cd15816e9bb2b14d052802dda76cb233bd256278d1202db9fa
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/agents.typ: c7a2d1914484b1bb3be3d6ac800381d2e98697507788756ea9c4d2592ea818c7
-      www/content/cli.typ: 44e879aa65df18477f677dde0632bf9c4563ef834eed6487bb8122880b585111
+      www/content/cli.typ: 38c8f88ef402c3f9e3df6dc2ea65ba7985ae4afce6b6da54cb94cf85e76f7f90
       www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
       www/content/config.typ: e3927953bf551369faacb1ed27e8749fd43bf0b8a0c8ed4942d2010c3d8029d6
       www/content/derived-tags.typ: df0c7aab4e3e9634eb8236b1ddfb426499b62f5f9b6c1fbc44a8b46d3c5bb17c

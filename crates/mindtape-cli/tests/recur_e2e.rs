@@ -57,6 +57,24 @@ fn tasks_dir_entries(dir: &Path) -> Vec<String> {
     names
 }
 
+/// The `(stem, source)` of the task whose `recurred-from` edge names `stem` —
+/// one hop forward along a spawn chain.
+fn successor_of(dir: &Path, stem: &str) -> Option<(String, String)> {
+    let edge = format!(r#"recurred-from("{stem}.typ")"#);
+    tasks_dir_entries(dir).into_iter().find_map(|name| {
+        let source = std::fs::read_to_string(dir.join("tasks").join(&name)).ok()?;
+        source
+            .contains(&edge)
+            .then(|| (name.trim_end_matches(".typ").to_owned(), source))
+    })
+}
+
+/// The argument text of a task source's `due: on(…)`.
+fn due_of(source: &str) -> String {
+    let rest = source.split_once("due: on(").unwrap().1;
+    rest.split_once(')').unwrap().0.to_owned()
+}
+
 #[test]
 fn spawn_writes_a_new_file_linked_back_to_the_predecessor() {
     let dir = tempfile::tempdir().unwrap();
@@ -282,6 +300,43 @@ recur: every(weeks: 1),\n\
         vec!["water-plants.typ".to_owned()],
         "a rejected occurrence must never reach the disk"
     );
+}
+
+/// `--advance N` for `N > 1` over a rule anchored on completion — the default
+/// anchor, and the one every hop but the first has to stop honouring. Both
+/// halves of the chain used to collapse onto the first occurrence: the anchor
+/// re-resolved from today each hop, so all N planned tomorrow, and the stem
+/// minter disambiguated against disk alone, so all N claimed one filename.
+#[test]
+fn advance_lays_out_a_chain_of_distinct_occurrences() {
+    let dir = tempfile::tempdir().unwrap();
+    let body = WEEKLY_SPAWN.replace("recur: every(weeks: 1),", "recur: every(days: 1),");
+    scaffold(dir.path(), &[("water-plants.typ", &body)]);
+
+    mt(dir.path())
+        .args(["recur", "water-plants", "--advance", "3"])
+        .assert()
+        .success();
+
+    let entries = tasks_dir_entries(dir.path());
+    assert_eq!(entries.len(), 4, "{entries:?}");
+
+    // Walk the chain from the original: each hop must exist and be dated a day
+    // past the one before it.
+    let mut stem = "water-plants".to_owned();
+    let mut dues = Vec::new();
+    for hop in 1..=3 {
+        let (next_stem, source) = successor_of(dir.path(), &stem)
+            .unwrap_or_else(|| panic!("hop {hop}: nothing recurred-from {stem}: {entries:?}"));
+        dues.push(due_of(&source));
+        stem = next_stem;
+    }
+    let mut distinct = dues.clone();
+    distinct.sort();
+    distinct.dedup();
+    assert_eq!(distinct.len(), 3, "occurrence dates must differ: {dues:?}");
+
+    mt(dir.path()).arg("check").assert().success();
 }
 
 #[test]

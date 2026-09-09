@@ -8,13 +8,16 @@
 //! without materializing anything. `mt ls`/`mt check` never call into this
 //! module — see `truth/tasks/command-semantics-cqrs.typ`.
 
+use std::collections::HashSet;
 use std::path::Path;
 
 use anyhow::{Context, Result, anyhow, bail};
 use chrono::NaiveDate;
 use clap::Args;
 use mindtape::recur::{Recur, RecurConfig};
-use mindtape::recur_dates::{self, effective_materialize, exhausted, next_date, past_until};
+use mindtape::recur_dates::{
+    self, advance_once, effective_materialize, exhausted, next_date, past_until,
+};
 use mindtape::{Task, today_ymd};
 
 use crate::add_values::slug;
@@ -115,6 +118,26 @@ fn dates(task: &Task) -> Result<(NaiveDate, Option<NaiveDate>, Option<NaiveDate>
     Ok((today, due, start))
 }
 
+/// Bail unless the series still has budget left — checked before a date is
+/// computed, since an exhausted series has no next occurrence to compute.
+fn guard_budget(recur: &Recur) -> Result<()> {
+    if exhausted(recur) {
+        bail!("series exhausted: `count` has reached 0");
+    }
+    Ok(())
+}
+
+/// Bail if `next` overshoots the series' `until` bound; hand it back otherwise.
+fn guard_until(recur: &Recur, next: NaiveDate) -> Result<NaiveDate> {
+    if past_until(recur, next) {
+        bail!(
+            "series ended: next occurrence {} is past `until`",
+            recur_dates::format_iso(next)
+        );
+    }
+    Ok(next)
+}
+
 /// Compute the next date and enforce the series stop conditions
 /// (`count`/`until`) before any write.
 fn plan_next(
@@ -123,17 +146,26 @@ fn plan_next(
     today: NaiveDate,
     due: Option<NaiveDate>,
 ) -> Result<NaiveDate> {
-    if exhausted(recur) {
-        bail!("series exhausted: `count` has reached 0");
-    }
+    guard_budget(recur)?;
     let next = next_date(recur, config, today, due).map_err(|err| anyhow!(err.to_string()))?;
-    if past_until(recur, next) {
-        bail!(
-            "series ended: next occurrence {} is past `until`",
-            recur_dates::format_iso(next)
-        );
-    }
-    Ok(next)
+    guard_until(recur, next)
+}
+
+/// The hop `mt recur --advance N` takes after its first: one plain step of the
+/// rule off the previous occurrence's date, under the same stop conditions.
+///
+/// The first hop honours the anchor ([`plan_next`]); no hop after it can. An
+/// anchor other than `due` resolves from today rather than from the task's
+/// date, so re-asking it N times plans the same date N times — `--advance 3`
+/// over a daily rule asked for three occurrences and got three copies of
+/// tomorrow. So `--advance N` means: N occurrences at the rule's own spacing,
+/// starting wherever the anchor puts the first one. That keeps `--advance`
+/// usable under `default-anchor = "completion"` (the default), which refusing
+/// a non-`due` anchor outright would not.
+pub(super) fn plan_step(recur: &Recur, from: NaiveDate) -> Result<NaiveDate> {
+    guard_budget(recur)?;
+    let next = advance_once(&recur.rule, from).map_err(|err| anyhow!(err.to_string()))?;
+    guard_until(recur, next)
 }
 
 /// The shared prologue every single-step materialize path starts from: the
@@ -174,6 +206,23 @@ fn occurrence_index(tasks: &[Task], start: &Task) -> u32 {
     depth + 1
 }
 
+/// Everything a minted stem must not collide with: the destination directory
+/// (the `.typ` files already on disk) and the stems a chain in flight has
+/// claimed but not yet written.
+///
+/// The two travel together because a `--advance` chain lives entirely in
+/// memory until `write_advance_chain` lands it, so disk alone answers "is this
+/// name taken?" with `no` for every entry of the batch — the same shape
+/// `mt import` solves with its `existing_stems` seed. Bundled into one
+/// argument rather than passed as a sixth: [`mint_stem`] is at clippy's
+/// 5-argument limit.
+pub(super) struct StemDest<'a> {
+    /// The directory the occurrence file will be written into.
+    pub dir: &'a Path,
+    /// Stems already claimed by this batch, none of them on disk yet.
+    pub claimed: &'a HashSet<String>,
+}
+
 /// Mint (and disambiguate against `dest`) the next occurrence's stem: the
 /// configured `[tasks.naming] stem` template, or [`RECUR_FALLBACK_STEM_TEMPLATE`]
 /// when unset — the occurrence's anchor date and index, never today's clock.
@@ -182,7 +231,7 @@ fn mint_stem(
     task: &Task,
     anchor: NaiveDate,
     occurrence: u32,
-    dest: &Path,
+    dest: &StemDest<'_>,
 ) -> Result<String> {
     let naming = &project.config.tasks.naming;
     let template = naming
@@ -198,7 +247,7 @@ fn mint_stem(
     let stem =
         mindtape::naming::mint_stem(template, &ctx).map_err(|err| anyhow!(err.to_string()))?;
     mindtape::naming::disambiguate(&stem, |candidate| {
-        dest.join(format!("{candidate}.typ")).exists()
+        dest.claimed.contains(candidate) || dest.dir.join(format!("{candidate}.typ")).exists()
     })
     .map_err(|err| anyhow!(err.to_string()))
 }
@@ -238,9 +287,21 @@ fn do_spawn(
     guard_double_spawn(project, task, args.force)?;
     let (next, due, start, source) = plan_and_read(project, task, abs, recur)?;
     let occurrence = occurrence_index(&project.outcome.tasks, task);
-    let dest = abs.parent().context("task file has no parent directory")?;
-    let stem = mint_stem(project, task, next, occurrence, dest)?;
-    let file = dest.join(format!("{stem}.typ"));
+    let dir = abs.parent().context("task file has no parent directory")?;
+    // A single-step spawn is a batch of one: nothing else is in flight to
+    // collide with, so the claimed set is empty and disk decides alone.
+    let claimed = HashSet::new();
+    let stem = mint_stem(
+        project,
+        task,
+        next,
+        occurrence,
+        &StemDest {
+            dir,
+            claimed: &claimed,
+        },
+    )?;
+    let file = dir.join(format!("{stem}.typ"));
 
     let occurrence_dates = OccurrenceDates {
         today: today_ymd(),
