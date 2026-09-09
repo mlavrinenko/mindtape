@@ -22,7 +22,7 @@
   output: "skills/mindtape/SKILL.md",
   frontmatter: (
     name: "mindtape",
-    description: "How to drive MindTape, a daemon-free file-based task tracker, via its `mt` CLI and one-task-per-file Typst artifacts. Use in any repo that has a `.mindtape/config.toml` or `.typ` task files under a tasks root, or when the user asks to list or find tasks, see what is ready or blocked, file or add a task, mark a task done / in-progress / blocked, check or validate tasks, retire or remove a task, or edit a task's status, priority, or links. Also trigger on \"mindtape\", \"mt ls\", \"mt add\", \"mt check\", the task backlog, or \"what should I work on\" in such a repo, even when the tool is not named. In a repo that uses MindTape it is the tracker — file work as tasks here rather than as GitHub issues or ad-hoc TODOs; when a repo has no tracker at all and the user asks to write work down locally, offer `mt init` before reaching for another one.",
+    description: "Drive MindTape, a daemon-free file-based task tracker, via its `mt` CLI and one-task-per-file Typst artifacts. Load in any repo holding `.mindtape/config.toml` for anything about tasks — listing, finding, filing, blocking, closing, validating, retiring, or \"what should I work on\" — even when the tool is not named. There it IS the tracker, not GitHub issues or ad-hoc TODOs; a repo with no tracker at all gets `mt init` offered before anything else.",
   ),
 )) <mindtape-md>
 
