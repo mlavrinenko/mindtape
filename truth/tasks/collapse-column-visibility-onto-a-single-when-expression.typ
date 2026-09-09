@@ -11,7 +11,11 @@
   tags: ("cli",),
   estimate: (files: 10),
   assignee: "agent",
-  status: proposed(2026, 9, 8),
+  status: done(
+    2026,
+    9,
+    10,
+  )[ColumnConfig collapsed to one when expression; Visibility, ColumnRule and auto\_significant deleted, the per-column defaults now one when per column in defaults.toml. Absent when = false, blank when refused at load. mt eval renders against the floor rather than Config::default(), which after this change describes no column. New eval\_e2e.rs pins both mt eval surfaces end to end (the two mutants the refactor exposed). just check green, just crap green (0 regressed, ColumnId::visible -4.0, auto\_significant/rule\_visibility removed), just mutants-diff 10/10 caught via \_\_DIRENV\_ARMED=1.],
   links: depends-on("evaluate-column-conditions-against-the-rendered-rows.typ")
     + related(
       "the-file-filter-field-and-the-file-column-name-different-paths.typ",
