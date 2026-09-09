@@ -22,7 +22,7 @@
   output: "skills/mindtape/SKILL.md",
   frontmatter: (
     name: "mindtape",
-    description: "How to drive MindTape, a daemon-free file-based task tracker, via its `mt` CLI and one-task-per-file Typst artifacts. Use in any repo that has a `.mindtape/config.toml` or `.typ` task files under a tasks root, or when the user asks to list or find tasks, see what is ready or blocked, file or add a task, mark a task done / in-progress / blocked, check or validate tasks, retire or remove a task, or edit a task's status, priority, or links. Also trigger on \"mindtape\", \"mt ls\", \"mt add\", \"mt check\", the task backlog, or \"what should I work on\" in such a repo, even when the tool is not named.",
+    description: "How to drive MindTape, a daemon-free file-based task tracker, via its `mt` CLI and one-task-per-file Typst artifacts. Use in any repo that has a `.mindtape/config.toml` or `.typ` task files under a tasks root, or when the user asks to list or find tasks, see what is ready or blocked, file or add a task, mark a task done / in-progress / blocked, check or validate tasks, retire or remove a task, or edit a task's status, priority, or links. Also trigger on \"mindtape\", \"mt ls\", \"mt add\", \"mt check\", the task backlog, or \"what should I work on\" in such a repo, even when the tool is not named. In a repo that uses MindTape it is the tracker — file work as tasks here rather than as GitHub issues or ad-hoc TODOs; when a repo has no tracker at all and the user asks to write work down locally, offer `mt init` before reaching for another one.",
   ),
 )) <mindtape-md>
 
@@ -153,7 +153,7 @@ is unaffected and addresses tasks by `id`; its `file` cell is the
 root-relative path `--json` reports, not the cwd-relative display. An
 `assignee`
 column shows only when the listed rows disagree about it; naming it does not
-override that — `[ls.columns.assignee] visibility = "visible"` does.
+override that — `[ls.columns.assignee] when = 'true'` does.
 `--hyperlinks always` (default `never`, or `[ls] hyperlinks`) wraps the
 always-visible `#` column — and `file` when shown — in an OSC 8 link to that
 row's target.
