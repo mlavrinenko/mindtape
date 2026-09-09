@@ -11,7 +11,11 @@
   tags: ("cli",),
   estimate: (files: 7),
   assignee: "agent",
-  status: proposed(2026, 9, 8),
+  status: done(
+    2026,
+    9,
+    9,
+  )[condition language gains nonempty()/contested()/named()/blocked(); visibility resolution moved into render/columns.rs::resolve\_order and ls\_columns.rs deleted. Every just check arm green except crap/check-crap, which fail on a stale crap-baseline.json: it was minted at 1a57fad and predates whole features (link\_input.rs, link\_edit.rs, link\_cmd.rs are tracked but have zero baseline entries, so every function in them reports NEW), and just crap-baseline refuses to re-mint while red. Filed as truth/tasks/re-mint-the-stale-crap-baseline.typ; this change's own contribution to it is eval\_bool +0.9 and resolve\_function +2.0, both deliberate. just mutants-diff is unrunnable on this host (truth/tasks/just-mutants-diff-fails-because-cargo-mutants-copies-envrc.typ) — forced past failing gate: "mmz --is-fresh --tag gate"],
   links: depends-on("add-boolean-literals-to-the-condition-language.typ"),
 )
 
