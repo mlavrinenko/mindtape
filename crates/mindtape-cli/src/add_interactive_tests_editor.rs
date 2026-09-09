@@ -67,19 +67,27 @@ fn editor_command_env_var_not_empty_used() {
 /// A stand-in editor that rewrites its file argument with fixed YAML, written
 /// for the platform shell. `open_in_editor` appends the scratch path as the
 /// trailing argument, which the script reads as `$1` / `%~1`.
-#[cfg(not(windows))]
+///
+/// One function with two `#[cfg]` bodies rather than two `#[cfg]`ed functions
+/// of the same name: coverage tooling keys a function by (file, name), so a
+/// same-named pair is one key with two entries, and `just crap` reported both
+/// as new *and* both as removed on every run — against a baseline holding them
+/// verbatim. A body-level `cfg` compiles to exactly the same thing on either
+/// platform and leaves one key.
 fn fake_editor(dir: &std::path::Path) -> String {
-    let script = dir.join("fake-editor.sh");
-    std::fs::write(&script, "printf 'title: \"Edited\"\\n' > \"$1\"\n").unwrap();
-    format!("sh {}", script.display())
-}
-
-#[cfg(windows)]
-fn fake_editor(dir: &std::path::Path) -> String {
-    let script = dir.join("fake-editor.cmd");
-    // No space before `>`: `echo x >f` would write a trailing space too.
-    std::fs::write(&script, "@echo title: \"Edited\">\"%~1\"\r\n").unwrap();
-    format!("cmd /C {}", script.display())
+    #[cfg(not(windows))]
+    {
+        let script = dir.join("fake-editor.sh");
+        std::fs::write(&script, "printf 'title: \"Edited\"\\n' > \"$1\"\n").unwrap();
+        format!("sh {}", script.display())
+    }
+    #[cfg(windows)]
+    {
+        let script = dir.join("fake-editor.cmd");
+        // No space before `>`: `echo x >f` would write a trailing space too.
+        std::fs::write(&script, "@echo title: \"Edited\">\"%~1\"\r\n").unwrap();
+        format!("cmd /C {}", script.display())
+    }
 }
 
 #[test]
