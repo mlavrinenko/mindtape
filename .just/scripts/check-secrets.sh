@@ -72,7 +72,7 @@ if [ ! -f "$config" ]; then
     exit 1
 fi
 
-# ---------------------------------------------------------------- arm one
+# arm one
 
 # Both literals carry `gitleaks:allow`, or arm two would report THIS file: it
 # is a tracked file in the tree arm two scans, and the fixture below has to
@@ -86,6 +86,17 @@ control_nondigest="Zx91Qw82Mn73Bv64Ct55Dp46Er37Fg28Hi19Jk"                      
 repo="$PWD"
 fixture=$(mktemp -d)
 trap 'rm -rf "$fixture"' EXIT
+
+# Resolved to an absolute path while `$PWD` is still the repo root: a shell
+# with a direnv PATH hook (this repo's dev shell) rebuilds PATH off `$PWD` on
+# every command, so a bare `gitleaks` looked up again after the `cd` below —
+# arm one's control has to run from inside the fixture, not the repo root,
+# for the same reason it cd's rather than passes a path (see above) — would
+# silently fall back to whatever (if anything) sits outside the dev shell.
+gitleaks_bin=$(command -v gitleaks) || {
+    echo "check-secrets: gitleaks not found on PATH" >&2
+    exit 1
+}
 
 mkdir -p "$fixture/target"
 # Three lines, one per thing the outdatty.lock allowlist must get right. The
@@ -109,7 +120,7 @@ printf 'key = %s\n' "$control_key" >"$fixture/target/leak.txt"
 # most likely) writes no report, which is caught separately below rather than
 # left to `set -e` to end the script with no explanation.
 report="$fixture/control.json"
-if ! (cd "$fixture" && gitleaks dir -c "$repo/$config" --no-banner --exit-code 0 \
+if ! (cd "$fixture" && "$gitleaks_bin" dir -c "$repo/$config" --no-banner --exit-code 0 \
     --report-format json --report-path "$report" . >"$fixture/control.log" 2>&1); then
     echo "check-secrets: gitleaks could not scan the control fixture" >&2
     sed 's/^/  /' "$fixture/control.log" >&2
@@ -125,7 +136,7 @@ if [ "$control" != "$expected" ]; then
     exit 1
 fi
 
-# ---------------------------------------------------------------- arm two
+# arm two
 
 # THE SCAN HOLDS target/www-generated.lock, because the walk bound in $config
 # keeps this arm out of that directory's CONTENTS and cannot keep it out of
