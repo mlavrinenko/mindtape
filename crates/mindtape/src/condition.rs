@@ -20,6 +20,10 @@
 //! - `format()` -> string. The active `--format` value (`table`, `csv`,
 //!   `json`, `path`, `path0`), so a rule can scope itself to the presentation
 //!   surfaces without the distinction being hardcoded in Rust.
+//! - `true`, `false` -> bool constants, usable bare or composed (`!false`,
+//!   `true && !tty()`). Not valid on either side of a comparison — `env(...)`
+//!   and friends only ever yield a string or number, so a bool there is a
+//!   mistake to reject rather than a case to define.
 //!
 //! A comparison accepts a value (`env(...)`, `now()`, `weekday()`,
 //! `format()`) or a literal on either side — more general than `filter.rs`,
@@ -32,7 +36,7 @@
 
 use std::collections::BTreeMap;
 
-use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
+use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
 
 use crate::expr::{compare_ordering, extract_literal, unwrap_root};
@@ -171,6 +175,9 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: &ConditionEnv) -> Result<boo
         Operator::VariableIdentifierRead { identifier } => {
             Err(ConditionError::TaskField(identifier.clone()))
         }
+        Operator::Const {
+            value: Value::Boolean(flag),
+        } => Ok(*flag),
         other => Err(ConditionError::Unsupported(format!("{other:?}"))),
     }
 }
@@ -287,6 +294,11 @@ fn resolve_value(
         Operator::VariableIdentifierRead { identifier } => {
             Err(ConditionError::TaskField(identifier.clone()))
         }
+        Operator::Const {
+            value: Value::Boolean(_),
+        } => Err(ConditionError::Invalid(
+            "a boolean literal cannot appear in a comparison".to_owned(),
+        )),
         Operator::Const { .. } | Operator::Neg => literal_value(node),
         other => Err(ConditionError::Invalid(format!(
             "expected a value, got {other:?}"

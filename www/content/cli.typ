@@ -211,14 +211,21 @@ task fields — the same operators and parser as
   [`now()`], [Today's ISO date — same as the filter-language `now()`.],
   [`format()`],
   [The active `--format` name (`table`, `json`, `csv`, `path`, `path0`); `""` outside a rendering command.],
+
+  [`true`, `false`],
+  [Boolean constants, composable like any other boolean (`!false`, `true && !tty()`).],
 )
 
-`on_branch()` and `tty()` are boolean and are used bare (`!tty()`); the rest
-produce values and belong in a comparison. A comparison takes a value or a
-literal on either side (`weekday() >= 6`, `"review" == env("MODE")`) — more
-general than filter expressions, which only ever compare a field on the left. A
-task field name in a condition is a load-time config error, since the condition
-grammar has no fields at all.
+`on_branch()`, `tty()`, and the `true`/`false` literals are boolean and are
+used bare (`!tty()`); the rest produce values and belong in a comparison. A
+comparison takes a value or a literal on either side (`weekday() >= 6`,
+`"review" == env("MODE")`) — more general than filter expressions, which only
+ever compare a field on the left. `true`/`false` are the one exception:
+they're valid only in boolean position, never as a comparison operand, since
+every value-producing predicate here yields a string or a number and a bool
+against one is a mistake to reject rather than a case to define. A task field
+name in a condition is a load-time config error, since the condition grammar
+has no fields at all.
 
 = Graph
 

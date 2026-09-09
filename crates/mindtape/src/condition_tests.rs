@@ -158,6 +158,46 @@ fn bare_literal_in_boolean_position_is_unsupported() {
     assert!(matches!(err, ConditionError::Unsupported(_)), "{err}");
 }
 
+/// Parse `expr` and evaluate it against the default (all-false/empty)
+/// environment.
+fn matches_default(expr: &str) -> bool {
+    Condition::parse(expr)
+        .unwrap()
+        .matches(&ConditionEnv::default())
+        .unwrap()
+}
+
+#[test]
+fn bare_boolean_literals_match() {
+    assert!(matches_default("true"));
+    assert!(!matches_default("false"));
+}
+
+#[test]
+fn boolean_literals_compose_with_operators() {
+    assert!(matches_default("!false"));
+    let condition = Condition::parse("true && !tty()").unwrap();
+    assert!(condition.matches(&env(None, "2026-07-12")).unwrap());
+    let mut tty_env = env(None, "2026-07-12");
+    tty_env.tty = true;
+    assert!(!condition.matches(&tty_env).unwrap());
+}
+
+#[test]
+fn capitalized_true_is_unknown_identifier_not_a_literal() {
+    let err = Condition::parse("True").unwrap_err();
+    assert!(
+        matches!(&err, ConditionError::TaskField(name) if name == "True"),
+        "{err}"
+    );
+}
+
+#[test]
+fn boolean_literal_in_comparison_is_invalid() {
+    assert_invalid(r#"env("MODE") == true"#);
+    assert_invalid("true == false");
+}
+
 #[test]
 fn mixed_type_comparison_falls_back_to_string_ordering() {
     // `weekday()` yields a number; compared against a non-numeric string
