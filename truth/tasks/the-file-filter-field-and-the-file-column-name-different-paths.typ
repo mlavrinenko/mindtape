@@ -12,6 +12,9 @@
   estimate: (files: 5),
   assignee: "agent",
   status: done(2026, 9, 9),
+  links: related(
+    "csv-and-json-disagree-about-what-the-file-field-means.typ",
+  )[the same split on the machine formats],
 )
 
 == Summary
