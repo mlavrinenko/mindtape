@@ -484,22 +484,22 @@ _crap-excludes:
 [doc("Gate complex, undertested functions via the CRAP metric")]
 [group("advisory")]
 crap:
-    bash .just/scripts/crap.sh {{ CRAP_EXCLUDES }}
+    bash .just/scripts/crap.sh all {{ CRAP_EXCLUDES }}
 
 # Re-mint crap-baseline.json after a DELIBERATE complexity increase. Run it in
 # the same commit as the change that justifies it, so the diff shows the new
 # number next to the reason for it — a ratchet with no documented release valve
 # gets bypassed instead of refreshed.
 #
-# Mint only against a green gate: the baseline records today as acceptable, so
-# minting while something is red freezes the red. `just crap` runs first here
-# for exactly that reason, and its failure aborts the mint. That guard has one
-# blind spot, and the recovery when it fires is in
-# docs/contributing/coverage-crap.md.
+# The pre-mint guard is the THRESHOLD arm, not the whole gate: nothing above 30
+# may be minted in as acceptable, but the ratchet arm is the file being
+# rewritten and a deliberate increase makes it red by definition. Depending on
+# the whole gate made this recipe refuse in its own documented use case; the
+# split is argued in .just/scripts/crap.sh, and crap-baseline.sh runs the arm.
 
 [doc("Re-mint crap-baseline.json after a deliberate complexity increase")]
 [group("advisory")]
-crap-baseline: crap
+crap-baseline:
     bash .just/scripts/crap-baseline.sh {{ CRAP_EXCLUDES }}
 
 # Pre-PR mutation check — the daily driver (see CONTRIBUTING.md "Testing").

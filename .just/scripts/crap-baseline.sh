@@ -2,16 +2,24 @@
 # .just/scripts/crap-baseline.sh — the body of the `crap-baseline` recipe,
 # extracted under
 # truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
-# Runs from the repo root, like the recipe that invokes it. When to re-mint and
-# why `just crap` runs first are stated above that recipe; how to recover when
-# the BASELINE itself is the thing that is wrong is argued in
-# docs/contributing/coverage-crap.md.
+# Runs from the repo root, like the recipe that invokes it. When to re-mint is
+# stated above that recipe.
 #
 # The exclude flags arrive as ARGUMENTS ("$@"), from the same CRAP_EXCLUDES the
 # gate is passed — see .just/scripts/crap.sh. Minting over a different file set
 # than the gate scores is the exact failure the one-variable discipline exists
 # to prevent.
 set -eo pipefail
+
+# Guard: the THRESHOLD arm only. Minting a >30 function in as acceptable is the
+# freeze this exists to stop, and it also refuses a stale lcov, so the numbers
+# about to be committed are the ones a clean run reproduces. It is deliberately
+# not the whole gate — the ratchet arm scores against the file this script is
+# about to rewrite, so a deliberate complexity increase makes it red by
+# definition, and that is the one moment CONTRIBUTING.md says to re-mint. The
+# arm split is argued in .just/scripts/crap.sh.
+bash .just/scripts/crap.sh absolute "$@"
+
 tmp=$(mktemp)
 trap 'rm -f "$tmp"' EXIT
 # `--sort file` is the documented stable ordering for a committed baseline;

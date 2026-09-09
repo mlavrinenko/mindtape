@@ -46,7 +46,32 @@
 #     negotiation no test can force.
 #   - `main.rs` stays thin, and `cover.sh` excludes it from coverage for the
 #     same reason.
+#
+# ARM SELECTION. The first argument picks which checks run; the excludes
+# follow it:
+#
+#   all       both arms — the gate (`just crap`).
+#   absolute  the threshold arm only — the pre-mint check
+#             (.just/scripts/crap-baseline.sh).
+#
+# The split exists because the two arms answer to different owners. The
+# absolute arm asks "is anything actually bad", and minting a >30 function into
+# the baseline as acceptable is exactly the freeze the pre-mint guard is for.
+# The ratchet arm asks "did anything get worse than the file we are about to
+# rewrite" — and a deliberate complexity increase makes it red BY DEFINITION,
+# which is the one moment CONTRIBUTING.md tells you to re-mint. Running both
+# before a mint made the recipe refuse in its own documented use case, so the
+# ratchet is not the pre-mint guard: the threshold is.
 set -eo pipefail
+mode=${1-}
+shift || true
+case "$mode" in
+all | absolute) ;;
+*)
+    echo "crap.sh: first argument must be 'all' or 'absolute', got '$mode'" >&2
+    exit 2
+    ;;
+esac
 lcov=target/coverage/lcov.info
 reason=$(just _lcov-stale-reason)
 if [ -n "$reason" ]; then
@@ -69,6 +94,12 @@ fi
 # unaffected.
 cargo crap --lcov "$lcov" --workspace "$@" \
     --threshold 30 --min 30 --fail-above --format markdown
+# An explicit `if`, not `[ … ] && exit 0`: under `set -e` a failing test at the
+# head of an `&&` list fails the list, and the script would exit 1 on the `all`
+# path — the gate reporting a regression it never checked for.
+if [ "$mode" = absolute ]; then
+    exit 0
+fi
 # 2. Ratchet: no function worse than the committed baseline, at any level.
 # This is the half that sees the 12 complex-and-undertested functions scoring
 # below 15 that no advisory band could separate from noise

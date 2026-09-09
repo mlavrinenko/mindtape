@@ -171,22 +171,27 @@ custom rule's finding on it, and an extending config can only add allowlists,
 never remove one. gitleaks is in the gate set for the job it is good at —
 #just.check-secrets(), over credential shapes rather than local paths.
 
-= When the baseline itself is the thing that is wrong
+= What guards the mint, and what deliberately does not
 
-#just.crap-baseline() depends on #just.crap(), so a red gate aborts the mint —
-the baseline records today as acceptable, and minting while something is red
-would freeze the red. The one blind spot, which has fired once: if the
-BASELINE is what is wrong, #just.crap() fails forever and the recipe refuses
-to refresh the file that would fix it. That happens when the baseline was
-minted over an lcov no clean run reproduces, as one could before #just.cover()
-cleaned the profraw pile.
+#just.crap-baseline() runs the THRESHOLD arm before it writes, never the whole
+gate. The two arms answer to different owners, and only one of them can guard a
+mint.
 
-Recovery is deliberately manual: run the recipe body by hand, in one commit
-that re-mints against a fresh lcov and carries the two facts that make it not
-a bypass. First,
-`cargo crap --lcov ... --threshold 30 --min 30 --fail-above` is green —
-nothing is actually bad. Second, no cyclomatic complexity moved: the ratchet's
-real subject is unchanged, only the measurement was.
+The threshold arm asks whether anything is actually bad. Minting a function
+over 30 in as acceptable is precisely the freeze a pre-mint guard exists to
+stop, so that arm aborts the mint — and it refuses a stale lcov on the way,
+which is what makes the numbers about to be committed ones a clean run
+reproduces.
+
+The ratchet arm cannot guard it, because it scores against the very file the
+mint is about to rewrite. A deliberate complexity increase makes that arm red
+by definition, and a deliberate complexity increase is the one occasion this
+document tells you to re-mint. Depending on the whole gate therefore made the
+recipe refuse in its own documented use case, with no legitimate path left —
+the earlier "recover by running the recipe body by hand" note only covered a
+baseline minted over an unreproducible lcov, and explicitly required that no
+cyclomatic complexity had moved. Now nothing needs recovering: the ratchet is
+a gate, the threshold is the guard, and #just.crap-baseline() just runs.
 
 = Where the tooling comes from
 
