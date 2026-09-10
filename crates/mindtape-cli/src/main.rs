@@ -68,6 +68,7 @@ mod link_plan;
 mod ls;
 mod ls_interactive;
 mod ls_rules;
+mod ls_rules_applied;
 mod output;
 mod pre_write;
 mod preset;

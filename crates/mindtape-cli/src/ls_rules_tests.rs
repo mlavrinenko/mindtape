@@ -19,16 +19,16 @@ use crate::util::Project;
 /// facet composition, not the environment; the environment's own predicates
 /// are covered in `mindtape`'s `condition_tests.rs` and the per-column
 /// resolution in `render/columns_tests.rs`.
-pub(super) fn resolve_bare(project: &Project) -> anyhow::Result<(Bundle, Applied)> {
+pub(crate) fn resolve_bare(project: &Project) -> anyhow::Result<(Bundle, Applied)> {
     super::resolve_bare(project, &build_env(project, "table"))
 }
 
 /// [`super::resolve`], same pinning as [`resolve_bare`].
-pub(super) fn resolve(project: &Project, args: &LsArgs) -> anyhow::Result<(Bundle, Applied)> {
+pub(crate) fn resolve(project: &Project, args: &LsArgs) -> anyhow::Result<(Bundle, Applied)> {
     super::resolve(project, args, &build_env(project, "table"))
 }
 
-pub(super) fn args(filter: Option<&str>) -> LsArgs {
+pub(crate) fn args(filter: Option<&str>) -> LsArgs {
     LsArgs {
         filter: filter.map(str::to_owned),
         flags: LsFlags {
@@ -42,11 +42,11 @@ pub(super) fn args(filter: Option<&str>) -> LsArgs {
     }
 }
 
-pub(super) fn project(dir: &Path, config_toml: &str) -> crate::util::Project {
+pub(crate) fn project(dir: &Path, config_toml: &str) -> crate::util::Project {
     project_with_config(dir, parse_config(config_toml).unwrap())
 }
 
-pub(super) fn project_with_config(dir: &Path, config: mindtape::Config) -> crate::util::Project {
+pub(crate) fn project_with_config(dir: &Path, config: mindtape::Config) -> crate::util::Project {
     make_project(dir, &[("x.typ", TASK_SRC)], config)
 }
 
@@ -77,7 +77,10 @@ filter = "priority > 2"
     );
     let (bundle, applied) = resolve_bare(&project).unwrap();
     assert_eq!(bundle.filter, "priority > 2");
-    assert_eq!(applied.rule.as_deref(), Some(""));
+    // Neither `name` nor `condition` to be known by, so the rule is labelled
+    // `rule` — never the empty string, which is now also a source name.
+    assert_eq!(applied.rule.as_deref(), Some("rule"));
+    assert_eq!(applied.filter_from, "rule");
 }
 
 #[test]
@@ -122,6 +125,7 @@ filter = 'status != "done"'
 sort = ["due:asc"]
 
 [[ls.rules]]
+name = "focus"
 import-views = ["inbox"]
 filter = 'priority > 5'
 sort = ["priority:desc"]
@@ -130,8 +134,10 @@ sort = ["priority:desc"]
     let (bundle, applied) = resolve_bare(&project).unwrap();
     assert_eq!(bundle.filter, "priority > 5");
     assert_eq!(bundle.sort, vec!["priority:desc".to_owned()]);
-    assert_eq!(applied.filter_from, "manual");
-    assert_eq!(applied.sort_from, "manual");
+    // Attributed to the rule, not to `manual`: `manual` is the CLI's label
+    // alone, so a listing mixing the two can name each.
+    assert_eq!(applied.filter_from, "focus");
+    assert_eq!(applied.sort_from, "focus");
 }
 
 #[test]
@@ -227,26 +233,73 @@ fn match_all_fallback_when_nothing_resolves() {
 }
 
 #[test]
-fn explicit_filter_bypasses_rules_and_default_view() {
+fn explicit_filter_narrows_the_rows_and_keeps_the_rules_presentation() {
+    // The whole point of the split: a filter answers "which tasks", so the
+    // matched rule goes on answering "how do I read them".
     let dir = tempfile::tempdir().unwrap();
     let project = project(
         dir.path(),
         r#"
 [[ls.rules]]
+name = "release"
 filter = "priority > 1"
-
-[views.default]
-filter = "terminal"
+sort = ["due:asc"]
+columns = ["due", "title"]
 "#,
     );
     let (bundle, applied) = resolve(&project, &args(Some("priority > 9"))).unwrap();
     assert_eq!(bundle.filter, "priority > 9");
-    assert_eq!(applied.rule, None);
+    assert_eq!(bundle.sort, vec!["due:asc".to_owned()]);
+    assert_eq!(bundle.columns, vec!["due".to_owned(), "title".to_owned()]);
+    assert_eq!(applied.rule.as_deref(), Some("release"));
     assert_eq!(applied.filter_from, "manual");
+    assert_eq!(applied.sort_from, "release");
+    assert_eq!(applied.columns_from, "release");
+    assert!(!applied.rule_superseded);
 }
 
 #[test]
-fn explicit_view_ref_bypasses_rules_and_carries_its_own_bundle() {
+fn explicit_filter_keeps_the_default_views_presentation() {
+    // No rule involved: the default view is the same kind of standing
+    // presentation choice and survives a filter the same way.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[views.default]
+filter = "terminal"
+sort = ["due:asc"]
+"#,
+    );
+    let (bundle, applied) = resolve(&project, &args(Some("priority > 9"))).unwrap();
+    assert_eq!(bundle.filter, "priority > 9");
+    assert_eq!(bundle.sort, vec!["due:asc".to_owned()]);
+    assert_eq!(applied.rule, None);
+    assert_eq!(applied.filter_from, "manual");
+    assert_eq!(applied.sort_from, "default");
+}
+
+#[test]
+fn a_rule_contributing_only_a_filter_is_reported_superseded() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[[ls.rules]]
+name = "release"
+filter = "priority > 1"
+"#,
+    );
+    let (bundle, applied) = resolve(&project, &args(Some("priority > 9"))).unwrap();
+    assert_eq!(bundle.filter, "priority > 9");
+    assert_eq!(applied.rule.as_deref(), Some("release"));
+    assert!(applied.rule_superseded);
+}
+
+#[test]
+fn explicit_view_ref_overrides_the_rule_per_facet() {
+    // A named view is the caller choosing a whole reading, so it takes every
+    // facet it sets — and leaves the ones it does not to the rule.
     let dir = tempfile::tempdir().unwrap();
     let project = project(
         dir.path(),
@@ -254,18 +307,50 @@ fn explicit_view_ref_bypasses_rules_and_carries_its_own_bundle() {
 [views.special]
 filter = "priority > 5"
 sort = ["due:asc"]
-columns = ["status", "title"]
 
 [[ls.rules]]
-filter = "priority > 1"
+name = "release"
+sort = ["priority:desc"]
+columns = ["status", "title"]
 "#,
     );
     let (bundle, applied) = resolve(&project, &args(Some("@special"))).unwrap();
     assert_eq!(bundle.filter, "priority > 5");
     assert_eq!(bundle.sort, vec!["due:asc".to_owned()]);
-    assert_eq!(applied.rule, None);
+    assert_eq!(
+        bundle.columns,
+        vec!["status".to_owned(), "title".to_owned()]
+    );
     assert_eq!(applied.filter_from, "special");
     assert_eq!(applied.sort_from, "special");
+    assert_eq!(applied.columns_from, "release");
+    assert!(!applied.rule_superseded);
+}
+
+#[test]
+fn cli_sort_flag_leaves_the_rules_columns_alone_under_a_filter() {
+    // Every layer is per facet: taking over the sort says nothing about the
+    // columns, even with a filter argument on the same command line.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[[ls.rules]]
+name = "release"
+sort = ["due:asc"]
+columns = ["status", "title"]
+"#,
+    );
+    let mut cli_args = args(Some("priority > 9"));
+    cli_args.flags.sort = vec!["priority:desc".to_owned()];
+    let (bundle, applied) = resolve(&project, &cli_args).unwrap();
+    assert_eq!(bundle.sort, vec!["priority:desc".to_owned()]);
+    assert_eq!(
+        bundle.columns,
+        vec!["status".to_owned(), "title".to_owned()]
+    );
+    assert_eq!(applied.sort_from, "manual");
+    assert_eq!(applied.columns_from, "release");
 }
 
 #[test]
@@ -321,97 +406,24 @@ import-views = ["releasee"]
     assert!(msg.contains("did you mean: release?"), "{msg}");
 }
 
-// ---------------------------------------------------------------------------
-// Regression tests for cargo-mutants survivors in ls_rules.rs
-// ---------------------------------------------------------------------------
-
-// Pins delete rule from Self in Applied::match_all.
-//   PROVABLY EQUIVALENT: ..Self::default() already supplies rule: None.
-//   No test needed.
-
 #[test]
-fn explicit_filter_sets_filter_value_in_applied() {
-    // Kills mutant at delete filter_value from Applied in explicit_bundle.
-    // Real:   applied.filter_value == expr
-    // Mutant: applied.filter_value == ""  (falls through to ..Applied::match_all())
+fn an_empty_filter_widens_to_every_task_and_keeps_the_presentation() {
+    // `mt ls ''` is the documented "show me everything" — an explicit
+    // match-all filter, not an absent argument, so it still overrides the
+    // filter facet while the rule's sort and columns stand.
     let dir = tempfile::tempdir().unwrap();
     let project = project(
         dir.path(),
         r#"
 [[ls.rules]]
-filter = "priority > 1"
-"#,
-    );
-    let (_bundle, applied) = resolve(&project, &args(Some("priority > 9"))).unwrap();
-    assert_eq!(applied.filter_value, "priority > 9");
-}
-
-#[test]
-fn import_sort_from_empty_sort_view_preserves_earlier_sort() {
-    // Kills mutant at !view.sort.is_empty() → true.
-    // Real: guard fails → no overwrite → sort stays ["due:asc"].
-    // Mutant: guard always true → overwrites with [] → sort empty.
-    let dir = tempfile::tempdir().unwrap();
-    let project = project(
-        dir.path(),
-        r#"
-[views.a]
+name = "release"
+filter = 'status != "done"'
 sort = ["due:asc"]
-
-[views.b]
-filter = "done"
-
-[[ls.rules]]
-import-views = ["a", "b(sort)"]
 "#,
     );
-    let (bundle, _applied) = resolve_bare(&project).unwrap();
+    let (bundle, applied) = resolve(&project, &args(Some(""))).unwrap();
+    assert_eq!(bundle.filter, "");
     assert_eq!(bundle.sort, vec!["due:asc".to_owned()]);
-}
-
-#[test]
-fn import_columns_from_empty_columns_view_preserves_earlier_columns() {
-    // Kills mutant at !view.columns.is_empty() → true.
-    // Real: guard fails → no overwrite → columns stay ["status", "title"].
-    // Mutant: guard always true → overwrites with [] → columns empty.
-    let dir = tempfile::tempdir().unwrap();
-    let project = project(
-        dir.path(),
-        r#"
-[views.a]
-columns = ["status", "title"]
-
-[views.b]
-filter = "done"
-
-[[ls.rules]]
-import-views = ["a", "b(columns)"]
-"#,
-    );
-    let (bundle, _applied) = resolve_bare(&project).unwrap();
-    assert_eq!(
-        bundle.columns,
-        vec!["status".to_owned(), "title".to_owned()]
-    );
-}
-
-// --- suggest wiring for a `--columns` spec
-// (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
-
-#[test]
-fn resolve_columns_near_miss_offers_a_suggestion() {
-    let config = parse_config("").unwrap();
-    let err = super::resolve_columns("staatus", &config).unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("expected one of"), "{msg}");
-    assert!(msg.contains("did you mean: status?"), "{msg}");
-}
-
-#[test]
-fn resolve_columns_far_miss_omits_the_suggestion() {
-    let config = parse_config("").unwrap();
-    let err = super::resolve_columns("zzzzzzzz", &config).unwrap_err();
-    let msg = err.to_string();
-    assert!(msg.contains("expected one of"), "{msg}");
-    assert!(!msg.contains("did you mean"), "{msg}");
+    assert_eq!(applied.filter_from, "manual");
+    assert_eq!(applied.sort_from, "release");
 }

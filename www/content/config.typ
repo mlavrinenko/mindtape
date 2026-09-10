@@ -684,9 +684,9 @@ Views are validated at config load:
 
 = Conditional `ls` rules
 
-`[[ls.rules]]` makes bare `mt ls` adapt to ambient project state: the first
-entry (top to bottom) whose `condition` holds — or that omits `condition`
-entirely — wins.
+`[[ls.rules]]` makes `mt ls` adapt to ambient project state: the first entry
+(top to bottom) whose `condition` holds — or that omits `condition` entirely —
+wins.
 
 ```toml
 [[ls.rules]]
@@ -696,8 +696,9 @@ import-views = ["inbox", "release(sort)"]     # compose left-to-right, per-facet
 filter = '!terminal && due <= "2026-08-01"'   # optional manual override (highest precedence)
 ```
 
-- `name` — shown in the trailer and JSON; falls back to the `condition` text
-  when unset.
+- `name` — shown in the trailer and JSON, and the source label for the rule's
+  own `filter`/`sort`/`columns` overrides; falls back to the `condition` text
+  when unset, and to `rule` when the entry has neither.
 - `condition` — a #link(u("/cli/"))[condition-language] expression over
   `on_branch`/`tty`/`env`/`weekday`/`now`/`format`; absent matches always. The
   same language gates one column's visibility in `[ls.columns.<name>] when`,
@@ -711,10 +712,25 @@ filter = '!terminal && due <= "2026-08-01"'   # optional manual override (highes
 - `filter`/`sort`/`columns` — manual overrides, highest precedence; same
   grammar as `[views]`.
 
-Per facet, precedence is manual > the last `import-views` entry that provides
-it > the built-in default. A matched rule does not inherit `default-view` as a
-base layer — it composes everything it uses. No rule matching falls back to
-`default-view`.
+Per facet, precedence inside one rule is its own override > the last
+`import-views` entry that provides it > the built-in default. A matched rule
+does not inherit `default-view` as a base layer — it composes everything it
+uses. No rule matching falls back to `default-view`.
+
+The command line stacks on top, still per facet: an explicit filter argument
+overrides the `filter` facet, `--sort` and `--columns` override theirs, and
+everything they say nothing about stays as the rule (or the default view) left
+it. So narrowing a listing on a branch where a rule is active keeps that rule's
+sort and columns — filter answers _which tasks_, sort and columns answer _how
+do I read them_. A bare `@view` filter argument is the one exception in
+degree, not in kind: naming a view is choosing a whole reading, so it overrides
+every facet that view actually sets.
+
+The `applied:` trailer names each winning source with the facets it won
+(`applied: manual (filter) → release (sort, columns)`), and a rule that matched
+and then lost every facet is named too rather than vanishing:
+`applied: manual (filter) · release superseded`. `mt ls --json` carries the same
+attribution in its `applied` block, where `superseded` is the boolean form.
 
 Rules are validated at config load, same checks as `[views]`:
 

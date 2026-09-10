@@ -52,13 +52,18 @@ Every command accepts the same global flags:
 = Listing
 
 `mt ls [filter]` lists tasks under the configured roots, and accepts a
-#link(u("/filters/"))[filter expression], sorts, and limits. With no filter and
-no `@view`, what it lists resolves in order:
+#link(u("/filters/"))[filter expression], sorts, and limits. Which tasks it
+lists resolves in order:
 
 - the project's `[[ls.rules]]` first — see Conditional rules, below;
 - then the default view: `[ls] default-view`, else `[views.default]`.
 
-An empty filter (`mt ls ''`) skips both and lists everything.
+A filter argument replaces whichever of those won the `filter` facet — an empty
+one (`mt ls ''`) is the match-all filter and lists everything — while the same
+rule or view goes on supplying the `sort` and `columns` it set. Narrowing a
+listing is not resetting it; `--sort` and `--columns` are how you take over the
+presentation, each on its own facet. A bare `@view` argument overrides every
+facet that view sets.
 
 #cli-group(cli, cli-groups, "Listing")
 
@@ -197,18 +202,20 @@ the table footer names it the same way a manual filter would.
 = Conditional rules
 
 Two keys take an expression in this language: `[[ls.rules]]`'s `condition`,
-which picks the whole listing bundle for a bare `mt ls`, and
+which picks the listing bundle a command line has not already claimed, and
 `[ls.columns.<name>]`'s `when`, which decides one column's visibility for any
 `mt ls`. Both read the same mini-language against the same ambient facts, so an
 expression means one thing wherever it is written.
 
-Ordered `[[ls.rules]]` entries let bare `mt ls` adapt to ambient project state
-— see #link(u("/config/"))[Config] for the table shape. The first entry whose
+Ordered `[[ls.rules]]` entries let `mt ls` adapt to ambient project state — see
+#link(u("/config/"))[Config] for the table shape. The first entry whose
 `condition` holds (or that omits `condition` entirely) wins; it composes its
 filter, sort, and columns from `import-views` (left to right, per-facet
-last-wins) plus an optional manual override (highest precedence). No match
-falls back to the default view exactly as before. The dim line under the
-table names which source won each facet:
+last-wins) plus an optional override of its own (highest precedence within the
+rule). No match falls back to the default view exactly as before. The dim line
+under the table names which source won each facet, and names a rule that
+matched and then lost every facet to the command line rather than letting it
+disappear (`applied: manual (filter) · release superseded`):
 
 #terminal(read("../generated/ls.txt"))
 

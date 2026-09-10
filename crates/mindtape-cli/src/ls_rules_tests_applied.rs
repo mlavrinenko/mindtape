@@ -1,16 +1,18 @@
-//! Tests for `Applied`'s human trailer, `is_trivial`, and `bare_view_ref`'s
-//! `@name` parsing. Cascade resolution (`resolve`/`resolve_bare`) lives in
-//! `ls_rules_tests.rs`; shares its `args`/`project`/`project_with_config`
-//! fixtures.
+//! Tests for `Applied`'s human trailer, `is_trivial`, supersession, and
+//! `bare_view_ref`'s `@name` parsing. Cascade resolution
+//! (`resolve`/`resolve_bare`) lives in `ls_rules_tests.rs`; shares its
+//! `args`/`project`/`project_with_config` fixtures.
 #![allow(clippy::unwrap_used)]
 
-use super::tests::{args, project, project_with_config, resolve};
+use crate::ls_rules::tests::{args, project, project_with_config, resolve};
+
 use super::{Applied, MATCH_ALL, trailer};
 
 #[test]
 fn trailer_groups_by_source_in_first_appearance_order() {
     let applied = Applied {
         rule: Some("release".to_owned()),
+        rule_superseded: false,
         filter_from: "inbox".to_owned(),
         filter_value: String::new(),
         sort_from: "release".to_owned(),
@@ -84,6 +86,78 @@ fn is_trivial_false_when_filter_from_not_match_all() {
         ..Applied::default()
     };
     assert!(!applied.is_trivial());
+}
+
+#[test]
+fn trailer_names_a_rule_whose_every_facet_was_overridden() {
+    // The complaint the split had to answer: a rule that matched and then lost
+    // every facet used to read exactly like a rule that never matched.
+    let applied = Applied {
+        rule: Some("release".to_owned()),
+        rule_superseded: true,
+        filter_from: "manual".to_owned(),
+        sort_from: MATCH_ALL.to_owned(),
+        columns_from: MATCH_ALL.to_owned(),
+        ..Applied::default()
+    };
+    assert_eq!(
+        trailer(&applied).as_deref(),
+        Some("applied: manual (filter) · release superseded")
+    );
+}
+
+#[test]
+fn note_supersession_spares_a_rule_that_still_owns_a_facet() {
+    let before = [
+        "release".to_owned(),
+        "release".to_owned(),
+        MATCH_ALL.to_owned(),
+    ];
+    let mut applied = Applied {
+        rule: Some("release".to_owned()),
+        filter_from: "manual".to_owned(),
+        sort_from: "release".to_owned(),
+        columns_from: MATCH_ALL.to_owned(),
+        ..Applied::default()
+    };
+    applied.note_supersession(&before);
+    assert!(!applied.rule_superseded);
+}
+
+#[test]
+fn note_supersession_spares_a_rule_that_contributed_nothing() {
+    // An empty rule was never superseded — nothing of its was taken away, so
+    // saying so would name a loss that did not happen.
+    let before = [
+        MATCH_ALL.to_owned(),
+        MATCH_ALL.to_owned(),
+        MATCH_ALL.to_owned(),
+    ];
+    let mut applied = Applied {
+        rule: Some("empty".to_owned()),
+        filter_from: "manual".to_owned(),
+        sort_from: MATCH_ALL.to_owned(),
+        columns_from: MATCH_ALL.to_owned(),
+        ..Applied::default()
+    };
+    applied.note_supersession(&before);
+    assert!(!applied.rule_superseded);
+}
+
+#[test]
+fn note_supersession_ignores_a_listing_no_rule_matched() {
+    let before = [
+        "default".to_owned(),
+        MATCH_ALL.to_owned(),
+        MATCH_ALL.to_owned(),
+    ];
+    let mut applied = Applied {
+        rule: None,
+        filter_from: "manual".to_owned(),
+        ..Applied::default()
+    };
+    applied.note_supersession(&before);
+    assert!(!applied.rule_superseded);
 }
 
 #[test]

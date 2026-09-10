@@ -170,11 +170,18 @@ fn truncated_to_json(truncated: Option<Truncation>) -> Value {
     )
 }
 
-/// `mt ls --json`'s `applied` envelope field: which rule (if any) fired, and
-/// each facet's winning source plus effective value.
+/// `mt ls --json`'s `applied` envelope field: which rule (if any) fired,
+/// whether anything of it survived, and each facet's winning source plus
+/// effective value.
+///
+/// `superseded` is how a consumer tells a rule that matched and lost every
+/// facet from one that never matched — both leave the facets pointing
+/// elsewhere, and only the flag separates them. Additive, so no
+/// `SCHEMA_VERSION` bump.
 fn applied_to_json(applied: &Applied) -> Value {
     json!({
         "rule": applied.rule,
+        "superseded": applied.rule_superseded,
         "facets": {
             "filter": {"from": applied.filter_from, "value": applied.filter_value},
             "sort": {"from": applied.sort_from, "value": applied.sort_value},

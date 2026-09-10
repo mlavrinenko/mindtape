@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A filter argument narrows the rows and leaves the presentation alone**
+  (breaking, pre-1.0). `mt ls '<filter>'` used to skip rule matching and the
+  default view wholesale, so typing a filter on a branch where an `[[ls.rules]]`
+  entry was active silently took that rule's `sort` and `columns` down with it
+  — and the `applied:` trailer never said so. Every layer is per facet now: the
+  cascade resolves first, an explicit filter overrides the `filter` facet,
+  `--sort` and `--columns` override theirs, and a facet nobody claims keeps
+  what the rule or the default view gave it. A bare `@view` argument still
+  overrides every facet that view sets — naming a view is choosing a reading,
+  not just a set of rows.
+
+  Two attribution changes come with it. A rule's own `filter`/`sort`/`columns`
+  override is now labelled with the rule (its `name`, else its `condition`,
+  else `rule`) instead of `manual`, which is the command line's label alone —
+  otherwise a listing whose filter came from the caller and whose sort came
+  from a rule would report both as one source. And a rule that matched but lost
+  every facet is named rather than vanishing: `applied: manual (filter) ·
+  release superseded` under the table, `"superseded": true` in `mt ls --json`'s
+  `applied` block (additive, no `schema_version` bump).
+
 - **A column's visibility is one `when` expression** (breaking, pre-1.0).
   `[ls.columns.<name>]` used to carry two keys that both answered "does this
   render" — a `visibility` scalar (`auto` / `visible` / `hidden`) and a `rules`

@@ -192,6 +192,13 @@ pub enum Facet {
     Columns,
 }
 
+impl Facet {
+    /// Every facet, in the order the trailer and the docs name them. What a
+    /// bare `import-views` entry selects, and what an explicit `@view` filter
+    /// argument overrides.
+    pub const ALL: [Self; 3] = [Self::Filter, Self::Sort, Self::Columns];
+}
+
 /// One resolved `import-views` entry: the view it names, plus which facets it
 /// contributes. A bare `"view"` entry selects all three; `"view(sort,
 /// columns)"` selects a subset.
@@ -219,7 +226,7 @@ pub fn parse_import_view(entry: &str) -> Result<ImportView, String> {
     let Some((view, rest)) = entry.split_once('(') else {
         return Ok(ImportView {
             view: entry.to_owned(),
-            facets: vec![Facet::Filter, Facet::Sort, Facet::Columns],
+            facets: Facet::ALL.to_vec(),
         });
     };
     let view = view.trim();

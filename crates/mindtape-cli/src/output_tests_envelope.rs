@@ -48,6 +48,7 @@ fn json_with_applied_wraps_tasks_in_envelope() {
     // (no `applied`) stays a bare array, as covered below.
     let applied = Applied {
         rule: Some("release".to_owned()),
+        rule_superseded: false,
         filter_from: "inbox".to_owned(),
         filter_value: "priority > 5".to_owned(),
         sort_from: "release".to_owned(),
@@ -69,6 +70,23 @@ fn json_with_applied_wraps_tasks_in_envelope() {
         "priority:desc"
     );
     assert_eq!(value["applied"]["facets"]["columns"]["from"], "inbox");
+    assert_eq!(value["applied"]["superseded"], false);
+}
+
+#[test]
+fn json_reports_a_rule_that_matched_and_lost_every_facet() {
+    // The facets alone cannot say this: a rule overridden everywhere points
+    // them all elsewhere, exactly as a listing no rule matched does
+    // (`truth/tasks/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
+    let applied = Applied {
+        rule: Some("release".to_owned()),
+        rule_superseded: true,
+        filter_from: "manual".to_owned(),
+        ..Applied::default()
+    };
+    let value = json_value(Some(envelope(&applied)));
+    assert_eq!(value["applied"]["rule"], "release");
+    assert_eq!(value["applied"]["superseded"], true);
 }
 
 #[test]

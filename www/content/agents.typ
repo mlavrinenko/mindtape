@@ -43,7 +43,11 @@ MindTape reads its own data back out without MindTape interpreting it.
 "applied": {...}, "truncated": ...}`, not a bare array — `applied` names which
 #link(u("/cli/"))[`[[ls.rules]]`] entry (if any) drove the listing and which
 source won each facet, so an agent can tell a conditional listing from a plain
-one without re-deriving it. `schema_version` (see #link(u("/schema/"))[the
+one without re-deriving it. Facets are attributed one by one, because a filter
+argument narrows the rows while the rule goes on supplying the sort and the
+columns; `applied.superseded` is the case where a rule matched and then lost
+every facet it had, which the facets alone cannot distinguish from no rule
+matching at all. `schema_version` (see #link(u("/schema/"))[the
   canonical schema]) names the envelope shape it is about to parse: a version it
 does not recognize is a signal to bail out, not to mis-parse silently.
 
