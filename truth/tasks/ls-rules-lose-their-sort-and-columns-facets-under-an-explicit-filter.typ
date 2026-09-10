@@ -11,7 +11,7 @@
   tags: ("cli",),
   estimate: (files: 3),
   assignee: "agent",
-  status: proposed(2026, 9, 8),
+  status: done(2026, 9, 10),
 )
 
 == Summary
@@ -45,9 +45,27 @@ from a rule that never matched. Cover the chosen behaviour in
 `crates/mindtape-cli/src/ls_rules_tests.rs` and the attribution in
 `ls_rules_tests_applied.rs`.
 
-= Open question
+= Decision
 
-Should an explicit `--sort` or `--columns` flag suppress a matching rule's
-corresponding facet only, or does passing either signal that the caller has
-taken over presentation wholesale?
+Split them. `resolve` runs the cascade first and layers the explicit filter
+over the `filter` facet alone, so a rule (or the default view, which had the
+same hole) goes on supplying the sort and columns of a listing the caller
+narrowed. A bare `@view` argument still overrides every facet that view sets:
+naming a view is choosing a reading, not just a set of rows.
+
+The case against turned out to cost nothing — `Applied` was already per-facet
+and `trailer` already grouped by source, so two sources on one listing needed
+no new shape. What it did need was a label: a rule's own overrides used to be
+attributed to `manual`, which is also the CLI's label, so a filter from the
+command line and a sort from a rule override would have grouped into one
+`manual (filter, sort)`. A rule's overrides now carry the rule's label, and
+`rule_label` falls back to `rule` rather than the empty string, which is no
+longer printable as a source.
+
+The open question answers itself from the same principle: a flag suppresses
+its own facet only, which is what `apply_cli_overrides` already did.
+
+`Applied::rule` is now set whenever a rule matched, contribution or not, and
+`rule_superseded` records that everything it gave was overridden — the trailer
+prints `· <rule> superseded`, `mt ls --json` carries `"superseded"`.
 
