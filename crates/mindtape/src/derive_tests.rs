@@ -106,6 +106,16 @@ fn slugify_normalises_folder_names() {
 }
 
 #[test]
+fn slugify_drops_apostrophes_instead_of_slugging_them() {
+    let global = cfg(vec![Collector::Segments]);
+    let deriver = RootDeriver::new(&root("mt"), &global);
+    assert_eq!(
+        deriver.tags_for(Path::new("ada's-drills/x.typ")),
+        vec!["mt".to_owned(), "adas-drills".to_owned()]
+    );
+}
+
+#[test]
 fn slugify_off_keeps_raw_names() {
     let global = DeriveConfig {
         enabled: true,

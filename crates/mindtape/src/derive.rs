@@ -133,10 +133,15 @@ pub fn depth(rel: &Path) -> u8 {
     u8::try_from(folder_segments(rel).len()).unwrap_or(u8::MAX)
 }
 
-/// Lowercase, collapse non-alphanumeric runs to `-`, trim leading/trailing `-`.
+/// Lowercase, drop apostrophes (`'` and `’`) rather than treating them as
+/// separators, collapse other non-alphanumeric runs to `-`, trim
+/// leading/trailing `-`.
 fn slugify(text: &str) -> String {
     let mut out = String::new();
     for ch in text.chars() {
+        if ch == '\'' || ch == '’' {
+            continue;
+        }
         if ch.is_alphanumeric() {
             out.extend(ch.to_lowercase());
         } else if !out.ends_with('-') && !out.is_empty() {

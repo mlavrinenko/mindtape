@@ -418,6 +418,15 @@ fn slug_from_title_lowercases_and_collapses() {
 }
 
 #[test]
+fn slug_from_title_drops_apostrophes_instead_of_slugging_them() {
+    assert_eq!(
+        slug_from_title("make a page's active argument an error"),
+        "make-a-pages-active-argument-an-error"
+    );
+    assert_eq!(slug_from_title("Ada’s drills"), "adas-drills");
+}
+
+#[test]
 fn stem_for_title_defaults_to_bare_slug() {
     let config = Config::default();
     assert_eq!(

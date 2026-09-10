@@ -21,6 +21,15 @@ fn slug_lowercases_and_collapses() {
 }
 
 #[test]
+fn slug_drops_apostrophes_instead_of_slugging_them() {
+    assert_eq!(
+        slug("make a page's active argument an error"),
+        "make-a-pages-active-argument-an-error"
+    );
+    assert_eq!(slug("Ada’s drills"), "adas-drills");
+}
+
+#[test]
 fn stdin_title_takes_first_nonblank_line() {
     assert_eq!(stdin_title("hello world\n"), Some("hello world".to_owned()));
     assert_eq!(stdin_title("  spaced  \n"), Some("spaced".to_owned()));
