@@ -11,7 +11,11 @@
   tags: ("cli",),
   estimate: (files: 3),
   assignee: "agent",
-  status: proposed(2026, 9, 9),
+  status: done(
+    2026,
+    9,
+    10,
+  )[All three functions fixed and tested: `add_values::slug`, `import_map::stem::slug_from_title`, `derive::slugify`. See the Decision below on the fourth question.],
 )
 
 == Summary
@@ -53,11 +57,18 @@ No existing filename moves: a stem is minted once at `mt add` time and the
 file is the identity thereafter. Only stems minted after the change differ,
 so there is nothing to migrate and no link to rewrite.
 
-= Watch for
+= Decision
 
-The third function is a judgment call rather than a consequence: a derived
-tag is a controlled vocabulary a project filters on, and changing how one is
-spelled changes what `has_tag(...)` matches for anyone whose folder carries
-an apostrophe. Should `derive.rs` move with the other two, or is a tag
-vocabulary a compatibility surface that should stay put?
+`derive.rs`'s `slugify` moved with the other two. MindTape has not released
+yet, so a changed derived-tag spelling is not a compatibility break anyone
+is exposed to; consistency across all three slug sites won out over treating
+the tag vocabulary as a surface to protect early.
+
+Fixing all three identically grew `add_values::slug` and
+`import_map::stem::slug_from_title` into a clone past `just check-dry`'s
+jscpd floor, since they were already byte-for-byte duplicates before this
+task. Filed and closed as
+[stop-duplicating-mt-adds-slug-in-mindtapes-slug-from-title](stop-duplicating-mt-adds-slug-in-mindtapes-slug-from-title.typ):
+`add_values::slug` now calls `mindtape::slug_from_title` instead of
+re-implementing it.
 
