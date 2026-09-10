@@ -41,7 +41,8 @@ pub struct Cli {
     #[arg(long, value_name = "WHEN", default_value_t, global = true)]
     pub color: ColorChoice,
 
-    /// Hyperlink output for the `file` column: auto, always, or never.
+    /// Hyperlink output for the `#` and `file` columns: auto, always, or
+    /// never.
     ///
     /// `auto` emits OSC 8 hyperlink sequences only when stdout is a TTY and
     /// `TERM` is not `dumb` — a heuristic guess, since no terminal capability
