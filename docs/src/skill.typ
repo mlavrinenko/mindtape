@@ -105,8 +105,9 @@ tasks), naming the winner on a dim `applied: ...` line. An empty filter
 
 A filter argument replaces the filter facet only — the rule's or view's sort
 and columns still apply, and the trailer names both sources. So a listing you
-narrowed is not a listing you reset: to see the plain table, pass `--columns`
-and `--sort` explicitly.
+narrowed is not a listing you reset. For the project's ordinary table instead
+of the rule's, splice the default view back over both:
+`mt ls '<filter>' --columns @default --sort @default`.
 
 `-n N` bounds a listing without a pipe. It cuts after the filter and sort, so
 you get the top N of the order you asked for, and a cut listing says so: a

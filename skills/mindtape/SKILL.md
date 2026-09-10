@@ -51,7 +51,7 @@ Reach for `mt <cmd> --help` only when a command errors or needs a flag this skil
 
 Bare `mt ls` tries the project’s `[[ls.rules]]` (auto-activation keyed off branch/env/weekday/date), then falls back to the default view (`[ls] default-view`, else `[views.default]`; usually active, startable tasks), naming the winner on a dim `applied: ...` line. An empty filter (`mt ls ''`) drops that filter and lists everything; there is no `--all` flag.
 
-A filter argument replaces the filter facet only — the rule’s or view’s sort and columns still apply, and the trailer names both sources. So a listing you narrowed is not a listing you reset: to see the plain table, pass `--columns` and `--sort` explicitly.
+A filter argument replaces the filter facet only — the rule’s or view’s sort and columns still apply, and the trailer names both sources. So a listing you narrowed is not a listing you reset. For the project’s ordinary table instead of the rule’s, splice the default view back over both: `mt ls '<filter>' --columns @default --sort @default`.
 
 `-n N` bounds a listing without a pipe. It cuts after the filter and sort, so you get the top N of the order you asked for, and a cut listing says so: a `truncated: showing 10 of 47` line under the table, the same pair as `--json`’s `truncated` envelope key. Read it before reporting a backlog as complete.
 

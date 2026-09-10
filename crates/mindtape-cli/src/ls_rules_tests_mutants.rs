@@ -1,8 +1,9 @@
 //! Regression tests for cargo-mutants survivors in `ls_rules.rs`, plus the
-//! `--columns` suggestion wiring. Split out of `ls_rules_tests.rs` to keep both
-//! files under the size gate: the cascade's own behaviour is covered there and
-//! `Applied`'s trailer in `ls_rules_tests_applied.rs`. Shares
-//! `ls_rules_tests.rs`'s `args`/`project` fixtures.
+//! `--columns` suggestion wiring and the documented `@default` escape. Split
+//! out of `ls_rules_tests.rs` to keep both files under the size gate: the
+//! cascade's own behaviour is covered there and `Applied`'s trailer in
+//! `ls_rules_tests_applied.rs`. Shares `ls_rules_tests.rs`'s `args`/`project`
+//! fixtures.
 #![allow(clippy::unwrap_used)]
 
 use mindtape::parse_config;
@@ -99,4 +100,34 @@ fn resolve_columns_far_miss_omits_the_suggestion() {
     let msg = err.to_string();
     assert!(msg.contains("expected one of"), "{msg}");
     assert!(!msg.contains("did you mean"), "{msg}");
+}
+
+// --- the escape hatch the CLI docs promise
+// (`truth/tasks/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`) --
+
+#[test]
+fn splicing_the_default_view_over_both_facets_drops_a_rules_presentation() {
+    // `mt ls '<filter>' --columns @default --sort @default` is what the CLI
+    // page tells a caller to type to read a narrowed listing in the project's
+    // ordinary table. It works because the shipped `[views.default]` declares
+    // neither facet and an empty facet IS the built-in — so a default view
+    // that grows a `sort` or `columns` would quietly change what the
+    // documented command means.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        r#"
+[[ls.rules]]
+name = "release"
+sort = ["due:asc"]
+columns = ["due", "title"]
+"#,
+    );
+    let mut cli_args = args(Some("priority > 1"));
+    cli_args.flags.sort = vec!["@default".to_owned()];
+    cli_args.flags.columns = Some("@default".to_owned());
+    let (bundle, applied) = resolve(&project, &cli_args).unwrap();
+    assert!(bundle.sort.is_empty(), "{:?}", bundle.sort);
+    assert!(bundle.columns.is_empty(), "{:?}", bundle.columns);
+    assert!(applied.rule_superseded);
 }

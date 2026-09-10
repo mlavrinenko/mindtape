@@ -65,6 +65,18 @@ listing is not resetting it; `--sort` and `--columns` are how you take over the
 presentation, each on its own facet. A bare `@view` argument overrides every
 facet that view sets.
 
+To read a narrowed listing in your project's ordinary table rather than the
+rule's, splice the default view back over both presentation facets:
+
+```
+mt ls 'assignee == "ada"' --columns @default --sort @default
+```
+
+`@default` contributes whatever `[views.default]` declares — nothing, in a
+project that leaves the shipped one alone, and "nothing" is how the built-in
+column set and sort order are asked for. The trailer then reports the rule as
+superseded rather than silently dropping it.
+
 #cli-group(cli, cli-groups, "Listing")
 
 Empty columns auto-hide; tune them with `[ls.columns]` and `columns-order`, or
