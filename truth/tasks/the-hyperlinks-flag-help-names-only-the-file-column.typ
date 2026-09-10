@@ -11,7 +11,11 @@
   tags: ("docs",),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 9, 8),
+  status: done(
+    2026,
+    9,
+    10,
+  )[Fixed at fa69c3f: the `--hyperlinks` doc comment on the CLI arg now names both the `#` and `file` columns. Regenerated `www/generated/` with `just docs::gen` and confirmed with `outdatty update --group cli-docs --group cli-name` that no hand-written doc quoted the stale text.],
 )
 
 == Summary
