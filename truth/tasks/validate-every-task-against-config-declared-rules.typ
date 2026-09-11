@@ -14,7 +14,8 @@
   status: proposed(2026, 9, 11),
   links: depends-on(
     "look-a-value-up-in-a-dictionary-from-a-filter-expression.typ",
-  ),
+  )
+    + depends-on("move-the-config-page-deep-dives-onto-pages-of-their-own.typ"),
 )
 
 == Summary

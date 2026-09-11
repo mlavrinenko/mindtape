@@ -12,7 +12,8 @@
   estimate: (files: 6),
   assignee: "agent",
   status: proposed(2026, 9, 11),
-  links: depends-on("add-named-dictionaries-to-the-configuration.typ"),
+  links: depends-on("add-named-dictionaries-to-the-configuration.typ")
+    + depends-on("move-the-config-page-deep-dives-onto-pages-of-their-own.typ"),
 )
 
 == Summary
