@@ -11,7 +11,11 @@
   tags: ("mt",),
   estimate: (files: 12),
   assignee: "agent",
-  status: wip(2026, 9, 11)[adding \[\[tasks.rules\]\] to the validation pass],
+  status: done(
+    2026,
+    9,
+    11,
+  )[\[\[tasks.rules\]\] evaluated inside the validation pass, so every write command enforces it],
   links: depends-on(
     "look-a-value-up-in-a-dictionary-from-a-filter-expression.typ",
   )
