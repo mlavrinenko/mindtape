@@ -11,11 +11,11 @@
   tags: ("mt",),
   estimate: (files: 12),
   assignee: "agent",
-  status: wip(
+  status: done(
     2026,
     9,
     11,
-  )[Adding \[dicts.\<name>\] to the config: values/path/include/case, two embedded built-ins, load-time validation.],
+  )[\[dicts.\<name>\] lands: values/path/include/case union into one set, two embedded built-ins under the reserved mindtape- prefix, all of it checked once at config load.],
 )
 
 == Summary
