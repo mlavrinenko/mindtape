@@ -11,7 +11,11 @@
   tags: ("mt",),
   estimate: (files: 12),
   assignee: "agent",
-  status: proposed(2026, 9, 11),
+  status: wip(
+    2026,
+    9,
+    11,
+  )[Adding \[dicts.\<name>\] to the config: values/path/include/case, two embedded built-ins, load-time validation.],
 )
 
 == Summary
