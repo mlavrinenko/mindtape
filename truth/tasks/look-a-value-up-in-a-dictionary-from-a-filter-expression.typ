@@ -11,11 +11,11 @@
   tags: ("mt",),
   estimate: (files: 9),
   assignee: "agent",
-  status: wip(
+  status: done(
     2026,
     9,
     11,
-  )[teaching the filter walker string-valued arguments: word(), matches(), in\_dict()],
+  )[word(), matches() and in\_dict() land, with string-valued arguments under them],
   links: depends-on("add-named-dictionaries-to-the-configuration.typ"),
 )
 
