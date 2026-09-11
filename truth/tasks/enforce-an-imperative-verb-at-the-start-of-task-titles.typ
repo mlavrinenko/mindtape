@@ -11,7 +11,11 @@
   tags: ("mt", "docs"),
   estimate: (files: 6),
   assignee: "agent",
-  status: proposed(2026, 9, 11),
+  status: wip(
+    2026,
+    9,
+    11,
+  )[wiring the imperative-title rule into config, docs, skill, and examples],
   links: depends-on(
     "validate-every-task-against-config-declared-rules.typ",
     "add-named-dictionaries-to-the-configuration.typ",
