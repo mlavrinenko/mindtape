@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **The skill files verb-first titles.** `skills/mindtape/SKILL.md`'s `mt add`
+  section now defaults every new title to an imperative verb first
+  (`fix login bug`, not `login bug fix`) — the shape a project's own
+  `[[tasks.rules]]` entry may hold it to (`in_dict("verbs", word(title,
+  1))`), and the one this repo's own `.mindtape/config.toml` now enforces at
+  `error`: no mechanism of its own, just the dictionary, string-argument and
+  rules work landing before it turned on. `examples/learn-piano` carries the
+  same rule at `warn`, the severity a project adopting the convention
+  mid-backlog actually wants — its closed history stays untouched, and its
+  open titles were brought into line except one, left as filed to prove a
+  `warn` breach prints and `mt check` still passes. The worked example lives
+  on the config page's `Config-declared rules` section; the filter page's
+  `in_dict` entry now points at it instead of restating it.
+
 ### Changed
 
 - **`LimitSeverity` is now `Severity`** (breaking, pre-1.0; library callers

@@ -1,7 +1,7 @@
 #import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: "Arpeggios, all inversions, root position start",
+  title: "Practice arpeggios, all inversions, root position start",
   priority: ice(
     impact: 7,
     confidence: 0.7,

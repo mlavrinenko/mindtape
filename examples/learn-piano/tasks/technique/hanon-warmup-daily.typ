@@ -1,7 +1,7 @@
 #import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: "Hanon warm-up",
+  title: "Run the daily Hanon warm-up",
   priority: ice(
     impact: 7,
     confidence: 0.9,

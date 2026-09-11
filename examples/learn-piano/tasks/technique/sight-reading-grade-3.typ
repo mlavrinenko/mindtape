@@ -1,7 +1,7 @@
 #import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: "Sight-reading, grade 3 anthology",
+  title: "Practice sight-reading, grade 3 anthology",
   priority: ice(
     impact: 9,
     confidence: 0.6,

@@ -1,7 +1,7 @@
 #import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: "Interval recognition by ear",
+  title: "Practice interval recognition by ear",
   priority: ice(
     impact: 8,
     confidence: 0.8,

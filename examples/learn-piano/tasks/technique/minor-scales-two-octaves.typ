@@ -1,7 +1,7 @@
 #import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: "Minor scales (harmonic + melodic), two octaves",
+  title: "Practice minor scales (harmonic + melodic), two octaves",
   priority: ice(
     impact: 8,
     confidence: 0.85,

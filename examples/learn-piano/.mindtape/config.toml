@@ -136,6 +136,31 @@ allowed = [
   "theory",
 ]
 
+# `severity = "warn"`, not `error`: this fixture stands in for a project
+# ADOPTING the convention mid-backlog rather than starting clean — most of
+# its open titles predate the rule and a hand retitle is exactly the kind of
+# unstarted work `mt add`/`mt flip` should never refuse mid-session. `warn`
+# reports the gap on every write and `mt check` without blocking any of them,
+# which is what a project catching up actually wants; nothing stops
+# tightening to `error` once the backlog conforms. `fur-elise-polish` is left
+# as filed for that reason — its title predates the rule, so it is the one
+# task here that still warns, proving the write goes through and `mt check`
+# still passes. `when = "!terminal"` is the other half: closed history
+# (`abandoned-rondo-alla-turca`, `major-scales-two-octaves`,
+# `circle-of-fifths-drill`, `sight-singing-solfege`) is not backfilled either.
+[[tasks.rules]]
+name = "imperative-title"
+assert = 'in_dict("verbs", word(title, 1))'
+when = "!terminal"
+message = "start the title with an imperative verb"
+severity = "warn"
+
+# The same imperative-title convention the main repo holds itself to (see
+# .mindtape/config.toml) — `verbs` unions both shipped dicts, and the rule
+# below asks whether a title's first word is in it.
+[dicts.verbs]
+include = ["mindtape-verbs", "mindtape-dev-verbs"]
+
 # The default `mt ls` listing (used when the caller passes no filter): a view,
 # so it can carry sort and columns too, not just a filter. `[ls] default-view`
 # points the default at another view by name.

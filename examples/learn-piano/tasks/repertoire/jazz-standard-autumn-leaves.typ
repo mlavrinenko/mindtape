@@ -1,7 +1,7 @@
 #import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: "Autumn Leaves — melody + basic comping",
+  title: "Learn Autumn Leaves — melody + basic comping",
   priority: ice(
     impact: 6,
     confidence: 0.6,

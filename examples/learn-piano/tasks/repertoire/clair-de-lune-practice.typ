@@ -1,7 +1,7 @@
 #import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: "Clair de Lune — learn the arpeggiated middle section",
+  title: "Learn Clair de Lune's arpeggiated middle section",
   priority: ice(
     impact: 9,
     confidence: 0.85,

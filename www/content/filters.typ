@@ -100,7 +100,9 @@ with `miss(field)`.
 
   [`in_dict("name", <string>)`],
   [The string is in the named #link(u("/named-sets/"))[`[dicts.<name>]`] set,
-    under that dictionary's own `case`.],
+    under that dictionary's own `case`. Paired with `word()` below, this is
+    what #link(u("/config/"))[a config-declared rule] turns into an
+    enforced convention rather than a query.],
 )
 
 = Reading a word out of a field

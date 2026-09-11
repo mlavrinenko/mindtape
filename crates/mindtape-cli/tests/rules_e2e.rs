@@ -227,3 +227,43 @@ fn mt_flip_refuses_a_write_that_breaches_an_error_rule() {
         .failure()
         .stderr(predicates::str::contains("rules.closed-work-is-owned"));
 }
+
+/// The mechanism above is proven against a synthetic project. These two check
+/// the ADOPTION itself
+/// (truth/tasks/enforce-an-imperative-verb-at-the-start-of-task-titles.typ):
+/// that `imperative-title` actually landed in the two real configs the chain
+/// was for — this repo's own backlog at `error`, and the `learn-piano`
+/// example at `warn`, the severity a project adopting the convention
+/// mid-backlog wants. Loaded straight off the committed files rather than
+/// re-derived from a scaffold, so a config edit that drops the rule (or
+/// loosens its severity) fails here even though the mechanism itself still
+/// works.
+fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec {
+    config
+        .tasks
+        .rules
+        .iter()
+        .find(|rule| rule.name.as_deref() == Some("imperative-title"))
+        .expect("the imperative-title rule must be declared")
+}
+
+#[test]
+fn this_repos_own_config_carries_the_rule_at_error() {
+    let config = mindtape::parse_config(include_str!("../../../.mindtape/config.toml")).unwrap();
+    assert_eq!(
+        find_imperative_title_rule(&config).severity,
+        mindtape::Severity::Error
+    );
+}
+
+#[test]
+fn the_learn_piano_example_carries_the_rule_at_warn() {
+    let config = mindtape::parse_config(include_str!(
+        "../../../examples/learn-piano/.mindtape/config.toml"
+    ))
+    .unwrap();
+    assert_eq!(
+        find_imperative_title_rule(&config).severity,
+        mindtape::Severity::Warn
+    );
+}

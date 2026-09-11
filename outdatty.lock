@@ -33,7 +33,7 @@ groups:
       crates/mindtape/src/fields.rs: cb068900af7c66d7f589fef6e0b9a2001dc8f04db31a610356509bcd099e666c
       crates/mindtape/src/lib.rs: 921d4798eaa8f11ab2ca8e03fc62172ccb4407c1de9f14853665505e3dd39cce
     dependents:
-      docs/src/skill.typ: 9498f8bba5fdbe61f43264eedffeb95d888a7e6cb584f0b96e73ed579d837d19
+      docs/src/skill.typ: d8d00e6096ed5a7f77b62d67dc42a527abbab8de782d4a577f000e7ad65e5868
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
@@ -43,10 +43,10 @@ groups:
       www/content/config.typ: 8f6554301e17a352edd267747ef3d0584bb3e88efb81b944db1ee0b0f2bc0fa5
       www/content/derived-tags.typ: df0c7aab4e3e9634eb8236b1ddfb426499b62f5f9b6c1fbc44a8b46d3c5bb17c
       www/content/estimates.typ: 53905b484692a1379c2e7bfa5a245b048226cdf13715ccc05579a3d0b86d7540
-      www/content/filters.typ: eed72bb78e62529b9344d3c99f84ea941e2f1ee23c5bbf0ed4d7c060f978ef5b
+      www/content/filters.typ: 09c47a580aec669f5203d499f6c63b4ef5374b080554937f683a4ce3e0283437
       www/content/hooks.typ: 9bbc1614f1bca3b2132d0195d9ca47fe36d844395eebdad7a161442c282c9309
       www/content/import-export.typ: 7de6509190178cbb70b631dd103745b7d7cfcaa723074b2d9ceb49aab581def3
-      www/content/named-sets.typ: 154de418c8b636026db50aef420f6fa341b9f0eb182e2e3cbc9c91f41e45f80a
+      www/content/named-sets.typ: 617049a44745024e66a9d7d6c704a5aba146ca00d2e8782381e0794cb59a822b
       www/content/priority.typ: df10cfbdbbfe85ab35c7d9725210beb202c0f9437f9b7e462aaf7534eedf1a09
       www/content/quickstart.typ: 43ecbe2b2f9d1c7bfb43cde95f8732aae8eec6c42c9de56e50d2475b8149a914
       www/content/schema.typ: eeba1555fcd1f2d8d26ed84fc140827bfd0678fe1f97c39faffa5228603d72a1
@@ -111,7 +111,7 @@ groups:
     dependents:
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
       docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
-      docs/src/skill.typ: 8a6c17137513c430298a6a4ad769dabfce9dda70498e475fa9a3167ac74772e2
+      docs/src/skill.typ: d8d00e6096ed5a7f77b62d67dc42a527abbab8de782d4a577f000e7ad65e5868
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
       www/content/dsl.typ: 04c5c3ef2f8691157e7bc16629d4535589233731dca356fe899a5ec05de9098a
@@ -121,7 +121,7 @@ groups:
     source:
       Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b
     dependents:
-      CHANGELOG.md: 1b038740fd12badd755db960949b184e7702aabae68100629df023605f0e36cc
+      CHANGELOG.md: f881a187fd589e84b2c5643d90eeee143bd64d994f96dbab778cbf6acbeb51ce
   sweep-dedup:
     source:
       contrib/ask-refactoring/coverage.sh: fa3101fae54260566e2edf743232104f4690f4cf5cfece1f550b6cb298f84d93
@@ -144,19 +144,19 @@ groups:
     dependents:
       crates/mindtape-cli/src/init.rs: 380a04e3fb2ce958354ba9f3e9bd90bc30e21715f4f18653794064326905edd5
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898
-      examples/learn-piano/.mindtape/templates/task.typ: 4ad252834d7839c4281199e23b3feb0b958d7e60190d7e0a5d58bcfd57fa9f19
+      examples/learn-piano/.mindtape/templates/task.typ: e269ab035087724b5b0df9832b31469d5c515e68979f2c6a9dc23c0eba0b6760
       examples/learn-piano/tasks/repertoire/abandoned-rondo-alla-turca.typ: 240c47c55cb8bd0354146c6342959d5961c19b92f5210f0a9c48440463d1707b
-      examples/learn-piano/tasks/repertoire/clair-de-lune-practice.typ: 139a4952c08ac5fa81a061de2bbaa7c06de838aeead65d7f77bb1728b6c3c997
+      examples/learn-piano/tasks/repertoire/clair-de-lune-practice.typ: 8c49e00a5ea7c14ff6146ddc38a00f8a4e4dd8e15ed3e7e7f9b88855325a7532
       examples/learn-piano/tasks/repertoire/fur-elise-polish.typ: ddf5b677a91a14fcbe42946c0a67ae8e34e04f790a626a4d1dcbcf0cc16ec415
-      examples/learn-piano/tasks/repertoire/jazz-standard-autumn-leaves.typ: a28d1413ecd4b12f3106eb0f86c0d06622918a58d99fa7a6112b22ce2e712049
-      examples/learn-piano/tasks/technique/arpeggios-all-inversions.typ: 49dac152242cb9c58f46340caf1a0dd31a512daebbc17863ff0d4c4f7c908c59
-      examples/learn-piano/tasks/technique/hanon-warmup-daily.typ: 9939c7838f96dab6bd09d4c504db66f90b39a5c47f34d5484b78e4b291de7ff6
+      examples/learn-piano/tasks/repertoire/jazz-standard-autumn-leaves.typ: ebe2fad5225fa26d8420a9fa01903b7894b98fb562e106850c59dd88f9d4e550
+      examples/learn-piano/tasks/technique/arpeggios-all-inversions.typ: 23d485ccbc2b6043a35649c8f12e54751dd6243d591f4820d626817dab78668f
+      examples/learn-piano/tasks/technique/hanon-warmup-daily.typ: a537b52706913bf577f4ae498c2632e2c394152d803009408f5653fee9a27f32
       examples/learn-piano/tasks/technique/major-scales-two-octaves.typ: 2a92157aeb5ef5a9e9b8c5d4753eaf84177d86ad0f1db5d4a5c2c0ddaa6f5436
-      examples/learn-piano/tasks/technique/minor-scales-two-octaves.typ: e158ece0e3ff83760c0abfee39b4e5f745992f7d89150824e49ef3be619cd4c8
-      examples/learn-piano/tasks/technique/sight-reading-grade-3.typ: 2953e70d3cabd5bce44d4081d7456b4aa2dda0b26a6b9842dd615f556e319e41
+      examples/learn-piano/tasks/technique/minor-scales-two-octaves.typ: 2fd02685017e3a09c702f8d05776a36a2195f169bcf99dd93eb271930c6d8bb5
+      examples/learn-piano/tasks/technique/sight-reading-grade-3.typ: e15d56d2f4a4089dd6c0d366aefa3e4ee5efae146e70b5ed220e4ae45e9e162f
       examples/learn-piano/tasks/theory/chord-progression-analysis.typ: db5391ebc3ea8a5f8b8a453031ba75200154036574655e1626497e1a5579a4d3
       examples/learn-piano/tasks/theory/circle-of-fifths-drill.typ: d973b37bc835cec282b9e1cd97c3096a599af7facfb86755ca032b060c47216f
-      examples/learn-piano/tasks/theory/interval-recognition-ear-training.typ: c1ffe175961bf20b00b2ed8c5b8e7aba44126e8d5265d9124289b77e3a1a3f7b
+      examples/learn-piano/tasks/theory/interval-recognition-ear-training.typ: 5fbc7cad463f4ae141ffba0cea749755c257d54ed898060eea83da3ae63c1e5f
       examples/learn-piano/tasks/theory/sight-singing-solfege.typ: e16ade5ad5a65d203556a6bce5f1a9808ee1c4fb15fae8afaeaa67250e7337cf
       examples/minimal/tasks/add-dark-mode.typ: 76e48378b7dfeee0e40511457813dae7a15f002fdaf4f358203d8ba1992d18ee
       examples/minimal/tasks/fix-login-bug.typ: b848110c2bb7fab6eb39792dc3eb58a682a7a48a816e91ef390e9d4cf4119e82
