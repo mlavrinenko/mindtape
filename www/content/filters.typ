@@ -93,13 +93,13 @@ with `miss(field)`.
   [The task carries a #link(u("/dsl/"))[`links:`] edge of that kind — built-in or a project's custom kind.],
 
   [`in_view("name")`],
-  [The named #link(u("/config/"))[view]'s filter matches. `@name` is sugar for it.],
+  [The named #link(u("/named-sets/"))[view]'s filter matches. `@name` is sugar for it.],
 
   [`matches(field, "regex")`],
   [The field's text matches the (unanchored, Rust `regex`) pattern.],
 
   [`in_dict("name", <string>)`],
-  [The string is in the named #link(u("/config/"))[`[dicts.<name>]`] set,
+  [The string is in the named #link(u("/named-sets/"))[`[dicts.<name>]`] set,
     under that dictionary's own `case`.],
 )
 
@@ -158,7 +158,7 @@ mt ls '@backend && !@blocked'   # in the backend view, minus blocked
 ```
 
 One predicate exists only where a transition does: `into("status")`, in a
-#link(u("/config/"))[`[[on.flip]]`] hook's `when`, matches the status being
+#link(u("/hooks/"))[`[[on.flip]]`] hook's `when`, matches the status being
 stamped, while the rest of the expression reads the task as it stands before the
 write. Everything else on this page composes with it —
 `into("done") && !has_tag("chore")` is an ordinary filter with one extra term.

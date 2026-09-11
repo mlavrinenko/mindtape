@@ -43,7 +43,8 @@ Every section below is reflected straight from `mt config schema` — the same
 JSON Schema `mt install` writes to disk, generated from the config structs
 themselves. A row's purpose column is that property's own doc comment, so a
 newly added config key cannot silently go undocumented: the build fails first.
-Sections whose shape needs more than one line get a deep dive further down.
+Sections whose shape needs more than one line get a deep dive further down, or
+a page of their own.
 
 // The command tree pattern (cli.typ / cli-ref.typ) reflects clap's own
 // definition; this mirrors it for config: `config-sections` is presentation
@@ -90,10 +91,15 @@ Sections whose shape needs more than one line get a deep dive further down.
 #callout("note")[
   #link(u("/derived-tags/"))[Derived tags], #link(u("/priority/"))[Priority],
   and #link(u("/filters/"))[Filter language] cover `[tasks.roots]` /
-  `[tasks.derive-tags]`, `[tasks.priority]` / `[tasks.difficulty]`, and
-  `[views]` / `[ls]` / `[rm]` in full; the #link(u("/cli/"))[CLI reference]
-  covers `[[ls.rules]]`, the `file` column and its conditional
-  `[ls.columns.<name>] when`, and `[ls] hyperlinks` / `hyperlink-target`.
+  `[tasks.derive-tags]`, `[tasks.priority]` / `[tasks.difficulty]`, and `[ls]` /
+  `[rm]` in full; the #link(u("/cli/"))[CLI reference] covers `[[ls.rules]]`,
+  the `file` column and its conditional `[ls.columns.<name>] when`, and
+  `[ls] hyperlinks` / `hyperlink-target`.
+
+  #link(u("/named-sets/"))[Views & dictionaries] carries `[views.<name>]` and
+  `[dicts.<name>]`, #link(u("/hooks/"))[Flip hooks] carries `[[on.flip]]`, and
+  #link(u("/estimates/"))[Estimates] carries `[tasks.estimate]`'s bounds and
+  `[tasks.estimate.drift]`.
 ]
 
 = Body shape: headings and section content
@@ -515,223 +521,6 @@ A violation reports the file, the line, and the comment text:
 ```
 truth/tasks/example.typ:12: comments: line comment: "no, use in_view() instead"
 ```
-
-= Estimate bounds and working-tree drift
-
-An estimate is an opaque `unit -> quantity` dict, and `units` is the allow-list
-of legal unit names. Two per-unit tables bound the quantities:
-
-```toml
-[tasks.estimate]
-units = ["files"]
-
-[tasks.estimate.max]
-files = 5
-
-[tasks.estimate.min]
-files = 1
-```
-
-Outside the range is a *validation error*, not a warning: an oversized task must
-be split before the work starts, not after. Terminal tasks are exempt.
-
-A file count is the estimate `mt check` can actually verify. `[tasks.estimate.drift]`
-compares the git working tree against the budget the in-flight tasks declare and
-warns — never fails — when the tree has outgrown it:
-
-```toml
-[tasks.estimate.drift]
-unit          = "files"              # estimate unit read as the file budget
-in-flight     = 'status == "wip"'    # which tasks the diff is attributed to
-line-multiple = 200                  # secondary line ceiling per declared file; 0 disables
-message       = "rescope before going further"   # replaces the default advice
-exclude       = ["docs/generated/**", "*.lock"]  # paths the file count skips
-```
-
-`exclude` names paths the file count never counts — generated output nobody
-hand-edits, so touching it should not spend part of a budget meant for the
-source that produced it. Each pattern is matched against the path git reports,
-repo-root-relative (the root `mt` runs against, not the task root), with the
-same glob syntax as `[tasks.roots] derive-tags`: `*` matches within one path
-segment, `**` crosses directory boundaries. It only filters the file count —
-the line total stays unfiltered, already documented below as a generous signal
-that tolerates exactly this kind of distortion.
-
-The working tree carries one diff and nothing in it says which file belongs to
-which task, so attribution is by count — against the one in-flight task's
-budget, or against the sum when several are open:
-
-```
-warning: working tree touches 14 file(s), over the 2 declared by `alpha` — split the remaining work into a new task and finish the part in hand
-warning: working tree touches 16 file(s), over the 6 declared in total by 3 in-flight tasks — split the remaining work into a new task and finish the part in hand
-  in flight: alpha, beta, gamma
-```
-
-The line total is a secondary soft signal at a generous multiple of the
-declared file count, never a budget of its own: line counts are distorted by
-generated files, lockfiles and formatting passes.
-
-#callout("note")[
-  The check is inert until an in-flight task declares an estimate in `unit`, and
-  reads the tree strictly read-only (`git --no-optional-locks … status
-  --porcelain`). Outside a git repository, or with git unavailable, it says
-  nothing at all — it never guesses, and never fails the command.
-]
-
-= Flip hooks
-
-`[[on.flip]]` binds actions to a task changing status. One table, three action
-kinds:
-
-```toml
-[[on.flip]]
-when = 'into("wip")'
-actions = [{ list = "@wip", title = "Already in flight:" }]
-
-[[on.flip]]
-when = 'into("done") && !has_tag("chore")'
-actions = [
-  { show = "closing — the checklist is in CONTRIBUTING.md" },
-  { run = "just check", gate = true, message = "the suite has to pass first" },
-]
-```
-
-`when` is a #link(u("/filters/"))[filter expression] over the task *as it stands
-before the write* — so `status == "wip"` names the status being left — plus the
-`into("name")` predicate for the status being stamped. An action runs only on a
-transition its `when` matches. An empty `when` fires on every flip.
-
-Each action declares exactly one kind:
-
-#table(
-  columns: 2,
-  table.header([Action], [Effect]),
-  [`{ show = "text" }`], [Print `text`.],
-  [`{ list = "filter or @view", title = "..." }`],
-  [Print the matching tasks as a table under `title`. A bare `@view` also picks up that view's sort. This is how an agent starting work sees what else is in flight — with no materialised index and nothing written to disk.],
-
-  [`{ run = "cmd", gate = false, message = "..." }`],
-  [Execute `cmd`. With `gate = true` a non-zero exit *refuses the flip*, prints the command's output, and stops: nothing is written for that task and the actions after it do not run. Without `gate` the output is informational. `message` replaces the default advice on failure.],
-)
-
-Actions run in declaration order. `--force` waives a failing gate and records
-the waiver in the status note (`forced past failing gate: "just check"`). A
-gate command runs from the project root with the transition in its
-environment:
-
-#table(
-  columns: 2,
-  table.header([Variable], [Value]),
-  [`MINDTAPE_TASK_FILE`], [Absolute path of the task file being flipped.],
-  [`MINDTAPE_TASK_STEM`],
-  [The task's identity (its file stem, unless `id:` overrides).],
-
-  [`MINDTAPE_TASK_STATUS`], [The status being stamped.],
-)
-
-`show` and `list` output is suppressed under `--quiet` and whenever stdout is
-not a terminal, so a scripted flip stays clean. Gates still run, and a failing
-one still prints its output.
-
-#callout("warn")[
-  *Trust boundary.* An `[[on.flip]]` command is exactly as trusted as a
-  `Justfile` recipe or a git hook: it comes from the repository's own config and
-  runs through the platform shell — `sh -c`, or `cmd /C` on Windows — with your
-  full authority, from the project root. Nothing sandboxes it. Read a project's
-  config before running `mt flip` under it, the same way you read a `Makefile`
-  before running `make`.
-]
-
-A `run` command is shell text, not an argv, and the two shells share no syntax,
-so a command written for one platform is not portable to the other. A project
-targeting both writes a line both shells accept, or calls a script.
-
-Only `mt flip` runs actions. `mt check`, `mt ls` and every other read command
-execute nothing. A malformed hook (an unparseable `when`, an `into(...)` naming
-no configured status, an action with no kind) is a config error at load, so it
-fails every command equally rather than surprising the first flip that reaches
-it.
-
-= Named views
-
-`[views.<name>]` bundles a filter with an optional sort and column set so
-`mt ls` can reference it by name instead of repeating the expression:
-
-```toml
-[views.broken]
-filter = 'blocked && stale(30)'
-
-[views.summer]
-filter = 'has_tag("summer") && !terminal'
-sort = ["priority:desc", "due:asc"]
-columns = ["#", "status", "priority", "title"]
-description = "Summer push"
-```
-
-`filter` is required; `sort` (a list of `--sort`-grammar specs) and `columns`
-(a subset of the `mt ls` column names — `#`, `status`, `ready`, `priority`,
-`due`, `title`, `file`) are optional, as is a free-text `description`. Reference a
-view with `@name`: bare `@name` applies filter, sort, and columns together;
-`@name` inside a larger expression is filter-only, equivalent to
-`in_view("name")` — see #link(u("/filters/"))[Filter language] for the
-predicate and #link(u("/cli/"))[CLI reference] for `mt ls` / `mt views`.
-
-Views are validated at config load:
-
-- each `filter` must parse;
-- `sort` and `columns` entries must be legal;
-- every view reference must resolve;
-- the reference graph must be acyclic — a cycle is a config error.
-
-= Named dictionaries
-
-`[dicts.<name>]` names a set of strings so more than one rule can share it. It
-is a top-level section, sibling of `[views.<name>]`, for the same reason: a set
-is not a property of tasks, and an allow-list, a filter and a future consumer
-all read the same name.
-
-```toml
-[dicts.verbs]
-values = ["add", "wire", "fix"]           # inline entries
-path = "dicts/extra-verbs.txt"            # a file, one entry per line
-include = ["mindtape-verbs", "mindtape-dev-verbs"]  # other dicts, unioned in
-case = "fold"                             # fold (default) | exact
-```
-
-All three sources feed *one* set; any combination is legal and at least one
-must be present. `path` is relative to the project root and may leave it (the
-same rule `[[typst.local-packages]] path` follows); blank lines and lines
-starting with `#` are skipped, and each entry is trimmed. `include` names other
-dictionaries — the project's own or a built-in — and unions their entries in
-raw, so the *including* dictionary's `case` decides how they compare.
-
-`case` decides lookups, not storage: `fold` (the default) is ASCII
-case-insensitive, so a capitalised title word matches a lowercase entry;
-`exact` is byte equality.
-
-== The built-ins
-
-Two dictionaries ship embedded in `mt` and need no declaration to be
-referenced:
-
-- `mindtape-verbs` — the 500 most frequent English verbs, base (imperative)
-  form;
-- `mindtape-dev-verbs` — 86 software-work verbs the general frequency list
-  ranks too low to carry.
-
-The `mindtape-` prefix is reserved for them: naming a project dictionary
-`mindtape-anything` is a config error, so the namespace stays the tool's.
-
-Dictionaries are validated at config load, once for the project rather than
-once per task:
-
-- the `mindtape-` prefix is refused on a project dictionary;
-- each dictionary must name at least one source;
-- every `include` must resolve — an unknown name gets a nearest-match
-  suggestion and the list of known dictionaries;
-- the `include` graph must be acyclic — a cycle is a config error;
-- every `path` must resolve and read;
-- a dictionary that resolves to no entries at all is a config error.
 
 = Conditional `ls` rules
 

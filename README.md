@@ -61,6 +61,9 @@ The docs site has the rest:
 - [Filter language](https://mlavrinenko.github.io/mindtape/filters/) — The expression language mt ls and mt rm use to select tasks: fields, operators, functions, and dependency predicates.
 - [Priority](https://mlavrinenko.github.io/mindtape/priority/) — Priority is a number on a configured scale, set by hand or scored by a framework; difficulty is its twin.
 - [Configuration](https://mlavrinenko.github.io/mindtape/config/) — How .mindtape/config.toml overlays a defaults floor through a four-layer merge, and the sections it can set.
+- [Named views and dictionaries](https://mlavrinenko.github.io/mindtape/named-sets/) — Two top-level config sections that name something once so every rule can point at it: a view bundles a filter with a sort and columns, a dictionary names a set of strings.
+- [Flip hooks](https://mlavrinenko.github.io/mindtape/hooks/) — How a project binds actions to a task changing status: printing a message, listing what else is in flight, or running a command that may refuse the flip.
+- [Estimate bounds and working-tree drift](https://mlavrinenko.github.io/mindtape/estimates/) — How tasks.estimate bounds a task's declared size, and how the drift check compares the git working tree against what the in-flight tasks budgeted.
 - [Canonical schema](https://mlavrinenko.github.io/mindtape/schema/) — The task-JSON schema mt ls --json and mt import share — the contract a jq adapter codes against.
 - [Import & export](https://mlavrinenko.github.io/mindtape/import-export/) — Bring tasks in from another tracker with mt import and jq, and reshape them back out with the same tools.
 - [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) — What makes MindTape legible to a coding agent: structured JSON, describable schemas, honest exit codes, and file-based state.

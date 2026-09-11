@@ -7,7 +7,7 @@
 # manifest used to be a read-back of www/utils/site.typ's own PAGES dict
 # (itself derived from NAV). Now each page carries its own
 # `#metadata((route, label, title, summary, home)) <page-meta>` block, so the
-# manifest is derived from the FIFTEEN PAGES instead — site.typ keeps only
+# manifest is derived from THE PAGES THEMSELVES instead — site.typ keeps only
 # what no single page owns: the group names and the reading order (NAV).
 #
 # Called by www/generate.sh, AFTER its generate-facts.sh call, inside the

@@ -174,7 +174,7 @@ rm -rf "$tmp"
 # www/generate-site-pages.sh, under
 # truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ:
 # each page now carries its OWN `<page-meta>` block, so the manifest is
-# derived from the fifteen pages instead of from site.typ, and deriving it
+# derived from the pages themselves instead of from site.typ, and deriving it
 # needs a full page compile — which needs www/generate.sh's own captures
 # (hero-source.typ, cli.json, …), not just this script's. That is also why
 # this script alone no longer suffices for docs/generate-md.sh or

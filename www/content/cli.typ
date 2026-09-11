@@ -314,8 +314,8 @@ still land, the way `mt rm` and `mt flip` report a batch.
 = Views
 
 Named views bundle a filter with an optional sort and column set under
-`[views.<name>]` — see #link(u("/config/"))[Config] for the table shape.
-Reference one with an `@name` sigil:
+`[views.<name>]` — see #link(u("/named-sets/"))[Views & dictionaries] for the
+table shape. Reference one with an `@name` sigil:
 
 - `mt ls @stuck` — bundle mode: applies the view's filter, sort, and columns
   together. A facet flag overrides just that facet: `mt ls @stuck --sort
@@ -353,7 +353,7 @@ stem (`handle <stem>: 1b → none`), which still addresses it. A flip that moved
 nothing — a same-status re-stamp, typically — says nothing.
 
 `mt flip` is also the only command that runs a project's
-#link(u("/config/"))[`[[on.flip]]` hooks] — printing a message or a task list,
+#link(u("/hooks/"))[`[[on.flip]]` hooks] — printing a message or a task list,
 or running a command that may refuse the flip. `--quiet` suppresses the printed
 ones (gates still run); `--force` waives a failing gate and records the waiver
 in the status note. No read command executes anything.
@@ -404,7 +404,7 @@ one another.
 cycles. It exits non-zero and names each violation when one exists — drop it in
 CI or a pre-commit hook. It also warns, without failing, when the git working
 tree has outgrown the file budget the in-flight tasks declare (see
-#link(u("/config/"))[Configuration]). `mt config show`
+#link(u("/estimates/"))[Estimates]). `mt config show`
 prints the effective merged config as re-parseable TOML; `--origin` lists which
 layers contributed, and from where.
 

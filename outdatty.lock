@@ -38,12 +38,15 @@ groups:
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/agents.typ: faaf3838c12418f06c1a17c29578d6c70861a5ebf5346c67cb621ff62c20efdc
-      www/content/cli.typ: b6210fe4012fb9054fddb070b89dea3f767864dc59f9d7a10395fdfdd0dfec53
+      www/content/cli.typ: 6bf87b07a421a422ff88948c847257d1cdb11de930514a21f8dcde629f557e0e
       www/content/concepts.typ: a853a491b4611bc47d31ffd7d7e5a32d63db6c56554bbfed8b5ce4a30633667c
-      www/content/config.typ: e416ba7f5a8db95b91f6b79813a02a91ef910c8626afd1f5371becf02dc3b4fd
+      www/content/config.typ: dfa0c8ee9d9e55c18a6c4ed89731b917840e414a50c1ffdd25605ca939ad49d8
       www/content/derived-tags.typ: df0c7aab4e3e9634eb8236b1ddfb426499b62f5f9b6c1fbc44a8b46d3c5bb17c
-      www/content/filters.typ: 86602efa0e440843c046f819d39353e6f0863c997fab46d95474236816ae774b
+      www/content/estimates.typ: 53905b484692a1379c2e7bfa5a245b048226cdf13715ccc05579a3d0b86d7540
+      www/content/filters.typ: eed72bb78e62529b9344d3c99f84ea941e2f1ee23c5bbf0ed4d7c060f978ef5b
+      www/content/hooks.typ: 9bbc1614f1bca3b2132d0195d9ca47fe36d844395eebdad7a161442c282c9309
       www/content/import-export.typ: 7de6509190178cbb70b631dd103745b7d7cfcaa723074b2d9ceb49aab581def3
+      www/content/named-sets.typ: 154de418c8b636026db50aef420f6fa341b9f0eb182e2e3cbc9c91f41e45f80a
       www/content/priority.typ: df10cfbdbbfe85ab35c7d9725210beb202c0f9437f9b7e462aaf7534eedf1a09
       www/content/quickstart.typ: 43ecbe2b2f9d1c7bfb43cde95f8732aae8eec6c42c9de56e50d2475b8149a914
       www/content/schema.typ: eeba1555fcd1f2d8d26ed84fc140827bfd0678fe1f97c39faffa5228603d72a1

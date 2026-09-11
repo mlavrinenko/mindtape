@@ -53,7 +53,7 @@
 )
 
 // Grouped sidebar: group title, and its members' reading order as ROUTES.
-// This is the one fact no single page owns — spreading it across fifteen
+// This is the one fact no single page owns — spreading it across the page
 // files as `order:` integers would make the sidebar's shape invisible and let
 // two pages claim one slot (see the umbrella task's "Out of scope"). Every
 // other fact a nav entry used to carry (label, title, summary, home) now
@@ -71,6 +71,9 @@
       "/filters/",
       "/priority/",
       "/config/",
+      "/named-sets/",
+      "/hooks/",
+      "/estimates/",
       "/schema/",
       "/import-export/",
     ),

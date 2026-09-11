@@ -85,6 +85,13 @@ groups:
   # (`mt _cli`) is deliberately not one of these sources: it is hidden tooling
   # that reflects `Cli::command()` back out for the docs generator, so it can
   # only remove drift, never introduce it — see its own module doc.
+  #
+  # hooks.typ, estimates.typ and named-sets.typ are dependents for exactly
+  # config.typ's reason: each is a deep dive MOVED off that page
+  # (truth/tasks/move-the-config-page-deep-dives-onto-pages-of-their-own.typ),
+  # carrying the same hand-restated `[[on.flip]]`, `[tasks.estimate]` and
+  # `[views]`/`[dicts]` surface it used to carry inline. A section moving to a
+  # page of its own must not move out of the drift gate with it.
   - name: cli-docs
     source:
       - crates/mindtape-cli/src/cli.rs
@@ -143,6 +150,9 @@ groups:
       - www/content/cli.typ
       - www/content/filters.typ
       - www/content/config.typ
+      - www/content/hooks.typ
+      - www/content/estimates.typ
+      - www/content/named-sets.typ
       - www/content/quickstart.typ
       - www/content/agents.typ
       - www/content/concepts.typ
