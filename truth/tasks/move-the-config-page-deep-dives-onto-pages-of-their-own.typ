@@ -11,7 +11,11 @@
   tags: ("www", "docs"),
   estimate: (files: 8),
   assignee: "agent",
-  status: proposed(2026, 9, 11),
+  status: done(
+    2026,
+    9,
+    11,
+  )[four deep dives moved to /hooks/, /estimates/ and /named-sets/; config.typ back to 714 lines],
 )
 
 == Summary
