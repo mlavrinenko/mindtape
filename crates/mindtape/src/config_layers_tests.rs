@@ -228,7 +228,7 @@ fn no_files_anywhere_matches_parse_config_empty() {
     let (_tmp, home, project) = home_and_project();
 
     let layers = discover_layers_with_xdg(&project, Some(&home), None);
-    let config = build_config(&layers).unwrap();
+    let config = build_config(&layers, &project).unwrap();
     let expected = parse_config("").unwrap();
     assert_eq!(config, expected);
 }
@@ -252,4 +252,44 @@ fn merged_config_table_returns_content_from_project_layer() {
             .and_then(toml::Value::as_bool)
             == Some(true)
     );
+}
+
+// --- `[dicts]`: the root-relative half, which only the layered load can see ---
+
+/// A `[dicts.<name>] path` resolves against the project root, so the file is
+/// found through a real layered load and not through `parse_config`, which has
+/// no root to resolve against.
+#[test]
+fn a_dict_path_resolves_against_the_project_root() {
+    let (_tmp, home, project) = home_and_project();
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        "[dicts.verbs]\npath = \"dicts/verbs.txt\"\n",
+    )
+    .unwrap();
+    std::fs::create_dir_all(project.join("dicts")).unwrap();
+    std::fs::write(project.join("dicts").join("verbs.txt"), "# head\nadd\n").unwrap();
+
+    let (config, _sources) = super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    let dicts = crate::config::compile_dicts(&config.dicts, &project).unwrap();
+    assert!(dicts.contains("verbs", "Add"));
+}
+
+/// An unreadable `path` fails the load itself — once, as a config error naming
+/// the dict, rather than once per task that reads it.
+#[test]
+fn an_unreadable_dict_path_fails_the_load() {
+    let (_tmp, home, project) = home_and_project();
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        "[dicts.verbs]\npath = \"dicts/missing.txt\"\n",
+    )
+    .unwrap();
+
+    let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
+    let rendered = err.to_string();
+    assert!(rendered.contains("dicts.verbs.path"), "{rendered}");
+    assert!(rendered.contains("missing.txt"), "{rendered}");
 }

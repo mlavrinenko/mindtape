@@ -148,11 +148,21 @@ fn merge_doc(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
 }
 
 /// [`merge_doc`], then deserialize and run semantic validation — the shared
-/// tail with [`crate::config::parse_config`].
-fn build_config(layers: &[Layer]) -> Result<Config, ConfigError> {
+/// tail with [`crate::config::parse_config`], plus the checks that need the
+/// project root.
+///
+/// `[dicts.<name>]` is compiled here and the result dropped: a `path` entry
+/// resolves against `root`, so this is the first point that can read one, and
+/// the whole point of compiling at load is that a broken dictionary is one
+/// config error instead of one per task. A consumer that needs the entries
+/// calls [`crate::config::compile_dicts`] itself — the section is small enough
+/// that re-reading it beats threading a second return value through every
+/// caller of [`crate::config::load_config`].
+fn build_config(layers: &[Layer], root: &Path) -> Result<Config, ConfigError> {
     let doc = merge_doc(layers)?;
     let config: Config = toml::Value::Table(doc).try_into()?;
     config.validate().map_err(ConfigError::Invalid)?;
+    crate::config::compile_dicts(&config.dicts, root).map_err(ConfigError::Invalid)?;
     Ok(config)
 }
 
@@ -202,7 +212,7 @@ pub fn load_config_layered_from(
 ) -> Result<(Config, Vec<LayerSource>), ConfigError> {
     let layers = discover_layers_with_xdg(root, home, xdg_config_dir);
     let sources = layers.iter().map(|layer| layer.source.clone()).collect();
-    let config = build_config(&layers)?;
+    let config = build_config(&layers, root)?;
     Ok((config, sources))
 }
 

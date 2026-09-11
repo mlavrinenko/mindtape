@@ -21,6 +21,7 @@ mod config_actors;
 mod config_add;
 mod config_assignee;
 pub mod config_comments;
+mod config_dicts;
 mod config_estimate;
 mod config_format;
 mod config_go;
@@ -65,6 +66,7 @@ pub mod loader;
 pub mod marker;
 mod merge;
 pub mod model;
+mod name_cycle;
 pub mod naming;
 pub mod numeric;
 pub mod ready;
@@ -97,12 +99,13 @@ pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use condition::{Condition, ConditionError};
 pub use condition_env::{ColumnFacts, ConditionEnv};
 pub use config::{
-    Actor, ActorKind, AddConfig, AssigneeConfig, Collector, ColumnConfig, Config, ConfigError,
-    DeriveConfig, DeriveTags, DriftConfig, EstimateConfig, Facet, FormatConfig, GoConfig,
-    HandleConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage, LsRule,
-    MAX_CHECK_LEN, PriorityConfig, ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role,
-    RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec, config_path, embedded_defaults,
-    load_config, parse_config, parse_import_view, roles_of, validate_views,
+    Actor, ActorKind, AddConfig, AssigneeConfig, BUILTIN_PREFIX, Collector, ColumnConfig, Config,
+    ConfigError, DeriveConfig, DeriveTags, Dict, DictCase, DictSpec, Dicts, DriftConfig,
+    EstimateConfig, Facet, FormatConfig, GoConfig, HandleConfig, HyperlinkChoice, ImportView,
+    InteractiveMode, LS_COLUMNS, LocalPackage, LsRule, MAX_CHECK_LEN, PriorityConfig, ReadyConfig,
+    RetireConfig, RmConfig, RmStrategy, Role, RootConfig, RootSpec, TemplatesConfig, TypstConfig,
+    ViewSpec, builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config,
+    parse_config, parse_import_view, roles_of, validate_dicts, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_layers::{

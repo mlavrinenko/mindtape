@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::config_ls::LS_COLUMNS;
 use crate::filter::Filter;
+use crate::name_cycle::find_cycle;
 use crate::sort::validate_sort_spec;
 
 /// `[views.<name>]` — one named query bundle.
@@ -70,57 +71,6 @@ pub fn validate_views(views: &BTreeMap<String, ViewSpec>) -> Vec<String> {
         problems.push(format!("views: reference cycle {}", cycle.join(" → ")));
     }
     problems
-}
-
-/// State marks for the cycle-detection DFS.
-const UNSEEN: u8 = 0;
-const ACTIVE: u8 = 1;
-const DONE: u8 = 2;
-
-/// Depth-first search for a cycle in the view-reference graph. Returns the names
-/// on the first cycle found (closing back to the first), or `None` if acyclic.
-/// Edges to a target absent from `refs` (an unknown reference, reported
-/// separately) are ignored — they cannot join a cycle.
-fn find_cycle(refs: &BTreeMap<&str, Vec<String>>) -> Option<Vec<String>> {
-    let mut state: BTreeMap<String, u8> = BTreeMap::new();
-    for start in refs.keys() {
-        let mut stack: Vec<String> = Vec::new();
-        if let Some(cycle) = dfs(start, refs, &mut state, &mut stack) {
-            return Some(cycle);
-        }
-    }
-    None
-}
-
-fn dfs(
-    node: &str,
-    refs: &BTreeMap<&str, Vec<String>>,
-    state: &mut BTreeMap<String, u8>,
-    stack: &mut Vec<String>,
-) -> Option<Vec<String>> {
-    match state.get(node).copied().unwrap_or(UNSEEN) {
-        DONE => return None,
-        ACTIVE => {
-            let mut cycle: Vec<String> = stack.iter().skip_while(|n| *n != node).cloned().collect();
-            cycle.push(node.to_owned());
-            return Some(cycle);
-        }
-        _ => {}
-    }
-    state.insert(node.to_owned(), ACTIVE);
-    stack.push(node.to_owned());
-    if let Some(targets) = refs.get(node) {
-        for target in targets {
-            if refs.contains_key(target.as_str())
-                && let Some(cycle) = dfs(target, refs, state, stack)
-            {
-                return Some(cycle);
-            }
-        }
-    }
-    stack.pop();
-    state.insert(node.to_owned(), DONE);
-    None
 }
 
 #[cfg(test)]

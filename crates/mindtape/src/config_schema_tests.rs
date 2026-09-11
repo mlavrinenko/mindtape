@@ -114,6 +114,7 @@ fn schema_has_expected_root() {
         "typst",
         "format",
         "views",
+        "dicts",
         "actors",
         "roles",
     ] {

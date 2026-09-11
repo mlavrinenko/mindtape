@@ -442,6 +442,57 @@
       ],
       "description": "Per-root derivation switch: a bool, a single file glob, or a list of globs.\nA glob gates which files under the root get derivation (matched against the\npath relative to the root). `true`/`false` enable or disable wholesale."
     },
+    "DictCase": {
+      "description": "How a compiled dictionary compares a lookup against its entries.",
+      "oneOf": [
+        {
+          "const": "fold",
+          "description": "ASCII-case-insensitive: a capitalised title word matches a lowercase\nentry. The default.",
+          "type": "string"
+        },
+        {
+          "const": "exact",
+          "description": "Byte equality.",
+          "type": "string"
+        }
+      ]
+    },
+    "DictSpec": {
+      "additionalProperties": false,
+      "description": "`[dicts.<name>]` — one named string set, as declared in config.",
+      "properties": {
+        "case": {
+          "$ref": "#/$defs/DictCase",
+          "default": "fold",
+          "description": "How a lookup compares against the entries: `fold` (the default) is\nASCII-case-insensitive, `exact` is byte equality."
+        },
+        "include": {
+          "default": [],
+          "description": "Other dictionaries — project or built-in — whose entries are unioned in.\nThe entries arrive raw; this dict's own `case` decides how they compare.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "path": {
+          "default": null,
+          "description": "A file of entries, one per line, relative to the project root. Blank\nlines and lines whose first non-blank character is `#` are skipped, and\neach entry is trimmed. May leave the root (`../shared/verbs.txt`), the\nsame rule `[[typst.local-packages]] path` follows.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "values": {
+          "default": [],
+          "description": "Entries written inline.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
     "DriftConfig": {
       "additionalProperties": false,
       "description": "`[tasks.estimate.drift]` — how `mt check` compares the working tree against\nthe budget the in-flight tasks declare.\n\nInert until some in-flight task actually declares an estimate in `unit`, so\na project that never uses a file budget never sees the check.",
@@ -1931,6 +1982,14 @@
     "add": {
       "$ref": "#/$defs/AddConfig",
       "description": "`add` interactive-fill settings (editor, when it opens)."
+    },
+    "dicts": {
+      "additionalProperties": {
+        "$ref": "#/$defs/DictSpec"
+      },
+      "default": {},
+      "description": "Named string sets (`[dicts.<name>]`), so a vocabulary two rules share is\none list rather than two that drift. Each unions `values`, `path` and\n`include` into one set, compiled and checked once at config load. The\n`mindtape-` prefix is reserved for the built-in dictionaries.",
+      "type": "object"
     },
     "format": {
       "$ref": "#/$defs/FormatConfig",

@@ -22,6 +22,10 @@ use crate::merge::deep_merge_tables;
 pub use crate::body_content::{ContentAssert, ContentConfig, ContentRuleConfig};
 pub use crate::body_headers::{HeaderAction, HeaderPathSegment, HeaderRuleConfig, HeadersConfig};
 pub use crate::config_add::{AddConfig, InteractiveMode};
+pub use crate::config_dicts::{
+    BUILTIN_PREFIX, Dict, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
+    validate_dicts,
+};
 pub use crate::config_format::FormatConfig;
 pub use crate::config_go::GoConfig;
 pub use crate::config_handle::{HandleConfig, MAX_CHECK_LEN};
@@ -83,6 +87,11 @@ pub struct Config {
     pub format: FormatConfig,
     /// Named query bundles (`[views.<name>]`), referenced by `@name`.
     pub views: BTreeMap<String, ViewSpec>,
+    /// Named string sets (`[dicts.<name>]`), so a vocabulary two rules share is
+    /// one list rather than two that drift. Each unions `values`, `path` and
+    /// `include` into one set, compiled and checked once at config load. The
+    /// `mindtape-` prefix is reserved for the built-in dictionaries.
+    pub dicts: BTreeMap<String, DictSpec>,
     /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
     pub on: crate::config_hooks::OnConfig,
     /// The project's actor registry (`[[actors]]`): named workers (people and
@@ -195,6 +204,7 @@ impl Config {
         }
         problems.extend(validate_ls_columns(&self.ls));
         problems.extend(validate_views(&self.views));
+        problems.extend(validate_dicts(&self.dicts));
         problems.extend(crate::config_required::validate_requirements(self));
         problems.extend(crate::config_links_validate::validate_link_kinds(self));
         problems.extend(crate::config_limits::validate_limits(self));

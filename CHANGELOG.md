@@ -178,6 +178,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`[dicts.<name>]` names a set of strings once and reuses it.** Every
+  vocabulary used to be written out where it is used — `[tasks.tags] allowed`,
+  `[tasks.fields.<name>] values` — so a set two rules share was two lists that
+  drift, and a set too large to paste had nowhere to live at all.
+
+  ```toml
+  [dicts.verbs]
+  values = ["add", "wire", "fix"]
+  path = "dicts/extra-verbs.txt"
+  include = ["mindtape-verbs", "mindtape-dev-verbs"]
+  case = "fold"              # fold (default) | exact
+  ```
+
+  It is a top-level section, sibling of `[views.<name>]`, because a set is not
+  a property of tasks. All three sources feed one set and any combination is
+  legal so long as one is present: `path` is relative to the project root (and
+  may leave it, the same rule `[[typst.local-packages]] path` follows), one
+  entry per line, `#` comments and blank lines skipped; `include` unions
+  another dictionary's entries in raw, so the including dictionary's `case`
+  decides how they compare. `case = "fold"`, the default, is ASCII
+  case-insensitive; `exact` is byte equality.
+
+  Two dictionaries ship embedded in the binary and need no declaration to be
+  included: `mindtape-verbs` (the 500 most frequent English verbs in base
+  form) and `mindtape-dev-verbs` (86 software-work verbs the frequency list
+  ranks too low to carry). The `mindtape-` prefix is reserved for them —
+  naming a project dictionary `mindtape-anything` is a config error, so the
+  namespace stays the tool's.
+
+  Everything is checked at config load, once for the project rather than once
+  per task: the reserved prefix, a dictionary with no source, an unknown
+  `include` (with a nearest-match suggestion and the known names), an
+  `include` cycle, a `path` that does not resolve or read, and a dictionary
+  that resolves to no entries. Nothing reads a dictionary yet — the filter
+  predicate and the allow-list references are separate changes; this one is
+  the section, its compiler, and `mt config show` / the JSON schema carrying
+  it.
+
 - **A column condition can read the rows it would render** — four predicates
   join the condition language for `[[ls.columns.<name>.rules]]`: `nonempty()`
   (any cell in this column carries text), `contested()` (the rows disagree

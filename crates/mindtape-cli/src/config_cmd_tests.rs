@@ -45,6 +45,28 @@ fn effective_config_json_round_trips_to_same_shape_as_toml() {
     assert_eq!(from_toml, from_json);
 }
 
+/// `mt config show` surfaces `[dicts.<name>]` like any other section — it goes
+/// out on the merged document and comes back through the typed `Config`, which
+/// is `deny_unknown_fields`, so an unreflected section would fail the re-parse
+/// rather than print a table nothing reads.
+#[test]
+fn effective_config_surfaces_the_dicts_section() {
+    let dir = bare_project();
+    std::fs::write(
+        dir.path().join(".mindtape").join("config.toml"),
+        "[dicts.verbs]\nvalues = [\"add\", \"wire\"]\ninclude = [\"mindtape-verbs\"]\n",
+    )
+    .unwrap();
+
+    let text = render_effective(dir.path(), false).unwrap();
+    assert!(text.contains("[dicts.verbs]"), "{text}");
+    let reparsed = parse_config(&text).unwrap();
+    let spec = reparsed.dicts.get("verbs").unwrap();
+    assert_eq!(spec.values, ["add", "wire"]);
+    assert_eq!(spec.include, ["mindtape-verbs"]);
+    assert_eq!(reparsed, load_config(dir.path()).unwrap());
+}
+
 #[test]
 fn bare_project_show_reflects_the_embedded_floor() {
     let dir = bare_project();

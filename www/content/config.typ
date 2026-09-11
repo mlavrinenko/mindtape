@@ -75,6 +75,7 @@ Sections whose shape needs more than one line get a deep dive further down.
   ("retire", "[retire]"),
   ("handle", "[handle]"),
   ("views", "[views.<name>]"),
+  ("dicts", "[dicts.<name>]"),
   ("on", "[[on.flip]]"),
   ("templates", "[templates]"),
   ("add", "[add]"),
@@ -681,6 +682,56 @@ Views are validated at config load:
 - `sort` and `columns` entries must be legal;
 - every view reference must resolve;
 - the reference graph must be acyclic — a cycle is a config error.
+
+= Named dictionaries
+
+`[dicts.<name>]` names a set of strings so more than one rule can share it. It
+is a top-level section, sibling of `[views.<name>]`, for the same reason: a set
+is not a property of tasks, and an allow-list, a filter and a future consumer
+all read the same name.
+
+```toml
+[dicts.verbs]
+values = ["add", "wire", "fix"]           # inline entries
+path = "dicts/extra-verbs.txt"            # a file, one entry per line
+include = ["mindtape-verbs", "mindtape-dev-verbs"]  # other dicts, unioned in
+case = "fold"                             # fold (default) | exact
+```
+
+All three sources feed *one* set; any combination is legal and at least one
+must be present. `path` is relative to the project root and may leave it (the
+same rule `[[typst.local-packages]] path` follows); blank lines and lines
+starting with `#` are skipped, and each entry is trimmed. `include` names other
+dictionaries — the project's own or a built-in — and unions their entries in
+raw, so the *including* dictionary's `case` decides how they compare.
+
+`case` decides lookups, not storage: `fold` (the default) is ASCII
+case-insensitive, so a capitalised title word matches a lowercase entry;
+`exact` is byte equality.
+
+== The built-ins
+
+Two dictionaries ship embedded in `mt` and need no declaration to be
+referenced:
+
+- `mindtape-verbs` — the 500 most frequent English verbs, base (imperative)
+  form;
+- `mindtape-dev-verbs` — 86 software-work verbs the general frequency list
+  ranks too low to carry.
+
+The `mindtape-` prefix is reserved for them: naming a project dictionary
+`mindtape-anything` is a config error, so the namespace stays the tool's.
+
+Dictionaries are validated at config load, once for the project rather than
+once per task:
+
+- the `mindtape-` prefix is refused on a project dictionary;
+- each dictionary must name at least one source;
+- every `include` must resolve — an unknown name gets a nearest-match
+  suggestion and the list of known dictionaries;
+- the `include` graph must be acyclic — a cycle is a config error;
+- every `path` must resolve and read;
+- a dictionary that resolves to no entries at all is a config error.
 
 = Conditional `ls` rules
 
