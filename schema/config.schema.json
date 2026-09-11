@@ -592,7 +592,7 @@
         },
         "values": {
           "default": [],
-          "description": "Allowed enum values. Empty = any.",
+          "description": "Allowed enum values. Empty = any. An entry of the form `@<dict>`\nexpands to that `[dicts.<name>]` set at config load, so this list may\nmix literal values and dictionary references, unioned in order — see\n[`expand_dict_refs`].",
           "items": {
             "type": "string"
           },
@@ -1797,7 +1797,7 @@
       "properties": {
         "allowed": {
           "default": [],
-          "description": "Allowed tag names. Empty = any.",
+          "description": "Allowed tag names. Empty = any. An entry of the form `@<dict>`\nexpands to that `[dicts.<name>]` set at config load — see\n[`FieldConfig::values`] and [`expand_dict_refs`].",
           "items": {
             "type": "string"
           },

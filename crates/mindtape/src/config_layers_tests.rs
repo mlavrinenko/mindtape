@@ -293,3 +293,96 @@ fn an_unreadable_dict_path_fails_the_load() {
     assert!(rendered.contains("dicts.verbs.path"), "{rendered}");
     assert!(rendered.contains("missing.txt"), "{rendered}");
 }
+
+// --- `@<dict>` references in `[tasks.tags] allowed` / `[tasks.fields.<name>]
+// values` ---
+
+/// A `@<dict>` entry expands to that dictionary's entries — in the
+/// dictionary's own (alphabetical) order, not declaration order — so a
+/// downstream reader of `tasks.tags.allowed` never sees the sigil.
+#[test]
+fn a_dict_ref_in_tags_allowed_expands_to_the_dict_s_entries() {
+    let (_tmp, home, project) = home_and_project();
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        "[dicts.areas]\nvalues = [\"frontend\", \"backend\"]\n\n\
+         [tasks.tags]\nallowed = [\"@areas\", \"swept\"]\n",
+    )
+    .unwrap();
+
+    let (config, _sources) = super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    assert_eq!(config.tasks.tags.allowed, ["backend", "frontend", "swept"]);
+}
+
+/// The same expansion applies to `[tasks.fields.<name>] values`.
+#[test]
+fn a_dict_ref_in_field_values_expands_to_the_dict_s_entries() {
+    let (_tmp, home, project) = home_and_project();
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        "[dicts.kinds]\nvalues = [\"chore\", \"bug\"]\n\n\
+         [tasks.fields.kind]\nvalues = [\"@kinds\"]\n",
+    )
+    .unwrap();
+
+    let (config, _sources) = super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    assert_eq!(config.tasks.fields["kind"].values, ["bug", "chore"]);
+}
+
+/// A list may mix literal entries and `@<dict>` references; the result is
+/// their union in declaration order, deduplicated (first occurrence wins) —
+/// the literal `"backend"` here is already contributed by `@areas`.
+#[test]
+fn a_mixed_list_unions_literals_and_dict_refs_in_order_deduped() {
+    let (_tmp, home, project) = home_and_project();
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        "[dicts.areas]\nvalues = [\"frontend\", \"backend\"]\n\n\
+         [tasks.tags]\nallowed = [\"swept\", \"@areas\", \"backend\"]\n",
+    )
+    .unwrap();
+
+    let (config, _sources) = super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    assert_eq!(config.tasks.tags.allowed, ["swept", "backend", "frontend"]);
+}
+
+/// An unknown `@<dict>` reference fails the load, naming the offending list
+/// and offering a nearest-match suggestion — the same treatment an unknown
+/// `include` target gets.
+#[test]
+fn an_unknown_dict_ref_fails_the_load_with_a_suggestion() {
+    let (_tmp, home, project) = home_and_project();
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        "[dicts.areas]\nvalues = [\"backend\"]\n\n\
+         [tasks.tags]\nallowed = [\"@ares\"]\n",
+    )
+    .unwrap();
+
+    let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
+    let rendered = err.to_string();
+    assert!(rendered.contains("tasks.tags.allowed"), "{rendered}");
+    assert!(rendered.contains("unknown dict `ares`"), "{rendered}");
+    assert!(rendered.contains("did you mean: areas?"), "{rendered}");
+}
+
+/// A literal entry that itself starts with `@` is never a plain string: the
+/// sigil always means "dictionary reference", so an unresolvable one fails
+/// the load exactly like a typo'd dict name — there is no escape.
+#[test]
+fn a_literal_at_prefixed_entry_with_no_matching_dict_fails_the_load() {
+    let (_tmp, home, project) = home_and_project();
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        "[tasks.tags]\nallowed = [\"@urgent\"]\n",
+    )
+    .unwrap();
+
+    let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
+    assert!(err.to_string().contains("unknown dict `urgent`"), "{err}");
+}

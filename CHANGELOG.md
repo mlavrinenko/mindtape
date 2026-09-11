@@ -195,6 +195,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`[tasks.tags] allowed` and `[tasks.fields.<name>] values` can point at a
+  `[dicts.<name>]` instead of restating it.** Two projects sharing a taxonomy
+  used to copy the vocabulary, and a list long enough to be worth naming had
+  nowhere to live but pasted inline — even though `[dicts]` already gave that
+  vocabulary a name.
+
+  ```toml
+  [tasks.tags]
+  allowed = ["@areas", "swept", "size"]
+
+  [tasks.fields.kind]
+  values = ["@kinds"]
+  ```
+
+  `@<dict>` expands to that dictionary's entries at config load, before any
+  rule reads the list, so every downstream reader — validation, `mt add` slot
+  completion, the generated schema — sees a plain, already-resolved set and
+  needs no change of its own. A list may mix literal entries and `@<dict>`
+  references freely; the result is their union in declaration order,
+  deduplicated. An unknown dictionary name is refused at load with a
+  nearest-match suggestion, the same treatment an unknown `include` target
+  gets.
+
+  `@` is the same sigil `mt ls` reads as a view reference, and it means the
+  same thing here: always a dictionary, never a literal. There is no escape
+  for a tag or field value that itself starts with `@` — an entry like
+  `"@urgent"` is looked up as a dictionary named `urgent` and fails the load
+  unless one by that name exists, in which case it expands to that
+  dictionary's entries rather than surviving as the literal string.
+
 - **`[[tasks.rules]]` holds a convention MindTape does not know by name.**
   Every constraint the tool enforced was one it had a field for — a status
   legend, a numeric scale, a tag allow-list, a heading path — so a project

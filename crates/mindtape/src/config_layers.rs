@@ -168,12 +168,21 @@ fn merge_doc(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
 /// the project plainly declares. Nothing is lost by the order:
 /// [`crate::config::compile_dicts`] runs `validate_dicts` itself, so a broken
 /// `[dicts]` section is still refused, by the first pass that can see it.
+///
+/// [`crate::config_tasks::expand_dict_refs`] runs right after, for the same
+/// reason: a `@<dict>` reference in `[tasks.tags] allowed` or
+/// `[tasks.fields.<name>] values` needs the compiled dictionaries to resolve
+/// against, and needs to have resolved before `validate` (which does not
+/// itself read either list, but every command downstream of a successful load
+/// does) ever sees a bare `@name` instead of the set it names.
 fn build_config(layers: &[Layer], root: &Path) -> Result<Config, ConfigError> {
     let doc = merge_doc(layers)?;
     let mut config: Config = toml::Value::Table(doc).try_into()?;
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
         .map_err(ConfigError::Invalid)?
         .into();
+    crate::config_tasks::expand_dict_refs(&mut config.tasks, config.dict_cache.dicts())
+        .map_err(ConfigError::Invalid)?;
     config.validate().map_err(ConfigError::Invalid)?;
     Ok(config)
 }

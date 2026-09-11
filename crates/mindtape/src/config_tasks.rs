@@ -10,12 +10,13 @@
 //! (`crate::link`), recur (`crate::recur`), limits (`config_limits`), rules
 //! (`config_rules`), and comments (`config_comments`).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 use serde::{Deserialize, Deserializer};
 
 use crate::body_content::ContentConfig;
 use crate::body_headers::HeadersConfig;
+use crate::config_dicts::Dicts;
 use crate::config_estimate::EstimateConfig;
 use crate::config_required::Requirement;
 use crate::config_roots::{DeriveConfig, RootSpec};
@@ -187,7 +188,10 @@ impl<'de> Deserialize<'de> for IdFormat {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FieldConfig {
-    /// Allowed enum values. Empty = any.
+    /// Allowed enum values. Empty = any. An entry of the form `@<dict>`
+    /// expands to that `[dicts.<name>]` set at config load, so this list may
+    /// mix literal values and dictionary references, unioned in order — see
+    /// [`expand_dict_refs`].
     pub values: Vec<String>,
     /// Default value (informational; not auto-applied during load).
     pub default: Option<String>,
@@ -199,8 +203,86 @@ pub struct FieldConfig {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TagsConfig {
-    /// Allowed tag names. Empty = any.
+    /// Allowed tag names. Empty = any. An entry of the form `@<dict>`
+    /// expands to that `[dicts.<name>]` set at config load — see
+    /// [`FieldConfig::values`] and [`expand_dict_refs`].
     pub allowed: Vec<String>,
+}
+
+/// Expand every `@<dict>` reference in `[tasks.tags] allowed` and each
+/// `[tasks.fields.<name>] values` against `dicts`, in place. Run once, at
+/// config load ([`crate::config_layers::build_config`]), after `[dicts]`
+/// itself has compiled — never per task — so every downstream reader
+/// (validation, `mt add` slot completion, the generated schema) sees a plain,
+/// already-resolved list and needs no change of its own.
+///
+/// A `@`-prefixed entry always names a dictionary — the same sigil `mt ls`
+/// reads as a view reference — so there is no escape for a literal tag or
+/// field value that itself starts with `@`: an unresolvable one fails the
+/// load exactly like a typo'd dict name (see [`expand_list`]). A list may mix
+/// literal entries and `@<dict>` references freely; the result is their
+/// union in declaration order, deduplicated (first occurrence wins) — a
+/// referenced dictionary contributes its own entries in the dictionary's own
+/// (alphabetical) order, since [`Dicts`] carries no declaration order of its
+/// own to preserve.
+///
+/// # Errors
+/// One message per unknown dictionary name referenced, each carrying a
+/// nearest-match suggestion, joined with `; `.
+pub(crate) fn expand_dict_refs(tasks: &mut TasksConfig, dicts: &Dicts) -> Result<(), String> {
+    let mut problems = Vec::new();
+    if let Err(msg) = expand_list(&mut tasks.tags.allowed, dicts, "tasks.tags.allowed") {
+        problems.push(msg);
+    }
+    for (name, field) in &mut tasks.fields {
+        let label = format!("tasks.fields.{name}.values");
+        if let Err(msg) = expand_list(&mut field.values, dicts, &label) {
+            problems.push(msg);
+        }
+    }
+    if problems.is_empty() {
+        Ok(())
+    } else {
+        Err(problems.join("; "))
+    }
+}
+
+/// Expand one `values`/`allowed` list in place against `dicts`: a `@<dict>`
+/// entry is replaced by that dictionary's entries, a literal entry is kept
+/// as-is, and the whole result is deduplicated (first occurrence wins).
+/// `label` names the list in an error message (`tasks.tags.allowed`,
+/// `tasks.fields.kind.values`).
+fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(), String> {
+    let mut out = Vec::with_capacity(list.len());
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut problems = Vec::new();
+    for entry in list.iter() {
+        let Some(name) = entry.strip_prefix('@') else {
+            if seen.insert(entry.clone()) {
+                out.push(entry.clone());
+            }
+            continue;
+        };
+        let Some(dict) = dicts.get(name) else {
+            let known: Vec<String> = dicts.names().map(ToOwned::to_owned).collect();
+            problems.push(format!(
+                "{label}: unknown dict `{name}`{}",
+                crate::suggest::hint("dict", name, &known)
+            ));
+            continue;
+        };
+        for value in dict.entries() {
+            if seen.insert(value.to_owned()) {
+                out.push(value.to_owned());
+            }
+        }
+    }
+    if problems.is_empty() {
+        *list = out;
+        Ok(())
+    } else {
+        Err(problems.join("; "))
+    }
 }
 
 /// `[tasks.body]` — body-shape constraints.
@@ -211,4 +293,86 @@ pub struct TaskBodyConfig {
     pub headers: HeadersConfig,
     /// Section-content gating rules.
     pub content: ContentConfig,
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::indexing_slicing)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use super::{FieldConfig, TagsConfig, TasksConfig, expand_dict_refs};
+    use crate::config_dicts::{DictSpec, Dicts, compile_dicts_rootless};
+
+    /// Compile a `Dicts` from `(name, values)` pairs — inline `values` only,
+    /// which needs no project root.
+    fn dicts(spec: &[(&str, &[&str])]) -> Dicts {
+        let map: BTreeMap<String, DictSpec> = spec
+            .iter()
+            .map(|(name, values)| {
+                let spec = DictSpec {
+                    values: values.iter().map(|v| (*v).to_owned()).collect(),
+                    ..DictSpec::default()
+                };
+                ((*name).to_owned(), spec)
+            })
+            .collect();
+        compile_dicts_rootless(&map).expect("inline-only dicts always compile")
+    }
+
+    /// No `@` entry anywhere leaves both lists exactly as declared.
+    #[test]
+    fn a_list_with_no_at_refs_is_untouched() {
+        let mut tasks = TasksConfig {
+            tags: TagsConfig {
+                allowed: vec!["swept".to_owned(), "size".to_owned()],
+            },
+            ..TasksConfig::default()
+        };
+        expand_dict_refs(&mut tasks, &dicts(&[])).unwrap();
+        assert_eq!(tasks.tags.allowed, ["swept", "size"]);
+    }
+
+    /// `[tasks.tags] allowed`'s expansion applies equally to a
+    /// `[tasks.fields.<name>] values` list.
+    #[test]
+    fn a_dict_ref_in_a_field_s_values_expands() {
+        let mut tasks = TasksConfig::default();
+        tasks.fields.insert(
+            "kind".to_owned(),
+            FieldConfig {
+                values: vec!["@kinds".to_owned()],
+                ..FieldConfig::default()
+            },
+        );
+        expand_dict_refs(&mut tasks, &dicts(&[("kinds", &["bug", "chore"])])).unwrap();
+        assert_eq!(tasks.fields["kind"].values, ["bug", "chore"]);
+    }
+
+    /// An unknown ref in `tags.allowed` and one in a field's `values` are
+    /// both reported, joined into the one returned message.
+    #[test]
+    fn unknown_refs_in_both_lists_are_joined_into_one_error() {
+        let mut tasks = TasksConfig {
+            tags: TagsConfig {
+                allowed: vec!["@ghost".to_owned()],
+            },
+            ..TasksConfig::default()
+        };
+        tasks.fields.insert(
+            "kind".to_owned(),
+            FieldConfig {
+                values: vec!["@phantom".to_owned()],
+                ..FieldConfig::default()
+            },
+        );
+        let err = expand_dict_refs(&mut tasks, &dicts(&[])).unwrap_err();
+        assert!(
+            err.contains("tasks.tags.allowed: unknown dict `ghost`"),
+            "{err}"
+        );
+        assert!(
+            err.contains("tasks.fields.kind.values: unknown dict `phantom`"),
+            "{err}"
+        );
+    }
 }

@@ -68,6 +68,36 @@ raw, so the *including* dictionary's `case` decides how they compare.
 case-insensitive, so a capitalised title word matches a lowercase entry;
 `exact` is byte equality.
 
+== Referencing a dictionary from an allow-list
+
+`[tasks.tags] allowed` and `[tasks.fields.<name>] values` each accept `@<dict>`
+anywhere they accept a literal entry:
+
+```toml
+[tasks.tags]
+allowed = ["@areas", "swept", "size"]
+
+[tasks.fields.kind]
+values = ["@kinds"]
+```
+
+`@<dict>` expands to that dictionary's entries at config load — before any
+rule reads the list — so validation, `mt add` slot completion and the
+generated schema all see a plain, already-resolved set and need no change of
+their own. A list may mix literal entries and `@<dict>` references freely; the
+result is their union in declaration order, deduplicated (a repeated entry
+counts once). An unknown dictionary name is refused at load, the same way an
+unknown `include` target is: a nearest-match suggestion plus the list of known
+dictionaries.
+
+The `@` is the same sigil `mt ls` reads as a view reference (`@name`), and it
+means the same thing here: always a dictionary, never a literal. There is no
+escape for a tag or field value that itself starts with `@` — an entry like
+`"@urgent"` is looked up as a dictionary named `urgent`, and fails the load
+(as an unknown dictionary, with the same nearest-match treatment) unless a
+dictionary by that name actually exists, in which case it expands to that
+dictionary's entries rather than surviving as the literal string `"@urgent"`.
+
 A filter reaches the same set with `in_dict("name", <string>)`, under that
 dictionary's own `case` — see #link(u("/filters/"))[Filter language].
 
@@ -93,4 +123,7 @@ once per task:
   suggestion and the list of known dictionaries;
 - the `include` graph must be acyclic — a cycle is a config error;
 - every `path` must resolve and read;
-- a dictionary that resolves to no entries at all is a config error.
+- a dictionary that resolves to no entries at all is a config error;
+- every `@<dict>` reference in `[tasks.tags] allowed` or a
+  `[tasks.fields.<name>] values` list must resolve too, with the same
+  nearest-match treatment.
