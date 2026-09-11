@@ -33,6 +33,13 @@
 //! are legacy sugar for `links("depends-on")` etc — see
 //! [`crate::filter_links::sugar_kind`].
 //!
+//! Three functions read a string rather than compare one, and may take the
+//! result of another call as an argument (see [`crate::filter_strings`]):
+//! `word(field, n)` (the n-th whitespace-separated word, counting from 1,
+//! punctuation-trimmed), `matches(field, "regex")`, and `in_dict("name", <string
+//! expr>)` — membership in a `[dicts.<name>]` set or a built-in one, under that
+//! dictionary's `case`. Canonically: `in_dict("verbs", word(title, 1))`.
+//!
 //! `now()` evaluates to today's ISO date string (`YYYY-MM-DD`) and may appear
 //! on the right-hand side of a comparison: `start <= now()`, `due < now()`.
 //!
@@ -86,6 +93,17 @@ pub enum FilterError {
     /// An `in_view` / `@` reference naming no declared view.
     #[error("unknown view in filter: {0}")]
     UnknownView(String),
+    /// An `in_dict` reference naming no compiled dictionary — neither a
+    /// `[dicts.<name>]` section nor a built-in. `hint` carries the nearest
+    /// match and the full enumeration ([`crate::suggest::hint`]), because a
+    /// dictionary name is invisible in the listing a wrong one produces.
+    #[error("unknown dict in filter: {name}{hint}")]
+    UnknownDict {
+        /// The name as written in the expression.
+        name: String,
+        /// The trailing suggestion clause, or empty.
+        hint: String,
+    },
     /// A structurally invalid expression.
     #[error("invalid filter: {0}")]
     Invalid(String),
@@ -312,6 +330,9 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
             Ok(crate::filter_links::has_kind(task, &kind))
         }
         "contains" => contains_call(children, task, config),
+        "matches" => crate::filter_strings::matches_call(children, task, config),
+        "in_dict" => crate::filter_strings::in_dict_call(children, task, config),
+        "word" => Err(crate::filter_strings::word_is_not_boolean()),
         "search" => Err(FilterError::Invalid(
             "search(...) is gone; use contains(\"needle\") — needle first, fields optional \
              (contains(\"needle\", field, ...))"

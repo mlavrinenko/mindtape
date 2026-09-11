@@ -65,6 +65,7 @@ Pass a filter expression as the positional argument. Fields: `status priority di
 - `terminal` — status is a configured terminal state
 - `stale(N)` — untouched for more than N days; `now()` — today’s ISO date
 - `in_view("name")` (also `@name`) — matches a named view’s filter
+- `matches(field, "re")` / `in_dict("name", <string>)` — regex; membership in a `[dicts]` set. Their string argument may be `word(field, n)`, the n-th word counting from 1, punctuation-trimmed: `in_dict("verbs", word(title, 1))`
 - `into("status")` — inside an `[[on.flip]]` hook’s `when` only; matches the status being stamped, the rest of the expression reading the pre-write task
 
 `mt find <term…>` is pure sugar over `contains()`: `mt find login bug` == `mt ls 'contains("login") && contains("bug")'` (terms conjoin with `&&`). Every `mt ls` flag forwards; there is no `--in` — target a field with the filter directly (`mt ls 'contains("bug", title)'`).

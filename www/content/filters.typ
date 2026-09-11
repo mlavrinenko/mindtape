@@ -94,7 +94,57 @@ with `miss(field)`.
 
   [`in_view("name")`],
   [The named #link(u("/config/"))[view]'s filter matches. `@name` is sugar for it.],
+
+  [`matches(field, "regex")`],
+  [The field's text matches the (unanchored, Rust `regex`) pattern.],
+
+  [`in_dict("name", <string>)`],
+  [The string is in the named #link(u("/config/"))[`[dicts.<name>]`] set,
+    under that dictionary's own `case`.],
 )
+
+= Reading a word out of a field
+
+`word(field, n)` is the one function that yields a _string_ rather than a
+verdict: the n-th whitespace-separated word of a string field, counting from
+1, trimmed of everything non-alphanumeric at either end (`"Fix: the slug"` has
+`Fix` as its first word). It is an argument, never a term of its own — so it
+goes inside one of the two functions that read a string:
+
+```sh
+mt ls 'in_dict("verbs", word(title, 1))'   # titles opening with a known verb
+mt ls '!matches(word(title, 1), "ing$")'   # ...and not a gerund
+```
+
+That is the whole of the new grammar: a function's argument may be another
+function's result, not only a field or a literal. `word()` nests in itself,
+and either reader takes a literal, a bare field, or a `word(...)` call.
+
+`word()` takes no position on Typst markup. A whitespace split is all it does,
+so a title opening with a backticked command yields the token inside the ticks
+— #raw("`mt ls` should print the path") has `mt` as its first word, which no
+verb dictionary carries. Exempting such a title is the rule author's business,
+which is what `matches()` is for:
+
+```sh
+mt ls 'in_dict("verbs", word(title, 1)) || matches(title, "^`")'
+```
+
+Nothing goes missing quietly. A value that is not there — a field the task
+does not carry, a word past the end of the title — reads as a non-match, the
+same missing-field rule comparisons follow. Everything else is an error naming
+itself: a dictionary no `[dicts]` section and no built-in declares, a pattern
+`regex` refuses, a numeric field where a string is required, a wrong argument
+count. A filter saved in config is dry-run at load, so a view or a rule
+reports its own bad expression by name rather than quietly matching nothing.
+
+Two dictionaries ship with `mt` and need no declaring: `mindtape-verbs` (the
+500 most frequent English verbs, base form) and `mindtape-dev-verbs` (86
+software-work verbs the frequency list ranks too low to carry).
+
+```sh
+mt ls 'in_dict("mindtape-verbs", word(title, 1))'
+```
 
 Everything date-shaped — `stale(N)`, `now()` in an `[[ls.rules]]` condition,
 `due < now()` and the overdue marker — reads one "today", resolved once per

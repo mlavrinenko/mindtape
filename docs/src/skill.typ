@@ -140,6 +140,9 @@ task blocks 0; a cycle neither hangs nor panics. Operators:
 - `terminal` — status is a configured terminal state
 - `stale(N)` — untouched for more than N days; `now()` — today's ISO date
 - `in_view("name")` (also `@name`) — matches a named view's filter
+- `matches(field, "re")` / `in_dict("name", <string>)` — regex; membership in a
+  `[dicts]` set. Their string argument may be `word(field, n)`, the n-th word
+  counting from 1, punctuation-trimmed: `in_dict("verbs", word(title, 1))`
 - `into("status")` — inside an `[[on.flip]]` hook's `when` only; matches the
   status being stamped, the rest of the expression reading the pre-write task
 

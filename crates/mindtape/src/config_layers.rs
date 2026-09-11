@@ -151,18 +151,21 @@ fn merge_doc(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
 /// tail with [`crate::config::parse_config`], plus the checks that need the
 /// project root.
 ///
-/// `[dicts.<name>]` is compiled here and the result dropped: a `path` entry
+/// `[dicts.<name>]` is compiled here and kept on the config: a `path` entry
 /// resolves against `root`, so this is the first point that can read one, and
 /// the whole point of compiling at load is that a broken dictionary is one
-/// config error instead of one per task. A consumer that needs the entries
-/// calls [`crate::config::compile_dicts`] itself — the section is small enough
-/// that re-reading it beats threading a second return value through every
-/// caller of [`crate::config::load_config`].
+/// config error instead of one per task. The result lands in
+/// [`Config::compiled_dicts`] rather than being dropped, because the filter
+/// language's `in_dict()` runs wherever a filter runs — a view, a limit, a
+/// `required` rule, an `[[on.flip]]` gate — and none of those call sites has a
+/// project root to re-read the section with.
 fn build_config(layers: &[Layer], root: &Path) -> Result<Config, ConfigError> {
     let doc = merge_doc(layers)?;
-    let config: Config = toml::Value::Table(doc).try_into()?;
+    let mut config: Config = toml::Value::Table(doc).try_into()?;
     config.validate().map_err(ConfigError::Invalid)?;
-    crate::config::compile_dicts(&config.dicts, root).map_err(ConfigError::Invalid)?;
+    config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
+        .map_err(ConfigError::Invalid)?
+        .into();
     Ok(config)
 }
 

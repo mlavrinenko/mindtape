@@ -19,10 +19,14 @@
 //! so the namespace stays the tool's.
 //!
 //! Everything is checked once, at config load ([`compile_dicts`]), never per
-//! task: the whole section either compiles or fails as one message.
+//! task: the whole section either compiles or fails as one message. The result
+//! rides on the config as a [`DictCache`], because the filter language's
+//! `in_dict()` runs wherever a filter runs and none of those call sites has a
+//! project root to re-read the section with.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
+use std::sync::{Arc, LazyLock};
 
 use serde::{Deserialize, Serialize};
 
@@ -158,6 +162,72 @@ impl Dicts {
     }
 }
 
+/// The built-in dictionaries alone, compiled once per process. Cloning a
+/// [`DictCache`] is an [`Arc`] bump off this, so a `Config` carrying no
+/// `[dicts]` section costs one pointer rather than 586 strings.
+static BUILTIN_DICTS: LazyLock<Arc<Dicts>> = LazyLock::new(|| Arc::new(builtin_dicts()));
+
+/// Compile the embedded dictionaries directly, bypassing [`compile_dicts`]:
+/// they have no `path`, no `include` and no way to fail, so building them here
+/// needs no `Result` for a caller to swallow.
+fn builtin_dicts() -> Dicts {
+    Dicts(
+        BUILTIN_SOURCES
+            .iter()
+            .map(|(name, text)| {
+                let entries = parse_entries(text).into_iter().collect();
+                ((*name).to_owned(), Dict::new(entries, DictCase::Fold))
+            })
+            .collect(),
+    )
+}
+
+/// The compiled `[dicts]` section as [`crate::config::Config`] carries it, so
+/// the filter language's `in_dict()` has the entries without a project root in
+/// hand.
+///
+/// A cache, not a declaration — which is why [`PartialEq`] here is always
+/// `true`. Its contents are a function of the `[dicts]` section (which `Config`
+/// compares, field by field) and of the project root a `path` entry resolves
+/// against, which `Config` does not carry at all. Comparing the cache would
+/// therefore make two configs with byte-identical declared settings unequal for
+/// having been loaded from different directories, a distinction `Config`
+/// equality has never claimed to draw.
+///
+/// It defaults to the built-ins alone, so `in_dict("mindtape-verbs", ...)`
+/// resolves against any `Config` — including `Config::default()` and one
+/// deserialized without ever touching a filesystem.
+#[derive(Debug, Clone)]
+pub struct DictCache(Arc<Dicts>);
+
+impl Default for DictCache {
+    fn default() -> Self {
+        Self(Arc::clone(&BUILTIN_DICTS))
+    }
+}
+
+impl PartialEq for DictCache {
+    /// Always equal — see the type's own documentation for why a derived
+    /// comparison would be the wrong answer.
+    fn eq(&self, _other: &Self) -> bool {
+        true
+    }
+}
+
+impl From<Dicts> for DictCache {
+    fn from(dicts: Dicts) -> Self {
+        Self(Arc::new(dicts))
+    }
+}
+
+impl DictCache {
+    /// The compiled dictionaries this cache holds.
+    #[must_use]
+    pub fn dicts(&self) -> &Dicts {
+        &self.0
+    }
+}
+
 /// Read one dictionary file's text: entries one per line, blank lines and `#`
 /// comment lines skipped, each entry trimmed.
 fn parse_entries(text: &str) -> Vec<String> {
@@ -211,11 +281,11 @@ pub fn validate_dicts(dicts: &BTreeMap<String, DictSpec>) -> Vec<String> {
     problems
 }
 
-/// One dictionary's own entries: `values`, plus `path`'s lines when it has one.
-/// `path` is resolved against the project root and may leave it.
-fn own_entries(name: &str, spec: &DictSpec, root: &Path) -> Result<Vec<String>, String> {
+/// One dictionary's own entries: `values`, plus `path`'s lines when it has one
+/// and there is a root to resolve it against. `path` may leave the root.
+fn own_entries(name: &str, spec: &DictSpec, root: Option<&Path>) -> Result<Vec<String>, String> {
     let mut entries = spec.values.clone();
-    if let Some(rel) = &spec.path {
+    if let (Some(rel), Some(root)) = (&spec.path, root) {
         let full = root.join(rel);
         let text = std::fs::read_to_string(&full)
             .map_err(|err| format!("dicts.{name}.path: cannot read `{}`: {err}", full.display()))?;
@@ -255,6 +325,31 @@ fn resolve(
 /// or cyclic `include`, an unreadable `path`, a dict with no source, or one
 /// that resolves empty.
 pub fn compile_dicts(dicts: &BTreeMap<String, DictSpec>, root: &Path) -> Result<Dicts, String> {
+    compile_dicts_in(dicts, Some(root))
+}
+
+/// [`compile_dicts`] with no project root: a `path` source contributes nothing,
+/// because there is nothing to resolve it against. Every other check still
+/// runs.
+///
+/// This is what [`crate::config::parse_config`] hydrates its [`DictCache`]
+/// with — it is handed a string and never learns where the project lives — so a
+/// `Config` built from text alone still answers `in_dict()` for its inline and
+/// `include`-sourced dictionaries. Config load re-compiles against the real
+/// root ([`crate::config_layers`]) and that result wins.
+///
+/// # Errors
+/// As [`compile_dicts`], minus the unreadable-`path` case — a dict sourced from
+/// a `path` alone resolves to no entries here and fails on that instead.
+pub(crate) fn compile_dicts_rootless(dicts: &BTreeMap<String, DictSpec>) -> Result<Dicts, String> {
+    compile_dicts_in(dicts, None)
+}
+
+/// The shared body of [`compile_dicts`] and [`compile_dicts_rootless`].
+fn compile_dicts_in(
+    dicts: &BTreeMap<String, DictSpec>,
+    root: Option<&Path>,
+) -> Result<Dicts, String> {
     let problems = validate_dicts(dicts);
     if !problems.is_empty() {
         return Err(problems.join("; "));

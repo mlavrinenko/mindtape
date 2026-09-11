@@ -3,7 +3,9 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use super::{BUILTIN_PREFIX, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts};
+use super::{
+    BUILTIN_PREFIX, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
+};
 use crate::config::parse_config;
 
 /// Compile the `[dicts]` section of a config text against `root`.
@@ -219,6 +221,51 @@ fn an_unknown_dict_name_looks_up_as_a_miss() {
     let dicts = compile_inline("").unwrap();
     assert!(dicts.get("nope").is_none());
     assert!(!dicts.contains("nope", "add"));
+}
+
+/// A `Config` answers `in_dict()` without ever having seen a project root: the
+/// cache defaults to the built-ins, so a bare `Config::default()` resolves
+/// `mindtape-verbs`.
+#[test]
+fn the_cache_defaults_to_the_builtins_alone() {
+    let cache = DictCache::default();
+    assert_eq!(
+        cache.dicts().names().collect::<Vec<_>>(),
+        ["mindtape-dev-verbs", "mindtape-verbs"]
+    );
+    assert!(
+        crate::config::Config::default()
+            .compiled_dicts()
+            .contains("mindtape-verbs", "Add")
+    );
+}
+
+/// `parse_config` has no root, so it compiles the section rootless: an inline
+/// dict resolves, and a broken section leaves the built-ins alone rather than
+/// failing a function documented to check shape only.
+#[test]
+fn parse_config_hydrates_the_cache_without_a_root() {
+    let config = parse_config("[dicts.verbs]\nvalues = [\"add\"]\n").unwrap();
+    assert!(config.compiled_dicts().contains("verbs", "Add"));
+
+    let broken = parse_config("[dicts.mindtape-mine]\nvalues = [\"add\"]\n").unwrap();
+    assert!(broken.compiled_dicts().get("mindtape-mine").is_none());
+    assert!(broken.compiled_dicts().contains("mindtape-verbs", "add"));
+}
+
+/// The cache is derived from the `[dicts]` section and the project root, and
+/// `Config` carries no root at all — so two configs with identical declared
+/// settings stay equal however each one's dictionaries were compiled. Pins the
+/// hand-written `PartialEq` on [`DictCache`].
+#[test]
+fn the_cache_is_not_part_of_config_equality() {
+    let mut one = parse_config("[dicts.verbs]\nvalues = [\"add\"]\n").unwrap();
+    let other = one.clone();
+    one.dict_cache = DictCache::default();
+
+    assert!(one.compiled_dicts().get("verbs").is_none());
+    assert!(other.compiled_dicts().get("verbs").is_some());
+    assert_eq!(one, other);
 }
 
 #[test]

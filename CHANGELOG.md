@@ -178,6 +178,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A filter can read a word out of a field and look it up in a dictionary.**
+  The filter language compared a field against a literal and nothing else:
+  every function returned a boolean and every argument was a field name or a
+  literal, so "the first word of the title" was unsayable and a `[dicts]` set
+  was unreachable from an expression.
+
+  ```sh
+  mt ls 'in_dict("verbs", word(title, 1))'   # titles opening with a known verb
+  mt ls '!matches(word(title, 1), "ing$")'   # ...and not a gerund
+  ```
+
+  The load-bearing change is that a function's argument may now be another
+  function's result, not only an identifier or a literal. Three functions buy
+  it: `word(field, n)` — the n-th whitespace-separated word of a string field,
+  counting from 1, trimmed of everything non-alphanumeric at either end;
+  `matches(field, "regex")`, the escape hatch a closed vocabulary needs; and
+  `in_dict("name", <string>)`, membership in a `[dicts.<name>]` set or a
+  built-in one, under that dictionary's own `case`. All three work wherever a
+  filter already runs — `mt ls`, a `[views.*]` filter, a `[[tasks.limits]]`
+  filter, a `required` rule, an `[[on.flip]]` `when` gate.
+
+  `word()` takes no position on Typst markup: a title opening with a code span
+  yields the token inside the ticks, which no verb dictionary carries.
+  Exempting such a title is the rule author's business, which is what
+  `matches()` is for.
+
+  A value that is not there — a field the task does not carry, a word past the
+  end of the title — reads as a non-match, the same missing-field rule
+  comparisons follow. Everything else is an error naming itself: an unknown
+  dictionary (with a nearest-match suggestion and the known names), a pattern
+  `regex` refuses, a numeric field where a string is required, and a wrong
+  argument count.
+
 - **`[dicts.<name>]` names a set of strings once and reuses it.** Every
   vocabulary used to be written out where it is used — `[tasks.tags] allowed`,
   `[tasks.fields.<name>] values` — so a set two rules share was two lists that
@@ -211,10 +244,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   per task: the reserved prefix, a dictionary with no source, an unknown
   `include` (with a nearest-match suggestion and the known names), an
   `include` cycle, a `path` that does not resolve or read, and a dictionary
-  that resolves to no entries. Nothing reads a dictionary yet — the filter
-  predicate and the allow-list references are separate changes; this one is
-  the section, its compiler, and `mt config show` / the JSON schema carrying
-  it.
+  that resolves to no entries. This entry is the section, its compiler, and
+  `mt config show` / the JSON schema carrying it; reading one from a filter is
+  the entry above, and the allow-list references are a separate change.
 
 - **A column condition can read the rows it would render** — four predicates
   join the condition language for `[[ls.columns.<name>.rules]]`: `nonempty()`

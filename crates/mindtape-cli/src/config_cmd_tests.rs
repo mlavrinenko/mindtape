@@ -65,6 +65,12 @@ fn effective_config_surfaces_the_dicts_section() {
     assert_eq!(spec.values, ["add", "wire"]);
     assert_eq!(spec.include, ["mindtape-verbs"]);
     assert_eq!(reparsed, load_config(dir.path()).unwrap());
+    // `Config` equality is blind to the compiled dictionary cache (a function
+    // of the section plus a project root, which `Config` does not carry — see
+    // `DictCache`), so the set itself is asserted here rather than left to the
+    // comparison above: the rendered document has to carry enough for a reader
+    // to rebuild the same dictionary, not merely the same spec table.
+    assert!(reparsed.compiled_dicts().contains("verbs", "Add"));
 }
 
 #[test]

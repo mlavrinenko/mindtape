@@ -6,10 +6,10 @@
 //! recursion state through the evaluator, unlike the dispatcher itself
 //! (`filter::function`), which stays put and calls into these.
 
-use evalexpr::{DefaultNumericTypes, Node, Operator};
+use evalexpr::{DefaultNumericTypes, Node};
 
 use crate::config::Config;
-use crate::expr::{extract_identifier, extract_literal, unwrap_root};
+use crate::expr::{call_args, extract_identifier, extract_literal};
 use crate::fields::{self, FieldValue};
 use crate::filter::{FilterError, field_value};
 use crate::model::Task;
@@ -151,18 +151,4 @@ fn joined_notes(task: &Task) -> String {
         .filter_map(|link| link.note.as_deref())
         .collect::<Vec<_>>()
         .join(" ")
-}
-
-/// All arguments of a variadic call (`contains(...)`), left to right.
-/// `evalexpr` wraps a call's argument list in one child: zero args unwrap to
-/// an empty `RootNode`, one arg is the bare node, two or more is a `Tuple`.
-fn call_args(children: &[Node<DefaultNumericTypes>]) -> Vec<&Node<DefaultNumericTypes>> {
-    let [wrapper] = children else {
-        return Vec::new();
-    };
-    match unwrap_root(wrapper).operator() {
-        Operator::RootNode => Vec::new(),
-        Operator::Tuple => unwrap_root(wrapper).children().iter().collect(),
-        _ => vec![wrapper],
-    }
 }

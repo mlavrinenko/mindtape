@@ -23,7 +23,7 @@ pub use crate::body_content::{ContentAssert, ContentConfig, ContentRuleConfig};
 pub use crate::body_headers::{HeaderAction, HeaderPathSegment, HeaderRuleConfig, HeadersConfig};
 pub use crate::config_add::{AddConfig, InteractiveMode};
 pub use crate::config_dicts::{
-    BUILTIN_PREFIX, Dict, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
+    BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
     validate_dicts,
 };
 pub use crate::config_format::FormatConfig;
@@ -92,6 +92,13 @@ pub struct Config {
     /// `include` into one set, compiled and checked once at config load. The
     /// `mindtape-` prefix is reserved for the built-in dictionaries.
     pub dicts: BTreeMap<String, DictSpec>,
+    /// [`Config::dicts`] compiled — the resolved entry sets the filter
+    /// language's `in_dict()` probes. Derived, never declared: it carries no
+    /// TOML key and no schema property, and it is the one field
+    /// [`PartialEq`] ignores (see [`DictCache`]). Read it through
+    /// [`Config::compiled_dicts`].
+    #[serde(skip)]
+    pub(crate) dict_cache: DictCache,
     /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
     pub on: crate::config_hooks::OnConfig,
     /// The project's actor registry (`[[actors]]`): named workers (people and
@@ -233,6 +240,16 @@ impl Config {
         }
     }
 
+    /// The compiled `[dicts.<name>]` sets, plus the built-ins, which are always
+    /// present — so `in_dict("mindtape-verbs", ...)` resolves against a project
+    /// declaring no `[dicts]` section at all. A name absent here is an unknown
+    /// dictionary, reported by the caller that wrote it
+    /// ([`crate::filter::FilterError::UnknownDict`]), never a silent miss.
+    #[must_use]
+    pub fn compiled_dicts(&self) -> &Dicts {
+        self.dict_cache.dicts()
+    }
+
     /// The view that drives the default `mt ls` listing when the caller passes
     /// no filter: `[ls] default-view` by name if set, else the implicit
     /// `[views.default]` view, else `None` (match-all). `Some` here supplies the
@@ -256,6 +273,14 @@ impl Config {
 /// selectively override) a built-in without redeclaring it. Order matters:
 /// floor, then user, then frameworks.
 ///
+/// `[dicts]` is compiled here too, rootless
+/// ([`crate::config_dicts::compile_dicts_rootless`]), so a config parsed from a
+/// string alone still answers `in_dict()`. This function is shape-only —
+/// semantic checks are [`Config::validate`]'s — so a section that fails to
+/// compile leaves the built-in dictionaries alone rather than erroring; the
+/// real message comes from `validate` or from config load, which re-compiles
+/// against the project root.
+///
 /// # Errors
 /// Returns [`ConfigError::Parse`] if the TOML is invalid (the user's text, or,
 /// were it ever malformed, the embedded floor itself).
@@ -264,7 +289,11 @@ pub fn parse_config(text: &str) -> Result<Config, ConfigError> {
     let overlay: toml::Table = toml::from_str(text)?;
     deep_merge_tables(&mut doc, overlay);
     merge_builtin_frameworks(&mut doc);
-    Ok(toml::Value::Table(doc).try_into()?)
+    let mut config: Config = toml::Value::Table(doc).try_into()?;
+    config.dict_cache = crate::config_dicts::compile_dicts_rootless(&config.dicts)
+        .map(DictCache::from)
+        .unwrap_or_default();
+    Ok(config)
 }
 
 /// Load the effective config for `root`: the embedded floor, the XDG global

@@ -59,6 +59,20 @@ fn literal_to_string(value: &Value<DefaultNumericTypes>) -> Result<String, Strin
     }
 }
 
+/// All arguments of a call, left to right. `evalexpr` wraps a call's argument
+/// list in one child: zero args unwrap to an empty `RootNode`, one arg is the
+/// bare node, two or more is a `Tuple`.
+pub(crate) fn call_args(children: &[Node<DefaultNumericTypes>]) -> Vec<&Node<DefaultNumericTypes>> {
+    let [wrapper] = children else {
+        return Vec::new();
+    };
+    match unwrap_root(wrapper).operator() {
+        Operator::RootNode => Vec::new(),
+        Operator::Tuple => unwrap_root(wrapper).children().iter().collect(),
+        _ => vec![wrapper],
+    }
+}
+
 /// Apply a comparison operator to a resolved ordering. `None` (incomparable
 /// operands) only satisfies `!=`, matching how a missing field or a
 /// type-mismatched comparison behaves elsewhere in both languages.
