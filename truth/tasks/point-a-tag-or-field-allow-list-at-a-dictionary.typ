@@ -11,7 +11,11 @@
   tags: ("mt",),
   estimate: (files: 6),
   assignee: "agent",
-  status: proposed(2026, 9, 11),
+  status: wip(
+    2026,
+    9,
+    11,
+  )[start: expand \@\<dict> refs in tasks.tags.allowed / tasks.fields.\<name>.values at config load],
   links: depends-on("add-named-dictionaries-to-the-configuration.typ")
     + depends-on("move-the-config-page-deep-dives-onto-pages-of-their-own.typ"),
 )
