@@ -99,9 +99,31 @@ pub struct Task {
     /// [`Task::from_marker`], which sees no source). The emitter appends it back
     /// verbatim, so a `mt ls --json | mt import` round-trip preserves the body.
     pub body: String,
+    /// One-based source line of the `#show: task.with(…)` call, so a violation
+    /// the validation pass raises can point at the file rather than only name
+    /// the task. Read off the source by the loader (and by
+    /// [`crate::candidate`], from the source about to be written), alongside
+    /// the [`body`](Self::body) slice that already locates the same call.
+    ///
+    /// Zero means "no source was seen": a task built straight from a marker
+    /// ([`Task::from_marker`], `mt import`'s records) has no line to point at,
+    /// and [`marker_location`](Self::marker_location) reports no location
+    /// rather than line 0.
+    pub marker_line: usize,
 }
 
 impl Task {
+    /// The `task.with(…)` call's source position, for a violation that points
+    /// at the file instead of naming the task. `None` when no source was seen
+    /// (see [`marker_line`](Self::marker_line)).
+    #[must_use]
+    pub fn marker_location(&self) -> Option<crate::validate::Location> {
+        (self.marker_line > 0).then(|| crate::validate::Location {
+            file: self.file.clone(),
+            line: self.marker_line,
+        })
+    }
+
     /// Build a task from its file stem, relative path, and a `mindtape.task`
     /// marker value (the `(marker, fields, extras)` dict).
     ///
@@ -150,6 +172,7 @@ impl Task {
             extras,
             shape_errors: errors,
             body: String::new(),
+            marker_line: 0,
         }
     }
 

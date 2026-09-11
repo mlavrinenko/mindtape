@@ -174,6 +174,27 @@ impl Filter {
     }
 }
 
+/// What makes one saved filter expression unusable, if anything: a syntax
+/// error, or a structural problem a dry-run against `probe` surfaces — an
+/// unknown field, an unknown view, an unknown dictionary, an invalid regex.
+///
+/// The load-time half of every config section that stores an expression
+/// (`required`, `[[tasks.limits]]`, `[[tasks.rules]]`). Each of those calls it
+/// once per expression from [`crate::config::Config::validate`] and prefixes
+/// the answer with its own dotted TOML path, so a malformed expression is one
+/// config error at load rather than a surprise per artifact — or, for a rule,
+/// one violation per artifact.
+#[must_use]
+pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Option<String> {
+    match Filter::parse(source) {
+        Err(err) => Some(err.to_string()),
+        Ok(filter) => filter
+            .matches(probe, config)
+            .err()
+            .map(|err| err.to_string()),
+    }
+}
+
 /// Shared context threaded through the filter walk: the task under test, the
 /// config (framework scores, terminal set, view lookup), the readiness oracle
 /// (`ready` / `blocked`), and the current `in_view` recursion depth.

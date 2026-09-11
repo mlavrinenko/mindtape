@@ -240,13 +240,7 @@ fn problem(requirement: &Requirement, probe: &Task, config: &Config) -> Option<S
             "`{RETIRED}` is no longer a value; write the filter expression `{REPLACEMENT}`"
         ));
     }
-    match Filter::parse(source) {
-        Err(err) => Some(err.to_string()),
-        Ok(filter) => filter
-            .matches(probe, config)
-            .err()
-            .map(|err| err.to_string()),
-    }
+    crate::filter::expr_problem(source, probe, config)
 }
 
 #[cfg(test)]

@@ -215,6 +215,7 @@ fn diagnostic_to_violation(task: &Task, diag: artifact_gate::Diagnostic) -> Viol
         field: "body.headers".to_owned(),
         message: diag.message,
         location,
+        severity: None,
     }
 }
 

@@ -215,6 +215,7 @@ impl Config {
         problems.extend(crate::config_required::validate_requirements(self));
         problems.extend(crate::config_links_validate::validate_link_kinds(self));
         problems.extend(crate::config_limits::validate_limits(self));
+        problems.extend(crate::config_rules::validate_rules(self));
         problems.extend(crate::config_comments::validate_comments(self));
         problems.extend(crate::config_handle::validate_handle(self));
         problems.extend(crate::config_actors::validate_actors(self));

@@ -9,7 +9,7 @@
 //!
 //! `mt check` is the only consumer ([`check_limits`]): it counts each limit's
 //! matches over the loaded set and reports every breach with the cap, the count
-//! and the offending tasks. A breach carries a [`LimitSeverity`] — `warn` (the
+//! and the offending tasks. A breach carries a [`Severity`] — `warn` (the
 //! default) prints and passes, `error` fails the command. Warning is the default
 //! because a breach is a state of the backlog rather than a malformed artifact:
 //! it clears by finishing work, not by editing a file.
@@ -28,6 +28,7 @@ use crate::config::Config;
 use crate::filter::{Filter, FilterError};
 use crate::model::Task;
 use crate::ready::Readiness;
+use crate::severity::Severity;
 
 /// Advice reported for a breach the limit declares no `message` for. Names the
 /// action to take rather than restating the condition the report already prints.
@@ -51,35 +52,7 @@ pub struct LimitSpec {
     pub message: Option<String>,
     /// Whether a breach fails `mt check` or only warns. Default `warn`.
     #[serde(default)]
-    pub severity: LimitSeverity,
-}
-
-/// How a breached limit reports.
-#[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
-#[serde(rename_all = "lowercase")]
-pub enum LimitSeverity {
-    /// Print the breach; `mt check` still succeeds. The default.
-    #[default]
-    Warn,
-    /// Print the breach and fail `mt check`.
-    Error,
-}
-
-impl LimitSeverity {
-    /// Whether a breach at this severity fails the command.
-    #[must_use]
-    pub const fn is_error(self) -> bool {
-        matches!(self, Self::Error)
-    }
-
-    /// Line prefix for reporting a breach at this severity.
-    #[must_use]
-    pub const fn label(self) -> &'static str {
-        match self {
-            Self::Warn => "warning",
-            Self::Error => "error",
-        }
-    }
+    pub severity: Severity,
 }
 
 /// One limit exceeded: its cap, the tasks that matched, and how to report it.
@@ -96,7 +69,7 @@ pub struct LimitBreach {
     /// The limit's `message`, else [`DEFAULT_ADVICE`].
     pub message: String,
     /// The limit's severity.
-    pub severity: LimitSeverity,
+    pub severity: Severity,
 }
 
 impl LimitBreach {
@@ -187,22 +160,10 @@ pub(crate) fn validate_limits(config: &Config) -> Vec<String> {
         .iter()
         .enumerate()
         .filter_map(|(index, limit)| {
-            limit_problem(&limit.filter, &probe, config)
+            crate::filter::expr_problem(&limit.filter, &probe, config)
                 .map(|problem| format!("tasks.limits[{index}].filter: {problem}"))
         })
         .collect()
-}
-
-/// What makes one limit's filter unusable, if anything: a syntax error, or a
-/// structural problem the probe dry-run surfaces (an unknown field or view).
-fn limit_problem(source: &str, probe: &Task, config: &Config) -> Option<String> {
-    match Filter::parse(source) {
-        Err(err) => Some(err.to_string()),
-        Ok(filter) => filter
-            .matches(probe, config)
-            .err()
-            .map(|err| err.to_string()),
-    }
 }
 
 /// Ids of the tasks matching one limit's filter, in load order.

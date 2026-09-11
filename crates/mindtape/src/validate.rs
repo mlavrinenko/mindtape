@@ -8,35 +8,13 @@
 //! [`crate::validate_links`]).
 
 use std::collections::HashMap;
-use std::path::PathBuf;
 
 use uuid::Uuid;
 
 use crate::config::{Config, FieldConfig, IdFormat, Legend, RequiredRules};
 use crate::model::{Status, Task};
 use crate::numeric::{NumValue, NumericField, format_num};
-
-/// Source location for a violation that points to a specific line.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Location {
-    /// File path relative to the project root.
-    pub file: PathBuf,
-    /// One-based line number.
-    pub line: usize,
-}
-
-/// A single validation failure.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Violation {
-    /// Offending task id.
-    pub task_id: String,
-    /// Field or aspect at fault (`status`, `priority`, `tags`, `depends-on`, …).
-    pub field: String,
-    /// Human-readable message.
-    pub message: String,
-    /// Source location when the violation points to a specific heading line.
-    pub location: Option<Location>,
-}
+pub use crate::violation::{Location, Violation};
 
 /// Validate every task against `config`, returning all violations.
 #[must_use]
@@ -72,6 +50,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         crate::validate_recur::check_all(task, config, &mut out);
     }
     crate::validate_links::check_all(tasks, config, &mut out);
+    crate::config_rules::check_all(tasks, config, &mut out);
     out
 }
 
@@ -128,6 +107,7 @@ fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
                     first.file.display()
                 ),
                 location: None,
+                severity: None,
             });
         } else {
             seen.insert(&task.id, task);
@@ -175,6 +155,7 @@ pub(crate) fn violation(task: &Task, field: &str, message: String) -> Violation 
         field: field.to_owned(),
         message,
         location: None,
+        severity: None,
     }
 }
 

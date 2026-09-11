@@ -1,0 +1,233 @@
+#![allow(clippy::unwrap_used)]
+
+use super::{RuleSpec, check_all, validate_rules};
+use crate::config::Config;
+use crate::model::{Status, Task};
+use crate::parse_config;
+use crate::severity::Severity;
+use crate::test_support::bare_task;
+use crate::validate::Violation;
+
+/// A task with a title, a status, and a marker line — the three things a rule
+/// and its report read.
+fn task(id: &str, title: &str, status: &str) -> Task {
+    let mut built = bare_task(id);
+    built.title = title.to_owned();
+    built.status = Some(Status {
+        name: status.to_owned(),
+        date: None,
+        note: None,
+    });
+    built.marker_line = 3;
+    built
+}
+
+fn config(toml: &str) -> Config {
+    parse_config(toml).unwrap()
+}
+
+/// Every breach `check_all` raises over `tasks`.
+fn breaches(tasks: &[Task], config: &Config) -> Vec<Violation> {
+    let mut out = Vec::new();
+    check_all(tasks, config, &mut out);
+    out
+}
+
+/// The one breach `check_all` must raise, or a panic naming what it got.
+fn sole_breach(tasks: &[Task], config: &Config) -> Violation {
+    let found = breaches(tasks, config);
+    assert_eq!(found.len(), 1, "expected exactly one breach: {found:?}");
+    found.into_iter().next().unwrap()
+}
+
+/// The `imperative-title` rule at `error`, over the built-in dev-verb dict.
+const IMPERATIVE: &str = "\
+[[tasks.rules]]
+name = \"imperative-title\"
+assert = 'in_dict(\"mindtape-dev-verbs\", word(title, 1))'
+message = \"start the title with an imperative verb\"
+severity = \"error\"
+";
+
+#[test]
+fn no_rules_configured_is_silent() {
+    let tasks = vec![task("a", "Loader refactoring", "wip")];
+    assert!(breaches(&tasks, &Config::default()).is_empty());
+}
+
+#[test]
+fn a_satisfied_assert_raises_nothing() {
+    let tasks = vec![task("a", "Refactor the loader", "wip")];
+    assert!(breaches(&tasks, &config(IMPERATIVE)).is_empty());
+}
+
+#[test]
+fn a_breach_carries_the_label_message_location_and_severity() {
+    let tasks = vec![task("a", "Loader refactoring", "wip")];
+    let breach = sole_breach(&tasks, &config(IMPERATIVE));
+    assert_eq!(breach.task_id, "a");
+    assert_eq!(breach.field, "rules.imperative-title");
+    assert_eq!(breach.message, "start the title with an imperative verb");
+    assert_eq!(breach.severity, Some(Severity::Error));
+    assert!(breach.is_fatal());
+    let location = breach.location.unwrap();
+    assert_eq!(location.file, std::path::Path::new("tasks/a.typ"));
+    assert_eq!(location.line, 3);
+}
+
+#[test]
+fn a_warn_breach_is_not_fatal() {
+    let toml = "[[tasks.rules]]\nname = \"n\"\nassert = 'kind == \"bug\"'\n";
+    let breach = sole_breach(&[task("a", "T", "wip")], &config(toml));
+    assert_eq!(breach.severity, Some(Severity::Warn));
+    assert!(!breach.is_fatal(), "warn prints, it does not fail");
+}
+
+/// Every check `MindTape` makes on its own stays fatal and label-less: severity
+/// is the one thing only a config-declared rule gets to choose.
+#[test]
+fn a_built_in_violation_carries_no_severity() {
+    let breach = crate::validate::violation(&task("a", "T", "wip"), "tags", "nope".to_owned());
+    assert_eq!(breach.severity, None);
+    assert!(breach.is_fatal());
+}
+
+#[test]
+fn when_gates_which_tasks_are_asked() {
+    let toml = format!("{IMPERATIVE}when = 'status != \"wip\"'\n");
+    let tasks = vec![task("a", "Loader refactoring", "wip")];
+    assert!(
+        breaches(&tasks, &config(&toml)).is_empty(),
+        "a task the gate excludes is never asked the assert"
+    );
+    let tasks = vec![task("a", "Loader refactoring", "done")];
+    assert_eq!(sole_breach(&tasks, &config(&toml)).task_id, "a");
+}
+
+#[test]
+fn an_absent_message_names_the_assert_expression() {
+    let toml = "[[tasks.rules]]\nname = \"n\"\nassert = 'kind == \"bug\"'\n";
+    let breach = sole_breach(&[task("a", "T", "wip")], &config(toml));
+    assert_eq!(breach.message, "must satisfy `kind == \"bug\"`");
+}
+
+#[test]
+fn an_unnamed_rule_is_labelled_by_its_index() {
+    let toml = "[[tasks.rules]]\nassert = 'kind == \"bug\"'\n\n[[tasks.rules]]\nassert = 'kind == \"bug\"'\n";
+    let found = breaches(&[task("a", "T", "wip")], &config(toml));
+    let labels: Vec<&str> = found.iter().map(|b| b.field.as_str()).collect();
+    assert_eq!(labels, ["rules[0]", "rules[1]"]);
+}
+
+/// `label` is the reporting contract, so it is pinned directly too: a mutant
+/// swapping the two arms would still produce two distinct labels above.
+#[test]
+fn label_prefers_the_name_over_the_index() {
+    let named = RuleSpec {
+        name: Some("imperative-title".to_owned()),
+        assertion: "true".to_owned(),
+        when: None,
+        message: None,
+        severity: Severity::Warn,
+    };
+    assert_eq!(named.label(7), "rules.imperative-title");
+    let anonymous = RuleSpec {
+        name: None,
+        ..named
+    };
+    assert_eq!(anonymous.label(7), "rules[7]");
+}
+
+#[test]
+fn a_task_with_no_source_reports_without_a_location() {
+    let mut subject = task("a", "T", "wip");
+    subject.marker_line = 0;
+    let toml = "[[tasks.rules]]\nname = \"n\"\nassert = 'kind == \"bug\"'\n";
+    assert_eq!(sole_breach(&[subject], &config(toml)).location, None);
+}
+
+#[test]
+fn rules_run_task_by_task_in_config_order() {
+    let toml = "[[tasks.rules]]\nname = \"one\"\nassert = 'kind == \"bug\"'\n\n\
+                [[tasks.rules]]\nname = \"two\"\nassert = 'kind == \"bug\"'\n";
+    let tasks = vec![task("a", "T", "wip"), task("b", "T", "wip")];
+    let found = breaches(&tasks, &config(toml));
+    let seen: Vec<String> = found
+        .iter()
+        .map(|b| format!("{}/{}", b.task_id, b.field))
+        .collect();
+    assert_eq!(
+        seen,
+        ["a/rules.one", "a/rules.two", "b/rules.one", "b/rules.two"]
+    );
+}
+
+/// `ready` / `blocked` need readiness over the whole set, so a rule can assert
+/// something about what is startable — not only about a field.
+#[test]
+fn a_rule_can_read_readiness() {
+    let toml = "[[tasks.rules]]\nname = \"no-blocked-wip\"\nassert = '!blocked'\n";
+    let mut blocked = task("a", "T", "wip");
+    blocked.links = vec![crate::link::Link {
+        kind: "depends-on".to_owned(),
+        task: "b.typ".to_owned(),
+        note: None,
+    }];
+    let tasks = vec![blocked, task("b", "T", "wip")];
+    assert_eq!(sole_breach(&tasks, &config(toml)).task_id, "a");
+}
+
+#[test]
+fn an_unusable_assert_is_one_load_problem_naming_its_path() {
+    let toml = "[[tasks.rules]]\nname = \"n\"\nassert = 'nosuchfield == \"x\"'\n";
+    let problems = validate_rules(&config(toml));
+    assert_eq!(problems.len(), 1, "{problems:?}");
+    let first = problems.first().unwrap();
+    assert!(first.starts_with("tasks.rules[0].assert: "), "{first}");
+    assert!(first.contains("nosuchfield"), "{first}");
+}
+
+#[test]
+fn an_unusable_when_is_reported_at_its_own_path() {
+    let toml = format!("{IMPERATIVE}when = 'in_dict(\"ghost\", title)'\n");
+    let problems = validate_rules(&config(&toml));
+    assert_eq!(problems.len(), 1, "{problems:?}");
+    assert!(
+        problems
+            .first()
+            .unwrap()
+            .starts_with("tasks.rules[0].when: "),
+        "{problems:?}"
+    );
+}
+
+#[test]
+fn a_syntax_error_is_reported_at_load() {
+    let toml = "[[tasks.rules]]\nassert = '(status == \"wip\"'\n";
+    assert_eq!(validate_rules(&config(toml)).len(), 1);
+}
+
+/// A rule whose assert cannot be parsed constrains nothing at evaluation time
+/// — `Config::validate` already refused the config, so reaching here means a
+/// hand-built one, and a broken rule may not invent breaches.
+#[test]
+fn an_unparsable_rule_raises_no_breach() {
+    let toml = "[[tasks.rules]]\nassert = '(status == \"wip\"'\n";
+    assert!(breaches(&[task("a", "T", "wip")], &config(toml)).is_empty());
+}
+
+/// A `when` that cannot be parsed drops the rule rather than leaving an
+/// assertion running ungated over the whole backlog.
+#[test]
+fn an_unparsable_when_drops_the_whole_rule() {
+    let toml = "[[tasks.rules]]\nassert = 'kind == \"bug\"'\nwhen = '(status == \"wip\"'\n";
+    assert!(breaches(&[task("a", "T", "wip")], &config(toml)).is_empty());
+}
+
+#[test]
+fn the_whole_config_refuses_a_malformed_rule() {
+    let err = config("[[tasks.rules]]\nassert = 'nosuchfield == 1'\n")
+        .validate()
+        .unwrap_err();
+    assert!(err.contains("tasks.rules[0].assert"), "{err}");
+}

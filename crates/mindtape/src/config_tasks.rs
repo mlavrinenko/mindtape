@@ -7,8 +7,8 @@
 //! instead and are only referenced here: roots/derive-tags (`config_roots`),
 //! the status legend (`config_status`), assignee (`config_assignee`),
 //! estimate (`config_estimate`), naming (`crate::naming`), links
-//! (`crate::link`), recur (`crate::recur`), limits (`config_limits`), and
-//! comments (`config_comments`).
+//! (`crate::link`), recur (`crate::recur`), limits (`config_limits`), rules
+//! (`config_rules`), and comments (`config_comments`).
 
 use std::collections::BTreeMap;
 
@@ -62,6 +62,10 @@ pub struct TasksConfig {
     /// Work-in-progress caps: how many tasks may match a filter at once
     /// (`[[tasks.limits]]`, enforced by `mt check`).
     pub limits: Vec<crate::config_limits::LimitSpec>,
+    /// Project-declared assertions every selected task must satisfy
+    /// (`[[tasks.rules]]`, enforced by the validation pass — so by `mt check`
+    /// and by every write command before it writes).
+    pub rules: Vec<crate::config_rules::RuleSpec>,
     /// Review-comment policy over a task's whole source file (`mt check`).
     pub comments: crate::config_comments::CommentsConfig,
 }
@@ -90,6 +94,7 @@ impl Default for TasksConfig {
             links: crate::link::LinksConfig::default(),
             recur: crate::recur::RecurConfig::default(),
             limits: Vec::new(),
+            rules: Vec::new(),
             comments: crate::config_comments::CommentsConfig::default(),
         }
     }

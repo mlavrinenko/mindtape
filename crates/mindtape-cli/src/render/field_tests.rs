@@ -315,6 +315,7 @@ fn stub_task() -> Task {
         extras: Default::default(),
         shape_errors: Vec::new(),
         body: String::new(),
+        marker_line: 0,
     }
 }
 

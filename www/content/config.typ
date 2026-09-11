@@ -67,6 +67,7 @@ a page of their own.
   ("tasks.derive-tags", "[tasks.derive-tags]"),
   ("tasks.tags", "[tasks.tags]"),
   ("tasks.limits", "[[tasks.limits]]"),
+  ("tasks.rules", "[[tasks.rules]]"),
   ("tasks.comments", "[tasks.comments]"),
   ("tasks.links", "[[tasks.links.kinds]]"),
   ("actors", "[[actors]]"),
@@ -496,6 +497,49 @@ error: 2 task(s) match `status == "wip" && kind != "umbrella"`, max 1 — close 
   - rewrite-loader
   - split-config
 ```
+
+= Config-declared rules
+
+Every constraint above is one MindTape knows by name — a status legend, a
+numeric scale, a tag allow-list, a heading path. `[[tasks.rules]]` is the
+general form: an assertion in the
+#link(u("/filters/"))[filter language] that must hold for every task the rule
+selects. It constrains no field in particular, because the expression already
+names the field it is about.
+
+```toml
+[[tasks.rules]]
+name = "imperative-title"
+assert = 'in_dict("verbs", word(title, 1))'
+when = '!terminal'
+message = "start the title with an imperative verb"
+severity = "error"
+```
+
+`assert` is the only required key. `when` gates which tasks are asked — absent
+means every task — and `message` replaces the default advice, which names the
+`assert` expression itself. `severity` is `"warn"` (the default) or `"error"`.
+
+Rules are evaluated inside the validation pass, not in `mt check` alone. Every
+write command validates before it writes, so `mt add`, `mt flip` (and every
+legend verb over it), `mt link`, `mt import`, `mt recur` and `mt review`
+enforce a rule for free: an `"error"` breach refuses the write before anything
+lands, leaving nothing to repair. A convention that only fails hours later at
+check time is a convention nobody keeps.
+
+A breach reports at the task's `task.with(…)` line, prefixed by its severity:
+
+```
+error: tasks/loader-refactoring.typ:3: rules.imperative-title: start the title with an imperative verb
+```
+
+`warn` prints that line and the command still succeeds; `error` prints it and
+fails. A rule with no `name` reports as `rules[0]` — its index in
+`[[tasks.rules]]`, which is what finds it again in the config.
+
+Both expressions are dry-run once at config load against a probe task, exactly
+as `required` and `[[tasks.limits]]` are, so a rule naming an unknown field,
+view or dictionary is one config error rather than one violation per artifact.
 
 = Review comments
 

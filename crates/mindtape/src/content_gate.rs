@@ -159,6 +159,7 @@ pub fn check_content(
                     file: task.file.clone(),
                     line: node.heading.line,
                 }),
+                severity: None,
             });
         }
     }

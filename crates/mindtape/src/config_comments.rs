@@ -123,6 +123,7 @@ fn to_violation(task: &Task, comment: &Comment) -> Violation {
             file: task.file.clone(),
             line: comment.line,
         }),
+        severity: None,
     }
 }
 

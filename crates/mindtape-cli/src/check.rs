@@ -80,17 +80,20 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
 
     report_drift(project);
 
+    // A `[[tasks.rules]]` breach at `severity = "warn"` has already printed;
+    // it is a report, not a failure, so it is not counted here.
+    let failures = violations
+        .iter()
+        .filter(|violation| violation.is_fatal())
+        .count();
     let load_errors = project.outcome.errors.len();
-    if violations.is_empty() && load_errors == 0 && over_limit == 0 {
+    if failures == 0 && load_errors == 0 && over_limit == 0 {
         if !args.quiet {
             println!("ok: {} task(s) valid", project.outcome.tasks.len());
         }
         return Ok(());
     }
-    bail!(
-        "{} violation(s), {load_errors} load error(s), {over_limit} limit breach(es)",
-        violations.len()
-    )
+    bail!("{failures} violation(s), {load_errors} load error(s), {over_limit} limit breach(es)")
 }
 
 /// Report how far the git working tree has drifted past the file budget the
@@ -123,10 +126,21 @@ fn print_breach(breach: &LimitBreach) {
     }
 }
 
+/// Report one violation: at its source line when it has one, else naming the
+/// task.
+///
+/// The `error:` / `warning:` prefix belongs to a `[[tasks.rules]]` breach and
+/// nothing else, because a rule is the only violation whose level the project
+/// chose (`Violation::severity`). Everything `MindTape` checks itself is fatal,
+/// and a label on a report with one level tells the reader nothing while
+/// pushing the file and line it came for one word further right.
 fn print_violation(violation: &Violation) {
+    let prefix = violation
+        .severity
+        .map_or_else(String::new, |severity| format!("{}: ", severity.label()));
     if let Some(loc) = &violation.location {
         println!(
-            "{}:{}: {}: {}",
+            "{prefix}{}:{}: {}: {}",
             loc.file.display(),
             loc.line,
             violation.field,
@@ -134,7 +148,7 @@ fn print_violation(violation: &Violation) {
         );
     } else {
         println!(
-            "{}: {}: {}",
+            "{prefix}{}: {}: {}",
             violation.task_id, violation.field, violation.message
         );
     }

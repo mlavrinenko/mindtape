@@ -1035,21 +1035,6 @@
       },
       "type": "object"
     },
-    "LimitSeverity": {
-      "description": "How a breached limit reports.",
-      "oneOf": [
-        {
-          "const": "warn",
-          "description": "Print the breach; `mt check` still succeeds. The default.",
-          "type": "string"
-        },
-        {
-          "const": "error",
-          "description": "Print the breach and fail `mt check`.",
-          "type": "string"
-        }
-      ]
-    },
     "LimitSpec": {
       "additionalProperties": false,
       "description": "`[[tasks.limits]]` — one cap on a filter-matched set of tasks.\n\n`filter` and `max` are required: a limit with no cap is not a limit, and\ndefaulting a missing `max` to zero would silently forbid the set outright.",
@@ -1073,7 +1058,7 @@
           ]
         },
         "severity": {
-          "$ref": "#/$defs/LimitSeverity",
+          "$ref": "#/$defs/Severity",
           "description": "Whether a breach fails `mt check` or only warns. Default `warn`."
         }
       },
@@ -1734,6 +1719,48 @@
       ],
       "description": "One `[[tasks.roots]]` entry: a bare path string, or a table with a display\nname and per-root derivation rule. Both spellings coexist; `roots =\n[\"tasks\"]` and `[[tasks.roots]]` deserialize to the same `Vec<RootSpec>`."
     },
+    "RuleSpec": {
+      "additionalProperties": false,
+      "description": "`[[tasks.rules]]` — one assertion every selected task must satisfy.\n\n`assert` is the only required key: a rule with nothing to assert is not a\nrule, and an absent one cannot be defaulted to anything that constrains.",
+      "properties": {
+        "assert": {
+          "description": "Filter expression that must evaluate true for every task the rule\napplies to.",
+          "type": "string"
+        },
+        "message": {
+          "default": null,
+          "description": "What a breach tells the author to do. Defaults to naming the `assert`\nexpression itself.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "default": null,
+          "description": "What the rule is called, used to report it (`rules.<name>`). Optional:\nan unnamed rule reports by its position instead (`rules[0]`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "description": "Whether a breach fails the command or only reports. Default `warn`."
+        },
+        "when": {
+          "default": null,
+          "description": "Filter expression gating which tasks the rule applies to. Absent means\nevery task.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "assert"
+      ],
+      "type": "object"
+    },
     "ScaleKind": {
       "description": "Whether the scale carries integers or reals.",
       "oneOf": [
@@ -1745,6 +1772,21 @@
         {
           "const": "real",
           "description": "Real numbers; bands are half-open, the last one closed.",
+          "type": "string"
+        }
+      ]
+    },
+    "Severity": {
+      "description": "How a breached config-declared constraint reports.",
+      "oneOf": [
+        {
+          "const": "warn",
+          "description": "Print the breach; the command still succeeds. The default.",
+          "type": "string"
+        },
+        {
+          "const": "error",
+          "description": "Print the breach and fail the command.",
           "type": "string"
         }
       ]
@@ -1880,6 +1922,13 @@
           "description": "Directories (relative to the project root) holding one task per file.",
           "items": {
             "$ref": "#/$defs/RootSpec"
+          },
+          "type": "array"
+        },
+        "rules": {
+          "description": "Project-declared assertions every selected task must satisfy\n(`[[tasks.rules]]`, enforced by the validation pass — so by `mt check`\nand by every write command before it writes).",
+          "items": {
+            "$ref": "#/$defs/RuleSpec"
           },
           "type": "array"
         },

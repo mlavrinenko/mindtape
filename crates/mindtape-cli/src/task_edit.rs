@@ -117,6 +117,24 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
     report_issues(&task.id, &issues, &format!("in {}", rel.display()))
 }
 
+/// Print every violation and fail naming how many were fatal, or succeed when
+/// none was. `scope` completes the sentence "N validation issue(s) …", naming
+/// the file a post-write check found the problem in.
+///
+/// A `[[tasks.rules]]` breach at `severity = "warn"` prints alongside the rest
+/// and is then not counted: the file already exists by the time this runs, and
+/// a warning is a report about it, not a reason to call the write a failure.
+fn report_issues(id: &str, issues: &[Violation], scope: &str) -> Result<()> {
+    for violation in issues {
+        eprintln!("warning: {id}: {}: {}", violation.field, violation.message);
+    }
+    let fatal = issues.iter().filter(|issue| issue.is_fatal()).count();
+    if fatal == 0 {
+        return Ok(());
+    }
+    bail!("{fatal} validation issue(s) {scope}")
+}
+
 /// Validate a rendered task *before* it is written, so a rejected write leaves
 /// nothing on disk. `source` is checked as if it already sat at `file`, against
 /// the project's already-loaded tasks — the same load and the same
@@ -144,6 +162,12 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
     if !verdict.checked {
         return Ok(false);
     }
+    let id = file_stem(file);
+    // A `severity = "warn"` rule breach says its piece whether or not the write
+    // is refused, and never decides that it is.
+    for warning in &verdict.warnings {
+        eprintln!("warning: {id}: {warning}");
+    }
     if verdict.problems.is_empty() {
         return Ok(true);
     }
@@ -152,7 +176,6 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
     if verdict.task.is_none() {
         bail!("the task as filled {}", verdict.problems.join("; "));
     }
-    let id = file_stem(file);
     for problem in &verdict.problems {
         eprintln!("warning: {id}: {problem}");
     }
@@ -167,22 +190,10 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
 fn unchecked_fallback() -> crate::pre_write::Verdict {
     crate::pre_write::Verdict {
         problems: Vec::new(),
+        warnings: Vec::new(),
         task: None,
         checked: false,
     }
-}
-
-/// Print each violation and fail naming their count, or succeed on none.
-/// `scope` completes the sentence "N validation issue(s) …", naming the file a
-/// post-write check found the problem in.
-fn report_issues(id: &str, issues: &[Violation], scope: &str) -> Result<()> {
-    if issues.is_empty() {
-        return Ok(());
-    }
-    for violation in issues {
-        eprintln!("warning: {id}: {}: {}", violation.field, violation.message);
-    }
-    bail!("{} validation issue(s) {scope}", issues.len())
 }
 
 fn file_stem(file: &Path) -> String {

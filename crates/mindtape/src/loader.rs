@@ -170,7 +170,9 @@ fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
     let mut task = Task::from_marker(id, item.rel.clone(), marker);
     task.derived_tags = item.folder_tags.clone();
     task.depth = item.depth;
-    task.body = body_after_marker(source);
+    let (line, body) = marker_call(source);
+    task.marker_line = line;
+    task.body = body;
     task
 }
 
@@ -340,19 +342,36 @@ fn file_stem(file: &Path) -> String {
         .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned())
 }
 
-/// The source after the first `task.with(…)` call's closing paren, trimmed.
+/// The first `task.with(…)` call's one-based line, and the source after its
+/// closing paren, trimmed.
+///
 /// Parse-plane only (no eval): [`typst_edit::find_method_calls`] locates the
-/// call and `Call::range` spans it through the closing `)`, so the tail is the
-/// authored body. Trimming drops the blank line the emitter re-adds between the
-/// marker and the body, keeping the round-trip stable.
-fn body_after_marker(source: &str) -> String {
-    typst_edit::find_method_calls(source, "task", "with")
+/// call and `Call::range` spans it through the closing `)`, so the head of the
+/// range gives the line a violation points at and the tail is the authored
+/// body. Trimming drops the blank line the emitter re-adds between the marker
+/// and the body, keeping the round-trip stable.
+///
+/// Both come off one walk because both are the same lookup. A source with no
+/// such call — a task authored as a bare `#metadata((…))` — yields `(0, "")`:
+/// no line to point at and no body to slice.
+fn marker_call(source: &str) -> (usize, String) {
+    let Some(call) = typst_edit::find_method_calls(source, "task", "with")
         .into_iter()
         .next()
-        .and_then(|call| source.get(call.range.end..))
+    else {
+        return (0, String::new());
+    };
+    // Newlines before the call, plus one — not `lines().count()`, which reports
+    // 2 for a head of `"a\nb\n"` where the call in fact opens line 3.
+    let line = source.get(..call.range.start).map_or(1, |head| {
+        head.bytes().filter(|byte| *byte == b'\n').count() + 1
+    });
+    let body = source
+        .get(call.range.end..)
         .unwrap_or_default()
         .trim()
-        .to_owned()
+        .to_owned();
+    (line, body)
 }
 
 fn collect_typ_files(dir: &Path, out: &mut Vec<PathBuf>) {

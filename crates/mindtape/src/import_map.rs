@@ -87,6 +87,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         extras,
         shape_errors: Vec::new(),
         body,
+        marker_line: 0,
     };
 
     Mapped {

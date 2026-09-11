@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`LimitSeverity` is now `Severity`** (breaking, pre-1.0; library callers
+  only). `warn` / `error` is no longer a property of a work-in-progress cap:
+  `[[tasks.rules]]` spells the same two words in TOML and means the same two
+  things by them, so `mindtape::Severity` is one enum both sections read rather
+  than two that would have to be kept in step by hand. No config key changed —
+  `severity = "error"` under `[[tasks.limits]]` reads exactly as before.
+
 - **A filter argument narrows the rows and leaves the presentation alone**
   (breaking, pre-1.0). `mt ls '<filter>'` used to skip rule matching and the
   default view wholesale, so typing a filter on a branch where an `[[ls.rules]]`
@@ -131,6 +138,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A saved filter expression can reach a project `[dicts.<name>]` again.**
+  Config load compiled the dictionaries *after* running the semantic pass, and
+  that pass dry-runs every saved expression against a probe task — so a
+  `[views]` filter, a `[[tasks.limits]]` filter or a `required` rule spelling
+  `in_dict("verbs", ...)` was checked against a config whose only dictionaries
+  were the two built-ins, and failed at load naming a dict the project plainly
+  declares. The two steps are swapped; nothing is lost by the order, because
+  compiling the section runs the same `[dicts]` checks the semantic pass does,
+  so a broken dictionary is still refused by whichever pass sees it first.
+
 - **`mt eval` no longer hijacks a foreign `lib/` as the `@local/mindtape`
   package.** It registered `<root>/lib` under that name whenever a
   `lib/typst.toml` merely existed, never reading the name the manifest
@@ -177,6 +194,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   verbatim, notes included.
 
 ### Added
+
+- **`[[tasks.rules]]` holds a convention MindTape does not know by name.**
+  Every constraint the tool enforced was one it had a field for — a status
+  legend, a numeric scale, a tag allow-list, a heading path — so a project
+  wanting to hold any other convention had nowhere to put it. A rule is the
+  general form: an assertion in the filter language that must hold for every
+  task it selects. It constrains no field in particular, because the
+  expression already names the field it is about.
+
+  ```toml
+  [[tasks.rules]]
+  name = "imperative-title"
+  assert = 'in_dict("verbs", word(title, 1))'
+  when = '!terminal'
+  message = "start the title with an imperative verb"
+  severity = "error"
+  ```
+
+  `assert` is the only required key; `when` gates which tasks are asked (absent
+  means all of them), `message` replaces the default advice — which names the
+  `assert` expression itself — and `severity` is `"warn"` (the default) or
+  `"error"`.
+
+  Rules are evaluated inside the validation pass, not in `mt check` alone.
+  Every write command validates before it writes, so `mt add`, `mt flip`,
+  `mt link`, `mt import`, `mt recur` and `mt review` enforce a rule for free:
+  an `"error"` breach refuses the write before anything lands, leaving nothing
+  to repair. A convention that only fails hours later at check time is a
+  convention nobody keeps, and that is what makes this the feature rather than
+  a new `mt check` arm.
+
+  Carrying `warn` through a pass that used to be all-fatal is the one shape
+  change. `Violation` gained an optional `severity`: `None` for every check
+  MindTape makes on its own — a malformed artifact is not a matter of degree —
+  and `Some` only for a rule, where the project chose the level. `mt check`
+  counts the fatal ones for its exit status and the pre-write seam splits its
+  verdict in two, so a warned write prints its line and still lands while an
+  errored one is refused whole. A breach reports at the task's `task.with(…)`
+  line:
+
+  ```
+  error: tasks/loader-refactoring.typ:3: rules.imperative-title: start the title with an imperative verb
+  ```
+
+  An unnamed rule reports as `rules[0]`, its index in `[[tasks.rules]]`. Both
+  expressions are dry-run once at config load against a probe task, exactly as
+  `required` and `[[tasks.limits]]` are, so a rule naming an unknown field,
+  view or dictionary is one config error rather than one violation per
+  artifact.
 
 - **A filter can read a word out of a field and look it up in a dictionary.**
   The filter language compared a field against a literal and nothing else:

@@ -134,6 +134,9 @@ fn round_trips_the_batch_field_for_field_including_body() {
         // schema round-trips authored fields; the ranks are not one.
         actual.topo = expected.topo;
         actual.blocks = expected.blocks;
+        // Likewise `marker_line`: a property of the file the loader read, not
+        // of the record the import schema carries.
+        actual.marker_line = expected.marker_line;
         actual.links.sort_by_key(link_sort_key);
 
         let mut expected = expected.clone();

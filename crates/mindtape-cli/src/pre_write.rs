@@ -44,6 +44,14 @@ pub struct Pending<'a> {
 pub struct Verdict {
     /// Problems naming this write; empty means it is safe to land.
     pub problems: Vec<String>,
+    /// Breaches the project declared as `severity = "warn"`
+    /// (`[[tasks.rules]]`): printed, and then the write lands anyway.
+    ///
+    /// Separate from [`problems`](Self::problems) rather than a flag on each,
+    /// because the two answer different questions and only one of them decides
+    /// whether the file is written. Folding them together would make the
+    /// refusal a matter of inspecting strings.
+    pub warnings: Vec<String>,
     /// The task the source would load as, when it evaluated at all — what a
     /// batch that writes one file at a time folds back into its working set,
     /// so the next write is checked against a project already carrying this
@@ -141,11 +149,19 @@ pub fn absorb(world: &mut Vec<Task>, task: Task) {
     world.push(task);
 }
 
-/// Print every rejected entry's problems and fail naming how many were
-/// rejected, or succeed when none was.
+/// Print every entry's warnings and every rejected entry's problems, then fail
+/// naming how many were rejected, or succeed when none was.
+///
+/// Warnings print for accepted entries too — that is the whole of what a
+/// `severity = "warn"` rule does at a write: say it, and let the file land.
+/// Printing them only on refusal would make the warn level invisible exactly
+/// when it is the only thing the rule has to say.
 fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> {
     let mut rejected = 0_usize;
     for (entry, verdict) in pending.iter().zip(verdicts) {
+        for warning in &verdict.warnings {
+            eprintln!("warning: {}: {warning}", label(entry.file));
+        }
         if verdict.accepted() {
             continue;
         }
@@ -174,18 +190,25 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
     match result {
         Err(error) => Verdict {
             problems: vec![format!("did not load: {}", error.message)],
+            warnings: Vec::new(),
             task: None,
             checked: true,
         },
-        Ok(checked) => Verdict {
-            problems: checked
+        Ok(checked) => {
+            let (fatal, warned): (Vec<_>, Vec<_>) = checked
                 .violations
                 .iter()
-                .map(|violation| format!("{}: {}", violation.field, violation.message))
-                .collect(),
-            task: Some(checked.task),
-            checked: true,
-        },
+                .partition(|violation| violation.is_fatal());
+            let render = |violation: &&mindtape::Violation| {
+                format!("{}: {}", violation.field, violation.message)
+            };
+            Verdict {
+                problems: fatal.iter().map(render).collect(),
+                warnings: warned.iter().map(render).collect(),
+                task: Some(checked.task),
+                checked: true,
+            }
+        }
     }
 }
 
@@ -200,6 +223,7 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
 fn unchecked() -> Verdict {
     Verdict {
         problems: Vec::new(),
+        warnings: Vec::new(),
         task: None,
         checked: false,
     }

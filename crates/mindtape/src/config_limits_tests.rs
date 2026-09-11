@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{LimitSeverity, check_limits};
+use super::{Severity, check_limits};
 use crate::config::Config;
 use crate::model::{Status, Task};
 use crate::parse_config;
@@ -77,7 +77,7 @@ fn over_the_cap_reports_count_cap_and_tasks() {
     assert_eq!(breach.count(), 3);
     assert_eq!(breach.max, 1);
     assert_eq!(breach.tasks, ["a", "b", "d"]);
-    assert_eq!(breach.severity, LimitSeverity::Warn);
+    assert_eq!(breach.severity, Severity::Warn);
     let rendered = breach.to_string();
     assert!(rendered.contains("3 task(s) match"), "{rendered}");
     assert!(rendered.contains("status == \"wip\""), "{rendered}");
@@ -116,10 +116,10 @@ severity = \"error\"
     let leaves = breaches.get(1).unwrap();
     assert_eq!(umbrellas.index, 0);
     assert_eq!(umbrellas.tasks, ["a", "b"]);
-    assert_eq!(umbrellas.severity, LimitSeverity::Warn);
+    assert_eq!(umbrellas.severity, Severity::Warn);
     assert_eq!(leaves.index, 1);
     assert_eq!(leaves.tasks, ["c", "d"]);
-    assert_eq!(leaves.severity, LimitSeverity::Error);
+    assert_eq!(leaves.severity, Severity::Error);
 }
 
 /// The rule the umbrella pair rests on: a task with no `kind` at all counts
@@ -178,8 +178,8 @@ severity = \"error\"
     assert_eq!(breach.message, "close the open leaf before opening another");
     assert!(breach.severity.is_error());
     assert_eq!(breach.severity.label(), "error");
-    assert!(!LimitSeverity::Warn.is_error());
-    assert_eq!(LimitSeverity::Warn.label(), "warning");
+    assert!(!Severity::Warn.is_error());
+    assert_eq!(Severity::Warn.label(), "warning");
     assert!(breach.to_string().contains(&breach.message));
 }
 

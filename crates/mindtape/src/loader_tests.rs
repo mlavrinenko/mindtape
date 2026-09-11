@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use super::{body_after_marker, find_root, find_root_bounded, load_project};
+use super::{find_root, find_root_bounded, load_project, marker_call};
 use crate::config::Config;
 use crate::numeric::NumValue;
 use crate::parse_config;
@@ -374,20 +374,31 @@ fn duplicate_ids_produce_uniqueness_violation() {
 }
 
 #[test]
-fn body_after_marker_captures_trimmed_prose_tail() {
+fn marker_call_captures_the_line_and_the_trimmed_prose_tail() {
     let src = "#import \"@local/mindtape:0.2.0\": *\n\n\
         #show: task.with(\n  title: \"T\",\n)\n\n\
         == Summary\n\nFirst line.\n\nSecond line.\n";
     assert_eq!(
-        body_after_marker(src),
-        "== Summary\n\nFirst line.\n\nSecond line."
+        marker_call(src),
+        (3, "== Summary\n\nFirst line.\n\nSecond line.".to_owned())
     );
 }
 
 #[test]
-fn body_after_marker_empty_without_body_or_marker() {
-    assert_eq!(body_after_marker("#show: task.with(title: \"T\")\n"), "");
-    assert_eq!(body_after_marker("no marker here\n"), "");
+fn marker_call_counts_newlines_not_lines() {
+    // The head before the call ends in a newline, so `lines().count()` would
+    // report 2 for a call that in fact opens line 3.
+    assert_eq!(marker_call("a\nb\n#show: task.with()\n").0, 3);
+    assert_eq!(marker_call("#show: task.with()\n").0, 1);
+}
+
+#[test]
+fn marker_call_is_empty_without_body_or_marker() {
+    assert_eq!(
+        marker_call("#show: task.with(title: \"T\")\n"),
+        (1, String::new())
+    );
+    assert_eq!(marker_call("no marker here\n"), (0, String::new()));
 }
 
 /// A task marker carrying `status` and a `depends-on` edge per entry in

@@ -157,15 +157,24 @@ fn merge_doc(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
 /// config error instead of one per task. The result lands in
 /// [`Config::compiled_dicts`] rather than being dropped, because the filter
 /// language's `in_dict()` runs wherever a filter runs — a view, a limit, a
-/// `required` rule, an `[[on.flip]]` gate — and none of those call sites has a
-/// project root to re-read the section with.
+/// `required` rule, a `[[tasks.rules]]` assertion, an `[[on.flip]]` gate — and
+/// none of those call sites has a project root to re-read the section with.
+///
+/// It compiles BEFORE [`Config::validate`], not after. That pass dry-runs
+/// every saved filter expression against a probe task, so an expression
+/// reaching a project dictionary — `in_dict("verbs", word(title, 1))`, the
+/// canonical rule — is checked against a config whose only dictionaries are
+/// the built-ins if the cache is still empty, and fails at load naming a dict
+/// the project plainly declares. Nothing is lost by the order:
+/// [`crate::config::compile_dicts`] runs `validate_dicts` itself, so a broken
+/// `[dicts]` section is still refused, by the first pass that can see it.
 fn build_config(layers: &[Layer], root: &Path) -> Result<Config, ConfigError> {
     let doc = merge_doc(layers)?;
     let mut config: Config = toml::Value::Table(doc).try_into()?;
-    config.validate().map_err(ConfigError::Invalid)?;
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
         .map_err(ConfigError::Invalid)?
         .into();
+    config.validate().map_err(ConfigError::Invalid)?;
     Ok(config)
 }
 

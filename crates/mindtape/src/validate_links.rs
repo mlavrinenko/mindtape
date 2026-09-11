@@ -166,6 +166,7 @@ fn check_cycle(tasks: &[Task], kind: &str, out: &mut Vec<Violation>) {
             field: kind.to_owned(),
             message: format!("{kind} cycle: {cycle}"),
             location: None,
+            severity: None,
         });
     }
 }
@@ -176,6 +177,7 @@ fn push(out: &mut Vec<Violation>, task: &Task, field: String, message: String) {
         field,
         message,
         location: None,
+        severity: None,
     });
 }
 
