@@ -11,11 +11,11 @@
   tags: ("mt", "docs"),
   estimate: (files: 6),
   assignee: "agent",
-  status: wip(
+  status: done(
     2026,
     9,
-    11,
-  )[wiring the imperative-title rule into config, docs, skill, and examples],
+    12,
+  )[verb-first titles are enforced here at error and demonstrated at warn in learn-piano],
   links: depends-on(
     "validate-every-task-against-config-declared-rules.typ",
     "add-named-dictionaries-to-the-configuration.typ",
