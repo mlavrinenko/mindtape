@@ -11,7 +11,7 @@
   tags: ("mt",),
   estimate: (files: 12),
   assignee: "agent",
-  status: proposed(2026, 9, 11),
+  status: wip(2026, 9, 11)[adding \[\[tasks.rules\]\] to the validation pass],
   links: depends-on(
     "look-a-value-up-in-a-dictionary-from-a-filter-expression.typ",
   )
