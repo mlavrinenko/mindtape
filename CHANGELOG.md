@@ -131,6 +131,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt eval` no longer hijacks a foreign `lib/` as the `@local/mindtape`
+  package.** It registered `<root>/lib` under that name whenever a
+  `lib/typst.toml` merely existed, never reading the name the manifest
+  declares, so in any worktree whose `lib/` is some other Typst package the
+  import resolved there and the command died with `package manifest contains
+  mismatched name '<other>'` — while `mt ls` and `mt check` on the same tree
+  were fine. The batch loader has read that name since the feature landed;
+  `mt eval` built its own world and carried a second, hand-written copy of the
+  decision that never learned it. There is one copy now: `mindtape` exports
+  `package_overrides`/`package_root` and `mt eval` asks them, so the two paths
+  cannot drift again.
+
+  Two things follow from asking the same function. `mt eval` loads the
+  enclosing project's config, so its `[[typst.local-packages]]` entries apply
+  there as they already did everywhere else — and a config that does not parse
+  is now an error from `mt eval` too, where it used to be ignored. And an
+  unoverridden `@local/…` resolves under `$MINDTAPE_DATA_HOME` rather than the
+  platform data directory, closing the same install-and-load mismatch the
+  loader closed. What `mt eval` renders against is unchanged: the embedded
+  floor, not the project's columns.
+
 - **`just check-secrets` no longer logs an `ERR` over `www/generated/` on a
   green run.** The walk bound in `.gitleaks.toml` was believed to close that
   race; it does not, and strace says why: gitleaks 8.30 `lstat`s a directory

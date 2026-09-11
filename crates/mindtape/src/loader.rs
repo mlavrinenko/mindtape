@@ -298,7 +298,7 @@ fn build_world(
 /// [`crate::app_dirs`] defines as "no such directory" — resolves no global
 /// package at all rather than falling back, so an explicit disable is honoured
 /// on a read the same way it already is on a write.
-pub(crate) fn package_root() -> Option<PathBuf> {
+pub fn package_root() -> Option<PathBuf> {
     crate::data_home().map(|dir| dir.join("typst").join("packages"))
 }
 
@@ -307,7 +307,15 @@ pub(crate) fn package_root() -> Option<PathBuf> {
 /// `[[typst.local-packages]]` entry (which wins on a name clash). Resolving by
 /// the `lib/` manifest name — not its mere presence — keeps `mindtape` from
 /// hijacking a foreign worktree whose `lib/` is some other package.
-pub(crate) fn package_overrides(root: &Path, config: &Config) -> Vec<(String, PathBuf)> {
+///
+/// Public because it is the project's single answer to "which `@local`
+/// packages resolve here", and every world `MindTape` builds has to give the
+/// same one. `mt eval` builds its own world outside this loader and used to
+/// decide for itself, off the mere existence of `lib/typst.toml`; the two
+/// drifted, and `mt eval` alone failed in any worktree whose `lib/` was a
+/// foreign package
+/// (`truth/tasks/resolve-the-mindtape-package-by-manifest-name-in-mt-eval.typ`).
+pub fn package_overrides(root: &Path, config: &Config) -> Vec<(String, PathBuf)> {
     let mut overrides = Vec::new();
     if let Some(lib) = mindtape_lib_dir(root) {
         overrides.push(("mindtape".to_owned(), lib));

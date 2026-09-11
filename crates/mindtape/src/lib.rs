@@ -129,7 +129,9 @@ pub use import_map::{
     stem_for_title,
 };
 pub use link_scan::{EdgeCall, TargetSpan, link_edges, link_target_spans};
-pub use loader::{LoadError, LoadOutcome, find_root, load_project};
+pub use loader::{
+    LoadError, LoadOutcome, find_root, load_project, package_overrides, package_root,
+};
 pub use marker::ShapeError;
 pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind};

@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
-use mindtape::Task;
+use mindtape::{Task, config_path, find_root, load_config};
 use typst_harvest::{HarvestWorld, harvest};
 
 use crate::output::{OutputFormat, render, task_to_json};
@@ -87,17 +87,38 @@ fn print_table(task: &Task) -> Result<()> {
     Ok(())
 }
 
+/// Build the world one task file evaluates in.
+///
+/// The world's own root stays the one `HarvestWorld::new` detects, since that
+/// is what the file's virtual path is relative to. Which `@local` packages
+/// resolve is a different question, and not one this command gets to answer:
+/// it asks [`mindtape::package_overrides`], the same function the batch loader
+/// asks, against the enclosing project. Deciding here instead is what let
+/// `mt eval` register any `<root>/lib` holding a `typst.toml` as `mindtape` —
+/// so in a worktree whose `lib/` is some other package it resolved the import
+/// there and died on the manifest's declared name, while `mt ls` on the same
+/// tree was fine.
+///
+/// # Errors
+/// Returns an error if the file does not exist, the world cannot be built, or
+/// the project's config does not parse.
 pub(crate) fn build_world(file: &Path) -> Result<HarvestWorld> {
     if !file.is_file() {
         bail!("no such file: {}", file.display());
     }
     let world = HarvestWorld::new(file).map_err(anyhow::Error::from)?;
-    let lib = world.root().join("lib");
-    Ok(if lib.join("typst.toml").is_file() {
-        world.with_local_package("mindtape", lib)
-    } else {
-        world
-    })
+    // `find_root` looks for `.mindtape`, which the Typst root markers
+    // (`Cargo.toml`, `lib/`, `.git`) need not agree with; a file under no
+    // project at all falls back to the world's root, where the lookup finds no
+    // config and no in-tree lib either.
+    let root = find_root(world.root()).unwrap_or_else(|| world.root().to_path_buf());
+    let config =
+        load_config(&root).with_context(|| format!("load {}", config_path(&root).display()))?;
+    let mut world = world.with_package_root(mindtape::package_root());
+    for (name, dir) in mindtape::package_overrides(&root, &config) {
+        world = world.with_local_package(&name, dir);
+    }
+    Ok(world)
 }
 
 #[cfg(test)]

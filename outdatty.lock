@@ -7,7 +7,7 @@ groups:
       crates/mindtape-cli/src/check.rs: 4e2b8467816c547917e597b6dfcb66fb0f145e023ed4ec8558d355c2da9a2041
       crates/mindtape-cli/src/cli.rs: 74f977689793fdd2e44fdc7a795b06e068717f9aabc104b285a79e8955b326d8
       crates/mindtape-cli/src/config_cmd.rs: 12d9f8d935aa44d2749e2e7ce4b47f0d87320aac2589444b101e5ed406ceed78
-      crates/mindtape-cli/src/eval.rs: ce5fb447ae6fe7ec9faf46093c25269f84fc9e214e9dc3208d65389e9784b2f5
+      crates/mindtape-cli/src/eval.rs: df74534777cb181b3eb43186d9684cd9ff470a95b209cf2b96d33bbf7e72d8b5
       crates/mindtape-cli/src/find.rs: 2524ada47afeb3d72c42b35ebf7e9e8c3774fbe4ec8f616186e2c2269228dfdd
       crates/mindtape-cli/src/flip.rs: 18c3e882f014b2319edd0bdd51aec76f5b0d50a63ce4b7960f37733aaf6f3b34
       crates/mindtape-cli/src/go.rs: 33b0f28d21337e8a8d93d229abaa922124cdd0f73db2b0c8a7fedffa3e5c346a
@@ -31,7 +31,7 @@ groups:
       crates/mindtape-cli/src/worktrees.rs: 78617369d3fb90e6e30605fb5e23b3f795f1ab2a671914aefdd5d2b1868a5fc5
       crates/mindtape/src/defaults.toml: 7f43a34fe59c80e34075dd95ad88a76c8cefaac4e5c9c4bcd214cd19598283f0
       crates/mindtape/src/fields.rs: cb068900af7c66d7f589fef6e0b9a2001dc8f04db31a610356509bcd099e666c
-      crates/mindtape/src/lib.rs: 6b1e3e477970b3980ef978502f8f225e1d6421f7baf4c04894a95fc0f7a88d60
+      crates/mindtape/src/lib.rs: 9092da2e074f703ee9062307f13c31cf950f189b60b33e07d506345a540f5ecf
     dependents:
       docs/src/skill.typ: 323286c83ab599385fa3d53989c70c3b7603d9218fc02c0c58e87a0be62528e2
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94

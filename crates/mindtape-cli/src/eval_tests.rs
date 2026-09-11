@@ -52,3 +52,62 @@ fn build_world_missing_file_returns_err() {
     let file = dir.path().join("no_such_file.typ");
     assert!(super::build_world(&file).is_err());
 }
+
+/// A `@local` package on disk: manifest plus the entrypoint it names. The
+/// stub emits a `mindtape.task` marker directly, so a task importing it
+/// harvests without the real prelude.
+fn write_pkg(root: &std::path::Path, dir_rel: &str, name: &str) {
+    let pkg = root.join(dir_rel);
+    std::fs::create_dir_all(&pkg).unwrap();
+    std::fs::write(
+        pkg.join("typst.toml"),
+        // A version no install would ship, so these stay hermetic whatever the
+        // machine has under its own local-package directory.
+        format!("[package]\nname = \"{name}\"\nversion = \"99.99.99\"\nentrypoint = \"lib.typ\"\n"),
+    )
+    .unwrap();
+    std::fs::write(
+        pkg.join("lib.typ"),
+        "#let mk(t) = [#metadata((marker: \"mindtape.task\", fields: (title: t), extras: (:))) <mindtape>]\n",
+    )
+    .unwrap();
+}
+
+/// Write a task file importing `@local/mindtape` under `root`, returning it.
+fn write_importing_task(root: &std::path::Path) -> std::path::PathBuf {
+    let file = root.join("tasks").join("t.typ");
+    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
+    std::fs::write(
+        &file,
+        "#import \"@local/mindtape:99.99.99\": *\n#mk(\"Hi\")\n",
+    )
+    .unwrap();
+    file
+}
+
+#[test]
+fn eval_registers_an_in_tree_lib_named_mindtape() {
+    let dir = tempfile::tempdir().unwrap();
+    write_pkg(dir.path(), "lib", "mindtape");
+    let file = write_importing_task(dir.path());
+    assert!(run(&EvalArgs { file, json: true }).is_ok());
+}
+
+#[test]
+fn eval_does_not_hijack_a_foreign_lib_package() {
+    // `<root>/lib` is some other project's Typst package, and the project
+    // points `@local/mindtape` elsewhere. Keying the override off the mere
+    // existence of `lib/typst.toml` resolved the import to `lib/` and failed
+    // on its declared name; the manifest name is what decides.
+    let dir = tempfile::tempdir().unwrap();
+    write_pkg(dir.path(), "lib", "other");
+    write_pkg(dir.path(), "vendor/mindtape", "mindtape");
+    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(
+        dir.path().join(".mindtape").join("config.toml"),
+        "[[typst.local-packages]]\nname = \"mindtape\"\npath = \"vendor/mindtape\"\n",
+    )
+    .unwrap();
+    let file = write_importing_task(dir.path());
+    assert!(run(&EvalArgs { file, json: true }).is_ok());
+}
