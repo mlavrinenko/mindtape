@@ -9,13 +9,13 @@
   ),
   difficulty: 3,
   tags: ("cli",),
-  estimate: (files: 4),
+  estimate: (files: 7),
   assignee: "agent",
-  status: wip(
+  status: done(
     2026,
     9,
     11,
-  )[Confirmed on main: eval.rs:96 checks only that lib/typst.toml exists.],
+  )[Fixed at e23b8e8. The mindtape crate exports package-overrides and package-root, eval build-world asks them instead of deciding for itself, and it now loads the enclosing project config too, so the two worlds cannot drift again. Two tests in eval-tests.rs pin both sides, and a replica of the reported tree (a lib/ declaring name jmav) prints the task where the pre-fix binary reported a mismatched-name error. Estimate raised 4 to 7: the changelog entry, the outdatty lock and this file, not extra scope.],
 )
 
 == Summary
