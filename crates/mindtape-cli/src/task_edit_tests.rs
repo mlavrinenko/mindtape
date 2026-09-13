@@ -168,6 +168,57 @@ fn verify_written_reports_a_load_error_on_the_file() {
     );
 }
 
+/// A project whose config carries an `imperative-title` rule at `severity`
+/// plus one task that breaches it, under the in-tree prelude.
+fn rules_project(severity: &str) -> (TempDir, std::path::PathBuf) {
+    let dir = tempfile::tempdir().unwrap();
+    let config = format!(
+        "{CONFIG}\n[[tasks.rules]]\n\
+         name = \"imperative-title\"\n\
+         assert = 'matches(title, \"^Refactor\")'\n\
+         message = \"start the title with an imperative verb\"\n\
+         severity = \"{severity}\"\n"
+    );
+    let body = format!(
+        "{IMPORT}#show: task.with(title: \"Loader refactoring\", status: wip(2026, 1, 1))\n"
+    );
+    crate::test_util::make_project_with_lib(dir.path(), PRELUDE, &[("bad.typ", &body)], &config);
+    let file = dir.path().join("tasks/bad.typ");
+    (dir, file)
+}
+
+/// The post-write fallback prints a fatal violation as `error:` and a
+/// `severity = "warn"` breach as `warning:` — the same distinction the
+/// pre-write seam makes, so the per-issue lines match what the caller does
+/// with the write. `stderr` is only observable from a fresh process, so the
+/// test re-execs itself.
+#[test]
+fn verify_written_prefixes_each_issue_by_its_severity() {
+    const CHILD: &str = "_MT_VERIFY_WRITTEN_SEVERITY";
+    if std::env::var(CHILD).is_err() {
+        let out = crate::test_util::run_self_test(
+            "verify_written_prefixes_each_issue_by_its_severity",
+            CHILD,
+        );
+        crate::test_util::assert_child_ok(&out);
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert!(
+            stderr.contains("error: bad: rules.imperative-title"),
+            "a fatal rule breach prints as an error: {stderr}"
+        );
+        assert!(
+            stderr.contains("warning: bad: rules.imperative-title"),
+            "a warn rule breach prints as a warning: {stderr}"
+        );
+        return;
+    }
+
+    let (dir, file) = rules_project("error");
+    assert!(verify_written(dir.path(), &file).is_err());
+    let (dir, file) = rules_project("warn");
+    verify_written(dir.path(), &file).unwrap();
+}
+
 /// A task that harvests but violates the priority scale (max 9) must be
 /// reported. Kills `verify_written -> Ok(())` and the `==` on the
 /// violation filter: flipping it to `!=` keeps only *other* tasks' violations
