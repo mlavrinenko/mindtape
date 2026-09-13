@@ -11,7 +11,11 @@
   tags: ("cli",),
   estimate: (files: 3),
   assignee: "agent",
-  status: proposed(2026, 9, 12),
+  status: done(
+    2026,
+    9,
+    13,
+  )[blocking pre-write problems report as error: and warn-severity breaches as warning:, pinned by mt add and mt recur],
 )
 
 == Summary
