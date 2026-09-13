@@ -197,7 +197,7 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
         return Ok(());
     }
     for problem in &problems {
-        eprintln!("warning: {problem}");
+        eprintln!("error: {problem}");
     }
     bail!("{} task(s) had problems", problems.len())
 }

@@ -81,8 +81,15 @@ pub(crate) fn after_batch(
     Ok(())
 }
 
-/// Append any load error or validation violation in the reloaded `project`
-/// that touches a flipped file to `problems` (tolerant batch: writes are kept).
+/// Append any load error or fatal validation violation in the reloaded
+/// `project` that touches a flipped file to `problems` (tolerant batch: writes
+/// are kept).
+///
+/// A `severity = "warn"` rule breach is *not* a problem: it was already
+/// reported by the pre-write check each landed file passed through, and the
+/// batch is meant to carry on. Pushing it here would make a warning fail the
+/// command at the summary line, which is exactly the confusion the `error:` /
+/// `warning:` prefixes exist to end.
 fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<String>) {
     for error in &project.outcome.errors {
         if landed.files.contains(&error.file) {
@@ -94,7 +101,7 @@ fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<String>) {
         }
     }
     for violation in validate(&project.outcome.tasks, &project.config) {
-        if landed.ids.contains(&violation.task_id) {
+        if landed.ids.contains(&violation.task_id) && violation.is_fatal() {
             problems.push(format!(
                 "{}: {}: {}",
                 violation.task_id, violation.field, violation.message

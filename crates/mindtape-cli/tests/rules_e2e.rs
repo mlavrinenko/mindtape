@@ -240,11 +240,36 @@ fn mt_flip_refuses_a_write_that_breaches_an_error_rule() {
                 severity = \"error\"\n";
     let dir = project(rule, "Refactor the loader");
     run_ok(dir.path(), &["check"]);
-    mt(dir.path())
-        .args(["done", "subject"])
-        .assert()
-        .failure()
-        .stderr(predicates::str::contains("rules.closed-work-is-owned"));
+    let out = mt(dir.path()).args(["done", "subject"]).output().unwrap();
+    assert!(!out.status.success(), "an error rule must refuse the flip");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        stderr.contains("error: subject: rules.closed-work-is-owned"),
+        "a blocking problem reports as an error: {stderr}"
+    );
+}
+
+/// The mirror of the refusal: a warn-severity rule says its piece and the
+/// flip still lands. The post-write revalidation must not turn that warning
+/// back into the failure the `warning:` prefix says it is not.
+#[test]
+fn mt_flip_lets_a_warn_rule_through() {
+    let dir = project(&imperative_rule("warn"), "Loader refactoring");
+    let out = mt(dir.path()).args(["done", "subject"]).output().unwrap();
+    assert!(
+        out.status.success(),
+        "a warn rule must not fail the flip: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        stderr.contains("warning: subject: rules.imperative-title"),
+        "the warn breach reports as a warning: {stderr}"
+    );
+    assert!(
+        !stderr.contains("error:"),
+        "a warn-only flip prints no error: {stderr}"
+    );
 }
 
 /// The mechanism above is proven against a synthetic project. These two check

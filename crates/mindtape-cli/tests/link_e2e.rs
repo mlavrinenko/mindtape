@@ -49,10 +49,16 @@ fn a_rejected_edge_leaves_the_file_untouched() {
     scaffold(dir.path());
     let before = source(dir.path(), "wire-oauth");
 
-    support::mt(dir.path())
+    let output = support::mt(dir.path())
         .args(["link", "wire-oauth", "depends-on", "wire-oauth"])
-        .assert()
-        .failure();
+        .output()
+        .unwrap();
+    assert!(!output.status.success(), "a rejected edge must fail");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("error: wire-oauth: not linked:"),
+        "a blocking problem reports as an error: {stderr}"
+    );
 
     assert_eq!(
         source(dir.path(), "wire-oauth"),

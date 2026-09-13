@@ -129,6 +129,9 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
     let verdicts = pre_write::check(project, &project.outcome.tasks, &pending);
 
     for (staged, verdict) in plan.staged.iter().zip(&verdicts) {
+        for warning in &verdict.warnings {
+            eprintln!("warning: {}: {warning}", staged.stem);
+        }
         if !verdict.problems.is_empty() {
             problems.push(format!(
                 "{}: not linked: {}",
@@ -230,7 +233,7 @@ fn finish(problems: &[String]) -> Result<()> {
         return Ok(());
     }
     for problem in problems {
-        eprintln!("warning: {problem}");
+        eprintln!("error: {problem}");
     }
     bail!("{} task(s) had problems", problems.len())
 }

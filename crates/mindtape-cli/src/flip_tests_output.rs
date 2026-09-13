@@ -235,8 +235,8 @@ fn revalidate_prints_the_unreachable_violation() {
         let o = child_output("revalidate_prints_the_unreachable_violation");
         let err = String::from_utf8_lossy(&o.stderr);
         assert!(
-            err.contains("s: status: `blocked` is unreachable"),
-            "expected the reachability violation naming task and field: {err}"
+            err.contains("error: s: status: `blocked` is unreachable"),
+            "expected the reachability violation prefixed as an error: {err}"
         );
         return;
     }
@@ -255,8 +255,8 @@ fn refuses_a_rewrite_that_would_not_load() {
         let o = child_output("refuses_a_rewrite_that_would_not_load");
         let err = String::from_utf8_lossy(&o.stderr);
         assert!(
-            err.contains("alpha: did not load:"),
-            "expected the pre-write refusal naming the task: {err}"
+            err.contains("error: alpha: did not load:"),
+            "expected the pre-write refusal prefixed as an error: {err}"
         );
         assert!(
             err.contains("nothing was written"),
