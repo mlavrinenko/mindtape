@@ -12,7 +12,9 @@
   estimate: (files: 2),
   links: parent("de-slop-the-docs-and-close-the-drift-seams.typ")
     + depends-on("derive-the-docs-page-manifest-from-one-source.typ")
-    + related("verify-the-generated-readme-header-renders-on-github.typ")[
+    + related(
+      "swh:1:rev:c2ffa4ba3ed6c696ac84c93adbc02b230ae2d28f;path=truth/tasks/verify-the-generated-readme-header-renders-on-github.typ",
+    )[
       the same rendered header
     ],
   status: done(2026, 8, 16),

@@ -12,7 +12,7 @@
   estimate: (files: 10),
   assignee: "agent",
   links: related(
-    "verify-the-windows-nextest-job-on-github.typ",
+    "swh:1:rev:e63570ddbea03f6bfea2267c945c32c7b054d3f9;path=truth/tasks/verify-the-windows-nextest-job-on-github.typ",
   )[the `cargo test` call that survives locally — only a pushed run proves it],
   status: done(
     2026,

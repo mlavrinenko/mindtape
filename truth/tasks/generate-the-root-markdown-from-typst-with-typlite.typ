@@ -15,7 +15,7 @@
     "derive-the-drift-prone-doc-facts-from-their-sources.typ",
   )
     + related(
-      "verify-the-generated-readme-header-renders-on-github.typ",
+      "swh:1:rev:c2ffa4ba3ed6c696ac84c93adbc02b230ae2d28f;path=truth/tasks/verify-the-generated-readme-header-renders-on-github.typ",
     )[the human check no gate can do: the rebuilt header on github.com],
   status: done(2026, 8, 13),
 )
