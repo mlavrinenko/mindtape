@@ -187,11 +187,20 @@ fn a_malformed_when_is_one_config_error_at_load() {
 #[test]
 fn mt_add_refuses_a_write_that_breaches_an_error_rule() {
     let dir = project(&imperative_rule("error"), "Refactor the loader");
-    mt(dir.path())
+    let out = mt(dir.path())
         .args(["add", "--name", "leftover", "--set", "title=Loader rewrite"])
-        .assert()
-        .failure()
-        .stderr(predicates::str::contains("rules.imperative-title"));
+        .output()
+        .unwrap();
+    assert!(!out.status.success(), "an error rule must refuse the write");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        stderr.contains("error: leftover: rules.imperative-title"),
+        "a blocking problem reports as an error: {stderr}"
+    );
+    assert!(
+        !stderr.contains("warning: leftover:"),
+        "a refused write is not a warning: {stderr}"
+    );
     assert!(
         !dir.path().join("tasks/leftover.typ").exists(),
         "a refused write must leave nothing behind to repair"
@@ -201,9 +210,19 @@ fn mt_add_refuses_a_write_that_breaches_an_error_rule() {
 #[test]
 fn mt_add_lets_a_warn_rule_through() {
     let dir = project(&imperative_rule("warn"), "Refactor the loader");
-    run_ok(
-        dir.path(),
-        &["add", "--name", "leftover", "--set", "title=Loader rewrite"],
+    let out = mt(dir.path())
+        .args(["add", "--name", "leftover", "--set", "title=Loader rewrite"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "a warn rule lets the write land");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        stderr.contains("warning: leftover: rules.imperative-title"),
+        "a non-blocking breach reports as a warning: {stderr}"
+    );
+    assert!(
+        !stderr.contains("error: leftover:"),
+        "a write that lands is not an error: {stderr}"
     );
     assert!(
         dir.path().join("tasks/leftover.typ").exists(),

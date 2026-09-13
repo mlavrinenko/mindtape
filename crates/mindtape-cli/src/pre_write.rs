@@ -152,6 +152,10 @@ pub fn absorb(world: &mut Vec<Task>, task: Task) {
 /// Print every entry's warnings and every rejected entry's problems, then fail
 /// naming how many were rejected, or succeed when none was.
 ///
+/// A warning prints as `warning:` and a problem as `error:`, so the prefix
+/// carries each line's outcome and a reader scanning them learns what happened
+/// before the trailing refusal or success.
+///
 /// Warnings print for accepted entries too — that is the whole of what a
 /// `severity = "warn"` rule does at a write: say it, and let the file land.
 /// Printing them only on refusal would make the warn level invisible exactly
@@ -167,7 +171,7 @@ fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> 
         }
         rejected += 1;
         for problem in &verdict.problems {
-            eprintln!("warning: {}: {problem}", label(entry.file));
+            eprintln!("error: {}: {problem}", label(entry.file));
         }
     }
     if rejected == 0 {

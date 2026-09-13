@@ -295,6 +295,10 @@ recur: every(weeks: 1),\n\
 
     let stderr = String::from_utf8_lossy(&output.get_output().stderr).into_owned();
     assert!(stderr.contains("nothing was written"), "{stderr}");
+    assert!(
+        stderr.contains("error: water-plants-"),
+        "a blocking pre-write problem reports as an error: {stderr}"
+    );
     assert_eq!(
         tasks_dir_entries(dir.path()),
         vec!["water-plants.typ".to_owned()],

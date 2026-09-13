@@ -119,14 +119,22 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
 
 /// Print every violation and fail naming how many were fatal, or succeed when
 /// none was. `scope` completes the sentence "N validation issue(s) …", naming
-/// the file a post-write check found the problem in.
+/// the file a post-write check found the problem in. Each line carries its
+/// outcome in the prefix — `error:` for a fatal violation, `warning:` for a
+/// breach the project declared at that severity — so the per-issue lines match
+/// the refusal or the landing that follows them.
 ///
 /// A `[[tasks.rules]]` breach at `severity = "warn"` prints alongside the rest
 /// and is then not counted: the file already exists by the time this runs, and
 /// a warning is a report about it, not a reason to call the write a failure.
 fn report_issues(id: &str, issues: &[Violation], scope: &str) -> Result<()> {
     for violation in issues {
-        eprintln!("warning: {id}: {}: {}", violation.field, violation.message);
+        let prefix = if violation.is_fatal() {
+            "error"
+        } else {
+            "warning"
+        };
+        eprintln!("{prefix}: {id}: {}: {}", violation.field, violation.message);
     }
     let fatal = issues.iter().filter(|issue| issue.is_fatal()).count();
     if fatal == 0 {
@@ -177,7 +185,7 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
         bail!("the task as filled {}", verdict.problems.join("; "));
     }
     for problem in &verdict.problems {
-        eprintln!("warning: {id}: {problem}");
+        eprintln!("error: {id}: {problem}");
     }
     bail!(
         "{} validation issue(s) as filled; nothing was written",
