@@ -34,6 +34,13 @@ nothing (`on_hit: ""` in `.mmz/config.yaml` — a skipped arm used to restate
 exit code already carries), a miss streams live, and a failure exits through
 `parallel`.
 
+The table's Command column quotes a gate's body only while that body is one
+line of at most 160 characters that does more than name a `.sh` script;
+anything else renders the `[doc(...)]` string instead (`gate_command` in
+`www/gates.jq`). A comment inside the body is a body line, so explaining a flag
+there demotes the row with no doc source touched. Put the comment above the
+recipe.
+
 #just.check-crap() reads `target/coverage/lcov.info` — git-ignored, under no
 source scope — so it gets an `lcov` scope declared `gitignore: false`, the
 opt-out that stops a scope over ignored paths resolving empty under the
