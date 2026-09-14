@@ -33,16 +33,24 @@ pub fn is_sort_field(name: &str) -> bool {
     name == "ready" || fields::get(name).is_some()
 }
 
-/// Validate a single sort spec (`"field"` or `"field:asc"` / `"field:desc"`).
+/// Validate a single sort spec (`"field"`, `"field:asc"`, or `"field:desc"`).
 ///
 /// # Errors
-/// Returns a message string if [`is_sort_field`] rejects the field.
+/// Returns a message string if [`is_sort_field`] rejects the field, or if a
+/// `:` suffix is anything but `asc`/`desc`. A misspelled direction used to
+/// mean ascending, silently.
 pub fn validate_sort_spec(spec: &str) -> Result<(), String> {
-    let field = spec.split_once(':').map_or(spec, |(f, _)| f);
-    if is_sort_field(field) {
-        Ok(())
-    } else {
-        Err(unknown_sort_field(field))
+    let (field, direction) = spec
+        .split_once(':')
+        .map_or((spec, None), |(field, direction)| (field, Some(direction)));
+    if !is_sort_field(field) {
+        return Err(unknown_sort_field(field));
+    }
+    match direction {
+        None | Some("asc" | "desc") => Ok(()),
+        Some(other) => Err(format!(
+            "unknown sort direction: `{other}`; use `asc` or `desc`"
+        )),
     }
 }
 
@@ -74,10 +82,8 @@ pub fn sort_by_specs(
     readiness: &Readiness,
 ) -> Result<(), String> {
     for spec in specs.iter().rev() {
+        validate_sort_spec(spec)?;
         let (field, descending) = parse_spec(spec);
-        if !is_sort_field(field) {
-            return Err(unknown_sort_field(field));
-        }
         tasks.sort_by(|l, r| {
             let ord = compare_field(l, r, field, config, readiness);
             if descending { ord.reverse() } else { ord }
@@ -86,6 +92,9 @@ pub fn sort_by_specs(
     Ok(())
 }
 
+/// Split a validated spec into its field and direction. Every caller runs
+/// [`validate_sort_spec`] first, so a suffix here is `asc` or `desc`; the
+/// wildcard arm only keeps the function total.
 fn parse_spec(spec: &str) -> (&str, bool) {
     match spec.split_once(':') {
         Some((field, "desc")) => (field, true),

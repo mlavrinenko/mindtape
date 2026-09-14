@@ -211,6 +211,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **An unknown `--sort` direction is an error.** `validate_sort_spec` checked
+  only the field before the `:`, and `parse_spec` treated every suffix but
+  `desc` as ascending, so `--sort priority:wtf` — or a saved
+  `[ls] default-sort` — sorted ascending and said nothing. Only `asc`, `desc`,
+  and no suffix are accepted now, with the error naming the direction, and
+  `sort_by_specs` delegates to the same validator.
+
 - **A saved filter expression can reach a project `[dicts.<name>]` again.**
   Config load compiled the dictionaries *after* running the semantic pass, and
   that pass dry-runs every saved expression against a probe task — so a

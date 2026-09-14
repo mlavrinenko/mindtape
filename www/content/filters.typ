@@ -239,7 +239,8 @@ was before the property existed — while `status.name` orders alphabetically.
 `--sort` takes one or more `field` / `field:asc` / `field:desc` specs,
 most-significant first; `[ls] default-sort` in
 #link(u("/config/"))[Configuration] takes the same specs for the built-in
-ordering.
+ordering. Any other suffix (`priority:up`, a lone `priority:`) is an error
+naming the direction — never a silent ascending sort.
 
 ```sh
 mt ls --sort priority:asc      # or :desc

@@ -144,6 +144,31 @@ fn validate_sort_spec_rejects_unknown_field() {
     assert!(validate_sort_spec("no_such_field:desc").is_err());
 }
 
+#[test]
+fn validate_sort_spec_rejects_an_unknown_direction() {
+    // Only `asc` and `desc` name a direction; anything else — including a
+    // trailing colon with nothing after it — is a typo, not ascending.
+    assert!(validate_sort_spec("priority:wtf").is_err());
+    assert!(validate_sort_spec("priority:").is_err());
+    assert!(validate_sort_spec("priority:ASC").is_err());
+    assert!(validate_sort_spec("priority").is_ok());
+    assert!(validate_sort_spec("priority:asc").is_ok());
+    assert!(validate_sort_spec("priority:desc").is_ok());
+}
+
+#[test]
+fn sort_by_specs_rejects_an_unknown_direction() {
+    let mut tasks = vec![task("a", "wip", 5.0, None)];
+    let err = sort_by_specs(
+        &mut tasks,
+        &["priority:wtf".to_owned()],
+        &config(),
+        &crate::ready::Readiness::empty(),
+    )
+    .unwrap_err();
+    assert!(err.contains("asc") && err.contains("desc"), "{err}");
+}
+
 /// `--sort file` is the same trap the filter field was: the column is named
 /// `file`, the sort key is `path`. Both the pre-flight validator and
 /// `sort_by_specs`' own guard must name the replacement, since a saved
