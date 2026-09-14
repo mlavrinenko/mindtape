@@ -57,6 +57,52 @@ fn equality_and_inequality() {
     assert!(hit("priority == 8", &task));
 }
 
+/// A legend with `wip` at position 1, so `status.index` has a position to
+/// resolve (the sample task's `wip`).
+fn legend() -> Config {
+    parse_config(
+        "[[tasks.status]]\nvalue = \"proposed\"\n[[tasks.status]]\nvalue = \"wip\"\n\
+         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
+    )
+    .unwrap()
+}
+
+fn hit_with(expr: &str, task: &Task, cfg: &Config) -> bool {
+    Filter::parse(expr).unwrap().matches(task, cfg).unwrap()
+}
+
+#[test]
+fn status_properties_are_filterable() {
+    let cfg = legend();
+    let task = sample(); // wip, stamped 2026-06-14, no note
+    assert!(hit_with("status.name == \"wip\"", &task, &cfg));
+    assert!(!hit_with("status.name == \"done\"", &task, &cfg));
+    assert!(hit_with("status.date == \"2026-06-14\"", &task, &cfg));
+    assert!(hit_with("status.date < \"2026-07-01\"", &task, &cfg));
+    assert!(!hit_with("status.date > \"2026-07-01\"", &task, &cfg));
+    assert!(hit_with("status.index == 1", &task, &cfg));
+    assert!(hit_with("status.index >= 1", &task, &cfg));
+    assert!(!hit_with("status.index < 1", &task, &cfg));
+    // Bare `status` keeps comparing the lifecycle name.
+    assert!(hit_with("status == \"wip\"", &task, &cfg));
+    // A part with no authored value follows the missing-field rule.
+    assert!(hit_with("status.note != \"x\"", &task, &cfg));
+    assert!(!hit_with("status.note == \"x\"", &task, &cfg));
+}
+
+#[test]
+fn status_property_paths_reach_the_filter_helpers() {
+    let cfg = legend();
+    let mut task = sample();
+    task.status.as_mut().unwrap().note = Some("waiting on review".to_owned());
+    assert!(hit_with("has(status.note)", &task, &cfg));
+    assert!(hit_with("contains(\"review\", status.note)", &task, &cfg));
+    assert!(hit_with("matches(status.note, \"^wait\")", &task, &cfg));
+    task.status.as_mut().unwrap().note = None;
+    assert!(hit_with("miss(status.note)", &task, &cfg));
+    assert!(!hit_with("has(status.note)", &task, &cfg));
+}
+
 #[test]
 fn numeric_fields_compare_as_numbers() {
     let task = sample();

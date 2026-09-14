@@ -114,15 +114,28 @@ fn default_order_floats_ready_above_blocked() {
 }
 
 #[test]
-fn validate_sort_spec_accepts_all_fields() {
-    for &field in super::SORT_FIELDS.iter() {
+fn validate_sort_spec_accepts_every_registry_field_and_ready() {
+    // The registry is the one field vocabulary: a field or property wired
+    // into `crate::fields` is sortable by construction, and `ready` is the
+    // one computed rank with no registry entry behind it.
+    for def in crate::fields::FIELDS {
         assert!(
-            validate_sort_spec(field).is_ok(),
-            "expected {field} to be valid"
+            validate_sort_spec(def.name).is_ok(),
+            "expected {} to be valid",
+            def.name
         );
-        assert!(validate_sort_spec(&format!("{field}:asc")).is_ok());
-        assert!(validate_sort_spec(&format!("{field}:desc")).is_ok());
+        assert!(validate_sort_spec(&format!("{}:asc", def.name)).is_ok());
+        assert!(validate_sort_spec(&format!("{}:desc", def.name)).is_ok());
     }
+    assert!(validate_sort_spec("ready").is_ok());
+}
+
+#[test]
+fn validate_sort_spec_rejects_the_filter_only_role_field() {
+    // `role` resolves through the `[[actors]]` registry at read time and has
+    // no value a comparator could order, so it stays out of the sort
+    // vocabulary even though it is a filter field.
+    assert!(validate_sort_spec("role").is_err());
 }
 
 #[test]
@@ -211,22 +224,6 @@ default-sort = ["id"]
     ];
     default_order_with(&mut tasks, &cfg, &crate::ready::Readiness::empty());
     assert_eq!(tasks.first().unwrap().id, "a-task");
-}
-
-#[test]
-fn sort_fields_covers_every_registry_field() {
-    // A field wired into `crate::fields` (and therefore filterable) must also
-    // be listed in `SORT_FIELDS` — otherwise it stays silently unsortable, the
-    // exact drift this registry closes off. Add the field here (and, if its
-    // sort order needs to differ from the generic registry compare, a
-    // `compare_field` arm) when this fails.
-    for def in crate::fields::FIELDS {
-        assert!(
-            super::SORT_FIELDS.contains(&def.name),
-            "field {:?} is filterable but missing from SORT_FIELDS",
-            def.name
-        );
-    }
 }
 
 // --- Graph-derived sort keys (`topo`, `blocks`) ---

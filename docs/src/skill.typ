@@ -114,7 +114,7 @@ you get the top N of the order you asked for, and a cut listing says so: a
 
 Pass a filter expression as the positional argument. Fields:
 `status priority difficulty kind title id due start reviewed path assignee depth topo blocks role`
-— `--sort` takes the same set except `role`, plus a computed `ready` rank.
+plus `status.name`, `status.date`, `status.note`, `status.index` — bare `status` keeps comparing the lifecycle name and sorting by legend position; `--sort` takes the same set except `role`, plus a computed `ready` rank.
 `role` is filter-only: it matches a role the task's assignee holds, via the
 `[[actors]]` registry. `path` compares the project-root-relative path
 (`/`-separated on every platform); the `file` _column_ below is a

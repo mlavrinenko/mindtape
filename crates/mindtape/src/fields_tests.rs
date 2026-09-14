@@ -11,11 +11,19 @@ use crate::test_support::bare_task;
 
 fn config() -> Config {
     parse_config(
-        r"
+        r#"
+[[tasks.status]]
+value = "proposed"
+[[tasks.status]]
+value = "wip"
+[[tasks.status]]
+value = "done"
+terminal = true
+
 [tasks.priority]
 min = 0
 max = 9
-",
+"#,
     )
     .unwrap()
 }
@@ -110,6 +118,62 @@ fn status_resolves_the_legend_name() {
     assert!(matches!(
         (get("status").unwrap().get)(&task, &cfg),
         FieldValue::Str(s) if s == "wip"
+    ));
+}
+
+#[test]
+fn status_parts_resolve_the_nested_values() {
+    let cfg = config(); // proposed(0), wip(1), done(2)
+    let mut task = bare_task("t");
+    task.status = Some(Status {
+        name: "wip".to_owned(),
+        date: Some("2026-06-14".to_owned()),
+        note: Some("waiting on review".to_owned()),
+    });
+    let value = |name: &str| (get(name).unwrap().get)(&task, &cfg);
+    assert!(matches!(value("status.name"), FieldValue::Str(s) if s == "wip"));
+    assert!(matches!(value("status.date"), FieldValue::Str(s) if s == "2026-06-14"));
+    assert!(matches!(value("status.note"), FieldValue::Str(s) if s == "waiting on review"));
+    assert!(matches!(value("status.index"), FieldValue::Num(n) if (n - 1.0).abs() < f64::EPSILON));
+}
+
+#[test]
+fn status_parts_are_missing_without_a_status() {
+    let cfg = config();
+    let task = bare_task("t");
+    for name in [
+        "status",
+        "status.name",
+        "status.date",
+        "status.note",
+        "status.index",
+    ] {
+        assert!(
+            matches!((get(name).unwrap().get)(&task, &cfg), FieldValue::Missing),
+            "{name} must be Missing on a statusless task"
+        );
+    }
+}
+
+#[test]
+fn status_index_is_missing_outside_the_legend() {
+    // The index is a derivation through the configured legend, so a name the
+    // legend does not carry has no position to read. The bare field still
+    // resolves the written name — that is the field's long-standing value.
+    let cfg = config();
+    let mut task = bare_task("t");
+    task.status = Some(Status {
+        name: "unlisted".to_owned(),
+        date: None,
+        note: None,
+    });
+    assert!(matches!(
+        (get("status.index").unwrap().get)(&task, &cfg),
+        FieldValue::Missing
+    ));
+    assert!(matches!(
+        (get("status").unwrap().get)(&task, &cfg),
+        FieldValue::Str(s) if s == "unlisted"
     ));
 }
 

@@ -136,10 +136,10 @@ groups:
       # `file` to `path` moved a documented surface while every source above
       # stayed byte-identical and the gate stayed green
       # (truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ).
-      # `sort.rs` is deliberately NOT a second source: its `SORT_FIELDS` is
-      # pinned to this registry by `sort_fields_covers_every_registry_field`,
-      # so a field cannot enter or leave one without the other, and the rest of
-      # that file is comparator internals no dependent restates.
+      # `sort.rs` is deliberately NOT a second source: its accepted vocabulary
+      # is derived from this registry (`is_sort_field`), so a field cannot
+      # enter or leave one without the other, and the rest of that file is
+      # comparator internals no dependent restates.
       - crates/mindtape/src/fields.rs
       - crates/mindtape/src/defaults.toml
       - crates/mindtape-cli/src/presets/todone/config.toml

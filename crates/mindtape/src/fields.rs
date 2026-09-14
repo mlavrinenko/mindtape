@@ -8,13 +8,27 @@
 //! field-name match, and they drifted: `assignee` and `reviewed` were
 //! comparable in a filter but silently unsortable.
 //!
-//! Three fields stay outside this registry because their filter and sort
-//! semantics genuinely differ rather than merely being unimplemented:
-//! `status` and `ready` (sort orders by legend position / readiness rank, not
-//! the field's raw string), and `role` (a virtual, filter-only field with no
-//! `Task` field behind it — see `filter::role_field`). `sort.rs` special-cases
+//! Three fields stay outside the generic comparator because their filter and
+//! sort semantics genuinely differ rather than merely being unimplemented:
+//! `status` and `ready` (a comparison reads the lifecycle name / the
+//! readiness predicate; an ordering reads the legend position / the readiness
+//! rank), and `role` (a virtual, filter-only field with no `Task` field
+//! behind it — see `filter::role_field`). `sort.rs` special-cases
 //! `status`/`ready`/`priority`/`difficulty` before falling back to this
 //! registry for everything else.
+//!
+//! A field with fixed named parts is addressed as `field.property` — a dotted
+//! identifier a filter already parses and a `--sort` spec already carries, so
+//! no grammar sits behind this. A property is one [`FieldDef`] like any
+//! other: comparison, `has`/`miss`, `contains`, `matches`, and `--sort` all
+//! read it through the same registry lookup, and no downstream match
+//! statement mentions the property. Authored parts use the serialized name
+//! (`status.name`, `status.date`, `status.note`); a derived part names its
+//! derivation (`status.index`, the 0-based legend position). Bare `status`
+//! keeps its deliberate split — a comparison reads the name, an ordering
+//! reads the position — and the explicit properties spell the two apart.
+//! Collections (`links`, `estimate`, `tags`) stay out until an aggregate
+//! meaning exists for them.
 //!
 //! `path` is the task's project-root-relative source path
 //! ([`Task::file_key`]), and is deliberately not spelled `file`: the `file`
@@ -63,6 +77,34 @@ pub const FIELDS: &[FieldDef] = &[
     FieldDef {
         name: "status",
         get: |task, _config| opt_str(task.status.as_ref().map(|status| status.name.clone())),
+    },
+    FieldDef {
+        name: "status.name",
+        get: |task, _config| opt_str(task.status.as_ref().map(|status| status.name.clone())),
+    },
+    FieldDef {
+        name: "status.date",
+        get: |task, _config| opt_str(task.status.as_ref().and_then(|status| status.date.clone())),
+    },
+    FieldDef {
+        name: "status.note",
+        get: |task, _config| opt_str(task.status.as_ref().and_then(|status| status.note.clone())),
+    },
+    FieldDef {
+        name: "status.index",
+        get: |task, config| {
+            task.status
+                .as_ref()
+                .and_then(|status| {
+                    config
+                        .tasks
+                        .status
+                        .entries
+                        .iter()
+                        .position(|entry| entry.value == status.name)
+                })
+                .map_or(FieldValue::Missing, |index| FieldValue::Num(index as f64))
+        },
     },
     FieldDef {
         name: "priority",

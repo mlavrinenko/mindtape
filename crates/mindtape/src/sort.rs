@@ -15,12 +15,12 @@ use crate::fields::{self, FieldValue};
 use crate::model::Task;
 use crate::ready::{Readiness, ReadyState};
 
-/// All sort field names accepted by `--sort` and `[query] default_sort`:
-/// every [`crate::fields::FIELDS`] entry, plus `ready` (a computed rank, not a
-/// `Task` field — see [`ready_rank`]). Pinned against the registry by
-/// `sort_fields_covers_every_registry_field` in `sort_tests.rs`, so a field
-/// added to `crate::fields` and forgotten here fails a test instead of
-/// silently staying unsortable.
+/// Whether `name` is accepted by `--sort` and `[query] default_sort`: every
+/// [`crate::fields::FIELDS`] entry, plus `ready` (a computed rank, not a
+/// `Task` field — see [`ready_rank`]). Derived rather than listed, so a field
+/// or property wired into the registry is sortable by construction and no
+/// second list has to remember it — the drift that left `assignee` and
+/// `reviewed` silently unsortable before the registry existed.
 ///
 /// Two of them read the dependency graph rather than the task's own
 /// properties: `topo` (dependency level — ascending is a topological order)
@@ -28,31 +28,18 @@ use crate::ready::{Readiness, ReadyState};
 /// not linear positions, so they tie and a following spec breaks the tie:
 /// `--sort topo --sort priority:desc` is graph order with priority inside a
 /// layer. See [`crate::dep_rank`].
-pub const SORT_FIELDS: [&str; 15] = [
-    "id",
-    "title",
-    "status",
-    "priority",
-    "difficulty",
-    "kind",
-    "due",
-    "start",
-    "reviewed",
-    "assignee",
-    "path",
-    "depth",
-    "topo",
-    "blocks",
-    "ready",
-];
+#[must_use]
+pub fn is_sort_field(name: &str) -> bool {
+    name == "ready" || fields::get(name).is_some()
+}
 
 /// Validate a single sort spec (`"field"` or `"field:asc"` / `"field:desc"`).
 ///
 /// # Errors
-/// Returns a message string if the field is not in [`SORT_FIELDS`].
+/// Returns a message string if [`is_sort_field`] rejects the field.
 pub fn validate_sort_spec(spec: &str) -> Result<(), String> {
     let field = spec.split_once(':').map_or(spec, |(f, _)| f);
-    if SORT_FIELDS.contains(&field) {
+    if is_sort_field(field) {
         Ok(())
     } else {
         Err(unknown_sort_field(field))
@@ -88,7 +75,7 @@ pub fn sort_by_specs(
 ) -> Result<(), String> {
     for spec in specs.iter().rev() {
         let (field, descending) = parse_spec(spec);
-        if !SORT_FIELDS.contains(&field) {
+        if !is_sort_field(field) {
             return Err(unknown_sort_field(field));
         }
         tasks.sort_by(|l, r| {
@@ -138,8 +125,8 @@ fn compare_field(
 
 /// A field's value via the shared [`crate::fields`] registry; `Missing` when
 /// `field` isn't registered there — unreachable via `--sort`, since
-/// `sort_by_specs` validates every spec against [`SORT_FIELDS`] first, and
-/// every name in `SORT_FIELDS` reaching this arm has a registry entry.
+/// `sort_by_specs` validates every spec first and the one sort name with no
+/// registry entry, `ready`, is intercepted in [`compare_field`].
 fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {
     fields::get(field).map_or(FieldValue::Missing, |def| (def.get)(task, config))
 }

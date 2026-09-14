@@ -25,6 +25,14 @@ Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
 opaque `estimate` dict supports presence only (`has(estimate)`), never
 comparison.
 
+A field with fixed named parts is addressed as `field.property`. `status`
+carries four: `status.name` (the same value bare `status` compares),
+`status.date` (the ISO stamp), `status.note` (the note written with the
+stamp), and `status.index` (the 0-based position in the configured legend,
+numeric — `status.index < 2` is "before the third status"). A property works
+everywhere its field does: comparison, `has`/`miss`, `contains`, `matches`,
+and `--sort`.
+
 `assignee` compares the actor name as a plain string (`assignee == "ada"`).
 `role` is resolved from the `[[actors]]` registry at read time: `role ==
 "reviewer"` matches a task whose assignee holds that role, and `role !=
@@ -223,14 +231,18 @@ can hang.
 
 Sortable fields: every comparable field above except `role` (virtual,
 comparison-only), plus `ready` (a computed rank — ready before blocked before
-settled). `--sort` takes one or more `field` / `field:asc` / `field:desc`
-specs, most-significant first; `[ls] default-sort` in
+settled). A property is sortable with its field. Bare `status` orders by
+legend position — the same order as `status.index`, spelled the same way it
+was before the property existed — while `status.name` orders alphabetically.
+`--sort` takes one or more `field` / `field:asc` / `field:desc` specs,
+most-significant first; `[ls] default-sort` in
 #link(u("/config/"))[Configuration] takes the same specs for the built-in
 ordering.
 
 ```sh
 mt ls --sort priority:asc      # or :desc
 mt ls --sort status --sort due:desc   # status first, due breaks ties
+mt ls --sort status.date:desc  # most recently stamped first
 mt ls -n 10                    # limit to 10
 ```
 

@@ -28,8 +28,8 @@ fn ids_by(mut tasks: Vec<Task>, field: &str, cfg: &Config) -> Vec<String> {
 // Per-field `--sort` comparators: each `compare_field` special case and each
 // `crate::fields` registry entry must route to its own key. Input order is
 // the inverse of the expected sorted order, so dropping the special case (or
-// the registry entry, which would fail at `sort_by_specs`' `SORT_FIELDS`
-// check first) fails the assertion.
+// the registry entry, which would fail at `sort_by_specs'` own field check
+// first) fails the assertion.
 
 #[test]
 fn sort_by_specs_orders_by_status_lifecycle() {
@@ -39,6 +39,56 @@ fn sort_by_specs_orders_by_status_lifecycle() {
         task("s-proposed", "proposed", 5.0, None),
     ];
     assert_eq!(ids_by(tasks, "status", &cfg), vec!["s-proposed", "s-done"]);
+}
+
+#[test]
+fn sort_by_specs_orders_by_status_name_alphabetically() {
+    // The explicit name property sorts lexicographically, unlike bare `status`
+    // (legend order) and `status.index` (the same order numerically).
+    let cfg = config();
+    let tasks = vec![
+        task("s-wip", "wip", 5.0, None),
+        task("s-done", "done", 5.0, None),
+    ];
+    assert_eq!(ids_by(tasks, "status.name", &cfg), vec!["s-done", "s-wip"]);
+}
+
+#[test]
+fn sort_by_specs_orders_by_status_index_like_the_legend() {
+    let cfg = config();
+    let tasks = vec![
+        task("s-done", "done", 5.0, None),
+        task("s-proposed", "proposed", 5.0, None),
+    ];
+    assert_eq!(
+        ids_by(tasks, "status.index", &cfg),
+        vec!["s-proposed", "s-done"]
+    );
+}
+
+#[test]
+fn sort_by_specs_orders_by_status_date() {
+    let cfg = config();
+    let dated = |id: &str, date: &str| {
+        let mut task = task(id, "wip", 5.0, None);
+        task.status.as_mut().unwrap().date = Some(date.to_owned());
+        task
+    };
+    let tasks = vec![dated("new", "2026-09-01"), dated("old", "2026-01-02")];
+    assert_eq!(ids_by(tasks, "status.date", &cfg), vec!["old", "new"]);
+}
+
+#[test]
+fn sort_by_specs_orders_a_missing_status_date_last() {
+    let cfg = config();
+    let mut undated = task("undated", "wip", 5.0, None);
+    let mut dated = task("dated", "wip", 5.0, None);
+    dated.status.as_mut().unwrap().date = Some("2026-01-02".to_owned());
+    undated.status.as_mut().unwrap().date = None;
+    assert_eq!(
+        ids_by(vec![undated, dated], "status.date", &cfg),
+        vec!["dated", "undated"]
+    );
 }
 
 #[test]

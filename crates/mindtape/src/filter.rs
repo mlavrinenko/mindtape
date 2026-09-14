@@ -5,18 +5,18 @@
 //!
 //! # Syntax
 //!
-//! Comparable fields: [`crate::fields::FIELDS`] (`status`, `priority`,
-//! `difficulty`, `kind`, `title`, `id`, `due`, `start`, `reviewed`, `path`,
-//! `assignee`, `depth`) plus `role` (a virtual, comparison-only field with no
-//! `Task` field behind it: the literal resolves against the assignee's
-//! declared roles from the `[[actors]]` registry at read time, so
+//! Comparable fields: every [`crate::fields::FIELDS`] entry, including the
+//! dotted properties of a nested value (`status.name`, `status.date`,
+//! `status.note`, `status.index`), plus `role` (a virtual, comparison-only
+//! field with no `Task` field behind it: the literal resolves against the
+//! assignee's declared roles from the `[[actors]]` registry at read time, so
 //! `role == "reviewer"` matches a task whose assignee holds that role; any
 //! other comparison follows the missing-field rule, making
 //! `role != "reviewer"` its exact complement). `priority` and `difficulty` are
 //! numeric, so they compare numerically against a number literal (e.g.
 //! `priority >= 7`). The opaque `estimate` dict supports presence only
-//! (`has(estimate)` / `miss(estimate)`), not comparison. The same field set
-//! backs `--sort` — see [`crate::sort::SORT_FIELDS`].
+//! (`has(estimate)` / `miss(estimate)`), not comparison. The same vocabulary
+//! backs `--sort` — see [`crate::sort::is_sort_field`].
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!

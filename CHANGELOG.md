@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Filters and sorts reach a field's named parts.** A field with fixed named
+  parts is now addressed as `field.property`: `status.name`, `status.date`
+  (the ISO stamp), `status.note`, and `status.index` (the 0-based position in
+  the configured legend, numeric) work in a comparison, `has`/`miss`,
+  `contains`, `matches`, and `--sort` — one registry entry each, so a property
+  is filterable and sortable by construction. Bare `status` keeps its split: a
+  comparison reads the lifecycle name (`status == "wip"` unchanged), an
+  ordering reads the legend position. `--sort`'s accepted vocabulary is now
+  derived from that registry plus the computed `ready` rank, so a new field or
+  property is sortable without touching a second list.
+
 - **A flip gate can refuse without a `run` command.** `[[on.flip]]`'s
   `run` is now optional on a gating action: `{ gate = true, message = "..." }`
   with no `run` refuses the flip unconditionally whenever the hook's `when`
