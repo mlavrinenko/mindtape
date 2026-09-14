@@ -10,7 +10,7 @@
   difficulty: 2,
   tags: ("mt", "substrate", "gating"),
   estimate: (files: 6),
-  kind: "chore",
+  kind: "dev",
   assignee: "agent",
   status: proposed(2026, 9, 14),
   links: depends-on("publish-artifact-gate-0-1-1.typ"),

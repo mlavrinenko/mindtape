@@ -197,11 +197,14 @@ allowed = [
   "coverage"
 ]
 
-# What kind of work a task is. The leaf kinds are the Conventional Commits
-# types this repo's history already uses, so a task names the commit that will
-# close it; `umbrella` is the one kind no commit closes — a milestone that ends
-# through its leaves, and what the WIP limits below cap separately. A misspelled
-# kind would silently fall out of that cap, which is why the list is closed.
+# What kind of work a task is. The leaf kinds are commit types, so a task names
+# the commit that will close it. `dev` stands where Conventional Commits puts
+# `chore`, which names no kind of work: it changes the harness around the repo —
+# gates, scripts, the backlog's own config and spec — to improve the development
+# experience or enable a process. `milestone` is the one kind no commit closes:
+# it ends through its leaves, and the WIP limits below cap it separately. A
+# misspelled kind would silently fall out of that cap, which is why the list is
+# closed.
 #
 # The sweep templates stamp their one kind (`refactor` for a size finding,
 # `test` for the rest); `task.typ` leaves `kind` out, so `mt add` splices a
@@ -212,7 +215,7 @@ allowed = [
 # kind, a closed one is exempt, so history predating the field is not
 # backfilled.
 [tasks.fields.kind]
-values = ["feat", "fix", "refactor", "docs", "test", "chore", "umbrella"]
+values = ["feat", "fix", "refactor", "docs", "test", "dev", "milestone"]
 required = "!terminal"
 
 # Who is working the task. The only distinction this backlog needs is
@@ -337,8 +340,8 @@ message = "this task proposes config surface; show the shape in a block"
 # `[views.default]` view (same filter as the retired `[ls] default-filter`).
 # Redeclare `[views.default]` here to add a sort/columns bundle.
 
-# Work-in-progress caps. One umbrella and one leaf, no more. An umbrella
-# coordinates a milestone and may legitimately stay open across sessions; a leaf
+# Work-in-progress caps. One milestone and one leaf, no more. A milestone
+# coordinates its leaves and may legitimately stay open across sessions; a leaf
 # may not, and a session ending on an open leaf is the failure these exist to
 # stop. `severity = "error"` because the intended response is to finish or split
 # the open work, not to note the breach and carry on.
@@ -348,13 +351,13 @@ message = "this task proposes config surface; show the shape in a block"
 # unequal to every literal in the filter language, so the pair partitions the
 # whole backlog by construction.
 [[tasks.limits]]
-filter = 'status == "wip" && kind == "umbrella"'
+filter = 'status == "wip" && kind == "milestone"'
 max = 1
 severity = "error"
-message = "close or split the open umbrella before opening another"
+message = "close or split the open milestone before opening another"
 
 [[tasks.limits]]
-filter = 'status == "wip" && kind != "umbrella"'
+filter = 'status == "wip" && kind != "milestone"'
 max = 1
 severity = "error"
 message = "finish the open task, or split off what is done and close that, before starting another"

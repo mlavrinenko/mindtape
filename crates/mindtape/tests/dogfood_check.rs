@@ -35,7 +35,7 @@ fn dogfood_truth_tasks_pass_validation() {
 
 /// `kind` names the kind of work a task is. The dogfood config declares the
 /// vocabulary, so a misspelled or invented kind fails `mt check` rather than
-/// silently falling out of every `kind == "umbrella"` filter (the WIP limits).
+/// silently falling out of every `kind == "milestone"` filter (the WIP limits).
 #[test]
 fn dogfood_config_rejects_an_unknown_kind() {
     let root = root();
@@ -52,8 +52,9 @@ fn dogfood_config_rejects_an_unknown_kind() {
         );
     }
 
-    // `task` says nothing a task file does not already say.
-    for unknown in ["epic", "task"] {
+    // `task` says nothing a task file does not already say; `chore` and
+    // `umbrella` are the retired spellings of `dev` and `milestone`.
+    for unknown in ["epic", "task", "chore", "umbrella"] {
         item.kind = Some(unknown.to_owned());
         let violations = mindtape::validate(std::slice::from_ref(&item), &config);
         assert!(
@@ -63,11 +64,17 @@ fn dogfood_config_rejects_an_unknown_kind() {
     }
 }
 
-/// The commit types this repo's history already uses, so a task's kind names
-/// the commit that will close it, plus `umbrella` for a milestone that closes
-/// through its leaves rather than a commit of its own.
+/// The commit types a task closes with — `dev` for the harness around the
+/// repo — plus `milestone`, which closes through its leaves rather than a
+/// commit of its own.
 const KINDS: [&str; 7] = [
-    "feat", "fix", "refactor", "docs", "test", "chore", "umbrella",
+    "feat",
+    "fix",
+    "refactor",
+    "docs",
+    "test",
+    "dev",
+    "milestone",
 ];
 
 /// An open task names its kind; a closed one is exempt, so history is not

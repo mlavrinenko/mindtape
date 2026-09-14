@@ -8,7 +8,7 @@
     ease: 3,
   ),
   difficulty: 3,
-  kind: "umbrella",
+  kind: "milestone",
   tags: ("cli", "docs"),
   status: done(
     2026,

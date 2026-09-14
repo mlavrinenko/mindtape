@@ -10,7 +10,7 @@
   difficulty: 3,
   tags: ("mt",),
   estimate: (files: 2),
-  kind: "chore",
+  kind: "dev",
   assignee: "agent",
   status: proposed(2026, 9, 14),
   links: depends-on(

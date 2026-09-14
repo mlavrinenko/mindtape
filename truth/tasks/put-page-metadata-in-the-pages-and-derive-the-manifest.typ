@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "put page metadata in the pages and derive the manifest",
-  kind: "umbrella",
+  kind: "milestone",
   priority: ice(
     impact: 6,
     confidence: 0.8,

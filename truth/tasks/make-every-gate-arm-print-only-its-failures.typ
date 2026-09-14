@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Make every gate arm print only its failures",
-  kind: "chore",
+  kind: "dev",
   priority: ice(
     impact: 7,
     confidence: 0.8,

@@ -10,7 +10,7 @@
   difficulty: 1,
   tags: ("substrate",),
   estimate: (files: 1),
-  kind: "chore",
+  kind: "dev",
   assignee: "max",
   status: proposed(2026, 9, 14),
   links: depends-on("let-an-empty-allowlist-mean-no-children.typ"),

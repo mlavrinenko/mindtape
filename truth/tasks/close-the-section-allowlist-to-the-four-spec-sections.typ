@@ -10,7 +10,7 @@
   difficulty: 2,
   tags: ("mt", "gating"),
   estimate: (files: 1),
-  kind: "chore",
+  kind: "dev",
   assignee: "agent",
   status: proposed(2026, 9, 14),
   links: depends-on(

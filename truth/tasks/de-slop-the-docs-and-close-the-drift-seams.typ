@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "de-slop the docs and close the remaining drift seams",
-  kind: "umbrella",
+  kind: "milestone",
   priority: ice(
     impact: 8,
     confidence: 0.9,

@@ -8,7 +8,7 @@
     ease: 4,
   ),
   difficulty: 6,
-  kind: "umbrella",
+  kind: "milestone",
   tags: ("docs", "tooling"),
   estimate: (files: 15),
   links: related(
