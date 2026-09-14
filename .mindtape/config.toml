@@ -185,6 +185,17 @@ allowed = [
   "coverage"
 ]
 
+# The shape a task takes. `umbrella` coordinates a milestone, `task` is a leaf;
+# the WIP limits below partition the backlog on exactly that split, so a
+# misspelled kind would silently fall out of the umbrella cap. Every template
+# in .mindtape/templates/ stamps its kind, so a filed task keeps the shape it
+# was filed as.
+#
+# Not required: the open backlog predates the field and carries no kind, and
+# the `kind != "umbrella"` limit already reads an absent kind as a leaf.
+[tasks.fields.kind]
+values = ["task", "umbrella"]
+
 # Who is working the task. The only distinction this backlog needs is
 # human-vs-model: `max` holds the work no agent can finish — a render loaded in
 # a browser, a decision the maintainer owns — and `agent` holds everything

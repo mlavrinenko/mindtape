@@ -2,6 +2,7 @@
 
 #show: task.with(
   title: slot("title", prompt: "cover <path>"),
+  kind: "task",
   priority: ice(
     impact: slot(
       "impact",

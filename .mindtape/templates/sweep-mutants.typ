@@ -2,6 +2,7 @@
 
 #show: task.with(
   title: slot("title", prompt: "pin <function> in <path>"),
+  kind: "task",
   priority: ice(
     impact: slot(
       "impact",
