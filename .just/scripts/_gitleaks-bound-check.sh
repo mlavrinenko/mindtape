@@ -215,4 +215,3 @@ if [ -n "$hidden" ]; then
 fi
 
 [ "$fail" -eq 0 ] || exit 1
-echo "gitleaks-bound: $checked gitignored paths covered ($exempt exempt), no tracked file hidden"

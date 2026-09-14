@@ -147,4 +147,3 @@ printf '#import "/www/utils/site.typ": NAV\n#metadata(NAV.map(g => g.items).flat
 nav_routes=$(typst query --root . "$tmp/nav-routes.typ" '<nav-routes>' \
     --field value --one | jq -r '.[]')
 bash .just/scripts/_nav-diff.sh "$routes" "$nav_routes"
-echo "check-doc-facts: $(wc -l <<<"$crates") crates, $(wc -l <<<"$fields") DSL fields, $(wc -l <<<"$gates") gates, $(wc -l <<<"$flags") sweep flags, $(wc -l <<<"$routes") pages, all documented"

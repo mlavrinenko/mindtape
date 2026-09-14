@@ -176,8 +176,13 @@ fi
 # `--exit-code 0` for arm one's reason: a finding is not an error to be
 # trapped here, it is the thing being measured, and it has to be
 # distinguishable from gitleaks failing to run at all.
+#
+# `--log-level warn` drops the `INF scanned …`/`INF no leaks found` lines
+# gitleaks prints on every run at its default "info" level — a real failure
+# (an unparseable config, most likely) logs at FTL/ERR and still surfaces
+# (verified against a malformed config file).
 scan="$fixture/scan.json"
-if ! gitleaks dir -c "$config" --no-banner --redact --exit-code 0 \
+if ! gitleaks dir -c "$config" --no-banner --redact --exit-code 0 --log-level warn \
     --report-format json --report-path "$scan" .; then
     echo "check-secrets: gitleaks could not scan the working tree" >&2
     exit 1
@@ -244,5 +249,3 @@ fi
 # file's last word.
 bash .just/scripts/_gitleaks-bound-control.sh
 bash .just/scripts/_gitleaks-bound-check.sh "$config" .gitignore www/.gitignore
-
-echo "check-secrets: no secrets in the tree, all $(wc -l <<<"$scanned") scanned files are in \`$rule\`'s inputs"

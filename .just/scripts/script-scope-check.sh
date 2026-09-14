@@ -250,4 +250,3 @@ if [ "$fail" -ne 0 ]; then
     echo "script-scope-check: the manifests that enumerate .just/scripts/ no longer cover it" >&2
     exit 1
 fi
-echo "script-scope-check: all ${#scripts[@]} scripts are named by a scope and decided about by outdatty's dev-docs group ($exempt exempt), and every one of the $checked (rule, reachable body) pairs is named by that rule's own scopes"

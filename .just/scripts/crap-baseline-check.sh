@@ -96,5 +96,3 @@ if [ -n "$offenders" ]; then
     echo "  re-mint with \`just crap-baseline\`, which strips the workspace root" >&2
     exit 1
 fi
-
-echo "crap-baseline-check: all $count entries in $baseline are repo-relative"

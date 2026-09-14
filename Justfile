@@ -74,7 +74,7 @@ mmz *ARGS:
 [group("gate")]
 fmt-check:
     cargo fmt --all -- --check
-    tombi format --check {{ TOML_FMT_PATHS }}
+    tombi format --check --quiet {{ TOML_FMT_PATHS }}
     typstyle --check {{ TYPST_FMT_PATHS }}
     just --fmt --check
     for f in {{ JUST_FMT_PATHS }}; do just --justfile "$f" --fmt --check; done
@@ -97,13 +97,27 @@ clippy:
 # nextest runs no doctests. The extra `cargo test --doc` pass cratemplate
 # carries for them is absent here on purpose: `cargo test --doc` reports 0
 # tests in both crates, and no ```rust fence exists in the tree. A doctest
+#
+# `--cargo-quiet` twice drops cargo's own `Compiling …`/`Finished …` build
+# noise (specify-twice is nextest's own spelling for "no Cargo output at
+# all"); nextest's run banner and Summary line have no such flag — verified
+# against `--status-level none` and `--final-status-level none`, neither
+# touches them — so they still print even on an all-pass run. Kept as a
+# single body line (bare comments above, not inside, the recipe) so
+# www/gates.jq's `gate_command` keeps quoting it verbatim in CONTRIBUTING.md
+# instead of falling back to the `[doc(...)]` string.
 
 [doc("Run tests only")]
 [group("dev")]
 [group("gate")]
 [positional-arguments]
 test *ARGS:
-    cargo nextest run --workspace --status-level fail "$@"
+    cargo nextest run --workspace --status-level fail --cargo-quiet --cargo-quiet "$@"
+
+# cargo-machete has no quiet flag (verified: `cargo machete --help` lists
+# none) — "Analyzing dependencies…" and "…Good job!" print on every clean run
+# with no way to silence just the success case. Left as a bare one-liner so
+# www/gates.jq's `gate_command` still quotes it verbatim in CONTRIBUTING.md.
 
 [doc("Check for unused dependencies")]
 [group("gate")]
@@ -113,7 +127,7 @@ machete:
 [doc("Fail if any file exceeds its linecop cap")]
 [group("gate")]
 check-file-size:
-    linecop
+    linecop --format paths
 
 [doc("Copy-paste gate: fail on any duplicated Rust block")]
 [extension('.sh')]
@@ -127,7 +141,17 @@ check-dry:
     #
     # `--exit-code 1` is spelled with its value: bare `--exit-code` would
     # swallow the following path argument as its optional code.
-    jscpd --no-tips -k 70 -f rust --exit-code 1 crates
+    #
+    # `-r xcode` swaps the default console reporter (a table plus tips even
+    # on a clean run) for one compiler-warning line per clone, naming the
+    # file and span — jscpd has no flag that stays silent on a clean run
+    # only: `-s`/`--silent` replaces ALL of this with one unconditional
+    # summary line on every run, success or failure, and drops the location
+    # a real finding needs. `-r xcode` still prints "Found 0 clones." and a
+    # timing line on a clean run (verified: no reporter or flag combination
+    # removes those two, jscpd 1.x) — the residual noise this trades for
+    # keeping a failure's file:line intact.
+    jscpd --no-tips -k 70 -f rust --exit-code 1 -r xcode crates
 
 # Scan the working tree for a committed credential with gitleaks, under
 # `.gitleaks.toml` (the default ruleset plus this repo's two allowlists, each
@@ -144,7 +168,7 @@ check-secrets:
 [doc("Fail if a source changed without its dependents reconfirmed")]
 [group("gate")]
 outdatty-check:
-    outdatty check
+    outdatty check --format paths
 
 # So a fixture some other tool runs `mt` against can never rot: learn-piano
 # feeds the docs generator and the skill's triage evals, minimal feeds the
@@ -172,8 +196,8 @@ outdatty-check:
 [doc("Validate each example project against itself")]
 [group("gate")]
 check-examples:
-    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/learn-piano check
-    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/minimal check
+    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/learn-piano check -q
+    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/minimal check -q
 
 # Every visible top-level `mt` subcommand must have a www/utils/cli-notes.typ
 # entry. How the set-difference is taken, and what it deliberately never

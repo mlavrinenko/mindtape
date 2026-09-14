@@ -47,4 +47,3 @@ if ! just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
     echo "fmt-fixture-check: just rejected its OWN formatting of the module file — the failure above was not about drift" >&2
     exit 1
 fi
-echo "fmt-fixture-check: all three formatters reject drift"

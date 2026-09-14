@@ -58,4 +58,3 @@ if [ -n "$missing" ]; then
     while IFS= read -r name; do echo "  - mt $name" >&2; done <<<"$missing"
     exit 1
 fi
-echo "check-doc-coverage: $(wc -l <<<"$visible") visible commands, all documented"

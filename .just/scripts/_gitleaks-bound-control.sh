@@ -86,5 +86,3 @@ if grep -qF -- 'exempted' <<<"$out"; then
     sed 's/^/  /' <<<"$out" >&2
     exit 1
 fi
-
-echo "gitleaks-bound-control: the control pair fails on all three paths and exempts in silence"

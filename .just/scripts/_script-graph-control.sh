@@ -138,5 +138,3 @@ assert_refuses "an unclassified flag" 'just --colour-me-surprised nested' \
     'carries a flag this walk has not been told about'
 assert_refuses "an unreadable target" 'just "$recipe"' \
     'names no recipe in the dump'
-
-echo "script-graph-control: the walk follows both hop kinds, reads no prose as a call, and refuses what it cannot resolve"

@@ -84,5 +84,3 @@ else
     echo "  the arm above proves nothing about include_hidden — this gate is miswired" >&2
     exit 1
 fi
-
-echo "size-fixture-check: the size gate reaches .just/scripts (a $lines-line file is reported; only include_hidden makes it visible)"
