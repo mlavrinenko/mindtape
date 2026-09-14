@@ -88,8 +88,13 @@ bare `status` still reads the lifecycle name.
   `matches`), `sort_compare_tests.rs` (`status.name` alphabetical,
   `status.index` legend order, `status.date` ISO order and missing-last).
 - Docs: `www/content/filters.typ` and `docs/src/skill.typ` (regenerated
-  `skills/mindtape/SKILL.md`), `CHANGELOG.md`; the `cli-docs` outdatty group
-  re-recorded.
+  `skills/mindtape/SKILL.md`), `CHANGELOG.md`; the `cli-docs`, `cli-name`,
+  `prelude-docs`, and `release-notes` outdatty groups re-recorded after the
+  final edit.
+- A review round after the first commit caught a stale `outdatty.lock` hash
+  (the skill line was compacted after the first re-record) and a docs
+  over-claim that every property takes `contains`/`matches`; both corrected,
+  with `status.date:desc` and `status.note` sort tests added.
 - `just check` passes. `check-file-size` caught `docs/src/skill.typ` at
   324/320 from the first draft of the skill sentence; it was compacted to the
   cap, not the cap raised.
