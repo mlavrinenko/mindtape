@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Retire more than one task in one mt rm",
-  kind: "task",
+  kind: "feat",
   priority: ice(
     impact: 5,
     confidence: 0.9,

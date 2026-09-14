@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Gate the estimate ceiling on difficulty",
-  kind: "task",
+  kind: "feat",
   priority: ice(
     impact: 7,
     confidence: 0.8,

@@ -33,7 +33,7 @@ fn dogfood_truth_tasks_pass_validation() {
     assert!(violations.is_empty(), "{violations:#?}");
 }
 
-/// `kind` names the shape a task takes. The dogfood config declares the
+/// `kind` names the kind of work a task is. The dogfood config declares the
 /// vocabulary, so a misspelled or invented kind fails `mt check` rather than
 /// silently falling out of every `kind == "umbrella"` filter (the WIP limits).
 #[test]
@@ -43,7 +43,7 @@ fn dogfood_config_rejects_an_unknown_kind() {
     let outcome = mindtape::load_project(&root, &config);
     let mut item = outcome.tasks.first().unwrap().clone();
 
-    for known in ["task", "umbrella"] {
+    for known in KINDS {
         item.kind = Some(known.to_owned());
         let violations = mindtape::validate(std::slice::from_ref(&item), &config);
         assert!(
@@ -52,15 +52,25 @@ fn dogfood_config_rejects_an_unknown_kind() {
         );
     }
 
-    item.kind = Some("epic".to_owned());
-    let violations = mindtape::validate(std::slice::from_ref(&item), &config);
-    assert!(
-        violations.iter().any(|v| v.field == "kind"),
-        "an unknown kind must be flagged: {violations:#?}"
-    );
+    // `task` says nothing a task file does not already say.
+    for unknown in ["epic", "task"] {
+        item.kind = Some(unknown.to_owned());
+        let violations = mindtape::validate(std::slice::from_ref(&item), &config);
+        assert!(
+            violations.iter().any(|v| v.field == "kind"),
+            "{unknown} must be flagged: {violations:#?}"
+        );
+    }
 }
 
-/// An open task names its shape; a closed one is exempt, so history is not
+/// The commit types this repo's history already uses, so a task's kind names
+/// the commit that will close it, plus `umbrella` for a milestone that closes
+/// through its leaves rather than a commit of its own.
+const KINDS: [&str; 7] = [
+    "feat", "fix", "refactor", "docs", "test", "chore", "umbrella",
+];
+
+/// An open task names its kind; a closed one is exempt, so history is not
 /// backfilled.
 #[test]
 fn dogfood_config_requires_kind_on_open_tasks_only() {
@@ -82,11 +92,14 @@ fn dogfood_config_requires_kind_on_open_tasks_only() {
     assert!(!kind_flagged(closed.unwrap()), "a closed task without kind");
 }
 
-/// Every shipped template stamps its `kind` into the `task.with(…)` head, so a
-/// filed task keeps the shape it was filed as. Matched at the head's own
-/// two-space indent, where a `slot(…, kind: "int")` argument never sits.
+/// A sweep template files one kind of finding, so it stamps that kind into
+/// the `task.with(…)` head. `task.typ` files anything, so it leaves `kind` out
+/// and `mt add` splices a choice over the configured vocabulary instead of a
+/// second copy of it. Matched at the head's own two-space indent; a body
+/// `slot(…, kind: "text")` argument sits there too, but never in the head,
+/// which ends at the first `)` line.
 #[test]
-fn dogfood_templates_set_a_known_kind() {
+fn dogfood_templates_stamp_a_known_kind_or_leave_it_to_config() {
     let config = config();
     let allowed = &config.tasks.fields.get("kind").unwrap().values;
     let dir = root().join(".mindtape/templates");
@@ -95,12 +108,17 @@ fn dogfood_templates_set_a_known_kind() {
         let source = std::fs::read_to_string(&path).unwrap();
         let kind = source
             .lines()
+            .take_while(|line| *line != ")")
             .find_map(|line| line.strip_prefix("  kind: \""))
             .and_then(|rest| rest.strip_suffix("\","));
-        assert!(
-            kind.is_some_and(|kind| allowed.iter().any(|value| value == kind)),
-            "{} sets no kind from {allowed:?}: {kind:?}",
-            path.display()
-        );
+        let generic = path.file_name().unwrap() == "task.typ";
+        match kind {
+            None => assert!(generic, "{} stamps no kind", path.display()),
+            Some(kind) => assert!(
+                !generic && allowed.iter().any(|value| value == kind),
+                "{} stamps `{kind}`; allowed {allowed:?}",
+                path.display()
+            ),
+        }
     }
 }

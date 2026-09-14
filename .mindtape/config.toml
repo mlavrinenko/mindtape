@@ -185,17 +185,22 @@ allowed = [
   "coverage"
 ]
 
-# The shape a task takes. `umbrella` coordinates a milestone, `task` is a leaf;
-# the WIP limits below partition the backlog on exactly that split, so a
-# misspelled kind would silently fall out of the umbrella cap. Every template
-# in .mindtape/templates/ stamps its kind, so a filed task keeps the shape it
-# was filed as.
+# What kind of work a task is. The leaf kinds are the Conventional Commits
+# types this repo's history already uses, so a task names the commit that will
+# close it; `umbrella` is the one kind no commit closes — a milestone that ends
+# through its leaves, and what the WIP limits below cap separately. A misspelled
+# kind would silently fall out of that cap, which is why the list is closed.
+#
+# The sweep templates stamp their one kind (`refactor` for a size finding,
+# `test` for the rest); `task.typ` leaves `kind` out, so `mt add` splices a
+# choice over this list rather than keeping a second copy of it. A
+# non-interactive add fails naming that slot, so agents pass `--set kind=feat`.
 #
 # `required = "!terminal"` mirrors the fields above: an open task names its
-# shape, a closed one is exempt, so history predating the field is not
+# kind, a closed one is exempt, so history predating the field is not
 # backfilled.
 [tasks.fields.kind]
-values = ["task", "umbrella"]
+values = ["feat", "fix", "refactor", "docs", "test", "chore", "umbrella"]
 required = "!terminal"
 
 # Who is working the task. The only distinction this backlog needs is

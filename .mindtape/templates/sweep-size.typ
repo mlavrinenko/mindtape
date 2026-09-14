@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: slot("title", prompt: "split or re-cap <path>"),
-  kind: "task",
+  kind: "refactor",
   priority: ice(
     impact: slot(
       "impact",

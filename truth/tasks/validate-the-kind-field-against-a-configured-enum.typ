@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Validate the kind field against a configured enum",
-  kind: "task",
+  kind: "feat",
   priority: ice(
     impact: 7,
     confidence: 0.8,

@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Add a density content assert",
-  kind: "task",
+  kind: "feat",
   priority: ice(
     impact: 6,
     confidence: 0.8,

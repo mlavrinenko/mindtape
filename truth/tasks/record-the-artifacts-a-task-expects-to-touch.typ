@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Record the artifacts a task expects to touch",
-  kind: "task",
+  kind: "feat",
   priority: ice(
     impact: 8,
     confidence: 0.7,

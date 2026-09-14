@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Let an empty allowlist mean no children",
-  kind: "task",
+  kind: "feat",
   priority: ice(
     impact: 5,
     confidence: 0.7,

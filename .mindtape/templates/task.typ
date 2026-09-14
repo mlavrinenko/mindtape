@@ -2,7 +2,6 @@
 
 #show: task.with(
   title: slot("title", prompt: "Task title"),
-  kind: "task",
   priority: ice(
     impact: slot("impact", kind: "int", default: 5),
     confidence: slot("confidence", kind: "float", default: 0.8),

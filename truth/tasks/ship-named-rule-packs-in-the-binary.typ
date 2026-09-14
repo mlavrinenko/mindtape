@@ -2,7 +2,7 @@
 
 #show: task.with(
   title: "Ship named rule packs in the binary",
-  kind: "task",
+  kind: "feat",
   priority: ice(
     impact: 9,
     confidence: 0.7,
