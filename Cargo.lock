@@ -1476,7 +1476,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19753d40da53d0ec41604750eeb969097a90fb2d7f7992730d904541c04e2c19"
 dependencies = [
  "bstr",
- "hashbrown 0.16.1",
+ "hashbrown 0.17.1",
 ]
 
 [[package]]
@@ -4427,12 +4427,13 @@ dependencies = [
 
 [[package]]
 name = "typst-world"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11a5e7c0be7dec92ca61ca9e2609b5eac458c47eb6cea5a6edd8484be983f866"
+checksum = "939ca93e01f822307a49187cddcadd7de751c7cbae11b37145c1839e5b365077"
 dependencies = [
  "chrono",
  "dirs",
+ "ecow 0.2.6",
  "thiserror 2.0.18",
  "typst",
  "typst-library",

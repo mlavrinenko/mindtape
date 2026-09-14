@@ -43,7 +43,7 @@ typst-harvest = "0.3.0"
 # `root_file_id` — to build a world whose main file is an UNWRITTEN source
 # (`World::with_source_override`). Every disk-backed constructor canonicalizes
 # its path, so validating a task before it exists has no other door.
-typst-world = "0.3.1"
+typst-world = "0.3.2"
 typst-cst = "0.2.0"
 typst-edit = "0.1.0"
 # Normalize the Typst source `mt` writes to typstyle's canonical form

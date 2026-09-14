@@ -35,25 +35,6 @@ fn task_source(dir: &Path) -> String {
     std::fs::read_to_string(dir.join("tasks/alpha.typ")).unwrap()
 }
 
-/// `alpha`'s status note read back through the harvest — the only way to tell a
-/// note that survived the write from markup Typst quietly interpreted away.
-/// Listed with an explicit match-all filter, since the default view hides a
-/// task that has reached a terminal status.
-fn status_note(dir: &Path) -> String {
-    let output = cmd(dir, &["ls", "", "--json"])
-        .assert()
-        .success()
-        .get_output()
-        .stdout
-        .clone();
-    let parsed: serde_json::Value = serde_json::from_slice(&output).unwrap();
-    parsed
-        .pointer("/tasks/0/status/note")
-        .and_then(serde_json::Value::as_str)
-        .unwrap_or_else(|| panic!("no status note in {parsed}"))
-        .to_owned()
-}
-
 /// A hook that leaves `fired` behind when its command runs.
 const SENTINEL_HOOK: &str = "[[on.flip]]\nwhen = ''\n\
                              actions = [{ run = \"touch fired\", gate = true }]\n";
@@ -147,7 +128,7 @@ fn force_waives_the_gate_and_records_it_in_the_note() {
     );
 
     // The note is real content, not just text in the file: it reads back.
-    let note = status_note(dir.path());
+    let note = support::status_note(dir.path());
     assert!(note.contains("forced past failing gate"), "{note}");
 }
 
@@ -163,7 +144,7 @@ fn a_waiver_is_appended_to_an_authored_note() {
     )
     .assert()
     .success();
-    let note = status_note(dir.path());
+    let note = support::status_note(dir.path());
     assert!(note.starts_with("shipped by hand"), "{note}");
     assert!(note.contains("forced past failing gate"), "{note}");
 }

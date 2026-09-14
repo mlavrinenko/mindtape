@@ -170,6 +170,27 @@ pub fn task_json(dir: &Path, id: &str) -> serde_json::Value {
         .clone()
 }
 
+/// The lone task's status note read back through the harvest, via an
+/// explicit match-all filter (`mt ls "" --json`) since the default view hides
+/// a task that has already reached a terminal status. Reading it back is the
+/// only way to tell a note that survived the write from markup Typst quietly
+/// interpreted away.
+pub fn status_note(dir: &Path) -> String {
+    let output = mt(dir)
+        .args(["ls", "", "--json"])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let parsed: serde_json::Value = serde_json::from_slice(&output).unwrap();
+    parsed
+        .pointer("/tasks/0/status/note")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or_else(|| panic!("no status note in {parsed}"))
+        .to_owned()
+}
+
 /// The value at RFC-6901 `pointer` inside a [`task_json`] row (`/links/0/note`).
 /// Spelled as a lookup rather than `row["links"][0]`, which the workspace's
 /// `indexing_slicing` lint denies.

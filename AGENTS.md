@@ -45,7 +45,7 @@ The seven former in-tree substrate crates are published to crates.io and consume
 - `typst-cst` `0.2.0` — parse-plane structure extraction
 - `typst-edit` `0.1.0` — slot/link rewriting
 - `typst-harvest` `0.3.0` — harvest
-- `typst-world` `0.3.1` — package-agnostic Typst World/eval
+- `typst-world` `0.3.2` — package-agnostic Typst World/eval
 
 Both lists — name, version, direct-vs-transitive — are derived from `www/generated/crate-map.json`, never hand-written.
 
