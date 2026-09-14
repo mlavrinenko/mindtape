@@ -12,7 +12,11 @@
   tags: ("cli",),
   estimate: (files: 3),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(
+    2026,
+    9,
+    14,
+  )[mt rm takes any number of refs and filters, retires the deduplicated union in one pass, and aborts before writing if any entry fails to resolve],
 )
 
 == Summary
