@@ -69,7 +69,7 @@ Find a task → read it → change its status → validate.
   [Stamp `reviewed:` today], [`mt review <task>` (one task)],
   [Advance a recurrence], [`mt recur <task>` (new file or refresh in place)],
   [Validate all tasks], [`mt check`],
-  [Retire a task], [`mt rm <task>`],
+  [Retire task(s)], [`mt rm <task…>` (each a ref or a filter; union, one pass)],
   [Inspect the effective config], [`mt config show` (`--origin`, `--defaults`)],
 )
 

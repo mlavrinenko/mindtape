@@ -413,8 +413,12 @@ layers contributed, and from where.
 = Retire
 
 `mt rm` retires tasks: it mints a `swh:1:rev` tombstone, retargets every inbound
-`links:` edge (any kind) onto it, and does not commit. Its built-in default
-filter is `terminal`.
+`links:` edge (any kind) onto it, and does not commit. `TARGET` is variadic —
+zero or more references and/or filters, each resolved the way a single target
+is; the union of every entry's matches, deduplicated by id, retires in one
+pass — one confirmation prompt, one tombstone/rewrite pass covering the whole
+set. Its built-in default filter (used when no target is given at all) is
+`terminal`.
 
 Without a git repository there is no tombstone to mint, so `[rm] strategy`
 picks how the inbound edges are handled instead: `reject` (the default)

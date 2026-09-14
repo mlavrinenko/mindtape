@@ -58,6 +58,34 @@ title: \"Unrelated\",\n  \
 status: wip(2026, 6, 1),\n\
 )\n\n== Summary\n\nBody.\n";
 
+/// Two independently-removed tasks (`gone-a`, `gone-b`), each with its own
+/// survivor, for the multi-target `mt rm` batch below.
+const GONE_A: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+#show: task.with(\n  \
+title: \"Gone A\",\n  \
+status: done(2026, 6, 1),\n\
+)\n\n== Summary\n\nBody.\n";
+
+const GONE_B: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+#show: task.with(\n  \
+title: \"Gone B\",\n  \
+status: done(2026, 6, 1),\n\
+)\n\n== Summary\n\nBody.\n";
+
+const LIVE_A: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+#show: task.with(\n  \
+title: \"Live A\",\n  \
+status: wip(2026, 6, 1),\n  \
+links: depends-on(\"gone-a.typ\"),\n\
+)\n\n== Summary\n\nBody.\n";
+
+const LIVE_B: &str = "#import \"@local/mindtape:0.2.0\": *\n\n\
+#show: task.with(\n  \
+title: \"Live B\",\n  \
+status: wip(2026, 6, 1),\n  \
+links: depends-on(\"gone-b.typ\"),\n\
+)\n\n== Summary\n\nBody.\n";
+
 fn git(dir: &Path, args: &[&str]) {
     let status = Command::new("git")
         .current_dir(dir)
@@ -131,6 +159,57 @@ fn rm_retargets_every_links_edge_and_check_stays_green() {
 
     // The dangling-edge regression: with every inbound edge tombstoned, no
     // survivor edge resolves to a missing task, so validation stays green.
+    mt(dir.path()).arg("check").assert().success();
+}
+
+#[test]
+fn rm_takes_two_refs_in_one_invocation_and_rewrites_each_inbound_link() {
+    // TARGET is variadic: two refs in one call retire both, with one
+    // confirmation prompt and one tombstone/rewrite pass covering the set —
+    // not two separate `mt rm` invocations.
+    let dir = tempfile::tempdir().unwrap();
+    scaffold_files(
+        dir.path(),
+        &[
+            ("gone-a.typ", GONE_A),
+            ("gone-b.typ", GONE_B),
+            ("live-a.typ", LIVE_A),
+            ("live-b.typ", LIVE_B),
+        ],
+    );
+    git_commit_all(dir.path());
+
+    mt(dir.path())
+        .args(["rm", "-y", "gone-a", "gone-b"])
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("deleted 2 task(s)"))
+        .stdout(predicates::str::contains("rewrote 2 link(s) in 2 file(s)"));
+
+    // Both retired files are gone.
+    assert!(!dir.path().join("tasks/gone-a.typ").exists());
+    assert!(!dir.path().join("tasks/gone-b.typ").exists());
+
+    // Each survivor's own inbound edge was rewritten onto its own tombstone.
+    let live_a = std::fs::read_to_string(dir.path().join("tasks/live-a.typ")).unwrap();
+    assert!(
+        live_a.contains("swh:1:rev:") && live_a.contains("path=tasks/gone-a.typ"),
+        "live-a not tombstoned:\n{live_a}"
+    );
+    assert!(
+        !live_a.contains("\"gone-a.typ\""),
+        "raw edge survived:\n{live_a}"
+    );
+    let live_b = std::fs::read_to_string(dir.path().join("tasks/live-b.typ")).unwrap();
+    assert!(
+        live_b.contains("swh:1:rev:") && live_b.contains("path=tasks/gone-b.typ"),
+        "live-b not tombstoned:\n{live_b}"
+    );
+    assert!(
+        !live_b.contains("\"gone-b.typ\""),
+        "raw edge survived:\n{live_b}"
+    );
+
     mt(dir.path()).arg("check").assert().success();
 }
 

@@ -23,6 +23,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   on the config page's `Config-declared rules` section; the filter page's
   `in_dict` entry now points at it instead of restating it.
 
+- **`mt rm` retires more than one task in one call.** `TARGET` is now
+  variadic, mirroring `mt flip`'s argument shape: each entry resolves as a
+  reference or a filter exactly as a single target does today, and the union
+  of every entry's matches — deduplicated by id, so the same task named twice
+  or named once directly and again by a filter retires once — is retired in
+  one pass: one confirmation prompt, one SWHID tombstone/inbound-link rewrite
+  covering the whole set. Zero targets still applies `[rm] default_filter`
+  exactly as before.
+
 ### Changed
 
 - **An estimate bound can be gated on the task it bounds** (breaking, pre-1.0;

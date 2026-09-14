@@ -20,6 +20,11 @@ fn ids(values: &[&str]) -> HashSet<String> {
     values.iter().map(|v| (*v).to_owned()).collect()
 }
 
+/// Build a `select_targets` argument list from string slices.
+fn targets(values: &[&str]) -> Vec<String> {
+    values.iter().map(|v| (*v).to_owned()).collect()
+}
+
 fn task(id: &str, file: &str, status: Option<&str>) -> Task {
     let mut t = bare_task(id);
     t.file = PathBuf::from(file);
@@ -367,7 +372,7 @@ fn select_targets_ref_bypasses_status() {
             task("live", "tasks/live.typ", Some("wip")),
         ],
     );
-    let got = select_targets(&project, Some("gone"), &readiness_of(&project)).unwrap();
+    let got = select_targets(&project, &targets(&["gone"]), &readiness_of(&project)).unwrap();
     assert_eq!(got, ids(&["gone"]));
 }
 
@@ -383,11 +388,57 @@ fn select_targets_filter_selects_every_match() {
     );
     let got = select_targets(
         &project,
-        Some("status == \"done\""),
+        &targets(&["status == \"done\""]),
         &readiness_of(&project),
     )
     .unwrap();
     assert_eq!(got, ids(&["a", "c"]));
+}
+
+#[test]
+fn select_targets_two_refs_union() {
+    // Two refs in one invocation retire both — the whole point of making
+    // TARGET variadic.
+    let project = stub_project(
+        Config::default(),
+        vec![
+            task("a", "tasks/a.typ", Some("wip")),
+            task("b", "tasks/b.typ", Some("wip")),
+            task("c", "tasks/c.typ", Some("wip")),
+        ],
+    );
+    let got = select_targets(&project, &targets(&["a", "b"]), &readiness_of(&project)).unwrap();
+    assert_eq!(got, ids(&["a", "b"]));
+}
+
+#[test]
+fn select_targets_ref_and_filter_union() {
+    // A ref and a filter together retire the union of what each selects.
+    let project = stub_project(
+        Config::default(),
+        vec![
+            task("a", "tasks/a.typ", Some("wip")),
+            task("b", "tasks/b.typ", Some("done")),
+            task("c", "tasks/c.typ", Some("wip")),
+        ],
+    );
+    let got = select_targets(
+        &project,
+        &targets(&["a", "status == \"done\""]),
+        &readiness_of(&project),
+    )
+    .unwrap();
+    assert_eq!(got, ids(&["a", "b"]));
+}
+
+#[test]
+fn select_targets_same_task_named_twice_retires_once() {
+    let project = stub_project(
+        Config::default(),
+        vec![task("a", "tasks/a.typ", Some("wip"))],
+    );
+    let got = select_targets(&project, &targets(&["a", "a"]), &readiness_of(&project)).unwrap();
+    assert_eq!(got, ids(&["a"]));
 }
 
 #[test]
@@ -404,7 +455,7 @@ fn select_targets_default_filter_is_terminal() {
             task("b", "tasks/b.typ", Some("wip")),
         ],
     );
-    let got = select_targets(&project, None, &readiness_of(&project)).unwrap();
+    let got = select_targets(&project, &[], &readiness_of(&project)).unwrap();
     assert_eq!(got, ids(&["a"]));
 }
 
@@ -415,7 +466,7 @@ fn select_targets_unresolvable_token_errors() {
         Config::default(),
         vec![task("a", "tasks/a.typ", Some("wip"))],
     );
-    assert!(select_targets(&project, Some("nope"), &readiness_of(&project)).is_err());
+    assert!(select_targets(&project, &targets(&["nope"]), &readiness_of(&project)).is_err());
 }
 
 #[path = "rm_cli_tests.rs"]

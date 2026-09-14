@@ -179,10 +179,16 @@
 
   // ── Retire ──────────────────────────────────────────────────────────────────
   "rm": (
+    prose: [`TARGET` is variadic: zero or more entries, each a reference or a
+      filter, resolved the same way a lone target resolves. The union of every
+      entry's matches, deduplicated by id, retires in one pass — one
+      confirmation prompt, one tombstone/rewrite pass covering the whole
+      set.],
     examples: ```sh
-    mt rm abandoned-rondo-alla-turca  # by ref
-    mt rm 'status == "cancelled"'     # by filter — every match
-    mt rm terminal --dry-run          # preview without writing
+    mt rm abandoned-rondo-alla-turca              # by ref
+    mt rm abandoned-rondo-alla-turca minuet-in-g  # two refs — one pass
+    mt rm 'status == "cancelled"'                 # by filter — every match
+    mt rm terminal --dry-run                      # preview without writing
     ```,
   ),
 

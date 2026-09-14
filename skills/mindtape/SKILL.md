@@ -38,7 +38,7 @@ Find a task → read it → change its status → validate.
 | Stamp `reviewed:` today | `mt review <task>` (one task) |
 | Advance a recurrence | `mt recur <task>` (new file or refresh in place) |
 | Validate all tasks | `mt check` |
-| Retire a task | `mt rm <task>` |
+| Retire task(s) | `mt rm <task…>` (each a ref or a filter; union, one pass) |
 | Inspect the effective config | `mt config show` (`--origin`, `--defaults`) |
 
 `<task>` / `<id>` accepts a filename stem, a relative/absolute path, or a handle (the `#` column, e.g. `1b`). A handle is not a token from the last `mt ls`: its ordinal is the task’s position in the default view **recomputed on every command**, so any flip that re-sorts or filters renumbers it, and the trailing check letters catch most such shifts, not all. A flip reports what it moved (`handle <stem>: 1b → 3b`, or `→ none` when it left the view); for any second operation, prefer the stem, which never moves.

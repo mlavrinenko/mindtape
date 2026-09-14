@@ -7,11 +7,13 @@
 //! `link()`), file-stem link identity, the tombstone label, and the task-worded
 //! presentation.
 //!
-//! Selection: the optional `target` is either a task reference (slug, path, or a
-//! `list` handle like `1v`) or a filter expression. A reference resolves a single
-//! task regardless of its status; a filter retires every match. With no target,
-//! the configured `[rm] default_filter` applies (built-in `terminal`: sweep every
-//! terminal-status task).
+//! Selection: `target` is variadic — zero or more entries, each a task reference
+//! (slug, path, or a `list` handle like `1v`) or a filter expression. A reference
+//! resolves a single task regardless of its status; a filter retires every
+//! match; the union across every entry, deduplicated by id, is retired in one
+//! pass — one confirmation prompt, one tombstone/rewrite pass. With no targets
+//! at all, the configured `[rm] default_filter` applies (built-in `terminal`:
+//! sweep every terminal-status task).
 //!
 //! Atomic by construction: [`typst_cleanup::plan`] computes every mint and
 //! rewrite in memory; not a byte is written until [`apply`] runs on a complete
@@ -63,11 +65,12 @@ use crate::{git, util};
 /// Arguments for `mt rm`.
 #[derive(Args)]
 pub struct RmArgs {
-    /// Task to retire: a reference (slug, relative/absolute path, or a `list`
-    /// handle like `1v`) or a filter expression. References resolve a single
-    /// task regardless of status; filters retire every match. Omitted: the
-    /// configured `[rm] default_filter` (built-in `terminal`).
-    pub target: Option<String>,
+    /// Tasks to retire: each a reference (slug, relative/absolute path, or a
+    /// `list` handle like `1v`) or a filter expression. A reference resolves a
+    /// single task regardless of status; a filter retires every match; the
+    /// union of every entry, deduplicated, is retired in one pass. Omitted
+    /// entirely: the configured `[rm] default_filter` (built-in `terminal`).
+    pub targets: Vec<String>,
     /// Skip the interactive confirmation prompt.
     #[arg(short = 'y', long)]
     pub yes: bool,
@@ -129,7 +132,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
     // Readiness over the full set, before any narrowing, so `ready`/`blocked`/
     // `terminal` predicates and handle ordinals resolve the same as `list`.
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
-    let eligible = select_targets(&project, args.target.as_deref(), &readiness)?;
+    let eligible = select_targets(&project, &args.targets, &readiness)?;
 
     if eligible.is_empty() {
         println!("nothing to remove");
