@@ -9,13 +9,14 @@
   ),
   difficulty: 3,
   tags: ("mt",),
-  estimate: (files: 5),
+  estimate: (files: 2),
   kind: "chore",
   assignee: "agent",
   status: proposed(2026, 9, 14),
   links: depends-on(
     "replace-the-task-section-set-with-a-closed-four-section-spec.typ",
-  ),
+  )
+    + depends-on("add-a-docs-page-showing-a-rejected-agent-spec.typ"),
 )
 
 == Summary
@@ -25,7 +26,7 @@ The union allowlist lets old and new sections coexist, but the set cannot close 
 
 == Scope
 
-Rewrite the open task bodies still carrying Summary and Scope into AS-IS, TO-BE, Ruled out and Done when, with `mt check` green after each. Five did when this was filed; the backlog has grown since, so recount at pickup and re-estimate or split then.
+Rewrite the open task bodies still carrying Summary and Scope into AS-IS, TO-BE, Ruled out and Done when, with `mt check` green after each. Closed tasks are never rewritten. This runs after every other open task, so at pickup the old shape should survive only in the four-section chain's own open tasks and in anything filed since: recount then, and re-estimate or split if that count has grown.
 
 == Dogfood
 

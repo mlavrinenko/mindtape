@@ -10,32 +10,32 @@
   ),
   difficulty: 4,
   tags: ("substrate", "gating"),
-  estimate: (files: 4),
+  estimate: (files: 5),
   assignee: "agent",
   status: proposed(2026, 9, 14),
 )
 
 == Summary
 
-Forbidding subsections under a section is naturally `action = "allowlist"` with the section as `scope` and an empty `allowed`, but artifact-gate refuses it: `Rule::allow` returns `RuleError::EmptyPath` when `allowed` is empty (artifact-gate-0.1.0/src/lib.rs:208). This projects config works around it with `action = "forbid"` over a wildcard path pair, which is correct and reads as a trick rather than as the rule it is.
+Forbidding subsections under a section is naturally `action = "allowlist"` with the section as `scope` and an empty `allowed`, but artifact-gate refuses it: `Rule::allow` returns `RuleError::EmptyPath` when `allowed` is empty (artifact-gate 0.1.0, `src/lib.rs:208`). This project's config works around it with `action = "forbid"` over a wildcard path pair, which is correct and reads as a trick rather than as the rule it is.
 
 == Scope
 
-Decide whether an empty `allowed` should mean "no children permitted" in artifact-gate. If so, release it and replace the wildcard-pair workaround:
+Work in the artifact-gate repository (github.com/mlavrinenko/artifact-gate), not this one. Make an empty `allowed` mean "no children permitted": under a `Some` scope no node the path matches may have a child, and under a `None` scope no root node is permitted. A `Some` scope that is itself empty stays `RuleError::EmptyPath`, since a scope matching nothing is a typo rather than an intent.
 
 ```toml
 # today
 action = "forbid"
 path = [{ match = ".*" }, { match = ".*" }]
 
-# proposed
+# after
 action = "allowlist"
-scope = ["Section"]
+scope = [{ match = ".*" }]
 allowed = []
 ```
 
-The empty-scope case stays an error either way, since a scope matching nothing is a typo rather than an intent.
+Red test first: an empty allowlist under a scope rejects a child and accepts a childless node. Update the doc comment on `Rule::allow`, add a CHANGELOG entry, and bump the crate to 0.1.1 in `Cargo.toml` and `Cargo.lock`, additive because a call that used to fail now succeeds. Commit there following that repository's own conventions, and stop: tagging, pushing and publishing are `publish-artifact-gate-0-1-1.typ`.
 
 == Dogfood
 
-The replacement lands in this repo's `.mindtape/config.toml`.
+The replacement lands in this repo's `.mindtape/config.toml` in `adopt-the-empty-allowlist-from-artifact-gate-0-1-1.typ`.

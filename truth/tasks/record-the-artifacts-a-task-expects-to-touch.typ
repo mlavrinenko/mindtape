@@ -10,27 +10,27 @@
   ),
   difficulty: 6,
   tags: ("mt", "gating"),
-  estimate: (files: 5),
+  estimate: (files: 3),
   assignee: "agent",
   status: proposed(2026, 9, 14),
 )
 
 == Summary
 
-Naming the files is the most-cited field in agent-ticket practice — Anthropics own guidance is to name the files and interfaces involved — and blustrokes Files section proves the content is data rather than prose: median 8 words, a bare path list. Its value is directing the implementer, not validating the spec, so checking that a path exists is the wrong check. A spec legitimately names a file it will create, and a closed task legitimately names one a later refactor deleted.
+Naming the files is the most-cited field in agent-ticket practice: Anthropic's own guidance is to name the files and interfaces involved, and blustroke's Files section proves the content is data rather than prose, a bare path list with a median of 8 words. Its value is directing the implementer, not validating the spec, so checking that a path exists is the wrong check. A spec legitimately names a file it will create, and a closed task legitimately names one a later refactor deleted.
 
 == Scope
 
-Add a field taking edges in the prelude's packager idiom:
+Add a dedicated `artifacts` field to `task`, separate from `links:`, built in the prelude's packager idiom:
 
 ```typ
-links: created("a/b.rs") + changed("z/*.rs"),
+artifacts: created("crates/mindtape/src/a.rs") + changed("crates/mindtape/src/*.rs"),
 ```
 
-Globs allowed on `changed`, refused on `created`, and never validate the paths at rest. Feed it to estimate_drift.rs instead, which already diffs a declared file count against the working tree and only ever runs on a wip task, so the comparison always sees a live tree and the dead-path problem cannot arise.
+`links:` stays edges between tasks. A path in the working tree is not a task, and folding paths into `links:` would hand every edge consumer (link resolution, `mt rm` tombstones, `topo` and `blocks`) a second kind of target to skip.
 
-Split: this task is the field itself. Touches the packagers in `lib/prelude.typ`, `BUILTIN_KINDS` and the target validator in `crates/mindtape/src/link.rs` with `link_tests.rs`, and the glob refusal in `crates/mindtape/src/validate_links.rs` with `validate_links_tests.rs`. Feeding the declared paths to the drift check follows in `compare-declared-artifacts-against-the-working-tree.typ`, the docs in `document-the-created-and-changed-edge-kinds.typ`.
+Split: this task is the call shape, which is where the decision lives. Touches `lib/prelude.typ` (the `artifacts` parameter, `created` and `changed` packagers that `+` combines the way edge helpers do, and the call-shape checks for a missing or non-string path), the `artifacts` entry in `www/utils/dsl-field-notes.typ` that the doc-facts gate demands as soon as the parameter exists, and red tests in `crates/mindtape/src/loader_tests_prelude.rs`. Reading, typing and the glob rule follow in `read-the-artifacts-field-into-the-task-model.typ`, the drift comparison in `compare-declared-artifacts-against-the-working-tree.typ`, and the docs in `document-the-artifacts-field.typ`.
 
 == Dogfood
 
-This backlog declares `created`/`changed` edges from `compare-declared-artifacts-against-the-working-tree.typ` on.
+This backlog declares `artifacts` from `compare-declared-artifacts-against-the-working-tree.typ` on.

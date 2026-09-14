@@ -37,4 +37,4 @@ Calibrate each rule against this repo's own open task bodies, so every bundled r
 
 == Dogfood
 
-Add that `include` to this repo's `.mindtape/config.toml`.
+Add that `include` to this repo's `.mindtape/config.toml`, and drop the hand-written em-dash density rule `document-the-density-content-assert.typ` put there if the pack carries an equivalent.

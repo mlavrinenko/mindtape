@@ -13,6 +13,9 @@
   estimate: (files: 3),
   assignee: "agent",
   status: proposed(2026, 9, 14),
+  links: depends-on(
+    "replace-the-task-section-set-with-a-closed-four-section-spec.typ",
+  )[the pitch quotes the refusals the four-section spec adds],
 )
 
 == Summary
