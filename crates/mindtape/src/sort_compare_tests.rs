@@ -92,6 +92,33 @@ fn sort_by_specs_orders_a_missing_status_date_last() {
 }
 
 #[test]
+fn sort_by_specs_descending_orders_a_missing_status_date_first() {
+    // `:desc` reverses the whole comparison, so the missing-last rule of the
+    // ascending case becomes missing-first — the documented convention every
+    // field follows.
+    let cfg = config();
+    let mut dated = task("dated", "wip", 5.0, None);
+    dated.status.as_mut().unwrap().date = Some("2026-01-02".to_owned());
+    let undated = task("undated", "wip", 5.0, None);
+    assert_eq!(
+        ids_by(vec![dated, undated], "status.date:desc", &cfg),
+        vec!["undated", "dated"]
+    );
+}
+
+#[test]
+fn sort_by_specs_orders_by_status_note() {
+    let cfg = config();
+    let noted = |id: &str, note: &str| {
+        let mut task = task(id, "wip", 5.0, None);
+        task.status.as_mut().unwrap().note = Some(note.to_owned());
+        task
+    };
+    let tasks = vec![noted("b", "second"), noted("a", "first")];
+    assert_eq!(ids_by(tasks, "status.note", &cfg), vec!["a", "b"]);
+}
+
+#[test]
 fn sort_by_specs_orders_by_priority_ascending() {
     let cfg = config();
     let tasks = vec![

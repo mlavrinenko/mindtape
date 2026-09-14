@@ -12,13 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Filters and sorts reach a field's named parts.** A field with fixed named
   parts is now addressed as `field.property`: `status.name`, `status.date`
   (the ISO stamp), `status.note`, and `status.index` (the 0-based position in
-  the configured legend, numeric) work in a comparison, `has`/`miss`,
-  `contains`, `matches`, and `--sort` — one registry entry each, so a property
-  is filterable and sortable by construction. Bare `status` keeps its split: a
-  comparison reads the lifecycle name (`status == "wip"` unchanged), an
-  ordering reads the legend position. `--sort`'s accepted vocabulary is now
-  derived from that registry plus the computed `ready` rank, so a new field or
-  property is sortable without touching a second list.
+  the configured legend, numeric) work in a comparison, `has`/`miss`, and
+  `--sort` — one registry entry each, so a property is filterable and sortable
+  by construction. A string-valued property takes `contains`/`matches` too;
+  `status.index` is numeric, and `Missing` for a statusless task or a name
+  outside the legend. Bare `status` keeps its split: a comparison reads the
+  lifecycle name (`status == "wip"` unchanged), an ordering reads the legend
+  position. `--sort`'s accepted vocabulary is now derived from that registry
+  plus the computed `ready` rank, so a new field or property is sortable
+  without touching a second list.
 
 - **A flip gate can refuse without a `run` command.** `[[on.flip]]`'s
   `run` is now optional on a gating action: `{ gate = true, message = "..." }`
@@ -56,6 +58,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one pass: one confirmation prompt, one SWHID tombstone/inbound-link rewrite
   covering the whole set. Zero targets still applies `[rm] default_filter`
   exactly as before.
+
+### Removed
+
+- **`mindtape::sort::SORT_FIELDS`** (breaking, pre-1.0; library callers only).
+  The sort vocabulary is now derived from the field registry —
+  `sort::is_sort_field` accepts every registered name plus the computed `ready`
+  rank — so the hand-kept const would be the second list the registry exists to
+  remove. An out-of-tree caller that enumerated it can ask `is_sort_field` per
+  candidate name; nothing in this workspace imported the const.
 
 ### Changed
 

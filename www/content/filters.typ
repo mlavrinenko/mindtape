@@ -29,9 +29,11 @@ A field with fixed named parts is addressed as `field.property`. `status`
 carries four: `status.name` (the same value bare `status` compares),
 `status.date` (the ISO stamp), `status.note` (the note written with the
 stamp), and `status.index` (the 0-based position in the configured legend,
-numeric — `status.index < 2` is "before the third status"). A property works
-everywhere its field does: comparison, `has`/`miss`, `contains`, `matches`,
-and `--sort`.
+numeric — `status.index < 2` is "before the third status"; a status outside
+the legend has no index, so `has(status.index)` is false). A property takes
+the comparison, `has`/`miss`, and `--sort` its field does, and a
+string-valued one takes `contains` and `matches` too — `status.index` is
+numeric, so it does not.
 
 `assignee` compares the actor name as a plain string (`assignee == "ada"`).
 `role` is resolved from the `[[actors]]` registry at read time: `role ==

@@ -15,7 +15,7 @@ use crate::fields::{self, FieldValue};
 use crate::model::Task;
 use crate::ready::{Readiness, ReadyState};
 
-/// Whether `name` is accepted by `--sort` and `[query] default_sort`: every
+/// Whether `name` is accepted by `--sort` and `[ls] default-sort`: every
 /// [`crate::fields::FIELDS`] entry, plus `ready` (a computed rank, not a
 /// `Task` field — see [`ready_rank`]). Derived rather than listed, so a field
 /// or property wired into the registry is sortable by construction and no
@@ -46,7 +46,7 @@ pub fn validate_sort_spec(spec: &str) -> Result<(), String> {
     }
 }
 
-/// The `--sort` / `[query] default_sort` error for an unrecognised field,
+/// The `--sort` / `[ls] default-sort` error for an unrecognised field,
 /// carrying [`crate::fields::rename_hint`]'s clause when the name is one the
 /// registry retired — so `--sort file` names `path` rather than only saying
 /// `file` does not exist.

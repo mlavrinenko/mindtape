@@ -147,7 +147,7 @@ fn validate_sort_spec_rejects_unknown_field() {
 /// `--sort file` is the same trap the filter field was: the column is named
 /// `file`, the sort key is `path`. Both the pre-flight validator and
 /// `sort_by_specs`' own guard must name the replacement, since a saved
-/// `[query] default_sort` reaches one and a `--sort` flag the other.
+/// `[ls] default-sort` reaches one and a `--sort` flag the other.
 #[test]
 fn the_retired_file_sort_field_errors_naming_path() {
     let spec = validate_sort_spec("file").unwrap_err();
