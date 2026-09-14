@@ -12,7 +12,11 @@
   estimate: (files: 8),
   kind: "feat",
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(
+    2026,
+    9,
+    14,
+  )[gate = true with no run refuses whenever when matches; this repo's stale-start gate dropped its run = "false" stand-in],
 )
 
 == Summary
