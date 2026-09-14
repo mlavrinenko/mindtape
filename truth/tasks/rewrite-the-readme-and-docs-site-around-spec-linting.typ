@@ -24,3 +24,7 @@ The README sells a daemon-free file-based task tracker, which competes on featur
 Lead README.md and www/content/index.typ with the linter claim and demote the tracker mechanics to the second section. The card render stops being a selling point and becomes a footnote.
 
 Split: the page whose entire content is a rejected agent-written task and the mt check output that rejected it is `add-a-docs-page-showing-a-rejected-agent-spec.typ`. README.md is rendered from `docs/src/readme.typ`, so that source is the file touched, with the `outdatty.lock` re-record for its group.
+
+== Dogfood
+
+Not applicable: docs only.

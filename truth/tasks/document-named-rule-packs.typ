@@ -25,3 +25,6 @@ Rule packs and the plain-prose pack ship as code and tests. The generated schema
 
 Regenerate `schema/config.schema.json`, document the `include` and per-rule disable keys, the reserved `mindtape-` prefix and the rule list of `mindtape-plain-prose` in `www/content/config.typ`, and add a CHANGELOG.md entry.
 
+== Dogfood
+
+Not applicable: docs only; the pack itself is dogfooded in `write-the-mindtape-plain-prose-rule-pack.typ`.

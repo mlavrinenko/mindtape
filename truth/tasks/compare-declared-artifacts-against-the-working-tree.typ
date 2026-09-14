@@ -25,4 +25,6 @@ The `created` and `changed` edges from `record-the-artifacts-a-task-expects-to-t
 
 Extend `crates/mindtape/src/estimate_drift.rs` so an in-flight task that declares artifacts gets a warning naming each changed file outside every declared `changed` glob and `created` path, alongside the existing count comparison. Decide whether an undeclared `created` path that never appears also warns. Red tests in `estimate_drift_tests.rs`; describe the comparison in `www/content/estimates.typ`.
 
-Dogfood: declare this task's own `created`/`changed` edges and confirm `mt check` compares them against the tree while it is wip.
+== Dogfood
+
+Declare this task's own `created`/`changed` edges and confirm `mt check` compares them against the tree while it is wip.

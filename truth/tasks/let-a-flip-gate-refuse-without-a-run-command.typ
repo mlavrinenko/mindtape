@@ -32,5 +32,6 @@ actions = [{ gate = true, message = "re-read the scope, `mt review` it, then sta
 
 Touches the kind resolution in `crates/mindtape/src/config_hooks.rs` with `config_hooks_tests.rs`, the dispatch in `crates/mindtape-cli/src/flip_hooks.rs` with `flip_hooks_tests.rs`, `schema/config.schema.json`, `www/content/hooks.typ` and `CHANGELOG.md`. Red test: a matching run-less gate refuses the flip and prints its message; a non-matching one lets it through.
 
-Dogfood: drop `run = "false"` from this repo's review-before-start gate in `.mindtape/config.toml`.
+== Dogfood
 
+Drop `run = "false"` from this repo's review-before-start gate in `.mindtape/config.toml`.

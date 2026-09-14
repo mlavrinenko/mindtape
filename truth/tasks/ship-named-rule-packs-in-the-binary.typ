@@ -30,4 +30,6 @@ include = ["mindtape-plain-prose"]
 
 Reserve the prefix against project packs, and give every bundled rule an id (`artifact_gate::Rule::with_id` already carries one) so a project can disable a single rule it disagrees with rather than abandoning the pack. This task is the mechanism only, proven with a test-only pack: the `include` and disable keys on `ContentConfig` in `crates/mindtape/src/body_content.rs`, compiling pack rules ahead of the project's in `crates/mindtape/src/content_gate.rs` with `content_gate_tests.rs`, and a new embedded registry module wired through `crates/mindtape/src/lib.rs`. The first real pack is `write-the-mindtape-plain-prose-rule-pack.typ`; the schema and docs are `document-named-rule-packs.typ`.
 
-Dogfood: include `mindtape-plain-prose` in this repo's `.mindtape/config.toml`, landed in `write-the-mindtape-plain-prose-rule-pack.typ`.
+== Dogfood
+
+Include `mindtape-plain-prose` in this repo's `.mindtape/config.toml`, landed in `write-the-mindtape-plain-prose-rule-pack.typ`.

@@ -25,4 +25,6 @@
 
 Replace the presence test in `check_note_required` in `crates/mindtape-cli/src/flip.rs` with the evaluator the core task exposes, so a flip refuses the same note `mt check` would, before writing. Red test in `flip_tests.rs`: `mt flip done -m done` is refused under a `min-words = 10` policy. Then regenerate `schema/config.schema.json`, document the table form beside `note = "required"` in `www/content/config.typ` and `www/content/cli.typ`, and add a CHANGELOG.md entry.
 
-Dogfood: give this repo's `done` status a note policy in `.mindtape/config.toml`.
+== Dogfood
+
+Give this repo's `done` status a note policy in `.mindtape/config.toml`.

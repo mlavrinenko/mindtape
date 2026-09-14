@@ -34,3 +34,6 @@ rg -l '^== (Summary|Scope)$' $(mt ls '!terminal' --format path) .mindtape/templa
 
 Then, in `.mindtape/config.toml`, drop Summary and Scope from the top-level allowlist, and delete the Summary `unique` rule, the Summary-before-Scope `order` rule, and the Scope `min-words` and gating fenced-block content rules the TO-BE rules replaced.
 
+== Dogfood
+
+Built in: the closed set lands in this repo's own `.mindtape/config.toml`.

@@ -31,4 +31,6 @@ Globs allowed on `changed`, refused on `created`, and never validate the paths a
 
 Split: this task is the field itself. Touches the packagers in `lib/prelude.typ`, `BUILTIN_KINDS` and the target validator in `crates/mindtape/src/link.rs` with `link_tests.rs`, and the glob refusal in `crates/mindtape/src/validate_links.rs` with `validate_links_tests.rs`. Feeding the declared paths to the drift check follows in `compare-declared-artifacts-against-the-working-tree.typ`, the docs in `document-the-created-and-changed-edge-kinds.typ`.
 
-Dogfood: this backlog declares `created`/`changed` edges from `compare-declared-artifacts-against-the-working-tree.typ` on.
+== Dogfood
+
+This backlog declares `created`/`changed` edges from `compare-declared-artifacts-against-the-working-tree.typ` on.

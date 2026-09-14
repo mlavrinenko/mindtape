@@ -40,4 +40,6 @@ Exclude the task root from the count at flip time: `mt flip` writes the very tas
 
 Touches the action shape and `ActionKind` in `crates/mindtape/src/config_hooks.rs` and `config_hooks_tests.rs`, the dispatch in `crates/mindtape-cli/src/flip_hooks.rs` and `flip_hooks_tests.rs`, and `crates/mindtape/src/estimate_drift.rs` for the flip-time entry point. Red test: a wip task declaring two files, closed against a four-file tree, reports the drift. The end-to-end pin and the docs follow in `document-the-estimate-drift-flip-check.typ`.
 
-Dogfood: add the gating `check = "estimate-drift"` action to this repo's close hook in `.mindtape/config.toml`, landed in `document-the-estimate-drift-flip-check.typ`.
+== Dogfood
+
+Add the gating `check = "estimate-drift"` action to this repo's close hook in `.mindtape/config.toml`, landed in `document-the-estimate-drift-flip-check.typ`.

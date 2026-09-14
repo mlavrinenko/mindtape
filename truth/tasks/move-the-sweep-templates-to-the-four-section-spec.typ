@@ -27,3 +27,6 @@
 
 Rewrite `.mindtape/templates/sweep-size.typ`, `sweep-mutants.typ`, `sweep-coverage.typ` and `sweep-undertested.typ` into AS-IS, TO-BE, Ruled out and Done when, mapping each finding's measurement to AS-IS and its threshold to Done when. Move the remedy bullets `contrib/ask-refactoring/size.sh` splices into Scope over to TO-BE, and confirm with `mt add --print` per template.
 
+== Dogfood
+
+Built in: the next `just ask-refactoring` sweep files its tasks from these templates.

@@ -23,4 +23,6 @@
 
 Make TARGET variadic, resolving each entry as a reference or a filter and retiring the union, with the confirmation prompt and the SWHID tombstone rewrite covering the whole set in one pass. Red test: two refs in one invocation retire both and rewrite the inbound links for each.
 
-Dogfood: the next time this repo retires tasks, retire them in one `mt rm` call.
+== Dogfood
+
+The next time this repo retires tasks, retire them in one `mt rm` call.

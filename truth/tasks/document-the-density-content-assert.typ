@@ -25,4 +25,6 @@ The density variant lands in `add-a-density-content-assert.typ` as code and test
 
 Regenerate `schema/config.schema.json` from `mt config schema`, add the density assert beside the other five in `www/content/config.typ` with its `pattern`, `max` and `per` keys and the `section` default, and add a CHANGELOG.md entry under Unreleased. No behaviour changes.
 
-Dogfood: add a `density` rule to this repo's `[[tasks.body.content.rules]]` in `.mindtape/config.toml`.
+== Dogfood
+
+Add a `density` rule to this repo's `[[tasks.body.content.rules]]` in `.mindtape/config.toml`.

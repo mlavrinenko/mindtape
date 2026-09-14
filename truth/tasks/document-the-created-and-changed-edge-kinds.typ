@@ -25,3 +25,6 @@ Two built-in edge kinds join the six the docs count by name, so every page that 
 
 Add `created` and `changed` with their glob rule to the links section of `www/content/dsl.typ`, update the built-in count in `www/content/config.typ`, add the helpers to the edge examples in `skills/mindtape/references/hand-editing.md`, and add a CHANGELOG.md entry.
 
+== Dogfood
+
+Not applicable: docs only; the edges are dogfooded in `compare-declared-artifacts-against-the-working-tree.typ`.
