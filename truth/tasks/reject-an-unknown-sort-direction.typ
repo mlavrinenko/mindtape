@@ -9,10 +9,14 @@
     ease: 9,
   ),
   difficulty: 2,
-  estimate: (files: 4),
+  estimate: (files: 6),
   assignee: "agent",
   tags: ("cli",),
-  status: wip(2026, 9, 15),
+  status: done(
+    2026,
+    9,
+    15,
+  )[unknown sort directions now error],
 )
 
 == Summary
@@ -41,3 +45,14 @@ order and notices. Hit live as `--sort status.date:wtf`.
 Every `--sort` in this repo's views and scripts still validates because each
 spells `asc`/`desc`; the next typo is a loud error rather than a listing that
 quietly ignores the direction.
+
+== Outcome
+
+- `validate_sort_spec` accepts `field`, `field:asc`, `field:desc` and rejects
+  any other suffix; `sort_by_specs` calls it instead of re-checking the field
+  alone, so `--sort` and `[ls] default-sort` fail identically.
+- Tests: the validator's accepted and rejected spellings, and the error path
+  through `sort_by_specs`.
+- `www/content/filters.typ` and `CHANGELOG.md` document the error; the
+  `cli-docs`, `cli-name`, and `release-notes` outdatty groups are re-recorded.
+- Estimate revised from 4 files to the 6 the change touched.
