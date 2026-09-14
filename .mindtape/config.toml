@@ -125,18 +125,26 @@ required = "!terminal"
 # Outside this range is a validation error, not a warning: an oversized task must
 # be split before the work starts, not after. Terminal tasks are exempt.
 #
-# The ceiling is calibrated against this repo's own history rather than picked
-# by feel: over the last 200 commits, files-per-commit runs p50=2, p75=5,
-# p90=11, p95=15, p99=32. The former cap of 5 sat at p75, so a quarter of the
-# work that actually lands here was already over it — a cap that routine work
-# breaches teaches you to inflate the estimate, not to split the task. 15 (p95)
-# leaves ordinary multi-file changes honest while still catching the genuine
-# outliers. Anything looser (30 ≈ p99) would never bind, and a limit that never
-# fires is not a limit.
-[tasks.estimate.max]
-files = 15
+# The ceiling is gated on `difficulty`, because the decomposition pressure a cap
+# exists to create belongs on unbounded judgment, not on size. Judgment work
+# (3 and up on the rubric above) is held to 5 files — p75 of this repo's
+# files-per-commit over 200 commits (p50=2, p75=5, p90=11, p95=15, p99=32) —
+# since a design decision spread wider than that is two decisions. Mechanical
+# work keeps the p95 ceiling of 15: a fully specified change carries one
+# decision however many files it touches, and splitting it only copies that
+# decision into several tasks. Anything looser (30 ≈ p99) would never bind, and
+# a limit that never fires is not a limit. The first entry whose `when` matches
+# and that names the unit wins.
+[[tasks.estimate.max]]
+when = "difficulty >= 3"
+files = 5
+message = "judgment work stays small; split the decision from the mechanical fan-out rather than widen the cap"
 
-[tasks.estimate.min]
+[[tasks.estimate.max]]
+files = 15
+message = "even mechanical work this wide hides a second decision; split it"
+
+[[tasks.estimate.min]]
 files = 1
 
 # `[tasks.estimate.drift]` stays at its defaults for everything but `exclude` —
