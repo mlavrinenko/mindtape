@@ -109,6 +109,14 @@ serve: gen
 
 # Build the docs, index with Pagefind, then validate internal links + assets.
 # Pagefind runs before validate so the /pagefind/ bundle exists on disk.
+#
+# `tola build`'s `[build]` progress bar and `tola validate`'s `[sitemap]`/
+# `[validate]` lines print on every run, success included — verified against
+# tola 0.7.1's `build`/`validate` `--help`: neither subcommand offers a quiet
+# flag, `--color never` does not touch them (the escape sequences are the
+# progress redraw, not colour), and `CI=true`/`NO_COLOR=1` make no
+# difference either. Left as-is rather than wrapped: no flag exists to
+# silence a clean run without risking a captured-and-replayed failure.
 
 [doc("Build, index, and validate the docs site")]
 [group("docs")]

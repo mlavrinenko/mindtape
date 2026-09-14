@@ -74,7 +74,6 @@ assert_forwards() {
         fail=1
         return
     fi
-    echo "positional-args-check: $recipe carries [positional-arguments] and interpolates nothing into its body"
 }
 
 assert_forwards test
@@ -93,7 +92,6 @@ assert_script_forwards() {
         fail=1
         return
     fi
-    echo "positional-args-check: $script forwards \"\$@\""
 }
 
 assert_script_forwards .just/scripts/mutants.sh 'cargo mutants.*"\$@"'
@@ -103,4 +101,3 @@ if [ "$fail" -ne 0 ]; then
     echo "positional-args-check: one or more passthrough recipes lost real argument forwarding" >&2
     exit 1
 fi
-echo "positional-args-check: all four passthrough recipes forward a real argument vector"

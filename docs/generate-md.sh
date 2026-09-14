@@ -152,5 +152,3 @@ for src in docs/src/**/*.typ; do
 
   rendered=$((rendered + 1))
 done
-
-echo "docs-md: rendered $rendered source(s) under $OUT_ROOT"

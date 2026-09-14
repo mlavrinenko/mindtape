@@ -48,5 +48,3 @@ if [ -n "$orphaned" ]; then
     while IFS= read -r route; do echo "  - $route" >&2; done <<<"$orphaned"
     exit 1
 fi
-
-echo "nav-diff: $(wc -l <<<"$routes") routes checked against NAV, no mismatch"

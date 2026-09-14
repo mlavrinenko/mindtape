@@ -102,8 +102,6 @@ if [ -n "$offenders" ]; then
         echo "  drop the shebang line and add [script], so 'set script-interpreter' applies to it" >&2
         fail=1
     done <<<"$offenders"
-else
-    echo "script-attr-check: no recipe body opens with a #! shebang"
 fi
 
 # write_probe <replica-path> <setting-line>
@@ -122,10 +120,8 @@ write_probe() {
 # require the identical probe to SURVIVE a flagless bash: that pins each failure
 # below to the flags in the setting line, which is the only thing that differs.
 write_probe "$tmp/control.just" 'set script-interpreter := ["bash"]'
-if control_out=$(just --justfile "$tmp/control.just" probe </dev/null 2>&1) \
-    && grep -qF "$marker" <<<"$control_out"; then
-    echo "script-attr-check: the probe survives a flagless bash, so a death below means the flags"
-else
+if ! { control_out=$(just --justfile "$tmp/control.just" probe </dev/null 2>&1) \
+    && grep -qF "$marker" <<<"$control_out"; }; then
     echo "script-attr-check: the probe did not survive a flagless bash — it proves nothing about strict mode" >&2
     echo "  output: $control_out" >&2
     exit 1
@@ -159,11 +155,9 @@ while IFS= read -r src; do
         fail=1
         continue
     fi
-    echo "script-attr-check: $rel aborts a failed pipeline (${line#"${line%%[![:space:]]*}"})"
 done <<<"$sources"
 
 if [ "$fail" -ne 0 ]; then
     echo "script-attr-check: strict mode is not arriving by construction" >&2
     exit 1
 fi
-echo "script-attr-check: every script body goes through [script], and all $n justfile interpreters abort a failed pipeline"

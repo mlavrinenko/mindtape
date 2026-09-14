@@ -270,5 +270,3 @@ jq -f "$SCRIPT_DIR/sweep-flags.jq" <<<"$JUST_DUMP" | emit sweep-flags.json
 # quotes caps from. yq is the same jq-over-YAML wrapper generate.sh uses for the
 # release workflow, so this stays consistent with the rest of the docs tooling.
 yq '{limits, overrides}' .linecop.yaml | emit linecop-caps.json
-
-echo "generated $(find "$OUT" -maxdepth 1 \( -name '*.json' -o -name '*.typ' \) | wc -l) fact files under $OUT"

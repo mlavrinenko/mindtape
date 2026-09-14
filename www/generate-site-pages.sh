@@ -127,5 +127,3 @@ jq -n --argjson site "$site_meta" --argjson pages "$pages_json" '
       pages: (reduce ($ordered + $rest)[] as $r ({}; . + {($r): $pages[$r]})),
     }
 ' | emit site-pages.json
-
-echo "generate-site-pages.sh: $(jq 'length' <<<"$pages_json") pages"

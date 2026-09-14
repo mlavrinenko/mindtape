@@ -22,4 +22,3 @@ if [ "${#drift[@]}" -gt 0 ]; then
     for f in "${drift[@]}"; do echo "  - $f" >&2; done
     exit 1
 fi
-echo "docs::md-check: $(find "$tmp" -type f | wc -l) generated file(s) match committed"

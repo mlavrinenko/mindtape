@@ -118,4 +118,3 @@ for f in "${sources[@]}"; do
 done
 
 [ "$fail" -eq 0 ] || exit 1
-echo "check-doc-recipes: no hand-typed just mention skips the generated module"

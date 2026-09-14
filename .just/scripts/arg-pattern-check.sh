@@ -56,7 +56,6 @@ assert_rejected() {
         fail=1
         return
     fi
-    echo "arg-pattern-check: $recipe correctly rejects '$*'"
 }
 
 # assert_accepted <recipe> <good-argument>...
@@ -76,7 +75,6 @@ assert_accepted() {
         fail=1
         return
     fi
-    echo "arg-pattern-check: $recipe correctly accepts '$*'"
 }
 
 # assert_default_accepted <recipe>
@@ -91,7 +89,6 @@ assert_default_accepted() {
         fail=1
         return
     fi
-    echo "arg-pattern-check: $recipe's default satisfies its own pattern"
 }
 
 assert_rejected release v0.3.0
@@ -123,8 +120,6 @@ if out=$(just --dry-run --yes outdatty-update </dev/null 2>&1); then
     echo "arg-pattern-check: bare outdatty-update succeeded — GROUP must be required" >&2
     echo "  output: $out" >&2
     fail=1
-else
-    echo "arg-pattern-check: bare outdatty-update correctly requires a group"
 fi
 
 # `fork`'s two parameters are both interpolated into the body, and each pattern
@@ -191,4 +186,3 @@ if [ "$fail" -ne 0 ]; then
     echo "arg-pattern-check: one or more arg patterns did not behave as expected" >&2
     exit 1
 fi
-echo "arg-pattern-check: all recipe arg patterns reject bad input and accept good input"

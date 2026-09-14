@@ -106,7 +106,6 @@
 set -eo pipefail
 fail=0
 
-note() { echo "site-pages-fixture-check: $*"; }
 problem() { echo "site-pages-fixture-check: $*" >&2; fail=1; }
 
 # Asserts BOTH a non-zero exit and that the combined stdout+stderr NAMES the
@@ -126,7 +125,6 @@ assert_catches() {
         printf '%s\n' "$out" >&2
         return
     fi
-    note "$desc: caught, naming \"$needle\""
 }
 
 tmp=$(mktemp -d)
@@ -189,9 +187,7 @@ unset MINDTAPE_GENERATED_LOCK
 # Positive control: the UNMUTATED replica must pass. Without this, a probe
 # that fails for an environmental reason (a missing tool, a broken `--root`)
 # would look identical to three successful catches.
-if out=$(bash "$tmp/clean/www/generate-site-pages.sh" 2>&1); then
-    note "positive control: unmutated replica passes"
-else
+if ! out=$(bash "$tmp/clean/www/generate-site-pages.sh" 2>&1); then
     problem "positive control: unmutated replica failed"
     printf '%s\n' "$out" >&2
 fi
@@ -222,4 +218,3 @@ if [ "$fail" -ne 0 ]; then
     echo "site-pages-fixture-check: the docs manifest gate no longer catches everything it claims to" >&2
     exit 1
 fi
-echo "site-pages-fixture-check: all three manifest failures are still caught, naming the offender"

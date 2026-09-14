@@ -28,8 +28,11 @@ status asserts them all fresh via `mmz --is-fresh --tag gate` without running
 one. Scopes and the `gate` tag live in `.mmz/config.yaml`, where the rule name is
 #raw("just <recipe>") — the double hop makes mmz the cache identity.
 #just.test("<filter>") stays outside mmz (plain `cargo nextest run` with `ARGS`),
-so no cached record reflects a filtered subset. No `chronic`: hits print mmz's
-`on_hit` note to stderr, misses stream live, failures exit through `parallel`.
+so no cached record reflects a filtered subset. No `chronic`: a hit prints
+nothing (`on_hit: ""` in `.mmz/config.yaml` — a skipped arm used to restate
+"mmz: skipped `<command>` (inputs unchanged)" on every green re-run, noise an
+exit code already carries), a miss streams live, and a failure exits through
+`parallel`.
 
 #just.check-crap() reads `target/coverage/lcov.info` — git-ignored, under no
 source scope — so it gets an `lcov` scope declared `gitignore: false`, the
