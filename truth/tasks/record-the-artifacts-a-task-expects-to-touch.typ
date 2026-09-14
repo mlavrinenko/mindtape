@@ -21,10 +21,12 @@ Naming the files is the most-cited field in agent-ticket practice — Anthropics
 
 == Scope
 
-Add two built-in edge kinds in the prelude's packager idiom:
+Add a field taking edges in the prelude's packager idiom:
 
 ```typ
 links: created("a/b.rs") + changed("z/*.rs"),
 ```
 
-Globs allowed on `changed`, refused on `created`, and never validate the paths at rest. Their targets are artifacts outside the backlog, the axis `[[tasks.links.kinds]] validate` already models for custom kinds, so neither kind blocks readiness or joins the cycle check. Touches the packagers in `lib/prelude.typ`, `BUILTIN_KINDS` and the target validator in `crates/mindtape/src/link.rs` with `link_tests.rs`, and the glob refusal in `crates/mindtape/src/validate_links.rs` with `validate_links_tests.rs`. Feeding the declared paths to the drift check follows in `compare-declared-artifacts-against-the-working-tree.typ`, the docs in `document-the-created-and-changed-edge-kinds.typ`.
+Globs allowed on `changed`, refused on `created`, and never validate the paths at rest. Feed it to estimate_drift.rs instead, which already diffs a declared file count against the working tree and only ever runs on a wip task, so the comparison always sees a live tree and the dead-path problem cannot arise.
+
+Split: this task is the field itself. Touches the packagers in `lib/prelude.typ`, `BUILTIN_KINDS` and the target validator in `crates/mindtape/src/link.rs` with `link_tests.rs`, and the glob refusal in `crates/mindtape/src/validate_links.rs` with `validate_links_tests.rs`. Feeding the declared paths to the drift check follows in `compare-declared-artifacts-against-the-working-tree.typ`, the docs in `document-the-created-and-changed-edge-kinds.typ`.

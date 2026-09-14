@@ -22,7 +22,7 @@
 
 == Scope
 
-Widen the legend's note rule to accept a table reusing `ContentAssert` alongside the existing `"required"` string:
+Widen the legend's `NoteRule` to accept a table reusing `ContentAssert` alongside the existing `"required"` string:
 
 ```toml
 [[tasks.status]]
@@ -30,4 +30,6 @@ value = "done"
 note = { required = true, min-words = 10, must-not-match = "^done$" }
 ```
 
-The legend entry uses `mindtape::link::NoteRule` today, shared with `links:` edge kinds, so the status side needs its own type rather than widening the edge one. Touches `crates/mindtape/src/config_status.rs` and `config_status_tests.rs` for the type, `crates/mindtape/src/content_gate.rs` to expose the assert evaluation over a bare string rather than a section, and the `mt check` seam in `crates/mindtape/src/validate.rs` with a red test in `validate_tests.rs`. The `mt flip` seam and the docs follow in `enforce-a-status-note-content-policy-on-flip.typ`.
+Enforce it in `crates/mindtape-cli/src/flip.rs` `check_note_required` and in `mt check`, with a red test for each seam.
+
+Split: this task is the `mt check` seam; the `mt flip` seam and the docs are `enforce-a-status-note-content-policy-on-flip.typ`. The legend entry uses `mindtape::link::NoteRule` today, shared with `links:` edge kinds, so the status side needs its own type rather than widening the edge one. Touches `crates/mindtape/src/config_status.rs` and `config_status_tests.rs` for the type, `crates/mindtape/src/content_gate.rs` to expose the assert evaluation over a bare string rather than a section, and the `mt check` seam in `crates/mindtape/src/validate.rs` with a red test in `validate_tests.rs`.

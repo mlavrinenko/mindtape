@@ -135,6 +135,10 @@ required = "!terminal"
 # decision into several tasks. Anything looser (30 ≈ p99) would never bind, and
 # a limit that never fires is not a limit. The first entry whose `when` matches
 # and that names the unit wins.
+#
+# These numbers are provisional: retune them as the backlog shows where they
+# pinch. Open question — should mechanical work (difficulty below 3) carry no
+# file cap at all, since its one decision does not grow with the file count?
 [[tasks.estimate.max]]
 when = "difficulty >= 3"
 files = 5

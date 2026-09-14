@@ -25,5 +25,5 @@ The union allowlist lets old and new sections coexist, but the set cannot close 
 
 == Scope
 
-Rewrite the five highest-priority open task bodies still carrying Summary and Scope into AS-IS, TO-BE, Ruled out and Done when, with `mt check` green after each. If any remain, file the next batch as its own task before closing this one, so no task grows past five files.
+Rewrite the open task bodies still carrying Summary and Scope into AS-IS, TO-BE, Ruled out and Done when, with `mt check` green after each. Five did when this was filed; the backlog has grown since, so recount at pickup and re-estimate or split then.
 
