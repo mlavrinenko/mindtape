@@ -191,10 +191,12 @@ allowed = [
 # in .mindtape/templates/ stamps its kind, so a filed task keeps the shape it
 # was filed as.
 #
-# Not required: the open backlog predates the field and carries no kind, and
-# the `kind != "umbrella"` limit already reads an absent kind as a leaf.
+# `required = "!terminal"` mirrors the fields above: an open task names its
+# shape, a closed one is exempt, so history predating the field is not
+# backfilled.
 [tasks.fields.kind]
 values = ["task", "umbrella"]
+required = "!terminal"
 
 # Who is working the task. The only distinction this backlog needs is
 # human-vs-model: `max` holds the work no agent can finish — a render loaded in
