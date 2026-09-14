@@ -68,7 +68,7 @@ groups:
   dev-docs:
     source:
       .config/nextest.toml: 509384734e79e026c13895a33acf0151298c27e6cb2e135f1630ba57932df1eb
-      .just/docs.just: 2f7c0bc2830ece601fffeaef00669edbd8d8bb0fb94223c285bf211c9998bc4d
+      .just/docs.just: fb6400f608435fe2ace750dd447a2983cfd7d7ab195290e6726699b3ab9c7811
       .just/scripts/_gitleaks-bound-check.sh: 77bf45dbc463a1d4a51f5e7744dcfad06ef7ec6a78bfe0c1fc6d304a93aa0c5f
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
@@ -95,7 +95,7 @@ groups:
       .just/scripts/script-scope-check.sh: 02f952e6b7776850a943f1792d1526579debf62587ff86d1558f11ad93e37185
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 61149663fbb62f4508193af8248d448f24adc24557fd2b09cbda826f25e6174b
+      Justfile: b0f9407982ca9c7dbe7bc2d9ca79005ca74e2ef507c80b8312b68bead6397790
       flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7

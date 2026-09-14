@@ -115,15 +115,17 @@ serve: gen
 # tola 0.7.1's `build`/`validate` `--help`: neither subcommand offers a quiet
 # flag, `--color never` does not touch them (the escape sequences are the
 # progress redraw, not colour), and `CI=true`/`NO_COLOR=1` make no
-# difference either. Left as-is rather than wrapped: no flag exists to
-# silence a clean run without risking a captured-and-replayed failure.
+# difference either. So each is captured and replayed only on failure: a
+# clean gate run prints nothing, a failing one still prints tola's report.
 
 [doc("Build, index, and validate the docs site")]
 [group("docs")]
 [group("gate")]
 [working-directory("www")]
 check: gen
-    tola build && pagefind --site public/mindtape --silent && tola validate
+    out=$(tola build 2>&1) || { printf '%s\n' "$out"; exit 1; }
+    pagefind --site public/mindtape --silent
+    out=$(tola validate 2>&1) || { printf '%s\n' "$out"; exit 1; }
 
 # Render docs/src/*.typ to the repo-root Markdown each source declares
 # (README.md, AGENTS.md, CONTRIBUTING.md, skills/mindtape/SKILL.md,

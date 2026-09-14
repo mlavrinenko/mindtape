@@ -149,9 +149,10 @@ check-dry:
     # summary line on every run, success or failure, and drops the location
     # a real finding needs. `-r xcode` still prints "Found 0 clones." and a
     # timing line on a clean run (verified: no reporter or flag combination
-    # removes those two, jscpd 1.x) — the residual noise this trades for
-    # keeping a failure's file:line intact.
-    jscpd --no-tips -k 70 -f rust --exit-code 1 -r xcode crates
+    # removes those two, jscpd 1.x), so the output is captured and replayed
+    # only on failure: a clean run prints nothing, a finding keeps its
+    # file:line intact.
+    out=$(jscpd --no-tips -k 70 -f rust --exit-code 1 -r xcode crates 2>&1) || { printf '%s\n' "$out"; exit 1; }
 
 # Scan the working tree for a committed credential with gitleaks, under
 # `.gitleaks.toml` (the default ruleset plus this repo's two allowlists, each

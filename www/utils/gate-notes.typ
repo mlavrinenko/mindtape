@@ -143,10 +143,10 @@
     `.just/scripts/check-doc-recipes.sh`.
   ],
   "docs-check": [
-    `docs-gen` — a dependency, not part of the command shown — captures live
-    `mt` output first (`www/generate.sh`), so this gate always sees fresh
-    CLI examples before `pagefind` indexes the build for client-side search
-    and `tola validate` checks links and assets.
+    `docs-gen` — a dependency — captures live `mt` output first
+    (`www/generate.sh`), so this gate always sees fresh CLI examples before
+    `pagefind` indexes the build for client-side search and `tola validate`
+    checks links and assets. Both `tola` steps print only on failure.
   ],
   "docs-md-check": [
     Regenerates every `docs/src/*.typ` source with typlite into a temp
