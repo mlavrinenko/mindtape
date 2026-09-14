@@ -11,7 +11,10 @@
 //! terminal. A `run` executes a command; with `gate = true` a non-zero exit
 //! stops the walk and refuses the flip, so nothing is written for that task, and
 //! the command's output is printed whatever the presentation setting — it is the
-//! evidence the refusal rests on. `--force` waives a failing gate and records
+//! evidence the refusal rests on. `run` is optional on a gate: with none, the
+//! hook's `when` already matching is the whole verdict, so the gate refuses
+//! unconditionally with no command to run and nothing to print but its
+//! `message`. `--force` waives a failing gate — run or run-less — and records
 //! the waiver in the status note ([`note_with_overrides`]), because an override
 //! nobody can see afterwards is not an override, it is a hole.
 
@@ -52,9 +55,11 @@ pub(crate) struct HookOutcome {
     pub refusal: Option<String>,
 }
 
-/// A gate command that exited non-zero.
+/// A gate that refused the flip: a `run` command that exited non-zero, or a
+/// run-less gate whose `when` matched.
 struct Gate {
-    /// The command line, for the status note.
+    /// The command line, for the status note — or, for a run-less gate with no
+    /// command to name, its `message` (falling back to [`DEFAULT_ADVICE`]).
     command: String,
     /// The refusal message, for the caller's problem report.
     refusal: String,
@@ -64,7 +69,9 @@ struct Gate {
 /// argument-count lint.
 #[derive(Clone, Copy)]
 struct RunSpec<'a> {
-    command: &'a str,
+    /// The command line, or `None` for a run-less gate — `kind()` only ever
+    /// pairs that with `gate: true`.
+    command: Option<&'a str>,
     gate: bool,
     message: Option<&'a str>,
 }
@@ -202,15 +209,20 @@ impl<'a> Hooks<'a> {
         Ok(())
     }
 
-    /// Execute a `run` action and judge the result.
+    /// Execute a `run` action and judge the result — or, with no command at
+    /// all, refuse outright: a run-less gate has nothing to run, so `when`
+    /// matching is the whole verdict.
     fn exec(
         &self,
         run: RunSpec<'_>,
         at: &Transition<'_>,
         out: &mut dyn Write,
     ) -> Result<Option<Gate>> {
+        let Some(command) = run.command else {
+            return Ok(Some(runless_gate(run.message)));
+        };
         let report = run_command(
-            run.command,
+            command,
             &RunCtx {
                 root: &self.project.root,
                 path: at.path,
@@ -222,25 +234,22 @@ impl<'a> Hooks<'a> {
             // A successful non-gate run's output is informational — presentation,
             // suppressed on the same terms as `show` and `list`.
             if !run.gate && self.show {
-                write_output(out, run.command, &report)?;
+                write_output(out, command, &report)?;
             }
             return Ok(None);
         }
         // A failure always surfaces, quiet or not: it is either the evidence a
         // refusal rests on, or a command the project asked to be told about.
-        write_output(out, run.command, &report)?;
+        write_output(out, command, &report)?;
         let advice = run.message.unwrap_or(DEFAULT_ADVICE);
         let verdict = report.verdict();
         if !run.gate {
-            writeln!(out, "warning: {} ({verdict}) — {advice}", run.command)?;
+            writeln!(out, "warning: {command} ({verdict}) — {advice}")?;
             return Ok(None);
         }
         Ok(Some(Gate {
-            command: run.command.to_owned(),
-            refusal: format!(
-                "gate {command:?} failed ({verdict}); nothing written — {advice}",
-                command = run.command
-            ),
+            command: command.to_owned(),
+            refusal: format!("gate {command:?} failed ({verdict}); nothing written — {advice}"),
         }))
     }
 }
@@ -252,6 +261,18 @@ fn view_sort(project: &Project, spec: &str) -> Vec<String> {
         .and_then(|name| project.config.views.get(name))
         .map(|view| view.sort.clone())
         .unwrap_or_default()
+}
+
+/// A run-less gate's verdict: refuse, unconditionally — `when` already
+/// matched, so there is no command to run and nothing else to check. The
+/// `message` (or the default advice, absent one) is both the refusal's
+/// explanation and the stand-in for a command in the status note.
+fn runless_gate(message: Option<&str>) -> Gate {
+    let advice = message.unwrap_or(DEFAULT_ADVICE);
+    Gate {
+        command: advice.to_owned(),
+        refusal: format!("gate refused; nothing written — {advice}"),
+    }
 }
 
 /// Print a command's combined output under a header naming it.

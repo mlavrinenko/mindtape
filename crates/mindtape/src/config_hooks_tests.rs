@@ -135,7 +135,41 @@ gate = true"#
         .kind()
         .unwrap(),
         ActionKind::Run {
-            command: "just check",
+            command: Some("just check"),
+            gate: true,
+            message: None,
+        }
+    );
+}
+
+/// `run` is optional on a gating action: `gate = true` with no `run` still
+/// resolves to `Run`, just with no command to execute — the flip refuses
+/// unconditionally whenever the hook's `when` matches.
+#[test]
+fn a_gate_with_no_run_resolves_as_a_runless_gate() {
+    assert_eq!(
+        action(
+            r#"gate = true
+message = "re-read the scope""#
+        )
+        .kind()
+        .unwrap(),
+        ActionKind::Run {
+            command: None,
+            gate: true,
+            message: Some("re-read the scope"),
+        }
+    );
+}
+
+/// `message` is optional too, same as a `run` gate — the runner falls back to
+/// its default advice.
+#[test]
+fn a_runless_gate_needs_no_message() {
+    assert_eq!(
+        action("gate = true").kind().unwrap(),
+        ActionKind::Run {
+            command: None,
             gate: true,
             message: None,
         }
@@ -145,6 +179,14 @@ gate = true"#
 #[test]
 fn action_without_a_kind_is_rejected() {
     let err = action(r#"title = "x""#).kind().unwrap_err();
+    assert!(err.contains("declares no kind"), "{err}");
+}
+
+/// `gate = false` alone (the default) is the same "nothing to do" shape as no
+/// fields at all: no command to run, and no unconditional refusal either.
+#[test]
+fn a_bare_gate_false_action_is_rejected() {
+    let err = action("gate = false").kind().unwrap_err();
     assert!(err.contains("declares no kind"), "{err}");
 }
 
@@ -167,6 +209,7 @@ fn modifiers_belonging_to_another_kind_are_rejected() {
         "show = \"a\"\nmessage = \"m\"",
         "list = \"@wip\"\ngate = true",
         "run = \"true\"\ntitle = \"t\"",
+        "gate = true\ntitle = \"t\"",
     ] {
         let err = action(toml).kind().unwrap_err();
         assert!(err.contains("does not apply"), "{toml}: {err}");
@@ -287,6 +330,18 @@ fn a_valid_hook_passes_validation() {
         "[views.wip]\nfilter = 'status == \"wip\"'\n\
          [[on.flip]]\nwhen = 'into(\"done\") && !has_tag(\"chore\")'\n\
          actions = [{ list = \"@wip\", title = \"T\" }, { run = \"true\", gate = true }]\n",
+    );
+    assert!(validate_flip_hooks(&config).is_empty());
+    assert!(config.validate().is_ok());
+}
+
+/// A run-less gate — `gate = true` and `message`, no `run` — is a valid hook:
+/// the config the task's Scope shows as the motivating example.
+#[test]
+fn a_runless_gate_passes_validation() {
+    let config = config_with(
+        "[[on.flip]]\nwhen = 'into(\"wip\") && stale(30)'\n\
+         actions = [{ gate = true, message = \"re-read the scope\" }]\n",
     );
     assert!(validate_flip_hooks(&config).is_empty());
     assert!(config.validate().is_ok());

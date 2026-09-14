@@ -653,11 +653,11 @@
     },
     "FlipAction": {
       "additionalProperties": false,
-      "description": "One action of a `[[on.flip]]` entry.\n\nExactly one of `show`, `list`, or `run` must be set — the three kinds\nshare one flat TOML shape so a mistyped or conflicting entry surfaces as a\nclear config error instead of an opaque parse failure.",
+      "description": "One action of a `[[on.flip]]` entry.\n\nExactly one of `show`, `list`, or `run` must be set, OR `gate = true` with\nno `run` at all — the three kinds share one flat TOML shape so a mistyped\nor conflicting entry surfaces as a clear config error instead of an opaque\nparse failure.",
       "properties": {
         "gate": {
           "default": false,
-          "description": "Whether a non-zero exit from `run` refuses the flip. `run`-only.",
+          "description": "Whether a non-zero exit from `run` refuses the flip, or — with no `run`\nat all — refuses unconditionally. `run`-only (or run-less-gate-only).",
           "type": "boolean"
         },
         "list": {
@@ -670,7 +670,7 @@
         },
         "message": {
           "default": null,
-          "description": "Explanation printed when a `run` command exits non-zero.",
+          "description": "Explanation printed when a `run` command exits non-zero, or a run-less\ngate refuses.",
           "type": [
             "string",
             "null"
@@ -678,7 +678,7 @@
         },
         "run": {
           "default": null,
-          "description": "`{ run = \"command\" }` — execute a command through the platform shell\n(`sh -c`; `cmd /C` on Windows).",
+          "description": "`{ run = \"command\" }` — execute a command through the platform shell\n(`sh -c`; `cmd /C` on Windows). Optional on a gating action: `gate =\ntrue` with no `run` refuses the flip unconditionally whenever `when`\nmatches, with no command to run.",
           "type": [
             "string",
             "null"
