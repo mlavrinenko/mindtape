@@ -11,7 +11,11 @@
   tags: ("mt", "docs", "gating"),
   estimate: (files: 3),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(
+    2026,
+    9,
+    14,
+  )[shipped: skill rule in docs/src/skill.typ, mechanical gating-tag rule in .mindtape/config.toml, and the 8 pre-existing open gating tasks whose Scope described a shape in prose reworked to show it in a block],
   links: related(
     "add-a-max-words-content-assert.typ",
   )[a word cap is the stronger forcing function for showing a shape],
