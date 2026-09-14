@@ -279,7 +279,7 @@
       ]
     },
     "ContentAssert": {
-      "description": "The assertion made over a matched section's content: the string `\"non-empty\"`, or a one-key table `{ min-words = N }`, `{ max-words = N }`, `{ must-match = \"regex\" }`, or `{ must-not-match = \"regex\" }`.",
+      "description": "The assertion made over a matched section's content: the string `\"non-empty\"`, or a one-key table `{ min-words = N }`, `{ max-words = N }`, `{ must-match = \"regex\" }`, `{ must-not-match = \"regex\" }`, or `{ density = { pattern = \"regex\", max = N, per = \"section\" } }`.",
       "oneOf": [
         {
           "enum": [
@@ -338,6 +338,18 @@
           },
           "required": [
             "must-not-match"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "density": {
+              "$ref": "#/$defs/DensitySpec"
+            }
+          },
+          "required": [
+            "density"
           ],
           "type": "object"
         }
@@ -399,6 +411,40 @@
         "fail",
         "skip",
         "add-suffix"
+      ],
+      "type": "string"
+    },
+    "DensitySpec": {
+      "additionalProperties": false,
+      "description": "`{ density = { pattern, max, per } }` — see [`ContentAssert::Density`].",
+      "properties": {
+        "max": {
+          "description": "The most matches of `pattern` a single unit may carry.",
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pattern": {
+          "description": "Rust regex counted within each unit.",
+          "type": "string"
+        },
+        "per": {
+          "$ref": "#/$defs/DensityUnit",
+          "description": "Unit granularity the density is measured over. Defaults to `section`."
+        }
+      },
+      "required": [
+        "pattern",
+        "max"
+      ],
+      "type": "object"
+    },
+    "DensityUnit": {
+      "description": "Unit granularity a `density` content assert is measured over. Defaults to `section`.",
+      "enum": [
+        "section",
+        "paragraph",
+        "sentence"
       ],
       "type": "string"
     },

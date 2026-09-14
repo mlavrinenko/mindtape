@@ -11,16 +11,20 @@
 //! selects one or more sections. A section's *content* is everything from the
 //! end of its heading down to the next heading of the same or higher level —
 //! nested subsection prose and code blocks included. The assertion then runs
-//! over that raw source slice: non-empty, a minimum or maximum word count, or a regex
-//! the slice must / must not match. Words are whitespace-delimited tokens
-//! containing an alphanumeric character, so markup, code blocks, and nested
-//! subsection headings all count — a `Scope` section that is all `#raw` is a
-//! real shape and must not read as empty.
+//! over that raw source slice: non-empty, a minimum or maximum word count, a
+//! regex the slice must / must not match, or a density (no single unit —
+//! section, paragraph, or sentence, see [`density_units`] for the split
+//! rules — may carry more than `max` matches of a regex). Words are
+//! whitespace-delimited tokens containing an alphanumeric character, so
+//! markup, code blocks, and nested subsection headings all count — a `Scope`
+//! section that is all `#raw` is a real shape and must not read as empty.
+//! Density is the one exception: its unit split drops fenced code entirely,
+//! since a pattern inside a code sample is not prose.
 
 use regex::Regex;
 use typst_cst::{Heading, HeadingNode, parse_headings, tree};
 
-use crate::body_content::ContentAssert;
+use crate::body_content::{ContentAssert, DensityUnit};
 use crate::config::{Config, HeaderPathSegment};
 use crate::filter::Filter;
 use crate::gate::GateError;
@@ -66,6 +70,16 @@ enum CompiledAssert {
     MustMatch(Regex),
     /// The section's source text must not match this regex.
     MustNotMatch(Regex),
+    /// No single unit of the section may carry more than `max` matches of
+    /// the regex.
+    Density {
+        /// Compiled pattern, counted within each unit.
+        re: Regex,
+        /// The most matches a single unit may carry.
+        max: usize,
+        /// Unit granularity the density is measured over.
+        per: DensityUnit,
+    },
 }
 
 /// Compile content rules, pre-parsing `when` expressions and compiling regexes.
@@ -96,6 +110,11 @@ fn compile_content_rule(
         ContentAssert::MaxWords(n) => CompiledAssert::MaxWords(*n),
         ContentAssert::MustMatch(p) => CompiledAssert::MustMatch(compile_regex(p)?),
         ContentAssert::MustNotMatch(p) => CompiledAssert::MustNotMatch(compile_regex(p)?),
+        ContentAssert::Density(spec) => CompiledAssert::Density {
+            re: compile_regex(&spec.pattern)?,
+            max: spec.max,
+            per: spec.per,
+        },
     };
     let when = rule.when.as_deref().map(Filter::parse).transpose()?;
     Ok(CompiledContentRule {
@@ -266,6 +285,9 @@ fn evaluate(assert: &CompiledAssert, content: &str, heading: &str) -> Option<Str
         CompiledAssert::MustNotMatch(re) => re
             .is_match(content)
             .then(|| format!("section `{heading}` must not match `{}`", re.as_str())),
+        CompiledAssert::Density { re, max, per } => {
+            density_violation(content, heading, re, *max, *per)
+        }
     }
 }
 
@@ -273,6 +295,176 @@ fn word_count(text: &str) -> usize {
     text.split_whitespace()
         .filter(|tok| tok.chars().any(char::is_alphanumeric))
         .count()
+}
+
+/// The first unit (in document order) whose match count of `re` exceeds
+/// `max`, named by ordinal and — for a paragraph or sentence unit — its
+/// first few words, or `None` when every unit is within bounds.
+fn density_violation(
+    content: &str,
+    heading: &str,
+    re: &Regex,
+    max: usize,
+    per: DensityUnit,
+) -> Option<String> {
+    density_units(content, per)
+        .iter()
+        .enumerate()
+        .find_map(|(idx, unit)| {
+            let found = re.find_iter(unit).count();
+            (found > max).then(|| {
+                let subject = density_subject(heading, per, idx, unit);
+                format!(
+                    "{subject} must carry at most {max} matches of `{}` (found {found})",
+                    re.as_str()
+                )
+            })
+        })
+}
+
+/// What a density violation message calls the offending unit: the section
+/// itself for `per = section` (there is only one unit, and the heading
+/// already names it), or an ordinal plus a leading-words snippet for a
+/// paragraph or sentence.
+fn density_subject(heading: &str, per: DensityUnit, idx: usize, unit: &str) -> String {
+    match per {
+        DensityUnit::Section => format!("section `{heading}`"),
+        DensityUnit::Paragraph => {
+            format!(
+                "section `{heading}` paragraph {} (\"{}\")",
+                idx + 1,
+                snippet(unit)
+            )
+        }
+        DensityUnit::Sentence => {
+            format!(
+                "section `{heading}` sentence {} (\"{}\")",
+                idx + 1,
+                snippet(unit)
+            )
+        }
+    }
+}
+
+/// The unit's first few words, for naming it in a violation message.
+fn snippet(text: &str) -> String {
+    const WORDS: usize = 6;
+    let words: Vec<&str> = text.split_whitespace().take(WORDS).collect();
+    let joined = words.join(" ");
+    if text.split_whitespace().count() > WORDS {
+        format!("{joined}…")
+    } else {
+        joined
+    }
+}
+
+/// Split a section's content into the units a density assertion counts
+/// matches over, applying the same three rules regardless of `per`:
+///
+/// 1. A fenced code block — a line whose trimmed text opens with three or
+///    more backticks, up to the matching close — is dropped before any
+///    other split. Neither its own text nor the split itself ever sees it,
+///    so a pattern inside a code sample cannot trip (or, at `per =
+///    paragraph`/`sentence`, cannot itself become) a unit.
+/// 2. What remains is grouped into paragraphs: runs of non-blank lines
+///    separated by one or more blank lines. A `- ` or `+ ` list-item line
+///    starts a new paragraph even with no blank line before it, so a tight
+///    list is one paragraph per item rather than one paragraph for the
+///    whole list; its continuation lines (indented text with no bullet)
+///    stay part of that item. Nested-subsection prose is already part of
+///    `content` by the time it reaches this function (the same span
+///    `min-words` counts over), so it is grouped exactly like top-level
+///    section prose.
+/// 3. At `per = sentence`, each paragraph is further split on `.`, `!`, or
+///    `?` followed by whitespace or the paragraph's end.
+///
+/// `per = section` skips steps 2 and 3: the whole fence-stripped content is
+/// the one unit.
+fn density_units(content: &str, per: DensityUnit) -> Vec<String> {
+    let stripped = strip_fenced_code(content);
+    match per {
+        DensityUnit::Section => vec![stripped],
+        DensityUnit::Paragraph => split_paragraphs(&stripped),
+        DensityUnit::Sentence => split_paragraphs(&stripped)
+            .iter()
+            .flat_map(|p| split_sentences(p))
+            .collect(),
+    }
+}
+
+/// Drop every fenced code block (open/close lines and the lines between)
+/// from `content`, keeping every other line verbatim including blank ones,
+/// so paragraph boundaries around a removed fence are unaffected.
+fn strip_fenced_code(content: &str) -> String {
+    let mut out = String::new();
+    let mut in_fence = false;
+    for line in content.lines() {
+        if line.trim_start().starts_with("```") {
+            in_fence = !in_fence;
+            continue;
+        }
+        if in_fence {
+            continue;
+        }
+        out.push_str(line);
+        out.push('\n');
+    }
+    out
+}
+
+/// Group lines into paragraphs: a blank line always closes the current one;
+/// a `- `/`+ ` list-item line closes it too (a new item starts even without
+/// a blank line before it) and opens a new paragraph on itself; every other
+/// line continues whichever paragraph is open.
+fn split_paragraphs(text: &str) -> Vec<String> {
+    let mut paragraphs = Vec::new();
+    let mut current = String::new();
+    for line in text.lines() {
+        let trimmed = line.trim_start();
+        let is_list_item = trimmed.starts_with("- ") || trimmed.starts_with("+ ");
+        if line.trim().is_empty() {
+            flush_paragraph(&mut paragraphs, &mut current);
+            continue;
+        }
+        if is_list_item {
+            flush_paragraph(&mut paragraphs, &mut current);
+        }
+        current.push_str(line);
+        current.push('\n');
+    }
+    flush_paragraph(&mut paragraphs, &mut current);
+    paragraphs
+}
+
+fn flush_paragraph(paragraphs: &mut Vec<String>, current: &mut String) {
+    if !current.trim().is_empty() {
+        paragraphs.push(std::mem::take(current));
+    }
+    current.clear();
+}
+
+/// Split one paragraph on `.`, `!`, or `?` followed by whitespace or the
+/// paragraph's end.
+fn split_sentences(paragraph: &str) -> Vec<String> {
+    let mut sentences = Vec::new();
+    let mut current = String::new();
+    let mut chars = paragraph.chars().peekable();
+    while let Some(c) = chars.next() {
+        current.push(c);
+        if matches!(c, '.' | '!' | '?') && chars.peek().is_none_or(|next| next.is_whitespace()) {
+            push_trimmed(&mut sentences, &mut current);
+        }
+    }
+    push_trimmed(&mut sentences, &mut current);
+    sentences
+}
+
+fn push_trimmed(sentences: &mut Vec<String>, current: &mut String) {
+    let trimmed = current.trim();
+    if !trimmed.is_empty() {
+        sentences.push(trimmed.to_owned());
+    }
+    current.clear();
 }
 
 fn rule_applies(rule: &CompiledContentRule, task: &Task, config: &Config) -> bool {
