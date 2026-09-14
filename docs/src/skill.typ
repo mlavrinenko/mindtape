@@ -149,21 +149,19 @@ task blocks 0; a cycle neither hangs nor panics. Operators:
 Every `mt ls` flag forwards; there is no `--in` — target a field with the
 filter directly (`mt ls 'contains("bug", title)'`).
 
-Named views are `[views.<name>]` bundles (filter + optional sort/columns);
-bare `@name` applies all three facets, `@name` inside a bigger filter is the
-filter facet only. `--columns <cols|@view>` picks columns for one run. The
-`file` column prints each task's source path relative to the working
-directory. It is opt-in on a terminal (`--columns '#,title,file'`) and
-automatic everywhere else, so your captured `mt ls` already carries the path to
-cite — you never need a second `--format path` run to get it. `--format csv`
-is unaffected and addresses tasks by `id`; its `file` cell is the
-root-relative path `--json` reports, not the cwd-relative display. An
-`assignee`
-column shows only when the listed rows disagree about it; naming it does not
-override that — `[ls.columns.assignee] when = 'true'` does.
-`--hyperlinks always` (default `never`, or `[ls] hyperlinks`) wraps the
-always-visible `#` column — and `file` when shown — in an OSC 8 link to that
-row's target.
+Named views are `[views.<name>]` bundles (filter + optional sort/columns); bare
+`@name` applies all three facets, `@name` inside a bigger filter is the filter
+facet only. `--columns <cols|@view>` picks columns for one run. The `file`
+column prints each task's source path relative to the working directory. It is
+opt-in on a terminal (`--columns '#,title,file'`) and automatic everywhere
+else, so your captured `mt ls` already carries the path to cite — you never
+need a second `--format path` run to get it. `--format csv` is unaffected and
+addresses tasks by `id`; its `file` cell is the root-relative path `--json`
+reports, not the cwd-relative display. An `assignee` column shows only when the
+listed rows disagree about it; naming it does not override that —
+`[ls.columns.assignee] when = 'true'` does. `--hyperlinks always` (default
+`never`, or `[ls] hyperlinks`) wraps the always-visible `#` column — and `file`
+when shown — in an OSC 8 link to that row's target.
 
 ```sh
 mt ls 'ready && priority > 5'
@@ -205,14 +203,12 @@ rather than repairing or deleting anything. Common flags:
 `--describe` can list a slot no template declares: a required `assignee`
 (`[tasks.assignee] required`) is spliced in, backed by `$MINDTAPE_PRINCIPAL`.
 An unset variable is an unknown actor, not a default, so a non-interactive add
-fails naming the slot rather than guessing who works the task — fill it
-(`--set assignee=<actor>`), with the OTHER actor's name when filing for
-someone else.
+fails naming the slot rather than guessing who works the task — fill it (`--set
+assignee=<actor>`), with the OTHER actor's name when filing for someone else.
 
-Lead the title with an imperative verb — `fix login bug`, not
-`login bug fix`. A `[[tasks.rules]]` entry may check this
-(`in_dict("verbs", word(title, 1))`, see Validating below); default to it
-regardless.
+Lead the title with an imperative verb — `fix login bug`, not `login bug fix`.
+A `[[tasks.rules]]` entry may check this (`in_dict("verbs", word(title, 1))`,
+see Validating below); default to it regardless.
 
 == Slot semantics live in `references/add-slots.md`
 
@@ -312,6 +308,10 @@ write commands above; at `warn` it prints and lets them through.
 The full worked example and the rules (stem identity, `x-<ns>` namespacing,
 edge helpers, body pitfalls) live in `references/hand-editing.md`. After any
 hand edit, run `mt check`.
+
+When a task proposes a shape — a config key, a function signature, a CLI
+invocation, a file layout — show it as a raw block; let prose carry only what
+the block cannot say.
 
 = When the tool fights you
 

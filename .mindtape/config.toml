@@ -268,6 +268,16 @@ assert = { min-words = 10 }
 when = "!terminal"
 message = "a Scope section naming no work reads as a placeholder; spell out what the task touches"
 
+# A task proposing config or API surface pays for a translation step when it
+# only describes the shape in prose. The regex is a character class rather
+# than a literal fence so the rule can be quoted inside a task body (this one)
+# without closing the block it sits in.
+[[tasks.body.content.rules]]
+path = ["Scope"]
+assert = { must-match = "[`]{3}" }
+when = 'has_tag("gating") && !terminal'
+message = "this task proposes config surface; show the shape in a block"
+
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view (same filter as the retired `[ls] default-filter`).
 # Redeclare `[views.default]` here to add a sort/columns bundle.

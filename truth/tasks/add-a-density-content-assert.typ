@@ -20,4 +20,10 @@ The measured LLM prose tells are densities, not occurrences: the em-dash finding
 
 == Scope
 
-Add a one-key `{ density = { pattern = "...", max = N, per = "section" } }` variant to ContentAssert, keeping the existing one-key-table shape, with `per` taking section, paragraph or sentence and defaulting to section. Red test: a section carrying two em-dashes in one paragraph fails at max 1 and passes at max 2.
+Add a one-key variant to `ContentAssert`, keeping the existing one-key-table shape:
+
+```toml
+assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
+```
+
+`per` takes `section`, `paragraph` or `sentence` and defaults to `section`. Red test: a section carrying two em-dashes in one paragraph fails at max 1 and passes at max 2.

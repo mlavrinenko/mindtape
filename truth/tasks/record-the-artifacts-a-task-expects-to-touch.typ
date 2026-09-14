@@ -20,4 +20,10 @@ Naming the files is the most-cited field in agent-ticket practice — Anthropics
 
 == Scope
 
-Add a field taking `created("a/b.rs") + changed("z/*.rs")` edges in the preludes packager idiom, globs allowed on changed and refused on created, and never validate the paths at rest. Feed it to estimate_drift.rs instead, which already diffs a declared file count against the working tree and only ever runs on a wip task, so the comparison always sees a live tree and the dead-path problem cannot arise.
+Add a field taking edges in the prelude's packager idiom:
+
+```typ
+links: created("a/b.rs") + changed("z/*.rs"),
+```
+
+Globs allowed on `changed`, refused on `created`, and never validate the paths at rest. Feed it to estimate_drift.rs instead, which already diffs a declared file count against the working tree and only ever runs on a wip task, so the comparison always sees a live tree and the dead-path problem cannot arise.

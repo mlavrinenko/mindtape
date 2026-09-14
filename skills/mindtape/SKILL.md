@@ -94,7 +94,8 @@ rg TODO $(mt ls ready --format path) # compose with another program
 - `--dedup fail|skip|add-suffix` on an existing stem: bail, exit 0 writing nothing, or mint `-2`, `-3`, …; overrides `[tasks.naming] dedup`, which defaults to `add-suffix` under a configured `stem` template, `fail` otherwise
 - `--format text|path|path0|json` report the outcome instead of prose; `json` carries `{"outcome": "wrote"|"skipped"|"suffixed", "path": "..."}`, the same vocabulary as `mt ls --format`
 
-`--describe` can list a slot no template declares: a required `assignee` (`[tasks.assignee] required`) is spliced in, backed by `$MINDTAPE_PRINCIPAL`. An unset variable is an unknown actor, not a default, so a non-interactive add fails naming the slot rather than guessing who works the task — fill it (`--set assignee=<actor>`), with the OTHER actor’s name when filing for someone else.
+`--describe` can list a slot no template declares: a required `assignee` (`[tasks.assignee] required`) is spliced in, backed by `$MINDTAPE_PRINCIPAL`. An unset variable is an unknown actor, not a default, so a non-interactive add fails naming the slot rather than guessing who works the task — fill it (`--set
+assignee=<actor>`), with the OTHER actor’s name when filing for someone else.
 
 Lead the title with an imperative verb — `fix login bug`, not `login bug fix`. A `[[tasks.rules]]` entry may check this (`in_dict("verbs", word(title, 1))`, see Validating below); default to it regardless.
 
@@ -149,6 +150,8 @@ Both forms merge and dedupe on (kind, target), so re-running writes nothing. `--
 ## Authoring or editing a task file by hand
 
 The full worked example and the rules (stem identity, `x-<ns>` namespacing, edge helpers, body pitfalls) live in `references/hand-editing.md`. After any hand edit, run `mt check`.
+
+When a task proposes a shape — a config key, a function signature, a CLI invocation, a file layout — show it as a raw block; let prose carry only what the block cannot say.
 
 ## When the tool fights you
 

@@ -24,4 +24,13 @@ Sixty percent of this backlog carries only Summary and Scope; the other forty pe
 
 == Scope
 
-Replace Summary and Scope with AS-IS, TO-BE, Ruled out and Done when across .mindtape/config.toml and .mindtape/templates/task.typ, close the top-level set with `action = "allowlist"`, and add the Done-when rule that refuses a restatement of the gate already asserted by `[[on.flip]]`. Needs max-words first for the length caps.
+Replace Summary and Scope with the four-section set:
+
+```
+== AS-IS
+== TO-BE
+== Ruled out
+== Done when
+```
+
+across `.mindtape/config.toml` and `.mindtape/templates/task.typ`, close the top-level set with `action = "allowlist"`, and add the Done-when rule that refuses a restatement of the gate already asserted by `[[on.flip]]`. Needs max-words first for the length caps.

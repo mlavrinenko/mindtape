@@ -20,4 +20,17 @@ Forbidding subsections under a section is naturally `action = "allowlist"` with 
 
 == Scope
 
-Decide whether an empty `allowed` should mean "no children permitted" in artifact-gate and, if so, release it and lift the workaround in .mindtape/config.toml. The empty-scope case stays an error either way, since a scope matching nothing is a typo rather than an intent.
+Decide whether an empty `allowed` should mean "no children permitted" in artifact-gate. If so, release it and replace the wildcard-pair workaround:
+
+```toml
+# today
+action = "forbid"
+path = [{ match = ".*" }, { match = ".*" }]
+
+# proposed
+action = "allowlist"
+scope = ["Section"]
+allowed = []
+```
+
+The empty-scope case stays an error either way, since a scope matching nothing is a typo rather than an intent.

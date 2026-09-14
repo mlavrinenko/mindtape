@@ -20,4 +20,11 @@
 
 == Scope
 
-Declare [tasks.fields.kind] in .mindtape/config.toml with the project's kind vocabulary, have every template in .mindtape/templates/ set kind:, and confirm crates/mindtape/src/fields.rs and validate_tests_fields.rs gate an unknown kind. Cover the enum with a red test before the config lands.
+Declare the vocabulary in `.mindtape/config.toml`:
+
+```toml
+[tasks.fields.kind]
+allowed = ["task", "umbrella"]
+```
+
+Have every template in `.mindtape/templates/` set `kind:`, and confirm `crates/mindtape/src/fields.rs` and `validate_tests_fields.rs` gate an unknown kind. Cover the enum with a red test before the config lands.

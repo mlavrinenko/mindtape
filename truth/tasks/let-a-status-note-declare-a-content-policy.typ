@@ -21,4 +21,12 @@
 
 == Scope
 
-Widen the legends NoteRule to accept a table reusing ContentAssert alongside the existing "required" string, so `note = { required = true, min-words = 10, must-not-match = "..." }` parses. Enforce it in crates/mindtape-cli/src/flip.rs check_note_required and in mt check, with a red test for each seam.
+Widen the legend's `NoteRule` to accept a table reusing `ContentAssert` alongside the existing `"required"` string:
+
+```toml
+[[tasks.status]]
+value = "done"
+note = { required = true, min-words = 10, must-not-match = "^done$" }
+```
+
+Enforce it in `crates/mindtape-cli/src/flip.rs` `check_note_required` and in `mt check`, with a red test for each seam.

@@ -20,4 +20,11 @@ The prose and spec-shape rules a project wants are a dozen-odd `[[tasks.body.con
 
 == Scope
 
-Do for rules what BUILTIN_PREFIX did for dictionaries: embed named rule packs, let `[tasks.body.content] include = ["mindtape-plain-prose"]` union them in, reserve the prefix against project packs, and give every bundled rule an id (artifact_gate::Rule::with_id already carries one) so a project can disable a single rule it disagrees with rather than abandoning the pack.
+Do for rules what `BUILTIN_PREFIX` did for dictionaries: embed named rule packs and let a project union them in:
+
+```toml
+[tasks.body.content]
+include = ["mindtape-plain-prose"]
+```
+
+Reserve the prefix against project packs, and give every bundled rule an id (`artifact_gate::Rule::with_id` already carries one) so a project can disable a single rule it disagrees with rather than abandoning the pack.
