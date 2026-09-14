@@ -46,6 +46,20 @@ Each action declares exactly one kind:
   [Execute `cmd`. With `gate = true` a non-zero exit *refuses the flip*, prints the command's output, and stops: nothing is written for that task and the actions after it do not run. Without `gate` the output is informational. `message` replaces the default advice on failure.],
 )
 
+`run` is optional on a gate: `{ gate = true, message = "..." }` with no `run`
+refuses the flip unconditionally whenever the hook's `when` already matched —
+no command runs, so there is nothing to print but the message. The condition
+lives entirely in `when`; a `run`-only gate is for a check `when` cannot
+express itself, such as an external command's exit code. An action with no
+`run` and no `gate = true` — nothing to show, list, run, or refuse — is a
+config error at load, naming the action's position.
+
+```toml
+[[on.flip]]
+when = 'into("wip") && stale(30)'
+actions = [{ gate = true, message = "re-read the scope, `mt review` it, then start again" }]
+```
+
 Actions run in declaration order. `--force` waives a failing gate and records
 the waiver in the status note (`forced past failing gate: "just check"`). A
 gate command runs from the project root with the transition in its

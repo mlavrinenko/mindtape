@@ -72,9 +72,10 @@ pub struct FlipHook {
 
 /// One action of a `[[on.flip]]` entry.
 ///
-/// Exactly one of `show`, `list`, or `run` must be set — the three kinds
-/// share one flat TOML shape so a mistyped or conflicting entry surfaces as a
-/// clear config error instead of an opaque parse failure.
+/// Exactly one of `show`, `list`, or `run` must be set, OR `gate = true` with
+/// no `run` at all — the three kinds share one flat TOML shape so a mistyped
+/// or conflicting entry surfaces as a clear config error instead of an opaque
+/// parse failure.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FlipAction {
@@ -83,13 +84,17 @@ pub struct FlipAction {
     /// `{ list = "filter or @view" }` — print the matching tasks.
     pub list: Option<String>,
     /// `{ run = "command" }` — execute a command through the platform shell
-    /// (`sh -c`; `cmd /C` on Windows).
+    /// (`sh -c`; `cmd /C` on Windows). Optional on a gating action: `gate =
+    /// true` with no `run` refuses the flip unconditionally whenever `when`
+    /// matches, with no command to run.
     pub run: Option<String>,
     /// Heading printed above a `list`'s table.
     pub title: Option<String>,
-    /// Explanation printed when a `run` command exits non-zero.
+    /// Explanation printed when a `run` command exits non-zero, or a run-less
+    /// gate refuses.
     pub message: Option<String>,
-    /// Whether a non-zero exit from `run` refuses the flip. `run`-only.
+    /// Whether a non-zero exit from `run` refuses the flip, or — with no `run`
+    /// at all — refuses unconditionally. `run`-only (or run-less-gate-only).
     pub gate: bool,
 }
 
@@ -105,14 +110,18 @@ pub enum ActionKind<'a> {
         /// Heading printed above the table.
         title: Option<&'a str>,
     },
-    /// Execute `command`.
+    /// Execute `command`, or — when `command` is `None` — nothing: a gate
+    /// declaring no `run` refuses unconditionally whenever its hook's `when`
+    /// matches. `kind()` only ever produces a `None` command alongside
+    /// `gate: true`.
     Run {
         /// The command line, run through the platform shell (`sh -c`; `cmd /C`
-        /// on Windows).
-        command: &'a str,
-        /// Whether a non-zero exit refuses the flip.
+        /// on Windows). `None` for a run-less gate.
+        command: Option<&'a str>,
+        /// Whether a non-zero exit (or, with no command, always) refuses the
+        /// flip.
         gate: bool,
-        /// Explanation printed on a non-zero exit.
+        /// Explanation printed on a non-zero exit or an unconditional refusal.
         message: Option<&'a str>,
     },
 }
@@ -121,9 +130,10 @@ impl FlipAction {
     /// Resolve which kind this action declares.
     ///
     /// # Errors
-    /// Returns a message naming the problem when the action declares no kind,
-    /// more than one, or a modifier belonging to a different kind (`title`
-    /// outside `list`, `gate` / `message` outside `run`).
+    /// Returns a message naming the problem when the action declares no kind
+    /// (no `show` / `list` / `run`, and no `gate = true` either), more than
+    /// one, or a modifier belonging to a different kind (`title` outside
+    /// `list`, `gate` / `message` outside `run`).
     pub fn kind(&self) -> Result<ActionKind<'_>, String> {
         match (
             self.show.as_deref(),
@@ -145,7 +155,9 @@ impl FlipAction {
                     title: self.title.as_deref(),
                 })
             }
-            (None, None, Some(command)) => {
+            // A command runs it; `gate = true` alone (no command) still
+            // resolves — a run-less gate that refuses unconditionally.
+            (None, None, command) if command.is_some() || self.gate => {
                 reject(&[("title", self.title.is_some())])?;
                 Ok(ActionKind::Run {
                     command,
@@ -153,9 +165,10 @@ impl FlipAction {
                     message: self.message.as_deref(),
                 })
             }
-            (None, None, None) => {
-                Err("action declares no kind; set one of `show`, `list`, `run`".to_owned())
-            }
+            (None, None, None) => Err(
+                "action declares no kind; set one of `show`, `list`, `run`, or `gate = true`"
+                    .to_owned(),
+            ),
             _ => Err("action declares more than one of `show`, `list`, `run`".to_owned()),
         }
     }

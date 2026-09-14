@@ -448,12 +448,12 @@ description = "Open tasks an agent can take"
 # now twenty — so starting it is refused until someone re-reads it, fixes what
 # went stale, and stamps `mt review`. 30 is provisional, like the estimate caps.
 #
-# `run = "false"` is a stand-in: a gate cannot refuse without a command yet.
-# See truth/tasks/let-a-flip-gate-refuse-without-a-run-command.typ.
+# A run-less gate: `gate = true` with no `run` refuses unconditionally
+# whenever `when` matches, so the condition above is the whole check.
 [[on.flip]]
 when = 'into("wip") && stale(30)'
 actions = [
-  { run = "false", gate = true, message = "untouched for 30 days: re-read the scope against today's code, fix what went stale, `mt review` it, then start again" },
+  { gate = true, message = "untouched for 30 days: re-read the scope against today's code, fix what went stale, `mt review` it, then start again" },
 ]
 
 [[on.flip]]

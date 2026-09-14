@@ -256,6 +256,62 @@ fn a_command_receives_the_task_path_and_stem() {
     assert!(printed.contains("alpha/done"), "{printed}");
 }
 
+// --- run-less gates ------------------------------------------------------
+
+/// A gate with no `run`: `when` alone decides, unconditionally.
+const RUNLESS_GATE: &str = "[[on.flip]]\nwhen = 'into(\"done\")'\n\
+     actions = [{ gate = true, message = \"re-read the scope first\" }]\n";
+
+#[test]
+fn a_runless_gate_refuses_a_matching_flip_and_prints_its_message() {
+    let dir = temp();
+    let (outcome, out) = run_visible(dir.path(), RUNLESS_GATE, "done");
+    let refusal = outcome.refusal.unwrap();
+    assert!(refusal.contains("re-read the scope first"), "{refusal}");
+    assert!(
+        out.is_empty(),
+        "no command ran, so there is no output to print: {out}"
+    );
+}
+
+/// A hook whose `when` does not match the transition lets the flip through, run
+/// or no run.
+#[test]
+fn a_runless_gate_lets_a_non_matching_transition_through() {
+    let dir = temp();
+    let (outcome, out) = run_visible(dir.path(), RUNLESS_GATE, "wip");
+    assert!(outcome.refusal.is_none());
+    assert_eq!(out, "");
+}
+
+/// Without a `message`, a run-less gate falls back to the same default advice
+/// a `run` gate does.
+#[test]
+fn a_runless_gate_without_a_message_uses_the_default_advice() {
+    let dir = temp();
+    let config = "[[on.flip]]\nwhen = 'into(\"done\")'\nactions = [{ gate = true }]\n";
+    let (outcome, _) = run_visible(dir.path(), config, "done");
+    assert!(
+        outcome.refusal.unwrap().contains("--force"),
+        "should fall back to the default advice"
+    );
+}
+
+/// `--force` waives a run-less gate exactly as it waives a failing `run` one,
+/// and records something legible in the note — the message stands in for the
+/// command there is none of.
+#[test]
+fn force_waives_a_runless_gate_and_records_its_message() {
+    let dir = temp();
+    let (outcome, out) = run(dir.path(), RUNLESS_GATE, "done", true, true);
+    assert!(
+        outcome.refusal.is_none(),
+        "--force must let the flip through"
+    );
+    assert_eq!(outcome.forced, vec!["re-read the scope first".to_owned()]);
+    assert!(out.contains("--force"), "{out}");
+}
+
 #[test]
 fn no_hooks_means_no_output_and_no_refusal() {
     let dir = temp();

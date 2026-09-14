@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A flip gate can refuse without a `run` command.** `[[on.flip]]`'s
+  `run` is now optional on a gating action: `{ gate = true, message = "..." }`
+  with no `run` refuses the flip unconditionally whenever the hook's `when`
+  already matched, printing only its `message` — no command to spawn, no
+  output to surface. Previously a condition that belonged entirely to `when`
+  (e.g. "refuse starting a stale task") had to be spelled as a command whose
+  exit code stood for the refusal, `run = "false"` being the only shape that
+  worked. `FlipAction::kind()` resolves `gate = true` with `show`/`list`/`run`
+  all unset to the same `Run` kind with no command; an action with neither
+  `run` nor `gate = true` — nothing to show, list, run, or refuse — is still a
+  config error at load, naming the action. This repo's own stale-start gate in
+  `.mindtape/config.toml` drops its `run = "false"` stand-in now that the
+  direct shape exists.
+
 - **The skill files verb-first titles.** `skills/mindtape/SKILL.md`'s `mt add`
   section now defaults every new title to an imperative verb first
   (`fix login bug`, not `login bug fix`) — the shape a project's own
