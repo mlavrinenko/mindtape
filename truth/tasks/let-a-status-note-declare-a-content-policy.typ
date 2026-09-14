@@ -9,8 +9,8 @@
     ease: 6,
   ),
   difficulty: 5,
-  tags: ("mt", "cli", "gating"),
-  estimate: (files: 7),
+  tags: ("mt", "gating"),
+  estimate: (files: 5),
   assignee: "agent",
   status: proposed(2026, 9, 14),
   links: depends-on("fix-the-status-note-flattening-on-read.typ"),
@@ -22,7 +22,7 @@
 
 == Scope
 
-Widen the legend's `NoteRule` to accept a table reusing `ContentAssert` alongside the existing `"required"` string:
+Widen the legend's note rule to accept a table reusing `ContentAssert` alongside the existing `"required"` string:
 
 ```toml
 [[tasks.status]]
@@ -30,4 +30,4 @@ value = "done"
 note = { required = true, min-words = 10, must-not-match = "^done$" }
 ```
 
-Enforce it in `crates/mindtape-cli/src/flip.rs` `check_note_required` and in `mt check`, with a red test for each seam.
+The legend entry uses `mindtape::link::NoteRule` today, shared with `links:` edge kinds, so the status side needs its own type rather than widening the edge one. Touches `crates/mindtape/src/config_status.rs` and `config_status_tests.rs` for the type, `crates/mindtape/src/content_gate.rs` to expose the assert evaluation over a bare string rather than a section, and the `mt check` seam in `crates/mindtape/src/validate.rs` with a red test in `validate_tests.rs`. The `mt flip` seam and the docs follow in `enforce-a-status-note-content-policy-on-flip.typ`.

@@ -10,7 +10,7 @@
   ),
   difficulty: 6,
   tags: ("docs", "www"),
-  estimate: (files: 8),
+  estimate: (files: 3),
   assignee: "agent",
   status: proposed(2026, 9, 14),
 )
@@ -21,4 +21,4 @@ The README sells a daemon-free file-based task tracker, which competes on featur
 
 == Scope
 
-Lead README.md and www/content/index.typ with the linter claim and demote the tracker mechanics to the second section. Give the docs site one page whose entire content is a rejected agent-written task and the mt check output that rejected it. The card render stops being a selling point and becomes a footnote.
+Lead the README and the site's front page with the linter claim and demote the tracker mechanics to the second section. That is `docs/src/readme.typ` (README.md is rendered from it and is not hand-edited), `www/content/index.typ`, and the `outdatty.lock` re-record for whichever group those two sit in. The positioning is the decision here; the page that shows a rejected spec end to end follows in `add-a-docs-page-showing-a-rejected-agent-spec.typ` and reuses this wording.

@@ -1,7 +1,7 @@
 #import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: "Replace the task section set with a closed four-section spec",
+  title: "Define the four-section task spec in config and the template",
   kind: "chore",
   priority: ice(
     impact: 9,
@@ -10,7 +10,7 @@
   ),
   difficulty: 6,
   tags: ("mt", "gating", "docs"),
-  estimate: (files: 9),
+  estimate: (files: 2),
   assignee: "agent",
   status: proposed(2026, 9, 14),
   links: depends-on(
@@ -25,7 +25,7 @@ Sixty percent of this backlog carries only Summary and Scope; the other forty pe
 
 == Scope
 
-Replace Summary and Scope with the four-section set:
+Define the four-section set in `.mindtape/config.toml` and `.mindtape/templates/task.typ`:
 
 ```
 == AS-IS
@@ -34,4 +34,4 @@ Replace Summary and Scope with the four-section set:
 == Done when
 ```
 
-across `.mindtape/config.toml` and `.mindtape/templates/task.typ`, close the top-level set with `action = "allowlist"`, and add the Done-when rule that refuses a restatement of the gate already asserted by `[[on.flip]]`. Needs max-words first for the length caps.
+Add the order and uniqueness rules for the four, the max-words length caps, the gating-tag fenced-block rule on TO-BE, and the Done-when rule that refuses a restatement of the gate already asserted by `[[on.flip]]`. Land it so `mt check` stays green on the unmigrated backlog: close the top-level set with `action = "allowlist"` over the union of the old two and the new four, which works because a content rule over an absent section never fires. Dropping Summary and Scope from the set is `close-the-section-allowlist-to-the-four-spec-sections.typ`, after the sweep templates and the open task bodies have moved.

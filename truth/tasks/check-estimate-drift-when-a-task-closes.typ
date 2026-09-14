@@ -10,7 +10,7 @@
   ),
   difficulty: 6,
   tags: ("mt", "cli", "gating"),
-  estimate: (files: 7),
+  estimate: (files: 5),
   assignee: "agent",
   status: proposed(2026, 9, 14),
   links: related(
@@ -38,4 +38,4 @@ actions = [
 
 Exclude the task root from the count at flip time: `mt flip` writes the very task file it is gating and would otherwise inflate its own number by one, the same reason `.mmz/config.yaml` excludes `truth/tasks/`.
 
-Red test: a wip task declaring two files, closed against a four-file tree, reports the drift.
+Touches the action shape and `ActionKind` in `crates/mindtape/src/config_hooks.rs` and `config_hooks_tests.rs`, the dispatch in `crates/mindtape-cli/src/flip_hooks.rs` and `flip_hooks_tests.rs`, and `crates/mindtape/src/estimate_drift.rs` for the flip-time entry point. Red test: a wip task declaring two files, closed against a four-file tree, reports the drift. The end-to-end pin and the docs follow in `document-the-estimate-drift-flip-check.typ`.

@@ -10,7 +10,7 @@
   ),
   difficulty: 5,
   tags: ("mt", "gating"),
-  estimate: (files: 6),
+  estimate: (files: 5),
   assignee: "agent",
   status: proposed(2026, 9, 14),
 )
@@ -27,4 +27,4 @@ Add a one-key variant to `ContentAssert`, keeping the existing one-key-table sha
 assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
 ```
 
-`per` takes `section`, `paragraph` or `sentence` and defaults to `section`. Red test: a section carrying two em-dashes in one paragraph fails at max 1 and passes at max 2.
+`per` takes `section`, `paragraph` or `sentence` and defaults to `section`; the assert fails when any one unit carries more than `max` matches. The judgment is the unit split over Typst source: where a paragraph or sentence ends when code blocks, list items and nested subsections sit inside the section. Touches the variant and its deserializer in `crates/mindtape/src/body_content.rs` and `body_content_tests.rs`, the evaluation in `crates/mindtape/src/content_gate.rs` and `content_gate_tests.rs`, and the hand-written schema in `crates/mindtape/src/config_schema.rs` — the same five the max-words variant needed. Red test: a section carrying two em-dashes in one paragraph fails at max 1 and passes at max 2. The generated schema, the config page and the changelog follow in `document-the-density-content-assert.typ`.
