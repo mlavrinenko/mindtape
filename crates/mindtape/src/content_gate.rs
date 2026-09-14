@@ -11,7 +11,7 @@
 //! selects one or more sections. A section's *content* is everything from the
 //! end of its heading down to the next heading of the same or higher level —
 //! nested subsection prose and code blocks included. The assertion then runs
-//! over that raw source slice: non-empty, a minimum word count, or a regex
+//! over that raw source slice: non-empty, a minimum or maximum word count, or a regex
 //! the slice must / must not match. Words are whitespace-delimited tokens
 //! containing an alphanumeric character, so markup, code blocks, and nested
 //! subsection headings all count — a `Scope` section that is all `#raw` is a
@@ -60,6 +60,8 @@ enum CompiledAssert {
     NonEmpty,
     /// The section must contain at least this many words.
     MinWords(usize),
+    /// The section must contain at most this many words.
+    MaxWords(usize),
     /// The section's source text must match this regex.
     MustMatch(Regex),
     /// The section's source text must not match this regex.
@@ -91,6 +93,7 @@ fn compile_content_rule(
     let assert = match &rule.assert {
         ContentAssert::NonEmpty => CompiledAssert::NonEmpty,
         ContentAssert::MinWords(n) => CompiledAssert::MinWords(*n),
+        ContentAssert::MaxWords(n) => CompiledAssert::MaxWords(*n),
         ContentAssert::MustMatch(p) => CompiledAssert::MustMatch(compile_regex(p)?),
         ContentAssert::MustNotMatch(p) => CompiledAssert::MustNotMatch(compile_regex(p)?),
     };
@@ -250,6 +253,12 @@ fn evaluate(assert: &CompiledAssert, content: &str, heading: &str) -> Option<Str
             let found = word_count(content);
             (found < *n).then(|| {
                 format!("section `{heading}` must contain at least {n} words (found {found})")
+            })
+        }
+        CompiledAssert::MaxWords(n) => {
+            let found = word_count(content);
+            (found > *n).then(|| {
+                format!("section `{heading}` must contain at most {n} words (found {found})")
             })
         }
         CompiledAssert::MustMatch(re) => (!re.is_match(content))

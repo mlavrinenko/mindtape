@@ -279,7 +279,7 @@
       ]
     },
     "ContentAssert": {
-      "description": "The assertion made over a matched section's content: the string `\"non-empty\"`, or a one-key table `{ min-words = N }`, `{ must-match = \"regex\" }`, or `{ must-not-match = \"regex\" }`.",
+      "description": "The assertion made over a matched section's content: the string `\"non-empty\"`, or a one-key table `{ min-words = N }`, `{ max-words = N }`, `{ must-match = \"regex\" }`, or `{ must-not-match = \"regex\" }`.",
       "oneOf": [
         {
           "enum": [
@@ -298,6 +298,20 @@
           },
           "required": [
             "min-words"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "max-words": {
+              "description": "The section must contain at most this many words.",
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "max-words"
           ],
           "type": "object"
         },

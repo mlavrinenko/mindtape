@@ -130,7 +130,8 @@ impl JsonSchema for ContentAssert {
         json_schema!({
             "description": "The assertion made over a matched section's content: the \
                 string `\"non-empty\"`, or a one-key table `{ min-words = N }`, \
-                `{ must-match = \"regex\" }`, or `{ must-not-match = \"regex\" }`.",
+                `{ max-words = N }`, `{ must-match = \"regex\" }`, or \
+                `{ must-not-match = \"regex\" }`.",
             "oneOf": [
                 { "type": "string", "enum": ["non-empty"] },
                 {
@@ -143,6 +144,18 @@ impl JsonSchema for ContentAssert {
                         }
                     },
                     "required": ["min-words"],
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "max-words": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "description": "The section must contain at most this many words."
+                        }
+                    },
+                    "required": ["max-words"],
                     "additionalProperties": false
                 },
                 {

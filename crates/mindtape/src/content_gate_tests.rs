@@ -1,6 +1,6 @@
 //! `[[tasks.body.content.rules]]` — rule compilation and section-content
 //! checking: path selection (exact + regex segments), section-span slicing
-//! through nested subsections, the four assertion shapes, `when` gating, the
+//! through nested subsections, the five assertion shapes, `when` gating, the
 //! `message` override, and the word-count semantics.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
@@ -139,6 +139,25 @@ fn min_words_ignores_punctuation_only_tokens() {
     let body = "== Scope\n\n- - - _ _ _\n";
     let messages = run(body, "path = [\"Scope\"]\nassert = { min-words = 2 }\n");
     assert_eq!(messages.len(), 1, "separators are not words: {messages:?}");
+}
+
+// --- max-words ---
+
+#[test]
+fn max_words_passes_at_exactly_the_boundary() {
+    let body = "== Scope\n\none two three four five\n";
+    assert!(run(body, "path = [\"Scope\"]\nassert = { max-words = 5 }\n").is_empty());
+}
+
+#[test]
+fn max_words_fails_one_over_the_boundary() {
+    let body = "== Scope\n\none two three four five six\n";
+    let messages = run(body, "path = [\"Scope\"]\nassert = { max-words = 5 }\n");
+    assert_eq!(messages.len(), 1);
+    assert!(
+        messages[0].contains("at most 5 words (found 6)"),
+        "{messages:?}"
+    );
 }
 
 // --- must-match / must-not-match ---

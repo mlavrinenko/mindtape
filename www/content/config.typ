@@ -129,6 +129,10 @@ assert = { min-words = 30 }
 when = 'kind == "bug"'              # same `when` gating the heading rules have
 
 [[tasks.body.content.rules]]
+path = ["AS-IS"]
+assert = { max-words = 400 }        # stops padding, not just under-writing
+
+[[tasks.body.content.rules]]
 path = ["Watch for"]
 assert = { must-match = "\\?" }     # an open-question section states its question
 ```
@@ -147,13 +151,14 @@ action = "allowlist"
 allowed = [{ match = "^(Summary|Scope|Watch for|Decisions)$" }]
 ```
 
-The four content assertions: `"non-empty"`, `min-words = N`, `must-match =
-"regex"`, and `must-not-match = "regex"`. The regexes run against the section's
-source text as written (markup included), and words are whitespace-delimited
-tokens containing an alphanumeric character — so markup, code blocks, and
-nested subsection headings all count toward `min-words`, and a `Scope` section
-that is all `#raw` reads as non-empty rather than as a placeholder. A violation
-prints at the heading's line, `mt check` style:
+The five content assertions: `"non-empty"`, `min-words = N`, `max-words = N`,
+`must-match = "regex"`, and `must-not-match = "regex"`. The regexes run
+against the section's source text as written (markup included), and words are
+whitespace-delimited tokens containing an alphanumeric character — so markup,
+code blocks, and nested subsection headings all count toward `min-words` and
+`max-words` alike, and a `Scope` section that is all `#raw` reads as non-empty
+rather than as a placeholder. A violation prints at the heading's line, `mt
+check` style:
 
 ```
 truth/tasks/example.typ:11: body.content: section `Summary` must not be empty

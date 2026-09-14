@@ -40,9 +40,10 @@ pub struct ContentRuleConfig {
 /// The assertion a content rule makes over a matched section.
 ///
 /// - `"non-empty"` — the section must contain any non-whitespace content.
-/// - `{ min-words = N }` — at least `N` words (any whitespace-delimited token
-///   containing an alphanumeric character, over the whole section slice —
-///   markup, code blocks, and nested subsection headings all count).
+/// - `{ min-words = N }` / `{ max-words = N }` — at least / at most `N` words
+///   (any whitespace-delimited token containing an alphanumeric character,
+///   over the whole section slice — markup, code blocks, and nested
+///   subsection headings all count).
 /// - `{ must-match = "regex" }` / `{ must-not-match = "regex" }` — the
 ///   section's source text as written must / must not match the regex.
 #[derive(Debug, Clone, PartialEq)]
@@ -51,6 +52,8 @@ pub enum ContentAssert {
     NonEmpty,
     /// The section must contain at least this many words.
     MinWords(usize),
+    /// The section must contain at most this many words.
+    MaxWords(usize),
     /// The section's source text must match this regex.
     MustMatch(String),
     /// The section's source text must not match this regex.
@@ -70,7 +73,7 @@ impl<'de> Deserialize<'de> for ContentAssert {
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                 f.write_str(
                     "a string `\"non-empty\"` or a table with one of \
-                             `min-words`, `must-match`, `must-not-match`",
+                             `min-words`, `max-words`, `must-match`, `must-not-match`",
                 )
             }
 
@@ -79,7 +82,7 @@ impl<'de> Deserialize<'de> for ContentAssert {
                     "non-empty" => Ok(ContentAssert::NonEmpty),
                     other => Err(serde::de::Error::custom(format!(
                         "invalid assertion `{other}`; expected `\"non-empty\"` or a table \
-                         with one of `min-words`, `must-match`, `must-not-match`"
+                         with one of `min-words`, `max-words`, `must-match`, `must-not-match`"
                     ))),
                 }
             }
@@ -92,19 +95,20 @@ impl<'de> Deserialize<'de> for ContentAssert {
                 while let Some(key) = map.next_key::<String>()? {
                     let value = match key.as_str() {
                         "min-words" => ContentAssert::MinWords(map.next_value()?),
+                        "max-words" => ContentAssert::MaxWords(map.next_value()?),
                         "must-match" => ContentAssert::MustMatch(map.next_value()?),
                         "must-not-match" => ContentAssert::MustNotMatch(map.next_value()?),
                         other => {
                             return Err(serde::de::Error::unknown_field(
                                 other,
-                                &["min-words", "must-match", "must-not-match"],
+                                &["min-words", "max-words", "must-match", "must-not-match"],
                             ));
                         }
                     };
                     if out.is_some() {
                         return Err(serde::de::Error::custom(
                             "assertion table must carry exactly one of `min-words`, \
-                             `must-match`, `must-not-match`",
+                             `max-words`, `must-match`, `must-not-match`",
                         ));
                     }
                     out = Some(value);

@@ -33,6 +33,16 @@ fn parses_min_words_assertion() {
 }
 
 #[test]
+fn parses_max_words_assertion() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { max-words = 200 }\n";
+    let config = parse_config(text).unwrap();
+    assert_eq!(
+        config.tasks.body.content.rules[0].assert,
+        ContentAssert::MaxWords(200)
+    );
+}
+
+#[test]
 fn parses_regex_assertions() {
     let text = r#"
 [[tasks.body.content.rules]]
