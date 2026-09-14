@@ -349,6 +349,17 @@ when = "!terminal"
 message = "start the title with an imperative verb"
 severity = "error"
 
+# Dogfooding is this project's rule for every feature, and a rule nobody
+# writes down is one an agent forgets: an open `feat` task names how this repo
+# will use what it ships, on a `Dogfood:` line in its body. Every open feat
+# task carried one when this went in, so `error` costs nothing today.
+[[tasks.rules]]
+name = "dogfood-feat"
+assert = 'contains("dogfood")'
+when = 'kind == "feat" && !terminal'
+message = "say how this repo will use the feature, on a `Dogfood:` line"
+severity = "error"
+
 # A title's grammatical shape was the one convention `mt check` never held —
 # blustroke writes verb-first titles ("Wire the cross target", not "cross
 # target wiring") from memory alone. `verbs` unions both shipped dicts so the
@@ -417,6 +428,20 @@ description = "Open tasks an agent can take"
 # The terminal statuses are listed rather than derived: `when` sees the task as
 # it stands BEFORE the write, so a bare `terminal` would test the status being
 # left, not the one being entered.
+# Picking a task up is when its scope gets re-read. A task that sat untouched
+# for 30 days (no `mt review`, no status change) has drifted from the code and
+# the backlog around it — a Scope counting "the five open tasks" when there are
+# now twenty — so starting it is refused until someone re-reads it, fixes what
+# went stale, and stamps `mt review`. 30 is provisional, like the estimate caps.
+#
+# `run = "false"` is a stand-in: a gate cannot refuse without a command yet.
+# See truth/tasks/let-a-flip-gate-refuse-without-a-run-command.typ.
+[[on.flip]]
+when = 'into("wip") && stale(30)'
+actions = [
+  { run = "false", gate = true, message = "untouched for 30 days: re-read the scope against today's code, fix what went stale, `mt review` it, then start again" },
+]
+
 [[on.flip]]
 when = 'into("done") || into("cancelled") || into("failed")'
 actions = [

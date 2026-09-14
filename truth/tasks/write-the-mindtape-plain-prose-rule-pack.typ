@@ -9,7 +9,7 @@
   ),
   difficulty: 5,
   tags: ("mt", "gating"),
-  estimate: (files: 3),
+  estimate: (files: 4),
   kind: "feat",
   assignee: "agent",
   status: proposed(2026, 9, 14),
@@ -35,3 +35,4 @@ include = ["mindtape-plain-prose"]
 
 Calibrate each rule against this repo's own open task bodies, so every bundled rule has an id and passes the current backlog, and use density rules rather than `must-not-match` for the measured tells.
 
+Dogfood: add that `include` to this repo's `.mindtape/config.toml`.

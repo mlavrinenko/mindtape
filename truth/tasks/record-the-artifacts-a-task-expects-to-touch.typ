@@ -30,3 +30,5 @@ links: created("a/b.rs") + changed("z/*.rs"),
 Globs allowed on `changed`, refused on `created`, and never validate the paths at rest. Feed it to estimate_drift.rs instead, which already diffs a declared file count against the working tree and only ever runs on a wip task, so the comparison always sees a live tree and the dead-path problem cannot arise.
 
 Split: this task is the field itself. Touches the packagers in `lib/prelude.typ`, `BUILTIN_KINDS` and the target validator in `crates/mindtape/src/link.rs` with `link_tests.rs`, and the glob refusal in `crates/mindtape/src/validate_links.rs` with `validate_links_tests.rs`. Feeding the declared paths to the drift check follows in `compare-declared-artifacts-against-the-working-tree.typ`, the docs in `document-the-created-and-changed-edge-kinds.typ`.
+
+Dogfood: this backlog declares `created`/`changed` edges from `compare-declared-artifacts-against-the-working-tree.typ` on.

@@ -9,7 +9,7 @@
   ),
   difficulty: 2,
   tags: ("mt", "docs"),
-  estimate: (files: 5),
+  estimate: (files: 6),
   kind: "docs",
   assignee: "agent",
   status: proposed(2026, 9, 14),
@@ -25,3 +25,4 @@
 
 Add an end-to-end case to `crates/mindtape-cli/tests/flip_hooks_e2e.rs`: a wip task declaring two files, closed against a four-file tree under a gating `check = "estimate-drift"` action, is refused. Regenerate `schema/config.schema.json`, document the `check` action in `www/content/hooks.typ` and the close-time comparison in `www/content/estimates.typ`, and add a CHANGELOG.md entry.
 
+Dogfood: add the gating `check = "estimate-drift"` action to this repo's close hook in `.mindtape/config.toml`.

@@ -35,3 +35,5 @@ allowed = []
 ```
 
 The empty-scope case stays an error either way, since a scope matching nothing is a typo rather than an intent.
+
+Dogfood: the replacement lands in this repo's `.mindtape/config.toml`.
