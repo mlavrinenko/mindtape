@@ -2,6 +2,7 @@
 
 #show: task.with(
   title: "Validate the kind field against a configured enum",
+  kind: "task",
   priority: ice(
     impact: 7,
     confidence: 0.8,
@@ -11,7 +12,7 @@
   tags: ("mt", "gating"),
   estimate: (files: 6),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(2026, 9, 14),
 )
 
 == Summary
@@ -24,7 +25,7 @@ Declare the vocabulary in `.mindtape/config.toml`:
 
 ```toml
 [tasks.fields.kind]
-allowed = ["task", "umbrella"]
+values = ["task", "umbrella"]
 ```
 
 Have every template in `.mindtape/templates/` set `kind:`, and confirm `crates/mindtape/src/fields.rs` and `validate_tests_fields.rs` gate an unknown kind. Cover the enum with a red test before the config lands.
