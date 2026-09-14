@@ -11,7 +11,11 @@
   tags: ("mt", "cli"),
   estimate: (files: 4),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: wip(
+    2026,
+    9,
+    14,
+  )[Root cause is upstream: typst-world's content\_str used Content::plain\_text() alone, which drops separators at every paragraph/list boundary. Fixed + tested in the sibling typst-world repo (commit 1bfdc24, version bumped to 0.3.2, not yet tagged/published). Added crates/mindtape-cli/tests/status\_note\_paragraphs\_e2e.rs here, verified green against a local path-patched typst-world 0.3.2; reverted the patch since this project consumes it as a registry crate. Blocked on publishing typst-world 0.3.2 to crates.io and bumping this repo's Cargo.toml pin.],
 )
 
 == Summary
