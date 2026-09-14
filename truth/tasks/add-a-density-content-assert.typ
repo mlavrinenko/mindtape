@@ -12,7 +12,11 @@
   tags: ("mt", "gating"),
   estimate: (files: 5),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(
+    2026,
+    9,
+    14,
+  )[density = { pattern, max, per } counts matches per section, paragraph or sentence with fenced code excluded; docs, changelog and this repo's rule remain in document-the-density-content-assert],
 )
 
 == Summary
