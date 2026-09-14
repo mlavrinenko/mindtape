@@ -11,7 +11,7 @@
   tags: ("mt", "gating"),
   estimate: (files: 5),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(2026, 9, 14)[max-words variant added beside min-words],
 )
 
 == Summary
