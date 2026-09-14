@@ -2,6 +2,7 @@
 
 #show: task.with(
   title: "Check estimate drift when a task closes",
+  kind: "task",
   priority: ice(
     impact: 7,
     confidence: 0.8,

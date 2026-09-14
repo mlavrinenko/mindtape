@@ -2,6 +2,7 @@
 
 #show: task.with(
   title: "Let a status note declare a content policy",
+  kind: "task",
   priority: ice(
     impact: 7,
     confidence: 0.8,

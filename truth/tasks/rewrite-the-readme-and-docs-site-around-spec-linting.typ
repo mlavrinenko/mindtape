@@ -2,6 +2,7 @@
 
 #show: task.with(
   title: "Rewrite the README and docs site around spec linting",
+  kind: "task",
   priority: ice(
     impact: 9,
     confidence: 0.8,

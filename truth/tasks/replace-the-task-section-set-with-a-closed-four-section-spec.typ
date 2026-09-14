@@ -2,6 +2,7 @@
 
 #show: task.with(
   title: "Replace the task section set with a closed four-section spec",
+  kind: "task",
   priority: ice(
     impact: 9,
     confidence: 0.8,
