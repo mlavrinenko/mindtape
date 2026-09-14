@@ -3,9 +3,9 @@
 //! `schemars` derives the bulk straight off [`crate::config::Config`] and its
 //! nested types — the doc comments on each field become the schema's
 //! descriptions — so the schema tracks the types with no hand-maintained
-//! mirror. This module supplies the manual `JsonSchema` impls for the four
-//! config types whose `Deserialize` is hand-written (schemars cannot read a
-//! custom deserializer), assembles the root schema, and stamps a title / `$id`.
+//! mirror. This module supplies the manual `JsonSchema` impls for the config
+//! types whose `Deserialize` is hand-written (schemars cannot read a custom
+//! deserializer), assembles the root schema, and stamps a title / `$id`.
 //!
 //! `mt install` writes the schema next to the app-wide config; `mt init`
 //! scaffolds a project config carrying a `#:schema` comment directive that
@@ -17,7 +17,9 @@ use std::borrow::Cow;
 
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 
-use crate::config::{ContentAssert, HeaderAction, HeaderPathSegment, IdFormat, Requirement};
+use crate::config::{
+    ContentAssert, DensityUnit, HeaderAction, HeaderPathSegment, IdFormat, Requirement,
+};
 use crate::naming::DedupMode;
 
 /// Canonical published location of this schema. Used as the schema `$id`, and
@@ -133,6 +135,25 @@ impl JsonSchema for Requirement {
     }
 }
 
+impl JsonSchema for DensityUnit {
+    fn schema_name() -> Cow<'static, str> {
+        "DensityUnit".into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        "mindtape::body_content::DensityUnit".into()
+    }
+
+    fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
+        json_schema!({
+            "description": "Unit granularity a `density` content assert is measured over. \
+                Defaults to `section`.",
+            "type": "string",
+            "enum": ["section", "paragraph", "sentence"]
+        })
+    }
+}
+
 impl JsonSchema for ContentAssert {
     fn schema_name() -> Cow<'static, str> {
         "ContentAssert".into()
@@ -142,12 +163,14 @@ impl JsonSchema for ContentAssert {
         "mindtape::body_content::ContentAssert".into()
     }
 
-    fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        let density = generator.subschema_for::<crate::body_content::DensitySpec>();
         json_schema!({
             "description": "The assertion made over a matched section's content: the \
                 string `\"non-empty\"`, or a one-key table `{ min-words = N }`, \
-                `{ max-words = N }`, `{ must-match = \"regex\" }`, or \
-                `{ must-not-match = \"regex\" }`.",
+                `{ max-words = N }`, `{ must-match = \"regex\" }`, \
+                `{ must-not-match = \"regex\" }`, or `{ density = { pattern = \"regex\", \
+                max = N, per = \"section\" } }`.",
             "oneOf": [
                 { "type": "string", "enum": ["non-empty"] },
                 {
@@ -194,6 +217,14 @@ impl JsonSchema for ContentAssert {
                         }
                     },
                     "required": ["must-not-match"],
+                    "additionalProperties": false
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "density": density
+                    },
+                    "required": ["density"],
                     "additionalProperties": false
                 }
             ]

@@ -46,6 +46,12 @@ pub struct ContentRuleConfig {
 ///   subsection headings all count).
 /// - `{ must-match = "regex" }` / `{ must-not-match = "regex" }` — the
 ///   section's source text as written must / must not match the regex.
+/// - `{ density = { pattern = "regex", max = N, per = "section" } }` — no
+///   single unit may carry more than `N` matches of the regex; `per` is
+///   `section` (the default), `paragraph`, or `sentence`. Unlike the word
+///   counts and the regex asserts above, a fenced code block is excluded
+///   from matching entirely — see [`crate::content_gate`] for the unit-split
+///   rules.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ContentAssert {
     /// The section must contain any non-whitespace content.
@@ -58,6 +64,51 @@ pub enum ContentAssert {
     MustMatch(String),
     /// The section's source text must not match this regex.
     MustNotMatch(String),
+    /// No single unit of the section may carry more than `max` matches of
+    /// `pattern`.
+    Density(DensitySpec),
+}
+
+/// `{ density = { pattern, max, per } }` — see [`ContentAssert::Density`].
+#[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct DensitySpec {
+    /// Rust regex counted within each unit.
+    pub pattern: String,
+    /// The most matches of `pattern` a single unit may carry.
+    pub max: usize,
+    /// Unit granularity the density is measured over. Defaults to `section`.
+    #[serde(default)]
+    pub per: DensityUnit,
+}
+
+/// Unit granularity for a [`ContentAssert::Density`] assertion.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum DensityUnit {
+    /// The whole matched section content is one unit (the default).
+    #[default]
+    Section,
+    /// Blank-line-separated paragraphs; each list item is its own paragraph.
+    Paragraph,
+    /// Each paragraph split further into sentences.
+    Sentence,
+}
+
+impl<'de> Deserialize<'de> for DensityUnit {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let text = String::deserialize(deserializer)?;
+        match text.as_str() {
+            "section" => Ok(Self::Section),
+            "paragraph" => Ok(Self::Paragraph),
+            "sentence" => Ok(Self::Sentence),
+            other => Err(serde::de::Error::custom(format!(
+                "invalid density unit `{other}`; expected `section`, `paragraph`, or `sentence`"
+            ))),
+        }
+    }
 }
 
 impl<'de> Deserialize<'de> for ContentAssert {
@@ -73,7 +124,7 @@ impl<'de> Deserialize<'de> for ContentAssert {
             fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                 f.write_str(
                     "a string `\"non-empty\"` or a table with one of \
-                             `min-words`, `max-words`, `must-match`, `must-not-match`",
+                             `min-words`, `max-words`, `must-match`, `must-not-match`, `density`",
                 )
             }
 
@@ -82,7 +133,8 @@ impl<'de> Deserialize<'de> for ContentAssert {
                     "non-empty" => Ok(ContentAssert::NonEmpty),
                     other => Err(serde::de::Error::custom(format!(
                         "invalid assertion `{other}`; expected `\"non-empty\"` or a table \
-                         with one of `min-words`, `max-words`, `must-match`, `must-not-match`"
+                         with one of `min-words`, `max-words`, `must-match`, `must-not-match`, \
+                         `density`"
                     ))),
                 }
             }
@@ -98,17 +150,24 @@ impl<'de> Deserialize<'de> for ContentAssert {
                         "max-words" => ContentAssert::MaxWords(map.next_value()?),
                         "must-match" => ContentAssert::MustMatch(map.next_value()?),
                         "must-not-match" => ContentAssert::MustNotMatch(map.next_value()?),
+                        "density" => ContentAssert::Density(map.next_value()?),
                         other => {
                             return Err(serde::de::Error::unknown_field(
                                 other,
-                                &["min-words", "max-words", "must-match", "must-not-match"],
+                                &[
+                                    "min-words",
+                                    "max-words",
+                                    "must-match",
+                                    "must-not-match",
+                                    "density",
+                                ],
                             ));
                         }
                     };
                     if out.is_some() {
                         return Err(serde::de::Error::custom(
                             "assertion table must carry exactly one of `min-words`, \
-                             `max-words`, `must-match`, `must-not-match`",
+                             `max-words`, `must-match`, `must-not-match`, `density`",
                         ));
                     }
                     out = Some(value);

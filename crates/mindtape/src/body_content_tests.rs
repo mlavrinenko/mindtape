@@ -1,10 +1,10 @@
 //! `[tasks.body.content.rules]` — section-content gate parsing: the assertion
 //! shapes (string `"non-empty"` vs. the one-key tables `min-words`,
-//! `must-match`, `must-not-match`), path reuse, and the malformed-shape error
-//! message.
+//! `must-match`, `must-not-match`, `density`), path reuse, and the
+//! malformed-shape error message.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::ContentAssert;
+use super::{ContentAssert, DensitySpec, DensityUnit};
 use crate::config::{Config, HeaderPathSegment, parse_config};
 
 #[test]
@@ -39,6 +39,44 @@ fn parses_max_words_assertion() {
     assert_eq!(
         config.tasks.body.content.rules[0].assert,
         ContentAssert::MaxWords(200)
+    );
+}
+
+#[test]
+fn parses_density_assertion() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1, per = \"paragraph\" } }\n";
+    let config = parse_config(text).unwrap();
+    assert_eq!(
+        config.tasks.body.content.rules[0].assert,
+        ContentAssert::Density(DensitySpec {
+            pattern: "—".to_owned(),
+            max: 1,
+            per: DensityUnit::Paragraph,
+        })
+    );
+}
+
+#[test]
+fn density_per_defaults_to_section() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1 } }\n";
+    let config = parse_config(text).unwrap();
+    assert_eq!(
+        config.tasks.body.content.rules[0].assert,
+        ContentAssert::Density(DensitySpec {
+            pattern: "—".to_owned(),
+            max: 1,
+            per: DensityUnit::Section,
+        })
+    );
+}
+
+#[test]
+fn rejects_bad_density_per_value() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1, per = \"word\" } }\n";
+    let err = parse_config(text).unwrap_err().to_string();
+    assert!(
+        err.contains("invalid density unit `word`"),
+        "expected a density-unit error, got: {err}"
     );
 }
 

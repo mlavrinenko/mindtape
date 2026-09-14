@@ -1,6 +1,6 @@
 //! `[[tasks.body.content.rules]]` — rule compilation and section-content
 //! checking: path selection (exact + regex segments), section-span slicing
-//! through nested subsections, the five assertion shapes, `when` gating, the
+//! through nested subsections, the six assertion shapes, `when` gating, the
 //! `message` override, and the word-count semantics.
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
@@ -157,6 +157,111 @@ fn max_words_fails_one_over_the_boundary() {
     assert!(
         messages[0].contains("at most 5 words (found 6)"),
         "{messages:?}"
+    );
+}
+
+// --- density ---
+
+#[test]
+fn density_fails_two_matches_in_one_paragraph_at_max_one() {
+    let body = "== Scope\n\none thing — and another — in one paragraph.\n";
+    let messages = run(
+        body,
+        "path = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1, per = \"paragraph\" } }\n",
+    );
+    assert_eq!(messages.len(), 1, "{messages:?}");
+    assert!(
+        messages[0].contains("at most 1") && messages[0].contains("found 2"),
+        "{messages:?}"
+    );
+}
+
+#[test]
+fn density_passes_two_matches_at_max_two() {
+    let body = "== Scope\n\none thing — and another — in one paragraph.\n";
+    assert!(
+        run(
+            body,
+            "path = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 2, per = \"paragraph\" } }\n"
+        )
+        .is_empty()
+    );
+}
+
+#[test]
+fn density_per_defaults_to_section() {
+    // Two paragraphs, one match each: over one paragraph at a time this would
+    // pass at max 1, but the default `per` pools the whole section.
+    let body = "== Scope\n\nfirst — dash.\n\nsecond — dash.\n";
+    let messages = run(
+        body,
+        "path = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1 } }\n",
+    );
+    assert_eq!(
+        messages.len(),
+        1,
+        "default per=section pools the section: {messages:?}"
+    );
+}
+
+#[test]
+fn density_paragraph_split_counts_each_paragraph_separately() {
+    // Each paragraph carries one match; per=paragraph must not fail at max 1.
+    let body = "== Scope\n\nfirst — dash.\n\nsecond — dash.\n";
+    assert!(
+        run(
+            body,
+            "path = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1, per = \"paragraph\" } }\n"
+        )
+        .is_empty()
+    );
+}
+
+#[test]
+fn density_each_list_item_is_its_own_paragraph() {
+    // Two list items back to back, no blank line between: each is still its
+    // own paragraph unit, so one dash per item passes at max 1.
+    let body = "== Scope\n\n- first — item\n- second — item\n";
+    assert!(
+        run(
+            body,
+            "path = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1, per = \"paragraph\" } }\n"
+        )
+        .is_empty()
+    );
+}
+
+#[test]
+fn density_sentence_split_counts_each_sentence_separately() {
+    // Two sentences in one paragraph, one match each: per=sentence must not
+    // fail at max 1, though per=paragraph would.
+    let body = "== Scope\n\nFirst — sentence. Second — sentence.\n";
+    assert!(
+        run(
+            body,
+            "path = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1, per = \"sentence\" } }\n"
+        )
+        .is_empty()
+    );
+    let messages = run(
+        body,
+        "path = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 1, per = \"paragraph\" } }\n",
+    );
+    assert_eq!(messages.len(), 1, "{messages:?}");
+}
+
+#[test]
+fn density_excludes_fenced_code_block_from_matching() {
+    // The dash sits only inside a fenced code block; density must not count
+    // it, at any granularity.
+    let body = "== Scope\n\nprose with no dash.\n\n```\ncode — with a dash\n```\n";
+    assert!(
+        run(
+            body,
+            "path = [\"Scope\"]\nassert = { density = { pattern = \"—\", max = 0, per = \"paragraph\" } }\n"
+        )
+        .is_empty(),
+        "fenced code content must not count toward density"
     );
 }
 
