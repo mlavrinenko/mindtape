@@ -12,7 +12,7 @@
   tags: ("tooling",),
   estimate: (files: 14),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(2026, 9, 14),
 )
 
 == Summary
