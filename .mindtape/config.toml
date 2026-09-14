@@ -257,6 +257,25 @@ before = ["Summary"]
 after = ["Scope"]
 message = "Summary must precede Scope"
 
+# Every open task carries a Dogfood section after Scope: how this repo will use
+# the change once it lands. Dogfooding is this project's rule, and a rule no
+# task has to answer is one an agent forgets. Whether a change CAN be dogfooded
+# is a per-task decision, so the section is required but its answer is free —
+# "Not applicable", with the reason, is a legitimate one. Closed history is not
+# backfilled.
+[[tasks.body.headers.rules]]
+path = ["Dogfood"]
+action = "unique"
+when = "!terminal"
+message = "every open task says how this repo will dogfood it, in one Dogfood section (\"Not applicable\" with a reason opts out)"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Scope"]
+after = ["Dogfood"]
+when = "!terminal"
+message = "Dogfood follows Scope"
+
 # No section takes a subsection. The wildcard pair matches any heading nested
 # under any heading, so one rule closes the whole depth axis rather than naming
 # each section — and a section that has grown sub-structure is the shape a task
@@ -297,6 +316,12 @@ path = ["Scope"]
 assert = { min-words = 10 }
 when = "!terminal"
 message = "a Scope section naming no work reads as a placeholder; spell out what the task touches"
+
+[[tasks.body.content.rules]]
+path = ["Dogfood"]
+assert = "non-empty"
+when = "!terminal"
+message = "a Dogfood heading over nothing decides nothing; say how this repo uses the change, or \"Not applicable\" and why"
 
 # A task proposing config or API surface pays for a translation step when it
 # only describes the shape in prose. The regex is a character class rather
@@ -347,17 +372,6 @@ name = "imperative-title"
 assert = 'in_dict("verbs", word(title, 1))'
 when = "!terminal"
 message = "start the title with an imperative verb"
-severity = "error"
-
-# Dogfooding is this project's rule for every feature, and a rule nobody
-# writes down is one an agent forgets: an open `feat` task names how this repo
-# will use what it ships, on a `Dogfood:` line in its body. Every open feat
-# task carried one when this went in, so `error` costs nothing today.
-[[tasks.rules]]
-name = "dogfood-feat"
-assert = 'contains("dogfood")'
-when = 'kind == "feat" && !terminal'
-message = "say how this repo will use the feature, on a `Dogfood:` line"
 severity = "error"
 
 # A title's grammatical shape was the one convention `mt check` never held —

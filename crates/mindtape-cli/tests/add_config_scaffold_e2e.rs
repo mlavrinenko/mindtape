@@ -226,6 +226,7 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
     support::mt(dir.path())
         .args(["add", "--name", "no-estimate", "--set", "title=No estimate"])
         .args(["--set", "summary=A summary."])
+        .args(["--set", "dogfood=Not applicable."])
         .assert()
         .success();
 

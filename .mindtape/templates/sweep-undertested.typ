@@ -64,3 +64,7 @@ measurement behind it still is.
   list anywhere else, deliberately.
 - Done when a re-run — `just cover`, then `just ask-refactoring` — no longer
   names this function.
+
+== Dogfood
+
+Not applicable: a sweep finding changes no feature this repo could use.

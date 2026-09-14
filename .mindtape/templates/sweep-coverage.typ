@@ -52,3 +52,7 @@ worth exactly as much as the measurement behind it still is.
   written reason is the only thing that suppresses this finding on the next
   sweep — there is no ignore list anywhere else, deliberately.
 - Done when `just cover` reports this file at or above the floor.
+
+== Dogfood
+
+Not applicable: a sweep finding changes no feature this repo could use.

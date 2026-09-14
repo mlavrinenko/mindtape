@@ -61,3 +61,7 @@ worth exactly as much as the measurement behind it still is.
   sweep — there is no ignore list anywhere else, deliberately.
 - Done when `just check-file-size` passes and `linecop --baseline 90` no longer
   names this file.
+
+== Dogfood
+
+Not applicable: a sweep finding changes no feature this repo could use.

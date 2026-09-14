@@ -19,3 +19,11 @@
 == Scope
 
 #slot("scope", kind: "raw", default: "- TODO")
+
+== Dogfood
+
+#slot(
+  "dogfood",
+  kind: "raw",
+  prompt: "How this repo will use the change, or Not applicable and why",
+)
