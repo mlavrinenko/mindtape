@@ -12,6 +12,7 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::config::{Config, FieldConfig, IdFormat, Legend, RequiredRules};
+use crate::config_estimate::EstimateBounds;
 use crate::model::{Status, Task};
 use crate::numeric::{NumValue, NumericField, format_num};
 pub use crate::violation::{Location, Violation};
@@ -22,6 +23,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let mut out = Vec::new();
     check_id_uniqueness(tasks, &mut out);
     let required = RequiredRules::compile(config);
+    let bounds = EstimateBounds::compile(&config.tasks.estimate);
     for task in tasks {
         check_shape(task, &mut out);
         check_id_format(task, config, &mut out);
@@ -43,7 +45,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
             still_required(required.difficulty(task, config), task, "difficulty"),
         ));
         let must_estimate = still_required(required.estimate(task, config), task, "estimate");
-        check_estimate(task, config, must_estimate, &mut out);
+        check_estimate(task, config, must_estimate, &bounds, &mut out);
         let must_assignee = still_required(required.assignee(task, config), task, "assignee");
         check_assignee(task, config, must_assignee, &mut out);
         check_tags(task, config, &mut out);
@@ -330,13 +332,19 @@ pub(crate) fn check_in_scale(
 }
 
 /// Validate a task's estimate: presence when `required`, allowed unit names,
-/// and the per-unit `max`/`min` bounds.
+/// and the `max`/`min` bounds (first matching entry per unit).
 ///
 /// The bounds are deliberately an error, not a warning: an estimate outside the
 /// declared range means the task must be split *before* the work starts. A
 /// terminal task is exempt — it cannot be split any more, and re-litigating a
 /// finished task's estimate would only fail the whole backlog at once.
-fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Violation>) {
+fn check_estimate(
+    task: &Task,
+    config: &Config,
+    required: bool,
+    bounds: &EstimateBounds<'_>,
+    out: &mut Vec<Violation>,
+) {
     let estimate = &config.tasks.estimate;
     if task.estimate.is_empty() {
         if required {
@@ -362,7 +370,7 @@ fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Vi
     if task.is_terminal(&config.tasks.status.terminal()) {
         return;
     }
-    for problem in estimate.bound_problems(&task.estimate) {
+    for problem in bounds.problems(task, config) {
         push(out, task, "estimate", problem);
     }
 }

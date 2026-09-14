@@ -25,6 +25,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **An estimate bound can be gated on the task it bounds** (breaking, pre-1.0;
+  library callers only). `[tasks.estimate.max]` and `[tasks.estimate.min]` now
+  take an array of entries, each with an optional `when` filter and `message`:
+  a unit's bound is the first entry whose `when` matches and that names the
+  unit, so `when = "difficulty >= 3"` can hold judgment work to 5 files while a
+  mechanical sweep keeps a wider ceiling. A breach names the gate and carries
+  the entry's `message` as its advice. The single-table spelling still parses
+  as one unconditional entry, so no config has to change; a malformed `when`,
+  an entry naming no unit, or a unit outside `units` now fails at load.
+  `EstimateConfig::bound_problems` is replaced by `EstimateBounds`, compiled
+  once per validation pass.
+
 - **`LimitSeverity` is now `Severity`** (breaking, pre-1.0; library callers
   only). `warn` / `error` is no longer a property of a work-in-progress cap:
   `[[tasks.rules]]` spells the same two words in TOML and means the same two

@@ -12,21 +12,42 @@
 #show: page.with(..meta)
 
 An estimate is an opaque `unit -> quantity` dict, and `units` is the allow-list
-of legal unit names. Two per-unit tables bound the quantities:
+of legal unit names. Two lists of per-unit entries bound the quantities, each
+entry gated by an optional `when` filter and explained by an optional
+`message`:
 
 ```toml
 [tasks.estimate]
 units = ["files"]
 
-[tasks.estimate.max]
+[[tasks.estimate.max]]
+when = "difficulty >= 3"
 files = 5
+message = "judgment work stays small; split it rather than widen the cap"
 
-[tasks.estimate.min]
+[[tasks.estimate.max]]
+files = 15
+
+[[tasks.estimate.min]]
 files = 1
 ```
 
 Outside the range is a *validation error*, not a warning: an oversized task must
 be split before the work starts, not after. Terminal tasks are exempt.
+
+Resolution is per unit: a unit's bound comes from the first entry, in config
+order, whose `when` matches the task and that names the unit. An entry silent on
+a unit leaves it to the entries below it, and a unit no matching entry names is
+unbounded. A breach names the gate and carries the entry's `message` as its
+advice:
+
+```
+rewrite-loader: estimate: 7 files is over the 5 allowed when `difficulty >= 3`; judgment work stays small; split it rather than widen the cap
+```
+
+The single-table spelling (`[tasks.estimate.max] files = 15`) still parses, as
+one unconditional entry. A `when` that does not parse, an entry naming no unit,
+and a unit outside a non-empty `units` list each fail the config at load.
 
 A file count is the estimate `mt check` can actually verify. `[tasks.estimate.drift]`
 compares the git working tree against the budget the in-flight tasks declare and

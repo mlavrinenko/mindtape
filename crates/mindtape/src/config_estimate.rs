@@ -5,13 +5,32 @@
 //! or `(files: 3)`). Units are free labels, never converted or compared across
 //! names; `units` only constrains which names are legal.
 //!
-//! On top of that allow-list sit two per-unit tables, `max` and `min`
-//! (`[tasks.estimate.max] files = 5`). A quantity outside the declared range is
-//! a *validation error*, not a warning: the point of a bounded estimate is that
-//! the task is split **before** the work starts, and a check that only complains
-//! afterwards has already lost. Terminal tasks are exempt, for the same reason
-//! `required = "!terminal"` relaxes there — a finished task cannot be split, and
-//! re-litigating its estimate would only freeze the backlog.
+//! On top of that allow-list sit two lists of per-unit bounds, `max` and `min`.
+//! A quantity outside the declared range is a *validation error*, not a warning:
+//! the point of a bounded estimate is that the task is split **before** the work
+//! starts, and a check that only complains afterwards has already lost. Terminal
+//! tasks are exempt, for the same reason `required = "!terminal"` relaxes there —
+//! a finished task cannot be split, and re-litigating its estimate would only
+//! freeze the backlog.
+//!
+//! Each entry carries an optional `when` filter and `message`, so a ceiling can
+//! bind on judgment rather than on size alone:
+//!
+//! ```toml
+//! [[tasks.estimate.max]]
+//! when = "difficulty >= 3"
+//! files = 5
+//! message = "judgment work stays small; split it rather than widen the cap"
+//!
+//! [[tasks.estimate.max]]
+//! files = 15
+//! ```
+//!
+//! Resolution is per unit: a unit's bound is the first entry, in config order,
+//! whose `when` matches the task AND that names the unit. An entry silent on a
+//! unit leaves it to the entries below, so a gated `files` ceiling never
+//! unbounds an `hours` one the fallback declares. The single-table spelling
+//! (`[tasks.estimate.max] files = 5`) still parses, as one unconditional entry.
 //!
 //! `[tasks.estimate.drift]` configures the complementary run-time check
 //! ([`crate::estimate_drift`]): while the work runs, `mt check` compares the git
@@ -20,9 +39,11 @@
 
 use std::collections::BTreeMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 
-use crate::config::Requirement;
+use crate::config::{Config, Requirement};
+use crate::filter::Filter;
+use crate::model::Task;
 use crate::numeric::format_num;
 
 /// Estimate unit the drift check reads as a file budget when
@@ -59,56 +80,207 @@ pub struct EstimateConfig {
     pub units: Vec<String>,
     /// Whether an estimate must be set.
     pub required: Requirement,
-    /// Per-unit upper bounds (`[tasks.estimate.max] files = 5`). A unit with no
-    /// entry is unbounded above.
-    pub max: BTreeMap<String, f64>,
-    /// Per-unit lower bounds (`[tasks.estimate.min] files = 1`). A unit with no
-    /// entry is unbounded below.
-    pub min: BTreeMap<String, f64>,
+    /// Upper bounds (`[[tasks.estimate.max]] files = 5`), first matching entry
+    /// per unit wins. A unit no matching entry names is unbounded above. A
+    /// single table is accepted as one unconditional entry.
+    #[serde(deserialize_with = "one_or_many")]
+    #[schemars(schema_with = "crate::config_schema::estimate_bounds_schema")]
+    pub max: Vec<EstimateBound>,
+    /// Lower bounds (`[[tasks.estimate.min]] files = 1`), resolved like `max`.
+    /// A unit no matching entry names is unbounded below.
+    #[serde(deserialize_with = "one_or_many")]
+    #[schemars(schema_with = "crate::config_schema::estimate_bounds_schema")]
+    pub min: Vec<EstimateBound>,
     /// Working-tree drift policy for `mt check`.
     pub drift: DriftConfig,
 }
 
-impl EstimateConfig {
-    /// Bound violations for one authored estimate, one message per breached
-    /// bound, in unit order. Empty when every declared quantity sits inside its
-    /// unit's range — or names a unit no bound covers.
+/// One `[[tasks.estimate.max]]` / `[[tasks.estimate.min]]` entry: per-unit
+/// quantities, gated by `when` and explained by `message`.
+#[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub struct EstimateBound {
+    /// Filter expression selecting the tasks this entry bounds. Absent means
+    /// every task.
+    #[serde(default)]
+    pub when: Option<String>,
+    /// Why the bound sits where it does; replaces the default advice in a
+    /// breach report.
+    #[serde(default)]
+    pub message: Option<String>,
+    /// The bound per unit name (`files = 5`).
+    #[serde(flatten)]
+    pub units: BTreeMap<String, f64>,
+}
+
+/// Accept `max`/`min` as an array of tables or, for the single-table spelling,
+/// one table read as a one-entry list. A visitor rather than an untagged enum,
+/// so a wrong-typed quantity reports its own error instead of "did not match
+/// any variant".
+fn one_or_many<'de, D>(deserializer: D) -> Result<Vec<EstimateBound>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct BoundsVisitor;
+    impl<'de> serde::de::Visitor<'de> for BoundsVisitor {
+        type Value = Vec<EstimateBound>;
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("a table of per-unit bounds, or an array of them")
+        }
+        fn visit_map<A: serde::de::MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
+            let one =
+                EstimateBound::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+            Ok(vec![one])
+        }
+        fn visit_seq<A: serde::de::SeqAccess<'de>>(self, seq: A) -> Result<Self::Value, A::Error> {
+            Vec::deserialize(serde::de::value::SeqAccessDeserializer::new(seq))
+        }
+    }
+    deserializer.deserialize_any(BoundsVisitor)
+}
+
+/// Which side of the range an entry list bounds.
+#[derive(Clone, Copy)]
+enum Side {
+    Max,
+    Min,
+}
+
+/// One entry with its `when` parsed.
+struct CompiledBound<'a> {
+    spec: &'a EstimateBound,
+    /// `None` when the entry has no `when`; `Some(None)` when it has one that
+    /// failed to parse — see [`EstimateBounds::compile`].
+    when: Option<Option<Filter>>,
+}
+
+impl CompiledBound<'_> {
+    /// Whether this entry applies to `task`. A `when` that cannot be parsed or
+    /// evaluated excludes the task, the reading `[[tasks.rules]] when` takes: a
+    /// gate that cannot say whether it applies has not said that it does.
+    fn applies(&self, task: &Task, config: &Config) -> bool {
+        match &self.when {
+            None => true,
+            Some(None) => false,
+            Some(Some(filter)) => filter.matches(task, config).unwrap_or(false),
+        }
+    }
+}
+
+/// `[tasks.estimate]`'s `max` and `min` entries, compiled once for a
+/// validation pass.
+pub struct EstimateBounds<'a> {
+    max: Vec<CompiledBound<'a>>,
+    min: Vec<CompiledBound<'a>>,
+}
+
+impl<'a> EstimateBounds<'a> {
+    /// Parse every entry's `when`. A malformed one is rejected at config load
+    /// ([`validate_bounds`]), so a parse failure here only covers a hand-built
+    /// config and drops that entry.
     #[must_use]
-    pub fn bound_problems(&self, estimate: &BTreeMap<String, f64>) -> Vec<String> {
+    pub fn compile(estimate: &'a EstimateConfig) -> Self {
+        let compile = |entries: &'a [EstimateBound]| {
+            entries
+                .iter()
+                .map(|spec| CompiledBound {
+                    spec,
+                    when: spec.when.as_deref().map(|src| Filter::parse(src).ok()),
+                })
+                .collect()
+        };
+        Self {
+            max: compile(&estimate.max),
+            min: compile(&estimate.min),
+        }
+    }
+
+    /// Bound violations for `task`'s authored estimate, one message per
+    /// breached bound, in unit order. Empty when every declared quantity sits
+    /// inside its unit's range — or names a unit no matching entry covers.
+    #[must_use]
+    pub fn problems(&self, task: &Task, config: &Config) -> Vec<String> {
         let mut out = Vec::new();
-        for (unit, quantity) in estimate {
-            if let Some(max) = self.max.get(unit)
-                && quantity > max
-            {
-                out.push(over_message(unit, *quantity, *max));
-            }
-            if let Some(min) = self.min.get(unit)
-                && quantity < min
-            {
-                out.push(under_message(unit, *quantity, *min));
+        for (unit, &quantity) in &task.estimate {
+            for (side, entries) in [(Side::Max, &self.max), (Side::Min, &self.min)] {
+                let Some((spec, bound)) = entries.iter().find_map(|entry| {
+                    let bound = entry.spec.units.get(unit)?;
+                    entry.applies(task, config).then_some((entry.spec, *bound))
+                }) else {
+                    continue;
+                };
+                let breached = match side {
+                    Side::Max => quantity > bound,
+                    Side::Min => quantity < bound,
+                };
+                if breached {
+                    out.push(breach_message(side, unit, quantity, bound, spec));
+                }
             }
         }
         out
     }
 }
 
-/// Message for an estimate over its unit's `max`. Names the split, because that
-/// is the only response: the task is too big to start as written.
-fn over_message(unit: &str, quantity: f64, max: f64) -> String {
+/// Message for a breached bound: the quantity against the bound, the entry's
+/// `when` when it has one — so the reader sees why this ceiling and not
+/// another applies — and the entry's `message`, else the default action. The
+/// default names the move rather than the breach: over is a split, under a fold.
+fn breach_message(
+    side: Side,
+    unit: &str,
+    quantity: f64,
+    bound: f64,
+    spec: &EstimateBound,
+) -> String {
+    let (relation, verb, default_advice) = match side {
+        Side::Max => ("over", "allowed", "split the task before starting the work"),
+        Side::Min => ("under", "required", "fold it into a larger task"),
+    };
+    let gate = spec
+        .when
+        .as_deref()
+        .map(|when| format!(" when `{when}`"))
+        .unwrap_or_default();
     format!(
-        "{} {unit} is over the {} allowed; split the task before starting the work",
+        "{} {unit} is {relation} the {} {verb}{gate}; {}",
         format_num(quantity),
-        format_num(max),
+        format_num(bound),
+        spec.message.as_deref().unwrap_or(default_advice),
     )
 }
 
-/// Message for an estimate under its unit's `min`.
-fn under_message(unit: &str, quantity: f64, min: f64) -> String {
-    format!(
-        "{} {unit} is under the {} required; fold it into a larger task",
-        format_num(quantity),
-        format_num(min),
-    )
+/// Check every `max`/`min` entry at config load, returning one message per
+/// problem, prefixed with its dotted TOML path: a `when` that does not parse
+/// or dry-run, an entry naming no unit (it bounds nothing), and a unit outside
+/// a non-empty `units` allow-list (no task may carry it, so it never fires).
+pub(crate) fn validate_bounds(config: &Config) -> Vec<String> {
+    let estimate = &config.tasks.estimate;
+    let probe = Task::default();
+    let mut problems = Vec::new();
+    for (key, entries) in [("max", &estimate.max), ("min", &estimate.min)] {
+        for (index, entry) in entries.iter().enumerate() {
+            let path = format!("tasks.estimate.{key}[{index}]");
+            if let Some(when) = &entry.when
+                && let Some(problem) = crate::filter::expr_problem(when, &probe, config)
+            {
+                problems.push(format!("{path}.when: {problem}"));
+            }
+            if entry.units.is_empty() {
+                problems.push(format!(
+                    "{path}: bounds no unit; name at least one, e.g. `files = 5`"
+                ));
+            }
+            for unit in entry.units.keys() {
+                if !estimate.units.is_empty() && !estimate.units.contains(unit) {
+                    problems.push(format!(
+                        "{path}.{unit}: `{unit}` is not an allowed estimate unit"
+                    ));
+                }
+            }
+        }
+    }
+    problems
 }
 
 /// `[tasks.estimate.drift]` — how `mt check` compares the working tree against

@@ -547,6 +547,32 @@
       },
       "type": "object"
     },
+    "EstimateBound": {
+      "additionalProperties": {
+        "format": "double",
+        "type": "number"
+      },
+      "description": "One `[[tasks.estimate.max]]` / `[[tasks.estimate.min]]` entry: per-unit\nquantities, gated by `when` and explained by `message`.",
+      "properties": {
+        "message": {
+          "default": null,
+          "description": "Why the bound sits where it does; replaces the default advice in a\nbreach report.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "when": {
+          "default": null,
+          "description": "Filter expression selecting the tasks this entry bounds. Absent means\nevery task.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "EstimateConfig": {
       "additionalProperties": false,
       "description": "`[tasks.estimate]` — estimate units, bounds, and drift policy.",
@@ -556,22 +582,32 @@
           "description": "Working-tree drift policy for `mt check`."
         },
         "max": {
-          "additionalProperties": {
-            "format": "double",
-            "type": "number"
-          },
-          "default": {},
-          "description": "Per-unit upper bounds (`[tasks.estimate.max] files = 5`). A unit with no\nentry is unbounded above.",
-          "type": "object"
+          "description": "Upper bounds (`[[tasks.estimate.max]] files = 5`), first matching entry\nper unit wins. A unit no matching entry names is unbounded above. A\nsingle table is accepted as one unconditional entry.",
+          "oneOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/EstimateBound"
+              },
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/EstimateBound"
+            }
+          ]
         },
         "min": {
-          "additionalProperties": {
-            "format": "double",
-            "type": "number"
-          },
-          "default": {},
-          "description": "Per-unit lower bounds (`[tasks.estimate.min] files = 1`). A unit with no\nentry is unbounded below.",
-          "type": "object"
+          "description": "Lower bounds (`[[tasks.estimate.min]] files = 1`), resolved like `max`.\nA unit no matching entry names is unbounded below.",
+          "oneOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/EstimateBound"
+              },
+              "type": "array"
+            },
+            {
+              "$ref": "#/$defs/EstimateBound"
+            }
+          ]
         },
         "required": {
           "$ref": "#/$defs/Requirement",

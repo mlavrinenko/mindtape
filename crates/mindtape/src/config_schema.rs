@@ -94,6 +94,22 @@ impl JsonSchema for DedupMode {
     }
 }
 
+/// `[tasks.estimate] max` / `min`: an array of bound entries, or the single
+/// table spelling read as one unconditional entry (see
+/// [`crate::config_estimate::EstimateConfig::max`]).
+pub(crate) fn estimate_bounds_schema(generator: &mut SchemaGenerator) -> Schema {
+    let entry = generator.subschema_for::<crate::config_estimate::EstimateBound>();
+    json_schema!({
+        "description": "Per-unit estimate bounds: an array of entries, first entry \
+            whose `when` matches and that names the unit wins; a single table is \
+            one unconditional entry.",
+        "oneOf": [
+            { "type": "array", "items": entry },
+            entry
+        ]
+    })
+}
+
 impl JsonSchema for Requirement {
     fn schema_name() -> Cow<'static, str> {
         "Requirement".into()
