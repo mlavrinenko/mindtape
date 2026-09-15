@@ -13,7 +13,7 @@
   tags: ("mt", "gating"),
   estimate: (files: 4),
   assignee: "agent",
-  status: proposed(2026, 9, 15),
+  status: done(2026, 9, 16),
 )
 
 == Problem
