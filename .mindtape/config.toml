@@ -538,6 +538,12 @@ assert = { must-match = "[`]{3}" }
 when = 'has_tag("gating") && !terminal'
 message = "this task proposes config surface; show the shape in a block"
 
+[[tasks.body.content.rules]]
+path = [{ match = ".*" }]
+assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
+when = "!terminal"
+message = "more than one em-dash in a paragraph reads as generated prose; use a comma, a colon or a second sentence"
+
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view. Redeclare `[views.default]` here to add a
 # sort/columns bundle.
