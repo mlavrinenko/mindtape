@@ -13,7 +13,7 @@
   tags: ("mt",),
   estimate: (files: 15),
   assignee: "agent",
-  status: wip(2026, 9, 16),
+  status: done(2026, 9, 16),
   links: depends-on("check-a-task-field-with-a-typst-function.typ"),
   x-goals: (
     product: (
