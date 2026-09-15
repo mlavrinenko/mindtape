@@ -57,6 +57,7 @@ The docs site has the rest:
 - [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) — Every field a task file can declare, and what the prelude versus the Rust layer enforce.
 - [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) — How mt add scaffolds a task from a Typst template whose values are slot() calls.
 - [Derived tags](https://mlavrinenko.github.io/mindtape/derived-tags/) — Tasks inherit tags from their location under a root, without those tags ever being written to the file.
+- [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/) — A repo's tasks can carry a structure it invented, checked by the repo's own Typst function on every write — no separate linter to maintain.
 - [CLI reference](https://mlavrinenko.github.io/mindtape/cli/) — Every mt command, grouped, with the deep topics linked out to their own pages.
 - [Filter language](https://mlavrinenko.github.io/mindtape/filters/) — The expression language mt ls and mt rm use to select tasks: fields, operators, functions, and dependency predicates.
 - [Priority](https://mlavrinenko.github.io/mindtape/priority/) — Priority is a number on a configured scale, set by hand or scored by a framework; difficulty is its twin.

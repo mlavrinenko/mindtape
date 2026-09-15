@@ -194,6 +194,9 @@ gen_read describe  add --describe
 gen_read flip-list flip --list
 gen_read eval      eval "$FIX/tasks/repertoire/fur-elise-polish.typ"
 
+# examples/self-validating/: own script (this file is at the Shell cap already).
+bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"
+
 # The colour-bearing transcripts (the `mt ls` family) captured a SECOND time
 # WITH ANSI, for the terminal-ansi html.frame render path (www/utils/ui.typ);
 # the plain .txt above stays for the selectable-text terminals. `mt check` on a

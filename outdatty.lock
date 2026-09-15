@@ -150,7 +150,7 @@ groups:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5
     dependents:
-      crates/mindtape-cli/src/init.rs: 380a04e3fb2ce958354ba9f3e9bd90bc30e21715f4f18653794064326905edd5
+      crates/mindtape-cli/src/init.rs: 413f762faf5aedeba0780bb94e872825232fdafbd7692f5974083c5fa36f6cc9
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898
       examples/learn-piano/.mindtape/templates/task.typ: e269ab035087724b5b0df9832b31469d5c515e68979f2c6a9dc23c0eba0b6760
       examples/learn-piano/tasks/repertoire/abandoned-rondo-alla-turca.typ: 240c47c55cb8bd0354146c6342959d5961c19b92f5210f0a9c48440463d1707b
@@ -171,3 +171,5 @@ groups:
       examples/minimal/tasks/refactor-auth.typ: c0ca3a97de0ecdc0ef1e8b8df45d29d49b67c697d0856fb28b4ed141521948fe
       examples/minimal/tasks/setup-ci.typ: 398c86142adb266183391b5e7ef5b4988100f59225cf7273e23ec9475f65c530
       examples/minimal/tasks/write-docs.typ: 85b64eb42b0a66948c35fcb6e21a68ef409be65d9af219e9547763ec50dafe8a
+      examples/self-validating/tasks/export-report-as-csv.typ: 4514173724a7c99858748c12667a956773321877546279990d124e819fc7c525
+      examples/self-validating/tasks/ship-onboarding-checklist.typ: d17bb87b9e8aa9dbb3429aa4cffcd2c2299475389c312311cff6d9a6688d4c1b

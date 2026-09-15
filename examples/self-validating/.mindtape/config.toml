@@ -1,0 +1,42 @@
+#:schema ../../../schema/config.schema.json
+# examples/self-validating/.mindtape/config.toml — a repo whose tasks carry a
+# structure it invented (`x-goals`) and checks on every write with its own
+# Typst function (lib.typ), no separate linter to maintain. Miniature of this
+# repo's own truth/goals.typ + truth/lib.typ + `[[tasks.rules]]` pair; see
+# www/content/self-validating-tasks.typ.
+#
+# tasks/export-report-as-csv.typ deliberately skips a goal, so `mt check`
+# against this fixture always refuses — that refusal is the whole point.
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
+required = false
+
+[[tasks.rules]]
+name = "goals"
+check = { typst = "lib.typ", function = "check-goals", field = "x-goals" }
+severity = "error"

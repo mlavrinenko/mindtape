@@ -62,7 +62,13 @@
   (title: "Start", items: ("/", "/quickstart/")),
   (
     title: "Guide",
-    items: ("/concepts/", "/dsl/", "/templates/", "/derived-tags/"),
+    items: (
+      "/concepts/",
+      "/dsl/",
+      "/templates/",
+      "/derived-tags/",
+      "/self-validating-tasks/",
+    ),
   ),
   (
     title: "Reference",

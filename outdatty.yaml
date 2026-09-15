@@ -246,6 +246,8 @@ groups:
       - examples/minimal/tasks/refactor-auth.typ
       - examples/minimal/tasks/setup-ci.typ
       - examples/minimal/tasks/write-docs.typ
+      - examples/self-validating/tasks/ship-onboarding-checklist.typ
+      - examples/self-validating/tasks/export-report-as-csv.typ
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.
