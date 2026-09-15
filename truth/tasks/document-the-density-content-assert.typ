@@ -13,7 +13,7 @@
   estimate: (files: 3),
   kind: "docs",
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(2026, 9, 16),
   links: depends-on("add-a-density-content-assert.typ"),
   x-goals: (
     product: (
