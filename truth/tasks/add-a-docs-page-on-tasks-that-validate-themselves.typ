@@ -13,7 +13,7 @@
   estimate: (files: 7),
   kind: "docs",
   assignee: "agent",
-  status: proposed(2026, 9, 15),
+  status: wip(2026, 9, 16),
   links: depends-on("move-goal-verdicts-into-x-goals.typ"),
   x-goals: (
     product: (
