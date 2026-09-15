@@ -58,7 +58,7 @@ groups:
       crates/mindtape-cli/src/cli.rs: 74f977689793fdd2e44fdc7a795b06e068717f9aabc104b285a79e8955b326d8
     dependents:
       CHANGELOG.md: 28a9ab485ead541ee8e1a265bba34d6c578de668b277d03312a0d41bfbb6c15e
-      docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
+      docs/src/agents.typ: 6aac5673f86997a72eeeeea4d56dba4aa43d91369068f89acad44cc37819c338
       docs/src/contributing.typ: ca5d323a9616612d111b6526840c38b7fa889e36a9c2993e0e653232a3690d4b
       docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
       docs/src/skill.typ: 12bdf10db084520d061743d56193e69e8c79f62eb23faf4ce1307d698295378a
