@@ -59,7 +59,7 @@ groups:
     dependents:
       CHANGELOG.md: 28a9ab485ead541ee8e1a265bba34d6c578de668b277d03312a0d41bfbb6c15e
       docs/src/agents.typ: f23ba24564d4c177f090c879219ec15bfd6b6230c5c25796ba3341990ee8f4d7
-      docs/src/contributing.typ: db52bac91551a12b31fd95e2e37f82b2e6821cd7ce433ca6b509df71a3f0b506
+      docs/src/contributing.typ: ca5d323a9616612d111b6526840c38b7fa889e36a9c2993e0e653232a3690d4b
       docs/src/readme.typ: 19381d7df9b571c5fe069bb7e9d696b99c083af288cec738b4923ceecc27a616
       docs/src/skill.typ: 12bdf10db084520d061743d56193e69e8c79f62eb23faf4ce1307d698295378a
       www/content/cli.typ: 91c4e6c8391ae4109f2ff0382a079490557a9cf50904503cb62aa2a65b6dd996

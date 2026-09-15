@@ -98,10 +98,11 @@ Re-record the group when you edit a dependent on its own, too, in the same commi
 
 ## Version Management
 
+- No backward compatibility before the first public release: a rename lands whole, callers and configs included, with no alias or migration path left.
 - Workspace crates: `Cargo.toml` `[workspace.package] version` (semver).
 - Typst library: `lib/typst.toml` `version`, independent of the crates. Several files repeat it and all have to move together; the `typst-pkg-version` outdatty group enumerates them and fails the build otherwise. Trust the group, not a list here.
 - `mindtape-cli`’s dependency on `mindtape` carries a version requirement (not path-only), because crates.io rejects path-only deps on publish; bump it with the workspace version.
-- A release (`just release VERSION`) is gated twice. `VERSION` must be a bare semver with no leading `v`: an `[arg(...)]` pattern rejects anything else before the recipe body runs, so `v0.3.0` fails fast with a pattern mismatch instead of a confusing “Cargo.toml is 0.3.0” error from inside the script. Then the body gates — the tag must equal the workspace version, the working tree must be clean, and `CHANGELOG.md` may not have a non-empty `[Unreleased]` section (it moves into a dated `[VERSION]` section at release time). The recipe pushes `main` before the tag, so the docs site (`pages.yml`) and CI run on the release tree.
+- A release (`just release VERSION`) is gated twice. `VERSION` must be a bare semver with no leading `v`: an `[arg(...)]` pattern rejects `v0.3.0` before the recipe body runs. Then the body gates — the tag must equal the workspace version, the working tree must be clean, and `CHANGELOG.md` may not have a non-empty `[Unreleased]` section (it moves into a dated `[VERSION]` section at release time). The recipe pushes `main` before the tag, so the docs site (`pages.yml`) and CI run on the release tree.
 
 ## Commit Messages
 
