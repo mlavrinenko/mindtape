@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: slot("title", prompt: "cover <path>"),
@@ -34,7 +34,7 @@
 == Problem
 
 + Run `just cover`.
-+ 😞 #raw(slot("path", prompt: "repo-relative path of the undercovered file")) is #slot("percent", kind: "text", prompt: "covered lines as a percentage")% covered: #slot("uncovered", kind: "text", prompt: "count of unreached lines") of #slot("lines", kind: "text", prompt: "count of instrumented lines") instrumented lines are never reached by the suite, against a floor of #slot("floor", kind: "text", prompt: "the coverage floor this file is measured against")%.
++ 🔴 #raw(slot("path", prompt: "repo-relative path of the undercovered file")) is #slot("percent", kind: "text", prompt: "covered lines as a percentage")% covered: #slot("uncovered", kind: "text", prompt: "count of unreached lines") of #slot("lines", kind: "text", prompt: "count of instrumented lines") instrumented lines are never reached by the suite, against a floor of #slot("floor", kind: "text", prompt: "the coverage floor this file is measured against")%.
 
 `just ask-refactoring` filed this, and the sweep re-reads the signal every run,
 so the task is worth only as much as that measurement still is.
@@ -42,18 +42,24 @@ so the task is worth only as much as that measurement still is.
 == Goals
 
 #goals(
-  readable-tasks: neutral,
-  implementable-tasks: neutral,
-  enforced-practice: neutral,
-  cheap-adoption: neutral,
-  typst-over-markdown: neutral,
-  plain-files: neutral,
-  sound-codebase: helps[unreached lines get a test that fails when they break],
+  product: (
+    readable-tasks: neutral,
+    implementable-tasks: neutral,
+    enforced-practice: neutral,
+    cheap-adoption: neutral,
+    typst-over-markdown: neutral,
+    plain-files: neutral,
+  ),
+  process: (
+    sound-codebase: helps[unreached lines get a test that fails when they
+      break],
+    docs-match-code: neutral,
+  ),
 )
 
 == TO-BE
 
-- 🙂 `just cover` reports this file at or above the floor, or the `just cover`
+- 🟢 `just cover` reports this file at or above the floor, or the `just cover`
   recipe excludes it with a reason.
 
 == Changes

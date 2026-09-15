@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: slot("title", prompt: "split or re-cap <path>"),
@@ -38,7 +38,7 @@
 == Problem
 
 + Run `linecop --format json`.
-+ 😞 #raw(slot("path", prompt: "repo-relative path of the oversized file")) stands at #slot("lines", kind: "text", prompt: "current line count") of its #slot("limit", kind: "text", prompt: "the linecop limit for this file")-line budget: #slot("headroom", kind: "text", prompt: "limit minus lines") lines of headroom left, #slot("percent", kind: "text", prompt: "lines over limit, as a percentage")% of the cap spent.
++ 🔴 #raw(slot("path", prompt: "repo-relative path of the oversized file")) stands at #slot("lines", kind: "text", prompt: "current line count") of its #slot("limit", kind: "text", prompt: "the linecop limit for this file")-line budget: #slot("headroom", kind: "text", prompt: "limit minus lines") lines of headroom left, #slot("percent", kind: "text", prompt: "lines over limit, as a percentage")% of the cap spent.
 
 #slot(
   "seam",
@@ -52,19 +52,24 @@ so the task is worth only as much as that measurement still is.
 == Goals
 
 #goals(
-  readable-tasks: neutral,
-  implementable-tasks: neutral,
-  enforced-practice: neutral,
-  cheap-adoption: neutral,
-  typst-over-markdown: neutral,
-  plain-files: neutral,
-  sound-codebase: helps[a file under its cap changes without reading its
-    neighbours],
+  product: (
+    readable-tasks: neutral,
+    implementable-tasks: neutral,
+    enforced-practice: neutral,
+    cheap-adoption: neutral,
+    typst-over-markdown: neutral,
+    plain-files: neutral,
+  ),
+  process: (
+    sound-codebase: helps[a file under its cap changes without reading its
+      neighbours],
+    docs-match-code: neutral,
+  ),
 )
 
 == TO-BE
 
-- 🙂 `just check-file-size` passes and `linecop --baseline 90` no longer names
+- 🟢 `just check-file-size` passes and `linecop --baseline 90` no longer names
   this file.
 
 == Changes

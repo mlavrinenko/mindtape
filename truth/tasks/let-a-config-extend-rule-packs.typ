@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: "Let a config extend rule packs",
@@ -22,25 +22,30 @@
 + Put a `[[tasks.rules]]` entry in a `.mindtape/defaults.toml` one directory above a project, the ancestor layer `www/content/config.typ` describes under "The four layers".
 + Run `mt config show` in the project: the inherited rule is there.
 + Add one `[[tasks.rules]]` entry to the project's own `.mindtape/config.toml` and run `mt config show` again.
-+ 😞 The inherited rule is gone. Arrays replace wholesale, so keeping it means copying every inherited rule into every repo.
-+ 😞 No key switches off one inherited rule, or changes its threshold, while keeping the rest.
++ 🔴 The inherited rule is gone. Arrays replace wholesale, so keeping it means copying every inherited rule into every repo.
++ 🔴 No key switches off one inherited rule, or changes its threshold, while keeping the rest.
 
 
 == Goals
 
 #goals(
-  readable-tasks: neutral,
-  implementable-tasks: neutral,
-  enforced-practice: helps[a repo that extends a pack is policed by every rule in it, with no copy to fall behind],
-  cheap-adoption: helps[adopting shared practice becomes one `extends` line plus overrides],
-  typst-over-markdown: neutral,
-  plain-files: neutral,
-  sound-codebase: neutral,
+  product: (
+    readable-tasks: neutral,
+    implementable-tasks: neutral,
+    enforced-practice: helps[a repo that extends a pack is policed by every rule in it, with no copy to fall behind],
+    cheap-adoption: helps[adopting shared practice becomes one `extends` line plus overrides],
+    typst-over-markdown: neutral,
+    plain-files: neutral,
+  ),
+  process: (
+    sound-codebase: neutral,
+    docs-match-code: neutral,
+  ),
 )
 
 == TO-BE
 
-- 🙂 A config extends packs and adjusts single rules:
+- 🟢 A config extends packs and adjusts single rules:
 
 ```toml
 extends = ["mindtape-tasks", "../shared/team-pack.toml"]
@@ -52,9 +57,9 @@ path = [{ match = "^(Goals|Changes)$" }]
 assert = { max-words = 300 }
 ```
 
-- 🙂 A bare name resolves to a pack embedded in the binary under the reserved `mindtape-` prefix. A path resolves to a TOML file relative to the project root, written in config format.
-- 🙂 Pack rules append to the project's rules, a project rule with the same `name` replaces the pack's, and `mt config show --origin` names the pack each rule came from.
-- 🙂 A `disable` entry naming no rule is a config error.
+- 🟢 A bare name resolves to a pack embedded in the binary under the reserved `mindtape-` prefix. A path resolves to a TOML file relative to the project root, written in config format.
+- 🟢 Pack rules append to the project's rules, a project rule with the same `name` replaces the pack's, and `mt config show --origin` names the pack each rule came from.
+- 🟢 A `disable` entry naming no rule is a config error.
 
 
 == Changes
@@ -65,6 +70,11 @@ assert = { max-words = 300 }
 - `crates/mindtape/src/lib.rs`: register the module.
 - `schema/config.schema.json`: regenerate.
 
+
+== Alternatives
+
+- Merge every array across the existing four layers: it changes what every current config means, and still offers no `disable`.
+- Copy packs in at `mt init`, as presets do: a copy never receives the next fix.
 
 == Out of scope
 

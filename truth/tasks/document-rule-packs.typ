@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: "Document rule packs",
@@ -20,25 +20,35 @@
 == Problem
 
 + Open `www/content/config.typ` at "The four layers".
-+ 😞 It explains layers whose arrays replace wholesale and says nothing about `extends`, `disable`, rule names or the `mindtape-tasks` pack, so a reader cannot find the one-line adoption.
++ 🔴 It explains layers whose arrays replace wholesale and says nothing about `extends`, `disable`, rule names or the `mindtape-tasks` pack, so a reader cannot find the one-line adoption.
 
 
 == Goals
 
 #goals(
-  readable-tasks: neutral,
-  implementable-tasks: neutral,
-  enforced-practice: neutral,
-  cheap-adoption: helps[a reader finds the one-line adoption on the config page],
-  typst-over-markdown: neutral,
-  plain-files: neutral,
-  sound-codebase: neutral,
+  product: (
+    readable-tasks: neutral,
+    implementable-tasks: neutral,
+    enforced-practice: neutral,
+    cheap-adoption: helps[a reader finds the one-line adoption on the config page],
+    typst-over-markdown: neutral,
+    plain-files: neutral,
+  ),
+  process: (
+    sound-codebase: neutral,
+    docs-match-code: neutral,
+  ),
 )
 
 == TO-BE
 
-- 🙂 `www/content/config.typ` shows `extends` and `disable` with one embedded and one path pack, how pack rules append, and how a same-named project rule replaces one.
-- 🙂 It lists the rules in `mindtape-tasks` by name.
+- 🟢 `www/content/config.typ` shows `extends` and `disable` with one embedded and one path pack, how pack rules append, and how a same-named project rule replaces one.
+- 🟢 It lists the rules in `mindtape-tasks` by name.
+
+== Source of truth
+
+- `crates/mindtape/src/config_packs.rs` and `schema/config.schema.json`: every key, default and error the page states.
+- `mt config show --origin` run in this repo: the origin lines the page quotes.
 
 
 == Changes

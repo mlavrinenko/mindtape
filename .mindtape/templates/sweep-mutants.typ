@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: slot("title", prompt: "pin <function> in <path>"),
@@ -34,7 +34,7 @@
 == Problem
 
 + Run `cargo mutants` over the file below.
-+ 😞 #raw(slot("function", prompt: "the mutated function")) in #raw(slot("path", prompt: "repo-relative path of the mutated file")) survived a mutation at line #slot("line", kind: "text", prompt: "line number of the mutant"): the suite still passed after #raw(slot("mutation", prompt: "cargo-mutants' own wording for the mutation, so it greps against missed.txt")).
++ 🔴 #raw(slot("function", prompt: "the mutated function")) in #raw(slot("path", prompt: "repo-relative path of the mutated file")) survived a mutation at line #slot("line", kind: "text", prompt: "line number of the mutant"): the suite still passed after #raw(slot("mutation", prompt: "cargo-mutants' own wording for the mutation, so it greps against missed.txt")).
 
 The line is covered, so something executes it, but nothing asserts on what it
 decides. `just ask-refactoring` filed this, and the sweep re-reads the signal
@@ -49,19 +49,24 @@ every run, so the task is worth only as much as that measurement still is.
 == Goals
 
 #goals(
-  readable-tasks: neutral,
-  implementable-tasks: neutral,
-  enforced-practice: neutral,
-  cheap-adoption: neutral,
-  typst-over-markdown: neutral,
-  plain-files: neutral,
-  sound-codebase: helps[a line that decides something gets a test that fails
-    when it breaks],
+  product: (
+    readable-tasks: neutral,
+    implementable-tasks: neutral,
+    enforced-practice: neutral,
+    cheap-adoption: neutral,
+    typst-over-markdown: neutral,
+    plain-files: neutral,
+  ),
+  process: (
+    sound-codebase: helps[a line that decides something gets a test that fails
+      when it breaks],
+    docs-match-code: neutral,
+  ),
 )
 
 == TO-BE
 
-- 🙂 `just mutants -f` on this file reports the mutant as caught, or
+- 🟢 `just mutants -f` on this file reports the mutant as caught, or
   `.cargo/mutants.toml` declares it uninteresting with a reason.
 
 == Changes

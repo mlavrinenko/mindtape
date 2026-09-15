@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: slot("title", prompt: "Task title, imperative verb first"),
@@ -18,27 +18,36 @@
 #slot(
   "problem",
   kind: "raw",
-  prompt: "Numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 😞 and quote what it printed",
+  prompt: "Numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 🔴 and quote what it printed",
 )
 
 == Goals
 
 #goals(
-  readable-tasks: slot("readable-tasks", kind: "raw", default: "neutral"),
-  implementable-tasks: slot(
-    "implementable-tasks",
-    kind: "raw",
-    default: "neutral",
+  product: (
+    readable-tasks: slot("readable-tasks", kind: "raw", default: "neutral"),
+    implementable-tasks: slot(
+      "implementable-tasks",
+      kind: "raw",
+      default: "neutral",
+    ),
+    enforced-practice: slot(
+      "enforced-practice",
+      kind: "raw",
+      default: "neutral",
+    ),
+    cheap-adoption: slot("cheap-adoption", kind: "raw", default: "neutral"),
+    typst-over-markdown: slot(
+      "typst-over-markdown",
+      kind: "raw",
+      default: "neutral",
+    ),
+    plain-files: slot("plain-files", kind: "raw", default: "neutral"),
   ),
-  enforced-practice: slot("enforced-practice", kind: "raw", default: "neutral"),
-  cheap-adoption: slot("cheap-adoption", kind: "raw", default: "neutral"),
-  typst-over-markdown: slot(
-    "typst-over-markdown",
-    kind: "raw",
-    default: "neutral",
+  process: (
+    sound-codebase: slot("sound-codebase", kind: "raw", default: "neutral"),
+    docs-match-code: slot("docs-match-code", kind: "raw", default: "neutral"),
   ),
-  plain-files: slot("plain-files", kind: "raw", default: "neutral"),
-  sound-codebase: slot("sound-codebase", kind: "raw", default: "neutral"),
 )
 
 == TO-BE
@@ -46,7 +55,7 @@
 #slot(
   "to-be",
   kind: "raw",
-  prompt: "Bullets opening with 🙂: what the Problem steps show once this lands",
+  prompt: "Bullets opening with 🟢: how it should work, behave and feel once this lands",
 )
 
 == Changes

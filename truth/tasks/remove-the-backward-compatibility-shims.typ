@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: "Remove the backward-compatibility shims",
@@ -20,26 +20,31 @@
 
 + Read Version Management in `CONTRIBUTING.md`: no backward compatibility before the first public release.
 + Run `rg -n -i 'retired|deprecated|legacy' crates/mindtape/src crates/mindtape-cli/src --glob '!*tests*'`.
-+ 😞 The code still carries old spellings: `RETIRED` in `crates/mindtape/src/config_required.rs:28`, `RENAMED_FIELDS` in `crates/mindtape/src/fields.rs:174`, the retired `contains` order in `crates/mindtape/src/filter_predicates.rs:81`, the legacy per-kind names in `crates/mindtape/src/filter_links.rs:2`, and the hidden `mt install-lib` alias in `crates/mindtape-cli/src/cli.rs:98`.
++ 🔴 The code still carries old spellings: `RETIRED` in `crates/mindtape/src/config_required.rs:28`, `RENAMED_FIELDS` in `crates/mindtape/src/fields.rs:174`, the retired `contains` order in `crates/mindtape/src/filter_predicates.rs:81`, the legacy per-kind names in `crates/mindtape/src/filter_links.rs:2`, and the hidden `mt install-lib` alias in `crates/mindtape-cli/src/cli.rs:98`.
 
 
 == Goals
 
 #goals(
-  readable-tasks: neutral,
-  implementable-tasks: neutral,
-  enforced-practice: neutral,
-  cheap-adoption: neutral,
-  typst-over-markdown: neutral,
-  plain-files: neutral,
-  sound-codebase: helps[less code to keep correct, and an old spelling fails plainly instead of through a special case],
+  product: (
+    readable-tasks: neutral,
+    implementable-tasks: neutral,
+    enforced-practice: neutral,
+    cheap-adoption: neutral,
+    typst-over-markdown: neutral,
+    plain-files: neutral,
+  ),
+  process: (
+    sound-codebase: helps[less code to keep correct, and an old spelling fails plainly instead of through a special case],
+    docs-match-code: neutral,
+  ),
 )
 
 == TO-BE
 
-- 🙂 The Problem's `rg` finds only `mt rm`'s retired-task vocabulary, which names a feature.
-- 🙂 An old spelling fails as an unknown key, field, value or command, with no pointer to its replacement.
-- 🙂 `just check` passes.
+- 🟢 The Problem's `rg` finds only `mt rm`'s retired-task vocabulary, which names a feature.
+- 🟢 An old spelling fails as an unknown key, field, value or command, with no pointer to its replacement.
+- 🟢 `just check` passes.
 
 
 == Changes

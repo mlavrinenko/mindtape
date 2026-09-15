@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: slot("title", prompt: "cover <function> in <path>"),
@@ -34,7 +34,7 @@
 == Problem
 
 + Run `just cover`, then `just ask-refactoring`.
-+ 😞 #raw(slot("function", prompt: "the undertested function")) in #raw(slot("path", prompt: "repo-relative path of the file it lives in")) is #slot("percent", kind: "text", prompt: "the function's covered lines as a percentage")% covered at cyclomatic complexity #slot("complexity", kind: "text", prompt: "the function's cyclomatic complexity"), inside this arm's band: complexity #slot("cc_floor", kind: "text", prompt: "the complexity floor the band starts at") or above, coverage under #slot("cov_floor", kind: "text", prompt: "the coverage floor the band ends at")%.
++ 🔴 #raw(slot("function", prompt: "the undertested function")) in #raw(slot("path", prompt: "repo-relative path of the file it lives in")) is #slot("percent", kind: "text", prompt: "the function's covered lines as a percentage")% covered at cyclomatic complexity #slot("complexity", kind: "text", prompt: "the function's cyclomatic complexity"), inside this arm's band: complexity #slot("cc_floor", kind: "text", prompt: "the complexity floor the band starts at") or above, coverage under #slot("cov_floor", kind: "text", prompt: "the coverage floor the band ends at")%.
 
 Nothing else reports this: `just cover` gates the workspace total only, and a
 file-shaped signal cannot see a function nobody exercises inside a well-covered
@@ -44,19 +44,24 @@ much as that measurement still is.
 == Goals
 
 #goals(
-  readable-tasks: neutral,
-  implementable-tasks: neutral,
-  enforced-practice: neutral,
-  cheap-adoption: neutral,
-  typst-over-markdown: neutral,
-  plain-files: neutral,
-  sound-codebase: helps[a complex function nobody exercises gets a test that
-    fails when it breaks],
+  product: (
+    readable-tasks: neutral,
+    implementable-tasks: neutral,
+    enforced-practice: neutral,
+    cheap-adoption: neutral,
+    typst-over-markdown: neutral,
+    plain-files: neutral,
+  ),
+  process: (
+    sound-codebase: helps[a complex function nobody exercises gets a test
+      that fails when it breaks],
+    docs-match-code: neutral,
+  ),
 )
 
 == TO-BE
 
-- 🙂 A re-run of `just cover`, then `just ask-refactoring`, no longer names this
+- 🟢 A re-run of `just cover`, then `just ask-refactoring`, no longer names this
   function.
 
 == Changes

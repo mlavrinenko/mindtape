@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: "Ship the task practice as the mindtape-tasks pack",
@@ -20,30 +20,35 @@
 == Problem
 
 + Run `mt init` in a new repo, then `mt add` a task with an empty body.
-+ 😞 Nothing refuses it. The six-section rules, the word caps and the imperative-title rule live only in this repo's `.mindtape/config.toml`, a block another repo can only copy and then watch drift.
++ 🔴 Nothing refuses it. The six-section rules, the word caps and the imperative-title rule live only in this repo's `.mindtape/config.toml`, a block another repo can only copy and then watch drift.
 
 
 == Goals
 
 #goals(
-  readable-tasks: helps[every adopting repo's tasks share one skimmable shape],
-  implementable-tasks: helps[every adopting repo's tasks carry reproduction steps and named files],
-  enforced-practice: neutral,
-  cheap-adoption: helps[a repo gets the flagship task practice from one line, and later fixes with the binary],
-  typst-over-markdown: neutral,
-  plain-files: neutral,
-  sound-codebase: neutral,
+  product: (
+    readable-tasks: helps[every adopting repo's tasks share one skimmable shape],
+    implementable-tasks: helps[every adopting repo's tasks carry reproduction steps and named files],
+    enforced-practice: neutral,
+    cheap-adoption: helps[a repo gets the flagship task practice from one line, and later fixes with the binary],
+    typst-over-markdown: neutral,
+    plain-files: neutral,
+  ),
+  process: (
+    sound-codebase: neutral,
+    docs-match-code: neutral,
+  ),
 )
 
 == TO-BE
 
-- 🙂 One line gives a repo this repo's task practice:
+- 🟢 One line gives a repo this repo's task practice:
 
 ```toml
 extends = ["mindtape-tasks"]
 ```
 
-- 🙂 This repo's `.mindtape/config.toml` extends the pack instead of carrying those rules, and `mt check` still passes on the backlog.
+- 🟢 This repo's `.mindtape/config.toml` extends the pack instead of carrying those rules, and `mt check` still passes on the backlog.
 
 
 == Changes
@@ -52,6 +57,11 @@ extends = ["mindtape-tasks"]
 - `crates/mindtape/src/config_packs.rs`: embed and register the pack.
 - `crates/mindtape/src/config_packs_tests.rs`: one task that passes and one that fails under the pack alone.
 - `.mindtape/config.toml`: `extends = ["mindtape-tasks"]` in place of the moved rules.
+
+== Alternatives
+
+- Document the rules for other repos to copy: that is the drift the Problem shows.
+- Put them in the embedded floor for every project: it forces this practice on repos that never asked for it.
 
 
 == Out of scope

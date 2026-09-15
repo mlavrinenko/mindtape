@@ -248,17 +248,20 @@ required = "!terminal"
 [tasks.comments]
 policy = "forbid"
 
-# Every open task is one spec in six sections, in this order. The set came out
-# of the 2026-09-15 backlog review and the research it was checked against:
+# Every open task is one spec in six common sections, in this order. The set
+# came out of the 2026-09-15 backlog review and the research it was checked
+# against:
 #
 # - Problem: numbered steps anyone can follow, commands in backticks, and the
-#   step that shows the defect opening with 😞. Reproduction scripts raise agent
+#   step that shows the defect opening with 🔴. Reproduction scripts raise agent
 #   solve rates while narrative steps add little (arXiv 2607.07593); developers
 #   rank steps to reproduce first (Bettenburg et al., FSE 2008).
-# - Goals: `#goals(...)` from truth/goals.typ, one verdict per goal. A task that
-#   helps no goal fails to load, so nothing unjustified gets filed.
-# - TO-BE: the observable end state, each item opening with 🙂. It is also the
-#   done check: rerun the Problem steps and see it.
+# - Goals: `#goals(...)` from truth/lib.typ, one verdict per goal in
+#   truth/goals.typ and truth/process-goals.typ. A task that helps no goal
+#   fails to load, so nothing unjustified gets filed.
+# - TO-BE: how it should work, behave and feel once this lands, each bullet
+#   opening with 🟢. A vision, not a test plan: `just check` and the close gate
+#   do the verifying.
 # - Changes: bullets naming the files and what changes in each. Fix suggestions
 #   and fault localization raise solve rates (arXiv 2607.07593), but a wrong
 #   plan hurts more than none (arXiv 2604.12147): name places, not a script.
@@ -266,15 +269,130 @@ policy = "forbid"
 # - Dogfood: how this repo uses the change, or "Not applicable" and why. A rule
 #   no task has to answer is one an agent forgets.
 #
+# Four kinds carry one more section where the research names a gap in those
+# six: a fix says where its Problem reproduces (Environment, the version and
+# platform block of GitHub's bug form), a feat which designs it rejected
+# (Alternatives, essential in Google design docs and Rust RFCs), a docs change
+# what its prose must match (Source of truth), and a dev chore how to undo it
+# (Rollback). Each of those kinds has its own template.
+#
 # Headings and lists carry weight on their own: stripping them lowers solve
 # rates with the content intact, and so does length (arXiv 2607.07593). Hence
 # the closed set here and the word caps below. Closed tasks keep the
 # Summary/Scope bodies they closed with.
 [[tasks.body.headers.rules]]
 action = "allowlist"
-allowed = [{ match = "^(Problem|Goals|TO-BE|Changes|Out of scope|Dogfood)$" }]
+allowed = [
+  { match = "^(Problem|Environment|Goals|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
+]
 when = "!terminal"
-message = "an open task's sections are Problem, Goals, TO-BE, Changes, Out of scope and Dogfood"
+message = "an open task's sections are Problem, Goals, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
+
+[[tasks.body.headers.rules]]
+path = ["Environment"]
+action = "unique"
+when = '!terminal && kind == "fix"'
+message = "a fix says where its Problem reproduces, in one Environment section"
+
+[[tasks.body.headers.rules]]
+path = ["Alternatives"]
+action = "unique"
+when = '!terminal && kind == "feat"'
+message = "a feat names the designs it rejected, in one Alternatives section"
+
+[[tasks.body.headers.rules]]
+path = ["Source of truth"]
+action = "unique"
+when = '!terminal && kind == "docs"'
+message = "a docs change names what its prose must match, in one Source of truth section"
+
+[[tasks.body.headers.rules]]
+path = ["Rollback"]
+action = "unique"
+when = '!terminal && kind == "dev"'
+message = "a dev chore says how to undo it, in one Rollback section"
+
+[[tasks.body.headers.rules]]
+action = "forbid"
+path = ["Environment"]
+when = '!terminal && kind != "fix"'
+message = "Environment belongs to fix tasks"
+
+[[tasks.body.headers.rules]]
+action = "forbid"
+path = ["Alternatives"]
+when = '!terminal && kind != "feat"'
+message = "Alternatives belongs to feat tasks"
+
+[[tasks.body.headers.rules]]
+action = "forbid"
+path = ["Source of truth"]
+when = '!terminal && kind != "docs"'
+message = "Source of truth belongs to docs tasks"
+
+[[tasks.body.headers.rules]]
+action = "forbid"
+path = ["Rollback"]
+when = '!terminal && kind != "dev"'
+message = "Rollback belongs to dev tasks"
+
+# An order rule passes while either side is absent, so these four pairs bind
+# only the kinds that carry the section.
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Problem"]
+after = ["Environment"]
+when = "!terminal"
+message = "Environment follows Problem"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Environment"]
+after = ["Goals"]
+when = "!terminal"
+message = "Goals follows Environment"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["TO-BE"]
+after = ["Source of truth"]
+when = "!terminal"
+message = "Source of truth follows TO-BE"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Source of truth"]
+after = ["Changes"]
+when = "!terminal"
+message = "Changes follows Source of truth"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Changes"]
+after = ["Alternatives"]
+when = "!terminal"
+message = "Alternatives follows Changes"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Alternatives"]
+after = ["Out of scope"]
+when = "!terminal"
+message = "Out of scope follows Alternatives"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Changes"]
+after = ["Rollback"]
+when = "!terminal"
+message = "Rollback follows Changes"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Rollback"]
+after = ["Out of scope"]
+when = "!terminal"
+message = "Out of scope follows Rollback"
 
 [[tasks.body.headers.rules]]
 path = ["Problem"]
@@ -378,21 +496,27 @@ message = "write the Problem as numbered steps anyone can follow"
 
 [[tasks.body.content.rules]]
 path = ["Problem"]
-assert = { must-match = "😞" }
+assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s+🔴" }
 when = "!terminal"
-message = "open the step that shows the defect with 😞"
+message = "open the step that shows the defect with 🔴"
 
 [[tasks.body.content.rules]]
 path = ["Goals"]
 assert = { must-match = "#goals\\(" }
 when = "!terminal"
-message = "give every goal a verdict with #goals(...) from truth/goals.typ"
+message = "give every goal a verdict with #goals(product: ..., process: ...) from truth/lib.typ"
 
 [[tasks.body.content.rules]]
 path = ["TO-BE"]
-assert = { must-match = "🙂" }
+assert = { must-match = "(?m)^\\s*- 🟢" }
 when = "!terminal"
-message = "open each observable end state with 🙂"
+message = "say how it should work as bullets opening with 🟢"
+
+[[tasks.body.content.rules]]
+path = ["TO-BE"]
+assert = { must-not-match = "(?m)^\\s*- [^🟢]" }
+when = "!terminal"
+message = "open every TO-BE bullet with 🟢"
 
 [[tasks.body.content.rules]]
 path = ["Changes"]
@@ -401,15 +525,19 @@ when = "!terminal"
 message = "list Changes as bullets naming the `path` each one touches"
 
 [[tasks.body.content.rules]]
-path = ["Out of scope"]
+path = [
+  { match = "^(Out of scope|Environment|Source of truth|Alternatives|Rollback)$" },
+]
 assert = "non-empty"
 when = "!terminal"
-message = "say what not to touch, or \"Nothing adjacent\" and why"
+message = "a heading over nothing decides nothing; say what belongs here, or why nothing does"
 
 # Word caps, provisional: set on 2026-09-15 with headroom over the rewritten
 # open tasks. A section over its cap is a task that should have been two.
 [[tasks.body.content.rules]]
-path = [{ match = "^(Problem|TO-BE|Out of scope|Dogfood)$" }]
+path = [
+  { match = "^(Problem|Environment|TO-BE|Source of truth|Alternatives|Rollback|Out of scope|Dogfood)$" },
+]
 assert = { max-words = 120 }
 when = "!terminal"
 message = "keep this section under 120 words; a longer one is a task that should have been two"

@@ -44,8 +44,9 @@ Repository: https://github.com/mlavrinenko/mindtape
 - `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
 - `truth/tasks/` — MindTape's own backlog as per-file task artifacts (dogfood);
   `mt ls` / `mt check` run against it via the in-tree `lib/`
-- `truth/goals.typ` — the goals every open task gives a verdict on through
-  `#goals(...)`; a task that skips one, or helps none, fails to load
+- `truth/goals.typ` and `truth/process-goals.typ` — what MindTape is for, and
+  how this repo builds it; every open task gives each goal a verdict through
+  `#goals(...)` from `truth/lib.typ`, and one that skips a goal fails to load
 - `www/content/*.typ` — the docs site (tola)
 - `docs/contributing/*.md` — contributor deep dives behind CONTRIBUTING.md
 - `examples/` — `learn-piano` (full config surface; feeds the docs generator and

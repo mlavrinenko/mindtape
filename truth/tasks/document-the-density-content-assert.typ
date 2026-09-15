@@ -1,5 +1,5 @@
 #import "@local/mindtape:0.2.0": *
-#import "../goals.typ": *
+#import "../lib.typ": *
 
 #show: task.with(
   title: "Document the density content assert",
@@ -20,29 +20,34 @@
 == Problem
 
 + Open `www/content/config.typ` at "The five content assertions".
-+ 😞 It lists five. `density`, which landed in `add-a-density-content-assert.typ`, is missing, so no project can learn it exists.
++ 🔴 It lists five. `density`, which landed in `add-a-density-content-assert.typ`, is missing, so no project can learn it exists.
 + Run `rg -n density .mindtape/config.toml`.
-+ 😞 It prints nothing: this repo polices no prose density at all.
++ 🔴 It prints nothing: this repo polices no prose density at all.
 
 == Goals
 
 #goals(
-  readable-tasks: helps[a cap of one em-dash per paragraph keeps task prose plain],
-  implementable-tasks: neutral,
-  enforced-practice: helps[the density rule is refused by `mt check` instead of
-    living in a style note],
-  cheap-adoption: neutral,
-  typst-over-markdown: neutral,
-  plain-files: neutral,
-  sound-codebase: neutral,
+  product: (
+    readable-tasks: helps[a cap of one em-dash per paragraph keeps task prose plain],
+    implementable-tasks: neutral,
+    enforced-practice: helps[the density rule is refused by `mt check` instead of
+      living in a style note],
+    cheap-adoption: neutral,
+    typst-over-markdown: neutral,
+    plain-files: neutral,
+  ),
+  process: (
+    sound-codebase: neutral,
+    docs-match-code: neutral,
+  ),
 )
 
 == TO-BE
 
-- 🙂 `www/content/config.typ` documents `density` beside the other assertions:
+- 🟢 `www/content/config.typ` documents `density` beside the other assertions:
   its `pattern`, `max` and `per` keys, the `section` default, and the unit-split
   rules.
-- 🙂 `.mindtape/config.toml` carries this rule, and `mt check` passes:
+- 🟢 `.mindtape/config.toml` carries this rule, and `mt check` passes:
 
 ```toml
 [[tasks.body.content.rules]]
@@ -52,12 +57,16 @@ when = "!terminal"
 message = "more than one em-dash in a paragraph reads as generated prose; use a comma, a colon or a second sentence"
 ```
 
+== Source of truth
+
+- `density_units` in `crates/mindtape/src/content_gate.rs`: the unit-split
+  rules (fenced code dropped, blank-line paragraphs, each list item its own
+  paragraph, sentences ending at `.`, `!` or `?`).
+- `schema/config.schema.json`: the key names and defaults.
+
 == Changes
 
-- `www/content/config.typ`: the density entry, its unit-split rules taken from
-  `density_units` in `crates/mindtape/src/content_gate.rs` (fenced code dropped,
-  blank-line paragraphs, each list item its own paragraph, sentences ending at
-  `.`, `!` or `?`).
+- `www/content/config.typ`: the density entry beside the other assertions.
 - `.mindtape/config.toml`: the rule above, after the other
   `[[tasks.body.content.rules]]` entries. If a task filed since trips it,
   rewrite that paragraph in a separate `task:` commit rather than raising `max`.

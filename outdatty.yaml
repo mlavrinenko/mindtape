@@ -463,6 +463,17 @@ groups:
       - contrib/ask-refactoring/mutants.sh
       - contrib/ask-refactoring/undertested.sh
 
+  # The per-kind task templates copy task.typ and add one section each (fix,
+  # feat, docs, dev), so a change to the common sections lands in all five.
+  - name: task-templates
+    source:
+      - .mindtape/templates/task.typ
+    dependents:
+      - .mindtape/templates/fix.typ
+      - .mindtape/templates/feat.typ
+      - .mindtape/templates/docs.typ
+      - .mindtape/templates/dev.typ
+
   # The one arm-to-arm dependency, and the only silent one in the sweep. The
   # undertested arm defers to the coverage arm — it skips a function whose file
   # the file-shaped arm reports — and to keep that sound it calls three of
