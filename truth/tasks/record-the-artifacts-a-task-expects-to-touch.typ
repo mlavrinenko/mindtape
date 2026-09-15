@@ -12,7 +12,11 @@
   tags: ("mt", "gating"),
   estimate: (files: 3),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: cancelled(
+    2026,
+    9,
+    15,
+  )[Backlog review 2026-09-15: git already records the files a task touched, and nothing would consume a declared list.],
 )
 
 == Summary

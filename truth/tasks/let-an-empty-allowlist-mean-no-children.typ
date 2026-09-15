@@ -12,7 +12,11 @@
   tags: ("substrate", "gating"),
   estimate: (files: 5),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: cancelled(
+    2026,
+    9,
+    15,
+  )[Backlog review 2026-09-15: a cross-repo release only to respell a subsection rule that already works.],
 )
 
 == Summary

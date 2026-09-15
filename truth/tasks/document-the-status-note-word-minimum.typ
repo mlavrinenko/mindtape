@@ -12,7 +12,11 @@
   estimate: (files: 4),
   kind: "docs",
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: cancelled(
+    2026,
+    9,
+    15,
+  )[Backlog review 2026-09-15: no close note ever failed a reader, and an agent pads ten words for free.],
   links: depends-on("require-a-minimum-word-count-on-a-status-note.typ"),
 )
 

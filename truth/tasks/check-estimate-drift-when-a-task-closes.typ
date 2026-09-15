@@ -12,7 +12,11 @@
   tags: ("mt", "cli", "gating"),
   estimate: (files: 5),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: cancelled(
+    2026,
+    9,
+    15,
+  )[Backlog review 2026-09-15: the tree is clean at close, and the commit-time drift warning already runs without changing anything.],
   links: related(
     "record-the-artifacts-a-task-expects-to-touch.typ",
   )[the artifacts field is what this check would compare against],

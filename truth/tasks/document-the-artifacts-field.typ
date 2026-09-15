@@ -12,7 +12,11 @@
   estimate: (files: 3),
   kind: "docs",
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: cancelled(
+    2026,
+    9,
+    15,
+  )[Backlog review 2026-09-15: git already records the files a task touched, and nothing would consume a declared list.],
   links: depends-on("read-the-artifacts-field-into-the-task-model.typ"),
 )
 

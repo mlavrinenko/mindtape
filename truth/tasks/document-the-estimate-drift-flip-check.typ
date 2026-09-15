@@ -12,7 +12,11 @@
   estimate: (files: 6),
   kind: "docs",
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: cancelled(
+    2026,
+    9,
+    15,
+  )[Backlog review 2026-09-15: the tree is clean at close, and the commit-time drift warning already runs without changing anything.],
   links: depends-on("check-estimate-drift-when-a-task-closes.typ"),
 )
 
