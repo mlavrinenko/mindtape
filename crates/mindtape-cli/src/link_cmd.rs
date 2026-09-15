@@ -126,7 +126,7 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
             source: &staged.updated,
         })
         .collect();
-    let verdicts = pre_write::check(project, &project.outcome.tasks, &pending);
+    let verdicts = pre_write::check(project, &project.outcome.tasks, &pending)?;
 
     for (staged, verdict) in plan.staged.iter().zip(&verdicts) {
         for warning in &verdict.warnings {

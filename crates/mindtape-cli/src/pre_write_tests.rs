@@ -92,7 +92,7 @@ fn resolves_an_edge_between_two_candidates_in_one_batch() {
             source: &b_source,
         },
     ];
-    let together = check(&project, &project.outcome.tasks, &batch);
+    let together = check(&project, &project.outcome.tasks, &batch).unwrap();
     assert!(
         together[0].problems.is_empty(),
         "{:?}",
@@ -101,7 +101,7 @@ fn resolves_an_edge_between_two_candidates_in_one_batch() {
 
     // The same candidate alone cannot see `b`, which is exactly why the batch
     // is not a loop over this call.
-    let alone = check(&project, &project.outcome.tasks, &batch[..1]);
+    let alone = check(&project, &project.outcome.tasks, &batch[..1]).unwrap();
     assert!(!alone[0].problems.is_empty());
 }
 
@@ -150,7 +150,8 @@ fn reports_a_source_that_does_not_evaluate() {
             file: &file,
             source: "= just prose, no marker\n",
         }],
-    );
+    )
+    .unwrap();
 
     assert_eq!(verdicts.len(), 1);
     assert!(verdicts[0].task.is_none());
@@ -176,10 +177,41 @@ fn marks_a_destination_outside_the_root_unchecked() {
             file: &file,
             source: &source,
         }],
-    );
+    )
+    .unwrap();
 
     assert!(!verdicts[0].checked);
     assert!(verdicts[0].problems.is_empty());
+}
+
+/// A misconfigured header rule fails the whole call up front — the same
+/// compile error `mt check` reports — rather than silently skipping the rule
+/// or letting a candidate land unchecked against it.
+#[test]
+fn refuses_to_check_against_an_unparseable_header_rule() {
+    let dir = tempfile::tempdir().unwrap();
+    let config = parse_config(
+        "[[tasks.body.headers.rules]]\npath = [{ match = \"(\" }]\naction = \"require\"\n",
+    )
+    .unwrap();
+    let project = make_project(dir.path(), &[], config);
+    let file = dir.path().join("tasks/a.typ");
+    let source = marker("wip", &[]);
+
+    let err = check(
+        &project,
+        &project.outcome.tasks,
+        &[Pending {
+            file: &file,
+            source: &source,
+        }],
+    )
+    .unwrap_err();
+
+    assert!(
+        err.to_string().contains("tasks.body.headers.rules"),
+        "{err}"
+    );
 }
 
 /// `absorb` replaces by path, so folding a flipped task in does not leave the

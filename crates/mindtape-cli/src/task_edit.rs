@@ -162,7 +162,7 @@ fn report_issues(id: &str, issues: &[Violation], scope: &str) -> Result<()> {
 /// because none was created.
 pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<bool> {
     let pending = [Pending { file, source }];
-    let verdict = crate::pre_write::check(project, &project.outcome.tasks, &pending)
+    let verdict = crate::pre_write::check(project, &project.outcome.tasks, &pending)?
         .into_iter()
         .next()
         // One verdict per pending write, and exactly one was asked about.

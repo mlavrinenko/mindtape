@@ -1,7 +1,7 @@
 //! End-to-end tests for the `add` command that shell out to the `mt` binary:
 //! core wiring (positional title, `--to` nesting, YAML stdin), the slot
-//! schema, error surfaces (collisions, unknown keys), markup-hazard escaping,
-//! and the kept-on-verification-failure contract.
+//! schema, error surfaces (collisions, unknown keys, a body-rule breach),
+//! markup-hazard escaping, and the kept-on-verification-failure contract.
 //!
 //! Config-derived splicing (a required priority slot, a custom status legend,
 //! a required estimate default) lives in `add_config_scaffold_e2e.rs`, a
@@ -395,4 +395,58 @@ fn no_verify_writes_a_task_that_would_be_refused() {
         .success();
 
     assert!(dir.path().join("tasks/broken.typ").exists());
+}
+
+/// A project-configured content rule (this repo's own "every `TO-BE` bullet
+/// opens with 🟢") — mirroring
+/// `truth/tasks/validate-body-rules-before-mt-add-writes-a-task.typ`'s own
+/// Problem: `mt check` already refuses this shape, but a filled task used to
+/// reach disk anyway and wait for that later check to catch it.
+const TO_BE_CONTENT_RULE_CONFIG: &str = r#"[tasks]
+roots = ["tasks"]
+
+[[tasks.body.content.rules]]
+path = ["TO-BE"]
+assert = { must-not-match = "(?m)^\\s*- [^🟢]" }
+message = "open every TO-BE bullet with 🟢"
+"#;
+
+/// A template whose `TO-BE` bullet does not open with 🟢 — breaks
+/// [`TO_BE_CONTENT_RULE_CONFIG`]'s rule on every fill.
+const TO_BE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
+
+#show: task.with(
+  title: slot("title", prompt: "Task title"),
+  status: proposed(2026, 6, 14),
+)
+
+== TO-BE
+
+- ships the feature
+"#;
+
+/// The Problem this task exists to fix, end to end: `mt add` now runs the same
+/// content gate `mt check` does, refuses the task before writing it, and
+/// leaves nothing behind for a later `mt check` to catch.
+#[test]
+fn refuses_a_task_whose_to_be_bullet_breaks_a_content_rule() {
+    let dir = support::project_with_template_and_config(TO_BE_CONTENT_RULE_CONFIG, TO_BE_TEMPLATE);
+
+    let output = support::mt(dir.path())
+        .args(["add", "--name", "ships-it", "--set", "title=Ships it"])
+        .assert()
+        .failure()
+        .get_output()
+        .clone();
+
+    let file = dir.path().join("tasks/ships-it.typ");
+    assert!(!file.exists(), "a rejected task must never reach the disk");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("open every TO-BE bullet with 🟢"),
+        "the body-rule message must be reported: {stderr}"
+    );
+
+    // Nothing was left behind to trip over.
+    support::mt(dir.path()).arg("check").assert().success();
 }

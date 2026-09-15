@@ -20,6 +20,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   config error naming both. Groundwork for a future `disable = ["<name>"]`
   rule-pack override; nothing reads the name yet.
 
+- **Every write refuses a task whose body breaks a header or content rule, not
+  just `mt check`** (breaking, pre-1.0; library callers only). `mt add`, `mt
+  flip`, `mt import`, `mt link`, `mt recur` and `mt review` now run `mt check`'s own
+  body-header (`[[tasks.body.headers.rules]]`) and section-content
+  (`[[tasks.body.content.rules]]`) gates over a candidate's rendered source
+  before writing it, naming the same field and message `mt check` would print
+  — a task `mt check` would reject can no longer land and wait for a later
+  `mt check` or the pre-commit hook to catch it. `mindtape::check_candidate`/
+  `check_candidates` now take a `mindtape::BodyRules` of the compiled header
+  and content rules, and both gates run through one shared entry point,
+  `mindtape::check_body_rules`, so `mt check` and the candidate seam cannot
+  drift apart on what a body rule means.
+
 - **Filters and sorts reach a field's named parts.** A field with fixed named
   parts is now addressed as `field.property`: `status.name`, `status.date`
   (the ISO stamp), `status.note`, and `status.index` (the 0-based position in

@@ -59,7 +59,7 @@ pub(crate) fn land(
     staged: Vec<StagedTask>,
 ) -> Result<Vec<TaskOutcome>> {
     crate::add::warn_if_outside_roots(project, dest);
-    let problems = check_staged(project, dest, &staged);
+    let problems = check_staged(project, dest, &staged)?;
 
     let mut made_dest = false;
     for (task, problems) in staged.iter().zip(&problems) {
@@ -80,10 +80,17 @@ pub(crate) fn land(
 /// the write. A candidate is validated without a file either way, so the two
 /// paths ask the identical question and no temp mirror of the project has to
 /// be built to ask it.
-#[must_use]
-pub(crate) fn preview(project: &Project, dest: &Path, staged: Vec<StagedTask>) -> Vec<TaskOutcome> {
-    let problems = check_staged(project, dest, &staged);
-    pair_outcomes(staged, problems)
+///
+/// # Errors
+/// Returns an error if the project's configured body rules do not compile
+/// (see [`crate::pre_write::check`]).
+pub(crate) fn preview(
+    project: &Project,
+    dest: &Path,
+    staged: Vec<StagedTask>,
+) -> Result<Vec<TaskOutcome>> {
+    let problems = check_staged(project, dest, &staged)?;
+    Ok(pair_outcomes(staged, problems))
 }
 
 /// The problems attributed to each staged record, in input order — empty means
@@ -92,7 +99,11 @@ pub(crate) fn preview(project: &Project, dest: &Path, staged: Vec<StagedTask>) -
 /// The batch goes to the validator as one set, so a record linking to another
 /// record in the same import resolves; every pre-existing task is in that set
 /// too, so a link out of the batch resolves as well.
-fn check_staged(project: &Project, dest: &Path, staged: &[StagedTask]) -> Vec<Vec<String>> {
+///
+/// # Errors
+/// Returns an error if the project's configured body rules do not compile
+/// (see [`crate::pre_write::check`]).
+fn check_staged(project: &Project, dest: &Path, staged: &[StagedTask]) -> Result<Vec<Vec<String>>> {
     let files: Vec<PathBuf> = staged
         .iter()
         .map(|task| dest.join(format!("{}.typ", task.stem)))
@@ -105,10 +116,10 @@ fn check_staged(project: &Project, dest: &Path, staged: &[StagedTask]) -> Vec<Ve
             source: &task.source,
         })
         .collect();
-    pre_write::check(project, &project.outcome.tasks, &pending)
+    Ok(pre_write::check(project, &project.outcome.tasks, &pending)?
         .into_iter()
         .map(|verdict| verdict.problems)
-        .collect()
+        .collect())
 }
 
 fn pair_outcomes(staged: Vec<StagedTask>, problems: Vec<Vec<String>>) -> Vec<TaskOutcome> {

@@ -26,6 +26,7 @@ use std::path::Path;
 use typst_harvest::{HVal, HarvestWorld, harvest};
 use typst_world::{DiskProvider, root_file_id};
 
+use crate::body_gate::{BodyRules, check_body_rules};
 use crate::config::Config;
 use crate::loader::LoadError;
 use crate::model::Task;
@@ -59,6 +60,12 @@ pub struct Checked {
 /// here — with any task already at `rel` replaced, so a rewrite is checked as a
 /// rewrite rather than as a duplicate id.
 ///
+/// `body_rules` are `mt check`'s own header ([`crate::gate`]) and content
+/// ([`crate::content_gate`]) rules, compiled once by the caller and run over
+/// `candidate.source` directly — the candidate's own text, not a loaded
+/// file's — beside [`crate::validate::validate`], so a body-rule breach
+/// `mt check` would report is refused here too, before anything is written.
+///
 /// # Errors
 /// Returns a [`LoadError`] when the source fails to evaluate or harvests no
 /// `mindtape.task` marker. Both are failures of the source, not of the project.
@@ -67,13 +74,20 @@ pub fn check_candidate(
     config: &Config,
     existing: &[Task],
     candidate: Candidate<'_>,
+    body_rules: BodyRules<'_>,
 ) -> Result<Vec<Violation>, LoadError> {
-    check_candidates(root, config, existing, std::slice::from_ref(&candidate))
-        .into_iter()
-        .next()
-        // One answer per candidate, and exactly one candidate was asked about;
-        // the fallback is unreachable rather than a policy.
-        .map_or_else(|| Ok(Vec::new()), |result| result.map(|ok| ok.violations))
+    check_candidates(
+        root,
+        config,
+        existing,
+        std::slice::from_ref(&candidate),
+        body_rules,
+    )
+    .into_iter()
+    .next()
+    // One answer per candidate, and exactly one candidate was asked about;
+    // the fallback is unreachable rather than a policy.
+    .map_or_else(|| Ok(Vec::new()), |result| result.map(|ok| ok.violations))
 }
 
 /// Validate a whole batch of candidates as if every one of them had been
@@ -92,12 +106,18 @@ pub fn check_candidate(
 ///
 /// Every task already sitting at one of the candidates' paths is replaced, so a
 /// batch of rewrites is checked as rewrites rather than as duplicate ids.
+///
+/// `body_rules` are `mt check`'s own header and content rules
+/// ([`crate::body_gate`]), compiled once by the caller for the whole batch and
+/// run over each candidate's own `source` — never over an existing task's, so
+/// a body-rule breach already on disk cannot leak onto an unrelated candidate.
 #[must_use]
 pub fn check_candidates(
     root: &Path,
     config: &Config,
     existing: &[Task],
     candidates: &[Candidate<'_>],
+    body_rules: BodyRules<'_>,
 ) -> Vec<Result<Checked, LoadError>> {
     let harvested: Vec<Result<Task, LoadError>> = candidates
         .iter()
@@ -122,14 +142,24 @@ pub fn check_candidates(
 
     harvested
         .into_iter()
-        .map(|result| {
-            result.map(|task| Checked {
-                violations: violations
+        .zip(candidates)
+        .map(|(result, candidate)| {
+            result.map(|task| {
+                let mut task_violations: Vec<Violation> = violations
                     .iter()
                     .filter(|violation| violation.task_id == task.id)
                     .cloned()
-                    .collect(),
-                task,
+                    .collect();
+                task_violations.extend(check_body_rules(
+                    &task,
+                    candidate.source,
+                    body_rules,
+                    config,
+                ));
+                Checked {
+                    violations: task_violations,
+                    task,
+                }
             })
         })
         .collect()

@@ -122,7 +122,7 @@ fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec
     }
 
     let mut outcomes = if args.dry_run {
-        write::preview(project, &dest, staged)
+        write::preview(project, &dest, staged)?
     } else {
         write::land(project, &dest, staged)?
     };

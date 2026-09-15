@@ -173,6 +173,11 @@ can grep straight back to the entry that fired. Leave it off and the report
 names the rule's position instead, `body.headers.rules[0]`. Two entries in the
 same array sharing a name is a config error naming both.
 
+Every write command checks both rule families the same way `mt check` does —
+`mt add`, `mt flip` (and every legend verb over it), `mt link`, `mt import`,
+`mt recur` and `mt review` all refuse a task that breaks one, before anything
+lands, rather than leaving it for a later `mt check` to catch.
+
 = Example
 
 A compact project config:

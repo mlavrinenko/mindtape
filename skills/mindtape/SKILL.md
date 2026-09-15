@@ -145,7 +145,7 @@ Both forms merge and dedupe on (kind, target), so re-running writes nothing. `--
 
 ## Validating — `mt check`
 
-`mt check` validates every task against the project config: status/kind enums, required fields, numeric and estimate bounds, links, cycles, tags, body headers, section content (`[tasks.body.content]`), `[[tasks.limits]]` caps, `[[tasks.rules]]` assertions, comment policy, and file-budget drift (warn-only). A `[[tasks.rules]]` entry at `severity = "error"` also refuses the write commands above; at `warn` it prints and lets them through.
+`mt check` validates every task against the project config: status/kind enums, required fields, numeric and estimate bounds, links, cycles, tags, body headers, section content (`[tasks.body.content]`), `[[tasks.limits]]` caps, `[[tasks.rules]]` assertions, comment policy, and file-budget drift (warn-only). A body-header/content or `[[tasks.rules]]` `error` breach also refuses the write commands above; `warn` prints and lets it through.
 
 ## Authoring or editing a task file by hand
 

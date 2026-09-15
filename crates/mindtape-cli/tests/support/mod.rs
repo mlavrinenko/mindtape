@@ -104,14 +104,19 @@ const SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 /// about a template's *shape* (a single-line `task.with(…)`, a template that
 /// cannot evaluate) reaches for directly.
 pub fn project_with_template(source: &str) -> tempfile::TempDir {
+    project_with_template_and_config("[tasks]\nroots = [\"tasks\"]\n", source)
+}
+
+/// [`project_with_template`], but with `config` written to
+/// `.mindtape/config.toml` in place of the bare `[tasks] roots = ["tasks"]`
+/// default — for a test whose default template must clear a rule the
+/// project's own config declares (`[[tasks.body.headers.rules]]`,
+/// `[[tasks.body.content.rules]]`).
+pub fn project_with_template_and_config(config: &str, source: &str) -> tempfile::TempDir {
     let dir = tempfile::tempdir().unwrap();
     install_lib(dir.path());
     std::fs::create_dir_all(dir.path().join(".mindtape/templates")).unwrap();
-    std::fs::write(
-        dir.path().join(".mindtape/config.toml"),
-        "[tasks]\nroots = [\"tasks\"]\n",
-    )
-    .unwrap();
+    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
     std::fs::write(dir.path().join(".mindtape/templates/task.typ"), source).unwrap();
     dir
 }

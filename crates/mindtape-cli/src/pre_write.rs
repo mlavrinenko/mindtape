@@ -15,7 +15,12 @@
 //!   [`crate::util::write_task`], which canonicalizes; checking the source
 //!   before that pass would validate text no file ever holds. [`check`]
 //!   canonicalizes first, with the same [`crate::util::canonical_source`] the
-//!   write uses, so the bytes checked are the bytes written.
+//!   write uses, so the bytes checked are the bytes written;
+//! - what `mt check` would refuse is refused here too. [`check`] compiles the
+//!   project's header and content body rules
+//!   ([`mindtape::gate`], [`mindtape::content_gate`]) once per batch and runs
+//!   them over each candidate beside [`mindtape::validate`], so a task
+//!   `mt check` would reject never lands in the first place.
 //!
 //! What this seam deliberately does NOT do is restore. A rewrite that fails
 //! its check is simply not written — the file on disk is still the one the
@@ -26,8 +31,8 @@
 
 use std::path::Path;
 
-use anyhow::{Result, bail};
-use mindtape::{Candidate, Task};
+use anyhow::{Context, Result, bail};
+use mindtape::{BodyRules, Candidate, Task, compile_content_rules, compile_rules};
 
 use crate::util::Project;
 
@@ -41,6 +46,7 @@ pub struct Pending<'a> {
 }
 
 /// What the project says about one pending write.
+#[derive(Debug)]
 pub struct Verdict {
     /// Problems naming this write; empty means it is safe to land.
     pub problems: Vec<String>,
@@ -78,8 +84,26 @@ impl Verdict {
 /// Pass `&project.outcome.tasks` for a batch computed in one go; pass a set the
 /// caller has been folding accepted writes into when the batch lands file by
 /// file (`mt flip`, whose per-target `[[on.flip]]` hooks run between writes).
-#[must_use]
-pub fn check(project: &Project, world: &[Task], pending: &[Pending<'_>]) -> Vec<Verdict> {
+///
+/// Compiles `project.config`'s header (`[[tasks.body.headers.rules]]`) and
+/// content (`[[tasks.body.content.rules]]`) body rules once for the whole
+/// batch and checks every candidate against them beside
+/// [`mindtape::validate`] — the same two gates `mt check` runs, so a task
+/// `mt check` would reject is never written.
+///
+/// # Errors
+/// Returns an error if those body rules do not compile — the same compile
+/// step `mt check` runs, surfaced here before any candidate is evaluated.
+pub fn check(project: &Project, world: &[Task], pending: &[Pending<'_>]) -> Result<Vec<Verdict>> {
+    let header_rules = compile_rules(&project.config.tasks.body.headers.rules)
+        .context("invalid tasks.body.headers.rules in config")?;
+    let content_rules = compile_content_rules(&project.config.tasks.body.content.rules)
+        .context("invalid tasks.body.content.rules in config")?;
+    let body_rules = BodyRules {
+        headers: &header_rules,
+        content: &content_rules,
+    };
+
     // Canonicalized here rather than at each call site: `write_task` runs the
     // same pass on the way to disk, and typstyle is idempotent, so these are
     // the bytes the file will hold.
@@ -91,15 +115,21 @@ pub fn check(project: &Project, world: &[Task], pending: &[Pending<'_>]) -> Vec<
     let mut candidates = Vec::with_capacity(pending.len());
     for (entry, source) in pending.iter().zip(&sources) {
         let Ok(rel) = entry.file.strip_prefix(&project.root) else {
-            return pending.iter().map(|_| unchecked()).collect();
+            return Ok(pending.iter().map(|_| unchecked()).collect());
         };
         candidates.push(Candidate { rel, source });
     }
 
-    mindtape::check_candidates(&project.root, &project.config, world, &candidates)
-        .into_iter()
-        .map(verdict)
-        .collect()
+    Ok(mindtape::check_candidates(
+        &project.root,
+        &project.config,
+        world,
+        &candidates,
+        body_rules,
+    )
+    .into_iter()
+    .map(verdict)
+    .collect())
 }
 
 /// Check `pending` as one batch and refuse the whole of it if any entry is
@@ -114,7 +144,7 @@ pub fn check(project: &Project, world: &[Task], pending: &[Pending<'_>]) -> Vec<
 /// Returns an error naming how many entries were rejected, after printing each
 /// problem. Nothing has been written when it does.
 pub fn ensure(project: &Project, pending: &[Pending<'_>]) -> Result<()> {
-    let verdicts = check(project, &project.outcome.tasks, pending);
+    let verdicts = check(project, &project.outcome.tasks, pending)?;
     refuse_rejected(pending, &verdicts)
 }
 
@@ -135,7 +165,7 @@ pub fn verify_one(
     source: &str,
 ) -> Result<Option<Task>> {
     let pending = [Pending { file, source }];
-    let mut verdicts = check(project, world, &pending);
+    let mut verdicts = check(project, world, &pending)?;
     refuse_rejected(&pending, &verdicts)?;
     // One verdict per pending write, and exactly one was asked about.
     Ok(verdicts.pop().and_then(|verdict| verdict.task))
