@@ -129,11 +129,11 @@ groups:
       contrib/ask-refactoring/undertested.sh: c56732b62ce3b6924deaae9861e182ee4be62e4cddef4223907e01baa40417d1
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: 6349048a643f4ad518e3e886adb7a667b4d44b06fbd5ce9c858eea65f420d092
+      .mindtape/templates/sweep-size.typ: 3fc7b464843ca1f3c7d76a4034bb389c20cca1de38b7f00aeea4c00e916fe5b8
     dependents:
-      .mindtape/templates/sweep-coverage.typ: e86f448652dba697c6d9cd92c90200d3ff7f362da6165a32ab8b53cdfd511559
-      .mindtape/templates/sweep-mutants.typ: 02e6f04b8c43192e1473e50570249cb8a665caa17ffd65e596cce7cc2fa0bc0f
-      .mindtape/templates/sweep-undertested.typ: ca644c6b171a56199225a946d764bbdef84e03a7a085b3ab40d8e72f5be0d159
+      .mindtape/templates/sweep-coverage.typ: 30a69c4abc06f989eb575043f8626fe69ae3ec65ea9834baf15a0a2e989f45c2
+      .mindtape/templates/sweep-mutants.typ: 50edd009a03b107df2e89fa7937feb78852e9da0741b6af4d7ba40f3497d3f5a
+      .mindtape/templates/sweep-undertested.typ: 83d97734c68b60b5f6aab8ae54b534d0a751e720768f999dc2da837818dbc028
       contrib/ask-refactoring/coverage.sh: fa3101fae54260566e2edf743232104f4690f4cf5cfece1f550b6cb298f84d93
       contrib/ask-refactoring/mutants.sh: f5f88f6665c868dd2f185da37c591dfa56fdb16d2748be0425a08b49ac96c0e8
       contrib/ask-refactoring/size.sh: e0a14b56a760870f4ed0cb9f2d0d4e522124b814b545fc2d2d5d5de8850f6dfb

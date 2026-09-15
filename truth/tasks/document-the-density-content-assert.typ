@@ -1,4 +1,5 @@
 #import "@local/mindtape:0.2.0": *
+#import "../goals.typ": *
 
 #show: task.with(
   title: "Document the density content assert",
@@ -16,15 +17,32 @@
   links: depends-on("add-a-density-content-assert.typ"),
 )
 
-== Summary
+== Problem
 
-The density variant landed in `add-a-density-content-assert.typ` as code, tests and the regenerated `schema/config.schema.json`. A project reading the config page still sees five content assertions, and this repo polices no prose density at all.
++ Open `www/content/config.typ` at "The five content assertions".
++ 😞 It lists five. `density`, which landed in `add-a-density-content-assert.typ`, is missing, so no project can learn it exists.
++ Run `rg -n density .mindtape/config.toml`.
++ 😞 It prints nothing: this repo polices no prose density at all.
 
-== Scope
+== Goals
 
-Add the density assert beside the other five in `www/content/config.typ`: its `pattern`, `max` and `per` keys, the `section` default, and the unit-split rules documented at `density_units` in `crates/mindtape/src/content_gate.rs` (fenced code dropped, blank-line paragraphs, each list item its own paragraph, sentences ending at `.`, `!` or `?`). Add a CHANGELOG.md entry under Unreleased. No behaviour changes.
+#goals(
+  readable-tasks: helps[a cap of one em-dash per paragraph keeps task prose plain],
+  implementable-tasks: neutral,
+  enforced-practice: helps[the density rule is refused by `mt check` instead of
+    living in a style note],
+  cheap-adoption: neutral,
+  typst-over-markdown: neutral,
+  plain-files: neutral,
+  sound-codebase: neutral,
+)
 
-Land this rule in `.mindtape/config.toml`, after the other `[[tasks.body.content.rules]]` entries:
+== TO-BE
+
+- 🙂 `www/content/config.typ` documents `density` beside the other assertions:
+  its `pattern`, `max` and `per` keys, the `section` default, and the unit-split
+  rules.
+- 🙂 `.mindtape/config.toml` carries this rule, and `mt check` passes:
 
 ```toml
 [[tasks.body.content.rules]]
@@ -34,8 +52,22 @@ when = "!terminal"
 message = "more than one em-dash in a paragraph reads as generated prose; use a comma, a colon or a second sentence"
 ```
 
-One per paragraph is the threshold the Vale packages behind the assert measured, and `!terminal` leaves closed history alone. Measured on 2026-09-14: of 68 open-task paragraphs, 63 carried no em-dash, 2 carried one and 3 carried two, and those 3 were rewritten under the limit the same day. Run `mt check` before committing; if a task filed since trips the rule, rewrite that paragraph in a separate `task:` commit rather than raising `max`.
+== Changes
+
+- `www/content/config.typ`: the density entry, its unit-split rules taken from
+  `density_units` in `crates/mindtape/src/content_gate.rs` (fenced code dropped,
+  blank-line paragraphs, each list item its own paragraph, sentences ending at
+  `.`, `!` or `?`).
+- `.mindtape/config.toml`: the rule above, after the other
+  `[[tasks.body.content.rules]]` entries. If a task filed since trips it,
+  rewrite that paragraph in a separate `task:` commit rather than raising `max`.
+- `CHANGELOG.md`: an entry under Unreleased.
+
+== Out of scope
+
+- Any change to how the assert behaves.
+- Closed tasks: `!terminal` leaves history alone.
 
 == Dogfood
 
-Built in: the rule lands in this repo's `.mindtape/config.toml`.
+Built in: the rule polices this repo's open tasks.

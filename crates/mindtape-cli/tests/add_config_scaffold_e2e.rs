@@ -197,6 +197,12 @@ fn derives_initial_status_from_a_custom_legend() {
 /// this test rather than only surfacing at dogfood `mt check` time.
 const PRODUCTION_TEMPLATE: &str = include_str!("../../../.mindtape/templates/task.typ");
 
+/// The template imports `../goals.typ` beside the tasks root. A stub that
+/// accepts every verdict keeps this test about the estimate default, not about
+/// which goals the repo currently holds.
+const GOALS_STUB: &str = "#let helps(reason) = reason\n#let hurts(reason) = reason\n\
+     #let neutral = none\n#let goals(..verdicts) = []\n";
+
 /// Mirrors the dogfood config's `[tasks.estimate]`: required on every
 /// non-terminal task, bounded 1-5 files.
 const ESTIMATE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
@@ -222,10 +228,14 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
         PRODUCTION_TEMPLATE,
     )
     .unwrap();
+    std::fs::write(dir.path().join("goals.typ"), GOALS_STUB).unwrap();
 
     support::mt(dir.path())
         .args(["add", "--name", "no-estimate", "--set", "title=No estimate"])
-        .args(["--set", "summary=A summary."])
+        .args(["--set", "problem=+ A step."])
+        .args(["--set", "to-be=- An end state."])
+        .args(["--set", "changes=- `a.rs`: a change."])
+        .args(["--set", "out-of-scope=- Nothing."])
         .args(["--set", "dogfood=Not applicable."])
         .assert()
         .success();

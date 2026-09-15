@@ -12,7 +12,11 @@
   estimate: (files: 1),
   kind: "dev",
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(
+    2026,
+    9,
+    15,
+  )[The allowlist closed straight onto the six sections: every open task moved in the same change, so no union step was needed.],
   links: depends-on(
     "move-the-sweep-templates-to-the-four-section-spec.typ",
     "rewrite-open-task-bodies-into-the-four-section-spec.typ",

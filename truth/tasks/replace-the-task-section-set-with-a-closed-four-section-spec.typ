@@ -12,7 +12,11 @@
   tags: ("mt", "gating", "docs"),
   estimate: (files: 2),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(
+    2026,
+    9,
+    15,
+  )[Landed as Problem, Goals, TO-BE, Changes, Out of scope and Dogfood rather than four sections, after the 2026-09-15 review checked the set against research; the reasons sit above the section rules in .mindtape/config.toml.],
   links: depends-on(
     "add-a-max-words-content-assert.typ",
     "validate-the-kind-field-against-a-configured-enum.typ",

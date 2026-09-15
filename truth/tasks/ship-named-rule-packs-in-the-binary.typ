@@ -12,7 +12,11 @@
   tags: ("mt", "gating", "tooling"),
   estimate: (files: 5),
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: cancelled(
+    2026,
+    9,
+    15,
+  )[Superseded on 2026-09-15 by give-every-body-rule-a-name, let-a-config-extend-rule-packs, ship-the-task-practice-as-the-mindtape-tasks-pack and document-rule-packs, which add path packs, disable and same-name overrides.],
 )
 
 == Summary

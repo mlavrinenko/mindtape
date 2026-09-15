@@ -12,7 +12,11 @@
   estimate: (files: 5),
   kind: "docs",
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: cancelled(
+    2026,
+    9,
+    15,
+  )[Superseded on 2026-09-15 by rewrite-the-readme-around-what-typst-tasks-express and add-a-docs-page-on-tasks-that-validate-themselves: the pitch is what Typst tasks express that Markdown with frontmatter cannot.],
   links: depends-on("rewrite-the-readme-and-docs-site-around-spec-linting.typ"),
 )
 

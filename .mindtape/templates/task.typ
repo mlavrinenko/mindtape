@@ -1,7 +1,8 @@
 #import "@local/mindtape:0.2.0": *
+#import "../goals.typ": *
 
 #show: task.with(
-  title: slot("title", prompt: "Task title"),
+  title: slot("title", prompt: "Task title, imperative verb first"),
   priority: ice(
     impact: slot("impact", kind: "int", default: 5),
     confidence: slot("confidence", kind: "float", default: 0.8),
@@ -12,13 +13,57 @@
   estimate: slot("estimate", kind: "text", default: "(files: 2)"),
 )
 
-== Summary
+== Problem
 
-#slot("summary", kind: "raw", prompt: "One-paragraph summary")
+#slot(
+  "problem",
+  kind: "raw",
+  prompt: "Numbered steps anyone can follow, commands in backticks; open the step that shows the defect with 😞 and quote what it printed",
+)
 
-== Scope
+== Goals
 
-#slot("scope", kind: "raw", default: "- TODO")
+#goals(
+  readable-tasks: slot("readable-tasks", kind: "raw", default: "neutral"),
+  implementable-tasks: slot(
+    "implementable-tasks",
+    kind: "raw",
+    default: "neutral",
+  ),
+  enforced-practice: slot("enforced-practice", kind: "raw", default: "neutral"),
+  cheap-adoption: slot("cheap-adoption", kind: "raw", default: "neutral"),
+  typst-over-markdown: slot(
+    "typst-over-markdown",
+    kind: "raw",
+    default: "neutral",
+  ),
+  plain-files: slot("plain-files", kind: "raw", default: "neutral"),
+  sound-codebase: slot("sound-codebase", kind: "raw", default: "neutral"),
+)
+
+== TO-BE
+
+#slot(
+  "to-be",
+  kind: "raw",
+  prompt: "Bullets opening with 🙂: what the Problem steps show once this lands",
+)
+
+== Changes
+
+#slot(
+  "changes",
+  kind: "raw",
+  prompt: "One bullet per file: `path`, then what changes there; the red test first",
+)
+
+== Out of scope
+
+#slot(
+  "out-of-scope",
+  kind: "raw",
+  prompt: "Bullets: what not to touch, and why",
+)
 
 == Dogfood
 

@@ -1,4 +1,5 @@
 #import "@local/mindtape:0.2.0": *
+#import "../goals.typ": *
 
 #show: task.with(
   title: slot("title", prompt: "cover <path>"),
@@ -30,28 +31,45 @@
   tags: slot("tags", kind: "list", prompt: "swept, coverage"),
 )
 
-== Summary
+== Problem
 
-#raw(slot("path", prompt: "repo-relative path of the undercovered file")) is #slot("percent", kind: "text", prompt: "covered lines as a percentage")% covered: #slot("uncovered", kind: "text", prompt: "count of unreached lines") of #slot("lines", kind: "text", prompt: "count of instrumented lines") instrumented lines are never reached by the suite, against a floor of #slot("floor", kind: "text", prompt: "the coverage floor this file is measured against")%.
++ Run `just cover`.
++ 😞 #raw(slot("path", prompt: "repo-relative path of the undercovered file")) is #slot("percent", kind: "text", prompt: "covered lines as a percentage")% covered: #slot("uncovered", kind: "text", prompt: "count of unreached lines") of #slot("lines", kind: "text", prompt: "count of instrumented lines") instrumented lines are never reached by the suite, against a floor of #slot("floor", kind: "text", prompt: "the coverage floor this file is measured against")%.
 
-`just ask-refactoring` filed this from the lcov `just cover` writes, and nothing
-recorded that it did. The sweep re-reads the signal every run, so this task is
-worth exactly as much as the measurement behind it still is.
+`just ask-refactoring` filed this, and the sweep re-reads the signal every run,
+so the task is worth only as much as that measurement still is.
 
-== Scope
+== Goals
 
-- Pick the remedy, then do it. Either test the unreached paths, or exclude the
-  file from scoring with a reason. Both are correct answers. A test that walks
-  the lines without asserting on them is not: it moves the number and buys
-  nothing, which is the failure mode a coverage target invites.
-- If you test, start with the branches that decide something. Coverage is the
-  signal, not the goal — `just mutants -f` on the same file says whether the new
-  tests actually pin behaviour.
-- If you exclude, write the reason next to the entry in the `just cover` recipe,
-  in the style its `main.rs` and `recur_rrule.rs` exclusions already use. A
-  written reason is the only thing that suppresses this finding on the next
-  sweep — there is no ignore list anywhere else, deliberately.
-- Done when `just cover` reports this file at or above the floor.
+#goals(
+  readable-tasks: neutral,
+  implementable-tasks: neutral,
+  enforced-practice: neutral,
+  cheap-adoption: neutral,
+  typst-over-markdown: neutral,
+  plain-files: neutral,
+  sound-codebase: helps[unreached lines get a test that fails when they break],
+)
+
+== TO-BE
+
+- 🙂 `just cover` reports this file at or above the floor, or the `just cover`
+  recipe excludes it with a reason.
+
+== Changes
+
+- Pick the remedy, then do it: test the unreached paths, or exclude the file
+  from scoring with a reason next to its entry in the `just cover` recipe, in
+  the style its `main.rs` and `recur_rrule.rs` exclusions already use.
+- If you test, start with the branches that decide something; `just mutants -f`
+  on the same file says whether the new tests actually pin behaviour.
+- A written exclusion reason is the only thing that suppresses this finding on
+  the next sweep; there is no ignore list anywhere else, deliberately.
+
+== Out of scope
+
+- Tests that walk the lines without asserting on them: they move the number and
+  buy nothing, which is the failure mode a coverage target invites.
 
 == Dogfood
 

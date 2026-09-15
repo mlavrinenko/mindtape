@@ -12,7 +12,11 @@
   estimate: (files: 5),
   kind: "dev",
   assignee: "agent",
-  status: proposed(2026, 9, 14),
+  status: done(
+    2026,
+    9,
+    15,
+  )[The four sweep templates moved to the six-section shape with their slot names unchanged, so the ask-refactoring scripts needed no edit.],
   links: depends-on(
     "replace-the-task-section-set-with-a-closed-four-section-spec.typ",
   ),

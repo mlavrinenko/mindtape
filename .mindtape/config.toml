@@ -248,24 +248,64 @@ required = "!terminal"
 [tasks.comments]
 policy = "forbid"
 
-# Every task carries exactly one Summary section, and it precedes Scope.
+# Every open task is one spec in six sections, in this order. The set came out
+# of the 2026-09-15 backlog review and the research it was checked against:
+#
+# - Problem: numbered steps anyone can follow, commands in backticks, and the
+#   step that shows the defect opening with 😞. Reproduction scripts raise agent
+#   solve rates while narrative steps add little (arXiv 2607.07593); developers
+#   rank steps to reproduce first (Bettenburg et al., FSE 2008).
+# - Goals: `#goals(...)` from truth/goals.typ, one verdict per goal. A task that
+#   helps no goal fails to load, so nothing unjustified gets filed.
+# - TO-BE: the observable end state, each item opening with 🙂. It is also the
+#   done check: rerun the Problem steps and see it.
+# - Changes: bullets naming the files and what changes in each. Fix suggestions
+#   and fault localization raise solve rates (arXiv 2607.07593), but a wrong
+#   plan hurts more than none (arXiv 2604.12147): name places, not a script.
+# - Out of scope: what not to touch, so the diff stays one change.
+# - Dogfood: how this repo uses the change, or "Not applicable" and why. A rule
+#   no task has to answer is one an agent forgets.
+#
+# Headings and lists carry weight on their own: stripping them lowers solve
+# rates with the content intact, and so does length (arXiv 2607.07593). Hence
+# the closed set here and the word caps below. Closed tasks keep the
+# Summary/Scope bodies they closed with.
 [[tasks.body.headers.rules]]
-path = ["Summary"]
+action = "allowlist"
+allowed = [{ match = "^(Problem|Goals|TO-BE|Changes|Out of scope|Dogfood)$" }]
+when = "!terminal"
+message = "an open task's sections are Problem, Goals, TO-BE, Changes, Out of scope and Dogfood"
+
+[[tasks.body.headers.rules]]
+path = ["Problem"]
 action = "unique"
-message = "every task must have exactly one Summary section"
+when = "!terminal"
+message = "every open task has one Problem section"
 
 [[tasks.body.headers.rules]]
-action = "order"
-before = ["Summary"]
-after = ["Scope"]
-message = "Summary must precede Scope"
+path = ["Goals"]
+action = "unique"
+when = "!terminal"
+message = "every open task has one Goals section"
 
-# Every open task carries a Dogfood section after Scope: how this repo will use
-# the change once it lands. Dogfooding is this project's rule, and a rule no
-# task has to answer is one an agent forgets. Whether a change CAN be dogfooded
-# is a per-task decision, so the section is required but its answer is free —
-# "Not applicable", with the reason, is a legitimate one. Closed history is not
-# backfilled.
+[[tasks.body.headers.rules]]
+path = ["TO-BE"]
+action = "unique"
+when = "!terminal"
+message = "every open task has one TO-BE section"
+
+[[tasks.body.headers.rules]]
+path = ["Changes"]
+action = "unique"
+when = "!terminal"
+message = "every open task has one Changes section"
+
+[[tasks.body.headers.rules]]
+path = ["Out of scope"]
+action = "unique"
+when = "!terminal"
+message = "every open task has one Out of scope section"
+
 [[tasks.body.headers.rules]]
 path = ["Dogfood"]
 action = "unique"
@@ -274,10 +314,38 @@ message = "every open task says how this repo will dogfood it, in one Dogfood se
 
 [[tasks.body.headers.rules]]
 action = "order"
-before = ["Scope"]
+before = ["Problem"]
+after = ["Goals"]
+when = "!terminal"
+message = "Goals follows Problem"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Goals"]
+after = ["TO-BE"]
+when = "!terminal"
+message = "TO-BE follows Goals"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["TO-BE"]
+after = ["Changes"]
+when = "!terminal"
+message = "Changes follows TO-BE"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Changes"]
+after = ["Out of scope"]
+when = "!terminal"
+message = "Out of scope follows Changes"
+
+[[tasks.body.headers.rules]]
+action = "order"
+before = ["Out of scope"]
 after = ["Dogfood"]
 when = "!terminal"
-message = "Dogfood follows Scope"
+message = "Dogfood follows Out of scope"
 
 # No section takes a subsection. The wildcard pair matches any heading nested
 # under any heading, so one rule closes the whole depth axis rather than naming
@@ -299,26 +367,58 @@ path = [{ match = ".*" }, { match = ".*" }]
 when = "!terminal"
 message = "sections take no subsections; if a section needs one, the task is too big"
 
-# Section-content rules: the heading rules above prove a task has the right
-# sections; these prove the sections say something. Measured on the backlog at
-# adoption (2026-08-29): every task's Summary carries prose and the placeholder
-# scopes ("- TODO") all sit in closed history — so both bind nothing today and
-# police the future instead. `assert` shapes: the string "non-empty", a
-# `min-words` table, or a `must-match`/`must-not-match` regex table, each over
-# the section's source text (nested subsection prose and code blocks count).
-# `when` gates like the heading rules; `!terminal` is the same choice
-# `required = "!terminal"` fields make — history is not backfilled, the open
-# backlog is policed.
+# Section-content rules: the heading rules above prove the sections exist;
+# these prove each one says what its heading promises. Regexes run over the
+# section's source text. `!terminal` everywhere: history is not backfilled.
 [[tasks.body.content.rules]]
-path = ["Summary"]
-assert = "non-empty"
-message = "a Summary heading over nothing reads as a placeholder; say what the task is"
+path = ["Problem"]
+assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s" }
+when = "!terminal"
+message = "write the Problem as numbered steps anyone can follow"
 
 [[tasks.body.content.rules]]
-path = ["Scope"]
-assert = { min-words = 10 }
+path = ["Problem"]
+assert = { must-match = "😞" }
 when = "!terminal"
-message = "a Scope section naming no work reads as a placeholder; spell out what the task touches"
+message = "open the step that shows the defect with 😞"
+
+[[tasks.body.content.rules]]
+path = ["Goals"]
+assert = { must-match = "#goals\\(" }
+when = "!terminal"
+message = "give every goal a verdict with #goals(...) from truth/goals.typ"
+
+[[tasks.body.content.rules]]
+path = ["TO-BE"]
+assert = { must-match = "🙂" }
+when = "!terminal"
+message = "open each observable end state with 🙂"
+
+[[tasks.body.content.rules]]
+path = ["Changes"]
+assert = { must-match = "(?m)^\\s*- .*`" }
+when = "!terminal"
+message = "list Changes as bullets naming the `path` each one touches"
+
+[[tasks.body.content.rules]]
+path = ["Out of scope"]
+assert = "non-empty"
+when = "!terminal"
+message = "say what not to touch, or \"Nothing adjacent\" and why"
+
+# Word caps, provisional: set on 2026-09-15 with headroom over the rewritten
+# open tasks. A section over its cap is a task that should have been two.
+[[tasks.body.content.rules]]
+path = [{ match = "^(Problem|TO-BE|Out of scope|Dogfood)$" }]
+assert = { max-words = 120 }
+when = "!terminal"
+message = "keep this section under 120 words; a longer one is a task that should have been two"
+
+[[tasks.body.content.rules]]
+path = [{ match = "^(Goals|Changes)$" }]
+assert = { max-words = 220 }
+when = "!terminal"
+message = "keep this section under 220 words; a longer one is a task that should have been two"
 
 [[tasks.body.content.rules]]
 path = ["Dogfood"]
@@ -331,7 +431,7 @@ message = "a Dogfood heading over nothing decides nothing; say how this repo use
 # than a literal fence so the rule can be quoted inside a task body (this one)
 # without closing the block it sits in.
 [[tasks.body.content.rules]]
-path = ["Scope"]
+path = ["TO-BE"]
 assert = { must-match = "[`]{3}" }
 when = 'has_tag("gating") && !terminal'
 message = "this task proposes config surface; show the shape in a block"
