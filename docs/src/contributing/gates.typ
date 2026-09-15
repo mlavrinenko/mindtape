@@ -55,7 +55,7 @@ enumeration standing in for a wildcard, false-fresh the moment an unlisted
 top-level directory arrives — so the arm judges the enumeration itself, with
 `git ls-files` set-differenced against mmz's own expansion, failing by name.
 Files it cannot name are still scanned, unmemoized: the trade
-`typstyle --check truth/tasks` takes.
+`typstyle --check truth` takes.
 
 == Arms must not read what another arm writes
 
@@ -195,7 +195,7 @@ The hook `nix develop` installs asserts the gate is fresh via
 = The escape hatch
 
 `MINDTAPE_GATE_SCOPE=<reason> git commit` skips only the freshness assertion;
-`typstyle --check truth/tasks` and `mt check` still run. Not a silent skip
+`typstyle --check truth` and `mt check` still run. Not a silent skip
 either — `.githooks/commit-msg` refuses the commit unless the message carries a
 matching `Gate-Scope: <reason>` trailer, so the record of what was not verified
 travels in `git log` with the commit that did not verify it.

@@ -19,7 +19,7 @@
 # `mt flip` writes the task file it is gating, so a rule keyed on those files
 # would go stale the moment a status is stamped — the close gate would flip
 # itself stale mid-command, and a multi-target or sequential close could never
-# pass. `just fmt-check` DOES typstyle-check `truth/tasks/` (see the Justfile),
+# pass. `just fmt-check` DOES typstyle-check `truth/` (see the Justfile),
 # so a full `just check` still rejects a mis-formatted task file; we just don't
 # MEMOIZE that read, trading a task-file-only formatting change escaping the
 # freshness shortcut for a gate that survives its own writes. Task structure is
@@ -72,9 +72,11 @@ scopes:
 
   # Typst formatter (`just fmt-check` runs `typstyle --check` over these).
   # `truth/tasks/**` is intentionally NOT listed (see NOTE ON SCOPE): the gate
-  # must survive `mt flip`'s own writes to that tree.
+  # must survive `mt flip`'s own writes to that tree. The shared `truth/*.typ`
+  # files beside it are no task, so they are.
   typ-fmt:
     - "lib/**"
+    - "truth/*.typ"
     - "examples/learn-piano/tasks/**"
     - "examples/learn-piano/.mindtape/templates/**"
     - "www/content/**"

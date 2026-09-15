@@ -13,10 +13,11 @@
 #    below, and `.githooks/commit-msg` refuses the commit unless the message
 #    carries a matching `Gate-Scope: <reason>` trailer, so a scoped commit
 #    can never look identical to a fully gated one in `git log`.
-# 2. Task-file formatting. `truth/tasks/**` is deliberately outside every mmz
-#    scope (.mmz/config.yaml: NOTE ON SCOPE — the close gate must survive
-#    `mt flip`'s own writes), so a mis-formatted task file busts nothing. The
-#    tree is small, so check it directly.
+# 2. Typst formatting under `truth/`. `truth/tasks/**` is deliberately outside
+#    every mmz scope (.mmz/config.yaml: NOTE ON SCOPE — the close gate must
+#    survive `mt flip`'s own writes), so a mis-formatted task file busts
+#    nothing. The shared `truth/*.typ` files every task imports sit beside it.
+#    The tree is small, so check all of it directly.
 # 3. Task structure — the close gate delegates this here by policy.
 set -eo pipefail
 root="$(git rev-parse --show-toplevel)"
@@ -25,5 +26,5 @@ if [[ -n "${MINDTAPE_GATE_SCOPE:-}" ]]; then
 else
     direnv exec "$root" mmz --is-fresh --tag gate
 fi
-direnv exec "$root" typstyle --check truth/tasks
+direnv exec "$root" typstyle --check truth
 exec direnv exec "$root" cargo run -q -- check -q
