@@ -14,7 +14,8 @@
   kind: "feat",
   assignee: "agent",
   status: proposed(2026, 9, 15),
-  links: depends-on("let-a-config-extend-rule-packs.typ"),
+  links: depends-on("let-a-config-extend-rule-packs.typ")
+    + depends-on("move-goal-verdicts-into-x-goals.typ"),
 )
 
 == Problem
@@ -66,7 +67,7 @@ extends = ["mindtape-tasks"]
 
 == Out of scope
 
-- A goals file: goals belong to each repo, and the pack only requires a `#goals(...)` call.
+- A goals rule: goals and the function that checks them belong to each repo, as `move-goal-verdicts-into-x-goals.typ` sets up here.
 - This repo's own policy, such as the `agent` and `max` assignees and the close gate.
 
 

@@ -14,13 +14,14 @@
   kind: "docs",
   assignee: "agent",
   status: proposed(2026, 9, 15),
+  links: depends-on("move-goal-verdicts-into-x-goals.typ"),
 )
 
 == Problem
 
 + Open `README.md` as a software engineer who already keeps tasks in Markdown files with YAML frontmatter.
 + 🔴 The first screen calls MindTape a daemon-free file-based task tracker and shows a task, but nothing in it needs Typst: frontmatter plus a script does the same.
-+ 🔴 Nothing shows what Typst adds: `wip(2026, 9, 14)[note]` as one typed value, `depends-on("a.typ")` edges checked on every command, and a shared `#import "../lib.typ"` that refuses a task skipping a goal.
++ 🔴 Nothing shows what Typst adds: `wip(2026, 9, 14)[note]` as one typed value, `depends-on("a.typ")` edges checked on every command, and an `x-goals` field checked by a Typst function the repo keeps beside its tasks.
 
 
 == Goals
@@ -42,13 +43,13 @@
 
 == TO-BE
 
-- 🟢 The README's first screen shows one task twice, as Markdown with YAML and as Typst, and names what only the Typst one does: typed values, links checked on every command, and a shared import that validates.
+- 🟢 The README's first screen shows one task twice, as Markdown with YAML and as Typst, and names what only the Typst one does: typed values, links checked on every command, and a field the repo's own Typst function checks.
 - 🟢 `www/content/index.typ` opens with the same comparison.
 
 == Source of truth
 
 - A real task in `truth/tasks/`: the side-by-side shows that file as it is, not an invented one.
-- `truth/lib.typ`: the shared import the README quotes.
+- `truth/lib.typ`: the check function the README quotes.
 
 
 == Changes

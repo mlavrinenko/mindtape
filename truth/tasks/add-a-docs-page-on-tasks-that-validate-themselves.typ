@@ -14,6 +14,7 @@
   kind: "docs",
   assignee: "agent",
   status: proposed(2026, 9, 15),
+  links: depends-on("move-goal-verdicts-into-x-goals.typ"),
 )
 
 == Problem
@@ -41,7 +42,7 @@
 
 == TO-BE
 
-- 🟢 A docs page shows a shared goals file, a task importing it, and the live `mt check` output refusing a task that skips a goal.
+- 🟢 A docs page shows a shared goals file, the Typst function in `lib.typ` that checks a task's `x-goals`, the `[[tasks.rules]]` entry naming it, and the live `mt check` output refusing a task that skips a goal.
 - 🟢 The page sits in the site nav, and `www/generate.sh` regenerates its capture.
 
 == Source of truth
@@ -52,7 +53,7 @@
 
 == Changes
 
-- `examples/self-validating/` (new): a minimal config, a `goals.typ` and a `lib.typ`, one task that passes and one that skips a goal.
+- `examples/self-validating/` (new): a minimal config with the `check` rule, a `goals.typ`, a `lib.typ` holding the check function, one task that passes and one whose `x-goals` skips a goal.
 - `www/generate.sh`: capture `mt check` against that fixture beside the learn-piano captures.
 - `www/content/self-validating-tasks.typ` (new): the page, quoting the fixture files and the capture.
 - `www/utils/site.typ`: register the page in the nav.
