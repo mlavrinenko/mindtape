@@ -520,10 +520,10 @@ error: 2 task(s) match `status == "wip" && kind != "umbrella"`, max 1 — close 
 
 Every constraint above is one MindTape knows by name — a status legend, a
 numeric scale, a tag allow-list, a heading path. `[[tasks.rules]]` is the
-general form: an assertion in the
+general form. It constrains no field in particular, because it names the
+field itself, in one of two shapes: `assert`, an expression in the
 #link(u("/filters/"))[filter language] that must hold for every task the rule
-selects. It constrains no field in particular, because the expression already
-names the field it is about.
+selects, or `check`, a Typst function the project already has (below).
 
 ```toml
 [[tasks.rules]]
@@ -534,9 +534,11 @@ message = "start the title with an imperative verb"
 severity = "error"
 ```
 
-`assert` is the only required key. `when` gates which tasks are asked — absent
-means every task — and `message` replaces the default advice, which names the
-`assert` expression itself. `severity` is `"warn"` (the default) or `"error"`.
+Exactly one of `assert`/`check` is required. `when` gates which tasks are
+asked — absent means every task — and `message` replaces the default advice,
+which names the `assert` expression itself (a `check` rule ignores `message`:
+each string its function returns is already the specific thing to fix).
+`severity` is `"warn"` (the default) or `"error"`.
 
 Rules are evaluated inside the validation pass, not in `mt check` alone. Every
 write command validates before it writes, so `mt add`, `mt flip` (and every
@@ -555,9 +557,49 @@ error: tasks/loader-refactoring.typ:3: rules.imperative-title: start the title w
 fails. A rule with no `name` reports as `rules[0]` — its index in
 `[[tasks.rules]]`, which is what finds it again in the config.
 
-Both expressions are dry-run once at config load against a probe task, exactly
-as `required` and `[[tasks.limits]]` are, so a rule naming an unknown field,
-view or dictionary is one config error rather than one violation per artifact.
+An `assert` expression (and `when`, either shape) is dry-run once at config
+load against a probe task, exactly as `required` and `[[tasks.limits]]` are,
+so a rule naming an unknown field, view or dictionary is one config error
+rather than one violation per artifact. A `check` rule's Typst module is
+checked the same way, at load — see below.
+
+== Checking a field with a Typst function
+
+`assert` reaches a task's own fields through the filter language, which has no
+name for an `x-<ns>` extension field and no way into a nested dictionary. A
+`check` rule reaches for a Typst function instead — the project's own code,
+where a structure it invented already lives:
+
+```toml
+[[tasks.rules]]
+name = "goals"
+when = "!terminal"
+check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
+severity = "error"
+```
+
+`typst` is a path to a Typst module, relative to the project root (the
+directory holding `.mindtape/`); `function` is the name it exports. `field`
+names the value the function receives — `none` when the task omits it, so
+requiring a field needs no second rule. Without `field` the function receives
+the whole task, in the shape `mt eval --json` prints.
+
+The function returns an array of strings: an empty array passes, and each
+string is one breach, reported exactly like an `assert` breach —
+`rules.goals: <string>`, at the rule's own `severity`. A return that is not an
+array is one breach naming what came back, and a panic inside the function
+(Typst's own `panic()`) is one breach carrying the panic message rather than
+an eval error that aborts the project load.
+
+A value reaches the function as a Typst literal built from the field's
+harvested value: a content block arrives as its plain text, an empty
+dictionary as `(:)`, a one-element array with its trailing comma, a date as a
+real `datetime(year:, month:, day:)` value, and a string escaped.
+
+`typst` must exist and export `function` — checked once at config load, each
+a separate config error, the same as a malformed `assert`. The function itself
+is never called at load: a function that only errors for some inputs must not
+fail config load over a value it was never asked to handle.
 
 = Review comments
 

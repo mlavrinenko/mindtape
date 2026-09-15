@@ -33,6 +33,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `mindtape::check_body_rules`, so `mt check` and the candidate seam cannot
   drift apart on what a body rule means.
 
+- **A `[[tasks.rules]]` entry can check a field with a Typst function.**
+  `check = { typst = "<path>", function = "<name>", field = "<field>" }` is
+  now an alternative to `assert`, for a structure the filter language cannot
+  name — an `x-<ns>` extension field, or a nested dictionary inside one. The
+  function receives the field's value (`none` when absent), or the whole task
+  in the shape `mt eval --json` prints when `field` is omitted, and returns an
+  array of strings: empty passes, each string is one breach reported under the
+  rule's own label and severity. A non-array return is one breach naming what
+  came back, and a panic inside the function (Typst's own `panic()`) is one
+  breach carrying the panic message rather than an eval error that aborts the
+  project load. `name`, `when`, `message` and `severity` work the same as for
+  `assert`; a rule declaring both or neither of `assert`/`check`, a missing
+  `typst` file, or a module that does not export `function` is refused at
+  config load, each as one config error. `mt add` refuses a write an
+  error-severity `check` rejects, exactly as it already does for `assert`.
+
 - **Filters and sorts reach a field's named parts.** A field with fixed named
   parts is now addressed as `field.property`: `status.name`, `status.date`
   (the ISO stamp), `status.note`, and `status.index` (the 0-based position in

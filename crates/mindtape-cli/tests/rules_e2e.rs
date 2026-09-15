@@ -311,3 +311,107 @@ fn the_learn_piano_example_carries_the_rule_at_warn() {
         mindtape::Severity::Warn
     );
 }
+
+/// `check = { typst, function, field }`
+/// (`truth/tasks/check-a-task-field-with-a-typst-function.typ`): a rule that
+/// names a Typst function instead of a filter expression, for a structure
+/// (an `x-<ns>` extras dict) the filter language has no way to reach.
+///
+/// A project whose config carries `rules` verbatim, a `check.typ` module
+/// exporting `check-title`, and a single task titled `title`.
+fn check_project(rules: &str, title: &str) -> tempfile::TempDir {
+    let dir = scaffold_project(&format!("[tasks]\nroots = [\"tasks\"]\n\n{rules}"));
+    std::fs::write(
+        dir.path().join("check.typ"),
+        "#let check-title(title) = if title == \"Loader refactoring\" {\n  \
+             (\"title must not be exactly this\",)\n\
+         } else {\n  ()\n}\n",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.path().join("tasks/subject.typ"),
+        format!(
+            "#import \"@local/mindtape:0.2.0\": *\n\n\
+             #show: task.with(\n  title: \"{title}\",\n  status: wip(2026, 6, 1),\n)\n"
+        ),
+    )
+    .unwrap();
+    dir
+}
+
+/// A `check` rule naming `check.typ`'s `check-title`, over the task's `title`
+/// field, at `severity`.
+fn check_title_rule(severity: &str) -> String {
+    format!(
+        "[[tasks.rules]]\n\
+         name = \"no-loader-refactoring\"\n\
+         check = {{ typst = \"check.typ\", function = \"check-title\", field = \"title\" }}\n\
+         severity = \"{severity}\"\n"
+    )
+}
+
+#[test]
+fn a_check_rule_that_passes_leaves_check_green() {
+    let dir = check_project(&check_title_rule("error"), "Refactor the loader");
+    let (ok, text) = check(dir.path());
+    assert!(ok, "a satisfied check must not fail the command: {text}");
+}
+
+#[test]
+fn a_check_breach_names_the_file_the_rule_and_the_functions_own_string() {
+    let dir = check_project(&check_title_rule("error"), "Loader refactoring");
+    let (ok, text) = check(dir.path());
+    assert!(
+        !ok,
+        "an error-severity check breach must fail the command: {text}"
+    );
+    assert!(
+        text.contains(
+            "error: tasks/subject.typ:3: rules.no-loader-refactoring: \
+             title must not be exactly this"
+        ),
+        "a check breach reports exactly like an assert breach: {text}"
+    );
+}
+
+#[test]
+fn mt_add_refuses_a_write_a_check_rule_rejects() {
+    let dir = check_project(&check_title_rule("error"), "Refactor the loader");
+    let out = mt(dir.path())
+        .args([
+            "add",
+            "--name",
+            "leftover",
+            "--set",
+            "title=Loader refactoring",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        !out.status.success(),
+        "an error-severity check rule must refuse the write"
+    );
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        stderr.contains("error: leftover: rules.no-loader-refactoring"),
+        "a blocking check problem reports as an error: {stderr}"
+    );
+    assert!(
+        !dir.path().join("tasks/leftover.typ").exists(),
+        "a refused write must leave nothing behind to repair"
+    );
+}
+
+#[test]
+fn an_unknown_check_function_is_one_config_error_at_load() {
+    let rule = "[[tasks.rules]]\n\
+                name = \"broken\"\n\
+                check = { typst = \"check.typ\", function = \"no-such-function\" }\n";
+    let dir = check_project(rule, "Refactor the loader");
+    let (ok, text) = check(dir.path());
+    assert!(!ok, "got: {text}");
+    assert!(
+        text.contains("tasks.rules[0].check") && text.contains("no-such-function"),
+        "an unknown function fails at load, naming its own path: {text}"
+    );
+}

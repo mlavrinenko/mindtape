@@ -37,6 +37,7 @@ mod config_required;
 mod config_rm;
 mod config_roots;
 pub mod config_rules;
+mod config_rules_typst;
 mod config_schema;
 mod config_status;
 mod config_tasks;
@@ -118,7 +119,7 @@ pub use config_layers::{
     LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
 };
 pub use config_limits::{LimitBreach, LimitError, LimitSpec, check_limits};
-pub use config_rules::RuleSpec;
+pub use config_rules::{CheckSpec, RuleSpec};
 pub use config_schema::{SCHEMA_URL, config_schema_json};
 pub use content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};

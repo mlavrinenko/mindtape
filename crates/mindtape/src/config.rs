@@ -101,6 +101,14 @@ pub struct Config {
     /// [`Config::compiled_dicts`].
     #[serde(skip)]
     pub(crate) dict_cache: DictCache,
+    /// The project root this config was built for, resolved once by
+    /// [`crate::config_layers::build_config`]. Derived, never declared: like
+    /// [`Config::dict_cache`], it carries no TOML key, no schema property, and
+    /// is never equal-compared. Read by a `[[tasks.rules]] check` entry
+    /// ([`crate::config_rules_typst`]) instead of taking `root` as a parameter
+    /// on every validation call site.
+    #[serde(skip)]
+    pub(crate) rules_root: crate::config_rules::RulesRoot,
     /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
     pub on: crate::config_hooks::OnConfig,
     /// The project's actor registry (`[[actors]]`): named workers (people and

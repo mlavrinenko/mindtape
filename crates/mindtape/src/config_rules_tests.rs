@@ -125,7 +125,8 @@ fn an_unnamed_rule_is_labelled_by_its_index() {
 fn label_prefers_the_name_over_the_index() {
     let named = RuleSpec {
         name: Some("imperative-title".to_owned()),
-        assertion: "true".to_owned(),
+        assertion: Some("true".to_owned()),
+        check: None,
         when: None,
         message: None,
         severity: Severity::Warn,

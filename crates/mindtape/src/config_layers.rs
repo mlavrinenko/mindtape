@@ -183,7 +183,20 @@ fn build_config(layers: &[Layer], root: &Path) -> Result<Config, ConfigError> {
         .into();
     crate::config_tasks::expand_dict_refs(&mut config.tasks, config.dict_cache.dicts())
         .map_err(ConfigError::Invalid)?;
+    // Stamped before `validate` reads it (transitively, through a
+    // `[[tasks.rules]] check` entry's `CompiledCheck`) and before the
+    // root-aware `validate_load` below, which takes `root` directly rather
+    // than reading it back off `config` — the two would otherwise have to
+    // agree on an ordering that only exists to satisfy this line.
+    config.rules_root.set(root);
     config.validate().map_err(ConfigError::Invalid)?;
+    // Root-aware, so it cannot run inside `Config::validate` itself (which
+    // stays callable rootless, e.g. from `mt init`'s wizard and from the many
+    // unit tests that build a `Config` from a bare TOML string): a
+    // `[[tasks.rules]] check` entry's Typst module and function are only
+    // reachable once a project root is in hand, exactly the reason
+    // `compile_dicts` above already runs here rather than in `parse_config`.
+    crate::config_rules_typst::validate_load(&config, root).map_err(ConfigError::Invalid)?;
     Ok(config)
 }
 

@@ -13,7 +13,7 @@
 //! `format` (Typst literal rendering: strings, numbers, arrays, `HVal`) and
 //! `links` (the `links:` field's per-kind/per-note grouping).
 
-mod format;
+pub(crate) mod format;
 mod links;
 
 use std::collections::BTreeMap;

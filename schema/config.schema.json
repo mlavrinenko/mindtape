@@ -209,6 +209,33 @@
       },
       "type": "object"
     },
+    "CheckSpec": {
+      "additionalProperties": false,
+      "description": "`check = { typst, function, field }` — a `[[tasks.rules]]` entry that\ndelegates to a Typst function instead of a filter expression. See\n[`crate::config_rules_typst`] for the evaluation route.",
+      "properties": {
+        "field": {
+          "default": null,
+          "description": "Field whose value the function receives (`none` when the task omits\nit). Absent means the function receives the whole task, in the shape\n`mt eval --json` prints.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "function": {
+          "description": "Name of the function `typst` exports that this rule calls.",
+          "type": "string"
+        },
+        "typst": {
+          "description": "Path to the Typst module exporting `function`, relative to the project\nroot (the directory holding `.mindtape/`).",
+          "type": "string"
+        }
+      },
+      "required": [
+        "typst",
+        "function"
+      ],
+      "type": "object"
+    },
     "Collector": {
       "description": "A folder-derived-tag collector strategy.",
       "oneOf": [
@@ -1833,15 +1860,30 @@
     },
     "RuleSpec": {
       "additionalProperties": false,
-      "description": "`[[tasks.rules]]` — one assertion every selected task must satisfy.\n\n`assert` is the only required key: a rule with nothing to assert is not a\nrule, and an absent one cannot be defaulted to anything that constrains.",
+      "description": "`[[tasks.rules]]` — one assertion or check every selected task must\nsatisfy.\n\nExactly one of `assertion`/`check` is set on a rule that came through\n[`crate::config::load_config`] — [`validate_rules`] refuses both or\nneither at config load — but a hand-built `RuleSpec` (a test, or\n`parse_config` alone) can carry either combination, so\n[`CompiledRule::compile`] still treats it as a fact to check rather than an\ninvariant to assume.",
       "properties": {
         "assert": {
-          "description": "Filter expression that must evaluate true for every task the rule\napplies to.",
-          "type": "string"
+          "default": null,
+          "description": "Filter expression that must evaluate true for every task the rule\napplies to. Exactly one of this and `check` is set.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "check": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CheckSpec"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "A Typst function to call instead of an `assert` expression. Exactly\none of this and `assertion` is set."
         },
         "message": {
           "default": null,
-          "description": "What a breach tells the author to do. Defaults to naming the `assert`\nexpression itself.",
+          "description": "What an `assert` breach tells the author to do, in place of the\ndefault advice naming the `assert` expression itself. Has no effect on\na `check` rule: each string the function returns is already the\nspecific thing to fix.",
           "type": [
             "string",
             "null"
@@ -1868,9 +1910,6 @@
           ]
         }
       },
-      "required": [
-        "assert"
-      ],
       "type": "object"
     },
     "ScaleKind": {
