@@ -13,7 +13,7 @@
   estimate: (files: 5),
   kind: "feat",
   assignee: "agent",
-  status: proposed(2026, 9, 15),
+  status: wip(2026, 9, 16),
 )
 
 == Problem
