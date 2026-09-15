@@ -33,6 +33,8 @@ pub mod config_limits;
 mod config_links_validate;
 mod config_ls;
 mod config_ls_columns;
+mod config_packs;
+mod config_packs_toml;
 mod config_required;
 mod config_rm;
 mod config_roots;
@@ -119,6 +121,7 @@ pub use config_layers::{
     LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
 };
 pub use config_limits::{LimitBreach, LimitError, LimitSpec, check_limits};
+pub use config_packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
 pub use config_rules::{CheckSpec, RuleSpec};
 pub use config_schema::{SCHEMA_URL, config_schema_json};
 pub use content_gate::{CompiledContentRule, check_content, compile_content_rules};

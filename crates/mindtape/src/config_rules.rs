@@ -368,6 +368,26 @@ pub(crate) fn validate_rules(config: &Config) -> Vec<String> {
     problems
 }
 
+/// Cross-check for `[[tasks.rules]]`, folded into [`Config::validate`]: no two
+/// entries share a `name`. Mirrors
+/// [`crate::body_headers::validate_header_rules`] /
+/// [`crate::body_content::validate_content_rules`] — `RuleSpec` already had a
+/// `name` before either of those did, but never a check that two entries
+/// couldn't share one.
+///
+/// This only ever sees a same-FILE duplicate: [`crate::config_packs`]'s merge
+/// collapses two entries sharing a name to one, in place, the moment they
+/// come from different sources (a nearer layer or an extended pack replacing
+/// a farther one's same-named rule), so by the time this runs — over the
+/// fully merged [`Config::tasks`] — two surviving entries with the same name
+/// can only mean one file (a layer's own array, or a pack's) declared both.
+pub(crate) fn validate_rule_names(config: &Config) -> Vec<String> {
+    crate::body_headers::duplicate_rule_names(
+        config.tasks.rules.iter().map(|rule| rule.name.as_deref()),
+        "tasks.rules",
+    )
+}
+
 #[cfg(test)]
 #[path = "config_rules_tests.rs"]
 mod tests;

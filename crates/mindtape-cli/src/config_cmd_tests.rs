@@ -93,7 +93,11 @@ fn origin_lists_exactly_the_layers_load_config_layered_returns() {
     )
     .unwrap();
 
-    let (_config, sources) = load_config_layered(dir.path()).unwrap();
+    let (_config, sources, rule_origins) = load_config_layered(dir.path()).unwrap();
+    assert!(
+        rule_origins.is_empty(),
+        "a bare project declares no rules, so the origin text is layers only"
+    );
     let text = render_origin(dir.path()).unwrap();
     let lines: Vec<&str> = text.lines().collect();
     assert_eq!(lines.len(), sources.len());

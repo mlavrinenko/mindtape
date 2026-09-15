@@ -9,6 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A config can `extends` rule packs and `disable` a rule by name.** Any
+  config layer (XDG global defaults, an ancestor `.mindtape/defaults.toml`, or
+  the project's own `.mindtape/config.toml`) may declare `extends = [...]` and
+  `disable = [...]` at the top level. A bare name in `extends` resolves to a
+  pack compiled into `mt` (the reserved `mindtape-` prefix; none ship yet —
+  the registry is a one-line-plus-a-file addition), and anything carrying a
+  path separator resolves to a TOML pack file relative to the layer that names
+  it (the project root, for the project's own config). A pack may declare only
+  `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
+  `[[tasks.body.content.rules]]` and `[dicts]`, and may not itself `extends`.
+  Per rule array, a layer's `extends` packs merge in first (in listed order),
+  then that layer's own entries; a later entry sharing an earlier one's `name`
+  replaces it in place rather than appending a second copy. `disable` then
+  drops every rule (in any of the three arrays) carrying a listed name,
+  erroring on a name matching none. `mt config show --origin` now also names,
+  for each rule in those three arrays, the pack (`pack mindtape-tasks` / `pack
+  <path>`) or layer it came from. Replacement by name works only ACROSS
+  files: two entries sharing a name WITHIN one layer's or one pack's own
+  array is a config error naming both, matching `[[tasks.body.headers.rules]]`
+  / `[[tasks.body.content.rules]]`'s own duplicate-name check below.
+
+  **Behavior change:** those three rule arrays now append across layers
+  instead of the nearer layer replacing the farther one's wholesale — every
+  other section keeps replacing wholesale, unchanged. An ancestor
+  `.mindtape/defaults.toml`'s `[[tasks.rules]]` entry used to vanish the
+  moment a project declared its own; it now survives alongside it (same name,
+  still replaces in place).
+
 - **A body rule can carry a `name`.** `[[tasks.body.headers.rules]]` and
   `[[tasks.body.content.rules]]` entries accept an optional `name`, mirroring
   `[[tasks.rules]]`'s: `mt check` reports a breach as `body.headers.rules.<name>`

@@ -118,6 +118,23 @@ pub struct Config {
     /// role carries no payload; the reader's harness keys its own config by
     /// role name by convention.
     pub roles: Vec<crate::config_actors::Role>,
+    /// Rule packs this layer builds on: a bare name (the reserved
+    /// `mindtape-` prefix) resolves to a pack compiled into the binary; a
+    /// path — anything carrying a path separator, even one starting with
+    /// `mindtape-` — resolves to a TOML pack file, relative to the file that
+    /// declares it (the project root, for the project's own config). Legal
+    /// in any layer. A pack contributes to `[[tasks.rules]]`,
+    /// `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]` and
+    /// `[dicts]` only, ahead of the layer's own entries; a same-named rule in
+    /// the layer replaces the pack's. Resolved and consumed before this
+    /// struct is built — see [`crate::config_packs`] — so this field always
+    /// reads back as whichever layer declared `extends` last, informational
+    /// rather than something another command reads.
+    pub extends: Vec<String>,
+    /// Rule names to drop after every extended pack and layer has merged its
+    /// three rule arrays in. A name matching no rule in any of the three
+    /// arrays is a config error. Consumed at the same point as `extends`.
+    pub disable: Vec<String>,
 }
 
 /// `[typst]` — Typst evaluation settings.
@@ -227,6 +244,7 @@ impl Config {
         problems.extend(crate::config_links_validate::validate_link_kinds(self));
         problems.extend(crate::config_limits::validate_limits(self));
         problems.extend(crate::config_rules::validate_rules(self));
+        problems.extend(crate::config_rules::validate_rule_names(self));
         problems.extend(crate::body_headers::validate_header_rules(self));
         problems.extend(crate::body_content::validate_content_rules(self));
         problems.extend(crate::config_comments::validate_comments(self));
@@ -321,7 +339,7 @@ pub fn parse_config(text: &str) -> Result<Config, ConfigError> {
 /// Returns [`ConfigError`] if a layer exists but cannot be read or parsed, or
 /// the merged config fails semantic validation.
 pub fn load_config(root: &Path) -> Result<Config, ConfigError> {
-    crate::config_layers::load_config_layered(root).map(|(config, _sources)| config)
+    crate::config_layers::load_config_layered(root).map(|(config, _sources, _rule_origins)| config)
 }
 
 /// The conventional config path for a project root.

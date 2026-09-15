@@ -406,7 +406,9 @@ CI or a pre-commit hook. It also warns, without failing, when the git working
 tree has outgrown the file budget the in-flight tasks declare (see
 #link(u("/estimates/"))[Estimates]). `mt config show`
 prints the effective merged config as re-parseable TOML; `--origin` lists which
-layers contributed, and from where.
+layers contributed and from where, followed by which pack (or layer) each
+rule in the three arrays that `extends` can grow ultimately came from — see
+#link(u("/config/"))[Configuration].
 
 #cli-group(cli, cli-groups, "Validate & inspect config")
 

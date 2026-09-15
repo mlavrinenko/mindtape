@@ -10,15 +10,20 @@
 //! 4. The project's own `<root>/.mindtape/config.toml`.
 //!
 //! IO (locating and reading files, [`discover_layers`]) is kept separate from
-//! the pure fold ([`merge_layers`]) so the merge order is testable without
-//! touching a filesystem.
+//! the fold: [`crate::config_packs::merge_layers_with_packs`] takes the
+//! discovered [`Layer`]s and does the rest, so the merge order is testable
+//! without touching a filesystem (see that module's own tests). Every field
+//! wholesale-replaces a later layer's over an earlier one's, except
+//! `[[tasks.rules]]` and its two body-rule siblings, which append across
+//! layers (and across a layer's own `extends` packs) instead — that
+//! exception is entirely that module's, not this one's.
 
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 use crate::config::{Config, ConfigError, EMBEDDED_DEFAULTS, config_path};
+use crate::config_packs::{RuleOriginEntry, merge_layers_with_packs};
 use crate::framework::merge_builtin_frameworks;
-use crate::merge::deep_merge_tables;
 
 /// One config text layer plus where it came from.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -125,26 +130,22 @@ fn dir_layers(root: &Path, home: Option<&Path>) -> Vec<Layer> {
     found
 }
 
-/// Fold layers into one TOML document in the order given (later overrides
-/// earlier), with [`deep_merge_tables`]. Pure — no IO.
+/// [`crate::config_packs::merge_layers_with_packs`] (deep-merges every layer,
+/// folding in each one's own `extends` packs and `disable` names as it goes),
+/// then splice in the built-in priority frameworks — the merged document,
+/// plus every rule's provenance, shared by [`build_config`] and
+/// [`merged_config_table`].
 ///
 /// # Errors
-/// Returns [`ConfigError::Parse`] if any layer's text is not valid TOML.
-pub fn merge_layers(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
-    let mut base = toml::Table::new();
-    for layer in layers {
-        let overlay: toml::Table = toml::from_str(&layer.text)?;
-        deep_merge_tables(&mut base, overlay);
-    }
-    Ok(base)
-}
-
-/// [`merge_layers`], then splice in the built-in priority frameworks — the
-/// merged document shared by [`build_config`] and [`merged_config_table`].
-fn merge_doc(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
-    let mut doc = merge_layers(layers)?;
-    merge_builtin_frameworks(&mut doc);
-    Ok(doc)
+/// Returns [`ConfigError`] if any layer or pack fails to parse, an `extends`
+/// pack can't be resolved, or a `disable` name matches no rule.
+fn merge_doc(
+    layers: &[Layer],
+    root: &Path,
+) -> Result<(toml::Table, Vec<RuleOriginEntry>), ConfigError> {
+    let mut merged = merge_layers_with_packs(layers, root)?;
+    merge_builtin_frameworks(&mut merged.table);
+    Ok((merged.table, merged.rule_origins))
 }
 
 /// [`merge_doc`], then deserialize and run semantic validation — the shared
@@ -175,8 +176,11 @@ fn merge_doc(layers: &[Layer]) -> Result<toml::Table, ConfigError> {
 /// against, and needs to have resolved before `validate` (which does not
 /// itself read either list, but every command downstream of a successful load
 /// does) ever sees a bare `@name` instead of the set it names.
-fn build_config(layers: &[Layer], root: &Path) -> Result<Config, ConfigError> {
-    let doc = merge_doc(layers)?;
+fn build_config(
+    layers: &[Layer],
+    root: &Path,
+) -> Result<(Config, Vec<RuleOriginEntry>), ConfigError> {
+    let (doc, rule_origins) = merge_doc(layers, root)?;
     let mut config: Config = toml::Value::Table(doc).try_into()?;
     config.dict_cache = crate::config::compile_dicts(&config.dicts, root)
         .map_err(ConfigError::Invalid)?
@@ -196,31 +200,40 @@ fn build_config(layers: &[Layer], root: &Path) -> Result<Config, ConfigError> {
     // `[[tasks.rules]] check` entry's Typst module and function are only
     // reachable once a project root is in hand, exactly the reason
     // `compile_dicts` above already runs here rather than in `parse_config`.
+    // Runs over `config.tasks.rules` after packs and every layer have merged
+    // in, so a `check` rule a pack or an ancestor's `.mindtape/defaults.toml`
+    // contributed is validated here too, against the same `root` as any
+    // other — `rules_root` carries no provenance, only the one project root
+    // `build_config` was ever called with.
     crate::config_rules_typst::validate_load(&config, root).map_err(ConfigError::Invalid)?;
-    Ok(config)
+    Ok((config, rule_origins))
 }
 
-/// Assemble the merged TOML document for `root` — every discovered layer
-/// folded together with [`merge_layers`], plus the spliced-in built-in
+/// Assemble the merged TOML document for `root` — every discovered layer (and
+/// each one's `extends` packs) folded together, plus the spliced-in built-in
 /// priority frameworks — without deserializing into a typed [`Config`] or
 /// running semantic validation. Backs `mt config show`: the emitted document
 /// re-parses through [`crate::config::parse_config`] to an equal [`Config`].
 ///
 /// # Errors
-/// Returns [`ConfigError::Parse`] if any layer's text is not valid TOML.
+/// As [`merge_doc`].
 pub fn merged_config_table(root: &Path) -> Result<toml::Table, ConfigError> {
     let layers = discover_layers(root, dirs::home_dir().as_deref());
-    merge_doc(&layers)
+    merge_doc(&layers, root).map(|(table, _rule_origins)| table)
 }
 
 /// Assemble the full layered config for `root`: discover every layer, merge
-/// them, and build the typed [`Config`]. Returns the layer provenance
-/// alongside the config, for `mt config show --origin`.
+/// them (resolving each one's `extends` packs and applying `disable`), and
+/// build the typed [`Config`]. Returns the layer provenance and every rule's
+/// own, for `mt config show --origin`.
 ///
 /// # Errors
-/// Returns [`ConfigError`] if any layer fails to parse, the merged document
-/// fails to deserialize, or semantic validation fails.
-pub fn load_config_layered(root: &Path) -> Result<(Config, Vec<LayerSource>), ConfigError> {
+/// Returns [`ConfigError`] if any layer or pack fails to parse, an `extends`
+/// pack can't be resolved, a `disable` name matches no rule, the merged
+/// document fails to deserialize, or semantic validation fails.
+pub fn load_config_layered(
+    root: &Path,
+) -> Result<(Config, Vec<LayerSource>, Vec<RuleOriginEntry>), ConfigError> {
     load_config_layered_from(
         root,
         dirs::home_dir().as_deref(),
@@ -243,11 +256,11 @@ pub fn load_config_layered_from(
     root: &Path,
     home: Option<&Path>,
     xdg_config_dir: Option<&Path>,
-) -> Result<(Config, Vec<LayerSource>), ConfigError> {
+) -> Result<(Config, Vec<LayerSource>, Vec<RuleOriginEntry>), ConfigError> {
     let layers = discover_layers_with_xdg(root, home, xdg_config_dir);
     let sources = layers.iter().map(|layer| layer.source.clone()).collect();
-    let config = build_config(&layers, root)?;
-    Ok((config, sources))
+    let (config, rule_origins) = build_config(&layers, root)?;
+    Ok((config, sources, rule_origins))
 }
 
 #[cfg(test)]

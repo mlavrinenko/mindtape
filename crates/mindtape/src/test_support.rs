@@ -6,6 +6,8 @@
 
 use std::collections::BTreeMap;
 use std::path::Path;
+#[cfg(test)]
+use std::path::PathBuf;
 use std::process::Command;
 
 use crate::config::Config;
@@ -97,6 +99,34 @@ pub fn write_lib_package(dir: &Path, prelude: &str) {
     )
     .unwrap();
     std::fs::write(lib.join("prelude.typ"), prelude).unwrap();
+}
+
+/// A fresh tempdir with an (empty) `home/project` tree already created,
+/// `project` carrying an empty `.mindtape/` (no `config.toml`/`defaults.toml`
+/// of its own — every caller writes the layer text its scenario needs). Keep
+/// the returned `TempDir` alive for as long as the paths are used. Shared by
+/// `config_layers_tests.rs` and `config_packs_tests.rs`, which both build a
+/// `home`/ancestor/project chain to drive `discover_layers`/`load_config_layered`
+/// against.
+///
+/// # Panics
+/// Panics if creating either directory fails — a test-harness bug against a
+/// fresh tempdir, not a case to recover from.
+///
+/// `#[cfg(test)]` rather than plain `pub`, unlike this module's other
+/// builders: `tempfile` is a dev-dependency, so a signature naming its type
+/// would fail to compile under the bare `test-support` feature the CLI
+/// enables to reuse the rest of this module without pulling `mindtape`'s own
+/// dev-dependencies along — no CLI test needs a layer-discovery fixture today.
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+#[must_use]
+pub fn home_and_project() -> (tempfile::TempDir, PathBuf, PathBuf) {
+    let tmp = tempfile::tempdir().unwrap();
+    let home = tmp.path().join("home");
+    let project = home.join("project");
+    std::fs::create_dir_all(project.join(".mindtape")).unwrap();
+    (tmp, home, project)
 }
 
 /// Write the barebones project scaffold under `dir`: a `.mindtape/config.toml`

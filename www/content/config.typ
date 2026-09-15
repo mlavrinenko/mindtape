@@ -28,6 +28,34 @@ Config is deep-merged in precedence order, lowest first:
   ancestor first, nearest wins);
 + the project's own `.mindtape/config.toml` (highest precedence).
 
+Every other section still replaces a lower layer's wholesale — a legend
+declared twice keeps only the nearer one — with one exception: `[[tasks.rules]]`,
+`[[tasks.body.headers.rules]]` and `[[tasks.body.content.rules]]` APPEND across
+layers instead, a same-named entry in a nearer layer replacing the farther
+one's in place rather than dropping it. So a rule an ancestor's
+`.mindtape/defaults.toml` declares survives a project adding its own, where it
+used to vanish the moment the project's own array won outright. Replacement by
+name works only ACROSS files this way; two entries sharing a name WITHIN one
+layer's (or one pack's) own array is a config error naming both, the same
+treatment an unnamed entry never needs.
+
+Any layer may also declare:
+
+```toml
+extends = ["mindtape-tasks", "../shared/team-pack.toml"]
+disable = ["imperative-title"]
+```
+
+`extends` pulls in a rule pack ahead of that layer's own three rule arrays and
+`[dicts]` — a bare name (the reserved `mindtape-` prefix) resolves to one
+compiled into `mt`; anything carrying a path separator, even a name starting
+with `mindtape-`, resolves to a TOML pack file relative to the layer that
+names it (the project root, for the project's own config). A pack may declare
+only those three rule arrays and `[dicts]`, and may not itself `extends`.
+`disable` then drops every rule (in any of the three arrays, inherited or
+extended) carrying a listed name; naming one that matches nothing is a config
+error. `mt config show --origin` names the pack behind each such rule.
+
 Inspect the result:
 
 ```sh
@@ -68,6 +96,8 @@ a page of their own.
   ("tasks.tags", "[tasks.tags]"),
   ("tasks.limits", "[[tasks.limits]]"),
   ("tasks.rules", "[[tasks.rules]]"),
+  ("extends", "extends"),
+  ("disable", "disable"),
   ("tasks.comments", "[tasks.comments]"),
   ("tasks.links", "[[tasks.links.kinds]]"),
   ("actors", "[[actors]]"),

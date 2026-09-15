@@ -1,79 +1,13 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use std::path::PathBuf;
-
-use super::{
-    Layer, LayerSource, build_config, discover_layers_with_xdg, merge_layers, merged_config_table,
-};
+use super::{LayerSource, build_config, discover_layers_with_xdg, merged_config_table};
 use crate::config::parse_config;
+use crate::test_support::home_and_project;
 
-fn layer(source: LayerSource, text: &str) -> Layer {
-    Layer {
-        source,
-        text: text.to_owned(),
-    }
-}
-
-/// A fresh tempdir with an (empty) `home/project` tree already created. Keep
-/// the returned `TempDir` alive for as long as the paths are used.
-fn home_and_project() -> (tempfile::TempDir, PathBuf, PathBuf) {
-    let tmp = tempfile::tempdir().unwrap();
-    let home = tmp.path().join("home");
-    let project = home.join("project");
-    std::fs::create_dir_all(&project).unwrap();
-    (tmp, home, project)
-}
-
-// --- merge_layers: pure precedence folding, no IO ---
-
-#[test]
-fn merge_layers_nearest_dir_overrides_farther_dir() {
-    let layers = vec![
-        layer(LayerSource::Embedded, "[a]\nx = 1\n"),
-        layer(LayerSource::Dir(PathBuf::from("/far")), "[a]\nx = 2\n"),
-        layer(LayerSource::Dir(PathBuf::from("/near")), "[a]\nx = 3\n"),
-    ];
-    let merged = merge_layers(&layers).unwrap();
-    assert_eq!(merged["a"]["x"].as_integer(), Some(3));
-}
-
-#[test]
-fn merge_layers_project_overrides_all_defaults() {
-    let layers = vec![
-        layer(LayerSource::Embedded, "[a]\nx = 1\n"),
-        layer(LayerSource::Xdg(PathBuf::from("/xdg")), "[a]\nx = 2\n"),
-        layer(LayerSource::Dir(PathBuf::from("/dir")), "[a]\nx = 3\n"),
-        layer(LayerSource::Project(PathBuf::from("/proj")), "[a]\nx = 4\n"),
-    ];
-    let merged = merge_layers(&layers).unwrap();
-    assert_eq!(merged["a"]["x"].as_integer(), Some(4));
-}
-
-#[test]
-fn merge_layers_xdg_overrides_embedded_but_loses_to_dir() {
-    let embedded_and_xdg = vec![
-        layer(LayerSource::Embedded, "[a]\nx = 1\n"),
-        layer(LayerSource::Xdg(PathBuf::from("/xdg")), "[a]\nx = 2\n"),
-    ];
-    // XDG alone beats the embedded floor.
-    let merged = merge_layers(&embedded_and_xdg).unwrap();
-    assert_eq!(merged["a"]["x"].as_integer(), Some(2));
-
-    // But a directory-scoped layer, being more specific, wins over XDG.
-    let mut with_dir = embedded_and_xdg;
-    with_dir.push(layer(
-        LayerSource::Dir(PathBuf::from("/dir")),
-        "[a]\nx = 3\n",
-    ));
-    let merged = merge_layers(&with_dir).unwrap();
-    assert_eq!(merged["a"]["x"].as_integer(), Some(3));
-}
-
-#[test]
-fn merge_layers_rejects_invalid_toml() {
-    let layers = vec![layer(LayerSource::Embedded, "not = valid = toml")];
-    assert!(merge_layers(&layers).is_err());
-}
+// The pure precedence-folding tests that used to live here now exercise
+// `crate::config_packs::merge_layers_with_packs_using` instead — see
+// `config_packs_tests.rs` — since that function (not this module) now owns
+// the actual fold `load_config_layered` runs.
 
 // --- discover_layers: filesystem walk-up + XDG + project, ordering ---
 
@@ -228,7 +162,7 @@ fn no_files_anywhere_matches_parse_config_empty() {
     let (_tmp, home, project) = home_and_project();
 
     let layers = discover_layers_with_xdg(&project, Some(&home), None);
-    let config = build_config(&layers, &project).unwrap();
+    let (config, _rule_origins) = build_config(&layers, &project).unwrap();
     let expected = parse_config("").unwrap();
     assert_eq!(config, expected);
 }
@@ -271,7 +205,8 @@ fn a_dict_path_resolves_against_the_project_root() {
     std::fs::create_dir_all(project.join("dicts")).unwrap();
     std::fs::write(project.join("dicts").join("verbs.txt"), "# head\nadd\n").unwrap();
 
-    let (config, _sources) = super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    let (config, _sources, _rule_origins) =
+        super::load_config_layered_from(&project, Some(&home), None).unwrap();
     let dicts = crate::config::compile_dicts(&config.dicts, &project).unwrap();
     assert!(dicts.contains("verbs", "Add"));
 }
@@ -311,7 +246,8 @@ fn a_dict_ref_in_tags_allowed_expands_to_the_dict_s_entries() {
     )
     .unwrap();
 
-    let (config, _sources) = super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    let (config, _sources, _rule_origins) =
+        super::load_config_layered_from(&project, Some(&home), None).unwrap();
     assert_eq!(config.tasks.tags.allowed, ["backend", "frontend", "swept"]);
 }
 
@@ -327,7 +263,8 @@ fn a_dict_ref_in_field_values_expands_to_the_dict_s_entries() {
     )
     .unwrap();
 
-    let (config, _sources) = super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    let (config, _sources, _rule_origins) =
+        super::load_config_layered_from(&project, Some(&home), None).unwrap();
     assert_eq!(config.tasks.fields["kind"].values, ["bug", "chore"]);
 }
 
@@ -345,7 +282,8 @@ fn a_mixed_list_unions_literals_and_dict_refs_in_order_deduped() {
     )
     .unwrap();
 
-    let (config, _sources) = super::load_config_layered_from(&project, Some(&home), None).unwrap();
+    let (config, _sources, _rule_origins) =
+        super::load_config_layered_from(&project, Some(&home), None).unwrap();
     assert_eq!(config.tasks.tags.allowed, ["swept", "backend", "frontend"]);
 }
 

@@ -2191,6 +2191,22 @@
       "description": "Named string sets (`[dicts.<name>]`), so a vocabulary two rules share is\none list rather than two that drift. Each unions `values`, `path` and\n`include` into one set, compiled and checked once at config load. The\n`mindtape-` prefix is reserved for the built-in dictionaries.",
       "type": "object"
     },
+    "disable": {
+      "default": [],
+      "description": "Rule names to drop after every extended pack and layer has merged its\nthree rule arrays in. A name matching no rule in any of the three\narrays is a config error. Consumed at the same point as `extends`.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "extends": {
+      "default": [],
+      "description": "Rule packs this layer builds on: a bare name (the reserved\n`mindtape-` prefix) resolves to a pack compiled into the binary; a\npath — anything carrying a path separator, even one starting with\n`mindtape-` — resolves to a TOML pack file, relative to the file that\ndeclares it (the project root, for the project's own config). Legal\nin any layer. A pack contributes to `[[tasks.rules]]`,\n`[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]` and\n`[dicts]` only, ahead of the layer's own entries; a same-named rule in\nthe layer replaces the pack's. Resolved and consumed before this\nstruct is built — see [`crate::config_packs`] — so this field always\nreads back as whichever layer declared `extends` last, informational\nrather than something another command reads.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
     "format": {
       "$ref": "#/$defs/FormatConfig",
       "description": "Whether `mt` reformats the Typst source it writes (`[format]`)."

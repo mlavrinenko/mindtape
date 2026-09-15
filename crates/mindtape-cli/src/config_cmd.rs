@@ -12,7 +12,8 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use mindtape::{
-    LayerSource, config_path, config_schema_json, embedded_defaults, load_config_layered,
+    LayerSource, PackOrigin, RuleOrigin, config_path, config_schema_json, embedded_defaults,
+    load_config_layered,
 };
 
 use crate::util;
@@ -98,17 +99,30 @@ pub(crate) fn render_effective(root: &Path, json: bool) -> Result<String> {
 }
 
 /// Render the contributing layers for `root`, one per line, in the same
-/// precedence order [`load_config_layered`] returns them.
+/// precedence order [`load_config_layered`] returns them — followed, when any
+/// of the three rule arrays merged in a pack, by one `rule <label>: <origin>`
+/// line per rule naming the pack (`pack mindtape-tasks` / `pack <path>`) or
+/// the layer it came from.
 ///
 /// # Errors
 /// Returns an error if the layered config fails to load.
 pub(crate) fn render_origin(root: &Path) -> Result<String> {
-    let (_config, sources) = load_config_layered(root)
+    let (_config, sources, rule_origins) = load_config_layered(root)
         .with_context(|| format!("load {}", config_path(root).display()))?;
     let mut out = String::new();
     for source in &sources {
         out.push_str(&describe_source(source));
         out.push('\n');
+    }
+    if !rule_origins.is_empty() {
+        out.push('\n');
+        for entry in &rule_origins {
+            out.push_str(&format!(
+                "rule {}: {}\n",
+                entry.label,
+                describe_rule_origin(&entry.origin)
+            ));
+        }
     }
     Ok(out)
 }
@@ -134,6 +148,20 @@ fn describe_source(source: &LayerSource) -> String {
 
 fn existence(path: &Path) -> &'static str {
     if path.is_file() { "exists" } else { "missing" }
+}
+
+/// One rule's origin, short form: which kind of layer it came from directly
+/// (the layers section above already names each layer's own path), or, for a
+/// pack, `pack <name>` / `pack <path>`.
+fn describe_rule_origin(origin: &RuleOrigin) -> String {
+    match origin {
+        RuleOrigin::Layer(LayerSource::Embedded) => "embedded".to_owned(),
+        RuleOrigin::Layer(LayerSource::Xdg(_)) => "xdg".to_owned(),
+        RuleOrigin::Layer(LayerSource::Dir(_)) => "dir".to_owned(),
+        RuleOrigin::Layer(LayerSource::Project(_)) => "project".to_owned(),
+        RuleOrigin::Pack(PackOrigin::Embedded(name)) => format!("pack {name}"),
+        RuleOrigin::Pack(PackOrigin::Path(path)) => format!("pack {}", path.display()),
+    }
 }
 
 #[cfg(test)]

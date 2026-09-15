@@ -139,6 +139,36 @@ fn label_prefers_the_name_over_the_index() {
     assert_eq!(anonymous.label(7), "rules[7]");
 }
 
+/// Two entries in `[[tasks.rules]]` sharing a `name` — WITHIN one file — is a
+/// config error naming both, the same treatment
+/// `crate::body_headers::validate_header_rules` /
+/// `crate::body_content::validate_content_rules` already give their own
+/// arrays. Cross-FILE replacement by name (a nearer layer or an extended
+/// pack overriding a farther one's same-named rule) stays legal — that
+/// merge already collapses to one entry before `validate` ever sees this
+/// array, so this check only ever sees the same-file case it is for; see
+/// `crate::config_packs` for the merge and its own coverage of the
+/// cross-file case.
+#[test]
+fn rejects_duplicate_rule_names_within_one_array() {
+    let toml = "[[tasks.rules]]\nname = \"dup\"\nassert = 'kind == \"bug\"'\n\n\
+                [[tasks.rules]]\nname = \"dup\"\nassert = 'kind == \"chore\"'\n";
+    let err = config(toml).validate().unwrap_err();
+    assert!(
+        err.contains("tasks.rules[1]") && err.contains("dup"),
+        "{err}"
+    );
+}
+
+/// An absent `name` never collides — only two rules that both opted into a
+/// name can clash, matching `duplicate_rule_names`'s own reading.
+#[test]
+fn two_unnamed_rules_never_collide() {
+    let toml = "[[tasks.rules]]\nassert = 'kind == \"bug\"'\n\n\
+                [[tasks.rules]]\nassert = 'kind == \"bug\"'\n";
+    config(toml).validate().unwrap();
+}
+
 #[test]
 fn a_task_with_no_source_reports_without_a_location() {
     let mut subject = task("a", "T", "wip");
