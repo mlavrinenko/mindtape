@@ -92,3 +92,57 @@ fn header_rules_default_to_empty() {
     let config = parse_config("").unwrap();
     assert!(config.tasks.body.headers.rules.is_empty());
 }
+
+#[test]
+fn parses_header_rule_name() {
+    let config = parse_config(
+        "[[tasks.body.headers.rules]]\nname = \"has-summary\"\npath = [\"Summary\"]\naction = \"require\"\n",
+    )
+    .unwrap();
+    assert_eq!(
+        config.tasks.body.headers.rules[0].name.as_deref(),
+        Some("has-summary")
+    );
+}
+
+#[test]
+fn header_rule_name_defaults_to_none() {
+    let config =
+        parse_config("[[tasks.body.headers.rules]]\npath = [\"Summary\"]\naction = \"require\"\n")
+            .unwrap();
+    assert!(config.tasks.body.headers.rules[0].name.is_none());
+}
+
+#[test]
+fn header_rule_label_prefers_name_over_position() {
+    let config = parse_config(
+        "[[tasks.body.headers.rules]]\nname = \"has-summary\"\npath = [\"Summary\"]\naction = \"require\"\n",
+    )
+    .unwrap();
+    assert_eq!(
+        config.tasks.body.headers.rules[0].label(3),
+        "body.headers.rules.has-summary"
+    );
+}
+
+#[test]
+fn header_rule_label_falls_back_to_position() {
+    let config =
+        parse_config("[[tasks.body.headers.rules]]\npath = [\"Summary\"]\naction = \"require\"\n")
+            .unwrap();
+    assert_eq!(
+        config.tasks.body.headers.rules[0].label(3),
+        "body.headers.rules[3]"
+    );
+}
+
+#[test]
+fn rejects_duplicate_header_rule_names() {
+    let text = "[[tasks.body.headers.rules]]\nname = \"dup\"\npath = [\"A\"]\naction = \"require\"\n\n\
+                [[tasks.body.headers.rules]]\nname = \"dup\"\npath = [\"B\"]\naction = \"require\"\n";
+    let err = parse_config(text).unwrap().validate().unwrap_err();
+    assert!(
+        err.contains("tasks.body.headers.rules[1]") && err.contains("dup"),
+        "{err}"
+    );
+}

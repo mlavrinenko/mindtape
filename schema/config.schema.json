@@ -384,6 +384,14 @@
             "null"
           ]
         },
+        "name": {
+          "default": null,
+          "description": "What the rule is called, used to report it (`body.content.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.content.rules[0]`). Two rules in this array sharing a name is a\nconfig error naming both.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "path": {
           "description": "Path through the heading tree selecting the section(s) to assert over.",
           "items": {
@@ -908,6 +916,14 @@
         },
         "message": {
           "description": "Override for the default violation message.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "default": null,
+          "description": "What the rule is called, used to report it (`body.headers.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.headers.rules[0]`). Two rules in this array sharing a name is a\nconfig error naming both.",
           "type": [
             "string",
             "null"

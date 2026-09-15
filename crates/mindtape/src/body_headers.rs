@@ -1,6 +1,8 @@
 //! Config types for `[tasks.body.headers]` — the body-header gating rules
 //! ([`HeaderRuleConfig`]) compiled into `artifact-gate` rules by [`crate::gate`].
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Deserializer};
 
 /// `[tasks.body.headers]` — heading-presence rules.
@@ -21,6 +23,12 @@ pub struct HeadersConfig {
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct HeaderRuleConfig {
+    /// What the rule is called, used to report it (`body.headers.rules.<name>`).
+    /// Optional: an unnamed rule reports by its position instead
+    /// (`body.headers.rules[0]`). Two rules in this array sharing a name is a
+    /// config error naming both.
+    #[serde(default)]
+    pub name: Option<String>,
     /// Whether the target headings must exist, must not, or must be unique, or
     /// whether this is an `order`/`allowlist` rule.
     pub action: HeaderAction,
@@ -61,6 +69,54 @@ pub enum HeaderPathSegment {
         /// Search any descendant (`true`) or only direct children (`false`, default).
         recursive: bool,
     },
+}
+
+impl HeaderRuleConfig {
+    /// How this rule identifies itself in a report: `body.headers.rules.<name>`
+    /// if it has one, else its position, `body.headers.rules[<index>]` — the
+    /// same name-or-position fallback [`crate::config_rules::RuleSpec::label`]
+    /// uses for `[[tasks.rules]]`.
+    #[must_use]
+    pub fn label(&self, index: usize) -> String {
+        rule_label(self.name.as_deref(), "body.headers.rules", index)
+    }
+}
+
+/// How a body rule identifies itself in a report: its `name` if it has one,
+/// else its position in the array. Shared by [`HeaderRuleConfig::label`] and
+/// `ContentRuleConfig::label` in [`crate::body_content`], since a
+/// `[[tasks.body.headers.rules]]` entry and a `[[tasks.body.content.rules]]`
+/// one report the same way — only the array's own dotted path (`prefix`)
+/// differs.
+#[must_use]
+pub(crate) fn rule_label(name: Option<&str>, prefix: &str, index: usize) -> String {
+    match name {
+        Some(name) => format!("{prefix}.{name}"),
+        None => format!("{prefix}[{index}]"),
+    }
+}
+
+/// Cross-check one body-rule array (`prefix` is its dotted TOML path, e.g.
+/// `tasks.body.headers.rules`) for a name two entries share, returning one
+/// problem per collision naming both positions. An absent (`None`) name never
+/// collides — only two rules that both opted into a name can clash.
+pub(crate) fn duplicate_rule_names<'a>(
+    names: impl Iterator<Item = Option<&'a str>>,
+    prefix: &str,
+) -> Vec<String> {
+    let mut seen: HashMap<&str, usize> = HashMap::new();
+    let mut problems = Vec::new();
+    for (index, name) in names.enumerate() {
+        let Some(name) = name else { continue };
+        if let Some(&first) = seen.get(name) {
+            problems.push(format!(
+                "{prefix}[{index}]: duplicate name `{name}`, already used by {prefix}[{first}]"
+            ));
+        } else {
+            seen.insert(name, index);
+        }
+    }
+    problems
 }
 
 /// The shape of a header rule.
@@ -141,4 +197,19 @@ impl<'de> Deserialize<'de> for HeaderAction {
             ))),
         }
     }
+}
+
+/// Cross-check for `[[tasks.body.headers.rules]]`, folded into
+/// [`crate::config::Config::validate`]: no two entries share a `name`.
+pub(crate) fn validate_header_rules(config: &crate::config::Config) -> Vec<String> {
+    duplicate_rule_names(
+        config
+            .tasks
+            .body
+            .headers
+            .rules
+            .iter()
+            .map(|rule| rule.name.as_deref()),
+        "tasks.body.headers.rules",
+    )
 }

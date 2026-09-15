@@ -170,6 +170,54 @@ fn rejects_unknown_content_rule_field() {
 }
 
 #[test]
+fn parses_content_rule_name() {
+    let text = "[[tasks.body.content.rules]]\nname = \"problem-steps\"\npath = [\"Problem\"]\nassert = \"non-empty\"\n";
+    let config = parse_config(text).unwrap();
+    assert_eq!(
+        config.tasks.body.content.rules[0].name.as_deref(),
+        Some("problem-steps")
+    );
+}
+
+#[test]
+fn content_rule_name_defaults_to_none() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Problem\"]\nassert = \"non-empty\"\n";
+    let config = parse_config(text).unwrap();
+    assert!(config.tasks.body.content.rules[0].name.is_none());
+}
+
+#[test]
+fn content_rule_label_prefers_name_over_position() {
+    let text = "[[tasks.body.content.rules]]\nname = \"problem-steps\"\npath = [\"Problem\"]\nassert = \"non-empty\"\n";
+    let config = parse_config(text).unwrap();
+    assert_eq!(
+        config.tasks.body.content.rules[0].label(3),
+        "body.content.rules.problem-steps"
+    );
+}
+
+#[test]
+fn content_rule_label_falls_back_to_position() {
+    let text = "[[tasks.body.content.rules]]\npath = [\"Problem\"]\nassert = \"non-empty\"\n";
+    let config = parse_config(text).unwrap();
+    assert_eq!(
+        config.tasks.body.content.rules[0].label(3),
+        "body.content.rules[3]"
+    );
+}
+
+#[test]
+fn rejects_duplicate_content_rule_names() {
+    let text = "[[tasks.body.content.rules]]\nname = \"dup\"\npath = [\"A\"]\nassert = \"non-empty\"\n\n\
+                [[tasks.body.content.rules]]\nname = \"dup\"\npath = [\"B\"]\nassert = \"non-empty\"\n";
+    let err = parse_config(text).unwrap().validate().unwrap_err();
+    assert!(
+        err.contains("tasks.body.content.rules[1]") && err.contains("dup"),
+        "{err}"
+    );
+}
+
+#[test]
 fn headers_and_content_rules_coexist() {
     let text = r#"
 [[tasks.body.headers.rules]]

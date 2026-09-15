@@ -80,8 +80,22 @@ fn non_empty_fails_on_empty_section() {
     assert_eq!(messages.len(), 1);
     assert!(messages[0].contains("Summary") && messages[0].contains("not be empty"));
     assert!(
-        messages[0].starts_with("1:body.content/"),
+        messages[0].starts_with("1:body.content.rules[0]/"),
         "violation must point at the heading line: {messages:?}"
+    );
+}
+
+#[test]
+fn named_rule_reports_its_name_instead_of_position() {
+    let body = "== Summary\n\n== Scope\n\nprose\n";
+    let messages = run(
+        body,
+        "name = \"summary-non-empty\"\npath = [\"Summary\"]\nassert = \"non-empty\"\n",
+    );
+    assert_eq!(messages.len(), 1);
+    assert!(
+        messages[0].starts_with("1:body.content.rules.summary-non-empty/"),
+        "{messages:?}"
     );
 }
 

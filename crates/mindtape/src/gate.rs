@@ -18,6 +18,9 @@ use crate::validate::{Location, Violation};
 pub struct CompiledRule {
     engine_rule: artifact_gate::Rule,
     when: Option<Filter>,
+    /// This rule's name if it has one, else its position — see
+    /// [`HeaderRuleConfig::label`].
+    label: String,
 }
 
 /// Errors from compiling header rules.
@@ -53,7 +56,11 @@ pub enum GateError {
 /// Returns [`GateError`] if any rule has an empty path, an invalid regex, or an
 /// invalid `when` expression.
 pub fn compile_rules(rules: &[HeaderRuleConfig]) -> Result<Vec<CompiledRule>, GateError> {
-    rules.iter().map(compile_rule).collect()
+    rules
+        .iter()
+        .enumerate()
+        .map(|(index, rule)| compile_rule(rule, index))
+        .collect()
 }
 
 /// Run compiled header rules against a task's source text.
@@ -72,7 +79,7 @@ pub fn check_headers(
     check_with_nodes(task, &nodes, rules, config)
 }
 
-fn compile_rule(rule: &HeaderRuleConfig) -> Result<CompiledRule, GateError> {
+fn compile_rule(rule: &HeaderRuleConfig, index: usize) -> Result<CompiledRule, GateError> {
     let mut engine_rule = match rule.action {
         HeaderAction::Require | HeaderAction::Forbid | HeaderAction::Unique => {
             ensure_empty(
@@ -125,7 +132,11 @@ fn compile_rule(rule: &HeaderRuleConfig) -> Result<CompiledRule, GateError> {
         engine_rule = engine_rule.with_message(message.clone());
     }
     let when = rule.when.as_deref().map(Filter::parse).transpose()?;
-    Ok(CompiledRule { engine_rule, when })
+    Ok(CompiledRule {
+        engine_rule,
+        when,
+        label: rule.label(index),
+    })
 }
 
 fn compile_path(segments: &[HeaderPathSegment]) -> Result<Vec<artifact_gate::Matcher>, GateError> {
@@ -201,18 +212,18 @@ fn apply_rule(
     }
     let diagnostics = artifact_gate::run_rules(roots, std::slice::from_ref(&rule.engine_rule));
     for diag in diagnostics {
-        out.push(diagnostic_to_violation(task, diag));
+        out.push(diagnostic_to_violation(task, diag, &rule.label));
     }
 }
 
-fn diagnostic_to_violation(task: &Task, diag: artifact_gate::Diagnostic) -> Violation {
+fn diagnostic_to_violation(task: &Task, diag: artifact_gate::Diagnostic, label: &str) -> Violation {
     let location = diag.line.map(|line| Location {
         file: task.file.clone(),
         line,
     });
     Violation {
         task_id: task.id.clone(),
-        field: "body.headers".to_owned(),
+        field: label.to_owned(),
         message: diag.message,
         location,
         severity: None,

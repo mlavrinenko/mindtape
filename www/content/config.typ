@@ -114,11 +114,13 @@ higher level (nested subsection prose included).
 
 ```toml
 [[tasks.body.headers.rules]]
+name = "has-summary"
 path = ["Summary"]
 action = "unique"
 message = "every task must have exactly one Summary section"
 
 [[tasks.body.content.rules]]
+name = "summary-non-empty"
 path = ["Summary"]
 assert = "non-empty"                # a heading over nothing satisfies nobody
 message = "the Summary must not be a placeholder"
@@ -158,11 +160,18 @@ whitespace-delimited tokens containing an alphanumeric character — so markup,
 code blocks, and nested subsection headings all count toward `min-words` and
 `max-words` alike, and a `Scope` section that is all `#raw` reads as non-empty
 rather than as a placeholder. A violation prints at the heading's line, `mt
-check` style:
+check` style, naming the rule that fired:
 
 ```
-truth/tasks/example.typ:11: body.content: section `Summary` must not be empty
+truth/tasks/example.typ:11: body.content.rules.summary-non-empty: section `Summary` must not be empty
 ```
+
+`name` is optional on every `[[tasks.body.headers.rules]]` and
+`[[tasks.body.content.rules]]` entry, exactly like `[[tasks.rules]]`'s (see
+below): it exists so a reader — or, later, a `disable = ["<name>"]` override —
+can grep straight back to the entry that fired. Leave it off and the report
+names the rule's position instead, `body.headers.rules[0]`. Two entries in the
+same array sharing a name is a config error naming both.
 
 = Example
 

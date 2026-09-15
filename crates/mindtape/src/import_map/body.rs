@@ -65,6 +65,7 @@ mod tests {
 
     fn require_rule(path: Vec<HeaderPathSegment>) -> HeaderRuleConfig {
         HeaderRuleConfig {
+            name: None,
             action: HeaderAction::Require,
             path,
             before: vec![],
@@ -78,6 +79,7 @@ mod tests {
 
     fn forbid_rule(path: Vec<HeaderPathSegment>) -> HeaderRuleConfig {
         HeaderRuleConfig {
+            name: None,
             action: HeaderAction::Forbid,
             path,
             before: vec![],

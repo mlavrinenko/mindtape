@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A body rule can carry a `name`.** `[[tasks.body.headers.rules]]` and
+  `[[tasks.body.content.rules]]` entries accept an optional `name`, mirroring
+  `[[tasks.rules]]`'s: `mt check` reports a breach as `body.headers.rules.<name>`
+  / `body.content.rules.<name>` instead of the flat `body.headers` /
+  `body.content` it printed before, so a reader can grep straight back to the
+  config entry that fired. An unnamed rule now reports its position instead
+  (`body.headers.rules[0]`), where it previously reported the same flat label
+  every rule in the array shared. Two entries in one array sharing a name is a
+  config error naming both. Groundwork for a future `disable = ["<name>"]`
+  rule-pack override; nothing reads the name yet.
+
 - **Filters and sorts reach a field's named parts.** A field with fixed named
   parts is now addressed as `field.property`: `status.name`, `status.date`
   (the ISO stamp), `status.note`, and `status.index` (the 0-based position in

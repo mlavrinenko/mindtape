@@ -8,7 +8,7 @@
 
 use serde::{Deserialize, Deserializer};
 
-use crate::body_headers::HeaderPathSegment;
+use crate::body_headers::{HeaderPathSegment, duplicate_rule_names, rule_label};
 
 /// `[tasks.body.content]` — section-content rules.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
@@ -27,6 +27,12 @@ pub struct ContentConfig {
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ContentRuleConfig {
+    /// What the rule is called, used to report it (`body.content.rules.<name>`).
+    /// Optional: an unnamed rule reports by its position instead
+    /// (`body.content.rules[0]`). Two rules in this array sharing a name is a
+    /// config error naming both.
+    #[serde(default)]
+    pub name: Option<String>,
     /// Path through the heading tree selecting the section(s) to assert over.
     pub path: Vec<HeaderPathSegment>,
     /// The assertion made over each matched section's content.
@@ -178,6 +184,31 @@ impl<'de> Deserialize<'de> for ContentAssert {
 
         deserializer.deserialize_any(AssertVisitor)
     }
+}
+
+impl ContentRuleConfig {
+    /// How this rule identifies itself in a report: `body.content.rules.<name>`
+    /// if it has one, else its position, `body.content.rules[<index>]` — the
+    /// same convention [`crate::body_headers::HeaderRuleConfig::label`] uses.
+    #[must_use]
+    pub fn label(&self, index: usize) -> String {
+        rule_label(self.name.as_deref(), "body.content.rules", index)
+    }
+}
+
+/// Cross-check for `[[tasks.body.content.rules]]`, folded into
+/// [`crate::config::Config::validate`]: no two entries share a `name`.
+pub(crate) fn validate_content_rules(config: &crate::config::Config) -> Vec<String> {
+    duplicate_rule_names(
+        config
+            .tasks
+            .body
+            .content
+            .rules
+            .iter()
+            .map(|rule| rule.name.as_deref()),
+        "tasks.body.content.rules",
+    )
 }
 
 #[cfg(test)]

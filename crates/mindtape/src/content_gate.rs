@@ -40,6 +40,9 @@ pub struct CompiledContentRule {
     when: Option<Filter>,
     /// Override for the default violation message.
     message: Option<String>,
+    /// This rule's name if it has one, else its position — see
+    /// [`crate::body_content::ContentRuleConfig::label`].
+    label: String,
 }
 
 /// One compiled path segment, mirroring `artifact_gate::Matcher` with the
@@ -90,11 +93,16 @@ enum CompiledAssert {
 pub fn compile_content_rules(
     rules: &[crate::body_content::ContentRuleConfig],
 ) -> Result<Vec<CompiledContentRule>, GateError> {
-    rules.iter().map(compile_content_rule).collect()
+    rules
+        .iter()
+        .enumerate()
+        .map(|(index, rule)| compile_content_rule(rule, index))
+        .collect()
 }
 
 fn compile_content_rule(
     rule: &crate::body_content::ContentRuleConfig,
+    index: usize,
 ) -> Result<CompiledContentRule, GateError> {
     if rule.path.is_empty() {
         return Err(GateError::EmptyPath);
@@ -122,6 +130,7 @@ fn compile_content_rule(
         assert,
         when,
         message: rule.message.clone(),
+        label: rule.label(index),
     })
 }
 
@@ -175,7 +184,7 @@ pub fn check_content(
             };
             out.push(Violation {
                 task_id: task.id.clone(),
-                field: "body.content".to_owned(),
+                field: rule.label.clone(),
                 message: rule.message.clone().unwrap_or(default),
                 location: Some(Location {
                     file: task.file.clone(),

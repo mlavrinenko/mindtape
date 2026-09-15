@@ -19,6 +19,7 @@ fn rx(pattern: &str, recursive: bool) -> HeaderPathSegment {
 /// A blank rule of the given action; fill the fields the action uses.
 fn cfg(action: HeaderAction) -> HeaderRuleConfig {
     HeaderRuleConfig {
+        name: None,
         action,
         path: vec![],
         before: vec![],
@@ -114,8 +115,21 @@ fn require_absent_heading_is_violation() {
     let rules = compile_rules(&[require("Summary")]).unwrap();
     let violations = check_headers(&task, "= Introduction\n", &rules, &Config::default());
     assert_eq!(violations.len(), 1);
-    assert_eq!(violations[0].field, "body.headers");
+    assert_eq!(violations[0].field, "body.headers.rules[0]");
     assert!(violations[0].location.is_none());
+}
+
+#[test]
+fn named_rule_reports_its_name_instead_of_position() {
+    let task = bare_task("a");
+    let rule = HeaderRuleConfig {
+        name: Some("has-summary".to_owned()),
+        ..require("Summary")
+    };
+    let rules = compile_rules(&[rule]).unwrap();
+    let violations = check_headers(&task, "= Introduction\n", &rules, &Config::default());
+    assert_eq!(violations.len(), 1);
+    assert_eq!(violations[0].field, "body.headers.rules.has-summary");
 }
 
 #[test]
