@@ -200,8 +200,8 @@ const PRODUCTION_TEMPLATE: &str = include_str!("../../../.mindtape/templates/tas
 /// The template imports `../lib.typ` beside the tasks root. A stub that
 /// accepts every verdict keeps this test about the estimate default, not about
 /// which goals the repo currently holds.
-const GOALS_STUB: &str = "#let helps(reason) = reason\n#let hurts(reason) = reason\n\
-     #let neutral = none\n#let goals(..verdicts) = []\n";
+const GOALS_STUB: &str =
+    "#let helps(reason) = reason\n#let hurts(reason) = reason\n#let neutral = none\n";
 
 /// Mirrors the dogfood config's `[tasks.estimate]`: required on every
 /// non-terminal task, bounded 1-5 files.
