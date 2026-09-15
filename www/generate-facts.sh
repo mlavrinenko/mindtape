@@ -23,7 +23,7 @@
 # for why that artifact needs generate.sh's captures and can no longer be
 # produced standalone the way the six left here still are.
 #
-# Six artifacts, six sources:
+# Seven artifacts, seven sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
@@ -36,6 +36,8 @@
 #                          function per public recipe
 #   - linecop-caps.json <- .linecop.yaml, via yq
 #   - sweep-flags.json  <- the same `just --dump` (see www/sweep-flags.jq)
+#   - readme-task.json  <- the real backlog task README and the site root
+#                          quote, trimmed to its marker (README_TASK_STEM)
 #
 # linecop-caps.json is the one artifact still without a consumer: it was
 # derived for truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ
@@ -270,3 +272,25 @@ jq -f "$SCRIPT_DIR/sweep-flags.jq" <<<"$JUST_DUMP" | emit sweep-flags.json
 # quotes caps from. yq is the same jq-over-YAML wrapper generate.sh uses for the
 # release workflow, so this stays consistent with the rest of the docs tooling.
 yq '{limits, overrides}' .linecop.yaml | emit linecop-caps.json
+
+# --- readme-task.json ---------------------------------------------------------
+# The one real, closed backlog task README.md's and the site root's opening
+# both quote, derived here once so both pages read the same marker and stem
+# — www/content/index.typ cannot `read()` truth/tasks/ itself since tola's
+# root is www/ and Typst refuses a path escaping the declared root.
+# readme-task.yaml (the twin) has no real file to derive from; the grep loop
+# below is its drift gate, failing by name if the marker stops matching it.
+README_TASK_STEM="move-goal-verdicts-into-x-goals"
+README_TASK_FILE="truth/tasks/$README_TASK_STEM.typ"
+grep -q '^== ' "$README_TASK_FILE" || {
+  echo "generate-facts.sh: $README_TASK_FILE missing, or has no body heading to trim after the marker" >&2
+  exit 1
+}
+README_TASK_MARKER="$(awk '/^== /{exit} {print}' "$README_TASK_FILE")"
+[[ "$README_TASK_MARKER" == *"check-goals is the only place they're checked now"* ]] || {
+  echo "generate-facts.sh: $README_TASK_FILE's closing note changed — update readme-task.yaml to match" >&2
+  exit 1
+}
+README_TASK_YAML="$(cat "$SCRIPT_DIR/readme-task.yaml")"
+jq -n --arg stem "$README_TASK_STEM" --arg marker "$README_TASK_MARKER" --arg yaml "$README_TASK_YAML" \
+  '{stem: $stem, marker: $marker, yaml: $yaml}' | emit readme-task.json

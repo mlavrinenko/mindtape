@@ -11,23 +11,108 @@
 
 MindTape tracks tasks as one-task-per-file Typst artifacts. Each file declares a task with `#show: task.with(...)`; MindTape live-evaluates the configured roots on every command — no daemon, no database, no index you maintain. A task’s `id` identifies it in listings, filters and links-by-hand, and defaults to the filename stem. Links target files, so renaming a task without updating its dependents fails `mt check` instead of dangling silently.
 
-```typ
-#import "@local/mindtape:0.2.0": *
+Say the same task lived as a Markdown file with YAML frontmatter instead, checked by a script. Here is one real, closed task from this repo’s own backlog, both ways.
 
-#show: task.with(
-  title: "Implement authentication",
-  status: wip(2026, 6, 14),
-  priority: ice(impact: 8, confidence: 0.9, ease: 7),
-  estimate: (days: 1,),
-  tags: ("backend",),
-  links: related("write-docs.typ")[same feature],
-)
-
-== Summary
-Wire up the login flow.
+```yaml
+---
+title: Move goal verdicts into x-goals
+kind: dev
+# a script keeps these three numbers in bounds and combines them into a
+# score itself; nothing here says impact tops out at 10
+priority: {impact: 7, confidence: 0.9, ease: 6}
+difficulty: 2
+tags: [mt]
+estimate: {files: 15}
+assignee: agent
+status: done
+status_date: "2026-09-16"
+status_note: >
+  verdicts landed in x-goals across every open task and template;
+  check-goals is the only place they're checked now
+# a script resolves this filename by hand to know whether the task is
+# ready or blocked
+depends_on: [check-a-task-field-with-a-typst-function.md]
+# a script checks every key below is present, every effect is one of
+# helps/hurts/neutral, and every helps/hurts carries a reason
+x_goals:
+  product:
+    readable-tasks:
+      effect: helps
+      reason: the body runs from Problem straight to TO-BE, and the verdicts sit beside status and links
+    implementable-tasks:
+      effect: neutral
+    enforced-practice:
+      effect: helps
+      reason: a skipped goal becomes a named rules.goals error that mt add refuses, not an eval panic
+    cheap-adoption:
+      effect: neutral
+    typst-over-markdown:
+      effect: neutral
+    plain-files:
+      effect: neutral
+  process:
+    sound-codebase:
+      effect: neutral
+    docs-match-code:
+      effect: neutral
+---
 ```
 
-Everything scalar or enum is a generic core field constrained by `.mindtape/config.toml`; tools built on MindTape add their own data through the `x-<ns>` extension seam, carried through opaquely. See [Concepts](https://mlavrinenko.github.io/mindtape/concepts/) for the full model and [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) for every field a task can declare.
+Nothing above is checked until a script reads the file and does it by hand: parses `status_date`, keeps `priority`’s three numbers in bounds, resolves `depends_on` against another file on disk, and confirms every `x_goals` key is present with a reason.
+
+The same task as Typst — `truth/tasks/move-goal-verdicts-into-x-goals.typ` (trimmed here: the file continues with `== Problem`, `== TO-BE`, `== Changes`, `== Rollback`, `== Out of scope` and `== Dogfood`):
+
+```typ
+#import "@local/mindtape:0.2.0": *
+#import "../lib.typ": *
+
+#show: task.with(
+  title: "Move goal verdicts into x-goals",
+  kind: "dev",
+  priority: ice(
+    impact: 7,
+    confidence: 0.9,
+    ease: 6,
+  ),
+  difficulty: 2,
+  tags: ("mt",),
+  estimate: (files: 15),
+  assignee: "agent",
+  status: done(
+    2026,
+    9,
+    16,
+  )[verdicts landed in x-goals across every open task and template; check-goals is the only place they're checked now],
+  links: depends-on("check-a-task-field-with-a-typst-function.typ"),
+  x-goals: (
+    product: (
+      readable-tasks: helps[the body runs from Problem straight to TO-BE, and the verdicts sit beside status and links],
+      implementable-tasks: neutral,
+      enforced-practice: helps[a skipped goal becomes a named `rules.goals` error that `mt add` refuses, not an eval panic],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
+)
+```
+
+What only the Typst side does:
+
+- Typed values with their own shape — `status: wip(2026, 9, 14)[note]`, `priority: ice(impact: 8, confidence: 0.7, ease: 6)` — validated on every command, never parsed as strings.
+- Typed links — `depends-on("other.typ")` — resolved and checked on every command, feeding `ready`/`blocked` and the graph; a renamed target fails `mt check` instead of dangling.
+- A repo-invented field, here `x-goals`, checked by the repo’s own Typst function named in config, and refused before `mt add` writes:
+
+```toml
+[[tasks.rules]]
+check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
+```
+
+Everything scalar or enum is a generic core field constrained by `.mindtape/config.toml`; tools built on MindTape add their own data through the `x-<ns>` extension seam — `x-goals` above is one instance, carried through opaquely. See [Concepts](https://mlavrinenko.github.io/mindtape/concepts/) for the full model and [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) for every field a task can declare.
 
 ## Installation
 
