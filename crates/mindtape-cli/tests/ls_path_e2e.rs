@@ -154,12 +154,14 @@ fn the_path_field_stays_root_relative_while_the_display_follows_the_cwd() {
     assert_eq!(stdout.lines().collect::<Vec<_>>(), vec!["../tasks/a.typ"]);
 }
 
-/// The rename's whole point: the old spelling fails loudly, naming the
-/// replacement. Before it, a filter built from what the listing showed
-/// returned zero rows and exit 0 — indistinguishable from a correct filter
-/// over an empty result set.
+/// The rename's whole point: the old spelling fails loudly rather than
+/// silently. Before it, a filter built from what the listing showed returned
+/// zero rows and exit 0 — indistinguishable from a correct filter over an
+/// empty result set. `file` is simply not a filter field any more, so it
+/// fails the same way any other unknown field does, with no pointer back to
+/// `path`.
 #[test]
-fn the_retired_file_filter_field_fails_loudly_naming_path() {
+fn the_file_filter_field_fails_loudly_as_unknown() {
     let dir = scaffold();
     let out = support::mt(dir.path())
         .current_dir(dir.path().join("tasks"))
@@ -171,13 +173,13 @@ fn the_retired_file_filter_field_fails_loudly_naming_path() {
         "an unknown field must fail, not list nothing: {out:?}"
     );
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(stderr.contains("`path`"), "{stderr}");
+    assert!(stderr.contains("unknown field in filter: file"), "{stderr}");
 }
 
 /// The same trap on the sort side, which a saved `[query] default_sort` or a
 /// `--sort` flag reaches instead of the filter parser.
 #[test]
-fn the_retired_file_sort_field_fails_loudly_naming_path() {
+fn the_file_sort_field_fails_loudly_as_unknown() {
     let dir = scaffold();
     let out = support::mt(dir.path())
         .args(["ls", "", "--sort", "file"])
@@ -185,7 +187,7 @@ fn the_retired_file_sort_field_fails_loudly_naming_path() {
         .unwrap();
     assert!(!out.status.success(), "{out:?}");
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(stderr.contains("`path`"), "{stderr}");
+    assert!(stderr.contains("unknown sort field: file"), "{stderr}");
 }
 
 #[test]

@@ -93,14 +93,6 @@ enum Command {
     /// Performs all three by default;
     /// `--no-lib`/`--no-defaults`/`--no-schema` skip any of them.
     Install(install::InstallArgs),
-    /// Install `@local/mindtape` into the user-local Typst packages directory.
-    ///
-    /// Deprecated: superseded by `mt install`, which does this too and also
-    /// seeds the XDG global defaults and the JSON Schema. Equivalent to
-    /// `mt install --no-defaults --no-schema`; kept hidden as an alias for
-    /// existing docs and muscle memory.
-    #[command(hide = true)]
-    InstallLib,
     /// Evaluate a single task file and print it.
     Eval(eval::EvalArgs),
     /// Open a task in the configured editor (`[go] editor`).
@@ -169,7 +161,6 @@ impl Cli {
             Command::Preset(args) => preset_cmd::run(&args),
             Command::Init(args) => init::run(&args),
             Command::Install(args) => install::run(&args),
-            Command::InstallLib => init::run_install_lib(),
             Command::Eval(args) => eval::run(&args),
             Command::Go(args) => go::run(&args),
             Command::Rm(args) => rm::run(&args),

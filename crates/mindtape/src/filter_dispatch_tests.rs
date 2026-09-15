@@ -114,22 +114,26 @@ fn path_field_equality_matches_the_full_root_relative_path() {
     assert!(hit("path != \"tasks/other.typ\"", &task));
 }
 
-/// The retired spelling must fail loudly and name its replacement: a reader
-/// who copies a path out of the `file` COLUMN and writes `file` into a filter
-/// used to get an empty listing, which is also what a correct filter over an
-/// empty result set looks like
+/// `file` must fail loudly rather than silently: a reader who copies a path
+/// out of the `file` COLUMN and writes `file` into a filter used to get an
+/// empty listing, which is also what a correct filter over an empty result
+/// set looks like
 /// (`truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ`).
+/// It is simply not a filter field — `path` is — so it fails as any other
+/// unknown field would, with no pointer back to the replacement.
 #[test]
-fn the_retired_file_field_errors_naming_path() {
+fn the_file_field_is_an_unknown_field() {
     let got = err("file == \"tasks/add-auth.typ\"", &sample());
     assert!(matches!(&got, FilterError::UnknownField(name) if name == "file"));
-    assert!(got.to_string().contains("`path`"), "{got}");
 }
 
 #[test]
-fn the_retired_file_field_errors_naming_path_inside_contains() {
+fn the_file_field_is_an_unknown_field_inside_contains() {
     let got = err("contains(\"sub/\", file)", &sample());
-    assert!(got.to_string().contains("`path`"), "{got}");
+    assert!(
+        matches!(&got, FilterError::UnknownField(name) if name == "file"),
+        "{got:?}"
+    );
 }
 
 #[test]

@@ -136,16 +136,16 @@ fn a_token_without_an_operator_names_all_three_forms() {
     assert!(err.contains("key@path"), "{err}");
 }
 
-/// The retired append spelling keeps naming its replacement, whichever
-/// operator follows the brackets — the `[]` suffix is the mistake, and the
-/// `@` form must not route around the diagnostic.
+/// The `[]` suffix from the pre-release `key[]=value` append spelling is not
+/// a second operator this grammar knows about — it is just two more bytes of
+/// an arbitrary key, exactly as any other punctuation would be. The value
+/// lands under the literal key `tags[]`; whether that key means anything is
+/// a question for the slot the key is checked against, not this parser (see
+/// `add_values_tests.rs`'s `reject_unknown_keys` coverage).
 #[test]
-fn the_retired_bracket_spelling_still_names_its_replacement() {
-    assert!(
-        rejected("tags[]=docs").contains("tags+=docs"),
-        "bracket set"
+fn a_bracket_suffixed_key_is_an_ordinary_key() {
+    assert_eq!(
+        applied("tags[]=docs").get("tags[]"),
+        Some(&RawValue::Str("docs".to_owned()))
     );
-    let at = rejected("tags[]@notes.txt");
-    assert!(at.contains("tags[]@"), "{at}");
-    assert!(at.contains("tags+="), "{at}");
 }

@@ -234,9 +234,8 @@ required = "@active"          # only inside the `active` view
 ```
 
 #callout("note")[
-  `required = "non-terminal"` is retired. Write `"!terminal"`, which means the
-  same thing in the filter language. A malformed expression fails when the config
-  loads, naming the field — not once per task.
+  A malformed expression fails when the config loads, naming the field — not
+  once per task.
 ]
 
 = Assignees

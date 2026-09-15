@@ -428,15 +428,22 @@ fn append_operator_accumulates_across_both_carriers() {
     );
 }
 
-/// The retired append spelling has to name its replacement. Failing with the
-/// generic "expected key=value" would read as though the token were malformed
-/// rather than renamed, which is the whole cost of a breaking change.
+/// The pre-release `key[]=value` append spelling carries no diagnostic of its
+/// own any more: `collect_values` accepts the bracketed text as an ordinary
+/// key, and it fails downstream exactly as any other unknown key does — an
+/// `unknown --set/-f key(s)` error naming it, with no pointer back to `+=`.
 #[test]
-fn retired_bracket_append_names_the_replacement() {
-    let err = collect_values(&[], &["tags[]=docs".to_owned()], &[])
+fn bracket_append_spelling_is_an_unknown_key_like_any_other() {
+    let values = collect_values(&[], &["tags[]=docs".to_owned()], &[]).unwrap();
+    assert_eq!(
+        values.get("tags[]"),
+        Some(&RawValue::Str("docs".to_owned()))
+    );
+    let specs = discover_slots(BUILTIN_TASK); // one `title` slot, no `tags[]`
+    let err = reject_unknown_keys(&values, &specs)
         .unwrap_err()
         .to_string();
-    assert!(err.contains("tags+=docs"), "{err}");
+    assert!(err.contains("tags[]"), "{err}");
 }
 
 #[test]

@@ -565,8 +565,8 @@ when = 'has_tag("gating") && !terminal'
 message = "this task proposes config surface; show the shape in a block"
 
 # The default `mt ls` listing is inherited from the embedded floor's
-# `[views.default]` view (same filter as the retired `[ls] default-filter`).
-# Redeclare `[views.default]` here to add a sort/columns bundle.
+# `[views.default]` view. Redeclare `[views.default]` here to add a
+# sort/columns bundle.
 
 # Work-in-progress caps. One milestone and one leaf, no more. A milestone
 # coordinates its leaves and may legitimately stay open across sessions; a leaf

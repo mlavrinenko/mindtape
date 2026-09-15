@@ -1,8 +1,7 @@
 //! `contains()`'s unified needle-first grammar: the default haystack
-//! (`title`, `id`, `body`), explicit fields (one or several), the body
-//! haystack's marker-free guarantee, and the two retired spellings
-//! (`contains(field, "substr")`, `search("query")`) as hard errors. Lives in
-//! its own module so `filter_tests.rs` stays under the linecop line cap.
+//! (`title`, `id`, `body`), explicit fields (one or several), and the body
+//! haystack's marker-free guarantee. Lives in its own module so
+//! `filter_tests.rs` stays under the linecop line cap.
 #![allow(clippy::unwrap_used)]
 
 use super::{hit, hit_views, sample};
@@ -111,21 +110,25 @@ fn unknown_field_name_errors_even_after_an_earlier_field_already_matched() {
 }
 
 #[test]
-fn legacy_field_first_order_is_rejected() {
-    // The retired `contains(field, "substr")` order: an identifier where the
-    // needle belongs.
+fn a_field_where_the_needle_belongs_is_an_ordinary_type_error() {
+    // The pre-release `contains(field, "substr")` order carried a dedicated
+    // hint; dropped now, an identifier where the needle belongs fails the
+    // same way any wrong-shaped argument does — naming what was expected.
     let got = err("contains(title, \"bug\")", &sample());
     assert!(
-        matches!(&got, FilterError::Invalid(msg) if msg.contains("needle first")),
+        matches!(&got, FilterError::Invalid(msg) if msg.contains("literal")),
         "{got:?}"
     );
 }
 
 #[test]
-fn legacy_search_is_rejected() {
+fn search_is_an_unknown_function_like_any_other() {
+    // `search(...)` used to be its own dispatch arm naming `contains` as its
+    // replacement; dropped now, it falls through to the same "unknown
+    // function" error any unrecognised name gets.
     let got = err("search(\"bug\")", &sample());
     assert!(
-        matches!(&got, FilterError::Invalid(msg) if msg.contains("contains")),
+        matches!(&got, FilterError::Invalid(msg) if msg.contains("unknown function: search")),
         "{got:?}"
     );
 }

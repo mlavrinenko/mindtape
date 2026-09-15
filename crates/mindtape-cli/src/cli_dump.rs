@@ -73,7 +73,7 @@ fn dump(root: &Command) -> Value {
 fn subcommands(cmd: &Command, prefix: &str) -> Vec<Value> {
     cmd.get_subcommands()
         // clap's synthetic `help` pseudo-command and any `hide = true` command
-        // (InstallLib, `_cli` itself) never appear in the reference.
+        // (`_cli` itself) never appear in the reference.
         .filter(|c| c.get_name() != "help" && !c.is_hide_set())
         .map(|c| command_json(c, prefix))
         .collect()
@@ -252,8 +252,7 @@ mod tests {
             .iter()
             .map(|c| field(c, "name"))
             .collect();
-        // hidden (`install-lib`, `_cli`) and clap's `help` pseudo-command absent
-        assert!(!names.contains(&"install-lib"));
+        // hidden (`_cli`) and clap's `help` pseudo-command absent
         assert!(!names.contains(&"_cli"));
         assert!(!names.contains(&"help"));
         // a real command is present

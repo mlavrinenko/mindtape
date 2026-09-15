@@ -118,9 +118,9 @@ plus `status.name`, `status.date`, `status.note`, `status.index` — bare `statu
 `role` is filter-only: it matches a role the task's assignee holds, via the
 `[[actors]]` registry. `path` compares the project-root-relative path
 (`/`-separated on every platform); the `file` _column_ below is a
-working-directory-relative display, a different value under `-w`, so filtering
-or sorting on `file` is an error naming `path`. `depth` is folder nesting under a
-root, always numeric, so `mt ls 'depth == 0'` lists the root tasks. `topo` and
+working-directory-relative display, a different value under `-w`; `file` is not a filter
+or sort field, so naming it errors rather than listing nothing. `depth` is folder nesting
+under a root, always numeric, so `mt ls 'depth == 0'` lists the root tasks. `topo` and
 `blocks` read the `links:` graph, numeric and never absent: `topo` is
 dependency level (0 = nothing blocks it; ascending is a working order, ties
 broken by the next `--sort` spec), `blocks` is how many unfinished tasks

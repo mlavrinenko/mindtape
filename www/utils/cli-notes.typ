@@ -202,9 +202,7 @@
   ),
   "install": (
     prose: [`--no-lib` / `--no-defaults` / `--no-schema` skip any one install;
-      `--force` overwrites an existing XDG `defaults.toml` / schema. The hidden
-      `mt install-lib` is a deprecated alias for `mt install --no-defaults
-      --no-schema` — lib only, kept for existing docs and muscle memory.],
+      `--force` overwrites an existing XDG `defaults.toml` / schema.],
   ),
   "worktrees": (
     examples: ```sh

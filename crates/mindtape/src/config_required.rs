@@ -4,10 +4,8 @@
 //! `[tasks.fields.<name>]` siblings) takes `true`, `false`, or a filter
 //! expression naming exactly the tasks that must carry the field. The shipped
 //! idiom is `required = "!terminal"` — required until the task reaches a
-//! terminal status — which replaces the retired `"non-terminal"` enum value; a
-//! config still spelling it that way fails at load with the replacement named.
-//! Anything the filter language can say is now sayable here, e.g.
-//! `required = "kind == \"bug\""`.
+//! terminal status. Anything the filter language can say is now sayable here,
+//! e.g. `required = "kind == \"bug\""`.
 //!
 //! Expressions are checked once, at config load: [`validate_requirements`]
 //! (called from [`crate::config::Config::validate`]) parses each one and
@@ -23,12 +21,6 @@ use serde::{Deserialize, Deserializer};
 use crate::config::Config;
 use crate::filter::Filter;
 use crate::model::Task;
-
-/// The retired `required` enum value, kept only to name its replacement.
-const RETIRED: &str = "non-terminal";
-
-/// The filter expression that replaces [`RETIRED`], with identical meaning.
-const REPLACEMENT: &str = "!terminal";
 
 /// Whether a field is required: `false`, `true`, or a filter expression.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -229,17 +221,12 @@ fn requirements(config: &Config) -> Vec<(String, &Requirement)> {
     out
 }
 
-/// What makes `requirement` unusable, if anything: the retired spelling, a
-/// syntax error, or a structural problem the probe dry-run surfaces.
+/// What makes `requirement` unusable, if anything: a syntax error, or a
+/// structural problem the probe dry-run surfaces.
 fn problem(requirement: &Requirement, probe: &Task, config: &Config) -> Option<String> {
     let Requirement::Expr(source) = requirement else {
         return None;
     };
-    if source.trim() == RETIRED {
-        return Some(format!(
-            "`{RETIRED}` is no longer a value; write the filter expression `{REPLACEMENT}`"
-        ));
-    }
     crate::filter::expr_problem(source, probe, config)
 }
 

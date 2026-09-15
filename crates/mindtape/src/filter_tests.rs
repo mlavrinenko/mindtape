@@ -128,17 +128,20 @@ fn links_predicate_checks_kind_presence() {
 }
 
 #[test]
-fn legacy_field_names_sugar_to_links_kind() {
+fn the_retired_underscore_link_names_are_unknown_fields() {
+    // `has(depends_on)` etc. used to be sugar for `links("depends-on")`; a
+    // caller now reaches for `links("kind")` instead, and the underscore
+    // spelling fails as any other unknown field would.
     let mut task = sample();
-    task.links = vec![
-        crate::test_support::dep_edge("dep.typ"),
-        crate::test_support::link_edge("old.typ", "supersedes"),
-        crate::test_support::link_edge("twin.typ", "duplicates"),
-    ];
-    assert!(hit("has(depends_on)", &task));
-    assert!(hit("has(supersedes)", &task));
-    assert!(hit("has(duplicates)", &task));
-    assert!(!hit("miss(depends_on)", &task));
+    task.links = vec![crate::test_support::dep_edge("dep.typ")];
+    let err = Filter::parse("has(depends_on)")
+        .unwrap()
+        .matches(&task, &Config::default())
+        .unwrap_err();
+    assert!(
+        matches!(&err, super::FilterError::UnknownField(name) if name == "depends_on"),
+        "{err:?}"
+    );
 }
 
 #[test]

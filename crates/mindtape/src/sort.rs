@@ -54,12 +54,9 @@ pub fn validate_sort_spec(spec: &str) -> Result<(), String> {
     }
 }
 
-/// The `--sort` / `[ls] default-sort` error for an unrecognised field,
-/// carrying [`crate::fields::rename_hint`]'s clause when the name is one the
-/// registry retired — so `--sort file` names `path` rather than only saying
-/// `file` does not exist.
+/// The `--sort` / `[ls] default-sort` error for an unrecognised field.
 fn unknown_sort_field(field: &str) -> String {
-    format!("unknown sort field: {field}{}", fields::rename_hint(field))
+    format!("unknown sort field: {field}")
 }
 
 /// A task's difficulty resolved to a number on its scale, if set and resolvable.

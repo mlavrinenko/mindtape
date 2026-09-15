@@ -52,7 +52,8 @@ The #link(u("/cli/"))[`file` column] is a different value: a _display_,
 relative to the working directory, so the path you read is openable from
 where you are standing. The two coincide inside the project root and diverge
 under `mt -w <other-project>`, which is why they no longer share a name.
-Filtering on `file` is an error naming `path`, not an empty listing.
+`file` is not a filter field at all — filtering on it is an error, not an
+empty listing.
 
 `depth` is the task's nesting under its root — 0 for a task in the root itself,
 1 for one in a sub-folder, and so on. It is always numeric, so `depth == 0`

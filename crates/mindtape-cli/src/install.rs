@@ -4,8 +4,7 @@
 //!
 //! Distinct from `mt init`, which scaffolds a PROJECT's `.mindtape/config.toml`.
 //! By default performs all three installs; `--no-lib`/`--no-defaults`/
-//! `--no-schema` skip any of them. `mt install-lib` remains a hidden, deprecated
-//! alias for the lib-only path (`mt install --no-defaults --no-schema`).
+//! `--no-schema` skip any of them.
 
 use std::path::{Path, PathBuf};
 

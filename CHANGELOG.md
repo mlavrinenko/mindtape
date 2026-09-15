@@ -72,6 +72,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **Every backward-compatibility shim for a pre-release spelling** (breaking,
+  pre-1.0). Nothing here ever shipped in a public release, so each one was a
+  hand-written hint pointing an old spelling at its replacement rather than a
+  compatibility path worth keeping; each now fails the same plain way any
+  other unrecognised name does, naming nothing to migrate from.
+  - `required = "non-terminal"` (`crates/mindtape/src/config_required.rs`) no
+    longer gets a dedicated "no longer a value; write `!terminal`" message —
+    it is dry-run as an ordinary filter expression like any other `required`
+    string, and whatever that expression fails on is reported under the
+    field's path.
+  - The filter/`--sort` field `file` (`crates/mindtape/src/fields.rs`,
+    `filter.rs`, `sort.rs`) no longer appends "renamed to `path`" to its
+    unknown-field/unknown-sort-field error; `file` is simply not a field.
+  - `contains(field, "substr")`'s reversed-argument hint and the `search(...)`
+    dispatch arm (`crates/mindtape/src/filter_predicates.rs`, `filter.rs`) are
+    gone: a leading identifier where the needle belongs is now an ordinary
+    "expected a literal" error, and `search(...)` is an ordinary "unknown
+    function" one.
+  - `has(depends_on)` / `has(supersedes)` / `has(duplicates)`
+    (`crates/mindtape/src/filter_links.rs`) are no longer sugar for
+    `links("depends-on")` etc.; the underscore spelling is now an unknown
+    field like any other. Use `links("<kind>")`.
+  - `mt install-lib`, the hidden alias for `mt install --no-defaults
+    --no-schema` (`crates/mindtape-cli/src/cli.rs`, `init.rs`, `install.rs`),
+    is gone outright — not merely hidden. It is neither a subcommand nor a
+    legend shortcut verb, so it falls through to the ordinary "unknown
+    command" error.
+  - The `key[]=value` `mt add` append spelling
+    (`crates/mindtape-cli/src/add_tokens.rs`) no longer fails naming
+    `key+=value`; the bracketed text is now an ordinary (if oddly spelled)
+    key, rejected downstream as any unknown `--set`/`-f` key is.
+
 - **`mindtape::sort::SORT_FIELDS`** (breaking, pre-1.0; library callers only).
   The sort vocabulary is now derived from the field registry —
   `sort::is_sort_field` accepts every registered name plus the computed `ready`

@@ -24,14 +24,11 @@
 //! `contains("substr")` / `contains("substr", field, ...)` — case-insensitive
 //! substring, needle first; fields optional, defaulting to `title`, `id`,
 //! `body` (an explicit field draws from
-//! [`crate::fields::is_contains_field`]). The old `contains(field, "substr")`
-//! order and `search(…)` both hard-error, naming the replacement. `stale(N)`,
+//! [`crate::fields::is_contains_field`]). `stale(N)`,
 //! `links("kind")` (does the task carry a `links:` edge of that kind — built-in
 //! or a project's custom `[[tasks.links.kinds]]`), `in_view("name")` (also
 //! written `@name`, which desugars to it): matches when the named view's
-//! filter matches. `has(depends_on)` / `has(supersedes)` / `has(duplicates)`
-//! are legacy sugar for `links("depends-on")` etc — see
-//! [`crate::filter_links::sugar_kind`].
+//! filter matches.
 //!
 //! Three functions read a string rather than compare one, and may take the
 //! result of another call as an argument (see [`crate::filter_strings`]):
@@ -83,12 +80,8 @@ pub enum FilterError {
     /// An operator that the filter language does not support.
     #[error("unsupported in filter: {0}")]
     Unsupported(String),
-    /// A field name the filter language does not know. A name the registry
-    /// retired (`file`, now `path`) appends
-    /// [`crate::fields::rename_hint`]'s clause naming the replacement, so the
-    /// reader who copied a name out of the `file` column is told what to type
-    /// rather than only that they are wrong.
-    #[error("unknown field in filter: {}{}", .0, fields::rename_hint(.0))]
+    /// A field name the filter language does not know.
+    #[error("unknown field in filter: {0}")]
     UnknownField(String),
     /// An `in_view` / `@` reference naming no declared view.
     #[error("unknown view in filter: {0}")]
@@ -354,11 +347,6 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
         "matches" => crate::filter_strings::matches_call(children, task, config),
         "in_dict" => crate::filter_strings::in_dict_call(children, task, config),
         "word" => Err(crate::filter_strings::word_is_not_boolean()),
-        "search" => Err(FilterError::Invalid(
-            "search(...) is gone; use contains(\"needle\") — needle first, fields optional \
-             (contains(\"needle\", field, ...))"
-                .to_owned(),
-        )),
         "stale" => {
             let count_str = single_literal(children, "stale")?;
             let count: u64 = count_str.parse().map_err(|_| {

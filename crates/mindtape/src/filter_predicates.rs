@@ -16,9 +16,6 @@ use crate::model::Task;
 use crate::numeric::format_num;
 
 pub(crate) fn present(task: &Task, name: &str, config: &Config) -> Result<bool, FilterError> {
-    if let Some(kind) = crate::filter_links::sugar_kind(name) {
-        return Ok(crate::filter_links::has_kind(task, kind));
-    }
     match name {
         "tags" => Ok(!task.tags.is_empty() || !task.derived_tags.is_empty()),
         "estimate" => Ok(!task.estimate.is_empty()),
@@ -77,10 +74,7 @@ fn default_contains_fields(config: &Config) -> Vec<String> {
 
 /// `contains(needle)` / `contains(needle, field, ...)`: case-insensitive
 /// substring, needle first. Zero or more bare field identifiers follow; none
-/// named searches [`DEFAULT_CONTAINS_FIELDS`]. A leading identifier instead of
-/// a string literal is the retired `contains(field, "substr")` order and
-/// errors by name (`search(...)` is its own dispatch arm in `filter.rs`, not
-/// here).
+/// named searches [`DEFAULT_CONTAINS_FIELDS`].
 ///
 /// Names are resolved and validated in full (`collect` into a `Result<Vec<_>,
 /// _>`, short-circuiting only on the first invalid one) before any is matched
@@ -99,13 +93,7 @@ pub(crate) fn contains_call(
                 .to_owned(),
         ));
     };
-    let needle = extract_literal(needle_node).map_err(|_| {
-        FilterError::Invalid(
-            "contains() takes the needle first: contains(\"substr\", field, ...) — the old \
-             contains(field, \"substr\") order is gone"
-                .to_owned(),
-        )
-    })?;
+    let needle = extract_literal(needle_node).map_err(FilterError::Invalid)?;
 
     let names: Vec<String> = if field_nodes.is_empty() {
         default_contains_fields(config)

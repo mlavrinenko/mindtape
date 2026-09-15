@@ -25,31 +25,15 @@ enum Op {
     File,
 }
 
-impl Op {
-    fn as_char(self) -> char {
-        match self {
-            Self::Set => '=',
-            Self::File => '@',
-        }
-    }
-}
-
 /// Apply one `key OP value` token to the fill map.
 ///
 /// # Errors
-/// Returns an error when the token carries no operator, uses the retired
-/// `key[]=value` append spelling, tries to append a file, or names a file
-/// that cannot be read.
+/// Returns an error when the token carries no operator, tries to append a
+/// file, or names a file that cannot be read.
 pub fn apply_token(out: &mut BTreeMap<String, RawValue>, token: &str) -> Result<()> {
     let (key, op, rest) = split_token(token)?;
     let append = key.ends_with('+');
     let name = key.strip_suffix('+').unwrap_or(key);
-    if let Some(base) = name.strip_suffix("[]") {
-        bail!(
-            "`{key}{}` is no longer accepted; append with `{base}+={rest}`",
-            op.as_char()
-        );
-    }
     if append && op == Op::File {
         bail!(
             "`{name}+@` is not an operator: `@` reads one file into one value. \

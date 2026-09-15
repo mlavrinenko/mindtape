@@ -103,7 +103,7 @@ fn required_false_flags_nothing() {
     assert_eq!(priority_violations(&config, task("a", "done")), 0);
 }
 
-// --- evaluation: `!terminal` reproduces the retired `"non-terminal"` ---
+// --- evaluation: `!terminal` is the idiom `"non-terminal"` used to spell ---
 
 #[test]
 fn not_terminal_flags_a_non_terminal_task() {
@@ -217,18 +217,24 @@ fn an_unknown_field_in_an_expression_fails_at_load_not_per_task() {
 }
 
 #[test]
-fn the_retired_non_terminal_value_points_at_the_replacement() {
+fn the_non_terminal_string_fails_at_load_naming_the_field_not_a_replacement() {
+    // `"non-terminal"` carries no special-cased hint any more: it is dry-run
+    // as an ordinary filter expression like any other, and whatever that
+    // expression fails on is reported under the field's path — same as
+    // `an_unknown_field_in_an_expression_fails_at_load_not_per_task` above.
     let problems = priority_config("\"non-terminal\"").validate().unwrap_err();
     assert!(
-        problems.contains("tasks.priority.required")
-            && problems.contains("non-terminal")
-            && problems.contains("!terminal"),
-        "the retired value must name its replacement: {problems}"
+        problems.contains("tasks.priority.required"),
+        "the field must still be named: {problems}"
+    );
+    assert!(
+        !problems.contains("!terminal"),
+        "there is no replacement to point at any more: {problems}"
     );
 }
 
 #[test]
-fn the_retired_value_is_reported_under_every_field_path() {
+fn the_non_terminal_string_is_reported_under_every_field_path() {
     let config = parse_config(
         r#"
 [tasks.difficulty]

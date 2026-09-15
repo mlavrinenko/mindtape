@@ -155,17 +155,19 @@ fn seeded_defaults_parses_through_parse_config() {
     config.validate().unwrap();
 }
 
-/// The hidden, deprecated `install-lib` alias still installs the lib only,
-/// equivalent to `mt install --no-defaults --no-schema`.
+/// `install-lib` is gone, not merely renamed: it is neither a recognised
+/// subcommand nor a legend shortcut verb, so it falls through to the same
+/// "unknown command" error any other typo does, naming nothing in
+/// particular to replace it with.
 #[test]
-fn install_lib_alias_installs_lib_only() {
+fn install_lib_is_an_unknown_command() {
     let home = tempfile::tempdir().unwrap();
-    run_install(home.path(), &["install-lib"]).success();
-
-    assert!(lib_typst_toml(home.path()).exists());
-    assert!(lib_prelude(home.path()).exists());
-    assert!(!defaults_path(home.path()).exists());
-    assert!(!schema_path(home.path()).exists());
+    let assert = run_install(home.path(), &["install-lib"]).failure();
+    let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
+    assert!(
+        stderr.contains("unknown command \"install-lib\""),
+        "{stderr}"
+    );
 }
 
 /// Every skip flag `InstallArgs` declares is named in `install`'s own long
@@ -272,14 +274,4 @@ fn an_empty_data_home_resolves_no_global_package() {
         stderr.contains("@local/mindtape"),
         "the failure must name the unresolved package:\n{stderr}"
     );
-}
-
-/// `install-lib` is hidden from `--help` (deprecated in favour of `install`).
-#[test]
-fn install_lib_hidden_from_help() {
-    let home = tempfile::tempdir().unwrap();
-    let assert = run_install(home.path(), &["--help"]).success();
-    let output = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
-    assert!(output.contains("install"), "{output}");
-    assert!(!output.contains("install-lib"), "{output}");
 }

@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{has_kind, sugar_kind};
+use super::has_kind;
 use crate::link::Link;
 use crate::test_support::bare_task;
 
@@ -10,15 +10,6 @@ fn edge(target: &str, kind: &str) -> Link {
         kind: kind.to_owned(),
         note: None,
     }
-}
-
-#[test]
-fn sugar_kind_maps_legacy_names() {
-    assert_eq!(sugar_kind("depends_on"), Some("depends-on"));
-    assert_eq!(sugar_kind("supersedes"), Some("supersedes"));
-    assert_eq!(sugar_kind("duplicates"), Some("duplicates"));
-    assert_eq!(sugar_kind("relates_to"), None);
-    assert_eq!(sugar_kind("related"), None);
 }
 
 #[test]

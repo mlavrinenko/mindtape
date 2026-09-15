@@ -1,4 +1,4 @@
-//! `mt init` / `mt install-lib` — project scaffold and library install.
+//! `mt init` — project scaffold, and the library install `mt install` shares.
 //!
 //! `init` writes one of the named presets in [`crate::preset`]. Two axes, kept
 //! independent: `--preset` picks what the config says, `--annotate` picks
@@ -22,7 +22,7 @@ use crate::init_wizard::{
 };
 use crate::preset::{self, Preset};
 
-/// The Typst package version installed by `install-lib`. Mirrors `lib/typst.toml`.
+/// The Typst package version `mt install` installs. Mirrors `lib/typst.toml`.
 const TYPST_PKG_VERSION: &str = "0.2.0";
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
 
@@ -250,14 +250,6 @@ fn with_schema_directive(template: &str, args: &SchemaArgs) -> Result<String> {
         None => mindtape::SCHEMA_URL.to_owned(),
     };
     Ok(format!("#:schema {value}\n{template}"))
-}
-
-/// Run the `install-lib` command — install `@local/mindtape` into the Typst packages dir.
-///
-/// # Errors
-/// Returns an error if the library cannot be written.
-pub fn run_install_lib() -> Result<()> {
-    install_lib()
 }
 
 pub(crate) fn install_lib() -> Result<()> {
