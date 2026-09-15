@@ -1,6 +1,7 @@
-// What MindTape is for. Every open task gives each goal a verdict through
-// `goals(product: ...)` from truth/lib.typ. How this repo builds MindTape is
-// a separate set, in process-goals.typ.
+// What MindTape is for. Every open task gives each goal a verdict in its
+// `x-goals: (product: ...)` field, checked by `check-goals(...)` from
+// truth/lib.typ. How this repo builds MindTape is a separate set, in
+// process-goals.typ.
 
 #let goals = (
   readable-tasks: (

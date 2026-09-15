@@ -14,6 +14,20 @@
   kind: "refactor",
   assignee: "agent",
   status: done(2026, 9, 16),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: helps[less code to keep correct, and an old spelling fails plainly instead of through a special case],
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -22,23 +36,6 @@
 + Run `rg -n -i 'retired|deprecated|legacy' crates/mindtape/src crates/mindtape-cli/src --glob '!*tests*'`.
 + 🔴 The code still carries old spellings: `RETIRED` in `crates/mindtape/src/config_required.rs:28`, `RENAMED_FIELDS` in `crates/mindtape/src/fields.rs:174`, the retired `contains` order in `crates/mindtape/src/filter_predicates.rs:81`, the legacy per-kind names in `crates/mindtape/src/filter_links.rs:2`, and the hidden `mt install-lib` alias in `crates/mindtape-cli/src/cli.rs:98`.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: neutral,
-    implementable-tasks: neutral,
-    enforced-practice: neutral,
-    cheap-adoption: neutral,
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: helps[less code to keep correct, and an old spelling fails plainly instead of through a special case],
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

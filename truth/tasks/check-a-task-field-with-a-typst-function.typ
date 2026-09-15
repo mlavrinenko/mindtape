@@ -14,6 +14,20 @@
   estimate: (files: 5),
   assignee: "agent",
   status: done(2026, 9, 16),
+  x-goals: (
+    product: (
+      readable-tasks: helps[verdicts can sit in `task.with` beside status and links instead of filling the body],
+      implementable-tasks: neutral,
+      enforced-practice: helps[any structure a project invents gets a named rule, refused before `mt add` writes at `error` severity],
+      cheap-adoption: neutral,
+      typst-over-markdown: helps[the check is a Typst function in the repo, where frontmatter needs a separate linter],
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -24,23 +38,6 @@
 + Open `truth/lib.typ`.
 + 🔴 This repo checks goal verdicts by panicking inside `#goals(...)` in the task body: the breach has no rule name and no severity, and the verdicts cannot leave the body.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: helps[verdicts can sit in `task.with` beside status and links instead of filling the body],
-    implementable-tasks: neutral,
-    enforced-practice: helps[any structure a project invents gets a named rule, refused before `mt add` writes at `error` severity],
-    cheap-adoption: neutral,
-    typst-over-markdown: helps[the check is a Typst function in the repo, where frontmatter needs a separate linter],
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

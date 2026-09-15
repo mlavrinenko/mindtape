@@ -12,6 +12,36 @@
   difficulty: slot("difficulty", kind: "int", default: 3),
   tags: slot("tags", kind: "list", default: ()),
   estimate: slot("estimate", kind: "text", default: "(files: 2)"),
+  x-goals: (
+    product: (
+      readable-tasks: slot("readable-tasks", kind: "raw", default: "neutral"),
+      implementable-tasks: slot(
+        "implementable-tasks",
+        kind: "raw",
+        default: "neutral",
+      ),
+      enforced-practice: slot(
+        "enforced-practice",
+        kind: "raw",
+        default: "neutral",
+      ),
+      cheap-adoption: slot("cheap-adoption", kind: "raw", default: "neutral"),
+      typst-over-markdown: slot(
+        "typst-over-markdown",
+        kind: "raw",
+        default: "neutral",
+      ),
+      plain-files: slot("plain-files", kind: "raw", default: "neutral"),
+    ),
+    process: (
+      sound-codebase: slot("sound-codebase", kind: "raw", default: "neutral"),
+      docs-match-code: slot(
+        "docs-match-code",
+        kind: "raw",
+        default: "neutral",
+      ),
+    ),
+  ),
 )
 
 == Problem
@@ -28,35 +58,6 @@
   "environment",
   kind: "raw",
   prompt: "Bullets: the `mt --version` or commit, and the platform, where the Problem steps reproduce",
-)
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: slot("readable-tasks", kind: "raw", default: "neutral"),
-    implementable-tasks: slot(
-      "implementable-tasks",
-      kind: "raw",
-      default: "neutral",
-    ),
-    enforced-practice: slot(
-      "enforced-practice",
-      kind: "raw",
-      default: "neutral",
-    ),
-    cheap-adoption: slot("cheap-adoption", kind: "raw", default: "neutral"),
-    typst-over-markdown: slot(
-      "typst-over-markdown",
-      kind: "raw",
-      default: "neutral",
-    ),
-    plain-files: slot("plain-files", kind: "raw", default: "neutral"),
-  ),
-  process: (
-    sound-codebase: slot("sound-codebase", kind: "raw", default: "neutral"),
-    docs-match-code: slot("docs-match-code", kind: "raw", default: "neutral"),
-  ),
 )
 
 == TO-BE

@@ -14,6 +14,20 @@
   estimate: (files: 4),
   assignee: "agent",
   status: done(2026, 9, 16),
+  x-goals: (
+    product: (
+      readable-tasks: helps[a malformed task never lands for a reader to skim],
+      implementable-tasks: neutral,
+      enforced-practice: helps[a task breaking a section rule is refused where it is written, not a commit later],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -22,23 +36,6 @@
 + 🔴 It writes the file. Only a later `mt check`, or the pre-commit hook, reports that every TO-BE bullet must open with 🟢.
 + Run it again with every goal `neutral`: this one is refused before writing, because a Typst panic fails the candidate's evaluation.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: helps[a malformed task never lands for a reader to skim],
-    implementable-tasks: neutral,
-    enforced-practice: helps[a task breaking a section rule is refused where it is written, not a commit later],
-    cheap-adoption: neutral,
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

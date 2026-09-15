@@ -15,6 +15,20 @@
   assignee: "agent",
   status: proposed(2026, 9, 15),
   links: depends-on("move-goal-verdicts-into-x-goals.typ"),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[an engineer sees the reason to switch before the install steps],
+      typst-over-markdown: helps[the first screen shows what only a Typst task can say],
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -23,23 +37,6 @@
 + 🔴 The first screen calls MindTape a daemon-free file-based task tracker and shows a task, but nothing in it needs Typst: frontmatter plus a script does the same.
 + 🔴 Nothing shows what Typst adds: `wip(2026, 9, 14)[note]` as one typed value, `depends-on("a.typ")` edges checked on every command, and an `x-goals` field checked by a Typst function the repo keeps beside its tasks.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: neutral,
-    implementable-tasks: neutral,
-    enforced-practice: neutral,
-    cheap-adoption: helps[an engineer sees the reason to switch before the install steps],
-    typst-over-markdown: helps[the first screen shows what only a Typst task can say],
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

@@ -16,6 +16,20 @@
   status: proposed(2026, 9, 15),
   links: depends-on("let-a-config-extend-rule-packs.typ")
     + depends-on("move-goal-verdicts-into-x-goals.typ"),
+  x-goals: (
+    product: (
+      readable-tasks: helps[every adopting repo's tasks share one skimmable shape],
+      implementable-tasks: helps[every adopting repo's tasks carry reproduction steps and named files],
+      enforced-practice: neutral,
+      cheap-adoption: helps[a repo gets the flagship task practice from one line, and later fixes with the binary],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -23,23 +37,6 @@
 + Run `mt init` in a new repo, then `mt add` a task with an empty body.
 + 🔴 Nothing refuses it. The six-section rules, the word caps and the imperative-title rule live only in this repo's `.mindtape/config.toml`, a block another repo can only copy and then watch drift.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: helps[every adopting repo's tasks share one skimmable shape],
-    implementable-tasks: helps[every adopting repo's tasks carry reproduction steps and named files],
-    enforced-practice: neutral,
-    cheap-adoption: helps[a repo gets the flagship task practice from one line, and later fixes with the binary],
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

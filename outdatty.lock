@@ -129,23 +129,23 @@ groups:
       contrib/ask-refactoring/undertested.sh: c56732b62ce3b6924deaae9861e182ee4be62e4cddef4223907e01baa40417d1
   sweep-templates:
     source:
-      .mindtape/templates/sweep-size.typ: 39d7bf8996a3d27571064a2af0de9fb235b2e34fe562d2cc604a3cd4edc4baa6
+      .mindtape/templates/sweep-size.typ: 425789d653ae91b123cd3b86be3fd3109c74abccbac4de19d68fd66637f2d299
     dependents:
-      .mindtape/templates/sweep-coverage.typ: 614870d49e98bdae85fbb81665f58166852175b57e5d0c50a7033ee09a1d1d96
-      .mindtape/templates/sweep-mutants.typ: 26a8da0de3363aef5e1be692084aa13110f5bdafd321dc7828b576bf95b21e32
-      .mindtape/templates/sweep-undertested.typ: db1ca101f644db50c394a9a7aa515952d28807eb44706c49a8f5e2d551c74549
+      .mindtape/templates/sweep-coverage.typ: bdeb0430bd6f3d106d9f83ef8c6964d22906be7a3e49b3c70198ba30254377a9
+      .mindtape/templates/sweep-mutants.typ: b9d6d5ace9b1f9f2780d4c1a6162c4a6522e0cad804a41c9591e72cc5ef1b302
+      .mindtape/templates/sweep-undertested.typ: 0649d0fb466e2caf81b2ee91e367ae7d4fd0708e1b26e709b0b3bde891637952
       contrib/ask-refactoring/coverage.sh: fa3101fae54260566e2edf743232104f4690f4cf5cfece1f550b6cb298f84d93
       contrib/ask-refactoring/mutants.sh: f5f88f6665c868dd2f185da37c591dfa56fdb16d2748be0425a08b49ac96c0e8
       contrib/ask-refactoring/size.sh: e0a14b56a760870f4ed0cb9f2d0d4e522124b814b545fc2d2d5d5de8850f6dfb
       contrib/ask-refactoring/undertested.sh: c56732b62ce3b6924deaae9861e182ee4be62e4cddef4223907e01baa40417d1
   task-templates:
     source:
-      .mindtape/templates/task.typ: f516e2040e5fc14f2eca30e2500021f5b870eaa60091c1a686229997fa6ccad1
+      .mindtape/templates/task.typ: b198068edbf8329633c437d921ad807553ed121d4b8c4cf3d7f02efc0b78c419
     dependents:
-      .mindtape/templates/dev.typ: 7c25ee3000e67bb60a36a9af30240c673aa6ccd56eb984e687fa9711006f908a
-      .mindtape/templates/docs.typ: 094648fb9492861c2b25c7c8385689b7049a1b05c24e38a7fc6740077fcfb5e3
-      .mindtape/templates/feat.typ: a255747744184d949d59cf7fe8acccf83371e524ffe1495f2ff98fd23fd55cfb
-      .mindtape/templates/fix.typ: bc0b4d750a60b97b781868dd50716b955834b478f7a64f9bd1f449db5bf7d880
+      .mindtape/templates/dev.typ: edb833ad87d302e2bdd12d0083974b5d0cc4a2f9638e9129f7025075274f26de
+      .mindtape/templates/docs.typ: 4d2034340f8e9936182a42b962e498a699322c15428b58728e764f89754cd918
+      .mindtape/templates/feat.typ: f27c5fc15998cc3a5438b2b63345d49609d95e353b58be2cb9becab462f991a7
+      .mindtape/templates/fix.typ: 50a37cbb8822c2001f4405c95c57bc54417dba153018632b2c184e10e6212dc0
   typst-pkg-version:
     source:
       lib/typst.toml: 968e5202c3c212d4790b9e552d34da5c122212b7032f969543dbbfc50d6e89c5

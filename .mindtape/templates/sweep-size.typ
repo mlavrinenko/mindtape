@@ -33,6 +33,21 @@
     kind: "list",
     prompt: "swept, size, plus tests for a test module",
   ),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: helps[a file under its cap changes without reading its
+        neighbours],
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -48,24 +63,6 @@
 
 `just ask-refactoring` filed this, and the sweep re-reads the signal every run,
 so the task is worth only as much as that measurement still is.
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: neutral,
-    implementable-tasks: neutral,
-    enforced-practice: neutral,
-    cheap-adoption: neutral,
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: helps[a file under its cap changes without reading its
-      neighbours],
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

@@ -15,6 +15,21 @@
   assignee: "agent",
   status: proposed(2026, 9, 14),
   links: depends-on("add-a-density-content-assert.typ"),
+  x-goals: (
+    product: (
+      readable-tasks: helps[a cap of one em-dash per paragraph keeps task prose plain],
+      implementable-tasks: neutral,
+      enforced-practice: helps[the density rule is refused by `mt check` instead of
+        living in a style note],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -23,24 +38,6 @@
 + 🔴 It lists five. `density`, which landed in `add-a-density-content-assert.typ`, is missing, so no project can learn it exists.
 + Run `rg -n density .mindtape/config.toml`.
 + 🔴 It prints nothing: this repo polices no prose density at all.
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: helps[a cap of one em-dash per paragraph keeps task prose plain],
-    implementable-tasks: neutral,
-    enforced-practice: helps[the density rule is refused by `mt check` instead of
-      living in a style note],
-    cheap-adoption: neutral,
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

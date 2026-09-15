@@ -1,6 +1,7 @@
 // How this repo builds MindTape. Kept apart from goals.typ, which says what
-// MindTape is for. Every open task gives each goal here a verdict too, through
-// `goals(process: ...)` from truth/lib.typ.
+// MindTape is for. Every open task gives each goal here a verdict too, in its
+// `x-goals: (process: ...)` field, checked by `check-goals(...)` from
+// truth/lib.typ.
 
 #let goals = (
   sound-codebase: (

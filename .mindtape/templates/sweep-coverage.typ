@@ -29,6 +29,21 @@
   estimate: slot("estimate", kind: "text", prompt: "(files: N)"),
   assignee: "agent",
   tags: slot("tags", kind: "list", prompt: "swept, coverage"),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: helps[unreached lines get a test that fails when they
+        break],
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -38,24 +53,6 @@
 
 `just ask-refactoring` filed this, and the sweep re-reads the signal every run,
 so the task is worth only as much as that measurement still is.
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: neutral,
-    implementable-tasks: neutral,
-    enforced-practice: neutral,
-    cheap-adoption: neutral,
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: helps[unreached lines get a test that fails when they
-      break],
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

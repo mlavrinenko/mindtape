@@ -15,6 +15,20 @@
   assignee: "agent",
   status: proposed(2026, 9, 15),
   links: depends-on("move-goal-verdicts-into-x-goals.typ"),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[readers see a rule enforced by the task files themselves, with no linter to maintain],
+      cheap-adoption: neutral,
+      typst-over-markdown: helps[the page proves the claim with a live refusal instead of prose],
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: helps[the page quotes a live capture, never a hand-typed transcript],
+    ),
+  ),
 )
 
 == Problem
@@ -22,23 +36,6 @@
 + Run `rg -n 'import "\.\./[^/"]+\.typ": \*' www/content examples`.
 + 🔴 It prints nothing. No page or example shows a task importing a shared Typst file, the one thing Markdown with frontmatter cannot do without writing a linter.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: neutral,
-    implementable-tasks: neutral,
-    enforced-practice: helps[readers see a rule enforced by the task files themselves, with no linter to maintain],
-    cheap-adoption: neutral,
-    typst-over-markdown: helps[the page proves the claim with a live refusal instead of prose],
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: helps[the page quotes a live capture, never a hand-typed transcript],
-  ),
-)
 
 == TO-BE
 

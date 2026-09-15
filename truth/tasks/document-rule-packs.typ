@@ -15,6 +15,20 @@
   assignee: "agent",
   status: proposed(2026, 9, 15),
   links: depends-on("ship-the-task-practice-as-the-mindtape-tasks-pack.typ"),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: helps[a reader finds the one-line adoption on the config page],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -22,23 +36,6 @@
 + Open `www/content/config.typ` at "The four layers".
 + 🔴 It explains layers whose arrays replace wholesale and says nothing about `extends`, `disable`, rule names or the `mindtape-tasks` pack, so a reader cannot find the one-line adoption.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: neutral,
-    implementable-tasks: neutral,
-    enforced-practice: neutral,
-    cheap-adoption: helps[a reader finds the one-line adoption on the config page],
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

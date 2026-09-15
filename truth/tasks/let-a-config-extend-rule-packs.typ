@@ -15,6 +15,20 @@
   assignee: "agent",
   status: proposed(2026, 9, 15),
   links: depends-on("give-every-body-rule-a-name.typ"),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a repo that extends a pack is policed by every rule in it, with no copy to fall behind],
+      cheap-adoption: helps[adopting shared practice becomes one `extends` line plus overrides],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -25,23 +39,6 @@
 + 🔴 The inherited rule is gone. Arrays replace wholesale, so keeping it means copying every inherited rule into every repo.
 + 🔴 No key switches off one inherited rule, or changes its threshold, while keeping the rest.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: neutral,
-    implementable-tasks: neutral,
-    enforced-practice: helps[a repo that extends a pack is policed by every rule in it, with no copy to fall behind],
-    cheap-adoption: helps[adopting shared practice becomes one `extends` line plus overrides],
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

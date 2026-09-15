@@ -248,17 +248,17 @@ required = "!terminal"
 [tasks.comments]
 policy = "forbid"
 
-# Every open task is one spec in six common sections, in this order. The set
+# Every open task is one spec in five common sections, in this order. The set
 # came out of the 2026-09-15 backlog review and the research it was checked
-# against:
+# against. Goal verdicts sit beside status and links instead, in `x-goals:`
+# (see the `goals` rule below): one verdict per goal in truth/goals.typ and
+# truth/process-goals.typ, checked by `check-goals(...)` in truth/lib.typ. A
+# task that helps no goal is refused, so nothing unjustified gets filed.
 #
 # - Problem: numbered steps anyone can follow, commands in backticks, and the
 #   step that shows the defect opening with 🔴. Reproduction scripts raise agent
 #   solve rates while narrative steps add little (arXiv 2607.07593); developers
 #   rank steps to reproduce first (Bettenburg et al., FSE 2008).
-# - Goals: `#goals(...)` from truth/lib.typ, one verdict per goal in
-#   truth/goals.typ and truth/process-goals.typ. A task that helps no goal
-#   fails to load, so nothing unjustified gets filed.
 # - TO-BE: how it should work, behave and feel once this lands, each bullet
 #   opening with 🟢. A vision, not a test plan: `just check` and the close gate
 #   do the verifying.
@@ -270,7 +270,7 @@ policy = "forbid"
 #   no task has to answer is one an agent forgets.
 #
 # Four kinds carry one more section where the research names a gap in those
-# six: a fix says where its Problem reproduces (Environment, the version and
+# five: a fix says where its Problem reproduces (Environment, the version and
 # platform block of GitHub's bug form), a feat which designs it rejected
 # (Alternatives, essential in Google design docs and Rust RFCs), a docs change
 # what its prose must match (Source of truth), and a dev chore how to undo it
@@ -283,10 +283,10 @@ policy = "forbid"
 [[tasks.body.headers.rules]]
 action = "allowlist"
 allowed = [
-  { match = "^(Problem|Environment|Goals|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
+  { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
 ]
 when = "!terminal"
-message = "an open task's sections are Problem, Goals, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
+message = "an open task's sections are Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
 
 [[tasks.body.headers.rules]]
 path = ["Environment"]
@@ -347,13 +347,6 @@ message = "Environment follows Problem"
 
 [[tasks.body.headers.rules]]
 action = "order"
-before = ["Environment"]
-after = ["Goals"]
-when = "!terminal"
-message = "Goals follows Environment"
-
-[[tasks.body.headers.rules]]
-action = "order"
 before = ["TO-BE"]
 after = ["Source of truth"]
 when = "!terminal"
@@ -401,12 +394,6 @@ when = "!terminal"
 message = "every open task has one Problem section"
 
 [[tasks.body.headers.rules]]
-path = ["Goals"]
-action = "unique"
-when = "!terminal"
-message = "every open task has one Goals section"
-
-[[tasks.body.headers.rules]]
 path = ["TO-BE"]
 action = "unique"
 when = "!terminal"
@@ -433,16 +420,9 @@ message = "every open task says how this repo will dogfood it, in one Dogfood se
 [[tasks.body.headers.rules]]
 action = "order"
 before = ["Problem"]
-after = ["Goals"]
-when = "!terminal"
-message = "Goals follows Problem"
-
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["Goals"]
 after = ["TO-BE"]
 when = "!terminal"
-message = "TO-BE follows Goals"
+message = "TO-BE follows Problem"
 
 [[tasks.body.headers.rules]]
 action = "order"
@@ -501,12 +481,6 @@ when = "!terminal"
 message = "open the step that shows the defect with 🔴"
 
 [[tasks.body.content.rules]]
-path = ["Goals"]
-assert = { must-match = "#goals\\(" }
-when = "!terminal"
-message = "give every goal a verdict with #goals(product: ..., process: ...) from truth/lib.typ"
-
-[[tasks.body.content.rules]]
 path = ["TO-BE"]
 assert = { must-match = "(?m)^\\s*- 🟢" }
 when = "!terminal"
@@ -543,7 +517,7 @@ when = "!terminal"
 message = "keep this section under 120 words; a longer one is a task that should have been two"
 
 [[tasks.body.content.rules]]
-path = [{ match = "^(Goals|Changes)$" }]
+path = ["Changes"]
 assert = { max-words = 220 }
 when = "!terminal"
 message = "keep this section under 220 words; a longer one is a task that should have been two"
@@ -603,6 +577,19 @@ name = "imperative-title"
 assert = 'in_dict("verbs", word(title, 1))'
 when = "!terminal"
 message = "start the title with an imperative verb"
+severity = "error"
+
+# Goal verdicts moved out of the body into `x-goals:`, beside status and
+# links, so a script can find them without parsing prose (`mt eval --json`
+# now carries them). `assert` cannot reach an `x-<ns>` field or walk its
+# nested dict, so this reaches for `check`: `check-goals` re-checks the same
+# rules `goals(...)` used to enforce at Typst load — missing/unknown goals, a
+# helps/hurts with no reason, a task that helps nothing — but as `mt check`
+# breaches instead of a load-time panic.
+[[tasks.rules]]
+name = "goals"
+when = "!terminal"
+check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
 severity = "error"
 
 # A title's grammatical shape was the one convention `mt check` never held —

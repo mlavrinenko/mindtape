@@ -14,6 +14,20 @@
   kind: "feat",
   assignee: "agent",
   status: done(2026, 9, 16),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: helps[a named rule can be switched off alone instead of dropping a whole pack],
+      cheap-adoption: helps[rule-by-rule overrides are what make a one-line `extends` safe to adopt],
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -22,23 +36,6 @@
 + Run `mt check`.
 + 🔴 The config fails to load on the unknown field `name`. Only `[[tasks.rules]]` entries carry one (`crates/mindtape/src/config_rules.rs:59`), so nothing can point at a single section rule to switch it off or change its threshold.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: neutral,
-    implementable-tasks: neutral,
-    enforced-practice: helps[a named rule can be switched off alone instead of dropping a whole pack],
-    cheap-adoption: helps[rule-by-rule overrides are what make a one-line `extends` safe to adopt],
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

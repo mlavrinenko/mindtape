@@ -13,8 +13,22 @@
   tags: ("mt",),
   estimate: (files: 15),
   assignee: "agent",
-  status: proposed(2026, 9, 16),
+  status: wip(2026, 9, 16),
   links: depends-on("check-a-task-field-with-a-typst-function.typ"),
+  x-goals: (
+    product: (
+      readable-tasks: helps[the body runs from Problem straight to TO-BE, and the verdicts sit beside status and links],
+      implementable-tasks: neutral,
+      enforced-practice: helps[a skipped goal becomes a named `rules.goals` error that `mt add` refuses, not an eval panic],
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: neutral,
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -24,23 +38,6 @@
 + Run `mt eval truth/tasks/give-every-body-rule-a-name.typ --json`.
 + 🔴 No verdict is in the output, so no script can list the tasks that help `cheap-adoption`.
 
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: helps[the body runs from Problem straight to TO-BE, and the verdicts sit beside status and links],
-    implementable-tasks: neutral,
-    enforced-practice: helps[a skipped goal becomes a named `rules.goals` error that `mt add` refuses, not an eval panic],
-    cheap-adoption: neutral,
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: neutral,
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 

@@ -29,6 +29,21 @@
   estimate: slot("estimate", kind: "text", prompt: "(files: N)"),
   assignee: "agent",
   tags: slot("tags", kind: "list", prompt: "swept, coverage"),
+  x-goals: (
+    product: (
+      readable-tasks: neutral,
+      implementable-tasks: neutral,
+      enforced-practice: neutral,
+      cheap-adoption: neutral,
+      typst-over-markdown: neutral,
+      plain-files: neutral,
+    ),
+    process: (
+      sound-codebase: helps[a complex function nobody exercises gets a test
+        that fails when it breaks],
+      docs-match-code: neutral,
+    ),
+  ),
 )
 
 == Problem
@@ -40,24 +55,6 @@ Nothing else reports this: `just cover` gates the workspace total only, and a
 file-shaped signal cannot see a function nobody exercises inside a well-covered
 file. The sweep re-reads the signal every run, so the task is worth only as
 much as that measurement still is.
-
-== Goals
-
-#goals(
-  product: (
-    readable-tasks: neutral,
-    implementable-tasks: neutral,
-    enforced-practice: neutral,
-    cheap-adoption: neutral,
-    typst-over-markdown: neutral,
-    plain-files: neutral,
-  ),
-  process: (
-    sound-codebase: helps[a complex function nobody exercises gets a test
-      that fails when it breaks],
-    docs-match-code: neutral,
-  ),
-)
 
 == TO-BE
 
