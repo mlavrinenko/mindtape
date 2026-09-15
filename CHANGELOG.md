@@ -99,6 +99,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   covering the whole set. Zero targets still applies `[rm] default_filter`
   exactly as before.
 
+- **A `density` content assert.** `{ density = { pattern = "regex", max = N,
+  per = "section" } }` joins `non-empty`/`min-words`/`max-words`/
+  `must-match`/`must-not-match` as a sixth `[[tasks.body.content.rules]]`
+  assertion: it fails when any single unit of the matched section carries
+  more than `max` matches of `pattern`, a rate `must-not-match` cannot
+  express since it fails on the first occurrence. `per` (default `section`)
+  picks the unit — the whole section, a blank-line-separated paragraph (a
+  `- `/`+ ` list item opens its own paragraph even without a blank line
+  before it), or a paragraph split again into sentences on `.`/`!`/`?`. A
+  fenced code block is dropped before the split runs, unlike every other
+  content assert, so a pattern inside a code sample is never counted. This
+  repo's own `.mindtape/config.toml` now carries a `density` rule capping
+  every open task's paragraphs at one em-dash.
+
 ### Removed
 
 - **Every backward-compatibility shim for a pre-release spelling** (breaking,

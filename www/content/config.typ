@@ -137,6 +137,11 @@ assert = { max-words = 400 }        # stops padding, not just under-writing
 [[tasks.body.content.rules]]
 path = ["Watch for"]
 assert = { must-match = "\\?" }     # an open-question section states its question
+
+[[tasks.body.content.rules]]
+path = [{ match = ".*" }]
+assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
+message = "more than one em-dash in a paragraph reads as generated prose"
 ```
 
 A heading path is a list of segments. A bare TOML string is an exact,
@@ -153,14 +158,27 @@ action = "allowlist"
 allowed = [{ match = "^(Summary|Scope|Watch for|Decisions)$" }]
 ```
 
-The five content assertions: `"non-empty"`, `min-words = N`, `max-words = N`,
-`must-match = "regex"`, and `must-not-match = "regex"`. The regexes run
-against the section's source text as written (markup included), and words are
-whitespace-delimited tokens containing an alphanumeric character — so markup,
-code blocks, and nested subsection headings all count toward `min-words` and
-`max-words` alike, and a `Scope` section that is all `#raw` reads as non-empty
-rather than as a placeholder. A violation prints at the heading's line, `mt
-check` style, naming the rule that fired:
+The six content assertions: `"non-empty"`, `min-words = N`, `max-words = N`,
+`must-match = "regex"`, `must-not-match = "regex"`, and `density = { pattern =
+"regex", max = N, per = "section" }`. The regexes run against the section's
+source text as written (markup included), and words are whitespace-delimited
+tokens containing an alphanumeric character — so markup, code blocks, and
+nested subsection headings all count toward `min-words` and `max-words`
+alike, and a `Scope` section that is all `#raw` reads as non-empty rather
+than as a placeholder.
+
+`density` fails when any single unit of the section carries more than `max`
+matches of `pattern`, a rate `must-not-match` cannot express since it fails
+on the first occurrence. `per` picks the unit: `section` (the default) treats
+the whole matched content as one; `paragraph` splits on blank lines, with a
+`- `/`+ ` list item opening a new paragraph even without one before it, so a
+tight list is one paragraph per item; `sentence` splits each paragraph again
+on `.`, `!`, or `?` followed by whitespace or its end. Unlike the word counts
+and the other regex asserts, a fenced code block is dropped before any split
+runs — a pattern inside a code sample is never counted.
+
+A violation prints at the heading's line, `mt check` style, naming the rule
+that fired:
 
 ```
 truth/tasks/example.typ:11: body.content.rules.summary-non-empty: section `Summary` must not be empty
