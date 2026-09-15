@@ -13,7 +13,7 @@
   estimate: (files: 5),
   kind: "feat",
   assignee: "agent",
-  status: wip(2026, 9, 16),
+  status: done(2026, 9, 16),
   links: depends-on("give-every-body-rule-a-name.typ"),
   x-goals: (
     product: (
