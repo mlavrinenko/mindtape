@@ -9,9 +9,22 @@
 //! and letting a warn-severity one through with its warning printed.
 #![allow(clippy::unwrap_used)]
 
+use std::path::{Path, PathBuf};
+
 mod support;
 
 use support::{mt, run_ok, scaffold_project};
+
+/// The repo root, derived from this crate's manifest dir
+/// (`crates/mindtape-cli` -> `../..`), so a test finds the root's own
+/// `.mindtape/config.toml` regardless of the working directory `cargo test`
+/// runs from.
+fn repo_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
+}
 
 /// A project whose config carries `rules` verbatim plus a single task titled
 /// `title`, so a rule's verdict is a property of the title alone.
@@ -275,7 +288,7 @@ fn mt_flip_lets_a_warn_rule_through() {
 /// The mechanism above is proven against a synthetic project. These two check
 /// the ADOPTION itself
 /// (truth/tasks/enforce-an-imperative-verb-at-the-start-of-task-titles.typ):
-/// that `imperative-title` actually landed in the two real configs the chain
+/// that `imperative-title` actually reaches the two real configs the chain
 /// was for — this repo's own backlog at `error`, and the `learn-piano`
 /// example at `warn`, the severity a project adopting the convention
 /// mid-backlog wants. Loaded straight off the committed files rather than
@@ -291,9 +304,17 @@ fn find_imperative_title_rule(config: &mindtape::Config) -> &mindtape::RuleSpec 
         .expect("the imperative-title rule must be declared")
 }
 
+/// This repo's own `.mindtape/config.toml`
+/// (`truth/tasks/ship-the-task-practice-as-the-mindtape-tasks-pack.typ`) no
+/// longer declares `imperative-title` itself — it inherits it from the
+/// embedded `mindtape-tasks` pack via `extends`. `parse_config` cannot prove
+/// that (it never resolves `extends`/`disable`; see `crate::config_packs`),
+/// so this loads the full layered config against the real repo root instead,
+/// through the real, non-fixture `EMBEDDED_PACKS` registry — proving both
+/// that the rule still lands here AND that the pack actually shipped.
 #[test]
 fn this_repos_own_config_carries_the_rule_at_error() {
-    let config = mindtape::parse_config(include_str!("../../../.mindtape/config.toml")).unwrap();
+    let config = mindtape::load_config(&repo_root()).unwrap();
     assert_eq!(
         find_imperative_title_rule(&config).severity,
         mindtape::Severity::Error

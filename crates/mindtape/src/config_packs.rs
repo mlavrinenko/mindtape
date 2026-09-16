@@ -36,11 +36,11 @@ use crate::config_layers::{Layer, LayerSource};
 use crate::config_packs_toml::{read_array, read_string_list, remove_path, write_array};
 use crate::merge::deep_merge_tables;
 
-/// Rule packs compiled into the binary, `(name, TOML text)`. Empty today —
-/// the first real entry is a one-line addition here plus a
-/// `crates/mindtape/src/packs/<name>.toml` file, named under the reserved
-/// `mindtape-` prefix.
-pub(crate) const EMBEDDED_PACKS: &[(&str, &str)] = &[];
+/// Rule packs compiled into the binary, `(name, TOML text)`. A new entry is a
+/// one-line addition here plus a `crates/mindtape/src/packs/<name>.toml`
+/// file, named under the reserved `mindtape-` prefix.
+pub(crate) const EMBEDDED_PACKS: &[(&str, &str)] =
+    &[("mindtape-tasks", include_str!("packs/mindtape-tasks.toml"))];
 
 /// Where one resolved pack came from, for `mt config show --origin`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -407,3 +407,7 @@ fn layer_base_dir(source: &LayerSource, root: &Path) -> PathBuf {
 #[cfg(test)]
 #[path = "config_packs_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "config_packs_tests_body.rs"]
+mod tests_body;

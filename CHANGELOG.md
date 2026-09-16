@@ -13,10 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   config layer (XDG global defaults, an ancestor `.mindtape/defaults.toml`, or
   the project's own `.mindtape/config.toml`) may declare `extends = [...]` and
   `disable = [...]` at the top level. A bare name in `extends` resolves to a
-  pack compiled into `mt` (the reserved `mindtape-` prefix; none ship yet —
-  the registry is a one-line-plus-a-file addition), and anything carrying a
-  path separator resolves to a TOML pack file relative to the layer that names
-  it (the project root, for the project's own config). A pack may declare only
+  pack compiled into `mt` (the reserved `mindtape-` prefix; `mindtape-tasks` is
+  the first to ship), and anything carrying a path separator resolves to a
+  TOML pack file relative to the layer that names it (the project root, for
+  the project's own config). A pack may declare only
   `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
   `[[tasks.body.content.rules]]` and `[dicts]`, and may not itself `extends`.
   Per rule array, a layer's `extends` packs merge in first (in listed order),
@@ -36,6 +36,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.mindtape/defaults.toml`'s `[[tasks.rules]]` entry used to vanish the
   moment a project declared its own; it now survives alongside it (same name,
   still replaces in place).
+
+- **The flagship task practice ships as the `mindtape-tasks` pack.**
+  `extends = ["mindtape-tasks"]` gives a project the six-section task shape
+  (Problem, TO-BE, Changes, Out of scope, plus a fix/feat/docs/dev kind's own
+  Environment/Alternatives/Source of truth/Rollback section), its heading
+  order, the 🔴/🟢 markers, the word caps, the em-dash density check, and the
+  imperative-title rule with the `verbs` dictionary it reads — the whole
+  practice this repo's own backlog already enforced by hand, now one line for
+  any repo to adopt instead of a rule-for-rule copy that drifts. This repo's
+  own `.mindtape/config.toml` now extends it, keeping local only what is
+  actually local: the `goals` rule and an extra `Dogfood` section, added back
+  by overriding the pack's `section-allowlist` rule by name — the worked
+  example for that mechanism.
 
 - **A body rule can carry a `name`.** `[[tasks.body.headers.rules]]` and
   `[[tasks.body.content.rules]]` entries accept an optional `name`, mirroring

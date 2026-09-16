@@ -1,0 +1,327 @@
+# mindtape-tasks — the flagship task practice as a rule pack.
+#
+# `extends = ["mindtape-tasks"]` in any config layer gives a repo the shape
+# MindTape's own backlog is written in: every open task is one spec in a
+# closed set of sections, in a fixed order, each with markers and caps that
+# make it skimmable and reproducible without a template a human has to copy
+# by hand. Adopt it, then layer this repo's OWN policy over it with `disable
+# = ["<name>"]` or a same-named override — see `.mindtape/config.toml` for a
+# worked example (`section-allowlist`, overridden there to add a local-only
+# `Dogfood` section).
+#
+# The set came out of the 2026-09-15 backlog review and the research it was
+# checked against:
+#
+# - Problem: numbered steps anyone can follow, commands in backticks, and the
+#   step that shows the defect opening with 🔴. Reproduction scripts raise
+#   agent solve rates while narrative steps add little (arXiv 2607.07593);
+#   developers rank steps to reproduce first (Bettenburg et al., FSE 2008).
+# - TO-BE: how it should work, behave and feel once this lands, each bullet
+#   opening with 🟢. A vision, not a test plan — the project's own gates do
+#   the verifying.
+# - Changes: bullets naming the files and what changes in each. Fix
+#   suggestions and fault localization raise solve rates (arXiv 2607.07593),
+#   but a wrong plan hurts more than none (arXiv 2604.12147): name places,
+#   not a script.
+# - Out of scope: what not to touch, so the diff stays one change.
+#
+# Four kinds carry one more section where the research names a gap in those
+# four: a fix says where its Problem reproduces (Environment, the version and
+# platform block of GitHub's bug form), a feat which designs it rejected
+# (Alternatives, essential in Google design docs and Rust RFCs), a docs
+# change what its prose must match (Source of truth), and a dev chore how to
+# undo it (Rollback).
+#
+# Headings and lists carry weight on their own: stripping them lowers solve
+# rates with the content intact, and so does length (arXiv 2607.07593). Hence
+# the closed section set and the word caps below.
+#
+# What this pack deliberately leaves out, because it is only ever true of the
+# adopting repo, never of the practice itself: a goal-verdicts rule (its
+# `check` names a Typst module local to the repo), any extra section such as
+# a `Dogfood` heading, assignees, WIP limits, estimate bounds, and a close
+# gate. Add those in the extending layer.
+
+[[tasks.body.headers.rules]]
+name = "section-allowlist"
+action = "allowlist"
+allowed = [
+  { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope)$" },
+]
+when = "!terminal"
+message = "an open task's sections are Problem, TO-BE, Changes and Out of scope, plus its kind's own section"
+
+[[tasks.body.headers.rules]]
+name = "environment-for-fix"
+path = ["Environment"]
+action = "unique"
+when = '!terminal && kind == "fix"'
+message = "a fix says where its Problem reproduces, in one Environment section"
+
+[[tasks.body.headers.rules]]
+name = "alternatives-for-feat"
+path = ["Alternatives"]
+action = "unique"
+when = '!terminal && kind == "feat"'
+message = "a feat names the designs it rejected, in one Alternatives section"
+
+[[tasks.body.headers.rules]]
+name = "source-of-truth-for-docs"
+path = ["Source of truth"]
+action = "unique"
+when = '!terminal && kind == "docs"'
+message = "a docs change names what its prose must match, in one Source of truth section"
+
+[[tasks.body.headers.rules]]
+name = "rollback-for-dev"
+path = ["Rollback"]
+action = "unique"
+when = '!terminal && kind == "dev"'
+message = "a dev chore says how to undo it, in one Rollback section"
+
+[[tasks.body.headers.rules]]
+name = "environment-only-for-fix"
+action = "forbid"
+path = ["Environment"]
+when = '!terminal && kind != "fix"'
+message = "Environment belongs to fix tasks"
+
+[[tasks.body.headers.rules]]
+name = "alternatives-only-for-feat"
+action = "forbid"
+path = ["Alternatives"]
+when = '!terminal && kind != "feat"'
+message = "Alternatives belongs to feat tasks"
+
+[[tasks.body.headers.rules]]
+name = "source-of-truth-only-for-docs"
+action = "forbid"
+path = ["Source of truth"]
+when = '!terminal && kind != "docs"'
+message = "Source of truth belongs to docs tasks"
+
+[[tasks.body.headers.rules]]
+name = "rollback-only-for-dev"
+action = "forbid"
+path = ["Rollback"]
+when = '!terminal && kind != "dev"'
+message = "Rollback belongs to dev tasks"
+
+# Order rules. Each passes while either side is absent, so a pair binds only
+# the kinds that carry both sections.
+[[tasks.body.headers.rules]]
+name = "environment-after-problem"
+action = "order"
+before = ["Problem"]
+after = ["Environment"]
+when = "!terminal"
+message = "Environment follows Problem"
+
+[[tasks.body.headers.rules]]
+name = "to-be-after-problem"
+action = "order"
+before = ["Problem"]
+after = ["TO-BE"]
+when = "!terminal"
+message = "TO-BE follows Problem"
+
+[[tasks.body.headers.rules]]
+name = "source-of-truth-after-to-be"
+action = "order"
+before = ["TO-BE"]
+after = ["Source of truth"]
+when = "!terminal"
+message = "Source of truth follows TO-BE"
+
+[[tasks.body.headers.rules]]
+name = "changes-after-to-be"
+action = "order"
+before = ["TO-BE"]
+after = ["Changes"]
+when = "!terminal"
+message = "Changes follows TO-BE"
+
+[[tasks.body.headers.rules]]
+name = "changes-after-source-of-truth"
+action = "order"
+before = ["Source of truth"]
+after = ["Changes"]
+when = "!terminal"
+message = "Changes follows Source of truth"
+
+[[tasks.body.headers.rules]]
+name = "alternatives-after-changes"
+action = "order"
+before = ["Changes"]
+after = ["Alternatives"]
+when = "!terminal"
+message = "Alternatives follows Changes"
+
+[[tasks.body.headers.rules]]
+name = "rollback-after-changes"
+action = "order"
+before = ["Changes"]
+after = ["Rollback"]
+when = "!terminal"
+message = "Rollback follows Changes"
+
+[[tasks.body.headers.rules]]
+name = "out-of-scope-after-changes"
+action = "order"
+before = ["Changes"]
+after = ["Out of scope"]
+when = "!terminal"
+message = "Out of scope follows Changes"
+
+[[tasks.body.headers.rules]]
+name = "out-of-scope-after-alternatives"
+action = "order"
+before = ["Alternatives"]
+after = ["Out of scope"]
+when = "!terminal"
+message = "Out of scope follows Alternatives"
+
+[[tasks.body.headers.rules]]
+name = "out-of-scope-after-rollback"
+action = "order"
+before = ["Rollback"]
+after = ["Out of scope"]
+when = "!terminal"
+message = "Out of scope follows Rollback"
+
+[[tasks.body.headers.rules]]
+name = "one-problem-section"
+path = ["Problem"]
+action = "unique"
+when = "!terminal"
+message = "every open task has one Problem section"
+
+[[tasks.body.headers.rules]]
+name = "one-to-be-section"
+path = ["TO-BE"]
+action = "unique"
+when = "!terminal"
+message = "every open task has one TO-BE section"
+
+[[tasks.body.headers.rules]]
+name = "one-changes-section"
+path = ["Changes"]
+action = "unique"
+when = "!terminal"
+message = "every open task has one Changes section"
+
+[[tasks.body.headers.rules]]
+name = "one-out-of-scope-section"
+path = ["Out of scope"]
+action = "unique"
+when = "!terminal"
+message = "every open task has one Out of scope section"
+
+# No section takes a subsection. The wildcard pair matches any heading nested
+# under any heading, so one rule closes the whole depth axis rather than
+# naming each section — a section that has grown sub-structure is the shape a
+# task takes just before it should have been two tasks.
+[[tasks.body.headers.rules]]
+name = "no-subsections"
+action = "forbid"
+path = [{ match = ".*" }, { match = ".*" }]
+when = "!terminal"
+message = "sections take no subsections; if a section needs one, the task is too big"
+
+# Section-content rules: the heading rules above prove the sections exist;
+# these prove each one says what its heading promises. Regexes run over the
+# section's source text.
+[[tasks.body.content.rules]]
+name = "problem-is-numbered-steps"
+path = ["Problem"]
+assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s" }
+when = "!terminal"
+message = "write the Problem as numbered steps anyone can follow"
+
+[[tasks.body.content.rules]]
+name = "problem-marks-the-defect"
+path = ["Problem"]
+assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s+🔴" }
+when = "!terminal"
+message = "open the step that shows the defect with 🔴"
+
+[[tasks.body.content.rules]]
+name = "to-be-has-green-bullets"
+path = ["TO-BE"]
+assert = { must-match = "(?m)^\\s*- 🟢" }
+when = "!terminal"
+message = "say how it should work as bullets opening with 🟢"
+
+[[tasks.body.content.rules]]
+name = "to-be-bullets-all-green"
+path = ["TO-BE"]
+assert = { must-not-match = "(?m)^\\s*- [^🟢]" }
+when = "!terminal"
+message = "open every TO-BE bullet with 🟢"
+
+[[tasks.body.content.rules]]
+name = "changes-name-files"
+path = ["Changes"]
+assert = { must-match = "(?m)^\\s*- .*`" }
+when = "!terminal"
+message = "list Changes as bullets naming the `path` each one touches"
+
+[[tasks.body.content.rules]]
+name = "named-sections-non-empty"
+path = [
+  { match = "^(Out of scope|Environment|Source of truth|Alternatives|Rollback)$" },
+]
+assert = "non-empty"
+when = "!terminal"
+message = "a heading over nothing decides nothing; say what belongs here, or why nothing does"
+
+# Word caps, provisional: set on 2026-09-15 with headroom over the rewritten
+# open tasks in MindTape's own backlog. A section over its cap is a task that
+# should have been two.
+[[tasks.body.content.rules]]
+name = "section-word-cap"
+path = [
+  { match = "^(Problem|Environment|TO-BE|Source of truth|Alternatives|Rollback|Out of scope)$" },
+]
+assert = { max-words = 120 }
+when = "!terminal"
+message = "keep this section under 120 words; a longer one is a task that should have been two"
+
+[[tasks.body.content.rules]]
+name = "changes-word-cap"
+path = ["Changes"]
+assert = { max-words = 220 }
+when = "!terminal"
+message = "keep this section under 220 words; a longer one is a task that should have been two"
+
+# A task proposing config or API surface pays for a translation step when it
+# only describes the shape in prose. Only fires on a task tagged `gating`, a
+# convention the extending layer's own `[tasks.tags]` opts into — silently
+# inert for a repo that never uses the tag.
+[[tasks.body.content.rules]]
+name = "show-shape-when-gating"
+path = ["TO-BE"]
+assert = { must-match = "[`]{3}" }
+when = 'has_tag("gating") && !terminal'
+message = "this task proposes config surface; show the shape in a block"
+
+[[tasks.body.content.rules]]
+name = "no-em-dash-pileup"
+path = [{ match = ".*" }]
+assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
+when = "!terminal"
+message = "more than one em-dash in a paragraph reads as generated prose; use a comma, a colon or a second sentence"
+
+# A title's grammatical shape is a convention `mt check` can hold once there
+# is a vocabulary to ask against: `verbs` unions both dictionaries `mt` ships
+# so this rule always has one, project-specific additions included via a
+# same-named `[dicts.verbs]` override in the extending layer.
+[[tasks.rules]]
+name = "imperative-title"
+assert = 'in_dict("verbs", word(title, 1))'
+when = "!terminal"
+message = "start the title with an imperative verb"
+severity = "error"
+
+[dicts.verbs]
+include = ["mindtape-verbs", "mindtape-dev-verbs"]
