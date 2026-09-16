@@ -27,7 +27,7 @@
   ),
   kind: "test",
   assignee: "agent",
-  status: proposed(2026, 9, 16),
+  status: wip(2026, 9, 16),
 )
 
 == Problem
