@@ -79,24 +79,34 @@ const KINDS: [&str; 7] = [
 
 /// An open task names its kind; a closed one is exempt, so history is not
 /// backfilled.
+///
+/// Both halves are stamped onto a loaded task rather than searched for in the
+/// backlog: a backlog whose every task is closed is a legitimate state — the
+/// one this test used to unwrap a `None` on — and the assertion is about the
+/// config's `required` rule, not about what the backlog holds today.
 #[test]
 fn dogfood_config_requires_kind_on_open_tasks_only() {
     let root = root();
     let config = config();
-    let terminal = config.tasks.status.terminal();
     let outcome = mindtape::load_project(&root, &config);
-    let kind_flagged = |item: &mindtape::Task| {
-        let mut item = item.clone();
+    let base = outcome.tasks.first().unwrap().clone();
+    let kind_flagged = |status: &str| {
+        let mut item = base.clone();
         item.kind = None;
+        item.status = Some(mindtape::Status {
+            name: status.to_owned(),
+            date: base.status.as_ref().and_then(|stamp| stamp.date.clone()),
+            note: None,
+        });
         mindtape::validate(&[item], &config)
             .iter()
             .any(|v| v.field == "kind")
     };
 
-    let open = outcome.tasks.iter().find(|t| !t.is_terminal(&terminal));
-    assert!(kind_flagged(open.unwrap()), "an open task without kind");
-    let closed = outcome.tasks.iter().find(|t| t.is_terminal(&terminal));
-    assert!(!kind_flagged(closed.unwrap()), "a closed task without kind");
+    let open = config.tasks.status.initial().unwrap().value.clone();
+    let closed = config.tasks.status.terminal().first().unwrap().clone();
+    assert!(kind_flagged(&open), "an open task without kind");
+    assert!(!kind_flagged(&closed), "a closed task without kind");
 }
 
 /// A sweep template files one kind of finding, so it stamps that kind into
