@@ -32,7 +32,7 @@
   ),
   plain-files: (
     title: "Plain files, no infrastructure",
-    acid-test: [`git clone` plus the `mt` binary is the whole setup: no daemon,
-      no database, no index, and nothing outside the repo to lose.],
+    acid-test: [`mt` binary is the whole setup: no daemon, no database,
+      no index,and nothing outside the repo to lose.],
   ),
 )
