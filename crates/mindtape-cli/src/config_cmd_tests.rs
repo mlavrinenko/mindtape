@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use mindtape::{Config, LayerSource, load_config, load_config_layered, parse_config};
+use mindtape::{Config, LayerSource, RuleOrigin, load_config, load_config_layered, parse_config};
 
 use super::{render_effective, render_origin, render_schema};
 
@@ -229,4 +229,160 @@ fn describe_source_covers_xdg_and_dir() {
     let dir = describe_source(&LayerSource::Dir(PathBuf::from("/tmp/d.toml")));
     assert!(dir.starts_with("dir:"));
     assert!(dir.contains("(missing)"));
+}
+
+// --- `mt config show --origin`'s `rule <label>: <origin>` lines: one test
+// per label `describe_rule_origin` can print. Five reach it through
+// `render_origin` over a real project (`project`, `dir`, `pack <path>`,
+// `pack <name>`, `xdg`); `embedded` never can, for the reason argued at its
+// test below, so it calls `describe_rule_origin` directly instead.
+
+/// A rule declared in the project's own `.mindtape/config.toml` is labeled
+/// `project`.
+#[test]
+fn origin_labels_the_projects_own_rule_as_project() {
+    let dir = bare_project();
+    std::fs::write(
+        dir.path().join(".mindtape").join("config.toml"),
+        "[[tasks.rules]]\nname = \"project-rule\"\nassert = 'kind == \"bug\"'\n",
+    )
+    .unwrap();
+
+    let text = render_origin(dir.path()).unwrap();
+    assert!(
+        text.contains("rule tasks.rules.project-rule: project"),
+        "{text}"
+    );
+}
+
+/// A rule declared in an ancestor `.mindtape/defaults.toml` is labeled `dir`.
+///
+/// `render_origin` only calls the real-environment `load_config_layered`, not
+/// the `home`-injectable variant the crate's own layer tests use, so this
+/// can't bound the walk at a fake `$HOME`. It doesn't need to: `dir_layers`
+/// keeps climbing past a `$HOME` the project isn't under all the way to the
+/// filesystem root, so an ancestor directly above a project nested in a
+/// tempdir is on that path regardless of where the real `$HOME` points.
+#[test]
+fn origin_labels_an_ancestor_defaults_rule_as_dir() {
+    let base = tempfile::tempdir().unwrap();
+    std::fs::create_dir_all(base.path().join(".mindtape")).unwrap();
+    std::fs::write(
+        base.path().join(".mindtape").join("defaults.toml"),
+        "[[tasks.rules]]\nname = \"ancestor-rule\"\nassert = 'kind == \"bug\"'\n",
+    )
+    .unwrap();
+    let project = base.path().join("project").join(".mindtape");
+    std::fs::create_dir_all(&project).unwrap();
+
+    let text = render_origin(project.parent().unwrap()).unwrap();
+    assert!(
+        text.contains("rule tasks.rules.ancestor-rule: dir"),
+        "{text}"
+    );
+}
+
+/// A rule pulled in through a path pack (an `extends` entry with a path
+/// separator, resolved relative to the layer that names it — here the
+/// project itself) is labeled `pack <path>`.
+#[test]
+fn origin_labels_a_path_packs_rule_as_pack_path() {
+    let dir = bare_project();
+    std::fs::create_dir_all(dir.path().join("packs")).unwrap();
+    let pack_path = dir.path().join("packs").join("pack.toml");
+    std::fs::write(
+        &pack_path,
+        "[[tasks.rules]]\nname = \"from-pack\"\nassert = 'kind == \"bug\"'\n",
+    )
+    .unwrap();
+    std::fs::write(
+        dir.path().join(".mindtape").join("config.toml"),
+        "extends = [\"packs/pack.toml\"]\n",
+    )
+    .unwrap();
+
+    let text = render_origin(dir.path()).unwrap();
+    let expected = format!("rule tasks.rules.from-pack: pack {}", pack_path.display());
+    assert!(text.contains(&expected), "{text}");
+}
+
+/// A rule declared in the XDG global `defaults.toml` is labeled `xdg`.
+///
+/// `render_origin` resolves that layer through `$MINDTAPE_CONFIG_HOME` (the
+/// one override that lands on every platform — `dirs` reads `$HOME` on Unix
+/// but a known-folder API on Windows, which no env var moves; see
+/// `mindtape::app_dirs`). Setting it on the current process would leak into
+/// every other test sharing it, so — like `run_defaults_prints_embedded_floor`
+/// above — this scopes the override to a spawned copy of the test binary
+/// instead of mutating this process's environment.
+#[test]
+fn origin_labels_an_xdg_defaults_rule_as_xdg() {
+    const PROJECT_ENV: &str = "_MT_CONFIG_XDG_PROJECT";
+    if std::env::var_os(PROJECT_ENV).is_none() {
+        // Parent: scaffold a bare project and an XDG config home holding a
+        // rule, then spawn a child with `$MINDTAPE_CONFIG_HOME` pointed at it.
+        let project = bare_project();
+        let xdg = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(xdg.path().join("mindtape")).unwrap();
+        std::fs::write(
+            xdg.path().join("mindtape").join("defaults.toml"),
+            "[[tasks.rules]]\nname = \"xdg-rule\"\nassert = 'kind == \"bug\"'\n",
+        )
+        .unwrap();
+
+        let output = std::process::Command::new(std::env::current_exe().unwrap())
+            .env(PROJECT_ENV, project.path())
+            .env(mindtape::CONFIG_HOME_ENV, xdg.path())
+            .args(["origin_labels_an_xdg_defaults_rule_as_xdg", "--nocapture"])
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            stdout.contains("rule tasks.rules.xdg-rule: xdg"),
+            "{stdout}"
+        );
+        return;
+    }
+    // Child: render the origin for the project the parent scaffolded, under
+    // the injected `$MINDTAPE_CONFIG_HOME`.
+    let root = PathBuf::from(std::env::var_os(PROJECT_ENV).unwrap());
+    print!("{}", render_origin(&root).unwrap());
+}
+
+/// A rule pulled in through a bare `extends` name resolved against the
+/// compiled-in `EMBEDDED_PACKS` registry (`crates/mindtape/src/config_packs.
+/// rs`) is labeled `pack <name>`.
+#[test]
+fn origin_labels_an_embedded_packs_rule_as_pack_name() {
+    let dir = bare_project();
+    std::fs::write(
+        dir.path().join(".mindtape").join("config.toml"),
+        "extends = [\"mindtape-tasks\"]\n",
+    )
+    .unwrap();
+
+    let text = render_origin(dir.path()).unwrap();
+    assert!(
+        text.contains("rule tasks.rules.imperative-title: pack mindtape-tasks"),
+        "{text}"
+    );
+}
+
+/// `embedded` — a rule declared directly in the compiled-in floor
+/// (`RuleOrigin::Layer(LayerSource::Embedded)`) — can never be reached
+/// through `render_origin` at all: the embedded `defaults.toml` declares no
+/// `[[tasks.rules]]`, `[[tasks.body.headers.rules]]` or
+/// `[[tasks.body.content.rules]]` entry, so no real merge ever produces this
+/// origin. Call `describe_rule_origin` directly to pin the label regardless.
+#[test]
+fn describe_rule_origin_labels_the_embedded_floor() {
+    use super::describe_rule_origin;
+
+    let origin = RuleOrigin::Layer(LayerSource::Embedded);
+    assert_eq!(describe_rule_origin(&origin), "embedded");
 }
