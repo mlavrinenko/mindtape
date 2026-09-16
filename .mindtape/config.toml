@@ -3,6 +3,14 @@
 # White-listed: MindTape constrains only what is declared here. Omit a section
 # to accept the defaults and the prelude's full status shortcut set.
 
+# The flagship task practice — the six-section shape, its markers and word
+# caps, and the imperative-title rule — ships as the `mindtape-tasks` pack
+# (`crates/mindtape/src/packs/mindtape-tasks.toml`) rather than living here by
+# hand. What stays local is only what is true of THIS repo: goal verdicts
+# (the `goals` rule, below) and an extra `Dogfood` section the pack has no
+# opinion on — see the `section-allowlist` override further down for how.
+extends = ["mindtape-tasks"]
+
 [tasks]
 # MindTape's own backlog lives here, one task per file. The `mt` root name is
 # emitted as a derived tag on every task (the tree is flat today, so no folder
@@ -248,39 +256,26 @@ required = "!terminal"
 [tasks.comments]
 policy = "forbid"
 
-# Every open task is one spec in five common sections, in this order. The set
-# came out of the 2026-09-15 backlog review and the research it was checked
-# against. Goal verdicts sit beside status and links instead, in `x-goals:`
-# (see the `goals` rule below): one verdict per goal in truth/goals.typ and
-# truth/process-goals.typ, checked by `check-goals(...)` in truth/lib.typ. A
-# task that helps no goal is refused, so nothing unjustified gets filed.
+# Every open task is one spec in the pack's six sections (Problem, TO-BE,
+# Changes, Out of scope, plus its kind's own section) — see
+# `crates/mindtape/src/packs/mindtape-tasks.toml` for the shape and the
+# research it is checked against. Goal verdicts sit beside status and links
+# instead, in `x-goals:` (see the `goals` rule below): one verdict per goal
+# in truth/goals.typ and truth/process-goals.typ, checked by
+# `check-goals(...)` in truth/lib.typ. A task that helps no goal is refused,
+# so nothing unjustified gets filed.
 #
-# - Problem: numbered steps anyone can follow, commands in backticks, and the
-#   step that shows the defect opening with 🔴. Reproduction scripts raise agent
-#   solve rates while narrative steps add little (arXiv 2607.07593); developers
-#   rank steps to reproduce first (Bettenburg et al., FSE 2008).
-# - TO-BE: how it should work, behave and feel once this lands, each bullet
-#   opening with 🟢. A vision, not a test plan: `just check` and the close gate
-#   do the verifying.
-# - Changes: bullets naming the files and what changes in each. Fix suggestions
-#   and fault localization raise solve rates (arXiv 2607.07593), but a wrong
-#   plan hurts more than none (arXiv 2604.12147): name places, not a script.
-# - Out of scope: what not to touch, so the diff stays one change.
-# - Dogfood: how this repo uses the change, or "Not applicable" and why. A rule
-#   no task has to answer is one an agent forgets.
-#
-# Four kinds carry one more section where the research names a gap in those
-# five: a fix says where its Problem reproduces (Environment, the version and
-# platform block of GitHub's bug form), a feat which designs it rejected
-# (Alternatives, essential in Google design docs and Rust RFCs), a docs change
-# what its prose must match (Source of truth), and a dev chore how to undo it
-# (Rollback). Each of those kinds has its own template.
-#
-# Headings and lists carry weight on their own: stripping them lowers solve
-# rates with the content intact, and so does length (arXiv 2607.07593). Hence
-# the closed set here and the word caps below. Closed tasks keep the
-# Summary/Scope bodies they closed with.
+# `section-allowlist` overrides the pack's own rule of the same name to add
+# one more section, `Dogfood`, this repo's own convention for saying how it
+# uses a change ("Not applicable" with a reason opts out) — a same-named
+# entry replaces the pack's in place rather than appending beside it, so
+# restating the full allowed set with `Dogfood` added is how a local section
+# gets layered onto an inherited practice. This is the worked example for
+# that mechanism: an adopting repo with its own extra section copies this
+# shape; one it wants gone entirely reaches for `disable = ["<name>"]`
+# instead.
 [[tasks.body.headers.rules]]
+name = "section-allowlist"
 action = "allowlist"
 allowed = [
   { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
@@ -289,260 +284,36 @@ when = "!terminal"
 message = "an open task's sections are Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
 
 [[tasks.body.headers.rules]]
-path = ["Environment"]
-action = "unique"
-when = '!terminal && kind == "fix"'
-message = "a fix says where its Problem reproduces, in one Environment section"
-
-[[tasks.body.headers.rules]]
-path = ["Alternatives"]
-action = "unique"
-when = '!terminal && kind == "feat"'
-message = "a feat names the designs it rejected, in one Alternatives section"
-
-[[tasks.body.headers.rules]]
-path = ["Source of truth"]
-action = "unique"
-when = '!terminal && kind == "docs"'
-message = "a docs change names what its prose must match, in one Source of truth section"
-
-[[tasks.body.headers.rules]]
-path = ["Rollback"]
-action = "unique"
-when = '!terminal && kind == "dev"'
-message = "a dev chore says how to undo it, in one Rollback section"
-
-[[tasks.body.headers.rules]]
-action = "forbid"
-path = ["Environment"]
-when = '!terminal && kind != "fix"'
-message = "Environment belongs to fix tasks"
-
-[[tasks.body.headers.rules]]
-action = "forbid"
-path = ["Alternatives"]
-when = '!terminal && kind != "feat"'
-message = "Alternatives belongs to feat tasks"
-
-[[tasks.body.headers.rules]]
-action = "forbid"
-path = ["Source of truth"]
-when = '!terminal && kind != "docs"'
-message = "Source of truth belongs to docs tasks"
-
-[[tasks.body.headers.rules]]
-action = "forbid"
-path = ["Rollback"]
-when = '!terminal && kind != "dev"'
-message = "Rollback belongs to dev tasks"
-
-# An order rule passes while either side is absent, so these four pairs bind
-# only the kinds that carry the section.
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["Problem"]
-after = ["Environment"]
-when = "!terminal"
-message = "Environment follows Problem"
-
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["TO-BE"]
-after = ["Source of truth"]
-when = "!terminal"
-message = "Source of truth follows TO-BE"
-
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["Source of truth"]
-after = ["Changes"]
-when = "!terminal"
-message = "Changes follows Source of truth"
-
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["Changes"]
-after = ["Alternatives"]
-when = "!terminal"
-message = "Alternatives follows Changes"
-
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["Alternatives"]
-after = ["Out of scope"]
-when = "!terminal"
-message = "Out of scope follows Alternatives"
-
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["Changes"]
-after = ["Rollback"]
-when = "!terminal"
-message = "Rollback follows Changes"
-
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["Rollback"]
-after = ["Out of scope"]
-when = "!terminal"
-message = "Out of scope follows Rollback"
-
-[[tasks.body.headers.rules]]
-path = ["Problem"]
-action = "unique"
-when = "!terminal"
-message = "every open task has one Problem section"
-
-[[tasks.body.headers.rules]]
-path = ["TO-BE"]
-action = "unique"
-when = "!terminal"
-message = "every open task has one TO-BE section"
-
-[[tasks.body.headers.rules]]
-path = ["Changes"]
-action = "unique"
-when = "!terminal"
-message = "every open task has one Changes section"
-
-[[tasks.body.headers.rules]]
-path = ["Out of scope"]
-action = "unique"
-when = "!terminal"
-message = "every open task has one Out of scope section"
-
-[[tasks.body.headers.rules]]
+name = "one-dogfood-section"
 path = ["Dogfood"]
 action = "unique"
 when = "!terminal"
 message = "every open task says how this repo will dogfood it, in one Dogfood section (\"Not applicable\" with a reason opts out)"
 
 [[tasks.body.headers.rules]]
-action = "order"
-before = ["Problem"]
-after = ["TO-BE"]
-when = "!terminal"
-message = "TO-BE follows Problem"
-
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["TO-BE"]
-after = ["Changes"]
-when = "!terminal"
-message = "Changes follows TO-BE"
-
-[[tasks.body.headers.rules]]
-action = "order"
-before = ["Changes"]
-after = ["Out of scope"]
-when = "!terminal"
-message = "Out of scope follows Changes"
-
-[[tasks.body.headers.rules]]
+name = "dogfood-after-out-of-scope"
 action = "order"
 before = ["Out of scope"]
 after = ["Dogfood"]
 when = "!terminal"
 message = "Dogfood follows Out of scope"
 
-# No section takes a subsection. The wildcard pair matches any heading nested
-# under any heading, so one rule closes the whole depth axis rather than naming
-# each section — and a section that has grown sub-structure is the shape a task
-# takes just before it should have been two tasks.
-#
-# `allowlist` would be the natural spelling (`scope` the section, `allowed`
-# empty) but cannot express it: artifact-gate rejects an empty `allowed` with
-# `RuleError::EmptyPath` (artifact-gate-0.1.0/src/lib.rs:208), so `forbid` over
-# a wildcard path is the form that works today. See
-# truth/tasks/let-an-empty-allowlist-mean-no-children.typ.
-#
-# Measured at adoption (2026-09-14): 2 depth-2 headings across 325 tasks, both
-# in one closed task, so `!terminal` leaves this binding nothing today — the
-# same posture every other rule here takes.
-[[tasks.body.headers.rules]]
-action = "forbid"
-path = [{ match = ".*" }, { match = ".*" }]
-when = "!terminal"
-message = "sections take no subsections; if a section needs one, the task is too big"
-
-# Section-content rules: the heading rules above prove the sections exist;
-# these prove each one says what its heading promises. Regexes run over the
-# section's source text. `!terminal` everywhere: history is not backfilled.
 [[tasks.body.content.rules]]
-path = ["Problem"]
-assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s" }
-when = "!terminal"
-message = "write the Problem as numbered steps anyone can follow"
-
-[[tasks.body.content.rules]]
-path = ["Problem"]
-assert = { must-match = "(?m)^\\s*(\\+|\\d+\\.)\\s+🔴" }
-when = "!terminal"
-message = "open the step that shows the defect with 🔴"
-
-[[tasks.body.content.rules]]
-path = ["TO-BE"]
-assert = { must-match = "(?m)^\\s*- 🟢" }
-when = "!terminal"
-message = "say how it should work as bullets opening with 🟢"
-
-[[tasks.body.content.rules]]
-path = ["TO-BE"]
-assert = { must-not-match = "(?m)^\\s*- [^🟢]" }
-when = "!terminal"
-message = "open every TO-BE bullet with 🟢"
-
-[[tasks.body.content.rules]]
-path = ["Changes"]
-assert = { must-match = "(?m)^\\s*- .*`" }
-when = "!terminal"
-message = "list Changes as bullets naming the `path` each one touches"
-
-[[tasks.body.content.rules]]
-path = [
-  { match = "^(Out of scope|Environment|Source of truth|Alternatives|Rollback)$" },
-]
-assert = "non-empty"
-when = "!terminal"
-message = "a heading over nothing decides nothing; say what belongs here, or why nothing does"
-
-# Word caps, provisional: set on 2026-09-15 with headroom over the rewritten
-# open tasks. A section over its cap is a task that should have been two.
-[[tasks.body.content.rules]]
-path = [
-  { match = "^(Problem|Environment|TO-BE|Source of truth|Alternatives|Rollback|Out of scope|Dogfood)$" },
-]
-assert = { max-words = 120 }
-when = "!terminal"
-message = "keep this section under 120 words; a longer one is a task that should have been two"
-
-[[tasks.body.content.rules]]
-path = ["Changes"]
-assert = { max-words = 220 }
-when = "!terminal"
-message = "keep this section under 220 words; a longer one is a task that should have been two"
-
-[[tasks.body.content.rules]]
+name = "dogfood-non-empty"
 path = ["Dogfood"]
 assert = "non-empty"
 when = "!terminal"
 message = "a Dogfood heading over nothing decides nothing; say how this repo uses the change, or \"Not applicable\" and why"
 
-# A task proposing config or API surface pays for a translation step when it
-# only describes the shape in prose. The regex is a character class rather
-# than a literal fence so the rule can be quoted inside a task body (this one)
-# without closing the block it sits in.
+# The pack's own word cap (`section-word-cap`) does not reach `Dogfood`,
+# since that section is only ever this repo's own — so it gets a cap of its
+# own rather than an override of the pack's.
 [[tasks.body.content.rules]]
-path = ["TO-BE"]
-assert = { must-match = "[`]{3}" }
-when = 'has_tag("gating") && !terminal'
-message = "this task proposes config surface; show the shape in a block"
-
-[[tasks.body.content.rules]]
-path = [{ match = ".*" }]
-assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
+name = "dogfood-word-cap"
+path = ["Dogfood"]
+assert = { max-words = 120 }
 when = "!terminal"
-message = "more than one em-dash in a paragraph reads as generated prose; use a comma, a colon or a second sentence"
+message = "keep this section under 120 words; a longer one is a task that should have been two"
 
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view. Redeclare `[views.default]` here to add a
@@ -570,21 +341,6 @@ max = 1
 severity = "error"
 message = "finish the open task, or split off what is done and close that, before starting another"
 
-# `severity = "error"` rather than the `warn` a mid-backlog adoption would
-# pick (see examples/learn-piano/.mindtape/config.toml for that case): this
-# backlog is starting the convention clean, not catching up to it — every
-# open title already passed against `verbs` before this rule went in, so
-# `error` costs nothing today and catches the next slip instead of just
-# noting it. `when = "!terminal"` matches every other `required = "!terminal"`
-# field above: closed history is not backfilled, only the open backlog is
-# policed.
-[[tasks.rules]]
-name = "imperative-title"
-assert = 'in_dict("verbs", word(title, 1))'
-when = "!terminal"
-message = "start the title with an imperative verb"
-severity = "error"
-
 # Goal verdicts moved out of the body into `x-goals:`, beside status and
 # links, so a script can find them without parsing prose (`mt eval --json`
 # now carries them). `assert` cannot reach an `x-<ns>` field or walk its
@@ -597,14 +353,6 @@ name = "goals"
 when = "!terminal"
 check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
 severity = "error"
-
-# A title's grammatical shape was the one convention `mt check` never held —
-# blustroke writes verb-first titles ("Wire the cross target", not "cross
-# target wiring") from memory alone. `verbs` unions both shipped dicts so the
-# rule below has a vocabulary to ask against; nothing project-specific is
-# added; a genuine gap belongs in a dict, not a workaround in the rule.
-[dicts.verbs]
-include = ["mindtape-verbs", "mindtape-dev-verbs"]
 
 # The sweep's own inbox: everything `just ask-refactoring` filed that is still
 # open. It is both a listing (`mt ls @ask-refactoring`) and the sweep's re-run
