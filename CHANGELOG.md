@@ -154,6 +154,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   repo's own `.mindtape/config.toml` now carries a `density` rule capping
   every open task's paragraphs at one em-dash.
 
+- **Rule packs get a dedicated reference page.** `/rule-packs/` covers what a
+  pack file may contain (the three rule arrays plus `[dicts]`, nothing else,
+  no nested `extends`), an embedded pack versus a path pack, adopting one
+  with `extends`, overriding a single rule by name or dropping it with
+  `disable`, the merge order across layers and packs, what `mt config show
+  --origin` prints, and what `mindtape-tasks` enforces — quoted from the pack
+  itself so the page cannot drift from it. `/config/`'s "The four layers"
+  now carries a short `extends`/`disable` paragraph of its own and links out
+  to the new page instead of repeating it.
+
 ### Removed
 
 - **Every backward-compatibility shim for a pre-release spelling** (breaking,

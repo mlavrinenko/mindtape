@@ -194,8 +194,8 @@ gen_read describe  add --describe
 gen_read flip-list flip --list
 gen_read eval      eval "$FIX/tasks/repertoire/fur-elise-polish.typ"
 
-# examples/self-validating/: own script (this file is at the Shell cap already).
-bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"
+# examples/self-validating/ and the mindtape-tasks pack: each its own script (this file is at the Shell cap already).
+bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-rule-packs.sh" "$REPO" "$OUT"
 
 # The colour-bearing transcripts (the `mt ls` family) captured a SECOND time
 # WITH ANSI, for the terminal-ansi html.frame render path (www/utils/ui.typ);

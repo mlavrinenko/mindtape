@@ -261,9 +261,8 @@ mt flip done 1b 2c --force     # several at once; waive a failing gate
 
 `ready` / `blocked` in filters derive from `links:` — a non-terminal task with
 a non-terminal `depends-on` target is blocked. Most legends carry no `blocked`
-value; check `mt flip --list` before reaching for one.
-
-Express blockage with `mt link` (below), never a hand edit.
+value; check `mt flip --list` before reaching for one. Express blockage with
+`mt link` (below), never a hand edit.
 
 An external blocker (an upstream release, another team's decision) has no task
 to depend on. Either file a task for it and depend on that (preferred — keeps
@@ -301,7 +300,8 @@ required fields, numeric and estimate bounds, links, cycles, tags, body
 headers, section content (`[tasks.body.content]`), `[[tasks.limits]]` caps,
 `[[tasks.rules]]` assertions, comment policy, and file-budget drift
 (warn-only). A body-header/content or `[[tasks.rules]]` `error` breach also
-refuses the write commands above; `warn` prints and lets it through.
+refuses the write commands above; `warn` prints and lets it through. `mt
+config show --origin` names the pack a rule came from.
 
 = Authoring or editing a task file by hand
 

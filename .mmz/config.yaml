@@ -159,6 +159,10 @@ scopes:
     # www/generate.sh reads the release workflow (via yq) to derive the
     # quickstart install targets baked into the built docs.
     - ".github/workflows/release.yml"
+    # Quoted verbatim by www/content/rule-packs.typ, copied into
+    # www/generated/ by www/generate-rule-packs.sh; lives under crates/, so
+    # no glob above already covers it.
+    - "crates/mindtape/src/packs/mindtape-tasks.toml"
     # Quoted verbatim by www/content/self-validating-tasks.typ and captured
     # (a deliberately failing `mt check`) by www/generate.sh. Not in the
     # `examples` scope above: that one is `just check-examples`'s validated

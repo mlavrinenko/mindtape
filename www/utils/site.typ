@@ -77,6 +77,7 @@
       "/filters/",
       "/priority/",
       "/config/",
+      "/rule-packs/",
       "/named-sets/",
       "/hooks/",
       "/estimates/",

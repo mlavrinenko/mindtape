@@ -39,6 +39,17 @@ name works only ACROSS files this way; two entries sharing a name WITHIN one
 layer's (or one pack's) own array is a config error naming both, the same
 treatment an unnamed entry never needs.
 
+Inspect the result:
+
+```sh
+mt config show            # effective config as re-parseable TOML
+mt config show --origin   # which config layers contributed, and from where
+mt config show --defaults # just the embedded floor
+mt config show --json     # effective config as JSON
+```
+
+= Rule packs
+
 Any layer may also declare:
 
 ```toml
@@ -56,14 +67,11 @@ only those three rule arrays and `[dicts]`, and may not itself `extends`.
 extended) carrying a listed name; naming one that matches nothing is a config
 error. `mt config show --origin` names the pack behind each such rule.
 
-Inspect the result:
-
-```sh
-mt config show            # effective config as re-parseable TOML
-mt config show --origin   # which config layers contributed, and from where
-mt config show --defaults # just the embedded floor
-mt config show --json     # effective config as JSON
-```
+See #link(u("/rule-packs/"))[Rule packs] for what a pack file may contain, an
+embedded pack versus a path pack, overriding a single rule by name or
+`disable`-ing it, the full merge order across layers and packs, reading
+`--origin`'s output, and what the shipped `mindtape-tasks` pack enforces,
+quoted from the pack itself.
 
 = Sections
 
