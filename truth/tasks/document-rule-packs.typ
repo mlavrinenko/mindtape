@@ -13,7 +13,7 @@
   estimate: (files: 3),
   kind: "docs",
   assignee: "agent",
-  status: proposed(2026, 9, 15),
+  status: wip(2026, 9, 16),
   links: depends-on("ship-the-task-practice-as-the-mindtape-tasks-pack.typ"),
   x-goals: (
     product: (
