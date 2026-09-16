@@ -676,6 +676,7 @@ ask-refactoring $WRITE='0' $BASELINE='90' $COVERAGE_FLOOR='88' $CC_FLOOR='5' $FN
 [arg('BASE', pattern='[A-Za-z0-9._/~^{}-]+', help='commit-ish to fork from — a branch, tag, sha or HEAD~n (default HEAD)')]
 [doc("Stand up a ready worktree on a new branch off BASE")]
 [group("dev")]
+[no-exit-message]
 fork SLUG BASE='HEAD':
     bash .just/scripts/fork.sh '{{ SLUG }}' '{{ BASE }}'
 
