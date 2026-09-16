@@ -372,6 +372,16 @@ groups:
   # changing the refusal into a warning, or moving where the worktree lands,
   # rots that paragraph with nothing else reacting.
   #
+  # integrate.sh joins it for the same reason and the same paragraph: the pair
+  # is described together in docs/src/contributing.typ
+  # (truth/tasks/assert-a-branchs-gate-before-fast-forwarding-it.typ), so the
+  # prose restating one restates the other. What it hand-carries there is what
+  # the script decides and nothing derives — that the freshness assertion is
+  # read from the branch's worktree rather than this checkout, that a stale arm
+  # is named, that the gate is asserted and never re-run, and that there is no
+  # waiver flag. Turn the refusal into a warning, or add the flag, and that
+  # sentence is wrong with nothing else reacting.
+  #
   # check-secrets.sh is the seventh, for size-fixture-check.sh's reason plus
   # one of its own (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ).
   # www/utils/gate-notes.typ restates by hand what its control fixture proves
@@ -421,6 +431,7 @@ groups:
       - .just/scripts/_script-graph.sh
       - .just/scripts/site-pages-fixture-check.sh
       - .just/scripts/fork.sh
+      - .just/scripts/integrate.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ

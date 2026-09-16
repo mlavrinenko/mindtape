@@ -679,6 +679,25 @@ ask-refactoring $WRITE='0' $BASELINE='90' $COVERAGE_FLOOR='88' $CC_FLOOR='5' $FN
 fork SLUG BASE='HEAD':
     bash .just/scripts/fork.sh '{{ SLUG }}' '{{ BASE }}'
 
+# Take a delegated worktree back down, and `fork`'s inverse in more than name:
+# it refuses unless BRANCH's own worktree reports `mmz --is-fresh --tag gate`,
+# then fast-forwards this checkout onto it and removes the worktree. That
+# assertion is the whole recipe — a fast-forward writes no commit, so the
+# pre-commit hook never fires on the merge, and a branch that scoped its gate
+# per-commit has nowhere else to pay the full aggregate.
+#
+# Also refuses a dirty worktree and a branch that is not a fast-forward; it
+# never runs the gate, and there is deliberately no waiver flag. Why the
+# assertion is read from the worktree rather than here, and what the missing
+# flag buys, are argued in place in .just/scripts/integrate.sh.
+
+[arg('BRANCH', pattern='[A-Za-z0-9._/-]+', help='branch to fast-forward onto — the one `just fork` created')]
+[doc("Assert a branch's gate, fast-forward onto it, drop its worktree")]
+[group("dev")]
+[no-exit-message]
+integrate BRANCH:
+    bash .just/scripts/integrate.sh '{{ BRANCH }}'
+
 [doc("Build mt in release mode and install it into ~/.cargo/bin")]
 [group("dev")]
 install-bin:
