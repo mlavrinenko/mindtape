@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 16),
+  status: done(
+    2026,
+    9,
+    16,
+  )[integrate recipe plus .just/scripts/integrate.sh, with the wiring three gates demand: a script-integrate mmz scope, an outdatty dev-docs source, and the regenerated CONTRIBUTING.md — 7 files against the 3 estimated. All five paths verified by hand against scratch worktrees: no worktree for the branch, a dirty worktree, a non-fast-forward, a cold gate naming all 23 arms, and the green path — main's .mmz/cache transplanted into a probe at HEAD, where 22 arms read fresh and check-crap correctly reported stale on the absent target/coverage/lcov.info until that artifact was transplanted too, after which the host worktree fast-forwarded 47d0534 to 0865fff and the probe was removed.],
 )
 
 == Problem
