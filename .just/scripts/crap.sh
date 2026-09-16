@@ -24,11 +24,13 @@
 #
 # What each exclusion buys:
 #
-#   - `*_tests.rs`/`tests.rs` keep CRAP on production code. They are inline
-#     test modules (`#[path] mod tests`), which llvm-cov emits no records for,
-#     so scoring them meant 71 of the 73 "no matching entry in the LCOV report"
-#     warnings and a complexity budget spent on test helpers. Excluding them
-#     changes no verdict.
+#   - `*_tests.rs`/`tests.rs`/`*_tests_*.rs` keep CRAP on production code. They
+#     are inline test modules (`#[path] mod tests`, `ejectest`'s split form
+#     included — `validate_tests_shape.rs`, `config_packs_tests_body.rs`, and
+#     the rest ejectest names when a file crosses the linecop cap), which
+#     llvm-cov emits no records for, so scoring them meant 71 of the 73 "no
+#     matching entry in the LCOV report" warnings and a complexity budget
+#     spent on test helpers. Excluding them changes no verdict.
 #   - `recur_rrule.rs` is real production code, but `just cover` builds with
 #     default features only, so nothing ever compiles it and it would otherwise
 #     score every function inside as phantom 0%-covered (see `just

@@ -82,7 +82,7 @@ groups:
       .just/scripts/cover.sh: b64a43362b1f478b9642a6746b5309ab880f8f4b4d8fffad62444de5a75a20dd
       .just/scripts/crap-baseline-check.sh: e13730ba63d1433e27c2a3d0baa549e017e9a6376a8fd3783cbaa132499f71f9
       .just/scripts/crap-baseline.sh: fc4003b161304a2098571ebc768b0c713df0ac0e0ad068f013016e1373f200b5
-      .just/scripts/crap.sh: cd128c866c34156251225f54dfa87b4ee905933d45e680ab575ba450308f10a9
+      .just/scripts/crap.sh: 91c7fbe1cfcb6ca901cc5eb0ea7eb4557fd0367fcb6a816248a33e085912d753
       .just/scripts/docs-md-check.sh: 5e1b5b7c7b6aacad934e8c11ebf5175b271bc253e8345eb4bd8ce343b50db516
       .just/scripts/fmt-fixture-check.sh: 40c0866d7c20c5baae5c8691639273f0cb3a2921f3c99a1ee44b2287ea566ba5
       .just/scripts/fork.sh: 9f6f970049115b7a703f7a8444e6c8089ac24901e8ecf90bbc6c6047b4b3a015
@@ -95,12 +95,12 @@ groups:
       .just/scripts/script-scope-check.sh: 02f952e6b7776850a943f1792d1526579debf62587ff86d1558f11ad93e37185
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: b40c552ce2838db39f77c68f37814e175cc167a1038f46105b22f9f9d688e54e
+      Justfile: de22ceabb4072c6a7c741b1d847eb8159a53f1e887dfffd82148b9320a06ffa3
       flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
       docs/src/agents.typ: 0d3aed6b2c8e361fadb0c931f34b3fc1764fd4d8bcd95bca865427eba2ee7860
       docs/src/contributing.typ: ca5d323a9616612d111b6526840c38b7fa889e36a9c2993e0e653232a3690d4b
-      docs/src/contributing/coverage-crap.typ: 4aa39d476a0c68971828182f70b11cbf50b8c3c6e31ceaeb4cce12362f8eb0e2
+      docs/src/contributing/coverage-crap.typ: ec874196bc672aff1d387c4402c865a87eac31845bf1307a171c12019d4c757c
       docs/src/contributing/gates.typ: 98ac50a50c777e07eb83143fbae6c5f2573184c4a73ac8e2a15b8534719fec4b
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
       docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c

@@ -81,8 +81,13 @@ exactly what #just.crap() and the sweep's coverage arms exist to find.
 same `lcov.info`. The CRAP metric is `CC² × uncovered³ + CC`, and the gate
 fails above 30, flagging functions that are both complex and undertested. It
 refuses an lcov older than a source file, so run #just.cover() first — CI
-already does. What it excludes, and why each exclude flag has to be spelled
-`**/…`, are argued in place in `.just/scripts/crap.sh`.
+already does. It also skips every test module — `*_tests.rs`, `tests.rs`, and
+`ejectest`'s split form (`*_tests_*.rs`, minted once a file crosses the
+linecop cap) — so a test helper never spends the production complexity
+budget; llvm-cov emits no coverage record for one, so scoring it read as
+undertested production code instead. What it excludes in full, and why each
+exclude flag has to be spelled `**/…`, are argued in place in
+`.just/scripts/crap.sh`.
 
 Carry one consequence of that formula in your head: above \~90% coverage the
 cubed term vanishes and a function scores its own cyclomatic complexity. A
