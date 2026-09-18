@@ -13,11 +13,11 @@
   tags: ("docs", "www"),
   estimate: (files: 9),
   assignee: "agent",
-  status: wip(
+  status: done(
     2026,
     9,
     18,
-  )[NAV groups by reader job; config, cli, dsl, concepts, index and named-sets each say their own part once],
+  )[13 pairs left, all on README/AGENTS/skill; wave 4 switches README to the shared partial],
   x-goals: (
     product: (
       readable-tasks: helps[a reader lands on one page per fact instead of four that disagree by inches],
