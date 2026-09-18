@@ -4,11 +4,11 @@
 #show: task.with(
   title: "State the recur gap in the canonical module doc",
   kind: "docs",
-  status: wip(
+  status: done(
     2026,
     9,
     19,
-  )[the module doc's round-trip claim now matches what the schema page names],
+  )[the module doc names the recur gap and points at the schema page],
   priority: ice(
     impact: 4,
     confidence: 0.9,
