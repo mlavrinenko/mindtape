@@ -33,6 +33,8 @@ before the write* — so `status == "wip"` names the status being left — plus 
 `into("name")` predicate for the status being stamped. An action runs only on a
 transition its `when` matches. An empty `when` fires on every flip.
 
+= Actions
+
 Each action declares exactly one kind:
 
 #table(
@@ -40,18 +42,20 @@ Each action declares exactly one kind:
   table.header([Action], [Effect]),
   [`{ show = "text" }`], [Print `text`.],
   [`{ list = "filter or @view", title = "..." }`],
-  [Print the matching tasks as a table under `title`. A bare `@view` also picks up that view's sort. This is how an agent starting work sees what else is in flight — with no materialised index and nothing written to disk.],
+  [Print the matching tasks as a table under `title`. A bare `@view` also picks up that view's sort.],
 
   [`{ run = "cmd", gate = false, message = "..." }`],
   [Execute `cmd`. With `gate = true` a non-zero exit *refuses the flip*, prints the command's output, and stops: nothing is written for that task and the actions after it do not run. Without `gate` the output is informational. `message` replaces the default advice on failure.],
 )
 
+= Gates
+
 `run` is optional on a gate: `{ gate = true, message = "..." }` with no `run`
 refuses the flip unconditionally whenever the hook's `when` already matched —
 no command runs, so there is nothing to print but the message. The condition
-lives entirely in `when`; a `run`-only gate is for a check `when` cannot
-express itself, such as an external command's exit code. An action with no
-`run` and no `gate = true` — nothing to show, list, run, or refuse — is a
+lives entirely in `when`; a gate with a `run` command is for a check `when`
+cannot express itself, such as an external command's exit code. An action with
+no `run` and no `gate = true` — nothing to show, list, run, or refuse — is a
 config error at load, naming the action's position.
 
 ```toml

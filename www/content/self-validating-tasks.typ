@@ -12,13 +12,10 @@
 
 #show: page.with(..meta)
 
-If your tasks are Markdown files with YAML frontmatter, checking that
-frontmatter against a project rule means writing and running a separate
-linter — another program that knows your schema, lives beside the tracker,
-and drifts the moment someone forgets to run it. A MindTape task is a Typst
-file, so the check can be a Typst function the project already ships, called
-on every `mt check` and before every write. This page proves it live: a task
-that skips a rule the project invented for itself, refused on the spot.
+A MindTape task is a Typst file, so the check can be a Typst function the
+project already ships, called on every `mt check` and before every write. This
+page proves it live: a task that skips a rule the project invented for itself,
+refused on the spot.
 
 = A structure the repo invented
 
@@ -30,9 +27,8 @@ fixture below (`examples/self-validating/`) shrinks that idea to two goals:
 
 = The function that checks it
 
-`lib.typ` is the check, not a linter bolted on afterward: every goal above
-needs a verdict in the task's `x-goals`, or the function names the one that is
-missing.
+`lib.typ` is the check: every goal above needs a verdict in the task's
+`x-goals`, or the function names the one that is missing.
 
 #raw(read("../generated/self-validating-lib.typ"), lang: "typ", block: true)
 
@@ -68,7 +64,7 @@ One does not — it never says how it serves `no-lock-in`:
   block: true,
 )
 
-`mt check` catches it without a second tool:
+`mt check` catches it:
 
 #terminal(read("../generated/self-validating-check.txt"))
 

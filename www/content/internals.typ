@@ -1,6 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout
-#import "../utils/site.typ": u
+#import "../utils/site.typ": REPO, u
 #import "../utils/crate-notes.typ": crate-notes
 #import "../generated/just.typ" as just
 
@@ -19,7 +19,7 @@ for anyone auditing it, packaging it, or building on top.
 
 = Workspace
 
-// Facts (the crate list, versions, direct-vs-transitive) come from
+// Facts (the crate list and versions) come from
 // www/generated/crate-map.json (`cargo metadata` + rust-toolchain.toml); this
 // page owns only the presentation and the per-crate prose (crate-notes.typ) —
 // a machine cannot write "treating Typst as a data format". `just
@@ -34,20 +34,11 @@ A #crate-map.workspace.len()-crate `cargo` workspace (edition
   - #raw(c.name) #raw(c.version) — #crate-notes.at(c.name)
 ]
 
-#let transitive = crate-map.substrate.filter(c => not c.direct)
-
 #crate-map.substrate.len() general-purpose crates sit underneath, published
-separately because none of them knows what a task is
-(#(crate-map.substrate.len() - transitive.len()) direct,
-#transitive.len() reached only transitively — never named in a workspace
-manifest, and marked below with the crate that pulls it in):
+separately because none of them knows what a task is:
 
-// `via` is the cargo resolve graph's answer to WHICH crate pulls a transitive
-// one, so this page names the parent instead of gesturing at "another crate".
 #for c in crate-map.substrate [
-  - #raw(c.name) #raw(c.version)#(
-      if not c.direct [ (transitive, via #c.via.map(raw).join(", "))]
-    ) — #crate-notes.at(c.name)
+  - #raw(c.name) #raw(c.version) — #crate-notes.at(c.name)
 ]
 
 That split is the #link(u("/concepts/"))[extension seam] one layer down: a tool
@@ -84,41 +75,15 @@ byte-identical — that is the one exemption to the read/write split.
 
 = Platform support
 
-// The platform list is the release workflow's own build matrix, read through
-// www/generated/release-targets.json — the same file
-// www/content/quickstart.typ lists the download artifacts from. Adding or
-// dropping a target is then a workflow edit, never a prose edit, and an
-// unrecognized triple fails the build here rather than being silently dropped
-// from the sentence.
-#let OS-FAMILIES = (
-  ("linux", "Linux"),
-  ("apple-darwin", "macOS"),
-  ("windows", "Windows"),
-)
-#let os-of(target) = {
-  for (needle, name) in OS-FAMILIES {
-    if target.contains(needle) { return name }
-  }
-  panic("internals: unknown release target family: " + target)
-}
-// Braces, not a bare chain broken over lines: a `#let` in markup mode ends its
-// expression at the newline, so `json(…)\n  .targets` binds the whole JSON
-// dictionary and the rest is read as markup.
-#let platforms = {
-  let release = json("../generated/release-targets.json")
-  release.targets.map(t => os-of(t.target)).dedup()
-}
-
-#platforms.join(", ", last: " and ") all get a prebuilt binary per release, and
-CI runs the test suite on Linux and Windows. What differs on Windows differs by
-necessity, not omission:
-
-- An `[[on.flip]]` `run` command goes through `cmd /C`, not `sh -c`. It is shell
-  text, so a command written for one shell does not carry to the other.
-- The terminal tests driven by a pty (`mt ls --interactive`, terminal-width and
-  `NO_COLOR` handling) are Unix-only, because their harness is util-linux
-  `script`. The behaviour is platform-independent and `crossterm` implements it
-  over ConPTY; what is unverified there is the harness, not the feature.
+Every tagged release ships a prebuilt binary for each supported platform —
+#link(u("/quickstart/"))[Quickstart] lists them — and CI runs the test suite on
+Linux and Windows. Platform seams live where they act:
+#link(u("/hooks/"))[Flip hooks] owns the platform shell a `run` command goes
+through, and
+#link(
+  REPO + "/blob/main/docs/contributing/windows.md",
+)[docs/contributing/windows.md]
+owns the pty tests that stay Unix-only.
 
 Everything else — the config and data directories, the Typst local-package path,
 editor resolution, path separators in derived tags and link resolution — is the
