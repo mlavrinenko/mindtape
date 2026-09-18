@@ -13,11 +13,11 @@
   tags: ("docs", "tooling"),
   estimate: (files: 6),
   assignee: "agent",
-  status: wip(
+  status: done(
     2026,
     9,
     18,
-  )[rule in CONTRIBUTING with its deep dive, plus the dup-prose audit recipe the rule points at],
+  )[CONTRIBUTING states the rule, docs/contributing/documentation.md carries the arguments, and just dup-prose reports cross-file repeats; the page waves follow],
   x-goals: (
     product: (
       readable-tasks: neutral,
