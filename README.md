@@ -9,7 +9,7 @@
 
 ---
 
-MindTape tracks tasks as one-task-per-file Typst artifacts. Each file declares a task with `#show: task.with(...)`; MindTape live-evaluates the configured roots on every command — no daemon, no database, no index you maintain. A task’s `id` identifies it in listings, filters and links-by-hand, and defaults to the filename stem. Links target files, so renaming a task without updating its dependents fails `mt check` instead of dangling silently.
+MindTape keeps no daemon, database or index: every command evaluates your task files where they sit, so the repository is the tracker. A task is one Typst file, its `id` is the filename stem, and links target files — rename one without updating its dependents and `mt check` says so instead of dangling.
 
 Say the same task lived as a Markdown file with YAML frontmatter instead, checked by a script. Here is one real, closed task from this repo’s own backlog, both ways.
 
@@ -103,16 +103,16 @@ The same task as Typst — `truth/tasks/move-goal-verdicts-into-x-goals.typ` (tr
 
 What only the Typst side does:
 
-- Typed values with their own shape — `status: wip(2026, 9, 14)[note]`, `priority: ice(impact: 8, confidence: 0.7, ease: 6)` — validated on every command, never parsed as strings.
-- Typed links — `depends-on("other.typ")` — resolved and checked on every command, feeding `ready`/`blocked` and the graph; a renamed target fails `mt check` instead of dangling.
-- A repo-invented field, here `x-goals`, checked by the repo’s own Typst function named in config, and refused before `mt add` writes:
+- **Typed values with their own shape.** `status: wip(2026, 9, 14)[note]`, `priority: ice(impact: 8, confidence: 0.7, ease: 6)` — validated on every command, never parsed as strings.
+- **Typed links.** `depends-on("other.typ")` — resolved and checked on every command, feeding `ready`/`blocked` and the graph; a renamed target fails `mt check` instead of dangling.
+- **A repo-invented field.** Here `x-goals`, checked by the repo’s own Typst function named in config, and refused before `mt add` writes:
 
 ```toml
 [[tasks.rules]]
 check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
 ```
 
-Everything scalar or enum is a generic core field constrained by `.mindtape/config.toml`; tools built on MindTape add their own data through the `x-<ns>` extension seam — `x-goals` above is one instance, carried through opaquely. See [Concepts](https://mlavrinenko.github.io/mindtape/concepts/) for the full model and [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) for every field a task can declare.
+The full model is on [Concepts](https://mlavrinenko.github.io/mindtape/concepts/). Every field a task file can declare is on [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/).
 
 ## Installation
 

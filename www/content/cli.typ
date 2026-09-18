@@ -126,7 +126,7 @@ Two keys take an expression in this mini-language: `[[ls.rules]]`'s
 `when`, which decides one column's visibility; both read it against the same
 ambient facts, so an expression means one thing wherever it is written. The
 rule shape and its `import-views` composition are on
-#link(u("/config/"))[Configuration]; a matched rule composes only what it uses
+#link(u("/config/"))[Configuration]. A matched rule composes only what it uses
 — it does not inherit `default-view` as a base layer — and what follows is the
 language itself.
 

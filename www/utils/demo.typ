@@ -50,6 +50,6 @@
   check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
   ```
 
-  The full model is on #link("/concepts/")[Concepts]; every field a task file
+  The full model is on #link("/concepts/")[Concepts]. Every field a task file
   can declare is on #link("/dsl/")[Task DSL].
 ]

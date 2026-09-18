@@ -33,12 +33,12 @@ groups:
       crates/mindtape/src/fields.rs: 605b6c103353cfd70ba4067d88ff1f0cd6f5688fe652a5427eb6ef0eaf669a54
       crates/mindtape/src/lib.rs: bedb5d6474f38d2e89a110e5f803632a148c7dc6bfb91b85271a295ebc7798e6
     dependents:
-      docs/src/skill.typ: 1a503d6b6ded2d8cbea8aa9314ee1fe1baee446c4d7a8042cd3aab0a576bae95
+      docs/src/skill.typ: 8756fff697348bf6e93d4b8568610b833280d3e3e840bb957254705576b2a922
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
-      www/content/agents.typ: faaf3838c12418f06c1a17c29578d6c70861a5ebf5346c67cb621ff62c20efdc
-      www/content/cli.typ: b78091e5176de9f465f1071abec8359ce5354778b7dff1ba3b941e2106becbdc
+      www/content/agents.typ: fa376cbab8a6b1f082076ca50787488dd2bd5f52627e3cec340fa13a5d8d25c2
+      www/content/cli.typ: eb92b87cef0a630652d66df7394ffee8e4deededf0be06c245f006a0a0961b11
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
       www/content/config.typ: cc4af23be5779443474d11f5c68bb095d50a019196b82a2b020f018132ca7311
       www/content/derived-tags.typ: df0c7aab4e3e9634eb8236b1ddfb426499b62f5f9b6c1fbc44a8b46d3c5bb17c
@@ -59,13 +59,13 @@ groups:
       crates/mindtape-cli/Cargo.toml: 9ce1e4d3844fc88e726278cc268a51a08a69a5894cacf5e2a86f5d3b689e8824
       crates/mindtape-cli/src/cli.rs: 3b636ed3fe16dc80c1c5e82020133c34bbdeec7680c2b48314716b857535097a
     dependents:
-      CHANGELOG.md: 6781fd2ccee93ddc920fde41150217f332ca594a2cbb1bd3b9477975721ca165
-      docs/src/agents.typ: 0d3aed6b2c8e361fadb0c931f34b3fc1764fd4d8bcd95bca865427eba2ee7860
-      docs/src/contributing.typ: ca5d323a9616612d111b6526840c38b7fa889e36a9c2993e0e653232a3690d4b
-      docs/src/readme.typ: d4e38cd70258badc81e7a2b83775e9e00a466eeab1037985bfc4a9d5d10dd6c3
-      docs/src/skill.typ: 4237922c59246f4e47cfed6af3cdf37db83001324a5f87b47f6e4425aaf6e932
-      www/content/cli.typ: 91c4e6c8391ae4109f2ff0382a079490557a9cf50904503cb62aa2a65b6dd996
-      www/content/index.typ: 01c07d1c557cc3c8e4e22116922e75343cd82fcedfec4c38e56cfc1c9df5fe40
+      CHANGELOG.md: 16e8af1c789b0e724cb01300fa5db3af58e3fcd725369f8e62f779efd069001a
+      docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
+      docs/src/contributing.typ: aafaaaaba43808e695429640e4e48f9e983dccc08f2f4f044598aa19223a72ae
+      docs/src/readme.typ: 7ba1ff3c4b553522d609390d302edc22e910d9a86a7b3ad6528a7db4b506f7a5
+      docs/src/skill.typ: 8756fff697348bf6e93d4b8568610b833280d3e3e840bb957254705576b2a922
+      www/content/cli.typ: eb92b87cef0a630652d66df7394ffee8e4deededf0be06c245f006a0a0961b11
+      www/content/index.typ: d1d5b290d63aca11f273b112f4b7d39ca7d63fd252acedd583a00f0f4f83e7d8
       www/content/quickstart.typ: 43ecbe2b2f9d1c7bfb43cde95f8732aae8eec6c42c9de56e50d2475b8149a914
   dev-docs:
     source:
@@ -112,9 +112,9 @@ groups:
     source:
       lib/prelude.typ: 2e99b69589c8842bb2fc36461828ee2fdb77a39da3e975358e378b25b924ba06
     dependents:
-      docs/src/agents.typ: 0d3aed6b2c8e361fadb0c931f34b3fc1764fd4d8bcd95bca865427eba2ee7860
-      docs/src/readme.typ: d4e38cd70258badc81e7a2b83775e9e00a466eeab1037985bfc4a9d5d10dd6c3
-      docs/src/skill.typ: 1a503d6b6ded2d8cbea8aa9314ee1fe1baee446c4d7a8042cd3aab0a576bae95
+      docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
+      docs/src/readme.typ: 7ba1ff3c4b553522d609390d302edc22e910d9a86a7b3ad6528a7db4b506f7a5
+      docs/src/skill.typ: 8756fff697348bf6e93d4b8568610b833280d3e3e840bb957254705576b2a922
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
       www/content/dsl.typ: 21d545cd4902d8257f6a26888a69abd1021468f4a46fa62d8338cd77014736c2

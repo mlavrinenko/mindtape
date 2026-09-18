@@ -16,20 +16,19 @@
 // summary out of that same manifest — a page added, renamed or re-summarised
 // on the site lands here with no edit.
 //
-// The opening no longer carries a synthetic task example. It quotes a real,
-// closed task from truth/tasks/ verbatim so a reader sees the actual DSL a
-// task file uses rather than an invented one — the same reason truth/tasks/
-// dogfoods this repo's own backlog. `fact("readme-task")` reads the marker
-// (`#show: task.with(...)`, trimmed of the body below it) and the hand-
-// authored Markdown+YAML twin beside it off www/generate-facts.sh, which
-// derives both once so this file and www/content/index.typ's matching
-// opening never disagree about which task, or what its marker says — see
-// that script's own `readme-task.json` section for the trim and the drift
-// check on the twin. Whatever `@local/mindtape:...` version the quoted
-// file's own `#import` names is whatever shows here, so this file has no
-// version of its own to keep in sync — outdatty.yaml's `typst-pkg-version`
-// group still does not list it, for the same reason it never did: a value
-// read off disk cannot drift from itself.
+// The opening does not carry a synthetic task example, and does not carry its
+// own copy of the real one either. The block lives in www/utils/demo.typ,
+// which this file and www/content/index.typ both render: each passes its own
+// link helper (`www-link` here, tola's `u()` there) and reads everything else
+// — the YAML twin, the trimmed marker, the `x-goals` rule — from
+// www/generated/readme-task.json, so the two front doors cannot drift.
+// `www/generate-facts.sh` derives that fact (the marker trimmed of the body
+// below it, plus the hand-authored Markdown+YAML twin) and drift-checks the
+// twin; see that script's own `readme-task.json` section. Whatever
+// `@local/mindtape:...` version the quoted file's `#import` names is whatever
+// shows here, so this file has no version of its own to keep in sync —
+// outdatty.yaml's `typst-pkg-version` group still does not list it, for the
+// same reason it never did: a value read off disk cannot drift from itself.
 //
 // There is deliberately no Acknowledgements section. It existed to carry an
 // ISC attribution for a Lucide brain icon; the logo is now this repo's own
@@ -47,14 +46,11 @@
 // match. This document therefore has no separate `doc-title` ATX `#`: the
 // centered `<h1>` IS the title, exactly as in the hand-written original.
 #import "lib.typ": fact, www-link, www-summary
+#import "/www/utils/demo.typ": demo
 
 #metadata((
   output: "README.md",
 )) <mindtape-md>
-
-#let readme-task = fact("readme-task")
-#let task-stem = readme-task.stem
-#let task-marker = readme-task.marker
 
 // Every docs-site page except the site root. `www-link` renders a page's own
 // title, and the root's title is "MindTape" over a summary that restates this
@@ -87,51 +83,12 @@
 
 \-\-\-
 
-MindTape tracks tasks as one-task-per-file Typst artifacts. Each file declares a
-task with `#show: task.with(...)`; MindTape live-evaluates the configured roots on
-every command — no daemon, no database, no index you maintain. A task's `id`
-identifies it in listings, filters and links-by-hand, and defaults to the
-filename stem. Links target files, so renaming a task without updating its
-dependents fails `mt check` instead of dangling silently.
+MindTape keeps no daemon, database or index: every command evaluates your task
+files where they sit, so the repository is the tracker. A task is one Typst
+file, its `id` is the filename stem, and links target files — rename one
+without updating its dependents and `mt check` says so instead of dangling.
 
-Say the same task lived as a Markdown file with YAML frontmatter instead,
-checked by a script. Here is one real, closed task from this repo's own
-backlog, both ways.
-
-#raw(readme-task.yaml, lang: "yaml", block: true)
-
-Nothing above is checked until a script reads the file and does it by hand:
-parses `status_date`, keeps `priority`'s three numbers in bounds, resolves
-`depends_on` against another file on disk, and confirms every `x_goals` key
-is present with a reason.
-
-The same task as Typst — #raw("truth/tasks/" + task-stem + ".typ") (trimmed
-here: the file continues with `== Problem`, `== TO-BE`, `== Changes`,
-`== Rollback`, `== Out of scope` and `== Dogfood`):
-
-#raw(task-marker, lang: "typ", block: true)
-
-What only the Typst side does:
-
-- Typed values with their own shape — `status: wip(2026, 9, 14)[note]`,
-  `priority: ice(impact: 8, confidence: 0.7, ease: 6)` — validated on every
-  command, never parsed as strings.
-- Typed links — `depends-on("other.typ")` — resolved and checked on every
-  command, feeding `ready`/`blocked` and the graph; a renamed target fails
-  `mt check` instead of dangling.
-- A repo-invented field, here `x-goals`, checked by the repo's own Typst
-  function named in config, and refused before `mt add` writes:
-
-```toml
-[[tasks.rules]]
-check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
-```
-
-Everything scalar or enum is a generic core field constrained by
-`.mindtape/config.toml`; tools built on MindTape add their own data through
-the `x-<ns>` extension seam — `x-goals` above is one instance, carried
-through opaquely. See #www-link("/concepts/") for the full model and
-#www-link("/dsl/") for every field a task can declare.
+#demo((route, body) => www-link(route, body))
 
 = Installation
 

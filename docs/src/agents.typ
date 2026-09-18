@@ -174,7 +174,7 @@ No math and no date arithmetic happen in Typst — the Rust layer does all of it
 The seam that decides which layer a change belongs in:
 
 - The prelude enforces structure only — one task, the `x-<ns>` discipline, and
-  the argument shapes it would otherwise drop before the marker is written (edge
+  the argument shapes it rejects before the marker is written (edge
   targets and notes, a status note, framework inputs). Those are the mistakes the
   Rust layer can never see, because nothing reaches it to validate.
 - Everything that DOES reach the marker is the Rust layer's: the status legend,
