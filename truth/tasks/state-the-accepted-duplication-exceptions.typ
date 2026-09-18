@@ -4,11 +4,11 @@
 #show: task.with(
   title: "State the accepted duplication exceptions",
   kind: "docs",
-  status: wip(
+  status: done(
     2026,
     9,
     18,
-  )[the ledger's deliberate pairs get a rule and /agents/ delegates the envelope],
+  )[agents delegates the envelope; exceptions named in the documentation deep dive],
   priority: ice(
     impact: 5,
     confidence: 0.9,
