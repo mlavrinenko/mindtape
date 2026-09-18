@@ -13,9 +13,9 @@ nix develop          # dev shell with the full toolchain (installs the
 just check           # run before every commit
 ```
 
-Use `just` recipes rather than raw `cargo`: they carry the right flags and environment. `just` with no arguments lists them. The tools themselves are `flake.nix`’s subject.
+Use `just` recipes rather than raw `cargo`: they carry the right flags and environment, and `just` with no arguments lists them. `flake.nix` owns the tools.
 
-This document is the single source for how work is done here — a process rule belongs here and nowhere else. `AGENTS.md` pulls it into agent context and covers only what MindTape _is_. Deep dives sit in `docs/contributing/`.
+This is the single source for how work is done here; a process rule belongs here and nowhere else. Deep dives sit in `docs/contributing/`, and `AGENTS.md` covers only what MindTape _is_.
 
 ## Code Style
 
@@ -27,8 +27,7 @@ All clippy lints are `deny` (workspace `Cargo.toml`); the project will not build
 
 ## Error Handling
 
-- `anyhow::Result` for application code (the CLI)
-- `thiserror::Error` for library error types callers match on (`HarvestError`, `ConfigError`, `FilterError`)
+- `anyhow::Result` for application code (the CLI); `thiserror::Error` for library error types callers match on (`HarvestError`, `ConfigError`, `FilterError`)
 - Keep `main.rs` a thin entry point; logic lives in library modules
 
 ## Testing
@@ -78,23 +77,23 @@ Every arm runs through `mmz`, so a re-run skips each one whose declared inputs a
 
 `just check-full` is `just check` plus `just cover` and `just crap`: always correct about coverage and CRAP, at the price of an instrumented rebuild and a full suite pass. Run it before opening a PR, plain `just check` while iterating.
 
-`just fork <slug> <base>` stands one of those worktrees up and `just integrate <branch>` takes it back down. `fork` branches off `<base>` (default `HEAD`) at `../mindtape-<slug>`, `direnv allow`-ed with its dev shell evaluated, refusing a dirty `HEAD` — `git worktree add` copies commits, never the working tree — and reporting, without refusing, a divergent base. `integrate` refuses unless that worktree reports `mmz --is-fresh --tag gate`, naming the stale arm, then fast-forwards and removes it: a fast-forward writes no commit, so the pre-commit hook never fires on the merge. What each refuses and deliberately leaves undone — no warmed cache, no re-run gate, no waiver flag — is argued in `.just/scripts/fork.sh` and `.just/scripts/integrate.sh`.
+`just fork <slug> <base>` stands one of those worktrees up and `just integrate <branch>` takes it back down. `fork` branches off `<base>` (default `HEAD`) at `../mindtape-<slug>`, `direnv allow`-ed, refusing a dirty `HEAD` — `git worktree add` copies commits, never the working tree — and reporting, without refusing, a divergent base. `integrate` refuses unless that worktree reports `mmz --is-fresh --tag gate`, naming the stale arm, then fast-forwards and removes it: a fast-forward writes no commit, so the pre-commit hook never fires on the merge. What each refuses and deliberately leaves undone — no warmed cache, no re-run gate, no waiver flag — is argued in `.just/scripts/fork.sh` and `.just/scripts/integrate.sh`.
 
-A delegated worktree whose full aggregate runs at integration can scope the gate with `MINDTAPE_GATE_SCOPE=<reason> git commit`, which demands a matching `Gate-Scope:` trailer so the commit never reads as fully gated. Dodging a gate that is actually red is never legitimate — when scoping one is, and what the trailer buys, are in [docs/contributing/gates.md](docs/contributing/gates.md).
+A delegated worktree whose full aggregate runs at integration can scope the gate with `MINDTAPE_GATE_SCOPE=<reason> git commit`, which demands a matching `Gate-Scope:` trailer; dodging a red gate is never legitimate. When scoping is, and what the trailer buys, are in [docs/contributing/gates.md](docs/contributing/gates.md).
 
-Coverage and CRAP run outside `just check`. Run `just cover` first — `just crap` refuses a stale lcov — and `just crap-baseline` in the same commit as any deliberate complexity. The thresholds and the argument behind every number are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md). Read it before changing either recipe’s flags.
+Coverage and CRAP run outside `just check`: run `just cover` first (`just crap` refuses a stale lcov), and `just crap-baseline` in the same commit as any deliberate complexity. The thresholds and every argument behind them, to read before changing either recipe’s flags, are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
 
 `just nix-build` verifies `nix build` in a clean sandbox (no dev shell, no sccache). Run it when touching `flake.nix` or `.cargo/config.toml`; `just release` calls it automatically.
 
 ## Signal Sweep (`just ask-refactoring`)
 
-The sweep reads the _advisory_ quality signals and files a backlog task per finding. It is not a gate: a gate stops you at the wall, the sweep names the wall you are walking toward. Run `just ask-refactoring` to see what it would file today. The arms, the scoring and the design rules are in [docs/contributing/signal-sweep.md](docs/contributing/signal-sweep.md).
+The sweep reads the _advisory_ quality signals and files a backlog task per finding. It is not a gate: a gate stops you at the wall, the sweep names the wall you are walking toward. Run it dry (`just ask-refactoring`) to see what it would file; the arms, the scoring and the design rules are in [docs/contributing/signal-sweep.md](docs/contributing/signal-sweep.md).
 
 ## Dependency Drift (outdatty)
 
 [`outdatty.yaml`](outdatty.yaml) couples source files to the dependents that must stay in sync (e.g. the CLI surface to `README.md`). After editing a source, update the listed dependents, re-record the group you touched with `just outdatty-update <group>` and commit `outdatty.lock`. A recorded hash is a review watermark, so blanket re-recording — `just outdatty-update-all` — claims a review that never happened. It stays the explicit choice, never the default.
 
-Re-record the group when you edit a dependent on its own, too, in the same commit. Only a source change is a trigger, so the gate stays green either way — but the dependent’s recorded hash then sits stale until some unrelated source edit carries it along, putting the watermark on a commit that never touched the file. It costs one lock line, and it is a convention rather than a gate. `outdatty.yaml`’s header carries the measurement, the reasoning and a one-liner listing groups with a dependent still pending.
+Re-record the group when you edit a dependent alone, in the same commit: only a source change is a trigger, so the hash would otherwise sit stale until an unrelated source edit carried it along, onto a commit that never touched the file. It costs one lock line; the measurement, the reasoning and the pending-groups one-liner are in `outdatty.yaml`’s header.
 
 ## Version Management
 
@@ -102,7 +101,7 @@ Re-record the group when you edit a dependent on its own, too, in the same commi
 - Workspace crates: `Cargo.toml` `[workspace.package] version` (semver).
 - Typst library: `lib/typst.toml` `version`, independent of the crates. Several files repeat it and all have to move together; the `typst-pkg-version` outdatty group enumerates them and fails the build otherwise. Trust the group, not a list here.
 - `mindtape-cli`’s dependency on `mindtape` carries a version requirement (not path-only), because crates.io rejects path-only deps on publish; bump it with the workspace version.
-- A release (`just release VERSION`) is gated twice. `VERSION` must be a bare semver with no leading `v`: an `[arg(...)]` pattern rejects `v0.3.0` before the recipe body runs. Then the body gates — the tag must equal the workspace version, the working tree must be clean, and `CHANGELOG.md` may not have a non-empty `[Unreleased]` section (it moves into a dated `[VERSION]` section at release time). The recipe pushes `main` before the tag, so the docs site (`pages.yml`) and CI run on the release tree.
+- A release (`just release VERSION`) is gated twice: an `[arg(...)]` pattern rejects a `v`-prefixed or non-semver `VERSION`, then the body requires the tag to equal the workspace version, a clean tree, and no non-empty `[Unreleased]` section in `CHANGELOG.md` (it moves into a dated section at release time). `main` is pushed before the tag, so the docs site (`pages.yml`) and CI run on the release tree.
 
 ## Commit Messages
 
@@ -129,6 +128,10 @@ MindTape follows a strict read/write split (CQRS). Read commands never mutate th
 Recurrence never materializes as a side effect of a read: an instance is spawned or refreshed only by an explicit `mt recur`, and `mt done` closes a task without creating or advancing anything.
 
 “Byte-identical” means the _authored_ tree — task files and config. A read may still populate the git-ignored `.mindtape/cache/` scratch, derived state the way `target/` is.
+
+## Documentation
+
+Docs live in `www/content/*.typ` and the `docs/src/*.typ` Markdown sources. A touched file is refactored whole, one home per fact, checked examples over described ones; the rules and the `just dup-prose` audit are in [docs/contributing/documentation.md](docs/contributing/documentation.md).
 
 ## Extending MindTape
 
