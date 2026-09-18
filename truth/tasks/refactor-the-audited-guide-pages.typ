@@ -4,11 +4,11 @@
 #show: task.with(
   title: "Refactor the audited guide pages onto their topics",
   kind: "docs",
-  status: wip(
+  status: done(
     2026,
     9,
     19,
-  )[quickstart, comparison, derived-tags, templates, filters, priority, estimates],
+  )[seven pages refactored; ls-open captures regenerated as !terminal; audit still at the three accepted pairs],
   priority: ice(
     impact: 7,
     confidence: 0.8,
