@@ -4,11 +4,11 @@
 #show: task.with(
   title: "Refactor the audited reference pages onto their topics",
   kind: "docs",
-  status: wip(
+  status: done(
     2026,
     9,
     19,
-  )[schema, named-sets, rule-packs, hooks, import-export, internals, self-validating + config and agents],
+  )[nine pages refactored; schema owns the applied contract and names the recur gap; audit down to two accepted pairs],
   priority: ice(
     impact: 7,
     confidence: 0.8,
