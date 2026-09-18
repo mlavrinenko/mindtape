@@ -4,11 +4,11 @@
 #show: task.with(
   title: "Refactor the markdown sources onto one home per fact",
   kind: "docs",
-  status: wip(
+  status: done(
     2026,
     9,
-    18,
-  )[README renders the shared demo; AGENTS rephrases; SKILL shrinks to the operating core],
+    19,
+  )[README renders www/utils/demo.typ; AGENTS rephrased; SKILL.md 320 -> 140 source lines; the audit sits at its three accepted pairs],
   priority: ice(
     impact: 7,
     confidence: 0.8,
