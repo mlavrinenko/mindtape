@@ -1,8 +1,10 @@
 //! The canonical task-JSON schema: the schema of record shared by `mt ls
-//! --json` (serialize, via [`CanonicalTask::from_task`]) and, in a later task
-//! (`truth/tasks/canonical-json-to-task-mapping.typ`), `mt import`
-//! (deserialize). One shape, so the two never drift and `mt ls --json | mt
-//! import` round-trips.
+//! --json` (serialize, via [`CanonicalTask::from_task`]) and `mt import`
+//! (deserialize). One shape, so the two never drift: every field below
+//! round-trips except `recur`, which has no canonical form at all — `mt
+//! import` writes none (see `import_map.rs`), so a recurring task exports
+//! without its recurrence. `www/content/schema.typ` names the same gap for
+//! users.
 //!
 //! # Field contract
 //!
