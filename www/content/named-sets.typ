@@ -13,7 +13,7 @@
 
 = Named views
 
-`[views.<name>]` bundles a filter with an optional sort and column set so
+`[views.<name>]` names a query bundle — filter, sort, and column set — so
 `mt ls` can reference it by name instead of repeating the expression:
 
 ```toml
@@ -27,13 +27,13 @@ columns = ["#", "status", "priority", "title"]
 description = "Summer push"
 ```
 
-`filter` is required; `sort` (a list of `--sort`-grammar specs) and `columns`
-(a subset of the `mt ls` column names — `#`, `status`, `ready`, `priority`,
-`due`, `title`, `file`) are optional, as is a free-text `description`. Reference a
-view with `@name`: bare `@name` applies filter, sort, and columns together;
-`@name` inside a larger expression is filter-only, equivalent to
-`in_view("name")` — see #link(u("/filters/"))[Filter language] for the
-predicate and #link(u("/cli/"))[CLI reference] for `mt ls` / `mt views`.
+Every facet is optional: an empty `filter` matches everything, `sort` is a
+list of `--sort`-grammar specs, `columns` a subset of the `mt ls` column names
+— #link(u("/cli/"))[CLI reference] lists both — and `description` is free
+text shown by `mt views`. Reference a view with `@name`: bare `@name` applies
+filter, sort, and columns together; `@name` inside a larger expression is
+filter-only, equivalent to `in_view("name")` — see
+#link(u("/filters/"))[Filter language] for the predicate.
 
 Views are validated at config load:
 
@@ -84,19 +84,17 @@ values = ["@kinds"]
 `@<dict>` expands to that dictionary's entries at config load — before any
 rule reads the list — so validation, `mt add` slot completion and the
 generated schema all see a plain, already-resolved set and need no change of
-their own. A list may mix literal entries and `@<dict>` references freely; the
-result is their union in declaration order, deduplicated (a repeated entry
-counts once). An unknown dictionary name is refused at load, the same way an
-unknown `include` target is: a nearest-match suggestion plus the list of known
-dictionaries.
+their own. A list may mix literal entries and `@<dict>` references freely:
+the result is their union in list order, deduplicated (a repeated entry
+counts once), except that a referenced dictionary contributes its entries
+alphabetically — a dictionary carries no declaration order of its own.
 
 The `@` is the same sigil `mt ls` reads as a view reference (`@name`), and it
 means the same thing here: always a dictionary, never a literal. There is no
-escape for a tag or field value that itself starts with `@` — an entry like
-`"@urgent"` is looked up as a dictionary named `urgent`, and fails the load
-(as an unknown dictionary, with the same nearest-match treatment) unless a
-dictionary by that name actually exists, in which case it expands to that
-dictionary's entries rather than surviving as the literal string `"@urgent"`.
+escape for a tag or field value that itself starts with `@`: an entry like
+`"@urgent"` resolves as a dictionary named `urgent` — expanding to that
+dictionary's entries if one exists, failing the load if none does — never
+surviving as the literal string.
 
 A filter reaches the same set with `in_dict("name", <string>)`, under that
 dictionary's own `case` — see #link(u("/filters/"))[Filter language].
@@ -119,11 +117,9 @@ once per task:
 
 - the `mindtape-` prefix is refused on a project dictionary;
 - each dictionary must name at least one source;
-- every `include` must resolve — an unknown name gets a nearest-match
-  suggestion and the list of known dictionaries;
+- every `include`, and every `@<dict>` reference in `[tasks.tags] allowed`
+  or a `[tasks.fields.<name>] values` list, must resolve — an unknown name
+  gets a nearest-match suggestion and the list of known dictionaries;
 - the `include` graph must be acyclic — a cycle is a config error;
 - every `path` must resolve and read;
-- a dictionary that resolves to no entries at all is a config error;
-- every `@<dict>` reference in `[tasks.tags] allowed` or a
-  `[tasks.fields.<name>] values` list must resolve too, with the same
-  nearest-match treatment.
+- a dictionary that resolves to no entries at all is a config error.

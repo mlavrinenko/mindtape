@@ -12,13 +12,11 @@
 
 #show: page.with(..meta)
 
-Copying a good `[[tasks.rules]]` / `[[tasks.body.headers.rules]]` /
-`[[tasks.body.content.rules]]` practice into a new project by hand means
-retyping every rule, and drifting from the original the moment either side
-changes one. A rule pack is that practice as one importable unit:
-#link(u("/config/"))[Configuration] covers `extends` and `disable` in a
-paragraph under "Rule packs" — this page is the full account, plus what the
-pack MindTape ships, `mindtape-tasks`, actually enforces.
+A rule pack packages a project's rule arrays and `[dicts]` as one importable
+unit. #link(u("/config/"))[Configuration] declares `extends` and `disable`;
+this page is their full account — what a pack file may contain, how one
+resolves, the merge order — plus what the pack MindTape ships,
+`mindtape-tasks`, enforces.
 
 = What a pack is
 
@@ -92,14 +90,10 @@ when = "!terminal"
 message = "an open task's sections are Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
 ```
 
-Replacement by name works only ACROSS sources this way. Two entries sharing a
-name WITHIN one layer's or one pack's own array both survive untouched, and
-reach the rule's own validator as a duplicate-name config error instead of
-one silently shadowing the other:
-
-```text
-tasks.body.headers.rules[3]: duplicate name `section-allowlist`, already used by tasks.body.headers.rules[0]
-```
+Replacement by name works only ACROSS sources this way; two entries sharing
+a name WITHIN one layer's or one pack's own array are a duplicate-name config
+error rather than one silently shadowing the other, as
+#link(u("/config/"))[Configuration] describes.
 
 `disable` drops a rule outright instead of replacing it — useful for a rule a
 pack ships that a project simply disagrees with:
@@ -124,31 +118,23 @@ documents — last write wins, no array-splicing involved.
 
 = Merge order
 
-Per rule array, entries fold in one pass, in this order:
+Within each of #link(u("/config/"))[the four config layers], per rule array,
+entries fold in one pass:
 
-+ the four config layers, lowest precedence first (embedded floor, XDG
-  global defaults, every ancestor `.mindtape/defaults.toml` farthest first,
-  the project's own `.mindtape/config.toml` last);
-+ within EACH layer, that layer's own `extends` packs first, in the order
-  listed;
++ that layer's own `extends` packs first, in the order listed;
 + then that layer's own declared entries.
 
-A later entry sharing an earlier one's `name` replaces it in place, so a rule
-an ancestor `.mindtape/defaults.toml` declares — or a pack an early layer
-extends — survives a nearer layer adding its own array, where it used to
-vanish outright before packs existed (`extends`/`disable` are how the
-wholesale-replace exception in #link(u("/config/"))[Configuration]'s "The
-four layers" actually gets used). `disable` is applied once, after every
-layer and pack has merged in — names from every layer's own `disable` list
-are unioned first, so the same name declared twice is not an error twice.
+`disable` is applied once, after every layer and pack has merged in — names
+from every layer's own `disable` list are unioned first, so the same name
+declared twice is not an error twice.
 
 = Reading `mt config show --origin`
 
 `--origin` prints the contributing layers, then one `rule <label>: <origin>`
 line per entry across the three arrays, in final merge order — `<label>` is
 `tasks.rules.<name>` (or `.rules[<index>]` for an unnamed one), the same
-name-or-position fallback a duplicate-name config error uses (above);
-`mt check`'s own breach output names the same rule WITHOUT the leading
+name-or-position fallback a duplicate-name config error uses; `mt check`'s
+own breach output names the same rule WITHOUT the leading
 `tasks.` (`rules.<name>`, `body.headers.rules.<name>`), so grepping between
 the two drops that one segment. `<origin>` is the layer kind
 (`embedded`/`xdg`/`dir`/`project`) or `pack <name>` / `pack <path>`. Run in
@@ -166,10 +152,10 @@ declared at all. `goals` (this repo's own `[[tasks.rules]]` entry) reads
 
 = What `mindtape-tasks` enforces
 
-`extends = ["mindtape-tasks"]` gives a project the six-section task shape
-this repo's own backlog is written in: `section-allowlist` closes the
-heading set to Problem, TO-BE, Changes, Out of scope, plus one kind-specific
-section (`environment-for-fix`, `alternatives-for-feat`,
+`extends = ["mindtape-tasks"]` gives a project the five-section task shape the
+pack ships: `section-allowlist` closes the heading set to Problem, TO-BE,
+Changes, Out of scope, plus one kind-specific section
+(`environment-for-fix`, `alternatives-for-feat`,
 `source-of-truth-for-docs`, `rollback-for-dev`, each paired with a
 `*-only-for-*` rule forbidding it on every other kind); a run of `*-after-*`
 rules pins their relative order, and `no-subsections` forbids nesting a
@@ -186,8 +172,6 @@ One more rule outside the body: `imperative-title` requires the title's first
 word to be a verb, against the `verbs` dictionary the pack's own `[dicts]`
 entry builds from the two built-in word lists.
 
-That is prose ABOUT the pack — every name above is checked against the
-file itself below, quoted in full so this page cannot drift from it as the
-practice evolves:
+The pack file itself, quoted in full:
 
 #raw(read("../generated/mindtape-tasks-pack.toml"), lang: "toml", block: true)

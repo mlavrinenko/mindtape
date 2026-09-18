@@ -14,14 +14,14 @@
 
 One shape, two directions: `mt ls --json` serializes every task into the
 canonical schema; `mt import` reads that same shape back and writes native
-`.typ` files. Being one contract, `mt ls --json | mt import` round-trips a task
-losslessly, and a jq program that targets this schema works as both an import
-adapter's *output* and something to hand-inspect from a live export.
+`.typ` files. Being one contract, `mt ls --json | mt import` round-trips every
+field the schema carries — the field contract below names the one core task
+field it does not — and a jq program that targets this schema works as both an
+import adapter's *output* and something to hand-inspect from a live export.
 
 #callout("note")[
-  This page mirrors the field contract documented on
-  `CanonicalTask` in `crates/mindtape/src/canonical.rs` — treat that module doc
-  as the source of truth if the two ever drift.
+  This page is the schema contract. `CanonicalTask`
+  (`crates/mindtape/src/canonical.rs`) is the Rust type that implements it.
 ]
 
 = Field contract
@@ -66,6 +66,10 @@ import):
   [`extras`], [authored], [Opaque `x-<ns>` consumer extension slots.],
 )
 
+The table is the whole record, with one gap: `recur` has no canonical form. A
+recurring task exports without its recurrence and `mt import` writes none;
+#link(u("/recurring/"))[Recurring tasks] owns the field itself.
+
 = Priority parity
 
 `priority` emits its #strong[authored] form, not just a resolved score, so
@@ -76,7 +80,7 @@ import):
   config in scope). The importer reads `framework`/`inputs` and ignores `score`:
 
 ```json
-{"priority": {"framework": "ice", "inputs": {"impact": 8, "confidence": 0.7, "ease": 6}, "score": 6.72}}
+{"priority": {"framework": "ice", "inputs": {"impact": 8, "confidence": 0.7, "ease": 6}, "score": 3.0}}
 ```
 
 - A scalar or label value stays a #strong[bare number or string] — not an
@@ -118,7 +122,7 @@ round-trip.
   "priority": {
     "framework": "ice",
     "inputs": {"impact": 8, "confidence": 0.7, "ease": 6},
-    "score": 6.72
+    "score": 3.0
   },
   "difficulty": 5,
   "kind": "task",
@@ -139,15 +143,18 @@ A record on its own carries no `schema_version`: the marker versions the
 
 = The envelope
 
-`mt ls --json` wraps its records in a document-level envelope. The version and
-record count below are read from a real capture against the `learn-piano`
-fixture, so neither can drift:
+`mt ls --json` wraps its records in a document-level envelope. The version,
+record count and `applied` attribution below are read from a real capture
+against the `learn-piano` fixture, so none of them can drift:
 
 // Derived from the generated capture rather than hand-typed, but summarised
 // rather than inlined whole: the full transcript lives on the agents page,
 // where the audience wants every field. No line count here — it is generated,
 // so any number written down goes stale on the next capture.
 #let envelope = json("../generated/ls-json.txt")
+#let applied = envelope.applied
+#let jstr(v) = if v == none { "null" } else { "\"" + v + "\"" }
+#let jarr(vs) = "[" + vs.map(jstr).join(", ") + "]"
 #raw(
   "{\n"
     + "  \"schema_version\": "
@@ -156,7 +163,31 @@ fixture, so neither can drift:
     + "  \"tasks\": [ … "
     + str(envelope.tasks.len())
     + " records, each shaped as above … ],\n"
-    + "  \"applied\": { … which rule and view won each facet … },\n"
+    + "  \"applied\": {\n"
+    + "    \"rule\": "
+    + jstr(applied.rule)
+    + ",\n"
+    + "    \"superseded\": "
+    + repr(applied.superseded)
+    + ",\n"
+    + "    \"facets\": {\n"
+    + "      \"filter\": {\"from\": "
+    + jstr(applied.facets.filter.from)
+    + ", \"value\": "
+    + jstr(applied.facets.filter.value)
+    + "},\n"
+    + "      \"sort\": {\"from\": "
+    + jstr(applied.facets.sort.from)
+    + ", \"value\": "
+    + jarr(applied.facets.sort.value)
+    + "},\n"
+    + "      \"columns\": {\"from\": "
+    + jstr(applied.facets.columns.from)
+    + ", \"value\": "
+    + jarr(applied.facets.columns.value)
+    + "}\n"
+    + "    }\n"
+    + "  },\n"
     + "  \"truncated\": null\n"
     + "}",
   lang: "json",
@@ -166,8 +197,18 @@ fixture, so neither can drift:
 #link(u("/agents/"))[For AI agents] shows the same envelope captured in full.
 
 `schema_version` bumps only when the envelope or record shape changes in a way
-that could break `mt import` or an external `jq` consumer; `applied` names
-which #link(u("/cli/"))[`[[ls.rules]]`] entry (if any) drove the listing.
+that could break `mt import` or an external `jq` consumer.
+
+`applied` reports which #link(u("/cli/"))[`[[ls.rules]]`] entry (if any) matched
+the listing, and where each facet ended up. `rule` is the matched entry's label,
+`null` when none matched. Each facet — `filter`, `sort`, `columns` — is
+`{from, value}`: `from` names the source that won it (a view name, a rule label,
+`manual` for a facet given on the command line, or `match-all` for the built-in
+default) and `value` is the effective filter expression, sort spec, or column
+list. `superseded` is `true` when the matched rule supplied at least one facet
+and every one of them was overridden later, so a rule that lost is still named
+rather than silently dropped. #link(u("/cli/"))[The CLI reference] renders the
+same attribution for a human eye, as the `applied:` trailer under a table.
 
 `truncated` is what `-n` / `--limit` cut: `null` on a complete listing, else
 `{"shown": 10, "total": 47}` — the rows you got against the rows the filter

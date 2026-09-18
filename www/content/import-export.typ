@@ -44,28 +44,8 @@ mt import --map pending=proposed --map completed=done   # rename statuses before
 mt import --drop-unmapped       # drop a tag outside [tasks.tags] allowed instead of reporting it
 ```
 
-#table(
-  columns: (auto, 1fr),
-  table.header([Flag], [Meaning]),
-  [`[FILE|-]`],
-  [Positional; canonical task-JSON source. `-` (default) reads stdin.],
-
-  [`--into <DIR>`],
-  [Destination directory; `.` (default) is the first configured root.],
-
-  [`--to <SUBDIR>`],
-  [Subfolder under `--into` to nest imports into (folder-derived tags).],
-
-  [`--dry-run`], [Report and preview only; writes nothing.],
-  [`--status <NAME>`],
-  [Default status (dated today) stamped on a record missing one.],
-
-  [`--map <OLD=NEW>`],
-  [Status rename, applied before legend validation. Repeatable.],
-
-  [`--drop-unmapped`],
-  [Drop a disallowed tag instead of keeping it and reporting a violation.],
-)
+Every flag, its default, and which of them repeat is generated on the
+#link(u("/cli/"))[CLI reference].
 
 Every record is reported to stderr: filed or skipped, plus each mapping
 decision (`mapped` / `defaulted` / `dropped` / `violated`) and any carried
@@ -129,9 +109,8 @@ a spec.
 ]
 
 #callout("note")[
-  All three recipes produce a bare JSON array, one of the two shapes
-  #link(u("/schema/"))[`mt import` accepts] (the other being the
-  `{"tasks": [...]}` envelope `mt ls --json` emits).
+  All three recipes produce a bare JSON array, one of the two top-level shapes
+  `mt import` accepts; #link(u("/schema/"))[the canonical schema] names both.
 ]
 
 = Export
@@ -141,9 +120,11 @@ There is no `mt export`. This is a deliberate scope decision, not a gap:
 - Every task is already a plain `.typ` file, tracked in git. `git log`,
   `git blame`, and a plain `cp` already work — no export step needed to get
   your data out.
-- `mt ls --json` is a lossless projection of every field (see the
-  #link(u("/schema/"))[canonical schema]) — anything a foreign export command
-  could emit, this already emits, in a stable, documented shape.
+- `mt ls --json` projects every field the
+  #link(u("/schema/"))[canonical schema] carries, in a stable, documented
+  shape. It cannot project `recur` — the one authored field with no canonical
+  form — so recurrence does not survive the round-trip, and an exporter that
+  needs it reads the task files instead.
 
 A foreign-format export is therefore a #strong[reverse] `jq` program: write it
 against `mt ls --json`'s output the same way `contrib/jq/*.jq` write against a

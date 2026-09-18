@@ -39,16 +39,16 @@ A task in `mt ls --json` (the hero's Für Elise task, captured verbatim from the
 `extras` carries the `x-<ns>` extension fields verbatim, so a tool built on
 MindTape reads its own data back out without MindTape interpreting it.
 
-`mt ls --json` returns an envelope, not a bare array. #link(u("/schema/"))[The
-  canonical schema] owns its shape, including how `applied` attributes each facet
-to the source that won it. The one agent-facing consequence: a
-`schema_version` this tool does not recognize is a signal to bail out, not to
-mis-parse silently.
+`mt ls --json` returns an envelope, not a bare array.
+#link(u("/schema/"))[The canonical schema] owns its shape, including how
+`applied` attributes each facet to the source that won it. The one agent-facing
+consequence: a `schema_version` this tool does not recognize is a signal to
+bail out, not to mis-parse silently.
 
-`truncated` closes the bounded-listing question. `mt ls ready -n 10 --json`
-keeps a reply small, and `truncated` says whether small was the whole answer:
-`null` when nothing was cut, else `{"shown": 10, "total": 47}` — ask again with
-a bigger `-n` rather than reporting a backlog that has 37 more rows in it.
+`truncated` closes the bounded-listing question: `mt ls ready -n 10 --json`
+keeps a reply small, and `truncated` says whether small was the whole answer.
+Ask again with a bigger `-n` rather than report a backlog with rows it never
+saw; #link(u("/schema/"))[the schema] owns the shape.
 
 #terminal(read("../generated/ls-json.txt"))
 

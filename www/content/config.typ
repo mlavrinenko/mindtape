@@ -50,20 +50,15 @@ mt config show --json     # effective config as JSON
 
 = Rule packs
 
-`extends` adopts a rule pack ahead of that layer's own three rule arrays and
-`[dicts]`: a bare name (the reserved `mindtape-` prefix) resolves to one
-compiled into `mt`, anything carrying a path separator to a TOML pack file
-relative to the layer that names it. `disable` drops every rule (in any of the
-three arrays, inherited or extended) carrying a listed name; naming one that
-matches nothing is a config error.
+`extends` adopts a rule pack, `disable` drops a named rule outright:
 
 ```toml
 extends = ["mindtape-tasks", "../shared/team-pack.toml"]
 disable = ["imperative-title"]
 ```
 
-What a pack file may contain, adopting and overriding a rule, the full merge
-order, and what the shipped `mindtape-tasks` pack enforces:
+What a pack file may contain, how an entry resolves, the full merge order,
+and what the shipped `mindtape-tasks` pack enforces:
 #link(u("/rule-packs/"))[Rule packs]. `mt config show --origin` names the pack
 behind each rule.
 
