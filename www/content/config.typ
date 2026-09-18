@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout, terminal
+#import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 #import "../utils/config-ref.typ": config-gate, config-sections-table
 #import "../generated/just.typ" as just
@@ -8,19 +8,19 @@
   route: "/config/",
   label: "Configuration",
   title: "Configuration",
-  summary: "How .mindtape/config.toml overlays a defaults floor through a four-layer merge, and the sections it can set.",
+  summary: "The .mindtape/config.toml reference: the four-layer merge, rule packs, the section map, and the keys only config defines.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
 `.mindtape/config.toml` overlays a shipped defaults floor. Omit a section to
-inherit the floor's defaults, declare it to override, or set it empty (e.g.
-`status = []`) to leave that aspect unconstrained.
+inherit the floor's defaults, declare keys to override those, or set an array
+section empty (e.g. `status = []`) to leave that aspect unconstrained.
 
 = The four layers
 
-Config is deep-merged in precedence order, lowest first:
+Config deep-merges in precedence order, lowest first:
 
 + the embedded floor (shipped with `mt`);
 + XDG global defaults — `~/.config/mindtape/defaults.toml`;
@@ -28,16 +28,16 @@ Config is deep-merged in precedence order, lowest first:
   ancestor first, nearest wins);
 + the project's own `.mindtape/config.toml` (highest precedence).
 
-Every other section still replaces a lower layer's wholesale — a legend
-declared twice keeps only the nearer one — with one exception: `[[tasks.rules]]`,
-`[[tasks.body.headers.rules]]` and `[[tasks.body.content.rules]]` APPEND across
-layers instead, a same-named entry in a nearer layer replacing the farther
-one's in place rather than dropping it. So a rule an ancestor's
-`.mindtape/defaults.toml` declares survives a project adding its own, where it
-used to vanish the moment the project's own array won outright. Replacement by
-name works only ACROSS files this way; two entries sharing a name WITHIN one
-layer's (or one pack's) own array is a config error naming both, the same
-treatment an unnamed entry never needs.
+Tables merge key-by-key — a project's `[ls] hyperlinks` leaves the floor's
+`[ls.columns]` standing — while scalars and arrays replace wholesale, so a
+nearer `[[tasks.status]]` legend drops the farther one. The three rule arrays
+are the one append: `[[tasks.rules]]`, `[[tasks.body.headers.rules]]` and
+`[[tasks.body.content.rules]]` fold together across layers and packs, a
+same-named entry replacing the farther one in place. So a rule an ancestor's
+`.mindtape/defaults.toml` declares survives a project adding its own, where
+the array-replace rule would have dropped it. Replacement by name works only
+ACROSS files; two entries sharing a name WITHIN one layer's (or one pack's)
+array is a config error naming both.
 
 Inspect the result:
 
@@ -50,28 +50,22 @@ mt config show --json     # effective config as JSON
 
 = Rule packs
 
-Any layer may also declare:
+`extends` adopts a rule pack ahead of that layer's own three rule arrays and
+`[dicts]`: a bare name (the reserved `mindtape-` prefix) resolves to one
+compiled into `mt`, anything carrying a path separator to a TOML pack file
+relative to the layer that names it. `disable` drops every rule (in any of the
+three arrays, inherited or extended) carrying a listed name; naming one that
+matches nothing is a config error.
 
 ```toml
 extends = ["mindtape-tasks", "../shared/team-pack.toml"]
 disable = ["imperative-title"]
 ```
 
-`extends` pulls in a rule pack ahead of that layer's own three rule arrays and
-`[dicts]` — a bare name (the reserved `mindtape-` prefix) resolves to one
-compiled into `mt`; anything carrying a path separator, even a name starting
-with `mindtape-`, resolves to a TOML pack file relative to the layer that
-names it (the project root, for the project's own config). A pack may declare
-only those three rule arrays and `[dicts]`, and may not itself `extends`.
-`disable` then drops every rule (in any of the three arrays, inherited or
-extended) carrying a listed name; naming one that matches nothing is a config
-error. `mt config show --origin` names the pack behind each such rule.
-
-See #link(u("/rule-packs/"))[Rule packs] for what a pack file may contain, an
-embedded pack versus a path pack, overriding a single rule by name or
-`disable`-ing it, the full merge order across layers and packs, reading
-`--origin`'s output, and what the shipped `mindtape-tasks` pack enforces,
-quoted from the pack itself.
+What a pack file may contain, adopting and overriding a rule, the full merge
+order, and what the shipped `mindtape-tasks` pack enforces:
+#link(u("/rule-packs/"))[Rule packs]. `mt config show --origin` names the pack
+behind each rule.
 
 = Sections
 
@@ -79,8 +73,6 @@ Every section below is reflected straight from `mt config schema` — the same
 JSON Schema `mt install` writes to disk, generated from the config structs
 themselves. A row's purpose column is that property's own doc comment, so a
 newly added config key cannot silently go undocumented: the build fails first.
-Sections whose shape needs more than one line get a deep dive further down, or
-a page of their own.
 
 // The command tree pattern (cli.typ / cli-ref.typ) reflects clap's own
 // definition; this mirrors it for config: `config-sections` is presentation
@@ -127,28 +119,27 @@ a page of their own.
 #config-gate(schema, config-sections)
 #config-sections-table(schema, config-sections)
 
-#callout("note")[
-  #link(u("/derived-tags/"))[Derived tags], #link(u("/priority/"))[Priority],
-  and #link(u("/filters/"))[Filter language] cover `[tasks.roots]` /
-  `[tasks.derive-tags]`, `[tasks.priority]` / `[tasks.difficulty]`, and `[ls]` /
-  `[rm]` in full; the #link(u("/cli/"))[CLI reference] covers `[[ls.rules]]`,
-  the `file` column and its conditional `[ls.columns.<name>] when`, and
-  `[ls] hyperlinks` / `hyperlink-target`.
+Sections with a page of their own:
 
-  #link(u("/named-sets/"))[Views & dictionaries] carries `[views.<name>]` and
-  `[dicts.<name>]`, #link(u("/hooks/"))[Flip hooks] carries `[[on.flip]]`, and
-  #link(u("/estimates/"))[Estimates] carries `[tasks.estimate]`'s bounds and
-  `[tasks.estimate.drift]`.
-]
+- `[tasks.roots]` / `[tasks.derive-tags]` — #link(u("/derived-tags/"))[Derived tags].
+- `[tasks.priority]` / `[tasks.difficulty]` — #link(u("/priority/"))[Priority].
+- `[tasks.estimate]` bounds and `drift` — #link(u("/estimates/"))[Estimates].
+- `[tasks.recur]` — #link(u("/recurring/"))[Recurring tasks].
+- `[views.<name>]` / `[dicts.<name>]` — #link(u("/named-sets/"))[Views & dictionaries].
+- `[[on.flip]]` — #link(u("/hooks/"))[Flip hooks].
+- `[templates]` / `[add]` — #link(u("/templates/"))[Templates & slots].
+- `extends` / `disable` — #link(u("/rule-packs/"))[Rule packs].
+- `[ls]` / `[rm]` defaults and every filter expression — #link(u("/filters/"))[Filter language].
+- `[[ls.rules]]`, the `file` column, `[ls.columns.<name>] when`, `[ls] hyperlinks` / `hyperlink-target` — #link(u("/cli/"))[CLI reference].
 
 = Body shape: headings and section content
 
 `[tasks.body]` gates the body with two sibling rule families, both selected by
 the same `path` through the heading tree. `[tasks.body.headers]` constrains the
 heading tree itself — which headings exist, their order, their vocabulary.
-`[tasks.body.content]` constrains what is written *under* a heading: a section's
-content, everything from the heading down to the next heading of the same or
-higher level (nested subsection prose included).
+`[tasks.body.content]` constrains what is written *under* a heading: a
+section's content, everything from the heading down to the next heading of the
+same or higher level (nested subsection prose included).
 
 ```toml
 [[tasks.body.headers.rules]]
@@ -186,9 +177,7 @@ A heading path is a list of segments. A bare TOML string is an exact,
 case-sensitive, direct-child match; `{ match = "regex", recursive = true }`
 matches heading *text* against the regex (recursive = any descendant). With
 `when` and `message` on every rule, those two segment shapes are the whole
-language — which also means the "section-title vocabulary" people reach for
-custom validation to express is already here as an allowlist plus a regex
-segment:
+language — so a section-title vocabulary is an allowlist plus a regex segment:
 
 ```toml
 [[tasks.body.headers.rules]]
@@ -223,16 +212,12 @@ truth/tasks/example.typ:11: body.content.rules.summary-non-empty: section `Summa
 ```
 
 `name` is optional on every `[[tasks.body.headers.rules]]` and
-`[[tasks.body.content.rules]]` entry, exactly like `[[tasks.rules]]`'s (see
-below): it exists so a reader — or, later, a `disable = ["<name>"]` override —
-can grep straight back to the entry that fired. Leave it off and the report
-names the rule's position instead, `body.headers.rules[0]`. Two entries in the
-same array sharing a name is a config error naming both.
-
-Every write command checks both rule families the same way `mt check` does —
-`mt add`, `mt flip` (and every legend verb over it), `mt link`, `mt import`,
-`mt recur` and `mt review` all refuse a task that breaks one, before anything
-lands, rather than leaving it for a later `mt check` to catch.
+`[[tasks.body.content.rules]]` entry, exactly like `[[tasks.rules]]`'s: it
+exists so a reader — or a `disable = ["<name>"]` override — can grep straight
+back to the entry that fired. Leave it off and the report names the rule's
+position instead, `body.headers.rules[0]`. Two entries in the same array
+sharing a name is a config error naming both. Every write command checks both
+families before it writes, the same pass that enforces `[[tasks.rules]]`.
 
 = Example
 
@@ -266,15 +251,6 @@ units = ["minutes", "hours", "days", "weeks"]
 [views.default]
 filter = "status != \"done\""
 ```
-
-#terminal(read("../generated/config-origin.txt"))
-
-#callout("note")[
-  `mt init` writes one of the named presets (`--list-presets` shows them), and
-  `--annotate` keeps that preset's explanatory comments. The two are
-  independent: `--preset` picks what the config says, `--annotate` picks whether
-  it says why.
-]
 
 = Required fields
 
@@ -313,17 +289,16 @@ required = "!terminal"
 ```
 
 `allowed` is optional — absent or empty accepts any string. `required` behaves
-like every other core field: `true`, `false`, or a filter expression, as above.
-A required assignee is spliced into the add template as a slot backed by
-`$MINDTAPE_PRINCIPAL`: under a harness that sets the variable, `mt add` files
-silently; unset, the slot prompts interactively.
+like every other core field. A required assignee is spliced into the add
+template as a slot backed by `$MINDTAPE_PRINCIPAL`: under a harness that sets
+the variable, `mt add` files silently; unset, the slot prompts interactively.
 
 = Actors and roles
 
 `[[actors]]` and `[[roles]]` form the project's actor registry: who works
-tasks, and under which hats. An actor is a person or a language model; roles
-are identity-only — a role carries no tooling or prompt payload, any tooling a
-role should enable lives in the reader's harness config, keyed by role name by
+tasks, and under which hats. An actor is a person or a language model; a role
+is identity-only — it carries no tooling or prompt payload, and any tooling it
+should enable lives in the reader's harness config, keyed by role name by
 convention:
 
 ```toml
@@ -341,28 +316,20 @@ kind  = "llm"
 roles = ["author"]
 ```
 
-`kind` is one of `human` / `llm`. `mt check` validates the registry: actor and
-role names are unique and non-empty, and an actor may only hold declared
-roles. When `[tasks.assignee] allowed` is set, every allowed name must be a
-declared actor — the registry is the vocabulary the assignee field points
-into, so a free-text misspelling can never slip through config. In filters,
+`kind` is `human` or `llm`. `mt check` validates the registry: actor and role
+names are unique and non-empty, and an actor may only hold declared roles. When
+`[tasks.assignee] allowed` is set, every allowed name must be a declared actor
+— the registry is the vocabulary the assignee field points into, so a
+free-text misspelling can never slip through config. In filters,
 `assignee == "ada"` compares the actor name and `role == "reviewer"` resolves
-the assignee's roles from the registry at read time:
-
-```text
-mt ls 'role == "reviewer"'        # tasks currently held by a reviewer
-mt ls 'assignee == "gpt"'         # tasks assigned to the model
-```
-
-`assignee` is also an `mt ls` column, sorted by `--sort assignee`. It renders
-only when the listed rows disagree about it — see
-#link(u("/cli/"))[the CLI reference] for that rule and its override.
+the assignee's roles from the registry at read time — see
+#link(u("/filters/"))[Filter language].
 
 = Status transitions
 
 Add a `to` list to a status entry to declare which statuses may follow it — the
-legend becomes a state machine instead of a flat enum. It is opt-in: with no `to`
-on any entry the legend stays any-to-any.
+legend becomes a state machine instead of a flat enum. It is opt-in: with no
+`to` on any entry the legend stays any-to-any.
 
 ```toml
 [[tasks.status]]
@@ -454,13 +421,14 @@ edge is:
 
 A malformed target is a `mt check` violation naming the kind, the validator,
 and the value. `mt ls` never follows one, and `mt graph` draws it as its own
-dashed leaf node rather than a task.
+dashed leaf node rather than a task. Writing edges and the `edge()` helper:
+#link(u("/links/"))[Links].
 
 = Stem naming
 
-`[tasks.naming]` templates the filename #link(u("/cli/"))[`mt add`] and
-`mt recur` spawns mint for a new task. Unset, a new task gets a bare slug
-(`wire-oauth.typ`):
+`[tasks.naming]` templates the filename `mt add` and `mt recur` spawns mint for
+a new task. Unset, `mt add` gets a bare slug (`wire-oauth.typ`) and a spawn
+gets `{slug}-{date}`:
 
 ```toml
 [tasks.naming]
@@ -523,14 +491,9 @@ max-advance = 52                            # runaway cap for `mt recur --advanc
 
 Every field defaults to the value shown, so an unconfigured project already
 supports `recur:`. Set `enabled = false` to turn the feature off project-wide,
-or narrow `units` / `anchors` to the cadences a project supports.
-
-`rrule = true` alone is not enough: the `rrule("FREQ=...")` escape hatch also
-needs `mindtape`/`mt` built with the `rrule` cargo feature (off by default —
-it pulls in `chrono-tz` + `regex`, so only a project that actually authors an
-`rrule(...)` pays for them). Either gate missing rejects the task with a
-precise message; `mt check` additionally grammar-checks the raw rule string
-at parse time. See #link(u("/dsl/"))[Task DSL]'s "Recurring tasks" section.
+or narrow `units` / `anchors` to the cadences a project supports. The
+cadences, the policy that rides along with them, and the two gates `rrule`
+opens are on #link(u("/recurring/"))[Recurring tasks].
 
 = Work-in-progress limits
 
@@ -617,7 +580,8 @@ An `assert` expression (and `when`, either shape) is dry-run once at config
 load against a probe task, exactly as `required` and `[[tasks.limits]]` are,
 so a rule naming an unknown field, view or dictionary is one config error
 rather than one violation per artifact. A `check` rule's Typst module is
-checked the same way, at load — see below.
+checked the same way, at load. Shipping a whole array of rules to other
+projects is #link(u("/rule-packs/"))[a rule pack].
 
 == Checking a field with a Typst function
 
@@ -638,7 +602,8 @@ severity = "error"
 directory holding `.mindtape/`); `function` is the name it exports. `field`
 names the value the function receives — `none` when the task omits it, so
 requiring a field needs no second rule. Without `field` the function receives
-the whole task, in the shape `mt eval --json` prints.
+the whole task, in the shape `mt eval --json` prints. A worked end-to-end
+example is #link(u("/self-validating-tasks/"))[Self-validating tasks].
 
 The function returns an array of strings: an empty array passes, and each
 string is one breach, reported exactly like an `assert` breach —
@@ -684,61 +649,35 @@ truth/tasks/example.typ:12: comments: line comment: "no, use in_view() instead"
 
 = Conditional `ls` rules
 
-`[[ls.rules]]` makes `mt ls` adapt to ambient project state: the first entry
-(top to bottom) whose `condition` holds — or that omits `condition` entirely —
-wins.
+`[[ls.rules]]` lets `mt ls` pick its listing from ambient project state: the
+first entry whose `condition` holds — or that omits `condition` entirely —
+wins, and its own overrides beat what its `import-views` composed.
 
 ```toml
 [[ls.rules]]
 name = "release"                              # optional; shown in the trailer / JSON
-condition = 'on_branch("release/*")'          # filter-syntax over env predicates; absent = always
-import-views = ["inbox", "release(sort)"]     # compose left-to-right, per-facet last-wins
-filter = '!terminal && due <= "2026-08-01"'   # optional manual override (highest precedence)
+condition = 'on_branch("release/*")'          # absent = always
+import-views = ["inbox", "release(sort)"]     # composed left-to-right, per-facet last-wins
+filter = '!terminal && due <= "2026-08-01"'   # manual override (highest precedence)
 ```
 
 - `name` — shown in the trailer and JSON, and the source label for the rule's
-  own `filter`/`sort`/`columns` overrides; falls back to the `condition` text
-  when unset, and to `rule` when the entry has neither.
-- `condition` — a #link(u("/cli/"))[condition-language] expression over
-  `on_branch`/`tty`/`env`/`weekday`/`now`/`format`; absent matches always. The
-  same language gates one column's visibility in `[ls.columns.<name>] when`,
-  where four more predicates —
-  `nonempty()`/`contested()`/`named()`/`blocked()` — describe the listed rows
-  and the column request. Those four read `false` here: an `[[ls.rules]]`
-  entry picks the whole bundle, so no column is being resolved when it runs.
+  own overrides; falls back to the `condition` text, then to `rule`.
+- `condition` — an environment-predicate expression over `on_branch`/`tty`/
+  `env`/`weekday`/`now`/`format`; absent matches always.
 - `import-views` — ordered `"view"` (all facets) or `"view(facet, ...)"` (a
   subset of `filter`/`sort`/`columns`) entries, composed left to right with
   per-facet last-wins.
 - `filter`/`sort`/`columns` — manual overrides, highest precedence; same
   grammar as `[views]`.
 
-Per facet, precedence inside one rule is its own override > the last
-`import-views` entry that provides it > the built-in default. A matched rule
-does not inherit `default-view` as a base layer — it composes everything it
-uses. No rule matching falls back to `default-view`.
-
-The command line stacks on top, still per facet: an explicit filter argument
-overrides the `filter` facet, `--sort` and `--columns` override theirs, and
-everything they say nothing about stays as the rule (or the default view) left
-it. So narrowing a listing on a branch where a rule is active keeps that rule's
-sort and columns — filter answers _which tasks_, sort and columns answer _how
-do I read them_. A bare `@view` filter argument is the one exception in
-degree, not in kind: naming a view is choosing a whole reading, so it overrides
-every facet that view actually sets.
-
-The `applied:` trailer names each winning source with the facets it won
-(`applied: manual (filter) → release (sort, columns)`), and a rule that matched
-and then lost every facet is named too rather than vanishing:
-`applied: manual (filter) · release superseded`. `mt ls --json` carries the same
-attribution in its `applied` block, where `superseded` is the boolean form.
-
-Rules are validated at config load, same checks as `[views]`:
-
-- `condition` must parse and reference only environment predicates — a task
-  field name is a load-time error;
-- each `import-views` entry must resolve to a declared view with legal facet
-  selectors;
-- a manual override must be valid.
+A matched rule does not inherit `default-view` as a base layer — it composes
+everything it uses. Rules are validated at config load: `condition` must parse
+and reference only environment predicates — a task field name is an error —
+every `import-views` entry must resolve to a declared view with legal facet
+selectors, and a manual override must be valid. The condition language and its
+predicates, the built-in column `when` expressions, and how the command line
+stacks on top per facet are at #link(u("/cli/"))[the CLI reference].
 
 = Editor schema
 
@@ -786,10 +725,10 @@ kind = "spike"
 `[overlay]` is an init-time-only concept: `mt init` deep-merges it over the
 composed base *last*, so it beats every axis fragment, then flattens the
 result to one `.mindtape/config.toml`. The loader never sees a literal
-`[overlay]` — the written file is an ordinary config. In the
-merge, tables merge key-by-key and a scalar or array replaces the base value
-wholesale, so the overlay always wins the key it names. A preset whose whole
-body is under `[overlay]` composes to exactly that overlay.
+`[overlay]` — the written file is an ordinary config. In the merge, tables
+merge key-by-key and a scalar or array replaces the base value wholesale, so
+the overlay always wins the key it names. A preset whose whole body is under
+`[overlay]` composes to exactly that overlay.
 
 Arrays replace wholesale, so two ordinary (non-overlay) fragments can't safely
 declare the same array-typed section — the status legend (`[[tasks.status]]`),

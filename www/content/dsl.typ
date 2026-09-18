@@ -7,7 +7,7 @@
   route: "/dsl/",
   label: "Task DSL",
   title: "Task DSL",
-  summary: "Every field a task file can declare, and what the prelude versus the Rust layer enforce.",
+  summary: "Every field a task file can declare, the status shortcuts, and what the body can hold.",
 )
 #metadata(meta) <page-meta>
 
@@ -35,6 +35,13 @@ The body is free-form Typst below the metadata.",
 )
 
 = Fields
+
+Every core field is a declared parameter of `task`, so a Typst language server
+(#link("https://myriad-dreamin.github.io/tinymist/")[tinymist]) completes the
+names inside `task.with(...)` and shows the whole signature, each field with
+its default. A misspelled field is not silently kept: it falls through to the
+extension sink and fails the file, naming the field. Values are shapes, never
+computed results — date arithmetic and scoring happen in `mt`, not in the file.
 
 // The field list itself comes from www/generated/dsl-fields.json — read back
 // off lib/prelude.typ's own `task` signature via its `<mindtape>` marker, not
@@ -66,110 +73,14 @@ status: done(2026, 7, 20)
 A terminal status (like `done`) relaxes fields marked `required = "!terminal"`.
 The default legend and its glyphs live in #link(u("/config/"))[Configuration].
 
-= Task links
+= Links and recurrence
 
-One field, `links:`, holds every typed edge to another task. Each built-in
-helper — `depends-on`, `parent`, `recurred-from`, `supersedes`, `duplicates`,
-`related` — is variadic over plain filename-stem strings (never wrapped in
-`link()`), and returns the edge array `links:` expects directly:
-
-```typ
-links: depends-on("design-schema.typ", "audit.typ"),
-```
-
-A trailing content block is the note, uniform with `status`; combine several
-kinds with `+`:
-
-```typ
-links: depends-on("design-schema.typ") + related("write-docs.typ")[docs companion],
-```
-
-Because each helper returns an array, `+` is array concatenation — so the array
-every other multi-valued field takes means the same thing and is accepted too:
-
-```typ
-links: (
-  depends-on("design-schema.typ"),
-  related("write-docs.typ")[docs companion],
-),
-```
-
-Nesting has one possible reading here, so it is flattened rather than guessed
-at; `mt import` writes the `+` form back either way. This is the one place the
-DSL takes two spellings, and only because neither can mean anything else — a
-value the helpers *cannot* read unambiguously is an error instead, as the rest
-of this section shows.
-
-Targets and the note are told apart by type, so a helper rejects an argument
-that is neither. `link()` returns content and content is the note, so
-`depends-on(link("design-schema.typ"))` builds no edge at all — and instead of
-yielding an empty edge array it fails the file with
-`` `depends-on()` needs at least one target ``, plus why the target vanished.
-A second note block, a named argument and a non-string target fail the same
-way, each naming the helper.
-
-`related`'s note is required — the escape hatch for "connected, but not a
-dependency" needs a reason. `edge(kind, ..targets)[note]` builds an edge of any
-project-declared custom kind (`[[tasks.links.kinds]]`); `depends-on` and
-`parent` are the only kinds checked for cycles, and only `depends-on` gates
-readiness by default. Because identity is the filename, a moved or deleted
-target breaks the link — `mt check` reports the dangling reference and any
-cycle.
-
-A custom kind can point *outside* the backlog instead — the commit, pull request
-or build that discharges the task — by declaring a `validate` other than the
-default `local-task-path` (see #link(u("/config/"))[Configuration]). Its targets
-are checked for shape, never resolved to a stem, and never join the task graph:
-
-```typ
-links: edge("discharged-by", "https://github.com/acme/app/pull/42"),
-```
-
-== Writing links from the CLI
-
-`links:` is the one field with a CLI writer of its own, `mt link`. It
-serializes through the same helpers above, so a written file reads as if it
-were hand-authored — and a note is markup-escaped on the way in, the way every
-`mt` text write is:
-
-```sh
-mt link wire-oauth depends-on pick-a-provider
-mt link wire-oauth depends-on read-the-rfc write-a-spike   # one call, two targets
-mt link wire-oauth related write-docs -m "same release"
-```
-
-Edges dedupe on (kind, target), and a target's `.typ` is optional on the
-command line, so `pick-a-provider` and `pick-a-provider.typ` are one edge and
-re-running any of the above writes nothing the second time.
-
-Cross-linking many tasks at once is `mt link --apply <file>` (`-` for stdin),
-reading an adjacency map — stem, then kind, then targets:
-
-```yaml
-seed-content-from-telegram-export:
-  depends-on: [article-content-type, error-record-content-type]
-  related:
-    - target: telegram-export-format
-      note: same export shape
-wire-oauth:
-  parent: auth-epic
-```
-
-A target is a bare stem or a `{target, note}` mapping; a kind taking one target
-needs no list. JSON is accepted verbatim — the reader is a YAML 1.2 parser, and
-JSON is a subset of it — so a `jq` program emitting this shape pipes straight
-in. The map merges by default; `--replace` makes it the complete edge set for
-each stem it names, and `--dry-run` prints the plan instead of writing.
-
-Every edge is checked before anything is written: the kind must be configured,
-the target must resolve, and a kind whose note is `required` is refused without
-one, naming the edge. A per-file failure is reported and the rest still land.
-
-= Recurring tasks
-
-`recur:` shapes a repeating task, and `mt recur` advances the series. The
-cadences, the policy that rides along with them, and the `rrule(...)` escape
-hatch live on #link(u("/recurring/"))[Recurring tasks].
+`links:` holds every typed edge between tasks, and `recur:` turns a task into a
+series. Both are fields like the others; both are deep enough for a page of
+their own. #link(u("/links/"))[Task links] carries the six built-in kinds, the
+project-declared ones, and the CLI writer; #link(u("/recurring/"))[Recurring
+  tasks] carries the cadences, the policy floor, and the `rrule(...)` escape
+hatch.
 
 = Task bodies
 
@@ -195,35 +106,6 @@ Channel \#N carries it, per issue \#412.
 Bodies are deliberately left as real Typst rather than escaped for you, since
 escaping would break the markup that already works.
 
-= What enforces what
-
-The prelude enforces #strong[structure] only: one task per file, and the
-`x-<ns>` naming discipline — those fields are yours to define, and MindTape
-passes them through (see #link(u("/concepts/"))[the extension seam]).
-Everything semantic — the status legend, numeric scales and classification,
-priority frameworks, the `kind` enum, required-unless-terminal rules, bounds,
-and link resolution — is enforced by the Rust layer against your
-#link(u("/config/"))[config], at `mt check` time.
-
-So does every #strong[type]. A field holding the wrong shape, or one wrong
-element inside the right shape, is a `mt check` violation naming the position
-you can count to in your own source:
-
-```text
-tags[1]: expected a string, found a number
-estimate.days: expected a number, found a string
-recur.on[1]: expected a weekday name (mon, tue, wed, thu, fri, sat, sun), found `funday`
-```
-
-Nothing is dropped quietly, and none of it is the card render's business: the
-card is total, so a mistyped value still previews rather than failing the file
-with a message naming neither the field nor the task.
-
-= Editor support
-
-Every core field is a declared parameter of `task`, so a Typst language server
-(#link("https://myriad-dreamin.github.io/tinymist/")[tinymist]) completes the
-field names inside `task.with(...)` and shows the whole signature — each field
-with its default — as signature help. A misspelled field is not silently kept:
-it falls through to the extension sink and fails the file with
-#raw("unknown task slot `titel`; tool extensions must use an x-<ns> slot").
+How the two layers divide the field table — what the prelude refuses before it
+is written, and what the Rust layer refuses at `mt check` — is on
+#link(u("/concepts/"))[Concepts].

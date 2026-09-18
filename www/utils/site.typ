@@ -53,23 +53,26 @@
 )
 
 // Grouped sidebar: group title, and its members' reading order as ROUTES.
-// This is the one fact no single page owns — spreading it across the page
-// files as `order:` integers would make the sidebar's shape invisible and let
-// two pages claim one slot (see the umbrella task's "Out of scope"). Every
-// other fact a nav entry used to carry (label, title, summary, home) now
-// lives on the page itself and is resolved from `PAGES` below by route.
+// The groups follow the reader's job, not the page's origin: Start for a
+// first look, Model for the one idea the rest rests on, Tasks for authoring a
+// task file, Reference for looking one thing up, Integrate for wiring
+// MindTape into a repo or a tool. This is the one fact no single page owns —
+// spreading it across the page files as `order:` integers would make the
+// sidebar's shape invisible and let two pages claim one slot (see the
+// umbrella task's "Out of scope"). Every other fact a nav entry used to carry
+// (label, title, summary, home) now lives on the page itself and is resolved
+// from `PAGES` below by route.
 #let NAV = (
-  (title: "Start", items: ("/", "/quickstart/")),
+  (title: "Start", items: ("/", "/quickstart/", "/comparison/")),
+  (title: "Model", items: ("/concepts/",)),
   (
-    title: "Guide",
+    title: "Tasks",
     items: (
-      "/concepts/",
       "/dsl/",
       "/links/",
       "/recurring/",
       "/templates/",
       "/derived-tags/",
-      "/self-validating-tasks/",
     ),
   ),
   (
@@ -87,7 +90,10 @@
       "/import-export/",
     ),
   ),
-  (title: "More", items: ("/agents/", "/internals/", "/comparison/")),
+  (
+    title: "Integrate",
+    items: ("/self-validating-tasks/", "/agents/", "/internals/"),
+  ),
 )
 
 // The page manifest — route -> {label, title, summary, home?} — derived from
