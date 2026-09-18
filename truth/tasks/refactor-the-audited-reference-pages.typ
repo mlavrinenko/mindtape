@@ -4,7 +4,11 @@
 #show: task.with(
   title: "Refactor the audited reference pages onto their topics",
   kind: "docs",
-  status: proposed(2026, 9, 19),
+  status: wip(
+    2026,
+    9,
+    19,
+  )[schema, named-sets, rule-packs, hooks, import-export, internals, self-validating + config and agents],
   priority: ice(
     impact: 7,
     confidence: 0.8,
