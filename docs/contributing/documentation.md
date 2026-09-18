@@ -14,7 +14,9 @@ A file you touch is rewritten against its reader job: who reads it, and what the
 
 ## One home per fact
 
-Generated facts (`www/generated/*.json`, read back by both render paths) cannot drift. Hand-written sentences can: two pages say the same thing slightly differently, both validate, and nothing fails. So a fact already on one page is linked from everywhere else, never retold. What is deliberately shared, like README’s and the site root’s opening task example, is derived once and rendered twice (`www/generate-facts.sh`’s `readme-task.json`), never typed twice.
+Generated facts (`www/generated/*.json`, read back by both render paths) cannot drift. Hand-written sentences can: two pages say the same thing slightly differently, both validate, and nothing fails. So a fact already on one page is linked from everywhere else, never retold. What is deliberately shared, like README’s and the site root’s opening task example, lives once as a module both render paths can call (`www/utils/demo.typ`), never typed twice.
+
+Two findings the audit reports are deliberate. A document consumed whole by an agent — AGENTS.md, the skill, its references — keeps its own minimum, because its reader may have no site access: a tagline or a slot rule repeated there is the price of being operative offline. And a shared block of **code** — a render loop, a crate table — is not prose slop. Extract it or duplicate it, but never paraphrase it; re-worded code is worse than either.
 
 ## A checked example beats a description
 

@@ -39,17 +39,11 @@ A task in `mt ls --json` (the hero's Für Elise task, captured verbatim from the
 `extras` carries the `x-<ns>` extension fields verbatim, so a tool built on
 MindTape reads its own data back out without MindTape interpreting it.
 
-`mt ls --json`'s top-level shape is `{"schema_version": ..., "tasks": [...],
-"applied": {...}, "truncated": ...}`, not a bare array — `applied` names which
-#link(u("/cli/"))[`[[ls.rules]]`] entry (if any) drove the listing and which
-source won each facet, so an agent can tell a conditional listing from a plain
-one without re-deriving it. Facets are attributed one by one, because a filter
-argument narrows the rows while the rule goes on supplying the sort and the
-columns; `applied.superseded` is the case where a rule matched and then lost
-every facet it had, which the facets alone cannot distinguish from no rule
-matching at all. `schema_version` (see #link(u("/schema/"))[the
-  canonical schema]) names the envelope shape it is about to parse: a version it
-does not recognize is a signal to bail out, not to mis-parse silently.
+`mt ls --json` returns an envelope, not a bare array. #link(u("/schema/"))[The
+  canonical schema] owns its shape, including how `applied` attributes each facet
+to the source that won it. The one agent-facing consequence: a
+`schema_version` this tool does not recognize is a signal to bail out, not to
+mis-parse silently.
 
 `truncated` closes the bounded-listing question. `mt ls ready -n 10 --json`
 keeps a reply small, and `truncated` says whether small was the whole answer:
