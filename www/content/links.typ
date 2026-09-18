@@ -1,5 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/site.typ": u
+#import "../utils/slices.typ": checked-slices, render-slices
 #import "../generated/just.typ" as just
 
 #let meta = (
@@ -18,9 +19,9 @@ six built-ins or a project-declared one. Every one of them is checked on load:
 a target that does not resolve, a cycle, or a note a kind requires and does not
 get fails #link(u("/cli/"))[`mt check`].
 
-Everything below is sliced out of `examples/links/`, a real project that
-#just.check-examples() validates on every gate run, so no block here can say
-something the DSL stopped doing.
+No block here is hand-written. Each is a slice of `examples/links/`, taken by
+the docs generator out of the project #just.check-examples() validates, so a
+block cannot describe a shape the DSL stopped accepting.
 
 = The six built-in kinds
 
@@ -37,10 +38,8 @@ something the DSL stopped doing.
   [`supersedes`], [The target is obsolete work this task replaces.],
   [`duplicates`], [This task is the same work as the target, filed twice.],
   [`recurred-from`],
-  [The previous occurrence in a recurring series — see #link(u("/dsl/"))[Task DSL].],
+  [The previous occurrence in a recurring series — see #link(u("/recurring/"))[Recurring tasks].],
 )
-
-#let links-fact = json("../generated/links.json")
 
 #let parts = (
   (
@@ -57,27 +56,13 @@ something the DSL stopped doing.
   ),
 )
 
-#let expected = parts.map(p => p.at(0))
-#assert(
-  expected.all(id => id in links-fact.slices)
-    and links-fact.slices.keys().len() == expected.len(),
-  message: "www/generated/links.json slices ("
-    + links-fact.slices.keys().join(", ")
-    + ") do not match this page's list ("
-    + expected.join(", ")
-    + "); regenerate the docs and fix whichever side moved",
+#let slices = checked-slices(
+  json("../generated/links.json"),
+  "links",
+  parts.map(p => p.at(0)),
 )
 
-#let block = (
-  parts
-    .map(p => {
-      let s = links-fact.slices.at(p.at(0))
-      "// " + s.file + " — " + p.at(1) + "\n" + s.code
-    })
-    .join("\n\n")
-)
-
-#raw(block, lang: "typ", block: true)
+#raw(render-slices(slices, parts), lang: "typ", block: true)
 
 A helper is variadic, and `+` combines helpers because each returns an array —
 the same value every other multi-valued field takes. The array spelling shows

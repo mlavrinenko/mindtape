@@ -79,6 +79,7 @@ scopes:
     - "truth/*.typ"
     - "examples/learn-piano/tasks/**"
     - "examples/links/tasks/**"
+    - "examples/recurring/tasks/**"
     - "examples/learn-piano/.mindtape/templates/**"
     - "www/content/**"
     - "www/templates/**"

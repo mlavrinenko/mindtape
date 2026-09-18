@@ -66,6 +66,7 @@
       "/concepts/",
       "/dsl/",
       "/links/",
+      "/recurring/",
       "/templates/",
       "/derived-tags/",
       "/self-validating-tasks/",

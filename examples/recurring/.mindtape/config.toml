@@ -1,0 +1,53 @@
+#:schema ../../../schema/config.schema.json
+# examples/recurring/.mindtape/config.toml — the checked project /recurring/
+# reads back as data.
+#
+# Its one job is the `recur:` field: seven tasks cover every period unit, the
+# full policy (`anchor`, `until`, `count`, `materialize`), the `rrule(...)`
+# escape hatch, and the pair a spawn leaves behind. The page slices the real
+# expressions out of these files, so the recurrence reference cannot describe
+# a shape `mt check` would refuse.
+#
+# `rrule = true` sits at its default `false` in every other example and is the
+# one line that matters here: the hatch needs this key AND the cargo feature,
+# and `just check-rrule` builds with the feature so both gates are exercised.
+# That recipe validates this fixture, not check-examples: the two cargo
+# feature sets write the same target/debug/mt, and the default-feature test
+# arm runs in parallel with the gate. See [tasks.recur] in the configuration
+# reference for the rest of the floor, which this fixture leaves at its
+# defaults on purpose.
+
+# Resolve @local/mindtape from lib/ two levels up — the prelude under test —
+# rather than the machine-global symlink; same entry and reasoning as the other
+# checked examples.
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+[tasks.recur]
+rrule = true
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true

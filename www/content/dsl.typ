@@ -167,42 +167,9 @@ one, naming the edge. A per-file failure is reported and the rest still land.
 
 = Recurring tasks
 
-`every()` shapes one period unit — no date math in Typst, the same discipline
-as the priority frameworks — plus the policy that rides along with it:
-
-```typ
-recur: every(weeks: 1)
-recur: every(days: 3)
-recur: every(weeks: 1, on: (mon, wed, fri))
-recur: every(
-  weeks: 1,
-  anchor: "completion",   // "completion" (default) or "due"
-  until: on(2027, 1, 1),  // series end
-  count: 10,              // remaining occurrences
-  materialize: "spawn",   // "spawn" (default) or "mutate"
-)
-```
-
-`rrule("FREQ=MONTHLY;BYDAY=1MO")` shapes the same policy dict for an escape
-hatch — calendar-complex cadences `every()` cannot express: "first Monday of
-the month" (`FREQ=MONTHLY;BYDAY=1MO`), "last day of month"
-(`BYMONTHDAY=-1`), "every weekday" (`BYDAY=MO,TU,WE,TH,FR`). It is expanded
-by the `rrule` crate (github.com/fmeringdal/rust-rrule), behind mindtape's own
-`rrule` cargo feature *and* `[tasks.recur] rrule` (see
-#link(u("/config/"))[Configuration]) — either gate missing rejects an
-authored `rrule(...)` with a precise message, and the common `every()` path
-stays free of the extra dependencies (`chrono-tz`, `regex`) either way.
-
-`rrule(...)` is date-anchored only: it implies `anchor: "due"` and rejects
-`anchor: "completion"` outright (RFC 5545 has no completion-relative
-primitive). DTSTART is seeded from the task's `due`; the next occurrence is
-the rule's first instance strictly after it. `mt check` validates the raw
-string at parse time and rejects a malformed one, quoting it in the error
-(e.g. `invalid rrule "FREQ=NOPE": ...`).
-
-A task never advances itself — only an explicit `mt recur` spawns or mutates
-the next occurrence (see #link(u("/cli/"))[CLI reference]); `mt done` on a
-recurring task is a pure close and never touches `recur`.
+`recur:` shapes a repeating task, and `mt recur` advances the series. The
+cadences, the policy that rides along with them, and the `rrule(...)` escape
+hatch live on #link(u("/recurring/"))[Recurring tasks].
 
 = Task bodies
 

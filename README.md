@@ -141,6 +141,7 @@ The docs site has the rest:
 - [Concepts](https://mlavrinenko.github.io/mindtape/concepts/) — The model behind MindTape: files as tasks, live evaluation, identity by filename, and one extension seam.
 - [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) — Every field a task file can declare, and what the prelude versus the Rust layer enforce.
 - [Task links](https://mlavrinenko.github.io/mindtape/links/) — Typed edges between tasks: the built-in kinds, project-declared kinds with their own target validation, and what mt check refuses.
+- [Recurring tasks](https://mlavrinenko.github.io/mindtape/recurring/) — One task that repeats: every() for the common cadences, rrule() for calendar rules, and the command that advances the series.
 - [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) — How mt add scaffolds a task from a Typst template whose values are slot() calls.
 - [Derived tags](https://mlavrinenko.github.io/mindtape/derived-tags/) — Tasks inherit tags from their location under a root, without those tags ever being written to the file.
 - [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/) — A repo's tasks can carry a structure it invented, checked by the repo's own Typst function on every write — no separate linter to maintain.

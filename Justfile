@@ -390,6 +390,14 @@ bench N='2000':
 # `cfg(feature = "rrule")` arms of its own. Lint and run one crate here and the
 # other's feature-on arms compile nowhere — the same rot this recipe exists to
 # stop, one crate over.
+#
+# examples/recurring/'s `rrule(...)` task is checked here, never in
+# check-examples: that recipe runs in parallel with `just test`, and a feature
+# build and the default-feature test arm both write target/debug/mt — the
+# feature-on binary made `mt init --recurrence rrule` succeed in a test that
+# expects the refusal (measured; the test is init_e2e's
+# init_refuses_the_rrule_answer_without_the_engine). The engine's example
+# shares the engine's recipe.
 
 [doc("Check the rrule feature build, lint, and tests")]
 [group("dev")]
@@ -397,6 +405,7 @@ check-rrule:
     cargo fmt --all -- --check
     cargo clippy --workspace --features mindtape/rrule,mindtape-cli/rrule --all-targets -q -- -D warnings
     cargo nextest run --workspace --features mindtape/rrule,mindtape-cli/rrule --status-level fail
+    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q --features rrule -- -w examples/recurring check -q
 
 # Cross-check the workspace, tests included, against Windows without leaving
 # Linux — the compile half of what the CI windows job proves at runtime, minutes
@@ -566,7 +575,7 @@ mutants *ARGS:
 # omit a path from the check while applying it in the fix.
 
 TOML_FMT_PATHS := ".gitleaks.toml .mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml crates/mindtape/src/packs/mindtape-tasks.toml"
-TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates examples/links/tasks www/content www/templates www/utils docs/src"
+TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates examples/links/tasks examples/recurring/tasks www/content www/templates www/utils docs/src"
 
 # The same one-list discipline for the justfiles themselves. A bare `just --fmt`
 # formats the ROOT justfile only and silently skips every `mod` file, so each
