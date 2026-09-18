@@ -661,6 +661,24 @@ ask-refactoring $WRITE='0' $BASELINE='90' $COVERAGE_FLOOR='88' $CC_FLOOR='5' $FN
         --coverage-floor "$COVERAGE_FLOOR" --cc-floor "$CC_FLOOR" \
         --fn-coverage-floor "$FN_COVERAGE_FLOOR"
 
+# The doc SOURCES the audit scans: site prose, the hand-written notes behind
+# its generated refs, and the Markdown sources. Never the renders — README.md,
+# AGENTS.md and skills/mindtape/SKILL.md are generated from docs/src/*.typ, so
+# scanning both sides of a render would pair every sentence with itself.
+
+DOC_PROSE_PATHS := "www/content/*.typ www/utils/*.typ docs/src/readme.typ docs/src/agents.typ docs/src/skill.typ skills/mindtape/references/*.md"
+
+# Report near-duplicate prose sentences across the doc sources, worst pair
+# first. Advisory, not a gate: the threshold is a judgement call and the report
+# is an input to a human deciding where a fact lives. The algorithm, the knobs
+# and why it is jq rather than a language of its own are in
+# contrib/dup-prose.jq's header; run it before and after a doc refactor.
+
+[doc("Report near-duplicate prose across the doc sources")]
+[group("advisory")]
+dup-prose:
+    @for f in {{ DOC_PROSE_PATHS }}; do jq -n --arg f "$f" --rawfile t "$f" '{file:$f,text:$t}'; done | jq -s -r -f contrib/dup-prose.jq
+
 # Stand up a worktree for a delegated agent: a new branch off BASE (default
 # HEAD) at `../<repo>-<slug>`, `direnv allow`-ed, with the base read back out of
 # the created worktree and compared to the sha it was created from. Refuses a
