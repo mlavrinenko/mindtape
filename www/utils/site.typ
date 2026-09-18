@@ -65,6 +65,7 @@
     items: (
       "/concepts/",
       "/dsl/",
+      "/links/",
       "/templates/",
       "/derived-tags/",
       "/self-validating-tasks/",

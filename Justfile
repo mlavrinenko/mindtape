@@ -199,6 +199,7 @@ outdatty-check:
 check-examples:
     MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/learn-piano check -q
     MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/minimal check -q
+    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/links check -q
 
 # Every visible top-level `mt` subcommand must have a www/utils/cli-notes.typ
 # entry. How the set-difference is taken, and what it deliberately never
@@ -565,7 +566,7 @@ mutants *ARGS:
 # omit a path from the check while applying it in the fix.
 
 TOML_FMT_PATHS := ".gitleaks.toml .mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml crates/mindtape/src/packs/mindtape-tasks.toml"
-TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates www/content www/templates www/utils docs/src"
+TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates examples/links/tasks www/content www/templates www/utils docs/src"
 
 # The same one-list discipline for the justfiles themselves. A bare `just --fmt`
 # formats the ROOT justfile only and silently skips every `mod` file, so each

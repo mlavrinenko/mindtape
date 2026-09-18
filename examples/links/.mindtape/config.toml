@@ -1,0 +1,53 @@
+#:schema ../../../schema/config.schema.json
+# examples/links/.mindtape/config.toml — the checked project /links/ reads
+# back as data.
+#
+# Its one job is the `links:` field: eight tasks exercise the built-in helpers
+# (depends-on, parent, related, supersedes, duplicates) and one
+# project-declared kind validated as a URL. The page slices those real
+# expressions out of the task files, so a helper that changes shape fails
+# `just check-examples` instead of leaving a code block that no longer parses.
+#
+# Deliberately thin: roots, a four-value legend, the custom kind. Everything
+# else is inherited from the embedded floor, so nothing here can drift from
+# the defaults the page describes.
+
+# Resolve @local/mindtape from lib/ two levels up — the prelude under test —
+# rather than the machine-global symlink; same entry and reasoning as
+# examples/learn-piano and examples/minimal.
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+# A target that lives outside the backlog: the PR or build that discharged the
+# task. `validate = "url"` keeps it a URL, so `mt check` refuses a stem that
+# was meant to be a link. See [[tasks.links.kinds]] in the config reference.
+[[tasks.links.kinds]]
+name = "discharged-by"
+validate = "url"
+note = "optional"
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true

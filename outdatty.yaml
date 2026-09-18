@@ -148,6 +148,7 @@ groups:
       - crates/mindtape-cli/src/presets/gated/config.toml
     dependents:
       - www/content/cli.typ
+      - www/content/links.typ
       - www/content/filters.typ
       - www/content/config.typ
       - www/content/hooks.typ
@@ -200,6 +201,7 @@ groups:
       - docs/src/agents.typ
       - docs/src/readme.typ
       - www/content/dsl.typ
+      - www/content/links.typ
       - www/content/concepts.typ
       - www/content/priority.typ
       - www/content/templates.typ
@@ -248,6 +250,14 @@ groups:
       - examples/minimal/tasks/write-docs.typ
       - examples/self-validating/tasks/ship-onboarding-checklist.typ
       - examples/self-validating/tasks/export-report-as-csv.typ
+      - examples/links/tasks/pick-a-provider.typ
+      - examples/links/tasks/auth-epic.typ
+      - examples/links/tasks/write-docs.typ
+      - examples/links/tasks/wire-oauth.typ
+      - examples/links/tasks/legacy-cli.typ
+      - examples/links/tasks/drop-legacy-cli.typ
+      - examples/links/tasks/search-too-slow.typ
+      - examples/links/tasks/speed-up-search.typ
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.
