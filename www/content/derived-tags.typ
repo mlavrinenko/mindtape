@@ -1,5 +1,4 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
 #let meta = (
@@ -14,7 +13,7 @@
 
 A task can inherit #strong[virtual tags] from where it sits under a root — the
 root's name plus the folder segments leading to it. They live only in memory and
-join the authored `tags` for filtering.
+join the authored `tags` for #link(u("/filters/"))[filtering].
 
 = What gets derived
 
@@ -39,6 +38,7 @@ Pick what you want under `[tasks.derive-tags] collect`.
 
 ```toml
 [tasks.derive-tags]
+enabled = false                # project-wide switch (default): a root opts in below
 collect = ["segments"]         # segments and/or breadcrumbs
 separator = ":"                # breadcrumb join separator (default)
 slugify = true                 # normalise folder names to tag form (default)
@@ -47,23 +47,18 @@ breadcrumb-root = false        # fold the root name into the breadcrumb chain (d
 [[tasks.roots]]
 path = "tasks"
 name = "work"
-derive-tags = true            # bool | glob | list — gates which files derive
+derive-tags = true             # bool | glob | list — per-root switch
 ```
 
-Per-root `derive-tags` gates which files under that root derive their location:
-a bool, a glob, or a list of globs. `breadcrumb-root` prepends the root name onto
-the breadcrumb chain itself — off by default, since the root name is already
-emitted as its own standalone tag.
+Derivation is off by default. A root with its own `derive-tags` uses it —
+`true`/`false` wholesale, or a glob (or list of globs) matched against the path
+relative to the root; a root without one inherits `enabled`. So turn it on
+project-wide, per root, or only for the files a glob matches.
+`breadcrumb-root` prepends the root name onto the breadcrumb chain itself — off
+by default, since the root name is already emitted as its own standalone tag.
 
 = How they behave
 
 - #strong[Virtual] — never written back to the file.
-- Held on `Task.derived_tags`; `Task::all_tags` unions them with authored tags,
-  so #link(u("/filters/"))[`has_tag(…)`] matches either.
 - Validated strictly against `[tasks.tags] allowed`, the same as authored tags —
   a derived tag outside the allow-list fails `mt check`.
-
-#callout("note")[
-  Derivation only reads a file's path under a root, so tools built on MindTape
-  inherit it unchanged.
-]

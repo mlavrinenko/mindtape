@@ -65,17 +65,11 @@ project:
 mt install
 ```
 
-Every task file opens by importing #pkg, and Typst resolves an `@local` package
-from a directory on your machine — never from the repository holding the tasks.
-Until the prelude is installed there, every task file fails to evaluate and
-`mt ls` shows an empty table; any command that meets an uninstalled prelude
-prints a note naming `mt install`, so a forgotten setup reports itself rather
-than looking like an empty backlog.
-
-`mt install` also seeds `~/.config/mindtape/defaults.toml` (the global config
-layer) and `config.schema.json` (which gives editors completion and validation
-over `.mindtape/config.toml`). It performs all three installs; `--no-lib`,
-`--no-defaults` and `--no-schema` skip any of them.
+Every task file opens by importing #pkg, which Typst resolves from a
+machine-global `@local` directory rather than the checkout —
+#link(u("/config/"))[Configuration] owns that resolution and how to pin a
+project to an in-tree prelude instead, and #link(u("/cli/"))[the CLI reference]
+lists what `mt install` places.
 
 Then scaffold a project, once per repository:
 
@@ -86,44 +80,16 @@ mt init --no-input       # non-interactive: write the default (flow) without ask
 mt init --list-presets   # the other starter shapes
 ```
 
-With no `--preset` and a terminal, `mt init` walks the configuration axes —
-workflow, priority, estimate, required fields, organisation, body headers,
-recurrence — asking a few core questions, then offering to accept defaults for
-the rest, and records the answers as a comment block in the written file. A
-piped (non-terminal) stdin skips the questionnaire the way `--no-input` does;
-every question also has a flag that suppresses just that question.
-
-A build offers only the answers it can act on. The `rrule` recurrence syntax
-needs an expansion engine behind an off-by-default cargo feature, so an `mt`
-built without it neither lists that choice nor accepts `--recurrence rrule` —
-the flag fails naming the feature, rather than writing a config whose first
-`rrule(...)` task would fail `mt check`. An axis left with one answer is not
-asked at all.
-
-A preset is a starter shape; the written file is yours to edit. Four ship:
-
-/ #raw("todone"): open or finished, nothing else constrained.
-/ #raw("flow"): a lifecycle with enforced transitions (the default). Suits one
-  person or a small team.
-/ #raw("personal"): life admin — capture to an inbox, hide-until dates, a weekly
-  review view, folders as contexts.
-/ #raw("gated"): for work handed to an AI agent — required spec sections, a
-  review state that `done` cannot skip, a `[[on.flip]]` gate command that must
-  pass before a task may close, no leftover review comments, and a difficulty
-  rubric for routing a task to a model tier.
-
-`--annotate` keeps the preset's explanatory comments in the written file. User
-presets live in `~/.config/mindtape/presets` and shadow the built-ins by name.
-`mt preset save <name>` captures the current project's config and templates as
-such a preset (`mt preset ls` lists what exists); a preset may carry an
-`[overlay]` block for config the axes cannot express, merged last over the base.
-See #link(u("/config/"))[Configuration] for the layering.
+The questionnaire, the starter shapes and the user presets are
+#link(u("/cli/"))[the CLI reference]'s; what the written file may carry is
+#link(u("/config/"))[Configuration]'s. The recurrence syntax is on
+#link(u("/recurring/"))[Recurring tasks].
 
 = File your first task
 
-`mt add` fills a Typst template, injects the status and id, and validates the
-result. The example's template scores priority through `ice(…)`, so each leaf is
-its own `--set` — no hand-set priority int:
+`mt add` files from a slot template — #link(u("/templates/"))[Templates &
+  slots] owns the mechanics — and this project's template scores priority
+through `ice(…)`:
 
 ```sh
 mt add --set title="Practice pedaling technique" \
@@ -152,21 +118,10 @@ Pass a filter expression to narrow it down — here, everything not yet terminal
 
 #terminal-ansi(read("../generated/ls-open.ansi"))
 
-Empty columns hide themselves, and an `assignee` column appears only when the
-rows disagree about who works them. An opt-in `file` column (`--columns
-'#,title,file'`) shows each task's source path, clickable in a standalone
-terminal with `--hyperlinks always` — see #link(u("/cli/"))[the CLI
-  reference]. The full #link(u("/filters/"))[filter language] covers tags,
-dates, dependency state, and full-text search.
-
-`mt find login bug` is a shortcut for the last of those —
-`mt ls 'contains("login") && contains("bug")'` — and takes every `ls` flag.
-`mt ls --format path` prints a bare list of task paths (`path0` NUL-delimits
-it for `xargs -0`), for composing with another program:
-
-```sh
-rg TODO $(mt ls ready --format path)
-```
+#link(u("/filters/"))[Filters] owns the language — tags, dates, dependency
+state, full-text search — and #link(u("/cli/"))[the CLI reference] owns the
+listing surface: column auto-hide, the `file` column, hyperlinks, `mt find`,
+and the machine-readable `--format`s.
 
 = Change status
 
@@ -186,9 +141,9 @@ mt check
 
 #terminal(read("../generated/check.txt"))
 
-`mt check` verifies every task against the project config: enum values, required
-fields, numeric bounds, link resolution, and dependency cycles. Wire it into a
-pre-commit hook or CI.
+Wire `mt check` into a pre-commit hook or CI — #link(u("/cli/"))[the CLI
+  reference] lists what it verifies, and #link(u("/config/"))[Configuration] the
+rules behind it.
 
 #callout("note")[
   #link(u("/concepts/"))[Concepts] has the model behind all this: why a task is a

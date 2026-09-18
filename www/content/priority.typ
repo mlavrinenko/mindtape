@@ -1,5 +1,4 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
 
 #let meta = (
@@ -13,7 +12,7 @@
 #show: page.with(..meta)
 
 The number is classified into labelled bands; a #strong[framework] scores typed
-inputs into it. `difficulty` is the sibling field with the same shape.
+inputs into it. `difficulty` is the sibling field, classified by anchors instead.
 
 = The scale and bands
 
@@ -39,6 +38,16 @@ defaults). A task may set a bare integer:
 priority: 8,       // → band "high"
 ```
 
+= Difficulty
+
+`difficulty` is configured under its own `[tasks.difficulty]`, with the same
+`kind`, `min`, `max` and `required` keys as priority — but classifies with sparse
+labelled #strong[anchors] instead of bands. The shipped scale runs 0 to 9 with
+anchors `junior` at 0, `mid` at 3, `senior` at 6 and `staff` at 9; a value
+between anchors borrows the nearest lower anchor's glyph and colour. A project
+overrides the range and the anchors under the same key —
+#link(u("/config/"))[Configuration] carries them.
+
 = Frameworks
 
 A framework scores typed inputs instead of a hand-set number. Five ship baked-in:
@@ -56,18 +65,15 @@ A task then calls the framework in place of a number:
 priority: ice(impact: 8, confidence: 0.9, ease: 6),
 ```
 
-The Rust layer scores it (here `round(impact * confidence * ease * 0.09)` = 4),
-bands the result, and keeps it on the scale. No math happens in Typst — the call
-shapes a `(framework, inputs)` dict, nothing more.
+The Rust layer scores it, bands the result, and keeps it on the scale.
 
 = Manual versus strict
 
 - `allow-manual = true` (default when a framework is set) — tasks may use either a
   raw integer or the framework call.
-- `allow-manual = false` — every task must score through the framework. There is
-  no scalar form, so when the template omits priority `mt add` splices the
-  framework call itself: one slot per input, filled leaf by leaf
-  (`--set impact=8 --set confidence=0.9 --set ease=6`).
+- `allow-manual = false` — every task must score through the framework; there is
+  no scalar form. #link(u("/templates/"))[Templates & slots] covers how a
+  scaffold fills it.
 
 = Built-in frameworks
 
@@ -81,13 +87,9 @@ shapes a `(framework, inputs)` dict, nothing more.
   [`moscow`], [`level` (`must` / `should` / `could` / `wont`)],
 )
 
-Override a framework's scoring or bands under
-`[tasks.priority.frameworks.<name>]`, or define your own with the generic
-`framework(name, ..inputs)` call. `eisenhower` and `moscow` classify into named
-categories rather than banding a number.
-
-#callout("note")[
-  Every scored result lands back on the numeric scale and is in-bounds by
-  construction, so priority stays comparable in #link(u("/filters/"))[filters]
-  (`priority >= 7`) regardless of how it was set.
-]
+A framework's inputs — names, types, bounds — are declared under
+`[tasks.priority.frameworks.<name>]` (the baked-in five in
+`crates/mindtape/src/frameworks.toml`), where its scoring and bands are
+overridable too; define your own with the generic `framework(name, ..inputs)`
+call. `eisenhower` and `moscow` classify into named categories rather than
+banding a number.

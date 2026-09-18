@@ -13,7 +13,7 @@
 #show: page.with(..meta)
 
 `mt ls` and `mt rm` take a filter expression — a boolean query over task fields.
-Here, every task not yet in a terminal status:
+Here, `mt ls '!terminal'` lists every task not yet in a terminal status:
 
 #terminal-ansi(read("../generated/ls-open.ansi"))
 
@@ -45,15 +45,11 @@ assignee is not a declared actor, holds no role.
 separators on every platform. A filter saved in `.mindtape/config.toml` (a
 view, an `[[ls.rules]]` entry) must mean the same thing regardless of where
 `mt` runs from, so it stays anchored to the root rather than to whichever
-directory issued the command — and it is the same value `--format json`
-reports as each task's `file`.
+directory issued the command.
 
-The #link(u("/cli/"))[`file` column] is a different value: a _display_,
-relative to the working directory, so the path you read is openable from
-where you are standing. The two coincide inside the project root and diverge
-under `mt -w <other-project>`, which is why they no longer share a name.
 `file` is not a filter field at all — filtering on it is an error, not an
-empty listing.
+empty listing. #link(u("/cli/"))[CLI] owns what the `file` column displays;
+#link(u("/schema/"))[Schema] owns the value the record formats carry.
 
 `depth` is the task's nesting under its root — 0 for a task in the root itself,
 1 for one in a sub-folder, and so on. It is always numeric, so `depth == 0`
@@ -116,22 +112,21 @@ with `miss(field)`.
     enforced convention rather than a query.],
 )
 
-= Reading a word out of a field
+= Function arguments
 
-`word(field, n)` is the one function that yields a _string_ rather than a
-verdict: the n-th whitespace-separated word of a string field, counting from
-1, trimmed of everything non-alphanumeric at either end (`"Fix: the slug"` has
-`Fix` as its first word). It is an argument, never a term of its own — so it
-goes inside one of the two functions that read a string:
+An argument may be a literal, a bare field, or another function's result:
+`word()` nests inside `matches()` and `in_dict()`, the two functions that read
+a string.
 
 ```sh
 mt ls 'in_dict("verbs", word(title, 1))'   # titles opening with a known verb
 mt ls '!matches(word(title, 1), "ing$")'   # ...and not a gerund
 ```
 
-That is the whole of the new grammar: a function's argument may be another
-function's result, not only a field or a literal. `word()` nests in itself,
-and either reader takes a literal, a bare field, or a `word(...)` call.
+`word(field, n)` is the one function that yields a _string_ rather than a
+verdict: the n-th whitespace-separated word of a string field, counting from
+1, trimmed of everything non-alphanumeric at either end (`"Fix: the slug"` has
+`Fix` as its first word). It is an argument, never a term of its own.
 
 `word()` takes no position on Typst markup. A whitespace split is all it does,
 so a title opening with a backticked command yields the token inside the ticks
@@ -151,9 +146,8 @@ itself: a dictionary no `[dicts]` section and no built-in declares, a pattern
 count. A filter saved in config is dry-run at load, so a view or a rule
 reports its own bad expression by name rather than quietly matching nothing.
 
-Two dictionaries ship with `mt` and need no declaring: `mindtape-verbs` (the
-500 most frequent English verbs, base form) and `mindtape-dev-verbs` (86
-software-work verbs the frequency list ranks too low to carry).
+Built-in dictionaries need no declaration, so a filter references them
+directly — #link(u("/named-sets/"))[Views & dictionaries] owns them:
 
 ```sh
 mt ls 'in_dict("mindtape-verbs", word(title, 1))'
@@ -171,16 +165,14 @@ mt ls '@backend && !@blocked'   # in the backend view, minus blocked
 ```
 
 One predicate exists only where a transition does: `into("status")`, in a
-#link(u("/hooks/"))[`[[on.flip]]`] hook's `when`, matches the status being
-stamped, while the rest of the expression reads the task as it stands before the
-write. Everything else on this page composes with it —
-`into("done") && !has_tag("chore")` is an ordinary filter with one extra term.
+#link(u("/hooks/"))[`[[on.flip]]`] hook's `when`.
 
 = Dependency predicates
 
-`ready` and `blocked` classify a task by its `depends-on` targets: ready when
-every direct dependency is terminal, blocked otherwise. `terminal` matches a task
-in a terminal status — it is the built-in `[rm] default-filter`. Use them bare or
+`ready` and `blocked` classify a non-terminal task by its `depends-on`
+targets: ready when every direct dependency is terminal; blocked when one is
+not — including a link naming no loaded task. A terminal task is settled,
+neither. `terminal` matches a task in a terminal status. Use them bare or
 called (`ready()`):
 
 ```sh
@@ -260,11 +252,8 @@ mt ls --sort blocks:desc --sort priority:desc  # leverage first, score to break 
 
 `-n` cuts the list *after* the filter and the sort, so it always yields the top
 N of the order you asked for rather than whichever tasks the loader reached
-first. A cut listing says so: a table prints a dim `truncated: showing 10 of
-47` under the rows, and `--json` reports the same pair in its
-#link(u("/schema/"))[envelope]. The record formats — `csv`, `path`, `path0` —
-print records and nothing else, since a prose line appended there is corruption
-for the program on the other end of the pipe.
+first; #link(u("/schema/"))[Schema] and #link(u("/agents/"))[For AI agents] own
+how the cut reports itself.
 
 = Default filters
 
@@ -280,9 +269,8 @@ arrived. Being a view (not a bare filter) it can carry sort and columns too.
 `mt rm` applies `[rm] default-filter` (`terminal`). All three live in
 #link(u("/config/"))[Configuration].
 
-The same language also decides which tasks must carry a field: `[tasks.priority]
-required = "!terminal"` (and its siblings) is a filter, evaluated per task by
-`mt check` — see #link(u("/config/"))[Required fields].
+The same language also decides which tasks must carry a field — see
+#link(u("/config/"))[Required fields].
 
 #callout("note")[
   Filters are parsed, not evaluated as code: the expression syntax is fixed,

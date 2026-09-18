@@ -49,15 +49,16 @@ daemon-plus-database SaaS with no in-repo file artifact, and out of scope here.
 
 - #strong[#link(u("/"))[MindTape]] — one typed Typst file per task, config-validated, in your repo.
 - #strong[#link(dstask-url)[dstask]] — the closest cousin: one YAML file per task, synced through
-  git, from a single Go binary.
-- #strong[#link(taskwarrior-url)[Taskwarrior]] — the incumbent CLI engine: a central store with urgency
-  scoring, recurrence, and user-defined attributes.
-- #strong[#link(todotxt-url)[todo.txt]] — the minimalist standard: one plain-text file, one line per
-  task, no schema.
+  git from a single Go binary, auto-committed in its own repo rather than the code tree, with a
+  light fixed schema and no setup.
+- #strong[#link(taskwarrior-url)[Taskwarrior]] — the incumbent CLI engine for a central out-of-repo
+  store: urgency scoring, recurrence, user-defined attributes, a deep filter language.
+- #strong[#link(todotxt-url)[todo.txt]] — the minimalist standard: one portable plain-text file, no
+  schema, supported by apps on every platform.
 - #strong[#link(orgmode-url)[Org-mode]] — Emacs outline files that double as a live agenda and a
   typeset-exportable document.
 - #strong[#link(git-bug-url)[git-bug]] — issues stored inside git objects, offline-first and
-  distributed.
+  distributed, bridging to GitHub or GitLab.
 
 All of them are daemon-free and run locally, so that alone separates none of
 them. The table below digs into how each one stores, types, links, and renders a
@@ -215,9 +216,9 @@ matrix scrolls sideways on narrow screens.
   estimate unit allow-list, and link resolution — all checked by `mt check` in
   CI. Only Taskwarrior's UDAs come close, and without the validation gate.
 - #strong[Scored priority frameworks.] ICE, RICE, WSJF, Eisenhower, and MoSCoW
-  score typed inputs and band the result onto the scale
-  (#link(u("/priority/"))[details]). Nothing else in this table computes priority
-  from structured inputs.
+  turn typed inputs into a priority — scored onto the scale or classified into
+  named categories (#link(u("/priority/"))[details]). Nothing else in this table
+  computes priority from structured inputs.
 - #strong[Composable source.] The file is real Typst: `#import` a shared library,
   compute values, reuse templates. A todo.txt line or a YAML record cannot.
 
@@ -234,33 +235,3 @@ matrix scrolls sideways on narrow screens.
   HTML, and LaTeX with decades of theming. MindTape's `task` show rule typesets a
   single task as an index card today — real, but one card, not a multi-task report
   or a multi-backend document pipeline.
-
-= When another tool fits better
-
-- #strong[dstask] — you want the one-file-per-task, git-backed spirit with a
-  batteries-included single binary and no schema to set up, and you are happy
-  keeping tasks in their own auto-committed repo rather than the code tree.
-- #strong[Taskwarrior] — you want the most powerful mature CLI engine: urgency
-  scoring, recurrence, UDAs, a deep filter language — and you do not need tasks
-  in-repo.
-- #strong[todo.txt] — you want the absolute minimum: one portable text file, zero
-  schema, supported by dozens of apps on every platform.
-- #strong[Org-mode] — you live in Emacs and want tasks embedded in prose that
-  exports to typeset PDF today, with cross-file agendas and capture templates.
-- #strong[git-bug] — you want issues that travel inside the git repo itself,
-  offline-first and distributed, bridging to GitHub or GitLab.
-
-= The closest cousin
-
-// Never write a semicolon directly after a Typst code expression (`#strong[…];`,
-// `#link(…)[…];`, `#value;`): Typst's markup grammar consumes it as an
-// expression terminator and it never reaches the output, silently turning the
-// sentence into a run-on. A semicolon after plain text or after a literal `)`
-// is fine. Reword instead, as below.
-dstask shares the most DNA: one file per task, git as the store, a single-binary
-CLI. A MindTape task is #strong[typed Typst validated by project config]. A
-dstask task is a YAML record with a light fixed schema. MindTape tasks live #strong[in your code tree], reviewed in the same PR;
-dstask keeps them in its own git repo it auto-commits for you. MindTape
-#link(u("/priority/"))[scores priority frameworks], while dstask ranks `P0`–`P3`. The
-cost of all that structure is a task file you author in Typst rather than fill in
-as YAML — and dstask, being released and mature, is simpler to adopt today.

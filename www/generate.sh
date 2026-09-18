@@ -185,7 +185,7 @@ jq -n \
 
 # --- read commands against the fixture (verbatim) -------------------------
 gen_read ls        ls
-gen_read ls-open   ls 'status != "done"'
+gen_read ls-open   ls '!terminal'
 gen_read ls-stuck  ls @stuck
 gen_read ls-week   ls @this-week
 gen_read views     views
@@ -203,7 +203,7 @@ bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR
 # valid fixture and `views` emit no colour, so only `ls*` gets an .ansi.
 gen_color() { local slug="$1"; shift; "$MT" -w "$FIX" --color always "$@" >"$OUT/$slug.ansi"; }
 gen_color ls       ls
-gen_color ls-open  ls 'status != "done"'
+gen_color ls-open  ls '!terminal'
 
 # A single task object for the for-agents page's `mt ls --json` example. The
 # `ls` path scores priority and derives folder tags (unlike single-file `eval`,

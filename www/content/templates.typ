@@ -27,9 +27,8 @@ variable. This is the example project's template:
 
 #raw(read("../generated/template.typ"), lang: "typ", block: true)
 
-Slots nest: `discover_slots` walks into `ice(…)`, so each leaf becomes its own
-fillable field. Structured fields have no CLI path syntax — expose each leaf as
-a slot instead.
+Slots nest: a walk into `ice(…)` makes each leaf its own fillable field.
+Structured fields have no CLI path syntax — expose each leaf as a slot instead.
 
 = Inspect the slots
 
@@ -77,9 +76,9 @@ mt add --edit                                          # fill in your editor
 - #strong[A bare `name=value` for a list slot errors] — one string is never
   silently a list. Append with `+=`, or pass an array through `-f`.
 - #strong[Text slots are escaped] into Typst markup, whichever source the value
-  came from. Prose containing `*`, `_`, `$`, `#`, `[`, `]`, `<` or `@` stays
-  literal instead of opening emphasis or evaluating away. Numeric, choice and
-  date slots are literals and are left alone.
+  came from. Prose containing `\`, `[`, `]`, `#`, `$`, `*`, `_`, a backtick, `@`
+  or `<` stays literal instead of opening emphasis or evaluating away. Numeric,
+  choice and date slots are literals and are left alone.
 - #strong[Raw slots are not escaped]: `kind: "raw"` splices its value in
   verbatim, so a fill value may carry code spans, emphasis or a list. The
   opt-out belongs to the template author, never to the caller — a template is
@@ -123,8 +122,7 @@ by #strong[the slot's kind], exactly as for a typed value:
 Trailing newlines are stripped and nothing else is, so `@` is a drop-in for
 the `--set "key=$(cat path)"` it replaces. There is no append form: a file is
 one value, and a list goes through `-f` as an array. There is no stdin form
-either — `-f -` is that channel, and a YAML block scalar carries a prose slot
-verbatim.
+either — `-f -` is that channel.
 
 = Structured values with `-f`
 
@@ -170,10 +168,10 @@ so it appears in the scaffold, in `--describe`, and in the written task, even
 with the barebones built-in `task` template.
 
 #callout("note")[
-  Strict-framework priority (`framework` + `allow-manual = false`) has no scalar
-  form, so the splice writes the framework call itself — one slot per input, in
-  the generic `framework("name", …)` spelling. See
-  #link(u("/priority/"))[Priority].
+  Strict-framework priority (`framework` + `allow-manual = false`) is spliced
+  as the framework call itself — one slot per input (`--set impact=8 --set
+  confidence=0.9 --set ease=6`), in the generic `framework("name", …)` spelling.
+  See #link(u("/priority/"))[Priority] for the mode itself.
 ]
 
 = Editor mode
