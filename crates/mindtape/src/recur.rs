@@ -17,9 +17,17 @@
 //! raw string at parse time (feature on) and rejects `anchor: "completion"`
 //! on it (date-anchored only); the expansion itself is
 //! [`crate::recur_dates::advance_once`]'s concern.
+//!
+//! The canonical task-JSON shape ([`CanonicalRecur`]/[`CanonicalRule`], used
+//! by `crate::canonical`/`crate::import_map`) lives in the `canonical`
+//! submodule, split out to stay under the file-size gate.
+
+mod canonical;
 
 use serde::Deserialize;
 use typst_harvest::HVal;
+
+pub use canonical::{CanonicalRecur, CanonicalRule};
 
 /// A task's recurrence: the rule plus the policy riding along with it.
 ///
@@ -328,6 +336,21 @@ fn parse_weekday(name: &str) -> Option<chrono::Weekday> {
         "sat" => Some(Sat),
         "sun" => Some(Sun),
         _ => None,
+    }
+}
+
+/// The inverse of [`parse_weekday`] — `crate::emit`'s `on:` rendering shares
+/// this rather than keeping its own copy of the name table.
+pub(crate) fn weekday_name(day: chrono::Weekday) -> &'static str {
+    use chrono::Weekday::{Fri, Mon, Sat, Sun, Thu, Tue, Wed};
+    match day {
+        Mon => "mon",
+        Tue => "tue",
+        Wed => "wed",
+        Thu => "thu",
+        Fri => "fri",
+        Sat => "sat",
+        Sun => "sun",
     }
 }
 

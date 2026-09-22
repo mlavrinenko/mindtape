@@ -118,9 +118,8 @@ There is no `mt export`. This is a deliberate scope decision, not a gap:
   your data out.
 - `mt ls --json` projects every field the
   #link(u("/schema/"))[canonical schema] carries, in a stable, documented
-  shape. It cannot project `recur` — the one authored field with no canonical
-  form — so recurrence does not survive the round-trip, and an exporter that
-  needs it reads the task files instead.
+  shape — `recur` included, so `mt ls --json | mt import` reproduces a
+  recurring task's schedule rather than dropping it.
 
 A foreign-format export is therefore a #strong[reverse] `jq` program: write it
 against `mt ls --json`'s output the same way `contrib/jq/*.jq` write against a

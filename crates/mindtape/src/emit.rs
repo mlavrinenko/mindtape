@@ -4,10 +4,9 @@
 //! the project's config before calling in. Field order is fixed (see
 //! [`emit_task`]), so two calls on an unchanged `Task` agree byte-for-byte.
 //!
-//! `recur` emission covers the `every(...)` period shape only; a task whose
-//! `recur` uses the `rrule(...)` escape hatch emits no `recur` field at all
-//! (a deliberate, documented gap rather than a silent one — extending this is
-//! `rrule-escape-hatch`'s concern, not this primitive's).
+//! `recur` emits `every(...)` for a period rule and `rrule(...)` for the
+//! escape hatch, mirroring the prelude's two constructors — see
+//! `truth/tasks/carry-recur-through-the-canonical-task-json-round-trip.typ`.
 //!
 //! Split into two helper submodules to stay under the file-size gate:
 //! `format` (Typst literal rendering: strings, numbers, arrays, `HVal`) and
@@ -86,7 +85,7 @@ fn emit_fields(task: &Task) -> Vec<String> {
             fields.push(field);
         }
     }
-    if let Some(recur) = task.recur.as_ref().and_then(emit_recur) {
+    if let Some(recur) = task.recur.as_ref().map(emit_recur) {
         fields.push(recur);
     }
     for (key, value) in &task.extras {
@@ -171,22 +170,28 @@ fn emit_estimate(estimate: &BTreeMap<String, f64>) -> Option<String> {
     Some(format!("estimate: ({})", parts.join(", ")))
 }
 
-/// `recur: every(...)`, covering the period rule only — `None` for a
-/// `rrule(...)` recur (see the module doc comment) or an unparseable `until`.
-fn emit_recur(recur: &Recur) -> Option<String> {
-    let Rule::Period {
-        unit,
-        value,
-        weekdays,
-    } = &recur.rule
-    else {
-        return None;
+/// `recur: every(...)` for a period rule, `recur: rrule(...)` for the escape
+/// hatch. An unparseable `until` is simply omitted, matching every other
+/// unparseable date field this module emits.
+fn emit_recur(recur: &Recur) -> String {
+    let (helper, mut args) = match &recur.rule {
+        Rule::Period {
+            unit,
+            value,
+            weekdays,
+        } => {
+            let mut args = vec![format!("{}: {value}", unit.as_str())];
+            if !weekdays.is_empty() {
+                let days: Vec<String> = weekdays
+                    .iter()
+                    .map(|day| typ_str(crate::recur::weekday_name(*day)))
+                    .collect();
+                args.push(format!("on: {}", typ_array(&days)));
+            }
+            ("every", args)
+        }
+        Rule::Rrule { raw } => ("rrule", vec![typ_str(raw)]),
     };
-    let mut args = vec![format!("{}: {value}", unit.as_str())];
-    if !weekdays.is_empty() {
-        let days: Vec<String> = weekdays.iter().map(|day| typ_str(weekday(*day))).collect();
-        args.push(format!("on: {}", typ_array(&days)));
-    }
     if let Some(anchor) = &recur.anchor {
         args.push(format!("anchor: {}", typ_str(anchor)));
     }
@@ -199,20 +204,7 @@ fn emit_recur(recur: &Recur) -> Option<String> {
     if let Some(materialize) = &recur.materialize {
         args.push(format!("materialize: {}", typ_str(materialize)));
     }
-    Some(format!("recur: every({})", args.join(", ")))
-}
-
-fn weekday(day: chrono::Weekday) -> &'static str {
-    use chrono::Weekday::{Fri, Mon, Sat, Sun, Thu, Tue, Wed};
-    match day {
-        Mon => "mon",
-        Tue => "tue",
-        Wed => "wed",
-        Thu => "thu",
-        Fri => "fri",
-        Sat => "sat",
-        Sun => "sun",
-    }
+    format!("recur: {helper}({})", args.join(", "))
 }
 
 #[cfg(test)]

@@ -346,22 +346,42 @@ fn emits_unnamed_framework_with_inputs_via_the_generic_escape_hatch() {
 }
 
 #[test]
-fn emit_recur_omits_field_for_rrule_escape_hatch() {
-    // The module doc's "deliberate, documented gap": a `rrule(...)` recur
-    // emits no `recur` field at all, rather than a wrong or partial one.
+fn emit_recur_rrule_escape_hatch_round_trips_through_reload() {
+    // `check_policy` gates `rrule(...)` behind config and the `rrule` cargo
+    // feature — orthogonal to emission, and this crate's own tests build
+    // without the feature — so this reloads without calling `validate` (the
+    // way `assert_round_trips` does), proving the marker-parse round trip on
+    // its own rather than the policy check this build cannot honour.
+    let dir = tempfile::tempdir().unwrap();
     let mut task = bare_task("rrule-recur");
     task.status = Some(status("wip", "2026-06-01"));
     task.recur = Some(Recur {
         rule: Rule::Rrule {
             raw: "FREQ=MONTHLY;BYDAY=1MO".to_owned(),
         },
-        anchor: None,
+        anchor: Some("due".to_owned()),
         until: None,
         count: None,
         materialize: None,
     });
     let source = emit_task(&task);
-    assert!(!source.contains("recur:"), "{source}");
+    assert!(
+        source.contains(r#"recur: rrule("FREQ=MONTHLY;BYDAY=1MO", anchor: "due")"#),
+        "{source}"
+    );
+    let files = vec![(format!("{}.typ", task.id), source.clone())];
+    let outcome = setup(dir.path(), CONFIG, &files);
+    assert!(
+        outcome.errors.is_empty(),
+        "{:?}\n--- source ---\n{source}",
+        outcome.errors
+    );
+    let reloaded = outcome
+        .tasks
+        .into_iter()
+        .find(|found| found.id == task.id)
+        .unwrap_or_else(|| panic!("task `{}` did not load\n--- source ---\n{source}", task.id));
+    assert_eq!(reloaded.recur, task.recur);
 }
 
 #[test]

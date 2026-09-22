@@ -28,6 +28,7 @@ use crate::canonical::CanonicalTask;
 use crate::config::Config;
 use crate::link::Link;
 use crate::model::Task;
+use crate::recur::CanonicalRecur;
 
 pub use crate::canonical::json_to_hval;
 pub use report::{EntryKind, ImportReport, MapOptions, ReportEntry};
@@ -83,7 +84,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         due: canonical.due.clone(),
         start: canonical.start.clone(),
         reviewed: canonical.reviewed.clone(),
-        recur: None,
+        recur: canonical.recur.as_ref().map(CanonicalRecur::to_recur),
         extras,
         shape_errors: Vec::new(),
         body,

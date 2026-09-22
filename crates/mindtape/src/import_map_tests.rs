@@ -11,6 +11,7 @@ use crate::canonical::{
 };
 use crate::config::{Config, parse_config};
 use crate::numeric::{InputValue, NumValue};
+use crate::recur::{CanonicalRecur, CanonicalRule};
 
 fn canonical(title: &str) -> CanonicalTask {
     CanonicalTask {
@@ -400,6 +401,46 @@ fn links_carry_through_unchanged() {
     assert_eq!(mapped.task.links.len(), 1);
     assert_eq!(mapped.task.links[0].task, "other.typ");
     assert_eq!(mapped.task.links[0].kind, "depends-on");
+}
+
+#[test]
+fn recur_carries_through_for_an_every_period() {
+    let mut c = canonical("x");
+    c.recur = Some(CanonicalRecur {
+        rule: CanonicalRule::Period {
+            unit: "weeks".to_owned(),
+            value: 2,
+            on: vec!["mon".to_owned()],
+        },
+        anchor: Some("due".to_owned()),
+        until: None,
+        count: None,
+        materialize: None,
+    });
+    let mapped = map_canonical(&c, &config(), &MapOptions::default());
+    assert_eq!(mapped.task.recur, Some(c.recur.unwrap().to_recur()));
+}
+
+#[test]
+fn recur_carries_through_for_the_rrule_escape_hatch() {
+    let mut c = canonical("x");
+    c.recur = Some(CanonicalRecur {
+        rule: CanonicalRule::Rrule {
+            raw: "FREQ=MONTHLY;BYDAY=1MO".to_owned(),
+        },
+        anchor: None,
+        until: None,
+        count: None,
+        materialize: None,
+    });
+    let mapped = map_canonical(&c, &config(), &MapOptions::default());
+    assert_eq!(mapped.task.recur, Some(c.recur.unwrap().to_recur()));
+}
+
+#[test]
+fn absent_recur_maps_to_none() {
+    let mapped = map_canonical(&canonical("x"), &config(), &MapOptions::default());
+    assert_eq!(mapped.task.recur, None);
 }
 
 #[test]

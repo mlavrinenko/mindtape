@@ -63,12 +63,14 @@ import):
   [`start`], [authored], [`YYYY-MM-DD`.],
   [`reviewed`], [authored], [`YYYY-MM-DD`.],
   [`body`], [authored], [Raw Typst source after `#show: task.with(...)`.],
+  [`recur`],
+  [authored],
+  [`{rule, anchor, until, count, materialize}`, `null` when the task does not
+    recur — see #link(u("/recurring/"))[Recurring tasks] for the field
+    itself.],
+
   [`extras`], [authored], [Opaque `x-<ns>` consumer extension slots.],
 )
-
-The table is the whole record, with one gap: `recur` has no canonical form. A
-recurring task exports without its recurrence and `mt import` writes none;
-#link(u("/recurring/"))[Recurring tasks] owns the field itself.
 
 = Priority parity
 

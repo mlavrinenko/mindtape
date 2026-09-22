@@ -1,10 +1,7 @@
 //! The canonical task-JSON schema: the schema of record shared by `mt ls
 //! --json` (serialize, via [`CanonicalTask::from_task`]) and `mt import`
 //! (deserialize). One shape, so the two never drift: every field below
-//! round-trips except `recur`, which has no canonical form at all — `mt
-//! import` writes none (see `import_map.rs`), so a recurring task exports
-//! without its recurrence. `www/content/schema.typ` names the same gap for
-//! users.
+//! round-trips.
 //!
 //! # Field contract
 //!
@@ -30,6 +27,7 @@
 //! | `start`         | authored |                                                      |
 //! | `reviewed`      | authored |                                                      |
 //! | `body`          | authored | raw Typst source after `#show: task.with(...)`       |
+//! | `recur`         | authored | `{rule, anchor, until, count, materialize}`, null when the task does not recur |
 //! | `extras`        | authored | opaque `x-<ns>` consumer extension slots             |
 //!
 //! ## Priority parity
@@ -108,6 +106,15 @@ pub struct CanonicalTask {
     /// Raw Typst source after the `#show: task.with(...)` marker.
     #[serde(default)]
     pub body: String,
+    /// Recurrence rule + policy (`every(...)`/`rrule(...)`), or `null` when
+    /// the task does not recur. Additive relative to `SCHEMA_VERSION` 1 (an
+    /// absent key parses to `None` via `#[serde(default)]`, and no consumer
+    /// reading the earlier field set can trip over a new one appearing) —
+    /// see `mindtape-cli::output::truncated_to_json`'s "additive, no
+    /// `SCHEMA_VERSION` bump" precedent for envelope fields; this is the
+    /// same rule applied to a task field.
+    #[serde(default)]
+    pub recur: Option<crate::recur::CanonicalRecur>,
     /// Opaque consumer extensions, keyed by `x-<ns>` slot.
     #[serde(default)]
     pub extras: BTreeMap<String, Value>,
@@ -193,6 +200,7 @@ impl CanonicalTask {
             start: task.start.clone(),
             reviewed: task.reviewed.clone(),
             body: task.body.clone(),
+            recur: task.recur.as_ref().map(crate::recur::Recur::to_canonical),
             extras: task
                 .extras
                 .iter()
