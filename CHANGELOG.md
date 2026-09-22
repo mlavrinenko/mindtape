@@ -9,6 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Shell completions, answered by the binary rather than generated into a
+  file.** Tab after `mt flip ` used to offer nothing, and no completion script
+  was ever written because the values worth completing are all
+  project-derived: a committed script can state `--format json|csv` correctly
+  forever and still be wrong about every stem, status, view and template.
+  `mt install` now writes a hook per shell under
+  `~/.config/mindtape/completions/` (`--no-completions` skips it, alongside the
+  existing `--no-lib`/`--no-defaults`/`--no-schema`), each a couple of lines
+  that ask `mt` itself for the answer on every press
+  (`clap_complete`'s `CompleteEnv`). So the static half is clap's own parser
+  and the dynamic half is the live config: `mt flip ` offers this project's
+  legend, `mt ls @` its views, `mt add -t` its templates, `mt link <task> ` its
+  edge kinds, and every task argument its stems — with `mt set`'s writable
+  fields and this project's tags behind `tags=`. Nothing is generated into a
+  repository, so nothing can drift from one, and an `mt` upgrade needs no
+  re-install. A project that fails to load yields no candidates and no error,
+  because a broken tab press must not look like a broken shell. Which argument
+  draws on which source is declared once, in
+  `crates/mindtape-cli/src/completion.rs`, and reflected back out through
+  `mt _cli --json`: `just check-doc-facts` set-differences the arguments clap
+  declares against the ones named there, so a new completable argument fails
+  a gate until it says where its values come from — "no project value fits"
+  being an answer too, recorded with its reason.
+
 - **`mt set <task> <field>=<value>` writes one core field from the CLI.** `mt`
   wrote `status:` (`flip`), `links:` (`link`), `reviewed:` (`review`) and the
   stem (`mv`), and nothing else — so changing a priority, a tag or a due date

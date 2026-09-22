@@ -1,10 +1,18 @@
 //! `mt install` — set up the USER ENVIRONMENT: the `@local/mindtape` Typst
-//! package, the XDG global `defaults.toml` app-config layer, and the JSON
-//! Schema for `.mindtape/config.toml`.
+//! package, the XDG global `defaults.toml` app-config layer, the JSON Schema
+//! for `.mindtape/config.toml`, and the shell completion hooks.
 //!
 //! Distinct from `mt init`, which scaffolds a PROJECT's `.mindtape/config.toml`.
-//! By default performs all three installs; `--no-lib`/`--no-defaults`/
-//! `--no-schema` skip any of them.
+//! By default performs all four installs; `--no-lib`/`--no-defaults`/
+//! `--no-schema`/`--no-completions` skip any of them.
+//!
+//! The completion hook is the odd one out in what it CONTAINS: the other three
+//! files carry content, this one carries a call. Each is the couple of lines
+//! that ask `mt` itself for the completion on every tab press
+//! ([`crate::completion`]), never a generated completion script — a script
+//! written here would be a copy of the parser and of this project's config,
+//! stale from the next flag and wrong in every other project. It also means an
+//! `mt` upgrade needs no re-install: the hook is re-evaluated at shell start.
 
 use std::path::{Path, PathBuf};
 
@@ -27,6 +35,10 @@ pub struct InstallArgs {
     /// Skip installing the JSON Schema for `.mindtape/config.toml`.
     #[arg(long)]
     pub no_schema: bool,
+
+    /// Skip installing the shell completion hooks.
+    #[arg(long)]
+    pub no_completions: bool,
 
     /// Overwrite an existing XDG `defaults.toml` / `config.schema.json`.
     #[arg(long)]
@@ -52,6 +64,73 @@ pub fn run(args: &InstallArgs) -> Result<()> {
     if !args.no_schema {
         let dir = xdg_defaults_dir()?;
         write_schema(&dir, args.force)?;
+    }
+    if !args.no_completions {
+        let dir = completions_dir()?;
+        write_completions(&dir, args.force)?;
+        println!(
+            "source the one for your shell from its startup file, e.g. \
+             `source {}`",
+            dir.join("bash").display()
+        );
+    }
+    Ok(())
+}
+
+/// The couple of lines each shell needs to ask `mt` for its own completions.
+///
+/// Keyed by the name `clap_complete`'s `CompleteEnv` answers to, because that
+/// is the name the hook has to pass back in `$COMPLETE`; the test beside this
+/// module asserts the keys are exactly `Shells::builtins()`, so a shell the
+/// library learns arrives here by failing rather than by being noticed.
+///
+/// Each guards on `mt` being on `$PATH`: these files are sourced from a
+/// startup file, and a shell that errors at launch because a binary moved is a
+/// worse failure than no completions.
+const HOOKS: &[(&str, &str)] = &[
+    (
+        "bash",
+        "command -v mt >/dev/null 2>&1 && source <(COMPLETE=bash mt)\n",
+    ),
+    (
+        "zsh",
+        "command -v mt >/dev/null 2>&1 && source <(COMPLETE=zsh mt)\n",
+    ),
+    (
+        "fish",
+        "if command -q mt\n    COMPLETE=fish mt | source\nend\n",
+    ),
+    (
+        "elvish",
+        "if (has-external mt) { eval (E:COMPLETE=elvish mt | slurp) }\n",
+    ),
+    (
+        "powershell",
+        "if (Get-Command mt -ErrorAction SilentlyContinue) {\n  \
+         $env:COMPLETE = \"powershell\"\n  \
+         mt | Out-String | Invoke-Expression\n  \
+         Remove-Item Env:\\COMPLETE\n}\n",
+    ),
+];
+
+/// The shells [`HOOKS`] installs for, for the test that holds the table
+/// against `clap_complete`'s own list.
+#[cfg(test)]
+pub(crate) fn hook_shells() -> impl Iterator<Item = &'static str> {
+    HOOKS.iter().map(|(shell, _)| *shell)
+}
+
+/// `<config home>/mindtape/completions` — one hook file per shell, named after
+/// the shell so a startup file can name its own without a lookup table.
+fn completions_dir() -> Result<PathBuf> {
+    Ok(xdg_defaults_dir()?.join("completions"))
+}
+
+/// Write every [`HOOKS`] entry into `dir`. Leaves an existing file alone
+/// unless `force`, like the other three installers.
+pub(crate) fn write_completions(dir: &Path, force: bool) -> Result<()> {
+    for (shell, hook) in HOOKS {
+        write_seed(dir, shell, hook, force)?;
     }
     Ok(())
 }

@@ -133,7 +133,15 @@
     (`www/generate-facts.sh`) and set-differences each against its
     `www/utils/{crate-notes,dsl-field-notes,framework-notes,gate-notes,sweep-flag-notes}.typ`
     prose dict; fails naming any crate, DSL field, priority framework, gate,
-    or sweep flag with no matching entry — this file included.
+    or sweep flag with no matching entry — this file included. A further arm
+    set-differences the value-taking arguments `cli.json` reflects out of clap
+    against the ones `crates/mindtape-cli/src/completion.rs` names a value
+    source for, so a new completable argument cannot ship silently
+    uncompleted. Both sides come out of the same reflection, so a mention the
+    parser never sees cannot satisfy it; a `ValueEnum` argument is excluded
+    because clap completes a `possible_values` list itself, and "no project
+    value fits" counts as an answer — it is recorded with its reason rather
+    than left blank.
   ],
   "check-doc-recipes": [
     Fails on a hand-typed recipe mention in a doc source — literal `just`

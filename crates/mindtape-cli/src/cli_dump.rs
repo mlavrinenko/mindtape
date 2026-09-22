@@ -22,6 +22,7 @@ use serde_json::{Value, json};
 
 use crate::cli::Cli;
 use crate::command_class::{self, Class};
+use crate::completion::{self, Source};
 
 /// Arguments for the hidden `_cli` dump command.
 #[derive(Debug, clap::Args)]
@@ -55,7 +56,9 @@ fn dump(root: &Command) -> Value {
     let globals: Vec<Value> = root
         .get_arguments()
         .filter(|a| a.is_global_set())
-        .map(arg_json)
+        // A global belongs to the root, so its completion entry is keyed by
+        // the empty path — the same key `crate::completion` walks it under.
+        .map(|arg| arg_json(arg, ""))
         .collect();
     json!({
         "schema": 1,
@@ -91,7 +94,7 @@ fn command_json(cmd: &Command, prefix: &str) -> Value {
         // clap's auto `-h/--help` and `-V/--version` are formatter artifacts,
         // not real args; the reference synthesizes its own affordances.
         .filter(|a| !matches!(a.get_id().as_str(), "help" | "version"))
-        .map(arg_json)
+        .map(|arg| arg_json(arg, &path))
         .collect();
     let subs = subcommands(cmd, &path);
     // Only a leaf is classified — `config`/`preset` are containers, not
@@ -142,7 +145,7 @@ fn class_json(path: &str) -> Value {
 /// Boolean/count flags carry a clap-synthesized value placeholder and
 /// `true`/`false` possible-values; both are formatter noise, so they are
 /// nulled for `flag` kinds — a flag takes no value.
-fn arg_json(arg: &Arg) -> Value {
+fn arg_json(arg: &Arg, path: &str) -> Value {
     let is_flag = kind_of(arg) == "flag";
     json!({
         "id": arg.get_id().as_str(),
@@ -156,7 +159,25 @@ fn arg_json(arg: &Arg) -> Value {
         "multiple": matches!(arg.get_action(), ArgAction::Append | ArgAction::Count),
         "default": default_value(arg),
         "possible_values": if is_flag { None } else { possible_values(arg) },
+        "completion": completion_json(path, arg.get_id().as_str()),
     })
+}
+
+/// Where the argument's values come from, as [`crate::completion::SOURCES`]
+/// declares it: `{"source": "stems", "reason": null}` for an argument with a
+/// value source, `{"source": null, "reason": "..."}` for one deliberately
+/// without, and `null` for an argument the table does not name at all.
+///
+/// That third state is the one `just check-doc-facts` fails on, which is why
+/// it is reflected here rather than grepped out of `completion.rs`: the gate
+/// then reads the same table the completers are built from, so it cannot be
+/// satisfied by a mention the parser never sees.
+fn completion_json(path: &str, id: &str) -> Value {
+    match completion::lookup(path, id) {
+        Some(Source::None(reason)) => json!({"source": Value::Null, "reason": reason}),
+        Some(source) => json!({"source": source.label(), "reason": Value::Null}),
+        None => Value::Null,
+    }
 }
 
 /// Classify an arg: positional, boolean/count `flag`, or value-taking `option`.

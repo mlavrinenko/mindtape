@@ -43,6 +43,7 @@ env_logger = "0.11"
 dirs = "5"
 anstyle = "1"
 unicode-width = "0.2"
+clap_complete = { version = "4.5", features = ["unstable-dynamic"] }
 
 [dev-dependencies]
 mindtape = { path = "../mindtape", features = ["test-support"] }

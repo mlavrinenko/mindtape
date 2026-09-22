@@ -97,6 +97,12 @@ groups:
       - crates/mindtape-cli/src/cli.rs
       - crates/mindtape-cli/src/add.rs
       - crates/mindtape-cli/src/check.rs
+      # Not an `*Args` module: it declares which ARGUMENT completes from which
+      # project value. The dependents restate that set in prose (cli-notes.typ's
+      # `install` entry names the sources a tab press offers), and nothing in
+      # www/generated/*.json carries it as a fact a page could render instead —
+      # `cli.json` reflects the per-argument entry, never the roster.
+      - crates/mindtape-cli/src/completion.rs
       - crates/mindtape-cli/src/config_cmd.rs
       - crates/mindtape-cli/src/eval.rs
       - crates/mindtape-cli/src/find.rs

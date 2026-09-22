@@ -270,7 +270,8 @@ inbound `links:` edge onto it, without committing. Without git,
 
 = Setup
 
-`mt install` installs the prelude, the XDG defaults and the config schema;
+`mt install` installs the prelude, the XDG defaults, the config schema and the
+shell completion hooks;
 `mt init` writes the project config from a named preset, `mt preset` manages
 those presets, and `mt worktrees` lists the `@name` aliases. Their entries
 below carry the flags; #link(u("/quickstart/"))[Quickstart],

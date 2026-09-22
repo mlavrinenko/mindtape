@@ -241,8 +241,14 @@
     ```,
   ),
   "install": (
-    prose: [`--no-lib` / `--no-defaults` / `--no-schema` skip any one install;
-      `--force` overwrites an existing XDG `defaults.toml` / schema.],
+    prose: [`--no-lib` / `--no-defaults` / `--no-schema` / `--no-completions`
+      skip any one install; `--force` overwrites an existing XDG
+      `defaults.toml`, schema or hook. The completion hooks land one per shell
+      under `~/.config/mindtape/completions/`; source the one your shell uses
+      from its startup file. Each holds a couple of lines that ask `mt` for the
+      completion on every tab press, never a generated completion script — so
+      the candidates are this project's own stems, statuses, views, templates
+      and link kinds, and an `mt` upgrade needs no re-install.],
   ),
   "worktrees": (
     examples: ```sh

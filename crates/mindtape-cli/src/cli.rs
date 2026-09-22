@@ -87,11 +87,13 @@ enum Command {
     /// Scaffold `.mindtape/config.toml` in the current directory.
     Init(init::InitArgs),
     /// Set up the user environment: the `@local/mindtape` Typst package, the
-    /// XDG global `defaults.toml` app-config layer, and the JSON Schema for
-    /// `.mindtape/config.toml`.
+    /// XDG global `defaults.toml` app-config layer, the JSON Schema for
+    /// `.mindtape/config.toml`, and the shell completion hooks.
     ///
-    /// Performs all three by default;
-    /// `--no-lib`/`--no-defaults`/`--no-schema` skip any of them.
+    /// Performs all four by default;
+    /// `--no-lib`/`--no-defaults`/`--no-schema`/`--no-completions` skip any of
+    /// them. A hook is a couple of lines calling `mt` back, so completions
+    /// follow the binary and never need re-installing.
     Install(install::InstallArgs),
     /// Evaluate a single task file and print it.
     Eval(eval::EvalArgs),

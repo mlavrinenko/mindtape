@@ -42,6 +42,7 @@ mod check;
 mod cli;
 mod cli_dump;
 mod command_class;
+mod completion;
 mod config_cmd;
 mod eval;
 mod find;
@@ -94,6 +95,11 @@ use anyhow::Result;
 use clap::Parser;
 
 fn main() -> Result<()> {
+    // Answer a completion request and exit, before anything else runs: the
+    // request arrives through `$COMPLETE` rather than the argv, and stdout
+    // belongs to the candidate list for its duration. Returns immediately on
+    // an ordinary run.
+    completion::complete();
     // Rewrite a leading `@name` into `-w <path>` before clap sees the argv, so
     // the worktree sugar reuses the existing override plumbing.
     let argv = worktrees::desugar_argv(std::env::args_os().collect())?;

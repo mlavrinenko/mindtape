@@ -240,6 +240,15 @@ fn parse_assignment(token: &str) -> Result<(String, Assigned)> {
     Ok((name, assigned))
 }
 
+/// Every field this command writes, in the emitter's field order.
+///
+/// Exposed for [`crate::completion`]: the completer for `<field>=<value>` and
+/// the refusal below read the same [`WRITABLE`] table, so a tab press can
+/// never offer a field this command would then name as unknown.
+pub(crate) fn writable_fields() -> impl Iterator<Item = &'static str> {
+    WRITABLE.iter().map(|field| field.name)
+}
+
 /// The writable field `name` names.
 ///
 /// # Errors

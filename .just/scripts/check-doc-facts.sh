@@ -114,6 +114,44 @@ if [ -n "$missing_flags" ]; then
     exit 1
 fi
 
+# The completions arm: every value-taking argument clap declares must name
+# where its values come from (truth/tasks/emit-shell-completions-from-the-
+# binary-that-answers-them.typ). Both sides come out of cli.json, which is
+# `mt _cli --json` — so the "declared" side is the live parser and the
+# "sourced" side is crates/mindtape-cli/src/completion.rs's SOURCES table
+# reflected back through it. Reading the table through the binary rather than
+# grepping the file is what makes the two sides comparable: a mention the
+# parser never sees cannot satisfy this, and an argument renamed in one place
+# fails rather than quietly matching nothing.
+#
+# Two exclusions, neither a skip list. A `flag` takes no value, so there is
+# nothing to complete; and an argument with `possible_values` is a ValueEnum,
+# which clap completes from the parser itself — naming those in SOURCES would
+# restate a list the parser already owns, the committed-script mistake this
+# whole feature exists to avoid.
+#
+# `Source::None` COUNTS as sourced: it is a recorded decision carrying its
+# reason (cli.json shows it as a null source with a non-null reason), and the
+# unit test beside completion.rs is what holds those reasons non-empty. What
+# fails here is the third state — an argument the table does not name at all,
+# which is exactly what a new completable argument looks like on the commit
+# that adds it.
+completable='[ (.globals[] | .path = "") ]
+  + [ .commands[] | .name as $c | (.args[] | .path = $c) ]
+  + [ .commands[] | .name as $c | .subcommands[] | .name as $s
+      | (.args[] | .path = "\($c) \($s)") ]
+  | .[] | select(.kind != "flag") | select(.possible_values == null)'
+declared_args=$(jq -r "$completable"' | "\(.path) \(.id)"' www/generated/cli.json)
+sourced_args=$(jq -r "$completable"' | select(.completion != null) | "\(.path) \(.id)"' \
+    www/generated/cli.json)
+missing_args=$(comm -23 <(sort <<<"$declared_args") <(sort <<<"$sourced_args"))
+if [ -n "$missing_args" ]; then
+    echo "check-doc-facts: arguments with no completion value source" \
+        "(no crates/mindtape-cli/src/completion.rs SOURCES entry):" >&2
+    while IFS= read -r name; do echo "  - mt $name" >&2; done <<<"$missing_args"
+    exit 1
+fi
+
 # The pages arm, part one: filename vs. the route each PAGE ITSELF declares.
 # site-pages.json is no longer a read-back of www/utils/site.typ's manifest —
 # www/generate-site-pages.sh builds it from every page's own `<page-meta>`

@@ -71,6 +71,13 @@ machine-global `@local` directory rather than the checkout —
 project to an in-tree prelude instead, and #link(u("/cli/"))[the CLI reference]
 lists what `mt install` places.
 
+It also drops a shell completion hook per shell under
+`~/.config/mindtape/completions/`; source the one your shell uses from its
+startup file and tab completes this project's own stems, statuses, views,
+templates and link kinds. The hook asks `mt` on every press rather than
+carrying a generated script, so it is never stale and never wrong about the
+project you happen to be standing in.
+
 Then scaffold a project, once per repository:
 
 ```sh
