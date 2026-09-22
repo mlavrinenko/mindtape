@@ -154,10 +154,10 @@ recorded hash is a review watermark, so blanket re-recording —
 #just.outdatty-update-all() — claims a review that never happened. It stays
 the explicit choice, never the default.
 
-Re-record the group when you edit a dependent alone, in the same commit: only
-a source change is a trigger, so the hash would otherwise sit stale until an
-unrelated source edit carried it along, onto a commit that never touched the
-file. It costs one lock line; the measurement, the reasoning and the
+Edit a dependent alone, and record just that file in the same commit —
+#just.outdatty-update("<group>", "<file>") leaves the group's other pending
+dependents pending. Only a source change is a trigger, so the hash would
+otherwise ride along on an unrelated commit; the reasoning and the
 pending-groups one-liner are in `outdatty.yaml`'s header.
 
 = Version Management

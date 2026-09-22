@@ -429,13 +429,18 @@ check-windows:
 # watermark, so the blanket form (`just outdatty-update-all`) claims a review
 # of every group's dependents that never happened; it stays the explicit
 # choice, never the default
-# (truth/tasks/scope-the-outdatty-update-recipe-to-a-group.typ).
+# (truth/tasks/scope-the-outdatty-update-recipe-to-a-group.typ). After editing
+# one dependent alone, name it — `just outdatty-update dev-docs docs/src/agents.typ`
+# — so the lock records that file only and every other pending dependent in the
+# group stays pending; outdatty itself scopes no finer than a group
+# (truth/tasks/record-one-dependents-watermark-without-claiming-the-groups.typ).
 
+[arg('FILE', help='optional: the one dependent you reviewed; other lock entries stay as they were')]
 [arg('GROUP', pattern='[a-z][a-z0-9-]*', help='outdatty group to re-confirm — the names outdatty.yaml declares')]
-[doc("Re-confirm one dependency group: record its hashes into outdatty.lock")]
+[doc("Re-confirm one dependency group, or one file in it: record hashes into outdatty.lock")]
 [group("dev")]
-outdatty-update GROUP:
-    outdatty update --group {{ GROUP }}
+outdatty-update GROUP FILE='':
+    {{ if FILE == '' { 'outdatty update --group ' + GROUP } else { 'bash .just/scripts/outdatty-update-one.sh ' + GROUP + ' ' + FILE } }}
 
 [doc("Re-confirm every dependency group: record all hashes into outdatty.lock")]
 [group("dev")]
