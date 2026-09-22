@@ -4,7 +4,7 @@
 #show: task.with(
   title: "Add the todo.txt fixtures to the import recipe",
   kind: "docs",
-  status: wip(2026, 9, 22),
+  status: done(2026, 9, 22),
   priority: ice(
     impact: 3,
     confidence: 0.8,
