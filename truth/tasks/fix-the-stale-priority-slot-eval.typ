@@ -4,7 +4,7 @@
 #show: task.with(
   title: "Fix the stale priority-slot eval",
   kind: "fix",
-  status: wip(2026, 9, 22),
+  status: done(2026, 9, 22),
   priority: ice(
     impact: 6,
     confidence: 0.9,
