@@ -15,12 +15,12 @@
 # in a hurry. Neither can be seen from the real tree, where the answer and the
 # bug are the same sentence.
 #
-# A SEPARATE FILE rather than a `--control` arm inside the walk, for
-# _gitleaks-bound-control.sh's reason: a self-test is its own subject, and the
+# A SEPARATE FILE rather than a `--control` arm inside the walk, because a
+# self-test is its own subject, and the
 # walk it drives is already the longest reasoning in that directory. No `just`
 # recipe of its own either — it asserts nothing a reader would run on purpose,
 # and `just script-scope-check` running it first is what makes arm two
-# trustworthy. Unlike the gitleaks pair, this costs no hand-wiring: the walk
+# trustworthy. This costs no hand-wiring: the walk
 # reads script-scope-check.sh naming both files and derives them, which is the
 # feature demonstrating itself.
 #

@@ -4,8 +4,8 @@
 # repo root, like the recipe that invokes it.
 #
 # WHAT IT SCANS: the working tree as it stands, under `.gitleaks.toml` —
-# gitleaks' own default ruleset plus this repo's two allowlists, both argued
-# in that file rather than restated here. History is out of scope; the reason
+# gitleaks' own default ruleset plus this repo's allowlist, argued in that
+# file, plus the walk bound derived below from what git ignores. History is out of scope; the reason
 # is argued there too.
 #
 # WHY THE TARGET IS `.` AND THE CWD IS THE REPO ROOT, measured rather than
@@ -26,8 +26,9 @@
 # assertion pins six separate things at once:
 #
 #   - the default ruleset is live at all (`aws-access-token` fires),
-#   - the path allowlist fires and is `^`-anchored (the copy under `target/`
-#     is silent),
+#   - the derived walk bound fires and is `^`-anchored, and follows git's own
+#     negation (the copies under `target/` and `.cargo/` are silent, the
+#     tracked `.cargo/keep.toml` beside them is not),
 #   - the outdatty.lock allowlist fires (the digest line is silent),
 #   - it is scoped to the DIGEST SHAPE (a `generic-api-key` hit in that same
 #     file that is not a bare sha256 is still reported — dropping
@@ -57,11 +58,6 @@
 # fmt-check` already takes over the same directory — a full `just check`
 # still refuses a credential in a task file; a task-file-only edit just does
 # not bust this rule's cached pass.
-#
-# ARM FOUR IS ABOUT THE WALK BOUND rather than the tree, and lives in
-# .just/scripts/_gitleaks-bound-check.sh rather than here — a separate subject
-# (the manifest, not secrets) that arm two's verdict never depends on, and the
-# 60 lines that made this file 96% of the 300-line Shell cap. Argued there.
 set -eo pipefail
 
 config=".gitleaks.toml"
@@ -85,7 +81,41 @@ control_nondigest="Zx91Qw82Mn73Bv64Ct55Dp46Er37Fg28Hi19Jk"                      
 
 repo="$PWD"
 fixture=$(mktemp -d)
-trap 'rm -rf "$fixture"' EXIT
+bounds=$(mktemp -d)
+trap 'rm -rf "$fixture" "$bounds"' EXIT
+
+# THE WALK BOUND IS DERIVED, never copied. gitleaks reads no ignore file
+# (upstream gitleaks#1195), so an unbounded `gitleaks dir .` walks `target/`
+# (1m44s over 2.09 GB, against 1.5s over 7.5 MB bounded) and every agent
+# worktree under a globally ignored directory besides. git already knows the
+# answer: `ls-files -oi --exclude-standard --directory` lists what it ignores
+# across both .gitignore files, .git/info/exclude and core.excludesFile,
+# collapses a wholly ignored directory to one entry, and never lists a
+# tracked file, so `!/.cargo/mutants.toml` stays scanned without the
+# lookahead RE2 lacks. Each entry becomes a `^<path>(/|$)` allowlist
+# appended to a copy of $config: appended rather than `[extend] path`-ed,
+# because a `targetRules` allowlist in an extended config is dropped (the
+# outdatty.lock one, measured on gitleaks 8.30, and caught by arm one's
+# control). `(/|$)` rather than `/`: `^gen/` never matches
+# the directory `gen` itself, so the walk would descend and stat children a
+# parallel docs arm may be deleting (measured under `--log-level debug` on
+# gitleaks 8.30). The config is written outside the scanned tree.
+derive_bound() {
+    local dir=$1 out=$2 path
+    local -a entries=()
+    while IFS= read -r -d '' path; do
+        path=$(sed 's/[][*.^$+?(){}|\\]/\\&/g' <<<"${path%/}")
+        entries+=("  '''^$path(/|\$)''',")
+    done < <(git -C "$dir" ls-files -z -oi --exclude-standard --directory)
+    {
+        cat "$repo/$config"
+        if [ "${#entries[@]}" -gt 0 ]; then
+            printf '\n[[allowlists]]\ndescription = "gitignored, derived by check-secrets.sh"\npaths = [\n'
+            printf '%s\n' "${entries[@]}"
+            printf ']\n'
+        fi
+    } >"$out"
+}
 
 # Resolved to an absolute path while `$PWD` is still the repo root: a shell
 # with a direnv PATH hook (this repo's dev shell) rebuilds PATH off `$PWD` on
@@ -112,7 +142,17 @@ cat >"$fixture/outdatty.lock" <<EOF
   refactor-auth-key.typ: $control_nondigest
   leaked.typ: $control_key
 EOF
-printf 'key = %s\n' "$control_key" >"$fixture/target/leak.txt"
+# The bound's three cases, each decided by git's own rules: a copy under an
+# ignored directory (silent), an ignored file beside a negated one (silent),
+# and the negated file itself, tracked inside the ignored directory, which
+# must still be reported.
+mkdir -p "$fixture/.cargo"
+printf 'key = %s\n' "$control_key" | tee "$fixture/target/leak.txt" \
+    "$fixture/.cargo/junk" >"$fixture/.cargo/keep.toml"
+printf '/target\n/.cargo/*\n!/.cargo/keep.toml\n' >"$fixture/.gitignore"
+git -C "$fixture" init -q
+git -C "$fixture" add .gitignore outdatty.lock .cargo/keep.toml
+derive_bound "$fixture" "$bounds/control.toml"
 
 # `--exit-code 0` so a finding is not an error here — the finding IS the
 # expected result, and the assertion is on the report rather than on the exit
@@ -120,14 +160,14 @@ printf 'key = %s\n' "$control_key" >"$fixture/target/leak.txt"
 # most likely) writes no report, which is caught separately below rather than
 # left to `set -e` to end the script with no explanation.
 report="$fixture/control.json"
-if ! (cd "$fixture" && "$gitleaks_bin" dir -c "$repo/$config" --no-banner --exit-code 0 \
+if ! (cd "$fixture" && "$gitleaks_bin" dir -c "$bounds/control.toml" --no-banner --exit-code 0 \
     --report-format json --report-path "$report" . >"$fixture/control.log" 2>&1); then
     echo "check-secrets: gitleaks could not scan the control fixture" >&2
     sed 's/^/  /' "$fixture/control.log" >&2
     exit 1
 fi
 
-expected="outdatty.lock:aws-access-token, outdatty.lock:generic-api-key"
+expected=".cargo/keep.toml:aws-access-token, outdatty.lock:aws-access-token, outdatty.lock:generic-api-key"
 control=$(jq -r '[.[] | "\(.File):\(.RuleID)"] | sort | join(", ")' "$report")
 if [ "$control" != "$expected" ]; then
     echo "check-secrets: the control fixture reported [$control]" >&2
@@ -181,8 +221,13 @@ fi
 # gitleaks prints on every run at its default "info" level — a real failure
 # (an unparseable config, most likely) logs at FTL/ERR and still surfaces
 # (verified against a malformed config file).
+#
+# The bound is derived here, under the lock, not before it: `ls-files` stats
+# www/generated/ too, and a copy taken mid-`rm -rf` would leave the
+# directory out of the bound for a walk that then descends into it.
+derive_bound . "$bounds/tree.toml"
 scan="$fixture/scan.json"
-if ! gitleaks dir -c "$config" --no-banner --redact --exit-code 0 --log-level warn \
+if ! gitleaks dir -c "$bounds/tree.toml" --no-banner --redact --exit-code 0 --log-level warn \
     --report-format json --report-path "$scan" .; then
     echo "check-secrets: gitleaks could not scan the working tree" >&2
     exit 1
@@ -195,7 +240,7 @@ if [ -n "$findings" ]; then
     echo "  a real one is sops-encrypted or removed, never allowlisted" >&2
     echo "  a false positive is allowlisted in $config, scoped to the rule that" >&2
     echo "  misfired and to what it matched — never by fingerprint, which expires" >&2
-    echo "  re-run \`gitleaks dir -c $config -v .\` to see what matched" >&2
+    echo "  re-run \`gitleaks dir -c $config -v <file>\` to see what matched" >&2
     exit 1
 fi
 
@@ -238,14 +283,3 @@ if [ -n "$uncovered" ]; then
     echo "  or this gate serves a stale pass over a subtree it never hashed" >&2
     exit 1
 fi
-
-# --------------------------------------------------------------- arm four
-
-# Its control first, for the reason arm one runs one: a manifest check whose
-# pass looks identical to a check that stopped checking. Then both gitignores
-# the bound is a hand copy of, passed rather than discovered — the script
-# derives each one's prefix from its own path, so a third is covered by being
-# named here. Run rather than `exec`-ed, so the summary below stays this
-# file's last word.
-bash .just/scripts/_gitleaks-bound-control.sh
-bash .just/scripts/_gitleaks-bound-check.sh "$config" .gitignore www/.gitignore

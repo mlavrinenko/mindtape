@@ -70,23 +70,22 @@ itself out of that tree or serialise against its writer. Four instances:
   skip `public/` and `.tola/`, written by the parallel #just.docs-check() arm,
   and regenerates `www/generated/` inside the lock rather than reading it.
 - The gitleaks walk in #just.check-secrets() is bounded out of `www/generated/`
-  and `www/.tola/` by the unscoped `paths` allowlist in `.gitleaks.toml`, whose
-  patterns take the `^x(/|$)` form, not `^x/`: measured on gitleaks 8.30 under
+  and `www/.tola/` by an unscoped `paths` allowlist `check-secrets.sh` derives
+  from what git ignores, whose patterns take the `^x(/|$)` form, not `^x/`: measured on gitleaks 8.30 under
   `--log-level debug`, `^gen/` never matches the directory `gen` itself, so the
   walk ENTERS it and skips each child, while `^gen(/|$)` skips it and never
   descends. The bound stops there: under strace the `lstat` of the bounded
   directory lands one syscall BEFORE the allowlist is consulted, so a `rm -rf`
   between `readdir` and that `lstat` still logs `could not get info` at ERR on an
   exit-0 run — 8 runs in 20, reproduced. So arm two takes the flock above across
-  its scan, and arm four holds the bound to BOTH `.gitignore` files — covered,
-  or `# gitleaks-bound: exempt` — in `.just/scripts/_gitleaks-bound-check.sh`.
+  both the derivation and its scan.
 - mmz is stricter under the same rule: it resolves inputs before running the
   command, so a transient file inside a hashed tree that vanishes mid-hash aborts
   the run outright (exit 8, "a file mmz needed could not be read or written").
   Hence `www/.gitignore` ignoring `.goutputstream-*`, the temp `rsvg-convert`
   leaves for milliseconds when GIO saves the favicon rasters atomically. That
   file is the single declaration of what the docs build owns: mmz filters its
-  input walk by it, `.gitleaks.toml` restates it by hand for arm four.
+  input walk by it, and the gitleaks walk bound is derived from it.
 
 = Why the script scopes are enumerated
 
@@ -117,9 +116,8 @@ and #just.script-scope-check() itself, which must notice a script ARRIVING.
 
 That call graph (`.just/scripts/_script-graph.sh`) is transitive and treats a
 recipe and a script as one kind of node, so a script invoking a script and a
-script shelling out to a nested `just` are the same hop — `script-nav-diff`, the
-two gitleaks-bound scripts on #just.check-secrets() and check-crap.sh's
-#just.crap() were each hand-wired first, which is what a missing derivation looks
+script shelling out to a nested `just` are the same hop — `script-nav-diff` and
+check-crap.sh's #just.crap() were each hand-wired first, which is what a missing derivation looks
 like from the outside. Reading one word too many fails a CORRECT manifest and the
 obvious repair is to add the input rather than fix the reader, so what counts as
 a call is argued line by line in that script, and

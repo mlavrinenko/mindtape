@@ -63,7 +63,7 @@
 # invocation only — the scripts a recipe body names itself — so a body reached
 # one hop further was invisible and the caller's rule had to name that scope BY
 # HAND: check-crap's nested `just crap`, then _nav-diff.sh on two rules, then
-# the two gitleaks-bound scripts on `just check-secrets`. That list growing was
+# two gitleaks-bound scripts on `just check-secrets` (since retired). That list growing was
 # the signal to derive it instead (truth/tasks/follow-script-to-script-calls-in-
 # the-scope-derivation.typ). The walk lives in .just/scripts/_script-graph.sh,
 # which argues in place what it reads as a call and what it refuses to guess at;
@@ -189,10 +189,6 @@ declare -A dev_docs_exempt=(
     ["install-bin.sh"]="no doc describes the binary install; --list is the only entry point"
     ["uninstall-lib.sh"]="no doc describes it; the inverse of install-lib, named only in its own [doc]"
     ["_typst-package.sh"]="a sourced preamble, no behaviour of its own for a doc to restate"
-    # gate-notes.typ says a control pair runs first; it restates none of the
-    # four assertions, which are what would change. The check it drives IS a
-    # source, for the prose that does restate its rules.
-    ["_gitleaks-bound-control.sh"]="no doc restates its assertions; gate-notes.typ only names it"
     # Same shape one gate over: the prose restates what the DERIVATION reads as
     # a call, which is _script-graph.sh's own subject and makes that file a
     # source. The control's four cases are what would change here, and no doc

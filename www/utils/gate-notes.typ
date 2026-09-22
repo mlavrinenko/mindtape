@@ -75,33 +75,26 @@
   ],
   "check-secrets": [
     gitleaks over the working tree under `.gitleaks.toml` — its default
-    ruleset, a walk bound naming the gitignored roots (an unbounded scan
-    walks `target/`: 1m44s over 2.09 GB, against 1.5s over 7.5 MB), and one
-    allowlist for the `outdatty.lock` digests `generic-api-key` reads as auth
+    ruleset, a walk bound derived on every run from what git ignores
+    (`git ls-files -oi --exclude-standard --directory`, so both `.gitignore`
+    files and the global excludes file count, and a tracked file inside an
+    ignored directory is still scanned; an unbounded scan walks `target/`:
+    1m44s over 2.09 GB, against 1.5s over 7.5 MB), and one allowlist for the `outdatty.lock` digests `generic-api-key` reads as auth
     secrets. History is out of scope: `gitleaks git` reports the absolute
     paths this repo has already committed and would need a `.gitleaksignore`
     entry per past mint. A control fixture is scanned first and must report an
     exact set of findings, because "no leaks found" is equally what an
     over-broad allowlist and a config that loaded no rules print — that one
-    assertion pins the ruleset being live, both allowlists firing, each
-    staying scoped to the rule and to the shape it silences rather than to the
-    whole file, and none being wide enough to swallow the tree. A third arm
+    assertion pins the ruleset being live, the derived bound following git's
+    own negation, the allowlist staying scoped to the rule and to the shape it
+    silences rather than to the whole file, and nothing being wide enough to
+    swallow the tree. A third arm
     set-differences
     `git ls-files` against mmz's own expansion of this rule's inputs, so the
     enumeration that stands in for "the whole tree" (`.mmz/config.yaml` has no
     negative glob, and `truth/tasks/**` may not be named by a gate-tagged
-    rule) fails by name rather than going quietly false-fresh. A fourth arm
-    (`.just/scripts/_gitleaks-bound-check.sh`, run against a synthesized
-    control pair first for the same false-green reason) holds the walk bound to
-    BOTH `.gitignore` files: every anchored entry either appears in the bound
-    or carries a `# gitleaks-bound: exempt — <why>` line above it, and no bound
-    pattern may match a file git tracks. Uncovered scratch has the walk descend
-    into a tree a parallel arm is rewriting; an over-wide pattern silences a
-    committed file, which is the only way an allowlist can cost coverage.
-    Two entries are exempt and say so where they live — `/.cargo/*`, whose
-    tracked `!/.cargo/mutants.toml` exception RE2 has no lookahead to spare,
-    and `/result`, a nix symlink gitleaks never follows. The bound stops
-    there — the `lstat` of the bounded
+    rule) fails by name rather than going quietly false-fresh. The bound
+    stops short of one thing: the `lstat` of the bounded
     directory itself precedes the allowlist check, so the scan holds the
     `target/www-generated.lock` flock across its walk rather than trusting the
     bound to stop the `ERR` a concurrent `rm -rf` logs on a run it still exits
@@ -245,7 +238,7 @@
     can rot.
     Arm two walks a call graph (`.just/scripts/_script-graph.sh`), so a body
     reached one hop further counts: through another script
-    (check-secrets.sh's two gitleaks-bound scripts) and through a nested `just`
+    (`_nav-diff.sh`, called from site-pages-fixture-check.sh) and through a nested `just`
     (check-crap.sh shelling out to #just.crap()) alike, both being the same edge
     into the next body. It claimed direct invocation only until four such scopes had been
     wired by hand, which is what a missing derivation looks like from the

@@ -155,8 +155,8 @@ check-dry:
     out=$(jscpd --no-tips -k 70 -f rust --exit-code 1 -r xcode crates 2>&1) || { printf '%s\n' "$out"; exit 1; }
 
 # Scan the working tree for a committed credential with gitleaks, under
-# `.gitleaks.toml` (the default ruleset plus this repo's two allowlists, each
-# argued in that file). Current tree only — history is deliberately out of
+# `.gitleaks.toml` (the default ruleset plus this repo's allowlist, argued in
+# that file), bounded by what git ignores. Current tree only — history is deliberately out of
 # scope. A control fixture runs first, because "no leaks found" is what an
 # over-broad allowlist prints too; that, and why the arm also checks its own
 # mmz input list, are argued in .just/scripts/check-secrets.sh.

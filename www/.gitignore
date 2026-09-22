@@ -16,7 +16,7 @@
 # (truth/tasks/check-secrets-races-the-docs-arm-over-www-generated.typ). Ignored
 # here rather than redirected in www/generate.sh: this file is the one
 # declaration of what the docs build owns that both readers of the tree consult
-# — mmz filters its input walk by it, and .gitleaks.toml restates it by hand
-# under the arm-four check — so the answer belongs where they already look, and
-# it holds for any future writer that saves the same way.
+# — mmz filters its input walk by it, and check-secrets.sh derives its gitleaks
+# walk bound from it — so the answer belongs where they already look, and it
+# holds for any future writer that saves the same way.
 .goutputstream-*

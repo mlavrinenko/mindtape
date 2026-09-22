@@ -90,7 +90,7 @@ scopes:
   file-size-config:
     - ".linecop.yaml"
 
-  # gitleaks' ruleset for this repo — the walk bound and the two allowlists.
+  # gitleaks' ruleset for this repo — the default rules and one allowlist.
   # An edit changes what `just check-secrets` can find, so it busts that rule
   # the way .linecop.yaml busts the size gate.
   secrets-config:
@@ -326,10 +326,6 @@ scopes:
     - ".just/scripts/fmt-fixture-check.sh"
   script-fork:
     - ".just/scripts/fork.sh"
-  script-gitleaks-bound-check:
-    - ".just/scripts/_gitleaks-bound-check.sh"
-  script-gitleaks-bound-control:
-    - ".just/scripts/_gitleaks-bound-control.sh"
   script-install:
     - ".just/scripts/install.sh"
   script-install-bin:
@@ -445,17 +441,9 @@ commands:
   # `mmz-config` scope exists for. No `rust`: nothing is built or run here,
   # and `crates/**` is scanned as text through `secrets-tree` like every other
   # file.
-  #
-  # `script-gitleaks-bound-check` and `script-gitleaks-bound-control` cover the
-  # two bodies arm four runs script-to-script rather than through `just`. They
-  # were wired BY HAND until script-scope-check's arm two learned to walk the
-  # call graph transitively; they are derived now
-  # (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ), so
-  # dropping either fails that gate by name instead of silently serving a stale
-  # pass over a walk-bound check this rule never hashed.
   - name: just check-secrets
     tags: [gate]
-    inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets, script-gitleaks-bound-check, script-gitleaks-bound-control]
+    inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets]
 
   # outdatty.check re-reads every dependent's current content and compares to
   # the lock. Every dependent lives under `rust`/`policy`/`examples`/`docs`, so

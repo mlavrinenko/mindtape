@@ -8,7 +8,7 @@
 # or through a nested `just` — was invisible, so the caller's rule had to name
 # that scope BY HAND or serve a stale hit against a body it never hashed, with
 # nothing failing to say so. Four such scopes accumulated (_nav-diff.sh on two
-# rules, the two gitleaks-bound scripts on `just check-secrets`) on top of
+# rules, the two since-retired gitleaks-bound scripts on `just check-secrets`) on top of
 # check-crap's nested `just crap`, which is what a missing derivation looks like
 # from the outside. Walking the closure instead makes a new caller covered by
 # ARRIVING — the property the `.just/scripts/**` glob had and the enumeration
@@ -26,8 +26,8 @@
 #
 #   - A `.just/scripts/*.sh` path counts in ANY position, not only after a
 #     `bash`: a script is as much a dependency read as run (positional-args-
-#     check.sh greps mutants.sh; _gitleaks-bound-control.sh assigns the check's
-#     path and runs it a line later). Three shapes are subtracted. A comment
+#     check.sh greps mutants.sh; a script may assign another's path and run it
+#     a line later). Three shapes are subtracted. A comment
 #     line and a heredoc body are not code — the control fixtures WRITE scripts
 #     with a heredoc, so reading one as code would make a fixture an edge of the
 #     gate that runs it. The path must EXIST: size-fixture-check.sh names

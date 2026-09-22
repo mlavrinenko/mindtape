@@ -74,16 +74,15 @@ groups:
     source:
       .config/nextest.toml: 509384734e79e026c13895a33acf0151298c27e6cb2e135f1630ba57932df1eb
       .just/docs.just: 58b7ff35702bcdd973acaa141e453e313738f76bec59d812340e7bd90a4bb2cb
-      .just/scripts/_gitleaks-bound-check.sh: 77bf45dbc463a1d4a51f5e7744dcfad06ef7ec6a78bfe0c1fc6d304a93aa0c5f
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
-      .just/scripts/_script-graph.sh: 8fceccf6f861ef295c8983d30f0a43c450f7be6e6628053c0dbeddd36ee78e54
+      .just/scripts/_script-graph.sh: c3a9232a83b3f3f2890a37d5953fe4a7efaf2530b8ef3f6b44b60fb2c9e1522a
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
       .just/scripts/check-doc-coverage.sh: cd807909a61d3687d5f2307cb3e81114c73a56916664d1c2c747dbfb45a53454
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-recipes.sh: 87eff1bf6f36d349ea618a5c3356abbd80f1437eaa28103dcce151ec697649c8
-      .just/scripts/check-secrets.sh: 7ac0ba596fece981d72fade625ddd4b5119e26e2b7e264506bd6bf699fcb7850
+      .just/scripts/check-secrets.sh: b1f55a8dd215942148c1c3c48199c03f02d83fe21b6c91a0ede8e66290c1d441
       .just/scripts/cover.sh: b64a43362b1f478b9642a6746b5309ab880f8f4b4d8fffad62444de5a75a20dd
       .just/scripts/crap-baseline-check.sh: e13730ba63d1433e27c2a3d0baa549e017e9a6376a8fd3783cbaa132499f71f9
       .just/scripts/crap-baseline.sh: fc4003b161304a2098571ebc768b0c713df0ac0e0ad068f013016e1373f200b5
@@ -98,16 +97,16 @@ groups:
       .just/scripts/positional-args-check.sh: c43c5e9d06f8e53402f70b334de9746d1ada07b1c795306e59fee982afe09c55
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
       .just/scripts/script-attr-check.sh: 43c4503ed7415d20819e53be8f63be8caeebd57c724d7a1e10570622b985e8ae
-      .just/scripts/script-scope-check.sh: 02f952e6b7776850a943f1792d1526579debf62587ff86d1558f11ad93e37185
+      .just/scripts/script-scope-check.sh: a847b5655f18081529998e00d769e24589af9e205d8a2e902ea4a32ca0e3b21e
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 3a25708ef64f76dee62935652bd21fde893117a19272ea5a915d22c4df34932f
+      Justfile: f9892988b6ab8294a5d37dfdcbf2f091378edc5c80ee9b728320fb3f211e83e4
       flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
       docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
       docs/src/contributing.typ: 62f82aba162d44f9ccc54210a7fc47697ebb91d159bb52fbbfea01518184ef44
       docs/src/contributing/coverage-crap.typ: ec874196bc672aff1d387c4402c865a87eac31845bf1307a171c12019d4c757c
-      docs/src/contributing/gates.typ: 98ac50a50c777e07eb83143fbae6c5f2573184c4a73ac8e2a15b8534719fec4b
+      docs/src/contributing/gates.typ: a17b62e75a354ee31495a797bec09ccc3f801a595485d581ad34bb3cd3f9a7be
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
       docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c
       docs/src/contributing/windows.typ: dbee6e2e6e6bc8723f477acccc168c7cd6518649605564235ce556e0233d8749
