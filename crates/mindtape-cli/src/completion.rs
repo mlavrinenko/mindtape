@@ -29,11 +29,11 @@
 //! diagnostic there reads as a broken shell rather than a broken project;
 //! `mt check` keeps the reporting and this module keeps silent.
 //!
-//! What it cannot reach is a status shortcut verb's own arguments: `mt done
-//! <task>` is a clap `external_subcommand`, whose tail clap never parses and
-//! so cannot complete. The verbs themselves are offered (the legend feeds
-//! `SubcommandCandidates`), and the canonical `mt flip done <task>` completes
-//! in full.
+//! ## Status shortcut verbs
+//!
+//! `mt done <task>` reaches an ordinary run as a clap `external_subcommand`;
+//! a completion run sees each legend verb as a real subcommand instead, see
+//! `completion_verbs.rs`.
 //!
 //! Refs: `truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ`
 
@@ -45,9 +45,7 @@ use std::sync::OnceLock;
 use clap::builder::{StyledStr, ValueHint};
 use clap::{Arg, Command, CommandFactory};
 use clap_complete::CompleteEnv;
-use clap_complete::engine::{
-    ArgValueCandidates, ArgValueCompleter, CompletionCandidate, SubcommandCandidates,
-};
+use clap_complete::engine::{ArgValueCandidates, ArgValueCompleter, CompletionCandidate};
 
 use crate::cli::Cli;
 use crate::util::{self, Project};
@@ -258,12 +256,12 @@ fn requested() -> bool {
     std::env::var_os(COMPLETE_VAR).is_some_and(|name| !name.is_empty() && name != "0")
 }
 
-/// Walk the clap tree and attach every [`SOURCES`] entry, plus the legend as
-/// the candidates for the status shortcut verbs (`mt done`, `mt wip`, …),
-/// which reach clap as an external subcommand.
+/// Walk the clap tree and attach every [`SOURCES`] entry, then graft the
+/// legend's status shortcut verbs (`mt done`, `mt wip`, …) on as real
+/// subcommands so their task arguments complete too.
 #[must_use]
 pub fn decorate(cmd: Command) -> Command {
-    decorate_at(cmd, "").add(SubcommandCandidates::new(statuses))
+    verbs::graft(decorate_at(cmd, ""), &verbs::legend_verbs())
 }
 
 /// [`decorate`]'s recursion: `path` is the flattened command path of `cmd`.
@@ -474,6 +472,9 @@ fn tag_values(current: &str) -> Option<Vec<CompletionCandidate>> {
 fn help(text: &str) -> Option<StyledStr> {
     (!text.trim().is_empty()).then(|| StyledStr::from(text.to_owned()))
 }
+
+#[path = "completion_verbs.rs"]
+mod verbs;
 
 #[cfg(test)]
 #[path = "completion_tests.rs"]

@@ -136,6 +136,32 @@ fn link_offers_edge_kinds() {
     );
 }
 
+/// A status shortcut verb completes its task argument exactly as the canonical
+/// spelling does: `mt done <TAB>` and `mt flip done <TAB>` offer the same list,
+/// and that list holds this project's stems.
+#[test]
+fn a_shortcut_verb_offers_what_flip_offers() {
+    let dir = example("minimal");
+    let shortcut = complete(&dir, &["mt", "done", ""]);
+    let canonical = complete(&dir, &["mt", "flip", "done", ""]);
+    assert!(
+        shortcut.contains(&"add-dark-mode".to_owned()),
+        "minimal's stems: {shortcut:?}"
+    );
+    assert_eq!(shortcut, canonical);
+}
+
+/// The verbs themselves are still offered once each, from the legend.
+#[test]
+fn the_shortcut_verbs_are_offered_once() {
+    let candidates = complete(&example("minimal"), &["mt", "do"]);
+    assert_eq!(
+        candidates.iter().filter(|c| c.as_str() == "done").count(),
+        1,
+        "verbs: {candidates:?}"
+    );
+}
+
 /// Whatever a candidate list still carries once no project value can be in it:
 /// clap's own flags, which are the parser's half and correct everywhere.
 fn project_values(candidates: &[String]) -> Vec<&String> {

@@ -29,7 +29,7 @@ typst-harvest = "0.3.0"
 typst-cleanup = "0.2.0"
 swhid-mint = "0.1.1"
 typst-edit = "0.1.0"
-clap = { version = "4", features = ["derive"] }
+clap = { version = "4", features = ["derive", "string"] }
 anyhow = "1"
 toml = "0.8"
 serde_json = "1"
