@@ -204,7 +204,11 @@ allowed = [
   "swept",
   "size",
   "mutants",
-  "coverage"
+  "coverage",
+  # Provenance for the human/agent channel: `found` marks a task filed with
+  # `mt add --template finding` — an out-of-scope observation, not a signal
+  # a script emitted. `mt ls 'has_tag("found")'` is the whole outstanding list.
+  "found"
 ]
 
 # What kind of work a task is. The leaf kinds are commit types, so a task names

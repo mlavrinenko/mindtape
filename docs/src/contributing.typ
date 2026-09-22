@@ -103,20 +103,18 @@ re-running it. That memoization, the gated example projects and the locked
 formatter gates are in
 #link("docs/contributing/gates.md")[docs/contributing/gates.md].
 
-#just.check-full() is #just.check() plus #just.cover() and #just.crap():
-always correct about coverage and CRAP, at the price of an instrumented
-rebuild and a full suite pass. Run it before opening a PR, plain #just.check()
-while iterating.
+#just.check-full() is #just.check() plus #just.cover() and #just.crap(): always
+correct about coverage and CRAP, at the price of an instrumented rebuild and a
+full suite pass. Run it before opening a PR, plain #just.check() while iterating.
 
 #just.fork("<slug>", "<base>") stands one of those worktrees up and
-#just.integrate("<branch>") takes it back down. `fork` branches off `<base>`
-(default `HEAD`) at `../mindtape-<slug>`, `direnv allow`-ed, refusing a dirty
-`HEAD` — `git worktree add` copies commits, never the working tree — and
-reporting, without refusing, a divergent base.
-`integrate` refuses unless that worktree reports `mmz --is-fresh --tag gate`,
-naming the stale arm, then fast-forwards and removes it: a fast-forward writes
-no commit, so the pre-commit hook never fires on the merge. What each refuses
-and deliberately leaves undone — no warmed cache, no re-run gate, no waiver
+#just.integrate("<branch>") takes it back down. `fork` branches off `<base>` (default
+`HEAD`) at `../mindtape-<slug>`, `direnv allow`-ed, refusing a dirty `HEAD` —
+`git worktree add` copies commits, never the working tree — and reporting, without
+refusing, a divergent base. `integrate` refuses unless that worktree reports
+`mmz --is-fresh --tag gate`, naming the stale arm, then fast-forwards and removes it: a
+fast-forward writes no commit, so the pre-commit hook never fires on the merge. What
+each refuses and deliberately leaves undone — no warmed cache, no re-run gate, no waiver
 flag — is argued in `.just/scripts/fork.sh` and `.just/scripts/integrate.sh`.
 
 A delegated worktree whose full aggregate runs at integration can scope the
@@ -124,11 +122,10 @@ gate with `MINDTAPE_GATE_SCOPE=<reason> git commit`, which demands a matching
 `Gate-Scope:` trailer; dodging a red gate is never legitimate. When scoping
 is, and what the trailer buys, are in #link("docs/contributing/gates.md")[docs/contributing/gates.md].
 
-Coverage and CRAP run outside #just.check(): run #just.cover() first
-(#just.crap() refuses a stale lcov), and #just.crap-baseline() in the same
-commit as any deliberate complexity. The thresholds and every argument behind
-them, to read before changing either recipe's flags, are in
-#link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md].
+Coverage and CRAP run outside #just.check(): run #just.cover() first (#just.crap() refuses a
+stale lcov), and #just.crap-baseline() in the same commit as any deliberate complexity. The
+thresholds and every argument behind them, to read before changing either recipe's flags, are
+in #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md].
 
 #just.nix-build() verifies `nix build` in a clean sandbox (no dev shell, no
 sccache). Run it when touching `flake.nix` or `.cargo/config.toml`;
@@ -141,6 +138,11 @@ finding. It is not a gate: a gate stops you at the wall, the sweep names the
 wall you are walking toward. Run it dry (#just.ask-refactoring()) to see what
 it would file; the arms, the scoring and the design rules are in
 #link("docs/contributing/signal-sweep.md")[docs/contributing/signal-sweep.md].
+
+A delegated agent that notices something real outside its own task's scope
+files it the same way — `mt add --template finding`, tagged `found` — before
+writing the closing report, never in prose alone: the report reaches one
+reader once, a filed task does not.
 
 = Dependency Drift (outdatty)
 
@@ -163,19 +165,17 @@ pending-groups one-liner are in `outdatty.yaml`'s header.
 - No backward compatibility before the first public release: a rename lands
   whole, callers and configs included, with no alias or migration path left.
 - Workspace crates: `Cargo.toml` `[workspace.package] version` (semver).
-- Typst library: `lib/typst.toml` `version`, independent of the crates.
-  Several files repeat it and all have to move together; the
-  `typst-pkg-version` outdatty group enumerates them and fails the build
-  otherwise. Trust the group, not a list here.
+- Typst library: `lib/typst.toml` `version`, independent of the crates. Several files
+  repeat it and all have to move together; the `typst-pkg-version` outdatty group
+  enumerates them and fails the build otherwise. Trust the group, not a list here.
 - `mindtape-cli`'s dependency on `mindtape` carries a version requirement
   (not path-only), because crates.io rejects path-only deps on publish; bump
   it with the workspace version.
-- A release (#just.release("VERSION")) is gated twice: an `[arg(...)]`
-  pattern rejects a `v`-prefixed or non-semver `VERSION`, then the body
-  requires the tag to equal the workspace version, a clean tree, and no
-  non-empty `[Unreleased]` section in `CHANGELOG.md` (it moves into a dated
-  section at release time). `main` is pushed before the tag, so the docs site
-  (`pages.yml`) and CI run on the release tree.
+- A release (#just.release("VERSION")) is gated twice: an `[arg(...)]` pattern rejects a
+  `v`-prefixed or non-semver `VERSION`, then the body requires the tag to equal the
+  workspace version, a clean tree, and no non-empty `[Unreleased]` section in
+  `CHANGELOG.md` (it moves into a dated section at release time). `main` is pushed
+  before the tag, so the docs site (`pages.yml`) and CI run on the release tree.
 
 = Commit Messages
 

@@ -66,6 +66,12 @@ Fill values also come from `--set k=v` and from environment variables — a
 template's `slot(…, env: "VAR")` names an exact variable, otherwise every slot
 reads `MINDTAPE_ADD_<SLOT>` — so a task can be filed with no interactive prompt.
 
+An agent that notices something real outside the task it was given — a
+delegated worktree, a driven `mt` on someone else's project — files it with
+`mt add --template finding`, tagged `found`, before writing its closing
+report. A report reaches one reader once; a filed task does not, and never
+competes with the WIP cap: `mt add` leaves it `proposed`.
+
 = Honest exit codes and quiet output
 
 `mt check` exits non-zero on any violation and names each one — drop it in CI or

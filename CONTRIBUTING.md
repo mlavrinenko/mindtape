@@ -89,6 +89,8 @@ Coverage and CRAP run outside `just check`: run `just cover` first (`just crap` 
 
 The sweep reads the _advisory_ quality signals and files a backlog task per finding. It is not a gate: a gate stops you at the wall, the sweep names the wall you are walking toward. Run it dry (`just ask-refactoring`) to see what it would file; the arms, the scoring and the design rules are in [docs/contributing/signal-sweep.md](docs/contributing/signal-sweep.md).
 
+A delegated agent that notices something real outside its own task’s scope files it the same way — `mt add --template finding`, tagged `found` — before writing the closing report, never in prose alone: the report reaches one reader once, a filed task does not.
+
 ## Dependency Drift (outdatty)
 
 [`outdatty.yaml`](outdatty.yaml) couples source files to the dependents that must stay in sync (e.g. the CLI surface to `README.md`). After editing a source, update the listed dependents, re-record the group you touched with `just outdatty-update <group>` and commit `outdatty.lock`. A recorded hash is a review watermark, so blanket re-recording — `just outdatty-update-all` — claims a review that never happened. It stays the explicit choice, never the default.
