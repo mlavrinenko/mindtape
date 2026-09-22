@@ -94,12 +94,23 @@ gen:
 # Build the documentation site (www/ -> www/public/mindtape) with tola, then
 # index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/).
 # gen runs first so the injected transcripts reflect the current binary.
+#
+# `tola build --clean`: tola does not track a `json()` read as a page
+# dependency, so a page whose only source is www/generated/*.json (every
+# fact-reading page — config.typ, cli.typ, dsl.typ, internals.typ,
+# priority.typ, and the config-slice pages) keeps its last-rendered HTML
+# across a changed fact, incremental, byte-identical, and wrong (truth/tasks/
+# rebuild-the-docs-site-clean-so-a-changed-fact-cannot-validate-stale-html.typ).
+# `--clean` forces every page to re-render on every `build`/`check`, so a
+# build can never validate HTML the current facts did not produce. What that
+# costs is stated in docs/src/contributing/generated-docs.typ, not left for
+# someone to discover by timing it.
 
 [doc("Build the docs site and index it with Pagefind")]
 [group("docs")]
 [working-directory("www")]
 build: gen
-    tola build && pagefind --site public/mindtape --silent
+    tola build --clean && pagefind --site public/mindtape --silent
 
 [doc("Serve the docs locally with hot reload (no search index)")]
 [group("docs")]
@@ -117,13 +128,17 @@ serve: gen
 # progress redraw, not colour), and `CI=true`/`NO_COLOR=1` make no
 # difference either. So each is captured and replayed only on failure: a
 # clean gate run prints nothing, a failing one still prints tola's report.
+#
+# `--clean` for the same reason as `build` above: this is the gate that runs
+# `tola validate` over the built HTML, so an incremental `tola build` here
+# would let `check` pass on a page no current fact produced.
 
 [doc("Build, index, and validate the docs site")]
 [group("docs")]
 [group("gate")]
 [working-directory("www")]
 check: gen
-    out=$(tola build 2>&1) || { printf '%s\n' "$out"; exit 1; }
+    out=$(tola build --clean 2>&1) || { printf '%s\n' "$out"; exit 1; }
     pagefind --site public/mindtape --silent
     out=$(tola validate 2>&1) || { printf '%s\n' "$out"; exit 1; }
 

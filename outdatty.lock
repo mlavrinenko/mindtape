@@ -70,7 +70,7 @@ groups:
   dev-docs:
     source:
       .config/nextest.toml: 509384734e79e026c13895a33acf0151298c27e6cb2e135f1630ba57932df1eb
-      .just/docs.just: fb6400f608435fe2ace750dd447a2983cfd7d7ab195290e6726699b3ab9c7811
+      .just/docs.just: 58b7ff35702bcdd973acaa141e453e313738f76bec59d812340e7bd90a4bb2cb
       .just/scripts/_gitleaks-bound-check.sh: 77bf45dbc463a1d4a51f5e7744dcfad06ef7ec6a78bfe0c1fc6d304a93aa0c5f
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
