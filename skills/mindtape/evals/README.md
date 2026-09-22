@@ -10,7 +10,7 @@ Evals run against the tracked example projects, not a fixture of their own:
 | Fixture | Evals | Why this one |
 |---------|-------|--------------|
 | `examples/learn-piano` | 0-3 | 13 tasks over three folders, derived tags, ICE priority with bands, a full status legend including `blocked`, and both flavours of blocked (a `blocked` status, and a `proposed` task blocked by a dependency) |
-| `examples/minimal` | 4-5 | The floor config. Its two absences are the test: no `blocked` in the legend, and no template — so `--set priority=8` is silently dropped |
+| `examples/minimal` | 4-5 | The floor config. Its two absences are the test: no `blocked` in the legend, and no template — so `--set priority=8` is refused by name |
 
 Both are validated by `just check-examples`, which is what makes them safe to
 depend on. The previous fixture lived in a gitignored scratch tree with no gate
@@ -45,8 +45,8 @@ nowhere.
 Run the executor and grader subagents on a mid-tier model, not the strongest
 one. These evals check whether the
 skill supplies a fact the agent would otherwise lack — that `--all` does not
-exist, that a dropped `--set` still exits 0, that a legend may have no `blocked`
-— and that is not a reasoning-depth question. A stronger model partly masks the
+exist, that an unknown `--set` key is refused by name, that a legend may have no
+`blocked` — and that is not a reasoning-depth question. A stronger model partly masks the
 gap by recovering from the error message, which makes the with-skill and
 without-skill runs converge and the eval less discriminating. A mid-tier model
 also keeps a six-eval double run affordable enough to actually repeat.

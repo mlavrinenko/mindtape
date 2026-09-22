@@ -16,8 +16,9 @@
 #     learn-piano, whose legend does declare one.
 #   - No `[templates]`, so `mt add` falls back to the built-in task template
 #     whose only slot is `title`. `mt add … --set priority=8` is therefore
-#     silently dropped: exit 0, success reported, no priority written. A skill
-#     that does not warn about that ships agents into a wrong-value trap.
+#     refused by name: non-zero exit, `unknown --set/-f key(s): priority;
+#     known slots: title`. A skill that does not warn about that ships agents
+#     into a dead end they read as a tool bug rather than a missing slot.
 #
 # Keep both absences. Fixing them here would quietly delete the eval coverage
 # they exist to provide.
