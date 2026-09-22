@@ -4,7 +4,7 @@
 #show: task.with(
   title: "Derive the built-in priority tables into the docs",
   kind: "docs",
-  status: proposed(2026, 9, 19),
+  status: wip(2026, 9, 22),
   priority: ice(
     impact: 4,
     confidence: 0.8,
