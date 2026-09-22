@@ -48,7 +48,7 @@ groups:
       www/content/import-export.typ: d28bab3211a305d65ebc1e7dd712cf67ec46b8634220d6dbc3ff4713a64279ea
       www/content/links.typ: 137af8d4c5f1f0d6d9249d715d6cf68932137b73559f4f4c3576ae9366ed9a5b
       www/content/named-sets.typ: ced39cda656c3892d6942713af957668c9a323646fb6e86b9b64c3f9b75c0092
-      www/content/priority.typ: 2fb5527a11ee4551db6fa7461ab00e7b54618800843508753641642942eecdc6
+      www/content/priority.typ: 78949814dfeca84e454a8b7a6287fde95c15cc459d2fc2a76c61bed64ade591d
       www/content/quickstart.typ: 39560d3ba4ae48bd536c67990ac3d9694bf2c1d3a71b9578004b2f777071be21
       www/content/recurring.typ: 836c35ad1ab76deb3dafcefa67bc361c54cedce5ec6970174b21529899180926
       www/content/schema.typ: b6c68696befcb25b0405768d5e5c77f94f5f6e434c199b000b3ef313e6717aa0
@@ -78,7 +78,7 @@ groups:
       .just/scripts/arg-pattern-check.sh: 2ce2583256cbf34fd3e636683e58262f77d70faccd77270afc9f09747198a838
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
       .just/scripts/check-doc-coverage.sh: cd807909a61d3687d5f2307cb3e81114c73a56916664d1c2c747dbfb45a53454
-      .just/scripts/check-doc-facts.sh: 756b37b358e0295afcd0605aabc5621aa70d39ae987ffefc876ad7dcff74b8ec
+      .just/scripts/check-doc-facts.sh: 2943ffe1b358d3bb0190ef206c3ae1255b4ca95b06f5f52f1711f3f53628b08c
       .just/scripts/check-doc-recipes.sh: 87eff1bf6f36d349ea618a5c3356abbd80f1437eaa28103dcce151ec697649c8
       .just/scripts/check-secrets.sh: 7ac0ba596fece981d72fade625ddd4b5119e26e2b7e264506bd6bf699fcb7850
       .just/scripts/cover.sh: b64a43362b1f478b9642a6746b5309ab880f8f4b4d8fffad62444de5a75a20dd
@@ -98,10 +98,10 @@ groups:
       .just/scripts/script-scope-check.sh: 02f952e6b7776850a943f1792d1526579debf62587ff86d1558f11ad93e37185
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: d3b205ca803fa8006f8b8b911379993d830c472d4d9051b9defcbcb24a4161c1
+      Justfile: 97dc9c474d05f947a617c2634a97c8f1a29eca2ca4a153df22704ad74337a539
       flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
-      docs/src/agents.typ: 0d3aed6b2c8e361fadb0c931f34b3fc1764fd4d8bcd95bca865427eba2ee7860
+      docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
       docs/src/contributing.typ: aafaaaaba43808e695429640e4e48f9e983dccc08f2f4f044598aa19223a72ae
       docs/src/contributing/coverage-crap.typ: ec874196bc672aff1d387c4402c865a87eac31845bf1307a171c12019d4c757c
       docs/src/contributing/gates.typ: 98ac50a50c777e07eb83143fbae6c5f2573184c4a73ac8e2a15b8534719fec4b
@@ -119,9 +119,14 @@ groups:
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
       www/content/dsl.typ: 21d545cd4902d8257f6a26888a69abd1021468f4a46fa62d8338cd77014736c2
       www/content/links.typ: 137af8d4c5f1f0d6d9249d715d6cf68932137b73559f4f4c3576ae9366ed9a5b
-      www/content/priority.typ: 2fb5527a11ee4551db6fa7461ab00e7b54618800843508753641642942eecdc6
+      www/content/priority.typ: 78949814dfeca84e454a8b7a6287fde95c15cc459d2fc2a76c61bed64ade591d
       www/content/recurring.typ: 836c35ad1ab76deb3dafcefa67bc361c54cedce5ec6970174b21529899180926
       www/content/templates.typ: d90046c678315921708a17e865cebdf1a827b862d21d3b5876e411fd8850fc76
+  priority-frameworks:
+    source:
+      crates/mindtape/src/frameworks.toml: 293eb980b6122184615ad20aea3e245a03d078ea38a25dd97e4f2ac08998bbfe
+    dependents:
+      www/utils/framework-notes.typ: 100534cd10cf6538050956496752acf67a7cc3168aa547fb1a2b188a5f6e1491
   release-notes:
     source:
       Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b

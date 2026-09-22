@@ -8,15 +8,17 @@
 # the facts www/generate-facts.sh and www/generate-site-pages.sh derive
 # instead of a hand-maintained list (see truth/tasks/derive-the-drift-prone-
 # doc-facts-from-their-sources.typ and truth/tasks/derive-site-pages-json-
-# from-the-pages-page-meta-blocks.typ). Five arms: every crate in
+# from-the-pages-page-meta-blocks.typ). Six arms: every crate in
 # crate-map.json needs a www/utils/crate-notes.typ entry, every DSL field in
 # dsl-fields.json needs a www/utils/dsl-field-notes.typ entry, every gate in
 # gates.json needs a www/utils/gate-notes.typ entry (truth/tasks/derive-the-
-# gate-table-command-column-from-the-justfile.typ), every sweep flag in
+# gate-table-command-column-from-the-justfile.typ), every priority framework
+# in frameworks.json needs a www/utils/framework-notes.typ entry
+# (truth/tasks/derive-the-built-in-priority-tables.typ), every sweep flag in
 # sweep-flags.json needs a www/utils/sweep-flag-notes.typ entry
 # (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
 # and every www/content/*.typ page needs a route in site-pages.json AND a NAV
-# entry in www/utils/site.typ. The first four arms read their Typst dict's
+# entry in www/utils/site.typ. The first five arms read their Typst dict's
 # keys through the same target/-rooted driver trick as check-doc-coverage.sh,
 # never by grepping quoted strings; the fifth reads a driver too now (for
 # NAV) and ALSO compares against the filesystem, so it runs in three
@@ -88,6 +90,18 @@ if [ -n "$missing_gates" ]; then
     while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_gates"
     exit 1
 fi
+frameworks=$(jq -r '.frameworks[].name' www/generated/frameworks.json)
+printf '#import "/www/utils/framework-notes.typ": framework-notes\n#metadata(framework-notes.keys()) <framework-notes-keys>\n' \
+    > "$tmp/framework-keys.typ"
+documented_frameworks=$(typst query --root . "$tmp/framework-keys.typ" '<framework-notes-keys>' \
+    --field value --one | jq -r '.[]')
+missing_frameworks=$(comm -23 <(sort <<<"$frameworks") <(sort <<<"$documented_frameworks"))
+if [ -n "$missing_frameworks" ]; then
+    echo "check-doc-facts: undocumented priority frameworks (no www/utils/framework-notes.typ entry):" >&2
+    while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_frameworks"
+    exit 1
+fi
+
 flags=$(jq -r '.flags[].long' www/generated/sweep-flags.json)
 printf '#import "/www/utils/sweep-flag-notes.typ": sweep-flag-notes\n#metadata(sweep-flag-notes.keys()) <sweep-flag-notes-keys>\n' \
     > "$tmp/sweep-flag-keys.typ"

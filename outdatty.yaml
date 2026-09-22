@@ -219,6 +219,24 @@ groups:
   # source), docs/src/skill.typ (SKILL.md's source) and www/utils/site.typ (the
   # docs site's `PKG_VERSION`, and through it every `#import` example on the
   # site) are NOT dependents: each reads its `@local/mindtape:...` version from
+  # The baked-in priority frameworks. /priority/ no longer restates any of
+  # them — the names, inputs, bounds, formulas, categories and both scales are
+  # derived into www/generated/frameworks.json
+  # (truth/tasks/derive-the-built-in-priority-tables.typ) — so this group does
+  # NOT list that page. It lists the one thing derivation cannot carry:
+  # www/utils/framework-notes.typ says what each formula MEANS, and
+  # re-formulating `ice` or re-purposing an input leaves that prose compiling
+  # and wrong. The two failure modes a hash cannot see are already covered
+  # without it — a framework that LEAVES frameworks.toml fails the page render
+  # by name, and one that ARRIVES fails `just check-doc-facts` until it has an
+  # entry — which is why a one-dependent group is the whole of the wiring here
+  # rather than an oversight.
+  - name: priority-frameworks
+    source:
+      - crates/mindtape/src/frameworks.toml
+    dependents:
+      - www/utils/framework-notes.typ
+
   # `www/generated/crate-map.json`'s `typst-lib.version` (itself derived from
   # this same lib/typst.toml), so a bump propagates through `just docs::md`
   # with no human reconciliation — the point of deriving it in the first

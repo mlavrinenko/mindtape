@@ -14,20 +14,19 @@
 # www/generate.sh calls this at its END, inside the flock it already holds:
 # that script `rm -rf`s the whole generated/ dir on entry, and the wipe and
 # the restore have to be ONE critical section or a concurrent reader sees the
-# gap between them. `just docs::gen` then calls this again — idempotent, and it
-# keeps the recipe honest about what it produces. `just check-doc-facts` and
-# `docs/generate-md.sh` used to call this script directly; both now call
-# `www/generate.sh` instead (which ends by calling this script itself), because
-# the page manifest this script used to derive moved to
-# www/generate-site-pages.sh — see its header, and generate.sh's own header,
-# for why that artifact needs generate.sh's captures and can no longer be
-# produced standalone the way the six left here still are.
+# gap between them. `just docs::gen` calls it again — idempotent, and it keeps
+# the recipe honest about what it produces. A caller that wants the page
+# manifest too (check-doc-facts, docs/generate-md.sh) calls generate.sh rather
+# than this script: www/generate-site-pages.sh derives that one and needs
+# generate.sh's own captures — see both headers for why.
 #
-# Seven artifacts, seven sources:
+# Eight artifacts, eight sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
 #                          through its own `<mindtape>` marker
+#   - frameworks.json   <- crates/mindtape/src/frameworks.toml plus the two
+#                          scales in defaults.toml (see www/frameworks.jq)
 #   - gates.json        <- `just --dump --dump-format json` for the
 #                          `[group("gate")]` tags and `check`'s own dependency
 #                          list, for row order (see www/gates.jq)
@@ -73,11 +72,10 @@ fi
 # and would also leave a zero-byte file behind when the producing jq program
 # calls halt_error (the gate-group cross-check below does).
 #
-# The parse check is what makes that guarantee hold under a FAILING producer,
-# not just a slow one: a jq that dies mid-stream still closes the pipe, so the
-# temp file exists and is partial. Installing a partial fact file is worse
-# than installing none — the reader gets a plausible-looking JSON prefix
-# instead of an error. Every artifact here is JSON, so `jq -e .` is the test.
+# The parse check makes that hold under a FAILING producer, not just a slow
+# one: a jq that dies mid-stream still closes the pipe, so the temp file exists
+# and is partial — and a plausible-looking JSON prefix reaches the reader as a
+# fact, not as an error. Every artifact here is JSON, so `jq -e .` is the test.
 emit() {
   local name="$1" tmp="$OUT/.$1.tmp.$$"
   cat >"$tmp"
@@ -89,12 +87,11 @@ emit() {
   mv -f "$tmp" "$OUT/$name"
 }
 
-# Same temp-file-plus-atomic-mv discipline as emit() above, for an artifact
-# that is not JSON — `jq -e .` has nothing to parse. just.typ's own producer
-# below builds the whole file as ONE jq string value before printing
-# anything, so a halted run (halt_error) writes nothing rather than a
-# truncated prefix; refusing empty content is the raw equivalent of emit()'s
-# parse check.
+# Same discipline as emit() above, for an artifact that is not JSON — `jq -e .`
+# has nothing to parse. just.typ's own producer below builds the whole file as
+# ONE jq string value before printing anything, so a halted run writes nothing
+# rather than a truncated prefix; refusing empty content is the raw equivalent
+# of emit()'s parse check.
 emit_raw() {
   local name="$1" tmp="$OUT/.$1.tmp.$$"
   cat >"$tmp"
@@ -171,30 +168,35 @@ jq -n --argjson fields "$fields_dict" \
   | emit dsl-fields.json
 rm -rf "$tmp"
 
+# --- frameworks.json ---------------------------------------------------------
+# The baked-in priority frameworks and the two scales they land on, off the
+# TOML that declares them: names, typed inputs, score formulas, category
+# labels, bands and anchors. `tomlq` is the same yq package linecop-caps.json
+# already uses below, pointed at TOML instead of YAML. Argued in
+# www/frameworks.jq; the scales ride in as an argument because they live in a
+# different file from the frameworks that score onto them.
+SCALES="$(tomlq -c '.tasks | {priority, difficulty}' crates/mindtape/src/defaults.toml)"
+tomlq -f "$SCRIPT_DIR/frameworks.jq" --argjson scales "$SCALES" \
+  crates/mindtape/src/frameworks.toml | emit frameworks.json
+
 # site-pages.json — the docs site's page manifest — used to be derived here,
 # read back off www/utils/site.typ's PAGES dict. It moved to its own script,
-# www/generate-site-pages.sh, under
-# truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ:
-# each page now carries its OWN `<page-meta>` block, so the manifest is
-# derived from the pages themselves instead of from site.typ, and deriving it
-# needs a full page compile — which needs www/generate.sh's own captures
-# (hero-source.typ, cli.json, …), not just this script's. That is also why
-# this script alone no longer suffices for docs/generate-md.sh or
-# check-doc-facts.sh: both now call www/generate.sh, which calls this script
-# and then www/generate-site-pages.sh in that order.
+# www/generate-site-pages.sh, under truth/tasks/derive-site-pages-json-from-
+# the-pages-page-meta-blocks.typ: each page carries its OWN `<page-meta>` block
+# now, so the manifest comes from the pages themselves and deriving it needs a
+# full page compile — www/generate.sh's captures, not just this script's. The
+# header above carries what that cost this script's callers.
 
 # --- gates.json --------------------------------------------------------------
 # Gate list + row order from the Justfile's `[group("gate")]` tags and
-# `check`'s own dependency list (also the cross-check the two are read
-# against each other for) — see www/gates.jq's header for why row order reads
-# that list rather than `just --summary --unsorted`'s source order now that a
-# gate can live in a module. Each gate carries a derived `command`, and the
-# artifact as a whole carries the fmt path assignments (selected in
-# www/gates.jq by their shared `_FMT_PATHS` suffix, so a future
-# formatter's list lands without an edit) CONTRIBUTING.md renders
-# verbatim. The jq program is long enough to blow
-# this script's own linecop cap, so it lives in www/gates.jq (argued in
-# place there) instead of inline.
+# `check`'s own dependency list (also the cross-check the two are read against
+# each other for) — see www/gates.jq's header for why row order reads that list
+# rather than `just --summary --unsorted`'s source order now that a gate can
+# live in a module. Each gate carries a derived `command`, and the artifact as
+# a whole carries the fmt path assignments CONTRIBUTING.md renders verbatim
+# (selected in www/gates.jq by their shared `_FMT_PATHS` suffix, so a future
+# formatter's list lands without an edit). The jq program is long enough to
+# blow this script's own linecop cap, so it lives in www/gates.jq.
 JUST_DUMP="$(just --dump --dump-format json)"
 jq -f "$SCRIPT_DIR/gates.jq" <<<"$JUST_DUMP" | emit gates.json
 

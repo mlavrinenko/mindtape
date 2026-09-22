@@ -214,7 +214,7 @@ check-doc-coverage:
 # www/utils/*-notes.typ entry. The arms, and why the gate regenerates its own
 # inputs, are argued in .just/scripts/check-doc-facts.sh.
 
-[doc("Fail if a derived crate, DSL field, gate, or sweep flag fact has no doc entry")]
+[doc("Fail if a derived crate, DSL field, framework, gate, or sweep flag fact has no doc entry")]
 [group("gate")]
 check-doc-facts:
     bash .just/scripts/check-doc-facts.sh

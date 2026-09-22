@@ -127,11 +127,12 @@
     silently undocumented.
   ],
   "check-doc-facts": [
-    Regenerates `www/generated/{crate-map,dsl-fields,gates,sweep-flags}.json`
+    Regenerates
+    `www/generated/{crate-map,dsl-fields,frameworks,gates,sweep-flags}.json`
     (`www/generate-facts.sh`) and set-differences each against its
-    `www/utils/{crate-notes,dsl-field-notes,gate-notes,sweep-flag-notes}.typ`
-    prose dict; fails naming any crate, DSL field, gate, or sweep flag with
-    no matching entry — this file included.
+    `www/utils/{crate-notes,dsl-field-notes,framework-notes,gate-notes,sweep-flag-notes}.typ`
+    prose dict; fails naming any crate, DSL field, priority framework, gate,
+    or sweep flag with no matching entry — this file included.
   ],
   "check-doc-recipes": [
     Fails on a hand-typed recipe mention in a doc source — literal `just`
