@@ -20,9 +20,11 @@
 # truth/tasks/evaluate-outdattys-require-tracked-audit.typ.
 require_tracked: ["!**"]
 
-# WHAT A DEPENDENT-ONLY EDIT OWES THIS LOCK: re-record its group, in the commit
-# that made the edit, naming the file (truth/tasks/decide-what-a-dependent-only-edit-owes-
-# outdatty-lock.typ). Only a SOURCE change is a trigger — that asymmetry is the
+# WHAT A DEPENDENT-ONLY EDIT OWES THIS LOCK: record that dependent alone, in the
+# commit that made the edit — `just outdatty-update <group> <path>`
+# (truth/tasks/decide-what-a-dependent-only-edit-owes-outdatty-lock.typ,
+# truth/tasks/record-one-dependents-watermark-without-claiming-the-groups.typ).
+# Only a SOURCE change is a trigger — that asymmetry is the
 # whole point of the split and is not up for revision — so a dependent edited
 # on its own moves no source hash and the gate stays green, correctly. But its
 # recorded hash then sits stale until some unrelated source edit re-records the
@@ -41,20 +43,18 @@ require_tracked: ["!**"]
 #     The drift is computed and exposed today — only the plain renderer omits
 #     it — so there is nothing to take upstream for visibility.
 #   - `outdatty update --group <g>` after a dependent-only edit rewrites exactly
-#     one line, that dependent's hash.
+#     one line, that dependent's hash — but only while no OTHER dependent in the
+#     group is pending. With one pending, the group re-record stamps it too, onto
+#     a commit that never reviewed it: two delegated agents did exactly that to
+#     `cli-docs`, `prelude-docs`, `dev-docs` and `docs/src/contributing.typ`.
 #
-#     But only when that dependent is the group's sole pending change: the
-#     group is the smallest unit `outdatty update` can scope, so it stamps
-#     every other pending dependent too and the commit claims their review.
-#     Name the file — `just outdatty-update <group> <file>` — and
-#     .just/scripts/outdatty-update-one.sh runs the group update, then puts
-#     back every lock line but that file's. The clean fix is upstream: a
-#     per-path `outdatty update <path>...`; drop the script once it ships.
-#
-# One line is not a price worth designing around, so re-recording wins over
-# accepting the stale hash: it costs a command, and it makes the watermark
-# CONTRIBUTING.md claims ("a recorded hash is a review watermark") true on both
-# sides of the split instead of only the source side.
+# So the record is per file, not per group: outdatty 0.5's `--dependent <path>`
+# (the recipe's optional trailing paths) records the named dependent's hash
+# and leaves the group's sources and every other pending dependent as locked.
+# It costs a command, and it makes the watermark CONTRIBUTING.md claims ("a
+# recorded hash is a review watermark") true on both sides of the split
+# instead of only the source side. A SOURCE edit still re-records the whole
+# group — that edit obliges a review of every dependent.
 #
 # Deliberately NOT a gate, and never will be. A dependent changing alone is
 # ordinary work, not drift; a check that failed on it would turn every doc edit
@@ -486,7 +486,6 @@ groups:
       - .just/scripts/_script-graph.sh
       - .just/scripts/site-pages-fixture-check.sh
       - .just/scripts/fork.sh
-      - .just/scripts/outdatty-update-one.sh
       - .just/scripts/integrate.sh
     dependents:
       - docs/src/contributing.typ

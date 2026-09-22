@@ -78,7 +78,7 @@ groups:
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
       .just/scripts/_script-graph.sh: 8fceccf6f861ef295c8983d30f0a43c450f7be6e6628053c0dbeddd36ee78e54
-      .just/scripts/arg-pattern-check.sh: 2ce2583256cbf34fd3e636683e58262f77d70faccd77270afc9f09747198a838
+      .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
       .just/scripts/check-doc-coverage.sh: cd807909a61d3687d5f2307cb3e81114c73a56916664d1c2c747dbfb45a53454
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
@@ -95,18 +95,17 @@ groups:
       .just/scripts/integrate.sh: 0c6eac2a78205f7d2eb13347e440c950a96cdba2260bef7a70217d0eb4136f30
       .just/scripts/mutants-diff.sh: 52d60ee0cc077889843e16235d3dc12587e90411aa05ddef236da3b1d9893adb
       .just/scripts/mutants.sh: 6f558f4aeca4764ee7bc3636fc4cc3c57f6e9cbeadf679e78387e80205723a2e
-      .just/scripts/outdatty-update-one.sh: a27dd63961748b7afe036e78285606b9e7e7140f68cf6778909e50e4e64549b8
       .just/scripts/positional-args-check.sh: c43c5e9d06f8e53402f70b334de9746d1ada07b1c795306e59fee982afe09c55
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
       .just/scripts/script-attr-check.sh: 43c4503ed7415d20819e53be8f63be8caeebd57c724d7a1e10570622b985e8ae
       .just/scripts/script-scope-check.sh: 02f952e6b7776850a943f1792d1526579debf62587ff86d1558f11ad93e37185
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 866931d508296c28ba23136fabd43b0ee5c7a31d5b3891c65d4e96a9bd5eda3c
+      Justfile: 3a25708ef64f76dee62935652bd21fde893117a19272ea5a915d22c4df34932f
       flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
       docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
-      docs/src/contributing.typ: 60e78315a4ce8e11a90eab86c501dabcbf4b3bc12e384fa48d83bad6eebc5327
+      docs/src/contributing.typ: 62f82aba162d44f9ccc54210a7fc47697ebb91d159bb52fbbfea01518184ef44
       docs/src/contributing/coverage-crap.typ: ec874196bc672aff1d387c4402c865a87eac31845bf1307a171c12019d4c757c
       docs/src/contributing/gates.typ: 98ac50a50c777e07eb83143fbae6c5f2573184c4a73ac8e2a15b8534719fec4b
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4

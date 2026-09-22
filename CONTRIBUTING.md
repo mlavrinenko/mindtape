@@ -95,7 +95,7 @@ A delegated agent that notices something real outside its own task’s scope fil
 
 [`outdatty.yaml`](outdatty.yaml) couples source files to the dependents that must stay in sync (e.g. the CLI surface to `README.md`). After editing a source, update the listed dependents, re-record the group you touched with `just outdatty-update <group>` and commit `outdatty.lock`. A recorded hash is a review watermark, so blanket re-recording — `just outdatty-update-all` — claims a review that never happened. It stays the explicit choice, never the default.
 
-Edit a dependent alone, and record just that file in the same commit — `just outdatty-update <group> <file>` leaves the group’s other pending dependents pending. Only a source change is a trigger, so the hash would otherwise ride along on an unrelated commit; the reasoning and the pending-groups one-liner are in `outdatty.yaml`’s header.
+Edit a dependent alone, and record just that file in the same commit — `just outdatty-update <group> <path>` leaves the group’s other pending dependents pending. Only a source change is a trigger, so the hash would otherwise ride along on an unrelated commit; the reasoning and the pending-groups one-liner are in `outdatty.yaml`’s header.
 
 ## Version Management
 

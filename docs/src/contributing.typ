@@ -155,7 +155,7 @@ recorded hash is a review watermark, so blanket re-recording —
 the explicit choice, never the default.
 
 Edit a dependent alone, and record just that file in the same commit —
-#just.outdatty-update("<group>", "<file>") leaves the group's other pending
+#just.outdatty-update("<group> <path>") leaves the group's other pending
 dependents pending. Only a source change is a trigger, so the hash would
 otherwise ride along on an unrelated commit; the reasoning and the
 pending-groups one-liner are in `outdatty.yaml`'s header.
