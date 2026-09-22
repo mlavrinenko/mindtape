@@ -276,6 +276,44 @@ pub fn describe_slot_kind(dir: &Path, name: &str) -> String {
         .to_owned()
 }
 
+/// Write `config` to `.mindtape/config.toml` under an existing `dir`, install
+/// the in-tree lib, and drop one task file per `(name, source)` pair into
+/// `tasks/`. The `dir`-taking counterpart of [`scaffold_project`], for the
+/// link-rewriting batteries (`rm_e2e`, `mv_e2e`) that need the temp directory
+/// in hand before the project exists — a git repository is initialized over it.
+pub fn scaffold_config(dir: &Path, config: &str, files: &[(&str, &str)]) {
+    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
+    std::fs::write(dir.join(".mindtape/config.toml"), config).unwrap();
+    install_lib(dir);
+    for (name, contents) in files {
+        std::fs::write(dir.join("tasks").join(name), contents).unwrap();
+    }
+}
+
+/// Run `git` in `dir` and assert it succeeded.
+pub fn git(dir: &Path, args: &[&str]) {
+    let status = std::process::Command::new("git")
+        .current_dir(dir)
+        .args(args)
+        .status()
+        .unwrap();
+    assert!(status.success(), "git {args:?} failed");
+}
+
+/// Turn `dir` into a committed-clean git repository: init, a local identity so
+/// the commit does not depend on the developer's own, and one seed commit of
+/// everything present. `commit.gpgsign=false` keeps a signing setup out of it.
+pub fn git_commit_all(dir: &Path) {
+    git(dir, &["init", "-q"]);
+    git(dir, &["config", "user.email", "t@example.com"]);
+    git(dir, &["config", "user.name", "t"]);
+    git(dir, &["add", "-A"]);
+    git(
+        dir,
+        &["-c", "commit.gpgsign=false", "commit", "-q", "-m", "seed"],
+    );
+}
+
 /// Install the in-tree `@local/mindtape` lib override and an empty `tasks/`
 /// root under `dir`, so a task filed there can actually be evaluated.
 pub fn install_lib(dir: &Path) {

@@ -27,12 +27,13 @@ Yes if `.mindtape/config.toml` exists at the repo root: it declares the task roo
 | Search by text | `mt find <term…>` |
 | Read one task | `mt eval <task>` |
 | File a task | `mt add <title…>` |
+| Rename a task | `mt mv <task> <new-stem>` |
 | Change status | `mt flip <status> <task…>` or the status as a verb |
 | Link tasks | `mt link <task> <kind> <target…>` |
 | Validate | `mt check` |
 | Retire | `mt rm <task…>` |
 
-`<task>` is a stem, a path, or a `#` handle (`1b`). Handles are recomputed on every command — a flip that re-sorts or filters renumbers them — so use one only for your very next command; in anything a human reads, cite the file path instead (`[title](truth/tasks/<stem>.typ)`). A stem never moves.
+`<task>` is a stem, a path, or a `#` handle (`1b`). Handles are recomputed on every command — a flip that re-sorts or filters renumbers them — so use one only for your very next command; in anything a human reads, cite the file path instead (`[title](truth/tasks/<stem>.typ)`). A stem changes only when `mt mv` renames it, which retargets every inbound edge in the same pass.
 
 Flags live in `mt <cmd> --help`. Per-project values — the legend and its verbs, link kinds, the priority scale, tags — live in `.mindtape/config.toml` (or `mt flip --list`); read them, never guess.
 

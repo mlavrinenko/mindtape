@@ -115,6 +115,7 @@ groups:
       - crates/mindtape-cli/src/link_cmd.rs
       - crates/mindtape-cli/src/link_input.rs
       - crates/mindtape-cli/src/ls.rs
+      - crates/mindtape-cli/src/mv.rs
       # `--format`'s per-surface contract: which columns each machine format
       # carries and what each cell means. `ls.rs` decides nothing about this —
       # it hands a resolved list to `render()` — so the CSV mapping decision

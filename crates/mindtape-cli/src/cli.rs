@@ -10,7 +10,7 @@ use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
     add, check, cli_dump, config_cmd, eval, find, flip, go, graph, import, init, install, link_cmd,
-    ls, preset_cmd, recur, review, rm, views, worktrees,
+    ls, mv, preset_cmd, recur, review, rm, views, worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -100,6 +100,15 @@ enum Command {
     /// Retire tasks (by ref, filter, or the default), rewriting inbound links to
     /// SWHID tombstones.
     Rm(rm::RmArgs),
+    /// Rename a task — its file stem is its identity — and retarget every
+    /// inbound `links:` edge onto the new stem, in one validated write.
+    ///
+    /// `git mv` inside a repository, a plain rename outside one. A stem
+    /// already taken is refused before anything moves; `--dry-run` prints the
+    /// plan. The `title:` is untouched (independent of the stem by design) and
+    /// so is the folder — moving a task between roots or folders changes its
+    /// derived tags and is a decision of its own.
+    Mv(mv::MvArgs),
     /// Stamp `reviewed:` with today's date on a task.
     Review(review::ReviewArgs),
     /// Set a task's status (`flip <status> <task>...`); each legend value is a verb.
@@ -164,6 +173,7 @@ impl Cli {
             Command::Eval(args) => eval::run(&args),
             Command::Go(args) => go::run(&args),
             Command::Rm(args) => rm::run(&args),
+            Command::Mv(args) => mv::run(&args),
             Command::Review(args) => review::run(&args),
             Command::Flip(args) => flip::run(&args),
             Command::Recur(args) => recur::run(&args),

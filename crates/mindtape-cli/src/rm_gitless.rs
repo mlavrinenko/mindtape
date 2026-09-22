@@ -89,10 +89,11 @@ pub fn plain_delete_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path
     }
 }
 
-/// The unlink strategy's plan computation, split out for the file-size gate.
+/// The inbound-edge walk `unlink` and `mt mv` share, split out for the
+/// file-size gate.
 #[path = "rm_unlink.rs"]
 mod unlink;
-pub use unlink::unlink_plan;
+pub use unlink::{Retarget, inbound_rewrites, retarget_raw, unlink_plan};
 
 /// The `retire` strategy's plan: keep the eligible task files, flip each to a
 /// terminal status (the configured `[retire] status`, else the legend's first

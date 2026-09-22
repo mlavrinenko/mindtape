@@ -69,6 +69,7 @@ mod ls;
 mod ls_interactive;
 mod ls_rules;
 mod ls_rules_applied;
+mod mv;
 mod output;
 mod pre_write;
 mod preset;

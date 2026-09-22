@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt mv <task> <new-stem>` renames a task and retargets every inbound
+  link.** A task's identity is its filename stem, so a stem written before the
+  task settled used to need a `git mv` plus a hand edit of every `links:`
+  target naming it, with nothing catching a missed one until `mt check`
+  reported a dangling edge. `mt mv` now owns both halves as one validated
+  write: the file moves — through `git mv` inside a repository, so the rename
+  lands staged, and through a plain rename outside one or for a file git does
+  not track yet — and every inbound edge is retargeted onto the new stem,
+  each keeping its own relative prefix (`../sub/old.typ` becomes
+  `../sub/new.typ`). A stem another task already answers to, or an existing
+  file, is refused before anything moves; `--dry-run` prints the plan (the
+  move, and every file whose edges change) and writes nothing. `NEW_STEM` is a
+  bare stem: a trailing `.typ` is dropped, and a path separator is refused —
+  moving a task between roots or folders changes its derived tags and stays a
+  decision of its own, as does changing its `title:`.
+
 - **A config can `extends` rule packs and `disable` a rule by name.** Any
   config layer (XDG global defaults, an ancestor `.mindtape/defaults.toml`, or
   the project's own `.mindtape/config.toml`) may declare `extends = [...]` and

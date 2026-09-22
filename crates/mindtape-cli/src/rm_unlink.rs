@@ -1,6 +1,15 @@
-//! The `unlink` strategy: delete the eligible task files and strip every
-//! inbound edge that references one from the surviving files. No git, no
-//! tombstones — split out of `rm_gitless.rs` to stay under the file-size gate.
+//! The inbound-edge walk: which *other* task files name a task this run is
+//! taking away from where it stands, and how each of those edges is spliced so
+//! none of them is left dangling.
+//!
+//! One walk serves both commands that need it, because they differ only in
+//! where the edge ends up ([`Retarget`]): `mt rm`'s `unlink` strategy strips
+//! the edge — removal is the null target — and `mt mv` points it at the file
+//! stem the task is renamed to. Locating an inbound edge, splicing it and
+//! counting it are the same work either way.
+//!
+//! Split out of `rm_gitless.rs` to stay under the file-size gate; `mt mv`
+//! reaches it through `rm`'s re-exports rather than owning a second copy.
 
 use std::collections::HashSet;
 use std::ops::Range;
@@ -14,32 +23,49 @@ use crate::task_edit::task_with;
 
 use super::plain_delete_plan;
 
-/// The `unlink` strategy's plan: delete the eligible task files, and strip
-/// every inbound edge that references one from the surviving files. No git,
-/// no tombstones.
+/// Where an inbound edge to a matched task points once the run is over.
+#[derive(Debug, Clone, Copy)]
+pub enum Retarget<'a> {
+    /// Nowhere: strip the edge whole, operator and all — `mt rm`'s `unlink`
+    /// strategy, and the null target the retarget generalises.
+    Drop,
+    /// At this file stem. Each raw target keeps its own directory prefix and
+    /// extension — `mt mv` renames in place, so only the last path component
+    /// changes and `"../sub/old.typ"` becomes `"../sub/new.typ"`.
+    Stem(&'a str),
+}
+
+/// Rewrite every inbound edge naming a task in `matched`, across the task files
+/// that are *not* themselves matched — a matched task is the one going away or
+/// moving, and its own file is the caller's business, not this walk's.
+///
+/// Returns one [`Rewrite`] per file whose source actually changed, sorted by
+/// relative path for a stable report. Nothing is written.
 ///
 /// # Errors
-/// A survivor file that cannot be read, or a stripped source that cannot be
-/// spliced back together, fails the run.
-pub fn unlink_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> Result<Plan> {
+/// A referring file that cannot be read, or a spliced source `typst_edit`
+/// refuses to reassemble, fails the run.
+pub fn inbound_rewrites(
+    tasks: &[Task],
+    matched: &HashSet<String>,
+    root: &Path,
+    to: Retarget<'_>,
+) -> Result<Vec<Rewrite>> {
     let mut rewrites: Vec<Rewrite> = Vec::new();
     for task in tasks {
-        if eligible.contains(&task.id) {
+        if matched.contains(&task.id) {
             continue;
         }
         let abs = root.join(&task.file);
         let source = std::fs::read_to_string(&abs)
             .with_context(|| format!("read {}", task.file.display()))?;
-        let (ranges, links) = unlink_edits(&source, eligible);
-        if ranges.is_empty() {
+        let (edits, links) = inbound_edits(&source, matched, to);
+        if links == 0 {
             continue;
         }
-        let edits: Vec<typst_edit::Edit> = ranges
-            .into_iter()
-            .map(|range| typst_edit::Edit::new(range, String::new()))
-            .collect();
-        let contents =
-            typst_edit::apply(&source, edits).map_err(|err| anyhow::anyhow!(err.to_string()))?;
+        let contents = typst_edit::apply(&source, edits)
+            .map_err(|err| anyhow::anyhow!(err.to_string()))
+            .with_context(|| format!("rewrite links in {}", task.file.display()))?;
         rewrites.push(Rewrite {
             abs,
             rel: task.file.clone(),
@@ -48,9 +74,81 @@ pub fn unlink_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> R
         });
     }
     rewrites.sort_by(|a, b| a.rel.cmp(&b.rel));
+    Ok(rewrites)
+}
+
+/// The edits one referring source needs, and how many inbound edges they cover.
+/// The count, not the edit count, is what the report quotes: stripping merges
+/// adjacent ranges, so one edit can carry several edges away.
+fn inbound_edits(
+    source: &str,
+    matched: &HashSet<String>,
+    to: Retarget<'_>,
+) -> (Vec<typst_edit::Edit>, usize) {
+    match to {
+        Retarget::Drop => {
+            let (ranges, stripped) = unlink_edits(source, matched);
+            let edits = ranges
+                .into_iter()
+                .map(|range| typst_edit::Edit::new(range, String::new()))
+                .collect();
+            (edits, stripped)
+        }
+        Retarget::Stem(stem) => {
+            let edits = stem_edits(source, matched, stem);
+            let count = edits.len();
+            (edits, count)
+        }
+    }
+}
+
+/// Point every target literal naming a matched task at `stem`, in place: the
+/// quoted literal is replaced and nothing around it moves, so a `related(…)`
+/// note, an `edge(…)` kind and the sibling edges of a sum survive byte for
+/// byte.
+fn stem_edits(source: &str, matched: &HashSet<String>, stem: &str) -> Vec<typst_edit::Edit> {
+    mindtape::link_target_spans(source)
+        .into_iter()
+        .filter(|span| matched.contains(&normalize_link(&span.raw)))
+        .map(|span| {
+            let raw = retarget_raw(&span.raw, stem);
+            typst_edit::Edit::new(span.range, format!("\"{raw}\""))
+        })
+        .collect()
+}
+
+/// `raw` with its file stem replaced by `stem`, keeping the directory prefix
+/// and the extension it was authored with: `"../sub/old.typ"` with stem `new`
+/// is `"../sub/new.typ"`, and a bare `"old"` is `"new"`.
+///
+/// String work rather than [`Path`] joining, because a link target is authored
+/// with `/` separators on every platform and rebuilding it through `Path` would
+/// emit `\` on Windows.
+#[must_use]
+pub fn retarget_raw(raw: &str, stem: &str) -> String {
+    let (dir, name) = raw
+        .rfind('/')
+        .map_or(("", raw), |slash| raw.split_at(slash + 1));
+    // A leading dot opens a hidden file, not an extension; a stem may itself
+    // carry dots (`foo.task-260101.typ`), so only the last one counts.
+    let ext = name
+        .rfind('.')
+        .filter(|dot| *dot > 0)
+        .map_or("", |dot| name.split_at(dot).1);
+    format!("{dir}{stem}{ext}")
+}
+
+/// The `unlink` strategy's plan: delete the eligible task files, and strip
+/// every inbound edge that references one from the surviving files. No git,
+/// no tombstones.
+///
+/// # Errors
+/// A survivor file that cannot be read, or a stripped source that cannot be
+/// spliced back together, fails the run.
+pub fn unlink_plan(tasks: &[Task], eligible: &HashSet<String>, root: &Path) -> Result<Plan> {
     Ok(Plan {
         deletions: plain_delete_plan(tasks, eligible, root).deletions,
-        rewrites,
+        rewrites: inbound_rewrites(tasks, eligible, root, Retarget::Drop)?,
     })
 }
 
@@ -174,4 +272,26 @@ fn sweep_operator(range: Range<usize>, source: &str) -> Range<usize> {
         end = forward;
     }
     Range { start, end }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::retarget_raw;
+
+    #[test]
+    fn retargeting_keeps_the_relative_prefix_and_the_extension() {
+        assert_eq!(retarget_raw("old.typ", "new"), "new.typ");
+        assert_eq!(retarget_raw("../sub/old.typ", "new"), "../sub/new.typ");
+    }
+
+    #[test]
+    fn retargeting_a_bare_stem_invents_no_extension() {
+        assert_eq!(retarget_raw("old", "new"), "new");
+        assert_eq!(retarget_raw("sub/old", "new"), "sub/new");
+    }
+
+    #[test]
+    fn retargeting_replaces_the_whole_stem_dots_included() {
+        assert_eq!(retarget_raw("old.task-260101.typ", "new"), "new.typ");
+    }
 }

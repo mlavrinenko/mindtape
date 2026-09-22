@@ -28,7 +28,7 @@ drift from what `mt` actually is.
 // vanish from this page.
 #let cli = json("../generated/cli.json")
 #let cli-groups = (
-  ("Files", ("add", "import", "go", "eval")),
+  ("Files", ("add", "import", "mv", "go", "eval")),
   ("Listing", ("ls", "find")),
   ("Graph", ("graph",)),
   ("Links", ("link",)),
@@ -46,6 +46,11 @@ Every command accepts the same global flags:
 #render-globals(cli)
 
 = Files
+
+A task's identity is its filename stem, so renaming the file is renaming the
+task: `mt mv` moves it and retargets every inbound `links:` edge onto the new
+stem in the same validated pass, leaving `mt check` with no dangling edge to
+report. The `title:` is a separate field and a separate edit.
 
 #cli-group(cli, cli-groups, "Files")
 

@@ -9,13 +9,14 @@
 #![allow(clippy::unwrap_used)]
 
 use std::path::Path;
-use std::process::Command;
 
 use predicates::prelude::PredicateBooleanExt;
 
 #[path = "rm/retire_e2e.rs"]
 mod rm_retire;
 mod support;
+
+use support::{git_commit_all, scaffold_config};
 
 /// A tasks root plus a custom `blocks` edge kind, so the survivor's
 /// `edge("blocks", …)` resolves and `mt check` accepts it.
@@ -86,41 +87,10 @@ status: wip(2026, 6, 1),\n  \
 links: depends-on(\"gone-b.typ\"),\n\
 )\n\n== Summary\n\nBody.\n";
 
-fn git(dir: &Path, args: &[&str]) {
-    let status = Command::new("git")
-        .current_dir(dir)
-        .args(args)
-        .status()
-        .unwrap();
-    assert!(status.success(), "git {args:?} failed");
-}
-
 /// Scaffold the project files — config, in-tree lib, and the given task
 /// sources — without initializing git.
 fn scaffold_files(dir: &Path, files: &[(&str, &str)]) {
     scaffold_config(dir, CONFIG, files);
-}
-
-/// Scaffold the project files with an explicit config instead of [`CONFIG`].
-fn scaffold_config(dir: &Path, config: &str, files: &[(&str, &str)]) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(dir.join(".mindtape/config.toml"), config).unwrap();
-    support::install_lib(dir);
-    for (name, contents) in files {
-        std::fs::write(dir.join("tasks").join(name), contents).unwrap();
-    }
-}
-
-/// The git half of [`scaffold`]: init, identity, and a committed-clean seed.
-fn git_commit_all(dir: &Path) {
-    git(dir, &["init", "-q"]);
-    git(dir, &["config", "user.email", "t@example.com"]);
-    git(dir, &["config", "user.name", "t"]);
-    git(dir, &["add", "-A"]);
-    git(
-        dir,
-        &["-c", "commit.gpgsign=false", "commit", "-q", "-m", "seed"],
-    );
 }
 
 /// Scaffold a committed-clean git repo with the config, in-tree lib, and the

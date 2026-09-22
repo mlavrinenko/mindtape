@@ -51,6 +51,24 @@
     task export | jq -f contrib/jq/taskwarrior.jq | mt import
     ```,
   ),
+  "mv": (
+    prose: [`NEW_STEM` is a bare stem — a trailing `.typ` is dropped, a path
+      separator refused: `mv` renames a task where it stands, and moving one
+      between roots or folders changes its
+      #link(u("/derived-tags/"))[derived tags], which is a decision of its
+      own. A stem another task already answers to, or an existing file, is
+      refused before anything moves. The move goes through `git mv` inside a
+      repository — so the rename lands staged and git carries the file's
+      history across it — and through a plain rename outside one, or for a
+      file git does not track yet. Every inbound edge is retargeted in the
+      same pass, each keeping its own relative prefix (`../sub/old.typ`
+      becomes `../sub/new.typ`), and the whole set is validated before a byte
+      is written.],
+    examples: ```sh
+    mt mv abandonned-rondo abandoned-rondo   # rename, retargeting every edge
+    mt mv abandoned-rondo minuet --dry-run   # the plan: move plus changed files
+    ```,
+  ),
   "eval": (outputs: ("eval",)),
   "go": (
     prose: [Resolves `id` to a path, then spawns `[go] editor` (falling back to

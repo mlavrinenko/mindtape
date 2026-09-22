@@ -47,9 +47,9 @@ pub use typst_cleanup::{Plan, apply};
 #[path = "rm_gitless.rs"]
 mod rm_gitless;
 pub(crate) use rm_gitless::{
-    RetirePlan, confirm_retire, plain_delete_plan, redact_git_error, reject_message,
-    report_retire_applied, report_retire_plan, resolve_strategy, retire_apply, retire_plan,
-    unlink_plan,
+    Retarget, RetirePlan, confirm_retire, inbound_rewrites, plain_delete_plan, print_commit_hint,
+    redact_git_error, reject_message, report_retire_applied, report_retire_plan, resolve_strategy,
+    retarget_raw, retire_apply, retire_plan, unlink_plan,
 };
 
 #[path = "rm_select.rs"]

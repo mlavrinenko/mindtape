@@ -56,6 +56,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
         Class::Exempt("hands the file to the configured editor; mutates nothing itself"),
     ),
     ("rm", Class::Write),
+    ("mv", Class::Write),
     ("review", Class::Write),
     ("flip", Class::Write),
     ("recur", Class::Write),
