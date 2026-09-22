@@ -105,7 +105,7 @@
       "name": "add-with-priority-slot-trap",
       "fixture": "examples/minimal",
       "prompt": "File a task to upgrade the Postgres driver, and give it priority 8.",
-      "expected_output": "examples/minimal declares no template, so `mt add` uses the built-in fallback whose only slot is `title`. `--set priority=8` is therefore dropped silently — exit 0, success reported, no priority written. The agent must notice (via `mt add --describe`, `--print`, or reading the file back) and get `priority: 8` onto the task anyway; a hand edit of the new file is the sanctioned path, since priority has no CLI writer and no slot here. `mt check` passes.",
+      "expected_output": "examples/minimal declares no template, so `mt add` uses the built-in fallback whose only slot is `title`. `--set priority=8` names a slot the template does not have, and the binary refuses it loudly — non-zero exit, `Error: unknown --set/-f key(s): priority; known slots: title` — rather than dropping it silently. The agent recovers: drop `--set priority=8`, run `mt add \"Upgrade the Postgres driver\"` alone to file the task, then hand-edit the new file to add `priority: 8` (the sanctioned path — priority has no CLI writer and no slot here), and confirm with `mt check`.",
       "files": [],
       "assertions": [
         {
@@ -115,10 +115,10 @@
           "text": "A new task file exists about upgrading the Postgres driver"
         },
         {
-          "text": "The new task actually carries `priority: 8` — not a missing priority left behind by the silently-dropped `--set`"
+          "text": "Recognized the `--set priority=8` refusal as an error to recover from, not a silent no-op — the command exits non-zero naming the unknown key and the known slots"
         },
         {
-          "text": "The agent verified the written result rather than trusting the exit code (ran `--describe`, `--print`, `mt eval`, `mt ls`, or read the file back)"
+          "text": "The new task carries `priority: 8`, added by hand edit after filing — not passed via `--set` (which the built-in template refuses)"
         },
         {
           "text": "`mt check` reports all tasks valid (6 total)"
