@@ -16,6 +16,8 @@ The data-path seam is the one worth naming, because it is the reason `$MINDTAPE_
 
 What is unverified on Windows there is the harness, not the feature. The behaviour is platform-independent and `crossterm` implements it over ConPTY.
 
+A pty test here must not depend on machine load: a fixed sleep passes on an idle box and fails once this repo’s own delegated worktrees are building alongside it, which is a false read on the change under test, not a real break. `opening_a_task_suspends_the_tui_and_runs_the_editor` and `opening_a_task_still_works_with_hyperlinks_active` used to race a fixed wait against however long the TUI took to open the editor; both now poll the transcript for the frame they assert on instead.
+
 ## Catching compile breakage early
 
 `just check-windows` cross-checks the workspace (tests included) against `x86_64-pc-windows-gnu` from Linux, so compile breakage surfaces before the push rather than in CI.

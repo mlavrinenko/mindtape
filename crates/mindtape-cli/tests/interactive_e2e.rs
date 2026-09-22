@@ -13,9 +13,10 @@
 
 mod support;
 
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::PathBuf;
-use std::process::{Child, Command, Output, Stdio};
+use std::process::{Child, ChildStdout, Command, Output, Stdio};
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 /// Interval between `try_wait()` polls while waiting for `mt` to exit.
@@ -57,11 +58,17 @@ fn wait_with_timeout(mut child: Child) -> (Output, bool) {
 /// The title of the one task each case lists.
 const TASK_TITLE: &str = "E2E Task";
 
+/// What the stand-in `$EDITOR` prints, so its appearance in the transcript
+/// proves the editor closure actually ran. Named once and reused by both the
+/// spawn (which tells `$EDITOR` to print it) and the tests that poll for it
+/// ([`wait_for_frame`]), rather than repeating the literal on both sides.
+const SUSPEND_MARKER: &str = "SUSPEND_MARKER";
+
 /// Spawn `mt ls --interactive <suffix>` inside `dir` under `script`, which
 /// hands it a pseudo-terminal. Stdin is piped so the caller can send keys.
-/// `with_editor` sets `$EDITOR` to echo `SUSPEND_MARKER` (and clears `$VISUAL`,
-/// which would otherwise inherit a real editor and hang the session) — the
-/// shape the opening tests need.
+/// `with_editor` sets `$EDITOR` to echo [`SUSPEND_MARKER`] (and clears
+/// `$VISUAL`, which would otherwise inherit a real editor and hang the
+/// session) — the shape the opening tests need.
 fn spawn_interactive(dir: &std::path::Path, suffix: &str, with_editor: bool) -> Child {
     let mt_bin = PathBuf::from(env!("CARGO_BIN_EXE_mt"));
     let mt_str = mt_bin.to_string_lossy().to_string();
@@ -81,25 +88,114 @@ fn spawn_interactive(dir: &std::path::Path, suffix: &str, with_editor: bool) -> 
     if with_editor {
         cmd = cmd
             .env_remove("VISUAL")
-            .env("EDITOR", "echo SUSPEND_MARKER");
+            .env("EDITOR", format!("echo {SUSPEND_MARKER}"));
     }
     cmd.spawn().expect("script must be available (util-linux)")
 }
 
+/// The pty transcript captured so far, shared between the reader thread
+/// draining `child.stdout` in [`stream_into`] and [`wait_for_frame`] polling
+/// it — a `String` rather than raw bytes because every needle the tests poll
+/// for is text.
+type Frame = Arc<Mutex<String>>;
+
+/// Drain `stdout` into `frame` on a background thread, appending each chunk
+/// as it arrives. Returns the thread's handle so a caller can join it once
+/// the child has exited, guaranteeing `frame` holds everything the process
+/// ever wrote rather than whatever had arrived by the last poll.
+///
+/// Reading incrementally (rather than the once-at-exit `wait_with_output`
+/// every other test in this file uses) is what makes [`wait_for_frame`]
+/// possible at all: polling needs a transcript that grows while the child is
+/// still running, not one only available after it quits.
+fn stream_into(mut stdout: ChildStdout, frame: Frame) -> std::thread::JoinHandle<()> {
+    std::thread::spawn(move || {
+        let mut buf = [0_u8; 4096];
+        loop {
+            match stdout.read(&mut buf) {
+                Ok(0) | Err(_) => return,
+                Ok(n) => {
+                    let Some(chunk) = buf.get(..n) else {
+                        return;
+                    };
+                    let mut guard = frame.lock().expect("frame mutex must not be poisoned");
+                    guard.push_str(&String::from_utf8_lossy(chunk));
+                }
+            }
+        }
+    })
+}
+
+/// Upper bound on how long [`wait_for_frame`] polls for a needle before
+/// giving up. Generous — this only needs to absorb a machine busy with other
+/// test suites, never the happy path, which reaches every awaited frame in
+/// well under a second — because the failure this bounds (a hung or broken
+/// event loop) should still fail the test rather than hang the sweep.
+const FRAME_TIMEOUT: Duration = Duration::from_secs(15);
+
+/// Interval between polls in [`wait_for_frame`].
+const FRAME_POLL_INTERVAL: Duration = Duration::from_millis(20);
+
+/// Block until `frame` contains `needle`, polling instead of sleeping a fixed
+/// span so a busy machine only makes this slower, never flaky — the fix for
+/// the two tests `truth/tasks/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
+/// describes, which raced a fixed wait against however long the TUI actually
+/// took to reach the state being asserted. Panics naming the last frame
+/// actually seen if [`FRAME_TIMEOUT`] elapses first, unlike the downstream
+/// `assert!` this replaces, which named only what was missing.
+fn wait_for_frame(frame: &Frame, needle: &str) {
+    let deadline = Instant::now() + FRAME_TIMEOUT;
+    loop {
+        let snapshot = frame
+            .lock()
+            .expect("frame mutex must not be poisoned")
+            .clone();
+        if snapshot.contains(needle) {
+            return;
+        }
+        assert!(
+            Instant::now() < deadline,
+            "timed out after {FRAME_TIMEOUT:?} waiting for {needle:?}\nlast frame seen:\n{snapshot}"
+        );
+        std::thread::sleep(FRAME_POLL_INTERVAL);
+    }
+}
+
 /// Drive one interactive session under a pseudo-terminal: send `keys` (already
-/// shaped for raw mode), then `q` to quit, and assert a clean exit within
-/// [`WAIT_TIMEOUT`]. Returns the session's stdout.
+/// shaped for raw mode), wait for the frame `expect_after_keys` names (if
+/// any) to actually appear, then `q` to quit, and assert a clean exit within
+/// [`WAIT_TIMEOUT`]. Returns the session's full transcript.
 ///
 /// Shared rather than inlined per test: the spawn-and-drive sequence is
 /// twenty lines of pty plumbing that says nothing about what any individual
 /// test is asserting, and two copies of it drifting apart is exactly the bug
 /// these tests exist to catch.
-fn drive_session(dir: &std::path::Path, suffix: &str, keys: &[u8]) -> String {
+///
+/// The wait before `keys` is always a poll for the rendered task table
+/// ([`TASK_TITLE`]), never a fixed sleep: `keys` sent before the event loop is
+/// actually reading them is exactly the race
+/// `truth/tasks/isolate-the-interactive-pty-tests-from-concurrent-load.typ`
+/// files. The wait after `keys` polls too when the caller has something to
+/// wait for; a caller with nothing to observe (a keystroke that should open
+/// nothing) still gives the loop a moment to settle before quitting.
+fn drive_session(
+    dir: &std::path::Path,
+    suffix: &str,
+    keys: &[u8],
+    expect_after_keys: Option<&str>,
+) -> String {
     let mut child = spawn_interactive(dir, suffix, true);
+    let stdout = child.stdout.take().expect("stdout pipe must be available");
+    let frame: Frame = Arc::new(Mutex::new(String::new()));
+    let reader = stream_into(stdout, Arc::clone(&frame));
+
     let mut stdin = child.stdin.take().expect("stdin pipe must be available");
-    std::thread::sleep(Duration::from_millis(300));
+    wait_for_frame(&frame, TASK_TITLE);
     stdin.write_all(keys).unwrap();
-    std::thread::sleep(Duration::from_millis(400));
+    match expect_after_keys {
+        Some(needle) => wait_for_frame(&frame, needle),
+        None => std::thread::sleep(Duration::from_millis(400)),
+    }
     stdin.write_all(b"q\n").unwrap();
     drop(stdin);
 
@@ -110,7 +206,11 @@ fn drive_session(dir: &std::path::Path, suffix: &str, keys: &[u8]) -> String {
         "mt should exit successfully (status: {:?})",
         output.status.code(),
     );
-    String::from_utf8_lossy(&output.stdout).into_owned()
+    reader.join().expect("stdout reader thread must not panic");
+    Arc::try_unwrap(frame)
+        .expect("no other holder of frame remains once the reader thread has joined")
+        .into_inner()
+        .expect("frame mutex must not be poisoned")
 }
 
 #[test]
@@ -252,7 +352,7 @@ fn quitting_restores_the_terminal() {
 fn opening_a_task_suspends_the_tui_and_runs_the_editor() {
     let stdout = select_first_task_and_open("");
     assert!(
-        stdout.contains("SUSPEND_MARKER"),
+        stdout.contains(SUSPEND_MARKER),
         "the editor closure must run inside suspend\nstdout:\n{stdout}"
     );
 }
@@ -260,14 +360,15 @@ fn opening_a_task_suspends_the_tui_and_runs_the_editor() {
 /// Enter with no task selected must not spawn the editor: `collect_first`
 /// returns nothing for a buffer that matches no ordinal, `open` no-ops on an
 /// empty index set, and the loop keeps running. The transcript has no
-/// `SUSPEND_MARKER` and the session still quits cleanly on 'q'.
+/// [`SUSPEND_MARKER`] and the session still quits cleanly on 'q'.
 #[test]
 fn enter_without_a_match_opens_nothing() {
     let dir = support::project_with_task(TASK_TITLE);
-    // "9" matches no ordinal (the project has one task), then Enter.
-    let stdout = drive_session(dir.path(), "", b"9\r");
+    // "9" matches no ordinal (the project has one task), then Enter. Nothing
+    // should ever open, so there is no frame to poll for here.
+    let stdout = drive_session(dir.path(), "", b"9\r", None);
     assert!(
-        !stdout.contains("SUSPEND_MARKER"),
+        !stdout.contains(SUSPEND_MARKER),
         "a no-match Enter must not spawn the editor\nstdout:\n{stdout}"
     );
     assert!(
@@ -277,13 +378,15 @@ fn enter_without_a_match_opens_nothing() {
 }
 
 /// Drive one interactive session under a pseudo-terminal: select the first
-/// task, press Enter to open it, then quit. `suffix` is appended to
-/// `ls --interactive` (e.g. ` --hyperlinks always`). Returns the session's
-/// stdout, having already asserted it exited cleanly within [`WAIT_TIMEOUT`].
+/// task, press Enter to open it, wait for the editor to actually run, then
+/// quit. `suffix` is appended to `ls --interactive` (e.g.
+/// ` --hyperlinks always`). Returns the session's stdout, having already
+/// asserted it exited cleanly within [`WAIT_TIMEOUT`].
 fn select_first_task_and_open(suffix: &str) -> String {
     let dir = support::project_with_task(TASK_TITLE);
-    // Select the first task, then Enter (CR in raw mode) to open it.
-    drive_session(dir.path(), suffix, b"1\r")
+    // Select the first task, then Enter (CR in raw mode) to open it; wait for
+    // SUSPEND_MARKER rather than guessing how long the editor takes to run.
+    drive_session(dir.path(), suffix, b"1\r", Some(SUSPEND_MARKER))
 }
 
 /// The risk `truth/tasks/hyperlink-the-handle-column.typ` exists to guard:
@@ -302,7 +405,7 @@ fn opening_a_task_still_works_with_hyperlinks_active() {
         "the # column must actually carry the OSC 8 wrap in this run\nstdout:\n{stdout}"
     );
     assert!(
-        stdout.contains("SUSPEND_MARKER"),
+        stdout.contains(SUSPEND_MARKER),
         "selecting task 1 and pressing Enter must still open the editor with \
          hyperlinks active\nstdout:\n{stdout}"
     );
