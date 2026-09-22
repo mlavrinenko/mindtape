@@ -1,0 +1,5 @@
+[
+  "(A) 2026-06-01 Fix the login timeout bug +work +backend @office due:2026-07-15",
+  "x 2026-06-10 (B) 2026-05-01 Renew domain registration +admin next:asap",
+  "x 2026-04-25 Investigate flaky CI job (duplicate of #2 filed elsewhere) +eng @ci"
+]

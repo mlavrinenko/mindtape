@@ -37,21 +37,21 @@ groups:
       skills/mindtape/evals/README.md: ec821036cdc55d67de7c2ad236a872e3d57dcc56c6d3ffc779f90192a90f9a94
       skills/mindtape/evals/evals.json: 39a04b81e103ed1e17c2d746c8245a8ebb4b45a47c08bf61cc16b6db5cfab538
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
-      www/content/agents.typ: fa376cbab8a6b1f082076ca50787488dd2bd5f52627e3cec340fa13a5d8d25c2
+      www/content/agents.typ: f606cbbc4f0d89d4bb6aa85b67e3c24a0bdffc24acd8f9129affd76c8583c268
       www/content/cli.typ: eb92b87cef0a630652d66df7394ffee8e4deededf0be06c245f006a0a0961b11
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
-      www/content/config.typ: cc4af23be5779443474d11f5c68bb095d50a019196b82a2b020f018132ca7311
+      www/content/config.typ: 6f1205c761c1a51ea56dc027b698b9ff12a41d129bfb90eac9f2159f20e20112
       www/content/derived-tags.typ: b826f8d33fc3f9913106696b084a10c22014ae80947eae372270430c859eae09
       www/content/estimates.typ: 254d1323a5727ec572a71b1297968cee3dd625c9d05f1533c38d6ab048259948
       www/content/filters.typ: e739d1e4ef806301d16526c1213a31c6d1a20886e1c62a55034527809d280ae3
-      www/content/hooks.typ: 138d1eb601e452fbad2446a58663ea6d508365ca1582aad240bbb5cdc3af9222
-      www/content/import-export.typ: 7de6509190178cbb70b631dd103745b7d7cfcaa723074b2d9ceb49aab581def3
+      www/content/hooks.typ: 48d5d8f99588715c02ee9ccadd752e174da6f82c8b66c9b05240c1760039f854
+      www/content/import-export.typ: d28bab3211a305d65ebc1e7dd712cf67ec46b8634220d6dbc3ff4713a64279ea
       www/content/links.typ: 137af8d4c5f1f0d6d9249d715d6cf68932137b73559f4f4c3576ae9366ed9a5b
-      www/content/named-sets.typ: 617049a44745024e66a9d7d6c704a5aba146ca00d2e8782381e0794cb59a822b
+      www/content/named-sets.typ: ced39cda656c3892d6942713af957668c9a323646fb6e86b9b64c3f9b75c0092
       www/content/priority.typ: 2fb5527a11ee4551db6fa7461ab00e7b54618800843508753641642942eecdc6
       www/content/quickstart.typ: 39560d3ba4ae48bd536c67990ac3d9694bf2c1d3a71b9578004b2f777071be21
       www/content/recurring.typ: 836c35ad1ab76deb3dafcefa67bc361c54cedce5ec6970174b21529899180926
-      www/content/schema.typ: eeba1555fcd1f2d8d26ed84fc140827bfd0678fe1f97c39faffa5228603d72a1
+      www/content/schema.typ: b6c68696befcb25b0405768d5e5c77f94f5f6e434c199b000b3ef313e6717aa0
       www/content/templates.typ: d90046c678315921708a17e865cebdf1a827b862d21d3b5876e411fd8850fc76
       www/utils/cli-notes.typ: f5f795870b869f8dad10e371151177b5abf3e714866ef3f789c07e3818be1b86
   cli-name:

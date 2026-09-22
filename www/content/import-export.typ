@@ -75,31 +75,27 @@ gh issue list --json number,title,body,state,labels,assignees,createdAt,url \
 == todo.txt
 
 todo.txt is a line format, not JSON, so it is not a first-class source — no
-parser ships for it. A short `jq -R` (raw-input) recipe covers the common case.
+parser ships for it, and `mt import`'s stdin needs one preprocessing step:
+split the file into lines and drop empty ones before handing it to a filter.
 
 ```sh
-jq -R -s '
-  split("\n") | map(select(length > 0)) | map({
-    id: "", file: "", body: "",
-    estimate: {}, links: [], derived_tags: [], extras: {},
-    title: (
-      gsub("\\+\\S+"; "")
-      | gsub("^\\([A-Z]\\)\\s*"; "")
-      | gsub("^\\d{4}-\\d{2}-\\d{2}\\s*"; "")
-      | gsub("\\s+"; " ")
-      | rtrimstr(" ")
-    ),
-    tags: ([scan("\\+\\S+")] | map(ltrimstr("+")))
-  })
-' todo.txt | mt import --status proposed
+jq -R -s 'split("\n") | map(select(length > 0))' todo.txt \
+  | jq -f contrib/jq/todo.txt.jq \
+  | mt import
 ```
 
-This strips a `(A)` priority marker and a leading creation date out of the
-title and lifts `+project` words into `tags`; `@context` markers are left
-verbatim in the title (`--status proposed` assumes the shipped default legend
-— point it at whatever your project's legend calls its intake state). Adapt
-the regexes to the subset of the format your file uses: a starting recipe, not
-a spec.
+`contrib/jq/todo.txt.jq` structurally reshapes a line array into the
+canonical schema (config-blind, like the other two): it strips the `x
+`/completion-date/`(priority)`/creation-date prefix and `+project` tags out
+of the title, maps the `(A)`/`(B)`/`(C)` priority marker onto MindTape's
+0..9 scale, and lifts a `due:` key into the canonical `due` field; a
+`@context` marker is left verbatim in the title, and it, the raw priority
+letter, and any other `key:value` token carry through as the `x-todotxt`
+extra. Status lands on the SAME neutral `todo`/`done` names taskwarrior.jq
+and github.jq use, so one project legend covers every source — todo.txt only
+distinguishes done from not-done, so this filter never emits `cancelled`.
+Adapt the regexes to the subset of the format your file uses: a starting
+recipe, not a spec.
 
 #callout("note")[
   Computed and empty fields (`id`, `file`, `estimate`, `links`,
