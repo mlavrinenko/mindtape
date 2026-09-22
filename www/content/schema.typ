@@ -113,30 +113,18 @@ round-trip.
 
 = A full record
 
-```json
-{
-  "id": "wire-oauth",
-  "file": "tasks/wire-oauth.typ",
-  "title": "Wire OAuth",
-  "status": {"name": "wip", "date": "2026-06-14", "note": null},
-  "priority": {
-    "framework": "ice",
-    "inputs": {"impact": 8, "confidence": 0.7, "ease": 6},
-    "score": 3.0
-  },
-  "difficulty": 5,
-  "kind": "task",
-  "estimate": {"days": 1, "hours": 2},
-  "links": [{"task": "design-schema.typ", "kind": "depends-on", "note": null}],
-  "tags": ["backend"],
-  "derived_tags": ["auth"],
-  "due": "2026-07-01",
-  "start": null,
-  "reviewed": null,
-  "body": "== Summary\nWire up the login flow.\n",
-  "extras": {"x-speconaut": {"spec": "auth.spec.typ"}}
-}
-```
+The whole table in one record — not typed here but sliced out of a live
+`mt ls --json` against the `learn-piano` fixture, so the key set is the
+binary's own and the page cannot describe a field it stopped emitting:
+
+#raw(read("../generated/ls-task.json"), lang: "json", block: true)
+
+Every key is present whether the task authored it or not: `kind`,
+`difficulty`, `assignee` and `reviewed` read `null` because this one sets none
+of them, and `extras` is `{}` because it carries no `x-<ns>` slot. Absent and
+empty are the same read, so a consumer tests a value rather than a key's
+existence. #link(u("/agents/"))[For AI agents] quotes the same capture beside
+the `mt ls --json` invocation that produced it.
 
 A record on its own carries no `schema_version`: the marker versions the
 *document* shape a listing comes wrapped in, not each task inside it.

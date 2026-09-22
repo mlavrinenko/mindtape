@@ -1,5 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/site.typ": u
+#import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
   route: "/named-sets/",
@@ -11,21 +12,37 @@
 
 #show: page.with(..meta)
 
+// Both blocks below are slices of examples/learn-piano/.mindtape/config.toml,
+// the project `just check-examples` validates and the docs generator runs `mt`
+// against — so a section shown here is one that loads.
+#let view-parts = (
+  (
+    "view-default",
+    "a filter and nothing else; an omitted facet is simply not applied",
+  ),
+  ("view-stuck", "all four facets, reached as `mt ls @stuck`"),
+)
+
+#let dict-parts = (
+  ("dict-verbs", "`include` alone: two built-in word lists under one name"),
+  (
+    "dict-composers",
+    "inline `values`, a `path` file, and the `case` lookups compare under",
+  ),
+)
+
+#let slices = checked-slices(
+  json("../generated/named-sets-config.json"),
+  "named-sets-config",
+  (view-parts + dict-parts).map(p => p.at(0)),
+)
+
 = Named views
 
 `[views.<name>]` names a query bundle — filter, sort, and column set — so
 `mt ls` can reference it by name instead of repeating the expression:
 
-```toml
-[views.broken]
-filter = 'blocked && stale(30)'
-
-[views.summer]
-filter = 'has_tag("summer") && !terminal'
-sort = ["priority:desc", "due:asc"]
-columns = ["#", "status", "priority", "title"]
-description = "Summer push"
-```
+#raw(render-slices(slices, view-parts, comment: "#"), lang: "toml", block: true)
 
 Every facet is optional: an empty `filter` matches everything, `sort` is a
 list of `--sort`-grammar specs, `columns` a subset of the `mt ls` column names
@@ -49,16 +66,12 @@ is a top-level section, sibling of `[views.<name>]`, for the same reason: a set
 is not a property of tasks, and an allow-list, a filter and a future consumer
 all read the same name.
 
-```toml
-[dicts.verbs]
-values = ["add", "wire", "fix"]           # inline entries
-path = "dicts/extra-verbs.txt"            # a file, one entry per line
-include = ["mindtape-verbs", "mindtape-dev-verbs"]  # other dicts, unioned in
-case = "fold"                             # fold (default) | exact
-```
+#raw(render-slices(slices, dict-parts, comment: "#"), lang: "toml", block: true)
 
-All three sources feed *one* set; any combination is legal and at least one
-must be present. `path` is relative to the project root and may leave it (the
+All three sources — `values`, `path` and `include` — feed *one* set; any
+combination is legal and at least one must be present, which is what the two
+entries above show between them. `path` is relative to the project root and may
+leave it (the
 same rule `[[typst.local-packages]] path` follows); blank lines and lines
 starting with `#` are skipped, and each entry is trimmed. `include` names other
 dictionaries — the project's own or a built-in — and unions their entries in

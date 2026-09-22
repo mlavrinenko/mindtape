@@ -200,6 +200,7 @@ check-examples:
     MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/learn-piano check -q
     MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/minimal check -q
     MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/links check -q
+    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/estimates check -q
 
 # Every visible top-level `mt` subcommand must have a www/utils/cli-notes.typ
 # entry. How the set-difference is taken, and what it deliberately never

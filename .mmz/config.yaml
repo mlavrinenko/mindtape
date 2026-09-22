@@ -146,6 +146,7 @@ scopes:
     - "examples/learn-piano/**"
     - "examples/minimal/**"
     - "examples/links/**"
+    - "examples/estimates/**"
 
   # The docs tree `just docs::check` builds and validates (tola + pagefind +
   # validate) plus the mirrored docs whose drift outdatty gates. `docs/**`

@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout
 #import "../utils/site.typ": u
+#import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
   route: "/hooks/",
@@ -12,21 +13,32 @@
 
 #show: page.with(..meta)
 
+// Both blocks below are slices of this repo's own .mindtape/config.toml — the
+// hooks MindTape actually flips its own backlog under, not a shape retyped
+// for the page.
+#let parts = (
+  (
+    "run-gate",
+    "a command the flip must pass before any terminal status is stamped",
+  ),
+  ("stale-gate", "the same mechanism with no command to run at all"),
+)
+
+#let slices = checked-slices(
+  json("../generated/hooks-config.json"),
+  "hooks-config",
+  parts.map(p => p.at(0)),
+)
+
 `[[on.flip]]` binds actions to a task changing status. One table, three action
-kinds:
+kinds — `show`, `list` and `run`, tabulated below. This repo's own config binds
+the last of them to closing a task:
 
-```toml
-[[on.flip]]
-when = 'into("wip")'
-actions = [{ list = "@wip", title = "Already in flight:" }]
-
-[[on.flip]]
-when = 'into("done") && !has_tag("chore")'
-actions = [
-  { show = "closing — the checklist is in CONTRIBUTING.md" },
-  { run = "just check", gate = true, message = "the suite has to pass first" },
-]
-```
+#raw(
+  render-slices(slices, parts.slice(0, 1), comment: "#"),
+  lang: "toml",
+  block: true,
+)
 
 `when` is a #link(u("/filters/"))[filter expression] over the task *as it stands
 before the write* — so `status == "wip"` names the status being left — plus the
@@ -58,14 +70,15 @@ cannot express itself, such as an external command's exit code. An action with
 no `run` and no `gate = true` — nothing to show, list, run, or refuse — is a
 config error at load, naming the action's position.
 
-```toml
-[[on.flip]]
-when = 'into("wip") && stale(30)'
-actions = [{ gate = true, message = "re-read the scope, `mt review` it, then start again" }]
-```
+#raw(
+  render-slices(slices, parts.slice(1, 2), comment: "#"),
+  lang: "toml",
+  block: true,
+)
 
 Actions run in declaration order. `--force` waives a failing gate and records
-the waiver in the status note (`forced past failing gate: "just check"`). A
+the waiver in the status note — for the hook above,
+`forced past failing gate: "mmz --is-fresh --tag gate"`. A
 gate command runs from the project root with the transition in its
 environment:
 

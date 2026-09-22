@@ -9,7 +9,9 @@
 # hand. What stays local is only what is true of THIS repo: goal verdicts
 # (the `goals` rule, below) and an extra `Dogfood` section the pack has no
 # opinion on — see the `section-allowlist` override further down for how.
+# docs:slice rule-packs/extends
 extends = ["mindtape-tasks"]
+# docs:end
 
 [tasks]
 # MindTape's own backlog lives here, one task per file. The `mt` root name is
@@ -274,6 +276,7 @@ policy = "forbid"
 # that mechanism: an adopting repo with its own extra section copies this
 # shape; one it wants gone entirely reaches for `disable = ["<name>"]`
 # instead.
+# docs:slice rule-packs/section-allowlist
 [[tasks.body.headers.rules]]
 name = "section-allowlist"
 action = "allowlist"
@@ -282,6 +285,7 @@ allowed = [
 ]
 when = "!terminal"
 message = "an open task's sections are Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
+# docs:end
 
 [[tasks.body.headers.rules]]
 name = "one-dogfood-section"
@@ -422,17 +426,21 @@ description = "Open tasks an agent can take"
 #
 # A run-less gate: `gate = true` with no `run` refuses unconditionally
 # whenever `when` matches, so the condition above is the whole check.
+# docs:slice hooks/stale-gate
 [[on.flip]]
 when = 'into("wip") && stale(30)'
 actions = [
   { gate = true, message = "untouched for 30 days: re-read the scope against today's code, fix what went stale, `mt review` it, then start again" },
 ]
+# docs:end
 
+# docs:slice hooks/run-gate
 [[on.flip]]
 when = 'into("done") || into("cancelled") || into("failed")'
 actions = [
   { run = "mmz --is-fresh --tag gate", gate = true, message = "the checks have not passed against this worktree — run `just check`, then flip again (`--force` waives it and records the waiver in the note)" },
 ]
+# docs:end
 
 [add]
 header = ""

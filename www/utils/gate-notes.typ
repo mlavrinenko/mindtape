@@ -115,10 +115,11 @@
   ],
   "check-examples": [
     `mt check` against each example project: `examples/learn-piano/` (full
-    config surface; feeds the docs generator and the skill's triage evals)
-    and `examples/minimal/` (the floor config; feeds the skill's trap
-    evals). Keep the recipe and the mmz `examples` scope in step. A fixture
-    no gate validates rots silently.
+    config surface; feeds the docs generator and the skill's triage evals),
+    `examples/minimal/` (the floor config; feeds the skill's trap evals),
+    and `examples/links/` + `examples/estimates/`, the single-subject
+    fixtures the docs site slices its blocks out of. Keep the recipe and the
+    mmz `examples` scope in step. A fixture no gate validates rots silently.
   ],
   "check-doc-coverage": [
     Set-differences `mt _cli --json`'s reflected command names against

@@ -1,0 +1,6 @@
+# The `path` half of [dicts.composers]: one entry per line, blank lines and
+# lines starting with `#` skipped, each entry trimmed.
+chopin
+liszt
+
+satie

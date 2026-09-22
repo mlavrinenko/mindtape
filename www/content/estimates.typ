@@ -1,5 +1,6 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout
+#import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
   route: "/estimates/",
@@ -11,6 +12,23 @@
 
 #show: page.with(..meta)
 
+// Both blocks below are slices of examples/estimates/.mindtape/config.toml,
+// the project `just check-examples` validates: the fixture's own two tasks sit
+// against these bounds, so a ceiling shown here is one that fires.
+#let parts = (
+  (
+    "bound",
+    "the unit allow-list, a ceiling gated on `difficulty`, and a floor",
+  ),
+  ("drift", "every drift key, each at the value the fixture declares"),
+)
+
+#let slices = checked-slices(
+  json("../generated/estimates-config.json"),
+  "estimates-config",
+  parts.map(p => p.at(0)),
+)
+
 = Bounds
 
 An estimate is an opaque `unit -> quantity` dict, and `units` is the allow-list
@@ -18,21 +36,11 @@ of legal unit names. Two lists of per-unit entries bound the quantities, each
 entry gated by an optional `when` filter and explained by an optional
 `message`:
 
-```toml
-[tasks.estimate]
-units = ["files"]
-
-[[tasks.estimate.max]]
-when = "difficulty >= 3"
-files = 5
-message = "judgment work stays small; split it rather than widen the cap"
-
-[[tasks.estimate.max]]
-files = 15
-
-[[tasks.estimate.min]]
-files = 1
-```
+#raw(
+  render-slices(slices, parts.slice(0, 1), comment: "#"),
+  lang: "toml",
+  block: true,
+)
 
 Outside the range is a *validation error*, not a warning: an oversized task must
 be split before the work starts, not after. Terminal tasks are exempt.
@@ -44,7 +52,7 @@ unbounded. A breach names the gate and carries the entry's `message` as its
 advice:
 
 ```
-rewrite-loader: estimate: 7 files is over the 5 allowed when `difficulty >= 3`; judgment work stays small; split it rather than widen the cap
+rewrite-loader: estimate: 6 files is over the 5 allowed when `difficulty >= 3`; judgment work stays small; split it rather than widen the cap
 ```
 
 The single-table spelling (`[tasks.estimate.max] files = 15`) still parses, as
@@ -57,14 +65,11 @@ A file count is the estimate `mt check` can actually verify. `[tasks.estimate.dr
 compares the git working tree against the budget the in-flight tasks declare and
 warns — never fails — when the tree has outgrown it:
 
-```toml
-[tasks.estimate.drift]
-unit          = "files"              # estimate unit read as the file budget
-in-flight     = 'status == "wip"'    # which tasks the diff is attributed to
-line-multiple = 200                  # secondary line ceiling per declared file; 0 disables
-message       = "rescope before going further"   # replaces the default advice
-exclude       = ["docs/generated/**", "*.lock"]  # paths the file count skips
-```
+#raw(
+  render-slices(slices, parts.slice(1, 2), comment: "#"),
+  lang: "toml",
+  block: true,
+)
 
 `exclude` names paths the file count never counts — generated output nobody
 hand-edits, so touching it should not spend part of a budget meant for the

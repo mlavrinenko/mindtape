@@ -98,7 +98,7 @@ groups:
       .just/scripts/script-scope-check.sh: 02f952e6b7776850a943f1792d1526579debf62587ff86d1558f11ad93e37185
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 97dc9c474d05f947a617c2634a97c8f1a29eca2ca4a153df22704ad74337a539
+      Justfile: 9f6050eadd21684c8f364cd2ba8e07aaa53f976d81e042c4fca124c914f508a5
       flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
       docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
@@ -162,6 +162,8 @@ groups:
     dependents:
       crates/mindtape-cli/src/init.rs: 413f762faf5aedeba0780bb94e872825232fdafbd7692f5974083c5fa36f6cc9
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898
+      examples/estimates/tasks/rename-the-status-glyphs.typ: 601357e17a4de3c0d124c76344a00cc4374f22043d629306470551063780dcbd
+      examples/estimates/tasks/rewrite-loader.typ: 6a953d0e8d2003d9f0c0e9ba475f414f952b25e1cdc7a9eeb920d96ae4c606e5
       examples/learn-piano/.mindtape/templates/task.typ: e269ab035087724b5b0df9832b31469d5c515e68979f2c6a9dc23c0eba0b6760
       examples/learn-piano/tasks/repertoire/abandoned-rondo-alla-turca.typ: 240c47c55cb8bd0354146c6342959d5961c19b92f5210f0a9c48440463d1707b
       examples/learn-piano/tasks/repertoire/clair-de-lune-practice.typ: 8c49e00a5ea7c14ff6146ddc38a00f8a4e4dd8e15ed3e7e7f9b88855325a7532

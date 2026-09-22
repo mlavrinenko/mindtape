@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
+#import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
   route: "/rule-packs/",
@@ -65,30 +66,28 @@ entry as typed, so a wrong relative path is easy to spot.
 
 = Adopting, overriding, and disabling a rule
 
-Adopting one is one line, in any layer:
+Adopting one is one line, in any layer. A same-named rule declared after it —
+in the same layer's own array — replaces the pack's entry in place rather than
+sitting beside it. This repo's own `.mindtape/config.toml` is the worked
+example, and the block below is that file: it extends `mindtape-tasks` and then
+redeclares `section-allowlist` to add a local-only `Dogfood` section the pack
+has no opinion on.
 
-```toml
-extends = ["mindtape-tasks"]
-```
+#let parts = (
+  ("extends", "the adoption, at the top of the layer's own config"),
+  (
+    "section-allowlist",
+    "the override, far below it in the same file — the name matches, not the position",
+  ),
+)
 
-A same-named rule declared after it — in the same layer's own array —
-replaces the pack's entry in place rather than sitting beside it. This
-repo's own `.mindtape/config.toml` is the worked example: it extends
-`mindtape-tasks` and then redeclares `section-allowlist` to add a local-only
-`Dogfood` section the pack has no opinion on:
+#let slices = checked-slices(
+  json("../generated/rule-packs-config.json"),
+  "rule-packs-config",
+  parts.map(p => p.at(0)),
+)
 
-```toml
-extends = ["mindtape-tasks"]
-
-[[tasks.body.headers.rules]]
-name = "section-allowlist"
-action = "allowlist"
-allowed = [
-  { match = "^(Problem|Environment|TO-BE|Source of truth|Changes|Alternatives|Rollback|Out of scope|Dogfood)$" },
-]
-when = "!terminal"
-message = "an open task's sections are Problem, TO-BE, Changes, Out of scope and Dogfood, plus its kind's own section"
-```
+#raw(render-slices(slices, parts, comment: "#"), lang: "toml", block: true)
 
 Replacement by name works only ACROSS sources this way; two entries sharing
 a name WITHIN one layer's or one pack's own array are a duplicate-name config

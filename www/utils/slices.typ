@@ -28,14 +28,16 @@
   fact.slices
 }
 
-// Each part is (slice id, one-line note), and the note lands as the `//`
-// comment above the real lines — so the block reads as an annotated file and
-// every code line in it is still the fixture's own.
-#let render-slices(slices, parts) = (
+// Each part is (slice id, one-line note), and the note lands as a comment
+// above the real lines — so the block reads as an annotated file and every
+// code line in it is still the fixture's own. `comment` is the host language's
+// line-comment marker: `//` for a Typst task slice, `#` for a config one, so
+// the annotation is legal in the block's own `lang`.
+#let render-slices(slices, parts, comment: "//") = (
   parts
     .map(p => {
       let s = slices.at(p.at(0))
-      "// " + s.file + " — " + p.at(1) + "\n" + s.code
+      comment + " " + s.file + " — " + p.at(1) + "\n" + s.code
     })
     .join("\n\n")
 )

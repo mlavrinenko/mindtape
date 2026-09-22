@@ -24,6 +24,23 @@
 # fixture no longer carries fails that page's render (`<id>` missing from the
 # fact); a slice no page quotes is invisible, so pages assert the whole key set
 # instead of only probing the ones they read.
+#
+# The second half slices CONFIG rather than task markers — a `toml` key or a
+# whole section out of a project's `.mindtape/config.toml`, under the same
+# discipline in TOML's comment syntax:
+#
+#   # docs:slice <fact>/<id>
+#   ...toml...
+#   # docs:end
+#
+# The fact name rides in the marker here because one config file feeds several
+# pages — the repo's own carries /hooks/'s gate pair AND /rule-packs/'s adopt
+# block — where a task-slice fixture is one project per page and can take its
+# name from the directory. Each fact lands at <fact>-config.json, shaped like a
+# task fact minus `root`: one fact's slices may come from two projects, so the
+# `file` field is repo-relative on its own. Suffix, not prefix: www/generate.sh
+# already writes `config-schema.json` (the `mt config schema` capture), and a
+# fact named for the /schema/ page would have overwritten it silently.
 set -eo pipefail
 
 REPO="$1"
@@ -113,3 +130,90 @@ slice_fixture() {
 
 slice_fixture links | emit links.json
 slice_fixture recurring | emit recurring.json
+
+# Every config file scanned for config markers, repo-relative. A project not
+# listed here is simply not read, so a marker added to one is inert until its
+# path arrives — the same explicitness the `examples` mmz scope holds the
+# checked fixtures to, for the same reason.
+CONFIG_SOURCES=(
+  ".mindtape/config.toml"
+  "examples/learn-piano/.mindtape/config.toml"
+  "examples/estimates/.mindtape/config.toml"
+)
+
+# Every fact a page opens. Declared rather than derived from the markers
+# because a mistyped fact name would otherwise emit a file no page ever reads —
+# invisible, and the one drift the per-page key-set assertion in
+# www/utils/slices.typ structurally cannot see from inside a single page.
+CONFIG_FACTS=(estimates hooks named-sets rule-packs)
+
+# Same two-pass shape as slice_fixture: awk writes each slice to its own temp
+# file and one index row per slice, then jq builds the JSON with --rawfile so
+# no escaping rule lives in awk.
+slice_configs() {
+  local dir="$tmp/config"
+  mkdir -p "$dir"
+
+  local src
+  for src in "${CONFIG_SOURCES[@]}"; do
+    [ -f "$REPO/$src" ] || {
+      echo "generate-examples.sh: $src is missing" >&2
+      return 1
+    }
+    awk -v src="$src" -v dir="$dir" '
+      /^[[:space:]]*# docs:slice / {
+        if (split($NF, parts, "/") != 2) {
+          print "generate-examples.sh: docs:slice marker in " FILENAME " reads " $NF ", want <fact>/<id>" > "/dev/stderr"
+          bad = 1
+          exit 1
+        }
+        fact = parts[1]
+        id = parts[2]
+        out = dir "/" fact "." id ".code"
+        capture = 1
+        next
+      }
+      /^[[:space:]]*# docs:end/ {
+        if (capture) { close(out); print fact "\t" id "\t" src "\t" out }
+        capture = 0
+        next
+      }
+      capture { print > out }
+      END { if (capture && !bad) { print "generate-examples.sh: unterminated docs:slice in " FILENAME > "/dev/stderr"; exit 1 } }
+    ' "$REPO/$src"
+  done >"$dir/index.tsv"
+
+  local found declared
+  found="$(cut -f1 "$dir/index.tsv" | sort -u | tr '\n' ' ')"
+  declared="$(printf '%s\n' "${CONFIG_FACTS[@]}" | sort -u | tr '\n' ' ')"
+  [ "$found" = "$declared" ] || {
+    echo "generate-examples.sh: config markers name facts ($found); this script declares ($declared)" >&2
+    return 1
+  }
+
+  local fact
+  for fact in "${CONFIG_FACTS[@]}"; do
+    {
+      while IFS=$'\t' read -r f id file path; do
+        [ "$f" = "$fact" ] || continue
+        jq -n \
+          --arg id "$id" \
+          --arg file "$file" \
+          --rawfile code "$path" \
+          '{id: $id, file: $file, code: ($code | rtrimstr("\n"))}'
+      done <"$dir/index.tsv"
+    } | jq -s --arg fact "$fact" '
+        reduce .[] as $s (
+          {slices: {}};
+          ($s.id) as $i
+          | if (.slices | has($i)) then
+              error("generate-examples.sh: duplicate slice id \($i) in config fact \($fact)")
+            else
+              .slices[$i] = {file: $s.file, code: $s.code}
+            end
+        )
+      ' | emit "$fact-config.json"
+  done
+}
+
+slice_configs
