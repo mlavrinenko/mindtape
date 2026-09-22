@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt set <task> <field>=<value>` writes one core field from the CLI.** `mt`
+  wrote `status:` (`flip`), `links:` (`link`), `reviewed:` (`review`) and the
+  stem (`mv`), and nothing else — so changing a priority, a tag or a due date
+  meant the hand edit `skills/mindtape/SKILL.md` opens by warning against, with
+  nothing validating the result until `mt check` read the saved file. `mt set`
+  now writes the fields whose Typst literal is one unambiguous value —
+  `title`, `priority` (the raw number), `difficulty`, `kind`, `assignee`,
+  `tags`, `due`, `start` — through the same `pre_write` seam every other
+  writer goes through, so a value the project refuses never reaches the file.
+  The token grammar is `mt add --set`'s own, parsed by the same code rather
+  than re-spelled: `field=value`, `field+=value` appending to a list field
+  (and writing nothing when the list already carries it), `field@path`
+  reading the value out of a file. A field with a command of its own
+  (`status`, `links`, `reviewed`, `recur`, the stem) is refused naming that
+  command; an unknown field is refused naming the writable ones, with a
+  nearest-match suggestion. A framework priority (`ice(...)`) and `estimate`'s
+  unit dict stay out: neither is one value.
+
 - **`mt mv <task> <new-stem>` renames a task and retargets every inbound
   link.** A task's identity is its filename stem, so a stem written before the
   task settled used to need a `git mv` plus a hand edit of every `links:`

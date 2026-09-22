@@ -129,6 +129,7 @@ pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};
 pub use date_pin::{DateOverrideError, init_pinned_today};
 pub use derive::RootDeriver;
 pub use emit::emit_task;
+pub use emit::format::{typ_array, typ_str};
 pub use estimate_drift::{
     ChangeSet, DriftKind, DriftWarning, InFlightBudget, check_estimate_drift, working_tree_changes,
 };
@@ -148,7 +149,9 @@ pub use loader::{
 };
 pub use marker::ShapeError;
 pub use model::{Status, Task, is_history_pointer, normalize_link};
-pub use numeric::{Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind};
+pub use numeric::{
+    Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind, format_num,
+};
 pub use ready::{Readiness, ReadyState};
 pub use severity::Severity;
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};

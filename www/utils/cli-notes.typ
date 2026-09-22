@@ -69,6 +69,28 @@
     mt mv abandoned-rondo minuet --dry-run   # the plan: move plus changed files
     ```,
   ),
+  // ── Fields ──────────────────────────────────────────────────────────────────
+  "set": (
+    prose: [One field per call, spelled the way `mt add --set` already spells
+      one: `field=value`, `field+=value` to append to a list field,
+      `field@path` to read the value out of a file. Writable are the fields
+      whose Typst literal is one unambiguous value — `title`, `priority` (the
+      raw number), `difficulty`, `kind`, `assignee`, `tags`, `due`, `start`.
+      A field with a command of its own is refused naming that command
+      (`status` → `flip`, `links` → `link`, `reviewed` → `review`, `recur` →
+      `recur`, the stem → `mv`), an unknown field naming the writable ones. A
+      #link(u("/priority/"))[framework priority] (`ice(...)`) and an
+      #link(u("/estimates/"))[`estimate`] unit dict stay out: neither is one
+      value. The rewritten task is validated #emph[before] it is written, so a
+      rejected value leaves the file byte-identical — and appending a value
+      the list already carries writes nothing at all, so a re-run is safe.],
+    examples: ```sh
+    mt set fur-elise-polish priority=8        # a raw number
+    mt set fur-elise-polish due=2026-07-01    # a date, written as on(2026, 7, 1)
+    mt set fur-elise-polish tags+=classical   # append to the list
+    mt set fur-elise-polish title@title.txt   # the value read from a file
+    ```,
+  ),
   "eval": (outputs: ("eval",)),
   "go": (
     prose: [Resolves `id` to a path, then spawns `[go] editor` (falling back to

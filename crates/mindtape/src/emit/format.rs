@@ -2,8 +2,14 @@
 //! [`super::links`]: string escaping, the array-literal singleton-comma rule,
 //! and the `HVal` → Typst literal projection used for `x-<ns>` extras.
 //!
-//! `typ_str`, `typ_array` and `typ_dict_with` are `pub(crate)` beyond `emit`
-//! too: [`crate::config_rules_typst`] builds a Typst literal for a `[[tasks.rules]]
+//! `typ_str` and `typ_array` are exported from the crate root: rendering a
+//! value as a Typst literal is what a writer outside this module needs too —
+//! `mt set` renders one field's value with the same two calls that emit a
+//! whole task — and a second copy of the escaping rule, or of the
+//! singleton-comma rule below, is a wrong file waiting to be written.
+//!
+//! All three are read beyond `emit` inside the crate as well:
+//! [`crate::config_rules_typst`] builds a Typst literal for a `[[tasks.rules]]
 //! check` function's argument from the same [`HVal`] tree, but renders a
 //! [`HVal::Date`] as a real `datetime(...)` call instead of the quoted string
 //! [`hval_to_typ`] writes for round-tripping `x-<ns>` extras verbatim — a
@@ -17,7 +23,7 @@ use typst_harvest::HVal;
 /// content-block markup escaping lives in [`super::links`], where a link note
 /// rides in a `[...]` block instead of a string literal).
 #[must_use]
-pub(crate) fn typ_str(text: &str) -> String {
+pub fn typ_str(text: &str) -> String {
     let mut out = String::with_capacity(text.len() + 2);
     out.push('"');
     for ch in text.chars() {
@@ -47,7 +53,7 @@ fn typ_float(num: f64) -> String {
 /// empty, `(x,)` one element (bare `(x)` parses as a grouped expression, not
 /// a one-element array — Typst's own ambiguity), `(x, y, …)` otherwise.
 #[must_use]
-pub(crate) fn typ_array(elems: &[String]) -> String {
+pub fn typ_array(elems: &[String]) -> String {
     match elems {
         [] => "()".to_owned(),
         [one] => format!("({one},)"),

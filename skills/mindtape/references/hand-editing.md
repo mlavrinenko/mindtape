@@ -5,7 +5,10 @@ what no command covers — chiefly the body. Everything else goes through `mt`;
 a hand edit skips what `mt` stamps, slugs, injects, resolves and validates.
 `links:` included: `mt link` writes typed edges one at a time or from an
 adjacency map, checking the kind, the target and the note rule before it
-writes.
+writes. A plain field too: `mt set <task> <field>=<value>` writes `title`,
+`priority` (the raw number), `difficulty`, `kind`, `assignee`, `tags`, `due`
+and `start`, validating before it writes. What is left below is the body, a
+framework priority and the `estimate` dict.
 
 A task file is Typst. Edit the fields inside `task.with(...)`:
 

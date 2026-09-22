@@ -29,6 +29,7 @@ drift from what `mt` actually is.
 #let cli = json("../generated/cli.json")
 #let cli-groups = (
   ("Files", ("add", "import", "mv", "go", "eval")),
+  ("Fields", ("set",)),
   ("Listing", ("ls", "find")),
   ("Graph", ("graph",)),
   ("Links", ("link",)),
@@ -53,6 +54,18 @@ stem in the same validated pass, leaving `mt check` with no dangling edge to
 report. The `title:` is a separate field and a separate edit.
 
 #cli-group(cli, cli-groups, "Files")
+
+= Fields
+
+`mt set <task> <field>=<value>` is the generic field writer: one field per
+call, validated before the write, so a value the project refuses leaves the
+file byte-identical. It covers the fields whose Typst literal is one
+unambiguous value; the ones with a command of their own — `status`, `links:`,
+`reviewed:`, `recur:`, and the stem — are refused naming that command, because
+each of those carries more than a value (a date, a kind and a note, a
+retargeted graph).
+
+#cli-group(cli, cli-groups, "Fields")
 
 = Listing
 

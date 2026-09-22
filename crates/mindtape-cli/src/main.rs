@@ -81,6 +81,7 @@ mod recur_edit;
 mod render;
 mod review;
 mod rm;
+mod set;
 mod task_edit;
 #[cfg(test)]
 mod test_util;

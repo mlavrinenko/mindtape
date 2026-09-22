@@ -57,6 +57,7 @@ pub const CLASSIFICATION: &[(&str, Class)] = &[
     ),
     ("rm", Class::Write),
     ("mv", Class::Write),
+    ("set", Class::Write),
     ("review", Class::Write),
     ("flip", Class::Write),
     ("recur", Class::Write),

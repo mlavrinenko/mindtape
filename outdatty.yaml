@@ -128,6 +128,7 @@ groups:
       - crates/mindtape-cli/src/recur.rs
       - crates/mindtape-cli/src/review.rs
       - crates/mindtape-cli/src/rm.rs
+      - crates/mindtape-cli/src/set.rs
       - crates/mindtape-cli/src/views.rs
       - crates/mindtape-cli/src/worktrees.rs
       - crates/mindtape/src/lib.rs

@@ -22,7 +22,8 @@ MindTape tasks are one Typst file each; the filename stem is the identity and
 what `links:` names. Drive the `mt` CLI: a hand edit skips what `mt` stamps,
 slugs, injects, resolves and validates, and writes validate before landing, so
 a rejected write leaves nothing to repair. Hand-edit a `.typ` only for what no
-command covers — chiefly the body — then run `mt check`.
+command covers — the body, a framework priority, an `estimate` dict — then run
+`mt check`.
 
 = Is this a MindTape project?
 
@@ -43,6 +44,7 @@ tracker at all: offer `mt init`.
   [Search by text], [`mt find <term…>`],
   [Read one task], [`mt eval <task>`],
   [File a task], [`mt add <title…>`],
+  [Write one field], [`mt set <task> <field>=<value>`],
   [Rename a task], [`mt mv <task> <new-stem>`],
   [Change status], [`mt flip <status> <task…>` or the status as a verb],
   [Link tasks], [`mt link <task> <kind> <target…>`],
@@ -55,6 +57,11 @@ every command — a flip that re-sorts or filters renumbers them — so use one
 only for your very next command; in anything a human reads, cite the file path
 instead (`[title](truth/tasks/<stem>.typ)`). A stem changes only when `mt mv`
 renames it, which retargets every inbound edge in the same pass.
+
+`mt set` writes `title priority difficulty kind assignee tags due start` —
+`+=` appends to a list, `@path` reads the value out of a file, and a rejected
+value leaves the file byte-identical. A field with its own verb (`status`,
+`links`, `reviewed`, `recur`, the stem) is refused naming that verb.
 
 Flags live in `mt <cmd> --help`. Per-project values — the legend and its
 verbs, link kinds, the priority scale, tags — live in `.mindtape/config.toml`
@@ -137,6 +144,7 @@ field or file. `mt config show --origin` names the pack a rule came from.
 
 = Authoring or editing a task file by hand
 
-The rules and a worked example (stem identity, `x-<ns>` namespacing, edge
+What no command writes: the prose body, a framework priority (`ice(...)`) and
+the `estimate` dict. The rules and a worked example (stem identity, `x-<ns>` namespacing, edge
 helpers, body pitfalls) are in `references/hand-editing.md`. Run `mt check`
 after any hand edit.

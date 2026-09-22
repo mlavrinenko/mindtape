@@ -5,7 +5,7 @@ groups:
     source:
       crates/mindtape-cli/src/add.rs: ee82600323fff898555b5b0431cc0685112d89e07971a59108bb15d64a93fc1c
       crates/mindtape-cli/src/check.rs: eba248cd1eae006eb2d4626a3048d9221392b907de8be01077240e1d85aaf075
-      crates/mindtape-cli/src/cli.rs: b2e0d9e1efea6b9d7e9e36cb9343f12537180c183a47ae9accbeee02918d53b5
+      crates/mindtape-cli/src/cli.rs: b50eef1d0992c3a3224e092e902858e347acd9f73ce4007b85400d8116f51f42
       crates/mindtape-cli/src/config_cmd.rs: 06bfb3545bd2554cb1b5ff0a1f6ec5ad40c82e0b5dd0fd30129871375a92db61
       crates/mindtape-cli/src/eval.rs: df74534777cb181b3eb43186d9684cd9ff470a95b209cf2b96d33bbf7e72d8b5
       crates/mindtape-cli/src/find.rs: 2524ada47afeb3d72c42b35ebf7e9e8c3774fbe4ec8f616186e2c2269228dfdd
@@ -28,18 +28,19 @@ groups:
       crates/mindtape-cli/src/recur.rs: bbf9679a030018aad665e9f62c7d66de531452e18d0208f17eed1393e236c2d6
       crates/mindtape-cli/src/review.rs: f86a0772326ab3ce0e500c7a3e900483ebd402193259ac4ab279abaac023aae0
       crates/mindtape-cli/src/rm.rs: 7209ea4bf9823d86087615f0a19aec9e3613eba55c15543901f37ddcdf92f40f
+      crates/mindtape-cli/src/set.rs: 533200f992dceb4fcff1cb3fe4e6762ffd7611c81c31dbb3c7c424240813c530
       crates/mindtape-cli/src/views.rs: a6987780b57f9651a48af4e5c559b4c3972e06f428be39799af0c9529c6f0483
       crates/mindtape-cli/src/worktrees.rs: 78617369d3fb90e6e30605fb5e23b3f795f1ab2a671914aefdd5d2b1868a5fc5
       crates/mindtape/src/defaults.toml: 2491ba38af0b90c0e47245d9e521c68b8c4bf735a2e0235e7a176bb1ceef756d
       crates/mindtape/src/fields.rs: 605b6c103353cfd70ba4067d88ff1f0cd6f5688fe652a5427eb6ef0eaf669a54
-      crates/mindtape/src/lib.rs: bedb5d6474f38d2e89a110e5f803632a148c7dc6bfb91b85271a295ebc7798e6
+      crates/mindtape/src/lib.rs: b86833ae58f3cae58d8445d0ffd3afdb163afcbff6962c37f5e91eb6fe8f416b
     dependents:
-      docs/src/skill.typ: 329191b32b57a6584333a8da3beacc053faf151e466cdad32030e2a714ddbf7e
+      docs/src/skill.typ: 92175d2797ecc79fdf920bab08b64dc2f3e4d2cbc82fdf53844d13eb92f95e14
       skills/mindtape/evals/README.md: a5143877e4409bea53d0e60b8ad3716f9483a0d80f28b8c3013864f729428516
       skills/mindtape/evals/evals.json: 2ad7c37a761d36280868e884037a4417b543c2d0c806dd43ecdb48acb391b229
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
-      www/content/agents.typ: f606cbbc4f0d89d4bb6aa85b67e3c24a0bdffc24acd8f9129affd76c8583c268
-      www/content/cli.typ: 449791402dc06deacac115f40bb6a68817d27b8dc16a09b95ccc2d224d4b4891
+      www/content/agents.typ: 3a1f9639693ed0df3123a5ea4f9e2c39c52784b43fd3947b5923471902582074
+      www/content/cli.typ: b36d52822032a8eb500d8616ae3ff33bc1bf616fd24e46aaafa4720de08f3526
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
       www/content/config.typ: 6f1205c761c1a51ea56dc027b698b9ff12a41d129bfb90eac9f2159f20e20112
       www/content/derived-tags.typ: b826f8d33fc3f9913106696b084a10c22014ae80947eae372270430c859eae09
@@ -54,18 +55,18 @@ groups:
       www/content/recurring.typ: 836c35ad1ab76deb3dafcefa67bc361c54cedce5ec6970174b21529899180926
       www/content/schema.typ: 389e26c81af2ec8e27f8873cb22c12712e47d1e4f77651f8a2bd014002d08d30
       www/content/templates.typ: d90046c678315921708a17e865cebdf1a827b862d21d3b5876e411fd8850fc76
-      www/utils/cli-notes.typ: bb5e96b79443f0cfe300681e52c3e3a486f4939ef52c1fcb57dd359ebf933d36
+      www/utils/cli-notes.typ: 1bc6928cf81075b66187a96ffb3041bf859d8a3bc60274cd6ef03a59872a3884
   cli-name:
     source:
       crates/mindtape-cli/Cargo.toml: 9ce1e4d3844fc88e726278cc268a51a08a69a5894cacf5e2a86f5d3b689e8824
-      crates/mindtape-cli/src/cli.rs: b2e0d9e1efea6b9d7e9e36cb9343f12537180c183a47ae9accbeee02918d53b5
+      crates/mindtape-cli/src/cli.rs: b50eef1d0992c3a3224e092e902858e347acd9f73ce4007b85400d8116f51f42
     dependents:
-      CHANGELOG.md: 0d67ddcdbeb854ffa7574a0f4516d081da0b878bb9261b846f53842a893ed226
+      CHANGELOG.md: 0bf03c05328b84d2530c19b322318103f10ee0ed1cf10ad6eba256b3f8605422
       docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
-      docs/src/contributing.typ: aafaaaaba43808e695429640e4e48f9e983dccc08f2f4f044598aa19223a72ae
+      docs/src/contributing.typ: 611c9295202a2631b0006a41a9a8c78dc8b8865b2d7c3324f641734bcbaa91d6
       docs/src/readme.typ: 7ba1ff3c4b553522d609390d302edc22e910d9a86a7b3ad6528a7db4b506f7a5
-      docs/src/skill.typ: 329191b32b57a6584333a8da3beacc053faf151e466cdad32030e2a714ddbf7e
-      www/content/cli.typ: 449791402dc06deacac115f40bb6a68817d27b8dc16a09b95ccc2d224d4b4891
+      docs/src/skill.typ: 92175d2797ecc79fdf920bab08b64dc2f3e4d2cbc82fdf53844d13eb92f95e14
+      www/content/cli.typ: b36d52822032a8eb500d8616ae3ff33bc1bf616fd24e46aaafa4720de08f3526
       www/content/index.typ: d1d5b290d63aca11f273b112f4b7d39ca7d63fd252acedd583a00f0f4f83e7d8
       www/content/quickstart.typ: 39560d3ba4ae48bd536c67990ac3d9694bf2c1d3a71b9578004b2f777071be21
   dev-docs:

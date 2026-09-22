@@ -10,7 +10,7 @@ use crate::render::color::ColorChoice;
 use crate::render::link::HyperlinkChoice;
 use crate::{
     add, check, cli_dump, config_cmd, eval, find, flip, go, graph, import, init, install, link_cmd,
-    ls, mv, preset_cmd, recur, review, rm, views, worktrees,
+    ls, mv, preset_cmd, recur, review, rm, set, views, worktrees,
 };
 
 /// `MindTape`: a file-based task tracker using per-file Typst artifacts.
@@ -109,6 +109,17 @@ enum Command {
     /// so is the folder — moving a task between roots or folders changes its
     /// derived tags and is a decision of its own.
     Mv(mv::MvArgs),
+    /// Write one core field of an existing task:
+    /// `mt set <task> <field>=<value>`.
+    ///
+    /// `<field>+=<value>` appends to a list field and `<field>@<path>` reads
+    /// the value out of a file — `mt add --set`'s own token grammar. Writable:
+    /// `title`, `priority` (the raw number), `difficulty`, `kind`, `assignee`,
+    /// `tags`, `due`, `start`. A field with a command of its own (`status`,
+    /// `links`, `reviewed`, `recur`, the stem) is refused naming that command,
+    /// an unknown one naming the writable fields. The value is validated
+    /// before the write, so a refused one leaves the file untouched.
+    Set(set::SetArgs),
     /// Stamp `reviewed:` with today's date on a task.
     Review(review::ReviewArgs),
     /// Set a task's status (`flip <status> <task>...`); each legend value is a verb.
@@ -174,6 +185,7 @@ impl Cli {
             Command::Go(args) => go::run(&args),
             Command::Rm(args) => rm::run(&args),
             Command::Mv(args) => mv::run(&args),
+            Command::Set(args) => set::run(&args),
             Command::Review(args) => review::run(&args),
             Command::Flip(args) => flip::run(&args),
             Command::Recur(args) => recur::run(&args),
