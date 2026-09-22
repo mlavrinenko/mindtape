@@ -290,9 +290,9 @@ scopes:
   # (`_lcov-stale-reason.sh` → `script-lcov-stale-reason`). The check does not
   # read the name — it matches on the path — so a convention is all it is.
   #
-  # TEN OF THEM ARE NAMED BY NO RULE, and that is the honest state rather
+  # ELEVEN OF THEM ARE NAMED BY NO RULE, and that is the honest state rather
   # than an oversight: crap-baseline.sh, release.sh, fork.sh and its inverse
-  # integrate.sh, the four install
+  # integrate.sh, outdatty-update-one.sh (it writes the lock), the four install
   # scripts (install.sh, install-bin.sh, install-lib.sh, uninstall-lib.sh) and
   # the two sourced preambles (_mutants-env.sh, _typst-package.sh) are bodies
   # of recipes no rule in `commands` wraps — installs mutate the machine, so
@@ -336,6 +336,8 @@ scopes:
     - ".just/scripts/install-bin.sh"
   script-install-lib:
     - ".just/scripts/install-lib.sh"
+  script-outdatty-update-one:
+    - ".just/scripts/outdatty-update-one.sh"
   script-integrate:
     - ".just/scripts/integrate.sh"
   script-lcov-stale-reason:
