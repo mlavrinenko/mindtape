@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[bound derived from git ls-files -oi --exclude-standard --directory and appended to a copy of .gitleaks.toml; arm four and its hand copy deleted],
 )
 
 == Problem
