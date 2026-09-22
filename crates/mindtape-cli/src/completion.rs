@@ -39,6 +39,7 @@
 
 use std::collections::BTreeSet;
 use std::ffi::OsStr;
+use std::path::Path;
 use std::sync::OnceLock;
 
 use clap::builder::{StyledStr, ValueHint};
@@ -64,6 +65,9 @@ pub enum Source {
     ViewRefs,
     /// Template stems under `[templates] dirs`, plus the built-in `task`.
     Templates,
+    /// The preset registry `mt preset ls` prints: the built-ins, then the
+    /// user presets. Install-level, so it needs no project.
+    Presets,
     /// Edge kinds: the six built-ins plus `[[tasks.links.kinds]]`.
     LinkKinds,
     /// `mt set`'s `<field>=<value>`: the fields it writes, then this project's
@@ -135,13 +139,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ("find", "columns", Source::ViewRefs),
     ("graph", "filter", Source::ViewRefs),
     ("views", "name", Source::Views),
-    (
-        "init",
-        "preset",
-        Source::None(
-            "an install-level starter shape, not a project value; `mt preset ls` enumerates them",
-        ),
-    ),
+    ("init", "preset", Source::Presets),
     ("init", "schema", Source::FilePath),
     ("eval", "file", Source::FilePath),
     ("go", "id", Source::Stems),
@@ -200,6 +198,9 @@ impl Source {
             Self::ViewRefs => arg.add(ArgValueCandidates::new(|| view_names("@"))),
             Self::Templates => arg.add(ArgValueCandidates::new(templates)),
             Self::LinkKinds => arg.add(ArgValueCandidates::new(link_kinds)),
+            Self::Presets => arg.add(ArgValueCandidates::new(|| {
+                presets_in(crate::preset::user_preset_dir().as_deref())
+            })),
             Self::Assignment => arg.add(ArgValueCompleter::new(assignment)),
             Self::TagToken => arg.add(ArgValueCompleter::new(tag_token)),
             Self::FilePath => arg.value_hint(ValueHint::FilePath),
@@ -219,6 +220,7 @@ impl Source {
             Self::ViewRefs => "view-refs",
             Self::Templates => "templates",
             Self::LinkKinds => "link-kinds",
+            Self::Presets => "presets",
             Self::Assignment => "assignment",
             Self::TagToken => "tag-token",
             Self::FilePath => "file-path",
@@ -375,6 +377,29 @@ fn link_kinds() -> Vec<CompletionCandidate> {
             .map(CompletionCandidate::new)
             .collect()
     })
+}
+
+/// The presets `mt preset ls` prints for `user_dir`: every built-in, helped
+/// by its description, then each user preset not already offered as one.
+///
+/// A user directory that cannot be read yields the built-ins alone — the
+/// quiet failure every other source keeps; `mt preset ls` does the reporting.
+fn presets_in(user_dir: Option<&Path>) -> Vec<CompletionCandidate> {
+    let builtins = crate::preset::list_builtins();
+    let users = user_dir
+        .and_then(|dir| crate::preset::list_user_presets(dir).ok())
+        .unwrap_or_default();
+    let mut offered: Vec<CompletionCandidate> = builtins
+        .iter()
+        .map(|(name, description)| CompletionCandidate::new(*name).help(help(description)))
+        .collect();
+    offered.extend(
+        users
+            .into_iter()
+            .filter(|name| !builtins.iter().any(|(builtin, _)| builtin == name))
+            .map(CompletionCandidate::new),
+    );
+    offered
 }
 
 /// This project's tag vocabulary: `[tasks.tags] allowed` when it bounds one,

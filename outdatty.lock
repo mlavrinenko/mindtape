@@ -6,7 +6,7 @@ groups:
       crates/mindtape-cli/src/add.rs: ee82600323fff898555b5b0431cc0685112d89e07971a59108bb15d64a93fc1c
       crates/mindtape-cli/src/check.rs: eba248cd1eae006eb2d4626a3048d9221392b907de8be01077240e1d85aaf075
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
-      crates/mindtape-cli/src/completion.rs: 7999b5da6294c5a2dc3b085c09814c9ab568fabd47d3c834466ebb5d91ab3b19
+      crates/mindtape-cli/src/completion.rs: deda90bf6f3a6964c2c52ea7bccf000a8ff643767794fb4c14d3aae863f18f40
       crates/mindtape-cli/src/config_cmd.rs: 06bfb3545bd2554cb1b5ff0a1f6ec5ad40c82e0b5dd0fd30129871375a92db61
       crates/mindtape-cli/src/eval.rs: df74534777cb181b3eb43186d9684cd9ff470a95b209cf2b96d33bbf7e72d8b5
       crates/mindtape-cli/src/find.rs: 2524ada47afeb3d72c42b35ebf7e9e8c3774fbe4ec8f616186e2c2269228dfdd
@@ -38,7 +38,7 @@ groups:
     dependents:
       docs/src/skill.typ: 92175d2797ecc79fdf920bab08b64dc2f3e4d2cbc82fdf53844d13eb92f95e14
       skills/mindtape/evals/README.md: a5143877e4409bea53d0e60b8ad3716f9483a0d80f28b8c3013864f729428516
-      skills/mindtape/evals/evals.json: 2ad7c37a761d36280868e884037a4417b543c2d0c806dd43ecdb48acb391b229
+      skills/mindtape/evals/evals.json: 17e83792cf33e2485a686ead3e4451c4486078ee2fa283002ce091bf77b69ae9
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/agents.typ: 3a1f9639693ed0df3123a5ea4f9e2c39c52784b43fd3947b5923471902582074
       www/content/cli.typ: 7b26ed5ed4878b5bc3958eaf076d9e88dcd14ea212e28bf0300e555f2a932ce2
@@ -56,7 +56,7 @@ groups:
       www/content/recurring.typ: 836c35ad1ab76deb3dafcefa67bc361c54cedce5ec6970174b21529899180926
       www/content/schema.typ: 734bc9fda6ad9716e1af4edb6701a232c0bd20ee1965d8c8474e5ca003c6c1a2
       www/content/templates.typ: d90046c678315921708a17e865cebdf1a827b862d21d3b5876e411fd8850fc76
-      www/utils/cli-notes.typ: 86827dad246f373b68ddaebed5c00db6273e0271ecb030b131891a57663f5456
+      www/utils/cli-notes.typ: e8f49b13377ad0ce0cbbc48327f15055ea91c764a3fbce7b1adf1b5d4b12319a
   cli-name:
     source:
       crates/mindtape-cli/Cargo.toml: b2e8bbc3da9ab40a86ca767ff36d0e337f002a139d07428466cb3e0a5dc9989d

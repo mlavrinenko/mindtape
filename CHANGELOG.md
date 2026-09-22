@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`clap_complete`'s `CompleteEnv`). So the static half is clap's own parser
   and the dynamic half is the live config: `mt flip ` offers this project's
   legend, `mt ls @` its views, `mt add -t` its templates, `mt link <task> ` its
-  edge kinds, and every task argument its stems — with `mt set`'s writable
+  edge kinds, `mt init --preset ` the presets `mt preset ls` lists, and
+  every task argument its stems — with `mt set`'s writable
   fields and this project's tags behind `tags=`. Nothing is generated into a
   repository, so nothing can drift from one, and an `mt` upgrade needs no
   re-install. A project that fails to load yields no candidates and no error,

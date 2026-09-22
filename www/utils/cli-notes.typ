@@ -248,7 +248,8 @@
       from its startup file. Each holds a couple of lines that ask `mt` for the
       completion on every tab press, never a generated completion script — so
       the candidates are this project's own stems, statuses, views, templates
-      and link kinds, and an `mt` upgrade needs no re-install.],
+      and link kinds, plus the presets `mt preset ls` lists for
+      `mt init --preset`, and an `mt` upgrade needs no re-install.],
   ),
   "worktrees": (
     examples: ```sh
