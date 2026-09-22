@@ -4,7 +4,7 @@
 #show: task.with(
   title: "Generate the config blocks from the fixtures",
   kind: "docs",
-  status: wip(2026, 9, 22),
+  status: done(2026, 9, 22),
   priority: ice(
     impact: 5,
     confidence: 0.7,
