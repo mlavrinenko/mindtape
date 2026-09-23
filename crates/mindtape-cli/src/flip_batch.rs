@@ -117,3 +117,7 @@ impl Landed {
         self.ids.is_empty()
     }
 }
+
+#[cfg(test)]
+#[path = "flip_batch_tests.rs"]
+mod tests;

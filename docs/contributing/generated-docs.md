@@ -10,9 +10,7 @@ The root docs restate facts that already have a machine-readable source — the 
 
 This is a separate render path from the docs site pages, `www/content/*.typ`: those open with `#show: page.with(...)` plus `@tola` imports and target HTML. A docs/src source is plain Typst with neither — a body typlite can walk on its own.
 
-### The site build always rebuilds clean
-
-That second path pays a cost of its own. `just docs build` and `just docs check` pass `--clean` to `tola build`: tola does not track a `json()` read as a page dependency, so an incremental build can leave a page’s rendered HTML unchanged after the fact it reads changes — every fact-reading page (`config.typ`, `cli.typ`, `dsl.typ`, `internals.typ`, `priority.typ`, and the config-slice pages) is exposed, and `just docs check` would then validate HTML no current source produced (truth/tasks/rebuild-the-docs-site-clean-so-a-changed-fact-cannot-validate-stale-html.typ). `--clean` trades the incremental build’s speed for that guarantee: every page under `www/content/` recompiles on every `build`/`check`, not only the ones whose own `.typ` source changed. `just docs serve` keeps the incremental, watch-loop build on purpose — it is not a gate, and a full rebuild per keystroke would defeat hot reload.
+The site’s own build — why it always rebuilds clean, and where that stops — is in [docs/contributing/docs-site-build.md](docs/contributing/docs-site-build.md).
 
 ### Adding a source
 

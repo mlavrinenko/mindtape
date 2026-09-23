@@ -142,6 +142,49 @@ fn a_non_array_return_is_one_breach_naming_it() {
     );
 }
 
+/// A nested date in an `x-<ns>` slot survives as an [`HVal::Date`] and reaches
+/// the function as a real Typst `datetime(...)` — the one place `check_literal`
+/// diverges from `hval_to_typ`'s quoted-string round-trip.
+#[test]
+fn a_date_in_an_x_field_reaches_the_function_as_a_datetime() {
+    let dir = project(
+        "#let check-date(value) = if value == datetime(year: 2027, month: 1, day: 1) { () } else { (\"not a datetime\",) }\n",
+    );
+    let mut task = bare_task("a");
+    task.extras.insert(
+        "x-due".to_owned(),
+        typst_harvest::HVal::Date("2027-01-01".to_owned()),
+    );
+    let check = CompiledCheck::new(&field_spec("check-date", "x-due"), dir.path(), &config());
+    assert!(check.evaluate(&task, &config()).is_empty());
+}
+
+/// An [`HVal::Date`] that is not a `YYYY-MM-DD` falls back to a quoted string
+/// rather than emitting a broken `datetime(...)` call.
+#[test]
+fn an_unparseable_date_in_an_x_field_falls_back_to_a_quoted_string() {
+    let dir = project(
+        "#let check-date(value) = if value == \"not-a-date\" { () } else { (\"unexpected: \" + repr(value),) }\n",
+    );
+    let mut task = bare_task("a");
+    task.extras.insert(
+        "x-due".to_owned(),
+        typst_harvest::HVal::Date("not-a-date".to_owned()),
+    );
+    let check = CompiledCheck::new(&field_spec("check-date", "x-due"), dir.path(), &config());
+    assert!(check.evaluate(&task, &config()).is_empty());
+}
+
+/// An array element that is not a string is its own literal repr, not an
+/// error — a function returning the wrong element type still names it.
+#[test]
+fn a_non_string_array_element_is_rendered_by_its_literal() {
+    let dir = project("#let check-mixed(task) = (\"first\", 42)\n");
+    let task = bare_task("a");
+    let check = CompiledCheck::new(&spec("check-mixed"), dir.path(), &config());
+    assert_eq!(check.evaluate(&task, &config()), vec!["first", "42"]);
+}
+
 #[test]
 fn an_unknown_function_is_one_config_error_at_load() {
     let dir = project("#let check-goals(goals) = ()\n");

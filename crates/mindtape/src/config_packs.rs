@@ -411,3 +411,7 @@ mod tests;
 #[cfg(test)]
 #[path = "config_packs_tests_body.rs"]
 mod tests_body;
+
+#[cfg(test)]
+#[path = "config_packs_tests_extends.rs"]
+mod tests_extends;

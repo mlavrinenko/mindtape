@@ -132,3 +132,30 @@ fn malformed_yaml_is_reported_as_such() {
     let err = error("alpha:\n  - [\n");
     assert!(err.contains("parse the adjacency map"), "{err}");
 }
+
+/// `shape_of` labels what arrived instead of what was asked for; one test per
+/// arm the parser can reach, so a mislabeled arm is caught rather than merely
+/// executed.
+#[test]
+fn a_null_target_is_named_null() {
+    let err = error("alpha:\n  parent: ~\n");
+    assert!(err.contains("got null"), "{err}");
+}
+
+#[test]
+fn a_boolean_target_is_named_a_boolean() {
+    let err = error("alpha:\n  parent: true\n");
+    assert!(err.contains("got a boolean"), "{err}");
+}
+
+#[test]
+fn a_string_root_is_named_a_string() {
+    let err = error("just-a-stem\n");
+    assert!(err.contains("got a string"), "{err}");
+}
+
+#[test]
+fn a_tagged_root_is_named_a_tagged_value() {
+    let err = error("!custom [a, b]\n");
+    assert!(err.contains("got a tagged value"), "{err}");
+}

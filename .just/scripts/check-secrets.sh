@@ -40,28 +40,9 @@
 # check.sh's reason: `just check` runs its arms in parallel, and a real
 # credential shape written under the repo would be read as real by arm two of
 # a concurrent run.
-#
-# ARM THREE IS ABOUT THE MANIFEST, not about secrets, and it is here rather
-# than in script-scope-check.sh because its subject is THIS rule's own input
-# list. Arm two reads the whole tree, and .mmz/config.yaml cannot say so — it
-# has no negative glob, and the one directory a gate-tagged rule may not name
-# is `truth/tasks/**` (the NOTE ON SCOPE there: `mt flip` writes the task file
-# it is gating, so the close gate would flip itself stale mid-command). What
-# is left is an enumeration, and an enumeration goes false-fresh the moment
-# a top-level directory arrives that nobody listed — a whole subtree that
-# could gain a credential without ever busting the record. So the enumeration
-# is checked instead of trusted, against mmz's OWN expansion rather than a
-# second implementation of its globs.
-#
-# WHAT ARM THREE DELIBERATELY DOES NOT DEMAND: `truth/tasks/**`. Those files
-# ARE scanned by arm two and are not memoized, exactly the trade `just
-# fmt-check` already takes over the same directory — a full `just check`
-# still refuses a credential in a task file; a task-file-only edit just does
-# not bust this rule's cached pass.
 set -eo pipefail
 
 config=".gitleaks.toml"
-rule="just check-secrets"
 
 if [ ! -f "$config" ]; then
     echo "check-secrets: $config is missing — running outside the repo root?" >&2
@@ -251,35 +232,8 @@ exec 9>&-
 
 # -------------------------------------------------------------- arm three
 
-# mmz's own expansion of the rule's declared inputs, so this arm compares
-# against what mmz actually hashes rather than against a second reading of
-# the globs. An empty list means the rule is gone or renamed, which is a
-# failure of this arm rather than a pass with nothing to compare.
-hashed=$(mmz --status=json | jq -r --arg r "$rule" '
-    .rules[] | select(.name == $r) | .inputs[].path
-' | sort)
-if [ -z "$hashed" ]; then
-    echo "check-secrets: .mmz/config.yaml declares no \`$rule\` rule" >&2
-    echo "  the rule this arm reads was renamed — retarget the arm, do not delete it" >&2
-    exit 1
-fi
-
-# Tracked files only: an untracked one cannot carry a COMMITTED credential,
-# which is the whole subject. Symlinks are dropped (mode 120000) because
-# neither side reads them — gitleaks skips a symlink without
-# `--follow-symlinks`, and mmz hashes no link either, so CLAUDE.md would
-# otherwise be reported as an uncovered file that nothing scans.
-scanned=$(git ls-files -s | grep -v '^120000 ' | cut -f2- | grep -v '^truth/' | sort)
-
-uncovered=$(comm -23 <(printf '%s\n' "$scanned") <(printf '%s\n' "$hashed"))
-if [ -n "$uncovered" ]; then
-    n=$(wc -l <<<"$uncovered")
-    echo "check-secrets: $n scanned files are outside \`$rule\`'s mmz inputs" >&2
-    head -5 <<<"$uncovered" | while IFS= read -r path; do
-        echo "  $path" >&2
-    done
-    [ "$n" -gt 5 ] && echo "  … and $((n - 5)) more" >&2
-    echo "  add their top-level path to the \`secrets-tree\` scope in .mmz/config.yaml," >&2
-    echo "  or this gate serves a stale pass over a subtree it never hashed" >&2
-    exit 1
-fi
+# The manifest coverage check lives in check-secrets-manifest.sh, its own file
+# so this one clears the Shell cap; that file argues in place why it reads
+# .mmz/config.yaml's own expansion and what it deliberately leaves uncovered.
+# It reads nothing the lock above protects.
+bash .just/scripts/check-secrets-manifest.sh

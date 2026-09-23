@@ -104,38 +104,6 @@ fn every_declined_argument_gives_a_reason() {
     }
 }
 
-/// `mt init --preset` offers every built-in `mt preset ls` prints, each
-/// helped by its description, then the user presets — a shadowing one once.
-#[test]
-fn presets_offer_the_builtins_and_the_user_presets() {
-    let dir = tempfile::tempdir().unwrap();
-    std::fs::write(dir.path().join("mine.toml"), "").unwrap();
-    std::fs::write(dir.path().join("flow.toml"), "").unwrap();
-    let offered = super::presets_in(Some(dir.path()));
-    let names: Vec<String> = offered
-        .iter()
-        .map(|candidate| candidate.get_value().to_string_lossy().into_owned())
-        .collect();
-    let mut expected: Vec<String> = crate::preset::list_builtins()
-        .into_iter()
-        .map(|(name, _)| name.to_owned())
-        .collect();
-    expected.push("mine".to_owned());
-    assert_eq!(names, expected);
-    assert!(offered.first().unwrap().get_help().is_some());
-}
-
-/// A user preset directory that is missing yields the built-ins alone, never
-/// an error.
-#[test]
-fn presets_without_a_user_directory_are_the_builtins() {
-    let dir = tempfile::tempdir().unwrap();
-    let missing = dir.path().join("absent");
-    let builtins = crate::preset::list_builtins().len();
-    assert_eq!(super::presets_in(Some(&missing)).len(), builtins);
-    assert_eq!(super::presets_in(None).len(), builtins);
-}
-
 /// Walk every argument of every command, with its flattened path.
 fn walk(cmd: &clap::Command, path: &str, visit: &mut impl FnMut(&str, &clap::Arg)) {
     for arg in cmd.get_arguments() {

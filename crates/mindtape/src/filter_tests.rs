@@ -71,6 +71,12 @@ fn hit_with(expr: &str, task: &Task, cfg: &Config) -> bool {
     Filter::parse(expr).unwrap().matches(task, cfg).unwrap()
 }
 
+/// [`Filter::parse`] then [`Filter::matches`] under `config` — the helper the
+/// view tests and `filter_contains_tests` share.
+fn hit_views(expr: &str, task: &Task, config: &Config) -> bool {
+    Filter::parse(expr).unwrap().matches(task, config).unwrap()
+}
+
 #[test]
 fn status_properties_are_filterable() {
     let cfg = legend();
@@ -181,6 +187,13 @@ fn unknown_field_errors() {
 #[test]
 fn parse_error_surfaces() {
     assert!(Filter::parse("(status == \"x\"").is_err());
+}
+
+#[test]
+fn empty_filter_matches_all() {
+    let task = sample();
+    assert!(hit("", &task));
+    assert!(hit("   ", &task));
 }
 
 #[test]
@@ -321,82 +334,7 @@ fn now_in_comparison() {
     assert!(hit("miss(start) || start <= now()", &sample())); // start is None
 }
 
-// `sample()` is a backend task with priority 8 (so it matches both views).
-fn config_with_views() -> Config {
-    parse_config(
-        "[views.backend]\nfilter = 'has_tag(\"backend\")'\n\
-         [views.hot]\nfilter = 'priority > 5'\n",
-    )
-    .unwrap()
-}
-
-fn hit_views(expr: &str, task: &Task, config: &Config) -> bool {
-    Filter::parse(expr).unwrap().matches(task, config).unwrap()
-}
-
-#[test]
-fn empty_filter_matches_all() {
-    let task = sample();
-    assert!(hit("", &task));
-    assert!(hit("   ", &task));
-}
-
-#[test]
-fn in_view_predicate_matches_named_filter() {
-    let task = sample();
-    let cfg = config_with_views();
-    assert!(hit_views("in_view(\"backend\")", &task, &cfg));
-    assert!(hit_views("@backend", &task, &cfg));
-    assert!(!hit_views("!@backend", &task, &cfg));
-}
-
-#[test]
-fn in_view_composes_with_boolean_operators() {
-    let task = sample();
-    let cfg = config_with_views();
-    assert!(hit_views("@hot && @backend", &task, &cfg));
-    assert!(hit_views("@hot || @backend", &task, &cfg));
-    // sample is hot (priority 8), so `!@hot` is false.
-    assert!(!hit_views("@backend && !@hot", &task, &cfg));
-}
-
-#[test]
-fn in_view_unknown_view_errors() {
-    let task = sample();
-    let cfg = config_with_views();
-    let err = Filter::parse("@ghost")
-        .unwrap()
-        .matches(&task, &cfg)
-        .unwrap_err();
-    assert!(matches!(err, super::FilterError::UnknownView(_)), "{err:?}");
-}
-
-#[test]
-fn view_refs_collects_referenced_names() {
-    let mut refs = Filter::parse("@a && !@b || in_view(\"c\")")
-        .unwrap()
-        .view_refs();
-    refs.sort();
-    assert_eq!(refs, vec!["a", "b", "c"]);
-}
-
 // --- Boundary regression tests ---
-
-#[test]
-fn cyclic_view_hits_depth_limit() {
-    // Guards against deeper() using `*` instead of `+` (depth never
-    // increments, so the cycle guard never triggers).
-    let cfg = parse_config("[views.cycle]\nfilter = '@cycle'\n").unwrap();
-    let task = sample();
-    let err = Filter::parse("@cycle")
-        .unwrap()
-        .matches(&task, &cfg)
-        .unwrap_err();
-    assert!(
-        matches!(&err, super::FilterError::Invalid(msg) if msg.contains("nested too deep")),
-        "{err:?}"
-    );
-}
 
 /// The missing-field comparison rule `compare` implements and `[[tasks.limits]]`
 /// rests on: an absent field is unequal to every literal and orders against
@@ -460,3 +398,8 @@ mod contains;
 // (file-size gate) — likewise.
 #[path = "filter_predicates_tests.rs"]
 mod predicates;
+
+// `in_view()`/`@name` predicate evaluation, the `view_refs` collector, and
+// the cyclic view guard likewise.
+#[path = "filter_in_view_tests.rs"]
+mod in_view;

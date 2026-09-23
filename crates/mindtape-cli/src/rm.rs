@@ -389,3 +389,7 @@ fn check_eligible_files(
 #[cfg(test)]
 #[path = "rm_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "rm_tests_select.rs"]
+mod tests_select;

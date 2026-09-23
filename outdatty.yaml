@@ -321,6 +321,11 @@ groups:
       - www/content/quickstart.typ
       - www/content/cli.typ
       - docs/src/contributing.typ
+      # The Command Semantics section moved off docs/src/contributing.typ onto
+      # its own page (truth/tasks/size-docs-src-contributing-typ.typ); its
+      # hand-typed `mt _cli`, `mt done` and `mt flip done` mentions moved with
+      # it, so a binary or invocation rename must still reach it here.
+      - docs/src/contributing/command-semantics.typ
       - docs/src/agents.typ
       - CHANGELOG.md
       - docs/src/skill.typ
@@ -338,7 +343,7 @@ groups:
   # `MINDTAPE_GATE_SCOPE` commit path — none of those are `just check`
   # sub-gates, so none are in `gates.json`.
   #
-  # The five contributor deep dives are dependents for the same reason
+  # The contributor deep dives are dependents for the same reason
   # docs/src/contributing.typ is, and were missed when they were ports of
   # hand-written Markdown: each describes recipes defined in the Justfile and
   # tools pinned in flake.nix by hand (`just check-windows` and the mingw
@@ -347,7 +352,9 @@ groups:
   # path). None of that is derived — `gates.json` carries only the sub-gates
   # `just check` itself declares, and every recipe these five discuss is
   # deliberately NOT one of those — so a renamed or re-flagged recipe
-  # silently rots them.
+  # silently rots them. The three pages a size split later carved out
+  # (example-projects, crap-baseline, docs-site-build) join them by the same
+  # test: each restates hand-written Justfile/flake.nix behaviour.
   #
   # .just/docs.just is a source alongside Justfile, not just Justfile alone:
   # the `docs` module (truth/tasks/split-the-justfile-into-modules.typ) moved
@@ -444,7 +451,10 @@ groups:
   # anything. The one of its own: `.gitleaks.toml` is NOT a source here, and
   # deliberately — the prose describes the arms, not the ruleset, so an
   # allowlist edit rots no dependent, while a change to what the fixture
-  # asserts rots the paragraph describing it.
+  # asserts rots the paragraph describing it. check-secrets-manifest.sh is
+  # that same script's third arm extracted under the Shell cap, and is a
+  # source for the same reason: gate-notes.typ restates what it demands of
+  # .mmz/config.yaml.
   - name: dev-docs
     source:
       - flake.nix
@@ -455,6 +465,7 @@ groups:
       - .just/scripts/check-doc-facts.sh
       - .just/scripts/check-doc-recipes.sh
       - .just/scripts/check-secrets.sh
+      - .just/scripts/check-secrets-manifest.sh
       - .just/scripts/fmt-fixture-check.sh
       - .just/scripts/arg-pattern-check.sh
       - .just/scripts/check-crap.sh
@@ -481,10 +492,13 @@ groups:
       - docs/src/contributing.typ
       - docs/src/agents.typ
       - docs/src/contributing/gates.typ
+      - docs/src/contributing/example-projects.typ
       - docs/src/contributing/windows.typ
       - docs/src/contributing/coverage-crap.typ
+      - docs/src/contributing/crap-baseline.typ
       - docs/src/contributing/mutation-testing.typ
       - docs/src/contributing/signal-sweep.typ
+      - docs/src/contributing/docs-site-build.typ
 
   # The four `just ask-refactoring` templates share one shape: the same
   # task.with header, the same "filed from a signal, nothing recorded that it

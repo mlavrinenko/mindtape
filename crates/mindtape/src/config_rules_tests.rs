@@ -238,6 +238,30 @@ fn a_syntax_error_is_reported_at_load() {
     assert_eq!(validate_rules(&config(toml)).len(), 1);
 }
 
+/// Both `assert` and `check` on one rule is the first half of the shape
+/// contract `validate_rules` enforces at load.
+#[test]
+fn a_rule_with_both_assert_and_check_is_one_load_problem() {
+    let toml = "[[tasks.rules]]\nassert = 'kind == \"bug\"'\ncheck = { typst = \"check.typ\", function = \"f\" }\n";
+    let problems = validate_rules(&config(toml));
+    assert_eq!(problems.len(), 1, "{problems:?}");
+    let first = problems.first().unwrap();
+    assert!(first.starts_with("tasks.rules[0]: "), "{first}");
+    assert!(first.contains("not both"), "{first}");
+}
+
+/// Neither `assert` nor `check` is the other half: a rule that constrains
+/// nothing is refused rather than silently dropped.
+#[test]
+fn a_rule_with_neither_assert_nor_check_is_one_load_problem() {
+    let toml = "[[tasks.rules]]\nname = \"empty\"\n";
+    let problems = validate_rules(&config(toml));
+    assert_eq!(problems.len(), 1, "{problems:?}");
+    let first = problems.first().unwrap();
+    assert!(first.starts_with("tasks.rules[0]: "), "{first}");
+    assert!(first.contains("is required"), "{first}");
+}
+
 /// A rule whose assert cannot be parsed constrains nothing at evaluation time
 /// — `Config::validate` already refused the config, so reaching here means a
 /// hand-built one, and a broken rule may not invent breaches.

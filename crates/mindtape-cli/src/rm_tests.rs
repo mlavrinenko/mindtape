@@ -4,28 +4,20 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 
 use mindtape::test_support::bare_task;
-use mindtape::{Config, LoadOutcome, Readiness, Status, Task, parse_config};
+use mindtape::{Status, Task};
 use swhid_mint::test_support::repo_with;
 
 use super::report::rewrite_link_count;
-use super::{
-    Plan, apply, check_eligible_files, inbound_references, plain_delete_plan, plan, select_targets,
-};
+use super::{Plan, apply, check_eligible_files, inbound_references, plain_delete_plan, plan};
 use crate::git;
-use crate::util::Project;
 use typst_cleanup::{Rewrite, is_clean};
 
 /// Build an eligible id set from string slices.
-fn ids(values: &[&str]) -> HashSet<String> {
+pub(super) fn ids(values: &[&str]) -> HashSet<String> {
     values.iter().map(|v| (*v).to_owned()).collect()
 }
 
-/// Build a `select_targets` argument list from string slices.
-fn targets(values: &[&str]) -> Vec<String> {
-    values.iter().map(|v| (*v).to_owned()).collect()
-}
-
-fn task(id: &str, file: &str, status: Option<&str>) -> Task {
+pub(super) fn task(id: &str, file: &str, status: Option<&str>) -> Task {
     let mut t = bare_task(id);
     t.file = PathBuf::from(file);
     t.status = status.map(|name| Status {
@@ -344,129 +336,6 @@ fn rewrite_link_count_sums_all_rewrites() {
         deletions: vec![],
     };
     assert_eq!(rewrite_link_count(&plan), 8);
-}
-
-/// An in-memory project — no disk needed for slug/filter selection logic.
-fn stub_project(config: Config, tasks: Vec<Task>) -> Project {
-    Project {
-        root: PathBuf::from("."),
-        config,
-        outcome: LoadOutcome {
-            tasks,
-            errors: vec![],
-        },
-    }
-}
-
-fn readiness_of(project: &Project) -> Readiness {
-    Readiness::compute(&project.outcome.tasks, &project.config)
-}
-
-#[test]
-fn select_targets_ref_bypasses_status() {
-    // A slug reference selects exactly that task, even though it is non-terminal.
-    let project = stub_project(
-        Config::default(),
-        vec![
-            task("gone", "tasks/gone.typ", Some("wip")),
-            task("live", "tasks/live.typ", Some("wip")),
-        ],
-    );
-    let got = select_targets(&project, &targets(&["gone"]), &readiness_of(&project)).unwrap();
-    assert_eq!(got, ids(&["gone"]));
-}
-
-#[test]
-fn select_targets_filter_selects_every_match() {
-    let project = stub_project(
-        Config::default(),
-        vec![
-            task("a", "tasks/a.typ", Some("done")),
-            task("b", "tasks/b.typ", Some("wip")),
-            task("c", "tasks/c.typ", Some("done")),
-        ],
-    );
-    let got = select_targets(
-        &project,
-        &targets(&["status == \"done\""]),
-        &readiness_of(&project),
-    )
-    .unwrap();
-    assert_eq!(got, ids(&["a", "c"]));
-}
-
-#[test]
-fn select_targets_two_refs_union() {
-    // Two refs in one invocation retire both — the whole point of making
-    // TARGET variadic.
-    let project = stub_project(
-        Config::default(),
-        vec![
-            task("a", "tasks/a.typ", Some("wip")),
-            task("b", "tasks/b.typ", Some("wip")),
-            task("c", "tasks/c.typ", Some("wip")),
-        ],
-    );
-    let got = select_targets(&project, &targets(&["a", "b"]), &readiness_of(&project)).unwrap();
-    assert_eq!(got, ids(&["a", "b"]));
-}
-
-#[test]
-fn select_targets_ref_and_filter_union() {
-    // A ref and a filter together retire the union of what each selects.
-    let project = stub_project(
-        Config::default(),
-        vec![
-            task("a", "tasks/a.typ", Some("wip")),
-            task("b", "tasks/b.typ", Some("done")),
-            task("c", "tasks/c.typ", Some("wip")),
-        ],
-    );
-    let got = select_targets(
-        &project,
-        &targets(&["a", "status == \"done\""]),
-        &readiness_of(&project),
-    )
-    .unwrap();
-    assert_eq!(got, ids(&["a", "b"]));
-}
-
-#[test]
-fn select_targets_same_task_named_twice_retires_once() {
-    let project = stub_project(
-        Config::default(),
-        vec![task("a", "tasks/a.typ", Some("wip"))],
-    );
-    let got = select_targets(&project, &targets(&["a", "a"]), &readiness_of(&project)).unwrap();
-    assert_eq!(got, ids(&["a"]));
-}
-
-#[test]
-fn select_targets_default_filter_is_terminal() {
-    // No target -> the built-in `terminal` default filter sweeps terminal tasks.
-    let config = parse_config(
-        "[[tasks.status]]\nvalue = \"wip\"\n[[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
-    )
-    .unwrap();
-    let project = stub_project(
-        config,
-        vec![
-            task("a", "tasks/a.typ", Some("done")),
-            task("b", "tasks/b.typ", Some("wip")),
-        ],
-    );
-    let got = select_targets(&project, &[], &readiness_of(&project)).unwrap();
-    assert_eq!(got, ids(&["a"]));
-}
-
-#[test]
-fn select_targets_unresolvable_token_errors() {
-    // Not a slug and not a valid boolean filter -> error, not a silent empty set.
-    let project = stub_project(
-        Config::default(),
-        vec![task("a", "tasks/a.typ", Some("wip"))],
-    );
-    assert!(select_targets(&project, &targets(&["nope"]), &readiness_of(&project)).is_err());
 }
 
 #[path = "rm_cli_tests.rs"]

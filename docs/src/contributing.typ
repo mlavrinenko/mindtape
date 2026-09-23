@@ -99,9 +99,10 @@ build with violations. Key restrictions:
 
 Every arm runs through `mmz`, so a re-run skips each one whose declared inputs
 are unchanged and the pre-commit hook can assert the whole set fresh without
-re-running it. That memoization, the gated example projects and the locked
-formatter gates are in
-#link("docs/contributing/gates.md")[docs/contributing/gates.md].
+re-running it. That memoization and the locked formatter gates are in
+#link("docs/contributing/gates.md")[docs/contributing/gates.md]; the gated
+example projects, in
+#link("docs/contributing/example-projects.md")[docs/contributing/example-projects.md].
 
 #just.check-full() is #just.check() plus #just.cover() and #just.crap(): always
 correct about coverage and CRAP, at the price of an instrumented rebuild and a
@@ -125,7 +126,9 @@ is, and what the trailer buys, are in #link("docs/contributing/gates.md")[docs/c
 Coverage and CRAP run outside #just.check(): run #just.cover() first (#just.crap() refuses a
 stale lcov), and #just.crap-baseline() in the same commit as any deliberate complexity. The
 thresholds and every argument behind them, to read before changing either recipe's flags, are
-in #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md].
+in #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md]; the
+baseline's own paths and guards, in
+#link("docs/contributing/crap-baseline.md")[docs/contributing/crap-baseline.md].
 
 #just.nix-build() verifies `nix build` in a clean sandbox (no dev shell, no
 sccache). Run it when touching `flake.nix` or `.cargo/config.toml`;
@@ -199,49 +202,10 @@ nothing.
 
 = Command Semantics (read/write separation)
 
-MindTape follows a strict read/write split (CQRS). Read commands never
-mutate the working tree; only explicit write commands do. The split is
-declared once, in `crates/mindtape-cli/src/command_class.rs`, checked for
-exhaustiveness against `mt _cli --json`'s visible command list in
-`cli_dump.rs`'s own tests, and read here from `fact("cli")` rather than
-retyped.
-
-#let cli-leaves(commands, prefix: none) = (
-  commands
-    .map(c => {
-      let name = if prefix == none { c.name } else { prefix + " " + c.name }
-      if c.subcommands.len() == 0 {
-        ((name: name, class: c.class),)
-      } else {
-        cli-leaves(c.subcommands, prefix: name)
-      }
-    })
-    .flatten()
-)
-#let cli-classes = cli-leaves(fact("cli").commands)
-#let names(kind) = (
-  cli-classes.filter(l => l.class.kind == kind).map(l => raw(l.name))
-)
-#let exempt = cli-classes.filter(l => l.class.kind == "exempt")
-
-- Read (pure): #names("read").join(", ") — each leaves the tree
-  byte-identical, asserted per command in
-  `crates/mindtape-cli/tests/read_no_write_e2e.rs`. Add your command's test
-  there, not to this list.
-- Write (explicit): #names("write").join(", "). Every legend value is also a
-  top-level verb over `flip` — `mt done` is `mt flip done`, generated from
-  the legend rather than declared as a subcommand.
-#for e in exempt [
-  - #raw(e.name) is neither: #e.class.reason.
-]
-
-Recurrence never materializes as a side effect of a read: an instance is
-spawned or refreshed only by an explicit `mt recur`, and `mt done` closes a
-task without creating or advancing anything.
-
-"Byte-identical" means the _authored_ tree — task files and config. A read may
-still populate the git-ignored `.mindtape/cache/` scratch, derived state the
-way `target/` is.
+Read commands never mutate the authored tree; only explicit write commands do.
+Which verb is which, the per-command read test, and the CLI command list it is
+read from are in
+#link("docs/contributing/command-semantics.md")[docs/contributing/command-semantics.md].
 
 = Documentation
 
@@ -249,6 +213,8 @@ Docs live in `www/content/*.typ` and the `docs/src/*.typ` Markdown sources.
 A touched file is refactored whole, one home per fact, checked examples over
 described ones; the rules and the #just.dup-prose() audit are in
 #link("docs/contributing/documentation.md")[docs/contributing/documentation.md].
+Why the site build always rebuilds clean is in
+#link("docs/contributing/docs-site-build.md")[docs/contributing/docs-site-build.md].
 
 = Extending MindTape
 

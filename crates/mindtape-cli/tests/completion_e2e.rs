@@ -217,3 +217,80 @@ fn the_registration_hook_calls_the_binary_back() {
         "{hook}"
     );
 }
+
+/// `mt init --preset <TAB>` offers the preset registry: a built-in's name
+/// comes from `mt preset ls`, and an empty user directory still yields them —
+/// the one source that loads no project.
+#[test]
+fn init_offers_the_preset_registry() {
+    let candidates = complete(&example("minimal"), &["mt", "init", "--preset", ""]);
+    assert!(
+        project_values(&candidates)
+            .iter()
+            .any(|c| c.as_str() == "todone"),
+        "built-in presets: {candidates:?}"
+    );
+}
+
+/// `mt set <task> <TAB>` offers the fields the command writes, each as a
+/// whole `field=` token — the same `WRITABLE` table the refusal reads, so a
+/// tab press can never offer a field `mt set` would reject.
+#[test]
+fn set_offers_its_writable_fields() {
+    let candidates = complete(&example("minimal"), &["mt", "set", "add-dark-mode", "tit"]);
+    assert!(
+        candidates.contains(&"title=".to_owned()),
+        "writable fields: {candidates:?}"
+    );
+}
+
+/// Once the token carries a value there is no field name left to complete, so
+/// the completer yields nothing rather than guessing.
+#[test]
+fn set_offers_nothing_once_an_assignment_carries_a_value() {
+    let candidates = complete(
+        &example("minimal"),
+        &["mt", "set", "add-dark-mode", "priority=3"],
+    );
+    assert!(project_values(&candidates).is_empty(), "{candidates:?}");
+}
+
+/// `mt set <task> tags=<TAB>` offers the tags a write is VALIDATED against:
+/// learn-piano declares an `allowed` list, and each candidate is a whole
+/// `tags=<tag>` token rather than a bare tag the token grammar would reject.
+#[test]
+fn set_offers_the_allowed_tags_as_whole_tokens() {
+    let candidates = complete(&example("learn-piano"), &["mt", "set", "warmup", "tags="]);
+    assert!(
+        candidates.contains(&"tags=scales".to_owned()),
+        "learn-piano's tags: {candidates:?}"
+    );
+    assert!(
+        candidates.iter().all(|c| c.starts_with("tags=")),
+        "whole tokens only: {candidates:?}"
+    );
+}
+
+/// With no `[tasks.tags] allowed`, the vocabulary is the tags the tasks
+/// actually carry — `mt add --set`'s template-slot grammar completes from the
+/// same set, filtered by the prefix typed so far.
+#[test]
+fn add_set_offers_the_tags_its_tasks_carry() {
+    let candidates = complete(
+        &example("minimal"),
+        &["mt", "add", "-t", "task", "--set", "tags=ba"],
+    );
+    assert!(
+        candidates.contains(&"tags=backend".to_owned()),
+        "minimal's tags: {candidates:?}"
+    );
+}
+
+/// A tag token outside any project resolves its vocabulary to nothing, the
+/// quiet failure every source shares — no diagnostic, no candidates.
+#[test]
+fn a_tag_token_outside_a_project_yields_nothing() {
+    let dir = tempfile::tempdir().unwrap();
+    let candidates = complete(dir.path(), &["mt", "set", "x", "tags="]);
+    assert!(project_values(&candidates).is_empty(), "{candidates:?}");
+}

@@ -417,5 +417,9 @@ mod tests;
 mod tests_fields;
 
 #[cfg(test)]
+#[path = "validate_tests_id.rs"]
+mod tests_id;
+
+#[cfg(test)]
 #[path = "validate_tests_shape.rs"]
 mod tests_shape;

@@ -1,14 +1,12 @@
-//! The `compare_field` dispatch and the comparators it delegates to: every
-//! per-field `--sort` arm routed through `sort_by_specs`, plus the
-//! `priority_value` / `cmp_field_value` / `cmp_num_asc` unit tests — the
-//! cluster a direct `compare_field` unit test would extend. Shares
-//! `sort_tests.rs`'s `config()`/`task()` fixtures.
+//! Every per-field `--sort` arm routed through `sort_by_specs` — the
+//! `compare_field` dispatch exercised end to end. Shares `sort_tests.rs`'s
+//! `config()`/`task()` fixtures; the comparators' own unit tests live in
+//! `sort_compare_tests_comparators.rs`.
 #![allow(clippy::unwrap_used)]
 
+use super::sort_by_specs;
 use super::tests::{config, task};
-use super::{cmp_field_value, cmp_num_asc, priority_value, sort_by_specs};
 use crate::config::{Config, parse_config};
-use crate::fields::FieldValue;
 use crate::model::Task;
 use crate::numeric::NumValue;
 use crate::test_support::{bare_task, dep_edge};
@@ -386,72 +384,4 @@ fn sort_by_specs_orders_by_file_path_across_a_mixed_set() {
         ids_by(tasks, "path", &cfg),
         vec!["m-nested-a", "m-nested-b", "m-flat", "m-root"]
     );
-}
-
-#[test]
-fn priority_value_resolves_through_config() {
-    let cfg = config();
-    let item = task("a", "wip", 7.0, None);
-    assert_eq!(priority_value(&item, &cfg), Some(7.0));
-}
-
-#[test]
-fn cmp_field_value_orders_missing_after_present() {
-    use std::cmp::Ordering;
-    // Missing-missing ties; a missing value sorts after any present one — the
-    // same missing-last rule `cmp_num_asc`/`cmp_opt_asc` use.
-    assert_eq!(
-        cmp_field_value(&FieldValue::Missing, &FieldValue::Missing),
-        Ordering::Equal
-    );
-    assert_eq!(
-        cmp_field_value(&FieldValue::Missing, &FieldValue::Num(1.0)),
-        Ordering::Greater
-    );
-    assert_eq!(
-        cmp_field_value(&FieldValue::Str("a".to_owned()), &FieldValue::Missing),
-        Ordering::Less
-    );
-}
-
-#[test]
-fn cmp_field_value_compares_numbers_numerically() {
-    use std::cmp::Ordering;
-    assert_eq!(
-        cmp_field_value(&FieldValue::Num(2.0), &FieldValue::Num(8.0)),
-        Ordering::Less
-    );
-    assert_eq!(
-        cmp_field_value(&FieldValue::Num(8.0), &FieldValue::Num(2.0)),
-        Ordering::Greater
-    );
-    // `partial_cmp` yields None for NaN; the fallback ties rather than panics.
-    assert_eq!(
-        cmp_field_value(&FieldValue::Num(f64::NAN), &FieldValue::Num(1.0)),
-        Ordering::Equal
-    );
-}
-
-#[test]
-fn cmp_field_value_ties_mismatched_variants() {
-    use std::cmp::Ordering;
-    // A Num vs Str pair can't come from `--sort` (both sides resolve from the
-    // same field), so the fallback ties rather than panics.
-    assert_eq!(
-        cmp_field_value(&FieldValue::Num(1.0), &FieldValue::Str("a".to_owned())),
-        Ordering::Equal
-    );
-    assert_eq!(
-        cmp_field_value(&FieldValue::Str("a".to_owned()), &FieldValue::Num(1.0)),
-        Ordering::Equal
-    );
-}
-
-#[test]
-fn cmp_num_asc_orders_missing_last() {
-    use std::cmp::Ordering;
-    assert_eq!(cmp_num_asc(None, None), Ordering::Equal);
-    assert_eq!(cmp_num_asc(Some(1.0), None), Ordering::Less);
-    assert_eq!(cmp_num_asc(None, Some(1.0)), Ordering::Greater);
-    assert_eq!(cmp_num_asc(Some(2.0), Some(8.0)), Ordering::Less);
 }

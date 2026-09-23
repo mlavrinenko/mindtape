@@ -15,7 +15,7 @@ use clap::Command;
 
 /// The loaded project's legend values, none when it did not load.
 pub(super) fn legend_verbs() -> Vec<String> {
-    super::project()
+    super::sources::project()
         .map(|project| {
             project
                 .config

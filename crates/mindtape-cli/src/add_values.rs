@@ -355,5 +355,9 @@ pub fn slug(text: &str) -> String {
 mod tests;
 
 #[cfg(test)]
+#[path = "add_values_tests_env.rs"]
+mod tests_env;
+
+#[cfg(test)]
 #[path = "add_values_tests_templates.rs"]
 mod tests_templates;

@@ -73,7 +73,7 @@ All clippy lints are `deny` (workspace `Cargo.toml`); the project will not build
 - `TOML_FMT_PATHS`: `.gitleaks.toml`, `.mindtape/config.toml`, `examples/learn-piano/.mindtape/config.toml`, `examples/large/.mindtape/config.toml`, `crates/mindtape/src/packs/mindtape-tasks.toml`
 - `TYPST_FMT_PATHS`: `lib`, `truth`, `.mindtape/templates`, `examples/learn-piano/tasks`, `examples/learn-piano/.mindtape/templates`, `examples/links/tasks`, `examples/recurring/tasks`, `www/content`, `www/templates`, `www/utils`, `docs/src`
 
-Every arm runs through `mmz`, so a re-run skips each one whose declared inputs are unchanged and the pre-commit hook can assert the whole set fresh without re-running it. That memoization, the gated example projects and the locked formatter gates are in [docs/contributing/gates.md](docs/contributing/gates.md).
+Every arm runs through `mmz`, so a re-run skips each one whose declared inputs are unchanged and the pre-commit hook can assert the whole set fresh without re-running it. That memoization and the locked formatter gates are in [docs/contributing/gates.md](docs/contributing/gates.md) the gated example projects, in [docs/contributing/example-projects.md](docs/contributing/example-projects.md).
 
 `just check-full` is `just check` plus `just cover` and `just crap`: always correct about coverage and CRAP, at the price of an instrumented rebuild and a full suite pass. Run it before opening a PR, plain `just check` while iterating.
 
@@ -81,7 +81,7 @@ Every arm runs through `mmz`, so a re-run skips each one whose declared inputs a
 
 A delegated worktree whose full aggregate runs at integration can scope the gate with `MINDTAPE_GATE_SCOPE=<reason> git commit`, which demands a matching `Gate-Scope:` trailer; dodging a red gate is never legitimate. When scoping is, and what the trailer buys, are in [docs/contributing/gates.md](docs/contributing/gates.md).
 
-Coverage and CRAP run outside `just check`: run `just cover` first (`just crap` refuses a stale lcov), and `just crap-baseline` in the same commit as any deliberate complexity. The thresholds and every argument behind them, to read before changing either recipe’s flags, are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
+Coverage and CRAP run outside `just check`: run `just cover` first (`just crap` refuses a stale lcov), and `just crap-baseline` in the same commit as any deliberate complexity. The thresholds and every argument behind them, to read before changing either recipe’s flags, are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md) the baseline’s own paths and guards, in [docs/contributing/crap-baseline.md](docs/contributing/crap-baseline.md).
 
 `just nix-build` verifies `nix build` in a clean sandbox (no dev shell, no sccache). Run it when touching `flake.nix` or `.cargo/config.toml`; `just release` calls it automatically.
 
@@ -121,19 +121,11 @@ Commits that file or edit task artifacts themselves (and the backlog config in `
 
 ## Command Semantics (read/write separation)
 
-MindTape follows a strict read/write split (CQRS). Read commands never mutate the working tree; only explicit write commands do. The split is declared once, in `crates/mindtape-cli/src/command_class.rs`, checked for exhaustiveness against `mt _cli --json`’s visible command list in `cli_dump.rs`’s own tests, and read here from `fact("cli")` rather than retyped.
-
-- Read (pure): `ls`, `find`, `graph`, `views`, `worktrees`, `check`, `config show`, `config schema`, `preset ls`, `eval` — each leaves the tree byte-identical, asserted per command in `crates/mindtape-cli/tests/read_no_write_e2e.rs`. Add your command’s test there, not to this list.
-- Write (explicit): `add`, `import`, `preset save`, `init`, `install`, `rm`, `mv`, `set`, `review`, `flip`, `recur`, `link`. Every legend value is also a top-level verb over `flip` — `mt done` is `mt flip done`, generated from the legend rather than declared as a subcommand.
-- `go` is neither: hands the file to the configured editor; mutates nothing itself.
-
-Recurrence never materializes as a side effect of a read: an instance is spawned or refreshed only by an explicit `mt recur`, and `mt done` closes a task without creating or advancing anything.
-
-“Byte-identical” means the _authored_ tree — task files and config. A read may still populate the git-ignored `.mindtape/cache/` scratch, derived state the way `target/` is.
+Read commands never mutate the authored tree; only explicit write commands do. Which verb is which, the per-command read test, and the CLI command list it is read from are in [docs/contributing/command-semantics.md](docs/contributing/command-semantics.md).
 
 ## Documentation
 
-Docs live in `www/content/*.typ` and the `docs/src/*.typ` Markdown sources. A touched file is refactored whole, one home per fact, checked examples over described ones; the rules and the `just dup-prose` audit are in [docs/contributing/documentation.md](docs/contributing/documentation.md).
+Docs live in `www/content/*.typ` and the `docs/src/*.typ` Markdown sources. A touched file is refactored whole, one home per fact, checked examples over described ones; the rules and the `just dup-prose` audit are in [docs/contributing/documentation.md](docs/contributing/documentation.md). Why the site build always rebuilds clean is in [docs/contributing/docs-site-build.md](docs/contributing/docs-site-build.md).
 
 ## Extending MindTape
 

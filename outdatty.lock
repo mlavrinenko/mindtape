@@ -6,7 +6,7 @@ groups:
       crates/mindtape-cli/src/add.rs: ee82600323fff898555b5b0431cc0685112d89e07971a59108bb15d64a93fc1c
       crates/mindtape-cli/src/check.rs: eba248cd1eae006eb2d4626a3048d9221392b907de8be01077240e1d85aaf075
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
-      crates/mindtape-cli/src/completion.rs: e63f63be2f0773aaa6c41bb12abde546ba55dd520534643ce27e11edf19fec71
+      crates/mindtape-cli/src/completion.rs: 57c91a4a3262f28a93f8a17dead4e4c2381fcf09cd366dde34f38a7be3ff8141
       crates/mindtape-cli/src/config_cmd.rs: 06bfb3545bd2554cb1b5ff0a1f6ec5ad40c82e0b5dd0fd30129871375a92db61
       crates/mindtape-cli/src/eval.rs: df74534777cb181b3eb43186d9684cd9ff470a95b209cf2b96d33bbf7e72d8b5
       crates/mindtape-cli/src/find.rs: 2524ada47afeb3d72c42b35ebf7e9e8c3774fbe4ec8f616186e2c2269228dfdd
@@ -28,7 +28,7 @@ groups:
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
       crates/mindtape-cli/src/recur.rs: bbf9679a030018aad665e9f62c7d66de531452e18d0208f17eed1393e236c2d6
       crates/mindtape-cli/src/review.rs: f86a0772326ab3ce0e500c7a3e900483ebd402193259ac4ab279abaac023aae0
-      crates/mindtape-cli/src/rm.rs: 7209ea4bf9823d86087615f0a19aec9e3613eba55c15543901f37ddcdf92f40f
+      crates/mindtape-cli/src/rm.rs: 7805baae719d2e80f31209222552927fc90be8623da29d412b5bca09dfc969ac
       crates/mindtape-cli/src/set.rs: 2c8aa03b758b040df3c007099e4776beb8b284ceb58f497ee66b33d9bc41e363
       crates/mindtape-cli/src/views.rs: a6987780b57f9651a48af4e5c559b4c3972e06f428be39799af0c9529c6f0483
       crates/mindtape-cli/src/worktrees.rs: 78617369d3fb90e6e30605fb5e23b3f795f1ab2a671914aefdd5d2b1868a5fc5
@@ -64,7 +64,8 @@ groups:
     dependents:
       CHANGELOG.md: 54f677f05c0812a3756f17ac38f65ff59a4068a7e882424ba455fdff5591e927
       docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
-      docs/src/contributing.typ: 611c9295202a2631b0006a41a9a8c78dc8b8865b2d7c3324f641734bcbaa91d6
+      docs/src/contributing.typ: 8657550069f12ebd2631bb8d769a438cd1c370bc2dba07170578ae04c3bbc093
+      docs/src/contributing/command-semantics.typ: ef5583a2dcd79fe59c64e04a9b54dcdf82d000c17aa7ecb9d96f6b7eab157a25
       docs/src/readme.typ: 7ba1ff3c4b553522d609390d302edc22e910d9a86a7b3ad6528a7db4b506f7a5
       docs/src/skill.typ: 92175d2797ecc79fdf920bab08b64dc2f3e4d2cbc82fdf53844d13eb92f95e14
       www/content/cli.typ: 7b26ed5ed4878b5bc3958eaf076d9e88dcd14ea212e28bf0300e555f2a932ce2
@@ -82,7 +83,8 @@ groups:
       .just/scripts/check-doc-coverage.sh: cd807909a61d3687d5f2307cb3e81114c73a56916664d1c2c747dbfb45a53454
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-recipes.sh: 87eff1bf6f36d349ea618a5c3356abbd80f1437eaa28103dcce151ec697649c8
-      .just/scripts/check-secrets.sh: b1f55a8dd215942148c1c3c48199c03f02d83fe21b6c91a0ede8e66290c1d441
+      .just/scripts/check-secrets-manifest.sh: ff2bd2525d6465486c5576cbb8a2a8a7960767e08141346529fd68baf222e1b8
+      .just/scripts/check-secrets.sh: 9fc40236aea059fba71ed2ad29f21ba25e5e399c14f4b960746717d7062e042c
       .just/scripts/cover.sh: b64a43362b1f478b9642a6746b5309ab880f8f4b4d8fffad62444de5a75a20dd
       .just/scripts/crap-baseline-check.sh: e13730ba63d1433e27c2a3d0baa549e017e9a6376a8fd3783cbaa132499f71f9
       .just/scripts/crap-baseline.sh: fc4003b161304a2098571ebc768b0c713df0ac0e0ad068f013016e1373f200b5
@@ -104,9 +106,12 @@ groups:
       flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
     dependents:
       docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
-      docs/src/contributing.typ: 62f82aba162d44f9ccc54210a7fc47697ebb91d159bb52fbbfea01518184ef44
-      docs/src/contributing/coverage-crap.typ: ec874196bc672aff1d387c4402c865a87eac31845bf1307a171c12019d4c757c
-      docs/src/contributing/gates.typ: a17b62e75a354ee31495a797bec09ccc3f801a595485d581ad34bb3cd3f9a7be
+      docs/src/contributing.typ: 8657550069f12ebd2631bb8d769a438cd1c370bc2dba07170578ae04c3bbc093
+      docs/src/contributing/coverage-crap.typ: 26658dc10c32b0da691341810ae71f7247e438f6c3b1501148ea42a273c69f3d
+      docs/src/contributing/crap-baseline.typ: 3277e015519112bca1c8a1395a19aad42a645c613a2e77fd99db819b5642e923
+      docs/src/contributing/docs-site-build.typ: 5578b469d5e608412655e4c3190667cc07af6c01f34e470311132451e160c80f
+      docs/src/contributing/example-projects.typ: 56b3f324691d3b278f8a0e3220c00cc0abb13850840b02dd8510b1f0066fccbd
+      docs/src/contributing/gates.typ: 8395c98d7c87ce32488f68ae9afc850be6bba5636bc9ce8c84da20057c89303a
       docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
       docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c
       docs/src/contributing/windows.typ: dbee6e2e6e6bc8723f477acccc168c7cd6518649605564235ce556e0233d8749

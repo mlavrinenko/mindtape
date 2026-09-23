@@ -219,3 +219,7 @@ fn eval_marker(root: &Path, config: &Config, candidate: Candidate<'_>) -> Result
 #[cfg(test)]
 #[path = "candidate_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "candidate_tests_body.rs"]
+mod tests_body;

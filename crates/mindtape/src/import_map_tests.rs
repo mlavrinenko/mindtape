@@ -6,14 +6,12 @@ use serde_json::json;
 use typst_harvest::HVal;
 
 use super::*;
-use crate::canonical::{
-    CanonicalLink, CanonicalNum, CanonicalPriority, CanonicalStatus, CanonicalTask,
-};
+use crate::canonical::{CanonicalLink, CanonicalNum, CanonicalPriority, CanonicalTask};
 use crate::config::{Config, parse_config};
 use crate::numeric::{InputValue, NumValue};
 use crate::recur::{CanonicalRecur, CanonicalRule};
 
-fn canonical(title: &str) -> CanonicalTask {
+pub(super) fn canonical(title: &str) -> CanonicalTask {
     CanonicalTask {
         id: "c1".to_owned(),
         title: title.to_owned(),
@@ -24,7 +22,7 @@ fn canonical(title: &str) -> CanonicalTask {
 /// Legend `proposed`/`done`, a `backend`-only tag allow-list, a `kind` enum
 /// of `bug`/`feature`, and a `Summary`-requiring body-header rule — the
 /// shared fixture for every test that does not need a priority framework.
-fn config() -> Config {
+pub(super) fn config() -> Config {
     parse_config(
         r#"
 [[tasks.status]]
@@ -152,93 +150,6 @@ fn difficulty_in_scale_is_clean() {
     let mut c = canonical("x");
     c.difficulty = Some(CanonicalNum::Num(3.0));
     let mapped = map_canonical(&c, &config(), &MapOptions::default());
-    assert!(!mapped.report.has_violations());
-}
-
-// --- status ----------------------------------------------------------
-
-#[test]
-fn missing_status_defaults_to_initial_legend_value() {
-    let c = canonical("x");
-    let mapped = map_canonical(&c, &config(), &MapOptions::default());
-    let status = mapped.task.status.expect("status defaulted");
-    assert_eq!(status.name, "proposed");
-    assert!(status.date.is_some());
-    assert!(
-        mapped
-            .report
-            .entries
-            .iter()
-            .any(|e| e.field == "status" && e.kind == EntryKind::Defaulted)
-    );
-}
-
-#[test]
-fn status_without_date_stamps_today() {
-    let mut c = canonical("x");
-    c.status = Some(CanonicalStatus {
-        name: "proposed".to_owned(),
-        date: None,
-        note: None,
-    });
-    let mapped = map_canonical(&c, &config(), &MapOptions::default());
-    let status = mapped.task.status.expect("status present");
-    assert_eq!(status.name, "proposed");
-    assert!(status.date.is_some());
-    assert!(
-        mapped
-            .report
-            .entries
-            .iter()
-            .any(|e| e.field == "status.date" && e.kind == EntryKind::Defaulted)
-    );
-}
-
-#[test]
-fn out_of_legend_status_is_reported_not_silently_accepted() {
-    let mut c = canonical("x");
-    c.status = Some(CanonicalStatus {
-        name: "bogus".to_owned(),
-        date: Some("2026-01-01".to_owned()),
-        note: None,
-    });
-    let mapped = map_canonical(&c, &config(), &MapOptions::default());
-    assert_eq!(
-        mapped.task.status.as_ref().map(|s| s.name.as_str()),
-        Some("bogus")
-    );
-    assert!(
-        mapped
-            .report
-            .entries
-            .iter()
-            .any(|e| e.field == "status" && e.kind == EntryKind::Violated)
-    );
-}
-
-#[test]
-fn status_map_option_renames_before_legend_check() {
-    let mut c = canonical("x");
-    c.status = Some(CanonicalStatus {
-        name: "todo".to_owned(),
-        date: Some("2026-01-01".to_owned()),
-        note: None,
-    });
-    let mut opts = MapOptions::default();
-    opts.status_map
-        .insert("todo".to_owned(), "proposed".to_owned());
-    let mapped = map_canonical(&c, &config(), &opts);
-    assert_eq!(
-        mapped.task.status.as_ref().map(|s| s.name.as_str()),
-        Some("proposed")
-    );
-    assert!(
-        mapped
-            .report
-            .entries
-            .iter()
-            .any(|e| e.field == "status" && e.kind == EntryKind::Mapped)
-    );
     assert!(!mapped.report.has_violations());
 }
 

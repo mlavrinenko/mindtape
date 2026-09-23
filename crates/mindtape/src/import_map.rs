@@ -111,3 +111,7 @@ fn map_link(link: &crate::canonical::CanonicalLink) -> Link {
 #[cfg(test)]
 #[path = "import_map_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "import_map_tests_status.rs"]
+mod tests_status;

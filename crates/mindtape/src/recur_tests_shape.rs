@@ -51,6 +51,53 @@ fn parse_recur_missing_rule_kind_reports_it() {
     assert_eq!(parse(Some(&val)), None);
 }
 
+/// A `rule` present but `none` reads exactly like an absent one: the null is
+/// filtered before the shape check, and the author is told the field has no
+/// `rule`.
+#[test]
+fn parse_recur_null_rule_reports_the_field() {
+    assert_one_report(
+        &every_val(HVal::Null, vec![]),
+        "recur",
+        "expected a recurrence like `every(weeks: 2)`, found one with no `rule`",
+    );
+}
+
+/// A `rule` that is a value, not a dict, names the `recur.rule` path rather
+/// than reading as no recurrence at all.
+#[test]
+fn parse_recur_non_dict_rule_reports_it() {
+    let val = every_val(HVal::Str("weekly".to_owned()), vec![]);
+    assert_one_report(&val, "recur.rule", "expected a dict, found a string");
+    assert_eq!(parse(Some(&val)), None);
+}
+
+/// A `kind` outside the two the prelude's helpers build names itself.
+#[test]
+fn parse_recur_unknown_rule_kind_reports_it() {
+    let rule = dict(vec![
+        ("kind", HVal::Str("fortnight".to_owned())),
+        ("value", HVal::Int(2)),
+    ]);
+    let val = every_val(rule, vec![]);
+    assert_one_report(
+        &val,
+        "recur.rule.kind",
+        "expected `period` or `rrule`, found `fortnight`",
+    );
+    assert_eq!(parse(Some(&val)), None);
+}
+
+/// An `rrule` rule with no `raw` string is a shape error against the key
+/// `dict_str_required` read, not a rule with an empty pattern.
+#[test]
+fn parse_recur_rrule_missing_raw_reports_it() {
+    let rule = dict(vec![("kind", HVal::Str("rrule".to_owned()))]);
+    let val = every_val(rule, vec![]);
+    assert_one_report(&val, "recur.rule.raw", "expected a string, found none");
+    assert_eq!(parse(Some(&val)), None);
+}
+
 #[test]
 fn parse_recur_unknown_unit_reports_it() {
     let val = every_val(period_rule("fortnights", 1, None), vec![]);

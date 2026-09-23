@@ -312,6 +312,8 @@ scopes:
     - ".just/scripts/check-doc-recipes.sh"
   script-check-secrets:
     - ".just/scripts/check-secrets.sh"
+  script-check-secrets-manifest:
+    - ".just/scripts/check-secrets-manifest.sh"
   script-cover:
     - ".just/scripts/cover.sh"
   script-crap:
@@ -433,9 +435,11 @@ commands:
   # the one directory a gate-tagged rule may not name, argued on the scope
   # itself) and `secrets-config` is the ruleset it reads it with; both are
   # this rule's alone. `mmz-config` is here for script-scope-check's reason,
-  # one file over: arm three of the body reads THIS manifest as data — mmz's
-  # own expansion of `secrets-tree` is what it set-differences `git ls-files`
-  # against — so an input-list edit must re-run the arm that judges it. The
+  # one file over: arm three — now its own body,
+  # .just/scripts/check-secrets-manifest.sh, named by `script-check-secrets-
+  # manifest` below — reads THIS manifest as data; mmz's own expansion of
+  # `secrets-tree` is what it set-differences `git ls-files` against, so an
+  # input-list edit must re-run the arm that judges it. The
   # scope union already covers .mmz/config.yaml through `.mmz/**`, and naming
   # it anyway is the same "a rule reading a file as data says so" the
   # `mmz-config` scope exists for. No `rust`: nothing is built or run here,
@@ -443,7 +447,7 @@ commands:
   # file.
   - name: just check-secrets
     tags: [gate]
-    inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets]
+    inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets, script-check-secrets-manifest]
 
   # outdatty.check re-reads every dependent's current content and compares to
   # the lock. Every dependent lives under `rust`/`policy`/`examples`/`docs`, so

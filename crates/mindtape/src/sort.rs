@@ -271,3 +271,7 @@ mod tests;
 #[cfg(test)]
 #[path = "sort_compare_tests.rs"]
 mod tests_compare;
+
+#[cfg(test)]
+#[path = "sort_compare_tests_comparators.rs"]
+mod tests_compare_comparators;
