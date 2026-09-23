@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[carved the extends-resolution tests into config\_packs\_tests\_extends.rs; 484->361],
 )
 
 == Problem

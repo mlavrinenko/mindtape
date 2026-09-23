@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[added per-arm shape\_of tests; 50.0->~91% (mapping arm unreachable via the parser)],
 )
 
 == Problem

@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[split the resolver into completion\_sources.rs; completion.rs 481->299; baseline 90 clear],
 )
 
 == Problem

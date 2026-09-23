@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[moved the site-build section into docs-site-build.typ; 200->187],
 )
 
 == Problem

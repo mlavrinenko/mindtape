@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[carved the body-rule refusal tests into candidate\_tests\_body.rs; 457->313],
 )
 
 == Problem

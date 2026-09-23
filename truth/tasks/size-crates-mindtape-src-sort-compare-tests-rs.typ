@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[carved the comparator unit tests into sort\_compare\_tests\_comparators.rs; 457->387],
 )
 
 == Problem

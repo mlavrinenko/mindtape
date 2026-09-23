@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[moved Command Semantics to docs/src/contributing/command-semantics.typ; contributing.typ 260->226; baseline 90 clear],
 )
 
 == Problem

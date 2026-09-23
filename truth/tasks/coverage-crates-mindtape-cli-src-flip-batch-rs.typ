@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[added flip\_batch\_tests.rs covering revalidate's two positive branches; 75.0->97.1%],
 )
 
 == Problem

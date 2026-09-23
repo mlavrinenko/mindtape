@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[extracted the density assertion into content\_gate\_density.rs; content\_gate.rs 488->323; baseline 90 clear],
 )
 
 == Problem

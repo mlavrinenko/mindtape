@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[carved the in\_view predicate tests into filter\_in\_view\_tests.rs; 462->405],
 )
 
 == Problem

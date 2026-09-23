@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[moved the baseline and mint sections into crap-baseline.typ; 205->160],
 )
 
 == Problem

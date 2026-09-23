@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[carved the target-selection cluster into rm\_tests\_select.rs; 476->345],
 )
 
 == Problem

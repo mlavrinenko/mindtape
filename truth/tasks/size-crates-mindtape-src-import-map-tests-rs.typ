@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[carved the status-mapping tests into import\_map\_tests\_status.rs; 486->397],
 )
 
 == Problem

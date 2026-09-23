@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 23),
+  status: done(
+    2026,
+    9,
+    23,
+  )[split the release-workflow derivation into www/generate-release-targets.sh; generate.sh 300->245; baseline 90 clear],
 )
 
 == Problem
