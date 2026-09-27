@@ -1306,6 +1306,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   return as the bounds: a closed task keeps whatever unit it was estimated in,
   and retiring a unit is one edit to `units`, refused only on an open task
   still carrying it.
+- **`[tasks.tags] allowed` is checked on open tasks only.** `check_tags`
+  checked authored and folder-derived tags on every task regardless of
+  status, so dropping a tag from `allowed` failed `mt check` against every
+  closed task ever tagged with it. It now skips terminal tasks, matching the
+  estimate unit check: a closed task keeps the tags it was filed with,
+  authored and derived alike, and dropping a tag refuses only an open task
+  still carrying it.
 
 ## [0.3.0] - 2026-08-10
 

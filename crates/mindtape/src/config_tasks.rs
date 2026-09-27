@@ -47,7 +47,7 @@ pub struct TasksConfig {
     pub assignee: crate::config_assignee::AssigneeConfig,
     /// Estimate units allow-list.
     pub estimate: EstimateConfig,
-    /// Tag allow-list.
+    /// Tag allow-list, checked on open tasks only.
     pub tags: TagsConfig,
     /// Body-shape constraints (heading gating).
     pub body: TaskBodyConfig,
@@ -203,9 +203,11 @@ pub struct FieldConfig {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TagsConfig {
-    /// Allowed tag names. Empty = any. An entry of the form `@<dict>`
-    /// expands to that `[dicts.<name>]` set at config load — see
-    /// [`FieldConfig::values`] and [`expand_dict_refs`].
+    /// Allowed tag names. Empty = any. Checked on open tasks only — a
+    /// terminal task keeps whatever tags it was filed with, authored and
+    /// folder-derived alike. An entry of the form `@<dict>` expands to that
+    /// `[dicts.<name>]` set at config load — see [`FieldConfig::values`] and
+    /// [`expand_dict_refs`].
     pub allowed: Vec<String>,
 }
 

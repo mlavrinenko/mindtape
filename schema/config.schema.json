@@ -1953,7 +1953,7 @@
       "properties": {
         "allowed": {
           "default": [],
-          "description": "Allowed tag names. Empty = any. An entry of the form `@<dict>`\nexpands to that `[dicts.<name>]` set at config load — see\n[`FieldConfig::values`] and [`expand_dict_refs`].",
+          "description": "Allowed tag names. Empty = any. Checked on open tasks only — a\nterminal task keeps whatever tags it was filed with, authored and\nfolder-derived alike. An entry of the form `@<dict>` expands to that\n`[dicts.<name>]` set at config load — see [`FieldConfig::values`] and\n[`expand_dict_refs`].",
           "items": {
             "type": "string"
           },
@@ -2094,7 +2094,7 @@
         },
         "tags": {
           "$ref": "#/$defs/TagsConfig",
-          "description": "Tag allow-list."
+          "description": "Tag allow-list, checked on open tasks only."
         }
       },
       "type": "object"

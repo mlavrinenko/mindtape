@@ -377,9 +377,17 @@ fn check_estimate(
     }
 }
 
+/// Flag an authored or folder-derived tag outside `[tasks.tags] allowed`.
+/// Skipped once a task is terminal — a closed task keeps the tags it was
+/// filed with, authored and derived alike, so dropping a tag from `allowed`
+/// is one edit rather than a rewrite of every closed task that ever carried
+/// it.
 fn check_tags(task: &Task, config: &Config, out: &mut Vec<Violation>) {
     let allowed = &config.tasks.tags.allowed;
     if allowed.is_empty() {
+        return;
+    }
+    if task.is_terminal(&config.tasks.status.terminal()) {
         return;
     }
     for tag in &task.tags {

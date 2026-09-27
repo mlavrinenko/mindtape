@@ -152,6 +152,28 @@ fn disallowed_derived_tag_near_miss_suggests_the_allowed_tag() {
     assert!(hit.message.contains("did you mean: backend?"), "{hit:?}");
 }
 
+#[test]
+fn terminal_task_keeps_a_dropped_tag() {
+    let mut item = task("a", "done");
+    item.tags = vec!["frontend".to_owned()];
+    let violations = validate(&[item], &config());
+    assert!(
+        !violations.iter().any(|v| v.field == "tags"),
+        "a terminal task should keep whatever tag it was filed with, got: {violations:?}"
+    );
+}
+
+#[test]
+fn terminal_task_keeps_a_dropped_derived_tag() {
+    let mut item = task("a", "done");
+    item.derived_tags = vec!["marketing".to_owned()];
+    let violations = validate(&[item], &config());
+    assert!(
+        !violations.iter().any(|v| v.field == "tags"),
+        "a terminal task should keep whatever tag its folder derived, got: {violations:?}"
+    );
+}
+
 /// A config with ICE active in strict mode (no manual integers).
 fn strict_ice_config() -> Config {
     parse_config(

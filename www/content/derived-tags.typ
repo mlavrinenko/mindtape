@@ -60,5 +60,7 @@ by default, since the root name is already emitted as its own standalone tag.
 = How they behave
 
 - #strong[Virtual] — never written back to the file.
-- Validated strictly against `[tasks.tags] allowed`, the same as authored tags —
-  a derived tag outside the allow-list fails `mt check`.
+- Validated strictly against `[tasks.tags] allowed`, the same as authored
+  tags, and on open tasks only — a derived tag outside the allow-list fails
+  `mt check` on an open task; a closed one keeps whatever its folder derived
+  when it was filed.
