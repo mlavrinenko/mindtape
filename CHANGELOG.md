@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A `why` column says what a blocked task waits on.** `mt ls blocked` named
+  the stuck tasks but not their blockers, so an agent ran `mt eval` on each
+  task and then on each target. `--columns title,why` now lists every
+  unfinished direct blocking-kind target with its status (`waits on: a
+  (proposed), b (wip)`), and `--json` carries it as `why: [{stem, status,
+  kind}]` on every task, empty when ready. The column is `named()` in the floor,
+  so nothing changes until it is asked for.
+
 - **Shell completions, answered by the binary rather than generated into a
   file.** Tab after `mt flip ` used to offer nothing, and no completion script
   was ever written because the values worth completing are all

@@ -99,9 +99,9 @@ recipe, not a spec.
 
 #callout("note")[
   Computed and empty fields (`id`, `file`, `estimate`, `links`,
-  `derived_tags`, `body`, `extras`) can be omitted from a canonical record;
-  absent keys default to empty values. `mt import` recomputes `id` from the
-  title and ignores `file` and `derived_tags` entirely.
+  `derived_tags`, `why`, `body`, `extras`) can be omitted from a canonical
+  record; absent keys default to empty values. `mt import` recomputes `id`
+  from the title and ignores `file`, `derived_tags` and `why` entirely.
 ]
 
 #callout("note")[

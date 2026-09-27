@@ -104,3 +104,33 @@ fn custom_blocking_kind_gates_readiness() {
     let ready = Readiness::compute(&tasks, &cfg);
     assert_eq!(ready.state(&tasks[0]), ReadyState::Blocked);
 }
+
+#[test]
+fn blockers_name_each_unfinished_target_with_its_status() {
+    let tasks = [
+        task("done-dep", "done", &[]),
+        task("open-dep", "wip", &[]),
+        task("a", "wip", &["done-dep.typ", "open-dep.typ", "missing.typ"]),
+    ];
+    let ready = Readiness::compute(&tasks, &config());
+    let blockers: Vec<(&str, Option<&str>, &str)> = ready
+        .blockers(&tasks[2])
+        .iter()
+        .map(|b| (b.stem.as_str(), b.status.as_deref(), b.kind.as_str()))
+        .collect();
+    assert_eq!(
+        blockers,
+        [
+            ("open-dep", Some("wip"), "depends-on"),
+            ("missing", None, "depends-on"),
+        ]
+    );
+}
+
+#[test]
+fn a_ready_or_settled_task_has_no_blockers() {
+    let tasks = [task("dep", "done", &[]), task("a", "wip", &["dep.typ"])];
+    let ready = Readiness::compute(&tasks, &config());
+    assert!(ready.blockers(&tasks[0]).is_empty());
+    assert!(ready.blockers(&tasks[1]).is_empty());
+}

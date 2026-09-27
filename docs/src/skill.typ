@@ -122,7 +122,8 @@ states listed; `--force` overrides it, and waives a failing `[[on.flip]]` gate
 environment, so a binary from the project's dev shell is found only when `mt`
 ran inside that shell; exit 127 is "binary not found", not a refusal.
 
-`ready`/`blocked` derive from the `links:` graph. Most legends carry no `blocked` status
+`ready`/`blocked` derive from the `links:` graph; `mt ls blocked --columns title,why`
+names what each blocked task waits on. Most legends carry no `blocked` status
 — check `mt flip --list` before reaching for one. An external blocker with no
 task to depend on: file a task for it and depend on that, or park the task in
 a pre-start status with the reason in the note

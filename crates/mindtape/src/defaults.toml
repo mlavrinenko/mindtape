@@ -159,6 +159,12 @@ when = 'contested()'
 [ls.columns.title]
 when = 'true'
 
+# What each blocked task waits on. Opt-in: `ready` already flags that a row is
+# stuck, and the blocker list is a question asked on purpose
+# (`mt ls blocked --columns title,why`), not a default.
+[ls.columns.why]
+when = 'named()'
+
 # The `file` column is opt-in on a terminal and automatic everywhere else.
 #
 # On a TTY the `#` handle is the address a reader wants: two characters, typed

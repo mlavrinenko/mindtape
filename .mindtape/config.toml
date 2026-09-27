@@ -396,6 +396,14 @@ filter = 'assignee == "agent" && !terminal'
 sort = ["priority:desc"]
 description = "Open tasks an agent can take"
 
+# What is stuck and on what: `why` names each blocked task's unfinished
+# dependencies, so unblocking starts from one listing rather than a link walk.
+[views.blocked]
+filter = "blocked"
+sort = ["blocks:desc", "priority:desc"]
+columns = ["#", "title", "why"]
+description = "Blocked tasks and what each waits on"
+
 # Closing a task asserts the gate already ran against this worktree, rather
 # than running it here. `mmz --is-fresh --tag gate` exits 0 only when every
 # gate-tagged rule in .mmz/config.yaml last passed with these inputs unchanged;

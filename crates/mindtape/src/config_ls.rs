@@ -30,8 +30,8 @@ use crate::sort::validate_sort_spec;
 /// All three live as one `when` expression per column in
 /// `crates/mindtape/src/defaults.toml`, not in Rust — see
 /// [`crate::config_ls_columns`].
-pub const LS_COLUMNS: [&str; 8] = [
-    "#", "status", "ready", "priority", "due", "assignee", "title", "file",
+pub const LS_COLUMNS: [&str; 9] = [
+    "#", "status", "ready", "priority", "due", "assignee", "title", "why", "file",
 ];
 
 /// `[ls]` — `mt ls` defaults.

@@ -13,8 +13,10 @@
 //! History-pointer targets (SWHID tombstones) are already absent from
 //! [`Task::links`], so a dependency retired by `cleanup` stops blocking.
 
-use std::collections::HashSet;
-use std::path::PathBuf;
+use std::collections::{HashMap, HashSet};
+use std::path::{Path, PathBuf};
+
+use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
 use crate::graph::DepIndex;
@@ -32,6 +34,19 @@ pub enum ReadyState {
     Settled,
 }
 
+/// One unfinished direct blocking-kind target: what a blocked task waits on.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Blocker {
+    /// The target's stem, or the edge's own target stem when it names no
+    /// loaded task.
+    pub stem: String,
+    /// The target's status name; `None` when the target is not loaded or
+    /// carries no status.
+    pub status: Option<String>,
+    /// The blocking edge kind.
+    pub kind: String,
+}
+
 /// Dependency-readiness over a task set: which tasks are ready vs blocked.
 ///
 /// Build this once over the *full* loaded set with [`compute`](Self::compute): a
@@ -42,7 +57,7 @@ pub enum ReadyState {
 #[derive(Debug, Clone, Default)]
 pub struct Readiness {
     ready: HashSet<PathBuf>,
-    blocked: HashSet<PathBuf>,
+    blocked: HashMap<PathBuf, Vec<Blocker>>,
 }
 
 impl Readiness {
@@ -67,17 +82,24 @@ impl Readiness {
             if task.is_terminal(&terminal) {
                 continue; // settled — neither ready nor blocked
             }
-            let ready = kinds.iter().all(|&kind| {
-                task.link_targets(kind).all(|target| {
-                    index
-                        .resolve(task, target)
-                        .is_some_and(|dep| dep.is_terminal(&terminal))
-                })
-            });
-            if ready {
+            let mut blockers = Vec::new();
+            for &kind in &kinds {
+                for target in task.link_targets(kind) {
+                    let dep = index.resolve(task, target);
+                    if dep.is_some_and(|dep| dep.is_terminal(&terminal)) {
+                        continue;
+                    }
+                    blockers.push(Blocker {
+                        stem: dep.map_or_else(|| target_stem(target), |dep| dep.id.clone()),
+                        status: dep.and_then(|dep| dep.status.as_ref().map(|s| s.name.clone())),
+                        kind: kind.to_owned(),
+                    });
+                }
+            }
+            if blockers.is_empty() {
                 out.ready.insert(task.file.clone());
             } else {
-                out.blocked.insert(task.file.clone());
+                out.blocked.insert(task.file.clone(), blockers);
             }
         }
         out
@@ -92,7 +114,14 @@ impl Readiness {
     /// Whether `task` is blocked: non-terminal with an unmet dependency.
     #[must_use]
     pub fn is_blocked(&self, task: &Task) -> bool {
-        self.blocked.contains(&task.file)
+        self.blocked.contains_key(&task.file)
+    }
+
+    /// What `task` waits on: its unfinished direct blocking-kind targets, in
+    /// edge order. Empty unless the task is blocked.
+    #[must_use]
+    pub fn blockers(&self, task: &Task) -> &[Blocker] {
+        self.blocked.get(&task.file).map_or(&[], Vec::as_slice)
     }
 
     /// `task`'s readiness state.
@@ -106,6 +135,29 @@ impl Readiness {
             ReadyState::Settled
         }
     }
+}
+
+/// `blockers` as one line — `waits on: a (proposed), b (wip)` — or empty when
+/// there are none. A target with no known status reads `unknown`.
+#[must_use]
+pub fn waits_on(blockers: &[Blocker]) -> String {
+    if blockers.is_empty() {
+        return String::new();
+    }
+    let list: Vec<String> = blockers
+        .iter()
+        .map(|b| format!("{} ({})", b.stem, b.status.as_deref().unwrap_or("unknown")))
+        .collect();
+    format!("waits on: {}", list.join(", "))
+}
+
+/// The stem an unresolved edge target names: its file stem, else the target
+/// verbatim.
+fn target_stem(target: &str) -> String {
+    Path::new(target).file_stem().map_or_else(
+        || target.to_owned(),
+        |stem| stem.to_string_lossy().into_owned(),
+    )
 }
 
 #[cfg(test)]

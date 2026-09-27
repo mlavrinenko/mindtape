@@ -112,7 +112,7 @@ pub fn render(
 ) -> Result<String> {
     match format {
         OutputFormat::Table => crate::render::table::render(tasks, ctx),
-        OutputFormat::Json => render_json(tasks, ctx.config, envelope),
+        OutputFormat::Json => render_json(tasks, ctx.config, ctx.readiness, envelope),
         OutputFormat::Csv => render_csv(tasks, ctx),
         OutputFormat::Path => Ok(render_path(tasks)),
         OutputFormat::Path0 => Ok(render_path0(tasks)),
@@ -141,10 +141,19 @@ fn render_path0(tasks: &[Task]) -> String {
         .collect()
 }
 
-fn render_json(tasks: &[Task], config: &Config, envelope: Option<Envelope<'_>>) -> Result<String> {
+fn render_json(
+    tasks: &[Task],
+    config: &Config,
+    readiness: &Readiness,
+    envelope: Option<Envelope<'_>>,
+) -> Result<String> {
     let array: Vec<Value> = tasks
         .iter()
-        .map(|task| task_to_json(task, config))
+        .map(|task| {
+            let mut canonical = CanonicalTask::from_task(task, config);
+            canonical.why = readiness.blockers(task).to_vec();
+            serde_json::to_value(canonical).unwrap_or(Value::Null)
+        })
         .collect();
     let body = match envelope {
         Some(envelope) => json!({
@@ -247,6 +256,7 @@ fn csv_header(id: ColumnId) -> &'static str {
         ColumnId::Due => "due",
         ColumnId::Assignee => "assignee",
         ColumnId::Title => "title",
+        ColumnId::Why => "why",
         ColumnId::File => "file",
     }
 }
@@ -264,6 +274,7 @@ fn csv_value(id: ColumnId, task: &Task, config: &Config, readiness: &Readiness) 
         ColumnId::Due => task.due.clone().unwrap_or_default(),
         ColumnId::Assignee => task.assignee.clone().unwrap_or_default(),
         ColumnId::Title => task.title.clone(),
+        ColumnId::Why => mindtape::waits_on(readiness.blockers(task)),
         ColumnId::File => task.file.display().to_string(),
     }
 }

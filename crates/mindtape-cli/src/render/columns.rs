@@ -21,7 +21,7 @@
 use anyhow::{Context, Result};
 use mindtape::{
     ColumnFacts, Condition, ConditionEnv, Config, Readiness, ReadyState, Task, format_iso,
-    today_iso,
+    today_iso, waits_on,
 };
 
 use super::RenderCtx;
@@ -41,6 +41,7 @@ pub enum ColumnId {
     Due,
     Assignee,
     Title,
+    Why,
     File,
 }
 
@@ -53,7 +54,7 @@ pub enum ColumnId {
 /// rather than being tacked on at the end like `File`: when it renders at all
 /// it is because the rows disagree about it, and that is metadata to read
 /// alongside status and priority, not a trailing path.
-pub const ORDER: [ColumnId; 8] = [
+pub const ORDER: [ColumnId; 9] = [
     ColumnId::Handle,
     ColumnId::Status,
     ColumnId::Ready,
@@ -61,6 +62,7 @@ pub const ORDER: [ColumnId; 8] = [
     ColumnId::Due,
     ColumnId::Assignee,
     ColumnId::Title,
+    ColumnId::Why,
     ColumnId::File,
 ];
 
@@ -76,6 +78,7 @@ impl ColumnId {
             ColumnId::Due => "due",
             ColumnId::Assignee => "assignee",
             ColumnId::Title => "title",
+            ColumnId::Why => "why",
             ColumnId::File => "file",
         }
     }
@@ -91,6 +94,7 @@ impl ColumnId {
             ColumnId::Due => "DUE",
             ColumnId::Assignee => "ASSIGNEE",
             ColumnId::Title => "TITLE",
+            ColumnId::Why => "WHY",
             ColumnId::File => "FILE",
         }
     }
@@ -127,6 +131,7 @@ impl ColumnId {
             ColumnId::Due => due_cell(task, config),
             ColumnId::Assignee => plain(task.assignee.clone().unwrap_or_default()),
             ColumnId::Title => plain(task.title.clone()),
+            ColumnId::Why => plain(waits_on(readiness.blockers(task))),
             ColumnId::File => plain(file_path::cell_text(&task.file)),
         }
     }

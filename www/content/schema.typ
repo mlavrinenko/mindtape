@@ -59,6 +59,12 @@ import):
   [computed],
   [Folder-derived virtual tags; import reads `tags` only, never this.],
 
+  [`why`],
+  [computed],
+  [`[{stem, status, kind}]` — the unfinished direct blocking-kind targets a
+    listed task waits on; empty unless it is blocked, and always empty from
+    `mt eval`, which sees no task set.],
+
   [`due`], [authored], [`YYYY-MM-DD`.],
   [`start`], [authored], [`YYYY-MM-DD`.],
   [`reviewed`], [authored], [`YYYY-MM-DD`.],

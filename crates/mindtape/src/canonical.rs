@@ -23,6 +23,7 @@
 //! | `links`         | authored | `[{task, kind, note}]`                              |
 //! | `tags`          | authored | authored tags only                                  |
 //! | `derived_tags`  | computed | folder-derived virtual tags; import reads `tags` only |
+//! | `why`           | computed | unfinished blocking targets `[{stem, status, kind}]`; empty unless blocked |
 //! | `due`           | authored |                                                      |
 //! | `start`         | authored |                                                      |
 //! | `reviewed`      | authored |                                                      |
@@ -97,6 +98,11 @@ pub struct CanonicalTask {
     /// Folder-derived virtual tags (read-only; never authored).
     #[serde(default)]
     pub derived_tags: Vec<String>,
+    /// What the task waits on: its unfinished direct blocking-kind targets
+    /// (read-only). Needs the whole task set, so [`Self::from_task`] leaves
+    /// it empty and a listing fills it from its [`crate::Readiness`].
+    #[serde(default)]
+    pub why: Vec<crate::ready::Blocker>,
     /// Due date, `YYYY-MM-DD`.
     pub due: Option<String>,
     /// Start date, `YYYY-MM-DD`.
@@ -196,6 +202,7 @@ impl CanonicalTask {
             links: task.links.iter().map(canonical_link).collect(),
             tags: task.tags.clone(),
             derived_tags: task.derived_tags.clone(),
+            why: Vec::new(),
             due: task.due.clone(),
             start: task.start.clone(),
             reviewed: task.reviewed.clone(),
