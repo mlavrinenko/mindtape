@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unit outside a declared `[tasks.estimate] units` is a config error at load;
   `has(x-<ns>)` tests an extension slot's presence.
 
+- **A status can refuse blocked work.** The legend's `to` edges checked the
+  status pair, never the graph, so `mt done` closed a task whose dependency was
+  still proposed. `unblocked = true` on a `[[tasks.status]]` entry now makes
+  `mt flip` refuse entering it while a direct blocking-kind target is
+  unfinished, naming each one (`--force` overrides), and `mt check` warns about
+  a task already there. The `flow` and `gated` presets and this repo set it on
+  `wip` and `done`.
+
 - **A `why` column says what a blocked task waits on.** `mt ls blocked` named
   the stuck tasks but not their blockers, so an agent ran `mt eval` on each
   task and then on each target. `--columns title,why` now lists every

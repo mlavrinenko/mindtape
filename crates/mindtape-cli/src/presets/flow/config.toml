@@ -7,7 +7,8 @@
 # Once any status declares `to`, `mt flip` gates every move to a listed edge
 # (a same-status re-stamp and the first stamp on a status-less task stay
 # exempt; `--force` overrides) and `mt check` flags a task sitting in a state
-# unreachable from the first one.
+# unreachable from the first one. `unblocked = true` on `wip` and `done`
+# refuses entering them while a `depends-on` target is still open.
 
 [tasks]
 # Folder-derived tags: a task at tasks/backend/auth/rotate-keys.typ picks up
@@ -32,6 +33,7 @@ value = "wip"
 glyph = "🔨"
 color = "yellow"
 to = ["blocked", "done", "cancelled"]
+unblocked = true
 
 # Blocked is not terminal: the work is still live, it just cannot proceed.
 [[tasks.status]]
@@ -46,6 +48,7 @@ glyph = "✅"
 color = "green"
 terminal = true
 to = ["wip"]
+unblocked = true
 
 # A sink: nothing leaves `cancelled` without `--force`.
 [[tasks.status]]

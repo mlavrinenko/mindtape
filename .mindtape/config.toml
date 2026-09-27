@@ -29,7 +29,8 @@ derive-tags = true
 # re-stamp and an unset→any first stamp stay exempt; `--force` overrides), and
 # `mt check` flags a task sitting in a status unreachable from `proposed`. The
 # terminal `done`/`failed` states declare reopen edges back to `wip`; `cancelled`
-# is a sink (revive it with `--force`).
+# is a sink (revive it with `--force`). `unblocked = true` on `wip` and `done`
+# refuses entering them while a `depends-on` target is unfinished.
 [[tasks.status]]
 value = "proposed"
 glyph = "💡"
@@ -46,6 +47,7 @@ to = ["wip", "cancelled"]
 value = "wip"
 glyph = "🔨"
 color = "yellow"
+unblocked = true
 to = ["done", "failed", "accepted"]
 
 [[tasks.status]]
@@ -53,6 +55,7 @@ value = "done"
 glyph = "✅"
 color = "green"
 terminal = true
+unblocked = true
 to = ["wip", "cancelled", "failed"]
 
 [[tasks.status]]

@@ -82,20 +82,7 @@ impl Readiness {
             if task.is_terminal(&terminal) {
                 continue; // settled — neither ready nor blocked
             }
-            let mut blockers = Vec::new();
-            for &kind in &kinds {
-                for target in task.link_targets(kind) {
-                    let dep = index.resolve(task, target);
-                    if dep.is_some_and(|dep| dep.is_terminal(&terminal)) {
-                        continue;
-                    }
-                    blockers.push(Blocker {
-                        stem: dep.map_or_else(|| target_stem(target), |dep| dep.id.clone()),
-                        status: dep.and_then(|dep| dep.status.as_ref().map(|s| s.name.clone())),
-                        kind: kind.to_owned(),
-                    });
-                }
-            }
+            let blockers = collect_blockers(task, &index, &kinds, &terminal);
             if blockers.is_empty() {
                 out.ready.insert(task.file.clone());
             } else {
@@ -135,6 +122,53 @@ impl Readiness {
             ReadyState::Settled
         }
     }
+}
+
+/// What `task` waits on regardless of its own status: its unfinished direct
+/// blocking-kind targets within `tasks`, in edge order. Unlike
+/// [`Readiness::blockers`] this answers for a terminal task too, which is what
+/// a guard on *entering* a status needs.
+#[must_use]
+pub fn blockers_of(tasks: &[Task], task: &Task, config: &Config) -> Vec<Blocker> {
+    let terminal = config.tasks.status.terminal();
+    let kinds = blocking_kinds(&config.tasks.links);
+    collect_blockers(task, &DepIndex::build(tasks), &kinds, &terminal)
+}
+
+/// The unfinished direct `kinds` targets of `task`, resolved through `index`:
+/// a target that is non-terminal or names no loaded task.
+pub(crate) fn collect_blockers(
+    task: &Task,
+    index: &DepIndex<'_>,
+    kinds: &[&str],
+    terminal: &[String],
+) -> Vec<Blocker> {
+    let mut blockers = Vec::new();
+    for &kind in kinds {
+        for target in task.link_targets(kind) {
+            let dep = index.resolve(task, target);
+            if dep.is_some_and(|dep| dep.is_terminal(terminal)) {
+                continue;
+            }
+            blockers.push(Blocker {
+                stem: dep.map_or_else(|| target_stem(target), |dep| dep.id.clone()),
+                status: dep.and_then(|dep| dep.status.as_ref().map(|s| s.name.clone())),
+                kind: kind.to_owned(),
+            });
+        }
+    }
+    blockers
+}
+
+/// Why entering `status` is refused while `task` waits on `blockers`:
+/// `` `done` requires an unblocked task; waits on: a (proposed) `` — shared
+/// by the `mt flip` refusal and the `mt check` warning.
+#[must_use]
+pub fn unblocked_violation(status: &str, blockers: &[Blocker]) -> String {
+    format!(
+        "`{status}` requires an unblocked task; {}",
+        waits_on(blockers)
+    )
 }
 
 /// `blockers` as one line — `waits on: a (proposed), b (wip)` — or empty when

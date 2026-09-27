@@ -367,6 +367,33 @@ the statuses no other check covers (`blocked`, `failed`, a reopen), and leave
 not for a status entry's — `mt check` never rejects a status note for being
 present.
 
+= Unblocked statuses
+
+Add `unblocked = true` to a status entry to refuse entering it while the task
+is blocked — while any direct `blocking` link target (`depends-on` by default)
+is unfinished:
+
+```toml
+[[tasks.status]]
+value = "done"
+terminal = true
+unblocked = true   # `mt done` refuses while a dependency is still open
+```
+
+`mt flip` names every unfinished target and shares the transition guard's
+`--force` override:
+
+```
+$ mt done publish-0-4-0
+error: publish-0-4-0: `done` requires an unblocked task; waits on: write-atomic (proposed), link-cycle (wip) (use --force to override)
+```
+
+`mt check` warns about a task already sitting in such a status while blocked —
+a warning, not an error, since `--force` lands that state on purpose and
+reopening a dependency puts its finished dependants there without touching
+them. Set it where work starts or finishes (`wip`, `done`); leave it off the
+statuses blocked work must still reach (`cancelled`, `failed`).
+
 = Link kinds
 
 `[[tasks.links.kinds]]` layers project-declared edge kinds over the six built-ins

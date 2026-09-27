@@ -94,6 +94,21 @@ fn gated_preset_ships_a_template() {
     );
 }
 
+/// The work-shaped presets refuse starting or closing blocked work.
+#[test]
+fn work_presets_require_unblocked_wip_and_done() {
+    for name in ["flow", "gated"] {
+        let preset = resolve(name, None).unwrap();
+        let legend = mindtape::parse_config(&preset.render(false))
+            .unwrap()
+            .tasks
+            .status;
+        for status in ["wip", "done"] {
+            assert!(legend.requires_unblocked(status), "{name}: {status}");
+        }
+    }
+}
+
 /// An unknown name errors and names the built-ins, rather than falling through
 /// to a path or a fetch.
 #[test]

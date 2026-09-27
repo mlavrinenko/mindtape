@@ -413,3 +413,34 @@ fn forbidden_kind_with_note_is_flagged() {
             .any(|v| v.field == "no-notes-allowed" && v.message.contains("must not carry a note"))
     );
 }
+
+#[test]
+fn flags_a_blocked_task_sitting_in_an_unblocked_status() {
+    use crate::test_support::{dep_config, dep_task};
+    // `unblocked = true` lands on `done`, the last entry dep_config writes.
+    let config = dep_config("unblocked = true\n");
+    let tasks = [
+        dep_task("open", "wip", &[]),
+        dep_task("closed", "done", &["open.typ"]),
+        dep_task("free", "done", &[]),
+        dep_task("working", "wip", &["open.typ"]),
+    ];
+    let violations = check(&tasks, &config);
+    let hits: Vec<(&str, &str, &str)> = violations
+        .iter()
+        .map(|v| (v.task_id.as_str(), v.field.as_str(), v.message.as_str()))
+        .collect();
+    assert_eq!(
+        hits,
+        [(
+            "closed",
+            "status",
+            "`done` requires an unblocked task; waits on: open (wip)"
+        )]
+    );
+    assert_eq!(
+        violations.first().and_then(|v| v.severity),
+        Some(crate::Severity::Warn)
+    );
+    assert!(check(&tasks, &dep_config("")).is_empty());
+}

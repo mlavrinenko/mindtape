@@ -171,3 +171,18 @@ fn note_required_true_only_for_the_required_variant() {
     e.note = NoteRule::Required;
     assert!(e.note_required());
 }
+
+#[test]
+fn unblocked_is_opt_in_per_entry() {
+    let legend = crate::config::parse_config(
+        "[[tasks.status]]\nvalue = \"wip\"\nunblocked = true\n\
+         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
+    )
+    .unwrap()
+    .tasks
+    .status;
+    assert!(legend.requires_unblocked("wip"));
+    assert!(!legend.requires_unblocked("done"));
+    assert!(!legend.requires_unblocked("unknown"));
+    assert!(!LegendEntry::default().unblocked);
+}

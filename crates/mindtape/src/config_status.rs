@@ -49,6 +49,12 @@ pub struct LegendEntry {
     /// a project can demand a note for statuses with no automated check (e.g.
     /// `blocked`, `failed`) while leaving others unconstrained.
     pub note: NoteRule,
+    /// Whether entering this status requires an unblocked task: `mt flip`
+    /// refuses the move while any direct blocking-kind target is unfinished
+    /// (`--force` overrides), and `mt check` warns about a task already here
+    /// while blocked. Off by default; set it where work starts or finishes, never
+    /// on the statuses blocked work must still reach (`cancelled`, `failed`).
+    pub unblocked: bool,
 }
 
 impl LegendEntry {
@@ -78,6 +84,13 @@ impl Legend {
     #[must_use]
     pub fn entry(&self, value: &str) -> Option<&LegendEntry> {
         self.entries.iter().find(|entry| entry.value == value)
+    }
+
+    /// Whether entering `value` requires an unblocked task (its entry sets
+    /// `unblocked = true`). False for an unknown value.
+    #[must_use]
+    pub fn requires_unblocked(&self, value: &str) -> bool {
+        self.entry(value).is_some_and(|entry| entry.unblocked)
     }
 
     /// The values flagged `terminal`.

@@ -58,7 +58,7 @@ Fields: `status priority difficulty kind title id due start reviewed path assign
 
 ## Changing status
 
-`mt flip <status> <task…>` stamps a legend value, dated today; every legend value is also a verb, so `mt done 1b` works. `-m` attaches the status note. A transition the legend’s `to` edges disallow is rejected with the valid next states listed; `--force` overrides it, and waives a failing `[[on.flip]]` gate — read the gate before you waive it. Gates run as `sh -c` with `mt`’s own environment, so a binary from the project’s dev shell is found only when `mt` ran inside that shell; exit 127 is “binary not found”, not a refusal.
+`mt flip <status> <task…>` stamps a legend value, dated today; every legend value is also a verb, so `mt done 1b` works. `-m` attaches the status note. A transition the legend’s `to` edges disallow is rejected with the valid next states listed, and so is entering an `unblocked = true` status while a dependency is open, naming it; `--force` overrides both, and waives a failing `[[on.flip]]` gate — read the gate before you waive it. Gates run as `sh -c` with `mt`’s own environment, so a binary from the project’s dev shell is found only when `mt` ran inside that shell; exit 127 is “binary not found”, not a refusal.
 
 `ready`/`blocked` derive from the `links:` graph; `mt ls blocked --columns title,why` names what each blocked task waits on. Most legends carry no `blocked` status — check `mt flip --list` before reaching for one. An external blocker with no task to depend on: file a task for it and depend on that, or park the task in a pre-start status with the reason in the note (`mt flip proposed 1b -m "blocked on upstream X"`), never `wip`, which burns the `[[tasks.limits]]` WIP cap.
 

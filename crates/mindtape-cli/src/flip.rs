@@ -237,6 +237,23 @@ fn check_transition(
     ))
 }
 
+/// Guard one flip against the target status's `unblocked = true`: refused
+/// while `blockers` (the task's unfinished blocking-kind targets) is non-empty,
+/// naming each one. Shares the transition guard's `--force` escape hatch.
+fn check_unblocked(
+    legend: &Legend,
+    to: &str,
+    blockers: &[mindtape::Blocker],
+) -> std::result::Result<(), String> {
+    if blockers.is_empty() || !legend.requires_unblocked(to) {
+        return Ok(());
+    }
+    Err(format!(
+        "{} (use --force to override)",
+        mindtape::unblocked_violation(to, blockers)
+    ))
+}
+
 /// Guard one flip against the target status's note requirement (`note =
 /// "required"` on its `[[tasks.status]]` entry — see
 /// `mindtape::config::LegendEntry::note_required`, the same `NoteRule`
@@ -286,6 +303,8 @@ fn flip_target(
     let legend = &batch.project.config.tasks.status;
     if !args.force {
         check_transition(legend, task.status.as_ref(), status)?;
+        let blockers = mindtape::blockers_of(world, task, &batch.project.config);
+        check_unblocked(legend, status, &blockers)?;
     }
     check_note_required(legend, status, args.note.as_deref())?;
     let outcome = batch
@@ -447,3 +466,7 @@ mod tests_output;
 #[cfg(test)]
 #[path = "flip_tests_revalidate.rs"]
 mod tests_revalidate;
+
+#[cfg(test)]
+#[path = "flip_tests_unblocked.rs"]
+mod tests_unblocked;

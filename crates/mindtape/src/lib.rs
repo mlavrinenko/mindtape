@@ -152,7 +152,7 @@ pub use model::{Status, Task, is_history_pointer, normalize_link};
 pub use numeric::{
     Anchor, Band, InputValue, NumCell, NumValue, NumericField, ScaleKind, format_num,
 };
-pub use ready::{Blocker, Readiness, ReadyState, waits_on};
+pub use ready::{Blocker, Readiness, ReadyState, blockers_of, unblocked_violation, waits_on};
 pub use severity::Severity;
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};

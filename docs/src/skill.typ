@@ -117,8 +117,9 @@ and intra-batch `links` resolve only backwards — are in
 `mt flip <status> <task…>` stamps a legend value, dated today; every legend
 value is also a verb, so `mt done 1b` works. `-m` attaches the status note. A
 transition the legend's `to` edges disallow is rejected with the valid next
-states listed; `--force` overrides it, and waives a failing `[[on.flip]]` gate
-— read the gate before you waive it. Gates run as `sh -c` with `mt`'s own
+states listed, and so is entering an `unblocked = true` status while a
+dependency is open, naming it; `--force` overrides both, and waives a failing
+`[[on.flip]]` gate — read the gate before you waive it. Gates run as `sh -c` with `mt`'s own
 environment, so a binary from the project's dev shell is found only when `mt`
 ran inside that shell; exit 127 is "binary not found", not a refusal.
 

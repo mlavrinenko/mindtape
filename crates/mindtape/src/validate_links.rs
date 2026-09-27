@@ -16,9 +16,13 @@ use std::path::Path;
 
 use crate::config::Config;
 use crate::config_links_validate::Validators;
-use crate::graph::toposort_kind;
-use crate::link::{Link, LinksConfig, acyclic_kinds, kind_targets_tasks, resolve_kind};
+use crate::graph::{DepIndex, toposort_kind};
+use crate::link::{
+    Link, LinksConfig, acyclic_kinds, blocking_kinds, kind_targets_tasks, resolve_kind,
+};
 use crate::model::{Task, resolve_link_path};
+use crate::ready::{collect_blockers, unblocked_violation};
+use crate::severity::Severity;
 use crate::validate::Violation;
 
 /// Validate every task's `links:` edges against `config`, appending violations
@@ -33,6 +37,39 @@ pub(crate) fn check_all(tasks: &[Task], config: &Config, out: &mut Vec<Violation
     }
     for kind in acyclic_kinds(&config.tasks.links) {
         check_cycle(tasks, kind, out);
+    }
+    check_unblocked(tasks, config, out);
+}
+
+/// Warn about a task sitting in an `unblocked = true` status while it waits on
+/// an unfinished blocking-kind target. A warning, not an error: `mt flip
+/// --force` lands exactly this state on purpose, and reopening a dependency
+/// puts every finished dependant here without either file changing.
+fn check_unblocked(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
+    let legend = &config.tasks.status;
+    if !legend.entries.iter().any(|entry| entry.unblocked) {
+        return;
+    }
+    let index = DepIndex::build(tasks);
+    let kinds = blocking_kinds(&config.tasks.links);
+    let terminal = legend.terminal();
+    for task in tasks {
+        let Some(status) = task.status.as_ref() else {
+            continue;
+        };
+        if !legend.requires_unblocked(&status.name) {
+            continue;
+        }
+        let blockers = collect_blockers(task, &index, &kinds, &terminal);
+        if !blockers.is_empty() {
+            out.push(Violation {
+                task_id: task.id.clone(),
+                field: "status".to_owned(),
+                message: unblocked_violation(&status.name, &blockers),
+                location: None,
+                severity: Some(Severity::Warn),
+            });
+        }
     }
 }
 

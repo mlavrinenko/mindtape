@@ -1166,6 +1166,11 @@
           },
           "type": "array"
         },
+        "unblocked": {
+          "default": false,
+          "description": "Whether entering this status requires an unblocked task: `mt flip`\nrefuses the move while any direct blocking-kind target is unfinished\n(`--force` overrides), and `mt check` warns about a task already here\nwhile blocked. Off by default; set it where work starts or finishes, never\non the statuses blocked work must still reach (`cancelled`, `failed`).",
+          "type": "boolean"
+        },
         "value": {
           "default": "",
           "description": "The value this entry describes (e.g. a status name).",

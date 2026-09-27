@@ -72,6 +72,7 @@ value = "wip"
 glyph = "🔨"
 color = "yellow"
 to = ["needs-review", "blocked", "failed"]
+unblocked = true
 
 # The gate. `done` is reachable only from here, so no run of work closes itself.
 [[tasks.status]]
@@ -93,6 +94,7 @@ glyph = "✅"
 color = "green"
 terminal = true
 to = ["wip"]
+unblocked = true
 
 [[tasks.status]]
 value = "cancelled"

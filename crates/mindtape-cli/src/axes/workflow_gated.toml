@@ -16,6 +16,7 @@ value = "wip"
 glyph = "🔨"
 color = "yellow"
 to = ["needs-review", "blocked", "failed"]
+unblocked = true
 
 [[tasks.status]]
 value = "needs-review"
@@ -36,6 +37,7 @@ glyph = "✅"
 color = "green"
 terminal = true
 to = ["wip"]
+unblocked = true
 
 [[tasks.status]]
 value = "cancelled"
