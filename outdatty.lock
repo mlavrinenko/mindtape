@@ -103,10 +103,10 @@ groups:
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
       Justfile: f9892988b6ab8294a5d37dfdcbf2f091378edc5c80ee9b728320fb3f211e83e4
-      flake.nix: aa2e45ed98520fb813fdaddde8dd7c582025e0e3af8e444d6f283fd3f7ada060
+      flake.nix: a2423445194c24b4afa63713b133e48b80c1692c18df84931b2bd8675e357e64
     dependents:
-      docs/src/agents.typ: b42213a77ece3f60076b4f0d1f23e92dc273802dfe5be7a479e24e699fba1bf5
-      docs/src/contributing.typ: 8657550069f12ebd2631bb8d769a438cd1c370bc2dba07170578ae04c3bbc093
+      docs/src/agents.typ: a7028e6852632d03a08fba7569096b42c2d87b53e6cbfaede821eac3ec530548
+      docs/src/contributing.typ: 1eeadd3cd6e178c36284acf362f67aab4f29c9f08403fd70c047db19cbda5905
       docs/src/contributing/coverage-crap.typ: 26658dc10c32b0da691341810ae71f7247e438f6c3b1501148ea42a273c69f3d
       docs/src/contributing/crap-baseline.typ: 3277e015519112bca1c8a1395a19aad42a645c613a2e77fd99db819b5642e923
       docs/src/contributing/docs-site-build.typ: 5578b469d5e608412655e4c3190667cc07af6c01f34e470311132451e160c80f

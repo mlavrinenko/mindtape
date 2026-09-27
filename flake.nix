@@ -62,6 +62,21 @@
           singleStep = true;
           doCheck = false;
         };
+
+        # The dev shell's `mt`: rebuild, then run. A bare `target/debug` on
+        # PATH ran whatever binary was last built there — none in a fresh
+        # `just fork` worktree, so the stale `~/.cargo/bin/mt` answered, and
+        # none rebuilt by `just integrate`'s fast-forward — and an old binary
+        # rejects a newer config. A no-op build costs ~0.2 s. Its own target
+        # dir keeps it off the lock `just check` holds on `target/` for
+        # minutes, and off `target/debug/mt`, which the rrule arm builds with
+        # a feature this default build would silently relink away.
+        mt-dev = pkgs.writeShellScriptBin "mt" ''
+          root="''${MINDTAPE_DEV_ROOT:?mt: MINDTAPE_DEV_ROOT unset; enter the dev shell}"
+          cargo build -q --manifest-path "$root/Cargo.toml" -p mindtape-cli --bin mt \
+            --target-dir "$root/target/mt-dev" || exit
+          exec "$root/target/mt-dev/debug/mt" "$@"
+        '';
       in
       {
         # For `nix build` & `nix run` (produces the `mt` binary):
@@ -78,6 +93,7 @@
           nativeBuildInputs =
             [
               cargo-crap
+              mt-dev
               mmz.packages.${system}.default
               qahq.packages.${system}.jscpd
               qahq.packages.${system}.ejectest
@@ -141,7 +157,7 @@
           shellHook = ''
             export LLVM_COV=${llvm}/bin/llvm-cov
             export LLVM_PROFDATA=${llvm}/bin/llvm-profdata
-            export PATH="$PWD/target/debug:$PATH"
+            export MINDTAPE_DEV_ROOT="$PWD"
             just install-hooks > /dev/null 2>&1
           '';
         };

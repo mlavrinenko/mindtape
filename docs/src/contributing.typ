@@ -36,6 +36,8 @@ just check           # run before every commit
 
 Use `just` recipes rather than raw `cargo`: they carry the right flags and
 environment, and `just` with no arguments lists them. `flake.nix` owns the tools.
+In the dev shell `mt` rebuilds from the working tree before it runs, so it is
+never an older binary than the code beside it.
 
 This is the single source for how work is done here; a process rule belongs
 here and nowhere else. Deep dives sit in `docs/contributing/`, and `AGENTS.md`
