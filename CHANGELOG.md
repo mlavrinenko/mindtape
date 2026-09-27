@@ -1298,6 +1298,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   root already resolved correctly: the loader auto-registers `<root>/lib` when
   its `typst.toml` names `mindtape`. `just fork` no longer prints its note
   about the symlink, which existed only to make the old behaviour visible.
+- **`[tasks.estimate] units` is checked on open tasks only.** `check_estimate`
+  checked the unit list before the terminal exemption the bounds already had,
+  so a project retiring a unit failed `mt check` against every closed task
+  that ever carried it — the list governing the work still to do was policing
+  finished history too. The unit check now sits behind the same terminal
+  return as the bounds: a closed task keeps whatever unit it was estimated in,
+  and retiring a unit is one edit to `units`, refused only on an open task
+  still carrying it.
 
 ## [0.3.0] - 2026-08-10
 

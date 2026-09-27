@@ -334,10 +334,12 @@ pub(crate) fn check_in_scale(
 /// Validate a task's estimate: presence when `required`, allowed unit names,
 /// and the `max`/`min` bounds (first matching entry per unit).
 ///
-/// The bounds are deliberately an error, not a warning: an estimate outside the
-/// declared range means the task must be split *before* the work starts. A
-/// terminal task is exempt — it cannot be split any more, and re-litigating a
-/// finished task's estimate would only fail the whole backlog at once.
+/// Units and bounds alike are skipped once a task is terminal — it cannot be
+/// split or re-estimated any more, so retiring a unit is one edit to `units`
+/// rather than a rewrite of every closed task that ever carried it, and the
+/// bounds stay what they were: an estimate outside the declared range is
+/// deliberately an error, not a warning, since the point is splitting the task
+/// *before* the work starts.
 fn check_estimate(
     task: &Task,
     config: &Config,
@@ -357,6 +359,9 @@ fn check_estimate(
         }
         return;
     }
+    if task.is_terminal(&config.tasks.status.terminal()) {
+        return;
+    }
     for unit in task.estimate.keys() {
         if !estimate.units.is_empty() && !estimate.units.contains(unit) {
             push(
@@ -366,9 +371,6 @@ fn check_estimate(
                 format!("`{unit}` is not an allowed estimate unit"),
             );
         }
-    }
-    if task.is_terminal(&config.tasks.status.terminal()) {
-        return;
     }
     for problem in bounds.problems(task, config) {
         push(out, task, "estimate", problem);

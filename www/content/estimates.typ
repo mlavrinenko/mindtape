@@ -32,9 +32,11 @@
 = Bounds
 
 An estimate is an opaque `unit -> quantity` dict, and `units` is the allow-list
-of legal unit names. Two lists of per-unit entries bound the quantities, each
-entry gated by an optional `when` filter and explained by an optional
-`message`:
+of legal unit names, checked on open tasks only: a terminal task keeps
+whatever unit it was estimated in, so retiring a unit is one edit to `units`
+rather than a rewrite of every closed task that ever carried it. Two lists of
+per-unit entries bound the quantities, each entry gated by an optional `when`
+filter and explained by an optional `message`:
 
 #raw(
   render-slices(slices, parts.slice(0, 1), comment: "#"),

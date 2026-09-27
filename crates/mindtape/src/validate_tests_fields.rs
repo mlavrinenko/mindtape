@@ -67,6 +67,17 @@ fn flags_unknown_estimate_unit() {
 }
 
 #[test]
+fn terminal_task_keeps_a_retired_estimate_unit() {
+    let mut item = task("a", "done");
+    item.estimate = BTreeMap::from([("fortnights".to_owned(), 2.0)]);
+    let violations = validate(&[item], &config());
+    assert!(
+        !violations.iter().any(|v| v.field == "estimate"),
+        "a terminal task should keep whatever unit it was estimated in, got: {violations:?}"
+    );
+}
+
+#[test]
 fn flags_marker_shape_error_regardless_of_config() {
     let mut item = task("a", "wip");
     item.shape_errors = vec![ShapeError {
