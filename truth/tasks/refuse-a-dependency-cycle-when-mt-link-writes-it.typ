@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 27),
+  status: done(
+    2026,
+    9,
+    27,
+  )[check\_candidates answers a newly closed cycle reported on a non-candidate to every candidate; pre-existing cycles still never block. The message keeps mt check's rotation (alpha → beta → alpha, reported on alpha) rather than re-rotating it onto the writer],
 )
 
 == Problem
