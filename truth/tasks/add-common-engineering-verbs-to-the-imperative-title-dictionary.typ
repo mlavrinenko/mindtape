@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 27),
+  status: done(
+    2026,
+    9,
+    27,
+  )[compute, filter, page, roll and switch added to dev-verbs.txt (91 entries); verbs.txt is frequency-derived and stays untouched],
 )
 
 == Problem
