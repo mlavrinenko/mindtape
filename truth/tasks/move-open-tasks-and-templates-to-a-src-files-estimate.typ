@@ -28,6 +28,7 @@
   ),
   assignee: "agent",
   status: proposed(2026, 9, 27),
+  links: depends-on("read-estimate-units-and-kebab-case-names-in-filters.typ"),
 )
 
 == Problem
@@ -38,15 +39,23 @@
 
 == TO-BE
 
-- 🟢 This repo estimates `src-files`: non-test source a task plans to touch. `.mindtape/config.toml` sets `units = ["src-files", "files"]`, `files` kept only so closed tasks stay valid untouched.
-- 🟢 `[tasks.estimate.drift]` reads `unit = "src-files"`, and its `exclude` list drops docs, tests, `CHANGELOG.md` and `truth/tasks/**`, so the warning counts source only.
-- 🟢 The caps key on `src-files`; the `files = 1` minimum goes, since a docs-only task touches no source.
-- 🟢 Every template's `estimate` default and prompt say `src-files`; open tasks are recounted as source only.
+- 🟢 Open tasks and templates estimate `src-files`: non-test source a task plans to touch. `units = ["src-files", "files"]` keeps closed tasks valid untouched.
+- 🟢 Drift reads `unit = "src-files"` and `exclude`s docs, tests, `CHANGELOG.md` and `truth/tasks/**`; the caps key on `src-files`, with no minimum.
+- 🟢 `files` is legacy by rule, replacing `[tasks.estimate] required`:
+
+```toml
+[[tasks.rules]]
+name     = "src-files-estimate"
+when     = '!terminal'
+assert   = 'has(estimate.src-files) && miss(estimate.files)'
+message  = "estimate `src-files`; `files` is the legacy unit closed tasks keep"
+severity = "error"
+```
 
 
 == Changes
 
-- `.mindtape/config.toml`: units, drift unit and `exclude`, caps.
+- `.mindtape/config.toml`: units, drift unit and `exclude`, caps, the legacy rule in place of `required`.
 - `.mindtape/templates/*.typ`: the `estimate` defaults and prompts.
 - Open tasks under `truth/tasks/` (`mt ls '!terminal && has(estimate)'`): `files:` to `src-files:`, recounted.
 
@@ -59,7 +68,6 @@ Revert the commit; closed tasks are never touched, so nothing else moves.
 == Out of scope
 
 - Rewriting closed tasks: no rule reads a closed task's estimate.
-- Filters reading `estimate.src-files`: the lexer learns kebab-case in `truth/tasks/read-estimate-units-and-kebab-case-names-in-filters.typ`; nothing filters on the unit before then.
 - Replacing the drift and bounds tables with rules: `truth/tasks/retire-the-drift-check-and-estimate-bounds-in-favour-of-rules.typ`.
 
 
