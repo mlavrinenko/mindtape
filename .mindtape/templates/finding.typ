@@ -26,7 +26,7 @@
     kind: "int",
     prompt: "0-9 on the judgment scale",
   ),
-  estimate: slot("estimate", kind: "text", prompt: "(files: N)"),
+  estimate: slot("estimate", kind: "text", prompt: "(src-files: N)"),
   tags: slot("tags", kind: "list", prompt: "found, plus an area tag"),
   x-goals: (
     product: (

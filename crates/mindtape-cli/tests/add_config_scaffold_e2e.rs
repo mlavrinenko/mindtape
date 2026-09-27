@@ -204,11 +204,11 @@ const GOALS_STUB: &str =
     "#let helps(reason) = reason\n#let hurts(reason) = reason\n#let neutral = none\n";
 
 /// Mirrors the dogfood config's `[tasks.estimate]`: required on every
-/// non-terminal task, bounded 1-5 files.
+/// non-terminal task, capped at 5 `src-files`, no minimum.
 const ESTIMATE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
      [tasks.priority]\nframework = \"ice\"\n\
-     [tasks.estimate]\nunits = [\"files\"]\nrequired = \"!terminal\"\n\
-     [tasks.estimate.max]\nfiles = 5\n[tasks.estimate.min]\nfiles = 1\n";
+     [tasks.estimate]\nunits = [\"src-files\"]\nrequired = \"!terminal\"\n\
+     [tasks.estimate.max]\nsrc-files = 5\n";
 
 /// `estimate` required with no explicit `--set estimate=...`: the production
 /// template's slot default must fill in a dict inside the configured bounds,
@@ -241,7 +241,7 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
         .success();
 
     let written = std::fs::read_to_string(dir.path().join("tasks/no-estimate.typ")).unwrap();
-    assert!(written.contains("estimate: (files: 2)"), "{written}");
+    assert!(written.contains("estimate: (src-files: 2)"), "{written}");
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     support::mt(dir.path()).arg("check").assert().success();

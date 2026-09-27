@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("mt",),
-  estimate: (files: 1),
+  estimate: (src-files: 11),
   x-goals: (
     product: (
       readable-tasks: neutral,

@@ -11,7 +11,7 @@
   ),
   difficulty: 3,
   tags: ("mt", "cli", "gating"),
-  estimate: (files: 4),
+  estimate: (src-files: 3),
   x-goals: (
     product: (
       readable-tasks: neutral,

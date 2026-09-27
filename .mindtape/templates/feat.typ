@@ -11,7 +11,7 @@
   ),
   difficulty: slot("difficulty", kind: "int", default: 3),
   tags: slot("tags", kind: "list", default: ()),
-  estimate: slot("estimate", kind: "text", default: "(files: 2)"),
+  estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
   x-goals: (
     product: (
       readable-tasks: slot("readable-tasks", kind: "raw", default: "neutral"),

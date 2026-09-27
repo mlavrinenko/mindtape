@@ -11,7 +11,7 @@
   ),
   difficulty: 4,
   tags: ("mt", "cli"),
-  estimate: (files: 5),
+  estimate: (src-files: 4),
   x-goals: (
     product: (
       readable-tasks: neutral,

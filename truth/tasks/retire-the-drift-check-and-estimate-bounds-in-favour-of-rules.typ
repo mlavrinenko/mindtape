@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("mt",),
-  estimate: (files: 14),
+  estimate: (src-files: 8),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -37,7 +37,7 @@
 
 == Problem
 
-+ A project declares `[tasks.estimate] units = ["files"]` and one task goes `wip` with `estimate: (files: 3)`.
++ A project declares `[tasks.estimate] units = ["src-files"]` and one task goes `wip` with `estimate: (src-files: 3)`.
 + 🔴 `mt check` warns `working tree touches 17 file(s), over the 4 declared by …` although the project wrote no such check: `DriftConfig::default()` hardcodes `unit = "files"`.
 + 🔴 `[[tasks.estimate.max]]`/`min` is a second bespoke checker for what a rule says in one line.
 

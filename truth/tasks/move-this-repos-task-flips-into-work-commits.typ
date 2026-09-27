@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("tooling",),
-  estimate: (files: 3),
+  estimate: (src-files: 1),
   x-goals: (
     product: (
       readable-tasks: helps[git log stops carrying one flip-only commit per start and close],

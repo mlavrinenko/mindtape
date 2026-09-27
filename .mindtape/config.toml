@@ -127,53 +127,59 @@ color = "red"
 [tasks.difficulty]
 required = "!terminal"
 
-# A task estimates how many FILES it means to touch — not how long it will take.
-# A duration is a guess a model will happily invent; a file count is plannable up
-# front, is the same information good file guidance already carries, and is
-# checkable against git while the work runs.
+# A task estimates how many non-test SOURCE FILES it means to touch — not how
+# long it will take, and not the docs, tests and `CHANGELOG.md` every task
+# touches by process. A duration is a guess a model will happily invent; a
+# source-file count is plannable up front, is the same information good file
+# guidance already carries, and is checkable against git while the work runs.
+# See truth/tasks/move-open-tasks-and-templates-to-a-src-files-estimate.typ.
 [tasks.estimate]
-units = ["files"]
+units = ["src-files"]
 required = "!terminal"
 
-# Outside this range is a validation error, not a warning: an oversized task must
-# be split before the work starts, not after. Terminal tasks are exempt.
+# Above this ceiling is a validation error, not a warning: an oversized task
+# must be split before the work starts, not after. Terminal tasks are exempt.
+# No minimum: a docs-only task touches no source, and 0 is an honest count,
+# not a missing one.
 #
 # The ceiling is gated on `difficulty`, because the decomposition pressure a cap
 # exists to create belongs on unbounded judgment, not on size. Judgment work
-# (3 and up on the rubric above) is held to 5 files — p75 of this repo's
-# files-per-commit over 200 commits (p50=2, p75=5, p90=11, p95=15, p99=32) —
-# since a design decision spread wider than that is two decisions. Mechanical
-# work keeps the p95 ceiling of 15: a fully specified change carries one
-# decision however many files it touches, and splitting it only copies that
-# decision into several tasks. Anything looser (30 ≈ p99) would never bind, and
-# a limit that never fires is not a limit. The first entry whose `when` matches
-# and that names the unit wins.
+# (3 and up on the rubric above) is held to 5 source files — p75 of this
+# repo's files-per-commit over 200 commits (p50=2, p75=5, p90=11, p95=15,
+# p99=32) — since a design decision spread wider than that is two decisions.
+# Mechanical work keeps the p95 ceiling of 15: a fully specified change carries
+# one decision however many files it touches, and splitting it only copies
+# that decision into several tasks. Anything looser (30 ≈ p99) would never
+# bind, and a limit that never fires is not a limit. The first entry whose
+# `when` matches and that names the unit wins.
 #
 # These numbers are provisional: retune them as the backlog shows where they
 # pinch. Open question — should mechanical work (difficulty below 3) carry no
 # file cap at all, since its one decision does not grow with the file count?
 [[tasks.estimate.max]]
 when = "difficulty >= 3"
-files = 5
+src-files = 5
 message = "judgment work stays small; split the decision from the mechanical fan-out rather than widen the cap"
 
 [[tasks.estimate.max]]
-files = 15
+src-files = 15
 message = "even mechanical work this wide hides a second decision; split it"
 
-[[tasks.estimate.min]]
-files = 1
-
-# `[tasks.estimate.drift]` stays at its defaults for everything but `exclude` —
-# unit `files`, in-flight `status == "wip"`, a 200-line-per-file soft ceiling —
+# `[tasks.estimate.drift]` stays at its defaults for everything but `unit` and
+# `exclude` — in-flight `status == "wip"`, a 200-line-per-file soft ceiling —
 # so `mt check` warns (never fails) once the working tree outgrows what the
 # in-flight tasks declared.
 [tasks.estimate.drift]
-# Nobody hand-edits any of these — `docs-md-check` / `docs-check` fail the
-# build if anyone tries — so counting them against a task's declared file
-# budget turns a truthful estimate into a number an author has to inflate just
-# to keep an advisory warning quiet, which trains everyone to stop reading it.
-# See truth/tasks/exclude-generated-outputs-from-the-estimate-drift-check.typ.
+unit = "src-files"
+# Nobody hand-edits generated output — `docs-md-check` / `docs-check` fail the
+# build if anyone tries — and everything else here is touched by every task by
+# process (a status flip, a docs page, a test, `CHANGELOG.md`), never by the
+# design decision the estimate is meant to size. Counting either against a
+# task's declared budget turns a truthful estimate into a number an author has
+# to inflate just to keep an advisory warning quiet, which trains everyone to
+# stop reading it. See truth/tasks/exclude-generated-outputs-from-the-estimate-
+# drift-check.typ and truth/tasks/move-open-tasks-and-templates-to-a-src-files-
+# estimate.typ.
 exclude = [
   # The four root Markdown files and the docs/contributing/ deep dives,
   # rendered from docs/src/**.typ by `just docs-md` (docs/generate-md.sh).
@@ -184,7 +190,20 @@ exclude = [
   "docs/contributing/*.md",
   # Every derived fact and captured CLI artifact the docs site reads, rebuilt
   # from source by `just docs-gen` (www/generate.sh and the scripts it calls).
-  "www/generated/**"
+  "www/generated/**",
+  # A review watermark `just outdatty-update` rewrites, never a hand edit.
+  "outdatty.lock",
+  # The docs site's own hand-written source — every task here touches it by
+  # process, never by design spread.
+  "docs/src/**",
+  "www/content/**",
+  # The changelog entry every task's commit carries.
+  "CHANGELOG.md",
+  # A task's own file: `mt flip` writes it on every status change.
+  "truth/tasks/**",
+  # Test files: red-first coverage for a change, not the change itself.
+  "crates/*/tests/**",
+  "**/*test*.rs"
 ]
 
 [tasks.tags]

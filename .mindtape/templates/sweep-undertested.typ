@@ -26,7 +26,7 @@
     kind: "int",
     prompt: "0-9 on the judgment scale",
   ),
-  estimate: slot("estimate", kind: "text", prompt: "(files: N)"),
+  estimate: slot("estimate", kind: "text", prompt: "(src-files: N)"),
   assignee: "agent",
   tags: slot("tags", kind: "list", prompt: "swept, coverage"),
   x-goals: (
