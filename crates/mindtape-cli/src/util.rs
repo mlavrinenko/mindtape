@@ -191,7 +191,18 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
         .tasks
         .iter()
         .find(|t| t.id == stem)
-        .with_context(|| format!("no task with id {stem:?}"))?;
+        .with_context(|| {
+            let ids: Vec<&str> = project
+                .outcome
+                .tasks
+                .iter()
+                .map(|t| t.id.as_str())
+                .collect();
+            format!(
+                "no task with id {stem:?}{}",
+                mindtape::suggest::suggestion(stem, &ids)
+            )
+        })?;
     let abs = project.root.join(&task.file);
     Ok((task.clone(), abs))
 }

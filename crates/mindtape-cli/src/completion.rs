@@ -137,7 +137,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ("views", "name", Source::Views),
     ("init", "preset", Source::Presets),
     ("init", "schema", Source::FilePath),
-    ("eval", "file", Source::FilePath),
+    ("eval", "task", Source::Stems),
     ("go", "id", Source::Stems),
     ("rm", "targets", Source::Stems),
     ("mv", "task", Source::Stems),

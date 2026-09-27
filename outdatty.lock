@@ -6,9 +6,9 @@ groups:
       crates/mindtape-cli/src/add.rs: ee82600323fff898555b5b0431cc0685112d89e07971a59108bb15d64a93fc1c
       crates/mindtape-cli/src/check.rs: eba248cd1eae006eb2d4626a3048d9221392b907de8be01077240e1d85aaf075
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
-      crates/mindtape-cli/src/completion.rs: 57c91a4a3262f28a93f8a17dead4e4c2381fcf09cd366dde34f38a7be3ff8141
+      crates/mindtape-cli/src/completion.rs: ad8fa971e0c75e8b69d72b88179c2471bc9bf0c807b635f3aba23e84b6618d64
       crates/mindtape-cli/src/config_cmd.rs: 06bfb3545bd2554cb1b5ff0a1f6ec5ad40c82e0b5dd0fd30129871375a92db61
-      crates/mindtape-cli/src/eval.rs: df74534777cb181b3eb43186d9684cd9ff470a95b209cf2b96d33bbf7e72d8b5
+      crates/mindtape-cli/src/eval.rs: 00106a3deecfa71b638612afff2bbf19fc895bbac12c32bea3255b70299d39cc
       crates/mindtape-cli/src/find.rs: 2524ada47afeb3d72c42b35ebf7e9e8c3774fbe4ec8f616186e2c2269228dfdd
       crates/mindtape-cli/src/flip.rs: 68cdb9ea886ab1687ec302cbad145a059926809a9ab68c645747103433922bd1
       crates/mindtape-cli/src/go.rs: 33b0f28d21337e8a8d93d229abaa922124cdd0f73db2b0c8a7fedffa3e5c346a
@@ -40,7 +40,7 @@ groups:
       skills/mindtape/evals/README.md: a5143877e4409bea53d0e60b8ad3716f9483a0d80f28b8c3013864f729428516
       skills/mindtape/evals/evals.json: 17e83792cf33e2485a686ead3e4451c4486078ee2fa283002ce091bf77b69ae9
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
-      www/content/agents.typ: 3a1f9639693ed0df3123a5ea4f9e2c39c52784b43fd3947b5923471902582074
+      www/content/agents.typ: a68b6d61c80d037c8c90fd076e0129954a12ac757bf9cc484bd2b12ecb85d8e4
       www/content/cli.typ: 7b26ed5ed4878b5bc3958eaf076d9e88dcd14ea212e28bf0300e555f2a932ce2
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
       www/content/config.typ: 6f1205c761c1a51ea56dc027b698b9ff12a41d129bfb90eac9f2159f20e20112
@@ -50,7 +50,7 @@ groups:
       www/content/hooks.typ: a9f41be37e45ad20043d8f2b487ba83d55e85ed6ac4e29320204951a1db73c65
       www/content/import-export.typ: 2d114c91ddf7c00d1b368e38f570688238a3c42f1e54b7ca35cfcc263165ef25
       www/content/links.typ: 137af8d4c5f1f0d6d9249d715d6cf68932137b73559f4f4c3576ae9366ed9a5b
-      www/content/named-sets.typ: 1f44e1cdebe606a93c81f4d00452eefb3781020fc5c03dc0eb953a4936ec9b2d
+      www/content/named-sets.typ: 4c9a9bf4876c84a50b1232b5d4f1eb1f11c0c1abbeb54058330741028a7f4c03
       www/content/priority.typ: 78949814dfeca84e454a8b7a6287fde95c15cc459d2fc2a76c61bed64ade591d
       www/content/quickstart.typ: e4e7ce13e60b7859050fbee413ef3a777f03e6515ae29996661fa8c647cf35c6
       www/content/recurring.typ: 836c35ad1ab76deb3dafcefa67bc361c54cedce5ec6970174b21529899180926

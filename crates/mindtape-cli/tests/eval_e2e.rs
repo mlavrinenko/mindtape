@@ -48,3 +48,25 @@ fn eval_json_emits_the_task_object() {
         "eval --json is the task itself, not an envelope around a list: {text}"
     );
 }
+
+#[test]
+fn eval_resolves_a_stem_like_the_other_task_commands() {
+    let dir = support::project_with_task("Evaluate me");
+    let text = stdout(dir.path(), &["eval", "test", "--json"]);
+    let task: serde_json::Value = serde_json::from_str(&text).unwrap();
+
+    assert_eq!(support::at(&task, "/title").as_str(), Some("Evaluate me"));
+}
+
+#[test]
+fn eval_names_the_nearest_stem_on_an_unknown_reference() {
+    let dir = support::project_with_task("Evaluate me");
+    let out = support::mt(dir.path())
+        .args(["eval", "tset"])
+        .output()
+        .unwrap();
+
+    assert!(!out.status.success());
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("did you mean: test?"), "{err}");
+}

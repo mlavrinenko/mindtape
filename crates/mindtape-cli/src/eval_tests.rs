@@ -13,12 +13,20 @@ const TASK: &str = "#metadata((
 ))
 ";
 
+/// `mt eval <file>` with the path spelled as the task reference.
+fn eval(file: &std::path::Path, json: bool) -> anyhow::Result<()> {
+    run(&EvalArgs {
+        task: file.to_string_lossy().into_owned(),
+        json,
+    })
+}
+
 #[test]
 fn eval_valid_file_table_succeeds() {
     let dir = tempfile::tempdir().unwrap();
     let file = dir.path().join("task.typ");
     std::fs::write(&file, TASK).unwrap();
-    assert!(run(&EvalArgs { file, json: false }).is_ok());
+    assert!(eval(&file, false).is_ok());
 }
 
 #[test]
@@ -26,7 +34,7 @@ fn eval_valid_file_json_succeeds() {
     let dir = tempfile::tempdir().unwrap();
     let file = dir.path().join("task.typ");
     std::fs::write(&file, TASK).unwrap();
-    assert!(run(&EvalArgs { file, json: true }).is_ok());
+    assert!(eval(&file, true).is_ok());
 }
 
 #[test]
@@ -35,7 +43,7 @@ fn eval_missing_file_returns_err() {
     // construction on every platform, unlike a hardcoded `/tmp/...`.
     let dir = tempfile::tempdir().unwrap();
     let file = dir.path().join("no_such_file.typ");
-    assert!(run(&EvalArgs { file, json: false }).is_err());
+    assert!(eval(&file, false).is_err());
 }
 
 #[test]
@@ -43,7 +51,7 @@ fn eval_file_without_marker_returns_err() {
     let dir = tempfile::tempdir().unwrap();
     let file = dir.path().join("notes.typ");
     std::fs::write(&file, "= Just notes\n\nNo marker here.\n").unwrap();
-    assert!(run(&EvalArgs { file, json: false }).is_err());
+    assert!(eval(&file, false).is_err());
 }
 
 #[test]
@@ -90,7 +98,7 @@ fn eval_registers_an_in_tree_lib_named_mindtape() {
     let dir = tempfile::tempdir().unwrap();
     write_pkg(dir.path(), "lib", "mindtape");
     let file = write_importing_task(dir.path());
-    assert!(run(&EvalArgs { file, json: true }).is_ok());
+    assert!(eval(&file, true).is_ok());
 }
 
 #[test]
@@ -109,5 +117,5 @@ fn eval_does_not_hijack_a_foreign_lib_package() {
     )
     .unwrap();
     let file = write_importing_task(dir.path());
-    assert!(run(&EvalArgs { file, json: true }).is_ok());
+    assert!(eval(&file, true).is_ok());
 }

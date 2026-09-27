@@ -21,7 +21,7 @@ Every read command speaks JSON:
 
 ```sh
 mt ls --json          # tasks as JSON (--format csv for CSV)
-mt eval <file> --json # one task file, evaluated
+mt eval <task> --json # one task (stem, path or handle), evaluated
 mt config show --json # the effective config
 mt add --describe=json # the slot schema for the active template
 mt _cli --json        # the command tree — names, flags, defaults, enums

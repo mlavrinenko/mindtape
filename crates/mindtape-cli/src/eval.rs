@@ -12,8 +12,9 @@ use crate::render::RenderCtx;
 /// Arguments for `eval`.
 #[derive(Debug, clap::Args)]
 pub struct EvalArgs {
-    /// Task file to evaluate.
-    pub file: PathBuf,
+    /// Task to evaluate: a stem, a path, or a `#` handle. A path need not
+    /// lie under a project.
+    pub task: String,
 
     /// Emit JSON instead of a table.
     #[arg(long)]
@@ -25,25 +26,45 @@ pub struct EvalArgs {
 /// # Errors
 /// Returns an error if the file cannot be evaluated or holds no task marker.
 pub fn run(args: &EvalArgs) -> Result<()> {
-    let world = build_world(&args.file)?;
+    let file = locate(&args.task)?;
+    let world = build_world(&file)?;
     let result = harvest(&world)?;
     let marker = result
         .with_marker("mindtape.task")
         .next()
-        .with_context(|| format!("no mindtape.task marker in {}", args.file.display()))?;
+        .with_context(|| format!("no mindtape.task marker in {}", file.display()))?;
 
-    let id = args
-        .file
+    let id = file
         .file_stem()
         .map(|stem| stem.to_string_lossy().into_owned())
         .unwrap_or_default();
-    let task = Task::from_marker(id, args.file.clone(), &marker.value);
+    let task = Task::from_marker(id, file.clone(), &marker.value);
 
     if args.json {
         print_json(&task)
     } else {
         print_table(&task)
     }
+}
+
+/// The file `reference` names. Anything spelled as a path stays a path, so a
+/// `.typ` under no project still evaluates; a stem or `#` handle resolves
+/// against the enclosing project the way `flip`, `set` and `link` do.
+///
+/// # Errors
+/// Returns an error if a path does not exist, no project encloses the working
+/// directory, or no task matches the reference.
+fn locate(reference: &str) -> Result<PathBuf> {
+    let path = Path::new(reference);
+    if path.is_file() {
+        return Ok(path.to_path_buf());
+    }
+    if reference.contains(['/', '\\']) || reference.ends_with(".typ") {
+        bail!("no such file: {reference}");
+    }
+    let project = crate::util::open()?;
+    let (_, abs) = crate::util::resolve_task(&project, reference)?;
+    Ok(abs)
 }
 
 /// Print one harvested task as a bare JSON object — no envelope, since there

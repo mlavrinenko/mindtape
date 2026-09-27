@@ -407,6 +407,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt eval` takes a task reference.** It accepted a file path only, so the
+  skill's `mt eval <task>` failed on a stem with `no such file`. A stem or `#`
+  handle now resolves like `flip`, `set` and `link`, a path still evaluates a
+  `.typ` under no project, and tab completion offers stems. An unknown stem, on
+  every command, names the nearest one (`did you mean: test?`).
+
 - **`compute`, `filter`, `page`, `roll` and `switch` pass the imperative-title
   rule.** All five are in `mindtape-dev-verbs` now (91 entries); the
   frequency-derived `mindtape-verbs` stays untouched.
