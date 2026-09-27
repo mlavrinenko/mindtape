@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 27),
+  status: done(2026, 9, 28),
   links: depends-on(
     "read-estimate-units-and-kebab-case-names-in-filters.typ",
   ),
@@ -78,3 +78,13 @@ severity = "error"
 == Dogfood
 
 This repo's two WIP limits become `count(...)` rules in the retirement task.
+
+
+== Outcome
+
+- The loaded set rides on `Readiness` (`crates/mindtape/src/ready.rs`), not a new parameter: every command already builds it once over the whole set before any filter narrows, and hands it to every set-aware evaluation. `filter.rs`'s context reaches the set through it; `filter_aggregate.rs` holds the snapshot and the per-command cache, keyed by the argument's text.
+- Deviation: `count` is an error where no set exists (`Readiness::empty`: `required`, gates, the estimate `when`), not zero, so a cap never passes unmeasured. `required` rejects it at load. `[[tasks.rules]]` and `[[on.flip]]` dry-run through `expr_problem_in_set`, a one-task set of the probe; the hooks' private copy of `expr_problem` went with it.
+- Deviation: `count(...)` is the left operand of a comparison only, where a field goes; `1 >= count(...)` is refused as the literal-side grammar was.
+- `examples/large` asserts a `count` rule on every task, so `just bench` times it. Interleaved medians over 2000 tasks: `mt check` 98 ms before, 101 ms after, 104 ms with the rule; `mt ls` 199 ms before, 200 ms after.
+- `join_kebab_names` moved to `crates/mindtape/src/expr.rs` to keep `filter.rs` under the size cap.
+- The work touched 13 files against an estimate of 5: `filter_aggregate.rs` plus its tests, `filter.rs`, `ready.rs`, `expr.rs`, `lib.rs`, the two dry-run callers, the bench config, and four docs files (`filters.typ`, `skill.typ` and its generated `SKILL.md`, `CHANGELOG.md`), with `outdatty.lock`.
