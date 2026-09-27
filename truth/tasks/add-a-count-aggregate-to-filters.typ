@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 27),
+  status: wip(2026, 9, 27),
   links: depends-on(
     "read-estimate-units-and-kebab-case-names-in-filters.typ",
   ),
