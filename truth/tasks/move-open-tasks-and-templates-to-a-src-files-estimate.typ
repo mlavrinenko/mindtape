@@ -28,36 +28,34 @@
   ),
   assignee: "agent",
   status: proposed(2026, 9, 27),
-  links: depends-on("read-estimate-units-and-kebab-case-names-in-filters.typ"),
+  links: depends-on("check-estimate-units-on-open-tasks-only.typ"),
 )
 
 == Problem
 
 + Four tasks closed in one session each declared `estimate: (files: N)` and each got `warning: working tree touches N file(s), over the M declared by …`.
-+ 🔴 The count includes docs pages, tests and `CHANGELOG.md`, which every task here touches by process, so the warning fired every time and carried no signal. The one real miss, a source file the plan left out, was buried in it.
++ 🔴 The count includes docs pages, tests and `CHANGELOG.md`, which every task here touches by process, so the warning fired every time and carried no signal. The one real miss, source files the plan left out, was buried in it.
 
 
 == TO-BE
 
-- 🟢 Open tasks and templates estimate `src-files`: non-test source a task plans to touch. `units = ["src-files", "files"]` keeps closed tasks valid untouched.
-- 🟢 Drift reads `unit = "src-files"` and `exclude`s docs, tests, `CHANGELOG.md` and `truth/tasks/**`; the caps key on `src-files`, with no minimum.
-- 🟢 `files` is legacy by rule, replacing `[tasks.estimate] required`:
+- 🟢 Open tasks and templates estimate `src-files`: non-test source a task plans to touch. `files` is retired with a one-line edit, and the 362 closed tasks keep it untouched:
 
 ```toml
-[[tasks.rules]]
-name     = "src-files-estimate"
-when     = '!terminal'
-assert   = 'has(estimate.src-files) && miss(estimate.files)'
-message  = "estimate `src-files`; `files` is the legacy unit closed tasks keep"
-severity = "error"
+[tasks.estimate]
+units    = ["src-files"]
+required = "!terminal"
 ```
+
+- 🟢 Drift reads `unit = "src-files"` and `exclude`s docs, tests, `CHANGELOG.md` and `truth/tasks/**`, so the warning counts source only.
+- 🟢 The caps key on `src-files`, with no minimum: a docs-only task touches no source.
 
 
 == Changes
 
-- `.mindtape/config.toml`: units, drift unit and `exclude`, caps, the legacy rule in place of `required`.
+- `.mindtape/config.toml`: `units`, drift unit and `exclude`, caps.
 - `.mindtape/templates/*.typ`: the `estimate` defaults and prompts.
-- Open tasks under `truth/tasks/` (`mt ls '!terminal && has(estimate)'`): `files:` to `src-files:`, recounted.
+- Open tasks under `truth/tasks/` (`mt ls '!terminal && has(estimate)'`): `files:` to `src-files:`, recounted as source only.
 
 
 == Rollback
@@ -74,4 +72,3 @@ Revert the commit; closed tasks are never touched, so nothing else moves.
 == Dogfood
 
 The next task filed here estimates `src-files`, and its drift warning counts source only.
-
