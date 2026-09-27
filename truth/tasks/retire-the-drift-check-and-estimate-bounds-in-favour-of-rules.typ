@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 28),
+  status: done(2026, 9, 28),
   links: depends-on(
     "read-estimate-units-and-kebab-case-names-in-filters.typ",
     "count-changed-files-per-git-state-in-filters.typ",
@@ -60,6 +60,8 @@ name     = "judgment-stays-small"
 when     = '!terminal && difficulty >= 3'
 assert   = 'estimate.src-files <= 5'
 ```
+
+Deviations as built: `src-budget` keeps the old `exclude` list entry for entry as `!` globs instead of the narrower includes above, and its `when` adds `has(estimate.src-files)` so a task with no budget stays unchecked. The caps stay errors, the 15-file mechanical one is `mechanical-stays-under-15`. learn-piano declared no caps; `examples/estimates`, the docs fixture, carried them and is ported instead. `crates/mindtape/tests/dogfood_check.rs` now counts fatal violations only.
 
 
 == Changes
