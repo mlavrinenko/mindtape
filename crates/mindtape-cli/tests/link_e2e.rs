@@ -257,3 +257,57 @@ fn replace_drops_the_edges_the_map_omits() {
     assert!(!written.contains("pick-a-provider"), "{written}");
     support::mt(dir.path()).arg("check").assert().success();
 }
+
+/// Closing a cycle is refused whichever end the validator attributes it to:
+/// `mt check` names the cycle on its first member, which need not be the task
+/// being written, so the refusal cannot rest on the writer's own violations.
+#[test]
+fn closing_a_dependency_cycle_is_refused_from_either_end() {
+    for (first, second) in [
+        ("wire-oauth", "pick-a-provider"),
+        ("pick-a-provider", "wire-oauth"),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        scaffold(dir.path());
+        support::run_ok(dir.path(), &["link", first, "depends-on", second]);
+        let before = (source(dir.path(), first), source(dir.path(), second));
+
+        let output = support::mt(dir.path())
+            .args(["link", second, "depends-on", first])
+            .output()
+            .unwrap();
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(!output.status.success(), "{second} -> {first}: {stderr}");
+        assert!(stderr.contains("depends-on cycle"), "{stderr}");
+        assert_eq!(
+            (source(dir.path(), first), source(dir.path(), second)),
+            before,
+            "a refused cycle must leave both files byte-identical"
+        );
+        support::mt(dir.path()).arg("check").assert().success();
+    }
+}
+
+/// A cycle already on disk is not the write's doing, so it never blocks an
+/// edge elsewhere.
+#[test]
+fn a_cycle_already_on_disk_does_not_block_an_unrelated_edge() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    for (stem, target) in [
+        ("wire-oauth", "pick-a-provider"),
+        ("pick-a-provider", "wire-oauth"),
+    ] {
+        let text = source(dir.path(), stem).replace(
+            "status: wip(2026, 6, 1),",
+            &format!("status: wip(2026, 6, 1),\n  links: depends-on(\"{target}.typ\"),"),
+        );
+        std::fs::write(dir.path().join("tasks").join(format!("{stem}.typ")), text).unwrap();
+    }
+    support::mt(dir.path()).arg("check").assert().failure();
+
+    support::run_ok(
+        dir.path(),
+        &["link", "write-docs", "depends-on", "wire-oauth"],
+    );
+}

@@ -28,6 +28,7 @@ use typst_world::{DiskProvider, root_file_id};
 
 use crate::body_gate::{BodyRules, check_body_rules};
 use crate::config::Config;
+use crate::link::acyclic_kinds;
 use crate::loader::LoadError;
 use crate::model::Task;
 use crate::validate::Violation;
@@ -139,6 +140,12 @@ pub fn check_candidates(
     tasks.sort_by(|left, right| left.id.cmp(&right.id));
     crate::dep_rank::annotate(&mut tasks, config);
     let violations = crate::validate::validate(&tasks, config);
+    let ids: HashSet<&str> = harvested
+        .iter()
+        .filter_map(|result| result.as_ref().ok())
+        .map(|task| task.id.as_str())
+        .collect();
+    let closed = cycles_closed_elsewhere(existing, config, &ids, &violations);
 
     harvested
         .into_iter()
@@ -150,6 +157,10 @@ pub fn check_candidates(
                     .filter(|violation| violation.task_id == task.id)
                     .cloned()
                     .collect();
+                task_violations.extend(closed.iter().map(|violation| Violation {
+                    task_id: task.id.clone(),
+                    ..violation.clone()
+                }));
                 task_violations.extend(check_body_rules(
                     &task,
                     candidate.source,
@@ -161,6 +172,48 @@ pub fn check_candidates(
                     task,
                 }
             })
+        })
+        .collect()
+}
+
+/// The cycles the batch closes that `validate` names on a task outside it.
+///
+/// A cycle is attributed to its first member, which need not be a task the
+/// batch writes, so filtering by candidate id alone drops it and the write
+/// lands a graph `mt check` then rejects on a neighbour. Each is answered to
+/// every candidate, reworded to say where `mt check` will report it. A cycle
+/// the project already carried is not the batch's doing and never counts.
+fn cycles_closed_elsewhere(
+    existing: &[Task],
+    config: &Config,
+    ids: &HashSet<&str>,
+    after: &[Violation],
+) -> Vec<Violation> {
+    let acyclic = acyclic_kinds(&config.tasks.links);
+    let elsewhere: Vec<&Violation> = after
+        .iter()
+        .filter(|violation| {
+            !ids.contains(violation.task_id.as_str()) && acyclic.contains(&violation.field.as_str())
+        })
+        .collect();
+    if elsewhere.is_empty() {
+        return Vec::new();
+    }
+    let mut before_tasks = existing.to_vec();
+    before_tasks.sort_by(|left, right| left.id.cmp(&right.id));
+    let before = crate::validate::validate(&before_tasks, config);
+    elsewhere
+        .into_iter()
+        .filter(|violation| {
+            !before.iter().any(|old| {
+                old.task_id == violation.task_id
+                    && old.field == violation.field
+                    && old.message == violation.message
+            })
+        })
+        .map(|violation| Violation {
+            message: format!("{} (reported on {})", violation.message, violation.task_id),
+            ..violation.clone()
         })
         .collect()
 }

@@ -407,6 +407,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A write that closes a dependency cycle is refused.** `mt check` names a
+  cycle on its first member, and the pre-write check kept only the violations
+  naming the tasks being written, so `mt link beta depends-on alpha` landed
+  `alpha → beta → alpha` and left `alpha` refusing every later write. A cycle
+  the batch closes now refuses it wherever `mt check` reports it — `mt link`,
+  `--apply`, `mt import` and `mt add` alike — while a cycle already on disk
+  still never blocks an unrelated write.
+
 - **`mt eval` takes a task reference.** It accepted a file path only, so the
   skill's `mt eval <task>` failed on a stem with `no such file`. A stem or `#`
   handle now resolves like `flip`, `set` and `link`, a path still evaluates a
