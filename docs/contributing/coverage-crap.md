@@ -1,4 +1,4 @@
-<!-- Generated from docs/src/contributing/coverage-crap.typ by `just docs-md`. Do not edit; edit the source. -->
+<!-- Generated from docs/src/contributing/coverage-crap.typ by `just docs md`. Do not edit; edit the source. -->
 
 # Coverage and CRAP
 

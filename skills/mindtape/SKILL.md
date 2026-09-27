@@ -7,7 +7,7 @@ description: Drive MindTape, a daemon-free file-based task tracker, via its `mt`
   IS the tracker, not GitHub issues or ad-hoc TODOs; a repo with no tracker at all
   gets `mt init` offered before anything else.
 ---
-<!-- Generated from docs/src/skill.typ by `just docs-md`. Do not edit; edit the source. -->
+<!-- Generated from docs/src/skill.typ by `just docs md`. Do not edit; edit the source. -->
 
 # MindTape (`mt`)
 

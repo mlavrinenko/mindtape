@@ -1,4 +1,4 @@
-<!-- Generated from docs/src/contributing.typ by `just docs-md`. Do not edit; edit the source. -->
+<!-- Generated from docs/src/contributing.typ by `just docs md`. Do not edit; edit the source. -->
 
 # Contributing to MindTape
 

@@ -1,4 +1,4 @@
-<!-- Generated from docs/src/readme.typ by `just docs-md`. Do not edit; edit the source. -->
+<!-- Generated from docs/src/readme.typ by `just docs md`. Do not edit; edit the source. -->
 
 <h1 align="center"><img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg" alt="MindTape" width="120" /><br />
  MindTape</h1>

@@ -83,7 +83,7 @@ HTML comment naming the source, so it never leaks into the page GitHub
 renders:
 
 ```
-<!-- Generated from docs/src/agents.typ by `just docs-md`. Do not edit; edit the source. -->
+<!-- Generated from docs/src/agents.typ by `just docs md`. Do not edit; edit the source. -->
 ```
 
 == The freshness gate diffs a temp directory, not the working tree

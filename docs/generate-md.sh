@@ -87,7 +87,7 @@ export MINDTAPE_GENERATED_LOCK=1
 
 bash www/generate.sh
 
-BANNER_TMPL='<!-- Generated from %s by `just docs-md`. Do not edit; edit the source. -->'
+BANNER_TMPL='<!-- Generated from %s by `just docs md`. Do not edit; edit the source. -->'
 
 shopt -s globstar nullglob
 err="$(mktemp)"

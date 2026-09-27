@@ -1,4 +1,4 @@
-<!-- Generated from docs/src/contributing/example-projects.typ by `just docs-md`. Do not edit; edit the source. -->
+<!-- Generated from docs/src/contributing/example-projects.typ by `just docs md`. Do not edit; edit the source. -->
 
 # The gated example projects
 
