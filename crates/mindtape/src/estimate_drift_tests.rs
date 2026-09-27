@@ -4,8 +4,8 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use super::{
-    ChangeSet, DriftKind, InFlightBudget, build_exclude_matcher, check_estimate_drift,
-    numstat_total, path_excluded, status_path, validate_exclude_globs, working_tree_changes,
+    ChangeSet, DriftKind, InFlightBudget, check_estimate_drift, validate_exclude_globs,
+    working_tree_changes,
 };
 use crate::config::{Config, DriftConfig, parse_config};
 use crate::model::{Status, Task};
@@ -213,18 +213,6 @@ fn both_budgets_can_break_at_once() {
 }
 
 #[test]
-fn numstat_sums_added_and_deleted_and_skips_binaries() {
-    let text = "3\t4\tsrc/a.rs\n-\t-\tassets/logo.png\n10\t0\tsrc/b.rs\n";
-    assert_eq!(numstat_total(text), 17);
-}
-
-#[test]
-fn numstat_ignores_malformed_rows() {
-    assert_eq!(numstat_total(""), 0);
-    assert_eq!(numstat_total("garbage\n5\n"), 0);
-}
-
-#[test]
 fn outside_a_repository_the_check_degrades_to_silence() {
     let missing = Path::new("/nonexistent-mindtape-drift-probe");
     assert!(
@@ -244,54 +232,6 @@ fn the_check_never_errors_on_a_breach() {
 }
 
 // --- `[tasks.estimate.drift] exclude` -------------------------------------
-
-#[test]
-fn status_path_reads_the_path_off_an_untracked_or_modified_line() {
-    assert_eq!(
-        status_path("?? docs/generated/OUT.md"),
-        Some("docs/generated/OUT.md")
-    );
-    assert_eq!(status_path(" M src/lib.rs"), Some("src/lib.rs"));
-}
-
-#[test]
-fn status_path_resolves_a_rename_to_its_destination() {
-    assert_eq!(
-        status_path("R  old/name.rs -> new/name.rs"),
-        Some("new/name.rs"),
-        "a rename must count against the path the tree now holds, not the one it left"
-    );
-}
-
-#[test]
-fn status_path_strips_gits_quoting() {
-    assert_eq!(
-        status_path("?? \"a weird name.md\""),
-        Some("a weird name.md")
-    );
-}
-
-#[test]
-fn status_path_is_none_on_a_line_too_short_to_carry_a_path() {
-    assert_eq!(status_path("??"), None);
-}
-
-#[test]
-fn path_excluded_matches_a_repo_root_relative_glob_crossing_directories() {
-    let matcher = build_exclude_matcher(&["docs/generated/**".to_owned()]);
-    assert!(path_excluded("?? docs/generated/OUT.md", matcher.as_ref()));
-    assert!(
-        path_excluded("?? docs/generated/nested/OUT.md", matcher.as_ref()),
-        "`**` must cross directory boundaries"
-    );
-    assert!(!path_excluded("?? src/lib.rs", matcher.as_ref()));
-}
-
-#[test]
-fn path_excluded_is_false_with_no_configured_pattern() {
-    assert!(build_exclude_matcher(&[]).is_none());
-    assert!(!path_excluded("?? docs/generated/OUT.md", None));
-}
 
 /// Real regression coverage for `truth/tasks/exclude-generated-outputs-from-
 /// the-estimate-drift-check.typ`: a generated path sitting beside a

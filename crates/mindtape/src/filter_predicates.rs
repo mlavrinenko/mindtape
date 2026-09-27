@@ -1,5 +1,5 @@
-//! Presence, staleness, and substring-search arms of the filter language's
-//! function dispatch (`has`/`miss`/`contains`/`stale`), split out of
+//! Presence, staleness, changed-path count, and substring-search arms of the filter language's
+//! function dispatch (`has`/`miss`/`contains`/`stale`/`changed`), split out of
 //! `filter.rs` (file-size gate). Each function here is pure over `Task` (plus
 //! `Config` where a field needs one to resolve, e.g. a framework priority) —
 //! none of them touch the `Ctx` that threads `ready`/`blocked`/`in_view`
@@ -12,6 +12,7 @@ use crate::config::Config;
 use crate::expr::{call_args, extract_identifier, extract_literal};
 use crate::fields::{self, FieldValue};
 use crate::filter::{FilterError, field_value};
+use crate::git_state::{PathFilter, StateSet};
 use crate::model::Task;
 use crate::numeric::format_num;
 
@@ -48,6 +49,38 @@ pub(crate) fn estimate_unit(
         .map_or(FieldValue::Missing, |value| {
             FieldValue::Num(*value)
         })))
+}
+
+/// `changed("<states>", "<glob>"…)`: how many distinct paths git reports
+/// changed in `states` that the globs admit. `dry` validates the arguments and
+/// counts zero without reading git — the config-load dry run.
+pub(crate) fn changed_count(
+    children: &[Node<DefaultNumericTypes>],
+    config: &Config,
+    dry: bool,
+) -> Result<f64, FilterError> {
+    let args = call_args(children);
+    let Some((states_node, glob_nodes)) = args.split_first() else {
+        return Err(FilterError::Invalid(
+            "changed() needs its git states: changed(\"staged+worktree\", \"<glob>\"…)".to_owned(),
+        ));
+    };
+    let invalid = |err: String| FilterError::Invalid(format!("changed(): {err}"));
+    let states =
+        StateSet::parse(&extract_literal(states_node).map_err(invalid)?).map_err(invalid)?;
+    let globs = glob_nodes
+        .iter()
+        .map(|node| extract_literal(node).map_err(invalid))
+        .collect::<Result<Vec<_>, _>>()?;
+    let admitted = PathFilter::new(&globs).map_err(invalid)?;
+    if dry {
+        return Ok(0.0);
+    }
+    let git_status = config.git.status().map_err(FilterError::Git)?;
+    Ok(git_status
+        .paths(states)
+        .filter(|path| admitted.admits(path))
+        .count() as f64)
 }
 
 pub(crate) fn is_stale(task: &Task, days: u64) -> bool {
@@ -164,3 +197,7 @@ fn joined_notes(task: &Task) -> String {
         .collect::<Vec<_>>()
         .join(" ")
 }
+
+#[cfg(test)]
+#[path = "filter_changed_tests.rs"]
+mod changed_tests;

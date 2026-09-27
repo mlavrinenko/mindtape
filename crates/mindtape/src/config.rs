@@ -109,6 +109,11 @@ pub struct Config {
     /// on every validation call site.
     #[serde(skip)]
     pub(crate) rules_root: crate::config_rules::RulesRoot,
+    /// What git says changed under the project root, read the first time a
+    /// filter's `changed()` asks and shared from then on. Derived, never
+    /// declared, never equal-compared — see [`crate::git_state::GitCache`].
+    #[serde(skip)]
+    pub(crate) git: crate::git_state::GitCache,
     /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
     pub on: crate::config_hooks::OnConfig,
     /// The project's actor registry (`[[actors]]`): named workers (people and

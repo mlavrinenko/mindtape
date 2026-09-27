@@ -86,8 +86,10 @@ transitively waiting on this one. Operators: `== != < > <= >= && || !` and
 parentheses. Helpers: `has(f)`/`miss(f)`, `has_tag("t")`, `links("kind")`,
 `contains("s"[, field…])` (needle first; with no field it searches title/id/body,
 or `[ls] contains-fields`), `ready`/`blocked`, `terminal`, `stale(N)`, `now()`,
-`in_view("v")` (also `@v`), `matches(f, "re")`, `in_dict("d", word(f, n))`, and
-`into("s")` inside an `[[on.flip]]` `when`.
+`in_view("v")` (also `@v`), `matches(f, "re")`, `in_dict("d", word(f, n))`,
+`changed("staged+worktree", "glob", "!glob")` (a count of git-changed paths,
+compared to a literal or a field), and `into("s")` inside an `[[on.flip]]`
+`when`.
 
 `mt find a b` is `contains("a") && contains("b")`. A bare `@name` applies a
 `[views.<name>]` bundle (filter, sort, columns). `--json` and `--format csv|path`

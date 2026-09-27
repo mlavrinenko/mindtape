@@ -42,6 +42,13 @@
 //! expr>)` — membership in a `[dicts.<name>]` set or a built-in one, under that
 //! dictionary's `case`. Canonically: `in_dict("verbs", word(title, 1))`.
 //!
+//! `changed("<states>", "<glob>"…)` counts the distinct paths git reports
+//! changed in `staged`, `worktree`, or both joined with `+`, narrowed by
+//! include globs and `!`-prefixed exclude globs (see [`crate::git_state`]).
+//! It is a count, so it only appears in a comparison — against a literal or a
+//! field: `changed("staged", "src/**") <= estimate.files`. Either side of a
+//! comparison may name a field when the other is a field or a count.
+//!
 //! `now()` evaluates to today's ISO date string (`YYYY-MM-DD`) and may appear
 //! on the right-hand side of a comparison: `start <= now()`, `due < now()`.
 //!
@@ -55,15 +62,11 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
 use thiserror::Error;
 
 use crate::config::Config;
-use crate::expr::{
-    NAME_HYPHEN, compare_ordering, extract_identifier, extract_literal, resolve_now_or_literal,
-    restore_name,
-};
+use crate::expr::{NAME_HYPHEN, extract_identifier, extract_literal, restore_name};
 use crate::fields::{self, FieldValue};
 use crate::filter_predicates::{contains_call, is_stale, present};
 use crate::filter_views::{collect_view_refs, desugar_view_refs};
 use crate::model::Task;
-use crate::numeric::format_num;
 use crate::ready::Readiness;
 
 /// Maximum `in_view` nesting depth evaluated before bailing. Config load rejects
@@ -108,6 +111,11 @@ pub enum FilterError {
     /// A structurally invalid expression.
     #[error("invalid filter: {0}")]
     Invalid(String),
+    /// `changed()` asked git and git could not answer — outside a
+    /// repository, or git missing. A `[[tasks.rules]]` entry reading it is
+    /// skipped rather than failed ([`crate::config_rules`]).
+    #[error("changed() cannot read git: {0}")]
+    Git(String),
 }
 
 impl Filter {
@@ -160,6 +168,18 @@ impl Filter {
         config: &Config,
         readiness: &Readiness,
     ) -> Result<bool, FilterError> {
+        self.eval(task, config, readiness, false)
+    }
+
+    /// Evaluate against `task`; `dry` checks every `changed()` call's
+    /// arguments without reading git (see [`expr_problem`]).
+    fn eval(
+        &self,
+        task: &Task,
+        config: &Config,
+        readiness: &Readiness,
+        dry: bool,
+    ) -> Result<bool, FilterError> {
         match &self.tree {
             None => Ok(true),
             Some(tree) => eval_bool(
@@ -169,6 +189,7 @@ impl Filter {
                     config,
                     readiness,
                     depth: 0,
+                    dry,
                 },
             ),
         }
@@ -230,12 +251,16 @@ fn join_kebab_names(expr: &str) -> String {
 /// the answer with its own dotted TOML path, so a malformed expression is one
 /// config error at load rather than a surprise per artifact — or, for a rule,
 /// one violation per artifact.
+///
+/// The dry run never reads git: a `changed()` call has its states and globs
+/// checked and counts zero, so loading a config outside a repository is not
+/// an error and loading one inside it costs no `git status`.
 #[must_use]
 pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Option<String> {
     match Filter::parse(source) {
         Err(err) => Some(err.to_string()),
         Ok(filter) => filter
-            .matches(probe, config)
+            .eval(probe, config, &Readiness::empty(), true)
             .err()
             .map(|err| err.to_string()),
     }
@@ -243,12 +268,14 @@ pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Optio
 
 /// Shared context threaded through the filter walk: the task under test, the
 /// config (framework scores, terminal set, view lookup), the readiness oracle
-/// (`ready` / `blocked`), and the current `in_view` recursion depth.
-struct Ctx<'a> {
-    task: &'a Task,
-    config: &'a Config,
+/// (`ready` / `blocked`), the current `in_view` recursion depth, and whether
+/// this is the load-time dry run (see [`expr_problem`]).
+pub(crate) struct Ctx<'a> {
+    pub(crate) task: &'a Task,
+    pub(crate) config: &'a Config,
     readiness: &'a Readiness,
     depth: usize,
+    pub(crate) dry: bool,
 }
 
 impl<'a> Ctx<'a> {
@@ -259,6 +286,7 @@ impl<'a> Ctx<'a> {
             config: self.config,
             readiness: self.readiness,
             depth: self.depth + 1,
+            dry: self.dry,
         }
     }
 }
@@ -280,7 +308,7 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, Filter
         | Operator::Lt
         | Operator::Gt
         | Operator::Leq
-        | Operator::Geq => comparison(node, ctx),
+        | Operator::Geq => crate::filter_compare::comparison(node, ctx),
         Operator::FunctionIdentifier { identifier } => {
             function(&restore_name(identifier), node, ctx)
         }
@@ -315,63 +343,6 @@ fn binary(
     }
 }
 
-fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
-    let [lhs, rhs] = node.children() else {
-        return Err(FilterError::Invalid(
-            "comparison needs two operands".to_owned(),
-        ));
-    };
-    let field = extract_identifier(lhs).map_err(FilterError::Invalid)?;
-    let literal = resolve_now_or_literal(rhs).map_err(FilterError::Invalid)?;
-    let value = if field == "role" {
-        role_field(ctx.task, ctx.config, &literal)
-    } else {
-        field_value(ctx.task, &field, ctx.config)?
-    };
-    Ok(compare(node.operator(), &value, &literal))
-}
-
-/// `role` is a virtual, comparison-only field resolved from the actors
-/// registry at read time: a task matches a role literal when its assignee is a
-/// declared actor holding that role. Every other comparison resolves to
-/// [`FieldValue::Missing`], so the missing-field rule applies uniformly and
-/// `role == "reviewer"` / `role != "reviewer"` partition the whole set with no
-/// third case.
-fn role_field(task: &Task, config: &Config, literal: &str) -> FieldValue {
-    match task
-        .assignee
-        .as_deref()
-        .and_then(|name| crate::config_actors::roles_of(name, config))
-    {
-        Some(roles) if roles.iter().any(|role| role == literal) => {
-            FieldValue::Str(literal.to_owned())
-        }
-        _ => FieldValue::Missing,
-    }
-}
-
-/// Compare one resolved field value against a literal.
-///
-/// Missing-field rule: a field the task does not carry is unequal to every
-/// literal and orders against none — `!=` holds, `==` / `<` / `>` / `<=` / `>=`
-/// are all false. So `kind != "umbrella"` matches a task with no `kind` at all,
-/// and the pair `kind == "umbrella"` / `kind != "umbrella"` partitions the whole
-/// set with no third case. `[[tasks.limits]]`
-/// ([`crate::config_limits`]) rests on that: one limit over each half of such a
-/// pair caps every task by construction, including the ones leaving the field
-/// unset. Pinned by `missing_field_is_unequal_to_every_literal` in
-/// `filter_tests.rs` — do not relax it without revisiting that rule.
-fn compare(op: &Operator<DefaultNumericTypes>, value: &FieldValue, literal: &str) -> bool {
-    match value {
-        FieldValue::Missing => matches!(op, Operator::Neq),
-        FieldValue::Str(text) => compare_ordering(op, Some(text.as_str().cmp(literal))),
-        FieldValue::Num(num) => match literal.parse::<f64>() {
-            Ok(rhs) => compare_ordering(op, num.partial_cmp(&rhs)),
-            Err(_) => compare_ordering(op, Some(format_num(*num).as_str().cmp(literal))),
-        },
-    }
-}
-
 fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     let children = node.children();
     let (task, config) = (ctx.task, ctx.config);
@@ -402,6 +373,9 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
         "matches" => crate::filter_strings::matches_call(children, task, config),
         "in_dict" => crate::filter_strings::in_dict_call(children, task, config),
         "word" => Err(crate::filter_strings::word_is_not_boolean()),
+        "changed" => Err(FilterError::Invalid(
+            "changed() is a count; compare it: changed(\"worktree\") <= estimate.files".to_owned(),
+        )),
         "stale" => {
             let count_str = single_literal(children, "stale")?;
             let count: u64 = count_str.parse().map_err(|_| {

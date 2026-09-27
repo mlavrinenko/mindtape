@@ -301,3 +301,46 @@ fn the_whole_config_refuses_an_undeclared_estimate_unit() {
     let toml = toml.replace("\"files\"", "\"src-files\"");
     config(&toml).validate().unwrap();
 }
+
+/// A rule reading `changed()` over a root git cannot read: skipped once, as a
+/// warning, whatever its own severity and however many tasks it covers.
+#[test]
+fn a_rule_reading_changed_outside_git_is_skipped_once_never_an_error() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut config = config(
+        "\
+[[tasks.rules]]
+name = \"src-budget\"
+assert = 'changed(\"staged+worktree\", \"src/**\") <= 3'
+severity = \"error\"
+",
+    );
+    config.git.set_root(dir.path());
+    let tasks = vec![task("a", "Refactor it", "wip"), task("b", "Fix it", "wip")];
+    let skip = sole_breach(&tasks, &config);
+    assert_eq!(skip.field, "rules.src-budget");
+    assert_eq!(skip.severity, Some(Severity::Warn));
+    assert!(skip.message.starts_with("skipped: "), "{}", skip.message);
+    assert!(
+        skip.message.contains("not a git repository"),
+        "{}",
+        skip.message
+    );
+}
+
+/// The same holds when `changed()` sits in the rule's `when`.
+#[test]
+fn a_when_reading_changed_outside_git_skips_the_rule_too() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut config = config(
+        "\
+[[tasks.rules]]
+name = \"busy\"
+when = 'changed(\"worktree\") > 0'
+assert = 'has(title)'
+",
+    );
+    config.git.set_root(dir.path());
+    let skip = sole_breach(&[task("a", "Refactor it", "wip")], &config);
+    assert!(skip.message.starts_with("skipped: "), "{}", skip.message);
+}

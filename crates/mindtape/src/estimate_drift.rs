@@ -21,13 +21,11 @@
 //!
 //! # Reading the working tree
 //!
-//! [`working_tree_changes`] shells out to git, strictly read-only:
-//! `git --no-optional-locks -C <root> status --porcelain --untracked-files=all`
-//! for the changed-file count and `git … diff --numstat HEAD` for the line
-//! total. `--no-optional-locks` matters — `mt check` is a read command under the
-//! project's read/write split, so it must not even refresh git's index stat
-//! cache. Outside a git repository, or with git unavailable, every step
-//! degrades to `None`: no warning, and never an error.
+//! [`working_tree_changes`] reads git through [`crate::git_state`], strictly
+//! read-only: every changed path, staged or not, for the file count, and
+//! `diff --numstat HEAD` for the line total. Outside a git repository, or with
+//! git unavailable, every step degrades to `None`: no warning, and never an
+//! error.
 //!
 //! v1 compares counts only. The intended path list stays prose under the task's
 //! Files heading; machine-comparing declared paths against the diff would need
@@ -37,20 +35,20 @@
 //!
 //! `[tasks.estimate.drift] exclude` names paths the file count skips — a
 //! generated output nobody hand-edits should never spend part of a budget
-//! meant for the source that produced it. Each `--porcelain` line is parsed
-//! back to the path it names (the destination side of a rename) and matched
-//! against the configured globs; only the *file* count is filtered. The line
+//! meant for the source that produced it. Each changed path (the destination
+//! side of a rename) is matched against the configured globs; only the *file*
+//! count is filtered. The line
 //! total stays unfiltered — it is already documented as a generous, distorted-
 //! by-design secondary signal, never a budget of its own.
 
 use std::fmt;
 use std::path::Path;
-use std::process::Command;
 
-use globset::{Glob, GlobSet, GlobSetBuilder};
+use globset::Glob;
 
 use crate::config::{Config, DriftConfig};
 use crate::filter::{Filter, FilterError};
+use crate::git_state::{GitStatus, PathFilter, StateSet, diff_line_total};
 use crate::model::Task;
 use crate::numeric::format_num;
 use crate::ready::Readiness;
@@ -218,58 +216,24 @@ pub fn check_estimate_drift(
 /// `None` when `root` is not a git working copy or git is unavailable. A
 /// repository with no commits yet has no `HEAD`, so the line total falls back to
 /// zero while the file count still stands — the file budget is the real one.
+/// An exclude glob that fails to compile drops the whole exclude list here —
+/// invalid syntax is reported at config load time by
+/// [`validate_exclude_globs`], not re-reported on every `mt check` run.
 #[must_use]
 pub fn working_tree_changes(root: &Path, drift: &DriftConfig) -> Option<ChangeSet> {
-    let status = git(root, &["status", "--porcelain", "--untracked-files=all"])?;
-    let excluded = build_exclude_matcher(&drift.exclude);
+    let status = GitStatus::read(root).ok()?;
+    let excludes: Vec<String> = drift
+        .exclude
+        .iter()
+        .map(|glob| format!("!{glob}"))
+        .collect();
+    let counted = PathFilter::new(&excludes).ok();
     let files = status
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .filter(|line| !path_excluded(line, excluded.as_ref()))
+        .paths(StateSet::ALL)
+        .filter(|path| counted.as_ref().is_none_or(|filter| filter.admits(path)))
         .count();
-    let lines = git(root, &["diff", "--numstat", "HEAD"]).map_or(0, |out| numstat_total(&out));
+    let lines = diff_line_total(root).unwrap_or(0);
     Some(ChangeSet { files, lines })
-}
-
-/// Compile `[tasks.estimate.drift] exclude` into a matcher, or `None` when the
-/// list is empty. A pattern that fails to compile is skipped here — invalid
-/// syntax is reported at config load time by [`validate_exclude_globs`], not
-/// re-reported on every `mt check` run.
-fn build_exclude_matcher(patterns: &[String]) -> Option<GlobSet> {
-    if patterns.is_empty() {
-        return None;
-    }
-    let mut builder = GlobSetBuilder::new();
-    for pattern in patterns {
-        if let Ok(glob) = Glob::new(pattern) {
-            builder.add(glob);
-        }
-    }
-    builder.build().ok()
-}
-
-/// Whether one `--porcelain --untracked-files=all` line names a path
-/// `matcher` covers. `false` with no matcher, or when the line is too short to
-/// carry a path.
-fn path_excluded(status_line: &str, matcher: Option<&GlobSet>) -> bool {
-    let Some(matcher) = matcher else {
-        return false;
-    };
-    let Some(path) = status_path(status_line) else {
-        return false;
-    };
-    matcher.is_match(path)
-}
-
-/// The path one `--porcelain` line names, or `None` if the line is too short
-/// to carry a two-character status code, a space, and a path. A rename line
-/// (`R  old -> new`) resolves to the destination path — the one the working
-/// tree now holds. Git quotes a path containing unusual bytes in a wrapping
-/// `"..."`; that layer is stripped so the raw path reaches the glob matcher.
-fn status_path(line: &str) -> Option<&str> {
-    let rest = line.get(3..)?;
-    let path = rest.rsplit(" -> ").next().unwrap_or(rest);
-    Some(path.trim_matches('"'))
 }
 
 /// Validate that every `[tasks.estimate.drift] exclude` glob compiles. Returns
@@ -289,40 +253,6 @@ pub fn validate_exclude_globs(config: &Config) -> Vec<String> {
                 .map(|err| format!("tasks.estimate.drift.exclude: invalid glob {pattern:?}: {err}"))
         })
         .collect()
-}
-
-/// Run one read-only git command in `root` and return its stdout, or `None` on
-/// any failure (git missing, not a repository, a non-zero exit).
-///
-/// `--no-optional-locks` keeps git from refreshing `.git/index`: `mt check` is a
-/// read command, and a read must not write — not even a stat cache.
-fn git(root: &Path, args: &[&str]) -> Option<String> {
-    let output = Command::new("git")
-        .arg("--no-optional-locks")
-        .arg("-C")
-        .arg(root)
-        .args(args)
-        .output()
-        .ok()?;
-    output
-        .status
-        .success()
-        .then(|| String::from_utf8_lossy(&output.stdout).into_owned())
-}
-
-/// Sum added plus deleted lines over `git diff --numstat` output. A binary file
-/// reports `-` for both counts and contributes nothing.
-fn numstat_total(text: &str) -> usize {
-    text.lines().filter_map(numstat_line).sum()
-}
-
-/// Added plus deleted lines for one `--numstat` row, or `None` when the row is
-/// binary or malformed.
-fn numstat_line(line: &str) -> Option<usize> {
-    let mut columns = line.split_whitespace();
-    let added: usize = columns.next()?.parse().ok()?;
-    let deleted: usize = columns.next()?.parse().ok()?;
-    Some(added + deleted)
 }
 
 #[cfg(test)]

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`changed("<states>", "<glob>"…)` counts changed files in a filter.** A
+  budget over source files could not be written: the only git-aware check was
+  the drift check, fixed to the `files` unit and every changed path, docs and
+  tests included. `changed()` counts the distinct paths git reports in
+  `staged`, `worktree` (untracked included) or `staged+worktree`, narrowed by
+  include globs and `!` excludes, so `changed("staged+worktree",
+  "crates/*/src/**", "!**/*_tests*.rs") <= estimate.src-files` is one rule. A
+  comparison's right side may now be a field or a count as well as a literal.
+  Git runs read-only, at most once per command; outside a repository a rule
+  reading it reports once as skipped, a command-line filter fails naming why.
 - **Filters read estimate units and kebab-case names.** `mt ls 'estimate.files
   > 3'` was refused, since `estimate` took presence only, and `has(x-goals)`
   failed with `expected a field, got Sub`, since `-` always lexed as minus.

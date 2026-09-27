@@ -1,0 +1,196 @@
+#![allow(clippy::unwrap_used)]
+
+use std::path::Path;
+use std::process::Command;
+
+use super::{GitCache, GitStatus, PathFilter, StateSet, numstat_total};
+use crate::test_support::git_init;
+
+/// `git status --porcelain -z` output, NUL-separated as git writes it.
+fn porcelain(records: &[&str]) -> String {
+    records.iter().map(|record| format!("{record}\0")).collect()
+}
+
+fn paths(status: &GitStatus, spec: &str) -> Vec<String> {
+    let set = StateSet::parse(spec).unwrap();
+    status.paths(set).map(str::to_owned).collect()
+}
+
+fn git(root: &Path, args: &[&str]) {
+    let ok = Command::new("git")
+        .args(["-c", "user.name=t", "-c", "user.email=t@t"])
+        .args(args)
+        .current_dir(root)
+        .status()
+        .unwrap()
+        .success();
+    assert!(ok, "git {args:?} must succeed");
+}
+
+// --- state names -----------------------------------------------------------
+
+#[test]
+fn a_state_set_parses_each_name_and_their_join() {
+    let staged = StateSet::parse("staged").unwrap();
+    assert!(staged.staged && !staged.worktree);
+    let worktree = StateSet::parse("worktree").unwrap();
+    assert!(!worktree.staged && worktree.worktree);
+    let both = StateSet::parse("worktree+staged").unwrap();
+    assert!(both.staged && both.worktree);
+}
+
+#[test]
+fn an_unknown_or_empty_state_is_refused_naming_the_known_ones() {
+    let err = StateSet::parse("staged+commited").unwrap_err();
+    assert!(err.contains("commited"), "{err}");
+    assert!(err.contains("staged") && err.contains("worktree"), "{err}");
+    assert!(StateSet::parse("").is_err());
+    assert!(StateSet::parse("staged+").is_err());
+}
+
+// --- porcelain parsing per state -------------------------------------------
+
+#[test]
+fn porcelain_splits_each_path_by_the_state_it_changed_in() {
+    let text = porcelain(&[
+        "M  src/staged.rs",
+        " M src/unstaged.rs",
+        "MM src/both.rs",
+        "?? src/new.rs",
+        "A  src/added.rs",
+        " D src/gone.rs",
+    ]);
+    let status = GitStatus::parse(&text);
+    assert_eq!(
+        paths(&status, "staged"),
+        ["src/staged.rs", "src/both.rs", "src/added.rs"]
+    );
+    assert_eq!(
+        paths(&status, "worktree"),
+        [
+            "src/unstaged.rs",
+            "src/both.rs",
+            "src/new.rs",
+            "src/gone.rs"
+        ],
+        "untracked counts as worktree"
+    );
+    assert_eq!(
+        paths(&status, "staged+worktree").len(),
+        6,
+        "a path changed in both states counts once"
+    );
+}
+
+#[test]
+fn a_rename_counts_its_destination_and_skips_the_source_record() {
+    // `-z` writes a rename as `R  <new>\0<old>\0`.
+    let text = porcelain(&["R  new/name.rs", "old/name.rs", " M other.rs"]);
+    let status = GitStatus::parse(&text);
+    assert_eq!(paths(&status, "staged"), ["new/name.rs"]);
+    assert_eq!(paths(&status, "worktree"), ["other.rs"]);
+}
+
+#[test]
+fn a_path_git_would_quote_arrives_raw_under_z() {
+    let status = GitStatus::parse(&porcelain(&["?? a weird -> name.md"]));
+    assert_eq!(paths(&status, "worktree"), ["a weird -> name.md"]);
+}
+
+#[test]
+fn a_record_too_short_to_carry_a_path_is_dropped() {
+    let status = GitStatus::parse(&porcelain(&["??", " M ok.rs"]));
+    assert_eq!(paths(&status, "worktree"), ["ok.rs"]);
+}
+
+// --- include and `!` globs -------------------------------------------------
+
+#[test]
+fn no_glob_admits_every_path() {
+    let filter = PathFilter::new(&[]).unwrap();
+    assert!(filter.admits("anything/at/all.md"));
+}
+
+#[test]
+fn an_include_glob_admits_only_what_it_names_across_directories() {
+    let filter = PathFilter::new(&["crates/*/src/**".to_owned()]).unwrap();
+    assert!(filter.admits("crates/mindtape/src/filter.rs"));
+    assert!(filter.admits("crates/mindtape/src/deep/mod.rs"));
+    assert!(!filter.admits("CHANGELOG.md"));
+}
+
+#[test]
+fn a_bang_glob_excludes_even_what_an_include_admits() {
+    let filter =
+        PathFilter::new(&["crates/*/src/**".to_owned(), "!**/*_tests*.rs".to_owned()]).unwrap();
+    assert!(filter.admits("crates/mindtape/src/filter.rs"));
+    assert!(!filter.admits("crates/mindtape/src/filter_tests.rs"));
+}
+
+#[test]
+fn only_bang_globs_admit_everything_else() {
+    let filter = PathFilter::new(&["!docs/**".to_owned()]).unwrap();
+    assert!(filter.admits("src/lib.rs"));
+    assert!(!filter.admits("docs/a.md"));
+}
+
+#[test]
+fn an_invalid_glob_is_refused_naming_it() {
+    let err = PathFilter::new(&["![oops".to_owned()]).unwrap_err();
+    assert!(err.contains("[oops"), "{err}");
+}
+
+// --- numstat ---------------------------------------------------------------
+
+#[test]
+fn numstat_sums_added_and_deleted_and_skips_binaries() {
+    let text = "3\t4\tsrc/a.rs\n-\t-\tassets/logo.png\n10\t0\tsrc/b.rs\n";
+    assert_eq!(numstat_total(text), 17);
+}
+
+#[test]
+fn numstat_ignores_malformed_rows() {
+    assert_eq!(numstat_total(""), 0);
+    assert_eq!(numstat_total("garbage\n5\n"), 0);
+}
+
+// --- against a real repository ---------------------------------------------
+
+#[test]
+fn reading_a_real_repository_separates_staged_from_worktree() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    git_init(root);
+    std::fs::write(root.join("staged.rs"), "a\n").unwrap();
+    std::fs::write(root.join("loose.rs"), "b\n").unwrap();
+    git(root, &["add", "staged.rs"]);
+
+    let status = GitStatus::read(root).unwrap();
+    assert_eq!(paths(&status, "staged"), ["staged.rs"]);
+    assert_eq!(paths(&status, "worktree"), ["loose.rs"]);
+}
+
+#[test]
+fn outside_a_repository_the_read_fails_naming_gits_reason() {
+    let dir = tempfile::tempdir().unwrap();
+    let err = GitStatus::read(dir.path()).unwrap_err();
+    assert!(err.contains("not a git repository"), "{err}");
+}
+
+#[test]
+fn the_cache_reads_git_once_and_shares_it_across_clones() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    git_init(root);
+    std::fs::write(root.join("one.rs"), "a\n").unwrap();
+    let mut cache = GitCache::default();
+    cache.set_root(root);
+    let clone = cache.clone();
+    assert_eq!(cache.status().unwrap().entries().len(), 1);
+    std::fs::write(root.join("two.rs"), "b\n").unwrap();
+    assert_eq!(
+        clone.status().unwrap().entries().len(),
+        1,
+        "the second read is the first one's answer, not a second git run"
+    );
+}

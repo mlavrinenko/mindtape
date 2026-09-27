@@ -86,6 +86,10 @@ therefore partitions the whole backlog with no third case — the property
 #link(u("/config/"))[work-in-progress limits] rest on. Select absence explicitly
 with `miss(field)`.
 
+The right side may also be another field, or a `changed()` count (below):
+`estimate.files >= estimate.days` compares two fields, numerically when both
+are numbers, and a side the task lacks follows the same rule.
+
 = Functions
 
 #table(
@@ -177,6 +181,39 @@ mt ls '@backend && !@blocked'   # in the backend view, minus blocked
 
 One predicate exists only where a transition does: `into("status")`, in a
 #link(u("/hooks/"))[`[[on.flip]]`] hook's `when`.
+
+= Changed files
+
+`changed("<states>", "<glob>"…)` counts the distinct paths git reports
+changed. It is a count, not a verdict, so it sits in a comparison — against a
+literal or a field:
+
+```toml
+[[tasks.rules]]
+name     = "src-budget"
+when     = 'status == "wip" && has(estimate.src-files)'
+assert   = 'changed("staged+worktree", "crates/*/src/**", "!**/*_tests*.rs") <= estimate.src-files'
+severity = "warn"
+```
+
+#table(
+  columns: 2,
+  table.header([State], [Counts a path that]),
+  [`staged`], [differs in the index from `HEAD`.],
+  [`worktree`], [differs in the working tree from the index, or is untracked.],
+  [`staged+worktree`], [is in either; a path in both counts once.],
+)
+
+Globs match paths relative to the repository root; `**` crosses directories.
+A glob names what counts, one starting with `!` excludes even what another
+admits, and no glob counts every path. A rename counts its destination.
+
+Git runs read-only (`--no-optional-locks`, so not even the index's stat cache
+is refreshed), on demand, and at most once per command. Outside a git
+repository a `[[tasks.rules]]` entry reading `changed()` reports once as
+skipped — a warning whatever its `severity` — while a filter typed on the
+command line fails naming git's reason. The load-time dry run checks the
+state names and globs without running git.
 
 = Dependency predicates
 

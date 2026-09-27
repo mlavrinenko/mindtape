@@ -193,6 +193,7 @@ fn build_config(
     // than reading it back off `config` — the two would otherwise have to
     // agree on an ordering that only exists to satisfy this line.
     config.rules_root.set(root);
+    config.git.set_root(root);
     config.validate().map_err(ConfigError::Invalid)?;
     // Root-aware, so it cannot run inside `Config::validate` itself (which
     // stays callable rootless, e.g. from `mt init`'s wizard and from the many

@@ -65,7 +65,7 @@ use serde::Deserialize;
 
 use crate::config::Config;
 use crate::config_rules_typst::CompiledCheck;
-use crate::filter::Filter;
+use crate::filter::{Filter, FilterError};
 use crate::model::Task;
 use crate::ready::Readiness;
 use crate::severity::Severity;
@@ -259,19 +259,33 @@ impl CompiledRule {
     /// project reading its own `mt check` output cannot detect. A `when` that
     /// fails to evaluate excludes the task instead — a gate that cannot say
     /// whether the rule applies has not said that it does.
-    fn breaches(&self, task: &Task, config: &Config, readiness: &Readiness) -> Vec<Violation> {
-        let applies = self
+    ///
+    /// Either one reading `changed()` where git cannot answer is neither: it is
+    /// `Err`, and [`check_all`] skips the rule (see [`Self::skipped`]).
+    fn breaches(
+        &self,
+        task: &Task,
+        config: &Config,
+        readiness: &Readiness,
+    ) -> Result<Vec<Violation>, FilterError> {
+        let applies = match self
             .when
             .as_ref()
-            .is_none_or(|when| when.matches_with(task, config, readiness).unwrap_or(false));
+            .map(|when| when.matches_with(task, config, readiness))
+        {
+            None | Some(Ok(true)) => true,
+            Some(Err(err @ FilterError::Git(_))) => return Err(err),
+            Some(Ok(false) | Err(_)) => false,
+        };
         if !applies {
-            return Vec::new();
+            return Ok(Vec::new());
         }
-        match &self.kind {
+        Ok(match &self.kind {
             RuleKind::Assert { filter, advice } => {
                 match filter.matches_with(task, config, readiness) {
                     Ok(true) => Vec::new(),
                     Ok(false) => vec![self.violation(task, advice.clone())],
+                    Err(err @ FilterError::Git(_)) => return Err(err),
                     Err(err) => vec![self.violation(task, err.to_string())],
                 }
             }
@@ -280,6 +294,16 @@ impl CompiledRule {
                 .into_iter()
                 .map(|message| self.violation(task, message))
                 .collect(),
+        })
+    }
+
+    /// The one report of a rule skipped because git could not answer its
+    /// `changed()`: always a warning, whatever the rule's own severity — a
+    /// rule that cannot see the change set has not found a breach.
+    fn skipped(&self, task: &Task, err: &FilterError) -> Violation {
+        Violation {
+            severity: Some(Severity::Warn),
+            ..self.violation(task, format!("skipped: {err}"))
         }
     }
 
@@ -298,7 +322,8 @@ impl CompiledRule {
 }
 
 /// Evaluate every `[[tasks.rules]]` entry over `tasks`, appending one violation
-/// per breach — task by task, rules in config order.
+/// per breach — task by task, rules in config order. A rule whose `changed()`
+/// git cannot answer reports once as skipped and is not asked again.
 ///
 /// Readiness for the `ready` / `blocked` predicates is computed over the whole
 /// set passed in, so a rule can assert something about what is startable as
@@ -318,9 +343,19 @@ pub(crate) fn check_all(tasks: &[Task], config: &Config, out: &mut Vec<Violation
         return;
     }
     let readiness = Readiness::compute(tasks, config);
+    let mut skipped = vec![false; rules.len()];
     for task in tasks {
-        for rule in &rules {
-            out.extend(rule.breaches(task, config, &readiness));
+        for (rule, skipped) in rules.iter().zip(skipped.iter_mut()) {
+            if *skipped {
+                continue;
+            }
+            match rule.breaches(task, config, &readiness) {
+                Ok(found) => out.extend(found),
+                Err(err) => {
+                    *skipped = true;
+                    out.push(rule.skipped(task, &err));
+                }
+            }
         }
     }
 }
