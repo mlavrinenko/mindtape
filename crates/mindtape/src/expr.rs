@@ -21,6 +21,51 @@ pub(crate) fn restore_name(name: &str) -> String {
     name.replace(NAME_HYPHEN, "-")
 }
 
+/// The pre-lex pass that keeps a kebab-case name one token: a `-` between two
+/// name characters, inside a name that began with a letter or `_`, becomes
+/// [`NAME_HYPHEN`], which `evalexpr` lexes as a name character. Typst's
+/// identifier rule, so a filter spells a name the way the task file does.
+///
+/// A `-` anywhere else stays an operator: a leading one (`> -1`), one after a
+/// number (`1e-5`), one beside a space (`a - b`). String literals are copied
+/// verbatim, escapes included.
+#[must_use]
+pub(crate) fn join_kebab_names(expr: &str) -> String {
+    let mut out = String::with_capacity(expr.len());
+    let mut chars = expr.chars().peekable();
+    let (mut in_string, mut escaped) = (false, false);
+    // Whether the current run of name characters began as a name.
+    let mut in_name = false;
+    // Whether the previous character belongs to a run of name characters.
+    let mut in_run = false;
+    while let Some(ch) = chars.next() {
+        if in_string {
+            in_string = escaped || ch != '"';
+            escaped = !escaped && ch == '\\';
+            out.push(ch);
+            continue;
+        }
+        let name_char = ch.is_alphanumeric() || ch == '_' || ch == '.';
+        let joins = ch == '-'
+            && in_name
+            && chars
+                .peek()
+                .is_some_and(|next| next.is_alphanumeric() || *next == '_');
+        if joins {
+            out.push(NAME_HYPHEN);
+            continue;
+        }
+        if !in_run && name_char {
+            in_name = ch.is_alphabetic() || ch == '_';
+        }
+        in_run = name_char;
+        in_name &= name_char;
+        in_string = ch == '"';
+        out.push(ch);
+    }
+    out
+}
+
 /// Recurse through nested [`Operator::RootNode`] wrappers down to the real
 /// node underneath.
 pub(crate) fn unwrap_root(node: &Node<DefaultNumericTypes>) -> &Node<DefaultNumericTypes> {

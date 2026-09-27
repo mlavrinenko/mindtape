@@ -390,12 +390,12 @@ pub(crate) fn validate_rules(config: &Config) -> Vec<String> {
             _ => {}
         }
         if let Some(assertion) = &spec.assertion
-            && let Some(problem) = crate::filter::expr_problem(assertion, &probe, config)
+            && let Some(problem) = crate::filter::expr_problem_in_set(assertion, &probe, config)
         {
             problems.push(format!("{path}.assert: {problem}"));
         }
         if let Some(when) = &spec.when
-            && let Some(problem) = crate::filter::expr_problem(when, &probe, config)
+            && let Some(problem) = crate::filter::expr_problem_in_set(when, &probe, config)
         {
             problems.push(format!("{path}.when: {problem}"));
         }

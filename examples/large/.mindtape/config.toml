@@ -89,3 +89,11 @@ units = ["minutes", "hours", "days", "weeks"]
 # "bench" is authored on every generated task; "big" is the derive-tags root
 # tag emitted on every task under the "big" root — both must be allow-listed.
 allowed = ["bench", "big"]
+
+# A set-level rule asserted on every task, so the benchmark times `count`:
+# it walks the set once per command however many tasks ask, keeping
+# `mt check` linear. The cap is the fixture's size, so it always holds.
+[[tasks.rules]]
+name = "wip-cap"
+assert = 'count(status == "wip") <= 2000'
+severity = "error"

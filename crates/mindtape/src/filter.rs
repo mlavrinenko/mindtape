@@ -21,7 +21,7 @@
 //! `--sort` — see [`crate::sort::is_sort_field`], `estimate.<unit>` aside.
 //!
 //! Names follow Typst's identifier rule: a `-` between name characters is part
-//! of the name (`x-goals`, `estimate.src-files`), see [`join_kebab_names`].
+//! of the name (`x-goals`, `estimate.src-files`), see [`crate::expr::join_kebab_names`].
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
@@ -49,6 +49,10 @@
 //! field: `changed("staged", "src/**") <= estimate.files`. Either side of a
 //! comparison may name a field when the other is a field or a count.
 //!
+//! `count(<expr>)` is a count too: how many tasks of the whole loaded set
+//! match `<expr>`, each read as the task in context (see
+//! [`crate::filter_aggregate`]). `count(status == "wip") <= 1`.
+//!
 //! `now()` evaluates to today's ISO date string (`YYYY-MM-DD`) and may appear
 //! on the right-hand side of a comparison: `start <= now()`, `due < now()`.
 //!
@@ -62,7 +66,7 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
 use thiserror::Error;
 
 use crate::config::Config;
-use crate::expr::{NAME_HYPHEN, extract_identifier, extract_literal, restore_name};
+use crate::expr::{extract_identifier, extract_literal, join_kebab_names, restore_name};
 use crate::fields::{self, FieldValue};
 use crate::filter_predicates::{contains_call, is_stale, present};
 use crate::filter_views::{collect_view_refs, desugar_view_refs};
@@ -196,51 +200,6 @@ impl Filter {
     }
 }
 
-/// The pre-lex pass that keeps a kebab-case name one token: a `-` between two
-/// name characters, inside a name that began with a letter or `_`, becomes
-/// [`NAME_HYPHEN`], which `evalexpr` lexes as a name character. Typst's
-/// identifier rule, so a filter spells a name the way the task file does.
-///
-/// A `-` anywhere else stays an operator: a leading one (`> -1`), one after a
-/// number (`1e-5`), one beside a space (`a - b`). String literals are copied
-/// verbatim, escapes included.
-#[must_use]
-pub(crate) fn join_kebab_names(expr: &str) -> String {
-    let mut out = String::with_capacity(expr.len());
-    let mut chars = expr.chars().peekable();
-    let (mut in_string, mut escaped) = (false, false);
-    // Whether the current run of name characters began as a name.
-    let mut in_name = false;
-    // Whether the previous character belongs to a run of name characters.
-    let mut in_run = false;
-    while let Some(ch) = chars.next() {
-        if in_string {
-            in_string = escaped || ch != '"';
-            escaped = !escaped && ch == '\\';
-            out.push(ch);
-            continue;
-        }
-        let name_char = ch.is_alphanumeric() || ch == '_' || ch == '.';
-        let joins = ch == '-'
-            && in_name
-            && chars
-                .peek()
-                .is_some_and(|next| next.is_alphanumeric() || *next == '_');
-        if joins {
-            out.push(NAME_HYPHEN);
-            continue;
-        }
-        if !in_run && name_char {
-            in_name = ch.is_alphabetic() || ch == '_';
-        }
-        in_run = name_char;
-        in_name &= name_char;
-        in_string = ch == '"';
-        out.push(ch);
-    }
-    out
-}
-
 /// What makes one saved filter expression unusable, if anything: a syntax
 /// error, or a structural problem a dry-run against `probe` surfaces — an
 /// unknown field, an unknown view, an unknown dictionary, an invalid regex.
@@ -266,6 +225,21 @@ pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Optio
     }
 }
 
+/// [`expr_problem`] for an expression evaluated over the loaded set — a
+/// `[[tasks.rules]]` entry, an `[[on.flip]]` hook — so `count(...)` passes the
+/// dry run: the probe is its own one-task set.
+#[must_use]
+pub(crate) fn expr_problem_in_set(source: &str, probe: &Task, config: &Config) -> Option<String> {
+    let set = Readiness::compute(std::slice::from_ref(probe), config);
+    match Filter::parse(source) {
+        Err(err) => Some(err.to_string()),
+        Ok(filter) => filter
+            .matches_with(probe, config, &set)
+            .err()
+            .map(|err| err.to_string()),
+    }
+}
+
 /// Shared context threaded through the filter walk: the task under test, the
 /// config (framework scores, terminal set, view lookup), the readiness oracle
 /// (`ready` / `blocked`), the current `in_view` recursion depth, and whether
@@ -273,12 +247,27 @@ pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Optio
 pub(crate) struct Ctx<'a> {
     pub(crate) task: &'a Task,
     pub(crate) config: &'a Config,
-    readiness: &'a Readiness,
+    pub(crate) readiness: &'a Readiness,
     depth: usize,
     pub(crate) dry: bool,
 }
 
 impl<'a> Ctx<'a> {
+    /// The same context evaluating `task` instead — what `count` hands its
+    /// argument for each task it counts.
+    pub(crate) fn over<'b>(&self, task: &'b Task) -> Ctx<'b>
+    where
+        'a: 'b,
+    {
+        Ctx {
+            task,
+            config: self.config,
+            readiness: self.readiness,
+            depth: self.depth,
+            dry: self.dry,
+        }
+    }
+
     /// The same context one `in_view` level deeper.
     fn deeper(&self) -> Ctx<'a> {
         Ctx {
@@ -291,7 +280,7 @@ impl<'a> Ctx<'a> {
     }
 }
 
-fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
+pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     match node.operator() {
         Operator::RootNode => match node.children() {
             [child] => eval_bool(child, ctx),
@@ -375,6 +364,9 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
         "word" => Err(crate::filter_strings::word_is_not_boolean()),
         "changed" => Err(FilterError::Invalid(
             "changed() is a count; compare it: changed(\"worktree\") <= estimate.files".to_owned(),
+        )),
+        "count" => Err(FilterError::Invalid(
+            "count() is a number, not a predicate; compare it: `count(...) <= 1`".to_owned(),
         )),
         "stale" => {
             let count_str = single_literal(children, "stale")?;

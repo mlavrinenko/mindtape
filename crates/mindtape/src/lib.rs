@@ -63,6 +63,7 @@ pub mod estimate_drift;
 mod expr;
 mod fields;
 pub mod filter;
+mod filter_aggregate;
 mod filter_compare;
 mod filter_links;
 mod filter_predicates;

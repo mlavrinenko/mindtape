@@ -231,6 +231,36 @@ mt rm terminal       # retire finished work
 
 `mt ls` floats ready work to the top by default.
 
+= Counting the set
+
+`count(<expr>)` is how many loaded tasks match `<expr>` — a number, compared
+on the left of an operator. The argument is an expression, not a string, so
+nothing nests in quotes:
+
+```sh
+mt ls 'count(status == "wip") > 1 && status == "wip"'  # everything in flight, when more than one is
+```
+
+It ranges over the whole loaded set, never the rows a filter narrows to — the
+same rule `ready` follows. Inside `count` every field reads the task being
+counted, so the answer is one number per command, whichever task asks:
+`count` walks the set once per distinct argument, and a rule asserting it on
+every task stays linear. That makes a set-level cap a rule a project writes
+rather than a table of its own:
+
+```toml
+[[tasks.rules]]
+name     = "wip-cap"
+when     = 'status == "wip"'
+assert   = 'count(status == "wip") <= 1'
+severity = "error"
+```
+
+`count` needs the loaded set, so it works where one exists — `mt ls`, `mt rm`,
+views, `[[tasks.rules]]`, `[[on.flip]]` hooks — and is an error anywhere
+evaluated one task at a time, rather than a silent zero; `required` rejects it
+at load.
+
 = Graph position and leverage
 
 `ready` and `blocked` answer one hop, and only yes or no — they separate

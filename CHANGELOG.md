@@ -26,6 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is refused, naming the stem to write. `[[commits.rules]]` takes the
   `[[tasks.rules]]` shape over the commit's `subject`, `refs`, staged `files`
   and `tasks_only`, and merges by `name` across rule packs.
+- **Filters count the loaded set.** An expression saw one task, so a
+  work-in-progress cap needed `[[tasks.limits]]` and a checker of its own.
+  `count(<expr>)` is how many loaded tasks match `<expr>`, compared like any
+  number (`count(status == "wip") <= 1`), over the whole set whatever the
+  listing narrows to. Each distinct argument is evaluated once per command, so
+  a `[[tasks.rules]]` entry asserting it on every task stays linear. Where
+  expressions see one task at a time (`required`, gates) it is an error, not
+  zero.
+
 - **Filters read estimate units and kebab-case names.** `mt ls 'estimate.files
   > 3'` was refused, since `estimate` took presence only, and `has(x-goals)`
   failed with `expected a field, got Sub`, since `-` always lexed as minus.

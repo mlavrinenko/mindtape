@@ -359,7 +359,9 @@ pub(crate) fn validate_flip_hooks(config: &Config) -> Vec<String> {
                 ));
             }
         }
-        if let Some(problem) = filter_problem(&desugar_into(&hook.when, ""), &probe, config) {
+        if let Some(problem) =
+            crate::filter::expr_problem_in_set(&desugar_into(&hook.when, ""), &probe, config)
+        {
             problems.push(format!("on.flip[{index}].when: {problem}"));
         }
         if hook.actions.is_empty() {
@@ -379,7 +381,7 @@ fn action_problems(index: usize, hook: &FlipHook, probe: &Task, config: &Config)
         match action.kind() {
             Err(message) => problems.push(format!("{at}: {message}")),
             Ok(ActionKind::List { filter, .. }) => {
-                if let Some(problem) = filter_problem(filter, probe, config) {
+                if let Some(problem) = crate::filter::expr_problem_in_set(filter, probe, config) {
                     problems.push(format!("{at}.list: {problem}"));
                 }
             }
@@ -387,16 +389,6 @@ fn action_problems(index: usize, hook: &FlipHook, probe: &Task, config: &Config)
         }
     }
     problems
-}
-
-/// What makes a filter expression unusable, if anything: a syntax error, or a
-/// structural problem the probe dry-run surfaces (an unknown field or view).
-/// The same probe shape `[[tasks.limits]]` and `required` are checked with.
-fn filter_problem(source: &str, probe: &Task, config: &Config) -> Option<String> {
-    match Filter::parse(source) {
-        Err(err) => Some(err.to_string()),
-        Ok(filter) => filter.matches(probe, config).err().map(|e| e.to_string()),
-    }
 }
 
 #[cfg(test)]

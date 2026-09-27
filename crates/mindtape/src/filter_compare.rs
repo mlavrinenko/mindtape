@@ -1,21 +1,23 @@
 //! The comparison arm of the filter walk, split out of `filter.rs`
-//! (file-size gate): resolving each side — a field, a `changed()` count, a
-//! literal or `now()` — and ordering the two under the missing-field rule.
+//! (file-size gate): resolving each side — a field, a `changed()` or
+//! `count()` count, a literal or `now()` — and ordering the two under the
+//! missing-field rule.
 
 use evalexpr::{DefaultNumericTypes, Node, Operator};
 
 use crate::config::Config;
 use crate::expr::{
-    compare_ordering, extract_identifier, resolve_now_or_literal, restore_name, unwrap_root,
+    call_args, compare_ordering, extract_identifier, resolve_now_or_literal, restore_name,
+    unwrap_root,
 };
 use crate::fields::FieldValue;
-use crate::filter::{Ctx, FilterError, field_value};
+use crate::filter::{Ctx, FilterError, eval_bool, field_value};
 use crate::filter_predicates::changed_count;
 use crate::model::Task;
 use crate::numeric::format_num;
 
-/// A comparison. The left side is a field or a `changed()` count; the right
-/// side a literal, `now()`, another field, or a `changed()` count.
+/// A comparison. The left side is a field or a `changed()`/`count()` count;
+/// the right side a literal, `now()`, another field, or a count.
 pub(crate) fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     let [lhs, rhs] = node.children() else {
         return Err(FilterError::Invalid(
@@ -36,7 +38,8 @@ pub(crate) fn comparison(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<
 }
 
 /// A comparison side that resolves on the task rather than being written out:
-/// a field, or a `changed()` count. `None` for a literal or `now()`.
+/// a field, a `changed()` count, or a `count()` count. `None` for a literal or
+/// `now()`.
 fn operand(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<Option<FieldValue>, FilterError> {
     let node = unwrap_root(node);
     match node.operator() {
@@ -47,8 +50,29 @@ fn operand(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<Option<FieldVa
             changed_count(node.children(), ctx.config, ctx.dry)
                 .map(|count| Some(FieldValue::Num(count)))
         }
+        Operator::FunctionIdentifier { identifier } if identifier == "count" => {
+            count(node.children(), ctx).map(|total| Some(FieldValue::Num(total)))
+        }
         _ => Ok(None),
     }
+}
+
+/// `count(<expr>)`: how many loaded tasks satisfy `<expr>`, each read as the
+/// task in context — see [`crate::filter_aggregate`].
+fn count(children: &[Node<DefaultNumericTypes>], ctx: &Ctx) -> Result<f64, FilterError> {
+    let [arg] = call_args(children)[..] else {
+        return Err(FilterError::Invalid(
+            "count() needs one argument".to_owned(),
+        ));
+    };
+    let total = ctx
+        .readiness
+        .set()
+        .count(arg, ctx.task, |task| eval_bool(arg, &ctx.over(task)))?;
+    // A task count is far below 2^52, so the conversion is exact.
+    #[allow(clippy::cast_precision_loss)]
+    let total = total as f64;
+    Ok(total)
 }
 
 /// The left side of a comparison, which must be a field or a `changed()`.

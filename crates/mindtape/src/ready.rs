@@ -19,6 +19,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 use crate::config::Config;
+use crate::filter_aggregate::LoadedSet;
 use crate::graph::DepIndex;
 use crate::link::blocking_kinds;
 use crate::model::Task;
@@ -58,6 +59,8 @@ pub struct Blocker {
 pub struct Readiness {
     ready: HashSet<PathBuf>,
     blocked: HashMap<PathBuf, Vec<Blocker>>,
+    /// The same set, snapshotted for `count(...)`; see [`LoadedSet`].
+    set: LoadedSet,
 }
 
 impl Readiness {
@@ -77,7 +80,10 @@ impl Readiness {
         // targets are already absent from `links`.
         let index = DepIndex::build(tasks);
         let kinds = blocking_kinds(&config.tasks.links);
-        let mut out = Self::default();
+        let mut out = Self {
+            set: LoadedSet::new(tasks),
+            ..Self::default()
+        };
         for task in tasks {
             if task.is_terminal(&terminal) {
                 continue; // settled — neither ready nor blocked
@@ -90,6 +96,12 @@ impl Readiness {
             }
         }
         out
+    }
+
+    /// The loaded set `count(...)` ranges over; no set at all for
+    /// [`empty`](Self::empty).
+    pub(crate) fn set(&self) -> &LoadedSet {
+        &self.set
     }
 
     /// Whether `task` is ready: non-terminal with every dependency terminal.

@@ -45,7 +45,7 @@ impl CommitExpr {
     /// # Errors
     /// [`FilterError::Parse`] on a syntax error.
     pub fn parse(expr: &str) -> Result<Self, FilterError> {
-        let joined = crate::filter::join_kebab_names(expr);
+        let joined = crate::expr::join_kebab_names(expr);
         if joined.trim().is_empty() {
             return Ok(Self { tree: None });
         }
