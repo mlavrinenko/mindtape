@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 27),
+  status: done(
+    2026,
+    9,
+    27,
+  )[stem and handle resolve through util::resolve\_task; a path still works outside a project; unknown stems get a did-you-mean on every command],
 )
 
 == Problem
