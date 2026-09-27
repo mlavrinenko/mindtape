@@ -134,7 +134,7 @@ names what each blocked task waits on. Most legends carry no `blocked` status
 task to depend on: file a task for it and depend on that, or park the task in
 a pre-start status with the reason in the note
 (`mt flip proposed 1b -m "blocked on upstream X"`), never `wip`, which burns
-the `[[tasks.limits]]` WIP cap.
+the WIP cap (a `[[tasks.rules]]` entry over `count(...)`).
 
 = Linking and validating
 

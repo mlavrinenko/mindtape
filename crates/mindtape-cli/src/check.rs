@@ -3,8 +3,8 @@
 use anyhow::{Context, Result, bail};
 use clap::Args;
 use mindtape::{
-    BodyRules, LimitBreach, Violation, check_body_rules, check_comments, check_limits,
-    compile_content_rules, compile_rules, validate,
+    BodyRules, Violation, check_body_rules, check_comments, compile_content_rules, compile_rules,
+    validate,
 };
 
 use crate::util;
@@ -72,19 +72,6 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
         print_violation(violation);
     }
 
-    // Work-in-progress caps: a state of the backlog rather than a malformed
-    // artifact, so a breach reports separately from the per-task violations and
-    // only fails the command at `severity = "error"`.
-    let breaches = check_limits(&project.outcome.tasks, &project.config)
-        .context("invalid tasks.limits in config")?;
-    for breach in &breaches {
-        print_breach(breach);
-    }
-    let over_limit = breaches
-        .iter()
-        .filter(|breach| breach.severity.is_error())
-        .count();
-
     // A `[[tasks.rules]]` breach at `severity = "warn"` has already printed;
     // it is a report, not a failure, so it is not counted here.
     let failures = violations
@@ -92,22 +79,13 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
         .filter(|violation| violation.is_fatal())
         .count();
     let load_errors = project.outcome.errors.len();
-    if failures == 0 && load_errors == 0 && over_limit == 0 {
+    if failures == 0 && load_errors == 0 {
         if !args.quiet {
             println!("ok: {} task(s) valid", project.outcome.tasks.len());
         }
         return Ok(());
     }
-    bail!("{failures} violation(s), {load_errors} load error(s), {over_limit} limit breach(es)")
-}
-
-/// Report one breached `[[tasks.limits]]` entry: the count, the cap, the advice,
-/// then the tasks that make up the matched set.
-fn print_breach(breach: &LimitBreach) {
-    println!("{}: {breach}", breach.severity.label());
-    for id in &breach.tasks {
-        println!("  - {id}");
-    }
+    bail!("{failures} violation(s), {load_errors} load error(s)")
 }
 
 /// Report one violation: at its source line when it has one, else naming the
@@ -141,7 +119,3 @@ fn print_violation(violation: &Violation) {
 #[cfg(test)]
 #[path = "check_tests.rs"]
 mod tests;
-
-#[cfg(test)]
-#[path = "check_tests_limits.rs"]
-mod tests_limits;

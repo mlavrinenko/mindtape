@@ -204,4 +204,3 @@ names a specific estimate unit, status, tag, path or threshold. A new check is a
 the language (a field, a predicate, an aggregate, a git state) rather than add
 a bespoke config table or checker. Shipped defaults live in a rule pack
 (`crates/mindtape/src/packs/`), where a project overrides them by name.
-`[[tasks.limits]]` predates this rule and is being retired into rules.

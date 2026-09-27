@@ -90,7 +90,6 @@ newly added config key cannot silently go undocumented: the build fails first.
   ("tasks.body.content", "[tasks.body.content]"),
   ("tasks.derive-tags", "[tasks.derive-tags]"),
   ("tasks.tags", "[tasks.tags]"),
-  ("tasks.limits", "[[tasks.limits]]"),
   ("tasks.rules", "[[tasks.rules]]"),
   ("commits", "[commits]"),
   ("extends", "extends"),
@@ -520,46 +519,6 @@ or narrow `units` / `anchors` to the cadences a project supports. The
 cadences, the policy that rides along with them, and the two gates `rrule`
 opens are on #link(u("/recurring/"))[Recurring tasks].
 
-= Work-in-progress limits
-
-`[[tasks.limits]]` caps how many tasks may sit in a matched set at once, and
-`mt check` reports a breach.
-
-```toml
-[[tasks.limits]]
-filter = 'status == "wip" && kind == "umbrella"'
-max = 1
-severity = "error"
-
-[[tasks.limits]]
-filter = 'status == "wip" && kind != "umbrella"'
-max = 1
-message = "close the open leaf before starting another"
-severity = "error"
-```
-
-`filter` and `max` are required; `message` replaces the default advice and
-`severity` is `"warn"` (the default) or `"error"`. A breach is a state of the
-backlog rather than a malformed artifact — it clears by finishing work, not by
-editing a file — hence the warn default. `"error"` fails `mt check`, for a
-project wanting a hard stop (a pre-commit hook, CI).
-
-No status name is built in: the capped set is a
-#link(u("/filters/"))[filter expression], so the same primitive caps a status,
-a named view (`filter = '@stuck'`), a priority band or a `kind`. A missing
-field is unequal to every literal, so the pair above partitions the whole
-backlog — a task carrying no `kind` counts against the second limit by
-construction.
-
-A breach prints the count, the cap, the advice, and every task in the matched
-set:
-
-```
-error: 2 task(s) match `status == "wip" && kind != "umbrella"`, max 1 — close the open leaf before starting another
-  - rewrite-loader
-  - split-config
-```
-
 = Config-declared rules
 
 Every constraint above is one MindTape knows by name — a status legend, a
@@ -602,11 +561,34 @@ fails. A rule with no `name` reports as `rules[0]` — its index in
 `[[tasks.rules]]`, which is what finds it again in the config.
 
 An `assert` expression (and `when`, either shape) is dry-run once at config
-load against a probe task, exactly as `required` and `[[tasks.limits]]` are,
-so a rule naming an unknown field, view or dictionary is one config error
-rather than one violation per artifact. A `check` rule's Typst module is
-checked the same way, at load. Shipping a whole array of rules to other
-projects is #link(u("/rule-packs/"))[a rule pack].
+load against a probe task, exactly as `required` is, so a rule naming an
+unknown field, view or dictionary is one config error rather than one
+violation per artifact. A `check` rule's Typst module is checked the same way,
+at load. Shipping a whole array of rules to other projects is
+#link(u("/rule-packs/"))[a rule pack].
+
+== Work-in-progress caps
+
+A cap on how many tasks may sit in a matched set at once — one leaf in flight,
+one open milestone — is a rule over #link(u("/filters/"))[`count(...)`], not a
+table of its own:
+
+```toml
+[[tasks.rules]]
+name     = "wip-cap"
+when     = 'status == "wip"'
+assert   = 'count(status == "wip") <= 1'
+severity = "error"
+```
+
+No status name is built in: the capped set is a filter, so the same primitive
+caps a status, a named view (`when = '@stuck'`), a priority band or a `kind`.
+`when` repeating `assert`'s own predicate is the idiom, not a coincidence: the
+comparison is a constant, true or false alike for every task the rule asks
+about, so a breach fires once per task `when` admits — every task sharing the
+capped set, not only the one a write is about. A refused `mt flip` therefore
+names the task it would add to the set *and* the one already occupying it,
+the second reworded `(reported on <id>)` to say it is not itself what failed.
 
 == Checking a field with a Typst function
 

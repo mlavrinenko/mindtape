@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{RuleSpec, check_all, validate_rules};
+use super::{RuleSpec, check_all, labels, validate_rules};
 use crate::config::Config;
 use crate::model::{Status, Task};
 use crate::parse_config;
@@ -343,4 +343,25 @@ assert = 'has(title)'
     config.git.set_root(dir.path());
     let skip = sole_breach(&[task("a", "Refactor it", "wip")], &config);
     assert!(skip.message.starts_with("skipped: "), "{}", skip.message);
+}
+
+/// `labels` names a rule by its `name` when it has one, else by its position —
+/// the same fallback [`RuleSpec::label`] uses, since
+/// [`crate::candidate::elsewhere_violations`] matches a violation's `field`
+/// against exactly these strings.
+#[test]
+fn labels_names_by_name_then_by_index() {
+    let config = config(
+        "\
+[[tasks.rules]]
+name = \"named\"
+assert = 'has(title)'
+
+[[tasks.rules]]
+assert = 'has(title)'
+",
+    );
+    let names = labels(&config);
+    assert!(names.contains("rules.named"), "{names:?}");
+    assert!(names.contains("rules[1]"), "{names:?}");
 }

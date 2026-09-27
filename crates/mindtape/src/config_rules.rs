@@ -59,6 +59,7 @@
 //! rather than a `root` parameter threaded through every validation call
 //! site.
 
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
@@ -421,6 +422,27 @@ pub(crate) fn validate_rule_names(config: &Config) -> Vec<String> {
         config.tasks.rules.iter().map(|rule| rule.name.as_deref()),
         "tasks.rules",
     )
+}
+
+/// Every `[[tasks.rules]]` entry's report label (`rules.<name>` or
+/// `rules[<index>]`), for [`crate::candidate::elsewhere_violations`] to
+/// recognize a rule breach among the violations it attributes across a batch.
+///
+/// A set-aware rule — one asserting `count(...)`, or reading the `links:`
+/// graph through `ready`/`blocked`/`blocks`/`topo` — can start or stop
+/// breaching on a task the batch never touches, purely because a sibling
+/// candidate changed the set. A rule with no such dependency can never see
+/// that diff (nothing about an unrelated task's fields moved), so widening
+/// the check to every rule label costs nothing and needs no per-rule
+/// declaration of which kind it is.
+pub(crate) fn labels(config: &Config) -> HashSet<String> {
+    config
+        .tasks
+        .rules
+        .iter()
+        .enumerate()
+        .map(|(index, spec)| spec.label(index))
+        .collect()
 }
 
 #[cfg(test)]

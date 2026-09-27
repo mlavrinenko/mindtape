@@ -290,6 +290,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **`[[tasks.limits]]`** (breaking, pre-1.0). A work-in-progress cap was its
+  own table and checker (`check_limits`, `mt check` only) for what
+  `count(...)` now says as a plain `[[tasks.rules]]` entry, mergeable by name
+  across packs like any other rule and enforced everywhere a rule is —
+  `mt flip` included, not `mt check` alone. `filter`/`max` becomes
+  `when`/`assert = 'count(<when>) <= max'`; `message`/`severity` are
+  unchanged. `[[tasks.limits]]` is an unknown key now, with no alias.
+
 - **`[tasks.estimate.drift]` and `[[tasks.estimate.max]]`/`min`** (breaking,
   pre-1.0). The drift check ran unasked, hardcoded to a `files` unit, and the
   bounds were a second checker for what a rule says in one line. Both are
@@ -338,6 +346,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   candidate name; nothing in this workspace imported the const.
 
 ### Changed
+
+- **A batch write attributes a `[[tasks.rules]]` breach it opens elsewhere,
+  not only a link cycle.** `mt add`/`link`/`import`/`recur`/`flip` already
+  attributed a link cycle closed on a task outside the batch to every
+  candidate, reworded `(reported on <id>)`, so the write refuses with the
+  neighbour named rather than a graph `mt check` would reject later on its own.
+  The same mechanism now covers any rule breach a batch introduces or clears on
+  an untouched task — the shape a set-aware `assert` (`count(...)`, or
+  `ready`/`blocked`/`blocks`/`topo` over the `links:` graph) produces and a
+  purely per-task one cannot, so widening it costs nothing for the latter. A
+  WIP-cap rule refusing `mt flip` now names the task already occupying the cap
+  beside the one being flipped, the way `[[tasks.limits]]` named every task in
+  the matched set.
 
 - **An estimate bound can be gated on the task it bounds** (breaking, pre-1.0;
   library callers only). `[tasks.estimate.max]` and `[tasks.estimate.min]` now

@@ -145,7 +145,7 @@ pub fn check_candidates(
         .filter_map(|result| result.as_ref().ok())
         .map(|task| task.id.as_str())
         .collect();
-    let closed = cycles_closed_elsewhere(existing, config, &ids, &violations);
+    let closed = elsewhere_violations(existing, config, &ids, &violations);
 
     harvested
         .into_iter()
@@ -176,24 +176,34 @@ pub fn check_candidates(
         .collect()
 }
 
-/// The cycles the batch closes that `validate` names on a task outside it.
+/// The violations the batch opens or closes elsewhere that `validate` names on
+/// a task outside it: a link cycle, or a `[[tasks.rules]]` breach whose
+/// `assert` reads the whole set (`count(...)`, or the `links:` graph through
+/// `ready`/`blocked`/`blocks`/`topo`).
 ///
-/// A cycle is attributed to its first member, which need not be a task the
-/// batch writes, so filtering by candidate id alone drops it and the write
-/// lands a graph `mt check` then rejects on a neighbour. Each is answered to
-/// every candidate, reworded to say where `mt check` will report it. A cycle
-/// the project already carried is not the batch's doing and never counts.
-fn cycles_closed_elsewhere(
+/// Both share the same shape — a fact about a task outside the batch that only
+/// changed because a candidate did — so both are attributed to every
+/// candidate, reworded to say where `mt check` will report them. A cycle is
+/// attributed to its first member, which need not be a task the batch writes,
+/// so filtering by candidate id alone drops it and the write lands a graph
+/// `mt check` then rejects on a neighbour; a WIP-cap rule the batch pushes over
+/// its cap similarly reports on the task(s) already occupying it, which the
+/// batch never touched. Either kind the project already carried before the
+/// batch is not the batch's doing and never counts.
+fn elsewhere_violations(
     existing: &[Task],
     config: &Config,
     ids: &HashSet<&str>,
     after: &[Violation],
 ) -> Vec<Violation> {
     let acyclic = acyclic_kinds(&config.tasks.links);
+    let rule_labels = crate::config_rules::labels(config);
     let elsewhere: Vec<&Violation> = after
         .iter()
         .filter(|violation| {
-            !ids.contains(violation.task_id.as_str()) && acyclic.contains(&violation.field.as_str())
+            !ids.contains(violation.task_id.as_str())
+                && (acyclic.contains(&violation.field.as_str())
+                    || rule_labels.contains(&violation.field))
         })
         .collect();
     if elsewhere.is_empty() {

@@ -38,7 +38,6 @@ mod config_go;
 mod config_handle;
 pub mod config_hooks;
 mod config_layers;
-pub mod config_limits;
 mod config_links_validate;
 mod config_ls;
 mod config_ls_columns;
@@ -138,7 +137,6 @@ pub use config_commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfi
 pub use config_layers::{
     LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
 };
-pub use config_limits::{LimitBreach, LimitError, LimitSpec, check_limits};
 pub use config_packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
 pub use config_rules::{CheckSpec, RuleSpec};
 pub use config_schema::{SCHEMA_URL, config_schema_json};

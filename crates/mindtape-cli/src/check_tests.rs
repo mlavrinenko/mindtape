@@ -1,6 +1,5 @@
 //! Tests for the core `mt check` contract: project validity, `--quiet`,
 //! header rules, and the `[tasks.comments]` review-comment policy.
-//! `[[tasks.limits]]` work-in-progress caps live in `check_tests_limits.rs`.
 #![allow(clippy::unwrap_used)]
 
 use std::path::Path;

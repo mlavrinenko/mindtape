@@ -216,6 +216,35 @@ when = "!terminal"
 check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
 severity = "error"
 
+# Work-in-progress caps. One milestone and one leaf, no more. A milestone
+# coordinates its leaves and may legitimately stay open across sessions; a leaf
+# may not, and a session ending on an open leaf is the failure these exist to
+# stop. `severity = "error"` because the intended response is to finish or split
+# the open work, not to note the breach and carry on.
+#
+# No status name is hardcoded in Rust — each is a `count(...)` rule over a
+# filter, named so it can be overridden by name across packs like any other
+# rule. `when` repeats `assert`'s own predicate: the cap is a constant
+# comparison, true or false alike for every task it names, so every task
+# `when` admits gets its own breach the moment the cap is crossed — which is
+# how a refused `mt flip` gets to name every task sharing the set, not just the
+# one it is flipping. The second filter catches every task carrying no `kind`
+# at all, since an absent field is unequal to every literal in the filter
+# language, so the pair partitions the whole backlog by construction.
+[[tasks.rules]]
+name = "milestone-wip-cap"
+when = 'status == "wip" && kind == "milestone"'
+assert = 'count(status == "wip" && kind == "milestone") <= 1'
+message = "close or split the open milestone before opening another"
+severity = "error"
+
+[[tasks.rules]]
+name = "leaf-wip-cap"
+when = 'status == "wip" && kind != "milestone"'
+assert = 'count(status == "wip" && kind != "milestone") <= 1'
+message = "finish the open task, or split off what is done and close that, before starting another"
+severity = "error"
+
 [tasks.tags]
 # Area labels for the backlog. Empty would accept any tag.
 allowed = [
@@ -358,28 +387,6 @@ message = "keep this section under 120 words; a longer one is a task that should
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view. Redeclare `[views.default]` here to add a
 # sort/columns bundle.
-
-# Work-in-progress caps. One milestone and one leaf, no more. A milestone
-# coordinates its leaves and may legitimately stay open across sessions; a leaf
-# may not, and a session ending on an open leaf is the failure these exist to
-# stop. `severity = "error"` because the intended response is to finish or split
-# the open work, not to note the breach and carry on.
-#
-# No status name is hardcoded in Rust — a limit is just a filter. The second
-# filter catches every task carrying no `kind` at all, since an absent field is
-# unequal to every literal in the filter language, so the pair partitions the
-# whole backlog by construction.
-[[tasks.limits]]
-filter = 'status == "wip" && kind == "milestone"'
-max = 1
-severity = "error"
-message = "close or split the open milestone before opening another"
-
-[[tasks.limits]]
-filter = 'status == "wip" && kind != "milestone"'
-max = 1
-severity = "error"
-message = "finish the open task, or split off what is done and close that, before starting another"
 
 # The sweep's own inbox: everything `just ask-refactoring` filed that is still
 # open. It is both a listing (`mt ls @ask-refactoring`) and the sweep's re-run

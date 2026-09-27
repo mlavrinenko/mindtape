@@ -4,7 +4,7 @@ groups:
   cli-docs:
     source:
       crates/mindtape-cli/src/add.rs: ed48331c279e50acda4885640c03d53f4bbad15102c92e8b10132cb03fb071c5
-      crates/mindtape-cli/src/check.rs: 792df14de447c961c3e4a00b33aad1d33d167490f6d77ba8bda3df396789fe8b
+      crates/mindtape-cli/src/check.rs: 0d28dbe27bfcdd25f9ff8cbc6e115f2a2533cf737b80bebfe9b65f500f18047e
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
       crates/mindtape-cli/src/completion.rs: 95c4e40597adb38d1c3843d9a6885c90d7cd26eff3d789488c3060610cadf8ec
       crates/mindtape-cli/src/config_cmd.rs: 06bfb3545bd2554cb1b5ff0a1f6ec5ad40c82e0b5dd0fd30129871375a92db61
@@ -34,18 +34,18 @@ groups:
       crates/mindtape-cli/src/worktrees.rs: 78617369d3fb90e6e30605fb5e23b3f795f1ab2a671914aefdd5d2b1868a5fc5
       crates/mindtape/src/defaults.toml: 584a0ff52afecd55fa768e23d08c94815b6b200728666feada02a8df614d8844
       crates/mindtape/src/fields.rs: 605b6c103353cfd70ba4067d88ff1f0cd6f5688fe652a5427eb6ef0eaf669a54
-      crates/mindtape/src/lib.rs: ce552dcf6c2ced2d75b0f3141ccbf78f12e0ee49bd2afe08e656c4ae31b837a6
+      crates/mindtape/src/lib.rs: da90bc423142f4bcc82e2b63edf8a1a8d672be723e14d58c8fa8652c0635285f
     dependents:
-      docs/src/skill.typ: 34ab242bd1759c59f8fa011ae521f7a0029d5041ad9c02661d47171d323b3926
+      docs/src/skill.typ: 81f64cae87705a55fb90c9df3b0775299044fa2c1965950e4d65a86dcc443433
       skills/mindtape/evals/README.md: a5143877e4409bea53d0e60b8ad3716f9483a0d80f28b8c3013864f729428516
       skills/mindtape/evals/evals.json: 17e83792cf33e2485a686ead3e4451c4486078ee2fa283002ce091bf77b69ae9
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/agents.typ: 1629dc25eb10412611082468d2bfb7835c8a68b5731e49c305afdd80758d516a
       www/content/cli.typ: aefeb7da533bb234536e5813f50fab79d7956d1a5ae15d33969bdb8d7ab92594
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
-      www/content/config.typ: 714c45b0f0742e10d12c786d5289d8f9c2eb4700bf2f14c56403c3e979a5b97e
+      www/content/config.typ: 20dcc9fbf58defb5892dd24df0bfd655269549afb68bcf5f3c01a99db7a3b20f
       www/content/derived-tags.typ: 70e18514eac0e26de88103e1229be1bc2dd82dc9df50eb423b017f844a67c095
-      www/content/estimates.typ: 54dfbab272322e40b631b66fb013317baf354e7e229cedf5c9338db56d0708a3
+      www/content/estimates.typ: 39e636192233477293c0e10d9ceeb3e242e7e4e8a02543f060c43f69b2e5f618
       www/content/filters.typ: b63020ceef0c96ba9108a3e051a70bee7e110fd8f20e55e724f56ac8a3106927
       www/content/hooks.typ: a9f41be37e45ad20043d8f2b487ba83d55e85ed6ac4e29320204951a1db73c65
       www/content/import-export.typ: 0072cacdf21973298560d6534704cdb3ea8fe1961ba70370ad538563d0bc0b22

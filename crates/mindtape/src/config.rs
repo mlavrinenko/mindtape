@@ -248,7 +248,6 @@ impl Config {
         problems.extend(validate_dicts(&self.dicts));
         problems.extend(crate::config_required::validate_requirements(self));
         problems.extend(crate::config_links_validate::validate_link_kinds(self));
-        problems.extend(crate::config_limits::validate_limits(self));
         problems.extend(crate::config_rules::validate_rules(self));
         problems.extend(crate::config_rules::validate_rule_names(self));
         problems.extend(crate::config_commits::validate_commits(self));
