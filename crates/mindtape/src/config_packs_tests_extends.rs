@@ -133,3 +133,49 @@ fn a_pack_declaring_a_disallowed_key_is_a_config_error() {
     assert!(rendered.contains("mindtape-bad"), "{rendered}");
     assert!(rendered.contains("project"), "{rendered}");
 }
+
+/// `[[commits.rules]]` merges by name like the task rule arrays: a pack's
+/// rule is replaced in place by a layer's same-named one, and `disable`
+/// drops another.
+#[test]
+fn commit_rules_merge_by_name_across_packs() {
+    let registry: &[(&str, &str)] = &[(
+        "mindtape-test",
+        "[[commits.rules]]\nname = \"names-a-task\"\nassert = 'has(refs)'\n\n\
+         [[commits.rules]]\nname = \"subject-set\"\nassert = 'has(subject)'\n",
+    )];
+    let root = tempfile::tempdir().unwrap();
+    let layers = [layer(
+        LayerSource::Embedded,
+        "extends = [\"mindtape-test\"]\ndisable = [\"subject-set\"]\n\n\
+         [[commits.rules]]\nname = \"names-a-task\"\nwhen = '!tasks_only'\nassert = 'has(refs)'\n",
+    )];
+
+    let merged = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap();
+    let rules = read_array(&merged.table, &["commits", "rules"]);
+    assert_eq!(rules.len(), 1, "{rules:?}");
+    assert_eq!(
+        rules[0].get("when").and_then(toml::Value::as_str),
+        Some("!tasks_only"),
+        "the layer's same-named rule replaces the pack's"
+    );
+    let labels: Vec<&str> = merged
+        .rule_origins
+        .iter()
+        .map(|entry| entry.label.as_str())
+        .collect();
+    assert_eq!(labels, ["commits.rules.names-a-task"]);
+}
+
+#[test]
+fn a_pack_may_declare_only_rules_under_commits() {
+    let registry: &[(&str, &str)] = &[("mindtape-test", "[commits]\ntrailer = \"Refs\"\n")];
+    let root = tempfile::tempdir().unwrap();
+    let layers = [layer(
+        LayerSource::Embedded,
+        "extends = [\"mindtape-test\"]\n",
+    )];
+
+    let err = merge_layers_with_packs_using(&layers, root.path(), registry).unwrap_err();
+    assert!(err.to_string().contains("`trailer`"), "{err}");
+}

@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   comparison's right side may now be a field or a count as well as a literal.
   Git runs read-only, at most once per command; outside a repository a rule
   reading it reports once as skipped, a command-line filter fails naming why.
+- **`mt check --commit-msg <file>` checks a commit from a `commit-msg`
+  hook.** Nothing checked a task trailer: a path broke when its task moved
+  folders, and a mistyped one named nothing. The `[commits] trailer` (default
+  `Refs`) now names tasks by stem, and a value that is a path or names no task
+  is refused, naming the stem to write. `[[commits.rules]]` takes the
+  `[[tasks.rules]]` shape over the commit's `subject`, `refs`, staged `files`
+  and `tasks_only`, and merges by `name` across rule packs.
 - **Filters read estimate units and kebab-case names.** `mt ls 'estimate.files
   > 3'` was refused, since `estimate` took presence only, and `has(x-goals)`
   failed with `expected a field, got Sub`, since `-` always lexed as minus.

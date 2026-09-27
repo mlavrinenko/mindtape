@@ -305,6 +305,81 @@
         }
       ]
     },
+    "CommitRuleSpec": {
+      "additionalProperties": false,
+      "description": "`[[commits.rules]]` — one assertion a checked commit must satisfy.",
+      "properties": {
+        "assert": {
+          "description": "Commit expression that must hold for every commit the rule applies to.",
+          "type": "string"
+        },
+        "message": {
+          "default": null,
+          "description": "What a breach tells the author, in place of the default advice naming\nthe `assert` expression.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "default": null,
+          "description": "What the rule is called, used to report it (`commits.rules.<name>`)\nand to override or `disable` it across packs. Optional: an unnamed\nrule reports by its position (`commits.rules[0]`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/CommitScope",
+          "description": "What the rule is evaluated over. Default `commit`."
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "description": "Whether a breach fails the check or only reports. Default `warn`."
+        },
+        "when": {
+          "default": null,
+          "description": "Commit expression gating which commits the rule applies to. Absent\nmeans every commit.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "assert"
+      ],
+      "type": "object"
+    },
+    "CommitScope": {
+      "description": "What a commit rule is evaluated over.",
+      "oneOf": [
+        {
+          "const": "commit",
+          "description": "Once per commit, over its `subject`, `refs`, `files` and `tasks_only`.",
+          "type": "string"
+        }
+      ]
+    },
+    "CommitsConfig": {
+      "additionalProperties": false,
+      "description": "`[commits]` — how commits name the tasks they work on, and the rules a\ncommit is checked against.",
+      "properties": {
+        "rules": {
+          "description": "`[[commits.rules]]` — assertions every checked commit must satisfy.",
+          "items": {
+            "$ref": "#/$defs/CommitRuleSpec"
+          },
+          "type": "array"
+        },
+        "trailer": {
+          "default": "Refs",
+          "description": "The trailer key whose values name tasks by stem (`Refs: <stem>`).\nMatched case-insensitively. A value that is a path, or names no task,\nis always refused.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "ContentAssert": {
       "description": "The assertion made over a matched section's content: the string `\"non-empty\"`, or a one-key table `{ min-words = N }`, `{ max-words = N }`, `{ must-match = \"regex\" }`, `{ must-not-match = \"regex\" }`, or `{ density = { pattern = \"regex\", max = N, per = \"section\" } }`.",
       "oneOf": [
@@ -2188,6 +2263,10 @@
       "$ref": "#/$defs/AddConfig",
       "description": "`add` interactive-fill settings (editor, when it opens)."
     },
+    "commits": {
+      "$ref": "#/$defs/CommitsConfig",
+      "description": "`[commits]` — the task trailer and `[[commits.rules]]`, checked by\n`mt check --commit-msg`."
+    },
     "dicts": {
       "additionalProperties": {
         "$ref": "#/$defs/DictSpec"
@@ -2198,7 +2277,7 @@
     },
     "disable": {
       "default": [],
-      "description": "Rule names to drop after every extended pack and layer has merged its\nthree rule arrays in. A name matching no rule in any of the three\narrays is a config error. Consumed at the same point as `extends`.",
+      "description": "Rule names to drop after every extended pack and layer has merged its\nrule arrays in. A name matching no rule in any of them is a config\nerror. Consumed at the same point as `extends`.",
       "items": {
         "type": "string"
       },
@@ -2206,7 +2285,7 @@
     },
     "extends": {
       "default": [],
-      "description": "Rule packs this layer builds on: a bare name (the reserved\n`mindtape-` prefix) resolves to a pack compiled into the binary; a\npath — anything carrying a path separator, even one starting with\n`mindtape-` — resolves to a TOML pack file, relative to the file that\ndeclares it (the project root, for the project's own config). Legal\nin any layer. A pack contributes to `[[tasks.rules]]`,\n`[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]` and\n`[dicts]` only, ahead of the layer's own entries; a same-named rule in\nthe layer replaces the pack's. Resolved and consumed before this\nstruct is built — see [`crate::config_packs`] — so this field always\nreads back as whichever layer declared `extends` last, informational\nrather than something another command reads.",
+      "description": "Rule packs this layer builds on: a bare name (the reserved\n`mindtape-` prefix) resolves to a pack compiled into the binary; a\npath — anything carrying a path separator, even one starting with\n`mindtape-` — resolves to a TOML pack file, relative to the file that\ndeclares it (the project root, for the project's own config). Legal\nin any layer. A pack contributes to `[[tasks.rules]]`,\n`[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,\n`[[commits.rules]]` and `[dicts]` only, ahead of the layer's own entries; a same-named rule in\nthe layer replaces the pack's. Resolved and consumed before this\nstruct is built — see [`crate::config_packs`] — so this field always\nreads back as whichever layer declared `extends` last, informational\nrather than something another command reads.",
       "items": {
         "type": "string"
       },

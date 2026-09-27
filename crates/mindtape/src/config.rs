@@ -114,6 +114,9 @@ pub struct Config {
     /// declared, never equal-compared — see [`crate::git_state::GitCache`].
     #[serde(skip)]
     pub(crate) git: crate::git_state::GitCache,
+    /// `[commits]` — the task trailer and `[[commits.rules]]`, checked by
+    /// `mt check --commit-msg`.
+    pub commits: crate::config_commits::CommitsConfig,
     /// Status-transition hooks (`[[on.flip]]`), run only by `mt flip`.
     pub on: crate::config_hooks::OnConfig,
     /// The project's actor registry (`[[actors]]`): named workers (people and
@@ -129,16 +132,16 @@ pub struct Config {
     /// `mindtape-` — resolves to a TOML pack file, relative to the file that
     /// declares it (the project root, for the project's own config). Legal
     /// in any layer. A pack contributes to `[[tasks.rules]]`,
-    /// `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]` and
-    /// `[dicts]` only, ahead of the layer's own entries; a same-named rule in
+    /// `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
+    /// `[[commits.rules]]` and `[dicts]` only, ahead of the layer's own entries; a same-named rule in
     /// the layer replaces the pack's. Resolved and consumed before this
     /// struct is built — see [`crate::config_packs`] — so this field always
     /// reads back as whichever layer declared `extends` last, informational
     /// rather than something another command reads.
     pub extends: Vec<String>,
     /// Rule names to drop after every extended pack and layer has merged its
-    /// three rule arrays in. A name matching no rule in any of the three
-    /// arrays is a config error. Consumed at the same point as `extends`.
+    /// rule arrays in. A name matching no rule in any of them is a config
+    /// error. Consumed at the same point as `extends`.
     pub disable: Vec<String>,
 }
 
@@ -250,6 +253,7 @@ impl Config {
         problems.extend(crate::config_limits::validate_limits(self));
         problems.extend(crate::config_rules::validate_rules(self));
         problems.extend(crate::config_rules::validate_rule_names(self));
+        problems.extend(crate::config_commits::validate_commits(self));
         problems.extend(crate::body_headers::validate_header_rules(self));
         problems.extend(crate::body_content::validate_content_rules(self));
         problems.extend(crate::config_comments::validate_comments(self));

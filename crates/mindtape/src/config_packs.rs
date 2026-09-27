@@ -1,9 +1,9 @@
 //! `extends`/`disable`: resolving rule packs into a layer's own
-//! `[[tasks.rules]]`, `[[tasks.body.headers.rules]]` and
-//! `[[tasks.body.content.rules]]` before [`crate::config_layers`] deep-merges
-//! everything else.
+//! `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
+//! `[[tasks.body.content.rules]]` and `[[commits.rules]]` before
+//! [`crate::config_layers`] deep-merges everything else.
 //!
-//! A pack is a config-syntax fragment carrying only the three rule arrays and
+//! A pack is a config-syntax fragment carrying only the four rule arrays and
 //! `[dicts]` — a bare name resolves to one compiled into the binary
 //! ([`EMBEDDED_PACKS`]); a path (anything with a path separator, even one
 //! starting with the reserved `mindtape-` prefix) resolves to a TOML file,
@@ -19,7 +19,7 @@
 //! [`crate::body_headers::validate_header_rules`] /
 //! [`crate::body_content::validate_content_rules`] as a duplicate-name error
 //! instead of silently collapsing. `disable` then drops every rule (in any of
-//! the three arrays) carrying a listed name, erroring on a name matching
+//! the four arrays) carrying a listed name, erroring on a name matching
 //! none.
 //!
 //! `[dicts]` needs no such array-splicing: each pack's `[dicts]` table is
@@ -74,21 +74,26 @@ pub struct RuleOriginEntry {
     pub origin: RuleOrigin,
 }
 
-/// The three rule-array TOML paths that append across layers and packs,
+/// The rule-array TOML paths that append across layers and packs,
 /// same-name-replaces, rather than replacing wholesale like every other
 /// array.
-const RULE_ARRAY_PATHS: [&[&str]; 3] = [
+const RULE_ARRAY_PATHS: [&[&str]; RULE_ARRAYS] = [
     &["tasks", "rules"],
     &["tasks", "body", "headers", "rules"],
     &["tasks", "body", "content", "rules"],
+    &["commits", "rules"],
 ];
+
+/// How many rule arrays merge by name.
+const RULE_ARRAYS: usize = 4;
 
 /// The dotted report prefix for each of [`RULE_ARRAY_PATHS`], in the same
 /// order.
-const RULE_ARRAY_PREFIXES: [&str; 3] = [
+const RULE_ARRAY_PREFIXES: [&str; RULE_ARRAYS] = [
     "tasks.rules",
     "tasks.body.headers.rules",
     "tasks.body.content.rules",
+    "commits.rules",
 ];
 
 /// The merged document plus every rule's provenance, [`merge_layers_with_packs`]'s
@@ -96,9 +101,9 @@ const RULE_ARRAY_PREFIXES: [&str; 3] = [
 #[derive(Debug)]
 pub(crate) struct PackMerge {
     /// The merged TOML document — every layer and pack folded together, the
-    /// three rule arrays already resolved.
+    /// rule arrays already resolved.
     pub table: toml::Table,
-    /// One entry per final rule, across all three arrays, in array order.
+    /// One entry per final rule, across every rule array, in array order.
     pub rule_origins: Vec<RuleOriginEntry>,
 }
 
@@ -126,7 +131,7 @@ fn merge_layers_with_packs_using(
     registry: &[(&str, &str)],
 ) -> Result<PackMerge, ConfigError> {
     let mut doc = toml::Table::new();
-    let mut accumulators: [RuleAccumulator; 3] = Default::default();
+    let mut accumulators: [RuleAccumulator; RULE_ARRAYS] = Default::default();
     let mut disable_names: BTreeSet<String> = BTreeSet::new();
 
     for layer in layers {
@@ -152,7 +157,7 @@ fn merge_layers_with_packs_using(
         for (accumulator, path) in accumulators.iter_mut().zip(RULE_ARRAY_PATHS) {
             accumulator.extend_batch(read_array(&table, path), &origin);
         }
-        // The 3 rule-array paths merge specially (above); strip them so the
+        // The rule-array paths merge specially (above); strip them so the
         // generic fold below never wholesale-replaces one with another
         // layer's, only to be overwritten again once every layer is in.
         for path in RULE_ARRAY_PATHS {
@@ -268,11 +273,11 @@ fn labeled_origins(
         .collect()
 }
 
-/// Drop every rule named in `disable` from any of the three accumulators.
+/// Drop every rule named in `disable` from any of the accumulators.
 /// Deduplicated first, so the same name declared in two layers' `disable`
 /// (both legitimately met by the first removal) doesn't fail the second look.
 fn apply_disable(
-    accumulators: &mut [RuleAccumulator; 3],
+    accumulators: &mut [RuleAccumulator; RULE_ARRAYS],
     disable: &BTreeSet<String>,
 ) -> Result<(), ConfigError> {
     for name in disable {
@@ -350,11 +355,14 @@ fn unknown_pack_error(entry: &str, registry: &[(&str, &str)]) -> ConfigError {
 }
 
 /// A pack may declare only `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
-/// `[[tasks.body.content.rules]]` and `[dicts]` — nested exactly that deep,
-/// nothing else, including `extends` itself, so resolution stays one level
-/// deep.
+/// `[[tasks.body.content.rules]]`, `[[commits.rules]]` and `[dicts]` — nested
+/// exactly that deep, nothing else, including `extends` itself, so resolution
+/// stays one level deep.
 fn validate_pack_shape(table: &toml::Table, pack_label: &str) -> Result<(), ConfigError> {
-    reject_unknown_keys(table, &["tasks", "dicts"], pack_label)?;
+    reject_unknown_keys(table, &["tasks", "commits", "dicts"], pack_label)?;
+    if let Some(commits) = table.get("commits").and_then(toml::Value::as_table) {
+        reject_unknown_keys(commits, &["rules"], pack_label)?;
+    }
     let Some(tasks) = table.get("tasks").and_then(toml::Value::as_table) else {
         return Ok(());
     };

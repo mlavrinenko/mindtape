@@ -14,7 +14,8 @@
 //! discovered [`Layer`]s and does the rest, so the merge order is testable
 //! without touching a filesystem (see that module's own tests). Every field
 //! wholesale-replaces a later layer's over an earlier one's, except
-//! `[[tasks.rules]]` and its two body-rule siblings, which append across
+//! `[[tasks.rules]]`, its two body-rule siblings and `[[commits.rules]]`,
+//! which append across
 //! layers (and across a layer's own `extends` packs) instead — that
 //! exception is entirely that module's, not this one's.
 

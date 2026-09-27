@@ -77,7 +77,8 @@ competes with the WIP cap: `mt add` leaves it `proposed`.
 = Honest exit codes and quiet output
 
 `mt check` exits non-zero on any violation and names each one — drop it in CI or
-a pre-commit hook. Pass `--color never` (or rely on `NO_COLOR`) for parseable
+a pre-commit hook. `mt check --commit-msg "$1"` in a `commit-msg` hook refuses
+a task trailer that is a path or names no task. Pass `--color never` (or rely on `NO_COLOR`) for parseable
 output in a non-TTY:
 
 #terminal(read("../generated/check.txt"))

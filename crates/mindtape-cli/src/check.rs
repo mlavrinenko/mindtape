@@ -16,6 +16,12 @@ pub struct CheckArgs {
     /// warnings, and the exit code are unaffected.
     #[arg(short = 'q', long)]
     pub quiet: bool,
+    /// Check a commit message file against `[[commits.rules]]` instead of
+    /// checking tasks: its task trailers must name live tasks by stem, and
+    /// the index must pass every rule. Made for a `commit-msg` hook:
+    /// `mt check --commit-msg "$1"`.
+    #[arg(long, value_name = "FILE")]
+    pub commit_msg: Option<std::path::PathBuf>,
 }
 
 /// Run the `check` command.
@@ -27,6 +33,9 @@ pub fn run(args: &CheckArgs) -> Result<()> {
 }
 
 pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> {
+    if let Some(file) = &args.commit_msg {
+        return crate::check_commit::run(project, file, args.quiet);
+    }
     util::warn_errors(&project.outcome);
 
     let header_rules = compile_rules(&project.config.tasks.body.headers.rules)

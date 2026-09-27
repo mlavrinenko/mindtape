@@ -30,9 +30,10 @@ Config deep-merges in precedence order, lowest first:
 
 Tables merge key-by-key — a project's `[ls] hyperlinks` leaves the floor's
 `[ls.columns]` standing — while scalars and arrays replace wholesale, so a
-nearer `[[tasks.status]]` legend drops the farther one. The three rule arrays
-are the one append: `[[tasks.rules]]`, `[[tasks.body.headers.rules]]` and
-`[[tasks.body.content.rules]]` fold together across layers and packs, a
+nearer `[[tasks.status]]` legend drops the farther one. The four rule arrays
+are the one append: `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
+`[[tasks.body.content.rules]]` and `[[commits.rules]]` fold together across
+layers and packs, a
 same-named entry replacing the farther one in place. So a rule an ancestor's
 `.mindtape/defaults.toml` declares survives a project adding its own, where
 the array-replace rule would have dropped it. Replacement by name works only
@@ -91,6 +92,7 @@ newly added config key cannot silently go undocumented: the build fails first.
   ("tasks.tags", "[tasks.tags]"),
   ("tasks.limits", "[[tasks.limits]]"),
   ("tasks.rules", "[[tasks.rules]]"),
+  ("commits", "[commits]"),
   ("extends", "extends"),
   ("disable", "disable"),
   ("tasks.comments", "[tasks.comments]"),
@@ -124,6 +126,7 @@ Sections with a page of their own:
 - `[[on.flip]]` — #link(u("/hooks/"))[Flip hooks].
 - `[templates]` / `[add]` — #link(u("/templates/"))[Templates & slots].
 - `extends` / `disable` — #link(u("/rule-packs/"))[Rule packs].
+- `[commits]` / `[[commits.rules]]` — Commit rules, below.
 - `[ls]` / `[rm]` defaults and every filter expression — #link(u("/filters/"))[Filter language].
 - `[[ls.rules]]`, the `file` column, `[ls.columns.<name>] when`, `[ls] hyperlinks` / `hyperlink-target` — #link(u("/cli/"))[CLI reference].
 
@@ -643,6 +646,72 @@ real `datetime(year:, month:, day:)` value, and a string escaped.
 a separate config error, the same as a malformed `assert`. The function itself
 is never called at load: a function that only errors for some inputs must not
 fail config load over a value it was never asked to handle.
+
+= Commit rules
+
+`mt check --commit-msg <file>` holds the commit being written to `[commits]`,
+from a `commit-msg` hook — one line opts a repository in, wired with whatever
+hook tool it already uses:
+
+```sh
+mt check --commit-msg "$1"
+```
+
+`[commits] trailer` (default `Refs`) is the trailer whose values name tasks,
+one stem per line: `Refs: rewrite-loader`. A value that is a path, or a stem
+no task carries, is always refused, rules or no rules — a path breaks the day
+its task moves folders, and stems are unique project-wide:
+
+```
+error: .git/COMMIT_EDITMSG:5: Refs: `tasks/rewrite-loader.typ` is a path; write the stem: `Refs: rewrite-loader`
+```
+
+`[[commits.rules]]` takes the `[[tasks.rules]]` shape — `name`, `when`,
+`assert`, `message`, `severity` — with `scope = "commit"` (the default): the
+rule runs once per commit, over the commit's own fields rather than a task's.
+
+```toml
+[commits]
+trailer = "Refs"
+
+[[commits.rules]]
+name    = "work-names-a-task"
+scope   = "commit"
+when    = '!tasks_only'
+assert  = 'has(refs)'
+message = "name the task this commit works on: `Refs: <stem>`"
+severity = "error"
+```
+
+#table(
+  columns: 2,
+  [*Field*], [*Holds*],
+  [`subject`], [the message's first line],
+  [`refs`], [the trailer's values, as stems],
+  [`files`],
+  [every staged path, relative to the repository's top level; a rename is both its sides],
+
+  [`tasks_only`],
+  [the commit stages at least one file, and every one is a `.typ` under a `[tasks] roots` entry],
+)
+
+The operators are the #link(u("/filters/"))[filter language]'s; the functions
+are `has(field)` / `miss(field)`, and `matches(field, "regex")`, which over a
+list asks whether any entry matches — `!matches(files, "^services/")` reads
+"touches nothing under `services/`". `subject` also compares against a
+literal. A task field is refused at config load, naming the fields a commit
+rule reads.
+
+A breach names the message file and the rule:
+
+```
+error: .git/COMMIT_EDITMSG: commits.rules.work-names-a-task: name the task this commit works on: `Refs: <stem>`
+```
+
+The rules merge by `name` across layers and #link(u("/rule-packs/"))[rule
+  packs] like `[[tasks.rules]]`, so a project overrides a shipped one by
+redeclaring its name, or drops it with `disable`. Outside a git repository
+`--commit-msg` fails with `not a git repository`.
 
 = Review comments
 

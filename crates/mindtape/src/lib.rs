@@ -15,6 +15,8 @@ pub mod body_gate;
 mod body_headers;
 pub mod candidate;
 pub mod canonical;
+pub mod commit_expr;
+pub mod commit_msg;
 pub mod condition;
 pub mod condition_env;
 pub mod config;
@@ -22,6 +24,7 @@ mod config_actors;
 mod config_add;
 mod config_assignee;
 pub mod config_comments;
+pub mod config_commits;
 mod config_dicts;
 mod config_estimate;
 mod config_format;
@@ -107,6 +110,11 @@ pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use body_gate::{BodyRules, check_body_rules};
 pub use candidate::{Candidate, Checked, check_candidate, check_candidates, harvest_candidate};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
+pub use commit_expr::CommitExpr;
+pub use commit_msg::{
+    ChangedFiles, CommitMessage, CommitMsgError, CommitRecord, RefProblem, TrailerValue,
+    parse_message, staged_files,
+};
 pub use condition::{Condition, ConditionError};
 pub use condition_env::{ColumnFacts, ConditionEnv};
 pub use config::{
@@ -119,6 +127,7 @@ pub use config::{
     parse_config, parse_import_view, roles_of, validate_dicts, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
+pub use config_commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};
 pub use config_layers::{
     LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
 };

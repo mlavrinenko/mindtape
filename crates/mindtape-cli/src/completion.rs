@@ -116,6 +116,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
         "describe",
         Source::None("`text` or `json`, a literal of this flag's own and not a project value"),
     ),
+    ("check", "commit_msg", Source::FilePath),
     ("import", "input", Source::FilePath),
     ("import", "into", Source::DirPath),
     (

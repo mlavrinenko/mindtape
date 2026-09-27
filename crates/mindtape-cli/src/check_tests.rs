@@ -86,7 +86,16 @@ fn quiet_suppresses_ok_summary_on_clean_run() {
     }
     let dir = tempfile::tempdir().unwrap();
     let project = make_project(dir.path(), &[("x.typ", TASK)]);
-    assert!(super::run_with(&project, &super::CheckArgs { quiet: true }).is_ok());
+    assert!(
+        super::run_with(
+            &project,
+            &super::CheckArgs {
+                quiet: true,
+                commit_msg: None,
+            }
+        )
+        .is_ok()
+    );
 }
 
 const QUIET_VIOLATION_CHILD: &str = "_MT_CHECK_QUIET_VIOLATION_CHILD";
@@ -114,7 +123,16 @@ fn quiet_still_reports_violations_on_failing_run() {
         &[("y.typ", BODY_NO_PRIORITY)],
         violation_config(),
     );
-    assert!(super::run_with(&project, &super::CheckArgs { quiet: true }).is_err());
+    assert!(
+        super::run_with(
+            &project,
+            &super::CheckArgs {
+                quiet: true,
+                commit_msg: None,
+            }
+        )
+        .is_err()
+    );
 }
 
 #[test]

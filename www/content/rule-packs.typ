@@ -21,12 +21,13 @@ resolves, the merge order — plus what the pack MindTape ships,
 
 = What a pack is
 
-A pack is a config-syntax fragment carrying only the three rule arrays and
+A pack is a config-syntax fragment carrying only the four rule arrays and
 `[dicts]` — nothing else, and no nested `extends`. Loading one validates its
 shape before a single rule reaches the merge: a pack declaring anything
 outside `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
-`[[tasks.body.content.rules]]` or `[dicts]` — `[project]`, a stray
-`[tasks.priority]`, or `extends` itself — is refused by name:
+`[[tasks.body.content.rules]]`, `[[commits.rules]]` or `[dicts]` —
+`[project]`, a stray `[tasks.priority]`, `[commits] trailer`, or `extends`
+itself — is refused by name:
 
 ```text
 pack `<label>` may not declare `<key>`
@@ -102,7 +103,7 @@ extends = ["mindtape-tasks"]
 disable = ["imperative-title"]
 ```
 
-It reaches into any of the three arrays, inherited or extended, and a name
+It reaches into any of the four arrays, inherited or extended, and a name
 matching nothing anywhere is a config error rather than a silent no-op:
 
 ```text
@@ -130,7 +131,7 @@ declared twice is not an error twice.
 = Reading `mt config show --origin`
 
 `--origin` prints the contributing layers, then one `rule <label>: <origin>`
-line per entry across the three arrays, in final merge order — `<label>` is
+line per entry across the four arrays, in final merge order — `<label>` is
 `tasks.rules.<name>` (or `.rules[<index>]` for an unnamed one), the same
 name-or-position fallback a duplicate-name config error uses; `mt check`'s
 own breach output names the same rule WITHOUT the leading

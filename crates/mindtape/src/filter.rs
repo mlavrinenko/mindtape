@@ -205,7 +205,7 @@ impl Filter {
 /// number (`1e-5`), one beside a space (`a - b`). String literals are copied
 /// verbatim, escapes included.
 #[must_use]
-fn join_kebab_names(expr: &str) -> String {
+pub(crate) fn join_kebab_names(expr: &str) -> String {
     let mut out = String::with_capacity(expr.len());
     let mut chars = expr.chars().peekable();
     let (mut in_string, mut escaped) = (false, false);

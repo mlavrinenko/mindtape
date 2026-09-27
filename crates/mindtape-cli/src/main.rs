@@ -39,6 +39,7 @@ mod add_output;
 mod add_tokens;
 mod add_values;
 mod check;
+mod check_commit;
 mod cli;
 mod cli_dump;
 mod command_class;
