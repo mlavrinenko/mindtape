@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 27),
+  status: done(
+    2026,
+    9,
+    27,
+  )[two columns and five rows on the comparison page; prose names claims, MCP and the Kanban board],
 )
 
 == Problem
