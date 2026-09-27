@@ -157,7 +157,7 @@ pub fn write_bare_project(dir: &Path) {
 }
 
 /// `git init --quiet` in `dir`, asserting success. Shared by every test that
-/// drives a real git working copy — the estimate-drift check (`mt check`)
+/// drives a real git working copy — `changed()` in the filter language
 /// reads one, and both the in-crate unit tests and the CLI's e2e tests need
 /// the exact same three-line setup to get one.
 ///

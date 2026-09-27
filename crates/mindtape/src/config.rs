@@ -211,7 +211,7 @@ pub fn effective_project_code(config: &Config, root: &std::path::Path) -> String
 
 pub use crate::config_actors::{Actor, ActorKind, Role, roles_of};
 pub use crate::config_assignee::AssigneeConfig;
-pub use crate::config_estimate::{DriftConfig, EstimateBound, EstimateBounds, EstimateConfig};
+pub use crate::config_estimate::EstimateConfig;
 
 /// Errors from loading or locating a config file.
 #[derive(Debug, Error)]
@@ -238,8 +238,6 @@ impl Config {
         problems.extend(self.tasks.difficulty.validate("difficulty"));
         problems.extend(self.tasks.status.transition_problems());
         problems.extend(crate::derive::validate_root_globs(self));
-        problems.extend(crate::estimate_drift::validate_exclude_globs(self));
-        problems.extend(crate::config_estimate::validate_bounds(self));
         for spec in &self.ls.default_sort {
             if let Err(msg) = crate::sort::validate_sort_spec(spec) {
                 problems.push(format!("ls.default-sort: {msg}"));

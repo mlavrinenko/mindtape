@@ -2,28 +2,26 @@
 # examples/estimates/.mindtape/config.toml — the checked project /estimates/
 # reads back as data.
 #
-# Its one job is `[tasks.estimate]`: a `files` unit, a ceiling gated on
-# `difficulty`, an unconditional floor, and the working-tree drift check with
-# every key spelled out. The page slices those two sections out of this file
-# instead of retyping them, so a bound `mt check` would refuse can no longer be
-# printed as a bound to copy.
+# Its one job is estimates: a `files` unit, then the caps and the working-tree
+# budget as plain `[[tasks.rules]]` entries — a ceiling gated on `difficulty`,
+# an unconditional one, a floor, and a `changed()` budget. The page slices
+# those two groups out of this file instead of retyping them, so a cap
+# `mt check` would refuse can no longer be printed as a cap to copy.
 #
-# `files` rather than a duration because a file count is the one estimate
-# `mt check` can actually verify against git — the whole reason the drift
-# section exists, and why the duration units the other fixtures use would not
-# carry this page.
+# `files` rather than a duration because a file count is the one estimate a
+# rule can hold against git — `changed()` counts files, never hours.
 #
-# No task here sits in `wip`, so the drift check stays inert by construction:
+# No task here sits in `wip`, so the budget rule never evaluates `changed()`:
 # it reads the working tree of whatever repo it runs inside, and this fixture
 # lives inside MindTape's own, where `just check-examples` would then report a
 # warning that tracks the checkout's diff rather than anything about the
-# fixture. What IS exercised on every run is the load: an unparseable
-# `in-flight`, a `unit` outside `units`, a malformed `exclude` glob or a bound
-# naming no unit each fail `mt check` here.
+# fixture. What IS exercised on every run is the load: a `when` or `assert`
+# that does not parse, an unknown git state, a malformed glob or a unit outside
+# `units` each fail `mt check` here.
 #
 # Deliberately thin otherwise: roots and a four-value legend. The `difficulty`
 # scale the ceiling's `when` reads is the embedded floor's 0..9, undeclared
-# here on purpose — a project needs no scale of its own to gate a bound on it.
+# here on purpose — a project needs no scale of its own to gate a rule on it.
 
 # Resolve @local/mindtape from lib/ two levels up — the prelude under test —
 # rather than the machine-global symlink; same entry and reasoning as the other
@@ -35,29 +33,37 @@ path = "../../lib"
 [tasks]
 roots = ["tasks"]
 
-# docs:slice estimates/bound
+# docs:slice estimates/caps
 [tasks.estimate]
 units = ["files"]
 
-[[tasks.estimate.max]]
-when = "difficulty >= 3"
-files = 5
+[[tasks.rules]]
+name = "judgment-stays-small"
+when = "!terminal && difficulty >= 3"
+assert = "estimate.files <= 5"
 message = "judgment work stays small; split it rather than widen the cap"
+severity = "error"
 
-[[tasks.estimate.max]]
-files = 15
+[[tasks.rules]]
+name = "mechanical-cap"
+when = "!terminal && !(difficulty >= 3)"
+assert = "estimate.files <= 15"
+severity = "error"
 
-[[tasks.estimate.min]]
-files = 1
+[[tasks.rules]]
+name = "at-least-one-file"
+when = "!terminal"
+assert = "estimate.files >= 1"
+severity = "error"
 # docs:end
 
-# docs:slice estimates/drift
-[tasks.estimate.drift]
-unit          = "files"              # estimate unit read as the file budget
-in-flight     = 'status == "wip"'    # which tasks the diff is attributed to
-line-multiple = 200                  # secondary line ceiling per declared file; 0 disables
-message       = "rescope before going further"   # replaces the default advice
-exclude       = ["docs/generated/**", "*.lock"]  # paths the file count skips
+# docs:slice estimates/budget
+[[tasks.rules]]
+name = "budget"
+when = 'status == "wip" && has(estimate.files)'
+assert = 'changed("staged+worktree", "!docs/generated/**", "!*.lock") <= estimate.files'
+message = "rescope before going further"
+severity = "warn"
 # docs:end
 
 [[tasks.status]]

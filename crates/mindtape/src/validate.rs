@@ -12,7 +12,6 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 use crate::config::{Config, FieldConfig, IdFormat, Legend, RequiredRules};
-use crate::config_estimate::EstimateBounds;
 use crate::model::{Status, Task};
 use crate::numeric::{NumValue, NumericField, format_num};
 pub use crate::violation::{Location, Violation};
@@ -23,7 +22,6 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let mut out = Vec::new();
     check_id_uniqueness(tasks, &mut out);
     let required = RequiredRules::compile(config);
-    let bounds = EstimateBounds::compile(&config.tasks.estimate);
     for task in tasks {
         check_shape(task, &mut out);
         check_id_format(task, config, &mut out);
@@ -45,7 +43,7 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
             still_required(required.difficulty(task, config), task, "difficulty"),
         ));
         let must_estimate = still_required(required.estimate(task, config), task, "estimate");
-        check_estimate(task, config, must_estimate, &bounds, &mut out);
+        check_estimate(task, config, must_estimate, &mut out);
         let must_assignee = still_required(required.assignee(task, config), task, "assignee");
         check_assignee(task, config, must_assignee, &mut out);
         check_tags(task, config, &mut out);
@@ -331,22 +329,14 @@ pub(crate) fn check_in_scale(
     }
 }
 
-/// Validate a task's estimate: presence when `required`, allowed unit names,
-/// and the `max`/`min` bounds (first matching entry per unit).
+/// Validate a task's estimate: presence when `required`, and allowed unit
+/// names. A quantity is never checked here — a cap is a `[[tasks.rules]]`
+/// entry reading `estimate.<unit>`.
 ///
-/// Units and bounds alike are skipped once a task is terminal — it cannot be
-/// split or re-estimated any more, so retiring a unit is one edit to `units`
-/// rather than a rewrite of every closed task that ever carried it, and the
-/// bounds stay what they were: an estimate outside the declared range is
-/// deliberately an error, not a warning, since the point is splitting the task
-/// *before* the work starts.
-fn check_estimate(
-    task: &Task,
-    config: &Config,
-    required: bool,
-    bounds: &EstimateBounds<'_>,
-    out: &mut Vec<Violation>,
-) {
+/// Units are skipped once a task is terminal — it cannot be re-estimated any
+/// more, so retiring a unit is one edit to `units` rather than a rewrite of
+/// every closed task that ever carried it.
+fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Violation>) {
     let estimate = &config.tasks.estimate;
     if task.estimate.is_empty() {
         if required {
@@ -371,9 +361,6 @@ fn check_estimate(
                 format!("`{unit}` is not an allowed estimate unit"),
             );
         }
-    }
-    for problem in bounds.problems(task, config) {
-        push(out, task, "estimate", problem);
     }
 }
 

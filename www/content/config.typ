@@ -120,7 +120,7 @@ Sections with a page of their own:
 
 - `[tasks.roots]` / `[tasks.derive-tags]` — #link(u("/derived-tags/"))[Derived tags].
 - `[tasks.priority]` / `[tasks.difficulty]` — #link(u("/priority/"))[Priority].
-- `[tasks.estimate]` bounds and `drift` — #link(u("/estimates/"))[Estimates].
+- `[tasks.estimate]`, and estimate caps and budgets as rules — #link(u("/estimates/"))[Estimates].
 - `[tasks.recur]` — #link(u("/recurring/"))[Recurring tasks].
 - `[views.<name>]` / `[dicts.<name>]` — #link(u("/named-sets/"))[Views & dictionaries].
 - `[[on.flip]]` — #link(u("/hooks/"))[Flip hooks].

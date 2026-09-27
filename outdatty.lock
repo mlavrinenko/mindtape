@@ -4,7 +4,7 @@ groups:
   cli-docs:
     source:
       crates/mindtape-cli/src/add.rs: ed48331c279e50acda4885640c03d53f4bbad15102c92e8b10132cb03fb071c5
-      crates/mindtape-cli/src/check.rs: 6cad016f5b0519a53cefe81be443fcf420b195ecc0d21d8f57e042d9319da4d6
+      crates/mindtape-cli/src/check.rs: 792df14de447c961c3e4a00b33aad1d33d167490f6d77ba8bda3df396789fe8b
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
       crates/mindtape-cli/src/completion.rs: 95c4e40597adb38d1c3843d9a6885c90d7cd26eff3d789488c3060610cadf8ec
       crates/mindtape-cli/src/config_cmd.rs: 06bfb3545bd2554cb1b5ff0a1f6ec5ad40c82e0b5dd0fd30129871375a92db61
@@ -34,7 +34,7 @@ groups:
       crates/mindtape-cli/src/worktrees.rs: 78617369d3fb90e6e30605fb5e23b3f795f1ab2a671914aefdd5d2b1868a5fc5
       crates/mindtape/src/defaults.toml: 584a0ff52afecd55fa768e23d08c94815b6b200728666feada02a8df614d8844
       crates/mindtape/src/fields.rs: 605b6c103353cfd70ba4067d88ff1f0cd6f5688fe652a5427eb6ef0eaf669a54
-      crates/mindtape/src/lib.rs: 0395daaca79e88cea77cb2149bfe72dcad57137b3e23270f8e73fe7ad8261eea
+      crates/mindtape/src/lib.rs: ce552dcf6c2ced2d75b0f3141ccbf78f12e0ee49bd2afe08e656c4ae31b837a6
     dependents:
       docs/src/skill.typ: 34ab242bd1759c59f8fa011ae521f7a0029d5041ad9c02661d47171d323b3926
       skills/mindtape/evals/README.md: a5143877e4409bea53d0e60b8ad3716f9483a0d80f28b8c3013864f729428516
@@ -43,9 +43,9 @@ groups:
       www/content/agents.typ: 1629dc25eb10412611082468d2bfb7835c8a68b5731e49c305afdd80758d516a
       www/content/cli.typ: aefeb7da533bb234536e5813f50fab79d7956d1a5ae15d33969bdb8d7ab92594
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
-      www/content/config.typ: 593dc4243767667f57b7bf60e0e4095918d137790c64349cdf49da913e1e0462
+      www/content/config.typ: 714c45b0f0742e10d12c786d5289d8f9c2eb4700bf2f14c56403c3e979a5b97e
       www/content/derived-tags.typ: 70e18514eac0e26de88103e1229be1bc2dd82dc9df50eb423b017f844a67c095
-      www/content/estimates.typ: 16a8e6525b6aca7c5b0df4eead523e4923e817afdef9e8a31a4b4cc5adecbe92
+      www/content/estimates.typ: 54dfbab272322e40b631b66fb013317baf354e7e229cedf5c9338db56d0708a3
       www/content/filters.typ: b63020ceef0c96ba9108a3e051a70bee7e110fd8f20e55e724f56ac8a3106927
       www/content/hooks.typ: a9f41be37e45ad20043d8f2b487ba83d55e85ed6ac4e29320204951a1db73c65
       www/content/import-export.typ: 0072cacdf21973298560d6534704cdb3ea8fe1961ba70370ad538563d0bc0b22

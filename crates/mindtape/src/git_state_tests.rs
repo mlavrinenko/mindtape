@@ -3,7 +3,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use super::{GitCache, GitStatus, PathFilter, StateSet, numstat_total};
+use super::{GitCache, GitStatus, PathFilter, StateSet};
 use crate::test_support::git_init;
 
 /// `git status --porcelain -z` output, NUL-separated as git writes it.
@@ -138,20 +138,6 @@ fn only_bang_globs_admit_everything_else() {
 fn an_invalid_glob_is_refused_naming_it() {
     let err = PathFilter::new(&["![oops".to_owned()]).unwrap_err();
     assert!(err.contains("[oops"), "{err}");
-}
-
-// --- numstat ---------------------------------------------------------------
-
-#[test]
-fn numstat_sums_added_and_deleted_and_skips_binaries() {
-    let text = "3\t4\tsrc/a.rs\n-\t-\tassets/logo.png\n10\t0\tsrc/b.rs\n";
-    assert_eq!(numstat_total(text), 17);
-}
-
-#[test]
-fn numstat_ignores_malformed_rows() {
-    assert_eq!(numstat_total(""), 0);
-    assert_eq!(numstat_total("garbage\n5\n"), 0);
 }
 
 // --- against a real repository ---------------------------------------------

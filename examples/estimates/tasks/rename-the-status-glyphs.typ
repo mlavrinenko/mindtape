@@ -5,9 +5,8 @@
   status: todo(2026, 9, 2),
   priority: 3,
   difficulty: 1,
-  // Mechanical, so the first entry's `when` does not match and the
-  // unconditional 15 below it is the bound — the resolution order the page
-  // describes, exercised rather than asserted.
+  // Mechanical, so the judgment rule's `when` does not match and the
+  // mechanical cap of 15 is the one that binds.
   estimate: (files: 12),
 )
 

@@ -663,108 +663,10 @@
       },
       "type": "object"
     },
-    "DriftConfig": {
-      "additionalProperties": false,
-      "description": "`[tasks.estimate.drift]` — how `mt check` compares the working tree against\nthe budget the in-flight tasks declare.\n\nInert until some in-flight task actually declares an estimate in `unit`, so\na project that never uses a file budget never sees the check.",
-      "properties": {
-        "exclude": {
-          "default": [],
-          "description": "Glob patterns naming paths the file count never counts — generated\noutput nobody hand-edits, so touching it should never cost part of a\nbudget spent on the source that produced it. Matched against the path\ngit reports, repo-root-relative (the same root `mt` runs against, not\nthe task root), with the same glob syntax as `[tasks.roots]\nderive-tags`: `*` matches within one path segment, `**` crosses\ndirectory boundaries. Empty = nothing excluded.",
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "in-flight": {
-          "default": "status == \"wip\"",
-          "description": "Filter expression naming the tasks in flight. The working tree carries\none diff and nothing in it says which file belongs to which task, so this\nis what attribution rests on. Default `status == \"wip\"`.",
-          "type": "string"
-        },
-        "line-multiple": {
-          "default": 200,
-          "description": "Lines allowed per declared file before the secondary soft line warning.\n`0` disables it. Default 200.",
-          "format": "uint",
-          "minimum": 0,
-          "type": "integer"
-        },
-        "message": {
-          "default": null,
-          "description": "Replaces the default advice in a drift report.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "unit": {
-          "default": "files",
-          "description": "Estimate unit read as the file budget. Default `files`.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "EstimateBound": {
-      "additionalProperties": {
-        "format": "double",
-        "type": "number"
-      },
-      "description": "One `[[tasks.estimate.max]]` / `[[tasks.estimate.min]]` entry: per-unit\nquantities, gated by `when` and explained by `message`.",
-      "properties": {
-        "message": {
-          "default": null,
-          "description": "Why the bound sits where it does; replaces the default advice in a\nbreach report.",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "when": {
-          "default": null,
-          "description": "Filter expression selecting the tasks this entry bounds. Absent means\nevery task.",
-          "type": [
-            "string",
-            "null"
-          ]
-        }
-      },
-      "type": "object"
-    },
     "EstimateConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.estimate]` — estimate units, bounds, and drift policy.",
+      "description": "`[tasks.estimate]` — the legal estimate units and whether one is required.",
       "properties": {
-        "drift": {
-          "$ref": "#/$defs/DriftConfig",
-          "description": "Working-tree drift policy for `mt check`."
-        },
-        "max": {
-          "description": "Upper bounds (`[[tasks.estimate.max]] files = 5`), first matching entry\nper unit wins. A unit no matching entry names is unbounded above. A\nsingle table is accepted as one unconditional entry.",
-          "oneOf": [
-            {
-              "items": {
-                "$ref": "#/$defs/EstimateBound"
-              },
-              "type": "array"
-            },
-            {
-              "$ref": "#/$defs/EstimateBound"
-            }
-          ]
-        },
-        "min": {
-          "description": "Lower bounds (`[[tasks.estimate.min]] files = 1`), resolved like `max`.\nA unit no matching entry names is unbounded below.",
-          "oneOf": [
-            {
-              "items": {
-                "$ref": "#/$defs/EstimateBound"
-              },
-              "type": "array"
-            },
-            {
-              "$ref": "#/$defs/EstimateBound"
-            }
-          ]
-        },
         "required": {
           "$ref": "#/$defs/Requirement",
           "description": "Whether an estimate must be set."

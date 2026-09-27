@@ -8,9 +8,8 @@
 //! its `Y` column the worktree side — so a command runs it at most once,
 //! through the [`GitCache`] its [`crate::config::Config`] carries.
 //!
-//! Consumers: the filter language's `changed(<states>, <glob>…)`
-//! ([`crate::filter`]) and the drift check ([`crate::estimate_drift`]). Paths
-//! are relative to the repository root, whichever directory git is run from.
+//! Consumer: the filter language's `changed(<states>, <glob>…)`
+//! ([`crate::filter`]). Paths are relative to the repository root, whichever directory git is run from.
 //!
 //! Every git call passes `--no-optional-locks`: reading must not even refresh
 //! `.git/index`'s stat cache, because the commands that read are read commands
@@ -197,30 +196,6 @@ fn glob_set(patterns: &[&str]) -> Result<Option<GlobSet>, String> {
         .build()
         .map(Some)
         .map_err(|err| format!("invalid globs: {err}"))
-}
-
-/// Added plus deleted lines across tracked changes against `HEAD`, or `None`
-/// when git cannot answer — outside a repository, or before the first commit.
-#[must_use]
-pub fn diff_line_total(root: &Path) -> Option<usize> {
-    git(root, &["diff", "--numstat", "HEAD"])
-        .ok()
-        .map(|out| numstat_total(&out))
-}
-
-/// Sum added plus deleted lines over `git diff --numstat` output. A binary file
-/// reports `-` for both counts and contributes nothing.
-pub(crate) fn numstat_total(text: &str) -> usize {
-    text.lines().filter_map(numstat_line).sum()
-}
-
-/// Added plus deleted lines for one `--numstat` row, or `None` when the row is
-/// binary or malformed.
-fn numstat_line(line: &str) -> Option<usize> {
-    let mut columns = line.split_whitespace();
-    let added: usize = columns.next()?.parse().ok()?;
-    let deleted: usize = columns.next()?.parse().ok()?;
-    Some(added + deleted)
 }
 
 /// The [`GitStatus`] of one project root, read the first time something asks

@@ -6,7 +6,7 @@
   priority: 7,
   difficulty: 3,
   // Judgment work, so the gated ceiling applies: 5 files, not 15. A sixth
-  // file here fails `mt check` with the entry's own message.
+  // file here fails `mt check` with the rule's own message.
   estimate: (files: 5),
 )
 

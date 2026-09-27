@@ -59,7 +59,6 @@ mod date_pin;
 mod dep_rank;
 pub mod derive;
 pub mod emit;
-pub mod estimate_drift;
 mod expr;
 mod fields;
 pub mod filter;
@@ -127,12 +126,12 @@ pub use condition::{Condition, ConditionError};
 pub use condition_env::{ColumnFacts, ConditionEnv};
 pub use config::{
     Actor, ActorKind, AddConfig, AssigneeConfig, BUILTIN_PREFIX, Collector, ColumnConfig, Config,
-    ConfigError, DeriveConfig, DeriveTags, Dict, DictCase, DictSpec, Dicts, DriftConfig,
-    EstimateConfig, Facet, FormatConfig, GoConfig, HandleConfig, HyperlinkChoice, ImportView,
-    InteractiveMode, LS_COLUMNS, LocalPackage, LsRule, MAX_CHECK_LEN, PriorityConfig, ReadyConfig,
-    RetireConfig, RmConfig, RmStrategy, Role, RootConfig, RootSpec, TemplatesConfig, TypstConfig,
-    ViewSpec, builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config,
-    parse_config, parse_import_view, roles_of, validate_dicts, validate_views,
+    ConfigError, DeriveConfig, DeriveTags, Dict, DictCase, DictSpec, Dicts, EstimateConfig, Facet,
+    FormatConfig, GoConfig, HandleConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS,
+    LocalPackage, LsRule, MAX_CHECK_LEN, PriorityConfig, ReadyConfig, RetireConfig, RmConfig,
+    RmStrategy, Role, RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec,
+    builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
+    parse_import_view, roles_of, validate_dicts, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};
@@ -149,9 +148,6 @@ pub use date_pin::{DateOverrideError, init_pinned_today};
 pub use derive::RootDeriver;
 pub use emit::emit_task;
 pub use emit::format::{typ_array, typ_str};
-pub use estimate_drift::{
-    ChangeSet, DriftKind, DriftWarning, InFlightBudget, check_estimate_drift, working_tree_changes,
-};
 pub use filter::{Filter, FilterError};
 pub use format::format_typst;
 pub use framework::{Category, Framework, Input, InputKind};

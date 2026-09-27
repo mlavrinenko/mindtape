@@ -29,7 +29,12 @@ fn dogfood_truth_tasks_pass_validation() {
     let outcome = mindtape::load_project(&root, &config);
     assert!(outcome.errors.is_empty(), "{:#?}", outcome.errors);
 
-    let violations = mindtape::validate(&outcome.tasks, &config);
+    // Only what fails `mt check` counts: a warn rule such as `src-budget`
+    // reads the git working tree, so it fires on whatever is in flight.
+    let violations: Vec<_> = mindtape::validate(&outcome.tasks, &config)
+        .into_iter()
+        .filter(mindtape::Violation::is_fatal)
+        .collect();
     assert!(violations.is_empty(), "{violations:#?}");
 }
 

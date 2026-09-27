@@ -1,12 +1,13 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout
+#import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
   route: "/estimates/",
   label: "Estimates",
-  title: "Estimate bounds and working-tree drift",
-  summary: "How tasks.estimate bounds a task's declared size, and how the drift check compares the git working tree against what the in-flight tasks budgeted.",
+  title: "Estimate caps and working-tree budgets",
+  summary: "How tasks.estimate declares the legal units, and how plain rules cap a declared estimate and hold the git working tree to it.",
 )
 #metadata(meta) <page-meta>
 
@@ -14,13 +15,16 @@
 
 // Both blocks below are slices of examples/estimates/.mindtape/config.toml,
 // the project `just check-examples` validates: the fixture's own two tasks sit
-// against these bounds, so a ceiling shown here is one that fires.
+// against these caps, so a ceiling shown here is one that fires.
 #let parts = (
   (
-    "bound",
-    "the unit allow-list, a ceiling gated on `difficulty`, and a floor",
+    "caps",
+    "the unit allow-list, a ceiling gated on `difficulty`, a mechanical ceiling and a floor",
   ),
-  ("drift", "every drift key, each at the value the fixture declares"),
+  (
+    "budget",
+    "the working-tree budget, counting everything but generated output",
+  ),
 )
 
 #let slices = checked-slices(
@@ -29,14 +33,19 @@
   parts.map(p => p.at(0)),
 )
 
-= Bounds
+= Units
 
-An estimate is an opaque `unit -> quantity` dict, and `units` is the allow-list
-of legal unit names, checked on open tasks only: a terminal task keeps
-whatever unit it was estimated in, so retiring a unit is one edit to `units`
-rather than a rewrite of every closed task that ever carried it. Two lists of
-per-unit entries bound the quantities, each entry gated by an optional `when`
-filter and explained by an optional `message`:
+An estimate is an opaque `unit -> quantity` dict. `[tasks.estimate]` carries
+two keys: `units`, the allow-list of legal unit names, and `required`. The
+allow-list is checked on open tasks only: a terminal task keeps whatever unit
+it was estimated in, so retiring a unit is one edit to `units` rather than a
+rewrite of every closed task that ever carried it.
+
+No quantity is checked unless a project asks. A cap and a budget are ordinary
+#link(u("/config/"))[`[[tasks.rules]]`] entries reading one unit as a number,
+`estimate.<unit>` (see #link(u("/filters/"))[Filter language]).
+
+= Caps
 
 #raw(
   render-slices(slices, parts.slice(0, 1), comment: "#"),
@@ -44,28 +53,20 @@ filter and explained by an optional `message`:
   block: true,
 )
 
-Outside the range is a *validation error*, not a warning: an oversized task must
-be split before the work starts, not after. Terminal tasks are exempt.
-
-Resolution is per unit: a unit's bound comes from the first entry, in config
-order, whose `when` matches the task and that names the unit. An entry silent on
-a unit leaves it to the entries below it, and a unit no matching entry names is
-unbounded. A breach names the gate and carries the entry's `message` as its
-advice:
+At `severity = "error"` a cap is a validation error, so every write command
+refuses an oversized task before it lands: the task is split before the work
+starts, not after. `!terminal` in `when` exempts a finished task, which can no
+longer be split. A breach names the rule and carries its `message`:
 
 ```
-rewrite-loader: estimate: 6 files is over the 5 allowed when `difficulty >= 3`; judgment work stays small; split it rather than widen the cap
+error: tasks/rewrite-loader.typ:3: rules.judgment-stays-small: judgment work stays small; split it rather than widen the cap
 ```
 
-The single-table spelling (`[tasks.estimate.max] files = 15`) still parses, as
-one unconditional entry. A `when` that does not parse, an entry naming no unit,
-and a unit outside a non-empty `units` list each fail the config at load.
+= Working-tree budget
 
-= Working-tree drift
-
-A file count is the estimate `mt check` can actually verify. `[tasks.estimate.drift]`
-compares the git working tree against the budget the in-flight tasks declare and
-warns — never fails — when the tree has outgrown it:
+A file count is the estimate a rule can hold against git. `changed()` counts
+the paths git reports changed, and a rule compares that against what the task
+in flight declared:
 
 #raw(
   render-slices(slices, parts.slice(1, 2), comment: "#"),
@@ -73,30 +74,18 @@ warns — never fails — when the tree has outgrown it:
   block: true,
 )
 
-`exclude` names paths the file count never counts — generated output nobody
-hand-edits, so touching it should not spend part of a budget meant for the
-source that produced it. Each pattern is matched against the path git reports,
-repo-root-relative (the root `mt` runs against, not the task root), with the
-same glob syntax as `[tasks.roots] derive-tags`: `*` matches within one path
-segment, `**` crosses directory boundaries. It only filters the file count.
+`!`-prefixed globs name what the count skips — generated output nobody
+hand-edits should not spend part of a budget meant for the source that
+produced it. Globs match paths relative to the repository root, not the task
+root. `has(estimate.files)` keeps the rule off a task that declares no budget.
 
 The working tree carries one diff and nothing in it says which file belongs to
-which task, so attribution is by count — against the one in-flight task's
-budget, or against the sum when several are open:
-
-```
-warning: working tree touches 14 file(s), over the 2 declared by `alpha` — split the remaining work into a new task and finish the part in hand
-warning: working tree touches 16 file(s), over the 6 declared in total by 3 in-flight tasks — split the remaining work into a new task and finish the part in hand
-  in flight: alpha, beta, gamma
-```
-
-The line total is a secondary soft signal at a generous multiple of the
-declared file count, never a budget of its own: line counts are distorted by
-generated files, lockfiles and formatting passes.
+which task, so the rule holds each in-flight task to the whole change set; a
+work-in-progress cap of one makes that exact. At `severity = "warn"` a breach
+prints and `mt check` still exits zero: an unforeseen file is normal, and the
+answer is a rescope, not a failed command.
 
 #callout("note")[
-  The check is inert until an in-flight task declares an estimate in `unit`, and
-  reads the tree strictly read-only (`git --no-optional-locks … status
-  --porcelain`). Outside a git repository, or with git unavailable, it says
-  nothing at all — it never guesses, and never fails the command.
+  Git runs strictly read-only. Outside a git repository the rule reports once
+  as skipped — a warning whatever its severity — and never fails the command.
 ]

@@ -290,6 +290,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **`[tasks.estimate.drift]` and `[[tasks.estimate.max]]`/`min`** (breaking,
+  pre-1.0). The drift check ran unasked, hardcoded to a `files` unit, and the
+  bounds were a second checker for what a rule says in one line. Both are
+  unknown keys now; `[tasks.estimate]` keeps `units` and `required`, and no
+  estimate check runs unless a rule asks. A cap is `assert =
+  'estimate.src-files <= 5'`; a budget is `assert = 'changed("staged+worktree",
+  "!docs/generated/**") <= estimate.src-files'` at `severity = "warn"`, its
+  excludes written as `!` globs. The line-total soft ceiling goes with it.
 - **Every backward-compatibility shim for a pre-release spelling** (breaking,
   pre-1.0). Nothing here ever shipped in a public release, so each one was a
   hand-written hint pointing an old spelling at its replacement rather than a
