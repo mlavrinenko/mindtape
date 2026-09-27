@@ -39,36 +39,40 @@
 
 == TO-BE
 
-- 🟢 `scope = "task"` rules run once per task the commit changes or names. Fields read the staged task (the state the commit leaves), `before(<expr>)` evaluates an expression on the `HEAD` version, and `into("s")` is sugar for `status == "s" && !before(status == "s")`; plus `named`, `added`, `removed` and the commit fields.
+- 🟢 `scope = "task"` rules run per task the commit changes or names. `head(<expr>)`, `staged(<expr>)` and `worktree(<expr>)` evaluate any expression, graph predicates included, against that state of the project.
+- 🟢 A bare task field is refused at load. `exists` is false where the file is absent; `into("s")` means `staged(status == "s") && !head(status == "s")`; `named` and commit fields are stateless.
 
 ```toml
 [[commits.rules]]
 name    = "flip-with-work"
 scope   = "task"
 when    = 'into("wip") || into("done")'
-assert  = 'named && (!tasks_only || has_tag("decision"))'
+assert  = 'named && (!tasks_only || staged(has_tag("decision")))'
 message = "start or close a task in a commit that carries its work"
 ```
 
-- 🟢 `before(...)` is false for an added task; a removed task reads its `HEAD` version.
+- 🟢 `when = 'worktree(status) != staged(status)'` warns about a flip left unstaged.
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/commit_msg_task_e2e.rs` (red first): a close-only commit refused, a close with work passes, an estimate added in the closing commit is seen.
-- `crates/mindtape/src/commit_tasks.rs` (new): the changed and named tasks, each evaluated from the index and from `HEAD` blobs.
-- `crates/mindtape/src/filter_predicates.rs`: `before()`, `named`, `added`, `removed`.
+- `crates/mindtape-cli/tests/commit_msg_task_e2e.rs` (red first): a close-only commit refused; a close with work passes; an estimate added in the closing commit is seen through `staged(...)`; a bare field is refused at load.
+- `crates/mindtape/src/commit_tasks.rs` (new): the project as of `HEAD`, the index and the working tree, as overlays of the changed files on one load.
+- `crates/mindtape/src/filter_predicates.rs`: the three state wrappers, `exists`, `named`.
 - `crates/mindtape/src/config_hooks.rs`: share `into()`'s desugaring.
-- `www/content/config.typ`: the task scope.
+- `www/content/config.typ`: the task scope and the state table.
 
 
 == Alternatives
 
-- Fields read `HEAD`, `into()` the staged status (the `[[on.flip]]` meaning): a field edited in the same commit is seen stale, so a rule requiring an estimate on close refuses the commit that adds it.
-- Fields read staged, `from("s")` for the old status: "named only while open" needs a status name hardcoded.
+- One implicit state plus a look-back (`before(...)`): the reader has to know which state a bare field means; `HEAD` reads a field edited in the same commit stale, the staged state needs `from("s")` hacks for history.
+- A default state for bare fields: shorter rules, but the confusion this task exists to remove comes back.
+- Dotted prefixes (`head.status`): cover fields but not predicates like `terminal`, `ready` or `has(f)`.
 
 
 == Out of scope
+
+- `worktree(...)` in `mt check --commits`: a commit range has no working tree, so a rule reading it is skipped there and reported as skipped.
 
 - Commit ranges: `truth/tasks/check-commit-rules-over-a-commit-range.typ`.
 
