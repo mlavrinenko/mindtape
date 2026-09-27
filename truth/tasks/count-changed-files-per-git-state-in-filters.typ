@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 27),
+  status: done(2026, 9, 28),
   links: related(
     "evaluate-task-scope-commit-rules.typ",
   )[both read HEAD, index and working tree; share one git state reader],
@@ -62,6 +62,7 @@ severity = "warn"
 - `crates/mindtape/src/filter_predicates.rs`: `changed()`.
 - `www/content/filters.typ`: document it and the state names.
 - `CHANGELOG.md`: the addition.
+- Deviation: the TO-BE rule compares against a field, which a comparison's right side could not be, so `crates/mindtape/src/filter_compare.rs` (split out of `filter.rs` for the size cap) resolves either side as a field or a count; `crates/mindtape/src/config_rules.rs` carries the skip. The git state rides on `Config` as a cache, so `changed()` works in every filter.
 
 
 == Alternatives
