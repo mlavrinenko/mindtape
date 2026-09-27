@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 27),
+  status: done(
+    2026,
+    9,
+    27,
+  )[why column (named()), why list in --json, \@blocked view in this repo; documented on the CLI, schema and import pages and in the skill],
 )
 
 == Problem
