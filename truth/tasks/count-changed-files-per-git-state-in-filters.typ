@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 27),
+  status: wip(2026, 9, 27),
   links: related(
     "evaluate-task-scope-commit-rules.typ",
   )[both read HEAD, index and working tree; share one git state reader],
