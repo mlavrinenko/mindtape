@@ -27,9 +27,13 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 27),
+  status: cancelled(
+    2026,
+    9,
+    27,
+  )[No real problem behind it: work here lands in one commit per task, so staged+worktree already sees the whole footprint],
   links: depends-on(
-    "count-changed-files-and-lines-per-git-state-in-filters.typ",
+    "count-changed-files-per-git-state-in-filters.typ",
     "check-commit-messages-against-commit-rules.typ",
   ),
 )

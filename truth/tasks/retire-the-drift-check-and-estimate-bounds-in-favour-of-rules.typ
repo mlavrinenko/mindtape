@@ -29,9 +29,9 @@
   assignee: "agent",
   status: proposed(2026, 9, 27),
   links: depends-on(
-    "compare-estimate-units-and-compute-arithmetic-in-filters.typ",
-    "add-sum-and-count-aggregates-to-filters.typ",
-    "count-changed-files-and-lines-per-git-state-in-filters.typ",
+    "read-estimate-units-and-kebab-case-names-in-filters.typ",
+    "count-changed-files-per-git-state-in-filters.typ",
+    "move-open-tasks-and-templates-to-a-src-files-estimate.typ",
   ),
 )
 
@@ -44,35 +44,47 @@
 
 == TO-BE
 
-- 🟢 `[tasks.estimate]` keeps only `units` and `required`; `drift`, `max` and `min` are gone, with no alias (pre-release policy).
-- 🟢 No estimate check runs unless a rule asks: a project copies the rules from `www/content/estimates.typ`.
-- 🟢 This repo's config carries its budget and bounds as `[[tasks.rules]]`, keeping today's behaviour and `exclude` list.
+- 🟢 `[tasks.estimate]` keeps only `units` and `required`; `drift`, `max` and `min` are gone, with no alias (pre-release policy). No estimate check runs unless a rule asks.
+- 🟢 This repo's budget and caps are rules whose scope is written in the globs, so `exclude` goes too:
+
+```toml
+[[tasks.rules]]
+name     = "src-budget"
+when     = 'status == "wip"'
+assert   = 'changed("staged+worktree", "crates/*/src/**", "lib/**", "!**/*_tests*.rs") <= estimate.src-files'
+message  = "split the remaining work into a new task and finish the part in hand"
+severity = "warn"
+
+[[tasks.rules]]
+name     = "judgment-stays-small"
+when     = '!terminal && difficulty >= 3'
+assert   = 'estimate.src-files <= 5'
+```
 
 
 == Changes
 
-- `crates/mindtape-cli/tests/estimate_drift_e2e.rs` (red first, renamed `estimate_rules_e2e.rs`): the same scenarios written as rules, and no warning with none.
+- `crates/mindtape-cli/tests/estimate_drift_e2e.rs` (red first, renamed `estimate_rules_e2e.rs`): budget and caps as rules; no warning without them.
 - `crates/mindtape/src/estimate_drift.rs`, `estimate_drift_tests.rs`: delete.
 - `crates/mindtape/src/config_estimate.rs`, `config_estimate_tests.rs`: drop `DriftConfig` and `EstimateBound(s)`.
-- `crates/mindtape/src/validate.rs`, `config.rs`, `lib.rs`: drop the bounds pass and re-exports.
-- `crates/mindtape-cli/src/check.rs`: drop `report_drift`.
+- `crates/mindtape/src/validate.rs`, `config.rs`, `lib.rs`, `crates/mindtape-cli/src/check.rs`: drop the bounds pass, `report_drift`, re-exports.
 - `.mindtape/config.toml`, `examples/learn-piano/.mindtape/config.toml`: the rules.
-- `www/content/estimates.typ`, `www/content/config.typ`: rules instead of tables.
-- `CHANGELOG.md`: the removal.
+- `www/content/estimates.typ`, `www/content/config.typ`, `CHANGELOG.md`: rules instead of tables.
 
 
 == Alternatives
 
 - Make drift opt-in and keep the table: keeps a checker that knows one unit.
-- Ship the rules in the `mindtape-tasks` pack: a pack cannot know a project's units.
+- Keep the 200-line-per-file ceiling as a rule: no record of it catching anything.
 
 
 == Out of scope
 
+- The `src-files` unit itself: `truth/tasks/move-open-tasks-and-templates-to-a-src-files-estimate.typ`.
 - `[[tasks.limits]]`: `truth/tasks/retire-task-limits-in-favour-of-count-rules.typ`.
+- Retuning the caps for a source-only count: ported as they are.
 
 
 == Dogfood
 
 This repo's own rules replace the tables in the same commit.
-

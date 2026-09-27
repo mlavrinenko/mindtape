@@ -28,7 +28,7 @@
   ),
   assignee: "agent",
   status: proposed(2026, 9, 27),
-  links: depends-on("add-sum-and-count-aggregates-to-filters.typ"),
+  links: depends-on("add-a-count-aggregate-to-filters.typ"),
 )
 
 == Problem
