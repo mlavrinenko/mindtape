@@ -5,7 +5,7 @@
   route: "/comparison/",
   label: "Comparison",
   title: "Comparison",
-  summary: "How MindTape compares, feature by feature, to the other local file-and-CLI task trackers, and when one of them fits better.",
+  summary: "How MindTape compares, feature by feature, to the other local CLI task trackers, agent-era ones included, and when one of them fits better.",
 )
 #metadata(meta) <page-meta>
 
@@ -18,6 +18,8 @@
 #let todotxt-url = "http://todotxt.org"
 #let orgmode-url = "https://orgmode.org"
 #let git-bug-url = "https://github.com/git-bug/git-bug"
+#let beads-url = "https://github.com/gastownhall/beads"
+#let backlog-url = "https://github.com/MrLesk/Backlog.md"
 
 // MindTape's own version reads the real binary's report of itself — "mt X.Y.Z"
 // captured by www/generate.sh into www/generated/version.txt, same pattern as
@@ -41,7 +43,7 @@
 
 MindTape is not out to replace every task tracker. It sits in a narrow niche:
 #strong[typed tasks, one per file, versioned with the code, validated by config,
-  no daemon]. The neighbours below are the other local file-and-CLI trackers.
+  no daemon]. The neighbours below are the other local, CLI-first trackers.
 Hosted services (GitHub Issues, Jira, Linear) are a different category:
 daemon-plus-database SaaS with no in-repo file artifact, and out of scope here.
 
@@ -59,10 +61,14 @@ daemon-plus-database SaaS with no in-repo file artifact, and out of scope here.
   typeset-exportable document.
 - #strong[#link(git-bug-url)[git-bug]] — issues stored inside git objects, offline-first and
   distributed, bridging to GitHub or GitLab.
+- #strong[#link(beads-url)[Beads]] — a coordination database for fleets of coding agents: Dolt
+  SQL synced over its own git refs, atomic claims with leases, workflow molecules, MCP.
+- #strong[#link(backlog-url)[Backlog.md]] — one Markdown file per task in the repo, built for a
+  human steering agents: acceptance-criteria checklists, a terminal and web Kanban, MCP.
 
-All of them are daemon-free and run locally, so that alone separates none of
-them. The table below digs into how each one stores, types, links, and renders a
-task.
+All of them run locally, and none needs a server to work: Beads can run one
+(`bd serve`, `dolt sql-server`) but embeds its database by default. The table
+below digs into how each one stores, types, links, and renders a task.
 
 = Feature by feature
 
@@ -70,7 +76,7 @@ Cells are terse on purpose; the prose after the table carries the nuance. The
 matrix scrolls sideways on narrow screens.
 
 #html.elem("div", attrs: (class: "matrix"), table(
-  columns: 7,
+  columns: 9,
   align: left,
   table.header(
     [Dimension],
@@ -80,6 +86,8 @@ matrix scrolls sideways on narrow screens.
     [#link(todotxt-url)[todo.txt]],
     [#link(orgmode-url)[Org-mode]],
     [#link(git-bug-url)[git-bug]],
+    [#link(beads-url)[Beads]],
+    [#link(backlog-url)[Backlog.md]],
   ),
 
   [#link(u("/concepts/"))[Storage granularity]],
@@ -89,6 +97,8 @@ matrix scrolls sideways on narrow screens.
   [One shared file],
   [Many per `.org` file],
   [Git objects],
+  [Dolt database],
+  [One file / task],
 
   [#link(u("/dsl/"))[On-disk format]],
   [Typst `.typ`],
@@ -97,6 +107,8 @@ matrix scrolls sideways on narrow screens.
   [Plain-text line],
   [Outline text],
   [Git blobs on refs],
+  [Dolt SQL tables],
+  [Markdown + YAML `.md`],
 
   [#link(u("/concepts/"))[In the working tree, reviewed with your code]],
   [#cap("green")[Yes, by design]],
@@ -105,6 +117,8 @@ matrix scrolls sideways on narrow screens.
   [#cap("amber")[Possible]],
   [#cap("green")[Yes]],
   [#cap("grey")[In git, not the tree]],
+  [#cap("grey")[No — its own Dolt refs]],
+  [#cap("green")[Yes]],
 
   [#link(u("/config/"))[Typed schema + config validation]],
   [#cap("green")[Config-enforced, `mt check`]],
@@ -113,6 +127,8 @@ matrix scrolls sideways on narrow screens.
   [#cap("grey")[None]],
   [#cap("amber")[Soft]],
   [#cap("amber")[Minimal]],
+  [#cap("amber")[Fixed, checked on write]],
+  [#cap("amber")[Checked on CLI writes only]],
 
   [#link(u("/config/"))[Status model]],
   [Config legend (enum + dates + transitions)],
@@ -121,6 +137,8 @@ matrix scrolls sideways on narrow screens.
   [`x ` prefix],
   [User-defined keywords],
   [open / closed],
+  [7 built-ins + custom categories],
+  [Config list],
 
   [#link(u("/priority/"))[Priority model]],
   [Int scale or scored framework],
@@ -129,6 +147,8 @@ matrix scrolls sideways on narrow screens.
   [`(A)`–`(Z)`],
   [`#A`/`#B`/`#C`],
   [None],
+  [`P0`–`P4`],
+  [Configured labels],
 
   [#link(u("/concepts/"))[Task identity]],
   [Filename stem],
@@ -137,6 +157,8 @@ matrix scrolls sideways on narrow screens.
   [Line position],
   [Headline / `:ID:`],
   [Content hash],
+  [Hash ID (`bd-a1b2`)],
+  [Sequential `TASK-12`],
 
   [#link(u("/filters/"))[Dependencies / blocking]],
   [#cap("green")[Yes — typed links]],
@@ -145,6 +167,18 @@ matrix scrolls sideways on narrow screens.
   [#cap("grey")[No]],
   [#cap("green")[Yes — `ORDERED` / org-depend]],
   [#cap("grey")[No]],
+  [#cap("green")[Yes — typed kinds]],
+  [#cap("green")[Yes]],
+
+  [#link(u("/links/"))[Hierarchy]],
+  [#cap("amber")[`parent` links + folder tags]],
+  [#cap("amber")[Projects]],
+  [#cap("amber")[Dotted projects]],
+  [#cap("amber")[`+project` tags]],
+  [#cap("green")[Nested headlines]],
+  [#cap("grey")[Labels only]],
+  [#cap("green")[Epics, child IDs, molecules]],
+  [#cap("green")[Subtasks + milestones]],
 
   [#link(u("/filters/"))[Query + machine output]],
   [#cap("green")[Filter DSL; JSON, CSV]],
@@ -153,6 +187,8 @@ matrix scrolls sideways on narrow screens.
   [#cap("grey")[grep-style; text only]],
   [#cap("green")[agenda / org-ql; many exports]],
   [#cap("green")[filters; JSON]],
+  [#cap("green")[`bd query`; JSON]],
+  [#cap("amber")[Flags + fuzzy search; JSON]],
 
   [#link(u("/templates/"))[Templates / scaffolds]],
   [#cap("green")[Slot templates]],
@@ -161,6 +197,8 @@ matrix scrolls sideways on narrow screens.
   [#cap("amber")[Addons only]],
   [#cap("green")[`org-capture` templates]],
   [#cap("grey")[No]],
+  [#cap("green")[Formulas → molecules]],
+  [#cap("amber")[Definition-of-Done defaults]],
 
   [#link(u("/dsl/"))[Recurring tasks]],
   [#cap("green")[Yes — `mt recur`]],
@@ -169,6 +207,48 @@ matrix scrolls sideways on narrow screens.
   [#cap("amber")[Addons only]],
   [#cap("green")[Yes]],
   [#cap("grey")[No]],
+  [#cap("amber")[Patrol molecules, no calendar]],
+  [#cap("grey")[No]],
+
+  [#link(u("/hooks/"))[Hooks / automation]],
+  [#cap("green")[`[[on.flip]]` gates]],
+  [#cap("grey")[No]],
+  [#cap("green")[Hook scripts]],
+  [#cap("amber")[Addon actions]],
+  [#cap("green")[Elisp hooks]],
+  [#cap("grey")[No]],
+  [#cap("green")[Git hooks, gates]],
+  [#cap("amber")[Status-change command]],
+
+  [#link(u("/agents/"))[Agent integration]],
+  [#cap("green")[Agent skill; JSON everywhere]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
+  [#cap("amber")[GraphQL API]],
+  [#cap("green")[MCP, `bd prime`, setup recipes]],
+  [#cap("green")[MCP, agent instructions]],
+
+  [#link(u("/config/"))[Multi-agent coordination]],
+  [#cap("amber")[Assignee + WIP limits]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
+  [#cap("green")[Atomic claim + leases]],
+  [#cap("amber")[Assignee + file locks]],
+
+  [#link(u("/cli/"))[Human UI]],
+  [#cap("amber")[Table, `mt ls -i`]],
+  [#cap("amber")[CLI table]],
+  [#cap("amber")[CLI reports]],
+  [#cap("green")[Apps on every platform]],
+  [#cap("green")[Emacs agenda]],
+  [#cap("green")[TUI + web UI]],
+  [#cap("amber")[CLI; community UIs]],
+  [#cap("green")[TUI + web Kanban]],
 
   [#link(REPO + "/blob/main/lib/prelude.typ")[Typeset-document face]],
   [#cap("green")[Yes — `task` show rule]],
@@ -176,6 +256,8 @@ matrix scrolls sideways on narrow screens.
   [#cap("grey")[No]],
   [#cap("grey")[No]],
   [#cap("green")[Yes — PDF today]],
+  [#cap("grey")[No]],
+  [#cap("grey")[No]],
   [#cap("grey")[No]],
 
   // NOT "mt binary + Typst": `mt` links the Typst compiler crates and embeds
@@ -190,6 +272,8 @@ matrix scrolls sideways on narrow screens.
   [Bash script only],
   [Emacs],
   [Go binary + git],
+  [Go binary; CGO + ICU for embedded Dolt],
+  [Bun binary (npm, brew)],
 
   // This row used to carry each neighbour's GitHub star count under a
   // "mid-2026" stamp. Nothing in this repo can check those numbers, and they
@@ -203,18 +287,22 @@ matrix scrolls sideways on narrow screens.
   [GPL-3],
   [GPL-3],
   [GPL-3],
+  [MIT],
+  [MIT],
 ))
 
 = Where MindTape leads
 
 - #strong[Tasks in the code tree.] A task is a file in your working tree,
-  reviewed and merged in the same PR as the code it describes. Only Org-mode also
-  lives in the tree comfortably — and it is a general editor format, not a
-  per-project tracker with a schema.
+  reviewed and merged in the same PR as the code it describes. Org-mode and
+  Backlog.md also live in the tree, but neither checks what lands there: Org is a
+  general editor format, and Backlog.md accepts a hand-edited status or a
+  dangling dependency without complaint.
 - #strong[Typed and validated.] One #link(u("/config/"))[config] enforces the
   status legend, bounded priority and difficulty scales, the `kind` enum, an
   estimate unit allow-list, and link resolution — all checked by `mt check` in
-  CI. Only Taskwarrior's UDAs come close, and without the validation gate.
+  CI and before every write, hand edits included. Taskwarrior's UDAs and Beads'
+  checked writes come closest, and neither is configured per project.
 - #strong[Scored priority frameworks.] ICE, RICE, WSJF, Eisenhower, and MoSCoW
   turn typed inputs into a priority — scored onto the scale or classified into
   named categories (#link(u("/priority/"))[details]). Nothing else in this table
@@ -231,6 +319,13 @@ matrix scrolls sideways on narrow screens.
 - #strong[Zero install.] todo.txt is one text file plus a shell script — no
   binary at all. MindTape needs the `mt` binary, plus one `mt install` per
   machine to place the prelude.
+- #strong[Multi-agent coordination.] Beads lets an agent claim a task
+  atomically, with a lease that expires when the agent dies, so a fleet
+  picking from one queue never doubles up. MindTape has an `assignee` and WIP
+  limits, but no claim.
+- #strong[Agent and human front ends.] Beads and Backlog.md ship MCP servers,
+  and Backlog.md adds a terminal and web Kanban board. MindTape offers a CLI with
+  JSON output and an #link(u("/agents/"))[agent skill], nothing more.
 - #strong[Rich document export.] Org-mode exports whole outlines to polished PDF,
   HTML, and LaTeX with decades of theming. MindTape's `task` show rule typesets a
   single task as an index card today — real, but one card, not a multi-task report

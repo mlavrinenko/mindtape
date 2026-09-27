@@ -138,7 +138,7 @@ mt check                                           # validate the whole project
 The docs site has the rest:
 
 - [Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) — Install MindTape, scaffold a project, and file your first task.
-- [Comparison](https://mlavrinenko.github.io/mindtape/comparison/) — How MindTape compares, feature by feature, to the other local file-and-CLI task trackers, and when one of them fits better.
+- [Comparison](https://mlavrinenko.github.io/mindtape/comparison/) — How MindTape compares, feature by feature, to the other local CLI task trackers, agent-era ones included, and when one of them fits better.
 - [Concepts](https://mlavrinenko.github.io/mindtape/concepts/) — The model behind MindTape: files as tasks, live evaluation, identity by filename, one extension seam, and the two layers that enforce a task.
 - [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) — Every field a task file can declare, the status shortcuts, and what the body can hold.
 - [Task links](https://mlavrinenko.github.io/mindtape/links/) — Typed edges between tasks: the built-in kinds, project-declared kinds with their own target validation, and what mt check refuses.
