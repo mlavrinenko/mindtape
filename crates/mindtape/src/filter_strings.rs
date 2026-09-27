@@ -22,7 +22,7 @@ use evalexpr::{DefaultNumericTypes, Node, Operator};
 use regex::Regex;
 
 use crate::config::Config;
-use crate::expr::{call_args, extract_literal, unwrap_root};
+use crate::expr::{call_args, extract_literal, restore_name, unwrap_root};
 use crate::fields::FieldValue;
 use crate::filter::{FilterError, field_value};
 use crate::model::Task;
@@ -47,9 +47,11 @@ pub(crate) fn string_value(
         Operator::Const { .. } | Operator::Neg => extract_literal(node)
             .map(Some)
             .map_err(FilterError::Invalid),
-        Operator::VariableIdentifierRead { identifier } => string_field(task, identifier, config),
+        Operator::VariableIdentifierRead { identifier } => {
+            string_field(task, &restore_name(identifier), config)
+        }
         Operator::FunctionIdentifier { identifier } => {
-            string_call(identifier, node.children(), task, config)
+            string_call(&restore_name(identifier), node.children(), task, config)
         }
         other => Err(FilterError::Invalid(format!(
             "expected a string — a literal, a field, or word(...) — got {other:?}"

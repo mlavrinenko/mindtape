@@ -286,3 +286,18 @@ fn the_whole_config_refuses_a_malformed_rule() {
         .unwrap_err();
     assert!(err.contains("tasks.rules[0].assert"), "{err}");
 }
+
+/// An estimate unit outside `[tasks.estimate] units` fails at load, like an
+/// unknown field.
+#[test]
+fn the_whole_config_refuses_an_undeclared_estimate_unit() {
+    let toml = "[tasks.estimate]\nunits = [\"files\"]\n\n\
+                [[tasks.rules]]\nassert = 'estimate.src-files <= 5'\n";
+    let err = config(toml).validate().unwrap_err();
+    assert!(
+        err.contains("tasks.rules[0].assert") && err.contains("estimate.src-files"),
+        "{err}"
+    );
+    let toml = toml.replace("\"files\"", "\"src-files\"");
+    config(&toml).validate().unwrap();
+}

@@ -21,9 +21,20 @@ Here, `mt ls '!terminal'` lists every task not yet in a terminal status:
 
 Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
 `due`, `start`, `reviewed`, `path`, `depth`, `topo`, `blocks`, `assignee`,
-`role`. `priority` and `difficulty` compare numerically (`priority >= 7`). The
-opaque `estimate` dict supports presence only (`has(estimate)`), never
-comparison.
+`role`. `priority` and `difficulty` compare numerically (`priority >= 7`).
+
+The `estimate` dict takes presence only (`has(estimate)`); one unit of it,
+`estimate.<unit>`, compares as a number under any unit name
+(`estimate.src-files <= 5`). A unit the task leaves out is absent like any
+other field, so `has(estimate.src-files)` tests it. When `[tasks.estimate]
+units` is declared, a unit outside it is an unknown field — in a saved
+expression, a config error at load. An `x-<ns>` extension slot takes presence
+only: `has(x-goals)`.
+
+Names are spelled the way Typst spells them: a `-` between two name characters
+belongs to the name, so `x-goals` and `estimate.src-files` are single names. A
+`-` anywhere else is a minus — `priority > -1` still compares against a
+negative number — and a string literal is never touched.
 
 A field with fixed named parts is addressed as `field.property`. `status`
 carries four: `status.name` (the same value bare `status` compares),

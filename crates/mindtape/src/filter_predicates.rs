@@ -19,11 +19,35 @@ pub(crate) fn present(task: &Task, name: &str, config: &Config) -> Result<bool, 
     match name {
         "tags" => Ok(!task.tags.is_empty() || !task.derived_tags.is_empty()),
         "estimate" => Ok(!task.estimate.is_empty()),
+        slot if slot.starts_with("x-") => Ok(task.extras.contains_key(slot)),
         other => Ok(!matches!(
             field_value(task, other, config)?,
             FieldValue::Missing
         )),
     }
+}
+
+/// `estimate.<unit>`: one unit of the estimate dict, read as a number, for
+/// any unit name — mindtape knows none of them. `None` when `name` is not an
+/// estimate unit at all. An absent unit is [`FieldValue::Missing`], like any
+/// absent numeric field; a unit outside a declared `[tasks.estimate] units`
+/// is an unknown field, so a saved expression naming one fails at load.
+pub(crate) fn estimate_unit(
+    task: &Task,
+    name: &str,
+    config: &Config,
+) -> Option<Result<FieldValue, FilterError>> {
+    let unit = name.strip_prefix("estimate.")?;
+    let declared = &config.tasks.estimate.units;
+    if !declared.is_empty() && !declared.iter().any(|known| known == unit) {
+        return Some(Err(FilterError::UnknownField(name.to_owned())));
+    }
+    Some(Ok(task
+        .estimate
+        .get(unit)
+        .map_or(FieldValue::Missing, |value| {
+            FieldValue::Num(*value)
+        })))
 }
 
 pub(crate) fn is_stale(task: &Task, days: u64) -> bool {

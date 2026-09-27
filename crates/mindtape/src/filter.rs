@@ -14,9 +14,14 @@
 //! other comparison follows the missing-field rule, making
 //! `role != "reviewer"` its exact complement). `priority` and `difficulty` are
 //! numeric, so they compare numerically against a number literal (e.g.
-//! `priority >= 7`). The opaque `estimate` dict supports presence only
-//! (`has(estimate)` / `miss(estimate)`), not comparison. The same vocabulary
-//! backs `--sort` — see [`crate::sort::is_sort_field`].
+//! `priority >= 7`). The `estimate` dict itself supports presence only
+//! (`has(estimate)` / `miss(estimate)`); one unit of it reads as a number,
+//! `estimate.<unit>` (see [`crate::filter_predicates::estimate_unit`]). An
+//! `x-<ns>` extension slot supports presence only. The same vocabulary backs
+//! `--sort` — see [`crate::sort::is_sort_field`], `estimate.<unit>` aside.
+//!
+//! Names follow Typst's identifier rule: a `-` between name characters is part
+//! of the name (`x-goals`, `estimate.src-files`), see [`join_kebab_names`].
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
@@ -50,7 +55,10 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, build_operator_tree};
 use thiserror::Error;
 
 use crate::config::Config;
-use crate::expr::{compare_ordering, extract_identifier, extract_literal, resolve_now_or_literal};
+use crate::expr::{
+    NAME_HYPHEN, compare_ordering, extract_identifier, extract_literal, resolve_now_or_literal,
+    restore_name,
+};
 use crate::fields::{self, FieldValue};
 use crate::filter_predicates::{contains_call, is_stale, present};
 use crate::filter_views::{collect_view_refs, desugar_view_refs};
@@ -110,12 +118,12 @@ impl Filter {
     /// # Errors
     /// Returns [`FilterError::Parse`] on a syntax error.
     pub fn parse(expr: &str) -> Result<Self, FilterError> {
-        let desugared = desugar_view_refs(expr);
+        let desugared = join_kebab_names(&desugar_view_refs(expr));
         if desugared.trim().is_empty() {
             return Ok(Self { tree: None });
         }
         let tree = build_operator_tree::<DefaultNumericTypes>(&desugared)
-            .map_err(|err| FilterError::Parse(err.to_string()))?;
+            .map_err(|err| FilterError::Parse(restore_name(&err.to_string())))?;
         Ok(Self { tree: Some(tree) })
     }
 
@@ -165,6 +173,51 @@ impl Filter {
             ),
         }
     }
+}
+
+/// The pre-lex pass that keeps a kebab-case name one token: a `-` between two
+/// name characters, inside a name that began with a letter or `_`, becomes
+/// [`NAME_HYPHEN`], which `evalexpr` lexes as a name character. Typst's
+/// identifier rule, so a filter spells a name the way the task file does.
+///
+/// A `-` anywhere else stays an operator: a leading one (`> -1`), one after a
+/// number (`1e-5`), one beside a space (`a - b`). String literals are copied
+/// verbatim, escapes included.
+#[must_use]
+fn join_kebab_names(expr: &str) -> String {
+    let mut out = String::with_capacity(expr.len());
+    let mut chars = expr.chars().peekable();
+    let (mut in_string, mut escaped) = (false, false);
+    // Whether the current run of name characters began as a name.
+    let mut in_name = false;
+    // Whether the previous character belongs to a run of name characters.
+    let mut in_run = false;
+    while let Some(ch) = chars.next() {
+        if in_string {
+            in_string = escaped || ch != '"';
+            escaped = !escaped && ch == '\\';
+            out.push(ch);
+            continue;
+        }
+        let name_char = ch.is_alphanumeric() || ch == '_' || ch == '.';
+        let joins = ch == '-'
+            && in_name
+            && chars
+                .peek()
+                .is_some_and(|next| next.is_alphanumeric() || *next == '_');
+        if joins {
+            out.push(NAME_HYPHEN);
+            continue;
+        }
+        if !in_run && name_char {
+            in_name = ch.is_alphabetic() || ch == '_';
+        }
+        in_run = name_char;
+        in_name &= name_char;
+        in_string = ch == '"';
+        out.push(ch);
+    }
+    out
 }
 
 /// What makes one saved filter expression unusable, if anything: a syntax
@@ -228,8 +281,10 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, Filter
         | Operator::Gt
         | Operator::Leq
         | Operator::Geq => comparison(node, ctx),
-        Operator::FunctionIdentifier { identifier } => function(identifier, node, ctx),
-        Operator::VariableIdentifierRead { identifier } => nullary(identifier, ctx),
+        Operator::FunctionIdentifier { identifier } => {
+            function(&restore_name(identifier), node, ctx)
+        }
+        Operator::VariableIdentifierRead { identifier } => nullary(&restore_name(identifier), ctx),
         other => Err(FilterError::Unsupported(format!("{other:?}"))),
     }
 }
@@ -389,6 +444,9 @@ pub(crate) fn field_value(
     name: &str,
     config: &Config,
 ) -> Result<FieldValue, FilterError> {
+    if let Some(value) = crate::filter_predicates::estimate_unit(task, name, config) {
+        return value;
+    }
     fields::get(name)
         .map(|def| (def.get)(task, config))
         .ok_or_else(|| FilterError::UnknownField(name.to_owned()))

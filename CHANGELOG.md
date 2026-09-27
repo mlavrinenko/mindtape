@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Filters read estimate units and kebab-case names.** `mt ls 'estimate.files
+  > 3'` was refused, since `estimate` took presence only, and `has(x-goals)`
+  failed with `expected a field, got Sub`, since `-` always lexed as minus.
+  Names now follow Typst's identifier rule — a `-` between name characters is
+  part of the name, a leading one is still a negative number — and
+  `estimate.<unit>` reads one unit as a number for any unit name, absent when
+  the task leaves it out, so a bound on an estimate is one rule expression. A
+  unit outside a declared `[tasks.estimate] units` is a config error at load;
+  `has(x-<ns>)` tests an extension slot's presence.
+
 - **A `why` column says what a blocked task waits on.** `mt ls blocked` named
   the stuck tasks but not their blockers, so an agent ran `mt eval` on each
   task and then on each target. `--columns title,why` now lists every

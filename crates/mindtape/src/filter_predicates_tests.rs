@@ -115,3 +115,84 @@ fn stale_with_status_at_exact_threshold_is_not_stale() {
     }
     assert!(!hit("stale(1)", &task));
 }
+
+/// A name follows Typst's identifier rule: a `-` between name characters is
+/// part of it, so an `x-<ns>` slot is nameable, as `has`/`miss` presence.
+#[test]
+fn a_kebab_case_extension_slot_is_one_name() {
+    let mut task = sample();
+    assert!(!hit("has(x-goals)", &task));
+    assert!(hit("miss(x-goals)", &task));
+    task.extras
+        .insert("x-goals".to_owned(), typst_harvest::HVal::Int(1));
+    assert!(hit("has(x-goals)", &task));
+}
+
+fn with_unit(unit: &str, value: f64) -> crate::model::Task {
+    let mut task = sample();
+    task.estimate.insert(unit.to_owned(), value);
+    task
+}
+
+#[test]
+fn an_estimate_unit_compares_as_a_number() {
+    let task = with_unit("src-files", 5.0);
+    assert!(hit("estimate.src-files > 3", &task));
+    assert!(!hit("estimate.src-files > 5", &task));
+    assert!(hit("estimate.hours == 8", &task));
+}
+
+/// An absent unit is an absent numeric field: unequal to every literal,
+/// ordered against none.
+#[test]
+fn an_absent_estimate_unit_is_missing() {
+    let task = sample();
+    assert!(!hit("estimate.src-files > 0", &task));
+    assert!(!hit("estimate.src-files <= 0", &task));
+    assert!(hit("estimate.src-files != 0", &task));
+    assert!(!hit("has(estimate.src-files)", &task));
+    assert!(hit("has(estimate.src-files)", &with_unit("src-files", 1.0)));
+    assert!(hit("miss(estimate.src-files)", &task));
+}
+
+/// A unit outside a declared `[tasks.estimate] units` is an unknown field;
+/// with no allow-list, any unit name reads.
+#[test]
+fn an_undeclared_estimate_unit_is_an_unknown_field() {
+    let config = crate::parse_config("[tasks.estimate]\nunits = [\"hours\"]\n").unwrap();
+    let task = sample();
+    let err = Filter::parse("estimate.days > 1")
+        .unwrap()
+        .matches(&task, &config)
+        .unwrap_err();
+    assert!(err.to_string().contains("estimate.days"), "{err}");
+    assert!(
+        Filter::parse("estimate.hours > 1")
+            .unwrap()
+            .matches(&task, &config)
+            .unwrap()
+    );
+}
+
+/// A leading `-` is still a negative number, a `-` inside a string literal
+/// is still text, and a `-` after a number is not a name.
+#[test]
+fn a_hyphen_outside_a_name_is_untouched() {
+    let mut task = sample();
+    assert!(hit("priority > -1", &task));
+    assert!(hit("priority>-1", &task));
+    task.title = "a-b - c".to_owned();
+    assert!(hit("title == \"a-b - c\"", &task));
+    assert!(hit("contains(\"b - c\")", &task));
+}
+
+/// An unknown kebab-case name is reported as written, not in the stand-in
+/// spelling the parser saw.
+#[test]
+fn an_unknown_kebab_name_is_reported_as_written() {
+    let err = Filter::parse("no-such-field == 1")
+        .unwrap()
+        .matches(&sample(), &Config::default())
+        .unwrap_err();
+    assert_eq!(err.to_string(), "unknown field in filter: no-such-field");
+}

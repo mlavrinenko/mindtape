@@ -76,7 +76,7 @@ the rule's or view's sort and columns still apply, so `--columns @default --sort
 restores the plain default view. `-n N` cuts after the sort and says how much
 it cut.
 
-Fields: `status priority difficulty kind title id due start reviewed path assignee depth topo blocks role`, plus `status.name`/`.date`/`.note`/`.index`.
+Fields: `status priority difficulty kind title id due start reviewed path assignee depth topo blocks role`, plus `status.name`/`.date`/`.note`/`.index` and `estimate.<unit>` (a number; `has(estimate.<unit>)` tests it). Names are kebab-case as in the task file: `has(x-goals)`.
 `--sort` takes all but `role`, plus a computed `ready` rank; `role` matches a
 role the task's assignee holds.
 `topo`/`blocks` read the `links:` graph, `blocks` counting unfinished tasks

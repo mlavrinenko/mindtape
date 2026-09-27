@@ -9,6 +9,18 @@
 
 use evalexpr::{DefaultNumericTypes, Node, Operator, Value};
 
+/// The stand-in a kebab-case name's `-` travels through `evalexpr` as.
+/// `evalexpr` lexes `-` as minus, so [`crate::filter`] rewrites a `-` inside a
+/// name to this private-use character before parsing, and every place that
+/// reads a name back out of the tree restores it with [`restore_name`].
+pub(crate) const NAME_HYPHEN: char = '\u{E000}';
+
+/// A name as written: [`NAME_HYPHEN`] back to `-`.
+#[must_use]
+pub(crate) fn restore_name(name: &str) -> String {
+    name.replace(NAME_HYPHEN, "-")
+}
+
 /// Recurse through nested [`Operator::RootNode`] wrappers down to the real
 /// node underneath.
 pub(crate) fn unwrap_root(node: &Node<DefaultNumericTypes>) -> &Node<DefaultNumericTypes> {
@@ -27,7 +39,7 @@ pub(crate) fn unwrap_root(node: &Node<DefaultNumericTypes>) -> &Node<DefaultNume
 /// Returns a message if `node` is not a variable-identifier read.
 pub(crate) fn extract_identifier(node: &Node<DefaultNumericTypes>) -> Result<String, String> {
     match unwrap_root(node).operator() {
-        Operator::VariableIdentifierRead { identifier } => Ok(identifier.clone()),
+        Operator::VariableIdentifierRead { identifier } => Ok(restore_name(identifier)),
         other => Err(format!("expected a field, got {other:?}")),
     }
 }
