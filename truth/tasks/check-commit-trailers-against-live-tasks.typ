@@ -76,7 +76,7 @@ error: Refs: `truth/tasks/foo.typ` is a path; write the stem `foo`
 
 == Out of scope
 
-- This repo opting in: `truth/tasks/switch-this-repos-refs-trailers-to-stems.typ`.
+- This repo opting in: `truth/tasks/migrate-this-repos-refs-trailers-to-stems.typ`.
 - Resolving renamed or deleted tasks: `truth/tasks/add-a-touches-filter-over-the-files-a-tasks-commits-changed.typ`.
 
 
