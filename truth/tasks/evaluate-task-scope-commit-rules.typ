@@ -66,7 +66,7 @@ message = "start or close a task in a commit that carries its work"
 == Alternatives
 
 - One implicit state plus a look-back (`before(...)`): the reader has to know which state a bare field means; `HEAD` reads a field edited in the same commit stale, the staged state needs `from("s")` hacks for history.
-- A default state for bare fields: shorter rules, but the confusion this task exists to remove comes back.
+- A default state for bare fields: shorter to write, but a rule is written once and read many times, and every reader would have to know which state a bare field means.
 - Dotted prefixes (`head.status`): cover fields but not predicates like `terminal`, `ready` or `has(f)`.
 
 
