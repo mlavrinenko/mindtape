@@ -66,7 +66,7 @@ error: publish-0-4-0: `done` requires an unblocked task; waits on: write-atomic 
 
 == Out of scope
 
-- The parent/children rule: `truth/tasks/compute-child-progress-over-parent-links.typ` reuses this key.
+- The parent/children rule: `truth/tasks/derive-child-progress-over-parent-links.typ` reuses this key.
 
 
 == Dogfood
