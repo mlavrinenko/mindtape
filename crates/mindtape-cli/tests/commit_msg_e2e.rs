@@ -2,7 +2,7 @@
 //! (`truth/tasks/check-commit-messages-against-commit-rules.typ`): the
 //! `[[commits.rules]]` a `commit-msg` hook runs over the message being
 //! written and the index it is about to commit.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 
