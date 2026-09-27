@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 27),
+  status: done(
+    2026,
+    9,
+    27,
+  )[skip advances -n paging; a truncated table's footer and --json's truncated.next\_skip name the exact --skip that continues; documented on the CLI, schema and agents pages and in the skill],
 )
 
 == Problem
