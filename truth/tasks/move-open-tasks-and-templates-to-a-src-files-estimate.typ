@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 28),
+  status: done(2026, 9, 28),
   links: depends-on("check-estimate-units-on-open-tasks-only.typ"),
 )
 
