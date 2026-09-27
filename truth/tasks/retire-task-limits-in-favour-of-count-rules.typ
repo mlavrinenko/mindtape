@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 28),
+  status: done(2026, 9, 28),
   links: depends-on("add-a-count-aggregate-to-filters.typ"),
 )
 
@@ -52,6 +52,7 @@
 - `www/content/config.typ`, `docs/src/skill.typ`: rules instead of limits.
 - `CHANGELOG.md`: the removal.
 
+Deviations as built: `flip.rs` never called `check_limits`, only `mt check` did, so there was no limits pass to drop there; the WIP cap already gated `mt flip` through the validation pass every write command runs. `examples/learn-piano/.mindtape/config.toml` declared no `[[tasks.limits]]`, so nothing to port there, and `examples/large` plus every other example config carried none either. Naming the tasks in the counted set needed one real change: `crates/mindtape/src/candidate.rs`'s link-cycle attribution (`cycles_closed_elsewhere`, now `elsewhere_violations`) generalized to any `[[tasks.rules]]` breach a batch opens or closes on a task it never touches, not only an acyclic-kind cycle, since a set-aware `assert` (`count(...)`, or `ready`/`blocked`/`blocks`/`topo`) is the only kind that can and widening it costs a purely per-task rule nothing. The red-first test is `crates/mindtape-cli/tests/wip_cap_e2e.rs`.
 
 == Alternatives
 
