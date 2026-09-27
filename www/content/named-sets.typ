@@ -119,7 +119,7 @@ referenced:
 
 - `mindtape-verbs` — the 500 most frequent English verbs, base (imperative)
   form;
-- `mindtape-dev-verbs` — 86 software-work verbs the general frequency list
+- `mindtape-dev-verbs` — 91 software-work verbs the general frequency list
   ranks too low to carry.
 
 The `mindtape-` prefix is reserved for them: naming a project dictionary

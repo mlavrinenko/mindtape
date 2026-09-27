@@ -407,6 +407,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`compute`, `filter`, `page`, `roll` and `switch` pass the imperative-title
+  rule.** All five are in `mindtape-dev-verbs` now (91 entries); the
+  frequency-derived `mindtape-verbs` stays untouched.
+
 - **An unknown `--sort` direction is an error.** `validate_sort_spec` checked
   only the field before the `:`, and `parse_spec` treated every suffix but
   `desc` as ascending, so `--sort priority:wtf` — or a saved

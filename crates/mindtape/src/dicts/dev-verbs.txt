@@ -16,6 +16,7 @@ clean
 collapse
 colorize
 compact
+compute
 configure
 dedupe
 deprecate
@@ -24,6 +25,7 @@ embed
 emit
 export
 expose
+filter
 flip
 forbid
 format
@@ -43,6 +45,7 @@ memoize
 migrate
 mint
 normalize
+page
 parse
 patch
 pin
@@ -62,6 +65,7 @@ replay
 retire
 revert
 rewrite
+roll
 route
 scaffold
 scan
@@ -80,6 +84,7 @@ source
 stub
 surface
 sweep
+switch
 sync
 tag
 throttle
