@@ -206,11 +206,14 @@ and every one of them was overridden later, so a rule that lost is still named
 rather than silently dropped. #link(u("/cli/"))[The CLI reference] renders the
 same attribution for a human eye, as the `applied:` trailer under a table.
 
-`truncated` is what `-n` / `--limit` cut: `null` on a complete listing, else
-`{"shown": 10, "total": 47}` — the rows you got against the rows the filter
-matched, so a bounded query answers "did I see everything?" from the same
-parse. The key is always present, never omitted, so reading it is one lookup
-rather than a test for existence.
+`truncated` is what `-n` / `--limit` cut, plus `--skip` dropped: `null` on a
+complete listing, else `{"shown": 10, "total": 47, "next_skip": 10}` — the
+rows you got against the rows the filter matched, so a bounded query answers
+"did I see everything?" from the same parse. `next_skip` is `shown` added to
+whatever `--skip` this run already applied, so paging forward is `mt ls
+--skip <next_skip>` with everything else unchanged, never `shown` added to a
+`--skip` tracked by hand. The key is always present, never omitted, so
+reading it is one lookup rather than a test for existence.
 
 `mt import` reads `schema_version` permissively: absent — a bare JSON array,
 or an envelope without the field, such as hand-written or `jq`-produced input

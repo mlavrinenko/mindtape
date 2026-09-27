@@ -130,10 +130,28 @@ fn json_reports_a_truncated_listing_in_the_envelope() {
     let applied = Applied::default();
     let value = json_value(Some(Envelope {
         applied: &applied,
-        truncated: Truncation::new(Some(10), 47),
+        truncated: Truncation::new(Some(10), 0, 47),
     }));
     assert_eq!(value["truncated"]["shown"], 10);
     assert_eq!(value["truncated"]["total"], 47);
+    // `next_skip` is what a caller pages forward with — `0` (this run's own
+    // `--skip`) plus the 10 rows it just showed
+    // (`truth/tasks/add-skip-and-a-next-command-hint-to-ls-paging.typ`).
+    assert_eq!(value["truncated"]["next_skip"], 10);
+}
+
+#[test]
+fn json_advances_next_skip_past_an_existing_skip() {
+    // Page two of a `-n 20` listing (`--skip 20`) must hand back `--skip 40`,
+    // not `--skip 20` again — `next_skip` adds the shown count to the `skip`
+    // this run already applied, never to `0`.
+    let applied = Applied::default();
+    let value = json_value(Some(Envelope {
+        applied: &applied,
+        truncated: Truncation::new(Some(20), 20, 143),
+    }));
+    assert_eq!(value["truncated"]["shown"], 20);
+    assert_eq!(value["truncated"]["next_skip"], 40);
 }
 
 #[test]
@@ -157,20 +175,49 @@ fn json_without_an_envelope_carries_no_truncation_key() {
 
 #[test]
 fn truncation_is_absent_without_a_limit() {
-    assert_eq!(Truncation::new(None, 40), None);
+    // `--skip` alone (no `-n`) shows every remaining row, so it never
+    // truncates on its own.
+    assert_eq!(Truncation::new(None, 0, 40), None);
+    assert_eq!(Truncation::new(None, 10, 40), None);
 }
 
 #[test]
 fn a_limit_at_or_above_the_match_count_truncates_nothing() {
     // The boundary is the one worth pinning: `-n 40` over 40 matches shows
     // every row, so claiming a truncation would be a lie the reader acts on.
-    assert_eq!(Truncation::new(Some(40), 40), None);
-    assert_eq!(Truncation::new(Some(41), 40), None);
+    assert_eq!(Truncation::new(Some(40), 0, 40), None);
+    assert_eq!(Truncation::new(Some(41), 0, 40), None);
+}
+
+#[test]
+fn a_skip_that_reaches_the_last_page_truncates_nothing() {
+    // `--skip 80 -n 20` over 100 matches shows the last 20 rows — every row
+    // `--skip` left, so there is no next page even though `--skip` hid rows
+    // earlier and `shown` (20) is less than `total` (100).
+    assert_eq!(Truncation::new(Some(20), 80, 100), None);
 }
 
 #[test]
 fn a_biting_limit_reports_shown_against_the_match_count() {
-    let cut = Truncation::new(Some(10), 47).unwrap();
-    assert_eq!((cut.shown, cut.total), (10, 47));
+    let cut = Truncation::new(Some(10), 0, 47).unwrap();
+    assert_eq!((cut.shown, cut.total, cut.skip), (10, 47, 0));
     assert_eq!(cut.footer(), "truncated: showing 10 of 47");
+    assert_eq!(cut.next_skip(), 10);
+}
+
+#[test]
+fn a_skip_still_truncated_advances_from_its_own_offset() {
+    // `--skip 20 -n 10` over 47 matches has 27 rows left after the skip, so
+    // `-n 10` still bites (17 remain unshown) and `next_skip` is `20 + 10`,
+    // not `10` — the offset a caller already spent stays spent.
+    let cut = Truncation::new(Some(10), 20, 47).unwrap();
+    assert_eq!((cut.shown, cut.skip, cut.total), (10, 20, 47));
+    assert_eq!(cut.next_skip(), 30);
+}
+
+#[test]
+fn a_skip_beyond_the_match_count_shows_nothing_and_truncates_nothing() {
+    // `--skip 200` over 47 matches leaves nothing to show; an empty page is
+    // complete in itself, not a truncation to page past.
+    assert_eq!(Truncation::new(Some(10), 200, 47), None);
 }

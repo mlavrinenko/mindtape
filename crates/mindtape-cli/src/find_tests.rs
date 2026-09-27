@@ -13,6 +13,7 @@ fn args(terms: &[&str]) -> FindArgs {
             format: crate::output::OutputFormat::Table,
             json: false,
             limit: None,
+            skip: None,
             sort: vec![],
             columns: None,
             interactive: false,

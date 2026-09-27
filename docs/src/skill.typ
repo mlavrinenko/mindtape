@@ -74,7 +74,9 @@ view (`[ls] default-view`, else `[views.default]`; usually active, startable
 tasks), naming the winner. A filter argument replaces the filter facet only —
 the rule's or view's sort and columns still apply, so `--columns @default --sort @default`
 restores the plain default view. `-n N` cuts after the sort and says how much
-it cut.
+it cut; `--skip N` drops N rows first, and both the table footer and
+`--json`'s `truncated.next_skip` name the `--skip` that pages forward from
+here.
 
 Fields: `status priority difficulty kind title id due start reviewed path assignee depth topo blocks role`, plus `status.name`/`.date`/`.note`/`.index` and `estimate.<unit>` (a number; `has(estimate.<unit>)` tests it). Names are kebab-case as in the task file: `has(x-goals)`.
 `--sort` takes all but `role`, plus a computed `ready` rank; `role` matches a

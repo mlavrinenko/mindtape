@@ -35,28 +35,45 @@ pub enum OutputFormat {
 /// the rows the filter actually matched. Only ever constructed when the limit
 /// bit, so `shown < total` holds by construction and a consumer never
 /// re-derives whether anything was hidden — absent *is* "this listing is
-/// complete" (`truth/tasks/ls-limit-flag.typ`).
+/// complete" (`truth/tasks/ls-limit-flag.typ`). `skip` is the `--skip` this
+/// run applied before `-n` (`0` when the flag was absent), carried along so
+/// [`Self::next_skip`] can advance it rather than restate it
+/// (`truth/tasks/add-skip-and-a-next-command-hint-to-ls-paging.typ`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Truncation {
     pub shown: usize,
     pub total: usize,
+    pub skip: usize,
 }
 
 impl Truncation {
-    /// The truncation `--limit` produced over `total` matched tasks: `None`
-    /// when no limit was given, and `None` when the limit was at least as
-    /// large as the match set and so hid nothing — a listing that fits under
-    /// its own cap is not truncated, and saying so would train the reader to
-    /// skip the line that means something.
+    /// The truncation `--limit`/`--skip` produced: `total` matched tasks,
+    /// `skip` dropped before the cut, `limit` shown after it. `None` when no
+    /// limit was given — `--skip` alone shows every remaining row, so it
+    /// never truncates on its own — and `None` when this page reaches the
+    /// end of the match set (`skip + shown >= total`), a listing that fits
+    /// under its own cap is not truncated, and saying so would train the
+    /// reader to skip the line that means something.
     #[must_use]
-    pub fn new(limit: Option<usize>, total: usize) -> Option<Self> {
-        let shown = limit?;
-        (shown < total).then_some(Self { shown, total })
+    pub fn new(limit: Option<usize>, skip: usize, total: usize) -> Option<Self> {
+        let limit = limit?;
+        let shown = limit.min(total.saturating_sub(skip));
+        (skip + shown < total).then_some(Self { shown, total, skip })
+    }
+
+    /// The `--skip` value that continues from here: this page's `--skip`
+    /// advanced past the rows it actually showed, not past `total` — so a
+    /// caller that runs it next sees the next page, not a gap or a repeat.
+    #[must_use]
+    pub fn next_skip(&self) -> usize {
+        self.skip + self.shown
     }
 
     /// The human footer line for a truncated table, labelled like
     /// [`crate::ls_rules::trailer`]'s `applied:` so the two read as one block
-    /// under the rows.
+    /// under the rows. Plain — no `next:` command; that needs the parsed
+    /// `LsArgs` this type does not carry, so `crate::ls::print_trailers`
+    /// composes the full line for the one caller that has them.
     #[must_use]
     pub fn footer(self) -> String {
         format!("truncated: showing {} of {}", self.shown, self.total)
@@ -168,14 +185,16 @@ fn render_json(
 }
 
 /// `mt ls --json`'s `truncated` envelope field: `null` on a complete listing,
-/// else the pair a caller needs to decide whether to ask again with a bigger
-/// `--limit`. Always present, so a consumer reads one key rather than testing
-/// for its existence — an additive envelope key no `mt import` or `jq`
-/// consumer can trip over, hence no `SCHEMA_VERSION` bump.
+/// else `shown`/`total` plus `next_skip` — the `--skip` value that continues
+/// from here, so a caller pages forward by copying a field rather than adding
+/// `shown` to whatever `--skip` it already passed. Always present, so a
+/// consumer reads one key rather than testing for its existence — an
+/// additive envelope key no `mt import` or `jq` consumer can trip over, hence
+/// no `SCHEMA_VERSION` bump.
 fn truncated_to_json(truncated: Option<Truncation>) -> Value {
     truncated.map_or(
         Value::Null,
-        |cut| json!({"shown": cut.shown, "total": cut.total}),
+        |cut| json!({"shown": cut.shown, "total": cut.total, "next_skip": cut.next_skip()}),
     )
 }
 

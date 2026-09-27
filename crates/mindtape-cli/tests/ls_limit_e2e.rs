@@ -1,6 +1,8 @@
-//! End-to-end tests for `mt ls -n / --limit` (`truth/tasks/ls-limit-flag.typ`):
-//! the native truncation path, and what a truncated listing says about the
-//! rows it hid.
+//! End-to-end tests for `mt ls -n / --limit / --skip`
+//! (`truth/tasks/ls-limit-flag.typ`,
+//! `truth/tasks/add-skip-and-a-next-command-hint-to-ls-paging.typ`): the
+//! native truncation path, `--skip` paging past what a prior page showed, and
+//! what a truncated listing says about the rows it hid.
 //!
 //! The signal is format-shaped on purpose. A table gets a `truncated:` footer
 //! beside the `applied:` trailer; `--json` gets an envelope key, since it is
@@ -23,10 +25,31 @@ fn scaffold() -> tempfile::TempDir {
 fn limit_truncates_the_table_and_says_what_it_cut() {
     let text = stdout(scaffold().path(), &["ls", "", "-n", "1"]);
     assert!(
-        text.contains("truncated: showing 1 of 3"),
+        text.contains("truncated: 1 of 3 — next: mt ls '' -n 1 --skip 1"),
         "the table has room for a footer, so it owes the reader the count \
-         it hid: {text}"
+         it hid and the command that fetches the rest: {text}"
     );
+}
+
+#[test]
+fn skip_drops_rows_before_the_limit_and_names_the_next_page() {
+    let text = stdout(scaffold().path(), &["ls", "", "-n", "1", "--skip", "1"]);
+    // `Beta` sorts second (default order falls back to id ascending: a, b,
+    // c), so `--skip 1` before `-n 1` lands on it, not `Alpha` again.
+    assert!(text.contains("Beta"), "got: {text}");
+    assert!(!text.contains("Alpha"), "got: {text}");
+    assert!(
+        text.contains("truncated: 1 of 3 — next: mt ls '' -n 1 --skip 2"),
+        "the hint advances past this page's own --skip, not past 0: {text}"
+    );
+}
+
+#[test]
+fn skip_past_the_match_count_prints_no_footer() {
+    // Every row is already behind this `--skip`, so there is no next page —
+    // an empty result is complete in itself, not a truncation.
+    let text = stdout(scaffold().path(), &["ls", "", "-n", "1", "--skip", "3"]);
+    assert!(!text.contains("truncated"), "got: {text}");
 }
 
 #[test]
@@ -72,8 +95,9 @@ fn json_reports_the_truncation_in_the_envelope() {
     assert_eq!(support::at(&json, "/tasks").as_array().unwrap().len(), 1);
     assert_eq!(support::at(&json, "/truncated/shown"), 1);
     assert_eq!(support::at(&json, "/truncated/total"), 3);
+    assert_eq!(support::at(&json, "/truncated/next_skip"), 1);
     assert!(
-        !text.contains("truncated: showing"),
+        !text.contains("truncated:"),
         "the prose footer is table-only; --json carries the fact structurally"
     );
 }
@@ -130,5 +154,8 @@ fn find_forwards_the_limit_and_its_footer() {
     // footer has to arrive with the flag rather than being wired per command.
     let dir = scaffold();
     let text = stdout(dir.path(), &["find", "a", "-n", "1"]);
-    assert!(text.contains("truncated: showing 1 of 3"), "got: {text}");
+    assert!(
+        text.contains("truncated: 1 of 3 — next: mt ls 'contains(\"a\")' -n 1 --skip 1"),
+        "got: {text}"
+    );
 }

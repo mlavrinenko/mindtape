@@ -195,7 +195,7 @@ fn footer_reports_a_truncated_listing() {
     // The picker can only open what it lists, so `-n` hiding rows has to
     // reach the footer — otherwise a caller who capped the view reads an
     // absent task as a missing one.
-    let cut = Truncation::new(Some(3), 40).unwrap();
+    let cut = Truncation::new(Some(3), 0, 40).unwrap();
     let text = footer("", Some(cut));
     assert!(text.contains("truncated: showing 3 of 40"), "got: {text}");
     // The hints keep the last line: the truncation note is prepended, never
@@ -215,6 +215,7 @@ fn ls_args(format: OutputFormat) -> LsArgs {
             format,
             json: false,
             limit: None,
+            skip: None,
             sort: vec![],
             columns: None,
             interactive: true,

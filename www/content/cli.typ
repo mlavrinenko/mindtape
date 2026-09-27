@@ -88,6 +88,21 @@ mt ls 'assignee == "ada"' --columns @default --sort @default
 
 #cli-group(cli, cli-groups, "Listing")
 
+`-n` cuts after the sort; `--skip` drops rows before `-n` cuts, so the two
+compose into pages: `mt ls -n 20` then `mt ls -n 20 --skip 20` is page two.
+A cut table names both what it hid and the exact next command — filter and
+flags reproduced, `--skip` advanced past what this page showed, never
+restated from an existing `--skip` on the line:
+
+```
+truncated: 20 of 143 — next: mt ls -n 20 --skip 20
+```
+
+`--json` carries the same fact structurally: a `truncated.next_skip` key
+alongside `.shown`/`.total`, `null` on a complete listing —
+#link(u("/schema/"))[the schema] owns the envelope shape,
+#link(u("/agents/"))[for AI agents] the paging recipe.
+
 Empty columns auto-hide, each on its own `[ls.columns.<name>] when` — one
 boolean expression, the same #link(u("/filters/"))[condition language]
 `[[ls.rules]]` takes, resolved against the rows it would render. It is the

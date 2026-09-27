@@ -47,8 +47,10 @@ bail out, not to mis-parse silently.
 
 `truncated` closes the bounded-listing question: `mt ls ready -n 10 --json`
 keeps a reply small, and `truncated` says whether small was the whole answer.
-Ask again with a bigger `-n` rather than report a backlog with rows it never
-saw; #link(u("/schema/"))[the schema] owns the shape.
+Page forward with `truncated.next_skip` — `mt ls ready -n 10 --skip
+<next_skip>` — rather than report a backlog with rows it never saw; a table
+names the same next command in its footer. #link(u("/schema/"))[The schema]
+owns the shape.
 
 #terminal(read("../generated/ls-json.txt"))
 

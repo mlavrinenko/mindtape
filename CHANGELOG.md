@@ -249,6 +249,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now carries a short `extends`/`disable` paragraph of its own and links out
   to the new page instead of repeating it.
 
+- **`mt ls --skip` pages a listing, and a cut table names the exact command
+  that fetches the next page.** `mt ls -n 20` printed what it cut but not how
+  to see the rest, so an agent with a large backlog narrowed the filter
+  blindly or raised `-n` until nothing was cut. `--skip N` now drops N rows
+  after the sort and before `-n`, and a truncated table's footer names the
+  next command verbatim — this run's own filter and flags, `--skip` advanced
+  past what it just showed (`truncated: 20 of 143 — next: mt ls -n 20 --skip
+  20`). `--json` carries the same value structurally as `truncated.next_skip`,
+  additive alongside `.shown`/`.total`, so `SCHEMA_VERSION` does not move.
+  Paging past the end of the match set — `--skip` clearing the last row — is
+  a complete listing, not a truncation, exactly like a limit that hides
+  nothing.
+
 ### Removed
 
 - **Every backward-compatibility shim for a pre-release spelling** (breaking,

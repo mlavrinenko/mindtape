@@ -7,7 +7,7 @@ use mindtape::{Config, Readiness, Task};
 
 use mindtape::sort::sort_by_specs;
 
-use super::{LsArgs, resolve_and_select, run_with};
+use super::{LsArgs, next_command_hint, resolve_and_select, run_with};
 use crate::output::OutputFormat;
 
 fn task(id: &str, priority: f64) -> Task {
@@ -56,6 +56,7 @@ fn default_args() -> LsArgs {
             format: OutputFormat::Table,
             json: false,
             limit: None,
+            skip: None,
             sort: vec![],
             columns: None,
             interactive: false,
@@ -245,7 +246,11 @@ fn limit_truncates_and_reports_what_it_cut() {
     // caller would see with a bigger `-n`, not the number printed.
     assert_eq!(
         listing.truncated,
-        Some(crate::output::Truncation { shown: 2, total: 3 })
+        Some(crate::output::Truncation {
+            shown: 2,
+            total: 3,
+            skip: 0,
+        })
     );
 }
 
@@ -273,4 +278,120 @@ fn no_limit_reports_no_truncation() {
             .truncated
             .is_none()
     );
+}
+
+// --- --skip (`truth/tasks/add-skip-and-a-next-command-hint-to-ls-paging.typ`)
+
+#[test]
+fn skip_drops_rows_after_the_sort() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = make_project(
+        dir.path(),
+        &[("a.typ", TASK), ("b.typ", TASK), ("c.typ", TASK)],
+    );
+    let mut args = default_args();
+    args.flags.skip = Some(1);
+    let listing = resolve_and_select(&args, project).unwrap();
+    // Default order tie-breaks on id ascending, so `--skip 1` drops "a".
+    assert_eq!(
+        listing
+            .tasks
+            .iter()
+            .map(|t| t.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["b", "c"]
+    );
+    // Every remaining row is shown, so there is nothing left to page to.
+    assert!(listing.truncated.is_none());
+}
+
+#[test]
+fn skip_and_limit_compose_into_one_page() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = make_project(
+        dir.path(),
+        &[
+            ("a.typ", TASK),
+            ("b.typ", TASK),
+            ("c.typ", TASK),
+            ("d.typ", TASK),
+            ("e.typ", TASK),
+        ],
+    );
+    let mut args = default_args();
+    args.flags.skip = Some(1);
+    args.flags.limit = Some(2);
+    let listing = resolve_and_select(&args, project).unwrap();
+    assert_eq!(
+        listing
+            .tasks
+            .iter()
+            .map(|t| t.id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["b", "c"]
+    );
+    assert_eq!(
+        listing.truncated,
+        Some(crate::output::Truncation {
+            shown: 2,
+            total: 5,
+            skip: 1,
+        })
+    );
+}
+
+#[test]
+fn skip_beyond_the_match_count_yields_an_empty_page() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = make_project(dir.path(), &[("a.typ", TASK), ("b.typ", TASK)]);
+    let mut args = default_args();
+    args.flags.skip = Some(50);
+    let listing = resolve_and_select(&args, project).unwrap();
+    assert!(listing.tasks.is_empty());
+    assert!(listing.truncated.is_none());
+}
+
+// --- next-command hint -------------------------------------------------
+
+#[test]
+fn next_command_hint_reproduces_the_filter_and_appends_skip() {
+    let mut args = default_args();
+    args.filter = Some("priority > 5".to_owned());
+    args.flags.limit = Some(20);
+    assert_eq!(
+        next_command_hint(&args, 20),
+        "mt ls 'priority > 5' -n 20 --skip 20"
+    );
+}
+
+#[test]
+fn next_command_hint_advances_past_an_existing_skip() {
+    // The hint never restates the run's own `--skip` — `next_skip` (computed
+    // from it by `Truncation::next_skip`) already carries it forward.
+    let mut args = default_args();
+    args.flags.limit = Some(20);
+    args.flags.skip = Some(20);
+    assert_eq!(next_command_hint(&args, 40), "mt ls -n 20 --skip 40");
+}
+
+#[test]
+fn next_command_hint_carries_json_sort_and_columns() {
+    let mut args = default_args();
+    args.flags.limit = Some(5);
+    args.flags.json = true;
+    args.flags.sort = vec!["priority:desc".to_owned()];
+    args.flags.columns = Some("status,title".to_owned());
+    assert_eq!(
+        next_command_hint(&args, 5),
+        "mt ls --json -n 5 --sort 'priority:desc' --columns 'status,title' --skip 5"
+    );
+}
+
+#[test]
+fn next_command_hint_omits_the_filter_token_when_none_was_given() {
+    // A bare `mt ls` (no filter argument at all) must page as a bare `mt ls`,
+    // not grow a `''` that changes which default view applies.
+    let mut args = default_args();
+    args.flags.limit = Some(10);
+    assert_eq!(next_command_hint(&args, 10), "mt ls -n 10 --skip 10");
 }

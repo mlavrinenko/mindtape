@@ -35,6 +35,7 @@ pub(crate) fn args(filter: Option<&str>) -> LsArgs {
             format: crate::output::OutputFormat::Table,
             json: false,
             limit: None,
+            skip: None,
             sort: vec![],
             columns: None,
             interactive: false,
