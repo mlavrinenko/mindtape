@@ -195,3 +195,14 @@ The seam that decides which layer a change belongs in:
 So: a new constraint on a value goes in Rust and config. A new constraint on the
 _call shape_ goes in the prelude. Putting either in the other place produces a
 rule that cannot fire.
+
+== Mechanism, not policy
+
+Rust ships mechanisms; projects write policy as config expressions. Rust never
+names a specific estimate unit, status, tag, path or threshold. A new check is a
+`[[tasks.rules]]` entry, and when the filter language cannot express it, extend
+the language (a field, a predicate, an aggregate, a git state) rather than add
+a bespoke config table or checker. Shipped defaults live in a rule pack
+(`crates/mindtape/src/packs/`), where a project overrides them by name.
+`[tasks.estimate.drift]`, `[[tasks.estimate.max]]`/`min` and `[[tasks.limits]]`
+predate this rule and are being retired into rules.
