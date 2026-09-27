@@ -2,7 +2,7 @@
 //! table's `#` and `file` columns when forced on, but never a default
 //! (opted-out) run, CSV, or JSON — and the config/flag precedence resolves as
 //! documented.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 mod support;
 

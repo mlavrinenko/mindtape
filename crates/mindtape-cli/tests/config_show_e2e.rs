@@ -4,7 +4,7 @@
 //! `render_origin` directly with an explicit root, bypassing `run()`'s own
 //! `cwd`-driven `util::resolve_root` and its `ConfigAction` dispatch — these
 //! need a real `cwd` and a real (or missing/broken) project on disk.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

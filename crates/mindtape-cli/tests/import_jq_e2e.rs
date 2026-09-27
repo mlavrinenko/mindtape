@@ -9,7 +9,7 @@
 //! panics with a clear message rather than silently skipping: this test
 //! exists to prove the adapters work, not to be a no-op in an
 //! under-provisioned environment.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};

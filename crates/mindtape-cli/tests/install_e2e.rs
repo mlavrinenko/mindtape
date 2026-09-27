@@ -6,7 +6,7 @@
 //! XDG pair: `dirs` reads the environment on Unix only, so an XDG-injected
 //! directory is not where a Windows `mt install` writes and every assertion
 //! below would be about a path nothing touched.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::{Path, PathBuf};
 

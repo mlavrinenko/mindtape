@@ -4,7 +4,7 @@
 //! asserts `mt check` prints the breach *and still exits zero* — the whole point
 //! of `truth/tasks/files-budget-drift-check.typ` is that an outgrown task is a
 //! rescope, not a failure.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

@@ -7,7 +7,7 @@
 //! manual session that surfaced the gap
 //! (`truth/tasks/cover-the-actors-filters-end-to-end.typ`). This file closes
 //! it.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

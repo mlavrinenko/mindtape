@@ -8,7 +8,7 @@ use std::sync::OnceLock;
 use anyhow::{Context, Result, anyhow, bail};
 use mindtape::{
     Config, Filter, LoadOutcome, Readiness, Task, ViewSpec, config_path, find_root, load_config,
-    load_project, select,
+    load_project, select, write_atomic,
 };
 
 use crate::handle::{check_chars, check_len, parse_handle};
@@ -317,7 +317,7 @@ pub fn canonical_source(config: &Config, source: String) -> String {
 /// # Errors
 /// Returns an error when the file cannot be written.
 pub fn write_task(config: &Config, path: &Path, source: String) -> Result<()> {
-    std::fs::write(path, canonical_source(config, source))
+    write_atomic(path, canonical_source(config, source).as_bytes())
         .with_context(|| format!("write {}", path.display()))
 }
 

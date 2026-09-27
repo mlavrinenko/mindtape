@@ -2,7 +2,7 @@
 //! write and the `mt ls --format json` read as readable prose, not one
 //! run-on word with the paragraph break and the list markers silently
 //! dropped (`truth/tasks/fix-the-status-note-flattening-on-read.typ`).
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 mod support;
 

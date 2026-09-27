@@ -4,7 +4,7 @@
 //! under `tests/`, so this module only compiles into a binary that `mod
 //! support;`s it — and each such binary sees the helpers it does not call as
 //! dead code, hence the module-wide allow.
-#![allow(clippy::unwrap_used, dead_code)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods, dead_code)]
 
 use std::path::{Path, PathBuf};
 

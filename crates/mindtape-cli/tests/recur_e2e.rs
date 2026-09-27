@@ -3,7 +3,7 @@
 //! Lives here (not an inline `#[path]` unit test) so the fixtures exercise the
 //! real prelude (`every()`, `recurred-from`) and the compiled `mt` binary
 //! end-to-end, mirroring `add_e2e.rs`/`read_no_write_e2e.rs`.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

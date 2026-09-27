@@ -3,7 +3,7 @@
 //! outcome (`wrote`, `skipped`, `suffixed`) so a script can tell them apart
 //! without parsing prose — the pairing `add-dedup-modes-to-mt-add.typ` and
 //! `give-mt-add-machine-readable-output.typ` both call out.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 mod support;
 

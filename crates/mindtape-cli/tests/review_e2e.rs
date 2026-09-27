@@ -4,7 +4,7 @@
 //! `date_pin_e2e.rs::mindtape_now_stamps_the_pinned_date_on_review` covers the
 //! happy-path stamp. None of those reach `run()`'s early-return branches,
 //! which need a real project on disk and a real `cwd`.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

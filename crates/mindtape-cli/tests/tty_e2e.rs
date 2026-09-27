@@ -17,7 +17,7 @@
 //! covers the logic — what stays unverified on Windows is the pty plumbing
 //! underneath, which is `crossterm`'s.
 #![cfg(unix)]
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 mod support;
 

@@ -3,6 +3,12 @@
 //! Exposed behind the `test-support` feature so dependent crates (the CLI) can
 //! reuse these builders in their own unit tests; within this crate they are
 //! available to `#[cfg(test)]` code directly.
+//!
+//! Built for the `test-support` feature alone (no `cfg(test)`), so the
+//! crate-root `cfg_attr(test, ...)` exemption from `disallowed-methods`
+//! (`clippy.toml`) does not reach it; it is test fixture code all the same,
+//! hence its own module-wide allow.
+#![allow(clippy::disallowed_methods)]
 
 use std::collections::BTreeMap;
 use std::path::Path;

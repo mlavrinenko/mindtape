@@ -12,7 +12,7 @@
 //! projects whose configs disagree can witness it.
 //!
 //! Refs: `truth/tasks/emit-shell-completions-from-the-binary-that-answers-them.typ`
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::{Path, PathBuf};
 

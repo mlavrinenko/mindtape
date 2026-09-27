@@ -1330,6 +1330,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   estimate unit check: a closed task keeps the tags it was filed with,
   authored and derived alike, and dropping a tag refuses only an open task
   still carrying it.
+- **A killed write could leave a task file empty or torn.** Every authored-file
+  write (`flip`/`set`/`link`/`mv`/`recur`/`recur_advance`/`review`/`import`,
+  `mt init`, `mt install`, `mt preset save`, the harvest cache) went straight
+  through `std::fs::write`: truncate, then write. A process killed between the
+  two — Ctrl-C, OOM, a full disk — left an empty or half-written `.typ` behind,
+  and a concurrent reader (tinymist, a hook's `mt ls`, an editor reload) could
+  observe the gap. `mindtape::write_atomic` closes it: a sibling temp file,
+  fsync, then a rename over the target (`std::fs::rename` replaces an existing
+  destination on Windows the same as on Unix). `mt add` writes with
+  `File::create_new` instead, so a file that appeared since its dedup check is
+  refused rather than silently overwritten. `clippy.toml`'s
+  `disallowed-methods` now bans a raw `std::fs::write`/`File::create` outside
+  `write_atomic` itself, so a future write site fails `just check` naming it.
 
 ## [0.3.0] - 2026-08-10
 

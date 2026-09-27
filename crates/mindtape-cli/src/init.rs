@@ -258,8 +258,10 @@ pub(crate) fn install_lib() -> Result<()> {
     let manifest = format!(
         "[package]\nname = \"mindtape\"\nversion = \"{TYPST_PKG_VERSION}\"\nentrypoint = \"prelude.typ\"\n"
     );
-    std::fs::write(dir.join("typst.toml"), manifest).context("write typst.toml")?;
-    std::fs::write(dir.join("prelude.typ"), PRELUDE).context("write prelude.typ")?;
+    mindtape::write_atomic(&dir.join("typst.toml"), manifest.as_bytes())
+        .context("write typst.toml")?;
+    mindtape::write_atomic(&dir.join("prelude.typ"), PRELUDE.as_bytes())
+        .context("write prelude.typ")?;
     println!(
         "installed @local/mindtape:{TYPST_PKG_VERSION} -> {}",
         dir.display()
@@ -291,7 +293,8 @@ pub(crate) fn scaffold_config(root: &Path, force: bool, template: &str) -> Resul
         return Ok(false);
     }
     std::fs::create_dir_all(&dir).with_context(|| format!("create {}", dir.display()))?;
-    std::fs::write(&config, template).with_context(|| format!("write {}", config.display()))?;
+    mindtape::write_atomic(&config, template.as_bytes())
+        .with_context(|| format!("write {}", config.display()))?;
     println!("wrote {}", config.display());
     Ok(true)
 }
@@ -309,7 +312,8 @@ pub(crate) fn write_templates(root: &Path, preset: &Preset) -> Result<()> {
     std::fs::create_dir_all(&dir).with_context(|| format!("create {}", dir.display()))?;
     for (file, body) in &preset.templates {
         let path = dir.join(file);
-        std::fs::write(&path, body).with_context(|| format!("write {}", path.display()))?;
+        mindtape::write_atomic(&path, body.as_bytes())
+            .with_context(|| format!("write {}", path.display()))?;
         println!("wrote {}", path.display());
     }
     Ok(())

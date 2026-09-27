@@ -21,7 +21,7 @@
 //! today. This crate has no `[lib]` target, so an integration test cannot
 //! `use crate::command_class` directly — reading the classification back out
 //! of the CLI's own JSON dump is how a `tests/` binary sees it at all.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};

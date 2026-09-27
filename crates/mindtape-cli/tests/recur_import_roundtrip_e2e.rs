@@ -20,7 +20,7 @@
 //! the freshly-disambiguated one (`post-standup-notes.typ`), and that record
 //! is skipped. Pre-existing and orthogonal to `recur` (any same-titled linked
 //! pair hits it); not this task's gap to close.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::{Path, PathBuf};
 

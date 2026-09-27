@@ -6,7 +6,7 @@
 //! move goes through `git mv` when there is one), and the compiled `mt` binary
 //! end-to-end — then proves `mt check` stays green, which is the whole point: a
 //! rename that missed an inbound edge leaves a dangling one.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

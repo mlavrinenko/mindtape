@@ -17,7 +17,7 @@
 //! test below is the direct counterpart of a bare-stem test above it, same
 //! assertions, only the fixture's `[tasks.naming] stem` differs — the matrix
 //! this bug needed and the existing suites (one per path) didn't have.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

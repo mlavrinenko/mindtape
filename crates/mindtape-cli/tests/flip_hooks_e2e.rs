@@ -4,7 +4,7 @@
 //! only command allowed to run a configured command, and a read that shells out
 //! would be a surprise in every editor and commit hook `mt check` runs inside.
 //! Every other test here pins a gate's effect on the write.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

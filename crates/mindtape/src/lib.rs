@@ -8,6 +8,12 @@
 //! The CLI is a thin wrapper over this crate; other tools (e.g. speconaut) can
 //! depend on it directly.
 
+// `disallowed-methods` in `clippy.toml` bans `std::fs::write`/`File::create`
+// outside `fs_atomic::write_atomic`; unit tests (this crate's own `cfg(test)`
+// build) build throwaway fixtures with the plain calls instead of the
+// primitive they exist to pin.
+#![cfg_attr(test, allow(clippy::disallowed_methods))]
+
 pub mod add_slots;
 pub mod app_dirs;
 mod body_content;
@@ -66,6 +72,7 @@ pub mod format;
 pub mod framework;
 mod framework_eval;
 mod framework_validate;
+pub mod fs_atomic;
 pub mod gate;
 pub mod git;
 pub mod git_state;
@@ -147,6 +154,7 @@ pub use estimate_drift::{
 pub use filter::{Filter, FilterError};
 pub use format::format_typst;
 pub use framework::{Category, Framework, Input, InputKind};
+pub use fs_atomic::write_atomic;
 pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use git::current_branch;
 pub use graph::{Cycle, Edge, edges, find_referrer, resolve_edge, toposort};

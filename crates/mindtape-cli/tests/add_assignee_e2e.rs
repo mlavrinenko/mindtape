@@ -2,7 +2,7 @@
 //! `[tasks.assignee] required` is set: `--describe` surfaces it, `--set` fills
 //! it, `$MINDTAPE_PRINCIPAL` fills it silently, and an unset or out-of-list
 //! principal fails loudly instead of writing an empty or wrong worker.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

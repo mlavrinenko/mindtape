@@ -5,7 +5,7 @@
 //! show: that the handle `flip` prints is the one the caller's next `mt ls`
 //! actually reports, and that a multi-target batch diffs against ONE pre-batch
 //! view rather than recomputing per target.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

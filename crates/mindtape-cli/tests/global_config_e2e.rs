@@ -13,7 +13,7 @@
 //! (`mindtape::config_home`), the one override that lands on every platform:
 //! `dirs` reads `XDG_CONFIG_HOME`/`HOME` on Unix but a known-folder API on
 //! Windows, which no environment variable can move.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

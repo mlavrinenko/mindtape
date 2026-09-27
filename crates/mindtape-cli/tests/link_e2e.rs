@@ -5,7 +5,7 @@
 //! What they cannot reach is what needs a spawned binary: the stdin (`-`)
 //! adjacency source, the exit status a per-entry failure carries out of the
 //! process, and the fact that a written file still passes `mt check`.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

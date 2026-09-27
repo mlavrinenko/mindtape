@@ -7,7 +7,7 @@
 //! These live here (not as inline `#[path]` unit tests) because `cargo_bin`
 //! needs the compiled binary: Cargo builds it before running integration tests
 //! and exports `CARGO_BIN_EXE_mt`, a guarantee `--lib` unit tests don't get.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 mod support;
 

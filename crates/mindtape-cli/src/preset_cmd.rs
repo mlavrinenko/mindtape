@@ -103,7 +103,7 @@ pub(crate) fn save(root: &Path, user_dir: &Path, name: &str, force: bool) -> Res
     let dest = user_dir.join(name);
     std::fs::create_dir_all(&dest).with_context(|| format!("create {}", dest.display()))?;
     let dest_config = dest.join("config.toml");
-    std::fs::write(&dest_config, &config)
+    mindtape::write_atomic(&dest_config, config.as_bytes())
         .with_context(|| format!("write {}", dest_config.display()))?;
     if !templates.is_empty() {
         let templates_dir = dest.join("templates");
@@ -111,7 +111,8 @@ pub(crate) fn save(root: &Path, user_dir: &Path, name: &str, force: bool) -> Res
             .with_context(|| format!("create {}", templates_dir.display()))?;
         for (file, body) in &templates {
             let path = templates_dir.join(file);
-            std::fs::write(&path, body).with_context(|| format!("write {}", path.display()))?;
+            mindtape::write_atomic(&path, body.as_bytes())
+                .with_context(|| format!("write {}", path.display()))?;
         }
     }
     Ok(dest)

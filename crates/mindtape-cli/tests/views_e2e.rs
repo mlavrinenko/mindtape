@@ -1,5 +1,5 @@
 //! End-to-end tests for `mt views`.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 mod support;
 

@@ -8,7 +8,7 @@
 //!
 //! Its own binary rather than more of `add_e2e.rs`, along the same subject
 //! seam `add_config_scaffold_e2e.rs` follows.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 mod support;
 

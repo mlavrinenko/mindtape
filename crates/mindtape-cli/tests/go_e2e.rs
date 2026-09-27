@@ -1,5 +1,5 @@
 //! End-to-end test for `mt go`: verifies the binary can open a task.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 mod support;
 

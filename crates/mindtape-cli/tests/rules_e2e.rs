@@ -7,7 +7,7 @@
 //! `mt check` would be a convention nobody keeps — so `mt add` is asserted
 //! here too, refusing an error-severity breach *before* anything is written
 //! and letting a warn-severity one through with its warning printed.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::{Path, PathBuf};
 

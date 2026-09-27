@@ -5,3 +5,13 @@ single-char-binding-names-threshold = 2
 warn-on-all-wildcard-imports = true
 upper-case-acronyms-aggressive = true
 lint-commented-code = false
+
+# Torn writes: `fs::write` truncates then writes, and `File::create` truncates
+# in place with no fsync — a process killed mid-write leaves an empty or
+# half-written file behind. `mindtape::write_atomic` (temp file, fsync,
+# rename) is the one sanctioned door; `File::create_new` stays open for a
+# caller that needs "never overwrite" rather than atomicity (`mt add`).
+disallowed-methods = [
+    { path = "std::fs::write", reason = "torn write on kill/crash; use mindtape::write_atomic" },
+    { path = "std::fs::File::create", reason = "truncates with no fsync; use mindtape::write_atomic, or File::create_new to require a fresh path" },
+]

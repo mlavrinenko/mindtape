@@ -12,7 +12,7 @@
 //! with its own env, so this sidesteps the shared-global-state hazard a
 //! same-process test (mutating `std::env` or re-calling `init_pinned_today`)
 //! would hit.
-#![allow(clippy::unwrap_used)]
+#![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::Path;
 

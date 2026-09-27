@@ -8,7 +8,8 @@
 //! leaves nothing on disk for the next command to trip over.
 
 use std::collections::BTreeMap;
-use std::io::{IsTerminal, Read};
+use std::fs::File;
+use std::io::{IsTerminal, Read, Write as _};
 use std::path::Path;
 
 use anyhow::{Context, Result, anyhow};
@@ -203,7 +204,12 @@ fn commit(
 
     let dest = file.parent().unwrap_or(Path::new("."));
     std::fs::create_dir_all(dest).with_context(|| format!("create {}", dest.display()))?;
-    std::fs::write(file, filled).with_context(|| format!("write {}", file.display()))?;
+    // `create_new`, not `write_atomic`: the dedup check above only proves no
+    // file was here a moment ago, and a plain create-or-truncate write would
+    // silently clobber one that appeared since. `create_new` fails instead.
+    File::create_new(file)
+        .and_then(|mut handle| handle.write_all(filled.as_bytes()))
+        .with_context(|| format!("write {}", file.display()))?;
     warn_if_outside_roots(project, dest);
     add_output::emit(outcome, args.format);
 
@@ -243,12 +249,12 @@ fn pre_verify(
 /// scratch file cannot be created — a failed rescue must not replace the
 /// validation error that prompted it.
 fn park(source: &str) -> Option<std::path::PathBuf> {
-    let file = tempfile::Builder::new()
+    let mut file = tempfile::Builder::new()
         .prefix("mindtape-rejected-")
         .suffix(".typ")
         .tempfile()
         .ok()?;
-    std::fs::write(file.path(), source).ok()?;
+    file.write_all(source.as_bytes()).ok()?;
     file.keep().ok().map(|(_, path)| path)
 }
 

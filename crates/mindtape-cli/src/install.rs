@@ -159,7 +159,8 @@ fn write_seed(dir: &Path, name: &str, content: &str, force: bool) -> Result<()> 
         return Ok(());
     }
     std::fs::create_dir_all(dir).with_context(|| format!("create {}", dir.display()))?;
-    std::fs::write(&path, content).with_context(|| format!("write {}", path.display()))?;
+    mindtape::write_atomic(&path, content.as_bytes())
+        .with_context(|| format!("write {}", path.display()))?;
     println!("wrote {}", path.display());
     Ok(())
 }

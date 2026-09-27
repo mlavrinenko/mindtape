@@ -120,7 +120,7 @@ impl TaskCache {
         let Ok(json) = serde_json::to_string(&entry) else {
             return;
         };
-        write_atomic(&path, json.as_bytes());
+        let _ = crate::fs_atomic::write_atomic(&path, json.as_bytes());
     }
 
     fn entry_path(&self, content_hash: &str) -> Option<PathBuf> {
@@ -237,20 +237,7 @@ fn is_build_key(name: &str) -> bool {
 fn ensure_ignored(cache_root: &Path) {
     let ignore = cache_root.join(".gitignore");
     if !ignore.exists() {
-        let _ = std::fs::write(ignore, "*\n");
-    }
-}
-
-/// Write `bytes` to `path` atomically: a uniquely-named temp file in the same
-/// directory, then a rename. Concurrent writers (the parallel harvest) never
-/// see a half-written entry. Best-effort; any failure is swallowed.
-fn write_atomic(path: &Path, bytes: &[u8]) {
-    let Some(dir) = path.parent() else {
-        return;
-    };
-    let tmp = dir.join(format!(".{}.tmp", uuid::Uuid::new_v4()));
-    if std::fs::write(&tmp, bytes).is_ok() && std::fs::rename(&tmp, path).is_err() {
-        let _ = std::fs::remove_file(&tmp);
+        let _ = crate::fs_atomic::write_atomic(&ignore, b"*\n");
     }
 }
 
