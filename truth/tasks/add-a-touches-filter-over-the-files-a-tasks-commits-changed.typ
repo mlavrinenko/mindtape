@@ -28,7 +28,7 @@
   ),
   assignee: "agent",
   status: proposed(2026, 9, 27),
-  links: depends-on("check-commit-trailers-against-live-tasks.typ"),
+  links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
 == Problem

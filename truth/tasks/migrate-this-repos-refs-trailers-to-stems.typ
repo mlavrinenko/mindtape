@@ -28,7 +28,7 @@
   ),
   assignee: "agent",
   status: proposed(2026, 9, 27),
-  links: depends-on("check-commit-trailers-against-live-tasks.typ"),
+  links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
 == Problem
@@ -39,21 +39,21 @@
 
 == TO-BE
 
-- 🟢 `CONTRIBUTING.md` asks for `Refs: <stem>`; `task:` commits stay exempt.
+- 🟢 `CONTRIBUTING.md` asks for `Refs: <stem>`; a commit touching only task files needs none.
 - 🟢 `.githooks/commit-msg` runs `mt check --commit-msg "$1"` beside its `Gate-Scope` check.
-- 🟢 `.mindtape/config.toml` sets `[commits]` with `exempt = '^task:'`.
+- 🟢 The `mindtape-tasks` pack ships the `work-names-a-task` rule, so this repo and every project extending the pack get it.
 
 
 == Changes
 
 - `docs/src/contributing.typ`, regenerated `CONTRIBUTING.md`: the stem form.
 - `.githooks/commit-msg`: the check.
-- `.mindtape/config.toml`: `[commits]`.
+- `crates/mindtape/src/packs/mindtape-tasks.toml`: the `work-names-a-task` rule.
 
 
 == Rollback
 
-Revert the commit; the hook line and `[commits]` go, and the path form returns to CONTRIBUTING.
+Revert the commit; the hook line and the pack rule go, and the path form returns to CONTRIBUTING.
 
 
 == Out of scope
