@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 28),
+  status: done(
+    2026,
+    9,
+    28,
+  )[moved the validation seam to docs/contributing/validation-seam.md; agents.typ 206->183, linecop clear],
 )
 
 == Problem
