@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 28),
+  status: done(
+    2026,
+    9,
+    28,
+  )[moved the tree walk (eval\_bool, the function table, AST helpers, in\_view) into filter\_eval.rs; filter.rs 485->341, linecop clear],
 )
 
 == Problem
