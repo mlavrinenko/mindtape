@@ -114,7 +114,11 @@ full suite pass. Run it before opening a PR, plain #just.check() while iterating
 #just.integrate("<branch>") takes it back down. `fork` branches off `<base>` (default
 `HEAD`) at `../mindtape-<slug>`, `direnv allow`-ed, refusing a dirty `HEAD` —
 `git worktree add` copies commits, never the working tree — and reporting, without
-refusing, a divergent base. `integrate` refuses unless that worktree reports
+refusing, a divergent base. Fork first, before flipping anything: `main` is
+still clean at that point, so the worktree never needs a status flip
+committed there just to clear the refusal — `mt wip <stem>` runs inside the
+new worktree instead, and its flip lands in the worktree's first work commit
+(see Commit Messages). `integrate` refuses unless that worktree reports
 `mmz --is-fresh --tag gate`, naming the stale arm, then fast-forwards and removes it: a
 fast-forward writes no commit, so the pre-commit hook never fires on the merge. What
 each refuses and deliberately leaves undone — no warmed cache, no re-run gate, no waiver
@@ -204,6 +208,25 @@ and tooling decisions are task artifacts too; the ADR process is retired.
 Commits that file or edit task artifacts themselves (and the backlog config
 in `.mindtape/config.toml`) carry no `Refs:` footer — a task commit refs
 nothing.
+
+A status flip rides with the work it claims (`flip-with-work`,
+mindtape-tasks): `mt wip`/`mt done` staged alone, with no other change, is
+refused at commit time. Two setups, same rule:
+
+- Worktree (#just.fork()): fork first, off a clean `main`, then flip inside the
+  worktree. `mt wip <stem>` and the first line of the change land in one
+  commit; `mt done <stem>` lands in the last, named by that commit's own
+  `Refs:` trailer.
+- Single checkout: flip `wip` and leave it uncommitted; do the work; commit
+  the flip together with the first work commit. Close the same way: leave
+  `mt done <stem>` uncommitted and fold it into the last commit of the
+  change.
+
+Filing a task stays a standalone `task:` commit either way — it names no
+work, so it carries no `Refs:` footer and no flip rides in it. An
+architectural or tooling decision with no code of its own tags the task
+`decision` and closes in that same standalone commit, the one exemption
+`flip-with-work` grants a task-only close.
 
 = Command Semantics (read/write separation)
 

@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("tooling",),
-  estimate: (src-files: 1),
+  estimate: (src-files: 3),
   x-goals: (
     product: (
       readable-tasks: helps[git log stops carrying one flip-only commit per start and close],
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 27),
+  status: done(2026, 9, 28),
   links: depends-on(
     "evaluate-task-scope-commit-rules.typ",
     "migrate-this-repos-refs-trailers-to-stems.typ",
@@ -50,9 +50,11 @@
 
 == Changes
 
-- `docs/src/contributing.typ`, regenerated `CONTRIBUTING.md`: the fork-first flow.
-- `crates/mindtape/src/packs/mindtape-tasks.toml`: `flip-with-work`.
-- the skill source under `docs/src/`: when to flip and commit.
+- `docs/src/contributing.typ`, regenerated `CONTRIBUTING.md`: fork-first, and both setups (worktree, single checkout) for when a flip rides with which commit.
+- `docs/src/skill.typ`, regenerated `SKILL.md`: when to flip and commit, in Changing status.
+- `crates/mindtape/src/packs/mindtape-tasks.toml`: `flip-with-work`, verbatim from the documented example.
+- `.mindtape/config.toml`: adds `decision` to `tasks.tags.allowed`, since this repo had no such tag and the rule's `staged(has_tag("decision"))` escape hatch could never fire; added rather than dropped, because Extending MindTape already files architectural/tooling decisions as tasks with no code of their own.
+- `.github/workflows/ci.yml`: moves `FLOOR` to `59c94720` (this change's parent), the last commit `flip-with-work` leaves exempt, mirroring how the Refs-stem migration moved it.
 
 
 == Rollback

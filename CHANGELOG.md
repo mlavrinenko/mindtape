@@ -35,6 +35,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   any filter expression, `ready` and `count(...)` included, against that
   state of the project — plus `exists`, `named`, and `into("s")` for a flip
   into `s`. A bare task field is refused at load.
+- **This repo's own backlog turns on `flip-with-work`.** 108 of the last 300
+  commits carried only a status flip — a start committed on `main` because
+  `just fork` refused a dirty tree, a close landing apart from its work. `just
+  fork` now runs before any flip, so `main` never needs one; a single
+  checkout leaves `mt wip`/`mt done` uncommitted and folds it into the first
+  or last work commit instead. `crates/mindtape/src/packs/mindtape-tasks.toml`
+  ships the rule; `.mindtape/config.toml` adds `decision` to the allowed tags,
+  the one exemption for a task closing with no code of its own. CI's
+  `FLOOR` moves to the last commit before the switch, the same way the
+  stem-trailer migration moved it.
 - **A parent shows its children's progress and cannot close over open ones.**
   Nothing reported how far a parent's children had got, and `mt done <parent>`
   succeeded with children still open. Computed fields `children` (tasks whose

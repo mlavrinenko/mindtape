@@ -258,6 +258,13 @@ allowed = [
   "docs",
   "tooling",
   "gating",
+  # A task the ADR process retired into: an architectural or tooling call
+  # settled in the body, with no code deliverable of its own — see
+  # Extending MindTape in CONTRIBUTING.md. `flip-with-work`
+  # (mindtape-tasks) reads it to let one close in a task-only commit,
+  # `staged(has_tag("decision"))`, the sole exemption from riding its
+  # close in the work it names.
+  "decision",
   # Provenance, written by `just ask-refactoring` (contrib/ask-refactoring.sh)
   # and by nothing else. `swept` marks a task the sweep filed rather than a
   # human; the three signal tags say which advisory tool noticed it. All four

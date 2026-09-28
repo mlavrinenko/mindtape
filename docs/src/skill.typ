@@ -140,6 +140,12 @@ a pre-start status with the reason in the note
 (`mt flip proposed 1b -m "blocked on upstream X"`), never `wip`, which burns
 the WIP cap (a `[[tasks.rules]]` entry over `count(...)`).
 
+A project running `flip-with-work` (mindtape-tasks) refuses a `wip`/`done`
+flip staged with nothing else: `mt wip <stem>` rides uncommitted into the
+first commit of the change, `mt done <stem>` into the last, named by that
+commit's `Refs:` trailer. Filing a task is the one commit that flips
+nothing and carries no `Refs:` — never fold a flip into it.
+
 = Linking and validating
 
 `mt link <task> <kind> <target…>` upserts one edge per target. `mt link --apply <file|->`

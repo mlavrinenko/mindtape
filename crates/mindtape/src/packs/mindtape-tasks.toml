@@ -339,3 +339,24 @@ when = "!tasks_only"
 assert = "has(refs)"
 message = "name the task this commit works on: `Refs: <stem>`"
 severity = "error"
+
+# A status flip rides with the work it claims, checked per task rather than
+# per commit (`scope = "task"`, see truth/tasks/evaluate-task-scope-commit-
+# rules.typ): `into("s")` desugars to `staged(status == "s") &&
+# !head(status == "s")`, so this fires only on the commit that actually moves
+# the task into `wip` or `done`, not on every commit that merely touches it.
+# `named` demands the `Refs:` trailer this same pack's `work-names-a-task`
+# already requires; `!tasks_only` is the escape hatch for a task that closes
+# with no code of its own — a pure decision, `has_tag("decision")` in the
+# STAGED state, so the tag on the commit that does the closing is what is
+# read, not a stale one from before. The extending layer's own tag vocabulary
+# decides whether `"decision"` is ever a legal tag at all; where it is not, no
+# task-only close can ever satisfy this half, which is a stricter policy, not
+# a broken one — see `.mindtape/config.toml` for this repo's own call.
+[[commits.rules]]
+name = "flip-with-work"
+scope = "task"
+when = 'into("wip") || into("done")'
+assert = 'named && (!tasks_only || staged(has_tag("decision")))'
+message = "start or close a task in a commit that carries its work"
+severity = "error"

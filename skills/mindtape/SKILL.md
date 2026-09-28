@@ -62,6 +62,8 @@ Fields: `status priority difficulty kind title id due start reviewed path assign
 
 `ready`/`blocked` derive from the `links:` graph; `mt ls blocked --columns title,why` names what each blocked task waits on. Most legends carry no `blocked` status — check `mt flip --list` before reaching for one. An external blocker with no task to depend on: file a task for it and depend on that, or park the task in a pre-start status with the reason in the note (`mt flip proposed 1b -m "blocked on upstream X"`), never `wip`, which burns the WIP cap (a `[[tasks.rules]]` entry over `count(...)`).
 
+A project running `flip-with-work` (mindtape-tasks) refuses a `wip`/`done` flip staged with nothing else: `mt wip <stem>` rides uncommitted into the first commit of the change, `mt done <stem>` into the last, named by that commit’s `Refs:` trailer. Filing a task is the one commit that flips nothing and carries no `Refs:` — never fold a flip into it.
+
 ## Linking and validating
 
 `mt link <task> <kind> <target…>` upserts one edge per target. `mt link --apply <file|->` reads a YAML/JSON map of stem to kind to targets; `--replace` makes it the complete edge set, `--dry-run` prints the plan. Both forms merge and dedupe on (kind, target), and kind, target and note rule are checked before the write (`related` needs `-m "why"`).
