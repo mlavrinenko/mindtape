@@ -42,8 +42,9 @@ groups:
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
       www/content/agents.typ: 005ddcdcfd8f0f85835472fabc3284e1b331310ca9863436d0c7e8f22c37202f
       www/content/cli.typ: a3f758cd982a47b1a04e9d5f94f42f4cdc9f1de964d3a862ff735fe30d055a88
+      www/content/commit-rules.typ: 140f0baddcde97b21c99b023771b09ade52b6a1ae0095e2a7c992506d6059fd0
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
-      www/content/config.typ: 23241223bf34d9f7a4d258bdbe1a1acf0c549ff417b14f82d465444bf88fe034
+      www/content/config.typ: 374aa80a6e3536b18c581d624b0e917fa3e49692a2d4dcd5256b2079db5cead2
       www/content/derived-tags.typ: 70e18514eac0e26de88103e1229be1bc2dd82dc9df50eb423b017f844a67c095
       www/content/estimates.typ: 39e636192233477293c0e10d9ceeb3e242e7e4e8a02543f060c43f69b2e5f618
       www/content/filters.typ: 8d213661d37cc387b48937ced544127d339f2bac8d574d4c7e797cb7d9818486

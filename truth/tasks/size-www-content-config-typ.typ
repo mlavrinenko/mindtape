@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 28),
+  status: done(
+    2026,
+    9,
+    28,
+  )[moved the commit rules deep dive to /commit-rules/; config.typ 963->827, linecop clear],
 )
 
 == Problem

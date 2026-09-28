@@ -83,6 +83,7 @@
       "/priority/",
       "/config/",
       "/rule-packs/",
+      "/commit-rules/",
       "/named-sets/",
       "/hooks/",
       "/estimates/",

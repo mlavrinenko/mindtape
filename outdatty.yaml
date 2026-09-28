@@ -171,6 +171,7 @@ groups:
       - www/content/hooks.typ
       - www/content/estimates.typ
       - www/content/named-sets.typ
+      - www/content/commit-rules.typ
       - www/content/quickstart.typ
       - www/content/agents.typ
       - www/content/concepts.typ
