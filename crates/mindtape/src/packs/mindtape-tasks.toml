@@ -325,3 +325,17 @@ severity = "error"
 
 [dicts.verbs]
 include = ["mindtape-verbs", "mindtape-dev-verbs"]
+
+# A commit names the task it works on, by stem — the flagship practice's
+# other half, checked at commit time rather than review. `!tasks_only` exempts
+# a commit that only files or edits task artifacts: it refs nothing but
+# itself. The extending layer's own `[commits]` sets the trailer key (default
+# `Refs`) and wires a `commit-msg` hook to `mt check --commit-msg`; the rule
+# fires either way.
+[[commits.rules]]
+name = "work-names-a-task"
+scope = "commit"
+when = "!tasks_only"
+assert = "has(refs)"
+message = "name the task this commit works on: `Refs: <stem>`"
+severity = "error"

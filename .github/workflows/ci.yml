@@ -49,13 +49,13 @@ jobs:
       # history is never rewritten, so re-judging it could only fail forever.
       # FLOOR bounds a range from below, so history up to it — path-form
       # `Refs:` trailers the trailer check refuses — stays exempt even when one
-      # push carries it; the switch to stem trailers moves it to its own
-      # commit (truth/tasks/migrate-this-repos-refs-trailers-to-stems.typ). A
+      # push carries it; it now names the first commit of the stem-trailer
+      # switch (truth/tasks/migrate-this-repos-refs-trailers-to-stems.typ). A
       # new branch (`before` all zeros), `workflow_dispatch` and a force-push
       # whose `before` is gone have no range and skip, saying so.
       - name: Commit rules (pushed range)
         env:
-          FLOOR: 7af7f700a92443230f25d3124bffacbabb97c640
+          FLOOR: bb062bba4780ef7e33aabaa2d5cd4b00093c2f5e
           BEFORE: ${{ github.event.pull_request.base.sha || github.event.before }}
           AFTER: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |

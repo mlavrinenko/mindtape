@@ -1,14 +1,28 @@
 #!/usr/bin/env bash
-# Enforce visibility for the pre-commit freshness override. When
-# MINDTAPE_GATE_SCOPE skipped `mmz --is-fresh --tag gate` (see
-# .githooks/pre-commit), the commit message must carry a matching
-# `Gate-Scope:` trailer, so `git log` can tell a scoped commit apart from a
-# fully gated one — never a silent bypass. No-op when the variable is unset.
+# Two independent checks over the commit message being written; either can
+# fail the commit on its own, so both run before either exits.
+#
+# 1. `[[commits.rules]]` (mindtape-tasks: `work-names-a-task`) — a `Refs:
+#    <stem>` footer naming the task this commit works on, via `cargo run`
+#    so a rebuild happens transparently (see .githooks/pre-commit). Built
+#    through `direnv exec`, so the dev shell's toolchain resolves even when
+#    this hook runs from a plain `git commit` outside it; no dev shell at
+#    all (direnv missing) fails here with direnv's own error rather than
+#    silently skipping the check.
+# 2. Enforce visibility for the pre-commit freshness override. When
+#    MINDTAPE_GATE_SCOPE skipped `mmz --is-fresh --tag gate` (see
+#    .githooks/pre-commit), the commit message must carry a matching
+#    `Gate-Scope:` trailer, so `git log` can tell a scoped commit apart from a
+#    fully gated one — never a silent bypass. No-op when the variable is unset.
 set -eo pipefail
+msg_file="$1"
+root="$(git rev-parse --show-toplevel)"
+
+direnv exec "$root" cargo run -q -- check --commit-msg "$msg_file"
+
 scope="${MINDTAPE_GATE_SCOPE:-}"
 [[ -z "$scope" ]] && exit 0
 
-msg_file="$1"
 trailer="Gate-Scope: ${scope}"
 if ! grep -qxF "$trailer" "$msg_file"; then
     cat >&2 <<EOF
