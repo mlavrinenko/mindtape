@@ -11,7 +11,7 @@
   ),
   difficulty: 3,
   tags: ("tooling",),
-  estimate: (src-files: 0),
+  estimate: (src-files: 5),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 28),
+  status: done(2026, 9, 28),
   links: related(
     "rebuild-mt-before-every-run-in-the-dev-shell.typ",
   )[supersedes its per-call rebuild wrapper with build-at-the-events],

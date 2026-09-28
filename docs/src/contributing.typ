@@ -36,8 +36,11 @@ just check           # run before every commit
 
 Use `just` recipes rather than raw `cargo`: they carry the right flags and
 environment, and `just` with no arguments lists them. `flake.nix` owns the tools.
-In the dev shell `mt` rebuilds from the working tree before it runs, so it is
-never an older binary than the code beside it.
+In the dev shell `mt` is `target/mt-dev/debug/mt` on `PATH`, not a wrapper that
+rebuilds: #just.build-mt() builds it, #just.fork() builds a fresh worktree's,
+and #just.integrate() rebuilds this checkout's after the fast-forward. An edit
+between those events leaves `mt` older than the code beside it until the next
+build; entering the shell with no binary there names #just.build-mt().
 
 This is the single source for how work is done here; a process rule belongs
 here and nowhere else. Deep dives sit in `docs/contributing/`, and `AGENTS.md`
@@ -120,9 +123,12 @@ committed there just to clear the refusal — `mt wip <stem>` runs inside the
 new worktree instead, and its flip lands in the worktree's first work commit
 (see Commit Messages). `integrate` refuses unless that worktree reports
 `mmz --is-fresh --tag gate`, naming the stale arm, then fast-forwards and removes it: a
-fast-forward writes no commit, so the pre-commit hook never fires on the merge. What
-each refuses and deliberately leaves undone — no warmed cache, no re-run gate, no waiver
-flag — is argued in `.just/scripts/fork.sh` and `.just/scripts/integrate.sh`.
+fast-forward writes no commit, so the pre-commit hook never fires on the merge.
+`fork` also builds the new worktree's `mt`, once, after loading its shell, and
+`integrate` rebuilds this checkout's after the fast-forward, so the binary each
+`PATH` serves matches the tree it sits in. What each refuses and deliberately
+leaves undone — no seeded `target/`, no re-run gate, no waiver flag — is argued in
+`.just/scripts/fork.sh` and `.just/scripts/integrate.sh`.
 
 A delegated worktree whose full aggregate runs at integration can scope the
 gate with `MINDTAPE_GATE_SCOPE=<reason> git commit`, which demands a matching

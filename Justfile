@@ -470,6 +470,18 @@ clippy-fix:
 build *args:
     cargo build --workspace -q "$@"
 
+# The dev shell's `mt`, at the path the shell hook puts on PATH. Its own target
+# dir keeps the build off the lock `just check` holds on `target/` for minutes,
+# and off `target/debug/mt`, which the rrule arm builds with a feature this
+# default build would silently relink away. Called at the events that
+# invalidate the binary — this recipe, `just fork`, `just integrate` — never
+# per `mt` call.
+
+[doc("Build the dev shell's mt")]
+[group("dev")]
+build-mt:
+    cargo build -q -p mindtape-cli --bin mt --target-dir target/mt-dev
+
 # Run coverage with cargo-llvm-cov (also writes target/coverage/lcov.info, the
 # lcov `just crap` scores against). It always pays a full instrumented rebuild:
 # why that is not optional, and what an accumulated profraw pile did to the

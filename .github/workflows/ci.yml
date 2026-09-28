@@ -70,7 +70,7 @@ jobs:
           if ! git merge-base --is-ancestor "$FLOOR" "$BEFORE"; then
             BEFORE=$FLOOR
           fi
-          nix develop --command mt check --commits "$BEFORE..$AFTER"
+          nix develop --command cargo run -q -- check --commits "$BEFORE..$AFTER"
 
       # `rrule` is off by default, so the step above never compiles
       # `crates/mindtape/src/recur_rrule.rs` — without this one nothing does,

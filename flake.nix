@@ -62,21 +62,6 @@
           singleStep = true;
           doCheck = false;
         };
-
-        # The dev shell's `mt`: rebuild, then run. A bare `target/debug` on
-        # PATH ran whatever binary was last built there — none in a fresh
-        # `just fork` worktree, so the stale `~/.cargo/bin/mt` answered, and
-        # none rebuilt by `just integrate`'s fast-forward — and an old binary
-        # rejects a newer config. A no-op build costs ~0.2 s. Its own target
-        # dir keeps it off the lock `just check` holds on `target/` for
-        # minutes, and off `target/debug/mt`, which the rrule arm builds with
-        # a feature this default build would silently relink away.
-        mt-dev = pkgs.writeShellScriptBin "mt" ''
-          root="''${MINDTAPE_DEV_ROOT:?mt: MINDTAPE_DEV_ROOT unset; enter the dev shell}"
-          cargo build -q --manifest-path "$root/Cargo.toml" -p mindtape-cli --bin mt \
-            --target-dir "$root/target/mt-dev" || exit
-          exec "$root/target/mt-dev/debug/mt" "$@"
-        '';
       in
       {
         # For `nix build` & `nix run` (produces the `mt` binary):
@@ -93,7 +78,6 @@
           nativeBuildInputs =
             [
               cargo-crap
-              mt-dev
               mmz.packages.${system}.default
               qahq.packages.${system}.jscpd
               qahq.packages.${system}.ejectest
@@ -154,10 +138,29 @@
               yq
             ]);
           buildInputs = with pkgs; [ openssl ];
+          # The dev `mt` is a binary on PATH, not a wrapper: `just build-mt`
+          # writes `target/mt-dev/debug/mt`, `just fork` and `just integrate`
+          # call that recipe at the events that invalidate the binary, and
+          # nothing rebuilds it per call. Its own target dir keeps it off the
+          # lock `just check` holds on `target/`, and off `target/debug/mt`,
+          # which the rrule arm builds with a feature this default build would
+          # relink away.
           shellHook = ''
             export LLVM_COV=${llvm}/bin/llvm-cov
             export LLVM_PROFDATA=${llvm}/bin/llvm-profdata
-            export MINDTAPE_DEV_ROOT="$PWD"
+            # Prepended idempotently: direnv reloads a shell it has already
+            # loaded, and a second copy would only grow PATH.
+            mt_root=$(git rev-parse --show-toplevel 2>/dev/null || echo "$PWD")
+            case ":$PATH:" in
+              *":$mt_root/target/mt-dev/debug:"*) ;;
+              *) export PATH="$mt_root/target/mt-dev/debug:$PATH" ;;
+            esac
+            # One line when the binary is missing, naming the recipe and what
+            # `mt` currently resolves to. stderr must be a terminal, so CI's
+            # `nix develop --command` stays silent.
+            if [ ! -x "$mt_root/target/mt-dev/debug/mt" ] && [ -t 2 ]; then
+              echo "mindtape dev shell: no dev mt yet — run \`just build-mt\` (mt currently resolves to $(command -v mt || echo 'nothing'))" >&2
+            fi
             just install-hooks > /dev/null 2>&1
           '';
         };

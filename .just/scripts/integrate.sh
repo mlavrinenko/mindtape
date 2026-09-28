@@ -135,5 +135,14 @@ fi
 # `-q` because a diffstat of the whole branch is not the answer to "did this
 # land". The sha below is.
 git merge --ff-only -q "$branch"
+
+# The fast-forward invalidated this checkout's dev mt: the shell's PATH serves
+# `target/mt-dev/debug/mt`, built from the pre-merge tree. Rebuilding here,
+# rather than at the next `mt` call, is the whole exchange this line makes. A
+# failed build does not un-land the merge, so it is named, never fatal.
+if ! (cd "$here" && just build-mt); then
+    echo "integrate: merged, but the dev mt did not rebuild — run \`just build-mt\` before typing mt" >&2
+fi
+
 git worktree remove "$wt"
 echo "integrate: $wt: gate fresh; $onto fast-forwarded to $(git rev-parse --short HEAD), worktree removed"

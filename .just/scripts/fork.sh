@@ -19,7 +19,9 @@
 # and `cp -al` would let the worktree's build corrupt the source tree's cache.
 # A cold `.mmz/cache/` is the same kind of correct: every gate arm running once
 # in a tree no arm has ever run in is the honest answer, not a cost to paper
-# over. What is left is ergonomics plus one assertion, which is all this is.
+# over. What is left is ergonomics plus one assertion, plus the one `cargo
+# build` at the end: the worktree's own dev `mt`, which its shell's PATH
+# promises and kache serves at the same 99.7% hit rate as everything else.
 #
 # WHAT THE ASSERTION CAN AND CANNOT PROVE. It can prove the worktree landed on
 # the commit that was NAMED — the base is resolved to a full sha once, up front,
@@ -129,6 +131,19 @@ if command -v direnv >/dev/null 2>&1; then
     direnv allow "$path"
     echo "fork: loading the worktree's dev shell (first evaluation, once per worktree)" >&2
     direnv exec "$path" true
+
+    # Then the worktree's dev `mt` is built once, because the shell's PATH
+    # serves `$path/target/mt-dev/debug/mt` and this worktree has none. Built
+    # here, visibly, for the same reason the shell is loaded here: the
+    # delegated agent's first `mt` works, and a cold build does not land inside
+    # its first gate run. Through the worktree's own recipe, so a base from
+    # before `just build-mt` existed still forks with the hint instead of a
+    # failure — its dev shell has no PATH entry for the binary either.
+    if (cd "$path" && direnv exec . just --show build-mt) >/dev/null 2>&1; then
+        (cd "$path" && direnv exec . just build-mt)
+    else
+        echo "fork: this base predates \`just build-mt\`; no dev mt was built" >&2
+    fi
 else
     echo "fork: direnv is not on PATH — the worktree's dev shell is NOT authorised" >&2
     echo "  run \`direnv allow\` in $path before running anything from the dev shell" >&2
