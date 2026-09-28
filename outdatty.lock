@@ -4,7 +4,7 @@ groups:
   cli-docs:
     source:
       crates/mindtape-cli/src/add.rs: dc6a3bcefbdfea7958f69c5270cc982355b211ae61c06354df6f7a5a8327ec00
-      crates/mindtape-cli/src/check.rs: 29fdc179a723818bd95609626dc9f2d466d4f112757060a7c58858ec43c183f0
+      crates/mindtape-cli/src/check.rs: d44be6c170fcd99a73e66fdbee88358e9ac5694e89e0fbaff894beb59e72475f
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
       crates/mindtape-cli/src/completion.rs: fe14695fe1c11cdd3d8fd75119c32686453ca77b2763160721a22fdcff314461
       crates/mindtape-cli/src/config_cmd.rs: 06bfb3545bd2554cb1b5ff0a1f6ec5ad40c82e0b5dd0fd30129871375a92db61

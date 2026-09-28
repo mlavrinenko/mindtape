@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 28),
+  status: done(
+    2026,
+    9,
+    28,
+  )[moved the header/content body-rule cluster into check\_tests\_rules.rs; check\_tests.rs 469->354, linecop clear],
 )
 
 == Problem
