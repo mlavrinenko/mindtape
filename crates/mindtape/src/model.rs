@@ -76,6 +76,12 @@ pub struct Task {
     /// nothing. Derived over the whole loaded set by [`crate::dep_rank`]; zero
     /// when constructed without a loader.
     pub blocks: u32,
+    /// How many tasks name this one with a `parent` edge. Derived over the
+    /// whole loaded set by [`crate::dep_rank`]; zero when constructed without a
+    /// loader.
+    pub children: u32,
+    /// How many of those [`children`](Self::children) are terminal.
+    pub children_done: u32,
     /// Due date, `YYYY-MM-DD`.
     pub due: Option<String>,
     /// Start date, `YYYY-MM-DD`.
@@ -165,6 +171,8 @@ impl Task {
             depth: 0,
             topo: 0,
             blocks: 0,
+            children: 0,
+            children_done: 0,
             due: field_str(fields, "due", &mut errors),
             start: field_str(fields, "start", &mut errors),
             reviewed: field_str(fields, "reviewed", &mut errors),
@@ -186,6 +194,13 @@ impl Task {
             }
         }
         out
+    }
+
+    /// Terminal children over all children, `0..=1`; `None` for a task with no
+    /// children, so a leaf never reads as finished or unstarted work.
+    #[must_use]
+    pub fn progress(&self) -> Option<f64> {
+        (self.children > 0).then(|| f64::from(self.children_done) / f64::from(self.children))
     }
 
     /// Whether this task's status is in the given terminal set.

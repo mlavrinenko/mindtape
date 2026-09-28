@@ -24,6 +24,8 @@
 //! | `tags`          | authored | authored tags only                                  |
 //! | `derived_tags`  | computed | folder-derived virtual tags; import reads `tags` only |
 //! | `why`           | computed | unfinished blocking targets `[{stem, status, kind}]`; empty unless blocked |
+//! | `children`      | computed | count of tasks whose `parent` edge names this one  |
+//! | `progress`      | computed | terminal children / children, `0..1`; null with no children |
 //! | `due`           | authored |                                                      |
 //! | `start`         | authored |                                                      |
 //! | `reviewed`      | authored |                                                      |
@@ -103,6 +105,14 @@ pub struct CanonicalTask {
     /// it empty and a listing fills it from its [`crate::Readiness`].
     #[serde(default)]
     pub why: Vec<crate::ready::Blocker>,
+    /// How many tasks name this one with a `parent` edge (read-only).
+    #[serde(default)]
+    pub children: u32,
+    /// Terminal children over all children, `0..1` — the fraction the filter
+    /// language compares, where the table renders `3/5`; `null` with no
+    /// children (read-only).
+    #[serde(default)]
+    pub progress: Option<f64>,
     /// Due date, `YYYY-MM-DD`.
     pub due: Option<String>,
     /// Start date, `YYYY-MM-DD`.
@@ -203,6 +213,8 @@ impl CanonicalTask {
             tags: task.tags.clone(),
             derived_tags: task.derived_tags.clone(),
             why: Vec::new(),
+            children: task.children,
+            progress: task.progress(),
             due: task.due.clone(),
             start: task.start.clone(),
             reviewed: task.reviewed.clone(),

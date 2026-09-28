@@ -30,7 +30,8 @@ derive-tags = true
 # `mt check` flags a task sitting in a status unreachable from `proposed`. The
 # terminal `done`/`failed` states declare reopen edges back to `wip`; `cancelled`
 # is a sink (revive it with `--force`). `unblocked = true` on `wip` and `done`
-# refuses entering them while a `depends-on` target is unfinished.
+# refuses entering them while a `depends-on` target is unfinished; on the
+# terminal `done` it also refuses closing a parent over an unfinished child.
 [[tasks.status]]
 value = "proposed"
 glyph = "💡"

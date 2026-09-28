@@ -21,6 +21,7 @@ pub mod body_gate;
 mod body_headers;
 pub mod candidate;
 pub mod canonical;
+pub mod children;
 pub mod commit_expr;
 pub mod commit_msg;
 pub mod condition;
@@ -116,6 +117,7 @@ pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use body_gate::{BodyRules, check_body_rules};
 pub use candidate::{Candidate, Checked, check_candidate, check_candidates, harvest_candidate};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
+pub use children::{children_violation, unfinished_children};
 pub use commit_expr::CommitExpr;
 pub use commit_msg::{
     ChangedFiles, CommitMessage, CommitMsgError, CommitRecord, RefProblem, TrailerValue,

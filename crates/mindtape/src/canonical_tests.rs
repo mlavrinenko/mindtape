@@ -184,3 +184,20 @@ fn difficulty_projects_into_canonical_output() {
     let value = serde_json::to_value(&ct).unwrap();
     assert_eq!(value["difficulty"], "senior");
 }
+
+#[test]
+fn children_and_progress_serialize_as_count_and_fraction() {
+    let mut task = bare_task("epic");
+    task.children = 5;
+    task.children_done = 3;
+    let value = serde_json::to_value(CanonicalTask::from_task(&task, &Config::default())).unwrap();
+    assert_eq!(value["children"], 5);
+    assert_eq!(value["progress"], 0.6);
+    let leaf = serde_json::to_value(CanonicalTask::from_task(
+        &bare_task("leaf"),
+        &Config::default(),
+    ))
+    .unwrap();
+    assert_eq!(leaf["children"], 0);
+    assert!(leaf["progress"].is_null());
+}

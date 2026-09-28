@@ -58,6 +58,10 @@ $ mt ls 'progress == 1 && !terminal'
 - `crates/mindtape/src/canonical.rs`: carry them in `--json`.
 - `crates/mindtape-cli/src/flip.rs`: the parent refusal.
 - `www/content/links.typ`, `skills/mindtape` source: document the fields.
+- As built: the shared child listing and the `mt check` warning live in `crates/mindtape/src/children.rs`; `children`/`progress` are two more `named()` columns, so `render/columns.rs`, `output.rs` and the column floor grew too, about 15 source files against the estimate of 4.
+- The flag: a status both `unblocked` and `terminal` requires finished children. This repo's `wip` also carries `unblocked`, and starting a parent over open children is normal, so `unblocked` alone would have refused `mt wip <parent>`.
+- The warning: a child counts as unfinished while non-terminal, so a cancelled child is finished. `mt check` warns rather than errs, like the blocked warning, because `--force` and a reopened child both land that state on purpose. The four closed parents here had every child done, so it reported none.
+- One value, two spellings: `progress` is the fraction `0..1` in the filter language, `--sort`, `--json` and CSV, and the table renders the counts, `3/5`; a leaf's is absent (`null`, a blank cell).
 
 
 == Alternatives

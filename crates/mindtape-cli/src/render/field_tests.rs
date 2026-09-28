@@ -308,6 +308,8 @@ fn stub_task() -> Task {
         depth: 0,
         topo: 0,
         blocks: 0,
+        children: 0,
+        children_done: 0,
         due: None,
         start: None,
         reviewed: None,

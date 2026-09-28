@@ -43,6 +43,8 @@ pub fn bare_task(id: &str) -> Task {
         depth: 0,
         topo: 0,
         blocks: 0,
+        children: 0,
+        children_done: 0,
         due: None,
         start: None,
         reviewed: None,
@@ -234,6 +236,15 @@ pub fn dep_config(extra: &str) -> Config {
          [[tasks.status]]\nvalue = \"done\"\nterminal = true\n{extra}"
     ))
     .unwrap()
+}
+
+/// Each violation as `(task_id, field, message)` — what a check test asserts.
+#[must_use]
+pub fn violation_triples(violations: &[crate::validate::Violation]) -> Vec<(&str, &str, &str)> {
+    violations
+        .iter()
+        .map(|v| (v.task_id.as_str(), v.field.as_str(), v.message.as_str()))
+        .collect()
 }
 
 /// A task with `status` stamped and one `depends-on` edge per entry in `deps`

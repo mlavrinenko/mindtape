@@ -165,6 +165,15 @@ when = 'true'
 [ls.columns.why]
 when = 'named()'
 
+# How far a parent's children have got: the count, and `done/children` (`3/5`).
+# Opt-in like `why` — a question about parents, asked on purpose
+# (`mt ls 'children > 0' --columns title,progress`).
+[ls.columns.children]
+when = 'named()'
+
+[ls.columns.progress]
+when = 'named()'
+
 # The `file` column is opt-in on a terminal and automatic everywhere else.
 #
 # On a TTY the `#` handle is the address a reader wants: two characters, typed

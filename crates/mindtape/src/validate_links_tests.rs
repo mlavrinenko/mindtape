@@ -426,12 +426,8 @@ fn flags_a_blocked_task_sitting_in_an_unblocked_status() {
         dep_task("working", "wip", &["open.typ"]),
     ];
     let violations = check(&tasks, &config);
-    let hits: Vec<(&str, &str, &str)> = violations
-        .iter()
-        .map(|v| (v.task_id.as_str(), v.field.as_str(), v.message.as_str()))
-        .collect();
     assert_eq!(
-        hits,
+        crate::test_support::violation_triples(&violations),
         [(
             "closed",
             "status",

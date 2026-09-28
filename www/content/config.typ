@@ -396,6 +396,13 @@ reopening a dependency puts its finished dependants there without touching
 them. Set it where work starts or finishes (`wip`, `done`); leave it off the
 statuses blocked work must still reach (`cancelled`, `failed`).
 
+On a status that is also `terminal`, the same flag requires every child — each
+task whose `parent` edge names this one — finished, since a task that ends
+ends its children's share of it too. `mt done <parent>` names each unfinished
+child, `--force` overrides, and `mt check` warns about a parent already closed
+over one. A non-terminal `unblocked` status (`wip`) leaves a parent free to
+start over open children.
+
 = Link kinds
 
 `[[tasks.links.kinds]]` layers project-declared edge kinds over the six built-ins

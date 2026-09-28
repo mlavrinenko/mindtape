@@ -78,11 +78,12 @@ it cut; `--skip N` drops N rows first, and both the table footer and
 `--json`'s `truncated.next_skip` name the `--skip` that pages forward from
 here.
 
-Fields: `status priority difficulty kind title id due start reviewed path assignee depth topo blocks role`, plus `status.name`/`.date`/`.note`/`.index` and `estimate.<unit>` (a number; `has(estimate.<unit>)` tests it). Names are kebab-case as in the task file: `has(x-goals)`.
+Fields: `status priority difficulty kind title id due start reviewed path assignee depth topo blocks children progress role`, plus `status.name`/`.date`/`.note`/`.index` and `estimate.<unit>` (a number; `has(estimate.<unit>)` tests it). Names are kebab-case as in the task file: `has(x-goals)`.
 `--sort` takes all but `role`, plus a computed `ready` rank; `role` matches a
 role the task's assignee holds.
 `topo`/`blocks` read the `links:` graph, `blocks` counting unfinished tasks
-transitively waiting on this one. Operators: `== != < > <= >= && || !` and
+transitively waiting on this one; `children` counts `parent`-edge children and
+`progress` is their finished share, `0..1` (a `3/5` column; absent on a leaf). Operators: `== != < > <= >= && || !` and
 parentheses. Helpers: `has(f)`/`miss(f)`, `has_tag("t")`, `links("kind")`,
 `contains("s"[, field…])` (needle first; with no field it searches title/id/body,
 or `[ls] contains-fields`), `ready`/`blocked`, `terminal`, `stale(N)`, `now()`,
@@ -123,7 +124,8 @@ and intra-batch `links` resolve only backwards — are in
 value is also a verb, so `mt done 1b` works. `-m` attaches the status note. A
 transition the legend's `to` edges disallow is rejected with the valid next
 states listed, and so is entering an `unblocked = true` status while a
-dependency is open, naming it; `--force` overrides both, and waives a failing
+dependency is open, naming it, and closing a parent over an unfinished child;
+`--force` overrides all three, and waives a failing
 `[[on.flip]]` gate — read the gate before you waive it. Gates run as `sh -c` with `mt`'s own
 environment, so a binary from the project's dev shell is found only when `mt`
 ran inside that shell; exit 127 is "binary not found", not a refusal.

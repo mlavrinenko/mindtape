@@ -254,6 +254,29 @@ fn check_unblocked(
     ))
 }
 
+/// Guard one flip against a status that requires finished children (both
+/// `unblocked` and `terminal`): refused while any task naming `task` as its
+/// `parent` is unfinished within `world`, naming each one. Shares the
+/// transition guard's `--force` escape hatch.
+fn check_children(
+    world: &[mindtape::Task],
+    task: &mindtape::Task,
+    to: &str,
+    config: &mindtape::Config,
+) -> std::result::Result<(), String> {
+    if !config.tasks.status.requires_finished_children(to) {
+        return Ok(());
+    }
+    let open = mindtape::unfinished_children(world, task, config);
+    if open.is_empty() {
+        return Ok(());
+    }
+    Err(format!(
+        "{} (use --force to override)",
+        mindtape::children_violation(to, &open)
+    ))
+}
+
 /// Guard one flip against the target status's note requirement (`note =
 /// "required"` on its `[[tasks.status]]` entry — see
 /// `mindtape::config::LegendEntry::note_required`, the same `NoteRule`
@@ -305,6 +328,7 @@ fn flip_target(
         check_transition(legend, task.status.as_ref(), status)?;
         let blockers = mindtape::blockers_of(world, task, &batch.project.config);
         check_unblocked(legend, status, &blockers)?;
+        check_children(world, task, status, &batch.project.config)?;
     }
     check_note_required(legend, status, args.note.as_deref())?;
     let outcome = batch
@@ -470,3 +494,7 @@ mod tests_revalidate;
 #[cfg(test)]
 #[path = "flip_tests_unblocked.rs"]
 mod tests_unblocked;
+
+#[cfg(test)]
+#[path = "flip_tests_children.rs"]
+mod tests_children;

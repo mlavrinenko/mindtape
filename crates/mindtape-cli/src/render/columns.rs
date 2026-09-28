@@ -42,6 +42,8 @@ pub enum ColumnId {
     Assignee,
     Title,
     Why,
+    Children,
+    Progress,
     File,
 }
 
@@ -54,7 +56,7 @@ pub enum ColumnId {
 /// rather than being tacked on at the end like `File`: when it renders at all
 /// it is because the rows disagree about it, and that is metadata to read
 /// alongside status and priority, not a trailing path.
-pub const ORDER: [ColumnId; 9] = [
+pub const ORDER: [ColumnId; 11] = [
     ColumnId::Handle,
     ColumnId::Status,
     ColumnId::Ready,
@@ -63,6 +65,8 @@ pub const ORDER: [ColumnId; 9] = [
     ColumnId::Assignee,
     ColumnId::Title,
     ColumnId::Why,
+    ColumnId::Children,
+    ColumnId::Progress,
     ColumnId::File,
 ];
 
@@ -79,6 +83,8 @@ impl ColumnId {
             ColumnId::Assignee => "assignee",
             ColumnId::Title => "title",
             ColumnId::Why => "why",
+            ColumnId::Children => "children",
+            ColumnId::Progress => "progress",
             ColumnId::File => "file",
         }
     }
@@ -95,6 +101,8 @@ impl ColumnId {
             ColumnId::Assignee => "ASSIGNEE",
             ColumnId::Title => "TITLE",
             ColumnId::Why => "WHY",
+            ColumnId::Children => "CHILDREN",
+            ColumnId::Progress => "PROGRESS",
             ColumnId::File => "FILE",
         }
     }
@@ -132,6 +140,8 @@ impl ColumnId {
             ColumnId::Assignee => plain(task.assignee.clone().unwrap_or_default()),
             ColumnId::Title => plain(task.title.clone()),
             ColumnId::Why => plain(waits_on(readiness.blockers(task))),
+            ColumnId::Children => plain(children_text(task)),
+            ColumnId::Progress => plain(progress_text(task)),
             ColumnId::File => plain(file_path::cell_text(&task.file)),
         }
     }
@@ -300,6 +310,27 @@ pub fn ready_cell(state: ReadyState, config: &Config) -> CellSpec {
             color: parse_color(ready.blocked_color.as_deref().unwrap_or("red")),
         },
         ReadyState::Settled => plain(String::new()),
+    }
+}
+
+/// The child count, blank for a task with none — a leaf is not a parent with
+/// zero children to a reader scanning the column.
+fn children_text(task: &Task) -> String {
+    if task.children == 0 {
+        String::new()
+    } else {
+        task.children.to_string()
+    }
+}
+
+/// Progress as `done/children` (`3/5`), blank with no children. The table
+/// shows the counts a reader can check; the filter language, `--json` and CSV
+/// carry the same value as the `0..1` fraction (`progress == 1`).
+fn progress_text(task: &Task) -> String {
+    if task.children == 0 {
+        String::new()
+    } else {
+        format!("{}/{}", task.children_done, task.children)
     }
 }
 

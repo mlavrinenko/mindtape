@@ -263,20 +263,13 @@ fn render_csv(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
     Ok(String::from_utf8_lossy(&bytes).into_owned())
 }
 
-/// CSV header text for a resolved column. Diverges from [`ColumnId::header`]
-/// only for `Handle`: `id` describes the CSV cell's content (the task's
+/// CSV header text for a resolved column: its [`ColumnId::key`], except
+/// for `Handle`: `id` describes the CSV cell's content (the task's
 /// stable id), where the table's `#` describes an ephemeral ordinal.
 fn csv_header(id: ColumnId) -> &'static str {
     match id {
         ColumnId::Handle => "id",
-        ColumnId::Status => "status",
-        ColumnId::Ready => "ready",
-        ColumnId::Priority => "priority",
-        ColumnId::Due => "due",
-        ColumnId::Assignee => "assignee",
-        ColumnId::Title => "title",
-        ColumnId::Why => "why",
-        ColumnId::File => "file",
+        other => other.key(),
     }
 }
 
@@ -294,6 +287,8 @@ fn csv_value(id: ColumnId, task: &Task, config: &Config, readiness: &Readiness) 
         ColumnId::Assignee => task.assignee.clone().unwrap_or_default(),
         ColumnId::Title => task.title.clone(),
         ColumnId::Why => mindtape::waits_on(readiness.blockers(task)),
+        ColumnId::Children => task.children.to_string(),
+        ColumnId::Progress => task.progress().map(|p| p.to_string()).unwrap_or_default(),
         ColumnId::File => task.file.display().to_string(),
     }
 }

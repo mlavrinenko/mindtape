@@ -64,6 +64,28 @@ block cannot describe a shape the DSL stopped accepting.
 
 #raw(render-slices(slices, parts), lang: "typ", block: true)
 
+= Parents and progress
+
+A `parent` edge makes this task one of the target's children. Every task
+carries two computed fields over those edges: `children`, the count of tasks
+naming it as their parent, and `progress`, the share of them in a terminal
+status. A cancelled child counts as finished — nothing is left to wait for.
+
+```sh
+mt ls 'children > 0' --columns title,status,progress
+mt ls 'progress == 1 && !terminal'   # parents ready to close
+```
+
+`progress` is one value in two spellings. The filter language, `--sort`,
+`--json` and `--format csv` carry the fraction `0..1`; the table's `progress`
+column renders the counts behind it, `3/5`. A task with no children has no
+progress at all — `null` in JSON, a blank cell, and absent to a filter, so
+`progress < 1` never matches a leaf.
+
+Closing a parent over unfinished children is refused: a status both
+`terminal` and #link(u("/config/"))[`unblocked = true`] requires every child
+finished, `mt flip` names the ones that are not, and `--force` overrides.
+
 A helper is variadic, and `+` combines helpers because each returns an array —
 the same value every other multi-valued field takes. The array spelling shows
 the same thing explicitly. A target may keep or drop its `.typ`; edges dedupe

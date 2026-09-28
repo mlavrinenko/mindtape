@@ -186,3 +186,19 @@ fn unblocked_is_opt_in_per_entry() {
     assert!(!legend.requires_unblocked("unknown"));
     assert!(!LegendEntry::default().unblocked);
 }
+
+#[test]
+fn finished_children_are_required_by_a_terminal_unblocked_status_only() {
+    let legend = crate::config::parse_config(
+        "[[tasks.status]]\nvalue = \"wip\"\nunblocked = true\n\
+         [[tasks.status]]\nvalue = \"done\"\nterminal = true\nunblocked = true\n\
+         [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n",
+    )
+    .unwrap()
+    .tasks
+    .status;
+    assert!(legend.requires_finished_children("done"));
+    assert!(!legend.requires_finished_children("wip"));
+    assert!(!legend.requires_finished_children("cancelled"));
+    assert!(!legend.requires_finished_children("unknown"));
+}

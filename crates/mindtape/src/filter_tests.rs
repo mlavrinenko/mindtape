@@ -30,6 +30,8 @@ fn sample() -> Task {
         depth: 0,
         topo: 0,
         blocks: 0,
+        children: 0,
+        children_done: 0,
         due: Some("2026-07-01".to_owned()),
         start: None,
         reviewed: None,

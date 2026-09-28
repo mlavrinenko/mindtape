@@ -292,3 +292,45 @@ fn graph_ranks_are_filterable() {
     assert!(!hit("topo == 0"));
     assert!(hit("blocks > 3 && topo < 2"));
 }
+
+// --- Child-derived fields (`children`, `progress`) ---
+
+#[test]
+fn children_and_progress_are_filterable() {
+    let cfg = config();
+    let mut task = bare_task("t");
+    task.status = Some(Status {
+        name: "wip".to_owned(),
+        date: None,
+        note: None,
+    });
+    task.children = 4;
+    task.children_done = 4;
+    let hit = |task: &crate::model::Task, expr: &str| {
+        crate::filter::Filter::parse(expr)
+            .unwrap()
+            .matches(task, &cfg)
+            .unwrap()
+    };
+    assert!(hit(&task, "children > 3"));
+    assert!(hit(&task, "progress == 1 && !terminal"));
+    task.children_done = 1;
+    assert!(hit(&task, "progress == 0.25"));
+    assert!(!hit(&task, "progress == 1"));
+}
+
+#[test]
+fn a_leaf_has_zero_children_and_missing_progress() {
+    // `children` is a count like `blocks`, never missing; `progress` over no
+    // children is undefined, so `progress < 1` never matches a leaf.
+    let cfg = config();
+    let task = bare_task("t");
+    assert!(matches!(
+        (get("children").unwrap().get)(&task, &cfg),
+        FieldValue::Num(n) if n == 0.0
+    ));
+    assert!(matches!(
+        (get("progress").unwrap().get)(&task, &cfg),
+        FieldValue::Missing
+    ));
+}

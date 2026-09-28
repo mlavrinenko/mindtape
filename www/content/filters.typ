@@ -20,8 +20,8 @@ Here, `mt ls '!terminal'` lists every task not yet in a terminal status:
 = Fields
 
 Comparable fields: `status`, `priority`, `difficulty`, `kind`, `title`, `id`,
-`due`, `start`, `reviewed`, `path`, `depth`, `topo`, `blocks`, `assignee`,
-`role`. `priority` and `difficulty` compare numerically (`priority >= 7`).
+`due`, `start`, `reviewed`, `path`, `depth`, `topo`, `blocks`, `children`,
+`progress`, `assignee`, `role`. `priority` and `difficulty` compare numerically (`priority >= 7`).
 
 The `estimate` dict takes presence only (`has(estimate)`); one unit of it,
 `estimate.<unit>`, compares as a number under any unit name
@@ -69,6 +69,10 @@ lists the root tasks with no sub-folder (`depth > 0` the nested ones).
 `topo` and `blocks` read the dependency graph rather than the task's own
 fields — see _Graph position and leverage_ below. Both are always numeric and
 never absent: a task with no links carries 0, not nothing.
+
+`children` and `progress` count a task's `parent`-edge children and the
+finished share of them, `0..1`; a task with no children has no `progress` —
+see #link(u("/links/"))[Parents and progress].
 
 = Operators
 

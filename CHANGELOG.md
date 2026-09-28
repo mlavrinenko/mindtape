@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A parent shows its children's progress and cannot close over open ones.**
+  Nothing reported how far a parent's children had got, and `mt done <parent>`
+  succeeded with children still open. Computed fields `children` (tasks whose
+  `parent` edge names this one) and `progress` (their terminal share, `0..1`)
+  filter, sort, render as `named()` `ls` columns (`progress` as `3/5`) and ride
+  `--json` and CSV as the fraction. A status both `terminal` and
+  `unblocked = true` now requires every child finished: `mt flip` names the
+  unfinished ones (`--force` overrides) and `mt check` warns about a parent
+  already there.
 - **`changed("<states>", "<glob>"…)` counts changed files in a filter.** A
   budget over source files could not be written: the only git-aware check was
   the drift check, fixed to the `files` unit and every changed path, docs and

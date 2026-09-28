@@ -136,6 +136,9 @@ rule — `[ls.columns.assignee] when = 'true'` does.
 direct blocking-kind targets with their status — and renders only when asked
 for. `mt ls blocked --columns title,why` answers what to unblock without
 walking any links; `--json` carries the same list as `why` on every task.
+`children` and `progress` are `named()` too: a parent's child count and its
+finished children over all of them, `3/5` — see
+#link(u("/links/"))[Parents and progress].
 
 The `#` column is a handle: an ordinal followed by check characters derived
 from the task's id, the ordinal being the task's position in the view

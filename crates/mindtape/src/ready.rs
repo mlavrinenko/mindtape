@@ -190,11 +190,17 @@ pub fn waits_on(blockers: &[Blocker]) -> String {
     if blockers.is_empty() {
         return String::new();
     }
-    let list: Vec<String> = blockers
+    format!("waits on: {}", list_targets(blockers))
+}
+
+/// `targets` as `a (proposed), b (wip)`; a target with no known status reads
+/// `unknown`.
+pub(crate) fn list_targets(targets: &[Blocker]) -> String {
+    let list: Vec<String> = targets
         .iter()
         .map(|b| format!("{} ({})", b.stem, b.status.as_deref().unwrap_or("unknown")))
         .collect();
-    format!("waits on: {}", list.join(", "))
+    list.join(", ")
 }
 
 /// The stem an unresolved edge target names: its file stem, else the target

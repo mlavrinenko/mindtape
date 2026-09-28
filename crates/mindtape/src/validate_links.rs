@@ -39,6 +39,7 @@ pub(crate) fn check_all(tasks: &[Task], config: &Config, out: &mut Vec<Violation
         check_cycle(tasks, kind, out);
     }
     check_unblocked(tasks, config, out);
+    crate::children::check(tasks, config, out);
 }
 
 /// Warn about a task sitting in an `unblocked = true` status while it waits on

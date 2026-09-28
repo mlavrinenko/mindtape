@@ -65,6 +65,14 @@ import):
     listed task waits on; empty unless it is blocked, and always empty from
     `mt eval`, which sees no task set.],
 
+  [`children`],
+  [computed],
+  [Count of tasks whose `parent` edge names this one; `0` from `mt eval`.],
+
+  [`progress`],
+  [computed],
+  [Terminal children over all children, `0..1`; `null` with no children.],
+
   [`due`], [authored], [`YYYY-MM-DD`.],
   [`start`], [authored], [`YYYY-MM-DD`.],
   [`reviewed`], [authored], [`YYYY-MM-DD`.],

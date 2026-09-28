@@ -43,9 +43,11 @@
 //! so a filter saved in `.mindtape/config.toml` means the same thing wherever
 //! `mt` runs from.
 //!
-//! `depth`, `topo` and `blocks` are *derived* entries: nothing authors them,
-//! the loader computes them (folder nesting; dependency level and transitive
-//! leverage — see `crate::dep_rank`). They enter here rather than being
+//! `depth`, `topo`, `blocks`, `children` and `progress` are *derived*
+//! entries: nothing authors them, the loader computes them (folder nesting;
+//! dependency level, transitive leverage, and the `parent`-edge child count
+//! and terminal share — see `crate::dep_rank`). `progress` alone can be
+//! missing: a task with no children has no share to report. They enter here rather than being
 //! special-cased because they are plain numbers on `Task` by the time a filter
 //! or a sort sees one, so the generic comparator already orders them right —
 //! which is the whole point of a registry: a graph-derived rank becomes both
@@ -157,6 +159,14 @@ pub const FIELDS: &[FieldDef] = &[
     FieldDef {
         name: "blocks",
         get: |task, _config| FieldValue::Num(task.blocks.into()),
+    },
+    FieldDef {
+        name: "children",
+        get: |task, _config| FieldValue::Num(task.children.into()),
+    },
+    FieldDef {
+        name: "progress",
+        get: |task, _config| task.progress().map_or(FieldValue::Missing, FieldValue::Num),
     },
 ];
 

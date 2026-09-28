@@ -93,6 +93,17 @@ impl Legend {
         self.entry(value).is_some_and(|entry| entry.unblocked)
     }
 
+    /// Whether entering `value` requires every child finished: its entry is
+    /// both `unblocked` and `terminal`. The one knob covers both refusals —
+    /// a status that needs the task's dependencies done and that ends the task
+    /// also needs its children done — while an `unblocked` status work merely
+    /// starts in (`wip`) leaves a parent free to start over open children.
+    #[must_use]
+    pub fn requires_finished_children(&self, value: &str) -> bool {
+        self.entry(value)
+            .is_some_and(|entry| entry.unblocked && entry.terminal)
+    }
+
     /// The values flagged `terminal`.
     #[must_use]
     pub fn terminal(&self) -> Vec<String> {

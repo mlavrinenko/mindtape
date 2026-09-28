@@ -1,5 +1,7 @@
 //! Graph-derived per-task ranks: where a task sits in the dependency DAG
-//! ([`Task::topo`]) and how much work waits behind it ([`Task::blocks`]).
+//! ([`Task::topo`]) and how much work waits behind it ([`Task::blocks`]) —
+//! plus how far its children have got ([`Task::children`],
+//! [`Task::children_done`]), counted over `parent` edges by [`crate::children`].
 //!
 //! `links:` already carries the true working order of a backlog, but a scoring
 //! framework ranks a task on its own properties alone — so the decision five
@@ -74,10 +76,38 @@ use crate::model::Task;
 /// The loader is the single caller for exactly that reason.
 pub(crate) fn annotate(tasks: &mut [Task], config: &Config) {
     let computed = ranks(tasks, config);
-    for (task, rank) in tasks.iter_mut().zip(computed) {
+    let counts = child_counts(tasks, config);
+    for ((task, rank), (children, done)) in tasks.iter_mut().zip(computed).zip(counts) {
         task.topo = rank.topo;
         task.blocks = rank.blocks;
+        task.children = children;
+        task.children_done = done;
     }
+}
+
+/// `(children, terminal children)` for every task, parallel to `tasks`, over
+/// the `parent` edges [`crate::children`] resolves.
+fn child_counts(tasks: &[Task], config: &Config) -> Vec<(u32, u32)> {
+    let terminal = config.tasks.status.terminal();
+    let by_parent = crate::children::children_by_parent(tasks);
+    tasks
+        .iter()
+        .map(|task| {
+            let children = by_parent
+                .get(task.file.as_path())
+                .map_or(&[][..], Vec::as_slice);
+            let done = children
+                .iter()
+                .filter(|child| child.is_terminal(&terminal))
+                .count();
+            (count(children.len()), count(done))
+        })
+        .collect()
+}
+
+/// A task count as `u32`, saturating: no loaded set comes near the bound.
+fn count(n: usize) -> u32 {
+    u32::try_from(n).unwrap_or(u32::MAX)
 }
 
 /// One task's place in the dependency graph.
