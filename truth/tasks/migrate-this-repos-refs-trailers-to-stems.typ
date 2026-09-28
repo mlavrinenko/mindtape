@@ -49,6 +49,7 @@
 - `docs/src/contributing.typ`, regenerated `CONTRIBUTING.md`: the stem form.
 - `.githooks/commit-msg`: the check.
 - `crates/mindtape/src/packs/mindtape-tasks.toml`: the `work-names-a-task` rule.
+- `.github/workflows/ci.yml`: move the commit-rules step's `FLOOR` to this change's commit, so the path trailers before it stay exempt.
 
 
 == Rollback
