@@ -11,7 +11,7 @@
   ),
   difficulty: 1,
   tags: ("tooling",),
-  estimate: (src-files: 2),
+  estimate: (src-files: 3),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 28),
+  status: done(2026, 9, 28),
   links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
