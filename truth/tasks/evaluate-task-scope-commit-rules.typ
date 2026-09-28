@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 28),
+  status: done(2026, 9, 28),
   links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
@@ -59,6 +59,7 @@ message = "start or close a task in a commit that carries its work"
 - `crates/mindtape-cli/tests/commit_msg_task_e2e.rs` (red first): a close-only commit refused; a close with work passes; an estimate added in the closing commit is seen through `staged(...)`; a bare field is refused at load.
 - `crates/mindtape/src/commit_tasks.rs` (new): the project as of `HEAD`, the index and the working tree, as overlays of the changed files on one load.
 - `crates/mindtape/src/filter_predicates.rs`: the three state wrappers, `exists`, `named`.
+  - Deviation: only `exists` landed here, refused outside a commit state. The wrappers and `named` live in `crates/mindtape/src/commit_task_expr.rs`, called from `commit_expr.rs`: the plain filter language has no commit to read them from, so there they could only be refused.
 - `crates/mindtape/src/config_hooks.rs`: share `into()`'s desugaring.
 - `www/content/config.typ`: the task scope and the state table.
 
