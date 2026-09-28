@@ -10,7 +10,7 @@
     ease: 8,
   ),
   difficulty: 4,
-  estimate: (files: 3),
+  estimate: (src-files: 0),
   assignee: "agent",
   tags: ("swept", "size"),
   x-goals: (
@@ -31,8 +31,8 @@
   status: done(
     2026,
     9,
-    23,
-  )[moved Command Semantics to docs/src/contributing/command-semantics.typ; contributing.typ 260->226; baseline 90 clear],
+    28,
+  )[moved Commit Messages to docs/contributing/commit-messages.md; contributing.typ 254->220, linecop clear],
 )
 
 == Problem
