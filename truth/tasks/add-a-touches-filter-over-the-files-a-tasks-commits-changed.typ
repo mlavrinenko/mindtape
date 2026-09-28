@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 9, 28),
+  status: done(2026, 9, 28),
   links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
@@ -42,7 +42,7 @@
 - 🟢 `touches("<path>")` matches tasks named by the `[commits] trailer` of any commit that changed the path:
 
 ```
-$ mt ls 'touches("crates/mindtape/src/ready.rs")' ''
+$ mt ls 'touches("crates/mindtape/src/ready.rs")'
 #  TITLE                                  STATUS
 —  Derive ready from the links graph      ✅ done
 ```
@@ -55,9 +55,9 @@ $ mt ls 'touches("crates/mindtape/src/ready.rs")' ''
 
 == Changes
 
-- `crates/mindtape/src/commit_refs.rs` (new, tests first): trailers and renames from `git log`, cached by `HEAD`.
+- `crates/mindtape/src/commit_refs.rs` (new, tests first): trailers and renames from `git log`, cached by `HEAD`. A stem a loaded task bears wins over a rename.
 - `crates/mindtape/src/filter_predicates.rs`: `touches()`.
-- `crates/mindtape/src/canonical.rs`: the retired stems in `--json`.
+- `crates/mindtape-cli/src/output.rs`: the retired stems in `--json`, as the envelope's `retired` key. Deviation: planned in `canonical.rs`, but a retired stem belongs to no task record, so it is a document-level fact.
 - `www/content/filters.typ`: document it.
 
 
