@@ -97,7 +97,7 @@ non-verdict, not a pass" else "" end)
 #     sits from a seam", measured by the only proxy the data carries.
 #
 #   difficulty tracks the same length on the config's judgment rubric, and the
-#   estimate is a flat 1 file: the test module gains a case, or
+#   estimate is a flat `(src-files: 1)`: the test module gains a case, or
 #   `.cargo/mutants.toml` gains an exclusion. Both remedies touch one file, so a
 #   varying number here would be invented rather than measured.
 score_mutants() {
@@ -165,7 +165,7 @@ emit_mutants() {
         --set "confidence=$confidence"
         --set "ease=$ease"
         --set "difficulty=$difficulty"
-        --set "estimate=(files: 1)"
+        --set "estimate=(src-files: 1)"
         --set 'tags+=swept' --set 'tags+=mutants'
     )
 

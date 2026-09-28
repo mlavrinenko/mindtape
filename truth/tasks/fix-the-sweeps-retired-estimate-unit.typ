@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 28),
+  status: done(
+    2026,
+    9,
+    28,
+  )[the four arms emit src-files; \`mt add --print\` now runs the write's pre-write check, locked by a test],
 )
 
 == Problem

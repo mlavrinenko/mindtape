@@ -160,7 +160,7 @@ score_coverage() {
 #   `move` rubric: a handful of lines is one obvious test, dozens start to
 #   need real fixture setup.
 #
-# estimate is a flat "(files: 1)" for every finding, not derived per-row.
+# estimate is a flat "(src-files: 1)" for every finding, not derived per-row.
 #   Closing a coverage gap adds cases to a test module that (on this tree)
 #   already exists for every file this arm reports — it does not invent a new
 #   production module the way a size split does, so there is no second file to
@@ -218,7 +218,7 @@ emit_coverage() {
         --set "confidence=$confidence"
         --set "ease=$ease"
         --set "difficulty=$difficulty"
-        --set "estimate=(files: 1)"
+        --set "estimate=(src-files: 1)"
         --set 'tags+=swept' --set 'tags+=coverage'
     )
 

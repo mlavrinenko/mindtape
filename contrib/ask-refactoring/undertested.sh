@@ -190,7 +190,7 @@ score_undertested() {
 #   scale — the three-tier rubric the other arms use. One or two branches is one
 #   test case; five is a fixture that can reach five states.
 #
-# estimate is a flat "(files: 1)": the file's test module gains cases, or
+# estimate is a flat "(src-files: 1)": the file's test module gains cases, or
 #   `CRAP_EXCLUDES` gains an entry. Both touch one file, so a varying number here
 #   would be invented rather than measured.
 signal_undertested() {
@@ -231,7 +231,7 @@ emit_undertested() {
         --set "confidence=$confidence"
         --set "ease=$ease"
         --set "difficulty=$difficulty"
-        --set "estimate=(files: 1)"
+        --set "estimate=(src-files: 1)"
         # `coverage`, not a fourth signal tag. The tag says which advisory TOOL
         # noticed the finding (see the `[tasks.tags]` comment in the config), and
         # that is llvm-cov for both coverage arms — this one is a granularity of

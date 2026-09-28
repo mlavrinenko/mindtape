@@ -546,6 +546,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A dry `mt add --print` refuses what the write refuses.** The preview
+  returned before the pre-write check, so `just ask-refactoring` printed a
+  task whose `(files: N)` estimate the config's renamed `src-files` unit
+  rejected, and `--write` died on its first finding. `--print` now clears the
+  same check (`--no-verify` opens both doors), and the four sweep arms emit
+  the renamed unit.
+
 - **A write that closes a dependency cycle is refused.** `mt check` names a
   cycle on its first member, and the pre-write check kept only the violations
   naming the tasks being written, so `mt link beta depends-on alpha` landed

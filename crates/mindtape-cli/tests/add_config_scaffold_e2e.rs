@@ -1,8 +1,8 @@
 //! End-to-end tests for the config-derived values `add` splices into a task
 //! when the project config is not the barebones default: a required priority
 //! slot in its various shapes (raw int, real scale, strict framework), an
-//! initial status derived from a custom legend, and a required estimate's
-//! bounded default.
+//! initial status derived from a custom legend, a required estimate's bounded
+//! default, and the rule check `--print` shares with the write it previews.
 //!
 //! These live here (not as inline `#[path]` unit tests) because `cargo_bin`
 //! needs the compiled binary: Cargo builds it before running integration tests
@@ -245,4 +245,103 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
     assert!(!written.contains("slot("), "slots must be gone: {written}");
 
     support::mt(dir.path()).arg("check").assert().success();
+}
+
+/// A config whose declared estimate unit is `src-files` and whose one rule
+/// caps it at 1, so a fill of 2 has something to refuse it on.
+const ESTIMATE_UNIT_CONFIG: &str = r#"[tasks]
+roots = ["tasks"]
+
+[tasks.estimate]
+units = ["src-files"]
+
+[[tasks.rules]]
+name = "cap"
+assert = "estimate.src-files <= 1"
+message = "keep it to one source file"
+severity = "error"
+"#;
+
+/// A template filling an estimate of two source files — one over
+/// [`ESTIMATE_UNIT_CONFIG`]'s cap.
+const TWO_SOURCE_FILES_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
+
+#show: task.with(
+  title: slot("title"),
+  estimate: slot("estimate", kind: "text", default: "(src-files: 2)"),
+)
+
+== Summary
+"#;
+
+/// `--print` promises the task a write would produce, so it must run the same
+/// pre-write check: a fill the config refuses fails the preview with the
+/// write's error, writes and prints nothing. A preview that exits 0 while the
+/// write it previews is refused is how the sweep shipped a retired estimate
+/// unit — the dry run green, `--write` dead on its first finding.
+#[test]
+fn print_refuses_the_fill_a_write_would_refuse() {
+    let dir =
+        support::project_with_template_and_config(ESTIMATE_UNIT_CONFIG, TWO_SOURCE_FILES_TEMPLATE);
+
+    let output = support::mt(dir.path())
+        .args([
+            "add",
+            "--name",
+            "over-cap",
+            "--set",
+            "title=Over cap",
+            "--print",
+        ])
+        .assert()
+        .failure()
+        .get_output()
+        .clone();
+
+    assert!(
+        !dir.path().join("tasks/over-cap.typ").exists(),
+        "a preview never writes, refused or not"
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("over-cap: rules.cap: keep it to one source file"),
+        "the preview must report the rule a write would report: {stderr}"
+    );
+    assert!(
+        stderr.contains("nothing was written"),
+        "the refusal keeps the write's own words: {stderr}"
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).is_empty(),
+        "a refused fill must not print a preview: {output:?}"
+    );
+
+    // Under the cap the same preview prints, silently, and still writes nothing.
+    let output = support::mt(dir.path())
+        .args([
+            "add",
+            "--name",
+            "under-cap",
+            "--set",
+            "title=Under cap",
+            "--set",
+            "estimate=(src-files: 1)",
+            "--print",
+        ])
+        .assert()
+        .success()
+        .get_output()
+        .clone();
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("estimate: (src-files: 1)"),
+        "a valid fill still previews: {output:?}"
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).is_empty(),
+        "a clean fill has nothing to warn about: {output:?}"
+    );
+    assert!(
+        !dir.path().join("tasks/under-cap.typ").exists(),
+        "--print never writes"
+    );
 }

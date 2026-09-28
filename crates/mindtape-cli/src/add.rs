@@ -167,20 +167,41 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let filled = inject_header(&filled, config, args.status.as_deref())?;
     let filled = util::canonical_source(config, filled);
 
-    if args.print {
-        print!("{filled}");
-        return Ok(());
-    }
-
+    // Resolve the path the write would land at before the `--print` return:
+    // it is the candidate the pre-write check validates, and a preview must
+    // clear the same check, or a dry run stops being a preflight.
     let dest = dest_dir(&args.into, args.to.as_deref(), &project)?;
     let stem = output_stem(args, &values, config)?;
     let file = dest.join(format!("{stem}.typ"));
+
+    if args.print {
+        return print_preview(args, &project, &file, &filled, interactive);
+    }
+
     let outcome = resolve_outcome(args, config, &stem, &dest, file)?;
     let Some(outcome) = outcome else {
         // `--dedup skip` already reported the existing path; nothing to write.
         return Ok(());
     };
     commit(args, &project, &outcome, &filled, interactive)
+}
+
+/// Print the preview — but only after the same pre-write check a write runs.
+/// A preview that exits 0 while the write it previews is refused is how the
+/// sweep shipped a retired estimate unit: the dry run green, `--write` dead.
+/// `--no-verify` opens both doors.
+fn print_preview(
+    args: &AddArgs,
+    project: &util::Project,
+    file: &Path,
+    filled: &str,
+    interactive: bool,
+) -> Result<()> {
+    if !args.no_verify {
+        pre_verify(project, file, filled, interactive)?;
+    }
+    print!("{filled}");
+    Ok(())
 }
 
 /// Validate the rendered task, then write it — in that order, so a rejected add

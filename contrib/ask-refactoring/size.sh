@@ -35,8 +35,9 @@
 #   difficulty tracks `move` on the config's judgment rubric (3 = one obvious
 #   extraction, 5 = several defensible seams), +1 for a test module.
 #
-#   estimate is the split path: the file, the module it sheds, the parent that
-#   declares it — 4 when the carve is big enough to want two new homes. Markdown
+#   estimate is the split path, in `src-files`: the file, the module it sheds,
+#   the parent that declares it — 4 when the carve is big enough to want two
+#   new homes. Markdown
 #   is flat 2: the page and the one it sheds. There is no third file, because
 #   nothing has to declare a Markdown page the way a `mod` line declares a
 #   module.
@@ -196,7 +197,7 @@ emit_size() {
         --set "confidence=$confidence"
         --set "ease=$ease"
         --set "difficulty=$difficulty"
-        --set "estimate=(files: $files)"
+        --set "estimate=(src-files: $files)"
         "${tags[@]}"
     )
 
