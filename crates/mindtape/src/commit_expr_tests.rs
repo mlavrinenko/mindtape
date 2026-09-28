@@ -74,3 +74,14 @@ fn malformed_expressions_are_named() {
     }
     assert!(commit_expr_problem("!tasks_only || has(refs)").is_none());
 }
+
+#[test]
+fn a_comparison_without_two_operands_is_refused() {
+    for bad in ["== 1", "1 ==", "subject ==", "(==)"] {
+        let problem = commit_expr_problem(bad).unwrap();
+        assert!(
+            problem.contains("comparison needs two operands"),
+            "{bad}: {problem}"
+        );
+    }
+}
