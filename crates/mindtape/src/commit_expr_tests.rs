@@ -9,6 +9,7 @@ fn commit() -> CommitRecord {
         refs: vec!["parser".to_owned()],
         files: vec!["docs/guide.md".to_owned(), "src/lib.rs".to_owned()],
         tasks_only: false,
+        tasks: Vec::new(),
     }
 }
 

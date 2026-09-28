@@ -702,6 +702,51 @@ The rules merge by `name` across layers and #link(u("/rule-packs/"))[rule
 redeclaring its name, or drops it with `disable`. Outside a git repository
 `--commit-msg` fails with `not a git repository`.
 
+== Task scope
+
+`scope = "task"` runs the rule once per task the commit changes or names in
+its trailer. It reads the commit's fields above, and the task through one of
+three states of the project:
+
+#table(
+  columns: 2,
+  [*Reads*], [*Holds*],
+  [`head(<expr>)`], [the task as of `HEAD`, before the commit],
+  [`staged(<expr>)`], [the task as the index holds it: what the commit records],
+  [`worktree(<expr>)`], [the task as the file on disk holds it],
+  [`named`], [the trailer names the task],
+)
+
+A wrapper takes any #link(u("/filters/"))[filter expression] and evaluates it
+against that state's whole project, so `ready`, `blocked` and `count(...)`
+read the tasks as they stand there. Inside one, `exists` is false where the
+state has no file for the task: `head(exists) && !staged(exists)` is a
+deletion. As a comparison side a wrapper is the field's value there:
+`worktree(status) != staged(status)`. A bare task field is refused at config
+load: which state it reads is the one thing its reader could not tell.
+
+`into("s")` means `staged(status == "s") && !head(status == "s")` — the
+commit flips the task into `s`. So a start or a close rides with the work it
+claims:
+
+```toml
+[[commits.rules]]
+name    = "flip-with-work"
+scope   = "task"
+when    = 'into("wip") || into("done")'
+assert  = 'named && (!tasks_only || staged(has_tag("decision")))'
+message = "start or close a task in a commit that carries its work"
+```
+
+A breach names the task after the rule:
+
+```
+error: .git/COMMIT_EDITMSG: commits.rules.flip-with-work: parser: start or close a task in a commit that carries its work
+```
+
+`when = 'worktree(status) != staged(status)'` catches a flip left unstaged
+beside the work it names.
+
 = Review comments
 
 `[tasks.comments]` polices leftover review notes left in a task's whole source

@@ -8,8 +8,9 @@
 //! its `Y` column the worktree side — so a command runs it at most once,
 //! through the [`GitCache`] its [`crate::config::Config`] carries.
 //!
-//! Consumer: the filter language's `changed(<states>, <glob>…)`
-//! ([`crate::filter`]). Paths are relative to the repository root, whichever directory git is run from.
+//! Consumers: the filter language's `changed(<states>, <glob>…)`
+//! ([`crate::filter`]), and the commit states a `scope = "task"` commit rule
+//! reads ([`crate::commit_tasks`]). Paths are relative to the repository root, whichever directory git is run from.
 //!
 //! Every git call passes `--no-optional-locks`: reading must not even refresh
 //! `.git/index`'s stat cache, because the commands that read are read commands
@@ -101,6 +102,27 @@ impl GitStatus {
         git(
             root,
             &["status", "--porcelain", "-z", "--untracked-files=all"],
+        )
+        .map(|out| Self::parse(&out))
+    }
+
+    /// [`Self::read`] with every rename split into its two sides — the source
+    /// deleted, the destination added — for a reader that needs every path a
+    /// state differs at, not the path the tree now holds
+    /// ([`crate::commit_tasks`]).
+    ///
+    /// # Errors
+    /// As [`Self::read`].
+    pub fn read_unpaired(root: &Path) -> Result<Self, String> {
+        git(
+            root,
+            &[
+                "status",
+                "--porcelain",
+                "-z",
+                "--untracked-files=all",
+                "--no-renames",
+            ],
         )
         .map(|out| Self::parse(&out))
     }

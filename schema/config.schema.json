@@ -358,6 +358,11 @@
           "const": "commit",
           "description": "Once per commit, over its `subject`, `refs`, `files` and `tasks_only`.",
           "type": "string"
+        },
+        {
+          "const": "task",
+          "description": "Once per task the commit changes or names, over the commit's fields\nplus `named` and the task as of `head(...)`, `staged(...)` and\n`worktree(...)`.",
+          "type": "string"
         }
       ]
     },

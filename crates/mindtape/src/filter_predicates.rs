@@ -1,17 +1,17 @@
-//! Presence, staleness, changed-path count, and substring-search arms of the filter language's
-//! function dispatch (`has`/`miss`/`contains`/`stale`/`changed`), split out of
+//! Presence, staleness, changed-path count, commit-state existence and
+//! substring-search arms of the filter language's function dispatch
+//! (`has`/`miss`/`contains`/`stale`/`changed`/`exists`), split out of
 //! `filter.rs` (file-size gate). Each function here is pure over `Task` (plus
-//! `Config` where a field needs one to resolve, e.g. a framework priority) —
-//! none of them touch the `Ctx` that threads `ready`/`blocked`/`in_view`
-//! recursion state through the evaluator, unlike the dispatcher itself
-//! (`filter::function`), which stays put and calls into these.
+//! `Config` where a field needs one to resolve, e.g. a framework priority);
+//! `exists` alone reads the `Ctx`, for the commit state it carries. The
+//! dispatcher itself (`filter::function`) stays put and calls into these.
 
 use evalexpr::{DefaultNumericTypes, Node};
 
 use crate::config::Config;
 use crate::expr::{call_args, extract_identifier, extract_literal};
 use crate::fields::{self, FieldValue};
-use crate::filter::{FilterError, field_value};
+use crate::filter::{Ctx, FilterError, field_value};
 use crate::git_state::{PathFilter, StateSet};
 use crate::model::Task;
 use crate::numeric::format_num;
@@ -81,6 +81,20 @@ pub(crate) fn changed_count(
         .paths(states)
         .filter(|path| admitted.admits(path))
         .count() as f64)
+}
+
+/// `exists`: whether the commit state being read holds the task's file at
+/// all. Only a task-scope commit rule's state wrappers give it a meaning; an
+/// ordinary filter reads loaded tasks, which exist by construction, so it
+/// refuses the predicate rather than answer a constant.
+pub(crate) fn exists(ctx: &Ctx) -> Result<bool, FilterError> {
+    ctx.exists.ok_or_else(|| {
+        FilterError::Invalid(
+            "`exists` reads a commit state: write head(exists), staged(exists) or \
+             worktree(exists) in a scope = \"task\" commit rule"
+                .to_owned(),
+        )
+    })
 }
 
 pub(crate) fn is_stale(task: &Task, days: u64) -> bool {

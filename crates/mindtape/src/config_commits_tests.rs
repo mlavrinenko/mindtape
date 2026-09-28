@@ -11,6 +11,7 @@ fn record(refs: &[&str], tasks_only: bool) -> CommitRecord {
         refs: refs.iter().map(|r| (*r).to_owned()).collect(),
         files: vec!["src/lib.rs".to_owned()],
         tasks_only,
+        tasks: Vec::new(),
     }
 }
 
@@ -25,7 +26,7 @@ fn the_trailer_defaults_to_refs() {
 #[test]
 fn a_breach_carries_the_label_message_and_severity() {
     let config = parse_config(RULE).unwrap();
-    let breaches = check_commit(&record(&[], false), &config);
+    let breaches = check_commit(&record(&[], false), None, &config);
     assert_eq!(breaches.len(), 1);
     assert_eq!(breaches[0].label, "commits.rules.work-names-a-task");
     assert_eq!(breaches[0].message, "name it");
@@ -35,14 +36,14 @@ fn a_breach_carries_the_label_message_and_severity() {
 #[test]
 fn a_rule_holds_or_is_gated_out() {
     let config = parse_config(RULE).unwrap();
-    assert!(check_commit(&record(&["parser"], false), &config).is_empty());
-    assert!(check_commit(&record(&[], true), &config).is_empty());
+    assert!(check_commit(&record(&["parser"], false), None, &config).is_empty());
+    assert!(check_commit(&record(&[], true), None, &config).is_empty());
 }
 
 #[test]
 fn with_no_message_the_breach_names_the_assertion() {
     let config = parse_config("[[commits.rules]]\nassert = 'has(refs)'\n").unwrap();
-    let breaches = check_commit(&record(&[], false), &config);
+    let breaches = check_commit(&record(&[], false), None, &config);
     assert_eq!(breaches[0].label, "commits.rules[0]");
     assert_eq!(breaches[0].message, "must satisfy `has(refs)`");
 }

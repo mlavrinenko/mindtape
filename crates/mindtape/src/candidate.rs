@@ -240,18 +240,32 @@ pub fn harvest_candidate(
     config: &Config,
     candidate: Candidate<'_>,
 ) -> Result<Task, LoadError> {
-    let marker = eval_marker(root, config, candidate)?;
-    Ok(crate::loader::task_at(
-        root,
-        config,
-        candidate.rel,
-        &marker,
-        candidate.source,
-    ))
+    harvest_source(root, config, candidate)?.ok_or_else(|| LoadError {
+        file: candidate.rel.to_path_buf(),
+        message: "source harvested no task marker".to_owned(),
+    })
+}
+
+/// [`harvest_candidate`], reading a source with no task marker as no task
+/// rather than an error — how the loader reads a `.typ` beside the tasks that
+/// is not one. What a commit state's version of a file loads as
+/// ([`crate::commit_tasks`]).
+pub(crate) fn harvest_source(
+    root: &Path,
+    config: &Config,
+    candidate: Candidate<'_>,
+) -> Result<Option<Task>, LoadError> {
+    Ok(eval_marker(root, config, candidate)?.map(|marker| {
+        crate::loader::task_at(root, config, candidate.rel, &marker, candidate.source)
+    }))
 }
 
 /// Evaluate the candidate source and return its first `mindtape.task` marker.
-fn eval_marker(root: &Path, config: &Config, candidate: Candidate<'_>) -> Result<HVal, LoadError> {
+fn eval_marker(
+    root: &Path,
+    config: &Config,
+    candidate: Candidate<'_>,
+) -> Result<Option<HVal>, LoadError> {
     let fail = |message: String| LoadError {
         file: candidate.rel.to_path_buf(),
         message,
@@ -272,11 +286,10 @@ fn eval_marker(root: &Path, config: &Config, candidate: Candidate<'_>) -> Result
     let world = world.with_source_override(id, candidate.source);
 
     let harvested = harvest(&world).map_err(|err| fail(err.to_string()))?;
-    harvested
+    Ok(harvested
         .with_marker("mindtape.task")
         .next()
-        .map(|found| found.value.clone())
-        .ok_or_else(|| fail("source harvested no task marker".to_owned()))
+        .map(|found| found.value.clone()))
 }
 
 #[cfg(test)]

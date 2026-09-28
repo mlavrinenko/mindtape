@@ -130,6 +130,38 @@ pub(crate) fn call_args(children: &[Node<DefaultNumericTypes>]) -> Vec<&Node<Def
     }
 }
 
+/// The boolean connectives every expression walker shares — a root wrapper,
+/// `&&`, `||` and `!` — evaluating each child through `eval`. Both sides of a
+/// binary connective are evaluated, never short-circuited, so a load-time dry
+/// run reaches every call. `None` for any other node, which the caller
+/// evaluates itself.
+pub(crate) fn connective<E>(
+    node: &Node<DefaultNumericTypes>,
+    eval: &dyn Fn(&Node<DefaultNumericTypes>) -> Result<bool, E>,
+    invalid: fn(String) -> E,
+) -> Option<Result<bool, E>> {
+    let result = match (node.operator(), node.children()) {
+        (Operator::RootNode | Operator::Not, [child]) => {
+            let negate = matches!(node.operator(), Operator::Not);
+            eval(child).map(|value| value != negate)
+        }
+        (Operator::RootNode, _) => Err(invalid("root needs one child".to_owned())),
+        (Operator::Not, _) => Err(invalid("`!` needs one operand".to_owned())),
+        (Operator::And | Operator::Or, [left, right]) => {
+            let is_and = matches!(node.operator(), Operator::And);
+            eval(left).and_then(|left| {
+                let right = eval(right)?;
+                Ok(if is_and { left && right } else { left || right })
+            })
+        }
+        (Operator::And | Operator::Or, _) => {
+            Err(invalid("binary op needs two operands".to_owned()))
+        }
+        _ => return None,
+    };
+    Some(result)
+}
+
 /// Apply a comparison operator to a resolved ordering. `None` (incomparable
 /// operands) only satisfies `!=`, matching how a missing field or a
 /// type-mismatched comparison behaves elsewhere in both languages.

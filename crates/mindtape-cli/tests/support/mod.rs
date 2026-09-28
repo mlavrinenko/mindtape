@@ -396,3 +396,33 @@ pub fn project_with_task(title: &str) -> tempfile::TempDir {
     .unwrap();
     dir
 }
+
+/// A committed-clean repository holding one `wip` task, `parser`, with
+/// `rules` appended to its config — where every `mt check --commit-msg` test
+/// starts.
+pub fn commit_repo(rules: &str) -> tempfile::TempDir {
+    let dir = project_with_tasks(&[("parser.typ", "Write the parser")]);
+    let config = dir.path().join(".mindtape/config.toml");
+    let base = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(&config, format!("{base}\n{rules}")).unwrap();
+    git_commit_all(dir.path());
+    dir
+}
+
+/// `mt check --commit-msg` over `message`, as a hook would run it: its
+/// combined output, and whether it exited zero.
+pub fn check_commit_msg(dir: &Path, message: &str) -> (bool, String) {
+    let file = dir.join("COMMIT_MSG");
+    std::fs::write(&file, message).unwrap();
+    let out = mt(dir)
+        .args(["check", "--commit-msg"])
+        .arg(&file)
+        .output()
+        .unwrap();
+    let text = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    (out.status.success(), text)
+}

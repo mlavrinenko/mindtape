@@ -44,7 +44,7 @@ use evalexpr::{DefaultNumericTypes, Node, Operator, Value, build_operator_tree};
 use thiserror::Error;
 
 use crate::condition_env::{ColumnFacts, ConditionEnv};
-use crate::expr::{compare_ordering, extract_literal, unwrap_root};
+use crate::expr::{compare_ordering, connective, extract_literal, unwrap_root};
 use crate::numeric::format_num;
 
 /// A parsed, reusable condition expression. `None` is the always-matching
@@ -117,17 +117,14 @@ impl Condition {
 }
 
 fn eval_bool(node: &Node<DefaultNumericTypes>, env: &ConditionEnv) -> Result<bool, ConditionError> {
+    if let Some(result) = connective(
+        node,
+        &|child| eval_bool(child, env),
+        ConditionError::Invalid,
+    ) {
+        return result;
+    }
     match node.operator() {
-        Operator::RootNode => match node.children() {
-            [child] => eval_bool(child, env),
-            _ => Err(ConditionError::Invalid("root needs one child".to_owned())),
-        },
-        Operator::And => binary(node, env, |left, right| left && right),
-        Operator::Or => binary(node, env, |left, right| left || right),
-        Operator::Not => match node.children() {
-            [child] => Ok(!eval_bool(child, env)?),
-            _ => Err(ConditionError::Invalid("`!` needs one operand".to_owned())),
-        },
         Operator::Eq
         | Operator::Neq
         | Operator::Lt
@@ -142,19 +139,6 @@ fn eval_bool(node: &Node<DefaultNumericTypes>, env: &ConditionEnv) -> Result<boo
             value: Value::Boolean(flag),
         } => Ok(*flag),
         other => Err(ConditionError::Unsupported(format!("{other:?}"))),
-    }
-}
-
-fn binary(
-    node: &Node<DefaultNumericTypes>,
-    env: &ConditionEnv,
-    combine: impl Fn(bool, bool) -> bool,
-) -> Result<bool, ConditionError> {
-    match node.children() {
-        [left, right] => Ok(combine(eval_bool(left, env)?, eval_bool(right, env)?)),
-        _ => Err(ConditionError::Invalid(
-            "binary op needs two operands".to_owned(),
-        )),
     }
 }
 

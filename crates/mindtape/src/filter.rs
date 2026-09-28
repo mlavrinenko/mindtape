@@ -194,6 +194,7 @@ impl Filter {
                     readiness,
                     depth: 0,
                     dry,
+                    exists: None,
                 },
             ),
         }
@@ -250,9 +251,33 @@ pub(crate) struct Ctx<'a> {
     pub(crate) readiness: &'a Readiness,
     depth: usize,
     pub(crate) dry: bool,
+    /// Whether the task exists in the commit state being read — `Some` only
+    /// under a task-scope commit rule's `head(...)` / `staged(...)` /
+    /// `worktree(...)`, where `exists` means something.
+    pub(crate) exists: Option<bool>,
 }
 
 impl<'a> Ctx<'a> {
+    /// A context reading `task` as one commit state holds it
+    /// ([`crate::commit_task_expr`]): `exists` answers whether the state holds
+    /// the file at all, `readiness` is computed over that state's task set.
+    pub(crate) fn in_state(
+        task: &'a Task,
+        config: &'a Config,
+        readiness: &'a Readiness,
+        exists: bool,
+        dry: bool,
+    ) -> Self {
+        Ctx {
+            task,
+            config,
+            readiness,
+            depth: 0,
+            dry,
+            exists: Some(exists),
+        }
+    }
+
     /// The same context evaluating `task` instead — what `count` hands its
     /// argument for each task it counts.
     pub(crate) fn over<'b>(&self, task: &'b Task) -> Ctx<'b>
@@ -265,6 +290,8 @@ impl<'a> Ctx<'a> {
             readiness: self.readiness,
             depth: self.depth,
             dry: self.dry,
+            // Every task of a state's set is present in it.
+            exists: self.exists.map(|_| true),
         }
     }
 
@@ -276,6 +303,7 @@ impl<'a> Ctx<'a> {
             readiness: self.readiness,
             depth: self.depth + 1,
             dry: self.dry,
+            exists: self.exists,
         }
     }
 }
@@ -313,6 +341,7 @@ fn nullary(identifier: &str, ctx: &Ctx) -> Result<bool, FilterError> {
         "ready" => Ok(ctx.readiness.is_ready(ctx.task)),
         "blocked" => Ok(ctx.readiness.is_blocked(ctx.task)),
         "terminal" => Ok(ctx.task.is_terminal(&ctx.config.tasks.status.terminal())),
+        "exists" => crate::filter_predicates::exists(ctx),
         other => Err(FilterError::Invalid(format!(
             "bare field `{other}` is not boolean; use a comparison or function"
         ))),
@@ -339,6 +368,7 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
         "ready" => Ok(ctx.readiness.is_ready(task)),
         "blocked" => Ok(ctx.readiness.is_blocked(task)),
         "terminal" => Ok(task.is_terminal(&config.tasks.status.terminal())),
+        "exists" => crate::filter_predicates::exists(ctx),
         "in_view" => in_view(&single_literal(children, "in_view")?, ctx),
         "has" => Ok(present(task, &single_identifier(children, "has")?, config)?),
         "miss" => Ok(!present(

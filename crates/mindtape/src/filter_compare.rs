@@ -75,8 +75,13 @@ fn count(children: &[Node<DefaultNumericTypes>], ctx: &Ctx) -> Result<f64, Filte
     Ok(total)
 }
 
-/// The left side of a comparison, which must be a field or a `changed()`.
-fn left_operand(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<FieldValue, FilterError> {
+/// The left side of a comparison, which must be a field or a count — also
+/// what a task-scope commit rule's `staged(<field>)` resolves to
+/// ([`crate::commit_task_expr`]).
+pub(crate) fn left_operand(
+    node: &Node<DefaultNumericTypes>,
+    ctx: &Ctx,
+) -> Result<FieldValue, FilterError> {
     match operand(node, ctx)? {
         Some(value) => Ok(value),
         None => Err(FilterError::Invalid(
@@ -115,7 +120,11 @@ fn role_field(task: &Task, config: &Config, literal: &str) -> FieldValue {
 /// pair caps every task by construction, including the ones leaving the field
 /// unset. Pinned by `missing_field_is_unequal_to_every_literal` in
 /// `filter_tests.rs` — do not relax it without revisiting that rule.
-fn compare(op: &Operator<DefaultNumericTypes>, value: &FieldValue, literal: &str) -> bool {
+pub(crate) fn compare(
+    op: &Operator<DefaultNumericTypes>,
+    value: &FieldValue,
+    literal: &str,
+) -> bool {
     match value {
         FieldValue::Missing => matches!(op, Operator::Neq),
         FieldValue::Str(text) => compare_ordering(op, Some(text.as_str().cmp(literal))),
@@ -129,7 +138,7 @@ fn compare(op: &Operator<DefaultNumericTypes>, value: &FieldValue, literal: &str
 /// Compare two resolved values. A missing side follows the missing-field rule
 /// of [`compare`]; two numbers compare numerically; otherwise the right side's
 /// text stands in as the literal.
-fn compare_values(
+pub(crate) fn compare_values(
     op: &Operator<DefaultNumericTypes>,
     left: &FieldValue,
     right: &FieldValue,

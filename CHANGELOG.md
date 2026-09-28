@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Commit rules read the tasks a commit flips.** A commit rule saw only the
+  message and the staged paths, so a close landing apart from its work passed
+  unchecked. A `scope = "task"` rule runs per task the commit changes or
+  names, reading it through `head(...)`, `staged(...)` or `worktree(...)` —
+  any filter expression, `ready` and `count(...)` included, against that
+  state of the project — plus `exists`, `named`, and `into("s")` for a flip
+  into `s`. A bare task field is refused at load.
 - **A parent shows its children's progress and cannot close over open ones.**
   Nothing reported how far a parent's children had got, and `mt done <parent>`
   succeeded with children still open. Computed fields `children` (tasks whose

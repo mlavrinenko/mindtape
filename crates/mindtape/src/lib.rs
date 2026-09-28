@@ -24,6 +24,8 @@ pub mod canonical;
 pub mod children;
 pub mod commit_expr;
 pub mod commit_msg;
+pub mod commit_task_expr;
+pub mod commit_tasks;
 pub mod condition;
 pub mod condition_env;
 pub mod config;
@@ -123,6 +125,7 @@ pub use commit_msg::{
     ChangedFiles, CommitMessage, CommitMsgError, CommitRecord, RefProblem, TrailerValue,
     parse_message, staged_files,
 };
+pub use commit_tasks::{CommitStates, ProjectState, StatePlan, StateSource};
 pub use condition::{Condition, ConditionError};
 pub use condition_env::{ColumnFacts, ConditionEnv};
 pub use config::{

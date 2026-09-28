@@ -189,7 +189,7 @@ pub fn staged_files(root: &Path) -> Result<ChangedFiles, CommitMsgError> {
 }
 
 /// Run one read-only git command in `root` and return its stdout.
-fn git(root: &Path, args: &[&str]) -> Result<String, CommitMsgError> {
+pub(crate) fn git(root: &Path, args: &[&str]) -> Result<String, CommitMsgError> {
     let output = Command::new("git")
         .arg("--no-optional-locks")
         .arg("-C")
@@ -229,6 +229,9 @@ pub struct CommitRecord {
     /// `tasks_only`: the commit changes at least one file, and every one is a
     /// task file (a `.typ` under a `[tasks] roots` entry).
     pub tasks_only: bool,
+    /// The stems a `scope = "task"` rule runs for: every task file the commit
+    /// changes, then every ref, each once. Not an expression field.
+    pub tasks: Vec<String>,
 }
 
 impl CommitRecord {
@@ -262,18 +265,33 @@ impl CommitRecord {
                 .paths
                 .iter()
                 .all(|path| is_task_file(path, &changed.root_prefix, config));
+        let mut subjects: Vec<String> = changed
+            .paths
+            .iter()
+            .filter(|path| is_task_file(path, &changed.root_prefix, config))
+            .map(|path| value_stem(path))
+            .chain(refs.iter().cloned())
+            .collect();
+        dedup_keeping_order(&mut subjects);
         let record = Self {
             subject: message.subject.clone(),
             refs,
             files: changed.paths.clone(),
             tasks_only,
+            tasks: subjects,
         };
         (record, problems)
     }
 }
 
+/// Drop every repeat of an earlier entry.
+fn dedup_keeping_order(values: &mut Vec<String>) {
+    let mut seen = std::collections::HashSet::new();
+    values.retain(|value| seen.insert(value.clone()));
+}
+
 /// A task's stem: its file name without `.typ` — the identity a trailer names.
-fn task_stem(task: &Task) -> String {
+pub(crate) fn task_stem(task: &Task) -> String {
     task.file.file_stem().map_or_else(
         || task.id.clone(),
         |stem| stem.to_string_lossy().into_owned(),
@@ -311,7 +329,7 @@ fn ref_problem(value: &str, stem: &str, stems: &[String], key: &str) -> Option<S
 }
 
 /// Whether repository-relative `path` is a task file of this project.
-fn is_task_file(path: &str, root_prefix: &str, config: &Config) -> bool {
+pub(crate) fn is_task_file(path: &str, root_prefix: &str, config: &Config) -> bool {
     let Some(rel) = path.strip_prefix(root_prefix) else {
         return false;
     };

@@ -249,7 +249,19 @@ fn fires(
 /// left verbatim — the filter parser then reports it as an unknown function.
 #[must_use]
 pub fn desugar_into(when: &str, target: &str) -> String {
-    scan_into(when, target).rewritten
+    rewrite_into(when, |name| {
+        if name == target { ALWAYS } else { NEVER }.to_owned()
+    })
+}
+
+/// Rewrite every `into("name")` call in `when` into whatever `replace` makes
+/// of its name — the one scanner behind both [`desugar_into`] (a flip's
+/// constant) and a task-scope commit rule's state comparison
+/// ([`crate::commit_task_expr::desugar_commit_into`]). String literals pass
+/// through untouched, and `into` is recognised only as a whole identifier.
+#[must_use]
+pub fn rewrite_into(when: &str, replace: impl Fn(&str) -> String) -> String {
+    scan_into(when, &replace).rewritten
 }
 
 /// Every status named by an `into(...)` call in `when`, in source order (may
@@ -258,24 +270,24 @@ pub fn desugar_into(when: &str, target: &str) -> String {
 /// never fires.
 #[must_use]
 pub fn into_targets(when: &str) -> Vec<String> {
-    scan_into(when, "").targets
+    scan_into(when, &|_: &str| String::new()).targets
 }
 
 /// The result of one pass over a `when` expression.
 struct IntoScan {
-    /// `when` with every `into(...)` call replaced by a constant.
+    /// `when` with every `into(...)` call replaced.
     rewritten: String,
     /// The status names those calls referenced.
     targets: Vec<String>,
 }
 
-/// Single pass over `when`: rewrite `into(...)` calls against `target` and
+/// Single pass over `when`: rewrite `into(...)` calls through `replace` and
 /// collect the names they reference. String literals are copied through
 /// untouched, and `into` is only recognised as a whole identifier — `zinto("x")`
 /// and `into_view("x")` pass through.
-fn scan_into(when: &str, target: &str) -> IntoScan {
+fn scan_into(when: &str, replace: &dyn Fn(&str) -> String) -> IntoScan {
     let mut scan = IntoScan {
-        rewritten: String::with_capacity(when.len() + ALWAYS.len()),
+        rewritten: String::with_capacity(when.len()),
         targets: Vec::new(),
     };
     let mut cursor = 0;
@@ -288,8 +300,7 @@ fn scan_into(when: &str, target: &str) -> IntoScan {
             continue;
         }
         if !after_ident && let Some((name, len)) = parse_into_call(rest) {
-            scan.rewritten
-                .push_str(if name == target { ALWAYS } else { NEVER });
+            scan.rewritten.push_str(&replace(&name));
             scan.targets.push(name);
             cursor += len;
             after_ident = false;
