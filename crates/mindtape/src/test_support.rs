@@ -179,6 +179,25 @@ pub fn git_init(dir: &Path) {
     );
 }
 
+/// Run `git <args>` in `root` as a throwaway identity with signing off,
+/// asserting success — the committing half of [`git_init`] for tests that
+/// build a history.
+///
+/// # Panics
+/// Panics if git fails.
+#[allow(clippy::unwrap_used)]
+pub fn git_as_tester(root: &Path, args: &[&str]) {
+    let ok = Command::new("git")
+        .args(["-c", "user.name=t", "-c", "user.email=t@t"])
+        .args(["-c", "commit.gpgsign=false"])
+        .args(args)
+        .current_dir(root)
+        .status()
+        .unwrap()
+        .success();
+    assert!(ok, "git {args:?} must succeed");
+}
+
 /// A `links:` edge of `kind` to `target`, with no note — the common shape test
 /// fixtures need for readiness/cycle/resolution scenarios.
 #[must_use]

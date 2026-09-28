@@ -49,6 +49,9 @@
 //! field: `changed("staged", "src/**") <= estimate.files`. Either side of a
 //! comparison may name a field when the other is a field or a count.
 //!
+//! `touches("<path>")` matches a task named by the `[commits] trailer` of a
+//! commit that changed the repository-relative path (see [`crate::commit_refs`]).
+//!
 //! `count(<expr>)` is a count too: how many tasks of the whole loaded set
 //! match `<expr>`, each read as the task in context (see
 //! [`crate::filter_aggregate`]). `count(status == "wip") <= 1`.
@@ -115,11 +118,16 @@ pub enum FilterError {
     /// A structurally invalid expression.
     #[error("invalid filter: {0}")]
     Invalid(String),
-    /// `changed()` asked git and git could not answer — outside a
-    /// repository, or git missing. A `[[tasks.rules]]` entry reading it is
-    /// skipped rather than failed ([`crate::config_rules`]).
-    #[error("changed() cannot read git: {0}")]
-    Git(String),
+    /// `changed()` or `touches()` asked git and git could not answer —
+    /// outside a repository, or git missing. A `[[tasks.rules]]` entry
+    /// reading it is skipped rather than failed ([`crate::config_rules`]).
+    #[error("{call}() cannot read git: {reason}")]
+    Git {
+        /// The function that asked.
+        call: &'static str,
+        /// Why git could not answer.
+        reason: String,
+    },
 }
 
 impl Filter {
@@ -389,6 +397,7 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
             Ok(crate::filter_links::has_kind(task, &kind))
         }
         "contains" => contains_call(children, task, config),
+        "touches" => crate::filter_predicates::touches(children, ctx),
         "matches" => crate::filter_strings::matches_call(children, task, config),
         "in_dict" => crate::filter_strings::in_dict_call(children, task, config),
         "word" => Err(crate::filter_strings::word_is_not_boolean()),

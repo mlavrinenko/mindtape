@@ -139,7 +139,7 @@ struct Entry {
 }
 
 /// Whether the cache is switched off via [`DISABLE_ENV`].
-fn disabled() -> bool {
+pub(crate) fn disabled() -> bool {
     std::env::var_os(DISABLE_ENV).is_some_and(|value| !value.is_empty())
 }
 
@@ -234,7 +234,7 @@ fn is_build_key(name: &str) -> bool {
 /// Ensure `<cache_root>/.gitignore` ignores the whole cache, so no project ever
 /// tracks the scratch entries — cross-project, without an `mt init` edit or a
 /// root `.gitignore` line.
-fn ensure_ignored(cache_root: &Path) {
+pub(crate) fn ensure_ignored(cache_root: &Path) {
     let ignore = cache_root.join(".gitignore");
     if !ignore.exists() {
         let _ = crate::fs_atomic::write_atomic(&ignore, b"*\n");

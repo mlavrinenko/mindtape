@@ -38,6 +38,7 @@ fn envelope(applied: &Applied) -> Envelope<'_> {
     Envelope {
         applied,
         truncated: None,
+        retired: &[],
     }
 }
 
@@ -131,6 +132,7 @@ fn json_reports_a_truncated_listing_in_the_envelope() {
     let value = json_value(Some(Envelope {
         applied: &applied,
         truncated: Truncation::new(Some(10), 0, 47),
+        retired: &[],
     }));
     assert_eq!(value["truncated"]["shown"], 10);
     assert_eq!(value["truncated"]["total"], 47);
@@ -149,6 +151,7 @@ fn json_advances_next_skip_past_an_existing_skip() {
     let value = json_value(Some(Envelope {
         applied: &applied,
         truncated: Truncation::new(Some(20), 20, 143),
+        retired: &[],
     }));
     assert_eq!(value["truncated"]["shown"], 20);
     assert_eq!(value["truncated"]["next_skip"], 40);

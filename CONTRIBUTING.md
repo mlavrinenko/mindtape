@@ -115,7 +115,8 @@ feat(filter): evaluate expressions over live tasks
 Refs: <stem>
 ```
 
-MindTape tracks its own backlog as per-file task artifacts under `truth/tasks/` (dogfooding itself — see `.mindtape/config.toml`). Point `Refs:` at the driving task’s stem, not its path — a path breaks when a task moves. `.githooks/commit-msg` checks it (`mt check --commit-msg`). Architectural and tooling decisions are task artifacts too; the ADR process is retired.
+MindTape tracks its own backlog as per-file task artifacts under `truth/tasks/` (dogfooding itself — see `.mindtape/config.toml`). Point `Refs:` at the driving task’s stem, not its path — a path breaks when a task moves. `.githooks/commit-msg` checks it (`mt check --commit-msg`). The footer is how code finds its tasks: before editing a file, run `mt ls
+'touches("<path>")'` to read the tasks that shaped it. Architectural and tooling decisions are task artifacts too; the ADR process is retired.
 
 Commits that file or edit task artifacts themselves (and the backlog config in `.mindtape/config.toml`) carry no `Refs:` footer — a task commit refs nothing.
 

@@ -229,6 +229,7 @@ fn glob_set(patterns: &[&str]) -> Result<Option<GlobSet>, String> {
 pub struct GitCache {
     root: PathBuf,
     status: Arc<OnceLock<Result<GitStatus, String>>>,
+    refs: crate::commit_refs::RefsCache,
 }
 
 impl PartialEq for GitCache {
@@ -242,6 +243,7 @@ impl GitCache {
     pub fn set_root(&mut self, root: &Path) {
         self.root = root.to_owned();
         self.status = Arc::default();
+        self.refs = crate::commit_refs::RefsCache::default();
     }
 
     /// The root's git status, read at most once.
@@ -254,13 +256,35 @@ impl GitCache {
             .as_ref()
             .map_err(Clone::clone)
     }
+
+    /// The tasks the commits changing `path` name, `set` being the loaded
+    /// tasks when there are any — `touches()`'s answer, read from `git log`
+    /// at most once ([`crate::commit_refs`]).
+    ///
+    /// # Errors
+    /// Why git could not answer (see [`GitStatus::read`]).
+    pub(crate) fn touching(
+        &self,
+        path: &str,
+        config: &crate::config::Config,
+        set: Option<&[crate::model::Task]>,
+    ) -> Result<Arc<crate::commit_refs::Touched>, String> {
+        self.refs.touching(&self.root, path, config, set)
+    }
+
+    /// Every stem a `touches()` answer met that no loaded task answers to,
+    /// even through a rename: the retired tasks, sorted.
+    #[must_use]
+    pub(crate) fn retired_refs(&self) -> Vec<String> {
+        self.refs.retired()
+    }
 }
 
 /// Run one read-only git command in `root` and return its stdout.
 ///
 /// # Errors
 /// Git's own first stderr line on a non-zero exit, or why it could not start.
-fn git(root: &Path, args: &[&str]) -> Result<String, String> {
+pub(crate) fn git(root: &Path, args: &[&str]) -> Result<String, String> {
     let output = Command::new("git")
         .arg("--no-optional-locks")
         .arg("-C")

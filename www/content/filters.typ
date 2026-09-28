@@ -219,6 +219,30 @@ skipped — a warning whatever its `severity` — while a filter typed on the
 command line fails naming git's reason. The load-time dry run checks the
 state names and globs without running git.
 
+= Tasks that shaped a file
+
+`touches("<path>")` matches a task named by the
+#link(u("/config/"))[`[commits] trailer`] of any commit that changed `<path>`,
+relative to the repository root — which tasks shaped a file, asked before
+editing it:
+
+```sh
+mt ls 'touches("crates/mindtape/src/ready.rs")'
+```
+
+A trailer value resolves by its stem, whether written as a stem (`Refs:
+parser`) or as a path (`Refs: tasks/parser.typ`). A task `mt mv` renamed
+answers to its old stem through the renames git records under the task roots.
+A stem no loaded task answers to, even through a rename, belongs to a retired
+task: it matches nothing, and `mt ls --json` lists it in the envelope's
+`retired` key, for git archaeology.
+
+The first `touches()` of a command reads the whole history in one `git log`,
+and the index is cached in `.mindtape/cache/` until `HEAD` or the trailer key
+moves; a command that never calls it never runs git. Outside a git repository
+it fails naming git's reason, and a `[[tasks.rules]]` entry reading it is
+skipped, as with `changed()`.
+
 = Dependency predicates
 
 `ready` and `blocked` classify a non-terminal task by its `depends-on`

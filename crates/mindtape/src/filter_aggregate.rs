@@ -46,6 +46,11 @@ impl LoadedSet {
         }
     }
 
+    /// The loaded tasks; `None` with no set context.
+    pub(crate) fn tasks(&self) -> Option<&[Task]> {
+        self.tasks.as_deref()
+    }
+
     /// How many passes over the set have been made — one per distinct
     /// argument, however many tasks asked.
     #[cfg(test)]

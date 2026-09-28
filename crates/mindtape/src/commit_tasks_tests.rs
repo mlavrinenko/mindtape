@@ -1,22 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
-use std::path::Path;
-use std::process::Command;
-
 use super::{StatePlan, parse_batch, read_blobs};
-use crate::test_support::git_init;
-
-fn git(root: &Path, args: &[&str]) {
-    let ok = Command::new("git")
-        .args(["-c", "user.name=t", "-c", "user.email=t@t"])
-        .args(["-c", "commit.gpgsign=false"])
-        .args(args)
-        .current_dir(root)
-        .status()
-        .unwrap()
-        .success();
-    assert!(ok, "git {args:?} must succeed");
-}
+use crate::test_support::{git_as_tester as git, git_init};
 
 #[test]
 fn a_batch_splits_into_objects_and_misses_in_order() {

@@ -76,11 +76,45 @@ pub(crate) fn changed_count(
     if dry {
         return Ok(0.0);
     }
-    let git_status = config.git.status().map_err(FilterError::Git)?;
+    let git_status = config.git.status().map_err(|reason| FilterError::Git {
+        call: "changed",
+        reason,
+    })?;
     Ok(git_status
         .paths(states)
         .filter(|path| admitted.admits(path))
         .count() as f64)
+}
+
+/// `touches("<path>")`: whether a commit that changed the repository-relative
+/// `path` names the task in its trailer ([`crate::commit_refs`]). The dry run
+/// checks the argument and matches nothing without reading git.
+pub(crate) fn touches(
+    children: &[Node<DefaultNumericTypes>],
+    ctx: &Ctx,
+) -> Result<bool, FilterError> {
+    let args = call_args(children);
+    let [path] = args.as_slice() else {
+        return Err(FilterError::Invalid(
+            "touches() needs one path: touches(\"src/lib.rs\")".to_owned(),
+        ));
+    };
+    let path =
+        extract_literal(path).map_err(|err| FilterError::Invalid(format!("touches(): {err}")))?;
+    if ctx.dry {
+        return Ok(false);
+    }
+    let touched = ctx
+        .config
+        .git
+        .touching(&path, ctx.config, ctx.readiness.set().tasks())
+        .map_err(|reason| FilterError::Git {
+            call: "touches",
+            reason,
+        })?;
+    Ok(touched
+        .stems
+        .contains(&crate::commit_msg::task_stem(ctx.task)))
 }
 
 /// `exists`: whether the commit state being read holds the task's file at
@@ -215,3 +249,7 @@ fn joined_notes(task: &Task) -> String {
 #[cfg(test)]
 #[path = "filter_changed_tests.rs"]
 mod changed_tests;
+
+#[cfg(test)]
+#[path = "filter_touches_tests.rs"]
+mod touches_tests;

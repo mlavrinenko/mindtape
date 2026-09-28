@@ -288,6 +288,13 @@ impl Config {
         self.dict_cache.dicts()
     }
 
+    /// The stems this command's `touches()` calls met that no task answers
+    /// to, even through a rename — see [`crate::commit_refs`].
+    #[must_use]
+    pub fn retired_refs(&self) -> Vec<String> {
+        self.git.retired_refs()
+    }
+
     /// The view that drives the default `mt ls` listing when the caller passes
     /// no filter: `[ls] default-view` by name if set, else the implicit
     /// `[views.default]` view, else `None` (match-all). `Some` here supplies the

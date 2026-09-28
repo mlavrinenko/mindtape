@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`touches("<path>")` finds the tasks that shaped a file.** Which tasks a
+  file's commits served took `git log` and reading each `Refs:` trailer by
+  hand. The filter matches every task a trailer of a commit changing the path
+  names, a path-form value read by its stem and a stem `mt mv` renamed
+  followed through git's renames; a retired stem matches nothing and lands in
+  the `mt ls --json` envelope's new `retired` key. The index is one `git log`,
+  cached until `HEAD` moves, and nothing runs git unless a filter asks.
 - **The `mindtape-tasks` pack ships a `work-names-a-task` commit rule.** A
   commit rule pack had no opinion on commits at all, so adopting the flagship
   task practice said nothing about naming the task a commit works on.

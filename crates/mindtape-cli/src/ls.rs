@@ -87,9 +87,11 @@ pub(crate) fn run_with(args: &LsArgs, project: util::Project) -> Result<()> {
     let listing = resolve_and_select(args, project)?;
 
     let format = effective_format(args);
+    let retired = listing.config.retired_refs();
     let envelope = Envelope {
         applied: &listing.applied,
         truncated: listing.truncated,
+        retired: &retired,
     };
     let body = render(&listing.tasks, format, listing.render_ctx(), Some(envelope))?;
     if matches!(format, OutputFormat::Path0) {

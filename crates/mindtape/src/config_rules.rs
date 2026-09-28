@@ -275,7 +275,7 @@ impl CompiledRule {
             .map(|when| when.matches_with(task, config, readiness))
         {
             None | Some(Ok(true)) => true,
-            Some(Err(err @ FilterError::Git(_))) => return Err(err),
+            Some(Err(err @ FilterError::Git { .. })) => return Err(err),
             Some(Ok(false) | Err(_)) => false,
         };
         if !applies {
@@ -286,7 +286,7 @@ impl CompiledRule {
                 match filter.matches_with(task, config, readiness) {
                     Ok(true) => Vec::new(),
                     Ok(false) => vec![self.violation(task, advice.clone())],
-                    Err(err @ FilterError::Git(_)) => return Err(err),
+                    Err(err @ FilterError::Git { .. }) => return Err(err),
                     Err(err) => vec![self.violation(task, err.to_string())],
                 }
             }

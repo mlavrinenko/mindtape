@@ -81,14 +81,17 @@ impl Truncation {
 }
 
 /// The document-level envelope `mt ls --json` wraps its records in: which rule
-/// and view won each facet ([`Applied`]), and what `--limit` cut
-/// ([`Truncation`]). `mt eval --json` and the flip-hook table have neither
+/// and view won each facet ([`Applied`]), what `--limit` cut
+/// ([`Truncation`]), and the retired stems a `touches()` met. `mt eval --json` and the flip-hook table have neither
 /// context and pass `None` to [`render`], keeping the bare array —
 /// `schema_version` is an envelope marker, not a per-task field.
 #[derive(Debug, Clone, Copy)]
 pub struct Envelope<'a> {
     pub applied: &'a Applied,
     pub truncated: Option<Truncation>,
+    /// Every stem a `touches()` call met that no task answers to, even
+    /// through a rename ([`mindtape::config::Config::retired_refs`]).
+    pub retired: &'a [String],
 }
 
 fn status_name(task: &Task) -> String {
@@ -178,6 +181,7 @@ fn render_json(
             "tasks": array,
             "applied": applied_to_json(envelope.applied),
             "truncated": truncated_to_json(envelope.truncated),
+            "retired": envelope.retired,
         }),
         None => Value::Array(array),
     };

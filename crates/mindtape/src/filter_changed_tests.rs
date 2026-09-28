@@ -87,7 +87,7 @@ fn a_field_compared_to_an_absent_field_follows_the_missing_field_rule() {
 fn outside_a_repository_changed_fails_naming_the_reason() {
     let dir = tempfile::tempdir().unwrap();
     let err = eval(r#"changed("worktree") == 0"#, &config_at(dir.path())).unwrap_err();
-    assert!(matches!(err, FilterError::Git(_)), "{err:?}");
+    assert!(matches!(err, FilterError::Git { .. }), "{err:?}");
     assert!(err.to_string().contains("not a git repository"), "{err}");
 }
 

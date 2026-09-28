@@ -25,6 +25,7 @@ pub mod children;
 pub mod commit_expr;
 pub mod commit_msg;
 pub mod commit_range;
+pub mod commit_refs;
 pub mod commit_task_expr;
 pub mod commit_tasks;
 pub mod condition;

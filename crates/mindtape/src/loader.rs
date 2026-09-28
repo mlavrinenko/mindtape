@@ -13,7 +13,7 @@ use crate::model::Task;
 // documented `lib.rs` surface. `#[path]` keeps the file flat alongside
 // `loader.rs`, matching the sibling `*_tests.rs` convention.
 #[path = "cache.rs"]
-mod cache;
+pub(crate) mod cache;
 
 use cache::{Cached, TaskCache};
 

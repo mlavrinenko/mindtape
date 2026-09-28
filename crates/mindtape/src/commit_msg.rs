@@ -295,7 +295,7 @@ pub(crate) fn task_stem(task: &Task) -> String {
 }
 
 /// The stem a trailer value names: the value itself, or a path's file stem.
-fn value_stem(value: &str) -> String {
+pub(crate) fn value_stem(value: &str) -> String {
     Path::new(value).file_stem().map_or_else(
         || value.to_owned(),
         |stem| stem.to_string_lossy().into_owned(),

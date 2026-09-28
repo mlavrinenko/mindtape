@@ -1,10 +1,7 @@
 #![allow(clippy::unwrap_used)]
 
-use std::path::Path;
-use std::process::Command;
-
 use super::{GitCache, GitStatus, PathFilter, StateSet};
-use crate::test_support::git_init;
+use crate::test_support::{git_as_tester as git, git_init};
 
 /// `git status --porcelain -z` output, NUL-separated as git writes it.
 fn porcelain(records: &[&str]) -> String {
@@ -14,17 +11,6 @@ fn porcelain(records: &[&str]) -> String {
 fn paths(status: &GitStatus, spec: &str) -> Vec<String> {
     let set = StateSet::parse(spec).unwrap();
     status.paths(set).map(str::to_owned).collect()
-}
-
-fn git(root: &Path, args: &[&str]) {
-    let ok = Command::new("git")
-        .args(["-c", "user.name=t", "-c", "user.email=t@t"])
-        .args(args)
-        .current_dir(root)
-        .status()
-        .unwrap()
-        .success();
-    assert!(ok, "git {args:?} must succeed");
 }
 
 // --- state names -----------------------------------------------------------

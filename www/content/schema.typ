@@ -192,7 +192,8 @@ against the `learn-piano` fixture, so none of them can drift:
     + "}\n"
     + "    }\n"
     + "  },\n"
-    + "  \"truncated\": null\n"
+    + "  \"truncated\": null,\n"
+    + "  \"retired\": []\n"
     + "}",
   lang: "json",
   block: true,
@@ -222,6 +223,11 @@ whatever `--skip` this run already applied, so paging forward is `mt ls
 --skip <next_skip>` with everything else unchanged, never `shown` added to a
 `--skip` tracked by hand. The key is always present, never omitted, so
 reading it is one lookup rather than a test for existence.
+
+`retired` lists every stem a #link(u("/filters/"))[`touches()`] call met in a
+commit trailer that no loaded task answers to, even through a rename — the
+tasks `mt rm` retired, sorted. It is `[]` when no filter called `touches()`,
+and always present.
 
 `mt import` reads `schema_version` permissively: absent — a bare JSON array,
 or an envelope without the field, such as hand-written or `jq`-produced input
