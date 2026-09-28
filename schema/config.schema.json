@@ -1814,7 +1814,7 @@
     },
     "RuleSpec": {
       "additionalProperties": false,
-      "description": "`[[tasks.rules]]` — one assertion or check every selected task must\nsatisfy.\n\nExactly one of `assertion`/`check` is set on a rule that came through\n[`crate::config::load_config`] — [`validate_rules`] refuses both or\nneither at config load — but a hand-built `RuleSpec` (a test, or\n`parse_config` alone) can carry either combination, so\n[`CompiledRule::compile`] still treats it as a fact to check rather than an\ninvariant to assume.",
+      "description": "`[[tasks.rules]]` — one assertion or check every selected task must\nsatisfy.\n\nExactly one of `assertion`/`check` is set on a rule that came through\n[`crate::config::load_config`] — [`validate_rules`] refuses both or\nneither at config load — but a hand-built `RuleSpec` (a test, or\n`parse_config` alone) can carry either combination, so\n[`eval::CompiledRule::compile`] still treats it as a fact to check rather than an\ninvariant to assume.",
       "properties": {
         "assert": {
           "default": null,
