@@ -73,6 +73,29 @@ fn describe_json_emits_slot_schema() {
     );
 }
 
+/// `mt add --list` prints the template stems and stops: no template is
+/// resolved, no slot is filled, nothing is written.
+#[test]
+fn list_prints_template_stems_and_stops() {
+    let dir = tempfile::tempdir().unwrap();
+    support::scaffold(dir.path());
+
+    let output = support::mt(dir.path())
+        .args(["add", "--list"])
+        .assert()
+        .success()
+        .get_output()
+        .clone();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.lines().any(|line| line == "task"), "{stdout}");
+    assert!(
+        std::fs::read_dir(dir.path().join("tasks"))
+            .unwrap()
+            .next()
+            .is_none()
+    );
+}
+
 #[test]
 fn collision_is_a_hard_error() {
     let dir = tempfile::tempdir().unwrap();

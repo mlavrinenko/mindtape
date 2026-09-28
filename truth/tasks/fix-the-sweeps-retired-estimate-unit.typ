@@ -31,7 +31,7 @@
     2026,
     9,
     28,
-  )[the four arms emit src-files; \`mt add --print\` now runs the write's pre-write check, locked by a test],
+  )[the four arms emit src-files; \`mt add --print\` runs the write's check; \`add --list\` covered, holding the CRAP ratchet],
 )
 
 == Problem
