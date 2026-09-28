@@ -4,10 +4,11 @@
 //! Three steps, each separable from where its input came from:
 //!
 //! - [`parse_message`] reads a message's text — a hook's message file today,
-//!   a past commit's `%B` for a commit range later — into its subject and the
+//!   a past commit's `%B` for a commit range — into its subject and the
 //!   values of the configured trailer.
 //! - [`staged_files`] reads the index with git; the paths a past commit
-//!   changed come in the same [`ChangedFiles`] shape.
+//!   changed come in the same [`ChangedFiles`] shape
+//!   ([`crate::commit_range`]).
 //! - [`CommitRecord::build`] joins the two against the loaded tasks: trailer
 //!   values become stems, and a value that is a path or names no task becomes
 //!   a [`RefProblem`] instead — refused whatever rules a project declares,
@@ -163,29 +164,24 @@ pub fn staged_files(root: &Path) -> Result<ChangedFiles, CommitMsgError> {
         CommitMsgError::Git { .. } => CommitMsgError::NotGit(root.display().to_string()),
         other => other,
     })?;
-    let listing = git(
-        root,
-        &[
-            "diff",
-            "--cached",
-            "--name-only",
-            "--no-renames",
-            "--no-relative",
-            "-z",
-            "--",
-            // Top-level-relative whatever the root's prefix is, so `files`
-            // reads the same from any project inside the repository.
-            ":/",
-        ],
-    )?;
     Ok(ChangedFiles {
-        paths: listing
-            .split('\0')
-            .filter(|path| !path.is_empty())
-            .map(ToOwned::to_owned)
-            .collect(),
+        paths: changed_paths(root, &["--cached"])?,
         root_prefix: root_prefix.trim().to_owned(),
     })
+}
+
+/// The repository-relative paths `git diff <revs>` names: renames split into
+/// their two sides, top-level-relative whatever the root's prefix is, so
+/// `files` reads the same from any project inside the repository.
+pub(crate) fn changed_paths(root: &Path, revs: &[&str]) -> Result<Vec<String>, CommitMsgError> {
+    let mut args = vec!["diff", "--name-only", "--no-renames", "--no-relative", "-z"];
+    args.extend_from_slice(revs);
+    args.extend_from_slice(&["--", ":/"]);
+    Ok(git(root, &args)?
+        .split('\0')
+        .filter(|path| !path.is_empty())
+        .map(ToOwned::to_owned)
+        .collect())
 }
 
 /// Run one read-only git command in `root` and return its stdout.

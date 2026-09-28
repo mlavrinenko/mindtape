@@ -5,7 +5,9 @@
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
-use mindtape::{CommitRecord, CommitStates, StatePlan, check_commit, parse_message, staged_files};
+use mindtape::{
+    CommitBreach, CommitRecord, CommitStates, StatePlan, check_commit, parse_message, staged_files,
+};
 
 use crate::util;
 
@@ -24,16 +26,40 @@ fn task_states(project: &util::Project) -> Result<Option<CommitStates>> {
         &plan,
     )
     .context("--commit-msg reads the staged and HEAD task files")?;
+    warn_state_errors(&states, "");
+    Ok(Some(states))
+}
+
+/// Report every task file a state holds but cannot evaluate, each line led
+/// by `indent`.
+pub(crate) fn warn_state_errors(states: &CommitStates, indent: &str) {
     for (name, state) in [("HEAD", &states.head), ("staged", &states.staged)] {
         for error in &state.errors {
             println!(
-                "warn: {} as {name}: {}",
+                "{indent}warn: {} as {name}: {}",
                 error.file.display(),
                 error.message
             );
         }
     }
-    Ok(Some(states))
+}
+
+/// A breach's rule, task and advice: `commits.rules.<name>: <stem>: <message>`.
+pub(crate) fn breach_text(breach: &CommitBreach) -> String {
+    let task = breach
+        .task
+        .as_deref()
+        .map(|stem| format!("{stem}: "))
+        .unwrap_or_default();
+    format!("{}: {task}{}", breach.label, breach.message)
+}
+
+/// How many of `breaches` fail the check.
+pub(crate) fn failing(breaches: &[CommitBreach]) -> usize {
+    breaches
+        .iter()
+        .filter(|breach| breach.severity.is_error())
+        .count()
 }
 
 /// Check the message in `file` and the index it will be committed with.
@@ -58,23 +84,13 @@ pub(crate) fn run(project: &util::Project, file: &Path, quiet: bool) -> Result<(
     let states = task_states(project)?;
     let breaches = check_commit(&record, states.as_ref(), &project.config);
     for breach in &breaches {
-        let task = breach
-            .task
-            .as_deref()
-            .map(|stem| format!("{stem}: "))
-            .unwrap_or_default();
         println!(
-            "{}: {shown}: {}: {task}{}",
+            "{}: {shown}: {}",
             breach.severity.label(),
-            breach.label,
-            breach.message
+            breach_text(breach)
         );
     }
-    let failures = ref_problems.len()
-        + breaches
-            .iter()
-            .filter(|breach| breach.severity.is_error())
-            .count();
+    let failures = ref_problems.len() + failing(&breaches);
     if failures > 0 {
         bail!("{failures} commit message problem(s)");
     }

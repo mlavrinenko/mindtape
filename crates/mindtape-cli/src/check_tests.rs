@@ -90,7 +90,7 @@ fn quiet_suppresses_ok_summary_on_clean_run() {
             &project,
             &super::CheckArgs {
                 quiet: true,
-                commit_msg: None,
+                ..Default::default()
             }
         )
         .is_ok()
@@ -127,7 +127,7 @@ fn quiet_still_reports_violations_on_failing_run() {
             &project,
             &super::CheckArgs {
                 quiet: true,
-                commit_msg: None,
+                ..Default::default()
             }
         )
         .is_err()

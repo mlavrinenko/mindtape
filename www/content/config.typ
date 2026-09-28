@@ -747,6 +747,31 @@ error: .git/COMMIT_EDITMSG: commits.rules.flip-with-work: parser: start or close
 `when = 'worktree(status) != staged(status)'` catches a flip left unstaged
 beside the work it names.
 
+== Checking a range
+
+A hook is one `--no-verify` away from skipped, so CI checks the commits a push
+carries again: `mt check --commits <range>` holds every commit `git rev-list`
+lists for the range, oldest first, to the same trailer check and rules.
+
+```sh
+mt check --commits origin/main..HEAD
+```
+
+Each commit reads against its first parent only, a merge included: `subject`
+and `refs` come from its message, `files` from what it changes against that
+parent, `staged(...)` from its tree and `head(...)` from the parent's. A
+trailer resolves against the tasks the commit holds. A past commit has no
+working tree, so a rule calling `worktree(...)` or `changed(...)` is skipped,
+and said so once. Only a commit with something to report is listed, its
+lines indented beneath it:
+
+```
+skip: commits.rules.flip-unstaged: reads the working tree, which a past commit has none of
+a1b2c3d task: close the parser
+  error: commits.rules.flip-with-work: parser: start or close a task in a commit that carries its work
+Error: 1 commit(s) broke commit rules
+```
+
 = Review comments
 
 `[tasks.comments]` polices leftover review notes left in a task's whole source

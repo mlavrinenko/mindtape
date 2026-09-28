@@ -24,6 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The commit-rules step below reads the pushed range, whose base a
+          # depth-1 clone lacks.
+          fetch-depth: 0
       - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
       - uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7
         with:
@@ -38,6 +42,31 @@ jobs:
       # Same dev shell as local development, so CI and `just check` match.
       - name: Check
         run: nix develop --command just check
+
+      # The commit-msg hook is one `--no-verify` away from skipped, so the
+      # commits it guards are held to `[[commits.rules]]` again here: a push
+      # checks what it pushed, a PR its own commits. Nothing earlier is read —
+      # history is never rewritten, so re-judging it could only fail forever.
+      # FLOOR bounds a range from below, so history up to it — path-form
+      # `Refs:` trailers the trailer check refuses — stays exempt even when one
+      # push carries it; the switch to stem trailers moves it to its own
+      # commit (truth/tasks/migrate-this-repos-refs-trailers-to-stems.typ). A
+      # new branch (`before` all zeros), `workflow_dispatch` and a force-push
+      # whose `before` is gone have no range and skip, saying so.
+      - name: Commit rules (pushed range)
+        env:
+          FLOOR: 7af7f700a92443230f25d3124bffacbabb97c640
+          BEFORE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          AFTER: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [ -z "$BEFORE" ] || [ -z "${BEFORE//0/}" ] || ! git cat-file -e "$BEFORE^{commit}"; then
+            echo "::notice::no pushed range to check commit rules over"
+            exit 0
+          fi
+          if ! git merge-base --is-ancestor "$FLOOR" "$BEFORE"; then
+            BEFORE=$FLOOR
+          fi
+          nix develop --command mt check --commits "$BEFORE..$AFTER"
 
       # `rrule` is off by default, so the step above never compiles
       # `crates/mindtape/src/recur_rrule.rs` — without this one nothing does,

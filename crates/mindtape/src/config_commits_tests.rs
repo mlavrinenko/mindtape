@@ -70,3 +70,21 @@ fn validation_names_each_unusable_expression() {
 fn a_rule_needs_an_assertion() {
     assert!(parse_config("[[commits.rules]]\nname = \"a\"\n").is_err());
 }
+
+#[test]
+fn a_rule_calling_worktree_or_changed_reads_the_working_tree() {
+    let config = parse_config(
+        "[[commits.rules]]\nscope = \"task\"\nwhen = 'worktree(status) != staged(status)'\n\
+         assert = 'miss(refs)'\n\
+         [[commits.rules]]\nscope = \"task\"\nassert = 'staged(changed(\"staged\") == 0)'\n\
+         [[commits.rules]]\nscope = \"task\"\nwhen = 'into(\"done\")'\nassert = 'named'\n",
+    )
+    .unwrap();
+    let reads: Vec<bool> = config
+        .commits
+        .rules
+        .iter()
+        .map(super::CommitRuleSpec::reads_worktree)
+        .collect();
+    assert_eq!(reads, [true, true, false]);
+}

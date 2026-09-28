@@ -117,6 +117,11 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
         Source::None("`text` or `json`, a literal of this flag's own and not a project value"),
     ),
     ("check", "commit_msg", Source::FilePath),
+    (
+        "check",
+        "commits",
+        Source::None("a git revision range, which no project value predicts"),
+    ),
     ("import", "input", Source::FilePath),
     ("import", "into", Source::DirPath),
     (

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt check --commits <range>` holds past commits to the commit rules.** The
+  commit-msg check ran only from a hook, so `git commit --no-verify` landed a
+  commit no rule ever saw. Every commit of the range is checked against its
+  first parent, a merge included — message, changed files, and the task
+  versions of both trees — with trailers resolved against the tasks the
+  commit holds. A rule reading `worktree(...)` or `changed(...)` is skipped
+  and reported. CI runs it over each pushed range.
 - **Commit rules read the tasks a commit flips.** A commit rule saw only the
   message and the staged paths, so a close landing apart from its work passed
   unchecked. A `scope = "task"` rule runs per task the commit changes or

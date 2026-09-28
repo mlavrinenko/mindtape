@@ -20,8 +20,15 @@ pub struct CheckArgs {
     /// checking tasks: its task trailers must name live tasks by stem, and
     /// the index must pass every rule. Made for a `commit-msg` hook:
     /// `mt check --commit-msg "$1"`.
-    #[arg(long, value_name = "FILE")]
+    #[arg(long, value_name = "FILE", conflicts_with = "commits")]
     pub commit_msg: Option<std::path::PathBuf>,
+    /// Check every commit of a git range against `[[commits.rules]]` instead
+    /// of checking tasks, each against its first parent: its task trailers
+    /// must name tasks it holds, and it must pass every rule. A rule reading
+    /// the working tree is skipped and reported. Made for CI:
+    /// `mt check --commits origin/main..HEAD`.
+    #[arg(long, value_name = "RANGE")]
+    pub commits: Option<String>,
 }
 
 /// Run the `check` command.
@@ -35,6 +42,9 @@ pub fn run(args: &CheckArgs) -> Result<()> {
 pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> {
     if let Some(file) = &args.commit_msg {
         return crate::check_commit::run(project, file, args.quiet);
+    }
+    if let Some(range) = &args.commits {
+        return crate::check_range::run(project, range, args.quiet);
     }
     util::warn_errors(&project.outcome);
 

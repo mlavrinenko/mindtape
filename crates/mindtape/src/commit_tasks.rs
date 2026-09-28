@@ -11,8 +11,9 @@
 //! Where a state's versions come from is a [`StateSource`]: a git revision and
 //! the paths it may differ at. [`StatePlan::index`] builds the hook's plan —
 //! the index as `staged`, `HEAD` as `head`, the working tree kept. A plan for
-//! a past commit swaps the sources (the commit as `staged`, its first parent
-//! as `head`, no working tree) and loads through the same [`CommitStates::load`].
+//! a past commit ([`crate::commit_range`]) swaps the sources — the commit as
+//! `staged`, its first parent as `head`, no working tree — and loads through
+//! the same [`CommitStates::load`].
 
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};

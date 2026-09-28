@@ -279,7 +279,8 @@ bounds, link resolution, dependency cycles — and exits non-zero naming each
 violation; #link(u("/concepts/"))[Concepts] owns the two layers that enforce a
 task, and #link(u("/config/"))[Configuration] the bounds and rules themselves.
 `mt check --commit-msg <file>` checks a commit message instead, from a
-`commit-msg` hook, against #link(u("/config/"))[Configuration]'s commit rules.
+`commit-msg` hook, against #link(u("/config/"))[Configuration]'s commit rules;
+`mt check --commits <range>` checks every commit of a range, from CI.
 `mt config show` prints the effective merged config as re-parseable TOML, and
 `--origin` names the layers behind it.
 

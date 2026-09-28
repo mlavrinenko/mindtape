@@ -105,6 +105,16 @@ impl CommitExpr {
         })
     }
 
+    /// Whether the expression calls the function `name` anywhere, nested
+    /// calls included.
+    #[must_use]
+    pub fn calls(&self, name: &str) -> bool {
+        self.tree.as_ref().is_some_and(|tree| {
+            tree.iter_function_identifiers()
+                .any(|identifier| restore_name(identifier) == name)
+        })
+    }
+
     fn eval(&self, env: Env<'_>) -> Result<bool, FilterError> {
         self.tree
             .as_ref()

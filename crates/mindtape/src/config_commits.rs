@@ -129,6 +129,19 @@ impl CommitRuleSpec {
             None => format!("commits.rules[{index}]"),
         }
     }
+
+    /// Whether the rule reads the working tree: `worktree(...)`, or
+    /// `changed(...)`, whose git states are the checkout's own. A past
+    /// commit has neither, so a range check skips the rule.
+    #[must_use]
+    pub fn reads_worktree(&self) -> bool {
+        let rule = Rule::parse(self);
+        [rule.when.as_ref(), Some(&rule.assertion)]
+            .into_iter()
+            .flatten()
+            .filter_map(|expr| expr.as_ref().ok())
+            .any(|expr| expr.calls("worktree") || expr.calls("changed"))
+    }
 }
 
 /// One breached commit rule.
@@ -146,7 +159,9 @@ pub struct CommitBreach {
 
 /// Evaluate every `[[commits.rules]]` entry over `commit`, in config order —
 /// a `scope = "task"` rule once per task in [`CommitRecord::tasks`], reading
-/// `states`. With no `states` the task rules are not run.
+/// `states`. With no `states` the task rules are not run; with no working
+/// tree among them, a rule that [reads it](CommitRuleSpec::reads_worktree)
+/// is not run.
 ///
 /// A `when` that fails to evaluate excludes the commit; an `assert` that
 /// fails to evaluate is a breach naming the failure — the same reading
@@ -159,7 +174,11 @@ pub fn check_commit(
     config: &Config,
 ) -> Vec<CommitBreach> {
     let mut breaches = Vec::new();
+    let no_worktree = states.is_none_or(|states| states.worktree.is_none());
     for (index, spec) in config.commits.rules.iter().enumerate() {
+        if no_worktree && spec.reads_worktree() {
+            continue;
+        }
         let rule = Rule::parse(spec);
         match spec.scope {
             CommitScope::Commit => {
