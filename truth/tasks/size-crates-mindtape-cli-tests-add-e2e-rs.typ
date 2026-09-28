@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 28),
+  status: done(
+    2026,
+    9,
+    28,
+  )[moved the markup cluster (escaping, raw splicing, raw-parse refusal, describe kind) into add\_markup\_e2e.rs; add\_e2e.rs 465->372, linecop clear],
 )
 
 == Problem
