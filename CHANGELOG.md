@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The `mindtape-tasks` pack ships a `work-names-a-task` commit rule.** A
+  commit rule pack had no opinion on commits at all, so adopting the flagship
+  task practice said nothing about naming the task a commit works on.
+  `extends = ["mindtape-tasks"]` now also requires `Refs: <stem>` on any
+  commit that isn't itself a task-only edit, at `severity = "error"`.
 - **`mt check --commits <range>` holds past commits to the commit rules.** The
   commit-msg check ran only from a hook, so `git commit --no-verify` landed a
   commit no rule ever saw. Every commit of the range is checked against its
