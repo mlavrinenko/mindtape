@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 27),
+  status: wip(2026, 9, 28),
   links: depends-on("check-commit-messages-against-commit-rules.typ"),
 )
 
