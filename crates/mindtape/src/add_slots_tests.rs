@@ -205,12 +205,47 @@ fn required_assignee_yields_env_backed_plain_slot() {
     let config = parse_config("[tasks.assignee]\nrequired = true\n").unwrap();
     let slot = single(&config);
     assert_eq!(slot.field, "assignee");
+    assert_eq!(slot.config_path, "[tasks.assignee]");
+    assert_eq!(slot.env, Some("MINDTAPE_PRINCIPAL"));
+    assert_eq!(slot.default, None);
     assert!(
         slot.call.contains(r#"env: "MINDTAPE_PRINCIPAL""#),
         "{}",
         slot.call
     );
     assert!(!slot.call.contains("kind: \"choice\""), "{}", slot.call);
+}
+
+/// The kind slot's config default is carried out so a CLI can tell a
+/// default-filled value from a hand-supplied one; the env-backed assignee slot
+/// names its environment; and the rest expose neither.
+#[test]
+fn required_slots_carry_their_resolution() {
+    let config = parse_config(
+        "[tasks.priority]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n\
+         [tasks.difficulty]\nkind = \"int\"\nmin = 0\nmax = 9\nrequired = true\n\
+         [tasks.fields.kind]\nvalues = [\"feature\"]\nrequired = true\ndefault = \"feature\"\n\
+         [tasks.assignee]\nrequired = true\n\
+         [tasks.estimate]\nrequired = true\n",
+    )
+    .unwrap();
+    let slots = required_core_slots(&config);
+    let slot = |field: &str| {
+        slots
+            .iter()
+            .find(|slot| slot.field == field)
+            .unwrap_or_else(|| panic!("{field} is required"))
+    };
+    assert_eq!(slot("kind").default.as_deref(), Some("\"feature\""));
+    assert_eq!(slot("kind").config_path, "[tasks.fields.kind]");
+    assert_eq!(slot("assignee").env, Some("MINDTAPE_PRINCIPAL"));
+    for field in ["priority", "difficulty", "estimate"] {
+        assert_eq!(slot(field).env, None, "{field}");
+        assert_eq!(slot(field).default, None, "{field}");
+    }
+    assert_eq!(slot("priority").config_path, "[tasks.priority]");
+    assert_eq!(slot("difficulty").config_path, "[tasks.difficulty]");
+    assert_eq!(slot("estimate").config_path, "[tasks.estimate]");
 }
 
 #[test]

@@ -109,6 +109,13 @@ values you generate (one payload, no shell quoting), `--set k=v`, `k+=v` (list
 append) and `k@path` (read a file) for values you type. An unknown or unfilled
 slot is a hard error naming the slot.
 
+After the fill, `mt add` prints a `note:` to stderr for each config-required
+core field the template did not declare and you did not set: the field, its
+value, where it came from (`[tasks.assignee]` env `MINDTAPE_PRINCIPAL`,
+`[tasks.fields.kind]` default, or a config-spliced slot), and the
+`--set <field>=<value>` that overrides it. Stdout stays clean for `--print`
+and `--format json`.
+
 `--describe` cannot show three slot semantics, each of which silently yields a
 wrong task: token keys are slot names (a framework priority's slots are its
 leaves, never `priority`), a `list` slot needs `name+=value`, and `text` slots

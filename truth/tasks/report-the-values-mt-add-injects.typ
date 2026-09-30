@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 28),
+  status: done(
+    2026,
+    9,
+    30,
+  )[\`mt add\` now prints a stderr note per config-spliced core field the caller did not set, naming the value, its origin (\`\[tasks.assignee\]\` env \`MINDTAPE\_PRINCIPAL\`, \`\[tasks.fields.kind\]\` default, or a spliced slot) and the \`--set \<field>=\<value>\` override; std documented in SKILL.md],
 )
 
 == Problem

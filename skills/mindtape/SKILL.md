@@ -52,6 +52,8 @@ Fields: `status priority difficulty kind title id due start reviewed path assign
 
 `mt add <title…>` seeds the title and filename slug, writes under the first root, and validates before writing. `--describe` shows the template’s slots, `--list` the templates, `--print` previews; `-f -` with YAML is the channel for values you generate (one payload, no shell quoting), `--set k=v`, `k+=v` (list append) and `k@path` (read a file) for values you type. An unknown or unfilled slot is a hard error naming the slot.
 
+After the fill, `mt add` prints a `note:` to stderr for each config-required core field the template did not declare and you did not set: the field, its value, where it came from (`[tasks.assignee]` env `MINDTAPE_PRINCIPAL`, `[tasks.fields.kind]` default, or a config-spliced slot), and the `--set <field>=<value>` that overrides it. Stdout stays clean for `--print` and `--format json`.
+
 `--describe` cannot show three slot semantics, each of which silently yields a wrong task: token keys are slot names (a framework priority’s slots are its leaves, never `priority`), a `list` slot needs `name+=value`, and `text` slots are markup-escaped while `raw` slots splice live. Read `references/add-slots.md` before filling an unfamiliar template.
 
 `mt import` files a whole backlog from canonical task-JSON (`mt ls --json`’s schema). Its two silent sharp edges — the stem comes from `title`, not `id`, and intra-batch `links` resolve only backwards — are in `references/import.md`; read it before the first batch.

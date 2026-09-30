@@ -7,7 +7,7 @@
 //! always been separable; validation sits between them, so a rejected add
 //! leaves nothing on disk for the next command to trip over.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
 use std::io::{IsTerminal, Read, Write as _};
 use std::path::Path;
@@ -15,8 +15,8 @@ use std::path::Path;
 use anyhow::{Context, Result, anyhow};
 use clap::Args;
 use mindtape::{
-    Config, RawValue, SlotKind, SlotSpec, discover_slots, escape_markup, fill, status_value,
-    today_ymd,
+    Config, RawValue, RequiredSlot, SlotKind, SlotSpec, discover_slots, escape_markup, fill,
+    status_value, today_ymd,
 };
 use typst_edit::apply;
 
@@ -35,6 +35,10 @@ use crate::util;
 mod target;
 pub(crate) use target::{dest_dir, warn_if_outside_roots};
 use target::{output_stem, resolve_outcome};
+
+#[path = "add_notes.rs"]
+mod add_notes;
+use add_notes::report_injected;
 
 /// Arguments for `mt add`.
 // A clap flag struct: each `--flag` is an independent boolean toggle.
@@ -143,7 +147,8 @@ pub fn run(args: &AddArgs) -> Result<()> {
         .clone()
         .unwrap_or_else(|| config.templates.default.clone());
     let source = resolve_template(config, &project.root, &template_name)?;
-    let source = inject_required_slots(&source, config)?;
+    let needed = mindtape::required_core_slots(config);
+    let (source, injected) = inject_required_slots(&source, &needed)?;
 
     if let Some(format) = &args.describe {
         let specs = discover_slots(&source);
@@ -152,10 +157,17 @@ pub fn run(args: &AddArgs) -> Result<()> {
     }
 
     let mut values = collect_values(&args.values, &args.set, &args.tokens)?;
+    let explicit: BTreeSet<String> = values.keys().cloned().collect();
     let specs = discover_slots(&source);
     reject_unknown_keys(&values, &specs)?;
     fill_title_from_args(&mut values, args, &specs);
+    let before_env: BTreeSet<String> = values.keys().cloned().collect();
     layer_env(&mut values, &specs, |key| std::env::var(key).ok());
+    let env_keys: BTreeSet<String> = values
+        .keys()
+        .filter(|key| !before_env.contains(*key))
+        .cloned()
+        .collect();
     fill_title_from_stdin(&mut values, args)?;
     let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
     let interactive = add_interactive::should_open(args.edit, &config.add, &specs, &values, tty)?;
@@ -166,6 +178,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
         fill(&source, &markup_safe(&values, &specs)).map_err(|err| anyhow!(err.to_string()))?;
     let filled = inject_header(&filled, config, args.status.as_deref())?;
     let filled = util::canonical_source(config, filled);
+    report_injected(&filled, &injected, &explicit, &env_keys)?;
 
     // Resolve the path the write would land at before the `--print` return:
     // it is the candidate the pre-write check validates, and a preview must
@@ -335,22 +348,30 @@ fn kept_note(file: &Path) -> String {
 /// written task. A field already set by the template (literal or slot) is left
 /// untouched. Runs before discovery, so a spliced value may itself nest slots —
 /// a strict-framework priority splices `framework("ice", impact: slot(…), …)`.
-fn inject_required_slots(source: &str, config: &Config) -> Result<String> {
-    let needed = mindtape::required_core_slots(config);
+///
+/// Returns the fields actually spliced (the template omitted them), so the
+/// caller can report the values it filled that the template never mentioned.
+fn inject_required_slots(
+    source: &str,
+    needed: &[RequiredSlot],
+) -> Result<(String, Vec<RequiredSlot>)> {
     if needed.is_empty() {
-        return Ok(source.to_owned());
+        return Ok((source.to_owned(), Vec::new()));
     }
     let call = task_with(source)?;
     let mut edits = Vec::new();
-    for slot in &needed {
+    let mut injected = Vec::new();
+    for slot in needed {
         if call.named(slot.field).is_none() {
             edits.push(upsert_named_arg(source, &call, slot.field, &slot.call)?);
+            injected.push(slot.clone());
         }
     }
     if edits.is_empty() {
-        return Ok(source.to_owned());
+        return Ok((source.to_owned(), Vec::new()));
     }
-    apply(source, edits).map_err(|err| anyhow!(err.to_string()))
+    let spliced = apply(source, edits).map_err(|err| anyhow!(err.to_string()))?;
+    Ok((spliced, injected))
 }
 
 /// Inject the add-owned `status` (and `id` when the config generates one) into

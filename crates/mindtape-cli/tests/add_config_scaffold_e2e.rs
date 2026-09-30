@@ -9,6 +9,8 @@
 //! and exports `CARGO_BIN_EXE_mt`, a guarantee `--lib` unit tests don't get.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
+use std::path::Path;
+
 mod support;
 
 /// A config whose `[tasks.priority]` is required: the barebones template omits
@@ -344,4 +346,94 @@ fn print_refuses_the_fill_a_write_would_refuse() {
         !dir.path().join("tasks/under-cap.typ").exists(),
         "--print never writes"
     );
+}
+
+/// A config whose `[tasks.assignee]` is required with a declared allowed list,
+/// so the injected value must be a real actor. `$MINDTAPE_PRINCIPAL` fills it
+/// when the caller says nothing.
+const ASSIGNEE_REQUIRED_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
+     [tasks.assignee]\nallowed = [\"ada\", \"lin\"]\nrequired = true\n\
+     [[actors]]\nname = \"ada\"\nkind = \"human\"\n\
+     [[actors]]\nname = \"lin\"\nkind = \"human\"\n";
+
+/// A config whose `[tasks.fields.kind]` is required with a default, so `add`
+/// splices a choice slot and fills it from the config when the caller says
+/// nothing.
+const KIND_DEFAULT_CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
+     [tasks.fields.kind]\nvalues = [\"feature\", \"bug\"]\nrequired = true\ndefault = \"feature\"\n";
+
+/// Scaffold `config`, run `add --name <name> --set title=T` with `principal` in
+/// `$MINDTAPE_PRINCIPAL` plus `extra` args, and return the child's stderr.
+fn add_capture_stderr(
+    dir: &Path,
+    config: &str,
+    name: &str,
+    principal: &str,
+    extra: &[&str],
+) -> String {
+    support::scaffold(dir);
+    std::fs::write(dir.join(".mindtape/config.toml"), config).unwrap();
+    let output = support::mt(dir)
+        .env("MINDTAPE_PRINCIPAL", principal)
+        .args(["add", "--name", name, "--set", "title=T"])
+        .args(extra)
+        .assert()
+        .success()
+        .get_output()
+        .clone();
+    String::from_utf8_lossy(&output.stderr).into_owned()
+}
+
+/// The env-filled assignee gets a note naming the value, the config path and
+/// the environment it came from — an agent that wanted a different actor can
+/// see the default happened and how to override it.
+#[test]
+fn notes_the_env_filled_assignee() {
+    let dir = tempfile::tempdir().unwrap();
+    let stderr = add_capture_stderr(dir.path(), ASSIGNEE_REQUIRED_CONFIG, "noted", "ada", &[]);
+    assert!(
+        stderr
+            .contains(r#"note: assignee "ada" came from [tasks.assignee] env MINDTAPE_PRINCIPAL"#),
+        "the env origin must be named: {stderr}"
+    );
+    assert!(
+        stderr.contains("--set assignee=<value>"),
+        "the override spelling must be named: {stderr}"
+    );
+    let written = std::fs::read_to_string(dir.path().join("tasks/noted.typ")).unwrap();
+    assert!(written.contains("assignee: \"ada\""), "{written}");
+}
+
+/// A default-filled kind gets the same note, naming the config path and that
+/// the value is a config default rather than something the caller typed.
+#[test]
+fn notes_the_default_filled_kind() {
+    let dir = tempfile::tempdir().unwrap();
+    let stderr = add_capture_stderr(dir.path(), KIND_DEFAULT_CONFIG, "defaulted", "ada", &[]);
+    assert!(
+        stderr.contains(r#"note: kind "feature" came from [tasks.fields.kind] default"#),
+        "the config default must be named: {stderr}"
+    );
+    let written = std::fs::read_to_string(dir.path().join("tasks/defaulted.typ")).unwrap();
+    assert!(written.contains("kind: \"feature\""), "{written}");
+}
+
+/// A field the caller set itself draws no note, even when the config also
+/// backs it with an environment.
+#[test]
+fn an_explicitly_set_field_draws_no_note() {
+    let dir = tempfile::tempdir().unwrap();
+    let stderr = add_capture_stderr(
+        dir.path(),
+        ASSIGNEE_REQUIRED_CONFIG,
+        "chosen",
+        "ada",
+        &["--set", "assignee=lin"],
+    );
+    assert!(
+        !stderr.contains("note: assignee"),
+        "an explicit --set must suppress the note: {stderr}"
+    );
+    let written = std::fs::read_to_string(dir.path().join("tasks/chosen.typ")).unwrap();
+    assert!(written.contains("assignee: \"lin\""), "{written}");
 }

@@ -18,11 +18,21 @@ use crate::numeric::{ScaleKind, format_num};
 pub struct RequiredSlot {
     /// The `task.with` argument name (`priority`, `kind`, …).
     pub field: &'static str,
+    /// The config path the requirement comes from, named in the fill note
+    /// (`[tasks.assignee]`, `[tasks.fields.kind]`).
+    pub config_path: &'static str,
     /// The source to set as that argument's value: a bare `slot(...)` call, or
     /// — for a strict-framework priority — a `framework(...)` call wrapping one
     /// `slot(...)` per input. Either way slot discovery walks it and every slot
     /// it holds is filled before the task is written.
     pub call: String,
+    /// The environment variable the slot reads, when it declares one. A CLI
+    /// uses it to name the origin of a value the caller did not supply.
+    pub env: Option<&'static str>,
+    /// The config default the slot falls back to, when it has one, in the
+    /// source form the slot carries (`"feature"`). A CLI compares the filled
+    /// value against it to tell a default fill from a hand-supplied one.
+    pub default: Option<String>,
 }
 
 /// The required core-field slots a config demands at task-creation time, in a
@@ -43,16 +53,22 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
     {
         out.push(RequiredSlot {
             field: "priority",
+            config_path: "[tasks.priority]",
             call,
+            env: None,
+            default: None,
         });
     }
     if tasks.difficulty.required.may_apply() {
         out.push(RequiredSlot {
             field: "difficulty",
+            config_path: "[tasks.difficulty]",
             call: format!(
                 r#"slot("difficulty", kind: "{}", prompt: "difficulty")"#,
                 scale_kind_str(tasks.difficulty.kind)
             ),
+            env: None,
+            default: None,
         });
     }
     if let Some(field) = tasks.fields.get("kind")
@@ -60,19 +76,28 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
     {
         out.push(RequiredSlot {
             field: "kind",
+            config_path: "[tasks.fields.kind]",
             call: kind_slot(field),
+            env: None,
+            default: field.default.as_ref().map(|value| format!("{value:?}")),
         });
     }
     if tasks.assignee.required.may_apply() {
         out.push(RequiredSlot {
             field: "assignee",
+            config_path: "[tasks.assignee]",
             call: assignee_slot(&tasks.assignee),
+            env: Some(PRINCIPAL_ENV),
+            default: None,
         });
     }
     if tasks.estimate.required.may_apply() {
         out.push(RequiredSlot {
             field: "estimate",
+            config_path: "[tasks.estimate]",
             call: estimate_slot(config),
+            env: None,
+            default: None,
         });
     }
     out

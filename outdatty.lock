@@ -3,7 +3,7 @@ algorithm: blake3
 groups:
   cli-docs:
     source:
-      crates/mindtape-cli/src/add.rs: dc6a3bcefbdfea7958f69c5270cc982355b211ae61c06354df6f7a5a8327ec00
+      crates/mindtape-cli/src/add.rs: d64e02e9974cc754b5a3cb75c322f176cffa46342fd7c828c8dea7999ef00860
       crates/mindtape-cli/src/check.rs: d44be6c170fcd99a73e66fdbee88358e9ac5694e89e0fbaff894beb59e72475f
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
       crates/mindtape-cli/src/completion.rs: fe14695fe1c11cdd3d8fd75119c32686453ca77b2763160721a22fdcff314461
@@ -36,7 +36,7 @@ groups:
       crates/mindtape/src/fields.rs: 3257f23f636b0c5c70ad4fd51a622e4541a91355cd42c91e6b81ecb2f4167f9c
       crates/mindtape/src/lib.rs: 6f5901c6eca839f1509d6eaeeb3d0f3aef739d53ed4c54c3a454432812715b8c
     dependents:
-      docs/src/skill.typ: d4620997bbf8f6df364e22008b65f451dccec2e4debbef187e0d5a2fc12e06ab
+      docs/src/skill.typ: 7017ce4681cf0a12527416fb473c51d35c0f29c6e2525587cbb3259e6b7dbe1a
       skills/mindtape/evals/README.md: a5143877e4409bea53d0e60b8ad3716f9483a0d80f28b8c3013864f729428516
       skills/mindtape/evals/evals.json: 17e83792cf33e2485a686ead3e4451c4486078ee2fa283002ce091bf77b69ae9
       skills/mindtape/references/add-slots.md: 7fcb4512f72af1efde0f6533f304dd4a67030df50e441c0852bb142b1cb9616f
