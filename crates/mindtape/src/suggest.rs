@@ -104,6 +104,14 @@ mod tests {
     }
 
     #[test]
+    fn nearest_prefers_the_higher_scoring_candidate() {
+        // "fo" also clears the floor, so only "the strictly higher score
+        // wins" picks "foo" either way the candidates are listed.
+        assert_eq!(nearest("foo", &["fo", "foo"]), Some("foo"));
+        assert_eq!(nearest("foo", &["foo", "fo"]), Some("foo"));
+    }
+
+    #[test]
     fn hint_near_miss_offers_a_suggestion_and_the_full_list() {
         let known = vec!["backlog".to_owned(), "blocked".to_owned()];
         let rendered = hint("view", "backlgo", &known);

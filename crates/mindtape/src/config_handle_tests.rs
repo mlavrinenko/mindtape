@@ -44,6 +44,15 @@ fn check_len_beyond_the_hash_width_is_refused() {
     );
 }
 
+/// Six is the largest length the hash can fill, so it is in range — the bound
+/// is exclusive only past it.
+#[test]
+fn check_len_at_the_hash_width_is_accepted() {
+    let config = config_from("[handle]\ncheck-len = 6\n");
+    assert_eq!(config.handle.check_len, Some(6));
+    config.validate().expect("6 is in range");
+}
+
 #[test]
 fn an_unknown_handle_key_is_refused() {
     assert!(

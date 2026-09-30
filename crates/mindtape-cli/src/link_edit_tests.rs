@@ -7,7 +7,7 @@
 
 use mindtape::link::Link;
 
-use super::{EdgeSpec, Mode, links_edit, render_edges};
+use super::{EdgeSpec, Mode, links_edit, quote, render_edges};
 
 const NO_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
 
@@ -222,4 +222,59 @@ fn merge_still_works_on_a_file_carrying_a_history_pointer() {
 fn a_source_with_no_task_call_is_an_error() {
     let desired = [edge("parent", "a.typ", None)];
     assert!(links_edit("not a task file", &[], &desired, Mode::Merge).is_err());
+}
+
+// --- quote ---
+//
+// `\` and `"` are the only two characters that can end a Typst string literal
+// early, and each is escaped independently. The first two assertions take the
+// two sides of `ch == '\\' || ch == '"'`; the third pins the untouched ordinary
+// character, so a `||` -> `&&` mutant (which escapes neither) and a
+// blanket-escaper both fail.
+
+#[test]
+fn quote_escapes_a_backslash() {
+    assert_eq!(quote(r"a\b"), r#""a\\b""#);
+}
+
+#[test]
+fn quote_escapes_a_quote() {
+    assert_eq!(quote("a\"b"), r#""a\"b""#);
+}
+
+#[test]
+fn quote_leaves_an_ordinary_stem_verbatim() {
+    assert_eq!(quote("ship-it"), r#""ship-it""#);
+}
+
+// --- render_edges ---
+//
+// Consecutive note-less edges of one kind collapse; a run is flushed the moment
+// the kind changes or the previous edge carried a note. Both guards in the
+// `extends` chain are exercised here: a note-less edge of a *different* kind
+// must not fold into the previous run (the outer `&&`), and a note-less edge
+// whose predecessor carries a note must not either (the inner `&&`).
+
+#[test]
+fn a_note_less_edge_of_another_kind_opens_its_own_call() {
+    let edges = [
+        edge("depends-on", "a.typ", None),
+        edge("related", "b.typ", None),
+    ];
+    assert_eq!(
+        render_edges(&edges),
+        r#"depends-on("a.typ") + related("b.typ")"#
+    );
+}
+
+#[test]
+fn a_note_less_edge_after_a_noted_one_opens_its_own_call() {
+    let edges = [
+        edge("depends-on", "a.typ", Some("why")),
+        edge("depends-on", "b.typ", None),
+    ];
+    assert_eq!(
+        render_edges(&edges),
+        r#"depends-on("a.typ")[why] + depends-on("b.typ")"#
+    );
 }

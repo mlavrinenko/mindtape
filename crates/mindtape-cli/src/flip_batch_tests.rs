@@ -83,3 +83,11 @@ fn a_landed_task_with_a_fatal_violation_is_reported() {
     assert_eq!(problems.len(), 1, "{problems:?}");
     assert!(problems[0].contains("blocked"), "{problems:?}");
 }
+
+/// Whether the batch wrote nothing decides whether the reload is paid for at
+/// all: an empty batch is empty, and any recorded task makes it not.
+#[test]
+fn a_batch_that_recorded_nothing_is_empty() {
+    assert!(Landed::default().is_empty());
+    assert!(!landed(&["one"], &["tasks/one.typ"]).is_empty());
+}

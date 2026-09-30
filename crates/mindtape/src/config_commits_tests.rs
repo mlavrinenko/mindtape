@@ -24,6 +24,24 @@ fn the_trailer_defaults_to_refs() {
 }
 
 #[test]
+fn has_task_rules_is_true_only_for_a_task_scope_rule() {
+    assert!(!parse_config("").unwrap().commits.has_task_rules());
+    assert!(
+        !parse_config("[[commits.rules]]\nassert = 'has(refs)'\n")
+            .unwrap()
+            .commits
+            .has_task_rules(),
+        "a commit-scope rule does not need the commit's states"
+    );
+    assert!(
+        parse_config("[[commits.rules]]\nscope = \"task\"\nassert = 'named'\n")
+            .unwrap()
+            .commits
+            .has_task_rules()
+    );
+}
+
+#[test]
 fn a_breach_carries_the_label_message_and_severity() {
     let config = parse_config(RULE).unwrap();
     let breaches = check_commit(&record(&[], false), None, &config);

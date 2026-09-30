@@ -6,7 +6,8 @@
 
 use std::path::{Path, PathBuf};
 
-use super::{new_stem, renamed};
+use super::{new_stem, renamed, verify};
+use crate::test_util::make_project;
 
 #[test]
 fn a_trailing_typ_is_dropped_rather_than_doubled() {
@@ -43,5 +44,32 @@ fn renaming_a_dotted_stem_does_not_eat_its_own_dots() {
     assert_eq!(
         renamed(Path::new("tasks/old.task-260101.typ"), "new"),
         PathBuf::from("tasks/new.typ")
+    );
+}
+
+// --- verify ---
+//
+// `verify` asks the project whether the batch may land; it must refuse a
+// rewrite the project would reject. The renamed task below carries a status
+// outside the legend, which `validate` refuses, so `verify` returns an error.
+// A stubbed `Ok(())` would let `run` move the file and write the rewrites with
+// nothing having checked them.
+
+#[test]
+fn verify_refuses_a_rename_the_project_would_reject() {
+    let dir = tempfile::tempdir().unwrap();
+    let config = mindtape::parse_config(
+        "[[tasks.status]]\nvalue = \"wip\"\n\
+         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n",
+    )
+    .unwrap();
+    let project = make_project(dir.path(), &[], config);
+    let to = dir.path().join("tasks/new.typ");
+    let bad = "#metadata((\n  marker: \"mindtape.task\",\n  fields: (\n    title: \"T\",\n    \
+               status: (name: \"bogus\", date: none, note: none),\n  ),\n  extras: (:),\n))\n";
+
+    assert!(
+        verify(&project, &to, bad, &[]).is_err(),
+        "a task the project would reject must not be verified clean"
     );
 }

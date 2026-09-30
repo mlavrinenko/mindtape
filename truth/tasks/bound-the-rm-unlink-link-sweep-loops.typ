@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 30),
+  status: done(
+    2026,
+    9,
+    30,
+  )[bounded the whitespace scans in \`whole\_links\_edit\` and \`sweep\_operator\`; \`just mutants -f crates/mindtape-cli/src/rm\_unlink.rs\` reports 94 tested, 0 missed, 0 timeouts],
 )
 
 == Problem

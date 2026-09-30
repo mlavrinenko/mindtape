@@ -440,4 +440,28 @@ mod tests {
         let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed.get("bin").and_then(Value::as_str), Some("mt"));
     }
+
+    /// `completion_json` reflects the `completion::SOURCES` table: a sourced
+    /// argument names its source, a deliberately-sourceless one carries its
+    /// reason, and an unnamed argument is `null`. A stub return of
+    /// `Default::default()` (always `null`) loses the first two.
+    #[test]
+    fn completion_json_reflects_the_source_table() {
+        let sourced = completion_json("ls", "filter");
+        assert_eq!(
+            sourced.get("source").and_then(Value::as_str),
+            Some("view-refs"),
+            "{sourced}"
+        );
+        assert!(sourced.get("reason").unwrap().is_null(), "{sourced}");
+
+        let reasonless = completion_json("ls", "limit");
+        assert!(reasonless.get("source").unwrap().is_null(), "{reasonless}");
+        assert!(
+            reasonless.get("reason").and_then(Value::as_str).is_some(),
+            "{reasonless}"
+        );
+
+        assert!(completion_json("nope", "nope").is_null());
+    }
 }

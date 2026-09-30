@@ -28,6 +28,28 @@ exclude_re = [
   # re-walking it can only return None again — deleting the arm changes the
   # running time (exponential), never the answer.
   "delete match arm DONE in dfs",
+  # parse_batch's loop runs while `blobs.len() < count`; the one extra
+  # iteration a `<=` admits parses one more object the final
+  # `blobs.resize(count, None)` then discards, so the returned Vec is
+  # identical for every input.
+  "replace < with <= in parse_batch",
+  # evalexpr's `!` node is always unary (one child), so the arm above claims
+  # every reachable `Not`; only a hand-built two-child node could reach the
+  # wrong-arity arm, and evalexpr's `Node` has no public constructor for one.
+  "delete match arm .Operator::Not, _. in connective",
+  # An empty `path.parent()` and `Path::new(".")` both name the process's
+  # current directory, and `Path::new("").join(name)` and
+  # `Path::new(".").join(name)` resolve to the same file, so the mutated
+  # guard picks the same temp-file location.
+  "replace match guard !dir.*is_empty.* with true in write_atomic",
+  # `skip` is a `usize`, so `>= 0` is always true; at `skip == 0` the branch
+  # runs `drain(..skip.min(len))`, which is `drain(..0)` — a no-op identical
+  # to skipping it.
+  "replace > with >= in resolve_and_select",
+  # On Unix `MAIN_SEPARATOR` is `/`, so this clause duplicates the next one
+  # and the whole expression is `A || (A || ext)` under either operator. The
+  # difference is Windows-only; the sweep runs on Unix.
+  "replace .. with && in looks_like_path",
 ]
 
 # Match `just check`: the mindtape suite runs with the rrule feature on, so

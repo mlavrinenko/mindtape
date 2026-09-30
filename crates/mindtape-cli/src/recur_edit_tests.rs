@@ -67,6 +67,22 @@ const SOURCE_NOTED_LINKS: &str = r#"#import "@local/mindtape:0.2.0": *
 )
 "#;
 
+/// The already-spawned links argument plus an edge helper call elsewhere in
+/// the document (a body `related`), i.e. outside the `links:` value range.
+const SOURCE_BODY_EDGE_CALL: &str = r#"#import "@local/mindtape:0.2.0": *
+
+#show: task.with(
+  title: "Water plants",
+  status: done(2026, 6, 1),
+  priority: 3,
+  links: depends-on("other.typ") + recurred-from("chore.typ"),
+  recur: every(weeks: 1),
+)
+
+== Body
+#related("body.typ")
+"#;
+
 fn date(y: i32, m: u32, d: u32) -> NaiveDate {
     NaiveDate::from_ymd_opt(y, m, d).unwrap()
 }
@@ -181,6 +197,28 @@ fn set_recurred_from_keeps_a_noted_edge_verbatim() {
     assert!(
         result.contains(r#"related("other.typ")[same _room_]"#),
         "{result}"
+    );
+}
+
+/// An edge helper call outside the `links:` value's byte range is not part of
+/// the argument, so it must not enter the replacement scan: including it makes
+/// the gap check fail, the rewrite bail, and the predecessor's own
+/// `recurred-from` survive as a duplicate.
+#[test]
+fn set_recurred_from_ignores_edges_outside_the_links_value() {
+    let edit = set_recurred_from(SOURCE_BODY_EDGE_CALL, "chore-2026-06-08").unwrap();
+    let result = apply_edits(SOURCE_BODY_EDGE_CALL, vec![edit]).unwrap();
+    assert!(
+        !result.contains(r#"recurred-from("chore.typ")"#),
+        "the older hop must not survive: {result}"
+    );
+    assert!(
+        result.contains(r#"recurred-from("chore-2026-06-08.typ")"#),
+        "{result}"
+    );
+    assert!(
+        result.contains(r#"related("body.typ")"#),
+        "the body edge must be left untouched: {result}"
     );
 }
 

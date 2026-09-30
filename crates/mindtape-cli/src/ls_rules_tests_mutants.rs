@@ -81,6 +81,53 @@ import-views = ["a", "b(columns)"]
     );
 }
 
+// --- view_bundle: a named view's Applied facets
+// (`view_bundle` in `ls_rules.rs`).
+
+#[test]
+fn default_view_bundle_carries_the_views_filter_value() {
+    // Kills mutant at delete filter_value from Applied in view_bundle.
+    // Real:   applied.filter_value == the view's filter.
+    // Mutant: Applied::default()'s empty value — the JSON envelope's
+    //         filter.value comes back blank.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(dir.path(), "[views.default]\nfilter = \"terminal\"\n");
+    let (_bundle, applied) = resolve_bare(&project).unwrap();
+    assert_eq!(applied.filter_value, "terminal");
+}
+
+#[test]
+fn default_view_bundle_attributes_columns_to_the_view() {
+    // Kills mutant at delete columns_from from Applied in view_bundle.
+    // Real:   columns_from names the view that set the columns.
+    // Mutant: the empty default, losing the attribution.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        "[views.default]\ncolumns = [\"status\", \"title\"]\n",
+    );
+    let (_bundle, applied) = resolve_bare(&project).unwrap();
+    assert_eq!(applied.columns_from, "default");
+}
+
+#[test]
+fn explicit_filter_keeps_the_default_views_columns_value() {
+    // Kills mutant at delete columns_value from Applied in view_bundle.
+    // Real:   bundle_of re-reads the view's columns, so they survive the filter.
+    // Mutant: the empty default, so narrowing drops the presentation.
+    let dir = tempfile::tempdir().unwrap();
+    let project = project(
+        dir.path(),
+        "[views.default]\ncolumns = [\"status\", \"title\"]\n",
+    );
+    let (bundle, applied) = resolve(&project, &args(Some("priority > 9"))).unwrap();
+    assert_eq!(
+        bundle.columns,
+        vec!["status".to_owned(), "title".to_owned()]
+    );
+    assert_eq!(applied.columns_from, "default");
+}
+
 // --- suggest wiring for a `--columns` spec
 // (`truth/tasks/adopt-nearest-match-suggestions-at-the-remaining-unknown-name-errors.typ`) --
 

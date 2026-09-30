@@ -4,7 +4,9 @@
 
 use std::path::Path;
 
-use super::build;
+use mindtape::link::NoteRule;
+
+use super::{build, note_problem};
 use crate::link_edit::{EdgeSpec, Mode};
 use crate::link_input::Entry;
 use crate::util::Project;
@@ -276,4 +278,32 @@ fn an_edge_already_there_reports_unchanged_rather_than_staging() {
     let plan = build(&project, &entries, Mode::Merge);
     assert!(plan.staged.is_empty(), "a re-run must stage nothing");
     assert_eq!(plan.unchanged, vec!["alpha".to_owned()]);
+}
+
+// --- note_problem, Forbidden arm ---
+//
+// The `Forbidden if note.is_some()` guard decides both sides: a forbidden edge
+// that carries a note is refused, and one without a note is accepted. A guard
+// forced to `false` accepts the noted edge; forced to `true` refuses the bare
+// one. Both directions are pinned.
+
+#[test]
+fn a_forbidden_edge_with_a_note_is_refused() {
+    let spec = EdgeSpec {
+        kind: "blocks".to_owned(),
+        target: "beta.typ".to_owned(),
+        note: Some("why".to_owned()),
+    };
+    let problem = note_problem(&spec, NoteRule::Forbidden).expect("a note is forbidden here");
+    assert!(problem.contains("must not carry a note"), "{problem}");
+}
+
+#[test]
+fn a_forbidden_edge_without_a_note_is_accepted() {
+    let spec = EdgeSpec {
+        kind: "blocks".to_owned(),
+        target: "beta.typ".to_owned(),
+        note: None,
+    };
+    assert!(note_problem(&spec, NoteRule::Forbidden).is_none());
 }

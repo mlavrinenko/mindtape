@@ -121,3 +121,86 @@ fn walk(cmd: &clap::Command, path: &str, visit: &mut impl FnMut(&str, &clap::Arg
         walk(sub, &child, visit);
     }
 }
+
+/// `mt _cli --json` reports each source by this name, so the exact spelling is
+/// machine-visible. Pins every name and `Source::None`'s `None`; a stale or
+/// placeholder return leaves the reflection wrong for every argument.
+#[test]
+fn source_labels_are_the_reflected_names() {
+    assert_eq!(Source::Stems.label(), Some("stems"));
+    assert_eq!(Source::Statuses.label(), Some("statuses"));
+    assert_eq!(Source::Views.label(), Some("views"));
+    assert_eq!(Source::ViewRefs.label(), Some("view-refs"));
+    assert_eq!(Source::Templates.label(), Some("templates"));
+    assert_eq!(Source::LinkKinds.label(), Some("link-kinds"));
+    assert_eq!(Source::Presets.label(), Some("presets"));
+    assert_eq!(Source::Assignment.label(), Some("assignment"));
+    assert_eq!(Source::TagToken.label(), Some("tag-token"));
+    assert_eq!(Source::FilePath.label(), Some("file-path"));
+    assert_eq!(Source::DirPath.label(), Some("dir-path"));
+    assert_eq!(Source::None("no project value fits").label(), None);
+}
+
+/// Env marker gating the inner side of the `requested` tests below. The
+/// predicate reads `$COMPLETE`, so each case re-execs the test binary with the
+/// variable staged rather than mutating this process's environment.
+const REQUESTED_INNER: &str = "_MT_COMPLETION_REQUESTED";
+
+/// Spawn the test binary with `COMPLETE` set to `complete` (removed for
+/// `None`), running only the named inner test.
+fn run_requested_inner(name: &str, complete: Option<&str>) {
+    let mut cmd = std::process::Command::new(std::env::current_exe().unwrap());
+    cmd.env(REQUESTED_INNER, "1")
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .args([name, "--nocapture"]);
+    match complete {
+        Some(value) => {
+            cmd.env("COMPLETE", value);
+        }
+        None => {
+            cmd.env_remove("COMPLETE");
+        }
+    }
+    let out = cmd.output().unwrap();
+    assert!(
+        out.status.success(),
+        "inner test '{name}' failed:\n{}",
+        String::from_utf8_lossy(&out.stderr),
+    );
+}
+
+/// An ordinary run carries no `$COMPLETE`, so [`super::complete`] must return
+/// and let `main` carry on. Pins `requested` against a constant `true`.
+#[test]
+fn requested_is_false_without_the_complete_variable() {
+    if std::env::var(REQUESTED_INNER).is_ok() {
+        assert!(!super::requested());
+        return;
+    }
+    run_requested_inner("requested_is_false_without_the_complete_variable", None);
+}
+
+/// A real shell name is a completion run. Pins the positive direction of the
+/// predicate.
+#[test]
+fn requested_is_true_for_a_shell_name() {
+    if std::env::var(REQUESTED_INNER).is_ok() {
+        assert!(super::requested());
+        return;
+    }
+    run_requested_inner("requested_is_true_for_a_shell_name", Some("bash"));
+}
+
+/// `$COMPLETE=0` (and the empty string) is explicitly not a completion, so the
+/// guard's `name != "0"` must exclude it. Pins the `&&` against `||`: the
+/// disjunction reads `0` as a request.
+#[test]
+fn requested_is_false_for_the_disabled_spellings() {
+    if std::env::var(REQUESTED_INNER).is_ok() {
+        assert!(!super::requested());
+        return;
+    }
+    run_requested_inner("requested_is_false_for_the_disabled_spellings", Some("0"));
+    run_requested_inner("requested_is_false_for_the_disabled_spellings", Some(""));
+}

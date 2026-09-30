@@ -99,3 +99,7 @@ pub(crate) fn run(project: &util::Project, file: &Path, quiet: bool) -> Result<(
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "check_commit_tests.rs"]
+mod tests;

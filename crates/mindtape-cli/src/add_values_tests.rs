@@ -247,6 +247,36 @@ fn yaml_extension_dispatch_matches_parse_source() {
     assert_eq!(values.get("x"), Some(&Some(RawValue::Int(1))));
 }
 
+/// The `.json` extension picks the JSON parser outright, so a YAML-shaped body
+/// is rejected rather than silently sniffed into YAML. Pins both the `source ==
+/// "-"` short-circuit and the `Some("json")` arm against removal.
+#[test]
+fn json_extension_forces_the_json_parser() {
+    let err = parse_source("v.json", "title: not json\n").unwrap_err();
+    assert!(err.to_string().contains("parse JSON from v.json"), "{err}");
+}
+
+/// Symmetrically, `.yaml`/`.yml` picks the YAML parser, so the reported error
+/// names YAML even for brace-leading bytes that sniffing would try as JSON
+/// first. Pins the `Some("yaml" | "yml")` arm against removal.
+#[test]
+fn yaml_extension_forces_the_yaml_parser() {
+    let err = parse_source("v.yaml", "{oops\n").unwrap_err();
+    assert!(err.to_string().contains("parse YAML from v.yaml"), "{err}");
+}
+
+/// A non-brace body goes straight to YAML, so a malformed one reports the YAML
+/// error rather than being tried as JSON first. Pins `looks_like_json`'s
+/// false branch — a constant `true` reroutes the failure through the JSON
+/// parser and rewrites the message.
+#[test]
+fn sniffed_non_brace_malformed_input_reports_the_yaml_error() {
+    let err = parse_sniffed_source("-", "title: [unterminated\n")
+        .unwrap_err()
+        .to_string();
+    assert!(err.contains("parse YAML from -"), "{err}");
+}
+
 #[test]
 fn later_yaml_null_unsets_an_earlier_set_key() {
     let dir = tempfile::tempdir().unwrap();

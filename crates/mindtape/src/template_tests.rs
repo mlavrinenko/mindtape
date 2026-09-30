@@ -136,6 +136,28 @@ fn unknown_kind_is_carried_for_fill_to_reject() {
     );
 }
 
+/// Only `text` and `raw` splice their value into body markup; every other kind
+/// renders as a self-delimiting Typst literal, so the `#`-drop and unquoting
+/// must not apply to them.
+#[test]
+fn only_text_and_raw_splice_verbatim() {
+    for kind in [SlotKind::Text, SlotKind::Raw] {
+        assert!(kind.splices_verbatim(), "{kind:?} splices verbatim");
+    }
+    for kind in [
+        SlotKind::String,
+        SlotKind::Int,
+        SlotKind::Float,
+        SlotKind::Real,
+        SlotKind::Bool,
+        SlotKind::Date,
+        SlotKind::List,
+        SlotKind::Choice,
+    ] {
+        assert!(!kind.splices_verbatim(), "{kind:?} renders as a literal");
+    }
+}
+
 /// A slot with no `kind:` at all is a `string` by design, and must not be
 /// confused with one whose kind failed to parse.
 #[test]

@@ -6,7 +6,7 @@ use typst_harvest::HVal;
 
 use super::{
     LinkKind, LinksConfig, NoteRule, TargetValidator, acyclic_kinds, blocking_kinds,
-    is_builtin_kind, kind_targets_tasks, parse_links, resolve_kind,
+    is_builtin_kind, kind_names, kind_targets_tasks, parse_links, resolve_kind,
 };
 
 /// A custom kind carrying only its name — every other field at its default
@@ -170,6 +170,26 @@ fn parse_links_excludes_history_pointers() {
     let links = parse(Some(&arr));
     assert_eq!(links.len(), 1);
     assert_eq!(links[0].task, "live.typ");
+}
+
+#[test]
+fn kind_names_lists_builtins_then_each_custom_name_once() {
+    // A custom entry named after a built-in, and a duplicate custom name, must
+    // not add a second copy: the enumeration is the candidate set a writer
+    // suggests, and a repeated kind there is noise.
+    let config = with_kinds(vec![custom("depends-on"), custom("gates"), custom("gates")]);
+    assert_eq!(
+        kind_names(&config),
+        vec![
+            "depends-on",
+            "parent",
+            "recurred-from",
+            "supersedes",
+            "duplicates",
+            "related",
+            "gates",
+        ]
+    );
 }
 
 #[test]

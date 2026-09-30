@@ -63,3 +63,7 @@ pub(crate) fn run(project: &util::Project, range: &str, quiet: bool) -> Result<(
     }
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "check_range_tests.rs"]
+mod tests;

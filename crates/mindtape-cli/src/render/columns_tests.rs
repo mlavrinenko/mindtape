@@ -384,3 +384,24 @@ fn when_false_hides_assignee_on_a_mixed_listing() {
         "when = 'false' must win even on a contested listing"
     );
 }
+
+// --- children_text ---
+//
+// The column is blank for a leaf and the count for a parent: both sides of
+// `== 0` decide output, so a table with one fixture each pins the operator and
+// the whole body (a stub return of `String::new()` or a constant fails the
+// parent case; a stub of `"xyzzy"` fails the leaf case).
+
+#[test]
+fn children_text_is_blank_for_a_leaf() {
+    let mut task = bare_task("t");
+    task.children = 0;
+    assert_eq!(children_text(&task), "");
+}
+
+#[test]
+fn children_text_renders_the_count_for_a_parent() {
+    let mut task = bare_task("t");
+    task.children = 3;
+    assert_eq!(children_text(&task), "3");
+}

@@ -352,3 +352,88 @@ fn answer_comment_round_trips() {
 fn missing_answer_block_parses_to_none() {
     assert!(parse_answer_comment("[tasks]\nroots = [\"tasks\"]\n").is_none());
 }
+
+/// Any single pre-answered axis counts: `any` is a disjunction, so a flag on
+/// only the fourth-through-seventh fields must still report true.
+#[test]
+fn any_is_true_for_each_single_flag() {
+    let cases = [
+        Flags {
+            workflow: Some(Workflow::Gated),
+            ..Flags::default()
+        },
+        Flags {
+            priority: Some(Priority::Ice),
+            ..Flags::default()
+        },
+        Flags {
+            organisation: Some(Organisation::Flat),
+            ..Flags::default()
+        },
+        Flags {
+            estimate: Some(Estimate::DaysHours),
+            ..Flags::default()
+        },
+        Flags {
+            required: Some(Required::Difficulty),
+            ..Flags::default()
+        },
+        Flags {
+            headers: Some(Headers::Spec),
+            ..Flags::default()
+        },
+        Flags {
+            recurrence: Some(Recurrence::Off),
+            ..Flags::default()
+        },
+    ];
+    for flags in cases {
+        assert!(flags.any(), "{flags:?} must count as some flag");
+    }
+    assert!(!Flags::default().any());
+}
+
+/// The extras are skipped only when *all four* are pre-answered. Three flags
+/// with the fourth missing must still offer the accept-defaults gate; reading
+/// the headers line as `||` would treat the three as complete.
+#[test]
+fn three_of_four_extra_flags_still_offer_the_gate() {
+    let flags = Flags {
+        estimate: Some(Estimate::DaysHours),
+        required: Some(Required::Difficulty),
+        headers: Some(Headers::Spec),
+        ..Flags::default()
+    };
+    // workflow, priority, organisation, then accept the gate.
+    let (_, prompts) = walk(&flags, true, "flow\nbands\nfolders\ny\n");
+    assert!(prompts.contains("Accept defaults"), "{prompts}");
+}
+
+/// A lone recurrence flag does not complete the extras either: the gate is
+/// still offered. The concluding `||` would let one flag stand in for all
+/// four.
+#[test]
+fn a_lone_recurrence_flag_still_offers_the_gate() {
+    let flags = Flags {
+        recurrence: Some(Recurrence::Off),
+        ..Flags::default()
+    };
+    let (_, prompts) = walk(&flags, true, "flow\nbands\nfolders\ny\n");
+    assert!(prompts.contains("Accept defaults"), "{prompts}");
+}
+
+/// The default choice is the one the menu marks; the marker is not on every
+/// other choice instead. Inverting the equality would mark `last`.
+#[test]
+fn the_menu_marks_the_default_choice() {
+    let (_chosen, prompts) = ask::<Probe>("1\n");
+    let marked: Vec<&str> = prompts
+        .lines()
+        .filter(|line| line.contains("[default]"))
+        .collect();
+    assert_eq!(marked.len(), 1, "exactly one default marker: {prompts}");
+    assert!(
+        marked.iter().any(|line| line.contains("first")),
+        "the default choice must carry the marker: {prompts}"
+    );
+}

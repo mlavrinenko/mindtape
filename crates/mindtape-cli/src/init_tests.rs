@@ -1,7 +1,25 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{SchemaArgs, scaffold_config, with_schema_directive, write_templates};
+use std::path::Path;
+
+use super::{
+    SchemaArgs, both_terminals, run_interactively, scaffold_config, with_schema_directive,
+    write_templates,
+};
 use crate::preset::{self, DEFAULT_PRESET};
+
+/// The real `mt` binary, isolated from the developer's global config so `init`
+/// writes only into `dir`.
+fn mt(dir: &Path) -> assert_cmd::Command {
+    let mut cmd = assert_cmd::Command::cargo_bin("mt").unwrap();
+    cmd.current_dir(dir)
+        .env(mindtape::CONFIG_HOME_ENV, dir.join("no-global-config"))
+        .env("HOME", dir)
+        .env_remove("MINDTAPE_NOW")
+        .env_remove("MINDTAPE_WORKTREE")
+        .env_remove("VISUAL");
+    cmd
+}
 
 const SAMPLE: &str = "[tasks]\nroots = [\"tasks\"]\n";
 
@@ -179,4 +197,85 @@ fn dogfood_config_parses_and_validates() {
     const DOGFOOD: &str = include_str!("../../../.mindtape/config.toml");
     let config = mindtape::parse_config(DOGFOOD).unwrap();
     config.validate().unwrap();
+}
+
+// --- both_terminals / run_interactively ---
+//
+// The terminal decision is pure here so both sides of each operator are
+// reachable: a tty on one stream and a pipe on the other must not prompt, and
+// `--no-input` must suppress the prompt even on a real terminal.
+
+#[test]
+fn both_terminals_needs_both_streams() {
+    assert!(both_terminals(true, true));
+    assert!(!both_terminals(true, false));
+    assert!(!both_terminals(false, true));
+    assert!(!both_terminals(false, false));
+}
+
+#[test]
+fn run_interactively_is_suppressed_by_no_input_and_by_a_pipe() {
+    assert!(run_interactively(false, true));
+    assert!(!run_interactively(true, true));
+    assert!(!run_interactively(false, false));
+    assert!(!run_interactively(true, false));
+}
+
+// --- write_preset's hint / print_preset_list's default marker ---
+//
+// Both are driven through the real binary because each decides only what it
+// prints.
+
+#[test]
+fn explicit_preset_omits_the_other_shapes_hint() {
+    let dir = tempfile::tempdir().unwrap();
+    let out = mt(dir.path())
+        .args(["init", "--preset", "todone"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{out:?}");
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        !stdout.contains("--list-presets"),
+        "an explicit preset must not be told to browse: {stdout}"
+    );
+}
+
+#[test]
+fn default_fallthrough_prints_the_other_shapes_hint() {
+    let dir = tempfile::tempdir().unwrap();
+    let out = mt(dir.path())
+        .args(["init", "--no-input"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{out:?}");
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        stdout.contains("--list-presets"),
+        "the fall-through should point at the other shapes: {stdout}"
+    );
+}
+
+#[test]
+fn preset_list_marks_only_the_default() {
+    let dir = tempfile::tempdir().unwrap();
+    let out = mt(dir.path())
+        .args(["init", "--list-presets"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{out:?}");
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    let flow = stdout
+        .lines()
+        .find(|line| line.trim_start().starts_with(DEFAULT_PRESET))
+        .unwrap_or_else(|| panic!("no {DEFAULT_PRESET} line in: {stdout}"));
+    assert!(
+        flow.contains("(default)"),
+        "the default preset must be marked: {flow:?}"
+    );
+    assert_eq!(
+        stdout.matches("(default)").count(),
+        1,
+        "exactly one preset is the default: {stdout}"
+    );
 }

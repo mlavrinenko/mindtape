@@ -178,3 +178,7 @@ fn push_trimmed(sentences: &mut Vec<String>, current: &mut String) {
     }
     current.clear();
 }
+
+#[cfg(test)]
+#[path = "content_gate_density_tests.rs"]
+mod tests;

@@ -52,3 +52,30 @@ fn a_failed_write_leaves_the_target_unchanged() {
     assert!(result.is_err());
     assert_eq!(std::fs::read(&path).unwrap(), b"original");
 }
+
+/// The temp file is a sibling of the target, never a child of the process cwd:
+/// the rename must stay within one directory, so a cwd that cannot accept a new
+/// file must not stop a write to an absolute target. nextest runs one test per
+/// process, so moving the cwd here is contained; it is restored either way.
+#[test]
+#[cfg(unix)]
+fn the_temp_file_is_a_sibling_of_the_target_not_of_the_cwd() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let target_dir = tempfile::tempdir().unwrap();
+    let path = target_dir.path().join("task.typ");
+
+    let cwd = tempfile::tempdir().unwrap();
+    std::fs::set_permissions(cwd.path(), std::fs::Permissions::from_mode(0o555)).unwrap();
+
+    let original = std::env::current_dir().unwrap();
+    std::env::set_current_dir(cwd.path()).unwrap();
+    let result = write_atomic(&path, b"content");
+    std::env::set_current_dir(&original).unwrap();
+
+    assert!(
+        result.is_ok(),
+        "a write must not depend on a writable cwd: {result:?}"
+    );
+    assert_eq!(std::fs::read(&path).unwrap(), b"content");
+}

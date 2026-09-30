@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 30),
+  status: done(
+    2026,
+    9,
+    30,
+  )[excluded as equivalent: \`skip\` is usize, so \`>= 0\` is always true and at 0 \`drain(..0)\` is a no-op],
 )
 
 == Problem

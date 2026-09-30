@@ -229,10 +229,7 @@ fn whole_links_edit(source: &str, merged: &[Range<usize>]) -> Option<Range<usize
                 .map(|range| range.end)
                 .max()
                 .unwrap_or(value.end);
-            let mut cursor = end;
-            while bytes.get(cursor).is_some_and(u8::is_ascii_whitespace) {
-                cursor += 1;
-            }
+            let cursor = end + whitespace_from(bytes, end);
             if bytes.get(cursor) == Some(&b',') {
                 end = cursor + 1;
             }
@@ -248,35 +245,52 @@ fn whole_links_edit(source: &str, merged: &[Range<usize>]) -> Option<Range<usize
 fn sweep_operator(range: Range<usize>, source: &str) -> Range<usize> {
     let bytes = source.as_bytes();
     let mut start = range.start;
-    let mut cursor = start;
-    while cursor > 0 && bytes.get(cursor - 1).is_some_and(u8::is_ascii_whitespace) {
-        cursor -= 1;
-    }
+    let cursor = range.start - whitespace_before(bytes, range.start);
     if cursor > 0 && bytes.get(cursor - 1) == Some(&b'+') {
-        let mut back = cursor - 1;
-        while back > 0 && bytes.get(back - 1).is_some_and(u8::is_ascii_whitespace) {
-            back -= 1;
-        }
-        start = back;
+        let operator = cursor - 1;
+        start = operator - whitespace_before(bytes, operator);
     }
-    let mut end = range.end;
-    let mut ahead = end;
-    while bytes.get(ahead).is_some_and(u8::is_ascii_whitespace) {
-        ahead += 1;
-    }
-    if bytes.get(ahead) == Some(&b'+') {
-        let mut forward = ahead + 1;
-        while bytes.get(forward).is_some_and(u8::is_ascii_whitespace) {
-            forward += 1;
-        }
-        end = forward;
-    }
+    let ahead = range.end + whitespace_from(bytes, range.end);
+    let end = if bytes.get(ahead) == Some(&b'+') {
+        ahead + 1 + whitespace_from(bytes, ahead + 1)
+    } else {
+        range.end
+    };
     Range { start, end }
+}
+
+/// The number of ASCII-whitespace bytes immediately before `end`.
+fn whitespace_before(bytes: &[u8], end: usize) -> usize {
+    bytes
+        .get(..end)
+        .unwrap_or_default()
+        .iter()
+        .rev()
+        .take_while(|byte| byte.is_ascii_whitespace())
+        .count()
+}
+
+/// The number of ASCII-whitespace bytes immediately from `from` on.
+fn whitespace_from(bytes: &[u8], from: usize) -> usize {
+    bytes
+        .get(from..)
+        .unwrap_or_default()
+        .iter()
+        .take_while(|byte| byte.is_ascii_whitespace())
+        .count()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::retarget_raw;
+    #![allow(clippy::unwrap_used)]
+
+    use std::collections::HashSet;
+
+    use super::{retarget_raw, sweep_operator, task_with, unlink_edits, whole_links_edit};
+
+    fn eligible(ids: &[&str]) -> HashSet<String> {
+        ids.iter().map(|id| (*id).to_owned()).collect()
+    }
 
     #[test]
     fn retargeting_keeps_the_relative_prefix_and_the_extension() {
@@ -299,5 +313,93 @@ mod tests {
     fn retargeting_a_hidden_target_reads_the_leading_dot_as_a_name() {
         assert_eq!(retarget_raw(".hidden", "new"), "new");
         assert_eq!(retarget_raw("../.hidden", "new"), "../new");
+    }
+
+    /// The wrapping whitespace on either side of an edge belongs to the
+    /// operator sweep: removing `edge` from `a + edge` must take the ` + `
+    /// too, whatever whitespace the author used, or a dangling operator is
+    /// left behind.
+    #[test]
+    fn sweep_attaches_a_leading_operator_and_its_whitespace() {
+        assert_eq!(sweep_operator(4..8, "a + edge"), 1..8);
+    }
+
+    #[test]
+    fn sweep_attaches_a_trailing_operator_and_its_whitespace() {
+        assert_eq!(sweep_operator(0..4, "edge + b"), 0..7);
+    }
+
+    /// The whitespace after a trailing `+` is counted from the byte after the
+    /// operator, so each side can carry a different run length.
+    #[test]
+    fn sweep_counts_whitespace_on_only_one_side_of_a_trailing_operator() {
+        assert_eq!(sweep_operator(0..4, "edge+  b"), 0..7);
+        assert_eq!(sweep_operator(0..4, "edge +b"), 0..6);
+    }
+
+    #[test]
+    fn sweep_reads_a_leading_operator_without_whitespace_before_it() {
+        assert_eq!(sweep_operator(3..7, "a+ edge"), 1..7);
+    }
+
+    /// The scan stops at the start of the source rather than reading past it;
+    /// an all-whitespace prefix (or one that reaches index 0 before a `+`) is
+    /// where an inclusive bound would underflow.
+    #[test]
+    fn sweep_stops_at_the_start_of_the_source_without_underflow() {
+        assert_eq!(sweep_operator(2..2, "  "), 2..2);
+        assert_eq!(sweep_operator(4..4, "  + "), 0..4);
+    }
+
+    /// Two removed edges in one sum either side of a `+` overlap after the
+    /// operator sweep, so they splice as one range rather than two adjacent
+    /// edits.
+    #[test]
+    fn overlapping_removals_merge_into_one_range() {
+        let eligible = eligible(&["a", "b"]);
+        let (ranges, stripped) = unlink_edits(
+            "#let x = depends-on(\"a.typ\") + depends-on(\"b.typ\")",
+            &eligible,
+        );
+        assert_eq!(ranges.len(), 1, "{ranges:?}");
+        assert_eq!(stripped, 2);
+    }
+
+    /// Removals with a kept edge between them are not merged, or the kept edge
+    /// would be deleted with them.
+    #[test]
+    fn separated_removals_stay_separate() {
+        let eligible = eligible(&["a", "b"]);
+        let (ranges, stripped) = unlink_edits(
+            "#let x = depends-on(\"a.typ\") + depends-on(\"keep.typ\") + depends-on(\"b.typ\")",
+            &eligible,
+        );
+        assert_eq!(ranges.len(), 2, "{ranges:?}");
+        assert_eq!(stripped, 2);
+    }
+
+    /// The whole-`links:` end is the end of the merged edits that start inside
+    /// the value; an edit beginning exactly at the value's end is outside it
+    /// and must not stretch the removal any further.
+    #[test]
+    #[allow(clippy::single_range_in_vec_init)]
+    fn whole_links_edit_extends_the_end_from_ranges_inside_the_value_only() {
+        let source = "#show: task.with(title: \"T\", links: \"abc\")\n";
+        let value = task_with(source)
+            .unwrap()
+            .named("links")
+            .unwrap()
+            .value_range
+            .clone();
+        let runs_past_the_value = vec![value.start..value.end + 1];
+        let starts_at_the_value_end = vec![value.start..value.end, value.end..value.end + 2];
+        assert_eq!(
+            whole_links_edit(source, &runs_past_the_value).map(|range| range.end),
+            Some(value.end + 1)
+        );
+        assert_eq!(
+            whole_links_edit(source, &starts_at_the_value_end).map(|range| range.end),
+            Some(value.end)
+        );
     }
 }

@@ -151,6 +151,14 @@ fn a_token_with_no_operator_is_refused() {
     assert!(err.contains("key=value"), "{err}");
 }
 
+/// A refusal or a no-op quotes the value back exactly as the caller typed it,
+/// for both operators — not a rendered literal and not a placeholder.
+#[test]
+fn an_assignment_quotes_back_the_value_as_typed() {
+    assert_eq!(Assigned::Set("Wire OAuth".to_owned()).text(), "Wire OAuth");
+    assert_eq!(Assigned::Append("auth".to_owned()).text(), "auth");
+}
+
 /// `parse_assignment` splits the name off the operator for both carriers.
 #[test]
 fn both_operators_parse_to_the_same_field_name() {

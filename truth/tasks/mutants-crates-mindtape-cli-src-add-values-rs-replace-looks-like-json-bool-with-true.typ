@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 30),
+  status: done(
+    2026,
+    9,
+    30,
+  )[pinned by the mutation-survivor sweep: \`just mutants\` reports no survivor for this mutation],
 )
 
 == Problem

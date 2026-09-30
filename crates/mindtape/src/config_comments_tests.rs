@@ -2,7 +2,9 @@
 
 use std::path::Path;
 
-use super::{CommentsPolicy, check_comments, validate_comments};
+use typst_cst::CommentKind;
+
+use super::{CommentsPolicy, check_comments, shape, validate_comments};
 use crate::config::Config;
 use crate::test_support::bare_task;
 
@@ -149,6 +151,12 @@ fn warn_policy_still_reports_but_does_not_itself_block() {
     assert_eq!(violations.len(), 1);
     assert!(!CommentsPolicy::Warn.blocks());
     assert!(CommentsPolicy::Forbid.blocks());
+}
+
+#[test]
+fn shape_names_each_comment_kind() {
+    assert_eq!(shape(&CommentKind::Line), "line");
+    assert_eq!(shape(&CommentKind::Block), "block");
 }
 
 #[test]

@@ -103,3 +103,7 @@ fn filter_tasks(
         readiness,
     )?)
 }
+
+#[cfg(test)]
+#[path = "rm_select_tests.rs"]
+mod tests;

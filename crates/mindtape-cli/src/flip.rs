@@ -172,7 +172,10 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
         project,
         args,
         status,
-        hooks: &Hooks::new(project, !args.quiet && std::io::stdout().is_terminal()),
+        hooks: &Hooks::new(
+            project,
+            hooks_enabled(args.quiet, std::io::stdout().is_terminal()),
+        ),
         ymd: today_ymd(),
     };
     // The project as this batch's own writes have already left it. Each
@@ -386,6 +389,12 @@ fn list_verbs(config: &Config) {
 }
 
 /// Comma-separated legend values, for an unknown-status error message.
+/// Whether the post-write hooks should run: a non-quiet run attached to a
+/// terminal. Split out so both operands are stageable without a pty.
+fn hooks_enabled(quiet: bool, stdout_tty: bool) -> bool {
+    !quiet && stdout_tty
+}
+
 fn verbs_csv(legend: &Legend) -> String {
     legend_values(legend).join(", ")
 }

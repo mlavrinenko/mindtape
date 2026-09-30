@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{EvalArgs, run};
+use super::{EvalArgs, locate, run};
 
 const TASK: &str = "#metadata((
   marker: \"mindtape.task\",
@@ -118,4 +118,31 @@ fn eval_does_not_hijack_a_foreign_lib_package() {
     .unwrap();
     let file = write_importing_task(dir.path());
     assert!(eval(&file, true).is_ok());
+}
+
+// --- locate ---
+//
+// `locate` treats a path-spelled reference as a path (so it bails when the file
+// is absent) and only falls through to project resolution for a bare stem or
+// `#` handle. The two spellings below each take one side of
+// `contains(['/', '\\']) || ends_with(".typ")`, so a `||` -> `&&` mutant —
+// which lets both fall through to `resolve_task` and answers with a different
+// error — fails the exact-message assertion.
+
+#[test]
+fn locate_refuses_a_missing_path_with_a_separator() {
+    let err = locate("sub/nope").unwrap_err();
+    assert!(
+        err.to_string().contains("no such file: sub/nope"),
+        "{err:#}"
+    );
+}
+
+#[test]
+fn locate_refuses_a_missing_typ_path() {
+    let err = locate("nope.typ").unwrap_err();
+    assert!(
+        err.to_string().contains("no such file: nope.typ"),
+        "{err:#}"
+    );
 }

@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use super::{
-    BUILTIN_PREFIX, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
+    BUILTIN_PREFIX, Dict, DictCache, DictCase, DictSpec, Dicts, builtin_dict_names, compile_dicts,
 };
 use crate::config::parse_config;
 
@@ -284,4 +284,11 @@ fn an_empty_section_compiles_to_the_builtins_alone() {
         dicts.names().collect::<Vec<_>>(),
         ["mindtape-dev-verbs", "mindtape-verbs"]
     );
+}
+
+#[test]
+fn is_empty_tracks_the_entry_set() {
+    let entries = ["add".to_owned()].into_iter().collect();
+    assert!(!Dict::new(entries, DictCase::Fold).is_empty());
+    assert!(Dict::default().is_empty());
 }

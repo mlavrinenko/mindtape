@@ -157,6 +157,16 @@ mod tests {
         assert!(!hyperlink_enabled(HyperlinkChoice::Auto, false, true));
     }
 
+    /// The `Display` impl writes each choice's slug, as `--help` and the
+    /// config-facing name rely on. Replacing the body with `Ok(())` would
+    /// render every choice as the empty string.
+    #[test]
+    fn display_writes_each_choice_slug() {
+        assert_eq!(HyperlinkChoice::Auto.to_string(), "auto");
+        assert_eq!(HyperlinkChoice::Always.to_string(), "always");
+        assert_eq!(HyperlinkChoice::Never.to_string(), "never");
+    }
+
     #[test]
     fn config_choice_maps_to_the_matching_cli_choice() {
         assert_eq!(

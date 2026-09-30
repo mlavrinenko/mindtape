@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 use super::{SCHEMA_URL, config_schema_json};
 use crate::body_content::ContentAssert;
 use crate::body_headers::{HeaderAction, HeaderPathSegment};
-use crate::config::{IdFormat, Requirement};
+use crate::config::{DensityUnit, IdFormat, Requirement};
 use crate::naming::DedupMode;
 
 /// The committed schema artifact (`schema/config.schema.json`) must equal the
@@ -94,6 +94,10 @@ fn hand_written_schema_ids_are_correct() {
     assert_eq!(
         <DedupMode as JsonSchema>::schema_id(),
         "mindtape::naming::DedupMode"
+    );
+    assert_eq!(
+        <DensityUnit as JsonSchema>::schema_id(),
+        "mindtape::body_content::DensityUnit"
     );
 }
 

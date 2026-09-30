@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 30),
+  status: done(
+    2026,
+    9,
+    30,
+  )[excluded as unreachable: evalexpr \`!\` is always unary, so the wrong-arity \`Not\` arm is dead and no public constructor can build one],
 )
 
 == Problem

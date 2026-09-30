@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 30),
+  status: done(
+    2026,
+    9,
+    30,
+  )[excluded as equivalent: an empty parent and \`.\` both name the cwd, so the mutated guard selects the same temp-file location],
 )
 
 == Problem

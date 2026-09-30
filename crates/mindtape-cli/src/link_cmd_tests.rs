@@ -7,8 +7,10 @@ use std::path::Path;
 
 use clap::Parser;
 
-use super::{LinkArgs, run_with};
+use super::{LinkArgs, change_summary, run_with};
+use crate::link_plan::Staged;
 use crate::util::Project;
+use mindtape::test_support::bare_task;
 
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
 
@@ -247,6 +249,70 @@ fn an_empty_map_is_not_an_error() {
     let map = dir.path().join("links.yaml");
     std::fs::write(&map, "").unwrap();
     run_with(&project, &parse(&["--apply", map.to_str().unwrap()])).unwrap();
+}
+
+/// A `--replace` that drops edges says so; a change that drops none does not.
+/// Inverting the `removed == 0` test would move the "(dropping N)" note to
+/// exactly the runs with nothing to drop.
+#[test]
+fn change_summary_names_dropped_edges_only_when_some_drop() {
+    let mut staged = Staged {
+        stem: "alpha".to_owned(),
+        abs: std::path::PathBuf::from("/tmp/alpha.typ"),
+        task: bare_task("alpha"),
+        updated: String::new(),
+        added: Vec::new(),
+        removed: 0,
+    };
+    assert!(
+        !change_summary(&staged).contains("dropping"),
+        "no drop, no note: {}",
+        change_summary(&staged)
+    );
+
+    staged.removed = 2;
+    let summary = change_summary(&staged);
+    assert!(summary.contains("dropping 2 edge"), "{summary}");
+}
+
+const WRITTEN_CHILD: &str = "_MT_LINK_WRITTEN_CHILD";
+
+/// Each landed task is reported as `linked <stem>: ...`. Replacing the report
+/// with `()` would write the file silently.
+#[test]
+fn run_with_reports_each_written_task() {
+    if std::env::var(WRITTEN_CHILD).is_err() {
+        let out =
+            crate::test_util::run_self_test("run_with_reports_each_written_task", WRITTEN_CHILD);
+        crate::test_util::assert_child_ok(&out);
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            stdout.contains("linked alpha"),
+            "a landed write must be reported: {stdout}"
+        );
+        return;
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path());
+    run_with(&project, &parse(&["alpha", "depends-on", "beta"])).unwrap();
+}
+
+/// Once a batch lands, the post-write pass reloads the config from disk; a
+/// reload that fails is surfaced rather than swallowed. Inverting the
+/// emptiness guard would skip that pass for exactly the runs that wrote
+/// something.
+#[test]
+fn a_landed_batch_runs_the_post_write_reload() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup(dir.path());
+    // Break the on-disk config after the project was loaded, so only the
+    // post-write reload can notice.
+    std::fs::write(dir.path().join(".mindtape/config.toml"), "[[[not toml\n").unwrap();
+    let result = run_with(&project, &parse(&["alpha", "depends-on", "beta"]));
+    assert!(
+        result.is_err(),
+        "the post-write reload must run after a landed batch: {result:?}"
+    );
 }
 
 /// A written edge is checked against the whole project after the batch lands,

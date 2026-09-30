@@ -439,3 +439,38 @@ fn dbg_whole_links_probe() {
     }
     eprintln!("final cursor {cursor}, byte {:?}", bytes.get(cursor));
 }
+
+// --- relative_target, via retire's inbound retarget ---
+//
+// A survivor in one folder pointing at a retired task in another: the common
+// path prefix between `live` and `gone/.archive` is empty, so the rewrite must
+// climb with `..`. A `==` -> `!=` mutant in the prefix scan counts the first
+// mismatching component as common and drops the climb, yielding a path that no
+// longer reaches the moved file.
+
+#[test]
+fn retire_rename_retargets_across_folders_with_a_climb() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::create_dir_all(root.join("gone")).unwrap();
+    std::fs::create_dir_all(root.join("live")).unwrap();
+    std::fs::write(root.join("gone/gone.typ"), artifact()).unwrap();
+    std::fs::write(root.join("live/live.typ"), depends_survivor()).unwrap();
+    let config = parse_config(&format!("{}\n[retire]\nrename = \".archive\"\n", legend())).unwrap();
+    let tasks = vec![
+        task("gone", "gone/gone.typ", Some("wip")),
+        task("live", "live/live.typ", None),
+    ];
+
+    let plan = retire_plan(&tasks, &ids(&["gone"]), root, &config).unwrap();
+
+    assert_eq!(plan.link_rewrites.len(), 1);
+    let rewritten = &plan.link_rewrites[0];
+    assert!(
+        rewritten
+            .contents
+            .contains("depends-on(\"../gone/.archive/gone.typ\")"),
+        "the climb out of `live/` is required, got: {}",
+        rewritten.contents
+    );
+}

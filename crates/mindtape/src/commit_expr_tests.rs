@@ -76,6 +76,16 @@ fn malformed_expressions_are_named() {
 }
 
 #[test]
+fn a_non_state_function_side_is_a_literal_not_a_state_wrapper() {
+    // `now()` is not one of the state wrappers, so a comparison side treats it
+    // as a written-out value and refuses it there — it is never handed to a
+    // task scope as if it were `head`/`staged`/`worktree`.
+    let problem = commit_expr_problem("subject == now()").unwrap();
+    assert!(problem.contains("expected a literal"), "{problem}");
+    assert!(!problem.contains("reads a task"), "{problem}");
+}
+
+#[test]
 fn a_comparison_without_two_operands_is_refused() {
     for bad in ["== 1", "1 ==", "subject ==", "(==)"] {
         let problem = commit_expr_problem(bad).unwrap();

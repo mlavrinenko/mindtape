@@ -1,8 +1,8 @@
 #![allow(clippy::unwrap_used)]
 
 use super::{
-    ALWAYS, ActionKind, FlipAction, NEVER, desugar_into, into_targets, matching_flip_hooks,
-    validate_flip_hooks,
+    ALWAYS, ActionKind, FlipAction, NEVER, copy_in_string, desugar_into, into_targets,
+    matching_flip_hooks, validate_flip_hooks,
 };
 use crate::config::{Config, parse_config};
 use crate::filter::Filter;
@@ -73,6 +73,30 @@ fn desugar_into_skips_string_literals() {
     let expr = r#"contains("into(\"done\")", title)"#;
     assert_eq!(desugar_into(expr, "done"), expr);
     assert!(into_targets(expr).is_empty());
+}
+
+/// A backslash inside a literal consumes the character after it, so the quote
+/// it escapes does not close the string and a following `into(...)` stays data.
+#[test]
+fn copy_in_string_consumes_the_escaped_character() {
+    let mut out = String::new();
+    let mut in_string = true;
+    let consumed = copy_in_string("\\\"rest", '\\', &mut out, &mut in_string);
+    assert_eq!(consumed, 2, "backslash and its escaped quote are one unit");
+    assert_eq!(out, "\\\"");
+    assert!(in_string, "an escaped quote must not close the literal");
+}
+
+/// An unescaped `"` clears `in_string`, so the scanner resumes looking for
+/// `into(...)` calls after the literal.
+#[test]
+fn copy_in_string_closes_on_the_unescaped_quote() {
+    let mut out = String::new();
+    let mut in_string = true;
+    let consumed = copy_in_string("\"rest", '"', &mut out, &mut in_string);
+    assert_eq!(consumed, 1);
+    assert_eq!(out, "\"");
+    assert!(!in_string, "an unescaped quote must close the literal");
 }
 
 /// `into` is matched as a whole identifier only.

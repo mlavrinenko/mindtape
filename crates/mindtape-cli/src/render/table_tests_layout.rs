@@ -306,3 +306,33 @@ fn glyph_mode_is_emoji_on_a_tty_and_none_when_piped() {
     assert_eq!(glyph_mode_for(true), GlyphMode::Emoji);
     assert_eq!(glyph_mode_for(false), GlyphMode::None);
 }
+
+/// Env marker gating the inner side of the `glyph_mode` test below.
+const GLYPH_MODE_INNER: &str = "_MT_GLYPH_MODE_INNER";
+
+/// `glyph_mode` reads stdout, so it is exercised in a child whose stdout is a
+/// pipe: the wired predicate must return `None`, not the derived `Default`
+/// (`Ascii`). A constant `Default::default()` would emit ASCII glyphs into
+/// every piped listing.
+#[test]
+fn glyph_mode_reads_a_piped_stdout_as_glyphless() {
+    if std::env::var(GLYPH_MODE_INNER).is_ok() {
+        assert_eq!(super::glyph_mode(), GlyphMode::None);
+        return;
+    }
+    let out = std::process::Command::new(std::env::current_exe().unwrap())
+        .env(GLYPH_MODE_INNER, "1")
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .args([
+            "glyph_mode_reads_a_piped_stdout_as_glyphless",
+            "--nocapture",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "inner test failed:\n{}",
+        String::from_utf8_lossy(&out.stderr),
+    );
+}

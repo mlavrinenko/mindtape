@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 9, 30),
+  status: done(
+    2026,
+    9,
+    30,
+  )[excluded as equivalent: the extra iteration \`\<\` vs \`\<=\` admits is discarded by \`blobs.resize(count, None)\`, so the returned Vec is identical],
 )
 
 == Problem

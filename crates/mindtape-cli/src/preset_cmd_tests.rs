@@ -165,6 +165,27 @@ fn ls_with_empty_user_preset_dir_lists_only_builtins() {
     assert!(!out.contains("user presets"));
 }
 
+/// A user preset that matches no built-in and is not the default is marked
+/// with neither marker. Pins both `==` comparisons in `render_ls`: inverting
+/// either spuriously annotates a novel name.
+#[test]
+fn ls_leaves_a_novel_user_preset_unmarked() {
+    let user_dir = tempfile::tempdir().unwrap();
+    std::fs::write(
+        user_dir.path().join("zzz-not-a-builtin.toml"),
+        "[tasks]\nroots = [\"mine\"]\n",
+    )
+    .unwrap();
+
+    let out = render_ls(Some(user_dir.path())).unwrap();
+    let line = out
+        .lines()
+        .find(|line| line.contains("zzz-not-a-builtin"))
+        .unwrap();
+    assert!(!line.contains("shadows built-in"), "{line}");
+    assert!(!line.contains("default"), "{line}");
+}
+
 /// `run` dispatch tests: `save`/`render_ls` above cover the logic, these cover
 /// the `PresetArgs` -> `run` wiring itself (dispatch, `resolve_root`,
 /// `println!`/`print!`), which is otherwise untested. `resolve_root` reads the

@@ -143,3 +143,21 @@ fn a_commit_rule_refuses_every_task_reading() {
         );
     }
 }
+
+#[test]
+fn an_absent_task_stand_in_carries_its_stem_as_id() {
+    let none = commit(&[]);
+    assert!(holds("worktree(id) == \"parser\"", &none));
+}
+
+#[test]
+fn changed_passes_the_dry_run_even_where_git_cannot_answer() {
+    let mut config = config();
+    let dir = tempfile::tempdir().unwrap();
+    config.git.set_root(dir.path());
+    assert_eq!(
+        task_expr_problem("staged(changed(\"staged\", \"src/**\") <= 3)", &config),
+        None,
+        "the load-time dry run must not read git"
+    );
+}

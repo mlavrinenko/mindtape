@@ -196,6 +196,34 @@ fn two_priority_bands_fragments_error() {
     assert!(err.contains("tasks.priority.bands"), "{err}");
 }
 
+/// The fold joins fragments with exactly one blank line between them and never
+/// opens the document with one. Inverting the emptiness guard would put the
+/// leading newline on the first fragment instead of the separator.
+#[test]
+fn fragments_join_with_one_blank_line_and_no_leading_newline() {
+    let out = compose(&[("a", "x = 1\n".to_owned()), ("b", "y = 2\n".to_owned())]).unwrap();
+    assert_eq!(out, "x = 1\n\ny = 2\n");
+}
+
+/// The array-conflict guard names *two different* fragments: the same fragment
+/// name appearing twice is not a collision, and its arrays append. Forcing the
+/// guard to `true` would reject a repeated fragment name.
+#[test]
+fn the_same_fragment_name_may_repeat_an_array_section() {
+    let out = compose(&[
+        ("same", "[[tasks.status]]\nvalue = \"a\"\n".to_owned()),
+        ("same", "[[tasks.status]]\nvalue = \"b\"\n".to_owned()),
+    ])
+    .unwrap();
+    let table: toml::Value = toml::from_str(&out).unwrap();
+    let status = table
+        .get("tasks")
+        .and_then(|tasks| tasks.get("status"))
+        .and_then(toml::Value::as_array)
+        .unwrap_or_else(|| panic!("status legend missing: {out}"));
+    assert_eq!(status.len(), 2, "{out}");
+}
+
 /// Two fragments declaring different array sections compose cleanly — the rule
 /// fires on a shared array, not on arrays in general.
 #[test]

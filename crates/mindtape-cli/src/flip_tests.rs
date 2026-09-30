@@ -9,7 +9,9 @@ use std::path::Path;
 use clap::Parser;
 use mindtape::parse_config;
 
-use super::{FlipArgs, Shortcut, check_note_required, check_transition, run_with, status_edit};
+use super::{
+    FlipArgs, Shortcut, check_note_required, check_transition, hooks_enabled, run_with, status_edit,
+};
 use crate::util::Project;
 
 const PRELUDE: &str = include_str!("../../../lib/prelude.typ");
@@ -454,4 +456,11 @@ fn flip_accepts_note_required_status_with_a_note() {
     let body = read(dir.path(), "alpha.typ");
     assert!(body.contains("status: blocked("), "{body}");
     assert!(body.contains("waiting on upstream"), "{body}");
+}
+
+#[test]
+fn hooks_need_a_terminal_and_a_non_quiet_run() {
+    assert!(hooks_enabled(false, true), "quiet off, tty on: hooks run");
+    assert!(!hooks_enabled(true, true), "quiet suppresses hooks");
+    assert!(!hooks_enabled(false, false), "a pipe suppresses hooks");
 }

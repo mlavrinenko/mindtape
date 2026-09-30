@@ -114,3 +114,48 @@ fn outside_a_repository_staged_files_says_so() {
     let err = staged_files(dir.path()).unwrap_err();
     assert!(err.to_string().contains("not a git repository"), "{err}");
 }
+
+#[test]
+fn a_colon_line_with_no_key_is_not_a_trailer_line() {
+    assert!(
+        values("feat: x\n\nRefs: a\n: b\n").is_empty(),
+        "a line whose token before `:` is empty is not a trailer"
+    );
+}
+
+#[test]
+fn a_hyphenated_trailer_key_is_a_trailer_line() {
+    let message = parse_message("feat: x\n\nTask-Ref: parser\n", "Task-Ref");
+    assert_eq!(message.trailers.len(), 1, "{:?}", message.trailers);
+    assert_eq!(message.trailers[0].value, "parser");
+}
+
+#[test]
+fn a_value_that_is_a_path_or_ends_in_typ_is_refused() {
+    let config = parse_config("").unwrap();
+    let tasks = [bare_task("parser")];
+    let message = parse_message("x\n\nRefs: tasks/parser\nRefs: parser.typ\n", "Refs");
+    let (_, problems) = CommitRecord::build(&message, &ChangedFiles::default(), &tasks, &config);
+    let messages: Vec<&str> = problems.iter().map(|p| p.message.as_str()).collect();
+    assert_eq!(messages.len(), 2, "{messages:?}");
+    assert!(
+        messages.iter().all(|m| m.contains("is a path")),
+        "a path-slash value and a bare `.typ` value are both paths: {messages:?}"
+    );
+}
+
+#[test]
+fn tasks_dedup_keeping_order() {
+    let config = parse_config("[tasks]\nroots = [\"truth/tasks\"]\n").unwrap();
+    let tasks = [bare_task("parser"), bare_task("lexer")];
+    let changed = ChangedFiles {
+        paths: vec![
+            "truth/tasks/parser.typ".to_owned(),
+            "truth/tasks/lexer.typ".to_owned(),
+        ],
+        root_prefix: String::new(),
+    };
+    let message = parse_message("x\n\nRefs: parser\nRefs: lexer\nRefs: parser\n", "Refs");
+    let (record, _) = CommitRecord::build(&message, &changed, &tasks, &config);
+    assert_eq!(record.tasks, ["parser", "lexer"]);
+}

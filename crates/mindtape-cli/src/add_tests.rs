@@ -382,5 +382,31 @@ fn park_writes_the_rejected_source_to_a_readable_file() {
     std::fs::remove_file(&parked).unwrap();
 }
 
+/// The fallback arm named the file it left behind, so "wrote X" followed by an
+/// error cannot read as if `add` had cleaned up. Pins `kept_note`'s composed
+/// message (a `String::new()` or placeholder body leaves the error mute about
+/// the kept file).
+#[test]
+fn outside_root_failure_names_the_file_kept_on_disk() {
+    let root = tempfile::tempdir().unwrap();
+    let outside = tempfile::tempdir().unwrap();
+    let file = outside.path().join("kept.typ");
+    let project = project_with_root(root.path(), "tasks");
+    let outcome = crate::add_output::Outcome::Wrote(file.clone());
+
+    let err = super::commit(
+        &bare_args(),
+        &project,
+        &outcome,
+        "#show: task.with(title: \"kept\")\n",
+        false,
+    )
+    .unwrap_err()
+    .to_string();
+
+    assert!(err.contains("kept.typ"), "{err}");
+    assert!(err.contains("kept on disk exactly as written"), "{err}");
+}
+
 #[path = "add_tests_subprocess.rs"]
 mod subprocess;

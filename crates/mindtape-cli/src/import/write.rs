@@ -134,3 +134,7 @@ fn pair_outcomes(staged: Vec<StagedTask>, problems: Vec<Vec<String>>) -> Vec<Tas
         })
         .collect()
 }
+
+#[cfg(test)]
+#[path = "write_tests.rs"]
+mod tests;

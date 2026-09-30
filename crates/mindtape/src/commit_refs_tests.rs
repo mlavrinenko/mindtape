@@ -1,6 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
-use super::{CommitRefs, parse_log};
+use super::{CommitRefs, Read, cache_path, parse_log, resolve};
+use crate::config::parse_config;
+use crate::test_support::bare_task;
 
 /// One commit of `git log --format=%x1e%B%x1f --name-status -z` output.
 fn commit(message: &str, records: &[&str]) -> String {
@@ -53,4 +55,43 @@ fn a_rename_indexes_both_sides_and_records_typ_renames() {
 #[test]
 fn an_empty_log_is_an_empty_index() {
     assert_eq!(parse_log("", "Refs"), CommitRefs::default());
+}
+
+#[test]
+fn a_rename_resolves_only_when_both_sides_are_task_files() {
+    let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
+    let touched = [("src/x.rs".to_owned(), vec!["old".to_owned()])]
+        .into_iter()
+        .collect();
+    let read = Read {
+        refs: CommitRefs {
+            touched,
+            renames: vec![("old.typ".to_owned(), "tasks/new.typ".to_owned())],
+        },
+        root_prefix: String::new(),
+    };
+    let tasks = [bare_task("new")];
+    let resolved = resolve(&read, "src/x.rs", &config, Some(&tasks));
+    assert!(
+        resolved.stems.is_empty(),
+        "a rename with a side outside the task roots resolves nothing: {:?}",
+        resolved.stems
+    );
+    assert_eq!(resolved.retired, ["old"]);
+}
+
+#[test]
+fn cache_path_needs_both_a_root_and_an_enabled_cache() {
+    if crate::loader::cache::disabled() {
+        assert!(
+            cache_path(std::path::Path::new("/tmp/project")).is_none(),
+            "with the cache off, even a rooted project gets no cache path"
+        );
+    } else {
+        assert!(cache_path(std::path::Path::new("/tmp/project")).is_some());
+        assert!(
+            cache_path(std::path::Path::new("")).is_none(),
+            "an empty root has no place to put the cache"
+        );
+    }
 }

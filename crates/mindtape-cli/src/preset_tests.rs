@@ -2,7 +2,9 @@
 
 use std::path::Path;
 
-use super::{DEFAULT_PRESET, list_builtins, resolve, split_overlay, strip_comments};
+use super::{
+    DEFAULT_PRESET, list_builtins, list_user_presets, resolve, split_overlay, strip_comments,
+};
 
 /// Write a nested user preset (`<dir>/<name>/config.toml`) and return its root.
 fn write_nested_preset(dir: &Path, name: &str, config: &str, templates: &[(&str, &str)]) {
@@ -219,6 +221,24 @@ fn strip_comments_drops_indented_comments() {
 fn strip_comments_is_idempotent() {
     let once = strip_comments("# c\n\n[tasks]\nroots = []\n");
     assert_eq!(strip_comments(&once), once);
+}
+
+/// Listing keeps only real preset shapes — a flat `.toml` and a directory with
+/// a `config.toml` — and ignores a plain file and a bare directory. Reading the
+/// flat-file guard as `||` would admit any `.toml`-named entry, and reading the
+/// directory guard as `||` would admit a directory with no config.
+#[test]
+fn list_user_presets_keeps_only_preset_shapes() {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("flat.toml"), "[tasks]\n").unwrap();
+    write_nested_preset(dir.path(), "nested", "[tasks]\n", &[]);
+    std::fs::write(dir.path().join("notes.txt"), "not a preset").unwrap();
+    std::fs::create_dir_all(dir.path().join("empty")).unwrap();
+
+    assert_eq!(
+        list_user_presets(dir.path()).unwrap(),
+        vec!["flat".to_owned(), "nested".to_owned()]
+    );
 }
 
 /// A config with no `[overlay]` splits to `None`, so ordinary presets keep their

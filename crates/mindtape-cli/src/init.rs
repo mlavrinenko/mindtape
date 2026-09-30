@@ -117,8 +117,11 @@ pub fn run(args: &InitArgs) -> Result<()> {
         return write_preset(&name, args, true);
     }
     let flags = wizard_flags(args);
-    let tty = std::io::stdin().is_terminal() && std::io::stdout().is_terminal();
-    let interactive = !args.no_input && tty;
+    let tty = both_terminals(
+        std::io::stdin().is_terminal(),
+        std::io::stdout().is_terminal(),
+    );
+    let interactive = run_interactively(args.no_input, tty);
     if interactive || flags.any() {
         // A terminal walks the axes; a non-terminal run with any flag composes
         // from the flags plus defaults, without prompting.
@@ -127,6 +130,18 @@ pub fn run(args: &InitArgs) -> Result<()> {
     // No preset, no flags, and no terminal (or `--no-input`): write the default
     // preset without asking anything — the non-interactive baseline.
     write_preset(preset::DEFAULT_PRESET, args, false)
+}
+
+/// Whether both standard streams are terminals. A prompt needs a tty on each
+/// side: a terminal on stdin with stdout piped still cannot hold a
+/// conversation, and neither can the reverse.
+fn both_terminals(stdin_tty: bool, stdout_tty: bool) -> bool {
+    stdin_tty && stdout_tty
+}
+
+/// Whether to walk the wizard: a terminal, unless `--no-input` forbids it.
+fn run_interactively(no_input: bool, tty: bool) -> bool {
+    !no_input && tty
 }
 
 /// Collect the per-axis flag values off `InitArgs`.
