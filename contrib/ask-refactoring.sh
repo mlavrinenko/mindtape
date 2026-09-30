@@ -152,7 +152,24 @@ fi
 # `--dedup skip` recognises the same finding twice, and namespaced by signal so
 # the arms cannot collide. `$1` is the signal name (`size`, `coverage`,
 # ...), `$2` the finding's path. Shared, so it stays here rather than in an arm.
-stem_for() { printf '%s-%s\n' "$1" "$(printf '%s' "$2" | tr -c 'A-Za-z0-9' '-' | tr -s '-' | sed 's/^-//; s/-$//')"; }
+#
+# Operator characters are spelled out before the general substitution. Without
+# it `replace > with >=` and `replace > with <` sanitize to the same run of
+# hyphens, and `--dedup skip` then drops the second as "already filed" — the
+# mutants arm folded thirteen stems over thirty-one survivors that way. Paths
+# and function names carry none of these characters, so the size, coverage and
+# undertested stems are unchanged.
+stem_for() {
+    local encoded
+    encoded="$(printf '%s' "$2" \
+        | sed -e 's/&&/and/g' -e 's/||/or/g' \
+              -e 's/!=/ne/g' -e 's/==/eq/g' -e 's/>=/ge/g' -e 's/<=/le/g' \
+              -e 's/->/to/g' -e 's/+=/plus-eq/g' -e 's/-=/minus-eq/g' -e 's/\*=/star-eq/g' \
+              -e 's/>/gt/g' -e 's/</lt/g' -e 's/!/not/g' -e 's/+/plus/g' \
+              -e 's/\*/star/g' -e 's/%/percent/g' -e 's/\^/caret/g' -e 's/~/tilde/g' \
+              -e 's/=/eq/g' -e 's/&/and/g' -e 's/|/or/g')"
+    printf '%s-%s\n' "$1" "$(printf '%s' "$encoded" | tr -c 'A-Za-z0-9' '-' | tr -s '-' | sed 's/^-//; s/-$//')"
+}
 
 # ── the arms ────────────────────────────────────────────────────────────────
 #

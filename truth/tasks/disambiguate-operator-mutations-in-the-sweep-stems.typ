@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 30),
+  status: done(
+    2026,
+    9,
+    30,
+  )[\`stem\_for\` spells operator characters out and the mutants stem now carries the span, so \`replace > with >=\` and \`replace > with \<\` no longer fold; a synthetic outcomes file with the 137 survivors yields 137 distinct stems (was 106), and the size/coverage/undertested stems are unchanged],
 )
 
 == Problem

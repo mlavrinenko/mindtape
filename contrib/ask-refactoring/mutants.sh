@@ -139,7 +139,8 @@ score_mutants() {
           ($impact | tostring),
           "0.8",
           ($ease | tostring),
-          ($difficulty | tostring)
+          ($difficulty | tostring),
+          "\($m.span.start.line):\($m.span.start.column)"
         ]
       | @tsv
     ' "$MUTANTS_JSON"
@@ -153,15 +154,17 @@ signal_mutants() {
 emit_mutants() {
     local path="$1" function="$2" line="$3" mutation="$4"
     local impact="$5" confidence="$6" ease="$7" difficulty="$8"
+    local location="$9"
 
-    # Stem from the mutation's description, never its line number: a survivor
-    # keeps its identity across the edits above it that shift its line, so
-    # `--dedup skip` still recognises a finding filed once and closed without
-    # the gap ever being pinned. The description already carries the function
-    # name, and the two `Ok(true)`/`Ok(false)` survivors in one function differ
-    # in it — they are two distinct gaps and get two tasks.
+    # The stem carries the mutation's span as well as its description. The
+    # description alone is not unique — three `replace > with >=` survivors in
+    # `sweep_operator` share it — and `--dedup skip` then hides every sibling
+    # after the first, which is the bug this scheme fixes. `stem_for` spells
+    # the operators out, so the description half stays readable. A survivor
+    # whose line shifts is refiled under a new stem; a killed one never
+    # reappears, and a survivor that moved is a fresh finding either way.
     local stem
-    stem="$(stem_for mutants "$path-$mutation")"
+    stem="$(stem_for mutants "$path-$location-$mutation")"
 
     local args=(
         add "pin $function in $path"
