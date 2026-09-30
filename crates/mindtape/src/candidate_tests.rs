@@ -1,13 +1,17 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
+use std::collections::HashSet;
 use std::path::Path;
 
-use super::{BodyRules, Candidate, check_candidate, check_candidates, harvest_candidate};
+use super::{
+    BodyRules, Candidate, check_candidate, check_candidates, elsewhere_violations,
+    harvest_candidate,
+};
 use crate::config::Config;
 use crate::loader::load_project;
 use crate::model::Task;
 use crate::parse_config;
-use crate::validate::Violation;
+use crate::validate::{Violation, validate};
 
 /// The embedded floor config — `Config::default()` carries an empty status
 /// legend, under which no status name is out of bounds and half these tests
@@ -310,4 +314,95 @@ fn replaces_an_existing_task_at_the_same_path() {
     let violations = check_wip_candidate_for_build(dir.path(), &config, &existing);
 
     assert!(violations.is_empty(), "{violations:?}");
+}
+
+/// One candidate at `tasks/b.typ`, checked against the project as loaded — the
+/// shared invocation the two cycle tests below differ only in their source
+/// body, so it lives here rather than copied into both.
+fn candidate_at_b(root: &Path, config: &Config, existing: &[Task], source: &str) -> Vec<Violation> {
+    check_candidate(
+        root,
+        config,
+        existing,
+        Candidate {
+            rel: Path::new("tasks/b.typ"),
+            source,
+        },
+        BodyRules::default(),
+    )
+    .unwrap()
+}
+
+/// A batch edge that closes a cycle with a task already on disk is attributed
+/// to the candidate that closed it. The cycle itself is reported on the
+/// existing member, which the batch never writes, so dropping it as "not the
+/// candidate's" would let the write land a graph `mt check` rejects on a
+/// neighbour.
+#[test]
+fn a_batch_edge_that_closes_a_cycle_reports_on_the_candidate() {
+    let dir = setup();
+    std::fs::write(dir.path().join("tasks/a.typ"), linked(&["b.typ"])).unwrap();
+    let config = floor();
+    let existing = load_project(dir.path(), &config).tasks;
+    assert_eq!(existing.len(), 1);
+
+    let b = linked(&["a.typ"]);
+    let violations = candidate_at_b(dir.path(), &config, &existing, &b);
+
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0].task_id, "b");
+    assert_eq!(violations[0].field, "depends-on");
+    assert!(
+        violations[0].message.ends_with("(reported on a)"),
+        "{}",
+        violations[0].message
+    );
+}
+
+/// The mirror case, where the cycle is attributed to the candidate itself: the
+/// candidate's direct list already carries it, so the elsewhere pass must not
+/// re-add it as a second, unreworded copy.
+#[test]
+fn a_cycle_on_the_candidate_is_not_reported_twice() {
+    let dir = setup();
+    std::fs::write(dir.path().join("tasks/z.typ"), linked(&["b.typ"])).unwrap();
+    let config = floor();
+    let existing = load_project(dir.path(), &config).tasks;
+    assert_eq!(existing.len(), 1);
+
+    let b = linked(&["z.typ"]);
+    let violations = candidate_at_b(dir.path(), &config, &existing, &b);
+
+    assert_eq!(violations.len(), 1, "{violations:?}");
+    assert_eq!(violations[0].task_id, "b");
+    assert!(
+        !violations[0].message.contains("(reported on"),
+        "{}",
+        violations[0].message
+    );
+}
+
+/// A violation the project already carried before the batch is not the batch's
+/// doing: an identical triple is dropped field by field, so a pre-existing
+/// cycle does not re-report itself on every unrelated write.
+#[test]
+fn an_already_present_cycle_is_not_attributed_to_the_batch() {
+    let dir = setup();
+    std::fs::write(dir.path().join("tasks/a.typ"), linked(&["b.typ"])).unwrap();
+    std::fs::write(dir.path().join("tasks/b.typ"), linked(&["a.typ"])).unwrap();
+    let config = floor();
+    let existing = load_project(dir.path(), &config).tasks;
+
+    let mut sorted = existing.clone();
+    sorted.sort_by(|left, right| left.id.cmp(&right.id));
+    let before = validate(&sorted, &config);
+    let cycle = before
+        .iter()
+        .find(|violation| violation.field == "depends-on")
+        .expect("the fixture is a cycle");
+
+    let none: HashSet<&str> = HashSet::new();
+    let kept = elsewhere_violations(&existing, &config, &none, std::slice::from_ref(cycle));
+
+    assert!(kept.is_empty(), "{kept:?}");
 }

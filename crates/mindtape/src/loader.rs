@@ -55,7 +55,14 @@ fn find_root_bounded(start: &Path, stop: Option<&Path>) -> Option<PathBuf> {
         if dir.join(".mindtape").is_dir() {
             return Some(dir);
         }
-        if stop == Some(dir.as_path()) || !dir.pop() {
+        // Two statements, not `if stop == dir || !dir.pop()`: a mutant that
+        // turns that `||` into `&&` short-circuits `dir.pop()` away and loops
+        // on the same directory forever (a reproducible TIMEOUT). Each step
+        // here either returns or advances the walk.
+        if Some(dir.as_path()) == stop {
+            return None;
+        }
+        if !dir.pop() {
             return None;
         }
     }

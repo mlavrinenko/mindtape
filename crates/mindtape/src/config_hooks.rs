@@ -293,7 +293,17 @@ fn scan_into(when: &str, replace: &dyn Fn(&str) -> String) -> IntoScan {
     let mut cursor = 0;
     let mut in_string = false;
     let mut after_ident = false;
-    while let Some(rest) = when.get(cursor..) {
+    // A `for` over a fixed bound, not `while cursor < when.len()`: every mutant
+    // of the cursor advance below (`+=` -> `-=`/`*=`, a `copy_in_string` that
+    // returns 0, a `parse_into_call` that reports length 0) otherwise spins
+    // forever, and each turn pushes another char onto `rewritten` — measured
+    // on 2026-09-29 at 45 GB RSS before the host's earlyoom killed the whole
+    // sweep. Correct code consumes at least one byte per turn, so the bound is
+    // never reached; a mutant now just returns a wrong scan.
+    for _ in 0..when.len().saturating_add(1) {
+        let Some(rest) = when.get(cursor..) else {
+            break;
+        };
         let Some(ch) = rest.chars().next() else { break };
         if in_string {
             cursor += copy_in_string(rest, ch, &mut scan.rewritten, &mut in_string);

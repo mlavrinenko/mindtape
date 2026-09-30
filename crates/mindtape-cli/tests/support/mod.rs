@@ -16,8 +16,15 @@ const NO_GLOBAL_CONFIG: &str = "no-global-config";
 
 /// Environment variables that steer `mt` and must not reach a spawned binary
 /// from the developer's shell: `MINDTAPE_NOW` repins the clock every dated
-/// write reads, `MINDTAPE_WORKTREE` retargets the project root.
-const CLEARED_VARS: [&str; 2] = ["MINDTAPE_NOW", "MINDTAPE_WORKTREE"];
+/// write reads, `MINDTAPE_WORKTREE` retargets the project root, and `VISUAL`
+/// would hand an accidental editor the developer's real one.
+const CLEARED_VARS: [&str; 3] = ["MINDTAPE_NOW", "MINDTAPE_WORKTREE", "VISUAL"];
+
+/// The editor every isolated spawn resolves instead of the developer's: a
+/// command that cannot exist, so an `add` a test did not mean to make
+/// interactive fails on the spawn rather than opening a real editor. Tests
+/// that exercise the editor set their own `EDITOR` after [`isolate`].
+const STUB_EDITOR: &str = "mt-no-such-editor";
 
 /// The environment a spawned `mt` needs for a test to be about the code rather
 /// than about the machine running it.
@@ -59,6 +66,14 @@ pub fn mt(dir: &Path) -> assert_cmd::Command {
 
 /// [`mt`]'s isolation for a caller that builds its own command — the pty tests
 /// spawn `mt` through `script(1)`, which passes its environment down.
+///
+/// The editor pair is scrubbed here, not defaulted: a sweep mutant that
+/// wrongly answers "open the editor" (`add_interactive::should_open -> true`
+/// and friends) otherwise spawns whatever `$VISUAL`/`$EDITOR` the developer's
+/// session carries. That happened: `cargo-mutants` ran the add e2e tests with
+/// a `--wait` GUI editor in `VISUAL`, one window per test until the 60 s timeout. In a
+/// tree whose suite must be about the code, the developer's editor can never
+/// be the fallback; [`STUB_EDITOR`] makes the mistake a fast spawn error.
 pub fn isolate<'a>(
     command: &'a mut std::process::Command,
     dir: &Path,
@@ -69,6 +84,7 @@ pub fn isolate<'a>(
     for key in CLEARED_VARS {
         command.env_remove(key);
     }
+    command.env("EDITOR", STUB_EDITOR);
     command
 }
 

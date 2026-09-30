@@ -294,4 +294,10 @@ mod tests {
     fn retargeting_replaces_the_whole_stem_dots_included() {
         assert_eq!(retarget_raw("old.task-260101.typ", "new"), "new.typ");
     }
+
+    #[test]
+    fn retargeting_a_hidden_target_reads_the_leading_dot_as_a_name() {
+        assert_eq!(retarget_raw(".hidden", "new"), "new");
+        assert_eq!(retarget_raw("../.hidden", "new"), "../new");
+    }
 }

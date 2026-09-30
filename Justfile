@@ -586,6 +586,43 @@ mutants-diff *ARGS:
 mutants *ARGS:
     bash .just/scripts/mutants.sh "$@"
 
+# Progress readout for a sweep, running or finished — cargo-mutants prints no
+# ETA, so it is derived from the two files the run writes as it goes: `mutants.json`
+# (the fixed list this run was told to test) and `outcomes.json` (one entry per
+# finished mutant, plus the opening `Baseline` entry). The single argument is the
+# directory holding those two, `mutants.out` by default — pass
+# `/tmp/ws-verify/mutants.out` for a `-o` run. Needs jq >= 1.7 for `localtime`;
+# on older jq, swap it for `todate` and read the clock as UTC.
+
+[doc("Report progress and ETA of a mutants sweep")]
+[extension('.sh')]
+[group("advisory")]
+[positional-arguments]
+[script]
+mutants-status +DIR='mutants.out':
+    dir="$1"
+    if [ ! -f "$dir/outcomes.json" ]; then
+        echo "no $dir/outcomes.json — no sweep has written there"
+        exit 1
+    fi
+    # A finished run's elapsed is its own wall time, not the clock since it
+    # started, or a `done` line reports hours the run did not take.
+    jq -nr \
+      --slurpfile o "$dir/outcomes.json" \
+      --slurpfile m "$dir/mutants.json" '
+      def epoch: sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601;
+      ($m[0] | length) as $total
+    | ($o[0].outcomes | length - 1) as $done
+    | (if $o[0].end_time != null then ($o[0].end_time | epoch) else now end) as $end
+    | ($end - ($o[0].start_time | epoch)) as $el
+    | (if $done > 0 and $el > 0 then $done / $el else 0 end) as $rate
+    | (if $rate > 0 then ($total - $done) / $rate else null end) as $eta
+    | "\($done)/\($total)  \($el/60|floor)min elapsed  \((($rate*60)*100|round)/100)/min  "
+      + (if $o[0].end_time != null or $eta == null or $eta <= 0 then "done"
+         else "ETA \($eta/60|floor)min -> \((now + $eta) | localtime | strftime("%H:%M"))"
+         end)
+    '
+
 # What the non-Rust formatters cover. One list each, read by both `fmt` and
 # `fmt-check`, because two hand-maintained copies drift: `.mindtape/templates`
 # (the project's own `mt add` templates) sat outside both lists while the

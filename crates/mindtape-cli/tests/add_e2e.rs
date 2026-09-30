@@ -370,3 +370,31 @@ fn refuses_a_task_whose_to_be_bullet_breaks_a_content_rule() {
     // Nothing was left behind to trip over.
     support::mt(dir.path()).arg("check").assert().success();
 }
+
+/// The harness must never hand a spawned `mt` the developer's editor. A
+/// `cargo-mutants` mutant that wrongly makes `add` interactive otherwise
+/// spawns `$VISUAL` once per test and blocks until the test timeout —
+/// a `--wait` GUI editor opens one window per affected test.
+/// Every e2e spawn goes through `support::isolate`, so the lock is here and
+/// not on `add`'s callers.
+#[test]
+fn isolated_spawns_never_inherit_the_developers_editor() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut command = std::process::Command::new("mt");
+    support::isolate(&mut command, dir.path());
+
+    let envs: Vec<_> = command.get_envs().collect();
+    assert!(
+        envs.iter().any(|(key, value)| {
+            *key == std::ffi::OsStr::new("EDITOR")
+                && *value == Some(std::ffi::OsStr::new("mt-no-such-editor"))
+        }),
+        "an isolated spawn must get the stub editor: {envs:?}"
+    );
+    assert!(
+        !envs
+            .iter()
+            .any(|(key, value)| *key == std::ffi::OsStr::new("VISUAL") && value.is_some()),
+        "an isolated spawn must not carry VISUAL: {envs:?}"
+    );
+}

@@ -43,15 +43,16 @@ MUTANTS_JSON="mutants.out/outcomes.json"
 mutants_available() {
     if [ ! -f "$MUTANTS_JSON" ]; then
         echo "ask-refactoring: no $MUTANTS_JSON — skipping the mutants arm" >&2
-        echo "  (run \`just mutants-diff\`, or \`just mutants -f FILE\` for one file;" >&2
-        echo "   this arm never runs cargo-mutants itself, a full sweep is hours)" >&2
+        echo "  (refresh it with \`just mutants\` — hours — or \`just mutants -f FILE\`" >&2
+        echo "   for each changed source; this arm never runs cargo-mutants itself)" >&2
         return 1
     fi
     local newer
     newer=$(find crates -name '*.rs' -newer "$MUTANTS_JSON" -print -quit)
     if [ -n "$newer" ]; then
         echo "ask-refactoring: $MUTANTS_JSON predates $newer — skipping the mutants arm" >&2
-        echo "  (a survivor it names may have been pinned since; re-run \`just mutants-diff\`)" >&2
+        echo "  (a survivor it names may have been pinned since; refresh it with" >&2
+        echo "   \`just mutants\` — hours — or \`just mutants -f FILE\` per changed source)" >&2
         return 1
     fi
     return 0
@@ -60,12 +61,22 @@ mutants_available() {
 # One sentence naming what the recorded sweep actually covered, derived from
 # outcomes.json itself. Read on a task filed weeks later, this is what stops a
 # single-file `-f` run from reading like a verdict on the workspace.
+#
+# The file list is capped at six names. It lands in the task's `Problem`
+# section, whose word cap is 120, and a full-sweep outcomes.json holds a run
+# across every file — spelling all of them out pushed the section over the cap
+# and `mt add` refused the whole sweep with nothing filed. Six names carry the
+# same "how wide was this" the full list did, and `and N more` keeps the count
+# honest; the arm only ever filed cleanly for `--in-diff` runs before this.
 mutants_scope() {
     jq -r '
       ([.outcomes[] | select(.scenario | type == "object") | .scenario.Mutant.file]
         | unique) as $files
+      | (if ($files | length) <= 6 then ($files | join(", "))
+         else (($files[0:6] | join(", ")) + ", and \(($files | length) - 6) more")
+         end) as $listed
       | "That sweep ran \(.total_mutants) mutants across \($files | length) file(s) "
-        + "(\($files | join(", "))) and left \(.missed) unpinned"
+        + "(\($listed)) and left \(.missed) unpinned"
         + (if .timeout > 0 then ", with \(.timeout) timing out — a timeout is a
 non-verdict, not a pass" else "" end)
         + "."

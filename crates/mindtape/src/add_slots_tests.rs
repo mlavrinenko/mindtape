@@ -152,7 +152,16 @@ fn framework_with_manual_priority_still_offers_int_slot() {
          framework = \"ice\"\nallow-manual = true\n",
     )
     .unwrap();
-    assert_eq!(fields(&config), vec!["priority"]);
+    let slot = single(&config);
+    assert_eq!(slot.field, "priority");
+    // `allow-manual = true` keeps the scalar route: the framework call is for
+    // strict frameworks only, and a mutant that splices it here would demand
+    // one leaf per framework input instead of the int the config asked for.
+    assert!(
+        slot.call.starts_with("slot(\"priority\", kind: \"int\""),
+        "{}",
+        slot.call
+    );
 }
 
 #[test]

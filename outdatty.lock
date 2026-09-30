@@ -74,10 +74,10 @@ groups:
       www/content/quickstart.typ: e4e7ce13e60b7859050fbee413ef3a777f03e6515ae29996661fa8c647cf35c6
   dev-docs:
     source:
-      .config/nextest.toml: 509384734e79e026c13895a33acf0151298c27e6cb2e135f1630ba57932df1eb
+      .config/nextest.toml: 02cf7db28ab3930ec5861bce50805212b76b472bdad67018a5761593e5bd67f1
       .just/docs.just: 58b7ff35702bcdd973acaa141e453e313738f76bec59d812340e7bd90a4bb2cb
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
-      .just/scripts/_mutants-env.sh: 429ab8f2f958f5eea089bc75537622213fdc44394c471f2efa1c1a0f9863fcc2
+      .just/scripts/_mutants-env.sh: 2c6b5e74a3a4e20ba695d07b70ce23d2aa8818f07dafba9aa66f806894aa7aed
       .just/scripts/_script-graph.sh: c3a9232a83b3f3f2890a37d5953fe4a7efaf2530b8ef3f6b44b60fb2c9e1522a
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
@@ -103,7 +103,7 @@ groups:
       .just/scripts/script-scope-check.sh: a847b5655f18081529998e00d769e24589af9e205d8a2e902ea4a32ca0e3b21e
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: cb61bdc62089341cba2d387767182d71fb24429bf4a249eaaa798751564302ac
+      Justfile: a0852edcb17af7df6a35cdc3fea12334a77a68bd2e19bfe15c336aec1e1045c0
       flake.nix: c4ff98e1687eacc16dac40c4ad019f924482ed9d60371a4d5e53fa66b4e23050
     dependents:
       docs/src/agents.typ: 0f5fc74381379ae2f1a482a78bfe0bd2b4a50aac4667440609062f6d1248b7e1
@@ -113,8 +113,8 @@ groups:
       docs/src/contributing/docs-site-build.typ: 5578b469d5e608412655e4c3190667cc07af6c01f34e470311132451e160c80f
       docs/src/contributing/example-projects.typ: 56b3f324691d3b278f8a0e3220c00cc0abb13850840b02dd8510b1f0066fccbd
       docs/src/contributing/gates.typ: 8395c98d7c87ce32488f68ae9afc850be6bba5636bc9ce8c84da20057c89303a
-      docs/src/contributing/mutation-testing.typ: 9a9d6646cd41276e4ad445dc22c1db3cb3ac1d1ccb81e473d666425334b440b4
-      docs/src/contributing/signal-sweep.typ: ad68ca9400ed67e01a72200e0689fae2bfdd9c19a53f892eeec2b1a81abc4d7c
+      docs/src/contributing/mutation-testing.typ: 9dff2e94364022da4cbf50b8af817db10f3e62050de06e7c833def6e4d80b311
+      docs/src/contributing/signal-sweep.typ: c0ab6fa741e0ce35df0bd576d30514ca5f0b99a15b87b728c3c271955b49e9de
       docs/src/contributing/windows.typ: dbee6e2e6e6bc8723f477acccc168c7cd6518649605564235ce556e0233d8749
   prelude-docs:
     source:

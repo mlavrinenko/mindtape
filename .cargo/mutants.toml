@@ -34,9 +34,38 @@ exclude_re = [
 # rrule-gated code is actually exercised (and the baseline matches CI).
 additional_cargo_args = ["--features", "rrule"]
 
-# Avoid false TIMEOUTs when parallel builds slow a mutant's test run.
-minimum_test_timeout = 60
+# nextest, not cargo test — the suite is written for one process per test.
+# `cargo test` runs every test in a binary in one process, so process-global
+# `OnceLock`s (`file_path::CONTEXT`, `util::WORKTREE`) leak between tests and
+# tests that assert the unset state fail in the unmutated baseline before any
+# mutant runs. `just test` and `just cover` already use nextest for exactly
+# this reason; a mutation verdict measured under a different execution model
+# is not about the suite the gate runs.
+test_tool = "nextest"
+
+# Every mutant faces the whole workspace suite, not only its own package's
+# tests. The default package scope under-counts catches: a `mindtape` lib
+# mutant is also exercised by the cli's end-to-end tests, and the 2026-09-29
+# refresh measured 35 lib mutants that the package-local sweep named as
+# survivors and the workspace suite caught. The scope is part of the measured
+# claim — a survivor list from the narrower run does not survive this one.
+test_workspace = true
+
+# Parallel load slows a mutant's suite long before it hangs it: at jobs=8 the
+# workspace suite was observed at ~58 s against a ~9 s baseline, and the auto
+# 60 s timeout recorded TIMEOUT for mutants that were merely slow — measured
+# 2026-09-29 on rm_unlink.rs:136:28, TIMEOUT at jobs=8 and MISSED in 8 s at
+# jobs=1. A verdict meant to be believed runs at CARGO_MUTANTS_JOBS=2 anyway
+# (see docs/contributing/mutation-testing.md); this floor leaves that ~4x
+# headroom while still bounding a genuine hang.
+minimum_test_timeout = 120
 
 # Build every mutant under the debuginfo-free `mutants` profile (Cargo.toml).
 # Benchmarked ~20% faster per mutant; picked up by every `cargo mutants` call.
 profile = "mutants"
+
+# Copy .git into every mutant's scratch tree. `dogfood_check` loads this repo's
+# own config over truth/tasks, and the `src-budget` rule's `changed()` reads git;
+# without a repository the baseline fails before any mutant runs. ~13 MB added
+# to the ~17 MB tree copy cargo-mutants makes per mutant.
+copy_vcs = true

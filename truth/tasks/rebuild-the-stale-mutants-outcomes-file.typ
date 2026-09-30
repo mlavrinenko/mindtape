@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 9, 28),
+  status: done(
+    2026,
+    9,
+    30,
+  )[mutants.out refreshed by a full --iterate run; 106 tasks filed for the survivors; the 5 timeouts filed; the skip message names just mutants],
 )
 
 == Problem
