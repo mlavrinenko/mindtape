@@ -87,6 +87,32 @@ itself out of that tree or serialise against its writer. Four instances:
   file is the single declaration of what the docs build owns: mmz filters its
   input walk by it, and the gitleaks walk bound is derived from it.
 
+== One mt binary, one feature set
+
+`target/debug/mt` is read by the #just.test() arm (`CARGO_BIN_EXE_mt`) and
+rebuilt by every arm that needs an `mt`. It is one path for two builds:
+`mindtape-cli`'s dev-dependencies turn on `mindtape/test-support` and
+`swhid-mint/test-support`, so the build under `cargo test --no-run` is a
+different unit, hence a different `target/debug/deps/mt-<hash>`, from a plain
+`cargo build -p mindtape-cli`. Cargo uplifts by hard link and swaps the link
+whenever it points at another inode, fresh unit or not (on a warm tree `cargo
+build` after `cargo nextest run --no-run` gives `mt` a new inode with no
+compile; a repeat gives none). So a sequential pre-build before the fan-out
+cannot help: each later build of the other feature set swaps `mt` back.
+
+Measured on a tree stale in `crates/`, watching the inode: in two runs a plain
+`cargo build` (`check-doc-coverage.sh` or `www/generate.sh`) swapped `mt` back
+after the test build had linked its own, once at the instant nextest began
+running tests and once 18 s before. A swap is a delete then a link: a window of
+about 85 ms in which a spawn fails with `No such file or directory`. Every arm
+that builds `mt` for the gate now runs `cargo build -p mindtape-cli --tests`,
+the invocation that resolves the same unit as the test arm, so every uplift
+after the first is a no-op. After: one relink per stale run, during the test
+arm's own build, none once it runs. `check-examples` builds once and runs
+`./target/debug/mt`, since `cargo run` takes no `--tests`. A build with another
+feature set belongs in another target directory: #just.build-mt() and
+#just.check-rrule().
+
 = Why the script scopes are enumerated
 
 `.mmz/config.yaml` names one scope per file under `.just/scripts/`. A single

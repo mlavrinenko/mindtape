@@ -11,7 +11,10 @@
 # a set-difference: `mt _cli --json`'s reflected command names (the same dump
 # cli.typ itself renders) minus cli-notes.typ's dict keys.
 set -eo pipefail
-cargo build -p mindtape-cli -q
+# `--tests`, not a plain build: the test arm links `target/debug/mt` with the
+# dev-dependency features, and a build without them would relink it away
+# mid-run (docs/contributing/gates.md, "One mt binary, one feature set").
+cargo build -p mindtape-cli --tests -q
 # Hidden/internal commands (`_cli` itself, the deprecated `install-lib` alias)
 # are excluded because cli_dump.rs (`crates/mindtape-cli/src/cli_dump.rs`)
 # already drops any `hide = true` command and clap's synthetic `help` pseudo-

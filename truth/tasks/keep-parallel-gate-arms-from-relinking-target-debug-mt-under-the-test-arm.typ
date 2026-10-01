@@ -10,7 +10,7 @@
   ),
   difficulty: 2,
   tags: ("tooling", "tests"),
-  estimate: (src-files: 2),
+  estimate: (src-files: 3),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -27,29 +27,32 @@
   ),
   kind: "dev",
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: done(2026, 10, 2),
 )
 
 == Problem
 
 + Run `just check` on a tree where every arm is stale.
-+ 🔴 On 2026-10-01 the `test` arm failed `add_e2e::end_to_end_files_from_yaml_on_stdin` with `Failed to spawn Command { ... "/home/user/mindtape/target/debug/mt" ... }: No such file or directory (os error 2)`; the re-run passed with no change.
-+ Suspects: `check-examples` (`Justfile:200`), `check-doc-coverage` and the docs arm each build `mt` while `test` runs off `target/debug/mt`; cargo's lock covers a build, not nextest's run phase. Unconfirmed: `strace` shows a fresh build makes no link call, so the window needs two dirty builds with different fingerprints in one run. Only a stale tree gives that, hence never seen on warm runs.
++ 🔴 On 2026-10-01 the `test` arm failed `add_e2e::end_to_end_files_from_yaml_on_stdin` with `Failed to spawn ... target/debug/mt ...: No such file or directory`; the re-run passed.
++ Reproduced 2026-10-02 (inode watch on `target/debug/mt`, three stale runs): `mt` is one path for two builds. `mindtape-cli`'s dev-dependencies enable `test-support` features, so `cargo test --no-run` links a different unit than a plain `cargo build -p mindtape-cli`/`cargo run`. Cargo swaps the uplift hard link whenever it points at another inode, even for a fresh unit (delete, then link: ~85 ms of ENOENT). A plain build (`check-doc-coverage`, the docs arms, `check-examples`) swapped `mt` back at the instant nextest began running tests, and once 18 s before.
 
 
 == TO-BE
 
-- 🟢 No gate arm relinks `target/debug/mt` while `test` runs; a cold `just check` cannot fail on a vanished binary.
+- 🟢 Every `mt` build in the gate resolves the unit the test arm links, so no arm swaps `target/debug/mt` once `test` runs.
 
 
 == Changes
 
-- First reproduce: watch `target/debug/mt`'s inode (`inotifywait -m target/debug`) across a `just check` after a `crates/` edit, and name the arm whose build relinks it.
-- `Justfile` `check`: build the workspace once, sequentially, before the `[parallel]` fan-out, so every arm's later build is fresh and never relinks. No extra disk, and the build is paid anyway. A separate target dir per arm is the fallback only: another ~2.6 GB (what `target/mt-dev` holds) and a second compile on every source change.
+- The planned sequential pre-build is not enough: later builds of the other feature set still swap the link back, fresh or not.
+- `check-examples`, `check-doc-coverage.sh` and `www/generate.sh` build with `cargo build -p mindtape-cli --tests`, the invocation that resolves the test arm's unit; `check-examples` then runs `./target/debug/mt`, as `cargo run` takes no `--tests`.
+- Measured after: one relink per stale run, during the test arm's own build, never after (two stale runs).
+- Argued in `docs/contributing/gates.md`, "One mt binary, one feature set".
+- No red test: a gate arm that probes the link would swap it under the test arm itself.
 
 == Rollback
 
-Drop the sequential pre-build from `check`.
+Restore the plain `cargo build`/`cargo run` in those three places.
 
 
 == Out of scope

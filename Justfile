@@ -193,14 +193,16 @@ outdatty-check:
 # reading the machine's packages, and mean nothing on Windows. `mt` resolves
 # the local-package directory through its own setting on every platform
 # (crates/mindtape/src/loader.rs), so the gate says what it means everywhere.
+# One `--tests` build, then the binary itself: `cargo run` cannot take
+# `--tests`, and a plain `cargo run` relinks `target/debug/mt` to the build
+# without the dev-dependency features the test arm links it with — the race
+# docs/contributing/gates.md ("One mt binary, one feature set") argues.
 
 [doc("Validate each example project against itself")]
 [group("gate")]
 check-examples:
-    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/learn-piano check -q
-    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/minimal check -q
-    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/links check -q
-    MINDTAPE_DATA_HOME= cargo run -p mindtape-cli -q -- -w examples/estimates check -q
+    cargo build -p mindtape-cli --tests -q
+    for ex in learn-piano minimal links estimates; do MINDTAPE_DATA_HOME= ./target/debug/mt -w "examples/$ex" check -q || exit 1; done
 
 # Every visible top-level `mt` subcommand must have a www/utils/cli-notes.typ
 # entry. How the set-difference is taken, and what it deliberately never

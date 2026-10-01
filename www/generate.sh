@@ -65,7 +65,10 @@ MT="$REPO/target/debug/mt"
 # artifact the test suite already keeps warm — so a docs run pays a ~15s debug
 # rebuild, not a minutes-long fat-LTO relink (truth/tasks/capture-docs-output-
 # with-the-debug-binary-not-release.typ).
-( cd "$REPO" && cargo build -p mindtape-cli -q )
+# `--tests` keeps this the same `mt` the test arm links (the dev-dependency
+# features), so it never relinks `target/debug/mt` under that arm; see
+# docs/contributing/gates.md, "One mt binary, one feature set".
+( cd "$REPO" && cargo build -p mindtape-cli --tests -q )
 
 # Taken on a file descriptor rather than by re-exec'ing under `flock`, because
 # a re-exec would rerun the build above. The lock is held until this script
