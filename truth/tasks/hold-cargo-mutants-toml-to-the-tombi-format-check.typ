@@ -10,7 +10,7 @@
   ),
   difficulty: 1,
   tags: ("tooling",),
-  estimate: (src-files: 1),
+  estimate: (src-files: 2),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -27,7 +27,7 @@
   ),
   kind: "dev",
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: done(2026, 10, 1),
 )
 
 == Problem

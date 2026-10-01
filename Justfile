@@ -635,7 +635,7 @@ mutants-status +DIR='mutants.out':
 # templates were formatted and the real ones were not. A single list cannot
 # omit a path from the check while applying it in the fix.
 
-TOML_FMT_PATHS := ".gitleaks.toml .mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml crates/mindtape/src/packs/mindtape-tasks.toml"
+TOML_FMT_PATHS := ".cargo/mutants.toml .gitleaks.toml .mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml crates/mindtape/src/packs/mindtape-tasks.toml"
 TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates examples/links/tasks examples/recurring/tasks www/content www/templates www/utils docs/src"
 
 # The same one-list discipline for the justfiles themselves. A bare `just --fmt`

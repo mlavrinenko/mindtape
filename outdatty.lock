@@ -103,7 +103,7 @@ groups:
       .just/scripts/script-scope-check.sh: a847b5655f18081529998e00d769e24589af9e205d8a2e902ea4a32ca0e3b21e
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 4d13683dc3fe984e2d751b9ae876a3717156faf7a1e7c6046462bf9c3f3259e6
+      Justfile: 0e434acbc5b236ebdc847011e23ab024887a18cdef8445144c4f2cd64614aa1a
       flake.nix: c4ff98e1687eacc16dac40c4ad019f924482ed9d60371a4d5e53fa66b4e23050
     dependents:
       docs/src/agents.typ: 0f5fc74381379ae2f1a482a78bfe0bd2b4a50aac4667440609062f6d1248b7e1

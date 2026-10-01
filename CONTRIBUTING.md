@@ -70,7 +70,7 @@ All clippy lints are `deny` (workspace `Cargo.toml`); the project will not build
 `fmt-check`’s non-Rust path lists:
 
 - `JUST_FMT_PATHS`: `.just/docs.just`
-- `TOML_FMT_PATHS`: `.gitleaks.toml`, `.mindtape/config.toml`, `examples/learn-piano/.mindtape/config.toml`, `examples/large/.mindtape/config.toml`, `crates/mindtape/src/packs/mindtape-tasks.toml`
+- `TOML_FMT_PATHS`: `.cargo/mutants.toml`, `.gitleaks.toml`, `.mindtape/config.toml`, `examples/learn-piano/.mindtape/config.toml`, `examples/large/.mindtape/config.toml`, `crates/mindtape/src/packs/mindtape-tasks.toml`
 - `TYPST_FMT_PATHS`: `lib`, `truth`, `.mindtape/templates`, `examples/learn-piano/tasks`, `examples/learn-piano/.mindtape/templates`, `examples/links/tasks`, `examples/recurring/tasks`, `www/content`, `www/templates`, `www/utils`, `docs/src`
 
 Every arm runs through `mmz`, so a re-run skips each one whose declared inputs are unchanged and the pre-commit hook can assert the whole set fresh without re-running it. That memoization and the locked formatter gates are in [docs/contributing/gates.md](docs/contributing/gates.md) the gated example projects, in [docs/contributing/example-projects.md](docs/contributing/example-projects.md).
