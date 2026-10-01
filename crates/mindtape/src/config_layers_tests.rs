@@ -324,3 +324,31 @@ fn a_literal_at_prefixed_entry_with_no_matching_dict_fails_the_load() {
     let err = super::load_config_layered_from(&project, Some(&home), None).unwrap_err();
     assert!(err.to_string().contains("unknown dict `urgent`"), "{err}");
 }
+
+// --- `[[tasks.rules]] check`: the root a rule resolves against ---
+
+/// A `check` rule's Typst module is read from the project root the layered
+/// load was handed, never from the process's current directory: `check.typ`
+/// exists only inside the fixture project, so a `RulesRoot` left unstamped
+/// when `build_config` assembles the config turns the rule into a harvest
+/// error instead of a pass. Pins the full-sweep survivor
+/// `crates/mindtape/src/config_rules.rs:103:9 replace RulesRoot::set with ()`.
+#[test]
+fn a_typst_check_rule_resolves_against_the_project_root() {
+    let (_tmp, home, project) = home_and_project();
+    std::fs::write(project.join("check.typ"), "#let ok(task) = ()\n").unwrap();
+    std::fs::write(
+        project.join(".mindtape").join("config.toml"),
+        "[tasks]\nroots = [\"tasks\"]\n\n\
+         [[tasks.rules]]\ncheck = { typst = \"check.typ\", function = \"ok\" }\n",
+    )
+    .unwrap();
+
+    let (config, _sources, _rule_origins) =
+        super::load_config_layered_from(&project, Some(&home), None).unwrap();
+
+    let task = crate::test_support::bare_task("task");
+    let mut out = Vec::new();
+    crate::config_rules::check_all(&[task], &config, &mut out);
+    assert!(out.is_empty(), "{out:#?}");
+}

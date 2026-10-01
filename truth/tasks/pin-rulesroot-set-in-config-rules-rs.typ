@@ -28,7 +28,11 @@
       docs-match-code: neutral,
     ),
   ),
-  status: proposed(2026, 10, 1),
+  status: done(
+    2026,
+    10,
+    1,
+  )[pinned by \\\`a\_typst\_check\_rule\_resolves\_against\_the\_project\_root\\\`: the follow-up \\\`just mutants --iterate\\\` re-ran this mutant and caught it],
 )
 
 == Problem
