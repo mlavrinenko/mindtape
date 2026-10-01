@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: done(2026, 10, 1),
 )
 
 == Problem
@@ -35,6 +35,7 @@
 + Run `just mutants` with kache as `RUSTC_WRAPPER` (the developer's shell sets it session-wide), then split `~/.cache/kache/events.jsonl` by `root` and `result`.
 + 🔴 The 2026-09-30 sweep, summed over parallel rustc processes: hits avoided about 400 s of compile; 1326 misses on `mindtape`, `mt` and `*_e2e` targets cost about 28 min of keying and storing; 2442 adaptive passthroughs still cost about 25 min of keying. The misses wrote 146.5 GB through the 60 GB store, evicting what normal builds hit.
 + The misses are inherent: every mutant edits `crates/mindtape`, so it and its dependents re-key. Only registry deps can hit, and cargo reuses them per scratch copy after the first build.
++ 🟢 Measured 2026-10-01 on restricted sweeps of `config_ls.rs` (20 mutants) and four files (81 mutants), with kache vs without: 704 s vs 772 s and 1337 s vs 1078 s wall; +833 and +1184 store entries vs 0. The 20-mutant loss is the one-off cold registry-dep build in each of three scratch dirs (baseline build 99 s vs 168 s); steady-state build per mutant is ~70 s vs ~46 s, so the saving grows with the sweep.
 
 
 == TO-BE

@@ -20,7 +20,7 @@ Neither is a `just check` gate, and there is no CI job for it on purpose. The fi
 
 ## When a verdict is worth believing
 
-A `TIMEOUT` is not a verdict in either direction: under parallel load it can hide a real pass or a real survivor equally well. So a sweep you intend to BELIEVE runs at `CARGO_MUTANTS_JOBS=2` or lower with an extended timeout, not at the default parallelism. The speed knobs — three parallel mutant jobs, two build jobs and the mold linker, benchmarked at ~3.5x over the naive run, argued in `.just/scripts/_mutants-env.sh` — are for the pre-PR pass, not for a final verdict.
+A `TIMEOUT` is not a verdict in either direction: under parallel load it can hide a real pass or a real survivor equally well. So a sweep you intend to BELIEVE runs at `CARGO_MUTANTS_JOBS=2` or lower with an extended timeout, not at the default parallelism. The speed knobs — three parallel mutant jobs, two build jobs and the mold linker, benchmarked at ~3.5x over the naive run, argued in `.just/scripts/_mutants-env.sh` — are for the pre-PR pass, not for a final verdict. The sweep also runs with no `RUSTC_WRAPPER`: every mutant re-keys, so a build cache such as kache only misses and floods its store.
 
 A REPRODUCIBLE timeout is a finding, not noise: it means a mutant reached an unbounded loop. Four found so far — `MAX_CATCH_UP_STEPS` in `recur_dates.rs`, `MAX_DISAMBIGUATE_ATTEMPTS` in `naming.rs`, the string scan in `config_hooks.rs` and `find_root_bounded` in `loader.rs` — were fixed by bounding the loop with a `for` over a fixed range — never by a `while n <=
 CEILING`, which still hangs once the mutant stops incrementing `n`.

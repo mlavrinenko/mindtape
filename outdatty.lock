@@ -77,7 +77,7 @@ groups:
       .config/nextest.toml: 02cf7db28ab3930ec5861bce50805212b76b472bdad67018a5761593e5bd67f1
       .just/docs.just: 58b7ff35702bcdd973acaa141e453e313738f76bec59d812340e7bd90a4bb2cb
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
-      .just/scripts/_mutants-env.sh: 2c6b5e74a3a4e20ba695d07b70ce23d2aa8818f07dafba9aa66f806894aa7aed
+      .just/scripts/_mutants-env.sh: 592837a57c4dae087eacdd20d28e1e3d9ff1c9dbd26f59b2afa80900a0267a92
       .just/scripts/_script-graph.sh: c3a9232a83b3f3f2890a37d5953fe4a7efaf2530b8ef3f6b44b60fb2c9e1522a
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
@@ -113,7 +113,7 @@ groups:
       docs/src/contributing/docs-site-build.typ: 5578b469d5e608412655e4c3190667cc07af6c01f34e470311132451e160c80f
       docs/src/contributing/example-projects.typ: 56b3f324691d3b278f8a0e3220c00cc0abb13850840b02dd8510b1f0066fccbd
       docs/src/contributing/gates.typ: 8395c98d7c87ce32488f68ae9afc850be6bba5636bc9ce8c84da20057c89303a
-      docs/src/contributing/mutation-testing.typ: eb38ddd0e67f530f60923453994265bfd12217652028e091faca27c018a45dc3
+      docs/src/contributing/mutation-testing.typ: 3a9d51ea95c500e85ffe3954de9cfc4d35aebad78d7320d3eb4bc9162c154412
       docs/src/contributing/signal-sweep.typ: 695ee4771ad1f6cf0966b46b6748253384ecd244df4d4b03d04efb8b8123eeaa
       docs/src/contributing/windows.typ: dbee6e2e6e6bc8723f477acccc168c7cd6518649605564235ce556e0233d8749
   prelude-docs:
