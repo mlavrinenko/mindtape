@@ -34,21 +34,22 @@
 
 + Run `just check` on a tree where every arm is stale.
 + 🔴 On 2026-10-01 the `test` arm failed `add_e2e::end_to_end_files_from_yaml_on_stdin` with `Failed to spawn Command { ... "/home/user/mindtape/target/debug/mt" ... }: No such file or directory (os error 2)`; the re-run passed with no change.
-+ `check-examples` (`Justfile:200`, `cargo run -p mindtape-cli`) and `check-doc-coverage` (`.just/scripts/check-doc-coverage.sh:14`, `cargo build -p mindtape-cli`) write `target/debug/mt` while `test` runs e2e tests off it. Cargo's build lock covers the build, not nextest's run phase, and a `-p` build may resolve features differently from the `--workspace` one, so it relinks the binary out from under a running test. `Justfile:397` already records the same race for the rrule arm.
++ Suspects: `check-examples` (`Justfile:200`), `check-doc-coverage` and the docs arm each build `mt` while `test` runs off `target/debug/mt`; cargo's lock covers a build, not nextest's run phase. Unconfirmed: `strace` shows a fresh build makes no link call, so the window needs two dirty builds with different fingerprints in one run. Only a stale tree gives that, hence never seen on warm runs.
 
 
 == TO-BE
 
-- 🟢 No gate arm other than `test` writes `target/debug/mt`; a cold `just check` cannot fail on a vanished binary.
+- 🟢 No gate arm relinks `target/debug/mt` while `test` runs; a cold `just check` cannot fail on a vanished binary.
 
 
 == Changes
 
-- `Justfile` `check-examples` and `.just/scripts/check-doc-coverage.sh`: build into their own target dir (as `build-mt` does with `target/mt-dev`) and run that binary; first confirm the relink by watching `target/debug/mt`'s inode across a cold `just check`.
+- First reproduce: watch `target/debug/mt`'s inode (`inotifywait -m target/debug`) across a `just check` after a `crates/` edit, and name the arm whose build relinks it.
+- `Justfile` `check`: build the workspace once, sequentially, before the `[parallel]` fan-out, so every arm's later build is fresh and never relinks. No extra disk, and the build is paid anyway. A separate target dir per arm is the fallback only: another ~2.6 GB (what `target/mt-dev` holds) and a second compile on every source change.
 
 == Rollback
 
-Point both arms back at `target/debug/mt`.
+Drop the sequential pre-build from `check`.
 
 
 == Out of scope
