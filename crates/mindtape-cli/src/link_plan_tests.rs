@@ -307,3 +307,67 @@ fn a_forbidden_edge_without_a_note_is_accepted() {
     };
     assert!(note_problem(&spec, NoteRule::Forbidden).is_none());
 }
+
+/// Plan `alpha depends-on gamma` in a [`setup`] project whose top-level
+/// `alpha` is replaced by `files` (paths under `tasks/`), so the link crosses
+/// whatever folders they name.
+fn plan_nested(files: &[(&str, &str)]) -> super::Plan {
+    let dir = tempfile::tempdir().unwrap();
+    setup(dir.path(), BASE_CONFIG);
+    for (rel, body) in files {
+        let path = dir.path().join("tasks").join(rel);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, body).unwrap();
+    }
+    std::fs::remove_file(dir.path().join("tasks/alpha.typ")).unwrap();
+    let project = reload(dir.path(), BASE_CONFIG);
+    build(
+        &project,
+        &[entry("alpha", "depends-on", "gamma", None)],
+        Mode::Merge,
+    )
+}
+
+/// The one staged rewrite of `plan` writes `literal` as its edge target.
+fn assert_writes(plan: &super::Plan, literal: &str) {
+    assert!(plan.problems.is_empty(), "{:?}", plan.problems);
+    let updated = &plan.staged.first().unwrap().updated;
+    let edge = format!("depends-on(\"{literal}\")");
+    assert!(updated.contains(&edge), "{updated}");
+}
+
+/// `--help` promises a target "by stem": a stem in another folder resolves to
+/// the one task carrying it, written relative to the linking task so the file
+/// reads the same to `mt check` and to Typst.
+#[test]
+fn a_bare_stem_in_another_folder_is_written_relative_to_the_linker() {
+    let plan = plan_nested(&[("docs/alpha.typ", ALPHA), ("cli/gamma.typ", BETA)]);
+    assert_writes(&plan, "../cli/gamma.typ");
+}
+
+/// A sibling carrying the stem wins over one elsewhere, so a same-folder link
+/// keeps its short literal.
+#[test]
+fn a_sibling_stem_beats_one_in_another_folder() {
+    let plan = plan_nested(&[
+        ("docs/alpha.typ", ALPHA),
+        ("docs/gamma.typ", BETA),
+        ("cli/gamma.typ", BETA),
+    ]);
+    assert_writes(&plan, "gamma.typ");
+}
+
+/// Two folders sharing a stem, neither of them the linker's: refused naming
+/// every candidate, never guessed.
+#[test]
+fn a_stem_two_folders_share_is_refused_naming_both() {
+    let plan = plan_nested(&[
+        ("docs/alpha.typ", ALPHA),
+        ("cli/gamma.typ", BETA),
+        ("web/gamma.typ", BETA),
+    ]);
+    let problem = only_problem(&plan);
+    assert!(problem.contains("is ambiguous"), "{problem}");
+    assert!(problem.contains("../cli/gamma.typ"), "{problem}");
+    assert!(problem.contains("../web/gamma.typ"), "{problem}");
+}

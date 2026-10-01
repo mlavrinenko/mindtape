@@ -334,6 +334,24 @@ pub fn unknown_view_error(name: &str, views: &BTreeMap<String, ViewSpec>) -> any
     )
 }
 
+/// The path of `to` (root-relative) seen from `from_dir` (root-relative), for
+/// writing a link target: `tasks/live.typ` pointing at
+/// `tasks/.archive/gone.typ` becomes `.archive/gone.typ`. Shared by `retire`
+/// moving a file and `mt link` naming a task in another folder.
+pub fn relative_target(from_dir: &Path, to: &Path) -> PathBuf {
+    let from: Vec<_> = from_dir.components().collect();
+    let to: Vec<_> = to.components().collect();
+    let common = from.iter().zip(&to).take_while(|(a, b)| a == b).count();
+    let mut out = PathBuf::new();
+    for _ in 0..(from.len() - common) {
+        out.push("..");
+    }
+    for component in to.iter().skip(common) {
+        out.push(component.as_os_str());
+    }
+    out
+}
+
 #[cfg(test)]
 #[path = "util_tests.rs"]
 mod tests;

@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("cli",),
-  estimate: (src-files: 3),
+  estimate: (src-files: 4),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: done(2026, 10, 1),
 )
 
 == Problem

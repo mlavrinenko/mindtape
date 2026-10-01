@@ -13,6 +13,7 @@ use typst_cleanup::{Deletion, Plan, Rewrite, apply};
 
 use crate::flip::status_edit;
 use crate::git;
+use crate::util;
 
 /// The strategy for a run, resolved before anything is planned: the configured
 /// `[rm] strategy` wins; unset, a detected git repository defaults to
@@ -228,7 +229,7 @@ fn retarget_inbound_edges(
                     continue;
                 };
                 let from = task.file.parent().unwrap_or(Path::new(""));
-                let rel = relative_target(from, dest);
+                let rel = util::relative_target(from, dest);
                 edits.push(typst_edit::Edit::new(
                     target.range.clone(),
                     format!("\"{}\"", rel.display()),
@@ -266,23 +267,6 @@ fn dest_rel(rename: &Option<PathBuf>, file: &Path) -> PathBuf {
         },
         None => file.to_path_buf(),
     }
-}
-
-/// The path of `to` (root-relative) seen from `from_dir` (root-relative), for
-/// rewriting a link target when `retire` moves its file: `tasks/live.typ`
-/// pointing at `tasks/.archive/gone.typ` becomes `.archive/gone.typ`.
-fn relative_target(from_dir: &Path, to: &Path) -> PathBuf {
-    let from: Vec<_> = from_dir.components().collect();
-    let to: Vec<_> = to.components().collect();
-    let common = from.iter().zip(&to).take_while(|(a, b)| a == b).count();
-    let mut out = PathBuf::new();
-    for _ in 0..(from.len() - common) {
-        out.push("..");
-    }
-    for component in to.iter().skip(common) {
-        out.push(component.as_os_str());
-    }
-    out
 }
 
 /// The `retire` plan: `status` is the terminal status applied, `rename` the

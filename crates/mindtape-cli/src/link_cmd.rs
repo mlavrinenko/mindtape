@@ -41,7 +41,9 @@ pub struct LinkArgs {
     pub kind: Option<String>,
 
     /// Target tasks, by stem (`other`), stem with extension (`other.typ`), or
-    /// a path relative to the linking task.
+    /// a path relative to the linking task. A stem names a task in any folder:
+    /// a sibling wins, else the one task carrying it is written as a relative
+    /// path, and a stem several folders share is refused naming each.
     #[arg(required_unless_present = "apply")]
     pub targets: Vec<String>,
 

@@ -546,6 +546,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt link` finds a bare stem in another folder.** The stem became a sibling
+  `<stem>.typ`, so a target one folder over was refused with a suggestion of
+  the very stem typed, and only `../cli/<stem>.typ` landed. A stem now names
+  the one task carrying it anywhere in the project and is written relative to
+  the linking task; a sibling still wins, and a stem several folders share is
+  refused naming each path.
+
 - **A dry `mt add --print` refuses what the write refuses.** The preview
   returned before the pre-write check, so `just ask-refactoring` printed a
   task whose `(files: N)` estimate the config's renamed `src-files` unit

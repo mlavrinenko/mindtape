@@ -79,7 +79,7 @@ fn stage(project: &Project, files: &HashSet<&Path>, entry: &Entry, mode: Mode, p
             return;
         }
     };
-    let edges = settle_targets(project, &entry.edges);
+    let edges = settle_targets(project, &task, files, &entry.edges);
     let refusals = check_edges(project, &task, files, &edges);
     if !refusals.is_empty() {
         plan.problems
@@ -102,29 +102,78 @@ fn stage(project: &Project, files: &HashSet<&Path>, entry: &Entry, mode: Mode, p
 
 /// Settle each edge's target into the literal string that goes into the file.
 ///
-/// A `local-task-path` kind's target is a task file, so a bare stem gains the
-/// `.typ` the DSL's targets carry (`other` -> `other.typ`) while a path or an
-/// already-suffixed stem survives verbatim — `resolve_link_path` reads a target
-/// relative to the linking task, so `../sub/x.typ` has to stay exactly that.
-/// A kind pointing *outside* the backlog is left alone entirely: appending
-/// `.typ` to `https://…/pull/42` would corrupt the one thing that edge records.
+/// A `local-task-path` kind's target is a task file. A bare stem (no `/`) names
+/// a task anywhere in the project, as `mt link --help` promises: a sibling
+/// carrying it wins and is written `<stem>.typ`, else the one loaded task with
+/// that stem is written relative to the linking task (`../cli/other.typ`),
+/// since `resolve_link_path` reads every written target that way. A stem no
+/// task or several tasks carry stays `<stem>.typ` for [`target_problem`] to
+/// refuse. A path survives verbatim. A kind pointing *outside* the backlog is
+/// left alone entirely: appending `.typ` to `https://…/pull/42` would corrupt
+/// the one thing that edge records.
 ///
 /// This runs before the checks, so every later stage — resolution, rendering,
 /// the report — speaks about the string that was actually written.
-fn settle_targets(project: &Project, edges: &[EdgeSpec]) -> Vec<EdgeSpec> {
+fn settle_targets(
+    project: &Project,
+    task: &Task,
+    files: &HashSet<&Path>,
+    edges: &[EdgeSpec],
+) -> Vec<EdgeSpec> {
     let links = &project.config.tasks.links;
     edges
         .iter()
         .map(|edge| {
-            let bare = kind_targets_tasks(&edge.kind, links) && !edge.target.ends_with(".typ");
+            let target = if kind_targets_tasks(&edge.kind, links) {
+                settle_task_target(project, task, files, &edge.target)
+            } else {
+                edge.target.clone()
+            };
             EdgeSpec {
-                target: if bare {
-                    format!("{}.typ", edge.target)
-                } else {
-                    edge.target.clone()
-                },
+                target,
                 ..edge.clone()
             }
+        })
+        .collect()
+}
+
+/// One task-targeting literal, per [`settle_targets`].
+fn settle_task_target(
+    project: &Project,
+    task: &Task,
+    files: &HashSet<&Path>,
+    target: &str,
+) -> String {
+    if target.contains('/') {
+        return target.to_owned();
+    }
+    let sibling = if target.ends_with(".typ") {
+        target.to_owned()
+    } else {
+        format!("{target}.typ")
+    };
+    let resolves =
+        resolve_link_path(&task.file, &sibling).is_some_and(|p| files.contains(p.as_path()));
+    match stem_candidates(project, task, target).as_slice() {
+        [only] if !resolves => only.clone(),
+        _ => sibling,
+    }
+}
+
+/// Every loaded task whose stem is `target`'s, as a literal relative to
+/// `task`'s folder.
+fn stem_candidates(project: &Project, task: &Task, target: &str) -> Vec<String> {
+    let stem = target.strip_suffix(".typ").unwrap_or(target);
+    let from = task.file.parent().unwrap_or(Path::new(""));
+    project
+        .outcome
+        .tasks
+        .iter()
+        .filter(|other| other.id == stem)
+        .map(|other| {
+            util::relative_target(from, &other.file)
+                .display()
+                .to_string()
         })
         .collect()
 }
@@ -235,6 +284,15 @@ fn target_problem(
     let resolved = resolve_link_path(&task.file, &edge.target);
     if resolved.as_deref().is_some_and(|path| files.contains(path)) {
         return None;
+    }
+    let candidates = stem_candidates(project, task, &edge.target);
+    if !edge.target.contains('/') && candidates.len() > 1 {
+        return Some(format!(
+            "`{}` edge target `{}` is ambiguous: {} carry that stem; pass one of them",
+            edge.kind,
+            edge.target,
+            candidates.join(", ")
+        ));
     }
     let ids: Vec<&str> = project
         .outcome

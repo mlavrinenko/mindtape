@@ -105,4 +105,6 @@ to copy.
 `mt` writes edges back into a task file with #link(u("/cli/"))[`mt link`]: it
 upserts single edges and applies a whole adjacency map — stem, kind, targets —
 in one call, serializing through the same helpers, so a written file reads as
-if it were hand-authored.
+if it were hand-authored. A bare target stem names a task in any folder and is
+written as the path from the linking task to it (`../cli/other.typ`), so the
+file still resolves without `mt`.
