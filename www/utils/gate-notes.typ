@@ -33,9 +33,10 @@
 
 #let gate-notes = (
   "fmt-check": [
-    `cargo fmt` over Rust, `tombi format` over the tracked TOML
-    (`.gitleaks.toml`, `.mindtape/config.toml` and the per-example
-    configs), `typstyle`
+    `cargo fmt` over Rust, `tombi format` over every tracked
+    `*.toml` (`tombi.toml` turns its schema-driven key and array-value
+    sorting off, so a commented group stays where it was written; tombi
+    comes from its own nixpkgs input in `flake.nix`), `typstyle`
     over the Typst sources, and `--fmt` over the justfiles — the exact
     path lists are below the table. One list feeds both `fmt` and
     `fmt-check`, so a path is added in one place, never to a single

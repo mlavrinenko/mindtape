@@ -16,14 +16,17 @@
 # ICE — impact x confidence x ease, normalised to 0..9.
 [ice]
 score = "round(impact * confidence * ease * 0.09)"
+
 [ice.inputs.impact]
 type = "number"
 min = 1
 max = 10
+
 [ice.inputs.confidence]
 type = "number"
 min = 0
 max = 1
+
 [ice.inputs.ease]
 type = "number"
 min = 1
@@ -32,18 +35,22 @@ max = 10
 # RICE — reach x impact x confidence / effort, normalised to 0..9.
 [rice]
 score = "round(reach * impact * confidence / effort * 0.18)"
+
 [rice.inputs.reach]
 type = "number"
 min = 0
 max = 10
+
 [rice.inputs.impact]
 type = "number"
 min = 1
 max = 5
+
 [rice.inputs.confidence]
 type = "number"
 min = 0
 max = 1
+
 [rice.inputs.effort]
 type = "number"
 min = 1
@@ -52,10 +59,12 @@ max = 10
 # WSJF — cost of delay / job size, normalised to 0..9.
 [wsjf]
 score = "round(cost_of_delay / job_size * 0.9)"
+
 [wsjf.inputs.cost_of_delay]
 type = "number"
 min = 0
 max = 10
+
 [wsjf.inputs.job_size]
 type = "number"
 min = 1
@@ -65,26 +74,31 @@ max = 10
 [eisenhower]
 [eisenhower.inputs.urgent]
 type = "bool"
+
 [eisenhower.inputs.important]
 type = "bool"
+
 [[eisenhower.category]]
 when = "urgent && important"
 score = 9
 label = "do"
 glyph = "🔥"
 color = "red"
+
 [[eisenhower.category]]
 when = "important && !urgent"
 score = 6
 label = "schedule"
 glyph = "📅"
 color = "yellow"
+
 [[eisenhower.category]]
 when = "urgent && !important"
 score = 3
 label = "delegate"
 glyph = "🤝"
 color = "cyan"
+
 [[eisenhower.category]]
 when = "!urgent && !important"
 score = 0
@@ -97,24 +111,28 @@ color = "green"
 [moscow.inputs.level]
 type = "enum"
 values = ["must", "should", "could", "wont"]
+
 [[moscow.category]]
 when = 'level == "must"'
 score = 9
 label = "must"
 glyph = "🔴"
 color = "red"
+
 [[moscow.category]]
 when = 'level == "should"'
 score = 6
 label = "should"
 glyph = "🟠"
 color = "yellow"
+
 [[moscow.category]]
 when = 'level == "could"'
 score = 3
 label = "could"
 glyph = "🟡"
 color = "cyan"
+
 [[moscow.category]]
 when = 'level == "wont"'
 score = 0

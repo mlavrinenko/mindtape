@@ -63,12 +63,19 @@ scopes:
     - "schema/**"
     - "lib/**"
 
-  # TOML formatter (`just fmt-check` runs `tombi format --check` over these).
+  # TOML formatter (`just fmt-check` runs `tombi format --check` over every
+  # tracked `*.toml`, TOML_FMT_PATHS). What `rust`, `rust-fmt`, `rust-clippy`,
+  # `typ-fmt` and the `crates/**` glob already hash is not repeated here;
+  # `tombi.toml` is its config, so an edit changes what "formatted" means.
   toml-fmt:
+    - "tombi.toml"
+    - ".cargo/mutants.toml"
+    - ".config/nextest.toml"
     - ".gitleaks.toml"
     - ".mindtape/config.toml"
-    - "examples/learn-piano/.mindtape/config.toml"
-    - "examples/large/.mindtape/config.toml"
+    - "clippy.toml"
+    - "examples/*/.mindtape/config.toml"
+    - "www/tola.toml"
 
   # Typst formatter (`just fmt-check` runs `typstyle --check` over these).
   # `truth/tasks/**` is intentionally NOT listed (see NOTE ON SCOPE): the gate

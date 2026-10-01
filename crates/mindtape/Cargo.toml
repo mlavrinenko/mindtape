@@ -28,8 +28,8 @@ rrule = ["dep:rrule"]
 # adds `iana-time-zone`; chrono resolves the zone itself (no `localtime_r`), so
 # there is no multithreaded-soundness hazard.
 chrono = { version = "0.4", default-features = false, features = [
-    "std",
-    "clock",
+  "std",
+  "clock",
 ] }
 # The `rrule(...)` escape hatch's expander, behind the `rrule` feature (see
 # `crates/mindtape/src/recur_rrule.rs`). Pulls in chrono-tz + regex, so it

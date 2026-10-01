@@ -27,7 +27,7 @@
   ),
   kind: "dev",
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 2),
 )
 
 == Problem

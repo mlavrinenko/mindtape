@@ -11,6 +11,11 @@
     # running any of them again.
     mmz.url = "github:mlavrinenko/mmz";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    # A second nixpkgs, read for `tombi` alone. The main pin stays where the
+    # tinymist/Typst note below wants it; tombi >= 1.5 is the first with
+    # per-schema `format.rules` that switch key and array-value sorting off
+    # (see tombi.toml). Move it on its own: `nix flake update nixpkgs-tombi`.
+    nixpkgs-tombi.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     qahq.url = "github:mlavrinenko/qahq";
     # Typst-native static site generator that builds the docs under www/.
     tola.url = "github:tola-rs/tola-ssg/v0.7.1";
@@ -22,6 +27,7 @@
       mmz,
       naersk,
       nixpkgs,
+      nixpkgs-tombi,
       qahq,
       tola,
       ...
@@ -30,6 +36,8 @@
       system:
       let
         pkgs = (import nixpkgs) { inherit system; };
+        # Only `tombi` is read from this one; see the input's comment.
+        pkgs-tombi = (import nixpkgs-tombi) { inherit system; };
 
         naersk' = pkgs.callPackage naersk { };
 
@@ -84,6 +92,7 @@
               qahq.packages.${system}.linecop
               qahq.packages.${system}.outdatty
               tola.packages.${system}.default
+              pkgs-tombi.tombi
             ]
             ++ (with pkgs; [
               rustc
@@ -127,11 +136,12 @@
               # a later tinymist has moved to Typst 0.15 upstream.
               tinymist
               # `tombi` and `typstyle` are the project formatters: Tombi is
-              # the canonical TOML formatter (Tombi 0.9+ ships `format` /
-              # `format --check` / `lint`); typstyle is the Typst formatter
-              # `just fmt` runs after `cargo fmt`. Both stay on the project
-              # PATH so editor-on-save and `just fmt-check` are byte-identical.
-              tombi
+              # the canonical TOML formatter (`format` / `format --check` /
+              # `lint`); typstyle is the Typst formatter `just fmt` runs after
+              # `cargo fmt`. Both stay on the project PATH so editor-on-save
+              # and `just fmt-check` are byte-identical. tombi comes from
+              # `nixpkgs-tombi` (>= 1.5, needed to turn sorting off), the rest
+              # from the main pin.
               typst
               typstyle
               util-linux

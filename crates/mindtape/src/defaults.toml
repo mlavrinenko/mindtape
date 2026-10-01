@@ -61,18 +61,21 @@ terminal = true
 kind = "int"
 min = 0
 max = 9
+
 [[tasks.priority.bands]]
 label = "low"
 min = 0
 max = 2
 glyph = "🟢"
 color = "green"
+
 [[tasks.priority.bands]]
 label = "normal"
 min = 3
 max = 6
 glyph = "🟡"
 color = "yellow"
+
 [[tasks.priority.bands]]
 label = "high"
 min = 7
@@ -85,21 +88,25 @@ color = "red"
 kind = "int"
 min = 0
 max = 9
+
 [[tasks.difficulty.anchors]]
 value = 0
 label = "junior"
 glyph = "🟢"
 color = "green"
+
 [[tasks.difficulty.anchors]]
 value = 3
 label = "mid"
 glyph = "🔵"
 color = "cyan"
+
 [[tasks.difficulty.anchors]]
 value = 6
 label = "senior"
 glyph = "🟡"
 color = "yellow"
+
 [[tasks.difficulty.anchors]]
 value = 9
 label = "staff"
@@ -134,45 +141,45 @@ overdue-color = "red"
 # off with `when = 'false'` on one line.
 [ls.columns."#"]
 # The handle is the listing's address; it is never blank and never optional.
-when = 'true'
+when = "true"
 
 [ls.columns.status]
-when = 'nonempty()'
+when = "nonempty()"
 
 # Not `nonempty()`: a listing where every task is ready has a label in every
 # cell and nothing to report. The column exists to say something is stuck.
 [ls.columns.ready]
-when = 'blocked()'
+when = "blocked()"
 
 [ls.columns.priority]
-when = 'nonempty()'
+when = "nonempty()"
 
 [ls.columns.due]
-when = 'nonempty()'
+when = "nonempty()"
 
 # Only when the rows disagree about who works them. A listing already narrowed
 # to one actor (`mt ls @agent`) learns nothing from a column repeating that
 # name down every row; a mixed listing shows the split without being asked.
 [ls.columns.assignee]
-when = 'contested()'
+when = "contested()"
 
 [ls.columns.title]
-when = 'true'
+when = "true"
 
 # What each blocked task waits on. Opt-in: `ready` already flags that a row is
 # stuck, and the blocker list is a question asked on purpose
 # (`mt ls blocked --columns title,why`), not a default.
 [ls.columns.why]
-when = 'named()'
+when = "named()"
 
 # How far a parent's children have got: the count, and `done/children` (`3/5`).
 # Opt-in like `why` — a question about parents, asked on purpose
 # (`mt ls 'children > 0' --columns title,progress`).
 [ls.columns.children]
-when = 'named()'
+when = "named()"
 
 [ls.columns.progress]
-when = 'named()'
+when = "named()"
 
 # The `file` column is opt-in on a terminal and automatic everywhere else.
 #

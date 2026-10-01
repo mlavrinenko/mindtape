@@ -6628,6 +6628,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-tombi": {
+      "locked": {
+        "lastModified": 1790652569,
+        "narHash": "sha256-641r7xrlSOHYoktL9/aArPIYNgZJ9eM5URzSEOtPJDY=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "b6c8664de9b6cc07fe5666a29f91884ba81197c4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs_10": {
       "locked": {
         "lastModified": 1772465433,
@@ -7141,6 +7157,7 @@
         "mmz": "mmz",
         "naersk": "naersk_18",
         "nixpkgs": "nixpkgs_4",
+        "nixpkgs-tombi": "nixpkgs-tombi",
         "qahq": "qahq_2",
         "tola": "tola_3"
       }

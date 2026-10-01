@@ -12,6 +12,6 @@ lint-commented-code = false
 # rename) is the one sanctioned door; `File::create_new` stays open for a
 # caller that needs "never overwrite" rather than atomicity (`mt add`).
 disallowed-methods = [
-    { path = "std::fs::write", reason = "torn write on kill/crash; use mindtape::write_atomic" },
-    { path = "std::fs::File::create", reason = "truncates with no fsync; use mindtape::write_atomic, or File::create_new to require a fresh path" },
+  { path = "std::fs::write", reason = "torn write on kill/crash; use mindtape::write_atomic" },
+  { path = "std::fs::File::create", reason = "truncates with no fsync; use mindtape::write_atomic, or File::create_new to require a fresh path" },
 ]

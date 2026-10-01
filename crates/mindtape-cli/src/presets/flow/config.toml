@@ -11,6 +11,7 @@
 # refuses entering them while a `depends-on` target is still open.
 
 [tasks]
+
 # Folder-derived tags: a task at tasks/backend/auth/rotate-keys.typ picks up
 # `backend` and `auth` with no hand-wiring. Derived tags are virtual — they are
 # never written into the file, and authored `tags` stay untouched.

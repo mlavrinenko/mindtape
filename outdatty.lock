@@ -22,7 +22,7 @@ groups:
       crates/mindtape-cli/src/mv.rs: 16dd27010d4c14f8b8df038d7f097420213921883ab46ca971f606efe8b7f618
       crates/mindtape-cli/src/output.rs: 70ea29fea98ea864504f23dc2a41f8829195c6325addaab6992fcaba0660d93b
       crates/mindtape-cli/src/preset_cmd.rs: 1b971c34c9b83d574316a50464e7e2f0a8cd0fa835ea23735a0e93e9fb4faee6
-      crates/mindtape-cli/src/presets/flow/config.toml: 87d9f6dc2429416ce34c655fef3826f32aca617e38b502baeacc634500016067
+      crates/mindtape-cli/src/presets/flow/config.toml: 1a77ed26065cfd4053e8946af8ba2747002196693798ceca76e477cf4bd5cada
       crates/mindtape-cli/src/presets/gated/config.toml: 7f4e560e22a1d4dd8dbdaf037d1c1fb6c97a2dc5f00a45d65cc452acd7b1d500
       crates/mindtape-cli/src/presets/personal/config.toml: 543dfead4edfb822ec7a7562765726ed2485edd6e8045a45f3e735ff8ce728e3
       crates/mindtape-cli/src/presets/todone/config.toml: 4e7b1ef35cb179aab36c3704eba20ea7653ccba49479fef32cedadefa5696ee8
@@ -32,7 +32,7 @@ groups:
       crates/mindtape-cli/src/set.rs: 2c8aa03b758b040df3c007099e4776beb8b284ceb58f497ee66b33d9bc41e363
       crates/mindtape-cli/src/views.rs: a6987780b57f9651a48af4e5c559b4c3972e06f428be39799af0c9529c6f0483
       crates/mindtape-cli/src/worktrees.rs: 78617369d3fb90e6e30605fb5e23b3f795f1ab2a671914aefdd5d2b1868a5fc5
-      crates/mindtape/src/defaults.toml: 5cb57bf4d9d12272abd8a9e1c2bfe8d8f6201713546446fc489c6c698deceffe
+      crates/mindtape/src/defaults.toml: 95b3a32645c8582df8303362a8ec125fd434f394e66fda618fd70786b7e35779
       crates/mindtape/src/fields.rs: 3257f23f636b0c5c70ad4fd51a622e4541a91355cd42c91e6b81ecb2f4167f9c
       crates/mindtape/src/lib.rs: 6f5901c6eca839f1509d6eaeeb3d0f3aef739d53ed4c54c3a454432812715b8c
     dependents:
@@ -103,8 +103,8 @@ groups:
       .just/scripts/script-scope-check.sh: a847b5655f18081529998e00d769e24589af9e205d8a2e902ea4a32ca0e3b21e
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 0e434acbc5b236ebdc847011e23ab024887a18cdef8445144c4f2cd64614aa1a
-      flake.nix: c4ff98e1687eacc16dac40c4ad019f924482ed9d60371a4d5e53fa66b4e23050
+      Justfile: 4f4369c183472e93e2eb28dc9ecbfa3b3ea3482a3019dedfcd924d25369ca823
+      flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: 0f5fc74381379ae2f1a482a78bfe0bd2b4a50aac4667440609062f6d1248b7e1
       docs/src/contributing.typ: c2471c704790bc6a3bb016a2ddb809b0a9a06f1b2fcc218e31ec7806dc99c4f4
@@ -132,14 +132,14 @@ groups:
       www/content/templates.typ: d90046c678315921708a17e865cebdf1a827b862d21d3b5876e411fd8850fc76
   priority-frameworks:
     source:
-      crates/mindtape/src/frameworks.toml: 293eb980b6122184615ad20aea3e245a03d078ea38a25dd97e4f2ac08998bbfe
+      crates/mindtape/src/frameworks.toml: 69a8880cc7c1682d9423865404c25cc2c0240e54824d4722573d7d1f9cf387cc
     dependents:
-      www/utils/framework-notes.typ: 100534cd10cf6538050956496752acf67a7cc3168aa547fb1a2b188a5f6e1491
+      www/utils/framework-notes.typ: e554439cbb673dd4a29a3ff65055ff2ba44cd126e145a30154429bf865612e8a
   release-notes:
     source:
-      Cargo.toml: 709e99868099e2844cdc8cf1d4ec0415c85e3c31ad09d243c176846952da174b
+      Cargo.toml: 2f9a72134921ea6d7b8cb5b66930d161d21ab158d4a879d6a7b63d3ba4bd0cba
     dependents:
-      CHANGELOG.md: 0d67ddcdbeb854ffa7574a0f4516d081da0b878bb9261b846f53842a893ed226
+      CHANGELOG.md: 4962499c009907f413b132a1eecc9223e60a07070c6964425427f62742fe1a80
   sweep-dedup:
     source:
       contrib/ask-refactoring/coverage.sh: a480caf266b45656b743ca9d0ed40b3b0202db73c8ccce40a2fad58af4407750

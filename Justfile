@@ -635,7 +635,7 @@ mutants-status +DIR='mutants.out':
 # templates were formatted and the real ones were not. A single list cannot
 # omit a path from the check while applying it in the fix.
 
-TOML_FMT_PATHS := ".cargo/mutants.toml .gitleaks.toml .mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/large/.mindtape/config.toml crates/mindtape/src/packs/mindtape-tasks.toml"
+TOML_FMT_PATHS := ".cargo/mutants.toml .config/nextest.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/axes/headers_spec.toml crates/mindtape-cli/src/axes/workflow_flow.toml crates/mindtape-cli/src/axes/workflow_gated.toml crates/mindtape-cli/src/axes/workflow_personal.toml crates/mindtape-cli/src/axes/workflow_todo_done.toml crates/mindtape-cli/src/presets/flow/config.toml crates/mindtape-cli/src/presets/gated/config.toml crates/mindtape-cli/src/presets/personal/config.toml crates/mindtape-cli/src/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/defaults.toml crates/mindtape/src/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/links/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/self-validating/.mindtape/config.toml lib/typst.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
 TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/learn-piano/tasks examples/learn-piano/.mindtape/templates examples/links/tasks examples/recurring/tasks www/content www/templates www/utils docs/src"
 
 # The same one-list discipline for the justfiles themselves. A bare `just --fmt`

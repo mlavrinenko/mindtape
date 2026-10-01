@@ -1,7 +1,7 @@
 [workspace]
 members = [
-    "crates/mindtape",
-    "crates/mindtape-cli",
+  "crates/mindtape",
+  "crates/mindtape-cli",
 ]
 resolver = "3"
 
