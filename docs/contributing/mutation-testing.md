@@ -12,8 +12,9 @@ Coverage proves a line executed. Mutation testing proves a test would fail if th
 
 - `just mutants-diff` before a PR. It sweeps only the mutants your branch’s diff touches, so it is minutes rather than hours, and covers new files for free.
 - `just mutants -f <file>` forces a deliberate full-file sweep.
-- `just mutants` runs the whole workspace — hours — and is what refreshes the `mutants.out/outcomes.json` the ask-refactoring mutants arm reads.
-- `just mutants-status` reads that same file to report a running sweep’s progress and ETA.
+- `just mutants` runs the whole workspace — hours — and writes `mutants.out`, the cache an iterating full sweep reads back.
+- A scoped run — `just mutants-diff` or `just mutants -f <file>` — writes `target/mutants-scoped` instead, so it cannot clobber that cache. The ask-refactoring mutants arm reads whichever of the two ran last.
+- `just mutants-status` takes the directory to read (default `mutants.out`) and reports a running sweep’s progress and ETA.
 
 Neither is a `just check` gate, and there is no CI job for it on purpose. The file set, the excludes, the `rrule` feature and the debuginfo-free `mutants` profile are `.cargo/mutants.toml`’s subject.
 
@@ -36,6 +37,6 @@ Every survivor is one of three things:
 
 - A real gap — write a regression test that kills it.
 - An equivalent mutant, where the mutated code is genuinely indistinguishable from the original. Record it in `.cargo/mutants.toml` `exclude_re`, with its reason.
-- A gap not worth pinning now — `just ask-refactoring` reads the same outcomes file and files one scored task per survivor for a later sprint.
+- A gap not worth pinning now — `just ask-refactoring` reads the last sweep’s outcomes file and files one scored task per survivor for a later sprint.
 
 Never leave a survivor untriaged; the value of the sweep is that the list is empty for a stated reason, not that it is short.

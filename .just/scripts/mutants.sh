@@ -12,4 +12,24 @@
 # Justfile-level `export`.
 set -eo pipefail
 . "$(dirname "${BASH_SOURCE[0]}")/_mutants-env.sh"
+
+# A run that selects a subset rewrites its output directory's mutant list and
+# outcomes, which would destroy the `--iterate` cache a full sweep keeps in
+# `mutants.out`: the 2026-09-30 full sweep found only 46 of 4240 mutants to
+# skip because earlier scoped runs had overwritten it, and re-tested the rest
+# cold (15h). Route scoped runs to the scratch dir under `target/` unless the
+# caller passed an output of their own; only a no-subset full sweep — the one
+# `--iterate` reads — touches `mutants.out`.
+has_output=""
+has_subset=""
+for arg in "$@"; do
+    case "$arg" in
+        -o|-o?*|--output|--output=*) has_output=1 ;;
+        -f|-f?*|--file|--file=*|--in-diff|--in-diff=*|--diff|--diff=*) has_subset=1 ;;
+    esac
+done
+if [ -n "$has_subset" ] && [ -z "$has_output" ]; then
+    set -- "$@" --output target/mutants-scoped
+fi
+
 cargo mutants "$@"

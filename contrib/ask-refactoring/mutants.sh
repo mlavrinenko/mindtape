@@ -3,7 +3,8 @@
 # Sourced by `contrib/ask-refactoring.sh`; not executable on its own. It reads
 # that script's globals (`$repo`, `$MT`, `$WRITE`, the thresholds) and calls its
 # `stem_for`. It owns three functions the driver looks up by name —
-# `score_mutants`, `signal_mutants`, `emit_mutants` — reading mutants.out/outcomes.json.
+# `score_mutants`, `signal_mutants`, `emit_mutants` — reading the last sweep's
+# outcomes.json.
 #
 # The reasoning behind this arm's numbers lives here with the code that
 # applies them, deliberately: it is the most valuable thing in the arm and a
@@ -31,19 +32,30 @@
 # files it — a phantom finding is the one thing the sweep cannot afford, and
 # unlike the lcov there is no cheap way back to a fresh one.
 #
-# Scope comes out of the data, not a ledger. `mutants.out/outcomes.json` records
-# every mutant that ran, so the set of files a sweep covered is derivable from
-# the file itself — `--in-diff` and `-f` runs alike. That matters because a
-# finding must never read as covering more than it does, and it means the honest
-# answer needs no recorded last-sweep marker: a ledger would go stale, conflict
-# between contributors, and be absent on a fresh clone, which is exactly the
-# reasoning that kept the coverage arm off a stored baseline.
-MUTANTS_JSON="mutants.out/outcomes.json"
+# Scope comes out of the data, not a ledger. The outcomes.json this arm reads
+# records every mutant that ran, so the set of files a sweep covered is
+# derivable from the file itself — `--in-diff` and `-f` runs alike. That matters
+# because a finding must never read as covering more than it does, and it means
+# the honest answer needs no recorded last-sweep marker: a ledger would go
+# stale, conflict between contributors, and be absent on a fresh clone, which is
+# exactly the reasoning that kept the coverage arm off a stored baseline.
+#
+# Where to read it: `just mutants` (full) writes `mutants.out`, while a scoped
+# run (`-f`, `--in-diff`) writes `target/mutants-scoped` so it cannot clobber
+# the `--iterate` cache the full sweep reads (`.just/scripts/mutants.sh`). Both
+# are complete sweep records, so the arm takes whichever ran last; a sweep is a
+# sweep regardless of which directory the wrangler routed it to.
+MUTANTS_JSON=""
+for candidate in mutants.out/outcomes.json target/mutants-scoped/outcomes.json; do
+    if [ -f "$candidate" ] && { [ -z "$MUTANTS_JSON" ] || [ "$candidate" -nt "$MUTANTS_JSON" ]; }; then
+        MUTANTS_JSON="$candidate"
+    fi
+done
 
 mutants_available() {
-    if [ ! -f "$MUTANTS_JSON" ]; then
-        echo "ask-refactoring: no $MUTANTS_JSON — skipping the mutants arm" >&2
-        echo "  (refresh it with \`just mutants\` — hours — or \`just mutants -f FILE\`" >&2
+    if [ -z "$MUTANTS_JSON" ]; then
+        echo "ask-refactoring: no outcomes.json under mutants.out or target/mutants-scoped — skipping the mutants arm" >&2
+        echo "  (refresh with \`just mutants\` — hours — or \`just mutants -f FILE\`" >&2
         echo "   for each changed source; this arm never runs cargo-mutants itself)" >&2
         return 1
     fi

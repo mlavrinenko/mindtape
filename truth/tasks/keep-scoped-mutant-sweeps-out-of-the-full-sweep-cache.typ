@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: done(
+    2026,
+    10,
+    1,
+  )[scoped runs write \\\`target/mutants-scoped\\\`; the full sweep keeps \\\`mutants.out\\\`; the arm reads the newer of the two; \\\`just check\\\` green],
 )
 
 == Problem

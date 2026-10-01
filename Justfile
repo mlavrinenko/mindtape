@@ -559,8 +559,10 @@ crap-baseline:
 # Pre-PR mutation check — the daily driver (see CONTRIBUTING.md "Testing").
 # Sweeps only mutants touched by this branch's diff against main, so it needs
 # no state file (nothing to invalidate) and covers new files for free (every
-# line of a new file is "touched"). Extra args pass through to cargo-mutants.
-# What a surviving mutant means, and when a verdict is worth believing, are in
+# line of a new file is "touched"). Extra args pass through to cargo-mutants;
+# results land in `target/mutants-scoped`, never in `mutants.out`, whose
+# `--iterate` cache only a full sweep reads. What a surviving mutant means,
+# and when a verdict is worth believing, are in
 # docs/contributing/mutation-testing.md; the speed knobs are argued in place in
 # .just/scripts/_mutants-env.sh.
 
@@ -574,7 +576,10 @@ mutants-diff *ARGS:
 # CONTRIBUTING.md "Testing"). `-f <file>` forces one file; any other args pass
 # through to cargo-mutants untouched. File set, excludes (main.rs + equivalent
 # mutants), the rrule feature and the debuginfo-free `mutants` profile come
-# from .cargo/mutants.toml. Same speed knobs as `mutants-diff`.
+# from .cargo/mutants.toml. Same speed knobs as `mutants-diff`. Results go to
+# `mutants.out` for a full sweep (the `--iterate` cache) and to
+# `target/mutants-scoped` for a subset run, so a scoped sweep cannot clobber
+# the cache; `-o` overrides either default.
 #
 # The TIMEOUT caveat, what a REPRODUCIBLE timeout means, what to do with a
 # survivor inside `#[cfg(not(feature = …))]` code, and why there is

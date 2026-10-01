@@ -74,11 +74,12 @@ coverage bands belong to different arms measuring different things. Each
 number's full argument lives in the arm script that applies it, next to the
 constant rather than in a doc that would drift from it.
 
-The mutants arm carries no threshold at all: it reads
-`mutants.out/outcomes.json` — whatever #just.mutants(), or a `-f` run, last
-wrote — and skips loudly when that is missing or stale rather than run a sweep
-that takes hours. #just.mutants-status() reports a running sweep's progress and
-ETA from that same file.
+The mutants arm carries no threshold at all: it reads the outcomes.json of
+whichever sweep ran last — `mutants.out` for a full #just.mutants(), or
+`target/mutants-scoped` for a `-f`/`--in-diff` run — and skips loudly when
+neither exists or the one it picked is stale, rather than run a sweep that
+takes hours. #just.mutants-status() reports a running sweep's progress and ETA
+from the directory it is given (`mutants.out` by default).
 
 The entry script holds the flag forwarding, the re-run guard, the shared
 `stem_for` and the driver. Each arm is one file under

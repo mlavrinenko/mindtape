@@ -17,4 +17,18 @@ set -eo pipefail
 diff_file=$(mktemp)
 trap 'rm -f "$diff_file"' EXIT
 git diff "$(git merge-base main HEAD)" > "$diff_file"
+
+# Always a subset run, so it writes to the same `target/mutants-scoped`
+# scratch `mutants.sh` routes `-f` sweeps to — never to `mutants.out`, whose
+# `--iterate` cache a full sweep reads (see mutants.sh).
+has_output=""
+for arg in "$@"; do
+    case "$arg" in
+        -o|-o?*|--output|--output=*) has_output=1 ;;
+    esac
+done
+if [ -z "$has_output" ]; then
+    set -- "$@" --output target/mutants-scoped
+fi
+
 cargo mutants --in-diff "$diff_file" "$@"
