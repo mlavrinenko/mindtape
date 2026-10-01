@@ -295,4 +295,29 @@
     hand puts straight back — and on a baseline scoring no functions at
     all, which passes the ratchet by reporting every function as new.
   ],
+  "check-gate-drift": [
+    Two facts kept by hand, each read from its source, failing by name. The
+    first is `TOML_FMT_PATHS`, read through just's `--evaluate` flag rather than a grep
+    of the Justfile, against what git knows (`git ls-files --cached --others --exclude-standard '*.toml'`):
+    a new file not yet added counts the moment it
+    exists, an ignored one never does, and both a missing and an extra path are
+    reported. The second is the rule argued in docs/contributing/gates.md,
+    "One mt binary, one feature set": every `cargo build` or `cargo run` of `mindtape-cli` that a
+    #just.check() arm reaches must carry `--tests`, or write elsewhere by flag
+    (`--release`, `--target-dir`, `CARGO_TARGET_DIR=`). What an arm reaches is
+    derived, never listed: the recipe names `check` hands to `mmz`, followed
+    through dependencies, a nested `just`, and any script a body or script
+    runs, so a script that arrives is read by arriving. That is also why
+    #just.check-rrule() is out: it is not an arm, its feature build is the
+    point, and CI runs it serially, after its own nextest has stopped using the
+    binary, so the race needs a test run in flight beside it that it never has.
+    `cargo run` takes no `--tests`, so it passes only by writing elsewhere. A
+    control runs first, because "no findings" is equally what a reader that
+    stopped following edges prints: synthetic trees in a temp directory, one
+    clean (every exempt shape, an unreached recipe, a heredoc, an `echo`) and
+    one carrying a plain build in a recipe, a script, a nested script, a nested
+    recipe and a continuation line, asserting the exact offenders; never the
+    working tree, as #just.check() runs its arms in parallel. See
+    `.just/scripts/check-gate-drift.sh`.
+  ],
 )

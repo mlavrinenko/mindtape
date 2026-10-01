@@ -75,6 +75,7 @@ echo "run \`just lonely\` first, then bash .just/scripts/commented.sh" >&2
 rule="just lonely"
 probe=".just/scripts/absent.sh"
 just --dump --dump-format json >/dev/null
+just --evaluate LONELY_VAR >/dev/null
 EOF
 
 : >"$ctl/.just/scripts/c.sh"

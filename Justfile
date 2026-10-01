@@ -58,7 +58,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check")
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check") (mmz "check-gate-drift")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -358,6 +358,18 @@ check-crap:
 [group("gate")]
 crap-baseline-check:
     bash .just/scripts/crap-baseline-check.sh
+
+# Two hand-kept facts, read from their source: TOML_FMT_PATHS against the TOML
+# files git knows (a new untracked one counts), and every gate-reachable
+# `cargo build`/`cargo run` of mindtape-cli against `--tests`, the flag that
+# keeps target/debug/mt one build for the test arm. Why `check-rrule` is out
+# of scope, how the reach is derived rather than listed, and the control that
+# runs first are argued in place in .just/scripts/check-gate-drift.sh.
+
+[doc("Fail if TOML_FMT_PATHS drifts from git, or a gate builds mt without --tests")]
+[group("gate")]
+check-gate-drift:
+    bash .just/scripts/check-gate-drift.sh
 
 # (Re)generate the examples/large/ benchmark fixture: N deterministic task
 # files under examples/large/tasks/ (gitignored). Default N=2000.

@@ -87,6 +87,7 @@ noop_flags=$(
 --dump	prints the justfile itself, runs no recipe
 --fmt	rewrites the justfile, runs no recipe
 --list	prints the recipe list, runs no recipe
+--evaluate	prints a variable of the justfile, runs no recipe
 EOF
 )
 

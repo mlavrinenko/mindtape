@@ -77,6 +77,14 @@ scopes:
     - "examples/*/.mindtape/config.toml"
     - "www/tola.toml"
 
+  # Every `*.toml` in the tree, for `just check-gate-drift`: the arm compares
+  # TOML_FMT_PATHS to what git knows, and a new file arrives anywhere. `toml-fmt`
+  # above lists what the formatter reads, which is the very list under test, so
+  # it cannot stand in. mmz walks untracked files and drops ignored ones, the
+  # same split `git ls-files --cached --others --exclude-standard` draws.
+  toml-all:
+    - "**/*.toml"
+
   # Typst formatter (`just fmt-check` runs `typstyle --check` over these).
   # `truth/tasks/**` is intentionally NOT listed (see NOTE ON SCOPE): the gate
   # must survive `mt flip`'s own writes to that tree. The shared `truth/*.typ`
@@ -256,12 +264,14 @@ scopes:
   mmz-config:
     - ".mmz/config.yaml"
 
-  # The whole script directory as a SET, for the three rules whose subject is
+  # The whole script directory as a SET, for the four rules whose subject is
   # the directory rather than one body in it: `check-file-size` (linecop scans
   # every .sh under it — `include_hidden: true` in .linecop.yaml), `outdatty-
   # check` (every script is a `dev-docs` source, so every script's content is
-  # compared against outdatty.lock) and `script-scope-check` (whose whole job
-  # is the set difference below). All three are sub-second, so the churn a glob
+  # compared against outdatty.lock), `check-gate-drift` (which walks the call graph
+  # out of `check` and reads every script it lands on, so one that arrives is
+  # read by arriving) and `script-scope-check` (whose whole job
+  # is the set difference below). All four are seconds at most, so the churn a glob
   # costs here is the churn worth paying; the rules that read ONE body
   # take that body's own scope instead.
   #
@@ -274,6 +284,15 @@ scopes:
   # name.
   scripts-all:
     - ".just/scripts/**"
+
+  # The scripts outside .just/scripts/ that a `just check` arm can reach, for
+  # `just check-gate-drift`, which follows the call graph out of `check` and
+  # reads every body it lands on (www/generate.sh and what it runs,
+  # docs/generate-md.sh). A glob for the reason `scripts-all` is one: the file
+  # that matters is the one an arm starts running without anybody listing it.
+  gate-reach-scripts:
+    - "www/*.sh"
+    - "docs/*.sh"
 
   # ONE SCOPE PER SCRIPT, from here down (truth/tasks/split-gates-meta-into-per-
   # script-scopes.typ). Each is named by the rule (or rules) that actually run
@@ -317,6 +336,12 @@ scopes:
     - ".just/scripts/check-doc-facts.sh"
   script-check-doc-recipes:
     - ".just/scripts/check-doc-recipes.sh"
+  script-check-gate-drift:
+    - ".just/scripts/check-gate-drift.sh"
+  script-gate-drift-control:
+    - ".just/scripts/_gate-drift-control.sh"
+  script-gate-drift-lib:
+    - ".just/scripts/_gate-drift-lib.sh"
   script-check-secrets:
     - ".just/scripts/check-secrets.sh"
   script-check-secrets-manifest:
@@ -624,6 +649,19 @@ commands:
   - name: just crap-baseline-check
     tags: [gate]
     inputs: [crap-baseline, gates-meta, script-crap-baseline-check]
+
+  # Two hand-kept facts read from their source, and the self-test that keeps
+  # the reader honest: TOML_FMT_PATHS against `git ls-files` (so `toml-all`,
+  # which includes a new untracked file as git does) and every gate-reachable
+  # `cargo build`/`cargo run` of mindtape-cli against `--tests`. The second
+  # reads every script a `check` arm reaches: `scripts-all` for the directory
+  # whose members it follows into, `gate-reach-scripts` for www/ and docs/,
+  # `gates-meta` for the Justfile and .just/docs.just it parses with the dev
+  # shell's just and jq. Its own body is `script-check-gate-drift`, with the
+  # two scripts it reaches: the readers and the control.
+  - name: just check-gate-drift
+    tags: [gate]
+    inputs: [toml-all, gates-meta, scripts-all, gate-reach-scripts, script-check-gate-drift, script-gate-drift-lib, script-gate-drift-control]
 
   # The arm that pays for the enumeration above (truth/tasks/split-gates-meta-
   # into-per-script-scopes.typ): set-differences the `.just/scripts/*.sh` files

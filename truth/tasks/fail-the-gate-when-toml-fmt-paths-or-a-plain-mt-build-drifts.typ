@@ -27,7 +27,7 @@
   ),
   kind: "dev",
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 2),
 )
 
 == Problem
@@ -44,7 +44,7 @@
 
 == Changes
 
-- `.just/scripts/check-gate-drift.sh`, new: the two arms, preceded by a control that must pass a clean fixture and name the offender in each known-bad one; red first.
+- `.just/scripts/check-gate-drift.sh`, `_gate-drift-lib.sh`, `_gate-drift-control.sh`, new: the entry and its argument, the two readers (TOML list against git; the call graph out of `check`, scanned for a cargo build or run of `mindtape-cli` without `--tests`), and a control that must pass a clean fixture and name the offender in each known-bad one; red first. Split to stay under the 300-line shell cap.
 - `Justfile`: `check-gate-drift` recipe, wired into `check`.
 - `.mmz/config.yaml`: scopes and a gate-tagged rule for the arm.
 - `outdatty.yaml`, `outdatty.lock`: the script joins `dev-docs`, re-recorded after reviewing its dependents.
@@ -57,7 +57,7 @@ Drop the recipe, its `check` entry, the script, the mmz scope and rule and the o
 
 == Out of scope
 
-- `just check-rrule`: it is not a `just check` arm and builds a different feature set on purpose.
+- `just check-rrule`: it is not a `just check` arm, so the reach derivation leaves it out; it builds a different feature set into `target/debug` on purpose and CI runs it serially. `docs/src/contributing/gates.typ` said it belongs in another target directory, which was wrong and is corrected.
 - Rewriting `TOML_FMT_PATHS` to derive from git: the explicit list is the review point, the gate only keeps it honest.
 
 

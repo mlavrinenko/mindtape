@@ -76,14 +76,16 @@ groups:
     source:
       .config/nextest.toml: 02cf7db28ab3930ec5861bce50805212b76b472bdad67018a5761593e5bd67f1
       .just/docs.just: 58b7ff35702bcdd973acaa141e453e313738f76bec59d812340e7bd90a4bb2cb
+      .just/scripts/_gate-drift-lib.sh: eff78bde871184185c1be97ec887af02cd1cf5f037fb406a0d50f7aba6a0a2a0
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 592837a57c4dae087eacdd20d28e1e3d9ff1c9dbd26f59b2afa80900a0267a92
-      .just/scripts/_script-graph.sh: c3a9232a83b3f3f2890a37d5953fe4a7efaf2530b8ef3f6b44b60fb2c9e1522a
+      .just/scripts/_script-graph.sh: 2cc4d958de7eacf4ce1d7d6065f9f07a1252488bcf9ccb9f3aab346d5bd05702
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
       .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-recipes.sh: 87eff1bf6f36d349ea618a5c3356abbd80f1437eaa28103dcce151ec697649c8
+      .just/scripts/check-gate-drift.sh: 9e8eecb6a3a1c6638d74e1890d63275298adb3b642d9d65be9195bb9b4cb9b1b
       .just/scripts/check-secrets-manifest.sh: ff2bd2525d6465486c5576cbb8a2a8a7960767e08141346529fd68baf222e1b8
       .just/scripts/check-secrets.sh: 9fc40236aea059fba71ed2ad29f21ba25e5e399c14f4b960746717d7062e042c
       .just/scripts/cover.sh: b64a43362b1f478b9642a6746b5309ab880f8f4b4d8fffad62444de5a75a20dd
@@ -100,10 +102,10 @@ groups:
       .just/scripts/positional-args-check.sh: c43c5e9d06f8e53402f70b334de9746d1ada07b1c795306e59fee982afe09c55
       .just/scripts/release.sh: 0936521c48e3135c9a7252f01691eb88e44b745b1c9cd918b257bc4042acf8b9
       .just/scripts/script-attr-check.sh: 43c4503ed7415d20819e53be8f63be8caeebd57c724d7a1e10570622b985e8ae
-      .just/scripts/script-scope-check.sh: a847b5655f18081529998e00d769e24589af9e205d8a2e902ea4a32ca0e3b21e
+      .just/scripts/script-scope-check.sh: 72ec6ba158104e6cb03d5d0961ac6532b2cff7f29fcd76b45e2a42faf497938e
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 080fa7e92a690d0e304db0b587b717efaa678195bfbefb8d0aef4d77ae5ecb7e
+      Justfile: 237b2f34229e4f95534506665122e8b799a16647bfb6cb0f6d389f91e57fb45c
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: 0f5fc74381379ae2f1a482a78bfe0bd2b4a50aac4667440609062f6d1248b7e1
@@ -112,7 +114,7 @@ groups:
       docs/src/contributing/crap-baseline.typ: 3277e015519112bca1c8a1395a19aad42a645c613a2e77fd99db819b5642e923
       docs/src/contributing/docs-site-build.typ: 5578b469d5e608412655e4c3190667cc07af6c01f34e470311132451e160c80f
       docs/src/contributing/example-projects.typ: 56b3f324691d3b278f8a0e3220c00cc0abb13850840b02dd8510b1f0066fccbd
-      docs/src/contributing/gates.typ: 47311a672b620fc36732e4006e54927b97c1072531544553b8722e190b7a27c6
+      docs/src/contributing/gates.typ: 41d9ddd701ef4aa3dcaa5c3dca03f5107db7afb8acf8b3a71d9e0b9b7173b840
       docs/src/contributing/mutation-testing.typ: 3a9d51ea95c500e85ffe3954de9cfc4d35aebad78d7320d3eb4bc9162c154412
       docs/src/contributing/signal-sweep.typ: 695ee4771ad1f6cf0966b46b6748253384ecd244df4d4b03d04efb8b8123eeaa
       docs/src/contributing/windows.typ: dbee6e2e6e6bc8723f477acccc168c7cd6518649605564235ce556e0233d8749

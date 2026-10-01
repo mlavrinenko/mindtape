@@ -456,6 +456,13 @@ groups:
   # that same script's third arm extracted under the Shell cap, and is a
   # source for the same reason: gate-notes.typ restates what it demands of
   # .mmz/config.yaml.
+  #
+  # check-gate-drift.sh and _gate-drift-lib.sh join them for the same
+  # reason: gate-notes.typ and docs/src/contributing/gates.typ restate by hand
+  # what the arm reads (the TOML list against git, the call graph out of
+  # `check`, which flags exempt a cargo build) and why check-rrule is outside
+  # it. The control (_gate-drift-control.sh) is exempt in script-scope-check.sh,
+  # as _script-graph-control.sh is.
   - name: dev-docs
     source:
       - flake.nix
@@ -487,6 +494,8 @@ groups:
       - .just/scripts/script-scope-check.sh
       - .just/scripts/_script-graph.sh
       - .just/scripts/site-pages-fixture-check.sh
+      - .just/scripts/check-gate-drift.sh
+      - .just/scripts/_gate-drift-lib.sh
       - .just/scripts/fork.sh
       - .just/scripts/integrate.sh
     dependents:

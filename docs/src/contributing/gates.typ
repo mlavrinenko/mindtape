@@ -110,8 +110,16 @@ the invocation that resolves the same unit as the test arm, so every uplift
 after the first is a no-op. After: one relink per stale run, during the test
 arm's own build, none once it runs. `check-examples` builds once and runs
 `./target/debug/mt`, since `cargo run` takes no `--tests`. A build with another
-feature set belongs in another target directory: #just.build-mt() and
-#just.check-rrule().
+feature set belongs in another target directory: #just.build-mt() writes
+`target/mt-dev`. #just.check-rrule() builds the `rrule` set into the shared
+`target/debug` on purpose and stays safe by not being a #just.check() arm: CI
+runs it on its own, its `cargo run` after its own nextest, so no test is in flight.
+
+#just.check-gate-drift() holds the rule: it fails naming file and line on any
+`cargo build`/`cargo run` of `mindtape-cli` that a #just.check() arm reaches
+(dependencies, a nested `just`, any script run) without `--tests` or a flag that
+writes elsewhere (`--release`, `--target-dir`). The reach is derived, never listed,
+so #just.check-rrule() is outside it. It also checks `TOML_FMT_PATHS` against git.
 
 = Why the script scopes are enumerated
 
@@ -135,10 +143,12 @@ script never in its `dev-docs` group couples to no dependent and is reported by
 nothing. A third arm demands a DECISION, not membership (`_nav-diff.sh` and the
 machine-install scripts are outside it on purpose, no doc restating their logic),
 so a script is a source or carries an exemption naming the reason, and a new one
-is neither. Three rules keep a directory-wide glob, their subject being the
+is neither. Four rules keep a directory-wide glob, their subject being the
 directory, not one body in it: #just.check-file-size() (linecop scans every file
-under it), #just.outdatty-check() (nearly every script is a `dev-docs` source)
+under it), #just.outdatty-check() (nearly every script is a `dev-docs` source),
+#just.check-gate-drift() (it follows #just.check() into any script an arm runs)
 and #just.script-scope-check() itself, which must notice a script ARRIVING.
+which must notice a script ARRIVING.
 
 That call graph (`.just/scripts/_script-graph.sh`) is transitive and treats a
 recipe and a script as one kind of node, so a script invoking a script and a

@@ -194,6 +194,10 @@ declare -A dev_docs_exempt=(
     # source. The control's four cases are what would change here, and no doc
     # names one.
     ["_script-graph-control.sh"]="no doc restates its cases; the derivation it drives is the documented part"
+    # The same shape for check-gate-drift: the readers (_gate-drift-lib.sh) are
+    # the source, gate-notes.typ restates what they read, and the control's
+    # fixtures are the part no doc names.
+    ["_gate-drift-control.sh"]="no doc restates its fixtures; the readers it drives are the documented part"
 )
 
 dev_docs_sources=$(yq -r '
