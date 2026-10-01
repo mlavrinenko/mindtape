@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: cancelled(
+    2026,
+    10,
+    1,
+  )[No-op: a workspace deny is as overridable by a module \#\[allow\] as -D warnings already is, and the cited looks\_like\_path clause is a MAIN\_SEPARATOR comparison neither lint flags.],
 )
 
 == Problem

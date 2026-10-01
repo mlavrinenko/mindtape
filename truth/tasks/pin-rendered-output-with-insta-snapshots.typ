@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: cancelled(
+    2026,
+    10,
+    1,
+  )[The motivating HyperlinkChoice::fmt survivor is already killed by render/link.rs:165 (4918023a); one assert\_eq does what a snapshot dependency and review workflow would.],
 )
 
 == Problem

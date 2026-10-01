@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: cancelled(
+    2026,
+    10,
+    1,
+  )[No bug evidence behind it; the filter has no printer to round-trip, and the unwrap/indexing/panic denies already cover the no-panic property. Cost of a grammar generator outweighs a speculative return.],
 )
 
 == Problem

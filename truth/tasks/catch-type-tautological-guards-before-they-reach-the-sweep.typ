@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: cancelled(
+    2026,
+    10,
+    1,
+  )[No source lint can see a mutant-vs-source equivalence, as the task itself says; the source-form review rule folds into record-which-survivor-classes-a-project-lint-could-have-prevented.],
 )
 
 == Problem

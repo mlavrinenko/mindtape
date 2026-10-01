@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: cancelled(
+    2026,
+    10,
+    1,
+  )[cargo llvm-cov --branch is unstable (nightly-only) and rust-toolchain.toml pins stable 1.92.0.],
 )
 
 == Problem
