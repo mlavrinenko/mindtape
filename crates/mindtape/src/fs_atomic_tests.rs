@@ -79,3 +79,29 @@ fn the_temp_file_is_a_sibling_of_the_target_not_of_the_cwd() {
     );
     assert_eq!(std::fs::read(&path).unwrap(), b"content");
 }
+
+/// The cleanup arm: a failure *after* the temp file exists must remove it. An
+/// existing non-empty directory at the target makes the final rename fail
+/// (a file cannot replace a directory) once the temp file is written and
+/// fsynced, so this reaches `write_atomic`'s `remove_file(&tmp)`.
+#[test]
+#[cfg(unix)]
+fn a_failed_rename_removes_the_temp_file_and_leaves_the_target_untouched() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("task.typ");
+    std::fs::create_dir(&path).unwrap();
+    std::fs::write(path.join("inner.txt"), b"keep me").unwrap();
+
+    let result = write_atomic(&path, b"replacement");
+
+    assert!(result.is_err());
+    assert!(path.is_dir());
+    assert_eq!(std::fs::read(path.join("inner.txt")).unwrap(), b"keep me");
+    let mut entries: Vec<_> = std::fs::read_dir(dir.path())
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name())
+        .collect();
+    entries.sort();
+    assert_eq!(entries, vec![std::ffi::OsString::from("task.typ")]);
+    assert_eq!(std::fs::read_dir(&path).unwrap().count(), 1);
+}
