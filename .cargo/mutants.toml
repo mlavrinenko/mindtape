@@ -1,18 +1,22 @@
 # cargo-mutants config. Mutation testing is a manual/scoped dev aid driven by
 # `just mutants` (see CONTRIBUTING.md "Testing"), never a `just check` gate.
 
-# main.rs: thin entry point, excluded like the CRAP gate (`just crap`) excludes
-# it. recur_rrule_off.rs: the whole file is the `#[cfg(not(feature = "rrule"))]`
-# stub, compiled out by the sweep's own feature set (see additional_cargo_args)
-# — every mutant in it is dead code no test can reach.
+# Classes are named in docs/contributing/mutation-testing.md (Triage).
+#
+# main.rs: entry-point — a thin entry point, excluded like the CRAP gate
+# (`just crap`) excludes it. recur_rrule_off.rs: cfg-unreachable — the whole file
+# is the `#[cfg(not(feature = "rrule"))]` stub, compiled out by the sweep's own
+# feature set (see additional_cargo_args), so every mutant in it is dead code no
+# test can reach.
 exclude_globs = ["**/main.rs", "**/recur_rrule_off.rs"]
 
 # Provably-equivalent mutants: unkillable by construction, excluded so a swept
 # file can reach a clean (zero-survivor) result and stop re-appearing in the
-# loop. Keep each line paired with the reason it cannot be killed.
+# loop. Keep each line paired with its class and the reason it cannot be killed;
+# the class leads the comment, so a recurring class is a grep away.
 exclude_re = [
-  # ready.rs empty() is literally `Self::default()`, so replacing the body with
-  # Default::default() is the same call — no test can tell them apart.
+  # same-call: ready.rs empty() is literally `Self::default()`, so replacing the
+  # body with Default::default() is the same call — no test can tell them apart.
   #
   # Deleting `empty()` in favour of `Default::default()` would remove this entry
   # outright, and that was considered and rejected: it is a documented public
@@ -23,32 +27,34 @@ exclude_re = [
   # deal — a provably-equivalent mutant with a written reason is exactly what
   # this list is for.
   "replace Readiness::empty -> Self with Default::default()",
-  # config_views.rs dfs DONE arm: the black-node check is pure memoisation. A
+  # pure-memoisation: config_views.rs dfs DONE arm, the black-node check. A
   # node only reaches DONE once its whole subtree came back cycle-free, so
   # re-walking it can only return None again — deleting the arm changes the
   # running time (exponential), never the answer.
   "delete match arm DONE in dfs",
-  # parse_batch's loop runs while `blobs.len() < count`; the one extra
-  # iteration a `<=` admits parses one more object the final
+  # discarded-effect: parse_batch's loop runs while `blobs.len() < count`;
+  # the one extra iteration a `<=` admits parses one more object the final
   # `blobs.resize(count, None)` then discards, so the returned Vec is
   # identical for every input.
   "replace < with <= in parse_batch",
-  # evalexpr's `!` node is always unary (one child), so the arm above claims
-  # every reachable `Not`; only a hand-built two-child node could reach the
-  # wrong-arity arm, and evalexpr's `Node` has no public constructor for one.
+  # no-public-constructor: evalexpr's `!` node is always unary (one child),
+  # so the arm above claims every reachable `Not`; only a hand-built
+  # two-child node could reach the wrong-arity arm, and evalexpr's `Node`
+  # has no public constructor for one.
   "delete match arm .Operator::Not, _. in connective",
-  # An empty `path.parent()` and `Path::new(".")` both name the process's
-  # current directory, and `Path::new("").join(name)` and
+  # aliased-input: an empty `path.parent()` and `Path::new(".")` both name
+  # the process's current directory, and `Path::new("").join(name)` and
   # `Path::new(".").join(name)` resolve to the same file, so the mutated
   # guard picks the same temp-file location.
   "replace match guard !dir.*is_empty.* with true in write_atomic",
-  # `skip` is a `usize`, so `>= 0` is always true; at `skip == 0` the branch
-  # runs `drain(..skip.min(len))`, which is `drain(..0)` — a no-op identical
-  # to skipping it.
+  # type-tautology: `skip` is a `usize`, so `>= 0` is always true; at
+  # `skip == 0` the branch runs `drain(..skip.min(len))`, which is
+  # `drain(..0)` — a no-op identical to skipping it.
   "replace > with >= in resolve_and_select",
-  # On Unix `MAIN_SEPARATOR` is `/`, so this clause duplicates the next one
-  # and the whole expression is `A || (A || ext)` under either operator. The
-  # difference is Windows-only; the sweep runs on Unix.
+  # platform-specific: on Unix `MAIN_SEPARATOR` is `/`, so this clause
+  # duplicates the next one and the whole expression is `A || (A || ext)`
+  # under either operator. The difference is Windows-only; the sweep runs on
+  # Unix.
   "replace .. with && in looks_like_path",
 ]
 

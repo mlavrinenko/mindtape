@@ -74,14 +74,36 @@ pipeline. Run it locally, where a timeout means something.
 
 = Triage
 
-Every survivor is one of three things:
+Every survivor is a real gap or one of the classes below. A real gap gets a
+regression test that kills it. A gap not worth pinning now goes to
+#just.ask-refactoring(), which reads the last sweep's outcomes file and files
+one scored task per survivor for a later sprint. The rest are equivalent
+mutants, where the mutated code is indistinguishable from the original: record
+each in `.cargo/mutants.toml` `exclude_re` (or `exclude_globs`), leading the
+comment with the class name so a recurring class is a grep away.
 
-- A real gap — write a regression test that kills it.
-- An equivalent mutant, where the mutated code is genuinely indistinguishable
-  from the original. Record it in `.cargo/mutants.toml` `exclude_re`, with its
-  reason.
-- A gap not worth pinning now — #just.ask-refactoring() reads the last sweep's
-  outcomes file and files one scored task per survivor for a later sprint.
+- type-tautology — a comparison the type already decides, such as `>= 0` on a
+  `usize`, so the mutant flips nothing observable. Exclude it, and in review
+  prefer the source form whose mutants stay killable: `x != 0` rather than
+  `x > 0` on an unsigned count. No source lint can catch the class: the
+  equivalence lies between the mutant and the source, not inside the source.
+- pure-memoisation — a guard that only skips repeated work, so deleting it
+  changes the running time, never the answer. Exclude it.
+- discarded-effect — extra work a later step throws away, such as one more
+  loop iteration whose result a final `resize` drops. Exclude it, or rewrite
+  the source so the surplus step cannot happen.
+- aliased-input — two inputs that name the same thing (`""` and `"."` as the
+  current directory), so the mutated guard picks the same outcome. Exclude it.
+- same-call — the mutant replaces a body with the call it already is, such as
+  `Default::default()` for `Self::default()`. Exclude it, or delete the
+  function when it is not public API.
+- no-public-constructor — the arm is reachable only by a value the dependency
+  gives no way to build. Exclude it.
+- platform-specific — the difference exists on another OS only. Exclude it,
+  or gate a test to that platform.
+- cfg-unreachable — code compiled out by the sweep's own feature set. Move it
+  into its own file and add the file to `exclude_globs`.
+- entry-point — a thin `main.rs` with no logic to pin. Exclude the file.
 
 Never leave a survivor untriaged; the value of the sweep is that the list is
 empty for a stated reason, not that it is short.

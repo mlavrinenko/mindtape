@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 1),
+  status: done(2026, 10, 1),
 )
 
 == Problem
@@ -38,15 +38,15 @@
 
 == TO-BE
 
-- 🟢 Every `exclude_re` entry leads with its class (type-tautology, pure memoisation, platform-specific, no-public-constructor, load-derived-equal, ...) before its reason.
+- 🟢 Every `exclude_re` entry leads with its class (type-tautology, pure-memoisation, platform-specific, no-public-constructor, same-call, discarded-effect, aliased-input) before its reason; the two `exclude_globs` entries are classed too (entry-point, cfg-unreachable).
 - 🟢 `docs/src/contributing/mutation-testing.typ`'s Triage section lists the classes and what each one suggests: a test, an exclusion, a source-form rewrite, or a lint.
-- 🟢 `just ask-refactoring` output can link a filed survivor to its class.
+- 🟢 The type-tautology class names the source forms that avoid it in review (`x != 0` rather than `x > 0` on an unsigned count, so the comparison mutant stays killable) and says plainly that no source lint can catch it: the equivalence lies between mutant and source.
 
 == Changes
 
-- `.cargo/mutants.toml`: lead each `exclude_re` reason with its class name (the existing prose already implies most of them).
-- `docs/src/contributing/mutation-testing.typ` (with regenerated `.md`): the class list in Triage.
-- Optional: teach `contrib/ask-refactoring/mutants.sh` to derive a class from the mutation operator and carry it into the task.
+- `.cargo/mutants.toml`: lead each `exclude_re` reason with its class name, and class the `exclude_globs` entries.
+- `docs/src/contributing/mutation-testing.typ` (with regenerated `.md`): the class list in Triage, with the type-tautology review rule folded in from the cancelled `catch-type-tautological-guards-before-they-reach-the-sweep`.
+- Dropped: teaching `contrib/ask-refactoring/mutants.sh` to derive a class from the mutation operator, so `just ask-refactoring` output does not yet link a survivor to its class.
 
 == Rollback
 
@@ -56,6 +56,7 @@ Revert the comments and the doc subsection; the exclusions still work, only the 
 
 - Automating the classification: the record is the goal, not a classifier.
 - Re-judging any individual exclusion: each keeps its current verdict.
+- Carrying the class into `just ask-refactoring`'s filed tasks.
 
 == Dogfood
 
