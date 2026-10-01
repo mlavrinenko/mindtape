@@ -493,6 +493,8 @@ groups:
       - .just/scripts/script-attr-check.sh
       - .just/scripts/script-scope-check.sh
       - .just/scripts/_script-graph.sh
+      - .just/scripts/_script-graph-lib.sh
+      - .just/scripts/_script-reach.sh
       - .just/scripts/site-pages-fixture-check.sh
       - .just/scripts/check-gate-drift.sh
       - .just/scripts/_gate-drift-lib.sh

@@ -305,9 +305,10 @@
     "One mt binary, one feature set": every `cargo build` or `cargo run` of `mindtape-cli` that a
     #just.check() arm reaches must carry `--tests`, or write elsewhere by flag
     (`--release`, `--target-dir`, `CARGO_TARGET_DIR=`). What an arm reaches is
-    derived, never listed: the recipe names `check` hands to `mmz`, followed
-    through dependencies, a nested `just`, and any script a body or script
-    runs, so a script that arrives is read by arriving. That is also why
+    derived, never listed, by `.just/scripts/_script-reach.sh`, which walks the graph
+    #just.script-scope-check() already trusts: the recipe names `check` hands to `mmz`,
+    followed through dependencies, a nested `just`, and any script a body or
+    script names, so a script that arrives is read by arriving. That is also why
     #just.check-rrule() is out: it is not an arm, its feature build is the
     point, and CI runs it serially, after its own nextest has stopped using the
     binary, so the race needs a test run in flight beside it that it never has.

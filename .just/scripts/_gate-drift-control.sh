@@ -74,15 +74,15 @@ control_build() {
     rc=0
     build_drift "$d/bad" 2>"$d/bad.out" || rc=$?
     expect "build drift" 1 "$d/bad.out" "$rc" \
-        "just bad-recipe body line 1" \
-        "just bad-recipe body line 2" \
-        "just bad-recipe body line 3" \
-        "just bad-recipe body line 4" \
-        "just bad-nested body line 1" \
+        "bad-recipe body line 1" \
+        "bad-recipe body line 2" \
+        "bad-recipe body line 3" \
+        "bad-recipe body line 4" \
+        "bad-nested body line 1" \
         ".just/scripts/bad-script.sh:3" \
         "www/inner.sh:2" \
         ".just/scripts/bad-cont.sh:2" \
-        "NOT:just bad-recipe body line 5" \
+        "NOT:bad-recipe body line 5" \
         "NOT:ok-script" "NOT:unreached" "NOT:clean-arm" "NOT:rrule-like"
 }
 

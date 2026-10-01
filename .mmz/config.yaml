@@ -388,6 +388,10 @@ scopes:
     - ".just/scripts/_script-graph.sh"
   script-script-graph-control:
     - ".just/scripts/_script-graph-control.sh"
+  script-script-graph-lib:
+    - ".just/scripts/_script-graph-lib.sh"
+  script-script-reach:
+    - ".just/scripts/_script-reach.sh"
   script-script-scope-check:
     - ".just/scripts/script-scope-check.sh"
   script-site-pages-fixture-check:
@@ -661,7 +665,7 @@ commands:
   # two scripts it reaches: the readers and the control.
   - name: just check-gate-drift
     tags: [gate]
-    inputs: [toml-all, gates-meta, scripts-all, gate-reach-scripts, script-check-gate-drift, script-gate-drift-lib, script-gate-drift-control]
+    inputs: [toml-all, gates-meta, scripts-all, gate-reach-scripts, script-check-gate-drift, script-gate-drift-lib, script-gate-drift-control, script-script-reach, script-script-graph-lib]
 
   # The arm that pays for the enumeration above (truth/tasks/split-gates-meta-
   # into-per-script-scopes.typ): set-differences the `.just/scripts/*.sh` files
@@ -686,7 +690,7 @@ commands:
   # (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ).
   - name: just script-scope-check
     tags: [gate]
-    inputs: [mmz-config, outdatty-config, scripts-all, script-script-scope-check, script-script-graph, script-script-graph-control, gates-meta]
+    inputs: [mmz-config, outdatty-config, scripts-all, script-script-scope-check, script-script-graph, script-script-graph-lib, script-script-graph-control, gates-meta]
 
   # Replica-tree self-test for the docs manifest gate: two pages declaring the
   # same route and a page with no `<page-meta>` block both drive a `cp -r

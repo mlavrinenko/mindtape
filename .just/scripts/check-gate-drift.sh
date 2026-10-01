@@ -21,13 +21,13 @@
 #      gate reaches swaps the link under the running tests. Every build there
 #      has to carry `--tests`.
 #
-# WHAT ARM TWO READS: only what a `just check` arm reaches. Seeds are the
-# recipe names `check` hands to `mmz` (taken from the dump, never listed here),
-# followed through recipe dependencies, a nested `just <recipe>` at command
-# position, and any `*.sh` a body or script names (resolved as written, then
-# beside the file naming it — `$SCRIPT_DIR/generate-facts.sh` in www/). That
-# covers the Justfile, .just/*.just, .just/scripts/*.sh and www/generate.sh
-# without naming one of them, so a script that arrives is read by arriving.
+# WHAT ARM TWO READS: only what a `just check` arm reaches, as _script-graph.sh
+# walks it (`_script-reach.sh ... check`): the recipe names `check` hands to `mmz`, recipe
+# dependencies, a nested `just <recipe>`, and any script a body or script
+# names, with www/*.sh and docs/*.sh added as nodes. The walk is the one
+# script-scope-check already trusts, so a shell form it learns, this arm learns;
+# nothing is listed here, and a script that arrives is read by arriving. It
+# reads a script NAMED as much as one run, so it errs toward scanning more.
 #
 # `just check-rrule` is OUT of scope, and by that rule rather than by name: it
 # is not a `just check` arm, so nothing here reaches it. It builds with

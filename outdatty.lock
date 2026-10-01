@@ -76,16 +76,18 @@ groups:
     source:
       .config/nextest.toml: 02cf7db28ab3930ec5861bce50805212b76b472bdad67018a5761593e5bd67f1
       .just/docs.just: 58b7ff35702bcdd973acaa141e453e313738f76bec59d812340e7bd90a4bb2cb
-      .just/scripts/_gate-drift-lib.sh: eff78bde871184185c1be97ec887af02cd1cf5f037fb406a0d50f7aba6a0a2a0
+      .just/scripts/_gate-drift-lib.sh: 2a4b4d45582cf98d557cec5b5f42708fc1661e85e38e948984fb7c7a4dacc642
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
       .just/scripts/_mutants-env.sh: 592837a57c4dae087eacdd20d28e1e3d9ff1c9dbd26f59b2afa80900a0267a92
-      .just/scripts/_script-graph.sh: 2cc4d958de7eacf4ce1d7d6065f9f07a1252488bcf9ccb9f3aab346d5bd05702
+      .just/scripts/_script-graph-lib.sh: bb48c7951a30aa9d5f5389e4ff7172b7d315544857c9646af7d6014737183856
+      .just/scripts/_script-graph.sh: 844a00cae8a975c556084ad49d36bb7ac993a4317a46b37c2a1142b9497f5cb3
+      .just/scripts/_script-reach.sh: e26594842a77ac58754ecc124fa82c6c2aba1f13aaa01abc0b4340f310556654
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
       .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-recipes.sh: 87eff1bf6f36d349ea618a5c3356abbd80f1437eaa28103dcce151ec697649c8
-      .just/scripts/check-gate-drift.sh: 9e8eecb6a3a1c6638d74e1890d63275298adb3b642d9d65be9195bb9b4cb9b1b
+      .just/scripts/check-gate-drift.sh: 4ecba6d33a78dc6a0ee09cbf1e0c1c45d777be382dc531451acba6810eb2d1bb
       .just/scripts/check-secrets-manifest.sh: ff2bd2525d6465486c5576cbb8a2a8a7960767e08141346529fd68baf222e1b8
       .just/scripts/check-secrets.sh: 9fc40236aea059fba71ed2ad29f21ba25e5e399c14f4b960746717d7062e042c
       .just/scripts/cover.sh: b64a43362b1f478b9642a6746b5309ab880f8f4b4d8fffad62444de5a75a20dd

@@ -44,7 +44,7 @@
 
 == Changes
 
-- `.just/scripts/check-gate-drift.sh`, `_gate-drift-lib.sh`, `_gate-drift-control.sh`, new: the entry and its argument, the two readers (TOML list against git; the call graph out of `check`, scanned for a cargo build or run of `mindtape-cli` without `--tests`), and a control that must pass a clean fixture and name the offender in each known-bad one; red first. Split to stay under the 300-line shell cap.
+- `.just/scripts/check-gate-drift.sh`, `_gate-drift-lib.sh` (TOML list against git; the `cargo build/run mindtape-cli` line matcher), `_gate-drift-control.sh`, new. The reach out of `check` is not walked here: `_script-graph.sh` is split into `_script-graph-lib.sh` (the shared walk) and a thin front-end, and `_script-reach.sh` is the second front-end. A control that must pass a clean fixture and name the offender in each known-bad one; red first. Split to stay under the 300-line shell cap.
 - `Justfile`: `check-gate-drift` recipe, wired into `check`.
 - `.mmz/config.yaml`: scopes and a gate-tagged rule for the arm.
 - `outdatty.yaml`, `outdatty.lock`: the script joins `dev-docs`, re-recorded after reviewing its dependents.
