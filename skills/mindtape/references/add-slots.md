@@ -17,9 +17,9 @@ mt add "Practice arpeggios" -- summary@notes.txt
 ```
 
 A bare positional is title text, never a token — `mt add "fix a=b parsing"`
-sets no slot. A dot in a key is part of the slot's NAME, not a path MindTape
+sets no slot. A dot in a key is part of the slot's name, not a path MindTape
 parses: `--set estimate.files=2` works only because the template wrote
-`slot("estimate.files")`. The FIRST operator separates, `=` or `@` whichever
+`slot("estimate.files")`. The first operator separates, `=` or `@` whichever
 comes first, so `summary=ping @ada` is prose holding an `@` and
 `summary@v=1.txt` is a path holding one.
 
@@ -95,14 +95,13 @@ markup treats parens as ordinary text, so a broken one reaches the file and
 `mt add` fails loading what it just wrote. Anywhere a value has a shape, use
 a typed kind instead.
 
-The kind was spelled `typst` before it was renamed. A template still carrying
-that spelling now fails naming the slot and listing the valid kinds, rather
-than silently filling as a quoted string.
+A slot with an unknown kind, such as `typst`, fails naming the slot and
+listing the valid kinds; it never fills as a quoted string.
 
 ## `key@path` reads a file, and converts nothing
 
 The `@` operator puts a file's bytes where a command-line value would go. It
-carries; it does not convert. The slot's KIND still decides what the bytes
+carries; it does not convert. The slot's kind still decides what the bytes
 become, exactly as above:
 
 ```sh

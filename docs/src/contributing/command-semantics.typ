@@ -4,10 +4,9 @@
 // for the render path's constraints.
 //
 // The verb list is derived: `fact("cli")` reflects `mt _cli --json`, the tree
-// `command_class.rs` classifies. This page is the always-loaded CONTRIBUTING.md
-// section moved off the always-loaded surface — progressive disclosure per the
-// .linecop.yaml note, so a reader who needs the full split reaches it
-// deliberately.
+// `command_class.rs` classifies. This page keeps the full read/write split out
+// of the always-loaded CONTRIBUTING.md (per the .linecop.yaml note), so only a
+// reader who needs it opens it.
 #import "../lib.typ": doc-title, fact
 
 #metadata((

@@ -44,7 +44,8 @@ third one.
 `extends` takes a list of entries, resolved independently. A *bare name* — no
 path separator anywhere in it — looks up an embedded pack compiled into `mt`.
 The `mindtape-` prefix is reserved for these; `mindtape-tasks` is the only one
-that ships today. An unknown bare name is refused naming what IS available:
+that ships today. An unknown bare name is refused with a list of the available
+packs:
 
 ```text
 extends: unknown pack `<name>`; available packs: <list>
@@ -52,14 +53,14 @@ extends: unknown pack `<name>`; available packs: <list>
 
 Anything carrying a path separator — `"../shared/team-pack.toml"`,
 `"./local-tasks.toml"`, even `"packs/mindtape-tasks.toml"` — resolves to a
-TOML file instead, relative to the directory the declaring layer's OWN config
-lives in (the project root, for the project's `.mindtape/config.toml`; the
+TOML file instead, relative to the directory of the declaring layer's own
+config (the project root, for the project's `.mindtape/config.toml`; the
 equivalent ancestor directory for a `.mindtape/defaults.toml` or the XDG
 global one). A missing path pack is refused naming the resolved path, not the
 entry as typed, so a wrong relative path is easy to spot.
 
 #callout("warn")[
-  `"mindtape-tasks.toml"` with no separator is still a BARE name — and an
+  `"mindtape-tasks.toml"` with no separator is still a bare name, and an
   unknown one, since the embedded registry's key is `mindtape-tasks`, not
   `mindtape-tasks.toml`. Add a `/` (even `"./mindtape-tasks.toml"`) to name a
   same-titled file on disk instead of the shipped pack.
@@ -90,8 +91,8 @@ has no opinion on.
 
 #raw(render-slices(slices, parts, comment: "#"), lang: "toml", block: true)
 
-Replacement by name works only ACROSS sources this way; two entries sharing
-a name WITHIN one layer's or one pack's own array are a duplicate-name config
+Replacement by name works only across sources. Two entries sharing a name
+within one layer's or one pack's own array are a duplicate-name config
 error rather than one silently shadowing the other, as
 #link(u("/config/"))[Configuration] describes.
 
@@ -134,12 +135,12 @@ declared twice is not an error twice.
 line per entry across the four arrays, in final merge order — `<label>` is
 `tasks.rules.<name>` (or `.rules[<index>]` for an unnamed one), the same
 name-or-position fallback a duplicate-name config error uses; `mt check`'s
-own breach output names the same rule WITHOUT the leading
+own breach output names the same rule without the leading
 `tasks.` (`rules.<name>`, `body.headers.rules.<name>`), so grepping between
 the two drops that one segment. `<origin>` is the layer kind
-(`embedded`/`xdg`/`dir`/`project`) or `pack <name>` / `pack <path>`. Run in
-THIS repo — which extends `mindtape-tasks` and overrides `section-allowlist`
-exactly as shown above:
+(`embedded`/`xdg`/`dir`/`project`) or `pack <name>` / `pack <path>`. This is
+the output in the MindTape repo, which extends `mindtape-tasks` and overrides
+`section-allowlist` as shown above:
 
 #terminal(read("../generated/rule-packs-origin.txt"))
 
@@ -160,7 +161,7 @@ Changes, Out of scope, plus one kind-specific section
 `*-only-for-*` rule forbidding it on every other kind); a run of `*-after-*`
 rules pins their relative order, and `no-subsections` forbids nesting a
 heading under a heading at any depth. Content rules then check what each
-section SAYS, not just that it exists: `problem-is-numbered-steps` and
+section says, beyond that it exists: `problem-is-numbered-steps` and
 `problem-marks-the-defect` require the Problem section as steps opening with
 🔴, `to-be-has-green-bullets` / `to-be-bullets-all-green` require TO-BE as
 bullets opening with 🟢, `changes-name-files` requires a backtick-quoted path

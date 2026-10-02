@@ -29,7 +29,7 @@ MindTape tracks its own backlog as per-file task artifacts under
 moves. `.githooks/commit-msg` checks it (`mt check --commit-msg`). The footer
 is how code finds its tasks: before editing a file, run
 `mt ls 'touches("<path>")'` to read the tasks that shaped it. Architectural
-and tooling decisions are task artifacts too; the ADR process is retired.
+and tooling decisions are task artifacts too; there are no ADRs.
 
 Commits that file or edit task artifacts themselves (and the backlog config
 in `.mindtape/config.toml`) carry no `Refs:` footer — a task commit refs

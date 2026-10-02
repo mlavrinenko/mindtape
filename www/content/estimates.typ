@@ -55,8 +55,8 @@ No quantity is checked unless a project asks. A cap and a budget are ordinary
 
 At `severity = "error"` a cap is a validation error, so every write command
 refuses an oversized task before it lands: the task is split before the work
-starts, not after. `!terminal` in `when` exempts a finished task, which can no
-longer be split. A breach names the rule and carries its `message`:
+starts, not after. `!terminal` in `when` exempts a finished task, whose work is
+already done. A breach names the rule and carries its `message`:
 
 ```
 error: tasks/rewrite-loader.typ:3: rules.judgment-stays-small: judgment work stays small; split it rather than widen the cap

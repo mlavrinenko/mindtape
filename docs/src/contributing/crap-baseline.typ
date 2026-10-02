@@ -49,7 +49,7 @@ never remove one. gitleaks is in the gate set for the job it is good at —
 
 = What guards the mint, and what deliberately does not
 
-#just.crap-baseline() runs the THRESHOLD arm before it writes, never the whole
+#just.crap-baseline() runs the threshold arm before it writes, never the whole
 gate. The two arms answer to different owners, and only one of them can guard a
 mint.
 
@@ -63,9 +63,6 @@ The ratchet arm cannot guard it, because it scores against the very file the
 mint is about to rewrite. A deliberate complexity increase makes that arm red
 by definition, and a deliberate complexity increase is the one occasion
 #link("docs/contributing/coverage-crap.md")[coverage-crap.md] tells you to
-re-mint. Depending on the whole gate therefore made the recipe refuse in its
-own documented use case, with no legitimate path left — the earlier "recover by
-running the recipe body by hand" note only covered a baseline minted over an
-unreproducible lcov, and explicitly required that no cyclomatic complexity had
-moved. Now nothing needs recovering: the ratchet is a gate, the threshold is
-the guard, and #just.crap-baseline() just runs.
+re-mint. Depending on the whole gate would make the recipe refuse in its own
+documented use case. So the ratchet stays a gate, the threshold arm guards the
+mint, and #just.crap-baseline() needs no manual recovery step.

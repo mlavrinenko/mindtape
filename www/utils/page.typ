@@ -12,17 +12,12 @@
 // build the manifest, and this show rule — so a page cannot disagree with
 // itself about its own route, title or summary.
 //
-// The `active:`-only form this used to accept resolved title and summary out
-// of that generated manifest instead. It was a shim, live only while the
-// fifteen pages migrated (truth/tasks/pass-each-page-s-metadata-dict-to-its-
-// show-rule.typ), and it is a panic now: left open it is a working second way
-// to write a page whose facts come from somewhere other than the page, which
-// is the whole failure this change set removes. The previous manifest
-// migration left exactly this door open and had to come back and shut it.
+// An `active:`-only call panics. Accepting it would give a second way to
+// write a page whose facts come from somewhere other than the page.
 //
 // The seam is wrap-page's `transform-meta` hook, which rewrites the named
 // arguments before tola-page ever sees them. Resolving there rather than in
-// `view` is what makes the values reach BOTH consumers: the <tola-meta> block
+// `view` is what makes the values reach both consumers: the <tola-meta> block
 // tola reads (title, summary) and the meta dict layout() renders the <h1>,
 // the lede and the home-page branch from.
 

@@ -1,12 +1,9 @@
-// Site-wide constants for the MindTape docs. Single source of truth for the
-// site URL and its path prefix, and the nav tree's group names and reading
-// order. The site URL and the Typst package version are not constants at all
-// any more — both are read from the file that owns them, and neither is the
-// page manifest (route -> label, title, summary): that is now `PAGES`,
-// read back off every page's own `<page-meta>` block via
-// www/generate-site-pages.sh, under
-// truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ.
-// This file no longer restates a label, a title or a summary anywhere.
+// Site-wide constants for the MindTape docs: the site URL and its path
+// prefix, and the nav tree's group names and reading order. The site URL and
+// the Typst package version are read from the files that declare them. The
+// page manifest (route -> label, title, summary) is `PAGES`, read back off
+// every page's own `<page-meta>` block by www/generate-site-pages.sh, so this
+// file never restates a label, a title or a summary.
 
 // Typst library version, read from lib/typst.toml through the crate map — the
 // same `typst-lib.version` docs/src/{agents,readme,skill}.typ already read, so
@@ -26,7 +23,7 @@
 // this string is what every absolute link into the site is built from
 // (docs/src/lib.typ's `www-link`, via www/generated/site-pages.json).
 //
-// Typst resolves a relative path against the FILE, not the root, so this one
+// Typst resolves a relative path against the file, not the root, so this one
 // read works under both roots this module is evaluated with — `--root www`
 // for the site build and for www/generate-site-pages.sh's page queries,
 // `--root .` for that same script's site-meta driver. The trailing-slash trim
@@ -52,16 +49,16 @@
   tagline: "Tasks as Typst files. No daemon, no database, no lock-in.",
 )
 
-// Grouped sidebar: group title, and its members' reading order as ROUTES.
+// Grouped sidebar: group title, and its members' reading order as routes.
 // The groups follow the reader's job, not the page's origin: Start for a
 // first look, Model for the one idea the rest rests on, Tasks for authoring a
 // task file, Reference for looking one thing up, Integrate for wiring
-// MindTape into a repo or a tool. This is the one fact no single page owns —
+// MindTape into a repo or a tool. No single page can declare this fact:
 // spreading it across the page files as `order:` integers would make the
 // sidebar's shape invisible and let two pages claim one slot (see the
-// umbrella task's "Out of scope"). Every other fact a nav entry used to carry
-// (label, title, summary, home) now lives on the page itself and is resolved
-// from `PAGES` below by route.
+// umbrella task's "Out of scope"). Every other fact about a nav entry (label,
+// title, summary, home) is declared on the page itself and resolved from
+// `PAGES` below by route.
 #let NAV = (
   (title: "Start", items: ("/", "/quickstart/", "/comparison/")),
   (title: "Model", items: ("/concepts/",)),
@@ -106,7 +103,7 @@
 
 // Resolve one page by route. Three outcomes, not two:
 //
-//   - PAGES is EMPTY (the bootstrap pass, before a single page has been
+//   - PAGES is empty (the bootstrap pass, before a single page has been
 //     queried yet): return `none`. Panicking here would make the bootstrap
 //     pass itself un-compilable, which is exactly the chicken-and-egg
 //     www/generate-site-pages.sh exists to break.

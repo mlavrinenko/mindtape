@@ -24,7 +24,7 @@
 
 // ── Colourised terminal (ANSI → inline SVG) ──────────────────────────────────
 // tola / Typst HTML export exposes no raw-HTML escape hatch and drops
-// `text(fill:)` colour, so the ONE way to render `mt`'s ANSI-coloured output in
+// `text(fill:)` colour, so the only way to render `mt`'s ANSI-coloured output in
 // colour is `html.frame` (native content → inline <svg>). The generator captures
 // the colour-bearing transcripts with `--color always` (www/generate.sh); this
 // parses the SGR runs and lays them out as a monospace block on the dark panel.

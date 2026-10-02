@@ -1,18 +1,18 @@
 // docs/src/lib.typ — shared helpers for the docs/src/*.typ sources that
 // docs/generate-md.sh renders to Markdown with typlite (nixpkgs' tinymist,
-// `$out/bin/typlite`; see flake.nix for the pin). This module is NOT itself a
+// `$out/bin/typlite`; see flake.nix for the pin). This module is not itself a
 // source: it carries no `<mindtape-md>` metadata block, so the generator's
 // glob (docs/src/**/*.typ) skips it via the same zero-match check it uses for
 // any future non-source helper under docs/src/.
 //
-// A docs/src source is a SEPARATE render path from the www/content/*.typ docs
+// A docs/src source is a separate render path from the www/content/*.typ docs
 // site pages: those open with `#show: page.with(...)` plus `@tola` imports
 // and target HTML — neither typlite understands, and typlite errors on the
 // `set document(...)` a `page` show rule issues. A docs/src
 // source is plain Typst with no page show rule and no tola import, so
 // typlite can walk it on its own.
 //
-// Being a separate render path is also why a cross-link INTO the docs site is
+// Being a separate render path is also why a cross-link into the docs site is
 // the one thing a source must never hand-type. Nothing in this repo resolves
 // an absolute URL sitting in generated Markdown, so a renamed page ships a
 // 404 that only a reader ever finds. `www-link` / `www-title` / `www-summary`
@@ -29,10 +29,9 @@
 // position instead of through Typst's own heading syntax.
 #let doc-title(body) = html.elem("h1")[#body]
 
-// Spell a small derived count as an English word, so prose that used to read
-// "Two crates" does not regress to "2 crates" the moment the number stops
-// being hand-typed. Above the table, fall back to the numeral — that is where
-// a numeral is what a reader wants anyway.
+// Spell a small derived count as an English word, so prose reads "two
+// crates" rather than "2 crates". Above ten it falls back to the numeral,
+// which is what a reader wants there.
 #let num-word(n) = {
   let words = (
     "zero",
@@ -64,7 +63,7 @@
 
 // Resolve one page by route, or fail the render naming it.
 //
-// A docs/src source links INTO the site constantly, and a hand-typed absolute
+// A docs/src source links into the site constantly, and a hand-typed absolute
 // URL there is a dead link waiting to happen: typlite renders a `#link`
 // without ever resolving it, so a renamed page leaves the generated Markdown
 // pointing at a 404 that no build in this repo can see. Reading the route out
@@ -83,7 +82,7 @@
   )
 }
 
-// A page's own title and summary, for prose that NAMES a page (or lists every
+// A page's own title and summary, for prose that names a page (or lists every
 // page, as README does) rather than linking one. Same panic on an unknown
 // route, for the same reason. A summary is plain text with `code` spans;
 // typlite escapes backticks in text, so each span is rebuilt as raw.
@@ -98,7 +97,7 @@
 )
 
 // An absolute link to a docs-site page. `#www-link("/cli/")` renders the
-// page's OWN title as the link text — the common case, and one less string to
+// page's own title as the link text — the common case, and one less string to
 // keep in sync with the site; pass a body to override it, as in
 // `#www-link("/cli/")[the CLI reference]`.
 //

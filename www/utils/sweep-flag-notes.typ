@@ -1,7 +1,7 @@
 // Hand-written rationale, one entry per `just ask-refactoring` flag, keyed by
 // the flag's long name. The flag list, each flag's help text and each default
 // come from www/generated/sweep-flags.json (www/generate-facts.sh, reading
-// `just --dump`); this dict carries only what a machine cannot state — WHY the
+// `just --dump`); this dict carries only what a machine cannot state: why the
 // number is its own number rather than one band shared across the sweep's
 // arms. An entry must never restate the help text or the default:
 // docs/src/contributing/signal-sweep.typ renders both alongside, derived, so a
@@ -14,11 +14,11 @@
 // valuable thing in the arm, and prose that lived away from the constants it
 // explains would drift away from them. These entries point there.
 //
-// Two entries below cross-reference OTHER gates (`just cover`, `just crap`)
+// Two entries below cross-reference other gates (`just cover`, `just crap`)
 // to explain what those measure that this sweep's own arms do not, so those
 // mentions go through `#just.<name>()` too — a hand-typed recipe name is
 // exactly the drift check-doc-recipes exists to catch, and it scans this
-// directory. That makes this file a READER of www/generated/ (the generated
+// directory. That makes this file a reader of www/generated/ (the generated
 // `just` module), which is only safe because the renderers that reach it —
 // docs::md and check-doc-facts — hold the www/generated/ flock across their
 // typst queries as well as their own regenerate (see docs/generate-md.sh and
@@ -40,14 +40,14 @@
     true.
   ],
   "baseline": [
-    A percentage OF EACH FILE'S OWN CAP, not a line count: the caps differ per
+    A percentage of each file's own cap, not a line count: the caps differ per
     language and per override, so the one number that means the same thing
     everywhere is how much of a file's own budget is spent. Sits above
     linecop's own `--baseline 85` reporting band, so the sweep files a task
     strictly later than the number a contributor is told to watch.
   ],
   "coverage-floor": [
-    Per-FILE line coverage, and the only arm measuring something no gate
+    Per-file line coverage, and the only arm measuring something no gate
     measures: #just.cover() fails on the workspace total alone, so a file can
     sink without any gate noticing. Its own band, and deliberately not the
     workspace gate's number — reusing that would imply the two mean the same
@@ -61,7 +61,7 @@
     is unhit; at or above it, it says decisions are unexercised.
   ],
   "fn-coverage-floor": [
-    The other half, per FUNCTION rather than per file, and stricter than
+    The other half, per function rather than per file, and stricter than
     `--coverage-floor` on purpose: a function is small enough that one unreached
     line moves its percentage by tens of points, so the tail starts further out.
     Two edges rather than one shared number is the point of the pair — a

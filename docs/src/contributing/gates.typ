@@ -6,7 +6,7 @@
 // Nothing here is derived, and nothing here should be: a memoization
 // contract, a fixture that rotted and a formatter behaviour verified against
 // one just version are process and measurement, not values any of
-// www/generate-facts.sh's artifacts carries. The gate list itself IS derived,
+// www/generate-facts.sh's artifacts carries. The gate list itself is derived,
 // and lives once, in CONTRIBUTING.md's table.
 #import "../lib.typ": doc-title, just
 
@@ -29,10 +29,9 @@ one. Scopes and the `gate` tag live in `.mmz/config.yaml`, where the rule name i
 #raw("just <recipe>") — the double hop makes mmz the cache identity.
 #just.test("<filter>") stays outside mmz (plain `cargo nextest run` with `ARGS`),
 so no cached record reflects a filtered subset. No `chronic`: a hit prints
-nothing (`on_hit: ""` in `.mmz/config.yaml` — a skipped arm used to restate
-"mmz: skipped `<command>` (inputs unchanged)" on every green re-run, noise an
-exit code already carries), a miss streams live, and a failure exits through
-`parallel`.
+nothing (`on_hit: ""` in `.mmz/config.yaml`, because a skip line on every green
+re-run is noise the exit code already carries), a miss streams live, and a
+failure exits through `parallel`.
 
 The table's Command column quotes a gate's body only while that body is one
 line of at most 160 characters that does more than name a `.sh` script;
@@ -64,7 +63,7 @@ itself out of that tree or serialise against its writer. Four instances:
 
 - `www/generate.sh` deletes and recreates `www/generated/` on every run, so every
   reader and writer of it serialises on a `target/www-generated.lock` flock, held
-  for the reader's WHOLE run and not across its own regenerate alone, or the
+  for the reader's whole run and not across its own regenerate alone, or the
   `rm -rf` still lands mid-read as a vanished `crate-map.json`.
 - #just.site-pages-fixture-check() copies `www/` into a replica entry by entry to
   skip `public/` and `.tola/`, written by the parallel #just.docs-check() arm,
@@ -73,10 +72,10 @@ itself out of that tree or serialise against its writer. Four instances:
   and `www/.tola/` by an unscoped `paths` allowlist `check-secrets.sh` derives
   from what git ignores, whose patterns take the `^x(/|$)` form, not `^x/`: measured on gitleaks 8.30 under
   `--log-level debug`, `^gen/` never matches the directory `gen` itself, so the
-  walk ENTERS it and skips each child, while `^gen(/|$)` skips it and never
+  walk enters it and skips each child, while `^gen(/|$)` skips it and never
   descends. The bound stops there: under strace the `lstat` of the bounded
-  directory lands one syscall BEFORE the allowlist is consulted, so a `rm -rf`
-  between `readdir` and that `lstat` still logs `could not get info` at ERR on an
+  directory lands one syscall before the allowlist is consulted, so a `rm -rf`
+  between `readdir` and that `lstat` still logs `could not get info` at level `ERR` on an
   exit-0 run — 8 runs in 20, reproduced. So arm two takes the flock above across
   both the derivation and its scan.
 - mmz is stricter under the same rule: it resolves inputs before running the
@@ -105,10 +104,10 @@ Measured on a tree stale in `crates/`, watching the inode: in two runs a plain
 after the test build had linked its own, once at the instant nextest began
 running tests and once 18 s before. A swap is a delete then a link: a window of
 about 85 ms in which a spawn fails with `No such file or directory`. Every arm
-that builds `mt` for the gate now runs `cargo build -p mindtape-cli --tests`,
+that builds `mt` for the gate runs `cargo build -p mindtape-cli --tests`,
 the invocation that resolves the same unit as the test arm, so every uplift
-after the first is a no-op. After: one relink per stale run, during the test
-arm's own build, none once it runs. `check-examples` builds once and runs
+after the first is a no-op. That leaves one relink per stale run, during the
+test arm's own build, and none once it runs. `check-examples` builds once and runs
 `./target/debug/mt`, since `cargo run` takes no `--tests`. A build with another
 feature set belongs in another target directory: #just.build-mt() writes
 `target/mt-dev`. #just.check-rrule() builds the `rrule` set into the shared
@@ -124,13 +123,12 @@ so #just.check-rrule() is outside it. It also checks `TOML_FMT_PATHS` against gi
 = Why the script scopes are enumerated
 
 `.mmz/config.yaml` names one scope per file under `.just/scripts/`. A single
-`.just/scripts/**` glob in `gates-meta`, the scope every rule shares, used to
-re-run every rule — clippy and the full test suite and the docs build included —
-for an edit to one recipe body no other gate opens. The cost: that directory is
-recipe bodies by construction, so under the glob a body extracted from the
-Justfile was covered by arriving, while an enumeration covers only what someone
-listed and the rule running an unlisted script serves a stale hit against a body
-it never hashed.
+`.just/scripts/**` glob in `gates-meta`, the scope every rule shares, would
+re-run every rule — clippy, the full test suite and the docs build included —
+for an edit to one recipe body no other gate opens. The cost: a glob covers a
+new script the moment it lands, while an enumeration covers only what someone
+listed, and the rule running an unlisted script serves a stale hit against a
+body it never hashed.
 
 #just.script-scope-check() pays for that. It set-differences the files on disk
 against the literal paths the scopes name, then walks the call graph out of each
@@ -138,23 +136,22 @@ rule's recipe body to demand that a rule reaching a script declare a scope
 covering it — a second arm, because a script listed in a scope no rule reads
 passes the first while the stale hit survives. A wildcard never counts as naming
 a script.
-`outdatty.yaml` enumerates the same directory and lost the same property: a
+`outdatty.yaml` enumerates the same directory, with the same gap: a
 script never in its `dev-docs` group couples to no dependent and is reported by
-nothing. A third arm demands a DECISION, not membership (`_nav-diff.sh` and the
+nothing. A third arm demands a decision, not membership (`_nav-diff.sh` and the
 machine-install scripts are outside it on purpose, no doc restating their logic),
 so a script is a source or carries an exemption naming the reason, and a new one
 is neither. Four rules keep a directory-wide glob, their subject being the
 directory, not one body in it: #just.check-file-size() (linecop scans every file
 under it), #just.outdatty-check() (nearly every script is a `dev-docs` source),
 #just.check-gate-drift() (it follows #just.check() into any script an arm runs)
-and #just.script-scope-check() itself, which must notice a script ARRIVING.
+and #just.script-scope-check() itself, which must notice a new script.
 
 That call graph (`.just/scripts/_script-graph.sh`) is transitive and treats a
 recipe and a script as one kind of node, so a script invoking a script and a
-script shelling out to a nested `just` are the same hop — `script-nav-diff` and
-check-crap.sh's #just.crap() were each hand-wired first, which is what a missing derivation looks
-like from the outside. Reading one word too many fails a CORRECT manifest and the
-obvious repair is to add the input rather than fix the reader, so what counts as
+script shelling out to a nested `just` are the same hop. Reading one word too
+many fails a correct manifest, and the obvious repair is to add the input
+rather than fix the reader, so what counts as
 a call is argued line by line in that script, and
 `.just/scripts/_script-graph-control.sh` pins every one of those shapes on a
 synthetic tree before arm two runs: from the tracked tree, the right answer and a

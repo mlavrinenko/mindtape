@@ -3,10 +3,10 @@
 //
 // www/generate-examples.sh writes one fact per fixture under www/generated/
 // (its shape: {root, slices: {id: {file, code}}}), and the page declares the
-// ids it quotes. `checked-slices` asserts the two sets match EXACTLY, in both
-// directions: an id the fact lost fails the render (the fix the message names
-// can be either side), and a slice no longer quoted is caught too — a page
-// that quietly stopped showing a form is the drift this whole mechanism
+// ids it quotes. `checked-slices` asserts the two sets match exactly, in both
+// directions. An id missing from the fact fails the render (the fix the
+// message names can be either side). A slice the page does not quote fails
+// too, because a page that silently drops a form is the drift this mechanism
 // exists to prevent. `render-slices` builds the annotated block from the same
 // fact, so the comment prefix and the code stay one string.
 

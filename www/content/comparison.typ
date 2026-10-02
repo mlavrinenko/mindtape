@@ -27,7 +27,7 @@
 // actually got tagged and shipped.
 #let mt-version = read("../generated/version.txt").trim().split(" ").last()
 
-// Neutral capability heatmap: the SAME rubric applies to every column,
+// Neutral capability heatmap: one rubric applies to every column,
 // including MindTape — green = has the capability / strong, amber = partial
 // or indirect, grey = none. Only the objectively-scoreable capability rows in
 // the matrix below get wrapped in `cap`; descriptive rows (storage
@@ -260,11 +260,11 @@ matrix scrolls sideways on narrow screens.
   [#cap("grey")[No]],
   [#cap("grey")[No]],
 
-  // NOT "mt binary + Typst": `mt` links the Typst compiler crates and embeds
-  // the prelude, so nothing external is installed or shelled out to (verified —
-  // `mt ls` evaluates a project with an empty environment and no `typst` on
-  // PATH). The one-time `mt install` writes the prelude into the user data
-  // directory; that is the whole footprint.
+  // A single binary with no separate Typst: `mt` links the Typst compiler
+  // crates and embeds the prelude, so nothing external is installed or shelled
+  // out to (verified: `mt ls` evaluates a project with an empty environment
+  // and no `typst` on `PATH`). The one-time `mt install` writes the prelude
+  // into the user data directory; that is the whole footprint.
   [#link(u("/quickstart/"))[Toolchain footprint]],
   [Single binary + `mt install`],
   [Single Go binary + git],
@@ -275,11 +275,9 @@ matrix scrolls sideways on narrow screens.
   [Go binary; CGO + ICU for embedded Dolt],
   [Bun binary (npm, brew)],
 
-  // This row used to carry each neighbour's GitHub star count under a
-  // "mid-2026" stamp. Nothing in this repo can check those numbers, and they
-  // move every week — a stamped snapshot only dates the page, and the maturity
-  // gap is already argued in words below, which is where a judgement belongs.
-  // The license is the part of the old cell that holds still.
+  // The table carries no GitHub star counts. Nothing in this repo can check
+  // them, they change every week, and the maturity gap is argued in words
+  // below. The license is stable, so it gets a row.
   [#link(REPO + "/blob/main/LICENSE")[License]],
   [MIT],
   [MIT],

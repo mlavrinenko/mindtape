@@ -4,9 +4,9 @@
 // for the render path's constraints.
 //
 // Nothing here is derived: `--clean` is a literal flag in `.just/docs.just`,
-// chosen because tola does not track a `json()` read as a page dependency. It
-// split off generated-docs.typ, whose subject is the OTHER render path (the
-// typlite Markdown sources); this page owns the tola site's build.
+// chosen because tola does not track a `json()` read as a page dependency.
+// generated-docs.typ covers the other render path (the typlite Markdown
+// sources); this page covers the tola site's build.
 #import "../lib.typ": doc-title, just
 
 #metadata((

@@ -10,10 +10,10 @@
 // `www/utils/*-notes.typ` house pattern, keyed by gate name — a gate missing
 // there fails `just docs::md` naming it. gates.json also carries the
 // Justfile's `_FMT_PATHS` assignments, selected by that suffix so a future
-// formatter's list lands without an edit; the block below the table LOOPS
-// that dict rather than naming each key, because a hand-listed `.at("...")`
-// per key once let a fifth list land in the artifact and never render, and
-// nothing gates assignments the way check-doc-facts gates gate names.
+// formatter's list lands without an edit. The block below the table loops
+// over that dict rather than naming each key, because a hand-listed
+// `.at("...")` per key lets a new list land in the artifact and never render,
+// and nothing gates assignments the way check-doc-facts gates gate names.
 #import "lib.typ": doc-title, fact, just
 #import "/www/utils/gate-notes.typ": gate-notes
 
@@ -210,8 +210,9 @@ read from are in
 = Documentation
 
 Docs live in `www/content/*.typ` and the `docs/src/*.typ` Markdown sources.
-A touched file is refactored whole, one home per fact, checked examples over
-described ones; the rules and the #just.dup-prose() audit are in
+Rewrite a touched file whole, state each fact once, use checked examples, and
+write plain prose. The rules with examples, and the #just.dup-prose() audit,
+are in
 #link("docs/contributing/documentation.md")[docs/contributing/documentation.md].
 Why the site build always rebuilds clean is in
 #link("docs/contributing/docs-site-build.md")[docs/contributing/docs-site-build.md].
@@ -222,5 +223,5 @@ Why the site build always rebuilds clean is in
   struct and a `run` fn; wire it into `cli.rs`. See `ls.rs` for reference.
 - New domain capability: add to `crates/mindtape` and re-export from its
   `lib.rs`. Keep `typst-harvest` consumer-blind — no task concepts there.
-- Architectural/tooling decisions: file a task under `truth/tasks/` (the ADR
-  process is retired).
+- Architectural/tooling decisions: file a task under `truth/tasks/`; there are
+  no ADRs.

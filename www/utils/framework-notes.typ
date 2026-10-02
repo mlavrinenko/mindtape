@@ -5,12 +5,12 @@
 // difficulty anchors — comes from www/generated/frameworks.json
 // (www/generate-facts.sh, reading crates/mindtape/src/frameworks.toml and
 // defaults.toml). This dict carries only what no source declares: what the
-// formula MEANS. An entry must never restate a bound or a formula, since the
+// formula means. An entry must never restate a bound or a formula, since the
 // page renders both alongside, derived. `just check-doc-facts` fails naming
 // any frameworks.json framework with no matching key here, so a sixth
 // framework cannot ship unexplained.
 //
-// The renderers take the fact as an ARGUMENT rather than reading
+// The renderers take the fact as an argument rather than reading
 // www/generated/ themselves, the way crate-notes.typ and dsl-field-notes.typ
 // read nothing generated: the check-doc-facts driver imports this file to
 // query the dict's keys, and a file that read a generated artifact at import
@@ -66,7 +66,7 @@
 
 // A framework either scores a formula or classifies into categories — never
 // both, which www/frameworks.jq refuses at generation time. So a null `score`
-// IS the fact that this one is categorical, and the cell renders the labels
+// means this one is categorical, and the cell renders the labels
 // it classifies into instead of a formula.
 #let _scoring(f) = {
   if f.score != none {
@@ -76,12 +76,12 @@
   }
 }
 
-// The doc-facts gate is what a framework with no prose is caught by, but the
-// page compile reaches this line FIRST — www/generate-site-pages.sh compiles
-// every page before that gate's set-difference arm runs — so an unguarded
-// `.at()` reports the miss as a bare "dictionary does not contain key" and
-// buries it under generate-site-pages.sh's own "no <page-meta> block". Named
-// here instead, with the fix in the message. The message names no recipe on
+// The doc-facts gate catches a framework with no prose, but the page compile
+// reaches this line first, because www/generate-site-pages.sh compiles every
+// page before that gate's set-difference arm runs. An unguarded `.at()` would
+// report the miss as a bare "dictionary does not contain key" under
+// generate-site-pages.sh's own "no <page-meta> block". So the miss is named
+// here, with the fix in the message. The message names no recipe on
 // purpose: it is a runtime string, so it cannot go through the generated
 // `just` module, and importing that module here would make the gate's own
 // key-query driver a reader of www/generated/ (see this file's header).
@@ -110,7 +110,7 @@
 )
 
 // A representative value for one input, so a rendered example call is
-// in-bounds BY CONSTRUCTION and a re-ranged input moves the example with it.
+// in bounds by construction and a re-ranged input moves the example with it.
 // The midpoint of the declared range, rounded to an integer when the span is
 // wide enough to hold one strictly inside it and to one decimal when it is
 // not — `confidence`'s 0–1 has no integer between its ends, and an example
@@ -153,7 +153,7 @@
 // rather than typed beside them: it sits two lines above a derived sentence
 // stating the same bands, and a re-ranged scale that moved one and not the
 // other would put the page in contradiction with itself. The `#` comments and
-// the `required` line are NOT derived and should not be — they name keys the
+// the `required` line are hand-written on purpose: they name keys the
 // scale accepts, and `required` has no default to read at all.
 #let scale-config(fact) = {
   let s = fact.scales.priority

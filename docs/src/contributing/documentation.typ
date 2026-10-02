@@ -1,74 +1,119 @@
 // docs/src/contributing/documentation.typ — source for
-// docs/contributing/documentation.md. Rendered by docs/generate-md.sh via
-// typlite, same as every other docs/src source; see docs/src/lib.typ for the
-// render path's constraints.
+// docs/contributing/documentation.md, rendered by docs/generate-md.sh with
+// typlite. docs/src/lib.typ lists that render path's constraints.
 //
-// Deep dive behind CONTRIBUTING.md's Documentation section. Kept out of
-// CONTRIBUTING because that file is always loaded: the rule reads in five
-// lines, and the arguments for it — why a cap is not a target, why one home
-// per fact, why a checked example — are what this file carries.
+// The rules behind CONTRIBUTING.md's Documentation section. They live here
+// because CONTRIBUTING.md is always loaded and states them in one sentence.
 #import "../lib.typ": doc-title, just
 
 #metadata((
   output: "docs/contributing/documentation.md",
 )) <mindtape-md>
 
-#doc-title[Refactoring the documentation]
+#doc-title[Writing the documentation]
 
-User-facing docs are code with a reader instead of a compiler. The gates
-catch one kind of rot — `docs::check` a dead link, `check-doc-facts` a
-missing entry for a derived fact, `check-doc-recipes` a hand-typed recipe
-name. None of them catches duplicated prose, or a page that lost its reader.
-Those are what the rules below are for.
+The doc gates catch mechanical errors. #just.docs-check() finds a dead link,
+#just.check-doc-facts() a derived fact with no entry, #just.check-doc-recipes()
+a hand-typed recipe name, and #just.check-doc-prose() history and shouting. No
+gate finds duplicated prose or a page that does not help its reader. The rules
+below cover what no gate finds.
 
-= Three authored homes
+= Where the docs live
 
-`www/content/*.typ` is the docs site; `www/utils/*.typ` holds the notes
-rendered behind its generated refs. `docs/src/readme.typ`,
-`docs/src/agents.typ` and `docs/src/skill.typ` render to README.md, AGENTS.md
-and `skills/mindtape/SKILL.md`. `docs/src/contributing.typ` renders
-CONTRIBUTING.md. No render is ever edited; #just.docs-md() overwrites it.
+`www/content/*.typ` is the docs site, and `www/utils/*.typ` holds the notes
+its generated references render. `docs/src/readme.typ`, `docs/src/agents.typ`
+and `docs/src/skill.typ` render to README.md, AGENTS.md and
+`skills/mindtape/SKILL.md`. `docs/src/contributing.typ` renders
+CONTRIBUTING.md, and `docs/src/contributing/*.typ` render
+`docs/contributing/*.md`. Edit the source, never the render:
+#just.docs-md() overwrites it.
 
-= Refactor whole, never patch
+= Rewrite the whole file
 
-A file you touch is rewritten against its reader job: who reads it, and what
-they can do after. A line cap is a scope brake, not a target to shave a
-paragraph down to. The failure the rule exists for is a paragraph kept
-because deleting it would have taken one more line, which is how a file
-passes every gate and still wastes the reader's attention. A file that hits
-its cap is refactored whole, or split — deep arguments move to a
-`docs/contributing/*.md` file and the always-loaded source keeps a pointer.
+Before you change a file, decide who reads it and what they can do after.
+Then rewrite the whole file for that reader. A file can pass every gate and
+still waste its reader's time, because each paragraph that stayed was cheaper
+to keep than to delete. A file at its line cap covers too much, so trimming
+words to fit does not fix it. Rewrite it whole, or move the argument to a
+`docs/contributing/*.md` file and leave a link in the always-loaded source.
 
-= One home per fact
+= State each fact once
 
-Generated facts (`www/generated/*.json`, read back by both render paths)
-cannot drift. Hand-written sentences can: two pages say the same thing
-slightly differently, both validate, and nothing fails. So a fact already on
-one page is linked from everywhere else, never retold. What is deliberately
-shared, like README's and the site root's opening task example, lives once as a
-module both render paths can call (`www/utils/demo.typ`), never typed twice.
+A generated fact (`www/generated/*.json`, read by both render paths) cannot
+drift. A hand-written sentence can. Two pages state the same fact in
+different words, one of them changes, and no gate fails. So state a fact on
+one page and link to it from the others. Content that both render paths show,
+like the task example that opens README and the site root, lives once in a
+module both call (`www/utils/demo.typ`).
 
-Two findings the audit reports are deliberate. A document consumed whole by an
-agent — AGENTS.md, the skill, its references — keeps its own minimum, because
-its reader may have no site access: a tagline or a slot rule repeated there is
-the price of being operative offline. And a shared block of *code* — a render
-loop, a crate table — is not prose slop. Extract it or duplicate it, but never
-paraphrase it; re-worded code is worse than either.
+The #just.dup-prose() audit reports two kinds of repeat that are deliberate.
+A document an agent reads whole (AGENTS.md, the skill and its references)
+keeps its own copy of what it needs, because its reader may have no site
+access. Shared code, such as a render loop or a crate table, may be extracted
+or copied. Never paraphrase it, because reworded code is worse than either.
 
-= A checked example beats a description
+= Use checked examples
 
 A code block in the docs comes from a real file under `examples/` that
-`mt check` validates, sliced by a generator into `www/generated/`. The DSL
-page's field table is `lib/prelude.typ`'s own signature; the CLI page's
-transcripts are the real binary against `examples/learn-piano`; the
-quickstart's written task is a capture. A hand-typed snippet is a future lie,
-and the reader has no way to tell it was one.
+`mt check` validates, and a generator slices it into `www/generated/`. The
+DSL page's field table is `lib/prelude.typ`'s own signature. The CLI page's
+transcripts are the real binary run against `examples/learn-piano`. The
+quickstart's task is a capture. A hand-typed snippet goes stale when the code
+changes, and the reader cannot tell.
 
-= The audit
+= Plain prose
+
+Write for a busy engineer who reads each sentence once. The rules apply to
+comments in doc sources too: a comment says what the code does and why, in as
+few lines as it takes.
+
++ *State the rule and its reason.* A reader who knows the reason can apply
+  the rule to a case it does not name.
+  - Bad: "Keep the recipe and the mmz `examples` scope in step."
+  - Good: "Keep the recipe and the mmz `examples` scope in step, because mmz
+    re-runs this gate only when a file in that scope changes."
++ *Leave out history.* The reader needs today's behaviour, and `git log`
+  holds how it got there.
+  - Bad: "the word-splitting that `[positional-arguments]` used to guard that
+    recipe against, refused at dispatch now instead."
+  - Good: "a value containing a space, which the pattern refuses at dispatch,
+    so the recipe never word-splits it."
++ *Use the literal word.* A reader has to translate a figure of speech, and
+  two readers translate it differently.
+  - Bad: "`.just/docs.just`'s currently userless one is load-bearing and
+    cannot be tidied away"
+  - Good: "`.just/docs.just` keeps its own even though none of its recipes
+    uses it yet"
++ *Make the actor the subject.* Files, fields and values do not know, want or
+  own anything. Name the program or person that acts.
+  - Bad: "against what git knows"
+  - Good: "against the TOML files git lists, tracked or not yet added"
++ *Drop the "not Y" half when no reader asked about Y.* It makes the reader
+  hold Y in mind only to discard it.
+  - Bad: "this recipe is only the enforcement point, not a separate lint
+    surface."
+  - Good: "this recipe runs them."
++ *Put one idea in each sentence.* A reader takes in one idea at a time, so
+  split a sentence at its semicolons and at a colon that announces a claim.
+  - Bad: "Editing any source stales the lcov, so it skips on the commits that
+    matter; it catches the free case only."
+  - Good: "It runs only against a fresh lcov. Editing any source makes the
+    lcov stale, so it skips on the commits that matter."
++ *Do not shout.* All-caps words and adverbs like "crucially" add emphasis.
+  Emphasis on many lines teaches the reader to skip it.
+  - Bad: "An unknown bare name is refused naming what IS available"
+  - Good: "An unknown bare name is refused with a list of the available packs"
+
+#just.check-doc-prose() enforces two of these rules. It fails on the history
+words `now`, `used to`, `no longer`, `anymore` and `formerly`, and on an
+all-caps word outside its acronym list. It skips raw spans, fenced blocks and
+double-quoted text, so a quoted bad example passes. The word lists are in
+`.just/scripts/check-doc-prose.sh`.
+
+= The duplicate-prose audit
 
 #just.dup-prose() reads the doc sources, strips markup and code, and reports
-sentences shared between two files, worst pair first. It is advisory: the
-threshold is a judgement call, and the report is an input to a human deciding
-where a fact should live. Run it before and after a refactor; the algorithm,
-the knobs and why it is jq rather than a language of its own are in
-`contrib/dup-prose.jq`.
+sentences that two files share, worst pair first. It is advisory: the
+threshold is a judgement call, and you decide where each fact lives. Run it
+before and after a refactor. The algorithm, its settings and why it is
+written in jq are in `contrib/dup-prose.jq`.

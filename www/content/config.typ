@@ -37,8 +37,8 @@ layers and packs, a
 same-named entry replacing the farther one in place. So a rule an ancestor's
 `.mindtape/defaults.toml` declares survives a project adding its own, where
 the array-replace rule would have dropped it. Replacement by name works only
-ACROSS files; two entries sharing a name WITHIN one layer's (or one pack's)
-array is a config error naming both.
+across files. Two entries sharing a name within one layer's (or one pack's)
+array are a config error naming both.
 
 Inspect the result:
 
@@ -818,10 +818,10 @@ sandboxed run or a test that must not see your personal `mt` setup has one knob
 that works everywhere.
 
 "For reading" is the half that has to be built rather than inherited. Typst
-resolves `@local` through that same platform lookup, one level below `mt`, so
-`$MINDTAPE_DATA_HOME` moved where `mt install` wrote the package while every
-task file kept importing the machine's own — an install and a load naming
-different directories. `mt` now hands the resolver the directory it settled on,
-so the two agree; set the variable empty and no global package resolves at all,
+resolves `@local` through that same platform lookup, one level below `mt`. On
+its own, `$MINDTAPE_DATA_HOME` would move where `mt install` writes the package
+while every task file still imported the machine's own. So `mt` hands the
+resolver the directory it settled on, and the two agree. Set the variable empty
+and no global package resolves at all,
 which is how #just.check-examples() proves each example fixture reads the
 prelude beside it rather than the one this machine happens to have.

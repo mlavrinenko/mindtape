@@ -1,5 +1,5 @@
 // Reference-only enrichment for the CLI page — prose, worked examples, and the
-// generated sample-output captures that belong with each command. NONE of this
+// generated sample-output captures that belong with each command. None of this
 // is in `mt _cli --json`; it lives only in ./www and is merged into the
 // reflected command tree by cli-ref.typ, keyed by dotted path
 // (`command`, `command.arg-id`, `nested.command.arg-id`).

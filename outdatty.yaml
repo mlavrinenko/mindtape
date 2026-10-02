@@ -463,6 +463,10 @@ groups:
   # `check`, which flags exempt a cargo build) and why check-rrule is outside
   # it. The control (_gate-drift-control.sh) is exempt in script-scope-check.sh,
   # as _script-graph-control.sh is.
+  #
+  # check-doc-prose.sh is a source because docs/src/contributing/
+  # documentation.typ, its dependent, states by hand what the scan flags and
+  # what it skips.
   - name: dev-docs
     source:
       - flake.nix
@@ -472,6 +476,7 @@ groups:
       - .just/scripts/check-doc-coverage.sh
       - .just/scripts/check-doc-facts.sh
       - .just/scripts/check-doc-recipes.sh
+      - .just/scripts/check-doc-prose.sh
       - .just/scripts/check-secrets.sh
       - .just/scripts/check-secrets-manifest.sh
       - .just/scripts/fmt-fixture-check.sh
@@ -511,6 +516,7 @@ groups:
       - docs/src/contributing/mutation-testing.typ
       - docs/src/contributing/signal-sweep.typ
       - docs/src/contributing/docs-site-build.typ
+      - docs/src/contributing/documentation.typ
 
   # The four `just ask-refactoring` templates share one shape: the same
   # task.with header, the same "filed from a signal, nothing recorded that it

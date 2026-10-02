@@ -12,7 +12,7 @@ have to redo:
   (`аудит-поисковых-запросов.typ`), and `links:` targets being stems, every
   edge in the batch must spell it. Give ASCII titles when you want ASCII paths.
 - **Intra-batch `links:` resolve only backwards.** A target is checked against
-  files existing when its record is written, so a task must appear AFTER
+  files existing when its record is written, so a task must appear after
   everything it depends on. Order topologically and one pass files the lot;
   otherwise dependents report `skipped: link target ... not found` while the
   rest are filed, leaving a half-imported backlog. A forward edge that cannot

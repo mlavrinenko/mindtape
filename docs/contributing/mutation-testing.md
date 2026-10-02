@@ -20,9 +20,9 @@ Neither is a `just check` gate, and there is no CI job for it on purpose. The fi
 
 ## When a verdict is worth believing
 
-A `TIMEOUT` is not a verdict in either direction: under parallel load it can hide a real pass or a real survivor equally well. So a sweep you intend to BELIEVE runs at `CARGO_MUTANTS_JOBS=2` or lower with an extended timeout, not at the default parallelism. The speed knobs — three parallel mutant jobs, two build jobs and the mold linker, benchmarked at ~3.5x over the naive run, argued in `.just/scripts/_mutants-env.sh` — are for the pre-PR pass, not for a final verdict. The sweep also runs with no `RUSTC_WRAPPER`: every mutant re-keys, so a build cache such as kache only misses and floods its store.
+A `TIMEOUT` is not a verdict in either direction: under parallel load it can hide a real pass or a real survivor equally well. So a sweep whose verdict you mean to trust runs at `CARGO_MUTANTS_JOBS=2` or lower with an extended timeout, not at the default parallelism. The speed knobs — three parallel mutant jobs, two build jobs and the mold linker, benchmarked at ~3.5x over the naive run, argued in `.just/scripts/_mutants-env.sh` — are for the pre-PR pass, not for a final verdict. The sweep also runs with no `RUSTC_WRAPPER`: every mutant re-keys, so a build cache such as kache only misses and floods its store.
 
-A REPRODUCIBLE timeout is a finding, not noise: it means a mutant reached an unbounded loop. Four found so far — `MAX_CATCH_UP_STEPS` in `recur_dates.rs`, `MAX_DISAMBIGUATE_ATTEMPTS` in `naming.rs`, the string scan in `config_hooks.rs` and `find_root_bounded` in `loader.rs` — were fixed by bounding the loop with a `for` over a fixed range — never by a `while n <= CEILING`, which still hangs once the mutant stops incrementing `n`.
+A timeout that reproduces is a finding, not noise: it means a mutant reached an unbounded loop. Four found so far — `MAX_CATCH_UP_STEPS` in `recur_dates.rs`, `MAX_DISAMBIGUATE_ATTEMPTS` in `naming.rs`, the string scan in `config_hooks.rs` and `find_root_bounded` in `loader.rs` — were fixed by bounding the loop with a `for` over a fixed range — never by a `while n <= CEILING`, which still hangs once the mutant stops incrementing `n`.
 
 A survivor inside `#[cfg(not(feature = …))]` code is unreachable under the sweep’s own feature set. Move the twin into its own file and `exclude_globs` it (`recur_rrule_off.rs`) so the live side stays one always-compiled function.
 
@@ -32,7 +32,7 @@ Every mutant re-runs a suite that includes subprocess and PTY e2e tests, and `TI
 
 ## Triage
 
-Every survivor is a real gap or one of the classes below. A real gap gets a regression test that kills it. A gap not worth pinning now goes to `just ask-refactoring`, which reads the last sweep’s outcomes file and files one scored task per survivor for a later sprint. The rest are equivalent mutants, where the mutated code is indistinguishable from the original: record each in `.cargo/mutants.toml` `exclude_re` (or `exclude_globs`), leading the comment with the class name so a recurring class is a grep away.
+Every survivor is a real gap or one of the classes below. A real gap gets a regression test that kills it. A gap not worth pinning in this change goes to `just ask-refactoring`, which reads the last sweep’s outcomes file and files one scored task per survivor for a later sprint. The rest are equivalent mutants, where the mutated code is indistinguishable from the original: record each in `.cargo/mutants.toml` `exclude_re` (or `exclude_globs`), leading the comment with the class name so a recurring class is a grep away.
 
 - type-tautology — a comparison the type already decides, such as `>= 0` on a `usize`, so the mutant flips nothing observable. Exclude it, and in review prefer the source form whose mutants stay killable: `x != 0` rather than `x > 0` on an unsigned count. No source lint can catch the class: the equivalence lies between the mutant and the source, not inside the source.
 - pure-memoisation — a guard that only skips repeated work, so deleting it changes the running time, never the answer. Exclude it.

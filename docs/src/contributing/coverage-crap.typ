@@ -60,7 +60,7 @@ commits — and reports coverage this source cannot produce. Never trade that
 line for speed.
 
 The pile is not an accident: `--no-report` deliberately keeps it so several
-runs CAN be merged across feature sets, and cargo-llvm-cov documents the clean
+runs can be merged across feature sets, and cargo-llvm-cov documents the clean
 as that split's precondition ("should be called before the first run").
 
 What the pile costs, measured
@@ -132,14 +132,12 @@ below 15. A band below 30 would be wrong in both directions at once, so
 gate when the lcov is fresh; otherwise it skips loudly, naming what would
 refresh it, and exits 0.
 
-It exists because #just.crap() is CI-enforced and used to be absent from
-#just.check(), so nothing local ever evaluated it and a green #just.check()
-carried no information about it. That is how it sat red on main
-(`truth/tasks/cover-confirm-retire-and-unred-the-crap-gate.typ`).
+It exists because CI enforces #just.crap(). Without this arm nothing local
+evaluates it, and a green #just.check() says nothing about it.
 
-Be honest about what it buys. Editing any source stales the lcov, so on
-precisely the commits that matter this arm SKIPS: it catches the free case, a
-check run after a recent #just.cover(), and nothing more. #just.check-full()
+Be honest about what it buys. Editing any source makes the lcov stale, so this
+arm skips on exactly the commits that matter. It catches only a check run
+after a recent #just.cover(). #just.check-full()
 is the arm that is always correct. Like the signal sweep's mutants arm, it
 says which of the two it is every time — absent and clean must never look
 alike.

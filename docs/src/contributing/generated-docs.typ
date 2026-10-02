@@ -26,16 +26,14 @@ Markdown file cannot read JSON at build time. A Typst source can:
 gets stated once and every doc that needs it reads the same place.
 `docs/generate-md.sh` runs `www/generate.sh` itself before rendering each
 source with typlite (nixpkgs' `tinymist` package, `$out/bin/typlite`), so a
-source never depends on some other recipe having run first. That means a
-standalone #just.docs-md() now also pays `www/generate.sh`'s own
-`cargo build -p mindtape-cli` (the debug binary — the docs captures are
-byte-identical to release and the test suite already keeps it warm) — it used
-to call
-`www/generate-facts.sh` alone and stay build-free, until the page manifest
-`www/generated/site-pages.json` moved out of that script into
-`www/generate-site-pages.sh`, whose derivation is a full compile of every
-docs page and so needs `www/generate.sh`'s own captures, not just
-`generate-facts.sh`'s. Inside #just.check() this costs nothing: #just.docs-check()
+source never depends on some other recipe having run first. So a standalone
+#just.docs-md() also pays `www/generate.sh`'s own
+`cargo build -p mindtape-cli` (the debug binary: the docs captures are
+byte-identical to release, and the test suite keeps it warm). Calling
+`www/generate-facts.sh` alone is not enough, because the page manifest
+`www/generated/site-pages.json` comes from `www/generate-site-pages.sh`. That
+script compiles every docs page, so it needs `www/generate.sh`'s captures.
+Inside #just.check() this costs nothing: #just.docs-check()
 already runs `www/generate.sh` first, sharing the same generated-docs lock.
 
 This is a separate render path from the docs site pages, `www/content/*.typ`:
@@ -123,10 +121,10 @@ table, not the crate versions.
   [Errors — typlite wraps the input in its own container],
 
   [`#footnote[...]`],
-  [HARD ERROR inside typlite's own `md-link` ("expected string, found location"). Footnotes are unusable here],
+  [A hard error inside typlite's own `md-link` ("expected string, found location"). Footnotes are unusable here],
 
   [`#html.elem("p"/"div"/"span")`],
-  [SILENTLY STRIPPED, attributes included — nothing appears, nothing errors],
+  [Stripped silently, attributes included — nothing appears, nothing errors],
 
   [`#html.elem` with `h1`..`h6`, `img`, `br`, `center`, `blockquote`],
   [Preserved as literal HTML tags, attributes included],
@@ -151,7 +149,7 @@ table, not the crate versions.
   [Round-trip clean],
 
   [A raw span containing a literal backtick],
-  [NOT escalated to a wider delimiter — emitted as a single backtick regardless, so the span is broken/ambiguous CommonMark. Never put a backtick inside a raw span; rephrase into two spans instead],
+  [Emitted with a single backtick as the delimiter, whatever the content, so the span is broken/ambiguous CommonMark. Never put a backtick inside a raw span; rephrase into two spans instead],
 
   [Bare URL in text],
   [Auto-linked to `[url](url)` (Typst's own markup feature, not typlite-specific)],
@@ -168,13 +166,13 @@ before trusting it in a source.
 
 Each of these has bitten a real port, and each is easy to reintroduce:
 
-- Typst's `*x*` is BOLD (`strong`), not italic — the opposite of Markdown's
+- Typst's `*x*` is bold (`strong`), not italic — the opposite of Markdown's
   single-asterisk convention. Ported prose that used `*word*` for italic
   emphasis silently becomes bold unless rewritten as Typst's own `_word_`
   (which typlite renders back as Markdown `_word_`, not `*word*` — another
   representation change to expect, not a bug).
 - A hand-wrapped line that ends mid-word with a hyphen (`wrong -\nedited`)
-  does NOT get TeX-style hyphenation-continuation across the soft break:
+  does not get TeX-style hyphenation-continuation across the soft break:
   Typst joins it as `wrong- edited`, extra space and all, because typlite
   collapses the paragraph to one line without re-flowing it. Never end a
   wrapped source line on a hyphen that continues into the next line; move the
@@ -191,18 +189,18 @@ Each of these has bitten a real port, and each is easy to reintroduce:
   backtick characters instead of a code span. Interpolate each span through
   `raw` instead.
 - `doc-title` with a nested raw span renders the span as `<code>`, so the
-  heading is no longer attribute-free text and the demotion in
+  heading is not attribute-free text and the demotion in
   `docs/generate-md.sh` skips it: the title survives as a raw `<h1>` tag. For
   a literal backtick in a title, interpolate the character from a string.
-- A wrapped line that OPENS with a number and a period is an enum item to
+- A wrapped line that starts with a number and a period is an enum item to
   Typst, not prose — the shape a sentence lands in whenever a threshold falls
   at a line break. The rendered paragraph splits in three around a stray list
   marker, and nothing errors. Rewrap so the number never starts a line, or
   escape the period (`15\.` renders as the plain number and rejoins the
   paragraph).
 
-One more consequence, not a constraint: typlite emits ONE LINE PER PARAGRAPH,
+One more consequence, not a constraint: typlite emits one line per paragraph,
 so a generated `.md`'s line count is not a meaningful size proxy. That is why
-`.linecop.yaml` caps the `.typ` SOURCE under `docs/src/**` and excludes every
+`.linecop.yaml` caps the `.typ` source under `docs/src/**` and excludes every
 path a source declares as its `output`. The source itself still wraps like any
 other Typst file in this repo, and `typstyle` still formats it.

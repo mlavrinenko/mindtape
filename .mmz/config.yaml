@@ -336,6 +336,8 @@ scopes:
     - ".just/scripts/check-doc-facts.sh"
   script-check-doc-recipes:
     - ".just/scripts/check-doc-recipes.sh"
+  script-check-doc-prose:
+    - ".just/scripts/check-doc-prose.sh"
   script-check-gate-drift:
     - ".just/scripts/check-gate-drift.sh"
   script-gate-drift-control:
@@ -535,6 +537,12 @@ commands:
   - name: just check-doc-recipes
     tags: [gate]
     inputs: [docs, gates-meta, script-check-doc-recipes]
+
+  # Scans the doc sources (`docs`) for history words and all-caps emphasis.
+  # It reads no generated file and never builds `mt`.
+  - name: just check-doc-prose
+    tags: [gate]
+    inputs: [docs, gates-meta, script-check-doc-prose]
 
   # docs::gen shells out to the built `mt` binary (rust) and reads the docs
   # tree + the learn-piano fixture (examples) + the project policy/prelude

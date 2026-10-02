@@ -7,7 +7,7 @@
 // page carries no h1, only a single top-level `##`, the shape the
 // hand-written signal-sweep.md had.
 //
-// The flag table IS derived, and it is the one set of values on this page. It
+// The flag table is derived, and it is the one set of values on this page. It
 // reads www/generated/sweep-flags.json — `ask-refactoring`'s own `[arg(...)]`
 // parameters, straight out of `just --dump` — so the flags and their defaults
 // are stated once, in the Justfile, and rendered here

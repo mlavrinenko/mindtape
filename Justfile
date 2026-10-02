@@ -58,7 +58,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check") (mmz "check-gate-drift")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -231,6 +231,14 @@ check-doc-facts:
 [group("gate")]
 check-doc-recipes:
     bash .just/scripts/check-doc-recipes.sh
+
+# Fails when a doc source tells history or shouts in all-caps words. The word
+# lists, and what the scan skips, are in .just/scripts/check-doc-prose.sh.
+
+[doc("Fail on history words or all-caps emphasis in the doc sources")]
+[group("gate")]
+check-doc-prose:
+    bash .just/scripts/check-doc-prose.sh
 
 # Synthesize a deliberately-mis-formatted TOML, Typst and just-module fixture
 # in a temp dir, then assert every formatter `fmt`/`fmt-check` run rejects it —

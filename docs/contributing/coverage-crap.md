@@ -18,7 +18,7 @@ Its output level is set in `.config/nextest.toml`, not in the recipe, and that i
 
 `just cover` starts with `cargo llvm-cov clean --workspace` — in `.just/scripts/cover.sh`, where the recipe’s body lives — so it always pays a full instrumented rebuild (~1 min). Without it, `report` unions every profraw and object file left since the last `cargo clean` — other feature sets, other commits — and reports coverage this source cannot produce. Never trade that line for speed.
 
-The pile is not an accident: `--no-report` deliberately keeps it so several runs CAN be merged across feature sets, and cargo-llvm-cov documents the clean as that split’s precondition (“should be called before the first run”).
+The pile is not an accident: `--no-report` deliberately keeps it so several runs can be merged across feature sets, and cargo-llvm-cov documents the clean as that split’s precondition (“should be called before the first run”).
 
 What the pile costs, measured (`truth/tasks/clean-the-profraw-pile-before-each-coverage-run.typ`): two runs left 461+461 profraw; merging one `--features rrule` run took `check_rrule_rule` from 57% to 100%, coverage of a branch that is dead code without the feature; and a whole session’s pile put `ls_interactive::apply` at 84% when no test in the tree can call it at all. That lcov minted `crap-baseline.json`, so the ratchet then failed 48 functions on the first honest run after a `cargo clean`.
 
@@ -48,9 +48,9 @@ The absent band was measured, not assumed (`truth/tasks/sweep-crap-scores-into-t
 
 `just check-crap` is the CRAP gate as a `just check` arm. It runs the real gate when the lcov is fresh; otherwise it skips loudly, naming what would refresh it, and exits 0.
 
-It exists because `just crap` is CI-enforced and used to be absent from `just check`, so nothing local ever evaluated it and a green `just check` carried no information about it. That is how it sat red on main (`truth/tasks/cover-confirm-retire-and-unred-the-crap-gate.typ`).
+It exists because CI enforces `just crap`. Without this arm nothing local evaluates it, and a green `just check` says nothing about it.
 
-Be honest about what it buys. Editing any source stales the lcov, so on precisely the commits that matter this arm SKIPS: it catches the free case, a check run after a recent `just cover`, and nothing more. `just check-full` is the arm that is always correct. Like the signal sweep’s mutants arm, it says which of the two it is every time — absent and clean must never look alike.
+Be honest about what it buys. Editing any source makes the lcov stale, so this arm skips on exactly the commits that matter. It catches only a check run after a recent `just cover`. `just check-full` is the arm that is always correct. Like the signal sweep’s mutants arm, it says which of the two it is every time — absent and clean must never look alike.
 
 It is memoized like every other `just check` arm, over an `lcov` input scope naming the artifact it reads, so a recorded skip dies the moment that artifact appears. What that scope costs and why it needs its own `gitignore` opt-out is in [docs/contributing/gates.md](docs/contributing/gates.md).
 

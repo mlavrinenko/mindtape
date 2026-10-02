@@ -21,7 +21,7 @@ The seam that decides which layer a change belongs in:
   the argument shapes it rejects before the marker is written (edge
   targets and notes, a status note, framework inputs). Those are the mistakes the
   Rust layer can never see, because nothing reaches it to validate.
-- Everything that DOES reach the marker is the Rust layer's: the status legend,
+- Everything that reaches the marker is the Rust layer's: the status legend,
   the numeric priority/difficulty scales and classification, priority frameworks
   (scoring, in-bounds by construction), the edge-kind enum and its per-kind rules,
   the `required` rules (a filter expression per field), bounds, and link

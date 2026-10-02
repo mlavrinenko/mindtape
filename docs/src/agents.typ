@@ -2,12 +2,13 @@
 // symlink to it). Rendered to Markdown by `docs/generate-md.sh` via typlite;
 // see docs/src/lib.typ for what that render path can and cannot do.
 //
-// Facts this file used to hand-list read from `www/generated/crate-map.json`
-// (`www/generate-facts.sh`) instead: the workspace/substrate crate lists,
-// their versions and direct-vs-transitive status, the `evalexpr`/`clap`/Typst
-// major versions in Architecture, and the `@local/mindtape` version in the
-// Task DSL snippet. See docs/contributing/generated-docs.md for the pipeline
-// this feeds and why each derived fact moved here.
+// This file reads these facts from `www/generated/crate-map.json`
+// (`www/generate-facts.sh`) and never types them: the workspace/substrate
+// crate lists, their versions and direct-vs-transitive status, the
+// `evalexpr`/`clap`/Typst major versions in Architecture, and the
+// `@local/mindtape` version in the Task DSL snippet.
+// docs/contributing/generated-docs.md describes the pipeline and why each of
+// these facts is derived.
 //
 // Every docs-site pointer goes through `www-link` (docs/src/lib.typ), which
 // resolves the route against the generated page manifest and panics on an

@@ -30,21 +30,19 @@
 // outdatty.yaml's `typst-pkg-version` group still does not list it, for the
 // same reason it never did: a value read off disk cannot drift from itself.
 //
-// There is deliberately no Acknowledgements section. It existed to carry an
-// ISC attribution for a Lucide brain icon; the logo is now this repo's own
-// hand-authored cassette mark (www/assets/images/logo.svg), so no third-party
-// artwork credit is owed, and Typst — the one dependency a reader of this
-// file actually meets — is credited in the tagline where they meet it.
+// There is no Acknowledgements section. The logo is this repo's own cassette
+// mark (www/assets/images/logo.svg), so no third-party artwork credit is owed,
+// and Typst, the one dependency a reader of this file meets, is credited in
+// the tagline.
 //
 // The centered header is a deliberate rebuild, not a literal port:
 // `<p align="center">` is how a README normally centers its logo, title,
 // tagline and doc links, but typlite silently strips every `<p>`
 // (docs/src/lib.typ). `<h1 align="center">`/`<h4 align="center">` survive both
 // typlite and GitHub's HTML sanitizer (`<center>` survives typlite but is
-// stripped by GitHub's sanitizer), so the header below uses those instead —
-// closest achievable to the original centered look, not a byte-for-byte
-// match. This document therefore has no separate `doc-title` ATX `#`: the
-// centered `<h1>` IS the title, exactly as in the hand-written original.
+// stripped by GitHub's sanitizer), so the header below uses those instead.
+// This document has no separate `doc-title` ATX `#`, because the centered
+// `<h1>` is the title.
 #import "lib.typ": fact, www-link, www-summary
 #import "/www/utils/demo.typ": demo
 

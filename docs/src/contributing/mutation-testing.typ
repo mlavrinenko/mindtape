@@ -46,15 +46,15 @@ profile are `.cargo/mutants.toml`'s subject.
 = When a verdict is worth believing
 
 A `TIMEOUT` is not a verdict in either direction: under parallel load it can
-hide a real pass or a real survivor equally well. So a sweep you intend to
-BELIEVE runs at `CARGO_MUTANTS_JOBS=2` or lower with an extended timeout, not
+hide a real pass or a real survivor equally well. So a sweep whose verdict
+you mean to trust runs at `CARGO_MUTANTS_JOBS=2` or lower with an extended timeout, not
 at the default parallelism. The speed knobs — three parallel mutant jobs, two
 build jobs and the mold linker, benchmarked at \~3.5x over the naive run,
 argued in `.just/scripts/_mutants-env.sh` — are for the pre-PR pass, not for a
 final verdict. The sweep also runs with no `RUSTC_WRAPPER`: every mutant
 re-keys, so a build cache such as kache only misses and floods its store.
 
-A REPRODUCIBLE timeout is a finding, not noise: it means a mutant reached an
+A timeout that reproduces is a finding, not noise: it means a mutant reached an
 unbounded loop. Four found so far — `MAX_CATCH_UP_STEPS` in `recur_dates.rs`,
 `MAX_DISAMBIGUATE_ATTEMPTS` in `naming.rs`, the string scan in
 `config_hooks.rs` and `find_root_bounded` in `loader.rs` — were fixed by
@@ -76,7 +76,7 @@ pipeline. Run it locally, where a timeout means something.
 = Triage
 
 Every survivor is a real gap or one of the classes below. A real gap gets a
-regression test that kills it. A gap not worth pinning now goes to
+regression test that kills it. A gap not worth pinning in this change goes to
 #just.ask-refactoring(), which reads the last sweep's outcomes file and files
 one scored task per survivor for a later sprint. The rest are equivalent
 mutants, where the mutated code is indistinguishable from the original: record

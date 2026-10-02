@@ -9,22 +9,20 @@
 // with no matching key here.
 //
 // A cross-recipe mention below goes through `#just.<name>()`, like every
-// other doc source — a hand-typed recipe name is exactly the drift this
-// milestone ended, and `just check-doc-recipes` scans this directory too.
+// other doc source, because a hand-typed recipe name drifts.
+// `just check-doc-recipes` scans this directory too.
 //
-// That makes this file a READER of www/generated/, which is only safe
-// because the one gate that queries it — check-doc-facts — holds the
-// www/generated/ flock across its typst queries as well as its own
-// regenerate. It did not always: querying outside the lock let a concurrent
-// docs::check arm rm-rf the directory mid-read, failing with "file not found"
-// on a correct tree. If you add another consumer of this dict, it must hold
+// That makes this file a reader of www/generated/. This is safe only because
+// the one gate that queries it, check-doc-facts, holds the www/generated/
+// flock across its typst queries as well as its own regenerate. A query
+// outside the lock would let a concurrent docs::check arm rm -rf the
+// directory mid-read and fail with "file not found" on a correct tree. If you
+// add another consumer of this dict, it must hold
 // that lock for its whole run (see www/generate.sh, docs/generate-md.sh, and
 // the check-doc-facts recipe for the fd-held idiom) or read no generated
 // file at all, the way crate-notes.typ and dsl-field-notes.typ do.
-//
-// Refs: truth/tasks/derive-the-gate-table-command-column-from-the-justfile.typ
 
-// Relative, not root-absolute: this file is read under TWO different Typst
+// Relative, not root-absolute: this file is read under two different Typst
 // roots — the repo (docs/src/contributing.typ, and check-doc-facts's query
 // driver) and www/ (the docs site). A relative import resolves against this
 // file either way; `/www/generated/...` would double to `www/www/...` under
@@ -48,8 +46,8 @@
     `mod`.
   ],
   "clippy": [
-    Every lint is workspace `deny` (see Code Style above); this recipe is
-    only the enforcement point, not a separate lint surface.
+    Every lint is workspace `deny` (see Code Style above); this recipe runs
+    them.
   ],
   "test": [
     The full workspace suite, run through nextest: one process per test, so a
@@ -113,13 +111,14 @@
     `examples/minimal/` (the floor config; feeds the skill's trap evals),
     and `examples/links/` + `examples/estimates/`, the single-subject
     fixtures the docs site slices its blocks out of. Keep the recipe and the
-    mmz `examples` scope in step. A fixture no gate validates rots silently.
+    mmz `examples` scope in step, because mmz re-runs this gate only when a
+    file in that scope changes. An ungated fixture breaks silently.
   ],
   "check-doc-coverage": [
     Set-differences `mt _cli --json`'s reflected command names against
     `www/utils/cli-notes.typ`'s dict keys; fails naming any visible
-    subcommand with no matching entry, so a new verb can no longer ship
-    silently undocumented.
+    subcommand with no matching entry, so a new verb cannot ship
+    undocumented.
   ],
   "check-doc-facts": [
     Regenerates
@@ -145,6 +144,11 @@
     for (a prose backtick span, a fenced example's leading command, a quoted
     config value) are argued in place in
     `.just/scripts/check-doc-recipes.sh`.
+  ],
+  "check-doc-prose": [
+    Stops a doc source from telling history or shouting. The rules, with
+    examples, are in
+    #link("docs/contributing/documentation.md")[docs/contributing/documentation.md].
   ],
   "docs::check": [
     `docs-gen` — a dependency — captures live `mt` output first
@@ -174,9 +178,9 @@
     asserts each rejects a known-bad argument and accepts a known-good one,
     and that every declared default satisfies its own pattern (`fix-check`
     depends on bare `eject`; the sweep's defaults are the only copy of its
-    thresholds). One of the sweep's cases is a value containing a space —
-    the word-splitting that `[positional-arguments]` used to guard that
-    recipe against, refused at dispatch now instead. Every assertion goes
+    thresholds). One of the sweep's cases is a value containing a space,
+    which the pattern refuses at dispatch, so the recipe never word-splits
+    it. Every assertion goes
     through the `--dry-run --yes` flag pair, so no recipe body ever actually
     runs — `release`'s included; see `.just/scripts/arg-pattern-check.sh`.
   ],
@@ -204,10 +208,9 @@
     would fail a literal match while being strictly better, and `-e` alone
     would pass a looser one while dropping the exact flag that let
     #just.count-tests() report a partial sum and exit 0. Every justfile is
-    checked, not only those with `[script]` recipes today — a module does not
-    inherit the root's setting, so `.just/docs.just`'s currently userless one
-    is load-bearing and cannot be tidied away; see
-    `.just/scripts/script-attr-check.sh`.
+    checked, including one with no `[script]` recipe. A module does not
+    inherit the root's setting, so `.just/docs.just` keeps its own even though
+    none of its recipes uses it yet; see `.just/scripts/script-attr-check.sh`.
   ],
   "size-fixture-check": [
     Scan-scope self-test for #just.check-file-size(): an oversized shell
@@ -226,15 +229,13 @@
     Enumeration lock over the two manifests that list `.just/scripts/` file by
     file, in three arms. Every `.just/scripts/*.sh` must be named by some
     `.mmz/config.yaml` scope as a literal path; every memoized rule whose
-    recipe body REACHES a script must declare a scope covering it — the second
+    recipe body reaches a script must declare a scope covering it — the second
     because a script listed in a scope no rule reads passes the first while
     still serving a stale hit; and every script must be an `outdatty.yaml`
     `dev-docs` source or carry an exemption naming the reason no doc restates
-    it. It exists because those scopes replaced a `.just/scripts/**` glob every
-    rule carried, and the glob had the property an enumeration cannot have: a
-    recipe body extracted out of the Justfile was covered by arriving. A
-    wildcard never counts as naming a script, so putting the glob back
-    satisfies nothing; and the third arm demands a DECISION rather than
+    it. It exists because an enumeration, unlike a `.just/scripts/**` glob,
+    does not cover a new script by itself. A wildcard never counts as naming
+    a script, and the third arm demands a decision rather than
     membership, because `_nav-diff.sh` is outside that group on purpose and
     forcing it in would ask for a review of seven dependents no change to it
     can rot.
@@ -242,9 +243,7 @@
     reached one hop further counts: through another script
     (`_nav-diff.sh`, called from site-pages-fixture-check.sh) and through a nested `just`
     (check-crap.sh shelling out to #just.crap()) alike, both being the same edge
-    into the next body. It claimed direct invocation only until four such scopes had been
-    wired by hand, which is what a missing derivation looks like from the
-    outside. A wrong edge fails a CORRECT manifest, so the reading is narrow
+    into the next body. A wrong edge fails a correct manifest, so the reading is narrow
     where it can over-read — a `just` counts only at command position, never
     inside the `echo` hints these scripts use to name a recipe they do not run —
     and loud where it cannot read at all: an unclassified flag or a target that
@@ -265,8 +264,8 @@
     mutation there would be read as real by a concurrent gate), and pins the
     third by calling `.just/scripts/_nav-diff.sh` directly against a
     synthetic pair of route lists rather than driving a whole
-    #just.check-doc-facts() regenerate — that script is the extracted
-    set-difference #just.check-doc-facts() itself now calls, so the thing
+    #just.check-doc-facts() regenerate. That script is the set-difference
+    #just.check-doc-facts() itself calls, so the thing
     this gate pins is the thing that actually runs. A positive control
     asserts the unmutated replica passes, and every case asserts both a
     non-zero exit and that the failure names the offending page or route,
@@ -284,9 +283,9 @@
     reappears. See `.just/scripts/site-pages-fixture-check.sh`.
   ],
   "check-crap": [
-    Editing any source stales the lcov, so it skips on the commits that
-    matter; it catches the free case only. #just.check-full() is the arm
-    that is always correct.
+    It runs only against a fresh lcov. Editing any source makes the lcov
+    stale, so it skips on the commits that matter. #just.check-full() always
+    runs the CRAP gate.
   ],
   "crap-baseline-check": [
     The CRAP arm that never skips: it reads the committed baseline itself
@@ -299,8 +298,9 @@
   "check-gate-drift": [
     Two facts kept by hand, each read from its source, failing by name. The
     first is `TOML_FMT_PATHS`, read through just's `--evaluate` flag rather than a grep
-    of the Justfile, against what git knows (`git ls-files --cached --others --exclude-standard '*.toml'`):
-    a new file not yet added counts the moment it
+    of the Justfile, against the TOML files git lists, tracked or not yet added
+    (`git ls-files --cached --others --exclude-standard '*.toml'`). A new file
+    counts the moment it
     exists, an ignored one never does, and both a missing and an extra path are
     reported. The second is the rule argued in docs/contributing/gates.md,
     "One mt binary, one feature set": every `cargo build` or `cargo run` of `mindtape-cli` that a
