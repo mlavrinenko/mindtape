@@ -3,41 +3,26 @@ limits:
   Rust: 500
   Markdown: 200
 
-  # Shell was uncapped until `contrib/ask-refactoring.sh` reached 750 lines —
-  # the script that files tasks about oversized files was the largest source
-  # file in the repo and structurally unable to see itself, because these
-  # limits named Rust and Markdown only.
+  # Shell is capped so a script that outgrows one job gets split. The cap of 300
+  # sits above every shell file in the repo.
   #
-  # Why 300: it has to bite on 750 without firing on the split that fixes it.
-  # The seam is one file per sweep arm, and the arms land at 222/217/192 with a
-  # 154-line entry script; `www/generate.sh`, the only other capped shell file,
-  # is 223. At 300 the largest of those sits at 74% — outside the band
-  # `linecop --baseline 85` reports, so the cap does not hand the next sweep a
-  # finding about the files it just created. At 250 both the largest arm and
-  # `www/generate.sh` would be reported on day one, which is a cap arriving as
-  # a surprise rather than as a decision.
-  #
-  # What it does NOT cover: linecop detects language by extension, so the
-  # shebang-only `.githooks/` hooks are invisible to it at any limit. They are
-  # ~25 lines each and the cap was never the thing keeping them short. Same
-  # blind spot, same reason: `.just/docs.just` — a `.just` extension is no
-  # language linecop knows, so the module file is uncapped while every script
-  # beside it is capped (`include_hidden` below is what brought those scripts
-  # into the scan; it does nothing for an unrecognized extension).
+  # linecop detects language by extension, so the shebang-only `.githooks/`
+  # hooks are invisible to it at any limit. They are about 25 lines each.
+  # `.just/docs.just` has the same gap: linecop knows no language for the
+  # `.just` extension, so the module file is uncapped while every script beside
+  # it is capped (`include_hidden` below brings those scripts into the scan and
+  # does nothing for an unrecognized extension).
   Shell: 300
 
-  # A base is REQUIRED for an override's `limit:` to do anything: verified
-  # empirically — a `docs/src/**` override with no `Typst` entry here scans
-  # zero .typ files (linecop skips a language entirely when it has no base),
-  # so the per-source overrides below would be silently inert without this
-  # line. 1000 is not a target, it is a floor picked to clear the largest
-  # Typst file in the repo today (`www/content/config.typ`, 747 lines) with
-  # headroom — every real cap that matters for a docs/src/*.typ source lives
-  # in that source's own override below, at a fraction of this number. A
-  # second file crossing 1000 uncapped-by-design (`lib/prelude.typ`, `www/
-  # content/*.typ`) is not this task's problem to solve; raising THIS number
-  # to accommodate one would silently loosen every other Typst file's ceiling
-  # at once.
+  # A base is required for an override's `limit:` to do anything (verified): a
+  # `docs/src/**` override with no `Typst` entry here scans zero .typ files,
+  # because linecop skips a language entirely when it has no base. Without this
+  # line the per-source overrides below would be inert. 1000 is a floor and not
+  # a target, picked to clear the largest Typst file in the repo
+  # (`lib/prelude.typ`) with headroom. Every cap that matters for a docs/src/*.typ
+  # source lives in that source's own override below, at a fraction of this
+  # number. Raising this number to fit one file would loosen every other Typst
+  # file's ceiling at once.
   Typst: 1000
 
 # The changelog is append-only (all under [Unreleased] pre-1.0) and gets
@@ -106,22 +91,16 @@ exclude_dirs:
   - archive
   - var
 
-# The walker skips dot-prefixed directories by default, which silently uncapped
-# every recipe body the Justfile extraction moved into `.just/scripts/` — the
-# extraction's whole stated reason was that `Justfile` has no extension and a
-# `.sh` file lands under the `Shell: 300` cap on arrival, and the bodies landed
-# in a second blind spot instead (truth/tasks/restore-size-gate-coverage-over-
-# the-dot-just-scripts.typ). Turning it on here rather than passing `--hidden`
-# in the recipe keeps `check-file-size` a single `linecop` invocation, so the
-# gate table's Command column keeps rendering the real command, and keeps the
-# scan scope a property of the repo — `linecop`, `linecop --baseline 85` and
-# `just eject`'s `--format paths` run all see the same file set, which they
-# would not if only the gate carried the flag.
+# The walker skips dot-prefixed directories by default, which would leave every
+# recipe body in `.just/scripts/` uncapped. Setting `include_hidden` here and
+# not passing `--hidden` in the recipe keeps `check-file-size` a single
+# `linecop` invocation, so the gate table's Command column renders the real
+# command. It also keeps the scan scope a property of the repo: `linecop`,
+# `linecop --baseline 85` and `just eject`'s `--format paths` run all see the
+# same file set, which they would not if only the gate carried the flag.
 #
-# What it pulls in beyond `.just/scripts/*.sh`: `.mindtape/templates/*.typ` and
-# the learn-piano fixture's copy, all far under the Typst floor. Nothing here
-# is at 85% of its cap, so this is coverage arriving quiet — no finding handed
-# to the next `just ask-refactoring`. VCS metadata stays excluded by linecop
-# itself and gitignored paths are still skipped, so `.direnv/` and `.mmz/cache/`
-# never enter the walk.
+# It pulls in `.just/scripts/*.sh`, `.mindtape/templates/*.typ` and the
+# learn-piano fixture's copy of those templates, all far under the Typst floor.
+# VCS metadata stays excluded by linecop itself and gitignored paths are still
+# skipped, so `.direnv/` and `.mmz/cache/` never enter the walk.
 include_hidden: true

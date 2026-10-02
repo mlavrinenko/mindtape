@@ -2,35 +2,36 @@
 #
 # `mt flip` into a terminal status runs `mmz --is-fresh --tag gate`, which
 # asserts every gate-tagged rule already passed against this worktree rather
-# than running any of them again. Rules here that are NOT gate-tagged are
-# memoized for convenience (a future `mmz just bench` would skip on a no-op
-# re-run) but stay out of the close predicate.
+# than running any of them again. Rules here that are not gate-tagged are
+# memoized for convenience (a `mmz just bench` would skip on a no-op re-run)
+# but stay out of the close predicate.
 #
-# A gate that re-runs `just check` inside `mt flip` is bad ergonomics — slow,
-# at the least convenient moment, and it teaches an agent to reach for
-# `--force`. Asserting a prior pass is cheap and is the predicate the review
-# actually wants: proof of a passing build, not a claim of one.
+# A gate that re-runs `just check` inside `mt flip` is slow, runs at the least
+# convenient moment, and teaches an agent to reach for `--force`. Asserting a
+# prior pass is cheap and is the predicate the review wants: proof of a passing
+# build, not a claim of one.
 #
-# Record every gate pass by running `just check` itself — every arm of `just
-# check` is `just mmz <subgate>`, so the underlying sub-recipe runs through mmz
-# and records its outcome. `mmz --is-fresh --tag gate` then asserts all of them.
+# `just check` records every gate pass. Every arm of `just check` is
+# `just mmz <subgate>`, so the underlying sub-recipe runs through mmz and
+# records its outcome. `mmz --is-fresh --tag gate` then asserts all of them.
 #
-# NOTE ON SCOPE. `truth/tasks/**` is deliberately absent from every scope.
-# `mt flip` writes the task file it is gating, so a rule keyed on those files
-# would go stale the moment a status is stamped — the close gate would flip
-# itself stale mid-command, and a multi-target or sequential close could never
-# pass. `just fmt-check` DOES typstyle-check `truth/` (see the Justfile),
-# so a full `just check` still rejects a mis-formatted task file; we just don't
-# MEMOIZE that read, trading a task-file-only formatting change escaping the
-# freshness shortcut for a gate that survives its own writes. Task structure is
-# validated by the pre-commit hook (`cargo run -- check`), not by the gate.
+# Note on scope. `truth/tasks/**` is absent from every scope. `mt flip` writes
+# the task file it is gating, so a rule keyed on those files would go stale the
+# moment a status is stamped. The close gate would flip itself stale
+# mid-command, and a multi-target or sequential close could never pass.
+# `just fmt-check` typstyle-checks `truth/` (see the Justfile), so a full
+# `just check` still rejects a mis-formatted task file. Only the memoization of
+# that read is given up: a task-file-only formatting change escapes the
+# freshness shortcut, in return for a gate that survives its own writes. Task
+# structure is validated by the pre-commit hook (`cargo run -- check`), not by
+# the gate.
 
 scopes:
-  # Everything that builds the rust crates: ALL files under crates/ — not just
+  # Everything that builds the rust crates: every file under crates/, not just
   # `*.rs`. defaults.toml, frameworks.toml, the preset/axes `config.toml` and the
   # embedded template `.typ` are `include_str!`'d into the binary and asserted by
   # the test suite, so `crates/**` keeps them in the build/test freshness (a
-  # `*.rs`-only glob silently dropped them). Plus the workspace manifests and the
+  # `*.rs`-only glob would leave them out). Plus the workspace manifests and the
   # rust-toolchain pin. The dev-shell toolchain (flake.nix/flake.lock) lives in
   # `gates-meta`, shared by every rule.
   rust:
@@ -78,17 +79,18 @@ scopes:
     - "www/tola.toml"
 
   # Every `*.toml` in the tree, for `just check-gate-drift`: the arm compares
-  # TOML_FMT_PATHS to what git knows, and a new file arrives anywhere. `toml-fmt`
-  # above lists what the formatter reads, which is the very list under test, so
-  # it cannot stand in. mmz walks untracked files and drops ignored ones, the
-  # same split `git ls-files --cached --others --exclude-standard` draws.
+  # TOML_FMT_PATHS to the TOML files git lists, and a new file can appear
+  # anywhere. `toml-fmt` above lists what the formatter reads, which is the
+  # list under test, so it cannot stand in. mmz walks untracked files and drops
+  # ignored ones, the same split `git ls-files --cached --others
+  # --exclude-standard` draws.
   toml-all:
     - "**/*.toml"
 
   # Typst formatter (`just fmt-check` runs `typstyle --check` over these).
-  # `truth/tasks/**` is intentionally NOT listed (see NOTE ON SCOPE): the gate
-  # must survive `mt flip`'s own writes to that tree. The shared `truth/*.typ`
-  # files beside it are no task, so they are.
+  # `truth/tasks/**` is not listed (see "Note on scope"): the gate must survive
+  # `mt flip`'s own writes to that tree. The shared `truth/*.typ` files beside
+  # it are no task, so they are listed.
   typ-fmt:
     - "lib/**"
     - "truth/*.typ"
@@ -118,21 +120,20 @@ scopes:
   secrets-config:
     - ".gitleaks.toml"
 
-  # EVERYTHING `just check-secrets` READS, which is the whole tracked tree —
-  # a credential can land in any file, so no narrower list would be honest.
-  # Spelled as an enumeration for one reason: `truth/tasks/**` must stay out
-  # (see NOTE ON SCOPE above — `mt flip` writes the task file it is gating),
-  # mmz has no negative glob, and `**` minus one directory is therefore a list
-  # of what is left. Those task files ARE still scanned; the read is just not
-  # memoized, exactly the trade `just fmt-check` already takes over the same
-  # directory.
+  # Everything `just check-secrets` reads, which is the whole tracked tree:
+  # a credential can land in any file, so no narrower list would cover it.
+  # It is an enumeration because `truth/tasks/**` must stay out (see "Note on
+  # scope" above: `mt flip` writes the task file it is gating), mmz has no
+  # negative glob, and `**` minus one directory is therefore a list of what is
+  # left. Those task files are still scanned. The read is just not memoized,
+  # as `just fmt-check` already does over the same directory.
   #
-  # The enumeration's own failure mode — a top-level directory arriving that
-  # nobody adds here, going false-fresh with a whole subtree unhashed — is
-  # what arm three of .just/scripts/check-secrets.sh refuses: it set-
-  # differences `git ls-files` against mmz's own expansion of this scope and
-  # fails naming the uncovered files. So a missing line below is a red gate,
-  # not a quiet hole, and adding the line is the fix it names.
+  # The enumeration fails when a top-level directory appears that nobody adds
+  # here: the scope goes false-fresh with a whole subtree unhashed. Arm three
+  # of .just/scripts/check-secrets.sh refuses that. It set-differences
+  # `git ls-files` against mmz's own expansion of this scope and fails naming
+  # the uncovered files. So a missing line below turns the gate red, and
+  # adding the line it names fixes it.
   secrets-tree:
     - "*"
     - ".cargo/**"
@@ -158,12 +159,12 @@ scopes:
     - "outdatty.yaml"
     - "outdatty.lock"
 
-  # The example projects `just check-examples` validates — keep this list and
-  # that recipe in step. A fixture outside the scope goes false-fresh and stops
-  # being gated, which is how the skill's previous eval fixture rotted through
-  # two config migrations unnoticed. Deliberately not a `examples/*` glob:
-  # examples/large/ is a generated, gitignored benchmark fixture that the recipe
-  # does not check, and its 2000 task files would churn this rule for nothing.
+  # The example projects `just check-examples` validates. Keep this list and
+  # that recipe in step: a fixture outside the scope goes false-fresh and stops
+  # being gated without anyone noticing. It is not an `examples/*` glob,
+  # because examples/large/ is a generated, gitignored benchmark fixture that
+  # the recipe does not check, and its 2000 task files would churn this rule
+  # for nothing.
   examples:
     - "examples/learn-piano/**"
     - "examples/minimal/**"
@@ -206,28 +207,27 @@ scopes:
     # set, and this fixture is never meant to pass it.
     - "examples/self-validating/**"
 
-  # The coverage artifact `just check-crap` measures. This scope is the reason
-  # that arm can be memoized at all: it is a build artifact under git-ignored
+  # The coverage artifact `just check-crap` measures. This scope is what lets
+  # that arm be memoized: the artifact is a build output under git-ignored
   # `target/`, in none of the scopes above, and a rule that cannot name its
   # input records "I could not measure" as a pass whose digest never moves when
-  # the artifact appears — the exact false-fresh the comments above keep
-  # arguing against, and why that arm ran unwrapped for as long as it did.
+  # the artifact appears. That is the false-fresh the comments above argue
+  # against.
   #
-  # What actually unblocked it was naming the artifact at all, NOT the
-  # `gitignore: false` below. Measured on mmz 0.6.0, and recorded here because
-  # the tidy story is the wrong one: a wildcard pattern
-  # (`target/coverage/*.info`) is walked, so the filter applies and it yields
-  # nothing under `gitignore: true`; the wildcard-free path below is stat-ed
-  # instead of walked, so it yields the lcov under either setting.
+  # Naming the artifact is what makes the scope work. The `gitignore: false`
+  # below is secondary. Measured on mmz 0.6.0: a wildcard pattern
+  # (`target/coverage/*.info`) is walked, so the gitignore filter applies and it
+  # yields nothing under `gitignore: true`. The wildcard-free path below is
+  # stat-ed instead of walked, so it yields the lcov under either setting.
   #
   # The key stays for two reasons that do not depend on that. This scope's
   # correctness must not rest on the glob never gaining a wildcard, and a scope
-  # whose whole subject is ignored paths should say so. It belongs on the scope
-  # rather than the manifest: flipping the top-level key would walk all of
-  # `target/` and the 2000 generated files under `examples/large/` the
-  # `examples` scope exists to keep out of every rule.
+  # whose whole subject is ignored paths should say so. The key sits on the
+  # scope because a top-level `gitignore: false` would walk all of `target/` and
+  # the 2000 generated files under `examples/large/` that the `examples` scope
+  # keeps out of every rule.
   #
-  # A glob matching nothing is legal and is the point — absent and present are
+  # A glob matching nothing is legal and intended: absent and present are
   # different input states, so `just check-crap` skips loudly while no lcov
   # exists and goes stale the moment `just cover` writes one.
   lcov:
@@ -236,36 +236,33 @@ scopes:
       - "target/coverage/lcov.info"
 
   # The ratchet baseline `just crap`'s second pass scores against
-  # (`--baseline`, in .just/scripts/crap.sh). A root JSON file no other scope
-  # covers, and `just crap-baseline` re-mints it without necessarily touching a
-  # source — so without this the check-crap record taken against the old
-  # baseline would stay fresh and the ratchet would never be re-evaluated
-  # against the new one. Same class of hole as the Typst half of
-  # check-file-size below, found by writing the input list rather than by a
-  # gate going quiet.
+  # (`--baseline`, in .just/scripts/crap.sh). It is a root JSON file no other
+  # scope covers, and `just crap-baseline` re-mints it without necessarily
+  # touching a source. Without this scope, the check-crap record taken against
+  # the old baseline would stay fresh and the ratchet would never be
+  # re-evaluated against the new one. The Typst half of check-file-size below
+  # has the same gap.
   crap-baseline:
     - "crap-baseline.json"
 
-  # Shared by every rule: the recipe bodies the two justfiles still hold inline
-  # (Justfile, and .just/docs.just — the `docs` module Justfile splits recipe
-  # bodies into, per truth/tasks/split-the-justfile-into-modules.typ) and the
-  # dev-shell they all run in (flake.nix/flake.lock). Every formatter, linter
-  # and cargo tool comes from that shell, so a toolchain or tool-set bump must
-  # re-run every gate, machete included — and flake.nix is an outdatty
-  # `dev-docs` source, so keeping it here stops `outdatty-check` reporting fresh
-  # after a flake.nix edit. All content-hashed, so an untouched file contributes
-  # no churn.
+  # Shared by every rule: the recipe bodies the two justfiles hold inline
+  # (Justfile, and .just/docs.just, the `docs` module that Justfile splits
+  # recipe bodies into) and the dev shell they all run in (flake.nix and
+  # flake.lock). Every formatter, linter and cargo tool comes from that shell,
+  # so a toolchain or tool-set bump must re-run every gate, machete included.
+  # flake.nix is an outdatty `dev-docs` source, so listing it here stops
+  # `outdatty-check` reporting fresh after a flake.nix edit. All files are
+  # content-hashed, so an untouched file contributes no churn.
   #
-  # `.just/scripts/**` was here too until truth/tasks/split-gates-meta-into-per-
-  # script-scopes.typ; it is enumerated one scope per script below. What that
-  # bought, and what it cost, are argued there.
-  # `.config/nextest.toml` is a recipe body in every sense that matters here:
-  # `status-level` lives there rather than in the `test` recipe because
-  # `cargo llvm-cov nextest` accepts the flag and ignores it, so the file is
-  # what decides what the suite PRINTS and — the day it grows retries, a
-  # test-thread count or a default filter — what the suite RUNS. Without it
-  # here, every memoized `just test` and `just cover` record survives an edit
-  # to it.
+  # `.just/scripts/**` is not in this scope. It is enumerated one scope per
+  # script below.
+  #
+  # `.config/nextest.toml` counts as a recipe body here. `status-level` lives
+  # there rather than in the `test` recipe because `cargo llvm-cov nextest`
+  # accepts the flag and ignores it, so the file decides what the suite prints
+  # and, if it gains retries, a test-thread count or a default filter, what the
+  # suite runs. Without it here, every memoized `just test` and `just cover`
+  # record survives an edit to it.
   gates-meta:
     - "Justfile"
     - ".config/nextest.toml"
@@ -273,33 +270,31 @@ scopes:
     - "flake.nix"
     - "flake.lock"
 
-  # The manifest itself, for the one rule whose SUBJECT it is
+  # The manifest itself, for the one rule that reads it as data
   # (`just script-scope-check`, below). No other rule names it: mmz already
-  # keys a record on that rule's own declared inputs, so an input-list edit
-  # invalidates the rule it edits without help. What that does NOT cover is a
-  # rule reading the file as data, which is exactly what script-scope-check
-  # does.
+  # keys a record on a rule's own declared inputs, so an input-list edit
+  # invalidates the rule it edits without help. That does not cover a rule that
+  # reads the file as data, and script-scope-check is that rule.
   mmz-config:
     - ".mmz/config.yaml"
 
-  # The whole script directory as a SET, for the four rules whose subject is
+  # The whole script directory as a set, for the four rules whose subject is
   # the directory rather than one body in it: `check-file-size` (linecop scans
-  # every .sh under it — `include_hidden: true` in .linecop.yaml), `outdatty-
-  # check` (every script is a `dev-docs` source, so every script's content is
-  # compared against outdatty.lock), `check-gate-drift` (which walks the call graph
-  # out of `check` and reads every script it lands on, so one that arrives is
-  # read by arriving) and `script-scope-check` (whose whole job
-  # is the set difference below). All four are seconds at most, so the churn a glob
-  # costs here is the churn worth paying; the rules that read ONE body
-  # take that body's own scope instead.
+  # every .sh under it, since .linecop.yaml sets `include_hidden: true`),
+  # `outdatty-check` (every script is a `dev-docs` source, so every script's
+  # content is compared against outdatty.lock), `check-gate-drift` (which walks
+  # the call graph out of `check` and reads every script it reaches, so a new
+  # script is read as soon as it exists) and `script-scope-check` (which takes
+  # the set difference below). All four take seconds at most, so the churn a
+  # glob costs here is worth paying. A rule that reads one body takes that
+  # body's own scope instead.
   #
-  # A glob, deliberately, and it is the only one left over this directory: a
-  # rule that has to notice a script ARRIVING cannot be given an enumeration,
-  # because the file it must react to is by definition the one nobody listed.
-  # It does not weaken the check it feeds — script-scope-check counts only
-  # wildcard-free literal paths as "naming" a script, so re-adding a glob (here
-  # or anywhere else) satisfies nothing and the unlisted script still fails by
-  # name.
+  # It is the only glob over this directory. A rule that has to notice a new
+  # script cannot be given an enumeration, because the file it must react to is
+  # by definition the one nobody listed. The glob does not weaken the check it
+  # feeds: script-scope-check counts only wildcard-free literal paths as
+  # naming a script, so re-adding a glob (here or anywhere else) satisfies
+  # nothing and the unlisted script still fails by name.
   scripts-all:
     - ".just/scripts/**"
 
@@ -312,38 +307,34 @@ scopes:
     - "www/*.sh"
     - "docs/*.sh"
 
-  # ONE SCOPE PER SCRIPT, from here down (truth/tasks/split-gates-meta-into-per-
-  # script-scopes.typ). Each is named by the rule (or rules) that actually run
-  # or read that body, and by nothing else. Before this, all of them sat in
-  # `gates-meta` as a `.just/scripts/**` glob shared by every rule, so editing
-  # check-crap.sh re-ran clippy, the full test suite, the docs build and
-  # every other rule that never opens it.
+  # One scope per script, from here down. Each is named by the rule (or rules)
+  # that run or read that body, and by nothing else. A `.just/scripts/**` glob
+  # shared by every rule would make an edit to check-crap.sh re-run clippy, the
+  # full test suite, the docs build and every other rule that never opens it.
   #
-  # WHAT THE GLOB BOUGHT, and this enumeration gives up: the directory is
-  # recipe bodies by construction, so a body extracted out of the Justfile was
-  # covered by ARRIVING rather than by someone remembering to wire it up. An
-  # unlisted script is invisible — its rule serves a stale hit against a body it
-  # never hashed — and that is the same false-fresh every comment in this file
-  # argues against. The price is paid by a check rather than by care: `just
-  # script-scope-check` set-differences the files on disk against the literal
-  # paths named here and fails naming any script no scope lists. Without that
-  # arm this split would be a net loss.
+  # A glob covers a new script as soon as the file exists, so nobody has to
+  # remember to wire it up. An enumeration gives that up. An unlisted script is
+  # invisible: its rule serves a stale hit against a body it never hashed,
+  # which is the false-fresh every comment in this file argues against. A check
+  # pays that price instead of care: `just script-scope-check` set-differences
+  # the files on disk against the literal paths named here and fails naming any
+  # script no scope lists. Without that arm this split would be a net loss.
   #
-  # NAMING is mechanical so the next one has an unambiguous place to land:
+  # Naming is mechanical so the next scope has an obvious place to land:
   # `script-` plus the script's stem, a leading underscore dropped
-  # (`_lcov-stale-reason.sh` → `script-lcov-stale-reason`). The check does not
-  # read the name — it matches on the path — so a convention is all it is.
+  # (`_lcov-stale-reason.sh` becomes `script-lcov-stale-reason`). The check
+  # matches on the path and does not read the name, so the convention is only a
+  # convention.
   #
-  # TEN OF THEM ARE NAMED BY NO RULE, and that is the honest state rather
-  # than an oversight: crap-baseline.sh, release.sh, fork.sh and its inverse
-  # integrate.sh, the four install
-  # scripts (install.sh, install-bin.sh, install-lib.sh, uninstall-lib.sh) and
-  # the two sourced preambles (_mutants-env.sh, _typst-package.sh) are bodies
-  # of recipes no rule in `commands` wraps — installs mutate the machine, so
-  # memoizing them would skip the mutation. They still get a scope, because the
-  # check demands every script be named, and they are still gated for size and
-  # drift through `scripts-all` above. A scope with no reader is the visible
-  # form of "no memoized rule reads this"; deleting it would only hide that.
+  # Ten scripts are named by no rule: crap-baseline.sh, release.sh, fork.sh and
+  # its inverse integrate.sh, the four install scripts (install.sh,
+  # install-bin.sh, install-lib.sh, uninstall-lib.sh) and the two sourced
+  # preambles (_mutants-env.sh, _typst-package.sh). They are bodies of recipes
+  # that no rule in `commands` wraps, and installs mutate the machine, so
+  # memoizing them would skip the mutation. They still get a scope, because
+  # script-scope-check demands that every script be named, and `scripts-all`
+  # above still gates them for size and drift. A scope with no reader is the
+  # visible form of "no memoized rule reads this"; deleting it would hide that.
   script-arg-pattern-check:
     - ".just/scripts/arg-pattern-check.sh"
   script-check-crap:
@@ -433,20 +424,19 @@ scopes:
   script-uninstall-lib:
     - ".just/scripts/uninstall-lib.sh"
 
-# Empty: a cache hit prints nothing. `just check` used to restate "mmz: skipped
-# <command> (inputs unchanged)" once per cached arm on every green re-run — an
-# exit code already carries that verdict, and the note drowned a real failure
-# mid-stream on a mostly-cached run (truth/tasks/make-every-gate-arm-print-
-# only-its-failures.typ). A miss still streams live and a failure still exits
-# through `parallel`, so silencing the hit note costs nothing either loses.
+# Empty: a cache hit prints nothing. An exit code already carries the verdict,
+# and a per-arm "mmz: skipped <command> (inputs unchanged)" line would drown a
+# real failure mid-stream on a mostly-cached run. A miss still streams live and
+# a failure still exits through `parallel`, so silencing the hit note costs
+# nothing either loses.
 on_hit: ""
 
-# `just ask-refactoring` is deliberately absent below, and not merely because it
-# is not a gate: memoizing it would defeat it. The sweep exists to RE-OBSERVE the
-# advisory signals every run, and a cache hit is exactly the answer it must never
-# give. Its own re-run guard is the [views.ask-refactoring] view, not a cache.
+# `just ask-refactoring` is absent below because memoizing it would defeat it,
+# gate or not. The sweep re-observes the advisory signals on every run, and a
+# cache hit is the answer it must never give. Its own re-run guard is the
+# [views.ask-refactoring] view, not a cache.
 commands:
-  # Rust formatting — `cargo fmt --check` over Rust, `tombi format --check`
+  # Rust formatting: `cargo fmt --check` over Rust, `tombi format --check`
   # over the project config TOML, `typstyle --check` over the Typst sets. A
   # single edit to one set busts only this rule.
   - name: just fmt-check
@@ -462,8 +452,8 @@ commands:
     inputs: [rust, policy, examples, gates-meta]
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
-  # scope), then writes target/coverage/lcov.info — the artifact `just crap`
-  # and `just ask-refactoring`'s coverage arm both read. NOT gate-tagged:
+  # scope), then writes target/coverage/lcov.info, the artifact `just crap`
+  # and `just ask-refactoring`'s coverage arm both read. It is not gate-tagged:
   # `just check` does not run coverage, so `mt flip`'s freshness assertion
   # must not require this rule to be fresh.
   - name: just cover
@@ -473,20 +463,17 @@ commands:
     tags: [gate]
     inputs: [manifests, gates-meta]
 
-  # linecop scans every language `.linecop.yaml` gives a base limit — Rust,
-  # Markdown, Shell and Typst (target/archive/var excluded by config) — so the
-  # input list has to cover all four, not the two it named while the config
-  # had grown past them. `crates/**/*.rs` is `rust`; the tracked `.md` files
-  # and the `www/`+`contrib/` shell live under `docs`; `.just/scripts/*.sh` is
-  # `scripts-all` — the whole directory, not one body, because linecop scans
-  # every file in it and an oversized script the input list never named would
-  # go false-fresh here exactly as an unscanned directory did before
-  # `include_hidden`. `policy` and `examples` are the Typst half — `lib/**`,
-  # `.mindtape/templates/**` and the learn-piano fixture's task tree and
-  # template — and were the live hole: a Typst file could cross its cap and
-  # this rule would still report fresh. `include_hidden: true` widened it
-  # (`.mindtape/templates/**` only entered the scan with that key), which is
-  # what surfaced it.
+  # linecop scans every language `.linecop.yaml` gives a base limit (Rust,
+  # Markdown, Shell and Typst, with target/archive/var excluded by config), so
+  # the input list has to cover all four. `crates/**/*.rs` is `rust`; the
+  # tracked `.md` files and the `www/`+`contrib/` shell live under `docs`;
+  # `.just/scripts/*.sh` is `scripts-all`, the whole directory and not one body,
+  # because linecop scans every file in it and an oversized script the input
+  # list never named would go false-fresh here. `policy` and `examples` are the
+  # Typst half: `lib/**`, `.mindtape/templates/**` and the learn-piano
+  # fixture's task tree and template. Without them a Typst file could cross its
+  # cap while this rule still reported fresh. `.mindtape/templates/**` is
+  # scanned only because `.linecop.yaml` sets `include_hidden: true`.
   - name: just check-file-size
     tags: [gate]
     inputs: [rust, policy, examples, file-size-config, docs, gates-meta, scripts-all]
@@ -499,29 +486,29 @@ commands:
 
   # gitleaks over the whole tracked tree. `secrets-tree` is that tree (minus
   # the one directory a gate-tagged rule may not name, argued on the scope
-  # itself) and `secrets-config` is the ruleset it reads it with; both are
-  # this rule's alone. `mmz-config` is here for script-scope-check's reason,
-  # one file over: arm three — now its own body,
-  # .just/scripts/check-secrets-manifest.sh, named by `script-check-secrets-
-  # manifest` below — reads THIS manifest as data; mmz's own expansion of
-  # `secrets-tree` is what it set-differences `git ls-files` against, so an
-  # input-list edit must re-run the arm that judges it. The
-  # scope union already covers .mmz/config.yaml through `.mmz/**`, and naming
-  # it anyway is the same "a rule reading a file as data says so" the
-  # `mmz-config` scope exists for. No `rust`: nothing is built or run here,
-  # and `crates/**` is scanned as text through `secrets-tree` like every other
+  # itself) and `secrets-config` is the ruleset it reads it with. Both belong
+  # to this rule alone. `mmz-config` is here for script-scope-check's reason,
+  # one file over: arm three, whose body is
+  # .just/scripts/check-secrets-manifest.sh (named by `script-check-secrets-
+  # manifest` below), reads this manifest as data. It set-differences
+  # `git ls-files` against mmz's own expansion of `secrets-tree`, so an
+  # input-list edit must re-run the arm that judges it. The scope union
+  # already covers .mmz/config.yaml through `.mmz/**`, and naming it anyway
+  # follows the rule the `mmz-config` scope exists for: a rule that reads a
+  # file as data says so. No `rust`: nothing is built or run here, and
+  # `crates/**` is scanned as text through `secrets-tree` like every other
   # file.
   - name: just check-secrets
     tags: [gate]
     inputs: [secrets-tree, secrets-config, mmz-config, gates-meta, script-check-secrets, script-check-secrets-manifest]
 
-  # outdatty.check re-reads every dependent's current content and compares to
+  # outdatty.check re-reads every dependent's current content and compares it to
   # the lock. Every dependent lives under `rust`/`policy`/`examples`/`docs`, so
-  # a dependent edit busts via those scopes; `outdatty-config` covers the lock
-  # + the group config directly. `scripts-all` rather than one script's scope:
-  # every file in .just/scripts/ is a `dev-docs` SOURCE (outdatty.yaml lists
-  # them one by one, for its own reasons), so this rule reads the whole
-  # directory and a per-body scope would leave the rest false-fresh.
+  # a dependent edit busts via those scopes, and `outdatty-config` covers the
+  # lock and the group config directly. The rule takes `scripts-all` and not one
+  # script's scope: every file in .just/scripts/ is a `dev-docs` source
+  # (outdatty.yaml lists them one by one), so this rule reads the whole
+  # directory, and a per-body scope would leave the rest false-fresh.
   - name: just outdatty-check
     tags: [gate]
     inputs: [outdatty-config, rust, policy, examples, docs, gates-meta, scripts-all]
@@ -551,8 +538,8 @@ commands:
   # `gates-meta` carries the gate-table shape www/generate-facts.sh's
   # gates.json reads back out of the Justfile. `script-nav-diff` is here because
   # check-doc-facts.sh's NAV arm shells out to .just/scripts/_nav-diff.sh
-  # directly; arm two of script-scope-check walks that hop now rather than
-  # taking it on trust, so the input is derived and dropping it fails by name.
+  # directly. Arm two of script-scope-check walks that hop instead of taking it
+  # on trust, so the input is derived and dropping it fails by name.
   - name: just check-doc-facts
     tags: [gate]
     inputs: [rust, policy, file-size-config, docs, gates-meta, script-check-doc-facts, script-nav-diff]
@@ -566,11 +553,14 @@ commands:
     tags: [gate]
     inputs: [docs, gates-meta, script-check-doc-recipes]
 
-  # Scans the doc sources (`docs`) for history words and all-caps emphasis.
-  # It reads no generated file and never builds `mt`.
+  # Scans the doc sources (`docs`) for history words and all-caps emphasis, and
+  # the comments of the Justfile and .just/docs.just (`gates-meta`),
+  # .mmz/config.yaml (`mmz-config`), outdatty.yaml (`outdatty-config`) and
+  # .linecop.yaml (`file-size-config`). It reads no generated file and never
+  # builds `mt`.
   - name: just check-doc-prose
     tags: [gate]
-    inputs: [docs, gates-meta, script-check-doc-prose]
+    inputs: [docs, gates-meta, mmz-config, outdatty-config, file-size-config, script-check-doc-prose]
 
   # Parses www/content, www/utils and docs/src (`docs`) with typstyle, which
   # the dev shell pins (`gates-meta`), and runs its control over synthetic
@@ -595,10 +585,10 @@ commands:
 
   # Regenerates every docs/src/*.typ source (after www/generate-facts.sh, same
   # as check-doc-facts) with typlite into a temp dir, then diffs each against
-  # the committed file at its declared output path (AGENTS.md today).
+  # the committed file at its declared output path (AGENTS.md among them).
   # `rust`+`policy`+`file-size-config` because a source may read
   # www/generated/{crate-map,dsl-fields,linecop-caps}.json, and those scopes
-  # cover THAT json's own sources; `docs` because docs/src/** and every output
+  # cover that json's own sources; `docs` because docs/src/** and every output
   # path it writes both sit under it. `gates-meta` because typlite is a
   # flake.nix devShell addition, and `script-docs-md-check` for the recipe
   # body itself.
@@ -618,31 +608,28 @@ commands:
   # Dispatch-only self-test: the `[arg(...)]` patterns on
   # `release`/`bench`/`gen-bench`/`eject` and on `ask-refactoring`'s five
   # thresholds must reject a known-bad value and accept a known-good one, and
-  # every declared default must satisfy its own pattern. Every check the script runs
-  # is `just --dry-run --yes <recipe> <value>` against THIS Justfile, so
+  # Dispatch-only self-test: the `[arg(...)]` patterns on
+  # `release`/`bench`/`gen-bench`/`eject` and on `ask-refactoring`'s five
+  # thresholds must reject a known-bad value and accept a known-good one, and
+  # every declared default must satisfy its own pattern. Every check the script
+  # runs is `just --dry-run --yes <recipe> <value>` against this Justfile, so
   # `gates-meta` (the two justfiles + the dev-shell pin) plus this script's own
-  # scope is the whole input — no rust build, no task tree, and no other
-  # script, since dry-run means no recipe body executes at all.
+  # scope is the whole input: no rust build, no task tree, and no other script,
+  # since dry-run means no recipe body executes at all.
   - name: just arg-pattern-check
     tags: [gate]
     inputs: [gates-meta, script-arg-pattern-check]
 
   # Static self-test: `test`/`build`/`mutants`/`mutants-diff` must carry
   # `[positional-arguments]` and forward "$@", never interpolate
-  # `{{ ARGS }}`/`{{ args }}` into the body. Read from `just --dump --dump-
+  # `{{ ARGS }}`/`{{ args }}` into the body. It reads `just --dump --dump-
   # format json` plus a grep of the scripts those recipes forward into
-  # (.just/scripts/mutants.sh, .just/scripts/mutants-diff.sh) — no rust build,
+  # (.just/scripts/mutants.sh, .just/scripts/mutants-diff.sh). No rust build,
   # no task tree, nothing a static read of the Justfile and three scripts does
   # not already cover. Those two forwarded-into scripts are the reason this
-  # rule names three script scopes rather than one: a rule may READ a body it
+  # rule names three script scopes rather than one: a rule may read a body it
   # does not run, and a grep target left out of the input list goes false-fresh
   # exactly as an unhashed recipe body would.
-  #
-  # `ask-refactoring` was the fifth recipe here until its flags became declared
-  # parameters (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-
-  # attributes.typ). Dropping it also closed a real scope hole: the script
-  # grepped contrib/ask-refactoring.sh, which no scope below covers, so an edit
-  # there could serve a stale hit on this rule.
   - name: just positional-args-check
     tags: [gate]
     inputs: [gates-meta, script-positional-args-check, script-mutants, script-mutants-diff]
@@ -650,12 +637,13 @@ commands:
   # Static self-test plus a synthesized probe: no recipe body may open with a
   # `#!` shebang (read from `just --dump --dump-format json`, walking modules),
   # and every justfile's own `set script-interpreter` must abort a failed
-  # pipeline — proven by running a `false | true` probe under a replica
-  # justfile carrying that file's setting line verbatim, never by matching its
-  # text. Both subjects are the two justfiles and the script itself, so
-  # `gates-meta` plus this script's own scope is the whole input, same shape as
-  # the two rules above; the probe runs in a temp dir and reads nothing else,
-  # and the `bash` it resolves comes from the dev shell `gates-meta` pins.
+  # pipeline. The probe proves that by running `false | true` under a replica
+  # justfile carrying that file's setting line verbatim, and never by matching
+  # its text. Both subjects are the two justfiles and the script itself, so
+  # `gates-meta` plus this script's own scope is the whole input, the same
+  # shape as the two rules above. The probe runs in a temp dir and reads
+  # nothing else, and the `bash` it resolves comes from the dev shell
+  # `gates-meta` pins.
   - name: just script-attr-check
     tags: [gate]
     inputs: [gates-meta, script-script-attr-check]
@@ -663,49 +651,45 @@ commands:
   # Scan-scope self-test: an oversized shell script at `.just/scripts/` inside
   # a replica tree must be reported by linecop reading this repo's config, and
   # must go unreported with `include_hidden` deleted. `file-size-config` is the
-  # subject — the assertion is about that file's scan scope, so a config edit
-  # must re-run it — `script-size-fixture-check` is the body, and `gates-meta`
-  # carries the dev-shell pin linecop itself comes from. No `rust`, no `docs`,
-  # and no `scripts-all` either: the replica holds one synthesized file and the
-  # scan never touches the real directory, which is the whole reason it is a
-  # replica.
+  # subject, since the assertion is about that file's scan scope, so a config
+  # edit must re-run it. `script-size-fixture-check` is the body, and
+  # `gates-meta` carries the dev-shell pin linecop itself comes from. No
+  # `rust`, no `docs`, and no `scripts-all` either: the replica holds one
+  # synthesized file and the scan never touches the real directory, which is
+  # why it is a replica.
   - name: just size-fixture-check
     tags: [gate]
     inputs: [file-size-config, gates-meta, script-size-fixture-check]
 
   # The cheap CRAP arm: `just _lcov-stale-reason` decides, then either `just
-  # crap` scores or the arm skips loudly and exits 0. It ran unwrapped until
-  # mmz could name a git-ignored path, because memoizing a skip that could not
-  # see the artifact is worse than not memoizing at all; the `lcov` scope above
-  # is what closed that, so the recorded verdict — pass or skip — dies the
-  # moment the artifact it read (or could not read) changes state. `rust`
-  # because the staleness test compares `crates/**/*.rs` mtimes against the
-  # lcov and `cargo crap` scores those same sources, `crap-baseline` because
+  # crap` scores or the arm skips loudly and exits 0. Memoizing a skip that
+  # could not see the artifact is worse than not memoizing at all, so the `lcov`
+  # scope above names the artifact. The recorded verdict, pass or skip, then
+  # dies the moment the artifact it read (or could not read) changes state.
+  # `rust` because the staleness test compares `crates/**/*.rs` mtimes against
+  # the lcov and `cargo crap` scores those same sources, `crap-baseline` because
   # the ratchet pass reads it, and `gates-meta` for the CRAP_EXCLUDES list the
   # scripts are handed and the cargo-crap pin they run from.
   #
-  # THREE script scopes, because this arm runs three bodies, not one:
-  # check-crap.sh shells out to `just _lcov-stale-reason` and then to `just
-  # crap`. That nested-`just` hop was the FIRST body script-scope-check's arm
-  # two could not derive, and the one its transitive walk was finally written
-  # for (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ);
-  # all three are derived now, so dropping one fails that gate rather than
-  # leaving a reading exercise.
+  # Three script scopes, because this arm runs three bodies: check-crap.sh
+  # shells out to `just _lcov-stale-reason` and then to `just crap`. Arm two of
+  # script-scope-check walks that nested-`just` hop and derives all three, so
+  # dropping one fails that gate.
   - name: just check-crap
     tags: [gate]
     inputs: [rust, crap-baseline, lcov, gates-meta, script-check-crap, script-crap, script-lcov-stale-reason]
 
   # The other half of the CRAP pair, and the half that is always correct: a
   # static read of the committed baseline, refusing a machine-local path or an
-  # empty entry list. Two inputs and no `rust`, because nothing about a source
-  # edit changes the verdict — the subject is the JSON file, not the code it
+  # empty entry list. Two inputs and no `rust`, because a source edit does not
+  # change the verdict: the subject is the JSON file and not the code it
   # scores. `gates-meta` is the dev shell jq comes from.
   - name: just crap-baseline-check
     tags: [gate]
     inputs: [crap-baseline, gates-meta, script-crap-baseline-check]
 
-  # Two hand-kept facts read from their source, and the self-test that keeps
-  # the reader honest: TOML_FMT_PATHS against `git ls-files` (so `toml-all`,
+  # Two hand-kept facts read from their source, and the self-test that checks
+  # the reader: TOML_FMT_PATHS against `git ls-files` (so `toml-all`,
   # which includes a new untracked file as git does) and every gate-reachable
   # `cargo build`/`cargo run` of mindtape-cli against `--tests`. The second
   # reads every script a `check` arm reaches: `scripts-all` for the directory
@@ -717,27 +701,23 @@ commands:
     tags: [gate]
     inputs: [toml-all, gates-meta, scripts-all, gate-reach-scripts, script-check-gate-drift, script-gate-drift-lib, script-gate-drift-control, script-script-reach, script-script-graph-lib]
 
-  # The arm that pays for the enumeration above (truth/tasks/split-gates-meta-
-  # into-per-script-scopes.typ): set-differences the `.just/scripts/*.sh` files
-  # on disk against the literal paths the scopes name, then cross-checks that
-  # every rule here whose recipe body invokes a script names that script's
-  # scope. `mmz-config` is the manifest it reads; `scripts-all` is the
-  # directory listing — a GLOB on purpose, since the file this rule must react
-  # to is by definition the one no scope lists yet, and an enumeration could
-  # not see it arrive; `script-script-scope-check` is its own body, and
-  # `gates-meta` is the Justfile it dumps plus the dev shell yq/jq come from.
-  # `outdatty-config` arrived with arm three (truth/tasks/fail-a-half-wired-
-  # gate-arm-at-the-wiring-it-is-missing.typ): that arm reads outdatty.yaml's
+  # The arm that checks the enumeration above. It set-differences the
+  # `.just/scripts/*.sh` files on disk against the literal paths the scopes
+  # name, then cross-checks that every rule here whose recipe body invokes a
+  # script names that script's scope. `mmz-config` is the manifest it reads.
+  # `scripts-all` is the directory listing, a glob on purpose, since the file
+  # this rule must react to is by definition the one no scope lists yet, and an
+  # enumeration could not see it appear. `script-script-scope-check` is its own
+  # body, and `gates-meta` is the Justfile it dumps plus the dev shell yq/jq
+  # come from. `outdatty-config` is here because arm three reads outdatty.yaml's
   # `dev-docs` sources, so a script dropped from that list must bust this rule.
-  # Without it the arm would report a verdict over a file it never hashed —
-  # the same false-fresh the arms themselves exist to refuse.
+  # Without it the arm would report a verdict over a file it never hashed, the
+  # false-fresh the arms themselves exist to refuse.
   #
-  # `script-script-graph` and `script-script-graph-control` are the walk arm two
-  # now asks for its answer and the control that proves the walk still reads an
-  # edge, and they are the first two script inputs on any rule here that NOBODY
-  # TYPED: the walk reads script-scope-check.sh reaching both and derives them,
-  # which is the transitive derivation demonstrating itself
-  # (truth/tasks/follow-script-to-script-calls-in-the-scope-derivation.typ).
+  # `script-script-graph` and `script-script-graph-control` are the walk that
+  # arm two asks for its answer and the control that proves the walk still
+  # reads an edge. The walk derives both from script-scope-check.sh's calls, so
+  # dropping one from this list fails by name.
   - name: just script-scope-check
     tags: [gate]
     inputs: [mmz-config, outdatty-config, scripts-all, script-script-scope-check, script-script-graph, script-script-graph-lib, script-script-graph-control, gates-meta]
@@ -747,22 +727,20 @@ commands:
   # www` copy of www/generate-site-pages.sh (`docs`, since the fixture is
   # built from the real www/content/**), and a page missing from NAV drives
   # `.just/scripts/_nav-diff.sh` directly against a synthetic pair of route
-  # lists — the same script-to-script hop `script-nav-diff` covers on `just
-  # check-doc-facts` above, derived by script-scope-check's arm two rather than
-  # taken on trust. `script-site-pages-fixture-check` is its own body,
-  # `gates-meta` the dev shell typst/jq come from.
+  # lists. That is the same script-to-script hop `script-nav-diff` covers on
+  # `just check-doc-facts` above, and arm two of script-scope-check derives it.
+  # `script-site-pages-fixture-check` is its own body, `gates-meta` the dev
+  # shell typst/jq come from.
   #
-  # `rust`, `policy`, `examples` and `file-size-config` arrived when the gate
-  # stopped assuming www/generated/ was already on disk and started producing
-  # it (truth/tasks/site-pages-fixture-check-fails-on-a-cold-checkout.typ):
-  # the body now runs www/generate.sh, so this rule reads everything
-  # `just docs::check` names for that same producer — the built `mt` and its
-  # sources, lib/prelude.typ, the learn-piano fixture it captures against —
-  # plus `file-size-config` for the .linecop.yaml generate-facts.sh reads back
-  # as linecop-caps.json, exactly as `just check-doc-facts` names it for
-  # running the same script. Four scopes a verdict rarely turns on, and
-  # naming them costs a re-run where not naming them would record a pass over
-  # a file the rule never hashed.
+  # `rust`, `policy`, `examples` and `file-size-config` are here because the
+  # body runs www/generate.sh to produce www/generated/, so this rule reads
+  # everything `just docs::check` names for that same producer: the built `mt`
+  # and its sources, lib/prelude.typ, the learn-piano fixture it captures
+  # against. `file-size-config` is for the .linecop.yaml generate-facts.sh reads
+  # back as linecop-caps.json, as `just check-doc-facts` names it for running
+  # the same script. A verdict rarely turns on these four scopes, but naming
+  # them costs a re-run, and leaving them out would record a pass over a file
+  # the rule never hashed.
   - name: just site-pages-fixture-check
     tags: [gate]
     inputs: [rust, policy, examples, file-size-config, docs, gates-meta, script-site-pages-fixture-check, script-nav-diff]

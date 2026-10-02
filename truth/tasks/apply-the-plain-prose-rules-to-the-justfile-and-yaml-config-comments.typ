@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 3),
 )
 
 == Problem
@@ -51,7 +51,6 @@ left in a closing report no one rereads. It belongs in
 == Changes
 
 - `.just/scripts/check-doc-prose.sh`: scan `#` comments in the Justfile, `.just/docs.just`, `.mmz/config.yaml`, `outdatty.yaml` and `.linecop.yaml`.
-- `docs/src/contributing/documentation.typ`: name the extra scope.
 - `Justfile`, `.just/docs.just`, `.mmz/config.yaml`, `outdatty.yaml`, `.linecop.yaml`: rewrite each comment with a hit.
 
 
@@ -63,6 +62,7 @@ Revert the commit; the scan scope is one list in the script.
 
 - Comments in `.just/scripts/*.sh` and `www/*.{sh,jq}`: about 15 files, a pass of their own.
 - Rust and TOML comments: the separate pass the docs task names.
+- `docs/src/contributing/documentation.typ`: naming the extra scope is `name-the-config-comment-scope-in-documentation-typs-check-doc-prose-paragraph`.
 
 
 == Dogfood

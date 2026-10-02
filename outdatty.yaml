@@ -2,114 +2,96 @@
 
 # Declares which dependents must be re-confirmed when a source changes. After
 # editing a source, review the dependents and run `just outdatty-update <group>`
-# to record the new state; `just outdatty-update-all` re-records every group,
-# the deliberate choice, never the default. `just outdatty-check` (part of
-# `just check`) fails until you do.
+# to record the new state. `just outdatty-update-all` re-records every group, so
+# use it only after reviewing every group's dependents. `just outdatty-check`
+# (part of `just check`) fails until you do.
 
-# outdatty 0.4 added an audit that every non-gitignored file belong to some
-# group (`require_tracked`, default `["**"]`) and it does not fit this repo as
-# it stands: 581 files are uncovered, 276 of them crate sources and 235 task
-# artifacts, none of which a drift group should ever claim. A group means
-# "review these dependents when this source changes", and answering a coverage
-# audit by inventing groups would turn it into "this file is known", which is
-# not a fact worth gating. Even the doc surfaces the audit would genuinely
-# suit — the case it exists for is a new page no group tracks — have real
-# exclusions inside them (generated `.md` outputs, CSS, the jq programs), so
-# no narrow scope is free today either. Opted out explicitly rather than
-# absorbed silently on a tool bump; scoped adoption is
-# truth/tasks/evaluate-outdattys-require-tracked-audit.typ.
+# `require_tracked` opts out of outdatty's audit that every non-gitignored file
+# belongs to some group (default `["**"]`). The audit does not fit this repo.
+# Most files are crate sources and task artifacts, and no drift group should
+# claim either. A group means "review these dependents when this source
+# changes", and answering the audit by inventing groups would turn it into
+# "this file is known", which is not worth gating. Even the doc surfaces the
+# audit suits (a new page that no group tracks) have real exclusions inside
+# them (generated `.md` outputs, CSS, the jq programs), so no narrow scope is
+# free either. The opt-out is explicit so that a tool bump does not absorb it
+# silently.
 require_tracked: ["!**"]
 
-# WHAT A DEPENDENT-ONLY EDIT OWES THIS LOCK: record that dependent alone, in the
-# commit that made the edit — `just outdatty-update <group> <path>`
-# (truth/tasks/decide-what-a-dependent-only-edit-owes-outdatty-lock.typ,
-# truth/tasks/record-one-dependents-watermark-without-claiming-the-groups.typ).
-# Only a SOURCE change is a trigger — that asymmetry is the
-# whole point of the split and is not up for revision — so a dependent edited
-# on its own moves no source hash and the gate stays green, correctly. But its
-# recorded hash then sits stale until some unrelated source edit re-records the
-# group and carries the doc's hash along, which is how `0c96610` (one attribute
-# on the `mmz` recipe) came to record a `docs/src/contributing.typ` hash the
-# commit never touched, five commits after `d1f9ede` actually edited that file.
-# Read from the lock alone, the review landed on the wrong commit.
+# What a dependent-only edit owes this lock: record that dependent alone, in the
+# commit that made the edit, with `just outdatty-update <group> <path>`.
 #
-# Measured on outdatty 0.4.0 against a worktree with one hand-edited dependent,
-# before choosing:
+# Only a source change triggers the gate. That asymmetry is intended. A
+# dependent edited on its own moves no source hash, so the gate stays green, and
+# the dependent's recorded hash sits stale until an unrelated source edit
+# re-records the group and carries the dependent's hash along. The lock then
+# shows the review on the wrong commit.
 #
-#   - `outdatty check` AND plain `outdatty status` both print `[ ok ]` for the
-#     group and exit 0. Nothing surfaces it.
-#   - `outdatty status --format json` already does: the group's
-#     `changed_dependents` array names the file while its `status` stays `"ok"`.
-#     The drift is computed and exposed today — only the plain renderer omits
-#     it — so there is nothing to take upstream for visibility.
-#   - `outdatty update --group <g>` after a dependent-only edit rewrites exactly
-#     one line, that dependent's hash — but only while no OTHER dependent in the
-#     group is pending. With one pending, the group re-record stamps it too, onto
-#     a commit that never reviewed it: two delegated agents did exactly that to
-#     `cli-docs`, `prelude-docs`, `dev-docs` and `docs/src/contributing.typ`.
+# Measured on outdatty 0.4.0 with one hand-edited dependent:
 #
-# So the record is per file, not per group: outdatty 0.5's `--dependent <path>`
-# (the recipe's optional trailing paths) records the named dependent's hash
-# and leaves the group's sources and every other pending dependent as locked.
-# It costs a command, and it makes the watermark CONTRIBUTING.md claims ("a
-# recorded hash is a review watermark") true on both sides of the split
-# instead of only the source side. A SOURCE edit still re-records the whole
-# group — that edit obliges a review of every dependent.
+#   - `outdatty check` and plain `outdatty status` print `[ ok ]` for the group
+#     and exit 0.
+#   - `outdatty status --format json` names the file in the group's
+#     `changed_dependents` array while its `status` stays `"ok"`.
+#   - `outdatty update --group <g>` rewrites only that dependent's hash while no
+#     other dependent in the group is pending. With another one pending, the
+#     group re-record stamps it too, onto a commit that never reviewed it.
 #
-# Deliberately NOT a gate, and never will be. A dependent changing alone is
-# ordinary work, not drift; a check that failed on it would turn every doc edit
-# red and would be reversing the source/dependent asymmetry above. It is a
-# convention with a query, not an enforcement — pending re-records are listed by
+# So the record is per file. outdatty 0.5's `--dependent <path>` (the recipe's
+# optional trailing paths) records the named dependent's hash and leaves the
+# group's sources and every other pending dependent as locked. That makes the
+# watermark CONTRIBUTING.md claims ("a recorded hash is a review watermark")
+# hold for dependents as well as sources. A source edit still re-records the
+# whole group, because that edit obliges a review of every dependent.
+#
+# This is a convention with a query and no gate. A dependent changing alone is
+# ordinary work, and a check that failed on it would turn every doc edit red and
+# reverse the source/dependent asymmetry above. Pending re-records are listed by
 #
 #   outdatty status --format json | jq -r '.groups[] | select(.changed_dependents != []) | .id'
 #
-# and a forgotten one costs the same misattributed watermark it always did,
-# never a broken build.
+# A forgotten one misattributes the watermark and never breaks a build.
 
 groups:
-  # The CLI surface (commands, flags, behaviour) is documented by hand, in the
-  # docs-site reference pages. README.md only carries a thin, illustrative
-  # command teaser (tracked by the coarser cli-name group below), not this
-  # group's depth — the reference material that made it a dependent here moved
-  # to these pages (readme-to-www).
+  # The CLI surface (commands, flags, behaviour) is documented by hand in the
+  # docs-site reference pages. README.md carries only a thin, illustrative
+  # command teaser, tracked by the coarser cli-name group below.
   #
-  # `cli.rs` only wires the `Command` enum onto each module's `*Args` struct —
-  # it names the types, it does not declare their fields. Every flag lives in
+  # `cli.rs` only wires the `Command` enum onto each module's `*Args` struct.
+  # It names the types and does not declare their fields. Every flag lives in
   # its own command module (`AddArgs` in `add.rs`, `LsArgs` in `ls.rs`, …), so a
-  # flag added or changed there previously busted no group: `cli.rs` stayed
-  # byte-identical and the docs went stale unnoticed (found when `--dedup` and
-  # `--format` landed on `mt add` and nothing here reacted). The modules below
-  # are listed explicitly rather than as a glob (e.g. `crates/mindtape-cli/src/*.rs`):
-  # the command directory interleaves each command's `*Args` module with its own
-  # helper/rendering/test siblings (`add_dedup.rs`, `add_interactive.rs`,
-  # `ls_rules.rs`, `init_wizard.rs`, `*_tests*.rs`, …) under no naming convention
-  # that separates the two (`add*.rs` alone matches five unrelated files), so a
-  # directory-wide glob would fire this group on routine internal refactors that
-  # touch no documented flag. An explicit list rots instead — a brand-new command
-  # module needs a manual add here — but `just check-doc-coverage` already closes
-  # that half of the gap (it fails naming any visible `mt` subcommand missing from
+  # flag change there leaves `cli.rs` byte-identical and busts no group unless
+  # the module is a source. The modules below are listed explicitly and not as a
+  # glob (e.g. `crates/mindtape-cli/src/*.rs`), because the command directory
+  # interleaves each command's `*Args` module with its own helper, rendering
+  # and test siblings (`add_dedup.rs`, `add_interactive.rs`, `ls_rules.rs`,
+  # `init_wizard.rs`, `*_tests*.rs`, …) under no naming convention that
+  # separates the two (`add*.rs` alone matches five unrelated files). A
+  # directory-wide glob would fire this group on internal refactors that touch
+  # no documented flag. An explicit list needs a manual add for a brand-new
+  # command module, but `just check-doc-coverage` covers that half of the gap
+  # (it fails naming any visible `mt` subcommand missing from
   # `www/utils/cli-notes.typ`), so this list only has to catch the other half:
-  # a flag changing on a command already known to the docs. `cli_dump.rs`
-  # (`mt _cli`) is deliberately not one of these sources: it is hidden tooling
-  # that reflects `Cli::command()` back out for the docs generator, so it can
-  # only remove drift, never introduce it — see its own module doc.
+  # a flag changing on a command the docs already know. `cli_dump.rs`
+  # (`mt _cli`) is not one of these sources. It is hidden tooling that reflects
+  # `Cli::command()` back out for the docs generator, so it can only remove
+  # drift (see its own module doc).
   #
   # hooks.typ, estimates.typ, named-sets.typ, statuses.typ and rules.typ are
-  # dependents for exactly config.typ's reason: each is a deep dive moved off
-  # that page, and each restates by hand the config surface it covers
-  # (`[[on.flip]]`, `[tasks.estimate]`, `[views]`/`[dicts]`, the status legend,
-  # the rule arrays). A section moving to a page of its own must not move out
-  # of the drift gate with it.
+  # dependents for config.typ's reason: each is a deep dive split off that page,
+  # and each restates by hand the config surface it covers (`[[on.flip]]`,
+  # `[tasks.estimate]`, `[views]`/`[dicts]`, the status legend, the rule
+  # arrays). A section moved to a page of its own stays under the drift gate.
   - name: cli-docs
     source:
       - crates/mindtape-cli/src/cli.rs
       - crates/mindtape-cli/src/add.rs
       - crates/mindtape-cli/src/check.rs
-      # Not an `*Args` module: it declares which ARGUMENT completes from which
+      # Not an `*Args` module: it declares which argument completes from which
       # project value. The dependents restate that set in prose (cli-notes.typ's
       # `install` entry names the sources a tab press offers), and nothing in
-      # www/generated/*.json carries it as a fact a page could render instead —
-      # `cli.json` reflects the per-argument entry, never the roster.
+      # www/generated/*.json carries it as a fact a page could render instead.
+      # `cli.json` reflects the per-argument entry and not the roster.
       - crates/mindtape-cli/src/completion.rs
       - crates/mindtape-cli/src/config_cmd.rs
       - crates/mindtape-cli/src/eval.rs
@@ -120,9 +102,9 @@ groups:
       - crates/mindtape-cli/src/import.rs
       - crates/mindtape-cli/src/init.rs
       - crates/mindtape-cli/src/install.rs
-      # `mt link`'s flags live in `link_cmd.rs` (`LinkArgs`); its INPUT format —
+      # `mt link`'s flags live in `link_cmd.rs` (`LinkArgs`). Its input format,
       # the adjacency map the docs restate by hand on the DSL page and in
-      # SKILL.md — lives in `link_input.rs`, so both are sources. The other two
+      # SKILL.md, lives in `link_input.rs`, so both are sources. The other two
       # halves are not: `link_edit.rs` and `link_plan.rs` decide what gets
       # written and what is refused, and no dependent restates either beyond
       # what those two files already declare.
@@ -131,12 +113,11 @@ groups:
       - crates/mindtape-cli/src/ls.rs
       - crates/mindtape-cli/src/mv.rs
       # `--format`'s per-surface contract: which columns each machine format
-      # carries and what each cell means. `ls.rs` decides nothing about this —
-      # it hands a resolved list to `render()` — so the CSV mapping decision
+      # carries and what each cell means. `ls.rs` decides nothing about this, as
+      # it hands a resolved list to `render()`. So the CSV mapping decision
       # (`#` -> `id`, and `file` as the root-relative record path rather than
       # the table's cwd-relative display) lives here and nowhere else, while
-      # cli.typ and schema.typ each restate it by hand
-      # (truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ).
+      # cli.typ and schema.typ each restate it by hand.
       - crates/mindtape-cli/src/output.rs
       - crates/mindtape-cli/src/preset_cmd.rs
       - crates/mindtape-cli/src/recur.rs
@@ -148,15 +129,13 @@ groups:
       - crates/mindtape/src/lib.rs
       # The filter/`--sort` field vocabulary. Every dependent that lists the
       # comparable fields (filters.typ, skills/mindtape/references/filters.md)
-      # hand-types them —
-      # nothing in www/generated/*.json carries this registry — so renaming
-      # `file` to `path` moved a documented surface while every source above
-      # stayed byte-identical and the gate stayed green
-      # (truth/tasks/the-file-filter-field-and-the-file-column-name-different-paths.typ).
-      # `sort.rs` is deliberately NOT a second source: its accepted vocabulary
-      # is derived from this registry (`is_sort_field`), so a field cannot
-      # enter or leave one without the other, and the rest of that file is
-      # comparator internals no dependent restates.
+      # hand-types them, and nothing in www/generated/*.json carries this
+      # registry. Renaming `file` to `path` would change a documented surface
+      # while every source above stayed byte-identical. `sort.rs` is not a
+      # second source: its accepted vocabulary is derived from this registry
+      # (`is_sort_field`), so a field cannot enter or leave one without the
+      # other, and the rest of that file is comparator internals no dependent
+      # restates.
       - crates/mindtape/src/fields.rs
       - crates/mindtape/src/defaults.toml
       - crates/mindtape-cli/src/presets/todone/config.toml
@@ -185,10 +164,10 @@ groups:
       - www/content/templates.typ
       - www/utils/cli-notes.typ
       - docs/src/skill.typ
-      # SKILL.md (generated from docs/src/skill.typ; just docs::md) sheds
-      # `mt add` slot detail here (progressive disclosure, per the
-      # .linecop.yaml note). The content is still CLI surface, so it has to
-      # stay a tracked dependent — shedding it must not shed the drift gate.
+      # SKILL.md (generated from docs/src/skill.typ by `just docs::md`) keeps
+      # `mt add` slot detail in this reference (progressive disclosure, per the
+      # .linecop.yaml note). The content is still CLI surface, so the file stays
+      # a tracked dependent.
       - skills/mindtape/references/add-slots.md
       # The skill's filter reference lists the field vocabulary by hand, as
       # filters.typ does.
@@ -229,19 +208,17 @@ groups:
 
   # The Typst task DSL is mirrored in the docs and the CLI's embedded copy.
   # concepts.typ, priority.typ, and templates.typ each carry their own
-  # `task.with(...)`/`ice(...)`/`slot(...)` snippet straight from this file's
-  # signatures (the audit that added them to cli-docs for their CLI/config
-  # facts found the same pages restate DSL shape too — dual membership, same
-  # pattern as SKILL.md below); dsl.typ stays the detailed reference the
-  # others defer to.
-  # AGENTS.md, README.md, and skills/mindtape/SKILL.md are all generated
-  # (typlite; `just docs::md` —
-  # truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ), so the
-  # sources, not the rendered files, are the dependents to reconcile. Their DSL
-  # snippets and field-shape prose are still hand-restated here, not derived:
-  # `www/generated/dsl-fields.json` carries the field NAMES, but this group is
-  # about the FULL task DSL shape (field types, framework packagers, the
-  # validation-layer split) that no fact file captures.
+  # `task.with(...)`/`ice(...)`/`slot(...)` snippet taken from this file's
+  # signatures. They are also in cli-docs, for their CLI and config facts (dual
+  # membership, as with SKILL.md below). dsl.typ stays the detailed reference
+  # the others defer to.
+  #
+  # AGENTS.md, README.md, and skills/mindtape/SKILL.md are generated (typlite;
+  # `just docs::md`), so the sources are the dependents to reconcile. Their DSL
+  # snippets and field-shape prose are hand-restated, not derived.
+  # `www/generated/dsl-fields.json` carries the field names, but this group is
+  # about the full task DSL shape (field types, framework packagers, the
+  # validation-layer split), which no fact file captures.
   - name: prelude-docs
     source:
       - lib/prelude.typ
@@ -255,9 +232,25 @@ groups:
       - www/content/priority.typ
       - www/content/templates.typ
       - docs/src/skill.typ
-      # Dual membership, same reason as SKILL.md's: the shed slot detail also
-      # restates DSL shape (a framework priority's leaves are its slots).
+      # Dual membership, for SKILL.md's reason: the slot detail it keeps here
+      # also restates DSL shape (a framework priority's leaves are its slots).
       - skills/mindtape/references/add-slots.md
+
+  # The built-in priority frameworks. /priority/ restates none of them: the
+  # names, inputs, bounds, formulas, categories and both scales are derived into
+  # www/generated/frameworks.json, so this group does not list that page. It
+  # lists the one thing derivation cannot carry: www/utils/framework-notes.typ
+  # says what each formula means, and re-formulating `ice` or re-purposing an
+  # input leaves that prose compiling and wrong. Two failure modes a hash cannot
+  # see are already covered without it: a framework that leaves frameworks.toml
+  # fails the page render by name, and one that arrives fails `just
+  # check-doc-facts` until it has an entry. So a one-dependent group is the
+  # whole wiring.
+  - name: priority-frameworks
+    source:
+      - crates/mindtape/src/frameworks.toml
+    dependents:
+      - www/utils/framework-notes.typ
 
   # The Typst library version appears in every #import example and the CLI's
   # embedded constant. Bump lib/typst.toml and these must follow.
@@ -265,31 +258,13 @@ groups:
   # docs/src/agents.typ (AGENTS.md's source), docs/src/readme.typ (README.md's
   # source), docs/src/skill.typ (SKILL.md's source) and www/utils/site.typ (the
   # docs site's `PKG_VERSION`, and through it every `#import` example on the
-  # site) are NOT dependents: each reads its `@local/mindtape:...` version from
-  # The baked-in priority frameworks. /priority/ no longer restates any of
-  # them — the names, inputs, bounds, formulas, categories and both scales are
-  # derived into www/generated/frameworks.json
-  # (truth/tasks/derive-the-built-in-priority-tables.typ) — so this group does
-  # NOT list that page. It lists the one thing derivation cannot carry:
-  # www/utils/framework-notes.typ says what each formula MEANS, and
-  # re-formulating `ice` or re-purposing an input leaves that prose compiling
-  # and wrong. The two failure modes a hash cannot see are already covered
-  # without it — a framework that LEAVES frameworks.toml fails the page render
-  # by name, and one that ARRIVES fails `just check-doc-facts` until it has an
-  # entry — which is why a one-dependent group is the whole of the wiring here
-  # rather than an oversight.
-  - name: priority-frameworks
-    source:
-      - crates/mindtape/src/frameworks.toml
-    dependents:
-      - www/utils/framework-notes.typ
-
+  # site) are not dependents: each reads its `@local/mindtape:...` version from
   # `www/generated/crate-map.json`'s `typst-lib.version` (itself derived from
   # this same lib/typst.toml), so a bump propagates through `just docs::md`
-  # with no human reconciliation — the point of deriving it in the first
-  # place. A derived fact needs no drift gate. docs/src/contributing.typ
-  # (CONTRIBUTING.md's source) never hand-typed this version at all — it only
-  # names the group by reference — so it was never a dependent either.
+  # with no human reconciliation. A derived fact needs no drift gate.
+  # docs/src/contributing.typ (CONTRIBUTING.md's source) never hand-types this
+  # version and only names the group by reference, so it is not a dependent
+  # either.
   - name: typst-pkg-version
     source:
       - lib/typst.toml
@@ -348,12 +323,13 @@ groups:
       - examples/rules/tasks/fix-the-session-timeout.typ
 
   # The binary / invocation name is documented and emitted by these sources.
-  # Any rename (or new subcommand example) must land in every dependent.
-  # docs/src/agents.typ (not AGENTS.md), docs/src/readme.typ (not README.md),
-  # docs/src/contributing.typ (not CONTRIBUTING.md), and docs/src/skill.typ
-  # (not SKILL.md) — all four generated from their sources — because their
-  # bare `mt`/`mt ls`/`mt check` mentions are hand-typed, not derived: nothing
-  # in www/generated/*.json carries the CLI binary's invocation name.
+  # Any rename (or new subcommand example) must land in every dependent. The
+  # dependents include docs/src/agents.typ, docs/src/readme.typ,
+  # docs/src/contributing.typ and docs/src/skill.typ, and omit the generated
+  # AGENTS.md, README.md, CONTRIBUTING.md and SKILL.md. Their bare `mt`,
+  # `mt ls` and `mt check` mentions are hand-typed in the sources and not
+  # derived: nothing in www/generated/*.json carries the CLI binary's
+  # invocation name.
   - name: cli-name
     source:
       - crates/mindtape-cli/Cargo.toml
@@ -364,10 +340,8 @@ groups:
       - www/content/quickstart.typ
       - www/content/cli.typ
       - docs/src/contributing.typ
-      # The Command Semantics section moved off docs/src/contributing.typ onto
-      # its own page (truth/tasks/size-docs-src-contributing-typ.typ); its
-      # hand-typed `mt _cli`, `mt done` and `mt flip done` mentions moved with
-      # it, so a binary or invocation rename must still reach it here.
+      # The Command Semantics page hand-types `mt _cli`, `mt done` and
+      # `mt flip done` mentions, so a binary or invocation rename must reach it.
       - docs/src/contributing/command-semantics.typ
       - docs/src/agents.typ
       - CHANGELOG.md
@@ -446,24 +420,24 @@ groups:
   # The four `just ask-refactoring` templates share one shape: the same
   # task.with header, the same "filed from a signal, nothing recorded that it
   # did" paragraph, and the same remedy-is-your-call Scope. A Typst `#import`
-  # would be the obvious way to share it and is the wrong one — the import
-  # survives into every task the sweep writes and binds a tracked artifact to a
-  # path outside the tasks root, so a task file stops being self-contained.
-  # This group is the sharing mechanism instead: a drift gate, not an import.
+  # would share it, but the import survives into every task the sweep writes
+  # and binds a tracked artifact to a path outside the tasks root, so a task
+  # file stops being self-contained. This group shares the shape as a drift gate
+  # instead.
   #
   # sweep-size.typ is the source because it is the arm that exists and is
-  # exercised; the other three are its dependents. The arm scripts under
-  # contrib/ask-refactoring/ are dependents too, and the sharper edge — each
-  # fills its template's slots by name, so a renamed or retyped slot breaks the
-  # sweep silently. They are tracked per arm rather than through the entry
-  # script: since the split, contrib/ask-refactoring.sh holds the driver and
-  # fills no slot at all, so tracking it would watch a file that cannot break
-  # this way while missing the four that can.
+  # exercised, and the other three are its dependents. The arm scripts under
+  # contrib/ask-refactoring/ are dependents too. Each fills its template's slots
+  # by name, so a renamed or retyped slot breaks the sweep silently. They are
+  # tracked per arm and not through the entry script, because
+  # contrib/ask-refactoring.sh holds the driver and fills no slot, so tracking
+  # it would watch a file that cannot break this way while missing the four that
+  # can.
   #
-  # One shape difference is deliberate and is not drift: sweep-size.typ carries
-  # the first two Scope bullets in a `remedy` slot, the siblings write theirs
-  # literally. linecop caps two languages, so what a remedy IS differs per
-  # finding there — carve a Rust module, shed a Markdown section. cargo-mutants
+  # One shape difference is intended and is not drift: sweep-size.typ carries
+  # the first two Scope bullets in a `remedy` slot, and the siblings write theirs
+  # literally. linecop caps two languages, so what a remedy is differs per
+  # finding there: carve a Rust module, shed a Markdown section. cargo-mutants
   # and llvm-cov only ever report Rust, so a slot in those templates would have
   # exactly one filler and would hide the prose from the reader for nothing.
   - name: sweep-templates
@@ -490,14 +464,15 @@ groups:
       - .mindtape/templates/dev.typ
 
   # The one arm-to-arm dependency, and the only silent one in the sweep. The
-  # undertested arm defers to the coverage arm — it skips a function whose file
-  # the file-shaped arm reports — and to keep that sound it calls three of
+  # undertested arm defers to the coverage arm (it skips a function whose file
+  # the file-shaped arm reports), and to keep that sound it calls three of
   # coverage.sh's definitions instead of copying them: `ensure_lcov_fresh`,
-  # `coverage_arm_files`, and the COVERAGE_TEST_RE / COVERAGE_STUB pair. None of
-  # that is visible to the sweep-templates group above, which watches slot names.
+  # `coverage_arm_files`, and the COVERAGE_TEST_RE / COVERAGE_STUB pair. The
+  # sweep-templates group above watches slot names and sees none of that.
   # Renaming `coverage_arm_files`, or changing which column of `score_coverage`'s
   # TSV holds the path, would leave the dedup filing duplicates with no error
-  # anywhere. So coverage.sh is a source here, in the direction the deferral runs.
+  # anywhere. So coverage.sh is a source here, in the direction the deferral
+  # runs.
   - name: sweep-dedup
     source:
       - contrib/ask-refactoring/coverage.sh

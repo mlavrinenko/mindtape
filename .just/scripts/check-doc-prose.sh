@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 # .just/scripts/check-doc-prose.sh — the body of the `check-doc-prose` recipe.
-# It stops doc prose that tells history or shouts in all-caps words.
+# It stops doc prose and config comments from telling history or shouting in
+# all-caps words.
 #
 # It scans the hand-written doc sources, prose and comments alike, and prints
-# file, line and word for each hit. The rules it enforces, with examples, are
-# in docs/src/contributing/documentation.typ under "Plain prose".
+# file, line and word for each hit. It also scans the full-line `#` comments of
+# the Justfile, the `.just/*.just` modules and the YAML configs
+# `.mmz/config.yaml`, `outdatty.yaml` and `.linecop.yaml`. Code lines in those
+# files are not prose and are skipped. The rules it enforces, with examples,
+# are in docs/src/contributing/documentation.typ under "Plain prose".
 #
 # Text inside a raw span, a fenced block or double quotes is skipped, because
 # it is code or a quotation: `now()` and "YYYY-MM-DD" never count.
@@ -20,7 +24,7 @@ set -eo pipefail
 ALLOWED="ADR AI ANSI API ASCII ATX CGO CI CLI CPU CQRS CRAP CSS CSV DB DOM DOT
 DRY DSL ETA GB GIO GPL GUI HTML ICE ICU ID IEC ISBN ISC ISO JS JSON LLVM MB MCP
 MIT OG OS OSC PDF PR PTY README RFC RICE RRULE SEO SGR SHA SQL SSG SVG SWHID
-TO-BE TOML TTY TUI UI URI URL UTC UUID VCS WIP WSJF XDG YAML"
+TO-BE TOML TSV TTY TUI UI URI URL UTC UUID VCS WIP WSJF XDG YAML"
 HISTORY_WORDS="now anymore formerly"
 HISTORY_PHRASES="used to|no longer"
 
@@ -68,14 +72,24 @@ scan() {
             while (match(s, re)) { k++; s = substr(s, RSTART + RLENGTH - 1) }
             return k
         }
-        FNR == 1 { raw = 0; quoted = 0; tail = ""; was_comment = 0 }
+        FNR == 1 {
+            raw = 0; quoted = 0; tail = ""; was_comment = 0
+            hash = (FILENAME ~ /(^|\/)Justfile$|\.just$|\.ya?ml$/)
+        }
         {
+            # In a Justfile or YAML file only a line that starts with `#` is
+            # prose. It is read as a `//` comment and every other line as blank.
+            if (hash) {
+                if ($0 ~ /^[ \t]*#/) sub(/^[ \t]*#+/, "//")
+                else $0 = ""
+            }
             # An unclosed quote or inline span ends at a blank line, or where
-            # comment lines meet code lines.
+            # comment lines meet code lines. A Justfile or YAML comment has no
+            # fenced blocks, so a stray fence ends there too.
             comment = ($0 ~ /^[ \t]*\/\//)
             if ($0 ~ /^[ \t]*$/ || comment != was_comment) {
                 quoted = 0
-                if (raw == 1) raw = 0
+                if (raw == 1 || hash) raw = 0
             }
             was_comment = comment
             v = visible($0)
@@ -124,14 +138,21 @@ echo "LOUD used to"
 A `raw span
 now` ends; then no longer, now and now.
 EOF
-    out=$(scan "$dir/f.typ" | sed "s|^$dir/||")
+    cat >"$dir/g.yaml" <<'EOF'
+key: now used to be fine
+# It is now SHOUTED here.
+  # A `now` span and "no longer" quote pass.
+EOF
+    out=$(scan "$dir/f.typ" "$dir/g.yaml" | sed "s|^$dir/||")
     rm -rf "$dir"
     want='f.typ:3: history word "used to"
 f.typ:4: history word "now"
 f.typ:4: all-caps "SHOUTED"
 f.typ:9: history word "now"
 f.typ:9: history word "now"
-f.typ:9: history word "no longer"'
+f.typ:9: history word "no longer"
+g.yaml:2: history word "now"
+g.yaml:2: all-caps "SHOUTED"'
     if [ "$out" != "$want" ]; then
         printf 'check-doc-prose: the control fixture gave\n%s\nexpected\n%s\n' \
             "$out" "$want" >&2
@@ -149,6 +170,8 @@ for f in docs/src/**/*.typ www/content/*.typ www/utils/*.typ \
     # tola.typ is tola's own generated helper, never edited here.
     [ "$(basename "$f")" = "tola.typ" ] || sources+=("$f")
 done
+
+sources+=(Justfile .just/*.just .mmz/config.yaml outdatty.yaml .linecop.yaml)
 
 hits=$(scan "${sources[@]}")
 if [ -n "$hits" ]; then

@@ -1,42 +1,37 @@
 # MindTape's root justfile. `just` with no arguments lists every recipe.
 #
-# Where a comment about a recipe goes, now that this file no longer holds all
-# three kinds (truth/tasks/relocate-justfile-commentary-to-scripts-and-
-# docs.typ):
+# A comment about a recipe goes in one of three places:
 #
-#   - HERE: what a caller needs before running it — what it does, when to
+#   - Here: what a caller needs before running it — what it does, when to
 #     reach for it, what it refuses to do. The `[doc(...)]` string plus at
 #     most a few lines.
-#   - IN THE SCRIPT (.just/scripts/*.sh): why the code inside is written the
-#     way it is, next to the line it explains.
-#   - IN docs/src/contributing/*.typ: the arguments — what was measured, what
-#     was tried, why a band or a job deliberately does not exist. `just
-#     docs::md` renders those to docs/contributing/*.md.
+#   - In the script (.just/scripts/*.sh): why the code is written the way it
+#     is, next to the line it explains.
+#   - In docs/src/contributing/*.typ: the arguments — what was measured, what
+#     was tried, why a band or a job does not exist. `just docs::md` renders
+#     those to docs/contributing/*.md.
 #
-# `just --list` shows only the LAST comment line of a recipe, so a summary
+# `just --list` shows only the last comment line of a recipe, so a summary
 # worth reading there is repeated as an explicit `[doc(...)]` rather than left
 # as a dangling fragment.
 
 set quiet := true
 set unstable := true
 
-# Every `[script]` recipe runs under this interpreter, so bash strict mode
-# (`-e` plus `pipefail`) arrives by construction instead of by a per-recipe
-# `set -eo pipefail` that each new recipe must remember to type
-# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ).
+# Every `[script]` recipe runs under this interpreter, so each gets bash
+# strict mode (`-e` plus `pipefail`) without a `set -eo pipefail` of its own.
 
 set script-interpreter := ["bash", "-eo", "pipefail"]
 
-# Six recipes live in .just/docs.just rather than here
-# (truth/tasks/split-the-justfile-into-modules.typ): docs::gen, docs::build,
+# Six recipes live in .just/docs.just rather than here: docs::gen, docs::build,
 # docs::serve and docs::md (render docs/src/*.typ to the repo-root Markdown),
 # plus the two gates — docs::check (build, index with Pagefind, then validate
 # internal links + assets) and docs::md-check (the docs-md freshness gate).
 # `just docs::<name>` and `just docs <name>` both work.
 #
-# Why the path is spelled out, why `docs::md` reaches doc prose as `docs-md`,
-# and why the module file carries `set working-directory := '..'` of its own
-# are argued in .just/docs.just's header.
+# .just/docs.just's header argues why the module path is spelled out, why
+# `docs::md` reaches doc prose as `docs-md`, and why the module file carries
+# a `set working-directory := '..'` of its own.
 
 # Docs site generation, build, serve, and the docs-md/docs-check gates
 mod docs '.just/docs.just'
@@ -85,25 +80,24 @@ fmt-check:
 clippy:
     cargo clippy --workspace --all-targets -q -- -D warnings
 
-# The suite runs through cargo-nextest — one process per test, so a panicking
+# The suite runs through cargo-nextest: one process per test, so a panicking
 # or hanging test is isolated and in-process global state cannot leak between
-# tests — with `--status-level fail`: a green run prints only the run header
-# and the summary line, a red one prints every failure's full output. It is
-# deliberately the only runner: `just cover` measures the same one
-# (.just/scripts/cover.sh), and CI's Windows job installs it too (ci.yml), so
-# a test passing under one execution model while failing under another cannot
-# go unnoticed.
+# tests. With `--status-level fail` a green run prints only the run header and
+# the summary line, and a red one prints every failure's full output. It is the
+# only runner. `just cover` measures the same one (.just/scripts/cover.sh) and
+# CI's Windows job installs it too (ci.yml), so a test cannot pass under one
+# execution model while failing under another.
 #
-# nextest runs no doctests. The extra `cargo test --doc` pass cratemplate
-# carries for them is absent here on purpose: `cargo test --doc` reports 0
-# tests in both crates, and no ```rust fence exists in the tree. A doctest
-# added later needs a `cargo test --doc` pass of its own.
+# nextest runs no doctests, and this recipe has no `cargo test --doc` pass,
+# because `cargo test --doc` reports 0 tests in both crates and the tree has no
+# `rust` fenced block. A doctest added later needs a `cargo test --doc` pass of
+# its own.
 #
 # `--cargo-quiet` twice drops cargo's own `Compiling …`/`Finished …` build
-# noise (specify-twice is nextest's own spelling for "no Cargo output at
-# all"); nextest's run banner and Summary line have no such flag — verified
-# against `--status-level none` and `--final-status-level none`, neither
-# touches them — so they still print even on an all-pass run.
+# output (nextest spells "no Cargo output at all" as the flag given twice).
+# nextest's run banner and summary line have no such flag, so they print even
+# on an all-pass run (verified: `--status-level none` and
+# `--final-status-level none` do not touch them).
 
 [doc("Run tests only")]
 [group("dev")]
@@ -113,7 +107,7 @@ test *ARGS:
     cargo nextest run --workspace --status-level fail --cargo-quiet --cargo-quiet "$@"
 
 # cargo-machete has no quiet flag (verified: `cargo machete --help` lists
-# none) — "Analyzing dependencies…" and "…Good job!" print on every clean run
+# none), so "Analyzing dependencies…" and "…Good job!" print on every clean run
 # with no way to silence just the success case.
 
 [doc("Check for unused dependencies")]
@@ -133,28 +127,29 @@ check-file-size:
 check-dry:
     # jscpd (the Rust port, packaged in flake.nix) fails on any duplicated
     # block of >=70 tokens, naming both spans. Scans all Rust under crates/.
-    # Fix a finding by extracting a shared helper — never by shuffling tokens
-    # until the detector loses the scent.
+    # Fix a finding by extracting a shared helper, not by shuffling tokens
+    # until the detector stops matching.
     #
-    # `--exit-code 1` is spelled with its value: bare `--exit-code` would
-    # swallow the following path argument as its optional code.
+    # `--exit-code 1` is spelled with its value because bare `--exit-code`
+    # would swallow the following path argument as its optional code.
     #
     # `-r xcode` swaps the default console reporter (a table plus tips even
     # on a clean run) for one compiler-warning line per clone, naming the
-    # file and span — jscpd has no flag that stays silent on a clean run
-    # only: `-s`/`--silent` replaces ALL of this with one unconditional
+    # file and span. jscpd has no flag that stays silent on a clean run
+    # only: `-s`/`--silent` replaces the whole report with one unconditional
     # summary line on every run, success or failure, and drops the location
     # a real finding needs. `-r xcode` still prints "Found 0 clones." and a
     # timing line on a clean run (verified: no reporter or flag combination
     # removes those two, jscpd 1.x), so the output is captured and replayed
-    # only on failure: a clean run prints nothing, a finding keeps its
+    # only on failure. A clean run prints nothing, and a finding keeps its
     # file:line intact.
     out=$(jscpd --no-tips -k 70 -f rust --exit-code 1 -r xcode crates 2>&1) || { printf '%s\n' "$out"; exit 1; }
 
 # Scan the working tree for a committed credential with gitleaks, under
 # `.gitleaks.toml` (the default ruleset plus this repo's allowlist, argued in
-# that file), bounded by what git ignores. Current tree only — history is deliberately out of
-# scope. A control fixture runs first, because "no leaks found" is what an
+# that file), bounded by what git ignores. It scans the current tree only;
+# history is out of scope. A control fixture runs first, because "no leaks
+# found" is what an
 # over-broad allowlist prints too; that, and why the arm also checks its own
 # mmz input list, are argued in .just/scripts/check-secrets.sh.
 
@@ -168,32 +163,33 @@ check-secrets:
 outdatty-check:
     outdatty check --format paths
 
-# So a fixture some other tool runs `mt` against can never rot: learn-piano
-# feeds the docs generator and the skill's triage evals, minimal feeds the
-# skill's trap evals. Why gating them is what earns the right to depend on
-# them is in docs/contributing/example-projects.md.
+# Checks each fixture another tool runs `mt` against, so the fixture cannot go
+# stale: learn-piano feeds the docs generator and the skill's triage evals,
+# minimal feeds the skill's trap evals. Why a fixture must be gated before
+# another tool depends on it is in docs/contributing/example-projects.md.
 #
-# "Against itself" is enforced, not trusted. Each fixture declares a
+# Each fixture is checked against its own project. It declares a
 # `[[typst.local-packages]]` entry pointing `@local/mindtape` at this
-# checkout's lib/; the machine-global local-package directory would serve the
-# same import from whichever checkout last ran `just install-lib`, so a fixture
-# that lost its entry would keep passing here against some other tree's
-# prelude. An empty `MINDTAPE_DATA_HOME` deletes that fallback — the variable
-# set-but-empty means "no such directory", which resolves no global package at
-# all rather than falling back — so the entry is load-bearing, and a fork
-# editing the DSL gates against the prelude it is editing. It is also what lets
-# a contributor, and CI, which never runs `mt install`, run this gate on a
-# machine with no global install at all.
+# checkout's lib/. Without the entry, the import resolves from the
+# machine-global local-package directory, which holds whichever checkout last
+# ran `just install-lib`, so a fixture that lost its entry would keep passing
+# against another tree's prelude. An empty `MINDTAPE_DATA_HOME` removes that
+# fallback: set but empty, the variable means "no such directory", so no
+# global package resolves. A fork editing the DSL then gates against the
+# prelude it is editing. A contributor, and CI, which never runs `mt install`,
+# can run this gate on a machine with no global install at all.
 #
-# The variable rather than XDG_DATA_HOME because `dirs` reads the environment
-# on Unix only: XDG_DATA_HOME would isolate this gate on Linux, leave macOS
-# reading the machine's packages, and mean nothing on Windows. `mt` resolves
-# the local-package directory through its own setting on every platform
-# (crates/mindtape/src/loader.rs), so the gate says what it means everywhere.
-# One `--tests` build, then the binary itself: `cargo run` cannot take
-# `--tests`, and a plain `cargo run` relinks `target/debug/mt` to the build
-# without the dev-dependency features the test arm links it with — the race
-# docs/contributing/gates.md ("One mt binary, one feature set") argues.
+# The gate uses that variable and not XDG_DATA_HOME because `dirs` reads the
+# environment on Unix only. XDG_DATA_HOME would isolate this gate on Linux,
+# leave macOS reading the machine's packages, and mean nothing on Windows.
+# `mt` resolves the local-package directory through its own setting on every
+# platform (crates/mindtape/src/loader.rs).
+#
+# The recipe makes one `--tests` build, then runs the binary itself. `cargo
+# run` cannot take `--tests`, and a plain `cargo run` relinks `target/debug/mt`
+# to a build without the dev-dependency features the test arm links it with.
+# docs/contributing/gates.md ("One mt binary, one feature set") describes that
+# race.
 
 [doc("Validate each example project against itself")]
 [group("gate")]
@@ -259,7 +255,7 @@ check-doc-spans:
 # Synthesize a deliberately-mis-formatted TOML, Typst and just-module fixture
 # in a temp dir, then assert every formatter `fmt`/`fmt-check` run rejects it —
 # and accepts a re-formatted one. Why the just arm is spelled the way it is,
-# and why the SUCCESS case is asserted too, are argued in place in
+# and why the success case is asserted too, are argued in place in
 # .just/scripts/fmt-fixture-check.sh.
 
 [doc("Lock the formatter gates against a mis-formatted fixture")]
@@ -269,26 +265,21 @@ fmt-fixture-check:
 
 # Lock the `[arg(...)]` patterns on release/bench/gen-bench/eject and the five
 # `ask-refactoring` thresholds: each must reject a known-bad argument and
-# accept a known-good one at DISPATCH, before the recipe body runs
-# (truth/tasks/validate-recipe-arguments-with-the-arg-attribute.typ). No recipe
-# body ever actually runs, `release` included — argued in place in
-# .just/scripts/arg-pattern-check.sh.
+# accept a known-good one at dispatch, before the recipe body runs. No recipe
+# body runs, `release` included; .just/scripts/arg-pattern-check.sh argues why.
 
 [doc("Lock the arg-attribute patterns against known-bad and known-good input")]
 [group("gate")]
 arg-pattern-check:
     bash .just/scripts/arg-pattern-check.sh
 
-# Lock the file-size gate's SCAN SCOPE: an oversized shell script under
+# Lock the file-size gate's scan scope: an oversized shell script under
 # `.just/scripts/` must be reported by `linecop` reading this repo's
-# `.linecop.yaml`. The subject is the walker, not the caps — a directory the
-# scan never enters reports the same "All files within size limits." a clean
-# tree does, which is how every body extracted out of the Justfile sat
-# uncapped while the extraction claimed the opposite
-# (truth/tasks/restore-size-gate-coverage-over-the-dot-just-scripts.typ). Why
-# it runs against a replica tree instead of the real directory, and why the
-# unreported case is asserted too, are argued in place in
-# .just/scripts/size-fixture-check.sh.
+# `.linecop.yaml`. The recipe tests the directory walker. A directory the scan
+# never enters reports the same "All files within size limits." a clean tree
+# does, so a script there stays uncapped with no signal. Why it runs against a
+# replica tree instead of the real directory, and why the unreported case is
+# asserted too, are argued in place in .just/scripts/size-fixture-check.sh.
 
 [doc("Lock the size gate's scan scope against an oversized hidden-dir fixture")]
 [group("gate")]
@@ -297,29 +288,26 @@ size-fixture-check:
 
 # Lock argument forwarding on the passthrough recipes (`test`, `build`,
 # `mutants`, `mutants-diff`): each must carry `[positional-arguments]` and
-# forward "$@" rather than interpolate `{{ ARGS }}`/`{{ args }}` into its body
-# — a bare interpolation re-splits an argument containing a space and re-globs
-# one containing a wildcard
-# (truth/tasks/preserve-argument-quoting-with-positional-arguments.typ). Why it
-# is static, why it is separate from arg-pattern-check, and why
-# `ask-refactoring` left it by construction rather than by exemption are argued
-# in place in .just/scripts/positional-args-check.sh.
+# forward "$@" rather than interpolate `{{ ARGS }}`/`{{ args }}` into its body,
+# because a bare interpolation re-splits an argument containing a space and
+# re-globs one containing a wildcard. Why it is static, why it is separate from
+# arg-pattern-check, and why `ask-refactoring`, which takes pattern-checked
+# scalars, is outside it are argued in place in
+# .just/scripts/positional-args-check.sh.
 
 [doc("Lock positional-argument forwarding on the four passthrough recipes")]
 [group("gate")]
 positional-args-check:
     bash .just/scripts/positional-args-check.sh
 
-# Lock bash strict mode in by construction: no recipe body may open with a `#!`
-# shebang (every script body goes through `[script]`, so `set
-# script-interpreter` reaches it), and every justfile must declare a setting
-# that actually aborts a failed pipeline. The setting removed the unstrict
-# bodies that existed, not the shape — `count-tests` printed a wrong test count
-# and exited 0 in exactly the form a new `#!` recipe would still be written in
-# (truth/tasks/lock-the-script-attribute-against-a-shebang-regression.typ). Why
-# `.shebang` cannot be the discriminator, why the setting is PROVEN by a probe
-# instead of matched as text, and why every justfile needs its own are argued in
-# place in .just/scripts/script-attr-check.sh.
+# Lock bash strict mode in: no recipe body may open with a `#!` shebang (every
+# script body goes through `[script]`, so `set script-interpreter` reaches it),
+# and every justfile must declare a setting that actually aborts a failed
+# pipeline. A `#!` recipe skips that setting and runs without strict mode, so a
+# failed pipeline in it can exit 0. Why `.shebang` cannot be the discriminator,
+# why the setting is proven by a probe instead of matched as text, and why
+# every justfile needs its own are argued in place in
+# .just/scripts/script-attr-check.sh.
 
 [doc("Lock the script attribute and each justfile's strict-mode interpreter")]
 [group("gate")]
@@ -329,28 +317,25 @@ script-attr-check:
 # Lock both manifests that enumerate `.just/scripts/` onto the directory they
 # enumerate: every script must be named by an mmz scope as a literal path, every
 # memoized rule whose body invokes a script must name that script's scope, and
-# every script must be an `outdatty.yaml` `dev-docs` source. This is what
-# `.mmz/config.yaml` bought the scope split with — the `.just/scripts/**` glob
-# it replaced covered a new body by ARRIVING, and an enumeration only covers
-# what somebody listed (truth/tasks/split-gates-meta-into-per-script-scopes.typ,
-# and truth/tasks/fail-a-half-wired-gate-arm-at-the-wiring-it-is-missing.typ for
-# the outdatty half). Why a glob can never satisfy the first arm, which case the
-# second deliberately cannot see, and why the third reads the config rather than
-# the lock, are argued in place in .just/scripts/script-scope-check.sh.
+# every script must be an `outdatty.yaml` `dev-docs` source. A glob such as
+# `.just/scripts/**` covers a new script as soon as the file exists, and an
+# enumeration covers only what somebody listed, so this recipe checks each
+# enumeration against the directory. Why a glob can never satisfy the first
+# arm, which case the second cannot see, and why the third reads the config
+# rather than the lock, are argued in place in
+# .just/scripts/script-scope-check.sh.
 
 [doc("Lock every gate script into a named mmz scope and outdatty's dev-docs group")]
 [group("gate")]
 script-scope-check:
     bash .just/scripts/script-scope-check.sh
 
-# Lock the docs manifest gate itself: two pages declaring the same route, a
-# page with no `<page-meta>` block, and a page missing from
-# www/utils/site.typ's NAV were each demonstrated by hand once, when they
-# landed, and never proven again since — a gate that never fires reads
-# identical to one that cannot
-# (truth/tasks/pin-the-docs-manifest-gate-failures-with-a-selftest.typ). Why
-# it runs against a replica tree rather than the working one, and why the
-# third case drives `.just/scripts/_nav-diff.sh` directly instead of the
+# Lock the docs manifest gate itself against three failures: two pages
+# declaring the same route, a page with no `<page-meta>` block, and a page
+# missing from www/utils/site.typ's NAV. A gate that never fires reads
+# identical to one that cannot fire, so this recipe proves each failure is
+# reported. Why it runs against a replica tree rather than the working one, and
+# why the third case drives `.just/scripts/_nav-diff.sh` directly instead of the
 # whole check-doc-facts regenerate, are argued in place in
 # .just/scripts/site-pages-fixture-check.sh.
 
@@ -359,13 +344,13 @@ script-scope-check:
 site-pages-fixture-check:
     bash .just/scripts/site-pages-fixture-check.sh
 
-# The CRAP gate as a `just check` arm. Runs the real gate when the lcov is
-# fresh; SKIPS LOUDLY otherwise, naming what would refresh it, and exits 0. It
-# is the cheap partial, not the correct one: `just check-full` is the arm that
-# is always right. Why it exists and what it does and does not buy are in
-# docs/contributing/coverage-crap.md; it is wrapped in mmz like every other arm
-# and the `lcov` scope that lets a skip be memoized without sticking is argued
-# in .mmz/config.yaml.
+# The CRAP gate as a `just check` arm. It runs the real gate when the lcov is
+# fresh. Otherwise it skips with a loud message naming what would refresh the
+# lcov, and exits 0. It is the cheap partial arm, and `just check-full` is the
+# one that is always right. Why it exists and what it does and does not buy are
+# in docs/contributing/coverage-crap.md. It is wrapped in mmz like every other
+# arm, and .mmz/config.yaml argues the `lcov` scope that lets a skip be
+# memoized without sticking.
 
 [doc("Run the CRAP gate when the lcov is fresh, else skip loudly")]
 [group("gate")]
@@ -384,7 +369,7 @@ crap-baseline-check:
     bash .just/scripts/crap-baseline-check.sh
 
 # Two hand-kept facts, read from their source: TOML_FMT_PATHS against the TOML
-# files git knows (a new untracked one counts), and every gate-reachable
+# files git lists, tracked or not yet added, and every gate-reachable
 # `cargo build`/`cargo run` of mindtape-cli against `--tests`, the flag that
 # keeps target/debug/mt one build for the test arm. Why `check-rrule` is out
 # of scope, how the reach is derived rather than listed, and the control that
@@ -426,15 +411,14 @@ bench N='2000':
 #
 # Both crates, not only `mindtape`: `mt init`'s recurrence axis hides its
 # `rrule` choice from a build without the engine, so mindtape-cli carries
-# `cfg(feature = "rrule")` arms of its own. Lint and run one crate here and the
-# other's feature-on arms compile nowhere — the same rot this recipe exists to
-# stop, one crate over.
+# `cfg(feature = "rrule")` arms of its own. Linting and running one crate here
+# would leave the other's feature-on arms uncompiled.
 #
-# examples/recurring/'s `rrule(...)` task is checked here, never in
-# check-examples: that recipe runs in parallel with `just test`, and a feature
-# build and the default-feature test arm both write target/debug/mt — the
-# feature-on binary made `mt init --recurrence rrule` succeed in a test that
-# expects the refusal (measured; the test is init_e2e's
+# examples/recurring/'s `rrule(...)` task is checked here and not in
+# check-examples, because that recipe runs in parallel with `just test`, and a
+# feature build and the default-feature test arm both write target/debug/mt. A
+# feature-on binary would make `mt init --recurrence rrule` succeed in a test
+# that expects the refusal (measured with init_e2e's
 # init_refuses_the_rrule_answer_without_the_engine). The engine's example
 # shares the engine's recipe.
 
@@ -449,7 +433,7 @@ check-rrule:
 # Cross-check the workspace, tests included, against Windows without leaving
 # Linux — the compile half of what the CI windows job proves at runtime, minutes
 # earlier and without pushing. Reach for it when touching a `cfg(windows)` arm,
-# a process spawn, a path join, or anything else with a platform seam. Runs in
+# a process spawn, a path join, or anything else that differs by platform. Runs in
 # its own dev shell (flake.nix `devShells.windows`); see that shell's comment
 # for why the target is -gnu and the release is -msvc, and
 # docs/contributing/windows.md for why this is deliberately not a `just check`
@@ -462,17 +446,15 @@ check-windows:
         cargo check --workspace --all-targets --locked \
         --target x86_64-pc-windows-gnu
 
-# Re-record ONE group after editing its source — `just outdatty-update <group>`
+# Re-record one group after editing its source: `just outdatty-update <group>`
 # (usage: just outdatty-update dev-docs). A recorded hash is the review
 # watermark, so the blanket form (`just outdatty-update-all`) claims a review
-# of every group's dependents that never happened; it stays the explicit
-# choice, never the default
-# (truth/tasks/scope-the-outdatty-update-recipe-to-a-group.typ).
+# of every group's dependents that never happened. Use it only when that review
+# did happen.
 #
-# After a dependent-only edit, name the file too — `just outdatty-update
+# After a dependent-only edit, name the file too: `just outdatty-update
 # dev-docs docs/src/contributing/windows.typ` records that dependent's hash
-# alone and leaves every other pending dependent in the group pending
-# (truth/tasks/record-one-dependents-watermark-without-claiming-the-groups.typ).
+# alone and leaves every other pending dependent in the group pending.
 
 [arg('GROUP', pattern='[a-z][a-z0-9-]*', help='outdatty group to re-confirm — the names outdatty.yaml declares')]
 [arg('DEPENDENTS', pattern='[A-Za-z0-9._/-]+', help='record only these dependents of GROUP, leaving the rest pending')]
@@ -508,11 +490,11 @@ clippy-fix:
 build *args:
     cargo build --workspace -q "$@"
 
-# The dev shell's `mt`, at the path the shell hook puts on PATH. Its own target
+# The dev shell's `mt`, at the path the shell hook puts on `PATH`. Its own target
 # dir keeps the build off the lock `just check` holds on `target/` for minutes,
 # and off `target/debug/mt`, which the rrule arm builds with a feature this
 # default build would silently relink away. Called at the events that
-# invalidate the binary — this recipe, `just fork`, `just integrate` — never
+# invalidate the binary (this recipe, `just fork`, `just integrate`), never
 # per `mt` call.
 
 [doc("Build the dev shell's mt")]
@@ -521,9 +503,9 @@ build-mt:
     cargo build -q -p mindtape-cli --bin mt --target-dir target/mt-dev
 
 # Run coverage with cargo-llvm-cov (also writes target/coverage/lcov.info, the
-# lcov `just crap` scores against). It always pays a full instrumented rebuild:
-# why that is not optional, and what an accumulated profraw pile did to the
-# numbers when it was, are in docs/contributing/coverage-crap.md.
+# lcov `just crap` scores against). It always pays a full instrumented rebuild.
+# Why that is not optional, and what leftover profraw files do to the numbers,
+# are in docs/contributing/coverage-crap.md.
 
 [doc("Run coverage with cargo-llvm-cov")]
 [group("advisory")]
@@ -578,16 +560,16 @@ _crap-excludes:
 crap:
     bash .just/scripts/crap.sh all {{ CRAP_EXCLUDES }}
 
-# Re-mint crap-baseline.json after a DELIBERATE complexity increase. Run it in
+# Re-mint crap-baseline.json after a deliberate complexity increase. Run it in
 # the same commit as the change that justifies it, so the diff shows the new
-# number next to the reason for it — a ratchet with no documented release valve
+# number next to the reason for it. A ratchet with no documented release valve
 # gets bypassed instead of refreshed.
 #
-# The pre-mint guard is the THRESHOLD arm, not the whole gate: nothing above 30
-# may be minted in as acceptable, but the ratchet arm is the file being
-# rewritten and a deliberate increase makes it red by definition. Depending on
-# the whole gate made this recipe refuse in its own documented use case; the
-# split is argued in .just/scripts/crap.sh, and crap-baseline.sh runs the arm.
+# The pre-mint guard is the threshold arm only. Nothing above 30 may be minted
+# in as acceptable. The ratchet arm compares against the file being rewritten,
+# so a deliberate increase makes it red by definition, and a guard on the whole
+# gate would refuse this recipe's own use. .just/scripts/crap.sh argues the
+# split, and crap-baseline.sh runs the arm.
 
 [doc("Re-mint crap-baseline.json after a deliberate complexity increase")]
 [group("advisory")]
@@ -619,7 +601,7 @@ mutants-diff *ARGS:
 # `target/mutants-scoped` for a subset run, so a scoped sweep cannot clobber
 # the cache; `-o` overrides either default.
 #
-# The TIMEOUT caveat, what a REPRODUCIBLE timeout means, what to do with a
+# The timeout caveat, what a reproducible timeout means, what to do with a
 # survivor inside `#[cfg(not(feature = …))]` code, and why there is
 # deliberately no CI mutation job are in docs/contributing/mutation-testing.md.
 
@@ -667,26 +649,24 @@ mutants-status +DIR='mutants.out':
     '
 
 # What the non-Rust formatters cover. One list each, read by both `fmt` and
-# `fmt-check`, because two hand-maintained copies drift: `.mindtape/templates`
-# (the project's own `mt add` templates) sat outside both lists while the
-# learn-piano example's templates sat inside, so the example project's
-# templates were formatted and the real ones were not. A single list cannot
-# omit a path from the check while applying it in the fix.
+# `fmt-check`, because two hand-maintained copies drift and leave a path
+# formatted by one recipe and skipped by the other. A single list cannot omit a
+# path from the check while applying it in the fix.
 
 TOML_FMT_PATHS := ".cargo/mutants.toml .config/nextest.toml .gitleaks.toml .mindtape/config.toml Cargo.toml clippy.toml crates/mindtape-cli/Cargo.toml crates/mindtape-cli/src/axes/headers_spec.toml crates/mindtape-cli/src/axes/workflow_flow.toml crates/mindtape-cli/src/axes/workflow_gated.toml crates/mindtape-cli/src/axes/workflow_personal.toml crates/mindtape-cli/src/axes/workflow_todo_done.toml crates/mindtape-cli/src/presets/flow/config.toml crates/mindtape-cli/src/presets/gated/config.toml crates/mindtape-cli/src/presets/personal/config.toml crates/mindtape-cli/src/presets/todone/config.toml crates/mindtape/Cargo.toml crates/mindtape/src/defaults.toml crates/mindtape/src/frameworks.toml crates/mindtape/src/packs/mindtape-tasks.toml examples/api-service/.mindtape/config.toml examples/derived-tags/.mindtape/config.toml examples/dsl/.mindtape/config.toml examples/estimates/.mindtape/config.toml examples/large/.mindtape/config.toml examples/learn-piano/.mindtape/config.toml examples/links/.mindtape/config.toml examples/minimal/.mindtape/config.toml examples/recurring/.mindtape/config.toml examples/rules/.mindtape/config.toml examples/self-validating/.mindtape/config.toml examples/statuses/.mindtape/config.toml lib/typst.toml rust-toolchain.toml rustfmt.toml tombi.toml www/tola.toml"
 TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/api-service/tasks examples/api-service/.mindtape/templates examples/derived-tags/api examples/derived-tags/web examples/learn-piano/tasks examples/learn-piano/.mindtape/templates examples/links/tasks examples/recurring/tasks examples/dsl/tasks examples/rules examples/statuses/tasks www/content www/templates www/utils docs/src"
 
-# The same one-list discipline for the justfiles themselves. A bare `just --fmt`
-# formats the ROOT justfile only and silently skips every `mod` file, so each
-# module file needs its own `--justfile <file> --fmt` pass and the set of them
-# lives here rather than being spelled twice: a third module file cannot land
-# in the fix and miss the check. Every file listed needs `set unstable := true`
-# of its own — `--fmt` is unstable and reads that setting from the file it is
-# POINTED AT, never from the Justfile that declares the `mod`.
+# The same one-list rule for the justfiles themselves. A bare `just --fmt`
+# formats the root justfile only and silently skips every `mod` file, so each
+# module file needs its own `--justfile <file> --fmt` pass. The set of them
+# lives here and is not spelled twice, so a third module file cannot land in
+# the fix and miss the check. Every file listed needs `set unstable := true` of
+# its own, because `--fmt` is unstable and reads that setting from the file it
+# is pointed at, never from the Justfile that declares the `mod`.
 #
-# The paths follow the module files, and must: this list is the whole coverage
-# of the formatter gate over them, so a module file that moves without its
-# entry moving silently drops back out of `just fmt` and `just fmt-check`. The
+# The paths must follow the module files. This list is the whole coverage of
+# the formatter gate over them, so a module file that moves without its entry
+# moving silently drops out of `just fmt` and `just fmt-check`. The
 # verification behind that is in docs/contributing/gates.md.
 
 JUST_FMT_PATHS := ".just/docs.just"
@@ -700,16 +680,12 @@ fmt:
     just --fmt
     for f in {{ JUST_FMT_PATHS }}; do just --justfile "$f" --fmt; done
 
-# Counts the suite `just test` gates on, WITHOUT running it: `cargo nextest
+# Counts the suite `just test` gates on without running it: `cargo nextest
 # list` reports every test nextest sees, and dropping the `#[ignore]`d ones
 # (which `just test` never runs) matches the count a green full run would
-# pass. The old body summed `cargo test`'s "test result:" lines and only made
-# sense when the suite was green, and nextest prints no such line — swapping
-# the command alone would have grep'd nothing and piped a bogus "0 tests" past
-# pipefail's silence. Listing is the shape that stays honest without paying a
-# full run; under the global pipefail shell, a listing that fails to build
-# takes the recipe down with it, so a count scraped from a broken run is never
-# presented as a success.
+# pass. Listing stays honest without paying a full run. Under the global
+# pipefail shell, a listing that fails to build takes the recipe down with it,
+# so a count scraped from a broken run is never presented as a success.
 
 [doc("Count tests across the workspace")]
 [extension('.sh')]
@@ -719,11 +695,10 @@ count-tests:
     cargo nextest list --workspace --message-format json \
         | jq -r '[.["rust-suites"][].testcases[] | select(.ignored == false)] | "\(length) tests"'
 
-# `awk 'NR <= 20'` instead of `head -20` is deliberate: `head` exits at line
-# 20 and the upstream `sort` then takes SIGPIPE, which pipefail reports as
-# exit 141 on a perfectly good run. awk consumes the whole stream and prints
-# the first 20 lines, so nothing upstream dies and real failures stay visible
-# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ).
+# `awk 'NR <= 20'` replaces `head -20` because `head` exits at line 20 and the
+# upstream `sort` then takes `SIGPIPE`, which pipefail reports as exit 141 on a
+# perfectly good run. awk consumes the whole stream and prints the first 20
+# lines, so nothing upstream dies and real failures stay visible.
 
 [doc("Show the top 20 files by line count")]
 [extension('.sh')]
@@ -738,10 +713,10 @@ file-sizes:
 eject PCT='90':
     linecop --baseline {{ PCT }} --format paths | ejectest apply . --files-from - --lenient
 
-# File backlog tasks from the ADVISORY quality signals — the ones that predict
+# File backlog tasks from the advisory quality signals, the ones that predict
 # mechanical work instead of blocking on it. Four arms: linecop (file size),
-# per-file line coverage — which nothing gates, since `just cover` fails on the
-# workspace total only — per-function complexity against coverage, and surviving
+# per-file line coverage (which nothing gates, since `just cover` fails on the
+# workspace total only), per-function complexity against coverage, and surviving
 # mutants. Each arm is a scoring function plus a `.mindtape/templates/sweep-*.typ`
 # template, not a config change.
 #
@@ -752,10 +727,9 @@ eject PCT='90':
 # reason each arm carries its own threshold is in
 # docs/contributing/signal-sweep.md.
 #
-# Deliberately no longer a passthrough recipe: its five pattern-checked scalars
-# replaced `[positional-arguments]`, which is why `just positional-args-check`
-# no longer names it and `just arg-pattern-check` does — argued in place in
-# .just/scripts/positional-args-check.sh.
+# It is not a passthrough recipe: its five parameters are pattern-checked
+# scalars, so `just arg-pattern-check` names it and `just positional-args-check`
+# does not. .just/scripts/positional-args-check.sh argues why.
 
 [arg('COVERAGE_FLOOR', long='coverage-floor', pattern='(100|[1-9]?[0-9])', help='coverage arm: report files below PCT% line coverage')]
 [arg('WRITE', long='write', pattern='[01]', value='1', help='file the tasks instead of printing what would be filed')]
@@ -769,7 +743,7 @@ ask-refactoring $WRITE='0' $BASELINE='90' $COVERAGE_FLOOR='88' $CC_FLOOR='5' $FN
         --coverage-floor "$COVERAGE_FLOOR" --cc-floor "$CC_FLOOR" \
         --fn-coverage-floor "$FN_COVERAGE_FLOOR"
 
-# The doc SOURCES the audit scans: site prose, the hand-written notes behind
+# The doc sources the audit scans: site prose, the hand-written notes behind
 # its generated refs, and the Markdown sources. Never the renders — README.md,
 # AGENTS.md and skills/mindtape/SKILL.md are generated from docs/src/*.typ, so
 # scanning both sides of a render would pair every sentence with itself.
@@ -787,13 +761,14 @@ DOC_PROSE_PATHS := "www/content/*.typ www/utils/*.typ docs/src/readme.typ docs/s
 dup-prose:
     @for f in {{ DOC_PROSE_PATHS }}; do jq -n --arg f "$f" --rawfile t "$f" '{file:$f,text:$t}'; done | jq -s -r -f contrib/dup-prose.jq
 
-# Stand up a worktree for a delegated agent: a new branch off BASE (default
-# HEAD) at `../<repo>-<slug>`, `direnv allow`-ed, with the base read back out of
-# the created worktree and compared to the sha it was created from. Refuses a
-# dirty HEAD (`git worktree add` copies commits, never the working tree), and
-# reports — without refusing — a base behind or diverged from this checkout.
+# Stand up a worktree for a delegated agent: a new branch off `BASE`, which
+# defaults to `HEAD`, at `../<repo>-<slug>`, `direnv allow`-ed, with the base
+# read back out of the created worktree and compared to the sha it was created
+# from. Refuses a dirty `HEAD` (`git worktree add` copies commits, never the
+# working tree), and reports, without refusing, a base behind or diverged from
+# this checkout.
 #
-# Deliberately warms nothing: what was measured about `kache`, `target/` and the
+# It warms nothing. What was measured about `kache`, `target/` and the
 # cold `.mmz/cache/`, what the assertion can and cannot prove, and why the
 # worktree is a sibling rather than a child are argued in place in
 # .just/scripts/fork.sh.
@@ -806,12 +781,12 @@ dup-prose:
 fork SLUG BASE='HEAD':
     bash .just/scripts/fork.sh '{{ SLUG }}' '{{ BASE }}'
 
-# Take a delegated worktree back down, and `fork`'s inverse in more than name:
-# it refuses unless BRANCH's own worktree reports `mmz --is-fresh --tag gate`,
-# then fast-forwards this checkout onto it and removes the worktree. That
-# assertion is the whole recipe — a fast-forward writes no commit, so the
-# pre-commit hook never fires on the merge, and a branch that scoped its gate
-# per-commit has nowhere else to pay the full aggregate.
+# Take a delegated worktree back down, the inverse of `fork`. It refuses unless
+# the worktree of `BRANCH` reports `mmz --is-fresh --tag gate`, then
+# fast-forwards this checkout onto it and removes the worktree. That assertion
+# is the whole recipe: a fast-forward writes no commit, so the pre-commit hook
+# never fires on the merge, and a branch that scoped its gate per-commit has
+# nowhere else to pay the full aggregate.
 #
 # Also refuses a dirty worktree and a branch that is not a fast-forward; it
 # never runs the gate, and there is deliberately no waiver flag. Why the
@@ -859,7 +834,7 @@ install-hooks:
 
 # Tag a release and push (usage: just release 0.3.0). Refuses to run in a
 # dirty worktree, and while CHANGELOG.md has an [Unreleased] section with
-# content — move it into a dated [VERSION] section first. Pushes main before
+# content; move it into a dated `[<version>]` section first. Pushes main before
 # the tag so the docs site (pages.yml) and CI run on the release tree.
 #
 # The MINDTAPE_RELEASE_CONFIRMED prefix is how the [confirm] guard survives the

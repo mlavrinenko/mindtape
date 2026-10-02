@@ -1,68 +1,62 @@
 # .just/docs.just — the `docs` module (`mod docs '.just/docs.just'` in
-# Justfile), split out under truth/tasks/split-the-justfile-into-modules.typ
-# and moved here under
-# truth/tasks/move-the-just-module-and-scripts-into-a-dot-just-folder.typ.
-# That declaration spells the path out because this file no longer sits beside
-# the Justfile: a bare `mod docs` only looks for `docs.just`/`docs/mod.just`
-# next to the file declaring it.
+# Justfile). The declaration spells the path out because a bare `mod docs`
+# only looks for `docs.just` or `docs/mod.just` next to the file declaring it.
 #
-# `set working-directory := '..'` below is load-bearing, not cosmetic. A module
-# recipe runs with its working directory set to the MODULE FILE's directory,
-# not the repo root (verified, just 1.46: a recipe here running `pwd` prints
-# `<repo>/.just`). Every recipe body in this file shells out with a repo-root-
-# relative path (`www/generate.sh`, `docs/generate-md.sh`, …), and
-# `[working-directory("www")]` resolves relative to that same directory — so
-# without the setting the bodies miss their scripts and the attribute looks for
-# `.just/www`, failing with a confusing `could not find the shell: No such file
+# `set working-directory := '..'` below makes a module recipe run at the repo
+# root. Without it, just runs a module recipe in the module file's directory
+# (verified, just 1.46: a recipe here running `pwd` prints `<repo>/.just`).
+# Every recipe body in this file shells out with a repo-root-relative path
+# (`www/generate.sh`, `docs/generate-md.sh`, …), and
+# `[working-directory("www")]` resolves relative to the same directory. So
+# without the setting the bodies miss their scripts, and the attribute looks for
+# `.just/www` and fails with a confusing `could not find the shell: No such file
 # or directory`. With it, a plain recipe runs at the repo root and
 # `[working-directory("www")]` composes on top to give `<repo>/www` (both
 # verified). Scripts extracted out of these bodies live in .just/scripts/ and
 # are invoked the same repo-root-relative way.
 #
-# What does NOT work, also verified: `[working-directory(source_directory() /
-# "www")]`. just 1.46 accepts const expressions in that attribute but not
-# function calls — `error: Expected ',', '=', or ')', but found '('`.
+# `[working-directory(source_directory() / "www")]` does not work (verified):
+# just 1.46 accepts const expressions in that attribute but not function calls
+# (`error: Expected ',', '=', or ')', but found '('`).
 #
-# Invoked as `just docs::<name>` or `just docs <name>` — both work (verified,
-# just 1.43+). www/generate-facts.sh mangles the `::` invocation path to `-`
-# for www/generated/just.typ, so `docs::md` mangles to `docs-md` — the
-# identifier every doc source already calls via `#just.docs-md()`. That
-# mangling is what keeps this module boundary from touching doc prose.
+# `just docs::<name>` and `just docs <name>` both work (verified, just 1.43+).
+# www/generate-facts.sh mangles the `::` invocation path to `-` for
+# www/generated/just.typ, so `docs::md` becomes `docs-md`, the identifier every
+# doc source already calls as `#just.docs-md()`. The mangling keeps this module
+# boundary out of doc prose.
 #
-# Settings are per-file, not inherited from the Justfile that declares `mod
-# docs`: verified that a module recipe with no `set quiet := true` of its own
-# echoes its command line even though the root Justfile sets it. Redeclared
-# here so `just check`'s docs::check / docs::md-check arms stay quiet like
-# every other gate.
+# Settings are per-file. A module does not inherit them from the Justfile that
+# declares `mod docs` (verified: a module recipe with no `set quiet := true` of
+# its own echoes its command line even though the root Justfile sets it). This
+# file redeclares `set quiet` so `just check`'s docs::check and docs::md-check
+# arms stay quiet like every other gate.
 #
-# `set unstable := true` is NOT dead config, and it is not here for `mod` (the
-# root Justfile's own setting covers the module declaration). It is what makes
-# this file valid as a STANDALONE justfile: a bare `--fmt` pass does not
-# descend into module files (verified, just 1.46), so the formatter gate points
-# `--justfile` at each file in the Justfile's JUST_FMT_PATHS list — and `--fmt`
-# is itself unstable, read from the file it is pointed AT, not from the
-# Justfile that declares the `mod`. Delete this line and this file silently
-# drops out of `just fmt` and `just fmt-check`.
+# `set unstable := true` makes this file valid as a standalone justfile. The
+# root Justfile's own setting already covers the `mod` declaration. A bare
+# `--fmt` pass does not descend into module files (verified, just 1.46), so the
+# formatter gate points `--justfile` at each file in the Justfile's
+# JUST_FMT_PATHS list. `--fmt` is unstable, and it reads that setting from the
+# file it is pointed at, not from the Justfile that declares the `mod`. Without
+# this line the file silently drops out of `just fmt` and `just fmt-check`.
 
 set quiet := true
 set unstable := true
 set working-directory := '..'
 
-# Same per-file rule, verified the same way for script-interpreter
-# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ): a
-# module does NOT inherit it from the root Justfile, so a future `[script]`
-# recipe in this module would silently run under the default interpreter
-# without this line. No recipe here uses `[script]` today — this is the
-# setting arriving before the first user, same as `set quiet`.
+# The same per-file rule holds for script-interpreter (verified the same way):
+# a module does not inherit it from the root Justfile, so a `[script]` recipe
+# added to this module would silently run under the default interpreter
+# without this line. No recipe here uses `[script]`. The line is here so the
+# first one runs under bash strict mode.
 
 set script-interpreter := ["bash", "-eo", "pipefail"]
 
-# just runs a module's FIRST recipe when the module is named with no recipe of
-# its own, so `just docs` used to run `gen`: a full fact regeneration, and a
-# cold release build the first time, from a command that reads like a question
-# about what the module holds. Listing is the right answer to a bare namespace
-# for the same reason it is at the repo root. Whichever recipe leads this file
-# is what a bare `just docs` runs, so this one has to stay first.
+# just runs a module's first recipe when the module is named with no recipe.
+# Without this recipe a bare `just docs` would run `gen`: a full fact
+# regeneration, and a cold release build the first time, from a command that
+# reads like a question about what the module holds. Listing is the right
+# answer to a bare namespace, as it is at the repo root. The recipe that leads
+# this file is what a bare `just docs` runs, so this one has to stay first.
 
 [doc("List available recipes")]
 [group("docs")]
@@ -75,15 +69,15 @@ default:
 #
 # generate.sh itself derives the crate/DSL/gate/linecop facts
 # (www/generate-facts.sh) and then the page manifest (www/generate-site-pages.sh)
-# at its own end, in that order and never before: generate.sh `rm -rf`s the
-# whole generated/ dir on entry, which would erase anything written here
-# first, and the page manifest is a full compile of every www/content/*.typ
-# page, which needs BOTH generate-facts.sh's crate-map.json (site.typ's
-# PKG_VERSION) and generate.sh's own captures (hero-source.typ, cli.json, …) —
-# see www/generate-site-pages.sh's header. The explicit second call below is
-# the same redundant, idempotent, lock-protected re-run this recipe has
-# always made — it keeps `gen` honest about what it produces without
-# depending on generate.sh's own trailing call to have been the last word.
+# at its own end, in that order. It cannot run them before the captures:
+# generate.sh `rm -rf`s the whole generated/ dir on entry, which would erase
+# anything written first. The page manifest is a full compile of every
+# www/content/*.typ page, which needs both generate-facts.sh's crate-map.json
+# (site.typ's PKG_VERSION) and generate.sh's own captures (hero-source.typ,
+# cli.json, …); see www/generate-site-pages.sh's header. The explicit second
+# call below is a redundant, idempotent, lock-protected re-run. It makes `gen`
+# produce the facts without depending on generate.sh's trailing call having
+# been the last step.
 
 [doc("Capture live mt output and derive doc facts")]
 [group("docs")]
@@ -95,16 +89,14 @@ gen:
 # index the built HTML with Pagefind (bundle -> public/mindtape/pagefind/).
 # gen runs first so the injected transcripts reflect the current binary.
 #
-# `tola build --clean`: tola does not track a `json()` read as a page
-# dependency, so a page whose only source is www/generated/*.json (every
+# `build` passes `--clean` because tola does not track a `json()` read as a
+# page dependency. A page whose only source is www/generated/*.json (every
 # fact-reading page — config.typ, cli.typ, dsl.typ, internals.typ,
-# priority.typ, and the config-slice pages) keeps its last-rendered HTML
-# across a changed fact, incremental, byte-identical, and wrong (truth/tasks/
-# rebuild-the-docs-site-clean-so-a-changed-fact-cannot-validate-stale-html.typ).
-# `--clean` forces every page to re-render on every `build`/`check`, so a
-# build can never validate HTML the current facts did not produce. What that
-# costs is stated in docs/src/contributing/generated-docs.typ, not left for
-# someone to discover by timing it.
+# priority.typ, and the config-slice pages) keeps its last-rendered HTML after
+# a fact changes, so an incremental build is byte-identical and wrong.
+# `--clean` forces every page to re-render on every `build` and `check`, so a
+# build never validates HTML that the current facts did not produce.
+# docs/src/contributing/generated-docs.typ states what that costs.
 
 [doc("Build the docs site and index it with Pagefind")]
 [group("docs")]
@@ -122,16 +114,16 @@ serve: gen
 # Pagefind runs before validate so the /pagefind/ bundle exists on disk.
 #
 # `tola build`'s `[build]` progress bar and `tola validate`'s `[sitemap]`/
-# `[validate]` lines print on every run, success included — verified against
+# `[validate]` lines print on every run, success included. Verified against
 # tola 0.7.1's `build`/`validate` `--help`: neither subcommand offers a quiet
 # flag, `--color never` does not touch them (the escape sequences are the
 # progress redraw, not colour), and `CI=true`/`NO_COLOR=1` make no
-# difference either. So each is captured and replayed only on failure: a
-# clean gate run prints nothing, a failing one still prints tola's report.
+# difference either. So each is captured and replayed only on failure. A
+# clean gate run prints nothing, and a failing one prints tola's report.
 #
-# `--clean` for the same reason as `build` above: this is the gate that runs
+# `--clean` is here for the same reason as in `build` above: this gate runs
 # `tola validate` over the built HTML, so an incremental `tola build` here
-# would let `check` pass on a page no current fact produced.
+# would let `check` pass on a page that no current fact produced.
 
 [doc("Build, index, and validate the docs site")]
 [group("docs")]
@@ -153,13 +145,12 @@ check: gen
 md:
     bash docs/generate-md.sh
 
-# Freshness gate for md: regenerate into a TEMP directory and diff each
-# rendered file there against the COMMITTED copy at its real path — never
-# regenerate in place and read `git status`/`git diff`. An in-place
-# regenerate would heal a hand-corrupted committed file before the diff ever
-# ran, so the gate would read clean on a fix that is no longer actually
-# represented; a fresh temp render diffed against the untouched committed
-# tree cannot self-heal that way, so a drifted file fails by name every time.
+# Freshness gate for md. It regenerates into a temp directory and diffs each
+# rendered file there against the committed copy at its real path. It does not
+# regenerate in place and read `git status`/`git diff`, because an in-place
+# regenerate would overwrite a hand-corrupted committed file before the diff
+# ran, and the gate would read clean. A temp render diffed against the
+# untouched committed tree fails a drifted file by name every time.
 
 [doc("Fail if generated Markdown has drifted from docs/src")]
 [group("docs")]
