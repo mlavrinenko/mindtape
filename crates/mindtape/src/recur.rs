@@ -111,7 +111,8 @@ impl PeriodUnit {
     }
 }
 
-/// `[tasks.recur]` — the recurring-tasks feature gate and policy floor.
+/// `[tasks.recur]` — whether recurring tasks are enabled, and the values a
+/// `recur` field may take.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RecurConfig {
@@ -126,12 +127,11 @@ pub struct RecurConfig {
     pub default_anchor: String,
     /// Materialize model used when a task's `recur` omits one.
     pub materialize: String,
-    /// Whether the `rrule(...)` escape hatch is accepted. Off by default;
-    /// also requires `MindTape` to be built with the `rrule` cargo feature —
-    /// missing either gate rejects an authored `rrule(...)` with a clear
-    /// error message.
+    /// Whether a `recur` field may use `rrule(...)`. Off by default. `mt` must
+    /// also be built with the `rrule` cargo feature; without both, `mt`
+    /// rejects an `rrule(...)` with an error.
     pub rrule: bool,
-    /// Runaway cap: `mt recur --advance N` refuses `N` above this.
+    /// Largest `N` that `mt recur --advance N` accepts.
     pub max_advance: u32,
 }
 

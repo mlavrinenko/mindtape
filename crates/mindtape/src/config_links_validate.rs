@@ -44,11 +44,12 @@ pub enum TargetValidator {
     /// A hexadecimal git object name, 7 to 64 characters — abbreviated SHA-1
     /// through full SHA-256.
     GitSha,
-    /// A UUID, in any of the forms the `uuid` crate parses.
+    /// A UUID, hyphenated, as 32 bare hex digits, in braces, or with a
+    /// `urn:uuid:` prefix.
     Uuid,
     /// A project-supplied pattern, taken from the kind's sibling `regex` key.
     Regex,
-    /// Anything non-empty — the deliberate opt-out.
+    /// Any non-empty text, with no shape check.
     Any,
 }
 

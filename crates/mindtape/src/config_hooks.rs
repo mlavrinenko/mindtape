@@ -70,12 +70,10 @@ pub struct FlipHook {
     pub actions: Vec<FlipAction>,
 }
 
-/// One action of a `[[on.flip]]` entry.
-///
-/// Exactly one of `show`, `list`, or `run` must be set, OR `gate = true` with
-/// no `run` at all — the three kinds share one flat TOML shape so a mistyped
-/// or conflicting entry surfaces as a clear config error instead of an opaque
-/// parse failure.
+/// One action of an `[[on.flip]]` entry. Set exactly one of `show`, `list`
+/// and `run`, or set `gate = true` with no `run`.
+// The kinds share one flat TOML shape, so a mistyped or conflicting entry
+// fails as a config error naming the problem, rather than as a parse error.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FlipAction {
@@ -83,18 +81,18 @@ pub struct FlipAction {
     pub show: Option<String>,
     /// `{ list = "filter or @view" }` — print the matching tasks.
     pub list: Option<String>,
-    /// `{ run = "command" }` — execute a command through the platform shell
-    /// (`sh -c`; `cmd /C` on Windows). Optional on a gating action: `gate =
-    /// true` with no `run` refuses the flip unconditionally whenever `when`
-    /// matches, with no command to run.
+    /// `{ run = "command" }` — run a command through the platform shell
+    /// (`sh -c`, or `cmd /C` on Windows). A gating action may omit it; then
+    /// the gate refuses the flip whenever the entry's `when` matches.
     pub run: Option<String>,
     /// Heading printed above a `list`'s table.
     pub title: Option<String>,
-    /// Explanation printed when a `run` command exits non-zero, or a run-less
-    /// gate refuses.
+    /// Explanation printed when `run` exits non-zero, or when a gate with no
+    /// `run` refuses the flip.
     pub message: Option<String>,
-    /// Whether a non-zero exit from `run` refuses the flip, or — with no `run`
-    /// at all — refuses unconditionally. `run`-only (or run-less-gate-only).
+    /// Whether a non-zero exit from `run` refuses the flip. With no `run`, the
+    /// gate refuses every flip the entry's `when` matches. Applies to a `run`
+    /// action or a gate with no `run`.
     pub gate: bool,
 }
 

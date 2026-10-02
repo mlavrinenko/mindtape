@@ -43,15 +43,13 @@ use crate::config_ls::{LS_COLUMNS, LsConfig};
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ColumnConfig {
-    /// Whether this column renders, as a condition expression — the same
-    /// grammar `[[ls.rules]]` uses (`tty()`, `format()`, `env()`,
-    /// `on_branch()`, `now()`, `weekday()`, `true` / `false`), plus the four
-    /// listing predicates only a column resolution can answer: `nonempty()`,
-    /// `contested()`, `named()`, `blocked()`.
-    ///
-    /// Absent means the column never renders. The embedded floor carries one
-    /// per column, so an absent `when` is a column the project deleted from
-    /// the floor rather than a column awaiting a built-in default.
+    /// Condition under which this column renders. It takes the `[[ls.rules]]`
+    /// condition grammar (`tty()`, `format()`, `env()`, `on_branch()`,
+    /// `now()`, `weekday()`, `true`, `false`) plus four listing predicates:
+    /// `nonempty()`, `contested()`, `named()` and `blocked()`. Absent means
+    /// the column never renders.
+    // The embedded floor sets `when` on every column, so an absent `when` is a
+    // column a config layer deleted.
     pub when: Option<String>,
 }
 

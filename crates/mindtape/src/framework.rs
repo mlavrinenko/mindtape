@@ -28,16 +28,19 @@ use crate::numeric::{InputValue, NumCell, NumValue, format_num};
 /// The baked-in framework definitions, parsed from the bundled TOML.
 const BUILTIN_FRAMEWORKS: &str = include_str!("frameworks.toml");
 
-/// One framework definition: typed inputs plus either a scalar score formula or
-/// a categorical classification.
+/// One scoring framework: typed inputs, plus either a `score` formula or a
+/// list of categories.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Framework {
-    /// Declared inputs, keyed by name (the names used in formulas/predicates).
+    /// Inputs by name. `score` and each category's `when` refer to them by
+    /// these names.
     pub inputs: BTreeMap<String, Input>,
-    /// Scalar score formula (evalexpr). Mutually exclusive with `categories`.
+    /// Arithmetic expression over the inputs that computes the score, such as
+    /// `impact * confidence * ease`. Cannot be combined with `category`.
     pub score: Option<String>,
-    /// Categorical classification. Mutually exclusive with `score`.
+    /// Categories to classify a task into. For any input values, exactly one
+    /// category's `when` must be true. Cannot be combined with `score`.
     #[serde(rename = "category")]
     pub categories: Vec<Category>,
 }
@@ -70,13 +73,14 @@ pub enum InputKind {
     Enum,
 }
 
-/// One categorical bucket: a predicate plus its representative score and display.
+/// One category: the expression that selects it, its score and its display.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct Category {
-    /// evalexpr predicate over the inputs selecting this category.
+    /// Boolean expression over the inputs. A task falls in this category
+    /// when it is true.
     pub when: String,
-    /// Representative score on the scale (drives banding and sort).
+    /// Score of a task in this category, used for bands and sorting.
     pub score: f64,
     /// Display label; falls back to empty when absent.
     pub label: Option<String>,

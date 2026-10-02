@@ -9,9 +9,9 @@ use serde::Deserialize;
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct GoConfig {
-    /// Editor command. A `{task}` token is replaced with the resolved file path;
-    /// without it the path is appended. Falls back to `$VISUAL`, then `$EDITOR`;
-    /// `go` errors when none is set (no `vi` floor — see the `go` command docs).
-    /// May carry arguments (split on whitespace).
+    /// Editor command. `mt go` replaces a `{task}` token with the task's file
+    /// path, or appends the path when there is no token. Falls back to
+    /// `$VISUAL`, then `$EDITOR`; `mt go` fails when none is set. May carry
+    /// arguments, split on whitespace.
     pub editor: Option<String>,
 }

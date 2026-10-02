@@ -9,10 +9,11 @@ use serde::Deserialize;
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FormatConfig {
-    /// Run typstyle over the Typst source `mt` writes (`add`, `flip`, `review`,
-    /// `recur`, `import`), so surgical edits and slot fills land in one canonical
-    /// shape. `true` by default; set `false` to keep writes as raw byte splices
-    /// (minimal diffs, at the cost of drift like stray body indentation).
+    /// Whether `mt` runs typstyle over the Typst source it writes (`add`,
+    /// `flip`, `review`, `recur`, `import`), so every write leaves the file in
+    /// one formatted shape. `true` by default. With `false`, `mt` changes only
+    /// the bytes it edits: diffs stay smaller, and stray body indentation can
+    /// build up.
     pub enabled: bool,
 }
 

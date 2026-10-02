@@ -45,9 +45,9 @@ pub fn config_schema_json() -> String {
         map.insert("title".to_owned(), "MindTape project configuration".into());
         map.insert(
             "description".to_owned(),
-            "Schema for `.mindtape/config.toml`, MindTape's per-project \
-             configuration. MindTape is a white-list: every section is optional \
-             and inherits the shipped floor when omitted."
+            "Schema for `.mindtape/config.toml`, the per-project MindTape \
+             configuration. Every section is optional; an omitted section takes \
+             the shipped defaults."
                 .into(),
         );
     }
@@ -130,8 +130,8 @@ impl JsonSchema for DensityUnit {
 
     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
-            "description": "Unit granularity a `density` content assert is measured over. \
-                Defaults to `section`.",
+            "description": "Unit a `density` assert counts matches in: `section` \
+                (the default), `paragraph` or `sentence`.",
             "type": "string",
             "enum": ["section", "paragraph", "sentence"]
         })
@@ -227,7 +227,9 @@ impl JsonSchema for HeaderAction {
 
     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
-            "description": "The shape of a body-header rule.",
+            "description": "What a heading rule checks: `require`, `forbid` or \
+                `unique` over `path`, `order` of `before` and `after`, or an \
+                `allowlist` of headings.",
             "type": "string",
             "enum": ["require", "forbid", "unique", "order", "allowlist"]
         })

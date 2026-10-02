@@ -169,7 +169,7 @@
     },
     "Category": {
       "additionalProperties": false,
-      "description": "One categorical bucket: a predicate plus its representative score and display.",
+      "description": "One category: the expression that selects it, its score and its display.",
       "properties": {
         "color": {
           "default": null,
@@ -197,13 +197,13 @@
         },
         "score": {
           "default": 0.0,
-          "description": "Representative score on the scale (drives banding and sort).",
+          "description": "Score of a task in this category, used for bands and sorting.",
           "format": "double",
           "type": "number"
         },
         "when": {
           "default": "",
-          "description": "evalexpr predicate over the inputs selecting this category.",
+          "description": "Boolean expression over the inputs. A task falls in this category\nwhen it is true.",
           "type": "string"
         }
       },
@@ -257,7 +257,7 @@
       "properties": {
         "when": {
           "default": null,
-          "description": "Whether this column renders, as a condition expression — the same\ngrammar `[[ls.rules]]` uses (`tty()`, `format()`, `env()`,\n`on_branch()`, `now()`, `weekday()`, `true` / `false`), plus the four\nlisting predicates only a column resolution can answer: `nonempty()`,\n`contested()`, `named()`, `blocked()`.\n\nAbsent means the column never renders. The embedded floor carries one\nper column, so an absent `when` is a column the project deleted from\nthe floor rather than a column awaiting a built-in default.",
+          "description": "Condition under which this column renders. It takes the `[[ls.rules]]`\ncondition grammar (`tty()`, `format()`, `env()`, `on_branch()`,\n`now()`, `weekday()`, `true`, `false`) plus four listing predicates:\n`nonempty()`, `contested()`, `named()` and `blocked()`. Absent means\nthe column never renders.",
           "type": [
             "string",
             "null"
@@ -555,7 +555,7 @@
       "type": "object"
     },
     "DensityUnit": {
-      "description": "Unit granularity a `density` content assert is measured over. Defaults to `section`.",
+      "description": "Unit a `density` assert counts matches in: `section` (the default), `paragraph` or `sentence`.",
       "enum": [
         "section",
         "paragraph",
@@ -569,11 +569,11 @@
       "properties": {
         "breadcrumb-root": {
           "default": false,
-          "description": "Fold the root name into the breadcrumb chain (`mt`, `mt:backend`, …).",
+          "description": "Whether breadcrumb tags start with the root name (`mt`, `mt:backend`,\n…).",
           "type": "boolean"
         },
         "collect": {
-          "description": "Active collectors; both may run at once (union, dedupe).",
+          "description": "Collectors to run. Both may run at once; their tags are merged\nwithout duplicates.",
           "items": {
             "$ref": "#/$defs/Collector"
           },
@@ -615,7 +615,7 @@
           "type": "array"
         }
       ],
-      "description": "Per-root derivation switch: a bool, a single file glob, or a list of globs.\nA glob gates which files under the root get derivation (matched against the\npath relative to the root). `true`/`false` enable or disable wholesale."
+      "description": "Per-root tag derivation: a bool, a file glob, or a list of globs. `true` or\n`false` turns derivation on or off for every file under the root. A glob\nturns it on only for files whose path, relative to the root, matches."
     },
     "DictCase": {
       "description": "How a compiled dictionary compares a lookup against its entries.",
@@ -716,11 +716,11 @@
     },
     "FlipAction": {
       "additionalProperties": false,
-      "description": "One action of a `[[on.flip]]` entry.\n\nExactly one of `show`, `list`, or `run` must be set, OR `gate = true` with\nno `run` at all — the three kinds share one flat TOML shape so a mistyped\nor conflicting entry surfaces as a clear config error instead of an opaque\nparse failure.",
+      "description": "One action of an `[[on.flip]]` entry. Set exactly one of `show`, `list`\nand `run`, or set `gate = true` with no `run`.",
       "properties": {
         "gate": {
           "default": false,
-          "description": "Whether a non-zero exit from `run` refuses the flip, or — with no `run`\nat all — refuses unconditionally. `run`-only (or run-less-gate-only).",
+          "description": "Whether a non-zero exit from `run` refuses the flip. With no `run`, the\ngate refuses every flip the entry's `when` matches. Applies to a `run`\naction or a gate with no `run`.",
           "type": "boolean"
         },
         "list": {
@@ -733,7 +733,7 @@
         },
         "message": {
           "default": null,
-          "description": "Explanation printed when a `run` command exits non-zero, or a run-less\ngate refuses.",
+          "description": "Explanation printed when `run` exits non-zero, or when a gate with no\n`run` refuses the flip.",
           "type": [
             "string",
             "null"
@@ -741,7 +741,7 @@
         },
         "run": {
           "default": null,
-          "description": "`{ run = \"command\" }` — execute a command through the platform shell\n(`sh -c`; `cmd /C` on Windows). Optional on a gating action: `gate =\ntrue` with no `run` refuses the flip unconditionally whenever `when`\nmatches, with no command to run.",
+          "description": "`{ run = \"command\" }` — run a command through the platform shell\n(`sh -c`, or `cmd /C` on Windows). A gating action may omit it; then\nthe gate refuses the flip whenever the entry's `when` matches.",
           "type": [
             "string",
             "null"
@@ -791,7 +791,7 @@
       "properties": {
         "enabled": {
           "default": true,
-          "description": "Run typstyle over the Typst source `mt` writes (`add`, `flip`, `review`,\n`recur`, `import`), so surgical edits and slot fills land in one canonical\nshape. `true` by default; set `false` to keep writes as raw byte splices\n(minimal diffs, at the cost of drift like stray body indentation).",
+          "description": "Whether `mt` runs typstyle over the Typst source it writes (`add`,\n`flip`, `review`, `recur`, `import`), so every write leaves the file in\none formatted shape. `true` by default. With `false`, `mt` changes only\nthe bytes it edits: diffs stay smaller, and stray body indentation can\nbuild up.",
           "type": "boolean"
         }
       },
@@ -799,10 +799,10 @@
     },
     "Framework": {
       "additionalProperties": false,
-      "description": "One framework definition: typed inputs plus either a scalar score formula or\na categorical classification.",
+      "description": "One scoring framework: typed inputs, plus either a `score` formula or a\nlist of categories.",
       "properties": {
         "category": {
-          "description": "Categorical classification. Mutually exclusive with `score`.",
+          "description": "Categories to classify a task into. For any input values, exactly one\ncategory's `when` must be true. Cannot be combined with `score`.",
           "items": {
             "$ref": "#/$defs/Category"
           },
@@ -812,12 +812,12 @@
           "additionalProperties": {
             "$ref": "#/$defs/Input"
           },
-          "description": "Declared inputs, keyed by name (the names used in formulas/predicates).",
+          "description": "Inputs by name. `score` and each category's `when` refer to them by\nthese names.",
           "type": "object"
         },
         "score": {
           "default": null,
-          "description": "Scalar score formula (evalexpr). Mutually exclusive with `categories`.",
+          "description": "Arithmetic expression over the inputs that computes the score, such as\n`impact * confidence * ease`. Cannot be combined with `category`.",
           "type": [
             "string",
             "null"
@@ -832,7 +832,7 @@
       "properties": {
         "editor": {
           "default": null,
-          "description": "Editor command. A `{task}` token is replaced with the resolved file path;\nwithout it the path is appended. Falls back to `$VISUAL`, then `$EDITOR`;\n`go` errors when none is set (no `vi` floor — see the `go` command docs).\nMay carry arguments (split on whitespace).",
+          "description": "Editor command. `mt go` replaces a `{task}` token with the task's file\npath, or appends the path when there is no token. Falls back to\n`$VISUAL`, then `$EDITOR`; `mt go` fails when none is set. May carry\narguments, split on whitespace.",
           "type": [
             "string",
             "null"
@@ -859,7 +859,7 @@
       "type": "object"
     },
     "HeaderAction": {
-      "description": "The shape of a body-header rule.",
+      "description": "What a heading rule checks: `require`, `forbid` or `unique` over `path`, `order` of `before` and `after`, or an `allowlist` of headings.",
       "enum": [
         "require",
         "forbid",
@@ -896,7 +896,7 @@
     },
     "HeaderRuleConfig": {
       "additionalProperties": false,
-      "description": "One entry in `[[tasks.body.headers.rules]]`.\n\n`action` selects the rule shape and which fields apply:\n- `require` / `forbid` / `unique` — cardinality over `path`.\n- `order` — `before` headings must precede `after` headings.\n- `allowlist` — closed-world: under `scope` (or top-level when omitted), only\n  `allowed` headings are permitted.",
+      "description": "One entry in `[[tasks.body.headers.rules]]`.\n\n`action` selects what the rule checks and which fields apply.\n- `require` / `forbid` / `unique` — how many headings `path` matches.\n- `order` — `before` headings must precede `after` headings.\n- `allowlist` — under `scope` (the top level when omitted), only `allowed`\n  headings may appear.",
       "properties": {
         "action": {
           "$ref": "#/$defs/HeaderAction",
@@ -939,7 +939,7 @@
           ]
         },
         "path": {
-          "description": "Path through the heading tree (cardinality actions).",
+          "description": "Path through the heading tree (`require`, `forbid`, `unique`).",
           "items": {
             "$ref": "#/$defs/HeaderPathSegment"
           },
@@ -1097,7 +1097,7 @@
       ]
     },
     "Legend": {
-      "description": "The status legend: an ordered, displayable vocabulary.\n\nEach entry binds a value to optional display attributes (glyph, colour,\nlabel) plus the `terminal` flag. The legend defines the legal status\nvalues, their lifecycle order, and how each renders. An empty legend is\nunconstrained, though omitting `[[tasks.status]]` entirely still inherits\n`MindTape`'s shipped six-value legend.",
+      "description": "The status legend: the legal status values, in lifecycle order.\n\nEach entry gives a value its glyph, colour, label and `terminal` flag. An\nempty legend (`status = []`) accepts any status. Omitting\n`[[tasks.status]]` takes the shipped six-status legend.",
       "items": {
         "$ref": "#/$defs/LegendEntry"
       },
@@ -1133,16 +1133,16 @@
         },
         "note": {
           "$ref": "#/$defs/NoteRule",
-          "description": "Note requirement for a task landing in this status: whether the change\nmust (`required`), may (`optional`, the default), or must not\n(`forbidden`) carry a note. Set per status rather than legend-wide, so\na project can demand a note for statuses with no automated check (e.g.\n`blocked`, `failed`) while leaving others unconstrained."
+          "description": "Whether a move into this status needs a note: `required` or\n`optional` (the default). With `required`, `mt flip` refuses the move\nwithout `-m`, and `mt check` flags a task here with no note.\n`forbidden` is accepted but not enforced for a status."
         },
         "terminal": {
           "default": false,
-          "description": "Whether this value ends a task; required fields relax once terminal.",
+          "description": "Whether this status ends a task. The `terminal` filter matches tasks in\nit, and `mt` does not check their tags or estimate units.",
           "type": "boolean"
         },
         "to": {
           "default": [],
-          "description": "Allowed next statuses when leaving this one — the outgoing edges of the\ntransition graph. Empty on every entry keeps the legend any-to-any\n(unconstrained). Once any entry declares `to`, transitions are enforced\nand an empty `to` marks a sink: nothing out but a same-status re-stamp.\nA reopen edge is just a terminal (or any) state naming its target here.",
+          "description": "Statuses a task may move to from this one. While no entry sets `to`,\nany move is allowed. Once any entry sets it, `mt flip` refuses a move\nthe legend does not list, and an entry with no `to` allows only a\nsame-status re-stamp. A terminal status reopens by listing the status\nto reopen into.",
           "items": {
             "type": "string"
           },
@@ -1150,12 +1150,12 @@
         },
         "unblocked": {
           "default": false,
-          "description": "Whether entering this status requires an unblocked task: `mt flip`\nrefuses the move while any direct blocking-kind target is unfinished\n(`--force` overrides), and `mt check` warns about a task already here\nwhile blocked. Off by default; set it where work starts or finishes, never\non the statuses blocked work must still reach (`cancelled`, `failed`).",
+          "description": "Whether a task must be unblocked to enter this status. `mt flip`\nrefuses the move while a direct blocking target is unfinished, and\n`--force` overrides. On a terminal status, every child must be\nfinished too. `mt check` warns about a blocked task already here. Off\nby default. Set it where work starts or finishes, and leave it off\nstatuses that blocked work must still reach, such as `cancelled`.",
           "type": "boolean"
         },
         "value": {
           "default": "",
-          "description": "The value this entry describes (e.g. a status name).",
+          "description": "The status name, as written in a task's `status:` field.",
           "type": "string"
         }
       },
@@ -1163,21 +1163,21 @@
     },
     "LinkKind": {
       "additionalProperties": false,
-      "description": "`[[tasks.links.kinds]]` — one project/consumer-declared custom edge kind.",
+      "description": "`[[tasks.links.kinds]]` — one custom link kind.",
       "properties": {
         "acyclic": {
           "default": false,
-          "description": "Whether edges of this kind must stay acyclic. Ignored unless `validate`\nis `local-task-path` — there is no cycle without a task-graph edge.",
+          "description": "Whether edges of this kind must not form a cycle. Applies only when\n`validate` is `local-task-path`, because only edges between tasks can\nform one.",
           "type": "boolean"
         },
         "blocking": {
           "default": false,
-          "description": "Whether edges of this kind gate readiness. Ignored unless `validate` is\n`local-task-path` — a target outside the backlog is not a task to wait on.",
+          "description": "Whether an unfinished target keeps the task from being ready. Applies\nonly when `validate` is `local-task-path`, because only a task can be\nunfinished.",
           "type": "boolean"
         },
         "max": {
           "default": null,
-          "description": "Cardinality cap; `None` = unbounded.",
+          "description": "Most edges of this kind one task may carry. Absent means no limit.",
           "format": "uint32",
           "minimum": 0,
           "type": [
@@ -1196,7 +1196,7 @@
         },
         "regex": {
           "default": null,
-          "description": "Pattern for `validate = \"regex\"`: required for that validator, and\nrejected for every other one. A missing or uncompilable pattern is a\nconfig error, never a silently permissive kind.",
+          "description": "Regex a target must match when `validate = \"regex\"`. That validator\nrequires it, and every other validator rejects it. A missing or invalid\npattern is a config error.",
           "type": [
             "string",
             "null"
@@ -1204,17 +1204,17 @@
         },
         "validate": {
           "$ref": "#/$defs/TargetValidator",
-          "description": "What shape this kind's targets take. Defaults to `local-task-path`,\nwhich is exactly the historical behaviour (a stem resolved against the\nloaded tasks); any other value declares the targets to be artifacts\noutside the backlog — a commit, a pull request, a build."
+          "description": "What this kind's targets are. The default, `local-task-path`, is a\ntask stem. Any other value makes the targets something outside the\nbacklog, such as a commit, a pull request or a build."
         }
       },
       "type": "object"
     },
     "LinksConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.links]` — the typed-edge kind registry.",
+      "description": "`[tasks.links]` — the link kinds a task's `links:` edges may use.",
       "properties": {
         "kinds": {
-          "description": "User-declared custom edge kinds, layered over the immutable built-ins.",
+          "description": "Custom link kinds, added to the built-in ones. A built-in kind cannot\nbe redefined.",
           "items": {
             "$ref": "#/$defs/LinkKind"
           },
@@ -1411,7 +1411,7 @@
       "oneOf": [
         {
           "const": "required",
-          "description": "A non-empty note is mandatory (the `related` escape hatch).",
+          "description": "A non-empty note is required, as on the built-in `related` kind.",
           "type": "string"
         },
         {
@@ -1613,7 +1613,7 @@
     },
     "RecurConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.recur]` — the recurring-tasks feature gate and policy floor.",
+      "description": "`[tasks.recur]` — whether recurring tasks are enabled, and the values a\n`recur` field may take.",
       "properties": {
         "anchors": {
           "default": [
@@ -1643,14 +1643,14 @@
         },
         "max-advance": {
           "default": 52,
-          "description": "Runaway cap: `mt recur --advance N` refuses `N` above this.",
+          "description": "Largest `N` that `mt recur --advance N` accepts.",
           "format": "uint32",
           "minimum": 0,
           "type": "integer"
         },
         "rrule": {
           "default": false,
-          "description": "Whether the `rrule(...)` escape hatch is accepted. Off by default;\nalso requires `MindTape` to be built with the `rrule` cargo feature —\nmissing either gate rejects an authored `rrule(...)` with a clear\nerror message.",
+          "description": "Whether a `recur` field may use `rrule(...)`. Off by default. `mt` must\nalso be built with the `rrule` cargo feature; without both, `mt`\nrejects an `rrule(...)` with an error.",
           "type": "boolean"
         },
         "units": {
@@ -1686,7 +1686,7 @@
       "properties": {
         "rename": {
           "default": null,
-          "description": "Move the retired task file into a sibling folder of this name (e.g. `.archive`), omitted → file stays.",
+          "description": "Move the retired task file into a sibling folder of this name, such as\n`.archive`. Omitted keeps the file where it is.",
           "type": [
             "string",
             "null"
@@ -1730,7 +1730,7 @@
       "type": "object"
     },
     "RmStrategy": {
-      "description": "How `rm` handles inbound references when the git-pinned SWHID tombstone rewrite is unavailable.",
+      "description": "How `mt rm` handles links from other tasks to a removed task.",
       "oneOf": [
         {
           "const": "git-tombstone",
@@ -1756,7 +1756,7 @@
     },
     "Role": {
       "additionalProperties": false,
-      "description": "`[[roles]]` — one role name an actor can hold. Identity-only: the role\ncarries no payload; a reader's harness keys its own config by role name.",
+      "description": "`[[roles]]` — one role name an actor can hold. A role carries no settings;\na harness keys its own config by role name.",
       "properties": {
         "name": {
           "description": "Unique role name.",
@@ -1781,7 +1781,7 @@
               "type": "null"
             }
           ],
-          "description": "Per-root derivation switch. `None` inherits `[tasks.derive-tags] enabled`."
+          "description": "Tag derivation for this root. Absent takes `[tasks.derive-tags] enabled`."
         },
         "name": {
           "default": null,
@@ -1810,7 +1810,7 @@
           "description": "Full form: `{ path, name, derive-tags }`."
         }
       ],
-      "description": "One `[[tasks.roots]]` entry: a bare path string, or a table with a display\nname and per-root derivation rule. Both spellings coexist; `roots =\n[\"tasks\"]` and `[[tasks.roots]]` deserialize to the same `Vec<RootSpec>`."
+      "description": "One `[[tasks.roots]]` entry: a bare path string, or a table with a root\ntag name and a per-root tag derivation rule. A list may mix both forms."
     },
     "RuleSpec": {
       "additionalProperties": false,
@@ -1931,7 +1931,7 @@
         },
         {
           "const": "uuid",
-          "description": "A UUID, in any of the forms the `uuid` crate parses.",
+          "description": "A UUID, hyphenated, as 32 bare hex digits, in braces, or with a\n`urn:uuid:` prefix.",
           "type": "string"
         },
         {
@@ -1941,7 +1941,7 @@
         },
         {
           "const": "any",
-          "description": "Anything non-empty — the deliberate opt-out.",
+          "description": "Any non-empty text, with no shape check.",
           "type": "string"
         }
       ]
@@ -2117,7 +2117,7 @@
   "$id": "https://raw.githubusercontent.com/mlavrinenko/mindtape/main/schema/config.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Schema for `.mindtape/config.toml`, MindTape's per-project configuration. MindTape is a white-list: every section is optional and inherits the shipped floor when omitted.",
+  "description": "Schema for `.mindtape/config.toml`, the per-project MindTape configuration. Every section is optional; an omitted section takes the shipped defaults.",
   "properties": {
     "actors": {
       "description": "The project's actor registry (`[[actors]]`): named workers (people and\nlanguage models) that `assignee:` values may reference.",

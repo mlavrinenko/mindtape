@@ -7,7 +7,7 @@
 
 use serde::Deserialize;
 
-/// How `rm` handles inbound references when the git-pinned SWHID tombstone rewrite is unavailable.
+/// How `mt rm` handles links from other tasks to a removed task.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum RmStrategy {
@@ -40,6 +40,7 @@ pub struct RmConfig {
 pub struct RetireConfig {
     /// The terminal status the retired task flips to; defaults to the legend's first terminal status (an error if the legend declares none).
     pub status: Option<String>,
-    /// Move the retired task file into a sibling folder of this name (e.g. `.archive`), omitted → file stays.
+    /// Move the retired task file into a sibling folder of this name, such as
+    /// `.archive`. Omitted keeps the file where it is.
     pub rename: Option<String>,
 }

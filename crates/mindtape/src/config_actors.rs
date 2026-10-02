@@ -39,8 +39,8 @@ pub enum ActorKind {
     Llm,
 }
 
-/// `[[roles]]` — one role name an actor can hold. Identity-only: the role
-/// carries no payload; a reader's harness keys its own config by role name.
+/// `[[roles]]` — one role name an actor can hold. A role carries no settings;
+/// a harness keys its own config by role name.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Role {

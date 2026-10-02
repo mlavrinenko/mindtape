@@ -9,13 +9,11 @@ use serde::Deserialize;
 
 use crate::link::NoteRule;
 
-/// The status legend: an ordered, displayable vocabulary.
+/// The status legend: the legal status values, in lifecycle order.
 ///
-/// Each entry binds a value to optional display attributes (glyph, colour,
-/// label) plus the `terminal` flag. The legend defines the legal status
-/// values, their lifecycle order, and how each renders. An empty legend is
-/// unconstrained, though omitting `[[tasks.status]]` entirely still inherits
-/// `MindTape`'s shipped six-value legend.
+/// Each entry gives a value its glyph, colour, label and `terminal` flag. An
+/// empty legend (`status = []`) accepts any status. Omitting
+/// `[[tasks.status]]` takes the shipped six-status legend.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(transparent)]
 pub struct Legend {
@@ -27,7 +25,7 @@ pub struct Legend {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct LegendEntry {
-    /// The value this entry describes (e.g. a status name).
+    /// The status name, as written in a task's `status:` field.
     pub value: String,
     /// Optional decorative glyph (emoji or ASCII).
     pub glyph: Option<String>,
@@ -35,25 +33,26 @@ pub struct LegendEntry {
     pub color: Option<String>,
     /// Optional display label; falls back to `value`.
     pub label: Option<String>,
-    /// Whether this value ends a task; required fields relax once terminal.
+    /// Whether this status ends a task. The `terminal` filter matches tasks in
+    /// it, and `mt` does not check their tags or estimate units.
     pub terminal: bool,
-    /// Allowed next statuses when leaving this one — the outgoing edges of the
-    /// transition graph. Empty on every entry keeps the legend any-to-any
-    /// (unconstrained). Once any entry declares `to`, transitions are enforced
-    /// and an empty `to` marks a sink: nothing out but a same-status re-stamp.
-    /// A reopen edge is just a terminal (or any) state naming its target here.
+    /// Statuses a task may move to from this one. While no entry sets `to`,
+    /// any move is allowed. Once any entry sets it, `mt flip` refuses a move
+    /// the legend does not list, and an entry with no `to` allows only a
+    /// same-status re-stamp. A terminal status reopens by listing the status
+    /// to reopen into.
     pub to: Vec<String>,
-    /// Note requirement for a task landing in this status: whether the change
-    /// must (`required`), may (`optional`, the default), or must not
-    /// (`forbidden`) carry a note. Set per status rather than legend-wide, so
-    /// a project can demand a note for statuses with no automated check (e.g.
-    /// `blocked`, `failed`) while leaving others unconstrained.
+    /// Whether a move into this status needs a note: `required` or
+    /// `optional` (the default). With `required`, `mt flip` refuses the move
+    /// without `-m`, and `mt check` flags a task here with no note.
+    /// `forbidden` is accepted but not enforced for a status.
     pub note: NoteRule,
-    /// Whether entering this status requires an unblocked task: `mt flip`
-    /// refuses the move while any direct blocking-kind target is unfinished
-    /// (`--force` overrides), and `mt check` warns about a task already here
-    /// while blocked. Off by default; set it where work starts or finishes, never
-    /// on the statuses blocked work must still reach (`cancelled`, `failed`).
+    /// Whether a task must be unblocked to enter this status. `mt flip`
+    /// refuses the move while a direct blocking target is unfinished, and
+    /// `--force` overrides. On a terminal status, every child must be
+    /// finished too. `mt check` warns about a blocked task already here. Off
+    /// by default. Set it where work starts or finishes, and leave it off
+    /// statuses that blocked work must still reach, such as `cancelled`.
     pub unblocked: bool,
 }
 

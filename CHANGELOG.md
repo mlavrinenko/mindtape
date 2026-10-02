@@ -548,10 +548,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Config schema descriptions read as user prose.** Editor hovers over
   `.mindtape/config.toml` and the Configuration page's Sections table showed
-  Rust paths and rustdoc links, such as ``[`crate::config_packs`]``. Those
-  descriptions say what the key does and which values it takes, a test fails
-  on a Rust path or intra-doc link in any description, and the Sections table
-  renders backticks as code.
+  Rust paths and rustdoc links, such as ``[`crate::config_packs`]``, and two
+  described behaviour `mt` lacks: a status `note = "forbidden"` is not
+  enforced, and `terminal` does not relax required fields. Each description
+  says what the key does and which values it takes, a test fails on a Rust
+  path or intra-doc link in any description, and the Sections table renders
+  backticks as code.
 
 - **`mt link` finds a bare stem in another folder.** The stem became a sibling
   `<stem>.typ`, so a target one folder over was refused with a suggestion of

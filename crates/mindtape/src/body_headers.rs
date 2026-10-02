@@ -15,11 +15,11 @@ pub struct HeadersConfig {
 
 /// One entry in `[[tasks.body.headers.rules]]`.
 ///
-/// `action` selects the rule shape and which fields apply:
-/// - `require` / `forbid` / `unique` — cardinality over `path`.
+/// `action` selects what the rule checks and which fields apply.
+/// - `require` / `forbid` / `unique` — how many headings `path` matches.
 /// - `order` — `before` headings must precede `after` headings.
-/// - `allowlist` — closed-world: under `scope` (or top-level when omitted), only
-///   `allowed` headings are permitted.
+/// - `allowlist` — under `scope` (the top level when omitted), only `allowed`
+///   headings may appear.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct HeaderRuleConfig {
@@ -32,7 +32,7 @@ pub struct HeaderRuleConfig {
     /// Whether the target headings must exist, must not, or must be unique, or
     /// whether this is an `order`/`allowlist` rule.
     pub action: HeaderAction,
-    /// Path through the heading tree (cardinality actions).
+    /// Path through the heading tree (`require`, `forbid`, `unique`).
     #[serde(default)]
     pub path: Vec<HeaderPathSegment>,
     /// Path whose headings must come first (`order`).

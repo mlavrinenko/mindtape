@@ -9,9 +9,10 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-/// One `[[tasks.roots]]` entry: a bare path string, or a table with a display
-/// name and per-root derivation rule. Both spellings coexist; `roots =
-/// ["tasks"]` and `[[tasks.roots]]` deserialize to the same `Vec<RootSpec>`.
+/// One `[[tasks.roots]]` entry: a bare path string, or a table with a root
+/// tag name and a per-root tag derivation rule. A list may mix both forms.
+// `roots = ["tasks"]` and `[[tasks.roots]]` deserialize to the same
+// `Vec<RootSpec>`.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum RootSpec {
@@ -29,13 +30,13 @@ pub struct RootConfig {
     pub path: String,
     /// Tag emitted for the root itself. Defaults to the path's last segment.
     pub name: Option<String>,
-    /// Per-root derivation switch. `None` inherits `[tasks.derive-tags] enabled`.
+    /// Tag derivation for this root. Absent takes `[tasks.derive-tags] enabled`.
     pub derive_tags: Option<DeriveTags>,
 }
 
-/// Per-root derivation switch: a bool, a single file glob, or a list of globs.
-/// A glob gates which files under the root get derivation (matched against the
-/// path relative to the root). `true`/`false` enable or disable wholesale.
+/// Per-root tag derivation: a bool, a file glob, or a list of globs. `true` or
+/// `false` turns derivation on or off for every file under the root. A glob
+/// turns it on only for files whose path, relative to the root, matches.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(untagged)]
 pub enum DeriveTags {
@@ -53,13 +54,15 @@ pub enum DeriveTags {
 pub struct DeriveConfig {
     /// Default derivation switch for roots that set no `derive-tags` of their own.
     pub enabled: bool,
-    /// Active collectors; both may run at once (union, dedupe).
+    /// Collectors to run. Both may run at once; their tags are merged
+    /// without duplicates.
     pub collect: Vec<Collector>,
     /// Breadcrumb join separator.
     pub separator: String,
     /// Normalise folder names to tag form.
     pub slugify: bool,
-    /// Fold the root name into the breadcrumb chain (`mt`, `mt:backend`, …).
+    /// Whether breadcrumb tags start with the root name (`mt`, `mt:backend`,
+    /// …).
     pub breadcrumb_root: bool,
 }
 

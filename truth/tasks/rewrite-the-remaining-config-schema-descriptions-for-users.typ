@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("mt", "docs"),
-  estimate: (src-files: 14),
+  estimate: (src-files: 15),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 2),
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
@@ -55,7 +55,7 @@
 - `crates/mindtape/src/config_hooks.rs`: `[[on.flip]]` actions.
 - `crates/mindtape/src/config_ls_columns.rs`: `[ls.columns.<name>] when`.
 - `crates/mindtape/src/config_schema.rs`: the root description and the hand-written schemas.
-- `crates/mindtape/src/body_headers.rs`, `config_rm.rs`, `config_go.rs`, `config_actors.rs`, `recur.rs`: wording.
+- `crates/mindtape/src/body_headers.rs`, `config_rm.rs`, `config_go.rs`, `config_actors.rs`, `config_format.rs`, `recur.rs`: wording.
 - `schema/config.schema.json`: regenerated.
 
 
