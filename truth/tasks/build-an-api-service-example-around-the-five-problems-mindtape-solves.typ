@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 3),
   links: depends-on(
     "accept-delete-group-and-hyphenated-verbs-in-the-imperative-title-rule.typ",
   )
@@ -55,6 +55,9 @@
 - `examples/api-service/.mindtape/config.toml`, new: the config, with `docs:slice` markers per solver.
 - `examples/api-service/scripts/test`, new: a stub that prints a failing test name and exits 1, so the gate refusal is the same on every run.
 - `examples/api-service/tasks/*.typ`, new: the three tasks, with `docs:slice` markers.
+- `examples/api-service/.mindtape/templates/task.typ`, new: an `mt add` template with a slot per required section. The built-in template has no sections, so every `mt add` under the pack would be refused.
+- `Justfile`: the config in `TOML_FMT_PATHS`, because `just check-gate-drift` fails on a TOML file the list leaves out.
+- `Justfile` and `.mmz/config.yaml`: the tasks and the template in `TYPST_FMT_PATHS` and the `typ-fmt` scope, so `just fmt-check` keeps them formatted.
 
 
 == Rollback

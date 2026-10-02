@@ -1,0 +1,5 @@
+#!/bin/sh
+# A stub for the team's test suite. It always fails with the same line, so the
+# `mt done` gate in .mindtape/config.toml refuses the same way on every run.
+echo "test auth::session::tests::refresh_rejects_expired_session ... FAILED"
+exit 1

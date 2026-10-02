@@ -1,0 +1,55 @@
+#:schema ../../../schema/config.schema.json
+# A backend team's backlog. Each block below solves one problem.
+
+# Require a task shape: Problem, TO-BE, Changes and Out of scope in every task.
+# docs:slice api-service/require-a-task-shape
+extends = ["mindtape-tasks"]
+# docs:end
+
+# One task at a time, in order: one task in wip, started after its dependencies.
+# docs:slice api-service/one-task-at-a-time
+tasks.status = [
+  { value = "proposed" },
+  { value = "wip", unblocked = true },
+  { value = "done", terminal = true, unblocked = true },
+]
+
+[[tasks.rules]]
+name = "one-wip"
+when = 'status == "wip"'
+assert = 'count(status == "wip") <= 1'
+message = "finish the task in progress before you start another"
+severity = "error"
+# docs:end
+
+# Split oversized tasks: a task estimated over 5 source files is refused.
+# docs:slice api-service/split-oversized-tasks
+[[tasks.rules]]
+name = "split-big-work"
+when = "!terminal"
+assert = "estimate.src-files <= 5"
+message = "split it into tasks of 5 source files or fewer"
+severity = "error"
+
+[tasks.estimate]
+units = ["src-files"]
+required = "!terminal"
+# docs:end
+
+# Gate done on your checks: `mt done` refuses while `scripts/test` fails.
+# docs:slice api-service/gate-done-on-checks
+[[on.flip]]
+when = 'into("done")'
+actions = [{ run = "scripts/test", gate = true }]
+# docs:end
+
+# Trace commits to tasks: each commit names its task in a `Refs:` trailer.
+# docs:slice api-service/trace-commits-to-tasks
+[commits]
+trailer = "Refs"
+# docs:end
+
+# Check the tasks against this checkout's prelude in lib/.
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"

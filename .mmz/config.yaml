@@ -92,6 +92,8 @@ scopes:
   typ-fmt:
     - "lib/**"
     - "truth/*.typ"
+    - "examples/api-service/tasks/**"
+    - "examples/api-service/.mindtape/templates/**"
     - "examples/learn-piano/tasks/**"
     - "examples/links/tasks/**"
     - "examples/recurring/tasks/**"
