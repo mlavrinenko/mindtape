@@ -13,7 +13,8 @@
 #
 #   - `mt <word> ...`: the word is a subcommand from `mt _cli --json` or a
 #     status verb. Every flag must exist on that command or be global. A quoted
-#     word is an argument, so a filter is never read as flags.
+#     word is an argument, so a filter is never read as flags. A leading
+#     `@name` right after `mt` is worktree sugar and is skipped.
 #   - `[a.b]` or `[[a.b]]`, optionally followed by a key: the path exists in
 #     schema/config.schema.json, and `[[...]]` is used exactly for an array of
 #     tables.
@@ -99,11 +100,11 @@ control() {
     cat >"$page" <<'EOF'
 Good: `mt ls 'status != "done"' --sort priority:desc -n 5`, `mt done x -m "why"`,
 `mt _cli --json`, `mt -w examples/minimal ls --json | mt import --dry-run`,
-`mt <cmd> --help`, `mt config show --origin`, `mt ls -in20`.
+`mt <cmd> --help`, `mt config show --origin`, `mt ls -in20`, `mt @name ls --json`.
 Good: `[[tasks.roots]]`, `[tasks.priority]`, `[views.<name>]`, `[tasks] roots`,
 `[ls.columns.assignee] when = 'true'`, `[[typst.local-packages]] path`,
 `tasks.estimate.units`, `[workspace.package] version`, `[overlay]`, `typst.toml`.
-Bad: `mt lss`, `mt ls --jsn`, `mt ls -x`, `mt config shw`.
+Bad: `mt lss`, `mt ls --jsn`, `mt ls -x`, `mt config shw`, `mt @name lsz`.
 Bad: `[tasks.priorty]`, `tasks.estimate.unit`, `[tasks.roots]`, `[[tasks.priority]]`,
 `[ls] hyperlinkz`, `[tasks.estimate.units]`. #raw("mt lsr")
 // `mt lsc` in a comment line
@@ -126,6 +127,7 @@ EOF
 `mt ls -x`: mt ls has no flag -x; valid: -i, -n, -v, -w
 `mt lsh`: no subcommand lsh; closest: ls
 `mt lsr`: no subcommand lsr; closest: ls
+`mt @name lsz`: no subcommand lsz; closest: ls
 `mt lss`: no subcommand lss; closest: ls
 `tasks.estimate.unit`: tasks.estimate has no key unit; closest: units
 EOF

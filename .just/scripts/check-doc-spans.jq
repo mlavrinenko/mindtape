@@ -77,7 +77,10 @@ def check_mt($w):
       else go($i + 1; $st)
       end
     end;
-  go(1; {path: "mt", specs: [], subs: [], skip: false});
+  # A leading `@name` is worktree sugar that mt rewrites to `-w <path>` before
+  # parsing, so the subcommand is the word after it.
+  go(if ($w[1] | startswith("@")) then 2 else 1 end;
+    {path: "mt", specs: [], subs: [], skip: false});
 
 def mt_findings:
   [splits("\\s+(?:\\||&&|;)\\s+")]

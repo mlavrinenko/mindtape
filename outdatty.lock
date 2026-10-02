@@ -93,8 +93,8 @@ groups:
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-prose.sh: b8c91bc0114a06238c093d702e643b5fe427283439b3b6e7a34297b4672f9252
       .just/scripts/check-doc-recipes.sh: 87eff1bf6f36d349ea618a5c3356abbd80f1437eaa28103dcce151ec697649c8
-      .just/scripts/check-doc-spans.jq: d98f5c66473d622c61e23c632bbf10ac3e1538850863fefb654f9e023c92d431
-      .just/scripts/check-doc-spans.sh: 763dd7fe3ae9bfb0546c1f31af207548ca246f06758a3fa3141b1bb405be4bdc
+      .just/scripts/check-doc-spans.jq: 58ecc3192c58ecd48d08b2e053571ae5290dc3fe289f43d26d201453dc954a07
+      .just/scripts/check-doc-spans.sh: 8ea58560fef945df58ee51dfad3f8a07e25663ffb608bafe076606afc8da0b0f
       .just/scripts/check-gate-drift.sh: 4ecba6d33a78dc6a0ee09cbf1e0c1c45d777be382dc531451acba6810eb2d1bb
       .just/scripts/check-secrets-manifest.sh: ff2bd2525d6465486c5576cbb8a2a8a7960767e08141346529fd68baf222e1b8
       .just/scripts/check-secrets.sh: 9fc40236aea059fba71ed2ad29f21ba25e5e399c14f4b960746717d7062e042c
