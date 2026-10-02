@@ -48,74 +48,15 @@
 # instead of two places (that line for membership, physical recipe position
 # for order) that discipline alone kept in sync.
 #
-# Each gate also carries a derived `command`: the recipe's own `.body` when
-# it is a single non-shebang line short enough to sit in a table cell, else
-# `null` — docs/src/contributing.typ falls back to `[doc(...)]` then. Fixes
-# the drift that started this task: CONTRIBUTING.md hand-quoted `cargo
-# clippy --all-targets -D warnings` while the Justfile had grown
-# `--workspace` and a `-q -- -D warnings` separator; reading `.body` back
-# instead of retyping it makes that drift impossible.
-#
-# `.body` is structured (one array per line, of string or `{{ VAR }}`
-# fragments — `[["variable","VAR"]]`); render_line renders both readably as
-# `{{ VAR }}`, the Justfile's own syntax, instead of dumping raw JSON.
-#
 # `assignments` folds in the Justfile's fmt path variables
 # (TOML_FMT_PATHS/TYPST_FMT_PATHS/JUST_FMT_PATHS) verbatim, so
-# docs/src/contributing.typ can render their real contents instead of
+# docs/src/contributing/gates.typ can render their real contents instead of
 # sending the reader to the Justfile — reusing $JUST_DUMP, never a second
 # `just --dump`. The selection is the `_FMT_PATHS` suffix the Justfile's own
 # grouping discipline gives every fmt list, not a name list, so a fifth
 # formatter's list (a shell formatter, say) lands in the artifact without an
 # edit here; CRAP_EXCLUDES is deliberately not carried — it is an exclude
 # list, not a fmt path list, and no doc renders it.
-
-def render_frag:
-  if type == "string" then .
-  else map(if .[0] == "variable" then "{{ " + .[1] + " }}"
-            else "{{ " + (.[0] // "expr") + " }}" end) | join("")
-  end;
-def render_line: map(render_frag) | join("");
-
-# Quotable = no shebang, exactly one body line, that line renders under 160
-# chars — comfortably above the longest one-line gate body today (docs-check,
-# 74 chars) with headroom for a future recipe to still qualify — and it is not
-# a bare script invocation.
-#
-# That last clause is why gate_command exists as more than a length check.
-# truth/tasks/extract-the-long-gate-recipe-bodies-into-scripts.typ moved six
-# multi-line shebang bodies into `.just/scripts/*.sh`, and every one of them
-# came back as a one-liner that QUALIFIES on the two rules above: the Command
-# column would have silently swapped six doc strings for `bash
-# .just/scripts/check-doc-facts.sh`, which tells a reader nothing the Gate
-# column has not already said. A body that only names a script is a pointer,
-# not a command — the same body, spelled where linecop can see it — so it
-# reports null and docs/src/contributing.typ falls back to `[doc(...)]`, and
-# extracting a body changes no rendered byte. is_script_invocation is
-# deliberately narrow: an interpreter word plus one `.sh` path and nothing
-# else. A body that runs a script WITH arguments still says something (which
-# arguments), so it stays quotable.
-def is_script_invocation:
-  test("^((bash|sh|zsh) +)?[A-Za-z0-9._/-]+[.]sh$");
-
-# `.shebang` still covers every script body after the five `#!/usr/bin/env
-# bash` recipes became `[script]` + `set script-interpreter`
-# (truth/tasks/adopt-the-script-attribute-for-the-shebang-recipes.typ). That
-# task predicted the opposite — "a `[script]` recipe may well report `shebang:
-# false`, which would make a single-line body quotable where it was not
-# before" — so this is the measurement, not the guess: on just 1.46 a recipe
-# carrying `[script]` dumps `shebang: true` exactly as a `#!` body did. The
-# field means "this body is a script", not "this body opens with `#!`", which
-# is why the conversion moved no rendered byte (check-dry, the only gate among
-# the five, reports null on both sides). A future single-line `[script]` gate
-# therefore falls back to `[doc(...)]` too; reading `.attributes` for the
-# `script` key is the change to make if one of those ever wants quoting.
-def gate_command:
-  if .shebang or (.body | length) != 1 then null
-  else (.body[0] | render_line) as $line
-    | if ($line | length) > 160 or ($line | is_script_invocation) then null
-      else $line end
-  end;
 
 # Every recipe object, top-level and module, flattened. Each recipe already
 # carries its own fully-qualified `namepath` (just's own dump computes it,
@@ -157,7 +98,7 @@ def mangle: gsub("::"; "-");
     | {
         gates: [$names[] as $n
           | $by_mangled[$n] as $r
-          | {name: $r.namepath, doc: $r.doc, command: ($r | gate_command)}],
+          | {name: $r.namepath}],
         assignments: (.assignments
           | with_entries(select(.key | test("_FMT_PATHS$")))
           | map_values(.value)),

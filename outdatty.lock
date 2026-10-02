@@ -68,8 +68,8 @@ groups:
     dependents:
       CHANGELOG.md: 54f677f05c0812a3756f17ac38f65ff59a4068a7e882424ba455fdff5591e927
       docs/src/agents.typ: 312eab3b443fc004d1b45b3aec683d32e05df7f0216a0e3b7f65104bbdd07ef1
-      docs/src/contributing.typ: 8657550069f12ebd2631bb8d769a438cd1c370bc2dba07170578ae04c3bbc093
-      docs/src/contributing/command-semantics.typ: ef5583a2dcd79fe59c64e04a9b54dcdf82d000c17aa7ecb9d96f6b7eab157a25
+      docs/src/contributing.typ: 8f112766a03cd14fee2b399bc2abe8e7885d22953707ef3738a0a8eeb9deca91
+      docs/src/contributing/command-semantics.typ: 85411a192024caab69e4e8ffc93583fd70985701a5237799eacb1db4369a2ec9
       docs/src/readme.typ: 7ba1ff3c4b553522d609390d302edc22e910d9a86a7b3ad6528a7db4b506f7a5
       docs/src/skill.typ: 1f4cbcc1114358854348be6cfe19c7d9a11736adad0e96d9cedbdca263b80f67
       www/content/cli.typ: 5b3ff34deca37a39fb59cd1af9a7df88975d78e4eeff2bad7bd2f58852f1dcd7
@@ -88,7 +88,7 @@ groups:
       .just/scripts/_script-reach.sh: e26594842a77ac58754ecc124fa82c6c2aba1f13aaa01abc0b4340f310556654
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
-      .just/scripts/check-doc-blocks.sh: 7f0e083c3541ddd0b4160010eb58f4bb8544335b621a6fc174374b8664892754
+      .just/scripts/check-doc-blocks.sh: 26c6887753163940ddb4556743475fd7edce9be7ab7cd86e7924f6bc18baf098
       .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-prose.sh: b8c91bc0114a06238c093d702e643b5fe427283439b3b6e7a34297b4672f9252
@@ -115,20 +115,20 @@ groups:
       .just/scripts/script-scope-check.sh: ea49ba3a92c1189c69282c34fb05ac4474c34f8b174be1611c9eff921e254969
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: aa53ebdb5b316a5539e6d8686b75122483c4ec4ba2fcbf8a031f15110d9ba4ca
+      Justfile: 22faa3109225240b28f6060866ad35b356336733ffbc3bc50f36f7a6539d0ffb
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: 312eab3b443fc004d1b45b3aec683d32e05df7f0216a0e3b7f65104bbdd07ef1
-      docs/src/contributing.typ: a367576d1e4c041cf94488dd8d3a22aecfccd4a7f2843fe1a2731fec1e2d72a0
-      docs/src/contributing/coverage-crap.typ: a2db609d84b9b87eff0006a17291c104dbd3ed2ca0183cdf3aa6be4a8fc31623
-      docs/src/contributing/crap-baseline.typ: 279e9e2dfcc2244d060dbe7be3bd76b6dce48c7905bc9a8b29a44e8a2435048a
-      docs/src/contributing/docs-site-build.typ: 3d52de8dbb28c5ede476db3ac9f648d1cdfe1b9622f8c15c0c61dfbe226ccd47
+      docs/src/contributing.typ: 8f112766a03cd14fee2b399bc2abe8e7885d22953707ef3738a0a8eeb9deca91
+      docs/src/contributing/coverage-crap.typ: 923a5e0a4cc271244e93a2eefc90b404fb08bd5cc14176529bc79e6dd3499bae
+      docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
+      docs/src/contributing/docs-site-build.typ: 1c238b4e341c292e425a06c09cc5b7d7487a4a0f703df2b7fb4cd7ad37bff1de
       docs/src/contributing/documentation.typ: e0c9f18d56efd134c514dd346e4b74fe5d2371600d92b0ca805131b08eb7d6b9
-      docs/src/contributing/example-projects.typ: 35f2285338379103e31a2c912520c139dadcdb3fa32414e81e6ce97a8f46f6d4
-      docs/src/contributing/gates.typ: 5120135f772bc8fab5893a17bd9efd87e89e32da2e22a78499f38dbc00498461
-      docs/src/contributing/mutation-testing.typ: dac292244687dbd706752d0090ac0856e2436518390c293c95fda97ced2862ae
-      docs/src/contributing/signal-sweep.typ: e3823d27dad67bdf15c6f2490372c0308eacade106b9cafd91cfb05975b6ab01
-      docs/src/contributing/windows.typ: 7390ab61d17abeb47613c70204defed1579d5574a9e5acd6224749cbcd5f59e7
+      docs/src/contributing/example-projects.typ: 0e2185418f3252a3ffe5779f545719b6da04b7b4387a751fb099198e223bb8fd
+      docs/src/contributing/gates.typ: 9d419593e4d836304e6c45a47207579a7277e3b37a4c6bfe012380150ddb0b48
+      docs/src/contributing/mutation-testing.typ: 47d36b9534266f15322c41b37158b943ce28b87236af6b514d1d6bfcfbb86316
+      docs/src/contributing/signal-sweep.typ: 6377402d346c38c13ccb9cdc7e5b10913c5c7123dccd47bf6767ca0727a802fe
+      docs/src/contributing/windows.typ: 7e3c201b3512642d8fa12b1ee5264dbb9e36d59ccf38aded06f4c74366c57491
   prelude-docs:
     source:
       lib/prelude.typ: 2e99b69589c8842bb2fc36461828ee2fdb77a39da3e975358e378b25b924ba06

@@ -349,147 +349,21 @@ groups:
       - CHANGELOG.md
       - docs/src/skill.typ
 
-  # Dev tooling and contributor conventions track the files that define them.
-  # docs/src/agents.typ (not AGENTS.md — generated from it). Likewise
-  # docs/src/contributing.typ (not CONTRIBUTING.md): its Quality Gates table
-  # now reads `gates.json` for the sub-gate list and row order, so a gate
-  # added to or removed from `just check` no longer needs a dev-docs
-  # reconcile — it fails `just docs::md` (missing Tool prose) or drops off the
-  # table on its own instead. What still makes docs/src/contributing.typ a
-  # dependent here is everything else it restates by hand: `just check-full`,
-  # `just cover`/`just crap` and their thresholds, `just nix-build`, `just
-  # release`, `just ask-refactoring`, `just outdatty-update`, and the
-  # `MINDTAPE_GATE_SCOPE` commit path — none of those are `just check`
-  # sub-gates, so none are in `gates.json`.
+  # Dev tooling and the contributor docs that describe it. A source is a file
+  # whose behaviour a dependent restates by hand: the two justfiles, the dev
+  # shell, nextest's config, and the scripts under .just/scripts/ that a doc
+  # describes. No file in www/generated/ carries those facts, so editing a
+  # source means reviewing every dependent.
   #
-  # The contributor deep dives are dependents for the same reason
-  # docs/src/contributing.typ is, and were missed when they were ports of
-  # hand-written Markdown: each describes recipes defined in the Justfile and
-  # tools pinned in flake.nix by hand (`just check-windows` and the mingw
-  # cross shell, `just cover`/`just crap` and their thresholds, `just
-  # mutants-diff`, `just ask-refactoring`, the `MINDTAPE_GATE_SCOPE` commit
-  # path). None of that is derived — `gates.json` carries only the sub-gates
-  # `just check` itself declares, and every recipe these five discuss is
-  # deliberately NOT one of those — so a renamed or re-flagged recipe
-  # silently rots them. The three pages a size split later carved out
-  # (example-projects, crap-baseline, docs-site-build) join them by the same
-  # test: each restates hand-written Justfile/flake.nix behaviour.
+  # The dependents are docs/src sources, never their rendered Markdown,
+  # because a fix is made in the source. docs/src/contributing.typ's gate
+  # table reads gates.json, so adding or removing a gate needs no review here.
+  # The rest of that file, and every deep dive, describes recipes and scripts
+  # by hand.
   #
-  # .just/docs.just is a source alongside Justfile, not just Justfile alone:
-  # the `docs` module (truth/tasks/split-the-justfile-into-modules.typ) moved
-  # six recipe bodies out of Justfile into their own file, and a body edit
-  # there is exactly the kind of change this group exists to catch — a recipe
-  # body moving out of the Justfile into a module file must not escape the
-  # drift gate. The scripts below are here for that same reason, one step
-  # further out: each is a recipe body that used to sit inline in one of the
-  # two justfiles above, and a body extracted into a script escapes the gate
-  # exactly the way a body moved into a module file would. The first six are
-  # the gate bodies (truth/tasks/extract-the-long-gate-recipe-bodies-into-
-  # scripts.typ), plus arg-pattern-check.sh — added the same way, later, under
-  # truth/tasks/validate-recipe-arguments-with-the-arg-attribute.typ, whose
-  # bad/good values and the eject-default rationale are restated by hand in
-  # www/utils/gate-notes.typ; the eight after the gate bodies are the
-  # coverage, mutation, install and release bodies (truth/tasks/extract-the-
-  # coverage-and-release-recipe-bodies-into-scripts.typ), and that second wave
-  # is the one this group most needs —
-  # docs/src/contributing/coverage-crap.typ and
-  # docs/src/contributing/mutation-testing.typ restate those bodies' flags and
-  # thresholds by hand, so a `--fail-under-lines`, `--threshold` or exclude
-  # edit inside a script is exactly the drift they would otherwise rot on.
-  # Listed one by one rather than as `.just/scripts/*.sh`, so a new script is
-  # an explicit decision to track it — the directory is recipe bodies by
-  # construction today, but a helper that no doc describes would fire this
-  # group for nothing.
-  #
-  # The last two are the same decision applied one step further out again.
-  # positional-args-check.sh is a self-test rather than an extracted body, and
-  # is tracked for arg-pattern-check.sh's reason: gate-notes.typ restates by
-  # hand what it asserts. _mutants-env.sh is the sharper case — it is not a
-  # recipe body at all, it is the `CARGO_MUTANTS_JOBS`/`RUSTFLAGS` preamble
-  # factored OUT of mutants.sh and mutants-diff.sh, both tracked above. Those
-  # speed knobs are restated by hand in docs/src/contributing/mutation-
-  # testing.typ, so leaving the extracted file untracked would mean an edit to
-  # the jobs default stopped busting this group on the day it moved, while the
-  # identical edit busted it the day before. A body escaping into a script and
-  # a script's content escaping into a helper are the same escape.
-  #
-  # size-fixture-check.sh joins them for positional-args-check.sh's reason: it
-  # is a self-test, not an extracted body, and www/utils/gate-notes.typ
-  # restates by hand what it asserts — the replica tree, the `include_hidden`
-  # arm, why it does not probe the real directory. Change what the script
-  # proves and that prose is wrong with nothing else reacting.
-  #
-  # script-attr-check.sh is the third of those, and the most restated of the
-  # three: gate-notes.typ hand-carries both its arms, the just-1.46 measurement
-  # that `shebang` cannot discriminate a `[script]` recipe from a `#!` body,
-  # and the argument for probing each justfile's setting instead of matching
-  # its text. None of that is derived from anything.
-  #
-  # script-scope-check.sh is the fourth, and it is tracked for a reason none of
-  # the other three has: it is the only script whose subject is
-  # .mmz/config.yaml's own shape, and both docs/src/contributing/gates.typ and
-  # www/utils/gate-notes.typ restate by hand what it asserts — the two arms,
-  # why a wildcard can never satisfy the first, the nested-`just` case the
-  # second does not derive, and the churn measurement that decided the split
-  # (truth/tasks/split-gates-meta-into-per-script-scopes.typ). Change what it
-  # proves and that prose is wrong with nothing else reacting.
-  #
-  # site-pages-fixture-check.sh is the fifth, and joins for size-fixture-
-  # check.sh's reason: a self-test, not an extracted body, and
-  # www/utils/gate-notes.typ restates by hand what it asserts — the replica
-  # tree, why cases one and two drive it and case three drives
-  # .just/scripts/_nav-diff.sh directly instead
-  # (truth/tasks/pin-the-docs-manifest-gate-failures-with-a-selftest.typ).
-  # _nav-diff.sh itself stays untracked here: gate-notes.typ names it but
-  # never restates its own two-arm logic, so nothing here would go stale if
-  # that logic changed shape.
-  #
-  # fork.sh is the sixth, and the first that is not a gate body of any kind
-  # (truth/tasks/add-a-just-fork-recipe-that-stands-up-a-ready-worktree.typ).
-  # It is tracked because docs/src/contributing.typ restates its behaviour by
-  # hand — the default base, the sibling `../mindtape-<slug>` path, the dirty-
-  # HEAD refusal and the report-without-refusing on a divergent base. Every one
-  # of those is a decision inside the script rather than anything derived, so
-  # changing the refusal into a warning, or moving where the worktree lands,
-  # rots that paragraph with nothing else reacting.
-  #
-  # integrate.sh joins it for the same reason and the same paragraph: the pair
-  # is described together in docs/src/contributing.typ
-  # (truth/tasks/assert-a-branchs-gate-before-fast-forwarding-it.typ), so the
-  # prose restating one restates the other. What it hand-carries there is what
-  # the script decides and nothing derives — that the freshness assertion is
-  # read from the branch's worktree rather than this checkout, that a stale arm
-  # is named, that the gate is asserted and never re-run, and that there is no
-  # waiver flag. Turn the refusal into a warning, or add the flag, and that
-  # sentence is wrong with nothing else reacting.
-  #
-  # check-secrets.sh is the seventh, for size-fixture-check.sh's reason plus
-  # one of its own (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ).
-  # www/utils/gate-notes.typ restates by hand what its control fixture proves
-  # and what its third arm demands of .mmz/config.yaml, neither derived from
-  # anything. The one of its own: `.gitleaks.toml` is NOT a source here, and
-  # deliberately — the prose describes the arms, not the ruleset, so an
-  # allowlist edit rots no dependent, while a change to what the fixture
-  # asserts rots the paragraph describing it. check-secrets-manifest.sh is
-  # that same script's third arm extracted under the Shell cap, and is a
-  # source for the same reason: gate-notes.typ restates what it demands of
-  # .mmz/config.yaml.
-  #
-  # check-gate-drift.sh and _gate-drift-lib.sh join them for the same
-  # reason: gate-notes.typ and docs/src/contributing/gates.typ restate by hand
-  # what the arm reads (the TOML list against git, the call graph out of
-  # `check`, which flags exempt a cargo build) and why check-rrule is outside
-  # it. The control (_gate-drift-control.sh) is exempt in script-scope-check.sh,
-  # as _script-graph-control.sh is.
-  #
-  # check-doc-prose.sh is a source because docs/src/contributing/
-  # documentation.typ, its dependent, states by hand what the scan flags and
-  # what it skips.
-  #
-  # check-doc-blocks.sh and _doc-blocks-lib.sh are sources because gate-notes.typ
-  # and documentation.typ restate what counts as a hand-typed block and the
-  # `docs:hand-typed` marker. The control (_doc-blocks-control.sh) is exempt in
-  # script-scope-check.sh.
+  # The scripts are listed one by one, so tracking a new script is a decision.
+  # `just script-scope-check` fails on a script that is neither listed here
+  # nor exempt, with a reason, in .just/scripts/script-scope-check.sh.
   - name: dev-docs
     source:
       - flake.nix

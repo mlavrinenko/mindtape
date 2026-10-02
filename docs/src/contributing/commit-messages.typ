@@ -1,55 +1,50 @@
-// docs/src/contributing/commit-messages.typ — source for
-// docs/contributing/commit-messages.md. Rendered by docs/generate-md.sh via
-// typlite, same as every other docs/src/*.typ source; see docs/src/lib.typ
-// for the render path's constraints.
+// docs/src/contributing/commit-messages.typ renders
+// docs/contributing/commit-messages.md through docs/generate-md.sh (typlite;
+// docs/src/lib.typ lists the constraints).
 //
-// Deep dive behind CONTRIBUTING.md's Commit Messages section: the trailer
-// rule, the `flip-with-work` convention and the two setups for it. The
-// always-loaded file keeps the five-line rule and points here for the rest.
-#import "../lib.typ": doc-title, just
+// What checks the commit rules and why they have the shape they do. The
+// rules are in docs/src/contributing.typ's Commit Messages section.
+#import "../lib.typ": doc-title
 
 #metadata((
   output: "docs/contributing/commit-messages.md",
 )) <mindtape-md>
 
-#doc-title[Commit Messages]
+#doc-title[Commit messages]
 
-#link("https://www.conventionalcommits.org/")[Conventional Commits]. Match
-the language of prior commits. Footer with a task reference:
+The rules are in CONTRIBUTING.md's Commit Messages section. This page covers
+what checks them and why. A work commit looks like this:
 
+// docs:hand-typed a message shape with a placeholder stem; no commit holds it
 ```
 feat(filter): evaluate expressions over live tasks
+
+The body says what changed and why, in plain prose.
 
 Refs: <stem>
 ```
 
-MindTape tracks its own backlog as per-file task artifacts under
-`truth/tasks/` (dogfooding itself — see `.mindtape/config.toml`). Point
-`Refs:` at the driving task's stem, not its path — a path breaks when a task
-moves. `.githooks/commit-msg` checks it (`mt check --commit-msg`). The footer
-is how code finds its tasks: before editing a file, run
-`mt ls 'touches("<path>")'` to read the tasks that shaped it. Architectural
-and tooling decisions are task artifacts too; there are no ADRs.
+= What checks them
 
-Commits that file or edit task artifacts themselves (and the backlog config
-in `.mindtape/config.toml`) carry no `Refs:` footer — a task commit refs
-nothing.
+`.githooks/commit-msg` runs `mt check --commit-msg`, which applies the
+`[[commits.rules]]` of the `mindtape-tasks` pack
+(`crates/mindtape/src/packs/mindtape-tasks.toml`).
 
-A status flip rides with the work it claims (`flip-with-work`,
-mindtape-tasks): `mt wip`/`mt done` staged alone, with no other change, is
-refused at commit time. Two setups, same rule:
+- `work-names-a-task` refuses a commit with no `Refs:` trailer, unless every
+  file the commit changes is a `.typ` file under a task root. The repo's only
+  task root is `truth/tasks/`, so a change to `.mindtape/config.toml` or any
+  other file needs `Refs:`.
+- `flip-with-work` checks each task that a commit moves into `wip` or `done`.
+  The commit's `Refs:` must name the task, and the commit must change a file
+  outside the task root. A task tagged `decision` is exempt from the second
+  half, because a decision has no code to commit with it.
 
-- Worktree (#just.fork()): fork first, off a clean `main`, then flip inside the
-  worktree. `mt wip <stem>` and the first line of the change land in one
-  commit; `mt done <stem>` lands in the last, named by that commit's own
-  `Refs:` trailer.
-- Single checkout: flip `wip` and leave it uncommitted; do the work; commit
-  the flip together with the first work commit. Close the same way: leave
-  `mt done <stem>` uncommitted and fold it into the last commit of the
-  change.
+`mt check --commit-msg` also refuses a `Refs:` value that is a path or names
+no task.
 
-Filing a task stays a standalone `task:` commit either way — it names no
-work, so it carries no `Refs:` footer and no flip rides in it. An
-architectural or tooling decision with no code of its own tags the task
-`decision` and closes in that same standalone commit, the one exemption
-`flip-with-work` grants a task-only close.
+= Why Refs names a stem
+
+A task's stem is its identity. A path breaks when the task moves to another
+folder, and the stem does not. `mt ls 'touches("<path>")'` lists the tasks
+whose commits changed a file, so read it before you edit a file to learn the
+tasks that shaped it.

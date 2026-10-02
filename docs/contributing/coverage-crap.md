@@ -2,60 +2,46 @@
 
 # Coverage and CRAP
 
-Deep dive behind two lines of CONTRIBUTING.md’s gate table: `just cover` and `just crap`. Read this before changing either recipe’s flags.
+Why `just cover` and `just crap` work the way they do. Read this before you change either recipe’s flags.
 
-## Why cargo-llvm-cov
+## Coverage
 
-Coverage runs separately from `just check` (`just cover`, CI `coverage` job) via `cargo-llvm-cov`, which merges each process’s profraw — so the subprocess-based e2e tests credit the command code they exercise. Tarpaulin, which it replaced, could not see past `exec` and read every command entry point as dead.
+`just cover` runs the suite under `cargo-llvm-cov`, outside `just check`, and CI runs it in the `coverage` job. llvm-cov merges the profile of every process, so the end-to-end tests that spawn `mt` count toward the command code they run. The recipe writes `target/coverage/lcov.info` for `just crap` and fails below 90% of lines. `main.rs` is excluded, so keep it thin.
 
-The recipe writes `target/coverage/lcov.info` for `just crap` and fails under 90% lines. `main.rs` is excluded — keep it thin.
+The output level lives in `.config/nextest.toml`, because `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it. With the flag alone, a green run prints one `PASS` line per test, over 2000 lines. `just test` and `just cover` both read the profile, so they print the same way.
 
-Its output level is set in `.config/nextest.toml`, not in the recipe, and that is not tidiness: `cargo llvm-cov nextest` accepts `--status-level fail` and **ignores** it. Measured 2026-09-02 — the recipe’s run was **2316 lines, 2137 of them `PASS`**, one per test, to report a green suite and a coverage table; 179 lines with the profile set. A flag accepted and ignored is worse than one that is absent, because the recipe then claims something the output disproves. Both runners read the profile, so `just test` and `just cover` cannot drift; a failure still prints in full, which is what `fail` means rather than `none`.
+`just cover` builds default features only, so `recur_rrule.rs` never compiles there, and `just crap` excludes it rather than score it as 0% covered. `just check-rrule` builds and tests the `rrule` feature across the whole workspace, because `mindtape-cli` has `rrule` code of its own.
 
-`just cover` builds default features only, so `recur_rrule.rs` (the `rrule` feature’s expander) never compiles, and `just crap` excludes it too rather than scoring it as phantom 0%-covered. `just check-rrule` covers it separately, under the `rrule` feature — across the whole workspace, not only `mindtape`: `mt init`’s recurrence axis hides its `rrule` choice from a build without the engine, so `mindtape-cli` carries feature-gated arms of its own.
+## Why cover starts clean
 
-## Why it throws the previous run away
+`just cover` starts with `cargo llvm-cov clean --workspace`, so every run pays a full instrumented rebuild of about a minute. Without the clean, `report` merges every profile left since the last `cargo clean`, from other feature sets and other commits, and reports coverage the current source cannot produce. cargo-llvm-cov documents the clean as the precondition for merging runs.
 
-`just cover` starts with `cargo llvm-cov clean --workspace` — in `.just/scripts/cover.sh`, where the recipe’s body lives — so it always pays a full instrumented rebuild (~1 min). Without it, `report` unions every profraw and object file left since the last `cargo clean` — other feature sets, other commits — and reports coverage this source cannot produce. Never trade that line for speed.
+Inflated coverage hides exactly what `just crap` and the sweep’s coverage arms exist to find. Measured here, a session’s leftover profiles put a function that no test can call at 84% covered. A baseline minted from such an lcov fails dozens of functions on the next clean run. Never remove the clean for speed.
 
-The pile is not an accident: `--no-report` deliberately keeps it so several runs can be merged across feature sets, and cargo-llvm-cov documents the clean as that split’s precondition (“should be called before the first run”).
+## The CRAP threshold
 
-What the pile costs, measured (`truth/tasks/clean-the-profraw-pile-before-each-coverage-run.typ`): two runs left 461+461 profraw; merging one `--features rrule` run took `check_rrule_rule` from 57% to 100%, coverage of a branch that is dead code without the feature; and a whole session’s pile put `ls_interactive::apply` at 84% when no test in the tree can call it at all. That lcov minted `crap-baseline.json`, so the ratchet then failed 48 functions on the first honest run after a `cargo clean`.
+`just crap` runs after `just cover` over the same `lcov.info`, in the same CI job. CRAP is `CC² × uncovered³ + CC`, and the gate fails a function that scores above 30. It refuses an lcov older than any source file, so run `just cover` first. It skips test modules (`*_tests.rs`, `tests.rs` and ejectest’s `*_tests_*.rs`), because llvm-cov emits no coverage for them and they would score as undertested production code. `.just/scripts/crap.sh` lists every exclude and why each is spelled `**/…`.
 
-Inflated coverage is the worst failure this repo can have here — it hides exactly what `just crap` and the sweep’s coverage arms exist to find.
+Above about 90% coverage the cubed term vanishes, and a function scores its own cyclomatic complexity. A flat dispatcher sits near the threshold for that reason, so adding an arm to one means covering it in the same change.
 
-## The CRAP threshold, and why it is not the whole gate
+So the threshold is not the whole gate. `just crap` also compares every function against `crap-baseline.json`, a committed score per function, and fails any function whose score rose. A rise means complexity went up or coverage went down, at any score. That catches a complex, undertested function that scores well under 30.
 
-`just crap` runs right after `just cover`, in the same CI job and over the same `lcov.info`. The CRAP metric is `CC² × uncovered³ + CC`, and the gate fails above 30, flagging functions that are both complex and undertested. It refuses an lcov older than a source file, so run `just cover` first — CI already does. It also skips every test module — `*_tests.rs`, `tests.rs`, and `ejectest`’s split form (`*_tests_*.rs`, minted once a file crosses the linecop cap) — so a test helper never spends the production complexity budget; llvm-cov emits no coverage record for one, so scoring it read as undertested production code instead. What it excludes in full, and why each exclude flag has to be spelled `**/…`, are argued in place in `.just/scripts/crap.sh`.
+When you add complexity on purpose, run `just crap-baseline` in the same commit, so the new score lands beside the reason for it. [docs/contributing/crap-baseline.md](docs/contributing/crap-baseline.md) covers the baseline file.
 
-Carry one consequence of that formula in your head: above ~90% coverage the cubed term vanishes and a function scores its own cyclomatic complexity. A flat dispatcher therefore sits near the threshold by construction, and adding an arm to one means covering it in the same change.
+## Why a stale lcov is refused
 
-That collapse is why the threshold alone is not enough. `just crap` runs a second check against `crap-baseline.json`, a committed score for every function: nothing may get worse than the baseline, at any absolute level. It reads only the delta, so the collapse does not apply — a rise means complexity went up or coverage went down either way — and it catches the function that is complex and undertested but scores well under 30, which the threshold is structurally blind to.
+A function in a file written after the lcov has no coverage record. With `--missing` at its default, `pessimistic`, it scores as 0% covered. On a 10-day-old lcov that gave 28 failures, 27 of them false. A gate that reports false failures is worse than none, so `just crap` refuses a stale lcov and names the recipe that refreshes it.
 
-When you deliberately add complexity, run `just crap-baseline` in the same commit so the new number lands next to the reason for it.
+## Why the sweep has no CRAP arm
 
-## Why a stale lcov is refused rather than scored against
+A CRAP band below 30 would point the wrong way. Of the 15 functions here that score from 15 to 30, 11 are at least 90% covered. Of the 16 that are complex and undertested, 12 score below 15. So `just ask-refactoring` has no CRAP arm.
 
-Scoring a stale lcov does not degrade gracefully: a function in a file written since the lcov has no coverage record at all, `--missing` defaults to `pessimistic`, and so it reads as 0% covered rather than as unknown. Observed on a 10-day-old lcov — 28 failures, 27 of them phantom (each showed coverage `—`, not a percentage).
+## The check-crap arm
 
-A gate that invents failures is worse than no gate, so `just crap` refuses a stale lcov and names the recipe that refreshes it. CI is unaffected: its `coverage` job runs `just cover` immediately before it.
+`just check-crap` is the CRAP gate as a `just check` arm, because CI enforces `just crap` and nothing local would evaluate it otherwise. It runs the real gate when the lcov is fresh. Otherwise it prints that it skipped, names the recipe that would refresh the lcov, and exits 0.
 
-## Why there is no advisory band below the threshold
+Editing any source makes the lcov stale, so the arm skips on most commits that change code. It catches a failure only after a recent `just cover`. `just check-full` always runs the CRAP gate. The arm’s mmz inputs include the lcov, so a cached skip ends when a new lcov appears ([docs/contributing/gates.md](docs/contributing/gates.md)).
 
-The absent band was measured, not assumed (`truth/tasks/sweep-crap-scores-into-tasks.typ`). Because of the collapse above, of the 15 functions scoring 15..30 here, 11 are at or above 90% covered, while 12 of the 16 genuinely complex and undertested ones score below 15. A band below 30 would be wrong in both directions at once, so `just ask-refactoring` has no CRAP arm.
+## Where the tools come from
 
-## The check-crap arm, and what it does not buy
-
-`just check-crap` is the CRAP gate as a `just check` arm. It runs the real gate when the lcov is fresh; otherwise it skips loudly, naming what would refresh it, and exits 0.
-
-It exists because CI enforces `just crap`. Without this arm nothing local evaluates it, and a green `just check` says nothing about it.
-
-Be honest about what it buys. Editing any source makes the lcov stale, so this arm skips on exactly the commits that matter. It catches only a check run after a recent `just cover`. `just check-full` is the arm that is always correct. Like the signal sweep’s mutants arm, it says which of the two it is every time — absent and clean must never look alike.
-
-It is memoized like every other `just check` arm, over an `lcov` input scope naming the artifact it reads, so a recorded skip dies the moment that artifact appears. What that scope costs and why it needs its own `gitignore` opt-out is in [docs/contributing/gates.md](docs/contributing/gates.md).
-
-The baseline `crap-baseline.json` itself — why its paths are repo-relative and which arm may guard a mint — is in [docs/contributing/crap-baseline.md](docs/contributing/crap-baseline.md).
-
-## Where the tooling comes from
-
-How the dev shell supplies cargo-crap and the LLVM tools `cargo-llvm-cov` needs is `flake.nix`’s subject — both are non-obvious, both break loudly if changed carelessly, and both are commented there.
+`flake.nix` supplies cargo-crap and the LLVM tools `cargo-llvm-cov` needs, and its comments explain both.

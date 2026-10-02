@@ -46,68 +46,41 @@ overrides:
   - pattern: "**/CHANGELOG.md"
     exclude: true
 
-  # These four are the always-loaded surface: README is the first thing a
-  # reader sees, and AGENTS.md/CONTRIBUTING.md/SKILL.md are pulled into an
-  # agent's context on every session. A line here costs more than a line
-  # anywhere else — which is exactly why none of the four is capped directly
-  # any more.
+  # README.md, AGENTS.md, CONTRIBUTING.md and skills/mindtape/SKILL.md are
+  # rendered from docs/src/*.typ by `just docs::md`, so their caps sit on the
+  # sources below, where a fix is made. typlite writes one line per
+  # paragraph, so a rendered file's line count measures its paragraphs, list
+  # items and table rows.
   #
-  # All four are now GENERATED: `docs/src/{agents,readme,contributing,skill}.typ`
-  # render to them (typlite; `just docs::md`). A numeric cap on a rendered file
-  # is unactionable — you cannot shorten AGENTS.md directly, only its source,
-  # and a generated file cannot be "fixed" by editing it (the next `just
-  # docs::md` run overwrites any such edit) — so the cap lives on the source
-  # instead, in the docs/src/** overrides below.
+  # CONTRIBUTING.md is capped as well, because every agent session in this
+  # repo loads it whole. linecop counts lines only, so the cap limits how many
+  # rules and gates the file holds, and a long paragraph still counts as one
+  # line. The cap leaves about 10% room. When it fires, move reasons into a
+  # docs/contributing/*.md deep dive rather than raise the number.
   #
-  # This is progressive disclosure continuing, not stopping. The first drop
-  # (truth/tasks/trim-root-docs-by-delegating-deep-content.typ) moved DEEP
-  # CONTENT out to www/content/ and docs/contributing/. The second
-  # (truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ, this
-  # one) moved DERIVED FACTS out to `www/generated/*.json` — the crate map and
-  # DSL fields first (agents.typ, readme.typ), then the Quality Gates table
-  # and the linecop caps themselves (contributing.typ, skill.typ) — read back
-  # by the .typ source instead of hand-listed, the same "don't restate it,
-  # point at it" move, one layer down. If one of the four hits its docs/src/**
-  # cap again, the answer is still progressive disclosure — move the deep
-  # content out and link it — never a bigger number.
+  # Anchor each rendered file's pattern with `./`. linecop matches the
+  # `./`-prefixed path it reports, so `**/README.md` matches every README and
+  # a bare `README.md` matches none. skills/mindtape/evals/README.md is
+  # written by hand and keeps the Markdown cap.
   #
-  # `linecop --baseline 85` names anything at 85% of its cap; run it before
-  # adding to an existing file, so compaction is deliberate rather than a wall.
-  # PATTERN ANCHORING, verified empirically because excluding the wrong file is
-  # silent: linecop matches against the `./`-prefixed path it reports, so
-  # `**/README.md` matches EVERY README at any depth and a bare `README.md`
-  # matches none. `./README.md` matches the root one alone. That distinction is
-  # load-bearing here — `skills/mindtape/evals/README.md` is hand-written and
-  # must keep the 200 Markdown default, so the exclusion below is anchored.
-  # Use `./` (the full repo-root-relative path, not a bare filename) for a
-  # generated file's exclusion; a `**/` exclusion would silently uncap its
-  # hand-written namesakes.
+  # `linecop --baseline 85` lists the files near their cap. Run it before you
+  # add to an existing file.
   - pattern: "./README.md"
     exclude: true
   - pattern: "./AGENTS.md"
     exclude: true
   - pattern: "./CONTRIBUTING.md"
-    exclude: true
+    limit: 142
   - pattern: "./skills/mindtape/SKILL.md"
     exclude: true
 
-  # docs/src/**: the .typ SOURCES the four caps above used to apply to
-  # directly. A generated .md's line count is not a meaningful size proxy
-  # either way — typlite emits one line per paragraph, never hard-wrapping, so
-  # it reads short regardless of how much the source says — which is the other
-  # half of why the cap belongs here and not on the output.
-  #
-  # agents.typ (151 lines) and skill.typ (131) are capped at their size after
-  # a whole rewrite plus about 10%. An agent loads each whole, so one that
-  # outgrows its cap gets rewritten again, not a higher cap. readme.typ
-  # and contributing.typ keep the caps they were ported with: the old Markdown
-  # cap plus the lines the port added.
-  #
-  # Source filenames are a naming CONVENTION this task fixes, not a schema the
-  # generator enforces (docs/generate-md.sh reads each source's own
-  # `<mindtape-md>` block for its output path — the filename is free): the
-  # lowercased stem of the file it produces, so a future port has an
-  # unambiguous place to land without touching this file.
+  # The sources of the four rendered files. agents.typ (151 lines) and
+  # skill.typ (131) are capped at their size after a whole rewrite plus about
+  # 10%. An agent loads each whole, so one that outgrows its cap gets rewritten
+  # again, not a higher cap. readme.typ and contributing.typ keep the Markdown
+  # cap plus room for the Typst that reads generated facts. docs/generate-md.sh
+  # takes each source's output path from its `<mindtape-md>` block, and each
+  # source is named after the file it renders.
   - pattern: "**/docs/src/agents.typ"
     limit: 166
   - pattern: "**/docs/src/readme.typ"
@@ -116,21 +89,13 @@ overrides:
     limit: 260
   - pattern: "**/docs/src/skill.typ"
     limit: 144
-  # One shared cap for every docs/contributing/*.typ deep-dive source (today:
-  # generated-docs.typ at 135, the pipeline this task adds), rather than a
-  # per-file entry — these deep dives vary 31-59 lines in their current
-  # hand-written form and none is on the always-loaded path, so one ceiling
-  # with headroom serves all of them without per-file tuning.
+  # One cap for every deep-dive source. No deep dive is loaded into every
+  # session, so one ceiling serves them all.
   - pattern: "**/docs/src/contributing/**"
     limit: 220
-  # Every docs/contributing/*.md deep dive is now generated from a
-  # docs/src/contributing/*.typ source, so the whole directory is excluded for
-  # the same reason AGENTS.md is: a generated file's cap belongs on its source
-  # (above), not on output typlite rewrites on every `just docs::md`. Anchored
-  # with `./` per the note above, and a directory glob rather than six entries
-  # so the next deep dive is covered by existing the moment it is generated —
-  # the failure mode of a per-file list is a new generated file silently
-  # inheriting a cap nobody can act on.
+  # The deep dives under docs/contributing/ are rendered from those sources,
+  # so the cap above covers them. A directory glob covers a new deep dive as
+  # soon as it is rendered.
   - pattern: "./docs/contributing/*.md"
     exclude: true
 

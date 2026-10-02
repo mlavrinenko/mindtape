@@ -1,12 +1,9 @@
-// docs/src/contributing/command-semantics.typ — source for
-// docs/contributing/command-semantics.md. Rendered by docs/generate-md.sh via
-// typlite, same as every other docs/src/*.typ source; see docs/src/lib.typ
-// for the render path's constraints.
+// docs/src/contributing/command-semantics.typ renders
+// docs/contributing/command-semantics.md through docs/generate-md.sh (typlite;
+// docs/src/lib.typ lists the constraints).
 //
-// The verb list is derived: `fact("cli")` reflects `mt _cli --json`, the tree
-// `command_class.rs` classifies. This page keeps the full read/write split out
-// of the always-loaded CONTRIBUTING.md (per the .linecop.yaml note), so only a
-// reader who needs it opens it.
+// The command lists read `fact("cli")`, the `mt _cli --json` tree that
+// `command_class.rs` classifies.
 #import "../lib.typ": doc-title, fact
 
 #metadata((
@@ -15,14 +12,12 @@
 
 #doc-title[Command semantics (read/write separation)]
 
-Deep dive behind CONTRIBUTING.md's read/write rule: every verb's side of the
-split, and why it is declared rather than remembered.
+Which `mt` commands read and which write, for the rule in CONTRIBUTING.md's
+Command Semantics section.
 
-MindTape follows a strict read/write split (CQRS). Read commands never mutate
-the working tree; only explicit write commands do. The split is declared once,
-in `crates/mindtape-cli/src/command_class.rs`, checked for exhaustiveness
-against `mt _cli --json`'s visible command list in `cli_dump.rs`'s own tests,
-and read here from `fact("cli")` rather than retyped.
+`crates/mindtape-cli/src/command_class.rs` declares each command's class.
+The tests in `cli_dump.rs` fail when a visible command in `mt _cli --json`
+has no class, and the lists below read the same data.
 
 #let cli-leaves(commands, prefix: none) = (
   commands
@@ -42,21 +37,20 @@ and read here from `fact("cli")` rather than retyped.
 )
 #let exempt = cli-classes.filter(l => l.class.kind == "exempt")
 
-- Read (pure): #names("read").join(", ") — each leaves the tree
-  byte-identical, asserted per command in
-  `crates/mindtape-cli/tests/read_no_write_e2e.rs`. Add your command's test
-  there, not to this list.
-- Write (explicit): #names("write").join(", "). Every legend value is also a
-  top-level verb over `flip` — `mt done` is `mt flip done`, generated from
-  the legend rather than declared as a subcommand.
+- Read: #names("read").join(", "). Each leaves the tree byte-identical, and
+  `crates/mindtape-cli/tests/read_no_write_e2e.rs` checks each one. Add a new
+  read command's test there.
+- Write: #names("write").join(", "). Every status in the legend is also a
+  top-level verb for `flip`, so `mt done` runs `mt flip done`. `mt` builds
+  those verbs from the legend.
 #for e in exempt [
   - #raw(e.name) is neither: #e.class.reason.
 ]
 
-Recurrence never materializes as a side effect of a read: an instance is
-spawned or refreshed only by an explicit `mt recur`, and `mt done` closes a
-task without creating or advancing anything.
+A read never creates a recurring instance. Only `mt recur` creates or
+refreshes one, and `mt done` closes a task without creating or advancing
+anything.
 
-"Byte-identical" means the _authored_ tree — task files and config. A read may
-still populate the git-ignored `.mindtape/cache/` scratch, derived state the
-way `target/` is.
+The authored tree is the task files and the config. A read may still write
+the git-ignored `.mindtape/cache/`, which holds derived state the way
+`target/` does.

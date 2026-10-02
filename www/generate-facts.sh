@@ -148,8 +148,8 @@ tomlq -f "$SCRIPT_DIR/frameworks.jq" --argjson scales "$SCALES" \
 # `check`'s own dependency list (also the cross-check the two are read against
 # each other for) — see www/gates.jq's header for why row order reads that list
 # rather than `just --summary --unsorted`'s source order now that a gate can
-# live in a module. Each gate carries a derived `command`, and the artifact as
-# a whole carries the fmt path assignments CONTRIBUTING.md renders verbatim
+# live in a module. The artifact also carries the fmt path assignments
+# docs/contributing/gates.md renders verbatim
 # (selected in www/gates.jq by their shared `_FMT_PATHS` suffix, so a future
 # formatter's list lands without an edit). The jq program is long enough to
 # blow this script's own linecop cap, so it lives in www/gates.jq.

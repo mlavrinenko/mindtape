@@ -1,3 +1,5 @@
+# The Cargo schema tells tombi to sort keys and array values. These rules turn
+# that off, so a group of keys keeps its written order and its comment.
 [[schemas]]
 toml-version = "v1.0.0"
 path = "https://www.schemastore.org/cargo.json"

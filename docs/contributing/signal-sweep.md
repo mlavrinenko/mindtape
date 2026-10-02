@@ -1,14 +1,10 @@
 <!-- Generated from docs/src/contributing/signal-sweep.typ by `just docs md`. Do not edit; edit the source. -->
 
-## Signal Sweep (`just ask-refactoring`)
+# Signal sweep
 
-`contrib/ask-refactoring.sh` reads the _advisory_ quality signals and files a backlog task per finding. It is not a gate and never will be — it is the other half of the gates: a gate stops you when the wall is already in front of you, the sweep says which wall you are walking toward.
+`just ask-refactoring` runs `contrib/ask-refactoring.sh`, which reads the quality signals no gate enforces and turns each finding into a backlog task. A gate fails a commit. The sweep files tasks for signals that fail nothing yet, such as a file at 90% of its size cap.
 
-```
-just ask-refactoring                      # dry: print the tasks it would file
-just ask-refactoring --write              # file them
-just ask-refactoring --coverage-floor 92  # one arm's threshold, this run only
-```
+By default it prints the tasks it would file. With `--write` it files them. A threshold flag, such as `--coverage-floor 92`, changes that arm for one run.
 
 | Flag | Default | Bounds | Notes |
 | --- | --- | --- | --- |
@@ -18,23 +14,27 @@ just ask-refactoring --coverage-floor 92  # one arm's threshold, this run only
 | `--cc-floor CC_FLOOR` | `5` | undertested arm: floor on cyclomatic complexity | Half of a conjunction with `--fn-coverage-floor`, and the half that is not a complexity judgement — `just crap` gates complexity, at its own threshold against a committed baseline. This floor is what makes the coverage number mean something: below it, a low percentage says one line is unhit; at or above it, it says decisions are unexercised. |
 | `--fn-coverage-floor FN_COVERAGE_FLOOR` | `80` | undertested arm: report functions below PCT% line coverage | The other half, per function rather than per file, and stricter than `--coverage-floor` on purpose: a function is small enough that one unreached line moves its percentage by tens of points, so the tail starts further out. Two edges rather than one shared number is the point of the pair — a function has to be both complex enough and undertested enough — and the undertested arm defers to the coverage arm on any file that one already reports, so the overlap files nothing twice. |
 
-Every row above is read out of the `ask-refactoring` recipe’s own `[arg(...)]` parameters, so the defaults live in the Justfile and nowhere else: `contrib/ask-refactoring.sh` requires all five and defaults nothing, and just’s own `--usage` flag prints the same set at the terminal, from the same data. `--write` takes no argument of its own: passing it sets `1`.
+The defaults live in the recipe’s `[arg(...)]` attributes and nowhere else. `contrib/ask-refactoring.sh` requires all five flags and defaults none, and just’s `--usage` flag prints the same set. `--write` takes no argument. Passing it sets `1`.
 
-The sweep carries four thresholds rather than one band shared across the arms, and that is a decision rather than an accident: one flag over two arms would read as a single number and move two at once. The pair the undertested arm carries is a conjunction — a function has to be both complex enough and undertested enough to be worth a task — and the size and coverage bands belong to different arms measuring different things. Each number’s full argument lives in the arm script that applies it, next to the constant rather than in a doc that would drift from it.
+The sweep has four thresholds, one per measurement, because a flag shared by two arms would move both at once. The undertested arm takes two, because a function must be both complex and undertested to be worth a task. Each number’s argument sits beside its constant in the arm script that applies it.
 
-The mutants arm carries no threshold at all: it reads the outcomes.json of whichever sweep ran last — `mutants.out` for a full `just mutants`, or `target/mutants-scoped` for a `-f`/`--in-diff` run — and skips loudly when neither exists or the one it picked is stale, rather than run a sweep that takes hours. `just mutants-status` reports a running sweep’s progress and ETA from the directory it is given (`mutants.out` by default).
+The mutants arm has no threshold. It reads `outcomes.json` from whichever sweep ran last: `mutants.out` after a full `just mutants`, or `target/mutants-scoped` after a scoped run. When neither exists, or the one it picked is stale, it skips with a message naming the command that refreshes it. `just mutants-status` reports a running sweep’s progress and ETA.
 
-The entry script holds the flag forwarding, the re-run guard, the shared `stem_for` and the driver. Each arm is one file under `contrib/ask-refactoring/`, defining `score_<arm>`/`signal_<arm>`/`emit_<arm>` next to the reasoning that justifies its numbers. Adding an arm is a new file there, its name in `ARMS`, and a `.mindtape/templates/sweep-*.typ` template — never a config change, since the tags and the guard are already declared. The templates share one shape, kept in step by the `sweep-templates` outdatty group rather than by a Typst `#import`, which would survive into every task the sweep writes and bind a tracked artifact to a path outside the tasks root. Which arms exist, what each reads and how each scores are the scripts’ own subject.
+## How it is built
 
-The rules the design turns on, in the order they matter:
+`contrib/ask-refactoring.sh` holds the flag handling, the re-run guard, the shared `stem_for` and the driver. Each arm is one file under `contrib/ask-refactoring/` that defines `score_<arm>`, `signal_<arm>` and `emit_<arm>`. A new arm is a file there, its name in `ARMS`, and a `.mindtape/templates/sweep-*.typ` template. The tags and the guard are declared already, so it needs no config change.
 
-- Only advisory signals qualify. jscpd, outdatty, machete and clippy already block a commit, so a task from one would be a note about that wall.
-- A signal never fakes a measurement it does not have. An arm that can refresh its input refuses a stale one; an arm that cannot — a full mutation sweep is hours — skips loudly, naming the command that would refresh it, rather than blocking the other arms or printing “clean” when nobody has measured. Absent and clean must never look alike.
-- One task per finding, never one per sweep. Each is dispatched to its own agent and has to carry its own scope, including which remedy applies to it.
-- No two arms file the same finding. Granularities overlap — a per-file and a per-function arm read one lcov — so the finer defers by calling the coarser arm’s own predicate, not a copy (`coverage_arm_files`, plus the `sweep-dedup` outdatty group). A duplicate pair blocks the next sweep until both halves close: twice the work for one gap.
-- Idempotency comes from the signal, not a ledger. Nothing records what was filed, so the only way to silence a finding for good is an override with a written reason in the signal’s own config. There is no ignore list anywhere else, deliberately: silencing always leaves a sentence behind saying why.
-- The remedy is the refactorer’s call. Every arm offers two correct answers — do the work, or write the override saying why not — and each template names its own pair. The signal pushes back on drift, never on accuracy.
+The templates share one shape, and the `sweep-templates` outdatty group keeps them in step. A Typst `#import` would end up in every task the sweep writes and tie a tracked task file to a path outside the tasks root.
 
-It is deliberately not an `mmz` arm and not part of `just check`. Memoizing it would defeat the point: it has to re-observe the tree every run, and a cache hit is the one answer it must never give.
+## The design rules
 
-The re-run guard is `[views.ask-refactoring]` in `.mindtape/config.toml` (`has_tag("swept") && !terminal`). While anything the sweep filed is still open, the sweep refuses and names the count, so one sprint of mechanical work is emptied before the next is filed. Every filed task carries the provenance tag `swept` plus one signal tag naming the tool that noticed — two arms reading one tool share it — and the guard selects on `swept` alone, so a new arm joins for free.
+- Only signals that no gate enforces qualify. jscpd, outdatty, machete and clippy already fail a commit, so a task from one would repeat that failure.
+- An arm never reports a measurement it does not have. An arm that can refresh its input refuses a stale one. An arm that cannot, such as the hours-long mutation sweep, skips with a message naming the refresh command. A missing measurement never reads as a clean one.
+- One task per finding. Each task goes to its own agent and carries its own scope and remedy.
+- No two arms file the same finding. When two arms read the same data, the finer arm calls the coarser arm’s own predicate (`coverage_arm_files`, kept in step by the `sweep-dedup` outdatty group). A duplicate pair would block the next sweep until both close.
+- The signal decides what is filed again, and no ledger records past findings. To silence a finding for good, write an override with its reason in the signal’s own config.
+- The remedy is the refactorer’s call. Each template names two correct answers: do the work, or write the override that says why not.
+
+The sweep is not an mmz arm and not part of `just check`. It has to read the tree fresh on every run, and a cached result is the one answer it must never give.
+
+`[views.ask-refactoring]` in `.mindtape/config.toml` (`has_tag("swept") && !terminal`) is the re-run guard. While a task the sweep filed is still open, the sweep refuses and prints the count, so one batch of mechanical work is done before the next is filed. Every filed task carries the tag `swept` and one tag naming the tool that found it. The guard selects on `swept` alone, so a new arm needs no change to it.

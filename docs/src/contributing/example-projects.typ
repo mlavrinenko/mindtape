@@ -1,13 +1,9 @@
-// docs/src/contributing/example-projects.typ — source for
-// docs/contributing/example-projects.md. Rendered by docs/generate-md.sh via
-// typlite, same as every other docs/src/*.typ source; see docs/src/lib.typ
-// for the render path's constraints.
+// docs/src/contributing/example-projects.typ renders
+// docs/contributing/example-projects.md through docs/generate-md.sh
+// (typlite; docs/src/lib.typ lists the constraints).
 //
-// Nothing here is derived: `check-examples`, the `[[typst.local-packages]]`
-// pin and the `MINDTAPE_DATA_HOME` trick are hand-written decisions in the
-// Justfile and each example's config. It split off gates.typ, where it sat
-// behind CONTRIBUTING.md's gate table; that table still lists
-// #just.check-examples() and CONTRIBUTING.md still points here.
+// The settings this page explains are in the Justfile's `check-examples`
+// recipe and in each example's `.mindtape/config.toml`.
 #import "../lib.typ": doc-title, just
 
 #metadata((
@@ -16,24 +12,31 @@
 
 #doc-title[The gated example projects]
 
-Deep dive behind CONTRIBUTING.md's gate table: why every example project is
-validated against itself, and what makes that validation mean something.
+Why #just.check-examples() validates every example project, and how it makes
+each one validate against this checkout's own prelude.
 
-= Why the example projects are gated
+= Why the examples are gated
 
-#just.check-examples() validates every example project against itself, so a
-fixture another tool runs `mt` against cannot rot: `learn-piano` feeds the docs
-generator and the skill's triage evals, `minimal` its trap evals. An ungated
-fixture breaks silently when the config format changes.
+Other tools run `mt` against the example projects. `learn-piano` feeds the
+docs generator and the skill's triage evals, and `minimal` feeds the skill's
+trap evals. A config format change can break an example without any error,
+so #just.check-examples() runs `mt check` on each one.
 
-"Against itself" is enforced, not assumed. A task file imports `@local/mindtape`,
-which Typst resolves from one directory per machine — the one `mt install` fills,
-pointing at whichever checkout installed last. A worktree's fixture would then
-validate against another checkout's prelude and pass while gating nothing, in
-exactly the case a prelude change needs it for. So each fixture pins the import
-to this checkout's `lib/` with a `[[typst.local-packages]]` entry, and the recipe runs
-with `MINDTAPE_DATA_HOME` set empty — "no such directory", so no global package
-resolves at all — which also makes the gate runnable on a machine that never ran
-`mt install`, i.e. every CI run. Setting `XDG_DATA_HOME` instead would isolate
-the gate on Linux only, because `dirs` reads it there alone. macOS would read
-the machine's packages, and Windows would ignore it.
+A new example joins the recipe's loop and the `examples` scope in
+`.mmz/config.yaml`. mmz re-runs the gate only when a file in that scope
+changes, so an example outside it stops being checked.
+
+= Why each example validates against this checkout
+
+A task file imports `@local/mindtape`. Typst resolves that import from one
+directory per machine, which `mt install` fills from whichever checkout ran
+it last. A worktree's example would then validate against another
+checkout's prelude, and pass while testing nothing, in exactly the case a
+prelude change needs it.
+
+So each example's config points the import at this checkout's `lib/` with a
+`[[typst.local-packages]]` entry. The recipe also sets `MINDTAPE_DATA_HOME`
+to an empty value, which `mt` reads as no directory, so no machine-wide
+package resolves at all. That also lets the gate run on a machine that never
+ran `mt install`, such as CI. `XDG_DATA_HOME` would not work, because `dirs`
+reads it on Linux only.

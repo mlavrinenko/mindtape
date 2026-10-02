@@ -28,10 +28,7 @@ source .just/scripts/_doc-blocks-lib.sh
 bash .just/scripts/_doc-blocks-control.sh
 
 PENDING=(
-    docs/src/contributing/commit-messages.typ
     docs/src/contributing/generated-docs.typ
-    docs/src/contributing/signal-sweep.typ
-    docs/src/contributing.typ
     docs/src/readme.typ
     www/content/cli.typ
     www/content/commit-rules.typ

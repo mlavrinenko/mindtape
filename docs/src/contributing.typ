@@ -1,19 +1,14 @@
-// docs/src/contributing.typ — source for the repo-root CONTRIBUTING.md.
-// Rendered by `docs/generate-md.sh` via typlite; see docs/src/lib.typ.
+// docs/src/contributing.typ renders the repo-root CONTRIBUTING.md through
+// docs/generate-md.sh (typlite; docs/src/lib.typ lists the constraints).
 //
-// The Quality Gates table is derived. `www/generated/gates.json` carries the
-// sub-gates `just check` declares, in order, each with its doc comment and a
-// `command` read back out of the recipe's own body (www/gates.jq argues it),
-// so the hand-quoted clippy invocation cannot drift again and a gate dropped
-// from `just check` drops off the table on its own. The Notes column has no
-// machine source: it stays hand-written in `www/utils/gate-notes.typ`, the
-// `www/utils/*-notes.typ` house pattern, keyed by gate name — a gate missing
-// there fails `just docs::md` naming it. gates.json also carries the
-// Justfile's `_FMT_PATHS` assignments, selected by that suffix so a future
-// formatter's list lands without an edit. The block below the table loops
-// over that dict rather than naming each key, because a hand-listed
-// `.at("...")` per key lets a new list land in the artifact and never render,
-// and nothing gates assignments the way check-doc-facts gates gate names.
+// Every agent session in this repo loads CONTRIBUTING.md, so it holds the
+// rules and nothing else. A rule's reasons and mechanics go in a
+// docs/contributing/*.md deep dive, and how a gate works goes in its recipe
+// comment or script header. .linecop.yaml caps the rendered file.
+//
+// The gate table reads the gates `just check` runs, in order, from
+// www/generated/gates.json, and each gate's clause from
+// www/utils/gate-notes.typ. What a gate runs is in its recipe or script.
 #import "lib.typ": doc-title, fact, just
 #import "/www/utils/gate-notes.typ": gate-notes
 
@@ -25,203 +20,178 @@
 
 = Quick Start
 
+// docs:hand-typed a clone-and-enter sequence that no fixture can run
 ```bash
 git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape
-nix develop          # dev shell with the full toolchain (installs the
-                     # pre-commit hook: asserts the gate is fresh, checks
-                     # task files)
+nix develop          # dev shell with the toolchain and the git hooks
 just check           # run before every commit
 ```
 
-Use `just` recipes rather than raw `cargo`: they carry the right flags and
-environment, and `just` with no arguments lists them. `flake.nix` owns the tools.
-In the dev shell `mt` is `target/mt-dev/debug/mt` on `PATH`, not a wrapper that
-rebuilds: #just.build-mt() builds it, #just.fork() builds a fresh worktree's,
-and #just.integrate() rebuilds this checkout's after the fast-forward. An edit
-between those events leaves `mt` older than the code beside it until the next
-build; entering the shell with no binary there names #just.build-mt().
+Use `just` recipes rather than raw `cargo`, because the recipes carry the
+right flags and environment. `just` with no arguments lists them. In the dev
+shell, `mt` is `target/mt-dev/debug/mt`. #just.build-mt() builds it,
+#just.fork() builds a new worktree's, and #just.integrate() rebuilds this
+checkout's. Between those builds, `mt` can be older than the code beside it.
 
-This is the single source for how work is done here; a process rule belongs
-here and nowhere else. Deep dives sit in `docs/contributing/`, and `AGENTS.md`
-covers only what MindTape _is_.
+This file holds the rules for how work is done here. The
+`docs/contributing/*.md` deep dives give the reasons and mechanics behind
+them. `AGENTS.md` describes what MindTape is.
 
 = Code Style
 
-All clippy lints are `deny` (workspace `Cargo.toml`); the project will not
-build with violations. Key restrictions:
+The workspace `Cargo.toml` sets its clippy lints to `deny`, so the `clippy`
+gate fails on any violation. The limits that shape code most:
 
-- No `unwrap()`/`expect()` outside tests — use `?` with `anyhow`/`thiserror`
-- No `todo!()`/`unimplemented!()`/`unreachable!()`/`unsafe`/wildcard imports
-- Functions: ≤70 lines, ≤5 args, cognitive complexity ≤20
+- No `unwrap()` or `expect()` outside tests. Use `?` with `anyhow` or
+  `thiserror`.
+- No `todo!()`, `unimplemented!()`, `unreachable!()`, `unsafe` or wildcard
+  imports.
+- A function has at most 70 lines and 5 arguments, and its cognitive
+  complexity is at most 20.
 
 = Error Handling
 
-- `anyhow::Result` for application code (the CLI); `thiserror::Error` for
-  library error types callers match on (`HarvestError`, `ConfigError`, `FilterError`)
-- Keep `main.rs` a thin entry point; logic lives in library modules
+- Application code (the CLI) returns `anyhow::Result`.
+- A library error type that callers match on derives `thiserror::Error`, as
+  `RecurError`, `ConfigError` and `FilterError` do.
+- `main.rs` stays a thin entry point. Logic lives in library modules.
 
 = Testing
 
-- Unit tests inline in `#[cfg(test)] mod tests` (or a sibling `_tests.rs` via
-  `#[path]`) next to the code they exercise.
-- Tests that shell out to the `mt` binary (`assert_cmd::cargo_bin`) belong in
-  `tests/`, not inline: Cargo exports `CARGO_BIN_EXE_mt` before integration
-  tests, a guarantee `--lib` unit tests lack.
-- As a file nears the linecop limit, #just.fix-check() ejects its inline tests
+- Put unit tests in `#[cfg(test)] mod tests` beside the code, or in a sibling
+  `_tests.rs` loaded with `#[path]`.
+- Put tests that run the `mt` binary (`assert_cmd::cargo_bin`) in `tests/`.
+  Cargo sets `CARGO_BIN_EXE_mt` for integration tests only.
+- When a file nears its linecop cap, #just.fix-check() moves its inline tests
   into a `_tests.rs` sibling with
   #link("https://github.com/mlavrinenko/ejectest")[ejectest].
-- Run #just.test()\; count with #just.count-tests().
-- Anything that shells out or joins paths needs a thought for the Windows CI
-  job. What runs there, the #just.check-windows() cross-check and the
-  Unix-only pty tests:
+- Run #just.test(). Count tests with #just.count-tests().
+- Code that runs a process or joins paths also runs on the Windows CI job,
+  described in
   #link("docs/contributing/windows.md")[docs/contributing/windows.md].
-- Mutation testing (`cargo-mutants`) proves whether tests pin behaviour, not
-  just execute it. Run #just.mutants-diff() before a PR and triage every survivor:
+- Run #just.mutants-diff() before a PR and triage every survivor, because a
+  survivor is code the tests run but do not check. The triage classes are in
   #link("docs/contributing/mutation-testing.md")[docs/contributing/mutation-testing.md].
 
 = Quality Gates (run by #just.check())
 
+The pre-commit hook refuses a commit unless every gate below passed against
+the current tree.
+
 #let gate-rows = fact("gates").at("gates")
-#let gate-assignments = fact("gates").at("assignments")
 #table(
-  columns: 3,
-  table.header([Gate], [Command], [Notes]),
-  ..gate-rows
-    .map(g => (
-      raw(g.name),
-      if g.command == none { emph(g.doc) } else { raw(g.command) },
-      gate-notes.at(g.name),
-    ))
-    .flatten(),
+  columns: 2,
+  table.header([Gate], [Without it]),
+  ..gate-rows.map(g => (raw(g.name), gate-notes.at(g.name))).flatten(),
 )
 
-`fmt-check`'s non-Rust path lists:
+How the gates run and skip unchanged work, and the formatter path lists, are
+in #link("docs/contributing/gates.md")[docs/contributing/gates.md]. A new TOML
+file, Typst directory or justfile module joins its `*_FMT_PATHS` list in the
+`Justfile`, which #just.fmt() and #just.fmt-check() both read.
 
-#for (name, value) in gate-assignments [
-  - #raw(name): #value.split(" ").map(raw).join(", ")
-]
+#just.check-full() adds #just.cover() and #just.crap() to #just.check(). Run
+it before a PR. When you add complexity on purpose, run #just.crap-baseline()
+in the same commit. The thresholds and their reasons are in
+#link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md].
 
-Every arm runs through `mmz`, so a re-run skips each one whose declared inputs
-are unchanged and the pre-commit hook can assert the whole set fresh without
-re-running it. That memoization and the locked formatter gates are in
-#link("docs/contributing/gates.md")[docs/contributing/gates.md]\; the gated
-example projects, in
-#link("docs/contributing/example-projects.md")[docs/contributing/example-projects.md].
+Run #just.nix-build() when you touch `flake.nix` or `.cargo/config.toml`. It
+builds the flake in a clean sandbox, and #just.release() runs it too.
 
-#just.check-full() is #just.check() plus #just.cover() and #just.crap(): always
-correct about coverage and CRAP, at the price of an instrumented rebuild and a
-full suite pass. Run it before opening a PR, plain #just.check() while iterating.
+A commit in a delegated worktree may skip the hook's freshness check with
+`MINDTAPE_GATE_SCOPE=<reason> git commit`, because #just.integrate() refuses
+the branch until every gate passes on its final tree. The message then needs
+a matching `Gate-Scope: <reason>` trailer. Never scope a commit to get past a
+failing gate.
 
-#just.fork("<slug>", "<base>") stands one of those worktrees up and
-#just.integrate("<branch>") takes it back down. `fork` branches off `<base>` (default
-`HEAD`) at `../mindtape-<slug>`, `direnv allow`-ed, refusing a dirty `HEAD` —
-`git worktree add` copies commits, never the working tree — and reporting, without
-refusing, a divergent base. Fork first, before flipping anything: `main` is
-still clean at that point, so the worktree never needs a status flip
-committed there just to clear the refusal — `mt wip <stem>` runs inside the
-new worktree instead, and its flip lands in the worktree's first work commit
-(see Commit Messages). `integrate` refuses unless that worktree reports
-`mmz --is-fresh --tag gate`, naming the stale arm, then fast-forwards and removes it: a
-fast-forward writes no commit, so the pre-commit hook never fires on the merge.
-`fork` also builds the new worktree's `mt`, once, after loading its shell, and
-`integrate` rebuilds this checkout's after the fast-forward, so the binary each
-`PATH` serves matches the tree it sits in. What each refuses and deliberately
-leaves undone — no seeded `target/`, no re-run gate, no waiver flag — is argued in
-`.just/scripts/fork.sh` and `.just/scripts/integrate.sh`.
+= Worktrees
 
-A delegated worktree whose full aggregate runs at integration can scope the
-gate with `MINDTAPE_GATE_SCOPE=<reason> git commit`, which demands a matching
-`Gate-Scope:` trailer; dodging a red gate is never legitimate. When scoping
-is, and what the trailer buys, are in #link("docs/contributing/gates.md")[docs/contributing/gates.md].
+#just.fork("<slug>", "<base>") creates the worktree `../mindtape-<slug>` on a
+new branch off `<base>` (default `HEAD`). It refuses when this checkout has
+uncommitted changes, because `git worktree add` copies commits only.
+#just.integrate("<branch>") refuses unless every gate passed against the
+worktree's current files. It then fast-forwards this checkout and removes the
+worktree. `.just/scripts/fork.sh` and `.just/scripts/integrate.sh` explain
+both.
 
-Coverage and CRAP run outside #just.check(): run #just.cover() first (#just.crap() refuses a
-stale lcov), and #just.crap-baseline() in the same commit as any deliberate complexity. The
-thresholds and every argument behind them, to read before changing either recipe's flags, are
-in #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md]\; the
-baseline's own paths and guards, in
-#link("docs/contributing/crap-baseline.md")[docs/contributing/crap-baseline.md].
-
-#just.nix-build() verifies `nix build` in a clean sandbox (no dev shell, no
-sccache). Run it when touching `flake.nix` or `.cargo/config.toml`;
-#just.release() calls it automatically.
-
-= Signal Sweep (#just.ask-refactoring())
-
-The sweep reads the _advisory_ quality signals and files a backlog task per
-finding. It is not a gate: a gate stops you at the wall, the sweep names the
-wall you are walking toward. Run it dry (#just.ask-refactoring()) to see what
-it would file; the arms, the scoring and the design rules are in
-#link("docs/contributing/signal-sweep.md")[docs/contributing/signal-sweep.md].
-
-A delegated agent that notices something real outside its own task's scope
-files it the same way — `mt add --template finding`, tagged `found` — before
-writing the closing report, never in prose alone: the report reaches one
-reader once, a filed task does not.
-
-= Dependency Drift (outdatty)
-
-#link("outdatty.yaml")[`outdatty.yaml`] couples source files to the
-dependents that must stay in sync (e.g. the CLI surface to `README.md`).
-After editing a source, update the listed dependents, re-record the group you
-touched with #just.outdatty-update("<group>") and commit `outdatty.lock`. A
-recorded hash is a review watermark, so blanket re-recording —
-#just.outdatty-update-all() — claims a review that never happened. It stays
-the explicit choice, never the default.
-
-Edit a dependent alone, and record just that file in the same commit —
-#just.outdatty-update("<group> <path>") leaves the group's other pending
-dependents pending. Only a source change is a trigger, so the hash would
-otherwise ride along on an unrelated commit; the reasoning and the
-pending-groups one-liner are in `outdatty.yaml`'s header.
-
-= Version Management
-
-- No backward compatibility before the first public release: a rename lands
-  whole, callers and configs included, with no alias or migration path left.
-- Workspace crates: `Cargo.toml` `[workspace.package] version` (semver).
-- Typst library: `lib/typst.toml` `version`, independent of the crates. Several files
-  repeat it and all have to move together; the `typst-pkg-version` outdatty group
-  enumerates them and fails the build otherwise. Trust the group, not a list here.
-- `mindtape-cli`'s dependency on `mindtape` carries a version requirement
-  (not path-only), because crates.io rejects path-only deps on publish; bump
-  it with the workspace version.
-- A release (#just.release("VERSION")) is gated twice: an `[arg(...)]` pattern rejects a
-  `v`-prefixed or non-semver `VERSION`, then the body requires the tag to equal the
-  workspace version, a clean tree, and no non-empty `[Unreleased]` section in
-  `CHANGELOG.md` (it moves into a dated section at release time). `main` is pushed
-  before the tag, so the docs site (`pages.yml`) and CI run on the release tree.
+Fork before you flip a task, because the uncommitted flip would make `fork`
+refuse. Run `mt wip <stem>` inside the worktree instead.
 
 = Commit Messages
 
-Conventional Commits in the language of prior commits, with a `Refs: <stem>`
-footer naming the driving task; a commit that only files or edits task
-artifacts carries none, and a status flip rides with the work it claims. The
-rule, the hooks that check it and the two setups are in
+- Use Conventional Commits in the language of prior commits.
+- End the message with a `Refs: <stem>` footer naming the task the commit
+  works on. Only a commit that changes nothing but task files under
+  `truth/tasks/` may omit it. A change to any other file needs it,
+  `.mindtape/config.toml` included.
+- File a task in its own `task:` commit with no `Refs:`.
+- Commit a status flip together with the work it claims. `mt wip` goes in
+  the first work commit and `mt done` in the last. Leave the flip uncommitted
+  until then, because a commit with a flip and no other change is refused.
+- A task tagged `decision` has no code of its own. It may close in a commit
+  that changes only task files, with a `Refs:` footer naming it.
+
+What checks these rules, and why `Refs:` names a stem, is in
 #link("docs/contributing/commit-messages.md")[docs/contributing/commit-messages.md].
 
-= Command Semantics (read/write separation)
+= Findings and the Signal Sweep
 
-Read commands never mutate the authored tree; only explicit write commands do.
-Which verb is which, the per-command read test, and the CLI command list it is
-read from are in
+When you notice a real problem outside your task, file it with
+`mt add --template finding` (tag `found`) before you report. Do not fix it in
+passing. A report reaches one reader once, and a task stays in the backlog.
+
+#just.ask-refactoring() reads the quality signals that no gate enforces and
+prints one task per finding. Add `--write` to file them. The arms and their
+scoring are in
+#link("docs/contributing/signal-sweep.md")[docs/contributing/signal-sweep.md].
+
+= Dependency Drift (outdatty)
+
+#link("outdatty.yaml")[`outdatty.yaml`] lists, for each source file, the
+files that restate it. After you edit a source, update its dependents, run
+#just.outdatty-update("<group>") and commit `outdatty.lock`. A recorded hash
+says someone reviewed the dependents, so run #just.outdatty-update-all() only
+after reviewing every group. After you edit only a dependent, record that file
+alone in the same commit with #just.outdatty-update("<group> <path>").
+
+= Version Management
+
+- There is no backward compatibility before the first public release. A
+  rename lands whole, callers and configs included, with no alias or
+  migration.
+- The workspace crates take their version from `[workspace.package] version`
+  in `Cargo.toml`.
+- The Typst library's version is `version` in `lib/typst.toml`, independent of
+  the crates. The `typst-pkg-version` outdatty group lists every file that
+  repeats it.
+- `mindtape-cli` depends on `mindtape` by version as well as by path, because
+  crates.io refuses a path-only dependency. Bump it with the workspace
+  version.
+- #just.release("VERSION") refuses a `VERSION` that is not plain semver or
+  differs from the workspace version. It also refuses a dirty tree and a
+  `CHANGELOG.md` whose `[Unreleased]` section has content, so move that
+  content into a dated section first. It pushes `main` before the tag, so the
+  docs site and CI run on the release tree.
+
+= Command Semantics
+
+Read commands never change the authored tree. Only write commands do. Which
+command is which is in
 #link("docs/contributing/command-semantics.md")[docs/contributing/command-semantics.md].
 
 = Documentation
 
-Docs live in `www/content/*.typ` and the `docs/src/*.typ` Markdown sources.
-Rewrite a touched file whole, state each fact once, use checked examples, and
-write plain prose. The rules with examples, and the #just.dup-prose() audit,
-are in
+Edit a doc's Typst source, rewrite a touched file whole, state each fact once,
+use checked examples and write plain prose. The rules are in
 #link("docs/contributing/documentation.md")[docs/contributing/documentation.md].
-Why the site build always rebuilds clean is in
-#link("docs/contributing/docs-site-build.md")[docs/contributing/docs-site-build.md].
 
 = Extending MindTape
 
-- New CLI command: add `crates/mindtape-cli/src/<name>.rs` with an `Args`
-  struct and a `run` fn; wire it into `cli.rs`. See `ls.rs` for reference.
-- New domain capability: add to `crates/mindtape` and re-export from its
-  `lib.rs`. Keep `typst-harvest` consumer-blind — no task concepts there.
-- Architectural/tooling decisions: file a task under `truth/tasks/`; there are
-  no ADRs.
+- A new CLI command is `crates/mindtape-cli/src/<name>.rs` with an `Args`
+  struct and a `run` function, wired into `cli.rs`. `ls.rs` is a model.
+- A new domain capability goes in `crates/mindtape` and is re-exported from
+  its `lib.rs`. Keep task concepts out of `typst-harvest`, a general Typst
+  crate other tools use.
+- An architectural or tooling decision is a task under `truth/tasks/` tagged
+  `decision`. There are no ADRs.

@@ -97,15 +97,13 @@ clippy:
 # nextest runs no doctests. The extra `cargo test --doc` pass cratemplate
 # carries for them is absent here on purpose: `cargo test --doc` reports 0
 # tests in both crates, and no ```rust fence exists in the tree. A doctest
+# added later needs a `cargo test --doc` pass of its own.
 #
 # `--cargo-quiet` twice drops cargo's own `Compiling …`/`Finished …` build
 # noise (specify-twice is nextest's own spelling for "no Cargo output at
 # all"); nextest's run banner and Summary line have no such flag — verified
 # against `--status-level none` and `--final-status-level none`, neither
-# touches them — so they still print even on an all-pass run. Kept as a
-# single body line (bare comments above, not inside, the recipe) so
-# www/gates.jq's `gate_command` keeps quoting it verbatim in CONTRIBUTING.md
-# instead of falling back to the `[doc(...)]` string.
+# touches them — so they still print even on an all-pass run.
 
 [doc("Run tests only")]
 [group("dev")]
@@ -116,8 +114,7 @@ test *ARGS:
 
 # cargo-machete has no quiet flag (verified: `cargo machete --help` lists
 # none) — "Analyzing dependencies…" and "…Good job!" print on every clean run
-# with no way to silence just the success case. Left as a bare one-liner so
-# www/gates.jq's `gate_command` still quotes it verbatim in CONTRIBUTING.md.
+# with no way to silence just the success case.
 
 [doc("Check for unused dependencies")]
 [group("gate")]
@@ -174,7 +171,7 @@ outdatty-check:
 # So a fixture some other tool runs `mt` against can never rot: learn-piano
 # feeds the docs generator and the skill's triage evals, minimal feeds the
 # skill's trap evals. Why gating them is what earns the right to depend on
-# them is in docs/contributing/gates.md.
+# them is in docs/contributing/example-projects.md.
 #
 # "Against itself" is enforced, not trusted. Each fixture declares a
 # `[[typst.local-packages]]` entry pointing `@local/mindtape` at this
@@ -690,8 +687,7 @@ TYPST_FMT_PATHS := "lib truth .mindtape/templates examples/api-service/tasks exa
 # The paths follow the module files, and must: this list is the whole coverage
 # of the formatter gate over them, so a module file that moves without its
 # entry moving silently drops back out of `just fmt` and `just fmt-check`. The
-# verification behind that, and the drift it already cost, are in
-# docs/contributing/gates.md.
+# verification behind that is in docs/contributing/gates.md.
 
 JUST_FMT_PATHS := ".just/docs.just"
 
