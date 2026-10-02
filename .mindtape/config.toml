@@ -194,6 +194,7 @@ severity = "error"
 # - CHANGELOG.md: the entry every task's commit carries.
 # - truth/tasks/**: a task's own file, which `mt flip` writes.
 # - crates/*/tests/**, **/*test*.rs: red-first coverage, not the change.
+# - examples/**: fixture projects the docs, gates and skill evals read.
 [[tasks.rules]]
 name = "src-budget"
 when = 'status == "wip" && has(estimate.src-files)'
@@ -201,7 +202,7 @@ assert = '''changed("staged+worktree",
   "!README.md", "!CONTRIBUTING.md", "!AGENTS.md", "!skills/mindtape/SKILL.md",
   "!docs/contributing/*.md", "!www/generated/**", "!outdatty.lock",
   "!docs/src/**", "!www/content/**", "!CHANGELOG.md", "!truth/tasks/**",
-  "!crates/*/tests/**", "!**/*test*.rs") <= estimate.src-files'''
+  "!crates/*/tests/**", "!**/*test*.rs", "!examples/**") <= estimate.src-files'''
 message = "split the remaining work into a new task and finish the part in hand"
 severity = "warn"
 
