@@ -35,7 +35,8 @@ names=$(just --dump --dump-format json | jq -r '
       );
     rec_names(""), (.aliases | keys[])
 ')
-is_recipe() { grep -qxF "$1" <<<"$names"; }
+# `--` ends grep's options, so a name like `--fmt` is a pattern.
+is_recipe() { grep -qxF -- "$1" <<<"$names"; }
 
 shopt -s globstar nullglob
 fail=0
@@ -75,10 +76,12 @@ scan_sources() {
             # Shape three: a quoted `"just <name>"` substring anywhere — a literal
             # value, not a live reference (an example `.mindtape/config.toml` flip
             # hook's `run = "just check"`, a demonstrated status-note string).
-            # Never has to convert, but still has to resolve.
+            # Never has to convert, but still has to resolve. A word starting with
+        # `-` is a just flag such as `--fmt`, which has no recipe to resolve.
             while IFS= read -r m; do
                 [ -z "$m" ] && continue
                 name="${m#\"just }"
+                [[ $name == -* ]] && continue
                 if ! is_recipe "$name"; then
                     echo "check-doc-recipes: $f:$lineno: \"just $name\" is not a real recipe" >&2
                     fail=1
@@ -88,12 +91,13 @@ scan_sources() {
             # Shape two: `just <name>` opening a line INSIDE a fenced block — a
             # shell-command example (Quick Start's `just check`, the signal
             # sweep's dry-run transcript). A fenced block cannot call the helper,
-            # so this is legal as prose, but the name still has to resolve.
+            # so this is legal as prose, but the name still has to resolve. A
+            # flag such as `just --list` names no recipe and is left alone.
             if [ "$tag" = "B" ]; then
                 trimmed="${content#"${content%%[![:space:]]*}"}"
                 if [[ "$trimmed" =~ ^just([[:space:]]+([A-Za-z0-9_-]+))?([[:space:]]|$) ]]; then
                     name="${BASH_REMATCH[2]}"
-                    if [ -n "$name" ] && ! is_recipe "$name"; then
+                    if [ -n "$name" ] && [[ $name != -* ]] && ! is_recipe "$name"; then
                         echo "check-doc-recipes: $f:$lineno: \`just $name\` is not a real recipe" >&2
                         fail=1
                     fi
@@ -106,13 +110,19 @@ scan_sources() {
             # fails, whether or not the name resolves: it has to become
             # `#just.<name>(...)` either way. A bare `just` with nothing after it
             # is exempt (`just` with no args lists the recipes, and that sentence
-            # has to stay literal).
+            # has to stay literal). A just flag such as `just --fmt` is no
+            # recipe either, so it gets a message of its own.
             while IFS= read -r m; do
                 [ -z "$m" ] && continue
                 inner="${m#\`}"; inner="${inner%\`}"
                 name=""
                 read -r _ name _ <<<"$inner"
                 [ -z "$name" ] && continue
+                if [[ $name == -* ]]; then
+                    echo "check-doc-recipes: $f:$lineno: \`just $name\` is a just flag, not a recipe — write the flag alone" >&2
+                    fail=1
+                    continue
+                fi
                 echo "check-doc-recipes: $f:$lineno: literal \`just $name\` outside the generated module — use #just.$name(...)" >&2
                 fail=1
                 if ! is_recipe "$name"; then
@@ -154,6 +164,11 @@ Inline ```sh just nosuchinline``` then `just check` after it.
 ```sh
 just check
 ```
+Flags: `just --fmt` in prose.
+```sh
+just --list
+```
+A quoted "just --fmt" value.
 EOF
     want=$(sort <<'EOF'
 1: literal `just check` outside the generated module — use #just.check(...)
@@ -163,6 +178,7 @@ EOF
 8: "just nosuchquoted" is not a real recipe
 9: `just nosuchinline` is not a real recipe
 9: literal `just check` outside the generated module — use #just.check(...)
+13: `just --fmt` is a just flag, not a recipe — write the flag alone
 EOF
     )
     got=$(scan_sources "$page" 2>&1 | sed "s|^check-doc-recipes: $page:||" | sort)
