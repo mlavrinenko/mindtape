@@ -28,6 +28,7 @@
   ),
   assignee: "agent",
   status: proposed(2026, 10, 2),
+  links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
 == Problem

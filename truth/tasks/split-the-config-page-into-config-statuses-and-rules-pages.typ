@@ -31,7 +31,8 @@
   links: depends-on(
     "write-plain-prose-rules-for-the-docs-and-check-for-history-and-shouting.typ",
     "refuse-hand-typed-code-blocks-in-doc-sources.typ",
-  ),
+  )
+    + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
 == Problem

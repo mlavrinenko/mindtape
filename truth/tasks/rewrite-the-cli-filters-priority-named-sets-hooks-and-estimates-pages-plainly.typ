@@ -33,7 +33,8 @@
     "refuse-hand-typed-code-blocks-in-doc-sources.typ",
     "split-the-config-page-into-config-statuses-and-rules-pages.typ",
     "print-each-captures-command-from-the-string-that-ran-it.typ",
-  ),
+  )
+    + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
 == Problem

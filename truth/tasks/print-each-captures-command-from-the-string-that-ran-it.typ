@@ -31,7 +31,8 @@
   links: depends-on(
     "refuse-hand-typed-code-blocks-in-doc-sources.typ",
     "pin-the-docs-capture-environment-and-refuse-machine-paths-in-captures.typ",
-  ),
+  )
+    + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
 == Problem

@@ -32,7 +32,8 @@
     "write-plain-prose-rules-for-the-docs-and-check-for-history-and-shouting.typ",
     "refuse-hand-typed-code-blocks-in-doc-sources.typ",
     "print-each-captures-command-from-the-string-that-ran-it.typ",
-  ),
+  )
+    + parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
 == Problem
