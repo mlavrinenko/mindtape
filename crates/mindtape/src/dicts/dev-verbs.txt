@@ -269,6 +269,7 @@ snapshot
 sort
 source
 spawn
+speed
 spike
 squash
 stabilize

@@ -131,7 +131,7 @@ fn the_two_builtins_are_available_without_being_declared() {
         ["mindtape-verbs", "mindtape-dev-verbs"]
     );
     assert_eq!(dicts.get("mindtape-verbs").unwrap().len(), 500);
-    assert_eq!(dicts.get("mindtape-dev-verbs").unwrap().len(), 315);
+    assert_eq!(dicts.get("mindtape-dev-verbs").unwrap().len(), 316);
     assert!(dicts.contains("mindtape-verbs", "Add"));
     assert!(dicts.contains("mindtape-dev-verbs", "refactor"));
     assert!(!dicts.contains("mindtape-verbs", "refactor"));
@@ -150,6 +150,7 @@ fn the_dev_verbs_carry_the_common_engineering_verbs() {
         "group",
         "update",
         "rate-limit",
+        "speed",
     ] {
         assert!(dicts.contains("mindtape-dev-verbs", verb), "{verb}");
     }
