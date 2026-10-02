@@ -94,12 +94,12 @@ groups:
   # that reflects `Cli::command()` back out for the docs generator, so it can
   # only remove drift, never introduce it — see its own module doc.
   #
-  # hooks.typ, estimates.typ and named-sets.typ are dependents for exactly
-  # config.typ's reason: each is a deep dive MOVED off that page
-  # (truth/tasks/move-the-config-page-deep-dives-onto-pages-of-their-own.typ),
-  # carrying the same hand-restated `[[on.flip]]`, `[tasks.estimate]` and
-  # `[views]`/`[dicts]` surface it used to carry inline. A section moving to a
-  # page of its own must not move out of the drift gate with it.
+  # hooks.typ, estimates.typ, named-sets.typ, statuses.typ and rules.typ are
+  # dependents for exactly config.typ's reason: each is a deep dive moved off
+  # that page, and each restates by hand the config surface it covers
+  # (`[[on.flip]]`, `[tasks.estimate]`, `[views]`/`[dicts]`, the status legend,
+  # the rule arrays). A section moving to a page of its own must not move out
+  # of the drift gate with it.
   - name: cli-docs
     source:
       - crates/mindtape-cli/src/cli.rs
@@ -169,6 +169,8 @@ groups:
       - www/content/recurring.typ
       - www/content/filters.typ
       - www/content/config.typ
+      - www/content/statuses.typ
+      - www/content/rules.typ
       - www/content/hooks.typ
       - www/content/estimates.typ
       - www/content/named-sets.typ
@@ -310,6 +312,16 @@ groups:
       - examples/estimates/tasks/rename-the-status-glyphs.typ
       - examples/dsl/tasks/add-a-session-store.typ
       - examples/dsl/tasks/fix-the-login-redirect.typ
+      - examples/statuses/tasks/add-a-dry-run-flag.typ
+      - examples/statuses/tasks/import-xlsx-files.typ
+      - examples/statuses/tasks/map-csv-columns.typ
+      - examples/statuses/tasks/parse-csv-rows.typ
+      - examples/statuses/tasks/ship-the-csv-importer.typ
+      - examples/statuses/tasks/stream-large-files.typ
+      - examples/statuses/tasks/vendor-the-csv-parser.typ
+      - examples/rules/tasks/add-csv-export.typ
+      - examples/rules/tasks/drop-the-v1-api.typ
+      - examples/rules/tasks/fix-the-session-timeout.typ
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.

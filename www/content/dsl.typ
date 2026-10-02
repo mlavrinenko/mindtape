@@ -71,7 +71,7 @@ status: done(2026, 7, 20)
 ```
 
 A terminal status (like `done`) relaxes fields marked `required = "!terminal"`.
-The default legend and its glyphs live in #link(u("/config/"))[Configuration].
+The default legend and its glyphs live in #link(u("/statuses/"))[Statuses].
 
 = Links and recurrence
 

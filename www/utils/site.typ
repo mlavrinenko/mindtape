@@ -73,6 +73,8 @@
       "/filters/",
       "/priority/",
       "/config/",
+      "/statuses/",
+      "/rules/",
       "/rule-packs/",
       "/commit-rules/",
       "/named-sets/",

@@ -37,7 +37,6 @@ PENDING=(
     www/content/cli.typ
     www/content/commit-rules.typ
     www/content/concepts.typ
-    www/content/config.typ
     www/content/derived-tags.typ
     www/content/dsl.typ
     www/content/estimates.typ

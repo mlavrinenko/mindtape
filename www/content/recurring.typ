@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
+#import "../utils/config-ref.typ": config-keys-table
 #import "../generated/just.typ" as just
 
 #let meta = (
@@ -56,8 +57,9 @@ Every rule carries the same policy: `anchor` picks the date a series counts
 from (`completion` by default, `due` for a calendar promise), `until` and
 `count` stop it, and `materialize` chooses what #link(u("/cli/"))[`mt recur`]
 writes — a new file per occurrence (`spawn`, the default) or the task refreshed
-in place (`mutate`). A key the task omits resolves from `[tasks.recur]`;
-#link(u("/config/"))[Configuration] carries that floor, defaults and all.
+in place (`mutate`). A key the task omits resolves from `[tasks.recur]`:
+
+#config-keys-table(json("../generated/config-schema.json"), "tasks.recur")
 
 #raw(
   render-slices(slices, (

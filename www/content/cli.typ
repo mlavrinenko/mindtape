@@ -2,6 +2,7 @@
 #import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 #import "../utils/cli-ref.typ": cli-gate, cli-group, render-globals
+#import "../utils/config-ref.typ": config-keys-table
 
 #let meta = (
   route: "/cli/",
@@ -162,14 +163,24 @@ TTY. `mt find TERM…` is the same command with `contains()` sugar.
 
 = Conditional rules
 
+`[[ls.rules]]` lets a bare `mt ls` pick its listing from where it runs: the
+branch, the terminal, an environment variable, the day. `mt ls` takes the
+first entry whose `condition` holds, or that has no `condition`. The entry's
+`import-views` are composed left to right, a later view winning each facet it
+sets, and the entry's own `filter`, `sort` and `columns` win over them all.
+A matched entry starts from nothing: it does not inherit `default-view`.
+
+#config-keys-table(json("../generated/config-schema.json"), "ls.rules")
+
+`mt` checks each entry when it loads the config. `condition` must parse and
+may use only the environment predicates below, so a task field there is an
+error. Each `import-views` entry must name a declared view and legal facets,
+and each override must be valid.
+
 Two keys take an expression in this mini-language: `[[ls.rules]]`'s
 `condition`, which picks the listing bundle, and `[ls.columns.<name>]`'s
 `when`, which decides one column's visibility; both read it against the same
-ambient facts, so an expression means one thing wherever it is written. The
-rule shape and its `import-views` composition are on
-#link(u("/config/"))[Configuration]. A matched rule composes only what it uses
-— it does not inherit `default-view` as a base layer — and what follows is the
-language itself.
+ambient facts, so an expression means one thing wherever it is written.
 
 `condition` is a separate mini-language over ambient environment facts, not
 task fields — the same operators and parser as
@@ -256,7 +267,7 @@ Named views, and what an `@name` means in a listing, are defined on
 
 `mt flip <status> <refs…>` sets a status dated today; every legend value is
 also a verb, and flips batch. Transition edges and required notes are the
-#link(u("/config/"))[status legend]'s, and `mt flip` is the only command that
+#link(u("/statuses/"))[status legend]'s, and `mt flip` is the only command that
 runs a project's #link(u("/hooks/"))[`[[on.flip]]` hooks]. A landed flip reports
 the refreshed handle of every task it moved (`handle <stem>: 1b → 3b`, or
 `→ none` when the flip took it out of the view), computed against one view
@@ -277,7 +288,7 @@ the cadence grammar, the policy floor, and what a spawn leaves behind are
 `mt check` runs the whole validation pass — enums, required fields, numeric
 bounds, link resolution, dependency cycles — and exits non-zero naming each
 violation; #link(u("/concepts/"))[Concepts] owns the two layers that enforce a
-task, and #link(u("/config/"))[Configuration] the bounds and rules themselves.
+task, and #link(u("/rules/"))[Rules] the checks a project adds.
 `mt check --commit-msg <file>` checks a commit message instead, from a
 `commit-msg` hook, against #link(u("/config/"))[Configuration]'s commit rules;
 `mt check --commits <range>` checks every commit of a range, from CI.

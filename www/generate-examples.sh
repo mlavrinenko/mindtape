@@ -6,9 +6,10 @@
 # of its own.
 #
 # One artifact per fixture: examples/links/ -> links.json (the `links:` field),
-# examples/recurring/ -> recurring.json (the `recur:` field), examples/dsl/ ->
+# examples/recurring/ -> recurring.json (the `recur:` field),
+# examples/statuses/ -> statuses.json (the `status:` field), examples/dsl/ ->
 # dsl.json (the task sketch AGENTS.md shows). The pages
-# www/content/links.typ and www/content/recurring.typ and the source
+# www/content/{links,recurring,statuses}.typ and the source
 # docs/src/agents.typ read only the slices, and the fixtures are what
 # `just check-examples` validates; a helper whose shape changes breaks the
 # fixture's check before a page can lie about it.
@@ -133,6 +134,7 @@ slice_fixture() {
 slice_fixture links | emit links.json
 slice_fixture recurring | emit recurring.json
 slice_fixture dsl | emit dsl.json
+slice_fixture statuses | emit statuses.json
 
 # Every config file scanned for config markers, repo-relative. A project not
 # listed here is simply not read, so a marker added to one is inert until its
@@ -142,13 +144,16 @@ CONFIG_SOURCES=(
   ".mindtape/config.toml"
   "examples/learn-piano/.mindtape/config.toml"
   "examples/estimates/.mindtape/config.toml"
+  "examples/links/.mindtape/config.toml"
+  "examples/rules/.mindtape/config.toml"
+  "examples/statuses/.mindtape/config.toml"
 )
 
 # Every fact a page opens. Declared rather than derived from the markers
 # because a mistyped fact name would otherwise emit a file no page ever reads —
 # invisible, and the one drift the per-page key-set assertion in
 # www/utils/slices.typ structurally cannot see from inside a single page.
-CONFIG_FACTS=(estimates hooks named-sets rule-packs)
+CONFIG_FACTS=(config estimates hooks links named-sets rule-packs rules statuses)
 
 # Same two-pass shape as slice_fixture: awk writes each slice to its own temp
 # file and one index row per slice, then jq builds the JSON with --rawfile so

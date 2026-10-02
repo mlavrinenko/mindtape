@@ -37,8 +37,7 @@ fixture below (`examples/self-validating/`) shrinks that idea to two goals:
 `[[tasks.rules]]` names the function and the field it reads — this is the
 project's whole config, `[[typst.local-packages]]` and status legend
 included. What `check`'s three keys mean, and what a project can do with them
-beyond this, is at #link(u("/config/"))[Configuration, "Checking a field with
-  a Typst function"]:
+beyond this, is at #link(u("/rules/"))[Rules, "Typst checks"]:
 
 #raw(
   read("../generated/self-validating-config.toml"),

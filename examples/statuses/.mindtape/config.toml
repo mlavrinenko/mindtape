@@ -1,0 +1,66 @@
+#:schema ../../../schema/config.schema.json
+# examples/statuses/.mindtape/config.toml — the checked project /statuses/
+# reads back as data.
+#
+# Its one job is the status legend: a transition graph, a status that demands
+# a note, and the `unblocked` guard on the statuses where work starts and
+# ends. The page slices the legend out of this file, and www/generate.sh runs
+# the refused flips against a copy of it, so a key `mt check` would refuse
+# cannot be shown as a key to copy.
+
+# docs:slice config/local-packages
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+# docs:end
+
+[tasks]
+roots = ["tasks"]
+
+# docs:slice statuses/open
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+unblocked = true
+to = ["on-hold", "done", "failed", "proposed"]
+# docs:end
+
+# docs:slice statuses/on-hold
+[[tasks.status]]
+value = "on-hold"
+glyph = "⏸"
+color = "cyan"
+note = "required"
+to = ["wip", "cancelled"]
+# docs:end
+
+# docs:slice statuses/closed
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+unblocked = true
+to = ["wip"]
+
+[[tasks.status]]
+value = "failed"
+glyph = "❌"
+color = "red"
+terminal = true
+note = "required"
+to = ["wip"]
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+# docs:end

@@ -87,7 +87,7 @@ A field the task does not carry is unequal to every literal and orders against
 none: `kind != "bug"` matches a task with no `kind` at all, while `kind == "bug"`,
 `kind < "bug"` and the rest stay false. A `field == "x"` / `field != "x"` pair
 therefore partitions the whole backlog with no third case — the property
-#link(u("/config/"))[work-in-progress limits] rest on. Select absence explicitly
+#link(u("/rules/"))[work-in-progress caps] rest on. Select absence explicitly
 with `miss(field)`.
 
 The right side may also be another field, or a `changed()` count (below):
@@ -127,7 +127,7 @@ are numbers, and a side the task lacks follows the same rule.
   [`in_dict("name", <string>)`],
   [The string is in the named #link(u("/named-sets/"))[`[dicts.<name>]`] set,
     under that dictionary's own `case`. Paired with `word()` below, this is
-    what #link(u("/config/"))[a config-declared rule] turns into an
+    what #link(u("/rules/"))[a config-declared rule] turns into an
     enforced convention rather than a query.],
 )
 
@@ -274,15 +274,8 @@ same rule `ready` follows. Inside `count` every field reads the task being
 counted, so the answer is one number per command, whichever task asks:
 `count` walks the set once per distinct argument, and a rule asserting it on
 every task stays linear. That makes a set-level cap a rule a project writes
-rather than a table of its own:
-
-```toml
-[[tasks.rules]]
-name     = "wip-cap"
-when     = 'status == "wip"'
-assert   = 'count(status == "wip") <= 1'
-severity = "error"
-```
+rather than a table of its own: see
+#link(u("/rules/"))[Work-in-progress caps].
 
 `count` needs the loaded set, so it works where one exists — `mt ls`, `mt rm`,
 views, `[[tasks.rules]]`, `[[on.flip]]` hooks — and is an error anywhere
@@ -314,7 +307,7 @@ mt ls 'topo == 0 && !terminal' # nothing in the way of these
 ```
 
 Both read the same edges `ready` does: `depends-on`, plus any custom kind a
-project flags #link(u("/config/"))[`blocking = true`]. An edge naming no loaded
+project flags #link(u("/links/"))[`blocking = true`]. An edge naming no loaded
 task constrains nothing.
 
 They differ on status, deliberately. `topo` ignores it: a finished dependency
@@ -363,10 +356,8 @@ how the cut reports itself.
 
 = Default filters
 
-Omitting the filter first tries the project's ordered
-#link(u("/cli/"))[`[[ls.rules]]`] — auto-activation rules keyed off a separate,
-environment-only mini-language: same operators and parser as this page's
-filters, no task fields.
+Omitting the filter first tries the project's
+#link(u("/cli/"))[`[[ls.rules]]`].
 No rule matching falls back to the default view — `[ls] default-view` by name,
 else the `[views.default]` view; an empty filter (`''`) skips all of that and
 matches everything. The shipped default view filters `!terminal &&
@@ -376,7 +367,7 @@ arrived. Being a view (not a bare filter) it can carry sort and columns too.
 #link(u("/config/"))[Configuration].
 
 The same language also decides which tasks must carry a field — see
-#link(u("/config/"))[Required fields].
+#link(u("/rules/"))[Required fields].
 
 #callout("note")[
   Filters are parsed, not evaluated as code: the expression syntax is fixed,

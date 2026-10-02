@@ -1,0 +1,141 @@
+#:schema ../../../schema/config.schema.json
+# examples/rules/.mindtape/config.toml — the checked project /rules/ reads
+# back as data.
+#
+# Its one job is the checks a project declares beyond the field shapes:
+# required fields, `[[tasks.rules]]` in both shapes, a work-in-progress cap,
+# the two body rule families and the review-comment policy. The actor
+# registry is here because the required assignee needs one. Its three tasks
+# satisfy every rule here, so `just check-examples` proves each one loads and
+# holds. www/generate.sh runs the refused writes against a copy.
+
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true
+
+[tasks.fields.kind]
+values = ["feat", "bug"]
+required = "!terminal"
+
+# docs:slice rules/required
+[tasks.priority]
+required = "!terminal"
+
+[tasks.estimate]
+units = ["hours"]
+required = 'kind == "bug"'
+
+[tasks.assignee]
+allowed = ["ada", "lin"]
+required = "!terminal"
+# docs:end
+
+# docs:slice rules/assert
+[[tasks.rules]]
+name = "bugs-outrank-the-low-band"
+when = 'kind == "bug" && !terminal'
+assert = "priority >= 3"
+message = "a known bug is never low priority; raise it or close it"
+severity = "error"
+
+[[tasks.rules]]
+name = "no-full-stop-in-titles"
+assert = '!matches(title, "\\.$")'
+message = "drop the full stop at the end of the title"
+# docs:end
+
+# docs:slice rules/wip-cap
+[[tasks.rules]]
+name = "one-task-in-flight"
+when = 'status == "wip"'
+assert = 'count(status == "wip") <= 1'
+message = "finish the task in flight before starting another"
+severity = "error"
+# docs:end
+
+# docs:slice rules/check
+[[tasks.rules]]
+name = "acceptance-criteria"
+when = "!terminal"
+check = { typst = "lib.typ", function = "check-acceptance", field = "x-acceptance" }
+severity = "error"
+# docs:end
+
+# docs:slice rules/headers
+[[tasks.body.headers.rules]]
+name = "one-summary"
+path = ["Summary"]
+action = "unique"
+message = "every task has exactly one Summary section"
+
+[[tasks.body.headers.rules]]
+name = "known-sections"
+action = "allowlist"
+allowed = [{ match = "^(Summary|Steps to reproduce|Notes)$" }]
+# docs:end
+
+# docs:slice rules/content
+[[tasks.body.content.rules]]
+name = "summary-non-empty"
+path = ["Summary"]
+assert = "non-empty"
+message = "write the Summary; a heading over nothing tells the reader nothing"
+
+[[tasks.body.content.rules]]
+name = "repro-has-detail"
+path = ["Steps to reproduce"]
+assert = { min-words = 15 }
+when = 'kind == "bug"'
+
+[[tasks.body.content.rules]]
+name = "one-dash-per-paragraph"
+path = [{ match = ".*", recursive = true }]
+assert = { density = { pattern = "—", max = 1, per = "paragraph" } }
+message = "more than one em-dash in a paragraph reads as generated prose"
+# docs:end
+
+# docs:slice rules/comments
+[tasks.comments]
+policy = "forbid"
+allow-pattern = "^TODO:"
+# docs:end
+
+# The registry `[tasks.assignee] allowed` names. /config/ quotes it.
+# docs:slice config/actors
+[[roles]]
+name = "reviewer"
+
+[[actors]]
+name = "ada"
+kind = "human"
+roles = ["reviewer"]
+
+[[actors]]
+name = "lin"
+kind = "llm"
+# docs:end

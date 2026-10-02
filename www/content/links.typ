@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
+#import "../utils/config-ref.typ": config-keys-table, config-values-table
 #import "../generated/just.typ" as just
 
 #let meta = (
@@ -41,6 +42,7 @@ block cannot describe a shape the DSL stopped accepting.
   [The previous occurrence in a recurring series — see #link(u("/recurring/"))[Recurring tasks].],
 )
 
+#let schema = json("../generated/config-schema.json")
 #let parts = (
   (
     "depends-on-related",
@@ -83,7 +85,7 @@ progress at all — `null` in JSON, a blank cell, and absent to a filter, so
 `progress < 1` never matches a leaf.
 
 Closing a parent over unfinished children is refused: a status both
-`terminal` and #link(u("/config/"))[`unblocked = true`] requires every child
+`terminal` and #link(u("/statuses/"))[`unblocked = true`] requires every child
 finished, `mt flip` names the ones that are not, and `--force` overrides.
 
 A helper is variadic, and `+` combines helpers because each returns an array —
@@ -93,12 +95,43 @@ on kind and target, so re-applying either form writes nothing new.
 
 = Project-declared kinds
 
-The `edge("discharged-by", …)` line above is a kind this project declared in
-`[[tasks.links.kinds]]`, where `validate` picks how its targets are checked: a
-URL, a git SHA, a UUID, or a regex. A target that cannot be a local task never
-pretends to be one, and never joins the task graph.
-#link(u("/config/"))[Configuration] has the table of variants and a declaration
-to copy.
+`[[tasks.links.kinds]]` adds edge kinds beside the six built-ins, and a task
+writes one with `edge("<kind>", …)`, as the `discharged-by` line above does.
+These are the kinds `examples/links/` declares:
+
+#let kinds = checked-slices(
+  json("../generated/links-config.json"),
+  "links-config",
+  ("kinds",),
+)
+
+#raw(
+  render-slices(
+    kinds,
+    (
+      (
+        "kinds",
+        "three kinds whose targets live outside the backlog, one that caps a task to one edge",
+      ),
+    ),
+    comment: "#",
+  ),
+  lang: "toml",
+  block: true,
+)
+
+#config-keys-table(schema, "tasks.links.kinds")
+
+`validate` takes one of these values:
+
+#config-values-table(schema, "TargetValidator")
+
+Any `validate` other than `local-task-path` says the targets are artifacts
+outside the backlog. `mt` never resolves such a target to a task, never counts
+it against `max`, and never follows it in a cycle check or a readiness check,
+even with `blocking` set. `mt check` reports a target that does not fit the
+validator, naming the kind, the validator and the value. `mt graph` draws each
+such target as a leaf node of its own.
 
 = Writing edges
 

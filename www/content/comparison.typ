@@ -130,7 +130,7 @@ matrix scrolls sideways on narrow screens.
   [#cap("amber")[Fixed, checked on write]],
   [#cap("amber")[Checked on CLI writes only]],
 
-  [#link(u("/config/"))[Status model]],
+  [#link(u("/statuses/"))[Status model]],
   [Config legend (enum + dates + transitions)],
   [Fixed set],
   [Fixed enum],

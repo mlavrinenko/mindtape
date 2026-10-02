@@ -124,7 +124,7 @@ require one:
 `body` is the raw Typst source that follows `#show: task.with(...)` — free-form
 prose, headings, anything. `mt import` writes it back verbatim below the
 emitted metadata call, so a `== Summary` section (or any other structure a
-project's #link(u("/config/"))[required-field] rules expect) survives a
+project's #link(u("/rules/"))[body] rules expect) survives a
 round-trip.
 
 = A full record

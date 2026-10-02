@@ -42,7 +42,7 @@ it was estimated in, so retiring a unit is one edit to `units` rather than a
 rewrite of every closed task that ever carried it.
 
 No quantity is checked unless a project asks. A cap and a budget are ordinary
-#link(u("/config/"))[`[[tasks.rules]]`] entries reading one unit as a number,
+#link(u("/rules/"))[`[[tasks.rules]]`] entries reading one unit as a number,
 `estimate.<unit>` (see #link(u("/filters/"))[Filter language]).
 
 = Caps

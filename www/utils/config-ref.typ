@@ -1,6 +1,8 @@
 // Renders www/generated/config-schema.json, the JSON Schema `mt config schema`
-// prints, as the Configuration page's "Sections" table. This file sets the row
-// order and the TOML labels; the schema supplies the descriptions.
+// prints, as the Configuration page's "Sections" table and as the key and
+// value tables of the pages that explain one section. This file sets the row
+// order and the TOML labels; the schema supplies the descriptions and
+// defaults.
 
 // ── resolve a dotted schema path to its property-level description ─────────
 // Walks `$ref` indirection through `$defs` one segment at a time. A
@@ -85,4 +87,85 @@
       panic("config-ref: " + full + " not covered in config.typ")
     }
   }
+}
+
+// ── public: one section's keys ──────────────────────────────────────────────
+
+// Step through what a property points at to the object that holds its keys:
+// a `$ref` to its def, an array to its items, an optional (`anyOf` with
+// `null`) to its one non-null branch.
+#let _target(schema, node) = {
+  let n = node
+  for _ in range(8) {
+    if "$ref" in n {
+      n = schema.at("$defs").at(n.at("$ref").split("/").last())
+    } else if "items" in n {
+      n = n.items
+    } else if "anyOf" in n {
+      n = n.anyOf.find(b => b.at("type", default: none) != "null")
+    } else { break }
+  }
+  n
+}
+
+// A schema default as it would be written in TOML; none when the schema
+// carries no default or the default is null.
+#let _toml-value(v) = {
+  if v == none { none } else if type(v) == str { "\"" + v + "\"" } else if (
+    type(v) == bool
+  ) { if v { "true" } else { "false" } } else if type(v) == array {
+    "[" + v.map(_toml-value).join(", ") + "]"
+  } else { str(v) }
+}
+
+// The keys one section takes, read from the schema: key, default, and the
+// key's own doc comment. `path` is dotted from the top of the config, as in
+// config-sections (`"tasks.links.kinds"` is the `[[tasks.links.kinds]]`
+// entry). An unknown segment panics, so a renamed key fails the docs build.
+#let config-keys-table(schema, path) = {
+  let node = schema
+  for seg in path.split(".") {
+    node = _target(schema, node)
+    if "properties" not in node or seg not in node.properties {
+      panic("config-ref: unknown schema path: " + path)
+    }
+    node = node.properties.at(seg)
+  }
+  let obj = _target(schema, node)
+  if "properties" not in obj {
+    panic("config-ref: " + path + " has no keys of its own")
+  }
+  table(
+    columns: 3,
+    table.header([Key], [Default], [Purpose]),
+    ..obj
+      .properties
+      .pairs()
+      .map(((key, prop)) => {
+        let d = _toml-value(prop.at("default", default: none))
+        let desc = prop.at(
+          "description",
+          default: _target(schema, prop).at("description", default: none),
+        )
+        (raw(key), if d == none { [] } else { raw(d) }, _fmt-desc(desc))
+      })
+      .flatten(),
+  )
+}
+
+// The values one enum-valued key takes, read from the schema def `name`:
+// each value with its doc comment.
+#let config-values-table(schema, name) = {
+  let def = schema.at("$defs").at(name, default: none)
+  if def == none or "oneOf" not in def {
+    panic("config-ref: " + name + " is not a documented enum in the schema")
+  }
+  table(
+    columns: 2,
+    table.header([Value], [Meaning]),
+    ..def
+      .oneOf
+      .map(v => (raw(v.const), _fmt-desc(v.at("description", default: none))))
+      .flatten(),
+  )
 }

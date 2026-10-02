@@ -5,10 +5,11 @@
 # Its one job is the `links:` field: eight tasks exercise the built-in helpers
 # (depends-on, parent, related, supersedes, duplicates) and one
 # project-declared kind validated as a URL. The page slices those real
-# expressions out of the task files, so a helper that changes shape fails
-# `just check-examples` instead of leaving a code block that no longer parses.
+# expressions out of the task files, and the kind declarations out of this
+# file, so a helper or a key that changes shape fails `just check-examples`
+# instead of leaving a code block that no longer parses.
 #
-# Deliberately thin: roots, a four-value legend, the custom kind. Everything
+# Deliberately thin: roots, a four-value legend, the custom kinds. Everything
 # else is inherited from the embedded floor, so nothing here can drift from
 # the defaults the page describes.
 
@@ -22,13 +23,29 @@ path = "../../lib"
 [tasks]
 roots = ["tasks"]
 
-# A target that lives outside the backlog: the PR or build that discharged the
-# task. `validate = "url"` keeps it a URL, so `mt check` refuses a stem that
-# was meant to be a link. See [[tasks.links.kinds]] in the config reference.
+# Project-declared kinds. `discharged-by` is the one a task here uses; the
+# other three are loaded and validated on every `mt check`, so a key the
+# loader refuses, such as a `regex` kind with no pattern, fails the gate.
+# docs:slice links/kinds
 [[tasks.links.kinds]]
 name = "discharged-by"
 validate = "url"
 note = "optional"
+
+[[tasks.links.kinds]]
+name = "landed-as"
+validate = "git-sha"
+
+[[tasks.links.kinds]]
+name = "ticket"
+validate = "regex"
+regex = "^ACME-[0-9]+$"
+
+[[tasks.links.kinds]]
+name = "split-from"
+max = 1
+note = "forbidden"
+# docs:end
 
 [[tasks.status]]
 value = "todo"

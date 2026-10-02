@@ -149,7 +149,7 @@ mt check
 #terminal(read("../generated/check.txt"))
 
 Wire `mt check` into a pre-commit hook or CI — #link(u("/cli/"))[the CLI
-  reference] lists what it verifies, and #link(u("/config/"))[Configuration] the
+  reference] lists what it verifies, and #link(u("/rules/"))[Rules] the
 rules behind it.
 
 #callout("note")[
