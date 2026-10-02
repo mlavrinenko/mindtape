@@ -17,7 +17,7 @@ Make every change through `mt`. It writes the slug, the status date and the fiel
 
 ## Is this a MindTape project?
 
-It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds `.mindtape/` or below it. For another project, pass `-w <path>`, or start the command with an alias from `mt worktrees`, as in `mt @name ls`. In a repo with no tracker, offer `mt init`.
+It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds `.mindtape/` or below it. For another project, pass `-w <path>`, or put an alias that `mt worktrees` lists, such as `@name`, right after `mt`. In a repo with no tracker, offer `mt init`.
 
 ## Commands
 

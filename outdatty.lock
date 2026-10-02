@@ -36,7 +36,7 @@ groups:
       crates/mindtape/src/fields.rs: 3257f23f636b0c5c70ad4fd51a622e4541a91355cd42c91e6b81ecb2f4167f9c
       crates/mindtape/src/lib.rs: 6f5901c6eca839f1509d6eaeeb3d0f3aef739d53ed4c54c3a454432812715b8c
     dependents:
-      docs/src/skill.typ: 99884f66686542e4966f17f9207bb2bce903a6fbc66287bb9afe3c692e13c999
+      docs/src/skill.typ: 1f4cbcc1114358854348be6cfe19c7d9a11736adad0e96d9cedbdca263b80f67
       skills/mindtape/evals/README.md: a5143877e4409bea53d0e60b8ad3716f9483a0d80f28b8c3013864f729428516
       skills/mindtape/evals/evals.json: 17e83792cf33e2485a686ead3e4451c4486078ee2fa283002ce091bf77b69ae9
       skills/mindtape/references/add-slots.md: 27d8992a98b9aa9917108d02d6bbdf6d95715a5e9aa2b229d375b1b87d210ef6
@@ -69,7 +69,7 @@ groups:
       docs/src/contributing.typ: 8657550069f12ebd2631bb8d769a438cd1c370bc2dba07170578ae04c3bbc093
       docs/src/contributing/command-semantics.typ: ef5583a2dcd79fe59c64e04a9b54dcdf82d000c17aa7ecb9d96f6b7eab157a25
       docs/src/readme.typ: 7ba1ff3c4b553522d609390d302edc22e910d9a86a7b3ad6528a7db4b506f7a5
-      docs/src/skill.typ: 99884f66686542e4966f17f9207bb2bce903a6fbc66287bb9afe3c692e13c999
+      docs/src/skill.typ: 1f4cbcc1114358854348be6cfe19c7d9a11736adad0e96d9cedbdca263b80f67
       www/content/cli.typ: 7b26ed5ed4878b5bc3958eaf076d9e88dcd14ea212e28bf0300e555f2a932ce2
       www/content/index.typ: d1d5b290d63aca11f273b112f4b7d39ca7d63fd252acedd583a00f0f4f83e7d8
       www/content/quickstart.typ: e4e7ce13e60b7859050fbee413ef3a777f03e6515ae29996661fa8c647cf35c6
@@ -133,7 +133,7 @@ groups:
     dependents:
       docs/src/agents.typ: 312eab3b443fc004d1b45b3aec683d32e05df7f0216a0e3b7f65104bbdd07ef1
       docs/src/readme.typ: 7ba1ff3c4b553522d609390d302edc22e910d9a86a7b3ad6528a7db4b506f7a5
-      docs/src/skill.typ: 99884f66686542e4966f17f9207bb2bce903a6fbc66287bb9afe3c692e13c999
+      docs/src/skill.typ: 1f4cbcc1114358854348be6cfe19c7d9a11736adad0e96d9cedbdca263b80f67
       skills/mindtape/references/add-slots.md: 27d8992a98b9aa9917108d02d6bbdf6d95715a5e9aa2b229d375b1b87d210ef6
       www/content/concepts.typ: d7fc5b67910ca1d13b791d98c0c50a2129813daa957cb3c4d0996bb471d1624a
       www/content/dsl.typ: 21d545cd4902d8257f6a26888a69abd1021468f4a46fa62d8338cd77014736c2
