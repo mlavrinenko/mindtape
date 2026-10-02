@@ -146,16 +146,17 @@
     config value) are argued in place in
     `.just/scripts/check-doc-recipes.sh`.
   ],
-  "docs-check": [
+  "docs::check": [
     `docs-gen` — a dependency — captures live `mt` output first
     (`www/generate.sh`), so this gate always sees fresh CLI examples before
     `pagefind` indexes the build for client-side search and `tola validate`
     checks links and assets. Both `tola` steps print only on failure.
   ],
-  "docs-md-check": [
+  "docs::md-check": [
     Regenerates every `docs/src/*.typ` source with typlite into a temp
     directory and diffs each against the committed Markdown it declares;
-    fails naming any drifted file rather than healing it in place.
+    fails naming any drifted file rather than healing it in place. It also
+    lints each render for shapes GitHub shows broken, naming file and line.
     #just.docs-md() refreshes it — see
     #link("docs/contributing/generated-docs.md")[docs/contributing/generated-docs.md].
   ],
@@ -198,7 +199,7 @@
     dump cannot tell the two apart (a `[script]` recipe reports `true` exactly
     as a `#!` body does, measured on just 1.46), so the first arm pairs that
     field with the absence of a `script` attribute. The second runs a
-    `false | true` probe under a replica justfile carrying the file's own
+    `false \| true` probe under a replica justfile carrying the file's own
     setting line verbatim, rather than matching its text: `-euo pipefail`
     would fail a literal match while being strictly better, and `-e` alone
     would pass a looser one while dropping the exact flag that let

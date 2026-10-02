@@ -58,8 +58,8 @@ A REPRODUCIBLE timeout is a finding, not noise: it means a mutant reached an
 unbounded loop. Four found so far — `MAX_CATCH_UP_STEPS` in `recur_dates.rs`,
 `MAX_DISAMBIGUATE_ATTEMPTS` in `naming.rs`, the string scan in
 `config_hooks.rs` and `find_root_bounded` in `loader.rs` — were fixed by
-bounding the loop with a `for` over a fixed range — never by a `while n <=
-CEILING`, which still hangs once the mutant stops incrementing `n`.
+bounding the loop with a `for` over a fixed range — never by a
+`while n <= CEILING`, which still hangs once the mutant stops incrementing `n`.
 
 A survivor inside `#[cfg(not(feature = …))]` code is unreachable under the
 sweep's own feature set. Move the twin into its own file and `exclude_globs` it

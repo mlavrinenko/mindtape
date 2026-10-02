@@ -48,6 +48,8 @@ The generator prepends that frontmatter as a `---`-delimited YAML block, before 
 
 That matters when the committed artifact itself is wrong — hand-edited, or left over from a stale render. Regenerating in place would heal it before the diff ever runs, so the gate would read clean on a file that was never correct. A temp render cannot self-heal: whatever is wrong on disk stays wrong while the comparison happens, so a hand-edit or a stale render fails the gate by name, every time.
 
+`just docs md-check` also lints each fresh render, outside fenced code, and fails naming file and line on four shapes: a `|` inside a code span in a table row, a backtick with no closing backtick on its line, an escaped backtick, and `-\>` outside a code span. It scans `docs/src` for a `;` glued onto a `#link(...)[...]`. Each is a trap below.
+
 ### What typlite can and cannot do
 
 Verified against the pinned tinymist (nixpkgs, this flake’s input) and the typst 0.14.2 it embeds — a separate typst plane from the `typst`/`typst-eval` **crates** mindtape links against (0.15.0; see `www/generated/crate-map.json`), so a nixpkgs bump that moves tinymist’s embedded typst means re-checking this table, not the crate versions.
@@ -77,6 +79,11 @@ Each of these has bitten a real port, and each is easy to reintroduce:
 
 - Typst’s `*x*` is BOLD (`strong`), not italic — the opposite of Markdown’s single-asterisk convention. Ported prose that used `*word*` for italic emphasis silently becomes bold unless rewritten as Typst’s own `_word_` (which typlite renders back as Markdown `_word_`, not `*word*` — another representation change to expect, not a bug).
 - A hand-wrapped line that ends mid-word with a hyphen (`wrong -\nedited`) does NOT get TeX-style hyphenation-continuation across the soft break: Typst joins it as `wrong- edited`, extra space and all, because typlite collapses the paragraph to one line without re-flowing it. Never end a wrapped source line on a hyphen that continues into the next line; move the whole hyphenated word to one line instead.
+- A raw span broken across a source line keeps the newline, and typlite emits it into the Markdown. Inside a table row that ends the row mid-cell and corrupts the table. Wrap the prose around a code span, never through one.
+- A `;`, or any other character Typst can read as continuing a code expression, glued onto the closing `]` of a `#link(...)[...]` is swallowed. Put a space before it, or escape it with a backslash.
+- A `|` inside a code span in a table row splits the row into an extra cell on GitHub. Write `\|` there; GitHub shows it as a pipe.
+- A string interpolated as text has its backticks escaped, so GitHub shows the backtick characters instead of a code span. Interpolate each span through `raw` instead.
+- `doc-title` with a nested raw span renders the span as `<code>`, so the heading is no longer attribute-free text and the demotion in `docs/generate-md.sh` skips it: the title survives as a raw `<h1>` tag. For a literal backtick in a title, interpolate the character from a string.
 - A wrapped line that OPENS with a number and a period is an enum item to Typst, not prose — the shape a sentence lands in whenever a threshold falls at a line break. The rendered paragraph splits in three around a stray list marker, and nothing errors. Rewrap so the number never starts a line, or escape the period (`15\.` renders as the plain number and rejoins the paragraph).
 
 One more consequence, not a constraint: typlite emits ONE LINE PER PARAGRAPH, so a generated `.md`’s line count is not a meaningful size proxy. That is why `.linecop.yaml` caps the `.typ` SOURCE under `docs/src/**` and excludes every path a source declares as its `output`. The source itself still wraps like any other Typst file in this repo, and `typstyle` still formats it.

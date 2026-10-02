@@ -95,8 +95,8 @@ rebuilt by every arm that needs an `mt`. It is one path for two builds:
 `swhid-mint/test-support`, so the build under `cargo test --no-run` is a
 different unit, hence a different `target/debug/deps/mt-<hash>`, from a plain
 `cargo build -p mindtape-cli`. Cargo uplifts by hard link and swaps the link
-whenever it points at another inode, fresh unit or not (on a warm tree `cargo
-build` after `cargo nextest run --no-run` gives `mt` a new inode with no
+whenever it points at another inode, fresh unit or not (on a warm tree
+`cargo build` after `cargo nextest run --no-run` gives `mt` a new inode with no
 compile; a repeat gives none). So a sequential pre-build before the fan-out
 cannot help: each later build of the other feature set swaps `mt` back.
 
@@ -148,7 +148,6 @@ directory, not one body in it: #just.check-file-size() (linecop scans every file
 under it), #just.outdatty-check() (nearly every script is a `dev-docs` source),
 #just.check-gate-drift() (it follows #just.check() into any script an arm runs)
 and #just.script-scope-check() itself, which must notice a script ARRIVING.
-which must notice a script ARRIVING.
 
 That call graph (`.just/scripts/_script-graph.sh`) is transitive and treats a
 recipe and a script as one kind of node, so a script invoking a script and a

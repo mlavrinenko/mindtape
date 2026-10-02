@@ -20,16 +20,14 @@
 # A gate can live in a module now (truth/tasks/split-the-justfile-into-
 # modules.typ), so recipe collection walks `.modules` recursively (all_recipes
 # below) instead of reading `.recipes` alone — a module recipe not walked here
-# would silently drop out of the gate table the day it moved. Every name
-# compared or rendered — $gate_group, $check_deps, and the gate's own `name`
-# field — is the MANGLED identifier (`::` joined with `-`, same function
-# www/generate-facts.sh's just.typ producer uses), never the raw `::`
-# invocation path: the gate `name` is what docs/src/contributing.typ prints
-# verbatim (`raw(g.name)`) and what www/utils/gate-notes.typ's dict is keyed
-# by, so keeping it mangled is what lets a recipe move into a module without
-# changing a byte of rendered CONTRIBUTING.md. `check`'s dependency list
-# carries the raw `::` form instead (it is a literal invocation string, e.g.
-# `docs::check` passed to `mmz`), so it is mangled here too before use.
+# would silently drop out of the gate table the day it moved. The two sets
+# compared, $gate_group and $check_deps, use the MANGLED identifier (`::`
+# joined with `-`, same function www/generate-facts.sh's just.typ producer
+# uses). `check`'s dependency list carries the raw `::` form (it is a literal
+# invocation string, e.g. `docs::check` passed to `mmz`), so it is mangled
+# here too before comparing. The gate's own `name` field is the recipe's real
+# invocation path, `docs::check`: docs/src/contributing.typ prints it verbatim
+# (`raw(g.name)`) and www/utils/gate-notes.typ's dict is keyed by it.
 #
 # Row order: this used to read `just --summary --unsorted` (source order,
 # passed in as $order by www/generate-facts.sh) — truth/tasks/tag-just-
@@ -159,7 +157,7 @@ def mangle: gsub("::"; "-");
     | {
         gates: [$names[] as $n
           | $by_mangled[$n] as $r
-          | {name: $n, doc: $r.doc, command: ($r | gate_command)}],
+          | {name: $r.namepath, doc: $r.doc, command: ($r | gate_command)}],
         assignments: (.assignments
           | with_entries(select(.key | test("_FMT_PATHS$")))
           | map_values(.value)),

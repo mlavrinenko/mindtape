@@ -99,6 +99,12 @@ correct. A temp render cannot self-heal: whatever is wrong on disk stays wrong
 while the comparison happens, so a hand-edit or a stale render fails the gate
 by name, every time.
 
+#just.docs-md-check() also lints each fresh render, outside fenced code, and
+fails naming file and line on four shapes: a `|` inside a code span in a table
+row, a backtick with no closing backtick on its line, an escaped backtick, and
+`-\>` outside a code span. It scans `docs/src` for a `;` glued onto a
+`#link(...)[...]`. Each is a trap below.
+
 == What typlite can and cannot do
 
 Verified against the pinned tinymist (nixpkgs, this flake's input) and the
@@ -173,6 +179,21 @@ Each of these has bitten a real port, and each is easy to reintroduce:
   collapses the paragraph to one line without re-flowing it. Never end a
   wrapped source line on a hyphen that continues into the next line; move the
   whole hyphenated word to one line instead.
+- A raw span broken across a source line keeps the newline, and typlite emits
+  it into the Markdown. Inside a table row that ends the row mid-cell and
+  corrupts the table. Wrap the prose around a code span, never through one.
+- A `;`, or any other character Typst can read as continuing a code
+  expression, glued onto the closing `]` of a `#link(...)[...]` is swallowed.
+  Put a space before it, or escape it with a backslash.
+- A `|` inside a code span in a table row splits the row into an extra cell on
+  GitHub. Write `\|` there; GitHub shows it as a pipe.
+- A string interpolated as text has its backticks escaped, so GitHub shows the
+  backtick characters instead of a code span. Interpolate each span through
+  `raw` instead.
+- `doc-title` with a nested raw span renders the span as `<code>`, so the
+  heading is no longer attribute-free text and the demotion in
+  `docs/generate-md.sh` skips it: the title survives as a raw `<h1>` tag. For
+  a literal backtick in a title, interpolate the character from a string.
 - A wrapped line that OPENS with a number and a period is an enum item to
   Typst, not prose — the shape a sentence lands in whenever a threshold falls
   at a line break. The rendered paragraph splits in three around a stray list

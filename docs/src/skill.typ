@@ -40,7 +40,7 @@ tracker at all: offer `mt init`.
   table.header([Goal], [Command]),
   [List active tasks], [`mt ls`],
   [List everything], [`mt ls ''` (the empty filter; no `--all` flag)],
-  [Filter and sort], [`mt ls '<filter>' --sort <field>[:asc|desc]`],
+  [Filter and sort], [`mt ls '<filter>' --sort <field>[:asc\|desc]`],
   [Search by text], [`mt find <term…>`],
   [Read one task], [`mt eval <task>`],
   [File a task], [`mt add <title…>`],

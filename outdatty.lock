@@ -94,7 +94,7 @@ groups:
       .just/scripts/crap-baseline-check.sh: e13730ba63d1433e27c2a3d0baa549e017e9a6376a8fd3783cbaa132499f71f9
       .just/scripts/crap-baseline.sh: fc4003b161304a2098571ebc768b0c713df0ac0e0ad068f013016e1373f200b5
       .just/scripts/crap.sh: 91c7fbe1cfcb6ca901cc5eb0ea7eb4557fd0367fcb6a816248a33e085912d753
-      .just/scripts/docs-md-check.sh: 5e1b5b7c7b6aacad934e8c11ebf5175b271bc253e8345eb4bd8ce343b50db516
+      .just/scripts/docs-md-check.sh: 0e26ec16da952dd19702927829331f5f0787feef5356c5ccde2584c0454e673f
       .just/scripts/fmt-fixture-check.sh: 40c0866d7c20c5baae5c8691639273f0cb3a2921f3c99a1ee44b2287ea566ba5
       .just/scripts/fork.sh: 6318e22b4cb44cdbf0b88bfbb7548f0fe2ec7d3aec9be51d1e3c16d9d64dc1ed
       .just/scripts/install-lib.sh: a32b796ffb58b5ccdff32d9eb2e69a2535abbb6de3aead82f176e9ca3f8a4e32
@@ -111,13 +111,13 @@ groups:
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: 0f5fc74381379ae2f1a482a78bfe0bd2b4a50aac4667440609062f6d1248b7e1
-      docs/src/contributing.typ: c2471c704790bc6a3bb016a2ddb809b0a9a06f1b2fcc218e31ec7806dc99c4f4
+      docs/src/contributing.typ: 787fab6c2833535d49105742c4c07197bf3165bbcc6260c71e693efeba366cfd
       docs/src/contributing/coverage-crap.typ: 26658dc10c32b0da691341810ae71f7247e438f6c3b1501148ea42a273c69f3d
       docs/src/contributing/crap-baseline.typ: 3277e015519112bca1c8a1395a19aad42a645c613a2e77fd99db819b5642e923
       docs/src/contributing/docs-site-build.typ: 5578b469d5e608412655e4c3190667cc07af6c01f34e470311132451e160c80f
       docs/src/contributing/example-projects.typ: 56b3f324691d3b278f8a0e3220c00cc0abb13850840b02dd8510b1f0066fccbd
-      docs/src/contributing/gates.typ: 41d9ddd701ef4aa3dcaa5c3dca03f5107db7afb8acf8b3a71d9e0b9b7173b840
-      docs/src/contributing/mutation-testing.typ: 3a9d51ea95c500e85ffe3954de9cfc4d35aebad78d7320d3eb4bc9162c154412
+      docs/src/contributing/gates.typ: a6fc0ab8de2b1e1fb10e660566efd26e34357439c59040eb0152b66456514593
+      docs/src/contributing/mutation-testing.typ: 0a9fb312f631ded52239a64f11eb90388f53803c0326283e7028b7af91874011
       docs/src/contributing/signal-sweep.typ: 695ee4771ad1f6cf0966b46b6748253384ecd244df4d4b03d04efb8b8123eeaa
       docs/src/contributing/windows.typ: dbee6e2e6e6bc8723f477acccc168c7cd6518649605564235ce556e0233d8749
   prelude-docs:

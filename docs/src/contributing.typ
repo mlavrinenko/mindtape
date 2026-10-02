@@ -105,7 +105,7 @@ build with violations. Key restrictions:
 Every arm runs through `mmz`, so a re-run skips each one whose declared inputs
 are unchanged and the pre-commit hook can assert the whole set fresh without
 re-running it. That memoization and the locked formatter gates are in
-#link("docs/contributing/gates.md")[docs/contributing/gates.md]; the gated
+#link("docs/contributing/gates.md")[docs/contributing/gates.md]\; the gated
 example projects, in
 #link("docs/contributing/example-projects.md")[docs/contributing/example-projects.md].
 
@@ -138,7 +138,7 @@ is, and what the trailer buys, are in #link("docs/contributing/gates.md")[docs/c
 Coverage and CRAP run outside #just.check(): run #just.cover() first (#just.crap() refuses a
 stale lcov), and #just.crap-baseline() in the same commit as any deliberate complexity. The
 thresholds and every argument behind them, to read before changing either recipe's flags, are
-in #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md]; the
+in #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md]\; the
 baseline's own paths and guards, in
 #link("docs/contributing/crap-baseline.md")[docs/contributing/crap-baseline.md].
 
