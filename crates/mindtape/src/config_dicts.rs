@@ -164,7 +164,7 @@ impl Dicts {
 
 /// The built-in dictionaries alone, compiled once per process. Cloning a
 /// [`DictCache`] is an [`Arc`] bump off this, so a `Config` carrying no
-/// `[dicts]` section costs one pointer rather than 586 strings.
+/// `[dicts]` section costs one pointer rather than every entry.
 static BUILTIN_DICTS: LazyLock<Arc<Dicts>> = LazyLock::new(|| Arc::new(builtin_dicts()));
 
 /// Compile the embedded dictionaries directly, bypassing [`compile_dicts`]:

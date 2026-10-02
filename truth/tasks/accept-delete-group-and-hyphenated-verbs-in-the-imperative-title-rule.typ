@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(
+    2026,
+    10,
+    2,
+  )[delete, group, update, rate-limit and about 220 more verbs added to dev-verbs.txt; verbs.txt is frequency-derived and stays untouched],
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 

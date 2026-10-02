@@ -119,8 +119,8 @@ referenced:
 
 - `mindtape-verbs` — the 500 most frequent English verbs, base (imperative)
   form;
-- `mindtape-dev-verbs` — 91 software-work verbs the general frequency list
-  ranks too low to carry.
+- `mindtape-dev-verbs` — software-work verbs the general frequency list ranks
+  too low to carry, such as `update`, `refactor` and the hyphenated `rate-limit`.
 
 The `mindtape-` prefix is reserved for them: naming a project dictionary
 `mindtape-anything` is a config error, so the namespace stays the tool's.
