@@ -2,15 +2,15 @@
 #import "../lib.typ": *
 
 #show: task.with(
-  title: "Hold config schema descriptions to the doc prose rules",
+  title: "Refuse history words in config schema descriptions",
   kind: "dev",
   priority: ice(
     impact: 4,
     confidence: 0.8,
-    ease: 6,
+    ease: 7,
   ),
   difficulty: 3,
-  estimate: (src-files: 2),
+  estimate: (src-files: 1),
   tags: ("found", "docs"),
   x-goals: (
     product: (
@@ -23,7 +23,7 @@
     ),
     process: (
       sound-codebase: neutral,
-      docs-match-code: helps[the schema text the site and editors show follows the same rules as hand-written docs],
+      docs-match-code: helps[the schema text the site and editors show is held to the history rule hand-written docs are],
     ),
   ),
   assignee: "agent",
@@ -33,9 +33,9 @@
 == Problem
 
 + Rendering config key tables from the schema for /statuses/, /rules/ and /links/
-+ 🔴 #raw("schema/config.schema.json"): Config doc comments reach the docs site and editors through the schema, and some carry rustdoc intra-doc links and history that no gate checks.
++ 🔴 #raw("schema/config.schema.json"): config doc comments reach the docs site and editors through the schema, and no check refuses a history word in them.
 
-`LinkKind.validate` reads "Defaults to `local-task-path`, which is exactly the historical behaviour". `NamingConfig.dedup` reads "see [`NamingConfig::effective_dedup`]". `extends` reads "see [`crate::config_packs`]" in the /config/ section map.
+`crates/mindtape/tests/schema_descriptions.rs` refuses a `crate::` path and a rustdoc intra-doc link, and nothing else. `758441b6` removed "Defaults to `local-task-path`, which is exactly the historical behaviour" from `LinkKind.validate` by hand, so the wording reaches the schema and nothing stops it coming back.
 
 This fell outside the task that surfaced it, so it is filed here rather than
 left in a closing report no one rereads. It belongs in
@@ -43,19 +43,19 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 `just check-doc-prose` fails on a history word or a rustdoc intra-doc link in a `description` of `schema/config.schema.json`, naming the key.
+- 🟢 `just check-doc-prose` fails on a history word in a `description` of `schema/config.schema.json`, naming the key, with the same word list it applies to the doc sources.
 
 == Changes
 
-- `.just/scripts/check-doc-prose.sh`: scan the schema descriptions.
-- `crates/mindtape/src/config*.rs`: reword the doc comments it flags, then re-bless the schema.
+- `.just/scripts/check-doc-prose.sh`: read every `description` out of the schema and scan it with the existing word lists.
 
 == Rollback
 
-Revert the script change. The reworded doc comments can stay.
+Revert the script change.
 
 == Out of scope
 
+- Rust paths and intra-doc links: `crates/mindtape/tests/schema_descriptions.rs` already refuses them.
 - Rustdoc on internal items that never reach the schema: no reader outside the crate sees it.
 
 == Dogfood
