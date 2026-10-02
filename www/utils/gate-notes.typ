@@ -109,12 +109,13 @@
     `mt check` against each example project: `examples/learn-piano/` (full
     config surface; feeds the docs generator and the skill's triage evals),
     `examples/minimal/` (the floor config; feeds the skill's trap evals),
-    `examples/links/`, `examples/estimates/`, `examples/statuses/` and
-    `examples/rules/`, the single-subject fixtures the docs site slices its
-    blocks out of, and `examples/dsl/`, the task AGENTS.md quotes. Keep the
-    recipe and the mmz `examples` scope in step, because mmz re-runs this
-    gate only when a file in that scope changes. An ungated fixture breaks
-    silently.
+    `examples/api-service/` (a backend team's project the docs capture),
+    `examples/links/`, `examples/estimates/`, `examples/statuses/`,
+    `examples/rules/` and `examples/derived-tags/`, the single-subject
+    fixtures the docs site slices its blocks out of, and `examples/dsl/`, the
+    task AGENTS.md quotes. Keep the recipe and the mmz `examples` scope in
+    step, because mmz re-runs this gate only when a file in that scope
+    changes. An ungated fixture breaks silently.
   ],
   "check-doc-coverage": [
     Set-differences `mt _cli --json`'s reflected command names against

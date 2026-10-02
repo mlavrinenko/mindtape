@@ -1,147 +1,107 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout, terminal
-#import "../utils/site.typ": u
+#import "../utils/ui.typ": terminal
+#import "../utils/site.typ": REPO, u
 
 #let meta = (
   route: "/agents/",
   label: "For AI agents",
   title: "For AI agents",
-  summary: "How a coding agent drives `mt` through JSON output, self-describing schemas, exit codes and plain task files.",
+  summary: "How a coding agent reads tasks as JSON, files tasks without prompts and works in its own git worktree.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-None of this is an agent mode. It is the ordinary CLI surface — a shell script
-and an agent drive the same commands, for the same reasons.
+A coding agent drives MindTape through the same `mt` commands you use. Tasks
+are files in your repo, so an agent reads and edits them with the tools it
+already has, and `mt check` tells it when an edit breaks a rule. The examples
+below run against
+`examples/api-service/`, a backend team's project.
 
-= Structured output everywhere
+= Give your agent the skill
 
-Every read command speaks JSON:
+The MindTape repository ships an agent skill in
+#link(REPO + "/tree/main/skills/mindtape")[`skills/mindtape/`]. It tells an
+agent which `mt` command does what, and when to use it. Copy that directory
+into the directory your agent loads skills from.
 
-```sh
-mt ls --json          # tasks as JSON (--format csv for CSV)
-mt eval <task> --json # one task (stem, path or handle), evaluated
-mt config show --json # the effective config
-mt add --describe=json # the slot schema for the active template
-mt _cli --json        # the command tree — names, flags, defaults, enums
-```
+= Read tasks as JSON
 
-`mt _cli --json` reflects `mt`'s own clap definition into a stable JSON tree
-(this site's #link(u("/cli/"))[CLI reference] renders from it), so a tool can
-discover every command, flag, default, and enum value without scraping `--help`.
+Every read command prints JSON with `--json`: `mt ls`, `mt eval <task>`,
+`mt config show`, `mt worktrees` and `mt add --describe=json`. Here is
+`mt ls ready -n 1 --json`:
 
-A task in `mt ls --json` (the hero's Für Elise task, captured verbatim from the
-`learn-piano` example):
+#raw(read("../generated/api-service-ls-ready.json"), lang: "json", block: true)
 
-#raw(read("../generated/ls-task.json"), lang: "json", block: true)
+`-n` keeps the reply short. `truncated` says how many tasks matched and where
+the next page starts, so `mt ls ready -n 1 --skip 1 --json` returns the next
+task. `truncated` is `null` when the list is complete. An agent that meets a
+`schema_version` it does not know should stop rather than guess.
+#link(u("/schema/"))[The JSON schema] describes every field.
 
-`extras` carries the `x-<ns>` extension fields verbatim, so a tool built on
-MindTape reads its own data back out without MindTape interpreting it.
+`mt _cli --json` prints every command with its flags, defaults and accepted
+values, so an agent can learn the CLI without parsing `--help`.
 
-`mt ls --json` returns an envelope, not a bare array.
-#link(u("/schema/"))[The canonical schema] owns its shape, including how
-`applied` attributes each facet to the source that won it. The one agent-facing
-consequence: a `schema_version` this tool does not recognize is a signal to
-bail out, not to mis-parse silently.
+= File a task without prompts
 
-`truncated` closes the bounded-listing question: `mt ls ready -n 10 --json`
-keeps a reply small, and `truncated` says whether small was the whole answer.
-Page forward with `truncated.next_skip` — `mt ls ready -n 10 --skip
-<next_skip>` — rather than report a backlog with rows it never saw; a table
-names the same next command in its footer. #link(u("/schema/"))[The schema]
-owns the shape.
+`mt add --describe=json` lists the template's slots: each one's name, kind,
+whether it is required, its default and its prompt. The agent writes the values
+as YAML or JSON and passes them with `-f -` on stdin.
+#link(u("/templates/"))[Templates & slots] covers the slots and the other ways
+to fill them.
 
-#terminal(read("../generated/ls-json.txt"))
+When stdin or stdout is not a terminal, `mt add` opens no editor. A slot left
+empty fails the add, and the error names every missing slot:
 
-= Describe before you fill
+#terminal(read("../generated/api-service-add-refused.txt"))
 
-`mt add --describe=json` returns the slot schema — names, kinds, required flags,
-and defaults — so an agent can construct a valid `mt add` call, or a JSON payload,
-without guessing:
+It exits with code
+#raw(read("../generated/api-service-add-refused-exit.txt").trim()) and writes
+nothing. With `--format json`, a successful add prints its result as an object
+whose `outcome` is `wrote`, `skipped` or `suffixed`, and whose `path` is the
+task file.
 
-```sh
-echo '{"title":"Practice arpeggios","priority":8}' | mt add -f -
-```
+= Trust the exit code
 
-Fill values also come from `--set k=v` and from environment variables — a
-template's `slot(…, env: "VAR")` names an exact variable, otherwise every slot
-reads `MINDTAPE_ADD_<SLOT>` — so a task can be filed with no interactive prompt.
+`mt` exits with 0 when a command succeeds, 1 when it fails and 2 when the
+command line is wrong, and it prints the reason on stderr. Every command that
+writes a task checks the result first and writes nothing when the check fails,
+so an agent can fix its input and run the command again.
 
-An agent that notices something real outside the task it was given — a
-delegated worktree, a driven `mt` on someone else's project — files it with
-`mt add --template finding`, tagged `found`, before writing its closing
-report. A report reaches one reader once; a filed task does not, and never
-competes with the WIP cap: `mt add` leaves it `proposed`.
+- `mt check` exits with 1 when a task breaks a rule of severity `error`, and
+  names the file and the line. Run it in CI or a pre-commit hook.
+- A #link(u("/hooks/"))[flip hook] can run your tests when a task is closed,
+  and refuse to close it while they fail.
+- When stdout is not a terminal, `mt` prints no colour codes. `NO_COLOR` or
+  `--color never` turn colour off in a terminal too.
 
-= Honest exit codes and quiet output
+= Work in a git worktree
 
-`mt check` exits non-zero on any violation and names each one — drop it in CI or
-a pre-commit hook. `mt check --commit-msg "$1"` in a `commit-msg` hook refuses
-a task trailer that is a path or names no task, and `mt check --commits
-<range>` in CI refuses the same in every commit a push carries. Pass `--color never` (or rely on `NO_COLOR`) for parseable
-output in a non-TTY:
+Tasks are files, so each git worktree has its own copy of the backlog. An agent
+in its own worktree sets its task's status there, and that change merges with
+the code that does the work. There is no server or index to update.
 
-#terminal(read("../generated/check.txt"))
+`mt` reads only the worktree it runs in. Two agents in two worktrees do not see
+each other's status changes until their branches merge, so decide which agent
+takes which task before they start.
 
-= Run from anywhere
+To run `mt` on a worktree from another directory, pass `-w <path>` or set
+`MINDTAPE_WORKTREE`. You can also name worktrees in
+`~/.config/mindtape/worktrees.toml`. A `[[worktrees]]` entry with `name` and
+`path` makes a leading `@name` argument stand for `-w <path>`. An entry with
+`base` makes `@<dir>` stand for `-w <base>/<dir>` when that directory holds a
+MindTape project. `mt worktrees` lists the entries.
 
-An agent driving `mt` from outside the project tree points it at a worktree with
-`-w/--worktree <path>` (or `$MINDTAPE_WORKTREE`; the flag wins). The path must
-hold a `.mindtape/`; relative paths resolve against the cwd. It is a global
-flag, so every command honours it and no `cd` into the checkout is needed.
+= Pin today's date
 
-```sh
-mt -w ~/code/app check
-MINDTAPE_WORKTREE=~/code/app mt ls
-```
+Set `MINDTAPE_NOW` to a date such as `2026-10-01`, and `mt` uses it for every
+date it stamps or compares. A test or a snapshot then prints the same output on
+every run. #link(u("/config/"))[Configuration] lists the formats it accepts.
 
-To skip the full path, name worktrees once in the app-scoped
-`~/.config/mindtape/worktrees.toml` and select one with a leading `@name`, which
-expands to `-w <path>` before dispatch. An alias binds a name to a path; a `base`
-maps `@<name>` to `<base>/<name>` when that is a project, so one `base` covers a
-whole tree of checkouts. Entries are tried top-to-bottom, first match wins; `~`
-expands to home. `mt worktrees` lists them. Only the leading argument is sugar,
-so the `@view` filter sigil (`mt ls @broken`) is unaffected.
+= Keep your own data in a task
 
-```toml
-# ~/.config/mindtape/worktrees.toml
-[[worktrees]]
-name = "sn"                       # mt @sn ls → ~/projects/home/speconaut
-path = "~/projects/home/speconaut"
-
-[[worktrees]]
-base = "~/projects/home"          # mt @app ls → ~/projects/home/app (if a project)
-```
-
-```sh
-mt @sn check
-mt @app ls
-```
-
-= Reproducible "today"
-
-// The full rule — which dates resolve from it, the accepted formats, the
-// local (never UTC) fallback and the hard error on a malformed value — is
-// /config/'s "Environment variables" section. Stating it twice is how the two
-// copies drift; this page owns only the reason an agent reaches for it.
-Pin `$MINDTAPE_NOW` and every date `mt` stamps or reads comes from it instead of
-the clock — the one knob that makes a run reproducible, for docs generation,
-golden-file tests, or a CI snapshot. #link(u("/config/"))[Environment variables]
-has the rule.
-
-```sh
-MINDTAPE_NOW=2026-07-11 mt ls --json
-```
-
-= State is just files
-
-An agent edits a task by writing the `.typ` file — there is no daemon to notify
-and no index to rebuild. The next `mt` command re-evaluates the tree and sees the
-change. Hand edits, scripted edits, and `mt` edits are indistinguishable.
-
-#callout("note")[
-  Building a tool on top of MindTape? Put your data under an `x-<ns>` field — see
-  #link(u("/concepts/"))[the extension seam]. MindTape carries it through; your
-  tool validates it.
-]
+A tool built on MindTape stores its data in a task field named `x-<name>`.
+`mt` keeps the field as written and returns it under `extras` in JSON.
+#link(u("/concepts/"))[Concepts] describes these fields, and
+#link(u("/self-validating-tasks/"))[Self-validating tasks] shows how to check
+one.

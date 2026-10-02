@@ -1,40 +1,26 @@
 #!/usr/bin/env bash
-# www/generate-self-validating.sh — capture examples/self-validating/, the
-# deliberately invalid fixture www/content/self-validating-tasks.typ quotes:
-# a task's own x-goals field, checked by the project's own Typst function
-# (lib.typ#check-goals), refusing a task that skips a goal.
+# www/generate-self-validating.sh — capture `mt check` on
+# examples/self-validating/ for /self-validating-tasks/. The page quotes the
+# fixture's code as slices (www/generate-examples.sh) and this one run as
+# text. www/generate.sh calls it inside the lock it holds, so this script
+# takes no lock of its own. It is a separate file to keep generate.sh under
+# the 300-line Shell cap.
 #
-# Split out of www/generate.sh (which calls this, still inside the lock it
-# already holds) under the same 300-line Shell cap that split off
-# generate-site-pages.sh — see that script's header for the reasoning this
-# one does not repeat. Unlike that script, this one is never called
-# standalone, so it takes no lock of its own.
-#
-# NOT in `.mmz/config.yaml`'s `examples` scope or the `check-examples`
-# recipe: both validate every project they list, and this fixture is built
-# to fail one rule on purpose. `mt check` against it exits non-zero, which
-# would abort the caller's `set -eo pipefail` if run unguarded — caught here
-# instead, with the code recorded beside the transcript rather than inside
-# it, since `--color never` output is exactly what `mt` printed, nothing
-# appended.
+# One task in the fixture skips a goal on purpose, so `mt check` exits
+# non-zero. The script records that code beside the transcript instead of
+# letting `set -e` stop the build, and fails if the check ever passes,
+# because then the page would show no refusal.
 set -eo pipefail
 
 REPO="$1"
 OUT="$2"
 MT="$REPO/target/debug/mt"
-SV="$REPO/examples/self-validating"
 
-sv_exit=0
-"$MT" -w "$SV" --color never check >"$OUT/self-validating-check.txt" 2>&1 \
-  || sv_exit=$?
-printf '%s' "$sv_exit" >"$OUT/self-validating-check-exit.txt"
-
-# The fixture's own source, copied verbatim so the page can read() them —
-# Typst's HTML build runs under --root www and refuses a read escaping it,
-# the same reason generate.sh copies hero-source.typ/template.typ out of
-# examples/learn-piano instead of reading them in place.
-cp "$SV/.mindtape/config.toml"               "$OUT/self-validating-config.toml"
-cp "$SV/goals.typ"                           "$OUT/self-validating-goals.typ"
-cp "$SV/lib.typ"                             "$OUT/self-validating-lib.typ"
-cp "$SV/tasks/ship-onboarding-checklist.typ" "$OUT/self-validating-task-pass.typ"
-cp "$SV/tasks/export-report-as-csv.typ"      "$OUT/self-validating-task-fail.typ"
+code=0
+(cd "$REPO/examples/self-validating" && "$MT" --color never check) \
+  >"$OUT/self-validating-check.txt" 2>&1 || code=$?
+[ "$code" -ne 0 ] || {
+  echo "generate-self-validating.sh: mt check passed on examples/self-validating" >&2
+  exit 1
+}
+printf '%s' "$code" >"$OUT/self-validating-check-exit.txt"

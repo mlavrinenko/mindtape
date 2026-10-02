@@ -1,66 +1,91 @@
 #import "../utils/page.typ": page
+#import "../utils/ui.typ": terminal
 #import "../utils/site.typ": u
+#import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
   route: "/derived-tags/",
   label: "Derived tags",
   title: "Derived tags",
-  summary: "How tasks get tags from their folders under a root, without the tags being written to the file.",
+  summary: "How `mt` tags each task with its root and the folders it sits in, without writing the tags to the file.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-A task can inherit #strong[virtual tags] from where it sits under a root — the
-root's name plus the folder segments leading to it. They live only in memory and
-join the authored `tags` for #link(u("/filters/"))[filtering].
+`mt` can tag each task by where its file sits: the name of its task root and
+the folders between the root and the file. File a task under `api/tasks/auth/`
+and it matches `has_tag("auth")` with no tag written in it. You can filter by
+folder, and nobody has to tag a task by hand.
 
-= What gets derived
+The examples below come from `examples/derived-tags/`, a repo with one task
+root per service.
 
-Given a table-form root and a nested file:
+= Turn it on
 
-```toml
-[[tasks.roots]]
-path = "tasks"
-name = "work"
-derive-tags = true
-```
+Derived tags are off by default. `enabled = true` under `[tasks.derive-tags]`
+turns them on for every root:
 
-A file at `tasks/backend/auth/login.typ` can derive:
+#raw(
+  render-slices(
+    checked-slices(
+      json("../generated/derived-tags-config.json"),
+      "derived-tags-config",
+      ("roots",),
+    ),
+    (("roots", "two roots, both deriving tags"),),
+    comment: "#",
+  ),
+  lang: "toml",
+  block: true,
+)
 
-- `segments` — each folder as its own tag: `backend`, `auth`.
-- `breadcrumbs` — cumulative paths: `backend`, `backend:auth`.
+To turn them on for one root, set `derive-tags` on that root's
+`[[tasks.roots]]` entry instead. It takes `true`, `false`, a glob or a list of
+globs. A glob limits derivation to the files whose path under the root matches
+it. A root without its own `derive-tags` follows `enabled`.
 
-The root name (the table-form `name`, else the path's last segment) derives too.
-Pick what you want under `[tasks.derive-tags] collect`.
+= What each task gets
 
-= Configuring it
+These are the tags `mt` derives for each task in the example:
 
-```toml
-[tasks.derive-tags]
-enabled = false                # project-wide switch (default): a root opts in below
-collect = ["segments"]         # segments and/or breadcrumbs
-separator = ":"                # breadcrumb join separator (default)
-slugify = true                 # normalise folder names to tag form (default)
-breadcrumb-root = false        # fold the root name into the breadcrumb chain (default)
+#let listed = (
+  json("../generated/derived-tags-ls.json").tasks.sorted(key: t => t.file)
+)
+#table(
+  columns: 2,
+  table.header([File], [Derived tags]),
+  ..listed.map(t => (raw(t.file), t.derived_tags.map(raw).join[, ])).flatten(),
+)
 
-[[tasks.roots]]
-path = "tasks"
-name = "work"
-derive-tags = true             # bool | glob | list — per-root switch
-```
+Every task gets its root's tag: the root's `name`, or the last folder of its
+`path` when it has no name. `collect` picks what the folders add:
 
-Derivation is off by default. A root with its own `derive-tags` uses it —
-`true`/`false` wholesale, or a glob (or list of globs) matched against the path
-relative to the root; a root without one inherits `enabled`. So turn it on
-project-wide, per root, or only for the files a glob matches.
-`breadcrumb-root` prepends the root name onto the breadcrumb chain itself — off
-by default, since the root name is already emitted as its own standalone tag.
+- `segments`, the default, adds each folder as a tag: `auth`, `sessions`.
+- `breadcrumbs` adds the path to each folder, joined with `separator` (`:` by
+  default): `auth`, `auth:sessions`. With `breadcrumb-root = true`, each
+  breadcrumb starts with the root's tag: `api:auth`.
+
+`mt` lowercases folder names and turns spaces and punctuation into `-`, so a
+folder named `Auth Flow` gives `auth-flow`. Set `slugify = false` to keep
+names as they are.
+
+= Filter on them
+
+A filter sees derived tags as tags:
+
+#terminal(read("../generated/derived-tags-ls-auth.txt"))
+
+`mt ls --json` lists them under `derived_tags`, apart from the tags written in
+the file. #link(u("/filters/"))[Filters] has `has_tag` and the rest of the
+language.
 
 = How they behave
 
-- #strong[Virtual] — never written back to the file.
-- Validated strictly against `[tasks.tags] allowed`, the same as authored
-  tags, and on open tasks only — a derived tag outside the allow-list fails
-  `mt check` on an open task; a closed one keeps whatever its folder derived
-  when it was filed.
+`mt` derives the tags each time it loads the tasks and never writes them to the
+file. Move a file to another folder and its tags change with it.
+
+When `[tasks.tags] allowed` lists the permitted tags, `mt check` refuses an open
+task whose folders give it a tag that is not on the list. Closed tasks are not
+checked against the list, so you can drop a tag from it without editing every
+closed task that has it.

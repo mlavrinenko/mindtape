@@ -141,13 +141,14 @@ gen_read ls-stuck  ls @stuck
 gen_read ls-week   ls @this-week
 gen_read views     views
 gen_read check     check
-gen_read describe  add --describe
 gen_read flip-list flip --list
 gen_read eval      eval "$FIX/tasks/repertoire/fur-elise-polish.typ"
 
-# examples/self-validating/, the mindtape-tasks pack, the fixture slices and the /statuses/ and /rules/ runs: each its own script (this file is at the Shell cap already).
+# More captures and the fixture slices, each in its own script so this file
+# stays under the Shell cap.
 bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-rule-packs.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-examples.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-config-runs.sh" "$REPO" "$OUT"
+bash "$SCRIPT_DIR/generate-guides.sh" "$REPO" "$OUT"
 
 # The colour-bearing transcripts (the `mt ls` family) captured a SECOND time
 # WITH ANSI, for the terminal-ansi html.frame render path (www/utils/ui.typ);
@@ -192,10 +193,6 @@ ln -s "$REPO/lib" "$PKGS/local/mindtape/$LIBVER"
 typst compile --package-path "$PKGS" \
   "$FIX/tasks/repertoire/fur-elise-polish.typ" "$OUT/hero-card.svg"
 rm -rf "$PKGS"
-
-# The fixture's `mt add` template, verbatim — the docs' "A template" example, so
-# it matches the `add --describe` slot schema captured above. Same root reason.
-cp "$FIX/.mindtape/templates/task.typ" "$OUT/template.typ"
 
 # --- mutating commands against a throwaway copy (never touch the fixture) --
 # The copy has to preserve the fixture's DEPTH: its `[[typst.local-packages]]`

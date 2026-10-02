@@ -1,3 +1,4 @@
+// docs:slice export-report-as-csv
 #import "@local/mindtape:0.2.0": *
 #show: task.with(
   title: "Export the report as CSV",
@@ -7,6 +8,7 @@
     fast-onboarding: "not directly, but keeps the report screen simple",
   ),
 )
+// docs:end
 
 = Summary
 

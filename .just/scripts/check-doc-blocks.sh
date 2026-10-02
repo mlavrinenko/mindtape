@@ -33,11 +33,9 @@ PENDING=(
     docs/src/contributing/signal-sweep.typ
     docs/src/contributing.typ
     docs/src/readme.typ
-    www/content/agents.typ
     www/content/cli.typ
     www/content/commit-rules.typ
     www/content/concepts.typ
-    www/content/derived-tags.typ
     www/content/dsl.typ
     www/content/estimates.typ
     www/content/filters.typ
@@ -48,7 +46,6 @@ PENDING=(
     www/content/quickstart.typ
     www/content/rule-packs.typ
     www/content/schema.typ
-    www/content/templates.typ
     www/utils/cli-notes.typ
     www/utils/demo.typ
     www/utils/framework-notes.typ

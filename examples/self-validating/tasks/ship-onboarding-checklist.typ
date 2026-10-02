@@ -1,3 +1,4 @@
+// docs:slice ship-onboarding-checklist
 #import "@local/mindtape:0.2.0": *
 #show: task.with(
   title: "Ship the onboarding checklist",
@@ -8,6 +9,7 @@
     no-lock-in: "reads and writes the same plain files a human would edit",
   ),
 )
+// docs:end
 
 = Summary
 

@@ -1,0 +1,35 @@
+#:schema ../../../schema/config.schema.json
+# A repo with one task root per service. mt tags each task with the name of
+# its root and the folders between the root and the file, so a task filed
+# under api/tasks/auth/ matches `has_tag("auth")` with no tag written in it.
+# /derived-tags/ shows the slice below and the tags mt derives from it.
+
+# Resolve @local/mindtape from this checkout's lib/, so `just check-examples`
+# checks the fixture against the prelude it ships with.
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+# docs:slice derived-tags/roots
+[[tasks.roots]]
+path = "api/tasks"
+name = "api"
+
+[[tasks.roots]]
+path = "web/tasks"
+name = "web"
+
+[tasks.derive-tags]
+enabled = true
+collect = ["segments", "breadcrumbs"]
+# docs:end
+
+[[tasks.status]]
+value = "todo"
+
+[[tasks.status]]
+value = "wip"
+
+[[tasks.status]]
+value = "done"
+terminal = true

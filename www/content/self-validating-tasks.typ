@@ -1,73 +1,100 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": terminal
 #import "../utils/site.typ": u
+#import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
   route: "/self-validating-tasks/",
   label: "Self-validating tasks",
   title: "Self-validating tasks",
-  summary: "How a repo checks its own task structure with a Typst function on every write, with no separate linter.",
+  summary: "How a project adds its own field to tasks and checks it with a Typst function on every `mt check` and every write.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-A MindTape task is a Typst file, so the check can be a Typst function the
-project already ships, called on every `mt check` and before every write. This
-page proves it live: a task that skips a rule the project invented for itself,
-refused on the spot.
+Your project can give its tasks a field MindTape does not know, and check that
+field with a Typst function you write. `mt check` runs the function on every
+task, and every command that writes a task runs it before writing. You need no
+separate linter, and the rule is a file in the repo, next to the tasks.
 
-= A structure the repo invented
+Every block below is a slice of `examples/self-validating/`, a project with two
+tasks.
 
-This repo (MindTape's own) scores every open task against goals it sets for
-itself, in `truth/goals.typ`, and every task's `x-goals` field says how. The
-fixture below (`examples/self-validating/`) shrinks that idea to two goals:
+#let code = checked-slices(
+  json("../generated/self-validating.json"),
+  "self-validating",
+  ("goals", "check-goals", "ship-onboarding-checklist", "export-report-as-csv"),
+)
+#let config = checked-slices(
+  json("../generated/self-validating-config.json"),
+  "self-validating-config",
+  ("goals-rule",),
+)
 
-#raw(read("../generated/self-validating-goals.typ"), lang: "typ", block: true)
+= Write the function
 
-= The function that checks it
-
-`lib.typ` is the check: every goal above needs a verdict in the task's
-`x-goals`, or the function names the one that is missing.
-
-#raw(read("../generated/self-validating-lib.typ"), lang: "typ", block: true)
-
-= The rule that wires it in
-
-`[[tasks.rules]]` names the function and the field it reads — this is the
-project's whole config, `[[typst.local-packages]]` and status legend
-included. What `check`'s three keys mean, and what a project can do with them
-beyond this, is at #link(u("/rules/"))[Rules, "Typst checks"]:
+The project lists its goals in a Typst module. Each task says how it serves
+them in an `x-goals` field. MindTape keeps any field named `x-<name>` as it is
+and checks nothing in it.
 
 #raw(
-  read("../generated/self-validating-config.toml"),
+  render-slices(code, (("goals", "the goals every task must address"),)),
+  lang: "typ",
+  block: true,
+)
+
+The check is an ordinary Typst function. It receives the field's value, or
+`none` when the task has no such field. It returns one string per problem, and
+an empty array when the task passes.
+
+#raw(
+  render-slices(code, (
+    ("check-goals", "one breach per goal with no verdict"),
+  )),
+  lang: "typ",
+  block: true,
+)
+
+= Turn it on
+
+A `[[tasks.rules]]` entry names the module, the function and the field to pass
+it. #link(u("/rules/"))[Rules] describes each key.
+
+#raw(
+  render-slices(
+    config,
+    (("goals-rule", "run check-goals on each task's x-goals"),),
+    comment: "#",
+  ),
   lang: "toml",
   block: true,
 )
 
-= Two tasks, one refusal
+= See it refuse
 
-One task addresses both goals:
+This task gives a verdict for both goals:
 
 #raw(
-  read("../generated/self-validating-task-pass.typ"),
+  render-slices(code, (("ship-onboarding-checklist", "passes"),)),
   lang: "typ",
   block: true,
 )
 
-One does not — it never says how it serves `no-lock-in`:
+This one says nothing about `no-lock-in`:
 
 #raw(
-  read("../generated/self-validating-task-fail.typ"),
+  render-slices(code, (("export-report-as-csv", "fails"),)),
   lang: "typ",
   block: true,
 )
 
-`mt check` catches it:
+`mt check` names the task, the line and the goal it skipped:
 
 #terminal(read("../generated/self-validating-check.txt"))
 
-It exits
-#raw(read("../generated/self-validating-check-exit.txt").trim())
-— a refusal, the same one a real `mt add` or `mt flip` would give while
-writing the file, never a crash that panics the whole check.
+It exits with code
+#raw(read("../generated/self-validating-check-exit.txt").trim()), so a CI job
+or a pre-commit hook that runs it fails. `mt add`, `mt flip` and the other
+write commands run the same function on the task they are about to write, and
+refuse to write a task that fails it.

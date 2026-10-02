@@ -8,14 +8,13 @@
 # One artifact per fixture: examples/links/ -> links.json (the `links:` field),
 # examples/recurring/ -> recurring.json (the `recur:` field),
 # examples/statuses/ -> statuses.json (the `status:` field), examples/dsl/ ->
-# dsl.json (the task sketch AGENTS.md shows). The pages
-# www/content/{links,recurring,statuses}.typ and the source
-# docs/src/agents.typ read only the slices, and the fixtures are what
-# `just check-examples` validates; a helper whose shape changes breaks the
-# fixture's check before a page can lie about it.
+# dsl.json (the task sketch AGENTS.md shows), examples/self-validating/ ->
+# self-validating.json (a project's own check function). The pages that quote
+# them read only the slices, and `mt check` runs on each fixture, so a helper
+# whose shape changes fails that check before a page can show it.
 #
 # The marker convention, so a fixture stays a readable project and not a doc
-# fragment: a task file marks the lines worth quoting with
+# fragment: any .typ file in the fixture marks the lines worth quoting with
 #
 #   // docs:slice <id>
 #   ...code...
@@ -77,44 +76,46 @@ trap 'rm -rf "$tmp"' EXIT
 # would put the escaping rules in the wrong program.
 slice_fixture() {
   local name="$1"
-  local src="$REPO/examples/$name/tasks"
+  local root="$REPO/examples/$name"
   local dir="$tmp/$name"
-  [ -d "$src" ] || {
-    echo "generate-examples.sh: examples/$name/tasks/ is missing" >&2
+  [ -d "$root" ] || {
+    echo "generate-examples.sh: examples/$name/ is missing" >&2
     return 1
   }
   mkdir -p "$dir"
 
-  local f stem
-  for f in "$src"/*.typ; do
-    stem="$(basename "$f" .typ)"
-    awk -v stem="$stem" -v dir="$dir" '
+  # Every .typ file in the fixture, so a slice can come from a task or from a
+  # module the tasks import. The counter keeps two files with one stem apart.
+  local f n=0
+  while IFS= read -r f; do
+    n=$((n + 1))
+    awk -v file="${f#"$root"/}" -v dir="$dir" -v n="$n" '
       /^[[:space:]]*\/\/ docs:slice / {
         id = $NF
-        out = dir "/" stem "." id ".code"
+        out = dir "/" n "." id ".code"
         capture = 1
         next
       }
       /^[[:space:]]*\/\/ docs:end/ {
-        if (capture) { close(out); print stem "\t" id "\t" out }
+        if (capture) { close(out); print file "\t" id "\t" out }
         capture = 0
         next
       }
       capture { print > out }
       END { if (capture) { print "generate-examples.sh: unterminated docs:slice in " FILENAME > "/dev/stderr"; exit 1 } }
     ' "$f"
-  done >"$dir/index.tsv"
+  done < <(find "$root" -name '*.typ' | sort) >"$dir/index.tsv"
 
   [ -s "$dir/index.tsv" ] || {
-    echo "generate-examples.sh: no docs:slice blocks under examples/$name/tasks" >&2
+    echo "generate-examples.sh: no docs:slice blocks under examples/$name" >&2
     return 1
   }
 
   {
-    while IFS=$'\t' read -r stem id path; do
+    while IFS=$'\t' read -r file id path; do
       jq -n \
         --arg id "$id" \
-        --arg file "tasks/$stem.typ" \
+        --arg file "$file" \
         --rawfile code "$path" \
         '{id: $id, file: $file, code: ($code | rtrimstr("\n"))}'
     done <"$dir/index.tsv"
@@ -135,6 +136,7 @@ slice_fixture links | emit links.json
 slice_fixture recurring | emit recurring.json
 slice_fixture dsl | emit dsl.json
 slice_fixture statuses | emit statuses.json
+slice_fixture self-validating | emit self-validating.json
 
 # Every config file scanned for config markers, repo-relative. A project not
 # listed here is simply not read, so a marker added to one is inert until its
@@ -147,13 +149,15 @@ CONFIG_SOURCES=(
   "examples/links/.mindtape/config.toml"
   "examples/rules/.mindtape/config.toml"
   "examples/statuses/.mindtape/config.toml"
+  "examples/derived-tags/.mindtape/config.toml"
+  "examples/self-validating/.mindtape/config.toml"
 )
 
 # Every fact a page opens. Declared rather than derived from the markers
 # because a mistyped fact name would otherwise emit a file no page ever reads —
 # invisible, and the one drift the per-page key-set assertion in
 # www/utils/slices.typ structurally cannot see from inside a single page.
-CONFIG_FACTS=(config estimates hooks links named-sets rule-packs rules statuses)
+CONFIG_FACTS=(config derived-tags estimates hooks links named-sets rule-packs rules self-validating statuses)
 
 # Same two-pass shape as slice_fixture: awk writes each slice to its own temp
 # file and one index row per slice, then jq builds the JSON with --rawfile so

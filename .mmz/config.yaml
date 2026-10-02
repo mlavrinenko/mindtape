@@ -94,6 +94,8 @@ scopes:
     - "truth/*.typ"
     - "examples/api-service/tasks/**"
     - "examples/api-service/.mindtape/templates/**"
+    - "examples/derived-tags/api/**"
+    - "examples/derived-tags/web/**"
     - "examples/learn-piano/tasks/**"
     - "examples/links/tasks/**"
     - "examples/recurring/tasks/**"
@@ -170,6 +172,8 @@ scopes:
     - "examples/dsl/**"
     - "examples/statuses/**"
     - "examples/rules/**"
+    - "examples/api-service/**"
+    - "examples/derived-tags/**"
 
   # Every example project's config, for `just check-doc-spans`: their status
   # legends are the status verbs a doc may write as `mt <status>`. The
