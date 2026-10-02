@@ -36,6 +36,9 @@ set -eo pipefail
 
 # The fixed docs clock. The learn-piano fixture's dates are authored around it.
 export MINDTAPE_NOW=2026-07-06
+# An empty value drops the user config layer, so a builder's own defaults.toml
+# neither changes a capture nor appears in `config show --origin`.
+export MINDTAPE_CONFIG_HOME=
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -246,3 +249,15 @@ bash "$SCRIPT_DIR/generate-facts.sh"
 # a top-level read() otherwise (measured in the umbrella task). Its own file
 # because this one is already at .linecop.yaml's 300-line Shell cap.
 bash "$SCRIPT_DIR/generate-site-pages.sh"
+
+# A capture shows what any reader's `mt` prints, so no capture may name this
+# machine: refuse a hit on $HOME or the repo root, naming file and line. An
+# empty or `/` needle would match every line, so it is skipped.
+needles=()
+for dir in "$HOME" "$REPO"; do
+  case "$dir" in "" | /) ;; *) needles+=(-e "$dir") ;; esac
+done
+if [ "${#needles[@]}" -gt 0 ] && (cd "$SCRIPT_DIR" && grep -rnIF "${needles[@]}" generated) >&2; then
+  echo "generate.sh: a capture above names this machine's \$HOME or repo root" >&2
+  exit 1
+fi
