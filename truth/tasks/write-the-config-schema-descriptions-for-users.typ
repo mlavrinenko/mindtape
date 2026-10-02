@@ -11,7 +11,7 @@
   ),
   difficulty: 2,
   tags: ("mt", "docs"),
-  estimate: (src-files: 5),
+  estimate: (src-files: 8),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 2),
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 

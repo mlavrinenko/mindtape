@@ -20,10 +20,9 @@ pub struct ContentConfig {
 
 /// One entry in `[[tasks.body.content.rules]]`.
 ///
-/// `path` selects the section(s) — the heading tree paths the header rules
-/// already use — and `assert` is the assertion made over each matched
-/// section's content. Like every header rule, it carries the optional `when`
-/// filter and `message` override.
+/// `path` selects sections by heading path, the same way a header rule does.
+/// `assert` is checked against each matched section's content. Like a header
+/// rule, it takes an optional `when` filter and `message` override.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ContentRuleConfig {
@@ -75,7 +74,8 @@ pub enum ContentAssert {
     Density(DensitySpec),
 }
 
-/// `{ density = { pattern, max, per } }` — see [`ContentAssert::Density`].
+/// `{ density = { pattern, max, per } }` — fails when one unit of the section
+/// carries more than `max` matches of `pattern`.
 #[derive(Debug, Clone, PartialEq, Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct DensitySpec {
@@ -83,7 +83,8 @@ pub struct DensitySpec {
     pub pattern: String,
     /// The most matches of `pattern` a single unit may carry.
     pub max: usize,
-    /// Unit granularity the density is measured over. Defaults to `section`.
+    /// Unit to count matches in: `section` (the default), `paragraph` or
+    /// `sentence`.
     #[serde(default)]
     pub per: DensityUnit,
 }

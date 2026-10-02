@@ -35,34 +35,34 @@ pub struct TasksConfig {
     /// Status legend: legal values in lifecycle order, plus per-value display
     /// (glyph, colour, label) and the `terminal` flag.
     pub status: Legend,
-    /// Priority as a numeric-field instance (scale + band classification),
-    /// optionally driven by a configured scoring framework.
+    /// The priority scale, its bands, and an optional scoring framework that
+    /// computes priority from inputs.
     pub priority: PriorityConfig,
-    /// Difficulty as a numeric-field instance (scale + anchor classification).
+    /// The difficulty scale and its labelled anchors or bands.
     pub difficulty: NumericField,
-    /// Constraints for the remaining configurable enum core fields, keyed by
-    /// Typst slot name (`kind`).
+    /// Allowed values, default and requirement for an enum core field, keyed
+    /// by field name (`kind`).
     pub fields: BTreeMap<String, FieldConfig>,
-    /// Assignee-field constraints (allowed actors, required).
+    /// Which actors `assignee:` may name, and whether it is required.
     pub assignee: crate::config_assignee::AssigneeConfig,
-    /// Estimate units allow-list.
+    /// Allowed estimate units, and whether an estimate is required.
     pub estimate: EstimateConfig,
     /// Tag allow-list, checked on open tasks only.
     pub tags: TagsConfig,
-    /// Body-shape constraints (heading gating).
+    /// Rules over a task body's headings and section content.
     pub body: TaskBodyConfig,
     /// Task id format.
     pub id: IdConfig,
-    /// Task stem naming template (`mt add`/`mt recur` minting) and `mt add`'s
-    /// default collision policy (`dedup`).
+    /// The filename stem template `mt add` and `mt recur` use, and what
+    /// `mt add` does when the stem is taken (`dedup`).
     pub naming: crate::naming::NamingConfig,
-    /// Typed relation edge (`links:`) kind registry.
+    /// Custom link kinds that `links:` edges may use, beside the built-in ones.
     pub links: crate::link::LinksConfig,
-    /// Recurring-tasks feature gate and policy floor (`mt recur`).
+    /// Whether recurring tasks are enabled, and the units, anchors and limits
+    /// `mt recur` accepts.
     pub recur: crate::recur::RecurConfig,
-    /// Project-declared assertions every selected task must satisfy
-    /// (`[[tasks.rules]]`, enforced by the validation pass — so by `mt check`
-    /// and by every write command before it writes).
+    /// Assertions every selected task must satisfy. `mt check` enforces them,
+    /// and so does every write command before it writes.
     pub rules: Vec<crate::config_rules::RuleSpec>,
     /// Review-comment policy over a task's whole source file (`mt check`).
     pub comments: crate::config_comments::CommentsConfig,
@@ -97,25 +97,26 @@ impl Default for TasksConfig {
     }
 }
 
-/// `[tasks.priority]` — the priority numeric field plus its scoring frameworks.
+/// `[tasks.priority]` — the priority scale and its scoring frameworks.
 ///
-/// Carries the same scale and band/anchor classification as `difficulty`, plus
-/// framework selection on top. When `framework` names an active framework, a
-/// task's priority is computed from that framework's inputs instead of a
-/// hand-set integer; `allow-manual` decides whether a raw integer is still
-/// accepted as an escape hatch. The `frameworks` table holds the built-in
-/// frameworks deep-merged with any user-declared ones.
+/// It takes the same scale, bands and anchors as `[tasks.difficulty]`. When
+/// `framework` names a framework, `mt` computes a task's priority from that
+/// framework's inputs. `allow-manual` decides whether a raw integer is still
+/// accepted. `frameworks` holds the built-in frameworks merged with any the
+/// project declares.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case")]
 pub struct PriorityConfig {
     /// Scale and band classification (shared numeric-field machinery).
     #[serde(flatten)]
     pub field: NumericField,
-    /// Active framework name, matched against `frameworks`. `None` = raw numeric.
+    /// Name of the framework that computes priority, a key of `frameworks`.
+    /// Absent means priority is a raw number.
     pub framework: Option<String>,
     /// Whether a raw integer is accepted while a framework is active.
     pub allow_manual: bool,
-    /// Framework registry: built-ins deep-merged with user definitions.
+    /// Scoring frameworks by name: the built-in ones merged with any declared
+    /// here.
     pub frameworks: BTreeMap<String, Framework>,
 }
 
@@ -134,7 +135,8 @@ impl Default for PriorityConfig {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct IdConfig {
-    /// Format requirement for an explicit `id:`. Default accepts any non-empty string.
+    /// Format an explicit `id:` must have. The default, `string`, accepts any
+    /// non-empty string.
     pub format: IdFormat,
 }
 
@@ -180,16 +182,18 @@ impl<'de> Deserialize<'de> for IdFormat {
     }
 }
 
-/// `[tasks.fields.<name>]` — constraints for one configurable core field.
+/// `[tasks.fields.<name>]` — allowed values, default and requirement for one
+/// core field.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FieldConfig {
-    /// Allowed enum values. Empty = any. An entry of the form `@<dict>`
-    /// expands to that `[dicts.<name>]` set at config load, so this list may
-    /// mix literal values and dictionary references, unioned in order — see
-    /// [`expand_dict_refs`].
+    /// Allowed values. Empty accepts any value. An entry `@<dict>` stands for
+    /// every entry of `[dicts.<dict>]`, so the list may mix literal values and
+    /// dictionaries.
+    // `expand_dict_refs` expands the `@<dict>` entries at config load.
     pub values: Vec<String>,
-    /// Default value (informational; not auto-applied during load).
+    /// Value `mt add` fills in when the field is required and neither the
+    /// template nor the caller sets it. `mt check` never applies it.
     pub default: Option<String>,
     /// Whether the field must be set.
     pub required: Requirement,
@@ -199,11 +203,10 @@ pub struct FieldConfig {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TagsConfig {
-    /// Allowed tag names. Empty = any. Checked on open tasks only — a
-    /// terminal task keeps whatever tags it was filed with, authored and
-    /// folder-derived alike. An entry of the form `@<dict>` expands to that
-    /// `[dicts.<name>]` set at config load — see [`FieldConfig::values`] and
-    /// [`expand_dict_refs`].
+    /// Allowed tag names. Empty accepts any tag. `mt` checks only open tasks,
+    /// so a terminal task keeps the tags it was filed with. An entry `@<dict>`
+    /// stands for every entry of `[dicts.<dict>]`.
+    // `expand_dict_refs` expands the `@<dict>` entries at config load.
     pub allowed: Vec<String>,
 }
 

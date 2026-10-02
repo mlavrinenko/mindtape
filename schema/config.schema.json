@@ -211,7 +211,7 @@
     },
     "CheckSpec": {
       "additionalProperties": false,
-      "description": "`check = { typst, function, field }` — a `[[tasks.rules]]` entry that\ndelegates to a Typst function instead of a filter expression. See\n[`crate::config_rules_typst`] for the evaluation route.",
+      "description": "`check = { typst, function, field }` — a `[[tasks.rules]]` entry that calls\na Typst function instead of evaluating an `assert` expression.",
       "properties": {
         "field": {
           "default": null,
@@ -478,7 +478,7 @@
     },
     "ContentRuleConfig": {
       "additionalProperties": false,
-      "description": "One entry in `[[tasks.body.content.rules]]`.\n\n`path` selects the section(s) — the heading tree paths the header rules\nalready use — and `assert` is the assertion made over each matched\nsection's content. Like every header rule, it carries the optional `when`\nfilter and `message` override.",
+      "description": "One entry in `[[tasks.body.content.rules]]`.\n\n`path` selects sections by heading path, the same way a header rule does.\n`assert` is checked against each matched section's content. Like a header\nrule, it takes an optional `when` filter and `message` override.",
       "properties": {
         "assert": {
           "$ref": "#/$defs/ContentAssert",
@@ -531,7 +531,7 @@
     },
     "DensitySpec": {
       "additionalProperties": false,
-      "description": "`{ density = { pattern, max, per } }` — see [`ContentAssert::Density`].",
+      "description": "`{ density = { pattern, max, per } }` — fails when one unit of the section\ncarries more than `max` matches of `pattern`.",
       "properties": {
         "max": {
           "description": "The most matches of `pattern` a single unit may carry.",
@@ -545,7 +545,7 @@
         },
         "per": {
           "$ref": "#/$defs/DensityUnit",
-          "description": "Unit granularity the density is measured over. Defaults to `section`."
+          "description": "Unit to count matches in: `section` (the default), `paragraph` or\n`sentence`."
         }
       },
       "required": [
@@ -689,11 +689,11 @@
     },
     "FieldConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.fields.<name>]` — constraints for one configurable core field.",
+      "description": "`[tasks.fields.<name>]` — allowed values, default and requirement for one\ncore field.",
       "properties": {
         "default": {
           "default": null,
-          "description": "Default value (informational; not auto-applied during load).",
+          "description": "Value `mt add` fills in when the field is required and neither the\ntemplate nor the caller sets it. `mt check` never applies it.",
           "type": [
             "string",
             "null"
@@ -705,7 +705,7 @@
         },
         "values": {
           "default": [],
-          "description": "Allowed enum values. Empty = any. An entry of the form `@<dict>`\nexpands to that `[dicts.<name>]` set at config load, so this list may\nmix literal values and dictionary references, unioned in order — see\n[`expand_dict_refs`].",
+          "description": "Allowed values. Empty accepts any value. An entry `@<dict>` stands for\nevery entry of `[dicts.<dict>]`, so the list may mix literal values and\ndictionaries.",
           "items": {
             "type": "string"
           },
@@ -980,7 +980,7 @@
       "type": "object"
     },
     "HyperlinkChoice": {
-      "description": "`[ls] hyperlinks` — whether the `#` and `file` columns' cells carry an\nOSC 8 hyperlink sequence (`ESC ] 8 ; ; <uri> ST <text> ESC ] 8 ; ; ST`) in\na standalone terminal, both pointing at the same per-row target. The `mt`\nbinary's `--hyperlinks` flag is this same choice, mirrored one-to-one in\nthe CLI crate (which alone depends on `clap`) as\n`crate::render::link::HyperlinkChoice` there.\n\nThere is no terminal capability query for OSC 8 support, so `auto` is a\nheuristic (stdout is a TTY and `TERM` is not `dumb`), never a detection —\nand unlike colour, which degrades to nothing on a terminal that ignores\nit, an unsupported terminal can render the OSC 8 payload as visible\ngarbage. That asymmetry is why the default is `never`, not `auto`\n(`truth/tasks/hyperlink-the-file-column-with-osc-8.typ`).",
+      "description": "`[ls] hyperlinks` — whether the `#` and `file` cells carry OSC 8\nhyperlinks to the row's `hyperlink-target`. The `--hyperlinks` flag takes\nthe same values.\n\nA terminal without OSC 8 support can print the escape sequence as visible\ntext, and no terminal reports whether it supports OSC 8. That is why the\ndefault is `never`.",
       "oneOf": [
         {
           "const": "auto",
@@ -1005,7 +1005,7 @@
       "properties": {
         "format": {
           "$ref": "#/$defs/IdFormat",
-          "description": "Format requirement for an explicit `id:`. Default accepts any non-empty string."
+          "description": "Format an explicit `id:` must have. The default, `string`, accepts any\nnon-empty string."
         }
       },
       "type": "object"
@@ -1225,7 +1225,7 @@
     },
     "LocalPackage": {
       "additionalProperties": false,
-      "description": "`[[typst.local-packages]]` — one `@local/<name>` → in-tree path override.",
+      "description": "`[[typst.local-packages]]` — one `@local/<name>` package loaded from a project directory.",
       "properties": {
         "name": {
           "default": "",
@@ -1234,7 +1234,7 @@
         },
         "path": {
           "default": "",
-          "description": "Lib directory holding the package's `typst.toml`, relative to the root.",
+          "description": "Directory holding the package's `typst.toml`, relative to the project root.",
           "type": "string"
         }
       },
@@ -1248,7 +1248,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/ColumnConfig"
           },
-          "description": "Per-column display settings, keyed by column name. The embedded floor\nlists every column in [`LS_COLUMNS`], so an entry missing here is one a\nconfig layer deleted — and a column with no `when` never renders.",
+          "description": "Per-column display settings, keyed by column name. The shipped\ndefaults set `when` on every column; a column with no `when` never\nrenders.",
           "type": "object"
         },
         "columns-order": {
@@ -1261,7 +1261,7 @@
         },
         "contains-fields": {
           "default": [],
-          "description": "Default `contains()` haystack when a call names no field: an ordered\nlist of field names drawn from `crate::fields::is_contains_field`'s\nvocabulary (every `crate::fields::FIELDS` name, plus the text-only\ntier `body`/`note`/`tags`). Empty (the default) keeps the shipped\nsweep — `title`, `id`, `body` — unchanged; a project states its own\nanswer to widen it (e.g. to include `note`, the `links[].note` prose,\nor `tags`) or narrow it. An explicitly named field in a `contains()`\ncall (`contains(\"x\", note)`) always works regardless of this default.\nValidated at config load\n([`deserialize_contains_fields`]): an unknown name is a config error\nnaming the field and listing the valid set, never a silent drop.",
+          "description": "Fields that `contains()` searches when a call names none, in order.\nTakes any filter field name, plus `body`, `note` and `tags`. Empty (the\ndefault) searches `title`, `id` and `body`. A call that names its\nfield, such as `contains(\"x\", note)`, ignores this key. An unknown name\nis a config error.",
           "items": {
             "type": "string"
           },
@@ -1269,7 +1269,7 @@
         },
         "date-format": {
           "default": null,
-          "description": "Global date display format applied to every rendered date column.\nTokens (longest-match-first): `YYYY` 4-digit year, `YY` 2-digit year,\n`MMMM` full month name, `MMM` abbreviated month, `MM` zero-padded month,\n`M` bare month, `DD` zero-padded day, `D` bare day.\nNon-token characters pass through literally.\nDefault `None` renders ISO `YYYY-MM-DD`.",
+          "description": "Date format for every date column. Tokens, longest match first: `YYYY`\n4-digit year, `YY` 2-digit year, `MMMM` full month name, `MMM`\nabbreviated month, `MM` zero-padded month, `M` bare month, `DD`\nzero-padded day, `D` bare day. Other characters print as written.\nAbsent prints ISO `YYYY-MM-DD`.",
           "type": [
             "string",
             "null"
@@ -1293,7 +1293,7 @@
         },
         "hyperlink-target": {
           "default": null,
-          "description": "Template for the shared per-row hyperlink target URI both `#` and\n`file` link to: `{abs}` (the absolute path, the project root joined\nwith the task's `file`) and `{rel}` (the same working-directory-relative\npath the `file` column displays) are substituted. Defaults to\n`file://{abs}`; point it at another scheme (e.g. an editor's own URI\nhandler) to open elsewhere.",
+          "description": "URI that a row's `#` and `file` cells link to. `mt` replaces `{abs}`\nwith the task's absolute path and `{rel}` with the path the `file`\ncolumn shows. Defaults to `file://{abs}`. Point it at another scheme,\nsuch as an editor's URI handler, to open the task there.",
           "type": [
             "string",
             "null"
@@ -1301,7 +1301,7 @@
         },
         "hyperlinks": {
           "$ref": "#/$defs/HyperlinkChoice",
-          "description": "Hyperlink output for the `#` and `file` columns' cells: `auto`,\n`always`, or `never` (the default). Mirrors `--hyperlinks`, which wins\nover this key when passed — see [`HyperlinkChoice`] for what each\nvalue means and why the default is not `auto`."
+          "description": "Whether the `#` and `file` cells carry terminal hyperlinks: `auto`,\n`always`, or `never` (the default). `--hyperlinks` overrides it for one\nrun."
         },
         "overdue-color": {
           "default": null,
@@ -1313,7 +1313,7 @@
         },
         "ready": {
           "$ref": "#/$defs/ReadyConfig",
-          "description": "Display settings (glyph, colour, label) for the ready and blocked\nstates shown in the READY column. Defaults to `MindTape`'s built-in\nvalues, so leaving this unset keeps the current behaviour."
+          "description": "Glyph, colour and label for the ready and blocked states in the READY\ncolumn. An unset key takes the shipped default."
         },
         "rules": {
           "description": "Ordered auto-activation rules applied to a bare `mt ls` (no CLI\nfilter, no `@view`): the first rule whose condition holds (or that\nhas none) wins and supplies its filter, sort, and columns.",
@@ -1382,7 +1382,7 @@
     },
     "NamingConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem,\nand (`dedup`) what `mt add` does when the minted stem collides.",
+      "description": "`[tasks.naming]` — how `mt add` and `mt recur` name a new task's file, and\nwhat `mt add` does when that name is taken (`dedup`).",
       "properties": {
         "dedup": {
           "anyOf": [
@@ -1393,11 +1393,11 @@
               "type": "null"
             }
           ],
-          "description": "Collision policy for `mt add`; `--dedup` overrides for one run. Unset\ntakes its default from `stem` — see [`NamingConfig::effective_dedup`]."
+          "description": "What `mt add` does when the stem is taken; `--dedup` overrides it for\none run. Unset means `add-suffix` when `stem` is set, else `fail`."
         },
         "stem": {
           "default": null,
-          "description": "Stem template with macros. Unset ⇒ bare `{slug}` (today's behaviour).",
+          "description": "Filename stem template. Macros: `{slug}`, `{date}`, `{date:FMT}`,\n`{yy}`, `{mm}`, `{dd}`, `{n}` and `{n:0N}`. Unset means `{slug}`.",
           "type": [
             "string",
             "null"
@@ -1482,7 +1482,7 @@
       "type": "object"
     },
     "PriorityConfig": {
-      "description": "`[tasks.priority]` — the priority numeric field plus its scoring frameworks.\n\nCarries the same scale and band/anchor classification as `difficulty`, plus\nframework selection on top. When `framework` names an active framework, a\ntask's priority is computed from that framework's inputs instead of a\nhand-set integer; `allow-manual` decides whether a raw integer is still\naccepted as an escape hatch. The `frameworks` table holds the built-in\nframeworks deep-merged with any user-declared ones.",
+      "description": "`[tasks.priority]` — the priority scale and its scoring frameworks.\n\nIt takes the same scale, bands and anchors as `[tasks.difficulty]`. When\n`framework` names a framework, `mt` computes a task's priority from that\nframework's inputs. `allow-manual` decides whether a raw integer is still\naccepted. `frameworks` holds the built-in frameworks merged with any the\nproject declares.",
       "properties": {
         "allow-manual": {
           "default": true,
@@ -1505,7 +1505,7 @@
         },
         "framework": {
           "default": null,
-          "description": "Active framework name, matched against `frameworks`. `None` = raw numeric.",
+          "description": "Name of the framework that computes priority, a key of `frameworks`.\nAbsent means priority is a raw number.",
           "type": [
             "string",
             "null"
@@ -1515,7 +1515,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/Framework"
           },
-          "description": "Framework registry: built-ins deep-merged with user definitions.",
+          "description": "Scoring frameworks by name: the built-in ones merged with any declared\nhere.",
           "type": "object"
         },
         "kind": {
@@ -1558,7 +1558,7 @@
     },
     "ReadyConfig": {
       "additionalProperties": false,
-      "description": "`[ls.ready]` — the READY column's per-state display (glyph, colour, label).\n\nOne block covering both `ready` and `blocked` states (rather than nesting\nunder `[ls.columns.ready]`, which only carries a generic `when`): `blocked`\nneeds display attributes `ColumnConfig` has no room for. Every\nfield is optional so an omitted key falls back to the embedded floor's\nvalue (or, absent even that, the renderer's own literal fallback).",
+      "description": "`[ls.ready]` — glyph, colour and label for the ready and blocked states in\nthe READY column. An omitted key takes the shipped default.",
       "properties": {
         "blocked-color": {
           "default": null,
@@ -1814,7 +1814,7 @@
     },
     "RuleSpec": {
       "additionalProperties": false,
-      "description": "`[[tasks.rules]]` — one assertion or check every selected task must\nsatisfy.\n\nExactly one of `assertion`/`check` is set on a rule that came through\n[`crate::config::load_config`] — [`validate_rules`] refuses both or\nneither at config load — but a hand-built `RuleSpec` (a test, or\n`parse_config` alone) can carry either combination, so\n[`eval::CompiledRule::compile`] still treats it as a fact to check rather than an\ninvariant to assume.",
+      "description": "`[[tasks.rules]]` — one assertion or check every selected task must\nsatisfy. Set exactly one of `assert` and `check`.",
       "properties": {
         "assert": {
           "default": null,
@@ -1833,11 +1833,11 @@
               "type": "null"
             }
           ],
-          "description": "A Typst function to call instead of an `assert` expression. Exactly\none of this and `assertion` is set."
+          "description": "A Typst function to call instead of an `assert` expression. Exactly\none of this and `assert` is set."
         },
         "message": {
           "default": null,
-          "description": "What an `assert` breach tells the author to do, in place of the\ndefault advice naming the `assert` expression itself. Has no effect on\na `check` rule: each string the function returns is already the\nspecific thing to fix.",
+          "description": "What an `assert` breach tells the author to do, in place of the\ndefault advice naming the `assert` expression. A `check` rule ignores\nit and prints each string its function returns.",
           "type": [
             "string",
             "null"
@@ -1902,7 +1902,7 @@
       "properties": {
         "allowed": {
           "default": [],
-          "description": "Allowed tag names. Empty = any. Checked on open tasks only — a\nterminal task keeps whatever tags it was filed with, authored and\nfolder-derived alike. An entry of the form `@<dict>` expands to that\n`[dicts.<name>]` set at config load — see [`FieldConfig::values`] and\n[`expand_dict_refs`].",
+          "description": "Allowed tag names. Empty accepts any tag. `mt` checks only open tasks,\nso a terminal task keeps the tags it was filed with. An entry `@<dict>`\nstands for every entry of `[dicts.<dict>]`.",
           "items": {
             "type": "string"
           },
@@ -1967,11 +1967,11 @@
       "properties": {
         "assignee": {
           "$ref": "#/$defs/AssigneeConfig",
-          "description": "Assignee-field constraints (allowed actors, required)."
+          "description": "Which actors `assignee:` may name, and whether it is required."
         },
         "body": {
           "$ref": "#/$defs/TaskBodyConfig",
-          "description": "Body-shape constraints (heading gating)."
+          "description": "Rules over a task body's headings and section content."
         },
         "comments": {
           "$ref": "#/$defs/CommentsConfig",
@@ -1983,17 +1983,17 @@
         },
         "difficulty": {
           "$ref": "#/$defs/NumericField",
-          "description": "Difficulty as a numeric-field instance (scale + anchor classification)."
+          "description": "The difficulty scale and its labelled anchors or bands."
         },
         "estimate": {
           "$ref": "#/$defs/EstimateConfig",
-          "description": "Estimate units allow-list."
+          "description": "Allowed estimate units, and whether an estimate is required."
         },
         "fields": {
           "additionalProperties": {
             "$ref": "#/$defs/FieldConfig"
           },
-          "description": "Constraints for the remaining configurable enum core fields, keyed by\nTypst slot name (`kind`).",
+          "description": "Allowed values, default and requirement for an enum core field, keyed\nby field name (`kind`).",
           "type": "object"
         },
         "id": {
@@ -2002,19 +2002,19 @@
         },
         "links": {
           "$ref": "#/$defs/LinksConfig",
-          "description": "Typed relation edge (`links:`) kind registry."
+          "description": "Custom link kinds that `links:` edges may use, beside the built-in ones."
         },
         "naming": {
           "$ref": "#/$defs/NamingConfig",
-          "description": "Task stem naming template (`mt add`/`mt recur` minting) and `mt add`'s\ndefault collision policy (`dedup`)."
+          "description": "The filename stem template `mt add` and `mt recur` use, and what\n`mt add` does when the stem is taken (`dedup`)."
         },
         "priority": {
           "$ref": "#/$defs/PriorityConfig",
-          "description": "Priority as a numeric-field instance (scale + band classification),\noptionally driven by a configured scoring framework."
+          "description": "The priority scale, its bands, and an optional scoring framework that\ncomputes priority from inputs."
         },
         "recur": {
           "$ref": "#/$defs/RecurConfig",
-          "description": "Recurring-tasks feature gate and policy floor (`mt recur`)."
+          "description": "Whether recurring tasks are enabled, and the units, anchors and limits\n`mt recur` accepts."
         },
         "roots": {
           "description": "Directories (relative to the project root) holding one task per file.",
@@ -2024,7 +2024,7 @@
           "type": "array"
         },
         "rules": {
-          "description": "Project-declared assertions every selected task must satisfy\n(`[[tasks.rules]]`, enforced by the validation pass — so by `mt check`\nand by every write command before it writes).",
+          "description": "Assertions every selected task must satisfy. `mt check` enforces them,\nand so does every write command before it writes.",
           "items": {
             "$ref": "#/$defs/RuleSpec"
           },
@@ -2054,7 +2054,7 @@
           "default": [
             ".mindtape/templates"
           ],
-          "description": "Dirs (relative to the project root) holding `*.typ` task templates.",
+          "description": "Directories, relative to the project root, holding `*.typ` task templates.",
           "items": {
             "type": "string"
           },
@@ -2068,7 +2068,7 @@
       "description": "`[typst]` — Typst evaluation settings.",
       "properties": {
         "local-packages": {
-          "description": "Extra `@local/<name>` package overrides, each resolved from an in-tree\npath so a worktree resolves a foreign package without a global install.\n`MindTape`'s own `@local/mindtape` is auto-registered when `<root>/lib` is\nthe `mindtape` package; this seam covers any other package (e.g. a\nconsumer's own lib referenced by an `x-<ns>` extras helper).",
+          "description": "`@local/<name>` packages to load from a directory in the project, so a\ntask can import a package that is not installed globally. `mt`\nregisters `@local/mindtape` itself when `<root>/lib` holds the\n`mindtape` package; list any other package here.",
           "items": {
             "$ref": "#/$defs/LocalPackage"
           },
@@ -2144,7 +2144,7 @@
     },
     "disable": {
       "default": [],
-      "description": "Rule names to drop after every extended pack and layer has merged its\nrule arrays in. A name matching no rule in any of them is a config\nerror. Consumed at the same point as `extends`.",
+      "description": "Rule names to drop once every pack and layer has added its rules. A\nname that matches no rule is a config error.",
       "items": {
         "type": "string"
       },
@@ -2152,7 +2152,7 @@
     },
     "extends": {
       "default": [],
-      "description": "Rule packs this layer builds on: a bare name (the reserved\n`mindtape-` prefix) resolves to a pack compiled into the binary; a\npath — anything carrying a path separator, even one starting with\n`mindtape-` — resolves to a TOML pack file, relative to the file that\ndeclares it (the project root, for the project's own config). Legal\nin any layer. A pack contributes to `[[tasks.rules]]`,\n`[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,\n`[[commits.rules]]` and `[dicts]` only, ahead of the layer's own entries; a same-named rule in\nthe layer replaces the pack's. Resolved and consumed before this\nstruct is built — see [`crate::config_packs`] — so this field always\nreads back as whichever layer declared `extends` last, informational\nrather than something another command reads.",
+      "description": "Rule packs this config builds on, in any config layer. A name with the\nreserved `mindtape-` prefix and no path separator is a pack built into\n`mt`. Anything with a path separator is a TOML pack file, relative to\nthe file that declares it. A pack adds entries to `[[tasks.rules]]`,\n`[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,\n`[[commits.rules]]` and `[dicts]`, ahead of this layer's own. A rule in\nthis layer replaces a pack rule with the same name.",
       "items": {
         "type": "string"
       },
@@ -2191,7 +2191,7 @@
       "description": "`rm` (task removal) defaults."
     },
     "roles": {
-      "description": "Declared role names (`[[roles]]`) actors may hold. Identity-only: a\nrole carries no payload; the reader's harness keys its own config by\nrole name by convention.",
+      "description": "Role names (`[[roles]]`) that actors may hold. A role carries no\nsettings; a harness keys its own config by role name.",
       "items": {
         "$ref": "#/$defs/Role"
       },

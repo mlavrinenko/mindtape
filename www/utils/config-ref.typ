@@ -1,10 +1,6 @@
-// Render www/generated/config-schema.json — the JSON Schema `mt config
-// schema` prints (facts only, generated from the config structs — the exact
-// bytes `mt install` also writes) — as the Configuration page's "Sections"
-// table. This file owns presentation (row order, TOML-syntax labels); the
-// JSON owns the descriptions.
-//
-// Refs: truth/tasks/generate-the-config-reference-from-the-schema.typ
+// Renders www/generated/config-schema.json, the JSON Schema `mt config schema`
+// prints, as the Configuration page's "Sections" table. This file sets the row
+// order and the TOML labels; the schema supplies the descriptions.
 
 // ── resolve a dotted schema path to its property-level description ─────────
 // Walks `$ref` indirection through `$defs` one segment at a time. A
@@ -30,13 +26,16 @@
   desc
 }
 
-// schemars/rustdoc wraps prose at a fixed column with a single "\n"; a real
-// paragraph break is a blank line ("\n\n"). Typst renders an embedded "\n" in
-// a string as a hard line break, so a bare wrap would show mid-sentence —
-// reflow: join wrapped lines with a space, keep blank-line paragraph breaks.
+// A description is a doc comment, wrapped at a fixed column with blank lines
+// between paragraphs. Each paragraph is evaluated as Typst markup, so a
+// backtick span renders as code. Its lines are joined first, because a wrap
+// inside a backtick span would print as a line break in the code.
 #let _fmt-desc(desc) = {
   if desc == none { return [] }
-  desc.split("\n\n").map(p => [#(p.split("\n").join(" "))]).join(parbreak())
+  desc
+    .split("\n\n")
+    .map(p => eval(p.split("\n").join(" "), mode: "markup"))
+    .join(parbreak())
 }
 
 // ── public: the Sections table and its completeness gate ───────────────────
@@ -62,12 +61,11 @@
   false
 }
 
-// Two-way completeness gate, mirroring cli-gate in cli-ref.typ: every
-// top-level schema property, and every `[tasks.*]` nested one — where the
-// hand-written table had actually drifted — must be covered by a rendered
-// path, and every rendered path must resolve against the schema. Call once
-// per page; a newly added config key fails the docs build until it is
-// surfaced here.
+// Two-way completeness check, like cli-gate in cli-ref.typ. Every top-level
+// schema property and every `[tasks.*]` property must be covered by a
+// rendered path, and every rendered path must resolve against the schema.
+// Call once per page. A new config key fails the docs build until config.typ
+// lists it.
 #let config-gate(schema, sections) = {
   let paths = sections.map(s => s.at(0))
   for p in paths {

@@ -19,15 +19,17 @@ use serde::{Deserialize, Deserializer};
 /// unset.
 pub const DEFAULT_STEM_TEMPLATE: &str = "{slug}";
 
-/// `[tasks.naming]` — how `mt add`/`mt recur` mint a new task's filename stem,
-/// and (`dedup`) what `mt add` does when the minted stem collides.
+/// `[tasks.naming]` — how `mt add` and `mt recur` name a new task's file, and
+/// what `mt add` does when that name is taken (`dedup`).
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct NamingConfig {
-    /// Stem template with macros. Unset ⇒ bare `{slug}` (today's behaviour).
+    /// Filename stem template. Macros: `{slug}`, `{date}`, `{date:FMT}`,
+    /// `{yy}`, `{mm}`, `{dd}`, `{n}` and `{n:0N}`. Unset means `{slug}`.
     pub stem: Option<String>,
-    /// Collision policy for `mt add`; `--dedup` overrides for one run. Unset
-    /// takes its default from `stem` — see [`NamingConfig::effective_dedup`].
+    /// What `mt add` does when the stem is taken; `--dedup` overrides it for
+    /// one run. Unset means `add-suffix` when `stem` is set, else `fail`.
+    // `NamingConfig::effective_dedup` holds that default.
     pub dedup: Option<DedupMode>,
 }
 

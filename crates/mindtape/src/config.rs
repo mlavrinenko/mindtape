@@ -122,26 +122,22 @@ pub struct Config {
     /// The project's actor registry (`[[actors]]`): named workers (people and
     /// language models) that `assignee:` values may reference.
     pub actors: Vec<crate::config_actors::Actor>,
-    /// Declared role names (`[[roles]]`) actors may hold. Identity-only: a
-    /// role carries no payload; the reader's harness keys its own config by
-    /// role name by convention.
+    /// Role names (`[[roles]]`) that actors may hold. A role carries no
+    /// settings; a harness keys its own config by role name.
     pub roles: Vec<crate::config_actors::Role>,
-    /// Rule packs this layer builds on: a bare name (the reserved
-    /// `mindtape-` prefix) resolves to a pack compiled into the binary; a
-    /// path — anything carrying a path separator, even one starting with
-    /// `mindtape-` — resolves to a TOML pack file, relative to the file that
-    /// declares it (the project root, for the project's own config). Legal
-    /// in any layer. A pack contributes to `[[tasks.rules]]`,
+    /// Rule packs this config builds on, in any config layer. A name with the
+    /// reserved `mindtape-` prefix and no path separator is a pack built into
+    /// `mt`. Anything with a path separator is a TOML pack file, relative to
+    /// the file that declares it. A pack adds entries to `[[tasks.rules]]`,
     /// `[[tasks.body.headers.rules]]`, `[[tasks.body.content.rules]]`,
-    /// `[[commits.rules]]` and `[dicts]` only, ahead of the layer's own entries; a same-named rule in
-    /// the layer replaces the pack's. Resolved and consumed before this
-    /// struct is built — see [`crate::config_packs`] — so this field always
-    /// reads back as whichever layer declared `extends` last, informational
-    /// rather than something another command reads.
+    /// `[[commits.rules]]` and `[dicts]`, ahead of this layer's own. A rule in
+    /// this layer replaces a pack rule with the same name.
+    // `crate::config_packs` resolves and consumes `extends` before this struct
+    // is built, so the field reads back as whichever layer declared it last.
+    // No command reads it.
     pub extends: Vec<String>,
-    /// Rule names to drop after every extended pack and layer has merged its
-    /// rule arrays in. A name matching no rule in any of them is a config
-    /// error. Consumed at the same point as `extends`.
+    /// Rule names to drop once every pack and layer has added its rules. A
+    /// name that matches no rule is a config error.
     pub disable: Vec<String>,
 }
 
@@ -149,21 +145,20 @@ pub struct Config {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TypstConfig {
-    /// Extra `@local/<name>` package overrides, each resolved from an in-tree
-    /// path so a worktree resolves a foreign package without a global install.
-    /// `MindTape`'s own `@local/mindtape` is auto-registered when `<root>/lib` is
-    /// the `mindtape` package; this seam covers any other package (e.g. a
-    /// consumer's own lib referenced by an `x-<ns>` extras helper).
+    /// `@local/<name>` packages to load from a directory in the project, so a
+    /// task can import a package that is not installed globally. `mt`
+    /// registers `@local/mindtape` itself when `<root>/lib` holds the
+    /// `mindtape` package; list any other package here.
     pub local_packages: Vec<LocalPackage>,
 }
 
-/// `[[typst.local-packages]]` — one `@local/<name>` → in-tree path override.
+/// `[[typst.local-packages]]` — one `@local/<name>` package loaded from a project directory.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct LocalPackage {
     /// The `@local/<name>` package name.
     pub name: String,
-    /// Lib directory holding the package's `typst.toml`, relative to the root.
+    /// Directory holding the package's `typst.toml`, relative to the project root.
     pub path: String,
 }
 
@@ -171,7 +166,7 @@ pub struct LocalPackage {
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TemplatesConfig {
-    /// Dirs (relative to the project root) holding `*.typ` task templates.
+    /// Directories, relative to the project root, holding `*.typ` task templates.
     pub dirs: Vec<String>,
     /// Template stem `mt add` uses when none is named.
     pub default: String,

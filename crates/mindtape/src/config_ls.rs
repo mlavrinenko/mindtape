@@ -48,24 +48,24 @@ pub struct LsConfig {
     /// Same spec grammar as `--sort`: `"field"` or `"field:asc"` / `"field:desc"`.
     /// Validated at config load. When absent the shipped built-in chain applies.
     pub default_sort: Vec<String>,
-    /// Global date display format applied to every rendered date column.
-    /// Tokens (longest-match-first): `YYYY` 4-digit year, `YY` 2-digit year,
-    /// `MMMM` full month name, `MMM` abbreviated month, `MM` zero-padded month,
-    /// `M` bare month, `DD` zero-padded day, `D` bare day.
-    /// Non-token characters pass through literally.
-    /// Default `None` renders ISO `YYYY-MM-DD`.
+    /// Date format for every date column. Tokens, longest match first: `YYYY`
+    /// 4-digit year, `YY` 2-digit year, `MMMM` full month name, `MMM`
+    /// abbreviated month, `MM` zero-padded month, `M` bare month, `DD`
+    /// zero-padded day, `D` bare day. Other characters print as written.
+    /// Absent prints ISO `YYYY-MM-DD`.
     pub date_format: Option<String>,
-    /// Per-column display settings, keyed by column name. The embedded floor
-    /// lists every column in [`LS_COLUMNS`], so an entry missing here is one a
-    /// config layer deleted — and a column with no `when` never renders.
+    /// Per-column display settings, keyed by column name. The shipped
+    /// defaults set `when` on every column; a column with no `when` never
+    /// renders.
+    // The embedded floor lists every column in `LS_COLUMNS`, so an entry
+    // missing here is one a config layer deleted.
     pub columns: BTreeMap<String, ColumnConfig>,
     /// Explicit column order and selection: when set, only the listed
     /// columns render, in that order. Empty (the default) keeps the built-in
     /// column set and order.
     pub columns_order: Vec<String>,
-    /// Display settings (glyph, colour, label) for the ready and blocked
-    /// states shown in the READY column. Defaults to `MindTape`'s built-in
-    /// values, so leaving this unset keeps the current behaviour.
+    /// Glyph, colour and label for the ready and blocked states in the READY
+    /// column. An unset key takes the shipped default.
     pub ready: ReadyConfig,
     /// Colour for the overdue due-date accent. Defaults to `"red"`.
     pub overdue_color: Option<String>,
@@ -73,29 +73,22 @@ pub struct LsConfig {
     /// filter, no `@view`): the first rule whose condition holds (or that
     /// has none) wins and supplies its filter, sort, and columns.
     pub rules: Vec<LsRule>,
-    /// Hyperlink output for the `#` and `file` columns' cells: `auto`,
-    /// `always`, or `never` (the default). Mirrors `--hyperlinks`, which wins
-    /// over this key when passed — see [`HyperlinkChoice`] for what each
-    /// value means and why the default is not `auto`.
+    /// Whether the `#` and `file` cells carry terminal hyperlinks: `auto`,
+    /// `always`, or `never` (the default). `--hyperlinks` overrides it for one
+    /// run.
     pub hyperlinks: HyperlinkChoice,
-    /// Template for the shared per-row hyperlink target URI both `#` and
-    /// `file` link to: `{abs}` (the absolute path, the project root joined
-    /// with the task's `file`) and `{rel}` (the same working-directory-relative
-    /// path the `file` column displays) are substituted. Defaults to
-    /// `file://{abs}`; point it at another scheme (e.g. an editor's own URI
-    /// handler) to open elsewhere.
+    /// URI that a row's `#` and `file` cells link to. `mt` replaces `{abs}`
+    /// with the task's absolute path and `{rel}` with the path the `file`
+    /// column shows. Defaults to `file://{abs}`. Point it at another scheme,
+    /// such as an editor's URI handler, to open the task there.
     pub hyperlink_target: Option<String>,
-    /// Default `contains()` haystack when a call names no field: an ordered
-    /// list of field names drawn from `crate::fields::is_contains_field`'s
-    /// vocabulary (every `crate::fields::FIELDS` name, plus the text-only
-    /// tier `body`/`note`/`tags`). Empty (the default) keeps the shipped
-    /// sweep — `title`, `id`, `body` — unchanged; a project states its own
-    /// answer to widen it (e.g. to include `note`, the `links[].note` prose,
-    /// or `tags`) or narrow it. An explicitly named field in a `contains()`
-    /// call (`contains("x", note)`) always works regardless of this default.
-    /// Validated at config load
-    /// ([`deserialize_contains_fields`]): an unknown name is a config error
-    /// naming the field and listing the valid set, never a silent drop.
+    /// Fields that `contains()` searches when a call names none, in order.
+    /// Takes any filter field name, plus `body`, `note` and `tags`. Empty (the
+    /// default) searches `title`, `id` and `body`. A call that names its
+    /// field, such as `contains("x", note)`, ignores this key. An unknown name
+    /// is a config error.
+    // `deserialize_contains_fields` checks each name against
+    // `crate::fields::is_contains_field` at config load.
     #[serde(deserialize_with = "deserialize_contains_fields")]
     pub contains_fields: Vec<String>,
 }
@@ -123,19 +116,16 @@ where
     Ok(names)
 }
 
-/// `[ls] hyperlinks` — whether the `#` and `file` columns' cells carry an
-/// OSC 8 hyperlink sequence (`ESC ] 8 ; ; <uri> ST <text> ESC ] 8 ; ; ST`) in
-/// a standalone terminal, both pointing at the same per-row target. The `mt`
-/// binary's `--hyperlinks` flag is this same choice, mirrored one-to-one in
-/// the CLI crate (which alone depends on `clap`) as
-/// `crate::render::link::HyperlinkChoice` there.
+/// `[ls] hyperlinks` — whether the `#` and `file` cells carry OSC 8
+/// hyperlinks to the row's `hyperlink-target`. The `--hyperlinks` flag takes
+/// the same values.
 ///
-/// There is no terminal capability query for OSC 8 support, so `auto` is a
-/// heuristic (stdout is a TTY and `TERM` is not `dumb`), never a detection —
-/// and unlike colour, which degrades to nothing on a terminal that ignores
-/// it, an unsupported terminal can render the OSC 8 payload as visible
-/// garbage. That asymmetry is why the default is `never`, not `auto`
-/// (`truth/tasks/hyperlink-the-file-column-with-osc-8.typ`).
+/// A terminal without OSC 8 support can print the escape sequence as visible
+/// text, and no terminal reports whether it supports OSC 8. That is why the
+/// default is `never`.
+// The CLI crate mirrors this enum one-to-one as
+// `crate::render::link::HyperlinkChoice`, because only that crate depends on
+// `clap`.
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum HyperlinkChoice {
@@ -389,13 +379,11 @@ fn validate_view_spliced(
     problems
 }
 
-/// `[ls.ready]` — the READY column's per-state display (glyph, colour, label).
-///
-/// One block covering both `ready` and `blocked` states (rather than nesting
-/// under `[ls.columns.ready]`, which only carries a generic `when`): `blocked`
-/// needs display attributes `ColumnConfig` has no room for. Every
-/// field is optional so an omitted key falls back to the embedded floor's
-/// value (or, absent even that, the renderer's own literal fallback).
+/// `[ls.ready]` — glyph, colour and label for the ready and blocked states in
+/// the READY column. An omitted key takes the shipped default.
+// One block covers both states, outside `[ls.columns.ready]`, because
+// `ColumnConfig` carries only `when`. An omitted key falls back to the
+// embedded floor, then to the renderer's literal fallback.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct ReadyConfig {

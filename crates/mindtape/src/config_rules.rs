@@ -108,9 +108,9 @@ impl RulesRoot {
     }
 }
 
-/// `check = { typst, function, field }` — a `[[tasks.rules]]` entry that
-/// delegates to a Typst function instead of a filter expression. See
-/// [`crate::config_rules_typst`] for the evaluation route.
+/// `check = { typst, function, field }` — a `[[tasks.rules]]` entry that calls
+/// a Typst function instead of evaluating an `assert` expression.
+// `crate::config_rules_typst` evaluates the call.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CheckSpec {
@@ -127,14 +127,10 @@ pub struct CheckSpec {
 }
 
 /// `[[tasks.rules]]` — one assertion or check every selected task must
-/// satisfy.
-///
-/// Exactly one of `assertion`/`check` is set on a rule that came through
-/// [`crate::config::load_config`] — [`validate_rules`] refuses both or
-/// neither at config load — but a hand-built `RuleSpec` (a test, or
-/// `parse_config` alone) can carry either combination, so
-/// [`eval::CompiledRule::compile`] still treats it as a fact to check rather than an
-/// invariant to assume.
+/// satisfy. Set exactly one of `assert` and `check`.
+// `validate_rules` refuses both or neither at config load. A hand-built
+// `RuleSpec` (a test, or `parse_config` alone) can still carry either
+// combination, so `eval::CompiledRule::compile` checks it again.
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RuleSpec {
@@ -147,7 +143,7 @@ pub struct RuleSpec {
     #[serde(default, rename = "assert")]
     pub assertion: Option<String>,
     /// A Typst function to call instead of an `assert` expression. Exactly
-    /// one of this and `assertion` is set.
+    /// one of this and `assert` is set.
     #[serde(default)]
     pub check: Option<CheckSpec>,
     /// Filter expression gating which tasks the rule applies to. Absent means
@@ -155,9 +151,8 @@ pub struct RuleSpec {
     #[serde(default)]
     pub when: Option<String>,
     /// What an `assert` breach tells the author to do, in place of the
-    /// default advice naming the `assert` expression itself. Has no effect on
-    /// a `check` rule: each string the function returns is already the
-    /// specific thing to fix.
+    /// default advice naming the `assert` expression. A `check` rule ignores
+    /// it and prints each string its function returns.
     #[serde(default)]
     pub message: Option<String>,
     /// Whether a breach fails the command or only reports. Default `warn`.
