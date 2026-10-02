@@ -137,28 +137,11 @@ mt check                                           # validate the whole project
 
 The docs site has the rest:
 
-- [Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) — Install MindTape, scaffold a project, and file your first task.
-- [Comparison](https://mlavrinenko.github.io/mindtape/comparison/) — How MindTape compares, feature by feature, to the other local CLI task trackers, agent-era ones included, and when one of them fits better.
-- [Concepts](https://mlavrinenko.github.io/mindtape/concepts/) — The model behind MindTape: files as tasks, live evaluation, identity by filename, one extension seam, and the two layers that enforce a task.
-- [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) — Every field a task file can declare, the status shortcuts, and what the body can hold.
-- [Task links](https://mlavrinenko.github.io/mindtape/links/) — Typed edges between tasks: the built-in kinds, project-declared kinds with their own target validation, and what mt check refuses.
-- [Recurring tasks](https://mlavrinenko.github.io/mindtape/recurring/) — One task that repeats: every() for the common cadences, rrule() for calendar rules, and the command that advances the series.
-- [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) — How mt add scaffolds a task from a Typst template whose values are slot() calls.
-- [Derived tags](https://mlavrinenko.github.io/mindtape/derived-tags/) — Tasks inherit tags from their location under a root, without those tags ever being written to the file.
-- [CLI reference](https://mlavrinenko.github.io/mindtape/cli/) — Every mt command, grouped, with generated transcripts and pointers to the pages that own each deep topic.
-- [Filter language](https://mlavrinenko.github.io/mindtape/filters/) — The expression language mt ls and mt rm use to select tasks: fields, operators, functions, and dependency predicates.
-- [Priority](https://mlavrinenko.github.io/mindtape/priority/) — Priority is a number on a configured scale, set by hand or scored by a framework; difficulty is its twin.
-- [Configuration](https://mlavrinenko.github.io/mindtape/config/) — The .mindtape/config.toml reference: the four-layer merge, rule packs, the section map, and the keys only config defines.
-- [Rule packs](https://mlavrinenko.github.io/mindtape/rule-packs/) — A rule pack is a project's task practice as one importable unit: extends adopts it, a same-named rule overrides one entry, disable drops one. What a pack file may contain, how it resolves, the merge order, and what mindtape-tasks enforces.
-- [Commit rules](https://mlavrinenko.github.io/mindtape/commit-rules/) — How a project holds commits to its rules: the `Refs` trailer `mt check --commit-msg` reads, commit-scope filter expressions, and re-checking a pushed range in CI.
-- [Named views and dictionaries](https://mlavrinenko.github.io/mindtape/named-sets/) — Two top-level config sections that name something once so every rule can point at it: a view bundles a filter with a sort and columns, a dictionary names a set of strings.
-- [Flip hooks](https://mlavrinenko.github.io/mindtape/hooks/) — How a project binds actions to a task changing status: printing a message, listing what else is in flight, or running a command that may refuse the flip.
-- [Estimate caps and working-tree budgets](https://mlavrinenko.github.io/mindtape/estimates/) — How tasks.estimate declares the legal units, and how plain rules cap a declared estimate and hold the git working tree to it.
-- [Canonical schema](https://mlavrinenko.github.io/mindtape/schema/) — The task-JSON schema mt ls --json and mt import share — the contract a jq adapter codes against.
-- [Import & export](https://mlavrinenko.github.io/mindtape/import-export/) — Bring tasks in from another tracker with mt import and jq, and reshape them back out with the same tools.
-- [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/) — A repo's tasks can carry a structure it invented, checked by the repo's own Typst function on every write — no separate linter to maintain.
-- [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) — What makes MindTape legible to a coding agent: structured JSON, describable schemas, honest exit codes, and file-based state.
-- [Internals](https://mlavrinenko.github.io/mindtape/internals/) — How MindTape is built: the crate layout, the content-hash cache that keeps live evaluation cheap, and what differs per platform.
+- **Start**: [Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) · [Comparison](https://mlavrinenko.github.io/mindtape/comparison/)
+- **Model**: [Concepts](https://mlavrinenko.github.io/mindtape/concepts/)
+- **Tasks**: [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) · [Task links](https://mlavrinenko.github.io/mindtape/links/) · [Recurring tasks](https://mlavrinenko.github.io/mindtape/recurring/) · [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) · [Derived tags](https://mlavrinenko.github.io/mindtape/derived-tags/)
+- **Reference**: [CLI reference](https://mlavrinenko.github.io/mindtape/cli/) · [Filter language](https://mlavrinenko.github.io/mindtape/filters/) · [Priority](https://mlavrinenko.github.io/mindtape/priority/) · [Configuration](https://mlavrinenko.github.io/mindtape/config/) · [Rule packs](https://mlavrinenko.github.io/mindtape/rule-packs/) · [Commit rules](https://mlavrinenko.github.io/mindtape/commit-rules/) · [Named views and dictionaries](https://mlavrinenko.github.io/mindtape/named-sets/) · [Flip hooks](https://mlavrinenko.github.io/mindtape/hooks/) · [Estimate caps and working-tree budgets](https://mlavrinenko.github.io/mindtape/estimates/) · [Canonical schema](https://mlavrinenko.github.io/mindtape/schema/) · [Import & export](https://mlavrinenko.github.io/mindtape/import-export/)
+- **Integrate**: [Self-validating tasks](https://mlavrinenko.github.io/mindtape/self-validating-tasks/) · [For AI agents](https://mlavrinenko.github.io/mindtape/agents/) · [Internals](https://mlavrinenko.github.io/mindtape/internals/)
 
 ## Contributing
 

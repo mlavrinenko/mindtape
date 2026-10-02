@@ -82,6 +82,12 @@
   )
 }
 
+// The sidebar groups in NAV order, each a `(title, routes)` pair, for prose
+// that lists the whole site by section. A page added to NAV, or moved to
+// another group, shows up here with no edit to the source that reads this.
+// Link each route with `www-link`, which fails the render on an unknown one.
+#let www-groups = _site.groups
+
 // A page's own title and summary, for prose that names a page (or lists every
 // page, as README does) rather than linking one. Same panic on an unknown
 // route, for the same reason. A summary is plain text with `code` spans;

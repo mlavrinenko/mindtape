@@ -12,9 +12,9 @@
 //
 // So no page is restated below. Every site link goes through `www-link`,
 // which resolves the route against www/generated/site-pages.json and fails
-// this render naming an unknown one, and the page list reads each page's own
-// summary out of that same manifest — a page added, renamed or re-summarised
-// on the site lands here with no edit.
+// this render naming an unknown one. The index groups the pages as the site
+// nav does, read from the same manifest, so a page added to NAV or moved to
+// another group lands here with no edit.
 //
 // The opening does not carry a synthetic task example, and does not carry its
 // own copy of the real one either. The block lives in www/utils/demo.typ,
@@ -43,23 +43,24 @@
 // stripped by GitHub's sanitizer), so the header below uses those instead.
 // This document has no separate `doc-title` ATX `#`, because the centered
 // `<h1>` is the title.
-#import "lib.typ": fact, www-link, www-summary
+#import "lib.typ": www-groups, www-link
 #import "/www/utils/demo.typ": demo
 
 #metadata((
   output: "README.md",
 )) <mindtape-md>
 
-// Every docs-site page except the site root. `www-link` renders a page's own
-// title, and the root's title is "MindTape" over a summary that restates this
-// README's own opening line — an index entry pointing the reader back at
-// where they already are. The header's Documentation link is that page.
-//
-// Read through `fact` rather than written out, so a page added to
-// www/utils/site.typ's NAV appears here on the next render and one removed
-// stops being linked. Each route still goes through `www-link` /
-// `www-summary` below, so nothing can reach the output with an empty title.
-#let doc-routes = fact("site-pages").pages.keys().filter(route => route != "/")
+// The docs-site sections for the index at the end, in the site's own order.
+// The site root is left out: its title is "MindTape" over a summary that
+// restates this README's opening, and the header's Documentation link is that
+// page. A group with no page left after that is dropped.
+#let doc-groups = {
+  let without-root = group => (
+    title: group.title,
+    routes: group.routes.filter(route => route != "/"),
+  )
+  www-groups.map(without-root).filter(group => group.routes.len() > 0)
+}
 
 #html.elem("h1", attrs: (align: "center"))[
   #html.elem("img", attrs: (
@@ -112,8 +113,8 @@ mt check                                           # validate the whole project
 
 The docs site has the rest:
 
-#list(..doc-routes.map(route => [
-  #www-link(route) — #www-summary(route)
+#list(..doc-groups.map(group => [
+  *#group.title*: #group.routes.map(route => www-link(route)).join[ · ]
 ]))
 
 = Contributing

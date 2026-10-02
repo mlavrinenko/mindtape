@@ -106,13 +106,12 @@ fi
 # target/-rooted driver, the same trick www/generate-facts.sh used for this
 # artifact before this script existed, moved here verbatim. site.typ resolves
 # its own reads relative to ITSELF rather than the root, so `--root .` here
-# and `--root www` above both work against the same file. NAV's flattened
-# routes ride along in the same query so the `pages` object below can be
-# written out in NAV's curated reading order rather than the glob's
-# alphabetical one — docs/src/readme.typ's page list reads `pages.keys()`
-# directly, and that list is meant to read in the site's own order, not
-# filename order.
-printf '#import "/www/utils/site.typ": NAV, PREFIX, REPO, SITE_URL\n#metadata((url: SITE_URL, prefix: PREFIX, repo: REPO, nav: NAV.map(g => g.items).flatten())) <site-meta>\n' \
+# and `--root www` above both work against the same file. NAV rides along in
+# the same query in two shapes. The flattened routes order the `pages` object
+# below by NAV's reading order rather than the glob's alphabetical one, and
+# `groups` carries each NAV group's title and routes in order, which
+# docs/src/readme.typ's index reads.
+printf '#import "/www/utils/site.typ": NAV, PREFIX, REPO, SITE_URL\n#metadata((url: SITE_URL, prefix: PREFIX, repo: REPO, nav: NAV.map(g => g.items).flatten(), groups: NAV.map(g => (title: g.title, routes: g.items)))) <site-meta>\n' \
   >"$workdir/site-meta-driver.typ"
 site_meta="$(typst query --root "$REPO" "$workdir/site-meta-driver.typ" '<site-meta>' \
   --field value --one)"
@@ -124,6 +123,7 @@ jq -n --argjson site "$site_meta" --argjson pages "$pages_json" '
       url: $site.url,
       prefix: $site.prefix,
       repo: $site.repo,
+      groups: $site.groups,
       pages: (reduce ($ordered + $rest)[] as $r ({}; . + {($r): $pages[$r]})),
     }
 ' | emit site-pages.json

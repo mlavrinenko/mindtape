@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(
+    2026,
+    10,
+    2,
+  )[site-pages.json carries NAV's groups; README index is one line per group],
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 
