@@ -135,7 +135,7 @@ groups:
       # it hands a resolved list to `render()` — so the CSV mapping decision
       # (`#` -> `id`, and `file` as the root-relative record path rather than
       # the table's cwd-relative display) lives here and nowhere else, while
-      # cli.typ, schema.typ and docs/src/skill.typ each restate it by hand
+      # cli.typ and schema.typ each restate it by hand
       # (truth/tasks/csv-and-json-disagree-about-what-the-file-field-means.typ).
       - crates/mindtape-cli/src/output.rs
       - crates/mindtape-cli/src/preset_cmd.rs
@@ -147,7 +147,8 @@ groups:
       - crates/mindtape-cli/src/worktrees.rs
       - crates/mindtape/src/lib.rs
       # The filter/`--sort` field vocabulary. Every dependent that lists the
-      # comparable fields (filters.typ, docs/src/skill.typ) hand-types them —
+      # comparable fields (filters.typ, skills/mindtape/references/filters.md)
+      # hand-types them —
       # nothing in www/generated/*.json carries this registry — so renaming
       # `file` to `path` moved a documented surface while every source above
       # stayed byte-identical and the gate stayed green
@@ -187,6 +188,9 @@ groups:
       # .linecop.yaml note). The content is still CLI surface, so it has to
       # stay a tracked dependent — shedding it must not shed the drift gate.
       - skills/mindtape/references/add-slots.md
+      # The skill's filter reference lists the field vocabulary by hand, as
+      # filters.typ does.
+      - skills/mindtape/references/filters.md
       - skills/mindtape/evals/README.md
       - skills/mindtape/evals/evals.json
 

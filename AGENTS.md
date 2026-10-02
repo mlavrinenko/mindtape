@@ -2,60 +2,47 @@
 
 # MindTape — AI Agent Context
 
-How work is done lives in @CONTRIBUTING.md, pulled into your context whole by that reference; a process rule belongs there and is never restated here. This file carries the other half: what MindTape _is_.
+@CONTRIBUTING.md says how work is done in this repo. This file says what MindTape is and where its parts live.
 
 ## What is this?
 
-A daemon-free, file-based task tracker. Tasks are one-per-file Typst artifacts (`#show: task.with(...)`). MindTape live-evaluates the configured roots on every command via the Typst compiler crates — no SQLite, no global index. Identity is the filename stem.
-
-Repository: [https://github.com/mlavrinenko/mindtape](https://github.com/mlavrinenko/mindtape)
+MindTape is a file-based task tracker. Each task is one Typst file (`#show: task.with(...)`), and the filename stem is its identity. Every `mt` command evaluates the task files under the configured roots through the Typst compiler crates. There is no daemon and no database. A content-hash cache in `.mindtape/cache/` skips evaluating a file whose bytes did not change.
 
 ## Repo map
 
-- `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
-- `truth/tasks/` — MindTape’s own backlog as per-file task artifacts (dogfood); `mt ls` / `mt check` run against it via the in-tree `lib/`
-- `truth/goals.typ` and `truth/process-goals.typ` — what MindTape is for, and how this repo builds it; every open task gives each goal a verdict in its `x-goals` field, and the `goals` rule checks them with `check-goals` from `truth/lib.typ`
-- `www/content/*.typ` — the docs site (tola)
-- `docs/contributing/*.md` — contributor deep dives behind CONTRIBUTING.md
-- `examples/` — `learn-piano` (full config surface; feeds the docs generator and the skill’s evals), `minimal` (the floor config), and `large` (a 2000-task benchmark fixture; its tasks are gitignored, `just gen-bench` rebuilds them)
+- `lib/prelude.typ` — the `@local/mindtape` Typst package, which defines the task DSL.
+- `truth/tasks/` — MindTape’s own backlog. `mt` here uses the in-tree `lib/`.
+- `truth/goals.typ` and `truth/process-goals.typ` — the product and process goals. Each open task rates every goal in its `x-goals` field, and the `goals` rule checks the ratings with `check-goals` from `truth/lib.typ`.
+- `www/content/*.typ` — the docs site, built with tola.
+- `docs/src/*.typ` — the sources of README.md, AGENTS.md, CONTRIBUTING.md, the skill’s SKILL.md and the `docs/contributing/*.md` deep dives.
+- `skills/mindtape/` — the agent skill for driving `mt`, with its references and evals.
+- `examples/` — fixture projects. `learn-piano` uses the full config surface and feeds the docs and the skill’s evals. `minimal` is the smallest config. `large` is a 2000-task benchmark whose gitignored tasks `just gen-bench` writes. Each of the others backs one docs page.
 
-Reference material lives on the docs site, not here. Before writing about a feature, read whichever page below already answers it rather than restating it — the page at `/<stem>/` is `www/content/<stem>.typ`.
-
-| Topic | Read |
-| --- | --- |
-| Every task field, `links:` edge kinds, `recur` | [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) |
-| `mt add`, slots, `--set`, `--describe`, `--edit` | [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) |
-| Derived tags from folder layout | [Derived tags](https://mlavrinenko.github.io/mindtape/derived-tags/) |
-| Priority frameworks, scoring, bands | [Priority](https://mlavrinenko.github.io/mindtape/priority/) |
-| Filter language | [Filter language](https://mlavrinenko.github.io/mindtape/filters/) |
-| Every config key | [Configuration](https://mlavrinenko.github.io/mindtape/config/) |
-| Driving `mt` as an agent | `skills/mindtape/SKILL.md` |
+Before you write about a feature, read the `www/content/` page that covers it: `dsl.typ` for task fields, edge kinds and `recur`, `templates.typ` for `mt add` and slots, `derived-tags.typ`, `priority.typ`, `filters.typ`, and `config.typ` for every config key.
 
 ## Workspace
 
-Two crates (`cargo` workspace, virtual root manifest):
+The cargo workspace has a virtual root manifest and two crates:
 
-- `crates/mindtape` — domain library: config, task model, filter language, validation, project loader. Other tools (e.g. speconaut) depend on this.
-- `crates/mindtape-cli` — the thin `mt` binary (clap).
+- `crates/mindtape` — the domain library: config, task model, filter language, validation and project loader. Other tools, such as speconaut, depend on it.
+- `crates/mindtape-cli` — the thin `mt` binary, built on clap.
 
-The seven former in-tree substrate crates are published to crates.io and consumed back as regular registry dependencies:
+The Typst plumbing comes from seven crates.io dependencies, and this repo holds none of their source:
 
-- `artifact-gate` `0.1.0` — artifact validation
-- `swhid-mint` `0.1.1` — SWHID minting
-- `typst-cleanup` `0.2.0` — git-aware cleanup
-- `typst-cst` `0.2.0` — parse-plane structure extraction
-- `typst-edit` `0.1.0` — slot/link rewriting
-- `typst-harvest` `0.3.0` — harvest
-- `typst-world` `0.3.2` — package-agnostic Typst World/eval
-
-Both lists — name, version, direct-vs-transitive — are derived from `www/generated/crate-map.json`, never hand-written.
+- `artifact-gate` — the rule engine behind `mt check`’s body header rules
+- `swhid-mint` — mints the SWHID a tombstone carries
+- `typst-cleanup` — retires a tracked file: dirty-tree guard, tombstone, link rewriting
+- `typst-cst` — reads a file’s heading tree by parsing, without evaluating
+- `typst-edit` — rewrites a file in place at known spans
+- `typst-harvest` — evaluates a file and collects the data it marks for export
+- `typst-world` — the eval-only Typst World the others share
 
 ## Architecture
 
-- Rust (edition 2024, pinned `rust-toolchain.toml`)
-- Typst 0.15 eval-only (`typst-eval`); never layout or render
-- `evalexpr` 12 as a parser for the filter language (walked, not evaluated by it)
-- `clap` 4 CLI; `serde`/`toml` config; a hand-rolled table renderer (`crates/mindtape-cli/src/render/`), `serde_json`/`csv` output
+- Rust, with the toolchain pinned in `rust-toolchain.toml`.
+- Typst runs eval-only through `typst-eval`. MindTape never lays out or renders a document.
+- `evalexpr` parses the filter language. MindTape walks the parsed tree and evaluates it itself.
+- `clap` for the CLI, `serde` and `toml` for config, `serde_json` and `csv` for output, and a hand-rolled table renderer in `crates/mindtape-cli/src/render/`.
 
 ## Task DSL (lib/prelude.typ)
 
@@ -73,12 +60,12 @@ Both lists — name, version, direct-vs-transitive — are derived from `www/gen
 )
 ```
 
-`task` declares every core field as a named parameter (`..meta` is the `x-<ns>` extension sink only), so tinymist completes the field names and shows the whole signature; a misspelled field reaches the sink and fails the file with an `unknown task slot` error naming the field, e.g. `titel`.
+`task` declares each core field as a named parameter, so tinymist completes the field names. Its `..meta` sink takes only `x-<ns>` extension slots, and a misspelled field such as `titel` fails the file with an `unknown task slot` error.
 
-Values are shapes, never computed results: `ice(...)` and the other framework packagers build a `(framework, inputs)` dict, `every(...)`/`rrule(...)` build a recurrence dict, `depends-on("a.typ") + related("b.typ")[why]` builds typed edges. No math and no date arithmetic happen in Typst — the Rust layer does all of it.
+A field value is a plain shape that Rust interprets. `ice(...)` and the other framework helpers build a `(framework, inputs)` dict, `every(...)` and `rrule(...)` build a recurrence dict, and `depends-on("a.typ") + related("b.typ")[why]` builds typed edges. Rust does all math and date arithmetic.
 
-The layer a new validation belongs in — the prelude, Rust and config, or the card render that enforces nothing — is argued in `docs/contributing/validation-seam.md`.
+`docs/contributing/validation-seam.md` says which layer a new validation belongs in: the prelude, Rust and config, or the card render.
 
 ### Mechanism, not policy
 
-Rust ships mechanisms; projects write policy as config expressions. Rust never names a specific estimate unit, status, tag, path or threshold. A new check is a `[[tasks.rules]]` entry, and when the filter language cannot express it, extend the language (a field, a predicate, an aggregate, a git state) rather than add a bespoke config table or checker. Shipped defaults live in a rule pack (`crates/mindtape/src/packs/`), where a project overrides them by name.
+Rust ships mechanisms, and projects write policy as config expressions. Rust code never names a specific estimate unit, status, tag, path or threshold. A new check is a `[[tasks.rules]]` entry. When the filter language cannot express it, extend the language with a field, predicate, aggregate or git state instead of adding a config table or checker of its own. Shipped defaults live in rule packs under `crates/mindtape/src/packs/`, and a project overrides a pack rule by name.

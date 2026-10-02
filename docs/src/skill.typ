@@ -1,174 +1,131 @@
-// docs/src/skill.typ — source for skills/mindtape/SKILL.md, rendered by
-// docs/generate-md.sh via typlite (render-path constraints: docs/src/lib.typ).
-// Two traps shape this source: `frontmatter` must stay a plain Typst string
-// (prepended as YAML by `yq`, which typlite cannot emit), and the title's
-// literal backtick is interpolated (`#"`"`), never a raw span, or the emitted
-// h1 stops being plain text and the generator's demotion skips it. SKILL.md
-// loads whole into an agent's context, so only what no command can teach
-// belongs here; the deep dives live in skills/mindtape/references/ (linked).
+// Source for skills/mindtape/SKILL.md, rendered by docs/generate-md.sh with
+// typlite. An agent loads SKILL.md whole every time the skill triggers, so it
+// keeps only what changes what the agent does and what no `--help` output
+// says. Detail an agent needs only for some tasks goes in
+// skills/mindtape/references/, which this file links.
+//
+// `frontmatter` stays a plain string, because typlite cannot emit YAML and the
+// generator writes it with `yq`. The title's backticks are interpolated from a
+// string, never written as a raw span, so the rendered h1 stays plain text and
+// the generator turns it into a `#` heading.
 #import "lib.typ": doc-title
 
 #metadata((
   output: "skills/mindtape/SKILL.md",
   frontmatter: (
     name: "mindtape",
-    description: "Drive MindTape, a daemon-free file-based task tracker, via its `mt` CLI and one-task-per-file Typst artifacts. Load in any repo holding `.mindtape/config.toml` for anything about tasks — listing, finding, filing, blocking, closing, validating, retiring, or \"what should I work on\" — even when the tool is not named. There it IS the tracker, not GitHub issues or ad-hoc TODOs; a repo with no tracker at all gets `mt init` offered before anything else.",
+    description: "Drive MindTape, a file-based task tracker, through its `mt` CLI; each task is one Typst file. Use it in any repo with `.mindtape/config.toml` for any work on tasks, even when the user does not name the tool: listing, finding, filing, blocking, closing, validating or retiring tasks, or \"what should I work on\". There MindTape is the tracker, in place of GitHub issues or TODO lists. In a repo with no tracker, offer `mt init` first.",
   ),
 )) <mindtape-md>
 
 #doc-title[MindTape (#"`"mt#"`")]
 
-MindTape tasks are one Typst file each; the filename stem is the identity and
-what `links:` names. Drive the `mt` CLI: a hand edit skips what `mt` stamps,
-slugs, injects, resolves and validates, and writes validate before landing, so
-a rejected write leaves nothing to repair. Hand-edit a `.typ` only for what no
-command covers — the body, a framework priority, an `estimate` dict — then run
-`mt check`.
+Each task is one Typst file. The filename stem is the task's identity, and
+`links:` edges name tasks by stem.
+
+Make every change through `mt`. It writes the slug, the status date and the
+fields the config injects, resolves link targets, and checks the result
+against the config. When the check fails, `mt` writes nothing. Hand-edit a task
+file only for what no command writes: the body, a framework priority such as
+`ice(...)`, and the `estimate` dict. Follow `references/hand-editing.md`, then
+run `mt check`.
 
 = Is this a MindTape project?
 
-Yes if `.mindtape/config.toml` exists at the repo root: it declares the task
-roots and rules (status legend, priority scale, tags). Run `mt` from the
-directory holding `.mindtape/`, or any descendant; from outside the tree use
-`-w <path>`, `$MINDTAPE_WORKTREE`, or a `@name` that `mt worktrees` lists. No
-tracker at all: offer `mt init`.
+It is when `.mindtape/config.toml` exists. Run `mt` in the directory that
+holds `.mindtape/` or below it. For another project, pass
+`-w <path>`, or start the command with an alias from `mt worktrees`, as in
+`mt @name ls`. In a repo with no tracker, offer `mt init`.
 
-= The loop
+= Commands
 
 #table(
   columns: 2,
   table.header([Goal], [Command]),
-  [List active tasks], [`mt ls`],
-  [List everything], [`mt ls ''` (the empty filter; no `--all` flag)],
-  [Filter and sort], [`mt ls '<filter>' --sort <field>[:asc\|desc]`],
-  [Search by text], [`mt find <term…>`],
+  [List the default view], [`mt ls`],
+  [List every task], [`mt ls ''` (there is no `--all`)],
+  [Filter and sort], [`mt ls '<filter>' --sort <field>:desc`],
+  [Search text], [`mt find <word…>`],
   [Read one task], [`mt eval <task>`],
   [File a task], [`mt add <title…>`],
-  [Write one field], [`mt set <task> <field>=<value>`],
-  [Rename a task], [`mt mv <task> <new-stem>`],
-  [Change status], [`mt flip <status> <task…>` or the status as a verb],
+  [Set one field], [`mt set <task> <field>=<value>`],
+  [Change status], [`mt <status> <task…>`],
   [Link tasks], [`mt link <task> <kind> <target…>`],
+  [Rename a task], [`mt mv <task> <new-stem>`],
+  [Retire a task], [`mt rm <task…>`],
   [Validate], [`mt check`],
-  [Retire], [`mt rm <task…>`],
 )
 
-`<task>` is a stem, a path, or a `#` handle (`1b`). Handles are recomputed on
-every command — a flip that re-sorts or filters renumbers them — so use one
-only for your very next command; in anything a human reads, cite the file path
-instead (`[title](truth/tasks/<stem>.typ)`). A stem changes only when `mt mv`
-renames it, which retargets every inbound edge in the same pass.
+`mt <cmd> --help` lists every flag. Read the project's statuses, link kinds,
+priority scale and tags from `mt config show`, which prints the merged config,
+or the statuses alone from `mt flip --list`. Never guess them.
 
-`mt set` writes `title priority difficulty kind assignee tags due start` —
-`+=` appends to a list, `@path` reads the value out of a file, and a rejected
-value leaves the file byte-identical. A field with its own verb (`status`,
-`links`, `reviewed`, `recur`, the stem) is refused naming that verb.
-
-Flags live in `mt <cmd> --help`. Per-project values — the legend and its
-verbs, link kinds, the priority scale, tags — live in `.mindtape/config.toml`
-(or `mt flip --list`); read them, never guess.
+A `<task>` is a stem or a path. `mt ls` also prints a `#` handle such as `1b`,
+which resolves against bare `mt ls` as it stands when the next command runs. A
+handle from a filtered listing, or from before a flip, can be refused or name
+another task, so pass the stem. When you mention a task to a person, link its
+file path.
 
 = Finding tasks
 
-Bare `mt ls` applies an auto-activated `[[ls.rules]]` rule, else the default
-view (`[ls] default-view`, else `[views.default]`; usually active, startable
-tasks), naming the winner. A filter argument replaces the filter facet only —
-the rule's or view's sort and columns still apply, so `--columns @default --sort @default`
-restores the plain default view. `-n N` cuts after the sort and says how much
-it cut; `--skip N` drops N rows first, and both the table footer and
-`--json`'s `truncated.next_skip` name the `--skip` that pages forward from
-here.
+Bare `mt ls` applies the first `[[ls.rules]]` entry whose condition holds,
+else the project's default view, and its `applied:` footer names which. A
+filter argument replaces only the filter. The sort and columns of that rule or
+view still apply. `-n N` keeps the first N rows after the sort.
 
-Fields: `status priority difficulty kind title id due start reviewed path assignee depth topo blocks children progress role`, plus `status.name`/`.date`/`.note`/`.index` and `estimate.<unit>` (a number; `has(estimate.<unit>)` tests it). Names are kebab-case as in the task file: `has(x-goals)`.
-`--sort` takes all but `role`, plus a computed `ready` rank; `role` matches a
-role the task's assignee holds.
-`topo`/`blocks` read the `links:` graph, `blocks` counting unfinished tasks
-transitively waiting on this one; `children` counts `parent`-edge children and
-`progress` is their finished share, `0..1` (a `3/5` column; absent on a leaf). Operators: `== != < > <= >= && || !` and
-parentheses. Helpers: `has(f)`/`miss(f)`, `has_tag("t")`, `links("kind")`,
-`contains("s"[, field…])` (needle first; with no field it searches title/id/body,
-or `[ls] contains-fields`), `ready`/`blocked`, `terminal`, `stale(N)`, `now()`,
-`in_view("v")` (also `@v`), `matches(f, "re")`, `in_dict("d", word(f, n))`,
-`changed("staged+worktree", "glob", "!glob")` (a count of git-changed paths,
-compared to a literal or a field), `count(expr)` (a number over the whole
-loaded set: `count(status == "wip") <= 1`), `touches("path")` (tasks the
-trailers of the commits that changed a file name — run it before editing
-one), and `into("s")` inside an
-`[[on.flip]]` `when`.
-
-`mt find a b` is `contains("a") && contains("b")`. A bare `@name` applies a
-`[views.<name>]` bundle (filter, sort, columns). `--json` and `--format csv|path`
-hand the listing to another program; `path` is the filter/sort field, `file`
-only a display column.
+Common filters are `ready` (open, with every `depends-on` target finished),
+`blocked`, `status == "wip"`, `has_tag("t")`, `contains("text")` and
+`due < now()`. `mt ls @<view>` applies a view that `mt views` lists. Before you
+edit a file, run `mt ls 'touches("<path>")'` to read the tasks named in the
+`Refs:` trailers of commits that changed it. `references/filters.md` lists
+every field and function.
 
 = Filing tasks
 
-`mt add <title…>` seeds the title and filename slug, writes under the first
-root, and validates before writing. `--describe` shows the template's slots,
-`--list` the templates, `--print` previews; `-f -` with YAML is the channel for
-values you generate (one payload, no shell quoting), `--set k=v`, `k+=v` (list
-append) and `k@path` (read a file) for values you type. An unknown or unfilled
-slot is a hard error naming the slot.
+`mt add <title…>` makes the filename from the title, writes the task under the
+first root, and checks it before writing. `mt add --list` lists the templates,
+and `mt add --describe` lists a template's slots. Pass a value you type as
+`--set key=value`. Pass values you generate as YAML on stdin with `-f -`,
+which needs no shell quoting. `--print` shows the task without writing it.
 
-After the fill, `mt add` prints a `note:` to stderr for each config-required
-core field the template did not declare and you did not set: the field, its
-value, where it came from (`[tasks.assignee]` env `MINDTAPE_PRINCIPAL`,
-`[tasks.fields.kind]` default, or a config-spliced slot), and the
-`--set <field>=<value>` that overrides it. Stdout stays clean for `--print`
-and `--format json`.
+A key names a template slot, which need not be a field. A framework priority,
+for example, takes its inputs (`--set impact=8`). An unknown slot is an error
+that lists the known ones. When the template has no slot for a field, file the
+task first, then write the field with `mt set`. A `text` slot escapes Typst
+markup, so a code span in it lands as literal backticks. Read
+`references/add-slots.md` before you fill an unfamiliar template.
 
-`--describe` cannot show three slot semantics, each of which silently yields a
-wrong task: token keys are slot names (a framework priority's slots are its
-leaves, never `priority`), a `list` slot needs `name+=value`, and `text` slots
-are markup-escaped while `raw` slots splice live. Read
-`references/add-slots.md` before filling an unfamiliar template.
-
-`mt import` files a whole backlog from canonical task-JSON (`mt ls --json`'s
-schema). Its two silent sharp edges — the stem comes from `title`, not `id`,
-and intra-batch `links` resolve only backwards — are in
-`references/import.md`; read it before the first batch.
+`mt import` files a batch from `mt ls --json`'s schema. It takes each stem from
+the title and resolves a link only to a task earlier in the batch, so read
+`references/import.md` before you run it.
 
 = Changing status
 
-`mt flip <status> <task…>` stamps a legend value, dated today; every legend
-value is also a verb, so `mt done 1b` works. `-m` attaches the status note. A
-transition the legend's `to` edges disallow is rejected with the valid next
-states listed, and so is entering an `unblocked = true` status while a
-dependency is open, naming it, and closing a parent over an unfinished child;
-`--force` overrides all three, and waives a failing
-`[[on.flip]]` gate — read the gate before you waive it. Gates run as `sh -c` with `mt`'s own
-environment, so a binary from the project's dev shell is found only when `mt`
-ran inside that shell; exit 127 is "binary not found", not a refusal.
+`mt <status> <task…>` is short for `mt flip <status> <task…>`. It stamps the
+status with today's date, and `-m "…"` sets the status note. A refused flip
+names its reason: the legend does not allow the transition, the task has an
+unfinished dependency, or it is a parent with an unfinished child. Fix the
+reason. `--force` overrides the refusal and waives a failing `[[on.flip]]`
+gate, so use it only to correct a mistake.
 
-`ready`/`blocked` derive from the `links:` graph; `mt ls blocked --columns title,why`
-names what each blocked task waits on. Most legends carry no `blocked` status
-— check `mt flip --list` before reaching for one. An external blocker with no
-task to depend on: file a task for it and depend on that, or park the task in
-a pre-start status with the reason in the note
-(`mt flip proposed 1b -m "blocked on upstream X"`), never `wip`, which burns
-the WIP cap (a `[[tasks.rules]]` entry over `count(...)`).
+An `[[on.flip]]` gate runs its command with `sh -c` in `mt`'s environment.
+Exit 127 means the shell did not find the command, which happens when `mt`
+runs outside the project's dev shell. Run the flip inside that shell.
 
-A project running `flip-with-work` (mindtape-tasks) refuses a `wip`/`done`
-flip staged with nothing else: `mt wip <stem>` rides uncommitted into the
-first commit of the change, `mt done <stem>` into the last, named by that
-commit's `Refs:` trailer. Filing a task is the one commit that flips
-nothing and carries no `Refs:` — never fold a flip into it.
+`mt ls blocked --columns title,why` shows what each blocked task waits on. A
+legend may have no `blocked` status, so check `mt flip --list` before you use
+one. To record an external blocker, file a task for it and link to it with
+`depends-on`, or leave the task in a status before work starts with the reason
+as its note. Do not mark a blocked task `wip`, because that counts against any
+work-in-progress cap and tells readers someone is working on it.
 
-= Linking and validating
+= Commits and checks
 
-`mt link <task> <kind> <target…>` upserts one edge per target. `mt link --apply <file|->`
-reads a YAML/JSON map of stem to kind to targets; `--replace` makes it the
-complete edge set, `--dry-run` prints the plan. Both forms merge and dedupe on
-(kind, target), and kind, target and note rule are checked before the write
-(`related` needs `-m "why"`).
+A project with the `flip-with-work` commit rule refuses a commit that holds
+only a `wip` or `done` flip. Leave `mt wip <stem>` uncommitted and commit it
+with the first change of the work. Commit `mt done <stem>` with the last
+change, whose `Refs:` trailer names the task. A commit that files a task holds
+no flip and no `Refs:` trailer.
 
-`mt check` validates every task against the config — enums, required fields,
-bounds, links and cycles, tags, body rules, limits — and an `error` breach of
-the body/rules also refuses the write commands. Read the error: it names the
-field or file. `mt config show --origin` names the pack a rule came from.
-
-= Authoring or editing a task file by hand
-
-What no command writes: the prose body, a framework priority (`ice(...)`) and
-the `estimate` dict. The rules and a worked example (stem identity, `x-<ns>` namespacing, edge
-helpers, body pitfalls) are in `references/hand-editing.md`. Run `mt check`
-after any hand edit.
+`mt config show --origin` shows which pack or project file each rule comes
+from, so you know where to change one.

@@ -1,152 +1,129 @@
-// docs/src/agents.typ — source for the repo-root AGENTS.md (CLAUDE.md is a
-// symlink to it). Rendered to Markdown by `docs/generate-md.sh` via typlite;
-// see docs/src/lib.typ for what that render path can and cannot do.
+// Source for the repo-root AGENTS.md, rendered by docs/generate-md.sh with
+// typlite. CLAUDE.md is a symlink to AGENTS.md. Every agent session in this
+// repo loads it, so it says what MindTape is and where its parts live, and
+// leaves how work is done to CONTRIBUTING.md.
 //
-// This file reads these facts from `www/generated/crate-map.json`
-// (`www/generate-facts.sh`) and never types them: the workspace/substrate
-// crate lists, their versions and direct-vs-transitive status, the
-// `evalexpr`/`clap`/Typst major versions in Architecture, and the
-// `@local/mindtape` version in the Task DSL snippet.
-// docs/contributing/generated-docs.md describes the pipeline and why each of
-// these facts is derived.
-//
-// Every docs-site pointer goes through `www-link` (docs/src/lib.typ), which
-// resolves the route against the generated page manifest and panics on an
-// unknown one. A hand-typed site URL here would rot unnoticed — nothing in
-// this repo resolves a URL sitting in generated Markdown.
-//
-// This file is on the always-loaded path, so its budget is a real cost, not
-// an aesthetic one: prose that motivates a rule an agent follows anyway, a
-// rule stated twice, and a pointer that restates the page it points at are
-// all deleted on sight. Every rule, command shape and field name stays.
-#import "lib.typ": doc-title, fact, just, num-word, www-link
+// Crate names come from www/generated/crate-map.json. The render fails on a
+// crate with no role below, a named dependency missing from the graph, or a
+// docs page with no source file.
+#import "lib.typ": doc-title, fact, just, num-word
 
 #metadata((
   output: "AGENTS.md",
 )) <mindtape-md>
 
+#let crate-map = fact("crate-map")
+
+// A docs-site page, named by its source file in www/content/ so an agent
+// reads it in the checkout. `read` fails the render when the file is missing.
+#let page-src(stem) = {
+  let _ = read("/www/content/" + stem + ".typ")
+  raw(stem + ".typ")
+}
+
+// A dependency named in the Architecture list. crate-map.json gives a name
+// missing from the dependency graph a null version, and the assert fails on
+// it.
+#let dep(name) = {
+  let entry = crate-map.at("arch-deps").find(d => d.name == name)
+  assert(
+    entry != none and entry.version != none,
+    message: name + " is not a dependency",
+  )
+  raw(name)
+}
+
 #doc-title[MindTape — AI Agent Context]
 
-How work is done lives in \@CONTRIBUTING.md, pulled into your context whole by
-that reference; a process rule belongs there and is never restated here. This
-file carries the other half: what MindTape _is_.
+\@CONTRIBUTING.md says how work is done in this repo. This file says what
+MindTape is and where its parts live.
 
 = What is this?
 
-A daemon-free, file-based task tracker. Tasks are one-per-file Typst artifacts
-(`#show: task.with(...)`). MindTape live-evaluates the configured roots on every
-command via the Typst compiler crates — no SQLite, no global index. Identity is
-the filename stem.
-
-Repository: https://github.com/mlavrinenko/mindtape
+MindTape is a file-based task tracker. Each task is one Typst file
+(`#show: task.with(...)`), and the filename stem is its identity. Every `mt`
+command evaluates the task files under the configured roots through the Typst
+compiler crates. There is no daemon and no database. A content-hash cache in
+`.mindtape/cache/` skips evaluating a file whose bytes did not change.
 
 = Repo map
 
-- `lib/prelude.typ` — the `@local/mindtape` Typst package (the task DSL)
-- `truth/tasks/` — MindTape's own backlog as per-file task artifacts (dogfood);
-  `mt ls` / `mt check` run against it via the in-tree `lib/`
-- `truth/goals.typ` and `truth/process-goals.typ` — what MindTape is for, and
-  how this repo builds it; every open task gives each goal a verdict in its
-  `x-goals` field, and the `goals` rule checks them with `check-goals` from
-  `truth/lib.typ`
-- `www/content/*.typ` — the docs site (tola)
-- `docs/contributing/*.md` — contributor deep dives behind CONTRIBUTING.md
-- `examples/` — `learn-piano` (full config surface; feeds the docs generator and
-  the skill's evals), `minimal` (the floor config), and `large` (a 2000-task
-  benchmark fixture; its tasks are gitignored, #just.gen-bench() rebuilds them)
+- `lib/prelude.typ` — the `@local/mindtape` Typst package, which defines the
+  task DSL.
+- `truth/tasks/` — MindTape's own backlog. `mt` here uses the in-tree `lib/`.
+- `truth/goals.typ` and `truth/process-goals.typ` — the product and process
+  goals. Each open task rates every goal in its `x-goals` field, and the
+  `goals` rule checks the ratings with `check-goals` from `truth/lib.typ`.
+- `www/content/*.typ` — the docs site, built with tola.
+- `docs/src/*.typ` — the sources of README.md, AGENTS.md, CONTRIBUTING.md,
+  the skill's SKILL.md and the `docs/contributing/*.md` deep dives.
+- `skills/mindtape/` — the agent skill for driving `mt`, with its references
+  and evals.
+- `examples/` — fixture projects. `learn-piano` uses the full config surface
+  and feeds the docs and the skill's evals. `minimal` is the smallest config.
+  `large` is a 2000-task benchmark whose gitignored tasks #just.gen-bench()
+  writes. Each of the others backs one docs page.
 
-Reference material lives on the docs site, not here. Before writing about a
-feature, read whichever page below already answers it rather than restating it —
-the page at `/<stem>/` is `www/content/<stem>.typ`.
-
-#table(
-  columns: 2,
-  table.header([Topic], [Read]),
-  [Every task field, `links:` edge kinds, `recur`], www-link("/dsl/"),
-  [`mt add`, slots, `--set`, `--describe`, `--edit`], www-link("/templates/"),
-  [Derived tags from folder layout], www-link("/derived-tags/"),
-  [Priority frameworks, scoring, bands], www-link("/priority/"),
-  [Filter language], www-link("/filters/"),
-  [Every config key], www-link("/config/"),
-  [Driving `mt` as an agent], [`skills/mindtape/SKILL.md`],
-)
+Before you write about a feature, read the `www/content/` page that covers
+it: #page-src("dsl") for task fields, edge kinds and `recur`,
+#page-src("templates") for `mt add` and slots, #page-src("derived-tags"),
+#page-src("priority"), #page-src("filters"), and #page-src("config") for every
+config key.
 
 = Workspace
 
-// Facts (names, versions, direct-vs-transitive) come from
-// www/generated/crate-map.json; the one-phrase-per-crate role below is
-// editorial and stays hand-written here — deliberately terser than
-// www/utils/crate-notes.typ's paragraph-length blurbs, which back
-// www/content/internals.typ's deep dive instead. `.at(...)` on a missing key
-// panics, so an eighth substrate crate (or a new workspace member) with no
-// entry here fails `just docs::md` loudly instead of rendering silently thin.
-#let workspace = fact("crate-map").at("workspace")
+#let workspace = crate-map.at("workspace")
 #let workspace-roles = (
-  "mindtape": [domain library: config, task model, filter language,
-    validation, project loader. Other tools (e.g. speconaut) depend on
-    this.],
-  "mindtape-cli": [the thin `mt` binary (clap).],
+  "mindtape": [the domain library: config, task model, filter language,
+    validation and project loader. Other tools, such as speconaut, depend on
+    it.],
+  "mindtape-cli": [the thin `mt` binary, built on clap.],
 )
 
-#upper(num-word(workspace.len()).first())#num-word(workspace.len()).slice(1) crates
-(`cargo` workspace, virtual root manifest):
+The cargo workspace has a virtual root manifest and
+#num-word(workspace.len()) crates:
 
 #for c in workspace [
   - #raw("crates/" + c.name) — #workspace-roles.at(c.name)
 ]
 
-#let substrate = fact("crate-map").at("substrate")
+#let substrate = crate-map.at("substrate")
 #let substrate-roles = (
-  "typst-world": [package-agnostic Typst World/eval],
-  "typst-harvest": [harvest],
-  "typst-cst": [parse-plane structure extraction],
-  "typst-edit": [slot/link rewriting],
-  "typst-cleanup": [git-aware cleanup],
-  "swhid-mint": [SWHID minting],
-  "artifact-gate": [artifact validation],
+  "typst-world": [the eval-only Typst World the others share],
+  "typst-harvest": [evaluates a file and collects the data it marks for
+    export],
+  "typst-cst": [reads a file's heading tree by parsing, without evaluating],
+  "typst-edit": [rewrites a file in place at known spans],
+  "typst-cleanup": [retires a tracked file: dirty-tree guard, tombstone, link
+    rewriting],
+  "swhid-mint": [mints the SWHID a tombstone carries],
+  "artifact-gate": [the rule engine behind `mt check`'s body header rules],
 )
-#let transitive = substrate.filter(c => not c.direct)
 
-The #num-word(substrate.len()) former in-tree substrate crates are published to
-crates.io and consumed back as regular registry dependencies:
+The Typst plumbing comes from #num-word(substrate.len()) crates.io
+dependencies, and this repo holds none of their source:
 
-// A transitive crate names the parent that pulls it, straight from
-// crate-map.json's `via` (the cargo resolve graph). AGENTS.md carried
-// "typst-world is pulled transitively via typst-harvest" by hand: true when
-// written, with no way to stay true.
 #for c in substrate [
-  - #raw(c.name) #raw(c.version)#(
-      if not c.direct [ (transitive, via #c.via.map(raw).join(", "))]
-    ) — #substrate-roles.at(c.name)
-]
-
-Both lists — name, version, direct-vs-transitive — are derived from
-`www/generated/crate-map.json`, never hand-written.
-#if transitive.len() > 0 [
-  A crate marked transitive is named in no workspace manifest.
+  - #raw(c.name) — #substrate-roles.at(c.name)
 ]
 
 = Architecture
 
-#let arch = fact("crate-map").at("arch-deps")
-#let dep-version(name) = arch.filter(d => d.name == name).at(0).version
-#let major(v) = {
-  let parts = v.split(".")
-  if parts.at(0) == "0" { "0." + parts.at(1) } else { parts.at(0) }
-}
-#let edition = fact("crate-map").at("workspace-package").at("edition")
-
-- Rust (edition #edition, pinned `rust-toolchain.toml`)
-- Typst #major(dep-version("typst")) eval-only (`typst-eval`); never layout or render
-- `evalexpr` #major(dep-version("evalexpr")) as a parser for the filter language (walked, not evaluated by it)
-- `clap` #major(dep-version("clap")) CLI; `serde`/`toml` config; a hand-rolled table renderer
-  (`crates/mindtape-cli/src/render/`), `serde_json`/`csv` output
+- Rust, with the toolchain pinned in `rust-toolchain.toml`.
+- Typst runs eval-only through #dep("typst-eval"). MindTape never lays out or
+  renders a document.
+- #dep("evalexpr") parses the filter language. MindTape walks the parsed tree
+  and evaluates it itself.
+- #dep("clap") for the CLI, #dep("serde") and #dep("toml") for config,
+  #dep("serde_json") and #dep("csv") for output, and a hand-rolled table
+  renderer in `crates/mindtape-cli/src/render/`.
 
 = Task DSL (lib/prelude.typ)
 
-#let typst-lib-version = fact("crate-map").at("typst-lib").at("version")
 #let dsl-lines = (
-  "#import \"@local/mindtape:" + typst-lib-version + "\": *",
+  "#import \"@local/mindtape:"
+    + crate-map.at("typst-lib").at("version")
+    + "\": *",
   "#show: task.with(",
   "  title: \"Title\",",
   "  status: wip(2026, 6, 14)[note],    // (name, date, note); note is a trailing block",
@@ -160,25 +137,26 @@ Both lists — name, version, direct-vs-transitive — are derived from
 )
 #raw(dsl-lines.join("\n"), lang: "typ", block: true)
 
-`task` declares every core field as a named parameter (`..meta` is the `x-<ns>`
-extension sink only), so tinymist completes the field names and shows the whole
-signature; a misspelled field reaches the sink and fails the file with an
-`unknown task slot` error naming the field, e.g. `titel`.
+`task` declares each core field as a named parameter, so tinymist completes
+the field names. Its `..meta` sink takes only `x-<ns>` extension slots, and a
+misspelled field such as `titel` fails the file with an `unknown task slot`
+error.
 
-Values are shapes, never computed results: `ice(...)` and the other framework
-packagers build a `(framework, inputs)` dict, `every(...)`/`rrule(...)` build a
-recurrence dict, `depends-on("a.typ") + related("b.typ")[why]` builds typed edges.
-No math and no date arithmetic happen in Typst — the Rust layer does all of it.
+A field value is a plain shape that Rust interprets. `ice(...)` and the other
+framework helpers build a `(framework, inputs)` dict, `every(...)` and
+`rrule(...)` build a recurrence dict, and
+`depends-on("a.typ") + related("b.typ")[why]` builds typed edges. Rust does
+all math and date arithmetic.
 
-The layer a new validation belongs in — the prelude, Rust and config, or
-the card render that enforces nothing — is argued in
-`docs/contributing/validation-seam.md`.
+`docs/contributing/validation-seam.md` says which layer a new validation
+belongs in: the prelude, Rust and config, or the card render.
 
 == Mechanism, not policy
 
-Rust ships mechanisms; projects write policy as config expressions. Rust never
-names a specific estimate unit, status, tag, path or threshold. A new check is a
-`[[tasks.rules]]` entry, and when the filter language cannot express it, extend
-the language (a field, a predicate, an aggregate, a git state) rather than add
-a bespoke config table or checker. Shipped defaults live in a rule pack
-(`crates/mindtape/src/packs/`), where a project overrides them by name.
+Rust ships mechanisms, and projects write policy as config expressions. Rust
+code never names a specific estimate unit, status, tag, path or threshold. A
+new check is a `[[tasks.rules]]` entry. When the filter language cannot
+express it, extend the language with a field, predicate, aggregate or git
+state instead of adding a config table or checker of its own. Shipped defaults
+live in rule packs under `crates/mindtape/src/packs/`, and a project overrides
+a pack rule by name.
