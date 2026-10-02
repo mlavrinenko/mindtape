@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # www/generate.sh — capture live `mt` output for the docs site.
 #
-# Runs the REAL `mt` binary against the examples/learn-piano fixture and writes
-# each capture VERBATIM (plain text, `--color never`) under www/generated/. The
-# docs pages inject these via `terminal(read("../generated/<slug>.txt"))`, so a
-# transcript can never drift from the binary — regenerated on every build.
+# The pages read what this writes under www/generated/. A transcript is a
+# record that keeps each command line beside what it printed (www/capture.sh
+# says how), and the www/generate-*.sh scripts this one calls write them. The
+# `.ansi` captures here hold colour output alone, for terminal-ansi() on the
+# home page hero and /filters/. The JSON and source files are facts the pages
+# quote as code. The build regenerates everything, so no transcript can drift
+# from the binary.
 #
-# Determinism: MINDTAPE_NOW pins "today" (the fixture authors its dates around
-# it), so the same commit renders the same site build-to-build. The two captures
-# that would leak an absolute machine path (`config show --origin`, `add`'s
-# "wrote <path>") are path-normalized to a project-relative form — the only
-# post-processing; the transcript content is otherwise the binary's stdout.
+# MINDTAPE_NOW pins "today", and the fixture's dates are written around it, so
+# the same commit renders the same site on every build. A capture changes
+# nothing the binary printed except paths into the build's own directories,
+# which it cuts to project-relative paths or rewrites to a reader's defaults.
 #
 # `just docs::gen` invokes this; docs::build / docs::serve / docs::check run it first.
 #
@@ -134,31 +136,19 @@ gen_read() {
 # one of them.
 bash "$SCRIPT_DIR/generate-release-targets.sh" "$REPO" "$OUT"
 
-# --- read commands against the fixture (verbatim) -------------------------
-gen_read ls        ls
-gen_read ls-open   ls '!terminal'
-gen_read ls-stuck  ls @stuck
-gen_read ls-week   ls @this-week
-gen_read views     views
-gen_read check     check
-gen_read flip-list flip --list
-gen_read eval      eval "$FIX/tasks/repertoire/fur-elise-polish.typ"
-
 # More captures and the fixture slices, each in its own script so this file
 # stays under the Shell cap.
 bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-rule-packs.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-examples.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-config-runs.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-guides.sh" "$REPO" "$OUT"
 
-# The colour-bearing transcripts (the `mt ls` family) captured a SECOND time
-# WITH ANSI, for the terminal-ansi html.frame render path (www/utils/ui.typ);
-# the plain .txt above stays for the selectable-text terminals. `mt check` on a
-# valid fixture and `views` emit no colour, so only `ls*` gets an .ansi.
+# `mt ls` in colour for terminal-ansi() (www/utils/ui.typ), which the home
+# page hero and /filters/ render.
 gen_color() { local slug="$1"; shift; "$MT" -w "$FIX" --color always "$@" >"$OUT/$slug.ansi"; }
 gen_color ls       ls
 gen_color ls-open  ls '!terminal'
 
-# A single task object for the for-agents page's `mt ls --json` example. The
+# A single task object for the /schema/ page's `mt ls --json` example. The
 # `ls` path scores priority and derives folder tags (unlike single-file `eval`,
 # which leaves both empty); jq slices the envelope's `tasks` array to an
 # object, so the page shows a complete, binary-sourced task instead of a
@@ -168,14 +158,8 @@ gen_color ls-open  ls '!terminal'
   | jq '.tasks[0]' >"$OUT/ls-task.json"
 
 # The full `mt ls --json` envelope (bare listing — [[ls.rules]] +
-# default-view attribution) for the for-agents page.
+# default-view attribution) for the /schema/ page.
 gen_read ls-json ls --json
-
-# config show --origin prints the project's config path absolute (canonicalized
-# root). Normalize the fixture prefix to a project-relative path so the docs are
-# machine-independent and reproducible; the rest is verbatim.
-"$MT" -w "$FIX" --color never config show --origin \
-  | sed "s#$FIX/##g" >"$OUT/config-origin.txt"
 
 # The hero "source" face reads a real fixture task verbatim. Copy it under
 # generated/ so it lives inside the Typst build root (read() can't escape it).
@@ -194,32 +178,9 @@ typst compile --package-path "$PKGS" \
   "$FIX/tasks/repertoire/fur-elise-polish.typ" "$OUT/hero-card.svg"
 rm -rf "$PKGS"
 
-# --- mutating commands against a throwaway copy (never touch the fixture) --
-# The copy has to preserve the fixture's DEPTH: its `[[typst.local-packages]]`
-# entry resolves `@local/mindtape` at `../../lib` — this checkout's prelude
-# rather than the machine-global one — so a copy parked one level down loads
-# nothing, and every `mt` call below fails on the task it just wrote. Rebuild
-# the two levels and symlink the real lib/ at the far end, the same throwaway
-# resolution the hero card above builds for `typst compile`.
-COPY_ROOT="$(mktemp -d)"
-mkdir -p "$COPY_ROOT/examples"
-ln -s "$REPO/lib" "$COPY_ROOT/lib"
-COPY="$COPY_ROOT/examples/lp"
-cp -r "$FIX" "$COPY"
-
-# add: file a new task; normalize the "wrote <abs>" path to project-relative.
-"$MT" -w "$COPY" --color never add \
-  --set title="Practice pedaling technique" \
-  --set summary="Half-pedal control on sustained chords." \
-  --set impact=6 --set ease=5 \
-  | sed "s#$COPY/##g" >"$OUT/add.txt"
-# The written task, verbatim, for the "no template machinery survives" example.
-cp "$COPY/tasks/practice-pedaling-technique.typ" "$OUT/add-written.typ"
-
-# done: close a wip task (pure status flip).
-"$MT" -w "$COPY" --color never done fur-elise-polish >"$OUT/done.txt"
-
-rm -rf "$COPY_ROOT"
+# The records: the quickstart's session and the CLI reference's captures.
+bash "$SCRIPT_DIR/generate-quickstart.sh" "$REPO" "$OUT"
+bash "$SCRIPT_DIR/generate-cli.sh" "$REPO" "$OUT"
 
 # --- favicon + apple touch icon, rasterised from the one hand-maintained SVG --
 # assets/images/ (unlike generated/) IS a tola-copied dir (see the header

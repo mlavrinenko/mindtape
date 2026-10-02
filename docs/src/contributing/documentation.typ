@@ -60,10 +60,16 @@ A code block in the docs comes from a real file under `examples/` that
 `www/generate-examples.sh` cuts the lines between `// docs:slice <id>` and
 `// docs:end` in a fixture into `www/generated/`, and the page renders them
 with `www/utils/slices.typ`. The DSL page's field table is
-`lib/prelude.typ`'s own signature. The CLI page's transcripts are the real
-binary run against `examples/learn-piano`. The quickstart's task is a
-capture. A hand-typed snippet goes stale when the code changes, and the
-reader cannot tell.
+`lib/prelude.typ`'s own signature. A hand-typed snippet goes stale when the
+code changes, and the reader cannot tell.
+
+A capture is a record `www/capture.sh` writes. It holds each command the build
+ran in a terminal, what the command printed and its exit code. A page shows a
+record with `terminal(<slug>)`, or `commands(<slug>)` for the commands alone.
+Both print each command from the record, so a page cannot show a command that
+did not run. `exit-code(<slug>)` prints the exit code of a refusal the page
+shows. A step that exits with an unexpected code fails the build, which
+keeps a refusal the page shows from passing unnoticed.
 
 #just.check-doc-blocks() fails on a fenced block, or a block `raw(...)`,
 whose text is written in the source. A block no fixture can hold, such as a

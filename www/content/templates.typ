@@ -62,7 +62,7 @@ sections that hold lists and code, as the template above does.
 `mt add --describe` lists each slot with its kind, whether it is required, and
 its prompt:
 
-#terminal(read("../generated/api-service-describe.txt"))
+#terminal("api-service-describe")
 
 `--describe=json` prints the same as a JSON array, for a script or an agent.
 

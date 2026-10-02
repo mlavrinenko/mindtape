@@ -5,9 +5,10 @@
 # so this script takes no lock of its own. It is a separate file to keep
 # generate.sh under the 300-line Shell cap.
 #
-# Each command runs in the project's own directory, so every path mt prints
-# is relative to the project. Every command must succeed, except the one
-# refusal /agents/ shows, which must fail.
+# The terminal transcripts are records (www/capture.sh), so each page prints
+# the command from the run. Every command must succeed, except the one
+# refusal /agents/ shows, which must exit 1. The JSON and Typst outputs the
+# pages quote as code are plain files that `run` writes.
 set -eo pipefail
 
 REPO="$1"
@@ -20,7 +21,12 @@ TAGS="$REPO/examples/derived-tags"
 # "today" is just after them.
 export MINDTAPE_NOW=2026-10-01
 
-# run <file> <project> <mt args...>: write one run's stdout to OUT/<file>.
+# shellcheck source=www/capture.sh
+source "$REPO/www/capture.sh"
+capture_init
+
+# run <file> <project> <mt args...>: write one run's stdout to OUT/<file>,
+# from the project's own directory, so every path mt prints is relative.
 run() {
   local file="$1" dir="$2"
   shift 2
@@ -31,7 +37,7 @@ run() {
 # values file fills. `--print` checks the task and prints it without writing
 # it, so the run leaves the fixture untouched.
 cp "$API/.mindtape/templates/task.typ" "$OUT/api-service-template.typ"
-run api-service-describe.txt "$API" add --describe
+capture api-service-describe "$API" 'mt add --describe'
 cat >"$OUT/api-service-values.yaml" <<'YAML'
 title: Log slow database queries
 src-files: 2
@@ -49,18 +55,11 @@ YAML
 run api-service-add-print.typ "$API" add -f "$OUT/api-service-values.yaml" --print
 
 # /agents/: a listing cut to one task, and an add that names no slot values.
-# Stdin is empty, so mt opens no editor and refuses instead.
+# Stdin is not a terminal, so mt opens no editor and refuses instead.
 run api-service-ls-ready.json "$API" ls ready -n 1 --json
-code=0
-(cd "$API" && "$MT" --color never add "Log slow database queries" --print) \
-  </dev/null >"$OUT/api-service-add-refused.txt" 2>&1 || code=$?
-[ "$code" -ne 0 ] || {
-  echo "generate-guides.sh: mt add with no slot values succeeded" >&2
-  exit 1
-}
-printf '%s' "$code" >"$OUT/api-service-add-refused-exit.txt"
+capture --exit 1 api-service-add-refused "$API" 'mt add "Log slow database queries" --print </dev/null'
 
 # /derived-tags/: every task with the tags mt derives for it, and a filter on
 # one derived tag.
 run derived-tags-ls.json "$TAGS" ls '' --json
-run derived-tags-ls-auth.txt "$TAGS" ls 'has_tag("auth")'
+capture derived-tags-ls-auth "$TAGS" "mt ls 'has_tag(\"auth\")'"

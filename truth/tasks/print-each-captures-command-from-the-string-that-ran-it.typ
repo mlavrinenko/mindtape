@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 3),
   links: depends-on(
     "refuse-hand-typed-code-blocks-in-doc-sources.typ",
     "pin-the-docs-capture-environment-and-refuse-machine-paths-in-captures.typ",

@@ -14,9 +14,9 @@
   block: true,
 )
 
-// A dark terminal panel holding a plain (un-highlighted) transcript. Leading /
-// trailing blank lines are trimmed.
-#let terminal(body) = html.elem(
+// A dark terminal panel holding plain text, with leading and trailing blank
+// lines trimmed.
+#let _terminal-panel(body) = html.elem(
   "div",
   attrs: (class: "terminal"),
   raw(body.trim("\n", repeat: true), block: true),
@@ -98,6 +98,36 @@
 // `--color always` `.ansi` capture), so it can never diverge from the image:
 // no caller change, no second `.txt` argument to keep in sync.
 #let _ansi-strip(body) = body.replace(_sgr-re, "")
+
+// ── Capture records ──────────────────────────────────────────────────────────
+// www/capture.sh writes www/generated/<slug>.json: the project the commands ran
+// in, and per command the line bash ran, what the terminal showed and the exit
+// code. A page passes the slug and these helpers print each command from the
+// record, so a page cannot show a command other than the one that ran.
+#let _transcript(record) = {
+  let lines = record.steps.map(step => {
+    let out = step.out.trim("\n", repeat: true)
+    if out == "" { "$ " + step.cmd } else { "$ " + step.cmd + "\n" + out }
+  })
+  lines.join("\n")
+}
+
+// Each command of a capture after a `$` prompt, then what it printed.
+#let terminal(slug) = _terminal-panel(_ansi-strip(_transcript(json(
+  "../generated/" + slug + ".json",
+))))
+
+// The exit code of a capture's last command, for a page that shows a refusal.
+#let exit-code(slug) = raw(str(
+  json("../generated/" + slug + ".json").steps.last().code,
+))
+
+// The commands of a capture alone, as a block a reader can copy.
+#let commands(slug) = raw(
+  json("../generated/" + slug + ".json").steps.map(step => step.cmd).join("\n"),
+  lang: "sh",
+  block: true,
+)
 
 // The colour terminal: the same dark panel as `terminal()`, but the visible
 // body is the html.frame'd SVG — an image, not selectable text (the copyable

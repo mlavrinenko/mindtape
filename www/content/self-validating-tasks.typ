@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal
+#import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
 
@@ -91,10 +91,10 @@ This one says nothing about `no-lock-in`:
 
 `mt check` names the task, the line and the goal it skipped:
 
-#terminal(read("../generated/self-validating-check.txt"))
+#terminal("self-validating-check")
 
 It exits with code
-#raw(read("../generated/self-validating-check-exit.txt").trim()), so a CI job
+#exit-code("self-validating-check"), so a CI job
 or a pre-commit hook that runs it fails. `mt add`, `mt flip` and the other
 write commands run the same function on the task they are about to write, and
 refuse to write a task that fails it.

@@ -6,7 +6,7 @@
 //
 // Refs: truth/tasks/structured-cli-reference-from-command-dump.typ
 
-#import "ui.typ": terminal, terminal-ansi
+#import "ui.typ": commands, terminal
 #import "cli-notes.typ": cli-notes
 
 #let _dim(body) = text(fill: rgb("#5b6570"), size: 0.9em, body)
@@ -73,7 +73,7 @@
       parbreak()
       note.prose
     }
-    if "examples" in note { note.examples }
+    if "examples" in note { commands(note.examples) }
   }
 }
 
@@ -90,15 +90,10 @@
   )
 }
 
-// ── generated sample-output captures attached to a command via its note ──────
+// ── capture records attached to a command via its note ──────────────────────
 #let _outputs(note) = {
   if note == none { return }
-  for slug in note.at("outputs-ansi", default: ()) {
-    terminal-ansi(read("../generated/" + slug + ".ansi"))
-  }
-  for slug in note.at("outputs", default: ()) {
-    terminal(read("../generated/" + slug + ".txt"))
-  }
+  for slug in note.at("outputs", default: ()) { terminal(slug) }
 }
 
 // ── one command block (recursive over subcommands) ───────────────────────────
@@ -112,7 +107,7 @@
     note.prose
   }
   _args-table(cmd.args, key)
-  if note != none and "examples" in note { note.examples }
+  if note != none and "examples" in note { commands(note.examples) }
   _outputs(note)
   for sub in cmd.subcommands { _command(sub, path + (sub.name,)) }
 }

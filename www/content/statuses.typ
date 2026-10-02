@@ -107,7 +107,7 @@ entry, a task may move from any status to any other. Once one entry declares
 `to`, `mt flip` refuses a move the list does not name, and prints the moves it
 allows:
 
-#terminal(read("../generated/statuses-transition.txt"))
+#terminal("statuses-transition")
 
 `--force` overrides the refusal. Re-stamping a task with the status it already
 has is always allowed, and so is the first status of a task that has none. An
@@ -123,7 +123,7 @@ only, because a task file keeps no history of the statuses before it.
 `note = "required"` makes `mt flip` refuse a move into that status without
 `-m`/`--note`:
 
-#terminal(read("../generated/statuses-note.txt"))
+#terminal("statuses-note")
 
 `mt check` reports a task already in that status whose note is missing or
 blank. Require a note on the statuses no other check explains, such as
@@ -137,7 +137,7 @@ entry.
 task waits on an unfinished target of a `depends-on` edge, or of a project
 kind declared `blocking` (see #link(u("/links/"))[Links]):
 
-#terminal(read("../generated/statuses-unblocked.txt"))
+#terminal("statuses-unblocked")
 
 `--force` overrides it. `mt check` warns about a task already in such a
 status while it is blocked. This is a warning, because `--force` puts a task

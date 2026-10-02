@@ -74,7 +74,7 @@ names as they are.
 
 A filter sees derived tags as tags:
 
-#terminal(read("../generated/derived-tags-ls-auth.txt"))
+#terminal("derived-tags-ls-auth")
 
 `mt ls --json` lists them under `derived_tags`, apart from the tags written in
 the file. #link(u("/filters/"))[Filters] has `has_tag` and the rest of the

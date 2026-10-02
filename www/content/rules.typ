@@ -56,7 +56,7 @@ matches. The key exists on `[tasks.priority]`, `[tasks.difficulty]`,
 
 A write that would leave a required field empty is refused:
 
-#terminal(read("../generated/rules-required.txt"))
+#terminal("rules-required")
 
 `mt` parses each expression once, when it loads the config, so a malformed one
 is one error naming the field.
@@ -80,11 +80,11 @@ filter expression. Unlike `required`, it can test what a field holds:
 
 An `error` breach refuses the write, and nothing lands:
 
-#terminal(read("../generated/rules-assert.txt"))
+#terminal("rules-assert")
 
 A `warn` breach prints, and the write goes ahead:
 
-#terminal(read("../generated/rules-warn.txt"))
+#terminal("rules-warn")
 
 `mt check` reports the same breach at the line of the task's `task.with(…)`
 call. A rule with no `name` reports by its position, `rules[0]`, so a report
@@ -115,7 +115,7 @@ selects: the task being flipped, and each task already in the set. The second
 line below is the breach on the task already in flight, reported against the
 flip that caused it:
 
-#terminal(read("../generated/rules-wip-cap.txt"))
+#terminal("rules-wip-cap")
 
 The capped set is any filter, so the same rule caps a view
 (`when = '@stuck'`), a priority band or a `kind`.

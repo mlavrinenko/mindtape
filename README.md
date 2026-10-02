@@ -120,22 +120,9 @@ The full model is on [Concepts](https://mlavrinenko.github.io/mindtape/concepts/
 cargo install mindtape-cli
 ```
 
-[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) covers the prebuilt binaries, `nix run`, and building from source.
+[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) covers the prebuilt binaries, `nix run`, building from source, and a first project from `mt init` to `mt check`.
 
-## Usage
-
-One task, start to finish:
-
-```bash
-mt install                                         # once per machine: put the Typst prelude where Typst looks
-mt init                                            # once per project: write .mindtape/config.toml
-mt add --set title="Wire OAuth" --set priority=7   # file a task from the default template
-mt ls 'status != "done" && priority >= 7'          # query it with a filter expression
-mt flip done wire-oauth                            # set its status, dated today
-mt check                                           # validate the whole project
-```
-
-The docs site has the rest:
+## Documentation
 
 - **Start**: [Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) · [Comparison](https://mlavrinenko.github.io/mindtape/comparison/)
 - **Model**: [Concepts](https://mlavrinenko.github.io/mindtape/concepts/)

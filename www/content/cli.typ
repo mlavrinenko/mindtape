@@ -15,13 +15,13 @@
 #show: page.with(..meta)
 
 `mt` is the whole surface. Commands are quiet by default and return honest exit
-codes. Every command, flag, and sample transcript below is generated from the
-binary at build time — the command tree by reflecting `mt`'s own clap
-definition (#link(u("/agents/"))[`mt _cli --json`]), the transcripts by running
-against the #link(u("/quickstart/"))[learn-piano example] — so nothing here can
-drift from what `mt` actually is.
+codes. The build generates this page from the binary. The command tree and its
+flags come from `mt`'s own clap definition
+(#link(u("/agents/"))[`mt _cli --json`]). Each example is a command the build
+ran in a terminal, mostly in the `examples/learn-piano` project, and the page
+prints the command from that run.
 
-#terminal(read("../generated/version.txt"))
+#terminal("version")
 
 // The command tree, reflected from the binary. cli-notes.typ enriches it with
 // reference-only prose and examples; cli-gate asserts every command is grouped
@@ -83,9 +83,7 @@ contribution — nothing, in a project that leaves it alone, and "nothing" is ho
 the built-in column set and sort are asked for — so a narrowed listing still
 reads through the ordinary table:
 
-```
-mt ls 'assignee == "ada"' --columns @default --sort @default
-```
+#terminal("ls-default")
 
 #cli-group(cli, cli-groups, "Listing")
 
@@ -95,9 +93,7 @@ A cut table names both what it hid and the exact next command — filter and
 flags reproduced, `--skip` advanced past what this page showed, never
 restated from an existing `--skip` on the line:
 
-```
-truncated: 20 of 143 — next: mt ls -n 20 --skip 20
-```
+#terminal("ls-cut")
 
 `--json` carries the same fact structurally: a `truncated.next_skip` key
 alongside `.shown`/`.total`, `null` on a complete listing —
@@ -118,10 +114,7 @@ ordinary auto-hide cannot apply to it — off a terminal it turns on, because th
 on when named (`--columns '#,title,file'`, a view, an `[[ls.rules]]` override,
 or `when = 'true'`):
 
-```toml
-[ls.columns.file]
-when = 'named() || (!tty() && format() == "table")'
-```
+#terminal("ls-file-when")
 
 Its cell is relative to the working directory, a display rather than a
 filterable value — the field that compares a task's path is
@@ -237,7 +230,7 @@ The `applied:` trailer names the source that won each facet, and names a rule
 that matched and then lost every facet to the command line rather than letting
 it disappear (`applied: manual (filter) · release superseded`):
 
-#terminal(read("../generated/ls.txt"))
+#terminal("ls")
 
 = Graph
 

@@ -95,23 +95,10 @@ without updating its dependents and `mt check` says so instead of dangling.
 cargo install mindtape-cli
 ```
 
-#www-link("/quickstart/") covers the prebuilt binaries, `nix run`, and building
-from source.
+#www-link("/quickstart/") covers the prebuilt binaries, `nix run`, building from
+source, and a first project from `mt init` to `mt check`.
 
-= Usage
-
-One task, start to finish:
-
-```bash
-mt install                                         # once per machine: put the Typst prelude where Typst looks
-mt init                                            # once per project: write .mindtape/config.toml
-mt add --set title="Wire OAuth" --set priority=7   # file a task from the default template
-mt ls 'status != "done" && priority >= 7'          # query it with a filter expression
-mt flip done wire-oauth                            # set its status, dated today
-mt check                                           # validate the whole project
-```
-
-The docs site has the rest:
+= Documentation
 
 #list(..doc-groups.map(group => [
   *#group.title*: #group.routes.map(route => www-link(route)).join[ · ]

@@ -30,7 +30,6 @@ bash .just/scripts/_doc-blocks-control.sh
 PENDING=(
     docs/src/contributing/generated-docs.typ
     docs/src/readme.typ
-    www/content/cli.typ
     www/content/commit-rules.typ
     www/content/concepts.typ
     www/content/dsl.typ
@@ -40,10 +39,8 @@ PENDING=(
     www/content/links.typ
     www/content/named-sets.typ
     www/content/priority.typ
-    www/content/quickstart.typ
     www/content/rule-packs.typ
     www/content/schema.typ
-    www/utils/cli-notes.typ
     www/utils/demo.typ
     www/utils/framework-notes.typ
     www/utils/ui.typ

@@ -142,7 +142,7 @@ the two drops that one segment. `<origin>` is the layer kind
 the output in the MindTape repo, which extends `mindtape-tasks` and overrides
 `section-allowlist` as shown above:
 
-#terminal(read("../generated/rule-packs-origin.txt"))
+#terminal("rule-packs-origin")
 
 Every header/content rule reads `pack mindtape-tasks` except
 `section-allowlist` itself, which reads `project` — proof the override

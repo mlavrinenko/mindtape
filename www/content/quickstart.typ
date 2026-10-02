@@ -1,23 +1,26 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout, pkg, terminal, terminal-ansi
+#import "../utils/ui.typ": callout, pkg, terminal
 #import "../utils/site.typ": REPO, u
 
 #let meta = (
   route: "/quickstart/",
   label: "Quickstart",
   title: "Quickstart",
-  summary: "Install MindTape, scaffold a project, and file your first task.",
+  summary: "Install MindTape, make a project, and file, list and finish your first tasks.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
+// Every transcript below comes from one session that www/generate-quickstart.sh
+// runs in an empty directory, in the order this page shows it.
+
 = Install
 
 #let release = json("../generated/release-targets.json")
-// The installable CLI is whichever published crate declares its own
-// `[[bin]]` — asserted here so a workflow edit that drops or renames it
-// fails the docs build loudly instead of quietly showing a stale crate.
+// The CLI is the one published crate with a `[[bin]]`. The build fails when the
+// release workflow names none or several, so the page cannot show a stale
+// crate name.
 #let cli-crates = release.publish.filter(p => p.bin)
 #if cli-crates.len() != 1 {
   panic(
@@ -27,132 +30,120 @@
   )
 }
 #let cli-crate = cli-crates.at(0).crate
-// Each entry carries the artifact name the release workflow actually uploads
-// for that target — extension included, so the Windows build reads `.exe`
-// here rather than being silently listed as an extensionless file nobody
-// could run.
+// Each target carries the file name the release workflow uploads, extension
+// included, so the Windows build shows `.exe`.
 #let targets = release.targets
 
-Install the published CLI crate from crates.io:
+Install the CLI crate from crates.io:
 
+// docs:hand-typed the crate name comes from the release workflow, and the build does not run cargo install
 #raw("cargo install " + cli-crate, lang: "sh", block: true)
 
-Every tagged release (`.github/workflows/release.yml`) also builds a binary
-for #targets.len() platforms, attached to the #link(REPO + "/releases")[Releases
-  page] — download whichever matches yours:
+Each tagged release also builds a binary for #targets.len() platforms. Download
+the one for yours from the #link(REPO + "/releases")[Releases page]:
 
 #list(..targets.map(t => raw(t.artifact)))
 
-Or run it straight from the flake, without installing anything:
+Or run it from the flake without installing it:
 
+// docs:hand-typed the build does not fetch the flake from GitHub
 ```sh
 nix run github:mlavrinenko/mindtape -- --help
 ```
 
-Or build from source — a Rust toolchain is all it needs:
+Or build it from source with a Rust toolchain. The binary is
+`target/release/mt`:
 
+// docs:hand-typed the build does not clone the repository it runs in
 ```sh
 git clone https://github.com/mlavrinenko/mindtape.git
-cd mindtape && cargo build --release   # produces target/release/mt
+cd mindtape && cargo build --release
 ```
 
 = Set up the environment
 
-The binary needs a prelude to read. Install it once per machine, not once per
-project:
+Task files import a Typst prelude, and `mt install` puts it where Typst looks.
+Run it once per machine:
 
-```sh
-mt install
-```
+#terminal("qs-install")
 
-Every task file opens by importing #pkg, which Typst resolves from a
-machine-global `@local` directory rather than the checkout —
-#link(u("/config/"))[Configuration] owns that resolution and how to pin a
-project to an in-tree prelude instead, and #link(u("/cli/"))[the CLI reference]
-lists what `mt install` places.
+Every task file opens by importing #pkg, and Typst finds it in that
+machine-wide `@local` directory. #link(u("/config/"))[Configuration] shows how
+to pin a project to a prelude in its own tree.
 
-It also drops a shell completion hook per shell under
-`~/.config/mindtape/completions/`; source the one your shell uses from its
-startup file and tab completes this project's own stems, statuses, views,
-templates and link kinds. The hook asks `mt` on every press rather than
-carrying a generated script, so it is never stale and never wrong about the
-project you happen to be standing in.
+`mt install` also writes a completion hook for each shell. Source the one for
+your shell from its startup file. Tab then completes the stems, statuses,
+views, templates and link kinds of the project you are in. The hook asks `mt`
+on every key press, so its answers always match the project.
 
-Then scaffold a project, once per repository:
+Then make a project, once per repository:
 
-```sh
-mt init                  # interactive: a short questionnaire, then writes .mindtape/config.toml
-mt init --preset flow    # skip the questions, write a named starter shape
-mt init --no-input       # non-interactive: write the default (flow) without asking
-mt init --list-presets   # the other starter shapes
-```
+#terminal("qs-init")
 
-The questionnaire, the starter shapes and the user presets are
-#link(u("/cli/"))[the CLI reference]'s; what the written file may carry is
-#link(u("/config/"))[Configuration]'s. The recurrence syntax is on
-#link(u("/recurring/"))[Recurring tasks].
+Plain `mt init` asks a few questions first. `--no-input` writes the default
+preset, `flow`, and `mt init --list-presets` lists the others. The
+#link(u("/cli/"))[CLI reference] covers the questions and the presets.
+#link(u("/config/"))[Configuration] covers what the written file can hold.
 
 = File your first task
 
-`mt add` files from a slot template — #link(u("/templates/"))[Templates &
-  slots] owns the mechanics — and this project's template scores priority
-through `ice(…)`:
+`mt add` files a task from a template. The default template has one slot, the
+title, so a title is all it needs:
 
-```sh
-mt add --set title="Practice pedaling technique" \
-  --set summary="Half-pedal control on sustained chords." \
-  --set impact=6 --set ease=5
-```
+#terminal("qs-add")
 
-#terminal(read("../generated/add.txt"))
+The written file is plain Typst that holds the values you gave:
 
-The written file is plain Typst — no template machinery survives:
+#raw(read("../generated/qs-written.typ"), lang: "typ", block: true)
 
-#raw(read("../generated/add-written.typ"), lang: "typ", block: true)
-
-More ways to file — positional titles, editor mode, named templates — are on
-#link(u("/templates/"))[Templates & slots].
+#link(u("/templates/"))[Templates & slots] covers templates with more slots,
+editor mode and named templates.
 
 = List and query
 
-```sh
-mt ls
-```
+`mt ls` lists the tasks in the default view. In a new project those are the
+tasks that are not done or cancelled:
 
-#terminal-ansi(read("../generated/ls.ansi"))
+#terminal("qs-ls")
 
-Pass a filter expression to narrow it down — here, everything not yet terminal:
+A filter expression narrows the list:
 
-#terminal-ansi(read("../generated/ls-open.ansi"))
+#terminal("qs-filter")
 
-#link(u("/filters/"))[Filters] owns the language — tags, dates, dependency
-state, full-text search — and #link(u("/cli/"))[the CLI reference] owns the
-listing surface: column auto-hide, the `file` column, hyperlinks, `mt find`,
-and the machine-readable `--format`s.
+#link(u("/filters/"))[Filters] covers the language: tags, dates, dependency
+state and text search. The #link(u("/cli/"))[CLI reference] covers the listing
+itself: which columns show, the `file` column, hyperlinks, `mt find` and the
+formats for other programs.
 
 = Change status
 
-Every status in the legend is also a verb. Set one, dated today, without opening
-the file:
+Each status in the project's legend is also a command, and it stamps today's
+date. The legend also lists the moves each status allows. `flow` allows
+`proposed` to `wip` and `wip` to `done`, so `mt` refuses a jump straight to
+`done`:
 
-#terminal(read("../generated/done.txt"))
+#terminal("qs-refused")
 
-`mt done x` is shorthand for `mt flip done x`. See #link(u("/cli/"))[the CLI
-  reference] for the full command set.
+Start the task, then finish it:
+
+#terminal("qs-flip")
+
+`mt done x` is short for `mt flip done x`.
+#link(u("/statuses/"))[The status legend] covers the moves and the notes a
+status can require, and the #link(u("/cli/"))[CLI reference] lists every
+command.
 
 = Validate
 
-```sh
-mt check
-```
+`mt check` validates every task against the project's config:
 
-#terminal(read("../generated/check.txt"))
+#terminal("qs-check")
 
-Wire `mt check` into a pre-commit hook or CI — #link(u("/cli/"))[the CLI
-  reference] lists what it verifies, and #link(u("/rules/"))[Rules] the
-rules behind it.
+It exits non-zero on a violation and names it, so it fits a pre-commit hook or
+CI. The #link(u("/cli/"))[CLI reference] lists what it checks, and
+#link(u("/rules/"))[Rules] covers the checks a project adds.
 
 #callout("note")[
-  #link(u("/concepts/"))[Concepts] has the model behind all this: why a task is a
-  file, and what live evaluation means.
+  #link(u("/concepts/"))[Concepts] explains the model: why a task is a file, and
+  what live evaluation means.
 ]

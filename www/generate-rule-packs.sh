@@ -26,8 +26,7 @@ MT="$REPO/target/debug/mt"
 # out of examples/learn-piano instead of reading them in place).
 cp "$REPO/crates/mindtape/src/packs/mindtape-tasks.toml" "$OUT/mindtape-tasks-pack.toml"
 
-# config show --origin prints the project's config path absolute
-# (canonicalized root); normalize it to a project-relative path the same way
-# generate.sh's own config-origin.txt capture does for the fixture.
-"$MT" -w "$REPO" --color never config show --origin \
-  | sed "s#$REPO/##g" >"$OUT/rule-packs-origin.txt"
+# shellcheck source=www/capture.sh
+source "$REPO/www/capture.sh"
+capture_init
+capture rule-packs-origin "$REPO" 'mt config show --origin'

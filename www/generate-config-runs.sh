@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
 # www/generate-config-runs.sh — capture the writes /statuses/ and /rules/
-# show, each run against a throwaway copy of its checked fixture:
-# examples/statuses/ for the transition, note and unblocked guards,
-# examples/rules/ for a rule breach, a required field and a warning.
+# show, each in a copy of its checked fixture: examples/statuses/ for the
+# transition, note and unblocked guards, examples/rules/ for a rule breach, a
+# required field and a warning.
 #
 # Called by www/generate.sh with the repo root and the generated/ directory,
 # inside the lock that script already holds, so this one takes none of its
-# own. generate.sh exports MINDTAPE_NOW and an empty MINDTAPE_CONFIG_HOME, so
-# every run here sees the same date and no user config.
+# own. generate.sh exports MINDTAPE_NOW, so every run sees the same date.
 #
-# Each capture starts with the command line, printed from the same argument
-# list that runs, so the page cannot show one command and the output of
-# another. Most of these commands are refused and exit non-zero, which is the
-# point of the capture, so the exit code is ignored.
+# Each capture is a record (www/capture.sh), so the page prints the command
+# from the run. Most of these commands are refused, which is the point of the
+# capture, so each records the exit code it must return. A refusal that
+# starts passing fails the build.
 set -eo pipefail
 
 REPO="$1"
@@ -23,50 +22,27 @@ if [ -z "$REPO" ] || [ -z "$OUT" ]; then
 fi
 MT="$REPO/target/debug/mt"
 
-# Each fixture resolves @local/mindtape at ../../lib, so a copy keeps that
-# depth and links the real lib/ at the top, as generate.sh does for its copy.
-COPY_ROOT="$(mktemp -d)"
-trap 'rm -rf "$COPY_ROOT"' EXIT
-mkdir -p "$COPY_ROOT/examples"
-ln -s "$REPO/lib" "$COPY_ROOT/lib"
+# shellcheck source=www/capture.sh
+source "$REPO/www/capture.sh"
+capture_init
 
-# One argument as a shell reader would type it: bare when it holds only
-# characters no shell treats specially, else single-quoted.
-shell_word() {
-  case "$1" in
-    *[!A-Za-z0-9_./=:@%+-]* | "") printf "'%s'" "${1//\'/\'\\\'\'}" ;;
-    *) printf '%s' "$1" ;;
-  esac
-}
+capture_copy S examples/statuses
+capture --exit 1 statuses-transition "$S" 'mt flip done import-xlsx-files'
+capture --exit 1 statuses-note "$S" 'mt flip failed add-a-dry-run-flag'
+capture --exit 1 statuses-unblocked "$S" 'mt flip wip import-xlsx-files'
 
-# run <slug> <fixture> <mt args...> -> OUT/<slug>.txt: the command, then its
-# stdout and stderr, with the copy's absolute path cut to a relative one.
-run() {
-  local slug="$1" fixture="$2" copy="$COPY_ROOT/examples/$2" arg
-  shift 2
-  [ -d "$copy" ] || cp -r "$REPO/examples/$fixture" "$copy"
-  {
-    printf '$ mt'
-    for arg in "$@"; do printf ' %s' "$(shell_word "$arg")"; done
-    printf '\n'
-    "$MT" -w "$copy" --color never "$@" 2>&1 || true
-  } | sed "s#$copy/##g" >"$OUT/$slug.txt"
-}
-
-run statuses-transition statuses flip done import-xlsx-files
-run statuses-note statuses flip failed add-a-dry-run-flag
-run statuses-unblocked statuses flip wip import-xlsx-files
-
-run rules-wip-cap rules flip wip add-csv-export
-run rules-assert rules set fix-the-session-timeout priority=1
-run rules-required rules set add-csv-export kind=bug
-run rules-warn rules set add-csv-export "title=Add CSV export to the report page."
+capture_copy R examples/rules
+capture --exit 1 rules-wip-cap "$R" 'mt flip wip add-csv-export'
+capture --exit 1 rules-assert "$R" 'mt set fix-the-session-timeout priority=1'
+capture --exit 1 rules-required "$R" 'mt set add-csv-export kind=bug'
+capture rules-warn "$R" "mt set add-csv-export 'title=Add CSV export to the report page.'"
 
 # The legend a project gets when it declares none: the embedded floor's, read
 # back through the same merge every project goes through.
-mkdir -p "$COPY_ROOT/floor/.mindtape"
-: >"$COPY_ROOT/floor/.mindtape/config.toml"
-"$MT" -w "$COPY_ROOT/floor" config show --json | jq '.tasks.status' >"$OUT/floor-legend.json"
+capture_scratch F
+mkdir -p "$F/.mindtape"
+: >"$F/.mindtape/config.toml"
+"$MT" -w "$F" config show --json | jq '.tasks.status' >"$OUT/floor-legend.json"
 
 # Copied so the page can read() it: the site builds under --root www, and
 # Typst refuses a read outside the root.

@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": terminal
+#import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": REPO, u
 
 #let meta = (
@@ -53,10 +53,10 @@ to fill them.
 When stdin or stdout is not a terminal, `mt add` opens no editor. A slot left
 empty fails the add, and the error names every missing slot:
 
-#terminal(read("../generated/api-service-add-refused.txt"))
+#terminal("api-service-add-refused")
 
 It exits with code
-#raw(read("../generated/api-service-add-refused-exit.txt").trim()) and writes
+#exit-code("api-service-add-refused") and writes
 nothing. With `--format json`, a successful add prints its result as an object
 whose `outcome` is `wrote`, `skipped` or `suffixed`, and whose `path` is the
 task file.

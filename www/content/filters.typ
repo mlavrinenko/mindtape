@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout, terminal, terminal-ansi
+#import "../utils/ui.typ": callout, terminal-ansi
 #import "../utils/site.typ": u
 
 #let meta = (
