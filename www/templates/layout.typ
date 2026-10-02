@@ -1,6 +1,6 @@
 // Page chrome: <head>, header, docs sidebar, main, footer.
 
-#import "../utils/site.typ": NAV, REPO, SITE, page-meta, u
+#import "../utils/site.typ": NAV, REPO, SITE, page-meta, render-summary, u
 
 // Set data-theme before first paint (no flash), then a global toggle.
 #let _theme-script = "(function(){var d=document.documentElement;var t=localStorage.getItem('theme');if(t){d.setAttribute('data-theme',t)}else if(window.matchMedia('(prefers-color-scheme:dark)').matches){d.setAttribute('data-theme','dark')}}());function toggleTheme(){var d=document.documentElement;var n=d.getAttribute('data-theme')==='dark'?'light':'dark';d.setAttribute('data-theme',n);localStorage.setItem('theme',n)}"
@@ -135,10 +135,11 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
   html.elem("title")[#(
     if t == SITE.title { t } else { t + " — " + SITE.title }
   )]
-  let desc = m.at("summary", default: SITE.tagline)
-  if desc != none {
-    html.elem("meta", attrs: (name: "description", content: desc))
-  }
+  let desc = render-summary(m.at("summary", default: none), plain: true)
+  html.elem("meta", attrs: (
+    name: "description",
+    content: if desc == none { SITE.tagline } else { desc },
+  ))
   html.elem("link", attrs: (
     rel: "icon",
     href: "/assets/images/logo.svg",
@@ -238,9 +239,9 @@ heads[0].parentNode.insertBefore(nav,heads[0]);
   let title = meta.at("title", default: none)
   let active = meta.at("active", default: none)
   let home = meta.at("home", default: false)
-  // Same string that feeds <meta name="description"> in make-head — one
-  // source, so the lede and the description can never diverge.
-  let summary = meta.at("summary", default: none)
+  // The lede and make-head's <meta name="description"> both render the
+  // page's own summary through `render-summary`.
+  let summary = render-summary(meta.at("summary", default: none))
 
   html.elem("header", attrs: (class: "site-header"), {
     html.elem("div", attrs: (class: "header-inner"), {

@@ -5,14 +5,10 @@
 // every page's own `<page-meta>` block by www/generate-site-pages.sh, so this
 // file never restates a label, a title or a summary.
 
-// Typst library version, read from lib/typst.toml through the crate map — the
-// same `typst-lib.version` docs/src/{agents,readme,skill}.typ already read, so
-// the site stops being the last place that hand-types it and a bump propagates
-// with no human reconciliation. Not read from lib/typst.toml directly: the
-// site builds under `--root www`, and Typst refuses a read that escapes the
-// root. www/generate.sh runs generate-facts.sh (which writes crate-map.json)
-// before generate-site-pages.sh evaluates this module to query a page, so the
-// file is always there by the time anything imports it.
+// Typst library version, read from lib/typst.toml through the crate map, so a
+// bump reaches the site with no hand edit. The site builds under `--root www`,
+// where Typst refuses a read of lib/typst.toml. www/generate.sh writes
+// crate-map.json before anything imports this file.
 #let PKG_VERSION = json("../generated/crate-map.json").at("typst-lib").version
 #let PKG = "@local/mindtape:" + PKG_VERSION
 
@@ -32,11 +28,9 @@
 #let TOLA = toml("../tola.toml")
 #let SITE_URL = TOLA.site.info.url.trim("/", at: end)
 
-// GitHub Pages serves this as a project page, under the path component of
-// that URL ("/mindtape") — derived here rather than hand-typed a second time,
-// so moving the site to another host or path is a one-line tola.toml edit.
-// u() builds internal page links; assets stay source-relative (/assets/...)
-// — tola applies the prefix to those on build.
+// GitHub Pages serves the site under the URL's path ("/mindtape"). u()
+// prefixes internal page links with it. Assets stay source-relative
+// (/assets/...), because tola prefixes those on build.
 #let _url-path(url) = {
   let parts = url.split("://").last().split("/")
   if parts.len() < 2 { "" } else { "/" + parts.slice(1).join("/") }
@@ -94,11 +88,10 @@
   ),
 )
 
-// The page manifest — route -> {label, title, summary, home?} — derived from
-// every page's own `<page-meta>` block by www/generate-site-pages.sh, never
-// hand-written here. Empty only during that script's bootstrap pass (see its
-// header): compiling a page imports layout.typ -> this file -> this artifact,
-// so the artifact has to exist, even empty, before the query that fills it.
+// The page manifest, route -> {label, title, summary, home?}, which
+// www/generate-site-pages.sh builds from every page's `<page-meta>` block. It
+// is empty during that script's bootstrap pass, because compiling a page reads
+// this file before the query that fills it.
 #let PAGES = json("../generated/site-pages.json").pages
 
 // Resolve one page by route. Three outcomes, not two:
@@ -122,4 +115,22 @@
       + " — known routes: "
       + PAGES.keys().join(", "),
   )
+}
+
+// A page summary is one sentence of Typst markup, with code in backticks.
+// `render-summary` turns one into content for the page's lede. With
+// `plain: true` it returns plain text for `<meta name="description">`, where
+// markup cannot go.
+#let _plain-text(it) = {
+  if type(it) == str { return it }
+  if it.has("text") { return it.text }
+  if it.has("children") { return it.children.map(_plain-text).join("") }
+  if it.has("body") { return _plain-text(it.body) }
+  if it.func() == smartquote { return if it.double { "\"" } else { "'" } }
+  " "
+}
+#let render-summary(text, plain: false) = {
+  if text == none { return none }
+  let body = eval(text, mode: "markup")
+  if plain { _plain-text(body) } else { body }
 }

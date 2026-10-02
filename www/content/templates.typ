@@ -6,7 +6,7 @@
   route: "/templates/",
   label: "Templates & slots",
   title: "Templates & slots",
-  summary: "How mt add scaffolds a task from a Typst template whose values are slot() calls.",
+  summary: "How `mt add` fills a Typst template whose values are `slot()` calls to file a new task.",
 )
 #metadata(meta) <page-meta>
 

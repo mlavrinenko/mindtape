@@ -7,7 +7,7 @@
   route: "/",
   label: "Overview",
   title: "MindTape",
-  summary: "A daemon-free task tracker whose tasks are Typst files, live-evaluated on every command.",
+  summary: "A daemon-free task tracker whose tasks are Typst files, evaluated live on every command.",
   home: true,
 )
 #metadata(meta) <page-meta>

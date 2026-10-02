@@ -17,7 +17,7 @@
 # direct call to `www/generate-facts.sh` alone, and this script's whole point
 # was staying cheap: no built binary, no release compile. That stopped being
 # possible when www/generated/site-pages.json — which docs/src/lib.typ's
-# `fact("site-pages")` reads for `www-link`/`www-title`/`www-summary` — moved
+# `fact("site-pages")` reads for `www-link` and `www-groups` — moved
 # to www/generate-site-pages.sh (truth/tasks/derive-site-pages-json-from-the-
 # pages-page-meta-blocks.typ): deriving it now means compiling every
 # www/content/*.typ page, which needs www/generate.sh's OWN captures

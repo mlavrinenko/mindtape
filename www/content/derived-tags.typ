@@ -5,7 +5,7 @@
   route: "/derived-tags/",
   label: "Derived tags",
   title: "Derived tags",
-  summary: "Tasks inherit tags from their location under a root, without those tags ever being written to the file.",
+  summary: "How tasks get tags from their folders under a root, without the tags being written to the file.",
 )
 #metadata(meta) <page-meta>
 

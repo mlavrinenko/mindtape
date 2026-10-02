@@ -6,7 +6,7 @@
   route: "/named-sets/",
   label: "Views & dictionaries",
   title: "Named views and dictionaries",
-  summary: "Two top-level config sections that name something once so every rule can point at it: a view bundles a filter with a sort and columns, a dictionary names a set of strings.",
+  summary: "How views name a filter with its sort and columns, and dictionaries name a set of strings, for rules to share.",
 )
 #metadata(meta) <page-meta>
 

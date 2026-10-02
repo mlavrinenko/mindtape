@@ -8,7 +8,7 @@
   route: "/internals/",
   label: "Internals",
   title: "Internals",
-  summary: "How MindTape is built: the crate layout, the content-hash cache that keeps live evaluation cheap, and what differs per platform.",
+  summary: "How MindTape is built, from its crate layout and evaluation cache to what differs per platform.",
 )
 #metadata(meta) <page-meta>
 

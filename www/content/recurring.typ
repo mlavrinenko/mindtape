@@ -7,7 +7,7 @@
   route: "/recurring/",
   label: "Recurring",
   title: "Recurring tasks",
-  summary: "One task that repeats: every() for the common cadences, rrule() for calendar rules, and the command that advances the series.",
+  summary: "How one task repeats with `every()` or `rrule()`, and how `mt recur` advances the series.",
 )
 #metadata(meta) <page-meta>
 

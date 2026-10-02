@@ -7,7 +7,7 @@
   route: "/dsl/",
   label: "Task DSL",
   title: "Task DSL",
-  summary: "Every field a task file can declare, the status shortcuts, and what the body can hold.",
+  summary: "Every field a task file can set, the status shortcuts, and what the body can hold.",
 )
 #metadata(meta) <page-meta>
 

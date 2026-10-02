@@ -6,7 +6,7 @@
   route: "/concepts/",
   label: "Concepts",
   title: "Concepts",
-  summary: "The model behind MindTape: files as tasks, live evaluation, identity by filename, one extension seam, and the two layers that enforce a task.",
+  summary: "MindTape's model of one Typst file per task, evaluated live on every command and identified by its filename.",
 )
 #metadata(meta) <page-meta>
 

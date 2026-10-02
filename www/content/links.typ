@@ -7,7 +7,7 @@
   route: "/links/",
   label: "Links",
   title: "Task links",
-  summary: "Typed edges between tasks: the built-in kinds, project-declared kinds with their own target validation, and what mt check refuses.",
+  summary: "Typed links between tasks, the built-in and custom link kinds, and what `mt check` refuses.",
 )
 #metadata(meta) <page-meta>
 

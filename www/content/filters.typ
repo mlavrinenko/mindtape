@@ -6,7 +6,7 @@
   route: "/filters/",
   label: "Filter language",
   title: "Filter language",
-  summary: "The expression language mt ls and mt rm use to select tasks: fields, operators, functions, and dependency predicates.",
+  summary: "The expression language `mt ls` and `mt rm` use to select tasks, with its fields, operators and functions.",
 )
 #metadata(meta) <page-meta>
 

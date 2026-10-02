@@ -7,7 +7,7 @@
   route: "/hooks/",
   label: "Flip hooks",
   title: "Flip hooks",
-  summary: "How a project binds actions to a task changing status: printing a message, listing what else is in flight, or running a command that may refuse the flip.",
+  summary: "How `mt flip` runs `[[on.flip]]` hooks that print a message, list tasks, or run a command that can refuse the flip.",
 )
 #metadata(meta) <page-meta>
 

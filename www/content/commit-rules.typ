@@ -5,7 +5,7 @@
   route: "/commit-rules/",
   label: "Commit rules",
   title: "Commit rules",
-  summary: "How a project holds commits to its rules: the `Refs` trailer `mt check --commit-msg` reads, commit-scope filter expressions, and re-checking a pushed range in CI.",
+  summary: "How `mt check --commit-msg` checks a commit's `Refs` trailer and message against the project's commit rules.",
 )
 #metadata(meta) <page-meta>
 

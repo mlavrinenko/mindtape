@@ -7,7 +7,7 @@
   route: "/rule-packs/",
   label: "Rule packs",
   title: "Rule packs",
-  summary: "A rule pack is a project's task practice as one importable unit: extends adopts it, a same-named rule overrides one entry, disable drops one. What a pack file may contain, how it resolves, the merge order, and what mindtape-tasks enforces.",
+  summary: "How `extends` adopts a rule pack, a same-named rule overrides one entry, and `disable` drops one.",
 )
 #metadata(meta) <page-meta>
 

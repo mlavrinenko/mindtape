@@ -6,7 +6,7 @@
   route: "/import-export/",
   label: "Import & export",
   title: "Import & export",
-  summary: "Bring tasks in from another tracker with mt import and jq, and reshape them back out with the same tools.",
+  summary: "How to bring tasks in from another tracker with `mt import` and `jq`, and export them with the same tools.",
 )
 #metadata(meta) <page-meta>
 

@@ -7,7 +7,7 @@
   route: "/estimates/",
   label: "Estimates",
   title: "Estimate caps and working-tree budgets",
-  summary: "How tasks.estimate declares the legal units, and how plain rules cap a declared estimate and hold the git working tree to it.",
+  summary: "The estimate units `[tasks.estimate]` allows, and the rules that cap an estimate and compare it with the git tree.",
 )
 #metadata(meta) <page-meta>
 

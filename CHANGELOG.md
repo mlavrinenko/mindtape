@@ -546,6 +546,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Docs page summaries render code as code.** The site's lede and
+  `<meta name="description">` printed the backticks around code as text. A
+  summary is Typst markup, rendered as content in the lede and as plain text
+  in the meta description. Every summary is one sentence of at most 120
+  characters, and the site build fails naming any page that breaks either
+  limit.
+
 - **Config schema descriptions read as user prose.** Editor hovers over
   `.mindtape/config.toml` and the Configuration page's Sections table showed
   Rust paths and rustdoc links, such as ``[`crate::config_packs`]``, and two

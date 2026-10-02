@@ -6,7 +6,7 @@
   route: "/self-validating-tasks/",
   label: "Self-validating tasks",
   title: "Self-validating tasks",
-  summary: "A repo's tasks can carry a structure it invented, checked by the repo's own Typst function on every write — no separate linter to maintain.",
+  summary: "How a repo checks its own task structure with a Typst function on every write, with no separate linter.",
 )
 #metadata(meta) <page-meta>
 

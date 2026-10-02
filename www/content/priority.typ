@@ -18,7 +18,7 @@
   route: "/priority/",
   label: "Priority",
   title: "Priority",
-  summary: "Priority is a number on a configured scale, set by hand or scored by a framework; difficulty is its twin.",
+  summary: "How priority and difficulty work as numbers on a configured scale, set by hand or scored by a framework.",
 )
 #metadata(meta) <page-meta>
 

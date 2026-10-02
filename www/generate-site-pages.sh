@@ -1,32 +1,19 @@
 #!/usr/bin/env bash
 # www/generate-site-pages.sh — derive www/generated/site-pages.json from
-# every www/content/*.typ page's own `<page-meta>` block.
+# every www/content/*.typ page's own
+# `#metadata((route, label, title, summary, home)) <page-meta>` block.
+# www/utils/site.typ keeps only what no single page holds: the nav groups and
+# their reading order (NAV).
 #
-# Split out of www/generate-facts.sh under
-# truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ: the
-# manifest used to be a read-back of www/utils/site.typ's own PAGES dict
-# (itself derived from NAV). Now each page carries its own
-# `#metadata((route, label, title, summary, home)) <page-meta>` block, so the
-# manifest is derived from THE PAGES THEMSELVES instead — site.typ keeps only
-# what no single page owns: the group names and the reading order (NAV).
+# www/generate.sh calls this after generate-facts.sh, inside the lock it
+# already holds. Querying a page's `<page-meta>` block is a full compile,
+# which reads crate-map.json and the captures www/generate.sh writes, so both
+# must exist before the first query.
 #
-# Called by www/generate.sh, AFTER its generate-facts.sh call, inside the
-# lock that script already holds — this is its own file rather than more of
-# generate.sh's body only because that script is already at .linecop.yaml's
-# 300-line Shell cap. Ordering is not negotiable: querying a page's
-# `<page-meta>` block is a FULL COMPILE (measured in the umbrella task), which
-# imports layout.typ -> site.typ -> crate-map.json (PKG_VERSION) and every
-# other capture www/generate.sh itself writes (hero-source.typ, cli.json, …).
-# Without those a page importing utils/ui.typ dies on a top-level `read()`.
-# So this script needs BOTH generate-facts.sh's artifacts and generate.sh's
-# own captures in place before it queries a single page.
-#
-# Reentrant locking, same handshake generate-facts.sh has always used for
-# generate.sh's nested call to IT: a caller that already holds
-# target/www-generated.lock exports MINDTAPE_GENERATED_LOCK=1 so this script
-# skips its own acquisition instead of deadlocking against a lock its own
-# process tree already owns. Run standalone (as the regression
-# demonstrations below do), it takes the lock itself.
+# A caller that already holds target/www-generated.lock exports
+# MINDTAPE_GENERATED_LOCK=1, and this script skips taking the lock again so it
+# cannot deadlock against its own process tree. Run standalone, it takes the
+# lock itself.
 set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -77,6 +64,7 @@ trap 'rm -rf "$workdir"' EXIT
 # a different render path).
 pages_json="{}"
 routes_json="[]"
+summary_problems=""
 for page in "$REPO"/www/content/*.typ; do
   stem="$(basename "$page" .typ)"
   if ! meta="$(typst query --root "$REPO/www" "$page" '<page-meta>' \
@@ -90,7 +78,24 @@ for page in "$REPO"/www/content/*.typ; do
     '. + {($route): ($meta | del(.route))}' <<<"$pages_json")"
   routes_json="$(jq --arg stem "$stem" --arg route "$route" \
     '. + [{stem: $stem, route: $route}]' <<<"$routes_json")"
+  # The summary is the page's lede and its <meta name="description">, so it
+  # stays one short sentence. Backticks count for nothing, and a `.` inside a
+  # code span ends no sentence.
+  problem="$(jq -r '(.summary // "") as $s | [
+      ($s | gsub("`"; "") | length | select(. > 120) | "\(.) characters"),
+      ($s | gsub("`[^`]*`"; "code") | select(test("[.!?]\\s+\\S"))
+        | "more than one sentence")
+    ] | join(", ")' <<<"$meta")"
+  if [ -n "$problem" ]; then
+    summary_problems+="  $stem: $problem"$'\n'
+  fi
 done
+
+if [ -n "$summary_problems" ]; then
+  echo "generate-site-pages.sh: a page summary must be one sentence of at most 120 characters:" >&2
+  printf '%s' "$summary_problems" >&2
+  exit 1
+fi
 
 # Two pages declaring the same route: fail naming both, before installing
 # anything. The dict-insert above would otherwise let the second writer win

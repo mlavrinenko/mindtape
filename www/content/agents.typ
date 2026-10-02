@@ -6,7 +6,7 @@
   route: "/agents/",
   label: "For AI agents",
   title: "For AI agents",
-  summary: "What makes MindTape legible to a coding agent: structured JSON, describable schemas, honest exit codes, and file-based state.",
+  summary: "How a coding agent drives `mt` through JSON output, self-describing schemas, exit codes and plain task files.",
 )
 #metadata(meta) <page-meta>
 

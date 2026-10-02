@@ -7,7 +7,7 @@
   route: "/cli/",
   label: "CLI",
   title: "CLI reference",
-  summary: "Every mt command, grouped, with generated transcripts and pointers to the pages that own each deep topic.",
+  summary: "Every `mt` command by group, with generated transcripts and links to the pages that cover each topic in depth.",
 )
 #metadata(meta) <page-meta>
 

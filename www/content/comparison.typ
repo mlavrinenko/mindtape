@@ -5,7 +5,7 @@
   route: "/comparison/",
   label: "Comparison",
   title: "Comparison",
-  summary: "How MindTape compares, feature by feature, to the other local CLI task trackers, agent-era ones included, and when one of them fits better.",
+  summary: "MindTape compared feature by feature with other local CLI task trackers, and when one of them fits better.",
 )
 #metadata(meta) <page-meta>
 

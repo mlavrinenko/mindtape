@@ -8,7 +8,7 @@
   route: "/config/",
   label: "Configuration",
   title: "Configuration",
-  summary: "The .mindtape/config.toml reference: the four-layer merge, rule packs, the section map, and the keys only config defines.",
+  summary: "Every `.mindtape/config.toml` section, and how the four config layers merge into one.",
 )
 #metadata(meta) <page-meta>
 

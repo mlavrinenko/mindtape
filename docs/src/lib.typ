@@ -15,9 +15,9 @@
 // Being a separate render path is also why a cross-link into the docs site is
 // the one thing a source must never hand-type. Nothing in this repo resolves
 // an absolute URL sitting in generated Markdown, so a renamed page ships a
-// 404 that only a reader ever finds. `www-link` / `www-title` / `www-summary`
-// below read the route out of the generated page manifest instead, and fail
-// the render naming it when it is not there.
+// 404 that only a reader ever finds. `www-link` below reads the route out of
+// the generated page manifest instead, and fails the render naming it when it
+// is not there.
 //
 // Every constraint typlite imposes on a source is listed once, in
 // docs/contributing/generated-docs.md. The `docs::md-check` gate fails on the
@@ -87,20 +87,6 @@
 // another group, shows up here with no edit to the source that reads this.
 // Link each route with `www-link`, which fails the render on an unknown one.
 #let www-groups = _site.groups
-
-// A page's own title and summary, for prose that names a page (or lists every
-// page, as README does) rather than linking one. Same panic on an unknown
-// route, for the same reason. A summary is plain text with `code` spans;
-// typlite escapes backticks in text, so each span is rebuilt as raw.
-#let www-title(route) = _page(route).title
-#let www-summary(route) = (
-  _page(route)
-    .summary
-    .split("`")
-    .enumerate()
-    .map(((i, part)) => if calc.odd(i) { raw(part) } else { part })
-    .join()
-)
 
 // An absolute link to a docs-site page. `#www-link("/cli/")` renders the
 // page's own title as the link text — the common case, and one less string to

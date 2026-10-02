@@ -6,7 +6,7 @@
   route: "/schema/",
   label: "Canonical schema",
   title: "Canonical schema",
-  summary: "The task-JSON schema mt ls --json and mt import share — the contract a jq adapter codes against.",
+  summary: "The task JSON schema that `mt ls --json` prints and `mt import` reads, for `jq` adapters to code against.",
 )
 #metadata(meta) <page-meta>
 
