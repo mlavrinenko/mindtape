@@ -65,7 +65,7 @@ groups:
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
     dependents:
       CHANGELOG.md: 54f677f05c0812a3756f17ac38f65ff59a4068a7e882424ba455fdff5591e927
-      docs/src/agents.typ: dbf41bebe9b8d8894b53b84cca0cbdfb2550cd776a29a0e0dc9b459c61fb9d55
+      docs/src/agents.typ: 312eab3b443fc004d1b45b3aec683d32e05df7f0216a0e3b7f65104bbdd07ef1
       docs/src/contributing.typ: 8657550069f12ebd2631bb8d769a438cd1c370bc2dba07170578ae04c3bbc093
       docs/src/contributing/command-semantics.typ: ef5583a2dcd79fe59c64e04a9b54dcdf82d000c17aa7ecb9d96f6b7eab157a25
       docs/src/readme.typ: 7ba1ff3c4b553522d609390d302edc22e910d9a86a7b3ad6528a7db4b506f7a5
@@ -86,7 +86,7 @@ groups:
       .just/scripts/_script-reach.sh: e26594842a77ac58754ecc124fa82c6c2aba1f13aaa01abc0b4340f310556654
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
-      .just/scripts/check-doc-blocks.sh: aec8055a9eea3bda41013be11bc3ac88c86d842c6d72d659a7d2103539348b45
+      .just/scripts/check-doc-blocks.sh: 907366c93c38c9ff0f1713e4ebfc995c393341a233b081f6c571fa361feb2cb2
       .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-prose.sh: b8c91bc0114a06238c093d702e643b5fe427283439b3b6e7a34297b4672f9252
@@ -113,10 +113,10 @@ groups:
       .just/scripts/script-scope-check.sh: ea49ba3a92c1189c69282c34fb05ac4474c34f8b174be1611c9eff921e254969
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 065cc5e3ee09e3d1e7a69e81458db0509d2438e08ea7f8216aab583845077159
+      Justfile: f35d95765273e244fc25d847478d6b5030aad0e8c2d722a6c7d78d5bdaa632eb
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
-      docs/src/agents.typ: dbf41bebe9b8d8894b53b84cca0cbdfb2550cd776a29a0e0dc9b459c61fb9d55
+      docs/src/agents.typ: 312eab3b443fc004d1b45b3aec683d32e05df7f0216a0e3b7f65104bbdd07ef1
       docs/src/contributing.typ: a367576d1e4c041cf94488dd8d3a22aecfccd4a7f2843fe1a2731fec1e2d72a0
       docs/src/contributing/coverage-crap.typ: a2db609d84b9b87eff0006a17291c104dbd3ed2ca0183cdf3aa6be4a8fc31623
       docs/src/contributing/crap-baseline.typ: 279e9e2dfcc2244d060dbe7be3bd76b6dce48c7905bc9a8b29a44e8a2435048a
@@ -131,7 +131,7 @@ groups:
     source:
       lib/prelude.typ: 2e99b69589c8842bb2fc36461828ee2fdb77a39da3e975358e378b25b924ba06
     dependents:
-      docs/src/agents.typ: dbf41bebe9b8d8894b53b84cca0cbdfb2550cd776a29a0e0dc9b459c61fb9d55
+      docs/src/agents.typ: 312eab3b443fc004d1b45b3aec683d32e05df7f0216a0e3b7f65104bbdd07ef1
       docs/src/readme.typ: 7ba1ff3c4b553522d609390d302edc22e910d9a86a7b3ad6528a7db4b506f7a5
       docs/src/skill.typ: 99884f66686542e4966f17f9207bb2bce903a6fbc66287bb9afe3c692e13c999
       skills/mindtape/references/add-slots.md: 27d8992a98b9aa9917108d02d6bbdf6d95715a5e9aa2b229d375b1b87d210ef6
@@ -181,6 +181,8 @@ groups:
     dependents:
       crates/mindtape-cli/src/init.rs: 413f762faf5aedeba0780bb94e872825232fdafbd7692f5974083c5fa36f6cc9
       crates/mindtape-cli/src/presets/gated/templates/task.typ: 936d9906c5a3b946035b33084957378715e13cf4b3664feab9bbc5f51bb59898
+      examples/dsl/tasks/add-a-session-store.typ: 32b3c7516924ec9a5b26f771f35c8943ab97d0b0fb07cdb055b92252b74b8d4e
+      examples/dsl/tasks/fix-the-login-redirect.typ: 08f426bb828ab02b78122c80003934739000042a16b949f534214331c7b59853
       examples/estimates/tasks/rename-the-status-glyphs.typ: 601357e17a4de3c0d124c76344a00cc4374f22043d629306470551063780dcbd
       examples/estimates/tasks/rewrite-loader.typ: 6a953d0e8d2003d9f0c0e9ba475f414f952b25e1cdc7a9eeb920d96ae4c606e5
       examples/learn-piano/.mindtape/templates/task.typ: e269ab035087724b5b0df9832b31469d5c515e68979f2c6a9dc23c0eba0b6760

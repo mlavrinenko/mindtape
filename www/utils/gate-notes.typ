@@ -109,8 +109,9 @@
     `mt check` against each example project: `examples/learn-piano/` (full
     config surface; feeds the docs generator and the skill's triage evals),
     `examples/minimal/` (the floor config; feeds the skill's trap evals),
-    and `examples/links/` + `examples/estimates/`, the single-subject
-    fixtures the docs site slices its blocks out of. Keep the recipe and the
+    `examples/links/` + `examples/estimates/`, the single-subject
+    fixtures the docs site slices its blocks out of, and `examples/dsl/`, the
+    task AGENTS.md quotes. Keep the recipe and the
     mmz `examples` scope in step, because mmz re-runs this gate only when a
     file in that scope changes. An ungated fixture breaks silently.
   ],

@@ -3,10 +3,12 @@
 // repo loads it, so it says what MindTape is and where its parts live, and
 // leaves how work is done to CONTRIBUTING.md.
 //
-// Crate names come from www/generated/crate-map.json. The render fails on a
-// crate with no role below, a named dependency missing from the graph, or a
-// docs page with no source file.
+// Crate names come from www/generated/crate-map.json, and the task DSL block
+// is a slice of examples/dsl/, which `just check-examples` validates. The
+// render fails on a crate with no role below, a named dependency missing from
+// the graph, or a docs page with no source file.
 #import "lib.typ": doc-title, fact, just, num-word
+#import "/www/utils/slices.typ": checked-slices
 
 #metadata((
   output: "AGENTS.md",
@@ -61,8 +63,9 @@ compiler crates. There is no daemon and no database. A content-hash cache in
   and evals.
 - `examples/` — fixture projects. `learn-piano` uses the full config surface
   and feeds the docs and the skill's evals. `minimal` is the smallest config.
-  `large` is a 2000-task benchmark whose gitignored tasks #just.gen-bench()
-  writes. Each of the others backs one docs page.
+  `dsl` holds the task the DSL block below quotes. `large` is a 2000-task
+  benchmark whose gitignored tasks #just.gen-bench() writes. Each of the others
+  backs one docs page.
 
 Before you write about a feature, read the `www/content/` page that covers
 it: #page-src("dsl") for task fields, edge kinds and `recur`,
@@ -120,22 +123,8 @@ dependencies, and this repo holds none of their source:
 
 = Task DSL (lib/prelude.typ)
 
-#let dsl-lines = (
-  "#import \"@local/mindtape:"
-    + crate-map.at("typst-lib").at("version")
-    + "\": *",
-  "#show: task.with(",
-  "  title: \"Title\",",
-  "  status: wip(2026, 6, 14)[note],    // (name, date, note); note is a trailing block",
-  "  priority: ice(impact: 8, confidence: 0.7, ease: 6), // or a raw int; difficulty too",
-  "  estimate: (days: 1, hours: 2),     // opaque unit dict; allowed units per project",
-  "  assignee: \"ada\",                   // actor working it; config-bounded, not ownership",
-  "  links: depends-on(\"other.typ\"),    // typed edges by file stem",
-  "  tags: (\"backend\",),",
-  "  x-speconaut: ...,                  // opaque extension slot (x-<ns>)",
-  ")",
-)
-#raw(dsl-lines.join("\n"), lang: "typ", block: true)
+#let dsl = checked-slices(fact("dsl"), "dsl", ("task",))
+#raw(dsl.task.code, lang: "typ", block: true)
 
 `task` declares each core field as a named parameter, so tinymist completes
 the field names. Its `..meta` sink takes only `x-<ns>` extension slots, and a

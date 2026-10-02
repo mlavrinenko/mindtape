@@ -97,6 +97,7 @@ scopes:
     - "examples/learn-piano/tasks/**"
     - "examples/links/tasks/**"
     - "examples/recurring/tasks/**"
+    - "examples/dsl/tasks/**"
     - "examples/learn-piano/.mindtape/templates/**"
     - "www/content/**"
     - "www/templates/**"
@@ -164,6 +165,7 @@ scopes:
     - "examples/minimal/**"
     - "examples/links/**"
     - "examples/estimates/**"
+    - "examples/dsl/**"
 
   # Every example project's config, for `just check-doc-spans`: their status
   # legends are the status verbs a doc may write as `mt <status>`. The

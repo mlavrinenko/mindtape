@@ -6,10 +6,12 @@
 # of its own.
 #
 # One artifact per fixture: examples/links/ -> links.json (the `links:` field),
-# examples/recurring/ -> recurring.json (the `recur:` field). The pages
-# www/content/links.typ and www/content/recurring.typ read only the slices, and
-# the fixtures are what `just check-examples` validates; a helper whose shape
-# changes breaks the fixture's check before a page can lie about it.
+# examples/recurring/ -> recurring.json (the `recur:` field), examples/dsl/ ->
+# dsl.json (the task sketch AGENTS.md shows). The pages
+# www/content/links.typ and www/content/recurring.typ and the source
+# docs/src/agents.typ read only the slices, and the fixtures are what
+# `just check-examples` validates; a helper whose shape changes breaks the
+# fixture's check before a page can lie about it.
 #
 # The marker convention, so a fixture stays a readable project and not a doc
 # fragment: a task file marks the lines worth quoting with
@@ -130,6 +132,7 @@ slice_fixture() {
 
 slice_fixture links | emit links.json
 slice_fixture recurring | emit recurring.json
+slice_fixture dsl | emit dsl.json
 
 # Every config file scanned for config markers, repo-relative. A project not
 # listed here is simply not read, so a marker added to one is inert until its

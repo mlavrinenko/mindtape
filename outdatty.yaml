@@ -308,6 +308,8 @@ groups:
       - examples/recurring/tasks/standup-notes-2026-09-15.typ
       - examples/estimates/tasks/rewrite-loader.typ
       - examples/estimates/tasks/rename-the-status-glyphs.typ
+      - examples/dsl/tasks/add-a-session-store.typ
+      - examples/dsl/tasks/fix-the-login-redirect.typ
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent.

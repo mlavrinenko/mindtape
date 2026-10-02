@@ -97,17 +97,11 @@ overrides:
   # it reads short regardless of how much the source says — which is the other
   # half of why the cap belongs here and not on the output.
   #
-  # Each limit is the old Markdown cap plus the overhead one ported source
-  # measured, pre-staged for all four so porting one never meant reopening
-  # this file: docs/src/agents.typ carries the same prose AGENTS.md did (118
-  # lines) at 186 — a +68-line, ~1.5x tax from the import, the `<mindtape-md>`
-  # block, and the crate-map-derived Workspace/Architecture sections that used
-  # to be hand-listed prose. README's install/quickstart snippets carried less
-  # derivation than that and landed under its cap; CONTRIBUTING's gates-table
-  # read (`gate-tools.at(...)`, one dict entry per `gates.json` row) and
-  # SKILL's frontmatter dict carried more, so those two kept the extra
-  # headroom over the plain ratio — contributing.typ lands exactly at 260,
-  # skill.typ at 275 of 320.
+  # agents.typ (151 lines) and skill.typ (131) are capped at their size after
+  # a whole rewrite plus about 10%. An agent loads each whole, so one that
+  # outgrows its cap gets rewritten again, not a higher cap. readme.typ
+  # and contributing.typ keep the caps they were ported with: the old Markdown
+  # cap plus the lines the port added.
   #
   # Source filenames are a naming CONVENTION this task fixes, not a schema the
   # generator enforces (docs/generate-md.sh reads each source's own
@@ -115,13 +109,13 @@ overrides:
   # lowercased stem of the file it produces, so a future port has an
   # unambiguous place to land without touching this file.
   - pattern: "**/docs/src/agents.typ"
-    limit: 220
+    limit: 166
   - pattern: "**/docs/src/readme.typ"
     limit: 250
   - pattern: "**/docs/src/contributing.typ"
     limit: 260
   - pattern: "**/docs/src/skill.typ"
-    limit: 320
+    limit: 144
   # One shared cap for every docs/contributing/*.typ deep-dive source (today:
   # generated-docs.typ at 135, the pipeline this task adds), rather than a
   # per-file entry — these deep dives vary 31-59 lines in their current
