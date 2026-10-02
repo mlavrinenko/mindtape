@@ -64,7 +64,7 @@
 == Changes
 
 - `www/content/{cli,filters,priority,named-sets,hooks,estimates}.typ`: rewrite whole.
-- `www/utils/cli-notes.typ`: match the CLI page.
+- `www/utils/cli-notes.typ`, `www/utils/framework-notes.typ`: match the CLI and priority pages; their blocks become slices or captures.
 - `examples/*`: slices for the filter, hook and estimate blocks.
 - `.just/scripts/check-doc-blocks.sh`: drop these pages from the list.
 

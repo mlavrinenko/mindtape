@@ -65,6 +65,7 @@
 - `docs/src/contributing.typ`: rewrite whole. Also fix "one of those worktrees" (no antecedent), `HarvestError` (it lives in the typst-harvest crate; use `RecurError`), and the release sentence: `just release` refuses a non-empty `[Unreleased]`.
 - `docs/src/contributing/*.typ`: rewrite whole, drop duplicated rules and the history passages.
 - `.linecop.yaml`: a cap on `CONTRIBUTING.md`.
+- `.just/scripts/check-doc-blocks.sh`: the blocks in `commit-messages.typ` and `signal-sweep.typ` become fixture reads or carry a `docs:hand-typed` reason; drop both files from the list.
 
 
 == Out of scope
