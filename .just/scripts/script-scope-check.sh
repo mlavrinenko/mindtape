@@ -198,6 +198,9 @@ declare -A dev_docs_exempt=(
     # the source, gate-notes.typ restates what they read, and the control's
     # fixtures are the part no doc names.
     ["_gate-drift-control.sh"]="no doc restates its fixtures; the readers it drives are the documented part"
+    # The same for check-doc-blocks: the scanner (_doc-blocks-lib.sh) is the
+    # source, and no doc names the control's fixtures.
+    ["_doc-blocks-control.sh"]="no doc restates its fixtures; the scanner it drives is the documented part"
 )
 
 dev_docs_sources=$(yq -r '

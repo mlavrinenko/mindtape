@@ -338,6 +338,12 @@ scopes:
     - ".just/scripts/check-doc-recipes.sh"
   script-check-doc-prose:
     - ".just/scripts/check-doc-prose.sh"
+  script-check-doc-blocks:
+    - ".just/scripts/check-doc-blocks.sh"
+  script-doc-blocks-control:
+    - ".just/scripts/_doc-blocks-control.sh"
+  script-doc-blocks-lib:
+    - ".just/scripts/_doc-blocks-lib.sh"
   script-check-gate-drift:
     - ".just/scripts/check-gate-drift.sh"
   script-gate-drift-control:
@@ -543,6 +549,13 @@ commands:
   - name: just check-doc-prose
     tags: [gate]
     inputs: [docs, gates-meta, script-check-doc-prose]
+
+  # Parses www/content, www/utils and docs/src (`docs`) with typstyle, which
+  # the dev shell pins (`gates-meta`), and runs its control over synthetic
+  # files first. Nothing is built.
+  - name: just check-doc-blocks
+    tags: [gate]
+    inputs: [docs, gates-meta, script-check-doc-blocks, script-doc-blocks-lib, script-doc-blocks-control]
 
   # docs::gen shells out to the built `mt` binary (rust) and reads the docs
   # tree + the learn-piano fixture (examples) + the project policy/prelude

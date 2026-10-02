@@ -150,6 +150,15 @@
     examples, are in
     #link("docs/contributing/documentation.md")[docs/contributing/documentation.md].
   ],
+  "check-doc-blocks": [
+    A code block typed by hand into a doc source shows text nothing runs, so
+    it drifts from what `mt` accepts. This fails, naming file and line, on a
+    fenced block or a block `raw(...)` whose text is written in place. A block
+    comes from a `docs:slice` of a checked fixture, a capture or a derived
+    fact. One no fixture can hold carries `// docs:hand-typed <reason>` on the
+    line above. The script lists the sources not yet converted, and that list
+    only shrinks. See `.just/scripts/check-doc-blocks.sh`.
+  ],
   "docs::check": [
     `docs-gen` — a dependency — captures live `mt` output first
     (`www/generate.sh`), so this gate always sees fresh CLI examples before

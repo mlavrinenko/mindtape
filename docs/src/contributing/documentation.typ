@@ -14,9 +14,10 @@
 
 The doc gates catch mechanical errors. #just.docs-check() finds a dead link,
 #just.check-doc-facts() a derived fact with no entry, #just.check-doc-recipes()
-a hand-typed recipe name, and #just.check-doc-prose() history and shouting. No
-gate finds duplicated prose or a page that does not help its reader. The rules
-below cover what no gate finds.
+a hand-typed recipe name, #just.check-doc-prose() history and shouting, and
+#just.check-doc-blocks() a hand-typed code block. No gate finds duplicated
+prose or a page that does not help its reader. The rules below cover what no
+gate finds.
 
 = Where the docs live
 
@@ -55,11 +56,20 @@ or copied. Never paraphrase it, because reworded code is worse than either.
 = Use checked examples
 
 A code block in the docs comes from a real file under `examples/` that
-`mt check` validates, and a generator slices it into `www/generated/`. The
-DSL page's field table is `lib/prelude.typ`'s own signature. The CLI page's
-transcripts are the real binary run against `examples/learn-piano`. The
-quickstart's task is a capture. A hand-typed snippet goes stale when the code
-changes, and the reader cannot tell.
+`mt check` validates, from a capture of a real run, or from a derived fact.
+`www/generate-examples.sh` cuts the lines between `// docs:slice <id>` and
+`// docs:end` in a fixture into `www/generated/`, and the page renders them
+with `www/utils/slices.typ`. The DSL page's field table is
+`lib/prelude.typ`'s own signature. The CLI page's transcripts are the real
+binary run against `examples/learn-piano`. The quickstart's task is a
+capture. A hand-typed snippet goes stale when the code changes, and the
+reader cannot tell.
+
+#just.check-doc-blocks() fails on a fenced block, or a block `raw(...)`,
+whose text is written in the source. A block no fixture can hold, such as a
+grammar sketch, carries `// docs:hand-typed <reason>` on the line above it.
+The gate lists the sources not yet converted. A listed source with no
+hand-typed block left fails, so the list only shrinks.
 
 = Plain prose
 

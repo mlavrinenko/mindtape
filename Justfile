@@ -58,7 +58,7 @@ fix-check: eject fmt clippy-fix check
 [doc("Run every check-gate sub-recipe in parallel")]
 [group("workflow")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check") (mmz "check-gate-drift")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -239,6 +239,16 @@ check-doc-recipes:
 [group("gate")]
 check-doc-prose:
     bash .just/scripts/check-doc-prose.sh
+
+# A code block in a doc source comes from a checked fixture, a capture or a
+# derived fact. What counts as typed by hand, the marker for a block no
+# fixture can hold, and the list of sources not yet converted are in
+# .just/scripts/check-doc-blocks.sh.
+
+[doc("Fail on a code block typed by hand into a doc source")]
+[group("gate")]
+check-doc-blocks:
+    bash .just/scripts/check-doc-blocks.sh
 
 # Synthesize a deliberately-mis-formatted TOML, Typst and just-module fixture
 # in a temp dir, then assert every formatter `fmt`/`fmt-check` run rejects it —

@@ -467,6 +467,11 @@ groups:
   # check-doc-prose.sh is a source because docs/src/contributing/
   # documentation.typ, its dependent, states by hand what the scan flags and
   # what it skips.
+  #
+  # check-doc-blocks.sh and _doc-blocks-lib.sh are sources because gate-notes.typ
+  # and documentation.typ restate what counts as a hand-typed block and the
+  # `docs:hand-typed` marker. The control (_doc-blocks-control.sh) is exempt in
+  # script-scope-check.sh.
   - name: dev-docs
     source:
       - flake.nix
@@ -477,6 +482,8 @@ groups:
       - .just/scripts/check-doc-facts.sh
       - .just/scripts/check-doc-recipes.sh
       - .just/scripts/check-doc-prose.sh
+      - .just/scripts/check-doc-blocks.sh
+      - .just/scripts/_doc-blocks-lib.sh
       - .just/scripts/check-secrets.sh
       - .just/scripts/check-secrets-manifest.sh
       - .just/scripts/fmt-fixture-check.sh
