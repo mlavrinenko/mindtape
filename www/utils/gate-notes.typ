@@ -159,6 +159,12 @@
     line above. The script lists the sources not yet converted, and that list
     only shrinks. See `.just/scripts/check-doc-blocks.sh`.
   ],
+  "check-doc-spans": [
+    Fails when an inline code span names an `mt` subcommand, flag or config
+    key that `mt _cli --json` or `schema/config.schema.json` lacks, so a
+    rename cannot leave the old name in the prose. See
+    `.just/scripts/check-doc-spans.sh`.
+  ],
   "docs::check": [
     `docs-gen` — a dependency — captures live `mt` output first
     (`www/generate.sh`), so this gate always sees fresh CLI examples before

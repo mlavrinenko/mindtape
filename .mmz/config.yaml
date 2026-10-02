@@ -165,6 +165,12 @@ scopes:
     - "examples/links/**"
     - "examples/estimates/**"
 
+  # Every example project's config, for `just check-doc-spans`: their status
+  # legends are the status verbs a doc may write as `mt <status>`. The
+  # `examples` scope names only the gated fixtures.
+  example-configs:
+    - "examples/*/.mindtape/**"
+
   # The docs tree `just docs::check` builds and validates (tola + pagefind +
   # validate) plus the mirrored docs whose drift outdatty gates. `docs/**`
   # covers the frozen decisions and redesign subdirs too — harmless over-scope.
@@ -346,6 +352,10 @@ scopes:
     - ".just/scripts/_doc-blocks-control.sh"
   script-doc-blocks-lib:
     - ".just/scripts/_doc-blocks-lib.sh"
+  # The checker lives in its own jq file beside the driver.
+  script-check-doc-spans:
+    - ".just/scripts/check-doc-spans.sh"
+    - ".just/scripts/check-doc-spans.jq"
   script-check-gate-drift:
     - ".just/scripts/check-gate-drift.sh"
   script-gate-drift-control:
@@ -558,6 +568,13 @@ commands:
   - name: just check-doc-blocks
     tags: [gate]
     inputs: [docs, gates-meta, script-check-doc-blocks, script-doc-blocks-lib, script-doc-blocks-control]
+
+  # Checks inline code spans in the docs (`docs`) against `mt _cli --json` and
+  # each project's status legend (the built binary, `rust`; the root config and
+  # schema/config.schema.json, `policy`; `example-configs`).
+  - name: just check-doc-spans
+    tags: [gate]
+    inputs: [rust, policy, example-configs, docs, gates-meta, script-check-doc-spans]
 
   # docs::gen shells out to the built `mt` binary (rust) and reads the docs
   # tree + the learn-piano fixture (examples) + the project policy/prelude

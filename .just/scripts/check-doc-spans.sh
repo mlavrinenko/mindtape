@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+# .just/scripts/check-doc-spans.sh — the body of the `check-doc-spans` recipe.
+# Runs from the repo root, like the recipe that invokes it.
+#
+# Stops prose that names an `mt` subcommand, flag or config key that does not
+# exist. Inline code in the docs names these by hand, so a rename in
+# crates/mindtape-cli or in the config structs leaves the old name in the
+# prose. This gate fails on it, naming file, line and the closest valid name.
+#
+# It reads inline code spans, as backtick markup and as a one-line
+# `raw("...")`, in the sources check-doc-recipes.sh scans. Fenced blocks and
+# `//` comment lines are skipped. check-doc-spans.jq checks three shapes:
+#
+#   - `mt <word> ...`: the word is a subcommand from `mt _cli --json` or a
+#     status verb. Every flag must exist on that command or be global. A quoted
+#     word is an argument, so a filter is never read as flags.
+#   - `[a.b]` or `[[a.b]]`, optionally followed by a key: the path exists in
+#     schema/config.schema.json, and `[[...]]` is used exactly for an array of
+#     tables.
+#   - `a.b.c`: the key path exists in the schema.
+#
+# A span is config-shaped only when its first segment is a top-level schema
+# key. That leaves Cargo tables and just attributes alone. A dotted span that
+# is a tracked file's name, such as `typst.toml`, is a file name.
+#
+# A control runs first. It checks a synthetic page holding each known-bad
+# shape beside the good ones and asserts the exact findings, because a scanner
+# that matched nothing also prints no findings.
+set -eo pipefail
+# `--tests`: docs/contributing/gates.md, "One mt binary, one feature set".
+cargo build -p mindtape-cli --tests -q
+mt=./target/debug/mt
+tmp=$(mktemp -d -p target)
+trap 'rm -rf "$tmp"' EXIT
+
+# `mt _cli --json` leaves out hidden commands, and the dump command is one of
+# them. The call below shows that its name and flag exist, so the gate adds
+# the command from that call.
+dump=(_cli --json)
+"$mt" "${dump[@]}" | jq --arg name "${dump[0]}" --arg flag "${dump[1]#--}" \
+    '.commands += [{name: $name, subcommands: [],
+        args: [{long: $flag, short: null, kind: "flag"}]}]' >"$tmp/cli.json"
+
+# `mt <status>` runs `mt flip <status>`, and each project declares its own
+# statuses. The docs show this project and the examples, so the verb set is
+# the union of their legends. The empty homes drop any user config layer.
+for d in . examples/*/; do
+    [ -d "$d/.mindtape" ] || continue
+    MINDTAPE_CONFIG_HOME= MINDTAPE_DATA_HOME= "$mt" -w "$d" config show --json
+done | jq -s '[.[].tasks.status[]?.value] | unique' >"$tmp/statuses.json"
+git ls-files | sed 's|.*/||' | sort -u | jq -R . | jq -s . >"$tmp/files.json"
+
+# Prints `<file>\t<line>\t<span>` for every inline span in the given sources.
+# Every ``` toggles the block state wherever it sits on the line, because
+# cli-notes.typ opens its blocks mid-line (`examples: ```sh`). A span may run
+# onto the next line, so the open span carries over. `\`` outside a span is an escaped
+# backtick, not a delimiter.
+spans() {
+    awk '
+        function emit(s,    r, p) {
+            r = s
+            while ((p = index(s, "`")) > 0) {
+                if (inspan) {
+                    print FILENAME "\t" at "\t" buf substr(s, 1, p - 1)
+                    inspan = 0
+                } else if (substr(s, p - 1, 1) != "\\") {
+                    inspan = 1; buf = ""; at = FNR
+                }
+                s = substr(s, p + 1)
+            }
+            if (inspan) buf = buf s " "
+            while (match(r, /raw\("[^"\\]*"[,)]/)) {
+                print FILENAME "\t" FNR "\t" substr(r, RSTART + 5, RLENGTH - 7)
+                r = substr(r, RSTART + RLENGTH)
+            }
+        }
+        FNR == 1 { fence = 0; inspan = 0 }
+        {
+            if (!fence && !inspan && $0 ~ /^[ \t]*\/\//) next
+            n = split($0, part, /```/)
+            for (i = 1; i <= n; i++) {
+                if (i > 1) { fence = !fence; inspan = 0 }
+                if (!fence) emit(part[i])
+            }
+        }
+    ' "$@"
+}
+
+check() {
+    spans "$@" | jq -R -r -f .just/scripts/check-doc-spans.jq \
+        --slurpfile cli "$tmp/cli.json" \
+        --slurpfile schema schema/config.schema.json \
+        --slurpfile statuses "$tmp/statuses.json" \
+        --slurpfile files "$tmp/files.json"
+}
+
+control() {
+    local page=$tmp/control.typ
+    cat >"$page" <<'EOF'
+Good: `mt ls 'status != "done"' --sort priority:desc -n 5`, `mt done x -m "why"`,
+`mt _cli --json`, `mt -w examples/minimal ls --json | mt import --dry-run`,
+`mt <cmd> --help`, `mt config show --origin`, `mt ls -in20`.
+Good: `[[tasks.roots]]`, `[tasks.priority]`, `[views.<name>]`, `[tasks] roots`,
+`[ls.columns.assignee] when = 'true'`, `[[typst.local-packages]] path`,
+`tasks.estimate.units`, `[workspace.package] version`, `[overlay]`, `typst.toml`.
+Bad: `mt lss`, `mt ls --jsn`, `mt ls -x`, `mt config shw`.
+Bad: `[tasks.priorty]`, `tasks.estimate.unit`, `[tasks.roots]`, `[[tasks.priority]]`,
+`[ls] hyperlinkz`, `[tasks.estimate.units]`. #raw("mt lsr")
+// `mt lsc` in a comment line
+```
+mt lsf in a fenced block
+```
+examples: ```sh
+mt lsg in a block opened mid-line
+```, then `mt lsh` after it.
+EOF
+    local want got
+    want=$(sort <<'EOF'
+`[[tasks.priority]]`: [[tasks.priority]] names a table; write [tasks.priority]
+`[ls] hyperlinkz`: ls has no key hyperlinkz; closest: hyperlinks
+`[tasks.estimate.units]`: [tasks.estimate.units] names a value, not a table
+`[tasks.priorty]`: tasks has no key priorty; closest: priority
+`[tasks.roots]`: [tasks.roots] names an array of tables; write [[tasks.roots]]
+`mt config shw`: mt config has no subcommand shw; closest: show
+`mt ls --jsn`: mt ls has no flag --jsn; closest: --json
+`mt ls -x`: mt ls has no flag -x; valid: -i, -n, -v, -w
+`mt lsh`: no subcommand lsh; closest: ls
+`mt lsr`: no subcommand lsr; closest: ls
+`mt lss`: no subcommand lss; closest: ls
+`tasks.estimate.unit`: tasks.estimate has no key unit; closest: units
+EOF
+    )
+    got=$(check "$page" | sed "s|^check-doc-spans: $page:[0-9]*: ||" | sort)
+    if [ "$got" != "$want" ]; then
+        echo "check-doc-spans: control failed; findings differ from the expected set:" >&2
+        diff <(echo "$want") <(echo "$got") >&2 || true
+        exit 1
+    fi
+}
+
+control
+
+shopt -s globstar nullglob
+sources=()
+for f in docs/src/**/*.typ www/content/*.typ www/utils/*.typ; do
+    # docs/src/lib.typ is a helper module, not a page; check-doc-recipes.sh
+    # skips it for the same reason.
+    [ "$f" = docs/src/lib.typ ] || sources+=("$f")
+done
+findings=$(check "${sources[@]}")
+if [ -n "$findings" ]; then
+    echo "$findings" >&2
+    exit 1
+fi

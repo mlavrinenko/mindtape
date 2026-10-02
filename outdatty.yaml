@@ -484,6 +484,8 @@ groups:
       - .just/scripts/check-doc-prose.sh
       - .just/scripts/check-doc-blocks.sh
       - .just/scripts/_doc-blocks-lib.sh
+      - .just/scripts/check-doc-spans.sh
+      - .just/scripts/check-doc-spans.jq
       - .just/scripts/check-secrets.sh
       - .just/scripts/check-secrets-manifest.sh
       - .just/scripts/fmt-fixture-check.sh

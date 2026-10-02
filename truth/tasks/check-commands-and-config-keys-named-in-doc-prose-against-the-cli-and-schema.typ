@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(
+    2026,
+    10,
+    3,
+  )[just check-doc-spans checks mt commands, flags and config keys in inline doc spans; fixed \[\[tasks.roots\]\] on config.typ and the mt export span],
   links: parent("make-the-docs-plain-problem-led-and-unable-to-drift.typ"),
 )
 

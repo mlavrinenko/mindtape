@@ -112,7 +112,7 @@ recipe, not a spec.
 
 = Export
 
-There is no `mt export`. This is a deliberate scope decision, not a gap:
+MindTape has no export command. This is a deliberate scope decision, not a gap:
 
 - Every task is already a plain `.typ` file, tracked in git. `git log`,
   `git blame`, and a plain `cp` already work — no export step needed to get

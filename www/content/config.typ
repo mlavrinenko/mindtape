@@ -117,7 +117,7 @@ newly added config key cannot silently go undocumented: the build fails first.
 
 Sections with a page of their own:
 
-- `[tasks.roots]` / `[tasks.derive-tags]` — #link(u("/derived-tags/"))[Derived tags].
+- `[[tasks.roots]]` / `[tasks.derive-tags]` — #link(u("/derived-tags/"))[Derived tags].
 - `[tasks.priority]` / `[tasks.difficulty]` — #link(u("/priority/"))[Priority].
 - `[tasks.estimate]`, and estimate caps and budgets as rules — #link(u("/estimates/"))[Estimates].
 - `[tasks.recur]` — #link(u("/recurring/"))[Recurring tasks].

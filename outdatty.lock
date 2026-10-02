@@ -90,6 +90,8 @@ groups:
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-prose.sh: b8c91bc0114a06238c093d702e643b5fe427283439b3b6e7a34297b4672f9252
       .just/scripts/check-doc-recipes.sh: 87eff1bf6f36d349ea618a5c3356abbd80f1437eaa28103dcce151ec697649c8
+      .just/scripts/check-doc-spans.jq: d98f5c66473d622c61e23c632bbf10ac3e1538850863fefb654f9e023c92d431
+      .just/scripts/check-doc-spans.sh: 763dd7fe3ae9bfb0546c1f31af207548ca246f06758a3fa3141b1bb405be4bdc
       .just/scripts/check-gate-drift.sh: 4ecba6d33a78dc6a0ee09cbf1e0c1c45d777be382dc531451acba6810eb2d1bb
       .just/scripts/check-secrets-manifest.sh: ff2bd2525d6465486c5576cbb8a2a8a7960767e08141346529fd68baf222e1b8
       .just/scripts/check-secrets.sh: 9fc40236aea059fba71ed2ad29f21ba25e5e399c14f4b960746717d7062e042c
@@ -110,7 +112,7 @@ groups:
       .just/scripts/script-scope-check.sh: ea49ba3a92c1189c69282c34fb05ac4474c34f8b174be1611c9eff921e254969
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: a6f8c7bb9f3e924356c0539d69dd39212973e2975de4a2f5cf1f3a3a32754d6c
+      Justfile: 065cc5e3ee09e3d1e7a69e81458db0509d2438e08ea7f8216aab583845077159
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: 574115bc40c66b377d297329cf81a414e27625d8b008a0e3575883650018af35
