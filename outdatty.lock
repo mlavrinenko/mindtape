@@ -129,6 +129,19 @@ groups:
       docs/src/contributing/mutation-testing.typ: 47d36b9534266f15322c41b37158b943ce28b87236af6b514d1d6bfcfbb86316
       docs/src/contributing/signal-sweep.typ: 6377402d346c38c13ccb9cdc7e5b10913c5c7123dccd47bf6767ca0727a802fe
       docs/src/contributing/windows.typ: 7e3c201b3512642d8fa12b1ee5264dbb9e36d59ccf38aded06f4c74366c57491
+  filter-docs:
+    source:
+      crates/mindtape/src/filter.rs: 9d2f53d76a65ac3f8447e69a0658cba3fd2c9a82c071aa837731f42210d5632a
+      crates/mindtape/src/filter_aggregate.rs: 8c99e0c8d2febd86af685e7d6277ac068981b023096171d21a6091a7bc3723e0
+      crates/mindtape/src/filter_compare.rs: 8be121c0062af03c9009498d0dfa119db0007dabaeddbe316c52653f029357dc
+      crates/mindtape/src/filter_eval.rs: a7b8856c70548bfd327a745dd1296af708f8fe2d49d190e86c34a04329a21ca6
+      crates/mindtape/src/filter_links.rs: bd542383622440ec991c3c84a1084609addfee3367b9a67d457669966aee98e1
+      crates/mindtape/src/filter_predicates.rs: ca1fb3bd481935f18e19404ee75cb39218ddd39619eeebeb88f86f7559d0bf64
+      crates/mindtape/src/filter_strings.rs: c801ee11dce74cf594960636a22bc740d138a0599e248a2fc3a6a93c6f6cc816
+      crates/mindtape/src/filter_views.rs: 766bedaf14849caf0d8a84989e57bf96295c9866f40ab9633442411a94e13800
+    dependents:
+      skills/mindtape/references/filters.md: 89c7715044d078c68642f9c844219da912828bafb0a49f03ed3d4a458cf026ae
+      www/content/filters.typ: 288817c115df8a0907a64500ca454d1d1d7a0b76a50c856b8fa21e74b3201f12
   prelude-docs:
     source:
       lib/prelude.typ: 2e99b69589c8842bb2fc36461828ee2fdb77a39da3e975358e378b25b924ba06

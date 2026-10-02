@@ -196,6 +196,30 @@ groups:
       - skills/mindtape/evals/README.md
       - skills/mindtape/evals/evals.json
 
+  # The filter language's functions (`has`, `miss`, `contains`, `touches`,
+  # `stale`, `changed`, `count`, `links`, `in_view`, ...) are matched by name
+  # in the modules below. www/content/filters.typ and
+  # skills/mindtape/references/filters.md list them by hand, and
+  # www/generated/*.json carries nothing about what each one means, so a
+  # function that is added, renamed or redefined has no fact file to flag the
+  # two pages. Every `filter*.rs` module that holds a function or the `@name`
+  # sugar is a source. The `filter_*_tests.rs` files are not: a test changes
+  # without changing a function. The field vocabulary the same pages list is
+  # tracked by cli-docs.
+  - name: filter-docs
+    source:
+      - crates/mindtape/src/filter.rs
+      - crates/mindtape/src/filter_aggregate.rs
+      - crates/mindtape/src/filter_compare.rs
+      - crates/mindtape/src/filter_eval.rs
+      - crates/mindtape/src/filter_links.rs
+      - crates/mindtape/src/filter_predicates.rs
+      - crates/mindtape/src/filter_strings.rs
+      - crates/mindtape/src/filter_views.rs
+    dependents:
+      - www/content/filters.typ
+      - skills/mindtape/references/filters.md
+
   # A package change (version, dependencies, metadata) should land in the changelog.
   - name: release-notes
     source:
