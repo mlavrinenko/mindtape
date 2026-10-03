@@ -14,7 +14,7 @@ groups:
       www/content/trace-commits-to-tasks.typ: 6f8d4d7ff344895057460f3a7322cbcb23067fc2bf3ab90a72a19427cb19b49b
   cli-docs:
     source:
-      crates/mindtape-cli/src/add.rs: d64e02e9974cc754b5a3cb75c322f176cffa46342fd7c828c8dea7999ef00860
+      crates/mindtape-cli/src/add.rs: 429ef7b81fcd512a7cbf5708345a3cf0ca730f6e64dee62e14a65e68f2433593
       crates/mindtape-cli/src/check.rs: ec589b2afae9ba8f6c173dd3d353cac2089b54ab9aa884eb60b6d0424a6ce03d
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
       crates/mindtape-cli/src/completion.rs: fe14695fe1c11cdd3d8fd75119c32686453ca77b2763160721a22fdcff314461
@@ -70,7 +70,7 @@ groups:
       www/content/rules.typ: b5363e5b05ee345a2e5cd62ae156ec8b41892a4ab6ce8a779dcdb09e942f55c7
       www/content/schema.typ: 6eb69ba844be22a4653fb8a2d69b6d68ec9da2c874689909a663a1b4299b9384
       www/content/statuses.typ: ef993338e298c6b20f2a4a83742aa6a3421a3069cefd6a5c22ec097405c7a7f1
-      www/content/templates.typ: 198695f2f05ac1ca8ef4a2d34a39ca5da118566380626350f278a03258458bdf
+      www/content/templates.typ: 584e9d5107318bc1bce00d37a39d23c66fa946fbcb7ec46165bfa608edf4cddb
       www/utils/cli-notes.typ: f5f6449e0e9c31923c07d07b22523157061d4969fc7690b4f5c2119fb80b4052
   cli-name:
     source:

@@ -29,6 +29,11 @@ in `[templates] dirs`. It uses `task.typ` unless you name another with
 project has no such file, `mt add` uses a built-in template whose only slot is
 `title`. `mt add --list` lists the templates it finds.
 
+When a refused add left a field to a slot and another template writes that
+field as the value you passed, the error ends with a line such as
+#raw("hint: template `dev` files kind=dev: mt add -t dev ..."). Each matching
+template gets its own line.
+
 This is the template in `examples/api-service/.mindtape/templates/task.typ`:
 
 #raw(read("../generated/api-service-template.typ"), lang: "typ", block: true)

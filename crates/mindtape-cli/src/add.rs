@@ -40,6 +40,9 @@ use target::{output_stem, resolve_outcome};
 mod add_notes;
 use add_notes::report_injected;
 
+#[path = "add_hint.rs"]
+mod add_hint;
+
 /// Arguments for `mt add`.
 // A clap flag struct: each `--flag` is an independent boolean toggle.
 #[allow(clippy::struct_excessive_bools)]
@@ -187,16 +190,39 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let stem = output_stem(args, &values, config)?;
     let file = dest.join(format!("{stem}.typ"));
 
-    if args.print {
-        return print_preview(args, &project, &file, &filled, interactive);
-    }
+    let written = if args.print {
+        print_preview(args, &project, &file, &filled, interactive)
+    } else {
+        write_task(args, &project, (&stem, &dest, file), &filled, interactive)
+    };
+    written.map_err(|err| {
+        match add_hint::template_hint(
+            config,
+            &project.root,
+            &template_name,
+            (&source, &filled),
+            &explicit,
+        ) {
+            Some(hint) => anyhow!("{err:#}\n{hint}"),
+            None => err,
+        }
+    })
+}
 
-    let outcome = resolve_outcome(args, config, &stem, &dest, file)?;
+/// Resolve the dedup outcome, then [`commit`] the task.
+fn write_task(
+    args: &AddArgs,
+    project: &util::Project,
+    (stem, dest, file): (&str, &Path, std::path::PathBuf),
+    filled: &str,
+    interactive: bool,
+) -> Result<()> {
+    let outcome = resolve_outcome(args, &project.config, stem, dest, file)?;
     let Some(outcome) = outcome else {
         // `--dedup skip` already reported the existing path; nothing to write.
         return Ok(());
     };
-    commit(args, &project, &outcome, &filled, interactive)
+    commit(args, project, &outcome, filled, interactive)
 }
 
 /// Print the preview — but only after the same pre-write check a write runs.

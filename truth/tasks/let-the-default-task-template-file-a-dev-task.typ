@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 3),
+  status: done(2026, 10, 3),
 )
 
 == Problem
@@ -48,26 +48,31 @@ left in a closing report no one rereads. It belongs in
 
 == TO-BE
 
-- 🟢 `mt add` with the default template either files a valid `dev` task or refuses `kind=dev` up front, naming `-t dev`.
+- 🟢 When `mt add` refuses a task, and the chosen template left a field to a slot that the caller filled, every other template that writes that field as the same literal gets a `hint:` line under the error, as #raw("hint: template `dev` files kind=dev: mt add -t dev ...").
+- 🟢 Several matching templates are each named. No match, no hint.
+- 🟢 Nothing that is accepted today is refused. Only the failure text changes.
 
 
 == Changes
 
-- `.mindtape/templates/task.typ`: drop `dev` from the kinds it offers, or add the Rollback slot when the kind is `dev`.
-- `.mindtape/config.toml`: let the `rollback-for-dev` message name `mt add -t dev`.
+- `crates/mindtape-cli/src/add_hint.rs`: reads each template's `task.with(…)` arguments and compares their literals with the caller's slot-filled values. It names no kind, template, field value or section.
+- `crates/mindtape-cli/src/add.rs`: appends the hint to the error of a refused preview or write.
+- `crates/mindtape-cli/tests/add_template_hint_e2e.rs`: a refusal names the pinning template, and a value no template pins gets no hint.
+- `www/content/templates.typ`: the `mt add` page describes the hint.
+- `mt import` takes full records and no template, so it needs no hint.
 
 
 == Rollback
 
-Revert the commit; the template and config return to offering `dev` without a Rollback slot.
+Revert the commit; a refused `mt add` goes back to the bare validation error.
 
 
 == Out of scope
 
-- The `rollback-for-dev` rule itself: a dev chore should still say how to undo it.
+- The default template's slots, the `rollback-for-dev` rule and the config: the rule still holds, and the hint points at `-t dev`.
+- Filing the task under another template automatically.
 
 
 == Dogfood
 
 The next `dev` task here is filed with plain `mt add`, or refused with a pointer to `-t dev`.
-
