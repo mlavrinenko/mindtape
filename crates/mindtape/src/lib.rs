@@ -40,7 +40,6 @@ mod config_dicts;
 mod config_estimate;
 mod config_format;
 mod config_go;
-mod config_handle;
 pub mod config_hooks;
 mod config_layers;
 mod config_links_validate;
@@ -135,11 +134,11 @@ pub use condition_env::{ColumnFacts, ConditionEnv};
 pub use config::{
     Actor, ActorKind, AddConfig, AssigneeConfig, BUILTIN_PREFIX, Collector, ColumnConfig, Config,
     ConfigError, DeriveConfig, DeriveTags, Dict, DictCase, DictSpec, Dicts, EstimateConfig, Facet,
-    FormatConfig, GoConfig, HandleConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS,
-    LocalPackage, LsRule, MAX_CHECK_LEN, PriorityConfig, ReadyConfig, RetireConfig, RmConfig,
-    RmStrategy, Role, RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec,
-    builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
-    parse_import_view, roles_of, validate_dicts, validate_views,
+    FormatConfig, GoConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage,
+    LsRule, PriorityConfig, ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role, RootConfig,
+    RootSpec, TemplatesConfig, TypstConfig, ViewSpec, builtin_dict_names, compile_dicts,
+    config_path, embedded_defaults, load_config, parse_config, parse_import_view, roles_of,
+    validate_dicts, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};

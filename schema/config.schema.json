@@ -841,23 +841,6 @@
       },
       "type": "object"
     },
-    "HandleConfig": {
-      "additionalProperties": false,
-      "description": "`[handle]` — the shape of a `mt ls` handle.",
-      "properties": {
-        "check-len": {
-          "default": null,
-          "description": "How many check characters follow a handle's ordinal; omitted → 1.\nA handle of any other length is refused rather than prefix-matched, so\nraising this invalidates the short handles rather than accepting them.",
-          "format": "uint",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
-        }
-      },
-      "type": "object"
-    },
     "HeaderAction": {
       "description": "What a heading rule checks: `require`, `forbid` or `unique` over `path`, `order` of `before` and `after`, or an `allowlist` of headings.",
       "enum": [
@@ -2166,10 +2149,6 @@
     "go": {
       "$ref": "#/$defs/GoConfig",
       "description": "`go` (open in editor) settings."
-    },
-    "handle": {
-      "$ref": "#/$defs/HandleConfig",
-      "description": "`[handle]` — how many check characters a `mt ls` handle carries."
     },
     "ls": {
       "$ref": "#/$defs/LsConfig",

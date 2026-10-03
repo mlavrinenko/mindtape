@@ -166,7 +166,6 @@ section the table leaves out.
   ("ls", "[ls]"),
   ("rm", "[rm]"),
   ("retire", "[retire]"),
-  ("handle", "[handle]"),
   ("views", "[views.<name>]"),
   ("dicts", "[dicts.<name>]"),
   ("on", "[[on.flip]]"),

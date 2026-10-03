@@ -30,7 +30,6 @@ pub use crate::config_dicts::{
 };
 pub use crate::config_format::FormatConfig;
 pub use crate::config_go::GoConfig;
-pub use crate::config_handle::{HandleConfig, MAX_CHECK_LEN};
 pub use crate::config_ls::{
     Facet, HyperlinkChoice, ImportView, LS_COLUMNS, LsConfig, LsRule, ReadyConfig,
     parse_import_view, validate_ls_rules,
@@ -75,8 +74,6 @@ pub struct Config {
     pub rm: RmConfig,
     /// `[retire]` — the gitless `rm` strategy's tombstone settings.
     pub retire: RetireConfig,
-    /// `[handle]` — how many check characters a `mt ls` handle carries.
-    pub handle: HandleConfig,
     /// `add` (task creation) template discovery.
     pub templates: TemplatesConfig,
     /// `add` interactive-fill settings (editor, when it opens).
@@ -249,7 +246,6 @@ impl Config {
         problems.extend(crate::body_headers::validate_header_rules(self));
         problems.extend(crate::body_content::validate_content_rules(self));
         problems.extend(crate::config_comments::validate_comments(self));
-        problems.extend(crate::config_handle::validate_handle(self));
         problems.extend(crate::config_actors::validate_actors(self));
         problems.extend(crate::config_hooks::validate_flip_hooks(self));
         problems.extend(validate_ls_rules(&self.ls.rules, &self.views));

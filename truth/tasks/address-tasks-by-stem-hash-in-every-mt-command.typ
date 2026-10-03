@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 3),
+  status: done(2026, 10, 3),
   links: depends-on("derive-a-stem-hash-for-each-task-in-the-library.typ"),
 )
 
