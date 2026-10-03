@@ -118,7 +118,7 @@ machete:
 [doc("Fail if any file exceeds its linecop cap")]
 [group("gate")]
 check-file-size:
-    linecop --format paths
+    linecop
 
 [doc("Copy-paste gate: fail on any duplicated Rust block")]
 [extension('.sh')]
