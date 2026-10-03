@@ -40,7 +40,7 @@
   margin: 0; border: none; border-radius: 0; flex: 1; box-shadow: none; min-width: 0;
 }
 .face-source .face-body pre { font-size: 0.7rem; }
-/* The typeset face is a genuinely compiled task card (fur-elise-polish.typ →
+/* The typeset face is a genuinely compiled task card (throttle-failed-logins-per-ip.typ →
    SVG, inlined as a data-uri <img>); scale it to the column. */
 .face-card .face-body { padding: 1rem; align-items: flex-start; }
 .face-card .face-body > img { width: 100%; height: auto; display: block; }

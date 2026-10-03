@@ -3,6 +3,7 @@
 #show: task.with(
   title: "Throttle failed logins per IP",
   kind: "feat",
+  priority: ice(impact: 7, confidence: 0.7, ease: 4),
   status: proposed(2026, 9, 28),
   estimate: (src-files: 2),
   links: depends-on("add-redis-client.typ"),

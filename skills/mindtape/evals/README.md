@@ -9,7 +9,7 @@ Evals run against the tracked example projects, not a fixture of their own:
 
 | Fixture | Evals | Why this one |
 |---------|-------|--------------|
-| `examples/learn-piano` | 0-3 | 13 tasks over three folders, derived tags, ICE priority with bands, a full status legend including `blocked`, and both flavours of blocked (a `blocked` status, and a `proposed` task blocked by a dependency) |
+| `examples/api-service` | 0-3 | 12 tasks, 4 of them done, ICE priority with bands, a template with required slots, a one-task-in-`wip` rule, a `proposed` task blocked by a dependency, and a `scripts/test` gate that fails on every `mt done` |
 | `examples/minimal` | 4-5 | The floor config. Its two absences are the test: no `blocked` in the legend, and no template — so `--set priority=8` is refused by name |
 
 Both are validated by `just check-examples`, which is what makes them safe to
@@ -26,7 +26,7 @@ that has nothing to do with it.
 
 ```sh
 work=$(mktemp -d)
-cp -a examples/learn-piano "$work/project"
+cp -a examples/api-service "$work/project"
 # hand the subagent "$work/project" as its cwd
 ```
 

@@ -65,7 +65,7 @@ default:
 
 # Capture live `mt` output for the docs (www/generated/*.txt), so the site's
 # CLI reference, help, version, and transcripts cannot drift from the binary.
-# Builds `mt` debug, runs it against examples/learn-piano at a pinned clock.
+# Builds `mt` debug, runs it against examples/api-service at a pinned clock.
 #
 # generate.sh itself derives the crate/DSL/gate/linecop facts
 # (www/generate-facts.sh) and then the page manifest (www/generate-site-pages.sh)

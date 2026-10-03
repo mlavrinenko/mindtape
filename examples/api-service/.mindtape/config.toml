@@ -36,6 +36,40 @@ units = ["src-files"]
 required = "!terminal"
 # docs:end
 
+# Rank the work: an ICE score on a 0..9 scale, and a band that names each score.
+[tasks.priority]
+kind = "int"
+min = 0
+max = 9
+framework = "ice"
+allow-manual = false
+
+[[tasks.priority.bands]]
+label = "green"
+min = 0
+max = 2
+glyph = "🟢"
+color = "green"
+
+[[tasks.priority.bands]]
+label = "amber"
+min = 3
+max = 6
+glyph = "🟡"
+color = "yellow"
+
+[[tasks.priority.bands]]
+label = "red"
+min = 7
+max = 9
+glyph = "🔴"
+color = "red"
+
+# Tag by service: a tag is a service name or one of a few areas. `@services`
+# expands to the dictionary below when the config loads.
+[tasks.tags]
+allowed = ["@services", "security", "docs"]
+
 # Gate done on your checks: `mt done` refuses while `scripts/test` fails.
 # docs:slice api-service/gate-done-on-checks
 [[on.flip]]
@@ -48,6 +82,45 @@ actions = [{ run = "scripts/test", gate = true }]
 [commits]
 trailer = "Refs"
 # docs:end
+
+# Name the services once. A task tag and a rule can both read the set. It joins
+# inline `values` with a `path` file (one entry per line), and `case` sets how
+# lookups compare.
+# docs:slice named-sets/dict-composers
+[dicts.services]
+values = ["auth", "billing"]
+path = "dicts/services.txt"
+case = "fold"
+# docs:end
+
+# Name the verbs a title may start with. The pack declares this same set under
+# this name, and a project dictionary replaces a pack's by name.
+# docs:slice named-sets/dict-verbs
+[dicts.verbs]
+include = ["mindtape-verbs", "mindtape-dev-verbs"]
+# docs:end
+
+# List what is open and due to start. A bare `mt ls` applies the default view.
+# docs:slice named-sets/view-default
+[views.default]
+filter = "!terminal && (miss(start) || start <= now())"
+# docs:end
+
+# Find the work nobody has looked at in two weeks.
+# docs:slice named-sets/view-stuck
+[views.stuck]
+filter = "!terminal && stale(14)"
+sort = ["priority:desc", "due:asc"]
+columns = ["#", "status", "ready", "priority", "due", "title"]
+description = "Open and not reviewed in 14 days"
+# docs:end
+
+# Plan the week: what is due Monday to Sunday, soonest first.
+[views.this-week]
+filter = '!terminal && has(due) && due >= "2026-09-28" && due <= "2026-10-04"'
+sort = ["due:asc"]
+columns = ["#", "status", "priority", "due", "title"]
+description = "Work due this week"
 
 # Check the tasks against this checkout's prelude in lib/.
 [[typst.local-packages]]

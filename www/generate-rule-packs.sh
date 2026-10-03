@@ -9,7 +9,7 @@
 # this one does not repeat.
 #
 # Unlike every other capture in generate.sh, this one runs `mt` against THE
-# REAL REPO, not the learn-piano fixture: the pack's dogfood use — a project
+# REAL REPO, not a fixture: the pack's dogfood use — a project
 # override replacing one of the pack's own rules by name
 # (`section-allowlist`), and a project-only rule the pack has no opinion on
 # (`goals`) — is the worked example the page quotes, and only this repo's
@@ -24,7 +24,7 @@ MT="$REPO/target/debug/mt"
 
 # The pack file itself, copied verbatim so the page can read() it under
 # www's --root (same reason generate.sh copies hero-source.typ/template.typ
-# out of examples/learn-piano instead of reading them in place).
+# out of examples/api-service instead of reading them in place).
 cp "$REPO/crates/mindtape/src/packs/mindtape-tasks.toml" "$OUT/mindtape-tasks-pack.toml"
 
 # shellcheck source=www/capture.sh

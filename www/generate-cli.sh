@@ -4,7 +4,7 @@
 # www/generate.sh with the repo root and the generated/ directory, inside the
 # lock that script holds.
 #
-# Read commands run in examples/learn-piano in place. Commands that write run
+# Read commands run in examples/api-service in place. Commands that write run
 # in a copy of a fixture, or in a project `mt init --no-input` makes. Each
 # session gets its own project, so no session depends on what another wrote.
 # Files a command reads (notes, an import, a link map) are written before the
@@ -14,7 +14,11 @@ set -eo pipefail
 REPO="$1"
 OUT="$2"
 MT="$REPO/target/debug/mt"
-FIX="$REPO/examples/learn-piano"
+FIX="$REPO/examples/api-service"
+
+# The api-service tasks are dated in the last week of September 2026, so
+# "today" is just after them.
+export MINDTAPE_NOW=2026-10-01
 
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
@@ -32,15 +36,15 @@ capture ls "$FIX" 'mt ls'
 capture views "$FIX" 'mt views'
 capture check "$FIX" 'mt check'
 capture flip-list "$FIX" 'mt flip --list'
-capture eval "$FIX" 'mt eval tasks/repertoire/fur-elise-polish.typ'
+capture eval "$FIX" 'mt eval tasks/throttle-failed-logins-per-ip.typ'
 capture config-origin "$FIX" 'mt config show --origin'
-capture ls-default "$FIX" "mt ls 'has_tag(\"technique\")' --columns @default --sort @default"
+capture ls-default "$FIX" "mt ls 'has_tag(\"billing\")' --columns @default --sort @default"
 capture ls-cut "$FIX" "mt ls '' -n 5"
 capture ls-file-when "$FIX" "mt config show --defaults | grep -A1 '^\[ls.columns.file\]'"
 
 capture_lines ls-examples "$FIX" <<'EOF'
 mt ls ''                        # empty filter: lists everything
-mt ls 'has_tag("classical")'    # filter expression
+mt ls 'has_tag("auth")'         # filter expression
 mt ls ready -n 3                # predicate and limit; a table says what it cut
 mt ls '' -n 5 --skip 5          # page two; the footer names the next --skip
 mt ls @stuck                    # named view: filter, sort and columns
@@ -58,10 +62,10 @@ capture_lines ls-columns-examples "$FIX" <<'EOF'
 mt ls --columns status,title    # one-off override of [ls] columns-order
 EOF
 capture_lines find-examples "$FIX" <<'EOF'
-mt find scales                  # one term
-mt find practice scales         # several terms conjoin (AND)
-mt find practice --sort priority:desc -n 3   # every ls flag forwards
-mt find scales --format path | xargs wc -l
+mt find redis                   # one term
+mt find login token             # several terms conjoin (AND)
+mt find redis --sort priority:desc -n 3   # every ls flag forwards
+mt find email --format path | xargs wc -l
 EOF
 capture_lines config-examples "$FIX" <<'EOF'
 mt config show              # effective config as re-parseable TOML
@@ -96,10 +100,10 @@ mt import < export.json           # canonical JSON from stdin
 jq -f contrib/jq/taskwarrior.jq task-export.json | mt import   # a Taskwarrior export
 EOF
 
-capture_copy P examples/learn-piano
+capture_copy P examples/api-service
 capture_lines mv "$P" <<'EOF'
-mt mv major-scales-two-octaves major-scales --dry-run
-mt mv major-scales-two-octaves major-scales
+mt mv add-redis-client add-redis --dry-run
+mt mv add-redis-client add-redis
 EOF
 
 init_scratch P
@@ -124,36 +128,36 @@ mt link --apply links.yaml
 mt link --apply - < links.yaml
 EOF
 
-capture_copy P examples/learn-piano
-capture done "$P" 'mt done fur-elise-polish'
+capture_copy P examples/api-service
+capture_prep "$P" "printf '#!/bin/sh\\nexit 0\\n' >scripts/test"
+capture done "$P" 'mt done reject-expired-sessions-on-token-refresh'
 
-capture_copy P examples/learn-piano
+capture_copy P examples/api-service
 capture_lines flip-examples "$P" <<'EOF'
-mt flip blocked 2a 3v -m "waiting on the piano tuner"   # batch, with a note
-mt flip done clair-de-lune-practice --force             # bypass the graph, waive a gate
-mt flip wip 7f --quiet                                  # no [[on.flip]] show or list output
+mt flip done reject-expired-sessions-on-token-refresh document-the-webhook-retry-policy -m "shipped in v1.9.0" --force   # batch, with a note, waiving the failing test gate
+mt flip wip add-redis-client --quiet   # no [[on.flip]] show or list output
 EOF
 
-capture_copy P examples/learn-piano
+capture_copy P examples/api-service
 capture_lines review-examples "$P" <<'EOF'
-mt review fur-elise-polish   # stamp reviewed: with today's date
+mt review replace-the-deprecated-search-client   # stamp reviewed: with today's date
 EOF
 
-capture_copy P examples/learn-piano
+capture_copy P examples/api-service
 capture_lines recur "$P" <<'EOF'
-mt recur hanon-warmup-daily --dry-run    # preview without writing
-mt recur hanon-warmup-daily              # spawn a new file, or refresh in place
-mt recur hanon-warmup-daily --force      # spawn again even if a successor exists
-mt recur hanon-warmup-daily --skip       # advance the anchor and count, spawn nothing
+mt recur rotate-the-jwt-signing-key --dry-run    # preview without writing
+mt recur rotate-the-jwt-signing-key              # spawn a new file, or refresh in place
+mt recur rotate-the-jwt-signing-key --force      # spawn again even if a successor exists
+mt recur rotate-the-jwt-signing-key --skip       # advance the anchor and count, spawn nothing
 EOF
 
-capture_copy P examples/learn-piano
+capture_copy P examples/api-service
 capture_prep "$P" 'git init -q && git add -A && git -c user.name=docs -c user.email=docs@example.com -c commit.gpgsign=false commit -qm fixture'
 capture_lines rm "$P" <<'EOF'
 mt rm terminal --dry-run                                      # the plan, nothing written
-mt rm abandoned-rondo-alla-turca --yes                        # by reference
-mt rm circle-of-fifths-drill major-scales-two-octaves --yes   # two references, one pass
-mt rm 'status == "failed"' --yes                              # by filter: every match
+mt rm fix-the-404-page-typo --yes                             # by reference
+mt rm upgrade-the-axum-web-framework pin-the-rust-toolchain-in-ci --yes   # two references, one pass
+mt rm 'status == "done"' --yes                                # by filter: every match
 EOF
 
 capture_scratch P
@@ -173,13 +177,13 @@ EOF
 
 (
     capture_home
-    capture_copy P examples/learn-piano
+    capture_copy P examples/api-service
     mkdir -p "$CAPTURE_CONFIG_HOME/mindtape"
-    printf '[[worktrees]]\nname = "piano"\npath = "%s"\n' "$P" >"$CAPTURE_CONFIG_HOME/mindtape/worktrees.toml"
-    CAPTURE_PATHS+=("$P=~/piano")
+    printf '[[worktrees]]\nname = "api"\npath = "%s"\n' "$P" >"$CAPTURE_CONFIG_HOME/mindtape/worktrees.toml"
+    CAPTURE_PATHS+=("$P=~/api-service")
     capture_scratch Q
     capture_lines worktrees-examples "$Q" <<'EOF'
 mt worktrees      # the configured @name aliases
-mt @piano ls      # @name is -w <path>, rewritten before parsing
+mt @api ls        # @name is -w <path>, rewritten before parsing
 EOF
 )

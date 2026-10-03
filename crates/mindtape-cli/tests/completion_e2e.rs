@@ -62,7 +62,7 @@ fn complete(dir: &Path, words: &[&str]) -> Vec<String> {
 
 /// The red test this whole change was written against: `mt flip <TAB>` in
 /// `examples/minimal` offers THAT project's four-value legend. `todo` is
-/// minimal's and `proposed` is learn-piano's, so a baked list, a list read from
+/// minimal's and `proposed` is api-service's, so a baked list, a list read from
 /// the wrong project, and the right one are three distinguishable answers.
 #[test]
 fn flip_offers_the_legend_of_the_project_it_runs_in() {
@@ -73,7 +73,7 @@ fn flip_offers_the_legend_of_the_project_it_runs_in() {
     );
     assert!(
         !candidates.contains(&"proposed".to_owned()),
-        "learn-piano's legend must not leak in: {candidates:?}"
+        "api-service's legend must not leak in: {candidates:?}"
     );
 }
 
@@ -81,10 +81,10 @@ fn flip_offers_the_legend_of_the_project_it_runs_in() {
 /// of the same binary answers differently because the config does.
 #[test]
 fn flip_offers_a_different_legend_in_a_different_project() {
-    let candidates = complete(&example("learn-piano"), &["mt", "flip", ""]);
+    let candidates = complete(&example("api-service"), &["mt", "flip", ""]);
     assert!(
         candidates.contains(&"proposed".to_owned()),
-        "learn-piano's legend: {candidates:?}"
+        "api-service's legend: {candidates:?}"
     );
     assert!(
         !candidates.contains(&"todo".to_owned()),
@@ -107,7 +107,7 @@ fn a_task_argument_offers_this_projects_stems() {
 /// the views this project declares.
 #[test]
 fn ls_offers_view_references() {
-    let candidates = complete(&example("learn-piano"), &["mt", "ls", "@"]);
+    let candidates = complete(&example("api-service"), &["mt", "ls", "@"]);
     assert!(
         candidates.iter().any(|c| c.starts_with('@')),
         "view refs: {candidates:?}"
@@ -118,7 +118,7 @@ fn ls_offers_view_references() {
 /// built-in `task` fallback.
 #[test]
 fn add_offers_template_stems() {
-    let candidates = complete(&example("learn-piano"), &["mt", "add", "-t", ""]);
+    let candidates = complete(&example("api-service"), &["mt", "add", "-t", ""]);
     assert!(
         candidates.contains(&"task".to_owned()),
         "template stems: {candidates:?}"
@@ -256,14 +256,17 @@ fn set_offers_nothing_once_an_assignment_carries_a_value() {
 }
 
 /// `mt set <task> tags=<TAB>` offers the tags a write is VALIDATED against:
-/// learn-piano declares an `allowed` list, and each candidate is a whole
+/// api-service declares an `allowed` list, and each candidate is a whole
 /// `tags=<tag>` token rather than a bare tag the token grammar would reject.
 #[test]
 fn set_offers_the_allowed_tags_as_whole_tokens() {
-    let candidates = complete(&example("learn-piano"), &["mt", "set", "warmup", "tags="]);
+    let candidates = complete(
+        &example("api-service"),
+        &["mt", "set", "add-redis-client", "tags="],
+    );
     assert!(
-        candidates.contains(&"tags=scales".to_owned()),
-        "learn-piano's tags: {candidates:?}"
+        candidates.contains(&"tags=security".to_owned()),
+        "api-service's tags: {candidates:?}"
     );
     assert!(
         candidates.iter().all(|c| c.starts_with("tags=")),

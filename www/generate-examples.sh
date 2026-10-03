@@ -144,7 +144,7 @@ slice_fixture self-validating | emit self-validating.json
 # checked fixtures to, for the same reason.
 CONFIG_SOURCES=(
   ".mindtape/config.toml"
-  "examples/learn-piano/.mindtape/config.toml"
+  "examples/api-service/.mindtape/config.toml"
   "examples/estimates/.mindtape/config.toml"
   "examples/links/.mindtape/config.toml"
   "examples/rules/.mindtape/config.toml"
@@ -157,7 +157,10 @@ CONFIG_SOURCES=(
 # because a mistyped fact name would otherwise emit a file no page ever reads —
 # invisible, and the one drift the per-page key-set assertion in
 # www/utils/slices.typ structurally cannot see from inside a single page.
-CONFIG_FACTS=(commit-rules config derived-tags estimates hooks links named-sets rule-packs rules self-validating statuses)
+# `api-service` is declared for its problem slices: generate-api-service.sh
+# reads those markers from the config itself, and this script refuses a marker
+# whose fact it does not declare.
+CONFIG_FACTS=(api-service commit-rules config derived-tags estimates hooks links named-sets rule-packs rules self-validating statuses)
 
 # Same two-pass shape as slice_fixture: awk writes each slice to its own temp
 # file and one index row per slice, then jq builds the JSON with --rawfile so

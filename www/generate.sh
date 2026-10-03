@@ -36,15 +36,18 @@
 #     (the gate path) always re-scans and is unaffected.
 set -eo pipefail
 
-# The fixed docs clock. The learn-piano fixture's dates are authored around it.
+# The fixed docs clock. The fixtures under examples/ are dated around it,
+# except api-service, whose tasks are dated in late September and read the
+# clock API_NOW instead.
 export MINDTAPE_NOW=2026-07-06
+API_NOW=2026-10-01
 # An empty value drops the user config layer, so a builder's own defaults.toml
 # neither changes a capture nor appears in `config show --origin`.
 export MINDTAPE_CONFIG_HOME=
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
-FIX="$REPO/examples/learn-piano"
+FIX="$REPO/examples/api-service"
 OUT="$SCRIPT_DIR/generated"
 MT="$REPO/target/debug/mt"
 
@@ -141,13 +144,14 @@ bash "$SCRIPT_DIR/generate-commit-rules.sh" "$REPO" "$OUT"
 
 # `mt ls` in colour for terminal-ansi() (www/utils/ui.typ), which the home
 # page hero and /filters/ render.
-gen_color() { local slug="$1"; shift; "$MT" -w "$FIX" --color always "$@" >"$OUT/$slug.ansi"; }
+gen_color() { local slug="$1"; shift; MINDTAPE_NOW="$API_NOW" "$MT" -w "$FIX" --color always "$@" >"$OUT/$slug.ansi"; }
 gen_color ls       ls
 gen_color ls-open  ls '!terminal'
 
 # The hero "source" face reads a real fixture task verbatim. Copy it under
 # generated/ so it lives inside the Typst build root (read() can't escape it).
-cp "$FIX/tasks/repertoire/fur-elise-polish.typ" "$OUT/hero-source.typ"
+# The task carries docs:slice markers for other pages, which the hero omits.
+grep -v '^// docs:' "$FIX/tasks/throttle-failed-logins-per-ip.typ" >"$OUT/hero-source.typ"
 
 # The hero "typeset" face is that SAME task, genuinely compiled by the `task`
 # show rule (lib/prelude.typ) — not hand-built HTML. Typst HTML export inlines
@@ -159,7 +163,7 @@ LIBVER="$(sed -n 's/^version = "\(.*\)"/\1/p' "$REPO/lib/typst.toml" | head -1)"
 mkdir -p "$PKGS/local/mindtape"
 ln -s "$REPO/lib" "$PKGS/local/mindtape/$LIBVER"
 typst compile --package-path "$PKGS" \
-  "$FIX/tasks/repertoire/fur-elise-polish.typ" "$OUT/hero-card.svg"
+  "$FIX/tasks/throttle-failed-logins-per-ip.typ" "$OUT/hero-card.svg"
 rm -rf "$PKGS"
 
 # The records: the quickstart's session, the CLI reference's captures, and a

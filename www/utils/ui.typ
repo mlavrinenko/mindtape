@@ -188,7 +188,7 @@
     face("terminal", "terminal · mt ls", terminal-ansi(
       read("../generated/ls.ansi"),
     ))
-    face("source", "source · fur-elise-polish.typ", raw(
+    face("source", "source · throttle-failed-logins-per-ip.typ", raw(
       _hero-source,
       lang: "typ",
       block: true,

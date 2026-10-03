@@ -1,0 +1,5 @@
+# The path half of [dicts.services]: one entry per line. Blank lines and
+# lines starting with `#` are skipped, and each entry is trimmed.
+search
+
+notifications

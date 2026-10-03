@@ -4,7 +4,7 @@
 #
 # A record is www/generated/<slug>.json:
 #
-#   {"project": "examples/learn-piano",
+#   {"project": "examples/api-service",
 #    "steps": [{"cmd": "mt ls", "out": "...", "code": 0}]}
 #
 # `cmd` is the line bash ran, `out` is what the terminal showed (stdout and

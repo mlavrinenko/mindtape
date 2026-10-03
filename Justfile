@@ -164,7 +164,7 @@ outdatty-check:
     outdatty check --format paths
 
 # Checks each fixture another tool runs `mt` against, so the fixture cannot go
-# stale: learn-piano feeds the docs generator and the skill's triage evals,
+# stale: api-service feeds the docs generator and the skill's triage evals,
 # minimal feeds the skill's trap evals. Why a fixture must be gated before
 # another tool depends on it is in docs/contributing/example-projects.md.
 #

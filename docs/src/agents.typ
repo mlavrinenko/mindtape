@@ -61,8 +61,8 @@ compiler crates. There is no daemon and no database. A content-hash cache in
   the skill's SKILL.md and the `docs/contributing/*.md` deep dives.
 - `skills/mindtape/` — the agent skill for driving `mt`, with its references
   and evals.
-- `examples/` — fixture projects. `learn-piano` uses the full config surface
-  and feeds the docs and the skill's evals. `minimal` is the smallest config.
+- `examples/` — fixture projects. `api-service` is a backend team's backlog,
+  and it feeds the docs and the skill's evals. `minimal` is the smallest config.
   `dsl` holds the task the DSL block below quotes. `large` is a 2000-task
   benchmark whose gitignored tasks #just.gen-bench() writes. Each of the others
   backs one docs page.

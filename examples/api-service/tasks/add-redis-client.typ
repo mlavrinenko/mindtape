@@ -2,6 +2,7 @@
 #show: task.with(
   title: "Add a Redis client to the app state",
   kind: "feat",
+  priority: ice(impact: 7, confidence: 0.8, ease: 6),
   status: proposed(2026, 9, 25),
   estimate: (src-files: 3),
 )

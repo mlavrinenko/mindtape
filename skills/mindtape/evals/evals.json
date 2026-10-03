@@ -2,26 +2,26 @@
   "skill_name": "mindtape",
   "fixtures": {
     "note": "Each eval names a fixture project by repo-relative path. Copy it to a scratch dir and run there — never in place: evals mutate (mt add writes files, mt flip restamps) and these are tracked, gated fixtures. See README.md.",
-    "learn-piano": "examples/learn-piano",
+    "api-service": "examples/api-service",
     "minimal": "examples/minimal"
   },
   "evals": [
     {
       "id": 0,
       "name": "ready-priority-triage",
-      "fixture": "examples/learn-piano",
+      "fixture": "examples/api-service",
       "prompt": "I've got some time this afternoon — what should I work on next? Show me what's actually ready to start, most important first.",
-      "expected_output": "Agent drives `mt ls` with a ready filter sorted by priority desc. Seven tasks are ready; the top is 'Analyze chord progressions in the recital repertoire' (ICE score 7, the only one in the red band). The two blocked tasks must not be recommended: 'Clair de Lune' (status blocked) and 'Autumn Leaves' (status proposed but dependency-blocked — status alone does not reveal it). No files mutated.",
+      "expected_output": "Agent drives `mt ls` with a ready filter sorted by priority desc. Seven tasks are ready; the top is 'Index the orders by customer' (ICE score 7, the only one in the red band). The blocked task must not be recommended: 'Throttle failed logins per IP' has status proposed, but it depends on 'Add a Redis client to the app state', which is unfinished, so status alone does not reveal it. No files mutated.",
       "files": [],
       "assertions": [
         {
           "text": "Used the `mt ls` command (drove the CLI rather than hand-reading task files)"
         },
         {
-          "text": "Excluded BOTH blocked tasks: 'Clair de Lune' and 'Autumn Leaves' — the latter is only discoverable via the `blocked`/`ready` filter, not from its `proposed` status"
+          "text": "Excluded the blocked task 'Throttle failed logins per IP' — it is only discoverable via the `blocked`/`ready` filter or its depends-on edge, not from its `proposed` status"
         },
         {
-          "text": "Led with 'Analyze chord progressions in the recital repertoire', the highest-priority ready task"
+          "text": "Led with 'Index the orders by customer', the highest-priority ready task"
         },
         {
           "text": "Ordered by priority rather than by file order or due date, unless it explained why it chose otherwise"
@@ -34,44 +34,47 @@
     {
       "id": 1,
       "name": "file-new-task",
-      "fixture": "examples/learn-piano",
-      "prompt": "I keep fumbling the left-hand jumps in the Chopin waltz. Add a task to drill them.",
-      "expected_output": "Agent runs `mt add` to file a new task about drilling left-hand jumps. learn-piano declares a template, so the task should pick up its slots; `--to repertoire` or `--to technique` would nest it and earn a derived tag. `mt check` still passes and the 13 existing tasks are untouched.",
+      "fixture": "examples/api-service",
+      "prompt": "Password reset emails link to /reset/{token}, and in production that link returns 404. Add a task to fix it.",
+      "expected_output": "Agent runs `mt add` to file a new task about the 404 on the password reset link. api-service declares a template, so `mt add --describe` lists its slots (title, src-files, problem, to-be, changes, out-of-scope) and the agent supplies every one, with a numbered Problem whose defect step opens with 🔴, a TO-BE of 🟢 bullets and a `path` in each Changes bullet. `src-files` stays at 5 or fewer, because the `split-big-work` rule refuses a bigger task. `mt check` still passes and the 12 existing tasks are untouched.",
       "files": [],
       "assertions": [
         {
           "text": "Used `mt add` to create the task (did not hand-author a .typ file from scratch)"
         },
         {
-          "text": "A new task file exists whose title/slug is about drilling the left-hand jumps"
+          "text": "A new task file exists whose title/slug is about the 404 on the password reset link"
         },
         {
-          "text": "`mt check` reports all tasks valid (14 total)"
+          "text": "`mt check` reports all tasks valid (13 total)"
         },
         {
-          "text": "The 13 original task files are unchanged"
+          "text": "The 12 original task files are unchanged"
         }
       ]
     },
     {
       "id": 2,
       "name": "mark-task-done",
-      "fixture": "examples/learn-piano",
-      "prompt": "Finished the Hanon warm-up routine — it's solid now. Mark it done.",
-      "expected_output": "Agent identifies hanon-warmup-daily.typ (status wip) and closes it with `mt flip done` or the `mt done` verb. learn-piano's legend declares `to` edges and wip → done is allowed, so no `--force` is needed. No other task changes status.",
+      "fixture": "examples/api-service",
+      "prompt": "The fix for expired sessions on token refresh is merged and it's solid now. Mark that task done.",
+      "expected_output": "Agent identifies reject-expired-sessions-on-token-refresh.typ (status wip) and tries to close it with `mt flip done` or the `mt done` verb. The `[[on.flip]]` gate runs `scripts/test`, which exits 1 with `refresh_rejects_expired_session ... FAILED`, so the flip is refused and the task stays wip. The agent reports the failing test and does not use `--force`, which waives a failing gate and is only for correcting a mistake. No other task changes status.",
       "files": [],
       "assertions": [
         {
-          "text": "Identified the correct task (Hanon warm-up / hanon-warmup-daily)"
+          "text": "Identified the correct task (reject-expired-sessions-on-token-refresh)"
         },
         {
           "text": "Used the CLI to change status (`mt flip done` or `mt done`), not a hand edit of the status line"
         },
         {
-          "text": "hanon-warmup-daily.typ status is now `done`"
+          "text": "reject-expired-sessions-on-token-refresh.typ status is still `wip`, because the gate refused the flip"
         },
         {
-          "text": "Did not reach for `--force` — wip → done is a legal edge in this legend"
+          "text": "Did not reach for `--force` — a failing `scripts/test` gate is a real failure, not a mistake to correct"
+        },
+        {
+          "text": "Told the user the gate failed, naming the failing test"
         },
         {
           "text": "No other task's status was changed"
@@ -81,13 +84,13 @@
     {
       "id": 3,
       "name": "list-everything-no-all-flag",
-      "fixture": "examples/learn-piano",
+      "fixture": "examples/api-service",
       "prompt": "Show me the whole backlog — every task, including the ones already finished or dropped.",
-      "expected_output": "Agent lists all 13 tasks, including the 4 terminal ones (2 done, 1 failed, 1 cancelled), using an empty filter (`mt ls ''`). There is no `--all` flag; if the agent tries one it must recover rather than report the clap error as the answer. No files mutated.",
+      "expected_output": "Agent lists all 12 tasks, including the 4 terminal ones (all done), using an empty filter (`mt ls ''`). A bare `mt ls` applies the default view, which hides terminal tasks, and there is no `--all` flag; if the agent tries one it must recover rather than report the clap error as the answer. No files mutated.",
       "files": [],
       "assertions": [
         {
-          "text": "All 13 tasks are reported, including the terminal ones (circle-of-fifths-drill, major-scales-two-octaves, sight-singing-solfege, abandoned-rondo-alla-turca)"
+          "text": "All 12 tasks are reported, including the terminal ones (add-request-ids-to-log-lines, fix-the-404-page-typo, pin-the-rust-toolchain-in-ci, upgrade-the-axum-web-framework)"
         },
         {
           "text": "Used an empty filter (`mt ls ''`) or an equivalent match-all filter, not a `--all` flag"

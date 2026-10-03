@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 3),
   links: depends-on(
     "capture-the-api-service-examples-problem-solver-runs-for-the-docs.typ",
   )

@@ -6,7 +6,7 @@ Why `just check-examples` validates every example project, and how it makes each
 
 ## Why the examples are gated
 
-Other tools run `mt` against the example projects. `learn-piano` feeds the docs generator and the skill’s triage evals, and `minimal` feeds the skill’s trap evals. A config format change can break an example without any error, so `just check-examples` runs `mt check` on each one.
+Other tools run `mt` against the example projects. `api-service` feeds the docs generator and the skill’s triage evals, and `minimal` feeds the skill’s trap evals. A config format change can break an example without any error, so `just check-examples` runs `mt check` on each one.
 
 A new example joins the recipe’s loop and the `examples` scope in `.mmz/config.yaml`. mmz re-runs the gate only when a file in that scope changes, so an example outside it stops being checked.
 
