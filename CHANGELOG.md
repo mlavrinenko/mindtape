@@ -571,6 +571,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt add --status done` asks only for what a done task needs.** A field
+  `required = "!terminal"` got a required slot whatever status the task was
+  filed at, so filing a finished task meant inventing a priority and a
+  difficulty for it. A requirement that reads nothing but `status` and
+  `terminal` is now settled by the status the task is filed at.
+
 - **A refused `mt add` hints only at templates that fix the refusal.** A
   breach of any rule listed every template pinning any value the caller
   passed, so a body word-cap refusal pointed at four templates for

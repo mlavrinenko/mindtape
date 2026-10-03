@@ -135,7 +135,9 @@ an earlier one, and `null` clears it.
   `priority`, `difficulty`, `kind`, `assignee` or `estimate` and the template
   does not set it, `mt add` adds a slot for it. The slot shows up in
   `--describe` and the editor. The `assignee` slot reads the
-  `MINDTAPE_PRINCIPAL` environment variable.
+  `MINDTAPE_PRINCIPAL` environment variable. A requirement the status alone
+  settles is checked against the status the task is filed at, so
+  `--status done` adds no slot for a field `required = "!terminal"` asks.
   A priority that must come from a framework gets one slot per framework
   input, as #link(u("/priority/"))[Priority] describes.
 

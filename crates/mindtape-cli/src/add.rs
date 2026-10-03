@@ -150,7 +150,8 @@ pub fn run(args: &AddArgs) -> Result<()> {
         .clone()
         .unwrap_or_else(|| config.templates.default.clone());
     let source = resolve_template(config, &project.root, &template_name)?;
-    let needed = mindtape::required_core_slots(config);
+    let status = args.status.clone().or_else(|| initial_status(config));
+    let needed = mindtape::required_core_slots(config, status.as_deref());
     let (source, injected) = inject_required_slots(&source, &needed)?;
 
     if let Some(format) = &args.describe {

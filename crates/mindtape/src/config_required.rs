@@ -20,7 +20,7 @@ use serde::{Deserialize, Deserializer};
 
 use crate::config::Config;
 use crate::filter::Filter;
-use crate::model::Task;
+use crate::model::{Status, Task};
 
 /// Whether a field is required: `false`, `true`, or a filter expression.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -42,6 +42,38 @@ impl Requirement {
     #[must_use]
     pub fn may_apply(&self) -> bool {
         !matches!(self, Self::No)
+    }
+}
+
+impl Requirement {
+    /// [`may_apply`](Self::may_apply) for a task about to be filed at
+    /// `status`. An expression that reads nothing but `status` and `terminal`
+    /// is settled by the status alone, so it is evaluated; any other one still
+    /// needs fields the task does not have yet, and may apply.
+    #[must_use]
+    pub fn may_apply_at(&self, status: &str, config: &Config) -> bool {
+        let Self::Expr(source) = self else {
+            return self.may_apply();
+        };
+        let Ok(filter) = Filter::parse(source) else {
+            return true;
+        };
+        if !filter
+            .names()
+            .iter()
+            .all(|name| name == "status" || name == "terminal")
+        {
+            return true;
+        }
+        let probe = Task {
+            status: Some(Status {
+                name: status.to_owned(),
+                date: None,
+                note: None,
+            }),
+            ..Task::default()
+        };
+        filter.matches(&probe, config).unwrap_or(true)
     }
 }
 

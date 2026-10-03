@@ -117,7 +117,8 @@ fn dogfood_config_requires_kind_on_open_tasks_only() {
 /// A sweep template files one kind of finding, so it stamps that kind into
 /// the `task.with(…)` head. `task.typ` files anything, so it leaves `kind` out
 /// and `mt add` splices a choice over the configured vocabulary instead of a
-/// second copy of it. Matched at the head's own two-space indent; a body
+/// second copy of it. `tweak.typ` files anything too, done, where the commit
+/// subject carries the kind. Matched at the head's own two-space indent; a body
 /// `slot(…, kind: "text")` argument sits there too, but never in the head,
 /// which ends at the first `)` line.
 #[test]
@@ -133,7 +134,8 @@ fn dogfood_templates_stamp_a_known_kind_or_leave_it_to_config() {
             .take_while(|line| *line != ")")
             .find_map(|line| line.strip_prefix("  kind: \""))
             .and_then(|rest| rest.strip_suffix("\","));
-        let generic = path.file_name().unwrap() == "task.typ";
+        let generic =
+            ["task.typ", "tweak.typ"].contains(&path.file_name().unwrap().to_str().unwrap());
         match kind {
             None => assert!(generic, "{} stamps no kind", path.display()),
             Some(kind) => assert!(

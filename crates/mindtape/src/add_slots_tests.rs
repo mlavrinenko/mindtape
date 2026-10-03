@@ -6,7 +6,7 @@ use crate::config::parse_config;
 use super::{RequiredSlot, required_core_slots};
 
 fn fields(config: &crate::config::Config) -> Vec<&'static str> {
-    required_core_slots(config)
+    required_core_slots(config, None)
         .into_iter()
         .map(|s| s.field)
         .collect()
@@ -14,7 +14,7 @@ fn fields(config: &crate::config::Config) -> Vec<&'static str> {
 
 /// The single required slot a config yields, asserting there is exactly one.
 fn single(config: &crate::config::Config) -> RequiredSlot {
-    let mut slots = required_core_slots(config);
+    let mut slots = required_core_slots(config, None);
     assert_eq!(slots.len(), 1);
     slots.pop().unwrap()
 }
@@ -22,7 +22,7 @@ fn single(config: &crate::config::Config) -> RequiredSlot {
 #[test]
 fn default_config_requires_nothing() {
     let config = parse_config("[tasks]\nroots = [\"tasks\"]\n").unwrap();
-    assert!(required_core_slots(&config).is_empty());
+    assert!(required_core_slots(&config, None).is_empty());
 }
 
 #[test]
@@ -229,7 +229,7 @@ fn required_slots_carry_their_resolution() {
          [tasks.estimate]\nrequired = true\n",
     )
     .unwrap();
-    let slots = required_core_slots(&config);
+    let slots = required_core_slots(&config, None);
     let slot = |field: &str| {
         slots
             .iter()
@@ -263,4 +263,24 @@ fn required_assignee_with_allowed_yields_choice_slot() {
         "{}",
         slot.call
     );
+}
+
+/// A task filed at a terminal status owes nothing `required = "!terminal"`
+/// asks, while a requirement reading another field stays, because the status
+/// alone cannot settle it.
+#[test]
+fn a_terminal_status_drops_what_only_open_tasks_need() {
+    let config = parse_config(
+        "[tasks.difficulty]\nrequired = \"!terminal\"\n\
+         [tasks.estimate]\nunits = [\"days\"]\nrequired = 'status == \"proposed\" && kind == \"bug\"'\n",
+    )
+    .unwrap();
+    let at = |status| {
+        required_core_slots(&config, Some(status))
+            .into_iter()
+            .map(|slot| slot.field)
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(at("done"), ["estimate"]);
+    assert_eq!(at("proposed"), ["difficulty", "estimate"]);
 }

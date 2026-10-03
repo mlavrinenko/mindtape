@@ -90,7 +90,7 @@ Fork before you flip a task, because the uncommitted flip would make `fork` refu
 
 - Use Conventional Commits in the language of prior commits.
 - End the message with a `Refs: <stem>` footer naming the task the commit works on. Only a commit that changes nothing but task files under `truth/tasks/` may omit it. A change to any other file needs it, `.mindtape/config.toml` included.
-- File a task in its own `task:` commit with no `Refs:`.
+- File a task in its own `task:` commit with no `Refs:`. A change to one source file too small to plan is the exception: file it with `mt add -t tweak --status done` in the commit that makes the change, and name it in `Refs:`.
 - Commit a status flip together with the work it claims. `mt wip` goes in the first work commit and `mt done` in the last. Leave the flip uncommitted until then, because a commit with a flip and no other change is refused.
 - A task tagged `decision` has no code of its own. It may close in a commit that changes only task files, with a `Refs:` footer naming it.
 

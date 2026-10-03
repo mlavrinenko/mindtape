@@ -8,7 +8,7 @@
 //! the final task. Consumer-blind: pure over [`Config`], no IO, no source
 //! editing.
 
-use crate::config::{AssigneeConfig, Config, FieldConfig};
+use crate::config::{AssigneeConfig, Config, FieldConfig, Requirement};
 use crate::framework::{Framework, Input, InputKind};
 use crate::numeric::{ScaleKind, format_num};
 
@@ -38,17 +38,24 @@ pub struct RequiredSlot {
 /// The required core-field slots a config demands at task-creation time, in a
 /// stable order (`priority`, `difficulty`, `kind`, `assignee`, `estimate`).
 ///
-/// A field counts as required unless its requirement is `false`: a filter
-/// expression (`"!terminal"`, `"kind == \"bug\""`) is taken as possibly required,
-/// since the task being scaffolded does not exist yet — better to surface the
-/// slot and let `mt check` settle it. Priority driven by a strict framework
+/// A field counts as required unless its requirement is `false`, or `status`,
+/// the status the task is filed at, settles it as not required (`"!terminal"`
+/// at `done`). Any other filter expression (`"kind == \"bug\""`) is taken as
+/// possibly required, since the task being scaffolded does not exist yet —
+/// better to surface the slot and let `mt check` settle it. Priority driven by a strict framework
 /// (`framework` set, `allow-manual = false`) has no scalar form, so the
 /// framework call itself is spliced with one leaf slot per declared input.
 #[must_use]
-pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
+pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<RequiredSlot> {
     let tasks = &config.tasks;
+    let may_apply = |required: &Requirement| {
+        status.map_or_else(
+            || required.may_apply(),
+            |status| required.may_apply_at(status, config),
+        )
+    };
     let mut out = Vec::new();
-    if tasks.priority.field.required.may_apply()
+    if may_apply(&tasks.priority.field.required)
         && let Some(call) = priority_slot(config)
     {
         out.push(RequiredSlot {
@@ -59,7 +66,7 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
             default: None,
         });
     }
-    if tasks.difficulty.required.may_apply() {
+    if may_apply(&tasks.difficulty.required) {
         out.push(RequiredSlot {
             field: "difficulty",
             config_path: "[tasks.difficulty]",
@@ -72,7 +79,7 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
         });
     }
     if let Some(field) = tasks.fields.get("kind")
-        && field.required.may_apply()
+        && may_apply(&field.required)
     {
         out.push(RequiredSlot {
             field: "kind",
@@ -82,7 +89,7 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
             default: field.default.as_ref().map(|value| format!("{value:?}")),
         });
     }
-    if tasks.assignee.required.may_apply() {
+    if may_apply(&tasks.assignee.required) {
         out.push(RequiredSlot {
             field: "assignee",
             config_path: "[tasks.assignee]",
@@ -91,7 +98,7 @@ pub fn required_core_slots(config: &Config) -> Vec<RequiredSlot> {
             default: None,
         });
     }
-    if tasks.estimate.required.may_apply() {
+    if may_apply(&tasks.estimate.required) {
         out.push(RequiredSlot {
             field: "estimate",
             config_path: "[tasks.estimate]",
