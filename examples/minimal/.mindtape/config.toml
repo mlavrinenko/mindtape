@@ -1,8 +1,7 @@
 #:schema ../../../schema/config.schema.json
 # examples/minimal/.mindtape/config.toml — the floor.
 #
-# The counterpart to examples/learn-piano/, which showcases the full config
-# surface. This one declares the least a project can and still be useful: a
+# This declares the least a project can and still be useful: a
 # four-value legend with no transition graph, an optional raw-int priority, no
 # template, no required fields, no header rules, no derived tags. Everything
 # else is inherited from the embedded defaults.
@@ -12,8 +11,7 @@
 #
 #   - No `blocked` in the legend. Blockage here is what it is everywhere — a
 #     `links: depends-on` edge (write-docs waits on add-dark-mode) — so an agent
-#     that reaches for `mt flip blocked` has invented a status. Contrast
-#     learn-piano, whose legend does declare one.
+#     that reaches for `mt flip blocked` has invented a status.
 #   - No `[templates]`, so `mt add` falls back to the built-in task template
 #     whose only slot is `title`. `mt add … --set priority=8` is therefore
 #     refused by name: non-zero exit, `unknown --set/-f key(s): priority;
@@ -30,7 +28,6 @@
 # test — rather than through the machine-global local-package symlink, which
 # points at whichever checkout last ran `just install-lib`. Without it
 # `just check-examples` gates a fork's fixture against the main tree's prelude.
-# Same entry, same reasoning, in examples/learn-piano.
 [[typst.local-packages]]
 name = "mindtape"
 path = "../../lib"

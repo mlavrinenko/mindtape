@@ -98,7 +98,6 @@ scopes:
     - "examples/api-service/.mindtape/templates/**"
     - "examples/derived-tags/api/**"
     - "examples/derived-tags/web/**"
-    - "examples/learn-piano/tasks/**"
     - "examples/links/tasks/**"
     - "examples/named-sets/tasks/**"
     - "examples/priority/tasks/**"
@@ -107,7 +106,6 @@ scopes:
     - "examples/dsl/tasks/**"
     - "examples/rules/**"
     - "examples/statuses/tasks/**"
-    - "examples/learn-piano/.mindtape/templates/**"
     - "www/content/**"
     - "www/templates/**"
     - "www/utils/**"
@@ -169,7 +167,6 @@ scopes:
   # the recipe does not check, and its 2000 task files would churn this rule
   # for nothing.
   examples:
-    - "examples/learn-piano/**"
     - "examples/minimal/**"
     - "examples/links/**"
     - "examples/estimates/**"
@@ -476,8 +473,8 @@ commands:
   # `.just/scripts/*.sh` is `scripts-all`, the whole directory and not one body,
   # because linecop scans every file in it and an oversized script the input
   # list never named would go false-fresh here. `policy` and `examples` are the
-  # Typst half: `lib/**`, `.mindtape/templates/**` and the learn-piano
-  # fixture's task tree and template. Without them a Typst file could cross its
+  # Typst half: `lib/**`, `.mindtape/templates/**` and the example
+  # projects' task trees and templates. Without them a Typst file could cross its
   # cap while this rule still reported fresh. `.mindtape/templates/**` is
   # scanned only because `.linecop.yaml` sets `include_hidden: true`.
   - name: just check-file-size
@@ -519,8 +516,8 @@ commands:
     tags: [gate]
     inputs: [outdatty-config, rust, policy, examples, docs, gates-meta, scripts-all]
 
-  # `cargo run -p mindtape-cli -w examples/learn-piano check` — depends on the
-  # built binary (rust) plus the fixture's task tree + project config (policy +
+  # `mt -w examples/<name> check` for each example — depends on the built
+  # binary (rust) plus the fixtures' task trees + project config (policy +
   # examples).
   - name: just check-examples
     tags: [gate]
@@ -584,7 +581,7 @@ commands:
     inputs: [rust, policy, example-configs, docs, gates-meta, script-check-doc-spans]
 
   # docs::gen shells out to the built `mt` binary (rust) and reads the docs
-  # tree + the learn-piano fixture (examples) + the project policy/prelude
+  # tree + the example fixtures (examples) + the project policy/prelude
   # (the generated CLI transcripts reference `mt`'s config-driven output).
   - name: just docs::check
     tags: [gate]
@@ -742,7 +739,7 @@ commands:
   # `rust`, `policy`, `examples` and `file-size-config` are here because the
   # body runs www/generate.sh to produce www/generated/, so this rule reads
   # everything `just docs::check` names for that same producer: the built `mt`
-  # and its sources, lib/prelude.typ, the learn-piano fixture it captures
+  # and its sources, lib/prelude.typ, the example fixtures it captures
   # against. `file-size-config` is for the .linecop.yaml generate-facts.sh reads
   # back as linecop-caps.json, as `just check-doc-facts` names it for running
   # the same script. A verdict rarely turns on these four scopes, but naming

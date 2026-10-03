@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 3),
   links: depends-on(
     "move-the-docs-captures-and-skill-evals-from-learn-piano-to-api-service.typ",
   )

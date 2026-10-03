@@ -15,7 +15,7 @@
 
 # Resolve @local/mindtape from lib/ two levels up — the prelude under test —
 # rather than the machine-global symlink; same entry and reasoning as
-# examples/learn-piano and examples/minimal.
+# examples/minimal.
 [[typst.local-packages]]
 name = "mindtape"
 path = "../../lib"

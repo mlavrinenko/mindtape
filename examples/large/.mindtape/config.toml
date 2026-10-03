@@ -1,5 +1,5 @@
 # examples/large/.mindtape/config.toml — a self-contained benchmark fixture.
-# Deliberately simpler than examples/learn-piano: one flat root, the full
+# Deliberately simple: one flat root, the full
 # status legend, strict ICE priority, no body-shape rules. Generated tasks
 # live under tasks/ (gitignored; see examples/large/generate.sh) and this
 # config is what `mt -w examples/large ls|check` runs against.

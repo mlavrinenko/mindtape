@@ -100,7 +100,7 @@ exclude_dirs:
 # same file set, which they would not if only the gate carried the flag.
 #
 # It pulls in `.just/scripts/*.sh`, `.mindtape/templates/*.typ` and the
-# learn-piano fixture's copy of those templates, all far under the Typst floor.
+# example fixtures' copies of those templates, all far under the Typst floor.
 # VCS metadata stays excluded by linecop itself and gitignored paths are still
 # skipped, so `.direnv/` and `.mmz/cache/` never enter the walk.
 include_hidden: true

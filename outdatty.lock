@@ -126,7 +126,7 @@ groups:
       .just/scripts/script-scope-check.sh: ea49ba3a92c1189c69282c34fb05ac4474c34f8b174be1611c9eff921e254969
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 72f528004f7830e9b1372171161ed95f4e787d1ef47b333d80a342ebad468492
+      Justfile: 6abca51ae8046096cc74e8b1038e13dfcd3b7b108c02957dc0ad6b70ac9383bd
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: dfafbd070f771c75319b6634b87b2119730f3233c1cfdeab58612948ef1bbab0
@@ -211,20 +211,6 @@ groups:
       examples/dsl/tasks/fix-the-login-redirect.typ: 08f426bb828ab02b78122c80003934739000042a16b949f534214331c7b59853
       examples/estimates/tasks/rename-the-status-glyphs.typ: 601357e17a4de3c0d124c76344a00cc4374f22043d629306470551063780dcbd
       examples/estimates/tasks/rewrite-loader.typ: 6a953d0e8d2003d9f0c0e9ba475f414f952b25e1cdc7a9eeb920d96ae4c606e5
-      examples/learn-piano/.mindtape/templates/task.typ: e269ab035087724b5b0df9832b31469d5c515e68979f2c6a9dc23c0eba0b6760
-      examples/learn-piano/tasks/repertoire/abandoned-rondo-alla-turca.typ: 240c47c55cb8bd0354146c6342959d5961c19b92f5210f0a9c48440463d1707b
-      examples/learn-piano/tasks/repertoire/clair-de-lune-practice.typ: 8c49e00a5ea7c14ff6146ddc38a00f8a4e4dd8e15ed3e7e7f9b88855325a7532
-      examples/learn-piano/tasks/repertoire/fur-elise-polish.typ: ddf5b677a91a14fcbe42946c0a67ae8e34e04f790a626a4d1dcbcf0cc16ec415
-      examples/learn-piano/tasks/repertoire/jazz-standard-autumn-leaves.typ: ebe2fad5225fa26d8420a9fa01903b7894b98fb562e106850c59dd88f9d4e550
-      examples/learn-piano/tasks/technique/arpeggios-all-inversions.typ: 23d485ccbc2b6043a35649c8f12e54751dd6243d591f4820d626817dab78668f
-      examples/learn-piano/tasks/technique/hanon-warmup-daily.typ: a537b52706913bf577f4ae498c2632e2c394152d803009408f5653fee9a27f32
-      examples/learn-piano/tasks/technique/major-scales-two-octaves.typ: 2a92157aeb5ef5a9e9b8c5d4753eaf84177d86ad0f1db5d4a5c2c0ddaa6f5436
-      examples/learn-piano/tasks/technique/minor-scales-two-octaves.typ: 2fd02685017e3a09c702f8d05776a36a2195f169bcf99dd93eb271930c6d8bb5
-      examples/learn-piano/tasks/technique/sight-reading-grade-3.typ: e15d56d2f4a4089dd6c0d366aefa3e4ee5efae146e70b5ed220e4ae45e9e162f
-      examples/learn-piano/tasks/theory/chord-progression-analysis.typ: db5391ebc3ea8a5f8b8a453031ba75200154036574655e1626497e1a5579a4d3
-      examples/learn-piano/tasks/theory/circle-of-fifths-drill.typ: d973b37bc835cec282b9e1cd97c3096a599af7facfb86755ca032b060c47216f
-      examples/learn-piano/tasks/theory/interval-recognition-ear-training.typ: 5fbc7cad463f4ae141ffba0cea749755c257d54ed898060eea83da3ae63c1e5f
-      examples/learn-piano/tasks/theory/sight-singing-solfege.typ: e16ade5ad5a65d203556a6bce5f1a9808ee1c4fb15fae8afaeaa67250e7337cf
       examples/links/tasks/auth-epic.typ: f4b8c4e65d7fcc0e50ea9a1a3dda0281069fba23487445aaaf211a09b4674616
       examples/links/tasks/drop-legacy-cli.typ: 59731d83f31924fbba9ca34e61477e2f1740f7e831af9a63751a32235a8c860e
       examples/links/tasks/legacy-cli.typ: 7ffcea9ebe0cc819d62883111654b7e23dc6545b447307ce801abfdeb02356e1
