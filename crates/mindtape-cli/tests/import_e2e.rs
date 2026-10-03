@@ -58,8 +58,8 @@ fn imports_from_a_file_argument() {
     support::mt(dir.path()).arg("check").assert().success();
 }
 
-/// One bad record does not refuse the batch — the good one still lands — and
-/// the bad one is never written, so no file has to be removed afterwards. The
+/// One bad record does not refuse the batch — the good one still lands, and the
+/// run exits 1 after the report — and the bad one is never written, so no file has to be removed afterwards. The
 /// second record's status is outside the legend.
 #[test]
 fn a_rejected_record_is_never_written_and_the_rest_still_land() {
@@ -78,7 +78,9 @@ fn a_rejected_record_is_never_written_and_the_rest_still_land() {
         .arg("import")
         .write_stdin(batch)
         .assert()
-        .success();
+        .failure()
+        .code(1)
+        .stderr(predicates::str::contains("1 filed, 1 skipped"));
 
     assert!(
         dir.path().join("tasks/wire-import.typ").exists(),

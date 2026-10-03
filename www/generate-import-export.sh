@@ -8,9 +8,9 @@
 # `mt ls '' --json`, imports the file into a new project and lists it there.
 # The export recipes run against the same fixture.
 #
-# `mt import` exits 0 even when it skips a record, so filed_all fails the build
-# on a skip, and the round trip fails it when the new project's tasks differ
-# from the ones exported.
+# `mt import` exits 1 when it skips a record, so a skip fails the build, and the
+# round trip fails it when the new project's tasks differ from the ones
+# exported.
 set -eo pipefail
 
 REPO="$1"
@@ -29,17 +29,6 @@ capture_init
 # heredoc keeps a multi-line command exactly as the reader sees it.
 capture_one() { capture "$1" "$2" "$(cat)"; }
 
-# filed_all <slug> [step]: fail when the import at <step> of the record, the
-# last step by default, reports a skip.
-filed_all() {
-  local step=${2:--1}
-  if jq -e --argjson i "$step" '.steps[$i].out | test("[1-9][0-9]* skipped")' "$OUT/$1.json" >/dev/null; then
-    jq -r --argjson i "$step" '.steps[$i].out' "$OUT/$1.json" >&2
-    echo "generate-import-export.sh: $1 skipped a record" >&2
-    return 1
-  fi
-}
-
 # --- imports from other trackers ----------------------------------------------
 capture_scratch P
 capture_prep "$P" 'mt init --no-input'
@@ -50,14 +39,11 @@ cp "$JQ/fixtures/github.in.json" "$P/issues.json"
 jq -r '.[]' "$JQ/fixtures/todo.txt.in.json" >"$P/todo.txt"
 
 capture import-taskwarrior "$P" 'jq -f contrib/jq/taskwarrior.jq taskwarrior.json | mt import'
-filed_all import-taskwarrior
 capture import-github "$P" 'jq -f contrib/jq/github.jq issues.json | mt import --to github'
-filed_all import-github
 capture_one import-todotxt "$P" <<'EOF'
 jq -R -s 'split("\n") | map(select(length > 0))' todo.txt \
   | jq -f contrib/jq/todo.txt.jq | mt import
 EOF
-filed_all import-todotxt
 
 # --- the round trip -----------------------------------------------------------
 capture_copy SRC examples/round-trip
@@ -72,7 +58,6 @@ mt init --no-input
 mt import ../round-trip/tasks.json
 mt ls ''
 EOF
-filed_all round-trip-import 1
 capture_prep "$NEW" "diff <(jq -S '.tasks | sort_by(.id)' ../round-trip/tasks.json) <(mt ls '' --json | jq -S '.tasks | sort_by(.id)')"
 
 # --- exports to other formats -------------------------------------------------

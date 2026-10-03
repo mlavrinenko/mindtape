@@ -29,8 +29,9 @@ written.
 
 The report on standard error names each record, `filed` or `skipped`, with the
 reason for a skip. It also lists each change it made to fit the config:
-`mapped`, `defaulted`, `dropped` or `violated`. `mt import` exits 0 even when
-it skips a record, so a script reads the report's first line.
+`mapped`, `defaulted`, `dropped` or `violated`. `mt import` writes the records
+that pass, prints the report, then exits 1 when it skipped any record, so a
+script can tell a partial import from a whole one.
 
 `--map old=new` renames a status before the check, for a source whose names
 differ from your legend. `--to <dir>` writes the batch into a subfolder of the

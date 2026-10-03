@@ -103,7 +103,7 @@ fn recur_survives_ls_json_piped_into_import() {
         .arg("import")
         .write_stdin(exported.clone())
         .assert()
-        .success();
+        .code(predicates::ord::le(1));
 
     let reimported = support::mt(dir.path())
         .args(["ls", "", "--json"])

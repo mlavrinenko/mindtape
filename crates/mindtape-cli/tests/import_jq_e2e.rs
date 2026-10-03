@@ -87,8 +87,8 @@ fn scaffold(dir: &Path) {
 }
 
 /// Pipe `jq -f <source>.jq <source>.in.json`'s stdout into `mt import`, then
-/// run `mt check`. `mt import` exits 0 even when it skips a record, so the
-/// test counts the files it wrote against the records the adapter emitted.
+/// run `mt check`. The count below stays as a guard that every adapter record
+/// became a file.
 fn assert_e2e_import(source: &str) {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());

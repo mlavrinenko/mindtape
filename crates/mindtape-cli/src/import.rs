@@ -6,7 +6,8 @@
 //! (`--into`/`--to`) and dedupe.
 //!
 //! One bad record does not refuse the batch: the rest still land, and the
-//! per-record report says which did. What it no longer does is land the bad
+//! per-record report says which did, and the run exits 1 once it has printed it
+//! if any was skipped. What it no longer does is land the bad
 //! one first — the whole batch is validated before a byte is written, so a
 //! rejected record is never created. That discipline lives in [`write`]; input
 //! parsing lives in [`input`].
@@ -76,7 +77,18 @@ fn run_with(project: &Project, args: &ImportArgs) -> Result<()> {
     let raw = input::read_source(&args.input)?;
     let outcomes = import_records(project, args, &raw)?;
     report(&outcomes);
-    Ok(())
+    fail_on_skips(&outcomes)
+}
+
+/// The closing verdict: an error naming the skip count when any record was
+/// skipped, so a script can tell a partial import from a whole one. The
+/// records that passed are already written by then.
+fn fail_on_skips(outcomes: &[TaskOutcome]) -> Result<()> {
+    let skipped = outcomes.iter().filter(|outcome| !outcome.filed).count();
+    if skipped == 0 {
+        return Ok(());
+    }
+    bail!("{skipped} record(s) skipped");
 }
 
 /// The core pipeline: parse `raw` canonical JSON, map/stem/emit each record,
