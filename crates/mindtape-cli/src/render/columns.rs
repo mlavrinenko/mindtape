@@ -20,8 +20,8 @@
 
 use anyhow::{Context, Result};
 use mindtape::{
-    ColumnFacts, Condition, ConditionEnv, Config, Readiness, ReadyState, Task, format_iso,
-    today_iso, waits_on,
+    ColumnFacts, Condition, ConditionEnv, Config, Readiness, ReadyState, StemHashes, Task,
+    format_iso, today_iso, waits_on,
 };
 
 use super::RenderCtx;
@@ -34,7 +34,7 @@ use super::file_path;
 /// matches [`mindtape::LS_COLUMNS`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ColumnId {
-    Handle,
+    StemHash,
     Status,
     Ready,
     Priority,
@@ -57,7 +57,7 @@ pub enum ColumnId {
 /// it is because the rows disagree about it, and that is metadata to read
 /// alongside status and priority, not a trailing path.
 pub const ORDER: [ColumnId; 11] = [
-    ColumnId::Handle,
+    ColumnId::StemHash,
     ColumnId::Status,
     ColumnId::Ready,
     ColumnId::Priority,
@@ -75,7 +75,7 @@ impl ColumnId {
     #[must_use]
     pub fn key(self) -> &'static str {
         match self {
-            ColumnId::Handle => "#",
+            ColumnId::StemHash => "slug#",
             ColumnId::Status => "status",
             ColumnId::Ready => "ready",
             ColumnId::Priority => "priority",
@@ -93,7 +93,7 @@ impl ColumnId {
     #[must_use]
     pub fn header(self) -> &'static str {
         match self {
-            ColumnId::Handle => "#",
+            ColumnId::StemHash => "SLUG#",
             ColumnId::Status => "STATUS",
             ColumnId::Ready => "READY",
             ColumnId::Priority => "PRIORITY",
@@ -121,18 +121,12 @@ impl ColumnId {
         matches!(self, ColumnId::Title)
     }
 
-    /// Build this column's cell for one task. `handle` is the precomputed,
-    /// abbreviated identifier shared with the `#` column.
+    /// Build this column's cell for one task. `hash` is the task's stem hash,
+    /// the `slug#` column's text.
     #[must_use]
-    pub fn cell(
-        self,
-        handle: &str,
-        task: &Task,
-        config: &Config,
-        readiness: &Readiness,
-    ) -> CellSpec {
+    pub fn cell(self, hash: &str, task: &Task, config: &Config, readiness: &Readiness) -> CellSpec {
         match self {
-            ColumnId::Handle => plain(handle.to_owned()),
+            ColumnId::StemHash => plain(hash.to_owned()),
             ColumnId::Status => status_cell(task, config),
             ColumnId::Ready => ready_cell(readiness.state(task), config),
             ColumnId::Priority => priority_cell(task, config),
@@ -169,8 +163,8 @@ impl ColumnId {
             ..ColumnFacts::default()
         };
         let mut first: Option<String> = None;
-        for (handle, task) in rows {
-            let text = self.cell(handle, task, config, readiness).text;
+        for (hash, task) in rows {
+            let text = self.cell(hash, task, config, readiness).text;
             facts.nonempty |= !text.is_empty();
             match &first {
                 None => first = Some(text),
@@ -211,6 +205,21 @@ impl ColumnId {
     }
 }
 
+/// Each task paired with its stem hash from `hashes`, in listing order: the
+/// rows every renderer walks.
+#[must_use]
+pub fn rows<'t>(tasks: &'t [Task], hashes: &StemHashes) -> Vec<(String, &'t Task)> {
+    tasks
+        .iter()
+        .map(|task| {
+            (
+                hashes.hash_of(&task.id).unwrap_or_default().to_owned(),
+                task,
+            )
+        })
+        .collect()
+}
+
 /// The render order (built-in or `[ls] columns-order`), filtered to the
 /// columns that resolve visible for this task list.
 ///
@@ -224,7 +233,7 @@ impl ColumnId {
 /// # Errors
 /// Returns an error if a column's `when` fails to parse or evaluate (see
 /// [`ColumnId::visible`]).
-pub fn resolve_order(handles: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<Vec<ColumnId>> {
+pub fn resolve_order(rows: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<Vec<ColumnId>> {
     // Whether the render order was explicitly named — `ls.rs` assigns
     // `columns_order` uniformly for `--columns`, a view's `columns`, and an
     // `[[ls.rules]]` columns override, so this one check covers every explicit
@@ -245,7 +254,7 @@ pub fn resolve_order(handles: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<
     let mut env = ctx.env.clone();
     let mut visible = Vec::with_capacity(order.len());
     for col in order {
-        env.column = col.facts(handles, ctx.config, ctx.readiness, named);
+        env.column = col.facts(rows, ctx.config, ctx.readiness, named);
         if col.visible(ctx.config, &env)? {
             visible.push(col);
         }
@@ -253,7 +262,7 @@ pub fn resolve_order(handles: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<
     Ok(visible)
 }
 
-/// Per-row hyperlink target URIs, shared by every column OSC 8 wraps (`#` and
+/// Per-row hyperlink target URIs, shared by every column OSC 8 wraps (`slug#` and
 /// `file` — see `render/link.rs`). The target is a property of the row (the
 /// task's file), not of any one column, so this is built once per render and
 /// the same list is attached to both columns rather than recomputed per
@@ -261,14 +270,13 @@ pub fn resolve_order(handles: &[(String, &Task)], ctx: RenderCtx<'_>) -> Result<
 /// [`file_path::DEFAULT_HYPERLINK_TARGET`]; `table.rs` decides whether to
 /// actually apply it (`--hyperlinks`).
 #[must_use]
-pub fn row_hyperlink_targets(handles: &[(String, &Task)], config: &Config) -> Vec<String> {
+pub fn row_hyperlink_targets(rows: &[(String, &Task)], config: &Config) -> Vec<String> {
     let template = config
         .ls
         .hyperlink_target
         .as_deref()
         .unwrap_or(file_path::DEFAULT_HYPERLINK_TARGET);
-    handles
-        .iter()
+    rows.iter()
         .map(|(_, task)| file_path::hyperlink_target(&task.file, template))
         .collect()
 }

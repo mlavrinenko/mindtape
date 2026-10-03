@@ -10,8 +10,8 @@ use crate::util;
 
 /// Resolve the variadic `targets` into the set of task ids to retire.
 ///
-/// Each entry resolves reference-first (path, handle, slug — slug wins on a
-/// bare token), falling back to a filter parse + [`select`] when it is not a
+/// Each entry resolves reference-first (path, stem, then stem hash — see
+/// [`util::resolve_task`]), falling back to a filter parse + [`select`] when it is not a
 /// reference; every entry's matches are unioned, deduplicated by id — the same
 /// task named twice, or named once directly and again by a filter, retires
 /// once. An empty `targets` applies the configured `[rm] default_filter`.
@@ -54,8 +54,7 @@ fn default_targets(project: &util::Project, readiness: &Readiness) -> Result<Has
     }
 }
 
-/// Resolve one target entry: reference-first (path, handle, slug — slug wins
-/// on a bare token), falling back to a filter parse + [`select`] when it is
+/// Resolve one target entry: reference-first (path, stem, then stem hash), falling back to a filter parse + [`select`] when it is
 /// not a reference. Surfaces the reference error when the input does not even
 /// parse as a filter (a mistyped ref, not a filter).
 fn resolve_one(

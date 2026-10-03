@@ -1,7 +1,7 @@
 //! End-to-end tests for `mt ls --interactive`.
 //!
 //! Spawns the binary under `script` (which provides a pseudo-terminal) so the
-//! TTY checks in `guard` pass, then sends `q` to quit and asserts that the task
+//! TTY checks in `guard` pass, then sends Esc to quit and asserts that the task
 //! table was rendered. Catches the body-replacement mutants on `event_loop` and
 //! `draw`, and every mutant in `guard` — including `||` -> `&&`, which only the
 //! piped-stdin case below can tell apart.
@@ -22,12 +22,12 @@ use std::time::{Duration, Instant};
 /// Interval between `try_wait()` polls while waiting for `mt` to exit.
 const POLL_INTERVAL: Duration = Duration::from_millis(20);
 
-/// Upper bound on how long `mt` may take to exit after receiving `q`. The
+/// Upper bound on how long `mt` may take to exit after receiving Esc. The
 /// happy path finishes in well under a second; this only needs to be long
 /// enough to absorb slow CI machines while still failing fast (instead of
 /// hanging the whole test binary forever) if `event_loop` never returns. It is
 /// what makes `event_loop`'s `!=` -> `==` mutant killable: that mutant drops
-/// every `Press` event, so the loop never sees the `q` and this test fails on
+/// every `Press` event, so the loop never sees the Esc and this test fails on
 /// the deadline instead of hanging the sweep.
 const WAIT_TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -54,6 +54,10 @@ fn wait_with_timeout(mut child: Child) -> (Output, bool) {
     }
     (child.wait_with_output().unwrap(), timed_out)
 }
+
+/// Esc on its own, so crossterm reads it as the key rather than as the start
+/// of an Alt chord: the picker's quit, since every letter is a hash digit.
+const ESC: &[u8] = b"\x1b";
 
 /// The title of the one task each case lists.
 const TASK_TITLE: &str = "E2E Task";
@@ -163,7 +167,7 @@ fn wait_for_frame(frame: &Frame, needle: &str) {
 
 /// Drive one interactive session under a pseudo-terminal: send `keys` (already
 /// shaped for raw mode), wait for the frame `expect_after_keys` names (if
-/// any) to actually appear, then `q` to quit, and assert a clean exit within
+/// any) to actually appear, then Esc to quit, and assert a clean exit within
 /// [`WAIT_TIMEOUT`]. Returns the session's full transcript.
 ///
 /// Shared rather than inlined per test: the spawn-and-drive sequence is
@@ -196,7 +200,7 @@ fn drive_session(
         Some(needle) => wait_for_frame(&frame, needle),
         None => std::thread::sleep(Duration::from_millis(400)),
     }
-    stdin.write_all(b"q\n").unwrap();
+    stdin.write_all(ESC).unwrap();
     drop(stdin);
 
     let (output, timed_out) = wait_with_timeout(child);
@@ -221,12 +225,12 @@ fn interactive_mode_renders_tasks_and_quits() {
     // Give mt a moment to start the event loop and draw the table.
     std::thread::sleep(Duration::from_millis(300));
 
-    // Space reloads the view (the Refresh action); 'q' quits.
+    // Space reloads the view (the Refresh action); Esc quits.
     child
         .stdin
         .take()
         .expect("stdin pipe must be available")
-        .write_all(b" q\n")
+        .write_all(b" \x1b")
         .unwrap();
 
     let (output, timed_out) = wait_with_timeout(child);
@@ -234,7 +238,7 @@ fn interactive_mode_renders_tasks_and_quits() {
 
     assert!(
         !timed_out,
-        "mt did not exit within {WAIT_TIMEOUT:?} after sending 'q' -- event_loop appears hung\nstdout:\n{stdout}\nstderr:\n{}",
+        "mt did not exit within {WAIT_TIMEOUT:?} after sending Esc -- event_loop appears hung\nstdout:\n{stdout}\nstderr:\n{}",
         String::from_utf8_lossy(&output.stderr),
     );
     assert!(
@@ -258,13 +262,13 @@ fn interactive_refuses_piped_stdin_when_stdout_is_a_tty() {
     let mut child = spawn_interactive(dir.path(), " < /dev/null", false);
 
     // crossterm reads keys from /dev/tty, not stdin, so a `&&` guard would
-    // enter the event loop regardless of the redirect. Send 'q' so that case
+    // enter the event loop regardless of the redirect. Send Esc so that case
     // quits instead of hanging until the timeout.
     child
         .stdin
         .take()
         .expect("stdin pipe must be available")
-        .write_all(b"q\n")
+        .write_all(ESC)
         .unwrap();
 
     let (output, timed_out) = wait_with_timeout(child);
@@ -312,7 +316,7 @@ fn quitting_restores_the_terminal() {
         .stdin
         .take()
         .expect("stdin pipe must be available")
-        .write_all(b"q\n")
+        .write_all(ESC)
         .unwrap();
 
     let (output, timed_out) = wait_with_timeout(child);
@@ -358,15 +362,15 @@ fn opening_a_task_suspends_the_tui_and_runs_the_editor() {
 }
 
 /// Enter with no task selected must not spawn the editor: `collect_first`
-/// returns nothing for a buffer that matches no ordinal, `open` no-ops on an
+/// returns nothing for a buffer that matches no stem hash, `open` no-ops on an
 /// empty index set, and the loop keeps running. The transcript has no
-/// [`SUSPEND_MARKER`] and the session still quits cleanly on 'q'.
+/// [`SUSPEND_MARKER`] and the session still quits cleanly on Esc.
 #[test]
 fn enter_without_a_match_opens_nothing() {
     let dir = support::project_with_task(TASK_TITLE);
-    // "9" matches no ordinal (the project has one task), then Enter. Nothing
-    // should ever open, so there is no frame to poll for here.
-    let stdout = drive_session(dir.path(), "", b"9\r", None);
+    // "u" is no hash digit, so it matches no row, then Enter. Nothing should
+    // ever open, so there is no frame to poll for here.
+    let stdout = drive_session(dir.path(), "", b"u\r", None);
     assert!(
         !stdout.contains(SUSPEND_MARKER),
         "a no-match Enter must not spawn the editor\nstdout:\n{stdout}"
@@ -384,16 +388,21 @@ fn enter_without_a_match_opens_nothing() {
 /// asserted it exited cleanly within [`WAIT_TIMEOUT`].
 fn select_first_task_and_open(suffix: &str) -> String {
     let dir = support::project_with_task(TASK_TITLE);
-    // Select the first task, then Enter (CR in raw mode) to open it; wait for
-    // SUSPEND_MARKER rather than guessing how long the editor takes to run.
-    drive_session(dir.path(), suffix, b"1\r", Some(SUSPEND_MARKER))
+    // Type the task's stem hash, then Enter (CR in raw mode) to open it; wait
+    // for SUSPEND_MARKER rather than guessing how long the editor takes to run.
+    let hash = mindtape::StemHashes::new(["test"])
+        .hash_of("test")
+        .unwrap()
+        .to_owned();
+    let keys = format!("{hash}\r");
+    drive_session(dir.path(), suffix, keys.as_bytes(), Some(SUSPEND_MARKER))
 }
 
 /// The risk `truth/tasks/hyperlink-the-handle-column.typ` exists to guard:
-/// the `#` column's cells now carry an OSC 8 wrap (and, once a row is typed,
+/// the `slug#` column's cells now carry an OSC 8 wrap (and, once a row is typed,
 /// an invert-colour wrap on top of that), but the key loop reads real key
 /// events off the terminal (crossterm), never the rendered screen — so typing
-/// a digit and Enter must still select and open the right task with
+/// a stem hash and Enter must still select and open the right task with
 /// hyperlinks active. Mirrors
 /// `opening_a_task_suspends_the_tui_and_runs_the_editor`, with
 /// `--hyperlinks always` added.
@@ -402,11 +411,11 @@ fn opening_a_task_still_works_with_hyperlinks_active() {
     let stdout = select_first_task_and_open(" --hyperlinks always");
     assert!(
         stdout.contains("\u{1b}]8;;file://"),
-        "the # column must actually carry the OSC 8 wrap in this run\nstdout:\n{stdout}"
+        "the slug# column must actually carry the OSC 8 wrap in this run\nstdout:\n{stdout}"
     );
     assert!(
         stdout.contains(SUSPEND_MARKER),
-        "selecting task 1 and pressing Enter must still open the editor with \
+        "typing the stem hash and pressing Enter must still open the editor with \
          hyperlinks active\nstdout:\n{stdout}"
     );
 }

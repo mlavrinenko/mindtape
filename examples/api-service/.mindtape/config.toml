@@ -104,14 +104,14 @@ filter = "!terminal && (miss(start) || start <= now())"
 [views.stuck]
 filter = "!terminal && stale(14)"
 sort = ["priority:desc", "due:asc"]
-columns = ["#", "status", "ready", "priority", "due", "title"]
+columns = ["slug#", "status", "ready", "priority", "due", "title"]
 description = "Open and not reviewed in 14 days"
 
 # Plan the week: what is due Monday to Sunday, soonest first.
 [views.this-week]
 filter = '!terminal && has(due) && due >= "2026-09-28" && due <= "2026-10-04"'
 sort = ["due:asc"]
-columns = ["#", "status", "priority", "due", "title"]
+columns = ["slug#", "status", "priority", "due", "title"]
 description = "Work due this week"
 
 # Check the tasks against this checkout's prelude in lib/.

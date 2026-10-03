@@ -1,6 +1,6 @@
 //! `mt go <task>` — open a task file in the configured editor.
 //!
-//! Resolves the task by handle (`1b`), slug, relative, or absolute path, then
+//! Resolves the task by stem, stem hash, relative, or absolute path, then
 //! spawns the `[go] editor` command. A `{task}` token in the command is replaced
 //! with the resolved path; without it the path is appended. Editor resolution:
 //! `[go] editor` → `$VISUAL` → `$EDITOR`, then error — no `vi` floor, so a GUI
@@ -21,7 +21,7 @@ const TASK_TOKEN: &str = "{task}";
 /// Arguments for `mt go`.
 #[derive(Args)]
 pub struct GoArgs {
-    /// Task to open: handle (`1b`), slug, relative path, or absolute path.
+    /// Task to open: stem, stem hash, relative path, or absolute path.
     pub id: String,
 }
 

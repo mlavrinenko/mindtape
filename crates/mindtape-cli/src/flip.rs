@@ -6,18 +6,16 @@
 //! [`mindtape::status_value`]). The status must be a configured legend value.
 //!
 //! Every legend value also doubles as a top-level shortcut verb dispatched here:
-//! `mt done 1b 2c` == `mt flip done 1b 2c` (see [`run_external`]).
+//! `mt done a7k x3m` == `mt flip done a7k x3m` (see [`run_external`]).
 //! Built-in subcommands win on a name clash; a shadowing legend value is warned
 //! about. `mt flip --list` prints the available shortcut verbs.
 //!
 //! Batch semantics mirror `rm`: every target is resolved before any file is
-//! written (a status change reorders the default view, so handles are resolved
-//! up front), then the valid edits are applied and any resolution or post-edit
+//! written, then the valid edits are applied and any resolution or post-edit
 //! validation problem is reported without rolling the rest back.
 //!
-//! A landed batch closes with one post-write pass over a single reload
-//! ([`crate::flip_batch`]): the revalidation above, and what the batch did to
-//! the handles the caller is holding ([`crate::flip_handles`]).
+//! A landed batch closes with one post-write revalidation over a single reload
+//! ([`crate::flip_batch`]).
 //!
 //! `flip` is also the one command that runs the project's `[[on.flip]]` actions
 //! ([`crate::flip_hooks`]). They run per target, after the transition and
@@ -46,7 +44,7 @@ pub struct FlipArgs {
     #[arg(required_unless_present = "list")]
     pub status: Option<String>,
 
-    /// Tasks to flip: handle (`1b`), slug, relative path, or absolute path.
+    /// Tasks to flip: stem, stem hash, relative path, or absolute path.
     pub tasks: Vec<String>,
 
     /// Status note (the trailing `[note]` block). Without it any existing note is
@@ -152,8 +150,8 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
         );
     }
 
-    // Resolve every target before mutating: a status change reorders the default
-    // view, so handles must be pinned up front to avoid mid-batch drift.
+    // Resolve every target before mutating, so each reference reads the project
+    // the caller listed.
     let mut resolved = Vec::new();
     let mut problems: Vec<String> = Vec::new();
     for spec in &args.tasks {
@@ -162,11 +160,6 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
             Err(err) => problems.push(format!("{spec}: {err:#}")),
         }
     }
-
-    // The ordinals the caller is holding, read before any write: the report at
-    // the bottom is a diff against these, so it has to be taken while they are
-    // still true.
-    let before = crate::flip_handles::snapshot(project);
 
     let batch = Batch {
         project,
@@ -193,7 +186,7 @@ pub(crate) fn run_with(project: &Project, args: &FlipArgs) -> Result<()> {
     }
 
     if !landed.is_empty() {
-        after_batch(&project.root, &landed, before.as_ref(), &mut problems)?;
+        after_batch(&project.root, &landed, &mut problems)?;
     }
 
     if problems.is_empty() {

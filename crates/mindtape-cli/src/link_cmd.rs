@@ -29,7 +29,7 @@ use crate::util::{self, Project};
 /// Arguments for `mt link`.
 #[derive(Debug, Args)]
 pub struct LinkArgs {
-    /// Linking task: handle (`1b`), slug, relative path, or absolute path.
+    /// Linking task: stem, stem hash, relative path, or absolute path.
     /// Omit only with `--apply`.
     #[arg(required_unless_present = "apply", conflicts_with = "apply")]
     pub task: Option<String>,
@@ -154,7 +154,7 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
         println!("unchanged {stem}: every edge was already there");
     }
     if !landed.is_empty() {
-        after_batch(&project.root, &landed, None, &mut problems)?;
+        after_batch(&project.root, &landed, &mut problems)?;
     }
     finish(&problems)
 }

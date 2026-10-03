@@ -1,5 +1,5 @@
 //! End-to-end tests for `--hyperlinks`: the OSC 8 sequence reaches the
-//! table's `#` and `file` columns when forced on, but never a default
+//! table's `slug#` and `file` columns when forced on, but never a default
 //! (opted-out) run, CSV, or JSON — and the config/flag precedence resolves as
 //! documented.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
@@ -46,7 +46,13 @@ fn hyperlinks_always_wraps_the_file_column() {
     let dir = support::project_with_task("Rewrite auth");
     let out = ls_stdout(
         dir.path(),
-        &["ls", "--hyperlinks", "always", "--columns", "#,title,file"],
+        &[
+            "ls",
+            "--hyperlinks",
+            "always",
+            "--columns",
+            "slug#,title,file",
+        ],
     );
     assert!(
         out.contains("\u{1b}]8;;file://"),
@@ -54,25 +60,25 @@ fn hyperlinks_always_wraps_the_file_column() {
     );
 }
 
-/// `--columns '#,title'` has no `file` column at all, so any OSC 8 sequence
-/// that shows up can only have come from the `#` column.
+/// `--columns slug#,title` has no `file` column at all, so any OSC 8 sequence
+/// that shows up can only have come from the `slug#` column.
 #[test]
-fn hyperlinks_always_wraps_the_handle_column() {
+fn hyperlinks_always_wraps_the_slug_column() {
     let dir = support::project_with_task("Rewrite auth");
     let out = ls_stdout(
         dir.path(),
-        &["ls", "--hyperlinks", "always", "--columns", "#,title"],
+        &["ls", "--hyperlinks", "always", "--columns", "slug#,title"],
     );
     assert!(
         out.contains("\u{1b}]8;;file://"),
-        "expected an OSC 8 hyperlink sequence on the # column: {out:?}"
+        "expected an OSC 8 hyperlink sequence on the slug# column: {out:?}"
     );
 }
 
 #[test]
-fn hyperlinks_off_the_handle_column_has_no_escape() {
+fn hyperlinks_off_the_slug_column_has_no_escape() {
     let dir = support::project_with_task("Rewrite auth");
-    let out = ls_stdout(dir.path(), &["ls", "--columns", "#,title"]);
+    let out = ls_stdout(dir.path(), &["ls", "--columns", "slug#,title"]);
     assert!(
         !out.contains('\u{1b}'),
         "hyperlinks default to never: {out:?}"
@@ -82,30 +88,36 @@ fn hyperlinks_off_the_handle_column_has_no_escape() {
 #[test]
 fn hyperlinks_default_never_emits_no_escape() {
     let dir = support::project_with_task("Rewrite auth");
-    let out = ls_stdout(dir.path(), &["ls", "--columns", "#,title,file"]);
+    let out = ls_stdout(dir.path(), &["ls", "--columns", "slug#,title,file"]);
     assert!(
         !out.contains('\u{1b}'),
         "hyperlinks default to never: {out:?}"
     );
 }
 
-/// Both `#` and `file` link the same row, so for a single-task listing they
+/// Both `slug#` and `file` link the same row, so for a single-task listing they
 /// must carry the identical target (the same task's own file).
 #[test]
-fn handle_and_file_columns_link_to_the_same_target() {
+fn slug_and_file_columns_link_to_the_same_target() {
     let dir = support::project_with_task("Rewrite auth");
     let out = ls_stdout(
         dir.path(),
-        &["ls", "--hyperlinks", "always", "--columns", "#,title,file"],
+        &[
+            "ls",
+            "--hyperlinks",
+            "always",
+            "--columns",
+            "slug#,title,file",
+        ],
     );
     let data_line = out.lines().nth(1).expect("must have one data row");
     let targets = hyperlink_targets(data_line);
-    let [handle_target, file_target] = targets.as_slice() else {
-        panic!("expected both # and file to open a hyperlink: {data_line:?}");
+    let [slug_target, file_target] = targets.as_slice() else {
+        panic!("expected both slug# and file to open a hyperlink: {data_line:?}");
     };
     assert_eq!(
-        handle_target, file_target,
-        "# and file must target the same file for a given row: {data_line:?}"
+        slug_target, file_target,
+        "slug# and file must target the same file for a given row: {data_line:?}"
     );
 }
 
@@ -119,7 +131,7 @@ fn hyperlinks_always_csv_carries_no_escape() {
             "--hyperlinks",
             "always",
             "--columns",
-            "#,title,file",
+            "slug#,title,file",
             "--format",
             "csv",
         ],
@@ -143,7 +155,7 @@ fn hyperlinks_always_json_carries_no_escape() {
 #[test]
 fn config_hyperlinks_always_enables_without_the_flag() {
     let dir = project_with_config("[tasks]\nroots = [\"tasks\"]\n[ls]\nhyperlinks = \"always\"\n");
-    let out = ls_stdout(dir.path(), &["ls", "--columns", "#,title,file"]);
+    let out = ls_stdout(dir.path(), &["ls", "--columns", "slug#,title,file"]);
     assert!(
         out.contains("\u{1b}]8;;file://"),
         "[ls] hyperlinks = \"always\" must enable hyperlinks with no CLI flag: {out:?}"
@@ -155,7 +167,13 @@ fn flag_never_overrides_a_config_opt_in() {
     let dir = project_with_config("[tasks]\nroots = [\"tasks\"]\n[ls]\nhyperlinks = \"always\"\n");
     let out = ls_stdout(
         dir.path(),
-        &["ls", "--hyperlinks", "never", "--columns", "#,title,file"],
+        &[
+            "ls",
+            "--hyperlinks",
+            "never",
+            "--columns",
+            "slug#,title,file",
+        ],
     );
     assert!(
         !out.contains('\u{1b}'),
@@ -169,7 +187,7 @@ fn custom_hyperlink_target_template_is_honoured() {
         "[tasks]\nroots = [\"tasks\"]\n[ls]\nhyperlinks = \"always\"\n\
          hyperlink-target = \"editor://open?f={rel}\"\n",
     );
-    let out = ls_stdout(dir.path(), &["ls", "--columns", "#,title,file"]);
+    let out = ls_stdout(dir.path(), &["ls", "--columns", "slug#,title,file"]);
     assert!(
         out.contains("\u{1b}]8;;editor://open?f=tasks/test.typ\u{1b}\\"),
         "custom hyperlink-target template must drive the URI: {out:?}"

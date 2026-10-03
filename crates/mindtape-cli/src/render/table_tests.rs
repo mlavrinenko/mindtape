@@ -69,7 +69,7 @@ fn one_line_per_task_plus_header() {
 #[test]
 fn highlight_empty_mask_equals_plain() {
     // No row flagged: the highlighted render is byte-identical to the plain
-    // one (the `#` column is untouched).
+    // one (the `slug#` column is untouched).
     let tasks = [task("a", "A", "wip"), task("b", "B", "wip")];
     let fixture = TestCtx::default();
     let plain = render(&tasks, fixture.ctx()).unwrap();
@@ -175,7 +175,7 @@ fn columns_order_selects_and_orders() {
     let title_at = header.find("TITLE").unwrap();
     let status_at = header.find("STATUS").unwrap();
     assert!(title_at < status_at, "columns-order must reorder");
-    assert!(!header.contains('#'), "unlisted handle column excluded");
+    assert!(!header.contains("SLUG#"), "unlisted slug# column excluded");
     assert!(!header.contains("PRIORITY"), "unlisted column excluded");
 }
 
@@ -254,24 +254,21 @@ fn due_cell_overdue_color_unset_falls_back_to_red() {
     );
 }
 
-/// The `#` column is the one place a reader ever sees a handle, so a raised
-/// `[handle] check-len` has to reach it — a table printing `1b` while the
-/// resolver demands `1bq` would refuse every handle it displayed.
+/// The `slug#` column prints the hash the context carries, computed over every
+/// task the project loaded rather than the rows on screen.
 #[test]
-fn handle_column_honours_a_configured_check_len() {
-    let mut config = floor_config();
-    config.handle.check_len = Some(2);
+fn slug_column_prints_the_contexts_stem_hash() {
     let tasks = vec![task("alpha", "Alpha", "wip")];
     let fixture = TestCtx {
-        readiness: Readiness::compute(&tasks, &config),
-        config,
+        hashes: mindtape::StemHashes::new(["alpha", "beta"]),
         ..TestCtx::default()
     };
 
     let out = render(&tasks, fixture.ctx()).unwrap();
-    let expected = format!("1{}", crate::handle::check_chars("alpha", 2));
+    let hash = fixture.hashes.hash_of("alpha").unwrap();
+    assert!(out.starts_with("SLUG#"), "{out}");
     assert!(
-        out.contains(&expected),
-        "table should print the two-character handle {expected}: {out}"
+        out.lines().nth(1).is_some_and(|row| row.starts_with(hash)),
+        "the row should open with {hash}: {out}"
     );
 }

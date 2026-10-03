@@ -8,7 +8,7 @@
 //! presentation.
 //!
 //! Selection: `target` is variadic — zero or more entries, each a task reference
-//! (slug, path, or a `list` handle like `1v`) or a filter expression. A reference
+//! (stem, path, or stem hash) or a filter expression. A reference
 //! resolves a single task regardless of its status; a filter retires every
 //! match; the union across every entry, deduplicated by id, is retired in one
 //! pass — one confirmation prompt, one tombstone/rewrite pass. With no targets
@@ -65,8 +65,8 @@ use crate::{git, util};
 /// Arguments for `mt rm`.
 #[derive(Args)]
 pub struct RmArgs {
-    /// Tasks to retire: each a reference (slug, relative/absolute path, or a
-    /// `list` handle like `1v`) or a filter expression. A reference resolves a
+    /// Tasks to retire: each a reference (stem, relative/absolute path, or
+    /// stem hash) or a filter expression. A reference resolves a
     /// single task regardless of status; a filter retires every match; the
     /// union of every entry, deduplicated, is retired in one pass. Omitted
     /// entirely: the configured `[rm] default_filter` (built-in `terminal`).
@@ -130,7 +130,7 @@ pub fn run(args: &RmArgs) -> Result<()> {
     util::warn_errors(&project.outcome);
 
     // Readiness over the full set, before any narrowing, so `ready`/`blocked`/
-    // `terminal` predicates and handle ordinals resolve the same as `list`.
+    // `terminal` predicates resolve the same as `list`.
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
     let eligible = select_targets(&project, &args.targets, &readiness)?;
 

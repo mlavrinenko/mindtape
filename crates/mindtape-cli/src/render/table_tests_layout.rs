@@ -24,11 +24,11 @@ fn no_links() -> Linker {
 }
 
 /// The `flex_columns`/`apply_flex` fixture shared by four tests below: a
-/// narrow non-flex `#` column and a wide flex `title` column, neither linked.
-fn handle_and_title_columns() -> Vec<Column> {
+/// narrow non-flex `slug#` column and a wide flex `title` column, neither linked.
+fn slug_and_title_columns() -> Vec<Column> {
     vec![
         Column {
-            id: ColumnId::Handle,
+            id: ColumnId::StemHash,
             cells: vec![],
             width: 3,
             link_uris: None,
@@ -53,7 +53,7 @@ fn apply_highlight_inverts_handle_cell() {
     };
     let mut columns = vec![
         Column {
-            id: ColumnId::Handle,
+            id: ColumnId::StemHash,
             cells: vec![spec.clone()],
             width: 2,
             link_uris: None,
@@ -72,7 +72,7 @@ fn apply_highlight_inverts_handle_cell() {
     apply_highlight(&mut columns, &[true]);
     assert!(
         columns[0].cells[0].color.is_some(),
-        "handle cell must be highlighted"
+        "slug# cell must be highlighted"
     );
     assert!(
         columns[1].cells[0].color.is_none(),
@@ -89,7 +89,7 @@ fn apply_highlight_skips_when_none_flagged() {
         color: Some(invert),
     };
     let mut columns = vec![Column {
-        id: ColumnId::Handle,
+        id: ColumnId::StemHash,
         cells: vec![spec],
         width: 2,
         link_uris: None,
@@ -105,7 +105,7 @@ fn apply_highlight_skips_when_none_flagged() {
 
 #[test]
 fn flex_columns_trims_title_to_fit_terminal() {
-    let mut columns = handle_and_title_columns();
+    let mut columns = slug_and_title_columns();
     flex_columns(&mut columns, 80);
     // avail = 80 - (3 + 2*1) = 75; min(200, 75) = 75; max(75, 16) = 75
     assert_eq!(columns[1].width, 75);
@@ -113,7 +113,7 @@ fn flex_columns_trims_title_to_fit_terminal() {
 
 #[test]
 fn flex_columns_respects_title_minimum() {
-    let mut columns = handle_and_title_columns();
+    let mut columns = slug_and_title_columns();
     flex_columns(&mut columns, 0);
     // avail = 0.saturating_sub(5) = 0; min(200, 0) = 0; max(0, 16) = 16
     assert_eq!(columns[1].width, 16);
@@ -123,7 +123,7 @@ fn flex_columns_respects_title_minimum() {
 fn flex_columns_handles_non_flex_only() {
     let mut columns = vec![
         Column {
-            id: ColumnId::Handle,
+            id: ColumnId::StemHash,
             cells: vec![],
             width: 4,
             link_uris: None,
@@ -143,7 +143,7 @@ fn flex_columns_handles_non_flex_only() {
 
 #[test]
 fn apply_flex_skips_when_no_terminal() {
-    let mut columns = handle_and_title_columns();
+    let mut columns = slug_and_title_columns();
     let old = columns[1].width;
     apply_flex(&mut columns, None);
     assert_eq!(
@@ -154,7 +154,7 @@ fn apply_flex_skips_when_no_terminal() {
 
 #[test]
 fn apply_flex_trims_when_terminal_known() {
-    let mut columns = handle_and_title_columns();
+    let mut columns = slug_and_title_columns();
     apply_flex(&mut columns, Some(80));
     assert!(
         columns[1].width < 200,
@@ -166,7 +166,7 @@ fn apply_flex_trims_when_terminal_known() {
 fn render_grid_header_last_column_not_padded() {
     let cols = vec![
         Column {
-            id: ColumnId::Handle,
+            id: ColumnId::StemHash,
             cells: vec![],
             width: 2,
             link_uris: None,
@@ -190,7 +190,7 @@ fn render_grid_header_last_column_not_padded() {
 fn render_grid_last_column_not_padded() {
     let cols = vec![
         Column {
-            id: ColumnId::Handle,
+            id: ColumnId::StemHash,
             cells: vec![CellSpec {
                 text: "1a".into(),
                 glyph: None,
@@ -223,7 +223,7 @@ fn flex_columns_uses_multiplication_for_gaps() {
     // Three columns so gaps > 1 (exposes * vs / in GAP.len() * gaps)
     let mut cols = vec![
         Column {
-            id: ColumnId::Handle,
+            id: ColumnId::StemHash,
             cells: vec![],
             width: 2,
             link_uris: None,
@@ -267,7 +267,7 @@ fn render_grid_single_column_shows_header_then_content() {
 }
 
 // The hyperlink-wrap tests (width accounting, which columns get wrapped, the
-// `#`/`file` shared-target invariant, and highlight+link composition) live in
+// `slug#`/`file` shared-target invariant, and highlight+link composition) live in
 // the sibling `table_tests_hyperlinks.rs` — kept out of this file so it stays
 // well clear of the size gate.
 

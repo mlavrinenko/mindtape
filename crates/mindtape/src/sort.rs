@@ -1,12 +1,6 @@
 //! Default list ordering and the configurable sort comparator, shared by `list`
-//! (when the caller gives no `--sort`), handle resolution, and the sort field
-//! definitions used by the `--sort` flag.
-//!
-//! Handles map an ordinal to a task against "the default view", so that view
-//! must order tasks identically to what `mindtape list` prints — otherwise the
-//! ordinal a user reads off the list resolves to a different task. Both sides
-//! call [`default_order_with`] (which honours `config.query.default_sort`) to
-//! stay in lock-step.
+//! (when the caller gives no `--sort`) and the sort field definitions used by
+//! the `--sort` flag. [`default_order_with`] honours `config.query.default_sort`.
 
 use std::cmp::Ordering;
 

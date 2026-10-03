@@ -437,7 +437,7 @@ description = "Open tasks an agent can take"
 [views.blocked]
 filter = "blocked"
 sort = ["blocks:desc", "priority:desc"]
-columns = ["#", "title", "why"]
+columns = ["slug#", "title", "why"]
 description = "Blocked tasks and what each waits on"
 
 # Closing a task asserts the gate already ran against this worktree, rather

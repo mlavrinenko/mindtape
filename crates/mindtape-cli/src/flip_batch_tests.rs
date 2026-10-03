@@ -48,7 +48,6 @@ fn landed(ids: &[&str], files: &[&str]) -> Landed {
             .map(|id| (*id).to_owned())
             .collect::<HashSet<_>>(),
         files: files.iter().map(PathBuf::from).collect(),
-        order: ids.iter().map(|id| (*id).to_owned()).collect(),
     }
 }
 

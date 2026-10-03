@@ -61,11 +61,9 @@ after `mt`. In a repo with no tracker, offer `mt init`.
 priority scale and tags from `mt config show`, which prints the merged config,
 or the statuses alone from `mt flip --list`. Never guess them.
 
-A `<task>` is a stem or a path. `mt ls` also prints a `#` handle such as `1b`,
-which resolves against bare `mt ls` as it stands when the next command runs. A
-handle from a filtered listing, or from before a flip, can be refused or name
-another task, so pass the stem. When you mention a task to a person, link its
-file path.
+A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#`
+column. A stem hash is the same in every listing, and one that several tasks
+share is refused. When you mention a task to a person, link its file path.
 
 = Finding tasks
 

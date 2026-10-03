@@ -7,11 +7,10 @@ use std::sync::OnceLock;
 
 use anyhow::{Context, Result, anyhow, bail};
 use mindtape::{
-    Config, Filter, LoadOutcome, Readiness, Task, ViewSpec, config_path, find_root, load_config,
-    load_project, select, write_atomic,
+    Config, LoadOutcome, Resolution, StemHashes, Task, ViewSpec, config_path, find_root,
+    load_config, load_project, write_atomic,
 };
 
-use crate::handle::{check_chars, check_len, parse_handle};
 use crate::render::link::HyperlinkChoice;
 
 /// A discovered, loaded project: its root, config and load outcome.
@@ -141,149 +140,90 @@ pub fn open() -> Result<Project> {
     })
 }
 
+/// The stem hash of every task the project loaded, closed ones included, so a
+/// task carries the same hash in every listing.
+#[must_use]
+pub fn stem_hashes(tasks: &[Task]) -> StemHashes {
+    StemHashes::new(tasks.iter().map(|task| task.id.as_str()))
+}
+
 /// Resolve a task reference to a loaded `Task` and its absolute path.
 ///
-/// Accepts:
-/// - A handle (`<ordinal><check>`, e.g. `"5d"`): resolves against the **default
-///   view** (configured default filter, no extra sort — exactly what bare
-///   `mt ls` shows).  The ordinal is 1-based.  The check letter must
-///   match the task's stable id hash; a mismatch means the list has drifted and
-///   the error names the current handle and title at that ordinal.
-/// - A slug (bare file stem, e.g. `"implement-auth"`).
-/// - A relative path (resolved against CWD).
-/// - An absolute path.
-///
-/// Errors if the reference doesn't match any loaded task.
+/// A reference spelled as a path (absolute, holding `/`, or ending `.typ`)
+/// resolves as a path from the working directory. Anything else is an exact
+/// filename stem first, and a stem hash ([`mindtape::handle`]) only when no
+/// stem matches.
 ///
 /// # Errors
-/// Returns an error if the path cannot be resolved or no task matches.
+/// Returns an error if the path cannot be resolved, a stem hash names several
+/// tasks, or no task matches.
 pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
     let path = Path::new(id);
-    let is_path = path.is_absolute() || id.contains('/') || id.ends_with(".typ");
-    if is_path {
-        let abs = if path.is_absolute() {
-            path.to_path_buf()
-        } else {
-            std::env::current_dir()
-                .context("determine current directory")?
-                .join(id)
-        };
-        let abs = abs
-            .canonicalize()
-            .with_context(|| format!("resolve {}", abs.display()))?;
-        let task = project
-            .outcome
-            .tasks
-            .iter()
-            .find(|t| project.root.join(&t.file).canonicalize().ok().as_deref() == Some(&abs))
-            .with_context(|| format!("no task at {}", abs.display()))?;
-        return Ok((task.clone(), abs));
+    if path.is_absolute() || id.contains('/') || id.ends_with(".typ") {
+        return resolve_path(project, path);
     }
+    let tasks = &project.outcome.tasks;
+    let found = |stem: &str| tasks.iter().find(|task| task.id == stem);
+    let stem = if found(id).is_some() {
+        id.to_owned()
+    } else {
+        let hashes = stem_hashes(tasks);
+        match hashes.resolve(id) {
+            Resolution::Found(stem) => stem,
+            Resolution::Ambiguous(stems) => bail!(ambiguous(&hashes, id, &stems)),
+            Resolution::NoMatch => bail!(no_task(project, id)),
+        }
+    };
+    let task = found(&stem).with_context(|| no_task(project, id))?;
+    Ok((task.clone(), project.root.join(&task.file)))
+}
 
-    // Try handle resolution first: `<digits><letters>` with no `/` or `.`.
-    if let Some((ordinal, check)) = parse_handle(id) {
-        return resolve_by_handle(project, ordinal, check);
-    }
-
-    let stem = id.strip_suffix(".typ").unwrap_or(id);
+/// Resolve a reference spelled as a path, from the working directory.
+fn resolve_path(project: &Project, path: &Path) -> Result<(Task, PathBuf)> {
+    let abs = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        std::env::current_dir()
+            .context("determine current directory")?
+            .join(path)
+    };
+    let abs = abs
+        .canonicalize()
+        .with_context(|| format!("resolve {}", abs.display()))?;
     let task = project
         .outcome
         .tasks
         .iter()
-        .find(|t| t.id == stem)
-        .with_context(|| {
-            let ids: Vec<&str> = project
-                .outcome
-                .tasks
-                .iter()
-                .map(|t| t.id.as_str())
-                .collect();
-            format!(
-                "no task with id {stem:?}{}",
-                mindtape::suggest::suggestion(stem, &ids)
-            )
-        })?;
-    let abs = project.root.join(&task.file);
+        .find(|t| project.root.join(&t.file).canonicalize().ok().as_deref() == Some(&abs))
+        .with_context(|| format!("no task at {}", abs.display()))?;
     Ok((task.clone(), abs))
 }
 
-/// Build the default list view: [`crate::ls_rules::resolve_bare`]'s bundle
-/// (the first matching `[[ls.rules]]` entry, else the default view, else
-/// match-all), filtered then sorted the same way `ls.rs` does. This
-/// replicates exactly what bare `mt ls` shows — same resolution, same filter
-/// and sort — so handle ordinals resolve to the same tasks the user reads
-/// off it. Columns play no part; they don't affect which tasks appear or in
-/// what order.
-///
-/// Shared with [`crate::flip_handles`], which reports what a flip did to those
-/// ordinals: it has to ask the same question this resolver answers, or it
-/// would print a handle the next command refuses.
-///
-/// # Errors
-/// Returns an error if the resolved filter or sort spec fails to parse.
-pub(crate) fn default_view(project: &Project) -> Result<Vec<Task>> {
-    // No active output format: this resolves a view to ADDRESS a task, not to
-    // render one, so `format()` in a condition reads as the empty string.
-    let env = crate::ls_rules::build_env(project, "");
-    let (bundle, _applied) = crate::ls_rules::resolve_bare(project, &env)?;
-    let filter = Filter::parse(&bundle.filter)?;
-    // Readiness over the full set, before the filter narrows the view, so a
-    // dependency hidden by the default filter still counts. Shared by select and
-    // ordering so the handle view matches what `list` prints exactly.
-    let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
-    let mut tasks = select(
-        project.outcome.tasks.clone(),
-        Some(&filter),
-        &project.config,
-        &readiness,
-    )?;
-    crate::ls::sort_tasks(&mut tasks, &bundle.sort, &project.config, &readiness)?;
-    Ok(tasks)
+/// The refusal for a reference no stem or stem hash matches.
+fn no_task(project: &Project, id: &str) -> String {
+    let ids: Vec<&str> = project
+        .outcome
+        .tasks
+        .iter()
+        .map(|t| t.id.as_str())
+        .collect();
+    format!(
+        "no task with id {id:?}{}",
+        mindtape::suggest::suggestion(id, &ids)
+    )
 }
 
-/// Resolve a task by `ordinal` (1-based) and `check` string against the default
-/// view.  Errors if ordinal is out of range or the check does not match.
-fn resolve_by_handle(project: &Project, ordinal: usize, check: &str) -> Result<(Task, PathBuf)> {
-    let tasks = default_view(project)?;
-    let total = tasks.len();
-
-    let index = ordinal
-        .checked_sub(1)
-        .filter(|&i| i < total)
-        .with_context(|| {
-            format!("handle ordinal {ordinal} out of range (default view has {total} tasks)")
-        })?;
-
-    let task = tasks
-        .get(index)
-        .with_context(|| format!("handle ordinal {ordinal} out of range"))?;
-    // Length first, and strictly: under `[handle] check-len = 2` a bare `2y` is
-    // not a short spelling of `2yq`, it is a handle that belongs to whichever
-    // task hashes to `y` at length 1 — a different question with a different
-    // answer. Prefix-matching it would hand back the collision rate the project
-    // raised the length to avoid.
-    let len = check_len(&project.config);
-    let expected_check = check_chars(&task.id, len);
-    let given = check.chars().count();
-    if given != len {
-        bail!(
-            "handle {ordinal}{check} carries {given} check character(s); this project's handles \
-             carry {len} ({ordinal}{expected_check} is the handle at that position, {title:?}). \
-             A handle of another length is refused, never matched as a prefix",
-            title = task.title,
-        );
-    }
-    if check != expected_check {
-        let current_handle = format!("{ordinal}{expected_check}");
-        bail!(
-            "handle check mismatch: you passed {ordinal}{check} but that position is now \
-             {current_handle} ({title:?}); the default list view may have changed",
-            title = task.title,
-        );
-    }
-
-    let abs = project.root.join(&task.file);
-    Ok((task.clone(), abs))
+/// The refusal for a stem hash several tasks share, naming each by stem and hash.
+fn ambiguous(hashes: &StemHashes, id: &str, stems: &[String]) -> String {
+    let candidates: Vec<String> = stems
+        .iter()
+        .map(|stem| format!("  {} {stem}", hashes.hash_of(stem).unwrap_or_default()))
+        .collect();
+    format!(
+        "stem hash {id:?} names {} tasks; pass a longer hash or the stem:\n{}",
+        stems.len(),
+        candidates.join("\n")
+    )
 }
 
 /// Print per-file load errors to stderr as warnings, then whichever remedies

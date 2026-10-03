@@ -16,7 +16,7 @@ use mindtape::{ColumnConfig, Config, Readiness, Task, parse_config};
 use super::super::TestCtx;
 use super::{ColumnId, resolve_order};
 
-/// `(handle, task)` rows in listing order.
+/// `(hash, task)` rows in listing order.
 fn rows(tasks: &[Task]) -> Vec<(String, &Task)> {
     tasks
         .iter()

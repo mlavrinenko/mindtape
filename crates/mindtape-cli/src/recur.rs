@@ -51,7 +51,7 @@ const MAX_CHAIN_DEPTH: u32 = 10_000;
 /// Arguments for `mt recur`.
 #[derive(Args)]
 pub struct RecurArgs {
-    /// Task to advance: handle, slug, relative path, or absolute path.
+    /// Task to advance: stem, stem hash, relative path, or absolute path.
     pub task: String,
 
     /// Preview the spawn/mutate/advance/skip; write nothing.

@@ -1,7 +1,7 @@
 #![allow(clippy::unwrap_used, clippy::indexing_slicing)]
 
 //! Hyperlink-wrap tests for `table.rs`: width accounting, which columns get
-//! wrapped, the `#`/`file` shared-target invariant
+//! wrapped, the `slug#`/`file` shared-target invariant
 //! (`truth/tasks/hyperlink-the-handle-column.typ`), and highlight+link
 //! composition for the interactive picker. Split out of
 //! `table_tests_layout.rs` to keep both files clear of the size gate.
@@ -33,23 +33,23 @@ fn plain_cell(text: &str) -> CellSpec {
 
 // --- build_columns: the shared per-row target -------------------------------
 
-/// The task this exists to pin: `#` and `file` must carry the identical
+/// The task this exists to pin: `slug#` and `file` must carry the identical
 /// per-row target for a given row, because it is the same file. Built once
 /// (`row_hyperlink_targets` called a single time in `build_columns`) and
 /// cloned into both columns rather than recomputed per column, so there is no
 /// way for the two to diverge.
 #[test]
-fn handle_and_file_columns_share_the_same_row_target() {
+fn slug_and_file_columns_share_the_same_row_target() {
     let task = bare_task("x");
     let fixture = TestCtx::default();
-    let handles: Vec<(String, &Task)> = vec![("1a".to_owned(), &task)];
-    let visible = [ColumnId::Handle, ColumnId::Title, ColumnId::File];
-    let columns = build_columns(&visible, &handles, fixture.ctx(), GlyphMode::None);
+    let rows: Vec<(String, &Task)> = vec![("a1b".to_owned(), &task)];
+    let visible = [ColumnId::StemHash, ColumnId::Title, ColumnId::File];
+    let columns = build_columns(&visible, &rows, fixture.ctx(), GlyphMode::None);
 
-    let handle_uris = columns[0]
+    let slug_uris = columns[0]
         .link_uris
         .clone()
-        .expect("handle column must carry link_uris");
+        .expect("slug# column must carry link_uris");
     let title_uris = &columns[1].link_uris;
     let file_uris = columns[2]
         .link_uris
@@ -58,12 +58,12 @@ fn handle_and_file_columns_share_the_same_row_target() {
 
     assert!(title_uris.is_none(), "title must never carry link_uris");
     assert_eq!(
-        handle_uris, file_uris,
+        slug_uris, file_uris,
         "# and file must target the same file for a given row"
     );
 }
 
-/// A column with no `link_uris` (every column but `#`/`file`) is untouched by
+/// A column with no `link_uris` (every column but `slug#`/`file`) is untouched by
 /// hyperlinks even when the linker is forced on.
 #[test]
 fn columns_without_link_uris_are_never_wrapped() {
@@ -89,8 +89,8 @@ fn columns_without_link_uris_are_never_wrapped() {
 
 /// The width-accounting trap this task exists to pin: rendering with
 /// hyperlinks on must lay out identically to rendering with them off, once
-/// the OSC 8 escapes are stripped back out. Both `#` and `file` carry
-/// `link_uris` here, exactly mirroring a real `--columns '#,title,file'` run,
+/// the OSC 8 escapes are stripped back out. Both `slug#` and `file` carry
+/// `link_uris` here, exactly mirroring a real `--columns slug#,title,file` run,
 /// with `title` as the flex column and `file` last (so the
 /// unpadded-last-column path is exercised too).
 #[test]
@@ -99,7 +99,7 @@ fn hyperlink_wrap_does_not_disturb_column_layout() {
     let build = |linked: bool| {
         vec![
             Column {
-                id: ColumnId::Handle,
+                id: ColumnId::StemHash,
                 cells: vec![plain_cell("1a")],
                 width: 2,
                 link_uris: linked.then(|| vec![uri.to_owned()]),
@@ -150,7 +150,7 @@ fn hyperlink_wrap_does_not_disturb_column_layout() {
 // --- highlight + link composition (the interactive risk) -------------------
 
 /// The real risk this task exists to guard against: `apply_highlight` colours
-/// the handle cell reverse-video for `mt ls -i`, and the same cell now also
+/// the slug# cell reverse-video for `mt ls -i`, and the same cell now also
 /// carries a hyperlink target. The two must compose — the invert style rides
 /// inside the OSC 8 wrap without disturbing it, and stripping the OSC 8 wrap
 /// back out restores exactly the highlighted (but unlinked) rendering.
@@ -159,7 +159,7 @@ fn highlighted_handle_cell_still_links_and_keeps_its_shape() {
     let uri = "file:///abs/truth/tasks/x.typ";
     let build = |linked: bool| {
         let mut columns = vec![Column {
-            id: ColumnId::Handle,
+            id: ColumnId::StemHash,
             cells: vec![plain_cell("1a")],
             width: 4,
             link_uris: linked.then(|| vec![uri.to_owned()]),

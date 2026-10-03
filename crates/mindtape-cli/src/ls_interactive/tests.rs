@@ -25,6 +25,7 @@ fn state(n: usize, buffer: &str) -> State {
     State {
         config: Config::default(),
         root: ".".into(),
+        hashes: util::stem_hashes(&tasks),
         tasks,
         readiness: Readiness::empty(),
         env: mindtape::ConditionEnv::default(),
@@ -33,14 +34,33 @@ fn state(n: usize, buffer: &str) -> State {
     }
 }
 
+/// The stem hash row `index` of `state(n, _)` prints.
+fn hash_at(n: usize, index: usize) -> String {
+    let state = state(n, "");
+    let task = state.tasks.get(index).unwrap();
+    state.hashes.hash_of(&task.id).unwrap().to_owned()
+}
+
+/// The rows whose stem hash starts with `prefix`, in listing order.
+fn rows_starting(n: usize, prefix: &str) -> Vec<usize> {
+    (0..n)
+        .filter(|&i| hash_at(n, i).starts_with(prefix))
+        .collect()
+}
+
 #[test]
 fn classify_digits_and_verbs() {
     assert_eq!(
         classify(key(KeyCode::Char('3'), KeyModifiers::NONE)),
         Intent::Digit('3')
     );
+    // Every letter is a hash digit, `q` included; Esc quits.
     assert_eq!(
         classify(key(KeyCode::Char('q'), KeyModifiers::NONE)),
+        Intent::Digit('q')
+    );
+    assert_eq!(
+        classify(key(KeyCode::Esc, KeyModifiers::NONE)),
         Intent::Quit
     );
     assert_eq!(
@@ -78,9 +98,19 @@ fn classify_ctrl_modifiers() {
 }
 
 #[test]
+fn classify_reads_a_typed_hash_like_the_resolver() {
+    for (typed, read) in [('K', 'k'), ('I', '1'), ('l', '1'), ('O', '0')] {
+        assert_eq!(
+            classify(key(KeyCode::Char(typed), KeyModifiers::NONE)),
+            Intent::Digit(read)
+        );
+    }
+}
+
+#[test]
 fn classify_unknown_is_ignored() {
     assert_eq!(
-        classify(key(KeyCode::Char('x'), KeyModifiers::NONE)),
+        classify(key(KeyCode::Char('-'), KeyModifiers::NONE)),
         Intent::Ignore
     );
     assert_eq!(
@@ -125,9 +155,8 @@ fn apply_ignore_keeps_buffer() {
 
 #[test]
 fn apply_open_first_targets_the_first_highlighted() {
-    // Buffer "3" selects ordinal 3 → index 2.
     assert_eq!(
-        apply(&mut state(10, "3"), Intent::OpenFirst),
+        apply(&mut state(10, &hash_at(10, 2)), Intent::OpenFirst),
         Action::Open(vec![2])
     );
 }
@@ -135,7 +164,7 @@ fn apply_open_first_targets_the_first_highlighted() {
 #[test]
 fn apply_open_first_without_a_match_opens_nothing() {
     assert_eq!(
-        apply(&mut state(3, "9"), Intent::OpenFirst),
+        apply(&mut state(3, "u"), Intent::OpenFirst),
         Action::Open(vec![])
     );
 }
@@ -156,38 +185,41 @@ fn empty_buffer_highlights_nothing() {
 }
 
 #[test]
-fn prefix_selects_by_ordinal() {
-    // 12 tasks, buffer "1" → ordinals 1, 10, 11, 12 (indices 0, 9, 10, 11).
-    let state = state(12, "1");
+fn prefix_selects_by_stem_hash() {
+    // The first digit of the last row's hash; with 40 rows of 32 possible
+    // digits, rows of other hashes share it too.
+    let prefix = hash_at(40, 39).get(..1).unwrap().to_owned();
+    let state = state(40, &prefix);
     let mask = state.highlight_mask();
     let on: Vec<usize> = mask
         .iter()
         .enumerate()
         .filter_map(|(i, &on)| on.then_some(i))
         .collect();
-    assert_eq!(on, vec![0, 9, 10, 11]);
-    // First highlighted is the topmost (ordinal 1, index 0).
-    assert_eq!(state.first_highlighted(), Some(0));
+    assert_eq!(on, rows_starting(40, &prefix));
+    assert!(on.len() > 1, "the fixture must share a first digit: {on:?}");
+    assert_eq!(state.first_highlighted(), on.first().copied());
 }
 
 #[test]
-fn two_digit_prefix_narrows() {
-    let state = state(12, "12");
-    assert_eq!(state.first_highlighted(), Some(11));
+fn a_whole_hash_narrows_to_its_row() {
+    let state = state(40, &hash_at(40, 39));
+    assert_eq!(state.first_highlighted(), Some(39));
     assert_eq!(state.highlight_mask().iter().filter(|&&on| on).count(), 1);
 }
 
 #[test]
 fn nonmatching_buffer_highlights_nothing() {
-    let state = state(5, "9");
+    // `u` is no hash digit.
+    let state = state(5, "u");
     assert_eq!(state.first_highlighted(), None);
 }
 
 #[test]
 fn footer_shows_buffer_when_typing() {
-    assert!(footer("12", None).contains("#12"));
+    assert!(footer("1a", None).contains("slug#: 1a"));
     // Empty buffer drops the status line, keeping only the hints.
-    assert!(!footer("", None).contains('#'));
+    assert!(!footer("", None).contains("slug#:"));
 }
 
 #[test]
@@ -200,7 +232,7 @@ fn footer_reports_a_truncated_listing() {
     assert!(text.contains("truncated: showing 3 of 40"), "got: {text}");
     // The hints keep the last line: the truncation note is prepended, never
     // printed instead of the keys the caller needs.
-    assert!(text.lines().next_back().unwrap().contains("q quit"));
+    assert!(text.lines().next_back().unwrap().contains("Esc quit"));
 }
 
 #[test]
@@ -299,10 +331,10 @@ fn run_fails_on_non_table() {
 // --- classify ctrl --------------------------------------------------------
 
 #[test]
-fn classify_plain_c_no_ctrl_is_ignore() {
+fn classify_plain_c_no_ctrl_is_a_hash_digit() {
     assert_eq!(
         classify(key(KeyCode::Char('c'), KeyModifiers::NONE)),
-        Intent::Ignore
+        Intent::Digit('c')
     );
 }
 
@@ -310,7 +342,7 @@ fn classify_plain_c_no_ctrl_is_ignore() {
 
 #[test]
 fn collect_first_match_returns_correct_index() {
-    assert_eq!(collect_first(&state(10, "3")), vec![2]);
+    assert_eq!(collect_first(&state(10, &hash_at(10, 2))), vec![2]);
 }
 
 // --- State::paths ---------------------------------------------------------

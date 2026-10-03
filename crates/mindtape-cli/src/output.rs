@@ -6,10 +6,9 @@ use mindtape::numeric::{NumValue, format_num};
 use mindtape::{CanonicalTask, Readiness, ReadyState, SCHEMA_VERSION, Task};
 use serde_json::{Value, json};
 
-use crate::handle::{check_len, make_handles};
 use crate::ls_rules::Applied;
 use crate::render::RenderCtx;
-use crate::render::columns::{ColumnId, resolve_order};
+use crate::render::columns::{ColumnId, resolve_order, rows};
 
 /// Output format for `list` and `eval`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, clap::ValueEnum)]
@@ -235,8 +234,8 @@ fn applied_to_json(applied: &Applied) -> Value {
 /// shows something only the render that produced it can resolve, CSV emits
 /// the stable value a program can keep.
 ///
-/// - `#`: the table's handle (`<ordinal><check>`) is ephemeral per render, so
-///   CSV emits the task's stable `id` under an `id` header instead.
+/// - `slug#`: a stem hash lengthens when a new stem comes to share its
+///   prefix, so CSV emits the task's stable `id` under an `id` header instead.
 /// - `file`: the table's cell is relative to the process's working directory
 ///   ([`crate::render::file_path::cell_text`]), so one task reads
 ///   `tasks/a.typ` from the root and `../tasks/a.typ` from `tasks/`. CSV
@@ -252,11 +251,11 @@ fn applied_to_json(applied: &Applied) -> Value {
 /// are not represented here, same as the table. `--format json` is the
 /// escape hatch: it always emits every field.
 fn render_csv(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
-    let handles = make_handles(tasks, check_len(ctx.config));
-    let columns = resolve_order(&handles, ctx)?;
+    let rows = rows(tasks, ctx.hashes);
+    let columns = resolve_order(&rows, ctx)?;
     let mut writer = csv::Writer::from_writer(Vec::new());
     writer.write_record(columns.iter().copied().map(csv_header))?;
-    for (_, task) in &handles {
+    for (_, task) in &rows {
         let row: Vec<String> = columns
             .iter()
             .map(|&id| csv_value(id, task, ctx.config, ctx.readiness))
@@ -268,11 +267,11 @@ fn render_csv(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
 }
 
 /// CSV header text for a resolved column: its [`ColumnId::key`], except
-/// for `Handle`: `id` describes the CSV cell's content (the task's
-/// stable id), where the table's `#` describes an ephemeral ordinal.
+/// for `StemHash`: `id` describes the CSV cell's content (the task's
+/// stable id), where the table's `slug#` holds a hash that can lengthen.
 fn csv_header(id: ColumnId) -> &'static str {
     match id {
-        ColumnId::Handle => "id",
+        ColumnId::StemHash => "id",
         other => other.key(),
     }
 }
@@ -283,7 +282,7 @@ fn csv_header(id: ColumnId) -> &'static str {
 /// [`CellSpec`]: crate::render::field::CellSpec
 fn csv_value(id: ColumnId, task: &Task, config: &Config, readiness: &Readiness) -> String {
     match id {
-        ColumnId::Handle => task.id.clone(),
+        ColumnId::StemHash => task.id.clone(),
         ColumnId::Status => status_name(task),
         ColumnId::Ready => ready_text(readiness.state(task)).to_owned(),
         ColumnId::Priority => priority_display(task.priority.as_ref(), config),

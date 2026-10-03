@@ -100,7 +100,7 @@ fn hyperlinks_auto_needs_a_tty_and_a_non_dumb_term() {
     // inheriting it — unlike `no_color_env_var_disables_colour_on_a_tty`,
     // whose `auto` never reads `TERM` at all.
     let dir = support::project_with_task(LONG_TITLE);
-    let args = "ls --hyperlinks auto --columns '#,title,file'";
+    let args = "ls --hyperlinks auto --columns slug#,title,file";
     let non_dumb_term = pty_output(dir.path(), args, 200, &[("TERM", "xterm-256color")]);
     let dumb_term = pty_output(dir.path(), args, 200, &[("TERM", "dumb")]);
 
@@ -134,10 +134,9 @@ fn piped_output(dir: &Path, args: &[&str]) -> String {
 }
 
 /// The embedded floor's `[ls.columns.file] when`: the `file` column stays
-/// opt-in on a terminal, where the `#` handle is the address a reader wants,
-/// and turns itself on in captured output, where that handle is a position in
-/// a view the next command recomputes and the path is the only stable thing to
-/// quote.
+/// opt-in on a terminal, where the `slug#` stem hash is the address a reader
+/// wants, and turns itself on in captured output, where a quoted hash can turn
+/// ambiguous and the path is the stable thing to quote.
 ///
 /// Only reachable end to end: an in-process test resolves the expression
 /// against an injected environment, which cannot tell whether the real
@@ -165,7 +164,7 @@ fn the_file_column_turns_itself_on_when_stdout_is_captured() {
 #[test]
 fn naming_the_file_column_shows_it_on_a_terminal() {
     let dir = support::project_with_task(LONG_TITLE);
-    let named = pty_output(dir.path(), "ls --columns '#,title,file'", 200, &[]);
+    let named = pty_output(dir.path(), "ls --columns slug#,title,file", 200, &[]);
 
     assert!(
         named.contains("FILE"),

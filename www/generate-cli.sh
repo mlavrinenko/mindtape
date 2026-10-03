@@ -50,7 +50,7 @@ mt ls '' -n 5 --skip 5          # page two; the footer names the next --skip
 mt ls @stuck                    # named view: filter, sort and columns
 mt ls --json                    # shorthand for --format json
 mt ls --format csv              # table (default), json, csv, path or path0
-mt ls --columns '#,title,file' --hyperlinks always   # clickable # and file columns
+mt ls --columns slug#,title,file --hyperlinks always   # clickable slug# and file
 mt ls ready --format path       # bare paths, one per line, for another program
 mt ls 'has(due)' --format path0 | xargs -0 wc -l   # NUL-delimited
 EOF

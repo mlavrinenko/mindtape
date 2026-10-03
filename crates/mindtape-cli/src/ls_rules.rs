@@ -1,9 +1,8 @@
 //! `[[ls.rules]]` cascade resolution for bare `mt ls`
 //! (`truth/tasks/conditional-ls-rules.typ`).
 //!
-//! [`resolve`] is the single source both `ls.rs` (one-shot and
-//! `--interactive`) and [`crate::util`]'s handle-ordinal resolution call, so
-//! `mt ls`'s printed list and `mt go`'s ordinals never disagree. The cascade
+//! [`resolve`] is the single source `ls.rs` (one-shot and `--interactive`)
+//! calls. The cascade
 //! runs bottom-up, per facet: the first `[[ls.rules]]` entry whose `condition`
 //! holds (or is absent) composes its `import-views` left-to-right (per-facet
 //! last-wins) then applies its own manual overrides, else the project's default
@@ -15,8 +14,7 @@
 //! layer beneath chose — filter answers "which tasks", sort and columns answer
 //! "how do I read them"
 //! (`truth/tasks/ls-rules-lose-their-sort-and-columns-facets-under-an-explicit-filter.typ`).
-//! [`resolve_bare`] is the cascade without the CLI-argument layers, for callers
-//! (`util::default_view`) that only ever want the bare-`mt ls` view.
+//! [`resolve_bare`] is the cascade without the CLI-argument layers.
 
 use std::io::IsTerminal;
 
@@ -51,9 +49,8 @@ pub struct Bundle {
 /// `[ls.columns.<name>] when`, so a condition means the same thing wherever it
 /// is written.
 ///
-/// `format` is `""` for a caller with no active format — handle resolution
-/// ([`crate::util::default_view`]) resolves a view to address a task, not to
-/// render one — and `""` compares unequal to every real format name.
+/// `format` is the active output format's name; `""` compares unequal to every
+/// real format name.
 ///
 /// The listing facts ([`mindtape::ColumnFacts`]) stay at their all-false
 /// default here and are filled in per column by
@@ -74,8 +71,8 @@ pub(crate) fn build_env(project: &util::Project, format: &str) -> ConditionEnv {
 
 /// Resolve the bare-`mt ls` cascade only: the first matching `[[ls.rules]]`
 /// entry, else the project's default view, else match-all. No CLI-argument
-/// layer — this is what [`crate::util`]'s handle resolution wants, and what
-/// [`resolve`] falls back to when the caller passed no filter.
+/// layer — this is what [`resolve`] falls back to when the caller passed no
+/// filter.
 ///
 /// # Errors
 /// Returns an error if a rule's condition or a referenced view fails to

@@ -56,7 +56,7 @@ filter = "!terminal"
 [views.waiting]
 filter = "blocked"
 sort = ["priority:desc"]
-columns = ["#", "title", "why"]
+columns = ["slug#", "title", "why"]
 description = "Blocked tasks and what each waits on"
 # docs:end
 

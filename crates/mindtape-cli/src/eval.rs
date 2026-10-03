@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
-use mindtape::{Task, config_path, find_root, load_config};
+use mindtape::{StemHashes, Task, config_path, find_root, load_config, load_project};
 use typst_harvest::{HarvestWorld, harvest};
 
 use crate::output::{OutputFormat, render, task_to_json};
@@ -12,8 +12,8 @@ use crate::render::RenderCtx;
 /// Arguments for `eval`.
 #[derive(Debug, clap::Args)]
 pub struct EvalArgs {
-    /// Task to evaluate: a stem, a path, or a `#` handle. A path need not
-    /// lie under a project.
+    /// Task to evaluate: a stem, a path, or a stem hash. A path need not lie
+    /// under a project.
     pub task: String,
 
     /// Emit JSON instead of a table.
@@ -43,12 +43,12 @@ pub fn run(args: &EvalArgs) -> Result<()> {
     if args.json {
         print_json(&task)
     } else {
-        print_table(&task)
+        print_table(&task, &hashes_for(&file, &task))
     }
 }
 
 /// The file `reference` names. Anything spelled as a path stays a path, so a
-/// `.typ` under no project still evaluates; a stem or `#` handle resolves
+/// `.typ` under no project still evaluates; a stem or stem hash resolves
 /// against the enclosing project the way `flip`, `set` and `link` do.
 ///
 /// # Errors
@@ -92,7 +92,7 @@ fn print_json(task: &Task) -> Result<()> {
 /// # Errors
 /// Returns an error if the embedded floor stops parsing, or if a column's
 /// `when` fails to evaluate.
-fn print_table(task: &Task) -> Result<()> {
+fn print_table(task: &Task, hashes: &StemHashes) -> Result<()> {
     let config = mindtape::parse_config("")?;
     let readiness = mindtape::Readiness::empty();
     let env = mindtape::ConditionEnv::default();
@@ -100,12 +100,30 @@ fn print_table(task: &Task) -> Result<()> {
         config: &config,
         readiness: &readiness,
         env: &env,
+        hashes,
     };
     println!(
         "{}",
         render(std::slice::from_ref(task), OutputFormat::Table, ctx, None)?
     );
     Ok(())
+}
+
+/// The stem hashes of the project enclosing `file`, so the `slug#` cell is
+/// the one every listing prints. A file under no project, or one its project
+/// does not load, is hashed alone.
+fn hashes_for(file: &Path, task: &Task) -> StemHashes {
+    let outcome = file
+        .canonicalize()
+        .ok()
+        .and_then(|abs| find_root(abs.parent()?))
+        .and_then(|root| Some(load_project(&root, &load_config(&root).ok()?)));
+    match outcome {
+        Some(outcome) if outcome.tasks.iter().any(|t| t.id == task.id) => {
+            crate::util::stem_hashes(&outcome.tasks)
+        }
+        _ => StemHashes::new([task.id.as_str()]),
+    }
 }
 
 /// Build the world one task file evaluates in.

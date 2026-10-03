@@ -1,14 +1,15 @@
 //! `mt ls --interactive` — a terminal picker over the `ls` list.
 //!
 //! Renders the same table `ls` prints, then holds the terminal in a raw-mode key
-//! loop on an alternate screen. Typing the `#`-column ordinal highlights a task
-//! (reverse-video); Enter opens the first highlighted task in the configured
-//! editor (`go`), Ctrl+Enter opens every listed task, Space re-evaluates the
-//! project, and `q` / Ctrl+C leaves. See `truth/tasks/ls-interactive-mode.typ`.
+//! loop on an alternate screen. Typing a `slug#` stem hash highlights the tasks
+//! whose hash starts with it (reverse-video); Enter opens the first highlighted
+//! task in the configured editor (`go`), Ctrl+Enter opens every listed task,
+//! Space re-evaluates the project, and Esc / Ctrl+C leaves. Every letter is a
+//! hash digit, so no letter quits. See `truth/tasks/ls-interactive-mode.typ`.
 //!
 //! Terminal entry/exit (raw mode, alternate screen, the [`tui::Tui`] RAII
 //! guard) lives in the [`tui`] submodule; this module owns the picker's
-//! state machine — key classification, the digit-buffer selection, and the
+//! state machine — key classification, the hash-buffer selection, and the
 //! draw/refresh loop built on top of it.
 
 use std::io::{self, IsTerminal, Write};
@@ -20,7 +21,7 @@ use crossterm::terminal::{Clear, ClearType};
 use crossterm::{cursor, execute};
 
 use anstyle::{Effects, Style};
-use mindtape::{ConditionEnv, Config, Readiness, Task};
+use mindtape::{ConditionEnv, Config, Readiness, StemHashes, Task};
 
 use crate::ls::{LsArgs, resolve_and_select};
 use crate::output::{OutputFormat, Truncation};
@@ -34,7 +35,7 @@ use tui::{Tui, suspend};
 
 /// The live key hints shown in the footer.
 const HINTS: &str =
-    "0-9 select · ⌫ del · Del clear · ⏎ open · ^⏎ open all · Space refresh · q quit";
+    "slug# select · ⌫ del · Del clear · ⏎ open · ^⏎ open all · Space refresh · Esc quit";
 
 /// Run the interactive picker over the view `args` selects from `project`.
 ///
@@ -78,7 +79,7 @@ fn guard_with(args: &LsArgs, tty: bool) -> Result<()> {
     Ok(())
 }
 
-/// The loop's mutable state: the resolved view plus the digit buffer.
+/// The loop's mutable state: the resolved view plus the typed hash buffer.
 struct State {
     config: Config,
     root: PathBuf,
@@ -87,10 +88,13 @@ struct State {
     /// The environment a column's conditional visibility resolves against,
     /// rebuilt with the rest of the listing on every refresh.
     env: ConditionEnv,
+    /// The stem hashes of every loaded task; the `slug#` column and the
+    /// selection both read them.
+    hashes: StemHashes,
     /// What `--limit` cut from the listed rows; recomputed on every refresh,
     /// since a flip made in the editor can move a task in or out of the view.
     truncated: Option<Truncation>,
-    /// Accumulated `#`-ordinal digits; empty means nothing is selected.
+    /// The typed stem hash prefix; empty means nothing is selected.
     buffer: String,
 }
 
@@ -104,6 +108,7 @@ impl State {
             tasks: listing.tasks,
             readiness: listing.readiness,
             env: listing.env,
+            hashes: listing.hashes,
             truncated: listing.truncated,
             buffer: String::new(),
         })
@@ -115,6 +120,7 @@ impl State {
             config: &self.config,
             readiness: &self.readiness,
             env: &self.env,
+            hashes: &self.hashes,
         }
     }
 
@@ -124,19 +130,24 @@ impl State {
         Ok(())
     }
 
-    /// A per-row mask: row `i` is highlighted when its 1-based ordinal has the
-    /// buffer as a prefix. An empty buffer highlights nothing.
+    /// A per-row mask: row `i` is highlighted when its stem hash starts with
+    /// the buffer. An empty buffer highlights nothing.
     fn highlight_mask(&self) -> Vec<bool> {
         (0..self.tasks.len()).map(|i| self.matches(i)).collect()
     }
 
-    /// Index of the first (lowest-ordinal, topmost) highlighted row.
+    /// Index of the first (topmost) highlighted row.
     fn first_highlighted(&self) -> Option<usize> {
         (0..self.tasks.len()).find(|&i| self.matches(i))
     }
 
     fn matches(&self, index: usize) -> bool {
-        !self.buffer.is_empty() && (index + 1).to_string().starts_with(&self.buffer)
+        !self.buffer.is_empty()
+            && self
+                .tasks
+                .get(index)
+                .and_then(|task| self.hashes.hash_of(&task.id))
+                .is_some_and(|hash| hash.starts_with(&self.buffer))
     }
 
     /// Absolute paths for the given display indices, skipping any out of range.
@@ -166,6 +177,7 @@ enum Action {
 /// testable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Intent {
+    /// A stem hash digit, already read the way `mt` reads a typed hash.
     Digit(char),
     DelLast,
     Clear,
@@ -185,15 +197,25 @@ fn classify(key: KeyEvent) -> Intent {
     let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
     match key.code {
         KeyCode::Char('c') if ctrl => Intent::Quit,
-        KeyCode::Char('q') => Intent::Quit,
+        KeyCode::Esc => Intent::Quit,
         KeyCode::Char(' ') => Intent::Refresh,
-        KeyCode::Char(c) if c.is_ascii_digit() => Intent::Digit(c),
+        KeyCode::Char(c) if c.is_ascii_alphanumeric() => Intent::Digit(hash_digit(c)),
         KeyCode::Backspace if ctrl => Intent::Clear,
         KeyCode::Backspace => Intent::DelLast,
         KeyCode::Delete => Intent::Clear,
         KeyCode::Enter if ctrl => Intent::OpenAll,
         KeyCode::Enter => Intent::OpenFirst,
         _ => Intent::Ignore,
+    }
+}
+
+/// `c` as a stem hash digit: lowercase, with `i` and `l` read as `1` and `o`
+/// as `0`, as [`mindtape::StemHashes::resolve`] reads them.
+fn hash_digit(c: char) -> char {
+    match c.to_ascii_lowercase() {
+        'i' | 'l' => '1',
+        'o' => '0',
+        other => other,
     }
 }
 
@@ -283,7 +305,7 @@ fn draw(state: &State) -> Result<()> {
     Ok(())
 }
 
-/// The footer: a dim hint line, preceded by the live `#` buffer when typing
+/// The footer: a dim hint line, preceded by the live `slug#` buffer when typing
 /// and by the `truncated:` line when `--limit` hid rows. The picker can only
 /// open what it lists, so a caller who capped the listing has to be told the
 /// task they are looking for may be one of the rows `-n` cut.
@@ -295,7 +317,7 @@ fn footer(buffer: &str, truncated: Option<Truncation>) -> String {
         lines.push(painter.paint(&cut.footer(), dim));
     }
     if !buffer.is_empty() {
-        lines.push(format!("#{buffer}"));
+        lines.push(format!("slug#: {buffer}"));
     }
     lines.push(painter.paint(HINTS, dim));
     lines.join("\n")

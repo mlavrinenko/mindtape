@@ -3,7 +3,7 @@
 use anstyle::{Effects, Style};
 use anyhow::{Result, anyhow};
 use mindtape::sort::{default_order_with, sort_by_specs};
-use mindtape::{ConditionEnv, Config, Filter, Readiness, Task, select};
+use mindtape::{ConditionEnv, Config, Filter, Readiness, StemHashes, Task, select};
 
 use crate::ls_rules::{self, Applied};
 use crate::output::{Envelope, OutputFormat, Truncation, render};
@@ -65,7 +65,7 @@ pub struct LsFlags {
     #[arg(long, value_name = "COLS")]
     pub columns: Option<String>,
 
-    /// Hold the terminal in a key loop: type the `#` ordinal to highlight a task,
+    /// Hold the terminal in a key loop: type a `slug#` hash to highlight a task,
     /// Enter opens it in the editor (`go`). Table-only; requires a TTY.
     #[arg(short = 'i', long, conflicts_with = "json")]
     pub interactive: bool,
@@ -196,19 +196,20 @@ fn shell_quote(value: &str) -> String {
 /// The resolved listing one `mt ls` run prints: the selected tasks, the
 /// readiness and attribution they were selected under, the config the render
 /// reads (view columns folded in), the environment a column's conditional
-/// visibility evaluates against, and what `--limit` cut — `None` when the
-/// listing is complete.
+/// visibility evaluates against, the stem hashes of every loaded task, and
+/// what `--limit` cut — `None` when the listing is complete.
 pub(crate) struct Listing {
     pub tasks: Vec<Task>,
     pub readiness: Readiness,
     pub applied: Applied,
     pub config: Config,
     pub env: ConditionEnv,
+    pub hashes: StemHashes,
     pub truncated: Option<Truncation>,
 }
 
 impl Listing {
-    /// The three things a renderer reads, borrowed from this listing so the
+    /// What a renderer reads, borrowed from this listing so the
     /// one-shot render and the interactive loop cannot resolve columns
     /// against different facts.
     pub(crate) fn render_ctx(&self) -> RenderCtx<'_> {
@@ -216,6 +217,7 @@ impl Listing {
             config: &self.config,
             readiness: &self.readiness,
             env: &self.env,
+            hashes: &self.hashes,
         }
     }
 }
@@ -233,8 +235,8 @@ impl Listing {
 /// `--limit` (or a `--skip` of `0`) would show; `shown` and `next_skip` are
 /// read off what actually printed, so paging past the end reports no
 /// truncation rather than a next page with nothing on it. Both the one-shot
-/// render and the interactive loop build on this, so their lists (and thus
-/// the `#` ordinals) match exactly.
+/// render and the interactive loop build on this, so their lists match
+/// exactly. The stem hashes cover every loaded task, not only the rows kept.
 ///
 /// # Errors
 /// Returns an error if the resolved filter or sort spec is invalid.
@@ -246,6 +248,7 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
         config.ls.columns_order = bundle.columns.clone();
     }
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
+    let hashes = util::stem_hashes(&project.outcome.tasks);
     let filter = Filter::parse(&bundle.filter)?;
     let mut tasks = select(
         project.outcome.tasks,
@@ -272,13 +275,13 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
         // through to the render so a condition means one thing per run
         // whether it picked the bundle or a column's visibility.
         env,
+        hashes,
         truncated,
     })
 }
 
 /// Apply `specs` (empty means the built-in default order); shared by the
-/// `ls` render path and [`crate::util`]'s handle-ordinal resolution, so both
-/// order tasks identically for any given resolved bundle.
+/// `ls` render path and the flip hooks' listings.
 pub(crate) fn sort_tasks(
     tasks: &mut [Task],
     specs: &[String],
@@ -287,8 +290,7 @@ pub(crate) fn sort_tasks(
 ) -> Result<()> {
     if specs.is_empty() {
         // default_order_with honours config.query.default_sort when set, then
-        // falls back to the built-in chain. Handle resolution uses the same
-        // call, so ls ordinals stay in lock-step with what `ls` prints.
+        // falls back to the built-in chain.
         default_order_with(tasks, config, readiness);
         return Ok(());
     }

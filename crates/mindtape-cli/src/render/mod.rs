@@ -17,15 +17,15 @@
 //! as each command is migrated; `dead_code` is not suppressed here — see
 //! the `#[allow(dead_code)]` on the `mod render` declaration in `main.rs`.
 
-use mindtape::{ConditionEnv, Config, Readiness};
+use mindtape::{ConditionEnv, Config, Readiness, StemHashes};
 
-/// The three things every `ls` renderer needs beyond the tasks themselves.
+/// What every `ls` renderer needs beyond the tasks themselves.
 ///
-/// They travel together because [`columns::resolve_order`] needs all three at
-/// once — the config for the column vocabulary, the readiness for the rows'
-/// `ready` state, and the environment for the conditions a column's `rules`
-/// evaluate — and because the table and CSV renderers must hand it the *same*
-/// three or they would stop agreeing on the column set.
+/// They travel together because [`columns::resolve_order`] needs the first
+/// three at once — the config for the column vocabulary, the readiness for the
+/// rows' `ready` state, and the environment for the conditions a column's
+/// `rules` evaluate — and because the table and CSV renderers must hand it the
+/// *same* three or they would stop agreeing on the column set.
 #[derive(Debug, Clone, Copy)]
 pub struct RenderCtx<'a> {
     pub config: &'a Config,
@@ -34,15 +34,17 @@ pub struct RenderCtx<'a> {
     /// [`mindtape::ColumnFacts`] are filled in by `resolve_order`, which is
     /// the only place that knows them.
     pub env: &'a ConditionEnv,
+    /// The stem hashes of every task the project loaded, not only the rows
+    /// printed, so the `slug#` column agrees across listings.
+    pub hashes: &'a StemHashes,
 }
 
 /// Owned backing for a [`RenderCtx`] in a test.
 ///
-/// The context borrows its three pieces, so a test that built them inline
-/// would be handing `render` references to temporaries. This holds them
-/// instead; the default is the shipped floor, no readiness and no ambient
-/// facts — the unconfigured-project case nearly every render test wants, and
-/// the one the pre-context signature used to spell out at every call.
+/// The context borrows its pieces, so a test that built them inline would be
+/// handing `render` references to temporaries. This holds them instead; the
+/// default is the shipped floor, no readiness, no ambient facts and no stem
+/// hashes — the unconfigured-project case nearly every render test wants.
 ///
 /// The floor rather than [`Config::default`], because every column's
 /// visibility now lives in `defaults.toml` as a `when` expression: a config
@@ -53,6 +55,7 @@ pub struct TestCtx {
     pub config: Config,
     pub readiness: Readiness,
     pub env: ConditionEnv,
+    pub hashes: StemHashes,
 }
 
 #[cfg(test)]
@@ -62,6 +65,7 @@ impl Default for TestCtx {
             config: mindtape::test_support::floor_config(),
             readiness: Readiness::default(),
             env: ConditionEnv::default(),
+            hashes: StemHashes::new([]),
         }
     }
 }
@@ -90,6 +94,7 @@ impl TestCtx {
             config: &self.config,
             readiness: &self.readiness,
             env: &self.env,
+            hashes: &self.hashes,
         }
     }
 }

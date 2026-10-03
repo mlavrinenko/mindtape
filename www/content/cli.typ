@@ -106,8 +106,8 @@ below, and `mt` evaluates it
 against the rows it is about to print. A column with no `when` never shows. A
 config layer replaces a `when` whole, so `when = 'false'` hides a column.
 
-The shipped expressions: `#` and `title` are `true`. `status`, `priority` and
-`due` are `nonempty()`. `assignee` is `contested()`, so it shows when the rows
+The shipped expressions: `slug#` and `title` are `true`. `status`, `priority`
+and `due` are `nonempty()`. `assignee` is `contested()`, so it shows when the rows
 have different assignees. `ready` is `blocked()`. Naming the `assignee` column
 does not show it; `[ls.columns.assignee] when = 'true'` does.
 
@@ -120,8 +120,9 @@ ones, as `3/5`; see #link(u("/links/"))[Parents and progress].
 
 `file` is the task's path, relative to the working directory. Its cell is
 never empty, so `nonempty()` cannot hide it. It shows when stdout is not a
-terminal, because the `#` handle stops being a usable address once output is
-saved. On a terminal it shows when named, as in `--columns '#,title,file'`:
+terminal, because a saved stem hash can turn ambiguous once a new task's hash
+shares its prefix. On a terminal it shows when named, as in
+`--columns slug#,title,file`:
 
 #terminal("ls-file-when")
 
@@ -130,22 +131,27 @@ saved. On a terminal it shows when named, as in `--columns '#,title,file'`:
 `--format path` prints the same cell as `file`, and
 #link(u("/schema/"))[Schema] describes what the JSON and CSV formats carry.
 
-The `#` column is a handle: the task's position in the listing, followed by
-check characters `mt` derives from the task's id. `mt` recomputes positions on
-every command. When a position has passed to another task, the old handle fails its
-check, and `mt` refuses the command. `[handle] check-len` sets how many check
-characters a handle has, and `mt` refuses a handle of any other length.
+The `slug#` column is the task's stem hash: the shortest prefix, at least
+three characters, of a hash of the filename stem that no other task's hash
+shares. `mt` hashes every task the project loads, closed ones included, so a
+task has the same stem hash in every listing, filtered or not. It changes
+when `mt mv` gives the task a new stem, and it grows a character when a new
+task's hash shares its prefix, so an old hash is refused rather than naming
+another task. Every command that takes a `<task>` accepts a
+stem hash. A path or an exact stem wins, and `mt` tries the input as a stem
+hash only when no stem matches. A stem hash that more than one task shares is
+refused, and the refusal names each task's stem and hash.
 
-`--hyperlinks always`, or `[ls] hyperlinks`, makes the `#` column, and `file`
-when shown, links to `[ls] hyperlink-target` (default `file://{abs}`), using
+`--hyperlinks always`, or `[ls] hyperlinks`, makes the `slug#` column, and
+`file` when shown, links to `[ls] hyperlink-target` (default `file://{abs}`), using
 OSC 8. `--hyperlinks auto` turns them on for a terminal whose `TERM` is not
 `dumb`. The default is `never`, because a terminal without OSC 8 support can
 print the link as garbage.
 
-`mt ls -i` keeps the table open and reads keys. Typing a `#` ordinal
-highlights the matching tasks. `Enter` opens the first highlighted task with
-`mt go`, and `Ctrl+Enter` opens every listed task. `Space` reloads, and `q`
-or `Ctrl+C` quits. It needs a terminal and the table format. `mt find TERM…`
+`mt ls -i` keeps the table open and reads keys. Typing a stem hash
+highlights the tasks whose hash starts with it. `Enter` opens the first
+highlighted task with `mt go`, and `Ctrl+Enter` opens every listed task.
+`Space` reloads, and `Esc` or `Ctrl+C` quits. It needs a terminal and the table format. `mt find TERM…`
 is `mt ls` with each term turned into a `contains()` filter.
 
 = Conditional rules
@@ -242,9 +248,7 @@ target, and the map `--apply` reads.
 Each status in the legend is also a command, so `mt done x` is
 `mt flip done x`. The #link(u("/statuses/"))[status legend] sets which
 changes are allowed and which need a note. `mt flip` is the only command that
-runs #link(u("/hooks/"))[`[[on.flip]]` hooks]. After a flip, `mt` prints the
-new handle of each task it changed, such as `handle <stem>: 1b → 3b`, or
-`→ none` when the task left the view.
+runs #link(u("/hooks/"))[`[[on.flip]]` hooks].
 
 #cli-group(cli, cli-groups, "Status")
 

@@ -16,9 +16,9 @@ use crate::sort::validate_sort_spec;
 
 /// Canonical `mt ls` column names, in built-in render order. The single
 /// validated vocabulary shared by `[ls.columns]` and `[ls] columns-order` (and
-/// any consumer): `#` is the handle column, `title` the flex column, `file`
-/// (last) the task's source path — opt-in only, since its cell is never blank
-/// and `nonempty()` would pin it permanently visible; the floor gives it
+/// any consumer): `slug#` is the stem hash column, `title` the flex column,
+/// `file` (last) the task's source path — opt-in only, since its cell is never
+/// blank and `nonempty()` would pin it permanently visible; the floor gives it
 /// `named()` instead.
 ///
 /// `assignee` joins the short scalars ahead of `title` on a third rule again —
@@ -31,8 +31,8 @@ use crate::sort::validate_sort_spec;
 /// `crates/mindtape/src/defaults.toml`, not in Rust — see
 /// [`crate::config_ls_columns`].
 pub const LS_COLUMNS: [&str; 11] = [
-    "#", "status", "ready", "priority", "due", "assignee", "title", "why", "children", "progress",
-    "file",
+    "slug#", "status", "ready", "priority", "due", "assignee", "title", "why", "children",
+    "progress", "file",
 ];
 
 /// `[ls]` — `mt ls` defaults.

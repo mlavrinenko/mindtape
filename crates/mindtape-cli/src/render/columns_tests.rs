@@ -45,8 +45,8 @@ fn title_is_flex() {
 }
 
 #[test]
-fn handle_is_not_flex() {
-    assert!(!ColumnId::Handle.is_flex());
+fn slug_is_not_flex() {
+    assert!(!ColumnId::StemHash.is_flex());
 }
 
 #[test]
@@ -55,8 +55,8 @@ fn status_is_not_flex() {
 }
 
 #[test]
-fn handle_always_renders() {
-    assert!(shows(ColumnId::Handle, &[], &Readiness::default(), false));
+fn slug_always_renders() {
+    assert!(shows(ColumnId::StemHash, &[], &Readiness::default(), false));
 }
 
 #[test]

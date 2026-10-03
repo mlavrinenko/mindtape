@@ -12,12 +12,11 @@ use mindtape::Task;
 
 use super::RenderCtx;
 use super::color::{Painter, is_color_active};
-use super::columns::{ColumnId, resolve_order, row_hyperlink_targets};
+use super::columns::{ColumnId, resolve_order, row_hyperlink_targets, rows};
 use super::field::{CellSpec, DensityMode, cell_content, content_width, render_cell};
 use super::glyph::GlyphMode;
 use super::link::{Linker, is_hyperlinks_active};
 use super::width::{display_width, pad_to_width, truncate_to_width};
-use crate::handle::{check_len, make_handles};
 
 const GAP: &str = "  ";
 const TITLE_MIN: usize = 16;
@@ -27,7 +26,7 @@ struct Column {
     id: ColumnId,
     cells: Vec<CellSpec>,
     width: usize,
-    /// Per-row hyperlink target URI, populated for the `#` and `file`
+    /// Per-row hyperlink target URI, populated for the `slug#` and `file`
     /// columns — the only two OSC 8 wraps. Both share the same per-row list
     /// (the target is a property of the row, not the column); `None` for
     /// every other column, so `render_grid` skips the wrap there regardless
@@ -49,9 +48,9 @@ pub fn render(tasks: &[Task], ctx: RenderCtx<'_>) -> Result<String> {
     render_inner(tasks, ctx, &[])
 }
 
-/// Render `tasks` with the interactive `#`-column highlight applied.
+/// Render `tasks` with the interactive `slug#`-column highlight applied.
 ///
-/// `highlighted[i]` marks whether the handle cell of display row `i` renders
+/// `highlighted[i]` marks whether the `slug#` cell of display row `i` renders
 /// reverse-video; a shorter slice leaves the remaining rows un-highlighted. The
 /// invert effect rides the table's painter, so `--color never` drops it.
 ///
@@ -69,21 +68,21 @@ fn render_inner(tasks: &[Task], ctx: RenderCtx<'_>, highlighted: &[bool]) -> Res
     let glyph_mode = glyph_mode();
     let painter = Painter::new(is_color_active());
     let linker = Linker::new(is_hyperlinks_active());
-    let handles: Vec<(String, &Task)> = make_handles(tasks, check_len(ctx.config));
-    let visible = resolve_order(&handles, ctx)?;
-    let mut columns = build_columns(&visible, &handles, ctx, glyph_mode);
+    let rows = rows(tasks, ctx.hashes);
+    let visible = resolve_order(&rows, ctx)?;
+    let mut columns = build_columns(&visible, &rows, ctx, glyph_mode);
     apply_highlight(&mut columns, highlighted);
     Ok(render_grid(&columns, glyph_mode, painter, linker))
 }
 
-/// Paint the `#` column's cells reverse-video for the highlighted rows. A no-op
-/// when no row is flagged or the handle column is not visible.
+/// Paint the `slug#` column's cells reverse-video for the highlighted rows. A
+/// no-op when no row is flagged or the column is not visible.
 fn apply_highlight(columns: &mut [Column], highlighted: &[bool]) {
     if highlighted.iter().all(|on| !on) {
         return;
     }
     let invert = Style::new().effects(Effects::INVERT);
-    if let Some(col) = columns.iter_mut().find(|col| col.id == ColumnId::Handle) {
+    if let Some(col) = columns.iter_mut().find(|col| col.id == ColumnId::StemHash) {
         for (cell, on) in col.cells.iter_mut().zip(highlighted) {
             if *on {
                 cell.color = Some(invert);
@@ -111,27 +110,27 @@ fn glyph_mode_for(tty: bool) -> GlyphMode {
 /// absorbs the remaining terminal width; the rest size to their content.
 fn build_columns(
     visible: &[ColumnId],
-    handles: &[(String, &Task)],
+    rows: &[(String, &Task)],
     ctx: RenderCtx<'_>,
     glyph_mode: GlyphMode,
 ) -> Vec<Column> {
     let full = DensityMode::Full;
-    // `#` and `file` both link to the same per-row target (the task's own
+    // `slug#` and `file` both link to the same per-row target (the task's own
     // file), so it is built once here — only when one of them is actually
     // visible — and cloned into each, rather than recomputed per column.
     // Recomputing per column would be both wasted work and a divergence
     // risk: two calls could disagree if `[ls] hyperlink-target` or the
-    // handles ever drifted between them.
+    // rows ever drifted between them.
     let row_uris = visible
         .iter()
         .any(|&id| is_linked_column(id))
-        .then(|| row_hyperlink_targets(handles, ctx.config));
+        .then(|| row_hyperlink_targets(rows, ctx.config));
     let mut columns: Vec<Column> = visible
         .iter()
         .map(|&id| {
-            let cells: Vec<CellSpec> = handles
+            let cells: Vec<CellSpec> = rows
                 .iter()
-                .map(|(handle, task)| id.cell(handle, task, ctx.config, ctx.readiness))
+                .map(|(hash, task)| id.cell(hash, task, ctx.config, ctx.readiness))
                 .collect();
             let width = col_width(
                 id.header(),
@@ -160,7 +159,7 @@ fn build_columns(
 /// `truth/tasks/hyperlink-the-handle-column.typ`) — there is no per-column
 /// `link` key to consult.
 fn is_linked_column(id: ColumnId) -> bool {
-    matches!(id, ColumnId::Handle | ColumnId::File)
+    matches!(id, ColumnId::StemHash | ColumnId::File)
 }
 
 fn col_width(header: &str, cells: impl Iterator<Item = usize>) -> usize {

@@ -139,8 +139,8 @@ overdue-color = "red"
 # renders a column never, and nothing falls back to a built-in policy in Rust.
 # A scalar replaces wholesale across config layers, so a project turns a column
 # off with `when = 'false'` on one line.
-[ls.columns."#"]
-# The handle is the listing's address; it is never blank and never optional.
+[ls.columns."slug#"]
+# The stem hash addresses the task; it is never blank and never optional.
 when = "true"
 
 [ls.columns.status]
@@ -183,19 +183,12 @@ when = "named()"
 
 # The `file` column is opt-in on a terminal and automatic everywhere else.
 #
-# On a TTY the `#` handle is the address a reader wants: two characters, typed
-# straight back into the next command, and a full path beside every row is
-# noise. In captured output the same handle is a trap — its ordinal is a
-# position in a view recomputed on every command, so a handle quoted into a
-# report, a commit message or a chat names whatever now sits at that position.
-# The path does not move.
-#
-# So the rule is not "agents get different columns"; it is that the ONE
-# always-visible address a listing hands out has to be stable for a reader who
-# cannot re-run the command. Every other renderer already agreed: `--json`
-# carries `id` and `file` and no handle at all, and `--format csv` substitutes
-# `id` for `#`. The table was the last surface emitting a positional id with
-# no stable identity beside it.
+# On a TTY the `slug#` stem hash is the address a reader wants: a few
+# characters, typed straight back into the next command, and a full path beside
+# every row is noise. Captured output outlives the listing: a stem hash quoted
+# into a report, a commit message or a chat turns ambiguous once a new stem
+# shares its prefix. The path names the task outright, and `--json` and
+# `--format csv` carry `id` for the same reason.
 #
 # `named()` is the opt-in half: the cell is never blank, so `nonempty()` would
 # pin the column permanently visible and there would be no opt-in at all. The

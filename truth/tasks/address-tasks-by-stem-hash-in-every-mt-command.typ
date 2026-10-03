@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 3),
+  status: wip(2026, 10, 3),
   links: depends-on("derive-a-stem-hash-for-each-task-in-the-library.typ"),
 )
 
@@ -40,7 +40,7 @@
 
 == TO-BE
 
-- 🟢 Every listing prints each task's stem hash in a `SHASH` column, keyed `shash` in `--columns`, in place of `#`.
+- 🟢 Every listing prints each task's stem hash in a `SLUG#` column, keyed `slug#` in `--columns`, in place of `#`.
 - 🟢 Every command taking a `<task>` accepts a stem hash. An exact stem or path wins; input is tried as a stem hash only when no stem matches.
 - 🟢 An ambiguous stem hash is refused with each candidate's stem and hash. A write command no longer reports handle changes.
 - 🟢 `[handle] check-len`, the ordinal and the check letter are gone, and the docs pages describe the stem hash.

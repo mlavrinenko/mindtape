@@ -6,10 +6,9 @@ use mindtape::{Config, LoadError, LoadOutcome, Task, load_project};
 
 use super::{
     Project, hyperlinks_flag, init_hyperlinks_flag, init_worktree, pick_override,
-    resolve_hyperlinks, resolve_root_with, resolve_task, unknown_view_error, warn_errors,
-    worktree_override,
+    resolve_hyperlinks, resolve_root_with, resolve_task, stem_hashes, unknown_view_error,
+    warn_errors, worktree_override,
 };
-use crate::handle::{DEFAULT_CHECK_LEN, check_chars};
 use crate::render::link::HyperlinkChoice;
 
 #[test]
@@ -72,108 +71,27 @@ fn resolve_by_slug_succeeds() {
 }
 
 #[test]
-fn resolve_handle_correct_check_succeeds() {
-    let task_a = stub_task("alpha", "Alpha Task");
-    let task_b = stub_task("beta", "Beta Task");
-    let project = stub_project(vec![task_a.clone(), task_b.clone()]);
+fn resolve_by_stem_hash_succeeds() {
+    let project = stub_project(vec![
+        stub_task("alpha", "Alpha Task"),
+        stub_task("beta", "Beta Task"),
+    ]);
+    let hash = stem_hashes(&project.outcome.tasks)
+        .hash_of("beta")
+        .unwrap()
+        .to_owned();
 
-    // Build the correct check char for ordinal 2 (beta).
-    let check = check_chars("beta", DEFAULT_CHECK_LEN);
-    let handle = format!("2{check}");
-    let (resolved, _) = resolve_task(&project, &handle).unwrap();
+    let (resolved, _) = resolve_task(&project, &hash.to_uppercase()).unwrap();
     assert_eq!(resolved.id, "beta");
 }
 
 #[test]
-fn resolve_handle_wrong_check_errors_with_current_handle() {
-    let task_a = stub_task("alpha", "Alpha Task");
-    let project = stub_project(vec![task_a]);
-
-    // Compute correct check then use a wrong one.
-    let correct = check_chars("alpha", DEFAULT_CHECK_LEN);
-    // Pick a letter that is definitely wrong.
-    let wrong_char = if correct == "a" { 'b' } else { 'a' };
-    let bad_handle = format!("1{wrong_char}");
-
-    let err = resolve_task(&project, &bad_handle).unwrap_err();
-    let msg = err.to_string();
-    assert!(
-        msg.contains("check mismatch"),
-        "error should mention mismatch: {msg}"
-    );
-    assert!(
-        msg.contains("Alpha Task"),
-        "error should name the title: {msg}"
-    );
-}
-
-/// A project that raised `[handle] check-len` gets handles of that length, and
-/// the resolver reads the same key the display does.
-fn stub_project_with_check_len(tasks: Vec<Task>, len: usize) -> Project {
-    let mut config = Config::default();
-    config.handle.check_len = Some(len);
-    Project {
-        root: ".".into(),
-        config,
-        outcome: LoadOutcome {
-            tasks,
-            errors: vec![],
-        },
-    }
-}
-
-#[test]
-fn resolve_handle_honours_a_configured_check_len() {
-    let project = stub_project_with_check_len(
-        vec![
-            stub_task("alpha", "Alpha Task"),
-            stub_task("beta", "Beta Task"),
-        ],
-        2,
-    );
-
-    let handle = format!("2{}", check_chars("beta", 2));
-    let (resolved, _) = resolve_task(&project, &handle).unwrap();
-    assert_eq!(resolved.id, "beta");
-}
-
-/// The whole point of raising the length: a one-character handle is a handle
-/// that belongs to a different task, not a short spelling of this one. Matching
-/// it as a prefix would hand back the collision rate the project paid to remove.
-#[test]
-fn resolve_handle_refuses_a_short_handle_rather_than_prefix_matching() {
-    let project = stub_project_with_check_len(vec![stub_task("alpha", "Alpha Task")], 2);
-
-    let full = check_chars("alpha", 2);
-    let short = format!("1{}", &full[..1]);
-
-    let err = resolve_task(&project, &short).unwrap_err();
-    let msg = err.to_string();
-    assert!(
-        msg.contains("check character"),
-        "error should name the length: {msg}"
-    );
-    assert!(
-        msg.contains(&format!("1{full}")),
-        "error should show the full-length handle: {msg}"
-    );
-    assert!(
-        !msg.contains("check mismatch"),
-        "a short handle is a different failure from a wrong check: {msg}"
-    );
-}
-
-/// Too LONG is refused by the same arm, so a handle copied out of a project
-/// with a longer setting cannot half-resolve here.
-#[test]
-fn resolve_handle_refuses_an_over_long_handle() {
+fn an_unknown_reference_is_refused_with_a_suggestion() {
     let project = stub_project(vec![stub_task("alpha", "Alpha Task")]);
 
-    let err = resolve_task(&project, &format!("1{}", check_chars("alpha", 3))).unwrap_err();
-    assert!(
-        err.to_string().contains("check character"),
-        "error should name the length: {err}"
-    );
+    let err = resolve_task(&project, "alpah").unwrap_err().to_string();
+    assert!(err.contains("no task with id \"alpah\""), "{err}");
+    assert!(err.contains("did you mean: alpha?"), "{err}");
 }
 
 #[test]
@@ -253,20 +171,6 @@ fn resolve_root_no_override_walks_up() {
     std::fs::create_dir_all(&child).unwrap();
     let root = resolve_root_with(&child, None).unwrap();
     assert_eq!(root, dir.path());
-}
-
-#[test]
-fn resolve_handle_out_of_range_errors() {
-    let task_a = stub_task("alpha", "Alpha Task");
-    let project = stub_project(vec![task_a]);
-    // Ordinal 2 with total 1: index = 1, which is exactly total.
-    // With < total (real): 1 < 1 = false → error includes "(default view has 1 tasks)"
-    // With <= total: 1 <= 1 = true → passes filter → .get(1) = None → error WITHOUT total
-    let err = resolve_task(&project, "2a").unwrap_err();
-    assert!(
-        err.to_string().contains("default view has 1 tasks"),
-        "error should include the total task count: {err}"
-    );
 }
 
 // --- Subprocess tests (process-global `OnceLock` isolation) -----------
