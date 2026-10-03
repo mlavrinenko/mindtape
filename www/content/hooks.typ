@@ -77,10 +77,10 @@ config error at load, naming the action's position.
 )
 
 Actions run in declaration order. `--force` waives a failing gate and records
-the waiver in the status note — for the hook above,
-`forced past failing gate: "mmz --is-fresh --tag gate"`. A
-gate command runs from the project root with the transition in its
-environment:
+the waiver in the status note.
+#link(u("/gate-done-on-checks/"))[Tasks closed while the tests fail] shows a
+gate refusing `mt done`, then `--force` closing the task. A gate command runs
+from the project root with the transition in its environment:
 
 #table(
   columns: 2,

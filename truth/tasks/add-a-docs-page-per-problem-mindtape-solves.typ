@@ -11,7 +11,7 @@
   ),
   difficulty: 3,
   tags: ("docs", "www"),
-  estimate: (src-files: 2),
+  estimate: (src-files: 5),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 3),
   links: depends-on(
     "capture-the-api-service-examples-problem-solver-runs-for-the-docs.typ",
     "write-plain-prose-rules-for-the-docs-and-check-for-history-and-shouting.typ",
@@ -57,8 +57,10 @@
 
 == Changes
 
-- `www/content/split-oversized-tasks.typ`, `require-a-task-shape.typ`, `gate-done-on-your-checks.typ`, `one-task-at-a-time.typ`, `trace-commits-to-tasks.typ`, new.
+- `www/content/split-oversized-tasks.typ`, `require-a-task-shape.typ`, `gate-done-on-checks.typ`, `one-task-at-a-time.typ`, `trace-commits-to-tasks.typ`, new: each named for its slice id.
 - `www/utils/site.typ`: the "Problems" NAV group, first.
+- `www/utils/problems.typ`, new: the config block of each page, checked against the NAV group.
+- `www/generate-examples.sh`: slice the api-service config.
 - `www/content/estimates.typ`, `hooks.typ`, `commit-rules.typ`: link to the matching problem page instead of retelling it.
 
 

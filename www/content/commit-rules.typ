@@ -17,6 +17,8 @@
 project's `[commits]` config. A `commit-msg` hook runs it, so git refuses a
 commit that breaks a rule. `mt check --commits <range>` runs the same checks
 over commits already made.
+#link(u("/trace-commits-to-tasks/"))[Commits nobody can trace to a task] shows
+the hook in a team's project, from a refused commit to `touches()`.
 
 The examples run in a git copy of `examples/rules/`, whose config holds the two
 commit rules below. The rules the `mindtape-tasks` pack ships,

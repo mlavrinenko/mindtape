@@ -157,9 +157,9 @@ CONFIG_SOURCES=(
 # because a mistyped fact name would otherwise emit a file no page ever reads —
 # invisible, and the one drift the per-page key-set assertion in
 # www/utils/slices.typ structurally cannot see from inside a single page.
-# `api-service` is declared for its problem slices: generate-api-service.sh
-# reads those markers from the config itself, and this script refuses a marker
-# whose fact it does not declare.
+# `api-service` holds the problem slices. The Problems pages render them
+# through www/utils/problems.typ, and generate-api-service.sh reads the same
+# markers to require a session for each.
 CONFIG_FACTS=(api-service commit-rules config derived-tags estimates hooks links named-sets rule-packs rules self-validating statuses)
 
 # Same two-pass shape as slice_fixture: awk writes each slice to its own temp

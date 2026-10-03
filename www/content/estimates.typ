@@ -54,13 +54,11 @@ No quantity is checked unless a project asks. A cap and a budget are ordinary
 )
 
 At `severity = "error"` a cap is a validation error, so every write command
-refuses an oversized task before it lands: the task is split before the work
-starts, not after. `!terminal` in `when` exempts a finished task, whose work is
-already done. A breach names the rule and carries its `message`:
-
-```
-error: tasks/rewrite-loader.typ:3: rules.judgment-stays-small: judgment work stays small; split it rather than widen the cap
-```
+refuses an oversized task before it lands. `!terminal` in `when` exempts a
+finished task, whose work is already done. A breach names the rule and prints
+its `message`.
+#link(u("/split-oversized-tasks/"))[Tasks too big to finish in one change]
+shows `mt add` refusing a task over a cap.
 
 = Working-tree budget
 

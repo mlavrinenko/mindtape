@@ -478,3 +478,19 @@ groups:
       - contrib/ask-refactoring/coverage.sh
     dependents:
       - contrib/ask-refactoring/undertested.sh
+
+  # Each page in the docs site's Problems group explains, in prose, one block
+  # of examples/api-service's config, the session generate-api-service.sh
+  # records for it, and the mindtape-tasks rules that block adopts. The config
+  # and the session render from generated facts, so only that prose can drift.
+  - name: api-service-problems
+    source:
+      - examples/api-service/.mindtape/config.toml
+      - www/generate-api-service.sh
+      - crates/mindtape/src/packs/mindtape-tasks.toml
+    dependents:
+      - www/content/split-oversized-tasks.typ
+      - www/content/require-a-task-shape.typ
+      - www/content/gate-done-on-checks.typ
+      - www/content/one-task-at-a-time.typ
+      - www/content/trace-commits-to-tasks.typ

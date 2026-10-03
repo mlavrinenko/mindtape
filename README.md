@@ -124,6 +124,7 @@ cargo install mindtape-cli
 
 ## Documentation
 
+- **Problems**: [Tasks too big to finish in one change](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/) · [Tasks too vague to start](https://mlavrinenko.github.io/mindtape/require-a-task-shape/) · [Tasks closed while the tests fail](https://mlavrinenko.github.io/mindtape/gate-done-on-checks/) · [Work started before the last task is done](https://mlavrinenko.github.io/mindtape/one-task-at-a-time/) · [Commits nobody can trace to a task](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/)
 - **Start**: [Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) · [Comparison](https://mlavrinenko.github.io/mindtape/comparison/)
 - **Model**: [Concepts](https://mlavrinenko.github.io/mindtape/concepts/)
 - **Tasks**: [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) · [Task links](https://mlavrinenko.github.io/mindtape/links/) · [Recurring tasks](https://mlavrinenko.github.io/mindtape/recurring/) · [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) · [Derived tags](https://mlavrinenko.github.io/mindtape/derived-tags/)

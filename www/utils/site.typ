@@ -44,7 +44,8 @@
 )
 
 // Grouped sidebar: group title, and its members' reading order as routes.
-// The groups follow the reader's job, not the page's origin: Start for a
+// The groups follow the reader's job, not the page's origin: Problems for an
+// engineer who has a problem and wants the config that solves it, Start for a
 // first look, Model for the one idea the rest rests on, Tasks for authoring a
 // task file, Reference for looking one thing up, Integrate for wiring
 // MindTape into a repo or a tool. No single page can declare this fact:
@@ -54,6 +55,16 @@
 // title, summary, home) is declared on the page itself and resolved from
 // `PAGES` below by route.
 #let NAV = (
+  (
+    title: "Problems",
+    items: (
+      "/split-oversized-tasks/",
+      "/require-a-task-shape/",
+      "/gate-done-on-checks/",
+      "/one-task-at-a-time/",
+      "/trace-commits-to-tasks/",
+    ),
+  ),
   (title: "Start", items: ("/", "/quickstart/", "/comparison/")),
   (title: "Model", items: ("/concepts/",)),
   (

@@ -30,7 +30,6 @@ bash .just/scripts/_doc-blocks-control.sh
 PENDING=(
     docs/src/contributing/generated-docs.typ
     docs/src/readme.typ
-    www/content/estimates.typ
     www/content/filters.typ
     www/content/named-sets.typ
     www/content/priority.typ

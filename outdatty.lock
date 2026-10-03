@@ -1,6 +1,17 @@
 version: 1
 algorithm: blake3
 groups:
+  api-service-problems:
+    source:
+      crates/mindtape/src/packs/mindtape-tasks.toml: ad92738ede81cbe398e8adc34dff707e9b8e19fb174b63c5407fecf55e0d587d
+      examples/api-service/.mindtape/config.toml: ffc8e99a42425b5878bbe79362fa93bfdba3d533f00641d936e2fbafb09ef889
+      www/generate-api-service.sh: 38193378db15917db486193059c9cbe972fcfaa9ff102b9d0e2ee225dac6954d
+    dependents:
+      www/content/gate-done-on-checks.typ: 8de758b9971b4d0c69650878b5a7c66384d5138411b68bdfc4f979649448995c
+      www/content/one-task-at-a-time.typ: 721b0dbd75ff2a255a85ccc7c615ef1174d6ad6259369d5085adc361235540ed
+      www/content/require-a-task-shape.typ: d79fca632fc66f6453382e4566257949b20d86b6d8076d245a6412d80c9acf44
+      www/content/split-oversized-tasks.typ: 880ee17381e0416ad2c63e085165665d88e9ef1aeaf4ef395e42fe3828d9bec5
+      www/content/trace-commits-to-tasks.typ: 6f8d4d7ff344895057460f3a7322cbcb23067fc2bf3ab90a72a19427cb19b49b
   cli-docs:
     source:
       crates/mindtape-cli/src/add.rs: d64e02e9974cc754b5a3cb75c322f176cffa46342fd7c828c8dea7999ef00860
@@ -88,7 +99,7 @@ groups:
       .just/scripts/_script-reach.sh: e26594842a77ac58754ecc124fa82c6c2aba1f13aaa01abc0b4340f310556654
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
-      .just/scripts/check-doc-blocks.sh: bd2c4948c2673d10a355bb4427c65ee1eda4f69ad256300327e291fa9755a649
+      .just/scripts/check-doc-blocks.sh: 34a89688c4d6afaf93c24464a55ca2052b6e4b0d61c1568eb7c31d4d16cb736f
       .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-prose.sh: f117817cc9f54309211514a0078347f9ead61c51edccad3145ddabb42fa2eff9
