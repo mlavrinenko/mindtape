@@ -24,7 +24,8 @@
 #
 # Mapping decisions:
 #
-# - status: an `x ` prefix means "done"; its absence means "todo" — todo.txt
+# - status: an `x ` prefix means "done"; its absence means "proposed", the
+#   open status of the legend `mt init` writes by default — todo.txt
 #   has no third state. A cancelled todo.txt task is conventionally just
 #   deleted from the file, so this filter never emits "cancelled" (unlike
 #   taskwarrior.jq/github.jq, which both have a real source state for it).
@@ -137,7 +138,7 @@ def to_canonical:
       file: "",
       title: $title,
       status: {
-        name: (if $t.done then "done" else "todo" end),
+        name: (if $t.done then "done" else "proposed" end),
         date: (if $t.done then ($t.completed // $t.created) else $t.created end),
         note: null,
       },

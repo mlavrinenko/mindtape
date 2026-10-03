@@ -91,8 +91,8 @@ of the title, maps the `(A)`/`(B)`/`(C)` priority marker onto MindTape's
 0..9 scale, and lifts a `due:` key into the canonical `due` field; a
 `@context` marker is left verbatim in the title, and it, the raw priority
 letter, and any other `key:value` token carry through as the `x-todotxt`
-extra. Status lands on the neutral `todo`/`done` names that taskwarrior.jq
-and github.jq also use, so one project legend covers every source — todo.txt only
+extra. Status lands on the `proposed`/`done` names that taskwarrior.jq
+and github.jq also use, from the legend `mt init` writes by default — todo.txt only
 distinguishes done from not-done, so this filter never emits `cancelled`.
 Adapt the regexes to the subset of the format your file uses: a starting
 recipe, not a spec.

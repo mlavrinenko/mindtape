@@ -14,10 +14,11 @@
 #
 # Mapping decisions:
 #
-# - status: Taskwarrior's three lifecycle states map onto neutral canonical
-#   names, shared with github.jq so a project's status legend only has to
-#   accommodate one vocabulary regardless of source:
-#     pending   -> "todo"      (open work)
+# - status: Taskwarrior's three lifecycle states map onto the status names
+#   of the legend `mt init` writes by default, shared with github.jq and
+#   todo.txt.jq, so an import into a new project needs no `--map`. A project
+#   with another legend renames them with `mt import --map`:
+#     pending   -> "proposed"  (open work)
 #     completed -> "done"
 #     deleted   -> "cancelled"
 #   Any other/unrecognised status string (e.g. a future Taskwarrior spelling)
@@ -57,7 +58,7 @@
 #   any literal `\`, so the escape itself round-trips) before it lands in
 #   `body` — the minimal safe-passthrough, not a markdown-to-Typst rewrite.
 
-def tw_status_map: {"pending": "todo", "completed": "done", "deleted": "cancelled"};
+def tw_status_map: {"pending": "proposed", "completed": "done", "deleted": "cancelled"};
 def tw_priority_map: {"H": 8, "M": 5, "L": 2};
 
 # Neutralise the two characters that break Typst compilation when spliced

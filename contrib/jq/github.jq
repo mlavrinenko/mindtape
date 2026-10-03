@@ -16,10 +16,9 @@
 # Mapping decisions:
 #
 # - status: GitHub's issue `state` is GraphQL-cased ("OPEN"/"CLOSED"); we
-#   lower-case it before mapping, onto the SAME neutral canonical names
-#   taskwarrior.jq uses so a project's status legend only has to accommodate
-#   one vocabulary regardless of source:
-#     open   -> "todo"
+#   lower-case it before mapping, onto the status names taskwarrior.jq
+#   uses, from the legend `mt init` writes by default:
+#     open   -> "proposed"
 #     closed -> "done"
 #   Any other/unrecognised state string passes through unchanged rather than
 #   being guessed at — `mt import`'s report surfaces it as an out-of-legend
@@ -55,7 +54,7 @@
 #   literal `\`, so the escape itself round-trips) before it lands in `body`
 #   — the minimal safe-passthrough, not a Markdown-to-Typst rewrite.
 
-def gh_status_map: {"open": "todo", "closed": "done"};
+def gh_status_map: {"open": "proposed", "closed": "done"};
 
 # Neutralise the two characters that break Typst compilation when spliced
 # into markup verbatim: a literal `\` (escape char) doubles up so it still

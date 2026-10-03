@@ -75,27 +75,20 @@ fn assert_golden(source: &str) {
     );
 }
 
-/// A minimal project: a `tasks/` root and a status legend covering every
-/// canonical status name the two adapters emit (`todo`, `done`,
-/// `cancelled`) — priority/tags/kind are left at the embedded config
-/// floor's defaults (0..9 scale, no framework, unconstrained tags), which
-/// both adapters' fixture values already satisfy.
+/// The project `mt init --no-input` writes, with this checkout's prelude. The
+/// adapters are config-blind, so they must emit status names the default
+/// legend holds: a reader's first import lands in exactly this project.
 fn scaffold(dir: &Path) {
-    std::fs::create_dir_all(dir.join(".mindtape")).unwrap();
-    std::fs::write(
-        dir.join(".mindtape/config.toml"),
-        "[tasks]\nroots = [\"tasks\"]\n\
-         [[tasks.status]]\nvalue = \"todo\"\n\
-         [[tasks.status]]\nvalue = \"done\"\nterminal = true\n\
-         [[tasks.status]]\nvalue = \"cancelled\"\nterminal = true\n",
-    )
-    .unwrap();
+    support::mt(dir)
+        .args(["init", "--no-input"])
+        .assert()
+        .success();
     support::install_lib(dir);
 }
 
-/// Pipe `jq -f <source>.jq <source>.in.json`'s stdout into `mt import`,
-/// then run `mt check` — the full "foreign export becomes valid
-/// `MindTape` tasks" pipeline for one source.
+/// Pipe `jq -f <source>.jq <source>.in.json`'s stdout into `mt import`, then
+/// run `mt check`. `mt import` exits 0 even when it skips a record, so the
+/// test counts the files it wrote against the records the adapter emitted.
 fn assert_e2e_import(source: &str) {
     let dir = tempfile::tempdir().unwrap();
     scaffold(dir.path());
@@ -104,6 +97,9 @@ fn assert_e2e_import(source: &str) {
     let script = jq_dir.join(format!("{source}.jq"));
     let input = jq_dir.join("fixtures").join(format!("{source}.in.json"));
     let canonical = run_jq(&script, &input);
+    let records = serde_json::from_str::<Vec<serde_json::Value>>(&canonical)
+        .expect("adapter output is a JSON array")
+        .len();
 
     support::mt(dir.path())
         .arg("import")
@@ -117,7 +113,7 @@ fn assert_e2e_import(source: &str) {
         .unwrap()
         .flatten()
         .count();
-    assert!(filed > 0, "{source}: mt import filed nothing");
+    assert_eq!(filed, records, "{source}: mt import skipped a record");
 }
 
 #[test]
@@ -138,4 +134,14 @@ fn taskwarrior_jq_imports_and_checks() {
 #[test]
 fn github_jq_imports_and_checks() {
     assert_e2e_import("github");
+}
+
+#[test]
+fn todo_txt_jq_matches_golden() {
+    assert_golden("todo.txt");
+}
+
+#[test]
+fn todo_txt_jq_imports_and_checks() {
+    assert_e2e_import("todo.txt");
 }

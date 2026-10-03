@@ -83,7 +83,9 @@ mt add ship-it --dedup skip
 mt add ship-it --dedup add-suffix
 EOF
 
-capture_copy P examples/minimal
+# The jq adapters emit the default legend's status names, so the imports run
+# in a project `mt init --no-input` made.
+init_scratch P
 mkdir -p "$P/contrib/jq"
 cp "$REPO/contrib/jq/taskwarrior.jq" "$P/contrib/jq/"
 cp "$REPO/contrib/jq/fixtures/taskwarrior.in.json" "$P/task-export.json"
