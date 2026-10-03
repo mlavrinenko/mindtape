@@ -203,11 +203,15 @@ fn verify_written_prefixes_each_issue_by_its_severity() {
         crate::test_util::assert_child_ok(&out);
         let stderr = String::from_utf8_lossy(&out.stderr);
         assert!(
-            stderr.contains("error: bad: rules.imperative-title"),
+            stderr.contains("error: ")
+                && stderr.contains("bad.typ:")
+                && stderr.contains(": rules.imperative-title"),
             "a fatal rule breach prints as an error: {stderr}"
         );
         assert!(
-            stderr.contains("warning: bad: rules.imperative-title"),
+            stderr.contains("warning: ")
+                && stderr.contains("bad.typ:")
+                && stderr.contains(": rules.imperative-title"),
             "a warn rule breach prints as a warning: {stderr}"
         );
         return;

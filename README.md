@@ -51,7 +51,7 @@ A few lines of config solve each problem below. Under each is the error `mt` pri
 Cap how many source files a task may touch, so whoever files a big task has to split it first.
 
 ```
-error: sign-in-with-google-and-github: rules.split-big-work: split it into tasks of 5 source files or fewer
+error: tasks/sign-in-with-google-and-github.typ:2: rules.split-big-work: split it into tasks of 5 source files or fewer
 ```
 
 ### [Tasks too vague to start](https://mlavrinenko.github.io/mindtape/require-a-task-shape/)
@@ -75,7 +75,7 @@ error: reject-expired-sessions-on-token-refresh: gate "scripts/test" failed (exi
 Allow one task in progress, and refuse to start a task before the tasks it depends on are done.
 
 ```
-error: add-redis-client: rules.one-wip: finish the task in progress before you start another
+error: tasks/add-redis-client.typ:2: rules.one-wip: finish the task in progress before you start another
 ```
 
 ### [Commits nobody can trace to a task](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/)

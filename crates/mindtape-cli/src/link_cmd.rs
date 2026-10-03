@@ -132,7 +132,7 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
 
     for (staged, verdict) in plan.staged.iter().zip(&verdicts) {
         for warning in &verdict.warnings {
-            eprintln!("warning: {}: {warning}", staged.stem);
+            eprintln!("warning: {}", verdict.qualify(&staged.abs, warning));
         }
         if !verdict.problems.is_empty() {
             problems.push(format!(

@@ -57,12 +57,14 @@ fn a_second_wip_task_is_refused_and_names_the_one_already_in_flight() {
     assert!(!output.status.success(), "a cap breach fails the flip");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("bar: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1`"),
+        stderr.contains(
+            "tasks/bar.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1`"
+        ),
         "the candidate's own breach is reported: {stderr}"
     );
     assert!(
         stderr.contains(
-            "bar: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1` (reported on foo)"
+            "tasks/foo.typ:3: rules.wip-cap: must satisfy `count(status == \"wip\") <= 1` (reported on foo)"
         ),
         "the other task already occupying the cap is named too: {stderr}"
     );

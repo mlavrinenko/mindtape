@@ -102,10 +102,7 @@ fn revalidate(project: &Project, landed: &Landed, problems: &mut Vec<String>) {
     }
     for violation in validate(&project.outcome.tasks, &project.config) {
         if landed.ids.contains(&violation.task_id) && violation.is_fatal() {
-            problems.push(format!(
-                "{}: {}: {}",
-                violation.task_id, violation.field, violation.message
-            ));
+            problems.push(crate::check::breach_at(&violation));
         }
     }
 }

@@ -200,3 +200,12 @@ fn a_hazardous_string_value_survives_the_round_trip() {
     let stdout = String::from_utf8_lossy(&listed.get_output().stdout).into_owned();
     assert!(stdout.contains(support::MARKUP_HAZARDS), "{stdout}");
 }
+
+/// A refused write opens at the offending field's line, like `mt check`.
+#[test]
+fn a_refused_set_reports_the_file_and_line_of_the_breach() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    let stderr = set_err(dir.path(), "priority=99");
+    assert!(stderr.contains("error: tasks/wire-oauth.typ:"), "{stderr}");
+}

@@ -111,9 +111,15 @@ fn format_violation(violation: &Violation) -> String {
     let prefix = violation
         .severity
         .map_or("error", |severity| severity.label());
+    format!("{prefix}: {}", breach_at(violation))
+}
+
+/// A breach as `file:line: field: message`, the shape every command prints
+/// after its severity prefix.
+pub(crate) fn breach_at(violation: &Violation) -> String {
     let loc = &violation.location;
     format!(
-        "{prefix}: {}:{}: {}: {}",
+        "{}:{}: {}: {}",
         loc.file.display(),
         loc.line,
         violation.field,

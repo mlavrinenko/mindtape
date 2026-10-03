@@ -285,7 +285,7 @@ fn a_wrong_shaped_slot_value_is_refused_before_the_write() {
     assert!(!dir.path().join("tasks/wrong-shape.typ").exists());
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("wrong-shape: estimate:"),
+        stderr.contains("wrong-shape.typ:5: estimate:"),
         "the error must name the task and the offending field: {stderr}"
     );
     assert!(

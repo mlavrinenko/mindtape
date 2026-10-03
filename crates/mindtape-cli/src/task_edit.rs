@@ -114,7 +114,7 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
         .into_iter()
         .filter(|violation| violation.task_id == task.id)
         .collect();
-    report_issues(&task.id, &issues, &format!("in {}", rel.display()))
+    report_issues(&issues, &format!("in {}", rel.display()))
 }
 
 /// Print every violation and fail naming how many were fatal, or succeed when
@@ -127,14 +127,14 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
 /// A `[[tasks.rules]]` breach at `severity = "warn"` prints alongside the rest
 /// and is then not counted: the file already exists by the time this runs, and
 /// a warning is a report about it, not a reason to call the write a failure.
-fn report_issues(id: &str, issues: &[Violation], scope: &str) -> Result<()> {
+fn report_issues(issues: &[Violation], scope: &str) -> Result<()> {
     for violation in issues {
         let prefix = if violation.is_fatal() {
             "error"
         } else {
             "warning"
         };
-        eprintln!("{prefix}: {id}: {}: {}", violation.field, violation.message);
+        eprintln!("{prefix}: {}", crate::check::breach_at(violation));
     }
     let fatal = issues.iter().filter(|issue| issue.is_fatal()).count();
     if fatal == 0 {
@@ -170,11 +170,10 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
     if !verdict.checked {
         return Ok(false);
     }
-    let id = file_stem(file);
     // A `severity = "warn"` rule breach says its piece whether or not the write
     // is refused, and never decides that it is.
     for warning in &verdict.warnings {
-        eprintln!("warning: {id}: {warning}");
+        eprintln!("warning: {warning}");
     }
     if verdict.problems.is_empty() {
         return Ok(true);
@@ -185,7 +184,7 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
         bail!("the task as filled {}", verdict.problems.join("; "));
     }
     for problem in &verdict.problems {
-        eprintln!("error: {id}: {problem}");
+        eprintln!("error: {problem}");
     }
     bail!(
         "{} validation issue(s) as filled; nothing was written",
@@ -202,11 +201,6 @@ fn unchecked_fallback() -> crate::pre_write::Verdict {
         task: None,
         checked: false,
     }
-}
-
-fn file_stem(file: &Path) -> String {
-    file.file_stem()
-        .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned())
 }
 
 #[cfg(test)]

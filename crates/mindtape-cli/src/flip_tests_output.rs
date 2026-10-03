@@ -235,7 +235,7 @@ fn revalidate_prints_the_unreachable_violation() {
         let o = child_output("revalidate_prints_the_unreachable_violation");
         let err = String::from_utf8_lossy(&o.stderr);
         assert!(
-            err.contains("error: s: status: `blocked` is unreachable"),
+            err.contains("s.typ:") && err.contains(": status: `blocked` is unreachable"),
             "expected the reachability violation prefixed as an error: {err}"
         );
         return;

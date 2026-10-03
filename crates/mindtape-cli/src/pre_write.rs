@@ -194,14 +194,14 @@ fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> 
     let mut rejected = 0_usize;
     for (entry, verdict) in pending.iter().zip(verdicts) {
         for warning in &verdict.warnings {
-            eprintln!("warning: {}: {warning}", label(entry.file));
+            eprintln!("warning: {}", verdict.qualify(entry.file, warning));
         }
         if verdict.accepted() {
             continue;
         }
         rejected += 1;
         for problem in &verdict.problems {
-            eprintln!("error: {}: {problem}", label(entry.file));
+            eprintln!("error: {}", verdict.qualify(entry.file, problem));
         }
     }
     if rejected == 0 {
@@ -233,9 +233,7 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
                 .violations
                 .iter()
                 .partition(|violation| violation.is_fatal());
-            let render = |violation: &&mindtape::Violation| {
-                format!("{}: {}", violation.field, violation.message)
-            };
+            let render = |violation: &&mindtape::Violation| crate::check::breach_at(violation);
             Verdict {
                 problems: fatal.iter().map(render).collect(),
                 warnings: warned.iter().map(render).collect(),
@@ -260,6 +258,18 @@ fn unchecked() -> Verdict {
         warnings: Vec::new(),
         task: None,
         checked: false,
+    }
+}
+
+impl Verdict {
+    /// `text` as one printable line about `file`. A breach already opens at its
+    /// own `file:line`; a load failure has no line, so it opens at the stem.
+    pub(crate) fn qualify(&self, file: &Path, text: &str) -> String {
+        if self.task.is_some() {
+            text.to_owned()
+        } else {
+            format!("{}: {text}", label(file))
+        }
     }
 }
 

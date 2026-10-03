@@ -207,11 +207,11 @@ fn mt_add_refuses_a_write_that_breaches_an_error_rule() {
     assert!(!out.status.success(), "an error rule must refuse the write");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("error: leftover: rules.imperative-title"),
+        stderr.contains("error: tasks/leftover.typ:3: rules.imperative-title"),
         "a blocking problem reports as an error: {stderr}"
     );
     assert!(
-        !stderr.contains("warning: leftover:"),
+        !stderr.contains("warning: tasks/leftover.typ"),
         "a refused write is not a warning: {stderr}"
     );
     assert!(
@@ -230,11 +230,11 @@ fn mt_add_lets_a_warn_rule_through() {
     assert!(out.status.success(), "a warn rule lets the write land");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("warning: leftover: rules.imperative-title"),
+        stderr.contains("warning: tasks/leftover.typ:3: rules.imperative-title"),
         "a non-blocking breach reports as a warning: {stderr}"
     );
     assert!(
-        !stderr.contains("error: leftover:"),
+        !stderr.contains("error: tasks/leftover.typ"),
         "a write that lands is not an error: {stderr}"
     );
     assert!(
@@ -257,7 +257,7 @@ fn mt_flip_refuses_a_write_that_breaches_an_error_rule() {
     assert!(!out.status.success(), "an error rule must refuse the flip");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("error: subject: rules.closed-work-is-owned"),
+        stderr.contains("error: tasks/subject.typ:3: rules.closed-work-is-owned"),
         "a blocking problem reports as an error: {stderr}"
     );
 }
@@ -276,7 +276,7 @@ fn mt_flip_lets_a_warn_rule_through() {
     );
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("warning: subject: rules.imperative-title"),
+        stderr.contains("warning: tasks/subject.typ:3: rules.imperative-title"),
         "the warn breach reports as a warning: {stderr}"
     );
     assert!(
@@ -399,7 +399,7 @@ fn mt_add_refuses_a_write_a_check_rule_rejects() {
     );
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("error: leftover: rules.no-loader-refactoring"),
+        stderr.contains("error: tasks/leftover.typ:3: rules.no-loader-refactoring"),
         "a blocking check problem reports as an error: {stderr}"
     );
     assert!(
