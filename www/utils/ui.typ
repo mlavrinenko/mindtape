@@ -14,81 +14,74 @@
   raw(body.trim("\n", repeat: true), block: true),
 )
 
-// ── Colourised terminal (ANSI → inline SVG) ──────────────────────────────────
-// tola / Typst HTML export exposes no raw-HTML escape hatch and drops
-// `text(fill:)` colour, so the only way to render `mt`'s ANSI-coloured output in
-// colour is `html.frame` (native content → inline <svg>). The generator captures
-// the colour-bearing transcripts with `--color always` (www/generate.sh); this
-// parses the SGR runs and lays them out as a monospace block on the dark panel.
-// One-Dark-ish palette, readable on --term-bg; an SGR reset falls to --term-fg.
-#let _term-fg = rgb("#d6dee6")
-#let _term-bg = rgb("#0f151b")
+// ── ANSI colour ──────────────────────────────────────────────────────────────
+// A capture keeps the SGR escapes `mt` printed in a terminal. terminal-ansi()
+// turns each run into an HTML <span> with an inline colour, the way Typst's
+// HTML export renders syntax highlighting, so the text stays selectable and the
+// browser draws the status glyphs. One-Dark-ish palette, readable on --term-bg.
+// A reset, or no colour, falls back to the panel's own --term-fg.
 #let _ansi-fg = (
-  "30": rgb("#5c6370"),
-  "31": rgb("#e06c75"),
-  "32": rgb("#98c379"),
-  "33": rgb("#e5c07b"),
-  "34": rgb("#61afef"),
-  "35": rgb("#c678dd"),
-  "36": rgb("#56b6c2"),
-  "37": rgb("#dcdfe4"),
-  "90": rgb("#7f848e"),
-  "91": rgb("#e06c75"),
-  "92": rgb("#98c379"),
-  "93": rgb("#e5c07b"),
-  "94": rgb("#61afef"),
-  "95": rgb("#c678dd"),
-  "96": rgb("#56b6c2"),
-  "97": rgb("#ffffff"),
+  "30": "#5c6370",
+  "31": "#e06c75",
+  "32": "#98c379",
+  "33": "#e5c07b",
+  "34": "#61afef",
+  "35": "#c678dd",
+  "36": "#56b6c2",
+  "37": "#dcdfe4",
+  "90": "#7f848e",
+  "91": "#e06c75",
+  "92": "#98c379",
+  "93": "#e5c07b",
+  "94": "#61afef",
+  "95": "#c678dd",
+  "96": "#56b6c2",
+  "97": "#ffffff",
 )
-// One SGR parameter list ("1;31", "0", …) → the current foreground colour.
-#let _sgr-color(codes) = {
-  let col = _term-fg
+// One SGR parameter list ("1;31", "0", ...) applied to the current state, a
+// (colour, bold) pair.
+#let _sgr-apply(state, codes) = {
+  let (col, bold) = state
   for p in codes.split(";") {
-    if p == "0" or p == "" { col = _term-fg } else if p in _ansi-fg {
+    if p == "0" or p == "" {
+      col = none
+      bold = false
+    } else if p == "1" {
+      bold = true
+    } else if p == "22" {
+      bold = false
+    } else if p == "39" {
+      col = none
+    } else if p in _ansi-fg {
       col = _ansi-fg.at(p)
     }
   }
-  col
+  (col, bold)
 }
-// The SGR escape this module understands, shared by the colour splitter below
-// and `_ansi-strip`, so the "what counts as an SGR run" definition lives once.
 #let _sgr-re = regex("\u{1b}\[([0-9;]*)m")
-// ANSI text → a monospace block of coloured runs (whitespace significant,
-// newlines → linebreaks), split on the SGR escape via regex match offsets.
-#let _ansi-block(body) = {
-  let runs = ()
+// ANSI text -> content: plain runs as text, coloured runs as styled spans.
+#let _ansi-spans(body) = {
+  let out = ()
   let pos = 0
-  let cur = _term-fg
-  for m in body.matches(_sgr-re) {
-    if m.start > pos { runs.push((cur, body.slice(pos, m.start))) }
-    cur = _sgr-color(m.captures.at(0))
-    pos = m.end
-  }
-  if pos < body.len() { runs.push((cur, body.slice(pos))) }
-  let lines = ()
-  let line = ()
-  for (col, seg) in runs {
-    let parts = seg.split("\n")
-    for (i, part) in parts.enumerate() {
-      if i > 0 {
-        lines.push(line)
-        line = ()
-      }
-      if part != "" { line.push((col, part)) }
+  let state = (none, false)
+  let run(state, text) = {
+    let (col, bold) = state
+    let style = ()
+    if col != none { style.push("color: " + col) }
+    if bold { style.push("font-weight: bold") }
+    if style == () { text } else {
+      html.elem("span", attrs: (style: style.join("; ")), text)
     }
   }
-  lines.push(line)
-  set text(font: "DejaVu Sans Mono", size: 8pt, fill: _term-fg)
-  set par(leading: 0.65em)
-  lines
-    .map(l => l.map(((c, t)) => text(fill: c, raw(t))).join())
-    .join(linebreak())
+  for m in body.matches(_sgr-re) {
+    if m.start > pos { out.push(run(state, body.slice(pos, m.start))) }
+    state = _sgr-apply(state, m.captures.at(0))
+    pos = m.end
+  }
+  if pos < body.len() { out.push(run(state, body.slice(pos))) }
+  out.join()
 }
-// The same ANSI-bearing string, stripped of its SGR escapes — the accessible
-// text twin. Sourced from the very string every call site already passes (the
-// `--color always` `.ansi` capture), so it can never diverge from the image:
-// no caller change, no second `.txt` argument to keep in sync.
+// The same ANSI-bearing string, stripped of its SGR escapes.
 #let _ansi-strip(body) = body.replace(_sgr-re, "")
 
 // ── Capture records ──────────────────────────────────────────────────────────
@@ -121,34 +114,15 @@
   block: true,
 )
 
-// The colour terminal: the same dark panel as `terminal()`, but the visible
-// body is the html.frame'd SVG — an image, not selectable text (the copyable
-// commands live in the sibling `sh` code blocks). Paired with a visually
-// hidden, real-text twin (`.sr-only`, components.css) so assistive tech gets
-// the actual transcript instead of nothing; the SVG itself is `aria-hidden`
-// so the transcript isn't announced twice.
-#let terminal-ansi(body) = {
-  let trimmed = body.trim("\n", repeat: true)
-  html.elem(
-    "div",
-    attrs: (class: "terminal terminal-svg"),
-    {
-      html.elem("div", attrs: (class: "sr-only"), raw(
-        _ansi-strip(trimmed),
-        block: true,
-      ))
-      html.elem(
-        "div",
-        attrs: ("aria-hidden": "true"),
-        html.frame(block(
-          fill: _term-bg,
-          inset: (x: 14pt, y: 12pt),
-          _ansi-block(trimmed),
-        )),
-      )
-    },
-  )
-}
+// `terminal()` with the colour the terminal showed: the same panel and the same
+// `$ command` lines, with each coloured run as a span in a selectable `pre`.
+#let terminal-ansi(slug) = html.elem(
+  "div",
+  attrs: (class: "terminal"),
+  html.elem("pre", html.elem("code", _ansi-spans(_transcript(json(
+    "../generated/" + slug + ".json",
+  ))))),
+)
 
 // All three hero faces are read from the live fixture and its captures under
 // generated/ (see www/generate.sh) — so none drift from reality: source is the
@@ -183,9 +157,7 @@
     })
   })
   html.elem("div", attrs: (class: "faces"), {
-    face("terminal", "terminal · mt ls", terminal-ansi(
-      read("../generated/ls.ansi"),
-    ))
+    face("terminal", "terminal", terminal-ansi("hero-ls"))
     face("source", "source · throttle-failed-logins-per-ip.typ", raw(
       _hero-source,
       lang: "typ",

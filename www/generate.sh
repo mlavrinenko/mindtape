@@ -4,9 +4,7 @@
 # The pages read what this writes under www/generated/. A transcript is a
 # record that keeps each command line beside what it printed (www/capture.sh
 # says how), and the www/generate-*.sh scripts this one calls write them. The
-# `.ansi` capture here holds colour output alone, for terminal-ansi() on the
-# home page hero. The JSON and source files are facts the pages
-# quote as code. The build regenerates everything, so no transcript can drift
+# JSON and source files are facts the pages quote as code. The build regenerates everything, so no transcript can drift
 # from the binary.
 #
 # MINDTAPE_NOW pins "today", and the fixture's dates are written around it, so
@@ -23,7 +21,7 @@
 # ships artifacts, never transcribe it by hand.
 #
 # Docs SSG gotchas (tola), learned building this generator:
-#   - Build-time images (the hero-card SVG, the terminal-ansi html.frame renders)
+#   - Build-time images (the hero-card SVG)
 #     live only under generated/, never copied to public/. `tola validate`
 #     statically flags an `image("<path>")` string literal as a broken link when
 #     the target isn't a copied asset, so the pages inline these via
@@ -36,11 +34,10 @@
 #     (the gate path) always re-scans and is unaffected.
 set -eo pipefail
 
-# The fixed docs clock. The fixtures under examples/ are dated around it,
-# except api-service, whose tasks are dated in late September and read the
-# clock API_NOW instead.
+# The fixed docs clock. The fixtures under examples/ are dated around it.
+# The scripts that capture api-service export their own clock, because its
+# tasks are dated in late September.
 export MINDTAPE_NOW=2026-07-06
-API_NOW=2026-10-01
 # An empty value drops the user config layer, so a builder's own defaults.toml
 # neither changes a capture nor appears in `config show --origin`.
 export MINDTAPE_CONFIG_HOME=
@@ -142,11 +139,6 @@ bash "$SCRIPT_DIR/generate-model.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-import-export.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-commit-rules.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-reference.sh" "$REPO" "$OUT"
-
-# `mt ls` in colour for terminal-ansi() (www/utils/ui.typ), which the home
-# page hero renders.
-gen_color() { local slug="$1"; shift; MINDTAPE_NOW="$API_NOW" "$MT" -w "$FIX" --color always "$@" >"$OUT/$slug.ansi"; }
-gen_color ls       ls
 
 # The hero "source" face reads a real fixture task verbatim. Copy it under
 # generated/ so it lives inside the Typst build root (read() can't escape it).

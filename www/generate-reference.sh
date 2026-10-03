@@ -31,7 +31,8 @@ capture_init
 # A commit in a capture copy, with a fixed author and no signing.
 COMMIT='git -c user.name=docs -c user.email=docs@example.com -c commit.gpgsign=false commit -q'
 
-# --- /filters/ ----------------------------------------------------------------
+# --- the home page hero and /filters/ -----------------------------------------
+capture hero-ls "$API" 'mt ls'
 capture filters-open "$API" "mt ls '!terminal'"
 capture filters-operators "$API" "mt ls 'kind == \"fix\" || (kind == \"feat\" && estimate.src-files <= 2)'"
 capture_lines filters-functions "$API" <<'EOF'

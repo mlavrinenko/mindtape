@@ -1,5 +1,5 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout, commands, exit-code, terminal
+#import "../utils/ui.typ": callout, commands, exit-code, terminal, terminal-ansi
 #import "../utils/site.typ": u
 
 #let meta = (
@@ -20,7 +20,7 @@ one as an argument, and views, `[[tasks.rules]]` and `[[on.flip]]` hooks take
 one in config. The examples on this page ran in `examples/api-service`, a
 backend team's backlog:
 
-#terminal("filters-open")
+#terminal-ansi("filters-open")
 
 = Fields
 
