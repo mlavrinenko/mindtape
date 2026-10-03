@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 3),
+  status: done(2026, 10, 3),
   links: depends-on("address-tasks-by-stem-hash-in-every-mt-command.typ"),
 )
 

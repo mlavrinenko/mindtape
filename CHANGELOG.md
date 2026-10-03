@@ -335,6 +335,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **`[handle] check-len`** (breaking, pre-1.0). A stem hash grows only where
+  two tasks share a prefix, so it needs no length setting. `[handle]` is an
+  unknown key now, with no alias.
+
 - **`[[tasks.limits]]`** (breaking, pre-1.0). A work-in-progress cap was its
   own table and checker (`check_limits`, `mt check` only) for what
   `count(...)` now says as a plain `[[tasks.rules]]` entry, mergeable by name
@@ -392,6 +396,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A task's handle is its stem hash** (breaking, pre-1.0). A `#` handle was
+  a row number in the default view plus a check letter, so a handle from a
+  filtered listing could name another task. The `slug#` column now prints
+  the shortest prefix, at least three characters, of a hash of the filename
+  stem that no other task shares. It is the same in every listing, changes
+  only when `mt mv` renames the stem, and an ambiguous one is refused with
+  each candidate named. An exact stem wins over a hash, and in `mt rm` a
+  filter word does too. `mt ls -i` quits on Esc, since `q` can start a hash.
 - **The docs open on the problems MindTape solves.** README and the site home
   show one task from `examples/api-service`, a backend team's backlog, and
   five problems with the error `mt` prints for each: oversized tasks, vague

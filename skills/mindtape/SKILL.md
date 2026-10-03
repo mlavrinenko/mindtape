@@ -38,7 +38,7 @@ It is when `.mindtape/config.toml` exists. Run `mt` in the directory that holds 
 
 `mt <cmd> --help` lists every flag. Read the project’s statuses, link kinds, priority scale and tags from `mt config show`, which prints the merged config, or the statuses alone from `mt flip --list`. Never guess them.
 
-A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#` column. A stem hash is the same in every listing, and one that several tasks share is refused. When you mention a task to a person, link its file path.
+A `<task>` is a stem, a path, or the stem hash `mt ls` prints in its `slug#` column. A stem hash is the same in every listing and changes only when `mt mv` renames the stem. One that several tasks share is refused. When you mention a task to a person, link its file path.
 
 ## Finding tasks
 
