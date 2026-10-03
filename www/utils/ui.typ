@@ -1,6 +1,7 @@
 // Rendering helpers shared across content pages.
 
 #import "site.typ": PKG, u
+#import "demo.typ": intro, tagline
 
 // Inline package name, e.g. `@local/mindtape:0.2.0` — always version-synced.
 #let pkg = raw(PKG)
@@ -166,11 +167,8 @@
 
 #let hero() = html.elem("section", attrs: (class: "hero"), {
   html.elem("div", attrs: (class: "hero-lede"), {
-    html.elem("h1")[Tasks as Typst files.]
-    html.elem("p", attrs: (class: "hero-sub"))[
-      MindTape is a daemon-free, file-based task tracker. One task per #raw(".typ")
-      file, live-evaluated on every command — no daemon, no database, no lock-in.
-    ]
+    html.elem("h1", tagline)
+    html.elem("p", attrs: (class: "hero-sub"), intro)
     html.elem("div", attrs: (class: "hero-cta"), {
       html.elem(
         "a",

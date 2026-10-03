@@ -1,55 +1,64 @@
-// www/utils/demo.typ — the opening demonstration the site root and README.md
-// share: one real, closed task quoted as Markdown+YAML and as Typst, then what
-// only the Typst side does.
+// www/utils/demo.typ — the opening README.md and the site root share.
 //
-// It lives here because the two front doors were hand-copied and `just
-// dup-prose` reported six pairs between them, every one a sentence that would
-// have drifted silently. The fact it reads, www/generated/readme-task.json, is
-// written by www/generate-facts.sh from a task in this repo's own backlog;
-// reading it relative to this file resolves under both render paths — tola's
-// `--root www` and typlite's `--root .` — so neither page passes a path or
-// keeps its own copy of the stem.
-//
-// The link style is the one thing the two paths cannot share: docs/src/readme.typ
-// resolves a route through its manifest-checking `www-link`, while a tola page
-// prefixes it with `u()`. So the caller passes that one function, `(route,
-// body) -> content`, and nothing else.
-#let doc = json("../generated/readme-task.json")
+// `showcase` quotes a task from examples/api-service. `solves` lists the
+// Problems nav group: each page's title and summary from the page manifest,
+// and the first error line its capture printed, so no item quotes a refusal
+// that did not happen. Paths are relative to this file, so they resolve under
+// tola's `--root www` and typlite's `--root .`. The caller passes its link
+// function, `(route, body) => content`, because the two render paths build
+// site links differently.
 
-#let demo(link) = [
-  Say the same task lived as a Markdown file with YAML frontmatter instead,
-  checked by a script. Here is one real, closed task from this repo's own
-  backlog, both ways.
+#import "site.typ": NAV, REPO, SITE, page-meta, render-summary
+#import "slices.typ": checked-slices
 
-  #raw(doc.yaml, lang: "yaml", block: true)
+#let tagline = SITE.tagline
 
-  Nothing above is checked until a script reads the file and does it by hand:
-  parses `status_date`, keeps `priority`'s three numbers in bounds, resolves
-  `depends_on` against another file on disk, and confirms every `x_goals` key
-  is present with a reason.
-
-  The same task as Typst — #raw("truth/tasks/" + doc.stem + ".typ") (trimmed
-  here: the file continues with `== Problem`, `== TO-BE`, `== Changes`,
-  `== Rollback`, `== Out of scope` and `== Dogfood`):
-
-  #raw(doc.marker, lang: "typ", block: true)
-
-  What only the Typst side does:
-
-  - #strong[Typed values with their own shape.] `status: wip(2026, 9, 14)[note]`,
-    `priority: ice(impact: 8, confidence: 0.7, ease: 6)` — validated on every
-    command, never parsed as strings.
-  - #strong[Typed links.] `depends-on("other.typ")` — resolved and checked on
-    every command, feeding `ready`/`blocked` and the graph; a renamed target
-    fails `mt check` instead of dangling.
-  - #strong[A repo-invented field.] Here `x-goals`, checked by the repo's own
-    Typst function named in config, and refused before `mt add` writes:
-
-  ```toml
-  [[tasks.rules]]
-  check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
-  ```
-
-  The full model is on #link("/concepts/")[Concepts]. Every field a task file
-  can declare is on #link("/dsl/")[Task DSL].
+#let intro = [
+  Each task is a #link("https://typst.app/")[Typst] file in your repository.
+  `mt` checks every task and commit against the rules your team writes in
+  `.mindtape/config.toml`, and refuses work that breaks one. It runs offline,
+  on the files in your checkout.
 ]
+
+#let _fact = json("../generated/api-service.json")
+#let _task = checked-slices(_fact, "api-service", ("showcase",)).showcase
+
+#let showcase = {
+  let path = _fact.root + "/" + _task.file
+  par(link(REPO + "/blob/main/" + path, raw(path)))
+  raw(_task.code, lang: "typ", block: true)
+}
+
+// The first error line of the first command that failed in capture `id`.
+#let _refusal(id) = {
+  let steps = json("../generated/" + id + ".json").steps
+  let step = steps.find(s => s.code != 0)
+  assert(step != none, message: id + ".json records no failing command")
+  let lines = step.out.replace(regex("\u{1b}\[[0-9;]*m"), "").split("\n")
+  let line = lines.find(l => lower(l).starts-with("error"))
+  assert(
+    line != none,
+    message: id + ".json: the failing command printed no error line",
+  )
+  line
+}
+
+// The Problems nav group's routes, in nav order.
+#let problem-routes = NAV.find(group => group.title == "Problems").items
+
+#let solves(link) = {
+  heading(level: 1)[What it solves]
+  [
+    A few lines of config solve each problem below. Under each is the error
+    `mt` prints when work breaks the rule, and the link shows the config and
+    the whole session.
+  ]
+  for route in problem-routes {
+    // The manifest is empty while www/generate-site-pages.sh builds it.
+    let meta = page-meta(route)
+    if meta == none { continue }
+    heading(level: 2, link(route, meta.title))
+    par(render-summary(meta.summary))
+    raw(_refusal(route.trim("/")), block: true)
+  }
+}

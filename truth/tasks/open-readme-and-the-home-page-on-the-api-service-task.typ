@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 3),
   links: depends-on(
     "add-a-docs-page-per-problem-mindtape-solves.typ",
     "sort-the-readme-doc-index-into-the-site-nav-sections.typ",

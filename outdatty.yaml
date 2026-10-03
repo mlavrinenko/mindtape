@@ -213,7 +213,9 @@ groups:
   # membership, as with SKILL.md below). dsl.typ stays the detailed reference
   # the others defer to.
   #
-  # AGENTS.md, README.md, and skills/mindtape/SKILL.md are generated (typlite;
+  # index.typ's "Why Typst" list restates what the `task` signature checks.
+  #
+  # AGENTS.md and skills/mindtape/SKILL.md are generated (typlite;
   # `just docs::md`), so the sources are the dependents to reconcile. Their DSL
   # snippets and field-shape prose are hand-restated, not derived.
   # `www/generated/dsl-fields.json` carries the field names, but this group is
@@ -224,7 +226,7 @@ groups:
       - lib/prelude.typ
     dependents:
       - docs/src/agents.typ
-      - docs/src/readme.typ
+      - www/content/index.typ
       - www/content/dsl.typ
       - www/content/links.typ
       - www/content/recurring.typ

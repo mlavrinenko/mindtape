@@ -29,8 +29,6 @@ bash .just/scripts/_doc-blocks-control.sh
 
 PENDING=(
     docs/src/contributing/generated-docs.typ
-    docs/src/readme.typ
-    www/utils/demo.typ
 )
 
 shopt -s globstar nullglob

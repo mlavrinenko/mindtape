@@ -10,7 +10,8 @@
 # examples/statuses/ -> statuses.json (the `status:` field), examples/dsl/ ->
 # dsl.json (the task sketch AGENTS.md and /dsl/ show), examples/self-validating/ ->
 # self-validating.json (a project's own check function), examples/priority/ ->
-# priority.json (a framework call). The pages that quote
+# priority.json (a framework call), examples/api-service/ -> api-service.json
+# (the task README.md opens with). The pages that quote
 # them read only the slices, and `mt check` runs on each fixture, so a helper
 # whose shape changes fails that check before a page can show it.
 #
@@ -139,6 +140,7 @@ slice_fixture dsl | emit dsl.json
 slice_fixture statuses | emit statuses.json
 slice_fixture self-validating | emit self-validating.json
 slice_fixture priority | emit priority.json
+slice_fixture api-service | emit api-service.json
 
 # Every config file scanned for config markers, repo-relative. A project not
 # listed here is simply not read, so a marker added to one is inert until its

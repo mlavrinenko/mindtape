@@ -1,13 +1,16 @@
+// www/content/index.typ — the site root. The hero shows the tagline, the
+// intro and the showcase task. The problem list comes from www/utils/demo.typ,
+// which README.md renders too.
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": hero
-#import "../utils/demo.typ": demo
+#import "../utils/demo.typ": solves, tagline
 #import "../utils/site.typ": u
 
 #let meta = (
   route: "/",
   label: "Overview",
   title: "MindTape",
-  summary: "A daemon-free task tracker whose tasks are Typst files, evaluated live on every command.",
+  summary: tagline,
   home: true,
 )
 #metadata(meta) <page-meta>
@@ -16,33 +19,25 @@
 
 #hero()
 
-= What it is
-
-A task is a single Typst file. Every command reads the files under your
-configured roots instead of loading a store, so there is no database to back
-up, no index to rebuild, and no daemon to keep alive: the repository you
-already version is the tracker. A task's identity is its filename stem, its
-fields are declared in a Typst call your editor completes, and one config file
-decides which values are legal. Tools built on MindTape add their own fields
-through an `x-<ns>` seam — #link(u("/concepts/"))[Concepts] has the model.
-
-= One task, two ways
-
-#demo((route, body) => link(u(route), body))
+#solves((route, body) => link(u(route), body))
 
 = Why Typst
 
-A task file is real code.
+A task file is Typst code. Over a Markdown file, that gives you four things.
 
-- #strong[Plain text.] Read it, diff it, grep it, version it with the code it tracks.
-- #strong[No lock-in.] No proprietary store, no cloud, no binary blobs.
-- #strong[Composable.] `#import` a shared library or your own helpers, compute
-  values, reuse definitions across tasks.
+- #strong[Field completion.] `task` declares every field as a named parameter,
+  so the Typst language server completes field names in your editor.
+- #strong[Values checked on load.] `mt` evaluates every task file on every
+  command. A misspelled field, a month 13 or a text where a number belongs
+  fails with the file named.
+- #strong[Shared helpers.] A task file can `#import` your own Typst module,
+  and every task that imports it uses the same definitions.
+- #strong[Your own validator.] A rule can call a Typst function you write, as
+  #link(u("/self-validating-tasks/"))[Self-validating tasks] shows.
 
 = Built for humans and agents
 
-The CLI is scriptable and quiet by default: table, JSON, CSV, or a bare path
-list for piping into another program, honest exit codes, and a filter language
-for querying (`mt find` is a shortcut over it). Structured JSON and slot
-schemas make it equally legible to AI coding agents — see
-#link(u("/agents/"))[For AI agents].
+`mt ls` prints a table for people, and JSON, CSV or a bare path list for
+scripts. A refused command exits non-zero and prints what to fix, so an agent
+can read the error and correct its work.
+#link(u("/agents/"))[For AI agents] shows how to drive `mt` from an agent.

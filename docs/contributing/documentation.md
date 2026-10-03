@@ -14,7 +14,7 @@ Before you change a file, decide who reads it and what they can do after. Then r
 
 ## State each fact once
 
-A generated fact (`www/generated/*.json`, read by both render paths) cannot drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. So state a fact on one page and link to it from the others. Content that both render paths show, like the task example that opens README and the site root, lives once in a module both call (`www/utils/demo.typ`).
+A generated fact (`www/generated/*.json`, read by both render paths) cannot drift. A hand-written sentence can. Two pages state the same fact in different words, one of them changes, and no gate fails. So state a fact on one page and link to it from the others. Content that both render paths show, like the tagline and problem list that open README and the site root, lives once in a module both call (`www/utils/demo.typ`).
 
 The `just dup-prose` audit reports two kinds of repeat that are deliberate. A document an agent reads whole (AGENTS.md, the skill and its references) keeps its own copy of what it needs, because its reader may have no site access. Shared code, such as a render loop or a crate table, may be extracted or copied. Never paraphrase it, because reworded code is worse than either.
 

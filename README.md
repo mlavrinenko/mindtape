@@ -3,128 +3,99 @@
 <h1 align="center"><img src="https://raw.githubusercontent.com/mlavrinenko/mindtape/main/www/assets/images/logo.svg" alt="MindTape" width="120" /><br />
  MindTape</h1>
 
-<h4 align="center">A <a href="LICENSE">MIT</a>-licensed, daemon-free file-based task tracker powered by <a href="https://typst.app/">Typst</a>.</h4>
+<h4 align="center">A task tracker in your repo that enforces your team's rules on every task and commit.</h4>
 
-<h4 align="center"><a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/quickstart/">Quickstart</a> · <a href="https://mlavrinenko.github.io/mindtape/comparison/">Comparison</a></h4>
+<h4 align="center"><a href="https://mlavrinenko.github.io/mindtape/">Documentation</a> · <a href="https://mlavrinenko.github.io/mindtape/quickstart/">Quickstart</a></h4>
 
 ---
 
-MindTape keeps no daemon, database or index: every command evaluates your task files where they sit, so the repository is the tracker. A task is one Typst file, its `id` is the filename stem, and links target files — rename one without updating its dependents and `mt check` says so instead of dangling.
+Each task is a [Typst](https://typst.app/) file in your repository. `mt` checks every task and commit against the rules your team writes in `.mindtape/config.toml`, and refuses work that breaks one. It runs offline, on the files in your checkout.
 
-Say the same task lived as a Markdown file with YAML frontmatter instead, checked by a script. Here is one real, closed task from this repo’s own backlog, both ways.
-
-```yaml
----
-title: Move goal verdicts into x-goals
-kind: dev
-# a script keeps these three numbers in bounds and combines them into a
-# score itself; nothing here says impact tops out at 10
-priority: {impact: 7, confidence: 0.9, ease: 6}
-difficulty: 2
-tags: [mt]
-estimate: {files: 15}
-assignee: agent
-status: done
-status_date: "2026-09-16"
-status_note: >
-  verdicts landed in x-goals across every open task and template;
-  check-goals is the only place they're checked now
-# a script resolves this filename by hand to know whether the task is
-# ready or blocked
-depends_on: [check-a-task-field-with-a-typst-function.md]
-# a script checks every key below is present, every effect is one of
-# helps/hurts/neutral, and every helps/hurts carries a reason
-x_goals:
-  product:
-    readable-tasks:
-      effect: helps
-      reason: the body runs from Problem straight to TO-BE, and the verdicts sit beside status and links
-    implementable-tasks:
-      effect: neutral
-    enforced-practice:
-      effect: helps
-      reason: a skipped goal becomes a named rules.goals error that mt add refuses, not an eval panic
-    cheap-adoption:
-      effect: neutral
-    typst-over-markdown:
-      effect: neutral
-    plain-files:
-      effect: neutral
-  process:
-    sound-codebase:
-      effect: neutral
-    docs-match-code:
-      effect: neutral
----
-```
-
-Nothing above is checked until a script reads the file and does it by hand: parses `status_date`, keeps `priority`’s three numbers in bounds, resolves `depends_on` against another file on disk, and confirms every `x_goals` key is present with a reason.
-
-The same task as Typst — `truth/tasks/move-goal-verdicts-into-x-goals.typ` (trimmed here: the file continues with `== Problem`, `== TO-BE`, `== Changes`, `== Rollback`, `== Out of scope` and `== Dogfood`):
+[`examples/api-service/tasks/throttle-failed-logins-per-ip.typ`](https://github.com/mlavrinenko/mindtape/blob/main/examples/api-service/tasks/throttle-failed-logins-per-ip.typ)
 
 ```typ
 #import "@local/mindtape:0.2.0": *
-#import "../lib.typ": *
-
 #show: task.with(
-  title: "Move goal verdicts into x-goals",
-  kind: "dev",
-  priority: ice(
-    impact: 7,
-    confidence: 0.9,
-    ease: 6,
-  ),
-  difficulty: 2,
-  tags: ("mt",),
-  estimate: (files: 15),
-  assignee: "agent",
-  status: done(
-    2026,
-    9,
-    16,
-  )[verdicts landed in x-goals across every open task and template; check-goals is the only place they're checked now],
-  links: depends-on("check-a-task-field-with-a-typst-function.typ"),
-  x-goals: (
-    product: (
-      readable-tasks: helps[the body runs from Problem straight to TO-BE, and the verdicts sit beside status and links],
-      implementable-tasks: neutral,
-      enforced-practice: helps[a skipped goal becomes a named `rules.goals` error that `mt add` refuses, not an eval panic],
-      cheap-adoption: neutral,
-      typst-over-markdown: neutral,
-      plain-files: neutral,
-    ),
-    process: (
-      sound-codebase: neutral,
-      docs-match-code: neutral,
-    ),
-  ),
+  title: "Throttle failed logins per IP",
+  kind: "feat",
+  priority: ice(impact: 7, confidence: 0.7, ease: 4),
+  status: proposed(2026, 9, 28),
+  estimate: (src-files: 2),
+  links: depends-on("add-redis-client.typ"),
 )
+
+== Problem
++ Run `for i in $(seq 50); do curl -so /dev/null -w '%{http_code} ' -d user=ada -d password=x localhost:8080/login; done`.
++ 🔴 It prints `401` fifty times. A script can guess passwords as fast as the server answers.
+
+== TO-BE
+- 🟢 After 10 failed logins from one IP in 10 minutes, `/login` returns `429` with a `Retry-After` header.
+
+== Changes
+- `src/auth/limiter.rs`, new: count failures per IP in Redis, each count expiring after 10 minutes.
+- `src/auth/login.rs`: ask the limiter before checking the password, and record each failure.
+
+== Alternatives
+- A counter in process memory. Each replica would count on its own, so three replicas would allow 30 tries.
+
+== Out of scope
+- Locking accounts by username, which needs its own unlock flow.
 ```
 
-What only the Typst side does:
+## What it solves
 
-- **Typed values with their own shape.** `status: wip(2026, 9, 14)[note]`, `priority: ice(impact: 8, confidence: 0.7, ease: 6)` — validated on every command, never parsed as strings.
-- **Typed links.** `depends-on("other.typ")` — resolved and checked on every command, feeding `ready`/`blocked` and the graph; a renamed target fails `mt check` instead of dangling.
-- **A repo-invented field.** Here `x-goals`, checked by the repo’s own Typst function named in config, and refused before `mt add` writes:
+A few lines of config solve each problem below. Under each is the error `mt` prints when work breaks the rule, and the link shows the config and the whole session.
 
-```toml
-[[tasks.rules]]
-check = { typst = "truth/lib.typ", function = "check-goals", field = "x-goals" }
+### [Tasks too big to finish in one change](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/)
+
+Cap how many source files a task may touch, so whoever files a big task has to split it first.
+
+```
+error: sign-in-with-google-and-github: rules.split-big-work: split it into tasks of 5 source files or fewer
 ```
 
-The full model is on [Concepts](https://mlavrinenko.github.io/mindtape/concepts/). Every field a task file can declare is on [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/).
+### [Tasks too vague to start](https://mlavrinenko.github.io/mindtape/require-a-task-shape/)
 
-## Installation
+Refuse a task that does not say how to reproduce the problem, what done looks like and which files change.
 
-```bash
+```
+Error: missing required slot(s): to-be, changes, out-of-scope
+```
+
+### [Tasks closed while the tests fail](https://mlavrinenko.github.io/mindtape/gate-done-on-checks/)
+
+Run your test command when a task closes, and refuse to close it while that command fails.
+
+```
+error: reject-expired-sessions-on-token-refresh: gate "scripts/test" failed (exit 1); nothing written — fix it, or re-run with --force (the override is recorded in the status note)
+```
+
+### [Work started before the last task is done](https://mlavrinenko.github.io/mindtape/one-task-at-a-time/)
+
+Allow one task in progress, and refuse to start a task before the tasks it depends on are done.
+
+```
+error: add-redis-client: rules.one-wip: finish the task in progress before you start another
+```
+
+### [Commits nobody can trace to a task](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/)
+
+Refuse a commit that names no task, then ask which tasks changed a file before you edit it.
+
+```
+error: .git/COMMIT_EDITMSG: commits.rules.work-names-a-task: name the task this commit works on: `Refs: <stem>`
+```
+
+## Install
+
+```sh
 cargo install mindtape-cli
 ```
 
-[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) covers the prebuilt binaries, `nix run`, building from source, and a first project from `mt init` to `mt check`.
+[Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) covers prebuilt binaries, `nix run` and a first project from `mt init` to `mt check`.
 
 ## Documentation
 
-- **Problems**: [Tasks too big to finish in one change](https://mlavrinenko.github.io/mindtape/split-oversized-tasks/) · [Tasks too vague to start](https://mlavrinenko.github.io/mindtape/require-a-task-shape/) · [Tasks closed while the tests fail](https://mlavrinenko.github.io/mindtape/gate-done-on-checks/) · [Work started before the last task is done](https://mlavrinenko.github.io/mindtape/one-task-at-a-time/) · [Commits nobody can trace to a task](https://mlavrinenko.github.io/mindtape/trace-commits-to-tasks/)
 - **Start**: [Quickstart](https://mlavrinenko.github.io/mindtape/quickstart/) · [Comparison](https://mlavrinenko.github.io/mindtape/comparison/)
 - **Model**: [Concepts](https://mlavrinenko.github.io/mindtape/concepts/)
 - **Tasks**: [Task DSL](https://mlavrinenko.github.io/mindtape/dsl/) · [Task links](https://mlavrinenko.github.io/mindtape/links/) · [Recurring tasks](https://mlavrinenko.github.io/mindtape/recurring/) · [Templates & slots](https://mlavrinenko.github.io/mindtape/templates/) · [Derived tags](https://mlavrinenko.github.io/mindtape/derived-tags/)
@@ -134,3 +105,7 @@ cargo install mindtape-cli
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+[MIT](LICENSE).
