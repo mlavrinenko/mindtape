@@ -183,7 +183,8 @@ severity = "error"
 # `CHANGELOG.md`), never by the design decision the estimate is meant to size.
 # Counting either against a task's declared budget turns a truthful estimate
 # into a number an author has to inflate just to keep an advisory warning
-# quiet, which trains everyone to stop reading it.
+# quiet, which trains everyone to stop reading it. For the same reason a
+# filed estimate is never raised: it records the decomposition as planned.
 #
 # - README.md, CONTRIBUTING.md, AGENTS.md, skills/mindtape/SKILL.md and
 #   docs/contributing/*.md: rendered from docs/src/**.typ by `just docs-md`.
@@ -203,7 +204,7 @@ assert = '''changed("staged+worktree",
   "!docs/contributing/*.md", "!www/generated/**", "!outdatty.lock",
   "!docs/src/**", "!www/content/**", "!CHANGELOG.md", "!truth/tasks/**",
   "!crates/*/tests/**", "!**/*test*.rs", "!examples/**") <= estimate.src-files'''
-message = "split the remaining work into a new task and finish the part in hand"
+message = "split the remaining work into a new task and finish the part in hand; keep estimate.src-files as filed, since it records the decomposition"
 severity = "warn"
 
 # Goal verdicts moved out of the body into `x-goals:`, beside status and
