@@ -11,7 +11,7 @@ description: 'Drive MindTape, a file-based task tracker, through its `mt` CLI; e
 
 # MindTape (`mt`)
 
-Each task is one Typst file. The filename stem is the task’s identity, and `links:` edges name tasks by stem.
+Each task is one Typst file, and the filename stem is the task’s identity. A `links:` target is the path to the other task’s file from the linking file, such as `"../auth/login.typ"`. `mt link` takes a stem and writes that path.
 
 Make every change through `mt`. It writes the slug, the status date and the fields the config injects, resolves link targets, and checks the result against the config. When the check fails, `mt` writes nothing. Hand-edit a task file only for what no command writes: the body, a framework priority such as `ice(...)`, and the `estimate` dict. Follow `references/hand-editing.md`, then run `mt check`.
 

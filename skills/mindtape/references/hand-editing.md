@@ -22,7 +22,7 @@ A task file is Typst. Edit the fields inside `task.with(...)`:
   kind: "bug",                          // enum from config
   assignee: "ada",                      // actor working it, config-bounded
   estimate: (hours: 4),                 // opaque unit dict
-  links: depends-on("other-task.typ"),  // typed edges by file stem
+  links: depends-on("other-task.typ"),  // path from this file to the target
   tags: ("backend",),
   due: on(2026, 7, 1),                  // ISO date, or omit
 )
