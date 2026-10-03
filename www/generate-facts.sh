@@ -24,7 +24,8 @@
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
-#                          through its own `<mindtape>` marker
+#                          through its own `<mindtape>` marker, and its
+#                          status constructors
 #   - frameworks.json   <- crates/mindtape/src/frameworks.toml plus the two
 #                          scales in defaults.toml (see www/frameworks.jq)
 #   - gates.json        <- `just --dump --dump-format json` for the
@@ -119,8 +120,17 @@ printf '#import "/lib/prelude.typ": task\n#show: task.with()\n= body\n' \
   >"$tmp/dsl-driver.typ"
 fields_dict="$(typst query --root . "$tmp/dsl-driver.typ" '<mindtape>' \
   --field value --one | jq '.fields')"
-jq -n --argjson fields "$fields_dict" \
-  '{fields: [$fields | keys_unsorted[] as $k | {name: $k, default: $fields[$k]}]}' \
+# The status constructors: each is a `#let <name> = _mk("<name>")` line, and
+# an empty list fails the build, so a reformatted prelude cannot hide them.
+statuses="$(sed -n 's/^#let \([a-z-]*\) = _mk("\1")$/\1/p' lib/prelude.typ \
+  | jq -R . | jq -s .)"
+[ "$statuses" != "[]" ] || {
+  echo "generate-facts.sh: no status constructors found in lib/prelude.typ" >&2
+  exit 1
+}
+jq -n --argjson fields "$fields_dict" --argjson statuses "$statuses" \
+  '{fields: [$fields | keys_unsorted[] as $k | {name: $k, default: $fields[$k]}],
+    statuses: $statuses}' \
   | emit dsl-fields.json
 rm -rf "$tmp"
 

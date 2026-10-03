@@ -1204,7 +1204,7 @@
         },
         "validate": {
           "$ref": "#/$defs/TargetValidator",
-          "description": "What this kind's targets are. The default, `local-task-path`, is a\ntask stem. Any other value makes the targets something outside the\nbacklog, such as a commit, a pull request or a build."
+          "description": "What this kind's targets are. The default, `local-task-path`, is a\npath from the linking task's file to another task's file. Any other value makes the targets something outside the\nbacklog, such as a commit, a pull request or a build."
         }
       },
       "type": "object"
@@ -1916,7 +1916,7 @@
       "oneOf": [
         {
           "const": "local-task-path",
-          "description": "A filename stem resolved against the loaded task set (the default, and\nthe only validator whose edges join the task graph).",
+          "description": "A path from the linking task's file to another task's file (the\ndefault, and the only validator whose edges join the task graph).",
           "type": "string"
         },
         {

@@ -1,8 +1,8 @@
 //! Per-kind link-target validators: the `[[tasks.links.kinds]] validate` axis.
 //!
 //! Every edge kind sits on one axis — what shape its targets take. The default,
-//! `local-task-path`, is exactly `MindTape`'s historical behaviour: a target is a
-//! filename stem resolved against the loaded task set. Any other validator
+//! `local-task-path`, makes a target a path from the linking task's file to
+//! another task's file, resolved against the loaded task set. Any other validator
 //! declares the kind's targets to be *outside* the backlog (a commit, a pull
 //! request, a build), which is what lets a task record the artifact that
 //! discharges it.
@@ -35,8 +35,8 @@ use crate::link::{LinkKind, LinksConfig};
 #[derive(Debug, Clone, Copy, Default, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case")]
 pub enum TargetValidator {
-    /// A filename stem resolved against the loaded task set (the default, and
-    /// the only validator whose edges join the task graph).
+    /// A path from the linking task's file to another task's file (the
+    /// default, and the only validator whose edges join the task graph).
     #[default]
     LocalTaskPath,
     /// An RFC 3986 URI: a scheme, then only URI-legal characters.

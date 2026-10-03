@@ -1,93 +1,94 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout
+#import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 
 #let meta = (
   route: "/concepts/",
   label: "Concepts",
   title: "Concepts",
-  summary: "MindTape's model of one Typst file per task, evaluated live on every command and identified by its filename.",
+  summary: "How MindTape stores each task as a Typst file, reads the files on every command, and names and links tasks.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
+// The task file is a copy of examples/api-service/tasks/add-redis-client.typ,
+// and the transcripts are runs against a copy of examples/links/. Both come
+// from www/generate-model.sh.
+
 = A task is a file
 
-One task lives in one `.typ` file. The file applies the task template with a
-show rule and declares its fields:
+Each task is one `.typ` file. The file imports the MindTape prelude and passes
+the task's fields to `task.with(...)` in a show rule. Everything below that
+line is the task's body, written in Typst markup. This is a task from
+`examples/api-service/`:
 
-```typ
-#show: task.with(title: "…", status: wip(2026, 7, 6), priority: 8)
+#raw(read("../generated/concepts-task.typ"), lang: "typ", block: true)
 
-== Summary
-Free-form body follows the metadata.
-```
+`mt` reads every `.typ` file under the roots that `[tasks] roots` names. A
+root can be a backlog folder or the source tree itself, so a task can sit next
+to the code it changes. The #link(u("/dsl/"))[Task DSL] lists every field.
 
-See #link(u("/dsl/"))[Task DSL] for every field. Tasks live wherever you point a
-root: alongside the code they track, in a dedicated backlog directory, or both.
+= Every command reads the files
 
-= Live evaluation
+`mt` runs no daemon and keeps no database or index. Each command evaluates the
+task files under the roots with the Typst compiler, then applies the project's
+config to what they hold. An edit counts as soon as the file is saved, whether
+you, a script, an agent or `mt` made it. Git versions the backlog with the
+code, and a branch carries its own tasks.
 
-There is no daemon, no database, and no global index. Every command re-evaluates
-the files under your configured roots with the Typst compiler, then applies your
-config. The state on disk is the only state.
+A cache in `.mindtape/cache/`, keyed by a hash of each file's bytes, lets `mt`
+skip evaluating a file that did not change.
 
-- Edits by hand, by script, or by `mt` are all equal — the next command sees them.
-- The cost is per-command evaluation, not a background process.
+= Identity
 
-= Identity is the filename
+A task's id is its filename stem, so `tasks/add-redis-client.typ` is
+`add-redis-client`. Every command that takes a task takes its id, as in
+`mt done add-redis-client`. Setting the `id:` field gives a task another id.
+`mt check` reports two tasks with the same id.
 
-A task's id is its filename stem: `tasks/repertoire/fur-elise-polish.typ` is
-`fur-elise-polish`. Links between tasks reference that stem in the `links:` field
-(`depends-on("other.typ")`). Rename or move a file and inbound links stop
-resolving — `mt check` reports it loudly rather than letting it rot silently.
+= Links name files
 
-= Core fields and the extension seam
+A `links:` target is the path from the linking file to the target file. A
+task in the same folder is `"other.typ"`, and a task one folder over is
+`"../api/other.typ"`. `id:` plays no part in it. `mt check` reports a target
+that names no task file, so renaming a file by hand breaks every link to it:
 
-Everything scalar or enum is a generic #strong[core field], constrained by one
-config file: the status legend, the numeric priority and difficulty scales,
-`kind`, `estimate`, dates, tags, and task links. MindTape validates these and
-nothing more.
+#terminal("concepts-mv-by-hand")
 
-Tools built on top add their own data through an `x-<ns>` #strong[extension seam]
-— any field named `x-<namespace>` is carried through untouched, for that tool to
-validate.
+`mt mv` renames the file and rewrites each link to it. It keeps the file in
+its folder, because a folder can set the task's derived tags:
 
-= Two layers enforce
+#terminal("concepts-mv")
 
-The prelude enforces #strong[structure] only: one task per file, the `x-<ns>`
-naming discipline, and the argument shapes it would otherwise drop before the
-marker is written. Those are mistakes the Rust layer never sees, because nothing
-reaches it to validate.
+#link(u("/links/"))[Task links] covers the link kinds and `mt link`, which
+writes the path for you.
 
-Everything semantic — the status legend, numeric scales and classification,
-priority frameworks, the `kind` enum, required-unless-terminal rules, bounds,
-and link resolution — is enforced by the Rust layer against your
-#link(u("/config/"))[config], at `mt check` time.
+= Extension fields
 
-So does every #strong[type]. A field holding the wrong shape, or one wrong
-element inside the right shape, is a `mt check` violation naming the position
-you can count to in your own source:
+A field named `x-<ns>`, such as `x-speconaut`, holds data for a tool built on
+MindTape. `mt` never checks it, and passes it to that tool unchanged under
+`extras` in `mt ls --json`. Any other field that `task` does not declare fails
+the file with an `unknown task slot` error.
 
-```text
-tags[1]: expected a string, found a number
-estimate.days: expected a number, found a string
-recur.on[1]: expected a weekday name (mon, tue, wed, thu, fri, sat, sun), found `funday`
-```
+= Where a mistake is caught
 
-Nothing is dropped quietly, and none of it is the card render's business: the
-card is total, so a mistyped value still previews rather than failing the file
-with a message naming neither the field nor the task.
+The prelude refuses only what it would otherwise lose before `mt` reads the
+file. That is an undeclared field, and a helper argument it cannot store, such
+as a status note that is not a content block. Typst fails the file on these.
 
-= Configuration is layered
+`mt check` checks everything else against the project's config: the status
+legend, the priority and difficulty scales, `kind`, required fields, links,
+recurrence and the type of every value. It names the field and the position of
+a wrong value, such as `tags[1]`.
 
-`.mindtape/config.toml` overlays a shipped defaults floor. Omit a section to
-inherit the floor, declare it to override, or set it empty to leave that aspect
-unconstrained. #link(u("/config/"))[Configuration] covers the four-layer merge
-and every section.
+= Configuration
+
+`.mindtape/config.toml` sits on top of a floor built into `mt`, so a project
+sets only what differs from it. #link(u("/config/"))[Configuration] covers
+how the layers merge and every section.
 
 #callout("note")[
-  Ready to try it? #link(u("/quickstart/"))[Quickstart] walks install → first task.
-  The #link(u("/cli/"))[CLI reference] lists every command.
+  The #link(u("/quickstart/"))[Quickstart] walks from install to a first
+  finished task. The #link(u("/cli/"))[CLI reference] lists every command.
 ]

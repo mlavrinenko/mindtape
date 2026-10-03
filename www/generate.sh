@@ -141,6 +141,7 @@ bash "$SCRIPT_DIR/generate-release-targets.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-rule-packs.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR/generate-examples.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-config-runs.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-guides.sh" "$REPO" "$OUT"
+bash "$SCRIPT_DIR/generate-model.sh" "$REPO" "$OUT"
 
 # `mt ls` in colour for terminal-ansi() (www/utils/ui.typ), which the home
 # page hero and /filters/ render.

@@ -31,19 +31,15 @@ PENDING=(
     docs/src/contributing/generated-docs.typ
     docs/src/readme.typ
     www/content/commit-rules.typ
-    www/content/concepts.typ
-    www/content/dsl.typ
     www/content/estimates.typ
     www/content/filters.typ
     www/content/import-export.typ
-    www/content/links.typ
     www/content/named-sets.typ
     www/content/priority.typ
     www/content/rule-packs.typ
     www/content/schema.typ
     www/utils/demo.typ
     www/utils/framework-notes.typ
-    www/utils/ui.typ
 )
 
 shopt -s globstar nullglob

@@ -5,15 +5,6 @@
 // Inline package name, e.g. `@local/mindtape:0.2.0` — always version-synced.
 #let pkg = raw(PKG)
 
-// A `.typ` code block whose first line is the version-synced import, followed
-// by `rest`. Use once per page for a full example; snippets elsewhere omit the
-// import to stay DRY.
-#let mt-import(rest) = raw(
-  "#import \"" + PKG + "\": *\n\n" + rest,
-  lang: "typ",
-  block: true,
-)
-
 // A dark terminal panel holding plain text, with leading and trailing blank
 // lines trimmed.
 #let _terminal-panel(body) = html.elem(

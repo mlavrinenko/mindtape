@@ -333,7 +333,7 @@ pub struct LinkKind {
     /// form one.
     pub acyclic: bool,
     /// What this kind's targets are. The default, `local-task-path`, is a
-    /// task stem. Any other value makes the targets something outside the
+    /// path from the linking task's file to another task's file. Any other value makes the targets something outside the
     /// backlog, such as a commit, a pull request or a build.
     pub validate: TargetValidator,
     /// Regex a target must match when `validate = "regex"`. That validator

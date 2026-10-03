@@ -1,37 +1,39 @@
-// Hand-written prose per core task-DSL field, keyed by field name. The field
-// list and each field's default come from www/generated/dsl-fields.json,
-// read straight off lib/prelude.typ's own `task` signature; this dict carries
-// only what a machine cannot state — what the field means. `just
-// check-doc-facts` fails naming any dsl-fields.json entry with no matching
-// key here.
-//
-// Refs: truth/tasks/derive-the-drift-prone-doc-facts-from-their-sources.typ
+// What each core task field means, keyed by field name. The /dsl/ page reads
+// the field list and each default from www/generated/dsl-fields.json, which
+// www/generate-facts.sh reads off lib/prelude.typ's `task` signature, so this
+// dictionary holds only the meaning. `just check-doc-facts` fails on a field
+// in that list with no entry here.
 
 #import "site.typ": u
 
 #let dsl-field-notes = (
-  "title": [Display title. The only field the built-in template requires.],
-  "status": [A legend value dated today or explicitly: `wip(2026, 7, 6)`. A
-    trailing block is a note: `wip(2026, 7, 6)[behind a flag]`.],
-  "priority": [A number on the scale, or a framework call — see
-    #link(u("/priority/"))[Priority].],
-  "difficulty": [The sibling scale to priority, same shape.],
-  "kind": [A config-defined enum value (e.g. `"feature"`, `"bug"`).],
-  "assignee": [The actor currently working the task: a plain string.
-    Orthogonal to status; never ownership.],
-  "estimate": [An opaque `unit: quantity` dict, e.g. `(days: 1, hours: 2)`.
-    Units are never converted or compared — only the allowed set is
-    checked.],
-  "links": [Typed edges to other tasks — a sum of helper calls, e.g.
-    `depends-on("a.typ") + related("b.typ")[why]`. See "Task links" below.],
-  "tags": [A tuple of strings: `("backend", "auth")`.],
-  "due": [The task's deadline: `datetime(year: …, month: …, day: …)`.],
-  "start": [When work on the task begins: `datetime(year: …, month: …, day:
-    …)`.],
-  "reviewed": [The date the task was last reviewed, stamped by `mt review`
-    (idempotent within a day); never set by hand in the common case.],
-  "recur": [A recurrence rule + policy: `every(weeks: 1)`. See "Recurring
-    tasks" below.],
-  "id": [An explicit identity override; unset, identity is the filename
-    stem.],
+  "title": [The task's title. The built-in template asks for this field
+    alone.],
+  "status": [A status, the date it was set and an optional note:
+    `wip(2026, 7, 6)[behind a flag]`. See "Writing a status" below.],
+  "priority": [A number on the project's priority scale, or a framework call
+    such as `ice(...)`. See #link(u("/priority/"))[Priority].],
+  "difficulty": [A number on the difficulty scale, or a framework call, as for
+    `priority`.],
+  "kind": [One of the kinds the project's config lists, such as
+    `"feature"`.],
+  "assignee": [Who is working on the task, as a string. The project can limit
+    the names.],
+  "estimate": [A dictionary of units to amounts: `(days: 1, hours: 2)`. `mt`
+    checks the units against the project's list and never converts between
+    them. See #link(u("/estimates/"))[Estimates].],
+  "links": [Typed edges to other tasks, joined with `+`:
+    `depends-on("a.typ") + related("b.typ")[why]`. See
+    #link(u("/links/"))[Task links].],
+  "tags": [An array of strings: `("backend", "auth")`. One tag needs a
+    trailing comma, `("backend",)`, because `("backend")` is a string.],
+  "due": [The task's deadline, a date.],
+  "start": [The date work on the task can begin. The default view hides the
+    task until then.],
+  "reviewed": [The date someone last reviewed the task. `mt review` sets it to
+    today.],
+  "recur": [A rule that makes the task repeat: `every(weeks: 1)`. See
+    #link(u("/recurring/"))[Recurring tasks].],
+  "id": [The task's id, when it should differ from the filename stem. See
+    #link(u("/concepts/"))[Concepts].],
 )

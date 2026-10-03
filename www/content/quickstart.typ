@@ -1,6 +1,7 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, pkg, terminal
 #import "../utils/site.typ": REPO, u
+#import "../utils/release.typ": cli-crate, release-targets
 
 #let meta = (
   route: "/quickstart/",
@@ -17,32 +18,15 @@
 
 = Install
 
-#let release = json("../generated/release-targets.json")
-// The CLI is the one published crate with a `[[bin]]`. The build fails when the
-// release workflow names none or several, so the page cannot show a stale
-// crate name.
-#let cli-crates = release.publish.filter(p => p.bin)
-#if cli-crates.len() != 1 {
-  panic(
-    "quickstart: release-targets.json must name exactly one published crate "
-      + "with a [[bin]] (the CLI); found "
-      + str(cli-crates.len()),
-  )
-}
-#let cli-crate = cli-crates.at(0).crate
-// Each target carries the file name the release workflow uploads, extension
-// included, so the Windows build shows `.exe`.
-#let targets = release.targets
-
 Install the CLI crate from crates.io:
 
 // docs:hand-typed the crate name comes from the release workflow, and the build does not run cargo install
 #raw("cargo install " + cli-crate, lang: "sh", block: true)
 
-Each tagged release also builds a binary for #targets.len() platforms. Download
-the one for yours from the #link(REPO + "/releases")[Releases page]:
+Each tagged release also builds a binary for #release-targets.len() platforms.
+Download the one for yours from the #link(REPO + "/releases")[Releases page]:
 
-#list(..targets.map(t => raw(t.artifact)))
+#list(..release-targets.map(t => raw(t.artifact)))
 
 Or run it from the flake without installing it:
 
@@ -60,6 +44,10 @@ git clone https://github.com/mlavrinenko/mindtape.git
 cd mindtape && cargo build --release
 ```
 
+These builds leave out the `rrule` cargo feature. Add it only if you need
+calendar rules such as the first Monday of each month, as
+#link(u("/recurring/"))[Recurring tasks] explains.
+
 = Set up the environment
 
 Task files import a Typst prelude, and `mt install` puts it where Typst looks.
@@ -74,7 +62,7 @@ to pin a project to a prelude in its own tree.
 `mt install` also writes a completion hook for each shell. Source the one for
 your shell from its startup file. Tab then completes the stems, statuses,
 views, templates and link kinds of the project you are in. The hook asks `mt`
-on every key press, so its answers always match the project.
+on every Tab press, so its answers always match the project.
 
 Then make a project, once per repository:
 
@@ -102,7 +90,8 @@ editor mode and named templates.
 = List and query
 
 `mt ls` lists the tasks in the default view. In a new project those are the
-tasks that are not done or cancelled:
+tasks that are not done or cancelled and whose `start` date, if they have one,
+has come:
 
 #terminal("qs-ls")
 

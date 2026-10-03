@@ -1,10 +1,10 @@
 #:schema ../../../schema/config.schema.json
-# examples/dsl/.mindtape/config.toml — the checked project AGENTS.md slices its
-# task DSL sketch out of.
+# examples/dsl/.mindtape/config.toml — the checked project AGENTS.md and the
+# /dsl/ page slice their task DSL sketch out of.
 #
 # Its one job is a task file that sets every field the sketch shows, so a field
-# or helper that changes shape fails `just check-examples` before AGENTS.md can
-# show it wrong. The dependency it links to is done, so the task is ready.
+# or helper that changes shape fails `just check-examples` before either page
+# can show it wrong. The dependency it links to is done, so the task is ready.
 #
 # Deliberately thin: roots, a four-value legend and the ICE framework.
 # Everything else comes from the embedded floor.

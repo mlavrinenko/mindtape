@@ -88,7 +88,7 @@ groups:
       .just/scripts/_script-reach.sh: e26594842a77ac58754ecc124fa82c6c2aba1f13aaa01abc0b4340f310556654
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
-      .just/scripts/check-doc-blocks.sh: 87b777b0579079afe9f09f26c259ebd17b8a9db5b669680460f96d44e494f22e
+      .just/scripts/check-doc-blocks.sh: 74862cb2b9a26b995618f1698d358e9a8fba700e6f19f052ba423f72dbce8d9f
       .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-prose.sh: f117817cc9f54309211514a0078347f9ead61c51edccad3145ddabb42fa2eff9

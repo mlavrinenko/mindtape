@@ -8,7 +8,7 @@
 # One artifact per fixture: examples/links/ -> links.json (the `links:` field),
 # examples/recurring/ -> recurring.json (the `recur:` field),
 # examples/statuses/ -> statuses.json (the `status:` field), examples/dsl/ ->
-# dsl.json (the task sketch AGENTS.md shows), examples/self-validating/ ->
+# dsl.json (the task sketch AGENTS.md and /dsl/ show), examples/self-validating/ ->
 # self-validating.json (a project's own check function). The pages that quote
 # them read only the slices, and `mt check` runs on each fixture, so a helper
 # whose shape changes fails that check before a page can show it.
