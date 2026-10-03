@@ -78,7 +78,7 @@ groups:
   dev-docs:
     source:
       .config/nextest.toml: 02cf7db28ab3930ec5861bce50805212b76b472bdad67018a5761593e5bd67f1
-      .just/docs.just: 58b7ff35702bcdd973acaa141e453e313738f76bec59d812340e7bd90a4bb2cb
+      .just/docs.just: fad52791c4ed343f0d031c03554f2baabf25077130390f4e966a2c8f54cc10be
       .just/scripts/_doc-blocks-lib.sh: d7dc5e82670a4330af4fbc6fcf3b04a50781de1d1c8104ebf2e107ef2954a9b4
       .just/scripts/_gate-drift-lib.sh: 2a4b4d45582cf98d557cec5b5f42708fc1661e85e38e948984fb7c7a4dacc642
       .just/scripts/_lcov-stale-reason.sh: 10376f176e086f4f7dd4854ad7217e91e938443dda6837d6b6fcab7f4a8aa557
@@ -91,7 +91,7 @@ groups:
       .just/scripts/check-doc-blocks.sh: 87b777b0579079afe9f09f26c259ebd17b8a9db5b669680460f96d44e494f22e
       .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
-      .just/scripts/check-doc-prose.sh: b8c91bc0114a06238c093d702e643b5fe427283439b3b6e7a34297b4672f9252
+      .just/scripts/check-doc-prose.sh: f117817cc9f54309211514a0078347f9ead61c51edccad3145ddabb42fa2eff9
       .just/scripts/check-doc-recipes.sh: 5e2e1667cb33f84a0c658673cdfee9888bbf74e362dd52010e9470aaf59f24e3
       .just/scripts/check-doc-spans.jq: 58ecc3192c58ecd48d08b2e053571ae5290dc3fe289f43d26d201453dc954a07
       .just/scripts/check-doc-spans.sh: 8ea58560fef945df58ee51dfad3f8a07e25663ffb608bafe076606afc8da0b0f
@@ -115,7 +115,7 @@ groups:
       .just/scripts/script-scope-check.sh: ea49ba3a92c1189c69282c34fb05ac4474c34f8b174be1611c9eff921e254969
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 22faa3109225240b28f6060866ad35b356336733ffbc3bc50f36f7a6539d0ffb
+      Justfile: 2b86a6a04800133f8512f566804d0be28fdcadaefb0460a08a2b623151ccf2f4
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: 312eab3b443fc004d1b45b3aec683d32e05df7f0216a0e3b7f65104bbdd07ef1
