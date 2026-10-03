@@ -1,160 +1,146 @@
 #import "../utils/page.typ": page
-#import "../utils/ui.typ": callout
+#import "../utils/ui.typ": callout, terminal
 #import "../utils/site.typ": u
 
 #let meta = (
   route: "/import-export/",
   label: "Import & export",
   title: "Import & export",
-  summary: "How to bring tasks in from another tracker with `mt import` and `jq`, and export them with the same tools.",
+  summary: "How to bring tasks in from another tracker with `mt import` and `jq`, and take them out with `mt ls '' --json`.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-MindTape ships one import command and zero export commands, on purpose. Both
-sides of that decision are `jq` recipes against the
-#link(u("/schema/"))[canonical task-JSON schema] — this page is the cookbook.
+`mt import` reads tasks as JSON in the #link(u("/schema/"))[canonical schema]
+and writes one `.typ` file for each. `mt ls '' --json` prints every task in the
+same schema. A `jq` program turns another tracker's export into that schema, or
+turns the schema into another tracker's format. The recipes below run in the
+docs build, so each output on this page is what the command printed.
 
 = Import
 
-`mt import` reads canonical task-JSON — a file, or stdin by default — and writes
-native `.typ` tasks. For each record it:
+`mt import` reads a file, or standard input when you give none. It checks each
+record against this project's config: the status legend, the priority scale,
+the `kind` values and the allowed tags. It checks the whole batch as one set,
+so records that link to each other resolve. Then it writes the records that
+pass. A record that fails is reported and not written, and the rest are still
+written.
 
-- maps it onto #emph[this project's] config policy: status legend, priority
-  scale, `kind` enum, tag allow-list;
-- emits a `task.with(...)` file.
+The report on standard error names each record, `filed` or `skipped`, with the
+reason for a skip. It also lists each change it made to fit the config:
+`mapped`, `defaulted`, `dropped` or `violated`. `mt import` exits 0 even when
+it skips a record, so a script reads the report's first line.
 
-The whole batch is validated #emph[before] any of it is written — as one set,
-so records that link to each other resolve. Only the records that pass are
-written; a rejected one never reaches the disk, and the rest still land. The
-per-record report says which did.
+`--map old=new` renames a status before the check, for a source whose names
+differ from your legend. `--to <dir>` writes the batch into a subfolder of the
+first task root. `--dry-run` checks the batch and writes nothing, but its
+report still says `filed` for each record that would be written. The
+#link(u("/cli/"))[CLI reference] lists every flag.
 
-There is no `--from`/`--via` source selector: sources are `jq` programs,
-upstream of the pipe, documented below. `mt check` still gates the result the
-same as any other task.
+The adapters in `contrib/jq/` read the tracker's own export. They do not read
+your config. They emit the status names of the legend `mt init` writes by
+default: `proposed`, `done` and `cancelled`. For a project with another legend,
+add `--map` to `mt import`, such as `--map proposed=todo`.
 
-```sh
-mt import                       # canonical JSON from stdin, writes into the first root
-mt import export.json           # from a file instead of stdin
-mt import --into tasks --to inbox   # nest under tasks/inbox/
-mt import --dry-run             # preview: report without writing
-mt import --status backlog      # default status (dated today) for a record missing one
-mt import --map pending=proposed --map completed=done   # rename statuses before validation
-mt import --drop-unmapped       # drop a tag outside [tasks.tags] allowed instead of reporting it
-```
+== From Taskwarrior
 
-Every flag, its default, and which of them repeat is generated on the
-#link(u("/cli/"))[CLI reference].
+`task export > taskwarrior.json` saves Taskwarrior's tasks.
+`contrib/jq/taskwarrior.jq` reshapes them:
 
-Every record is reported to stderr: filed or skipped, plus each mapping
-decision (`mapped` / `defaulted` / `dropped` / `violated`) and any carried
-`x-<ns>` extras.
+#terminal("import-taskwarrior")
 
-== Taskwarrior
+A `pending` task becomes `proposed`, `completed` becomes `done` and `deleted`
+becomes `cancelled`. Priority `H`, `M` and `L` become 8, 5 and 2. The
+`project` and the tags become tags. The description becomes the title, and
+also the body under a `Summary` heading. The UUID, urgency, annotations and
+dependencies go into the `x-tw` field.
 
-```sh
-task export | jq -f contrib/jq/taskwarrior.jq | mt import
-```
+== From GitHub Issues
 
-`task export` emits Taskwarrior's native JSON; `contrib/jq/taskwarrior.jq`
-structurally reshapes it into the canonical schema (config-blind — it never
-reads `.mindtape/config.toml`). `mt import` then applies this project's policy
-map on top.
+`gh issue list --state all --json number,title,body,state,labels,assignees,createdAt,url > issues.json`
+saves a repository's issues. `gh` fetches 30 unless you pass `--limit`.
+`contrib/jq/github.jq` reshapes them:
 
-== GitHub Issues
+#terminal("import-github")
 
-```sh
-gh issue list --json number,title,body,state,labels,assignees,createdAt,url \
-  | jq -f contrib/jq/github.jq \
-  | mt import --to github
-```
+An open issue becomes `proposed` and a closed one `done`. Labels become tags,
+and the creation date becomes `start`. The issue number, URL and assignees go
+into the `x-gh` field. `--to github` writes the batch to `tasks/github/`, and
+in a project that derives tags from folders each task gets a `github` tag.
 
-`--to github` nests the batch under a subfolder so it derives a `github` tag.
+== From todo.txt
 
-== todo.txt
+todo.txt is one task per line, so a first `jq` pass splits the file into a
+JSON array of lines. `contrib/jq/todo.txt.jq` reshapes the array:
 
-todo.txt is a line format, not JSON, so it is not a first-class source — no
-parser ships for it, and `mt import`'s stdin needs one preprocessing step:
-split the file into lines and drop empty ones before handing it to a filter.
+#terminal("import-todotxt")
 
-```sh
-jq -R -s 'split("\n") | map(select(length > 0))' todo.txt \
-  | jq -f contrib/jq/todo.txt.jq \
-  | mt import
-```
+A line that starts with `x ` becomes `done`, and any other line `proposed`.
+Priority `(A)`, `(B)` and `(C)` become 8, 5 and 2. A `+project` word becomes a
+tag and a `due:` value the due date. The title keeps `@context` words and any
+other `key:value` word. The `x-todotxt` field holds them too, with the
+priority letter. Adjust the patterns in the file to the parts of the format
+your file uses.
 
-`contrib/jq/todo.txt.jq` structurally reshapes a line array into the
-canonical schema (config-blind, like the other two): it strips the `x
-`/completion-date/`(priority)`/creation-date prefix and `+project` tags out
-of the title, maps the `(A)`/`(B)`/`(C)` priority marker onto MindTape's
-0..9 scale, and lifts a `due:` key into the canonical `due` field; a
-`@context` marker is left verbatim in the title, and it, the raw priority
-letter, and any other `key:value` token carry through as the `x-todotxt`
-extra. Status lands on the `proposed`/`done` names that taskwarrior.jq
-and github.jq also use, from the legend `mt init` writes by default — todo.txt only
-distinguishes done from not-done, so this filter never emits `cancelled`.
-Adapt the regexes to the subset of the format your file uses: a starting
-recipe, not a spec.
+= Round trip
 
-#callout("note")[
-  Computed and empty fields (`id`, `file`, `estimate`, `links`,
-  `derived_tags`, `why`, `children`, `progress`, `body`, `extras`) can be
-  omitted from a canonical record; absent keys default to empty values. `mt
-  import` recomputes `id` from the title and ignores `file`, `derived_tags`,
-  `why`, `children` and `progress` entirely.
-]
+An export imports back whole when each task's file is named from its title, as
+`mt add` names it. `mt import` names every file it writes from the record's
+title. A link names its target's file, so a link to a task whose file has
+another name does not resolve, and `mt import` skips the task that holds it.
 
-#callout("note")[
-  All three recipes produce a bare JSON array, one of the two top-level shapes
-  `mt import` accepts; #link(u("/schema/"))[the canonical schema] names both.
-]
+This exports `examples/round-trip/`, whose four tasks use every field the
+import writes:
+
+#terminal("round-trip-export")
+
+The empty filter `''` lists every task. `mt ls` without it applies the
+project's default view, which in a new project hides finished tasks, so their
+records would be missing from the file.
+
+A new project, made by `mt init --no-input`, takes the file back:
+
+#terminal("round-trip-import")
+
+The docs build compares the two projects' `mt ls '' --json` output and fails
+if any field differs.
 
 = Export
 
-MindTape has no export command. This is a deliberate scope decision, not a gap:
-
-- Every task is already a plain `.typ` file, tracked in git. `git log`,
-  `git blame`, and a plain `cp` already work — no export step needed to get
-  your data out.
-- `mt ls --json` projects every field the
-  #link(u("/schema/"))[canonical schema] carries, in a stable, documented
-  shape — `recur` included, so `mt ls --json | mt import` reproduces a
-  recurring task's schedule rather than dropping it.
-
-A foreign-format export is therefore a #strong[reverse] `jq` program: write it
-against `mt ls --json`'s output the same way `contrib/jq/*.jq` write against a
-foreign tracker's export. Three starting shapes:
+MindTape has no export command. Each task is a `.typ` file in your repository,
+so git and `cp` already move them. For another tracker's format, pipe
+`mt ls '' --json` through `jq`.
 
 == To todo.txt
 
-```sh
-mt ls --json | jq -r '.tasks[] |
-  "(\(if .priority | type == "number" and . >= 7 then "A" else "B" end)) " +
-  .title + (if (.tags // []) | length > 0 then " " + (.tags | map("+" + .) | join(" ")) else "" end)'
-```
+#terminal("export-todotxt")
 
-== To a CSV / spreadsheet shape
+The recipe drops cancelled tasks, which todo.txt has no mark for. A finished
+task starts with `x`, and a priority of 7 or more becomes `(A)`.
 
-`mt ls --format csv` already covers the common case; for a custom column set,
-`mt ls --json` plus `jq -r`'s `@csv` filter shapes anything else:
+== To CSV
 
-```sh
-mt ls --json | jq -r '["title", "status", "priority", "due"], (.tasks[] |
-  [.title, .status.name, .priority, .due]) | @csv'
-```
+`mt ls --format csv` prints the listing's columns:
 
-== To a Taskwarrior import skeleton
+#terminal("export-csv")
 
-```sh
-mt ls --json | jq '[.tasks[] | {
-  description: .title,
-  status: (if .status.name == "done" then "completed" else "pending" end),
-  tags: .tags,
-  due: .due
-}]' > taskwarrior-import.json
-```
+For other columns, build the rows in `jq` and format them with `@csv`:
 
-Taskwarrior itself has no bulk-JSON importer built in, but this shape is the
-starting point for a project-specific `task import` script or a one-off `jq`
-massage into individual `task add` calls.
+#terminal("export-csv-jq")
+
+A priority from a framework such as `ice` is an object, which `@csv` refuses,
+so the recipe takes its `score`.
+
+== To Taskwarrior
+
+#terminal("export-taskwarrior")
+
+The array has the fields and date format `task export` prints. Save it to a
+file and run `task import` on it, a step the docs build does not run because it
+has no Taskwarrior.
+
+#callout("tip")[
+  The #link(u("/schema/"))[canonical schema] lists every field a recipe can
+  read, and which of them `mt import` reads back.
+]

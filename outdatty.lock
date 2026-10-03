@@ -88,7 +88,7 @@ groups:
       .just/scripts/_script-reach.sh: e26594842a77ac58754ecc124fa82c6c2aba1f13aaa01abc0b4340f310556654
       .just/scripts/arg-pattern-check.sh: a4e45fa8a4a2dc626f91d3bd304e1c88ec8c14fcc862e41074fac5c30ce90e76
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
-      .just/scripts/check-doc-blocks.sh: 74862cb2b9a26b995618f1698d358e9a8fba700e6f19f052ba423f72dbce8d9f
+      .just/scripts/check-doc-blocks.sh: bd2c4948c2673d10a355bb4427c65ee1eda4f69ad256300327e291fa9755a649
       .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
       .just/scripts/check-doc-prose.sh: f117817cc9f54309211514a0078347f9ead61c51edccad3145ddabb42fa2eff9
@@ -115,7 +115,7 @@ groups:
       .just/scripts/script-scope-check.sh: ea49ba3a92c1189c69282c34fb05ac4474c34f8b174be1611c9eff921e254969
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 51964e91be915c342505c040ba6783c97a9f16c44c8f6b95180d222717b86ea2
+      Justfile: 14bc4d61fa4f7a4954d5c402a3bd267fa57344182ea65e3c675ceb88df9f5360
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: 312eab3b443fc004d1b45b3aec683d32e05df7f0216a0e3b7f65104bbdd07ef1

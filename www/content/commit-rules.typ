@@ -1,5 +1,7 @@
 #import "../utils/page.typ": page
+#import "../utils/ui.typ": terminal
 #import "../utils/site.typ": u
+#import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
   route: "/commit-rules/",
@@ -11,136 +13,131 @@
 
 #show: page.with(..meta)
 
-`mt check --commit-msg <file>` holds the commit being written to `[commits]`,
-from a `commit-msg` hook — one line opts a repository in, wired with whatever
-hook tool it already uses:
+`mt check --commit-msg <file>` checks the commit being written against the
+project's `[commits]` config. A `commit-msg` hook runs it, so git refuses a
+commit that breaks a rule. `mt check --commits <range>` runs the same checks
+over commits already made.
 
-```sh
-mt check --commit-msg "$1"
-```
+The examples run in a git copy of `examples/rules/`, whose config holds the two
+commit rules below. The rules the `mindtape-tasks` pack ships,
+`work-names-a-task` and `flip-with-work`, are listed on
+#link(u("/rule-packs/"))[Rule packs].
 
-`[commits] trailer` (default `Refs`) is the trailer whose values name tasks,
-one stem per line: `Refs: rewrite-loader`. A value that is a path, or a stem
-no task carries, is always refused, rules or no rules — a path breaks the day
-its task moves folders, and stems are unique project-wide:
+#let parts = (
+  ("trailer", "the trailer that names tasks"),
+  ("commit-scope", "a rule that runs once per commit"),
+  ("task-scope", "a rule that runs once per task the commit touches"),
+)
 
-```
-error: .git/COMMIT_EDITMSG:5: Refs: `tasks/rewrite-loader.typ` is a path; write the stem: `Refs: rewrite-loader`
-```
+#let slices = checked-slices(
+  json("../generated/commit-rules-config.json"),
+  "commit-rules-config",
+  parts.map(p => p.at(0)),
+)
 
-`[[commits.rules]]` takes the `[[tasks.rules]]` shape — `name`, `when`,
-`assert`, `message`, `severity` — with `scope = "commit"` (the default): the
-rule runs once per commit, over the commit's own fields rather than a task's.
+#raw(render-slices(slices, parts, comment: "#"), lang: "toml", block: true)
 
-```toml
-[commits]
-trailer = "Refs"
+= The hook
 
-[[commits.rules]]
-name    = "work-names-a-task"
-scope   = "commit"
-when    = '!tasks_only'
-assert  = 'has(refs)'
-message = "name the task this commit works on: `Refs: <stem>`"
-severity = "error"
-```
+The hook is one line. git passes the message file as its first argument:
+
+#terminal("commit-hook")
+
+Outside a git repository, `mt check --commit-msg` fails with
+`not a git repository`.
+
+= The trailer
+
+`[commits] trailer`, `Refs` by default, names the trailer whose values are
+tasks, one stem per line. `mt` refuses a value that is a path, or a stem no
+task has, whatever the rules say. A path changes when its task moves to
+another folder, and a stem is unique in the project:
+
+#terminal("commit-refs-path")
+
+= Commit rules
+
+`[[commits.rules]]` takes the fields of `[[tasks.rules]]`: `name`, `when`,
+`assert`, `message` and `severity`. `scope = "commit"`, the default, runs the
+rule once per commit, over these fields:
 
 #table(
   columns: 2,
-  [*Field*], [*Holds*],
-  [`subject`], [the message's first line],
-  [`refs`], [the trailer's values, as stems],
+  table.header([Field], [Holds]),
+  [`subject`], [The message's first line.],
+  [`refs`], [The trailer's values, as stems.],
   [`files`],
-  [every staged path, relative to the repository's top level; a rename is both its sides],
+  [Every staged path, relative to the repository's top level. A rename is
+    both its paths.],
 
   [`tasks_only`],
-  [the commit stages at least one file, and every one is a `.typ` under a `[tasks] roots` entry],
+  [Whether the commit stages at least one file and every staged file is a
+    `.typ` file under a `[tasks] roots` entry.],
 )
 
-The operators are the #link(u("/filters/"))[filter language]'s; the functions
-are `has(field)` / `miss(field)`, and `matches(field, "regex")`, which over a
-list asks whether any entry matches — `!matches(files, "^services/")` reads
-"touches nothing under `services/`". `subject` also compares against a
-literal. A task field is refused at config load, naming the fields a commit
-rule reads.
+The operators are the #link(u("/filters/"))[filter language]'s. The functions
+are `has(field)`, `miss(field)` and `matches(field, "regex")`. Over a list,
+`matches` is true when any entry matches, so `!matches(files, "^services/")`
+means the commit changes nothing under `services/`. `subject` also compares
+with a string. `mt` refuses a task field in a commit-scope rule when it loads
+the config, and lists the fields a commit rule reads.
 
-A breach names the message file and the rule:
+A breach names the message file and the rule. Here a migration has no `Refs:`
+trailer, and then the same commit names its task:
 
-```
-error: .git/COMMIT_EDITMSG: commits.rules.work-names-a-task: name the task this commit works on: `Refs: <stem>`
-```
+#terminal("commit-scope-breach")
 
-The rules merge by `name` across layers and #link(u("/rule-packs/"))[rule
-  packs] like `[[tasks.rules]]`, so a project overrides a shipped one by
-redeclaring its name, or drops it with `disable`. Outside a git repository
-`--commit-msg` fails with `not a git repository`.
+Rules merge by `name` across config layers and
+#link(u("/rule-packs/"))[rule packs], as `[[tasks.rules]]` do. A project
+replaces a pack's rule by declaring one with its name, or drops it with
+`disable`.
 
 = Task scope
 
-`scope = "task"` runs the rule once per task the commit changes or names in
-its trailer. It reads the commit's fields above, and the task through one of
-three states of the project:
+`scope = "task"` runs the rule once for each task the commit changes or names
+in its trailer. The rule reads the commit's fields above, and the task in one
+of three states:
 
 #table(
   columns: 2,
-  [*Reads*], [*Holds*],
-  [`head(<expr>)`], [the task as of `HEAD`, before the commit],
-  [`staged(<expr>)`], [the task as the index holds it: what the commit records],
-  [`worktree(<expr>)`], [the task as the file on disk holds it],
-  [`named`], [the trailer names the task],
+  table.header([Reads], [Holds]),
+  [`head(<expr>)`], [The task as of `HEAD`, before the commit.],
+  [`staged(<expr>)`],
+  [The task as the index holds it, which the commit records.],
+
+  [`worktree(<expr>)`], [The task as the file on disk holds it.],
+  [`named`], [Whether the trailer names the task.],
 )
 
 A wrapper takes any #link(u("/filters/"))[filter expression] and evaluates it
-against that state's whole project, so `ready`, `blocked` and `count(...)`
-read the tasks as they stand there. Inside one, `exists` is false where the
-state has no file for the task: `head(exists) && !staged(exists)` is a
-deletion. As a comparison side a wrapper is the field's value there:
-`worktree(status) != staged(status)`. A bare task field is refused at config
-load: which state it reads is the one thing its reader could not tell.
+against the whole project in that state, so `ready`, `blocked` and `count(...)`
+read the tasks as they stand there. Inside a wrapper, `exists` is false when the
+state has no file for the task, so `head(exists) && !staged(exists)` is a
+deletion. As one side of a comparison, a wrapper is the field's value in that
+state, as in `worktree(status) == staged(status)`. `mt` refuses a bare task
+field, because the reader could not tell which state it reads.
 
-`into("s")` means `staged(status == "s") && !head(status == "s")` — the
-commit flips the task into `s`. So a start or a close rides with the work it
-claims:
+`into("s")` means `staged(status == "s") && !head(status == "s")`: the commit
+moves the task into status `s`.
 
-```toml
-[[commits.rules]]
-name    = "flip-with-work"
-scope   = "task"
-when    = 'into("wip") || into("done")'
-assert  = 'named && (!tasks_only || staged(has_tag("decision")))'
-message = "start or close a task in a commit that carries its work"
-```
+A breach names the task after the rule. Here `mt done` changed the task file,
+but only the code is staged:
 
-A breach names the task after the rule:
+#terminal("commit-task-scope")
 
-```
-error: .git/COMMIT_EDITMSG: commits.rules.flip-with-work: parser: start or close a task in a commit that carries its work
-```
+= Check a range
 
-`when = 'worktree(status) != staged(status)'` catches a flip left unstaged
-beside the work it names.
+A hook does not run under `git commit --no-verify`, so CI checks the commits a
+push carries. `mt check --commits <range>` checks every commit
+`git rev-list` lists for the range, oldest first, with the same trailer check
+and rules.
 
-= Checking a range
+Each commit is read against its first parent, a merge included. `subject` and
+`refs` come from its message, and `files` from what it changes against that
+parent. `staged(...)` reads the commit's tree and `head(...)` the parent's. A
+trailer must name a task the commit's tree holds. A past commit has no working
+tree, so `mt` skips a rule that calls `worktree(...)` or `changed(...)` and
+says so once. Only a commit with something to report is listed, with its lines
+indented below it:
 
-A hook is one `--no-verify` away from skipped, so CI checks the commits a push
-carries again: `mt check --commits <range>` holds every commit `git rev-list`
-lists for the range, oldest first, to the same trailer check and rules.
-
-```sh
-mt check --commits origin/main..HEAD
-```
-
-Each commit reads against its first parent only, a merge included: `subject`
-and `refs` come from its message, `files` from what it changes against that
-parent, `staged(...)` from its tree and `head(...)` from the parent's. A
-trailer resolves against the tasks the commit holds. A past commit has no
-working tree, so a rule calling `worktree(...)` or `changed(...)` is skipped,
-and said so once. Only a commit with something to report is listed, its
-lines indented beneath it:
-
-```
-skip: commits.rules.flip-unstaged: reads the working tree, which a past commit has none of
-a1b2c3d task: close the parser
-  error: commits.rules.flip-with-work: parser: start or close a task in a commit that carries its work
-Error: 1 commit(s) broke commit rules
-```
+#terminal("commit-range")

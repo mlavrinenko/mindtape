@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# www/generate-rule-packs.sh — capture the `mindtape-tasks` pack and this
-# repo's own `mt config show --origin`, for /rule-packs/.
+# www/generate-rule-packs.sh — capture the `mindtape-tasks` pack, this repo's
+# own `mt config show --origin`, and three configs `mt` refuses, for
+# /rule-packs/.
 #
 # Split out of www/generate.sh (which calls this, still inside the lock it
 # already holds) under the same 300-line Shell cap that split off
@@ -30,3 +31,22 @@ cp "$REPO/crates/mindtape/src/packs/mindtape-tasks.toml" "$OUT/mindtape-tasks-pa
 source "$REPO/www/capture.sh"
 capture_init
 capture rule-packs-origin "$REPO" 'mt config show --origin'
+
+# Three projects whose config names a pack `mt` refuses. Each record shows the
+# config, then the refusal.
+refused() { # <slug> <show-command> <file=content>...
+  local slug=$1 show=$2 dir pair
+  shift 2
+  capture_scratch dir
+  mkdir -p "$dir/.mindtape"
+  for pair in "$@"; do printf '%s' "${pair#*=}" >"$dir/${pair%%=*}"; done
+  capture "$slug" "$dir" "$show"
+  capture --exit 1 "$slug" "$dir" 'mt check'
+}
+refused rule-packs-unknown 'cat .mindtape/config.toml' \
+  $'.mindtape/config.toml=extends = ["mindtape-task"]\n'
+refused rule-packs-shape 'head .mindtape/config.toml team.toml' \
+  $'.mindtape/config.toml=extends = ["./team.toml"]\n' \
+  $'team.toml=[[tasks.rules]]\nname = "has-owner"\nassert = "has(assignee)"\nmessage = "name an owner"\n\n[tasks.priority]\nmax = 5\n'
+refused rule-packs-disable 'cat .mindtape/config.toml' \
+  $'.mindtape/config.toml=extends = ["mindtape-tasks"]\ndisable = ["imperative-titles"]\n'

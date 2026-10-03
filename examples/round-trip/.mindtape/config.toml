@@ -1,0 +1,52 @@
+#:schema ../../../schema/config.schema.json
+# The config `mt init --no-input` writes, so /import-export/ can export these
+# tasks and import them into a new project with the same legend. Each file is
+# named from its title, as `mt add` names it, because `mt import` names the
+# files it writes from their titles and a link names its target's file.
+
+# Check the tasks against this checkout's prelude in lib/.
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+[tasks]
+[[tasks.roots]]
+path = "tasks"
+derive-tags = true
+
+[tasks.derive-tags]
+enabled = true
+collect = ["segments"]
+
+[[tasks.status]]
+value = "proposed"
+glyph = "💡"
+color = "blue"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+to = ["blocked", "done", "cancelled"]
+unblocked = true
+
+[[tasks.status]]
+value = "blocked"
+glyph = "🔒"
+color = "red"
+to = ["wip", "cancelled"]
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+to = ["wip"]
+unblocked = true
+
+[[tasks.status]]
+value = "cancelled"
+glyph = "🚫"
+color = "magenta"
+terminal = true

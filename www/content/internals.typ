@@ -14,16 +14,14 @@
 
 #show: page.with(..meta)
 
-Nothing here is needed to use MindTape. It is the shape of the implementation,
-for anyone auditing it, packaging it, or building on top.
+You need nothing on this page to use MindTape. It is for anyone who audits,
+packages or builds on the implementation.
 
 = Workspace
 
-// Facts (the crate list and versions) come from
-// www/generated/crate-map.json (`cargo metadata` + rust-toolchain.toml); this
-// page owns only the presentation and the per-crate prose (crate-notes.typ) —
-// a machine cannot write "treating Typst as a data format". `just
-// check-doc-facts` fails the build if a crate here has no matching prose.
+// The crate list and versions come from www/generated/crate-map.json, and the
+// one-line notes from www/utils/crate-notes.typ. `just check-doc-facts` fails
+// when a crate has no note.
 #let crate-map = json("../generated/crate-map.json")
 
 A #crate-map.workspace.len()-crate `cargo` workspace (edition
@@ -34,21 +32,21 @@ A #crate-map.workspace.len()-crate `cargo` workspace (edition
   - #raw(c.name) #raw(c.version) — #crate-notes.at(c.name)
 ]
 
-#crate-map.substrate.len() general-purpose crates sit underneath, published
-separately because none of them knows what a task is:
+#crate-map.substrate.len() general-purpose crates sit underneath. They are
+published separately, and none of them has a notion of a task, so a tool that
+reads Typst files as data can use them without the task model.
 
 #for c in crate-map.substrate [
   - #raw(c.name) #raw(c.version) — #crate-notes.at(c.name)
 ]
 
-That split is the #link(u("/concepts/"))[extension seam] one layer down: a tool
-that wants Typst-as-data gets it without inheriting a task model.
-
 = The cache
 
-Evaluating every file on every command is not free, so a content-hash cache
-under each root skips re-evaluating files whose bytes have not changed. On a
-generated backlog of 2000 tasks:
+`mt` evaluates task files with the Typst compiler, which costs time on a large
+backlog. Each project keeps one cache in `.mindtape/cache/`, keyed by each
+file's content hash, and `mt` evaluates only the files whose bytes changed
+since the last run. `mt` writes a `.gitignore` into that directory, so git
+never sees the cache. On a generated backlog of 2000 tasks:
 
 #table(
   columns: 3,
@@ -57,39 +55,32 @@ generated backlog of 2000 tasks:
   [`mt check`], [0.33 s], [0.08 s],
 )
 
-// Hand-measured, and deliberately stamped as such: nothing in this repo
-// derives these four numbers. #just.bench() prints hyperfine's report to the
-// terminal and persists nothing, so there is no artifact a page could read —
-// and inventing a fact pipeline for a number a reader is told to re-measure
-// anyway would cost more than it settles. The stamp is what makes the figures
-// safe to leave here: a date and a machine let a reader discount them.
-Measured 2026-08-16 on one developer machine (Linux, i7-12700H). Nothing
-regenerates these numbers, so read them as an order of magnitude and run
-#just.bench() on yours — that recipe reports the warm column; the cold one is
-the same two commands with `<root>/.mindtape/cache` removed before each run.
+// Measured by hand: `just bench` prints hyperfine's report and saves nothing a
+// page could read, so the date and machine below let a reader judge the
+// figures.
+These figures were measured on 2026-08-16 on one Linux machine with an
+i7-12700H, and nothing regenerates them. Run #just.bench() on your machine for
+the warm column. For the cold column, set `MINDTAPE_NO_CACHE=1`, which makes
+`mt` skip the cache.
 
-The cache is derived state, not a source of truth: delete it and the next run
-rebuilds it; change the config, the prelude, or the `mt` version and it busts
-itself. A read command may populate it and still leave the authored tree
-byte-identical — that is the one exemption to the read/write split.
+A cache entry is a copy of what evaluation produced, so deleting the directory
+loses nothing, and the next run rebuilds it. A change to the config, the
+prelude or the `mt` version starts a new cache and removes the old one. A read
+command such as `mt ls` may write the cache, but it never changes a task file.
 
 = Platform support
 
-Every tagged release ships a prebuilt binary for each supported platform —
-#link(u("/quickstart/"))[Quickstart] lists them — and CI runs the test suite on
-Linux and Windows. Platform seams live where they act:
-#link(u("/hooks/"))[Flip hooks] owns the platform shell a `run` command goes
-through, and
-#link(
-  REPO + "/blob/main/docs/contributing/windows.md",
-)[docs/contributing/windows.md]
-owns the pty tests that stay Unix-only.
+Every tagged release ships a prebuilt binary for each supported platform, and
+#link(u("/quickstart/"))[Quickstart] lists them. CI runs the tests on Linux and
+Windows. Two things differ by platform. #link(u("/hooks/"))[Flip hooks] say
+which shell runs a hook's `run` command, and
+#link(REPO + "/blob/main/docs/contributing/windows.md")[docs/contributing/windows.md] lists the terminal tests that run on Unix only.
 
-Everything else — the config and data directories, the Typst local-package path,
-editor resolution, path separators in derived tags and link resolution — is the
-same code on every platform, and the Windows CI job covers it.
+The rest is the same code on every platform: the config and data directories,
+the Typst local-package path, editor lookup, and the path separators in
+derived tags and links. The Windows CI job tests it.
 
 #callout("note")[
-  Building on MindTape? #link(u("/agents/"))[For AI agents] covers the structured
-  output and describable schemas a tool drives it through.
+  Building on MindTape? #link(u("/agents/"))[For AI agents] covers the JSON
+  output and the schemas a tool reads.
 ]

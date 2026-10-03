@@ -1,85 +1,37 @@
 #import "../utils/page.typ": page
 #import "../utils/ui.typ": callout, terminal
-#import "../utils/site.typ": u
+#import "../utils/site.typ": REPO, u
 #import "../utils/slices.typ": checked-slices, render-slices
 
 #let meta = (
   route: "/rule-packs/",
   label: "Rule packs",
   title: "Rule packs",
-  summary: "How `extends` adopts a rule pack, a same-named rule overrides one entry, and `disable` drops one.",
+  summary: "How a project adopts, overrides and drops rule packs, and every rule the `mindtape-tasks` pack ships.",
 )
 #metadata(meta) <page-meta>
 
 #show: page.with(..meta)
 
-A rule pack packages a project's rule arrays and `[dicts]` as one importable
-unit. #link(u("/config/"))[Configuration] declares `extends` and `disable`;
-this page is their full account — what a pack file may contain, how one
-resolves, the merge order — plus what the pack MindTape ships,
-`mindtape-tasks`, enforces.
+A rule pack is a set of rules that a project adopts by name, so several
+projects can share one task practice and each can change it locally.
+#link(u("/config/"))[Configuration] lists the `extends` and `disable` keys.
+This page says how `mt` resolves and merges a pack, and lists the rules of the
+pack `mt` ships, `mindtape-tasks`.
 
-= What a pack is
+= Adopt a pack
 
-A pack is a config-syntax fragment carrying only the four rule arrays and
-`[dicts]` — nothing else, and no nested `extends`. Loading one validates its
-shape before a single rule reaches the merge: a pack declaring anything
-outside `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
-`[[tasks.body.content.rules]]`, `[[commits.rules]]` or `[dicts]` —
-`[project]`, a stray `[tasks.priority]`, `[commits] trailer`, or `extends`
-itself — is refused by name:
-
-```text
-pack `<label>` may not declare `<key>`
-```
-
-`<label>` is the pack's own name or path, so the message always points back
-to the file that broke the rule rather than the layer that pulled it in.
-Refusing `extends` inside a pack is what keeps resolution one level deep: a
-layer's `extends` list can never chain into a pack that itself reaches for a
-third one.
-
-= Where a pack comes from
-
-`extends` takes a list of entries, resolved independently. A *bare name* — no
-path separator anywhere in it — looks up an embedded pack compiled into `mt`.
-The `mindtape-` prefix is reserved for these; `mindtape-tasks` is the only one
-that ships today. An unknown bare name is refused with a list of the available
-packs:
-
-```text
-extends: unknown pack `<name>`; available packs: <list>
-```
-
-Anything carrying a path separator — `"../shared/team-pack.toml"`,
-`"./local-tasks.toml"`, even `"packs/mindtape-tasks.toml"` — resolves to a
-TOML file instead, relative to the directory of the declaring layer's own
-config (the project root, for the project's `.mindtape/config.toml`; the
-equivalent ancestor directory for a `.mindtape/defaults.toml` or the XDG
-global one). A missing path pack is refused naming the resolved path, not the
-entry as typed, so a wrong relative path is easy to spot.
-
-#callout("warn")[
-  `"mindtape-tasks.toml"` with no separator is still a bare name, and an
-  unknown one, since the embedded registry's key is `mindtape-tasks`, not
-  `mindtape-tasks.toml`. Add a `/` (even `"./mindtape-tasks.toml"`) to name a
-  same-titled file on disk instead of the shipped pack.
-]
-
-= Adopting, overriding, and disabling a rule
-
-Adopting one is one line, in any layer. A same-named rule declared after it —
-in the same layer's own array — replaces the pack's entry in place rather than
-sitting beside it. This repo's own `.mindtape/config.toml` is the worked
-example, and the block below is that file: it extends `mindtape-tasks` and then
-redeclares `section-allowlist` to add a local-only `Dogfood` section the pack
-has no opinion on.
+`extends` in any config layer names the packs that layer adopts. A rule the
+layer declares with the same `name` as a pack's rule replaces that rule where
+the pack put it. MindTape's own `.mindtape/config.toml` adopts
+`mindtape-tasks` and replaces `section-allowlist` to allow one more section,
+`Dogfood`:
 
 #let parts = (
-  ("extends", "the adoption, at the top of the layer's own config"),
+  ("extends", "the adoption, at the top of the file"),
   (
     "section-allowlist",
-    "the override, far below it in the same file — the name matches, not the position",
+    "the replacement, further down: the name matches, the position does not matter",
   ),
 )
 
@@ -91,88 +43,115 @@ has no opinion on.
 
 #raw(render-slices(slices, parts, comment: "#"), lang: "toml", block: true)
 
-Replacement by name works only across sources. Two entries sharing a name
-within one layer's or one pack's own array are a duplicate-name config
-error rather than one silently shadowing the other, as
-#link(u("/config/"))[Configuration] describes.
+A name replaces a rule only across sources. Two rules with one name in the
+same file are a config error, as #link(u("/config/"))[Configuration]
+describes.
 
-`disable` drops a rule outright instead of replacing it — useful for a rule a
-pack ships that a project simply disagrees with:
+A pack's `[dicts]` merge ahead of the layer's own, key by key, so a layer
+replaces one #link(u("/named-sets/"))[dictionary] by declaring it under the
+same name.
 
-```toml
-extends = ["mindtape-tasks"]
-disable = ["imperative-title"]
-```
+= What a pack may hold
 
-It reaches into any of the four arrays, inherited or extended, and a name
-matching nothing anywhere is a config error rather than a silent no-op:
+A pack is a TOML file in config syntax that holds only rule arrays and
+`[dicts]`: `[[tasks.rules]]`, `[[tasks.body.headers.rules]]`,
+`[[tasks.body.content.rules]]`, `[[commits.rules]]` and `[dicts]`. `mt` refuses
+a pack that declares anything else, `extends` included, and names the pack and
+the key. Because a pack cannot extend another pack, resolution is one level
+deep.
 
-```text
-disable: no rule named `<name>`
-```
+#terminal("rule-packs-shape")
 
-`[dicts]` needs neither mechanism: a pack's `[dicts]` table deep-merges ahead
-of the extending layer's own, so a project overriding one dictionary by name
-(the `mindtape-tasks` pack's own `[dicts.verbs]`, say) is just the normal
-per-key table merge #link(u("/named-sets/"))[Named dictionaries] already
-documents — last write wins, no array-splicing involved.
+= Where a pack comes from
+
+An `extends` entry with no `/` in it is the name of a pack built into `mt`.
+Names that start with `mindtape-` are kept for these, and `mindtape-tasks` is
+the only one. `mt` refuses an unknown name and lists the packs it has:
+
+#terminal("rule-packs-unknown")
+
+An entry with a `/` is a path to a TOML file, as `./team.toml` is above. A
+path is relative to the directory two levels above the config file that names
+it. For `.mindtape/config.toml` that is the project root, and for the user
+layer `~/.config/mindtape/defaults.toml` it is `~/.config`. `mt` refuses a missing file and
+prints the path it resolved.
+
+#callout("warn")[
+  `"mindtape-tasks.toml"` has no `/`, so `mt` reads it as the name of a built-in
+  pack, and refuses it as unknown. Write `"./mindtape-tasks.toml"` for a file
+  of that name.
+]
+
+= Drop a rule
+
+`disable` lists rule names to drop. It drops a rule from any of the four
+arrays, whichever pack or layer declared it. A name that matches no rule is a
+config error, so a typo cannot leave a rule running:
+
+#terminal("rule-packs-disable")
 
 = Merge order
 
-Within each of #link(u("/config/"))[the four config layers], per rule array,
-entries fold in one pass:
+`mt` merges each #link(u("/config/"))[config layer] in turn. Within a layer,
+each rule array takes the rules of the layer's `extends` packs in the order
+listed, then the layer's own rules. After every layer is merged, `mt` drops
+the rules named in any layer's `disable`. A name listed in two layers is
+dropped once.
 
-+ that layer's own `extends` packs first, in the order listed;
-+ then that layer's own declared entries.
+= Read `mt config show --origin`
 
-`disable` is applied once, after every layer and pack has merged in — names
-from every layer's own `disable` list are unioned first, so the same name
-declared twice is not an error twice.
-
-= Reading `mt config show --origin`
-
-`--origin` prints the contributing layers, then one `rule <label>: <origin>`
-line per entry across the four arrays, in final merge order — `<label>` is
-`tasks.rules.<name>` (or `.rules[<index>]` for an unnamed one), the same
-name-or-position fallback a duplicate-name config error uses; `mt check`'s
-own breach output names the same rule without the leading
-`tasks.` (`rules.<name>`, `body.headers.rules.<name>`), so grepping between
-the two drops that one segment. `<origin>` is the layer kind
-(`embedded`/`xdg`/`dir`/`project`) or `pack <name>` / `pack <path>`. This is
-the output in the MindTape repo, which extends `mindtape-tasks` and overrides
-`section-allowlist` as shown above:
+`--origin` prints the layers that contributed, then one line per rule in merge
+order: `rule <label>: <origin>`. `<label>` is the rule's array and name, such
+as `tasks.rules.<name>`, or `tasks.rules[<index>]` for a rule with no name. `mt check` names a broken rule without the leading `tasks.`. `<origin>`
+is a layer (`embedded`, `xdg`, `dir` or `project`), or `pack <name>` for a
+pack. This is the output in the MindTape repository:
 
 #terminal("rule-packs-origin")
 
-Every header/content rule reads `pack mindtape-tasks` except
-`section-allowlist` itself, which reads `project` — proof the override
-replaced the pack's own entry rather than appending beside it — and the
-`Dogfood`-specific rules this repo added on top, which the pack never
-declared at all. `goals` (this repo's own `[[tasks.rules]]` entry) reads
-`project` for the same reason: nothing here came from a pack.
+Every rule from `mindtape-tasks` reads `pack mindtape-tasks`, except
+`section-allowlist`, which reads `project` because the project's rule replaced
+it. The repository's own rules, such as `goals` and the `Dogfood` rules, read
+`project` because only the project declares them.
 
-= What `mindtape-tasks` enforces
+= The rules in `mindtape-tasks`
 
-`extends = ["mindtape-tasks"]` gives a project the five-section task shape the
-pack ships: `section-allowlist` closes the heading set to Problem, TO-BE,
-Changes, Out of scope, plus one kind-specific section
-(`environment-for-fix`, `alternatives-for-feat`,
-`source-of-truth-for-docs`, `rollback-for-dev`, each paired with a
-`*-only-for-*` rule forbidding it on every other kind); a run of `*-after-*`
-rules pins their relative order, and `no-subsections` forbids nesting a
-heading under a heading at any depth. Content rules then check what each
-section says, beyond that it exists: `problem-is-numbered-steps` and
-`problem-marks-the-defect` require the Problem section as steps opening with
-🔴, `to-be-has-green-bullets` / `to-be-bullets-all-green` require TO-BE as
-bullets opening with 🟢, `changes-name-files` requires a backtick-quoted path
-per bullet, `named-sections-non-empty` refuses an empty optional section, two
-word caps (`section-word-cap`, `changes-word-cap`) push an over-long section
-back into two tasks, `no-em-dash-pileup` caps em-dashes per paragraph, and
-`show-shape-when-gating` demands a code block from a task tagged `gating`.
-One more rule outside the body: `imperative-title` requires the title's first
-word to be a verb, against the `verbs` dictionary the pack's own `[dicts]`
-entry builds from the two built-in word lists.
+`extends = ["mindtape-tasks"]` gives a project the task shape MindTape's own
+backlog uses. Each open task has four sections in order: Problem, TO-BE,
+Changes and Out of scope. A `fix`, `feat`, `docs` or `dev` task adds one more
+section of its own. The tables below are read from
+#link(REPO + "/blob/main/crates/mindtape/src/packs/mindtape-tasks.toml")[the pack file], and each message is the text `mt check` prints. The
+`imperative-title` rule reads the `verbs` dictionary, which the pack builds
+from the two word lists `mt` ships.
 
-The pack file itself, quoted in full:
+#let pack = toml("../generated/mindtape-tasks-pack.toml")
 
-#raw(read("../generated/mindtape-tasks-pack.toml"), lang: "toml", block: true)
+#let rule-table(rules) = table(
+  columns: (auto, auto, 1fr),
+  table.header([Rule], [When], [Message]),
+  ..rules
+    .map(r => (
+      raw(r.name),
+      if "when" in r { raw(r.when) } else [always],
+      r.at("message", default: ""),
+    ))
+    .flatten(),
+)
+
+== Task rules
+
+#rule-table(pack.tasks.rules)
+
+== Section rules
+
+#rule-table(pack.tasks.body.headers.rules)
+
+== Content rules
+
+#rule-table(pack.tasks.body.content.rules)
+
+== Commit rules
+
+These run on a commit from `mt check --commit-msg` and on a range from
+`mt check --commits`. #link(u("/commit-rules/"))[Commit rules] says how.
+
+#rule-table(pack.commits.rules)

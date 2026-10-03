@@ -157,7 +157,7 @@ CONFIG_SOURCES=(
 # because a mistyped fact name would otherwise emit a file no page ever reads —
 # invisible, and the one drift the per-page key-set assertion in
 # www/utils/slices.typ structurally cannot see from inside a single page.
-CONFIG_FACTS=(config derived-tags estimates hooks links named-sets rule-packs rules self-validating statuses)
+CONFIG_FACTS=(commit-rules config derived-tags estimates hooks links named-sets rule-packs rules self-validating statuses)
 
 # Same two-pass shape as slice_fixture: awk writes each slice to its own temp
 # file and one index row per slice, then jq builds the JSON with --rawfile so

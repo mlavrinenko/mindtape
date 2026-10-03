@@ -4,7 +4,8 @@
 #
 # Its one job is the checks a project declares beyond the field shapes:
 # required fields, `[[tasks.rules]]` in both shapes, a work-in-progress cap,
-# the two body rule families and the review-comment policy. The actor
+# the two body rule families, the review-comment policy and two commit rules,
+# which /commit-rules/ runs against a git copy of this project. The actor
 # registry is here because the required assignee needs one. Its three tasks
 # satisfy every rule here, so `just check-examples` proves each one loads and
 # holds. www/generate.sh runs the refused writes against a copy.
@@ -123,6 +124,30 @@ message = "more than one em-dash in a paragraph reads as generated prose"
 [tasks.comments]
 policy = "forbid"
 allow-pattern = "^TODO:"
+# docs:end
+
+# docs:slice commit-rules/trailer
+[commits]
+trailer = "Refs"
+# docs:end
+
+# docs:slice commit-rules/commit-scope
+[[commits.rules]]
+name = "migration-names-a-task"
+when = 'matches(files, "^migrations/")'
+assert = "has(refs)"
+message = "name the task a migration belongs to: `Refs: <stem>`"
+severity = "error"
+# docs:end
+
+# docs:slice commit-rules/task-scope
+[[commits.rules]]
+name = "stage-the-flip"
+scope = "task"
+when = "named"
+assert = "worktree(status) == staged(status)"
+message = "stage the task's status change with the work it names"
+severity = "error"
 # docs:end
 
 # The registry `[tasks.assignee] allowed` names. /config/ quotes it.

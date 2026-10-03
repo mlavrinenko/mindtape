@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 3),
+  status: done(2026, 10, 3),
   links: depends-on(
     "write-plain-prose-rules-for-the-docs-and-check-for-history-and-shouting.typ",
     "refuse-hand-typed-code-blocks-in-doc-sources.typ",

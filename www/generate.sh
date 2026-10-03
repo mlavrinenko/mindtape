@@ -107,12 +107,6 @@ fi
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
-# A read command against the fixture in place → OUT/<slug>.txt (verbatim stdout).
-gen_read() {
-  local slug="$1"; shift
-  "$MT" -w "$FIX" --color never "$@" >"$OUT/$slug.txt"
-}
-
 # --- version + structured command tree ------------------------------------
 "$MT" --version >"$OUT/version.txt"
 # The command tree as JSON (clap reflection via the hidden `_cli`). cli.typ
@@ -142,25 +136,14 @@ bash "$SCRIPT_DIR/generate-self-validating.sh" "$REPO" "$OUT"; bash "$SCRIPT_DIR
 bash "$SCRIPT_DIR/generate-config-runs.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-guides.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-model.sh" "$REPO" "$OUT"
+bash "$SCRIPT_DIR/generate-import-export.sh" "$REPO" "$OUT"
+bash "$SCRIPT_DIR/generate-commit-rules.sh" "$REPO" "$OUT"
 
 # `mt ls` in colour for terminal-ansi() (www/utils/ui.typ), which the home
 # page hero and /filters/ render.
 gen_color() { local slug="$1"; shift; "$MT" -w "$FIX" --color always "$@" >"$OUT/$slug.ansi"; }
 gen_color ls       ls
 gen_color ls-open  ls '!terminal'
-
-# A single task object for the /schema/ page's `mt ls --json` example. The
-# `ls` path scores priority and derives folder tags (unlike single-file `eval`,
-# which leaves both empty); jq slices the envelope's `tasks` array to an
-# object, so the page shows a complete, binary-sourced task instead of a
-# hand-typed one. `mt ls --json`'s top-level shape is the `{tasks, applied}`
-# envelope (`truth/tasks/conditional-ls-rules.typ`), captured separately below.
-"$MT" -w "$FIX" --color never ls 'id == "fur-elise-polish"' --json \
-  | jq '.tasks[0]' >"$OUT/ls-task.json"
-
-# The full `mt ls --json` envelope (bare listing — [[ls.rules]] +
-# default-view attribution) for the /schema/ page.
-gen_read ls-json ls --json
 
 # The hero "source" face reads a real fixture task verbatim. Copy it under
 # generated/ so it lives inside the Typst build root (read() can't escape it).
