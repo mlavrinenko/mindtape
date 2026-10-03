@@ -10,11 +10,10 @@ use crate::util;
 
 /// Resolve the variadic `targets` into the set of task ids to retire.
 ///
-/// Each entry resolves reference-first (path, stem, then stem hash — see
-/// [`util::resolve_task`]), falling back to a filter parse + [`select`] when it is not a
-/// reference; every entry's matches are unioned, deduplicated by id — the same
-/// task named twice, or named once directly and again by a filter, retires
-/// once. An empty `targets` applies the configured `[rm] default_filter`.
+/// Each entry resolves as [`resolve_one`] says — a reference, else a filter
+/// parse + [`select`]; every entry's matches are unioned, deduplicated by id —
+/// the same task named twice, or named once directly and again by a filter,
+/// retires once. An empty `targets` applies the configured `[rm] default_filter`.
 ///
 /// # Errors
 /// Returns an error naming every entry that neither resolves as a reference
@@ -54,14 +53,26 @@ fn default_targets(project: &util::Project, readiness: &Readiness) -> Result<Has
     }
 }
 
-/// Resolve one target entry: reference-first (path, stem, then stem hash), falling back to a filter parse + [`select`] when it is
-/// not a reference. Surfaces the reference error when the input does not even
-/// parse as a filter (a mistyped ref, not a filter).
+/// Resolve one target entry: a path or exact stem, then a filter term
+/// ([`Filter::names_term`]), then a stem hash, then any other filter. Surfaces
+/// the reference error when the input does not even parse as a filter (a
+/// mistyped ref, not a filter).
+///
+/// A term goes before the stem hash because `mt rm` retires what it resolves:
+/// `done` or `has` must stay a filter even where a task's stem hash spells it.
 fn resolve_one(
     project: &util::Project,
     spec: &str,
     readiness: &Readiness,
 ) -> Result<HashSet<String>> {
+    let is_stem = project.outcome.tasks.iter().any(|task| task.id == spec);
+    if !is_stem && Filter::names_term(spec, &project.config) {
+        return Ok(ids_of(filter_tasks(
+            project,
+            &Filter::parse(spec)?,
+            readiness,
+        )?));
+    }
     match util::resolve_task(project, spec) {
         Ok((task, _)) => Ok(std::iter::once(task.id).collect()),
         Err(ref_err) => {

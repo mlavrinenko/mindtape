@@ -148,3 +148,33 @@ fn depth_field_dispatches_as_a_number() {
     assert!(hit("depth > 2", &task));
     assert!(hit("depth != 0", &task));
 }
+
+/// Each listed word reaches a dispatch arm: called with no arguments it fails,
+/// if at all, on its arguments or its type, never as an unknown function.
+#[test]
+fn every_listed_word_is_a_function_the_dispatcher_knows() {
+    for word in crate::filter::eval::WORDS {
+        let result = Filter::parse(&format!("{word}()"))
+            .unwrap()
+            .matches(&sample(), &Config::default());
+        if let Err(got) = result {
+            assert!(
+                !got.to_string().contains("unknown function"),
+                "{word}: {got}"
+            );
+        }
+    }
+}
+
+#[test]
+fn names_term_covers_language_words_fields_and_config_names() {
+    let config =
+        parse_config("[views.triage]\nfilter = \"ready\"\n\n[dicts.verbs]\nvalues = [\"fix\"]\n")
+            .unwrap();
+    for word in ["ready", "has", "due", "triage", "verbs", "done"] {
+        assert!(Filter::names_term(word, &config), "{word}");
+    }
+    for word in ["k3x", "alpha", "@triage"] {
+        assert!(!Filter::names_term(word, &config), "{word}");
+    }
+}

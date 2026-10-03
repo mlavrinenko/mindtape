@@ -16,6 +16,13 @@ use crate::expr::{extract_identifier, extract_literal, restore_name};
 use crate::filter::{Ctx, Filter, FilterError};
 use crate::filter_predicates::{contains_call, is_stale, present};
 
+/// Every bare word the language reads as a predicate or a function name:
+/// [`nullary`] and [`function`] dispatch on exactly these.
+pub(crate) const WORDS: [&str; 17] = [
+    "ready", "blocked", "terminal", "exists", "in_view", "has", "miss", "has_tag", "links",
+    "contains", "touches", "matches", "in_dict", "word", "changed", "count", "stale",
+];
+
 pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     match node.operator() {
         Operator::RootNode => match node.children() {

@@ -136,3 +136,38 @@ fn an_ambiguous_hash_is_refused_naming_each_candidate() {
         assert!(err.contains(expected.as_str()), "{expected} missing: {err}");
     }
 }
+
+/// Stems whose codes start with a filter word, normalised: `task-212080` codes
+/// to `hasw8x1j1550r` (the `has` function) and `task-3834608` to
+/// `d0ne0mx1c376p` (the `done` status, `o` read as `0`).
+const SPELLS_HAS: &str = "task-212080";
+const SPELLS_DONE: &str = "task-3834608";
+
+/// `mt rm` reads a bare filter word as a filter even when a stem hash spells
+/// it, so the word never retires the task whose hash it happens to be.
+#[test]
+fn rm_reads_a_filter_word_before_a_stem_hash() {
+    let dir = project(&[(SPELLS_HAS, &[]), (SPELLS_DONE, &[]), ("alpha", &[])]);
+    for (word, stem) in [("has", SPELLS_HAS), ("done", SPELLS_DONE)] {
+        assert!(
+            word.replace('o', "0").starts_with(&short_code(stem)),
+            "fixture: {stem} must spell {word}"
+        );
+        // Every command but `mt rm` takes the word as that task's stem hash.
+        assert_eq!(eval_id(dir.path(), word), stem, "fixture: {word} is a hash");
+
+        let out = support::mt(dir.path())
+            .args(["rm", word, "--dry-run", "-y"])
+            .output()
+            .unwrap();
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert!(
+            !stdout.contains(stem),
+            "`mt rm {word}` must not plan {stem}: {stdout}"
+        );
+        assert!(
+            !out.status.success(),
+            "`{word}` is no boolean filter, so `mt rm {word}` is refused"
+        );
+    }
+}

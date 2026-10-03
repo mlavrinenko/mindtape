@@ -144,6 +144,26 @@ impl Filter {
         Ok(Self { tree: Some(tree) })
     }
 
+    /// Whether `word` names a filter term on its own: a predicate or function
+    /// of the language, a task field, or a view, dictionary, field or status
+    /// the config declares. A caller that reads a bare token as either a task
+    /// reference or a filter asks this first, so a term never addresses a task
+    /// whose stem hash happens to spell it.
+    #[must_use]
+    pub fn names_term(word: &str, config: &Config) -> bool {
+        eval::WORDS.contains(&word)
+            || fields::get(word).is_some()
+            || config.views.contains_key(word)
+            || config.dicts.contains_key(word)
+            || config.tasks.fields.contains_key(word)
+            || config
+                .tasks
+                .status
+                .entries
+                .iter()
+                .any(|entry| entry.value == word)
+    }
+
     /// The view names this filter references through `in_view` / `@`, in
     /// traversal order (may contain duplicates). Empty for the match-all filter.
     #[must_use]

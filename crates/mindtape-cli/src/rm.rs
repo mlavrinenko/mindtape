@@ -66,7 +66,8 @@ use crate::{git, util};
 #[derive(Args)]
 pub struct RmArgs {
     /// Tasks to retire: each a reference (stem, relative/absolute path, or
-    /// stem hash) or a filter expression. A reference resolves a
+    /// stem hash) or a filter expression. A filter word, such as `ready` or a
+    /// status, is read as a filter before a stem hash. A reference resolves a
     /// single task regardless of status; a filter retires every match; the
     /// union of every entry, deduplicated, is retired in one pass. Omitted
     /// entirely: the configured `[rm] default_filter` (built-in `terminal`).

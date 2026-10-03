@@ -139,7 +139,9 @@ when `mt mv` gives the task a new stem, and it grows a character when a new
 task's hash shares its prefix, so an old hash is refused rather than naming
 another task. Every command that takes a `<task>` accepts a
 stem hash. A path or an exact stem wins, and `mt` tries the input as a stem
-hash only when no stem matches. A stem hash that more than one task shares is
+hash only when no stem matches. `mt rm`, which also takes filters, reads a
+filter word such as `ready`, a field, a view or a status as a filter before it
+tries a stem hash. A stem hash that more than one task shares is
 refused, and the refusal names each task's stem and hash.
 
 `--hyperlinks always`, or `[ls] hyperlinks`, makes the `slug#` column, and
