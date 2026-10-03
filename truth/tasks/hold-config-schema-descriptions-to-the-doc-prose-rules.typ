@@ -10,7 +10,7 @@
     ease: 7,
   ),
   difficulty: 3,
-  estimate: (src-files: 1),
+  estimate: (src-files: 3),
   tags: ("found", "docs"),
   x-goals: (
     product: (
@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 3),
+  status: done(2026, 10, 3),
 )
 
 == Problem
@@ -48,6 +48,8 @@ left in a closing report no one rereads. It belongs in
 == Changes
 
 - `.just/scripts/check-doc-prose.sh`: read every `description` out of the schema and scan it with the existing word lists.
+- `.mmz/config.yaml`: add `policy`, which holds `schema/**`, to the check-doc-prose rule's inputs.
+- `Justfile`: say in the recipe comment that the schema descriptions are scanned.
 
 == Rollback
 
@@ -55,6 +57,7 @@ Revert the script change.
 
 == Out of scope
 
+- Six descriptions the scan flagged: reworded in `reword-the-six-config-schema-descriptions-that-read-as-history`.
 - Rust paths and intra-doc links: `crates/mindtape/tests/schema_descriptions.rs` already refuses them.
 - Rustdoc on internal items that never reach the schema: no reader outside the crate sees it.
 

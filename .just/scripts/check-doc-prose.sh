@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
 # .just/scripts/check-doc-prose.sh — the body of the `check-doc-prose` recipe.
-# It stops doc prose and config comments from telling history or shouting in
-# all-caps words.
+# It stops doc prose, config comments and config schema descriptions from
+# telling history or shouting in all-caps words.
 #
 # It scans the hand-written doc sources, prose and comments alike, and prints
 # file, line and word for each hit. It also scans the full-line `#` comments of
 # the Justfile, the `.just/*.just` modules and the YAML configs
 # `.mmz/config.yaml`, `outdatty.yaml` and `.linecop.yaml`. Code lines in those
-# files are not prose and are skipped. The rules it enforces, with examples,
-# are in docs/src/contributing/documentation.typ under "Plain prose".
+# files are not prose and are skipped. It reads every `description` out of
+# schema/config.schema.json too, because those texts reach the docs site and
+# editors, and a hit there names the key path. The rules it enforces, with
+# examples, are in docs/src/contributing/documentation.typ under "Plain prose".
 #
 # Text inside a raw span, a fenced block or double quotes is skipped, because
 # it is code or a quotation: `now()` and "YYYY-MM-DD" never count.
 #
-# The history list is short on purpose: each entry reads as history wherever
-# this tree uses it. "moved", "retired" and "replaced" stay off the list,
-# because the docs also use them for what a command does to a task.
+# The history list is short on purpose: each entry reads as history in nearly
+# every use. The exception is "used to" before a verb, as in "used to report
+# it". The gate flags it, and rewriting the sentence is the fix. "moved",
+# "retired" and "replaced" stay off the list, because the docs also use them
+# for what a command does to a task.
 #
 # An all-caps word passes when it is an acronym in ALLOWED, a constant a Typst
 # file declares with `let`, or a file name such as README.md.
@@ -66,15 +70,25 @@ scan() {
             }
             return out
         }
-        function hit(msg) { printf "%s:%d: %s\n", FILENAME, FNR, msg }
+        function hit(msg) {
+            if (label != "") printf "%s: %s\n", label, msg
+            else printf "%s:%d: %s\n", FILENAME, FNR, msg
+        }
         function count(s, re,    k) {
             k = 0
             while (match(s, re)) { k++; s = substr(s, RSTART + RLENGTH - 1) }
             return k
         }
         FNR == 1 {
-            raw = 0; quoted = 0; tail = ""; was_comment = 0
+            raw = 0; quoted = 0; tail = ""; was_comment = 0; label = ""
             hash = (FILENAME ~ /(^|\/)Justfile$|\.just$|\.ya?ml$/)
+        }
+        # A line that starts with \001 names the schema key whose description
+        # follows, and hits there name the key instead of a line.
+        substr($0, 1, 1) == "\001" {
+            label = substr($0, 2)
+            raw = 0; quoted = 0; tail = ""; was_comment = 0
+            next
         }
         {
             # In a Justfile or YAML file only a line that starts with `#` is
@@ -122,6 +136,31 @@ scan() {
     ' "$@"
 }
 
+# Every `description` of a JSON schema ($1, labelled as $2) as text for `scan`.
+# Each description follows a label line that starts with \001 and names the
+# file and the key path, so a hit names the key. The walk visits the places a
+# schema nests another schema and skips `default` and `examples`, which hold
+# data.
+schema_text() {
+    jq -r --arg f "$2" '
+        def descs($p):
+            if type != "object" then empty else
+                (if (.description | type) == "string" then
+                    {key: (if ($p | length) == 0 then "(root)" else $p | join(".") end),
+                     text: .description}
+                 else empty end),
+                (("properties", "$defs", "definitions", "patternProperties") as $m
+                 | (.[$m] // empty | select(type == "object") | to_entries[]
+                    | .key as $k | .value | descs($p + [$m, $k]))),
+                (("items", "additionalProperties", "not", "if", "then", "else") as $m
+                 | (.[$m] // empty | descs($p + [$m]))),
+                (("oneOf", "anyOf", "allOf") as $m
+                 | (.[$m] // empty | select(type == "array") | to_entries[]
+                    | .key as $i | .value | descs($p + [$m, ($i | tostring)])))
+            end;
+        descs([]) | "\u0001\($f):\(.key)\n\(.text)\n"' "$1"
+}
+
 # Control: a scanner that matches nothing passes a dirty tree, so it first has
 # to report exactly the hits planted in this fixture.
 control() {
@@ -143,7 +182,16 @@ key: now used to be fine
 # It is now SHOUTED here.
   # A `now` span and "no longer" quote pass.
 EOF
-    out=$(scan "$dir/f.typ" "$dir/g.yaml" | sed "s|^$dir/||")
+    cat >"$dir/s.json" <<'EOF'
+{"description": "Root now.",
+ "properties": {
+   "description": {"type": "object", "description": "A key named description."},
+   "k": {"description": "A `now` span passes.", "default": {"description": "now"}}},
+ "$defs": {"A": {"description": "Fine.", "oneOf": [
+   {"description": "It used to be SHOUTED."}]}}}
+EOF
+    schema_text "$dir/s.json" s.json >"$dir/s.txt"
+    out=$(scan "$dir/f.typ" "$dir/g.yaml" "$dir/s.txt" | sed "s|^$dir/||")
     rm -rf "$dir"
     want='f.typ:3: history word "used to"
 f.typ:4: history word "now"
@@ -152,7 +200,10 @@ f.typ:9: history word "now"
 f.typ:9: history word "now"
 f.typ:9: history word "no longer"
 g.yaml:2: history word "now"
-g.yaml:2: all-caps "SHOUTED"'
+g.yaml:2: all-caps "SHOUTED"
+s.json:(root): history word "now"
+s.json:$defs.A.oneOf.0: history word "used to"
+s.json:$defs.A.oneOf.0: all-caps "SHOUTED"'
     if [ "$out" != "$want" ]; then
         printf 'check-doc-prose: the control fixture gave\n%s\nexpected\n%s\n' \
             "$out" "$want" >&2
@@ -173,7 +224,11 @@ done
 
 sources+=(Justfile .just/*.just .mmz/config.yaml outdatty.yaml .linecop.yaml)
 
-hits=$(scan "${sources[@]}")
+descriptions=$(mktemp)
+trap 'rm -f "$descriptions"' EXIT
+schema_text schema/config.schema.json schema/config.schema.json >"$descriptions"
+
+hits=$(scan "${sources[@]}" "$descriptions")
 if [ -n "$hits" ]; then
     sed 's/^/check-doc-prose: /' <<<"$hits" >&2
     echo "check-doc-prose: rewrite each line plainly; the rules are in docs/contributing/documentation.md" >&2

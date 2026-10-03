@@ -556,11 +556,12 @@ commands:
   # Scans the doc sources (`docs`) for history words and all-caps emphasis, and
   # the comments of the Justfile and .just/docs.just (`gates-meta`),
   # .mmz/config.yaml (`mmz-config`), outdatty.yaml (`outdatty-config`) and
-  # .linecop.yaml (`file-size-config`). It reads no generated file and never
-  # builds `mt`.
+  # .linecop.yaml (`file-size-config`), and the descriptions in
+  # schema/config.schema.json (`policy`). It reads the committed schema, so it
+  # never builds `mt`, and it reads no generated file.
   - name: just check-doc-prose
     tags: [gate]
-    inputs: [docs, gates-meta, mmz-config, outdatty-config, file-size-config, script-check-doc-prose]
+    inputs: [docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, script-check-doc-prose]
 
   # Parses www/content, www/utils and docs/src (`docs`) with typstyle, which
   # the dev shell pins (`gates-meta`), and runs its control over synthetic

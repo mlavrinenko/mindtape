@@ -225,8 +225,9 @@ check-doc-facts:
 check-doc-recipes:
     bash .just/scripts/check-doc-recipes.sh
 
-# Fails when a doc source tells history or shouts in all-caps words. The word
-# lists, and what the scan skips, are in .just/scripts/check-doc-prose.sh.
+# Fails when a doc source, a Justfile or YAML config comment, or a description
+# in schema/config.schema.json tells history or shouts in all-caps words. The
+# word lists, and what the scan skips, are in .just/scripts/check-doc-prose.sh.
 
 [doc("Fail on history words or all-caps emphasis in the doc sources")]
 [group("gate")]
