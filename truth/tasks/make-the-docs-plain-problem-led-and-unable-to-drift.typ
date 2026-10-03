@@ -27,7 +27,11 @@
   ),
   kind: "milestone",
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(
+    2026,
+    10,
+    3,
+  )[every child landed; README and the site open on the api-service problems, and the gate refuses hand-typed blocks and stale names],
 )
 
 == Problem

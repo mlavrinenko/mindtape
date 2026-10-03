@@ -392,6 +392,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The docs open on the problems MindTape solves.** README and the site home
+  show one task from `examples/api-service`, a backend team's backlog, and
+  five problems with the error `mt` prints for each: oversized tasks, vague
+  tasks, tasks closed while tests fail, work started out of order, and
+  commits with no task. Each problem has its own page. `examples/api-service`
+  replaces `examples/learn-piano` as the project the docs and skill evals
+  read, and the comparison against an imaginary YAML file is gone.
+- **The docs build refuses drift.** A code block in a doc source must be a
+  slice of a checked example or the record of a real run, and a captured run
+  prints the command that produced it. The gate also fails on an `mt`
+  command, flag or config key in prose that does not exist, on a machine path
+  in captured output, on Markdown render defects, and on history words or
+  all-caps emphasis in docs, config comments and schema descriptions.
 - **A batch write attributes a `[[tasks.rules]]` breach it opens elsewhere,
   not only a link cycle.** `mt add`/`link`/`import`/`recur`/`flip` already
   attributed a link cycle closed on a task outside the batch to every
