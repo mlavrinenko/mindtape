@@ -1482,6 +1482,7 @@
       "type": "object"
     },
     "PriorityConfig": {
+      "additionalProperties": false,
       "description": "`[tasks.priority]` — the priority scale and its scoring frameworks.\n\nIt takes the same scale, bands and anchors as `[tasks.difficulty]`. When\n`framework` names a framework, `mt` computes a task's priority from that\nframework's inputs. `allow-manual` decides whether a raw integer is still\naccepted. `frameworks` holds the built-in frameworks merged with any the\nproject declares.",
       "properties": {
         "allow-manual": {

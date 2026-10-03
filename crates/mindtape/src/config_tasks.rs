@@ -22,7 +22,7 @@ use crate::config_required::Requirement;
 use crate::config_roots::{DeriveConfig, RootSpec};
 use crate::config_status::Legend;
 use crate::framework::Framework;
-use crate::numeric::NumericField;
+use crate::numeric::{Anchor, Band, NumericField, ScaleKind};
 
 /// `[tasks]` — where tasks live and how they are constrained.
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
@@ -104,8 +104,10 @@ impl Default for TasksConfig {
 /// framework's inputs. `allow-manual` decides whether a raw integer is still
 /// accepted. `frameworks` holds the built-in frameworks merged with any the
 /// project declares.
-#[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, rename_all = "kebab-case")]
+// `Deserialize` is hand-written: serde cannot combine `flatten` with
+// `deny_unknown_fields`, so `PriorityRaw` spells the scale keys out.
+#[derive(Debug, Clone, PartialEq, schemars::JsonSchema)]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct PriorityConfig {
     /// Scale and band classification (shared numeric-field machinery).
     #[serde(flatten)]
@@ -118,6 +120,66 @@ pub struct PriorityConfig {
     /// Scoring frameworks by name: the built-in ones merged with any declared
     /// here.
     pub frameworks: BTreeMap<String, Framework>,
+}
+
+/// The keys of `[tasks.priority]` with the scale keys inlined, so an unknown
+/// key is an error.
+#[derive(Deserialize)]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
+struct PriorityRaw {
+    kind: ScaleKind,
+    min: f64,
+    max: f64,
+    bands: Vec<Band>,
+    anchors: Vec<Anchor>,
+    required: Requirement,
+    framework: Option<String>,
+    allow_manual: bool,
+    frameworks: BTreeMap<String, Framework>,
+}
+
+impl Default for PriorityRaw {
+    fn default() -> Self {
+        let PriorityConfig {
+            field,
+            framework,
+            allow_manual,
+            frameworks,
+        } = PriorityConfig::default();
+        Self {
+            kind: field.kind,
+            min: field.min,
+            max: field.max,
+            bands: field.bands,
+            anchors: field.anchors,
+            required: field.required,
+            framework,
+            allow_manual,
+            frameworks,
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for PriorityConfig {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw = PriorityRaw::deserialize(deserializer)?;
+        Ok(Self {
+            field: NumericField {
+                kind: raw.kind,
+                min: raw.min,
+                max: raw.max,
+                bands: raw.bands,
+                anchors: raw.anchors,
+                required: raw.required,
+            },
+            framework: raw.framework,
+            allow_manual: raw.allow_manual,
+            frameworks: raw.frameworks,
+        })
+    }
 }
 
 impl Default for PriorityConfig {

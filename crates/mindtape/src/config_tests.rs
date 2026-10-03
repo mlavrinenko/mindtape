@@ -257,3 +257,12 @@ fn requirement_deserialize_error_mentions_expected_types() {
         "catches expecting-noop mutant"
     );
 }
+
+#[test]
+fn unknown_priority_key_fails_the_load_naming_it() {
+    let error = parse_config("[tasks.priority]\nbogus-key = 1\n").unwrap_err();
+    assert!(
+        format!("{error:?}").contains("bogus-key"),
+        "error must name the key: {error:?}"
+    );
+}
