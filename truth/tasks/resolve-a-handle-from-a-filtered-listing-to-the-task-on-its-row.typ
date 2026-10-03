@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 3),
+  status: cancelled(
+    2026,
+    10,
+    3,
+  )[handles become hashes, which removes the ordinal],
 )
 
 == Problem
