@@ -16,6 +16,12 @@
 //! matches, so `!matches(files, "^services/")` reads "touches nothing under
 //! `services/`".
 //!
+//! `count(files, "glob"…)` is a number, so it only sits on the left of a
+//! comparison: how many of the commit's files the globs admit, with the same
+//! `"!glob"` excludes as `changed()` ([`PathFilter`]) —
+//! `count(files, "!docs/**") <= 1`. It reads the commit's own files, so it
+//! also works under `mt check --commits`, where `changed()` is skipped.
+//!
 //! A `scope = "task"` rule reads the same fields, plus the task's states:
 //! `head(...)`, `staged(...)`, `worktree(...)` and `named`, evaluated by
 //! [`crate::commit_task_expr`] against the [`TaskScope`] it runs under.
@@ -35,6 +41,7 @@ use crate::expr::{
 };
 use crate::fields::FieldValue;
 use crate::filter::FilterError;
+use crate::git_state::PathFilter;
 
 /// The field names a commit expression reads, for the refusal message.
 const COMMIT_FIELDS: &str = "subject, refs, files, tasks_only";
@@ -180,6 +187,9 @@ fn comparison(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<bool, Fi
 fn side(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<Option<FieldValue>, FilterError> {
     let node = unwrap_root(node);
     match node.operator() {
+        Operator::FunctionIdentifier { identifier } if identifier == "count" => {
+            count_files(node.children(), env).map(Some)
+        }
         Operator::FunctionIdentifier { identifier } if STATES.contains(&identifier.as_str()) => {
             let scope = env.task(&format!("{identifier}()"))?;
             scope.value(identifier, node.children()).map(Some)
@@ -195,6 +205,36 @@ fn side(node: &Node<DefaultNumericTypes>, env: Env<'_>) -> Result<Option<FieldVa
         }
         _ => Ok(None),
     }
+}
+
+/// `count(files, "glob"…)`: how many of the commit's files the globs admit.
+fn count_files(
+    children: &[Node<DefaultNumericTypes>],
+    env: Env<'_>,
+) -> Result<FieldValue, FilterError> {
+    let invalid = |err: String| FilterError::Invalid(format!("count(): {err}"));
+    let args = call_args(children);
+    let Some((field, glob_nodes)) = args.split_first() else {
+        return Err(invalid(
+            "takes files and globs: count(files, \"!docs/**\")".to_owned(),
+        ));
+    };
+    let field = extract_identifier(unwrap_root(field)).map_err(invalid)?;
+    if field != "files" {
+        return Err(invalid(format!("counts `files`, not `{field}`")));
+    }
+    let globs = glob_nodes
+        .iter()
+        .map(|node| extract_literal(node).map_err(invalid))
+        .collect::<Result<Vec<_>, _>>()?;
+    let admitted = PathFilter::new(&globs).map_err(invalid)?;
+    let count = env
+        .commit
+        .files
+        .iter()
+        .filter(|path| admitted.admits(path))
+        .count();
+    Ok(FieldValue::Num(count as f64))
 }
 
 fn function(

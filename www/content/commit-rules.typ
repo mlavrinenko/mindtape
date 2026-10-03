@@ -80,8 +80,10 @@ rule once per commit, over these fields:
 The operators are the #link(u("/filters/"))[filter language]'s. The functions
 are `has(field)`, `miss(field)` and `matches(field, "regex")`. Over a list,
 `matches` is true when any entry matches, so `!matches(files, "^services/")`
-means the commit changes nothing under `services/`. `subject` also compares
-with a string. `mt` refuses a task field in a commit-scope rule when it loads
+means the commit changes nothing under `services/`. `count(files, "glob"…)` is a number: how many of the commit's files the
+globs admit, with the `"!glob"` excludes `changed()` takes. It sits on the left
+of a comparison, so `count(files, "!docs/**") <= 1` caps the commit at one
+file outside `docs/`. `subject` also compares with a string. `mt` refuses a task field in a commit-scope rule when it loads
 the config, and lists the fields a commit rule reads.
 
 A breach names the message file and the rule. Here a migration has no `Refs:`
@@ -139,7 +141,7 @@ Each commit is read against its first parent, a merge included. `subject` and
 parent. `staged(...)` reads the commit's tree and `head(...)` the parent's. A
 trailer must name a task the commit's tree holds. A past commit has no working
 tree, so `mt` skips a rule that calls `worktree(...)` or `changed(...)` and
-says so once. Only a commit with something to report is listed, with its lines
+says so once; `count(files, …)` reads the commit's own files and runs. Only a commit with something to report is listed, with its lines
 indented below it:
 
 #terminal("commit-range")

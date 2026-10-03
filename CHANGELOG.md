@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A commit rule counts the commit's files with `count(files, "glob"…)`.**
+  A `[[commits.rules]]` assert could only test whether a file matched, so
+  nothing capped how many source files a commit changes. The call counts the
+  files the globs admit, with the `"!glob"` excludes `changed()` takes, and
+  compares with a number. It reads the commit's own files, so it also runs
+  under `mt check --commits`. The project's `tweak-stays-one-file` rule uses it.
 - **`touches("<path>")` finds the tasks that shaped a file.** Which tasks a
   file's commits served took `git log` and reading each `Refs:` trailer by
   hand. The filter matches every task a trailer of a commit changing the path

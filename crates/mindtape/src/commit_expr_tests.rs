@@ -28,6 +28,28 @@ fn fields_read_the_commit() {
 }
 
 #[test]
+fn count_files_counts_what_the_globs_admit() {
+    assert!(eval("count(files, \"**\") == 2"));
+    assert!(eval("count(files) == 2"));
+    assert!(eval("count(files, \"!docs/**\") == 1"));
+    assert!(eval(
+        "count(files, \"src/**\", \"docs/**\", \"!**/*.md\") <= 1"
+    ));
+    assert!(!eval("count(files, \"nothing/**\") > 0"));
+}
+
+#[test]
+fn count_files_refuses_other_fields_and_bad_globs() {
+    for expr in [
+        "count(refs, \"**\") == 1",
+        "count() == 1",
+        "count(files, \"[\") == 1",
+    ] {
+        assert!(commit_expr_problem(expr).is_some(), "{expr}");
+    }
+}
+
+#[test]
 fn matches_over_a_list_is_any_entry() {
     assert!(eval("matches(files, \"^docs/\")"));
     assert!(eval("matches(files, \"^src/\")"));

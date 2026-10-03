@@ -293,7 +293,8 @@ allowed = [
   "found",
   # Written by `mt add --template tweak` and by nothing else: a change too
   # small to plan, filed done in the commit that makes it. `tweak-lands-done`
-  # below holds it to that.
+  # holds it to that and `tweak-stays-one-file` caps its commit at one source
+  # file.
   "tweak",
 ]
 
@@ -412,6 +413,20 @@ message = "keep this section under 120 words; a longer one is a task that should
 # The default `mt ls` listing is inherited from the embedded floor's
 # `[views.default]` view. Redeclare `[views.default]` here to add a
 # sort/columns bundle.
+
+# A tweak is never open, so `src-budget` (wip only) never sees it; this holds
+# its commit to one source file, with the same excludes.
+[[commits.rules]]
+name = "tweak-stays-one-file"
+scope = "task"
+when = 'into("done") && staged(has_tag("tweak"))'
+assert = '''count(files,
+  "!README.md", "!CONTRIBUTING.md", "!AGENTS.md", "!skills/mindtape/SKILL.md",
+  "!docs/contributing/*.md", "!www/generated/**", "!outdatty.lock",
+  "!docs/src/**", "!www/content/**", "!CHANGELOG.md", "!truth/tasks/**",
+  "!crates/*/tests/**", "!**/*test*.rs", "!examples/**") <= 1'''
+message = "a tweak changes one source file; file a planned task for the rest"
+severity = "error"
 
 # The sweep's own inbox: everything `just ask-refactoring` filed that is still
 # open. It is both a listing (`mt ls @ask-refactoring`) and the sweep's re-run

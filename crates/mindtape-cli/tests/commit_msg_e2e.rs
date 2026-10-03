@@ -115,6 +115,22 @@ fn a_rule_reads_the_subject_and_the_staged_files() {
 }
 
 #[test]
+fn a_rule_counts_the_staged_files_a_glob_list_admits() {
+    let rules = "[[commits.rules]]\n\
+         name = \"one-source-file\"\n\
+         assert = 'count(files, \"!docs/**\") <= 1'\n\
+         severity = \"error\"\n";
+    let dir = commit_repo(rules);
+    stage(dir.path(), "src/a.rs");
+    stage(dir.path(), "docs/guide.md");
+    let (ok, text) = check_commit_msg(dir.path(), "feat: a\n");
+    assert!(ok, "one source file and a doc pass: {text}");
+    stage(dir.path(), "src/b.rs");
+    let (ok, text) = check_commit_msg(dir.path(), "feat: a\n");
+    assert!(!ok, "two source files break it: {text}");
+}
+
+#[test]
 fn a_task_field_in_a_commit_rule_is_refused_at_load() {
     let rules = "[[commits.rules]]\n\
          name = \"bad\"\n\
