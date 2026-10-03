@@ -35,8 +35,9 @@ script can tell a partial import from a whole one.
 
 `--map old=new` renames a status before the check, for a source whose names
 differ from your legend. `--to <dir>` writes the batch into a subfolder of the
-first task root. `--dry-run` checks the batch and writes nothing, but its
-report still says `filed` for each record that would be written. The
+first task root. `--dry-run` checks the batch and writes nothing: its
+report says `would file` for each record that would be written and ends with
+`dry run: nothing written`. The
 #link(u("/cli/"))[CLI reference] lists every flag.
 
 The adapters in `contrib/jq/` read the tracker's own export. They do not read

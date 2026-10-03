@@ -92,3 +92,20 @@ fn a_rejected_record_is_never_written_and_the_rest_still_land() {
     );
     support::mt(dir.path()).arg("check").assert().success();
 }
+
+/// `--dry-run` names what it would file and says it wrote nothing.
+#[test]
+fn dry_run_says_would_file_and_writes_nothing() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+
+    support::mt(dir.path())
+        .args(["import", "--dry-run"])
+        .write_stdin(ONE_TASK_JSON)
+        .assert()
+        .success()
+        .stderr(predicates::str::contains("Wire import: would file"))
+        .stderr(predicates::str::ends_with("dry run: nothing written\n"));
+
+    assert!(!dir.path().join("tasks/wire-import.typ").exists());
+}

@@ -19,6 +19,7 @@ mod input;
 mod write;
 
 use std::collections::{BTreeMap, HashSet};
+use std::fmt::Write as _;
 use std::path::Path;
 
 use anyhow::{Context, Result, anyhow, bail};
@@ -76,7 +77,7 @@ pub fn run(args: &ImportArgs) -> Result<()> {
 fn run_with(project: &Project, args: &ImportArgs) -> Result<()> {
     let raw = input::read_source(&args.input)?;
     let outcomes = import_records(project, args, &raw)?;
-    report(&outcomes);
+    report(&outcomes, args.dry_run);
     fail_on_skips(&outcomes)
 }
 
@@ -237,20 +238,31 @@ fn existing_stems(dest: &Path) -> HashSet<String> {
 /// Print "N filed, M skipped" plus, per record, its label, outcome, mapping
 /// report entries (mapped/defaulted/dropped/violated), carried `x-<ns>`
 /// extras, and any load/validate problem — to stderr, mirroring `mt add`'s
-/// warnings-to-stderr convention.
-fn report(outcomes: &[TaskOutcome]) {
-    let filed = outcomes.iter().filter(|outcome| outcome.filed).count();
-    eprintln!("{filed} filed, {} skipped", outcomes.len() - filed);
-    for outcome in outcomes {
-        report_task(outcome);
-    }
+/// warnings-to-stderr convention. Under `--dry-run` the wording is `would
+/// file` and the report ends with `dry run: nothing written`, as `mt mv` does.
+fn report(outcomes: &[TaskOutcome], dry_run: bool) {
+    eprint!("{}", render_report(outcomes, dry_run));
 }
 
-fn report_task(outcome: &TaskOutcome) {
-    let verb = if outcome.filed { "filed" } else { "skipped" };
-    eprintln!("  {}: {verb}", outcome.label);
+fn render_report(outcomes: &[TaskOutcome], dry_run: bool) -> String {
+    let filed = outcomes.iter().filter(|outcome| outcome.filed).count();
+    let verb = if dry_run { "would file" } else { "filed" };
+    let mut out = format!("{filed} {verb}, {} skipped\n", outcomes.len() - filed);
+    for outcome in outcomes {
+        render_task(&mut out, outcome, verb);
+    }
+    if dry_run {
+        out.push_str("dry run: nothing written\n");
+    }
+    out
+}
+
+fn render_task(out: &mut String, outcome: &TaskOutcome, filed_verb: &str) {
+    let verb = if outcome.filed { filed_verb } else { "skipped" };
+    let _ = writeln!(out, "  {}: {verb}", outcome.label);
     for entry in &outcome.report.entries {
-        eprintln!(
+        let _ = writeln!(
+            out,
             "    [{}] {}: {}",
             entry_kind_label(entry.kind),
             entry.field,
@@ -258,13 +270,14 @@ fn report_task(outcome: &TaskOutcome) {
         );
     }
     if !outcome.report.carried_extras.is_empty() {
-        eprintln!(
+        let _ = writeln!(
+            out,
             "    extras carried: {}",
             outcome.report.carried_extras.join(", ")
         );
     }
     for problem in &outcome.problems {
-        eprintln!("    - {problem}");
+        let _ = writeln!(out, "    - {problem}");
     }
 }
 

@@ -154,5 +154,31 @@ fn report_emits_per_task_detail_and_extras() {
             carried_extras: vec!["x-foo".into()],
         },
     };
-    super::report(&[o]);
+    super::report(&[o], false);
+}
+
+fn outcome(label: &str, filed: bool) -> TaskOutcome {
+    TaskOutcome {
+        label: label.into(),
+        filed,
+        problems: vec![],
+        report: ImportReport::default(),
+    }
+}
+
+#[test]
+fn dry_run_report_says_would_file_and_ends_with_nothing_written() {
+    let outcomes = [outcome("a", true), outcome("b", false)];
+    let text = super::render_report(&outcomes, true);
+    assert_eq!(
+        text,
+        "1 would file, 1 skipped\n  a: would file\n  b: skipped\ndry run: nothing written\n"
+    );
+}
+
+#[test]
+fn real_report_says_filed_and_has_no_dry_run_line() {
+    let outcomes = [outcome("a", true), outcome("b", false)];
+    let text = super::render_report(&outcomes, false);
+    assert_eq!(text, "1 filed, 1 skipped\n  a: filed\n  b: skipped\n");
 }
