@@ -231,8 +231,9 @@ The first `touches()` in a command reads the history with one `git log`.
 `mt` caches the result in `.mindtape/cache/` until `HEAD` or the trailer key
 changes, and a command that does not call `touches()` runs no git.
 
-`changed()` and `touches()` need a git repository. Outside one, `mt` fails
-and prints git's reason. Git runs read-only (`--no-optional-locks`) and at
+`changed()` and `touches()` need a git repository. Outside one, a filter
+typed on the command line fails and prints git's reason, and a rule that
+reads git is reported once as skipped. Loading a config never runs git. Git runs read-only (`--no-optional-locks`) and at
 most once per command.
 
 = Sort and limit

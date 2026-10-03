@@ -405,3 +405,15 @@ mod predicates;
 // the cyclic view guard likewise.
 #[path = "filter_in_view_tests.rs"]
 mod in_view;
+
+#[test]
+fn a_rule_reading_changed_loads_outside_a_repository() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut config = parse_config(
+        "[tasks.estimate]\nunits = [\"files\"]\n\n\
+         [[tasks.rules]]\nname = \"budget\"\nassert = 'changed(\"worktree\") <= estimate.files'\n",
+    )
+    .unwrap();
+    config.git.set_root(dir.path());
+    config.validate().unwrap();
+}

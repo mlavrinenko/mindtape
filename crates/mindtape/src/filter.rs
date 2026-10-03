@@ -233,14 +233,15 @@ pub(crate) fn expr_problem(source: &str, probe: &Task, config: &Config) -> Optio
 
 /// [`expr_problem`] for an expression evaluated over the loaded set — a
 /// `[[tasks.rules]]` entry, an `[[on.flip]]` hook — so `count(...)` passes the
-/// dry run: the probe is its own one-task set.
+/// dry run: the probe is its own one-task set. The run is dry, so loading
+/// never reads git for `changed()` or `touches()`.
 #[must_use]
 pub(crate) fn expr_problem_in_set(source: &str, probe: &Task, config: &Config) -> Option<String> {
     let set = Readiness::compute(std::slice::from_ref(probe), config);
     match Filter::parse(source) {
         Err(err) => Some(err.to_string()),
         Ok(filter) => filter
-            .matches_with(probe, config, &set)
+            .eval(probe, config, &set, true)
             .err()
             .map(|err| err.to_string()),
     }

@@ -91,6 +91,7 @@ have changed, the task file included, against an estimate of 5:
 #terminal("estimates-budget")
 
 #callout("note")[
-  A rule that reads `changed()` needs a git repository. `mt` runs git
-  read-only, at most once per command.
+  A rule that reads `changed()` needs a git repository. Outside one, `mt`
+  reports the rule once as skipped. `mt` runs git read-only, at most once per
+  command.
 ]
