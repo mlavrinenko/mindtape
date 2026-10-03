@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 3),
+  status: done(2026, 10, 3),
 )
 
 == Problem
@@ -55,7 +55,6 @@ left in a closing report no one rereads. It belongs in
 
 == Changes
 
-- linecop (mlavrinenko/linecop): a byte limit per override, beside the line `limit`.
 - `.linecop.yaml`: set the byte limit on `./CONTRIBUTING.md` at its size plus about 10%.
 
 

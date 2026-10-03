@@ -38,10 +38,10 @@ overrides:
   # items and table rows.
   #
   # CONTRIBUTING.md is capped as well, because every agent session in this
-  # repo loads it whole. linecop counts lines only, so the cap limits how many
-  # rules and gates the file holds, and a long paragraph still counts as one
-  # line. The cap leaves about 10% room. When it fires, move reasons into a
-  # docs/contributing/*.md deep dive rather than raise the number.
+  # repo loads it whole. The line cap limits how many rules and gates the file
+  # holds, and `max_bytes` limits how long they run, because a long paragraph
+  # counts as one line. Both leave about 10% room. When one fires, move reasons
+  # into a docs/contributing/*.md deep dive rather than raise the number.
   #
   # A pattern is a `.gitignore` line read from this file's directory. A bare
   # `README.md` matches that name at any depth, and `./README.md` or
@@ -57,6 +57,7 @@ overrides:
     exclude: true
   - pattern: "./CONTRIBUTING.md"
     limit: 142
+    max_bytes: 11300
   - pattern: "./skills/mindtape/SKILL.md"
     exclude: true
 
