@@ -87,10 +87,10 @@ your file uses.
 
 = Round trip
 
-An export imports back whole when each task's file is named from its title, as
-`mt add` names it. `mt import` names every file it writes from the record's
-title. A link names its target's file, so a link to a task whose file has
-another name does not resolve, and `mt import` skips the task that holds it.
+An export imports back whole. `mt import` names each file from the record's
+`id`, so a link to a task still resolves, and a record with no `id`, as the jq
+adapters emit, is named from its title as `mt add` names it. When a name is
+taken, the file gets a `-2` suffix and a link to it does not follow the rename.
 
 This exports `examples/round-trip/`, whose four tasks use every field the
 import writes:

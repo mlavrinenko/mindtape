@@ -97,8 +97,8 @@ markup, so a code span in it lands as literal backticks. Read
 `references/add-slots.md` before you fill an unfamiliar template.
 
 `mt import` files a batch from `mt ls --json`'s schema. It takes each stem from
-the title and resolves a link only to a task earlier in the batch, so read
-`references/import.md` before you run it.
+the record's `id`, else from its title, so read `references/import.md` before
+you run it.
 
 = Changing status
 

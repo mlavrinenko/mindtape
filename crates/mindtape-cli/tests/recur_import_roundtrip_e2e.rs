@@ -12,14 +12,6 @@
 //! skips writing that one record (`check_policy`'s cargo-feature gate, an
 //! existing, orthogonal limitation this task does not touch) and the
 //! assertion below excludes it rather than asserting it too.
-//!
-//! The fixture's two same-titled "Post standup notes" tasks are excluded
-//! outright: `mt import` re-stems from `title`, not the exported `id`/`file`,
-//! so the `recurred-from` link on one of the pair — authored against the
-//! ORIGINAL stem (`standup-notes-2026-09-14.typ`) — cannot resolve against
-//! the freshly-disambiguated one (`post-standup-notes.typ`), and that record
-//! is skipped. Pre-existing and orthogonal to `recur` (any same-titled linked
-//! pair hits it); not this task's gap to close.
 #![allow(clippy::unwrap_used, clippy::disallowed_methods)]
 
 use std::path::{Path, PathBuf};
@@ -103,7 +95,7 @@ fn recur_survives_ls_json_piped_into_import() {
         .arg("import")
         .write_stdin(exported.clone())
         .assert()
-        .code(predicates::ord::le(1));
+        .code(i32::from(!cfg!(feature = "rrule")));
 
     let reimported = support::mt(dir.path())
         .args(["ls", "", "--json"])
@@ -114,10 +106,7 @@ fn recur_survives_ls_json_piped_into_import() {
         .clone();
     let reimported = String::from_utf8(reimported).unwrap();
 
-    let excluded = |title: &str| {
-        title == "Post standup notes"
-            || (title == "Send the cost report" && !cfg!(feature = "rrule"))
-    };
+    let excluded = |title: &str| title == "Send the cost report" && !cfg!(feature = "rrule");
     let mut before = recur_pairs(&exported);
     before.retain(|(title, _)| !excluded(title));
     let mut after = recur_pairs(&reimported);

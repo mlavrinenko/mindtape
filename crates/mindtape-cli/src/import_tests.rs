@@ -306,7 +306,13 @@ fn colliding_titles_disambiguate_with_a_numeric_suffix() {
     let mut two = bare_task("dup-b");
     two.title = "Duplicate".to_owned();
     two.status = Some(status("wip", "2026-06-01"));
-    let raw = to_canonical(&[one, two], &project.config);
+    // Records from a jq adapter carry no `id`, so the title names the file.
+    let mut records: Vec<CanonicalTask> =
+        serde_json::from_str(&to_canonical(&[one, two], &project.config)).unwrap();
+    for record in &mut records {
+        record.id.clear();
+    }
+    let raw = serde_json::to_string(&records).unwrap();
 
     let outcomes = import_records(&project, &bare_args(), &raw).unwrap();
     assert_eq!(outcomes.len(), 2);
@@ -316,10 +322,49 @@ fn colliding_titles_disambiguate_with_a_numeric_suffix() {
 }
 
 #[test]
+fn a_record_with_an_id_keeps_it_as_its_stem_so_links_to_it_resolve() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup_dest(dir.path());
+    let mut target = bare_task("add-redis-client");
+    target.title = "Add a Redis client to the app state".to_owned();
+    target.status = Some(status("wip", "2026-06-01"));
+    let mut linker = bare_task("throttle-logins");
+    linker.title = "Throttle failed logins".to_owned();
+    linker.status = Some(status("wip", "2026-06-01"));
+    linker.links = vec![dep_edge("add-redis-client.typ")];
+    let raw = to_canonical(&[linker, target], &project.config);
+
+    let outcomes = import_records(&project, &bare_args(), &raw).unwrap();
+    assert!(
+        outcomes.iter().all(|outcome| outcome.filed),
+        "{:?}",
+        outcomes.iter().map(|o| &o.problems).collect::<Vec<_>>()
+    );
+    assert!(dir.path().join("tasks/add-redis-client.typ").exists());
+    assert!(dir.path().join("tasks/throttle-logins.typ").exists());
+}
+
+#[test]
+fn an_id_that_clashes_with_an_existing_file_is_disambiguated() {
+    let dir = tempfile::tempdir().unwrap();
+    let project = setup_dest(dir.path());
+    std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
+    std::fs::write(dir.path().join("tasks/taken.typ"), "").unwrap();
+    let mut task = bare_task("taken");
+    task.title = "Something else".to_owned();
+    task.status = Some(status("wip", "2026-06-01"));
+    let raw = to_canonical(&[task], &project.config);
+
+    let outcomes = import_records(&project, &bare_args(), &raw).unwrap();
+    assert!(outcomes[0].filed, "{:?}", outcomes[0].problems);
+    assert!(dir.path().join("tasks/taken-2.typ").exists());
+}
+
+#[test]
 fn a_title_that_slugifies_to_nothing_is_reported_and_leaves_no_file() {
     let dir = tempfile::tempdir().unwrap();
     let project = setup_dest(dir.path());
-    let mut punctuation_only = bare_task("placeholder");
+    let mut punctuation_only = bare_task("");
     // Every character here is filtered by `slug_from_title`, so the record has
     // a non-empty title yet mints an empty stem candidate — `stem_for`'s own
     // guard, distinct from a record missing a title outright.

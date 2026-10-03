@@ -52,7 +52,7 @@ Common filters are `ready` (open, with every `depends-on` target finished), `blo
 
 A key names a template slot, which need not be a field. A framework priority, for example, takes its inputs (`--set impact=8`). An unknown slot is an error that lists the known ones. When the template has no slot for a field, file the task first, then write the field with `mt set`. A `text` slot escapes Typst markup, so a code span in it lands as literal backticks. Read `references/add-slots.md` before you fill an unfamiliar template.
 
-`mt import` files a batch from `mt ls --json`’s schema. It takes each stem from the title and resolves a link only to a task earlier in the batch, so read `references/import.md` before you run it.
+`mt import` files a batch from `mt ls --json`’s schema. It takes each stem from the record’s `id`, else from its title, so read `references/import.md` before you run it.
 
 ## Changing status
 

@@ -24,7 +24,7 @@ groups:
       crates/mindtape-cli/src/flip.rs: e41de9379bf41ca830fc006dfaca3ebb4916765f3f00687bbd4de881070ca780
       crates/mindtape-cli/src/go.rs: 33b0f28d21337e8a8d93d229abaa922124cdd0f73db2b0c8a7fedffa3e5c346a
       crates/mindtape-cli/src/graph.rs: c576d262e16ba21c03e20c4535dabab61a18a2add62730e42103e49772f799e6
-      crates/mindtape-cli/src/import.rs: 34639d11ee09e8d6ecfea84fdb8a52749f8613f15691584eac7df6032a85d1af
+      crates/mindtape-cli/src/import.rs: aff186f585daa40a27e39de5ffc992597af59ccb112acfc257a2196b8ac1beb8
       crates/mindtape-cli/src/init.rs: eb200e5391ed47953107ea8b63d19f36e2c312eb491e034fc8e9e5a639f2a209
       crates/mindtape-cli/src/install.rs: 786bd1ca774d5249ed859ed9e2706624691f23f6f57e8a89c00ab521ef54f5ee
       crates/mindtape-cli/src/link_cmd.rs: 189901277439ca1703c05a7e5edeae5f313599d40bace0c46e9ce93a7bb94bfc
@@ -47,7 +47,7 @@ groups:
       crates/mindtape/src/fields.rs: 3257f23f636b0c5c70ad4fd51a622e4541a91355cd42c91e6b81ecb2f4167f9c
       crates/mindtape/src/lib.rs: 6f5901c6eca839f1509d6eaeeb3d0f3aef739d53ed4c54c3a454432812715b8c
     dependents:
-      docs/src/skill.typ: de6663fb4d0640712bff7b0359277a15197233d1b266b89410deb4bb820a2c2d
+      docs/src/skill.typ: d5e357773820fb006764376cbe9b244024922e4fa81cdbf61e270bd2b5b80c22
       skills/mindtape/evals/README.md: e530d4b6a77d8220a7f138487974a3c0797271020a575b74f51d9379a57d7769
       skills/mindtape/evals/evals.json: b25640b2d11ac263a0572ffc6679165bae4581dee1fe9938112c8e69926ad041
       skills/mindtape/references/add-slots.md: 27d8992a98b9aa9917108d02d6bbdf6d95715a5e9aa2b229d375b1b87d210ef6
@@ -58,15 +58,15 @@ groups:
       www/content/concepts.typ: eead063b6a9bc21a1ba433f0808942a56ac0ba05df4c22bcff57f87b171fc321
       www/content/config.typ: 09823d359af8f47763e799187431311df3fe77496067a567bb45217ed80903b2
       www/content/derived-tags.typ: daab80a43e76316f3ea505962628da330037732d091666410b80b7d84fa9ff62
-      www/content/estimates.typ: 3e46e35443ac11603b034b3c795f1df941f8578b230df8a47dddfc050802fb6d
-      www/content/filters.typ: d01f560fea58e13176bb50f705b99bcea0f23d3ca7e4246e4bba17b492212cae
+      www/content/estimates.typ: add3c0bbcc58db99b226a1127c3c0c7669af1b2b9b345af6ab7f265cf6188078
+      www/content/filters.typ: d831101d2386bd32e9fb879499e349a31c09948225059261c040f948e7896967
       www/content/hooks.typ: 85508e2df8e94b0f1995e09a557d7ac1a5355ccf2dcfb3dd0a29a0220e231d60
-      www/content/import-export.typ: 54b4c4572230e22ac02f943c70ab92c513e85a0c6de59efdd188454bf32b0587
+      www/content/import-export.typ: 066492971b6ae35020c0bc8155b7b20333bac01e76b28fad2a0d8ad28ee2f4c8
       www/content/links.typ: 997d07f188c3995c2865bfaf09ac0751367d117bee4e8f27f969973a26fb26ae
       www/content/named-sets.typ: 9eb766109a0f61c4dfadf8c83118652f4cdbc7de1c050d58b4927097d255d575
       www/content/priority.typ: 5da0661bc11613b90d9410b36b79436df14ba61a671437e72b601299497f7121
       www/content/quickstart.typ: 710d621900d67aa553e57d0a05f92e68fa5e82f9777b3322c1aac0b88c493531
-      www/content/recurring.typ: c911b6304fad5a04566c21d5193404ebd189e19c7a1f6dc5a195f56356d77677
+      www/content/recurring.typ: eff529a7eff2e613f30db1b7c8afc2e9c44f6b24a886eb709927db5bb6cf7c1a
       www/content/rules.typ: b5363e5b05ee345a2e5cd62ae156ec8b41892a4ab6ce8a779dcdb09e942f55c7
       www/content/schema.typ: 6eb69ba844be22a4653fb8a2d69b6d68ec9da2c874689909a663a1b4299b9384
       www/content/statuses.typ: ef993338e298c6b20f2a4a83742aa6a3421a3069cefd6a5c22ec097405c7a7f1

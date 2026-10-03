@@ -182,3 +182,11 @@ fn real_report_says_filed_and_has_no_dry_run_line() {
     let text = super::render_report(&outcomes, false);
     assert_eq!(text, "1 filed, 1 skipped\n  a: filed\n  b: skipped\n");
 }
+
+#[test]
+fn usable_stem_rejects_empty_and_path_like_ids() {
+    assert!(super::usable_stem("add-redis-client"));
+    for bad in ["", "a/b", "a\\b", "a.typ", ".hidden"] {
+        assert!(!super::usable_stem(bad), "{bad}");
+    }
+}

@@ -113,7 +113,7 @@ fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec
         let label = record_label(&record, idx);
         default_status(&mut record, args.status.as_deref());
         let mapped = map_canonical(&record, config, &opts);
-        match stem_for(&mapped.task.title, config, &mut existing) {
+        match stem_for(&record.id, &mapped.task.title, config, &mut existing) {
             Ok(stem) => {
                 let mut task = mapped.task;
                 task.id.clone_from(&stem);
@@ -190,28 +190,43 @@ fn default_status(record: &mut CanonicalTask, status: Option<&str>) {
     });
 }
 
-/// The destination stem for `title`: the deterministic candidate
-/// ([`mindtape::stem_for_title`]), disambiguated against `existing`
-/// (pre-existing destination files plus every stem already claimed within
-/// this batch). `existing` gains the chosen stem so later records in the same
-/// batch never collide with it — the collision policy is a `-2`, `-3`, ...
+/// The destination stem for a record: its `id` when that is a usable file stem
+/// (an export carries it, and links between records name it), else the
+/// deterministic candidate from `title` ([`mindtape::stem_for_title`], what a
+/// jq adapter's id-less record gets). Either is disambiguated against
+/// `existing` (pre-existing destination files plus every stem already claimed
+/// within this batch). `existing` gains the chosen stem so later records in the
+/// same batch never collide with it — the collision policy is a `-2`, `-3`, ...
 /// suffix, [`mindtape::naming::disambiguate`]'s existing behaviour.
 ///
 /// # Errors
-/// Returns an error when `title` slugifies to nothing (no `--name`-equivalent
-/// escape hatch exists for import — the title is the only naming source), the
-/// configured `[tasks.naming] stem` template is malformed, or disambiguation
-/// exhausts its numeric-suffix ceiling.
-fn stem_for(title: &str, config: &Config, existing: &mut HashSet<String>) -> Result<String> {
-    if mindtape::slug_from_title(title).is_empty() {
-        bail!("empty title; nothing to name the task file from");
-    }
-    let candidate = mindtape::stem_for_title(title, config, mindtape::today_ymd())
-        .map_err(|err| anyhow!(err.to_string()))?;
+/// Returns an error when there is no usable `id` and `title` slugifies to
+/// nothing, the configured `[tasks.naming] stem` template is malformed, or
+/// disambiguation exhausts its numeric-suffix ceiling.
+fn stem_for(
+    id: &str,
+    title: &str,
+    config: &Config,
+    existing: &mut HashSet<String>,
+) -> Result<String> {
+    let candidate = if usable_stem(id) {
+        id.to_owned()
+    } else {
+        if mindtape::slug_from_title(title).is_empty() {
+            bail!("empty title; nothing to name the task file from");
+        }
+        mindtape::stem_for_title(title, config, mindtape::today_ymd())
+            .map_err(|err| anyhow!(err.to_string()))?
+    };
     let stem = mindtape::naming::disambiguate(&candidate, |c| existing.contains(c))
         .map_err(|err| anyhow!(err.to_string()))?;
     existing.insert(stem.clone());
     Ok(stem)
+}
+
+/// Whether `id` can be a bare file stem: non-empty, no path separator, no dot.
+fn usable_stem(id: &str) -> bool {
+    !id.is_empty() && !id.contains(['/', '\\', '.'])
 }
 
 /// Filename stems already on disk under `dest` (existing `.typ` files), the
