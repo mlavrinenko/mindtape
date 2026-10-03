@@ -1903,7 +1903,7 @@
       "properties": {
         "allowed": {
           "default": [],
-          "description": "Allowed tag names. Empty accepts any tag. `mt` checks only open tasks,\nso a terminal task keeps the tags it was filed with. An entry `@<dict>`\nstands for every entry of `[dicts.<dict>]`.",
+          "description": "Allowed tag names. Empty accepts any tag. `mt check` skips the\nallow-list for closed tasks, and the loader derives folder tags again on\nevery load, so a moved file gets its new folder's tags. An entry `@<dict>`\nstands for every entry of `[dicts.<dict>]`.",
           "items": {
             "type": "string"
           },

@@ -365,10 +365,10 @@ fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Vi
 }
 
 /// Flag an authored or folder-derived tag outside `[tasks.tags] allowed`.
-/// Skipped once a task is terminal — a closed task keeps the tags it was
-/// filed with, authored and derived alike, so dropping a tag from `allowed`
-/// is one edit rather than a rewrite of every closed task that ever carried
-/// it.
+/// Skipped once a task is terminal, so dropping a tag from `allowed` is one
+/// edit rather than a rewrite of every closed task that ever carried it. The
+/// loader derives folder tags again on every load, so a moved file gets its
+/// new folder's tags and the check sees those, not the folder it was filed in.
 fn check_tags(task: &Task, config: &Config, out: &mut Vec<Violation>) {
     let allowed = &config.tasks.tags.allowed;
     if allowed.is_empty() {

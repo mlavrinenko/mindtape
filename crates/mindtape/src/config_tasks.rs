@@ -265,8 +265,9 @@ pub struct FieldConfig {
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct TagsConfig {
-    /// Allowed tag names. Empty accepts any tag. `mt` checks only open tasks,
-    /// so a terminal task keeps the tags it was filed with. An entry `@<dict>`
+    /// Allowed tag names. Empty accepts any tag. `mt check` skips the
+    /// allow-list for closed tasks, and the loader derives folder tags again on
+    /// every load, so a moved file gets its new folder's tags. An entry `@<dict>`
     /// stands for every entry of `[dicts.<dict>]`.
     // `expand_dict_refs` expands the `@<dict>` entries at config load.
     pub allowed: Vec<String>,
