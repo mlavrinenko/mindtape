@@ -96,9 +96,9 @@ pub enum CommitScope {
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct CommitRuleSpec {
-    /// What the rule is called, used to report it (`commits.rules.<name>`)
-    /// and to override or `disable` it across packs. Optional: an unnamed
-    /// rule reports by its position (`commits.rules[0]`).
+    /// The name a report shows for the rule (`commits.rules.<name>`). The same
+    /// name overrides or `disable`s the rule across packs. Optional: an
+    /// unnamed rule reports by its position (`commits.rules[0]`).
     #[serde(default)]
     pub name: Option<String>,
     /// What the rule is evaluated over. Default `commit`.

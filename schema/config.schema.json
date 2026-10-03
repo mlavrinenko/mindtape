@@ -323,7 +323,7 @@
         },
         "name": {
           "default": null,
-          "description": "What the rule is called, used to report it (`commits.rules.<name>`)\nand to override or `disable` it across packs. Optional: an unnamed\nrule reports by its position (`commits.rules[0]`).",
+          "description": "The name a report shows for the rule (`commits.rules.<name>`). The same\nname overrides or `disable`s the rule across packs. Optional: an\nunnamed rule reports by its position (`commits.rules[0]`).",
           "type": [
             "string",
             "null"
@@ -493,7 +493,7 @@
         },
         "name": {
           "default": null,
-          "description": "What the rule is called, used to report it (`body.content.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.content.rules[0]`). Two rules in this array sharing a name is a\nconfig error naming both.",
+          "description": "The name a report shows for the rule (`body.content.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.content.rules[0]`). Two rules in this array sharing a name is a\nconfig error naming both.",
           "type": [
             "string",
             "null"
@@ -932,7 +932,7 @@
         },
         "name": {
           "default": null,
-          "description": "What the rule is called, used to report it (`body.headers.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.headers.rules[0]`). Two rules in this array sharing a name is a\nconfig error naming both.",
+          "description": "The name a report shows for the rule (`body.headers.rules.<name>`).\nOptional: an unnamed rule reports by its position instead\n(`body.headers.rules[0]`). Two rules in this array sharing a name is a\nconfig error naming both.",
           "type": [
             "string",
             "null"
@@ -1313,7 +1313,7 @@
         },
         "ready": {
           "$ref": "#/$defs/ReadyConfig",
-          "description": "Glyph, colour and label for the ready and blocked states in the READY\ncolumn. An unset key takes the shipped default."
+          "description": "Glyph, colour and label for the ready and blocked states in the `READY`\ncolumn. An unset key takes the shipped default."
         },
         "rules": {
           "description": "Ordered auto-activation rules applied to a bare `mt ls` (no CLI\nfilter, no `@view`): the first rule whose condition holds (or that\nhas none) wins and supplies its filter, sort, and columns.",
@@ -1558,7 +1558,7 @@
     },
     "ReadyConfig": {
       "additionalProperties": false,
-      "description": "`[ls.ready]` — glyph, colour and label for the ready and blocked states in\nthe READY column. An omitted key takes the shipped default.",
+      "description": "`[ls.ready]` — glyph, colour and label for the ready and blocked states in\nthe `READY` column. An omitted key takes the shipped default.",
       "properties": {
         "blocked-color": {
           "default": null,
@@ -1845,7 +1845,7 @@
         },
         "name": {
           "default": null,
-          "description": "What the rule is called, used to report it (`rules.<name>`). Optional:\nan unnamed rule reports by its position instead (`rules[0]`).",
+          "description": "The name a report shows for the rule (`rules.<name>`). Optional: an\nunnamed rule reports by its position instead (`rules[0]`).",
           "type": [
             "string",
             "null"

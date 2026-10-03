@@ -134,8 +134,8 @@ pub struct CheckSpec {
 #[derive(Debug, Clone, Deserialize, PartialEq, Eq, schemars::JsonSchema)]
 #[serde(rename_all = "kebab-case", deny_unknown_fields)]
 pub struct RuleSpec {
-    /// What the rule is called, used to report it (`rules.<name>`). Optional:
-    /// an unnamed rule reports by its position instead (`rules[0]`).
+    /// The name a report shows for the rule (`rules.<name>`). Optional: an
+    /// unnamed rule reports by its position instead (`rules[0]`).
     #[serde(default)]
     pub name: Option<String>,
     /// Filter expression that must evaluate true for every task the rule

@@ -64,7 +64,7 @@ pub struct LsConfig {
     /// columns render, in that order. Empty (the default) keeps the built-in
     /// column set and order.
     pub columns_order: Vec<String>,
-    /// Glyph, colour and label for the ready and blocked states in the READY
+    /// Glyph, colour and label for the ready and blocked states in the `READY`
     /// column. An unset key takes the shipped default.
     pub ready: ReadyConfig,
     /// Colour for the overdue due-date accent. Defaults to `"red"`.
@@ -380,7 +380,7 @@ fn validate_view_spliced(
 }
 
 /// `[ls.ready]` — glyph, colour and label for the ready and blocked states in
-/// the READY column. An omitted key takes the shipped default.
+/// the `READY` column. An omitted key takes the shipped default.
 // One block covers both states, outside `[ls.columns.ready]`, because
 // `ColumnConfig` carries only `when`. An omitted key falls back to the
 // embedded floor, then to the renderer's literal fallback.

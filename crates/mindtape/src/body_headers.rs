@@ -23,7 +23,7 @@ pub struct HeadersConfig {
 #[derive(Debug, Clone, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct HeaderRuleConfig {
-    /// What the rule is called, used to report it (`body.headers.rules.<name>`).
+    /// The name a report shows for the rule (`body.headers.rules.<name>`).
     /// Optional: an unnamed rule reports by its position instead
     /// (`body.headers.rules[0]`). Two rules in this array sharing a name is a
     /// config error naming both.
