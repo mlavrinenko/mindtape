@@ -3962,11 +3962,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786797320,
-        "narHash": "sha256-8LXKCv/k8a0j69NuwUrxEoVJFRtibE3DHmt0fOcPFXM=",
+        "lastModified": 1791030737,
+        "narHash": "sha256-RDAl/59cdf1mwtNL1wVojrxpULtOvIGH2EnFxMzfb4k=",
         "owner": "mlavrinenko",
         "repo": "linecop",
-        "rev": "15acbbc1bfc24f5c595b9c995645c3f07391ba87",
+        "rev": "591b37b1666566702cd9cfbca2bfd66a77991c52",
         "type": "github"
       },
       "original": {
@@ -7066,11 +7066,11 @@
         "outdatty": "outdatty_7"
       },
       "locked": {
-        "lastModified": 1790110328,
-        "narHash": "sha256-aUfJJW+KtLg+BnauL9XHnbUUAMlywZVpoxFp6oxRdFs=",
+        "lastModified": 1791030958,
+        "narHash": "sha256-sfNCllgCVsMteJyWKZbpG6ifo5UYrfWiOOnSC7sul4k=",
         "owner": "mlavrinenko",
         "repo": "qahq",
-        "rev": "2c86aa96cca90944eacd02920d77115c4e86cbe1",
+        "rev": "98bc4e88c3d0ad0d4ce7882d33d2704382f6360a",
         "type": "github"
       },
       "original": {

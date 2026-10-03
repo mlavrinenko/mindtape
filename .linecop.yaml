@@ -43,10 +43,11 @@ overrides:
   # line. The cap leaves about 10% room. When it fires, move reasons into a
   # docs/contributing/*.md deep dive rather than raise the number.
   #
-  # Anchor each rendered file's pattern with `./`. linecop matches the
-  # `./`-prefixed path it reports, so `**/README.md` matches every README and
-  # a bare `README.md` matches none. skills/mindtape/evals/README.md is
-  # written by hand and keeps the Markdown cap.
+  # A pattern is a `.gitignore` line read from this file's directory. A bare
+  # `README.md` matches that name at any depth, and `./README.md` or
+  # `/README.md` anchors to the root. Each rendered file's pattern is anchored
+  # with `./`, because skills/mindtape/evals/README.md is written by hand and
+  # keeps the Markdown cap.
   #
   # `linecop --baseline 85` lists the files near their cap. Run it before you
   # add to an existing file.
