@@ -1,0 +1,78 @@
+#:schema ../../../schema/config.schema.json
+# examples/named-sets/.mindtape/config.toml — the checked project /named-sets/
+# reads back as data.
+#
+# Its one job is named sets: two views, three dictionaries, the allow-lists
+# that read a dictionary, and a rule that reads one with in_dict(). The page
+# slices these blocks out of this file, and www/generate-reference.sh runs
+# `mt` against it, so a view or a dictionary shown there is one that loads.
+
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "wip"
+glyph = "🔨"
+color = "yellow"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+# docs:slice named-sets/allow-lists
+[tasks.tags]
+allowed = ["@areas", "security"]
+
+[tasks.fields.kind]
+values = ["@kinds"]
+# docs:end
+
+# docs:slice named-sets/rule
+[[tasks.rules]]
+name = "imperative-title"
+when = "!terminal"
+assert = 'in_dict("verbs", word(title, 1))'
+message = "start the title with a verb"
+severity = "error"
+# docs:end
+
+# docs:slice named-sets/view-default
+[views.default]
+filter = "!terminal"
+# docs:end
+
+# docs:slice named-sets/view-waiting
+[views.waiting]
+filter = "blocked"
+sort = ["priority:desc"]
+columns = ["#", "title", "why"]
+description = "Blocked tasks and what each waits on"
+# docs:end
+
+# docs:slice named-sets/dict-verbs
+[dicts.verbs]
+include = ["mindtape-verbs", "mindtape-dev-verbs"]
+# docs:end
+
+# docs:slice named-sets/dict-areas
+[dicts.areas]
+values = ["auth", "billing"]
+path = "areas.txt"
+case = "fold"
+# docs:end
+
+# docs:slice named-sets/dict-kinds
+[dicts.kinds]
+values = ["feat", "fix", "chore"]
+# docs:end

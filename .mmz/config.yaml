@@ -100,6 +100,8 @@ scopes:
     - "examples/derived-tags/web/**"
     - "examples/learn-piano/tasks/**"
     - "examples/links/tasks/**"
+    - "examples/named-sets/tasks/**"
+    - "examples/priority/tasks/**"
     - "examples/recurring/tasks/**"
     - "examples/round-trip/tasks/**"
     - "examples/dsl/tasks/**"
@@ -177,6 +179,8 @@ scopes:
     - "examples/api-service/**"
     - "examples/derived-tags/**"
     - "examples/round-trip/**"
+    - "examples/named-sets/**"
+    - "examples/priority/**"
 
   # Every example project's config, for `just check-doc-spans`: their status
   # legends are the status verbs a doc may write as `mt <status>`. The

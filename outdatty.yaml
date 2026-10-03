@@ -321,6 +321,12 @@ groups:
       - examples/rules/tasks/add-csv-export.typ
       - examples/rules/tasks/drop-the-v1-api.typ
       - examples/rules/tasks/fix-the-session-timeout.typ
+      - examples/named-sets/tasks/rotate-the-signing-keys.typ
+      - examples/named-sets/tasks/retry-failed-invoice-payments.typ
+      - examples/named-sets/tasks/fix-the-refund-rounding.typ
+      - examples/priority/tasks/add-rate-limits-to-the-public-api.typ
+      - examples/priority/tasks/rename-the-billing-tables.typ
+      - examples/priority/tasks/fix-the-signup-email-typo.typ
 
   # The binary / invocation name is documented and emitted by these sources.
   # Any rename (or new subcommand example) must land in every dependent. The

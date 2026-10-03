@@ -482,13 +482,11 @@ actions = [
 ]
 # docs:end
 
-# docs:slice hooks/run-gate
 [[on.flip]]
 when = 'into("done") || into("cancelled") || into("failed")'
 actions = [
   { run = "mmz --is-fresh --tag gate", gate = true, message = "the checks have not passed against this worktree — run `just check`, then flip again (`--force` waives it and records the waiver in the note)" },
 ]
-# docs:end
 
 [add]
 header = ""

@@ -1,18 +1,10 @@
 #import "../utils/page.typ": page
+#import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
+#import "../utils/slices.typ": checked-slices, render-slices
 #import "../utils/framework-notes.typ": (
-  band-example, difficulty-anchors, framework-call, framework-table,
-  priority-bands, scale-config, scale-span,
+  anchors-table, bands-table, framework-table, scale-span,
 )
-
-// Every mechanical fact on this page — the framework list, each one's inputs
-// and their bounds, the score formulas, the shipped bands and difficulty
-// anchors — comes from www/generated/frameworks.json
-// (crates/mindtape/src/frameworks.toml + defaults.toml, via
-// www/generate-facts.sh). This page owns the presentation; the per-framework
-// prose lives in framework-notes.typ beside the renderers, and `just
-// check-doc-facts` fails the build if a framework here has none.
-#let fw = json("../generated/frameworks.json")
 
 #let meta = (
   route: "/priority/",
@@ -24,62 +16,94 @@
 
 #show: page.with(..meta)
 
-The number is classified into labelled bands; a #strong[framework] scores typed
-inputs into it. `difficulty` is the sibling field, classified by anchors instead.
+// The scales, bands, anchors and framework table come from
+// www/generated/frameworks.json (www/generate-facts.sh). The two blocks are
+// slices of examples/priority, which `just check-examples` validates, and
+// www/generate-reference.sh runs the listing and the refused write there.
+#let fw = json("../generated/frameworks.json")
+#let config = checked-slices(
+  json("../generated/priority-config.json"),
+  "priority-config",
+  ("framework",),
+)
+#let tasks = checked-slices(
+  json("../generated/priority.json"),
+  "priority",
+  ("ice-call",),
+)
 
-= The scale and bands
+A task's `priority` is a number on a scale. `mt` labels each number with the
+band it falls in, and sorts and filters on the number. A task sets the number
+by hand, such as `priority: 7`, or a framework computes it from typed inputs.
 
-#scale-config(fw)
+= Scale and bands
 
-Bands turn a raw number into a label. The shipped scale runs
-#scale-span(fw.scales.priority), banded #priority-bands(fw). A task may set a
-bare integer:
+The shipped scale runs from #scale-span(fw.scales.priority). Each band is a
+`[[tasks.priority.bands]]` entry:
 
-#band-example(fw)
+#bands-table(fw)
+
+`[tasks.priority]` sets the scale with `kind` (`int` or `real`), `min` and
+`max`, and `required` takes a filter naming the tasks that must have a
+priority. A project's bands replace the shipped list.
+`mt config show --defaults` prints the shipped values, and #link(u("/config/"))[Configuration]
+lists every key.
 
 = Difficulty
 
-`difficulty` is configured under its own `[tasks.difficulty]`, with the same
-`kind`, `min`, `max` and `required` keys as priority — but classifies with sparse
-labelled #strong[anchors] instead of bands. The shipped scale runs
-#scale-span(fw.scales.difficulty), anchored #difficulty-anchors(fw) — a value
-between anchors borrows the nearest lower anchor's glyph and colour. A project
-overrides the range and the anchors under the same key —
-#link(u("/config/"))[Configuration] carries them.
+`difficulty` is a second number with the same `kind`, `min`, `max` and
+`required` keys, under `[tasks.difficulty]`. Its scale runs from
+#scale-span(fw.scales.difficulty), and it is labelled by anchors instead of
+bands. A value between two anchors takes the lower anchor's label:
+
+#anchors-table(fw)
 
 = Frameworks
 
-A framework scores typed inputs instead of a hand-set number, and
-#fw.frameworks.len() ship baked-in — tabled at the end of this page. Pick the
-active one in config:
+A framework computes the priority from inputs a task fills in. This project
+turns on ICE:
 
-```toml
-[tasks.priority]
-framework = "ice"       # score through ICE
-allow-manual = false    # strict: forbid raw integers
-```
+#raw(
+  render-slices(
+    config,
+    (("framework", "score priority with ICE, and refuse a raw number"),),
+    comment: "#",
+  ),
+  lang: "toml",
+  block: true,
+)
 
 A task then calls the framework in place of a number:
 
-#framework-call(fw, "ice")
+#raw(
+  render-slices(tasks, (("ice-call", "an ICE call"),)),
+  lang: "typ",
+  block: true,
+)
 
-The Rust layer scores it, bands the result, and keeps it on the scale.
+`mt` computes the score and labels it with its band. `--sort priority` and a
+filter such as `priority >= 7` read the score:
 
-= Manual versus strict
+#terminal("priority-ls")
 
-- `allow-manual = true` (default when a framework is set) — tasks may use either a
-  raw integer or the framework call.
-- `allow-manual = false` — every task must score through the framework; there is
-  no scalar form. #link(u("/templates/"))[Templates & slots] covers how a
-  scaffold fills it.
+`allow-manual` decides whether a raw number is still accepted while a
+framework is on. It defaults to `true`. With `false`, every task must call the
+framework, so `mt` refuses a raw number and exits
+#exit-code("priority-strict"):
+
+#terminal("priority-strict")
+
+#link(u("/templates/"))[Templates & slots] shows how `mt add` fills a
+framework's inputs.
 
 = Built-in frameworks
 
 #framework-table(fw)
 
-A framework's inputs — names, types, bounds — are declared under
-`[tasks.priority.frameworks.<name>]` (the baked-in ones in
-`crates/mindtape/src/frameworks.toml`), where its scoring and bands are
-overridable too; define your own with the generic `framework(name, ..inputs)`
-call. A framework with no formula classifies into named categories instead of
-banding a number.
+`[tasks.priority.frameworks.<name>]` declares a framework's inputs, with
+their types and bounds, and its score formula or categories. The built-ins
+are declared the same way in `crates/mindtape/src/frameworks.toml`, and a
+project can override any of their keys. A task calls a project's own
+framework with `framework("name", input: value, ...)`. A framework with
+categories instead of a formula sorts each task into a category, and each
+category has a fixed score on the scale.

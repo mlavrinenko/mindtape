@@ -1,0 +1,32 @@
+#:schema ../../../schema/config.schema.json
+# examples/priority/.mindtape/config.toml — the checked project /priority/
+# reads back as data.
+#
+# Its one job is a priority framework: ICE, in strict mode, on the shipped
+# 0..9 scale and bands. The page slices the framework block out of this file
+# and one task's priority call out of tasks/, and www/generate-reference.sh
+# runs `mt` against a copy, so a call shown there is one `mt` scores.
+
+[[typst.local-packages]]
+name = "mindtape"
+path = "../../lib"
+
+[tasks]
+roots = ["tasks"]
+
+[[tasks.status]]
+value = "todo"
+glyph = "📋"
+color = "cyan"
+
+[[tasks.status]]
+value = "done"
+glyph = "✅"
+color = "green"
+terminal = true
+
+# docs:slice priority/framework
+[tasks.priority]
+framework = "ice"
+allow-manual = false
+# docs:end

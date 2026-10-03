@@ -9,7 +9,8 @@
 # examples/recurring/ -> recurring.json (the `recur:` field),
 # examples/statuses/ -> statuses.json (the `status:` field), examples/dsl/ ->
 # dsl.json (the task sketch AGENTS.md and /dsl/ show), examples/self-validating/ ->
-# self-validating.json (a project's own check function). The pages that quote
+# self-validating.json (a project's own check function), examples/priority/ ->
+# priority.json (a framework call). The pages that quote
 # them read only the slices, and `mt check` runs on each fixture, so a helper
 # whose shape changes fails that check before a page can show it.
 #
@@ -36,8 +37,8 @@
 #   # docs:end
 #
 # The fact name rides in the marker here because one config file feeds several
-# pages — the repo's own carries /hooks/'s gate pair AND /rule-packs/'s adopt
-# block — where a task-slice fixture is one project per page and can take its
+# pages — the repo's own carries /hooks/'s run-less gate and /rule-packs/'s
+# adopt block — where a task-slice fixture is one project per page and can take its
 # name from the directory. Each fact lands at <fact>-config.json, shaped like a
 # task fact minus `root`: one fact's slices may come from two projects, so the
 # `file` field is repo-relative on its own. Suffix, not prefix: www/generate.sh
@@ -137,6 +138,7 @@ slice_fixture recurring | emit recurring.json
 slice_fixture dsl | emit dsl.json
 slice_fixture statuses | emit statuses.json
 slice_fixture self-validating | emit self-validating.json
+slice_fixture priority | emit priority.json
 
 # Every config file scanned for config markers, repo-relative. A project not
 # listed here is simply not read, so a marker added to one is inert until its
@@ -145,6 +147,8 @@ slice_fixture self-validating | emit self-validating.json
 CONFIG_SOURCES=(
   ".mindtape/config.toml"
   "examples/api-service/.mindtape/config.toml"
+  "examples/named-sets/.mindtape/config.toml"
+  "examples/priority/.mindtape/config.toml"
   "examples/estimates/.mindtape/config.toml"
   "examples/links/.mindtape/config.toml"
   "examples/rules/.mindtape/config.toml"
@@ -160,7 +164,7 @@ CONFIG_SOURCES=(
 # `api-service` holds the problem slices. The Problems pages render them
 # through www/utils/problems.typ, and generate-api-service.sh reads the same
 # markers to require a session for each.
-CONFIG_FACTS=(api-service commit-rules config derived-tags estimates hooks links named-sets rule-packs rules self-validating statuses)
+CONFIG_FACTS=(api-service commit-rules config derived-tags estimates hooks links named-sets priority rule-packs rules self-validating statuses)
 
 # Same two-pass shape as slice_fixture: awk writes each slice to its own temp
 # file and one index row per slice, then jq builds the JSON with --rawfile so

@@ -1,81 +1,72 @@
-// Reference-only enrichment for the CLI page: prose, and the captures that
-// belong with each command. None of this is in `mt _cli --json`; cli-ref.typ
-// merges it into the reflected command tree by dotted path (`command`,
-// `command.arg-id`, `nested.command.arg-id`). cli-gate() fails the build if a
-// key here does not resolve to a live node.
+// Prose and captures for the CLI page, which `mt _cli --json` does not carry.
+// cli-ref.typ merges each entry into the command tree by dotted path
+// (`command`, `command.arg-id`, `nested.command.arg-id`), and cli-gate()
+// fails the build on a key that names no command or argument.
 //
-// Fields per key: `prose` (content); `examples`, the slug of a capture whose
-// commands render as a block to copy; `outputs`, slugs of captures that render
-// as transcripts. www/generate-cli.sh runs every capture named here.
+// Fields per key: `prose`; `examples`, the slug of a capture whose commands
+// render as a block to copy; `outputs`, the slugs of captures that render as
+// transcripts. www/generate-cli.sh makes every capture named here.
 
 #import "site.typ": u
 
 #let cli-notes = (
   // ── Files ───────────────────────────────────────────────────────────────────
   "add": (
-    prose: [Positional words join into the title; `key=value` / `key+=value` /
-      `key@path` tokens (after `--set`, or bare after `--`), a `-f` values file
-      (YAML or JSON), or editor mode fill the rest. Full detail on
-      #link(u("/templates/"))[Templates & slots]. `--dedup` decides what
-      happens when the destination stem already exists (`fail` — bail before
-      writing; `skip` — exit 0, write nothing; `add-suffix` — mint `-2`,
-      `-3`, …). One policy decides a collision however the stem was produced.
-      #link(u("/config/"))[`[tasks.naming]`] carries the project-wide `dedup`
-      default the flag overrides; unset, it is `add-suffix` when a `stem`
-      template is configured and `fail` otherwise.
-      `--format` reports what happened — `text` (default prose), `path`,
-      `path0`, or `json` — and the JSON object states the outcome
-      (`wrote`/`skipped`/`suffixed`), not only the path. The rendered task is
-      validated #emph[before] it is written, so a rejected add leaves no file
-      behind: fix the value the error names and re-run. `--no-verify` skips
-      that check and writes whatever it was handed.],
+    prose: [The words of the title come first. `key=value`, `key+=value` and
+      `key@path` tokens, after `--set` or bare after `--`, fill the template's
+      other slots, as do a YAML or JSON file given to `-f` and the editor;
+      #link(u("/templates/"))[Templates & slots] describes them. `--dedup`
+      decides what happens when a task with the same stem exists: `fail`
+      stops before writing, `skip` writes nothing and exits 0, and
+      `add-suffix` adds `-2`, `-3` and so on. The project's default is
+      #link(u("/config/"))[`[tasks.naming] dedup`]. Without it, the default is
+      `add-suffix` when a `stem` template is set and `fail` otherwise.
+      `--format` prints the result as `text`, `path`, `path0` or `json`, and
+      the JSON says whether `mt` wrote, skipped or suffixed the task. `mt`
+      checks the task before it writes, so a refused add leaves no file.
+      `--no-verify` skips the check.],
     outputs: ("add",),
   ),
   "import": (
-    prose: [Full cookbook — the canonical schema, `jq` adapters for Taskwarrior
-      and GitHub Issues, the round-trip contract — on
-      #link(u("/import-export/"))[Import & export].],
+    prose: [#link(u("/import-export/"))[Import & export] describes the JSON
+      format, `jq` adapters for Taskwarrior and GitHub Issues, and what a round
+      trip keeps.],
     examples: "import-examples",
   ),
   "mv": (
-    prose: [`NEW_STEM` is a bare stem — a trailing `.typ` is dropped, a path
-      separator refused: `mv` renames a task where it stands, and moving one
-      between roots or folders changes its
-      #link(u("/derived-tags/"))[derived tags], which is a decision of its
-      own. A stem another task already answers to, or an existing file, is
-      refused before anything moves. The move goes through `git mv` inside a
-      repository — so the rename lands staged and git carries the file's
-      history across it — and through a plain rename outside one, or for a
-      file git does not track yet. Every inbound edge is retargeted in the
-      same pass, each keeping its own relative prefix (`../sub/old.typ`
-      becomes `../sub/new.typ`), and the whole set is validated before a byte
-      is written.],
+    prose: [`NEW_STEM` is a bare stem: `mt` drops a trailing `.typ` and refuses a
+      path separator. `mt mv` renames a task in place, because moving it to
+      another folder changes its #link(u("/derived-tags/"))[derived tags]. It
+      refuses a stem another task already has, or an existing file, before
+      anything moves. Inside a git repository it renames with `git mv`, so the
+      rename is staged and git keeps the file's history. Outside git, or for an
+      untracked file, it renames the file directly. Every edge that points at
+      the task is rewritten in the same pass, each keeping its relative prefix
+      (`../sub/old.typ` becomes `../sub/new.typ`), and `mt` checks the whole
+      set before it writes.],
     outputs: ("mv",),
   ),
   // ── Fields ──────────────────────────────────────────────────────────────────
   "set": (
-    prose: [One field per call, spelled the way `mt add --set` already spells
-      one: `field=value`, `field+=value` to append to a list field,
-      `field@path` to read the value out of a file. Writable are the fields
-      whose Typst literal is one unambiguous value — `title`, `priority` (the
-      raw number), `difficulty`, `kind`, `assignee`, `tags`, `due`, `start`.
-      A field with a command of its own is refused naming that command
-      (`status` → `flip`, `links` → `link`, `reviewed` → `review`, `recur` →
-      `recur`, the stem → `mv`), an unknown field naming the writable ones. A
-      #link(u("/priority/"))[framework priority] (`ice(...)`) and an
-      #link(u("/estimates/"))[`estimate`] unit dict stay out: neither is one
-      value. The rewritten task is validated #emph[before] it is written, so a
-      rejected value leaves the file byte-identical — and appending a value
-      the list already carries writes nothing at all, so a re-run is safe.],
+    prose: [One field per call, written as `mt add --set` writes it:
+      `field=value`, `field+=value` to add to a list, `field@path` to read the
+      value from a file. `mt set` writes `title`, `priority` as a number,
+      `difficulty`, `kind`, `assignee`, `tags`, `due` and `start`. A field with
+      its own command is refused with that command's name: `status` (`flip`),
+      `links` (`link`), `reviewed` (`review`), `recur` (`recur`) and the id
+      (`mv`). A #link(u("/priority/"))[framework priority] such as `ice(...)`
+      and an #link(u("/estimates/"))[`estimate`] are not single values, so
+      `mt set` does not write them. `mt` checks the task before it writes, so
+      a refused value leaves the file unchanged. Adding a value a list already
+      holds writes nothing, so a re-run is safe.],
     outputs: ("set",),
   ),
   "eval": (outputs: ("eval",)),
   "go": (
-    prose: [Resolves `id` to a path, then spawns `[go] editor` (falling back to
-      `$VISUAL`, then `$EDITOR`; no `vi` floor — a GUI user is told to configure
-      `[go] editor` rather than dropped into one). A `{task}` token in the
-      configured command is replaced with the resolved path; without one the
-      path is appended.],
+    prose: [Resolves the task to a path and runs `[go] editor`, or `$VISUAL`, or
+      `$EDITOR`. With none set it fails and asks for `[go] editor`. `mt`
+      replaces a `{task}` token in the command with the path, or appends the
+      path when there is no token.],
   ),
 
   // ── Listing ─────────────────────────────────────────────────────────────────
@@ -84,12 +75,11 @@
     examples: "ls-examples",
   ),
   "find": (
-    prose: [Sugar over the filter language, nothing more: `mt find login bug`
-      desugars to `contains("login") && contains("bug")` and runs the same code
-      path as `ls`, so every `ls` flag forwards and the desugared expression
-      shows up in the applied filter. Which fields a bare `contains()` sweeps is
-      `[ls] contains-fields` — see #link(u("/filters/"))[Filters]. To target a
-      field, use the filter language directly: `mt ls 'contains("bug", title)'`.],
+    prose: [`mt find login bug` runs
+      `mt ls 'contains("login") && contains("bug")'`, so every `ls` flag works and the `applied:` line
+      shows the filter. `[ls] contains-fields` sets the fields a bare
+      `contains()` searches; see #link(u("/filters/"))[Filters]. To search one
+      field, use a filter: `mt ls 'contains("bug", title)'`.],
     examples: "find-examples",
   ),
   "ls.sort": (
@@ -106,19 +96,16 @@
 
   // ── Links ───────────────────────────────────────────────────────────────────
   "link": (
-    prose: [The write path for `links:`. `mt link \<task\> \<kind\>
-      \<target\>...` upserts one edge per target; `mt link --apply \<file\>`
-      (`-` for stdin) reads an adjacency map — a YAML or JSON mapping of stem
-      to kind to targets, documented with its full shape on
-      #link(u("/dsl/"))[Task DSL]. Both merge: edges dedupe on (kind, target),
-      so re-running either form writes nothing the second time and a map stays
-      safe to re-apply as it grows. `--replace` (`--apply` only) makes the map
-      the complete edge set for each stem it names. The kind must be
-      configured and the target must resolve #emph[before] anything is
-      written, so a refused edge leaves no file to repair — a kind whose
-      `note` rule is `required` (`related`, out of the box) is refused without
-      one, naming the edge. A per-entry failure is reported and the rest still
-      land, `mt rm`-style; `--dry-run` prints the plan instead.],
+    prose: [`mt link <task> <kind> <target>...` adds one edge per target.
+      `mt link --apply <file>`, or `-` for stdin, reads a YAML or JSON map of
+      stem to kind to targets, described on #link(u("/dsl/"))[Task DSL]. Both
+      merge: an edge with the same kind and target is not added twice, so
+      re-running either writes nothing new. `--replace`, with `--apply`, makes
+      the map the whole edge set of each stem it names. `mt` checks the kind
+      and the target before it writes. A kind whose note is required, such as
+      the built-in `related`, is refused without one. When one entry fails,
+      `mt` reports it and writes the rest. `--dry-run` prints the plan
+      instead.],
     outputs: ("link",),
   ),
 
@@ -148,11 +135,9 @@
 
   // ── Retire ──────────────────────────────────────────────────────────────────
   "rm": (
-    prose: [`TARGET` is variadic: zero or more entries, each a reference or a
-      filter, resolved the same way a lone target resolves. The union of every
-      entry's matches, deduplicated by id, retires in one pass — one
-      confirmation prompt, one tombstone/rewrite pass covering the whole
-      set.],
+    prose: [`TARGET` takes any number of entries, each a task reference or a
+      filter. `mt rm` retires every task any entry matches, in one pass with
+      one confirmation prompt.],
     outputs: ("rm",),
   ),
 
@@ -161,15 +146,14 @@
     examples: "init-examples",
   ),
   "install": (
-    prose: [`--no-lib` / `--no-defaults` / `--no-schema` / `--no-completions`
-      skip any one install; `--force` overwrites an existing XDG
-      `defaults.toml`, schema or hook. The completion hooks land one per shell
-      under `~/.config/mindtape/completions/`; source the one your shell uses
-      from its startup file. Each holds a couple of lines that ask `mt` for the
-      completion on every tab press, never a generated completion script — so
-      the candidates are this project's own stems, statuses, views, templates
-      and link kinds, plus the presets `mt preset ls` lists for
-      `mt init --preset`, and an `mt` upgrade needs no re-install.],
+    prose: [`--no-lib`, `--no-defaults`, `--no-schema` and `--no-completions`
+      each skip one part, and `--force` overwrites an existing defaults file,
+      schema or hook. `mt` writes one completion hook per shell under
+      `~/.config/mindtape/completions/`. Source the one for your shell from
+      its startup file. A hook asks `mt` for completions on each tab press, so
+      it offers this project's stems, statuses, views, templates and link
+      kinds, and the presets for `mt init --preset`. A new `mt` needs no
+      re-install.],
   ),
   "worktrees": (
     examples: "worktrees-examples",

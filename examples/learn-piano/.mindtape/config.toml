@@ -161,38 +161,30 @@ severity = "warn"
 # The same imperative-title convention the main repo holds itself to (see
 # .mindtape/config.toml) — `verbs` unions both shipped dicts, and the rule
 # below asks whether a title's first word is in it.
-# docs:slice named-sets/dict-verbs
 [dicts.verbs]
 include = ["mindtape-verbs", "mindtape-dev-verbs"]
-# docs:end
 
 # The other two sources, and the lookup rule, in one entry: inline `values`, a
 # `path` file read one entry per line, and `case`. Referenced as `@composers`
 # from the tags allow-list above, so `mt check` resolves it on every run rather
 # than leaving a dictionary nothing reads.
-# docs:slice named-sets/dict-composers
 [dicts.composers]
 values = ["beethoven", "debussy"]
 path = "dicts/composers.txt"
 case = "fold"
-# docs:end
 
 # The default `mt ls` listing (used when the caller passes no filter): a view,
 # so it can carry sort and columns too, not just a filter. `[ls] default-view`
 # points the default at another view by name.
-# docs:slice named-sets/view-default
 [views.default]
 filter = "!terminal && (miss(start) || start <= now())"
-# docs:end
 
 # Named views: `mt views` lists them, `mt ls @name` applies filter+sort+columns.
-# docs:slice named-sets/view-stuck
 [views.stuck]
 filter = "blocked && stale(30)"
 sort = ["priority:desc", "due:asc"]
 columns = ["#", "status", "ready", "priority", "due", "title"]
 description = "Blocked and not reviewed in 30 days"
-# docs:end
 
 [views.this-week]
 filter = '!terminal && has(due) && due >= "2026-07-06" && due <= "2026-07-13"'

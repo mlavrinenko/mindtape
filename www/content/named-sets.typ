@@ -1,4 +1,5 @@
 #import "../utils/page.typ": page
+#import "../utils/ui.typ": exit-code, terminal
 #import "../utils/site.typ": u
 #import "../utils/slices.typ": checked-slices, render-slices
 
@@ -12,127 +13,112 @@
 
 #show: page.with(..meta)
 
-// Both blocks below are slices of examples/learn-piano/.mindtape/config.toml,
-// the project `just check-examples` validates and the docs generator runs `mt`
-// against — so a section shown here is one that loads.
+// Every block is a slice of examples/named-sets/.mindtape/config.toml, which
+// `just check-examples` validates. www/generate-reference.sh runs the
+// listings in that project and the refused write in a copy.
 #let view-parts = (
-  (
-    "view-default",
-    "a filter and nothing else; an omitted facet is simply not applied",
-  ),
-  ("view-stuck", "all four facets, reached as `mt ls @stuck`"),
+  ("view-default", "the listing a bare `mt ls` shows"),
+  ("view-waiting", "a filter, a sort, columns and a description"),
 )
-
 #let dict-parts = (
-  ("dict-verbs", "`include` alone: two built-in word lists under one name"),
-  (
-    "dict-composers",
-    "inline `values`, a `path` file, and the `case` lookups compare under",
-  ),
+  ("dict-verbs", "both built-in verb lists under one name"),
+  ("dict-areas", "inline values, a file of entries, and the case rule"),
+  ("dict-kinds", "inline values only"),
+)
+#let use-parts = (
+  ("allow-lists", "allow-lists that read a dictionary"),
+  ("rule", "a rule that reads a dictionary"),
 )
 
 #let slices = checked-slices(
   json("../generated/named-sets-config.json"),
   "named-sets-config",
-  (view-parts + dict-parts).map(p => p.at(0)),
+  (view-parts + dict-parts + use-parts).map(p => p.at(0)),
 )
 
-= Named views
+= Views
 
-`[views.<name>]` names a query bundle — filter, sort, and column set — so
-`mt ls` can reference it by name instead of repeating the expression:
+`[views.<name>]` names a #link(u("/filters/"))[filter] together with a sort
+and a set of columns, so a listing can be asked for by name:
 
-#raw(render-slices(slices, view-parts, comment: "#"), lang: "toml", block: true)
+#raw(
+  render-slices(slices, view-parts, comment: "#"),
+  lang: "toml",
+  block: true,
+)
 
-Every facet is optional: an empty `filter` matches everything, `sort` is a
-list of `--sort`-grammar specs, `columns` a subset of the `mt ls` column names
-— #link(u("/cli/"))[CLI reference] lists both — and `description` is free
-text shown by `mt views`. Reference a view with `@name`: bare `@name` applies
-filter, sort, and columns together; `@name` inside a larger expression is
-filter-only, equivalent to `in_view("name")` — see
-#link(u("/filters/"))[Filter language] for the predicate.
+Every key is optional. `filter` is a filter expression, and an empty one
+matches every task. `sort` takes the specs `--sort` takes, and `columns` the
+column names `--columns` takes, both listed on the
+#link(u("/cli/"))[CLI reference]. `mt views <name>` prints the
+`description`.
 
-Views are validated at config load:
+`mt ls @name` applies the view's filter, sort and columns. Inside a larger
+expression, `@name` is the view's filter alone, as in
+`mt ls '@waiting && kind == "feat"'`. When no `[[ls.rules]]` entry matches, a
+bare `mt ls` shows the view named `default`, or the one `[ls] default-view`
+names.
 
-- each `filter` must parse;
-- `sort` and `columns` entries must be legal;
-- every view reference must resolve;
-- the reference graph must be acyclic — a cycle is a config error.
+#terminal("named-sets-views")
 
-= Named dictionaries
+`mt` checks every view when it loads the config. Each `filter` must parse,
+each `sort` and `columns` entry must exist, each `@name` must name a view,
+and no view may reach itself through `@name`.
 
-`[dicts.<name>]` names a set of strings so more than one rule can share it. It
-is a top-level section, sibling of `[views.<name>]`, for the same reason: a set
-is not a property of tasks, and an allow-list, a filter and a future consumer
-all read the same name.
+= Dictionaries
 
-#raw(render-slices(slices, dict-parts, comment: "#"), lang: "toml", block: true)
+`[dicts.<name>]` names a set of strings that rules, filters and allow-lists
+share:
 
-All three sources — `values`, `path` and `include` — feed *one* set; any
-combination is legal and at least one must be present, which is what the two
-entries above show between them. `path` is relative to the project root and may
-leave it (the
-same rule `[[typst.local-packages]] path` follows); blank lines and lines
-starting with `#` are skipped, and each entry is trimmed. `include` names other
-dictionaries — the project's own or a built-in — and unions their entries in
-raw, so the *including* dictionary's `case` decides how they compare.
+#raw(
+  render-slices(slices, dict-parts, comment: "#"),
+  lang: "toml",
+  block: true,
+)
 
-`case` decides lookups, not storage: `fold` (the default) is ASCII
-case-insensitive, so a capitalised title word matches a lowercase entry;
-`exact` is byte equality.
+A dictionary takes entries from three keys, and needs at least one. `values`
+lists them inline. `path` names a file with one entry per line, relative to
+the project root. `mt` trims each line and skips blank lines and lines
+starting with `#`. `include` adds every entry of other dictionaries, the
+project's own or the built-ins.
 
-== Referencing a dictionary from an allow-list
+`case` decides how a lookup compares. `fold`, the default, ignores ASCII case,
+so the title word `Rotate` matches the entry `rotate`. `exact` compares bytes.
+An included dictionary's entries compare under the including dictionary's
+`case`.
 
-`[tasks.tags] allowed` and `[tasks.fields.<name>] values` each accept `@<dict>`
-anywhere they accept a literal entry:
+`mt` ships two dictionaries, which need no declaration:
 
-```toml
-[tasks.tags]
-allowed = ["@areas", "swept", "size"]
+- `mindtape-verbs`: the 500 most frequent English verbs, in base form.
+- `mindtape-dev-verbs`: verbs software work uses that the frequency list
+  leaves out, such as `refactor`, `deprecate` and `rate-limit`.
 
-[tasks.fields.kind]
-values = ["@kinds"]
-```
+A project dictionary may not start with `mindtape-`, because the prefix names
+the built-ins.
 
-`@<dict>` expands to that dictionary's entries at config load — before any
-rule reads the list — so validation, `mt add` slot completion and the
-generated schema all see a plain, already-resolved set and need no change of
-their own. A list may mix literal entries and `@<dict>` references freely:
-the result is their union in list order, deduplicated (a repeated entry
-counts once), except that a referenced dictionary contributes its entries
-alphabetically — a dictionary carries no declaration order of its own.
+= Using a dictionary
 
-The `@` is the same sigil `mt ls` reads as a view reference (`@name`), and it
-means the same thing here: always a dictionary, never a literal. There is no
-escape for a tag or field value that itself starts with `@`: an entry like
-`"@urgent"` resolves as a dictionary named `urgent` — expanding to that
-dictionary's entries if one exists, failing the load if none does — never
-surviving as the literal string.
+`[tasks.tags] allowed` and `[tasks.fields.<name>] values` accept `@<dict>`
+in place of an entry, and a rule reads one with
+#link(u("/filters/"))[`in_dict()`]:
 
-A filter reaches the same set with `in_dict("name", <string>)`, under that
-dictionary's own `case` — see #link(u("/filters/"))[Filter language].
+#raw(
+  render-slices(slices, use-parts, comment: "#"),
+  lang: "toml",
+  block: true,
+)
 
-== The built-ins
+`mt` expands each `@<dict>` when it loads the config, so validation, `mt add`
+completion and the generated schema all read a plain list. The list keeps
+its literal entries in order, adds each dictionary's entries in alphabetical
+order, and drops repeats. An entry starting with `@` always names a
+dictionary, so no tag or field value can start with `@`. A tag outside the
+list is refused, and `mt` exits #exit-code("named-sets-allowed"):
 
-Two dictionaries ship embedded in `mt` and need no declaration to be
-referenced:
+#terminal("named-sets-allowed")
 
-- `mindtape-verbs` — the 500 most frequent English verbs, base (imperative)
-  form;
-- `mindtape-dev-verbs` — software-work verbs the general frequency list ranks
-  too low to carry, such as `update`, `refactor` and the hyphenated `rate-limit`.
-
-The `mindtape-` prefix is reserved for them: naming a project dictionary
-`mindtape-anything` is a config error, so the namespace stays the tool's.
-
-Dictionaries are validated at config load, once for the project rather than
-once per task:
-
-- the `mindtape-` prefix is refused on a project dictionary;
-- each dictionary must name at least one source;
-- every `include`, and every `@<dict>` reference in `[tasks.tags] allowed`
-  or a `[tasks.fields.<name>] values` list, must resolve — an unknown name
-  gets a nearest-match suggestion and the list of known dictionaries;
-- the `include` graph must be acyclic — a cycle is a config error;
-- every `path` must resolve and read;
-- a dictionary that resolves to no entries at all is a config error.
+`mt` checks every dictionary when it loads the config. Each must have a
+source and resolve to at least one entry. Each `path` must be readable. Each
+`include` and `@<dict>` must name a dictionary, and an unknown name gets the
+closest match. No dictionary may include itself, directly or through
+others.

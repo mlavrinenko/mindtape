@@ -4,8 +4,8 @@
 # The pages read what this writes under www/generated/. A transcript is a
 # record that keeps each command line beside what it printed (www/capture.sh
 # says how), and the www/generate-*.sh scripts this one calls write them. The
-# `.ansi` captures here hold colour output alone, for terminal-ansi() on the
-# home page hero and /filters/. The JSON and source files are facts the pages
+# `.ansi` capture here holds colour output alone, for terminal-ansi() on the
+# home page hero. The JSON and source files are facts the pages
 # quote as code. The build regenerates everything, so no transcript can drift
 # from the binary.
 #
@@ -141,12 +141,12 @@ bash "$SCRIPT_DIR/generate-guides.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-model.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-import-export.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-commit-rules.sh" "$REPO" "$OUT"
+bash "$SCRIPT_DIR/generate-reference.sh" "$REPO" "$OUT"
 
 # `mt ls` in colour for terminal-ansi() (www/utils/ui.typ), which the home
-# page hero and /filters/ render.
+# page hero renders.
 gen_color() { local slug="$1"; shift; MINDTAPE_NOW="$API_NOW" "$MT" -w "$FIX" --color always "$@" >"$OUT/$slug.ansi"; }
 gen_color ls       ls
-gen_color ls-open  ls '!terminal'
 
 # The hero "source" face reads a real fixture task verbatim. Copy it under
 # generated/ so it lives inside the Typst build root (read() can't escape it).
