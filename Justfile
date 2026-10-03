@@ -229,7 +229,7 @@ check-doc-recipes:
 # in schema/config.schema.json tells history or shouts in all-caps words. The
 # word lists, and what the scan skips, are in .just/scripts/check-doc-prose.sh.
 
-[doc("Fail on history words or all-caps emphasis in the doc sources")]
+[doc("Fail on history words or all-caps emphasis in doc prose, config comments and schema descriptions")]
 [group("gate")]
 check-doc-prose:
     bash .just/scripts/check-doc-prose.sh

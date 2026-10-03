@@ -57,7 +57,7 @@ The pre-commit hook refuses a commit unless every gate below passed against the 
 | `check-doc-facts` | a derived crate, field, framework, gate, sweep flag or completable argument ships with no doc entry |
 | `check-doc-recipes` | a doc names a recipe by hand, and a rename leaves it stale |
 | `check-doc-spans` | a doc code span names an `mt` command, flag or config key that does not exist |
-| `check-doc-prose` | a doc source tells history or shouts |
+| `check-doc-prose` | a doc source, a config comment or a schema description tells history or shouts |
 | `check-doc-blocks` | a doc shows a hand-typed code block that nothing validates |
 | `docs::check` | the docs site fails to build or links to a missing page |
 | `docs::md-check` | a committed Markdown file differs from its source or renders broken on GitHub |

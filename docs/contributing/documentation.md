@@ -52,7 +52,7 @@ Write for a busy engineer who reads each sentence once. The rules apply to comme
    - Bad: “An unknown bare name is refused naming what IS available”
    - Good: “An unknown bare name is refused with a list of the available packs”
 
-`just check-doc-prose` enforces two of these rules. It fails on the history words `now`, `used to`, `no longer`, `anymore` and `formerly`, and on an all-caps word outside its acronym list. It skips raw spans, fenced blocks and double-quoted text, so a quoted bad example passes. The word lists are in `.just/scripts/check-doc-prose.sh`.
+`just check-doc-prose` enforces two of these rules. It fails on the history words `now`, `used to`, `no longer`, `anymore` and `formerly`, and on an all-caps word outside its acronym list. It skips raw spans, fenced blocks and double-quoted text, so a quoted bad example passes. It applies the same rules to the full-line `#` comments of the Justfile, `.just/*.just`, `.mmz/config.yaml`, `outdatty.yaml` and `.linecop.yaml`, and to every `description` in `schema/config.schema.json`. The word lists are in `.just/scripts/check-doc-prose.sh`.
 
 ## The duplicate-prose audit
 

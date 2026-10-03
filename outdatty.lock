@@ -115,7 +115,7 @@ groups:
       .just/scripts/script-scope-check.sh: ea49ba3a92c1189c69282c34fb05ac4474c34f8b174be1611c9eff921e254969
       .just/scripts/site-pages-fixture-check.sh: 3e0562f8033e8656eb674c2e80ca9d73f051c265b8f47334c2e44556fd92e12f
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
-      Justfile: 2b86a6a04800133f8512f566804d0be28fdcadaefb0460a08a2b623151ccf2f4
+      Justfile: 51964e91be915c342505c040ba6783c97a9f16c44c8f6b95180d222717b86ea2
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: 312eab3b443fc004d1b45b3aec683d32e05df7f0216a0e3b7f65104bbdd07ef1
@@ -123,7 +123,7 @@ groups:
       docs/src/contributing/coverage-crap.typ: 923a5e0a4cc271244e93a2eefc90b404fb08bd5cc14176529bc79e6dd3499bae
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
       docs/src/contributing/docs-site-build.typ: 1c238b4e341c292e425a06c09cc5b7d7487a4a0f703df2b7fb4cd7ad37bff1de
-      docs/src/contributing/documentation.typ: 7c22a10eebe6600b587f66c6157b640ff77409ef8490446ee4ac9bd70a752db3
+      docs/src/contributing/documentation.typ: da2a1e64260ec039d110c6f768fe4567f436b698b5122871aa9169c166df2fe6
       docs/src/contributing/example-projects.typ: 0e2185418f3252a3ffe5779f545719b6da04b7b4387a751fb099198e223bb8fd
       docs/src/contributing/gates.typ: 9d419593e4d836304e6c45a47207579a7277e3b37a4c6bfe012380150ddb0b48
       docs/src/contributing/mutation-testing.typ: 47d36b9534266f15322c41b37158b943ce28b87236af6b514d1d6bfcfbb86316
