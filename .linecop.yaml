@@ -37,10 +37,10 @@ overrides:
   # paragraph, so a rendered file's line count measures its paragraphs, list
   # items and table rows.
   #
-  # CONTRIBUTING.md is capped as well, because every agent session in this
-  # repo loads it whole. The line cap limits how many rules and gates the file
-  # holds, and `max_bytes` limits how long they run, because a long paragraph
-  # counts as one line. Both leave about 10% room. When one fires, move reasons
+  # AGENTS.md, CONTRIBUTING.md and SKILL.md are capped as well, because every
+  # agent session in this repo loads them whole. The line cap limits how many
+  # rules a file holds, and `max_bytes` limits how long they run, because a
+  # long paragraph counts as one line. Both leave about 10% room. When one fires, move reasons
   # into a docs/contributing/*.md deep dive rather than raise the number.
   #
   # A pattern is a `.gitignore` line read from this file's directory. A bare
@@ -54,12 +54,14 @@ overrides:
   - pattern: "./README.md"
     exclude: true
   - pattern: "./AGENTS.md"
-    exclude: true
+    limit: 78
+    max_bytes: 5600
   - pattern: "./CONTRIBUTING.md"
     limit: 142
     max_bytes: 11300
   - pattern: "./skills/mindtape/SKILL.md"
-    exclude: true
+    limit: 76
+    max_bytes: 6600
 
   # The sources of the four rendered files. agents.typ (151 lines) and
   # skill.typ (131) are capped at their size after a whole rewrite plus about
