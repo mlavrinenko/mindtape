@@ -571,6 +571,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A refused `mt add` hints only at templates that fix the refusal.** A
+  breach of any rule listed every template pinning any value the caller
+  passed, so a body word-cap refusal pointed at four templates for
+  `assignee=agent`. A template is now named only when a breach is about the
+  field it pins: the names a rule's `assert` and `when` read, the `field` a
+  `check` receives, or the field a core check reports.
+
 - **Docs page summaries render code as code.** The site's lede and
   `<meta name="description">` printed the backticks around code as text. A
   summary is Typst markup, rendered as content in the lede and as plain text

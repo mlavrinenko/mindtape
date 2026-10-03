@@ -175,6 +175,17 @@ impl Filter {
         out
     }
 
+    /// Every bare name the filter reads — a field, or a predicate written bare
+    /// such as `ready` — as written. Empty for the match-all filter.
+    #[must_use]
+    pub fn names(&self) -> std::collections::BTreeSet<String> {
+        self.tree
+            .iter()
+            .flat_map(Node::iter_variable_identifiers)
+            .map(restore_name)
+            .collect()
+    }
+
     /// Whether `task` satisfies the filter, resolving framework scores against
     /// `config`. The `ready` / `blocked` predicates are unavailable here (no
     /// task-set context); use [`matches_with`](Self::matches_with) for those.

@@ -1,7 +1,8 @@
 //! The `mt add` refusal hint: when the chosen template left a field to a slot
 //! and another template writes that same field as the literal the caller's
-//! values filled in, name that template. A sibling module because `add.rs`
-//! sits at the linecop cap.
+//! values filled in, and a breach that refused the write is about that field,
+//! name that template. A sibling module because `add.rs` sits at the linecop
+//! cap.
 //!
 //! Nothing here names a field, kind or template: the pins are read off the
 //! templates' own `task.with(…)` arguments, so it holds for any project.
@@ -12,16 +13,39 @@ use std::path::Path;
 use mindtape::Config;
 
 use crate::add_values::{list_templates, resolve_template};
-use crate::task_edit::task_with;
+use crate::task_edit::{Refused, task_with};
 
 /// A field the chosen template left to a slot and the caller passed: its name,
 /// the source text it was filled with, and that value unquoted.
 type Slotted = (String, String, String);
 
+/// The keys in `explicit` that a breach refusing the write is about
+/// ([`mindtape::breach_fields`]). Empty when `err` is no such refusal: a
+/// source that did not load, or a write refused for its destination, is not
+/// fixed by another template's literal.
+pub(super) fn refused_keys(
+    err: &anyhow::Error,
+    config: &Config,
+    explicit: &BTreeSet<String>,
+) -> BTreeSet<String> {
+    let Some(refused) = err.downcast_ref::<Refused>() else {
+        return BTreeSet::new();
+    };
+    let mut keys = BTreeSet::new();
+    for label in &refused.breached {
+        match mindtape::breach_fields(config, label) {
+            Some(fields) => keys.extend(fields.into_iter().filter(|key| explicit.contains(key))),
+            None => return explicit.clone(),
+        }
+    }
+    keys
+}
+
 /// One `hint:` line per other template pinning a slot-filled field to the
 /// value the caller passed for it, or `None` when no template does. `sources`
 /// is the chosen template's source (config slots spliced in) before and after
-/// the fill; `explicit` holds the keys the caller passed.
+/// the fill; `explicit` holds the keys the caller passed that the refusal is
+/// about ([`refused_keys`]).
 pub(super) fn template_hint(
     config: &Config,
     root: &Path,
@@ -29,7 +53,7 @@ pub(super) fn template_hint(
     sources: (&str, &str),
     explicit: &BTreeSet<String>,
 ) -> Option<String> {
-    let slotted = slotted_fields(sources, explicit)?;
+    let slotted = slotted_fields(sources, explicit).filter(|slotted| !slotted.is_empty())?;
     let mut lines = Vec::new();
     for name in list_templates(config, root) {
         if name == chosen_name {

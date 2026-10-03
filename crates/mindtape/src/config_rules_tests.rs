@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{RuleSpec, check_all, labels, validate_rules};
+use super::{RuleSpec, breach_fields, check_all, labels, validate_rules};
 use crate::config::Config;
 use crate::model::{Status, Task};
 use crate::parse_config;
@@ -364,4 +364,50 @@ assert = 'has(title)'
     let names = labels(&config);
     assert!(names.contains("rules.named"), "{names:?}");
     assert!(names.contains("rules[1]"), "{names:?}");
+}
+
+fn fields(names: &[&str]) -> std::collections::BTreeSet<String> {
+    names.iter().map(|name| (*name).to_owned()).collect()
+}
+
+#[test]
+fn a_rule_breach_is_about_the_names_its_expressions_read() {
+    let config = config(
+        "[[tasks.rules]]\nname = \"r\"\nwhen = 'kind == \"dev\"'\n\
+         assert = 'x-team != \"\" && ready'\n",
+    );
+    assert_eq!(
+        breach_fields(&config, "rules.r"),
+        Some(fields(&["kind", "ready", "x-team"]))
+    );
+}
+
+#[test]
+fn a_rule_through_a_view_or_a_whole_task_check_may_be_about_any_field() {
+    let config = config(
+        "[views.mine]\nfilter = 'assignee == \"ada\"'\n\
+         [[tasks.rules]]\nassert = '@mine'\n\
+         [[tasks.rules]]\ncheck = { typst = \"c.typ\", function = \"f\" }\n\
+         [[tasks.rules]]\ncheck = { typst = \"c.typ\", function = \"f\", field = \"tags\" }\n",
+    );
+    assert_eq!(breach_fields(&config, "rules[0]"), None);
+    assert_eq!(breach_fields(&config, "rules[1]"), None);
+    assert_eq!(breach_fields(&config, "rules[2]"), Some(fields(&["tags"])));
+}
+
+#[test]
+fn any_other_breach_is_about_the_first_segment_of_its_label() {
+    let config = config("");
+    assert_eq!(
+        breach_fields(&config, "priority.impact"),
+        Some(fields(&["priority"]))
+    );
+    assert_eq!(
+        breach_fields(&config, "body.content.rules.word-cap"),
+        Some(fields(&["body"]))
+    );
+    assert_eq!(
+        breach_fields(&config, "rules.gone"),
+        Some(fields(&["rules"]))
+    );
 }

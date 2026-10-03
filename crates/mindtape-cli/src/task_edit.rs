@@ -186,17 +186,38 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
     for problem in &verdict.problems {
         eprintln!("error: {problem}");
     }
-    bail!(
-        "{} validation issue(s) as filled; nothing was written",
-        verdict.problems.len()
-    )
+    Err(Refused {
+        breached: verdict.breached,
+    }
+    .into())
 }
+
+/// [`verify_candidate`]'s refusal of a source that loaded, carrying what each
+/// breach was reported under, so a caller can tell which fields it is about.
+#[derive(Debug)]
+pub struct Refused {
+    /// The [`field`](mindtape::Violation::field) of each fatal breach.
+    pub breached: Vec<String>,
+}
+
+impl std::fmt::Display for Refused {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let count = self.breached.len();
+        write!(
+            f,
+            "{count} validation issue(s) as filled; nothing was written"
+        )
+    }
+}
+
+impl std::error::Error for Refused {}
 
 /// Unreachable placeholder: [`crate::pre_write::check`] answers one verdict per
 /// pending write, so the single-entry slice above always yields one.
 fn unchecked_fallback() -> crate::pre_write::Verdict {
     crate::pre_write::Verdict {
         problems: Vec::new(),
+        breached: Vec::new(),
         warnings: Vec::new(),
         task: None,
         checked: false,

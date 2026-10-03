@@ -196,12 +196,13 @@ pub fn run(args: &AddArgs) -> Result<()> {
         write_task(args, &project, (&stem, &dest, file), &filled, interactive)
     };
     written.map_err(|err| {
+        let refused = add_hint::refused_keys(&err, config, &explicit);
         match add_hint::template_hint(
             config,
             &project.root,
             &template_name,
             (&source, &filled),
-            &explicit,
+            &refused,
         ) {
             Some(hint) => anyhow!("{err:#}\n{hint}"),
             None => err,

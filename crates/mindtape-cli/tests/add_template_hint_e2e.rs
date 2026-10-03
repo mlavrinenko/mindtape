@@ -50,3 +50,25 @@ fn no_hint_when_no_template_pins_the_value() {
     let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
     assert!(!stderr.contains("hint:"), "{stderr}");
 }
+
+/// A breach of a rule that reads only `title` is not fixed by a template that
+/// pins `kind`, so the refusal names no template.
+#[test]
+fn no_hint_when_the_breach_names_another_field() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    let config = format!(
+        "{CONFIG}[[tasks.rules]]\nname = \"no-bare-t\"\nassert = 'title != \"T\"'\n\
+         severity = \"error\"\n"
+    );
+    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
+    std::fs::write(
+        dir.path().join(".mindtape/templates/feat.typ"),
+        PINNED.replace("\"dev\"", "\"feat\""),
+    )
+    .unwrap();
+    let out = add(dir.path(), "kind=feat", &[]).failure();
+    let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
+    assert!(stderr.contains("rules.no-bare-t"), "{stderr}");
+    assert!(!stderr.contains("hint:"), "{stderr}");
+}

@@ -50,6 +50,9 @@ pub struct Pending<'a> {
 pub struct Verdict {
     /// Problems naming this write; empty means it is safe to land.
     pub problems: Vec<String>,
+    /// The [`field`](mindtape::Violation::field) of each breach in
+    /// [`problems`](Self::problems); empty for a source that did not load.
+    pub breached: Vec<String>,
     /// Breaches the project declared as `severity = "warn"`
     /// (`[[tasks.rules]]`): printed, and then the write lands anyway.
     ///
@@ -224,6 +227,7 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
     match result {
         Err(error) => Verdict {
             problems: vec![format!("did not load: {}", error.message)],
+            breached: Vec::new(),
             warnings: Vec::new(),
             task: None,
             checked: true,
@@ -236,6 +240,10 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
             let render = |violation: &&mindtape::Violation| crate::check::breach_at(violation);
             Verdict {
                 problems: fatal.iter().map(render).collect(),
+                breached: fatal
+                    .iter()
+                    .map(|violation| violation.field.clone())
+                    .collect(),
                 warnings: warned.iter().map(render).collect(),
                 task: Some(checked.task),
                 checked: true,
@@ -255,6 +263,7 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
 fn unchecked() -> Verdict {
     Verdict {
         problems: Vec::new(),
+        breached: Vec::new(),
         warnings: Vec::new(),
         task: None,
         checked: false,
