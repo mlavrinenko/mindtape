@@ -53,6 +53,7 @@ pub fn bare_task(id: &str) -> Task {
         shape_errors: Vec::new(),
         body: String::new(),
         marker_line: 0,
+        field_lines: std::collections::BTreeMap::new(),
     }
 }
 

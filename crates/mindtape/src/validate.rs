@@ -106,7 +106,7 @@ fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
                     task.id,
                     first.file.display()
                 ),
-                location: None,
+                location: task.field_location("id"),
                 severity: None,
             });
         } else {
@@ -154,7 +154,7 @@ pub(crate) fn violation(task: &Task, field: &str, message: String) -> Violation 
         task_id: task.id.clone(),
         field: field.to_owned(),
         message,
-        location: None,
+        location: task.field_location(field),
         severity: None,
     }
 }

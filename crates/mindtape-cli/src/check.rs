@@ -98,8 +98,7 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     bail!("{failures} violation(s), {load_errors} load error(s)")
 }
 
-/// Report one violation: `severity: file:line: field: message`, with the
-/// task id in place of `file:line` when it has no source line.
+/// Report one violation: `severity: file:line: field: message`.
 ///
 /// Every line carries its severity. A `[[tasks.rules]]` breach prints the level
 /// its project chose; everything `MindTape` checks itself is fatal and prints
@@ -112,20 +111,14 @@ fn format_violation(violation: &Violation) -> String {
     let prefix = violation
         .severity
         .map_or("error", |severity| severity.label());
-    if let Some(loc) = &violation.location {
-        format!(
-            "{prefix}: {}:{}: {}: {}",
-            loc.file.display(),
-            loc.line,
-            violation.field,
-            violation.message
-        )
-    } else {
-        format!(
-            "{prefix}: {}: {}: {}",
-            violation.task_id, violation.field, violation.message
-        )
-    }
+    let loc = &violation.location;
+    format!(
+        "{prefix}: {}:{}: {}: {}",
+        loc.file.display(),
+        loc.line,
+        violation.field,
+        violation.message
+    )
 }
 
 #[cfg(test)]

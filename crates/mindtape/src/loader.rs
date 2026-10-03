@@ -1,5 +1,6 @@
 //! Discover the project root and load tasks by live-evaluating their files.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, batch_harvest};
@@ -179,6 +180,7 @@ fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
     task.depth = item.depth;
     let (line, body) = marker_call(source);
     task.marker_line = line;
+    task.field_lines = field_lines(source);
     task.body = body;
     task
 }
@@ -361,6 +363,23 @@ fn file_stem(file: &Path) -> String {
 /// Both come off one walk because both are the same lookup. A source with no
 /// such call — a task authored as a bare `#metadata((…))` — yields `(0, "")`:
 /// no line to point at and no body to slice.
+/// The one-based line of each named argument of the `task.with(…)` call.
+fn field_lines(source: &str) -> BTreeMap<String, usize> {
+    let Some(call) = typst_edit::find_method_calls(source, "task", "with")
+        .into_iter()
+        .next()
+    else {
+        return BTreeMap::new();
+    };
+    call.args
+        .iter()
+        .filter_map(|arg| {
+            let name = arg.name.clone()?;
+            Some((name, typst_edit::line_of(source, arg.value_range.start)))
+        })
+        .collect()
+}
+
 fn marker_call(source: &str) -> (usize, String) {
     let Some(call) = typst_edit::find_method_calls(source, "task", "with")
         .into_iter()

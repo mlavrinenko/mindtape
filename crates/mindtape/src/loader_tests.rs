@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use super::{find_root, find_root_bounded, load_project, marker_call};
+use super::{field_lines, find_root, find_root_bounded, load_project, marker_call};
 use crate::config::Config;
 use crate::numeric::NumValue;
 use crate::parse_config;
@@ -443,4 +443,25 @@ fn stamps_graph_ranks_over_the_whole_set() {
     assert_eq!(rank("root"), (0, 2));
     assert_eq!(rank("mid"), (1, 1));
     assert_eq!(rank("leaf"), (2, 0));
+}
+
+#[test]
+fn field_lines_name_the_line_of_each_argument() {
+    let src = "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  title: \"T\",\n  \
+               links: depends-on(\"a.typ\"),\n)\n";
+    let lines = field_lines(src);
+    assert_eq!(lines.get("title"), Some(&3));
+    assert_eq!(lines.get("links"), Some(&4));
+    assert!(field_lines("no marker\n").is_empty());
+}
+
+#[test]
+fn a_field_without_a_line_points_at_the_marker_call() {
+    let mut task = crate::test_support::bare_task("a");
+    task.marker_line = 2;
+    task.field_lines.insert("links".into(), 4);
+    assert_eq!(task.field_location("links").line, 4);
+    assert_eq!(task.field_location("tags[1]").line, 2);
+    task.marker_line = 0;
+    assert_eq!(task.field_location("id").line, 1);
 }

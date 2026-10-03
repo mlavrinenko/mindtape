@@ -33,9 +33,9 @@ pub struct Violation {
     pub field: String,
     /// Human-readable message.
     pub message: String,
-    /// Source location when the violation points to a specific line — a
-    /// heading, a comment, or the `task.with(…)` call itself.
-    pub location: Option<Location>,
+    /// Where the violation points: the line of the offending field, heading
+    /// or comment, else the `task.with(…)` call itself.
+    pub location: Location,
     /// The severity a project chose for this violation, for the one kind that
     /// has a choice: a `[[tasks.rules]]` breach (see [`crate::config_rules`]).
     ///

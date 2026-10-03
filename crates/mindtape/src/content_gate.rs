@@ -191,10 +191,10 @@ pub fn check_content(
                 task_id: task.id.clone(),
                 field: rule.label.clone(),
                 message: rule.message.clone().unwrap_or(default),
-                location: Some(Location {
+                location: Location {
                     file: task.file.clone(),
                     line: node.heading.line,
-                }),
+                },
                 severity: None,
             });
         }

@@ -23,7 +23,7 @@ use crate::link::{
 use crate::model::{Task, resolve_link_path};
 use crate::ready::{collect_blockers, unblocked_violation};
 use crate::severity::Severity;
-use crate::validate::Violation;
+use crate::validate::{Location, Violation};
 
 /// Validate every task's `links:` edges against `config`, appending violations
 /// to `out`: resolution (or target-shape validation) and per-kind
@@ -67,7 +67,7 @@ fn check_unblocked(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
                 task_id: task.id.clone(),
                 field: "status".to_owned(),
                 message: unblocked_violation(&status.name, &blockers),
-                location: None,
+                location: task.field_location("status"),
                 severity: Some(Severity::Warn),
             });
         }
@@ -199,11 +199,19 @@ fn check_note_rule(
 /// the full chain.
 fn check_cycle(tasks: &[Task], kind: &str, out: &mut Vec<Violation>) {
     if let Err(cycle) = toposort_kind(tasks, kind) {
+        let task_id = cycle.members.first().cloned().unwrap_or_default();
+        let location = tasks.iter().find(|task| task.id == task_id).map_or_else(
+            || Location {
+                file: format!("{task_id}.typ").into(),
+                line: 1,
+            },
+            |task| task.field_location("links"),
+        );
         out.push(Violation {
-            task_id: cycle.members.first().cloned().unwrap_or_default(),
+            task_id,
             field: kind.to_owned(),
             message: format!("{kind} cycle: {cycle}"),
-            location: None,
+            location,
             severity: None,
         });
     }
@@ -212,9 +220,9 @@ fn check_cycle(tasks: &[Task], kind: &str, out: &mut Vec<Violation>) {
 fn push(out: &mut Vec<Violation>, task: &Task, field: String, message: String) {
     out.push(Violation {
         task_id: task.id.clone(),
+        location: task.field_location("links"),
         field,
         message,
-        location: None,
         severity: None,
     });
 }

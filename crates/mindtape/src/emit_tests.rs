@@ -100,6 +100,7 @@ fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
     // a round trip owes is the fields the emitter writes — a line number is a
     // property of the file, not of the task.
     reloaded.marker_line = task.marker_line;
+    reloaded.field_lines.clone_from(&task.field_lines);
     reloaded.links.sort_by_key(link_sort_key);
 
     let mut expected = task.clone();

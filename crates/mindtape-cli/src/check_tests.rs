@@ -353,15 +353,15 @@ fn forbid_policy_fails_and_reports_file_line_and_text() {
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
-fn breach(severity: Option<mindtape::Severity>, line: Option<usize>) -> mindtape::Violation {
+fn breach(severity: Option<mindtape::Severity>, line: usize) -> mindtape::Violation {
     mindtape::Violation {
         task_id: "t".to_owned(),
         field: "f".to_owned(),
         message: "m".to_owned(),
-        location: line.map(|line| mindtape::Location {
+        location: mindtape::Location {
             file: "tasks/t.typ".into(),
             line,
-        }),
+        },
         severity,
     }
 }
@@ -370,8 +370,7 @@ fn breach(severity: Option<mindtape::Severity>, line: Option<usize>) -> mindtape
 fn every_breach_line_starts_with_a_severity() {
     use mindtape::Severity::{Error, Warn};
     let show = |s, l| super::format_violation(&breach(s, l));
-    assert_eq!(show(None, Some(3)), "error: tasks/t.typ:3: f: m");
-    assert_eq!(show(Some(Error), Some(3)), "error: tasks/t.typ:3: f: m");
-    assert_eq!(show(Some(Warn), Some(3)), "warning: tasks/t.typ:3: f: m");
-    assert_eq!(show(None, None), "error: t: f: m");
+    assert_eq!(show(None, 3), "error: tasks/t.typ:3: f: m");
+    assert_eq!(show(Some(Error), 3), "error: tasks/t.typ:3: f: m");
+    assert_eq!(show(Some(Warn), 3), "warning: tasks/t.typ:3: f: m");
 }

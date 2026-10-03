@@ -84,7 +84,8 @@ fn an_outgrown_working_tree_warns_through_the_budget_rule() {
     let (ok, stdout) = check(dir.path());
     assert!(ok, "a warn rule leaves `mt check` green: {stdout}");
     assert!(
-        stdout.contains("warning: budgeted: rules.src-budget: split the remaining work"),
+        stdout
+            .contains("warning: tasks/budgeted.typ:1: rules.src-budget: split the remaining work"),
         "the breach names the rule and its advice: {stdout}"
     );
 }

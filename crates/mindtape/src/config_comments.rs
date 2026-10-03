@@ -119,10 +119,10 @@ fn to_violation(task: &Task, comment: &Comment) -> Violation {
         task_id: task.id.clone(),
         field: "comments".to_owned(),
         message: format!("{} comment: \"{}\"", shape(&comment.kind), comment.text),
-        location: Some(Location {
+        location: Location {
             file: task.file.clone(),
             line: comment.line,
-        }),
+        },
         severity: None,
     }
 }

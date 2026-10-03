@@ -70,7 +70,7 @@ fn a_breach_carries_the_label_message_location_and_severity() {
     assert_eq!(breach.message, "start the title with an imperative verb");
     assert_eq!(breach.severity, Some(Severity::Error));
     assert!(breach.is_fatal());
-    let location = breach.location.unwrap();
+    let location = breach.location;
     assert_eq!(location.file, std::path::Path::new("tasks/a.typ"));
     assert_eq!(location.line, 3);
 }
@@ -170,11 +170,11 @@ fn two_unnamed_rules_never_collide() {
 }
 
 #[test]
-fn a_task_with_no_source_reports_without_a_location() {
+fn a_task_with_no_source_reports_at_line_one() {
     let mut subject = task("a", "T", "wip");
     subject.marker_line = 0;
     let toml = "[[tasks.rules]]\nname = \"n\"\nassert = 'kind == \"bug\"'\n";
-    assert_eq!(sole_breach(&[subject], &config(toml)).location, None);
+    assert_eq!(sole_breach(&[subject], &config(toml)).location.line, 1);
 }
 
 #[test]

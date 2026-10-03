@@ -52,7 +52,7 @@ fn forbid_catches_a_line_comment_with_file_line_and_text() {
     let violation = violations.first().expect("one comment violation");
     assert_eq!(violation.field, "comments");
     assert!(violation.message.contains("no, use in_view() instead"));
-    let location = violation.location.as_ref().expect("comment has a location");
+    let location = &violation.location;
     assert_eq!(location.file, task.file);
     assert_eq!(location.line, 2);
 }

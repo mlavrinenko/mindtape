@@ -124,7 +124,7 @@ fn missing_section_reports_at_the_task_with_line() {
     task.marker_line = 7;
     let rules = compile_rules(&[require("Summary")]).unwrap();
     let violations = check_headers(&task, "= Introduction\n", &rules, &Config::default());
-    let loc = violations[0].location.as_ref().unwrap();
+    let loc = &violations[0].location;
     assert_eq!(loc.line, 7);
     assert_eq!(loc.file, task.file);
 }
@@ -162,7 +162,7 @@ fn forbid_present_heading_carries_location() {
     let rules = compile_rules(&[forbid("Phase")]).unwrap();
     let violations = check_headers(&task, "= Phase\n", &rules, &Config::default());
     assert_eq!(violations.len(), 1);
-    let loc = violations[0].location.as_ref().unwrap();
+    let loc = &violations[0].location;
     assert_eq!(loc.line, 1);
 }
 
@@ -189,7 +189,7 @@ fn unique_duplicate_flags_extra() {
     let rules = compile_rules(&[rule]).unwrap();
     let violations = check_headers(&task, "= Summary\n= Summary\n", &rules, &Config::default());
     assert_eq!(violations.len(), 1);
-    assert_eq!(violations[0].location.as_ref().unwrap().line, 2);
+    assert_eq!(violations[0].location.line, 2);
     assert!(violations[0].message.contains("duplicate"));
 }
 
@@ -218,7 +218,7 @@ fn order_reversed_is_violation() {
     let rules = compile_rules(&[rule]).unwrap();
     let violations = check_headers(&task, "= Scope\n= Summary\n", &rules, &Config::default());
     assert_eq!(violations.len(), 1);
-    assert_eq!(violations[0].location.as_ref().unwrap().line, 1);
+    assert_eq!(violations[0].location.line, 1);
     assert!(violations[0].message.contains("must precede"));
 }
 
@@ -253,7 +253,7 @@ fn allowlist_top_level_flags_stray() {
         &Config::default(),
     );
     assert_eq!(violations.len(), 1);
-    assert_eq!(violations[0].location.as_ref().unwrap().line, 3);
+    assert_eq!(violations[0].location.line, 3);
     assert!(violations[0].message.contains("Random"));
 }
 

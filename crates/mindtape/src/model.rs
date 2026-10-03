@@ -113,21 +113,40 @@ pub struct Task {
     ///
     /// Zero means "no source was seen": a task built straight from a marker
     /// ([`Task::from_marker`], `mt import`'s records) has no line to point at,
-    /// and [`marker_location`](Self::marker_location) reports no location
-    /// rather than line 0.
+    /// and [`marker_location`](Self::marker_location) reports line 1.
     pub marker_line: usize,
+    /// One-based source line of each named argument of the `task.with(…)` call,
+    /// keyed by argument name, so a breach points at its own field. Empty when
+    /// no source was seen, like [`marker_line`](Self::marker_line).
+    pub field_lines: BTreeMap<String, usize>,
 }
 
 impl Task {
     /// The `task.with(…)` call's source position, for a violation that points
-    /// at the file instead of naming the task. `None` when no source was seen
+    /// at the file instead of naming the task. Line 1 when no source was seen
     /// (see [`marker_line`](Self::marker_line)).
     #[must_use]
-    pub fn marker_location(&self) -> Option<crate::validate::Location> {
-        (self.marker_line > 0).then(|| crate::validate::Location {
+    pub fn marker_location(&self) -> crate::validate::Location {
+        crate::validate::Location {
             file: self.file.clone(),
-            line: self.marker_line,
-        })
+            line: self.marker_line.max(1),
+        }
+    }
+
+    /// Where a breach of `field` points: the line of that argument in the
+    /// `task.with(…)` call, else the call's own line
+    /// ([`marker_location`](Self::marker_location)). A sub-path such as
+    /// `estimate.days` or `tags[1]` resolves to its root field.
+    #[must_use]
+    pub fn field_location(&self, field: &str) -> crate::validate::Location {
+        let root = field.split(['.', '[']).next().unwrap_or(field);
+        self.field_lines.get(root).map_or_else(
+            || self.marker_location(),
+            |&line| crate::validate::Location {
+                file: self.file.clone(),
+                line,
+            },
+        )
     }
 
     /// Build a task from its file stem, relative path, and a `mindtape.task`
@@ -181,6 +200,7 @@ impl Task {
             shape_errors: errors,
             body: String::new(),
             marker_line: 0,
+            field_lines: BTreeMap::new(),
         }
     }
 

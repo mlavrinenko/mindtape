@@ -91,6 +91,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         shape_errors: Vec::new(),
         body,
         marker_line: 0,
+        field_lines: std::collections::BTreeMap::new(),
     };
 
     Mapped {
