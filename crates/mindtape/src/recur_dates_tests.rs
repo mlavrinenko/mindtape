@@ -86,6 +86,57 @@ fn weekday_set_wraps_into_next_week() {
     assert_eq!(next, date(2026, 6, 8));
 }
 
+fn weekly(value: u32, weekdays: &[Weekday]) -> Rule {
+    Rule::Period {
+        unit: PeriodUnit::Weeks,
+        value,
+        weekdays: weekdays.to_vec(),
+    }
+}
+
+#[test]
+fn every_second_week_stays_inside_the_week_between_listed_days() {
+    let rule = weekly(2, &[Weekday::Mon, Weekday::Thu]);
+    // Monday 2026-06-01 -> Thursday of the same week.
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 1)).unwrap(),
+        date(2026, 6, 4)
+    );
+}
+
+#[test]
+fn every_second_week_skips_a_week_after_the_last_listed_day() {
+    let rule = weekly(2, &[Weekday::Mon, Weekday::Thu]);
+    // Thursday 2026-06-04 -> Monday two weeks on, not the next Monday.
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 4)).unwrap(),
+        date(2026, 6, 15)
+    );
+    // A Saturday past the last listed day crosses the boundary the same way.
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 6)).unwrap(),
+        date(2026, 6, 15)
+    );
+}
+
+#[test]
+fn every_third_week_with_one_weekday_steps_three_weeks() {
+    let rule = weekly(3, &[Weekday::Mon]);
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 1)).unwrap(),
+        date(2026, 6, 22)
+    );
+}
+
+#[test]
+fn every_week_with_weekdays_is_unchanged() {
+    let rule = weekly(1, &[Weekday::Mon, Weekday::Thu]);
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 4)).unwrap(),
+        date(2026, 6, 8)
+    );
+}
+
 #[cfg(not(feature = "rrule"))]
 #[test]
 fn rrule_rule_is_not_implemented_without_the_cargo_feature() {

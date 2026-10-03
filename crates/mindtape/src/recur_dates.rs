@@ -120,7 +120,9 @@ pub fn next_date(
 /// See [`RecurError`].
 pub fn advance_once(rule: &Rule, from: NaiveDate) -> Result<NaiveDate, RecurError> {
     match rule {
-        Rule::Period { weekdays, .. } if !weekdays.is_empty() => next_weekday_after(from, weekdays),
+        Rule::Period {
+            value, weekdays, ..
+        } if !weekdays.is_empty() => next_weekday_after(from, weekdays, *value),
         Rule::Period { unit, value, .. } => add_period(from, *unit, *value),
         Rule::Rrule { raw } => advance_rrule(raw, from),
     }
@@ -148,10 +150,27 @@ fn add_period(from: NaiveDate, unit: PeriodUnit, value: u32) -> Result<NaiveDate
     .ok_or(RecurError::DateOverflow)
 }
 
-/// The next date strictly after `from` whose weekday is in `weekdays`.
-/// Bounded to a 7-day scan: any non-empty set matches within one week.
-fn next_weekday_after(from: NaiveDate, weekdays: &[Weekday]) -> Result<NaiveDate, RecurError> {
+/// The next date strictly after `from` whose weekday is in `weekdays`, on
+/// every `weeks`-th week. Weeks run Monday to Sunday. A listed day later in
+/// `from`'s own week wins; otherwise the scan restarts on the Monday
+/// `weeks` weeks after `from`'s, so `weeks - 1` whole weeks are skipped.
+/// Bounded to a 7-day scan per week: any non-empty set matches within one.
+fn next_weekday_after(
+    from: NaiveDate,
+    weekdays: &[Weekday],
+    weeks: u32,
+) -> Result<NaiveDate, RecurError> {
     let mut candidate = from.succ_opt().ok_or(RecurError::DateOverflow)?;
+    while candidate.weekday() != Weekday::Mon {
+        if weekdays.contains(&candidate.weekday()) {
+            return Ok(candidate);
+        }
+        candidate = candidate.succ_opt().ok_or(RecurError::DateOverflow)?;
+    }
+    let skipped = u64::from(weeks.saturating_sub(1)) * 7;
+    candidate = candidate
+        .checked_add_days(Days::new(skipped))
+        .ok_or(RecurError::DateOverflow)?;
     for _ in 0..7 {
         if weekdays.contains(&candidate.weekday()) {
             return Ok(candidate);

@@ -51,8 +51,10 @@ run `mt recur <task>` to write the next one.
 )
 
 `on:` takes a set of weekdays, written with the prelude's names `mon` to
-`sun`, and needs a `weeks` period. Each occurrence then falls on the next
-listed weekday, so the number of weeks has no effect.
+`sun`, and needs a `weeks` period. Each occurrence falls on the next listed
+weekday. After the last listed weekday of a week, the series skips the
+remaining weeks of the period, so `every(weeks: 2, on: (mon, thu))` falls on
+Monday and Thursday of every second week.
 
 = Policy
 
