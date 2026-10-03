@@ -217,10 +217,13 @@ fn apply_rule(
 }
 
 fn diagnostic_to_violation(task: &Task, diag: artifact_gate::Diagnostic, label: &str) -> Violation {
-    let location = diag.line.map(|line| Location {
-        file: task.file.clone(),
-        line,
-    });
+    let location = diag
+        .line
+        .map(|line| Location {
+            file: task.file.clone(),
+            line,
+        })
+        .or_else(|| task.marker_location());
     Violation {
         task_id: task.id.clone(),
         field: label.to_owned(),

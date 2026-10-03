@@ -98,31 +98,33 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     bail!("{failures} violation(s), {load_errors} load error(s)")
 }
 
-/// Report one violation: at its source line when it has one, else naming the
-/// task.
+/// Report one violation: `severity: file:line: field: message`, with the
+/// task id in place of `file:line` when it has no source line.
 ///
-/// The `error:` / `warning:` prefix belongs to a `[[tasks.rules]]` breach and
-/// nothing else, because a rule is the only violation whose level the project
-/// chose (`Violation::severity`). Everything `MindTape` checks itself is fatal,
-/// and a label on a report with one level tells the reader nothing while
-/// pushing the file and line it came for one word further right.
+/// Every line carries its severity. A `[[tasks.rules]]` breach prints the level
+/// its project chose; everything `MindTape` checks itself is fatal and prints
+/// `error:`. A reader scans one column for what fails and what only warns.
 fn print_violation(violation: &Violation) {
+    println!("{}", format_violation(violation));
+}
+
+fn format_violation(violation: &Violation) -> String {
     let prefix = violation
         .severity
-        .map_or_else(String::new, |severity| format!("{}: ", severity.label()));
+        .map_or("error", |severity| severity.label());
     if let Some(loc) = &violation.location {
-        println!(
-            "{prefix}{}:{}: {}: {}",
+        format!(
+            "{prefix}: {}:{}: {}: {}",
             loc.file.display(),
             loc.line,
             violation.field,
             violation.message
-        );
+        )
     } else {
-        println!(
-            "{prefix}{}: {}: {}",
+        format!(
+            "{prefix}: {}: {}: {}",
             violation.task_id, violation.field, violation.message
-        );
+        )
     }
 }
 

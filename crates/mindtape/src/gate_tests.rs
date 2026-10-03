@@ -116,7 +116,17 @@ fn require_absent_heading_is_violation() {
     let violations = check_headers(&task, "= Introduction\n", &rules, &Config::default());
     assert_eq!(violations.len(), 1);
     assert_eq!(violations[0].field, "body.headers.rules[0]");
-    assert!(violations[0].location.is_none());
+}
+
+#[test]
+fn missing_section_reports_at_the_task_with_line() {
+    let mut task = bare_task("a");
+    task.marker_line = 7;
+    let rules = compile_rules(&[require("Summary")]).unwrap();
+    let violations = check_headers(&task, "= Introduction\n", &rules, &Config::default());
+    let loc = violations[0].location.as_ref().unwrap();
+    assert_eq!(loc.line, 7);
+    assert_eq!(loc.file, task.file);
 }
 
 #[test]

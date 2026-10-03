@@ -211,7 +211,8 @@ down to the next heading of the same or a higher level, subsections included.
   counts.
 
 A write that would break a body rule is refused like a field rule. `mt check`
-reports a body violation at the heading's line, named
+reports a body violation at the heading's line, or at the `task.with(…)` line
+when a required section is missing, named
 `body.headers.rules.<name>` or `body.content.rules.<name>`.
 
 = Review comments
