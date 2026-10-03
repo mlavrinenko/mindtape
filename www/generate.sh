@@ -178,9 +178,11 @@ typst compile --package-path "$PKGS" \
   "$FIX/tasks/repertoire/fur-elise-polish.typ" "$OUT/hero-card.svg"
 rm -rf "$PKGS"
 
-# The records: the quickstart's session and the CLI reference's captures.
+# The records: the quickstart's session, the CLI reference's captures, and a
+# session for each problem examples/api-service solves.
 bash "$SCRIPT_DIR/generate-quickstart.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-cli.sh" "$REPO" "$OUT"
+bash "$SCRIPT_DIR/generate-api-service.sh" "$REPO" "$OUT"
 
 # --- favicon + apple touch icon, rasterised from the one hand-maintained SVG --
 # assets/images/ (unlike generated/) IS a tola-copied dir (see the header

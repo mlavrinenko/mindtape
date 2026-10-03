@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 2),
+  status: done(2026, 10, 3),
   links: depends-on(
     "build-an-api-service-example-around-the-five-problems-mindtape-solves.typ",
     "print-each-captures-command-from-the-string-that-ran-it.typ",
