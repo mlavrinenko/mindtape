@@ -15,7 +15,7 @@ use mindtape::{
     BodyRules, Candidate, FallbackSeverity, Severity, TemplateSources, Violation, template_failure,
 };
 
-use crate::add::{inject_header, inject_required_slots};
+use crate::add::{inject_header, splice_config_slots};
 use crate::add_values::{list_templates, resolve_template, template_path};
 use crate::task_edit::filing_status;
 use crate::util::{self, Project};
@@ -149,8 +149,7 @@ fn file_examples(
     let fail = |err: anyhow::Error| vec![template_failure(file, authored, format!("{err:#}"))];
     let config = &project.config;
     let status = filing_status(config, authored, None);
-    let needed = mindtape::required_core_slots(config, status.as_deref());
-    let (spliced, _) = inject_required_slots(authored, &needed).map_err(fail)?;
+    let (spliced, _) = splice_config_slots(authored, config, status.as_deref()).map_err(fail)?;
     let unfillable = mindtape::unfillable_slots(file, authored, &spliced);
     if !unfillable.is_empty() {
         return Err(unfillable);

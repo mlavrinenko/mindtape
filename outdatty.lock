@@ -14,7 +14,7 @@ groups:
       www/content/trace-commits-to-tasks.typ: 6f8d4d7ff344895057460f3a7322cbcb23067fc2bf3ab90a72a19427cb19b49b
   cli-docs:
     source:
-      crates/mindtape-cli/src/add.rs: 901afb32476d1d569acf1fbc844a42c624025d3deea3490516e3626b1356f120
+      crates/mindtape-cli/src/add.rs: 27a2109e151ab755b39e8112a134144312b198fc1fb66a9615422570024de13d
       crates/mindtape-cli/src/check.rs: ccde1c1b1f522bcc199d8f7c84b89ca184abe8830dd7a48eca3cbbe62c2ba010
       crates/mindtape-cli/src/cli.rs: f14297ca4cea772b2981acdc420fdb2b093c79b6cdd398f5b23c8aab6c18ca91
       crates/mindtape-cli/src/completion.rs: fe14695fe1c11cdd3d8fd75119c32686453ca77b2763160721a22fdcff314461
@@ -45,7 +45,7 @@ groups:
       crates/mindtape-cli/src/worktrees.rs: 78617369d3fb90e6e30605fb5e23b3f795f1ab2a671914aefdd5d2b1868a5fc5
       crates/mindtape/src/defaults.toml: 0b73c2b1e699a4827427c1b48ae699fc36e4f9eff6fec7f75313b07fe32a023b
       crates/mindtape/src/fields.rs: 505a700e90befcdc2edd5d58f0d8cdb0253494f93dd0e7f6259daee171c88872
-      crates/mindtape/src/lib.rs: a0c7c82cd75c904d05f52224ded9946b2d7f4e78ad1e8260972bf31bb4466863
+      crates/mindtape/src/lib.rs: f61ea23b888d158fcb97977126b428ea976cdc9bbb4b29155f4a4302d764526d
     dependents:
       docs/src/skill.typ: 1bce54f4da2ee49ecf536973aa51d50ed877b211591fa73d1874e8daf6cf2a4a
       skills/mindtape/evals/README.md: e530d4b6a77d8220a7f138487974a3c0797271020a575b74f51d9379a57d7769
@@ -70,7 +70,7 @@ groups:
       www/content/rules.typ: 011078a9c3bca8c13be804b91556d8db8be9431b55ccbfcc18b6eb5da6bad615
       www/content/schema.typ: 6eb69ba844be22a4653fb8a2d69b6d68ec9da2c874689909a663a1b4299b9384
       www/content/statuses.typ: ef993338e298c6b20f2a4a83742aa6a3421a3069cefd6a5c22ec097405c7a7f1
-      www/content/templates.typ: 3d27d0ce2c5ea60e5d7a922884e5eb4c1575b913ef4a557a82c9d072c3a672be
+      www/content/templates.typ: 96aa2f776c2787fc68cfd7fc0c0d329fb1445c6dfff275b38555f3dc64b36b75
       www/utils/cli-notes.typ: f5f6449e0e9c31923c07d07b22523157061d4969fc7690b4f5c2119fb80b4052
   cli-name:
     source:

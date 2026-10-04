@@ -151,8 +151,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
         .unwrap_or_else(|| config.templates.default.clone());
     let source = resolve_template(config, &project.root, &template_name)?;
     let status = filing_status(config, &source, args.status.as_deref());
-    let needed = mindtape::required_core_slots(config, status.as_deref());
-    let (source, injected) = inject_required_slots(&source, &needed)?;
+    let (source, injected) = splice_config_slots(&source, config, status.as_deref())?;
 
     if let Some(format) = &args.describe {
         let specs = discover_slots(&source);
@@ -374,31 +373,30 @@ fn kept_note(file: &Path) -> String {
 /// Splice slot-bearing values for config-required core fields the template
 /// omits, so their slots surface in the fill scaffold, `--describe`, and the
 /// written task. A field already set by the template (literal or slot) is left
-/// untouched. Runs before discovery, so a spliced value may itself nest slots —
-/// a strict-framework priority splices `framework("ice", impact: slot(…), …)`.
+/// untouched, except that a slot which is its whole value inherits the field's
+/// config `values` as choices ([`mindtape::inherit_field_choices`]). Runs
+/// before discovery, so a spliced value may itself nest slots — a
+/// strict-framework priority splices `framework("ice", impact: slot(…), …)`.
 ///
 /// Returns the fields actually spliced (the template omitted them), so the
 /// caller can report the values it filled that the template never mentioned.
-pub(crate) fn inject_required_slots(
+pub(crate) fn splice_config_slots(
     source: &str,
-    needed: &[RequiredSlot],
+    config: &Config,
+    status: Option<&str>,
 ) -> Result<(String, Vec<RequiredSlot>)> {
-    if needed.is_empty() {
-        return Ok((source.to_owned(), Vec::new()));
-    }
-    let call = task_with(source)?;
+    let source =
+        mindtape::inherit_field_choices(source, config).map_err(|err| anyhow!(err.to_string()))?;
+    let call = task_with(&source)?;
     let mut edits = Vec::new();
     let mut injected = Vec::new();
-    for slot in needed {
+    for slot in mindtape::required_core_slots(config, status) {
         if call.named(&slot.field).is_none() {
-            edits.push(upsert_named_arg(source, &call, &slot.field, &slot.call)?);
-            injected.push(slot.clone());
+            edits.push(upsert_named_arg(&source, &call, &slot.field, &slot.call)?);
+            injected.push(slot);
         }
     }
-    if edits.is_empty() {
-        return Ok((source.to_owned(), Vec::new()));
-    }
-    let spliced = apply(source, edits).map_err(|err| anyhow!(err.to_string()))?;
+    let spliced = apply(&source, edits).map_err(|err| anyhow!(err.to_string()))?;
     Ok((spliced, injected))
 }
 

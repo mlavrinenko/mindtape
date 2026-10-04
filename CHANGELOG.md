@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   value that `mt add --describe` prints, in text and in JSON, and that is
   never filed. The `default` and `example` of a `text` or `raw` slot can also
   be a raw block, dedented as Typst dedents it.
+- **A template's own slot offers its field's config values.** A template
+  that declared `kind: slot("kind", example: "test")` lost the
+  `[tasks.fields.kind] values` list: `--describe` and the editor stopped
+  offering it, and `mt add -- kind=chore` was refused without naming the
+  allowed values. A slot that is the whole value of a field with config
+  `values`, and declares no `choices`, is now a choice over those values in
+  `mt add`, `--describe`, the editor and `mt check`'s template pass.
 - **`mt check` checks every template.** A config change that broke a
   template, such as a `kind` value it hard-codes falling out of `values`,
   showed up only at the next `mt add` that used it. `mt check` fills every

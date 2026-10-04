@@ -5,8 +5,12 @@
 //! fields the chosen template never declares. This module derives the
 //! slot-bearing expressions those fields need so a CLI can splice them into
 //! `task.with(…)` — surfacing them in the fill scaffold and the `--describe`
-//! schema, and writing them into the final task. Consumer-blind: pure over
-//! [`Config`], no IO, no source editing.
+//! schema, and writing them into the final task. A slot the template does
+//! declare for such a field inherits the field's config `values` as its
+//! choices ([`inherit_field_choices`]). Consumer-blind: pure over [`Config`]
+//! and the template source, no IO.
+
+use typst_edit::{Call, Edit, EditError, apply, find_calls, find_method_calls};
 
 use crate::config::{Config, FieldConfig, Requirement};
 use crate::framework::{Framework, Input, InputKind};
@@ -282,6 +286,63 @@ fn assignee_slot(config: &Config) -> String {
     )
 }
 
+/// `source` with each `slot(...)` that is the whole value of a `task.with`
+/// named argument made a choice over that field's `[tasks.fields]` values.
+///
+/// The field is the argument the slot sits in, never the slot's name, so
+/// `kind: slot("type")` inherits `kind`'s values. A slot inherits only when it
+/// declares no `choices` and its kind is absent, `string` or `choice`; any
+/// other kind, and a slot nested inside a field's value, is left as written.
+/// The choices live only in the template source the fill reads: filling
+/// replaces the whole call, so none of them reach the filed task.
+///
+/// # Errors
+/// Returns an [`EditError`] when the edits cannot be applied, which two
+/// disjoint slot calls never cause.
+pub fn inherit_field_choices(source: &str, config: &Config) -> Result<String, EditError> {
+    let Some(call) = find_method_calls(source, "task", "with").into_iter().next() else {
+        return Ok(source.to_owned());
+    };
+    let slots = find_calls(source, "slot");
+    let edits: Vec<Edit> = (call.args.iter())
+        .filter_map(|arg| {
+            let field = config.tasks.fields.get(arg.name.as_deref()?)?;
+            let slot = slots.iter().find(|slot| slot.range == arg.value_range)?;
+            choice_edits(slot, &field.values)
+        })
+        .flatten()
+        .collect();
+    if edits.is_empty() {
+        return Ok(source.to_owned());
+    }
+    apply(source, edits)
+}
+
+/// The edits that make `slot` a choice over `values`, or `None` when it
+/// keeps its own spec.
+fn choice_edits(slot: &Call, values: &[String]) -> Option<Vec<Edit>> {
+    if values.is_empty() || slot.named("choices").is_some() {
+        return None;
+    }
+    let after_name = slot.positional(0)?.value_range.end;
+    let choices = format!(", choices: ({})", choice_list(values));
+    match slot.named("kind").map(|kind| (kind, kind.value.as_str())) {
+        None => Some(vec![Edit::new(
+            after_name..after_name,
+            format!(r#", kind: "choice"{choices}"#),
+        )]),
+        Some((kind, "string" | "choice")) => Some(vec![
+            Edit::new(after_name..after_name, choices),
+            Edit::new(kind.value_range.clone(), r#""choice""#),
+        ]),
+        Some(_) => None,
+    }
+}
+
 #[cfg(test)]
 #[path = "add_slots_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "add_slots_tests_inherit.rs"]
+mod tests_inherit;

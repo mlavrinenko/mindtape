@@ -117,7 +117,7 @@ mod validate_recur;
 mod violation;
 pub mod worktrees;
 
-pub use add_slots::{RequiredSlot, required_core_slots};
+pub use add_slots::{RequiredSlot, inherit_field_choices, required_core_slots};
 pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use body_gate::{BodyRules, check_body_rules};
 pub use candidate::{Candidate, Checked, check_candidate, check_candidates, harvest_candidate};

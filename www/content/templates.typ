@@ -49,7 +49,9 @@ arguments:
   [`kind`],
   [What the value is: `string` (the default), `int`, `float`, `real`, `bool`, `date` (`YYYY-MM-DD`), `list` (of strings), `choice`, `text` or `raw`.],
 
-  [`choices`], [The values a `choice` slot accepts.],
+  [`choices`],
+  [The values a `choice` slot accepts. A slot that is a whole field value, as in `kind: slot("kind", example: "test")`, and has no `choices` of its own takes the field's `values` from `[tasks.fields.kind]`.],
+
   [`default`], [The value used when nothing fills the slot.],
   [`example`],
   [A sample value that `--describe` shows and `mt check` fills. `mt add` never files it.],
