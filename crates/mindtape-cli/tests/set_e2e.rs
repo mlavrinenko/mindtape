@@ -209,3 +209,36 @@ fn a_refused_set_reports_the_file_and_line_of_the_breach() {
     let stderr = set_err(dir.path(), "priority=99");
     assert!(stderr.contains("error: tasks/wire-oauth.typ:"), "{stderr}");
 }
+
+/// A refused write that inserts a field has no line of its own on disk, so the
+/// breach opens at the `task.with(…)` call that is there, not at a line of the
+/// unwritten candidate.
+#[test]
+fn a_refused_insert_points_at_the_call_on_disk() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    let stderr = set_err(dir.path(), "priority=99");
+    assert!(
+        stderr.contains("error: tasks/wire-oauth.typ:3: priority:"),
+        "{stderr}"
+    );
+}
+
+/// A refused write that replaces a field opens at that field's line on disk.
+#[test]
+fn a_refused_replace_points_at_the_field_on_disk() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    let written = set_ok(dir.path(), "priority=5");
+    let line = written
+        .lines()
+        .position(|text| text.trim_start().starts_with("priority:"))
+        .unwrap()
+        + 1;
+    // Put a long note ahead of it so the candidate's own line would differ.
+    let padded = written.replacen("title:", "// a\n  // b\n  title:", 1);
+    mindtape::write_atomic(&dir.path().join("tasks/wire-oauth.typ"), padded.as_bytes()).unwrap();
+    let stderr = set_err(dir.path(), "priority=99");
+    let expected = format!("error: tasks/wire-oauth.typ:{}: priority:", line + 2);
+    assert!(stderr.contains(&expected), "{stderr}\n{padded}");
+}

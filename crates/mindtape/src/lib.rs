@@ -96,6 +96,7 @@ pub mod recur;
 pub mod recur_dates;
 #[cfg(feature = "rrule")]
 mod recur_rrule;
+pub mod task_spans;
 // Without the feature, the same module name resolves to a stub with the same
 // surface — so every caller stays one always-compiled function, with no
 // `#[cfg]` twin that a mutation sweep can only ever see as dead code.
@@ -181,6 +182,7 @@ pub use severity::Severity;
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
 pub use suggest::{hint, nearest};
+pub use task_spans::TaskCallSpans;
 pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples};
 pub use template_check::{
     TemplateHome, TemplateSources, template_breaches, template_failure, unfillable_slots,

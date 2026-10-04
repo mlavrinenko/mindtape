@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 4),
+  status: done(2026, 10, 5),
   links: related(
     "carry-a-severity-on-every-violation-and-render-every-breach-in-one-place.typ",
   )[both reshape how a breach is located and printed; the renderer prints what the span service locates],

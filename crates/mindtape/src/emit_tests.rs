@@ -95,12 +95,11 @@ fn assert_round_trips(task: &Task, config_text: &str, stub_ids: &[&str]) {
     // property; `dep_rank_tests.rs` is what pins their values.
     reloaded.topo = task.topo;
     reloaded.blocks = task.blocks;
-    // Likewise `marker_line`: the loader reads it off the source it is handed,
+    // Likewise `spans`: the loader reads it off the source it is handed,
     // and the authored fixture was built in memory with no source at all. What
     // a round trip owes is the fields the emitter writes — a line number is a
     // property of the file, not of the task.
-    reloaded.marker_line = task.marker_line;
-    reloaded.field_lines.clone_from(&task.field_lines);
+    reloaded.spans = task.spans.clone();
     reloaded.links.sort_by_key(link_sort_key);
 
     let mut expected = task.clone();

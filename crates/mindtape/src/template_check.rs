@@ -14,9 +14,10 @@
 
 use std::path::Path;
 
-use typst_edit::{Call, find_method_calls, line_of};
+use typst_edit::line_of;
 
 use crate::severity::Severity;
+use crate::task_spans::TaskCallSpans;
 use crate::template::discover_slots;
 use crate::validate::{Location, Violation};
 
@@ -99,9 +100,10 @@ pub fn template_breaches(
     sources: TemplateSources<'_>,
     violations: Vec<Violation>,
 ) -> Vec<Violation> {
+    let spans = TaskCallSpans::parse(sources.authored);
     violations
         .into_iter()
-        .map(|violation| relocate(sources, violation))
+        .map(|violation| relocate(sources, &spans, violation))
         .collect()
 }
 
@@ -123,44 +125,28 @@ fn breach(home: TemplateHome<'_>, line: usize, message: String) -> Violation {
     }
 }
 
-/// The first segment of a field path: `estimate` of `estimate.days`.
-fn root_of(name: &str) -> &str {
-    name.split(['.', '[']).next().unwrap_or(name)
-}
-
-/// Point `violation` at the template: the line of the argument it is about,
-/// else the authored line reading as the checked one, else `task.with(…)`.
-fn relocate(sources: TemplateSources<'_>, mut violation: Violation) -> Violation {
-    let authored = sources.authored;
-    let by_field = task_call(authored).and_then(|call| {
-        call.named(root_of(&violation.field))
-            .map(|arg| line_of(authored, arg.value_range.start))
-    });
-    let by_text = || {
-        let wanted = sources
-            .checked
-            .lines()
-            .nth(violation.location.line().saturating_sub(1))?
-            .trim();
-        (wanted.len() > 1)
-            .then(|| authored.lines().position(|line| line.trim() == wanted))
-            .flatten()
-            .map(|index| index + 1)
-    };
-    let line = by_field
-        .or_else(by_text)
-        .unwrap_or_else(|| call_line(authored));
+/// Point `violation` at the template: where the shared spans place it in the
+/// authored file ([`TaskCallSpans::relocate`]), else its `task.with(…)`.
+fn relocate(
+    sources: TemplateSources<'_>,
+    spans: &TaskCallSpans,
+    mut violation: Violation,
+) -> Violation {
+    let line = spans
+        .relocate(
+            sources.authored,
+            sources.checked,
+            &violation.field,
+            violation.location.line(),
+        )
+        .unwrap_or_else(|| call_line(sources.authored));
     violation.location = sources.home.at(line);
     violation
 }
 
-fn task_call(source: &str) -> Option<Call> {
-    find_method_calls(source, "task", "with").into_iter().next()
-}
-
 /// The line `task.with(…)` opens on, or the first line when there is none.
 fn call_line(source: &str) -> usize {
-    task_call(source).map_or(1, |call| line_of(source, call.range.start))
+    TaskCallSpans::parse(source).call_line().unwrap_or(1)
 }
 
 #[cfg(test)]

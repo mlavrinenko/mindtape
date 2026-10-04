@@ -90,8 +90,7 @@ pub fn map_canonical(canonical: &CanonicalTask, config: &Config, opts: &MapOptio
         extras,
         shape_errors: Vec::new(),
         body,
-        marker_line: 0,
-        field_lines: std::collections::BTreeMap::new(),
+        spans: crate::task_spans::TaskCallSpans::default(),
     };
 
     Mapped {

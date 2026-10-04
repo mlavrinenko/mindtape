@@ -105,29 +105,26 @@ pub struct Task {
     /// [`Task::from_marker`], which sees no source). The emitter appends it back
     /// verbatim, so a `mt ls --json | mt import` round-trip preserves the body.
     pub body: String,
-    /// One-based source line of the `#show: task.with(…)` call, so a violation
-    /// the validation pass raises can point at the file rather than only name
-    /// the task. Read off the source by the loader (and by
-    /// [`crate::candidate`], from the source about to be written), alongside
-    /// the [`body`](Self::body) slice that already locates the same call.
+    /// Where the `#show: task.with(…)` call and each of its named arguments
+    /// sit in the source, so a violation the validation pass raises can point
+    /// at the file rather than only name the task. Read off the source by the
+    /// loader (and by [`crate::candidate`], from the source about to be
+    /// written), once, alongside the [`body`](Self::body) slice after the same
+    /// call.
     ///
-    /// Zero means "no source was seen": a task built straight from a marker
+    /// Empty when no source was seen: a task built straight from a marker
     /// ([`Task::from_marker`], `mt import`'s records) has no line to point at,
     /// and [`marker_location`](Self::marker_location) reports line 1.
-    pub marker_line: usize,
-    /// One-based source line of each named argument of the `task.with(…)` call,
-    /// keyed by argument name, so a breach points at its own field. Empty when
-    /// no source was seen, like [`marker_line`](Self::marker_line).
-    pub field_lines: BTreeMap<String, usize>,
+    pub spans: crate::task_spans::TaskCallSpans,
 }
 
 impl Task {
     /// The `task.with(…)` call's source position, for a violation that points
     /// at the file instead of naming the task. Line 1 when no source was seen
-    /// (see [`marker_line`](Self::marker_line)).
+    /// (see [`spans`](Self::spans)).
     #[must_use]
     pub fn marker_location(&self) -> crate::validate::Location {
-        crate::validate::Location::at(self.file.clone(), self.marker_line.max(1))
+        crate::validate::Location::at(self.file.clone(), self.spans.call_line().unwrap_or(1))
     }
 
     /// Where a breach of `field` points: the line of that argument in the
@@ -136,11 +133,7 @@ impl Task {
     /// `estimate.days` or `tags[1]` resolves to its root field.
     #[must_use]
     pub fn field_location(&self, field: &str) -> crate::validate::Location {
-        let root = field.split(['.', '[']).next().unwrap_or(field);
-        self.field_lines.get(root).map_or_else(
-            || self.marker_location(),
-            |&line| crate::validate::Location::at(self.file.clone(), line),
-        )
+        crate::validate::Location::at(self.file.clone(), self.spans.field_line(field).unwrap_or(1))
     }
 
     /// Build a task from its file stem, relative path, and a `mindtape.task`
@@ -193,8 +186,7 @@ impl Task {
             extras,
             shape_errors: errors,
             body: String::new(),
-            marker_line: 0,
-            field_lines: BTreeMap::new(),
+            spans: crate::task_spans::TaskCallSpans::default(),
         }
     }
 

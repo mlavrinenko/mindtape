@@ -121,7 +121,7 @@ fn require_absent_heading_is_violation() {
 #[test]
 fn missing_section_reports_at_the_task_with_line() {
     let mut task = bare_task("a");
-    task.marker_line = 7;
+    task.spans = crate::TaskCallSpans::from_lines(7, &[]);
     let rules = compile_rules(&[require("Summary")]).unwrap();
     let violations = check_headers(&task, "= Introduction\n", &rules, &Config::default());
     let loc = &violations[0].location;

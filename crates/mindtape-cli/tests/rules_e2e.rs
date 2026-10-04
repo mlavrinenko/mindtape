@@ -213,7 +213,7 @@ fn mt_add_refuses_a_write_that_breaches_an_error_rule() {
     assert!(!out.status.success(), "an error rule must refuse the write");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("error: tasks/leftover.typ:3: rules.imperative-title"),
+        stderr.contains("error: the task as filled:3: rules.imperative-title"),
         "a blocking problem reports as an error: {stderr}"
     );
     assert!(
@@ -236,7 +236,7 @@ fn mt_add_lets_a_warn_rule_through() {
     assert!(out.status.success(), "a warn rule lets the write land");
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("warning: tasks/leftover.typ:3: rules.imperative-title"),
+        stderr.contains("warning: the task as filled:3: rules.imperative-title"),
         "a non-blocking breach reports as a warning: {stderr}"
     );
     assert!(
@@ -405,7 +405,7 @@ fn mt_add_refuses_a_write_a_check_rule_rejects() {
     );
     let stderr = String::from_utf8_lossy(&out.stderr);
     assert!(
-        stderr.contains("error: tasks/leftover.typ:3: rules.no-loader-refactoring"),
+        stderr.contains("error: the task as filled:3: rules.no-loader-refactoring"),
         "a blocking check problem reports as an error: {stderr}"
     );
     assert!(

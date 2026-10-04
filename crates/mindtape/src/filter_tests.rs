@@ -39,8 +39,7 @@ fn sample() -> Task {
         extras: BTreeMap::new(),
         shape_errors: Vec::new(),
         body: String::new(),
-        marker_line: 0,
-        field_lines: std::collections::BTreeMap::new(),
+        spans: crate::task_spans::TaskCallSpans::default(),
     }
 }
 

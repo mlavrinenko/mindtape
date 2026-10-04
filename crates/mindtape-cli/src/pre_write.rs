@@ -158,16 +158,51 @@ pub fn check(project: &Project, world: &[Task], pending: &[Pending<'_>]) -> Resu
         candidates.push(Candidate { rel, source });
     }
 
-    Ok(mindtape::check_candidates(
+    let answers = mindtape::check_candidates(
         &project.root,
         &project.config,
         world,
         &candidates,
         body_rules,
-    )
-    .into_iter()
-    .map(verdict)
-    .collect())
+    );
+    Ok(answers
+        .into_iter()
+        .zip(pending.iter().zip(&sources))
+        .map(|(answer, (entry, source))| {
+            let mut found = verdict(answer);
+            place_on_disk(&mut found, entry.file, &project.root, source);
+            found
+        })
+        .collect())
+}
+
+/// Move each breach of the candidate onto the file as it stands on disk.
+///
+/// The check ran over the rewritten source, so its lines are the candidate's:
+/// an inserted field shifts every line under it. A reader opens the file that
+/// is there, so each breach of the candidate's own file is placed where the
+/// authored file's [`mindtape::TaskCallSpans`] say its field, or its text, or
+/// its call sits. A file that is not on disk yet (`mt add`) has no lines to
+/// open, so its breaches say they are in the task as filled.
+fn place_on_disk(verdict: &mut Verdict, file: &Path, root: &Path, candidate: &str) {
+    let Ok(rel) = file.strip_prefix(root) else {
+        return;
+    };
+    let authored = std::fs::read_to_string(file).ok();
+    let spans = authored.as_deref().map(mindtape::TaskCallSpans::parse);
+    for violation in &mut verdict.violations {
+        if violation.location.file() != Some(rel) {
+            continue;
+        }
+        let line = violation.location.line();
+        violation.location = match (&authored, &spans) {
+            (Some(authored), Some(spans)) => {
+                let placed = spans.relocate(authored, candidate, &violation.field, line);
+                mindtape::Location::at(rel, placed.unwrap_or(line))
+            }
+            _ => mindtape::Location::Filled { line },
+        };
+    }
 }
 
 /// Check `pending` as one batch and refuse the whole of it if any entry is

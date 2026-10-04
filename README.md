@@ -51,7 +51,7 @@ A few lines of config solve each problem below. Under each is the error `mt` pri
 Cap how many source files a task may touch, so whoever files a big task has to split it first.
 
 ```
-error: tasks/sign-in-with-google-and-github.typ:2: rules.split-big-work: split it into tasks of 5 source files or fewer
+error: the task as filled:2: rules.split-big-work: split it into tasks of 5 source files or fewer
 ```
 
 ### [Tasks too vague to start](https://mlavrinenko.github.io/mindtape/require-a-task-shape/)

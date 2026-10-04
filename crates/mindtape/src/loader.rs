@@ -1,6 +1,5 @@
 //! Discover the project root and load tasks by live-evaluating their files.
 
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, batch_harvest};
@@ -8,6 +7,7 @@ use typst_harvest::{HVal, Harvest, HarvestError, HarvestWorld, SourceSnapshot, b
 use crate::config::Config;
 use crate::derive::RootDeriver;
 use crate::model::Task;
+use crate::task_spans::TaskCallSpans;
 
 // The persistent task cache is a loader implementation detail with no public
 // API, so it lives as a private submodule here rather than on the crate's
@@ -178,10 +178,8 @@ fn assemble_task(item: &LoadItem, marker: &HVal, source: &str) -> Task {
     let mut task = Task::from_marker(id, item.rel.clone(), marker);
     task.derived_tags = item.folder_tags.clone();
     task.depth = item.depth;
-    let (line, body) = marker_call(source);
-    task.marker_line = line;
-    task.field_lines = field_lines(source);
-    task.body = body;
+    task.spans = TaskCallSpans::parse(source);
+    task.body = task.spans.body(source);
     task
 }
 
@@ -349,55 +347,6 @@ fn mindtape_lib_dir(root: &Path) -> Option<PathBuf> {
 fn file_stem(file: &Path) -> String {
     file.file_stem()
         .map_or_else(String::new, |stem| stem.to_string_lossy().into_owned())
-}
-
-/// The first `task.with(…)` call's one-based line, and the source after its
-/// closing paren, trimmed.
-///
-/// Parse-plane only (no eval): [`typst_edit::find_method_calls`] locates the
-/// call and `Call::range` spans it through the closing `)`, so the head of the
-/// range gives the line a violation points at and the tail is the authored
-/// body. Trimming drops the blank line the emitter re-adds between the marker
-/// and the body, keeping the round-trip stable.
-///
-/// Both come off one walk because both are the same lookup. A source with no
-/// such call — a task authored as a bare `#metadata((…))` — yields `(0, "")`:
-/// no line to point at and no body to slice.
-/// The one-based line of each named argument of the `task.with(…)` call.
-fn field_lines(source: &str) -> BTreeMap<String, usize> {
-    let Some(call) = typst_edit::find_method_calls(source, "task", "with")
-        .into_iter()
-        .next()
-    else {
-        return BTreeMap::new();
-    };
-    call.args
-        .iter()
-        .filter_map(|arg| {
-            let name = arg.name.clone()?;
-            Some((name, typst_edit::line_of(source, arg.value_range.start)))
-        })
-        .collect()
-}
-
-fn marker_call(source: &str) -> (usize, String) {
-    let Some(call) = typst_edit::find_method_calls(source, "task", "with")
-        .into_iter()
-        .next()
-    else {
-        return (0, String::new());
-    };
-    // Newlines before the call, plus one — not `lines().count()`, which reports
-    // 2 for a head of `"a\nb\n"` where the call in fact opens line 3.
-    let line = source.get(..call.range.start).map_or(1, |head| {
-        head.bytes().filter(|byte| *byte == b'\n').count() + 1
-    });
-    let body = source
-        .get(call.range.end..)
-        .unwrap_or_default()
-        .trim()
-        .to_owned();
-    (line, body)
 }
 
 fn collect_typ_files(dir: &Path, out: &mut Vec<PathBuf>) {

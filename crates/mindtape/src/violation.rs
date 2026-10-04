@@ -37,6 +37,12 @@ pub enum Location {
         /// One-based line number within the template's source.
         line: usize,
     },
+    /// A line of a task that is not on disk yet, as `mt add` filled it. The
+    /// file the line belongs to does not exist, so there is no path to open.
+    Filled {
+        /// One-based line number within the task as filled.
+        line: usize,
+    },
 }
 
 impl Location {
@@ -53,7 +59,7 @@ impl Location {
     #[must_use]
     pub const fn line(&self) -> usize {
         match self {
-            Self::File { line, .. } | Self::Builtin { line, .. } => *line,
+            Self::File { line, .. } | Self::Builtin { line, .. } | Self::Filled { line } => *line,
         }
     }
 
@@ -62,7 +68,7 @@ impl Location {
     pub fn file(&self) -> Option<&Path> {
         match self {
             Self::File { file, .. } => Some(file),
-            Self::Builtin { .. } => None,
+            Self::Builtin { .. } | Self::Filled { .. } => None,
         }
     }
 
@@ -72,6 +78,7 @@ impl Location {
         match self {
             Self::File { file, .. } => Self::File { file, line },
             Self::Builtin { template, .. } => Self::Builtin { template, line },
+            Self::Filled { .. } => Self::Filled { line },
         }
     }
 }
@@ -81,6 +88,7 @@ impl std::fmt::Display for Location {
         match self {
             Self::File { file, line } => write!(f, "{}:{line}", file.display()),
             Self::Builtin { template, line } => write!(f, "built-in template {template}:{line}"),
+            Self::Filled { line } => write!(f, "the task as filled:{line}"),
         }
     }
 }

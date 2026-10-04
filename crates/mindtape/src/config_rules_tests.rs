@@ -18,7 +18,7 @@ fn task(id: &str, title: &str, status: &str) -> Task {
         date: None,
         note: None,
     });
-    built.marker_line = 3;
+    built.spans = crate::TaskCallSpans::from_lines(3, &[]);
     built
 }
 
@@ -172,7 +172,7 @@ fn two_unnamed_rules_never_collide() {
 #[test]
 fn a_task_with_no_source_reports_at_line_one() {
     let mut subject = task("a", "T", "wip");
-    subject.marker_line = 0;
+    subject.spans = crate::TaskCallSpans::default();
     let toml = "[[tasks.rules]]\nname = \"n\"\nassert = 'kind == \"bug\"'\n";
     assert_eq!(sole_breach(&[subject], &config(toml)).location.line(), 1);
 }

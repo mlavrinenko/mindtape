@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use super::{field_lines, find_root, find_root_bounded, load_project, marker_call};
+use super::{find_root, find_root_bounded, load_project};
 use crate::config::Config;
 use crate::numeric::NumValue;
 use crate::parse_config;
@@ -373,34 +373,6 @@ fn duplicate_ids_produce_uniqueness_violation() {
     );
 }
 
-#[test]
-fn marker_call_captures_the_line_and_the_trimmed_prose_tail() {
-    let src = "#import \"@local/mindtape:0.2.0\": *\n\n\
-        #show: task.with(\n  title: \"T\",\n)\n\n\
-        == Summary\n\nFirst line.\n\nSecond line.\n";
-    assert_eq!(
-        marker_call(src),
-        (3, "== Summary\n\nFirst line.\n\nSecond line.".to_owned())
-    );
-}
-
-#[test]
-fn marker_call_counts_newlines_not_lines() {
-    // The head before the call ends in a newline, so `lines().count()` would
-    // report 2 for a call that in fact opens line 3.
-    assert_eq!(marker_call("a\nb\n#show: task.with()\n").0, 3);
-    assert_eq!(marker_call("#show: task.with()\n").0, 1);
-}
-
-#[test]
-fn marker_call_is_empty_without_body_or_marker() {
-    assert_eq!(
-        marker_call("#show: task.with(title: \"T\")\n"),
-        (1, String::new())
-    );
-    assert_eq!(marker_call("no marker here\n"), (0, String::new()));
-}
-
 /// A task marker carrying `status` and a `depends-on` edge per entry in
 /// `deps` — the shape the graph-rank test needs the loader to actually read.
 fn linked_body(status: &str, deps: &[&str]) -> String {
@@ -446,22 +418,11 @@ fn stamps_graph_ranks_over_the_whole_set() {
 }
 
 #[test]
-fn field_lines_name_the_line_of_each_argument() {
-    let src = "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  title: \"T\",\n  \
-               links: depends-on(\"a.typ\"),\n)\n";
-    let lines = field_lines(src);
-    assert_eq!(lines.get("title"), Some(&3));
-    assert_eq!(lines.get("links"), Some(&4));
-    assert!(field_lines("no marker\n").is_empty());
-}
-
-#[test]
 fn a_field_without_a_line_points_at_the_marker_call() {
     let mut task = crate::test_support::bare_task("a");
-    task.marker_line = 2;
-    task.field_lines.insert("links".into(), 4);
+    task.spans = crate::TaskCallSpans::from_lines(2, &[("links", 4)]);
     assert_eq!(task.field_location("links").line(), 4);
     assert_eq!(task.field_location("tags[1]").line(), 2);
-    task.marker_line = 0;
+    task.spans = crate::TaskCallSpans::default();
     assert_eq!(task.field_location("id").line(), 1);
 }
