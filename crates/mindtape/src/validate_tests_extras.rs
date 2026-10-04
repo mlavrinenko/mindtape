@@ -65,13 +65,63 @@ fn extra_inside_values_passes() {
 fn non_string_extra_against_values_flags() {
     let value = Some(HVal::Dict(BTreeMap::new()));
     let breaches = machine_breaches(value, "wip", &machine_config(&["alpha"]));
-    assert_eq!(breaches, ["a field with allowed values takes a string"]);
+    assert_eq!(
+        breaches,
+        ["a field with allowed values takes a string or a list of strings"]
+    );
 }
 
 #[test]
 fn required_extra_without_values_takes_any_shape() {
     let value = Some(HVal::Dict(BTreeMap::new()));
     assert!(machine_breaches(value, "wip", &machine_config(&[])).is_empty());
+}
+
+fn strs(items: &[&str]) -> HVal {
+    HVal::Array(items.iter().map(|&s| HVal::Str(s.into())).collect())
+}
+
+#[test]
+fn list_extra_inside_values_passes() {
+    let cfg = machine_config(&["alpha", "beta"]);
+    assert!(machine_breaches(Some(strs(&["alpha", "beta"])), "wip", &cfg).is_empty());
+}
+
+#[test]
+fn list_extra_with_unknown_element_flags() {
+    let cfg = machine_config(&["alpha"]);
+    let breaches = machine_breaches(Some(strs(&["alpha", "desktop"])), "wip", &cfg);
+    assert_eq!(breaches, ["`desktop` is not an allowed value"]);
+}
+
+#[test]
+fn list_extra_with_non_string_element_flags() {
+    let cfg = machine_config(&["alpha"]);
+    let value = Some(HVal::Array(vec![HVal::Str("alpha".into()), HVal::Int(1)]));
+    let breaches = machine_breaches(value, "wip", &cfg);
+    assert_eq!(
+        breaches,
+        ["a field with allowed values takes a string or a list of strings"]
+    );
+}
+
+#[test]
+fn empty_list_extra_flags() {
+    let cfg = machine_config(&["alpha"]);
+    let breaches = machine_breaches(Some(HVal::Array(vec![])), "wip", &cfg);
+    assert_eq!(breaches, ["an empty list names no allowed value"]);
+}
+
+#[test]
+fn list_extra_repeating_an_element_flags() {
+    let cfg = machine_config(&["alpha"]);
+    let breaches = machine_breaches(Some(strs(&["alpha", "alpha"])), "wip", &cfg);
+    assert_eq!(breaches, ["`alpha` is listed twice"]);
+}
+
+#[test]
+fn list_extra_without_values_takes_any_shape() {
+    assert!(machine_breaches(Some(strs(&["a", "a"])), "wip", &machine_config(&[])).is_empty());
 }
 
 fn load_problem(toml: &str) -> Option<String> {

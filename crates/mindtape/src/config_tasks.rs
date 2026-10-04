@@ -251,7 +251,7 @@ impl<'de> Deserialize<'de> for IdFormat {
 #[serde(default, deny_unknown_fields)]
 pub struct FieldConfig {
     /// Allowed values. Empty accepts any value, and a non-empty list takes a
-    /// string only. An entry `@<dict>` stands for every entry of
+    /// string, or a list of distinct strings for an `x-<ns>` field. An entry `@<dict>` stands for every entry of
     /// `[dicts.<dict>]`, so the list may mix literal values and dictionaries.
     // `expand_dict_refs` expands the `@<dict>` entries at config load.
     pub values: Vec<String>,

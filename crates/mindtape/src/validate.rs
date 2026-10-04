@@ -236,36 +236,61 @@ fn check_enum_field(
     required: bool,
     out: &mut Vec<Violation>,
 ) {
-    let value = match name {
-        "kind" => task.kind.as_deref().map(Ok),
-        _ if name.starts_with("x-") => task.extras.get(name).map(|value| match value {
-            HVal::Str(text) => Ok(text.as_str()),
-            _ => Err(()),
-        }),
+    let found = match name {
+        "kind" => task
+            .kind
+            .as_deref()
+            .map(|kind| enum_breaches(&HVal::Str(kind.to_owned()), field)),
+        _ if name.starts_with("x-") => task
+            .extras
+            .get(name)
+            .map(|value| enum_breaches(value, field)),
         _ => return,
     };
-    let allowed = |value: &str| field.values.is_empty() || field.values.iter().any(|v| v == value);
+    match found {
+        None if required => push(out, task, name, "required field is missing".to_owned()),
+        Some(messages) => {
+            for message in messages {
+                push(out, task, name, message);
+            }
+        }
+        None => {}
+    }
+}
+
+/// The messages for one field value held to `field.values`: a string must be
+/// allowed, and a list must be non-empty, hold only allowed strings and name
+/// none twice. A field without `values` takes any shape.
+fn enum_breaches(value: &HVal, field: &FieldConfig) -> Vec<String> {
+    const SHAPE: &str = "a field with allowed values takes a string or a list of strings";
+    if field.values.is_empty() {
+        return Vec::new();
+    }
+    let allowed = |text: &str| field.values.iter().any(|v| v == text);
+    let not_allowed = |text: &str| format!("`{text}` is not an allowed value");
     match value {
-        None if required => {
-            push(out, task, name, "required field is missing".to_owned());
+        HVal::Str(text) if !allowed(text) => vec![not_allowed(text)],
+        HVal::Str(_) => Vec::new(),
+        HVal::Array(items) if items.is_empty() => {
+            vec!["an empty list names no allowed value".to_owned()]
         }
-        Some(Err(())) if !field.values.is_empty() => {
-            push(
-                out,
-                task,
-                name,
-                "a field with allowed values takes a string".to_owned(),
-            );
+        HVal::Array(items) => {
+            let mut out = Vec::new();
+            let mut seen: Vec<&str> = Vec::new();
+            for item in items {
+                match item {
+                    HVal::Str(text) if !allowed(text) => out.push(not_allowed(text)),
+                    HVal::Str(text) if seen.contains(&text.as_str()) => {
+                        out.push(format!("`{text}` is listed twice"));
+                    }
+                    HVal::Str(text) => seen.push(text),
+                    _ if !out.iter().any(|m| m == SHAPE) => out.push(SHAPE.to_owned()),
+                    _ => {}
+                }
+            }
+            out
         }
-        Some(Ok(value)) if !allowed(value) => {
-            push(
-                out,
-                task,
-                name,
-                format!("`{value}` is not an allowed value"),
-            );
-        }
-        _ => {}
+        _ => vec![SHAPE.to_owned()],
     }
 }
 

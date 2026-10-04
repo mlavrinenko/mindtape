@@ -720,7 +720,7 @@
         },
         "values": {
           "default": [],
-          "description": "Allowed values. Empty accepts any value, and a non-empty list takes a\nstring only. An entry `@<dict>` stands for every entry of\n`[dicts.<dict>]`, so the list may mix literal values and dictionaries.",
+          "description": "Allowed values. Empty accepts any value, and a non-empty list takes a\nstring, or a list of distinct strings for an `x-<ns>` field. An entry `@<dict>` stands for every entry of\n`[dicts.<dict>]`, so the list may mix literal values and dictionaries.",
           "items": {
             "type": "string"
           },

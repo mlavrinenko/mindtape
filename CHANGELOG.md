@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`values` checks a list-valued `x-<ns>` field.** A non-empty `values`
+  refused a list extra with `takes a string`, so a project whose field holds
+  several machines kept a Typst check. `mt check` now holds every element to
+  `values`, and an empty list, a non-string element or an element listed
+  twice is a breach. A string extra and `@dict` references behave as before.
 - **A filter reads an `x-<ns>` field's value.** `mt ls 'x-machine == "alpha"'`
   failed with `unknown field in filter`, because an extension field took only
   `has()` and `miss()`. A text, number or boolean value compares and sorts
