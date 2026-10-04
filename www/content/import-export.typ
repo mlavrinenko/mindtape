@@ -35,7 +35,8 @@ script can tell a partial import from a whole one.
 
 `--map old=new` renames a status before the check, for a source whose names
 differ from your legend. `--to <dir>` writes the batch into a subfolder of the
-first task root. `--dry-run` checks the batch and writes nothing: its
+first task root, and `--into <dir>` into a directory, in place of each record's
+`file`. `--dry-run` checks the batch and writes nothing: its
 report says `would file` for each record that would be written and ends with
 `dry run: nothing written`. The
 #link(u("/cli/"))[CLI reference] lists every flag.
@@ -89,8 +90,12 @@ your file uses.
 
 An export imports back whole. `mt import` names each file from the record's
 `id`, so a link to a task still resolves, and a record with no `id`, as the jq
-adapters emit, is named from its title as `mt add` names it. When a name is
-taken, the file gets a `-2` suffix and a link to it does not follow the rename.
+adapters emit, is named from its title as `mt add` names it. With neither
+`--into` nor `--to`, a record lands in the folder its `file` names when that
+folder is under a task root, so an export of several folders imports back as
+the same folders. A name taken anywhere in the project gets a `-2` suffix, the
+report says `alpha: filed as alpha-2`, and a link to it does not follow the
+rename.
 
 This exports `examples/round-trip/`, whose four tasks use every field the
 import writes:

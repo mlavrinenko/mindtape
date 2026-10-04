@@ -16,19 +16,19 @@
 //! the pipe (`truth/tasks/import-tasks-from-other-trackers.typ`).
 
 mod input;
+mod place;
 mod write;
 
 use std::collections::{BTreeMap, HashSet};
 use std::fmt::Write as _;
-use std::path::Path;
 
 use anyhow::{Context, Result, anyhow, bail};
 use clap::Args;
 use mindtape::canonical::CanonicalStatus;
 use mindtape::{CanonicalTask, Config, EntryKind, MapOptions, map_canonical};
 
-use crate::add::dest_dir;
 use crate::util::{self, Project};
+use place::Placement;
 use write::{StagedTask, TaskOutcome};
 
 /// Arguments for `mt import`.
@@ -38,12 +38,16 @@ pub struct ImportArgs {
     #[arg(value_name = "FILE", default_value = "-")]
     pub input: String,
 
-    /// Destination directory; `.` (default) is the first configured root.
-    #[arg(long, value_name = "DIR", default_value = ".")]
-    pub into: String,
+    /// Destination directory for the whole batch; `.` is the first configured
+    /// root. Without `--into` and `--to`, a record lands in the folder its
+    /// `file` names when that lies under a configured root, else in the first
+    /// root.
+    #[arg(long, value_name = "DIR")]
+    pub into: Option<String>,
 
     /// Subfolder under the destination root to nest imported tasks into
-    /// (folder-derived tags). Relative to `--into`.
+    /// (folder-derived tags). Relative to `--into`; it overrides each record's
+    /// `file`.
     #[arg(long = "to", value_name = "SUBDIR")]
     pub to: Option<String>,
 
@@ -102,24 +106,25 @@ fn fail_on_skips(outcomes: &[TaskOutcome]) -> Result<()> {
 fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec<TaskOutcome>> {
     let config = &project.config;
     let records = input::parse_records(raw)?;
-    let dest = dest_dir(&args.into, args.to.as_deref(), project)?;
+    let mut placement = Placement::new(project, args)?;
     let opts = map_options(args)?;
 
     let mut staged = Vec::with_capacity(records.len());
     let mut early = Vec::new();
-    let mut existing = existing_stems(&dest);
 
     for (idx, mut record) in records.into_iter().enumerate() {
         let label = record_label(&record, idx);
         default_status(&mut record, args.status.as_deref());
         let mapped = map_canonical(&record, config, &opts);
-        match stem_for(&record.id, &mapped.task.title, config, &mut existing) {
+        let dest = placement.dest_for(&record);
+        match stem_for(&record.id, &mapped.task.title, config, placement.taken()) {
             Ok(stem) => {
                 let mut task = mapped.task;
                 task.id.clone_from(&stem);
                 let source = mindtape::emit_task(&task);
                 staged.push(StagedTask {
                     label,
+                    dest,
                     stem,
                     source,
                     report: mapped.report,
@@ -127,6 +132,7 @@ fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec
             }
             Err(err) => early.push(TaskOutcome {
                 label,
+                stem: String::new(),
                 filed: false,
                 problems: vec![err.to_string()],
                 report: mapped.report,
@@ -135,9 +141,9 @@ fn import_records(project: &Project, args: &ImportArgs, raw: &str) -> Result<Vec
     }
 
     let mut outcomes = if args.dry_run {
-        write::preview(project, &dest, staged)?
+        write::preview(project, staged)?
     } else {
-        write::land(project, &dest, staged)?
+        write::land(project, staged)?
     };
     outcomes.extend(early);
     Ok(outcomes)
@@ -194,8 +200,8 @@ fn default_status(record: &mut CanonicalTask, status: Option<&str>) {
 /// (an export carries it, and links between records name it), else the
 /// deterministic candidate from `title` ([`mindtape::stem_for_title`], what a
 /// jq adapter's id-less record gets). Either is disambiguated against
-/// `existing` (pre-existing destination files plus every stem already claimed
-/// within this batch). `existing` gains the chosen stem so later records in the
+/// `existing` (every loaded task's stem, the destination files and every stem
+/// already claimed within this batch). `existing` gains the chosen stem so later records in the
 /// same batch never collide with it — the collision policy is a `-2`, `-3`, ...
 /// suffix, [`mindtape::naming::disambiguate`]'s existing behaviour.
 ///
@@ -229,27 +235,6 @@ fn usable_stem(id: &str) -> bool {
     !id.is_empty() && !id.contains(['/', '\\', '.'])
 }
 
-/// Filename stems already on disk under `dest` (existing `.typ` files), the
-/// dedupe seed before any record in this batch claims one.
-fn existing_stems(dest: &Path) -> HashSet<String> {
-    let Ok(entries) = std::fs::read_dir(dest) else {
-        return HashSet::new();
-    };
-    entries
-        .flatten()
-        .filter_map(|entry| {
-            let path = entry.path();
-            let is_typ = path.extension().and_then(|ext| ext.to_str()) == Some("typ");
-            is_typ
-                .then(|| {
-                    path.file_stem()
-                        .map(|stem| stem.to_string_lossy().into_owned())
-                })
-                .flatten()
-        })
-        .collect()
-}
-
 /// Print "N filed, M skipped" plus, per record, its label, outcome, mapping
 /// report entries (mapped/defaulted/dropped/violated), carried `x-<ns>`
 /// extras, and any load/validate problem — to stderr, mirroring `mt add`'s
@@ -274,7 +259,12 @@ fn render_report(outcomes: &[TaskOutcome], dry_run: bool) -> String {
 
 fn render_task(out: &mut String, outcome: &TaskOutcome, filed_verb: &str) {
     let verb = if outcome.filed { filed_verb } else { "skipped" };
-    let _ = writeln!(out, "  {}: {verb}", outcome.label);
+    let renamed = if outcome.filed && outcome.stem != outcome.label {
+        format!(" as {}", outcome.stem)
+    } else {
+        String::new()
+    };
+    let _ = writeln!(out, "  {}: {verb}{renamed}", outcome.label);
     for entry in &outcome.report.entries {
         let _ = writeln!(
             out,

@@ -112,7 +112,7 @@ fn existing_stems_returns_only_typ_stems() {
     std::fs::write(dir.path().join("alpha.typ"), "").unwrap();
     std::fs::write(dir.path().join("beta.typ"), "").unwrap();
     std::fs::write(dir.path().join("notes.md"), "").unwrap();
-    let stems = super::existing_stems(dir.path());
+    let stems = super::place::existing_stems(dir.path());
     let expected: HashSet<String> = ["alpha".into(), "beta".into()].into_iter().collect();
     assert_eq!(stems, expected);
 }
@@ -143,6 +143,7 @@ fn report_emits_per_task_detail_and_extras() {
     }
     let o = TaskOutcome {
         label: "fail-task".into(),
+        stem: String::new(),
         filed: false,
         problems: vec!["err".into()],
         report: ImportReport {
@@ -160,6 +161,7 @@ fn report_emits_per_task_detail_and_extras() {
 fn outcome(label: &str, filed: bool) -> TaskOutcome {
     TaskOutcome {
         label: label.into(),
+        stem: label.into(),
         filed,
         problems: vec![],
         report: ImportReport::default(),
@@ -189,4 +191,16 @@ fn usable_stem_rejects_empty_and_path_like_ids() {
     for bad in ["", "a/b", "a\\b", "a.typ", ".hidden"] {
         assert!(!super::usable_stem(bad), "{bad}");
     }
+}
+
+#[test]
+fn a_renamed_stem_is_named_in_the_report() {
+    let mut renamed = outcome("alpha", true);
+    renamed.stem = "alpha-2".into();
+    let text = super::render_report(&[renamed], false);
+    assert!(text.contains("  alpha: filed as alpha-2\n"), "{text}");
+    let mut dry = outcome("beta", true);
+    dry.stem = "beta-2".into();
+    let text = super::render_report(&[dry], true);
+    assert!(text.contains("  beta: would file as beta-2\n"), "{text}");
 }

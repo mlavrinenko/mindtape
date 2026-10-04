@@ -38,7 +38,7 @@ pub(super) fn setup_dest(dir: &Path) -> Project {
 pub(super) fn bare_args() -> ImportArgs {
     ImportArgs {
         input: "-".to_owned(),
-        into: ".".to_owned(),
+        into: None,
         to: None,
         dry_run: false,
         status: None,

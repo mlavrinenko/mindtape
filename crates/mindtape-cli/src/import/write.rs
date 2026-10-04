@@ -18,7 +18,8 @@
 //! needs no temp mirror of the project any more, because a candidate is
 //! validated without a file either way.
 
-use std::path::{Path, PathBuf};
+use std::collections::HashSet;
+use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use mindtape::ImportReport;
@@ -26,10 +27,11 @@ use mindtape::ImportReport;
 use crate::pre_write::{self, Pending};
 use crate::util::Project;
 
-/// One mapped-and-emitted record, ready to land: its report label, chosen
-/// filename stem, and rendered `.typ` source.
+/// One mapped-and-emitted record, ready to land: its report label, the folder
+/// it lands in, its chosen filename stem, and rendered `.typ` source.
 pub(crate) struct StagedTask {
     pub label: String,
+    pub dest: PathBuf,
     pub stem: String,
     pub source: String,
     pub report: ImportReport,
@@ -38,6 +40,9 @@ pub(crate) struct StagedTask {
 /// The landed (or previewed) outcome of one staged record.
 pub(crate) struct TaskOutcome {
     pub label: String,
+    /// The stem written (or, under a dry run, that would be); empty for a
+    /// record skipped before it had one.
+    pub stem: String,
     pub filed: bool,
     /// Load/validate problems attributed to this record; empty when clean.
     pub problems: Vec<String>,
@@ -48,35 +53,33 @@ pub(crate) struct TaskOutcome {
 /// that passed. A rejected record is never created, so there is nothing to
 /// remove and no window in which a half-valid file is on disk.
 ///
-/// `dest` is created only once a record has actually earned a write: a batch
-/// rejected end to end leaves not even an empty directory behind.
+/// A record's folder is created only once it has actually earned a write: a
+/// batch rejected end to end leaves not even an empty directory behind.
 ///
 /// # Errors
-/// Returns an error if `dest` cannot be created or a file cannot be written.
-pub(crate) fn land(
-    project: &Project,
-    dest: &Path,
-    staged: Vec<StagedTask>,
-) -> Result<Vec<TaskOutcome>> {
-    crate::add::warn_if_outside_roots(project, dest);
-    let problems = check_staged(project, dest, &staged)?;
+/// Returns an error if a folder cannot be created or a file cannot be written.
+pub(crate) fn land(project: &Project, staged: Vec<StagedTask>) -> Result<Vec<TaskOutcome>> {
+    let mut warned = HashSet::new();
+    for task in &staged {
+        if warned.insert(task.dest.clone()) {
+            crate::add::warn_if_outside_roots(project, &task.dest);
+        }
+    }
+    let problems = check_staged(project, &staged)?;
 
-    let mut made_dest = false;
     for (task, problems) in staged.iter().zip(&problems) {
         if !problems.is_empty() {
             continue;
         }
-        if !made_dest {
-            std::fs::create_dir_all(dest).with_context(|| format!("create {}", dest.display()))?;
-            made_dest = true;
-        }
-        let path = dest.join(format!("{}.typ", task.stem));
+        std::fs::create_dir_all(&task.dest)
+            .with_context(|| format!("create {}", task.dest.display()))?;
+        let path = task.dest.join(format!("{}.typ", task.stem));
         crate::util::write_task(&project.config, &path, task.source.clone())?;
     }
     Ok(pair_outcomes(staged, problems))
 }
 
-/// Preview `staged` without touching `dest`: exactly [`land`]'s check, minus
+/// Preview `staged` without touching a destination: exactly [`land`]'s check, minus
 /// the write. A candidate is validated without a file either way, so the two
 /// paths ask the identical question and no temp mirror of the project has to
 /// be built to ask it.
@@ -84,12 +87,8 @@ pub(crate) fn land(
 /// # Errors
 /// Returns an error if the project's configured body rules do not compile
 /// (see [`crate::pre_write::check`]).
-pub(crate) fn preview(
-    project: &Project,
-    dest: &Path,
-    staged: Vec<StagedTask>,
-) -> Result<Vec<TaskOutcome>> {
-    let problems = check_staged(project, dest, &staged)?;
+pub(crate) fn preview(project: &Project, staged: Vec<StagedTask>) -> Result<Vec<TaskOutcome>> {
+    let problems = check_staged(project, &staged)?;
     Ok(pair_outcomes(staged, problems))
 }
 
@@ -103,10 +102,10 @@ pub(crate) fn preview(
 /// # Errors
 /// Returns an error if the project's configured body rules do not compile
 /// (see [`crate::pre_write::check`]).
-fn check_staged(project: &Project, dest: &Path, staged: &[StagedTask]) -> Result<Vec<Vec<String>>> {
+fn check_staged(project: &Project, staged: &[StagedTask]) -> Result<Vec<Vec<String>>> {
     let files: Vec<PathBuf> = staged
         .iter()
-        .map(|task| dest.join(format!("{}.typ", task.stem)))
+        .map(|task| task.dest.join(format!("{}.typ", task.stem)))
         .collect();
     let pending: Vec<Pending<'_>> = files
         .iter()
@@ -128,6 +127,7 @@ fn pair_outcomes(staged: Vec<StagedTask>, problems: Vec<Vec<String>>) -> Vec<Tas
         .zip(problems)
         .map(|(task, problems)| TaskOutcome {
             label: task.label,
+            stem: task.stem,
             filed: problems.is_empty(),
             problems,
             report: task.report,

@@ -31,11 +31,12 @@ fn land_creates_a_destination_that_did_not_exist_yet() {
 
     let staged = vec![StagedTask {
         label: "solo".to_owned(),
+        dest: dest.clone(),
         stem: "solo".to_owned(),
         source,
         report: ImportReport::default(),
     }];
-    let outcomes = land(&project, &dest, staged).unwrap();
+    let outcomes = land(&project, staged).unwrap();
 
     assert!(outcomes[0].filed, "{:?}", outcomes[0].problems);
     assert!(dest.join("solo.typ").exists(), "the destination is created");
