@@ -131,10 +131,12 @@ few lines as it takes.
 words `now`, `used to`, `no longer`, `anymore` and `formerly`, and on an
 all-caps word outside its acronym list. It skips raw spans, fenced blocks and
 double-quoted text, so a quoted bad example passes. It applies the same rules to
-the full-line `#` comments of the Justfile, `.just/*.just`, `.mmz/config.yaml`,
-`outdatty.yaml` and `.linecop.yaml`, and to every `description` in
-`schema/config.schema.json`. The word lists are in
-`.just/scripts/check-doc-prose.sh`.
+the full-line `#` comments of every shell script, YAML file, Justfile and
+`.just` module that git lists, tracked or not yet added, and to every
+`description` in `schema/config.schema.json`. So a new script is read the day
+it lands. `.just/scripts/check-doc-prose.pending` names the files whose
+comments still break the rules. It fails on a listed file with no hit left, so
+the list only shrinks. The word lists are in `.just/scripts/check-doc-prose.sh`.
 
 = The duplicate-prose audit
 

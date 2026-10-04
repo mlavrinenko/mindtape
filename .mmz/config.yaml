@@ -301,6 +301,13 @@ scopes:
   scripts-all:
     - ".just/scripts/**"
 
+  # The tracked shell scripts, YAML files and Justfile modules outside the
+  # directories other scopes cover, for `just check-doc-prose`, which reads the
+  # full-line comments of every file of those kinds that git lists.
+  comment-sources:
+    - ".github/**"
+    - "examples/large/generate.sh"
+
   # The scripts outside .just/scripts/ that a `just check` arm can reach, for
   # `just check-gate-drift`, which follows the call graph out of `check` and
   # reads every body it lands on (www/generate.sh and what it runs,
@@ -557,14 +564,16 @@ commands:
     inputs: [docs, gates-meta, script-check-doc-recipes, script-doc-blocks-lib]
 
   # Scans the doc sources (`docs`) for history words and all-caps emphasis, and
-  # the comments of the Justfile and .just/docs.just (`gates-meta`),
-  # .mmz/config.yaml (`mmz-config`), outdatty.yaml (`outdatty-config`) and
-  # .linecop.yaml (`file-size-config`), and the descriptions in
+  # the full-line comments of every tracked shell script, YAML file and Justfile
+  # module: the Justfile and .just/docs.just (`gates-meta`), .mmz/config.yaml
+  # (`mmz-config`), outdatty.yaml (`outdatty-config`), .linecop.yaml
+  # (`file-size-config`), .just/scripts (`scripts-all`) and the rest
+  # (`comment-sources`, `docs`). It also reads the descriptions in
   # schema/config.schema.json (`policy`). It reads the committed schema, so it
   # never builds `mt`, and it reads no generated file.
   - name: just check-doc-prose
     tags: [gate]
-    inputs: [docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, script-check-doc-prose, script-doc-blocks-lib]
+    inputs: [docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, scripts-all, comment-sources, script-check-doc-prose, script-doc-blocks-lib]
 
   # Parses www/content, www/utils and docs/src (`docs`) with typstyle, which
   # the dev shell pins (`gates-meta`), and runs its control over synthetic

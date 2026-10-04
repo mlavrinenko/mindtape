@@ -7,11 +7,16 @@
 # file, line and word for each hit. The Typst sources come through the shared
 # extractor in _doc-blocks-lib.sh, which yields each line of rendered text and
 # each comment line apart from raw spans, fenced blocks and code. Markdown
-# sources have no Typst parse tree, so their lines are read as written. It also scans the full-line `#` comments of
-# the Justfile, the `.just/*.just` modules and the YAML configs
-# `.mmz/config.yaml`, `outdatty.yaml` and `.linecop.yaml`. Code lines in those
-# files are not prose and are skipped. It reads every `description` out of
-# schema/config.schema.json too, because those texts reach the docs site and
+# sources have no Typst parse tree, so their lines are read as written.
+#
+# It also scans the full-line `#` comments of every shell script, YAML file,
+# Justfile and `.just` module that git lists, tracked or not yet added, so a
+# new script is read the day it lands. Code lines, shebangs, shellcheck
+# directives and heredoc bodies in those files are not prose and are skipped.
+# EXCLUDE names a file to skip, with its reason. check-doc-prose.pending names
+# the files whose comments are not yet rewritten, and only shrinks.
+#
+# It reads every `description` out of schema/config.schema.json too, because those texts reach the docs site and
 # editors, and a hit there names the key path. The rules it enforces, with
 # examples, are in docs/src/contributing/documentation.typ under "Plain prose".
 #
@@ -27,121 +32,70 @@
 # for what a command does to a task.
 #
 # An all-caps word passes when it is an acronym in ALLOWED, a constant a Typst
-# file declares with `let`, or a file name such as README.md.
+# file declares with `let` or a shell file assigns, or a file name such as
+# README.md.
 set -eo pipefail
 
 # shellcheck source=.just/scripts/_doc-blocks-lib.sh
 source .just/scripts/_doc-blocks-lib.sh
 
-ALLOWED="ADR AI ANSI API ASCII ATX CGO CI CLI CPU CQRS CRAP CSS CSV DB DOM DOT
-DRY DSL ETA GB GIO GPL GUI HTML ICE ICU ID IEC ISBN ISC ISO JS JSON LLVM MB MCP
-MIT OG OS OSC PDF PR PTY README RFC RICE RRULE SEO SGR SHA SQL SSG SVG SWHID
-TO-BE TOML TSV TTY TUI UI URI URL UTC UUID VCS WIP WSJF XDG YAML"
+ALLOWED="ADR AI ANSI API ASCII ATX CC CGO CI CLI CNAME CPU CQRS CRAP CSS CSV CWD
+DB DOM DOT DRY DSL ERR ETA ETXTBSY FTL GB GIO GPL GUI HEAD HTML ICE ICU ID IEC
+ISBN ISC ISO JS JSON LLVM MB MCP MIT OG OS OSC PATH PDF PR PTY README RFC RICE
+RRULE RUSTFLAGS SEO SGR SHA SQL SSG STDERR STDIN STDOUT SVG SWHID TAB TO-BE TOML
+TSV TTY TUI UI UNC URI URL UTC UUID VCS WIP WSJF XDG YAML"
 HISTORY_WORDS="now anymore formerly"
 HISTORY_PHRASES="used to|no longer"
 
-# One awk pass over the rows on stdin: file, line, kind (prose or comment) and
-# text, tab separated. The consts argument lists the constants the Typst files
-# declare. Prints "file:line: message" per hit; a line of `-` names a schema
-# key in the file column and prints "file: message".
+# One awk pass over the rows on stdin, in check-doc-prose.awk. The consts
+# argument lists the constants the scanned files declare.
 scan() { # <consts>
     awk -F'\t' -v allowed="$ALLOWED $1" -v words="$HISTORY_WORDS" \
-        -v phrases="$HISTORY_PHRASES" '
-        BEGIN {
-            n = split(allowed, a, /[ \n]+/)
-            for (i = 1; i <= n; i++) ok[a[i]] = 1
-            nw = split(words, word, / /)
-            np = split(phrases, phrase, /\|/)
-            for (i = 1; i <= np; i++) {
-                re = phrase[i]; gsub(/ /, "[ \t]+", re)
-                phrase_re[i] = "(^|[^a-z0-9_])" re "([^a-z0-9_]|$)"
-            }
-        }
-        # The line with raw spans and quoted text blanked out. raw holds the
-        # backtick count of the open span; like Typst, a span can wrap lines.
-        function visible(line,    out, i, n, c, j, run) {
-            out = ""; i = 1; n = length(line)
-            while (i <= n) {
-                c = substr(line, i, 1)
-                if (c == "`") {
-                    j = i; while (j <= n && substr(line, j, 1) == "`") j++
-                    run = j - i
-                    if (raw == 0) { if (run != 2) raw = run }
-                    else if (raw == 1 || run == raw) raw = 0
-                    out = out " "; i = j; continue
-                }
-                if (raw) { i++; continue }
-                if (c == "\\") { out = out " "; i += 2; continue }
-                if (c == "\"") { quoted = !quoted; out = out " "; i++; continue }
-                out = out (quoted ? " " : c)
-                i++
-            }
-            return out
-        }
-        function hit(msg) {
-            if (line == "-") printf "%s: %s\n", file, msg
-            else printf "%s:%d: %s\n", file, line, msg
-        }
-        function count(s, re,    k) {
-            k = 0
-            while (match(s, re)) { k++; s = substr(s, RSTART + RLENGTH - 1) }
-            return k
-        }
-        {
-            file = $1; line = $2; kind = $3; text = $4
-            # An unclosed quote or inline span ends at a blank line, at a gap
-            # between rows, or where comment rows meet prose rows. A comment
-            # has no fenced blocks, so a stray fence ends there too.
-            if (file != pfile || text !~ /[^ \t]/ || kind != pkind \
-                || (line != "-" && line != pline + 1)) {
-                quoted = 0; tail = ""
-                if (raw == 1 || kind == "comment" || file != pfile) raw = 0
-            }
-            pfile = file; pkind = kind; pline = line
-            v = visible(text)
-            low = tolower(v)
-
-            for (i = 1; i <= nw; i++) {
-                k = count(low, "(^|[^a-z0-9_])" word[i] "([^a-z0-9_(]|$)")
-                while (k-- > 0) hit("history word \"" word[i] "\"")
-            }
-            # A phrase can wrap, so the last word of the previous line is
-            # joined in front of this one.
-            for (i = 1; i <= np; i++) {
-                k = count(tail " " low, phrase_re[i])
-                while (k-- > 0) hit("history word \"" phrase[i] "\"")
-            }
-            tail = low
-            sub(/[^a-z0-9_]+$/, "", tail)
-            sub(/.*[^a-z0-9_]/, "", tail)
-
-            s = v
-            while (match(s, /[A-Za-z0-9_$][A-Za-z0-9_-]*/)) {
-                tok = substr(s, RSTART, RLENGTH)
-                s = substr(s, RSTART + RLENGTH)
-                if (tok !~ /^[A-Z][A-Z-]*[A-Z]$/ || tok !~ /[A-Z][A-Z]/) continue
-                if (tok in ok || s ~ /^\.[a-z]/) continue
-                hit("all-caps \"" tok "\"")
-            }
-        }
-    '
+        -v phrases="$HISTORY_PHRASES" -f .just/scripts/check-doc-prose.awk
 }
 
-# The constants the given Typst files declare with `let`.
+# The constants the given files declare: `let NAME` in Typst and `NAME=` at the
+# start of a shell line, possibly after `local`.
 consts_of() { # <file>...
-    cat "$@" | grep -oE '(^|[^A-Za-z0-9_-])let +[A-Z][A-Z0-9_]*' |
-        sed -E 's/.*let +//' | sort -u | tr '\n' ' ' || true
+    {
+        cat "$@" | grep -oE '(^|[^A-Za-z0-9_-])let +[A-Z][A-Z0-9_]*' | sed -E 's/.*let +//'
+        cat "$@" | grep -oE '^[ \t]*(local +|declare +-[A-Za-z]+ +)?[A-Z][A-Z0-9_]*=' | sed -E 's/^[ \t]*(local +|declare +-[A-Za-z]+ +)?//; s/=$//'
+    } | sort -u | tr '\n' ' ' || true
 }
 
 # The rows of each file by kind. A Typst file comes from the extractor. A
-# Justfile or YAML file yields its full-line `#` comments, and every other line
-# as an empty row that ends an open quote. Any other file is Markdown, read as
-# written.
+# shell script, Justfile or YAML file yields its full-line `#` comments, and
+# every other line as an empty row that ends an open quote. A shell script
+# loses its shebang, its shellcheck directives and its heredoc bodies. Any
+# other file is Markdown, read as written.
 rows_for() { # <file>...
     local f
     for f in "$@"; do
         case "$f" in
         *.typ) doc_extract "$f" | awk -F'\t' '$3 == "prose" || $3 == "comment"' ;;
+        *.sh)
+            # A heredoc body is data, so its `#` lines are not comments.
+            awk -v f="$f" '
+                function row(t) { print f "\t" FNR "\tcomment\t" t }
+                heredoc != "" {
+                    l = $0
+                    if (dash) sub(/^\t+/, "", l)
+                    if (l == heredoc) heredoc = ""
+                    row(""); next
+                }
+                $0 ~ /^[ \t]*#/ {
+                    if (FNR == 1 && $0 ~ /^#!/ || $0 ~ /^[ \t]*#[ \t]*shellcheck /) { row(""); next }
+                    gsub(/\t/, " "); sub(/^[ \t]*#+/, ""); row($0); next
+                }
+                {
+                    if (match($0, /<<-?[ \t]*["\047]?[A-Za-z_][A-Za-z0-9_]*/)) {
+                        d = substr($0, RSTART, RLENGTH)
+                        dash = (d ~ /^<<-/)
+                        sub(/^<<-?[ \t]*["\047]?/, "", d)
+                        heredoc = d
+                    }
+                    row("")
+                }' "$f" ;;
         Justfile | *.just | *.yaml | *.yml)
             awk -v f="$f" '{
                 gsub(/\t/, " ")
@@ -179,6 +133,22 @@ schema_text() {
         | .text | split("\n")[] | [$file, "-", "prose", gsub("\t"; " ")] | join("\t")' "$1"
 }
 
+# pending_filter drops the hits of each PENDING file from the hits on stdin and
+# fails, naming the file, on a PENDING file with no hit.
+pending_filter() { # <pending-file>...
+    local hits fail=0 p
+    hits=$(cat)
+    for p in "$@"; do
+        if ! grep -q "^$p:" <<<"$hits"; then
+            echo "check-doc-prose: $p has no flagged comment left; drop it from check-doc-prose.pending" >&2
+            fail=1
+        fi
+        hits=$(grep -v "^$p:" <<<"$hits" || true)
+    done
+    [ -z "$hits" ] || printf '%s\n' "$hits"
+    return $fail
+}
+
 # Control: a scanner that matches nothing passes a dirty tree, so it first has
 # to report exactly the hits planted in this fixture.
 control() {
@@ -202,6 +172,16 @@ key: now used to be fine
 # It is now SHOUTED here.
   # A `now` span and "no longer" quote pass.
 EOF
+    cat >"$dir/h.sh" <<'EOF'
+#!/usr/bin/env bash
+# It is now a SHOUTED script comment.
+# shellcheck disable=SC2016 # now is a directive
+cat <<'TXT'
+# now and SHOUTED text inside a heredoc is data
+TXT
+echo "# now in a string" # now after code is not a full-line comment
+  # no longer true, in an indented comment
+EOF
     cat >"$dir/s.json" <<'EOF'
 {"description": "Root now.",
  "properties": {
@@ -211,7 +191,7 @@ EOF
    {"description": "It used to be SHOUTED."}]}}}
 EOF
     out=$({
-        rows_for "$dir/f.typ" "$dir/g.yaml"
+        rows_for "$dir/f.typ" "$dir/g.yaml" "$dir/h.sh"
         schema_text "$dir/s.json" s.json
     } | scan "$(consts_of "$dir/f.typ")" | sed "s|^$dir/||")
     rm -rf "$dir"
@@ -224,11 +204,25 @@ f.typ:9: history word "no longer"
 f.typ:11: history word "now"
 g.yaml:2: history word "now"
 g.yaml:2: all-caps "SHOUTED"
+h.sh:2: history word "now"
+h.sh:2: all-caps "SHOUTED"
+h.sh:8: history word "no longer"
 s.json:(root): history word "now"
 s.json:$defs.A.oneOf.0: history word "used to"
 s.json:$defs.A.oneOf.0: all-caps "SHOUTED"'
     if [ "$out" != "$want" ]; then
         printf 'check-doc-prose: the control fixture gave\n%s\nexpected\n%s\n' \
+            "$out" "$want" >&2
+        exit 1
+    fi
+    # A PENDING file loses its hits, and a PENDING file with none fails.
+    out=$(pending_filter a.sh c.sh 2>&1 <<<"a.sh:1: x
+b.sh:2: y" || echo failed)
+    want='check-doc-prose: c.sh has no flagged comment left; drop it from check-doc-prose.pending
+b.sh:2: y
+failed'
+    if [ "$out" != "$want" ]; then
+        printf 'check-doc-prose: the PENDING control gave\n%s\nexpected\n%s\n' \
             "$out" "$want" >&2
         exit 1
     fi
@@ -243,13 +237,33 @@ for f in "${DOC_SOURCES[@]}" www/templates/*.typ; do
     [ "$(basename "$f")" = "tola.typ" ] || typst_sources+=("$f")
 done
 shopt -s nullglob
-other_sources=(skills/mindtape/references/*.md skills/mindtape/evals/README.md
-    Justfile .just/*.just .mmz/config.yaml outdatty.yaml .linecop.yaml)
+md_sources=(skills/mindtape/references/*.md skills/mindtape/evals/README.md)
+
+# The comment sources are every file git lists, tracked or not yet added, of
+# the kinds below, so a new script is read the day it lands. EXCLUDE names the
+# files to skip, each with its reason.
+EXCLUDE=()
+comment_sources=()
+while IFS= read -r f; do
+    skip=0
+    for e in "${EXCLUDE[@]}"; do
+        [ "${e%%|*}" = "$f" ] && skip=1
+    done
+    [ "$skip" -eq 1 ] || comment_sources+=("$f")
+done < <(git ls-files --cached --others --exclude-standard -- \
+    '*.sh' '*.just' '*.yaml' '*.yml' Justfile '*/Justfile')
+
+# check-doc-prose.pending lists, one path per line, the files whose comments are
+# not yet rewritten. A listed file may keep its hits, and a listed file with
+# none left fails, so the list only shrinks. Each rewrite removes its file in
+# its own commit.
+mapfile -t PENDING <.just/scripts/check-doc-prose.pending
 
 hits=$({
-    rows_for "${typst_sources[@]}" "${other_sources[@]}"
+    rows_for "${typst_sources[@]}" "${md_sources[@]}" "${comment_sources[@]}"
     schema_text schema/config.schema.json schema/config.schema.json
-} | scan "$(consts_of "${typst_sources[@]}")")
+} | scan "$(consts_of "${typst_sources[@]}" "${comment_sources[@]}")")
+hits=$(pending_filter "${PENDING[@]}" <<<"$hits") || exit 1
 if [ -n "$hits" ]; then
     sed 's/^/check-doc-prose: /' <<<"$hits" >&2
     echo "check-doc-prose: rewrite each line plainly; the rules are in docs/contributing/documentation.md" >&2

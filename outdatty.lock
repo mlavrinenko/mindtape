@@ -102,8 +102,8 @@ groups:
       .just/scripts/check-doc-blocks.sh: eec7447ad95ff3fcce4740bbdd2aaf5d87d997069f079be3395012572087a6a7
       .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
       .just/scripts/check-doc-facts.sh: 4240e3eafa9683c507f82864b3bac124a570584d9650657bea27a2a0b012025f
-      .just/scripts/check-doc-prose.sh: d2307c94973f1ea56e995cc3fb340ef30815682dbf764c0d65c838bf6b8b8d98
-      .just/scripts/check-doc-recipes.sh: 57f96f911b5df317c9def7c13a9cd2720a3426c30a1ea87fc31e2ce4dc41b026
+      .just/scripts/check-doc-prose.sh: 95bc03abb463563dfa492dbbd1fefc81e269df4768ad947cae914244cc33d1c5
+      .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
       .just/scripts/check-doc-spans.jq: 58ecc3192c58ecd48d08b2e053571ae5290dc3fe289f43d26d201453dc954a07
       .just/scripts/check-doc-spans.sh: 797e812edbe02f98165981dda867047dbfb64a2e1728d4cbb3ebef51cc11a551
       .just/scripts/check-gate-drift.sh: 4ecba6d33a78dc6a0ee09cbf1e0c1c45d777be382dc531451acba6810eb2d1bb
@@ -134,7 +134,7 @@ groups:
       docs/src/contributing/coverage-crap.typ: 923a5e0a4cc271244e93a2eefc90b404fb08bd5cc14176529bc79e6dd3499bae
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
       docs/src/contributing/docs-site-build.typ: 1c238b4e341c292e425a06c09cc5b7d7487a4a0f703df2b7fb4cd7ad37bff1de
-      docs/src/contributing/documentation.typ: a28f1bd3f765ca878b0cbb683d9cc699903d37cdc8ef3a07df4783d17d244991
+      docs/src/contributing/documentation.typ: ec900e4926b0cc80ac4e236a7537687190c87cef44705ce4aeabc1d152fadcdb
       docs/src/contributing/example-projects.typ: a0e2cc0bd33ea0f7bdca69f0c3e0f41e11ca7cf0e6d0fc159140ab00ab4a8f77
       docs/src/contributing/gates.typ: 9d419593e4d836304e6c45a47207579a7277e3b37a4c6bfe012380150ddb0b48
       docs/src/contributing/mutation-testing.typ: 47d36b9534266f15322c41b37158b943ce28b87236af6b514d1d6bfcfbb86316

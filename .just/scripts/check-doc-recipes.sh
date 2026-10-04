@@ -24,7 +24,7 @@ set -eo pipefail
 # Module recipes (truth/tasks/split-the-justfile-into-modules.typ) are
 # walked recursively and resolvable two ways: the module's own name alone
 # (a hand-typed "just docs ..." example's captured word is only ever the
-# FIRST token after "just", so a module invocation resolves to its bare
+# first token after "just", so a module invocation resolves to its bare
 # name here) and the fully-qualified "module::recipe" path.
 names=$(just --dump --dump-format json | jq -r '
     def rec_names(prefix):
