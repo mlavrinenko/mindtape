@@ -85,7 +85,7 @@ fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
         "terminal" => Ok(task.is_terminal(&config.tasks.status.terminal())),
         "exists" => crate::filter_predicates::exists(ctx),
         "in_view" => in_view(&single_literal(children, "in_view")?, ctx),
-        "has" => Ok(present(task, &single_identifier(children, "has")?, config)?),
+        "has" => crate::filter_predicates::has_call(children, task, config),
         "miss" => Ok(!present(
             task,
             &single_identifier(children, "miss")?,

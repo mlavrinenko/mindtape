@@ -209,8 +209,8 @@ severity = "warn"
 
 # Goal verdicts moved out of the body into `x-goals:`, beside status and
 # links, so a script can find them without parsing prose (`mt eval --json`
-# now carries them). `assert` cannot reach an `x-<ns>` field or walk its
-# nested dict, so this reaches for `check`: `check-goals` re-checks the same
+# now carries them). `assert` reads an `x-<ns>` dict by presence and key only
+# and cannot walk its nested values, so this reaches for `check`: `check-goals` re-checks the same
 # rules `goals(...)` used to enforce at Typst load — missing/unknown goals, a
 # helps/hurts with no reason, a task that helps nothing — but as `mt check`
 # breaches instead of a load-time panic.

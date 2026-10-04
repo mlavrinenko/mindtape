@@ -120,13 +120,17 @@ fn role_field(task: &Task, config: &Config, literal: &str) -> FieldValue {
 /// pair caps every task by construction, including the ones leaving the field
 /// unset. Pinned by `missing_field_is_unequal_to_every_literal` in
 /// `filter_tests.rs` — do not relax it without revisiting that rule.
+///
+/// A list follows the same rule: `x-machine == "alpha"` selects the tasks
+/// whose value is exactly `"alpha"`, and `has(x-machine, "alpha")` every task
+/// whose list holds it ([`crate::filter_predicates::has_call`]).
 pub(crate) fn compare(
     op: &Operator<DefaultNumericTypes>,
     value: &FieldValue,
     literal: &str,
 ) -> bool {
     match value {
-        FieldValue::Missing => matches!(op, Operator::Neq),
+        FieldValue::Missing | FieldValue::List(_) => matches!(op, Operator::Neq),
         FieldValue::Str(text) => compare_ordering(op, Some(text.as_str().cmp(literal))),
         FieldValue::Num(num) => match literal.parse::<f64>() {
             Ok(rhs) => compare_ordering(op, num.partial_cmp(&rhs)),
@@ -135,8 +139,8 @@ pub(crate) fn compare(
     }
 }
 
-/// Compare two resolved values. A missing side follows the missing-field rule
-/// of [`compare`]; two numbers compare numerically; otherwise the right side's
+/// Compare two resolved values. A missing or list side follows the
+/// missing-field rule of [`compare`]; two numbers compare numerically; otherwise the right side's
 /// text stands in as the literal.
 pub(crate) fn compare_values(
     op: &Operator<DefaultNumericTypes>,
@@ -145,7 +149,8 @@ pub(crate) fn compare_values(
 ) -> bool {
     match (left, right) {
         (FieldValue::Num(lhs), FieldValue::Num(rhs)) => compare_ordering(op, lhs.partial_cmp(rhs)),
-        (_, FieldValue::Missing) | (FieldValue::Missing, _) => matches!(op, Operator::Neq),
+        (_, FieldValue::Missing | FieldValue::List(_))
+        | (FieldValue::Missing | FieldValue::List(_), _) => matches!(op, Operator::Neq),
         (_, FieldValue::Str(text)) => compare(op, left, text),
         (_, FieldValue::Num(num)) => compare(op, left, &format_num(*num)),
     }

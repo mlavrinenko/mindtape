@@ -53,6 +53,8 @@
 //! which is the whole point of a registry: a graph-derived rank becomes both
 //! `mt ls 'blocks > 3'` and `--sort blocks:desc` by being listed once.
 
+use typst_harvest::HVal;
+
 use crate::config::{Config, PriorityConfig};
 use crate::model::Task;
 use crate::numeric::NumValue;
@@ -60,10 +62,12 @@ use crate::numeric::NumValue;
 /// A resolved field value. String fields compare lexicographically
 /// (ISO-correct for dates); numeric fields compare as numbers. `Missing`
 /// is unequal to every filter literal (see `filter::compare`) and, for sort,
-/// orders after every present value.
+/// orders after every present value. `List` is an `x-<ns>` array: it equals
+/// and orders against nothing, and `has(field, value)` reads its elements.
 pub enum FieldValue {
     Str(String),
     Num(f64),
+    List(Vec<FieldValue>),
     Missing,
 }
 
@@ -217,6 +221,43 @@ pub fn contains_field_names() -> Vec<&'static str> {
     let mut names: Vec<&'static str> = FIELDS.iter().map(|def| def.name).collect();
     names.extend(TEXT_ONLY_CONTAINS_FIELDS);
     names
+}
+
+/// Whether `name` names an `x-<ns>` extension slot. Every such name reads,
+/// whether or not `[tasks.fields]` declares it: a declaration adds
+/// validation, not readability.
+#[must_use]
+pub fn is_extra(name: &str) -> bool {
+    name.starts_with("x-")
+}
+
+/// One `x-<ns>` value as a [`FieldValue`]: text and dates as text, numbers as
+/// numbers, a boolean as `true` or `false`, `none` as missing and an array as
+/// a [`FieldValue::List`] of its elements. `None` for a dict, which stays
+/// presence-only.
+#[must_use]
+pub fn from_extra(value: &HVal) -> Option<FieldValue> {
+    Some(match value {
+        HVal::Null => FieldValue::Missing,
+        HVal::Bool(flag) => FieldValue::Str(flag.to_string()),
+        // An authored integer is far below 2^52, so the conversion is exact.
+        #[allow(clippy::cast_precision_loss)]
+        HVal::Int(num) => FieldValue::Num(*num as f64),
+        HVal::Float(num) => FieldValue::Num(*num),
+        HVal::Str(text) | HVal::Date(text) => FieldValue::Str(text.clone()),
+        HVal::Array(items) => FieldValue::List(items.iter().filter_map(from_extra).collect()),
+        HVal::Dict(_) => return None,
+    })
+}
+
+/// An `x-<ns>` slot's value on `task`, missing when the task leaves it unset
+/// or holds a dict there — the reading `--sort` uses.
+#[must_use]
+pub fn extra(task: &Task, name: &str) -> FieldValue {
+    task.extras
+        .get(name)
+        .and_then(from_extra)
+        .unwrap_or(FieldValue::Missing)
 }
 
 fn opt_str(value: Option<String>) -> FieldValue {

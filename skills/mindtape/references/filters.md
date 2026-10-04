@@ -25,8 +25,11 @@ save it in config, because `mt ls` shows what it selects.
 - `role == "reviewer"` matches a task whose assignee holds that role in
   `[[actors]]`, and `role != "reviewer"` matches every other task.
 - `estimate.<unit>` is one unit of the `estimate` dict, as a number.
-- `estimate`, `tags` and an `x-<ns>` slot such as `x-goals` take `has()` and
-  `miss()` only.
+- `estimate` and `tags` take `has()` and `miss()` only.
+- An `x-<ns>` slot reads whether or not `[tasks.fields]` declares it. Text, a
+  number or a boolean compares like any field: `x-machine == "alpha"`. A list
+  equals nothing, so `has(x-machine, "alpha")` tests membership. A dict such
+  as `x-goals` takes `has()` and `miss()` only.
 
 A name keeps its hyphens, as in the task file: `x-goals`,
 `estimate.src-files`.
@@ -35,8 +38,8 @@ A field the task does not carry is unequal to every literal, so
 `kind != "bug"` matches a task with no `kind`. Use `miss(kind)` to select
 absence.
 
-`--sort` takes every field listed above `role`, plus `ready`, which sorts
-ready tasks before blocked ones and finished ones last.
+`--sort` takes every field listed above `role`, an `x-<ns>` slot, and
+`ready`, which sorts ready tasks before blocked ones and finished ones last.
 Bare `status` sorts by legend position.
 
 ## Operators
@@ -50,6 +53,8 @@ Bare `status` sorts by legend position.
   config marks `blocking` counts as `depends-on` does.
 - `terminal` matches a task whose status the legend marks terminal.
 - `has(f)` and `miss(f)` test whether the task carries field `f`.
+  `has(f, "v")` matches when `f`'s list holds `v`, its scalar equals `v`, or
+  its dict has the key `v`.
 - `has_tag("t")` matches an authored or folder-derived tag.
 - `links("kind")` matches a task with at least one edge of that kind.
 - `contains("s")` is a case-insensitive substring search over `title`, `id`

@@ -61,11 +61,13 @@ pub(crate) fn string_value(
 
 /// A field read in string position. A numeric field is an error rather than a
 /// formatted number: `word(priority, 1)` is a rule that cannot mean anything,
-/// and reading it as `"8"` would make it silently almost-work.
+/// and reading it as `"8"` would make it silently almost-work. An `x-<ns>`
+/// list holds no single string and reads as no value, as it equals nothing
+/// under `==`: one slot may hold a string on one task and a list on the next.
 fn string_field(task: &Task, name: &str, config: &Config) -> Result<Option<String>, FilterError> {
     match field_value(task, name, config)? {
         FieldValue::Str(text) => Ok(Some(text)),
-        FieldValue::Missing => Ok(None),
+        FieldValue::Missing | FieldValue::List(_) => Ok(None),
         FieldValue::Num(_) => Err(FilterError::Invalid(format!(
             "field `{name}` is numeric; word(), matches() and in_dict() read string fields"
         ))),

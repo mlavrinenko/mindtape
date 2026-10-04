@@ -70,7 +70,8 @@ A field named `x-<ns>` holds a project's own field, such as `x-team`, or data
 for a tool built on MindTape, such as `x-speconaut`. `mt ls --json` passes it
 unchanged under `extras`. `mt` checks it only when the config declares it in
 `[tasks.fields.x-<ns>]`, whose `values` and `required` hold it like `kind`, and
-`mt add` then offers a required one as a slot. Any other field that `task`
+`mt add` then offers a required one as a slot. A
+#link(u("/filters/"))[filter] reads its value, declared or not. Any other field that `task`
 does not declare fails the file with an `unknown task slot` error.
 
 = Where a mistake is caught

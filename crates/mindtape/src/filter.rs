@@ -17,15 +17,19 @@
 //! `priority >= 7`). The `estimate` dict itself supports presence only
 //! (`has(estimate)` / `miss(estimate)`); one unit of it reads as a number,
 //! `estimate.<unit>` (see [`crate::filter_predicates::estimate_unit`]). An
-//! `x-<ns>` extension slot supports presence only. The same vocabulary backs
-//! `--sort` — see [`crate::sort::is_sort_field`], `estimate.<unit>` aside.
+//! `x-<ns>` extension slot reads whether or not `[tasks.fields]` declares it
+//! (see [`crate::filter_predicates::extra_value`]): a scalar compares like a
+//! core field, a list equals and orders against nothing, and a dict supports
+//! presence only. The same vocabulary backs `--sort` — see
+//! [`crate::sort::is_sort_field`], `estimate.<unit>` aside.
 //!
 //! Names follow Typst's identifier rule: a `-` between name characters is part
 //! of the name (`x-goals`, `estimate.src-files`), see [`crate::expr::join_kebab_names`].
 //!
 //! Operators: `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||`, `!`, parentheses.
 //!
-//! Functions: `has(field)`, `miss(field)`, `has_tag("name")`,
+//! Functions: `has(field)`, `miss(field)`, `has(field, value)` (a list holds
+//! the element, a scalar equals it, a dict has the key), `has_tag("name")`,
 //! `contains("substr")` / `contains("substr", field, ...)` — case-insensitive
 //! substring, needle first; fields optional, defaulting to `title`, `id`,
 //! `body` (an explicit field draws from
@@ -356,6 +360,9 @@ pub(crate) fn field_value(
 ) -> Result<FieldValue, FilterError> {
     if let Some(value) = crate::filter_predicates::estimate_unit(task, name, config) {
         return value;
+    }
+    if fields::is_extra(name) {
+        return crate::filter_predicates::extra_value(task, name);
     }
     fields::get(name)
         .map(|def| (def.get)(task, config))

@@ -10,8 +10,10 @@ use crate::model::Task;
 use crate::ready::{Readiness, ReadyState};
 
 /// Whether `name` is accepted by `--sort` and `[ls] default-sort`: every
-/// [`crate::fields::FIELDS`] entry, plus `ready` (a computed rank, not a
-/// `Task` field — see [`ready_rank`]). Derived rather than listed, so a field
+/// [`crate::fields::FIELDS`] entry, every `x-<ns>` extension slot (a scalar
+/// value orders like a core field; a list or a dict orders as missing), plus
+/// `ready` (a computed rank, not a `Task` field — see [`ready_rank`]).
+/// Derived rather than listed, so a field
 /// or property wired into the registry is sortable by construction and no
 /// second list has to remember it — the drift that left `assignee` and
 /// `reviewed` silently unsortable before the registry existed.
@@ -24,7 +26,7 @@ use crate::ready::{Readiness, ReadyState};
 /// layer. See [`crate::dep_rank`].
 #[must_use]
 pub fn is_sort_field(name: &str) -> bool {
-    name == "ready" || fields::get(name).is_some()
+    name == "ready" || fields::get(name).is_some() || fields::is_extra(name)
 }
 
 /// Validate a single sort spec (`"field"`, `"field:asc"`, or `"field:desc"`).
@@ -123,11 +125,14 @@ fn compare_field(
     }
 }
 
-/// A field's value via the shared [`crate::fields`] registry; `Missing` when
-/// `field` isn't registered there — unreachable via `--sort`, since
-/// `sort_by_specs` validates every spec first and the one sort name with no
-/// registry entry, `ready`, is intercepted in [`compare_field`].
+/// A field's value via the shared [`crate::fields`] registry, or an `x-<ns>`
+/// slot's through [`fields::extra`]; `Missing` when `field` is neither —
+/// unreachable via `--sort`, since `sort_by_specs` validates every spec first
+/// and the one other sort name, `ready`, is intercepted in [`compare_field`].
 fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {
+    if fields::is_extra(field) {
+        return fields::extra(task, field);
+    }
     fields::get(field).map_or(FieldValue::Missing, |def| (def.get)(task, config))
 }
 
@@ -138,8 +143,9 @@ fn registry_value(task: &Task, field: &str, config: &Config) -> FieldValue {
 /// missing values the same way (`sort_by_specs` reverses the whole comparison
 /// for `:desc`, so there a missing value sorts first — same as `priority`/
 /// `difficulty`, whose `cmp_num_asc` arms follow the identical rule). The two
-/// values passed in are always resolved from the same field name, so they are
-/// always the same variant when both are present.
+/// values passed in are resolved from the same field name, so a core field's
+/// are the same variant when both are present; an `x-<ns>` slot may hold a
+/// number on one task and text or a list on another, and those tie.
 fn cmp_field_value(left: &FieldValue, right: &FieldValue) -> Ordering {
     match (left, right) {
         (FieldValue::Missing, FieldValue::Missing) => Ordering::Equal,

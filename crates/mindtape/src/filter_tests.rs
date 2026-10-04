@@ -407,6 +407,10 @@ mod predicates;
 #[path = "filter_in_view_tests.rs"]
 mod in_view;
 
+// Reading an `x-<ns>` extension slot's value likewise.
+#[path = "filter_extras_tests.rs"]
+mod extras;
+
 #[test]
 fn a_rule_reading_changed_loads_outside_a_repository() {
     let dir = tempfile::tempdir().unwrap();

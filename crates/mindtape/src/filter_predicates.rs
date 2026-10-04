@@ -1,17 +1,20 @@
-//! Presence, staleness, changed-path count, commit-state existence and
-//! substring-search arms of the filter language's function dispatch
+//! Presence and membership, extension-slot values, staleness, changed-path
+//! count, commit-state existence and substring-search arms of the filter
+//! language's function dispatch
 //! (`has`/`miss`/`contains`/`stale`/`changed`/`exists`), split out of
 //! `filter.rs` (file-size gate). Each function here is pure over `Task` (plus
 //! `Config` where a field needs one to resolve, e.g. a framework priority);
 //! `exists` alone reads the `Ctx`, for the commit state it carries. The
 //! dispatcher itself (`filter::function`) stays put and calls into these.
 
-use evalexpr::{DefaultNumericTypes, Node};
+use evalexpr::{DefaultNumericTypes, Node, Operator};
+use typst_harvest::HVal;
 
 use crate::config::Config;
 use crate::expr::{call_args, extract_identifier, extract_literal};
 use crate::fields::{self, FieldValue};
 use crate::filter::{Ctx, FilterError, field_value};
+use crate::filter_compare::compare;
 use crate::git_state::{PathFilter, StateSet};
 use crate::model::Task;
 use crate::numeric::format_num;
@@ -26,6 +29,56 @@ pub(crate) fn present(task: &Task, name: &str, config: &Config) -> Result<bool, 
             FieldValue::Missing
         )),
     }
+}
+
+/// `has(field)` / `has(field, value)`. One argument tests presence
+/// ([`present`]); a second tests membership ([`holds`]).
+pub(crate) fn has_call(
+    children: &[Node<DefaultNumericTypes>],
+    task: &Task,
+    config: &Config,
+) -> Result<bool, FilterError> {
+    let name = |node| extract_identifier(node).map_err(FilterError::Invalid);
+    match call_args(children).as_slice() {
+        [field] => present(task, &name(field)?, config),
+        [field, value] => {
+            let value = extract_literal(value).map_err(FilterError::Invalid)?;
+            holds(task, &name(field)?, &value, config)
+        }
+        _ => Err(FilterError::Invalid(
+            "has() takes a field and an optional value: has(x-machine) or \
+             has(x-machine, \"alpha\")"
+                .to_owned(),
+        )),
+    }
+}
+
+/// Whether field `name` holds `value`: a list holds it as an element, a scalar
+/// equals it, a dict-valued `x-<ns>` slot has it as a key. A missing field
+/// holds nothing.
+fn holds(task: &Task, name: &str, value: &str, config: &Config) -> Result<bool, FilterError> {
+    if let Some(HVal::Dict(entries)) = task.extras.get(name) {
+        return Ok(entries.contains_key(value));
+    }
+    Ok(match field_value(task, name, config)? {
+        FieldValue::List(items) => items.iter().any(|item| compare(&Operator::Eq, item, value)),
+        scalar => compare(&Operator::Eq, &scalar, value),
+    })
+}
+
+/// `x-<ns>`: an extension slot's value through [`fields::from_extra`],
+/// declared in `[tasks.fields]` or not. An unset slot is
+/// [`FieldValue::Missing`]; a dict has no value to compare, so reading one is
+/// an error that points at `has()`.
+pub(crate) fn extra_value(task: &Task, name: &str) -> Result<FieldValue, FilterError> {
+    let Some(value) = task.extras.get(name) else {
+        return Ok(FieldValue::Missing);
+    };
+    fields::from_extra(value).ok_or_else(|| {
+        FilterError::Invalid(format!(
+            "`{name}` holds a dict; test it with has({name}) or has({name}, \"key\")"
+        ))
+    })
 }
 
 /// `estimate.<unit>`: one unit of the estimate dict, read as a number, for
@@ -146,7 +199,7 @@ fn contains_ci(value: &FieldValue, needle: &str) -> bool {
     let haystack = match value {
         FieldValue::Str(text) => text.clone(),
         FieldValue::Num(num) => format_num(*num),
-        FieldValue::Missing => return false,
+        FieldValue::Missing | FieldValue::List(_) => return false,
     };
     haystack.to_lowercase().contains(&needle.to_lowercase())
 }

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A filter reads an `x-<ns>` field's value.** `mt ls 'x-machine == "alpha"'`
+  failed with `unknown field in filter`, because an extension field took only
+  `has()` and `miss()`. A text, number or boolean value compares and sorts
+  like any field, declared in `[tasks.fields]` or not. `has(field, value)`
+  matches when a list holds the value, a scalar equals it or a dict has it as
+  a key, and `==` against a list is false. A dict value takes only `has()`
+  and `miss()`.
 - **A template slot takes an `example`.** A slot could carry a `default`,
   which `mt add` files when nothing fills the slot, but nothing that showed a
   caller what a good value looks like. `slot(..., example: ...)` is a sample

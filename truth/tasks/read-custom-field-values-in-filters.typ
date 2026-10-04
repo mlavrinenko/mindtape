@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 4),
+  status: done(2026, 10, 4),
 )
 
 == Problem
@@ -68,7 +68,7 @@
 
 == Changes
 
-- `crates/mindtape/src/filter_tests.rs`: red tests first — scalar extra equality, list membership through `has`, a missing extra under `!=`, a dict extra presence-only, `--sort x-machine`.
+- `crates/mindtape/src/filter_extras_tests.rs`, a child of `filter_tests.rs` to keep that file under its linecop cap: red tests first — scalar extra equality, list membership through `has`, a missing extra under `!=`, a dict extra presence-only, `--sort x-machine`.
 
 - `crates/mindtape/src/filter.rs`: `field_value` resolves an `x-<ns>` name from `task.extras`, and the module doc stops saying presence-only.
 
@@ -76,11 +76,11 @@
 
 - `crates/mindtape/src/filter_compare.rs`: `==` / `!=` on a list; an ordering against a list is false.
 
-- `crates/mindtape/src/filter_predicates.rs`: the two-argument `has()`.
+- `crates/mindtape/src/filter_predicates.rs`: the two-argument `has()`, which `crates/mindtape/src/filter_eval.rs` dispatches to.
 
-- `crates/mindtape/src/filter_strings.rs`, `crates/mindtape/src/sort.rs`, `crates/mindtape/src/commit_expr.rs`: the new value shape's arms.
+- `crates/mindtape/src/filter_strings.rs`, `crates/mindtape/src/sort.rs`: the new value shape's arms. `commit_expr.rs` matches no `FieldValue` and only calls `filter_compare`, so it needs none.
 
-- `www/content/filters.typ`: extras are readable, and `has()` gains its value form.
+- `www/content/filters.typ` and `skills/mindtape/references/filters.md`: extras are readable, and `has()` gains its value form. `www/content/rules.typ` stops saying a filter cannot name an extra.
 
 - `CHANGELOG.md`: the addition.
 

@@ -57,8 +57,9 @@ backend team's backlog:
   [`estimate.<unit>`],
   [One #link(u("/estimates/"))[estimate] unit, as a number. Filters only, so it does not sort.],
 
-  [`estimate`, `x-<ns>`],
-  [The estimate dict and an extension field. Only `has()` and `miss()` read them.],
+  [`estimate`], [The estimate dict. Only `has()` and `miss()` read it.],
+  [`x-<ns>`],
+  [An extension field, whether or not `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so `has(field, value)` reads it. A dict takes only `has()` and `miss()`.],
 )
 
 A field name may contain `-` between two letters or digits, as in
@@ -94,6 +95,9 @@ same date, which `MINDTAPE_NOW` pins (see
   columns: 2,
   table.header([Function], [Matches]),
   [`has(field)`, `miss(field)`], [The task has the field, or does not.],
+  [`has(field, value)`],
+  [The field's list holds the value, its scalar equals it, or its dict has it as a key.],
+
   [`has_tag("name")`],
   [The task has the tag, written or #link(u("/derived-tags/"))[derived].],
 
@@ -117,6 +121,10 @@ same date, which `MINDTAPE_NOW` pins (see
 )
 
 #commands("filters-functions")
+
+One field may hold `"alpha"` on one task and `("alpha", "gamma")` on
+another. `x-machine == "alpha"` matches only the first, and
+`has(x-machine, "alpha")` matches both.
 
 `into("status")` matches when a change moves the task into that status. It works
 only in an #link(u("/hooks/"))[`[[on.flip]]`] `when` and in a task-scope
@@ -240,7 +248,8 @@ most once per command.
 
 `--sort` takes `field`, `field:asc` or `field:desc`, and repeats, most
 significant first. Every field in the table sorts except `role`,
-`estimate.<unit>`, `estimate` and `x-<ns>`. `ready` sorts too: ready, then
+`estimate.<unit>` and `estimate`. An `x-<ns>` list or dict sorts as a
+missing value, last. `ready` sorts too: ready, then
 blocked, then terminal. Any other direction, such as `priority:up`, is an error.
 `[ls] default-sort` takes the same specs.
 
