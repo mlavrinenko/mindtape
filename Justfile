@@ -318,7 +318,7 @@ script-attr-check:
 # Lock both manifests that enumerate `.just/scripts/` onto the directory they
 # enumerate: every script must be named by an mmz scope as a literal path, every
 # memoized rule whose body invokes a script must name that script's scope, and
-# every script must be an `outdatty.yaml` `dev-docs` source. A glob such as
+# every script must be a source of some `outdatty.yaml` group. A glob such as
 # `.just/scripts/**` covers a new script as soon as the file exists, and an
 # enumeration covers only what somebody listed, so this recipe checks each
 # enumeration against the directory. Why a glob can never satisfy the first
@@ -326,7 +326,7 @@ script-attr-check:
 # rather than the lock, are argued in place in
 # .just/scripts/script-scope-check.sh.
 
-[doc("Lock every gate script into a named mmz scope and outdatty's dev-docs group")]
+[doc("Lock every gate script into a named mmz scope and outdatty's script groups")]
 [group("gate")]
 script-scope-check:
     bash .just/scripts/script-scope-check.sh
@@ -448,13 +448,13 @@ check-windows:
         --target x86_64-pc-windows-gnu
 
 # Re-record one group after editing its source: `just outdatty-update <group>`
-# (usage: just outdatty-update dev-docs). A recorded hash is the review
+# (usage: just outdatty-update dev-shell-docs). A recorded hash is the review
 # watermark, so the blanket form (`just outdatty-update-all`) claims a review
 # of every group's dependents that never happened. Use it only when that review
 # did happen.
 #
 # After a dependent-only edit, name the file too: `just outdatty-update
-# dev-docs docs/src/contributing/windows.typ` records that dependent's hash
+# dev-shell-docs docs/src/contributing/windows.typ` records that dependent's hash
 # alone and leaves every other pending dependent in the group pending.
 
 [arg('GROUP', pattern='[a-z][a-z0-9-]*', help='outdatty group to re-confirm — the names outdatty.yaml declares')]

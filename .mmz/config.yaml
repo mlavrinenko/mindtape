@@ -253,7 +253,7 @@ scopes:
   # recipe bodies into) and the dev shell they all run in (flake.nix and
   # flake.lock). Every formatter, linter and cargo tool comes from that shell,
   # so a toolchain or tool-set bump must re-run every gate, machete included.
-  # flake.nix is an outdatty `dev-docs` source, so listing it here stops
+  # flake.nix is a source of the outdatty `dev-shell-docs` group, so listing it here stops
   # `outdatty-check` reporting fresh after a flake.nix edit. All files are
   # content-hashed, so an untouched file contributes no churn.
   #
@@ -284,7 +284,7 @@ scopes:
   # The whole script directory as a set, for the four rules whose subject is
   # the directory rather than one body in it: `check-file-size` (linecop scans
   # every .sh under it, since .linecop.yaml sets `include_hidden: true`),
-  # `outdatty-check` (every script is a `dev-docs` source, so every script's
+  # `outdatty-check` (every script is a source of some group, so every script's
   # content is compared against outdatty.lock), `check-gate-drift` (which walks
   # the call graph out of `check` and reads every script it reaches, so a new
   # script is read as soon as it exists) and `script-scope-check` (which takes
@@ -516,7 +516,7 @@ commands:
   # the lock. Every dependent lives under `rust`/`policy`/`examples`/`docs`, so
   # a dependent edit busts via those scopes, and `outdatty-config` covers the
   # lock and the group config directly. The rule takes `scripts-all` and not one
-  # script's scope: every file in .just/scripts/ is a `dev-docs` source
+  # script's scope: every file in .just/scripts/ is a source of some group
   # (outdatty.yaml lists them one by one), so this rule reads the whole
   # directory, and a per-body scope would leave the rest false-fresh.
   - name: just outdatty-check
@@ -723,7 +723,7 @@ commands:
   # enumeration could not see it appear. `script-script-scope-check` is its own
   # body, and `gates-meta` is the Justfile it dumps plus the dev shell yq/jq
   # come from. `outdatty-config` is here because arm three reads outdatty.yaml's
-  # `dev-docs` sources, so a script dropped from that list must bust this rule.
+  # group sources, so a script dropped from those lists must bust this rule.
   # Without it the arm would report a verdict over a file it never hashed, the
   # false-fresh the arms themselves exist to refuse.
   #

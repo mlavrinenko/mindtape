@@ -102,8 +102,9 @@ that writes elsewhere.
 glob over the directory would re-run every gate when one script changed. A
 list only covers the scripts someone added to it, so
 #just.script-scope-check() fails on a script no scope names, on a rule that
-reaches a script its inputs miss, and on a script that is neither an
-`outdatty.yaml` `dev-docs` source nor exempt. `.just/scripts/script-scope-check.sh`
+reaches a script its inputs miss, and on a script that is a source of no
+`outdatty.yaml` group. A script joins the group of the doc that restates it, or
+the source-only group when no doc does. `.just/scripts/script-scope-check.sh`
 explains each arm.
 
 = The formatter path lists

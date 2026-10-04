@@ -342,62 +342,27 @@ groups:
       - docs/src/skill.typ
 
   # Dev tooling and the contributor docs that describe it. A source is a file
-  # whose behaviour a dependent restates by hand: the two justfiles, the dev
-  # shell, nextest's config, and the scripts under .just/scripts/ that a doc
-  # describes. No file in www/generated/ carries those facts, so editing a
-  # source means reviewing every dependent.
+  # whose behaviour a dependent restates by hand. No file in www/generated/
+  # carries those facts, so editing a source means reviewing every dependent.
   #
   # The dependents are docs/src sources, never their rendered Markdown,
   # because a fix is made in the source. docs/src/contributing.typ's gate
   # table reads gates.json, so adding or removing a gate needs no review here.
   # The rest of that file, and every deep dive, describes recipes and scripts
-  # by hand.
+  # by hand. www/utils/gate-notes.typ names what each gate catches, so every
+  # gate script is a source of a group that lists it.
   #
-  # The scripts are listed one by one, so tracking a new script is a decision.
-  # `just script-scope-check` fails on a script that is neither listed here
-  # nor exempt, with a reason, in .just/scripts/script-scope-check.sh.
-  - name: dev-docs
+  # The scripts under .just/scripts/ are listed one by one, each in the group of
+  # the doc that restates it, so a script fix asks for that doc and no other. A
+  # script no doc restates sits in the source-only group at the end. Tracking a
+  # new script is a decision: `just script-scope-check` fails on a script that
+  # is a source of no group.
+  - name: dev-shell-docs
     source:
       - flake.nix
       - Justfile
       - .config/nextest.toml
       - .just/docs.just
-      - .just/scripts/check-doc-coverage.sh
-      - .just/scripts/check-doc-facts.sh
-      - .just/scripts/check-doc-recipes.sh
-      - .just/scripts/check-doc-prose.sh
-      - .just/scripts/check-doc-blocks.sh
-      - .just/scripts/_doc-blocks-lib.sh
-      - .just/scripts/check-doc-spans.sh
-      - .just/scripts/check-doc-spans.jq
-      - .just/scripts/check-secrets.sh
-      - .just/scripts/check-secrets-manifest.sh
-      - .just/scripts/fmt-fixture-check.sh
-      - .just/scripts/arg-pattern-check.sh
-      - .just/scripts/check-crap.sh
-      - .just/scripts/docs-md-check.sh
-      - .just/scripts/cover.sh
-      - .just/scripts/crap.sh
-      - .just/scripts/crap-baseline.sh
-      - .just/scripts/crap-baseline-check.sh
-      - .just/scripts/_lcov-stale-reason.sh
-      - .just/scripts/mutants.sh
-      - .just/scripts/mutants-diff.sh
-      - .just/scripts/install-lib.sh
-      - .just/scripts/release.sh
-      - .just/scripts/positional-args-check.sh
-      - .just/scripts/_mutants-env.sh
-      - .just/scripts/size-fixture-check.sh
-      - .just/scripts/script-attr-check.sh
-      - .just/scripts/script-scope-check.sh
-      - .just/scripts/_script-graph.sh
-      - .just/scripts/_script-graph-lib.sh
-      - .just/scripts/_script-reach.sh
-      - .just/scripts/site-pages-fixture-check.sh
-      - .just/scripts/check-gate-drift.sh
-      - .just/scripts/_gate-drift-lib.sh
-      - .just/scripts/fork.sh
-      - .just/scripts/integrate.sh
     dependents:
       - docs/src/contributing.typ
       - docs/src/agents.typ
@@ -410,6 +375,102 @@ groups:
       - docs/src/contributing/signal-sweep.typ
       - docs/src/contributing/docs-site-build.typ
       - docs/src/contributing/documentation.typ
+
+  # The coverage and CRAP scripts, which coverage-crap.typ and crap-baseline.typ
+  # describe step by step.
+  - name: crap-scripts-docs
+    source:
+      - .just/scripts/check-crap.sh
+      - .just/scripts/cover.sh
+      - .just/scripts/crap.sh
+      - .just/scripts/crap-baseline.sh
+      - .just/scripts/crap-baseline-check.sh
+      - .just/scripts/_lcov-stale-reason.sh
+    dependents:
+      - docs/src/contributing/coverage-crap.typ
+      - docs/src/contributing/crap-baseline.typ
+      - www/utils/gate-notes.typ
+
+  # The mutation scripts, which mutation-testing.typ describes and
+  # signal-sweep.typ and contributing.typ refer to.
+  - name: mutation-scripts-docs
+    source:
+      - .just/scripts/mutants.sh
+      - .just/scripts/mutants-diff.sh
+      - .just/scripts/_mutants-env.sh
+    dependents:
+      - docs/src/contributing/mutation-testing.typ
+      - docs/src/contributing/signal-sweep.typ
+      - docs/src/contributing.typ
+
+  # The worktree and release recipes, which contributing.typ describes.
+  - name: worktree-release-docs
+    source:
+      - .just/scripts/fork.sh
+      - .just/scripts/integrate.sh
+      - .just/scripts/release.sh
+    dependents:
+      - docs/src/contributing.typ
+
+  # The doc gates, whose rules documentation.typ states, and the render check
+  # generated-docs.typ describes.
+  - name: doc-gate-scripts-docs
+    source:
+      - .just/scripts/check-doc-coverage.sh
+      - .just/scripts/check-doc-facts.sh
+      - .just/scripts/check-doc-recipes.sh
+      - .just/scripts/check-doc-prose.sh
+      - .just/scripts/check-doc-prose.awk
+      - .just/scripts/check-doc-blocks.sh
+      - .just/scripts/_doc-blocks-lib.sh
+      - .just/scripts/check-doc-spans.sh
+      - .just/scripts/check-doc-spans.jq
+      - .just/scripts/docs-md-check.sh
+    dependents:
+      - docs/src/contributing/documentation.typ
+      - docs/src/contributing/generated-docs.typ
+      - www/utils/gate-notes.typ
+
+  # The gates that police the other gates, and the secret scan. gates.typ
+  # explains how each runs.
+  - name: gate-scripts-docs
+    source:
+      - .just/scripts/check-secrets.sh
+      - .just/scripts/check-secrets-manifest.sh
+      - .just/scripts/check-gate-drift.sh
+      - .just/scripts/_gate-drift-lib.sh
+      - .just/scripts/script-scope-check.sh
+      - .just/scripts/_script-graph.sh
+      - .just/scripts/_script-graph-lib.sh
+      - .just/scripts/_script-reach.sh
+      - .just/scripts/fmt-fixture-check.sh
+      - .just/scripts/arg-pattern-check.sh
+      - .just/scripts/positional-args-check.sh
+      - .just/scripts/script-attr-check.sh
+      - .just/scripts/size-fixture-check.sh
+      - .just/scripts/site-pages-fixture-check.sh
+    dependents:
+      - docs/src/contributing/gates.typ
+      - www/utils/gate-notes.typ
+
+  # The scripts no doc restates: editing one flags nothing. Each entry says why.
+  - name: scripts-no-doc
+    source:
+      # A machine install is read off `just --list` and run, and no doc
+      # describes what it puts on a machine.
+      - .just/scripts/install.sh
+      - .just/scripts/install-bin.sh
+      - .just/scripts/install-lib.sh
+      - .just/scripts/uninstall-lib.sh
+      # A sourced preamble with no behavior of its own.
+      - .just/scripts/_typst-package.sh
+      # gate-notes.typ names this one but restates none of its logic.
+      - .just/scripts/_nav-diff.sh
+      # The controls hold fixtures that no doc names. The readers they drive are
+      # sources of the groups above.
+      - .just/scripts/_script-graph-control.sh
+      - .just/scripts/_gate-drift-control.sh
+      - .just/scripts/_doc-blocks-control.sh
 
   # The four `just ask-refactoring` templates share one shape: the same
   # task.with header, the same "filed from a signal, nothing recorded that it

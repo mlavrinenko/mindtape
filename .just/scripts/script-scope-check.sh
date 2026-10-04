@@ -28,25 +28,21 @@
 #      (.just/scripts/_script-graph.sh) and the rule's declared inputs must
 #      cover every script that body REACHES — through another script and
 #      through a nested `just`, not only the ones it names itself.
-#   3. Is it coupled to the docs it can rot, or exempted on purpose? Same
-#      enumeration problem, one file over: `outdatty.yaml`'s `dev-docs` group
-#      lists these scripts one by one, and outdatty reacts only to files it
-#      lists — so a script never added is coupled to no dependent and reported
+#   3. Is it coupled to the docs it can rot, or placed on purpose where none
+#      does? Same enumeration problem, one file over: `outdatty.yaml` lists
+#      these scripts one by one in groups, and outdatty reacts only to files it
+#      lists, so a script never added is coupled to no dependent and reported
 #      by nothing (truth/tasks/fail-a-half-wired-gate-arm-at-the-wiring-it-is-
 #      missing.typ). Membership is all this arm claims: WHICH dependents a
 #      script owes is outdatty's own subject, and it answers that well once the
 #      file is listed at all.
 #
-# ARM THREE DEMANDS A DECISION, NOT MEMBERSHIP, and the difference is the whole
-# design. Not every script belongs in that group: `_nav-diff.sh` is deliberately
-# outside it, with the reason recorded in outdatty.yaml — no doc restates its
-# logic, so listing it would ask a reader to review seven dependents for a
-# change that cannot rot any of them. Demanding membership outright would have
-# forced exactly the coupling this repo declined on purpose, and demanding
-# nothing lets the next script fall out silently. So a script must be a source
-# OR carry an exemption below, and a NEW one is neither — which is the arriving-
-# is-enough property restored: the file nobody decided about is the file that
-# fails.
+# ARM THREE DEMANDS A DECISION, NOT A PARTICULAR GROUP, and the difference is
+# the whole design. A script belongs to the group of the doc that restates it,
+# so editing it flags that doc and no other. A script no doc restates belongs
+# to the source-only group, which has no dependents, so listing it flags
+# nothing. Either way somebody chose, and a NEW script is in neither, so the
+# file nobody decided about is the file that fails.
 #
 # ONLY WILDCARD-FREE PATHS COUNT as naming a script in arm one, and that is
 # load-bearing rather than tidy. The obvious way to make a failure here go
@@ -166,85 +162,23 @@ while IFS=$'\t' read -r recipe script chain; do
     fi
 done <<<"$reachable"
 
-# ARM THREE: every script is a `dev-docs` SOURCE in outdatty.yaml, or is
-# exempted here with the reason. Read from outdatty.yaml rather than
-# outdatty.lock — the lock records what was confirmed, so a script listed in
-# neither is missing from both and the lock agrees with itself. The group name
-# is hard-coded because exactly one group's subject is this directory; a second
-# would make "which group does this script belong to" a real question, and this
-# arm would have to be told the answer rather than assume it.
-#
-# One entry per exempt script, with the reason it owes no dependent. Each is a
-# claim about the DOCS, not about the script: nothing anywhere restates its
-# behaviour by hand, so no prose can go stale when it changes.
-declare -A dev_docs_exempt=(
-    # gate-notes.typ names it, but restates none of its own two-arm logic —
-    # the reason outdatty.yaml already records for leaving it out.
-    ["_nav-diff.sh"]="no doc restates its logic; gate-notes.typ only names it"
-    # The machine-install scripts. install-lib.sh IS a dev-docs source, because
-    # the contributing docs walk a contributor through `just install-lib`;
-    # these four are not, because no doc describes what they put on a machine —
-    # they are read off `just --list` and run.
-    ["install.sh"]="no doc describes the install set; --list is the only entry point"
-    ["install-bin.sh"]="no doc describes the binary install; --list is the only entry point"
-    ["uninstall-lib.sh"]="no doc describes it; the inverse of install-lib, named only in its own [doc]"
-    ["_typst-package.sh"]="a sourced preamble, no behaviour of its own for a doc to restate"
-    # Same shape one gate over: the prose restates what the DERIVATION reads as
-    # a call, which is _script-graph.sh's own subject and makes that file a
-    # source. The control's four cases are what would change here, and no doc
-    # names one.
-    ["_script-graph-control.sh"]="no doc restates its cases; the derivation it drives is the documented part"
-    # The same shape for check-gate-drift: the readers (_gate-drift-lib.sh) are
-    # the source, gate-notes.typ restates what they read, and the control's
-    # fixtures are the part no doc names.
-    ["_gate-drift-control.sh"]="no doc restates its fixtures; the readers it drives are the documented part"
-    # The same for check-doc-blocks: the scanner (_doc-blocks-lib.sh) is the
-    # source, and no doc names the control's fixtures.
-    ["_doc-blocks-control.sh"]="no doc restates its fixtures; the scanner it drives is the documented part"
-)
+# ARM THREE: every script is a source of some outdatty.yaml group. Read from
+# outdatty.yaml rather than outdatty.lock, because the lock records what was
+# confirmed, so a script listed in neither is missing from both and the lock
+# agrees with itself.
+group_sources=$(yq -r '.groups // [] | .[] | (.source // [])[]' outdatty.yaml)
 
-dev_docs_sources=$(yq -r '
-    .groups // [] | .[] | select(.name == "dev-docs") | (.source // [])[]
-' outdatty.yaml)
-
-if [ -z "$dev_docs_sources" ]; then
-    echo "script-scope-check: outdatty.yaml declares no \`dev-docs\` sources" >&2
-    echo "  the group this arm reads was renamed or removed — retarget the arm, do not delete it" >&2
+if [ -z "$group_sources" ]; then
+    echo "script-scope-check: outdatty.yaml declares no group sources" >&2
+    echo "  the key this arm reads was renamed or removed; retarget the arm, do not delete it" >&2
     exit 1
 fi
 
-exempt=0
 for script in "${scripts[@]}"; do
-    stem=${script##*/}
-    listed=0
-    grep -qxF "$script" <<<"$dev_docs_sources" && listed=1
-    # An exemption for a script that IS a source is a contradiction, and the
-    # shape a half-finished change leaves behind: the file was listed, the
-    # exemption never removed, and the next reader cannot tell which of the two
-    # is the decision.
-    if [ -n "${dev_docs_exempt[$stem]}" ]; then
-        if [ "$listed" -eq 1 ]; then
-            echo "script-scope-check: $script is a \`dev-docs\` source AND exempt here" >&2
-            echo "  drop the exemption (\"${dev_docs_exempt[$stem]}\") or drop the source line" >&2
-            fail=1
-        else
-            exempt=$((exempt + 1))
-        fi
-        continue
-    fi
-    if [ "$listed" -eq 0 ]; then
-        echo "script-scope-check: $script is neither a \`dev-docs\` source nor exempt" >&2
-        echo "  add \`      - $script\` to that group in outdatty.yaml, so editing it asks for the docs it can rot" >&2
-        echo "  or add it to dev_docs_exempt in this script, with the reason no doc restates it" >&2
-        fail=1
-    fi
-done
-
-# The reverse difference, like arm one's: an exemption for a file that is gone
-# outlives the rename that removed it and quietly exempts nothing.
-for stem in "${!dev_docs_exempt[@]}"; do
-    if [ ! -f ".just/scripts/$stem" ]; then
-        echo "script-scope-check: dev_docs_exempt names $stem, which does not exist" >&2
+    if ! grep -qxF "$script" <<<"$group_sources"; then
+        echo "script-scope-check: $script is a source of no outdatty.yaml group" >&2
+        echo "  add \`      - $script\` to the group of the doc that restates it, so editing it asks for that doc" >&2
+        echo "  or to the source-only group scripts-no-doc, with the reason no doc restates it" >&2
         fail=1
     fi
 done

@@ -110,15 +110,15 @@ assert_accepted gen-bench 100
 # group name can never take (outdatty.yaml names are all lowercase).
 assert_rejected outdatty-update 'Dev Docs'
 assert_rejected outdatty-update 'DEV_DOCS'
-assert_accepted outdatty-update dev-docs
+assert_accepted outdatty-update dev-shell-docs
 
 # The optional DEPENDENTS are spliced into the body as `--dependent <path>`
 # words by `prepend`, unquoted, so each path must be refused at dispatch when
 # it carries a space or a shell metacharacter. Every tracked path here is
 # letters, digits, `.`, `_`, `/` and `-`.
-assert_rejected outdatty-update dev-docs 'docs/src/a b.typ'
-assert_rejected outdatty-update dev-docs 'docs/src/a.typ;true'
-assert_accepted outdatty-update dev-docs docs/src/contributing/windows.typ
+assert_rejected outdatty-update dev-shell-docs 'docs/src/a b.typ'
+assert_rejected outdatty-update dev-shell-docs 'docs/src/a.typ;true'
+assert_accepted outdatty-update dev-shell-docs docs/src/contributing/windows.typ
 
 # Bare `just outdatty-update` must fail at dispatch too — the whole point of
 # requiring the group is that the blanket form is no longer reachable by
