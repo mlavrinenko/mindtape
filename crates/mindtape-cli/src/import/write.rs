@@ -118,7 +118,7 @@ fn check_staged(project: &Project, dest: &Path, staged: &[StagedTask]) -> Result
         .collect();
     Ok(pre_write::check(project, &project.outcome.tasks, &pending)?
         .into_iter()
-        .map(|verdict| verdict.problems)
+        .map(|verdict| verdict.problems())
         .collect())
 }
 

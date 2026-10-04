@@ -68,7 +68,7 @@ fn check_unblocked(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
                 field: "status".to_owned(),
                 message: unblocked_violation(&status.name, &blockers),
                 location: task.field_location("status"),
-                severity: Some(Severity::Warn),
+                severity: Severity::Warn,
             });
         }
     }
@@ -212,7 +212,7 @@ fn check_cycle(tasks: &[Task], kind: &str, out: &mut Vec<Violation>) {
             field: kind.to_owned(),
             message: format!("{kind} cycle: {cycle}"),
             location,
-            severity: None,
+            severity: Severity::Error,
         });
     }
 }
@@ -223,7 +223,7 @@ fn push(out: &mut Vec<Violation>, task: &Task, field: String, message: String) {
         location: task.field_location("links"),
         field,
         message,
-        severity: None,
+        severity: Severity::Error,
     });
 }
 

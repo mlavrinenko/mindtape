@@ -125,7 +125,7 @@ impl CompiledRule {
     /// rule that cannot see the change set has not found a breach.
     fn skipped(&self, task: &Task, err: &FilterError) -> Violation {
         Violation {
-            severity: Some(Severity::Warn),
+            severity: Severity::Warn,
             ..self.violation(task, format!("skipped: {err}"))
         }
     }
@@ -139,7 +139,7 @@ impl CompiledRule {
             field: self.label.clone(),
             message,
             location: task.marker_location(),
-            severity: Some(self.severity),
+            severity: self.severity,
         }
     }
 }

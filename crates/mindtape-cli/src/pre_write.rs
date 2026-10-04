@@ -32,7 +32,7 @@
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
-use mindtape::{BodyRules, Candidate, Task, compile_content_rules, compile_rules};
+use mindtape::{BodyRules, Candidate, Task, Violation, compile_content_rules, compile_rules};
 
 use crate::util::Project;
 
@@ -48,19 +48,13 @@ pub struct Pending<'a> {
 /// What the project says about one pending write.
 #[derive(Debug)]
 pub struct Verdict {
-    /// Problems naming this write; empty means it is safe to land.
-    pub problems: Vec<String>,
-    /// The [`field`](mindtape::Violation::field) of each breach in
-    /// [`problems`](Self::problems); empty for a source that did not load.
-    pub breached: Vec<String>,
-    /// Breaches the project declared as `severity = "warn"`
-    /// (`[[tasks.rules]]`): printed, and then the write lands anyway.
-    ///
-    /// Separate from [`problems`](Self::problems) rather than a flag on each,
-    /// because the two answer different questions and only one of them decides
-    /// whether the file is written. Folding them together would make the
-    /// refusal a matter of inspecting strings.
-    pub warnings: Vec<String>,
+    /// Why the source did not evaluate, when it did not. A source that never
+    /// loaded has no fields to have got wrong, so this is not a
+    /// [`Violation`].
+    pub load_failure: Option<String>,
+    /// Every breach of the candidate, each carrying its own severity. Only a
+    /// fatal one refuses the write; a warning is said and the file lands.
+    pub violations: Vec<Violation>,
     /// The task the source would load as, when it evaluated at all — what a
     /// batch that writes one file at a time folds back into its working set,
     /// so the next write is checked against a project already carrying this
@@ -68,7 +62,7 @@ pub struct Verdict {
     pub task: Option<Task>,
     /// `false` when the destination lies outside the project root, where there
     /// is no project-relative path to evaluate a candidate at. Nothing was
-    /// checked, and an empty `problems` then says nothing about the source.
+    /// checked, and an empty verdict then says nothing about the source.
     pub checked: bool,
 }
 
@@ -76,7 +70,42 @@ impl Verdict {
     /// Whether the write may land: it passed, or there was nothing to check it
     /// against.
     pub(crate) fn accepted(&self) -> bool {
-        self.problems.is_empty()
+        self.load_failure.is_none() && !self.violations.iter().any(Violation::is_fatal)
+    }
+
+    /// The breaches that do not refuse the write.
+    pub(crate) fn warnings(&self) -> impl Iterator<Item = &Violation> {
+        self.violations
+            .iter()
+            .filter(|violation| !violation.is_fatal())
+    }
+
+    /// The [`field`](Violation::field) of each fatal breach.
+    pub(crate) fn breached(&self) -> Vec<String> {
+        self.violations
+            .iter()
+            .filter(|violation| violation.is_fatal())
+            .map(|violation| violation.field.clone())
+            .collect()
+    }
+
+    /// What refuses the write, one line each: the load failure, or every fatal
+    /// breach as `file:line: field: message`.
+    ///
+    /// The load failure says `did not load` in front of the compiler's own
+    /// words, because a task that did not evaluate has no fields to have got
+    /// wrong, and a bare Typst error among `field: message` lines reads as if
+    /// it were one. [`Verdict::task`] being `None` on a checked entry is the
+    /// machine-readable half of the same distinction.
+    pub(crate) fn problems(&self) -> Vec<String> {
+        if let Some(failure) = &self.load_failure {
+            return vec![format!("did not load: {failure}")];
+        }
+        self.violations
+            .iter()
+            .filter(|violation| violation.is_fatal())
+            .map(crate::breach::at)
+            .collect()
     }
 }
 
@@ -196,15 +225,14 @@ pub fn absorb(world: &mut Vec<Task>, task: Task) {
 fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> {
     let mut rejected = 0_usize;
     for (entry, verdict) in pending.iter().zip(verdicts) {
-        for warning in &verdict.warnings {
-            eprintln!("warning: {}", verdict.qualify(entry.file, warning));
+        if let Some(failure) = &verdict.load_failure {
+            eprintln!("error: {}: did not load: {failure}", label(entry.file));
         }
-        if verdict.accepted() {
-            continue;
+        for violation in &verdict.violations {
+            eprintln!("{}", crate::breach::line(violation));
         }
-        rejected += 1;
-        for problem in &verdict.problems {
-            eprintln!("error: {}", verdict.qualify(entry.file, problem));
+        if !verdict.accepted() {
+            rejected += 1;
         }
     }
     if rejected == 0 {
@@ -226,29 +254,17 @@ fn refuse_rejected(pending: &[Pending<'_>], verdicts: &[Verdict]) -> Result<()> 
 fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
     match result {
         Err(error) => Verdict {
-            problems: vec![format!("did not load: {}", error.message)],
-            breached: Vec::new(),
-            warnings: Vec::new(),
+            load_failure: Some(error.message),
+            violations: Vec::new(),
             task: None,
             checked: true,
         },
-        Ok(checked) => {
-            let (fatal, warned): (Vec<_>, Vec<_>) = checked
-                .violations
-                .iter()
-                .partition(|violation| violation.is_fatal());
-            let render = |violation: &&mindtape::Violation| crate::check::breach_at(violation);
-            Verdict {
-                problems: fatal.iter().map(render).collect(),
-                breached: fatal
-                    .iter()
-                    .map(|violation| violation.field.clone())
-                    .collect(),
-                warnings: warned.iter().map(render).collect(),
-                task: Some(checked.task),
-                checked: true,
-            }
-        }
+        Ok(checked) => Verdict {
+            load_failure: None,
+            violations: checked.violations,
+            task: Some(checked.task),
+            checked: true,
+        },
     }
 }
 
@@ -262,23 +278,10 @@ fn verdict(result: Result<mindtape::Checked, mindtape::LoadError>) -> Verdict {
 /// ([`crate::add::warn_if_outside_roots`]) and lands it unvalidated.
 fn unchecked() -> Verdict {
     Verdict {
-        problems: Vec::new(),
-        breached: Vec::new(),
-        warnings: Vec::new(),
+        load_failure: None,
+        violations: Vec::new(),
         task: None,
         checked: false,
-    }
-}
-
-impl Verdict {
-    /// `text` as one printable line about `file`. A breach already opens at its
-    /// own `file:line`; a load failure has no line, so it opens at the stem.
-    pub(crate) fn qualify(&self, file: &Path, text: &str) -> String {
-        if self.task.is_some() {
-            text.to_owned()
-        } else {
-            format!("{}: {text}", label(file))
-        }
     }
 }
 

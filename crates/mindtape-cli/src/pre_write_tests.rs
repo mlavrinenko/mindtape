@@ -94,15 +94,15 @@ fn resolves_an_edge_between_two_candidates_in_one_batch() {
     ];
     let together = check(&project, &project.outcome.tasks, &batch).unwrap();
     assert!(
-        together[0].problems.is_empty(),
+        together[0].problems().is_empty(),
         "{:?}",
-        together[0].problems
+        together[0].problems()
     );
 
     // The same candidate alone cannot see `b`, which is exactly why the batch
     // is not a loop over this call.
     let alone = check(&project, &project.outcome.tasks, &batch[..1]).unwrap();
-    assert!(!alone[0].problems.is_empty());
+    assert!(!alone[0].problems().is_empty());
 }
 
 /// `ensure` is all-or-nothing: one rejected entry fails the call, and the
@@ -155,8 +155,8 @@ fn reports_a_source_that_does_not_evaluate() {
 
     assert_eq!(verdicts.len(), 1);
     assert!(verdicts[0].task.is_none());
-    assert!(verdicts[0].problems[0].starts_with("did not load: "));
-    assert!(verdicts[0].problems[0].contains("no task marker"));
+    assert!(verdicts[0].problems()[0].starts_with("did not load: "));
+    assert!(verdicts[0].problems()[0].contains("no task marker"));
 }
 
 /// A destination outside the project root has no project-relative path to
@@ -181,7 +181,7 @@ fn marks_a_destination_outside_the_root_unchecked() {
     .unwrap();
 
     assert!(!verdicts[0].checked);
-    assert!(verdicts[0].problems.is_empty());
+    assert!(verdicts[0].problems().is_empty());
 }
 
 /// A misconfigured header rule fails the whole call up front — the same

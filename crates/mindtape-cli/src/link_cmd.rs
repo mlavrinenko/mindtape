@@ -131,14 +131,14 @@ pub(crate) fn run_with(project: &Project, args: &LinkArgs) -> Result<()> {
     let verdicts = pre_write::check(project, &project.outcome.tasks, &pending)?;
 
     for (staged, verdict) in plan.staged.iter().zip(&verdicts) {
-        for warning in &verdict.warnings {
-            eprintln!("warning: {}", verdict.qualify(&staged.abs, warning));
+        for warning in verdict.warnings() {
+            eprintln!("{}", crate::breach::line(warning));
         }
-        if !verdict.problems.is_empty() {
+        if !verdict.accepted() {
             problems.push(format!(
                 "{}: not linked: {}",
                 staged.stem,
-                verdict.problems.join("; ")
+                verdict.problems().join("; ")
             ));
             continue;
         }

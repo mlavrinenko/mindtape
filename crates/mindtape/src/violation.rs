@@ -36,26 +36,24 @@ pub struct Violation {
     /// Where the violation points: the line of the offending field, heading
     /// or comment, else the `task.with(…)` call itself.
     pub location: Location,
-    /// The severity a project chose for this violation, for the one kind that
-    /// has a choice: a `[[tasks.rules]]` breach (see [`crate::config_rules`]).
+    /// How loudly this violation reports, and whether it fails the command.
     ///
-    /// `None` is every check `MindTape` makes on its own — a status outside the
-    /// legend, an unresolvable edge, a value off its scale. Those always fail
-    /// the command and print bare, because a malformed artifact is not a matter
-    /// of degree and a report with one level needs no label. `Some` means the
-    /// project declared the level, so the report carries it
-    /// ([`Severity::label`]) and [`Violation::is_fatal`] answers from it.
-    pub severity: Option<Severity>,
+    /// Every check `MindTape` makes on its own is [`Severity::Error`]: a
+    /// malformed artifact is not a matter of degree. A breach a project chose
+    /// the level of — a `[[tasks.rules]]` entry, a `[tasks.comments]` policy of
+    /// `warn`, a built-in template under `fallback-severity` — carries that
+    /// level. Every report prints it ([`Severity::label`]) and
+    /// [`Violation::is_fatal`] answers from it.
+    pub severity: Severity,
 }
 
 impl Violation {
     /// Whether this violation fails the command it surfaced in — and, for a
     /// write command, refuses the write.
     ///
-    /// Everything `MindTape` checks itself is fatal; only a `[[tasks.rules]]`
-    /// entry at `severity = "warn"` is not.
+    /// Fatal exactly when the severity is [`Severity::Error`].
     #[must_use]
     pub fn is_fatal(&self) -> bool {
-        self.severity.is_none_or(Severity::is_error)
+        self.severity.is_error()
     }
 }

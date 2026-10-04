@@ -15,6 +15,7 @@ use uuid::Uuid;
 use crate::config::{Config, FieldConfig, IdFormat, Legend, RequiredRules};
 use crate::model::{Status, Task};
 use crate::numeric::{NumValue, NumericField, format_num};
+use crate::severity::Severity;
 pub use crate::violation::{Location, Violation};
 
 /// Validate every task against `config`, returning all violations.
@@ -108,7 +109,7 @@ fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
                     first.file.display()
                 ),
                 location: task.field_location("id"),
-                severity: None,
+                severity: Severity::Error,
             });
         } else {
             seen.insert(&task.id, task);
@@ -156,7 +157,7 @@ pub(crate) fn violation(task: &Task, field: &str, message: String) -> Violation 
         field: field.to_owned(),
         message,
         location: task.field_location(field),
-        severity: None,
+        severity: Severity::Error,
     }
 }
 

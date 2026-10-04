@@ -103,7 +103,7 @@ pub(crate) fn check(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
                 field: "status".to_owned(),
                 message: children_violation(&status.name, &open),
                 location: task.field_location("status"),
-                severity: Some(Severity::Warn),
+                severity: Severity::Warn,
             });
         }
     }

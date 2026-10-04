@@ -30,6 +30,7 @@ use crate::config::{Config, HeaderPathSegment};
 use crate::filter::Filter;
 use crate::gate::GateError;
 use crate::model::Task;
+use crate::severity::Severity;
 use crate::validate::{Location, Violation};
 
 #[path = "content_gate_density.rs"]
@@ -195,7 +196,7 @@ pub fn check_content(
                     file: task.file.clone(),
                     line: node.heading.line,
                 },
-                severity: None,
+                severity: Severity::Error,
             });
         }
     }

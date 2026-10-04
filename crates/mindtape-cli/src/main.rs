@@ -43,6 +43,7 @@ mod add_interactive;
 mod add_output;
 mod add_tokens;
 mod add_values;
+mod breach;
 mod check;
 mod check_commit;
 mod check_range;

@@ -63,18 +63,14 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     violations.extend(body_violations(project, body_rules)?);
     violations.extend(crate::check_templates::breaches(project, body_rules)?);
 
-    // `[tasks.comments]`: `forbid` joins the per-task violations below (and so
-    // fails the command); `warn`/`allow` print (if anything) without failing.
-    let comment_violations = check_comments(&project.outcome.tasks, &project.config, &project.root)
-        .context("scan tasks.comments")?;
-    if project.config.tasks.comments.policy.blocks() {
-        violations.extend(comment_violations);
-    } else {
-        comment_violations.iter().for_each(print_violation);
-    }
+    // `[tasks.comments]` breaches carry the severity of their policy.
+    violations.extend(
+        check_comments(&project.outcome.tasks, &project.config, &project.root)
+            .context("scan tasks.comments")?,
+    );
 
     for violation in &violations {
-        print_violation(violation);
+        println!("{}", crate::breach::line(violation));
     }
 
     // A `[[tasks.rules]]` breach at `severity = "warn"` has already printed;
@@ -106,35 +102,6 @@ fn body_violations(project: &util::Project, body_rules: BodyRules<'_>) -> Result
         out.extend(check_body_rules(task, &source, body_rules, &project.config));
     }
     Ok(out)
-}
-
-/// Report one violation: `severity: file:line: field: message`.
-///
-/// Every line carries its severity. A `[[tasks.rules]]` breach prints the level
-/// its project chose; everything `MindTape` checks itself is fatal and prints
-/// `error:`. A reader scans one column for what fails and what only warns.
-fn print_violation(violation: &Violation) {
-    println!("{}", format_violation(violation));
-}
-
-fn format_violation(violation: &Violation) -> String {
-    let prefix = violation
-        .severity
-        .map_or("error", |severity| severity.label());
-    format!("{prefix}: {}", breach_at(violation))
-}
-
-/// A breach as `file:line: field: message`, the shape every command prints
-/// after its severity prefix.
-pub(crate) fn breach_at(violation: &Violation) -> String {
-    let loc = &violation.location;
-    format!(
-        "{}:{}: {}: {}",
-        loc.file.display(),
-        loc.line,
-        violation.field,
-        violation.message
-    )
 }
 
 #[cfg(test)]

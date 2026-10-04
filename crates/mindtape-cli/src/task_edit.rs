@@ -158,12 +158,7 @@ pub fn verify_written(root: &Path, file: &Path) -> Result<()> {
 /// a warning is a report about it, not a reason to call the write a failure.
 fn report_issues(issues: &[Violation], scope: &str) -> Result<()> {
     for violation in issues {
-        let prefix = if violation.is_fatal() {
-            "error"
-        } else {
-            "warning"
-        };
-        eprintln!("{prefix}: {}", crate::check::breach_at(violation));
+        eprintln!("{}", crate::breach::line(violation));
     }
     let fatal = issues.iter().filter(|issue| issue.is_fatal()).count();
     if fatal == 0 {
@@ -199,24 +194,19 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
     if !verdict.checked {
         return Ok(false);
     }
-    // A `severity = "warn"` rule breach says its piece whether or not the write
-    // is refused, and never decides that it is.
-    for warning in &verdict.warnings {
-        eprintln!("warning: {warning}");
+    // A warning says its piece whether or not the write is refused, and never
+    // decides that it is.
+    if let Some(failure) = &verdict.load_failure {
+        bail!("the task as filled did not load: {failure}");
     }
-    if verdict.problems.is_empty() {
+    for violation in &verdict.violations {
+        eprintln!("{}", crate::breach::line(violation));
+    }
+    if verdict.accepted() {
         return Ok(true);
     }
-    // A source that did not evaluate has no fields to have got wrong, so it is
-    // reported as itself rather than counted among the rule violations.
-    if verdict.task.is_none() {
-        bail!("the task as filled {}", verdict.problems.join("; "));
-    }
-    for problem in &verdict.problems {
-        eprintln!("error: {problem}");
-    }
     Err(Refused {
-        breached: verdict.breached,
+        breached: verdict.breached(),
     }
     .into())
 }
@@ -245,9 +235,8 @@ impl std::error::Error for Refused {}
 /// pending write, so the single-entry slice above always yields one.
 fn unchecked_fallback() -> crate::pre_write::Verdict {
     crate::pre_write::Verdict {
-        problems: Vec::new(),
-        breached: Vec::new(),
-        warnings: Vec::new(),
+        load_failure: None,
+        violations: Vec::new(),
         task: None,
         checked: false,
     }

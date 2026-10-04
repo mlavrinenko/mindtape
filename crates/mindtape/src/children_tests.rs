@@ -120,7 +120,7 @@ fn check_warns_about_a_closed_parent_over_an_unfinished_child() {
         )]
     );
     assert_eq!(
-        violations.first().and_then(|v| v.severity),
+        violations.first().map(|v| v.severity),
         Some(crate::Severity::Warn)
     );
     let mut none = Vec::new();

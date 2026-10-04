@@ -435,7 +435,7 @@ fn flags_a_blocked_task_sitting_in_an_unblocked_status() {
         )]
     );
     assert_eq!(
-        violations.first().and_then(|v| v.severity),
+        violations.first().map(|v| v.severity),
         Some(crate::Severity::Warn)
     );
     assert!(check(&tasks, &dep_config("")).is_empty());

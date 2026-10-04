@@ -16,6 +16,7 @@ use std::path::Path;
 
 use typst_edit::{Call, find_method_calls, line_of};
 
+use crate::severity::Severity;
 use crate::template::discover_slots;
 use crate::validate::{Location, Violation};
 
@@ -90,7 +91,7 @@ fn breach(file: &Path, line: usize, message: String) -> Violation {
             file: file.to_path_buf(),
             line,
         },
-        severity: None,
+        severity: Severity::Error,
     }
 }
 

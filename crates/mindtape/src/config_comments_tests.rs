@@ -6,6 +6,7 @@ use typst_cst::CommentKind;
 
 use super::{CommentsPolicy, check_comments, shape, validate_comments};
 use crate::config::Config;
+use crate::severity::Severity;
 use crate::test_support::bare_task;
 
 /// Write `body` at `root`/`rel`, creating parent directories as needed.
@@ -149,6 +150,9 @@ fn warn_policy_still_reports_but_does_not_itself_block() {
     let violations = check_comments(&[task], &config, dir.path()).unwrap();
 
     assert_eq!(violations.len(), 1);
+    let only = violations.first().unwrap();
+    assert_eq!(only.severity, Severity::Warn);
+    assert!(!only.is_fatal());
     assert!(!CommentsPolicy::Warn.blocks());
     assert!(CommentsPolicy::Forbid.blocks());
 }

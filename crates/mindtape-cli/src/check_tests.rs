@@ -353,7 +353,7 @@ fn forbid_policy_fails_and_reports_file_line_and_text() {
     assert!(super::run_with(&project, &super::CheckArgs::default()).is_err());
 }
 
-fn breach(severity: Option<mindtape::Severity>, line: usize) -> mindtape::Violation {
+fn breach(severity: mindtape::Severity, line: usize) -> mindtape::Violation {
     mindtape::Violation {
         task_id: "t".to_owned(),
         field: "f".to_owned(),
@@ -369,8 +369,7 @@ fn breach(severity: Option<mindtape::Severity>, line: usize) -> mindtape::Violat
 #[test]
 fn every_breach_line_starts_with_a_severity() {
     use mindtape::Severity::{Error, Warn};
-    let show = |s, l| super::format_violation(&breach(s, l));
-    assert_eq!(show(None, 3), "error: tasks/t.typ:3: f: m");
-    assert_eq!(show(Some(Error), 3), "error: tasks/t.typ:3: f: m");
-    assert_eq!(show(Some(Warn), 3), "warning: tasks/t.typ:3: f: m");
+    let show = |s, l| crate::breach::line(&breach(s, l));
+    assert_eq!(show(Error, 3), "error: tasks/t.typ:3: f: m");
+    assert_eq!(show(Warn, 3), "warning: tasks/t.typ:3: f: m");
 }

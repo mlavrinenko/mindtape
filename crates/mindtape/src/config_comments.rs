@@ -22,6 +22,7 @@ use typst_cst::{Comment, CommentKind, parse_comments};
 
 use crate::config::Config;
 use crate::model::Task;
+use crate::severity::Severity;
 use crate::validate::{Location, Violation};
 
 /// `[tasks.comments]` — review-comment policy over a task's whole source file.
@@ -49,6 +50,17 @@ pub enum CommentsPolicy {
 }
 
 impl CommentsPolicy {
+    /// The severity a found comment carries at this policy: `forbid` is an
+    /// error, everything else a warning.
+    #[must_use]
+    pub const fn severity(self) -> Severity {
+        if self.blocks() {
+            Severity::Error
+        } else {
+            Severity::Warn
+        }
+    }
+
     /// Whether a found comment, at this policy, fails `mt check`.
     #[must_use]
     pub const fn blocks(self) -> bool {
@@ -96,25 +108,35 @@ pub fn check_comments(
             path: abs.clone(),
             source,
         })?;
-        out.extend(task_violations(task, &source, allow.as_ref()));
+        out.extend(task_violations(
+            task,
+            &source,
+            allow.as_ref(),
+            settings.policy.severity(),
+        ));
     }
     Ok(out)
 }
 
 /// Violations for one task's already-read source: every comment not exempted
 /// by `allow`.
-fn task_violations(task: &Task, source: &str, allow: Option<&Regex>) -> Vec<Violation> {
+fn task_violations(
+    task: &Task,
+    source: &str,
+    allow: Option<&Regex>,
+    severity: Severity,
+) -> Vec<Violation> {
     parse_comments(source)
         .into_iter()
         .filter(|comment| !allow.is_some_and(|re| re.is_match(&comment.text)))
-        .map(|comment| to_violation(task, &comment))
+        .map(|comment| to_violation(task, &comment, severity))
         .collect()
 }
 
 /// One comment as a [`Violation`]: file and line via [`Location`], the
 /// comment's own text in the message, so the offending note is visible in the
 /// report rather than requiring a hunt.
-fn to_violation(task: &Task, comment: &Comment) -> Violation {
+fn to_violation(task: &Task, comment: &Comment, severity: Severity) -> Violation {
     Violation {
         task_id: task.id.clone(),
         field: "comments".to_owned(),
@@ -123,7 +145,7 @@ fn to_violation(task: &Task, comment: &Comment) -> Violation {
             file: task.file.clone(),
             line: comment.line,
         },
-        severity: None,
+        severity,
     }
 }
 

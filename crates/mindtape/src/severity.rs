@@ -6,11 +6,11 @@
 //! mean the same two things by them, so they read one enum rather than two
 //! that would have to be kept in step by hand.
 //!
-//! Nothing `MindTape` checks on its own carries a severity. A malformed artifact
-//! — a status outside the legend, an unresolvable edge, a value off its scale —
-//! always fails the command, because it is not a matter of degree. Severity
-//! exists for the constraints a project declares, where "report it and carry
-//! on" is a legitimate answer.
+//! Every [`crate::Violation`] carries one. A malformed artifact — a status
+//! outside the legend, an unresolvable edge, a value off its scale — is always
+//! an error, because it is not a matter of degree. A choice of level exists for
+//! the constraints a project declares, where "report it and carry on" is a
+//! legitimate answer.
 
 use serde::Deserialize;
 

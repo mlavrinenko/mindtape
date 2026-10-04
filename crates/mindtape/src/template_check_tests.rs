@@ -16,7 +16,7 @@ fn breach_at(field: &str, line: usize) -> Violation {
             file: "tasks/t.typ".into(),
             line,
         },
-        severity: None,
+        severity: Severity::Error,
     }
 }
 

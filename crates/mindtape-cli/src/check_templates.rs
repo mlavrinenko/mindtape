@@ -132,7 +132,7 @@ fn at_severity(found: Vec<Violation>, builtin: bool, fallback: FallbackSeverity)
     found
         .into_iter()
         .map(|violation| Violation {
-            severity: Some(Severity::Warn),
+            severity: Severity::Warn,
             ..violation
         })
         .collect()

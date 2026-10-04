@@ -68,7 +68,7 @@ fn a_breach_carries_the_label_message_location_and_severity() {
     assert_eq!(breach.task_id, "a");
     assert_eq!(breach.field, "rules.imperative-title");
     assert_eq!(breach.message, "start the title with an imperative verb");
-    assert_eq!(breach.severity, Some(Severity::Error));
+    assert_eq!(breach.severity, Severity::Error);
     assert!(breach.is_fatal());
     let location = breach.location;
     assert_eq!(location.file, std::path::Path::new("tasks/a.typ"));
@@ -79,16 +79,16 @@ fn a_breach_carries_the_label_message_location_and_severity() {
 fn a_warn_breach_is_not_fatal() {
     let toml = "[[tasks.rules]]\nname = \"n\"\nassert = 'kind == \"bug\"'\n";
     let breach = sole_breach(&[task("a", "T", "wip")], &config(toml));
-    assert_eq!(breach.severity, Some(Severity::Warn));
+    assert_eq!(breach.severity, Severity::Warn);
     assert!(!breach.is_fatal(), "warn prints, it does not fail");
 }
 
-/// Every check `MindTape` makes on its own stays fatal and label-less: severity
+/// Every check `MindTape` makes on its own is fatal and labelled `error`: severity
 /// is the one thing only a config-declared rule gets to choose.
 #[test]
 fn a_built_in_violation_carries_no_severity() {
     let breach = crate::validate::violation(&task("a", "T", "wip"), "tags", "nope".to_owned());
-    assert_eq!(breach.severity, None);
+    assert_eq!(breach.severity, Severity::Error);
     assert!(breach.is_fatal());
 }
 
@@ -319,7 +319,7 @@ severity = \"error\"
     let tasks = vec![task("a", "Refactor it", "wip"), task("b", "Fix it", "wip")];
     let skip = sole_breach(&tasks, &config);
     assert_eq!(skip.field, "rules.src-budget");
-    assert_eq!(skip.severity, Some(Severity::Warn));
+    assert_eq!(skip.severity, Severity::Warn);
     assert!(skip.message.starts_with("skipped: "), "{}", skip.message);
     assert!(
         skip.message.contains("not a git repository"),
