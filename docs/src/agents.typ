@@ -110,6 +110,10 @@ dependencies, and this repo holds none of their source:
   - #raw(c.name) — #substrate-roles.at(c.name)
 ]
 
+Their source sits under `~/.cargo/registry/src/`, at the versions
+`Cargo.lock` pins. `HVal`, the harvested value every task field passes
+through, is defined in `typst-world` as `typst_world::value::HVal`.
+
 = Architecture
 
 - Rust, with the toolchain pinned in `rust-toolchain.toml`.

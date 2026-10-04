@@ -37,6 +37,8 @@ The Typst plumbing comes from seven crates.io dependencies, and this repo holds 
 - `typst-harvest` — evaluates a file and collects the data it marks for export
 - `typst-world` — the eval-only Typst World the others share
 
+Their source sits under `~/.cargo/registry/src/`, at the versions `Cargo.lock` pins. `HVal`, the harvested value every task field passes through, is defined in `typst-world` as `typst_world::value::HVal`.
+
 ## Architecture
 
 - Rust, with the toolchain pinned in `rust-toolchain.toml`.
