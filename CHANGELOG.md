@@ -584,6 +584,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`mt done --help` prints help.** A shortcut verb's help request exited 1
+  behind an `Error:` prefix, opened with an internal doc comment and named the
+  binary `mindtape-cli`. It now prints the verb's help under `mt done` and
+  exits 0, and a bad flag on a verb names `mt done` as well.
+
 - **`mt add --status done` asks only for what a done task needs.** A field
   `required = "!terminal"` got a required slot whatever status the task was
   filed at, so filing a finished task meant inventing a priority and a

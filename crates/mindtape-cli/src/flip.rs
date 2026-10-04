@@ -27,7 +27,7 @@ use std::io::IsTerminal;
 use std::path::Path;
 
 use anyhow::{Context, Result, anyhow, bail};
-use clap::{Args, Parser};
+use clap::{Args, CommandFactory, FromArgMatches, Parser};
 use mindtape::config::Legend;
 use mindtape::{Config, status_value, today_ymd};
 use typst_edit::apply;
@@ -68,8 +68,9 @@ pub struct FlipArgs {
     pub quiet: bool,
 }
 
-/// Parser wrapper for the shortcut-verb path: the raw external argv
-/// (`<status> <task>...`, plus any `-m`) re-parsed into [`FlipArgs`].
+// Parser wrapper for the shortcut-verb path: the raw external argv
+// (`<status> <task>...`, plus any `-m`) re-parsed into [`FlipArgs`]. Not a doc
+// comment, because clap would print it as the verb's help.
 #[derive(Parser)]
 #[command(no_binary_name = true)]
 struct Shortcut {
@@ -102,8 +103,30 @@ pub fn run_external(external: &[String]) -> Result<()> {
     if !legend.contains(verb) {
         bail!(unknown_command_message(verb, legend));
     }
-    let parsed = Shortcut::try_parse_from(external).map_err(|err| anyhow::anyhow!("{err}"))?;
+    let matches = match shortcut_command(verb).try_get_matches_from(external) {
+        Ok(matches) => matches,
+        Err(err) if !err.use_stderr() => {
+            err.print().context("print the shortcut verb's help")?;
+            return Ok(());
+        }
+        Err(err) => bail!("{err}"),
+    };
+    let parsed = Shortcut::from_arg_matches(&matches)?;
     run_with(&project, &parsed.args)
+}
+
+/// The parser for `mt <verb> …`, presented as that verb: named `mt <verb>`,
+/// described in its own words, with the status positional (the verb itself,
+/// already given) left out of the usage.
+fn shortcut_command(verb: &str) -> clap::Command {
+    Shortcut::command()
+        .name(verb.to_owned())
+        .bin_name(format!("mt {verb}"))
+        .about(format!(
+            "Stamp status `{verb}` onto tasks, dated today; same as `mt flip {verb} <task>...`"
+        ))
+        .mut_arg("status", |arg| arg.hide(true).index(1))
+        .mut_arg("tasks", |arg| arg.index(2))
 }
 
 /// Configured legend values as `&str`, for a nearest-match suggestion shared
