@@ -52,9 +52,11 @@ run `mt recur <task>` to write the next one.
 
 `on:` takes a set of weekdays, written with the prelude's names `mon` to
 `sun`, and needs a `weeks` period. Each occurrence falls on the next listed
-weekday. After the last listed weekday of a week, the series skips the
-remaining weeks of the period, so `every(weeks: 2, on: (mon, thu))` falls on
-Monday and Thursday of every second week.
+weekday in an on-week. Weeks run Monday to Sunday and are counted from Monday
+2001-01-01, the same epoch for every series: with `weeks: N`, every Nth week
+from it is an on-week. So `every(weeks: 2, on: (mon, thu))` falls on Monday
+and Thursday of every second week, and finishing late in an off week still
+lands the next occurrence on the following on-week.
 
 = Policy
 

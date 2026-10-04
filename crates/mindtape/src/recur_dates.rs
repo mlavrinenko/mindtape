@@ -23,9 +23,9 @@ pub enum RecurError {
     /// Chrono arithmetic ran out of range (a date past `NaiveDate::MAX`).
     #[error("date arithmetic overflowed")]
     DateOverflow,
-    /// No weekday in the `on:` set was found within a full week — unreachable
+    /// No weekday in the `on:` set was found within a full period — unreachable
     /// for a non-empty set, but the scan is bounded rather than infinite.
-    #[error("no weekday in the `on:` set was reachable within a week")]
+    #[error("no weekday in the `on:` set was reachable within a period")]
     NoMatchingWeekday,
     /// [`next_date`]'s due-anchor catch-up hit its step ceiling without
     /// reaching a date after today. Carries the `due` it started from. Means
@@ -150,32 +150,37 @@ fn add_period(from: NaiveDate, unit: PeriodUnit, value: u32) -> Result<NaiveDate
     .ok_or(RecurError::DateOverflow)
 }
 
-/// The next date strictly after `from` whose weekday is in `weekdays`, on
-/// every `weeks`-th week. Weeks run Monday to Sunday. A listed day later in
-/// `from`'s own week wins; otherwise the scan restarts on the Monday
-/// `weeks` weeks after `from`'s, so `weeks - 1` whole weeks are skipped.
-/// Bounded to a 7-day scan per week: any non-empty set matches within one.
+/// The Monday that fixes the weeks of every `every(weeks: N, on: …)` series:
+/// a week is an on-week when its Monday is a multiple of `N` weeks after this
+/// date.
+const SERIES_EPOCH: NaiveDate = match NaiveDate::from_ymd_opt(2001, 1, 1) {
+    Some(date) => date,
+    None => NaiveDate::MIN,
+};
+
+/// Whether the Monday-to-Sunday week holding `date` is an on-week for a
+/// `weeks`-week period, counted from [`SERIES_EPOCH`].
+fn is_on_week(date: NaiveDate, weeks: u32) -> bool {
+    let monday = date.week(Weekday::Mon).first_day();
+    let elapsed = monday.signed_duration_since(SERIES_EPOCH).num_weeks();
+    elapsed.rem_euclid(i64::from(weeks.max(1))) == 0
+}
+
+/// The next date strictly after `from` whose weekday is in `weekdays` and
+/// whose Monday-to-Sunday week is an on-week: every `weeks`-th week counted
+/// from [`SERIES_EPOCH`], whichever week `from` itself falls in. Bounded to
+/// `weeks` weeks of scan: any non-empty set matches within one period.
 fn next_weekday_after(
     from: NaiveDate,
     weekdays: &[Weekday],
     weeks: u32,
 ) -> Result<NaiveDate, RecurError> {
-    let mut candidate = from.succ_opt().ok_or(RecurError::DateOverflow)?;
-    while candidate.weekday() != Weekday::Mon {
-        if weekdays.contains(&candidate.weekday()) {
+    let mut candidate = from;
+    for _ in 0..u64::from(weeks.max(1)) * 7 {
+        candidate = candidate.succ_opt().ok_or(RecurError::DateOverflow)?;
+        if weekdays.contains(&candidate.weekday()) && is_on_week(candidate, weeks) {
             return Ok(candidate);
         }
-        candidate = candidate.succ_opt().ok_or(RecurError::DateOverflow)?;
-    }
-    let skipped = u64::from(weeks.saturating_sub(1)) * 7;
-    candidate = candidate
-        .checked_add_days(Days::new(skipped))
-        .ok_or(RecurError::DateOverflow)?;
-    for _ in 0..7 {
-        if weekdays.contains(&candidate.weekday()) {
-            return Ok(candidate);
-        }
-        candidate = candidate.succ_opt().ok_or(RecurError::DateOverflow)?;
     }
     Err(RecurError::NoMatchingWeekday)
 }

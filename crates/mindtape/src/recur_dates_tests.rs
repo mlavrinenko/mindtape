@@ -120,6 +120,25 @@ fn every_second_week_skips_a_week_after_the_last_listed_day() {
 }
 
 #[test]
+fn every_second_week_from_an_off_week_lands_on_the_next_on_week() {
+    let rule = weekly(2, &[Weekday::Mon, Weekday::Thu]);
+    // Monday 2026-06-08 sits in an off week: Thursday 06-11 is skipped.
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 8)).unwrap(),
+        date(2026, 6, 15)
+    );
+    // Same from the off week's Wednesday and from an off-week Sunday.
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 10)).unwrap(),
+        date(2026, 6, 15)
+    );
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 14)).unwrap(),
+        date(2026, 6, 15)
+    );
+}
+
+#[test]
 fn every_third_week_with_one_weekday_steps_three_weeks() {
     let rule = weekly(3, &[Weekday::Mon]);
     assert_eq!(
