@@ -220,36 +220,14 @@ fn drive_session(
 #[test]
 fn interactive_mode_renders_tasks_and_quits() {
     let dir = support::project_with_task(TASK_TITLE);
-    let mut child = spawn_interactive(dir.path(), "", false);
 
-    // Give mt a moment to start the event loop and draw the table.
-    std::thread::sleep(Duration::from_millis(300));
+    // Space reloads the view (the Refresh action); `drive_session` waits for
+    // the drawn table before it sends the key and Esc, and asserts a clean exit.
+    let stdout = drive_session(dir.path(), "", b" ", Some(TASK_TITLE));
 
-    // Space reloads the view (the Refresh action); Esc quits.
-    child
-        .stdin
-        .take()
-        .expect("stdin pipe must be available")
-        .write_all(b" \x1b")
-        .unwrap();
-
-    let (output, timed_out) = wait_with_timeout(child);
-    let stdout = String::from_utf8_lossy(&output.stdout);
-
-    assert!(
-        !timed_out,
-        "mt did not exit within {WAIT_TIMEOUT:?} after sending Esc -- event_loop appears hung\nstdout:\n{stdout}\nstderr:\n{}",
-        String::from_utf8_lossy(&output.stderr),
-    );
     assert!(
         stdout.contains(TASK_TITLE),
-        "stdout should contain the rendered task table\nstdout:\n{stdout}\nstderr:\n{}",
-        String::from_utf8_lossy(&output.stderr),
-    );
-    assert!(
-        output.status.success(),
-        "mt should exit successfully (status: {:?})",
-        output.status.code(),
+        "stdout should contain the rendered task table\nstdout:\n{stdout}"
     );
 }
 
@@ -309,19 +287,9 @@ const CURSOR_SHOW: &str = "\x1b[?25h";
 #[test]
 fn quitting_restores_the_terminal() {
     let dir = support::project_with_task(TASK_TITLE);
-    let mut child = spawn_interactive(dir.path(), "", false);
 
-    std::thread::sleep(Duration::from_millis(300));
-    child
-        .stdin
-        .take()
-        .expect("stdin pipe must be available")
-        .write_all(ESC)
-        .unwrap();
-
-    let (output, timed_out) = wait_with_timeout(child);
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!timed_out, "mt did not exit within {WAIT_TIMEOUT:?}");
+    // Esc goes out only once the table is drawn, so the event loop is reading.
+    let stdout = drive_session(dir.path(), "", b"", Some(TASK_TITLE));
 
     let enter = stdout
         .find(ENTER_ALT)
