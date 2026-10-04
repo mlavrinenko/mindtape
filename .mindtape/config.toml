@@ -175,35 +175,10 @@ assert = "estimate.src-files <= 15"
 message = "even mechanical work this wide hides a second decision; split it"
 severity = "error"
 
-# `mt check` warns (never fails) once the working tree outgrows what the
-# in-flight task declared. Only source counts, so every other path is a `!`
-# exclude below. Nobody hand-edits generated output — `docs-md-check` /
-# `docs-check` fail the build if anyone tries — and everything else excluded is
-# touched by every task by process (a status flip, a docs page, a test,
-# `CHANGELOG.md`), never by the design decision the estimate is meant to size.
-# Counting either against a task's declared budget turns a truthful estimate
-# into a number an author has to inflate just to keep an advisory warning
-# quiet, which trains everyone to stop reading it. For the same reason a
-# filed estimate is never raised: it records the decomposition as planned.
-#
-# - README.md, CONTRIBUTING.md, AGENTS.md, skills/mindtape/SKILL.md and
-#   docs/contributing/*.md: rendered from docs/src/**.typ by `just docs-md`.
-# - www/generated/**: derived facts and captured CLI output, rebuilt by
-#   `just docs-gen`.
-# - outdatty.lock: a review watermark `just outdatty-update` rewrites.
-# - docs/src/**, www/content/**: the docs every task touches by process.
-# - CHANGELOG.md: the entry every task's commit carries.
-# - truth/tasks/**: a task's own file, which `mt flip` writes.
-# - crates/*/tests/**, **/*test*.rs: red-first coverage, not the change.
-# - examples/**: fixture projects the docs, gates and skill evals read.
 [[tasks.rules]]
 name = "src-budget"
 when = 'status == "wip" && has(estimate.src-files)'
-assert = '''changed("staged+worktree",
-  "!README.md", "!CONTRIBUTING.md", "!AGENTS.md", "!skills/mindtape/SKILL.md",
-  "!docs/contributing/*.md", "!www/generated/**", "!outdatty.lock",
-  "!docs/src/**", "!www/content/**", "!CHANGELOG.md", "!truth/tasks/**",
-  "!crates/*/tests/**", "!**/*test*.rs", "!examples/**") <= estimate.src-files'''
+assert = 'changed("staged+worktree", "@source") <= estimate.src-files'
 message = "split the remaining work into a new task and finish the part in hand; keep estimate.src-files as filed, since it records the decomposition"
 severity = "warn"
 
@@ -417,17 +392,56 @@ message = "keep this section under 120 words; a longer one is a task that should
 # `[views.default]` view. Redeclare `[views.default]` here to add a
 # sort/columns bundle.
 
+# `mt check` warns (never fails) once the working tree outgrows what the
+# in-flight task declared. Only source counts, so every other path is a `!`
+# exclude below. Nobody hand-edits generated output — `docs-md-check` /
+# `docs-check` fail the build if anyone tries — and everything else excluded is
+# touched by every task by process (a status flip, a docs page, a test,
+# `CHANGELOG.md`), never by the design decision the estimate is meant to size.
+# Counting either against a task's declared budget turns a truthful estimate
+# into a number an author has to inflate just to keep an advisory warning
+# quiet, which trains everyone to stop reading it. For the same reason a
+# filed estimate is never raised: it records the decomposition as planned.
+#
+# - README.md, CONTRIBUTING.md, AGENTS.md, skills/mindtape/SKILL.md and
+#   docs/contributing/*.md: rendered from docs/src/**.typ by `just docs-md`.
+# - www/generated/**: derived facts and captured CLI output, rebuilt by
+#   `just docs-gen`.
+# - outdatty.lock: a review watermark `just outdatty-update` rewrites.
+# - docs/src/**, www/content/**: the docs every task touches by process.
+# - CHANGELOG.md: the entry every task's commit carries.
+# - truth/tasks/**: a task's own file, which `mt flip` writes.
+# - crates/*/tests/**, **/*test*.rs: red-first coverage, not the change.
+# - examples/**: fixture projects the docs, gates and skill evals read.
+#
+# The list is the `source` path set below, which `tweak-stays-one-file` reads
+# too, so the two rules agree on what a source file is.
+[dicts.source]
+case = "exact"
+values = [
+  "!README.md",
+  "!CONTRIBUTING.md",
+  "!AGENTS.md",
+  "!skills/mindtape/SKILL.md",
+  "!docs/contributing/*.md",
+  "!www/generated/**",
+  "!outdatty.lock",
+  "!docs/src/**",
+  "!www/content/**",
+  "!CHANGELOG.md",
+  "!truth/tasks/**",
+  "!crates/*/tests/**",
+  "!**/*test*.rs",
+  "!examples/**",
+]
+
 # A tweak is never open, so `src-budget` (wip only) never sees it; this holds
-# its commit to one source file, with the same excludes.
+# its commit to one source file, by the `source` path set `src-budget` reads.
 [[commits.rules]]
 name = "tweak-stays-one-file"
 scope = "task"
 when = 'into("done") && staged(has_tag("tweak"))'
-assert = '''count(files,
-  "!README.md", "!CONTRIBUTING.md", "!AGENTS.md", "!skills/mindtape/SKILL.md",
-  "!docs/contributing/*.md", "!www/generated/**", "!outdatty.lock",
-  "!docs/src/**", "!www/content/**", "!CHANGELOG.md", "!truth/tasks/**",
-  "!crates/*/tests/**", "!**/*test*.rs", "!examples/**") <= 1'''
+assert = 'count(files, "@source") <= 1'
 message = "a tweak changes one source file; file a planned task for the rest"
 severity = "error"
 

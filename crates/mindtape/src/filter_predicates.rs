@@ -125,7 +125,7 @@ pub(crate) fn changed_count(
         .iter()
         .map(|node| extract_literal(node).map_err(invalid))
         .collect::<Result<Vec<_>, _>>()?;
-    let admitted = PathFilter::new(&globs).map_err(invalid)?;
+    let admitted = PathFilter::resolve(&globs, config.compiled_dicts()).map_err(invalid)?;
     if dry {
         return Ok(0.0);
     }
@@ -133,10 +133,8 @@ pub(crate) fn changed_count(
         call: "changed",
         reason,
     })?;
-    Ok(git_status
-        .paths(states)
-        .filter(|path| admitted.admits(path))
-        .count() as f64)
+    // Status already lists a rename once, at its destination.
+    Ok(admitted.count(git_status.paths(states), &[]) as f64)
 }
 
 /// `touches("<path>")`: whether a commit that changed the repository-relative

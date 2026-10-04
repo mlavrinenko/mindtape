@@ -22,6 +22,8 @@ use std::sync::{Arc, OnceLock};
 
 use globset::{Glob, GlobSet, GlobSetBuilder};
 
+use crate::config_dicts::{DictCase, Dicts};
+
 /// The state names `changed()` accepts, in the order an error lists them.
 const STATE_NAMES: [&str; 2] = ["staged", "worktree"];
 
@@ -196,11 +198,56 @@ impl PathFilter {
         })
     }
 
+    /// [`Self::new`] after each `@name` glob is replaced by the entries of the
+    /// `[dicts.<name>]` set it names, so a project writes its path set once and
+    /// every `changed()` and `count(files, …)` call reads it.
+    ///
+    /// # Errors
+    /// A message naming an unknown set, a set that folds case (which would
+    /// lowercase its globs), or the first glob that fails to compile.
+    pub fn resolve(globs: &[String], dicts: &Dicts) -> Result<Self, String> {
+        let mut expanded = Vec::new();
+        for glob in globs {
+            let Some(name) = glob.strip_prefix('@') else {
+                expanded.push(glob.clone());
+                continue;
+            };
+            let dict = dicts.get(name).ok_or_else(|| {
+                let known: Vec<String> = dicts.names().map(ToOwned::to_owned).collect();
+                format!(
+                    "unknown path set `@{name}`; declare it as [dicts.{name}]{}",
+                    crate::suggest::hint("dict", name, &known)
+                )
+            })?;
+            if dict.case() != DictCase::Exact {
+                return Err(format!(
+                    "path set `@{name}` folds case; declare it with case = \"exact\""
+                ));
+            }
+            expanded.extend(dict.entries().map(ToOwned::to_owned));
+        }
+        Self::new(&expanded)
+    }
+
     /// Whether `path` counts.
     #[must_use]
     pub fn admits(&self, path: &str) -> bool {
         self.include.as_ref().is_none_or(|set| set.is_match(path))
             && !self.exclude.as_ref().is_some_and(|set| set.is_match(path))
+    }
+
+    /// How many of `paths` count, a rename once: a path in `renamed_from` is
+    /// the source side of a rename whose destination `paths` also lists, so it
+    /// is left out. `changed()` and `count(files, …)` both count through here.
+    pub fn count<'a>(
+        &self,
+        paths: impl IntoIterator<Item = &'a str>,
+        renamed_from: &[String],
+    ) -> usize {
+        paths
+            .into_iter()
+            .filter(|path| self.admits(path) && !renamed_from.iter().any(|from| from == path))
+            .count()
     }
 }
 

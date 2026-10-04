@@ -144,6 +144,9 @@ pub struct ChangedFiles {
     /// Every changed path, repository-relative, `/`-separated. A rename is
     /// its two sides: the old path deleted and the new one added.
     pub paths: Vec<String>,
+    /// The old path of every rename among `paths`: the sides a count of
+    /// changed files leaves out, so a rename counts once.
+    pub renamed_from: Vec<String>,
     /// The project root's path within the repository (`git rev-parse
     /// --show-prefix`): empty at the top level, else `/`-terminated.
     pub root_prefix: String,
@@ -166,6 +169,7 @@ pub fn staged_files(root: &Path) -> Result<ChangedFiles, CommitMsgError> {
     })?;
     Ok(ChangedFiles {
         paths: changed_paths(root, &["--cached"])?,
+        renamed_from: renamed_sources(root, &["--cached"])?,
         root_prefix: root_prefix.trim().to_owned(),
     })
 }
@@ -182,6 +186,33 @@ pub(crate) fn changed_paths(root: &Path, revs: &[&str]) -> Result<Vec<String>, C
         .filter(|path| !path.is_empty())
         .map(ToOwned::to_owned)
         .collect())
+}
+
+/// The old path of every rename `git diff -M <revs>` detects, top-level
+/// relative like [`changed_paths`]; the new side is already in that list.
+pub(crate) fn renamed_sources(root: &Path, revs: &[&str]) -> Result<Vec<String>, CommitMsgError> {
+    let mut args = vec![
+        "diff",
+        "-M",
+        "--diff-filter=R",
+        "--name-status",
+        "--no-relative",
+        "-z",
+    ];
+    args.extend_from_slice(revs);
+    args.extend_from_slice(&["--", ":/"]);
+    let out = git(root, &args)?;
+    // Records are `R<score> NUL old NUL new NUL`.
+    let mut fields = out.split('\0').filter(|field| !field.is_empty());
+    let mut sources = Vec::new();
+    while let Some(status) = fields.next() {
+        let old = fields.next();
+        let new = fields.next();
+        if let (true, Some(old), Some(_)) = (status.starts_with('R'), old, new) {
+            sources.push(old.to_owned());
+        }
+    }
+    Ok(sources)
 }
 
 /// Run one read-only git command in `root` and return its stdout.
@@ -222,6 +253,9 @@ pub struct CommitRecord {
     pub refs: Vec<String>,
     /// `files`: every changed path, repository-relative.
     pub files: Vec<String>,
+    /// The old path of each rename among `files`; `count(files, …)` skips
+    /// them, `has` and `matches` still see them.
+    pub renamed_from: Vec<String>,
     /// `tasks_only`: the commit changes at least one file, and every one is a
     /// task file (a `.typ` under a `[tasks] roots` entry).
     pub tasks_only: bool,
@@ -273,6 +307,7 @@ impl CommitRecord {
             subject: message.subject.clone(),
             refs,
             files: changed.paths.clone(),
+            renamed_from: changed.renamed_from.clone(),
             tasks_only,
             tasks: subjects,
         };

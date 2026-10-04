@@ -10,6 +10,7 @@ fn record(refs: &[&str], tasks_only: bool) -> CommitRecord {
         subject: "feat: parse".to_owned(),
         refs: refs.iter().map(|r| (*r).to_owned()).collect(),
         files: vec!["src/lib.rs".to_owned()],
+        renamed_from: Vec::new(),
         tasks_only,
         tasks: Vec::new(),
     }

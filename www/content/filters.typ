@@ -206,7 +206,10 @@ refuses a dependency cycle, and neither rank loops on one.
 `changed("states", "glob", ...)` counts the distinct paths git reports
 changed, so it appears in a comparison, such as
 `changed("staged+worktree", "src/**") <= estimate.src-files`.
-#link(u("/estimates/"))[Estimates] shows it in a rule.
+#link(u("/estimates/"))[Estimates] shows it in a rule. A rename counts once, at
+its new path. A glob written `"@name"` stands for the entries of the
+`[dicts.name]` set, which must declare `case = "exact"`, so a rule and a
+commit rule can share one path list.
 
 #table(
   columns: 2,

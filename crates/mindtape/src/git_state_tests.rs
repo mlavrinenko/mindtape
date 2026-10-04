@@ -126,6 +126,14 @@ fn an_invalid_glob_is_refused_naming_it() {
     assert!(err.contains("[oops"), "{err}");
 }
 
+#[test]
+fn a_rename_source_is_not_counted_beside_its_destination() {
+    let filter = PathFilter::new(&["src/**".to_owned()]).unwrap();
+    let paths = ["src/new.rs", "src/old.rs", "src/other.rs"];
+    assert_eq!(filter.count(paths, &[]), 3);
+    assert_eq!(filter.count(paths, &["src/old.rs".to_owned()]), 2);
+}
+
 // --- against a real repository ---------------------------------------------
 
 #[test]

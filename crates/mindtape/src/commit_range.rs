@@ -16,7 +16,7 @@
 
 use std::path::Path;
 
-use crate::commit_msg::{ChangedFiles, CommitMsgError, changed_paths, git};
+use crate::commit_msg::{ChangedFiles, CommitMsgError, changed_paths, git, renamed_sources};
 use crate::commit_tasks::{StatePlan, StateSource};
 use crate::git_state::GitStatus;
 
@@ -124,6 +124,7 @@ impl CommitRange {
             ],
         )?;
         let paths = changed_paths(root, &[parent, &commit.id])?;
+        let renamed_from = renamed_sources(root, &[parent, &commit.id])?;
         let mut head = changed_paths(root, &[parent, "HEAD"])?;
         head.extend(self.dirty.iter().cloned());
         let mut staged = head.clone();
@@ -137,6 +138,7 @@ impl CommitRange {
             message,
             changed: ChangedFiles {
                 paths,
+                renamed_from,
                 root_prefix: self.root_prefix.clone(),
             },
             plan: StatePlan {

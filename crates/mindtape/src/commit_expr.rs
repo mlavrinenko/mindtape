@@ -19,7 +19,9 @@
 //! `count(files, "glob"…)` is a number, so it only sits on the left of a
 //! comparison: how many of the commit's files the globs admit, with the same
 //! `"!glob"` excludes as `changed()` ([`PathFilter`]) —
-//! `count(files, "!docs/**") <= 1`. It reads the commit's own files, so it
+//! `count(files, "!docs/**") <= 1`. A rename counts once, at its destination,
+//! as in `changed()`, and an `"@name"` glob reads the `[dicts.<name>]` path
+//! set, so the two calls share one list. It reads the commit's own files, so it
 //! also works under `mt check --commits`, where `changed()` is skipped.
 //!
 //! A `scope = "task"` rule reads the same fields, plus the task's states:
@@ -36,6 +38,7 @@ use regex::Regex;
 
 use crate::commit_msg::CommitRecord;
 use crate::commit_task_expr::{STATES, TaskScope};
+use crate::config::Config;
 use crate::expr::{
     call_args, connective, extract_identifier, extract_literal, restore_name, unwrap_root,
 };
@@ -57,6 +60,7 @@ pub struct CommitExpr {
 #[derive(Clone, Copy)]
 struct Env<'a> {
     commit: &'a CommitRecord,
+    config: &'a Config,
     task: Option<&'a TaskScope<'a>>,
 }
 
@@ -91,8 +95,12 @@ impl CommitExpr {
     /// # Errors
     /// [`FilterError`] on a task field, an unknown function, or a malformed
     /// call.
-    pub fn matches(&self, commit: &CommitRecord) -> Result<bool, FilterError> {
-        self.eval(Env { commit, task: None })
+    pub fn matches(&self, commit: &CommitRecord, config: &Config) -> Result<bool, FilterError> {
+        self.eval(Env {
+            commit,
+            config,
+            task: None,
+        })
     }
 
     /// Whether `commit` satisfies the expression for the task `scope` names —
@@ -108,6 +116,7 @@ impl CommitExpr {
     ) -> Result<bool, FilterError> {
         self.eval(Env {
             commit,
+            config: scope.config,
             task: Some(scope),
         })
     }
@@ -132,9 +141,9 @@ impl CommitExpr {
 /// What makes one saved commit expression unusable, if anything: a syntax
 /// error or a problem a dry run against an empty commit surfaces.
 #[must_use]
-pub(crate) fn commit_expr_problem(source: &str) -> Option<String> {
+pub(crate) fn commit_expr_problem(source: &str, config: &Config) -> Option<String> {
     CommitExpr::parse(source)
-        .and_then(|expr| expr.matches(&CommitRecord::default()))
+        .and_then(|expr| expr.matches(&CommitRecord::default(), config))
         .err()
         .map(|err| err.to_string())
 }
@@ -227,14 +236,11 @@ fn count_files(
         .iter()
         .map(|node| extract_literal(node).map_err(invalid))
         .collect::<Result<Vec<_>, _>>()?;
-    let admitted = PathFilter::new(&globs).map_err(invalid)?;
-    let count = env
-        .commit
-        .files
-        .iter()
-        .filter(|path| admitted.admits(path))
-        .count();
-    Ok(FieldValue::Num(count as f64))
+    let admitted = PathFilter::resolve(&globs, env.config.compiled_dicts()).map_err(invalid)?;
+    let files = env.commit.files.iter().map(String::as_str);
+    Ok(FieldValue::Num(
+        admitted.count(files, &env.commit.renamed_from) as f64,
+    ))
 }
 
 fn function(

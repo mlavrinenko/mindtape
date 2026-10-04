@@ -83,6 +83,7 @@ fn tasks_only_needs_every_changed_file_under_a_task_root() {
     let only = |paths: &[&str], prefix: &str| {
         let changed = ChangedFiles {
             paths: paths.iter().map(|p| (*p).to_owned()).collect(),
+            renamed_from: Vec::new(),
             root_prefix: prefix.to_owned(),
         };
         CommitRecord::build(&parse_message("x", "Refs"), &changed, &[], &config)
@@ -99,6 +100,7 @@ fn tasks_only_needs_every_changed_file_under_a_task_root() {
     let everywhere = parse_config("[tasks]\nroots = [\".\"]\n").unwrap();
     let changed = ChangedFiles {
         paths: vec!["a.typ".to_owned()],
+        renamed_from: Vec::new(),
         root_prefix: String::new(),
     };
     assert!(
@@ -153,6 +155,7 @@ fn tasks_dedup_keeping_order() {
             "truth/tasks/parser.typ".to_owned(),
             "truth/tasks/lexer.typ".to_owned(),
         ],
+        renamed_from: Vec::new(),
         root_prefix: String::new(),
     };
     let message = parse_message("x\n\nRefs: parser\nRefs: lexer\nRefs: parser\n", "Refs");

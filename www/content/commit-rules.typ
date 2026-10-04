@@ -83,7 +83,9 @@ are `has(field)`, `miss(field)` and `matches(field, "regex")`. Over a list,
 means the commit changes nothing under `services/`. `count(files, "glob"…)` is a number: how many of the commit's files the
 globs admit, with the `"!glob"` excludes `changed()` takes. It sits on the left
 of a comparison, so `count(files, "!docs/**") <= 1` caps the commit at one
-file outside `docs/`. `subject` also compares with a string. `mt` refuses a task field in a commit-scope rule when it loads
+file outside `docs/`. A rename counts once, as `changed()` counts it, while
+`has` and `matches` still see both of its paths. `"@name"` reads a
+`[dicts.name]` path set the same way `changed()` does. `subject` also compares with a string. `mt` refuses a task field in a commit-scope rule when it loads
 the config, and lists the fields a commit rule reads.
 
 A breach names the message file and the rule. Here a migration has no `Refs:`

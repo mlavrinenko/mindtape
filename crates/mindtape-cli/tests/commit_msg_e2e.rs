@@ -131,6 +131,29 @@ fn a_rule_counts_the_staged_files_a_glob_list_admits() {
 }
 
 #[test]
+fn a_rename_counts_as_one_file_in_count() {
+    let rules = "[dicts.source]\n\
+         case = \"exact\"\n\
+         values = [\"src/**\"]\n\n\
+         [[commits.rules]]\n\
+         name = \"one-source-file\"\n\
+         assert = 'count(files, \"@source\") <= 1'\n\
+         severity = \"error\"\n";
+    let dir = commit_repo(rules);
+    stage(dir.path(), "src/old.rs");
+    git(
+        dir.path(),
+        &["-c", "commit.gpgsign=false", "commit", "-q", "-m", "seed"],
+    );
+    git(dir.path(), &["mv", "src/old.rs", "src/new.rs"]);
+    let (ok, text) = check_commit_msg(dir.path(), "refactor: rename\n");
+    assert!(ok, "a pure rename is one file: {text}");
+    stage(dir.path(), "src/extra.rs");
+    let (ok, text) = check_commit_msg(dir.path(), "refactor: rename\n");
+    assert!(!ok, "a rename plus a new file is two: {text}");
+}
+
+#[test]
 fn a_task_field_in_a_commit_rule_is_refused_at_load() {
     let rules = "[[commits.rules]]\n\
          name = \"bad\"\n\

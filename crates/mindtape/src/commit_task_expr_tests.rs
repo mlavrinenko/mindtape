@@ -136,7 +136,9 @@ fn a_malformed_wrapper_or_status_is_refused() {
 #[test]
 fn a_commit_rule_refuses_every_task_reading() {
     for task_only in ["named", "staged(terminal)", "head(status) == \"wip\""] {
-        let problem = crate::commit_expr::commit_expr_problem(task_only).unwrap();
+        let problem =
+            crate::commit_expr::commit_expr_problem(task_only, &crate::config::Config::default())
+                .unwrap();
         assert!(
             problem.contains("scope = \"task\""),
             "{task_only}: {problem}"

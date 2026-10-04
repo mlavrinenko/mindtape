@@ -182,7 +182,7 @@ pub fn check_commit(
         let rule = Rule::parse(spec);
         match spec.scope {
             CommitScope::Commit => {
-                breaches.extend(rule.check(spec, index, None, |expr| expr.matches(commit)));
+                breaches.extend(rule.check(spec, index, None, |expr| expr.matches(commit, config)));
             }
             CommitScope::Task => {
                 let Some(states) = states else { continue };
@@ -265,7 +265,7 @@ pub(crate) fn validate_commits(config: &Config) -> Vec<String> {
     for (index, spec) in config.commits.rules.iter().enumerate() {
         let path = format!("commits.rules[{index}]");
         let problem = |source: &str| match spec.scope {
-            CommitScope::Commit => commit_expr_problem(source),
+            CommitScope::Commit => commit_expr_problem(source, config),
             CommitScope::Task => task_expr_problem(source, config),
         };
         if let Some(problem) = problem(&spec.assertion) {
