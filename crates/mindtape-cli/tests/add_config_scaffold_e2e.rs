@@ -274,6 +274,7 @@ fn add_with_no_explicit_estimate_defaults_to_a_valid_task() {
         .args(["--set", "changes=- `a.rs`: a change."])
         .args(["--set", "out-of-scope=- Nothing."])
         .args(["--set", "dogfood=Not applicable."])
+        .args(["--set", "kind=test"])
         .assert()
         .success();
 

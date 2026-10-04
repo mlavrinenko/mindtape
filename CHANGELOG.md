@@ -33,7 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   offering it, and `mt add -- kind=chore` was refused without naming the
   allowed values. A slot that is the whole value of a field with config
   `values`, and declares no `choices`, is now a choice over those values in
-  `mt add`, `--describe`, the editor and `mt check`'s template pass.
+  `mt add`, `--describe`, the editor and `mt check`'s template pass. Text
+  `--describe` names a `choice` slot's values, as `--describe=json` did.
 - **`mt check` checks every template.** A config change that broke a
   template, such as a `kind` value it hard-codes falling out of `values`,
   showed up only at the next `mt add` that used it. `mt check` fills every

@@ -97,8 +97,8 @@ templates always report errors.
 
 = See the slots
 
-`mt add --describe` lists each slot with its kind, whether it is required, and
-its prompt:
+`mt add --describe` lists each slot with its kind, whether it is required, the
+values a `choice` slot accepts, and its prompt:
 
 #terminal("api-service-describe")
 

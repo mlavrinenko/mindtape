@@ -172,3 +172,13 @@ fn describe_shows_each_slot_s_example() {
     assert_eq!(rows[0]["example"], "Retry failed payments");
     assert_eq!(rows[1]["example"], "+ one\n+ two");
 }
+
+#[test]
+fn describe_text_lists_a_choice_slots_choices() {
+    let specs = discover_slots(r#"#f(k: slot("kind", kind: "choice", choices: ("feat", "test")))"#);
+    let text = describe(&specs, DescribeFormat::Text).unwrap();
+    assert!(
+        text.starts_with("kind  choice  required  one of: feat, test"),
+        "{text}"
+    );
+}

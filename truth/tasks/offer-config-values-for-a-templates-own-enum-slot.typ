@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: wip(2026, 10, 4),
+  status: done(2026, 10, 4),
 )
 
 == Problem
@@ -71,6 +71,8 @@
 - `crates/mindtape/src/add_slots.rs`: `inherit_field_choices` resolves the field a slot sits in and inherits the field's config values as its choices.
 
 - `crates/mindtape-cli/src/add.rs`, `crates/mindtape-cli/src/check_templates.rs`: `splice_config_slots` inherits the choices and splices the required slots, the one step `mt add` and the template check share.
+
+- `crates/mindtape-cli/src/add_values.rs`: text `--describe` names a choice slot's choices, which only `--describe=json` carried.
 
 - `.mindtape/templates/task.typ`, `.mindtape/config.toml`: the declared slot, and the list in its own order.
 

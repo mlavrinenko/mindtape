@@ -308,18 +308,18 @@ allowed = [
 # closed.
 #
 # The sweep templates stamp their one kind (`refactor` for a size finding,
-# `test` for the rest); `task.typ` leaves `kind` out, so `mt add` splices a
-# choice over this list rather than keeping a second copy of it. A
-# non-interactive add fails naming that slot, so agents pass `--set kind=feat`.
-# `test` comes first because the first value is the example `mt check` files
-# `task.typ` with, and a `feat`, `fix`, `docs` or `dev` needs a section of its
-# own that the generic template does not carry.
+# `test` for the rest). `task.typ` declares a `kind` slot with no `choices`, so
+# `mt add` offers this list rather than a second copy of it. A non-interactive
+# add fails naming that slot, so agents pass `--set kind=feat`. The slot's
+# example is `test`, because `mt check` files `task.typ` with it, and a `feat`,
+# `fix`, `docs` or `dev` needs a section of its own that the generic template
+# does not carry.
 #
 # `required = "!terminal"` mirrors the fields above: an open task names its
 # kind, a closed one is exempt, so history predating the field is not
 # backfilled.
 [tasks.fields.kind]
-values = ["test", "feat", "fix", "refactor", "docs", "dev", "milestone"]
+values = ["feat", "fix", "refactor", "docs", "test", "dev", "milestone"]
 required = "!terminal"
 
 # Who is working the task. The only distinction this backlog needs is

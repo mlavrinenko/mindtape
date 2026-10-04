@@ -315,6 +315,9 @@ fn describe_text(specs: &[SlotSpec]) -> String {
             "optional"
         };
         let mut line = format!("{}  {}  {need}", spec.name, spec.kind.as_str());
+        if let Some(choices) = &spec.choices {
+            line.push_str(&format!("  one of: {}", choices.join(", ")));
+        }
         if let Some(env) = &spec.env {
             line.push_str(&format!("  env: {env}"));
         }

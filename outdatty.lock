@@ -195,7 +195,7 @@ groups:
       contrib/ask-refactoring/undertested.sh: c9407f912aa701986f7df0f138413bc92d56e529ef5fa0c1590a1fc67419961a
   task-templates:
     source:
-      .mindtape/templates/task.typ: 71e932f98a0b83cfda1053273c394143079270f64b3ee18fcd882e04bdac600b
+      .mindtape/templates/task.typ: b952f55d4abf2eccfc0301f0255fe57e81c4690e26d6ce27bceae9a4adafa04e
     dependents:
       .mindtape/templates/dev.typ: 9d29455989d4be3f57da2c8566bfafa6a9213e035af3c9f7f39eae6f25e97589
       .mindtape/templates/docs.typ: 4c18fdbc003b52f6b9bf665f9e6548ab4b1e254d5aac3f483bd2c9434c2b8bd5
