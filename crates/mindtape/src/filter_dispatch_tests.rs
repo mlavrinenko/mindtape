@@ -178,3 +178,34 @@ fn names_term_covers_language_words_fields_and_config_names() {
         assert!(!Filter::names_term(word, &config), "{word}");
     }
 }
+
+/// The reverse of the test above: every word `nullary` and `function` match on
+/// is listed, so a new arm cannot dodge the words a stem hash must not spell.
+#[test]
+fn every_dispatched_word_is_listed() {
+    let source = include_str!("filter_eval.rs");
+    let mut dispatched = Vec::new();
+    let mut in_dispatch = false;
+    for line in source.lines() {
+        if line.starts_with("fn nullary(") || line.starts_with("fn function(") {
+            in_dispatch = true;
+        } else if line == "}" {
+            in_dispatch = false;
+        }
+        let arm = line
+            .trim_start()
+            .strip_prefix('"')
+            .and_then(|rest| rest.split_once('"'))
+            .filter(|(_, tail)| tail.trim_start().starts_with("=>"));
+        if let (true, Some((word, _))) = (in_dispatch, arm) {
+            dispatched.push(word.to_owned());
+        }
+    }
+    assert!(dispatched.len() >= 17, "arm scan found {dispatched:?}");
+    for word in dispatched {
+        assert!(
+            crate::filter::eval::WORDS.contains(&word.as_str()),
+            "{word} is dispatched but not in WORDS"
+        );
+    }
+}

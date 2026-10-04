@@ -113,14 +113,17 @@ fn print_table(task: &Task, hashes: &StemHashes) -> Result<()> {
 /// the one every listing prints. A file under no project, or one its project
 /// does not load, is hashed alone.
 fn hashes_for(file: &Path, task: &Task) -> StemHashes {
-    let outcome = file
+    let loaded = file
         .canonicalize()
         .ok()
         .and_then(|abs| find_root(abs.parent()?))
-        .and_then(|root| Some(load_project(&root, &load_config(&root).ok()?)));
-    match outcome {
-        Some(outcome) if outcome.tasks.iter().any(|t| t.id == task.id) => {
-            crate::util::stem_hashes(&outcome.tasks)
+        .and_then(|root| {
+            let config = load_config(&root).ok()?;
+            Some((load_project(&root, &config), config))
+        });
+    match loaded {
+        Some((outcome, config)) if outcome.tasks.iter().any(|t| t.id == task.id) => {
+            crate::util::stem_hashes(&outcome.tasks, &config)
         }
         _ => StemHashes::new([task.id.as_str()]),
     }

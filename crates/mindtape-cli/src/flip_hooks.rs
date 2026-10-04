@@ -199,7 +199,7 @@ impl<'a> Hooks<'a> {
             writeln!(out, "  (no matching tasks)")?;
             return Ok(());
         }
-        let hashes = crate::util::stem_hashes(&self.project.outcome.tasks);
+        let hashes = crate::util::stem_hashes(&self.project.outcome.tasks, &self.project.config);
         let ctx = RenderCtx {
             config,
             readiness: &self.readiness,

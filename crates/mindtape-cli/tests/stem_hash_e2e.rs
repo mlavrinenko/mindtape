@@ -171,3 +171,31 @@ fn rm_reads_a_filter_word_before_a_stem_hash() {
         );
     }
 }
+
+/// A stem spelling another task's hash would capture it, because an exact stem
+/// wins over a hash. The hash lengthens past the stem instead.
+#[test]
+fn a_hash_never_spells_another_tasks_stem() {
+    let spelled = short_code("alpha");
+    let dir = project(&[("alpha", &[]), (&spelled, &[])]);
+
+    let hash = listed_hash(dir.path(), &[], "alpha");
+
+    assert_ne!(hash, spelled, "alpha's hash is another task's stem");
+    assert!(hash.starts_with(&spelled), "{hash}");
+    assert_eq!(eval_id(dir.path(), &hash), "alpha");
+    assert_eq!(eval_id(dir.path(), &spelled), spelled);
+}
+
+/// A word the filter language reads on its own never prints as a hash, so
+/// `mt rm <hash>` cannot be read as that filter.
+#[test]
+fn a_hash_never_spells_a_filter_word() {
+    let dir = project(&[(SPELLS_HAS, &[]), ("alpha", &[])]);
+
+    let hash = listed_hash(dir.path(), &[], SPELLS_HAS);
+
+    assert_ne!(hash, "has");
+    assert!(hash.starts_with("has"), "{hash}");
+    assert_eq!(eval_id(dir.path(), &hash), SPELLS_HAS);
+}

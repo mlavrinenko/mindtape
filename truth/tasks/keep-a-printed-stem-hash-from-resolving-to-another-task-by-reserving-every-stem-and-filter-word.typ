@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 4),
+  status: done(2026, 10, 4),
   links: related(
     "give-the-filter-functions-one-registry-that-dispatch-docs-coverage-and-mt-rms-filter-words-read.typ",
   )[the reserved filter words come from the registry],

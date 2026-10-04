@@ -76,7 +76,7 @@ fn resolve_by_stem_hash_succeeds() {
         stub_task("alpha", "Alpha Task"),
         stub_task("beta", "Beta Task"),
     ]);
-    let hash = stem_hashes(&project.outcome.tasks)
+    let hash = stem_hashes(&project.outcome.tasks, &project.config)
         .hash_of("beta")
         .unwrap()
         .to_owned();

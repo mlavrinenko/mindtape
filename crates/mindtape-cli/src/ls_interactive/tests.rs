@@ -25,7 +25,7 @@ fn state(n: usize, buffer: &str) -> State {
     State {
         config: Config::default(),
         root: ".".into(),
-        hashes: util::stem_hashes(&tasks),
+        hashes: util::stem_hashes(&tasks, &Config::default()),
         tasks,
         readiness: Readiness::empty(),
         env: mindtape::ConditionEnv::default(),

@@ -7,7 +7,7 @@ use std::sync::OnceLock;
 
 use anyhow::{Context, Result, anyhow, bail};
 use mindtape::{
-    Config, LoadOutcome, Resolution, StemHashes, Task, ViewSpec, config_path, find_root,
+    Config, Filter, LoadOutcome, Resolution, StemHashes, Task, ViewSpec, config_path, find_root,
     load_config, load_project, write_atomic,
 };
 
@@ -141,10 +141,13 @@ pub fn open() -> Result<Project> {
 }
 
 /// The stem hash of every task the project loaded, closed ones included, so a
-/// task carries the same hash in every listing.
+/// task carries the same hash in every listing. A hash never equals a loaded
+/// stem or a word [`Filter::names_term`] accepts, so neither captures it.
 #[must_use]
-pub fn stem_hashes(tasks: &[Task]) -> StemHashes {
-    StemHashes::new(tasks.iter().map(|task| task.id.as_str()))
+pub fn stem_hashes(tasks: &[Task], config: &Config) -> StemHashes {
+    StemHashes::reserving(tasks.iter().map(|task| task.id.as_str()), |word| {
+        Filter::names_term(word, config)
+    })
 }
 
 /// Resolve a task reference to a loaded `Task` and its absolute path.
@@ -167,7 +170,7 @@ pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
     let stem = if found(id).is_some() {
         id.to_owned()
     } else {
-        let hashes = stem_hashes(tasks);
+        let hashes = stem_hashes(tasks, &project.config);
         match hashes.resolve(id) {
             Resolution::Found(stem) => stem,
             Resolution::Ambiguous(stems) => bail!(ambiguous(&hashes, id, &stems)),

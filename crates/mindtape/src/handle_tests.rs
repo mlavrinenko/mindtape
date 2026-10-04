@@ -161,3 +161,16 @@ fn the_mixer_is_the_splitmix64_finaliser() {
     assert_eq!(mix(0), 0);
     assert_eq!(mix(1), 0x5692_161d_100b_05e5);
 }
+
+#[test]
+fn a_hash_lengthens_past_a_stem_and_a_reserved_word() {
+    let plain = StemHashes::new(["alpha"]);
+    let short = plain.hash_of("alpha").unwrap_or_default().to_owned();
+
+    let by_stem = StemHashes::new(["alpha", short.as_str()]);
+    assert_eq!(by_stem.hash_of("alpha").map(str::len), Some(4));
+
+    let by_word = StemHashes::reserving(["alpha"], |word| word == short);
+    assert_eq!(by_word.hash_of("alpha").map(str::len), Some(4));
+    assert_eq!(by_word.resolve(&short), found("alpha"));
+}

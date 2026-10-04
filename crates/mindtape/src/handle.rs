@@ -6,7 +6,7 @@
 //! shortest prefix of that code no other stem's code shares, at least
 //! [`MIN_LEN`] digits. A new stem therefore lengthens only the hashes that
 //! share a prefix with it: an older short hash turns ambiguous, and never
-//! resolves to another task. Stems with equal codes stay ambiguous at every
+//! resolves to another task. A hash never equals a stem or a reserved word: it lengthens past one. Stems with equal codes stay ambiguous at every
 //! length. Folders do not enter the code.
 
 /// The fewest digits a stem hash has, and the fewest an input may have.
@@ -41,9 +41,19 @@ struct Entry {
 }
 
 impl StemHashes {
-    /// Hashes every stem in `stems`.
+    /// Hashes every stem in `stems`. No hash equals any of the stems.
     pub fn new<'a>(stems: impl IntoIterator<Item = &'a str>) -> Self {
-        Self::with_hasher(stems, |stem| mix(fnv1a_64(stem.as_bytes())))
+        Self::reserving(stems, |_| false)
+    }
+
+    /// Hashes every stem in `stems`. A hash equals neither a stem nor a word
+    /// `reserved` accepts: it lengthens past it, so a typed reference never
+    /// reads as the stem or the word instead of the task.
+    pub fn reserving<'a>(
+        stems: impl IntoIterator<Item = &'a str>,
+        reserved: impl Fn(&str) -> bool,
+    ) -> Self {
+        Self::build(stems, |stem| mix(fnv1a_64(stem.as_bytes())), reserved)
     }
 
     /// Hashes every stem with `hash` in place of mixed FNV-1a 64, so a test can
@@ -52,9 +62,18 @@ impl StemHashes {
         stems: impl IntoIterator<Item = &'a str>,
         hash: impl Fn(&str) -> u64,
     ) -> Self {
+        Self::build(stems, hash, |_| false)
+    }
+
+    fn build<'a>(
+        stems: impl IntoIterator<Item = &'a str>,
+        hash: impl Fn(&str) -> u64,
+        reserved: impl Fn(&str) -> bool,
+    ) -> Self {
+        let stems: std::collections::HashSet<&str> = stems.into_iter().collect();
         let mut entries: Vec<Entry> = stems
-            .into_iter()
-            .map(|stem| Entry {
+            .iter()
+            .map(|&stem| Entry {
                 stem: stem.to_owned(),
                 code: encode(hash(stem)),
                 len: MIN_LEN,
@@ -73,6 +92,14 @@ impl StemHashes {
         let after = gaps.iter().copied().chain(std::iter::once(0));
         for (entry, (before, after)) in entries.iter_mut().zip(before.zip(after)) {
             entry.len = (before.max(after) + 1).clamp(MIN_LEN, CODE_LEN);
+            while entry.len < CODE_LEN
+                && entry
+                    .code
+                    .get(..entry.len)
+                    .is_some_and(|hash| stems.contains(hash) || reserved(hash))
+            {
+                entry.len += 1;
+            }
         }
         entries.sort_by(|a, b| a.stem.cmp(&b.stem));
         Self { entries }

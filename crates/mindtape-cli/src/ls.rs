@@ -248,7 +248,7 @@ pub(crate) fn resolve_and_select(args: &LsArgs, project: util::Project) -> Resul
         config.ls.columns_order = bundle.columns.clone();
     }
     let readiness = Readiness::compute(&project.outcome.tasks, &project.config);
-    let hashes = util::stem_hashes(&project.outcome.tasks);
+    let hashes = util::stem_hashes(&project.outcome.tasks, &project.config);
     let filter = Filter::parse(&bundle.filter)?;
     let mut tasks = select(
         project.outcome.tasks,

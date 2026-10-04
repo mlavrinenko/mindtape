@@ -137,7 +137,8 @@ shares. `mt` hashes every task the project loads, closed ones included, so a
 task has the same stem hash in every listing, filtered or not. It changes
 when `mt mv` gives the task a new stem, and it grows a character when a new
 task's hash shares its prefix, so an old hash is refused rather than naming
-another task. Every command that takes a `<task>` accepts a
+another task. A hash also grows past any stem or filter word it would spell,
+so neither captures it. Every command that takes a `<task>` accepts a
 stem hash. A path or an exact stem wins, and `mt` tries the input as a stem
 hash only when no stem matches. `mt rm`, which also takes filters, reads a
 filter word such as `ready`, a field, a view or a status as a filter before it
