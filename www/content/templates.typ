@@ -78,9 +78,13 @@ fence's line included, and ignores the language tag.
 `mt check` checks every template that `mt add --list` lists, so a config
 change that breaks a template fails `mt check` at once rather than at the next
 `mt add`. It fills each template as `mt add` would, with every slot holding its
-`example`, else its `default`, and checks the result like a task. Every breach
-counts, and names the template file and the line of the field, as in
+`example`, else its `default`, and checks the result like a task, alone and
+against an empty backlog, under the file name `mt add` would give it. A breach
+the template can fix counts, and names the template file and the line of the
+field, as in
 #raw("error: .mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value").
+A breach about the backlog does not: a `count()` cap, a rule on `ready` or
+`blocked`, a link cycle, or a link to a task that is not there.
 
 A slot with neither an `example` nor a `default` leaves nothing to fill, so
 `mt check` reports the slot and checks nothing else in that template. A slot

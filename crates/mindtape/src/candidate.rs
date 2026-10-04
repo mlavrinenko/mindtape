@@ -176,6 +176,18 @@ pub fn check_candidates(
         .collect()
 }
 
+/// Whether `violation` is a breach only the set around a task can cause or
+/// cure: a link cycle on an acyclic kind, or a rule whose expression reads the
+/// whole set (`count(...)`, `ready`, `topo`), or an edge to a task that is not
+/// in the set. A task checked apart from its
+/// backlog drops these, as the task cannot fix them.
+#[must_use]
+pub fn reads_set_breach(config: &Config, violation: &Violation) -> bool {
+    crate::validate_links::is_unresolved(violation)
+        || acyclic_kinds(&config.tasks.links).contains(&violation.field.as_str())
+        || crate::config_rules::set_labels(config).contains(&violation.field)
+}
+
 /// The violations the batch opens or closes elsewhere that `validate` names on
 /// a task outside it: a link cycle, or a `[[tasks.rules]]` breach whose
 /// `assert` reads the whole set (`count(...)`, or the `links:` graph through

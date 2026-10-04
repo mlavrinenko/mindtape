@@ -121,7 +121,9 @@ pub mod worktrees;
 pub use add_slots::{RequiredSlot, inherit_field_choices, required_core_slots};
 pub use app_dirs::{CONFIG_HOME_ENV, DATA_HOME_ENV, config_home, data_home};
 pub use body_gate::{BodyRules, check_body_rules};
-pub use candidate::{Candidate, Checked, check_candidate, check_candidates, harvest_candidate};
+pub use candidate::{
+    Candidate, Checked, check_candidate, check_candidates, harvest_candidate, reads_set_breach,
+};
 pub use canonical::{CanonicalTask, SCHEMA_VERSION};
 pub use children::{children_violation, unfinished_children};
 pub use commit_expr::CommitExpr;

@@ -33,6 +33,7 @@ use crate::util;
 
 #[path = "add_target.rs"]
 mod target;
+pub(crate) use target::minted_stem;
 pub(crate) use target::{dest_dir, warn_if_outside_roots};
 use target::{output_stem, resolve_outcome};
 

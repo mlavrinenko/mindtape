@@ -190,6 +190,18 @@ impl Filter {
             .collect()
     }
 
+    /// Whether the filter reads the whole task set rather than one task: it
+    /// calls `count(...)`, or names a field a task takes from the others
+    /// ([`SET_FIELDS`]). Such an expression can answer differently for the
+    /// same task as the set around it changes.
+    #[must_use]
+    pub fn reads_set(&self) -> bool {
+        self.names()
+            .iter()
+            .any(|name| SET_FIELDS.contains(&name.as_str()))
+            || self.tree.as_ref().is_some_and(calls_count)
+    }
+
     /// Whether `task` satisfies the filter, resolving framework scores against
     /// `config`. The `ready` / `blocked` predicates are unavailable here (no
     /// task-set context); use [`matches_with`](Self::matches_with) for those.
@@ -239,6 +251,17 @@ impl Filter {
             ),
         }
     }
+}
+
+/// The names a task takes from the tasks around it: the `links:` graph through
+/// `ready`, `blocked`, `blocks` and `topo`, and its children's `children` and
+/// `progress`.
+const SET_FIELDS: [&str; 6] = ["ready", "blocked", "blocks", "topo", "children", "progress"];
+
+/// Whether `node` or any node under it calls `count(...)`.
+fn calls_count(node: &Node<DefaultNumericTypes>) -> bool {
+    matches!(node.operator(), evalexpr::Operator::FunctionIdentifier { identifier } if identifier == "count")
+        || node.children().iter().any(calls_count)
 }
 
 /// What makes one saved filter expression unusable, if anything: a syntax

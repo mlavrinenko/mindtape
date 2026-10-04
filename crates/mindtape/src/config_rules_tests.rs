@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{RuleSpec, check_all, labels, validate_rules};
+use super::{RuleSpec, check_all, labels, set_labels, validate_rules};
 use crate::config::Config;
 use crate::model::{Status, Task};
 use crate::parse_config;
@@ -439,4 +439,32 @@ fn a_field_check_reads_its_first_path_segment() {
     let breach =
         crate::validate::violation(&task("a", "T", "wip"), "priority.impact", String::new());
     assert_eq!(breach.reads, Some(fields(&["priority"])));
+}
+
+#[test]
+fn set_labels_names_only_the_rules_that_read_the_whole_set() {
+    let config = config(
+        "\
+[[tasks.rules]]
+name = \"cap\"
+assert = 'count(!terminal) <= 4'
+
+[[tasks.rules]]
+name = \"gated\"
+when = 'blocked'
+assert = 'has(title)'
+
+[[tasks.rules]]
+assert = 'has(title)'
+
+[[tasks.rules]]
+name = \"plain\"
+assert = 'kind != \"fix\"'
+",
+    );
+    let names = set_labels(&config);
+    assert_eq!(
+        names,
+        ["rules.cap", "rules.gated"].map(str::to_owned).into()
+    );
 }

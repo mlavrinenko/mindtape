@@ -50,6 +50,24 @@ fn flags_unresolved_edge_target() {
 }
 
 #[test]
+fn names_only_an_unresolved_target_as_unresolved() {
+    let mut a = bare_task("a");
+    a.links = vec![edge("missing.typ", "depends-on"), edge("b.typ", "")];
+    let violations = check(&[a, bare_task("b")], &Config::default());
+    let unresolved: Vec<_> = violations
+        .iter()
+        .filter(|v| super::is_unresolved(v))
+        .collect();
+    assert_eq!(unresolved.len(), 1, "{violations:?}");
+    assert!(
+        unresolved
+            .first()
+            .is_some_and(|v| v.message.contains("missing.typ"))
+    );
+    assert!(violations.len() > 1, "{violations:?}");
+}
+
+#[test]
 fn flags_bare_string_edge_as_unknown_kind() {
     // No helper used: `kind` is empty, so it never matches a built-in or
     // configured kind — the escape-hatch rule requires intent be explicit.

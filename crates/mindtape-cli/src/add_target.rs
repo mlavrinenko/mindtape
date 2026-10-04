@@ -69,6 +69,12 @@ pub(super) fn output_stem(
     if let Some(name) = &args.name {
         return Ok(name.clone());
     }
+    minted_stem(values, config)
+}
+
+/// The stem `mt add` mints from the filled `title` when `--name` is absent: the
+/// title's slug, or `[tasks.naming] stem` over it.
+pub(crate) fn minted_stem(values: &BTreeMap<String, RawValue>, config: &Config) -> Result<String> {
     let slug_value = title_slug(values)?;
     let Some(template) = config.tasks.naming.stem.as_deref() else {
         return Ok(slug_value);

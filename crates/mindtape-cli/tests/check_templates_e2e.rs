@@ -250,3 +250,85 @@ fn fallback_severity_reads_the_global_defaults_layer() {
         "{text}"
     );
 }
+
+/// A task file at `tasks/<stem>.typ`, valid under [`CONFIG`].
+fn add_task(dir: &std::path::Path, stem: &str, title: &str) {
+    let file = dir.join(format!("tasks/{stem}.typ"));
+    std::fs::create_dir_all(file.parent().unwrap()).unwrap();
+    let source = format!(
+        "#import \"@local/mindtape:0.2.0\": *\n#show: task.with(\n  title: \"{title}\",\n  \
+         kind: \"fix\",\n  status: proposed(2026, 1, 1),\n)\n"
+    );
+    std::fs::write(file, source).unwrap();
+}
+
+/// A cap the backlog holds is not the template's to break: each template is
+/// checked alone, against no tasks, and a breach that reads the whole set is
+/// not one the template can fix.
+#[test]
+fn a_backlog_at_its_count_cap_does_not_fail_a_template() {
+    let dir = scaffold_with(
+        &rule("open-cap", "count(!terminal) <= 4"),
+        &template("\"fix\""),
+    );
+    for index in 0..4 {
+        add_task(
+            dir.path(),
+            &format!("open-{index}"),
+            &format!("Open {index}"),
+        );
+    }
+    let (ok, text) = check(dir.path());
+    assert!(ok, "{text}");
+}
+
+/// A cap a template alone would break reads the set, so it is dropped too: the
+/// template cannot fix it.
+#[test]
+fn a_count_cap_of_zero_is_not_a_template_breach() {
+    let dir = scaffold_with(
+        &rule("none-open", "count(!terminal) <= 0"),
+        &template("\"fix\""),
+    );
+    let (ok, text) = check(dir.path());
+    assert!(ok, "{text}");
+}
+
+/// A rule that reads no set still counts on the template alone.
+#[test]
+fn a_rule_that_reads_no_set_still_counts_beside_a_set_rule() {
+    let config = format!(
+        "{}[[tasks.rules]]\nname = \"no-fix\"\nassert = 'kind != \"fix\"'\nseverity = \"error\"\n",
+        rule("open-cap", "count(!terminal) <= 0")
+    );
+    let dir = scaffold_with(&config, &template("\"fix\""));
+    let (ok, text) = check(dir.path());
+    assert!(!ok, "{text}");
+    assert!(text.contains("rules.no-fix"), "{text}");
+    assert!(!text.contains("rules.open-cap"), "{text}");
+}
+
+/// The candidate is named from the example title, where `mt add` would write
+/// it, so a task named like the template collides with nothing.
+#[test]
+fn a_task_named_like_a_template_collides_with_nothing() {
+    let dir = scaffold(&template("\"fix\""));
+    add_task(dir.path(), "archive/bug", "Some other task");
+    add_task(dir.path(), "archive/task", "Another task");
+    let (ok, text) = check(dir.path());
+    assert!(ok, "{text}");
+}
+
+/// A template may link to a task of the backlog; checked alone it has no
+/// backlog to resolve the target in, which is not the template's breach.
+#[test]
+fn a_link_to_a_backlog_task_is_not_a_template_breach() {
+    let linked = template("\"fix\"").replace(
+        "  kind:",
+        "  links: related(\"anchor.typ\")[same session],\n  kind:",
+    );
+    let dir = scaffold(&linked);
+    add_task(dir.path(), "anchor", "Anchor");
+    let (ok, text) = check(dir.path());
+    assert!(ok, "{text}");
+}

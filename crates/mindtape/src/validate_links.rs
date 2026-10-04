@@ -159,13 +159,20 @@ fn check_resolution(task: &Task, link: &Link, files: &HashSet<&Path>, out: &mut 
             .unwrap_or(Path::new(&link.task))
             .display()
             .to_string();
-        push(
-            out,
-            task,
-            kind_field(link),
-            format!("link target `{display}` not found"),
-        );
+        push(out, task, kind_field(link), unresolved_message(&display));
     }
+}
+
+/// What an edge to a task that is not in the set says.
+fn unresolved_message(display: &str) -> String {
+    format!("link target `{display}` not found")
+}
+
+/// Whether `violation` says an edge's target is not in the set, which only the
+/// set around the task can settle.
+pub(crate) fn is_unresolved(violation: &Violation) -> bool {
+    let message = &violation.message;
+    message.starts_with("link target `") && message.ends_with("` not found")
 }
 
 fn check_note_rule(

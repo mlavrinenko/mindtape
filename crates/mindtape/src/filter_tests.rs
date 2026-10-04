@@ -421,3 +421,15 @@ fn a_rule_reading_changed_loads_outside_a_repository() {
     config.git.set_root(dir.path());
     config.validate().unwrap();
 }
+
+#[test]
+fn reads_set_for_a_count_call_or_a_set_field_only() {
+    let reads = |expr: &str| Filter::parse(expr).unwrap().reads_set();
+    assert!(reads("count(!terminal) <= 4"));
+    assert!(reads("title == \"x\" && topo > 1"));
+    for field in ["ready", "blocked", "blocks", "children", "progress"] {
+        assert!(reads(&format!("{field} == 1")), "{field}");
+    }
+    assert!(!reads("kind != \"fix\" && priority > 2"));
+    assert!(!reads(""));
+}
