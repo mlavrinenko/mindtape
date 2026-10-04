@@ -59,13 +59,12 @@
 //! rather than a `root` parameter threaded through every validation call
 //! site.
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
 use crate::config::Config;
-use crate::filter::Filter;
 use crate::model::Task;
 use crate::severity::Severity;
 
@@ -255,37 +254,6 @@ pub(crate) fn validate_rule_names(config: &Config) -> Vec<String> {
         config.tasks.rules.iter().map(|rule| rule.name.as_deref()),
         "tasks.rules",
     )
-}
-
-/// The task fields a refusal reported under `label` (a violation's
-/// [`field`](crate::Violation::field)) is about, or `None` when it may be
-/// about any.
-///
-/// A `[[tasks.rules]]` breach is about the names its `assert` and `when`
-/// read, or the `field` its `check` receives. A rule reaching through a view,
-/// or a `check` handed the whole task, may be about any field. Any other label
-/// is a field or a path into one (`priority.impact`, `body.content.rules.x`),
-/// and is about its first segment.
-#[must_use]
-pub fn breach_fields(config: &Config, label: &str) -> Option<BTreeSet<String>> {
-    let Some(spec) = (config.tasks.rules.iter().enumerate())
-        .find_map(|(index, spec)| (spec.label(index) == label).then_some(spec))
-    else {
-        let root = label.split(['.', '[']).next().unwrap_or(label);
-        return Some(BTreeSet::from([root.to_owned()]));
-    };
-    let mut fields = BTreeSet::new();
-    if let Some(check) = &spec.check {
-        fields.insert(check.field.clone()?);
-    }
-    for expr in spec.assertion.iter().chain(&spec.when) {
-        let filter = Filter::parse(expr).ok()?;
-        if !filter.view_refs().is_empty() {
-            return None;
-        }
-        fields.extend(filter.names());
-    }
-    Some(fields)
 }
 
 /// Every `[[tasks.rules]]` entry's report label (`rules.<name>` or

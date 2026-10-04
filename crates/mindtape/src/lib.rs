@@ -147,7 +147,7 @@ pub use config_layers::{
     LayerSource, load_config_layered, load_config_layered_from, merged_config_table,
 };
 pub use config_packs::{PackOrigin, RuleOrigin, RuleOriginEntry};
-pub use config_rules::{CheckSpec, RuleSpec, breach_fields};
+pub use config_rules::{CheckSpec, RuleSpec};
 pub use config_schema::{SCHEMA_URL, config_schema_json};
 pub use content_gate::{CompiledContentRule, check_content, compile_content_rules};
 pub use date::{days_ago_iso, format_iso, parse_ymd, today_iso, today_ymd};

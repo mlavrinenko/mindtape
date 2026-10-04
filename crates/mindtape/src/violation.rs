@@ -10,8 +10,10 @@
 //! Both types are re-exported from [`crate::validate`], where callers have
 //! always found them.
 
+use std::collections::BTreeSet;
 use std::path::PathBuf;
 
+use crate::filter::Filter;
 use crate::severity::Severity;
 
 /// Source location for a violation that points to a specific line.
@@ -45,6 +47,35 @@ pub struct Violation {
     /// level. Every report prints it ([`Severity::label`]) and
     /// [`Violation::is_fatal`] answers from it.
     pub severity: Severity,
+    /// The task fields the check read to decide this breach: a rule's `when`
+    /// and `assert` names, a body rule's `when` names, the field a field check
+    /// is about. `None` when it may be about any field — a rule reaching
+    /// through a view, or a `check` handed the whole task. A caller that offers
+    /// a remedy (the `mt add` template hint) matches these names, never the
+    /// text of [`Violation::field`].
+    pub reads: Option<BTreeSet<String>>,
+}
+
+/// What a check about `field` (a name or a path into one, such as
+/// `priority.impact`) read: its first segment.
+pub(crate) fn reads_of_field(field: &str) -> BTreeSet<String> {
+    let root = field.split(['.', '[']).next().unwrap_or(field);
+    BTreeSet::from([root.to_owned()])
+}
+
+/// The names `filters` read together, or `None` when one reaches through a
+/// view and so may be about any field.
+pub(crate) fn reads_of<'a>(
+    filters: impl IntoIterator<Item = &'a Filter>,
+) -> Option<BTreeSet<String>> {
+    let mut names = BTreeSet::new();
+    for filter in filters {
+        if !filter.view_refs().is_empty() {
+            return None;
+        }
+        names.extend(filter.names());
+    }
+    Some(names)
 }
 
 impl Violation {

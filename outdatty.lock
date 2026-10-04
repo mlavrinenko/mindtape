@@ -14,7 +14,7 @@ groups:
       www/content/trace-commits-to-tasks.typ: 6f8d4d7ff344895057460f3a7322cbcb23067fc2bf3ab90a72a19427cb19b49b
   cli-docs:
     source:
-      crates/mindtape-cli/src/add.rs: 27a2109e151ab755b39e8112a134144312b198fc1fb66a9615422570024de13d
+      crates/mindtape-cli/src/add.rs: 52bba7bbbbc34f8e04e3665b45b3cf86dc720d4749379c467971590c7d14a5bc
       crates/mindtape-cli/src/check.rs: b6eb6d5b763e5318372fe15325b66826233fa31bf1e2b12ffd2fdc86cc8172af
       crates/mindtape-cli/src/cli.rs: f14297ca4cea772b2981acdc420fdb2b093c79b6cdd398f5b23c8aab6c18ca91
       crates/mindtape-cli/src/completion.rs: fe14695fe1c11cdd3d8fd75119c32686453ca77b2763160721a22fdcff314461
@@ -45,7 +45,7 @@ groups:
       crates/mindtape-cli/src/worktrees.rs: 78617369d3fb90e6e30605fb5e23b3f795f1ab2a671914aefdd5d2b1868a5fc5
       crates/mindtape/src/defaults.toml: 0b73c2b1e699a4827427c1b48ae699fc36e4f9eff6fec7f75313b07fe32a023b
       crates/mindtape/src/fields.rs: 505a700e90befcdc2edd5d58f0d8cdb0253494f93dd0e7f6259daee171c88872
-      crates/mindtape/src/lib.rs: f61ea23b888d158fcb97977126b428ea976cdc9bbb4b29155f4a4302d764526d
+      crates/mindtape/src/lib.rs: 2e47c5269df9ea09a2680c22951e59eb2b68fac575b7515b5ebc7e4c54f5b90a
     dependents:
       docs/src/skill.typ: 1bce54f4da2ee49ecf536973aa51d50ed877b211591fa73d1874e8daf6cf2a4a
       skills/mindtape/evals/README.md: e530d4b6a77d8220a7f138487974a3c0797271020a575b74f51d9379a57d7769

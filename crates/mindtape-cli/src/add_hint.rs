@@ -10,7 +10,7 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use mindtape::Config;
+use mindtape::{Config, discover_slots};
 
 use crate::add_values::{list_templates, resolve_template};
 use crate::task_edit::{Refused, task_with};
@@ -19,41 +19,30 @@ use crate::task_edit::{Refused, task_with};
 /// the source text it was filled with, and that value unquoted.
 type Slotted = (String, String, String);
 
-/// The keys in `explicit` that a breach refusing the write is about
-/// ([`mindtape::breach_fields`]). Empty when `err` is no such refusal: a
-/// source that did not load, or a write refused for its destination, is not
-/// fixed by another template's literal.
-pub(super) fn refused_keys(
-    err: &anyhow::Error,
-    config: &Config,
-    explicit: &BTreeSet<String>,
-) -> BTreeSet<String> {
-    let Some(refused) = err.downcast_ref::<Refused>() else {
-        return BTreeSet::new();
-    };
-    let mut keys = BTreeSet::new();
-    for label in &refused.breached {
-        match mindtape::breach_fields(config, label) {
-            Some(fields) => keys.extend(fields.into_iter().filter(|key| explicit.contains(key))),
-            None => return explicit.clone(),
-        }
-    }
-    keys
+/// The task fields the breaches that refused the write read
+/// ([`mindtape::Violation::reads`]): `Some(None)` when one may be about any
+/// field, and `None` when `err` is no such refusal — a source that did not
+/// load, or a write refused for its destination, is not fixed by another
+/// template's literal.
+pub(super) fn refused_fields(err: &anyhow::Error) -> Option<Option<BTreeSet<String>>> {
+    err.downcast_ref::<Refused>()
+        .map(|refused| refused.reads.clone())
 }
 
 /// One `hint:` line per other template pinning a slot-filled field to the
 /// value the caller passed for it, or `None` when no template does. `sources`
 /// is the chosen template's source (config slots spliced in) before and after
-/// the fill; `explicit` holds the keys the caller passed that the refusal is
-/// about ([`refused_keys`]).
+/// the fill; `explicit` holds the slot names the caller passed and `fields`
+/// the task fields the refusal is about ([`refused_fields`]).
 pub(super) fn template_hint(
     config: &Config,
     root: &Path,
     chosen_name: &str,
     sources: (&str, &str),
-    explicit: &BTreeSet<String>,
+    (explicit, fields): (&BTreeSet<String>, Option<&BTreeSet<String>>),
 ) -> Option<String> {
-    let slotted = slotted_fields(sources, explicit).filter(|slotted| !slotted.is_empty())?;
+    let slotted =
+        slotted_fields(sources, explicit, fields).filter(|slotted| !slotted.is_empty())?;
     let mut lines = Vec::new();
     for name in list_templates(config, root) {
         if name == chosen_name {
@@ -73,10 +62,13 @@ pub(super) fn template_hint(
     (!lines.is_empty()).then(|| lines.join("\n"))
 }
 
-/// The explicitly passed fields that `chosen` leaves to a slot.
+/// The fields the refusal is about that `chosen` leaves to a slot the caller
+/// passed — the slot may be named differently from its field
+/// (`kind: slot("type")`).
 fn slotted_fields(
     (chosen, filled): (&str, &str),
     explicit: &BTreeSet<String>,
+    fields: Option<&BTreeSet<String>>,
 ) -> Option<Vec<Slotted>> {
     let (chosen_call, filled_call) = (task_with(chosen).ok()?, task_with(filled).ok()?);
     Some(
@@ -85,7 +77,13 @@ fn slotted_fields(
             .iter()
             .filter_map(|arg| {
                 let name = arg.name.as_deref()?;
-                if !explicit.contains(name) || !chosen[arg.value_range.clone()].contains("slot(") {
+                if fields.is_some_and(|fields| !fields.contains(name)) {
+                    return None;
+                }
+                let passed = discover_slots(&format!("#{}", &chosen[arg.value_range.clone()]))
+                    .into_iter()
+                    .any(|slot| explicit.contains(&slot.name));
+                if !passed {
                     return None;
                 }
                 let value = filled_call.named(name)?;

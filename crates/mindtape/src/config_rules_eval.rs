@@ -8,6 +8,8 @@
 //! a [`Filter`] and a `check` to a [`CompiledCheck`], and [`check_all`] builds
 //! neither when the project declares no rules.
 
+use std::collections::BTreeSet;
+
 use crate::config::Config;
 use crate::config_rules_typst::CompiledCheck;
 use crate::filter::{Filter, FilterError};
@@ -28,6 +30,20 @@ enum RuleKind {
     Check(CompiledCheck),
 }
 
+/// The names a rule reads: its `when` and `assert`, or the `field` its `check`
+/// receives. A `check` handed the whole task, or an expression reaching
+/// through a view, may be about any field.
+fn rule_reads(spec: &RuleSpec, when: Option<&Filter>, kind: &RuleKind) -> Option<BTreeSet<String>> {
+    let mut reads = crate::violation::reads_of(when)?;
+    match kind {
+        RuleKind::Assert { filter, .. } => reads.extend(crate::violation::reads_of([filter])?),
+        RuleKind::Check(_) => {
+            reads.insert(spec.check.as_ref()?.field.clone()?);
+        }
+    }
+    Some(reads)
+}
+
 /// One `[[tasks.rules]]` entry with its shape compiled, ready to ask task by
 /// task.
 struct CompiledRule {
@@ -35,6 +51,8 @@ struct CompiledRule {
     when: Option<Filter>,
     kind: RuleKind,
     severity: Severity,
+    /// What the rule reads, for [`Violation::reads`].
+    reads: Option<BTreeSet<String>>,
 }
 
 impl CompiledRule {
@@ -63,11 +81,13 @@ impl CompiledRule {
             )),
             (Some(_), Some(_)) | (None, None) => return None,
         };
+        let reads = rule_reads(spec, when.as_ref(), &kind);
         Some(Self {
             label: spec.label(index),
             when,
             kind,
             severity: spec.severity,
+            reads,
         })
     }
 
@@ -140,6 +160,7 @@ impl CompiledRule {
             message,
             location: task.marker_location(),
             severity: self.severity,
+            reads: self.reads.clone(),
         }
     }
 }

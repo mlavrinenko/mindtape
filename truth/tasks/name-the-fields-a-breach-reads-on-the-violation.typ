@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 4),
+  status: done(2026, 10, 4),
   links: related(
     "carry-a-severity-on-every-violation-and-render-every-breach-in-one-place.typ",
   )[both reshape Violation; land one struct change],

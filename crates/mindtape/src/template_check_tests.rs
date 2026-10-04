@@ -17,6 +17,7 @@ fn breach_at(field: &str, line: usize) -> Violation {
             line,
         },
         severity: Severity::Error,
+        reads: None,
     }
 }
 

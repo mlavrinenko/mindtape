@@ -29,6 +29,7 @@
 //! full disk, a concurrent edit) and would leave the file in a third state
 //! neither the tool nor the user can name. Not writing cannot fail.
 
+use std::collections::BTreeSet;
 use std::path::Path;
 
 use anyhow::{Context, Result, bail};
@@ -80,13 +81,18 @@ impl Verdict {
             .filter(|violation| !violation.is_fatal())
     }
 
-    /// The [`field`](Violation::field) of each fatal breach.
-    pub(crate) fn breached(&self) -> Vec<String> {
-        self.violations
+    /// The task fields the fatal breaches read together
+    /// ([`Violation::reads`]), or `None` when one may be about any field.
+    pub(crate) fn reads(&self) -> Option<BTreeSet<String>> {
+        let mut fields = BTreeSet::new();
+        for violation in self
+            .violations
             .iter()
             .filter(|violation| violation.is_fatal())
-            .map(|violation| violation.field.clone())
-            .collect()
+        {
+            fields.extend(violation.reads.clone()?);
+        }
+        Some(fields)
     }
 
     /// What refuses the write, one line each: the load failure, or every fatal

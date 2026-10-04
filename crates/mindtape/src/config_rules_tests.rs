@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used)]
 
-use super::{RuleSpec, breach_fields, check_all, labels, validate_rules};
+use super::{RuleSpec, check_all, labels, validate_rules};
 use crate::config::Config;
 use crate::model::{Status, Task};
 use crate::parse_config;
@@ -371,43 +371,27 @@ fn fields(names: &[&str]) -> std::collections::BTreeSet<String> {
 }
 
 #[test]
-fn a_rule_breach_is_about_the_names_its_expressions_read() {
-    let config = config(
-        "[[tasks.rules]]\nname = \"r\"\nwhen = 'kind == \"dev\"'\n\
-         assert = 'x-team != \"\" && ready'\n",
-    );
+fn a_rule_breach_reads_the_names_its_expressions_read() {
+    let tasks = vec![task("a", "T", "wip")];
+    let toml = "[[tasks.rules]]\nname = \"r\"\nwhen = 'status == \"wip\"'\n\
+                assert = 'title == \"zzz\" && ready'\n";
     assert_eq!(
-        breach_fields(&config, "rules.r"),
-        Some(fields(&["kind", "ready", "x-team"]))
+        sole_breach(&tasks, &config(toml)).reads,
+        Some(fields(&["ready", "status", "title"]))
     );
 }
 
 #[test]
 fn a_rule_through_a_view_or_a_whole_task_check_may_be_about_any_field() {
-    let config = config(
-        "[views.mine]\nfilter = 'assignee == \"ada\"'\n\
-         [[tasks.rules]]\nassert = '@mine'\n\
-         [[tasks.rules]]\ncheck = { typst = \"c.typ\", function = \"f\" }\n\
-         [[tasks.rules]]\ncheck = { typst = \"c.typ\", function = \"f\", field = \"tags\" }\n",
-    );
-    assert_eq!(breach_fields(&config, "rules[0]"), None);
-    assert_eq!(breach_fields(&config, "rules[1]"), None);
-    assert_eq!(breach_fields(&config, "rules[2]"), Some(fields(&["tags"])));
+    let tasks = vec![task("a", "T", "wip")];
+    let view = "[views.mine]\nfilter = 'assignee == \"ada\"'\n\
+                [[tasks.rules]]\nassert = '@mine'\n";
+    assert_eq!(sole_breach(&tasks, &config(view)).reads, None);
 }
 
 #[test]
-fn any_other_breach_is_about_the_first_segment_of_its_label() {
-    let config = config("");
-    assert_eq!(
-        breach_fields(&config, "priority.impact"),
-        Some(fields(&["priority"]))
-    );
-    assert_eq!(
-        breach_fields(&config, "body.content.rules.word-cap"),
-        Some(fields(&["body"]))
-    );
-    assert_eq!(
-        breach_fields(&config, "rules.gone"),
-        Some(fields(&["rules"]))
-    );
+fn a_field_check_reads_its_first_path_segment() {
+    let breach =
+        crate::validate::violation(&task("a", "T", "wip"), "priority.impact", String::new());
+    assert_eq!(breach.reads, Some(fields(&["priority"])));
 }

@@ -213,11 +213,15 @@ fn apply_rule(
     }
     let diagnostics = artifact_gate::run_rules(roots, std::slice::from_ref(&rule.engine_rule));
     for diag in diagnostics {
-        out.push(diagnostic_to_violation(task, diag, &rule.label));
+        out.push(diagnostic_to_violation(task, diag, rule));
     }
 }
 
-fn diagnostic_to_violation(task: &Task, diag: artifact_gate::Diagnostic, label: &str) -> Violation {
+fn diagnostic_to_violation(
+    task: &Task,
+    diag: artifact_gate::Diagnostic,
+    rule: &CompiledRule,
+) -> Violation {
     let location = diag.line.map_or_else(
         || task.marker_location(),
         |line| Location {
@@ -227,10 +231,11 @@ fn diagnostic_to_violation(task: &Task, diag: artifact_gate::Diagnostic, label: 
     );
     Violation {
         task_id: task.id.clone(),
-        field: label.to_owned(),
+        field: rule.label.clone(),
         message: diag.message,
         location,
         severity: Severity::Error,
+        reads: crate::violation::reads_of(rule.when.iter()),
     }
 }
 

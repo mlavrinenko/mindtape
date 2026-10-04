@@ -146,6 +146,7 @@ fn to_violation(task: &Task, comment: &Comment, severity: Severity) -> Violation
             line: comment.line,
         },
         severity,
+        reads: Some(crate::violation::reads_of_field("comments")),
     }
 }
 

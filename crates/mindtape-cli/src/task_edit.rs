@@ -206,22 +206,26 @@ pub fn verify_candidate(project: &Project, file: &Path, source: &str) -> Result<
         return Ok(true);
     }
     Err(Refused {
-        breached: verdict.breached(),
+        count: verdict.problems().len(),
+        reads: verdict.reads(),
     }
     .into())
 }
 
-/// [`verify_candidate`]'s refusal of a source that loaded, carrying what each
-/// breach was reported under, so a caller can tell which fields it is about.
+/// [`verify_candidate`]'s refusal of a source that loaded, carrying the task
+/// fields its breaches read, so a caller can tell what they are about.
 #[derive(Debug)]
 pub struct Refused {
-    /// The [`field`](mindtape::Violation::field) of each fatal breach.
-    pub breached: Vec<String>,
+    /// How many breaches refused the write.
+    pub count: usize,
+    /// The fields the fatal breaches read ([`mindtape::Violation::reads`]),
+    /// or `None` when one may be about any field.
+    pub reads: Option<std::collections::BTreeSet<String>>,
 }
 
 impl std::fmt::Display for Refused {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let count = self.breached.len();
+        let count = self.count;
         write!(
             f,
             "{count} validation issue(s) as filled; nothing was written"

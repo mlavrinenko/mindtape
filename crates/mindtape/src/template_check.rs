@@ -92,6 +92,7 @@ fn breach(file: &Path, line: usize, message: String) -> Violation {
             line,
         },
         severity: Severity::Error,
+        reads: Some(std::collections::BTreeSet::new()),
     }
 }
 

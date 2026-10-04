@@ -110,6 +110,7 @@ fn check_id_uniqueness(tasks: &[Task], out: &mut Vec<Violation>) {
                 ),
                 location: task.field_location("id"),
                 severity: Severity::Error,
+                reads: Some(crate::violation::reads_of_field("id")),
             });
         } else {
             seen.insert(&task.id, task);
@@ -158,6 +159,7 @@ pub(crate) fn violation(task: &Task, field: &str, message: String) -> Violation 
         message,
         location: task.field_location(field),
         severity: Severity::Error,
+        reads: Some(crate::violation::reads_of_field(field)),
     }
 }
 

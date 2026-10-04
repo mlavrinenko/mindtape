@@ -72,3 +72,57 @@ fn no_hint_when_the_breach_names_another_field() {
     assert!(stderr.contains("rules.no-bare-t"), "{stderr}");
     assert!(!stderr.contains("hint:"), "{stderr}");
 }
+
+/// A body header rule is about the names its `when` reads, not about `body`:
+/// the rule below breaches because the filed kind is `dev`, so the `dev`
+/// template that writes the Rollback section is the fix.
+#[test]
+fn a_body_header_rule_is_about_the_field_its_when_reads() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    // Only the body rule can refuse here, so the hint cannot come from another
+    // breach's field.
+    let config = "[tasks]\nroots = [\"tasks\"]\n\
+         [tasks.fields.kind]\nvalues = [\"feat\", \"dev\"]\nrequired = true\n\
+         [[tasks.body.headers.rules]]\nname = \"rollback-for-dev\"\n\
+         path = [\"Rollback\"]\naction = \"require\"\nwhen = 'kind == \"dev\"'\n\
+         message = \"a dev chore says how to undo it\"\n";
+    std::fs::write(dir.path().join(".mindtape/config.toml"), config).unwrap();
+    std::fs::write(
+        dir.path().join(".mindtape/templates/dev.typ"),
+        format!("{PINNED}\n== Rollback\n\n- Revert it.\n"),
+    )
+    .unwrap();
+    let out = add(dir.path(), "kind=dev", &[]).failure();
+    let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
+    assert!(stderr.contains("rollback-for-dev"), "{stderr}");
+    assert!(
+        stderr.contains("hint: template `dev` files kind=dev: mt add -t dev"),
+        "{stderr}"
+    );
+}
+
+/// The caller passes the slot's name, not the field's: `kind: slot("type")`
+/// is filled by `--set type=dev`, and the hint still names the field.
+#[test]
+fn a_field_filled_by_a_differently_named_slot_still_hints() {
+    let dir = tempfile::tempdir().unwrap();
+    scaffold(dir.path());
+    std::fs::write(
+        dir.path().join(".mindtape/templates/typed.typ"),
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(\n  title: slot(\"title\"),\n  kind: slot(\"type\"),\n)\n",
+    )
+    .unwrap();
+    let out = support::mt(dir.path())
+        .args(["add", "-t", "typed", "--name", "t", "--set", "title=T"])
+        .args(["--set", "type=dev"])
+        .assert()
+        .failure();
+    let stderr = String::from_utf8_lossy(&out.get_output().stderr).into_owned();
+    assert!(stderr.contains("rules.dev-sets-difficulty"), "{stderr}");
+    assert!(
+        stderr.contains("hint: template `dev` files kind=dev: mt add -t dev"),
+        "{stderr}"
+    );
+}

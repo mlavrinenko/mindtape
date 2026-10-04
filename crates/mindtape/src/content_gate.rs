@@ -197,6 +197,7 @@ pub fn check_content(
                     line: node.heading.line,
                 },
                 severity: Severity::Error,
+                reads: crate::violation::reads_of(rule.when.iter()),
             });
         }
     }
