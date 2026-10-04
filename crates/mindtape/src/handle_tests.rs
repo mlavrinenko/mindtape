@@ -39,13 +39,13 @@ fn the_first_digit_uses_all_five_bits() {
 #[test]
 fn a_known_stem_keeps_its_code() {
     // Computed apart from this module: FNV-1a 64 of the UTF-8 bytes, base32.
-    assert_eq!(encode(fnv1a_64(b"fix-login-bug")), "rks2frebgggje");
+    assert_eq!(encode(mix(fnv1a_64(b"fix-login-bug"))), "r7ewe231jcmsw");
 }
 
 #[test]
 fn a_lone_stem_gets_the_three_character_floor() {
     let hashes = StemHashes::new(["fix-login-bug"]);
-    assert_eq!(hashes.hash_of("fix-login-bug"), Some("rks"));
+    assert_eq!(hashes.hash_of("fix-login-bug"), Some("r7e"));
 }
 
 #[test]
@@ -86,16 +86,16 @@ fn every_hash_resolves_to_its_own_stem() {
 #[test]
 fn input_below_three_characters_matches_nothing() {
     let hashes = StemHashes::new(["fix-login-bug"]);
-    assert_eq!(hashes.resolve("rk"), Resolution::NoMatch);
+    assert_eq!(hashes.resolve("r7"), Resolution::NoMatch);
     assert_eq!(hashes.resolve(""), Resolution::NoMatch);
 }
 
 #[test]
 fn input_ignores_case_and_a_longer_prefix_still_matches() {
     let hashes = StemHashes::new(["fix-login-bug"]);
-    assert_eq!(hashes.resolve("RKS"), found("fix-login-bug"));
-    assert_eq!(hashes.resolve("rks2frebgggje"), found("fix-login-bug"));
-    assert_eq!(hashes.resolve("rks2frebgggje0"), Resolution::NoMatch);
+    assert_eq!(hashes.resolve("R7E"), found("fix-login-bug"));
+    assert_eq!(hashes.resolve("r7ewe231jcmsw"), found("fix-login-bug"));
+    assert_eq!(hashes.resolve("r7ewe231jcmsw0"), Resolution::NoMatch);
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn input_reads_i_l_as_one_and_o_as_zero() {
 #[test]
 fn input_outside_the_alphabet_matches_nothing() {
     let hashes = StemHashes::new(["fix-login-bug"]);
-    for input in ["rku", "rk-", "rk ", "rks!", "rk\u{e9}"] {
+    for input in ["r7u", "r7-", "r7 ", "r7e!", "r7\u{e9}"] {
         assert_eq!(hashes.resolve(input), Resolution::NoMatch, "{input}");
     }
 }
@@ -143,4 +143,21 @@ fn equal_full_codes_stay_ambiguous_at_every_length() {
     let three = hashes.hash_of("three").unwrap_or_default();
     assert_eq!(three.len(), 3);
     assert_eq!(hashes.resolve(three), found("three"));
+}
+
+#[test]
+fn dated_stems_get_three_character_hashes() {
+    let stems: Vec<String> = (1..=30)
+        .map(|day| format!("standup-2026-10-{day:02}"))
+        .collect();
+    let hashes = StemHashes::new(stems.iter().map(String::as_str));
+    for stem in &stems {
+        assert_eq!(hashes.hash_of(stem).map(str::len), Some(3), "{stem}");
+    }
+}
+
+#[test]
+fn the_mixer_is_the_splitmix64_finaliser() {
+    assert_eq!(mix(0), 0);
+    assert_eq!(mix(1), 0x5692_161d_100b_05e5);
 }

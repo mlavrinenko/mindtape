@@ -186,25 +186,25 @@ fn empty_buffer_highlights_nothing() {
 
 #[test]
 fn prefix_selects_by_stem_hash() {
-    // The first digit of the last row's hash; with 40 rows of 32 possible
+    // The first digit of the last row's hash; with 100 rows of 32 possible
     // digits, rows of other hashes share it too.
-    let prefix = hash_at(40, 39).get(..1).unwrap().to_owned();
-    let state = state(40, &prefix);
+    let prefix = hash_at(100, 99).get(..1).unwrap().to_owned();
+    let state = state(100, &prefix);
     let mask = state.highlight_mask();
     let on: Vec<usize> = mask
         .iter()
         .enumerate()
         .filter_map(|(i, &on)| on.then_some(i))
         .collect();
-    assert_eq!(on, rows_starting(40, &prefix));
+    assert_eq!(on, rows_starting(100, &prefix));
     assert!(on.len() > 1, "the fixture must share a first digit: {on:?}");
     assert_eq!(state.first_highlighted(), on.first().copied());
 }
 
 #[test]
 fn a_whole_hash_narrows_to_its_row() {
-    let state = state(40, &hash_at(40, 39));
-    assert_eq!(state.first_highlighted(), Some(39));
+    let state = state(100, &hash_at(100, 99));
+    assert_eq!(state.first_highlighted(), Some(99));
     assert_eq!(state.highlight_mask().iter().filter(|&&on| on).count(), 1);
 }
 

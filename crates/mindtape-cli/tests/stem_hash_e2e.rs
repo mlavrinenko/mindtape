@@ -137,11 +137,11 @@ fn an_ambiguous_hash_is_refused_naming_each_candidate() {
     }
 }
 
-/// Stems whose codes start with a filter word, normalised: `task-212080` codes
-/// to `hasw8x1j1550r` (the `has` function) and `task-3834608` to
-/// `d0ne0mx1c376p` (the `done` status, `o` read as `0`).
-const SPELLS_HAS: &str = "task-212080";
-const SPELLS_DONE: &str = "task-3834608";
+/// Stems whose codes start with a filter word, normalised: `task-65480` codes
+/// to `hasbbdqps9xcc` (the `has` function) and `task-475620` to `d0ned...`
+/// (the `done` status, `o` read as `0`).
+const SPELLS_HAS: &str = "task-65480";
+const SPELLS_DONE: &str = "task-475620";
 
 /// `mt rm` reads a bare filter word as a filter even when a stem hash spells
 /// it, so the word never retires the task whose hash it happens to be.

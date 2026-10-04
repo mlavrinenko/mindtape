@@ -1,7 +1,7 @@
 //! Stem hashes: the short code an agent types to address a task.
 //!
-//! A stem's code is FNV-1a 64 of its UTF-8 bytes in lowercase Crockford
-//! base32, thirteen digits, most significant first, the first twelve
+//! A stem's code is FNV-1a 64 of its UTF-8 bytes, run through the splitmix64
+//! finaliser, in lowercase Crockford base32, thirteen digits, most significant first, the first twelve
 //! digits five bits each from the top. Its stem hash is the
 //! shortest prefix of that code no other stem's code shares, at least
 //! [`MIN_LEN`] digits. A new stem therefore lengthens only the hashes that
@@ -43,10 +43,10 @@ struct Entry {
 impl StemHashes {
     /// Hashes every stem in `stems`.
     pub fn new<'a>(stems: impl IntoIterator<Item = &'a str>) -> Self {
-        Self::with_hasher(stems, |stem| fnv1a_64(stem.as_bytes()))
+        Self::with_hasher(stems, |stem| mix(fnv1a_64(stem.as_bytes())))
     }
 
-    /// Hashes every stem with `hash` in place of FNV-1a 64, so a test can
+    /// Hashes every stem with `hash` in place of mixed FNV-1a 64, so a test can
     /// force a shared prefix or a full collision.
     pub fn with_hasher<'a>(
         stems: impl IntoIterator<Item = &'a str>,
@@ -116,6 +116,14 @@ fn fnv1a_64(bytes: &[u8]) -> u64 {
     bytes.iter().fold(0xcbf2_9ce4_8422_2325, |hash, &byte| {
         (hash ^ u64::from(byte)).wrapping_mul(0x0100_0000_01b3)
     })
+}
+
+/// The splitmix64 finaliser: spreads every input bit through all output bits,
+/// so stems that differ only at the end do not share leading digits.
+fn mix(value: u64) -> u64 {
+    let step = (value ^ (value >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+    let step = (step ^ (step >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
+    step ^ (step >> 31)
 }
 
 /// `value` as thirteen Crockford base32 digits, most significant first. The
