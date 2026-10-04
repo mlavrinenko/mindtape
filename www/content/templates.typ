@@ -51,6 +51,9 @@ arguments:
 
   [`choices`], [The values a `choice` slot accepts.],
   [`default`], [The value used when nothing fills the slot.],
+  [`example`],
+  [A sample value that `--describe` shows and `mt check` fills. `mt add` never files it.],
+
   [`required`],
   [`false` lets the slot stay empty. A slot with a `default` is never required.],
 
@@ -62,6 +65,11 @@ A `text` slot escapes its value, so `#`, `*`, `_`, `[` and the other markup
 characters print as typed. A `raw` slot pastes its value as Typst markup, and
 `mt add` refuses a value that does not parse as markup. Use `raw` for body
 sections that hold lists and code, as the template above does.
+
+The `default` and `example` of a `text` or `raw` slot can be a raw block as
+well as a string, so a body section's example reads as markup, as in the
+template above. Typst removes the indentation every line shares, the closing
+fence's line included, and ignores the language tag.
 
 = See the slots
 

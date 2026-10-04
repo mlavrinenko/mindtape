@@ -167,3 +167,44 @@ fn absent_kind_is_not_an_unknown_kind() {
     assert_eq!(specs.first().unwrap().kind, SlotKind::String);
     assert_eq!(specs.first().unwrap().unknown_kind, None);
 }
+
+#[test]
+fn reads_a_scalar_example_as_its_source() {
+    let specs = discover_slots(&wrap(r#"x: slot("impact", kind: "int", example: 7)"#));
+    let spec = specs.first().unwrap();
+    assert_eq!(spec.example.as_deref(), Some("7"));
+    assert!(spec.default.is_none(), "an example is not a default");
+}
+
+#[test]
+fn reads_a_string_example_unquoted() {
+    let specs = discover_slots(&wrap(r#"x: slot("title", example: "Retry \"payments\"")"#));
+    let spec = specs.first().unwrap();
+    assert_eq!(spec.example.as_deref(), Some(r#""Retry \"payments\"""#));
+    assert_eq!(spec.example_string.as_deref(), Some(r#"Retry "payments""#));
+}
+
+/// Typst dedents a raw block by its least indented line, the closing fence's
+/// included, so content at the fence's column comes out flush.
+const RAW_EXAMPLE: &str = "#slot(\"problem\", kind: \"raw\", example: ```typ\n  + Run `mt check`.\n  + It prints `ok`.\n  ```)\n";
+
+#[test]
+fn reads_a_raw_block_example_dedented() {
+    let specs = discover_slots(RAW_EXAMPLE);
+    let spec = specs.first().unwrap();
+    assert_eq!(
+        spec.example_string.as_deref(),
+        Some("+ Run `mt check`.\n+ It prints `ok`.")
+    );
+}
+
+#[test]
+fn reads_a_raw_block_default_dedented_with_any_tag() {
+    let source =
+        "#f(x: slot(\"g\", kind: \"raw\", default: ```typc\n    helps[one table]\n    ```))";
+    let specs = discover_slots(source);
+    assert_eq!(
+        specs.first().unwrap().default_string.as_deref(),
+        Some("helps[one table]")
+    );
+}

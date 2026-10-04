@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A template slot takes an `example`.** A slot could carry a `default`,
+  which `mt add` files when nothing fills the slot, but nothing that showed a
+  caller what a good value looks like. `slot(..., example: ...)` is a sample
+  value that `mt add --describe` prints, in text and in JSON, and that is
+  never filed. The `default` and `example` of a `text` or `raw` slot can also
+  be a raw block, dedented as Typst dedents it.
 - **`[tasks.fields.x-<ns>]` checks an extension field.** A project's own
   field, such as `x-team`, took a Typst `check` function to hold it to a list
   of values. The table now takes `x-<ns>` names with the `values`, `@dict`

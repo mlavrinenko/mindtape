@@ -319,9 +319,21 @@ fn describe_text(specs: &[SlotSpec]) -> String {
         if let Some(prompt) = &spec.prompt {
             line.push_str(&format!("  # {prompt}"));
         }
+        if let Some(example) = example_of(spec) {
+            line.push_str(&format!(
+                "\n    e.g. {}",
+                example.replace('\n', "\n         ")
+            ));
+        }
         lines.push(line);
     }
     lines.join("\n")
+}
+
+/// A slot's example as a caller would type it: a string's or raw block's
+/// text, else the literal's source.
+fn example_of(spec: &SlotSpec) -> Option<&str> {
+    spec.example_string.as_deref().or(spec.example.as_deref())
 }
 
 fn describe_json(specs: &[SlotSpec]) -> Result<String> {
@@ -333,6 +345,7 @@ fn describe_json(specs: &[SlotSpec]) -> Result<String> {
                 "kind": spec.kind.as_str(),
                 "required": spec.required && spec.default.is_none(),
                 "default": spec.default,
+                "example": example_of(spec),
                 "prompt": spec.prompt,
                 "env": spec.env,
                 "choices": spec.choices,

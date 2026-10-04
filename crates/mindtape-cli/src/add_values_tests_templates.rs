@@ -76,6 +76,8 @@ fn describe_text_marks_optional_correctly() {
         env: None,
         choices: None,
         default_string: None,
+        example: None,
+        example_string: None,
         markup: false,
         unknown_kind: None,
         range: 0..0,
@@ -152,4 +154,21 @@ fn list_includes_builtin_and_local() {
     let names = list_templates(&Config::default(), dir.path());
     assert!(names.contains(&"task".to_owned()));
     assert!(names.contains(&"bug".to_owned()));
+}
+
+#[test]
+fn describe_shows_each_slot_s_example() {
+    let source = "#f(t: slot(\"title\", example: \"Retry failed payments\"))\n\
+                  #slot(\"problem\", kind: \"raw\", example: ```typ\n+ one\n+ two\n```)\n";
+    let specs = mindtape::discover_slots(source);
+    let text = super::describe(&specs, super::DescribeFormat::Text).unwrap();
+    assert!(
+        text.contains("title  string  required\n    e.g. Retry failed payments"),
+        "{text}"
+    );
+    assert!(text.contains("\n    e.g. + one\n         + two"), "{text}");
+    let json = super::describe(&specs, super::DescribeFormat::Json).unwrap();
+    let rows: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(rows[0]["example"], "Retry failed payments");
+    assert_eq!(rows[1]["example"], "+ one\n+ two");
 }

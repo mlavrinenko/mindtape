@@ -277,11 +277,13 @@
 // "choice"); `prompt`/`required`/`choices` steer the fill UI. `env` names an
 // environment variable `add` reads at fill time (missing/unreadable variables
 // fall through to the next source); with `env: none` every slot still fills
-// from `MINDTAPE_ADD_<NAME>`. Args must be literals — `add` reads them without
-// evaluating the template.
+// from `MINDTAPE_ADD_<NAME>`. `example` is a sample value `--describe` shows
+// and `mt check` fills; it is never filed and is ignored here. Args must be
+// literals — `add` reads them without evaluating the template.
 #let slot(
   name,
   default: none,
+  example: none,
   kind: "string",
   prompt: none,
   required: true,

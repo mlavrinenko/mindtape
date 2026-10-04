@@ -137,9 +137,17 @@ pub struct SlotSpec {
     /// Default expression's raw source (spliced verbatim when unfilled). `None`
     /// for `default: none` or an absent `default`.
     pub default: Option<String>,
-    /// Unescaped content when `default` is a string literal — used so a `text`
-    /// slot's default lands in the body as markup, not as a quoted string.
+    /// Unescaped content when `default` is a string literal, or a raw block's
+    /// text dedented as Typst dedents it — used so a `text` or `raw` slot's
+    /// default lands in the body as markup, not as a quoted string.
     pub default_string: Option<String>,
+    /// The `example:` argument's raw source: a sample value for a caller to
+    /// read, never filed and never evaluated. `None` for `example: none` or an
+    /// absent `example`.
+    pub example: Option<String>,
+    /// [`Self::example`]'s content when it is a string literal or a raw block,
+    /// read the way [`Self::default_string`] reads a default.
+    pub example_string: Option<String>,
     /// Whether the call is markup (`#slot(…)`), so a `text` fill drops the `#`.
     pub markup: bool,
     /// The `kind:` spelling when it names no known kind, e.g. a typo or a
@@ -180,13 +188,8 @@ fn spec_from_call(source: &str, call: &Call) -> Option<SlotSpec> {
     let choices = call
         .named("choices")
         .map(|arg| parse_string_array(&arg.value));
-    let default_arg = call
-        .named("default")
-        .filter(|arg| arg_raw(source, arg) != "none");
-    let default = default_arg.map(|arg| arg_raw(source, arg).to_owned());
-    let default_string = default_arg
-        .filter(|arg| arg_raw(source, arg).starts_with('"'))
-        .map(|arg| arg.value.clone());
+    let (default, default_string) = literal(source, call, "default");
+    let (example, example_string) = literal(source, call, "example");
     Some(SlotSpec {
         name,
         kind,
@@ -196,10 +199,41 @@ fn spec_from_call(source: &str, call: &Call) -> Option<SlotSpec> {
         choices,
         default,
         default_string,
+        example,
+        example_string,
         markup: call.markup,
         unknown_kind,
         range: call.range.clone(),
     })
+}
+
+/// The named literal argument `key` of a slot call: its raw source, and its
+/// content when it is a string literal or a raw block. `none` is no literal.
+fn literal(source: &str, call: &Call, key: &str) -> (Option<String>, Option<String>) {
+    let Some(arg) = call.named(key).filter(|arg| arg_raw(source, arg) != "none") else {
+        return (None, None);
+    };
+    let raw = arg_raw(source, arg);
+    let text = if raw.starts_with('"') {
+        Some(arg.value.clone())
+    } else {
+        raw_block_text(raw)
+    };
+    (Some(raw.to_owned()), text)
+}
+
+/// A raw block's text, its lines dedented as Typst dedents them, whatever its
+/// language tag. `None` when `source` is not a raw block.
+fn raw_block_text(source: &str) -> Option<String> {
+    if !source.starts_with('`') {
+        return None;
+    }
+    let root = typst_syntax::parse_code(source);
+    let raw = root
+        .children()
+        .find_map(typst_syntax::SyntaxNode::cast::<typst_syntax::ast::Raw>)?;
+    let lines: Vec<&str> = raw.lines().map(|line| line.get().as_str()).collect();
+    Some(lines.join("\n"))
 }
 
 fn arg_raw<'a>(source: &'a str, arg: &typst_edit::Arg) -> &'a str {

@@ -409,3 +409,23 @@ fn unknown_kind_fails_even_when_the_slot_is_unfilled() {
         fill_wrapped(r#"body: slot("body", kind: "markdown", default: "x")"#, &[]).unwrap_err();
     assert!(matches!(&err, FillError::UnknownKind { .. }), "{err:?}");
 }
+
+#[test]
+fn an_example_is_never_filed() {
+    let source = "#f(t: slot(\"t\", example: \"Sample title\"))";
+    let values = BTreeMap::from([("t".to_owned(), RawValue::Str("Real".to_owned()))]);
+    let filled = fill(source, &values).unwrap();
+    assert!(!filled.contains("Sample"), "{filled}");
+    assert_eq!(
+        fill(source, &BTreeMap::new()),
+        Err(FillError::Missing(vec!["t".to_owned()])),
+        "an example does not stand in for a missing value"
+    );
+}
+
+#[test]
+fn a_raw_block_default_fills_its_dedented_text() {
+    let source = "== P\n#slot(\"p\", kind: \"raw\", default: ```typ\n  + one\n  + two\n  ```)\n";
+    let filled = fill(source, &BTreeMap::new()).unwrap();
+    assert_eq!(filled, "== P\n+ one\n+ two\n");
+}

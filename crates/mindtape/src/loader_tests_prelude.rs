@@ -333,3 +333,15 @@ fn real_prelude_carries_a_wrong_typed_element_to_the_rust_shape_error() {
         assert_eq!(task.shape_errors[0].message, message);
     }
 }
+
+/// A template previews as a task: `slot` evaluates to its `default` and takes
+/// an `example` it ignores.
+#[test]
+fn a_slot_evaluates_to_its_default_and_ignores_its_example() {
+    let (_dir, outcome) = load_real_prelude(
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: slot(\"title\", default: \"T\", example: \"E\"))\n",
+    );
+    assert_eq!(outcome.errors, Vec::new());
+    assert_eq!(outcome.tasks.first().unwrap().title, "T");
+}

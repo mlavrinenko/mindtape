@@ -44,7 +44,9 @@ key fails the command: `mt add fix bug --set priority=3` errors with
 `unknown --set/-f key(s): priority; known slots: title, ...` rather than
 writing anything. Run `mt add --describe` (plus `-t <template>` for a
 non-default one) to see the real slot names, and `--print` to check the
-result before it's written.
+result before it's written. An `e.g.` line under a slot is the template's
+example: it shows the shape of a good value, and `mt add` never files it, so
+pass your own.
 
 Slot names need not match field names. A framework priority is authored as
 `priority: ice(impact: slot("impact"), …)`, so the slots are its leaves —
