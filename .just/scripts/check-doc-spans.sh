@@ -7,9 +7,9 @@
 # crates/mindtape-cli or in the config structs leaves the old name in the
 # prose. This gate fails on it, naming file, line and the closest valid name.
 #
-# It reads inline code spans, as backtick markup and as a one-line
-# `raw("...")`, in the sources check-doc-recipes.sh scans. Fenced blocks and
-# `//` comment lines are skipped. check-doc-spans.jq checks three shapes:
+# It reads inline code spans, as backtick markup and as `raw("...")`, in the
+# sources the manifest in _doc-blocks-lib.sh names. Fenced blocks and comments
+# are not spans. check-doc-spans.jq checks three shapes:
 #
 #   - `mt <word> ...`: the word is a subcommand from `mt _cli --json` or a
 #     status verb. Every flag must exist on that command or be global. A quoted
@@ -28,6 +28,8 @@
 # shape beside the good ones and asserts the exact findings, because a scanner
 # that matched nothing also prints no findings.
 set -eo pipefail
+# shellcheck source=.just/scripts/_doc-blocks-lib.sh
+source .just/scripts/_doc-blocks-lib.sh
 # `--tests`: docs/contributing/gates.md, "One mt binary, one feature set".
 cargo build -p mindtape-cli --tests -q
 mt=./target/debug/mt
@@ -51,40 +53,11 @@ for d in . examples/*/; do
 done | jq -s '[.[].tasks.status[]?.value] | unique' >"$tmp/statuses.json"
 git ls-files | sed 's|.*/||' | sort -u | jq -R . | jq -s . >"$tmp/files.json"
 
-# Prints `<file>\t<line>\t<span>` for every inline span in the given sources.
-# Every ``` toggles the block state wherever it sits on the line, because
-# cli-notes.typ opens its blocks mid-line (`examples: ```sh`). A span may run
-# onto the next line, so the open span carries over. `\`` outside a span is an escaped
-# backtick, not a delimiter.
+# Prints `<file>\t<line>\t<span>` for every inline span the extractor finds
+# in the given sources. It reads the parse tree, so a fence inside a string
+# hides nothing and a span may run onto the next line.
 spans() {
-    awk '
-        function emit(s,    r, p) {
-            r = s
-            while ((p = index(s, "`")) > 0) {
-                if (inspan) {
-                    print FILENAME "\t" at "\t" buf substr(s, 1, p - 1)
-                    inspan = 0
-                } else if (substr(s, p - 1, 1) != "\\") {
-                    inspan = 1; buf = ""; at = FNR
-                }
-                s = substr(s, p + 1)
-            }
-            if (inspan) buf = buf s " "
-            while (match(r, /raw\("[^"\\]*"[,)]/)) {
-                print FILENAME "\t" FNR "\t" substr(r, RSTART + 5, RLENGTH - 7)
-                r = substr(r, RSTART + RLENGTH)
-            }
-        }
-        FNR == 1 { fence = 0; inspan = 0 }
-        {
-            if (!fence && !inspan && $0 ~ /^[ \t]*\/\//) next
-            n = split($0, part, /```/)
-            for (i = 1; i <= n; i++) {
-                if (i > 1) { fence = !fence; inspan = 0 }
-                if (!fence) emit(part[i])
-            }
-        }
-    ' "$@"
+    doc_extract "$@" | awk -F'\t' '$3 == "span" { print $1 "\t" $2 "\t" $4 }'
 }
 
 check() {
@@ -114,6 +87,8 @@ mt lsf in a fenced block
 examples: ```sh
 mt lsg in a block opened mid-line
 ```, then `mt lsh` after it.
+#let fence = "```"
+After a string holding a fence: `mt lsi` is still a span.
 EOF
     local want got
     want=$(sort <<'EOF'
@@ -126,6 +101,7 @@ EOF
 `mt ls --jsn`: mt ls has no flag --jsn; closest: --json
 `mt ls -x`: mt ls has no flag -x; valid: -i, -n, -v, -w
 `mt lsh`: no subcommand lsh; closest: ls
+`mt lsi`: no subcommand lsi; closest: ls
 `mt lsr`: no subcommand lsr; closest: ls
 `mt @name lsz`: no subcommand lsz; closest: ls
 `mt lss`: no subcommand lss; closest: ls
@@ -142,14 +118,8 @@ EOF
 
 control
 
-shopt -s globstar nullglob
-sources=()
-for f in docs/src/**/*.typ www/content/*.typ www/utils/*.typ; do
-    # docs/src/lib.typ is a helper module, not a page; check-doc-recipes.sh
-    # skips it for the same reason.
-    [ "$f" = docs/src/lib.typ ] || sources+=("$f")
-done
-findings=$(check "${sources[@]}")
+doc_sources_load
+findings=$(check "${DOC_SOURCES[@]}")
 if [ -n "$findings" ]; then
     echo "$findings" >&2
     exit 1

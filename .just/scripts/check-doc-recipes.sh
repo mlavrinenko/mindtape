@@ -16,7 +16,7 @@
 # comment mid-line) matches none of the three shapes below and is never
 # touched — verified against every non-recipe "just" already in the docs tree.
 #
-# A control runs first, on a synthetic page, so a tagger that misreads the
+# A control runs first, on a synthetic page, so an extractor that misreads the
 # fences cannot pass by finding nothing.
 set -eo pipefail
 # The same recipe/alias names www/generated/just.typ's own producer
@@ -35,111 +35,83 @@ names=$(just --dump --dump-format json | jq -r '
       );
     rec_names(""), (.aliases | keys[])
 ')
-# `--` ends grep's options, so a name like `--fmt` is a pattern.
-is_recipe() { grep -qxF -- "$1" <<<"$names"; }
+names_file=$(mktemp)
+trap 'rm -f "$names_file"' EXIT
+printf '%s\n' "$names" >"$names_file"
 
-shopt -s globstar nullglob
+# shellcheck source=.just/scripts/_doc-blocks-lib.sh
+source .just/scripts/_doc-blocks-lib.sh
 fail=0
 
-# Prints findings for the given doc sources to stderr and sets `fail`.
+# Prints findings for the given doc sources to stderr and sets `fail`. The
+# extractor (_doc-blocks-lib.sh) has already split each source into spans,
+# block lines and prose, so a fence written inside a string hides nothing and
+# a `//` comment line is never a row. The three shapes of literal mention
+# follow, and are matched independently on each row:
+#
+#   - a quoted `"just <name>"` substring in a span, a block line or prose: a
+#     literal value, not a live reference (an example `.mindtape/config.toml`
+#     flip hook's `run = "just check"`). It never has to convert, but it has
+#     to resolve. A word starting with `-` is a just flag such as `--fmt`,
+#     which has no recipe to resolve.
+#   - `just <name>` opening a line inside a block: a shell-command example. A
+#     block cannot call the helper, so this is legal as prose, but the name
+#     still has to resolve. A flag such as `just --list` names no recipe.
+#   - a span opening with `just`: the hand-typed mention the generated module
+#     exists to replace. It always fails, whether or not the name resolves,
+#     because it has to become `#just.<name>(...)`. A bare `just` is exempt
+#     (`just` with no args lists the recipes, and that sentence stays
+#     literal). A just flag such as `just --fmt` is no recipe either, so it
+#     gets a message of its own.
 scan_sources() {
-    local f
-    for f in "$@"; do
-        [ "$(basename "$f")" = "lib.typ" ] && continue
-
-        # Tag each piece of a line by syntactic role first: inside a fenced block
-        # (B) or plain prose (P). A full `//` comment line is never rendered, so
-        # it is never checked, the same reason lib.typ's own mentions are exempt.
-        # Every run of three backticks toggles the block state wherever it sits
-        # on the line, because www/utils/cli-notes.typ opens its blocks mid-line
-        # (`examples: ```sh`). So one line yields a piece per side of each fence,
-        # and the word hugging an opening fence is its language tag, not content.
-        # The three shapes of literal mention below follow from that tagging, and
-        # are matched independently.
-        tagged=$(awk '
-            BEGIN { fence = 0 }
-            {
-                t = $0
-                sub(/^[ \t]+/, "", t)
-                if (t ~ /^\/\//) next
-                n = split($0, part, /```/)
-                for (i = 1; i <= n; i++) {
-                    if (i > 1) fence = !fence
-                    s = part[i]
-                    if (i > 1 && fence) sub(/^[^ \t]+/, "", s)
-                    if (s ~ /[^ \t]/) print (fence ? "B" : "P") "\t" NR "\t" s
-                }
+    local rows
+    rows=$(doc_extract "$@") || {
+        fail=1
+        return
+    }
+    awk -F'\t' -v names_file="$names_file" '
+        BEGIN {
+            while ((getline n < names_file) > 0) known[n] = 1
+        }
+        function bad(f, ln, msg) { print "check-doc-recipes: " f ":" ln ": " msg > "/dev/stderr"; failed = 1 }
+        function unknown(f, ln, name) { if (!(name in known)) bad(f, ln, "`just " name "` is not a real recipe") }
+        {
+            f = $1; ln = $2; kind = $3; text = $4
+            if (kind != "span" && kind != "block" && kind != "prose") next
+            s = text
+            while (match(s, /"just [A-Za-z0-9_-]+/)) {
+                name = substr(s, RSTART + 6, RLENGTH - 6)
+                s = substr(s, RSTART + RLENGTH)
+                if (name ~ /^-/) continue
+                if (!(name in known)) bad(f, ln, "\"just " name "\" is not a real recipe")
             }
-        ' "$f")
-
-        while IFS=$'\t' read -r tag lineno content; do
-            # Shape three: a quoted `"just <name>"` substring anywhere — a literal
-            # value, not a live reference (an example `.mindtape/config.toml` flip
-            # hook's `run = "just check"`, a demonstrated status-note string).
-            # Never has to convert, but still has to resolve. A word starting with
-        # `-` is a just flag such as `--fmt`, which has no recipe to resolve.
-            while IFS= read -r m; do
-                [ -z "$m" ] && continue
-                name="${m#\"just }"
-                [[ $name == -* ]] && continue
-                if ! is_recipe "$name"; then
-                    echo "check-doc-recipes: $f:$lineno: \"just $name\" is not a real recipe" >&2
-                    fail=1
-                fi
-            done < <(grep -oE '"just [A-Za-z0-9_-]+' <<<"$content" || true)
-
-            # Shape two: `just <name>` opening a line INSIDE a fenced block — a
-            # shell-command example (Quick Start's `just check`, the signal
-            # sweep's dry-run transcript). A fenced block cannot call the helper,
-            # so this is legal as prose, but the name still has to resolve. A
-            # flag such as `just --list` names no recipe and is left alone.
-            if [ "$tag" = "B" ]; then
-                trimmed="${content#"${content%%[![:space:]]*}"}"
-                if [[ "$trimmed" =~ ^just([[:space:]]+([A-Za-z0-9_-]+))?([[:space:]]|$) ]]; then
-                    name="${BASH_REMATCH[2]}"
-                    if [ -n "$name" ] && [[ $name != -* ]] && ! is_recipe "$name"; then
-                        echo "check-doc-recipes: $f:$lineno: \`just $name\` is not a real recipe" >&2
-                        fail=1
-                    fi
-                fi
-                continue
-            fi
-
-            # Shape one: a backtick span opening with `just` in PROSE — the
-            # hand-typed mention the generated module exists to replace. Always
-            # fails, whether or not the name resolves: it has to become
-            # `#just.<name>(...)` either way. A bare `just` with nothing after it
-            # is exempt (`just` with no args lists the recipes, and that sentence
-            # has to stay literal). A just flag such as `just --fmt` is no
-            # recipe either, so it gets a message of its own.
-            while IFS= read -r m; do
-                [ -z "$m" ] && continue
-                inner="${m#\`}"; inner="${inner%\`}"
-                name=""
-                read -r _ name _ <<<"$inner"
-                [ -z "$name" ] && continue
-                if [[ $name == -* ]]; then
-                    echo "check-doc-recipes: $f:$lineno: \`just $name\` is a just flag, not a recipe — write the flag alone" >&2
-                    fail=1
-                    continue
-                fi
-                echo "check-doc-recipes: $f:$lineno: literal \`just $name\` outside the generated module — use #just.$name(...)" >&2
-                fail=1
-                if ! is_recipe "$name"; then
-                    echo "check-doc-recipes: $f:$lineno: \`just $name\` is not a real recipe" >&2
-                fi
-            done < <(grep -oE '`just(`| [^`]*`)' <<<"$content" || true)
-        done <<<"$tagged"
-    done
+            if (kind == "block") {
+                t = text; sub(/^[ \t]+/, "", t)
+                if (match(t, /^just([ \t]+[A-Za-z0-9_-]+)?([ \t]|$)/)) {
+                    split(t, w, /[ \t]+/)
+                    if (w[2] != "" && w[2] !~ /^-/) unknown(f, ln, w[2])
+                }
+            } else if (kind == "span" && text ~ /^just( |$)/) {
+                split(text, w, / +/)
+                name = w[2]
+                if (name == "") next
+                if (name ~ /^-/) {
+                    bad(f, ln, "`just " name "` is a just flag, not a recipe — write the flag alone")
+                    next
+                }
+                bad(f, ln, "literal `just " name "` outside the generated module — use #just." name "(...)")
+                unknown(f, ln, name)
+            }
+        }
+        END { exit failed }
+    ' <<<"$rows" || fail=1
 }
 
-# Scans docs/src/**/*.typ — skipping lib.typ, a helper module rather than a
-# source; its own mentions are in `//` comments, invisible to every render
-# path — and www/content/*.typ. www/utils/ is scanned too: gate-notes.typ's
-# prose is rendered straight into CONTRIBUTING.md, so a recipe name hand-typed
-# there rots exactly like one in a docs/src source. The other notes dicts
-# under www/utils mention no recipe today and cost nothing to scan.
-sources=(docs/src/**/*.typ www/content/*.typ www/utils/*.typ)
+# The sources come from the manifest in _doc-blocks-lib.sh. www/utils is
+# scanned too: gate-notes.typ's prose renders straight into CONTRIBUTING.md,
+# so a recipe name hand-typed there rots like one in a docs/src source.
+doc_sources_load
+sources=("${DOC_SOURCES[@]}")
 
 # A scan that finds nothing looks the same as a scanner that reads nothing, so
 # a synthetic page holding each shape runs first and its exact findings are
@@ -169,6 +141,8 @@ Flags: `just --fmt` in prose.
 just --list
 ```
 A quoted "just --fmt" value.
+#let fence = "```"
+After a string holding a fence: `just nosuchfence` is still prose.
 EOF
     want=$(sort <<'EOF'
 1: literal `just check` outside the generated module — use #just.check(...)
@@ -179,6 +153,8 @@ EOF
 9: `just nosuchinline` is not a real recipe
 9: literal `just check` outside the generated module — use #just.check(...)
 13: `just --fmt` is a just flag, not a recipe — write the flag alone
+19: literal `just nosuchfence` outside the generated module — use #just.nosuchfence(...)
+19: `just nosuchfence` is not a real recipe
 EOF
     )
     got=$(scan_sources "$page" 2>&1 | sed "s|^check-doc-recipes: $page:||" | sort)

@@ -4,7 +4,10 @@
 # telling history or shouting in all-caps words.
 #
 # It scans the hand-written doc sources, prose and comments alike, and prints
-# file, line and word for each hit. It also scans the full-line `#` comments of
+# file, line and word for each hit. The Typst sources come through the shared
+# extractor in _doc-blocks-lib.sh, which yields each line of rendered text and
+# each comment line apart from raw spans, fenced blocks and code. Markdown
+# sources have no Typst parse tree, so their lines are read as written. It also scans the full-line `#` comments of
 # the Justfile, the `.just/*.just` modules and the YAML configs
 # `.mmz/config.yaml`, `outdatty.yaml` and `.linecop.yaml`. Code lines in those
 # files are not prose and are skipped. It reads every `description` out of
@@ -13,7 +16,9 @@
 # examples, are in docs/src/contributing/documentation.typ under "Plain prose".
 #
 # Text inside a raw span, a fenced block or double quotes is skipped, because
-# it is code or a quotation: `now()` and "YYYY-MM-DD" never count.
+# it is code or a quotation: `now()` and "YYYY-MM-DD" never count. A comment
+# line and a Markdown line have no parse tree, so the scan tracks their
+# backticks itself.
 #
 # The history list is short on purpose: each entry reads as history in nearly
 # every use. The exception is "used to" before a verb, as in "used to report
@@ -25,6 +30,9 @@
 # file declares with `let`, or a file name such as README.md.
 set -eo pipefail
 
+# shellcheck source=.just/scripts/_doc-blocks-lib.sh
+source .just/scripts/_doc-blocks-lib.sh
+
 ALLOWED="ADR AI ANSI API ASCII ATX CGO CI CLI CPU CQRS CRAP CSS CSV DB DOM DOT
 DRY DSL ETA GB GIO GPL GUI HTML ICE ICU ID IEC ISBN ISC ISO JS JSON LLVM MB MCP
 MIT OG OS OSC PDF PR PTY README RFC RICE RRULE SEO SGR SHA SQL SSG SVG SWHID
@@ -32,12 +40,12 @@ TO-BE TOML TSV TTY TUI UI URI URL UTC UUID VCS WIP WSJF XDG YAML"
 HISTORY_WORDS="now anymore formerly"
 HISTORY_PHRASES="used to|no longer"
 
-# One awk pass over every file given. Prints "file:line: message" per hit.
-scan() {
-    local consts
-    consts=$(cat "$@" | grep -oE '(^|[^A-Za-z0-9_-])let +[A-Z][A-Z0-9_]*' |
-        sed -E 's/.*let +//' | sort -u | tr '\n' ' ' || true)
-    awk -v allowed="$ALLOWED $consts" -v words="$HISTORY_WORDS" \
+# One awk pass over the rows on stdin: file, line, kind (prose or comment) and
+# text, tab separated. The consts argument lists the constants the Typst files
+# declare. Prints "file:line: message" per hit; a line of `-` names a schema
+# key in the file column and prints "file: message".
+scan() { # <consts>
+    awk -F'\t' -v allowed="$ALLOWED $1" -v words="$HISTORY_WORDS" \
         -v phrases="$HISTORY_PHRASES" '
         BEGIN {
             n = split(allowed, a, /[ \n]+/)
@@ -71,43 +79,26 @@ scan() {
             return out
         }
         function hit(msg) {
-            if (label != "") printf "%s: %s\n", label, msg
-            else printf "%s:%d: %s\n", FILENAME, FNR, msg
+            if (line == "-") printf "%s: %s\n", file, msg
+            else printf "%s:%d: %s\n", file, line, msg
         }
         function count(s, re,    k) {
             k = 0
             while (match(s, re)) { k++; s = substr(s, RSTART + RLENGTH - 1) }
             return k
         }
-        FNR == 1 {
-            raw = 0; quoted = 0; tail = ""; was_comment = 0; label = ""
-            hash = (FILENAME ~ /(^|\/)Justfile$|\.just$|\.ya?ml$/)
-        }
-        # A line that starts with \001 names the schema key whose description
-        # follows, and hits there name the key instead of a line.
-        substr($0, 1, 1) == "\001" {
-            label = substr($0, 2)
-            raw = 0; quoted = 0; tail = ""; was_comment = 0
-            next
-        }
         {
-            # In a Justfile or YAML file only a line that starts with `#` is
-            # prose. It is read as a `//` comment and every other line as blank.
-            if (hash) {
-                if ($0 ~ /^[ \t]*#/) sub(/^[ \t]*#+/, "//")
-                else $0 = ""
+            file = $1; line = $2; kind = $3; text = $4
+            # An unclosed quote or inline span ends at a blank line, at a gap
+            # between rows, or where comment rows meet prose rows. A comment
+            # has no fenced blocks, so a stray fence ends there too.
+            if (file != pfile || text !~ /[^ \t]/ || kind != pkind \
+                || (line != "-" && line != pline + 1)) {
+                quoted = 0; tail = ""
+                if (raw == 1 || kind == "comment" || file != pfile) raw = 0
             }
-            # An unclosed quote or inline span ends at a blank line, or where
-            # comment lines meet code lines. A Justfile or YAML comment has no
-            # fenced blocks, so a stray fence ends there too.
-            comment = ($0 ~ /^[ \t]*\/\//)
-            if ($0 ~ /^[ \t]*$/ || comment != was_comment) {
-                quoted = 0
-                if (raw == 1 || hash) raw = 0
-            }
-            was_comment = comment
-            v = visible($0)
-            sub(/^[ \t]*\/\/+/, "", v)
+            pfile = file; pkind = kind; pline = line
+            v = visible(text)
             low = tolower(v)
 
             for (i = 1; i <= nw; i++) {
@@ -133,14 +124,40 @@ scan() {
                 hit("all-caps \"" tok "\"")
             }
         }
-    ' "$@"
+    '
 }
 
-# Every `description` of a JSON schema ($1, labelled as $2) as text for `scan`.
-# Each description follows a label line that starts with \001 and names the
-# file and the key path, so a hit names the key. The walk visits the places a
-# schema nests another schema and skips `default` and `examples`, which hold
-# data.
+# The constants the given Typst files declare with `let`.
+consts_of() { # <file>...
+    cat "$@" | grep -oE '(^|[^A-Za-z0-9_-])let +[A-Z][A-Z0-9_]*' |
+        sed -E 's/.*let +//' | sort -u | tr '\n' ' ' || true
+}
+
+# The rows of each file by kind. A Typst file comes from the extractor. A
+# Justfile or YAML file yields its full-line `#` comments, and every other line
+# as an empty row that ends an open quote. Any other file is Markdown, read as
+# written.
+rows_for() { # <file>...
+    local f
+    for f in "$@"; do
+        case "$f" in
+        *.typ) doc_extract "$f" | awk -F'\t' '$3 == "prose" || $3 == "comment"' ;;
+        Justfile | *.just | *.yaml | *.yml)
+            awk -v f="$f" '{
+                gsub(/\t/, " ")
+                t = ""
+                if ($0 ~ /^[ \t]*#/) { t = $0; sub(/^[ \t]*#+/, "", t) }
+                print f "\t" FNR "\tcomment\t" t
+            }' "$f" ;;
+        *) awk -v f="$f" '{ gsub(/\t/, " "); print f "\t" FNR "\tprose\t" $0 }' "$f" ;;
+        esac
+    done
+}
+
+# Every `description` of a JSON schema ($1, labelled as $2) as rows for `scan`.
+# Each row carries the file and the key path in its file column and `-` as its
+# line, so a hit names the key. The walk visits the places a schema nests
+# another schema and skips `default` and `examples`, which hold data.
 schema_text() {
     jq -r --arg f "$2" '
         def descs($p):
@@ -158,7 +175,8 @@ schema_text() {
                  | (.[$m] // empty | select(type == "array") | to_entries[]
                     | .key as $i | .value | descs($p + [$m, ($i | tostring)])))
             end;
-        descs([]) | "\u0001\($f):\(.key)\n\(.text)\n"' "$1"
+        descs([]) | "\($f):\(.key)" as $file
+        | .text | split("\n")[] | [$file, "-", "prose", gsub("\t"; " ")] | join("\t")' "$1"
 }
 
 # Control: a scanner that matches nothing passes a dirty tree, so it first has
@@ -176,6 +194,8 @@ echo "LOUD used to"
 ```
 A `raw span
 now` ends; then no longer, now and now.
+#let fence = "```"
+After a string holding a fence, now is still prose.
 EOF
     cat >"$dir/g.yaml" <<'EOF'
 key: now used to be fine
@@ -190,8 +210,10 @@ EOF
  "$defs": {"A": {"description": "Fine.", "oneOf": [
    {"description": "It used to be SHOUTED."}]}}}
 EOF
-    schema_text "$dir/s.json" s.json >"$dir/s.txt"
-    out=$(scan "$dir/f.typ" "$dir/g.yaml" "$dir/s.txt" | sed "s|^$dir/||")
+    out=$({
+        rows_for "$dir/f.typ" "$dir/g.yaml"
+        schema_text "$dir/s.json" s.json
+    } | scan "$(consts_of "$dir/f.typ")" | sed "s|^$dir/||")
     rm -rf "$dir"
     want='f.typ:3: history word "used to"
 f.typ:4: history word "now"
@@ -199,6 +221,7 @@ f.typ:4: all-caps "SHOUTED"
 f.typ:9: history word "now"
 f.typ:9: history word "now"
 f.typ:9: history word "no longer"
+f.typ:11: history word "now"
 g.yaml:2: history word "now"
 g.yaml:2: all-caps "SHOUTED"
 s.json:(root): history word "now"
@@ -213,22 +236,20 @@ s.json:$defs.A.oneOf.0: all-caps "SHOUTED"'
 
 control
 
-shopt -s globstar nullglob
-sources=()
-for f in docs/src/**/*.typ www/content/*.typ www/utils/*.typ \
-    www/templates/*.typ skills/mindtape/references/*.md \
-    skills/mindtape/evals/README.md; do
+doc_sources_load
+typst_sources=()
+for f in "${DOC_SOURCES[@]}" www/templates/*.typ; do
     # tola.typ is tola's own generated helper, never edited here.
-    [ "$(basename "$f")" = "tola.typ" ] || sources+=("$f")
+    [ "$(basename "$f")" = "tola.typ" ] || typst_sources+=("$f")
 done
+shopt -s nullglob
+other_sources=(skills/mindtape/references/*.md skills/mindtape/evals/README.md
+    Justfile .just/*.just .mmz/config.yaml outdatty.yaml .linecop.yaml)
 
-sources+=(Justfile .just/*.just .mmz/config.yaml outdatty.yaml .linecop.yaml)
-
-descriptions=$(mktemp)
-trap 'rm -f "$descriptions"' EXIT
-schema_text schema/config.schema.json schema/config.schema.json >"$descriptions"
-
-hits=$(scan "${sources[@]}" "$descriptions")
+hits=$({
+    rows_for "${typst_sources[@]}" "${other_sources[@]}"
+    schema_text schema/config.schema.json schema/config.schema.json
+} | scan "$(consts_of "${typst_sources[@]}")")
 if [ -n "$hits" ]; then
     sed 's/^/check-doc-prose: /' <<<"$hits" >&2
     echo "check-doc-prose: rewrite each line plainly; the rules are in docs/contributing/documentation.md" >&2

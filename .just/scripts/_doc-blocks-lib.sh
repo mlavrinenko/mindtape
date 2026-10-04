@@ -1,5 +1,7 @@
-# .just/scripts/_doc-blocks-lib.sh — the scanner `just check-doc-blocks` runs,
-# sourced by check-doc-blocks.sh and by its control. Runs from the repo root.
+# .just/scripts/_doc-blocks-lib.sh — the doc sources' shared reader. It holds
+# the scanner `just check-doc-blocks` runs, the extractor that check-doc-spans,
+# check-doc-recipes and check-doc-prose read, and the source manifest. Sourced
+# by those gates and by the blocks control. Runs from the repo root.
 #
 # The scanner reads Typst's own parse tree (`typstyle --ast`, the formatter the
 # dev shell already pins) instead of matching text, so a fence inside a
@@ -55,6 +57,110 @@ doc_blocks_ast() { # <file>
         { printf "check-doc-blocks: unreadable typstyle --ast line in %s: %s\n", file, $0 > "/dev/stderr"; exit 2 }
         END { if (!done) exit 2 }
     '
+}
+
+# The source manifest: the files every doc gate reads, one glob per line.
+# docs/src/lib.typ is a helper module and joins the list; the extractor yields
+# its comments apart from its prose, so no gate mistakes a comment for a page.
+DOC_SOURCE_GLOBS=(
+    'docs/src/**/*.typ'
+    'www/content/*.typ'
+    'www/utils/*.typ'
+)
+
+# doc_sources_load fills DOC_SOURCES from the manifest. A glob that matches no
+# file fails, because a gate that reads nothing reports a clean tree.
+doc_sources_load() {
+    local g f found
+    DOC_SOURCES=()
+    shopt -s globstar nullglob
+    for g in "${DOC_SOURCE_GLOBS[@]}"; do
+        found=0
+        for f in $g; do
+            DOC_SOURCES+=("$f")
+            found=1
+        done
+        if [ "$found" -eq 0 ]; then
+            echo "doc sources: the glob $g matches no file" >&2
+            return 2
+        fi
+    done
+}
+
+# The extractor. It reads the same tree and prints one TSV row per piece of a
+# Typst source: file, line, kind, text. The text has no tab or newline.
+#   span     an inline raw: backticks (fewer than three) or `raw("...")`. A
+#            backtick pair inside a string literal also counts, because
+#            metadata strings such as a page summary name commands in them.
+#   block    one line of a block raw: three or more backticks, or
+#            `raw("...", block: true)`. The language tag is not text.
+#   comment  one line of a `//` or `/* */` comment, delimiters removed.
+#   prose    one source line of rendered text: what the markup says outside
+#            raw, comments and code. Each raw or code expression leaves one
+#            space, and a double quote stays a `"`.
+# A fence written inside a string is code, so it opens no block.
+# shellcheck disable=SC2016
+DOC_EXTRACT_JQ='
+def markup_container: IN("Strong","Emph","Heading","ListItem","EnumItem","TermItem");
+def rawargs: [.c[] | select(.k == "Args") | .c[]
+  | select(.k | IN("Space","Comma","LeftParen","RightParen","LineComment","BlockComment") | not)];
+def rawcall: .k == "FuncCall" and .c[0].k == "Ident" and .c[0].t == "raw";
+def strlit: .t | try fromjson catch .[1:-1];
+def rawcall_events:
+  rawargs as $a
+  | if ($a[0].k // "") == "Str" then
+      ($a[0] | strlit) as $text
+      | if any($a[]; .k == "Named" and .c[0].t == "block" and .c[-1].t == "true")
+        then $text | split("\n") | to_entries[] | {l: ($a[0].l + .key), kind: "block", t: .value}
+        else {l: $a[0].l, kind: "span", t: $text} end
+    else empty end;
+def ev($m):
+  if .k == "Raw" then
+    (if (.c[0].t | length) >= 3
+     then .c[] | select(.k == "Text") | {l, kind: "block", t}
+     else {l, kind: "span",
+           t: ([.c[] | select(.k == "Text" or .k == "RawTrimmed") | if .k == "Text" then .t else " " end] | join(""))}
+     end),
+    {l, kind: "prose", t: " "}
+  elif .k == "LineComment" then {l, kind: "comment", t: (.t | sub("^//+"; ""))}
+  elif .k == "BlockComment" then {l, kind: "comment", t: (.t | sub("^/\\*+"; "") | sub("\\*+/$"; ""))}
+  elif .k == "Markup" then .c[] | ev("m")
+  elif .c then
+    if rawcall then rawcall_events, {l, kind: "prose", t: " "}
+    elif $m == "m" and (.k | markup_container) then .c[] | ev("m")
+    else .c[] | ev("c") end
+  elif .k | IN("LeftBracket","RightBracket") then {l, kind: "prose", t: " "}
+  elif .k == "Str" then
+    . as $s | strlit | match("`([^`\n]+)`"; "g") | {l: $s.l, kind: "span", t: .captures[0].string}
+  elif $m == "m" then
+    if .k | IN("Text","Space","SmartQuote") then {l, kind: "prose", t}
+    elif .k | IN("Hash","Escape","Shorthand","Link","Label","Ref","RefMarker","Linebreak") then {l, kind: "prose", t: " "}
+    else empty end
+  else empty end;
+def rows:
+  reduce .[] as $e ({out: [], cur: null};
+    if $e.kind == "span" or $e.kind == "block" then .out += [$e]
+    else
+      reduce range(0; $e.t | split("\n") | length) as $i (.;
+        ($e.t | split("\n")[$i]) as $seg | ($e.l + $i) as $ln
+        | if .cur != null and .cur.l == $ln and .cur.kind == $e.kind then .cur.t += $seg
+          else (if .cur != null then .out += [.cur] else . end) | .cur = {l: $ln, kind: $e.kind, t: $seg} end)
+    end)
+  | (.out + [.cur // empty]) | sort_by(.l);
+[inputs] | .[] | .f as $f
+| [.n | ev("m")] | rows | .[]
+| select(.t | test("\\S"))
+| [$f, .l, .kind, (.t | gsub("[\t\r]"; " "))] | join("\t")
+'
+
+doc_extract() { # <file>...
+    local f
+    for f in "$@"; do
+        doc_blocks_ast "$f" || {
+            echo "doc extract: typstyle --ast failed on $f" >&2
+            return 2
+        }
+    done | jq -nr "$DOC_EXTRACT_JQ"
 }
 
 # The tree rules. A block is hand-typed when a three-backtick raw spans a line
@@ -167,7 +273,7 @@ doc_blocks_judge() { # <scan-tsv-file> <pending-file>...
     done <"$scan"
     for f in "$@"; do
         if ! awk -F'\t' -v f="$f" '$1 == f && $3 == "block" { found = 1 } END { exit !found }' "$scan"; then
-            echo "check-doc-blocks: $f has no hand-typed block left; drop it from PENDING in .just/scripts/check-doc-blocks.sh" >&2
+            echo "check-doc-blocks: $f has no hand-typed block left; drop it from the PENDING list in check-doc-blocks" >&2
             fail=1
         fi
     done

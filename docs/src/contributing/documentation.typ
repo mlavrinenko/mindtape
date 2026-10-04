@@ -19,6 +19,13 @@ a hand-typed recipe name, #just.check-doc-prose() history and shouting, and
 prose or a page that does not help its reader. The rules below cover what no
 gate finds.
 
+The span, recipe, prose and block gates read the Typst sources through one
+extractor in `.just/scripts/_doc-blocks-lib.sh`. It parses each file with
+`typstyle --ast` and prints every inline raw, block raw line, comment line and
+line of prose with its file and line, so a fence written inside a string hides
+nothing. The same file lists the sources the gates read and fails when a list
+entry matches no file.
+
 = Where the docs live
 
 `www/content/*.typ` is the docs site, and `www/utils/*.typ` holds the notes

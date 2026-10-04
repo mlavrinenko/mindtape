@@ -4,6 +4,8 @@
 
 The doc gates catch mechanical errors. `just docs check` finds a dead link, `just check-doc-facts` a derived fact with no entry, `just check-doc-recipes` a hand-typed recipe name, `just check-doc-prose` history and shouting, and `just check-doc-blocks` a hand-typed code block. No gate finds duplicated prose or a page that does not help its reader. The rules below cover what no gate finds.
 
+The span, recipe, prose and block gates read the Typst sources through one extractor in `.just/scripts/_doc-blocks-lib.sh`. It parses each file with `typstyle --ast` and prints every inline raw, block raw line, comment line and line of prose with its file and line, so a fence written inside a string hides nothing. The same file lists the sources the gates read and fails when a list entry matches no file.
+
 ## Where the docs live
 
 `www/content/*.typ` is the docs site, and `www/utils/*.typ` holds the notes its generated references render. `docs/src/readme.typ`, `docs/src/agents.typ` and `docs/src/skill.typ` render to README.md, AGENTS.md and `skills/mindtape/SKILL.md`. `docs/src/contributing.typ` renders CONTRIBUTING.md, and `docs/src/contributing/*.typ` render `docs/contributing/*.md`. Edit the source, never the render: `just docs md` overwrites it.

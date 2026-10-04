@@ -547,14 +547,14 @@ commands:
     tags: [gate]
     inputs: [rust, policy, file-size-config, docs, gates-meta, script-check-doc-facts, script-nav-diff]
 
-  # Scans docs/src/**/*.typ and www/content/*.typ for a hand-typed `just
-  # <recipe>` mention that skips www/generated/just.typ (`docs`) against the
-  # recipe/alias names `just --dump` reflects (`gates-meta`, the Justfile it
-  # dumps) — plus its own body's scope. No `rust` input, this never touches the
-  # built binary.
+  # Scans the doc sources (`docs`) for a hand-typed `just <recipe>` mention that
+  # skips www/generated/just.typ, against the recipe/alias names `just --dump`
+  # reflects (`gates-meta`, the Justfile it dumps). It reads them through the
+  # shared extractor in _doc-blocks-lib.sh (`script-doc-blocks-lib`), beside
+  # its own body's scope. No `rust` input, this never touches the built binary.
   - name: just check-doc-recipes
     tags: [gate]
-    inputs: [docs, gates-meta, script-check-doc-recipes]
+    inputs: [docs, gates-meta, script-check-doc-recipes, script-doc-blocks-lib]
 
   # Scans the doc sources (`docs`) for history words and all-caps emphasis, and
   # the comments of the Justfile and .just/docs.just (`gates-meta`),
@@ -564,7 +564,7 @@ commands:
   # never builds `mt`, and it reads no generated file.
   - name: just check-doc-prose
     tags: [gate]
-    inputs: [docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, script-check-doc-prose]
+    inputs: [docs, gates-meta, mmz-config, outdatty-config, file-size-config, policy, script-check-doc-prose, script-doc-blocks-lib]
 
   # Parses www/content, www/utils and docs/src (`docs`) with typstyle, which
   # the dev shell pins (`gates-meta`), and runs its control over synthetic
@@ -578,7 +578,7 @@ commands:
   # schema/config.schema.json, `policy`; `example-configs`).
   - name: just check-doc-spans
     tags: [gate]
-    inputs: [rust, policy, example-configs, docs, gates-meta, script-check-doc-spans]
+    inputs: [rust, policy, example-configs, docs, gates-meta, script-check-doc-spans, script-doc-blocks-lib]
 
   # docs::gen shells out to the built `mt` binary (rust) and reads the docs
   # tree + the example fixtures (examples) + the project policy/prelude
