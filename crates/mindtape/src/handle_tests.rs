@@ -174,3 +174,146 @@ fn a_hash_lengthens_past_a_stem_and_a_reserved_word() {
     assert_eq!(by_word.hash_of("alpha").map(str::len), Some(4));
     assert_eq!(by_word.resolve(&short), found("alpha"));
 }
+
+// --- resolve_ref: one resolver for a path, a stem or a stem hash -------------
+
+#[allow(clippy::unwrap_used)]
+mod reference {
+    use std::path::Path;
+
+    use super::*;
+    use crate::test_support::bare_task;
+
+    fn tasks(stems: &[&str]) -> Vec<Task> {
+        stems.iter().map(|stem| bare_task(stem)).collect()
+    }
+
+    fn resolve(
+        tasks: &[Task],
+        root: &Path,
+        reference: &str,
+    ) -> Result<(String, std::path::PathBuf), RefError> {
+        let hashes = StemHashes::new(tasks.iter().map(|task| task.id.as_str()));
+        resolve_ref(tasks, root, root, &hashes, reference)
+            .map(|got| (got.task.id.clone(), got.path))
+    }
+
+    fn root_with(stems: &[&str]) -> tempfile::TempDir {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join("tasks")).unwrap();
+        for stem in stems {
+            std::fs::write(dir.path().join(format!("tasks/{stem}.typ")), "").unwrap();
+        }
+        dir
+    }
+
+    #[test]
+    fn a_stem_resolves_to_its_task_and_file() {
+        let tasks = tasks(&["alpha", "beta"]);
+        let got = resolve(&tasks, Path::new("/p"), "beta").unwrap();
+        assert_eq!(
+            got,
+            (
+                "beta".to_owned(),
+                Path::new("/p/tasks/beta.typ").to_path_buf()
+            )
+        );
+    }
+
+    #[test]
+    fn a_stem_hash_resolves_when_no_stem_matches() {
+        let tasks = tasks(&["alpha", "beta"]);
+        let hash = StemHashes::new(["alpha", "beta"])
+            .hash_of("beta")
+            .unwrap()
+            .to_uppercase();
+        assert_eq!(resolve(&tasks, Path::new("/p"), &hash).unwrap().0, "beta");
+    }
+
+    #[test]
+    fn an_exact_stem_wins_over_a_hash_it_spells() {
+        let spelled = StemHashes::new(["alpha"])
+            .hash_of("alpha")
+            .unwrap()
+            .to_owned();
+        let tasks = tasks(&["alpha", &spelled]);
+        assert_eq!(
+            resolve(&tasks, Path::new("/p"), &spelled).unwrap().0,
+            spelled
+        );
+    }
+
+    #[test]
+    fn an_unknown_reference_is_no_match() {
+        let tasks = tasks(&["alpha"]);
+        let got = resolve(&tasks, Path::new("/p"), "zzzz");
+        assert!(
+            matches!(got, Err(RefError::NoMatch(ref r)) if r == "zzzz"),
+            "{got:?}"
+        );
+    }
+
+    #[test]
+    fn a_shared_hash_is_ambiguous_naming_each_stem() {
+        let tasks = tasks(&["a-1", "a-2"]);
+        let hashes = StemHashes::with_hasher(["a-1", "a-2"], by_first_byte);
+        let prefix = hashes.hash_of("a-1").unwrap().get(..3).unwrap().to_owned();
+        let got = resolve_ref(&tasks, Path::new("/p"), Path::new("/p"), &hashes, &prefix);
+        assert!(
+            matches!(got, Err(RefError::Ambiguous { ref stems, .. }) if stems == &["a-1", "a-2"]),
+            "{got:?}"
+        );
+    }
+
+    #[test]
+    fn a_path_resolves_from_the_working_directory() {
+        let dir = root_with(&["alpha"]);
+        let tasks = tasks(&["alpha"]);
+        let abs = dir.path().join("tasks/alpha.typ").canonicalize().unwrap();
+        for reference in ["tasks/alpha.typ", abs.to_str().unwrap()] {
+            let got = resolve(&tasks, dir.path(), reference).unwrap();
+            assert_eq!(got, ("alpha".to_owned(), abs.clone()), "{reference}");
+        }
+    }
+
+    #[test]
+    fn a_backslash_reads_as_a_path_not_a_stem_hash() {
+        let dir = root_with(&["alpha"]);
+        let got = resolve(&tasks(&["alpha"]), dir.path(), "tasks\\alpha");
+        assert!(matches!(got, Err(RefError::Path { .. })), "{got:?}");
+    }
+
+    #[test]
+    fn a_path_naming_no_task_says_where() {
+        let dir = root_with(&["alpha"]);
+        std::fs::write(dir.path().join("tasks/stray.typ"), "").unwrap();
+        let got = resolve(&tasks(&["alpha"]), dir.path(), "tasks/stray.typ");
+        assert!(matches!(got, Err(RefError::NoTaskAt(_))), "{got:?}");
+    }
+
+    #[test]
+    fn a_missing_path_is_a_path_error() {
+        let dir = root_with(&[]);
+        let got = resolve(&tasks(&["alpha"]), dir.path(), "a/b");
+        assert!(matches!(got, Err(RefError::Path { .. })), "{got:?}");
+        assert!(got.unwrap_err().to_string().starts_with("resolve "));
+    }
+
+    #[test]
+    fn only_a_path_shaped_reference_is_a_path() {
+        for path in ["a/b", "a\\b", "x.typ", "/abs"] {
+            assert!(is_path_ref(path), "{path}");
+        }
+        assert!(!is_path_ref("alpha"));
+    }
+
+    #[test]
+    fn typed_digits_match_a_stems_whole_code_not_its_printed_hash() {
+        let hashes = StemHashes::new(["fix-login-bug"]);
+        assert!(hashes.matches("fix-login-bug", "r7"));
+        assert!(hashes.matches("fix-login-bug", "R7EWE2"));
+        assert!(!hashes.matches("fix-login-bug", "r8"));
+        assert!(!hashes.matches("fix-login-bug", "r7u"));
+        assert!(!hashes.matches("other", "r7"));
+    }
+}

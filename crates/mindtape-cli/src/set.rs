@@ -39,8 +39,8 @@ use crate::util;
 /// Arguments for `mt set`.
 #[derive(Args)]
 pub struct SetArgs {
-    /// Task to write: slug, relative path, or absolute path.
-    pub task: String,
+    #[command(flatten)]
+    pub task: crate::task_ref::TaskRef,
     /// `<field>=<value>`, `<field>+=<value>` to append to a list field, or
     /// `<field>@<path>` to read the value out of a file — `mt add --set`'s
     /// own token grammar. Run `mt set --help` for the writable fields.
@@ -172,7 +172,7 @@ pub fn run(args: &SetArgs) -> Result<()> {
     let project = util::open()?;
     util::warn_errors(&project.outcome);
 
-    let (task, abs) = util::resolve_task(&project, &args.task)?;
+    let (task, abs) = util::resolve_task(&project, &args.task.task)?;
     let (name, assigned) = parse_assignment(&args.assignment)?;
     let field = writable(&name)?;
     let Some(value_text) = render(field, &assigned, &task)? else {

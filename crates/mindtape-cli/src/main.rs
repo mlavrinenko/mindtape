@@ -91,6 +91,7 @@ mod review;
 mod rm;
 mod set;
 mod task_edit;
+mod task_ref;
 #[cfg(test)]
 mod test_util;
 mod util;

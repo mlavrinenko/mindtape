@@ -51,8 +51,8 @@ const MAX_CHAIN_DEPTH: u32 = 10_000;
 /// Arguments for `mt recur`.
 #[derive(Args)]
 pub struct RecurArgs {
-    /// Task to advance: stem, stem hash, relative path, or absolute path.
-    pub task: String,
+    #[command(flatten)]
+    pub task: crate::task_ref::TaskRef,
 
     /// Preview the spawn/mutate/advance/skip; write nothing.
     #[arg(long = "dry-run")]
@@ -86,11 +86,13 @@ pub fn run(args: &RecurArgs) -> Result<()> {
 }
 
 fn run_with(project: &Project, args: &RecurArgs) -> Result<()> {
-    let (task, abs) = util::resolve_task(project, &args.task)?;
-    let recur = task
-        .recur
-        .clone()
-        .with_context(|| format!("{:?} has no `recur` field; nothing to advance", args.task))?;
+    let (task, abs) = util::resolve_task(project, &args.task.task)?;
+    let recur = task.recur.clone().with_context(|| {
+        format!(
+            "{:?} has no `recur` field; nothing to advance",
+            args.task.task
+        )
+    })?;
 
     let recur_config = &project.config.tasks.recur;
     let problems = mindtape::recur::check_policy(&recur, recur_config);

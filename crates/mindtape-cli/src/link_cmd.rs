@@ -29,9 +29,7 @@ use crate::util::{self, Project};
 /// Arguments for `mt link`.
 #[derive(Debug, Args)]
 pub struct LinkArgs {
-    /// Linking task: stem, stem hash, relative path, or absolute path.
-    /// Omit only with `--apply`.
-    #[arg(required_unless_present = "apply", conflicts_with = "apply")]
+    #[arg(help = crate::task_ref::HELP, required_unless_present = "apply", conflicts_with = "apply")]
     pub task: Option<String>,
 
     /// Edge kind: a built-in (`depends-on`, `parent`, `recurred-from`,
@@ -61,7 +59,8 @@ pub struct LinkArgs {
     )]
     pub note: Option<String>,
 
-    /// Read an adjacency map instead: a YAML or JSON mapping of stem to kind
+    /// Read an adjacency map instead of a positional edge, so the task is
+    /// omitted: a YAML or JSON mapping of stem to kind
     /// to targets, or `-` for stdin.
     #[arg(long, value_name = "FILE")]
     pub apply: Option<String>,

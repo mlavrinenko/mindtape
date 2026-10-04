@@ -21,8 +21,8 @@ const TASK_TOKEN: &str = "{task}";
 /// Arguments for `mt go`.
 #[derive(Args)]
 pub struct GoArgs {
-    /// Task to open: stem, stem hash, relative path, or absolute path.
-    pub id: String,
+    #[command(flatten)]
+    pub task: crate::task_ref::TaskRef,
 }
 
 /// Run the `go` command.
@@ -34,11 +34,11 @@ pub fn run(args: &GoArgs) -> Result<()> {
     let project = util::open()?;
     util::warn_errors(&project.outcome);
 
-    let (task, abs) = util::resolve_task(&project, &args.id)?;
+    let (task, abs) = util::resolve_task(&project, &args.task.task)?;
 
     let template = resolve_editor(&project.config)?;
     spawn_editor(&template, &abs)?;
-    println!("opened {} ({})", args.id, task.title);
+    println!("opened {} ({})", args.task.task, task.title);
     Ok(())
 }
 

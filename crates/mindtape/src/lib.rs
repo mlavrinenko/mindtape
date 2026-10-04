@@ -162,7 +162,7 @@ pub use fs_atomic::write_atomic;
 pub use gate::{CompiledRule, GateError, check_headers, compile_rules};
 pub use git::current_branch;
 pub use graph::{Cycle, Edge, edges, find_referrer, resolve_edge, toposort};
-pub use handle::{Resolution, StemHashes};
+pub use handle::{RefError, Resolution, Resolved, StemHashes, is_path_ref, resolve_ref};
 pub use import_map::{
     EntryKind, ImportReport, MapOptions, Mapped, ReportEntry, map_canonical, slug_from_title,
     stem_for_title,

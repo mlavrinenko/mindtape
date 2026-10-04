@@ -7,13 +7,14 @@ use std::sync::OnceLock;
 
 use anyhow::{Context, Result, anyhow, bail};
 use mindtape::{
-    Config, Filter, LoadOutcome, Resolution, StemHashes, Task, ViewSpec, config_path, find_root,
+    Config, Filter, LoadOutcome, RefError, StemHashes, Task, ViewSpec, config_path, find_root,
     load_config, load_project, write_atomic,
 };
 
 use crate::render::link::HyperlinkChoice;
 
 /// A discovered, loaded project: its root, config and load outcome.
+#[derive(Debug)]
 pub struct Project {
     /// Absolute path to the project root (the directory containing `.mindtape/`).
     pub root: PathBuf,
@@ -150,56 +151,27 @@ pub fn stem_hashes(tasks: &[Task], config: &Config) -> StemHashes {
     })
 }
 
-/// Resolve a task reference to a loaded `Task` and its absolute path.
-///
-/// A reference spelled as a path (absolute, holding `/`, or ending `.typ`)
-/// resolves as a path from the working directory. Anything else is an exact
-/// filename stem first, and a stem hash ([`mindtape::handle`]) only when no
-/// stem matches.
+/// Resolve a task reference to a loaded `Task` and its absolute path, with
+/// [`mindtape::resolve_ref`]: a path from the working directory, else an exact
+/// stem, and a stem hash only when no stem matches.
 ///
 /// # Errors
 /// Returns an error if the path cannot be resolved, a stem hash names several
 /// tasks, or no task matches.
 pub fn resolve_task(project: &Project, id: &str) -> Result<(Task, PathBuf)> {
-    let path = Path::new(id);
-    if path.is_absolute() || id.contains('/') || id.ends_with(".typ") {
-        return resolve_path(project, path);
-    }
     let tasks = &project.outcome.tasks;
-    let found = |stem: &str| tasks.iter().find(|task| task.id == stem);
-    let stem = if found(id).is_some() {
-        id.to_owned()
+    let cwd = if mindtape::is_path_ref(id) {
+        std::env::current_dir().context("determine current directory")?
     } else {
-        let hashes = stem_hashes(tasks, &project.config);
-        match hashes.resolve(id) {
-            Resolution::Found(stem) => stem,
-            Resolution::Ambiguous(stems) => bail!(ambiguous(&hashes, id, &stems)),
-            Resolution::NoMatch => bail!(no_task(project, id)),
-        }
+        PathBuf::new()
     };
-    let task = found(&stem).with_context(|| no_task(project, id))?;
-    Ok((task.clone(), project.root.join(&task.file)))
-}
-
-/// Resolve a reference spelled as a path, from the working directory.
-fn resolve_path(project: &Project, path: &Path) -> Result<(Task, PathBuf)> {
-    let abs = if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        std::env::current_dir()
-            .context("determine current directory")?
-            .join(path)
-    };
-    let abs = abs
-        .canonicalize()
-        .with_context(|| format!("resolve {}", abs.display()))?;
-    let task = project
-        .outcome
-        .tasks
-        .iter()
-        .find(|t| project.root.join(&t.file).canonicalize().ok().as_deref() == Some(&abs))
-        .with_context(|| format!("no task at {}", abs.display()))?;
-    Ok((task.clone(), abs))
+    let hashes = stem_hashes(tasks, &project.config);
+    match mindtape::resolve_ref(tasks, &project.root, &cwd, &hashes, id) {
+        Ok(found) => Ok((found.task.clone(), found.path)),
+        Err(RefError::Ambiguous { stems, .. }) => bail!(ambiguous(&hashes, id, &stems)),
+        Err(RefError::NoMatch(_)) => bail!(no_task(project, id)),
+        Err(other) => Err(other.into()),
+    }
 }
 
 /// The refusal for a reference no stem or stem hash matches.

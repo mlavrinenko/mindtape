@@ -19,8 +19,8 @@ use crate::util;
 /// Arguments for `mt review`.
 #[derive(Args)]
 pub struct ReviewArgs {
-    /// Task to stamp: slug, relative path, or absolute path.
-    pub id: String,
+    #[command(flatten)]
+    pub task: crate::task_ref::TaskRef,
 }
 
 /// Run the `review` command.
@@ -32,19 +32,22 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
     let project = util::open()?;
     util::warn_errors(&project.outcome);
 
-    let (task, abs) = util::resolve_task(&project, &args.id)?;
+    let (task, abs) = util::resolve_task(&project, &args.task.task)?;
 
     if task.is_terminal(&project.config.tasks.status.terminal()) {
         bail!(
             "task {:?} ({}) has a terminal status; cannot review",
-            args.id,
+            args.task.task,
             task.title
         );
     }
 
     let today = today_iso();
     if task.reviewed.as_deref() == Some(today.as_str()) {
-        println!("already reviewed today ({} — {})", args.id, task.title);
+        println!(
+            "already reviewed today ({} — {})",
+            args.task.task, task.title
+        );
         return Ok(());
     }
 
@@ -69,7 +72,7 @@ pub fn run(args: &ReviewArgs) -> Result<()> {
     util::write_task(&project.config, &abs, updated)?;
     println!(
         "reviewed: {} ({}) stamped on {}",
-        args.id, task.title, today
+        args.task.task, task.title, today
     );
     Ok(())
 }

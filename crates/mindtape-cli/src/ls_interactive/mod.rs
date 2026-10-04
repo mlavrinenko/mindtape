@@ -146,8 +146,7 @@ impl State {
             && self
                 .tasks
                 .get(index)
-                .and_then(|task| self.hashes.hash_of(&task.id))
-                .is_some_and(|hash| hash.starts_with(&self.buffer))
+                .is_some_and(|task| self.hashes.matches(&task.id, &self.buffer))
     }
 
     /// Absolute paths for the given display indices, skipping any out of range.
@@ -199,23 +198,13 @@ fn classify(key: KeyEvent) -> Intent {
         KeyCode::Char('c') if ctrl => Intent::Quit,
         KeyCode::Esc => Intent::Quit,
         KeyCode::Char(' ') => Intent::Refresh,
-        KeyCode::Char(c) if c.is_ascii_alphanumeric() => Intent::Digit(hash_digit(c)),
+        KeyCode::Char(c) if c.is_ascii_alphanumeric() => Intent::Digit(c.to_ascii_lowercase()),
         KeyCode::Backspace if ctrl => Intent::Clear,
         KeyCode::Backspace => Intent::DelLast,
         KeyCode::Delete => Intent::Clear,
         KeyCode::Enter if ctrl => Intent::OpenAll,
         KeyCode::Enter => Intent::OpenFirst,
         _ => Intent::Ignore,
-    }
-}
-
-/// `c` as a stem hash digit: lowercase, with `i` and `l` read as `1` and `o`
-/// as `0`, as [`mindtape::StemHashes::resolve`] reads them.
-fn hash_digit(c: char) -> char {
-    match c.to_ascii_lowercase() {
-        'i' | 'l' => '1',
-        'o' => '0',
-        other => other,
     }
 }
 

@@ -9,11 +9,117 @@
 //! resolves to another task. A hash never equals a stem or a reserved word: it lengthens past one. Stems with equal codes stay ambiguous at every
 //! length. Folders do not enter the code.
 
+use std::path::{Path, PathBuf};
+
+use crate::model::Task;
+
 /// The fewest digits a stem hash has, and the fewest an input may have.
 pub const MIN_LEN: usize = 3;
 
 const ALPHABET: &[u8; 32] = b"0123456789abcdefghjkmnpqrstvwxyz";
 const CODE_LEN: usize = 13;
+
+/// Why a task reference named no task.
+#[derive(Debug, thiserror::Error)]
+pub enum RefError {
+    /// A reference spelled as a path could not be resolved.
+    #[error("resolve {}", .path.display())]
+    Path {
+        /// The path, joined onto the working directory when relative.
+        path: PathBuf,
+        /// Why it did not resolve.
+        #[source]
+        source: std::io::Error,
+    },
+    /// A path that exists, but that no loaded task owns.
+    #[error("no task at {}", .0.display())]
+    NoTaskAt(PathBuf),
+    /// A stem hash several tasks share.
+    #[error("stem hash {reference:?} names {} tasks", .stems.len())]
+    Ambiguous {
+        /// The typed reference.
+        reference: String,
+        /// The stems it names, sorted.
+        stems: Vec<String>,
+    },
+    /// Neither a stem nor a stem hash matches.
+    #[error("no task with id {0:?}")]
+    NoMatch(String),
+}
+
+/// The task a reference names, and its file.
+#[derive(Debug, Clone)]
+pub struct Resolved<'a> {
+    /// The task.
+    pub task: &'a Task,
+    /// Its file: canonical when the reference was a path, else under the root.
+    pub path: PathBuf,
+}
+
+/// Whether `reference` is spelled as a path: absolute, holding a separator, or
+/// ending `.typ`. Anything else is a stem or a stem hash.
+#[must_use]
+pub fn is_path_ref(reference: &str) -> bool {
+    Path::new(reference).is_absolute()
+        || reference.contains(['/', '\\'])
+        || reference.ends_with(".typ")
+}
+
+/// Resolves `reference` to one of `tasks`. A path resolves from `cwd`; else an
+/// exact stem wins, and a stem hash from `hashes` is tried only when no stem
+/// matches. Task files are `root`-relative.
+///
+/// # Errors
+/// Returns a [`RefError`] when a path does not resolve or owns no task, a hash
+/// is ambiguous, or nothing matches.
+pub fn resolve_ref<'a>(
+    tasks: &'a [Task],
+    root: &Path,
+    cwd: &Path,
+    hashes: &StemHashes,
+    reference: &str,
+) -> Result<Resolved<'a>, RefError> {
+    if is_path_ref(reference) {
+        return resolve_path(tasks, root, cwd, reference);
+    }
+    let by_stem = |stem: &str| tasks.iter().find(|task| task.id == stem);
+    let task = match by_stem(reference) {
+        Some(task) => task,
+        None => match hashes.resolve(reference) {
+            Resolution::Found(stem) => by_stem(&stem),
+            Resolution::Ambiguous(stems) => {
+                return Err(RefError::Ambiguous {
+                    reference: reference.to_owned(),
+                    stems,
+                });
+            }
+            Resolution::NoMatch => None,
+        }
+        .ok_or_else(|| RefError::NoMatch(reference.to_owned()))?,
+    };
+    Ok(Resolved {
+        task,
+        path: root.join(&task.file),
+    })
+}
+
+fn resolve_path<'a>(
+    tasks: &'a [Task],
+    root: &Path,
+    cwd: &Path,
+    reference: &str,
+) -> Result<Resolved<'a>, RefError> {
+    let joined = cwd.join(reference);
+    let abs = joined.canonicalize().map_err(|source| RefError::Path {
+        path: joined,
+        source,
+    })?;
+    let task = tasks
+        .iter()
+        .find(|task| root.join(&task.file).canonicalize().ok().as_deref() == Some(&abs))
+        .ok_or_else(|| RefError::NoTaskAt(abs.clone()))?;
+    Ok(Resolved { task, path: abs })
+}
 
 /// What a typed stem hash names.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -116,6 +222,20 @@ impl StemHashes {
         entry.code.get(..entry.len)
     }
 
+    /// Whether the digits typed so far, `typed`, begin the code of `stem`. They
+    /// read as [`resolve`](Self::resolve) reads them, whatever their count, so
+    /// a caller narrowing a list as keys arrive agrees with it. A stem not in
+    /// the set, or a character outside the alphabet, matches nothing.
+    #[must_use]
+    pub fn matches(&self, stem: &str, typed: &str) -> bool {
+        let typed = normalise_digits(typed);
+        self.entries
+            .binary_search_by(|entry| entry.stem.as_str().cmp(stem))
+            .ok()
+            .and_then(|at| self.entries.get(at))
+            .is_some_and(|entry| entry.code.starts_with(&typed))
+    }
+
     /// Resolves typed `input` to a stem. Input is case-insensitive, reads `i`
     /// and `l` as `1` and `o` as `0`, and needs at least [`MIN_LEN`] digits.
     #[must_use]
@@ -167,17 +287,22 @@ fn encode(value: u64) -> String {
         .collect()
 }
 
-/// Typed input as a code prefix, or `None` when it is too short or holds a
-/// character outside the alphabet.
-fn normalise(input: &str) -> Option<String> {
-    let prefix: String = input
+/// `input` lowercased, with `i` and `l` read as `1` and `o` as `0`.
+fn normalise_digits(input: &str) -> String {
+    input
         .chars()
         .map(|c| match c.to_ascii_lowercase() {
             'i' | 'l' => '1',
             'o' => '0',
             other => other,
         })
-        .collect();
+        .collect()
+}
+
+/// Typed input as a code prefix, or `None` when it is too short or holds a
+/// character outside the alphabet.
+fn normalise(input: &str) -> Option<String> {
+    let prefix = normalise_digits(input);
     let valid = prefix
         .chars()
         .all(|c| c.is_ascii() && ALPHABET.contains(&(c as u8)));

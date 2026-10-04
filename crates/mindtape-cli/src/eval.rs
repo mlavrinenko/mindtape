@@ -8,13 +8,13 @@ use typst_harvest::{HarvestWorld, harvest};
 
 use crate::output::{OutputFormat, render, task_to_json};
 use crate::render::RenderCtx;
+use crate::util::Project;
 
 /// Arguments for `eval`.
 #[derive(Debug, clap::Args)]
 pub struct EvalArgs {
-    /// Task to evaluate: a stem, a path, or a stem hash. A path need not lie
-    /// under a project.
-    pub task: String,
+    #[command(flatten)]
+    pub task: crate::task_ref::TaskRef,
 
     /// Emit JSON instead of a table.
     #[arg(long)]
@@ -26,7 +26,7 @@ pub struct EvalArgs {
 /// # Errors
 /// Returns an error if the file cannot be evaluated or holds no task marker.
 pub fn run(args: &EvalArgs) -> Result<()> {
-    let file = locate(&args.task)?;
+    let (file, project) = locate(&args.task.task)?;
     let world = build_world(&file)?;
     let result = harvest(&world)?;
     let marker = result
@@ -43,28 +43,30 @@ pub fn run(args: &EvalArgs) -> Result<()> {
     if args.json {
         print_json(&task)
     } else {
-        print_table(&task, &hashes_for(&file, &task))
+        print_table(&task, &hashes_for(&file, &task, project))
     }
 }
 
-/// The file `reference` names. Anything spelled as a path stays a path, so a
-/// `.typ` under no project still evaluates; a stem or stem hash resolves
-/// against the enclosing project the way `flip`, `set` and `link` do.
+/// The file `reference` names, and the project that resolved it. Anything
+/// spelled as a path stays a path, so a `.typ` under no project still
+/// evaluates; a stem or stem hash resolves against the enclosing project the
+/// way `flip`, `set` and `link` do, and that project is handed back so nothing
+/// loads it again.
 ///
 /// # Errors
 /// Returns an error if a path does not exist, no project encloses the working
 /// directory, or no task matches the reference.
-fn locate(reference: &str) -> Result<PathBuf> {
+fn locate(reference: &str) -> Result<(PathBuf, Option<Project>)> {
     let path = Path::new(reference);
     if path.is_file() {
-        return Ok(path.to_path_buf());
+        return Ok((path.to_path_buf(), None));
     }
-    if reference.contains(['/', '\\']) || reference.ends_with(".typ") {
+    if mindtape::is_path_ref(reference) {
         bail!("no such file: {reference}");
     }
     let project = crate::util::open()?;
     let (_, abs) = crate::util::resolve_task(&project, reference)?;
-    Ok(abs)
+    Ok((abs, Some(project)))
 }
 
 /// Print one harvested task as a bare JSON object — no envelope, since there
@@ -110,20 +112,23 @@ fn print_table(task: &Task, hashes: &StemHashes) -> Result<()> {
 }
 
 /// The stem hashes of the project enclosing `file`, so the `slug#` cell is
-/// the one every listing prints. A file under no project, or one its project
-/// does not load, is hashed alone.
-fn hashes_for(file: &Path, task: &Task) -> StemHashes {
-    let loaded = file
-        .canonicalize()
-        .ok()
-        .and_then(|abs| find_root(abs.parent()?))
-        .and_then(|root| {
-            let config = load_config(&root).ok()?;
-            Some((load_project(&root, &config), config))
-        });
-    match loaded {
-        Some((outcome, config)) if outcome.tasks.iter().any(|t| t.id == task.id) => {
-            crate::util::stem_hashes(&outcome.tasks, &config)
+/// the one every listing prints. `resolved` is the project the reference
+/// already loaded; without one the enclosing project loads here. A file under
+/// no project, or one its project does not load, is hashed alone.
+fn hashes_for(file: &Path, task: &Task, resolved: Option<Project>) -> StemHashes {
+    let project = resolved.or_else(|| {
+        let root = find_root(file.canonicalize().ok()?.parent()?)?;
+        let config = load_config(&root).ok()?;
+        let outcome = load_project(&root, &config);
+        Some(Project {
+            root,
+            config,
+            outcome,
+        })
+    });
+    match project {
+        Some(project) if project.outcome.tasks.iter().any(|t| t.id == task.id) => {
+            crate::util::stem_hashes(&project.outcome.tasks, &project.config)
         }
         _ => StemHashes::new([task.id.as_str()]),
     }

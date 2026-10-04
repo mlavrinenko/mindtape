@@ -98,8 +98,8 @@ fn classify_ctrl_modifiers() {
 }
 
 #[test]
-fn classify_reads_a_typed_hash_like_the_resolver() {
-    for (typed, read) in [('K', 'k'), ('I', '1'), ('l', '1'), ('O', '0')] {
+fn classify_lowercases_a_typed_digit_and_leaves_reading_it_to_the_library() {
+    for (typed, read) in [('K', 'k'), ('I', 'i'), ('l', 'l'), ('O', 'o')] {
         assert_eq!(
             classify(key(KeyCode::Char(typed), KeyModifiers::NONE)),
             Intent::Digit(read)
@@ -410,4 +410,22 @@ fn refresh_loads_tasks_from_project() {
         st.buffer.is_empty(),
         "refresh should clear the selection buffer"
     );
+}
+
+#[test]
+fn a_typed_o_or_i_narrows_as_the_zero_or_one_the_resolver_reads() {
+    let mut state = state(100, "");
+    let hash = hash_at(100, 99);
+    let typed: String = hash
+        .chars()
+        .map(|c| match c {
+            '0' => 'o',
+            '1' => 'i',
+            other => other,
+        })
+        .collect();
+    for c in typed.chars() {
+        apply(&mut state, Intent::Digit(c));
+    }
+    assert_eq!(state.first_highlighted(), Some(99), "{typed}");
 }

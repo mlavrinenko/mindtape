@@ -96,7 +96,7 @@ enum Command {
     /// them. A hook is a couple of lines calling `mt` back, so completions
     /// follow the binary and never need re-installing.
     Install(install::InstallArgs),
-    /// Evaluate a single task file and print it.
+    /// Evaluate a single task file and print it; a path need not lie under a project.
     Eval(eval::EvalArgs),
     /// Open a task in the configured editor (`[go] editor`).
     Go(go::GoArgs),

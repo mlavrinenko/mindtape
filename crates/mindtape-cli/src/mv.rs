@@ -34,8 +34,8 @@ use crate::{git, util};
 /// Arguments for `mt mv`.
 #[derive(Args)]
 pub struct MvArgs {
-    /// Task to rename: slug, relative path, or absolute path.
-    pub task: String,
+    #[command(flatten)]
+    pub task: crate::task_ref::TaskRef,
     /// The task's new file stem, which is its new identity. A bare stem: a
     /// trailing `.typ` is accepted and dropped, a path separator is refused.
     pub new_stem: String,
@@ -61,10 +61,10 @@ pub fn run(args: &MvArgs) -> Result<()> {
     let project = util::open()?;
     util::warn_errors(&project.outcome);
 
-    let (task, _) = util::resolve_task(&project, &args.task)?;
+    let (task, _) = util::resolve_task(&project, &args.task.task)?;
     let stem = new_stem(&args.new_stem)?;
     if stem == task.id {
-        bail!("task {:?} is already named {stem:?}", args.task);
+        bail!("task {:?} is already named {stem:?}", args.task.task);
     }
 
     // Root-relative throughout: `resolve_task` canonicalizes a path argument,

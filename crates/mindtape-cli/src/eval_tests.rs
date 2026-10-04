@@ -16,7 +16,7 @@ const TASK: &str = "#metadata((
 /// `mt eval <file>` with the path spelled as the task reference.
 fn eval(file: &std::path::Path, json: bool) -> anyhow::Result<()> {
     run(&EvalArgs {
-        task: file.to_string_lossy().into_owned(),
+        task: file.to_string_lossy().into_owned().into(),
         json,
     })
 }

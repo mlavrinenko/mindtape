@@ -154,7 +154,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ("init", "preset", Source::Presets),
     ("init", "schema", Source::FilePath),
     ("eval", "task", Source::Stems),
-    ("go", "id", Source::Stems),
+    ("go", "task", Source::Stems),
     ("rm", "targets", Source::Stems),
     ("mv", "task", Source::Stems),
     (
@@ -164,7 +164,7 @@ pub const SOURCES: &[(&str, &str, Source)] = &[
     ),
     ("set", "task", Source::Stems),
     ("set", "assignment", Source::Assignment),
-    ("review", "id", Source::Stems),
+    ("review", "task", Source::Stems),
     ("flip", "status", Source::Statuses),
     ("flip", "tasks", Source::Stems),
     (

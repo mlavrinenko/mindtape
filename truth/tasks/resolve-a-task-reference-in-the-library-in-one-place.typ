@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 4),
+  status: done(2026, 10, 4),
   links: related(
     "keep-a-printed-stem-hash-from-resolving-to-another-task-by-reserving-every-stem-and-filter-word.typ",
   )[the library resolver is where the reserved set lives],
