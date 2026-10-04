@@ -2,7 +2,7 @@
 # examples/named-sets/.mindtape/config.toml — the checked project /named-sets/
 # reads back as data.
 #
-# Its one job is named sets: two views, three dictionaries, the allow-lists
+# Its one job is named sets: two views, four dictionaries, the allow-lists
 # that read a dictionary, and a rule that reads one with in_dict(). The page
 # slices these blocks out of this file, and www/generate-reference.sh runs
 # `mt` against it, so a view or a dictionary shown there is one that loads.
@@ -36,6 +36,10 @@ allowed = ["@areas", "security"]
 
 [tasks.fields.kind]
 values = ["@kinds"]
+
+[tasks.fields.x-team]
+values = ["@teams"]
+required = "!terminal"
 # docs:end
 
 # docs:slice named-sets/rule
@@ -75,4 +79,9 @@ case = "fold"
 # docs:slice named-sets/dict-kinds
 [dicts.kinds]
 values = ["feat", "fix", "chore"]
+# docs:end
+
+# docs:slice named-sets/dict-teams
+[dicts.teams]
+values = ["payments", "platform"]
 # docs:end

@@ -418,6 +418,28 @@ fn notes_the_default_filled_kind() {
     assert!(written.contains("kind: \"feature\""), "{written}");
 }
 
+/// A required `x-<ns>` field is spliced like `kind`: a choice over its
+/// `@dict`-expanded values, set from the caller or filled from its default.
+#[test]
+fn splices_a_required_extension_field() {
+    const CONFIG: &str = "[tasks]\nroots = [\"tasks\"]\n\
+         [dicts.machines]\nvalues = [\"alpha\", \"desk\"]\n\
+         [tasks.fields.x-machine]\nvalues = [\"@machines\"]\nrequired = true\ndefault = \"alpha\"\n";
+    let dir = tempfile::tempdir().unwrap();
+    let stderr = add_capture_stderr(dir.path(), CONFIG, "filled", "ada", &[]);
+    assert!(
+        stderr.contains(r#"note: x-machine "alpha" came from [tasks.fields.x-machine] default"#),
+        "{stderr}"
+    );
+    support::mt(dir.path())
+        .args(["add", "--name", "chosen", "--set", "title=T"])
+        .args(["--set", "x-machine=desk"])
+        .assert()
+        .success();
+    let written = std::fs::read_to_string(dir.path().join("tasks/chosen.typ")).unwrap();
+    assert!(written.contains("x-machine: \"desk\""), "{written}");
+}
+
 /// A field the caller set itself draws no note, even when the config also
 /// backs it with an environment.
 #[test]

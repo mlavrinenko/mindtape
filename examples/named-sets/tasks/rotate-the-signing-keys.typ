@@ -6,6 +6,7 @@
   kind: "chore",
   priority: 7,
   tags: ("auth", "security"),
+  x-team: "platform",
 )
 
 = Summary

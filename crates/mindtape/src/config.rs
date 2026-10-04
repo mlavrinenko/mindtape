@@ -238,6 +238,7 @@ impl Config {
         problems.extend(validate_ls_columns(&self.ls));
         problems.extend(validate_views(&self.views));
         problems.extend(validate_dicts(&self.dicts));
+        problems.extend(crate::config_tasks::validate_field_names(&self.tasks));
         problems.extend(crate::config_required::validate_requirements(self));
         problems.extend(crate::config_links_validate::validate_link_kinds(self));
         problems.extend(crate::config_rules::validate_rules(self));

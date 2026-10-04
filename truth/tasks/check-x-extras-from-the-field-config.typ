@@ -27,7 +27,11 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 4),
+  status: done(
+    2026,
+    10,
+    4,
+  )[\[tasks.fields.x-\<ns>\] holds an extra to values and required; mt add splices a required one; any other key fails config load],
 )
 
 == Problem

@@ -58,7 +58,7 @@ value = "wip"
 value = "done"
 terminal = true
 
-[tasks.fields.priority]
+[tasks.fields.x-level]
 values = ["low", "high"]
 required = "!terminal"
 
@@ -82,9 +82,9 @@ filter = "status != \"done\""
     );
     assert_eq!(config.tasks.status.terminal(), vec!["done".to_owned()]);
 
-    let priority = config.tasks.fields.get("priority").unwrap();
-    assert_eq!(priority.required, Requirement::Expr("!terminal".to_owned()));
-    assert_eq!(priority.values, vec!["low".to_owned(), "high".to_owned()]);
+    let level = config.tasks.fields.get("x-level").unwrap();
+    assert_eq!(level.required, Requirement::Expr("!terminal".to_owned()));
+    assert_eq!(level.values, vec!["low".to_owned(), "high".to_owned()]);
 
     let kind = config.tasks.fields.get("kind").unwrap();
     assert_eq!(kind.required, Requirement::No);
@@ -105,15 +105,15 @@ filter = "status != \"done\""
 
 #[test]
 fn required_accepts_bool() {
-    let config = parse_config("[tasks.fields.priority]\nrequired = true\n").unwrap();
+    let config = parse_config("[tasks.fields.kind]\nrequired = true\n").unwrap();
     assert_eq!(
-        config.tasks.fields.get("priority").unwrap().required,
+        config.tasks.fields.get("kind").unwrap().required,
         Requirement::Always
     );
 
-    let config = parse_config("[tasks.fields.priority]\nrequired = false\n").unwrap();
+    let config = parse_config("[tasks.fields.kind]\nrequired = false\n").unwrap();
     assert_eq!(
-        config.tasks.fields.get("priority").unwrap().required,
+        config.tasks.fields.get("kind").unwrap().required,
         Requirement::No
     );
 }
@@ -251,7 +251,7 @@ fn embedded_defaults_matches_compiled_floor() {
 
 #[test]
 fn requirement_deserialize_error_mentions_expected_types() {
-    let err = parse_config("[tasks.fields.priority]\nrequired = 42\n").unwrap_err();
+    let err = parse_config("[tasks.fields.kind]\nrequired = 42\n").unwrap_err();
     assert!(
         err.to_string().contains("a boolean or a filter expression"),
         "catches expecting-noop mutant"

@@ -689,7 +689,7 @@
     },
     "FieldConfig": {
       "additionalProperties": false,
-      "description": "`[tasks.fields.<name>]` — allowed values, default and requirement for one\ncore field.",
+      "description": "`[tasks.fields.<name>]` — allowed values, default and requirement for\n`kind` or one `x-<ns>` extension field.",
       "properties": {
         "default": {
           "default": null,
@@ -705,7 +705,7 @@
         },
         "values": {
           "default": [],
-          "description": "Allowed values. Empty accepts any value. An entry `@<dict>` stands for\nevery entry of `[dicts.<dict>]`, so the list may mix literal values and\ndictionaries.",
+          "description": "Allowed values. Empty accepts any value, and a non-empty list takes a\nstring only. An entry `@<dict>` stands for every entry of\n`[dicts.<dict>]`, so the list may mix literal values and dictionaries.",
           "items": {
             "type": "string"
           },
@@ -1977,7 +1977,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/FieldConfig"
           },
-          "description": "Allowed values, default and requirement for an enum core field, keyed\nby field name (`kind`).",
+          "description": "Allowed values, default and requirement for `kind` and for each\n`x-<ns>` extension field, keyed by field name. Any other key fails\nconfig load.",
           "type": "object"
         },
         "id": {

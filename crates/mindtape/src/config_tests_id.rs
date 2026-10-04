@@ -42,15 +42,15 @@ fn ls_rules_columns_resolves_known_names() {
 
 #[test]
 fn requirement_accepts_string_true_false() {
-    let config = parse_config("[tasks.fields.priority]\nrequired = \"true\"\n").unwrap();
+    let config = parse_config("[tasks.fields.kind]\nrequired = \"true\"\n").unwrap();
     assert_eq!(
-        config.tasks.fields.get("priority").unwrap().required,
+        config.tasks.fields.get("kind").unwrap().required,
         Requirement::Always
     );
 
-    let config = parse_config("[tasks.fields.priority]\nrequired = \"false\"\n").unwrap();
+    let config = parse_config("[tasks.fields.kind]\nrequired = \"false\"\n").unwrap();
     assert_eq!(
-        config.tasks.fields.get("priority").unwrap().required,
+        config.tasks.fields.get("kind").unwrap().required,
         Requirement::No
     );
 }
@@ -60,10 +60,10 @@ fn requirement_accepts_string_true_false() {
 /// naming the field — one config error instead of one violation per task.
 #[test]
 fn requirement_rejects_an_unusable_expression_at_validation() {
-    let config = parse_config("[tasks.fields.priority]\nrequired = \"maybe\"\n").unwrap();
+    let config = parse_config("[tasks.fields.kind]\nrequired = \"maybe\"\n").unwrap();
     let problems = config.validate().unwrap_err();
     assert!(
-        problems.contains("tasks.fields.priority.required"),
+        problems.contains("tasks.fields.kind.required"),
         "the offending field must be named: {problems}"
     );
 }

@@ -14,7 +14,7 @@ groups:
       www/content/trace-commits-to-tasks.typ: 6f8d4d7ff344895057460f3a7322cbcb23067fc2bf3ab90a72a19427cb19b49b
   cli-docs:
     source:
-      crates/mindtape-cli/src/add.rs: 921cf912d7d386cf000ac3046845a16cde4a1646e69a8af7d122beb4074215ad
+      crates/mindtape-cli/src/add.rs: 8a0eafdc25c4ab7c7f507a9577c6cf487c0f978a0ead851bccd5180c1d58c4ab
       crates/mindtape-cli/src/check.rs: c24195c01e43c884735ea0fd78988682a7aa211ee6a4460bf1fdeca4d9d58caa
       crates/mindtape-cli/src/cli.rs: 637aaf44957d0b7a927949d6f01f217afd0e159e8b3de171b9c338769348437c
       crates/mindtape-cli/src/completion.rs: fe14695fe1c11cdd3d8fd75119c32686453ca77b2763160721a22fdcff314461
@@ -54,8 +54,8 @@ groups:
       skills/mindtape/references/filters.md: 468f022356790fe6ce636f53863f00815f97082141636afc9c56bd99f0574b6a
       www/content/agents.typ: f1487d9f51385005ccee94e2f02b5865234a13002198802c675ef056f3d6a7b2
       www/content/cli.typ: b16ce4ea33afff216ae5ed8b393feb39f73acaac7e84b5686a684509cc5f7bb9
-      www/content/commit-rules.typ: 9bbe6119fc7378ba4a94907d761fd303b94db1ac38a0679ccda2269d9a5f60f2
-      www/content/concepts.typ: eead063b6a9bc21a1ba433f0808942a56ac0ba05df4c22bcff57f87b171fc321
+      www/content/commit-rules.typ: e2867dfd46d0f58d842cd3b2218750d257bfda69c77056cfb0f3cddd5491b5cd
+      www/content/concepts.typ: 295acefc4e948e0472f55e178b2b41011b73a32b9dd1f4ae4d9b61e4141b1e7c
       www/content/config.typ: ab20dad800d4a9cecb9386f2ef25553176a1198454a78826e1606812e2cc572a
       www/content/derived-tags.typ: daab80a43e76316f3ea505962628da330037732d091666410b80b7d84fa9ff62
       www/content/estimates.typ: add3c0bbcc58db99b226a1127c3c0c7669af1b2b9b345af6ab7f265cf6188078
@@ -63,14 +63,14 @@ groups:
       www/content/hooks.typ: 85508e2df8e94b0f1995e09a557d7ac1a5355ccf2dcfb3dd0a29a0220e231d60
       www/content/import-export.typ: 066492971b6ae35020c0bc8155b7b20333bac01e76b28fad2a0d8ad28ee2f4c8
       www/content/links.typ: 997d07f188c3995c2865bfaf09ac0751367d117bee4e8f27f969973a26fb26ae
-      www/content/named-sets.typ: 9eb766109a0f61c4dfadf8c83118652f4cdbc7de1c050d58b4927097d255d575
+      www/content/named-sets.typ: c636919b4d6d8b96f6d902eb56982ddf9aafe2d57030933584829b9b07447e7e
       www/content/priority.typ: 5da0661bc11613b90d9410b36b79436df14ba61a671437e72b601299497f7121
       www/content/quickstart.typ: 710d621900d67aa553e57d0a05f92e68fa5e82f9777b3322c1aac0b88c493531
       www/content/recurring.typ: eff529a7eff2e613f30db1b7c8afc2e9c44f6b24a886eb709927db5bb6cf7c1a
-      www/content/rules.typ: b5363e5b05ee345a2e5cd62ae156ec8b41892a4ab6ce8a779dcdb09e942f55c7
+      www/content/rules.typ: 2ceb084442b0680e20ae19628ff1bbba4cc6defa059cbd4687fc6a379af6f900
       www/content/schema.typ: 6eb69ba844be22a4653fb8a2d69b6d68ec9da2c874689909a663a1b4299b9384
       www/content/statuses.typ: ef993338e298c6b20f2a4a83742aa6a3421a3069cefd6a5c22ec097405c7a7f1
-      www/content/templates.typ: 175d0bf6e7bc18cd9e5e5a1682478493cc6a392b86e0245657f19e7109648ab4
+      www/content/templates.typ: f65a171e0725303cec1aa435fcbbd8c0c3fd458daa1144d571682839b7161ec4
       www/utils/cli-notes.typ: f5f6449e0e9c31923c07d07b22523157061d4969fc7690b4f5c2119fb80b4052
   cli-name:
     source:

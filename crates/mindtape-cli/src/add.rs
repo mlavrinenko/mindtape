@@ -390,8 +390,8 @@ fn inject_required_slots(
     let mut edits = Vec::new();
     let mut injected = Vec::new();
     for slot in needed {
-        if call.named(slot.field).is_none() {
-            edits.push(upsert_named_arg(source, &call, slot.field, &slot.call)?);
+        if call.named(&slot.field).is_none() {
+            edits.push(upsert_named_arg(source, &call, &slot.field, &slot.call)?);
             injected.push(slot.clone());
         }
     }

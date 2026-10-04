@@ -123,8 +123,10 @@ The capped set is any filter, so the same rule caps a view
 = Typst checks
 
 The filter language cannot name an `x-<ns>` field or look inside a
-dictionary. A rule with `check` instead of `assert` calls a Typst function the
-project ships, with one field's value or the whole task:
+dictionary. `[tasks.fields.x-<ns>]` holds an extension field to a list of
+strings and a `required` rule. For any other shape, a rule with `check`
+instead of `assert` calls a Typst function the project ships, with one
+field's value or the whole task:
 
 #raw(
   render-slices(

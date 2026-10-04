@@ -132,9 +132,9 @@ an earlier one, and `null` clears it.
 - `id`: a new UUID, only when `[tasks.id] format` is `uuid-v4` or `uuid-v7`.
   Otherwise the file name is the task's identity.
 - Required fields the template leaves out. When the config requires
-  `priority`, `difficulty`, `kind`, `assignee` or `estimate` and the template
-  does not set it, `mt add` adds a slot for it. The slot shows up in
-  `--describe` and the editor. The `assignee` slot reads the
+  `priority`, `difficulty`, `kind`, `assignee`, `estimate` or an `x-<ns>`
+  field and the template does not set it, `mt add` adds a slot for it. The
+  slot shows up in `--describe` and the editor. The `assignee` slot reads the
   `MINDTAPE_PRINCIPAL` environment variable. A requirement the status alone
   settles is checked against the status the task is filed at, so
   `--status done` adds no slot for a field `required = "!terminal"` asks.

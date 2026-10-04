@@ -24,6 +24,7 @@
   ("dict-verbs", "both built-in verb lists under one name"),
   ("dict-areas", "inline values, a file of entries, and the case rule"),
   ("dict-kinds", "inline values only"),
+  ("dict-teams", "the values an `x-` field takes"),
 )
 #let use-parts = (
   ("allow-lists", "allow-lists that read a dictionary"),

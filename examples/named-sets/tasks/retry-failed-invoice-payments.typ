@@ -6,6 +6,7 @@
   kind: "feat",
   priority: 6,
   tags: ("billing",),
+  x-team: "payments",
   links: depends-on("rotate-the-signing-keys.typ"),
 )
 

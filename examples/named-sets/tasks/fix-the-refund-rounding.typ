@@ -6,6 +6,7 @@
   kind: "fix",
   priority: 5,
   tags: ("billing",),
+  x-team: "payments",
 )
 
 = Summary

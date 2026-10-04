@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`[tasks.fields.x-<ns>]` checks an extension field.** A project's own
+  field, such as `x-team`, took a Typst `check` function to hold it to a list
+  of values. The table now takes `x-<ns>` names with the `values`, `@dict`
+  expansion, `default` and `required` that `kind` has. `mt check` reports a
+  missing or unlisted value, and `mt add` offers a required one as a slot.
+  Any other key in `[tasks.fields]`, which loaded and did nothing, now fails
+  config load.
 - **A commit rule counts the commit's files with `count(files, "glob"…)`.**
   A `[[commits.rules]]` assert could only test whether a file matched, so
   nothing capped how many source files a commit changes. The call counts the

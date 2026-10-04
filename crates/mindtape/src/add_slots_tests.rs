@@ -5,7 +5,7 @@ use crate::config::parse_config;
 
 use super::{RequiredSlot, required_core_slots};
 
-fn fields(config: &crate::config::Config) -> Vec<&'static str> {
+fn fields(config: &crate::config::Config) -> Vec<String> {
     required_core_slots(config, None)
         .into_iter()
         .map(|s| s.field)
@@ -174,6 +174,28 @@ fn required_kind_yields_choice_slot_with_values() {
     assert!(call.contains("kind: \"choice\""), "{call}");
     assert!(call.contains("\"feature\""), "{call}");
     assert!(call.contains("default: \"feature\""), "{call}");
+}
+
+#[test]
+fn required_extra_yields_choice_slot_named_after_it() {
+    let config = parse_config(
+        "[tasks.fields.x-machine]\nvalues = [\"alpha\", \"desk\"]\nrequired = true\ndefault = \"alpha\"\n",
+    )
+    .unwrap();
+    let slot = single(&config);
+    assert_eq!(slot.field, "x-machine");
+    assert_eq!(slot.config_path, "[tasks.fields.x-machine]");
+    assert_eq!(
+        slot.call,
+        r#"slot("x-machine", kind: "choice", choices: ("alpha", "desk", ), default: "alpha")"#
+    );
+    assert_eq!(slot.default.as_deref(), Some("\"alpha\""));
+}
+
+#[test]
+fn optional_extra_yields_no_slot() {
+    let config = parse_config("[tasks.fields.x-machine]\nvalues = [\"alpha\"]\n").unwrap();
+    assert!(required_core_slots(&config, None).is_empty());
 }
 
 #[test]

@@ -9,6 +9,7 @@
 
 use std::collections::HashMap;
 
+use typst_harvest::HVal;
 use uuid::Uuid;
 
 use crate::config::{Config, FieldConfig, IdFormat, Legend, RequiredRules};
@@ -236,14 +237,27 @@ fn check_enum_field(
     out: &mut Vec<Violation>,
 ) {
     let value = match name {
-        "kind" => task.kind.as_deref(),
+        "kind" => task.kind.as_deref().map(Ok),
+        _ if name.starts_with("x-") => task.extras.get(name).map(|value| match value {
+            HVal::Str(text) => Ok(text.as_str()),
+            _ => Err(()),
+        }),
         _ => return,
     };
+    let allowed = |value: &str| field.values.is_empty() || field.values.iter().any(|v| v == value);
     match value {
         None if required => {
             push(out, task, name, "required field is missing".to_owned());
         }
-        Some(value) if !field.values.is_empty() && !field.values.iter().any(|v| v == value) => {
+        Some(Err(())) if !field.values.is_empty() => {
+            push(
+                out,
+                task,
+                name,
+                "a field with allowed values takes a string".to_owned(),
+            );
+        }
+        Some(Ok(value)) if !allowed(value) => {
             push(
                 out,
                 task,
@@ -420,3 +434,7 @@ mod tests_id;
 #[cfg(test)]
 #[path = "validate_tests_shape.rs"]
 mod tests_shape;
+
+#[cfg(test)]
+#[path = "validate_tests_extras.rs"]
+mod tests_extras;

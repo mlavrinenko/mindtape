@@ -40,8 +40,9 @@ pub struct TasksConfig {
     pub priority: PriorityConfig,
     /// The difficulty scale and its labelled anchors or bands.
     pub difficulty: NumericField,
-    /// Allowed values, default and requirement for an enum core field, keyed
-    /// by field name (`kind`).
+    /// Allowed values, default and requirement for `kind` and for each
+    /// `x-<ns>` extension field, keyed by field name. Any other key fails
+    /// config load.
     pub fields: BTreeMap<String, FieldConfig>,
     /// Which actors `assignee:` may name, and whether it is required.
     pub assignee: crate::config_assignee::AssigneeConfig,
@@ -244,14 +245,14 @@ impl<'de> Deserialize<'de> for IdFormat {
     }
 }
 
-/// `[tasks.fields.<name>]` — allowed values, default and requirement for one
-/// core field.
+/// `[tasks.fields.<name>]` — allowed values, default and requirement for
+/// `kind` or one `x-<ns>` extension field.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
 #[serde(default, deny_unknown_fields)]
 pub struct FieldConfig {
-    /// Allowed values. Empty accepts any value. An entry `@<dict>` stands for
-    /// every entry of `[dicts.<dict>]`, so the list may mix literal values and
-    /// dictionaries.
+    /// Allowed values. Empty accepts any value, and a non-empty list takes a
+    /// string only. An entry `@<dict>` stands for every entry of
+    /// `[dicts.<dict>]`, so the list may mix literal values and dictionaries.
     // `expand_dict_refs` expands the `@<dict>` entries at config load.
     pub values: Vec<String>,
     /// Value `mt add` fills in when the field is required and neither the
@@ -347,6 +348,38 @@ fn expand_list(list: &mut Vec<String>, dicts: &Dicts, label: &str) -> Result<(),
     } else {
         Err(problems.join("; "))
     }
+}
+
+/// Core fields that carry their own `[tasks.<name>]` table, which a
+/// `[tasks.fields.<name>]` entry would shadow without effect.
+const OWN_TABLE_FIELDS: [&str; 9] = [
+    "status",
+    "priority",
+    "difficulty",
+    "assignee",
+    "estimate",
+    "tags",
+    "id",
+    "links",
+    "recur",
+];
+
+/// Load-time check of every `[tasks.fields.<name>]` key: only `kind` and
+/// `x-<ns>` names are read by validation, so any other key is refused instead
+/// of loading as an inert declaration.
+pub(crate) fn validate_field_names(tasks: &TasksConfig) -> Vec<String> {
+    tasks
+        .fields
+        .keys()
+        .filter(|name| *name != "kind" && !name.starts_with("x-"))
+        .map(|name| {
+            if OWN_TABLE_FIELDS.contains(&name.as_str()) {
+                format!("tasks.fields.{name}: `{name}` is configured in [tasks.{name}]")
+            } else {
+                format!("tasks.fields.{name}: unknown field; [tasks.fields] takes `kind` and `x-<ns>` names")
+            }
+        })
+        .collect()
 }
 
 /// `[tasks.body]` — body-shape constraints.

@@ -27,12 +27,12 @@ pub(super) fn report_injected(
         if explicitly_set(slot, explicit) {
             continue;
         }
-        let Some(arg) = call.named(slot.field) else {
+        let Some(arg) = call.named(&slot.field) else {
             continue;
         };
         let raw = &filled[arg.value_range.clone()];
         let value = display_value(raw);
-        let origin = if env_keys.contains(slot.field) {
+        let origin = if env_keys.contains(&slot.field) {
             slot.env.map_or_else(
                 || format!("{} environment", slot.config_path),
                 |name| format!("{} env {name}", slot.config_path),
@@ -54,7 +54,7 @@ pub(super) fn report_injected(
 /// strict-framework priority has no scalar `priority=` key; supplying any of
 /// its leaves counts as taking it over, so the note stays quiet.
 fn explicitly_set(slot: &RequiredSlot, explicit: &BTreeSet<String>) -> bool {
-    explicit.contains(slot.field)
+    explicit.contains(&slot.field)
         || discover_slots(&slot.call)
             .iter()
             .any(|leaf| explicit.contains(&leaf.name))

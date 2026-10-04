@@ -1,12 +1,12 @@
 //! Synthetic `slot(...)` calls for config-required core fields.
 //!
 //! `mt add` files tasks from a template, but a project's config may require
-//! core fields (priority, difficulty, kind, assignee, estimate) the chosen
-//! template never declares. This module derives the slot-bearing expressions
-//! those fields need so a CLI can splice them into `task.with(…)` — surfacing
-//! them in the fill scaffold and the `--describe` schema, and writing them into
-//! the final task. Consumer-blind: pure over [`Config`], no IO, no source
-//! editing.
+//! core fields (priority, difficulty, kind, assignee, estimate) or `x-<ns>`
+//! fields the chosen template never declares. This module derives the
+//! slot-bearing expressions those fields need so a CLI can splice them into
+//! `task.with(…)` — surfacing them in the fill scaffold and the `--describe`
+//! schema, and writing them into the final task. Consumer-blind: pure over
+//! [`Config`], no IO, no source editing.
 
 use crate::config::{AssigneeConfig, Config, FieldConfig, Requirement};
 use crate::framework::{Framework, Input, InputKind};
@@ -17,10 +17,10 @@ use crate::numeric::{ScaleKind, format_num};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RequiredSlot {
     /// The `task.with` argument name (`priority`, `kind`, …).
-    pub field: &'static str,
+    pub field: String,
     /// The config path the requirement comes from, named in the fill note
     /// (`[tasks.assignee]`, `[tasks.fields.kind]`).
-    pub config_path: &'static str,
+    pub config_path: String,
     /// The source to set as that argument's value: a bare `slot(...)` call, or
     /// — for a strict-framework priority — a `framework(...)` call wrapping one
     /// `slot(...)` per input. Either way slot discovery walks it and every slot
@@ -36,7 +36,8 @@ pub struct RequiredSlot {
 }
 
 /// The required core-field slots a config demands at task-creation time, in a
-/// stable order (`priority`, `difficulty`, `kind`, `assignee`, `estimate`).
+/// stable order (`priority`, `difficulty`, `kind`, `assignee`, `estimate`,
+/// then each `x-<ns>` field by name).
 ///
 /// A field counts as required unless its requirement is `false`, or `status`,
 /// the status the task is filed at, settles it as not required (`"!terminal"`
@@ -59,8 +60,8 @@ pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<Require
         && let Some(call) = priority_slot(config)
     {
         out.push(RequiredSlot {
-            field: "priority",
-            config_path: "[tasks.priority]",
+            field: "priority".to_owned(),
+            config_path: "[tasks.priority]".to_owned(),
             call,
             env: None,
             default: None,
@@ -68,8 +69,8 @@ pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<Require
     }
     if may_apply(&tasks.difficulty.required) {
         out.push(RequiredSlot {
-            field: "difficulty",
-            config_path: "[tasks.difficulty]",
+            field: "difficulty".to_owned(),
+            config_path: "[tasks.difficulty]".to_owned(),
             call: format!(
                 r#"slot("difficulty", kind: "{}", prompt: "difficulty")"#,
                 scale_kind_str(tasks.difficulty.kind)
@@ -81,18 +82,12 @@ pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<Require
     if let Some(field) = tasks.fields.get("kind")
         && may_apply(&field.required)
     {
-        out.push(RequiredSlot {
-            field: "kind",
-            config_path: "[tasks.fields.kind]",
-            call: kind_slot(field),
-            env: None,
-            default: field.default.as_ref().map(|value| format!("{value:?}")),
-        });
+        out.push(field_slot("kind", field));
     }
     if may_apply(&tasks.assignee.required) {
         out.push(RequiredSlot {
-            field: "assignee",
-            config_path: "[tasks.assignee]",
+            field: "assignee".to_owned(),
+            config_path: "[tasks.assignee]".to_owned(),
             call: assignee_slot(&tasks.assignee),
             env: Some(PRINCIPAL_ENV),
             default: None,
@@ -100,13 +95,20 @@ pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<Require
     }
     if may_apply(&tasks.estimate.required) {
         out.push(RequiredSlot {
-            field: "estimate",
-            config_path: "[tasks.estimate]",
+            field: "estimate".to_owned(),
+            config_path: "[tasks.estimate]".to_owned(),
             call: estimate_slot(config),
             env: None,
             default: None,
         });
     }
+    out.extend(
+        tasks
+            .fields
+            .iter()
+            .filter(|(name, field)| name.starts_with("x-") && may_apply(&field.required))
+            .map(|(name, field)| field_slot(name, field)),
+    );
     out
 }
 
@@ -180,20 +182,31 @@ fn scale_kind_str(kind: ScaleKind) -> &'static str {
     }
 }
 
-fn kind_slot(field: &FieldConfig) -> String {
-    if field.values.is_empty() {
-        return r#"slot("kind", prompt: "kind")"#.to_owned();
-    }
-    let choices: String = field
-        .values
-        .iter()
-        .map(|value| format!("{value:?}, "))
-        .collect();
+/// The slot for a required `[tasks.fields.<name>]` entry: a choice over
+/// `values` when the entry declares any, else a plain string slot, falling
+/// back to `default` either way.
+fn field_slot(name: &str, field: &FieldConfig) -> RequiredSlot {
     let default = field
         .default
         .as_ref()
         .map_or_else(String::new, |value| format!(", default: {value:?}"));
-    format!(r#"slot("kind", kind: "choice", choices: ({choices}){default})"#)
+    let call = if field.values.is_empty() {
+        format!(r#"slot("{name}", prompt: "{name}"{default})"#)
+    } else {
+        let choices: String = field
+            .values
+            .iter()
+            .map(|value| format!("{value:?}, "))
+            .collect();
+        format!(r#"slot("{name}", kind: "choice", choices: ({choices}){default})"#)
+    };
+    RequiredSlot {
+        field: name.to_owned(),
+        config_path: format!("[tasks.fields.{name}]"),
+        call,
+        env: None,
+        default: field.default.as_ref().map(|value| format!("{value:?}")),
+    }
 }
 
 fn estimate_slot(config: &Config) -> String {
