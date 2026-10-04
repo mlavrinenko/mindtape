@@ -23,11 +23,41 @@ use crate::validate::{Location, Violation};
 /// The field a template's own breach reports under.
 const TEMPLATE: &str = "template";
 
+/// Where a template lives, as a breach names it.
+#[derive(Debug, Clone, Copy)]
+pub enum TemplateHome<'a> {
+    /// A template file, by its path relative to the project root.
+    File(&'a Path),
+    /// A built-in template, by name. It has no file.
+    Builtin(&'a str),
+}
+
+impl TemplateHome<'_> {
+    /// A line of this template's source.
+    fn at(self, line: usize) -> Location {
+        match self {
+            Self::File(file) => Location::at(file, line),
+            Self::Builtin(template) => Location::Builtin {
+                template: template.to_owned(),
+                line,
+            },
+        }
+    }
+
+    /// What identifies the template in a breach's `task_id`.
+    fn label(self) -> String {
+        match self {
+            Self::File(file) => file.to_string_lossy().into_owned(),
+            Self::Builtin(template) => template.to_owned(),
+        }
+    }
+}
+
 /// One template, at each stage the check sees it.
 #[derive(Debug, Clone, Copy)]
 pub struct TemplateSources<'a> {
-    /// The template's path relative to the project root, as a breach names it.
-    pub file: &'a Path,
+    /// Where the template lives, as a breach names it.
+    pub home: TemplateHome<'a>,
     /// The template as authored on disk.
     pub authored: &'a str,
     /// The task source that was validated: slots filled, header stamped.
@@ -39,7 +69,7 @@ pub struct TemplateSources<'a> {
 /// that has neither an `example` nor a `default`, placed at the slot in
 /// `authored`.
 #[must_use]
-pub fn unfillable_slots(file: &Path, authored: &str, spliced: &str) -> Vec<Violation> {
+pub fn unfillable_slots(home: TemplateHome<'_>, authored: &str, spliced: &str) -> Vec<Violation> {
     let authored_slots = discover_slots(authored);
     let mut found: Vec<Violation> = discover_slots(spliced)
         .into_iter()
@@ -55,10 +85,10 @@ pub fn unfillable_slots(file: &Path, authored: &str, spliced: &str) -> Vec<Viola
                 "slot `{}` has no example or default; give it `example:` so `mt check` can fill it",
                 spec.name
             );
-            breach(file, line, message)
+            breach(home, line, message)
         })
         .collect();
-    found.sort_by_key(|violation| violation.location.line);
+    found.sort_by_key(|violation| violation.location.line());
     found
 }
 
@@ -78,19 +108,16 @@ pub fn template_breaches(
 /// A breach of a template that never became a task: it did not evaluate, or
 /// `mt add` could not prepare it. Placed at the template's `task.with(…)`.
 #[must_use]
-pub fn template_failure(file: &Path, authored: &str, message: String) -> Violation {
-    breach(file, call_line(authored), message)
+pub fn template_failure(home: TemplateHome<'_>, authored: &str, message: String) -> Violation {
+    breach(home, call_line(authored), message)
 }
 
-fn breach(file: &Path, line: usize, message: String) -> Violation {
+fn breach(home: TemplateHome<'_>, line: usize, message: String) -> Violation {
     Violation {
-        task_id: file.to_string_lossy().into_owned(),
+        task_id: home.label(),
         field: TEMPLATE.to_owned(),
         message,
-        location: Location {
-            file: file.to_path_buf(),
-            line,
-        },
+        location: home.at(line),
         severity: Severity::Error,
         reads: Some(std::collections::BTreeSet::new()),
     }
@@ -113,17 +140,17 @@ fn relocate(sources: TemplateSources<'_>, mut violation: Violation) -> Violation
         let wanted = sources
             .checked
             .lines()
-            .nth(violation.location.line.saturating_sub(1))?
+            .nth(violation.location.line().saturating_sub(1))?
             .trim();
         (wanted.len() > 1)
             .then(|| authored.lines().position(|line| line.trim() == wanted))
             .flatten()
             .map(|index| index + 1)
     };
-    violation.location.line = by_field
+    let line = by_field
         .or_else(by_text)
         .unwrap_or_else(|| call_line(authored));
-    violation.location.file = sources.file.to_path_buf();
+    violation.location = sources.home.at(line);
     violation
 }
 

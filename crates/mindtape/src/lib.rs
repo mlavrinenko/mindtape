@@ -182,7 +182,9 @@ pub use sort::{default_order, default_order_with, difficulty_value, sort_by_spec
 pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
 pub use suggest::{hint, nearest};
 pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples};
-pub use template_check::{TemplateSources, template_breaches, template_failure, unfillable_slots};
+pub use template_check::{
+    TemplateHome, TemplateSources, template_breaches, template_failure, unfillable_slots,
+};
 pub use validate::{Location, Violation, validate};
 pub use worktrees::{WorktreeEntry, WorktreeError, WorktreeRegistry};
 

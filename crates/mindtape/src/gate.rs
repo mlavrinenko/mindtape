@@ -224,10 +224,7 @@ fn diagnostic_to_violation(
 ) -> Violation {
     let location = diag.line.map_or_else(
         || task.marker_location(),
-        |line| Location {
-            file: task.file.clone(),
-            line,
-        },
+        |line| Location::at(task.file.clone(), line),
     );
     Violation {
         task_id: task.id.clone(),

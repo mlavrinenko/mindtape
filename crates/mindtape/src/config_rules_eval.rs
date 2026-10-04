@@ -9,6 +9,7 @@
 //! neither when the project declares no rules.
 
 use std::collections::BTreeSet;
+use std::path::Path;
 
 use crate::config::Config;
 use crate::config_rules_typst::CompiledCheck;
@@ -16,7 +17,7 @@ use crate::filter::{Filter, FilterError};
 use crate::model::Task;
 use crate::ready::Readiness;
 use crate::severity::Severity;
-use crate::validate::Violation;
+use crate::validate::{Location, Violation};
 
 use super::RuleSpec;
 
@@ -143,10 +144,17 @@ impl CompiledRule {
     /// The one report of a rule skipped because git could not answer its
     /// `changed()`: always a warning, whatever the rule's own severity — a
     /// rule that cannot see the change set has not found a breach.
-    fn skipped(&self, task: &Task, err: &FilterError) -> Violation {
+    ///
+    /// Placed at the rule's entry in the project config when it declares one:
+    /// the rule is what is at fault, not the task it happened to meet first. A
+    /// rule a pack or a global layer contributed has no such entry, and stays
+    /// on the task's marker.
+    fn skipped(&self, task: &Task, err: &FilterError, config: &Config) -> Violation {
+        let found = self.violation(task, format!("skipped: {err}"));
         Violation {
             severity: Severity::Warn,
-            ..self.violation(task, format!("skipped: {err}"))
+            location: config_entry(config, &self.label).unwrap_or(found.location.clone()),
+            ..found
         }
     }
 
@@ -163,6 +171,35 @@ impl CompiledRule {
             reads: self.reads.clone(),
         }
     }
+}
+
+/// Where the project config declares the `[[tasks.rules]]` entry reported as
+/// `label` (`rules.<name>`): its table header, relative to the project root.
+/// `None` for an unnamed rule, a rule the project config does not declare, or
+/// a root with no config to read.
+fn config_entry(config: &Config, label: &str) -> Option<Location> {
+    let name = label.strip_prefix("rules.")?;
+    let root = config.rules_root.as_path();
+    let rel = crate::config::config_path(Path::new(""));
+    let text = std::fs::read_to_string(root.join(&rel)).ok()?;
+    let mut header = None;
+    for (index, line) in text.lines().enumerate() {
+        let line = line.trim();
+        if line.starts_with('[') {
+            header = (line == "[[tasks.rules]]").then_some(index + 1);
+        } else if let Some(found) = header
+            && toml_string_value(line, "name") == Some(name)
+        {
+            return Some(Location::at(rel, found));
+        }
+    }
+    None
+}
+
+/// The string `line` assigns to `key`, for a plain `key = "value"` line.
+fn toml_string_value<'a>(line: &'a str, key: &str) -> Option<&'a str> {
+    let rest = line.strip_prefix(key)?.trim_start().strip_prefix('=')?;
+    rest.trim().strip_prefix('"')?.strip_suffix('"')
 }
 
 /// Evaluate every `[[tasks.rules]]` entry over `tasks`, appending one violation
@@ -197,7 +234,7 @@ pub(crate) fn check_all(tasks: &[Task], config: &Config, out: &mut Vec<Violation
                 Ok(found) => out.extend(found),
                 Err(err) => {
                     *skipped = true;
-                    out.push(rule.skipped(task, &err));
+                    out.push(rule.skipped(task, &err, config));
                 }
             }
         }

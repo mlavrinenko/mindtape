@@ -16,7 +16,7 @@ fn run(body: &str, rule_toml: &str) -> Vec<String> {
     let task = bare_task("x");
     check_content(&task, body, &rules, &config)
         .into_iter()
-        .map(|v| format!("{:?}:{}/{}", v.location.line, v.field, v.message))
+        .map(|v| format!("{:?}:{}/{}", v.location.line(), v.field, v.message))
         .collect()
 }
 

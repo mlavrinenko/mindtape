@@ -213,7 +213,7 @@ fn the_built_in_template_warns_by_default() {
     let (ok, text) = check(dir.path());
     assert!(ok, "{text}");
     assert!(
-        text.contains("warning: <built-in>/task.typ:3: rules.dated"),
+        text.contains("warning: built-in template task:3: rules.dated"),
         "{text}"
     );
 }
@@ -224,7 +224,7 @@ fn fallback_severity_error_fails_on_the_built_in_template() {
     let (ok, text) = check(dir.path());
     assert!(!ok, "{text}");
     assert!(
-        text.contains("error: <built-in>/task.typ:3: rules.dated"),
+        text.contains("error: built-in template task:3: rules.dated"),
         "{text}"
     );
 }
@@ -246,7 +246,7 @@ fn fallback_severity_reads_the_global_defaults_layer() {
     let (ok, text) = check(dir.path());
     assert!(!ok, "{text}");
     assert!(
-        text.contains("error: <built-in>/task.typ:3: rules.dated"),
+        text.contains("error: built-in template task:3: rules.dated"),
         "{text}"
     );
 }

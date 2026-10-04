@@ -192,10 +192,7 @@ pub fn check_content(
                 task_id: task.id.clone(),
                 field: rule.label.clone(),
                 message: rule.message.clone().unwrap_or(default),
-                location: Location {
-                    file: task.file.clone(),
-                    line: node.heading.line,
-                },
+                location: Location::at(task.file.clone(), node.heading.line),
                 severity: Severity::Error,
                 reads: crate::violation::reads_of(rule.when.iter()),
             });

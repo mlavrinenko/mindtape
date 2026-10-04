@@ -460,8 +460,8 @@ fn a_field_without_a_line_points_at_the_marker_call() {
     let mut task = crate::test_support::bare_task("a");
     task.marker_line = 2;
     task.field_lines.insert("links".into(), 4);
-    assert_eq!(task.field_location("links").line, 4);
-    assert_eq!(task.field_location("tags[1]").line, 2);
+    assert_eq!(task.field_location("links").line(), 4);
+    assert_eq!(task.field_location("tags[1]").line(), 2);
     task.marker_line = 0;
-    assert_eq!(task.field_location("id").line, 1);
+    assert_eq!(task.field_location("id").line(), 1);
 }

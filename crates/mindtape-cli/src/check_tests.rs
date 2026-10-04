@@ -358,10 +358,7 @@ fn breach(severity: mindtape::Severity, line: usize) -> mindtape::Violation {
         task_id: "t".to_owned(),
         field: "f".to_owned(),
         message: "m".to_owned(),
-        location: mindtape::Location {
-            file: "tasks/t.typ".into(),
-            line,
-        },
+        location: mindtape::Location::at("tasks/t.typ", line),
         severity,
         reads: None,
     }
@@ -373,4 +370,17 @@ fn every_breach_line_starts_with_a_severity() {
     let show = |s, l| crate::breach::line(&breach(s, l));
     assert_eq!(show(Error, 3), "error: tasks/t.typ:3: f: m");
     assert_eq!(show(Warn, 3), "warning: tasks/t.typ:3: f: m");
+}
+
+#[test]
+fn a_built_in_template_breach_names_no_path() {
+    let mut builtin = breach(mindtape::Severity::Warn, 3);
+    builtin.location = mindtape::Location::Builtin {
+        template: "task".to_owned(),
+        line: 3,
+    };
+    assert_eq!(
+        crate::breach::line(&builtin),
+        "warning: built-in template task:3: f: m"
+    );
 }

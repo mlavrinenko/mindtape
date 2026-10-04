@@ -90,7 +90,7 @@ actor, the middle of a numeric scale or framework input, and one of the first
 estimate unit. A template that does not evaluate is one breach carrying the
 Typst error.
 
-The built-in template is reported as `<built-in>/task.typ`, at the severity
+The built-in template is reported as `built-in template task`, at the severity
 `[templates] fallback-severity` sets: `"warning"` by default, or `"error"`. Any
 config layer can set it, the global `defaults.toml` included. A project's own
 templates always report errors.

@@ -54,8 +54,8 @@ fn forbid_catches_a_line_comment_with_file_line_and_text() {
     assert_eq!(violation.field, "comments");
     assert!(violation.message.contains("no, use in_view() instead"));
     let location = &violation.location;
-    assert_eq!(location.file, task.file);
-    assert_eq!(location.line, 2);
+    assert_eq!(location.file(), Some(task.file.as_path()));
+    assert_eq!(location.line(), 2);
 }
 
 #[test]

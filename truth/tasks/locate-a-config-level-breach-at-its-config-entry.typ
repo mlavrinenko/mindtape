@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 4),
+  status: done(2026, 10, 4),
   links: related(
     "locate-a-refused-writes-breach-on-the-file-on-disk-through-one-task-call-span-service.typ",
   )[both change what a breach Location can name],

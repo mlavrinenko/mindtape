@@ -141,10 +141,7 @@ fn to_violation(task: &Task, comment: &Comment, severity: Severity) -> Violation
         task_id: task.id.clone(),
         field: "comments".to_owned(),
         message: format!("{} comment: \"{}\"", shape(&comment.kind), comment.text),
-        location: Location {
-            file: task.file.clone(),
-            line: comment.line,
-        },
+        location: Location::at(task.file.clone(), comment.line),
         severity,
         reads: Some(crate::violation::reads_of_field("comments")),
     }

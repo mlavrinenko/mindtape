@@ -12,7 +12,8 @@ use std::path::PathBuf;
 
 use anyhow::{Result, anyhow};
 use mindtape::{
-    BodyRules, Candidate, FallbackSeverity, Severity, TemplateSources, Violation, template_failure,
+    BodyRules, Candidate, FallbackSeverity, Severity, TemplateHome, TemplateSources, Violation,
+    template_failure,
 };
 
 use crate::add::{inject_header, splice_config_slots};
@@ -20,22 +21,29 @@ use crate::add_values::{list_templates, resolve_template, template_path};
 use crate::task_edit::filing_status;
 use crate::util::{self, Project};
 
-/// How a breach names the built-in `task` template, which has no file.
-const BUILTIN_LABEL: &str = "<built-in>/task.typ";
-
 /// One listed template, and the task source it files, or the breaches that
 /// keep it from filing one.
 struct Filed {
-    /// The template file, relative to the project root.
-    file: PathBuf,
+    /// The template file relative to the project root, or `None` for the
+    /// built-in fallback, which has none.
+    file: Option<PathBuf>,
+    /// The template's name, as `mt add -t` takes it.
+    name: String,
     /// The path `mt add` would write its task to, relative to the project root.
     rel: PathBuf,
     /// The template as authored.
     authored: String,
-    /// Whether this is the built-in fallback rather than a project file.
-    builtin: bool,
     /// The task source filed from the template, or its own breaches.
     filed: Result<String, Vec<Violation>>,
+}
+
+impl Filed {
+    /// Where a breach of this template is placed.
+    fn home(&self) -> TemplateHome<'_> {
+        self.file
+            .as_deref()
+            .map_or(TemplateHome::Builtin(&self.name), TemplateHome::File)
+    }
 }
 
 /// The breaches of every listed template, in template order.
@@ -53,30 +61,27 @@ pub(crate) fn breaches(project: &Project, body_rules: BodyRules<'_>) -> Result<V
     let mut templates = Vec::new();
     for name in list_templates(&project.config, &project.root) {
         let path = template_path(&project.config, &project.root, &name);
-        let builtin = path.is_none();
-        let file = path.map_or_else(
-            || PathBuf::from(BUILTIN_LABEL),
-            |path| {
-                path.strip_prefix(&project.root)
-                    .unwrap_or(&path)
-                    .to_path_buf()
-            },
-        );
+        let file = path.map(|path| {
+            path.strip_prefix(&project.root)
+                .unwrap_or(&path)
+                .to_path_buf()
+        });
         let authored = resolve_template(&project.config, &project.root, &name)?;
-        let filed = file_examples(project, &file, &authored);
-        templates.push(Filed {
+        let mut template = Filed {
             rel: dest.join(format!("{name}.typ")),
             file,
+            name,
             authored,
-            builtin,
-            filed,
-        });
+            filed: Ok(String::new()),
+        };
+        template.filed = file_examples(project, template.home(), &template.authored);
+        templates.push(template);
     }
     let fallback = project.config.templates.fallback_severity;
     Ok(judge(project, &templates, body_rules)
         .into_iter()
         .zip(&templates)
-        .flat_map(|(found, template)| at_severity(found, template.builtin, fallback))
+        .flat_map(|(found, template)| at_severity(found, template.file.is_none(), fallback))
         .collect())
 }
 
@@ -106,14 +111,14 @@ fn judge(project: &Project, templates: &[Filed], body_rules: BodyRules<'_>) -> V
             Ok(checked) => match answers.next() {
                 Some(Ok(answer)) => {
                     let sources = TemplateSources {
-                        file: &template.file,
+                        home: template.home(),
                         authored: &template.authored,
                         checked,
                     };
                     mindtape::template_breaches(sources, answer.violations)
                 }
                 Some(Err(err)) => vec![template_failure(
-                    &template.file,
+                    template.home(),
                     &template.authored,
                     format!("did not load: {}", err.message),
                 )],
@@ -143,14 +148,14 @@ fn at_severity(found: Vec<Violation>, builtin: bool, fallback: FallbackSeverity)
 /// cannot be filed.
 fn file_examples(
     project: &Project,
-    file: &std::path::Path,
+    home: TemplateHome<'_>,
     authored: &str,
 ) -> Result<String, Vec<Violation>> {
-    let fail = |err: anyhow::Error| vec![template_failure(file, authored, format!("{err:#}"))];
+    let fail = |err: anyhow::Error| vec![template_failure(home, authored, format!("{err:#}"))];
     let config = &project.config;
     let status = filing_status(config, authored, None);
     let (spliced, _) = splice_config_slots(authored, config, status.as_deref()).map_err(fail)?;
-    let unfillable = mindtape::unfillable_slots(file, authored, &spliced);
+    let unfillable = mindtape::unfillable_slots(home, authored, &spliced);
     if !unfillable.is_empty() {
         return Err(unfillable);
     }

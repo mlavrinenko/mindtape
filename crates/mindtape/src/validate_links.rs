@@ -23,7 +23,7 @@ use crate::link::{
 use crate::model::{Task, resolve_link_path};
 use crate::ready::{collect_blockers, unblocked_violation};
 use crate::severity::Severity;
-use crate::validate::{Location, Violation};
+use crate::validate::Violation;
 
 /// Validate every task's `links:` edges against `config`, appending violations
 /// to `out`: resolution (or target-shape validation) and per-kind
@@ -201,13 +201,12 @@ fn check_note_rule(
 fn check_cycle(tasks: &[Task], kind: &str, out: &mut Vec<Violation>) {
     if let Err(cycle) = toposort_kind(tasks, kind) {
         let task_id = cycle.members.first().cloned().unwrap_or_default();
-        let location = tasks.iter().find(|task| task.id == task_id).map_or_else(
-            || Location {
-                file: format!("{task_id}.typ").into(),
-                line: 1,
-            },
-            |task| task.field_location("links"),
-        );
+        // A cycle's members are tasks of `tasks`, so the member is always found;
+        // there is no path to invent when it is not.
+        let Some(member) = tasks.iter().find(|task| task.id == task_id) else {
+            return;
+        };
+        let location = member.field_location("links");
         out.push(Violation {
             task_id,
             field: kind.to_owned(),

@@ -127,10 +127,7 @@ impl Task {
     /// (see [`marker_line`](Self::marker_line)).
     #[must_use]
     pub fn marker_location(&self) -> crate::validate::Location {
-        crate::validate::Location {
-            file: self.file.clone(),
-            line: self.marker_line.max(1),
-        }
+        crate::validate::Location::at(self.file.clone(), self.marker_line.max(1))
     }
 
     /// Where a breach of `field` points: the line of that argument in the
@@ -142,10 +139,7 @@ impl Task {
         let root = field.split(['.', '[']).next().unwrap_or(field);
         self.field_lines.get(root).map_or_else(
             || self.marker_location(),
-            |&line| crate::validate::Location {
-                file: self.file.clone(),
-                line,
-            },
+            |&line| crate::validate::Location::at(self.file.clone(), line),
         )
     }
 

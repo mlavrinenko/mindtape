@@ -71,8 +71,8 @@ fn a_breach_carries_the_label_message_location_and_severity() {
     assert_eq!(breach.severity, Severity::Error);
     assert!(breach.is_fatal());
     let location = breach.location;
-    assert_eq!(location.file, std::path::Path::new("tasks/a.typ"));
-    assert_eq!(location.line, 3);
+    assert_eq!(location.file(), Some(std::path::Path::new("tasks/a.typ")));
+    assert_eq!(location.line(), 3);
 }
 
 #[test]
@@ -174,7 +174,7 @@ fn a_task_with_no_source_reports_at_line_one() {
     let mut subject = task("a", "T", "wip");
     subject.marker_line = 0;
     let toml = "[[tasks.rules]]\nname = \"n\"\nassert = 'kind == \"bug\"'\n";
-    assert_eq!(sole_breach(&[subject], &config(toml)).location.line, 1);
+    assert_eq!(sole_breach(&[subject], &config(toml)).location.line(), 1);
 }
 
 #[test]
@@ -325,6 +325,51 @@ severity = \"error\"
         skip.message.contains("not a git repository"),
         "{}",
         skip.message
+    );
+}
+
+/// A rule skipped for lack of git is reported at its entry in the project
+/// config, not on a task line it has nothing to do with.
+#[test]
+fn a_skipped_rule_is_located_at_its_config_entry() {
+    let dir = tempfile::tempdir().unwrap();
+    let text = "\
+[tasks]
+roots = [\"tasks\"]
+
+[[tasks.rules]]
+name = \"quiet\"
+assert = 'has(title)'
+
+[[tasks.rules]]
+name = \"src-budget\"
+assert = 'changed(\"staged+worktree\", \"src/**\") <= 3'
+";
+    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
+    std::fs::write(dir.path().join(".mindtape/config.toml"), text).unwrap();
+    let mut config = config(text);
+    config.git.set_root(dir.path());
+    config.rules_root.set(dir.path());
+    let skip = sole_breach(&[task("a", "Refactor it", "wip")], &config);
+    assert_eq!(
+        skip.location,
+        crate::Location::at(".mindtape/config.toml", 8)
+    );
+}
+
+/// A rule no project config entry declares — it came from a pack or a global
+/// layer — has no entry to open, so it stays on the task's marker.
+#[test]
+fn a_skipped_rule_outside_the_project_config_stays_on_the_task() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut config =
+        config("[[tasks.rules]]\nname = \"src-budget\"\nassert = 'changed(\"worktree\") <= 3'\n");
+    config.git.set_root(dir.path());
+    config.rules_root.set(dir.path());
+    let skip = sole_breach(&[task("a", "Refactor it", "wip")], &config);
+    assert_eq!(
+        skip.location.file(),
+        Some(std::path::Path::new("tasks/a.typ"))
     );
 }
 
