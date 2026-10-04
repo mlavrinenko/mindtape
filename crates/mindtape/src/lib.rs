@@ -63,6 +63,7 @@ mod dep_rank;
 pub mod derive;
 pub mod emit;
 mod expr;
+mod field_descriptor;
 mod fields;
 pub mod filter;
 mod filter_aggregate;

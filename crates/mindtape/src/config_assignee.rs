@@ -24,6 +24,9 @@ pub struct AssigneeConfig {
     pub allowed: Vec<String>,
     /// Whether an assignee must be set.
     pub required: Requirement,
+    /// A filter naming the tasks held to `allowed`; every other task keeps
+    /// whatever it carries. Absent holds every task.
+    pub values_when: Option<String>,
 }
 
 #[cfg(test)]

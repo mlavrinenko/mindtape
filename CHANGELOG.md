@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **One descriptor holds a field's rules.** `[tasks.fields.<name>]`,
+  `[tasks.assignee]` and `[tasks.tags]` take `values-when`, a filter naming the
+  tasks held to the allowed values. Tags default to `!terminal`, as before, and
+  every other field to all tasks. A template's `assignee: slot("assignee")`
+  offers the allowed names, and `has(tags, "frontend")` and
+  `has(estimate, "days")` read the core list and dict fields.
 - **`values` checks a list-valued `x-<ns>` field.** A non-empty `values`
   refused a list extra with `takes a string`, so a project whose field holds
   several machines kept a Typst check. `mt check` now holds every element to

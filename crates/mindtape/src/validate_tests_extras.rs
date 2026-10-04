@@ -18,8 +18,8 @@ fn machine_config(values: &[&str]) -> Config {
         "x-machine".into(),
         FieldConfig {
             values: values.iter().map(|&v| v.to_owned()).collect(),
-            default: None,
             required: Requirement::Expr("!terminal".to_owned()),
+            ..FieldConfig::default()
         },
     );
     cfg

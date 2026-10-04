@@ -123,6 +123,14 @@
         "required": {
           "$ref": "#/$defs/Requirement",
           "description": "Whether an assignee must be set."
+        },
+        "values-when": {
+          "default": null,
+          "description": "A filter naming the tasks held to `allowed`; every other task keeps\nwhatever it carries. Absent holds every task.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "type": "object"
@@ -725,6 +733,14 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "values-when": {
+          "default": null,
+          "description": "A filter naming the tasks held to `values`; every other task keeps\nwhatever it carries. Absent holds every task.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "type": "object"
@@ -1901,11 +1917,19 @@
       "properties": {
         "allowed": {
           "default": [],
-          "description": "Allowed tag names. Empty accepts any tag. `mt check` skips the\nallow-list for closed tasks, and the loader derives folder tags again on\nevery load, so a moved file gets its new folder's tags. An entry `@<dict>`\nstands for every entry of `[dicts.<dict>]`.",
+          "description": "Allowed tag names. Empty accepts any tag. The loader derives folder tags\nagain on every load, so a moved file gets its new folder's tags. An entry\n`@<dict>` stands for every entry of `[dicts.<dict>]`.",
           "items": {
             "type": "string"
           },
           "type": "array"
+        },
+        "values-when": {
+          "default": null,
+          "description": "A filter naming the tasks held to `allowed`. Absent means `!terminal`,\nso a closed task keeps a tag dropped from the list.",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "type": "object"

@@ -41,8 +41,8 @@ fn demanding_config() -> Config {
         "kind".into(),
         FieldConfig {
             values: vec!["bug".into(), "feature".into()],
-            default: None,
             required: always,
+            ..FieldConfig::default()
         },
     );
     cfg

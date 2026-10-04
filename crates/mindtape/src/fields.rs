@@ -28,7 +28,11 @@
 //! keeps its deliberate split — a comparison reads the name, an ordering
 //! reads the position — and the explicit properties spell the two apart.
 //! Collections (`links`, `estimate`, `tags`) stay out until an aggregate
-//! meaning exists for them.
+//! meaning exists for them; `has(field, value)` reads `tags` and `estimate`
+//! through [`held`].
+//!
+//! A field with allowed values, a default or a requirement is one
+//! [`crate::field_descriptor::Descriptor`].
 //!
 //! `path` is the task's project-root-relative source path
 //! ([`Task::file_key`]), and is deliberately not spelled `file`: the `file`
@@ -258,6 +262,31 @@ pub fn extra(task: &Task, name: &str) -> FieldValue {
         .get(name)
         .and_then(from_extra)
         .unwrap_or(FieldValue::Missing)
+}
+
+/// A task's value for one of the fields a [`Descriptor`] describes, as the
+/// marker held it: `kind` and `assignee` as text, `tags` (authored and
+/// derived) as an array of text, `estimate` as a dict of its units, and an
+/// `x-<ns>` slot as authored. `None` for an unset `kind`, `assignee` or slot,
+/// and for any other name.
+#[must_use]
+pub fn held(task: &Task, name: &str) -> Option<HVal> {
+    let text = |value: &Option<String>| value.clone().map(HVal::Str);
+    match name {
+        "kind" => text(&task.kind),
+        "assignee" => text(&task.assignee),
+        "tags" => Some(HVal::Array(
+            task.all_tags().into_iter().map(HVal::Str).collect(),
+        )),
+        "estimate" => Some(HVal::Dict(
+            task.estimate
+                .iter()
+                .map(|(unit, quantity)| (unit.clone(), HVal::Float(*quantity)))
+                .collect(),
+        )),
+        slot if is_extra(slot) => task.extras.get(slot).cloned(),
+        _ => None,
+    }
 }
 
 fn opt_str(value: Option<String>) -> FieldValue {

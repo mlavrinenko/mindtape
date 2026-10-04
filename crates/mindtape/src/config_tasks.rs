@@ -248,7 +248,7 @@ impl<'de> Deserialize<'de> for IdFormat {
 /// `[tasks.fields.<name>]` — allowed values, default and requirement for
 /// `kind` or one `x-<ns>` extension field.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct FieldConfig {
     /// Allowed values. Empty accepts any value, and a non-empty list takes a
     /// string, or a list of distinct strings for an `x-<ns>` field. An entry `@<dict>` stands for every entry of
@@ -260,18 +260,23 @@ pub struct FieldConfig {
     pub default: Option<String>,
     /// Whether the field must be set.
     pub required: Requirement,
+    /// A filter naming the tasks held to `values`; every other task keeps
+    /// whatever it carries. Absent holds every task.
+    pub values_when: Option<String>,
 }
 
 /// `[tasks.tags]` — optional tag allow-list.
 #[derive(Debug, Clone, Default, Deserialize, PartialEq, schemars::JsonSchema)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default, rename_all = "kebab-case", deny_unknown_fields)]
 pub struct TagsConfig {
-    /// Allowed tag names. Empty accepts any tag. `mt check` skips the
-    /// allow-list for closed tasks, and the loader derives folder tags again on
-    /// every load, so a moved file gets its new folder's tags. An entry `@<dict>`
-    /// stands for every entry of `[dicts.<dict>]`.
+    /// Allowed tag names. Empty accepts any tag. The loader derives folder tags
+    /// again on every load, so a moved file gets its new folder's tags. An entry
+    /// `@<dict>` stands for every entry of `[dicts.<dict>]`.
     // `expand_dict_refs` expands the `@<dict>` entries at config load.
     pub allowed: Vec<String>,
+    /// A filter naming the tasks held to `allowed`. Absent means `!terminal`,
+    /// so a closed task keeps a tag dropped from the list.
+    pub values_when: Option<String>,
 }
 
 /// Expand every `@<dict>` reference in `[tasks.tags] allowed` and each
@@ -422,6 +427,7 @@ mod tests {
         let mut tasks = TasksConfig {
             tags: TagsConfig {
                 allowed: vec!["swept".to_owned(), "size".to_owned()],
+                ..TagsConfig::default()
             },
             ..TasksConfig::default()
         };
@@ -452,6 +458,7 @@ mod tests {
         let mut tasks = TasksConfig {
             tags: TagsConfig {
                 allowed: vec!["@ghost".to_owned()],
+                ..TagsConfig::default()
             },
             ..TasksConfig::default()
         };

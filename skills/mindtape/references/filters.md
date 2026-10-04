@@ -25,7 +25,7 @@ save it in config, because `mt ls` shows what it selects.
 - `role == "reviewer"` matches a task whose assignee holds that role in
   `[[actors]]`, and `role != "reviewer"` matches every other task.
 - `estimate.<unit>` is one unit of the `estimate` dict, as a number.
-- `estimate` and `tags` take `has()` and `miss()` only.
+- `estimate` and `tags` take `has()` and `miss()` only: `has(tags, "frontend")`, `has(estimate, "days")`.
 - An `x-<ns>` slot reads whether or not `[tasks.fields]` declares it. Text, a
   number or a boolean compares like any field: `x-machine == "alpha"`. A list
   equals nothing, so `has(x-machine, "alpha")` tests membership. A dict such

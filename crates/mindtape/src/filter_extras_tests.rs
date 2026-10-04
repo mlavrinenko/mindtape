@@ -120,3 +120,16 @@ fn a_scalar_extra_sorts_with_missing_last() {
     let order: Vec<&str> = tasks.iter().map(|task| task.id.as_str()).collect();
     assert_eq!(order, ["t0", "t2", "t1"]);
 }
+
+#[test]
+fn has_reads_the_core_list_and_dict_fields() {
+    let mut task = sample();
+    task.tags = vec!["frontend".to_owned()];
+    task.derived_tags = vec!["web".to_owned()];
+    task.estimate = BTreeMap::from([("days".to_owned(), 2.0)]);
+    assert!(hit(r#"has(tags, "frontend")"#, &task));
+    assert!(hit(r#"has(tags, "web")"#, &task));
+    assert!(!hit(r#"has(tags, "backend")"#, &task));
+    assert!(hit(r#"has(estimate, "days")"#, &task));
+    assert!(!hit(r#"has(estimate, "hours")"#, &task));
+}

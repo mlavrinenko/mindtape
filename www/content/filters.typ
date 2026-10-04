@@ -57,7 +57,12 @@ backend team's backlog:
   [`estimate.<unit>`],
   [One #link(u("/estimates/"))[estimate] unit, as a number. Filters only, so it does not sort.],
 
-  [`estimate`], [The estimate dict. Only `has()` and `miss()` read it.],
+  [`estimate`],
+  [The estimate dict. Only `has()` and `miss()` read it: `has(estimate, "days")`.],
+
+  [`tags`],
+  [The written and derived tags. `has(tags, "frontend")` reads them, and `contains` searches them.],
+
   [`x-<ns>`],
   [An extension field, whether or not `[tasks.fields]` declares it. Text, a number or a boolean compares like any field. A list equals nothing, so `has(field, value)` reads it. A dict takes only `has()` and `miss()`.],
 )
@@ -96,7 +101,7 @@ same date, which `MINDTAPE_NOW` pins (see
   table.header([Function], [Matches]),
   [`has(field)`, `miss(field)`], [The task has the field, or does not.],
   [`has(field, value)`],
-  [The field's list holds the value, its scalar equals it, or its dict has it as a key.],
+  [The field's list holds the value, its scalar equals it, or its dict has it as a key. `tags` and `estimate` read this way too.],
 
   [`has_tag("name")`],
   [The task has the tag, written or #link(u("/derived-tags/"))[derived].],

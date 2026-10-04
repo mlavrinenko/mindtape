@@ -95,3 +95,23 @@ fn a_field_without_values_or_a_source_without_task_with_is_unchanged() {
         assert_eq!(inherit_field_choices(source, &config).unwrap(), source);
     }
 }
+
+#[test]
+fn an_assignee_slot_offers_the_allowed_names() {
+    let template = r#"#show: task.with(assignee: slot("assignee"))"#;
+    let toml = "[tasks.assignee]\nallowed = [\"ada\", \"lin\"]\n";
+    assert_eq!(
+        inherited(toml, template, "assignee"),
+        (
+            SlotKind::Choice,
+            Some(vec!["ada".to_owned(), "lin".to_owned()])
+        )
+    );
+}
+
+#[test]
+fn a_tags_slot_keeps_its_own_spec() {
+    let template = r#"#show: task.with(tags: slot("tags"))"#;
+    let toml = "[tasks.tags]\nallowed = [\"web\"]\n";
+    assert_eq!(inherited(toml, template, "tags"), (SlotKind::String, None));
+}

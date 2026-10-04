@@ -9,10 +9,11 @@
 
 use std::collections::HashMap;
 
-use typst_harvest::HVal;
 use uuid::Uuid;
 
-use crate::config::{Config, FieldConfig, IdFormat, Legend, RequiredRules};
+use crate::config::{Config, IdFormat, Legend, RequiredRules};
+use crate::field_descriptor::Descriptor;
+use crate::fields;
 use crate::model::{Status, Task};
 use crate::numeric::{NumValue, NumericField, format_num};
 use crate::severity::Severity;
@@ -24,13 +25,13 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
     let mut out = Vec::new();
     check_id_uniqueness(tasks, &mut out);
     let required = RequiredRules::compile(config);
+    let described = crate::field_descriptor::descriptors(config);
     for task in tasks {
         check_shape(task, &mut out);
         check_id_format(task, config, &mut out);
         check_status(task, config, &mut out);
-        for (name, field) in &config.tasks.fields {
-            let must = still_required(required.field(name, task, config), task, name);
-            check_enum_field(task, name, field, must, &mut out);
+        for field in &described {
+            check_field(task, config, field, &mut out);
         }
         out.extend(crate::validate_priority::check_priority(
             task,
@@ -46,9 +47,6 @@ pub fn validate(tasks: &[Task], config: &Config) -> Vec<Violation> {
         ));
         let must_estimate = still_required(required.estimate(task, config), task, "estimate");
         check_estimate(task, config, must_estimate, &mut out);
-        let must_assignee = still_required(required.assignee(task, config), task, "assignee");
-        check_assignee(task, config, must_assignee, &mut out);
-        check_tags(task, config, &mut out);
         crate::validate_recur::check_all(task, config, &mut out);
     }
     crate::validate_links::check_all(tasks, config, &mut out);
@@ -232,96 +230,20 @@ fn check_status_reachable(
     }
 }
 
-fn check_enum_field(
-    task: &Task,
-    name: &str,
-    field: &FieldConfig,
-    required: bool,
-    out: &mut Vec<Violation>,
-) {
-    let found = match name {
-        "kind" => task
-            .kind
-            .as_deref()
-            .map(|kind| enum_breaches(&HVal::Str(kind.to_owned()), field)),
-        _ if name.starts_with("x-") => task
-            .extras
-            .get(name)
-            .map(|value| enum_breaches(value, field)),
-        _ => return,
+/// One described field: a missing required value, and a held value outside
+/// the allowed ones for the tasks the field's `values-when` selects.
+fn check_field(task: &Task, config: &Config, field: &Descriptor, out: &mut Vec<Violation>) {
+    let name = field.name;
+    let Some(value) = fields::held(task, name) else {
+        if still_required(field.must.applies(task, config), task, name) {
+            push(out, task, name, "required field is missing".to_owned());
+        }
+        return;
     };
-    match found {
-        None if required => push(out, task, name, "required field is missing".to_owned()),
-        Some(messages) => {
-            for message in messages {
-                push(out, task, name, message);
-            }
+    if field.holds(task, config) {
+        for message in field.breaches(task, &value) {
+            push(out, task, name, message);
         }
-        None => {}
-    }
-}
-
-/// The messages for one field value held to `field.values`: a string must be
-/// allowed, and a list must be non-empty, hold only allowed strings and name
-/// none twice. A field without `values` takes any shape.
-fn enum_breaches(value: &HVal, field: &FieldConfig) -> Vec<String> {
-    const SHAPE: &str = "a field with allowed values takes a string or a list of strings";
-    if field.values.is_empty() {
-        return Vec::new();
-    }
-    let allowed = |text: &str| field.values.iter().any(|v| v == text);
-    let not_allowed = |text: &str| format!("`{text}` is not an allowed value");
-    match value {
-        HVal::Str(text) if !allowed(text) => vec![not_allowed(text)],
-        HVal::Str(_) => Vec::new(),
-        HVal::Array(items) if items.is_empty() => {
-            vec!["an empty list names no allowed value".to_owned()]
-        }
-        HVal::Array(items) => {
-            let mut out = Vec::new();
-            let mut seen: Vec<&str> = Vec::new();
-            for item in items {
-                match item {
-                    HVal::Str(text) if !allowed(text) => out.push(not_allowed(text)),
-                    HVal::Str(text) if seen.contains(&text.as_str()) => {
-                        out.push(format!("`{text}` is listed twice"));
-                    }
-                    HVal::Str(text) => seen.push(text),
-                    _ if !out.iter().any(|m| m == SHAPE) => out.push(SHAPE.to_owned()),
-                    _ => {}
-                }
-            }
-            out
-        }
-        _ => vec![SHAPE.to_owned()],
-    }
-}
-
-/// Flag an assignee outside `[tasks.assignee] allowed`, or a missing one when
-/// the config requires it. An unset assignee is simply absent — an unknown
-/// actor is not a value — so only the required rule cares about `None`.
-fn check_assignee(task: &Task, config: &Config, required: bool, out: &mut Vec<Violation>) {
-    match task.assignee.as_deref() {
-        None if required => {
-            push(
-                out,
-                task,
-                "assignee",
-                "required field is missing".to_owned(),
-            );
-        }
-        Some(value)
-            if !config.tasks.assignee.allowed.is_empty()
-                && !config.tasks.assignee.allowed.iter().any(|a| a == value) =>
-        {
-            push(
-                out,
-                task,
-                "assignee",
-                format!("`{value}` is not an allowed assignee"),
-            );
-        }
-        _ => {}
     }
 }
 
@@ -406,47 +328,6 @@ fn check_estimate(task: &Task, config: &Config, required: bool, out: &mut Vec<Vi
     }
 }
 
-/// Flag an authored or folder-derived tag outside `[tasks.tags] allowed`.
-/// Skipped once a task is terminal, so dropping a tag from `allowed` is one
-/// edit rather than a rewrite of every closed task that ever carried it. The
-/// loader derives folder tags again on every load, so a moved file gets its
-/// new folder's tags and the check sees those, not the folder it was filed in.
-fn check_tags(task: &Task, config: &Config, out: &mut Vec<Violation>) {
-    let allowed = &config.tasks.tags.allowed;
-    if allowed.is_empty() {
-        return;
-    }
-    if task.is_terminal(&config.tasks.status.terminal()) {
-        return;
-    }
-    for tag in &task.tags {
-        if !allowed.contains(tag) {
-            push(
-                out,
-                task,
-                "tags",
-                format!(
-                    "`{tag}` is not an allowed tag{}",
-                    crate::suggest::hint("tag", tag, allowed)
-                ),
-            );
-        }
-    }
-    for tag in &task.derived_tags {
-        if !allowed.contains(tag) {
-            push(
-                out,
-                task,
-                "tags",
-                format!(
-                    "`{tag}` derived from folder is not an allowed tag{}",
-                    crate::suggest::hint("tag", tag, allowed)
-                ),
-            );
-        }
-    }
-}
-
 #[cfg(test)]
 #[path = "validate_tests.rs"]
 mod tests;
@@ -466,3 +347,7 @@ mod tests_shape;
 #[cfg(test)]
 #[path = "validate_tests_extras.rs"]
 mod tests_extras;
+
+#[cfg(test)]
+#[path = "validate_tests_when.rs"]
+mod tests_when;

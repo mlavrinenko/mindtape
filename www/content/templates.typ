@@ -50,7 +50,7 @@ arguments:
   [What the value is: `string` (the default), `int`, `float`, `real`, `bool`, `date` (`YYYY-MM-DD`), `list` (of strings), `choice`, `text` or `raw`.],
 
   [`choices`],
-  [The values a `choice` slot accepts. A slot that is a whole field value, as in `kind: slot("kind", example: "test")`, and has no `choices` of its own takes the field's `values` from `[tasks.fields.kind]`.],
+  [The values a `choice` slot accepts. A slot that is a whole field value, as in `kind: slot("kind", example: "test")`, and has no `choices` of its own takes the field's allowed values: `values` from `[tasks.fields.kind]`, `allowed` from `[tasks.assignee]`.],
 
   [`default`], [The value used when nothing fills the slot.],
   [`example`],

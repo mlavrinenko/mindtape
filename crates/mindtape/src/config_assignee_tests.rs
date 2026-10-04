@@ -14,6 +14,7 @@ fn absent_section_is_unconstrained() {
         AssigneeConfig {
             allowed: Vec::new(),
             required: Requirement::No,
+            values_when: None,
         }
     );
 }

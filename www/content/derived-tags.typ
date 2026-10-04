@@ -88,4 +88,5 @@ file. Move a file to another folder and its tags change with it.
 When `[tasks.tags] allowed` lists the permitted tags, `mt check` refuses an open
 task whose folders give it a tag that is not on the list. Closed tasks are not
 checked against the list, so you can drop a tag from it without editing every
-closed task that has it.
+closed task that has it. That is `values-when = "!terminal"`, the default for
+tags, and a filter of your own changes which tasks the list holds.

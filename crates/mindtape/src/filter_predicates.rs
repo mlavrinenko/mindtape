@@ -54,11 +54,17 @@ pub(crate) fn has_call(
 }
 
 /// Whether field `name` holds `value`: a list holds it as an element, a scalar
-/// equals it, a dict-valued `x-<ns>` slot has it as a key. A missing field
-/// holds nothing.
+/// equals it, a dict-valued field (`estimate`, an `x-<ns>` slot) has it as a
+/// key. A missing field holds nothing.
 fn holds(task: &Task, name: &str, value: &str, config: &Config) -> Result<bool, FilterError> {
-    if let Some(HVal::Dict(entries)) = task.extras.get(name) {
-        return Ok(entries.contains_key(value));
+    match fields::held(task, name) {
+        Some(HVal::Dict(entries)) => return Ok(entries.contains_key(value)),
+        Some(list @ HVal::Array(_)) => {
+            if let Some(FieldValue::List(items)) = fields::from_extra(&list) {
+                return Ok(items.iter().any(|item| compare(&Operator::Eq, item, value)));
+            }
+        }
+        _ => {}
     }
     Ok(match field_value(task, name, config)? {
         FieldValue::List(items) => items.iter().any(|item| compare(&Operator::Eq, item, value)),

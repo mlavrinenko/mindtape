@@ -12,7 +12,9 @@
 
 use typst_edit::{Call, Edit, EditError, apply, find_calls, find_method_calls};
 
-use crate::config::{Config, FieldConfig, Requirement};
+use crate::config::{Config, Requirement};
+use crate::field_descriptor::{self, Cardinality, Descriptor};
+use crate::fields;
 use crate::framework::{Framework, Input, InputKind};
 use crate::numeric::{NumericField, ScaleKind, format_num};
 
@@ -84,20 +86,16 @@ pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<Require
             default: None,
         });
     }
-    if let Some(field) = tasks.fields.get("kind")
-        && may_apply(&field.required)
-    {
-        out.push(field_slot("kind", field));
-    }
-    if may_apply(&tasks.assignee.required) {
-        out.push(RequiredSlot {
-            field: "assignee".to_owned(),
-            config_path: "[tasks.assignee]".to_owned(),
-            call: assignee_slot(config),
-            env: Some(PRINCIPAL_ENV),
-            default: None,
-        });
-    }
+    let described = field_descriptor::descriptors(config);
+    let slots = |name: &str| {
+        described
+            .iter()
+            .filter(|field| field.name == name && may_apply(field.required))
+            .map(field_slot)
+            .collect::<Vec<_>>()
+    };
+    out.extend(slots("kind"));
+    out.extend(slots("assignee"));
     if may_apply(&tasks.estimate.required) {
         out.push(RequiredSlot {
             field: "estimate".to_owned(),
@@ -108,11 +106,10 @@ pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<Require
         });
     }
     out.extend(
-        tasks
-            .fields
+        described
             .iter()
-            .filter(|(name, field)| name.starts_with("x-") && may_apply(&field.required))
-            .map(|(name, field)| field_slot(name, field)),
+            .filter(|field| fields::is_extra(field.name) && may_apply(field.required))
+            .map(field_slot),
     );
     out
 }
@@ -215,32 +212,35 @@ fn scale_kind_str(kind: ScaleKind) -> &'static str {
     }
 }
 
-/// The slot for a required `[tasks.fields.<name>]` entry: a choice over
-/// `values` when the entry declares any, else a plain string slot, falling
-/// back to `default` either way. Its example is the default, else the first
-/// value, else the field's name without its `x-`.
-fn field_slot(name: &str, field: &FieldConfig) -> RequiredSlot {
+/// The slot for a required described field: a choice over its allowed values
+/// when it declares any, else a plain string slot, falling back to `default`
+/// either way. Its example is the default, else the first allowed value, else
+/// the descriptor's own.
+fn field_slot(field: &Descriptor) -> RequiredSlot {
+    let name = field.name;
     let default = field
         .default
-        .as_ref()
         .map_or_else(String::new, |value| format!(", default: {value:?}"));
-    let example = (field.default.as_deref())
-        .or(field.values.first().map(String::as_str))
-        .unwrap_or_else(|| name.strip_prefix("x-").unwrap_or(name));
-    let call = if field.values.is_empty() {
-        format!(r#"slot("{name}", prompt: "{name}"{default}, example: {example:?})"#)
+    let env = field
+        .env
+        .map_or_else(String::new, |env| format!(", env: \"{env}\""));
+    let example = (field.default)
+        .or(field.allowed.first().map(String::as_str))
+        .unwrap_or(&field.example);
+    let call = if field.allowed.is_empty() {
+        format!(r#"slot("{name}", prompt: "{name}"{default}{env}, example: {example:?})"#)
     } else {
-        let choices = choice_list(&field.values);
+        let choices = choice_list(field.allowed);
         format!(
-            r#"slot("{name}", kind: "choice", choices: ({choices}){default}, example: {example:?})"#
+            r#"slot("{name}", kind: "choice", choices: ({choices}){default}{env}, example: {example:?})"#
         )
     };
     RequiredSlot {
         field: name.to_owned(),
-        config_path: format!("[tasks.fields.{name}]"),
+        config_path: field.path.clone(),
         call,
-        env: None,
-        default: field.default.as_ref().map(|value| format!("{value:?}")),
+        env: field.env,
+        default: field.default.map(|value| format!("{value:?}")),
     }
 }
 
@@ -253,36 +253,6 @@ fn estimate_slot(config: &Config) -> String {
         .map_or("days", String::as_str);
     format!(
         r#"slot("estimate", kind: "text", prompt: "estimate dict, e.g. ({hint}: 1)", example: "({hint}: 1)")"#
-    )
-}
-
-/// Environment variable a required assignee slot reads by default: the actor
-/// running the CLI. Unset or blank is an unknown actor — not a value — so the
-/// fill falls through to the interactive scaffold.
-const PRINCIPAL_ENV: &str = "MINDTAPE_PRINCIPAL";
-
-/// The example an open assignee slot falls back to when the project declares
-/// no actor to name.
-const PLACEHOLDER_ASSIGNEE: &str = "someone";
-
-/// The assignee slot: a choice over `allowed` when the project declares it.
-/// Its example is the first allowed name, else the first actor, else
-/// [`PLACEHOLDER_ASSIGNEE`].
-fn assignee_slot(config: &Config) -> String {
-    let allowed = &config.tasks.assignee.allowed;
-    if allowed.is_empty() {
-        let example = config
-            .actors
-            .first()
-            .map_or(PLACEHOLDER_ASSIGNEE, |actor| actor.name.as_str());
-        return format!(
-            r#"slot("assignee", prompt: "assignee", env: "{PRINCIPAL_ENV}", example: {example:?})"#
-        );
-    }
-    let choices = choice_list(allowed);
-    let example = allowed.first().map_or("", String::as_str);
-    format!(
-        r#"slot("assignee", kind: "choice", choices: ({choices}), env: "{PRINCIPAL_ENV}", example: {example:?})"#
     )
 }
 
@@ -304,11 +274,16 @@ pub fn inherit_field_choices(source: &str, config: &Config) -> Result<String, Ed
         return Ok(source.to_owned());
     };
     let slots = find_calls(source, "slot");
+    let described = field_descriptor::descriptors(config);
     let edits: Vec<Edit> = (call.args.iter())
         .filter_map(|arg| {
-            let field = config.tasks.fields.get(arg.name.as_deref()?)?;
+            let name = arg.name.as_deref()?;
+            let field = described.iter().find(|field| field.name == name)?;
+            if field.cardinality == Cardinality::Many {
+                return None;
+            }
             let slot = slots.iter().find(|slot| slot.range == arg.value_range)?;
-            choice_edits(slot, &field.values)
+            choice_edits(slot, field.allowed)
         })
         .flatten()
         .collect();

@@ -14,8 +14,6 @@
 //! compiles the whole set once ([`RequiredRules::compile`]) and asks it task by
 //! task.
 
-use std::collections::BTreeMap;
-
 use serde::{Deserialize, Deserializer};
 
 use crate::config::Config;
@@ -151,8 +149,6 @@ pub struct RequiredRules {
     priority: RequirementRule,
     difficulty: RequirementRule,
     estimate: RequirementRule,
-    assignee: RequirementRule,
-    fields: BTreeMap<String, RequirementRule>,
 }
 
 impl RequiredRules {
@@ -164,12 +160,6 @@ impl RequiredRules {
             priority: RequirementRule::compile(&tasks.priority.field.required),
             difficulty: RequirementRule::compile(&tasks.difficulty.required),
             estimate: RequirementRule::compile(&tasks.estimate.required),
-            assignee: RequirementRule::compile(&tasks.assignee.required),
-            fields: tasks
-                .fields
-                .iter()
-                .map(|(name, field)| (name.clone(), RequirementRule::compile(&field.required)))
-                .collect(),
         }
     }
 
@@ -190,21 +180,6 @@ impl RequiredRules {
     pub fn estimate(&self, task: &Task, config: &Config) -> bool {
         self.estimate.applies(task, config)
     }
-
-    /// Whether `task` must carry an assignee.
-    #[must_use]
-    pub fn assignee(&self, task: &Task, config: &Config) -> bool {
-        self.assignee.applies(task, config)
-    }
-
-    /// Whether `task` must carry `[tasks.fields.<name>]`. A name the config
-    /// never declares is never required.
-    #[must_use]
-    pub fn field(&self, name: &str, task: &Task, config: &Config) -> bool {
-        self.fields
-            .get(name)
-            .is_some_and(|rule| rule.applies(task, config))
-    }
 }
 
 /// Load-time check of every `required` expression in `config`: one message per
@@ -219,6 +194,32 @@ pub(crate) fn validate_requirements(config: &Config) -> Vec<String> {
         .into_iter()
         .filter_map(|(path, requirement)| {
             problem(requirement, &probe, config).map(|problem| format!("{path}: {problem}"))
+        })
+        .collect()
+}
+
+/// Load-time check of every `values-when` filter, like [`validate_requirements`].
+pub(crate) fn validate_values_when(config: &Config) -> Vec<String> {
+    let tasks = &config.tasks;
+    let probe = Task::default();
+    let mut sources = vec![
+        (
+            "tasks.assignee.values-when".to_owned(),
+            &tasks.assignee.values_when,
+        ),
+        ("tasks.tags.values-when".to_owned(), &tasks.tags.values_when),
+    ];
+    sources.extend(tasks.fields.iter().map(|(name, field)| {
+        (
+            format!("tasks.fields.{name}.values-when"),
+            &field.values_when,
+        )
+    }));
+    sources
+        .into_iter()
+        .filter_map(|(path, source)| {
+            let problem = crate::filter::expr_problem(source.as_deref()?, &probe, config)?;
+            Some(format!("{path}: {problem}"))
         })
         .collect()
 }

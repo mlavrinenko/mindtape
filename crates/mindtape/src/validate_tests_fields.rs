@@ -259,8 +259,8 @@ fn kind_config() -> Config {
         "kind".into(),
         FieldConfig {
             values: vec!["bug".into(), "feature".into()],
-            default: None,
             required: Requirement::Expr("!terminal".to_owned()),
+            ..FieldConfig::default()
         },
     );
     cfg
