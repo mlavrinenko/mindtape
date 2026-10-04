@@ -1,4 +1,5 @@
-//! `mt check` — validate tasks against the project configuration.
+//! `mt check` — validate tasks, and the tasks every template files, against
+//! the project configuration.
 
 use anyhow::{Context, Result, bail};
 use clap::Args;
@@ -53,20 +54,14 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
     let content_rules = compile_content_rules(&project.config.tasks.body.content.rules)
         .context("invalid tasks.body.content.rules in config")?;
 
-    let mut violations = validate(&project.outcome.tasks, &project.config);
+    let body_rules = BodyRules {
+        headers: &header_rules,
+        content: &content_rules,
+    };
 
-    if !header_rules.is_empty() || !content_rules.is_empty() {
-        let body_rules = BodyRules {
-            headers: &header_rules,
-            content: &content_rules,
-        };
-        for task in &project.outcome.tasks {
-            let abs = project.root.join(&task.file);
-            let source =
-                std::fs::read_to_string(&abs).with_context(|| format!("read {}", abs.display()))?;
-            violations.extend(check_body_rules(task, &source, body_rules, &project.config));
-        }
-    }
+    let mut violations = validate(&project.outcome.tasks, &project.config);
+    violations.extend(body_violations(project, body_rules)?);
+    violations.extend(crate::check_templates::breaches(project, body_rules)?);
 
     // `[tasks.comments]`: `forbid` joins the per-task violations below (and so
     // fails the command); `warn`/`allow` print (if anything) without failing.
@@ -96,6 +91,21 @@ pub(crate) fn run_with(project: &util::Project, args: &CheckArgs) -> Result<()> 
         return Ok(());
     }
     bail!("{failures} violation(s), {load_errors} load error(s)")
+}
+
+/// The header and content body rules over every loaded task's source.
+fn body_violations(project: &util::Project, body_rules: BodyRules<'_>) -> Result<Vec<Violation>> {
+    let mut out = Vec::new();
+    if body_rules.headers.is_empty() && body_rules.content.is_empty() {
+        return Ok(out);
+    }
+    for task in &project.outcome.tasks {
+        let abs = project.root.join(&task.file);
+        let source =
+            std::fs::read_to_string(&abs).with_context(|| format!("read {}", abs.display()))?;
+        out.extend(check_body_rules(task, &source, body_rules, &project.config));
+    }
+    Ok(out)
 }
 
 /// Report one violation: `severity: file:line: field: message`.

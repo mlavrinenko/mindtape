@@ -71,6 +71,28 @@ well as a string, so a body section's example reads as markup, as in the
 template above. Typst removes the indentation every line shares, the closing
 fence's line included, and ignores the language tag.
 
+= Check the templates
+
+`mt check` checks every template that `mt add --list` lists, so a config
+change that breaks a template fails `mt check` at once rather than at the next
+`mt add`. It fills each template as `mt add` would, with every slot holding its
+`example`, else its `default`, and checks the result like a task. Every breach
+counts, and names the template file and the line of the field, as in
+#raw("error: .mindtape/templates/bug.typ:4: kind: `bug` is not an allowed value").
+
+A slot with neither an `example` nor a `default` leaves nothing to fill, so
+`mt check` reports the slot and checks nothing else in that template. A slot
+that `mt add` adds for a required field takes its example from config: the
+field's `default` or first value, the first allowed assignee or else the first
+actor, the middle of a numeric scale or framework input, and one of the first
+estimate unit. A template that does not evaluate is one breach carrying the
+Typst error.
+
+The built-in template is reported as `<built-in>/task.typ`, at the severity
+`[templates] fallback-severity` sets: `"warning"` by default, or `"error"`. Any
+config layer can set it, the global `defaults.toml` included. A project's own
+templates always report errors.
+
 = See the slots
 
 `mt add --describe` lists each slot with its kind, whether it is required, and
@@ -136,7 +158,9 @@ an earlier one, and `null` clears it.
 = What `mt add` sets for you
 
 - `status`: the first status in the legend that is not terminal, with
-  today's date. `--status <name>` picks another.
+  today's date. A template that sets `status`, as in
+  `status: done(2026, 1, 1)`, files at that status with today's date instead.
+  `--status <name>` picks another.
 - `id`: a new UUID, only when `[tasks.id] format` is `uuid-v4` or `uuid-v7`.
   Otherwise the file name is the task's identity.
 - Required fields the template leaves out. When the config requires

@@ -1,7 +1,11 @@
 #import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: slot("title", prompt: "Task title"),
+  title: slot(
+    "title",
+    prompt: "Task title",
+    example: "Retry failed invoice payments",
+  ),
   tags: slot("tags", kind: "list", default: ()),
 )
 
@@ -32,4 +36,8 @@
 
 == Files
 
-#slot("files", kind: "text", default: "- TODO: paths this task expects to change")
+#slot(
+  "files",
+  kind: "text",
+  default: "- TODO: paths this task expects to change",
+)

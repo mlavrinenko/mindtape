@@ -2,33 +2,49 @@
 #import "../lib.typ": *
 
 #show: task.with(
-  title: slot("title", prompt: "pin <function> in <path>"),
+  title: slot(
+    "title",
+    prompt: "pin <function> in <path>",
+    example: "Pin compare_due in crates/mindtape/src/sort.rs",
+  ),
   kind: "test",
   priority: ice(
     impact: slot(
       "impact",
       kind: "int",
       prompt: "1-10, rises with what the unpinned line decides",
+      example: 5,
     ),
     confidence: slot(
       "confidence",
       kind: "float",
       prompt: "0-1, high: cargo-mutants ran the suite, it did not guess",
+      example: 0.9,
     ),
     ease: slot(
       "ease",
       kind: "int",
       prompt: "1-10, falls with how far the mutant sits from a seam",
+      example: 6,
     ),
   ),
   difficulty: slot(
     "difficulty",
     kind: "int",
     prompt: "0-9 on the judgment scale",
+    example: 2,
   ),
-  estimate: slot("estimate", kind: "text", prompt: "(src-files: N)"),
+  estimate: slot(
+    "estimate",
+    kind: "text",
+    prompt: "(src-files: N)",
+    example: "(src-files: 2)",
+  ),
   assignee: "agent",
-  tags: slot("tags", kind: "list", prompt: "swept, mutants"),
+  tags: slot("tags", kind: "list", prompt: "swept, mutants", example: (
+    "swept",
+    "mutants",
+  )),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -49,7 +65,7 @@
 == Problem
 
 + Run `cargo mutants` over the file below.
-+ 🔴 #raw(slot("function", prompt: "the mutated function")) in #raw(slot("path", prompt: "repo-relative path of the mutated file")) survived a mutation at line #slot("line", kind: "text", prompt: "line number of the mutant"): the suite still passed after #raw(slot("mutation", prompt: "cargo-mutants' own wording for the mutation, so it greps against missed.txt")).
++ 🔴 #raw(slot("function", prompt: "the mutated function", example: "compare_due")) in #raw(slot("path", prompt: "repo-relative path of the mutated file", example: "crates/mindtape/src/sort.rs")) survived a mutation at line #slot("line", kind: "text", prompt: "line number of the mutant", example: "88"): the suite still passed after #raw(slot("mutation", prompt: "cargo-mutants' own wording for the mutation, so it greps against missed.txt", example: "replace compare_due -> Ordering with Ordering::Equal")).
 
 The line is covered, so something executes it, but nothing asserts on what it
 decides. `just ask-refactoring` filed this, and the sweep re-reads the signal
@@ -59,6 +75,7 @@ every run, so the task is worth only as much as that measurement still is.
   "scope",
   kind: "text",
   prompt: "one sentence naming what that sweep covered",
+  example: "The sweep ran `cargo mutants` over the files changed since `main`.",
 )
 
 == TO-BE

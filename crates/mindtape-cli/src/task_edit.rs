@@ -88,6 +88,35 @@ pub fn initial_status(config: &Config) -> Option<String> {
         .map(|entry| entry.value.clone())
 }
 
+/// The status `mt add` files a task from `template` at: `explicit`
+/// (`--status`), else the status the template's own `status:` names, as a
+/// shortcut (`done(…)`) or the generic `status("done", …)`, else
+/// [`initial_status`]. The template's date and note are not kept; the status
+/// is stamped today.
+#[must_use]
+pub fn filing_status(config: &Config, template: &str, explicit: Option<&str>) -> Option<String> {
+    explicit
+        .map(ToOwned::to_owned)
+        .or_else(|| template_status(template))
+        .or_else(|| initial_status(config))
+}
+
+/// The status name a template's `status:` argument writes, if it is a status
+/// call.
+fn template_status(template: &str) -> Option<String> {
+    let call = task_with(template).ok()?;
+    let value = template.get(call.named("status")?.value_range.clone())?;
+    let (callee, args) = value.split_once('(')?;
+    let callee = callee.trim();
+    if mindtape::STATUS_SHORTCUTS.contains(&callee) {
+        return Some(callee.to_owned());
+    }
+    let (name, _) = (callee == "status")
+        .then(|| args.trim_start().strip_prefix('"'))??
+        .split_once('"')?;
+    Some(name.to_owned())
+}
+
 /// Reload the project rooted at `root` and report any load error or
 /// validation violation that touches `file` — the shared post-write check
 /// `mt add` and `mt recur` both run on a freshly written or rewritten task.

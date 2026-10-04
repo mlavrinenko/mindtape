@@ -7,8 +7,9 @@
 # the two body rule families, the review-comment policy and two commit rules,
 # which /commit-rules/ runs against a git copy of this project. The actor
 # registry is here because the required assignee needs one. Its three tasks
-# satisfy every rule here, so `just check-examples` proves each one loads and
-# holds. www/generate.sh runs the refused writes against a copy.
+# and its task template satisfy every rule here, so `just check-examples`
+# proves each one loads and holds. www/generate.sh runs the refused writes
+# against a copy.
 
 [[typst.local-packages]]
 name = "mindtape"

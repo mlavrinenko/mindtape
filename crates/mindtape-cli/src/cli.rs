@@ -76,7 +76,8 @@ enum Command {
     Views(views::ViewsArgs),
     /// List worktree aliases (`@name` sugar; `~/.config/mindtape/worktrees.toml`).
     Worktrees(worktrees::WorktreesArgs),
-    /// Validate tasks against the project configuration.
+    /// Validate tasks, and the task each template files, against the project
+    /// configuration.
     Check(check::CheckArgs),
     /// Inspect the effective merged configuration (`show` is the default action).
     Config(config_cmd::ConfigArgs),

@@ -68,7 +68,13 @@ fn an_assert_that_holds_leaves_check_green() {
     let dir = project(&imperative_rule("error"), "Refactor the loader");
     let (ok, text) = check(dir.path());
     assert!(ok, "a satisfied rule must not fail the command: {text}");
-    assert!(!text.contains("imperative-title"), "got: {text}");
+    // The built-in template's own title may warn; the task's must not breach.
+    assert!(
+        !text
+            .lines()
+            .any(|line| line.contains("tasks/subject.typ") && line.contains("imperative-title")),
+        "got: {text}"
+    );
 }
 
 #[test]

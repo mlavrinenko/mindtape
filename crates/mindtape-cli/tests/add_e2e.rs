@@ -177,7 +177,7 @@ fn unknown_values_json_key_is_a_hard_error() {
 /// and the one shape no in-tree template happens to be written in.
 const SINGLE_LINE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 
-#show: task.with(title: slot("title"))
+#show: task.with(title: slot("title", example: "Fix the login redirect"))
 
 == Summary
 "#;
@@ -243,8 +243,22 @@ fn a_task_that_fails_verification_is_never_written() {
         "a rejected add must not report a write: {output:?}"
     );
 
-    // The next command runs clean: nothing was left behind to trip over.
-    support::mt(dir.path()).arg("check").assert().success();
+    // Nothing was left behind to trip over: `mt check` finds only the
+    // template at fault.
+    assert_only_the_template_breaches(dir.path());
+}
+
+/// `mt check` in `dir` reports breaches, and every one names a template.
+fn assert_only_the_template_breaches(dir: &std::path::Path) {
+    let output = support::mt(dir).arg("check").output().unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!output.status.success(), "{stdout}");
+    assert!(
+        stdout
+            .lines()
+            .all(|line| line.contains(".mindtape/templates/task.typ")),
+        "{stdout}"
+    );
 }
 
 /// A template that evaluates fine but whose filled value breaks a *rule* — the
@@ -254,7 +268,7 @@ fn a_task_that_fails_verification_is_never_written() {
 const ESTIMATE_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: slot("title"),
+  title: slot("title", example: "Fix the login redirect"),
   estimate: slot("estimate", kind: "raw", default: "(days: 1)"),
 )
 
@@ -368,7 +382,7 @@ fn refuses_a_task_whose_to_be_bullet_breaks_a_content_rule() {
     );
 
     // Nothing was left behind to trip over.
-    support::mt(dir.path()).arg("check").assert().success();
+    assert_only_the_template_breaches(dir.path());
 }
 
 /// The harness must never hand a spawned `mt` the developer's editor. A

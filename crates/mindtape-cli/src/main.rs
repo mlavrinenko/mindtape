@@ -46,6 +46,7 @@ mod add_values;
 mod check;
 mod check_commit;
 mod check_range;
+mod check_templates;
 mod cli;
 mod cli_dump;
 mod command_class;

@@ -146,17 +146,65 @@ impl fmt::Display for FillError {
 
 impl std::error::Error for FillError {}
 
-/// The replacement for an unfilled slot: a `text`/`raw` slot's
-/// string-literal default becomes unquoted body markup; every other default
+/// The replacement for an unfilled slot: a `text`/`raw` slot's string or
+/// raw-block default becomes unquoted body markup; every other default
 /// splices verbatim.
 fn default_replacement(spec: &SlotSpec) -> Option<String> {
-    let raw = spec.default.as_ref()?;
-    if spec.kind.splices_verbatim()
-        && let Some(text) = &spec.default_string
-    {
-        return Some(text.clone());
+    literal_replacement(spec, spec.default.as_ref(), spec.default_string.as_ref())
+}
+
+/// [`default_replacement`] for the slot's `example`.
+fn example_replacement(spec: &SlotSpec) -> Option<String> {
+    literal_replacement(spec, spec.example.as_ref(), spec.example_string.as_ref())
+}
+
+fn literal_replacement(
+    spec: &SlotSpec,
+    raw: Option<&String>,
+    text: Option<&String>,
+) -> Option<String> {
+    let raw = raw?;
+    match text {
+        Some(text) if spec.kind.splices_verbatim() => Some(text.clone()),
+        _ => Some(raw.clone()),
     }
-    Some(raw.clone())
+}
+
+/// Fill every slot in `source` with its `example`, else its `default`: the
+/// task a template files when every slot holds the value its author showed,
+/// which is what `mt check` validates.
+///
+/// # Errors
+/// Returns [`FillError::Missing`] naming each slot with neither, and
+/// [`FillError::UnknownKind`] for a slot whose kind names nothing.
+pub fn fill_examples(source: &str) -> Result<String, FillError> {
+    let specs = discover_slots(source);
+    reject_unknown_kind(&specs)?;
+    let mut edits = Vec::new();
+    let mut missing = Vec::new();
+    for spec in &specs {
+        match example_replacement(spec).or_else(|| default_replacement(spec)) {
+            Some(text) => edits.push(Edit::new(edit_range(spec, source), text)),
+            None => missing.push(spec.name.clone()),
+        }
+    }
+    if !missing.is_empty() {
+        return Err(FillError::Missing(missing));
+    }
+    apply(source, edits).map_err(|err| FillError::Edit(err.to_string()))
+}
+
+/// A slot whose declared kind names nothing would otherwise be filled as a
+/// `string`, which is a wrong task written silently rather than a template
+/// error reported.
+fn reject_unknown_kind(specs: &[SlotSpec]) -> Result<(), FillError> {
+    match specs.iter().find(|spec| spec.unknown_kind.is_some()) {
+        Some(spec) => Err(FillError::UnknownKind {
+            slot: spec.name.clone(),
+            kind: spec.unknown_kind.clone().unwrap_or_default(),
+        }),
+        None => Ok(()),
+    }
 }
 
 /// Fill every slot in `source` from `values`, returning the rewritten task
@@ -168,15 +216,8 @@ fn default_replacement(spec: &SlotSpec) -> Option<String> {
 /// is unfilled, or the resulting changeset is invalid.
 pub fn fill(source: &str, values: &BTreeMap<String, RawValue>) -> Result<String, FillError> {
     let specs = discover_slots(source);
-    // Before any value is coerced: a slot whose declared kind names nothing
-    // would otherwise be filled as a `string`, which is a wrong task written
-    // silently rather than a template error reported.
-    if let Some(spec) = specs.iter().find(|spec| spec.unknown_kind.is_some()) {
-        return Err(FillError::UnknownKind {
-            slot: spec.name.clone(),
-            kind: spec.unknown_kind.clone().unwrap_or_default(),
-        });
-    }
+    // Before any value is coerced.
+    reject_unknown_kind(&specs)?;
     let mut edits = Vec::new();
     let mut missing = Vec::new();
     for spec in &specs {

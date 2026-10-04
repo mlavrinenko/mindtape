@@ -23,7 +23,7 @@ use typst_edit::{Call, find_calls};
 /// under its line budget. See [`fill`].
 #[path = "template_fill.rs"]
 mod fill;
-pub use fill::{FillError, RawValue, fill};
+pub use fill::{FillError, RawValue, fill, fill_examples};
 
 /// What kind of value a slot holds; drives how a filled value renders to Typst.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

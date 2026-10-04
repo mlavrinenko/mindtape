@@ -194,6 +194,41 @@ fn derives_initial_status_from_a_custom_legend() {
     support::mt(dir.path()).arg("check").assert().success();
 }
 
+/// A template's own `status:` names the status `add` files at: the name is
+/// kept, the date restamped, and `--status` still overrides it.
+#[test]
+fn files_at_the_status_the_template_names() {
+    let dir = tempfile::tempdir().unwrap();
+    support::scaffold(dir.path());
+    std::fs::write(
+        dir.path().join(".mindtape/config.toml"),
+        CUSTOM_LEGEND_CONFIG,
+    )
+    .unwrap();
+    let templates = dir.path().join(".mindtape/templates");
+    std::fs::create_dir_all(&templates).unwrap();
+    std::fs::write(
+        templates.join("task.typ"),
+        "#import \"@local/mindtape:0.2.0\": *\n\
+         #show: task.with(title: slot(\"title\"), status: done(2020, 1, 1))\n",
+    )
+    .unwrap();
+
+    let add = |name: &str, extra: &[&str]| {
+        support::mt(dir.path())
+            .args(["add", "--name", name, "--set", "title=T"])
+            .args(extra)
+            .assert()
+            .success();
+        std::fs::read_to_string(dir.path().join(format!("tasks/{name}.typ"))).unwrap()
+    };
+    let written = add("named", &[]);
+    assert!(written.contains("status: done("), "{written}");
+    assert!(!written.contains("2020"), "{written}");
+    let written = add("overridden", &["--status", "todo"]);
+    assert!(written.contains("status: todo("), "{written}");
+}
+
 /// The real `.mindtape/templates/task.typ` this repo ships, so a drift in its
 /// `estimate` slot default (e.g. drifting over the configured cap) fails
 /// this test rather than only surfacing at dogfood `mt check` time.

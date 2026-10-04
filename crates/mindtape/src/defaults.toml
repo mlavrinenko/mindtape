@@ -116,6 +116,7 @@ color = "red"
 [templates]
 dirs = [".mindtape/templates"]
 default = "task"
+fallback-severity = "warning"
 
 [rm]
 default-filter = "terminal"

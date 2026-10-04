@@ -28,7 +28,7 @@ use crate::add_values::{
     DescribeFormat, collect_values, describe, layer_env, list_templates, reject_unknown_keys,
     resolve_template, stdin_title,
 };
-use crate::task_edit::{initial_status, task_with, upsert_named_arg};
+use crate::task_edit::{filing_status, initial_status, task_with, upsert_named_arg};
 use crate::util;
 
 #[path = "add_target.rs"]
@@ -150,7 +150,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
         .clone()
         .unwrap_or_else(|| config.templates.default.clone());
     let source = resolve_template(config, &project.root, &template_name)?;
-    let status = args.status.clone().or_else(|| initial_status(config));
+    let status = filing_status(config, &source, args.status.as_deref());
     let needed = mindtape::required_core_slots(config, status.as_deref());
     let (source, injected) = inject_required_slots(&source, &needed)?;
 
@@ -180,7 +180,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     }
     let filled =
         fill(&source, &markup_safe(&values, &specs)).map_err(|err| anyhow!(err.to_string()))?;
-    let filled = inject_header(&filled, config, args.status.as_deref())?;
+    let filled = inject_header(&filled, config, status.as_deref())?;
     let filled = util::canonical_source(config, filled);
     report_injected(&filled, &injected, &explicit, &env_keys)?;
 
@@ -379,7 +379,7 @@ fn kept_note(file: &Path) -> String {
 ///
 /// Returns the fields actually spliced (the template omitted them), so the
 /// caller can report the values it filled that the template never mentioned.
-fn inject_required_slots(
+pub(crate) fn inject_required_slots(
     source: &str,
     needed: &[RequiredSlot],
 ) -> Result<(String, Vec<RequiredSlot>)> {
@@ -404,7 +404,11 @@ fn inject_required_slots(
 
 /// Inject the add-owned `status` (and `id` when the config generates one) into
 /// `task.with(…)`.
-fn inject_header(source: &str, config: &Config, status_override: Option<&str>) -> Result<String> {
+pub(crate) fn inject_header(
+    source: &str,
+    config: &Config,
+    status_override: Option<&str>,
+) -> Result<String> {
     let call = task_with(source)?;
     let mut edits = Vec::new();
 

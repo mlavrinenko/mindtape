@@ -265,8 +265,9 @@ what a new occurrence keeps.
 = Validate and inspect config
 
 `mt check` validates every task: field values, required fields, numeric
-bounds, links and dependency cycles. It prints each problem and exits
-non-zero when there is one. #link(u("/concepts/"))[Concepts] describes the two
+bounds, links and dependency cycles. It also checks the task each template
+files with its defaults, as #link(u("/templates/"))[Templates & slots]
+describes. It prints each problem and exits non-zero when there is one. #link(u("/concepts/"))[Concepts] describes the two
 layers that check a task, and #link(u("/rules/"))[Rules] the checks a project
 adds. `mt check --commit-msg <file>` checks a commit message instead, from a
 `commit-msg` hook, against the project's

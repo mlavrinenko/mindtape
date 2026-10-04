@@ -429,3 +429,20 @@ fn a_raw_block_default_fills_its_dedented_text() {
     let filled = fill(source, &BTreeMap::new()).unwrap();
     assert_eq!(filled, "== P\n+ one\n+ two\n");
 }
+
+#[test]
+fn fill_examples_takes_the_example_then_the_default() {
+    let source = "#f(a: slot(\"a\", default: 1, example: 2), b: slot(\"b\", default: 3))\n\
+                  #slot(\"c\", kind: \"raw\", example: ```typ\n+ one\n```)\n";
+    let filled = super::fill_examples(source).unwrap();
+    assert_eq!(filled, "#f(a: 2, b: 3)\n+ one\n");
+}
+
+#[test]
+fn fill_examples_names_each_slot_it_cannot_fill() {
+    let source = "#f(a: slot(\"a\"), b: slot(\"b\", required: false))";
+    assert_eq!(
+        super::fill_examples(source),
+        Err(FillError::Missing(vec!["a".to_owned(), "b".to_owned()]))
+    );
+}

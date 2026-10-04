@@ -2,36 +2,50 @@
 #import "../lib.typ": *
 
 #show: task.with(
-  title: slot("title", prompt: "split or re-cap <path>"),
+  title: slot(
+    "title",
+    prompt: "split or re-cap <path>",
+    example: "Split crates/mindtape-cli/src/add.rs",
+  ),
   kind: "refactor",
   priority: ice(
     impact: slot(
       "impact",
       kind: "int",
       prompt: "1-10, rises as headroom falls",
+      example: 5,
     ),
     confidence: slot(
       "confidence",
       kind: "float",
       prompt: "0-1, high: linecop measures, it does not guess",
+      example: 0.9,
     ),
     ease: slot(
       "ease",
       kind: "int",
       prompt: "1-10, falls with how much code must move",
+      example: 6,
     ),
   ),
   difficulty: slot(
     "difficulty",
     kind: "int",
     prompt: "0-9 on the judgment scale",
+    example: 2,
   ),
-  estimate: slot("estimate", kind: "text", prompt: "(src-files: N)"),
+  estimate: slot(
+    "estimate",
+    kind: "text",
+    prompt: "(src-files: N)",
+    example: "(src-files: 2)",
+  ),
   assignee: "agent",
   tags: slot(
     "tags",
     kind: "list",
     prompt: "swept, size, plus tests for a test module",
+    example: ("swept", "size"),
   ),
   x-goals: (
     product: (
@@ -53,12 +67,13 @@
 == Problem
 
 + Run `linecop --format json`.
-+ 🔴 #raw(slot("path", prompt: "repo-relative path of the oversized file")) stands at #slot("lines", kind: "text", prompt: "current line count") of its #slot("limit", kind: "text", prompt: "the linecop limit for this file")-line budget: #slot("headroom", kind: "text", prompt: "limit minus lines") lines of headroom left, #slot("percent", kind: "text", prompt: "lines over limit, as a percentage")% of the cap spent.
++ 🔴 #raw(slot("path", prompt: "repo-relative path of the oversized file", example: "crates/mindtape-cli/src/add.rs")) stands at #slot("lines", kind: "text", prompt: "current line count", example: "494") of its #slot("limit", kind: "text", prompt: "the linecop limit for this file", example: "500")-line budget: #slot("headroom", kind: "text", prompt: "limit minus lines", example: "6") lines of headroom left, #slot("percent", kind: "text", prompt: "lines over limit, as a percentage", example: "98.8")% of the cap spent.
 
 #slot(
   "seam",
   kind: "text",
   prompt: "one plain sentence on where the seam question stands",
+  example: "The fill path and the header injection read as two seams; nothing settles which to carve first.",
 )
 
 `just ask-refactoring` filed this, and the sweep re-reads the signal every run,
@@ -75,6 +90,10 @@ so the task is worth only as much as that measurement still is.
   "remedy",
   kind: "raw",
   prompt: "the two language-specific bullets: what a remedy is here, and what a split has to be",
+  example: ```typ
+  - Carve the header injection into its own module, or re-cap the file in `.linecop.yaml`.
+  - A split moves whole functions with their doc comments, so each file reads on its own.
+  ```,
 )
 - If you re-cap, write the reason next to the pattern in `.linecop.yaml`, in the
   style its `SKILL.md` / `AGENTS.md` / `CONTRIBUTING.md` entries already use. A

@@ -240,3 +240,27 @@ fn verify_written_reports_a_validation_violation_on_the_file() {
         "expected a validation-issue message, got: {err}"
     );
 }
+
+fn filing(template: &str, explicit: Option<&str>) -> Option<String> {
+    let config = mindtape::parse_config(CONFIG).unwrap();
+    super::filing_status(&config, template, explicit)
+}
+
+#[test]
+fn filing_status_reads_the_template_s_status_shortcut() {
+    let template = "#show: task.with(title: slot(\"t\"), status: done(2026, 1, 1)[why])\n";
+    assert_eq!(filing(template, None).as_deref(), Some("done"));
+    assert_eq!(filing(template, Some("wip")).as_deref(), Some("wip"));
+    let generic = "#show: task.with(status: status(\"shelved\", 2026, 1, 1))\n";
+    assert_eq!(filing(generic, None).as_deref(), Some("shelved"));
+}
+
+#[test]
+fn filing_status_falls_back_to_the_initial_status() {
+    let initial = filing("#show: task.with(title: \"t\")\n", None);
+    assert!(initial.is_some());
+    for status in ["\"done\"", "slot(\"status\")", "(name: \"done\")"] {
+        let template = format!("#show: task.with(status: {status})\n");
+        assert_eq!(filing(&template, None), initial, "{status}");
+    }
+}

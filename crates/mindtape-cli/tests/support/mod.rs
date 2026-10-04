@@ -103,9 +103,9 @@ pub const MARKUP_HAZARDS: &str = "create-*star* _u_ $x$ #h [b] <a> >g @at";
 const SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: slot("title", prompt: "Task title"),
+  title: slot("title", prompt: "Task title", example: "Fix the login redirect"),
   priority: slot("weight", kind: "int", default: 5),
-  links: related("anchor.typ")[#slot("why", kind: "text")],
+  links: related("anchor.typ")[#slot("why", kind: "text", example: "same session store")],
 )
 
 == Summary
@@ -156,7 +156,7 @@ pub fn project_with_slot_template() -> tempfile::TempDir {
 const TYPST_SLOT_TEMPLATE: &str = r#"#import "@local/mindtape:0.2.0": *
 
 #show: task.with(
-  title: slot("title", prompt: "Task title"),
+  title: slot("title", prompt: "Task title", example: "Fix the login redirect"),
 )
 
 == Summary

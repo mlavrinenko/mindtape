@@ -2,33 +2,49 @@
 #import "../lib.typ": *
 
 #show: task.with(
-  title: slot("title", prompt: "cover <path>"),
+  title: slot(
+    "title",
+    prompt: "cover <path>",
+    example: "Cover crates/mindtape/src/sort.rs",
+  ),
   kind: "test",
   priority: ice(
     impact: slot(
       "impact",
       kind: "int",
       prompt: "1-10, rises as the covered fraction falls",
+      example: 5,
     ),
     confidence: slot(
       "confidence",
       kind: "float",
       prompt: "0-1, high: llvm-cov counted the lines, it did not guess",
+      example: 0.9,
     ),
     ease: slot(
       "ease",
       kind: "int",
       prompt: "1-10, falls with how many lines are unreached",
+      example: 6,
     ),
   ),
   difficulty: slot(
     "difficulty",
     kind: "int",
     prompt: "0-9 on the judgment scale",
+    example: 2,
   ),
-  estimate: slot("estimate", kind: "text", prompt: "(src-files: N)"),
+  estimate: slot(
+    "estimate",
+    kind: "text",
+    prompt: "(src-files: N)",
+    example: "(src-files: 2)",
+  ),
   assignee: "agent",
-  tags: slot("tags", kind: "list", prompt: "swept, coverage"),
+  tags: slot("tags", kind: "list", prompt: "swept, coverage", example: (
+    "swept",
+    "coverage",
+  )),
   x-goals: (
     product: (
       readable-tasks: neutral,
@@ -49,7 +65,7 @@
 == Problem
 
 + Run `just cover`.
-+ 🔴 #raw(slot("path", prompt: "repo-relative path of the undercovered file")) is #slot("percent", kind: "text", prompt: "covered lines as a percentage")% covered: #slot("uncovered", kind: "text", prompt: "count of unreached lines") of #slot("lines", kind: "text", prompt: "count of instrumented lines") instrumented lines are never reached by the suite, against a floor of #slot("floor", kind: "text", prompt: "the coverage floor this file is measured against")%.
++ 🔴 #raw(slot("path", prompt: "repo-relative path of the undercovered file", example: "crates/mindtape/src/sort.rs")) is #slot("percent", kind: "text", prompt: "covered lines as a percentage", example: "61")% covered: #slot("uncovered", kind: "text", prompt: "count of unreached lines", example: "47") of #slot("lines", kind: "text", prompt: "count of instrumented lines", example: "120") instrumented lines are never reached by the suite, against a floor of #slot("floor", kind: "text", prompt: "the coverage floor this file is measured against", example: "70")%.
 
 `just ask-refactoring` filed this, and the sweep re-reads the signal every run,
 so the task is worth only as much as that measurement still is.

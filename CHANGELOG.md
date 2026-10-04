@@ -15,6 +15,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   value that `mt add --describe` prints, in text and in JSON, and that is
   never filed. The `default` and `example` of a `text` or `raw` slot can also
   be a raw block, dedented as Typst dedents it.
+- **`mt check` checks every template.** A config change that broke a
+  template, such as a `kind` value it hard-codes falling out of `values`,
+  showed up only at the next `mt add` that used it. `mt check` fills every
+  template `mt add --list` lists with each slot's `example`, else its
+  `default`, checks it like a task and reports every breach at the template's
+  file and line. A slot with neither is a breach naming the slot, and a slot
+  `mt add` adds for a required field takes its example from config. The
+  built-in template reports at `[templates] fallback-severity`, a warning
+  unless set to `"error"`.
+- **A template's own `status` is the status `mt add` files it at.** `mt add`
+  replaced it with the legend's first open status, so a template meant to be
+  filed done needed `--status done` on every call. The status name is kept
+  and dated today, and `--status` still overrides it. The `tweak` template
+  files done.
 - **`[tasks.fields.x-<ns>]` checks an extension field.** A project's own
   field, such as `x-team`, took a Typst `check` function to hold it to a list
   of values. The table now takes `x-<ns>` names with the `values`, `@dict`

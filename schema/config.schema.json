@@ -687,6 +687,21 @@
       },
       "type": "object"
     },
+    "FallbackSeverity": {
+      "description": "`[templates] fallback-severity` — how a breach of the built-in template\nreports.",
+      "oneOf": [
+        {
+          "const": "warning",
+          "description": "Print the breach; `mt check` still succeeds. The default.",
+          "type": "string"
+        },
+        {
+          "const": "error",
+          "description": "Print the breach and fail `mt check`.",
+          "type": "string"
+        }
+      ]
+    },
     "FieldConfig": {
       "additionalProperties": false,
       "description": "`[tasks.fields.<name>]` — allowed values, default and requirement for\n`kind` or one `x-<ns>` extension field.",
@@ -2043,6 +2058,10 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "fallback-severity": {
+          "$ref": "#/$defs/FallbackSeverity",
+          "description": "How `mt check` reports a breach of the built-in template, which `mt add`\nfalls back to when no template dir holds `task.typ`. A project's own\ntemplates always report errors."
         }
       },
       "type": "object"

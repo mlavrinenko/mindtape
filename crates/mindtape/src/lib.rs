@@ -107,6 +107,7 @@ pub mod sort;
 pub mod status_value;
 pub mod suggest;
 pub mod template;
+pub mod template_check;
 #[cfg(any(test, feature = "test-support"))]
 pub mod test_support;
 pub mod validate;
@@ -134,11 +135,11 @@ pub use condition_env::{ColumnFacts, ConditionEnv};
 pub use config::{
     Actor, ActorKind, AddConfig, AssigneeConfig, BUILTIN_PREFIX, Collector, ColumnConfig, Config,
     ConfigError, DeriveConfig, DeriveTags, Dict, DictCase, DictSpec, Dicts, EstimateConfig, Facet,
-    FormatConfig, GoConfig, HyperlinkChoice, ImportView, InteractiveMode, LS_COLUMNS, LocalPackage,
-    LsRule, PriorityConfig, ReadyConfig, RetireConfig, RmConfig, RmStrategy, Role, RootConfig,
-    RootSpec, TemplatesConfig, TypstConfig, ViewSpec, builtin_dict_names, compile_dicts,
-    config_path, embedded_defaults, load_config, parse_config, parse_import_view, roles_of,
-    validate_dicts, validate_views,
+    FallbackSeverity, FormatConfig, GoConfig, HyperlinkChoice, ImportView, InteractiveMode,
+    LS_COLUMNS, LocalPackage, LsRule, PriorityConfig, ReadyConfig, RetireConfig, RmConfig,
+    RmStrategy, Role, RootConfig, RootSpec, TemplatesConfig, TypstConfig, ViewSpec,
+    builtin_dict_names, compile_dicts, config_path, embedded_defaults, load_config, parse_config,
+    parse_import_view, roles_of, validate_dicts, validate_views,
 };
 pub use config_comments::{CommentsConfig, CommentsError, CommentsPolicy, check_comments};
 pub use config_commits::{CommitBreach, CommitRuleSpec, CommitScope, CommitsConfig, check_commit};
@@ -180,7 +181,8 @@ pub use severity::Severity;
 pub use sort::{default_order, default_order_with, difficulty_value, sort_by_specs};
 pub use status_value::{STATUS_SHORTCUTS, escape_markup, status_value};
 pub use suggest::{hint, nearest};
-pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill};
+pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill, fill_examples};
+pub use template_check::{TemplateSources, template_breaches, template_failure, unfillable_slots};
 pub use validate::{Location, Violation, validate};
 pub use worktrees::{WorktreeEntry, WorktreeError, WorktreeRegistry};
 

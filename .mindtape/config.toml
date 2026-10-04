@@ -221,7 +221,7 @@ severity = "warn"
 name = "tweak-lands-done"
 when = 'has_tag("tweak")'
 assert = "terminal"
-message = "file a tweak done, in the commit that makes the change: `mt add -t tweak --status done`; plan anything bigger with another template"
+message = "file a tweak done, in the commit that makes the change: `mt add -t tweak`; plan anything bigger with another template"
 severity = "error"
 
 [[tasks.rules]]
@@ -311,12 +311,15 @@ allowed = [
 # `test` for the rest); `task.typ` leaves `kind` out, so `mt add` splices a
 # choice over this list rather than keeping a second copy of it. A
 # non-interactive add fails naming that slot, so agents pass `--set kind=feat`.
+# `test` comes first because the first value is the example `mt check` files
+# `task.typ` with, and a `feat`, `fix`, `docs` or `dev` needs a section of its
+# own that the generic template does not carry.
 #
 # `required = "!terminal"` mirrors the fields above: an open task names its
 # kind, a closed one is exempt, so history predating the field is not
 # backfilled.
 [tasks.fields.kind]
-values = ["feat", "fix", "refactor", "docs", "test", "dev", "milestone"]
+values = ["test", "feat", "fix", "refactor", "docs", "dev", "milestone"]
 required = "!terminal"
 
 # Who is working the task. The only distinction this backlog needs is

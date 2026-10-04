@@ -43,12 +43,8 @@ impl DescribeFormat {
 /// # Errors
 /// Returns an error when a named template is absent and is not the built-in.
 pub fn resolve_template(config: &Config, root: &Path, name: &str) -> Result<String> {
-    for dir in &config.templates.dirs {
-        let path = root.join(dir).join(format!("{name}.typ"));
-        if path.is_file() {
-            return std::fs::read_to_string(&path)
-                .with_context(|| format!("read {}", path.display()));
-        }
+    if let Some(path) = template_path(config, root, name) {
+        return std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()));
     }
     if name == "task" {
         return Ok(BUILTIN_TASK.to_owned());
@@ -57,6 +53,15 @@ pub fn resolve_template(config: &Config, root: &Path, name: &str) -> Result<Stri
         "template {name:?} not found under {:?}",
         config.templates.dirs
     )
+}
+
+/// The file template `name` resolves to: the first configured dir holding
+/// `<name>.typ`. `None` when no dir does, which for `task` means the built-in.
+#[must_use]
+pub fn template_path(config: &Config, root: &Path, name: &str) -> Option<std::path::PathBuf> {
+    (config.templates.dirs.iter())
+        .map(|dir| root.join(dir).join(format!("{name}.typ")))
+        .find(|path| path.is_file())
 }
 
 /// Available template stems: every `*.typ` under the configured dirs plus the

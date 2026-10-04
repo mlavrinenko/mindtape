@@ -127,8 +127,8 @@ refuse. Run `mt wip <stem>` inside the worktree instead.
   `.mindtape/config.toml` included.
 - File a task in its own `task:` commit with no `Refs:`. A change to one
   source file too small to plan is the exception: file it with
-  `mt add -t tweak --status done` in the commit that makes the change, and
-  name it in `Refs:`.
+  `mt add -t tweak`, which files it done, in the commit that makes the
+  change, and name it in `Refs:`.
 - Commit a status flip together with the work it claims. `mt wip` goes in
   the first work commit and `mt done` in the last. Leave the flip uncommitted
   until then, because a commit with a flip and no other change is refused.

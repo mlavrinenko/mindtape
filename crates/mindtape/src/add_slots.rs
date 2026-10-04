@@ -8,9 +8,9 @@
 //! schema, and writing them into the final task. Consumer-blind: pure over
 //! [`Config`], no IO, no source editing.
 
-use crate::config::{AssigneeConfig, Config, FieldConfig, Requirement};
+use crate::config::{Config, FieldConfig, Requirement};
 use crate::framework::{Framework, Input, InputKind};
-use crate::numeric::{ScaleKind, format_num};
+use crate::numeric::{NumericField, ScaleKind, format_num};
 
 /// A core field the config requires, expressed as the source to set as a
 /// `task.with(…)` argument when the chosen template omits that field.
@@ -72,8 +72,9 @@ pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<Require
             field: "difficulty".to_owned(),
             config_path: "[tasks.difficulty]".to_owned(),
             call: format!(
-                r#"slot("difficulty", kind: "{}", prompt: "difficulty")"#,
-                scale_kind_str(tasks.difficulty.kind)
+                r#"slot("difficulty", kind: "{}", prompt: "difficulty", example: {})"#,
+                scale_kind_str(tasks.difficulty.kind),
+                midpoint(&tasks.difficulty)
             ),
             env: None,
             default: None,
@@ -88,7 +89,7 @@ pub fn required_core_slots(config: &Config, status: Option<&str>) -> Vec<Require
         out.push(RequiredSlot {
             field: "assignee".to_owned(),
             config_path: "[tasks.assignee]".to_owned(),
-            call: assignee_slot(&tasks.assignee),
+            call: assignee_slot(config),
             env: Some(PRINCIPAL_ENV),
             default: None,
         });
@@ -122,8 +123,9 @@ fn priority_slot(config: &Config) -> Option<String> {
         return Some(framework_call(name, priority.active_framework()?));
     }
     Some(format!(
-        r#"slot("priority", kind: "{}", prompt: "priority")"#,
-        scale_kind_str(priority.field.kind)
+        r#"slot("priority", kind: "{}", prompt: "priority", example: {})"#,
+        scale_kind_str(priority.field.kind),
+        midpoint(&priority.field)
     ))
 }
 
@@ -132,7 +134,8 @@ fn priority_slot(config: &Config) -> Option<String> {
 /// like `ice(...)` are sugar over it), with one leaf slot per declared input.
 /// The leaves carry no defaults — a strict priority must be a conscious fill,
 /// and an unfilled leaf fails loudly at fill time instead of writing a
-/// misprioritised task.
+/// misprioritised task. Each carries an example inside its range, which only
+/// `mt check` fills.
 fn framework_call(name: &str, framework: &Framework) -> String {
     if framework.inputs.is_empty() {
         return format!(r#"framework("{name}")"#);
@@ -159,17 +162,43 @@ fn leaf_slot(framework: &str, input: &str, spec: &Input) -> String {
         _ => format!("{framework} {input}"),
     };
     match spec.kind {
-        InputKind::Number => format!(r#"slot("{input}", kind: "float", prompt: "{prompt}")"#),
-        InputKind::Bool => format!(r#"slot("{input}", kind: "bool", prompt: "{prompt}")"#),
+        InputKind::Number => {
+            let example = match (spec.min, spec.max) {
+                (Some(lo), Some(hi)) => (lo + hi) / 2.0,
+                (Some(bound), None) | (None, Some(bound)) => bound,
+                (None, None) => 1.0,
+            };
+            format!(
+                r#"slot("{input}", kind: "float", prompt: "{prompt}", example: {})"#,
+                format_num(example)
+            )
+        }
+        InputKind::Bool => {
+            format!(r#"slot("{input}", kind: "bool", prompt: "{prompt}", example: false)"#)
+        }
         InputKind::Enum => {
-            let choices: String = spec
-                .values
-                .iter()
-                .map(|value| format!("{value:?}, "))
-                .collect();
-            format!(r#"slot("{input}", kind: "choice", choices: ({choices}), prompt: "{prompt}")"#)
+            let choices = choice_list(&spec.values);
+            let example = spec.values.first().map_or("", String::as_str);
+            format!(
+                r#"slot("{input}", kind: "choice", choices: ({choices}), prompt: "{prompt}", example: {example:?})"#
+            )
         }
     }
+}
+
+/// A scale's midpoint, rounded down on an integer scale: inside the scale
+/// whatever its bounds, as a spliced slot's example.
+fn midpoint(field: &NumericField) -> String {
+    let mid = (field.min + field.max) / 2.0;
+    match field.kind {
+        ScaleKind::Int => format_num(mid.floor()),
+        ScaleKind::Real => format_num(mid),
+    }
+}
+
+/// `values` as the inside of a Typst array literal of strings.
+fn choice_list(values: &[String]) -> String {
+    values.iter().map(|value| format!("{value:?}, ")).collect()
 }
 
 /// The DSL spelling of a numeric field's scale, mirroring `ScaleKind`'s own
@@ -184,21 +213,23 @@ fn scale_kind_str(kind: ScaleKind) -> &'static str {
 
 /// The slot for a required `[tasks.fields.<name>]` entry: a choice over
 /// `values` when the entry declares any, else a plain string slot, falling
-/// back to `default` either way.
+/// back to `default` either way. Its example is the default, else the first
+/// value, else the field's name without its `x-`.
 fn field_slot(name: &str, field: &FieldConfig) -> RequiredSlot {
     let default = field
         .default
         .as_ref()
         .map_or_else(String::new, |value| format!(", default: {value:?}"));
+    let example = (field.default.as_deref())
+        .or(field.values.first().map(String::as_str))
+        .unwrap_or_else(|| name.strip_prefix("x-").unwrap_or(name));
     let call = if field.values.is_empty() {
-        format!(r#"slot("{name}", prompt: "{name}"{default})"#)
+        format!(r#"slot("{name}", prompt: "{name}"{default}, example: {example:?})"#)
     } else {
-        let choices: String = field
-            .values
-            .iter()
-            .map(|value| format!("{value:?}, "))
-            .collect();
-        format!(r#"slot("{name}", kind: "choice", choices: ({choices}){default})"#)
+        let choices = choice_list(&field.values);
+        format!(
+            r#"slot("{name}", kind: "choice", choices: ({choices}){default}, example: {example:?})"#
+        )
     };
     RequiredSlot {
         field: name.to_owned(),
@@ -216,7 +247,9 @@ fn estimate_slot(config: &Config) -> String {
         .units
         .first()
         .map_or("days", String::as_str);
-    format!(r#"slot("estimate", kind: "text", prompt: "estimate dict, e.g. ({hint}: 1)")"#)
+    format!(
+        r#"slot("estimate", kind: "text", prompt: "estimate dict, e.g. ({hint}: 1)", example: "({hint}: 1)")"#
+    )
 }
 
 /// Environment variable a required assignee slot reads by default: the actor
@@ -224,16 +257,29 @@ fn estimate_slot(config: &Config) -> String {
 /// fill falls through to the interactive scaffold.
 const PRINCIPAL_ENV: &str = "MINDTAPE_PRINCIPAL";
 
-fn assignee_slot(assignee: &AssigneeConfig) -> String {
-    if assignee.allowed.is_empty() {
-        return format!(r#"slot("assignee", prompt: "assignee", env: "{PRINCIPAL_ENV}")"#);
+/// The example an open assignee slot falls back to when the project declares
+/// no actor to name.
+const PLACEHOLDER_ASSIGNEE: &str = "someone";
+
+/// The assignee slot: a choice over `allowed` when the project declares it.
+/// Its example is the first allowed name, else the first actor, else
+/// [`PLACEHOLDER_ASSIGNEE`].
+fn assignee_slot(config: &Config) -> String {
+    let allowed = &config.tasks.assignee.allowed;
+    if allowed.is_empty() {
+        let example = config
+            .actors
+            .first()
+            .map_or(PLACEHOLDER_ASSIGNEE, |actor| actor.name.as_str());
+        return format!(
+            r#"slot("assignee", prompt: "assignee", env: "{PRINCIPAL_ENV}", example: {example:?})"#
+        );
     }
-    let choices: String = assignee
-        .allowed
-        .iter()
-        .map(|value| format!("{value:?}, "))
-        .collect();
-    format!(r#"slot("assignee", kind: "choice", choices: ({choices}), env: "{PRINCIPAL_ENV}")"#)
+    let choices = choice_list(allowed);
+    let example = allowed.first().map_or("", String::as_str);
+    format!(
+        r#"slot("assignee", kind: "choice", choices: ({choices}), env: "{PRINCIPAL_ENV}", example: {example:?})"#
+    )
 }
 
 #[cfg(test)]
