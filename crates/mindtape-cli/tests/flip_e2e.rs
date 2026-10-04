@@ -30,16 +30,20 @@ fn shortcut_verb_help_prints_help_and_exits_zero() {
     assert!(!stdout.contains("mindtape-cli"), "{stdout}");
 }
 
-/// A genuine parse error on a shortcut verb still fails, and names the verb.
+/// A genuine parse error on a shortcut verb prints clap's usage error once and
+/// exits 2, as `mt flip done --no-such-flag` does.
 #[test]
-fn shortcut_verb_bad_flag_still_fails() {
+fn shortcut_verb_bad_flag_is_a_usage_error_exiting_two() {
     let dir = support::scaffold_project(LEGEND);
-    let output = support::mt(dir.path())
-        .args(["done", "--no-such-flag"])
-        .output()
-        .unwrap();
-    assert!(!output.status.success());
-    let stderr = String::from_utf8(output.stderr).unwrap();
+    let run = |args: &[&str]| support::mt(dir.path()).args(args).output().unwrap();
+    let shortcut = run(&["done", "--no-such-flag"]);
+    let flip = run(&["flip", "done", "--no-such-flag"]);
+    assert_eq!(shortcut.status.code(), Some(2));
+    assert_eq!(flip.status.code(), Some(2));
+    let stderr = String::from_utf8(shortcut.stderr).unwrap();
     assert!(stderr.contains("--no-such-flag"), "{stderr}");
+    assert!(stderr.contains("mt done"), "{stderr}");
+    assert!(!stderr.contains("Error: error:"), "{stderr}");
     assert!(!stderr.contains("mindtape-cli"), "{stderr}");
+    assert_eq!(stderr.matches("unexpected argument").count(), 1, "{stderr}");
 }

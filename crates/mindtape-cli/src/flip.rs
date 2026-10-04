@@ -92,7 +92,8 @@ pub fn run(args: &FlipArgs) -> Result<()> {
 ///
 /// # Errors
 /// Returns an error if `verb` is not a configured legend value (an unknown
-/// command), the args do not parse, or the underlying flip fails.
+/// command) or the underlying flip fails. Args that do not parse exit through
+/// clap with its usage error.
 pub fn run_external(external: &[String]) -> Result<()> {
     let project = util::open()?;
     let verb = external
@@ -103,14 +104,11 @@ pub fn run_external(external: &[String]) -> Result<()> {
     if !legend.contains(verb) {
         bail!(unknown_command_message(verb, legend));
     }
-    let matches = match shortcut_command(verb).try_get_matches_from(external) {
-        Ok(matches) => matches,
-        Err(err) if !err.use_stderr() => {
-            err.print().context("print the shortcut verb's help")?;
-            return Ok(());
-        }
-        Err(err) => bail!("{err}"),
-    };
+    // clap prints a help request to stdout and exits 0, a usage error to
+    // stderr and exits 2, as `mt flip` does.
+    let matches = shortcut_command(verb)
+        .try_get_matches_from(external)
+        .unwrap_or_else(|err| err.exit());
     let parsed = Shortcut::from_arg_matches(&matches)?;
     run_with(&project, &parsed.args)
 }
