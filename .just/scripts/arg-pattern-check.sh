@@ -5,7 +5,7 @@
 #
 # A pattern nobody exercises is a comment, not a gate. So this is a separate
 # script from fmt-fixture-check.sh on purpose: that one locks that three
-# FORMATTERS reject drift in a synthesized fixture file; this one locks that
+# formatters reject drift in a synthesized fixture file; this one locks that
 # the `[arg(...)]` `pattern`s on `release`, `bench`, `gen-bench`, `eject`,
 # `ask-refactoring` and `outdatty-update` actually reject a bad argument and
 # accept a good one.
@@ -18,16 +18,16 @@
 # attributes.typ). Its patterns are not decoration: they are what replaced
 # `[positional-arguments]` on that recipe. A digits-only value cannot be
 # word-split or re-globbed by the shell that runs the body, so the pattern
-# biting is the quoting guarantee, and positional-args-check.sh no longer
+# biting is the quoting guarantee, so positional-args-check.sh does not
 # names the recipe. A named flag is checked the way it is actually typed
 # (`--cc-floor abc`, not a bare positional) because dispatch through the flag
 # is the only way anyone reaches these parameters: declaring `long=` on a
 # parameter makes it flag-only.
 #
 # `just --dry-run --yes <recipe> <value>` is what makes this safe to run
-# inside `just check`: argument-pattern validation happens at DISPATCH, before
+# inside `just check`: argument-pattern validation happens at dispatch, before
 # any recipe line runs, so a rejected value never reaches the body — and
-# `--dry-run` means even an ACCEPTED value never executes a recipe line
+# `--dry-run` means even an accepted value never executes a recipe line
 # either (verified: it prints the command instead of running it). `--yes`
 # clears `release`'s `[confirm(...)]` prompt, which would otherwise block on
 # stdin between the pattern check and the (skipped) execution. Every
@@ -101,10 +101,10 @@ assert_accepted bench 100
 assert_rejected gen-bench abc
 assert_accepted gen-bench 100
 
-# `outdatty-update` takes the ONE group whose source was just edited — the
+# `outdatty-update` takes the one group whose source was just edited — the
 # blanket form is the separate `outdatty-update-all` recipe, so the group is
 # required (no default to assert). The `'Dev Docs'` case is the word-splitting
-# one, the same kind `[positional-arguments]` used to guard recipes against:
+# one, where the shell would split the value into two words:
 # the body interpolates the value into `outdatty update --group {{ GROUP }}`,
 # so a space must be refused at dispatch. `'DEV_DOCS'` locks the shape that a
 # group name can never take (outdatty.yaml names are all lowercase).
@@ -112,7 +112,7 @@ assert_rejected outdatty-update 'Dev Docs'
 assert_rejected outdatty-update 'DEV_DOCS'
 assert_accepted outdatty-update dev-shell-docs
 
-# The optional DEPENDENTS are spliced into the body as `--dependent <path>`
+# The optional dependents are spliced into the body as `--dependent <path>`
 # words by `prepend`, unquoted, so each path must be refused at dispatch when
 # it carries a space or a shell metacharacter. Every tracked path here is
 # letters, digits, `.`, `_`, `/` and `-`.
@@ -121,8 +121,8 @@ assert_rejected outdatty-update dev-shell-docs 'docs/src/a.typ;true'
 assert_accepted outdatty-update dev-shell-docs docs/src/contributing/windows.typ
 
 # Bare `just outdatty-update` must fail at dispatch too — the whole point of
-# requiring the group is that the blanket form is no longer reachable by
-# muscle memory. The error is just's own missing-argument one, not a pattern
+# requiring the group is that muscle memory cannot reach the blanket form.
+# The error is just's own missing-argument one, not a pattern
 # mismatch, so assert_rejected's message check does not apply.
 if out=$(just --dry-run --yes outdatty-update </dev/null 2>&1); then
     echo "arg-pattern-check: bare outdatty-update succeeded — GROUP must be required" >&2
@@ -131,17 +131,17 @@ if out=$(just --dry-run --yes outdatty-update </dev/null 2>&1); then
 fi
 
 # `fork`'s two parameters are both interpolated into the body, and each pattern
-# is guarding a different thing. SLUG becomes a branch name AND a directory name,
+# is guarding a different thing. `slug` becomes a branch name and a directory name,
 # so `feat/x` has to be refused: git would take the branch happily and the
 # directory would land a level down from where the printed path says it is.
-# BASE is a commit-ish and therefore has to admit far more shape (`HEAD~2`,
+# `base` is a commit-ish and therefore has to admit far more shape (`HEAD~2`,
 # `origin/main`, `v0.3.0^{commit}`, a bare sha) — what it exists to refuse is a
 # value that a shell could split or re-read, which is why the space case is the
 # one asserted rather than a malformed revision. A revision that is merely wrong
 # is git's to reject at `rev-parse`, by name, and the script leaves it there.
 #
-# BASE defaults to `HEAD` and SLUG is required, so assert_default_accepted would
-# be asserting a bare `just fork` — which just refuses for the missing SLUG, not
+# `base` defaults to `HEAD` and `slug` is required, so assert_default_accepted would
+# be asserting a bare `just fork` — which just refuses for the missing `slug`, not
 # on a pattern. The default is exercised by the one-argument accept below.
 assert_rejected fork 'feat/x'
 assert_rejected fork 'Slug'
@@ -155,7 +155,7 @@ assert_rejected eject abc
 assert_accepted eject 50
 assert_default_accepted eject
 
-# The sweep's five thresholds. One rejection per DISTINCT pattern rather than
+# The sweep's five thresholds. One rejection per distinct pattern rather than
 # per flag: `--baseline`, `--coverage-floor` and `--fn-coverage-floor` share
 # the 0-100 percentage pattern, `--cc-floor` is unbounded digits, `--write` is
 # a single bit. The out-of-range case (`101`) is checked once for the shared
@@ -164,8 +164,8 @@ assert_default_accepted eject
 #
 # `a b` is the assertion that earns the paragraph at the top of this file.
 # Every other rejection here is about a value being wrong; that one is about a
-# value being UNSPLITTABLE — it is the case `[positional-arguments]` used to
-# protect this recipe against, refused at dispatch instead.
+# value being unsplittable. The pattern refuses it at dispatch, so the recipe
+# never word-splits it.
 #
 # `--write` gets no bad-value case, and cannot have one. It carries
 # `value='1'`, so the flag consumes no argument of its own, and a parameter
@@ -176,7 +176,7 @@ assert_default_accepted eject
 # assert_default_accepted call below is what exercises it.
 #
 # assert_default_accepted matters more here than anywhere else in this file:
-# `ask-refactoring`'s defaults are the ONLY copy of the sweep's thresholds
+# `ask-refactoring`'s defaults are the only copy of the sweep's thresholds
 # (contrib/ask-refactoring.sh requires all five and defaults nothing), so a
 # default that failed its own pattern would break every plain
 # `just ask-refactoring` run and there is no fallback to hide it.

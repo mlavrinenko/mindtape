@@ -137,8 +137,8 @@ groups:
     source:
       .just/scripts/_doc-blocks-lib.sh: e56bc6eee3593544ac123da1f69f352c1c6f9f012b201d4127a5a067e697903a
       .just/scripts/check-doc-blocks.sh: eec7447ad95ff3fcce4740bbdd2aaf5d87d997069f079be3395012572087a6a7
-      .just/scripts/check-doc-coverage.sh: c1d1d0afd3106a779f9f0d7f487c7e57f078a885e1193a8f363e58326329235c
-      .just/scripts/check-doc-facts.sh: 08b468cee388d3d82da4857d2eeb9b7dfe128ac7fe9a460dfc5bbacfaa107728
+      .just/scripts/check-doc-coverage.sh: 0d072b6726216918154b05523116c5417562d9188073152c4b06116c290d2e35
+      .just/scripts/check-doc-facts.sh: 86e768589827caf1395f550cad36afe0336137210f6e45fdf30e9a4289a40f75
       .just/scripts/check-doc-prose.awk: 2cbf36158cf9412b197321d42e9bdd697fa63f8dcb74c878245593d0dc227803
       .just/scripts/check-doc-prose.sh: 95bc03abb463563dfa492dbbd1fefc81e269df4768ad947cae914244cc33d1c5
       .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
@@ -168,9 +168,9 @@ groups:
       .just/scripts/_script-graph-lib.sh: bb48c7951a30aa9d5f5389e4ff7172b7d315544857c9646af7d6014737183856
       .just/scripts/_script-graph.sh: 844a00cae8a975c556084ad49d36bb7ac993a4317a46b37c2a1142b9497f5cb3
       .just/scripts/_script-reach.sh: e26594842a77ac58754ecc124fa82c6c2aba1f13aaa01abc0b4340f310556654
-      .just/scripts/arg-pattern-check.sh: e53ce103f6cc58db6f3dbe4ac351fb3f572ab86dcef975122c44578a4154659f
-      .just/scripts/check-gate-drift.sh: 4ecba6d33a78dc6a0ee09cbf1e0c1c45d777be382dc531451acba6810eb2d1bb
-      .just/scripts/check-secrets-manifest.sh: ff2bd2525d6465486c5576cbb8a2a8a7960767e08141346529fd68baf222e1b8
+      .just/scripts/arg-pattern-check.sh: d56646dec97df7bbb522723f4fa986a34ecf255d8f42f1c294770db9292dc2ab
+      .just/scripts/check-gate-drift.sh: 589528712a86f722a09c571266f74752689f5da2965b7cc1076a36d4bda6ab39
+      .just/scripts/check-secrets-manifest.sh: 1e7d72a016934f2b7776b15f0863189851fa295ca5d12c4bcd07cd3611704ea0
       .just/scripts/check-secrets.sh: 9fc40236aea059fba71ed2ad29f21ba25e5e399c14f4b960746717d7062e042c
       .just/scripts/fmt-fixture-check.sh: 40c0866d7c20c5baae5c8691639273f0cb3a2921f3c99a1ee44b2287ea566ba5
       .just/scripts/positional-args-check.sh: c43c5e9d06f8e53402f70b334de9746d1ada07b1c795306e59fee982afe09c55
@@ -180,7 +180,7 @@ groups:
       .just/scripts/size-fixture-check.sh: af072b395527e6174f13b742f4b96dea1cc63d5bd9eab9cf64d0ee7f02c33579
     dependents:
       docs/src/contributing/gates.typ: ced48e0b563ce207548f5a8ecd096d8475f8c0748cd996855f30acdd0527d2ea
-      www/utils/gate-notes.typ: eb02cbe1a75cf660eba9289de8a9bce1b9863183d49779dbde2119d3ac6ffcba
+      www/utils/gate-notes.typ: c68751a07b34b086d0b58c2483f6b7e21b3e683f0ee31b8a68b3688ecf1a6ece
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 592837a57c4dae087eacdd20d28e1e3d9ff1c9dbd26f59b2afa80900a0267a92
@@ -228,9 +228,9 @@ groups:
     dependents: {}
   sweep-dedup:
     source:
-      contrib/ask-refactoring/coverage.sh: a480caf266b45656b743ca9d0ed40b3b0202db73c8ccce40a2fad58af4407750
+      contrib/ask-refactoring/coverage.sh: afe0f35205602cc12482afefccf6c89cf2dde817716451afc6848625057840a3
     dependents:
-      contrib/ask-refactoring/undertested.sh: c9407f912aa701986f7df0f138413bc92d56e529ef5fa0c1590a1fc67419961a
+      contrib/ask-refactoring/undertested.sh: e0164df434564084027bd34d70be203fda832e5ae57ac14c637e0dfba5a3ab7b
   sweep-templates:
     source:
       .mindtape/templates/sweep-size.typ: 2971affbfffa735c1453bf85f1dd44b8859a334b7140f29d9900eb38a68beebf

@@ -11,7 +11,7 @@
 
 # ── signal: coverage ────────────────────────────────────────────────────────
 #
-# `just cover` gates the WORKSPACE TOTAL at 90% lines (`--fail-under-lines 90`
+# `just cover` gates the workspace total at 90% lines (`--fail-under-lines 90`
 # in the Justfile) — it does not gate any individual file. So a file sitting
 # below the band this arm reports is not "drifting toward the gate": nothing
 # gates it at all. That is exactly why it is advisory material for this sweep
@@ -37,7 +37,7 @@
 # for no benefit: the measurement does not change unless the sources do.
 ensure_lcov_fresh() {
     # Onto stderr, never stdout. This runs inside `signal_coverage`, whose whole
-    # stdout IS the TSV row stream, so on an mmz cache MISS the instrumented test
+    # stdout is the TSV row stream, so on an mmz cache miss the instrumented test
     # run prints straight into the rows — "running 939 tests" then parses as a
     # finding with an empty score and fails the fill. A cache hit hides it, which
     # is why it survives casual testing: the arm only misbehaves on the runs
@@ -96,7 +96,7 @@ ensure_lcov_fresh() {
 #   its own tool walks the source tree independently of what compiled.)
 #
 # Both constants are read by the undertested arm too (see its header): that arm
-# skips a function whose FILE this one reports, and the dedup is only sound if the
+# skips a function whose file this one reports, and the dedup is only sound if the
 # two agree on which files are production code to begin with. One definition, so
 # they cannot drift apart.
 COVERAGE_TEST_RE='(^|/)([^/]*_)?tests(_[^/]*)?\.rs$'
@@ -143,7 +143,7 @@ score_coverage() {
 #   than the file's rank in a short list.
 #
 # confidence = 0.9, constant
-#   High because llvm-cov COUNTS: every line's coverage is instrumentation
+#   High because llvm-cov counts: every line's coverage is instrumentation
 #   data, not a guess, matching the template's own prompt. Not 1.0 for the same
 #   reason `score_size` stops at 0.9 for production code — the remedy (test the
 #   gap, or exclude the file with a reason) is still a judgment call the number

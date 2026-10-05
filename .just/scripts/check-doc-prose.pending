@@ -1,15 +1,3 @@
-contrib/ask-refactoring/coverage.sh
-contrib/ask-refactoring/mutants.sh
-contrib/ask-refactoring.sh
-contrib/ask-refactoring/size.sh
-contrib/ask-refactoring/undertested.sh
-docs/generate-md.sh
-.github/workflows/ci.yml
-.just/scripts/arg-pattern-check.sh
-.just/scripts/check-doc-coverage.sh
-.just/scripts/check-doc-facts.sh
-.just/scripts/check-gate-drift.sh
-.just/scripts/check-secrets-manifest.sh
 .just/scripts/check-secrets.sh
 .just/scripts/cover.sh
 .just/scripts/crap-baseline-check.sh

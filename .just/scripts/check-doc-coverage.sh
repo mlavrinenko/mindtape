@@ -22,17 +22,17 @@ cargo build -p mindtape-cli --tests -q
 # list here, which would rot exactly the way the thing being gated rots.
 visible=$(./target/debug/mt _cli --json | jq -r '.commands[].name')
 
-# cli-notes.typ imports www/utils/site.typ for `u`, and site.typ reads BOTH
+# cli-notes.typ imports www/utils/site.typ for `u`, and site.typ reads both
 # www/generated/crate-map.json (PKG_VERSION) and www/generated/site-pages.json
 # (PAGES) at module top level — Typst evaluates a whole module on import, not
 # just the names pulled out of it. This gate never produces either file
-# itself, but three OTHER `just check` arms do (docs::check, check-doc-facts,
+# itself, but three other `just check` arms do (docs::check, check-doc-facts,
 # docs/generate-md.sh — all via `www/generate.sh`, which `rm -rf`s the whole
 # directory before repopulating it), and `just check` runs them in parallel
 # with this one. Reading with no lock of its own, this query could land mid-
 # wipe and fail "file not found" on a tree that a moment later is perfectly
 # correct — the same race `www/generate.sh`'s own header argues against for
-# ITS readers. Same fd-held lock and MINDTAPE_GENERATED_LOCK handshake as
+# its readers. Same fd-held lock and MINDTAPE_GENERATED_LOCK handshake as
 # those three; unlike them, this script produces nothing, so it only waits
 # for whichever of them is mid-write, never regenerates anything itself.
 mkdir -p target

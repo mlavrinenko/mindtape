@@ -18,11 +18,11 @@
 # arm.
 #
 # `just cover` re-runs in minutes and `just mmz cover` makes an unchanged tree
-# free, so the coverage arm refreshes its own input and REFUSES a stale one. A
+# free, so the coverage arm refreshes its own input and refuses a stale one. A
 # full `cargo mutants` sweep is hours — it rebuilds and re-runs the suite once
 # per mutant — so refreshing here is not an option and refusing would be worse:
 # it would block the size and coverage arms behind an hours-long prerequisite
-# for a signal that is deliberately not a gate. So this arm SKIPS instead, and
+# for a signal that is deliberately not a gate. So this arm skips instead, and
 # says on stderr that it skipped and which recipe produces the data. What it
 # must never do is stay quiet, because "no surviving mutants" and "nobody has
 # measured" would then print identically, and the second one reads as good news.
@@ -106,7 +106,7 @@ non-verdict, not a pass" else "" end)
 #     decides more, so the same share buys more risk.
 #
 #   confidence = 0.8, constant
-#     cargo-mutants RAN the suite, so survival is measured, not forecast. Lower
+#     cargo-mutants ran the suite, so survival is measured, not forecast. Lower
 #     than the 0.9 the size and coverage arms carry because a survivor can be
 #     provably unkillable — `.cargo/mutants.toml` documents two such equivalent
 #     mutants today — so unlike a line count, the finding itself can turn out to
@@ -137,7 +137,7 @@ score_mutants() {
       | (if $fn_lines <= 10 then 2 elif $fn_lines <= 30 then 4 else 6 end) as $difficulty
       # cargo-mutants own wording, taken from the mutant name with its
       # `file:line:col: ` prefix stripped, rather than the bare `replacement`
-      # field. A deletion (`delete ! in confirm_retire`) has an EMPTY
+      # field. A deletion (`delete ! in confirm_retire`) has an empty
       # replacement, so a task built from that field would read "the suite still
       # passed after ." — and this phrasing is what `mutants.out/missed.txt`
       # prints, so a filed task greps against what cargo-mutants itself wrote.

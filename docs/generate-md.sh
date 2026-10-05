@@ -11,26 +11,23 @@
 # skills/mindtape/SKILL.md, a docs/contributing/*.md deep dive) touches this
 # file not at all.
 #
-# `www/generate.sh` runs FIRST, unconditionally — a source that reads
+# `www/generate.sh` runs first, unconditionally — a source that reads
 # `www/generated/*.json` must never depend on some other recipe (`docs::gen`,
-# `check-doc-facts`) having run first in this process. That used to be a
-# direct call to `www/generate-facts.sh` alone, and this script's whole point
-# was staying cheap: no built binary, no release compile. That stopped being
-# possible when www/generated/site-pages.json — which docs/src/lib.typ's
-# `fact("site-pages")` reads for `www-link` and `www-groups` — moved
-# to www/generate-site-pages.sh (truth/tasks/derive-site-pages-json-from-the-
-# pages-page-meta-blocks.typ): deriving it now means compiling every
-# www/content/*.typ page, which needs www/generate.sh's OWN captures
+# `check-doc-facts`) having run first in this process. It has to run the whole
+# script, not only `www/generate-facts.sh`, because www/generated/site-pages.json
+# — which docs/src/lib.typ's `fact("site-pages")` reads for `www-link` and
+# `www-groups` — comes from www/generate-site-pages.sh. Deriving it compiles
+# every www/content/*.typ page, which needs www/generate.sh's own captures
 # (hero-source.typ, cli.json, …), not just generate-facts.sh's. `generate.sh`
 # ends by calling `generate-facts.sh` and then `generate-site-pages.sh`
-# itself, so calling it here is still the one call this script needs — it
-# now just also pays a `cargo build -p mindtape-cli` standalone (the debug
-# binary; see www/generate.sh).
+# itself, so calling it here is the one call this script needs. The call also
+# pays for a `cargo build -p mindtape-cli` standalone (the debug binary; see
+# www/generate.sh).
 # Inside `just check` that cost is free: `docs::check` already ran
 # `generate.sh` first, sharing this same `target/www-generated.lock`.
 #
 # typlite (nixpkgs' tinymist, `$out/bin/typlite`; see flake.nix for the pin)
-# is a render path SEPARATE from the www/content/*.typ docs site — those pages
+# is a render path separate from the www/content/*.typ docs site — those pages
 # carry a tola `page` show rule and `@tola` imports that typlite cannot parse.
 # Every constraint typlite imposes on a source (the `#` workaround, the
 # footnote hard-error, the silently-stripped `<p>`/`<div>`/`<span>`, the raw-
@@ -53,7 +50,7 @@
 #
 # A source with no `<mindtape-md>` block (docs/src/lib.typ, or any future
 # helper module) queries back zero matches — `--one` cannot express "zero or
-# one", so this script queries WITHOUT it and checks the match count itself,
+# one", so this script queries without it and checks the match count itself,
 # skipping on zero and failing loudly on more than one (a source should never
 # carry two).
 set -eo pipefail
@@ -69,7 +66,7 @@ OUT_ROOT="${1:-$REPO}"
 cd "$REPO"
 
 # Hold the www/generated/ lock for this whole script, not just the regenerate
-# below. Every source rendered here READS that directory — the fact files via
+# below. Every source rendered here reads that directory — the fact files via
 # docs/src/lib.typ's `fact`, and the recipe names via its generated `just`
 # module — and www/generate.sh (the docs::check arm, running concurrently under
 # `just check`'s [parallel]) `rm -rf`s the directory on entry. Regenerating
@@ -123,12 +120,12 @@ for src in docs/src/**/*.typ; do
   # typlite maps `=` to `##` and offers no way back to `#` (see docs/src/lib.typ),
   # so `doc-title` goes through `html.elem("h1")` — the one element typlite
   # preserves. That is a rendering workaround, not an authoring intent: every
-  # one of these files is read as RAW TEXT far more often than rendered (README
+  # one of these files is read as raw text far more often than rendered (README
   # in a terminal, AGENTS.md and SKILL.md straight into an agent context
   # window), and a raw `<h1>` tag there is worse than the `#` the author wrote.
   #
   # Deliberately anchored and attribute-free: only a whole line that is exactly
-  # `<h1>…</h1>` converts. An h1 CARRYING attributes is doing something markdown
+  # `<h1>…</h1>` converts. An h1 carrying attributes is doing something markdown
   # cannot express (README centers its header with `<h1 align="center">`, which
   # both typlite and the GitHub sanitizer keep) and is left alone. Nested tags
   # inside the title would not survive the demotion either, so a title

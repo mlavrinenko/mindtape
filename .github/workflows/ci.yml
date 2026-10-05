@@ -47,15 +47,12 @@ jobs:
       # commits it guards are held to `[[commits.rules]]` again here: a push
       # checks what it pushed, a PR its own commits. Nothing earlier is read —
       # history is never rewritten, so re-judging it could only fail forever.
-      # FLOOR bounds a range from below, so history up to it — path-form
-      # `Refs:` trailers the trailer check refuses, and every flip-only
-      # `task: start`/`task: close` commit `flip-with-work` now refuses —
-      # stays exempt even when one push carries it; it now names the last
-      # commit before `flip-with-work` turned on (truth/tasks/move-this-repos-
-      # task-flips-into-work-commits.typ), moved the same way the stem-
-      # trailer switch moved it before
-      # (truth/tasks/migrate-this-repos-refs-trailers-to-stems.typ). A
-      # new branch (`before` all zeros), `workflow_dispatch` and a force-push
+      # The floor bounds a range from below, so history up to it stays exempt
+      # even when one push carries it. That history holds path-form `Refs:`
+      # trailers the trailer check refuses and every flip-only
+      # `task: start`/`task: close` commit that `flip-with-work` refuses. The
+      # floor is the last commit before `flip-with-work` turned on. A new
+      # branch (`before` all zeros), `workflow_dispatch` and a force-push
       # whose `before` is gone have no range and skip, saying so.
       - name: Commit rules (pushed range)
         env:

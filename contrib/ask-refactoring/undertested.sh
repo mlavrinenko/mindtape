@@ -25,13 +25,13 @@
 # under a `just cover` gate that measures the workspace total only. Nothing else
 # in the repo reports it; that is this arm's entire reason to exist.
 #
-# The band is the CONJUNCTION — complexity at or above a floor AND coverage below
+# The band is the conjunction — complexity at or above a floor and coverage below
 # one — never the CRAP score that combines them. CRAP is CC^2*(1-cov)^3 + CC,
 # whose cubed term collapses above ~90% coverage, so in this repo it degenerates
 # into cyclomatic complexity and no band on it separates a complex well-tested
 # function from an undertested one; `truth/tasks/sweep-crap-scores-into-tasks.typ`
 # measured that and was cancelled on it. `cargo crap --format json` is still the
-# right SOURCE — nothing else here reports `cyclomatic` and `coverage` per
+# right source — nothing else here reports `cyclomatic` and `coverage` per
 # function — and reading those two fields is not banding on the score printed
 # beside them. That is the difference between this arm and the cancelled one.
 #
@@ -74,8 +74,8 @@ undertested_report_json() {
 #
 # Two arms reading one lcov at two granularities report the same gap twice unless
 # one defers, and the re-run guard makes that expensive: a duplicate pair blocks
-# the next sweep until both halves close. So this arm SKIPS any function whose
-# file the coverage arm reports. Not a heuristic — `coverage_arm_files` IS that
+# the next sweep until both halves close. So this arm skips any function whose
+# file the coverage arm reports. Not a heuristic — `coverage_arm_files` is that
 # arm's predicate, over the same report in the same sweep.
 #
 # The remedies nest, which is why the split is clean rather than a compromise: a
@@ -161,7 +161,7 @@ score_undertested() {
     '
 }
 
-# Every number below is driven by ONE derived quantity, `paths = CC * (1 - cov)`
+# Every number below is driven by one derived quantity, `paths = CC * (1 - cov)`
 # — how many of the function's independent paths the suite never walks. That is
 # the conjunction this arm bands on, so scoring on it keeps the priority and the
 # finding talking about the same thing. On today's tree it spans 1.36
@@ -232,7 +232,7 @@ emit_undertested() {
         --set "ease=$ease"
         --set "difficulty=$difficulty"
         --set "estimate=(src-files: 1)"
-        # `coverage`, not a fourth signal tag. The tag says which advisory TOOL
+        # `coverage`, not a fourth signal tag. The tag says which advisory tool
         # noticed the finding (see the `[tasks.tags]` comment in the config), and
         # that is llvm-cov for both coverage arms — this one is a granularity of
         # the same signal, not a new one. So the config claim holds unchanged:

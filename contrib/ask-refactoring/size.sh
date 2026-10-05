@@ -20,7 +20,7 @@
 #     band (85%..100%) spread across the scale instead of bunched at the top.
 #
 #   confidence = 0.9 production, 0.7 test
-#     High because linecop MEASURES: the line count is a fact, not a forecast.
+#     High because linecop measures: the line count is a fact, not a forecast.
 #     Not 1.0 because the remedy is a judgment call — a re-cap with a reason is
 #     as valid an outcome as a split. Test modules score lower still: ejectest
 #     already played its one move on them, so whether a further split is even
@@ -46,9 +46,9 @@
 # the `normal` band. That is honest: mechanical refactoring is real work and is
 # never the most important thing on the board.
 #
-# Two axes, kept apart deliberately. LANGUAGE (linecop's own `language` field,
+# Two axes, kept apart deliberately. Language (linecop's own `language` field,
 # never re-derived from the extension) decides the remedy: a Rust file is carved
-# into a module, a Markdown page sheds a section. TEST-VERSUS-PRODUCTION decides
+# into a module, a Markdown page sheds a section. Test-versus-production decides
 # tone and score, and is a Rust distinction only — it is what `ejectest` already
 # played its move on — so it is scored `false` for anything else rather than
 # left to a path regex that would happen to agree.

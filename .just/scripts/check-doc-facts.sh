@@ -17,11 +17,11 @@
 # (truth/tasks/derive-the-built-in-priority-tables.typ), every sweep flag in
 # sweep-flags.json needs a www/utils/sweep-flag-notes.typ entry
 # (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
-# and every www/content/*.typ page needs a route in site-pages.json AND a NAV
+# and every www/content/*.typ page needs a route in site-pages.json and a NAV
 # entry in www/utils/site.typ. The first five arms read their Typst dict's
 # keys through the same target/-rooted driver trick as check-doc-coverage.sh,
-# never by grepping quoted strings; the fifth reads a driver too now (for
-# NAV) and ALSO compares against the filesystem, so it runs in three
+# never by grepping quoted strings. The fifth reads a driver too (for
+# NAV) and also compares against the filesystem, so it runs in three
 # directions — a page whose own declared route disagrees with its filename, a
 # page with no NAV entry (invisible in the sidebar), and a NAV entry with no
 # page (a 404 in it) — each failing by name.
@@ -29,21 +29,19 @@
 # It regenerates its own inputs (bash www/generate.sh below, which ends by
 # calling generate-facts.sh and then generate-site-pages.sh itself) rather
 # than trusting whatever www/generated/ already holds, so this gate never
-# depends on `just docs::gen` having run first. It USED to call
-# generate-facts.sh directly and never pay for a cargo build either; that
-# stopped being possible when site-pages.json moved to generate-site-pages.sh
-# (truth/tasks/derive-site-pages-json-from-the-pages-page-meta-blocks.typ),
-# because deriving it is a full page compile that needs generate.sh's own
-# captures (hero-source.typ, cli.json, …) — see that script's header. Inside
-# `just check` this is free: docs::check already ran generate.sh and both
-# share target/www-generated.lock, so the captures are already there.
+# depends on `just docs::gen` having run first. Deriving site-pages.json is a
+# full page compile that needs generate.sh's own captures (hero-source.typ,
+# cli.json, …), so calling generate-facts.sh directly cannot work; see that
+# script's header. Inside `just check` the regenerate is free: docs::check
+# already ran generate.sh and both share target/www-generated.lock, so the
+# captures are already there.
 set -eo pipefail
-# Hold the www/generated/ lock across the regenerate AND the typst queries
+# Hold the www/generated/ lock across the regenerate and the typst queries
 # below, not just the regenerate: www/utils/gate-notes.typ reads the
 # generated `just` module, so a driver querying it is a reader of that
 # directory, and the concurrent docs::check arm `rm -rf`s it. Same fd-held
 # lock and same MINDTAPE_GENERATED_LOCK handshake as www/generate.sh and
-# docs/generate-md.sh — and the reason www/generate.sh's OWN lock acquisition
+# docs/generate-md.sh — and the reason www/generate.sh's own lock acquisition
 # below is conditional on that handshake rather than unconditional: without
 # it, generate.sh trying to take a second lock on the file this fd already
 # holds would deadlock against this process.
@@ -135,7 +133,7 @@ done
 # where its values come from (truth/tasks/emit-shell-completions-from-the-
 # binary-that-answers-them.typ). Both sides come out of cli.json, which is
 # `mt _cli --json` — so the "declared" side is the live parser and the
-# "sourced" side is crates/mindtape-cli/src/completion.rs's SOURCES table
+# "sourced" side is crates/mindtape-cli/src/completion.rs's `SOURCES` table
 # reflected back through it. Reading the table through the binary rather than
 # grepping the file is what makes the two sides comparable: a mention the
 # parser never sees cannot satisfy this, and an argument renamed in one place
@@ -143,11 +141,11 @@ done
 #
 # Two exclusions, neither a skip list. A `flag` takes no value, so there is
 # nothing to complete; and an argument with `possible_values` is a ValueEnum,
-# which clap completes from the parser itself — naming those in SOURCES would
+# which clap completes from the parser itself. Naming those in `SOURCES` would
 # restate a list the parser already owns, the committed-script mistake this
 # whole feature exists to avoid.
 #
-# `Source::None` COUNTS as sourced: it is a recorded decision carrying its
+# `Source::None` counts as sourced: it is a recorded decision carrying its
 # reason (cli.json shows it as a null source with a non-null reason), and the
 # unit test beside completion.rs is what holds those reasons non-empty. What
 # fails here is the third state — an argument the table does not name at all,
@@ -169,15 +167,14 @@ if [ -n "$missing_args" ]; then
     exit 1
 fi
 
-# The pages arm, part one: filename vs. the route each PAGE ITSELF declares.
-# site-pages.json is no longer a read-back of www/utils/site.typ's manifest —
-# www/generate-site-pages.sh builds it from every page's own `<page-meta>`
-# block, keyed by the ROUTE THAT BLOCK DECLARES, not by the page's filename.
-# So this diff is not "file vs. manifest" in the abstract, it is "file vs. the
-# page's own claim about its route" — comparing THAT against the filename is
-# exactly what catches a `<page-meta>` route pointed at another page's route
-# (www/generate-site-pages.sh already refuses two pages declaring the SAME
-# route; this catches one declaring the WRONG one, which is a valid route
+# The pages arm, part one: filename vs. the route each page declares.
+# site-pages.json is built by www/generate-site-pages.sh from every page's own
+# `<page-meta>` block, keyed by the route that block declares, not by the
+# page's filename. So this diff is "file vs. the page's own claim about its
+# route". Comparing that against the filename catches a `<page-meta>` route
+# pointed at another page's route (www/generate-site-pages.sh already refuses
+# two pages declaring the same route; this catches one declaring the wrong one,
+# which is a valid route
 # that simply is not this file's). The route a file maps to is tola's own
 # layout rule — index.typ serves "/" and every other <stem>.typ serves
 # "/<stem>/" — applied here rather than read from anywhere, because the whole
@@ -203,7 +200,7 @@ fi
 # The pages arm, part two: the manifest vs. www/utils/site.typ's NAV, the
 # other place a route is written by hand. Nothing derives NAV from the
 # manifest any more (NAV only carries group titles and reading order), so the
-# two CAN disagree — a page missing from NAV is invisible in the sidebar, and
+# two can disagree — a page missing from NAV is invisible in the sidebar, and
 # a NAV entry naming no real page's route 404s the moment it's clicked. Read
 # through the same target/-rooted driver trick as the four arms above, not by
 # grepping quoted strings out of site.typ. The set-difference itself is

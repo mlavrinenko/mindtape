@@ -21,13 +21,13 @@
 #      gate reaches swaps the link under the running tests. Every build there
 #      has to carry `--tests`.
 #
-# WHAT ARM TWO READS: only what a `just check` arm reaches, as _script-graph.sh
+# What arm two reads: only what a `just check` arm reaches, as _script-graph.sh
 # walks it (`_script-reach.sh ... check`): the recipe names `check` hands to `mmz`, recipe
 # dependencies, a nested `just <recipe>`, and any script a body or script
 # names, with www/*.sh and docs/*.sh added as nodes. The walk is the one
 # script-scope-check already trusts, so a shell form it learns, this arm learns;
 # nothing is listed here, and a script that arrives is read by arriving. It
-# reads a script NAMED as much as one run, so it errs toward scanning more.
+# reads a script named as much as one run, so it errs toward scanning more.
 #
 # `just check-rrule` is OUT of scope, and by that rule rather than by name: it
 # is not a `just check` arm, so nothing here reaches it. It builds with
@@ -39,13 +39,13 @@
 # arm of `check`, it becomes reachable and fails here until it gets another
 # `--target-dir`, which is the right outcome.
 #
-# EXEMPT BY FLAG, never by file: `--release` (`-r`) and `--target-dir` (or a
+# Exempt by flag, never by file: `--release` (`-r`) and `--target-dir` (or a
 # `CARGO_TARGET_DIR=` prefix) write somewhere else, `--tests` resolves the test
 # arm's unit, and `-p <other>` builds another crate. `cargo run` is never
 # exempted by `--tests` — it takes none — only by writing elsewhere. A cargo
 # with no `-p`, or with `--workspace`, builds mindtape-cli too.
 #
-# CONTROL FIRST (_gate-drift-control.sh), for the reason check-secrets.sh gives for its own: "no
+# The control runs first (_gate-drift-control.sh), for the reason check-secrets.sh gives for its own: "no
 # findings" is equally what a reader that stopped following edges prints. The
 # control builds synthetic trees in a temp dir (never the working tree: `just
 # check` runs its arms in parallel, so a probe there would fail a concurrent

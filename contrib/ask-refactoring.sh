@@ -9,14 +9,14 @@
 #
 # Three rules the design turns on:
 #
-#   Only ADVISORY signals qualify. A signal that already blocks a commit —
+#   Only advisory signals qualify. A signal that already blocks a commit —
 #   jscpd, outdatty, machete, clippy — must never file a task, because the wall
 #   is already in front of you and the task would be a note about the wall.
 #
-#   One task per FINDING, never one per sweep. Each is dispatched to its own
+#   One task per finding, never one per sweep. Each is dispatched to its own
 #   agent and has to carry its own scope.
 #
-#   Idempotency comes from the SIGNAL, not from a ledger. Nothing here records
+#   Idempotency comes from the signal, not from a ledger. Nothing here records
 #   what was filed. A closed task whose condition still holds should be noticed
 #   again — the work did not happen. The one deliberate suppression is an
 #   override with a written reason in the signal's own config (.linecop.yaml for
@@ -37,7 +37,7 @@
 # producer has to send its output to stderr, or it lands in the rows (see
 # `ensure_lcov_fresh`).
 #
-# NOT memoized with mmz, deliberately: the whole point is to re-observe the
+# Not memoized with mmz, deliberately: the whole point is to re-observe the
 # tree on every run. The one exception is `just cover` itself, inside the
 # coverage signal: `just mmz cover` (see below) skips re-running the whole test
 # suite when nothing under its scope changed, but the lcov it reads is still
@@ -50,18 +50,18 @@ cd "$repo"
 
 # ── the thresholds ──────────────────────────────────────────────────────────
 #
-# Every one of them is REQUIRED and none is defaulted here, deliberately. The
+# Every one of them is required and none is defaulted here, deliberately. The
 # defaults live in the `ask-refactoring` recipe's `[arg(...)]` parameters and
 # nowhere else (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-
 # attributes.typ): that is what `just --usage ask-refactoring` renders, what
 # `just --dump` carries into www/generated/sweep-flags.json, and what
 # docs/contributing/signal-sweep.md's table is generated from. A fallback here
 # would be a second copy of four numbers with nothing to keep it in step — the
-# arrangement this whole change exists to end — and it would fail SILENTLY, at
+# arrangement this whole change exists to end — and it would fail silently, at
 # a threshold nobody chose, on the day the recipe stopped passing one.
 #
 # Initialised empty rather than left unset, because these five names are also
-# the recipe's EXPORTED parameters: `$BASELINE` and friends are in this
+# the recipe's exported parameters: `$BASELINE` and friends are in this
 # script's environment already, so an inherited value would satisfy the
 # required-check below without the flag ever having been passed.
 BASELINE=""
@@ -102,7 +102,7 @@ while [ $# -gt 0 ]; do
 done
 
 # Missing, or not a number: refuse rather than sweep at a threshold nobody
-# chose. The recipe's patterns already reject a non-numeric value at DISPATCH,
+# chose. The recipe's patterns already reject a non-numeric value at dispatch,
 # so this fires only for a direct `bash contrib/ask-refactoring.sh` call —
 # which is exactly the caller the recipe's defaults cannot reach.
 for var in WRITE BASELINE COVERAGE_FLOOR CC_FLOOR FN_COVERAGE_FLOOR; do
