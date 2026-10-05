@@ -180,10 +180,12 @@ pub fn check_candidates(
 /// cure: a link cycle on an acyclic kind, or a rule whose expression reads the
 /// whole set (`count(...)`, `ready`, `topo`), or an edge to a task that is not
 /// in the set. A task checked apart from its
-/// backlog drops these, as the task cannot fix them.
+/// backlog drops these, as the task cannot fix them. It also drops a rule
+/// skipped for lack of git, a breach of the config reported once at its entry.
 #[must_use]
 pub fn reads_set_breach(config: &Config, violation: &Violation) -> bool {
     crate::validate_links::is_unresolved(violation)
+        || violation.kind == crate::violation::ViolationKind::SkippedRule
         || acyclic_kinds(&config.tasks.links).contains(&violation.field.as_str())
         || crate::config_rules::set_labels(config).contains(&violation.field)
 }

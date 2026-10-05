@@ -117,6 +117,9 @@ pub enum ViolationKind {
     /// An edge whose target is not in the set of tasks checked, which only the
     /// set around the task can settle.
     UnresolvedLink,
+    /// A `[[tasks.rules]]` rule skipped because git could not answer. The
+    /// fault is the config's, and it is reported once at the rule's entry.
+    SkippedRule,
 }
 
 /// A single validation failure.

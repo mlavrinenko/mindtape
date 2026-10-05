@@ -152,6 +152,7 @@ impl CompiledRule {
         let found = self.violation(task, format!("skipped: {err}"));
         Violation {
             severity: Severity::Warn,
+            kind: crate::violation::ViolationKind::SkippedRule,
             location: config
                 .rule_sites
                 .get(&self.label)

@@ -485,6 +485,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The template check no longer repeats a skipped rule.** A rule skipped
+  for lack of git is reported once, at its config entry, and `mt check` also
+  printed it for the built-in template.
 - **A `Violation` carries a `ViolationKind`.** The template check dropped an
   unresolved link target by matching the start and end of its message, so a
   reworded message changed what it dropped. The link check sets
