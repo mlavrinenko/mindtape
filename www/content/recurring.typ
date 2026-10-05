@@ -58,6 +58,13 @@ from it is an on-week. So `every(weeks: 2, on: (mon, thu))` falls on Monday
 and Thursday of every second week, and finishing late in an off week still
 lands the next occurrence on the following on-week.
 
+`start:` takes a date and moves the epoch for one series. The week holding
+`start` is an on-week, and so is every Nth week after it, so
+`every(weeks: 2, on: (mon, thu), start: on(2026, 6, 1))` runs the weeks of
+June 1 and June 15, and a series with `start: on(2026, 6, 8)` runs the other
+weeks. A series without `start` keeps the 2001-01-01 epoch. `start` needs a
+`weeks` period with an `on:` set, and a spawned occurrence keeps it.
+
 = Policy
 
 Four more arguments control the series:

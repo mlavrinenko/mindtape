@@ -14,6 +14,7 @@ fn period(unit: PeriodUnit, value: u32) -> Rule {
         unit,
         value,
         weekdays: vec![],
+        start: None,
     }
 }
 
@@ -65,6 +66,7 @@ fn weekday_set_finds_next_matching_day() {
         unit: PeriodUnit::Weeks,
         value: 1,
         weekdays: vec![Weekday::Mon, Weekday::Wed, Weekday::Fri],
+        start: None,
     };
     // 2026-06-01 is a Monday; next in the set strictly after it is Wednesday.
     assert_eq!(date(2026, 6, 1).weekday(), Weekday::Mon);
@@ -79,6 +81,7 @@ fn weekday_set_wraps_into_next_week() {
         unit: PeriodUnit::Weeks,
         value: 1,
         weekdays: vec![Weekday::Mon],
+        start: None,
     };
     // Friday -> next Monday, three days later.
     assert_eq!(date(2026, 6, 5).weekday(), Weekday::Fri);
@@ -91,6 +94,7 @@ fn weekly(value: u32, weekdays: &[Weekday]) -> Rule {
         unit: PeriodUnit::Weeks,
         value,
         weekdays: weekdays.to_vec(),
+        start: None,
     }
 }
 
@@ -134,6 +138,43 @@ fn every_second_week_from_an_off_week_lands_on_the_next_on_week() {
     );
     assert_eq!(
         advance_once(&rule, date(2026, 6, 14)).unwrap(),
+        date(2026, 6, 15)
+    );
+}
+
+fn weekly_from(start: NaiveDate) -> Rule {
+    Rule::Period {
+        unit: PeriodUnit::Weeks,
+        value: 2,
+        weekdays: vec![Weekday::Mon, Weekday::Thu],
+        start: Some(start),
+    }
+}
+
+#[test]
+fn start_fixes_which_weeks_are_on_weeks() {
+    // Without `start`, the week of 2026-06-01 is an on-week (see above), so
+    // the Monday 2026-06-08 week is off. A `start` in that week flips both.
+    let rule = weekly_from(date(2026, 6, 10));
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 4)).unwrap(),
+        date(2026, 6, 8)
+    );
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 8)).unwrap(),
+        date(2026, 6, 11)
+    );
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 11)).unwrap(),
+        date(2026, 6, 22)
+    );
+}
+
+#[test]
+fn start_on_the_default_parity_changes_nothing() {
+    let rule = weekly_from(date(2026, 6, 3));
+    assert_eq!(
+        advance_once(&rule, date(2026, 6, 4)).unwrap(),
         date(2026, 6, 15)
     );
 }

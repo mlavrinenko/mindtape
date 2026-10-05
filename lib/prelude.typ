@@ -220,7 +220,8 @@
 // Recurrence. A task advances to its next occurrence only via `mt recur`,
 // never as a side effect of a read (see command-semantics-cqrs). `every()`
 // shapes one period unit (days/weeks/months/years) — optionally narrowed to a
-// weekday set via `on:` — plus the policy riding along with it: `anchor`
+// weekday set via `on:` and, for a multi-week set, a `start:` date whose week
+// is an on-week — plus the policy riding along with it: `anchor`
 // ("completion", the default, or "due"), the series stop conditions
 // `until`/`count`, and `materialize` ("spawn"/"mutate"). No math lives here,
 // same discipline as the priority frameworks: an omitted policy arg stays
@@ -232,6 +233,7 @@
   months: none,
   years: none,
   on: none,
+  start: none,
   anchor: none,
   until: none,
   count: none,
@@ -249,7 +251,7 @@
   )
   let (value, unit) = units.at(0)
   (
-    rule: (kind: "period", unit: unit, value: value, on: on),
+    rule: (kind: "period", unit: unit, value: value, on: on, start: start),
     anchor: anchor,
     until: until,
     count: count,
@@ -444,7 +446,11 @@
   let on = rule.at("on", default: none)
   if type(on) == array and on.len() > 0 {
     let days = on.map(_scalar).join(", ")
-    if core == none { "on " + days } else { core + " on " + days }
+    let shown = if core == none { "on " + days } else { core + " on " + days }
+    let start = rule.at("start", default: none)
+    if type(start) == datetime {
+      shown + " from " + start.display("[year]-[month]-[day]")
+    } else { shown }
   } else { core }
 }
 

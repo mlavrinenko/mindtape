@@ -179,6 +179,7 @@ fn emit_recur(recur: &Recur) -> String {
             unit,
             value,
             weekdays,
+            start,
         } => {
             let mut args = vec![format!("{}: {value}", unit.as_str())];
             if !weekdays.is_empty() {
@@ -187,6 +188,10 @@ fn emit_recur(recur: &Recur) -> String {
                     .map(|day| typ_str(crate::recur::weekday_name(*day)))
                     .collect();
                 args.push(format!("on: {}", typ_array(&days)));
+            }
+            if let Some(start) = start {
+                let (year, month, day) = crate::recur_dates::date_to_ymd(*start);
+                args.push(format!("start: on({year}, {month}, {day})"));
             }
             ("every", args)
         }

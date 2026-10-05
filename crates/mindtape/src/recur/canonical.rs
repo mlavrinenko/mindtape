@@ -38,6 +38,9 @@ pub enum CanonicalRule {
         /// Weekday names (`"mon"`, …); empty when unnarrowed.
         #[serde(default, skip_serializing_if = "Vec::is_empty")]
         on: Vec<String>,
+        /// The `start:` date (`YYYY-MM-DD`) fixing a weekday series' week parity.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        start: Option<String>,
     },
     /// `rrule("FREQ=MONTHLY;BYDAY=1MO")`.
     Rrule {
@@ -56,6 +59,7 @@ impl Recur {
                     unit,
                     value,
                     weekdays,
+                    start,
                 } => CanonicalRule::Period {
                     unit: unit.as_str().to_owned(),
                     value: *value,
@@ -64,6 +68,7 @@ impl Recur {
                         .copied()
                         .map(|day| weekday_name(day).to_owned())
                         .collect(),
+                    start: start.map(crate::recur_dates::format_iso),
                 },
                 Rule::Rrule { raw } => CanonicalRule::Rrule { raw: raw.clone() },
             },
@@ -87,10 +92,16 @@ impl CanonicalRecur {
     pub fn to_recur(&self) -> Recur {
         Recur {
             rule: match &self.rule {
-                CanonicalRule::Period { unit, value, on } => Rule::Period {
+                CanonicalRule::Period {
+                    unit,
+                    value,
+                    on,
+                    start,
+                } => Rule::Period {
                     unit: PeriodUnit::parse(unit).unwrap_or(PeriodUnit::Days),
                     value: *value,
                     weekdays: on.iter().filter_map(|name| parse_weekday(name)).collect(),
+                    start: start.as_deref().and_then(crate::recur_dates::parse_iso),
                 },
                 CanonicalRule::Rrule { raw } => Rule::Rrule { raw: raw.clone() },
             },
@@ -117,6 +128,7 @@ mod tests {
                 unit: PeriodUnit::Months,
                 value: 3,
                 weekdays: vec![],
+                start: None,
             },
             anchor: Some("completion".to_owned()),
             until: None,
@@ -124,6 +136,28 @@ mod tests {
             materialize: Some("spawn".to_owned()),
         };
         let canonical = recur.to_canonical();
+        assert_eq!(canonical.to_recur(), recur);
+    }
+
+    #[test]
+    fn start_round_trips_through_canonical() {
+        let recur = Recur {
+            rule: Rule::Period {
+                unit: PeriodUnit::Weeks,
+                value: 2,
+                weekdays: vec![chrono::Weekday::Tue],
+                start: chrono::NaiveDate::from_ymd_opt(2026, 9, 7),
+            },
+            anchor: None,
+            until: None,
+            count: None,
+            materialize: None,
+        };
+        let canonical = recur.to_canonical();
+        assert!(matches!(
+            &canonical.rule,
+            CanonicalRule::Period { start: Some(start), .. } if start == "2026-09-07"
+        ));
         assert_eq!(canonical.to_recur(), recur);
     }
 
@@ -149,6 +183,7 @@ mod tests {
                 unit: "weeks".to_owned(),
                 value: 1,
                 on: vec!["mon".to_owned(), "bogus".to_owned()],
+                start: None,
             },
             anchor: None,
             until: None,
@@ -161,6 +196,7 @@ mod tests {
                 unit: PeriodUnit::Weeks,
                 value: 1,
                 weekdays: vec![chrono::Weekday::Mon],
+                start: None,
             }
         );
     }
@@ -172,6 +208,7 @@ mod tests {
                 unit: "fortnights".to_owned(),
                 value: 2,
                 on: vec![],
+                start: None,
             },
             anchor: None,
             until: None,
@@ -184,6 +221,7 @@ mod tests {
                 unit: PeriodUnit::Days,
                 value: 2,
                 weekdays: vec![],
+                start: None,
             }
         );
     }

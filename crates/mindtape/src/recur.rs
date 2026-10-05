@@ -64,6 +64,11 @@ pub enum Rule {
         /// next date is then the nearest matching weekday rather than a fixed
         /// `value`-unit jump. See [`crate::recur_dates::advance_once`].
         weekdays: Vec<chrono::Weekday>,
+        /// `start:` — a date whose Monday-to-Sunday week is an on-week of a
+        /// multi-week weekday series; every `value`-th week after it is too.
+        /// `None` = the global series epoch
+        /// ([`crate::recur_dates`]'s `SERIES_EPOCH`).
+        start: Option<chrono::NaiveDate>,
     },
     /// `rrule("FREQ=MONTHLY;BYDAY=1MO")` — parsed and gated, not yet expanded.
     Rrule {
@@ -234,11 +239,30 @@ fn parse_period_rule(
     };
     let value = period_value(dict, &name, errors)?;
     let weekdays = parse_weekdays(dict.get("on"), errors);
+    let start = parse_start(dict, errors);
     Some(Rule::Period {
         unit,
         value,
         weekdays,
+        start,
     })
+}
+
+/// A period's `start:` date. One that is not a date reports against the
+/// argument, `recur.start`, rather than reading as no start at all.
+fn parse_start(
+    dict: &std::collections::BTreeMap<String, HVal>,
+    errors: &mut Vec<crate::marker::ShapeError>,
+) -> Option<chrono::NaiveDate> {
+    let text = crate::marker::dict_str(dict, "recur", "start", errors)?;
+    let date = crate::recur_dates::parse_iso(&text);
+    if date.is_none() {
+        errors.push(crate::marker::shape_message(
+            "recur.start",
+            &format!("expected a date like `on(2026, 6, 1)`, found `{text}`"),
+        ));
+    }
+    date
 }
 
 /// A period's length, reported against the argument that carried it —
@@ -377,10 +401,18 @@ pub fn check_policy(recur: &Recur, config: &RecurConfig) -> Vec<String> {
 
 fn check_rule(rule: &Rule, anchor: Option<&str>, config: &RecurConfig, out: &mut Vec<String>) {
     match rule {
-        Rule::Period { unit, weekdays, .. } => {
+        Rule::Period {
+            unit,
+            weekdays,
+            start,
+            ..
+        } => {
             check_choice(Some(unit.as_str()), &config.units, "period unit", out);
             if !weekdays.is_empty() && !matches!(unit, PeriodUnit::Weeks) {
                 out.push("an `on:` weekday set requires a weeks() period".to_owned());
+            }
+            if start.is_some() && weekdays.is_empty() {
+                out.push("`start:` requires a weeks() period with an `on:` weekday set".to_owned());
             }
         }
         Rule::Rrule { raw } => check_rrule_rule(raw, anchor, config, out),

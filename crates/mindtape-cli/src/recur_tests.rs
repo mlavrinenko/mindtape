@@ -23,6 +23,7 @@ pub(super) fn weekly(count: Option<u32>, until: Option<&str>) -> Recur {
             unit: PeriodUnit::Weeks,
             value: 1,
             weekdays: vec![],
+            start: None,
         },
         anchor: None,
         until: until.map(ToOwned::to_owned),

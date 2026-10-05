@@ -322,6 +322,7 @@ fn recur_carries_through_for_an_every_period() {
             unit: "weeks".to_owned(),
             value: 2,
             on: vec!["mon".to_owned()],
+            start: None,
         },
         anchor: Some("due".to_owned()),
         until: None,

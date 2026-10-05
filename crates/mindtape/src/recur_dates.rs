@@ -121,8 +121,11 @@ pub fn next_date(
 pub fn advance_once(rule: &Rule, from: NaiveDate) -> Result<NaiveDate, RecurError> {
     match rule {
         Rule::Period {
-            value, weekdays, ..
-        } if !weekdays.is_empty() => next_weekday_after(from, weekdays, *value),
+            value,
+            weekdays,
+            start,
+            ..
+        } if !weekdays.is_empty() => next_weekday_after(from, weekdays, *value, *start),
         Rule::Period { unit, value, .. } => add_period(from, *unit, *value),
         Rule::Rrule { raw } => advance_rrule(raw, from),
     }
@@ -159,26 +162,30 @@ const SERIES_EPOCH: NaiveDate = match NaiveDate::from_ymd_opt(2001, 1, 1) {
 };
 
 /// Whether the Monday-to-Sunday week holding `date` is an on-week for a
-/// `weeks`-week period, counted from [`SERIES_EPOCH`].
-fn is_on_week(date: NaiveDate, weeks: u32) -> bool {
+/// `weeks`-week period, counted from the Monday of `start`'s week, else from
+/// [`SERIES_EPOCH`].
+fn is_on_week(date: NaiveDate, weeks: u32, start: Option<NaiveDate>) -> bool {
     let monday = date.week(Weekday::Mon).first_day();
-    let elapsed = monday.signed_duration_since(SERIES_EPOCH).num_weeks();
+    let origin = start.map_or(SERIES_EPOCH, |start| start.week(Weekday::Mon).first_day());
+    let elapsed = monday.signed_duration_since(origin).num_weeks();
     elapsed.rem_euclid(i64::from(weeks.max(1))) == 0
 }
 
 /// The next date strictly after `from` whose weekday is in `weekdays` and
 /// whose Monday-to-Sunday week is an on-week: every `weeks`-th week counted
-/// from [`SERIES_EPOCH`], whichever week `from` itself falls in. Bounded to
+/// from the series origin (see [`is_on_week`]), whichever week `from` itself
+/// falls in. Bounded to
 /// `weeks` weeks of scan: any non-empty set matches within one period.
 fn next_weekday_after(
     from: NaiveDate,
     weekdays: &[Weekday],
     weeks: u32,
+    start: Option<NaiveDate>,
 ) -> Result<NaiveDate, RecurError> {
     let mut candidate = from;
     for _ in 0..u64::from(weeks.max(1)) * 7 {
         candidate = candidate.succ_opt().ok_or(RecurError::DateOverflow)?;
-        if weekdays.contains(&candidate.weekday()) && is_on_week(candidate, weeks) {
+        if weekdays.contains(&candidate.weekday()) && is_on_week(candidate, weeks, start) {
             return Ok(candidate);
         }
     }

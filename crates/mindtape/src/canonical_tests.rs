@@ -109,6 +109,7 @@ fn every_recur_serializes_and_round_trips() {
             unit: PeriodUnit::Weeks,
             value: 2,
             weekdays: vec![chrono::Weekday::Mon, chrono::Weekday::Wed],
+            start: None,
         },
         anchor: Some("due".to_owned()),
         until: Some("2027-01-01".to_owned()),

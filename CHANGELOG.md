@@ -32,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every other field to all tasks. A template's `assignee: slot("assignee")`
   offers the allowed names, and `has(tags, "frontend")` and
   `has(estimate, "days")` read the core list and dict fields.
+- **`every()` takes a `start` date.** A multi-week weekday series counted its
+  on-weeks from one epoch shared by every series, so a project could not pick
+  which alternate weeks one ran on. `every(weeks: 2, on: (mon, thu), start:
+  on(2026, 6, 1))` counts from the Monday of that week, and a series without
+  `start` keeps the epoch.
 - **`values` checks a list-valued `x-<ns>` field.** A non-empty `values`
   refused a list extra with `takes a string`, so a project whose field holds
   several machines kept a Typst check. `mt check` now holds every element to

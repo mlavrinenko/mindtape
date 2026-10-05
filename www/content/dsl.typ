@@ -50,6 +50,7 @@ dictionary, and `mt` does the scoring and the date arithmetic.
 
 A date field takes `on(2026, 7, 20)`, the prelude's short form of
 `datetime(year: 2026, month: 7, day: 20)`.
+The `start:` and `until:` arguments of `every(...)` take the same form.
 
 = Writing a status
 

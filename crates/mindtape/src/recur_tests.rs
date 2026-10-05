@@ -47,6 +47,7 @@ fn parse_recur_simple_weekly() {
             unit: PeriodUnit::Weeks,
             value: 1,
             weekdays: vec![],
+            start: None,
         }
     );
     assert_eq!(recur.anchor, None);
@@ -135,6 +136,7 @@ fn weekly() -> Rule {
         unit: PeriodUnit::Weeks,
         value: 1,
         weekdays: vec![],
+        start: None,
     }
 }
 
@@ -190,9 +192,22 @@ fn check_policy_rejects_weekday_set_on_non_weekly_unit() {
         unit: PeriodUnit::Days,
         value: 1,
         weekdays: vec![Weekday::Mon],
+        start: None,
     };
     let problems = check_policy(&recur(rule), &RecurConfig::default());
     assert!(problems.iter().any(|p| p.contains("weeks()")));
+}
+
+#[test]
+fn check_policy_rejects_start_without_a_weekday_set() {
+    let rule = Rule::Period {
+        unit: PeriodUnit::Weeks,
+        value: 2,
+        weekdays: vec![],
+        start: chrono::NaiveDate::from_ymd_opt(2026, 6, 1),
+    };
+    let problems = check_policy(&recur(rule), &RecurConfig::default());
+    assert!(problems.iter().any(|p| p.contains("`start:` requires")));
 }
 
 #[test]

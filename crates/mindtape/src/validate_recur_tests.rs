@@ -12,6 +12,7 @@ fn weekly_recur() -> Recur {
             unit: PeriodUnit::Weeks,
             value: 1,
             weekdays: vec![],
+            start: None,
         },
         anchor: None,
         until: None,

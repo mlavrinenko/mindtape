@@ -255,11 +255,31 @@ fn round_trips_recur_every() {
             unit: PeriodUnit::Weeks,
             value: 1,
             weekdays: vec![chrono::Weekday::Mon, chrono::Weekday::Wed],
+            start: None,
         },
         anchor: Some("due".to_owned()),
         until: Some("2027-01-01".to_owned()),
         count: Some(10),
         materialize: Some("spawn".to_owned()),
+    });
+    assert_round_trips(&task, CONFIG, &[]);
+}
+
+#[test]
+fn round_trips_recur_start() {
+    let mut task = bare_task("recur-start");
+    task.status = Some(status("wip", "2026-06-01"));
+    task.recur = Some(Recur {
+        rule: Rule::Period {
+            unit: PeriodUnit::Weeks,
+            value: 2,
+            weekdays: vec![chrono::Weekday::Mon, chrono::Weekday::Thu],
+            start: chrono::NaiveDate::from_ymd_opt(2026, 6, 8),
+        },
+        anchor: None,
+        until: None,
+        count: None,
+        materialize: None,
     });
     assert_round_trips(&task, CONFIG, &[]);
 }
@@ -393,6 +413,7 @@ fn round_trips_recur_without_specific_weekdays() {
             unit: PeriodUnit::Days,
             value: 3,
             weekdays: Vec::new(),
+            start: None,
         },
         anchor: None,
         until: None,
@@ -412,6 +433,7 @@ fn round_trips_recur_with_every_weekday() {
             unit: PeriodUnit::Weeks,
             value: 1,
             weekdays: vec![Mon, Tue, Wed, Thu, Fri, Sat, Sun],
+            start: None,
         },
         anchor: None,
         until: None,
