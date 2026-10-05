@@ -27,4 +27,8 @@ cargo llvm-cov clean --workspace
 cargo llvm-cov nextest --workspace --no-report
 cargo llvm-cov report --ignore-filename-regex "$ignore" \
     --lcov --output-path target/coverage/lcov.info
-cargo llvm-cov report --ignore-filename-regex "$ignore" --fail-under-lines 90
+# Only the header and `TOTAL` row: the per-file table is ~230 lines a gate run
+# never reads, `just crap` reads the lcov above, and llvm-cov's --summary-only
+# drops nothing in text mode. pipefail keeps --fail-under-lines' exit status.
+cargo llvm-cov report --ignore-filename-regex "$ignore" --fail-under-lines 90 |
+    sed -n '1p;$p'

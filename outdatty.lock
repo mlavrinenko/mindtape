@@ -107,7 +107,7 @@ groups:
     source:
       .just/scripts/_lcov-stale-reason.sh: a8c38a5d93708f495d59e0fe42d41c0a9d151b7d8d8b1df051c7418f7025a71c
       .just/scripts/check-crap.sh: 4cf75b125178d47f2bb772a2367a8e9018509da297e198ae346ef5ed94f491c2
-      .just/scripts/cover.sh: 3393e54d433afcf886810d780c48b934eae25e0cc0dcb5739f2800c9d9e3f4ad
+      .just/scripts/cover.sh: 56d04122a01bff84e08f8630a9fa4976eb81e418c9cc7c8f34c90df6188bb7d6
       .just/scripts/crap-baseline-check.sh: c44c998700a5e14ae944829bc42ef6005e30041525aba2725cfe2fddd005f5e9
       .just/scripts/crap-baseline.sh: 9557082bf19d408a02ab75cc5386d1c0667391cd24c07fa62ed595ef521cce87
       .just/scripts/crap.sh: 09c9a195f0fa46b0c1c853c4352d708f5e41a01a490da0c386b31e2148246eb9
