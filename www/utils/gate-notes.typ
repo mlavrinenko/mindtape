@@ -25,7 +25,7 @@
   "outdatty-check": [a source changes and the docs that restate it go unreviewed],
   "check-examples": [an example project the docs and evals read stops passing `mt check`],
   "check-doc-coverage": [an `mt` subcommand ships with no CLI doc entry],
-  "check-doc-facts": [a derived crate, field, framework, gate, sweep flag or completable argument ships with no doc entry],
+  "check-doc-facts": [a derived crate, field, framework, gate, sweep flag, filter function or completable argument ships with no doc entry],
   "check-doc-recipes": [a doc names a recipe by hand, and a rename leaves it stale],
   "check-doc-spans": [a doc code span names an `mt` command, flag or config key that does not exist],
   "check-doc-prose": [a doc source, a config comment or a schema description tells history or shouts],

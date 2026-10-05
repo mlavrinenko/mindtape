@@ -155,7 +155,7 @@ impl Filter {
     /// whose stem hash happens to spell it.
     #[must_use]
     pub fn names_term(word: &str, config: &Config) -> bool {
-        eval::WORDS.contains(&word)
+        eval::is_word(word)
             || fields::get(word).is_some()
             || config.views.contains_key(word)
             || config.dicts.contains_key(word)
@@ -430,6 +430,13 @@ pub(crate) fn field_value(
 #[path = "filter_eval.rs"]
 mod eval;
 pub(crate) use eval::eval_bool;
+pub use eval::{Arity, FilterFunction};
+
+/// The registry of the language's predicates and functions.
+#[must_use]
+pub const fn functions() -> &'static [FilterFunction] {
+    &eval::FUNCTIONS
+}
 
 #[cfg(test)]
 #[path = "filter_tests.rs"]

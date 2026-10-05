@@ -56,6 +56,9 @@ Bare `status` sorts by legend position.
 - `has(f)` and `miss(f)` test whether the task carries field `f`.
   `has(f, "v")` matches when `f`'s list holds `v`, its scalar equals `v`, or
   its dict has the key `v`.
+- `exists` matches inside `head(...)`, `staged(...)` or `worktree(...)` of a
+  task-scope commit rule when that state holds the task's file. Any other
+  filter refuses it.
 - `has_tag("t")` matches an authored or folder-derived tag.
 - `links("kind")` matches a task with at least one edge of that kind.
 - `contains("s")` is a case-insensitive substring search over `title`, `id`

@@ -16,12 +16,126 @@ use crate::expr::{extract_identifier, extract_literal, restore_name};
 use crate::filter::{Ctx, Filter, FilterError};
 use crate::filter_predicates::{contains_call, is_stale, present};
 
-/// Every bare word the language reads as a predicate or a function name:
-/// [`nullary`] and [`function`] dispatch on exactly these.
-pub(crate) const WORDS: [&str; 17] = [
-    "ready", "blocked", "terminal", "exists", "in_view", "has", "miss", "has_tag", "links",
-    "contains", "touches", "matches", "in_dict", "word", "changed", "count", "stale",
+type Run = fn(&[Node<DefaultNumericTypes>], &Ctx) -> Result<bool, FilterError>;
+
+/// How many arguments a filter word takes: `max` is `None` when it is
+/// variadic.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Arity {
+    pub min: u8,
+    pub max: Option<u8>,
+}
+
+const fn exactly(count: u8) -> Arity {
+    Arity {
+        min: count,
+        max: Some(count),
+    }
+}
+
+/// One predicate or function of the filter language: its name, its arity and
+/// the code that evaluates it.
+#[derive(Clone, Copy)]
+pub struct FilterFunction {
+    pub name: &'static str,
+    pub arity: Arity,
+    run: Run,
+}
+
+const fn word(name: &'static str, arity: Arity, run: Run) -> FilterFunction {
+    FilterFunction { name, arity, run }
+}
+
+/// The one registry of the language's predicates and functions. [`nullary`]
+/// and [`function`] dispatch through it, [`Filter::names_term`] reads its
+/// names, and `mt _cli --json` carries it so the docs gate can check that
+/// each name is documented.
+pub(crate) const FUNCTIONS: [FilterFunction; 17] = [
+    word("ready", exactly(0), |_, ctx| {
+        Ok(ctx.readiness.is_ready(ctx.task))
+    }),
+    word("blocked", exactly(0), |_, ctx| {
+        Ok(ctx.readiness.is_blocked(ctx.task))
+    }),
+    word("terminal", exactly(0), |_, ctx| {
+        Ok(ctx.task.is_terminal(&ctx.config.tasks.status.terminal()))
+    }),
+    word("exists", exactly(0), |_, ctx| {
+        crate::filter_predicates::exists(ctx)
+    }),
+    word("in_view", exactly(1), |args, ctx| {
+        in_view(&single_literal(args, "in_view")?, ctx)
+    }),
+    word(
+        "has",
+        Arity {
+            min: 1,
+            max: Some(2),
+        },
+        |args, ctx| crate::filter_predicates::has_call(args, ctx.task, ctx.config),
+    ),
+    word("miss", exactly(1), |args, ctx| {
+        Ok(!present(
+            ctx.task,
+            &single_identifier(args, "miss")?,
+            ctx.config,
+        )?)
+    }),
+    word("has_tag", exactly(1), |args, ctx| {
+        let tag = single_literal(args, "has_tag")?;
+        Ok(ctx
+            .task
+            .tags
+            .iter()
+            .chain(&ctx.task.derived_tags)
+            .any(|owned| owned == &tag))
+    }),
+    word("links", exactly(1), |args, ctx| {
+        let kind = single_literal(args, "links")?;
+        Ok(crate::filter_links::has_kind(ctx.task, &kind))
+    }),
+    word("contains", Arity { min: 1, max: None }, |args, ctx| {
+        contains_call(args, ctx.task, ctx.config)
+    }),
+    word("touches", exactly(1), crate::filter_predicates::touches),
+    word("matches", exactly(2), |args, ctx| {
+        crate::filter_strings::matches_call(args, ctx.task, ctx.config)
+    }),
+    word("in_dict", exactly(2), |args, ctx| {
+        crate::filter_strings::in_dict_call(args, ctx.task, ctx.config)
+    }),
+    word("word", exactly(2), |_, _| {
+        Err(crate::filter_strings::word_is_not_boolean())
+    }),
+    word("changed", exactly(1), |_, _| {
+        Err(FilterError::Invalid(
+            "changed() is a count; compare it: changed(\"worktree\") <= estimate.files".to_owned(),
+        ))
+    }),
+    word("count", Arity { min: 1, max: None }, |_, _| {
+        Err(FilterError::Invalid(
+            "count() is a number, not a predicate; compare it: `count(...) <= 1`".to_owned(),
+        ))
+    }),
+    word("stale", exactly(1), |args, ctx| {
+        let count_str = single_literal(args, "stale")?;
+        let count: u64 = count_str.parse().map_err(|_| {
+            FilterError::Invalid(format!(
+                "stale() expects a non-negative integer, got {count_str:?}"
+            ))
+        })?;
+        Ok(is_stale(ctx.task, count))
+    }),
 ];
+
+fn lookup(name: &str) -> Option<&'static FilterFunction> {
+    FUNCTIONS.iter().find(|entry| entry.name == name)
+}
+
+/// Whether `name` is a predicate or function of the language.
+pub(crate) fn is_word(name: &str) -> bool {
+    lookup(name).is_some()
+}
 
 pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
     match node.operator() {
@@ -49,16 +163,13 @@ pub(crate) fn eval_bool(node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<b
     }
 }
 
-/// A bare identifier in boolean position: the predicates `ready` / `blocked` /
-/// `terminal` are valid; any other field is a type error (use a comparison).
+/// A bare identifier in boolean position: the registry's predicates of arity
+/// zero are valid; any other field is a type error (use a comparison).
 fn nullary(identifier: &str, ctx: &Ctx) -> Result<bool, FilterError> {
-    match identifier {
-        "ready" => Ok(ctx.readiness.is_ready(ctx.task)),
-        "blocked" => Ok(ctx.readiness.is_blocked(ctx.task)),
-        "terminal" => Ok(ctx.task.is_terminal(&ctx.config.tasks.status.terminal())),
-        "exists" => crate::filter_predicates::exists(ctx),
-        other => Err(FilterError::Invalid(format!(
-            "bare field `{other}` is not boolean; use a comparison or function"
+    match lookup(identifier) {
+        Some(entry) if entry.arity.max == Some(0) => (entry.run)(&[], ctx),
+        _ => Err(FilterError::Invalid(format!(
+            "bare field `{identifier}` is not boolean; use a comparison or function"
         ))),
     }
 }
@@ -77,54 +188,9 @@ fn binary(
 }
 
 fn function(name: &str, node: &Node<DefaultNumericTypes>, ctx: &Ctx) -> Result<bool, FilterError> {
-    let children = node.children();
-    let (task, config) = (ctx.task, ctx.config);
-    match name {
-        "ready" => Ok(ctx.readiness.is_ready(task)),
-        "blocked" => Ok(ctx.readiness.is_blocked(task)),
-        "terminal" => Ok(task.is_terminal(&config.tasks.status.terminal())),
-        "exists" => crate::filter_predicates::exists(ctx),
-        "in_view" => in_view(&single_literal(children, "in_view")?, ctx),
-        "has" => crate::filter_predicates::has_call(children, task, config),
-        "miss" => Ok(!present(
-            task,
-            &single_identifier(children, "miss")?,
-            config,
-        )?),
-        "has_tag" => {
-            let tag = single_literal(children, "has_tag")?;
-            Ok(task
-                .tags
-                .iter()
-                .chain(&task.derived_tags)
-                .any(|owned| owned == &tag))
-        }
-        "links" => {
-            let kind = single_literal(children, "links")?;
-            Ok(crate::filter_links::has_kind(task, &kind))
-        }
-        "contains" => contains_call(children, task, config),
-        "touches" => crate::filter_predicates::touches(children, ctx),
-        "matches" => crate::filter_strings::matches_call(children, task, config),
-        "in_dict" => crate::filter_strings::in_dict_call(children, task, config),
-        "word" => Err(crate::filter_strings::word_is_not_boolean()),
-        "changed" => Err(FilterError::Invalid(
-            "changed() is a count; compare it: changed(\"worktree\") <= estimate.files".to_owned(),
-        )),
-        "count" => Err(FilterError::Invalid(
-            "count() is a number, not a predicate; compare it: `count(...) <= 1`".to_owned(),
-        )),
-        "stale" => {
-            let count_str = single_literal(children, "stale")?;
-            let count: u64 = count_str.parse().map_err(|_| {
-                FilterError::Invalid(format!(
-                    "stale() expects a non-negative integer, got {count_str:?}"
-                ))
-            })?;
-            Ok(is_stale(task, count))
-        }
-        other => Err(FilterError::Invalid(format!("unknown function: {other}"))),
-    }
+    let entry =
+        lookup(name).ok_or_else(|| FilterError::Invalid(format!("unknown function: {name}")))?;
+    (entry.run)(node.children(), ctx)
 }
 
 /// `in_view("name")`: does the task match the named view's filter? Resolves the

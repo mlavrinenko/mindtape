@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`mt _cli --json` lists the filter functions, and `check-doc-facts` holds the filter pages to them.** One registry in `filter_eval.rs` names each predicate and function with its arity and dispatches it. A function missing from `www/content/filters.typ` or the skill's `filters.md` now fails the gate, which found `exists` undocumented.
 - **A config filter warns on an undeclared `x-` name.** A rule, view,
   `required` or `values-when` filter naming `x-machnie` beside a declared
   `x-machine` loaded silently and matched nothing. While `[tasks.fields]`

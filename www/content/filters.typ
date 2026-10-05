@@ -103,6 +103,9 @@ same date, which `MINDTAPE_NOW` pins (see
   [`has(field, value)`],
   [The field's list holds the value, its scalar equals it, or its dict has it as a key. `tags` and `estimate` read this way too.],
 
+  [`exists`],
+  [Inside `head(...)`, `staged(...)` or `worktree(...)` in a task-scope commit rule: the commit state holds the task's file. Any other filter refuses it.],
+
   [`has_tag("name")`],
   [The task has the tag, written or #link(u("/derived-tags/"))[derived].],
 

@@ -20,7 +20,7 @@
 # than this script: www/generate-site-pages.sh derives that one and needs
 # generate.sh's own captures — see both headers for why.
 #
-# Seven artifacts, seven sources:
+# Eight artifacts, eight sources:
 #   - crate-map.json    <- `cargo metadata`, rust-toolchain.toml, the
 #                          [workspace.package] table, lib/typst.toml
 #   - dsl-fields.json   <- lib/prelude.typ's `task` signature, read back
@@ -28,6 +28,8 @@
 #                          status constructors
 #   - frameworks.json   <- crates/mindtape/src/frameworks.toml plus the two
 #                          scales in defaults.toml (see www/frameworks.jq)
+#   - filter-functions.json <- the filter registry, read back from the
+#                          `filter_functions` key of cli.json (`mt _cli`)
 #   - gates.json        <- `just --dump --dump-format json` for the
 #                          `[group("gate")]` tags and `check`'s own dependency
 #                          list, for row order (see www/gates.jq)
@@ -142,6 +144,12 @@ rm -rf "$tmp"
 SCALES="$(tomlq -c '.tasks | {priority, difficulty}' crates/mindtape/src/defaults.toml)"
 tomlq -f "$SCRIPT_DIR/frameworks.jq" --argjson scales "$SCALES" \
   crates/mindtape/src/frameworks.toml | emit frameworks.json
+
+# --- filter-functions.json ----------------------------------------------------
+# The filter language's predicates and functions with their arities, off the
+# registry in crates/mindtape/src/filter_eval.rs that dispatches them. cli.json
+# is `mt _cli --json`, which www/generate.sh writes before this script runs.
+jq '{functions: .filter_functions}' "$OUT/cli.json" | emit filter-functions.json
 
 # site-pages.json — the docs site's page manifest — used to be derived here,
 # read back off www/utils/site.typ's PAGES dict. It moved to its own script,

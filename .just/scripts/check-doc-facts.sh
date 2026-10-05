@@ -8,7 +8,7 @@
 # the facts www/generate-facts.sh and www/generate-site-pages.sh derive
 # instead of a hand-maintained list (see truth/tasks/derive-the-drift-prone-
 # doc-facts-from-their-sources.typ and truth/tasks/derive-site-pages-json-
-# from-the-pages-page-meta-blocks.typ). Six arms: every crate in
+# from-the-pages-page-meta-blocks.typ). Seven arms: every crate in
 # crate-map.json needs a www/utils/crate-notes.typ entry, every DSL field in
 # dsl-fields.json needs a www/utils/dsl-field-notes.typ entry, every gate in
 # gates.json needs a www/utils/gate-notes.typ entry (truth/tasks/derive-the-
@@ -113,6 +113,23 @@ if [ -n "$missing_flags" ]; then
     while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_flags"
     exit 1
 fi
+
+# The filter-functions arm: every predicate and function in the filter
+# registry (crates/mindtape/src/filter_eval.rs, read back through
+# filter-functions.json) must open a code span on both filter pages. A span
+# opens with the name followed by a non-name character, so `has_tag("x")` does
+# not document `has`.
+fns=$(jq -r '.functions[].name' www/generated/filter-functions.json)
+for page in www/content/filters.typ skills/mindtape/references/filters.md; do
+    missing_fns=$(while IFS= read -r name; do
+        grep -qE "\`$name([^A-Za-z0-9_-]|\$)" "$page" || echo "$name"
+    done <<<"$fns")
+    if [ -n "$missing_fns" ]; then
+        echo "check-doc-facts: filter functions missing from $page:" >&2
+        while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_fns"
+        exit 1
+    fi
+done
 
 # The completions arm: every value-taking argument clap declares must name
 # where its values come from (truth/tasks/emit-shell-completions-from-the-

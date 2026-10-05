@@ -153,7 +153,8 @@ fn depth_field_dispatches_as_a_number() {
 /// if at all, on its arguments or its type, never as an unknown function.
 #[test]
 fn every_listed_word_is_a_function_the_dispatcher_knows() {
-    for word in crate::filter::eval::WORDS {
+    for entry in crate::filter::functions() {
+        let word = entry.name;
         let result = Filter::parse(&format!("{word}()"))
             .unwrap()
             .matches(&sample(), &Config::default());
@@ -179,33 +180,34 @@ fn names_term_covers_language_words_fields_and_config_names() {
     }
 }
 
-/// The reverse of the test above: every word `nullary` and `function` match on
-/// is listed, so a new arm cannot dodge the words a stem hash must not spell.
+/// A word with arity zero is a bare predicate; every other registry word is
+/// refused bare as a non-boolean field, and an unregistered one is unknown.
 #[test]
-fn every_dispatched_word_is_listed() {
-    let source = include_str!("filter_eval.rs");
-    let mut dispatched = Vec::new();
-    let mut in_dispatch = false;
-    for line in source.lines() {
-        if line.starts_with("fn nullary(") || line.starts_with("fn function(") {
-            in_dispatch = true;
-        } else if line == "}" {
-            in_dispatch = false;
-        }
-        let arm = line
-            .trim_start()
-            .strip_prefix('"')
-            .and_then(|rest| rest.split_once('"'))
-            .filter(|(_, tail)| tail.trim_start().starts_with("=>"));
-        if let (true, Some((word, _))) = (in_dispatch, arm) {
-            dispatched.push(word.to_owned());
-        }
+fn bare_words_follow_the_registry_arity() {
+    for entry in crate::filter::functions() {
+        let result = Filter::parse(entry.name)
+            .unwrap()
+            .matches(&sample(), &Config::default());
+        let bare_predicate = entry.arity.max == Some(0);
+        let refused = result
+            .as_ref()
+            .is_err_and(|got| got.to_string().contains("not boolean"));
+        assert_eq!(refused, !bare_predicate, "{}: {result:?}", entry.name);
     }
-    assert!(dispatched.len() >= 17, "arm scan found {dispatched:?}");
-    for word in dispatched {
-        assert!(
-            crate::filter::eval::WORDS.contains(&word.as_str()),
-            "{word} is dispatched but not in WORDS"
-        );
+    let unknown = Filter::parse("nope()")
+        .unwrap()
+        .matches(&sample(), &Config::default());
+    assert!(unknown.is_err_and(|got| got.to_string().contains("unknown function")));
+}
+
+/// The registry carries every name the language documents, including the
+/// two-argument `has` and the bare `exists`.
+#[test]
+fn the_registry_names_each_word_once() {
+    let names: Vec<&str> = crate::filter::functions().iter().map(|f| f.name).collect();
+    for word in ["has", "exists", "ready", "stale", "in_dict"] {
+        assert!(names.contains(&word), "{word}");
     }
+    let unique: std::collections::BTreeSet<_> = names.iter().collect();
+    assert_eq!(unique.len(), names.len());
 }
