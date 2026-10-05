@@ -422,383 +422,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a complete listing, not a truncation, exactly like a limit that hides
   nothing.
 
-### Removed
-
-- **`[handle] check-len`** (breaking, pre-1.0). A stem hash grows only where
-  two tasks share a prefix, so it needs no length setting. `[handle]` is an
-  unknown key now, with no alias.
-
-- **`[[tasks.limits]]`** (breaking, pre-1.0). A work-in-progress cap was its
-  own table and checker (`check_limits`, `mt check` only) for what
-  `count(...)` now says as a plain `[[tasks.rules]]` entry, mergeable by name
-  across packs like any other rule and enforced everywhere a rule is —
-  `mt flip` included, not `mt check` alone. `filter`/`max` becomes
-  `when`/`assert = 'count(<when>) <= max'`; `message`/`severity` are
-  unchanged. `[[tasks.limits]]` is an unknown key now, with no alias.
-
-- **`[tasks.estimate.drift]` and `[[tasks.estimate.max]]`/`min`** (breaking,
-  pre-1.0). The drift check ran unasked, hardcoded to a `files` unit, and the
-  bounds were a second checker for what a rule says in one line. Both are
-  unknown keys now; `[tasks.estimate]` keeps `units` and `required`, and no
-  estimate check runs unless a rule asks. A cap is `assert =
-  'estimate.src-files <= 5'`; a budget is `assert = 'changed("staged+worktree",
-  "!docs/generated/**") <= estimate.src-files'` at `severity = "warn"`, its
-  excludes written as `!` globs. The line-total soft ceiling goes with it.
-- **Every backward-compatibility shim for a pre-release spelling** (breaking,
-  pre-1.0). Nothing here ever shipped in a public release, so each one was a
-  hand-written hint pointing an old spelling at its replacement rather than a
-  compatibility path worth keeping; each now fails the same plain way any
-  other unrecognised name does, naming nothing to migrate from.
-  - `required = "non-terminal"` (`crates/mindtape/src/config_required.rs`) no
-    longer gets a dedicated "no longer a value; write `!terminal`" message —
-    it is dry-run as an ordinary filter expression like any other `required`
-    string, and whatever that expression fails on is reported under the
-    field's path.
-  - The filter/`--sort` field `file` (`crates/mindtape/src/fields.rs`,
-    `filter.rs`, `sort.rs`) no longer appends "renamed to `path`" to its
-    unknown-field/unknown-sort-field error; `file` is simply not a field.
-  - `contains(field, "substr")`'s reversed-argument hint and the `search(...)`
-    dispatch arm (`crates/mindtape/src/filter_predicates.rs`, `filter.rs`) are
-    gone: a leading identifier where the needle belongs is now an ordinary
-    "expected a literal" error, and `search(...)` is an ordinary "unknown
-    function" one.
-  - `has(depends_on)` / `has(supersedes)` / `has(duplicates)`
-    (`crates/mindtape/src/filter_links.rs`) are no longer sugar for
-    `links("depends-on")` etc.; the underscore spelling is now an unknown
-    field like any other. Use `links("<kind>")`.
-  - `mt install-lib`, the hidden alias for `mt install --no-defaults
-    --no-schema` (`crates/mindtape-cli/src/cli.rs`, `init.rs`, `install.rs`),
-    is gone outright — not merely hidden. It is neither a subcommand nor a
-    legend shortcut verb, so it falls through to the ordinary "unknown
-    command" error.
-  - The `key[]=value` `mt add` append spelling
-    (`crates/mindtape-cli/src/add_tokens.rs`) no longer fails naming
-    `key+=value`; the bracketed text is now an ordinary (if oddly spelled)
-    key, rejected downstream as any unknown `--set`/`-f` key is.
-
-- **`mindtape::sort::SORT_FIELDS`** (breaking, pre-1.0; library callers only).
-  The sort vocabulary is now derived from the field registry —
-  `sort::is_sort_field` accepts every registered name plus the computed `ready`
-  rank — so the hand-kept const would be the second list the registry exists to
-  remove. An out-of-tree caller that enumerated it can ask `is_sort_field` per
-  candidate name; nothing in this workspace imported the const.
-
-### Changed
-
-- **The template check no longer repeats a skipped rule.** A rule skipped
-  for lack of git is reported once, at its config entry, and `mt check` also
-  printed it for the built-in template.
-- **A `Violation` carries a `ViolationKind`.** The template check dropped an
-  unresolved link target by matching the start and end of its message, so a
-  reworded message changed what it dropped. The link check sets
-  `ViolationKind::UnresolvedLink` where it raises the breach, and the check
-  matches on that.
-- **A task's handle is its stem hash** (breaking, pre-1.0). A `#` handle was
-  a row number in the default view plus a check letter, so a handle from a
-  filtered listing could name another task. The `slug#` column now prints
-  the shortest prefix, at least three characters, of a hash of the filename
-  stem that no other task shares. It is the same in every listing, changes
-  only when `mt mv` renames the stem, and an ambiguous one is refused with
-  each candidate named. An exact stem wins over a hash, and in `mt rm` a
-  filter word does too. `mt ls -i` quits on Esc, since `q` can start a hash.
-- **The docs open on the problems MindTape solves.** README and the site home
-  show one task from `examples/api-service`, a backend team's backlog, and
-  five problems with the error `mt` prints for each: oversized tasks, vague
-  tasks, tasks closed while tests fail, work started out of order, and
-  commits with no task. Each problem has its own page. `examples/api-service`
-  replaces `examples/learn-piano` as the project the docs and skill evals
-  read, and the comparison against an imaginary YAML file is gone.
-- **The docs build refuses drift.** A code block in a doc source must be a
-  slice of a checked example or the record of a real run, and a captured run
-  prints the command that produced it. The gate also fails on an `mt`
-  command, flag or config key in prose that does not exist, on a machine path
-  in captured output, on Markdown render defects, and on history words or
-  all-caps emphasis in docs, config comments and schema descriptions.
-- **A batch write attributes a `[[tasks.rules]]` breach it opens elsewhere,
-  not only a link cycle.** `mt add`/`link`/`import`/`recur`/`flip` already
-  attributed a link cycle closed on a task outside the batch to every
-  candidate, reworded `(reported on <id>)`, so the write refuses with the
-  neighbour named rather than a graph `mt check` would reject later on its own.
-  The same mechanism now covers any rule breach a batch introduces or clears on
-  an untouched task — the shape a set-aware `assert` (`count(...)`, or
-  `ready`/`blocked`/`blocks`/`topo` over the `links:` graph) produces and a
-  purely per-task one cannot, so widening it costs nothing for the latter. A
-  WIP-cap rule refusing `mt flip` now names the task already occupying the cap
-  beside the one being flipped, the way `[[tasks.limits]]` named every task in
-  the matched set.
-
-- **An estimate bound can be gated on the task it bounds** (breaking, pre-1.0;
-  library callers only). `[tasks.estimate.max]` and `[tasks.estimate.min]` now
-  take an array of entries, each with an optional `when` filter and `message`:
-  a unit's bound is the first entry whose `when` matches and that names the
-  unit, so `when = "difficulty >= 3"` can hold judgment work to 5 files while a
-  mechanical sweep keeps a wider ceiling. A breach names the gate and carries
-  the entry's `message` as its advice. The single-table spelling still parses
-  as one unconditional entry, so no config has to change; a malformed `when`,
-  an entry naming no unit, or a unit outside `units` now fails at load.
-  `EstimateConfig::bound_problems` is replaced by `EstimateBounds`, compiled
-  once per validation pass.
-
-- **`LimitSeverity` is now `Severity`** (breaking, pre-1.0; library callers
-  only). `warn` / `error` is no longer a property of a work-in-progress cap:
-  `[[tasks.rules]]` spells the same two words in TOML and means the same two
-  things by them, so `mindtape::Severity` is one enum both sections read rather
-  than two that would have to be kept in step by hand. No config key changed —
-  `severity = "error"` under `[[tasks.limits]]` reads exactly as before.
-
-- **A filter argument narrows the rows and leaves the presentation alone**
-  (breaking, pre-1.0). `mt ls '<filter>'` used to skip rule matching and the
-  default view wholesale, so typing a filter on a branch where an `[[ls.rules]]`
-  entry was active silently took that rule's `sort` and `columns` down with it
-  — and the `applied:` trailer never said so. Every layer is per facet now: the
-  cascade resolves first, an explicit filter overrides the `filter` facet,
-  `--sort` and `--columns` override theirs, and a facet nobody claims keeps
-  what the rule or the default view gave it. A bare `@view` argument still
-  overrides every facet that view sets — naming a view is choosing a reading,
-  not just a set of rows.
-
-  Two attribution changes come with it. A rule's own `filter`/`sort`/`columns`
-  override is now labelled with the rule (its `name`, else its `condition`,
-  else `rule`) instead of `manual`, which is the command line's label alone —
-  otherwise a listing whose filter came from the caller and whose sort came
-  from a rule would report both as one source. And a rule that matched but lost
-  every facet is named rather than vanishing: `applied: manual (filter) ·
-  release superseded` under the table, `"superseded": true` in `mt ls --json`'s
-  `applied` block (additive, no `schema_version` bump).
-
-- **A column's visibility is one `when` expression** (breaking, pre-1.0).
-  `[ls.columns.<name>]` used to carry two keys that both answered "does this
-  render" — a `visibility` scalar (`auto` / `visible` / `hidden`) and a `rules`
-  list of conditional overrides. Two keys need a precedence rule, the
-  precedence needed stating in three places, and the `rules = []` opt-out
-  existed only because the two could disagree. All of it is replaced by a
-  single boolean expression in the condition language:
-
-  ```toml
-  [ls.columns.file]
-  when = 'named() || (!tty() && format() == "table")'
-  ```
-
-  No list, so no ordering and no first-match-wins; `||` does what rule order
-  did. A scalar replaces wholesale across config layers, so a project override
-  is `when = 'false'` on one line and the `rules = []` opt-out goes away with
-  the thing it was working around.
-
-  The per-column defaults `auto` used to encode in Rust move into the embedded
-  floor, one `when` per column — `#` and `title` are `true`, `status` /
-  `priority` / `due` are `nonempty()`, `assignee` is `contested()`, `ready` is
-  `blocked()` — so the three different things `auto` meant are now legible
-  where a reader looks for them. Nothing falls back to Rust: the floor is the
-  complete statement of what `mt ls` shows, and a column with no `when` never
-  renders. A blank `when = ''` is a config error naming the column, since the
-  condition language reads an empty expression as always-true and that would
-  contradict what an absent one means.
-
-  Rendered output is unchanged for an unconfigured project. There is no
-  migration shim: `visibility` and `rules` are rejected as unknown keys.
-
-- **`--format csv`'s `file` cell is now the project-root-relative path**
-  (breaking, pre-1.0), the same value `--format json` already reported under
-  `file`. It used to go through the same renderer the table column does, so
-  the two machine formats disagreed by whichever directory produced them: from
-  `tasks/`, `--format json` said `tasks/a.typ` and `--format csv --columns
-  file` said `../tasks/a.typ` for one task.
-
-  CSV is a record format, not a rendering — the docs already called it a data
-  contract, and it already substituted the task's stable `id` for the table's
-  ephemeral `#` handle for exactly this reason. `file` is the second column to
-  follow that rule: where the table shows something only the render that
-  produced it can resolve, CSV emits the value a program can keep. So a CSV
-  row now agrees with a JSON record field for field, and its `file` is the
-  value the `path` filter compares and `mt import` reads back.
-
-  The cwd-relative form is unchanged and still has two surfaces of its own —
-  the table's `file` column, and `--format path`/`path0`, which exist to be
-  pasted back into a command from the directory that produced them. Those two
-  stay pinned to each other.
-
-- **The filter/sort field `file` is now `path`** (breaking, pre-1.0). One name
-  covered two values: the field compared the project-root-relative path, while
-  the `file` column and `--format path` render the same task's path relative
-  to the working directory. Inside the project root the two coincide, which is
-  why it went unnoticed; under `mt -w <other-project>` they diverge and a
-  filter built from what the listing showed matched nothing — silently, an
-  empty listing being also what a correct filter over an empty result set
-  looks like.
-
-  The display is unchanged and stays working-directory-relative: it is the only
-  form openable from where the reader is standing. The comparable value stays
-  root-relative, so a filter saved in `.mindtape/config.toml` means the same
-  thing wherever `mt` runs from — and is the same value `--format json` reports
-  as each task's `file`. Only the name moved.
-
-  `file` in a filter (`mt ls 'contains("x", file)'`, `has(file)`) and in a sort
-  spec (`--sort file`, `[query] default_sort`) is now an error naming `path`,
-  rather than a silent miss. No shipped view, `[[ls.rules]]` entry or example
-  config filtered on it.
-
-- **Every task writer now validates before it writes** — `mt add` already
-  rendered into a buffer, checked the candidate at the exact path it would
-  occupy, and wrote only if it passed. The rest wrote first and reported
-  after: `mt recur`'s spawn created a new file exactly the way `add` used to,
-  so a rejected occurrence left the same broken artifact behind; `mt import`
-  landed the whole batch and then `remove_file`d the failures; `mt flip`,
-  `mt review` and `mt link` rewrote a file that was valid before they touched
-  it and reported afterwards without restoring it. All of them go through one
-  seam now, and a rejected write leaves nothing to repair.
-
-  A rejected rewrite is **not restored** — it is simply not written, so the
-  file still holds exactly what its author put there. Restoring would be a
-  second write, which can fail on its own and would leave the file in a third
-  state nobody can name; not writing cannot fail.
-
-  For `mt import` the answer to "one bad record, or the whole batch" is
-  unchanged: **land the rest**, and the `N filed, M skipped` report says which.
-  What changed is that the bad one is never created, so `--dry-run` no longer
-  needs a temp mirror of the project to preview against, and a batch rejected
-  end to end leaves not even an empty destination directory.
-
-  A batch goes to the validator as one set (`mindtape::check_candidates`),
-  because the rules that span tasks have no answer for one member alone: id
-  uniqueness, edge resolution, cardinality, cycles, and the dependency ranks a
-  `required` filter reads. That is what lets `mt link --apply` add an edge in
-  both directions at once and `mt recur --advance` chain occurrences that name
-  their predecessor. `mt flip` keeps its post-batch revalidation as the net for
-  what a landed flip does to *other* tasks, which no per-candidate check sees.
-
-### Fixed
-
-- **`mt add --describe` refuses a title.** `mt add --describe finding` read `finding` as a title and described the default template. It now fails with `--describe takes no title; did you mean -t finding?` when the word names a template.
-- **`mt done --help` prints help.** A shortcut verb's help request exited 1
-  behind an `Error:` prefix, opened with an internal doc comment and named the
-  binary `mindtape-cli`. It now prints the verb's help under `mt done` and
-  exits 0, and a bad flag on a verb names `mt done` as well.
-
-- **`mt add --status done` asks only for what a done task needs.** A field
-  `required = "!terminal"` got a required slot whatever status the task was
-  filed at, so filing a finished task meant inventing a priority and a
-  difficulty for it. A requirement that reads nothing but `status` and
-  `terminal` is now settled by the status the task is filed at.
-
-- **A refused `mt add` hints only at templates that fix the refusal.** A
-  breach of any rule listed every template pinning any value the caller
-  passed, so a body word-cap refusal pointed at four templates for
-  `assignee=agent`. A template is now named only when a breach is about the
-  field it pins: the names a rule's `assert` and `when` read, the `field` a
-  `check` receives, or the field a core check reports.
-
-- **Docs page summaries render code as code.** The site's lede and
-  `<meta name="description">` printed the backticks around code as text. A
-  summary is Typst markup, rendered as content in the lede and as plain text
-  in the meta description. Every summary is one sentence of at most 120
-  characters, and the site build fails naming any page that breaks either
-  limit.
-
-- **Config schema descriptions read as user prose.** Editor hovers over
-  `.mindtape/config.toml` and the Configuration page's Sections table showed
-  Rust paths and rustdoc links, such as ``[`crate::config_packs`]``, and two
-  described behaviour `mt` lacks: a status `note = "forbidden"` is not
-  enforced, and `terminal` does not relax required fields. Each description
-  says what the key does and which values it takes, a test fails on a Rust
-  path or intra-doc link in any description, and the Sections table renders
-  backticks as code.
-
-- **`mt link` finds a bare stem in another folder.** The stem became a sibling
-  `<stem>.typ`, so a target one folder over was refused with a suggestion of
-  the very stem typed, and only `../cli/<stem>.typ` landed. A stem now names
-  the one task carrying it anywhere in the project and is written relative to
-  the linking task; a sibling still wins, and a stem several folders share is
-  refused naming each path.
-
-- **A dry `mt add --print` refuses what the write refuses.** The preview
-  returned before the pre-write check, so `just ask-refactoring` printed a
-  task whose `(files: N)` estimate the config's renamed `src-files` unit
-  rejected, and `--write` died on its first finding. `--print` now clears the
-  same check (`--no-verify` opens both doors), and the four sweep arms emit
-  the renamed unit.
-
-- **A write that closes a dependency cycle is refused.** `mt check` names a
-  cycle on its first member, and the pre-write check kept only the violations
-  naming the tasks being written, so `mt link beta depends-on alpha` landed
-  `alpha → beta → alpha` and left `alpha` refusing every later write. A cycle
-  the batch closes now refuses it wherever `mt check` reports it — `mt link`,
-  `--apply`, `mt import` and `mt add` alike — while a cycle already on disk
-  still never blocks an unrelated write.
-
-- **`mt eval` takes a task reference.** It accepted a file path only, so the
-  skill's `mt eval <task>` failed on a stem with `no such file`. A stem or `#`
-  handle now resolves like `flip`, `set` and `link`, a path still evaluates a
-  `.typ` under no project, and tab completion offers stems. An unknown stem, on
-  every command, names the nearest one (`did you mean: test?`).
-
-- **`compute`, `filter`, `page`, `roll` and `switch` pass the imperative-title
-  rule.** All five are in `mindtape-dev-verbs` now (91 entries); the
-  frequency-derived `mindtape-verbs` stays untouched.
-
-- **An unknown `--sort` direction is an error.** `validate_sort_spec` checked
-  only the field before the `:`, and `parse_spec` treated every suffix but
-  `desc` as ascending, so `--sort priority:wtf` — or a saved
-  `[ls] default-sort` — sorted ascending and said nothing. Only `asc`, `desc`,
-  and no suffix are accepted now, with the error naming the direction, and
-  `sort_by_specs` delegates to the same validator.
-
-- **A saved filter expression can reach a project `[dicts.<name>]` again.**
-  Config load compiled the dictionaries *after* running the semantic pass, and
-  that pass dry-runs every saved expression against a probe task — so a
-  `[views]` filter, a `[[tasks.limits]]` filter or a `required` rule spelling
-  `in_dict("verbs", ...)` was checked against a config whose only dictionaries
-  were the two built-ins, and failed at load naming a dict the project plainly
-  declares. The two steps are swapped; nothing is lost by the order, because
-  compiling the section runs the same `[dicts]` checks the semantic pass does,
-  so a broken dictionary is still refused by whichever pass sees it first.
-
-- **`mt eval` no longer hijacks a foreign `lib/` as the `@local/mindtape`
-  package.** It registered `<root>/lib` under that name whenever a
-  `lib/typst.toml` merely existed, never reading the name the manifest
-  declares, so in any worktree whose `lib/` is some other Typst package the
-  import resolved there and the command died with `package manifest contains
-  mismatched name '<other>'` — while `mt ls` and `mt check` on the same tree
-  were fine. The batch loader has read that name since the feature landed;
-  `mt eval` built its own world and carried a second, hand-written copy of the
-  decision that never learned it. There is one copy now: `mindtape` exports
-  `package_overrides`/`package_root` and `mt eval` asks them, so the two paths
-  cannot drift again.
-
-  Two things follow from asking the same function. `mt eval` loads the
-  enclosing project's config, so its `[[typst.local-packages]]` entries apply
-  there as they already did everywhere else — and a config that does not parse
-  is now an error from `mt eval` too, where it used to be ignored. And an
-  unoverridden `@local/…` resolves under `$MINDTAPE_DATA_HOME` rather than the
-  platform data directory, closing the same install-and-load mismatch the
-  loader closed. What `mt eval` renders against is unchanged: the embedded
-  floor, not the project's columns.
-
-- **`just check-secrets` no longer logs an `ERR` over `www/generated/` on a
-  green run.** The walk bound in `.gitleaks.toml` was believed to close that
-  race; it does not, and strace says why: gitleaks 8.30 `lstat`s a directory
-  entry one syscall *before* it consults the allowlist that skips it, so the
-  bound stops the walk descending and nothing more. `www/generate.sh` `rm -rf`s
-  that directory on entry and `just check` runs its arms in parallel, so a
-  deletion landing between `readdir(www)` and that `lstat` still logged
-  `could not get info` at ERR while the gate reported no leaks and exited 0 —
-  8 runs in 20 under a synthetic churner. The scan now holds the same
-  `target/www-generated.lock` flock every other reader of that directory takes,
-  released the moment the walk is over; 0 runs in 20 after. An assertion beside
-  the acquisition fails the gate if the scan is ever running without the lock,
-  since removing it would restore the race in silence.
-
-- **`mt recur` on an already-spawned occurrence wrote a task `mt check`
-  refuses** — a spawn's source is its predecessor's source, so an occurrence
-  spawned from an occurrence already carried a `recurred-from` edge, and the
-  spawn appended a second one. `recurred-from` allows one edge per task, so
-  every hop of the ordinary loop after the first produced an invalid file: the
-  post-write check reported it, and the file stayed. The edge is now replaced
-  rather than appended — the chain is a linked list, each occurrence naming
-  only the one before it — and every other edge kind is carried forward
-  verbatim, notes included.
-
-### Added
-
 - **`[tasks.tags] allowed` and `[tasks.fields.<name>] values` can point at a
   `[dicts.<name>]` instead of restating it.** Two projects sharing a taxonomy
   used to copy the vocabulary, and a list long enough to be worth naming had
@@ -1267,341 +890,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Read`-classified command from that same JSON, on top of (not instead of)
   the hand-written per-flag variants already there.
 
-### Changed
-
-- **BREAKING: the `typst` slot kind is renamed `raw`.** The old name claimed
-  more than the kind delivers. Nothing builds a Typst value out of a `typst`
-  slot and nothing type-checks one — the value is pasted, and the only check
-  reads it as top-level markup. That check covers a `#slot(…)` in the body,
-  which is what the kind is for, but it cannot see a slot spliced into an
-  argument position: there the value is an expression, and markup treats
-  parens and `*` as ordinary text, so `(files: 2` and `*emphasis*` both parse
-  clean and reach the file, after which `mt add` fails loading what it wrote.
-  `raw` names the splice, which is the actual contract, and the gap is now
-  documented rather than implied away.
-- **BREAKING: a slot declaring an unknown `kind:` is an error.** It previously
-  fell back to `string` silently, so a typo — or a template still saying
-  `kind: "typst"` after the rename above — filled as a quoted, escaped string
-  with exit 0 and no diagnostic anywhere. `fill` now fails before coercing any
-  value, naming the slot, the unrecognised spelling, and the valid kinds. This
-  is what makes the rename safe to take: an un-migrated template fails loudly
-  instead of quietly writing a wrong task.
-- **BREAKING: one `key OP value` token grammar for `mt add` values.** A value
-  is `key=value` (set) or `key+=value` (append to a list slot), and the same
-  token is accepted after `--set` or bare after `--` —
-  `mt add "Practice arpeggios" -- estimate.files=2 tags+=docs`. Both carriers
-  reach one parser, so the shorthand cannot drift into a second grammar. The
-  `key[]=value` append spelling is retired: it encoded a verb in the key's
-  suffix where nothing else did, and needed shell quoting to survive globbing.
-  A `[]=` token now fails naming its replacement rather than being silently
-  accepted. `+word` tag sugar is unchanged — it carries no `=`, so it cannot
-  collide with a token — and a bare positional stays title text, which is why
-  the `--` is required: `mt add "fix a=b parsing"` sets no slot.
-- **Nesting a slot needs no new syntax.** A slot's name is an arbitrary
-  string and values are looked up flat, so a template that writes
-  `slot("estimate.files")` already accepts `--set estimate.files=2`. The dot
-  is a naming convention for template authors; MindTape never parses it.
-- **The docs lead with YAML for `-f`.** `-f` always accepted YAML (stdin and
-  unknown extensions sniff the content, and YAML is a JSON superset), but
-  every example was JSON — the shape that makes an author escape exactly the
-  prose slots that need it least. The `-f` sections on Templates & slots and
-  in the skill now open with a YAML heredoc and a block scalar.
-- **`script-scope-check` grew a third arm, over `outdatty.yaml`.** Its
-  `dev-docs` group lists `.just/scripts/*.sh` one by one and outdatty reacts
-  only to files it lists, so a script never added was coupled to no dependent
-  and reported by nothing — the arriving-is-enough hole the first arm already
-  closes for `.mmz` scopes, one manifest over. The arm demands a decision
-  rather than membership: a script is a `dev-docs` source or carries an
-  exemption naming the reason no doc restates it (`_nav-diff.sh` is the one,
-  left out on purpose), and a new script is neither, so it fails. An exemption
-  that contradicts a source line, or names a file that is gone, fails too.
-- **`www/gates.jq` no longer reports a check dependency that does not exist.**
-  A recipe carrying `[group("gate")]` but absent from `check:` emptied one side
-  of the membership diff, and `halt_error` writes its string with no trailing
-  newline — so `www/generate-facts.sh`'s next stderr line landed after that
-  empty colon and read as a dependency named
-  `generate-facts.sh: refusing to install malformed gates.json`. An empty side
-  now renders `(none)` and the message ends where it ends.
-- **`crap-baseline.json` records repo-relative paths.** `cargo crap
-  --workspace` reports the absolute member roots `cargo metadata` gives it and
-  cargo-crap 0.3.1 has no flag to shorten them, so every one of the 1058
-  entries published the minter's own machine layout. `just crap-baseline` now
-  strips the workspace root after minting. Nothing is given up: cargo-crap
-  keys its first matching pass on `(file, function, line)`, so a baseline
-  minted under one checkout root already missed that pass under CI's and
-  paired through the suffix-aware pass instead — 1056 of 1058 entries pair as
-  unchanged, and the two that do not are one file's two same-named
-  `fake_editor` functions, ambiguous by suffix under any root.
-
-### Fixed
-
-- **`mt add` wrote an invalid task before it validated one.** The render landed
-  on disk and validation ran after, so a rejected add left the broken file
-  behind and every subsequent `mt` command failed on it until someone deleted
-  it by hand — one mistyped slot cost a repair rather than a retry. Observed
-  filing a single task: `estimate=5` parses as a number where that template's
-  slot wants `(files: 5)`, and the rejection that was right about the value was
-  the one that made the board unreadable. `mt add` now validates the rendered
-  source *before* it reaches the filesystem, at the exact path it would occupy
-  — so folder-derived tags, nesting depth, and `links:` resolution against the
-  rest of the project are the ones the written file would have — and writes
-  nothing when that fails. The error names the offending field and ends
-  `nothing was written`, with no note about repairing a file, because there is
-  none. What made this possible without a file is `mindtape::check_candidate`,
-  a public API the other writers (`mt recur`'s spawn, `mt import`) can adopt on
-  the same terms; only `mt add` moves in this release. Two seams keep their old
-  behaviour: `--no-verify` still writes whatever it was handed, and a
-  destination outside the project root (`mt add --into /elsewhere`) has no
-  project-relative path to evaluate a candidate at, so it still writes first
-  and reports the file as kept. A rejected interactive `--edit` buffer is
-  parked in a temp file and named on stderr, so the typing that the refused
-  write would otherwise discard stays recoverable — outside every task root,
-  where no later command reads it.
-
-- **`mt ls @view -i` ignored the view's `columns`.** The interactive picker
-  kept the raw project config and dropped the one a resolved listing folds a
-  view's column set into, so it drew columns `mt ls @view` would not — against
-  a module whose stated contract is rendering the same table `ls` prints. Both
-  now build on the same resolved listing, which is also what carries the new
-  `truncated:` line into the picker's footer.
-
-- **`mt init` offered a recurrence syntax the binary could not expand.** The
-  wizard's `rrule` choice writes `[tasks.recur] rrule = true`, but that key only
-  opens the config gate — expanding a rule needs the engine behind the `rrule`
-  cargo feature, which is off by default and which `just install-bin` does not
-  build. So the composed config was accepted, `mt init` reported success, and
-  the failure surfaced later and elsewhere: the first task authored with
-  `recur: rrule("FREQ=MONTHLY")` failed `mt check` with "requires mindtape to be
-  built with the `rrule` cargo feature (not compiled into this binary)". A real
-  project lost that answer to a re-file with `every(months: 1)` and a comment in
-  its own config warning the next reader off the wizard's own menu entry — the
-  documentation you write when a tool contradicts itself. An axis choice now
-  declares whether THIS build can honour it: unhonourable choices are absent
-  from the menu, refused when typed, and refused by name and reason from the
-  flag, so `--recurrence rrule` fails `mt init` naming the cargo feature instead
-  of scaffolding a project that breaks on its first recurring task. An axis left
-  with one honourable choice is not a question either, and is not asked. The
-  variant stays compiled in both builds, so `--recurrence rrule` keeps parsing
-  and keeps appearing in `--help` — a flag that vanishes reports "invalid value"
-  and names the feature nowhere. Every other axis is untouched: availability
-  defaults to available, and a build carrying the feature offers the choice as
-  before (`just check-rrule`).
-- **`just cover` printed 2137 `PASS` lines to report a green suite.**
-  `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it, so the
-  flag `just test` has always carried never reached the coverage run: 2316
-  lines, one per test, ahead of the table anyone actually reads. The level moved
-  to `.config/nextest.toml`, where both runners read it — 179 lines, same
-  verdict, and a failure still prints in full, which is what `fail` means rather
-  than `none`. A flag that is accepted and ignored is worse than one that is
-  absent, because the recipe then claims something the output disproves. The
-  file is a `dev-docs` outdatty source and a `gates-meta` mmz input, since it
-  decides what the suite prints and, the day it grows retries or a default
-  filter, what the suite runs.
-- **A reader that stops reading no longer panics `mt`.** `mt ls | head -3`, a
-  pager quit part way, an `xargs` whose child failed — each closes the pipe
-  under a command still writing to it, and libstd ignores `SIGPIPE`, so the
-  write came back `EPIPE` and the prelude's `println!` unwrapped it into exit
-  101 and a `failed printing to stdout: Broken pipe` backtrace naming a line in
-  `library/std/src/io/stdio.rs`. A crash report, with an internal libstd
-  address, for the normal end of a pipeline. A closed reader is now an ordinary
-  write error: the first one mutes every later write and the command runs to
-  completion, exiting on its own merits. Stopping the process at the broken
-  write was the other candidate and is wrong for a tool that also writes files —
-  `mt add`, `mt flip` and `mt rm` print as they go, so bailing out there would
-  abort them half way, either claiming a success that never happened or
-  reporting a failure for work that mostly landed. Only `BrokenPipe` is
-  swallowed; every other write error still panics, because a full disk under
-  `mt ls > out.txt` must not read as a clean run. Enforced at one seam rather
-  than at the ~110 print sites: `main.rs` shadows `print!`/`println!` crate-wide
-  with macros that route through `crate::stdout`, since a policy holding at some
-  call sites is one no caller can rely on at any of them. The shadow is
-  `cfg(not(test))` — libtest captures a test's output through `print!`'s
-  internals, which a direct `io::stdout()` write bypasses.
-  <br>Filed as `mt` exiting **141** on roughly one call in ten, and that part of
-  the report was about something else: `mt` never raised `SIGPIPE`. It ignores
-  the signal from startup, and a read command is single-threaded and spawns
-  nothing, so there was no handler to restore and no worker to reach. The 141
-  came from a `mt` shell wrapper on the reporter's `PATH`, whose staleness check
-  ran `find … | sort -nr | head -1` under `set -euo pipefail`: `head` closes the
-  pipe as soon as it has its line, `sort` dies of `SIGPIPE` if it has not
-  finished writing, and `pipefail` inside a command substitution under `set -e`
-  exits the wrapper 141 before it ever executes `mt`. That is the race behind
-  the fraction, and behind the two symptoms that had ruled the binary in: no
-  output at all, and an identical rate with stdout redirected to a regular file.
-  `tests/broken_pipe_e2e.rs` asserts `mt`'s side of it — never a signal death,
-  never 141 — so the binary can never quietly acquire the behaviour it was
-  blamed for.
-- **The `site-pages-fixture-check` replica no longer copies the docs site's
-  build output.** Its snapshot was a faithful `cp -r www`, which carried
-  `www/public/` (6.1 MB of built site and its pagefind index) and `www/.tola/`
-  (1.9 MB of tola's vdom cache) into every one of the three variants. Neither
-  is read by a page compile, both are gitignored, and both belong to the
-  `docs-check` arm `just check` runs in PARALLEL with this gate — so the
-  snapshot was a reader of a tree another arm rewrites underneath it, for 8 MB
-  per variant of nothing. The copy now walks `www/` entry by entry and skips
-  those two by name; an assertion beside it fails the gate if either reappears,
-  so a revert to the whole-tree form cannot land unnoticed. Excluded by name
-  rather than by copying an allow-list of what the pages need, because an
-  allow-list owes a line for every directory `www/` grows and fails the
-  positive control for an environmental reason on the day someone forgets one —
-  the failure mode this gate exists to be free of. One claim in the report that
-  filed this was measured and is false: neither `tola build` nor `pagefind`
-  wipes `public/` on entry, and a sentinel file dropped there survives both, so
-  this was never a `cp` racing an `rm -rf`. What is measured is that `tola
-  build` rewrites every `.tola/cache/*.vdom` and `index.json` in place on each
-  run, which leaves the copy walking a tree whose files another process is
-  replacing — a question about tola's write discipline that the gate has no
-  reason to be asking.
-- **`site-pages-fixture-check` no longer fails on a cold checkout.** The gate
-  replicates `www/` with `cp -r` and runs the copy's own
-  `www/generate-site-pages.sh`, which needs `www/generated/*.json` — a
-  gitignored directory written by the `docs-gen` arm, which `just check` runs
-  in PARALLEL with this one. Its own header stated the assumption it broke on:
-  that the directory "rides along in the same `cp -r`", already on disk by the
-  time any arm reaches this gate. True of a warm checkout and only there. On a
-  fresh clone or a `just fork` worktree — which warms no cache by design — the
-  first page query died on `file not found` for `crate-map.json`, the positive
-  control failed, and two of the three cases reported "failed, but never
-  named": a red that is indistinguishable from the gate catching a real break,
-  arriving on the run that decides whether a change is green, naming a gate the
-  change never touched, and answered correctly by the same re-run a flaky-test
-  habit would order. The gate now produces its own inputs, `check-doc-facts`'s
-  idiom for the identical problem: `www/generate.sh` under
-  `target/www-generated.lock`, with the `cp -r` snapshot taken inside the same
-  lock hold and the lock dropped before the three replica compiles that need
-  nothing from the repo. Stubbing the captures instead was rejected as the
-  cheaper answer that costs the fixture — one `<page-meta>` query is a full
-  page compile, so a stub owes every artifact any page reads at the top level
-  and owes one more with every capture `www/generate.sh` grows; a stub that
-  falls behind fails the positive control for an environmental reason, which is
-  this bug again. Declaring a `docs-gen` dependency was rejected for a
-  different reason: it releases the lock before the copy runs, and the copy
-  reads a directory the concurrent `docs-check` arm `rm -rf`s on entry, so the
-  ordering it fixes is not the only one that matters. Costs one
-  `www/generate.sh`, 4s warm, against a verdict that used to depend on which
-  arm finished first.
-- **A wrong-typed required field is reported once, naming its type.** The shape
-  channel and the `required` rules both fired on the same field: `status: "wip"`
-  is a status the projection cannot read, so it degrades to absent, and
-  `mt check` printed the type report and then `status: missing required status`.
-  The second line was false — the author demonstrably wrote a status — and it
-  sent them to add a field already on the page, the exact misdirection the shape
-  reports were added to end. Every required core field a shape error empties
-  read the same way (`priority`, `difficulty`, `estimate`, `assignee`, and any
-  `[[tasks.fields]]` enum). A FIELD-level shape error now masks the `required`
-  answer for that field, and it masks it at the INPUT to each check rather than
-  as a filter over the finished violations: after the fact the only handle on
-  the report to drop is its rendered message, prose no gate holds still, spelled
-  independently by five checks, and which a genuinely different violation could
-  share. An ELEMENT error is deliberately not masked — it leaves the field
-  itself readable, so `estimate: (days: "two")` still reports both the
-  unreadable `estimate.days` and the empty `estimate` the required rule demands,
-  which are two true statements about one mistake.
-- **A wrong-typed element inside a well-shaped field is reported, not
-  dropped.** `Task::from_marker` caught a wrong-typed FIELD (`links: "a.typ"`,
-  `estimate: "2 days"`) and stopped there: one bad entry inside an otherwise
-  correct field was discarded in silence. `estimate: (days: "two")` loaded as
-  no estimate, `priority: (8, 9)` as no priority, `kind: 7` / `assignee: 5` /
-  `due: 42` as unset, `every(weeks: 2, on: ("mon", "funday"))` as a period
-  narrowed to one day the author never asked for. Every projection now reports
-  the position an author can count to in their own source — `tags[1]`,
-  `estimate.days`, `priority.inputs.ease`, `status.date`, `recur.on[1]`,
-  `recur.weeks` — the way `links[1][0]` already did, and `mt check` fails on it
-  regardless of config, since a type mismatch is never a matter of policy. The
-  entries that DO read survive, so one mistyped tag costs one report and not
-  the field. A `none` dict entry still reads as an unset key (`ice(impact: 8)`
-  passes `confidence: none` through by construction); a `none` array element is
-  a value the author wrote, and is reported.
-- **The card render stopped standing in for validation.** `tags: ("x", 7)`,
-  `status: "wip"` and an `on:` set mixing types used to fail at *eval* — not by
-  design, but because the prelude's card reached for `raw(tag)`,
-  `status.at("name")` and `on.join(", ")` on values that had no such method.
-  That message named neither the field nor the task, and would have vanished
-  the moment the render stopped making the call. The render is total now (every
-  accessor type-guards; `_scalar` falls back to `repr`), so those values reach
-  the marker and get the report above. The prelude still rejects the argument
-  shapes it would otherwise DROP before the marker — that half is unchanged,
-  and remains the only thing it can usefully assert.
-- **An injected argument brings its own separator.** `mt add` writes its
-  `status:` (and `id:`) into whatever `task.with(…)` the template declares, and
-  the insertion landed just before the closing paren — correct only when a
-  trailing comma already sat there. A template written on one line
-  (`#show: task.with(title: slot("title"))`) or simply without a trailing comma
-  got `title: "…"status: proposed(…)` instead: a file that cannot parse,
-  reported as `written task failed to load: expected comma` *after* it was on
-  disk. The insertion anchors after the last argument's value now and carries
-  its own comma, so the template's shape is the template's business; several
-  insertions share that anchor and each arrives separated from the one before.
-  An empty argument list is the opposite case and keeps its trailing comma
-  instead of taking a leading one. No in-tree template is written that way,
-  which is exactly why nothing caught it — the regression tests are the other
-  shape, at every level: the splice, `add`'s header injection, and a
-  single-line template filed end to end through the binary.
-- **`$MINDTAPE_DATA_HOME` moved the install but not the load.** The variable
-  replaced the data directory `mt install` writes the `@local/mindtape` package
-  into, while resolution went one level below `mt` — through `typst-world`,
-  which looked the directory up with `dirs` and had never heard of it. Point it
-  at a directory and the package landed there while every task file kept
-  importing the machine's own, so the one knob documented as working on every
-  platform (the reason it exists is that `dirs` reads no environment on
-  Windows) isolated a write and not a read. `mt` now hands the resolver the
-  directory it settled on — via `World::with_package_root`, added in
-  `typst-world` 0.3.1 — so the install and the load can no longer name
-  different directories. Set the variable empty and no global package resolves
-  at all, matching what empty already meant for the config layer; the harvest
-  cache folds the directory into its build key, so moving it routes reads to a
-  fresh cache instead of replaying markers harvested against another prelude.
-  `just check-examples` uses that to prove each fixture reads the checkout's
-  prelude, replacing an `XDG_DATA_HOME` that only isolated the gate on Linux.
-- **Example fixtures resolved the prelude from a machine-global symlink.**
-  `@local/mindtape` resolves through one directory per machine — pointed at
-  whichever checkout last ran `mt install` — so `just check-examples` in a
-  worktree or a second clone validated `examples/learn-piano` and
-  `examples/minimal` against the MAIN tree's `lib/prelude.typ`, not the one
-  beside them, and the harvest cache (whose build key folds each override's
-  file contents, and with no override folds nothing about the prelude) would
-  not even re-evaluate. A fork editing the DSL therefore gated its fixtures
-  against a prelude it had not changed. Both fixtures now declare a
-  `[[typst.local-packages]]` entry pointing at this checkout's `lib/`, and the
-  gate runs with the machine-global directory emptied so the entry cannot
-  silently rot back — which also makes the gate, and `just check` as a whole,
-  pass on a machine that never ran `mt install`, CI included. The repo's own
-  root already resolved correctly: the loader auto-registers `<root>/lib` when
-  its `typst.toml` names `mindtape`. `just fork` no longer prints its note
-  about the symlink, which existed only to make the old behaviour visible.
-- **`[tasks.estimate] units` is checked on open tasks only.** `check_estimate`
-  checked the unit list before the terminal exemption the bounds already had,
-  so a project retiring a unit failed `mt check` against every closed task
-  that ever carried it — the list governing the work still to do was policing
-  finished history too. The unit check now sits behind the same terminal
-  return as the bounds: a closed task keeps whatever unit it was estimated in,
-  and retiring a unit is one edit to `units`, refused only on an open task
-  still carrying it.
-- **`[tasks.tags] allowed` is checked on open tasks only.** `check_tags`
-  checked authored and folder-derived tags on every task regardless of
-  status, so dropping a tag from `allowed` failed `mt check` against every
-  closed task ever tagged with it. It now skips terminal tasks, matching the
-  estimate unit check: a closed task keeps the tags it was filed with,
-  authored and derived alike, and dropping a tag refuses only an open task
-  still carrying it.
-- **A killed write could leave a task file empty or torn.** Every authored-file
-  write (`flip`/`set`/`link`/`mv`/`recur`/`recur_advance`/`review`/`import`,
-  `mt init`, `mt install`, `mt preset save`, the harvest cache) went straight
-  through `std::fs::write`: truncate, then write. A process killed between the
-  two — Ctrl-C, OOM, a full disk — left an empty or half-written `.typ` behind,
-  and a concurrent reader (tinymist, a hook's `mt ls`, an editor reload) could
-  observe the gap. `mindtape::write_atomic` closes it: a sibling temp file,
-  fsync, then a rename over the target (`std::fs::rename` replaces an existing
-  destination on Windows the same as on Unix). `mt add` writes with
-  `File::create_new` instead, so a file that appeared since its dedup check is
-  refused rather than silently overwritten. `clippy.toml`'s
-  `disallowed-methods` now bans a raw `std::fs::write`/`File::create` outside
-  `write_atomic` itself, so a future write site fails `just check` naming it.
-
-## [0.3.0] - 2026-08-10
-
-### Added
-
 - **`mt find TERM…`** — sugar over the filter language, and deliberately nothing
   more. `mt find login bug` desugars to `contains("login") && contains("bug")`
   and runs the same code path as `mt ls`, so every `ls` flag forwards verbatim
@@ -1868,185 +1156,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   file the same gap twice: this one skips any function whose file the file-shaped
   arm reports, by calling that arm's own predicate rather than a copy of it.
 
-### Changed
-
-- **`search()` and `contains()` collapse into one filter function** — the
-  language carried two overlapping text predicates: `contains(field, "substr")`
-  matched a single field, while `search("query")` was documented as full-text
-  but read only `title` and `id`, never `Task.body` — which is loaded already
-  and marker-free. One variadic function replaces both, needle first:
-  `contains("bug")` sweeps the prose surface (`title`, `id`, `body`),
-  `contains("bug", title, body)` names its own. Tags keep `has_tag()` and every
-  scalar field keeps its comparison operator, so neither joins an implicit
-  sweep. The field vocabulary derives from the `fields` registry plus the
-  text-only `body`, so `contains()` never hand-matches names of its own; every
-  named field is validated before any is matched, so an unknown name errors
-  whatever the argument order and whether or not an earlier field already hit.
-  Both retired spellings — the old `contains(field, "substr")` order and
-  `search(…)` — are hard errors naming the replacement rather than silently
-  accepted alternatives.
-- **"Today" is the local calendar date, not UTC** — every date `mt` stamps or
-  compares (`status`/`reviewed` dates, `now()` and `stale(N)` in filters, the
-  overdue marker, `mt recur` advances) now resolves through the machine's local
-  timezone (`$TZ` on Unix, the platform zone on Windows) instead of UTC epoch
-  seconds. A task filed at 01:00 east of Greenwich used to be stamped the
-  previous day, and the date filters skewed with it. `$MINDTAPE_NOW` still
-  overrides everything, and its value is taken verbatim — a trailing RFC 3339
-  offset shifts nothing, since the pinned value *is* the date to stamp. Dates in
-  task files remain plain civil dates with no offset attached. Costs `chrono`'s
-  `clock` feature (chrono resolves the zone itself, no `localtime_r`, so no
-  multithreaded-soundness hazard).
-- **`[[on.flip]]` `run` commands go through the platform shell** — `sh -c` as
-  before on Unix, `cmd /C` on Windows. A `run` command is shell text rather than
-  an argv, so it is written for the platform the project builds on, the same way
-  the `Justfile` recipes and git hooks it stands in for are.
-- **`mt add --edit` falls back to `notepad` on Windows** — the `[add] editor` →
-  `$VISUAL` → `$EDITOR` chain is unchanged; only the last-resort floor is now
-  per-platform, since `vi` does not exist there.
-- **`jsonschema` dev-dependency drops its default features** — the schema under
-  test is generated in-process and resolves no external `$ref`, so
-  `resolve-http`/`resolve-file` bought nothing while pulling
-  reqwest → rustls → `aws-lc-sys` into every test build (a C and assembly crypto
-  build needing NASM on windows-msvc). No behaviour change; a much smaller
-  `Cargo.lock` and faster test builds on every platform.
-
-### Fixed
-
-- **The pre-commit gate has a scoped path** — `.githooks/pre-commit` fused one
-  expensive assertion (`mmz --is-fresh --tag gate`, which needs a full `just
-  check` behind it) to two cheap ones (task formatting, `mt check`). In a fresh
-  worktree there are no gate records, so committing one line meant running a
-  cold Rust build plus a Typst docs site and a Pagefind index — and the only
-  escape, `git commit --no-verify`, switched off all three. `MINDTAPE_GATE_SCOPE
-  =<reason>` now skips only the freshness assertion; the cheap two always run.
-  A new `commit-msg` hook refuses the commit unless the message carries a
-  matching `Gate-Scope: <reason>` trailer, so a scoped commit can never look
-  identical to a fully gated one in `git log`. The variable was chosen over
-  scoping the assertion to the staged diff because `.mmz/config.yaml` documents
-  its own scopes as deliberately coarse — a diff-to-rule mapping built on that
-  would fail silently open, which is the bug being fixed, not a fix for it.
-- **`mt rm` no longer suggests committing outside a git repository** — every
-  successful removal ended with `review the changes and commit when satisfied`,
-  including in projects with no repository, where there is nothing to commit
-  and the hint names a tool the user deliberately does not have. Both emitters
-  now route through one helper gated on the same repository discovery that
-  already resolves the default `[rm]` strategy, rather than a second probe.
-- **`--sort assignee` / `--sort reviewed`** — both fields were already
-  filterable but silently rejected by `--sort` (`unknown sort field`) since
-  `SORT_FIELDS` never listed them. Filter and sort now share one field
-  registry (`crate::fields`), so a field wired in is filterable and sortable
-  together — no second match statement to forget. As part of the same fix,
-  every field now sorts a missing value consistently: previously a missing
-  optional field (e.g. `kind`) sorted *first* ascending (a stray `""`
-  fallback) while `priority`/`difficulty` sorted a missing value *last* —
-  every field now follows the same last-ascending, first-descending rule.
-- **`mt add` can satisfy a required strict-framework priority** — a project
-  whose `[tasks.priority]` sets `framework` with `allow-manual = false` and
-  `required` had no `mt add` invocation that could file a valid task unless it
-  shipped a template declaring the framework call: naming the field failed
-  (`unknown --set/-f key(s): priority`), and omitting it wrote the file and then
-  failed validation on it. A strict framework has no scalar form, so the splice
-  now writes the framework call itself — the generic `framework("ice", impact:
-  slot("impact", kind: "float"), …)` spelling with one leaf slot per declared
-  input (number → `float` with its bounds in the prompt, bool → `bool`, enum →
-  `choice` over the declared values). The leaves carry no defaults, so an
-  unfilled one is the usual missing-slot error before anything is written rather
-  than a misprioritised task on disk. `mt init --priority ice-strict` composed a
-  config in exactly this shape, so it used to be refused as an incoherent answer
-  set; it now scaffolds like any other.
-- **The DSL helpers reject arguments they used to drop** — `depends-on(link(
-  "a.typ"))` built no edge at all: `link()` returns content, content is the
-  trailing note, so the call yielded an empty edge array. Nothing downstream
-  could see it — the marker carried an empty `links`, `mt check` passed and the
-  task listed as ready — because the value was destroyed before anything the
-  Rust layer validates. Every such drop is now an eval error naming the helper:
-  a `link()`/non-string target, a second note block or a named argument in an
-  edge helper (`depends-on`, `parent`, `recurred-from`, `supersedes`,
-  `duplicates`, `related`, `edge`), a second/non-content note in a status
-  constructor (`wip(2026, 6, 14, "note")`), and a positional input to a
-  priority framework (`framework("ice", 8)`). The split it draws: the prelude
-  asserts only what would never reach the marker, everything that does reach it
-  stays `mt check`'s to report, where the config lives.
-- **`mt add` escapes text slot fills into Typst markup** — a text slot carrying
-  ordinary prose used to land in markup verbatim, so a value containing `*`, `_`,
-  `$`, `#`, `[`, `]`, `<` or `@` produced a task file that failed to load the
-  instant it was written (an asterisk opened strong emphasis and the task died
-  with `unclosed delimiter`). Every fill source now routes through the same
-  escaper status notes already used — `--set`, `-f`, the positional title, the
-  `MINDTAPE_ADD_*` env vars and the `--edit` YAML buffer — while numeric, choice
-  and date slots stay unescaped, being literals rather than markup. A write that
-  still fails verification now says the file was kept on disk, instead of
-  reporting `wrote <path>` and leaving a broken artifact behind unmentioned.
-
-### Removed
-
-- **`mt ls --all`** — pass an empty filter (`mt ls ''`) to drop the default and
-  list everything. Omitting the filter applies the default view.
-- **`[ls] default-filter`** — replaced by `default-view` (see Changed).
-
-### Changed
-
-- **`required` is a filter expression (breaking)** — `[tasks.priority] required`
-  (and its `difficulty` / `estimate` / `[tasks.fields.<name>]` siblings) still
-  takes `true` and `false`, but the third form is now any filter expression
-  instead of the one-off `"non-terminal"` enum value: the field is required for
-  exactly the tasks it matches (`"kind == \"bug\""`, `"@active"`). Rename
-  `"non-terminal"` to `"!terminal"` — identical meaning, and no alias is kept, so
-  the old spelling fails at config load with the replacement named. A malformed
-  expression is one config error at load, not one violation per task.
-- **`mt ls --json` envelope (breaking)** — now `{"tasks": [...], "applied":
-  {"rule": ..., "facets": {...}}}`, not a bare array; update a `jq '.[...]'`
-  consumer to `jq '.tasks[...]'`.
-- **`[ls] default-filter` → `default-view`** — the default `mt ls` listing is now
-  a view, not a bare filter, so it carries sort and columns too, not only a
-  filter. Omitting the filter resolves `[ls] default-view` (a view name), else the
-  implicit `[views.default]` view, else match-all. The embedded floor ships
-  `[views.default]` with the previous default filter, so bare `mt ls` is unchanged
-  out of the box; redeclare `[views.default]` (or set `default-view`) to add a
-  sort/columns bundle. `[ls] default-filter` is removed.
-- **Repointed onto published crates.io substrate** — the seven extracted
-  crates (`typst-world`, `typst-harvest`, `typst-cst`, `typst-edit`,
-  `typst-cleanup`, `swhid-mint`, `artifact-gate`) are now `crates.io`
-  deps (`0.1.0`), not in-tree path crates; workspace is down to `mindtape`
-  + `mindtape-cli`. No CLI-visible change. Version reset to `0.2.0`.
-- **`typst-harvest` split over a new `typst-world` crate** — the eval-only
-  `typst::World` (file-provider seam, `@local` package resolution, dependency
-  tracking) and the Typst-free `HVal` value tree now live in `typst-world`;
-  `typst-harvest` is a thin layer that adds only `metadata()` marker harvesting
-  on top. Internal reshape: no CLI-visible or behavior change. Render support in
-  `typst-world` sits behind an off-by-default `render` feature, so eval-only
-  consumers pull no layout/render/font dependencies.
-- **Binary renamed `mindtape` → `mt`** — the installed executable is now `mt`;
-  invocations become `mt ls`, `mt check`, `mt add`, etc. Crate names
-  (`mindtape`, `mindtape-cli`), the `@local/mindtape` Typst package, the
-  `.mindtape/` config directory, and the `MINDTAPE_ADD_*` env prefix are
-  unchanged.
-- **`mindtape::naming::disambiguate` returns a `Result` (breaking)** — stem
-  collision disambiguation (used by `mt add`, `mt import`, `mt recur` spawn)
-  now returns `Result<String, NamingError>` instead of looping forever
-  against an `exists` predicate that never reports a free stem. Past
-  `MAX_DISAMBIGUATE_ATTEMPTS` (10,000) numeric suffixes it returns the new
-  `NamingError::Exhausted(stem, ceiling)` instead of hanging; callers surface
-  it as an ordinary command error. Breaking change to a public library API —
-  the crate is still on its 0.2 pre-release line.
-- **`mt recur`'s due-anchor catch-up no longer hangs** —
-  `mindtape::recur_dates::next_date`'s catch-up loop (advancing a stale `due`
-  forward by the rule until strictly after today) is now bounded by
-  `MAX_CATCH_UP_STEPS` (10,000 steps) and returns the new
-  `RecurError::CatchUpExhausted(due)` instead of spinning forever when the
-  rule never advances (e.g. `every(days: 0)`) or an expansion engine keeps
-  returning its own reference date. Previously `mt recur` would hang in that
-  case.
-- **Recur/date internal cleanup** — the `rrule` cargo feature's off-state now
-  lives in one stub module (`recur_rrule_off.rs`, selected by `#[path]`)
-  rather than `#[cfg]` twin functions inside `recur.rs`/`recur_dates.rs`, so
-  every function in those two files compiles under any feature set;
-  `epoch_days_to_ymd` also dropped an unreachable negative-`shifted` branch of
-  Hinnant's civil-from-days algorithm (the input is `u64`, so it is always
-  `>= 719_468`). Both are dead-code/coverage hygiene, no behaviour change.
-
-### Added
-
 - **Status transitions** — a status entry may declare `to = [...]`, the allowed
   next statuses, turning the flat legend into a state machine. Opt-in: with no
   `to` on any entry the legend stays any-to-any as before. Once declared,
@@ -2115,6 +1224,877 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   resolved path, else the path is appended).
 - **`mt review`** — stamp `reviewed:` with today's date on a non-terminal
   task; idempotent within the same day.
+
+### Changed
+
+- **The template check no longer repeats a skipped rule.** A rule skipped
+  for lack of git is reported once, at its config entry, and `mt check` also
+  printed it for the built-in template.
+- **A `Violation` carries a `ViolationKind`.** The template check dropped an
+  unresolved link target by matching the start and end of its message, so a
+  reworded message changed what it dropped. The link check sets
+  `ViolationKind::UnresolvedLink` where it raises the breach, and the check
+  matches on that.
+- **A task's handle is its stem hash** (breaking, pre-1.0). A `#` handle was
+  a row number in the default view plus a check letter, so a handle from a
+  filtered listing could name another task. The `slug#` column now prints
+  the shortest prefix, at least three characters, of a hash of the filename
+  stem that no other task shares. It is the same in every listing, changes
+  only when `mt mv` renames the stem, and an ambiguous one is refused with
+  each candidate named. An exact stem wins over a hash, and in `mt rm` a
+  filter word does too. `mt ls -i` quits on Esc, since `q` can start a hash.
+- **The docs open on the problems MindTape solves.** README and the site home
+  show one task from `examples/api-service`, a backend team's backlog, and
+  five problems with the error `mt` prints for each: oversized tasks, vague
+  tasks, tasks closed while tests fail, work started out of order, and
+  commits with no task. Each problem has its own page. `examples/api-service`
+  replaces `examples/learn-piano` as the project the docs and skill evals
+  read, and the comparison against an imaginary YAML file is gone.
+- **The docs build refuses drift.** A code block in a doc source must be a
+  slice of a checked example or the record of a real run, and a captured run
+  prints the command that produced it. The gate also fails on an `mt`
+  command, flag or config key in prose that does not exist, on a machine path
+  in captured output, on Markdown render defects, and on history words or
+  all-caps emphasis in docs, config comments and schema descriptions.
+- **A batch write attributes a `[[tasks.rules]]` breach it opens elsewhere,
+  not only a link cycle.** `mt add`/`link`/`import`/`recur`/`flip` already
+  attributed a link cycle closed on a task outside the batch to every
+  candidate, reworded `(reported on <id>)`, so the write refuses with the
+  neighbour named rather than a graph `mt check` would reject later on its own.
+  The same mechanism now covers any rule breach a batch introduces or clears on
+  an untouched task — the shape a set-aware `assert` (`count(...)`, or
+  `ready`/`blocked`/`blocks`/`topo` over the `links:` graph) produces and a
+  purely per-task one cannot, so widening it costs nothing for the latter. A
+  WIP-cap rule refusing `mt flip` now names the task already occupying the cap
+  beside the one being flipped, the way `[[tasks.limits]]` named every task in
+  the matched set.
+
+- **An estimate bound can be gated on the task it bounds** (breaking, pre-1.0;
+  library callers only). `[tasks.estimate.max]` and `[tasks.estimate.min]` now
+  take an array of entries, each with an optional `when` filter and `message`:
+  a unit's bound is the first entry whose `when` matches and that names the
+  unit, so `when = "difficulty >= 3"` can hold judgment work to 5 files while a
+  mechanical sweep keeps a wider ceiling. A breach names the gate and carries
+  the entry's `message` as its advice. The single-table spelling still parses
+  as one unconditional entry, so no config has to change; a malformed `when`,
+  an entry naming no unit, or a unit outside `units` now fails at load.
+  `EstimateConfig::bound_problems` is replaced by `EstimateBounds`, compiled
+  once per validation pass.
+
+- **`LimitSeverity` is now `Severity`** (breaking, pre-1.0; library callers
+  only). `warn` / `error` is no longer a property of a work-in-progress cap:
+  `[[tasks.rules]]` spells the same two words in TOML and means the same two
+  things by them, so `mindtape::Severity` is one enum both sections read rather
+  than two that would have to be kept in step by hand. No config key changed —
+  `severity = "error"` under `[[tasks.limits]]` reads exactly as before.
+
+- **A filter argument narrows the rows and leaves the presentation alone**
+  (breaking, pre-1.0). `mt ls '<filter>'` used to skip rule matching and the
+  default view wholesale, so typing a filter on a branch where an `[[ls.rules]]`
+  entry was active silently took that rule's `sort` and `columns` down with it
+  — and the `applied:` trailer never said so. Every layer is per facet now: the
+  cascade resolves first, an explicit filter overrides the `filter` facet,
+  `--sort` and `--columns` override theirs, and a facet nobody claims keeps
+  what the rule or the default view gave it. A bare `@view` argument still
+  overrides every facet that view sets — naming a view is choosing a reading,
+  not just a set of rows.
+
+  Two attribution changes come with it. A rule's own `filter`/`sort`/`columns`
+  override is now labelled with the rule (its `name`, else its `condition`,
+  else `rule`) instead of `manual`, which is the command line's label alone —
+  otherwise a listing whose filter came from the caller and whose sort came
+  from a rule would report both as one source. And a rule that matched but lost
+  every facet is named rather than vanishing: `applied: manual (filter) ·
+  release superseded` under the table, `"superseded": true` in `mt ls --json`'s
+  `applied` block (additive, no `schema_version` bump).
+
+- **A column's visibility is one `when` expression** (breaking, pre-1.0).
+  `[ls.columns.<name>]` used to carry two keys that both answered "does this
+  render" — a `visibility` scalar (`auto` / `visible` / `hidden`) and a `rules`
+  list of conditional overrides. Two keys need a precedence rule, the
+  precedence needed stating in three places, and the `rules = []` opt-out
+  existed only because the two could disagree. All of it is replaced by a
+  single boolean expression in the condition language:
+
+  ```toml
+  [ls.columns.file]
+  when = 'named() || (!tty() && format() == "table")'
+  ```
+
+  No list, so no ordering and no first-match-wins; `||` does what rule order
+  did. A scalar replaces wholesale across config layers, so a project override
+  is `when = 'false'` on one line and the `rules = []` opt-out goes away with
+  the thing it was working around.
+
+  The per-column defaults `auto` used to encode in Rust move into the embedded
+  floor, one `when` per column — `#` and `title` are `true`, `status` /
+  `priority` / `due` are `nonempty()`, `assignee` is `contested()`, `ready` is
+  `blocked()` — so the three different things `auto` meant are now legible
+  where a reader looks for them. Nothing falls back to Rust: the floor is the
+  complete statement of what `mt ls` shows, and a column with no `when` never
+  renders. A blank `when = ''` is a config error naming the column, since the
+  condition language reads an empty expression as always-true and that would
+  contradict what an absent one means.
+
+  Rendered output is unchanged for an unconfigured project. There is no
+  migration shim: `visibility` and `rules` are rejected as unknown keys.
+
+- **`--format csv`'s `file` cell is now the project-root-relative path**
+  (breaking, pre-1.0), the same value `--format json` already reported under
+  `file`. It used to go through the same renderer the table column does, so
+  the two machine formats disagreed by whichever directory produced them: from
+  `tasks/`, `--format json` said `tasks/a.typ` and `--format csv --columns
+  file` said `../tasks/a.typ` for one task.
+
+  CSV is a record format, not a rendering — the docs already called it a data
+  contract, and it already substituted the task's stable `id` for the table's
+  ephemeral `#` handle for exactly this reason. `file` is the second column to
+  follow that rule: where the table shows something only the render that
+  produced it can resolve, CSV emits the value a program can keep. So a CSV
+  row now agrees with a JSON record field for field, and its `file` is the
+  value the `path` filter compares and `mt import` reads back.
+
+  The cwd-relative form is unchanged and still has two surfaces of its own —
+  the table's `file` column, and `--format path`/`path0`, which exist to be
+  pasted back into a command from the directory that produced them. Those two
+  stay pinned to each other.
+
+- **The filter/sort field `file` is now `path`** (breaking, pre-1.0). One name
+  covered two values: the field compared the project-root-relative path, while
+  the `file` column and `--format path` render the same task's path relative
+  to the working directory. Inside the project root the two coincide, which is
+  why it went unnoticed; under `mt -w <other-project>` they diverge and a
+  filter built from what the listing showed matched nothing — silently, an
+  empty listing being also what a correct filter over an empty result set
+  looks like.
+
+  The display is unchanged and stays working-directory-relative: it is the only
+  form openable from where the reader is standing. The comparable value stays
+  root-relative, so a filter saved in `.mindtape/config.toml` means the same
+  thing wherever `mt` runs from — and is the same value `--format json` reports
+  as each task's `file`. Only the name moved.
+
+  `file` in a filter (`mt ls 'contains("x", file)'`, `has(file)`) and in a sort
+  spec (`--sort file`, `[query] default_sort`) is now an error naming `path`,
+  rather than a silent miss. No shipped view, `[[ls.rules]]` entry or example
+  config filtered on it.
+
+- **Every task writer now validates before it writes** — `mt add` already
+  rendered into a buffer, checked the candidate at the exact path it would
+  occupy, and wrote only if it passed. The rest wrote first and reported
+  after: `mt recur`'s spawn created a new file exactly the way `add` used to,
+  so a rejected occurrence left the same broken artifact behind; `mt import`
+  landed the whole batch and then `remove_file`d the failures; `mt flip`,
+  `mt review` and `mt link` rewrote a file that was valid before they touched
+  it and reported afterwards without restoring it. All of them go through one
+  seam now, and a rejected write leaves nothing to repair.
+
+  A rejected rewrite is **not restored** — it is simply not written, so the
+  file still holds exactly what its author put there. Restoring would be a
+  second write, which can fail on its own and would leave the file in a third
+  state nobody can name; not writing cannot fail.
+
+  For `mt import` the answer to "one bad record, or the whole batch" is
+  unchanged: **land the rest**, and the `N filed, M skipped` report says which.
+  What changed is that the bad one is never created, so `--dry-run` no longer
+  needs a temp mirror of the project to preview against, and a batch rejected
+  end to end leaves not even an empty destination directory.
+
+  A batch goes to the validator as one set (`mindtape::check_candidates`),
+  because the rules that span tasks have no answer for one member alone: id
+  uniqueness, edge resolution, cardinality, cycles, and the dependency ranks a
+  `required` filter reads. That is what lets `mt link --apply` add an edge in
+  both directions at once and `mt recur --advance` chain occurrences that name
+  their predecessor. `mt flip` keeps its post-batch revalidation as the net for
+  what a landed flip does to *other* tasks, which no per-candidate check sees.
+
+- **BREAKING: the `typst` slot kind is renamed `raw`.** The old name claimed
+  more than the kind delivers. Nothing builds a Typst value out of a `typst`
+  slot and nothing type-checks one — the value is pasted, and the only check
+  reads it as top-level markup. That check covers a `#slot(…)` in the body,
+  which is what the kind is for, but it cannot see a slot spliced into an
+  argument position: there the value is an expression, and markup treats
+  parens and `*` as ordinary text, so `(files: 2` and `*emphasis*` both parse
+  clean and reach the file, after which `mt add` fails loading what it wrote.
+  `raw` names the splice, which is the actual contract, and the gap is now
+  documented rather than implied away.
+- **BREAKING: a slot declaring an unknown `kind:` is an error.** It previously
+  fell back to `string` silently, so a typo — or a template still saying
+  `kind: "typst"` after the rename above — filled as a quoted, escaped string
+  with exit 0 and no diagnostic anywhere. `fill` now fails before coercing any
+  value, naming the slot, the unrecognised spelling, and the valid kinds. This
+  is what makes the rename safe to take: an un-migrated template fails loudly
+  instead of quietly writing a wrong task.
+- **BREAKING: one `key OP value` token grammar for `mt add` values.** A value
+  is `key=value` (set) or `key+=value` (append to a list slot), and the same
+  token is accepted after `--set` or bare after `--` —
+  `mt add "Practice arpeggios" -- estimate.files=2 tags+=docs`. Both carriers
+  reach one parser, so the shorthand cannot drift into a second grammar. The
+  `key[]=value` append spelling is retired: it encoded a verb in the key's
+  suffix where nothing else did, and needed shell quoting to survive globbing.
+  A `[]=` token now fails naming its replacement rather than being silently
+  accepted. `+word` tag sugar is unchanged — it carries no `=`, so it cannot
+  collide with a token — and a bare positional stays title text, which is why
+  the `--` is required: `mt add "fix a=b parsing"` sets no slot.
+- **Nesting a slot needs no new syntax.** A slot's name is an arbitrary
+  string and values are looked up flat, so a template that writes
+  `slot("estimate.files")` already accepts `--set estimate.files=2`. The dot
+  is a naming convention for template authors; MindTape never parses it.
+- **The docs lead with YAML for `-f`.** `-f` always accepted YAML (stdin and
+  unknown extensions sniff the content, and YAML is a JSON superset), but
+  every example was JSON — the shape that makes an author escape exactly the
+  prose slots that need it least. The `-f` sections on Templates & slots and
+  in the skill now open with a YAML heredoc and a block scalar.
+- **`script-scope-check` grew a third arm, over `outdatty.yaml`.** Its
+  `dev-docs` group lists `.just/scripts/*.sh` one by one and outdatty reacts
+  only to files it lists, so a script never added was coupled to no dependent
+  and reported by nothing — the arriving-is-enough hole the first arm already
+  closes for `.mmz` scopes, one manifest over. The arm demands a decision
+  rather than membership: a script is a `dev-docs` source or carries an
+  exemption naming the reason no doc restates it (`_nav-diff.sh` is the one,
+  left out on purpose), and a new script is neither, so it fails. An exemption
+  that contradicts a source line, or names a file that is gone, fails too.
+- **`www/gates.jq` no longer reports a check dependency that does not exist.**
+  A recipe carrying `[group("gate")]` but absent from `check:` emptied one side
+  of the membership diff, and `halt_error` writes its string with no trailing
+  newline — so `www/generate-facts.sh`'s next stderr line landed after that
+  empty colon and read as a dependency named
+  `generate-facts.sh: refusing to install malformed gates.json`. An empty side
+  now renders `(none)` and the message ends where it ends.
+- **`crap-baseline.json` records repo-relative paths.** `cargo crap
+  --workspace` reports the absolute member roots `cargo metadata` gives it and
+  cargo-crap 0.3.1 has no flag to shorten them, so every one of the 1058
+  entries published the minter's own machine layout. `just crap-baseline` now
+  strips the workspace root after minting. Nothing is given up: cargo-crap
+  keys its first matching pass on `(file, function, line)`, so a baseline
+  minted under one checkout root already missed that pass under CI's and
+  paired through the suffix-aware pass instead — 1056 of 1058 entries pair as
+  unchanged, and the two that do not are one file's two same-named
+  `fake_editor` functions, ambiguous by suffix under any root.
+
+- **`search()` and `contains()` collapse into one filter function** — the
+  language carried two overlapping text predicates: `contains(field, "substr")`
+  matched a single field, while `search("query")` was documented as full-text
+  but read only `title` and `id`, never `Task.body` — which is loaded already
+  and marker-free. One variadic function replaces both, needle first:
+  `contains("bug")` sweeps the prose surface (`title`, `id`, `body`),
+  `contains("bug", title, body)` names its own. Tags keep `has_tag()` and every
+  scalar field keeps its comparison operator, so neither joins an implicit
+  sweep. The field vocabulary derives from the `fields` registry plus the
+  text-only `body`, so `contains()` never hand-matches names of its own; every
+  named field is validated before any is matched, so an unknown name errors
+  whatever the argument order and whether or not an earlier field already hit.
+  Both retired spellings — the old `contains(field, "substr")` order and
+  `search(…)` — are hard errors naming the replacement rather than silently
+  accepted alternatives.
+- **"Today" is the local calendar date, not UTC** — every date `mt` stamps or
+  compares (`status`/`reviewed` dates, `now()` and `stale(N)` in filters, the
+  overdue marker, `mt recur` advances) now resolves through the machine's local
+  timezone (`$TZ` on Unix, the platform zone on Windows) instead of UTC epoch
+  seconds. A task filed at 01:00 east of Greenwich used to be stamped the
+  previous day, and the date filters skewed with it. `$MINDTAPE_NOW` still
+  overrides everything, and its value is taken verbatim — a trailing RFC 3339
+  offset shifts nothing, since the pinned value *is* the date to stamp. Dates in
+  task files remain plain civil dates with no offset attached. Costs `chrono`'s
+  `clock` feature (chrono resolves the zone itself, no `localtime_r`, so no
+  multithreaded-soundness hazard).
+- **`[[on.flip]]` `run` commands go through the platform shell** — `sh -c` as
+  before on Unix, `cmd /C` on Windows. A `run` command is shell text rather than
+  an argv, so it is written for the platform the project builds on, the same way
+  the `Justfile` recipes and git hooks it stands in for are.
+- **`mt add --edit` falls back to `notepad` on Windows** — the `[add] editor` →
+  `$VISUAL` → `$EDITOR` chain is unchanged; only the last-resort floor is now
+  per-platform, since `vi` does not exist there.
+- **`jsonschema` dev-dependency drops its default features** — the schema under
+  test is generated in-process and resolves no external `$ref`, so
+  `resolve-http`/`resolve-file` bought nothing while pulling
+  reqwest → rustls → `aws-lc-sys` into every test build (a C and assembly crypto
+  build needing NASM on windows-msvc). No behaviour change; a much smaller
+  `Cargo.lock` and faster test builds on every platform.
+
+- **`required` is a filter expression (breaking)** — `[tasks.priority] required`
+  (and its `difficulty` / `estimate` / `[tasks.fields.<name>]` siblings) still
+  takes `true` and `false`, but the third form is now any filter expression
+  instead of the one-off `"non-terminal"` enum value: the field is required for
+  exactly the tasks it matches (`"kind == \"bug\""`, `"@active"`). Rename
+  `"non-terminal"` to `"!terminal"` — identical meaning, and no alias is kept, so
+  the old spelling fails at config load with the replacement named. A malformed
+  expression is one config error at load, not one violation per task.
+- **`mt ls --json` envelope (breaking)** — now `{"tasks": [...], "applied":
+  {"rule": ..., "facets": {...}}}`, not a bare array; update a `jq '.[...]'`
+  consumer to `jq '.tasks[...]'`.
+- **`[ls] default-filter` → `default-view`** — the default `mt ls` listing is now
+  a view, not a bare filter, so it carries sort and columns too, not only a
+  filter. Omitting the filter resolves `[ls] default-view` (a view name), else the
+  implicit `[views.default]` view, else match-all. The embedded floor ships
+  `[views.default]` with the previous default filter, so bare `mt ls` is unchanged
+  out of the box; redeclare `[views.default]` (or set `default-view`) to add a
+  sort/columns bundle. `[ls] default-filter` is removed.
+- **Repointed onto published crates.io substrate** — the seven extracted
+  crates (`typst-world`, `typst-harvest`, `typst-cst`, `typst-edit`,
+  `typst-cleanup`, `swhid-mint`, `artifact-gate`) are now `crates.io`
+  deps (`0.1.0`), not in-tree path crates; workspace is down to `mindtape`
+  + `mindtape-cli`. No CLI-visible change. Version reset to `0.2.0`.
+- **`typst-harvest` split over a new `typst-world` crate** — the eval-only
+  `typst::World` (file-provider seam, `@local` package resolution, dependency
+  tracking) and the Typst-free `HVal` value tree now live in `typst-world`;
+  `typst-harvest` is a thin layer that adds only `metadata()` marker harvesting
+  on top. Internal reshape: no CLI-visible or behavior change. Render support in
+  `typst-world` sits behind an off-by-default `render` feature, so eval-only
+  consumers pull no layout/render/font dependencies.
+- **Binary renamed `mindtape` → `mt`** — the installed executable is now `mt`;
+  invocations become `mt ls`, `mt check`, `mt add`, etc. Crate names
+  (`mindtape`, `mindtape-cli`), the `@local/mindtape` Typst package, the
+  `.mindtape/` config directory, and the `MINDTAPE_ADD_*` env prefix are
+  unchanged.
+- **`mindtape::naming::disambiguate` returns a `Result` (breaking)** — stem
+  collision disambiguation (used by `mt add`, `mt import`, `mt recur` spawn)
+  now returns `Result<String, NamingError>` instead of looping forever
+  against an `exists` predicate that never reports a free stem. Past
+  `MAX_DISAMBIGUATE_ATTEMPTS` (10,000) numeric suffixes it returns the new
+  `NamingError::Exhausted(stem, ceiling)` instead of hanging; callers surface
+  it as an ordinary command error. Breaking change to a public library API —
+  the crate is still on its 0.2 pre-release line.
+- **`mt recur`'s due-anchor catch-up no longer hangs** —
+  `mindtape::recur_dates::next_date`'s catch-up loop (advancing a stale `due`
+  forward by the rule until strictly after today) is now bounded by
+  `MAX_CATCH_UP_STEPS` (10,000 steps) and returns the new
+  `RecurError::CatchUpExhausted(due)` instead of spinning forever when the
+  rule never advances (e.g. `every(days: 0)`) or an expansion engine keeps
+  returning its own reference date. Previously `mt recur` would hang in that
+  case.
+- **Recur/date internal cleanup** — the `rrule` cargo feature's off-state now
+  lives in one stub module (`recur_rrule_off.rs`, selected by `#[path]`)
+  rather than `#[cfg]` twin functions inside `recur.rs`/`recur_dates.rs`, so
+  every function in those two files compiles under any feature set;
+  `epoch_days_to_ymd` also dropped an unreachable negative-`shifted` branch of
+  Hinnant's civil-from-days algorithm (the input is `u64`, so it is always
+  `>= 719_468`). Both are dead-code/coverage hygiene, no behaviour change.
+
+### Removed
+
+- **`[handle] check-len`** (breaking, pre-1.0). A stem hash grows only where
+  two tasks share a prefix, so it needs no length setting. `[handle]` is an
+  unknown key now, with no alias.
+
+- **`[[tasks.limits]]`** (breaking, pre-1.0). A work-in-progress cap was its
+  own table and checker (`check_limits`, `mt check` only) for what
+  `count(...)` now says as a plain `[[tasks.rules]]` entry, mergeable by name
+  across packs like any other rule and enforced everywhere a rule is —
+  `mt flip` included, not `mt check` alone. `filter`/`max` becomes
+  `when`/`assert = 'count(<when>) <= max'`; `message`/`severity` are
+  unchanged. `[[tasks.limits]]` is an unknown key now, with no alias.
+
+- **`[tasks.estimate.drift]` and `[[tasks.estimate.max]]`/`min`** (breaking,
+  pre-1.0). The drift check ran unasked, hardcoded to a `files` unit, and the
+  bounds were a second checker for what a rule says in one line. Both are
+  unknown keys now; `[tasks.estimate]` keeps `units` and `required`, and no
+  estimate check runs unless a rule asks. A cap is `assert =
+  'estimate.src-files <= 5'`; a budget is `assert = 'changed("staged+worktree",
+  "!docs/generated/**") <= estimate.src-files'` at `severity = "warn"`, its
+  excludes written as `!` globs. The line-total soft ceiling goes with it.
+- **Every backward-compatibility shim for a pre-release spelling** (breaking,
+  pre-1.0). Nothing here ever shipped in a public release, so each one was a
+  hand-written hint pointing an old spelling at its replacement rather than a
+  compatibility path worth keeping; each now fails the same plain way any
+  other unrecognised name does, naming nothing to migrate from.
+  - `required = "non-terminal"` (`crates/mindtape/src/config_required.rs`) no
+    longer gets a dedicated "no longer a value; write `!terminal`" message —
+    it is dry-run as an ordinary filter expression like any other `required`
+    string, and whatever that expression fails on is reported under the
+    field's path.
+  - The filter/`--sort` field `file` (`crates/mindtape/src/fields.rs`,
+    `filter.rs`, `sort.rs`) no longer appends "renamed to `path`" to its
+    unknown-field/unknown-sort-field error; `file` is simply not a field.
+  - `contains(field, "substr")`'s reversed-argument hint and the `search(...)`
+    dispatch arm (`crates/mindtape/src/filter_predicates.rs`, `filter.rs`) are
+    gone: a leading identifier where the needle belongs is now an ordinary
+    "expected a literal" error, and `search(...)` is an ordinary "unknown
+    function" one.
+  - `has(depends_on)` / `has(supersedes)` / `has(duplicates)`
+    (`crates/mindtape/src/filter_links.rs`) are no longer sugar for
+    `links("depends-on")` etc.; the underscore spelling is now an unknown
+    field like any other. Use `links("<kind>")`.
+  - `mt install-lib`, the hidden alias for `mt install --no-defaults
+    --no-schema` (`crates/mindtape-cli/src/cli.rs`, `init.rs`, `install.rs`),
+    is gone outright — not merely hidden. It is neither a subcommand nor a
+    legend shortcut verb, so it falls through to the ordinary "unknown
+    command" error.
+  - The `key[]=value` `mt add` append spelling
+    (`crates/mindtape-cli/src/add_tokens.rs`) no longer fails naming
+    `key+=value`; the bracketed text is now an ordinary (if oddly spelled)
+    key, rejected downstream as any unknown `--set`/`-f` key is.
+
+- **`mindtape::sort::SORT_FIELDS`** (breaking, pre-1.0; library callers only).
+  The sort vocabulary is now derived from the field registry —
+  `sort::is_sort_field` accepts every registered name plus the computed `ready`
+  rank — so the hand-kept const would be the second list the registry exists to
+  remove. An out-of-tree caller that enumerated it can ask `is_sort_field` per
+  candidate name; nothing in this workspace imported the const.
+
+- **`mt ls --all`** — pass an empty filter (`mt ls ''`) to drop the default and
+  list everything. Omitting the filter applies the default view.
+- **`[ls] default-filter`** — replaced by `default-view` (see Changed).
+
+### Fixed
+
+- **`mt add --describe` refuses a title.** `mt add --describe finding` read `finding` as a title and described the default template. It now fails with `--describe takes no title; did you mean -t finding?` when the word names a template.
+- **`mt done --help` prints help.** A shortcut verb's help request exited 1
+  behind an `Error:` prefix, opened with an internal doc comment and named the
+  binary `mindtape-cli`. It now prints the verb's help under `mt done` and
+  exits 0, and a bad flag on a verb names `mt done` as well.
+
+- **`mt add --status done` asks only for what a done task needs.** A field
+  `required = "!terminal"` got a required slot whatever status the task was
+  filed at, so filing a finished task meant inventing a priority and a
+  difficulty for it. A requirement that reads nothing but `status` and
+  `terminal` is now settled by the status the task is filed at.
+
+- **A refused `mt add` hints only at templates that fix the refusal.** A
+  breach of any rule listed every template pinning any value the caller
+  passed, so a body word-cap refusal pointed at four templates for
+  `assignee=agent`. A template is now named only when a breach is about the
+  field it pins: the names a rule's `assert` and `when` read, the `field` a
+  `check` receives, or the field a core check reports.
+
+- **Docs page summaries render code as code.** The site's lede and
+  `<meta name="description">` printed the backticks around code as text. A
+  summary is Typst markup, rendered as content in the lede and as plain text
+  in the meta description. Every summary is one sentence of at most 120
+  characters, and the site build fails naming any page that breaks either
+  limit.
+
+- **Config schema descriptions read as user prose.** Editor hovers over
+  `.mindtape/config.toml` and the Configuration page's Sections table showed
+  Rust paths and rustdoc links, such as ``[`crate::config_packs`]``, and two
+  described behaviour `mt` lacks: a status `note = "forbidden"` is not
+  enforced, and `terminal` does not relax required fields. Each description
+  says what the key does and which values it takes, a test fails on a Rust
+  path or intra-doc link in any description, and the Sections table renders
+  backticks as code.
+
+- **`mt link` finds a bare stem in another folder.** The stem became a sibling
+  `<stem>.typ`, so a target one folder over was refused with a suggestion of
+  the very stem typed, and only `../cli/<stem>.typ` landed. A stem now names
+  the one task carrying it anywhere in the project and is written relative to
+  the linking task; a sibling still wins, and a stem several folders share is
+  refused naming each path.
+
+- **A dry `mt add --print` refuses what the write refuses.** The preview
+  returned before the pre-write check, so `just ask-refactoring` printed a
+  task whose `(files: N)` estimate the config's renamed `src-files` unit
+  rejected, and `--write` died on its first finding. `--print` now clears the
+  same check (`--no-verify` opens both doors), and the four sweep arms emit
+  the renamed unit.
+
+- **A write that closes a dependency cycle is refused.** `mt check` names a
+  cycle on its first member, and the pre-write check kept only the violations
+  naming the tasks being written, so `mt link beta depends-on alpha` landed
+  `alpha → beta → alpha` and left `alpha` refusing every later write. A cycle
+  the batch closes now refuses it wherever `mt check` reports it — `mt link`,
+  `--apply`, `mt import` and `mt add` alike — while a cycle already on disk
+  still never blocks an unrelated write.
+
+- **`mt eval` takes a task reference.** It accepted a file path only, so the
+  skill's `mt eval <task>` failed on a stem with `no such file`. A stem or `#`
+  handle now resolves like `flip`, `set` and `link`, a path still evaluates a
+  `.typ` under no project, and tab completion offers stems. An unknown stem, on
+  every command, names the nearest one (`did you mean: test?`).
+
+- **`compute`, `filter`, `page`, `roll` and `switch` pass the imperative-title
+  rule.** All five are in `mindtape-dev-verbs` now (91 entries); the
+  frequency-derived `mindtape-verbs` stays untouched.
+
+- **An unknown `--sort` direction is an error.** `validate_sort_spec` checked
+  only the field before the `:`, and `parse_spec` treated every suffix but
+  `desc` as ascending, so `--sort priority:wtf` — or a saved
+  `[ls] default-sort` — sorted ascending and said nothing. Only `asc`, `desc`,
+  and no suffix are accepted now, with the error naming the direction, and
+  `sort_by_specs` delegates to the same validator.
+
+- **A saved filter expression can reach a project `[dicts.<name>]` again.**
+  Config load compiled the dictionaries *after* running the semantic pass, and
+  that pass dry-runs every saved expression against a probe task — so a
+  `[views]` filter, a `[[tasks.limits]]` filter or a `required` rule spelling
+  `in_dict("verbs", ...)` was checked against a config whose only dictionaries
+  were the two built-ins, and failed at load naming a dict the project plainly
+  declares. The two steps are swapped; nothing is lost by the order, because
+  compiling the section runs the same `[dicts]` checks the semantic pass does,
+  so a broken dictionary is still refused by whichever pass sees it first.
+
+- **`mt eval` no longer hijacks a foreign `lib/` as the `@local/mindtape`
+  package.** It registered `<root>/lib` under that name whenever a
+  `lib/typst.toml` merely existed, never reading the name the manifest
+  declares, so in any worktree whose `lib/` is some other Typst package the
+  import resolved there and the command died with `package manifest contains
+  mismatched name '<other>'` — while `mt ls` and `mt check` on the same tree
+  were fine. The batch loader has read that name since the feature landed;
+  `mt eval` built its own world and carried a second, hand-written copy of the
+  decision that never learned it. There is one copy now: `mindtape` exports
+  `package_overrides`/`package_root` and `mt eval` asks them, so the two paths
+  cannot drift again.
+
+  Two things follow from asking the same function. `mt eval` loads the
+  enclosing project's config, so its `[[typst.local-packages]]` entries apply
+  there as they already did everywhere else — and a config that does not parse
+  is now an error from `mt eval` too, where it used to be ignored. And an
+  unoverridden `@local/…` resolves under `$MINDTAPE_DATA_HOME` rather than the
+  platform data directory, closing the same install-and-load mismatch the
+  loader closed. What `mt eval` renders against is unchanged: the embedded
+  floor, not the project's columns.
+
+- **`just check-secrets` no longer logs an `ERR` over `www/generated/` on a
+  green run.** The walk bound in `.gitleaks.toml` was believed to close that
+  race; it does not, and strace says why: gitleaks 8.30 `lstat`s a directory
+  entry one syscall *before* it consults the allowlist that skips it, so the
+  bound stops the walk descending and nothing more. `www/generate.sh` `rm -rf`s
+  that directory on entry and `just check` runs its arms in parallel, so a
+  deletion landing between `readdir(www)` and that `lstat` still logged
+  `could not get info` at ERR while the gate reported no leaks and exited 0 —
+  8 runs in 20 under a synthetic churner. The scan now holds the same
+  `target/www-generated.lock` flock every other reader of that directory takes,
+  released the moment the walk is over; 0 runs in 20 after. An assertion beside
+  the acquisition fails the gate if the scan is ever running without the lock,
+  since removing it would restore the race in silence.
+
+- **`mt recur` on an already-spawned occurrence wrote a task `mt check`
+  refuses** — a spawn's source is its predecessor's source, so an occurrence
+  spawned from an occurrence already carried a `recurred-from` edge, and the
+  spawn appended a second one. `recurred-from` allows one edge per task, so
+  every hop of the ordinary loop after the first produced an invalid file: the
+  post-write check reported it, and the file stayed. The edge is now replaced
+  rather than appended — the chain is a linked list, each occurrence naming
+  only the one before it — and every other edge kind is carried forward
+  verbatim, notes included.
+
+- **`mt add` wrote an invalid task before it validated one.** The render landed
+  on disk and validation ran after, so a rejected add left the broken file
+  behind and every subsequent `mt` command failed on it until someone deleted
+  it by hand — one mistyped slot cost a repair rather than a retry. Observed
+  filing a single task: `estimate=5` parses as a number where that template's
+  slot wants `(files: 5)`, and the rejection that was right about the value was
+  the one that made the board unreadable. `mt add` now validates the rendered
+  source *before* it reaches the filesystem, at the exact path it would occupy
+  — so folder-derived tags, nesting depth, and `links:` resolution against the
+  rest of the project are the ones the written file would have — and writes
+  nothing when that fails. The error names the offending field and ends
+  `nothing was written`, with no note about repairing a file, because there is
+  none. What made this possible without a file is `mindtape::check_candidate`,
+  a public API the other writers (`mt recur`'s spawn, `mt import`) can adopt on
+  the same terms; only `mt add` moves in this release. Two seams keep their old
+  behaviour: `--no-verify` still writes whatever it was handed, and a
+  destination outside the project root (`mt add --into /elsewhere`) has no
+  project-relative path to evaluate a candidate at, so it still writes first
+  and reports the file as kept. A rejected interactive `--edit` buffer is
+  parked in a temp file and named on stderr, so the typing that the refused
+  write would otherwise discard stays recoverable — outside every task root,
+  where no later command reads it.
+
+- **`mt ls @view -i` ignored the view's `columns`.** The interactive picker
+  kept the raw project config and dropped the one a resolved listing folds a
+  view's column set into, so it drew columns `mt ls @view` would not — against
+  a module whose stated contract is rendering the same table `ls` prints. Both
+  now build on the same resolved listing, which is also what carries the new
+  `truncated:` line into the picker's footer.
+
+- **`mt init` offered a recurrence syntax the binary could not expand.** The
+  wizard's `rrule` choice writes `[tasks.recur] rrule = true`, but that key only
+  opens the config gate — expanding a rule needs the engine behind the `rrule`
+  cargo feature, which is off by default and which `just install-bin` does not
+  build. So the composed config was accepted, `mt init` reported success, and
+  the failure surfaced later and elsewhere: the first task authored with
+  `recur: rrule("FREQ=MONTHLY")` failed `mt check` with "requires mindtape to be
+  built with the `rrule` cargo feature (not compiled into this binary)". A real
+  project lost that answer to a re-file with `every(months: 1)` and a comment in
+  its own config warning the next reader off the wizard's own menu entry — the
+  documentation you write when a tool contradicts itself. An axis choice now
+  declares whether THIS build can honour it: unhonourable choices are absent
+  from the menu, refused when typed, and refused by name and reason from the
+  flag, so `--recurrence rrule` fails `mt init` naming the cargo feature instead
+  of scaffolding a project that breaks on its first recurring task. An axis left
+  with one honourable choice is not a question either, and is not asked. The
+  variant stays compiled in both builds, so `--recurrence rrule` keeps parsing
+  and keeps appearing in `--help` — a flag that vanishes reports "invalid value"
+  and names the feature nowhere. Every other axis is untouched: availability
+  defaults to available, and a build carrying the feature offers the choice as
+  before (`just check-rrule`).
+- **`just cover` printed 2137 `PASS` lines to report a green suite.**
+  `cargo llvm-cov nextest` accepts `--status-level fail` and ignores it, so the
+  flag `just test` has always carried never reached the coverage run: 2316
+  lines, one per test, ahead of the table anyone actually reads. The level moved
+  to `.config/nextest.toml`, where both runners read it — 179 lines, same
+  verdict, and a failure still prints in full, which is what `fail` means rather
+  than `none`. A flag that is accepted and ignored is worse than one that is
+  absent, because the recipe then claims something the output disproves. The
+  file is a `dev-docs` outdatty source and a `gates-meta` mmz input, since it
+  decides what the suite prints and, the day it grows retries or a default
+  filter, what the suite runs.
+- **A reader that stops reading no longer panics `mt`.** `mt ls | head -3`, a
+  pager quit part way, an `xargs` whose child failed — each closes the pipe
+  under a command still writing to it, and libstd ignores `SIGPIPE`, so the
+  write came back `EPIPE` and the prelude's `println!` unwrapped it into exit
+  101 and a `failed printing to stdout: Broken pipe` backtrace naming a line in
+  `library/std/src/io/stdio.rs`. A crash report, with an internal libstd
+  address, for the normal end of a pipeline. A closed reader is now an ordinary
+  write error: the first one mutes every later write and the command runs to
+  completion, exiting on its own merits. Stopping the process at the broken
+  write was the other candidate and is wrong for a tool that also writes files —
+  `mt add`, `mt flip` and `mt rm` print as they go, so bailing out there would
+  abort them half way, either claiming a success that never happened or
+  reporting a failure for work that mostly landed. Only `BrokenPipe` is
+  swallowed; every other write error still panics, because a full disk under
+  `mt ls > out.txt` must not read as a clean run. Enforced at one seam rather
+  than at the ~110 print sites: `main.rs` shadows `print!`/`println!` crate-wide
+  with macros that route through `crate::stdout`, since a policy holding at some
+  call sites is one no caller can rely on at any of them. The shadow is
+  `cfg(not(test))` — libtest captures a test's output through `print!`'s
+  internals, which a direct `io::stdout()` write bypasses.
+  <br>Filed as `mt` exiting **141** on roughly one call in ten, and that part of
+  the report was about something else: `mt` never raised `SIGPIPE`. It ignores
+  the signal from startup, and a read command is single-threaded and spawns
+  nothing, so there was no handler to restore and no worker to reach. The 141
+  came from a `mt` shell wrapper on the reporter's `PATH`, whose staleness check
+  ran `find … | sort -nr | head -1` under `set -euo pipefail`: `head` closes the
+  pipe as soon as it has its line, `sort` dies of `SIGPIPE` if it has not
+  finished writing, and `pipefail` inside a command substitution under `set -e`
+  exits the wrapper 141 before it ever executes `mt`. That is the race behind
+  the fraction, and behind the two symptoms that had ruled the binary in: no
+  output at all, and an identical rate with stdout redirected to a regular file.
+  `tests/broken_pipe_e2e.rs` asserts `mt`'s side of it — never a signal death,
+  never 141 — so the binary can never quietly acquire the behaviour it was
+  blamed for.
+- **The `site-pages-fixture-check` replica no longer copies the docs site's
+  build output.** Its snapshot was a faithful `cp -r www`, which carried
+  `www/public/` (6.1 MB of built site and its pagefind index) and `www/.tola/`
+  (1.9 MB of tola's vdom cache) into every one of the three variants. Neither
+  is read by a page compile, both are gitignored, and both belong to the
+  `docs-check` arm `just check` runs in PARALLEL with this gate — so the
+  snapshot was a reader of a tree another arm rewrites underneath it, for 8 MB
+  per variant of nothing. The copy now walks `www/` entry by entry and skips
+  those two by name; an assertion beside it fails the gate if either reappears,
+  so a revert to the whole-tree form cannot land unnoticed. Excluded by name
+  rather than by copying an allow-list of what the pages need, because an
+  allow-list owes a line for every directory `www/` grows and fails the
+  positive control for an environmental reason on the day someone forgets one —
+  the failure mode this gate exists to be free of. One claim in the report that
+  filed this was measured and is false: neither `tola build` nor `pagefind`
+  wipes `public/` on entry, and a sentinel file dropped there survives both, so
+  this was never a `cp` racing an `rm -rf`. What is measured is that `tola
+  build` rewrites every `.tola/cache/*.vdom` and `index.json` in place on each
+  run, which leaves the copy walking a tree whose files another process is
+  replacing — a question about tola's write discipline that the gate has no
+  reason to be asking.
+- **`site-pages-fixture-check` no longer fails on a cold checkout.** The gate
+  replicates `www/` with `cp -r` and runs the copy's own
+  `www/generate-site-pages.sh`, which needs `www/generated/*.json` — a
+  gitignored directory written by the `docs-gen` arm, which `just check` runs
+  in PARALLEL with this one. Its own header stated the assumption it broke on:
+  that the directory "rides along in the same `cp -r`", already on disk by the
+  time any arm reaches this gate. True of a warm checkout and only there. On a
+  fresh clone or a `just fork` worktree — which warms no cache by design — the
+  first page query died on `file not found` for `crate-map.json`, the positive
+  control failed, and two of the three cases reported "failed, but never
+  named": a red that is indistinguishable from the gate catching a real break,
+  arriving on the run that decides whether a change is green, naming a gate the
+  change never touched, and answered correctly by the same re-run a flaky-test
+  habit would order. The gate now produces its own inputs, `check-doc-facts`'s
+  idiom for the identical problem: `www/generate.sh` under
+  `target/www-generated.lock`, with the `cp -r` snapshot taken inside the same
+  lock hold and the lock dropped before the three replica compiles that need
+  nothing from the repo. Stubbing the captures instead was rejected as the
+  cheaper answer that costs the fixture — one `<page-meta>` query is a full
+  page compile, so a stub owes every artifact any page reads at the top level
+  and owes one more with every capture `www/generate.sh` grows; a stub that
+  falls behind fails the positive control for an environmental reason, which is
+  this bug again. Declaring a `docs-gen` dependency was rejected for a
+  different reason: it releases the lock before the copy runs, and the copy
+  reads a directory the concurrent `docs-check` arm `rm -rf`s on entry, so the
+  ordering it fixes is not the only one that matters. Costs one
+  `www/generate.sh`, 4s warm, against a verdict that used to depend on which
+  arm finished first.
+- **A wrong-typed required field is reported once, naming its type.** The shape
+  channel and the `required` rules both fired on the same field: `status: "wip"`
+  is a status the projection cannot read, so it degrades to absent, and
+  `mt check` printed the type report and then `status: missing required status`.
+  The second line was false — the author demonstrably wrote a status — and it
+  sent them to add a field already on the page, the exact misdirection the shape
+  reports were added to end. Every required core field a shape error empties
+  read the same way (`priority`, `difficulty`, `estimate`, `assignee`, and any
+  `[[tasks.fields]]` enum). A FIELD-level shape error now masks the `required`
+  answer for that field, and it masks it at the INPUT to each check rather than
+  as a filter over the finished violations: after the fact the only handle on
+  the report to drop is its rendered message, prose no gate holds still, spelled
+  independently by five checks, and which a genuinely different violation could
+  share. An ELEMENT error is deliberately not masked — it leaves the field
+  itself readable, so `estimate: (days: "two")` still reports both the
+  unreadable `estimate.days` and the empty `estimate` the required rule demands,
+  which are two true statements about one mistake.
+- **A wrong-typed element inside a well-shaped field is reported, not
+  dropped.** `Task::from_marker` caught a wrong-typed FIELD (`links: "a.typ"`,
+  `estimate: "2 days"`) and stopped there: one bad entry inside an otherwise
+  correct field was discarded in silence. `estimate: (days: "two")` loaded as
+  no estimate, `priority: (8, 9)` as no priority, `kind: 7` / `assignee: 5` /
+  `due: 42` as unset, `every(weeks: 2, on: ("mon", "funday"))` as a period
+  narrowed to one day the author never asked for. Every projection now reports
+  the position an author can count to in their own source — `tags[1]`,
+  `estimate.days`, `priority.inputs.ease`, `status.date`, `recur.on[1]`,
+  `recur.weeks` — the way `links[1][0]` already did, and `mt check` fails on it
+  regardless of config, since a type mismatch is never a matter of policy. The
+  entries that DO read survive, so one mistyped tag costs one report and not
+  the field. A `none` dict entry still reads as an unset key (`ice(impact: 8)`
+  passes `confidence: none` through by construction); a `none` array element is
+  a value the author wrote, and is reported.
+- **The card render stopped standing in for validation.** `tags: ("x", 7)`,
+  `status: "wip"` and an `on:` set mixing types used to fail at *eval* — not by
+  design, but because the prelude's card reached for `raw(tag)`,
+  `status.at("name")` and `on.join(", ")` on values that had no such method.
+  That message named neither the field nor the task, and would have vanished
+  the moment the render stopped making the call. The render is total now (every
+  accessor type-guards; `_scalar` falls back to `repr`), so those values reach
+  the marker and get the report above. The prelude still rejects the argument
+  shapes it would otherwise DROP before the marker — that half is unchanged,
+  and remains the only thing it can usefully assert.
+- **An injected argument brings its own separator.** `mt add` writes its
+  `status:` (and `id:`) into whatever `task.with(…)` the template declares, and
+  the insertion landed just before the closing paren — correct only when a
+  trailing comma already sat there. A template written on one line
+  (`#show: task.with(title: slot("title"))`) or simply without a trailing comma
+  got `title: "…"status: proposed(…)` instead: a file that cannot parse,
+  reported as `written task failed to load: expected comma` *after* it was on
+  disk. The insertion anchors after the last argument's value now and carries
+  its own comma, so the template's shape is the template's business; several
+  insertions share that anchor and each arrives separated from the one before.
+  An empty argument list is the opposite case and keeps its trailing comma
+  instead of taking a leading one. No in-tree template is written that way,
+  which is exactly why nothing caught it — the regression tests are the other
+  shape, at every level: the splice, `add`'s header injection, and a
+  single-line template filed end to end through the binary.
+- **`$MINDTAPE_DATA_HOME` moved the install but not the load.** The variable
+  replaced the data directory `mt install` writes the `@local/mindtape` package
+  into, while resolution went one level below `mt` — through `typst-world`,
+  which looked the directory up with `dirs` and had never heard of it. Point it
+  at a directory and the package landed there while every task file kept
+  importing the machine's own, so the one knob documented as working on every
+  platform (the reason it exists is that `dirs` reads no environment on
+  Windows) isolated a write and not a read. `mt` now hands the resolver the
+  directory it settled on — via `World::with_package_root`, added in
+  `typst-world` 0.3.1 — so the install and the load can no longer name
+  different directories. Set the variable empty and no global package resolves
+  at all, matching what empty already meant for the config layer; the harvest
+  cache folds the directory into its build key, so moving it routes reads to a
+  fresh cache instead of replaying markers harvested against another prelude.
+  `just check-examples` uses that to prove each fixture reads the checkout's
+  prelude, replacing an `XDG_DATA_HOME` that only isolated the gate on Linux.
+- **Example fixtures resolved the prelude from a machine-global symlink.**
+  `@local/mindtape` resolves through one directory per machine — pointed at
+  whichever checkout last ran `mt install` — so `just check-examples` in a
+  worktree or a second clone validated `examples/learn-piano` and
+  `examples/minimal` against the MAIN tree's `lib/prelude.typ`, not the one
+  beside them, and the harvest cache (whose build key folds each override's
+  file contents, and with no override folds nothing about the prelude) would
+  not even re-evaluate. A fork editing the DSL therefore gated its fixtures
+  against a prelude it had not changed. Both fixtures now declare a
+  `[[typst.local-packages]]` entry pointing at this checkout's `lib/`, and the
+  gate runs with the machine-global directory emptied so the entry cannot
+  silently rot back — which also makes the gate, and `just check` as a whole,
+  pass on a machine that never ran `mt install`, CI included. The repo's own
+  root already resolved correctly: the loader auto-registers `<root>/lib` when
+  its `typst.toml` names `mindtape`. `just fork` no longer prints its note
+  about the symlink, which existed only to make the old behaviour visible.
+- **`[tasks.estimate] units` is checked on open tasks only.** `check_estimate`
+  checked the unit list before the terminal exemption the bounds already had,
+  so a project retiring a unit failed `mt check` against every closed task
+  that ever carried it — the list governing the work still to do was policing
+  finished history too. The unit check now sits behind the same terminal
+  return as the bounds: a closed task keeps whatever unit it was estimated in,
+  and retiring a unit is one edit to `units`, refused only on an open task
+  still carrying it.
+- **`[tasks.tags] allowed` is checked on open tasks only.** `check_tags`
+  checked authored and folder-derived tags on every task regardless of
+  status, so dropping a tag from `allowed` failed `mt check` against every
+  closed task ever tagged with it. It now skips terminal tasks, matching the
+  estimate unit check: a closed task keeps the tags it was filed with,
+  authored and derived alike, and dropping a tag refuses only an open task
+  still carrying it.
+- **A killed write could leave a task file empty or torn.** Every authored-file
+  write (`flip`/`set`/`link`/`mv`/`recur`/`recur_advance`/`review`/`import`,
+  `mt init`, `mt install`, `mt preset save`, the harvest cache) went straight
+  through `std::fs::write`: truncate, then write. A process killed between the
+  two — Ctrl-C, OOM, a full disk — left an empty or half-written `.typ` behind,
+  and a concurrent reader (tinymist, a hook's `mt ls`, an editor reload) could
+  observe the gap. `mindtape::write_atomic` closes it: a sibling temp file,
+  fsync, then a rename over the target (`std::fs::rename` replaces an existing
+  destination on Windows the same as on Unix). `mt add` writes with
+  `File::create_new` instead, so a file that appeared since its dedup check is
+  refused rather than silently overwritten. `clippy.toml`'s
+  `disallowed-methods` now bans a raw `std::fs::write`/`File::create` outside
+  `write_atomic` itself, so a future write site fails `just check` naming it.
+
+- **The pre-commit gate has a scoped path** — `.githooks/pre-commit` fused one
+  expensive assertion (`mmz --is-fresh --tag gate`, which needs a full `just
+  check` behind it) to two cheap ones (task formatting, `mt check`). In a fresh
+  worktree there are no gate records, so committing one line meant running a
+  cold Rust build plus a Typst docs site and a Pagefind index — and the only
+  escape, `git commit --no-verify`, switched off all three. `MINDTAPE_GATE_SCOPE
+  =<reason>` now skips only the freshness assertion; the cheap two always run.
+  A new `commit-msg` hook refuses the commit unless the message carries a
+  matching `Gate-Scope: <reason>` trailer, so a scoped commit can never look
+  identical to a fully gated one in `git log`. The variable was chosen over
+  scoping the assertion to the staged diff because `.mmz/config.yaml` documents
+  its own scopes as deliberately coarse — a diff-to-rule mapping built on that
+  would fail silently open, which is the bug being fixed, not a fix for it.
+- **`mt rm` no longer suggests committing outside a git repository** — every
+  successful removal ended with `review the changes and commit when satisfied`,
+  including in projects with no repository, where there is nothing to commit
+  and the hint names a tool the user deliberately does not have. Both emitters
+  now route through one helper gated on the same repository discovery that
+  already resolves the default `[rm]` strategy, rather than a second probe.
+- **`--sort assignee` / `--sort reviewed`** — both fields were already
+  filterable but silently rejected by `--sort` (`unknown sort field`) since
+  `SORT_FIELDS` never listed them. Filter and sort now share one field
+  registry (`crate::fields`), so a field wired in is filterable and sortable
+  together — no second match statement to forget. As part of the same fix,
+  every field now sorts a missing value consistently: previously a missing
+  optional field (e.g. `kind`) sorted *first* ascending (a stray `""`
+  fallback) while `priority`/`difficulty` sorted a missing value *last* —
+  every field now follows the same last-ascending, first-descending rule.
+- **`mt add` can satisfy a required strict-framework priority** — a project
+  whose `[tasks.priority]` sets `framework` with `allow-manual = false` and
+  `required` had no `mt add` invocation that could file a valid task unless it
+  shipped a template declaring the framework call: naming the field failed
+  (`unknown --set/-f key(s): priority`), and omitting it wrote the file and then
+  failed validation on it. A strict framework has no scalar form, so the splice
+  now writes the framework call itself — the generic `framework("ice", impact:
+  slot("impact", kind: "float"), …)` spelling with one leaf slot per declared
+  input (number → `float` with its bounds in the prompt, bool → `bool`, enum →
+  `choice` over the declared values). The leaves carry no defaults, so an
+  unfilled one is the usual missing-slot error before anything is written rather
+  than a misprioritised task on disk. `mt init --priority ice-strict` composed a
+  config in exactly this shape, so it used to be refused as an incoherent answer
+  set; it now scaffolds like any other.
+- **The DSL helpers reject arguments they used to drop** — `depends-on(link(
+  "a.typ"))` built no edge at all: `link()` returns content, content is the
+  trailing note, so the call yielded an empty edge array. Nothing downstream
+  could see it — the marker carried an empty `links`, `mt check` passed and the
+  task listed as ready — because the value was destroyed before anything the
+  Rust layer validates. Every such drop is now an eval error naming the helper:
+  a `link()`/non-string target, a second note block or a named argument in an
+  edge helper (`depends-on`, `parent`, `recurred-from`, `supersedes`,
+  `duplicates`, `related`, `edge`), a second/non-content note in a status
+  constructor (`wip(2026, 6, 14, "note")`), and a positional input to a
+  priority framework (`framework("ice", 8)`). The split it draws: the prelude
+  asserts only what would never reach the marker, everything that does reach it
+  stays `mt check`'s to report, where the config lives.
+- **`mt add` escapes text slot fills into Typst markup** — a text slot carrying
+  ordinary prose used to land in markup verbatim, so a value containing `*`, `_`,
+  `$`, `#`, `[`, `]`, `<` or `@` produced a task file that failed to load the
+  instant it was written (an asterisk opened strong emphasis and the task died
+  with `unclosed delimiter`). Every fill source now routes through the same
+  escaper status notes already used — `--set`, `-f`, the positional title, the
+  `MINDTAPE_ADD_*` env vars and the `--edit` YAML buffer — while numeric, choice
+  and date slots stay unescaped, being literals rather than markup. A write that
+  still fails verification now says the file was kept on disk, instead of
+  reporting `wrote <path>` and leaving a broken artifact behind unmentioned.
 
 ### The rewrite (2026-06-14)
 
@@ -2220,6 +2200,5 @@ Initial release.
 - **NixOS module** for declarative service configuration
 - **Cross-platform release binaries** (Linux x86_64/aarch64, macOS x86_64/aarch64)
 
-[0.3.0]: https://github.com/mlavrinenko/mindtape/releases/tag/v0.3.0
 [0.2.0]: https://github.com/mlavrinenko/mindtape/releases/tag/v0.2.0
 [0.1.0]: https://github.com/mlavrinenko/mindtape/releases/tag/v0.1.0
