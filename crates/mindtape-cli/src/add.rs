@@ -155,6 +155,7 @@ pub fn run(args: &AddArgs) -> Result<()> {
     let (source, injected) = splice_config_slots(&source, config, status.as_deref())?;
 
     if let Some(format) = &args.describe {
+        add_hint::refuse_title_beside_describe(&args.title, config, &project.root)?;
         let specs = discover_slots(&source);
         println!("{}", describe(&specs, DescribeFormat::parse(format)?)?);
         return Ok(());

@@ -108,3 +108,21 @@ fn pins_in(source: &str, slotted: &[Slotted]) -> Vec<String> {
         .map(|(field, _, value)| format!("{field}={value}"))
         .collect()
 }
+
+/// `--describe` takes its format after `=`, so a word beside it parses as the
+/// title and the default template gets described without a word. Refuse it,
+/// naming the template when the words spell one.
+pub(super) fn refuse_title_beside_describe(
+    title: &[String],
+    config: &Config,
+    root: &Path,
+) -> anyhow::Result<()> {
+    if title.is_empty() {
+        return Ok(());
+    }
+    let word = title.join(" ");
+    if list_templates(config, root).contains(&word) {
+        anyhow::bail!("--describe takes no title; did you mean -t {word}?");
+    }
+    anyhow::bail!("--describe takes no title");
+}
