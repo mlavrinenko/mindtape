@@ -33,7 +33,9 @@ use std::path::{Path, PathBuf};
 
 use crate::config::ConfigError;
 use crate::config_layers::{Layer, LayerSource};
-use crate::config_packs_toml::{read_array, read_string_list, remove_path, write_array};
+use crate::config_packs_toml::{
+    header_lines, read_array, read_string_list, remove_path, write_array,
+};
 use crate::merge::deep_merge_tables;
 
 /// Rule packs compiled into the binary, `(name, TOML text)`. A new entry is a
@@ -72,6 +74,9 @@ pub struct RuleOriginEntry {
     pub label: String,
     /// The pack or layer this entry's current content came from.
     pub origin: RuleOrigin,
+    /// The one-based line of the entry's `[[…]]` table header in that source,
+    /// or `None` when the source writes the array inline.
+    pub line: Option<usize>,
 }
 
 /// The rule-array TOML paths that append across layers and packs,
@@ -144,7 +149,8 @@ fn merge_layers_with_packs_using(
             let pack = resolve_pack(entry, &base_dir, registry)?;
             let origin = RuleOrigin::Pack(pack.origin);
             for (accumulator, path) in accumulators.iter_mut().zip(RULE_ARRAY_PATHS) {
-                accumulator.extend_batch(read_array(&pack.table, path), &origin);
+                let lines = header_lines(&pack.text, path);
+                accumulator.extend_batch(read_array(&pack.table, path), &origin, &lines);
             }
             if let Some(dicts) = pack.table.get("dicts") {
                 let mut wrapper = toml::Table::new();
@@ -155,7 +161,8 @@ fn merge_layers_with_packs_using(
 
         let origin = RuleOrigin::Layer(layer.source.clone());
         for (accumulator, path) in accumulators.iter_mut().zip(RULE_ARRAY_PATHS) {
-            accumulator.extend_batch(read_array(&table, path), &origin);
+            let lines = header_lines(&layer.text, path);
+            accumulator.extend_batch(read_array(&table, path), &origin, &lines);
         }
         // The rule-array paths merge specially (above); strip them so the
         // generic fold below never wholesale-replaces one with another
@@ -185,11 +192,14 @@ fn merge_layers_with_packs_using(
     })
 }
 
+/// One accumulated rule: its value, the source it came from and its header line.
+type Placed = (toml::Value, RuleOrigin, Option<usize>);
+
 /// One rule array's accumulated entries: `name`-indexed so a later source's
 /// entry sharing an earlier one's name replaces it in place.
 #[derive(Default)]
 struct RuleAccumulator {
-    entries: Vec<(toml::Value, RuleOrigin)>,
+    entries: Vec<Placed>,
     index_by_name: HashMap<String, usize>,
 }
 
@@ -197,22 +207,26 @@ impl RuleAccumulator {
     /// Fold one source's own array in, in order. A name this accumulator
     /// already placed (from an EARLIER source) is replaced in place; a name
     /// repeated within THIS batch is left alone — see the module doc for why.
-    fn extend_batch(&mut self, batch: Vec<toml::Value>, origin: &RuleOrigin) {
+    /// `lines` holds each entry's header line, and is used only when it counts
+    /// the batch exactly.
+    fn extend_batch(&mut self, batch: Vec<toml::Value>, origin: &RuleOrigin, lines: &[usize]) {
         let mut seen_this_batch: HashSet<String> = HashSet::new();
-        for value in batch {
+        let exact = lines.len() == batch.len();
+        for (position, value) in batch.into_iter().enumerate() {
+            let line = lines.get(position).copied().filter(|_| exact);
             let name = value.get("name").and_then(toml::Value::as_str);
             let Some(name) = name.filter(|name| seen_this_batch.insert((*name).to_owned())) else {
-                self.entries.push((value, origin.clone()));
+                self.entries.push((value, origin.clone(), line));
                 continue;
             };
             if let Some(index) = self.index_by_name.get(name).copied() {
                 if let Some(slot) = self.entries.get_mut(index) {
-                    *slot = (value, origin.clone());
+                    *slot = (value, origin.clone(), line);
                 }
             } else {
                 self.index_by_name
                     .insert(name.to_owned(), self.entries.len());
-                self.entries.push((value, origin.clone()));
+                self.entries.push((value, origin.clone(), line));
             }
         }
     }
@@ -222,11 +236,11 @@ impl RuleAccumulator {
     fn remove_named(&mut self, name: &str) -> bool {
         let before = self.entries.len();
         self.entries
-            .retain(|(value, _)| value.get("name").and_then(toml::Value::as_str) != Some(name));
+            .retain(|(value, _, _)| value.get("name").and_then(toml::Value::as_str) != Some(name));
         let removed = self.entries.len() != before;
         if removed {
             self.index_by_name.clear();
-            for (index, (value, _)) in self.entries.iter().enumerate() {
+            for (index, (value, _, _)) in self.entries.iter().enumerate() {
                 if let Some(name) = value.get("name").and_then(toml::Value::as_str) {
                     self.index_by_name.insert(name.to_owned(), index);
                 }
@@ -238,37 +252,38 @@ impl RuleAccumulator {
     /// Split into the plain values (for splicing back into the merged
     /// document) and each one's `name` (if it has one) paired with its
     /// origin (for [`labeled_origins`]).
-    fn into_parts(self) -> (Vec<toml::Value>, Vec<(Option<String>, RuleOrigin)>) {
+    fn into_parts(self) -> (Vec<toml::Value>, Vec<NamedOrigin>) {
         let mut values = Vec::with_capacity(self.entries.len());
         let mut named_origins = Vec::with_capacity(self.entries.len());
-        for (value, origin) in self.entries {
+        for (value, origin, line) in self.entries {
             let name = value
                 .get("name")
                 .and_then(toml::Value::as_str)
                 .map(str::to_owned);
-            named_origins.push((name, origin));
+            named_origins.push((name, origin, line));
             values.push(value);
         }
         (values, named_origins)
     }
 }
 
+/// A rule's `name` (if it has one), its origin and its header line.
+type NamedOrigin = (Option<String>, RuleOrigin, Option<usize>);
+
 /// One `RuleOriginEntry` per entry in `named_origins`, labeled `prefix.<name>`
 /// when named, else `prefix[<index>]` — matching
 /// [`crate::config_rules::RuleSpec::label`]'s own name-or-position fallback.
-fn labeled_origins(
-    prefix: &str,
-    named_origins: Vec<(Option<String>, RuleOrigin)>,
-) -> Vec<RuleOriginEntry> {
+fn labeled_origins(prefix: &str, named_origins: Vec<NamedOrigin>) -> Vec<RuleOriginEntry> {
     named_origins
         .into_iter()
         .enumerate()
-        .map(|(index, (name, origin))| RuleOriginEntry {
+        .map(|(index, (name, origin, line))| RuleOriginEntry {
             label: match name {
                 Some(name) => format!("{prefix}.{name}"),
                 None => format!("{prefix}[{index}]"),
             },
             origin,
+            line,
         })
         .collect()
 }
@@ -297,6 +312,8 @@ fn apply_disable(
 struct ResolvedPack {
     origin: PackOrigin,
     table: toml::Table,
+    /// The pack's source text, for the line of each rule's header.
+    text: String,
 }
 
 /// A path pack has a path separator somewhere in it — a bare embedded-pack
@@ -323,6 +340,7 @@ fn resolve_pack(
         Ok(ResolvedPack {
             origin: PackOrigin::Path(path),
             table,
+            text,
         })
     } else {
         let text = registry
@@ -335,6 +353,7 @@ fn resolve_pack(
         Ok(ResolvedPack {
             origin: PackOrigin::Embedded(entry.to_owned()),
             table,
+            text: text.to_owned(),
         })
     }
 }

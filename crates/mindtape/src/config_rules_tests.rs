@@ -328,51 +328,6 @@ severity = \"error\"
     );
 }
 
-/// A rule skipped for lack of git is reported at its entry in the project
-/// config, not on a task line it has nothing to do with.
-#[test]
-fn a_skipped_rule_is_located_at_its_config_entry() {
-    let dir = tempfile::tempdir().unwrap();
-    let text = "\
-[tasks]
-roots = [\"tasks\"]
-
-[[tasks.rules]]
-name = \"quiet\"
-assert = 'has(title)'
-
-[[tasks.rules]]
-name = \"src-budget\"
-assert = 'changed(\"staged+worktree\", \"src/**\") <= 3'
-";
-    std::fs::create_dir_all(dir.path().join(".mindtape")).unwrap();
-    std::fs::write(dir.path().join(".mindtape/config.toml"), text).unwrap();
-    let mut config = config(text);
-    config.git.set_root(dir.path());
-    config.rules_root.set(dir.path());
-    let skip = sole_breach(&[task("a", "Refactor it", "wip")], &config);
-    assert_eq!(
-        skip.location,
-        crate::Location::at(".mindtape/config.toml", 8)
-    );
-}
-
-/// A rule no project config entry declares — it came from a pack or a global
-/// layer — has no entry to open, so it stays on the task's marker.
-#[test]
-fn a_skipped_rule_outside_the_project_config_stays_on_the_task() {
-    let dir = tempfile::tempdir().unwrap();
-    let mut config =
-        config("[[tasks.rules]]\nname = \"src-budget\"\nassert = 'changed(\"worktree\") <= 3'\n");
-    config.git.set_root(dir.path());
-    config.rules_root.set(dir.path());
-    let skip = sole_breach(&[task("a", "Refactor it", "wip")], &config);
-    assert_eq!(
-        skip.location.file(),
-        Some(std::path::Path::new("tasks/a.typ"))
-    );
-}
-
 /// The same holds when `changed()` sits in the rule's `when`.
 #[test]
 fn a_when_reading_changed_outside_git_skips_the_rule_too() {

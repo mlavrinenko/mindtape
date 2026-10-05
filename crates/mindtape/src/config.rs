@@ -106,6 +106,11 @@ pub struct Config {
     /// on every validation call site.
     #[serde(skip)]
     pub(crate) rules_root: crate::config_rules::RulesRoot,
+    /// Where each `[[tasks.rules]]` entry is declared, recorded by
+    /// [`crate::config_layers::build_config`]. Derived, never declared, never
+    /// equal-compared — see [`crate::config_rule_sites::RuleSites`].
+    #[serde(skip)]
+    pub(crate) rule_sites: crate::config_rule_sites::RuleSites,
     /// What git says changed under the project root, read the first time a
     /// filter's `changed()` asks and shared from then on. Derived, never
     /// declared, never equal-compared — see [`crate::git_state::GitCache`].

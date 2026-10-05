@@ -37,6 +37,14 @@ pub enum Location {
         /// One-based line number within the template's source.
         line: usize,
     },
+    /// A line of a built-in rule pack's source. The pack ships inside `mt`,
+    /// so there is no file to open.
+    Pack {
+        /// The pack's name, as `extends` takes it.
+        pack: String,
+        /// One-based line number within the pack's source.
+        line: usize,
+    },
     /// A line of a task that is not on disk yet, as `mt add` filled it. The
     /// file the line belongs to does not exist, so there is no path to open.
     Filled {
@@ -59,7 +67,10 @@ impl Location {
     #[must_use]
     pub const fn line(&self) -> usize {
         match self {
-            Self::File { line, .. } | Self::Builtin { line, .. } | Self::Filled { line } => *line,
+            Self::File { line, .. }
+            | Self::Builtin { line, .. }
+            | Self::Pack { line, .. }
+            | Self::Filled { line } => *line,
         }
     }
 
@@ -68,7 +79,7 @@ impl Location {
     pub fn file(&self) -> Option<&Path> {
         match self {
             Self::File { file, .. } => Some(file),
-            Self::Builtin { .. } | Self::Filled { .. } => None,
+            Self::Builtin { .. } | Self::Pack { .. } | Self::Filled { .. } => None,
         }
     }
 
@@ -78,6 +89,7 @@ impl Location {
         match self {
             Self::File { file, .. } => Self::File { file, line },
             Self::Builtin { template, .. } => Self::Builtin { template, line },
+            Self::Pack { pack, .. } => Self::Pack { pack, line },
             Self::Filled { .. } => Self::Filled { line },
         }
     }
@@ -88,6 +100,7 @@ impl std::fmt::Display for Location {
         match self {
             Self::File { file, line } => write!(f, "{}:{line}", file.display()),
             Self::Builtin { template, line } => write!(f, "built-in template {template}:{line}"),
+            Self::Pack { pack, line } => write!(f, "pack {pack}:{line}"),
             Self::Filled { line } => write!(f, "the task as filled:{line}"),
         }
     }

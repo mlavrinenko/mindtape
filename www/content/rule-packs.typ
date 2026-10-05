@@ -113,6 +113,11 @@ Every rule from `mindtape-tasks` reads `pack mindtape-tasks`, except
 it. The repository's own rules, such as `goals` and the `Dogfood` rules, read
 `project` because only the project declares them.
 
+A report about a rule, rather than about a task, points at the rule's own
+`[[tasks.rules]]` header, whichever layer or pack declared it: a file and line
+for a layer or a path pack, and `pack <name>:<line>` for a built-in pack.
+`mt check` reports a rule skipped for lack of git this way.
+
 = The rules in `mindtape-tasks`
 
 `extends = ["mindtape-tasks"]` gives a project the task shape MindTape's own

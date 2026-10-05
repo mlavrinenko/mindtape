@@ -50,6 +50,23 @@ pub(crate) fn read_array(table: &toml::Table, path: &[&str]) -> Vec<toml::Value>
         .unwrap_or_default()
 }
 
+/// The one-based line of each `[[<path>]]` table header in `text`, in file
+/// order — the position of every entry [`read_array`] reads from a file
+/// declaring its rules as tables. A file that writes the array inline has no
+/// header to point at, so the caller checks the count against the array.
+pub(crate) fn header_lines(text: &str, path: &[&str]) -> Vec<usize> {
+    let header = format!("[[{}]]", path.join("."));
+    text.lines()
+        .enumerate()
+        .filter(|(_, line)| {
+            line.split('#')
+                .next()
+                .is_some_and(|code| code.trim() == header)
+        })
+        .map(|(index, _)| index + 1)
+        .collect()
+}
+
 /// Remove whatever sits at a nested TOML path, leaving any intermediate
 /// tables in place (only the leaf key is dropped).
 pub(crate) fn remove_path(table: &mut toml::Table, path: &[&str]) {

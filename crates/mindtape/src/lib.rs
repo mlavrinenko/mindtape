@@ -50,6 +50,7 @@ mod config_packs_toml;
 mod config_required;
 mod config_rm;
 mod config_roots;
+mod config_rule_sites;
 pub mod config_rules;
 mod config_rules_typst;
 mod config_schema;

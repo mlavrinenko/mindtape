@@ -32,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every other field to all tasks. A template's `assignee: slot("assignee")`
   offers the allowed names, and `has(tags, "frontend")` and
   `has(estimate, "days")` read the core list and dict fields.
+- **A skipped rule points at its own entry.** A `[[tasks.rules]]` rule that
+  `mt check` skipped for lack of git pointed at the first task's marker unless
+  the project config declared it. It now points at the header of its entry in
+  whichever config layer or pack declared it, and a built-in pack shows as
+  `pack <name>:<line>`.
 - **`every()` takes a `start` date.** A multi-week weekday series counted its
   on-weeks from one epoch shared by every series, so a project could not pick
   which alternate weeks one ran on. `every(weeks: 2, on: (mon, thu), start:

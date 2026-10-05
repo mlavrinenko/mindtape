@@ -194,6 +194,7 @@ fn build_config(
     // than reading it back off `config` — the two would otherwise have to
     // agree on an ordering that only exists to satisfy this line.
     config.rules_root.set(root);
+    config.rule_sites = crate::config_rule_sites::RuleSites::from_origins(&rule_origins, root);
     config.git.set_root(root);
     config.validate().map_err(ConfigError::Invalid)?;
     // Root-aware, so it cannot run inside `Config::validate` itself (which
