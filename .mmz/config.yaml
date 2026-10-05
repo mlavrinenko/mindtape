@@ -166,7 +166,11 @@ scopes:
   # because examples/large/ is a generated, gitignored benchmark fixture that
   # the recipe does not check, and its 2000 task files would churn this rule
   # for nothing.
+  # www/capture.sh joins because it declares the api-service clock, which
+  # crates/mindtape-cli/tests/eval_fixture_e2e.rs reads, so a clock edit re-runs
+  # the test.
   examples:
+    - "www/capture.sh"
     - "examples/minimal/**"
     - "examples/links/**"
     - "examples/estimates/**"

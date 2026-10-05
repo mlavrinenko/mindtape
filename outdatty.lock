@@ -5,8 +5,25 @@ groups:
     source:
       crates/mindtape/src/packs/mindtape-tasks.toml: ad92738ede81cbe398e8adc34dff707e9b8e19fb174b63c5407fecf55e0d587d
       examples/api-service/.mindtape/config.toml: 2cd85c5820d5704ab091aec97f87775bb46134ccd348c40340a32b6af6855a87
-      www/generate-api-service.sh: 00456ccaf698f9fa70a85c4336fa668cb8ba1808ed20acee5b2f89e99fca9344
+      examples/api-service/.mindtape/templates/task.typ: 41157e812de4eb373b1791bf47197f01c74e78db76b9971a478c38d5f3ecc9a8
+      examples/api-service/dicts/services.txt: 25d2e5ae4c8231bfd16b9d15dfa934c5fcac55a1bd176572f20466164163c39a
+      examples/api-service/scripts/test: 18b94e6d4e4de1fc07b63abcdc597af431a084e25c4e2691e5045fb925108267
+      examples/api-service/tasks/add-redis-client.typ: f90c6b02e6baa8655a554ed4560581c3a57ecac22ae2a073f4d207998f5613a1
+      examples/api-service/tasks/add-request-ids-to-log-lines.typ: e8d57e31af6d3a3c28d7b8d04380b9efbfa2ab44314771a7a10be57d010d9d5c
+      examples/api-service/tasks/document-the-webhook-retry-policy.typ: 2097c9b120d669fad5af21e505c38e743ea61cd493b1b2adc0da12fff146f5a1
+      examples/api-service/tasks/fix-the-404-page-typo.typ: 2d314728f94c7a39798197c550d89e20914e26ac4cf69208626a03e2209161d6
+      examples/api-service/tasks/index-the-orders-by-customer.typ: 5f4b700a45e8a22efa318ea5fd883eb508d55d13ea80a163787192d0bf213f63
+      examples/api-service/tasks/pin-the-rust-toolchain-in-ci.typ: f4eb97deea4f097d5b44314b4db755b4aa4fdde3ecae83de72d666b07656c493
+      examples/api-service/tasks/reject-expired-sessions-on-token-refresh.typ: 4555a42b89b47f2e5af765b56ef7c3430fbead87857a8c7e72727d7dfdd43057
+      examples/api-service/tasks/replace-the-deprecated-search-client.typ: 22fc755d172e2e81cf3e8d8f1719a83bf7e0585094ad53708c08e90ebf7cedf9
+      examples/api-service/tasks/rotate-the-jwt-signing-key.typ: d2006d43bf37936664d543e2ae8f9a248d5cc2105cdb9b77500bdab58423bd7d
+      examples/api-service/tasks/send-a-welcome-email-after-signup.typ: 37902439e0514d5b3c1148290b3c7b5997dc7e23a35599b07e3f7e4dc6c9b959
+      examples/api-service/tasks/throttle-failed-logins-per-ip.typ: 663b5c80f73d08dad4217483f83f700cf9b0312a7b886652ca78f5ef6fae80c1
+      examples/api-service/tasks/upgrade-the-axum-web-framework.typ: 098f9d43ac19b8e59ddd3691f9f4f56f03cfc48a305aca5d84e15c6a93808a36
+      www/generate-api-service.sh: bf3a04f364d6aff62a8a7312cf62b37b286d28e0ad3517f342299e19de9054e1
     dependents:
+      skills/mindtape/evals/README.md: e530d4b6a77d8220a7f138487974a3c0797271020a575b74f51d9379a57d7769
+      skills/mindtape/evals/evals.json: b25640b2d11ac263a0572ffc6679165bae4581dee1fe9938112c8e69926ad041
       www/content/gate-done-on-checks.typ: 8de758b9971b4d0c69650878b5a7c66384d5138411b68bdfc4f979649448995c
       www/content/one-task-at-a-time.typ: 721b0dbd75ff2a255a85ccc7c615ef1174d6ad6259369d5085adc361235540ed
       www/content/require-a-task-shape.typ: d79fca632fc66f6453382e4566257949b20d86b6d8076d245a6412d80c9acf44

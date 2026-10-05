@@ -16,12 +16,11 @@ OUT="$2"
 MT="$REPO/target/debug/mt"
 FIX="$REPO/examples/api-service"
 
-# The api-service tasks are dated in the last week of September 2026, so
-# "today" is just after them.
-export MINDTAPE_NOW=2026-10-01
-
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
+# The api-service tasks are dated in the last week of September 2026, so
+# "today" is just after them.
+export MINDTAPE_NOW=$API_SERVICE_NOW
 capture_init
 
 # A project `mt init --no-input` wrote, stored in <var>.

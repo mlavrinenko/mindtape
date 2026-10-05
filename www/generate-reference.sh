@@ -20,12 +20,11 @@ MT="$REPO/target/debug/mt"
 API="$REPO/examples/api-service"
 SETS="$REPO/examples/named-sets"
 
-# The fixtures' tasks are dated in the last week of September 2026, so
-# "today" is just after them.
-export MINDTAPE_NOW=2026-10-01
-
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
+# The fixtures' tasks are dated in the last week of September 2026, so
+# "today" is just after them.
+export MINDTAPE_NOW=$API_SERVICE_NOW
 capture_init
 
 # A commit in a capture copy, with a fixed author and no signing.

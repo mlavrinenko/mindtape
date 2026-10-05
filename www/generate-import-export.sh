@@ -18,11 +18,10 @@ OUT="$2"
 MT="$REPO/target/debug/mt"
 JQ="$REPO/contrib/jq"
 
-# The fixture's dates are in late September 2026, so "today" is just after.
-export MINDTAPE_NOW=2026-10-01
-
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
+# The fixture's dates are in late September 2026, so "today" is just after.
+export MINDTAPE_NOW=$API_SERVICE_NOW
 capture_init
 
 # capture_one <slug> <dir>: capture all of stdin as one command. A quoted

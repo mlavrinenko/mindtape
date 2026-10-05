@@ -538,9 +538,12 @@ groups:
   # of examples/api-service's config, the session generate-api-service.sh
   # records for it, and the mindtape-tasks rules that block adopts. The config
   # and the session render from generated facts, so only that prose can drift.
+  # The skill's evals state the fixture's task counts and ready order by hand,
+  # so any file under the fixture is a source; crates/mindtape-cli/tests/
+  # eval_fixture_e2e.rs fails on the counts, and this group flags the prose.
   - name: api-service-problems
     source:
-      - examples/api-service/.mindtape/config.toml
+      - examples/api-service/**
       - www/generate-api-service.sh
       - crates/mindtape/src/packs/mindtape-tasks.toml
     dependents:
@@ -549,3 +552,5 @@ groups:
       - www/content/gate-done-on-checks.typ
       - www/content/one-task-at-a-time.typ
       - www/content/trace-commits-to-tasks.typ
+      - skills/mindtape/evals/evals.json
+      - skills/mindtape/evals/README.md

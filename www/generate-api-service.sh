@@ -19,19 +19,20 @@ OUT="$2"
 MT="$REPO/target/debug/mt"
 API="$REPO/examples/api-service"
 
-# The api-service tasks are dated in the last week of September 2026, so
-# "today" is just after them, and a flip writes the same date on every build.
-export MINDTAPE_NOW=2026-10-01
 # git reads no config of the builder's, so a hooks path, a signing key or a
 # default branch on this machine changes no capture. The fixed identity and
 # dates give each commit the same hash on every build.
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
 export GIT_AUTHOR_NAME=Ada GIT_AUTHOR_EMAIL=ada@example.com
 export GIT_COMMITTER_NAME=Ada GIT_COMMITTER_EMAIL=ada@example.com
-export GIT_AUTHOR_DATE=2026-10-01T12:00:00Z GIT_COMMITTER_DATE=2026-10-01T12:00:00Z
 
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
+# The api-service tasks are dated in the last week of September 2026, so
+# "today" is just after them, and a flip writes the same date on every build.
+# www/capture.sh declares that clock for every generator that runs the fixture.
+export MINDTAPE_NOW=$API_SERVICE_NOW
+export GIT_AUTHOR_DATE="${API_SERVICE_NOW}T12:00:00Z" GIT_COMMITTER_DATE="${API_SERVICE_NOW}T12:00:00Z"
 capture_init
 
 # api_copy <var>: a copy of the project, committed as the first commit of a
