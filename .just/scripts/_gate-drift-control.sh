@@ -86,7 +86,7 @@ control_build() {
         "NOT:ok-script" "NOT:unreached" "NOT:clean-arm" "NOT:rrule-like"
 }
 
-# Every shape that must NOT be a finding. `unreached` and `rrule-like` are the
+# Every shape that must not be a finding. `unreached` and `rrule-like` are the
 # check-rrule shape: a plain feature build in a recipe `check` never reaches.
 write_clean() {
     cat >"$1/Justfile" <<'EOF'

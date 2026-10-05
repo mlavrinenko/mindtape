@@ -3,12 +3,12 @@
 # (truth/tasks/scan-the-tree-for-secrets-with-gitleaks.typ). Runs from the
 # repo root, like the recipe that invokes it.
 #
-# WHAT IT SCANS: the working tree as it stands, under `.gitleaks.toml` —
+# What it scans: the working tree as it stands, under `.gitleaks.toml` —
 # gitleaks' own default ruleset plus this repo's allowlist, argued in that
 # file, plus the walk bound derived below from what git ignores. History is out of scope; the reason
 # is argued there too.
 #
-# WHY THE TARGET IS `.` AND THE CWD IS THE REPO ROOT, measured rather than
+# Why the target is `.` and the CWD is the REPO root, measured rather than
 # assumed: gitleaks reports a finding's path exactly as its target was
 # spelled, so `gitleaks dir "$PWD"` yields `/home/…/outdatty.lock` and every
 # `^`-anchored allowlist in .gitleaks.toml silently stops matching — the
@@ -18,7 +18,7 @@
 # into it rather than by passing its path: a control that does not reproduce
 # the real invocation pins the wrong thing.
 #
-# ARM ONE IS A CONTROL, because this gate's failure mode is a FALSE GREEN and
+# Arm one is a control, because this gate's failure mode is a false green and
 # nothing else. "no leaks found" is what a clean tree prints, what an
 # over-broad allowlist prints, and what a config that failed to load its rules
 # prints. So one synthesized fixture, scanned through the real config before
@@ -30,10 +30,10 @@
 #     negation (the copies under `target/` and `.cargo/` are silent, the
 #     tracked `.cargo/keep.toml` beside them is not),
 #   - the outdatty.lock allowlist fires (the digest line is silent),
-#   - it is scoped to the DIGEST SHAPE (a `generic-api-key` hit in that same
+#   - it is scoped to the digest shape (a `generic-api-key` hit in that same
 #     file that is not a bare sha256 is still reported — dropping
 #     `condition = "AND"` from the config fails here and nowhere else),
-#   - it is scoped to the RULE (another rule's finding in that file survives),
+#   - it is scoped to the rule (another rule's finding in that file survives),
 #   - and no allowlist is broad enough to swallow the tree.
 #
 # It runs in a temp dir rather than in the tracked tree for size-fixture-
@@ -51,7 +51,7 @@ fi
 
 # arm one
 
-# Both literals carry `gitleaks:allow`, or arm two would report THIS file: it
+# Both literals carry `gitleaks:allow`, or arm two would report this file: it
 # is a tracked file in the tree arm two scans, and the fixture below has to
 # hold the bare credential shape for the control to mean anything. The
 # comment is on the assignment only — what gets written to the fixture is the
@@ -65,7 +65,7 @@ fixture=$(mktemp -d)
 bounds=$(mktemp -d)
 trap 'rm -rf "$fixture" "$bounds"' EXIT
 
-# THE WALK BOUND IS DERIVED, never copied. gitleaks reads no ignore file
+# The walk bound is derived, never copied. gitleaks reads no ignore file
 # (upstream gitleaks#1195), so an unbounded `gitleaks dir .` walks `target/`
 # (1m44s over 2.09 GB, against 1.5s over 7.5 MB bounded) and every agent
 # worktree under a globally ignored directory besides. git already knows the
@@ -114,7 +114,7 @@ mkdir -p "$fixture/target"
 # first is a synthetic stand-in for the real lock's `refactor-auth.typ` entry
 # — keyed on a name carrying "auth" so `generic-api-key` reads it as a secret
 # — and must be silenced. Synthetic rather than copied, so re-recording that
-# group cannot rot this fixture. The second is the SAME rule in the SAME file
+# group cannot rot this fixture. The second is the same rule in the same file
 # on a value that is not a bare sha256, and must survive: it is the only line
 # that fails if the allowlist is widened from the digest shape to the whole
 # file. The third is a different rule entirely, and must survive too.
@@ -135,7 +135,7 @@ git -C "$fixture" init -q
 git -C "$fixture" add .gitignore outdatty.lock .cargo/keep.toml
 derive_bound "$fixture" "$bounds/control.toml"
 
-# `--exit-code 0` so a finding is not an error here — the finding IS the
+# `--exit-code 0` so a finding is not an error here — the finding is the
 # expected result, and the assertion is on the report rather than on the exit
 # status. A gitleaks that fails for any other reason (an unparseable config,
 # most likely) writes no report, which is caught separately below rather than
@@ -159,8 +159,8 @@ fi
 
 # arm two
 
-# THE SCAN HOLDS target/www-generated.lock, because the walk bound in $config
-# keeps this arm out of that directory's CONTENTS and cannot keep it out of
+# The scan holds target/www-generated.lock, because the walk bound in $config
+# keeps this arm out of that directory's contents and cannot keep it out of
 # the stat of the entry itself — the strace measurement, and why no pattern
 # can buy that, are argued beside the bound in $config. www/generate.sh
 # `rm -rf`s the directory on entry and `just check` is [parallel], so without
@@ -168,7 +168,7 @@ fi
 # finds no leaks and exits 0 (truth/tasks/check-secrets-still-logs-an-err-
 # over-www-generated.typ). Same fd-9 flock www/generate.sh,
 # docs/generate-md.sh and check-doc-facts.sh share — this arm is one more
-# READER of that directory, and was the last one not taking it. No
+# reader of that directory, and was the last one not taking it. No
 # MINDTAPE_GENERATED_LOCK handshake: nothing holding the lock calls this
 # gate, and an unconditional acquisition makes a future caller deadlock
 # loudly rather than race quietly.
@@ -190,7 +190,7 @@ fi
 # The report is read rather than the console output, and not for tidiness:
 # gitleaks 8.30 prints `leaks found: N` and nothing else unless `-v` is
 # passed, so a failing gate would name no file at all. Reading the JSON gives
-# the file and line a reader has to act on — and gives them WITHOUT the
+# the file and line a reader has to act on — and gives them without the
 # secret, which matters because this arm's output is what a failing CI job
 # publishes. `--redact` covers gitleaks' own logging for the same reason.
 #

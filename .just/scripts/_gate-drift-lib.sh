@@ -1,10 +1,10 @@
 # .just/scripts/_gate-drift-lib.sh — the two readers behind `just
 # check-gate-drift`, sourced by check-gate-drift.sh and by the control that
 # pins them (_gate-drift-control.sh). Why each reads what it reads is argued in
-# check-gate-drift.sh. Both take a ROOT and read only under it, so the control
+# check-gate-drift.sh. Both take a root and read only under it, so the control
 # can aim them at a synthetic tree and the gate at the real one.
 #
-# What a `check` arm REACHES is not decided here: _script-reach.sh walks it with
+# What a `check` arm reaches is not decided here: _script-reach.sh walks it with
 # the graph script-scope-check uses, and a second walker would learn the next
 # shell form one at a time. This file keeps the two arm-specific parts.
 

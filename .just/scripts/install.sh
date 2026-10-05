@@ -3,7 +3,7 @@
 # generated JSON Schema, then every skill linked into the harness dirs. Runs
 # from the repo root — `$(pwd)/skills` is the link target.
 #
-# `defaults.toml` is deliberately NOT refreshed. It is seeded once and then
+# `defaults.toml` is deliberately not refreshed. It is seeded once and then
 # hand-edited as the global config layer (crates/mindtape-cli/src/install.rs),
 # so --force there would erase local settings; the schema is generated from the
 # config structs, so forcing it is always safe.

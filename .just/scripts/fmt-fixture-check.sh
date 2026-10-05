@@ -28,7 +28,7 @@ if typstyle --check "$bad_typ" >/dev/null 2>&1; then
     echo "fmt-fixture-check: typstyle accepted the mis-formatted Typst — gate is broken" >&2
     exit 1
 fi
-# The just arm is spelled with the SAME `--justfile <file> --fmt --check`
+# The just arm is spelled with the same `--justfile <file> --fmt --check`
 # invocation `fmt-check` runs over JUST_FMT_PATHS, because the bug it locks is
 # not "the formatter is broken" but "the invocation shape misses the file": a
 # bare `just --fmt` skips module files entirely, so a fixture checked the wrong
@@ -36,7 +36,7 @@ fi
 # (truth/tasks/gate-formatting-of-just-module-files.typ). The fixture carries
 # `set unstable := true` for the same reason every listed module file must —
 # `--fmt` is refused without it, and a refusal is a non-zero exit that would
-# pass this assertion for the wrong reason, so the arm asserts the SUCCESS case
+# pass this assertion for the wrong reason, so the arm asserts the success case
 # too: the same file, reformatted, must be accepted.
 if just --justfile "$bad_just" --fmt --check >/dev/null 2>&1; then
     echo "fmt-fixture-check: just accepted the mis-formatted module file — gate is broken" >&2

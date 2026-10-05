@@ -3,9 +3,9 @@
 # (truth/tasks/assert-a-branchs-gate-before-fast-forwarding-it.typ). Runs from
 # the repo root, like fork.sh, whose inverse it is.
 #
-# WHAT THIS IS FOR. `just fork` stands a delegated worktree up; this takes it
+# What this is for. `just fork` stands a delegated worktree up; this takes it
 # back down, and the one thing it does on the way is an assertion nothing else
-# makes. A FAST-FORWARD WRITES NO COMMIT, so `.githooks/pre-commit` — the only
+# makes. A fast-forward writes no COMMIT, so `.githooks/pre-commit` — the only
 # place `mmz --is-fresh --tag gate` fires on its own — never runs on the merge.
 # The branch's own commits ran it, except the ones that carried a `Gate-Scope:`
 # trailer and deliberately skipped it; that scoping is legitimate precisely
@@ -14,24 +14,24 @@
 # typed was a pipeline ending in `tail` — which reports `tail`'s exit code, so
 # a branch whose test arm failed read as green and landed on `main`.
 #
-# THE ASSERTION IS READ FROM THE WORKTREE, not from this checkout, and that is
+# The assertion is read from the worktree, not from this checkout, and that is
 # the design rather than a detail. mmz's cache records are per-tree, so "did
 # the gate pass against the code being merged" can only be answered where that
 # code is. It has to be asked before `main` moves and before the worktree is
 # gone, which is why removal is the last line of this script.
 #
-# IT NEVER RUNS THE GATE, the same trade the pre-commit hook takes. Asserting a
+# It never runs the gate, the same trade the pre-commit hook takes. Asserting a
 # prior pass is cheap and is the predicate worth having; running the aggregate
 # at merge time is slow at the least convenient moment, and a slow command at
 # that moment is how a bypass gets invented.
 #
-# THERE IS NO WAIVER FLAG, unlike fork.sh's MINDTAPE_FORK_DIRTY_OK. One here
+# There is no waiver flag, unlike fork.sh's MINDTAPE_FORK_DIRTY_OK. One here
 # would be a supported way to land a red branch, which is the exact event this
 # recipe exists to make impossible to do quietly. The escape hatch is
 # `git merge --ff-only <branch>` by hand: it is what exists today, it takes a
 # deliberate second command, and nothing about it reads as blessed.
 #
-# THE BRANCH REF SURVIVES the worktree that held it, deliberately. Removing it
+# The branch ref survives the worktree that held it, deliberately. Removing it
 # is a separate judgement — a branch is cheap, and `git branch -d` after a
 # successful fast-forward would delete the only name left pointing at the work
 # if the integration turns out to have been the wrong call.
@@ -55,7 +55,7 @@ fi
 
 here=$(git rev-parse --show-toplevel)
 # Resolved once, up front, and tolerating a detached HEAD. Read lazily it would
-# be read again on the LAST line — after the fast-forward has already landed —
+# be read again on the last line — after the fast-forward has already landed —
 # where `symbolic-ref` failing would report a successful integration as a failed
 # one, which is the false red to match this recipe's false green.
 onto=$(git symbolic-ref --short HEAD 2>/dev/null || echo "detached HEAD")
@@ -66,7 +66,7 @@ if [ "$wt" = "$here" ]; then
 fi
 
 # Asked up front, though `git worktree remove` refuses a dirty tree anyway: it
-# refuses at the END, after the fast-forward has already moved this checkout,
+# refuses at the end, after the fast-forward has already moved this checkout,
 # and a half-done integration is worse than a refused one. The same reason
 # fork.sh counts untracked files — a brand-new source file is the change with
 # no committed version to fall back to, and removing the tree is where it dies.
@@ -90,9 +90,9 @@ if ! git merge-base --is-ancestor "$head_sha" "$branch_sha"; then
 fi
 
 # `cd` rather than `direnv exec "$wt"` alone: direnv exec loads that
-# directory's environment but does NOT change the working directory (verified
+# directory's environment but does not change the working directory (verified
 # — `cd /tmp && direnv exec <repo> pwd` prints /tmp), and mmz resolves its
-# manifest from cwd upward. Without the cd it would read THIS checkout's cache
+# manifest from cwd upward. Without the cd it would read this checkout's cache
 # and answer about the wrong tree — silently, and green, which is the failure
 # mode the whole recipe is against.
 #
@@ -108,8 +108,8 @@ run_in_worktree() {
     fi
 }
 
-# The verdict is `--is-fresh`'s own exit code, and NAMING THE ARM IS ALREADY
-# ITS JOB: it reports each stale or failed rule on its own line
+# The verdict is `--is-fresh`'s own exit code, and naming the arm is already
+# mmz's own job: it reports each stale or failed rule on its own line
 # ("mmz: `just clippy` is never (never run)") before exiting. A `--status=json`
 # pass here to rebuild that list was written first and deleted after measuring
 # it — it printed every failing arm a second time, which is the noise this repo

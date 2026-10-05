@@ -5,13 +5,13 @@
 # Runs from the repo root, like the recipe that invokes it. When to re-mint is
 # stated above that recipe.
 #
-# The exclude flags arrive as ARGUMENTS ("$@"), from the same CRAP_EXCLUDES the
+# The exclude flags arrive as arguments ("$@"), from the same CRAP_EXCLUDES the
 # gate is passed — see .just/scripts/crap.sh. Minting over a different file set
 # than the gate scores is the exact failure the one-variable discipline exists
 # to prevent.
 set -eo pipefail
 
-# Guard: the THRESHOLD arm only. Minting a >30 function in as acceptable is the
+# Guard: the threshold arm only. Minting a >30 function in as acceptable is the
 # freeze this exists to stop, and it also refuses a stale lcov, so the numbers
 # about to be committed are the ones a clean run reproduces. It is deliberately
 # not the whole gate — the ratchet arm scores against the file this script is
@@ -29,7 +29,7 @@ trap 'rm -f "$tmp"' EXIT
 cargo crap --lcov target/coverage/lcov.info --workspace "$@" \
     --format json --sort file --output "$tmp"
 
-# RELATIVIZE, because `cargo crap --workspace` walks the member roots
+# Relativize, because `cargo crap --workspace` walks the member roots
 # `cargo metadata` reports and there is no flag to shorten them (checked on
 # cargo-crap 0.3.1): every entry lands as `/home/<user>/…/mindtape/crates/…`,
 # publishing the minter's own machine layout in a tracked file.
@@ -40,7 +40,7 @@ cargo crap --lcov target/coverage/lcov.info --workspace "$@" \
 # through the suffix-aware pass instead (`pass_suffix_match`, upstream test
 # `cross_root_baseline_matches_without_move_status`) — which is the pass that
 # has been carrying the ratchet on every CI run since it was introduced. A
-# relative baseline routes local through the SAME pass CI already uses, so the
+# relative baseline routes local through the same pass CI already uses, so the
 # gate stops behaving differently on the one machine that minted the file.
 #
 # The prefix comes from `cargo metadata` rather than `$PWD`: it is the root

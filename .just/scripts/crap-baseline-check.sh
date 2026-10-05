@@ -5,19 +5,19 @@
 # second time by .just/scripts/crap-baseline.sh so a bad mint fails at the mint
 # rather than at the next `just check`.
 #
-# WHAT IT LOCKS. `cargo crap --workspace` reports the member roots
+# What it locks. `cargo crap --workspace` reports the member roots
 # `cargo metadata` gives it, which are absolute, and cargo-crap 0.3.1 has no
 # flag to shorten them. crap-baseline.sh strips the workspace root back off
 # before writing the tracked file; nothing about that is enforced by the mint
 # succeeding, and a re-mint by hand (`cargo crap … --output crap-baseline.json`,
-# the exact command the recipe used to be) puts every local path straight back.
+# the exact command the recipe ran before) puts every local path straight back.
 # The leak is invisible in review — a 1000-entry JSON diff nobody reads line by
 # line — so it needs a check rather than a convention.
 #
-# WHY IT IS NOT A GITLEAKS RULE, measured under `--log-level trace` on gitleaks
+# Why it is not a gitleaks rule, measured under `--log-level trace` on gitleaks
 # 8.30.1: the default ruleset's global allowlist matches `/home/<user>/` and
 # drops any custom rule's finding on it (`skipping finding: global allowlist
-# allowed-regex=true`), and an extending config can only ADD allowlists, never
+# allowed-regex=true`), and an extending config can only add allowlists, never
 # remove one. A machine-local-path rule is dead the moment
 # `[extend] useDefault = true` is set, which is the "rule that cannot fire" this
 # repo argues against everywhere else. gitleaks is worth having for the job it
@@ -63,7 +63,7 @@ filter='
     )
 '
 
-# POSITIVE CONTROL, because this gate's failure mode is a false green: a typo
+# Positive control, because this gate's failure mode is a false green: a typo
 # in the filter above matches nothing, and matching nothing is exactly what a
 # clean baseline looks like — the check would print its success line over a
 # file full of local paths. So the same filter runs first over a fixture

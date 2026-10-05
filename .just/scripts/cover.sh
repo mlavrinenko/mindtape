@@ -13,8 +13,8 @@ ignore='crates/mindtape-cli/src/main\.rs|/registry/src/'
 mkdir -p target/coverage
 # Instrument once (--no-report), then render both reports from that profdata.
 # The clean is cargo-llvm-cov's own documented precondition for that split
-# ("should be called before the first run"): --no-report deliberately does NOT
-# clear the profraw pile, because the split exists so several runs CAN be
+# ("should be called before the first run"): --no-report deliberately does not
+# clear the profraw pile, because the split exists so several runs can be
 # merged. Dropping it unions every profraw and every object file left in
 # target/llvm-cov-target since the last `cargo clean` into the lcov — measured,
 # and argued in the docs page above.

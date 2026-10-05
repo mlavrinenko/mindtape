@@ -6,7 +6,7 @@
 # is deliberately no advisory band below the gate are argued in
 # docs/contributing/coverage-crap.md.
 #
-# The exclude flags arrive as ARGUMENTS ("$@"), never as a copy of the list.
+# The exclude flags arrive as arguments ("$@"), never as a copy of the list.
 # CRAP_EXCLUDES stays one Justfile variable because three consumers must score
 # the same file set — this gate, `crap-baseline`, and
 # contrib/ask-refactoring/undertested.sh via `_crap-excludes` — and a baseline
@@ -49,7 +49,7 @@
 #   - `main.rs` stays thin, and `cover.sh` excludes it from coverage for the
 #     same reason.
 #
-# ARM SELECTION. The first argument picks which checks run; the excludes
+# Arm selection. The first argument picks which checks run; the excludes
 # follow it:
 #
 #   all       both arms — the gate (`just crap`).
@@ -60,7 +60,7 @@
 # absolute arm asks "is anything actually bad", and minting a >30 function into
 # the baseline as acceptable is exactly the freeze the pre-mint guard is for.
 # The ratchet arm asks "did anything get worse than the file we are about to
-# rewrite" — and a deliberate complexity increase makes it red BY DEFINITION,
+# rewrite" — and a deliberate complexity increase makes it red by definition,
 # which is the one moment CONTRIBUTING.md tells you to re-mint. Running both
 # before a mint made the recipe refuse in its own documented use case, so the
 # ratchet is not the pre-mint guard: the threshold is.
@@ -82,14 +82,14 @@ if [ -n "$reason" ]; then
     exit 1
 fi
 # Two checks, run separately so each failure prints its own readable table.
-# Folding them into one invocation does not work: `--min 30` is a PRINT
+# Folding them into one invocation does not work: `--min 30` is a print
 # filter, so a regression from 5 to 12 would fail the gate with no visible
 # row, and baseline mode hides unchanged rows, so a function sitting above
 # the threshold without moving would fail with no visible row either. Each
 # mode needs the other's rows suppressed to stay legible.
 #
 # 1. Absolute: no function above 30, whatever its history. `--min` matches
-# `--threshold`, so the table lists only the functions that FAIL; without it
+# `--threshold`, so the table lists only the functions that fail; without it
 # the report is every analyzed function — 976 rows to carry the one that
 # matters. The cost is that the tail summary then counts printed rows ("1/1",
 # not "1/976"); the numerator, which is the number that decides the gate, is

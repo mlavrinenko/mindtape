@@ -5,7 +5,7 @@
 # gate-recipe-bodies-into-scripts.typ. Every path below is repo-root-relative:
 # that module file carries `set working-directory := '..'` precisely so its
 # recipes run at the repo root rather than in .just/. The prose arguing why the
-# regenerate goes to a TEMP directory stays above that recipe.
+# regenerate goes to a temp directory stays above that recipe.
 set -eo pipefail
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT

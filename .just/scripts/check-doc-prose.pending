@@ -1,15 +1,3 @@
-.just/scripts/check-secrets.sh
-.just/scripts/cover.sh
-.just/scripts/crap-baseline-check.sh
-.just/scripts/crap-baseline.sh
-.just/scripts/crap.sh
-.just/scripts/docs-md-check.sh
-.just/scripts/fmt-fixture-check.sh
-.just/scripts/fork.sh
-.just/scripts/_gate-drift-control.sh
-.just/scripts/_gate-drift-lib.sh
-.just/scripts/install.sh
-.just/scripts/integrate.sh
 .just/scripts/_lcov-stale-reason.sh
 .just/scripts/mutants-diff.sh
 .just/scripts/_mutants-env.sh

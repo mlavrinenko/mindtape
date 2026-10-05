@@ -3,14 +3,14 @@
 # (truth/tasks/add-a-just-fork-recipe-that-stands-up-a-ready-worktree.typ).
 # Runs from the repo root, like the recipe that invokes it.
 #
-# WHAT THIS IS FOR, and it is not speed. Standing up a worktree for a delegated
+# What this is for, and it is not speed. Standing up a worktree for a delegated
 # agent is four steps — `git worktree add`, `cd`, `direnv allow`, then assert the
 # base is the commit the orchestrator meant — and only the last one is load-
 # bearing. It is also the one always skipped, and the only one whose failure is
-# SILENT: a worktree branched off the wrong base ships a diff that passes its own
+# silent: a worktree branched off the wrong base ships a diff that passes its own
 # gate while dropping everything the real base carried.
 #
-# WARMING THE BUILD CACHE IS DELIBERATELY ABSENT, and was the assumed motivation
+# Warming the build cache is deliberately absent, and was the assumed motivation
 # until it was measured. The dev shell inherits `kache` as `RUSTC_WRAPPER` from
 # the host session, at a 99.7% hit rate over a 50 GiB content-addressed store, so
 # a fresh worktree's `cargo build` is mostly hits already. Copying `target/` is
@@ -23,17 +23,17 @@
 # build` at the end: the worktree's own dev `mt`, which its shell's PATH
 # promises and kache serves at the same 99.7% hit rate as everything else.
 #
-# WHAT THE ASSERTION CAN AND CANNOT PROVE. It can prove the worktree landed on
-# the commit that was NAMED — the base is resolved to a full sha once, up front,
+# What the assertion can and cannot prove. It can prove the worktree landed on
+# the commit that was named — the base is resolved to a full sha once, up front,
 # and `git worktree add` is handed that sha rather than the symbolic name, so a
 # branch that moves between resolving and creating cannot change the answer, and
 # the created worktree's own HEAD is read back and compared. It cannot prove the
-# named commit is the one the orchestrator MEANT: the recipe has no access to
+# named commit is the one the orchestrator meant: the recipe has no access to
 # that intent. So the last thing it prints is the assertion line to paste into
 # the agent's prompt, which is how the intent crosses the gap — the check on this
 # side makes the sha trustworthy, the check on that side makes it the right one.
 #
-# GIT'S OWN REFUSALS ARE NOT RE-IMPLEMENTED. An existing branch name, an existing
+# Git's own refusals are not re-implemented. An existing branch name, an existing
 # target directory, a base that is not a commit — git says so, by name, and a
 # second copy of those messages here would only drift from them.
 set -eo pipefail
@@ -41,8 +41,8 @@ set -eo pipefail
 slug="$1"
 base="${2:-HEAD}"
 
-# Reached through `--git-common-dir` rather than `$(pwd)`, so forking FROM a
-# worktree still lands the new one beside the MAIN checkout instead of nesting a
+# Reached through `--git-common-dir` rather than `$(pwd)`, so forking from a
+# worktree still lands the new one beside the main checkout instead of nesting a
 # `mindtape-a-b` beside `mindtape-a`. Siblings, never children: a worktree inside
 # the repo would put a second `truth/tasks/` and a second `crates/` under every
 # path-walking tool here — `mt check` would see each task stem twice, jscpd would
@@ -59,13 +59,13 @@ fi
 head_sha=$(git rev-parse --verify HEAD)
 
 # The one refusal, and it is the dirty-tree case rather than the wrong-commit
-# one. `git worktree add` copies COMMITS, never the index or the working tree, so
+# one. `git worktree add` copies commits, never the index or the working tree, so
 # forking off a dirty HEAD hands the agent a base missing exactly the changes the
 # caller is looking at while typing the command — the silent drop this recipe
-# exists to prevent, in its most reachable form. Only when the base IS HEAD:
+# exists to prevent, in its most reachable form. Only when the base is HEAD:
 # naming any other base is a statement that the working tree is not the subject.
 #
-# UNTRACKED FILES COUNT, which `--untracked-files=no` would have excluded. A
+# Untracked files count, which `--untracked-files=no` would have excluded. A
 # brand-new source file is the change a fork drops most completely — there is no
 # committed version of it to fall back to — and the noise argument does not
 # apply here, because `git status --porcelain` already honours `.gitignore` and
@@ -99,8 +99,8 @@ fi
 
 git worktree add -b "$slug" "$path" "$base_sha"
 
-# Read back rather than assumed. Everything above argues about what SHOULD land;
-# this is the only line that knows what DID.
+# Read back rather than assumed. Everything above argues about what should land;
+# this is the only line that knows what did.
 wt_head=$(git -C "$path" rev-parse HEAD)
 if [ "$wt_head" != "$base_sha" ]; then
     echo "fork: the new worktree is not at the base it was created from" >&2
@@ -120,11 +120,11 @@ fi
 # loads .envrc on `cd` reports the refusal, but one driven by direnv's own
 # export (`/etc/bash_env` on the NixOS host) discards it.
 #
-# And then the shell is LOADED, not merely authorised. `direnv allow` records
+# And then the shell is loaded, not merely authorised. `direnv allow` records
 # consent; the first load after it pays the flake evaluation and any
 # substituter fetch the pin needs — measured at roughly two minutes on a warm
 # store for this repo. Paying it here, once, visibly, is worth more than it
-# looks: unpaid, it lands inside the delegated agent's FIRST gate run, where a
+# looks: unpaid, it lands inside the delegated agent's first gate run, where a
 # long foreground command is exactly what the harness auto-backgrounds, and an
 # auto-backgrounded gate is how an agent ends its turn on a half-finished diff.
 if command -v direnv >/dev/null 2>&1; then
@@ -154,14 +154,13 @@ echo "worktree  $path"
 echo "branch    $wt_branch"
 echo "base      $base_sha ($base)"
 
-# A note about `@local/mindtape` resolving through the machine-global symlink
-# used to be printed here — a fork's `mt`/`check-examples` read whichever
-# checkout last ran `just install-lib`, not the lib beside them. It is gone
-# because the behaviour is: the loader auto-registers `<root>/lib` for the repo
-# itself, both example fixtures declare a `[[typst.local-packages]]` entry
-# pointing at it, and `just check-examples` runs with the global directory
-# emptied so the entry cannot rot back. A worktree now reads its own prelude
-# with nothing printed and nothing to remember.
+# A fork's `mt` and `check-examples` could read whichever checkout last ran
+# `just install-lib`, not the lib beside them, so no note about the
+# machine-global `@local/mindtape` symlink is needed. The loader auto-registers
+# `<root>/lib` for the repo itself, both example fixtures declare a
+# `[[typst.local-packages]]` entry pointing at it, and `just check-examples`
+# runs with the global directory emptied so the entry cannot rot. A worktree
+# reads its own prelude with nothing printed and nothing to remember.
 echo
 echo "pin the base in the agent's prompt, and have it assert before any work:"
 echo "  cd $path"
