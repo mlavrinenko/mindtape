@@ -13,8 +13,7 @@
 # Justfile and `.just` module that git lists, tracked or not yet added, so a
 # new script is read the day it lands. Code lines, shebangs, shellcheck
 # directives and heredoc bodies in those files are not prose and are skipped.
-# EXCLUDE names a file to skip, with its reason. check-doc-prose.pending names
-# the files whose comments are not yet rewritten, and only shrinks.
+# EXCLUDE names a file to skip, with its reason.
 #
 # It reads every `description` out of schema/config.schema.json too, because those texts reach the docs site and
 # editors, and a hit there names the key path. The rules it enforces, with
@@ -133,22 +132,6 @@ schema_text() {
         | .text | split("\n")[] | [$file, "-", "prose", gsub("\t"; " ")] | join("\t")' "$1"
 }
 
-# pending_filter drops the hits of each PENDING file from the hits on stdin and
-# fails, naming the file, on a PENDING file with no hit.
-pending_filter() { # <pending-file>...
-    local hits fail=0 p
-    hits=$(cat)
-    for p in "$@"; do
-        if ! grep -q "^$p:" <<<"$hits"; then
-            echo "check-doc-prose: $p has no flagged comment left; drop it from check-doc-prose.pending" >&2
-            fail=1
-        fi
-        hits=$(grep -v "^$p:" <<<"$hits" || true)
-    done
-    [ -z "$hits" ] || printf '%s\n' "$hits"
-    return $fail
-}
-
 # Control: a scanner that matches nothing passes a dirty tree, so it first has
 # to report exactly the hits planted in this fixture.
 control() {
@@ -215,17 +198,6 @@ s.json:$defs.A.oneOf.0: all-caps "SHOUTED"'
             "$out" "$want" >&2
         exit 1
     fi
-    # A PENDING file loses its hits, and a PENDING file with none fails.
-    out=$(pending_filter a.sh c.sh 2>&1 <<<"a.sh:1: x
-b.sh:2: y" || echo failed)
-    want='check-doc-prose: c.sh has no flagged comment left; drop it from check-doc-prose.pending
-b.sh:2: y
-failed'
-    if [ "$out" != "$want" ]; then
-        printf 'check-doc-prose: the PENDING control gave\n%s\nexpected\n%s\n' \
-            "$out" "$want" >&2
-        exit 1
-    fi
 }
 
 control
@@ -253,17 +225,10 @@ while IFS= read -r f; do
 done < <(git ls-files --cached --others --exclude-standard -- \
     '*.sh' '*.just' '*.yaml' '*.yml' Justfile '*/Justfile')
 
-# check-doc-prose.pending lists, one path per line, the files whose comments are
-# not yet rewritten. A listed file may keep its hits, and a listed file with
-# none left fails, so the list only shrinks. Each rewrite removes its file in
-# its own commit.
-mapfile -t PENDING <.just/scripts/check-doc-prose.pending
-
 hits=$({
     rows_for "${typst_sources[@]}" "${md_sources[@]}" "${comment_sources[@]}"
     schema_text schema/config.schema.json schema/config.schema.json
 } | scan "$(consts_of "${typst_sources[@]}" "${comment_sources[@]}")")
-hits=$(pending_filter "${PENDING[@]}" <<<"$hits") || exit 1
 if [ -n "$hits" ]; then
     sed 's/^/check-doc-prose: /' <<<"$hits" >&2
     echo "check-doc-prose: rewrite each line plainly; the rules are in docs/contributing/documentation.md" >&2

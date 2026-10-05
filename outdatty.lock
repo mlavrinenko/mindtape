@@ -140,13 +140,13 @@ groups:
       .just/scripts/check-doc-coverage.sh: 0d072b6726216918154b05523116c5417562d9188073152c4b06116c290d2e35
       .just/scripts/check-doc-facts.sh: 86e768589827caf1395f550cad36afe0336137210f6e45fdf30e9a4289a40f75
       .just/scripts/check-doc-prose.awk: 2cbf36158cf9412b197321d42e9bdd697fa63f8dcb74c878245593d0dc227803
-      .just/scripts/check-doc-prose.sh: 95bc03abb463563dfa492dbbd1fefc81e269df4768ad947cae914244cc33d1c5
+      .just/scripts/check-doc-prose.sh: 2397d002a49ed000c13f5b9e6a055ef7927409e9d121209a4d834363b53148b5
       .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
       .just/scripts/check-doc-spans.jq: 6289fc7f4c92d03fd925093791c4152cfa29852ece93148efa88343cd1b97888
       .just/scripts/check-doc-spans.sh: 7bb4d0076f965fe886210bd5519ba998336c0c4f9cd2b5e38ac8d6b8dbf9aae8
       .just/scripts/docs-md-check.sh: 06b5b942d9a14fa00134ec4de64b4f2e706ae49bf1b55206b2afd54c2d87791f
     dependents:
-      docs/src/contributing/documentation.typ: 90b35b19923b50da8859e4f3ae9d106291335633ded64e8e73a61ba5473ccc37
+      docs/src/contributing/documentation.typ: f3582c8439aae65b2abcf3ac6b197bfa02979b7bc76735ec80422f2f94b61939
       docs/src/contributing/generated-docs.typ: 3336200378c00ff63a00121df8376406546683821252d4c3b5019e1c7ffec612
       www/utils/gate-notes.typ: c68751a07b34b086d0b58c2483f6b7e21b3e683f0ee31b8a68b3688ecf1a6ece
   filter-docs:
