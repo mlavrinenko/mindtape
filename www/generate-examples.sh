@@ -25,11 +25,11 @@
 # `<id>` is the JSON key the page reads. Markers may repeat across files, the
 # code keeps its own indentation, and an unterminated slice is a hard error
 # rather than a silently empty block. A slice id a page declares but the
-# fixture no longer carries fails that page's render (`<id>` missing from the
+# fixture does not carry fails that page's render (`<id>` missing from the
 # fact); a slice no page quotes is invisible, so pages assert the whole key set
 # instead of only probing the ones they read.
 #
-# The second half slices CONFIG rather than task markers — a `toml` key or a
+# The second half slices config rather than task markers — a `toml` key or a
 # whole section out of a project's `.mindtape/config.toml`, under the same
 # discipline in TOML's comment syntax:
 #

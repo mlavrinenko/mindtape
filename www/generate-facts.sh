@@ -8,12 +8,12 @@
 # that ships seven; AGENTS.md still lists a `comfy-table` dependency that was
 # removed). This script is the fix at the root: read the source once, write
 # the fact to www/generated/ (gitignored, a build artifact like generate.sh's
-# captures), and let a doc STATE the fact by reading the file, never by
+# captures), and let a doc state the fact by reading the file, never by
 # repeating it by hand.
 #
-# www/generate.sh calls this at its END, inside the flock it already holds:
+# www/generate.sh calls this at its end, inside the flock it already holds:
 # that script `rm -rf`s the whole generated/ dir on entry, and the wipe and
-# the restore have to be ONE critical section or a concurrent reader sees the
+# the restore have to be one critical section or a concurrent reader sees the
 # gap between them. `just docs::gen` calls it again — idempotent, and it keeps
 # the recipe honest about what it produces. A caller that wants the page
 # manifest too (check-doc-facts, docs/generate-md.sh) calls generate.sh rather
@@ -39,9 +39,8 @@
 #   - linecop-caps.json <- .linecop.yaml, via yq
 #   - sweep-flags.json  <- the same `just --dump` (see www/sweep-flags.jq)
 #
-# linecop-caps.json is the one artifact still without a consumer: it was
-# derived for truth/tasks/generate-the-root-markdown-from-typst-with-typlite.typ
-# beside gates.json, which docs/src/contributing.typ's gate table now reads.
+# linecop-caps.json is the one artifact without a consumer. It is derived
+# beside gates.json, which docs/src/contributing.typ's gate table reads.
 #
 # Deliberately out of scope: the design invariants (Typst eval-only, evalexpr
 # walked not evaluated, the prelude-vs-Rust split). Those change with the
@@ -67,9 +66,9 @@ source "$SCRIPT_DIR/facts-lib.sh"
 # itself.
 META="$(cargo metadata --format-version 1)"
 
-# WHICH crates are substrate is derived too, not listed: they are exactly the
+# Which crates are substrate is derived too, not listed: they are exactly the
 # packages whose own manifest points at this author's GitHub org and that are
-# not workspace members — i.e. the crates extracted OUT of this repo and now
+# not workspace members — i.e. the crates extracted out of this repo and
 # consumed back from crates.io. Verified exact against today's graph (seven
 # hits, no false positives; `mindtape`/`mindtape-cli` share the org and are
 # excluded as workspace members). A hand-written list was the last hardcoded
@@ -79,10 +78,10 @@ META="$(cargo metadata --format-version 1)"
 # has prose, instead of silently going unmentioned.
 SUBSTRATE_REPO_RE='github\.com/mlavrinenko/'
 
-# The architecture-level dependencies the docs name by hand. This one IS a
+# The architecture-level dependencies the docs name by hand. This one is a
 # list, and has to be: "which deps are worth naming in an architecture
 # sentence" is an editorial judgement with no machine source. Only the
-# VERSIONS are derived. A dep that leaves the graph resolves to null rather
+# versions are derived. A dep that leaves the graph resolves to null rather
 # than silently vanishing, so a stale editorial claim surfaces as a visible
 # hole (this is how `comfy-table` — replaced by the hand-rolled renderer in
 # crates/mindtape-cli/src/render/ — was caught).
@@ -151,19 +150,17 @@ tomlq -f "$SCRIPT_DIR/frameworks.jq" --argjson scales "$SCALES" \
 # is `mt _cli --json`, which www/generate.sh writes before this script runs.
 jq '{functions: .filter_functions}' "$OUT/cli.json" | emit filter-functions.json
 
-# site-pages.json — the docs site's page manifest — used to be derived here,
-# read back off www/utils/site.typ's PAGES dict. It moved to its own script,
-# www/generate-site-pages.sh, under truth/tasks/derive-site-pages-json-from-
-# the-pages-page-meta-blocks.typ: each page carries its OWN `<page-meta>` block
-# now, so the manifest comes from the pages themselves and deriving it needs a
+# site-pages.json — the docs site's page manifest — is derived in its own
+# script, www/generate-site-pages.sh. Each page carries its own `<page-meta>`
+# block, so the manifest comes from the pages themselves, and deriving it needs a
 # full page compile — www/generate.sh's captures, not just this script's. The
-# header above carries what that cost this script's callers.
+# header above carries what that costs this script's callers.
 
 # --- gates.json --------------------------------------------------------------
 # Gate list + row order from the Justfile's `[group("gate")]` tags and
 # `check`'s own dependency list (also the cross-check the two are read against
 # each other for) — see www/gates.jq's header for why row order reads that list
-# rather than `just --summary --unsorted`'s source order now that a gate can
+# rather than `just --summary --unsorted`'s source order, since a gate can
 # live in a module. The artifact also carries the fmt path assignments
 # docs/contributing/gates.md renders verbatim
 # (selected in www/gates.jq by their shared `_FMT_PATHS` suffix, so a future
@@ -176,7 +173,7 @@ jq -f "$SCRIPT_DIR/gates.jq" <<<"$JUST_DUMP" | emit gates.json
 # Reuses $JUST_DUMP above — one `just --dump` shell-out, two artifacts. The
 # module and its functions are explained in JUST_TYP_HEADER below, which
 # ships verbatim inside the artifact itself so that explanation travels with
-# the file. What is NOT in the shipped header: the identifier collision
+# the file. What is not in the shipped header: the identifier collision
 # check — two recipes mangling to the same `-`-joined identifier fail the
 # jq program below with halt_error, naming both, rather than one silently
 # shadowing the other.
@@ -184,9 +181,9 @@ jq -f "$SCRIPT_DIR/gates.jq" <<<"$JUST_DUMP" | emit gates.json
 # A module recipe (truth/tasks/split-the-justfile-into-modules.typ) is walked
 # via the same recursive all_recipes() the gates.jq program uses, keyed by its
 # `namepath` (just's own dump already qualifies it, e.g. "docs::check"). The
-# rendered COMMAND swaps `::` for a space — `just docs check`, matching how
+# rendered command swaps `::` for a space — `just docs check`, matching how
 # `just --list --list-submodules` itself presents a module recipe — while the
-# Typst IDENTIFIER swaps `::` for `-`, so `docs::check` reads `#just.docs-check()`
+# Typst identifier swaps `::` for `-`, so `docs::check` reads `#just.docs-check()`
 # and mangles right back to the pre-split flat name. That is what lets a
 # recipe move into a module without touching a line of doc prose.
 JUST_TYP_HEADER="$(cat <<'HDR'

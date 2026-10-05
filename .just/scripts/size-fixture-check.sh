@@ -2,9 +2,9 @@
 # .just/scripts/size-fixture-check.sh — the body of the `size-fixture-check`
 # recipe. Runs from the repo root, like the recipe that invokes it.
 #
-# Lock the file-size gate's SCAN SCOPE, not its limits: synthesize an
+# Lock the file-size gate's scan scope, not its limits: synthesize an
 # oversized shell script at `.just/scripts/` inside a replica tree, then
-# assert `linecop`, reading THIS repo's `.linecop.yaml`, reports it. The
+# assert `linecop`, reading this repo's `.linecop.yaml`, reports it. The
 # limits themselves need no self-test — a cap either fires or the number is
 # wrong, and either is visible. What is invisible, and what this gate exists
 # for, is a walker that never reaches the file: linecop skipped dot-prefixed
@@ -14,7 +14,7 @@
 # over-the-dot-just-scripts.typ). A silently unscanned directory reports
 # "All files within size limits." — the same output a clean tree gives.
 #
-# WHY A REPLICA rather than a probe in the real `.just/scripts/`: `just check`
+# Why A replica rather than a probe in the real `.just/scripts/`: `just check`
 # runs its arms in parallel, and the real `check-file-size` arm is one of
 # them. A 401-line file appearing in the tracked tree mid-run would fail that
 # arm, nondeterministically, for a reason no reader could place — and an
@@ -23,10 +23,10 @@
 # `.just` entry added to `exclude_dirs`, or `include_hidden` flipped back off,
 # fails here.
 #
-# BOTH DIRECTIONS ARE ASSERTED, for fmt-fixture-check.sh's reason. Arm one
+# Both directions are asserted, for fmt-fixture-check.sh's reason. Arm one
 # alone would pass on any linecop that reports the probe for some unrelated
 # reason; arm two re-runs the identical scan against the same config with
-# `include_hidden` deleted and requires the probe to go UNREPORTED, which is
+# `include_hidden` deleted and requires the probe to go unreported, which is
 # what pins the pass to the key this gate is about. Arm two is also the
 # regression test for the bug itself — it reproduces the old behaviour on
 # demand.
@@ -72,7 +72,7 @@ if ! grep -qF "$probe_rel" <<<"$reported"; then
 fi
 
 # Arm two: the same scan, the same probe, `include_hidden` deleted. The probe
-# must go unreported — proving the arm above passed BECAUSE of that key.
+# must go unreported — proving the arm above passed because of that key.
 yq -y 'del(.include_hidden)' .linecop.yaml > "$tmp/no-hidden.yaml"
 if unreported=$(linecop --config "$tmp/no-hidden.yaml" --format paths "$tmp"); then
     [ -z "$unreported" ] || {

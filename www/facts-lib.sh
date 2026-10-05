@@ -11,7 +11,7 @@
 # check-doc-facts, docs::md-check and docs::check can all be inside this
 # directory at once. Re-exec under flock unless a caller already holds it —
 # www/generate.sh exports the variable before calling this script, so the
-# wipe-then-restore there stays ONE critical section instead of two.
+# wipe-then-restore there stays one critical section instead of two.
 if [ -z "$MINDTAPE_GENERATED_LOCK" ]; then
   export MINDTAPE_GENERATED_LOCK=1
   exec flock "$REPO/target/www-generated.lock" "$0" "$@"
@@ -24,7 +24,7 @@ fi
 # and would also leave a zero-byte file behind when the producing jq program
 # calls halt_error (the gate-group cross-check below does).
 #
-# The parse check makes that hold under a FAILING producer, not just a slow
+# The parse check makes that hold under a failing producer, not just a slow
 # one: a jq that dies mid-stream still closes the pipe, so the temp file exists
 # and is partial — and a plausible-looking JSON prefix reaches the reader as a
 # fact, not as an error. Every artifact here is JSON, so `jq -e .` is the test.
@@ -41,7 +41,7 @@ emit() {
 
 # Same discipline as emit() above, for an artifact that is not JSON — `jq -e .`
 # has nothing to parse. just.typ's own producer below builds the whole file as
-# ONE jq string value before printing anything, so a halted run writes nothing
+# one jq string value before printing anything, so a halted run writes nothing
 # rather than a truncated prefix; refusing empty content is the raw equivalent
 # of emit()'s parse check.
 emit_raw() {

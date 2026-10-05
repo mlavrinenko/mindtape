@@ -61,10 +61,10 @@ MT="$REPO/target/debug/mt"
 # The lock lives under target/ because this script deletes the directory it
 # would otherwise live in.
 #
-# The build runs BEFORE the lock is taken, deliberately. Every reader of
-# www/generated/ now holds this lock for its whole run (docs/generate-md.sh
+# The build runs before the lock is taken, deliberately. Every reader of
+# www/generated/ holds this lock for its whole run (docs/generate-md.sh
 # and the check-doc-facts recipe both do), so anything held inside it is time
-# the rest of `just check`'s [parallel] arms spend blocked. This is the DEBUG
+# the rest of `just check`'s [parallel] arms spend blocked. This is the debug
 # binary: the captures are --help/_cli/config/ls transcripts, byte-identical to
 # release (nothing here depends on optimisation), and `target/debug/mt` is the
 # artifact the test suite already keeps warm — so a docs run pays a ~15s debug
@@ -84,19 +84,17 @@ MT="$REPO/target/debug/mt"
 #
 # Acquisition itself is conditional on that same variable, for a second
 # reason beyond the nested calls: check-doc-facts.sh and docs/generate-md.sh
-# both call THIS script now (truth/tasks/derive-site-pages-json-from-the-
-# pages-page-meta-blocks.typ swapped their `bash www/generate-facts.sh` for
-# `bash www/generate.sh`, since the site-pages manifest now needs this
-# script's captures too), and both already hold the lock — via their own
-# `exec 9>...; flock 9` — across the regenerate AND their own subsequent
+# both call this script (`bash www/generate.sh`, because the site-pages
+# manifest needs this script's captures too), and both already hold the lock — via their own
+# `exec 9>...; flock 9` — across the regenerate and their own subsequent
 # reads, for the same race this comment block opens with. Without this
 # check, this script's unconditional `exec 9>...; flock 9` would open a
-# SECOND file descriptor on the same lock file and block forever on the
+# second file descriptor on the same lock file and block forever on the
 # first one, held by a parent that is itself blocked waiting for this
 # script to exit — a guaranteed deadlock. Skipping the acquisition when a
 # caller already holds it is the same reentrant handshake generate-facts.sh
-# has always used for the nested call below; this is that handshake applied
-# one level up, now that generate.sh itself can be the nested call.
+# uses for the nested call below; this is that handshake applied
+# one level up, where generate.sh itself can be the nested call.
 mkdir -p "$REPO/target"
 if [ -z "$MINDTAPE_GENERATED_LOCK" ]; then
   exec 9>"$REPO/target/www-generated.lock"
@@ -145,7 +143,7 @@ bash "$SCRIPT_DIR/generate-reference.sh" "$REPO" "$OUT"
 # The task carries docs:slice markers for other pages, which the hero omits.
 grep -v '^// docs:' "$FIX/tasks/throttle-failed-logins-per-ip.typ" >"$OUT/hero-source.typ"
 
-# The hero "typeset" face is that SAME task, genuinely compiled by the `task`
+# The hero "typeset" face is that same task, genuinely compiled by the `task`
 # show rule (lib/prelude.typ) — not hand-built HTML. Typst HTML export inlines
 # the SVG as a self-contained data-uri `<img>`, so nothing lands in public/.
 # Resolve @local/mindtape via a throwaway local-package path symlinked at lib/,
@@ -165,7 +163,7 @@ bash "$SCRIPT_DIR/generate-cli.sh" "$REPO" "$OUT"
 bash "$SCRIPT_DIR/generate-api-service.sh" "$REPO" "$OUT"
 
 # --- favicon + apple touch icon, rasterised from the one hand-maintained SVG --
-# assets/images/ (unlike generated/) IS a tola-copied dir (see the header
+# assets/images/ (unlike generated/) is a tola-copied dir (see the header
 # comment above), so a file written here lands at a real, stable public URL —
 # the <link> tags in layout.typ point at it. Regenerated every build from
 # logo.svg, the sole hand-maintained copy of the mark, so the raster can never
@@ -183,7 +181,7 @@ rsvg-convert -w 180 -h 180 "$LOGO" -o "$SCRIPT_DIR/assets/images/apple-touch-ico
 bash "$SCRIPT_DIR/generate-facts.sh"
 
 # Then the page manifest — after generate-facts.sh, never before, and inside
-# the SAME lock: compiling a page (www/generate-site-pages.sh's query is a
+# the same lock: compiling a page (www/generate-site-pages.sh's query is a
 # full compile) imports layout.typ -> site.typ, which needs crate-map.json
 # (PKG_VERSION) just written above, plus every capture this script itself
 # wrote (hero-source.typ, cli.json, …) — a page importing utils/ui.typ dies on

@@ -12,40 +12,37 @@
 # and never proven again since. The evidence lived only in a commit message;
 # a gate that never fires reads identical to one that cannot.
 #
-# WHY A REPLICA. Mutating a page in the working tree to trip the producer
+# Why a replica. Mutating a page in the working tree to trip the producer
 # cannot run here: `just check` runs its arms `[parallel]`, so a concurrent
 # fmt-check/docs::check arm would read the mutation as real, and a failed
 # assertion would leave the repo half-mutated. A copy of www/ under a temp
-# parent is proven to work instead (WHAT THE REPLICA LEAVES OUT, below, is the
+# parent is proven to work instead (what the replica leaves out, below, is the
 # one thing it does not copy): www/generate-site-pages.sh derives its REPO from
-# `${BASH_SOURCE[0]}`, so running the COPY (never the original) gives it a
+# `${BASH_SOURCE[0]}`, so running the copy (never the original) gives it a
 # copied REPO, and it globs the copy's own content/*.typ. site.typ resolves
-# tola.toml and www/generated/ relative to ITSELF rather than to the root, so
+# tola.toml and www/generated/ relative to itself rather than to the root, so
 # the copy needs no re-pointing.
 #
-# WHY IT REGENERATES FIRST. This header used to claim www/generated/ "rides
-# along in the same `cp -r` — it is already on disk by the time any `just
-# check` arm reaches this gate". That was true of a WARM checkout and only
-# there. The directory is gitignored (www/.gitignore) and written by the
-# docs-gen arm, which `just check` runs in PARALLEL with this one, so on a
-# cold tree — a fresh clone, or a `just fork` worktree, which warms no cache
-# by design — the producer's very first page query dies on `file not found`
-# for generated/crate-map.json (site.typ's PKG_VERSION), the positive control
-# fails, and cases 1 and 2 report "failed, but never named" without ever
-# reaching the mutation they exist to catch
-# (truth/tasks/site-pages-fixture-check-fails-on-a-cold-checkout.typ). That
-# reads exactly like this gate catching a real break in whatever change is
-# being gated, on the run that decides whether it is green.
+# Why it regenerates first. www/generated/ is gitignored (www/.gitignore) and
+# written by the docs-gen arm, which `just check` runs in parallel with this
+# one. On a warm checkout it is already on disk and rides along in the same
+# `cp -r`. On a cold tree — a fresh clone, or a `just fork` worktree, which
+# warms no cache by design — the producer's very first page query dies on
+# `file not found` for generated/crate-map.json (site.typ's PKG_VERSION), the
+# positive control fails, and cases 1 and 2 report "failed, but never named"
+# without ever reaching the mutation they exist to catch. That reads exactly
+# like this gate catching a real break in whatever change is being gated, on
+# the run that decides whether it is green.
 #
 # So the gate carries its own inputs, the way check-doc-facts.sh already
 # carries the same ones for the same stated reason: it runs www/generate.sh
 # itself rather than trusting whatever www/generated/ happens to hold. The
-# alternative — STUBBING the captures into the replica — is cheaper (no `mt`
+# alternative — stubbing the captures into the replica — is cheaper (no `mt`
 # build at all) and was rejected on what it costs the fixture. Querying one
-# `<page-meta>` block is a FULL COMPILE, so a stub owes every artifact any
+# `<page-meta>` block is a full compile, so a stub owes every artifact any
 # page reads at the top level: crate-map.json, dsl-fields.json, cli.json,
 # config-schema.json, release-targets.json, site-pages.json, the generated
-# `just` MODULE, and a dozen transcripts and SVGs — and every capture
+# `just` module, and a dozen transcripts and SVGs — and every capture
 # www/generate.sh grows later owes the stub one more, with nothing to fail
 # when it does not get it. A stub that falls behind fails the positive
 # control for an environmental reason, which is precisely the bug being fixed
@@ -53,13 +50,13 @@
 # and a second place for the fixture to be wrong. Measured cost of the real
 # producer: 4s warm, on top of a debug `mt` build every other arm pays anyway.
 #
-# WHY NOT A `docs::gen` DEPENDENCY, the other option on the table. It would
-# put the captures on disk and then RELEASE target/www-generated.lock, and the
-# `cp -r` below is itself a READER of a directory the concurrent docs::check
+# Why not a `docs::gen` dependency, the other option on the table. It would
+# put the captures on disk and then release target/www-generated.lock, and the
+# `cp -r` below is itself a reader of a directory the concurrent docs::check
 # arm `rm -rf`s on entry — the same trap that made check-doc-facts.sh hold the
 # lock across its typst queries and not merely across its own regenerate
 # (argued in www/utils/gate-notes.typ's header). The regenerate and the
-# snapshot have to sit inside ONE lock hold or the copy can still catch the
+# snapshot have to sit inside one lock hold or the copy can still catch the
 # directory mid-rebuild, and a recipe dependency cannot express that. So the
 # lock is taken here, with the same fd-held idiom and MINDTAPE_GENERATED_LOCK
 # handshake www/generate.sh, docs/generate-md.sh and check-doc-facts.sh use,
@@ -68,17 +65,17 @@
 # page compiles would serialize docs::check and check-doc-facts behind this
 # gate for nothing.
 #
-# WHAT THE REPLICA LEAVES OUT. The snapshot copies www/ entry by entry so it
+# What the replica leaves out. The snapshot copies www/ entry by entry so it
 # can skip two gitignored build outputs no page compile reads: public/ (6.1 MB
 # of built site, from `tola build` plus its pagefind index) and .tola/ (1.9 MB,
-# tola's own vdom cache). Both are OWNED by the docs::check arm `just check`
-# runs in PARALLEL with this one, and the copy is a reader of them — the same
+# tola's own vdom cache). Both are owned by the docs::check arm `just check`
+# runs in parallel with this one, and the copy is a reader of them — the same
 # shape as the captures problem above, one directory further out (truth/tasks/
 # the-site-pages-replica-copies-www-public-from-a-parallel-arm.typ).
 #
 # Measured, because the filed task assumed worse. Neither `tola build` nor
 # `pagefind` wipes public/ on entry — a sentinel file dropped there survives
-# both — so this is NOT a `cp` racing an `rm -rf`, and the paragraph above is
+# both — so this is not a `cp` racing an `rm -rf`, and the paragraph above is
 # the only place in this script where that is the mechanism. What is measured
 # is that `tola build` rewrites every www/.tola/cache/*.vdom and index.json in
 # place on each run: the copy walks a tree another process is replacing files
@@ -87,9 +84,9 @@
 # gate was paying 8 MB per variant, three variants, to stay exposed to a
 # question with no bearing on what it pins.
 #
-# Excluded BY NAME rather than by copying an allow-list of what the pages
+# Excluded by name rather than by copying an allow-list of what the pages
 # need. An allow-list owes a line for every directory www/ grows, and the day
-# someone forgets one it fails the positive control for an ENVIRONMENTAL
+# someone forgets one it fails the positive control for an environmental
 # reason — the failure mode this whole gate exists to be free of. A named
 # exclusion fails the other way: a new directory rides along and costs a copy.
 # The positive control below is what proves nothing a page reads was dropped,
@@ -108,7 +105,7 @@ fail=0
 
 problem() { echo "site-pages-fixture-check: $*" >&2; fail=1; }
 
-# Asserts BOTH a non-zero exit and that the combined stdout+stderr NAMES the
+# Asserts both a non-zero exit and that the combined stdout+stderr names the
 # offending page or route — an exit-code-only assertion would pass for a
 # script that failed for an unrelated reason, which is the exact hole this
 # whole gate exists to close.
@@ -131,7 +128,7 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
 # The captures every page compile reads, produced inside the lock the
-# snapshot below is taken under — see WHY IT REGENERATES FIRST above. The
+# snapshot below is taken under — see why it regenerates first above. The
 # producer's own output is held back unless it fails: a green run has nothing
 # to say here, and a red one has to name www/generate.sh rather than surface
 # three lines later as an unexplained positive-control failure.
@@ -145,8 +142,8 @@ if ! gen_out=$(bash www/generate.sh 2>&1); then
     exit 1
 fi
 
-# Each variant needs its OWN parent dir, with the copy's leaf directory still
-# named "www": generate-site-pages.sh's REPO is the PARENT of the directory
+# Each variant needs its own parent dir, with the copy's leaf directory still
+# named "www": generate-site-pages.sh's REPO is the parent of the directory
 # it lives in (see its own header), so `$variant/www/generate-site-pages.sh`
 # derives REPO=$variant and globs `$variant/www/content/*.typ` correctly —
 # renaming the leaf itself (e.g. to `$tmp/clean`) breaks that derivation and
@@ -155,8 +152,8 @@ fi
 #
 # `dotglob` so www/.gitignore and www/.ignore ride along the way a whole-tree
 # `cp -r www` carried them; bash never yields `.`/`..` from a glob, so the
-# loop needs no guard against them. The two skipped names are argued in WHAT
-# THE REPLICA LEAVES OUT above. The variant copies below are made from THIS
+# loop needs no guard against them. The two skipped names are argued in what
+# The replica leaves out above. The variant copies below are made from this
 # snapshot, not from www/, so each of them is short the same two directories.
 mkdir -p "$tmp/clean/www"
 shopt -s dotglob
@@ -184,7 +181,7 @@ done
 exec 9>&-
 unset MINDTAPE_GENERATED_LOCK
 
-# Positive control: the UNMUTATED replica must pass. Without this, a probe
+# Positive control: the unmutated replica must pass. Without this, a probe
 # that fails for an environmental reason (a missing tool, a broken `--root`)
 # would look identical to three successful catches.
 if ! out=$(bash "$tmp/clean/www/generate-site-pages.sh" 2>&1); then

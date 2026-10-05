@@ -8,8 +8,8 @@
 # generate-self-validating.sh — see that script's header for the reasoning
 # this one does not repeat.
 #
-# Unlike every other capture in generate.sh, this one runs `mt` against THE
-# REAL REPO, not a fixture: the pack's dogfood use — a project
+# Unlike every other capture in generate.sh, this one runs `mt` against the
+# real repo, not a fixture: the pack's dogfood use — a project
 # override replacing one of the pack's own rules by name
 # (`section-allowlist`), and a project-only rule the pack has no opinion on
 # (`goals`) — is the worked example the page quotes, and only this repo's

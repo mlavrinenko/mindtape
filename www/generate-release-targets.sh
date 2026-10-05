@@ -8,7 +8,7 @@
 # same critical section that `rm -rf`s and restores www/generated/, and writes
 # exactly one artifact into the directory the caller hands it.
 #
-# WHY DERIVED RATHER THAN TRANSCRIBED: the install page must never
+# Why derived rather than transcribed: the install page must never
 # hand-transcribe what a release ships — the build-matrix `target:` list (one
 # prebuilt binary per entry, attached to the GitHub Release) and the ordered
 # `cargo publish -p <crate>` steps (crates.io). `yq` reads the workflow YAML
@@ -56,9 +56,9 @@ done < <(yq -r \
 PUBLISH_CRATES="$(yq -r '.jobs.publish.steps[].run // empty' "$RELEASE_WF" \
   | grep -oP '(?<=cargo publish -p )\S+')"
 
-# A published crate is the installable CLI iff ITS OWN manifest declares a
+# A published crate is the installable CLI iff its own manifest declares a
 # `[[bin]]` — checked against the crate's manifest in this workspace (a crate
-# published from elsewhere, e.g. an extracted substrate crate no longer in
+# published from elsewhere, e.g. an extracted substrate crate that is not in
 # crates/, can't be inspected here and is never mistaken for the CLI).
 publish_json="[]"
 while IFS= read -r crate; do

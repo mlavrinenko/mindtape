@@ -43,7 +43,7 @@ emit() {
   mv -f "$dest" "$OUT/$name"
 }
 
-# Bootstrap pass. Compiling ANY page imports layout.typ -> site.typ, and
+# Bootstrap pass. Compiling any page imports layout.typ -> site.typ, and
 # site.typ's PAGES reads this very file, so it has to exist — even empty —
 # before the query below can compile the first page. Only seeded when
 # absent: a real build already has a real manifest on disk, and re-seeding it
@@ -110,7 +110,7 @@ fi
 # The site URL, path prefix and repo link — read back off site.typ through a
 # target/-rooted driver, the same trick www/generate-facts.sh used for this
 # artifact before this script existed, moved here verbatim. site.typ resolves
-# its own reads relative to ITSELF rather than the root, so `--root .` here
+# its own reads relative to itself rather than the root, so `--root .` here
 # and `--root www` above both work against the same file. NAV rides along in
 # the same query in two shapes. The flattened routes order the `pages` object
 # below by NAV's reading order rather than the glob's alphabetical one, and
