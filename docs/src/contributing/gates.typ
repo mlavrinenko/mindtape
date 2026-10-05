@@ -1,8 +1,9 @@
 // docs/src/contributing/gates.typ renders docs/contributing/gates.md through
 // docs/generate-md.sh (typlite; docs/src/lib.typ lists the constraints).
 //
-// How `just check` runs its gates and what keeps them honest. The gate list
-// is in CONTRIBUTING.md's table. The formatter path lists below read
+// How `just check` runs its gates and what keeps them honest. No doc lists
+// the gates; this page shows the commands that print them. The formatter path
+// lists below read
 // www/generated/gates.json, which takes them from the Justfile's
 // `*_FMT_PATHS` assignments, so a new list renders without an edit here.
 #import "../lib.typ": doc-title, fact, just
@@ -20,12 +21,23 @@ CONTRIBUTING.md.
 = How check runs
 
 #just.check() runs its gates in three stages, in order, and stops at the
-first stage with a failing gate. The fast stage builds nothing, the build
-stage holds every gate that builds or runs `mt`, and the last stage runs
-#just.cover() and then #just.crap(). Within a stage the gates run in
-parallel. Each arm is #just.mmz("<gate>"),
-which runs `mmz just <gate>`, so mmz caches each gate under the recipe's
-name. An arm whose declared inputs are unchanged since its last pass is
+first stage with a failing gate. The fast stage builds nothing, so a lint or
+prose error shows in seconds. The build stage holds every gate that builds or
+runs `mt`, and they share one build. The last stage runs #just.cover() and
+then #just.crap(), because coverage pays an instrumented clean rebuild.
+Within a stage the gates run in parallel. Ask `just` and mmz for the gates
+rather than a doc:
+
+// docs:hand-typed the commands that list the gates, run against the live Justfile
+```bash
+just --show check              # the stage recipes, in order
+just --show _check-fast        # the gates in one stage
+just --list --list-submodules  # every gate under [gate], with what it checks
+mmz --status --tag gate        # which gates are fresh, stale or failed now
+```
+
+Each arm is #just.mmz("<gate>"), which runs `mmz just <gate>`, so mmz caches
+each gate under the recipe's name. An arm whose declared inputs are unchanged since its last pass is
 skipped. `.mmz/config.yaml` declares the inputs and tags every gate `gate`.
 Then `mmz --is-fresh --tag gate` asserts that every gate passed against the
 current tree without running any of them. The pre-commit hook asserts it,

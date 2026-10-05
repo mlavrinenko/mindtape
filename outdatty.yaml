@@ -346,11 +346,9 @@ groups:
   # carries those facts, so editing a source means reviewing every dependent.
   #
   # The dependents are docs/src sources, never their rendered Markdown,
-  # because a fix is made in the source. docs/src/contributing.typ's gate
-  # table reads gates.json, so adding or removing a gate needs no review here.
-  # The rest of that file, and every deep dive, describes recipes and scripts
-  # by hand. www/utils/gate-notes.typ names what each gate catches, so every
-  # gate script is a source of a group that lists it.
+  # because a fix is made in the source. No doc lists the gates, so adding or
+  # removing one needs no review here. Every deep dive describes recipes and
+  # scripts by hand.
   #
   # The scripts under .just/scripts/ are listed one by one, each in the group of
   # the doc that restates it, so a script fix asks for that doc and no other. A
@@ -388,7 +386,6 @@ groups:
     dependents:
       - docs/src/contributing/coverage-crap.typ
       - docs/src/contributing/crap-baseline.typ
-      - www/utils/gate-notes.typ
 
   # The mutation scripts, which mutation-testing.typ describes and
   # signal-sweep.typ and contributing.typ refer to.
@@ -428,7 +425,6 @@ groups:
     dependents:
       - docs/src/contributing/documentation.typ
       - docs/src/contributing/generated-docs.typ
-      - www/utils/gate-notes.typ
 
   # The gates that police the other gates, and the secret scan. gates.typ
   # explains how each runs.
@@ -450,7 +446,6 @@ groups:
       - .just/scripts/site-pages-fixture-check.sh
     dependents:
       - docs/src/contributing/gates.typ
-      - www/utils/gate-notes.typ
 
   # The scripts no doc restates: editing one flags nothing. Each entry says why.
   - name: scripts-no-doc
@@ -463,7 +458,7 @@ groups:
       - .just/scripts/uninstall-lib.sh
       # A sourced preamble with no behavior of its own.
       - .just/scripts/_typst-package.sh
-      # gate-notes.typ names this one but restates none of its logic.
+      # A set difference over two route lists, which no doc restates.
       - .just/scripts/_nav-diff.sh
       # The controls hold fixtures that no doc names. The readers they drive are
       # sources of the groups above.

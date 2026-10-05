@@ -8,19 +8,17 @@
 # the facts www/generate-facts.sh and www/generate-site-pages.sh derive
 # instead of a hand-maintained list (see truth/tasks/derive-the-drift-prone-
 # doc-facts-from-their-sources.typ and truth/tasks/derive-site-pages-json-
-# from-the-pages-page-meta-blocks.typ). Seven arms: every crate in
+# from-the-pages-page-meta-blocks.typ). Six arms: every crate in
 # crate-map.json needs a www/utils/crate-notes.typ entry, every DSL field in
-# dsl-fields.json needs a www/utils/dsl-field-notes.typ entry, every gate in
-# gates.json needs a www/utils/gate-notes.typ entry (truth/tasks/derive-the-
-# gate-table-command-column-from-the-justfile.typ), every priority framework
+# dsl-fields.json needs a www/utils/dsl-field-notes.typ entry, every priority framework
 # in frameworks.json needs a www/utils/framework-notes.typ entry
 # (truth/tasks/derive-the-built-in-priority-tables.typ), every sweep flag in
 # sweep-flags.json needs a www/utils/sweep-flag-notes.typ entry
 # (truth/tasks/derive-the-ask-refactoring-flag-table-from-arg-attributes.typ),
 # and every www/content/*.typ page needs a route in site-pages.json and a `NAV`
-# entry in www/utils/site.typ. The first five arms read their Typst dict's
+# entry in www/utils/site.typ. The first four arms read their Typst dict's
 # keys through the same target/-rooted driver trick as check-doc-coverage.sh,
-# never by grepping quoted strings. The fifth reads a driver too (for
+# never by grepping quoted strings. The pages arm reads a driver too (for
 # `NAV`) and also compares against the filesystem, so it runs in three
 # directions — a page whose own declared route disagrees with its filename, a
 # page with no `NAV` entry (invisible in the sidebar), and a `NAV` entry with no
@@ -77,17 +75,6 @@ if [ -n "$missing_fields" ]; then
     exit 1
 fi
 
-gates=$(jq -r '.gates[].name' www/generated/gates.json)
-printf '#import "/www/utils/gate-notes.typ": gate-notes\n#metadata(gate-notes.keys()) <gate-notes-keys>\n' \
-    > "$tmp/gate-keys.typ"
-documented_gates=$(typst query --root . "$tmp/gate-keys.typ" '<gate-notes-keys>' \
-    --field value --one | jq -r '.[]')
-missing_gates=$(comm -23 <(sort <<<"$gates") <(sort <<<"$documented_gates"))
-if [ -n "$missing_gates" ]; then
-    echo "check-doc-facts: undocumented gates (no www/utils/gate-notes.typ entry):" >&2
-    while IFS= read -r name; do echo "  - $name" >&2; done <<<"$missing_gates"
-    exit 1
-fi
 frameworks=$(jq -r '.frameworks[].name' www/generated/frameworks.json)
 printf '#import "/www/utils/framework-notes.typ": framework-notes\n#metadata(framework-notes.keys()) <framework-notes-keys>\n' \
     > "$tmp/framework-keys.typ"

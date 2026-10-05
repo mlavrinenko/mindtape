@@ -6,7 +6,16 @@ How `just check` runs its gates, what stops two gates from breaking each other, 
 
 ## How check runs
 
-`just check` runs its gates in three stages, in order, and stops at the first stage with a failing gate. The fast stage builds nothing, the build stage holds every gate that builds or runs `mt`, and the last stage runs `just cover` and then `just crap`. Within a stage the gates run in parallel. Each arm is `just mmz <gate>`, which runs `mmz just <gate>`, so mmz caches each gate under the recipe’s name. An arm whose declared inputs are unchanged since its last pass is skipped. `.mmz/config.yaml` declares the inputs and tags every gate `gate`. Then `mmz --is-fresh --tag gate` asserts that every gate passed against the current tree without running any of them. The pre-commit hook asserts it, and so does `mt flip` into a terminal status, through an `[[on.flip]]` hook.
+`just check` runs its gates in three stages, in order, and stops at the first stage with a failing gate. The fast stage builds nothing, so a lint or prose error shows in seconds. The build stage holds every gate that builds or runs `mt`, and they share one build. The last stage runs `just cover` and then `just crap`, because coverage pays an instrumented clean rebuild. Within a stage the gates run in parallel. Ask `just` and mmz for the gates rather than a doc:
+
+```bash
+just --show check              # the stage recipes, in order
+just --show _check-fast        # the gates in one stage
+just --list --list-submodules  # every gate under [gate], with what it checks
+mmz --status --tag gate        # which gates are fresh, stale or failed now
+```
+
+Each arm is `just mmz <gate>`, which runs `mmz just <gate>`, so mmz caches each gate under the recipe’s name. An arm whose declared inputs are unchanged since its last pass is skipped. `.mmz/config.yaml` declares the inputs and tags every gate `gate`. Then `mmz --is-fresh --tag gate` asserts that every gate passed against the current tree without running any of them. The pre-commit hook asserts it, and so does `mt flip` into a terminal status, through an `[[on.flip]]` hook.
 
 No arm is wrapped in `chronic`, because mmz already keeps a green re-run quiet. A cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`), a miss streams its output live, and a failure exits through just’s `[parallel]`. `just test <filter>` runs outside mmz, so a filtered run never records a pass for the full suite.
 

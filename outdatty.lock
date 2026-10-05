@@ -113,22 +113,21 @@ groups:
     dependents:
       docs/src/contributing/coverage-crap.typ: 4cca206220b9c5494ee882c327f911b731f5194d38a4443069d6978b228cd4f2
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
-      www/utils/gate-notes.typ: ade13a6d980e120cb0f26aab322f31045320c98dccd02ae646be8b92ecd8c746
   dev-shell-docs:
     source:
       .config/nextest.toml: a310c30b19df7fce268db1c136bdd93ff76bf2116e28e4fe799be41ba79920e5
       .just/docs.just: 95440130f6376fa469946aed06b27a316ca408cdee77115b4592d35b229ece73
-      Justfile: 300bd9e1098872b2d3966da8f47ea1d121991afeeab968237362d465e92f7ddc
+      Justfile: 5d753c20438a80c73da3728b8e88295a6281807a1e34f1cc774b3b5bb84b9ea9
       flake.nix: bccfe42071c1983f7e116d8864028bcc18ae3f41aaccccb71183464f0b8ccbc0
     dependents:
       docs/src/agents.typ: db573f683c844f3acf22f77df6683dd1248b88d53831a0f6aaa93f8eee0f564e
-      docs/src/contributing.typ: 3eb78391e7f26662e3843cf39d09716daec80b6ae7b0bddb289706679ca25949
+      docs/src/contributing.typ: 59fb84e10c3764c1b31d33d6bd59c01562450a6344876ac5faa3a0a15eaa9b50
       docs/src/contributing/coverage-crap.typ: 4cca206220b9c5494ee882c327f911b731f5194d38a4443069d6978b228cd4f2
       docs/src/contributing/crap-baseline.typ: bcbc918cf8976b8d4b560bd4190c6eb96eab3c2ca3e380108c9996bd65cae98d
       docs/src/contributing/docs-site-build.typ: 1c238b4e341c292e425a06c09cc5b7d7487a4a0f703df2b7fb4cd7ad37bff1de
       docs/src/contributing/documentation.typ: e4c6eced33132ec9d65899ff53ba1d758db07ef29825c3e29f828ea246df6462
       docs/src/contributing/example-projects.typ: a0e2cc0bd33ea0f7bdca69f0c3e0f41e11ca7cf0e6d0fc159140ab00ab4a8f77
-      docs/src/contributing/gates.typ: e002bb8fe2a2141de0108b3f740fb296aa79e857fe3fdd74e8d464e4f957a9e8
+      docs/src/contributing/gates.typ: 8e3819adb885d5ef84979c964f1561f924a7b5e51eba4900b6e87819bfdf4041
       docs/src/contributing/mutation-testing.typ: 47d36b9534266f15322c41b37158b943ce28b87236af6b514d1d6bfcfbb86316
       docs/src/contributing/signal-sweep.typ: 6377402d346c38c13ccb9cdc7e5b10913c5c7123dccd47bf6767ca0727a802fe
       docs/src/contributing/windows.typ: 7e3c201b3512642d8fa12b1ee5264dbb9e36d59ccf38aded06f4c74366c57491
@@ -137,7 +136,7 @@ groups:
       .just/scripts/_doc-blocks-lib.sh: e56bc6eee3593544ac123da1f69f352c1c6f9f012b201d4127a5a067e697903a
       .just/scripts/check-doc-blocks.sh: 4af27443eb084ef1803d564a224becaa9000bea50d849ab7c4624b49a028000d
       .just/scripts/check-doc-coverage.sh: 8dc5a6097d16aad7b613fb68dc2039218da8d817c5c00f807fcbb91af013c783
-      .just/scripts/check-doc-facts.sh: 473b5bf04e14c64bb4e5da436238720cc812fdd043d403bec889074096ece81c
+      .just/scripts/check-doc-facts.sh: c800e2f882d7421f59e70821ef30f8e23c7bd221d35e1574ee509ded3f4d7276
       .just/scripts/check-doc-prose.awk: ee24e35c98ff1a243bc423cfeda62e2a53ffb0d4618a00aa4b9d5c41d1344db4
       .just/scripts/check-doc-prose.sh: ceee9489c0dfc85a7bfea6516ad141d0194bc71bd721396011eac094991f8157
       .just/scripts/check-doc-recipes.sh: fd397519691e5efe66e3d03a8a8f7bf62b2faaa77d694e8262d998590611909c
@@ -147,7 +146,6 @@ groups:
     dependents:
       docs/src/contributing/documentation.typ: e4c6eced33132ec9d65899ff53ba1d758db07ef29825c3e29f828ea246df6462
       docs/src/contributing/generated-docs.typ: d798d4589f5dd3c7c04f3dbad21a505e19949cd20f0b48df3bf048a4a71ca414
-      www/utils/gate-notes.typ: c68751a07b34b086d0b58c2483f6b7e21b3e683f0ee31b8a68b3688ecf1a6ece
   filter-docs:
     source:
       crates/mindtape/src/filter.rs: 292396ead00e11ffe3ebde3aa9a4dde9a1db054403eda6a687b4b9503e2b964b
@@ -178,8 +176,7 @@ groups:
       .just/scripts/site-pages-fixture-check.sh: 4f34c3ddef2f69fc32dac183a19c1038907c4947590a6101572ebf26a88c658f
       .just/scripts/size-fixture-check.sh: 4afe65d4e5eebade4946b572e4b32d92338ea4a6f4bb51ebdc42ded199d77b01
     dependents:
-      docs/src/contributing/gates.typ: c0c60b1700c7abdefb849d3460044204928af2b198464de3927b90092a17ed3d
-      www/utils/gate-notes.typ: c68751a07b34b086d0b58c2483f6b7e21b3e683f0ee31b8a68b3688ecf1a6ece
+      docs/src/contributing/gates.typ: 8e3819adb885d5ef84979c964f1561f924a7b5e51eba4900b6e87819bfdf4041
   mutation-scripts-docs:
     source:
       .just/scripts/_mutants-env.sh: 669c9b54a114a9f3ae6a4c3bfa09fc2fe7dd590d7609f0aa401417897180065d

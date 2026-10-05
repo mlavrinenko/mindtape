@@ -6,11 +6,10 @@
 // docs/contributing/*.md deep dive, and how a gate works goes in its recipe
 // comment or script header. .linecop.yaml caps the rendered file.
 //
-// The gate table reads the gates `just check` runs, in order, from
-// www/generated/gates.json, and each gate's clause from
-// www/utils/gate-notes.typ. What a gate runs is in its recipe or script.
-#import "lib.typ": doc-title, fact, just
-#import "/www/utils/gate-notes.typ": gate-notes
+// No list of the gates lives here: the reader asks `just` for them, so the
+// list cannot drift from the Justfile. What a gate runs is in its recipe or
+// script.
+#import "lib.typ": doc-title, just
 
 #metadata((
   output: "CONTRIBUTING.md",
@@ -76,18 +75,13 @@ gate fails on any violation. The limits that shape code most:
 
 = Quality Gates (run by #just.check())
 
-The pre-commit hook refuses a commit unless every gate below passed against
-the current tree.
+The pre-commit hook refuses a commit unless every gate passed against the
+current tree. `just` prints the gates under `[gate]` with
+`--list --list-submodules`, each with what it checks, and
+`mmz --status --tag gate` shows which are fresh, stale or failed.
 
-#let gate-rows = fact("gates").at("gates")
-#table(
-  columns: 2,
-  table.header([Gate], [Without it]),
-  ..gate-rows.map(g => (raw(g.name), gate-notes.at(g.name))).flatten(),
-)
-
-How the gates run and skip unchanged work, and the formatter path lists, are
-in #link("docs/contributing/gates.md")[docs/contributing/gates.md]. A new TOML
+How #just.check() orders the gates, how they skip unchanged work, and the
+formatter path lists are in #link("docs/contributing/gates.md")[docs/contributing/gates.md]. A new TOML
 file, Typst directory or justfile module joins its `*_FMT_PATHS` list in the
 `Justfile`, which #just.fmt() and #just.fmt-check() both read.
 

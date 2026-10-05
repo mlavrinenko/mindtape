@@ -27,7 +27,7 @@
     ),
   ),
   assignee: "agent",
-  status: proposed(2026, 10, 6),
+  status: done(2026, 10, 6),
   links: depends-on(
     "run-just-check-in-fail-fast-stages-and-gate-coverage-and-crap-in-it.typ",
   ),
@@ -41,14 +41,15 @@
 
 == TO-BE
 
-- 🟢 The contributing docs show three commands: `just --show check` for the stages, `just --list --unsorted` for every recipe, and `mmz --status --tag gate` for what is fresh.
+- 🟢 The contributing docs show the commands that print the gates: `just --show` for the stages, `just --list --list-submodules` for every gate with what it checks, and `mmz --status --tag gate` for what is fresh.
 
 
 == Changes
 
-- `docs/src/contributing.typ`: replace the gate table with the three commands.
+- `docs/src/contributing.typ`: replace the gate table with the commands.
 - `docs/src/contributing/gates.typ`: describe the stages and how to read them from `just`.
-- `docs/src/contributing/coverage-crap.typ`: `cover` and `crap` run in `just check`.
+- `www/utils/gate-notes.typ`: delete; the table was its only reader.
+- `.just/scripts/check-doc-facts.sh`: drop the arm that required a gate-notes entry per gate.
 
 
 == Rollback
@@ -57,7 +58,7 @@ Revert the commit to restore the table.
 
 == Out of scope
 
-- `www/utils/gate-notes.typ`, which the docs site still renders.
+- `www/gates.jq`, which still checks that every `[gate]` recipe runs in `just check`.
 
 
 == Dogfood

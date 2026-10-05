@@ -27,7 +27,7 @@
 # invocation string, e.g. `docs::check` passed to `mmz`), so it is mangled
 # here too before comparing. The gate's own `name` field is the recipe's real
 # invocation path, `docs::check`: docs/src/contributing.typ prints it verbatim
-# (`raw(g.name)`) and www/utils/gate-notes.typ's dict is keyed by it.
+# (`raw(g.name)`).
 #
 # `check` runs its arms in stages, each a private recipe (`_check-fast`, …)
 # whose dependencies are the mmz arms, so `arms` below reads through a private
