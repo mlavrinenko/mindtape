@@ -4,18 +4,12 @@
 # truth/tasks/extract-the-coverage-and-release-recipe-bodies-into-scripts.typ.
 # Runs from the repo root, like the recipe that invokes it.
 #
-# One implementation, two callers with opposite policies: `crap` treats a stale
-# lcov as a hard error, `check-crap` treats it as a reason to skip. Two
-# staleness tests that could disagree would be worse than none, which is why
-# this is a recipe both call and not a copied five-line block.
+# `crap` treats a reason printed here as a hard error, so it never scores
+# functions against an lcov that predates their source.
 #
 # It reports through STDOUT and always exits 0 — an empty stdout means fresh,
-# any other line names why the lcov is unusable. The exit status is not the
-# channel and must not become one: `crap` treats a reason as fatal while
-# `check-crap` treats it as a reason to skip, and a non-zero exit here would
-# make `just` print its own `error: Recipe ... failed` line into that skip
-# path, so a deliberate skip would read on screen exactly like a broken gate —
-# the one thing that arm exists to keep distinguishable.
+# any other line names why the lcov is unusable. The caller decides what a
+# reason means, and prints it beside the recipe that refreshes the lcov.
 set -eo pipefail
 lcov=target/coverage/lcov.info
 if [ ! -f "$lcov" ]; then

@@ -214,8 +214,8 @@ scopes:
     # set, and this fixture is never meant to pass it.
     - "examples/self-validating/**"
 
-  # The coverage artifact `just check-crap` measures. This scope is what lets
-  # that arm be memoized: the artifact is a build output under git-ignored
+  # The coverage artifact `just crap` scores. This scope is what lets that
+  # rule be memoized: the artifact is a build output under git-ignored
   # `target/`, in none of the scopes above, and a rule that cannot name its
   # input records "I could not measure" as a pass whose digest never moves when
   # the artifact appears. That is the false-fresh the comments above argue
@@ -235,8 +235,8 @@ scopes:
   # keeps out of every rule.
   #
   # A glob matching nothing is legal and intended: absent and present are
-  # different input states, so `just check-crap` skips loudly while no lcov
-  # exists and goes stale the moment `just cover` writes one.
+  # different input states, so a `just crap` record goes stale the moment
+  # `just cover` writes a new lcov.
   lcov:
     gitignore: false
     globs:
@@ -245,7 +245,7 @@ scopes:
   # The ratchet baseline `just crap`'s second pass scores against
   # (`--baseline`, in .just/scripts/crap.sh). It is a root JSON file no other
   # scope covers, and `just crap-baseline` re-mints it without necessarily
-  # touching a source. Without this scope, the check-crap record taken against
+  # touching a source. Without this scope, the `just crap` record taken against
   # the old baseline would stay fresh and the ratchet would never be
   # re-evaluated against the new one. The Typst half of check-file-size below
   # has the same gap.
@@ -351,8 +351,6 @@ scopes:
   # visible form of "no memoized rule reads this"; deleting it would hide that.
   script-arg-pattern-check:
     - ".just/scripts/arg-pattern-check.sh"
-  script-check-crap:
-    - ".just/scripts/check-crap.sh"
   script-check-doc-coverage:
     - ".just/scripts/check-doc-coverage.sh"
   script-check-doc-facts:
@@ -467,11 +465,13 @@ commands:
 
   # cargo-llvm-cov instruments and runs the same suite as `just test` (same
   # scope), then writes target/coverage/lcov.info, the artifact `just crap`
-  # and `just ask-refactoring`'s coverage arm both read. It is not gate-tagged:
-  # `just check` does not run coverage, so `mt flip`'s freshness assertion
-  # must not require this rule to be fresh.
+  # and `just ask-refactoring`'s coverage arm both read. The output voids the
+  # record when the lcov is deleted, so `just crap` never scores a missing one
+  # behind a fresh `cover`.
   - name: just cover
+    tags: [gate]
     inputs: [rust, policy, examples, gates-meta, script-cover]
+    outputs: [target/coverage/lcov.info]
 
   - name: just machete
     tags: [gate]
@@ -703,23 +703,16 @@ commands:
     tags: [gate]
     inputs: [file-size-config, gates-meta, script-size-fixture-check]
 
-  # The cheap CRAP arm: `just _lcov-stale-reason` decides, then either `just
-  # crap` scores or the arm skips loudly and exits 0. Memoizing a skip that
-  # could not see the artifact is worse than not memoizing at all, so the `lcov`
-  # scope above names the artifact. The recorded verdict, pass or skip, then
-  # dies the moment the artifact it read (or could not read) changes state.
-  # `rust` because the staleness test compares `crates/**/*.rs` mtimes against
-  # the lcov and `cargo crap` scores those same sources, `crap-baseline` because
-  # the ratchet pass reads it, and `gates-meta` for the CRAP_EXCLUDES list the
-  # scripts are handed and the cargo-crap pin they run from.
-  #
-  # Three script scopes, because this arm runs three bodies: check-crap.sh
-  # shells out to `just _lcov-stale-reason` and then to `just crap`. Arm two of
-  # script-scope-check walks that nested-`just` hop and derives all three, so
-  # dropping one fails that gate.
-  - name: just check-crap
+  # The CRAP gate over the lcov `just cover` writes: the threshold, then the
+  # ratchet against crap-baseline.json. `just check` runs it after `cover`, so
+  # the lcov is fresh. `lcov` names that artifact, `rust` the sources it
+  # scores and whose mtimes _lcov-stale-reason.sh compares against it,
+  # `crap-baseline` the ratchet's baseline, and `gates-meta` the CRAP_EXCLUDES
+  # list and the cargo-crap pin. crap.sh shells out to `just
+  # _lcov-stale-reason`, so both bodies are inputs.
+  - name: just crap
     tags: [gate]
-    inputs: [rust, crap-baseline, lcov, gates-meta, script-check-crap, script-crap, script-lcov-stale-reason]
+    inputs: [rust, crap-baseline, lcov, gates-meta, script-crap, script-lcov-stale-reason]
 
   # The other half of the CRAP pair, and the half that is always correct: a
   # static read of the committed baseline, refusing a machine-local path or an

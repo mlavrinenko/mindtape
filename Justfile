@@ -49,11 +49,30 @@ fix-check: eject fmt clippy-fix check
 # declared inputs are unchanged. What the memoization buys, why there is no
 # `chronic` wrapper, and how `mt flip` asserts the whole set fresh without
 # running any of it are in docs/contributing/gates.md.
+#
+# The arms run in three stages, in order, and the first red stage stops the
+# run. The fast stage needs no `mt` build, so a lint or prose error shows in
+# seconds. The build stage holds every arm that builds or runs `mt`; they
+# share one `cargo build --tests`. The coverage stage pays an instrumented
+# clean rebuild, so it runs only on a tree every other gate passed.
 
-[doc("Run every check-gate sub-recipe in parallel")]
+[doc("Run every check-gate sub-recipe, fast stage first")]
 [group("workflow")]
+check: _check-fast _check-build _check-cover
+
+[doc("The check gates that build nothing")]
 [parallel]
-check: (mmz "fmt-check") (mmz "clippy") (mmz "test") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-recipes") (mmz "check-doc-spans") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "docs::check") (mmz "docs::md-check") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "site-pages-fixture-check") (mmz "check-crap") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+[private]
+_check-fast: (mmz "fmt-check") (mmz "clippy") (mmz "machete") (mmz "check-file-size") (mmz "check-dry") (mmz "check-secrets") (mmz "outdatty-check") (mmz "check-doc-recipes") (mmz "check-doc-prose") (mmz "check-doc-blocks") (mmz "fmt-fixture-check") (mmz "arg-pattern-check") (mmz "positional-args-check") (mmz "script-attr-check") (mmz "size-fixture-check") (mmz "script-scope-check") (mmz "crap-baseline-check") (mmz "check-gate-drift")
+
+[doc("The check gates that build or run mt")]
+[parallel]
+[private]
+_check-build: (mmz "test") (mmz "check-examples") (mmz "check-doc-coverage") (mmz "check-doc-facts") (mmz "check-doc-spans") (mmz "docs::check") (mmz "docs::md-check") (mmz "site-pages-fixture-check")
+
+[doc("Coverage, then the CRAP gate over it")]
+[private]
+_check-cover: (mmz "cover") (mmz "crap")
 
 # Wrap a just recipe in mmz: `just mmz fmt-check` runs `mmz just fmt-check`.
 # Why the double hop, and why `just test <filter>` deliberately bypasses it,
@@ -345,23 +364,10 @@ script-scope-check:
 site-pages-fixture-check:
     bash .just/scripts/site-pages-fixture-check.sh
 
-# The CRAP gate as a `just check` arm. It runs the real gate when the lcov is
-# fresh. Otherwise it skips with a loud message naming what would refresh the
-# lcov, and exits 0. It is the cheap partial arm, and `just check-full` is the
-# one that is always right. Why it exists and what it does and does not buy are
-# in docs/contributing/coverage-crap.md. It is wrapped in mmz like every other
-# arm, and .mmz/config.yaml argues the `lcov` scope that lets a skip be
-# memoized without sticking.
-
-[doc("Run the CRAP gate when the lcov is fresh, else skip loudly")]
-[group("gate")]
-check-crap:
-    bash .just/scripts/check-crap.sh
-
 # The committed ratchet baseline itself: every `file` in it must be repo-
 # relative, and it must score something. Reads one JSON file and needs no
-# lcov, so unlike check-crap above it never skips. What a machine-local path
-# leaks, and why gitleaks cannot be the thing that catches it, are argued in
+# lcov. What a machine-local path leaks, and why gitleaks cannot be the thing
+# that catches it, are argued in
 # .just/scripts/crap-baseline-check.sh.
 
 [doc("Fail if the CRAP baseline is empty or carries machine-local paths")]
@@ -509,27 +515,17 @@ build-mt:
 # are in docs/contributing/coverage-crap.md.
 
 [doc("Run coverage with cargo-llvm-cov")]
-[group("advisory")]
+[group("gate")]
 cover:
     bash .just/scripts/cover.sh
 
 # Why target/coverage/lcov.info is unusable, or empty output when it is fine.
-# One implementation for two callers with opposite policies — argued in place
-# in .just/scripts/_lcov-stale-reason.sh.
+# `crap` refuses to score when it prints a reason.
 
 [doc("Print why the lcov is stale, or nothing if fresh")]
 [private]
 _lcov-stale-reason:
     bash .just/scripts/_lcov-stale-reason.sh
-
-# `just check` plus the two gates it cannot afford to run every time. This is
-# the pre-PR run: it is always correct about coverage and CRAP, at the price of
-# an instrumented rebuild and a full suite pass. Measured at ~21s with a hot
-# `target/` on the maintainer's machine; a cold run and CI are both larger.
-
-[doc("Run check plus coverage and the CRAP gate")]
-[group("workflow")]
-check-full: check cover crap
 
 # What `crap` and `crap-baseline` both exclude. One list, two consumers, for the
 # reason TYPST_FMT_PATHS exists: two hand-maintained copies drift, and a baseline
@@ -557,7 +553,7 @@ _crap-excludes:
 # argued in place in .just/scripts/crap.sh.
 
 [doc("Gate complex, undertested functions via the CRAP metric")]
-[group("advisory")]
+[group("gate")]
 crap:
     bash .just/scripts/crap.sh all {{ CRAP_EXCLUDES }}
 

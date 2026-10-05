@@ -6,7 +6,7 @@ How `just check` runs its gates, what stops two gates from breaking each other, 
 
 ## How check runs
 
-`just check` runs its gates in parallel. Each arm is `just mmz <gate>`, which runs `mmz just <gate>`, so mmz caches each gate under the recipe’s name. An arm whose declared inputs are unchanged since its last pass is skipped. `.mmz/config.yaml` declares the inputs and tags every gate `gate`. Then `mmz --is-fresh --tag gate` asserts that every gate passed against the current tree without running any of them. The pre-commit hook asserts it, and so does `mt flip` into a terminal status, through an `[[on.flip]]` hook.
+`just check` runs its gates in three stages, in order, and stops at the first stage with a failing gate. The fast stage builds nothing, the build stage holds every gate that builds or runs `mt`, and the last stage runs `just cover` and then `just crap`. Within a stage the gates run in parallel. Each arm is `just mmz <gate>`, which runs `mmz just <gate>`, so mmz caches each gate under the recipe’s name. An arm whose declared inputs are unchanged since its last pass is skipped. `.mmz/config.yaml` declares the inputs and tags every gate `gate`. Then `mmz --is-fresh --tag gate` asserts that every gate passed against the current tree without running any of them. The pre-commit hook asserts it, and so does `mt flip` into a terminal status, through an `[[on.flip]]` hook.
 
 No arm is wrapped in `chronic`, because mmz already keeps a green re-run quiet. A cache hit prints nothing (`on_hit: ""` in `.mmz/config.yaml`), a miss streams its output live, and a failure exits through just’s `[parallel]`. `just test <filter>` runs outside mmz, so a filtered run never records a pass for the full suite.
 
@@ -14,7 +14,7 @@ Every rule reads the `gates-meta` scope, which includes the `Justfile`, so a `Ju
 
 ### Inputs a glob cannot name
 
-`just check-crap` reads `target/coverage/lcov.info`, which git ignores. Its `lcov` scope sets `gitignore: false`, because mmz drops ignored paths from every other scope. With the lcov in its inputs, the arm reruns when `just cover` writes a new lcov, so a cached skip never outlives the missing file.
+`just crap` reads `target/coverage/lcov.info`, which git ignores. Its `lcov` scope sets `gitignore: false`, because mmz drops ignored paths from every other scope. With the lcov in its inputs, the arm reruns when `just cover` writes a new lcov.
 
 `just check-secrets` scans the whole tree, but `.mmz/config.yaml` has no negative glob, and no gate may name `truth/tasks/**`. `mt flip` writes the task file it gates, so such an input would make the gate stale in the middle of the flip. The arm’s inputs are therefore one glob per top-level directory, and `.just/scripts/check-secrets-manifest.sh` fails naming any tracked file those globs miss.
 

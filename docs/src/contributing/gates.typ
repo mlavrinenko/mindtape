@@ -19,7 +19,11 @@ CONTRIBUTING.md.
 
 = How check runs
 
-#just.check() runs its gates in parallel. Each arm is #just.mmz("<gate>"),
+#just.check() runs its gates in three stages, in order, and stops at the
+first stage with a failing gate. The fast stage builds nothing, the build
+stage holds every gate that builds or runs `mt`, and the last stage runs
+#just.cover() and then #just.crap(). Within a stage the gates run in
+parallel. Each arm is #just.mmz("<gate>"),
 which runs `mmz just <gate>`, so mmz caches each gate under the recipe's
 name. An arm whose declared inputs are unchanged since its last pass is
 skipped. `.mmz/config.yaml` declares the inputs and tags every gate `gate`.
@@ -41,11 +45,10 @@ that read the whole directory.
 
 == Inputs a glob cannot name
 
-#just.check-crap() reads `target/coverage/lcov.info`, which git ignores. Its
+#just.crap() reads `target/coverage/lcov.info`, which git ignores. Its
 `lcov` scope sets `gitignore: false`, because mmz drops ignored paths from
 every other scope. With the lcov in its inputs, the arm reruns when
-#just.cover() writes a new lcov, so a cached skip never outlives the missing
-file.
+#just.cover() writes a new lcov.
 
 #just.check-secrets() scans the whole tree, but `.mmz/config.yaml` has no
 negative glob, and no gate may name `truth/tasks/**`. `mt flip` writes the

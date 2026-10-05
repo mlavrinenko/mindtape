@@ -29,6 +29,11 @@
 # invocation path, `docs::check`: docs/src/contributing.typ prints it verbatim
 # (`raw(g.name)`) and www/utils/gate-notes.typ's dict is keyed by it.
 #
+# `check` runs its arms in stages, each a private recipe (`_check-fast`, …)
+# whose dependencies are the mmz arms, so `arms` below reads through a private
+# dependency to its own list. Row order is then stage order, and within a
+# stage the order the stage lists its arms.
+#
 # Row order: this used to read `just --summary --unsorted` (source order,
 # passed in as $order by www/generate-facts.sh) — truth/tasks/tag-just-
 # recipes-with-groups.typ, "make the Justfile the single source of both
@@ -73,9 +78,12 @@ def mangle: gsub("::"; "-");
 | ($recipes
     | map(select(.attributes // [] | any(.group? == "gate")))
     | map(.namepath | mangle) | sort) as $gate_group
-| ([.recipes.check.dependencies[]
-    | if .recipe == "mmz" then .arguments[0] else .recipe end
-    | mangle]) as $check_deps_ordered
+| ($recipes | map({key: .namepath, value: .}) | from_entries) as $by_path
+| ([def arms: .dependencies[]
+      | if .recipe == "mmz" then .arguments[0]
+        elif $by_path[.recipe].private then $by_path[.recipe] | arms
+        else .recipe end;
+    .recipes.check | arms | mangle]) as $check_deps_ordered
 | ($check_deps_ordered | sort) as $check_deps
 | if $gate_group != $check_deps then
     # `(none)` rather than an empty join, and a trailing newline rather than

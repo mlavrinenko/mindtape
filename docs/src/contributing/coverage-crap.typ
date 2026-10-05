@@ -3,9 +3,8 @@
 // docs/src/lib.typ lists the constraints).
 //
 // The 90% line floor and the CRAP threshold of 30 are flags in
-// .just/scripts/cover.sh and .just/scripts/crap.sh. Neither recipe is a
-// `just check` gate, so no generated fact carries them, and this page is the
-// one place that states them.
+// .just/scripts/cover.sh and .just/scripts/crap.sh. No generated fact carries
+// them, so this page is the one place that states them.
 #import "../lib.typ": doc-title, just
 
 #metadata((
@@ -19,8 +18,8 @@ change either recipe's flags.
 
 = Coverage
 
-#just.cover() runs the suite under `cargo-llvm-cov`, outside #just.check(),
-and CI runs it in the `coverage` job. llvm-cov merges the profile of every
+#just.cover() runs the suite under `cargo-llvm-cov` in the last stage of
+#just.check(), after every other gate passed. llvm-cov merges the profile of every
 process, so the end-to-end tests that spawn `mt` count toward the command code
 they run. The recipe writes `target/coverage/lcov.info` for #just.crap() and
 fails below 90% of lines. `main.rs` is excluded, so keep it thin.
@@ -91,18 +90,14 @@ score from 15 to 30, 11 are at least 90% covered. Of the 16 that are complex
 and undertested, 12 score below 15. So #just.ask-refactoring() has no CRAP
 arm.
 
-= The check-crap arm
+= Why both run in every check
 
-#just.check-crap() is the CRAP gate as a #just.check() arm, because CI enforces
-#just.crap() and nothing local would evaluate it otherwise. It runs the real
-gate when the lcov is fresh. Otherwise it prints that it skipped, names the
-recipe that would refresh the lcov, and exits 0.
-
-Editing any source makes the lcov stale, so the arm skips on most commits
-that change code. It catches a failure only after a recent #just.cover().
-#just.check-full() always runs the CRAP gate. The arm's mmz inputs include
-the lcov, so a cached skip ends when a new lcov appears
-(#link("docs/contributing/gates.md")[docs/contributing/gates.md]).
+#just.check() runs #just.cover() and then #just.crap() as its last stage, so
+the pre-commit hook refuses a commit whose coverage or CRAP score was never
+measured. A CRAP gate that skipped on a stale lcov would skip on nearly every
+commit that changes code, and the baseline would drift unseen. The stage costs an
+instrumented clean rebuild, about two minutes, and runs only after the faster
+stages pass.
 
 = Where the tools come from
 

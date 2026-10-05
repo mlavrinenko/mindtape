@@ -380,7 +380,6 @@ groups:
   # describe step by step.
   - name: crap-scripts-docs
     source:
-      - .just/scripts/check-crap.sh
       - .just/scripts/cover.sh
       - .just/scripts/crap.sh
       - .just/scripts/crap-baseline.sh

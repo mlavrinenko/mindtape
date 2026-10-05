@@ -46,35 +46,36 @@ The pre-commit hook refuses a commit unless every gate below passed against the 
 | --- | --- |
 | `fmt-check` | a file that `just fmt` would rewrite reaches review |
 | `clippy` | code that breaks a workspace lint lands |
-| `test` | a change that breaks a test lands |
 | `machete` | an unused dependency stays in a `Cargo.toml` |
 | `check-file-size` | a file grows past its cap in `.linecop.yaml` |
 | `check-dry` | a copied Rust block stays where a shared helper belongs |
 | `check-secrets` | a credential lands in the tree |
 | `outdatty-check` | a source changes and the docs that restate it go unreviewed |
-| `check-examples` | an example project the docs and evals read stops passing `mt check` |
-| `check-doc-coverage` | an `mt` subcommand ships with no CLI doc entry |
-| `check-doc-facts` | a derived crate, field, framework, gate, sweep flag, filter function or completable argument ships with no doc entry |
 | `check-doc-recipes` | a doc names a recipe by hand, and a rename leaves it stale |
-| `check-doc-spans` | a doc code span names an `mt` command, flag or config key that does not exist |
 | `check-doc-prose` | a doc source, a config comment or a schema description tells history or shouts |
 | `check-doc-blocks` | a doc shows a hand-typed code block that nothing validates |
-| `docs::check` | the docs site fails to build or links to a missing page |
-| `docs::md-check` | a committed Markdown file differs from its source or renders broken on GitHub |
 | `fmt-fixture-check` | a formatter check passes a misformatted file |
 | `arg-pattern-check` | a recipe argument pattern accepts bad input or refuses its own default |
 | `positional-args-check` | a passthrough recipe splits an argument that contains a space |
 | `script-attr-check` | a recipe keeps running after a command in a pipeline fails |
 | `size-fixture-check` | the size gate stops scanning `.just/scripts/` and still reports a clean tree |
 | `script-scope-check` | a gate script changes and its arm reports a cached pass |
-| `site-pages-fixture-check` | the docs manifest gate stops catching a duplicate route, a page without `<page-meta>`, or a page missing from the nav |
-| `check-crap` | a CRAP failure that a fresh local lcov already shows first appears in CI |
 | `crap-baseline-check` | the CRAP baseline carries machine-local paths or scores nothing |
 | `check-gate-drift` | a TOML file goes unformatted, or a gate build relinks `target/debug/mt` under running tests |
+| `test` | a change that breaks a test lands |
+| `check-examples` | an example project the docs and evals read stops passing `mt check` |
+| `check-doc-coverage` | an `mt` subcommand ships with no CLI doc entry |
+| `check-doc-facts` | a derived crate, field, framework, gate, sweep flag, filter function or completable argument ships with no doc entry |
+| `check-doc-spans` | a doc code span names an `mt` command, flag or config key that does not exist |
+| `docs::check` | the docs site fails to build or links to a missing page |
+| `docs::md-check` | a committed Markdown file differs from its source or renders broken on GitHub |
+| `site-pages-fixture-check` | the docs manifest gate stops catching a duplicate route, a page without `<page-meta>`, or a page missing from the nav |
+| `cover` | line coverage drops below 90% unnoticed |
+| `crap` | a complex, undertested function lands, or a function’s CRAP score rises past its baseline |
 
 How the gates run and skip unchanged work, and the formatter path lists, are in [docs/contributing/gates.md](docs/contributing/gates.md). A new TOML file, Typst directory or justfile module joins its `*_FMT_PATHS` list in the `Justfile`, which `just fmt` and `just fmt-check` both read.
 
-`just check-full` adds `just cover` and `just crap` to `just check`. Run it before a PR. When you add complexity on purpose, run `just crap-baseline` in the same commit. The thresholds and their reasons are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
+When you add complexity on purpose, run `just crap-baseline` in the same commit. The thresholds and their reasons are in [docs/contributing/coverage-crap.md](docs/contributing/coverage-crap.md).
 
 Run `just nix-build` when you touch `flake.nix` or `.cargo/config.toml`. It builds the flake in a clean sandbox, and `just release` runs it too.
 

@@ -91,9 +91,8 @@ in #link("docs/contributing/gates.md")[docs/contributing/gates.md]. A new TOML
 file, Typst directory or justfile module joins its `*_FMT_PATHS` list in the
 `Justfile`, which #just.fmt() and #just.fmt-check() both read.
 
-#just.check-full() adds #just.cover() and #just.crap() to #just.check(). Run
-it before a PR. When you add complexity on purpose, run #just.crap-baseline()
-in the same commit. The thresholds and their reasons are in
+When you add complexity on purpose, run #just.crap-baseline() in the same
+commit. The thresholds and their reasons are in
 #link("docs/contributing/coverage-crap.md")[docs/contributing/coverage-crap.md].
 
 Run #just.nix-build() when you touch `flake.nix` or `.cargo/config.toml`. It

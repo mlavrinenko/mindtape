@@ -23,8 +23,9 @@ cargo llvm-cov clean --workspace
 # suite under one execution model while measuring it under another can pass in
 # one and fail in the other with nothing saying so. llvm-cov merges the
 # profraw of child processes, so subprocess-based CLI e2e tests still
-# attribute to the code they exercise.
-cargo llvm-cov nextest --workspace --no-report
+# attribute to the code they exercise. `--cargo-quiet` twice drops cargo's
+# build lines, as in `just test`.
+cargo llvm-cov nextest --workspace --no-report --cargo-quiet --cargo-quiet
 cargo llvm-cov report --ignore-filename-regex "$ignore" \
     --lcov --output-path target/coverage/lcov.info
 # Only the header and `TOTAL` row: the per-file table is ~230 lines a gate run

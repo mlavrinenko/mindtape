@@ -39,7 +39,8 @@
   "size-fixture-check": [the size gate stops scanning `.just/scripts/` and still reports a clean tree],
   "script-scope-check": [a gate script changes and its arm reports a cached pass],
   "site-pages-fixture-check": [the docs manifest gate stops catching a duplicate route, a page without `<page-meta>`, or a page missing from the nav],
-  "check-crap": [a CRAP failure that a fresh local lcov already shows first appears in CI],
+  "cover": [line coverage drops below 90% unnoticed],
+  "crap": [a complex, undertested function lands, or a function's CRAP score rises past its baseline],
   "crap-baseline-check": [the CRAP baseline carries machine-local paths or scores nothing],
   "check-gate-drift": [a TOML file goes unformatted, or a gate build relinks `target/debug/mt` under running tests],
 )
