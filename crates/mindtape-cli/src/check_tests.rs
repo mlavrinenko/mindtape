@@ -360,6 +360,7 @@ fn breach(severity: mindtape::Severity, line: usize) -> mindtape::Violation {
         message: "m".to_owned(),
         location: mindtape::Location::at("tasks/t.typ", line),
         severity,
+        kind: mindtape::ViolationKind::Other,
         reads: None,
     }
 }

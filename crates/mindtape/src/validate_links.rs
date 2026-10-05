@@ -24,6 +24,7 @@ use crate::model::{Task, resolve_link_path};
 use crate::ready::{collect_blockers, unblocked_violation};
 use crate::severity::Severity;
 use crate::validate::Violation;
+use crate::violation::ViolationKind;
 
 /// Validate every task's `links:` edges against `config`, appending violations
 /// to `out`: resolution (or target-shape validation) and per-kind
@@ -69,6 +70,7 @@ fn check_unblocked(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
                 message: unblocked_violation(&status.name, &blockers),
                 location: task.field_location("status"),
                 severity: Severity::Warn,
+                kind: ViolationKind::Other,
                 reads: Some(crate::violation::reads_of_field("status")),
             });
         }
@@ -159,7 +161,9 @@ fn check_resolution(task: &Task, link: &Link, files: &HashSet<&Path>, out: &mut 
             .unwrap_or(Path::new(&link.task))
             .display()
             .to_string();
-        push(out, task, kind_field(link), unresolved_message(&display));
+        let mut breach = breach(task, kind_field(link), unresolved_message(&display));
+        breach.kind = ViolationKind::UnresolvedLink;
+        out.push(breach);
     }
 }
 
@@ -168,11 +172,10 @@ fn unresolved_message(display: &str) -> String {
     format!("link target `{display}` not found")
 }
 
-/// Whether `violation` says an edge's target is not in the set, which only the
+/// Whether `violation` is an edge's target missing from the set, which only the
 /// set around the task can settle.
 pub(crate) fn is_unresolved(violation: &Violation) -> bool {
-    let message = &violation.message;
-    message.starts_with("link target `") && message.ends_with("` not found")
+    violation.kind == ViolationKind::UnresolvedLink
 }
 
 fn check_note_rule(
@@ -220,20 +223,27 @@ fn check_cycle(tasks: &[Task], kind: &str, out: &mut Vec<Violation>) {
             message: format!("{kind} cycle: {cycle}"),
             location,
             severity: Severity::Error,
+            kind: ViolationKind::Other,
             reads: Some(crate::violation::reads_of_field("links")),
         });
     }
 }
 
 fn push(out: &mut Vec<Violation>, task: &Task, field: String, message: String) {
-    out.push(Violation {
+    out.push(breach(task, field, message));
+}
+
+/// An error about the task's `links` field.
+fn breach(task: &Task, field: String, message: String) -> Violation {
+    Violation {
         task_id: task.id.clone(),
         location: task.field_location("links"),
         field,
         message,
         severity: Severity::Error,
+        kind: ViolationKind::Other,
         reads: Some(crate::violation::reads_of_field("links")),
-    });
+    }
 }
 
 #[cfg(test)]

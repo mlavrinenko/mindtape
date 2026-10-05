@@ -62,7 +62,7 @@ groups:
       crates/mindtape-cli/src/worktrees.rs: 844afb5b116a83aec8bf858e286273242881786cb5ddf4dab4c168bff65e4508
       crates/mindtape/src/defaults.toml: 0b73c2b1e699a4827427c1b48ae699fc36e4f9eff6fec7f75313b07fe32a023b
       crates/mindtape/src/fields.rs: 4a01616879dcfffe0e4922aeeafde5068a78f1b1b7b95633bc21d37cb7bd2a10
-      crates/mindtape/src/lib.rs: 96dd78a1b13ad5d013f2d45eae50549db9b431763e62e244da1a490547da3dbf
+      crates/mindtape/src/lib.rs: a7f1b6124f15af658d83a2b63a4bf8d1f09cedfb22d35a5c89ff66e23b429856
     dependents:
       docs/src/skill.typ: 1bce54f4da2ee49ecf536973aa51d50ed877b211591fa73d1874e8daf6cf2a4a
       skills/mindtape/evals/README.md: e530d4b6a77d8220a7f138487974a3c0797271020a575b74f51d9379a57d7769

@@ -104,6 +104,7 @@ pub(crate) fn check(tasks: &[Task], config: &Config, out: &mut Vec<Violation>) {
                 message: children_violation(&status.name, &open),
                 location: task.field_location("status"),
                 severity: Severity::Warn,
+                kind: crate::violation::ViolationKind::Other,
                 reads: Some(crate::violation::reads_of_field("status")),
             });
         }

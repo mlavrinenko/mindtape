@@ -106,6 +106,19 @@ impl std::fmt::Display for Location {
     }
 }
 
+/// What a [`Violation`] is, for the callers that act on one kind of breach. The
+/// check that raises it sets this where it builds the breach, so a caller never
+/// recovers it from the wording of [`Violation::message`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ViolationKind {
+    /// A breach no caller treats apart from the rest.
+    #[default]
+    Other,
+    /// An edge whose target is not in the set of tasks checked, which only the
+    /// set around the task can settle.
+    UnresolvedLink,
+}
+
 /// A single validation failure.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Violation {
@@ -129,6 +142,9 @@ pub struct Violation {
     /// level. Every report prints it ([`Severity::label`]) and
     /// [`Violation::is_fatal`] answers from it.
     pub severity: Severity,
+    /// What sort of breach this is; [`ViolationKind::Other`] unless a caller
+    /// acts on the kind.
+    pub kind: ViolationKind,
     /// The task fields the check read to decide this breach: a rule's `when`
     /// and `assert` names, a body rule's `when` names, the field a field check
     /// is about. `None` when it may be about any field — a rule reaching

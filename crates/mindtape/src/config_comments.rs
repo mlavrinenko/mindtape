@@ -143,6 +143,7 @@ fn to_violation(task: &Task, comment: &Comment, severity: Severity) -> Violation
         message: format!("{} comment: \"{}\"", shape(&comment.kind), comment.text),
         location: Location::at(task.file.clone(), comment.line),
         severity,
+        kind: crate::violation::ViolationKind::Other,
         reads: Some(crate::violation::reads_of_field("comments")),
     }
 }

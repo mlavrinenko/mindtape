@@ -171,6 +171,7 @@ impl CompiledRule {
             message,
             location: task.marker_location(),
             severity: self.severity,
+            kind: crate::violation::ViolationKind::Other,
             reads: self.reads.clone(),
         }
     }

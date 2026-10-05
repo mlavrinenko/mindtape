@@ -485,6 +485,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A `Violation` carries a `ViolationKind`.** The template check dropped an
+  unresolved link target by matching the start and end of its message, so a
+  reworded message changed what it dropped. The link check sets
+  `ViolationKind::UnresolvedLink` where it raises the breach, and the check
+  matches on that.
 - **A task's handle is its stem hash** (breaking, pre-1.0). A `#` handle was
   a row number in the default view plus a check letter, so a handle from a
   filtered listing could name another task. The `slug#` column now prints

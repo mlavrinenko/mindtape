@@ -6,6 +6,7 @@ use crate::link::{Link, LinkKind, NoteRule, TargetValidator};
 use crate::model::Task;
 use crate::test_support::bare_task;
 use crate::validate::Violation;
+use crate::violation::ViolationKind;
 
 fn edge(target: &str, kind: &str) -> Link {
     Link {
@@ -65,6 +66,23 @@ fn names_only_an_unresolved_target_as_unresolved() {
             .is_some_and(|v| v.message.contains("missing.typ"))
     );
     assert!(violations.len() > 1, "{violations:?}");
+}
+
+#[test]
+fn is_unresolved_reads_the_kind_and_ignores_the_wording() {
+    let mut a = bare_task("a");
+    a.links = vec![edge("missing.typ", "depends-on")];
+    let mut unresolved = check(&[a], &Config::default())
+        .into_iter()
+        .find(|v| v.field == "depends-on")
+        .unwrap();
+    assert_eq!(unresolved.kind, ViolationKind::UnresolvedLink);
+    unresolved.message = "the target is gone".to_owned();
+    assert!(super::is_unresolved(&unresolved));
+    // The same words under another kind are not an unresolved target.
+    unresolved.kind = ViolationKind::Other;
+    unresolved.message = "link target `x.typ` not found".to_owned();
+    assert!(!super::is_unresolved(&unresolved));
 }
 
 #[test]

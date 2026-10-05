@@ -192,7 +192,7 @@ pub use template::{FillError, RawValue, SlotKind, SlotSpec, discover_slots, fill
 pub use template_check::{
     TemplateHome, TemplateSources, template_breaches, template_failure, unfillable_slots,
 };
-pub use validate::{Location, Violation, validate};
+pub use validate::{Location, Violation, ViolationKind, validate};
 pub use worktrees::{WorktreeEntry, WorktreeError, WorktreeRegistry};
 
 /// Retain the tasks matching `filter`; `None` keeps them all. `config` resolves

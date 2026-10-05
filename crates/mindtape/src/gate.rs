@@ -232,6 +232,7 @@ fn diagnostic_to_violation(
         message: diag.message,
         location,
         severity: Severity::Error,
+        kind: crate::violation::ViolationKind::Other,
         reads: crate::violation::reads_of(rule.when.iter()),
     }
 }

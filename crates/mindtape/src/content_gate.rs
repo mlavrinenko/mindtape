@@ -194,6 +194,7 @@ pub fn check_content(
                 message: rule.message.clone().unwrap_or(default),
                 location: Location::at(task.file.clone(), node.heading.line),
                 severity: Severity::Error,
+                kind: crate::violation::ViolationKind::Other,
                 reads: crate::violation::reads_of(rule.when.iter()),
             });
         }

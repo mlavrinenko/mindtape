@@ -134,6 +134,7 @@ fn breach(home: TemplateHome<'_>, line: usize, message: String) -> Violation {
         message,
         location: home.at(line),
         severity: Severity::Error,
+        kind: crate::violation::ViolationKind::Other,
         reads: Some(std::collections::BTreeSet::new()),
     }
 }
