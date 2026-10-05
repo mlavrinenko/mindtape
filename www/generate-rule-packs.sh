@@ -33,20 +33,20 @@ capture_init
 capture rule-packs-origin "$REPO" 'mt config show --origin'
 
 # Three projects whose config names a pack `mt` refuses. Each record shows the
-# config, then the refusal.
-refused() { # <slug> <show-command> <file=content>...
-  local slug=$1 show=$2 dir pair
-  shift 2
+# config, then the refusal, which must match <expect>.
+refused() { # <slug> <expect> <show-command> <file=content>...
+  local slug=$1 expect=$2 show=$3 dir pair
+  shift 3
   capture_scratch dir
   mkdir -p "$dir/.mindtape"
   for pair in "$@"; do printf '%s' "${pair#*=}" >"$dir/${pair%%=*}"; done
   capture "$slug" "$dir" "$show"
-  capture --exit 1 "$slug" "$dir" 'mt check'
+  capture --exit 1 --expect "$expect" "$slug" "$dir" 'mt check'
 }
-refused rule-packs-unknown 'cat .mindtape/config.toml' \
+refused rule-packs-unknown 'unknown pack' 'cat .mindtape/config.toml' \
   $'.mindtape/config.toml=extends = ["mindtape-task"]\n'
-refused rule-packs-shape 'head .mindtape/config.toml team.toml' \
+refused rule-packs-shape 'may not declare' 'head .mindtape/config.toml team.toml' \
   $'.mindtape/config.toml=extends = ["./team.toml"]\n' \
   $'team.toml=[[tasks.rules]]\nname = "has-owner"\nassert = "has(assignee)"\nmessage = "name an owner"\n\n[tasks.priority]\nmax = 5\n'
-refused rule-packs-disable 'cat .mindtape/config.toml' \
+refused rule-packs-disable 'no rule named' 'cat .mindtape/config.toml' \
   $'.mindtape/config.toml=extends = ["mindtape-tasks"]\ndisable = ["imperative-titles"]\n'

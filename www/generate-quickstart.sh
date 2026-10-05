@@ -29,7 +29,7 @@ EOF
 cp "$QS/tasks/fix-the-login-bug.typ" "$OUT/qs-written.typ"
 capture qs-ls "$QS" 'mt ls'
 capture qs-filter "$QS" "mt ls 'contains(\"login\")'"
-capture --exit 1 qs-refused "$QS" 'mt done fix-the-login-bug'
+capture --exit 1 --expect 'illegal transition' qs-refused "$QS" 'mt done fix-the-login-bug'
 capture_lines qs-flip "$QS" <<'EOF'
 mt wip fix-the-login-bug
 mt done fix-the-login-bug

@@ -27,14 +27,14 @@ source "$REPO/www/capture.sh"
 capture_init
 
 capture_copy S examples/statuses
-capture --exit 1 statuses-transition "$S" 'mt flip done import-xlsx-files'
-capture --exit 1 statuses-note "$S" 'mt flip failed add-a-dry-run-flag'
-capture --exit 1 statuses-unblocked "$S" 'mt flip wip import-xlsx-files'
+capture --exit 1 --expect 'illegal transition' statuses-transition "$S" 'mt flip done import-xlsx-files'
+capture --exit 1 --expect 'requires a note' statuses-note "$S" 'mt flip failed add-a-dry-run-flag'
+capture --exit 1 --expect 'requires an unblocked task' statuses-unblocked "$S" 'mt flip wip import-xlsx-files'
 
 capture_copy R examples/rules
-capture --exit 1 rules-wip-cap "$R" 'mt flip wip add-csv-export'
-capture --exit 1 rules-assert "$R" 'mt set fix-the-session-timeout priority=1'
-capture --exit 1 rules-required "$R" 'mt set add-csv-export kind=bug'
+capture --exit 1 --expect 'rules\.one-task-in-flight' rules-wip-cap "$R" 'mt flip wip add-csv-export'
+capture --exit 1 --expect 'rules\.bugs-outrank-the-low-band' rules-assert "$R" 'mt set fix-the-session-timeout priority=1'
+capture --exit 1 --expect 'required field is missing' rules-required "$R" 'mt set add-csv-export kind=bug'
 capture rules-warn "$R" "mt set add-csv-export 'title=Add CSV export to the report page.'"
 
 # The legend a project gets when it declares none: the embedded floor's, read

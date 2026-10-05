@@ -18,4 +18,4 @@ MT="$REPO/target/debug/mt"
 # shellcheck source=www/capture.sh
 source "$REPO/www/capture.sh"
 capture_init
-capture --exit 1 self-validating-check "$REPO/examples/self-validating" 'mt check'
+capture --exit 1 --expect 'rules\.goals' self-validating-check "$REPO/examples/self-validating" 'mt check'

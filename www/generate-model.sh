@@ -28,7 +28,7 @@ cp "$REPO/examples/api-service/tasks/add-redis-client.typ" "$OUT/concepts-task.t
 # renames the file and rewrites the link.
 capture_copy C examples/links
 capture concepts-mv-by-hand "$C" 'mv tasks/pick-a-provider.typ tasks/choose-a-provider.typ'
-capture --exit 1 concepts-mv-by-hand "$C" 'mt check'
+capture --exit 1 --expect 'link target .* not found' concepts-mv-by-hand "$C" 'mt check'
 capture_prep "$C" 'mv tasks/choose-a-provider.typ tasks/pick-a-provider.typ'
 capture concepts-mv "$C" 'mt mv pick-a-provider choose-a-provider'
 capture concepts-mv "$C" 'mt check'

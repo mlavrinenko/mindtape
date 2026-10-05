@@ -48,7 +48,7 @@ mt ls 'in_dict("verbs", word(title, 1))'
 mt ls '!matches(word(title, 1), "ing$")'
 mt ls 'in_dict("mindtape-verbs", word(title, 1)) || matches(title, "^`")'
 EOF
-capture --exit 1 filters-unknown-dict "$API" "mt ls 'in_dict(\"verb\", word(title, 1))'"
+capture --exit 1 --expect 'unknown dict in filter' filters-unknown-dict "$API" "mt ls 'in_dict(\"verb\", word(title, 1))'"
 capture filters-blocked "$API" 'mt ls blocked --columns title,why'
 capture_lines filters-graph "$API" <<'EOF'
 mt ls ready
@@ -76,16 +76,16 @@ mt views
 mt views waiting
 mt ls @waiting
 EOF
-capture --exit 1 named-sets-allowed "$SETS" 'mt set fix-the-refund-rounding tags+=payments'
+capture --exit 1 --expect 'is not an allowed tag' named-sets-allowed "$SETS" 'mt set fix-the-refund-rounding tags+=payments'
 
 # --- /priority/ ---------------------------------------------------------------
 capture priority-ls "$REPO/examples/priority" 'mt ls --columns title,priority --sort priority:desc'
-capture --exit 1 priority-strict "$REPO/examples/priority" 'mt set fix-the-signup-email-typo priority=8'
+capture --exit 1 --expect 'allow-manual = false' priority-strict "$REPO/examples/priority" 'mt set fix-the-signup-email-typo priority=8'
 
 # --- /estimates/ --------------------------------------------------------------
 # A rule reading changed() needs a git repository, so the copy gets one.
 capture_copy P examples/estimates
 capture_prep "$P" "git init -q && git add -A && $COMMIT -m fixture"
-capture --exit 1 estimates-cap "$P" 'mt set rename-the-status-glyphs difficulty=3'
+capture --exit 1 --expect 'rules\.judgment-stays-small' estimates-cap "$P" 'mt set rename-the-status-glyphs difficulty=3'
 capture_prep "$P" 'mt wip rewrite-loader && mkdir -p src && for f in a b c d e; do echo x >src/$f.rs; done'
 capture estimates-budget "$P" 'mt check'

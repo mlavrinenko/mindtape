@@ -5,7 +5,7 @@ groups:
     source:
       crates/mindtape/src/packs/mindtape-tasks.toml: ad92738ede81cbe398e8adc34dff707e9b8e19fb174b63c5407fecf55e0d587d
       examples/api-service/.mindtape/config.toml: 2cd85c5820d5704ab091aec97f87775bb46134ccd348c40340a32b6af6855a87
-      www/generate-api-service.sh: 38193378db15917db486193059c9cbe972fcfaa9ff102b9d0e2ee225dac6954d
+      www/generate-api-service.sh: 00456ccaf698f9fa70a85c4336fa668cb8ba1808ed20acee5b2f89e99fca9344
     dependents:
       www/content/gate-done-on-checks.typ: 8de758b9971b4d0c69650878b5a7c66384d5138411b68bdfc4f979649448995c
       www/content/one-task-at-a-time.typ: 721b0dbd75ff2a255a85ccc7c615ef1174d6ad6259369d5085adc361235540ed
@@ -129,7 +129,7 @@ groups:
       .just/scripts/check-doc-spans.sh: 7bb4d0076f965fe886210bd5519ba998336c0c4f9cd2b5e38ac8d6b8dbf9aae8
       .just/scripts/docs-md-check.sh: 0e26ec16da952dd19702927829331f5f0787feef5356c5ccde2584c0454e673f
     dependents:
-      docs/src/contributing/documentation.typ: e214f003c72256a2f2820dca9a39f13d396290182e65caad23748774c82e71c6
+      docs/src/contributing/documentation.typ: 90b35b19923b50da8859e4f3ae9d106291335633ded64e8e73a61ba5473ccc37
       docs/src/contributing/generated-docs.typ: 3336200378c00ff63a00121df8376406546683821252d4c3b5019e1c7ffec612
       www/utils/gate-notes.typ: eb02cbe1a75cf660eba9289de8a9bce1b9863183d49779dbde2119d3ac6ffcba
   filter-docs:

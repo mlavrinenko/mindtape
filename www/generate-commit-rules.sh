@@ -33,18 +33,18 @@ capture commit-hook "$P" 'cat .git/hooks/commit-msg'
 
 # The trailer check: a path in place of a stem.
 capture_prep "$P" 'echo "CREATE TABLE sessions (id text);" >migrations/001-sessions.sql && git add -A'
-capture --exit 1 commit-refs-path "$P" 'git commit -qm "feat: add the sessions table" -m "Refs: tasks/fix-the-session-timeout.typ"'
+capture --exit 1 --expect 'is a path; write the stem' commit-refs-path "$P" 'git commit -qm "feat: add the sessions table" -m "Refs: tasks/fix-the-session-timeout.typ"'
 
 # A commit-scope rule: a migration with no `Refs:` trailer.
-capture --exit 1 commit-scope-breach "$P" 'git commit -qm "feat: add the sessions table"'
+capture --exit 1 --expect 'migration-names-a-task' commit-scope-breach "$P" 'git commit -qm "feat: add the sessions table"'
 capture commit-scope-breach "$P" 'git commit -qm "feat: add the sessions table" -m "Refs: fix-the-session-timeout"'
 
 # A task-scope rule: the commit names a task whose status change is unstaged.
 capture_prep "$P" 'mt done fix-the-session-timeout >/dev/null && echo "// expire after 30 minutes" >>src/session.rs && git add src/session.rs'
 capture commit-task-scope "$P" 'git status --short'
-capture --exit 1 commit-task-scope "$P" 'git commit -qm "fix: expire idle sessions" -m "Refs: fix-the-session-timeout"'
+capture --exit 1 --expect 'stage-the-flip' commit-task-scope "$P" 'git commit -qm "fix: expire idle sessions" -m "Refs: fix-the-session-timeout"'
 capture commit-task-scope "$P" 'git add -A && git commit -qm "fix: expire idle sessions" -m "Refs: fix-the-session-timeout"'
 
 # The range check: a commit that skipped the hook.
 capture_prep "$P" 'echo "DROP TABLE legacy;" >migrations/002-drop-legacy.sql && git add -A && git commit -q --no-verify -m "chore: drop the legacy table"'
-capture --exit 1 commit-range "$P" 'mt check --commits main~3..main'
+capture --exit 1 --expect 'broke commit rules' commit-range "$P" 'mt check --commits main~3..main'

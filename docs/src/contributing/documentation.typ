@@ -82,7 +82,10 @@ record with `terminal(<slug>)`, or `commands(<slug>)` for the commands alone.
 Both print each command from the record, so a page cannot show a command that
 did not run. `exit-code(<slug>)` prints the exit code of a refusal the page
 shows. A step that exits with an unexpected code fails the build, which
-keeps a refusal the page shows from passing unnoticed.
+keeps a refusal the page shows from passing unnoticed. Every `mt` error exits
+1, so a refusal capture also names its reason with `--expect <regex>`. The build
+fails unless the output, without its colour, matches the regex, and it fails on
+a non-zero `--exit` that has no `--expect`.
 
 #just.check-doc-blocks() fails on a fenced block, or a block `raw(...)`,
 whose text is written in the source. A block no fixture can hold, such as a

@@ -44,7 +44,7 @@ api_copy() {
 # Split oversized tasks: a task estimated at 7 source files is refused at
 # `mt add`, and nothing is written.
 api_copy P
-capture --exit 1 split-oversized-tasks "$P" "$(
+capture --exit 1 --expect 'rules\.split-big-work' split-oversized-tasks "$P" "$(
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Sign in with Google and GitHub
@@ -71,7 +71,7 @@ CMD
 # Require a task shape: the template refuses a task with sections left out,
 # and the rule pack refuses a Problem written as prose.
 api_copy P
-capture --exit 1 require-a-task-shape "$P" "$(
+capture --exit 1 --expect 'missing required slot' require-a-task-shape "$P" "$(
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Paginate the audit log endpoint
@@ -80,7 +80,7 @@ problem: GET /audit returns every row, and on production the response is 40 MB.
 EOF
 CMD
 )"
-capture --exit 1 require-a-task-shape "$P" "$(
+capture --exit 1 --expect 'problem-is-numbered-steps' require-a-task-shape "$P" "$(
     cat <<'CMD'
 mt add -f - <<'EOF'
 title: Paginate the audit log endpoint
@@ -101,7 +101,7 @@ CMD
 # fails. `--force` closes the task anyway and writes the waiver into the
 # status note.
 api_copy P
-capture --exit 1 gate-done-on-checks "$P" 'mt done reject-expired-sessions-on-token-refresh'
+capture --exit 1 --expect 'gate "scripts/test" failed' gate-done-on-checks "$P" 'mt done reject-expired-sessions-on-token-refresh'
 capture_lines gate-done-on-checks "$P" <<'EOF'
 mt done reject-expired-sessions-on-token-refresh --force
 grep status: tasks/reject-expired-sessions-on-token-refresh.typ
@@ -110,8 +110,8 @@ EOF
 # One task at a time: a second task cannot start while one is in progress,
 # and a task cannot start before its dependencies are done.
 api_copy P
-capture --exit 1 one-task-at-a-time "$P" 'mt wip add-redis-client'
-capture --exit 1 one-task-at-a-time "$P" 'mt wip throttle-failed-logins-per-ip'
+capture --exit 1 --expect 'rules\.one-wip' one-task-at-a-time "$P" 'mt wip add-redis-client'
+capture --exit 1 --expect 'requires an unblocked task' one-task-at-a-time "$P" 'mt wip throttle-failed-logins-per-ip'
 capture one-task-at-a-time "$P" 'mt ls blocked --columns title,why'
 
 # Trace commits to tasks: a commit-msg hook runs `mt check --commit-msg`, which
@@ -143,7 +143,7 @@ EOF
 CMD
 )"
 capture trace-commits-to-tasks "$P" 'chmod +x .git/hooks/commit-msg'
-capture --exit 1 trace-commits-to-tasks "$P" \
+capture --exit 1 --expect 'work-names-a-task' trace-commits-to-tasks "$P" \
     'git commit -am "fix(auth): reject expired sessions on token refresh"'
 capture trace-commits-to-tasks "$P" \
     'git commit -am "fix(auth): reject expired sessions on token refresh" -m "Refs: reject-expired-sessions-on-token-refresh"'

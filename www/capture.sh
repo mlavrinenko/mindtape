@@ -27,6 +27,11 @@
 # its expected code (0 unless --exit says otherwise) fails the build, so a
 # command a page shows cannot start failing, and a refusal it shows cannot
 # start passing.
+#
+# A refusal also names its reason. Every `mt` error exits 1, so the code alone
+# cannot tell the refusal a page explains from an unrelated error. A capture
+# with a non-zero --exit therefore needs `--expect <regex>`, an extended
+# regular expression the output must match once its ANSI colour is stripped.
 
 CAPTURE_PATHS=()
 
@@ -119,12 +124,20 @@ capture_prep() {
     }
 }
 
-# capture [--exit <code>] <slug> <dir> <command>: run <command> in <dir> and
-# append it to the record <slug>.
+# capture [--exit <code> --expect <regex>] <slug> <dir> <command>: run
+# <command> in <dir> and append it to the record <slug>. A non-zero --exit
+# needs --expect, and the output must match it.
 capture() {
-    local expect=0
-    if [ "$1" = --exit ]; then expect=$2 && shift 2; fi
-    local slug=$1 cmd=$3 dir project out code=0 pair file="$OUT/$1.json"
+    local expect=0 reason=
+    while [ "${1:-}" = --exit ] || [ "${1:-}" = --expect ]; do
+        if [ "$1" = --exit ]; then expect=$2; else reason=$2; fi
+        shift 2
+    done
+    if [ "$expect" != 0 ] && [ -z "$reason" ]; then
+        echo "capture $1: --exit $expect needs --expect <regex> naming why the command refuses" >&2
+        return 1
+    fi
+    local slug=$1 cmd=$3 dir project out plain code=0 pair file="$OUT/$1.json"
     dir=$(cd "$2" && pwd -P) || return 1
     project=$(_capture_project "$dir") || return 1
     out=$(_capture_run "$dir" "$cmd") || code=$?
@@ -134,6 +147,14 @@ capture() {
         printf '%s\n' "\$ $cmd" "$out" >&2
         echo "capture $slug: the command above exited $code, expected $expect" >&2
         return 1
+    fi
+    if [ -n "$reason" ]; then
+        plain=$(printf '%s' "$out" | sed -E $'s/\x1b\\[[0-9;]*[A-Za-z]//g')
+        if ! [[ "$plain" =~ $reason ]]; then
+            printf '%s\n' "\$ $cmd" "$out" >&2
+            echo "capture $slug: the output above does not match --expect '$reason'" >&2
+            return 1
+        fi
     fi
     if [[ "$out" == *"$CAPTURE_TMP"* ]]; then
         printf '%s\n' "\$ $cmd" "$out" >&2
