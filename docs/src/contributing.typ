@@ -110,8 +110,9 @@ failing gate.
 #just.fork("<slug>", "<base>") creates the worktree `../mindtape-<slug>` on a
 new branch off `<base>` (default `HEAD`). It refuses when this checkout has
 uncommitted changes, because `git worktree add` copies commits only.
-#just.integrate("<branch>") refuses unless every gate passed against the
-worktree's current files. It then fast-forwards this checkout and removes the
+#just.integrate("<branch>") refuses a branch that names a still-`wip` task in
+`Refs:`, and refuses unless every gate passed against the worktree's current
+files. It then fast-forwards this checkout and removes the
 worktree. `.just/scripts/fork.sh` and `.just/scripts/integrate.sh` explain
 both.
 
@@ -132,6 +133,8 @@ refuse. Run `mt wip <stem>` inside the worktree instead.
 - Commit a status flip together with the work it claims. `mt wip` goes in
   the first work commit and `mt done` in the last. Leave the flip uncommitted
   until then, because a commit with a flip and no other change is refused.
+  Stage the `mt wip` flip with that commit: a commit naming a task that is not
+  `wip` in the staged tree is refused too.
 - A task tagged `decision` has no code of its own. It may close in a commit
   that changes only task files, with a `Refs:` footer naming it.
 

@@ -108,6 +108,28 @@ run_in_worktree() {
     fi
 }
 
+# A branch that names a task in a `Refs:` trailer and leaves it `wip` at its tip
+# has lost the `done` flip, or never finished the task: landing it puts work on
+# `main` whose task still says it is under way, and the repair is a rewrite of
+# commits that are already shared. The commit-time rule `refs-task-is-started`
+# covers the opposite slip, a task named before it was started. It is asked
+# before the gate because it is cheap and its answer is a one-line fix. The
+# trailer key is the project's `[commits] trailer`, and a path value
+# (`truth/tasks/<stem>.typ`) counts as its stem, as `mt check --commit-msg`
+# reads it.
+key=$(run_in_worktree mt config show --json | jq -r '.commits.trailer // "Refs"')
+named=$(git log --format="%(trailers:key=$key,valueonly)" "$head_sha..$branch_sha" \
+    | sed -e '/^$/d' -e 's#.*/##' -e 's#\.typ$##' | sort -u)
+open=$(run_in_worktree mt ls 'status == "wip"' --format path \
+    | sed -e 's#.*/##' -e 's#\.typ$##' | sort -u)
+left=$(comm -12 <(printf '%s\n' "$named") <(printf '%s\n' "$open") | sed '/^$/d')
+if [ -n "$left" ]; then
+    echo "integrate: '$branch' names tasks that are still wip at its tip:" >&2
+    sed 's/^/  /' <<<"$left" >&2
+    echo "  run \`mt done <stem>\` in $wt and commit it with the task's last work, then integrate again" >&2
+    exit 1
+fi
+
 # The verdict is `--is-fresh`'s own exit code, and naming the arm is already
 # mmz's own job: it reports each stale or failed rule on its own line
 # ("mmz: `just clippy` is never (never run)") before exiting. A `--status=json`

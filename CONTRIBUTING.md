@@ -82,7 +82,7 @@ A commit in a delegated worktree may skip the hook’s freshness check with `MIN
 
 ## Worktrees
 
-`just fork <slug> <base>` creates the worktree `../mindtape-<slug>` on a new branch off `<base>` (default `HEAD`). It refuses when this checkout has uncommitted changes, because `git worktree add` copies commits only. `just integrate <branch>` refuses unless every gate passed against the worktree’s current files. It then fast-forwards this checkout and removes the worktree. `.just/scripts/fork.sh` and `.just/scripts/integrate.sh` explain both.
+`just fork <slug> <base>` creates the worktree `../mindtape-<slug>` on a new branch off `<base>` (default `HEAD`). It refuses when this checkout has uncommitted changes, because `git worktree add` copies commits only. `just integrate <branch>` refuses a branch that names a still-`wip` task in `Refs:`, and refuses unless every gate passed against the worktree’s current files. It then fast-forwards this checkout and removes the worktree. `.just/scripts/fork.sh` and `.just/scripts/integrate.sh` explain both.
 
 Fork before you flip a task, because the uncommitted flip would make `fork` refuse. Run `mt wip <stem>` inside the worktree instead.
 
@@ -91,7 +91,7 @@ Fork before you flip a task, because the uncommitted flip would make `fork` refu
 - Use Conventional Commits in the language of prior commits.
 - End the message with a `Refs: <stem>` footer naming the task the commit works on. Only a commit that changes nothing but task files under `truth/tasks/` may omit it. A change to any other file needs it, `.mindtape/config.toml` included.
 - File a task in its own `task:` commit with no `Refs:`. A change to one source file too small to plan is the exception: file it with `mt add -t tweak`, which files it done, in the commit that makes the change, and name it in `Refs:`.
-- Commit a status flip together with the work it claims. `mt wip` goes in the first work commit and `mt done` in the last. Leave the flip uncommitted until then, because a commit with a flip and no other change is refused.
+- Commit a status flip together with the work it claims. `mt wip` goes in the first work commit and `mt done` in the last. Leave the flip uncommitted until then, because a commit with a flip and no other change is refused. Stage the `mt wip` flip with that commit: a commit naming a task that is not `wip` in the staged tree is refused too.
 - A task tagged `decision` has no code of its own. It may close in a commit that changes only task files, with a `Refs:` footer naming it.
 
 What checks these rules, and why `Refs:` names a stem, is in [docs/contributing/commit-messages.md](docs/contributing/commit-messages.md).

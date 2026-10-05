@@ -450,6 +450,21 @@ assert = 'count(files, "@source") <= 1'
 message = "a tweak changes one source file; file a planned task for the rest"
 severity = "error"
 
+# Work names a task only once the committed tree holds it started or finished.
+# A commit whose task is still `proposed`, or whose `wip` or `done` flip stayed
+# in the working tree, is refused here, because the repair afterwards is a
+# rewrite of commits. `named` limits it to tasks the trailer names, and
+# `staged(exists)` leaves a stem with no file to the trailer check. A decision
+# closing in a task-only commit passes, since its staged status is `done`.
+# `just integrate` asks the other half: a branch may not leave a named task wip.
+[[commits.rules]]
+name = "refs-task-is-started"
+scope = "task"
+when = "named && staged(exists)"
+assert = 'staged(status == "wip" || terminal)'
+message = "flip the task to wip in the first commit that names it (`mt wip <stem>`, staged with the work)"
+severity = "error"
+
 # The sweep's own inbox: everything `just ask-refactoring` filed that is still
 # open. It is both a listing (`mt ls @ask-refactoring`) and the sweep's re-run
 # guard — contrib/ask-refactoring.sh refuses to run while this view is

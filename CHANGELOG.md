@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   every other field to all tasks. A template's `assignee: slot("assignee")`
   offers the allowed names, and `has(tags, "frontend")` and
   `has(estimate, "days")` read the core list and dict fields.
+- **A commit may name a task only once it is started.** A commit whose
+  `Refs:` task is still `proposed` in the staged tree is refused, and
+  `just integrate` refuses a branch that leaves a task it names `wip`.
 - **A skipped rule points at its own entry.** A `[[tasks.rules]]` rule that
   `mt check` skipped for lack of git pointed at the first task's marker unless
   the project config declared it. It now points at the header of its entry in
